@@ -1,0 +1,8 @@
+ve
+local_settings.py
+*.db
+*.pyc
+*.iml
+.idea/
+*~
+migrations
