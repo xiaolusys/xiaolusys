@@ -1,14 +1,14 @@
-import time
-import urllib
 from django.http import HttpResponse,HttpResponseRedirect
 from django.conf import settings
+from django.core.urlresolvers import reverse
 from django.contrib.auth import authenticate, login
 from django.contrib.auth.signals import user_logged_in
-from auth.utils import verifySignature,decodeBase64String,parse_urlparams,getSignatureTaoBao
+from auth.utils import verifySignature,decodeBase64String,parse_urlparams,getSignatureTaoBao,refresh_session
 from auth import apis
 
 import logging
 logger = logging.getLogger('taobao.auth')
+
 
 def request_taobo(request):
 
@@ -18,30 +18,45 @@ def request_taobo(request):
 
 
 def login_taobo(request):
-    print request.GET
-    user = authenticate(request=request)
-    print request.session.__dict__
-    top_parameters = request.session['top_parameters']
-    expires_time = top_parameters['expires_in']
-    timestamp = top_parameters['ts']
-    if int(expires_time)+int(timestamp) > time.time():
-        params = {
-            'appkey':settings.APPKEY,
-            'refresh_token':top_parameters['refresh_token'],
-            'sessionkey':request.session['top_session']
-        }
-        sign_result = getSignatureTaoBao(params,settings.APPSECRET,both_side=False)
-        params['sign'] = sign_result
-        refresh_url = '%s?%s'%(settings.REFRESH_URL,urllib.urlencode(params))
-        print refresh_url
-        return HttpResponseRedirect(refresh_url)
 
+    user = authenticate(request=request)
+    print user
+    if not user or user.is_anonymous():
+        return HttpResponseRedirect(reverse('home_page'))
+
+    refresh_session(request,settings)
 
     login(request, user)
     user_logged_in.send(sender='web', user=user, request=request)
 
     logger.info('user %s logged in.' % user.username)
 
-    #user = apis.taobao_users_get(nicks='coolcuky,horny')
+    #products = apis.taobao_products_get(nick=request.session['top_parameters']['visitor_nick'],page_size=100)
 
-    return HttpResponseRedirect(settings.LOGIN_REDIRECT_URL)
+    #products = apis.taobao_items_onsale_get(session=request.session['top_session'])
+
+    #print 'debug products:',products   130126150
+
+    #content = apis.taobao_products_search(q='\xe4\xbc\x98\xe5\xb0\xbc\xe4\xb8\x96\xe7\x95\x8c'.decode('utf8'),session=request.session['top_session'])
+    #print content
+
+    #content = apis.taobao_items_search(product_id=130126150,session=request.session['top_session'])
+    #print 'content:',content
+
+    #content = apis.taobao_items_inventory_get(session=request.session['top_session'])
+    #print content
+
+    #ret = apis.taobao_item_update_listing(num_iid=12789208440,num=163,session=request.session['top_session'])
+    #print 'debug:',ret
+
+    #content = apis.taobao_item_update_delisting(num_iid=12789208440,session=request.session['top_session'])
+    #print content
+
+    if request.GET.get('next'):
+        return HttpResponseRedirect(request.GET.get('next'))
+    else:
+        return HttpResponseRedirect(settings.LOGIN_REDIRECT_URL)
+
+def home(request):
+    return HttpResponse('Welcom to home page!')
+

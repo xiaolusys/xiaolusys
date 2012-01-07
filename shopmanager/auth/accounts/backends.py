@@ -21,12 +21,13 @@ class TaoBaoBackend:
     supports_object_permissions = False
 
     def authenticate(self, request, user=None):
+
         top_session = request.GET.get('top_session',None)
         if not top_session:
             top_session = request.session.get('top_session',None)
             top_parameters = request.session.get('top_parameters',None)
             if not (top_session and top_parameters):
-                raise Http500
+                raise None
         else:
             top_appkey = request.GET.get('top_appkey',None)
             top_parameters = request.GET.get('top_parameters',None)
@@ -37,7 +38,7 @@ class TaoBaoBackend:
             sign_result = verifySignature(basestring,top_sign)
 
             if not sign_result:
-                raise Http500
+                return None
             else:
                 request.session['top_appkey'] = top_appkey
                 request.session['top_session'] = top_session
@@ -61,13 +62,17 @@ class TaoBaoBackend:
                                               'model, check AUTH_PROFILE_MODULE in your project sett'
                                               'ings')
         except (ImportError, ImproperlyConfigured):
-            raise SiteProfileNotAvailable
+            raise SiteProfileNotAvailable('ImportError, ImproperlyConfigured error')
 
-        user_id = request['top_parameters']['visitor_id']
+        top_parameters = request.session.get('top_parameters')
+
+        user_id = '-'.join([top_parameters['visitor_id'],top_parameters['visitor_nick']])
+
         try:
             user = model.objects.get(username=user_id)
         except model.DoesNotExist:
             user = User.objects.create(username=user_id, is_active=True)
+
         return user
 
     def get_user(self, user_id):
