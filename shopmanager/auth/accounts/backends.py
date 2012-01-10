@@ -1,9 +1,5 @@
-import urllib
-import urllib2
 from django.db import models
-from django.http import HttpResponse
 from django.contrib.auth.models import User
-from django.utils import simplejson as json
 from auth.utils import verifySignature,decodeBase64String,parse_urlparams
 from django.conf import settings
 from auth import apis

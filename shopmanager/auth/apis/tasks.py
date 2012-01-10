@@ -20,6 +20,7 @@ API_FIELDS = {
     'taobao.itemcats.get':'cid,parent_cid,name,is_parent,status,sort_order',
     'taobao.itemprops.get':'pid, name, must, multi, prop_values',
     'taobao.itempropvalues.get':'cid,pid,prop_name,vid,name,name_alias,status,sort_order',
+    'taobao.item.get':'num_iid,title,price,approve_status,delist_time,list_time,modified,num',
     'taobao.items.list.get':'item',
     'taobao.products.get':'product_id,tsc,cat_name,name',
     'taobao.items.onsale.get':'approve_status,num_iid,title,nick,type,cid,pic_url,num,props,valid_thru,list_time,price,'
@@ -27,7 +28,9 @@ API_FIELDS = {
     'taobao.items.search':'iid,num_iid,title,nick,pic_url,cid,price,type,delist_time,post_fee',
     'taobao.products.search':'product_id,name,pic_url,cid,props,price,tsc',
     'taobao.items.inventory.get':'approve_status,num_iid,title,nick,type,cid,pic_url,num,props,valid_thru,list_time,'
-        +'price,has_discount,has_invoice,has_warranty,has_showcase, modified,delist_time,postage_id,seller_cids,outer_id'
+        +'price,has_discount,has_invoice,has_warranty,has_showcase, modified,delist_time,postage_id,seller_cids,outer_id',
+    'taobao.items.onsale.get':'approve_status,num_iid,title,nick,type,cid,pic_url,num,props,valid_thru,list_time,price,'
+        +'has_discount,has_invoice,has_warranty,has_showcase,modified,delist_time,postage_id,seller_cids,outer_id',
 }
 
 
@@ -117,6 +120,11 @@ def taobao_itempropvalues_get(cid=None,pvs=None,fields=API_FIELDS['taobao.itempr
     pass
 
 ############# items apis ###################
+
+@apis('taobao.item.get')
+def taobao_item_get(num_iid=None,fields=API_FIELDS['taobao.item.get'],session=None):
+    pass
+
 @apis('taobao.item.update.delisting')
 def taobao_item_update_delisting(num_iid=None,session=None):
     pass
@@ -146,7 +154,11 @@ def taobao_products_search(q=None,cid=None,props=None,fields=API_FIELDS['taobao.
     pass
 
 @apis('taobao.items.inventory.get')
-def taobao_items_inventory_get(q=None,banner=None,cid=None,seller_cids=None,fields=API_FIELDS['taobao.items.inventory.get'],session=None):
+def taobao_items_inventory_get(q=None,banner=None,cid=None,seller_cids=None,page_no=None,page_size=None,fields=API_FIELDS['taobao.items.inventory.get'],session=None):
+    pass
+
+@apis('taobao.items.onsale.get')
+def taobao_items_onsale_get(q=None,banner=None,cid=None,seller_cids=None,page_no=None,page_size=None,fields=API_FIELDS['taobao.items.onsale.get'],session=None):
     pass
 
 ############# items apis ###################

@@ -20,7 +20,7 @@ def request_taobo(request):
 def login_taobo(request):
 
     user = authenticate(request=request)
-    print user
+
     if not user or user.is_anonymous():
         return HttpResponseRedirect(reverse('home_page'))
 
@@ -46,11 +46,17 @@ def login_taobo(request):
     #content = apis.taobao_items_inventory_get(session=request.session['top_session'])
     #print content
 
+    #content = apis.taobao_items_onsale_get(page_no=0,page_size=100,session=request.session['top_session'])
+    #print content
+
     #ret = apis.taobao_item_update_listing(num_iid=12789208440,num=163,session=request.session['top_session'])
     #print 'debug:',ret
 
     #content = apis.taobao_item_update_delisting(num_iid=12789208440,session=request.session['top_session'])
     #print content
+
+    content = apis.taobao_item_get(num_iid=12789208440,session=request.session['top_session'])
+    print content
 
     if request.GET.get('next'):
         return HttpResponseRedirect(request.GET.get('next'))

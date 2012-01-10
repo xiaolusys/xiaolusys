@@ -97,10 +97,15 @@ INSTALLED_APPS = (
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'django.contrib.admin',
+    'south',
+    'sentry',
+    'raven.contrib.django',
+    'djangorestframework',
+    'djcelery',
+    'djkombu',
 
-    'shopback',
-
-
+    'task_daemon.manage',
+    'shopback.task',
 
 )
 
@@ -116,23 +121,44 @@ LOGIN_URL = '/accounts/login/'
 
 LOGOUT_URL = '/accounts/logout/'
 
+
+
+
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
+    'formatters': {
+        'verbose': {
+            'format': '%(levelname)s %(asctime)s %(module)s %(process)d %(thread)d %(message)s'
+        },
+        'simple': {
+            'format': '%(levelname)s %(message)s'
+        },
+    },
     'handlers': {
-        'mail_admins': {
-            'level': 'ERROR',
-            'class': 'django.utils.log.AdminEmailHandler'
-        }
+        'sentry': {
+            'level': 'DEBUG',
+            'class': 'raven.contrib.django.handlers.SentryHandler'
+        },
+        'console':{
+            'level':'DEBUG',
+            'class':'logging.StreamHandler',
+            'formatter': 'simple'
+        },
     },
     'loggers': {
         'django.request': {
-            'handlers': ['mail_admins'],
+            'handlers': ['sentry'],
             'level': 'ERROR',
             'propagate': True,
         },
     }
 }
+
+try:
+    from task_settings import *
+except :
+    pass
 
 try:
     from local_settings import *

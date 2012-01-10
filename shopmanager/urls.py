@@ -7,6 +7,7 @@ admin.autodiscover()
 urlpatterns = patterns('',
 
     (r'^accounts/', include('auth.accounts.urls')),
+    (r'^task/',include('shopback.task.urls')),
     url(r'^home/$',home,name='home_page'),
     (r'^$',login_taobo),
     (r'^admin/', include(admin.site.urls)),
