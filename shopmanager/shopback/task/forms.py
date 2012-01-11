@@ -11,5 +11,7 @@ class ItemTaskForm(forms.Form):
     title = forms.CharField(max_length=128)
     num = forms.IntegerField(min_value=1)
     update_time = forms.DateTimeField()
+    task_type = forms.IntegerField(min_value=1,max_value=2)
+
 
   

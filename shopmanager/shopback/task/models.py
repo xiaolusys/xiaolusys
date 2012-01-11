@@ -15,9 +15,10 @@ class ItemTask(BaseModel):
     title = models.CharField(max_length=128)
     num = models.IntegerField()
     update_time = models.DateTimeField()
-    created_at = models.DateTimeField(default=datetime.datetime.now)
+    task_type = models.IntegerField()       #0 update listing,1 del listing
 
-    is_active = models.BooleanField(default=False)
+    created_at = models.DateTimeField(null=True,blank=True, auto_now_add=True)
+
     is_success = models.BooleanField(default=False)
 
     class Meta:

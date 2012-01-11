@@ -6,8 +6,7 @@ from shopback.task.forms import ItemTaskForm
 class ItemTaskResource(ModelResource):
     model = ItemTask
     form  = ItemTaskForm
-    include = ()
-    exclude = ('session_key')
+    exclude = ('session_key',)
 
 
     def get_bound_form(self, data=None, files=None, method=None):
@@ -16,5 +15,9 @@ class ItemTaskResource(ModelResource):
         form.data['visitor_id'] = session['top_parameters']['visitor_id']
         form.data['visitor_nick'] = session['top_parameters']['visitor_nick']
         form.data['session_key'] = session.session_key
+
+        form.data.pop('is_success',None)
+        form.data.pop('status',None)
+
         return form
   

@@ -8,6 +8,8 @@ BROKER_BACKEND = "djkombu.transport.DatabaseTransport"
 
 EXECUTE_INTERVAL_TIME = 10*60
 
+EXECUTE_RANGE_TIME = 6*60
+
 from datetime import timedelta
 CELERYBEAT_SCHEDULE = {
     'runs-every-30-seconds':{

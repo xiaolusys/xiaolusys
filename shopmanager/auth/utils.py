@@ -41,16 +41,17 @@ def parse_urlparams(string):
 
     return map
 
-def refresh_session(request,settings):
+def refresh_session(session,settings):
 
-    top_parameters = request.session['top_parameters']
+    top_parameters = session['top_parameters']
     expires_time = top_parameters['expires_in']
     timestamp = top_parameters['ts']
+
     if int(expires_time)+int(timestamp) < time.time():
         params = {
             'appkey':settings.APPKEY,
             'refresh_token':top_parameters['refresh_token'],
-            'sessionkey':request.session['top_session']
+            'sessionkey':session['top_session']
         }
         sign_result = getSignatureTaoBao(params,settings.APPSECRET,both_side=False)
         params['sign'] = sign_result
@@ -59,17 +60,14 @@ def refresh_session(request,settings):
         req = urllib2.urlopen(refresh_url)
         content = req.read()
         params = json.loads(content)
-        #sign_ret = params.pop('sign',None).strip()
-        #sign_val = getSignatureTaoBao(params,settings.APPSECRET,both_side=False).strip()
 
-        #if sign_ret != sign_val:
-        #    return False
-        request.session['top_session'] = params.get('top_session',None)
-        request.session['top_parameters']['re_expires_id'] = params.get('re_expires_id',None)
-        request.session['top_parameters']['expires_in'] = params.get('expires_id',None)
-        request.session['top_parameters']['refresh_token'] = params.get('refresh_token',None)
+        session['top_session'] = params.get('top_session',None)
+        session['top_parameters']['re_expires_id'] = params.get('re_expires_id',None)
+        session['top_parameters']['expires_in'] = params.get('expires_id',None)
+        session['top_parameters']['refresh_token'] = params.get('refresh_token',None)
+        return True
 
-    return True
+    return False
 
 
 def parse_datetime(dt):
