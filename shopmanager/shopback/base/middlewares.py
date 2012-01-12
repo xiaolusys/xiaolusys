@@ -10,6 +10,6 @@ class RecordExceptionMiddleware(object):
 
         logger.error(logger.error('Error excution handler method(user:%s) details: %s'
                                   % (request.user, e), exc_info=True))
-        response = {'error':'Sorry,internal server error!Please contact with the admin.'}
-        return HttpResponse(json.dumps(response),mimetype='application/json')
+
+
   

@@ -1,4 +1,4 @@
-from djangorestframework.permissions import BasePermission,  IsAuthenticated, _403_FORBIDDEN_RESPONSE
+from djangorestframework.permissions import BasePermission,  IsAuthenticated, PerUserThrottling, PerViewThrottling, PerResourceThrottling, _403_FORBIDDEN_RESPONSE
 
 import logging
 logger = logging.getLogger('permission')
@@ -24,6 +24,7 @@ class CommentUserPermission(BasePermission):
                 User.objects.get(pk=user_id)
             except :
                 raise _403_FORBIDDEN_RESPONSE
+
 
 
 

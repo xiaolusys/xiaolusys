@@ -1,5 +1,4 @@
 from django.db import models
-import datetime
 from shopback.base.models import BaseModel
 from shopback.base.fields import BigIntegerAutoField
 
