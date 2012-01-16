@@ -1,0 +1,15 @@
+################### schedule task #####################
+#first ,start up the period task generator process
+
+(ve)~$ python manager.py celerybeat
+
+#then ,start up the worker thread,celeryd
+
+(ve)~$ python manager.py celeryd -l info
+
+#last,you want to see the excuting task  status,please enter the GUI
+
+(ve)~$ python manager.py celeryev
+
+#################### web server #####################
+(ve)~$ python manager.py runserver
