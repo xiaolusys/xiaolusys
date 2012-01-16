@@ -5,7 +5,7 @@ from django.contrib import admin
 admin.autodiscover()
 
 urlpatterns = patterns('',
-
+    (r'^sentry/', include('sentry.web.urls')),
     (r'^accounts/', include('auth.accounts.urls')),
     (r'^task/',include('shopback.task.urls')),
     url(r'^home/$',home,name='home_page'),
