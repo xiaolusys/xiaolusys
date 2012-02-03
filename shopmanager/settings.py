@@ -106,7 +106,9 @@ INSTALLED_APPS = (
     'djkombu',
 
     'task_daemon.manage',
+    'task_daemon.celery_sentry',
     'shopback.task',
+    'shopback.items',
 
 )
 
@@ -153,7 +155,12 @@ LOGGING = {
             'level': 'ERROR',
             'propagate': True,
         },
-        'updateitem': {
+        'updatelisting': {
+            'handlers': ['sentry'],
+            'level': 'ERROR',
+            'propagate': True,
+        },
+        'updateitemnum': {
             'handlers': ['sentry'],
             'level': 'ERROR',
             'propagate': True,

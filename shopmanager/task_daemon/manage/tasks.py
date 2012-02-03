@@ -7,25 +7,25 @@ from celery.task import task
 from celery.task.sets import subtask
 from django.conf import settings
 from django.contrib.sessions.backends.db import SessionStore
-from shopback.task.models import ItemTask
+from shopback.task.models import ItemListTask
 from auth.utils import getSignatureTaoBao,refresh_session
 from auth import apis
 import logging
 
-logger = logging.getLogger('updateitem')
+logger = logging.getLogger('updatelisting')
 
-@task()
-def updateItemList(task_id,num_iid,num,session_key):
+@task(max_retries=3)
+def updateItemListTask(task_id,num_iid,num,session_key):
 
     try:
         session = SessionStore(session_key=session_key)
 
-        refresh_success = refresh_session(session.settings)
+        refresh_success = refresh_session(session,settings)
 
         if refresh_success:
             session.save()
 
-        task = ItemTask.objects.get(pk=task_id,status=True,is_success=False)
+        task = ItemListTask.objects.get(pk=task_id,status=True,is_success=False)
 
         if task.task_type == 1:
 
@@ -55,22 +55,25 @@ def updateItemList(task_id,num_iid,num,session_key):
         task.save()
 
     except Exception,exc:
-        logger.error('Executing ItemTask(id:%s) error:%s' %(task_id,exc), exc_info=True)
+        logger.error('Executing ItemListTask(id:%s) error:%s' %(task_id,exc), exc_info=True)
+        from django.conf import settings
+        if not settings.DEBUG:
+            create_comment.retry(exc=exc,countdown=1)
 
 
 
 @task()
-def updateAllItemTask():
+def updateAllItemListTask():
 
     currenttime = time.time()
     timeago = datetime.datetime.fromtimestamp(currenttime - settings.EXECUTE_RANGE_TIME)
     timefuture = datetime.datetime.fromtimestamp(currenttime + settings.EXECUTE_RANGE_TIME)
 
-    tasks = ItemTask.objects.filter(update_time__gt=timeago,update_time__lt=timefuture,status=True,is_success=False)
+    tasks = ItemListTask.objects.filter(update_time__gt=timeago,update_time__lt=timefuture,status=True,is_success=False)
 
     for task in tasks:
 
-        subtask(updateItemList).delay(task.id,task.num_iid,task.num,task.session_key)
+        subtask(updateItemListTask).delay(task.id,task.num_iid,task.num,task.session_key)
 
 
 

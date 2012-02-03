@@ -1,9 +1,9 @@
 from django.contrib import admin
-from shopback.task.models import ItemTask
+from shopback.task.models import ItemListTask
 
 
 
-class ItemTaskAdmin(admin.ModelAdmin):
+class ItemListTaskAdmin(admin.ModelAdmin):
     list_display = ('visitor_id', 'visitor_nick', 'num_iid', 'title', 'num', 'update_time',
                     'task_type' ,'created_at','is_success','status')
     list_display_links = ('num_iid', 'title')
@@ -23,5 +23,5 @@ class ItemTaskAdmin(admin.ModelAdmin):
     cancleExecute.short_description = "Cancle the schedule task!"
 
 
-admin.site.register(ItemTask, ItemTaskAdmin)
+admin.site.register(ItemListTask, ItemListTaskAdmin)
 

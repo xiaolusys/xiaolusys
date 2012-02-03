@@ -1,7 +1,6 @@
 import djcelery
 djcelery.setup_loader()
 
-CELERY_INPORTS = ('task_daemon.manage.tasks',)
 CELERY_RESULT_BACKEND = 'database'
 
 BROKER_BACKEND = "djkombu.transport.DatabaseTransport"
@@ -10,34 +9,20 @@ EXECUTE_INTERVAL_TIME = 10*60
 
 EXECUTE_RANGE_TIME = 6*60
 
+from celery.schedules import crontab
 from datetime import timedelta
+
 CELERYBEAT_SCHEDULE = {
-    'runs-every-30-seconds':{
-        'task':'task_daemon.manage.tasks.updateAllItemTask',
+    'runs-every-10-minutes':{
+        'task':'task_daemon.manage.tasks.updateAllItemListTask',
         'schedule':timedelta(seconds=EXECUTE_INTERVAL_TIME),
+        'args':(),
+    },
+    'runs-every-day':{
+        'task':'shopback.items.tasks.updateAllItemNumTask',
+        'schedule':crontab(minute="*/1"),
         'args':(),
     },
 }
 
-import logging
-from celery.signals import task_failure
-from sentry.client.handlers import SentryHandler
 
-logger = logging.getLogger('sentry.errors')
-logger.addHandler(SentryHandler())
-def process_failure_signal(exception, traceback, sender, task_id,
-                           signal, args, kwargs, einfo, **kw):
-  exc_info = (type(exception), exception, traceback)
-  logger.error(
-    'Celery job exception: %s(%s)' % (exception.__class__.__name__, exception),
-    exc_info=exc_info,
-    extra={
-      'data': {
-        'task_id': task_id,
-        'sender': sender,
-        'args': args,
-        'kwargs': kwargs,
-      }
-    }
-  )
-task_failure.connect(process_failure_signal)

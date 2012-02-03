@@ -2,7 +2,7 @@ from django.db import models
 from shopback.base.models import BaseModel
 from shopback.base.fields import BigIntegerAutoField
 
-class ItemTask(BaseModel):
+class ItemListTask(BaseModel):
 
     id = BigIntegerAutoField(primary_key=True)
 

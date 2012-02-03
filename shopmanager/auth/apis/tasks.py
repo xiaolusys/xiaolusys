@@ -31,6 +31,10 @@ API_FIELDS = {
         +'price,has_discount,has_invoice,has_warranty,has_showcase, modified,delist_time,postage_id,seller_cids,outer_id',
     'taobao.items.onsale.get':'approve_status,num_iid,title,nick,type,cid,pic_url,num,props,valid_thru,list_time,price,'
         +'has_discount,has_invoice,has_warranty,has_showcase,modified,delist_time,postage_id,seller_cids,outer_id',
+    'taobao.trades.sold.get':'seller_nick, buyer_nick, title, type, created, tid, status, payment, received_payment, commission_fee, pic_path,'
+        +'num_iid, num, price,orders.title, orders.pic_path, orders.price, orders.num, orders.num_iid, orders.sku_id, orders.refund_status, '
+        +'orders.status, orders.oid, orders.total_fee, orders.payment, orders.discount_fee, orders.adjust_fee, orders.sku_properties_name,'
+        +' orders.item_meal_name, orders.buyer_rate, orders.seller_rate, orders.outer_iid, orders.outer_sku_id, orders.refund_id, orders.seller_type  ',
 }
 
 
@@ -43,6 +47,7 @@ def apis(api_method,method='GET'):
         func_defaults = copy.copy(inspect.getargspec(func).defaults)
         def decorate(*args,**kwargs):
             """ docstring for decorate """
+
             timestamp = format_datetime(datetime.datetime.now())
             params = {
                 'method':api_method,
@@ -125,6 +130,10 @@ def taobao_itempropvalues_get(cid=None,pvs=None,fields=API_FIELDS['taobao.itempr
 def taobao_item_get(num_iid=None,fields=API_FIELDS['taobao.item.get'],session=None):
     pass
 
+@apis('taobao.item.update')
+def taobao_item_update(num_iid=None,num=None,session=None):
+    pass
+
 @apis('taobao.item.update.delisting')
 def taobao_item_update_delisting(num_iid=None,session=None):
     pass
@@ -139,10 +148,6 @@ def taobao_items_list_get(num_iids=None,fields=API_FIELDS['taobao.items.list.get
 
 @apis('taobao.products.get')
 def taobao_products_get(nick=None,page_no=1,page_size=20,fields=API_FIELDS['taobao.products.get'],session=None):
-    pass
-
-@apis('taobao.items.onsale.get')
-def taobao_items_onsale_get(fields=API_FIELDS['taobao.items.onsale.get'],session=None):
     pass
 
 @apis('taobao.items.search')
@@ -161,7 +166,12 @@ def taobao_items_inventory_get(q=None,banner=None,cid=None,seller_cids=None,page
 def taobao_items_onsale_get(q=None,banner=None,cid=None,seller_cids=None,page_no=None,page_size=None,fields=API_FIELDS['taobao.items.onsale.get'],session=None):
     pass
 
-############# items apis ###################
+############# trades apis ###################
+
+@apis('taobao.trades.sold.get')
+def taobao_trades_sold_get(start_created=None,end_created=None,page_no=None,page_size=None,use_has_next=None,fields=API_FIELDS['taobao.trades.sold.get'],session=None):
+    pass
+
 
 
 ############# items apis ###################

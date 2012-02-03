@@ -1,7 +1,7 @@
 from django import forms
 
 
-class ItemTaskForm(forms.Form):
+class ItemListTaskForm(forms.Form):
 
     visitor_id = forms.CharField(max_length=20)
     visitor_nick = forms.CharField(max_length=32)
