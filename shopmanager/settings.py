@@ -105,10 +105,10 @@ INSTALLED_APPS = (
     'djcelery',
     'djkombu',
 
-    'task_daemon.manage',
-    'task_daemon.celery_sentry',
+    'celery_daemon.celery_sentry',
     'shopback.task',
     'shopback.items',
+    'shopback.orders',
 
 )
 

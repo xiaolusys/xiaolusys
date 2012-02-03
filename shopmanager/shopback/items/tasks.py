@@ -10,13 +10,14 @@ from django.contrib.sessions.backends.db import SessionStore
 from django.contrib.sessions.models import Session
 from auth.utils import getSignatureTaoBao,refresh_session,format_datetime
 from shopback.items.models import Item
+from shopback.orders.models import Order
 from auth import apis
 import logging
 
 logger = logging.getLogger('updateitemnum')
 
 @task(max_retries=3)
-def updateItemNumTask(outer_iid,num_iid,num,session_key):
+def updateItemNumTask():
 
     try:
         item = Item.objects.get(outer_iid=outer_iid)
@@ -40,76 +41,101 @@ def updateItemNumTask(outer_iid,num_iid,num,session_key):
         if not settings.DEBUG:
             create_comment.retry(exc=exc,countdown=2)
 
+@task(max_retries=3)
+def saveDailyOrdersTask(orders_list):
+
+    try:
+        o = Order()
+        for order in orders_list:
+            o.id = None
+            for k,v in order.iteritems():
+                hasattr(o,k) and setattr(o,k,v)
+            o.save()
+
+    except Exception,exc:
+        print exc
+        logger.error('Executing saveDailyOrdersTask error:%s' %(exc), exc_info=True)
+        if not settings.DEBUG:
+            create_comment.retry(exc=exc,countdown=2)
 
 
-@task()
+
+@task(max_retries=3)
 def updateAllItemNumTask():
 
-    cur_dt = datetime.datetime.now()
-    dt = datetime.datetime(cur_dt.year,cur_dt.month,cur_dt.day)
+    try:
+        cur_dt = datetime.datetime.now()
+        dt = datetime.datetime(cur_dt.year,cur_dt.month,cur_dt.day)
 
-    ttuple = time.mktime(dt.timetuple())
+        ttuple = time.mktime(dt.timetuple())
 
-    lastday_start_datetime = datetime.datetime.fromtimestamp(ttuple-24*60*60)
-    lastday_end_datetime = datetime.datetime.fromtimestamp(ttuple-1)
+        lastday_start_datetime = datetime.datetime.fromtimestamp(ttuple-24*60*60)
+        lastday_end_datetime = datetime.datetime.fromtimestamp(ttuple-1)
 
-    sessions = Session.objects.all()
-    print 'session start'
-    for session in sessions:
-        print 'session key:',session.session_key
-        session = session.get_decoded()
-        update_datetime = session.get('update_items_datetime',None)
-        print 'update_datetime:',update_datetime
-        if update_datetime:
+        sessions = Session.objects.all()
 
-            #timedelta = lastday_end_datetime - update_datetime
+        for session in sessions:
 
-            #if timedelta.days < 0:
-            #    continue
+            session = session.get_decoded()
+            update_datetime = session.get('update_items_datetime',None)
 
-            #if timedelta.days < 1:
-            #    start_datetime = format_datetime(update_datetime)
+            if update_datetime:
 
-            #if timedelta.days >= 1:
-            #    start_datetime = format_datetime(lastday_start_datetime)
+                timedelta = lastday_end_datetime - update_datetime
 
-            start_datetime = format_datetime(lastday_start_datetime)
+                if timedelta.days < 0:
+                    continue
 
-            end_datetime = format_datetime(lastday_end_datetime)
+                if timedelta.days < 1:
+                    start_datetime = format_datetime(update_datetime)
 
-            #trades = apis.taobao_trades_sold_get(session=session['top_session'],page_no=1,page_size=200,
-            #        start_created=start_datetime,end_created=end_datetime)
+                if timedelta.days >= 1:
+                    start_datetime = format_datetime(lastday_start_datetime)
 
-            trades = apis.taobao_trades_sold_get(session=session['top_session'],page_no=1,page_size=200,
-                    start_created='2012-02-02 00:00:00',end_created='2012-02-02 23:59:59')
+                #start_datetime = format_datetime(lastday_start_datetime)
 
+                end_datetime = format_datetime(lastday_end_datetime)
 
+                trades = apis.taobao_trades_sold_get(session=session['top_session'],page_no=1,page_size=200,
+                        start_created=start_datetime,end_created=end_datetime)
 
-            orders_list = []
-            order_items = {}
+                #trades = apis.taobao_trades_sold_get(session=session['top_session'],page_no=1,page_size=200,
+                #start_created='2012-02-02 00:00:00',end_created='2012-02-02 23:59:59')
 
-            for t in trades['trades_sold_get_response']['trades']['trade']:
-                orders_list.extend(t['orders']['order'])
+                orders_list = []
+                order_items = {}
 
-            for order in orders_list:
-                if order_items.has_key(order['outer_iid']):
-                    order_items[order['outer_iid']] += order['num']
-                else:
-                    order_items[order['outer_iid']] = order['num']
-            print 'trades orders:',order_items
-            for outer_iid,num in order_items.iteritems():
-                try:
-                    item = Item.objects.get(outer_iid=outer_iid)
-                    numiid_sessions = json.loads(item.numiid_session)
+                for t in trades['trades_sold_get_response']['trades']['trade']:
+                    orders_list.extend(t['orders']['order'])
 
-                    for numsess in numiid_sessions:
-                        numiid_session = numsess.split(':')
-                        subtask(updateItemNumTask).delay(outer_iid,numiid_session[0],num,numiid_session[1])
+                if orders_list:
+                    print 'save orders'
+                    subtask(saveDailyOrdersTask).delay(orders_list)
 
-                except Exception,exc :
+                for order in orders_list:
+                    if order_items.has_key(order['outer_iid']):
+                        order_items[order['outer_iid']] += order['num']
+                    else:
+                        order_items[order['outer_iid']] = order['num']
 
-                    logger.error('Executing UpdateItemNum(outer_iid:%s) error:%s' %(outer_iid,exc), exc_info=True)
+                for outer_iid,num in order_items.iteritems():
+                    try:
+                        item = Item.objects.get(outer_iid=outer_iid)
+                        numiid_sessions = json.loads(item.numiid_session)
 
+                        for numsess in numiid_sessions:
+                            numiid_session = numsess.split(':')
+
+                            #subtask(updateItemNumTask).delay(outer_iid,numiid_session[0],num,numiid_session[1])
+
+                    except Exception,exc :
+
+                        logger.error('Executing UpdateItemNum(outer_iid:%s) error:%s' %(outer_iid,exc), exc_info=True)
+
+    except Exception,exc:
+        logger.error('Executing UpdateAllItemNumTask error:%s' %(exc), exc_info=True)
+        if not settings.DEBUG:
+            create_comment.retry(exc=exc,countdown=2)
 
 
 
