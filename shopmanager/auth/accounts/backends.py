@@ -23,7 +23,7 @@ class TaoBaoBackend:
             top_session = request.session.get('top_session',None)
             top_parameters = request.session.get('top_parameters',None)
             if not (top_session and top_parameters):
-                raise None
+                return None
         else:
             top_appkey = request.GET.get('top_appkey',None)
             top_parameters = request.GET.get('top_parameters',None)

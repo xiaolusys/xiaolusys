@@ -61,10 +61,10 @@ def refresh_session(session,settings):
         content = req.read()
         params = json.loads(content)
 
-        session['top_session'] = params.get('top_session',None)
-        session['top_parameters']['re_expires_id'] = params.get('re_expires_id',None)
-        session['top_parameters']['expires_in'] = params.get('expires_id',None)
-        session['top_parameters']['refresh_token'] = params.get('refresh_token',None)
+        session['top_session'] = params.get['top_session']
+        session['top_parameters']['re_expires_id'] = params['re_expires_id']
+        session['top_parameters']['expires_in'] = params['expires_id']
+        session['top_parameters']['refresh_token'] = params['refresh_token']
         return True
 
     return False

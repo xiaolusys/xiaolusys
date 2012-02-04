@@ -14,7 +14,7 @@ from datetime import timedelta
 
 CELERYBEAT_SCHEDULE = {
     'runs-every-10-minutes':{
-        'task':'task_daemon.manage.tasks.updateAllItemListTask',
+        'task':'shopback.task.tasks.updateAllItemListTask',
         'schedule':timedelta(seconds=EXECUTE_INTERVAL_TIME),
         'args':(),
     },
