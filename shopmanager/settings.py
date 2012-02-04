@@ -56,7 +56,7 @@ ADMIN_MEDIA_PREFIX = '/static/admin/'
 
 
 STATICFILES_DIRS = (
-       os.path.join(PROJECT_ROOT, "templates"),
+       os.path.join(PROJECT_ROOT, "static"),
 )
 
 
@@ -87,7 +87,7 @@ MIDDLEWARE_CLASSES = (
 ROOT_URLCONF = 'shopmanager.urls'
 
 TEMPLATE_DIRS = (
-
+       os.path.join(PROJECT_ROOT, "templates"),
 )
 
 INSTALLED_APPS = (
@@ -109,6 +109,7 @@ INSTALLED_APPS = (
     'task_daemon.celery_sentry',
     'shopback.task',
     'shopback.items',
+    'autolist',
 
 )
 
