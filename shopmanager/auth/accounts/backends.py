@@ -62,14 +62,27 @@ class TaoBaoBackend:
 
         top_parameters = request.session.get('top_parameters')
 
-        user_id = '-'.join([top_parameters['visitor_id'],top_parameters['visitor_nick']])
+        visitor_id = top_parameters['visitor_id']
 
         try:
-            user = model.objects.get(username=user_id)
+            profile = model.objects.get(visitor_id=visitor_id)
+            print 'debug profile:',profile.__dict__
+            if profile.user:
+                if not profile.user.is_active:
+                    profile.user.is_active = True
+                    profile.user.save()
+                return profile.user
+            else:
+                user = User.objects.create(username=visitor_id,is_active=True)
+                profile.user = user
+                profile.save()
+                return user
         except model.DoesNotExist:
-            user = User.objects.create(username=user_id, is_active=True)
+            user = User.objects.create(username=visitor_id, is_active=True)
+            model.objects.create(user=user, visitor_id=visitor_id)
 
-        return user
+            return user
+
 
     def get_user(self, user_id):
         try:

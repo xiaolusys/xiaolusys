@@ -2,7 +2,7 @@ from django.http import HttpResponse,HttpResponseRedirect
 from django.conf import settings
 from django.core.urlresolvers import reverse
 from django.contrib.auth import authenticate, login
-from django.contrib.auth.signals import user_logged_in
+from shopback.users.signals import taobao_logged_in
 from auth.utils import verifySignature,decodeBase64String,parse_urlparams,getSignatureTaoBao,refresh_session
 from auth import apis
 
@@ -20,14 +20,19 @@ def request_taobo(request):
 def login_taobo(request):
 
     user = authenticate(request=request)
-
+    print 'debug user:',user
     if not user or user.is_anonymous():
         return HttpResponseRedirect(reverse('home_page'))
 
     refresh_session(request.session,settings)
 
     login(request, user)
-    user_logged_in.send(sender='web', user=user, request=request)
+
+    top_session = request.session['top_session']
+    top_appkey  = request.session['top_appkey']
+    top_parameters = request.session['top_parameters']
+
+    taobao_logged_in.send(sender='web',user=user,top_session=top_session,top_appkey=top_appkey,top_parameters=top_parameters)
 
 #    content = apis.taobao_user_get(session=request.session['top_session'])
 #    print 'content:',content

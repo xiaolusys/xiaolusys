@@ -109,10 +109,11 @@ INSTALLED_APPS = (
     'shopback.task',
     'shopback.items',
     'shopback.orders',
+    'shopback.users',
 
 )
 
-AUTH_PROFILE_MODULE = 'auth.user'
+AUTH_PROFILE_MODULE = 'users.user'
 
 AUTHENTICATION_BACKENDS = (
     'auth.accounts.backends.TaoBaoBackend',
