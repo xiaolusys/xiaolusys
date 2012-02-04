@@ -92,7 +92,6 @@ def updateAllItemNumTask():
                 if timedelta.days >= 1:
                     start_datetime = format_datetime(lastday_start_datetime)
 
-                #start_datetime = format_datetime(lastday_start_datetime)
 
                 end_datetime = format_datetime(lastday_end_datetime)
 

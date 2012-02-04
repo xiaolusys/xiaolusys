@@ -29,9 +29,10 @@ def login_taobo(request):
     login(request, user)
     user_logged_in.send(sender='web', user=user, request=request)
 
-    content = apis.taobao_items_onsale_get(session=request.session['top_session'],page_no=1,page_size=200)
-    items = content['items_onsale_get_response']['items']['item']
-    print 'length:',len(items)
+#    content = apis.taobao_user_get(session=request.session['top_session'])
+#    print 'content:',content
+#
+#    print 'session:',dict(request.session)
 
 
     logger.info('user %s logged in.' % user.username)
