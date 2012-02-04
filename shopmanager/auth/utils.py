@@ -75,3 +75,24 @@ def parse_datetime(dt):
 
 def format_datetime(dt):
     return dt.strftime("%Y-%m-%d %H:%M:%S")
+
+def get_closest_time_slot(t):
+    y,m,d = t.year, t.month, t.day
+    slots = [datetime.datetime(y,m,d, 11, 50),
+             datetime.datetime(y,m,d, 12, 20),
+             datetime.datetime(y,m,d, 14, 50),
+             datetime.datetime(y,m,d, 15, 20),
+             datetime.datetime(y,m,d, 15, 50),
+             datetime.datetime(y,m,d, 16, 20),
+             datetime.datetime(y,m,d, 16, 50),
+             datetime.datetime(y,m,d, 21, 0),
+             datetime.datetime(y,m,d, 21, 30),
+             datetime.datetime(y,m,d, 22, 0)]
+    for x in slots:
+        if t > x - datetime.timedelta(minutes=10) and t < x + datetime.timedelta(minutes=10):
+            return t
+        if t < x:
+            return x
+
+    t += datetime.timedelta(days=1)
+    return datetime.datetime(t.year(), t.month(), t.day(), 11, 50)

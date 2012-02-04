@@ -1,0 +1,14 @@
+  <table>
+  <tr>
+    <th>序号</th><th>商品类别</th><th>商品编码</th><th>内部名称</th><th>出售标题</th><th>上架星期</th><th>上架时间</th>
+      <th>推荐时间</th><th>商品图片</th>
+  </tr>
+  {% for item in items %}
+  <tr>
+      <td>{{ forloop.counter }}</td><td>{{ item.category_name }}</td><td>{{ item.ref_code }}</td><td></td>
+      <td class="title"><a href="{{ item.detail_url }}">{{ item.title }}</a></td>
+      <td>{{ item.isoweekday }}</td><td>{{ item.list_time }}</td><td>{{ item.relist_time }}
+      </td><td><img src={{  item.pic_url }} width="80px" height="80px"></td>
+  </tr>
+  {% endfor %}
+  </table>
