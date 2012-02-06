@@ -26,24 +26,20 @@ def updateItems(request):
     for item in items:
         try:
 
-            itemobj = Item.objects.get(outer_iid=item['outer_id'],user_id=visitor_id)
+            itemobj = Item.objects.get(num_iid=item['num_iid'])
 
-            for k,v in item.iteritems():
-                hasattr(itemobj,k) and setattr(itemobj,k,v)
-
-            itemobj.save()
         except Item.DoesNotExist:
 
             itemobj = Item()
             itemobj.outer_iid = item['outer_id']
             itemobj.user_id = visitor_id
 
-            for k,v in item.iteritems():
-                hasattr(itemobj,k) and setattr(itemobj,k,v)
+        for k,v in item.iteritems():
+            hasattr(itemobj,k) and setattr(itemobj,k,v)
 
-            itemobj.save()
+        itemobj.save()
 
-    response = {'updateitemnum':len(items)}
+    response = {'pulled':len(items)}
 
     return HttpResponse(json.dumps(response),mimetype='application/json')
 
