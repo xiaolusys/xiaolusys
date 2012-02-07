@@ -8,6 +8,7 @@ from celery.task.sets import subtask
 from django.conf import settings
 from django.contrib.sessions.backends.db import SessionStore
 from shopback.task.models import ItemListTask
+from shopback.users.models import User
 from auth.utils import getSignatureTaoBao,refresh_session
 from auth import apis
 import logging
@@ -15,35 +16,31 @@ import logging
 logger = logging.getLogger('updatelisting')
 
 @task(max_retries=3)
-def updateItemListTask(task_id,num_iid,num,session_key):
+def updateItemListTask(task_id):
 
     try:
-        session = SessionStore(session_key=session_key)
-
-        refresh_success = refresh_session(session,settings)
-
-        if refresh_success:
-            session.save()
 
         task = ItemListTask.objects.get(pk=task_id,status=True,is_success=False)
 
+        user = User.objects.get(visitor_id=task.visitor_id)
+
         if task.task_type == 1:
 
-            update_ret = apis.taobao_item_update_listing(num_iid,num,session.get('top_session',None))
+            update_ret = apis.taobao_item_update_listing(num_iid=task.num_iid,num=task.num,session=user.top_session)
 
             if update_ret.get('item_update_listing_response',None) and\
                update_ret['item_update_listing_response'].get('item',None):
                 task.is_success = True
             else :
                 logger.warn('Update itemlist unsuccess: %s'%update_ret)
-        else:
-            item = apis.taobao_item_get(num_iid=num_iid,session=session.get('top_session',None))
+        elif task.task_type == 2:
+            item = apis.taobao_item_get(num_iid=task.num_iid,session=user.top_session)
 
             if item.has_key('item_get_response') and item['item_get_response'].has_key('item') :
 
                 if item['item_get_response']['item']['approve_status'] == 'onsale':
 
-                    del_ret = apis.taobao_item_update_delisting(num_iid=num_iid,session=session.get('top_session',None))
+                    del_ret = apis.taobao_item_update_delisting(num_iid=task.num_iid,session=user.top_session)
                     if del_ret.get('item_update_delisting_response',None) and \
                         del_ret['item_update_delisting_response'].get('item',None):
                         task.is_success = True
@@ -73,7 +70,7 @@ def updateAllItemListTask():
 
     for task in tasks:
 
-        subtask(updateItemListTask).delay(task.id,task.num_iid,task.num,task.session_key)
+        subtask(updateItemListTask).delay(task.id)
 
 
 

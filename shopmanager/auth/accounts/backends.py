@@ -7,10 +7,6 @@ from auth import apis
 import logging
 logger = logging.getLogger('taobao.auth')
 
-""" top_parameters:
-{'visitor_nick': 'honey', 'expires_in': '86400', 'visitor_id': '180023275', 'ts': '1325846382971',
-'iframe': '1', 're_expires_in': '15552000', 'refresh_token': '6100a20adf4b9a6c361ef23f39371de459a2cbfd29627d7180023275'}
-"""
 
 class TaoBaoBackend:
     supports_anonymous_user = False
@@ -35,14 +31,14 @@ class TaoBaoBackend:
 
             if not sign_result:
                 return None
-            else:
-                request.session['top_appkey'] = top_appkey
-                request.session['top_session'] = top_session
 
-                decodestring = decodeBase64String(top_parameters)
-                params = parse_urlparams(decodestring)
+            request.session['top_appkey'] = top_appkey
+            request.session['top_session'] = top_session
 
-                request.session['top_parameters'] = params
+            decodestring = decodeBase64String(top_parameters)
+            params = parse_urlparams(decodestring)
+
+            request.session['top_parameters'] = params
 
         try:
             app_label, model_name = settings.AUTH_PROFILE_MODULE.split('.')
@@ -66,7 +62,7 @@ class TaoBaoBackend:
 
         try:
             profile = model.objects.get(visitor_id=visitor_id)
-            print 'debug profile:',profile.__dict__
+
             if profile.user:
                 if not profile.user.is_active:
                     profile.user.is_active = True

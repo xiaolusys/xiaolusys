@@ -193,6 +193,12 @@ LOGGING = {
             'level': 'ERROR',
             'propagate': True,
         },
+        'outeridmultiple': {
+            'handlers': ['sentry'],
+            'level': 'ERROR',
+            'propagate': True,
+        },
+
     }
 }
 

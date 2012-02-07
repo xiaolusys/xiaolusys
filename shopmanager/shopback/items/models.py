@@ -4,11 +4,10 @@ from shopback.base.fields import BigIntegerAutoField
 
 class Item(BaseModel):
 
-    id = BigIntegerAutoField(primary_key=True)
+    num_iid = models.CharField(primary_key=True,max_length=64)
 
-    outer_iid = models.CharField(max_length=32,blank=True)
+    outer_iid = models.CharField(max_length=64,blank=True)
     num = models.IntegerField()
-    num_iid = models.BigIntegerField()
 
     seller_cids = models.CharField(max_length=126,blank=True)
     approve_status = models.CharField(max_length=20,blank=True)
@@ -32,8 +31,12 @@ class Item(BaseModel):
     title = models.CharField(max_length=148,blank=True)
 
     has_invoice = models.BooleanField()
-    pic_url = models.CharField(max_length=128,blank=True)
+    pic_url = models.URLField(verify_exists=False)
+    detail_url = models.URLField(verify_exists=False)
 
+    desc = models.CharField(max_length=64)
+
+    skus = models.CharField(max_length=1500,blank=True)
 
     class Meta:
         db_table = 'shop_item'

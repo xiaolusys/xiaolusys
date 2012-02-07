@@ -4,9 +4,7 @@ from shopback.base.fields import BigIntegerAutoField
 
 class Order(models.Model):
 
-    id = BigIntegerAutoField(primary_key=True)
-
-    oid = models.CharField(max_length=20,unique=True)
+    oid = models.CharField(primary_key=True,max_length=20)
 
     title =  models.CharField(max_length=128)
     price = models.CharField(max_length=12,blank=True)
@@ -38,7 +36,7 @@ class Order(models.Model):
 
     refund_status = models.CharField(max_length=40,blank=True)
 
-    outer_iid = models.CharField(max_length=32,blank=True)
+    outer_iid = models.CharField(max_length=64,blank=True)
     snapshot_url = models.CharField(max_length=128,blank=True)
     snapshot = models.CharField(max_length=356,blank=True)
 

@@ -9,6 +9,8 @@ EXECUTE_INTERVAL_TIME = 10*60
 
 EXECUTE_RANGE_TIME = 6*60
 
+UPDATE_ITEM_NUM_INTERVAL = 5*60
+
 from celery.schedules import crontab
 from datetime import timedelta
 
@@ -20,7 +22,7 @@ CELERYBEAT_SCHEDULE = {
     },
     'runs-every-day':{
         'task':'shopback.items.tasks.updateAllItemNumTask',
-        'schedule':crontab(minute="*/1"),
+        'schedule':crontab(minute="*/3"),
         'args':(),
     },
 }
