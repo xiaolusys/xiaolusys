@@ -4,11 +4,12 @@
       <th>推荐时间</th><th>商品图片</th>
   </tr>
   {% for item in items %}
-  <tr>
+  <tr id="{{ item.num_iid }}">
       <td>{{ forloop.counter }}</td><td>{{ item.category_name }}</td><td>{{ item.ref_code }}</td><td></td>
       <td class="title"><a href="{{ item.detail_url }}">{{ item.title }}</a></td>
-      <td>{{ item.isoweekday }}</td><td>{{ item.list_time }}</td><td>{{ item.relist_time }}
-      </td><td><img src={{  item.pic_url }} width="80px" height="80px"></td>
+      <td>{{ item.isoweekday }}</td><td><p>{{ item.list_day }}</p><p>{{ item.list_hm}}</p></td>
+      <td class="reco-time"><p>{{ item.relist_day }}</p><p>{{ item.relist_hm}}</p></td>
+      <td><img src={{  item.pic_url }} class="profile-image"></td>
   </tr>
   {% endfor %}
   </table>

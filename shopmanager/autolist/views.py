@@ -57,30 +57,84 @@ def list_all_items(request):
     from auth.utils import get_closest_time_slot
 
     for x in items:
-        relist_time = get_closest_time_slot(x.list_time)
-        if relist_time != x.list_time:
-            x.relist_time = "%s" % relist_time
+        relist_time, status = get_closest_time_slot(x.list_time)
+        if status:
+            x.relist_day,x.relist_hm = relist_time.strftime("%Y-%m-%d"), relist_time.strftime("%H:%M:%S")
         else:
-            x.relist_time = ""
+            x.relist_day,x.relist_hm = "",""
         x.isoweekday = x.list_time.isoweekday()
-        x.list_time = "%s" % x.list_time
+        x.list_day,x.list_hm = x.list_time.strftime("%Y-%m-%d"), x.list_time.strftime("%H:%M:%S")
 
 
-    return render_to_response("prod-list.html", {'page':'itemlist', 'items':items}, RequestContext(request))
+    return render_to_response("base.html", {'page':'itemlist', 'items':items}, RequestContext(request))
 
 
 def show_time_table(request):
     items = ProductItem.objects.all().order_by('category_id', 'ref_code')
 
-    from auth.utils import get_closest_time_slot
+    from auth.utils import get_closest_time_slot, get_all_time_slots
 
+    slots = get_all_time_slots()
+    timekeys = slots.keys()
+    timekeys.sort()
+
+    data = [[],[],[],[],[],[],[]]
+    for x in data:
+        for slot in timekeys:
+            x.append({'slot':slot, 'items':[]})
+
+    cats = {}
     for x in items:
-        relist_time = get_closest_time_slot(x.list_time)
+        relist_time, status = get_closest_time_slot(x.list_time)
         x.relist_time = "%s" % relist_time
         x.isoweekday = relist_time.isoweekday()
 
+        slot = "%02d:%02d" % (relist_time.hour, relist_time.minute)
+        print 'slot', slot
         x.list_time = "%s" % x.list_time
 
+        if slot in slots:
+            idx = slots[slot]
+            data[x.isoweekday-1][idx]['items'].append(x)
+        else:
+            print slot, x.category_name, x.list_time, x.title
 
-    #return render_to_response("prod-list.html", {'page': 'timetable', 'items':items}, RequestContext(request))
+        if not x.category_name in cats:
+            cats[x.category_name] = 1
+        else:
+            cats[x.category_name] += 1
+
+        cat = []
+        for k in cats.keys():
+            if cats[k] > 3:
+                cat.append(k)
+    return render_to_response("base.html", {'page': 'timetable', 'data':data, 'cats':cat, 'slots':slots}, RequestContext(request))
+
+
+def change_list_time(request):
+    num_iid = request.GET.get('num_iid')
+    weekday = int(request.GET.get('weekday'))
+    timeslot = request.GET.get('timeslot')
+
+    from auth.utils import get_all_time_slots
+    timekeys = get_all_time_slots().keys()
+    timekeys.sort()
+
+    tokens = timekeys[int(timeslot)-1].split(':')
+    hour = int(tokens[0])
+    minute = int(tokens[1])
+
+    now = datetime.datetime.now()
+
+    target_time = datetime.datetime(now.year, now.month, now.day, hour, minute) - \
+                  datetime.timedelta(days=(now.isoweekday()-weekday))
+
+    if target_time < now:
+        target_time = target_time + datetime.timedelta(days=7)
+
+    n = ProductItem.objects.filter(num_iid=num_iid).update(list_time=target_time)
+    print n, 'records updated'
+
+    return HttpResponse(json.dumps({'date':target_time.strftime("%Y-%m-%d"), 'timeslot':target_time.strftime("%H:%M-%S")}),mimetype='application/json')
+
 

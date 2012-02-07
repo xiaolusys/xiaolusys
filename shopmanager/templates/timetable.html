@@ -1,35 +1,38 @@
   <table>
   <tr>
-    <th>上架星期</th><th>上架时间</th><th>睡袋</th><th>床品</th><th>抱被</th><th>总计</th>
+    <th>上架星期</th><th>上架时间</th>
+      {% for c in cats %}
+      <th>{{ c }}</th>
+      {% endfor %}
+      <th>总计</th>
   </tr>
-  <tr>
-    <td rowspan="10">周一</td><td>11:50</td><td></td><td></td><td></td><td rowspan="10">6</td>
-  </tr>
-  <tr>
-    <td>12:20</td><td></td><td></td><td></td>
-  </tr>
-  <tr>
-    <td>14:50</td><td></td><td></td><td></td>
-  </tr>
-  <tr>
-    <td>15:20</td><td></td><td></td><td></td>
-  </tr>
-  <tr>
-    <td>15:50</td><td></td><td></td><td></td>
-  </tr>
-  <tr>
-    <td>16:20</td><td></td><td></td><td></td>
-  </tr>
-  <tr>
-    <td>16:50</td><td></td><td></td><td></td>
-  </tr>
-  <tr>
-    <td>21:00</td><td></td><td></td><td></td>
-  </tr>
-  <tr>
-    <td>21:30</td><td></td><td></td><td></td>
-  </tr>
-  <tr>
-    <td>22:00</td><td></td><td></td><td></td>
-  </tr>
+  {% for dayitems in data %}
+      {% for slotitems in dayitems%}
+      <tr>
+          {% if forloop.counter == 1 %}
+          <td rowspan="10">周{{ forloop.parentloop.counter }}</td>
+          {% endif %}
+
+          <td>{{ slotitems.slot }}</td>
+
+          {% for c in cats %}
+          <td>
+              {% for item in slotitems.items %}
+              {% if item.category_name == c%}
+              <img src={{ item.pic_url }} id="{{ item.num_iid }}" class="profile-image">
+              {% endif %}
+              {% endfor %}
+          </td>
+          {% endfor %}
+
+          {% if forloop.counter == 1 %}
+          <td rowspan="10"></td>
+          {% endif %}
+
+      </tr>
+      {% endfor %}
+  {% endfor %}
+
   </table>
+
+

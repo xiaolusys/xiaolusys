@@ -1,0 +1,61 @@
+
+
+table {
+	border: 1px solid #8CACBB;
+	border-collapse:collapse;
+	border-spacing:0px;
+	font-size:12px;
+}
+
+table th {
+	border: 1px solid #8CACBB;
+	padding:4px;
+	background-color:#DEE7CE;
+
+}
+table td {
+	border: 1px solid #8CACBB;
+	padding:4px;
+}
+table .title {
+    width: 100px;
+}
+
+table p {
+    margin: 0px;
+    padding: 0px;
+}
+
+#id-timeslots {
+    font-size: 12px;
+    width:128px;
+    border: 1px solid red;
+    background-color:white;
+    display: none;
+}
+
+#id-timeslots dd {
+    margin: 0px;
+}
+
+#id-timeslots p {
+    margin: auto;
+    padding: 0px;
+}
+
+.profile-image {
+    width: 60px;
+    height: 60px;
+}
+
+.row-highlight {
+    border: 2px solid red;
+}
+
+.row-mark {
+    border: 2px solid #F4688B;
+}
+
+.row-mark .reco-time {
+    color: #F4688B;
+}
