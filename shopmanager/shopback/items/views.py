@@ -4,43 +4,50 @@ from django.http import HttpResponse
 from django.conf import settings
 from auth import apis
 from shopback.items.models import Item
+from shopback.users.models import User
+from shopback.items.tasks import updateItemsInfoTask
+import logging
+
+logger = logging.getLogger('outeridmultiple')
 
 def updateItems(request):
 
-    session = request.session
+    visitor_id = request.session['top_parameters']['visitor_id']
+    top_session = request.session['top_session']
 
-    onsaleItems = apis.taobao_items_onsale_get(session=session['top_session'],page_no=1,page_size=200)
+    onsaleItems = apis.taobao_items_onsale_get(session=top_session,page_no=1,page_size=200)
 
-    items = onsaleItems.get('items_onsale_get_response',[]) and onsaleItems['items_onsale_get_response']['items'].get('item',[])
+    items = []
 
-    session['update_items_datetime'] = datetime.datetime.now()
+    if onsaleItems.has_key('items_onsale_get_response'):
+        if onsaleItems['items_onsale_get_response'].get('total_results',0)>0:
+            items.extend(onsaleItems['items_onsale_get_response']['items']['item'])
+
+    user = User.objects.get(visitor_id=visitor_id)
+    user.update_items_datetime = datetime.datetime.now()
+    user.save()
 
     for item in items:
         try:
-            itemobj = Item.objects.get(outer_iid=item['outer_id'])
-            itemobj.num = item['num']
+            itemobj = Item.objects.get(outer_iid=item['outer_id'],user_id=visitor_id)
 
-            session_keys = json.loads(itemobj.numiid_session)
-            session_set = set(session_keys)
-
-            numiid_session = str(item['num_iid'])+':'+session.session_key
-
-            session_set.add(numiid_session)
-            itemobj.numiid_session = json.dumps(list(session_set))
-
-            itemobj.save()
+            if itemobj.num_iid  != str(item['num_iid']):
+                logger.error('Outer_iid multiple to items(outer_iid:%s,num_iid:%s)' %(item['outer_id'],item['num_iid']))
+                continue
         except Item.DoesNotExist:
 
             itemobj = Item()
             itemobj.outer_iid = item['outer_id']
-            itemobj.num = item['num']
+            itemobj.user_id = visitor_id
 
-            numiid_session = str(item['num_iid'])+':'+session.session_key
+        for k,v in item.iteritems():
+            hasattr(itemobj,k) and setattr(itemobj,k,v)
 
-            itemobj.numiid_session = json.dumps([numiid_session])
-            itemobj.save()
+        itemobj.save()
 
-    response = {'updateitemnum':len(items)}
+    updateItemsInfoTask.delay(visitor_id)
+
+    response = {'pulled':len(items)}
 
     return HttpResponse(json.dumps(response),mimetype='application/json')
 

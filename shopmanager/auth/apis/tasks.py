@@ -13,24 +13,23 @@ logger = logging.getLogger('auth.apis')
 
 
 API_FIELDS = {
-    'taobao.user.get':'user_id,uid,nick,sex,buyer_credit,seller_credit,location,created,last_visit,birthday,type,item_img_num,'
-         +'item_img_size,prop_img_num,prop_img_size,auto_repost,promoted_type,status,alipay_bind,alipay_account,alipay_no',
+    'taobao.user.get':'user_id,uid,nick,sex,buyer_credit,seller_credit,location,created,last_visit,birthday,type,has_more_pic,item_img_num,'
+         +'item_img_size,prop_img_num,prop_img_size,auto_repost,promoted_type,status,alipay_bind,consumer_protection,alipay_account,alipay_no',
     'taobao.itemcats.authorize.get':'brand.vid, brand.name, item_cat.cid, item_cat.name, item_cat.status,item_cat.sort_order,item_cat.parent_cid,item_cat.is_parent,'
          +' xinpin_item_cat.cid, xinpin_item_cat.name, xinpin_item_cat.status, xinpin_item_cat.sort_order, xinpin_item_cat.parent_cid, xinpin_item_cat.is_parent',
     'taobao.itemcats.get':'cid,parent_cid,name,is_parent,status,sort_order',
     'taobao.itemprops.get':'pid, name, must, multi, prop_values',
     'taobao.itempropvalues.get':'cid,pid,prop_name,vid,name,name_alias,status,sort_order',
-    'taobao.item.get':'wap_desc,detail_url,num_iid,title,price,approve_status,delist_time,list_time,modified,num',
+    'taobao.item.get':'wap_desc,detail_url,num_iid,title,outer_id,price,approve_status,delist_time,list_time,modified,num,'
+         +'sku.sku_id,sku.properties,sku.quantity,sku.price,sku.outer_id,sku.status',
     'taobao.items.list.get':'item',
     'taobao.products.get':'product_id,tsc,cat_name,name',
-    'taobao.items.onsale.get':'approve_status,num_iid,title,nick,type,cid,pic_url,num,props,valid_thru,list_time,price,'
-        +'has_discount,has_invoice,has_warranty,has_showcase,modified,delist_time,postage_id,seller_cids,outer_id',
     'taobao.items.search':'iid,num_iid,title,nick,pic_url,cid,price,type,delist_time,post_fee',
     'taobao.products.search':'product_id,name,pic_url,cid,props,price,tsc',
     'taobao.items.inventory.get':'approve_status,num_iid,title,nick,type,cid,pic_url,num,props,valid_thru,list_time,'
         +'price,has_discount,has_invoice,has_warranty,has_showcase, modified,delist_time,postage_id,seller_cids,outer_id',
-    'taobao.items.onsale.get':'approve_status,num_iid,title,nick,type,cid,pic_url,num,props,valid_thru,list_time,price,'
-        +'has_discount,has_invoice,has_showcase,modified,delist_time,postage_id,seller_cids,outer_id',
+    'taobao.items.onsale.get':'approve_status,num_iid,title,nick,type,cid,pic_url,num,props,valid_thru,list_time,price,has_discount,has_invoice,has_warranty'
+        +',has_showcase,modified,delist_time,postage_id,seller_cids,outer_id',
     'taobao.trades.sold.get':'seller_nick, buyer_nick, title, type, created, tid, status, payment, received_payment, commission_fee, pic_path,'
         +'num_iid, num, price,orders.title, orders.pic_path, orders.price, orders.num, orders.num_iid, orders.sku_id, orders.refund_status, '
         +'orders.status, orders.oid, orders.total_fee, orders.payment, orders.discount_fee, orders.adjust_fee, orders.sku_properties_name,'
@@ -132,6 +131,10 @@ def taobao_item_get(num_iid=None,fields=API_FIELDS['taobao.item.get'],session=No
 
 @apis('taobao.item.update')
 def taobao_item_update(num_iid=None,num=None,session=None):
+    pass
+
+@apis('taobao.item.quantity.update')
+def taobao_item_quantity_update(num_iid=None,quantity=None,sku_id=None,type=1,session=None):
     pass
 
 @apis('taobao.item.update.delisting')

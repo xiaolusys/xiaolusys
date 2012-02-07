@@ -6,57 +6,150 @@ import urllib2
 from celery.task import task
 from celery.task.sets import subtask
 from django.conf import settings
-from django.contrib.sessions.backends.db import SessionStore
-from django.contrib.sessions.models import Session
-from auth.utils import getSignatureTaoBao,refresh_session,format_datetime
+from auth.utils import format_datetime
 from shopback.items.models import Item
 from shopback.orders.models import Order
+from shopback.users.models import User
+from shopback.task.models import ItemNumTask
 from auth import apis
 import logging
 
 logger = logging.getLogger('updateitemnum')
 
+
 @task(max_retries=3)
-def updateItemNumTask():
-
+def updateItemNumTask(itemNumTask_id):
     try:
-        item = Item.objects.get(outer_iid=outer_iid)
-        session = SessionStore(session_key=session_key)
+        itemNumTask = ItemNumTask.objects.get(id=itemNumTask_id,status='unexcute')
+    except ItemNumTask.DoesNotExist:
+        logger.error('ItemNumTask(id:%s) is not valid!' %(itemNum_id))
+        return
 
-        refresh_success = refresh_session(session,settings)
+    success = True
 
-        if refresh_success:
-            session.save()
+    items = Item.objects.filter(outer_iid=itemNumTask.outer_iid)
 
-        item.num -= num
-        if item.num <0:
-            item.num=0
+    for item in items:
+        try:
+            user = User.objects.get(visitor_id=item.user_id)
 
-        apis.taobao_item_update(num_iid=num_iid,num=item.num,session=session['top_session'])
+            item.num -= itemNumTask.num
 
-        item.save()
+            skus = json.loads(item.skus)
+            sku_outer_id = itemNumTask.sku_outer_id
+            response = {'error_response':'the item num can not be updated!'}
 
-    except Exception,exc:
-        logger.error('Executing UpdateItemNumTask(outer_iid:%s,num_iid:%s) error:%s' %(outer_iid,num_iid,exc), exc_info=True)
-        if not settings.DEBUG:
-            create_comment.retry(exc=exc,countdown=2)
+            if skus:
+
+                for sku in skus.get('sku',[]):
+                    outer_id = sku.get('outer_id','')
+                    if not outer_id or sku_outer_id == outer_id:
+                        sku['quantity'] -= itemNumTask.num
+
+                        response = apis.taobao_item_quantity_update\
+                                (num_iid=item.num_iid,quantity=sku['quantity'],sku_id=sku['sku_id'],session=user.top_session)
+                        item.skus = json.dumps(skus)
+                        break
+
+            else:
+                response = apis.taobao_item_update(num_iid=item.num_iid,num=item.num,session=user.top_session)
+
+            if response.has_key('error_response'):
+                logger.error('Executing UpdateItemNumTask(num_iid:%s) errorresponse:%s' %(item.num_iid,response))
+                success = False
+            else:
+                item.save()
+
+        except Exception,exc:
+            success = False
+            logger.error('Executing UpdateItemNumTask(num_iid:%s) error:%s' %(item.num_iid,exc), exc_info=True)
+            if not settings.DEBUG:
+                create_comment.retry(exc=exc,countdown=2)
+
+    if success:
+        itemNumTask.status = 'success'
+    else:
+        itemNumTask.status = 'excerror'
+
+    itemNumTask.save()
+
+
+@task()
+def execAllItemNumTask():
+
+    itemNumTasks = ItemNumTask.objects.filter(status='unexcute')
+
+    for itemNumTask in itemNumTasks:
+        subtask(updateItemNumTask).delay(itemNumTask.id)
+
+
 
 @task(max_retries=3)
 def saveDailyOrdersTask(orders_list):
 
     try:
-        o = Order()
         for order in orders_list:
-            o.id = None
-            for k,v in order.iteritems():
-                hasattr(o,k) and setattr(o,k,v)
-            o.save()
+            try:
+                o = Order.objects.get(oid=order['oid'])
+            except Order.DoesNotExist:
+                o = Order()
+
+                for k,v in order.iteritems():
+                    hasattr(o,k) and setattr(o,k,v)
+
+                o.save()
 
     except Exception,exc:
-        print exc
+
         logger.error('Executing saveDailyOrdersTask error:%s' %(exc), exc_info=True)
         if not settings.DEBUG:
             create_comment.retry(exc=exc,countdown=2)
+
+
+@task(max_retries=3)
+def pullPerUserTradesTask(user_id,start_created,end_created):
+
+    try:
+        user = User.objects.get(pk=user_id)
+    except User.DoesNotExist:
+        logger.error('Executing pullPerUserTrades error:%s' %(exc), exc_info=True)
+
+    try:
+        trades = apis.taobao_trades_sold_get(session=user.top_session,page_no=1,page_size=200,
+                 start_created=start_created,end_created=end_created)
+
+        #trades = apis.taobao_trades_sold_get(session=user.top_session,page_no=1,page_size=200,
+        #       start_created='2012-02-03 00:00:00',end_created='2012-02-03 23:59:59')
+    except Exception,exc:
+
+        logger.error('Executing pullPerUserTradesTask error:%s' %(exc), exc_info=True)
+        if not settings.DEBUG:
+            create_comment.retry(exc=exc,countdown=2)
+
+    orders_list = []
+
+    for t in trades['trades_sold_get_response']['trades']['trade']:
+        orders_list.extend(t['orders']['order'])
+
+    if orders_list:
+        subtask(saveDailyOrdersTask).delay(orders_list)
+
+
+    for order in orders_list:
+
+        sku_outer_id = order.get('outer_sku_id','')
+
+        try:
+            itemNumTask = ItemNumTask.objects.get(outer_iid=order['outer_iid'],sku_outer_id=sku_outer_id,status='unexcute')
+            itemNumTask.num += order['num']
+        except ItemNumTask.DoesNotExist:
+            itemNumTask = ItemNumTask()
+            itemNumTask.outer_iid = order['outer_iid']
+            itemNumTask.sku_outer_id = sku_outer_id
+            itemNumTask.num = order['num']
+            itemNumTask.status = 'unexcute'
+
+        itemNumTask.save()
 
 
 
@@ -72,13 +165,11 @@ def updateAllItemNumTask():
         lastday_start_datetime = datetime.datetime.fromtimestamp(ttuple-24*60*60)
         lastday_end_datetime = datetime.datetime.fromtimestamp(ttuple-1)
 
-        sessions = Session.objects.all()
+        updatenum_users = User.objects.exclude(update_items_datetime=None)
 
-        for session in sessions:
+        for user in updatenum_users:
 
-            session = session.get_decoded()
-            update_datetime = session.get('update_items_datetime',None)
-
+            update_datetime = user.update_items_datetime
             if update_datetime:
 
                 timedelta = lastday_end_datetime - update_datetime
@@ -92,52 +183,61 @@ def updateAllItemNumTask():
                 if timedelta.days >= 1:
                     start_datetime = format_datetime(lastday_start_datetime)
 
+                #start_datetime = format_datetime(lastday_start_datetime)
 
                 end_datetime = format_datetime(lastday_end_datetime)
 
-                trades = apis.taobao_trades_sold_get(session=session['top_session'],page_no=1,page_size=200,
-                        start_created=start_datetime,end_created=end_datetime)
+                subtask(pullPerUserTradesTask).delay(user.id,start_datetime,end_datetime)
 
-                #trades = apis.taobao_trades_sold_get(session=session['top_session'],page_no=1,page_size=200,
-                #start_created='2012-02-02 00:00:00',end_created='2012-02-02 23:59:59')
-
-                orders_list = []
-                order_items = {}
-
-                for t in trades['trades_sold_get_response']['trades']['trade']:
-                    orders_list.extend(t['orders']['order'])
-
-                if orders_list:
-                    print 'save orders'
-                    subtask(saveDailyOrdersTask).delay(orders_list)
-
-                for order in orders_list:
-                    if order_items.has_key(order['outer_iid']):
-                        order_items[order['outer_iid']] += order['num']
-                    else:
-                        order_items[order['outer_iid']] = order['num']
-
-                for outer_iid,num in order_items.iteritems():
-                    try:
-                        item = Item.objects.get(outer_iid=outer_iid)
-                        numiid_sessions = json.loads(item.numiid_session)
-
-                        for numsess in numiid_sessions:
-                            numiid_session = numsess.split(':')
-
-                            #subtask(updateItemNumTask).delay(outer_iid,numiid_session[0],num,numiid_session[1])
-
-                    except Exception,exc :
-
-                        logger.error('Executing UpdateItemNum(outer_iid:%s) error:%s' %(outer_iid,exc), exc_info=True)
-
+        time.sleep(settings.UPDATE_ITEM_NUM_INTERVAL)
+        print '----------------excute updateAllItemNumTask start---------------'
+        subtask(execAllItemNumTask).delay()
     except Exception,exc:
+
         logger.error('Executing UpdateAllItemNumTask error:%s' %(exc), exc_info=True)
         if not settings.DEBUG:
             create_comment.retry(exc=exc,countdown=2)
 
 
+@task(max_retries=3)
+def saveItemInfoTask(num_iid):
+    try:
+        item = Item.objects.get(num_iid=num_iid)
 
+        user = User.objects.get(visitor_id=item.user_id)
+    except User.DoesNotExist:
+        logger.error('User(id:%s) not valide!' %(item.user_id))
+
+    try:
+        response = apis.taobao_item_get(num_iid=num_iid,session=user.top_session)
+    except Exception,exc:
+        logger.error('Executing saveItemInfoTask error:%s' %(exc), exc_info=True)
+        if not settings.DEBUG:
+            create_comment.retry(exc=exc,countdown=2)
+
+    if response.has_key('error_response'):
+        logger.error('Executing saveItemInfoTask(num_iid:%s) errorresponse:%s' %(num_iid,response))
+    else:
+        itemdict = response['item_get_response']['item']
+        itemdict['skus'] = json.dumps(itemdict.get('skus',{}))
+
+        for k,v in itemdict.iteritems():
+            hasattr(item,k) and setattr(item,k,v)
+
+        item.save()
+
+
+
+
+
+@task()
+def updateItemsInfoTask(user_id):
+
+    items = Item.objects.filter(user_id=user_id)
+
+    for item in items:
+
+        subtask(saveItemInfoTask).delay(item.num_iid)
 
 
 

@@ -109,11 +109,13 @@ INSTALLED_APPS = (
     'shopback.task',
     'shopback.items',
     'shopback.orders',
+    'shopback.users',
     'autolist',
+
 
 )
 
-AUTH_PROFILE_MODULE = 'auth.user'
+AUTH_PROFILE_MODULE = 'users.user'
 
 AUTHENTICATION_BACKENDS = (
     'auth.accounts.backends.TaoBaoBackend',
@@ -191,6 +193,12 @@ LOGGING = {
             'level': 'ERROR',
             'propagate': True,
         },
+        'outeridmultiple': {
+            'handlers': ['sentry'],
+            'level': 'ERROR',
+            'propagate': True,
+        },
+
     }
 }
 

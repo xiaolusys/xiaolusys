@@ -2,7 +2,7 @@ from django.http import HttpResponse,HttpResponseRedirect
 from django.conf import settings
 from django.core.urlresolvers import reverse
 from django.contrib.auth import authenticate, login
-from django.contrib.auth.signals import user_logged_in
+from shopback.users.signals import taobao_logged_in
 from auth.utils import verifySignature,decodeBase64String,parse_urlparams,getSignatureTaoBao,refresh_session
 from auth import apis
 
@@ -24,15 +24,25 @@ def login_taobo(request):
     if not user or user.is_anonymous():
         return HttpResponseRedirect(reverse('home_page'))
 
-    refresh_session(request.session,settings)
+    #refresh_session(request.session,settings)
 
     login(request, user)
-    user_logged_in.send(sender='web', user=user, request=request)
 
-#    content = apis.taobao_user_get(session=request.session['top_session'])
-#    print 'content:',content
-#
-#    print 'session:',dict(request.session)
+    top_session = request.session.get('top_session',None)
+    top_appkey  = request.session.get('top_appkey',None)
+    top_parameters = request.session.get('top_parameters',None)
+
+    taobao_logged_in.send(sender='web',user=user,top_session=top_session,top_appkey=top_appkey,top_parameters=top_parameters)
+
+
+    #content = apis.taobao_item_get(num_iid='4726175562',session=top_session)
+    #print 'content:',content
+
+    #print 'session:',dict(request.session)
+
+    #content = apis.taobao_items_onsale_get(session=request.session['top_session'],page_no=1,page_size=5)
+    #print 'content:',content
+
 
 
     logger.info('user %s logged in.' % user.username)
