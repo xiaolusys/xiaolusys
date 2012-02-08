@@ -15,8 +15,5 @@ class ItemListTaskResource(ModelResource):
         form.data['user_id'] = session['top_parameters']['visitor_id']
         form.data['nick'] = session['top_parameters']['visitor_nick']
 
-        form.data.pop('is_success',None)
-        form.data.pop('status',None)
-
         return form
   

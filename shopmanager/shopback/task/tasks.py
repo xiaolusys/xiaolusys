@@ -19,54 +19,65 @@ logger = logging.getLogger('updatelisting')
 def updateItemListTask(task_id):
 
     try:
+        task = ItemListTask.objects.get(pk=task_id)
+    except ItemListTask.DoesNotExist:
+        logger.error('ItemListTask(task_id:%s) Does Not Exist' %(task_id))
+        return
 
-        task = ItemListTask.objects.get(pk=task_id,status=True,is_success=False)
+    success = True
+    response = {'error_response':'The task(task_id:%s) is not valid'%(task_id)}
+    try:
 
-        user = User.objects.get(visitor_id=task.visitor_id)
+        user = User.objects.get(visitor_id=task.user_id)
 
-        if task.task_type == 1:
+        if task.task_type == 'listing':
+            response = apis.taobao_item_update_listing\
+                    (num_iid=task.num_iid,num=task.num,session=user.top_session)
 
-            update_ret = apis.taobao_item_update_listing(num_iid=task.num_iid,num=task.num,session=user.top_session)
-
-            if update_ret.get('item_update_listing_response',None) and\
-               update_ret['item_update_listing_response'].get('item',None):
-                task.is_success = True
-            else :
-                logger.warn('Update itemlist unsuccess: %s'%update_ret)
-        elif task.task_type == 2:
+        elif task.task_type == 'delisting':
             item = apis.taobao_item_get(num_iid=task.num_iid,session=user.top_session)
 
             if item.has_key('item_get_response') and item['item_get_response'].has_key('item') :
 
                 if item['item_get_response']['item']['approve_status'] == 'onsale':
 
-                    del_ret = apis.taobao_item_update_delisting(num_iid=task.num_iid,session=user.top_session)
-                    if del_ret.get('item_update_delisting_response',None) and \
-                        del_ret['item_update_delisting_response'].get('item',None):
-                        task.is_success = True
-                    else :
-                        logger.warn('Delete itemlist unsuccess: %s'%del_ret)
+                    response = apis.taobao_item_update_delisting\
+                            (num_iid=task.num_iid,session=user.top_session)
+
             else :
+                success = False
                 logger.warn('Get item unsuccess: %s'%item)
 
-        task.save()
+        if response.has_key('error_response'):
+            logger.error('Executing updateItemListTask(task_id:%s) errorresponse:%s' %(task.task_id,response))
+            success = False
 
     except Exception,exc:
+        success = False
         logger.error('Executing ItemListTask(id:%s) error:%s' %(task_id,exc), exc_info=True)
-        from django.conf import settings
         if not settings.DEBUG:
             create_comment.retry(exc=exc,countdown=1)
 
+    if success:
+        task.status = 'success'
+    else:
+        task.status = 'execerror'
+
+    task.save()
 
 
 @task()
 def updateAllItemListTask():
 
     currenttime = time.time()
-    timeago = datetime.datetime.fromtimestamp(currenttime - settings.EXECUTE_RANGE_TIME)
-    timefuture = datetime.datetime.fromtimestamp(currenttime + settings.EXECUTE_RANGE_TIME)
 
-    tasks = ItemListTask.objects.filter(update_time__gt=timeago,update_time__lt=timefuture,status=True,is_success=False)
+    timeago = datetime.datetime.fromtimestamp\
+            (currenttime - settings.EXECUTE_RANGE_TIME)
+    timefuture = datetime.datetime.fromtimestamp\
+            (currenttime + settings.EXECUTE_RANGE_TIME)
+
+    tasks = ItemListTask.objects.filter\
+            (update_time__gt=timeago,update_time__lt=timefuture,status='unexecute')
 
     for task in tasks:
 
