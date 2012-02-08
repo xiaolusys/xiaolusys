@@ -1,8 +1,7 @@
 from django.db import models
-from shopback.base.models import BaseModel
 from shopback.base.fields import BigIntegerAutoField
 
-class ItemListTask(BaseModel):
+class ItemListTask(models.Model):
 
     id = BigIntegerAutoField(primary_key=True)
 
@@ -13,14 +12,18 @@ class ItemListTask(BaseModel):
     title = models.CharField(max_length=128)
     num = models.IntegerField()
     update_time = models.DateTimeField()
-    task_type = models.IntegerField()       #0 update listing,1 del listing
+    task_type = models.CharField(max_length=10,blank=True)      #listing, delisting
 
     created_at = models.DateTimeField(null=True,blank=True, auto_now_add=True)
 
-    is_success = models.BooleanField(default=False)
+    status = models.CharField(max_length=10,default='unexecute') #unexecute,execerror,success,delete
 
     class Meta:
         db_table = 'shop_itemlisttask'
+
+
+
+
 
 class ItemNumTask(models.Model):
 
@@ -33,7 +36,7 @@ class ItemNumTask(models.Model):
 
     created_at = models.DateTimeField(null=True,blank=True, auto_now_add=True)
 
-    status = models.CharField(max_length=10) #unexcute,excerror,success,delete
+    status = models.CharField(max_length=10) #unexecute,execerror,success,delete
 
     class Meta:
         db_table = 'shop_itemnumtask'

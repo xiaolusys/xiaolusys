@@ -19,7 +19,7 @@ class ListItemTaskView(ListModelView):
         else:
             ordering = None
 
-        kwargs.update({'visitor_id':visitor_id})
+        kwargs.update({'user_id':visitor_id})
 
         if ordering:
             args = as_tuple(ordering)
