@@ -8,7 +8,7 @@
       <td>{{ forloop.counter }}</td><td>{{ item.category_name }}</td><td>{{ item.ref_code }}</td><td></td>
       <td class="title"><a href="{{ item.detail_url }}">{{ item.title }}</a></td>
       <td>{{ item.isoweekday }}</td><td><p>{{ item.list_day }}</p><p>{{ item.list_hm}}</p></td>
-      <td class="reco-time"><p>{{ item.relist_day }}</p><p>{{ item.relist_hm}}</p></td>
+      <td class="time-select"><p>{{ item.relist_day }}</p><p>{{ item.relist_hm}}</p></td>
       <td><img src={{  item.pic_url }} class="profile-image"></td>
   </tr>
   {% endfor %}

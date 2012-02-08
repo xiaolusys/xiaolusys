@@ -20,8 +20,14 @@
   <div class="content">
   {% if page == 'itemlist' %}
       {% include "itemtable.html" %}
-  {% else %}
-      {% include "timetable.html" %}
+  {% endif %}
+
+  {% if page == 'timetable' %}
+      {% include "tablesummary.html" %}
+  {% endif %}
+
+  {% if page == 'weektable' %}
+      {% include "weektable.html" %}
   {% endif %}
 
   {% include "timeselection.html" %}

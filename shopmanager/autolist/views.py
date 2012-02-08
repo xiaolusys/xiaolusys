@@ -69,6 +69,50 @@ def list_all_items(request):
     return render_to_response("base.html", {'page':'itemlist', 'items':items}, RequestContext(request))
 
 
+def show_time_table_summary(request):
+    from auth.utils import get_closest_time_slot, get_all_time_slots
+
+    weekday = request.GET.get('weekday', None)
+    items = ProductItem.objects.all().order_by('category_id', 'ref_code')
+    weekstat = [0,0,0,0,0,0,0]
+    data = {}
+    for item in items:
+        relist_time, status = get_closest_time_slot(item.list_time)
+        item.slot = relist_time.strftime("%H:%M")
+
+        cat = item.category_name
+        if not cat in data:
+            data[cat] = [[],[],[],[],[],[],[]]
+
+        idx = item.list_time.isoweekday() - 1
+        weekstat[idx] += 1
+        data[cat][idx].append(item)
+
+    cats = []
+    for k,v in data.iteritems():
+        t = 0
+        for x in v:
+            t += len(x)
+        cats.append({'cat':k,'total':t})
+    cats.sort(lambda a,b: cmp(b['total'], a['total']))
+
+    for c in cats:
+        key = c['cat']
+        if weekday:
+            c['items'] = data[key][int(weekday)-1]
+        else:
+            c['items'] = data[key]
+
+
+    slots = get_all_time_slots()
+    timekeys = slots.keys()
+    timekeys.sort()
+
+    if weekday:
+        return  render_to_response("base.html", {'page':'weektable', 'cats':cats, 'timeslots': timekeys, 'weekday': weekday, 'total': weekstat[int(weekday)-1]}, RequestContext(request))
+
+    return render_to_response("base.html", {'page':'timetable', 'cats':cats, 'weekstat':weekstat}, RequestContext(request))
+
 def show_time_table(request):
     items = ProductItem.objects.all().order_by('category_id', 'ref_code')
 
@@ -106,8 +150,7 @@ def show_time_table(request):
 
         cat = []
         for k in cats.keys():
-            if cats[k] > 3:
-                cat.append(k)
+            cat.append(k)
     return render_to_response("base.html", {'page': 'timetable', 'data':data, 'cats':cat, 'slots':slots}, RequestContext(request))
 
 
@@ -115,6 +158,8 @@ def change_list_time(request):
     num_iid = request.GET.get('num_iid')
     weekday = int(request.GET.get('weekday'))
     timeslot = request.GET.get('timeslot')
+
+    print 'change_list_time', num_iid, ",", weekday, ",", timeslot
 
     from auth.utils import get_all_time_slots
     timekeys = get_all_time_slots().keys()

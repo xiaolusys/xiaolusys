@@ -20,7 +20,7 @@ API_FIELDS = {
     'taobao.itemcats.get':'cid,parent_cid,name,is_parent,status,sort_order',
     'taobao.itemprops.get':'pid, name, must, multi, prop_values',
     'taobao.itempropvalues.get':'cid,pid,prop_name,vid,name,name_alias,status,sort_order',
-    'taobao.item.get':'wap_desc,detail_url,num_iid,title,outer_id,price,approve_status,delist_time,list_time,modified,num,'
+    'taobao.item.get':'detail_url,num_iid,title,outer_id,price,approve_status,delist_time,list_time,modified,num,'
          +'sku.sku_id,sku.properties,sku.quantity,sku.price,sku.outer_id,sku.status',
     'taobao.items.list.get':'item',
     'taobao.products.get':'product_id,tsc,cat_name,name',

@@ -34,7 +34,7 @@ a:hover, a:active, a:focus { /* 此组选择器将为键盘导航者提供与鼠
 
 /* ~~ 此固定宽度容器包含其它 div ~~ */
 .container {
-	width: auto;
+	width: 960px;
 	background: #FFF;
 	margin: 0 auto; /* 侧边的自动值与宽度结合使用，可以将布局居中对齐 */
 }

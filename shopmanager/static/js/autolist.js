@@ -39,7 +39,7 @@ goog.provide('autolist.ItemList');
 /** @constructor */
 autolist.ItemList = function () {
     this.timeselection = goog.dom.getElement('id-timeslots');
-    this.recoItems = goog.dom.getElementsByClass('reco-time');
+    this.recoItems = goog.dom.getElementsByClass('time-select');
     for(var i=0; i<this.recoItems.length; ++i) {
         goog.events.listen(this.recoItems[i], goog.events.EventType.DBLCLICK, this);
     }
@@ -57,17 +57,20 @@ autolist.ItemList.prototype.updateSelection = function () {
         var url = "/autolist/changetime/"
         var row = this.currRow;
         var callback = function(res) {
-            console.log(res);
-            var cell = row.getElementsByClassName('reco-time')[0];
-            cell.childNodes[0].innerHTML = "<p>"+ res.date +"</p>";
-            cell.childNodes[1].innerHTML = "<p>"+ res.timeslot +"</p>";
+            var cell = row.getElementsByClassName('time-select')[0];
+            if (cell.tagName == 'TD') {
+                cell.childNodes[0].innerHTML = "<p>"+ res.date +"</p>";
+                cell.childNodes[1].innerHTML = "<p>"+ res.timeslot +"</p>";
+            }
         };
         var method = 'GET';
         var data = {num_iid:row.id, weekday:weekday, timeslot:timeslot};
         getJSON(url,callback,method,data);
 
         this.timeselection.style.display = "none";
-        goog.dom.classes.addRemove(this.currRow, 'row-highlight', 'row-mark');
+        if (this.currRow.tagName == 'TR') {
+            goog.dom.classes.addRemove(this.currRow, 'row-highlight', 'row-mark');
+        }
     }
 }
 
@@ -78,8 +81,11 @@ autolist.ItemList.prototype.handleEvent = function (e) {
             goog.dom.classes.remove(this.currRow, "row-highlight");
         }
         this.currRow = e.currentTarget.parentNode;
+        console.log('parentNode', this.currRow);
 
-        goog.dom.classes.add(this.currRow, "row-highlight");
+        if (this.currRow.tagNmae == 'TR') {
+            goog.dom.classes.add(this.currRow, "row-highlight");
+        }
 
         this.weekdaySelector.clear();
         this.timeslotSelector.clear();

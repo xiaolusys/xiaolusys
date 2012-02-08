@@ -1,0 +1,29 @@
+  <table>
+  <tr>
+    <th>序号</th><th>商品类别</th><th>周一</th><th>周二</th><th>周三</th>
+      <th>周四</th><th>周五</th><th>周六</th><th>周日</th><th>总计</th>
+  </tr>
+  {% for c in cats %}
+  <tr>
+      <td>{{ forloop.counter }}</td><td>{{ c.cat }}</td>
+      {% for item in c.items %}
+      {% if item|length > 0 %}
+      <td>{{ item|length }}</td>
+      {% else %}
+      <td></td>
+      {% endif %}
+      {% endfor %}
+      <td>{{ c.total }}</td>
+  </tr>
+  {% endfor %}
+  <tr>
+      <td></td><td>总计</td>
+      {% for w in weekstat %}
+      <td>{{ w }}</td>
+      {% endfor %}
+      <td></td>
+  </tr>
+
+  </table>
+
+

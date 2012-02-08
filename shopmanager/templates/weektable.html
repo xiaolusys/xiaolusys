@@ -1,0 +1,29 @@
+  <table>
+  <tr><th colspan="12">周 {{ weekday }} ({{ total }}件宝贝)</th></tr>
+  <tr>
+      <th>序号</th><th>商品类别</th>
+      {% for slot in timeslots %}
+      <th>{{ slot }}</th>
+      {% endfor %}
+  </tr>
+  {% for c in cats %}
+  <tr>
+      {% if c.items|length > 0%}
+      <td>{{ forloop.counter }}</td><td>{{ c.cat }}</td>
+      {% for slot in timeslots %}
+      <td>
+      {% for item in c.items %}
+      {% if item.slot == slot %}
+      <a id="{{ item.num_iid }}" class="wrap-image">
+          <span class="time-select"><img src={{ item.pic_url }} class="profile-image"></span>
+      </a>
+      {% endif %}
+      {% endfor %}
+      </td>
+      {% endfor %}
+      {% endif %}
+  </tr>
+  {% endfor %}
+  </table>
+
+
