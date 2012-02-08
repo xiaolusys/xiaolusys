@@ -20,13 +20,12 @@ logger = logging.getLogger('updateitemnum')
 @task(max_retries=3)
 def updateItemNumTask(itemNumTask_id):
     try:
-        itemNumTask = ItemNumTask.objects.get(id=itemNumTask_id,status='unexcute')
+        itemNumTask = ItemNumTask.objects.get(id=itemNumTask_id)
     except ItemNumTask.DoesNotExist:
         logger.error('ItemNumTask(id:%s) is not valid!' %(itemNum_id))
         return
 
     success = True
-
     items = Item.objects.filter(outer_iid=itemNumTask.outer_iid)
 
     for item in items:
@@ -69,7 +68,7 @@ def updateItemNumTask(itemNumTask_id):
     if success:
         itemNumTask.status = 'success'
     else:
-        itemNumTask.status = 'excerror'
+        itemNumTask.status = 'execerror'
 
     itemNumTask.save()
 
@@ -77,7 +76,7 @@ def updateItemNumTask(itemNumTask_id):
 @task()
 def execAllItemNumTask():
 
-    itemNumTasks = ItemNumTask.objects.filter(status='unexcute')
+    itemNumTasks = ItemNumTask.objects.filter(status='unexecute')
 
     for itemNumTask in itemNumTasks:
         subtask(updateItemNumTask).delay(itemNumTask.id)
@@ -140,14 +139,14 @@ def pullPerUserTradesTask(user_id,start_created,end_created):
         sku_outer_id = order.get('outer_sku_id','')
 
         try:
-            itemNumTask = ItemNumTask.objects.get(outer_iid=order['outer_iid'],sku_outer_id=sku_outer_id,status='unexcute')
+            itemNumTask = ItemNumTask.objects.get(outer_iid=order['outer_iid'],sku_outer_id=sku_outer_id,status='unexecute')
             itemNumTask.num += order['num']
         except ItemNumTask.DoesNotExist:
             itemNumTask = ItemNumTask()
             itemNumTask.outer_iid = order['outer_iid']
             itemNumTask.sku_outer_id = sku_outer_id
             itemNumTask.num = order['num']
-            itemNumTask.status = 'unexcute'
+            itemNumTask.status = 'unexecute'
 
         itemNumTask.save()
 
@@ -192,6 +191,7 @@ def updateAllItemNumTask():
         time.sleep(settings.UPDATE_ITEM_NUM_INTERVAL)
         print '----------------excute updateAllItemNumTask start---------------'
         subtask(execAllItemNumTask).delay()
+
     except Exception,exc:
 
         logger.error('Executing UpdateAllItemNumTask error:%s' %(exc), exc_info=True)
