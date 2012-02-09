@@ -22,7 +22,7 @@ CELERYBEAT_SCHEDULE = {
     },
     'runs-every-day':{
         'task':'shopback.items.tasks.updateAllItemNumTask',
-        'schedule':crontab(minute="*/3"),
+        'schedule':crontab(minute=0, hour=0),
         'args':(),
     },
 }

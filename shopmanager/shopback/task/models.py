@@ -36,7 +36,7 @@ class ItemNumTask(models.Model):
 
     created_at = models.DateTimeField(null=True,blank=True, auto_now_add=True)
 
-    status = models.CharField(max_length=10) #unexecute,execerror,success,delete
+    status = models.CharField(max_length=10,default='unexecute') #unexecute,execerror,success,delete
 
     class Meta:
         db_table = 'shop_itemnumtask'
