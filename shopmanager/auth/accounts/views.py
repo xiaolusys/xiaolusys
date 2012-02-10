@@ -40,7 +40,7 @@ def login_taobo(request):
 
     #print 'session:',dict(request.session)
 
-    #content = apis.taobao_items_onsale_get(session=request.session['top_session'],page_no=1,page_size=5)
+    #content = apis.taobao_items_get(q='\xe7\x9d\xa1\xe8\xa2\x8b',session=request.session['top_session'],page_no=1,page_size=100)
     #print 'content:',content
 
 
