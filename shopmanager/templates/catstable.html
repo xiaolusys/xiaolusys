@@ -25,7 +25,7 @@
        <td>
           {% for item in weekitems %}
           {% if item.slot == slot %}
-          <a id="{{ item.num_iid }}" class="wrap-image"><span class="time-select">
+          <a id="{{ item.num_iid }}" title="{{ item.title }}" num="{{ item.num }}" class="wrap-image"><span class="time-select">
               <img src={{ item.pic_url }} class="profile-image"></span></a>
           {% endif %}
           {% endfor %}

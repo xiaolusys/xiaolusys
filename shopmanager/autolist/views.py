@@ -84,8 +84,14 @@ def show_timetable_cats(request):
     for item in items:
         relist_slot, status = get_closest_time_slot(item.list_time)
         item.slot = relist_slot.strftime("%H:%M")
-
         idx = relist_slot.isoweekday() - 1
+        try:
+            o = ItemListTask.objects.get(num_iid=item.num_iid)
+            item.slot = o.list_time
+            idx = o.list_weekday - 1
+        except ItemListTask.DoesNotExist:
+            pass
+
         data[idx].append(item)
 
     slots = get_all_time_slots()
@@ -103,13 +109,21 @@ def show_time_table_summary(request):
     data = {}
     for item in items:
         relist_time, status = get_closest_time_slot(item.list_time)
+
         item.slot = relist_time.strftime("%H:%M")
+        idx = item.list_time.isoweekday() - 1
+
+        try:
+            o = ItemListTask.objects.get(num_iid=item.num_iid)
+            item.slot = o.list_time
+            idx = o.list_weekday - 1
+        except ItemListTask.DoesNotExist:
+            pass
 
         cat = item.category_name
         if not cat in data:
             data[cat] = [[],[],[],[],[],[],[]]
 
-        idx = item.list_time.isoweekday() - 1
         weekstat[idx] += 1
         data[cat][idx].append(item)
 

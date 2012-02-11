@@ -59,8 +59,7 @@ autolist.ItemList.prototype.updateSelection = function () {
         var callback = function(res) {
             var cell = row.getElementsByClassName('time-select')[0];
             if (cell.tagName == 'TD') {
-                cell.childNodes[0].innerHTML = "<p>"+ res.date +"</p>";
-                cell.childNodes[1].innerHTML = "<p>"+ res.timeslot +"</p>";
+                cell.innerHTML = "<p>周 "+ res.list_weekday +"</p><p>" + res.list_time + "</p>";
             }
         };
         var method = 'POST';
