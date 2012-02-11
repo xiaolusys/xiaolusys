@@ -63,7 +63,7 @@ def updateItemNumTask(itemNumTask_id):
             success = False
             logger.error('Executing UpdateItemNumTask(num_iid:%s) error:%s' %(item.num_iid,exc), exc_info=True)
             if not settings.DEBUG:
-                create_comment.retry(exc=exc,countdown=2)
+                updateItemNumTask.retry(exc=exc,countdown=2)
 
     if success:
         itemNumTask.status = 'success'
@@ -102,7 +102,7 @@ def saveDailyOrdersTask(orders_list):
 
         logger.error('Executing saveDailyOrdersTask error:%s' %(exc), exc_info=True)
         if not settings.DEBUG:
-            create_comment.retry(exc=exc,countdown=2)
+            saveDailyOrdersTask.retry(exc=exc,countdown=2)
 
 
 @task(max_retries=3)
@@ -112,6 +112,7 @@ def pullPerUserTradesTask(user_id,start_created,end_created):
         user = User.objects.get(pk=user_id)
     except User.DoesNotExist:
         logger.error('Executing pullPerUserTrades error:%s' %(exc), exc_info=True)
+        return
 
     try:
         trades = apis.taobao_trades_sold_get(session=user.top_session,page_no=1,page_size=200,
@@ -123,12 +124,17 @@ def pullPerUserTradesTask(user_id,start_created,end_created):
 
         logger.error('Executing pullPerUserTradesTask error:%s' %(exc), exc_info=True)
         if not settings.DEBUG:
-            create_comment.retry(exc=exc,countdown=2)
+            pullPerUserTradesTask.retry(exc=exc,countdown=2)
+
+    if trades.has_key('error_response'):
+        logger.warn('Get users trades errorresponse:%s' %(trades))
+        return
 
     orders_list = []
 
-    for t in trades['trades_sold_get_response']['trades']['trade']:
-        orders_list.extend(t['orders']['order'])
+    if trades['trades_sold_get_response']['total_results']>0:
+        for t in trades['trades_sold_get_response']['trades']['trade']:
+            orders_list.extend(t['orders']['order'])
 
     if orders_list:
         subtask(saveDailyOrdersTask).delay(orders_list)
@@ -146,7 +152,6 @@ def pullPerUserTradesTask(user_id,start_created,end_created):
             itemNumTask.outer_iid = order['outer_iid']
             itemNumTask.sku_outer_id = sku_outer_id
             itemNumTask.num = order['num']
-            itemNumTask.status = 'unexecute'
 
         itemNumTask.save()
 
@@ -196,7 +201,7 @@ def updateAllItemNumTask():
 
         logger.error('Executing UpdateAllItemNumTask error:%s' %(exc), exc_info=True)
         if not settings.DEBUG:
-            create_comment.retry(exc=exc,countdown=2)
+            updateAllItemNumTask.retry(exc=exc,countdown=2)
 
 
 @task(max_retries=3)
@@ -213,7 +218,7 @@ def saveItemInfoTask(num_iid):
     except Exception,exc:
         logger.error('Executing saveItemInfoTask error:%s' %(exc), exc_info=True)
         if not settings.DEBUG:
-            create_comment.retry(exc=exc,countdown=2)
+            saveItemInfoTask.retry(exc=exc,countdown=2)
 
     if response.has_key('error_response'):
         logger.error('Executing saveItemInfoTask(num_iid:%s) errorresponse:%s' %(num_iid,response))
