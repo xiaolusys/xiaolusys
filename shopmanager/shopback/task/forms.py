@@ -9,7 +9,8 @@ class ItemListTaskForm(forms.Form):
     num_iid = forms.CharField(max_length=20)
     title = forms.CharField(max_length=128)
     num = forms.IntegerField(min_value=1)
-    update_time = forms.DateTimeField()
+    list_weekday = forms.IntegerField()
+    list_time = forms.CharField(max_length=8)
     task_type = forms.CharField(max_length=10)
 
 

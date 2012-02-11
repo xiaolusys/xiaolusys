@@ -1,5 +1,22 @@
+{% extends "base.html" %}
+
+
+{% block title %}
+  {% if weekday == 7 %}
+  周日  - 上架宝贝{{ total }}件
+  {% else %}
+  周{{ weekday }} - 上架宝贝{{ total }}件
+  {% endif %}
+{% endblock %}
+
+{% block content %}
   <table>
-  <tr><th colspan="12">周 {{ weekday }} ({{ total }}件宝贝)</th></tr>
+  {% if weekday == 7 %}
+  <tr><th colspan="12">周日 ({{ total }}件宝贝)</th></tr>
+  {% else %}
+  <tr><th colspan="12">周{{ weekday }} ({{ total }}件宝贝)</th></tr>
+  {% endif %}
+
   <tr>
       <th>序号</th><th>商品类别</th>
       {% for slot in timeslots %}
@@ -25,5 +42,5 @@
   </tr>
   {% endfor %}
   </table>
-
+{% endblock %}
 

@@ -54,7 +54,7 @@ autolist.ItemList.prototype.updateSelection = function () {
     var timeslot = this.timeslotSelector.getValue();
 
     if (weekday != 0 && timeslot != 0) {
-        var url = "/autolist/changetime/"
+        var url = "/task/"
         var row = this.currRow;
         var callback = function(res) {
             var cell = row.getElementsByClassName('time-select')[0];
@@ -63,8 +63,11 @@ autolist.ItemList.prototype.updateSelection = function () {
                 cell.childNodes[1].innerHTML = "<p>"+ res.timeslot +"</p>";
             }
         };
-        var method = 'GET';
-        var data = {num_iid:row.id, weekday:weekday, timeslot:timeslot};
+        var method = 'POST';
+        console.log(row);
+        var data = {num_iid:row.id, title:row.title, num:row.getAttribute('num'),
+            list_weekday:weekday, list_time:timeslot, task_type:"listing"};
+        console.log(data);
         getJSON(url,callback,method,data);
 
         this.timeselection.style.display = "none";
@@ -83,7 +86,7 @@ autolist.ItemList.prototype.handleEvent = function (e) {
         this.currRow = e.currentTarget.parentNode;
         console.log('parentNode', this.currRow);
 
-        if (this.currRow.tagNmae == 'TR') {
+        if (this.currRow.tagName == 'TR') {
             goog.dom.classes.add(this.currRow, "row-highlight");
         }
 
@@ -93,9 +96,23 @@ autolist.ItemList.prototype.handleEvent = function (e) {
         //this.timeselection.style.position = "absolute";
 
         goog.dom.append(e.currentTarget, this.timeselection);
-
     }
+}
 
+goog.provide('autolist.TimeTable');
+
+/** @constructor */
+autolist.TimeTable = function () {
+    this.weekdays = goog.dom.getElementsByClass('timetable');
+    for(var i=0; i<this.weekdays.length; ++i) {
+        goog.events.listen(this.weekdays[i], goog.events.EventType.CLICK, this);
+    }
+}
+
+autolist.TimeTable.prototype.handleEvent = function (e) {
+    if (e.type == goog.events.EventType.CLICK) {
+        console.log(e.currentTarget.getAttribute("day"));
+    }
 }
 
 

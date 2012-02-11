@@ -4,15 +4,15 @@ from shopback.task.models import ItemListTask,ItemNumTask
 
 
 class ItemListTaskAdmin(admin.ModelAdmin):
-    list_display = ('id','user_id', 'nick', 'num_iid', 'title', 'num', 'update_time',
+    list_display = ('user_id', 'nick', 'num_iid', 'title', 'num', 'list_time',
                     'task_type' ,'created_at','status')
     list_display_links = ('num_iid', 'title')
     #list_editable = ('update_time','task_type' ,'is_success','status')
 
-    date_hierarchy = 'update_time'
+    #date_hierarchy = 'list_time'
     ordering = ['created_at']
 
-    list_filter = ('status', 'update_time')
+    list_filter = ('status', 'list_time')
     search_fields = ['nick','title']
 
     actions = ['cancleExecute']

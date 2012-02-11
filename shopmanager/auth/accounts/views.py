@@ -53,5 +53,6 @@ def login_taobo(request):
         return HttpResponseRedirect(settings.LOGIN_REDIRECT_URL)
 
 def home(request):
-    return HttpResponse('Welcom to home page!')
+    return HttpResponseRedirect('/autolist/')
+    #return HttpResponse('Welcom to home page!')
 

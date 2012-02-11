@@ -1,11 +1,22 @@
+{% extends "base.html" %}
+
+{% block title %} 上架时间统计 {% endblock %}
+{% block content %}
   <table>
   <tr>
-    <th>序号</th><th>商品类别</th><th>周一</th><th>周二</th><th>周三</th>
-      <th>周四</th><th>周五</th><th>周六</th><th>周日</th><th>总计</th>
+    <th>序号</th><th>商品类别</th>
+      <th class="timetable" day='1'><a href="?weekday=1" target="_blank">周一</a></th>
+      <th class="timetable" day='2'><a href="?weekday=2" target="_blank">周二</a></th>
+      <th class="timetable" day='3'><a href="?weekday=3" target="_blank">周三</a></th>
+      <th class="timetable" day='4'><a href="?weekday=4" target="_blank">周四</a></th>
+      <th class="timetable" day='5'><a href="?weekday=5" target="_blank">周五</a></th>
+      <th class="timetable" day='6'><a href="?weekday=6" target="_blank">周六</a></th>
+      <th class="timetable" day='7'><a href="?weekday=7" target="_blank">周日</a></th><th>总计</th>
   </tr>
   {% for c in cats %}
   <tr>
-      <td>{{ forloop.counter }}</td><td>{{ c.cat }}</td>
+      <td>{{ forloop.counter }}</td>
+      <td><a href="/autolist/timetablecats/?catname={{ c.cat }}" target="_blank">{{ c.cat }}</a></td>
       {% for item in c.items %}
       {% if item|length > 0 %}
       <td>{{ item|length }}</td>
@@ -25,5 +36,11 @@
   </tr>
 
   </table>
+{% endblock %}
 
+{% block script %}
+<script type="text/javascript">
+    new autolist.TimeTable();
+</script>
+{% endblock %}
 

@@ -2,7 +2,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-<title>商品自动上架时间分析</title>
+<title>{% block title %}商品自动上架时间分析{% endblock %}</title>
     <link href="{{ STATIC_URL }}css/base.css" type="text/css" rel="stylesheet" />
     <link href="{{ STATIC_URL }}css/autolist.css" type="text/css" rel="stylesheet" />
 
@@ -18,17 +18,8 @@
   <div class="header"><a href="#"><img src="/static/youni-logo.jpg" alt="在此处插入徽标" name="Insert_logo" width="180" height="90" id="Insert_logo" style="background: #C6D580; display:block;" /></a>
     <!-- end .header --></div>
   <div class="content">
-  {% if page == 'itemlist' %}
-      {% include "itemtable.html" %}
-  {% endif %}
-
-  {% if page == 'timetable' %}
-      {% include "tablesummary.html" %}
-  {% endif %}
-
-  {% if page == 'weektable' %}
-      {% include "weektable.html" %}
-  {% endif %}
+      {% block content %}
+      {% endblock %}
 
   {% include "timeselection.html" %}
   

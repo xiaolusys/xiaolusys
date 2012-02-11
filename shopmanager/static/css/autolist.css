@@ -59,3 +59,7 @@ table p {
 .row-mark .reco-time {
     color: #F4688B;
 }
+
+.warning {
+    color:red;
+}

@@ -1,5 +1,5 @@
 import json
-from django.http import HttpResponse
+from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import render_to_response
 from django.template import RequestContext
 
@@ -7,6 +7,7 @@ from auth import apis
 from autolist.models import ProductItem
 import datetime
 
+from shopback.task.models import ItemListTask
 
 def pull_from_taobao(request):
     session = request.session
@@ -42,14 +43,9 @@ def pull_from_taobao(request):
         o.list_time = item['list_time']
         o.modified = item['modified']
         o.pic_url = item['pic_url']
-
+        o.num = item['num']
         o.save()
-
-    response = {'pulled':len(items)}
-
-    return HttpResponse(json.dumps(response),mimetype='application/json')
-
-
+    return HttpResponseRedirect('itemlist/')
 
 def list_all_items(request):
     items = ProductItem.objects.all().order_by('category_id', 'ref_code')
@@ -65,9 +61,38 @@ def list_all_items(request):
         x.isoweekday = x.list_time.isoweekday()
         x.list_day,x.list_hm = x.list_time.strftime("%Y-%m-%d"), x.list_time.strftime("%H:%M:%S")
 
+        try:
+            y = ItemListTask.objects.get(num_iid=x.num_iid)
+            x.scheduled_day = y.list_weekday
+            x.scheduled_hm = y.list_time
+            x.status = y.status
+        except ItemListTask.DoesNotExist:
+            x.scheduled_day = None
+            x.scheduled_hm = None
+            x.status = 'unscheduled'
 
-    return render_to_response("base.html", {'page':'itemlist', 'items':items}, RequestContext(request))
 
+    return render_to_response("itemtable.html", {'page':'itemlist', 'items':items}, RequestContext(request))
+
+
+def show_timetable_cats(request):
+    from auth.utils import get_closest_time_slot, get_all_time_slots
+    catname = request.GET.get('catname', None)
+
+    items = ProductItem.objects.filter(category_name=catname)
+    data = [[],[],[],[],[],[],[]]
+    for item in items:
+        relist_slot, status = get_closest_time_slot(item.list_time)
+        item.slot = relist_slot.strftime("%H:%M")
+
+        idx = relist_slot.isoweekday() - 1
+        data[idx].append(item)
+
+    slots = get_all_time_slots()
+    timekeys = slots.keys()
+    timekeys.sort()
+
+    return  render_to_response("catstable.html", {'timeslots': timekeys, 'data':data, 'catname':catname}, RequestContext(request))
 
 def show_time_table_summary(request):
     from auth.utils import get_closest_time_slot, get_all_time_slots
@@ -93,7 +118,7 @@ def show_time_table_summary(request):
         t = 0
         for x in v:
             t += len(x)
-        cats.append({'cat':k,'total':t})
+        cats.append({'cat':k, 'total':t})
     cats.sort(lambda a,b: cmp(b['total'], a['total']))
 
     for c in cats:
@@ -109,9 +134,9 @@ def show_time_table_summary(request):
     timekeys.sort()
 
     if weekday:
-        return  render_to_response("base.html", {'page':'weektable', 'cats':cats, 'timeslots': timekeys, 'weekday': weekday, 'total': weekstat[int(weekday)-1]}, RequestContext(request))
+        return  render_to_response("weektable.html", {'page':'weektable', 'cats':cats, 'timeslots': timekeys, 'weekday': int(weekday), 'total': weekstat[int(weekday)-1]}, RequestContext(request))
 
-    return render_to_response("base.html", {'page':'timetable', 'cats':cats, 'weekstat':weekstat}, RequestContext(request))
+    return render_to_response("tablesummary.html", {'page':'timetable', 'cats':cats, 'weekstat':weekstat}, RequestContext(request))
 
 def show_time_table(request):
     items = ProductItem.objects.all().order_by('category_id', 'ref_code')
@@ -155,9 +180,16 @@ def show_time_table(request):
 
 
 def change_list_time(request):
+
+
     num_iid = request.GET.get('num_iid')
     weekday = int(request.GET.get('weekday'))
     timeslot = request.GET.get('timeslot')
+
+    try:
+        o = ItemListTask.objects.get(num_iid=num_iid)
+    except ItemListTask.DoesNotExist:
+        o = ItemListTask()
 
     print 'change_list_time', num_iid, ",", weekday, ",", timeslot
 

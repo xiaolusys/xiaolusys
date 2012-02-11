@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+
+{% block title %} {{ catname }} - 上架时间{% endblock %}
+
+{% block content %}
+  <table>
+      <tr>
+      <th>商品类别</th><th>上架时间</th>
+      {% for weekitems in data %}
+          {% if forloop.counter == 7 %}
+          <th>周 日</th>
+          {% else %}
+          <th>周 {{ forloop.counter }}</th>
+          {% endif %}
+      {% endfor %}
+      </tr>
+
+      {% for slot in timeslots %}
+      <tr>
+      {% if forloop.counter == 1%}
+      <th rowspan="10">{{ catname }}</th>
+      {% endif %}
+      <td>{{ slot }}</td>
+      {% for weekitems in data %}
+       <td>
+          {% for item in weekitems %}
+          {% if item.slot == slot %}
+          <a id="{{ item.num_iid }}" class="wrap-image"><span class="time-select">
+              <img src={{ item.pic_url }} class="profile-image"></span></a>
+          {% endif %}
+          {% endfor %}
+       </td>
+      {% endfor %}
+      </tr>
+      {% endfor %}
+  </table>
+{% endblock %}
+
