@@ -9,8 +9,8 @@ nicks = ['\xe4\xbc\x98\xe5\xb0\xbc\xe4\xb8\x96\xe7\x95\x8c\xe6\x97\x97\xe8\x88\x
 keywords = ['\xe7\x9d\xa1\xe8\xa2\x8b \xe5\x84\xbf\xe7\xab\xa5 \xe9\x98\xb2\xe8\xb8\xa2\xe8\xa2\xab',]
 
 baseurl = 'http://s.taobao.com/search'
-itemhref_xpath = '/html/body/div/div/div/div/div/form/ul/li/h3/a'
-itemuser_xpath = '/html/body/div/div/div/div/div/form/ul/li/p/a'
+itemhref_xpath = ['/html/body/div/div/div/div/div/form/ul/li/h3/a']
+itemuser_xpath = ['/html/body/div/div/div/div/div/form/ul/li/p/a','/html/body/div/div/div/div/div/form/ul/li/ul/li/a']
 
 
 def scraw_url(url):
@@ -23,14 +23,32 @@ def scraw_url(url):
 
 def parseElementAttr(tree):
     merge_list = []
-    itemhref_list = tree.xpath(itemhref_xpath)
-    itemuser_list = tree.xpath(itemuser_xpath)
+
+    itemhref_list = []
+    itemuser_list = []
+
+    model = 'a'       #a,b instance taobao two styles page list
+
+    for xpath in itemhref_xpath:
+        itemhref_list = tree.xpath(xpath)
+        if itemhref_list:
+            break
+        model = 'b'
+
+    for xpath in itemuser_xpath:
+        itemuser_list = tree.xpath(xpath)
+        if itemuser_list:
+            break
+        model = 'b'
 
     if len(itemuser_list)>len(itemhref_list):
         for user in itemuser_list:
             if user.attrib.has_key('title'):
                 itemuser_list.remove(user)
 
+    if len(itemhref_list) != len(itemuser_list):
+        itemhref_list = itemuser_list = []
+        print 'Taobao page data is not parse right!'
 
     for i in xrange(0,len(itemhref_list)):
         itemhref = itemhref_list[i]
@@ -39,6 +57,8 @@ def parseElementAttr(tree):
         itemdict = {}
 
         o = urlparse.urlparse(itemhref.attrib['href'])
+        itemdict['model'] = model
+
         itemdict['title'] = itemhref.attrib['title']
         itemdict['item_id'] = urlparse.parse_qs(o.query)['id'][0]
 
@@ -77,7 +97,10 @@ def getTaoBaoPageRank(nick,keyword,page_nums):
     for i in xrange(0,len(results)):
         item = results[i]
         if item['nick'] == nick:
-            item['rank'] = i+i
+            if item['model'] == 'a':
+                item['rank'] = i+3
+            elif item['model'] == 'b':
+                item['rank'] = i+4
             search_results.append(item)
 
     return search_results
@@ -88,19 +111,22 @@ def getCustomShopsPageRank(nicks,keywords,page_nums):
     search_results = {}
     for keyword in keywords:
 
-        key_word = keyword.decode('utf8').encode('gbk')
+        key_word = keyword.encode('gbk')
         results = scrawTaoBaoPage(key_word,page_nums)
-
         nick_results = {}
         for nick in nicks:
 
-            nick = nick.decode('utf8')
+            nick = nick
             peruser_results = []
 
             for i in xrange(0,len(results)):
                 item = results[i]
+
                 if item['nick'] == nick:
-                    item['rank'] = i+1
+                    if item['model'] == 'a':
+                        item['rank'] = i+3
+                    elif item['model'] == 'b':
+                        item['rank'] = i+4
                     peruser_results.append(item)
 
             nick_results[nick] = peruser_results
@@ -110,18 +136,19 @@ def getCustomShopsPageRank(nicks,keywords,page_nums):
     return search_results
 
 
-if __name__ == '__main__':
 
-    results = getCustomShopsPageRank(nicks,keywords,5)
+#if __name__ == '__main__':
 
-    for keyword,nicks_result in  results.iteritems():
-
-        for nick,values in nicks_result.iteritems():
-
-            print keyword,'---------',nick
-
-            for value in values:
-                print value['title'],'=======',value['rank']
+#    results = getCustomShopsPageRank(nicks,keywords,5)
+#
+#    for keyword,nicks_result in  results.iteritems():
+#
+#        for nick,values in nicks_result.iteritems():
+#
+#            print keyword,'---------',nick
+#
+#            for value in values:
+#                print value['title'],'=======',value['rank']
 
 
 

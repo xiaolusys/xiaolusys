@@ -1,6 +1,12 @@
 from django.db import models
 from shopback.base.fields import BigIntegerAutoField
 
+#records status
+UNEXECUTE = 'unexecute'
+EXECERROR = 'execerror'
+SUCCESS = 'success'
+DELETE = 'delete'
+
 class ItemListTask(models.Model):
     num_iid = models.CharField(primary_key=True,max_length=64)
 
@@ -17,7 +23,7 @@ class ItemListTask(models.Model):
 
     created_at = models.DateTimeField(null=True,blank=True, auto_now_add=True)
 
-    status = models.CharField(max_length=10,default='unexecute') #unexecute,execerror,success,delete
+    status = models.CharField(max_length=10,default=UNEXECUTE) #unexecute,execerror,success,delete
 
     class Meta:
         db_table = 'shop_itemlisttask'
@@ -37,7 +43,7 @@ class ItemNumTask(models.Model):
 
     created_at = models.DateTimeField(null=True,blank=True, auto_now_add=True)
 
-    status = models.CharField(max_length=10,default='unexecute') #unexecute,execerror,success,delete
+    status = models.CharField(max_length=10,default=UNEXECUTE) #unexecute,execerror,success,delete
 
     class Meta:
         db_table = 'shop_itemnumtask'

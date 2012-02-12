@@ -2,6 +2,7 @@ from django.db import models
 from shopback.base.models import BaseModel
 from shopback.base.fields import BigIntegerAutoField
 
+
 class Order(models.Model):
 
     oid = models.CharField(primary_key=True,max_length=20)

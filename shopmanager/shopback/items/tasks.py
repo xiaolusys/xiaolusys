@@ -10,7 +10,7 @@ from auth.utils import format_datetime
 from shopback.items.models import Item
 from shopback.orders.models import Order
 from shopback.users.models import User
-from shopback.task.models import ItemNumTask
+from shopback.task.models import ItemNumTask,UNEXECUTE,EXECERROR,SUCCESS
 from auth import apis
 import logging
 
@@ -42,7 +42,7 @@ def updateItemNumTask(itemNumTask_id):
 
                 for sku in skus.get('sku',[]):
                     outer_id = sku.get('outer_id','')
-                    if not outer_id or sku_outer_id == outer_id:
+                    if  sku_outer_id == outer_id:
                         sku['quantity'] -= itemNumTask.num
 
                         response = apis.taobao_item_quantity_update\
@@ -66,9 +66,9 @@ def updateItemNumTask(itemNumTask_id):
                 updateItemNumTask.retry(exc=exc,countdown=2)
 
     if success:
-        itemNumTask.status = 'success'
+        itemNumTask.status = SUCCESS
     else:
-        itemNumTask.status = 'execerror'
+        itemNumTask.status = EXECERROR
 
     itemNumTask.save()
 
@@ -76,7 +76,7 @@ def updateItemNumTask(itemNumTask_id):
 @task()
 def execAllItemNumTask():
 
-    itemNumTasks = ItemNumTask.objects.filter(status='unexecute')
+    itemNumTasks = ItemNumTask.objects.filter(status=UNEXECUTE)
 
     for itemNumTask in itemNumTasks:
         subtask(updateItemNumTask).delay(itemNumTask.id)
@@ -142,18 +142,19 @@ def pullPerUserTradesTask(user_id,start_created,end_created):
 
     for order in orders_list:
 
-        sku_outer_id = order.get('outer_sku_id','')
+        if order['status'] != 'TRADE_CLOSED_BY_TAOBAO' and order['status'] != 'WAIT_BUYER_PAY':
+            sku_outer_id = order.get('outer_sku_id','')
+            try:
+                itemNumTask = ItemNumTask.objects.get\
+                        (outer_iid=order['outer_iid'],sku_outer_id=sku_outer_id,status=UNEXECUTE)
+                itemNumTask.num += order['num']
+            except ItemNumTask.DoesNotExist:
+                itemNumTask = ItemNumTask()
+                itemNumTask.outer_iid = order['outer_iid']
+                itemNumTask.sku_outer_id = sku_outer_id
+                itemNumTask.num = order['num']
 
-        try:
-            itemNumTask = ItemNumTask.objects.get(outer_iid=order['outer_iid'],sku_outer_id=sku_outer_id,status='unexecute')
-            itemNumTask.num += order['num']
-        except ItemNumTask.DoesNotExist:
-            itemNumTask = ItemNumTask()
-            itemNumTask.outer_iid = order['outer_iid']
-            itemNumTask.sku_outer_id = sku_outer_id
-            itemNumTask.num = order['num']
-
-        itemNumTask.save()
+            itemNumTask.save()
 
 
 

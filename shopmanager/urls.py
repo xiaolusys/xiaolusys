@@ -13,4 +13,6 @@ urlpatterns = patterns('',
     url(r'^home/$',home,name='home_page'),
     (r'^$',login_taobo),
     (r'^admin/', include(admin.site.urls)),
+
+    
 )

@@ -76,6 +76,9 @@ def parse_datetime(dt):
 def format_datetime(dt):
     return dt.strftime("%Y-%m-%d %H:%M:%S")
 
+def format_time(dt):
+    return dt.strftime("%H:%M")
+
 def get_all_time_slots():
     return {"11:50":0, "12:20":1, "14:50":2, "15:20":3, "15:50":4,
             "16:20":5, "16:50":6, "21:00":7, "21:30":8, "22:00":9}

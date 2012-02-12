@@ -7,25 +7,28 @@ from celery.task import task
 from celery.task.sets import subtask
 from django.conf import settings
 from django.contrib.sessions.backends.db import SessionStore
-from shopback.task.models import ItemListTask
+from shopback.task.models import ItemListTask,UNEXECUTE,EXECERROR,SUCCESS
 from shopback.users.models import User
-from auth.utils import getSignatureTaoBao,refresh_session
+from auth.utils import getSignatureTaoBao,refresh_session ,format_time
 from auth import apis
 import logging
 
 logger = logging.getLogger('updatelisting')
 
+START_TIME = '00:00'
+END_TIME = '23:59'
+
 @task(max_retries=3)
-def updateItemListTask(task_id):
+def updateItemListTask(num_iid):
 
     try:
-        task = ItemListTask.objects.get(pk=task_id)
+        task = ItemListTask.objects.get(pk=num_iid)
     except ItemListTask.DoesNotExist:
-        logger.error('ItemListTask(task_id:%s) Does Not Exist' %(task_id))
+        logger.error('ItemListTask(num_iid:%s) Does Not Exist' %(num_iid))
         return
 
     success = True
-    response = {'error_response':'The task(task_id:%s) is not valid'%(task_id)}
+    response = {'error_response':'The task(num_iid:%s) is not valid'%(num_iid)}
     try:
 
         user = User.objects.get(visitor_id=task.user_id)
@@ -49,39 +52,49 @@ def updateItemListTask(task_id):
                 logger.warn('Get item unsuccess: %s'%item)
 
         if response.has_key('error_response'):
-            logger.error('Executing updateItemListTask(task_id:%s) errorresponse:%s' %(task.task_id,response))
+            logger.error('Executing updateItemListTask(num_iid:%s) errorresponse:%s' %(task.num_iid,response))
             success = False
 
     except Exception,exc:
         success = False
-        logger.error('Executing ItemListTask(id:%s) error:%s' %(task_id,exc), exc_info=True)
+        logger.error('Executing ItemListTask(id:%s) error:%s' %(num_iid,exc), exc_info=True)
         if not settings.DEBUG:
             create_comment.retry(exc=exc,countdown=1)
 
     if success:
-        task.status = 'success'
+        task.status = SUCCESS
     else:
-        task.status = 'execerror'
+        task.status = EXECERROR
 
     task.save()
 
 
 @task()
-def updateAllItemListTask():
+def updateAllItemListTask(currentdate):
 
-    currenttime = time.time()
+    currenttime = time.mktime(currentdate.timetuple())
+    weekday = currentdate.isoweekday()
 
-    timeago = datetime.datetime.fromtimestamp\
+    date_ago = datetime.datetime.fromtimestamp\
             (currenttime - settings.EXECUTE_RANGE_TIME)
-    timefuture = datetime.datetime.fromtimestamp\
+    if date_ago.isoweekday() <weekday:
+        time_ago = START_TIME
+    else:
+        time_ago = format_time(date_ago)
+
+    date_future = datetime.datetime.fromtimestamp\
             (currenttime + settings.EXECUTE_RANGE_TIME)
+    if date_future.isoweekday() >weekday:
+        time_future = END_TIME
+    else:
+        time_future = format_time(date_future)
 
     tasks = ItemListTask.objects.filter\
-            (update_time__gt=timeago,update_time__lt=timefuture,status='unexecute')
+            (list_weekday=weekday,list_time__gt=time_ago,list_time__lt=time_future,status=UNEXECUTE)
 
     for task in tasks:
 
-        subtask(updateItemListTask).delay(task.id)
+        subtask(updateItemListTask).delay(task.num_iid)
 
 
 

@@ -20,8 +20,8 @@ class SimpleListView(InstanceMixin,FrameworkListModelView):
 
 
 class CreateModelView(CreateModelMixin, ModelView):
-    """A view which provides default operations for list and create, against a model in the database."""   
-    _suffix = 'List'
+    """A view which provides default operations for create, against a model in the database."""
+    #_suffix = 'List'
 
 
 class CounterModelView(CounterMixin, ModelView):

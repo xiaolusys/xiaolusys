@@ -1,8 +1,13 @@
 import json
 from django.http import HttpResponse
 from djangorestframework.utils import as_tuple
+from djangorestframework import status,signals
+from djangorestframework.response import Response
+from djangorestframework.mixins import CreateModelMixin
+from djangorestframework.views import ModelView
 from django.contrib.auth.decorators import login_required
 from shopback.base.views import ListModelView
+from shopback.task.models import UNEXECUTE
 from auth import apis
 
 class ListItemTaskView(ListModelView):
@@ -28,6 +33,37 @@ class ListItemTaskView(ListModelView):
 
     def get_queryset(self):
         return self.queryset
+
+
+class CreateListItemTaskModelView(CreateModelMixin,ModelView):
+    """A view which provides default operations for create, against a model in the database."""
+
+    def post(self, request, *args, **kwargs):
+        model = self.resource.model
+
+        content = dict(self.CONTENT)
+
+        all_kw_args = dict(content.items() + kwargs.items())
+
+        update_nums = model.objects.filter(num_iid=all_kw_args['num_iid']).update(**all_kw_args)
+
+        if update_nums == 0:
+
+            if args:
+                instance = model(pk=args[-1], **all_kw_args)
+            else:
+                instance = model(**all_kw_args)
+            instance.save()
+
+            signals.obj_created.send(sender=model, obj=instance, request=self.request)
+
+        else:
+            instance = model.objects.get(num_iid=all_kw_args['num_iid'],status=UNEXECUTE)
+
+        headers = {}
+        if hasattr(instance, 'get_absolute_url'):
+            headers['Location'] = self.resource(self).url(instance)
+        return Response(status.HTTP_201_CREATED, instance, headers)
 
 
 @login_required
