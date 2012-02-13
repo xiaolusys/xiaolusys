@@ -28,14 +28,30 @@ def updateItemListTask(num_iid):
         return
 
     success = True
-    response = {'error_response':'The task(num_iid:%s) is not valid'%(num_iid)}
+    response = {'error_response':'the item num can not be updated!'}
     try:
 
         user = User.objects.get(visitor_id=task.user_id)
 
         if task.task_type == 'listing':
-            response = apis.taobao_item_update_listing\
-                    (num_iid=task.num_iid,num=task.num,session=user.top_session)
+
+            item = apis.taobao_item_get(num_iid=task.num_iid,session=user.top_session)
+
+            if item.has_key('item_get_response') and item['item_get_response'].has_key('item') :
+
+                if item['item_get_response']['item']['approve_status'] == 'onsale':
+
+                    response = apis.taobao_item_update_listing\
+                            (num_iid=task.num_iid,num=item['num'],session=user.top_session)
+
+                    task.num = item['num']
+                else:
+                    success = False
+                    logger.warn('The item(%s) has been delisting: %s'%item)
+
+            else :
+                success = False
+                logger.warn('Get item unsuccess: %s'%item)
 
         elif task.task_type == 'delisting':
             item = apis.taobao_item_get(num_iid=task.num_iid,session=user.top_session)
@@ -46,6 +62,11 @@ def updateItemListTask(num_iid):
 
                     response = apis.taobao_item_update_delisting\
                             (num_iid=task.num_iid,session=user.top_session)
+
+                    task.num = item['num']
+                else:
+                    success = False
+                    logger.warn('The item(%s) has been delisting: %s'%item)
 
             else :
                 success = False
