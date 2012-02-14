@@ -26,7 +26,7 @@ DATABASES = {
 }
 
 
-TIME_ZONE = None
+TIME_ZONE = "Aisa/Shanghai"
 
 
 LANGUAGE_CODE = 'en-us'

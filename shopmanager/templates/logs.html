@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+
+{% block title%} 操作记录 {% endblock %}
+{% block content %}
+<div>
+<table>
+  <tr>
+    <th>序号</th><th>商品类别</th><th>商品编码</th><th>内部名称</th><th>出售标题</th>
+      <th>设定星期</th><th>设定时间</th><th>库存</th><th>商品图片</th><th>操作类型</th><th>操作时间</th><th>结果状态</th>
+  </tr>
+  {% for log in logs %}
+  <tr id="{{ log.num_iid }}" title="{{ log.title }}" num="{{ log.num }}">
+      <td>{{ forloop.counter }}</td><td>{{ log.cat_name }}</td><td>{{ log.ref_code }}</td><td></td>
+      <td class="title"><a href="{{ log.detail_url }}">{{ log.title }}</a></td>
+      {% if log.list_weekday == 7 %}
+      <td>周 日</td>
+      {% else %}
+      <td>周 {{ log.list_weekday }}</td>
+      {% endif %}
+      <td>{{ log.list_time}}</td>
+      <td>{{ log.num }}</td>
+      <td><img src={{  log.pic_url }} class="profile-image"></td>
+      <td>{{ log.task_type }}</td>
+      <td>{{ log.execute_time }}</td>
+      <td>{{ log.status }}</td>
+  </tr>
+  {% endfor %}
+  </table>
+</div>
+{% endblock %}
