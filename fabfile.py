@@ -62,8 +62,8 @@ def deploy():
         init_code_base()
         init_virtualenv()
         get_static() # this is a hack for buggy network and should be removed in the future
-        #set_local_settings()
-        collect_static()
+        set_local_settings()
+        #collect_static()
 
 def restart_gunicorn():
     """docstring for restart_gunicorn"""
