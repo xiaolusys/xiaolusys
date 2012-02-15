@@ -36,7 +36,12 @@ def write_to_log_db(task, response):
     log.task_type = task.task_type
 
     try:
-        log.status = response["item_update_listing_response"]["item"]["modified"]
+        if task.task_type == "listing":
+            log.status = response["item_update_listing_response"]["item"]["modified"]
+        elif task.task_type == "listing":
+            log.status = response["item_update_listing_response"]["item"]["modified"]
+        else:
+            log.status = 'failed'
     except Exception:
         log.status = 'failed'
     
