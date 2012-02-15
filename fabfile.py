@@ -74,8 +74,17 @@ def restart_gunicorn():
         run('source ve/bin/activate;cd shopmanager;python manage.py run_gunicorn --config=gunicorn_conf.py')
 
 
+def restart_celeryd():
+    with cd(env.version_dir):
+        run('source ve/bin/activate;cd shopmanager;python manage.py celeryd')
+
+def restart_celerybeat():
+    with cd(env.version_dir):
+        run('source ve/bin/activate;cd shopmanager;python manage.py celerybeat')
+    
 def restart():
     """docstring for restart"""
     restart_gunicorn()
-    #restart_celery()
+    restart_celeryd()
+    restart_celerybeat()
   
