@@ -9,7 +9,7 @@ def staging():
     """docstring for production"""
     env.hosts = ['user1@173.164.135.13'] # replace with real setting
     env.base_dir = '/home/user1/deploy/taobao'
-    env.repo_url = 'file:///home/user1/repo/renpin-backend.git'
+    env.repo_url = 'file:///home/user1/repo/taobao-backend.git'
     env.require_file = 'requirements_staging.txt'
 
 def production():
@@ -28,7 +28,7 @@ def get_version():
 def init_code_base():
     """docstring for init_code_base"""
     with cd(env.base_dir):
-        run('git clone %s renpin-%s' % (env.repo_url, env.version))
+        run('git clone %s taobao-%s' % (env.repo_url, env.version))
 
 def init_virtualenv():
     """docstring for init_virtualenv"""

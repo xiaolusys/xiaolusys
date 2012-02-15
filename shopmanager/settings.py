@@ -32,26 +32,20 @@ LANGUAGE_CODE = 'en-us'
 
 SITE_ID = 1
 
-
 USE_I18N = True
-
 
 USE_L10N = True
 
+MEDIA_ROOT = os.path.join(PROJECT_ROOT, "site_media", "media")
 
-MEDIA_ROOT = ''
+MEDIA_URL = "/media/"
 
-
-MEDIA_URL = ''
-
-
-STATIC_ROOT = ''
-
+STATIC_ROOT = os.path.join(PROJECT_ROOT, "site_media", "static")
 
 STATIC_URL = '/static/'
 
 
-ADMIN_MEDIA_PREFIX = '/static/admin/'
+ADMIN_MEDIA_PREFIX = posixpath.join(STATIC_URL, "admin/")
 
 
 STATICFILES_DIRS = (
