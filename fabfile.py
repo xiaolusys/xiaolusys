@@ -47,7 +47,7 @@ def get_static():
 def set_local_settings():
     """docstring for set_local_settings"""
     with cd(env.version_dir):
-        run('cp ../local_settings.py shopmanager/')
+        run('cp ./local_settings.py shopmanager/')
 
 def collect_static():
     """docstring for collect_static"""
