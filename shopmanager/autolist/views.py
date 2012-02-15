@@ -4,7 +4,7 @@ from django.shortcuts import render_to_response
 from django.template import RequestContext
 
 from auth import apis
-from autolist.models import ProductItem
+from autolist.models import ProductItem, Logs
 import datetime
 
 from shopback.task.models import ItemListTask
@@ -191,6 +191,10 @@ def show_time_table(request):
         for k in cats.keys():
             cat.append(k)
     return render_to_response("base.html", {'page': 'timetable', 'data':data, 'cats':cat, 'slots':slots}, RequestContext(request))
+
+def show_logs(request):
+    logs = Logs.objects.all().order_by('execute_time')
+    return render_to_response("logs.html", {'logs':logs}, RequestContext(request))
 
 
 def change_list_time(request):

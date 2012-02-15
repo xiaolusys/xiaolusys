@@ -13,16 +13,40 @@ from auth.utils import getSignatureTaoBao,refresh_session ,format_time
 from auth import apis
 import logging
 
+from autolist.models import ProductItem, Logs
+
 logger = logging.getLogger('updatelisting')
 
 START_TIME = '00:00'
 END_TIME = '23:59'
 
+def write_2_log_db(task, response):
+    log = Logs()
+
+    item = ProductItem.objects.get(num_iid=task.num_iid)
+    log.num_iid = item.num_iid
+    log.cat_id = item.category_id
+    log.cat_name = item.category_name
+    log.ref_code = item.ref_code
+    log.title = item.title
+    log.pic_url = item.pic_url
+    log.list_weekday = task.list_weekday
+    log.list_time = task.list_time
+    log.task_type = task.task_type
+
+    try:
+        log.status = response["item_update_listing_response"]["item"]["modified"]
+    except Exception:
+        log.status = 'failed'
+    
+    log.save()
+
+
 @task(max_retries=3)
 def updateItemListTask(num_iid):
 
     try:
-        task = ItemListTask.objects.get(pk=num_iid)
+        task = ItemListTask.objects.get(num_iid=num_iid)
     except ItemListTask.DoesNotExist:
         logger.error('ItemListTask(num_iid:%s) Does Not Exist' %(num_iid))
         return
@@ -34,8 +58,7 @@ def updateItemListTask(num_iid):
         user = User.objects.get(visitor_id=task.user_id)
 
         if task.task_type == 'listing':
-
-            item = apis.taobao_item_get(num_iid=task.num_iid,session=user.top_session)
+            item = apis.taobao_item_get(num_iid=int(task.num_iid),session=user.top_session)
 
             if item.has_key('item_get_response') and item['item_get_response'].has_key('item') :
 
@@ -45,6 +68,7 @@ def updateItemListTask(num_iid):
                             (num_iid=task.num_iid,num=item['num'],session=user.top_session)
 
                     task.num = item['num']
+                    write_to_log_db(task, response)
                 else:
                     success = False
                     logger.warn('The item(%s) has been delisting: %s'%item)
@@ -92,13 +116,14 @@ def updateItemListTask(num_iid):
 
 @task()
 def updateAllItemListTask():
-
     currentdate = datetime.datetime.now()
     currenttime = time.mktime(currentdate.timetuple())
     weekday = currentdate.isoweekday()
 
     date_ago = datetime.datetime.fromtimestamp\
             (currenttime - settings.EXECUTE_RANGE_TIME)
+    
+
     if date_ago.isoweekday() <weekday:
         time_ago = START_TIME
     else:
@@ -113,10 +138,6 @@ def updateAllItemListTask():
 
     tasks = ItemListTask.objects.filter\
             (list_weekday=weekday,list_time__gt=time_ago,list_time__lt=time_future,status=UNEXECUTE)
-
+    
     for task in tasks:
         subtask(updateItemListTask).delay(task.num_iid)
-
-
-
-

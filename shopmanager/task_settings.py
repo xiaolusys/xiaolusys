@@ -7,9 +7,9 @@ BROKER_BACKEND = "djkombu.transport.DatabaseTransport"
 
 EXECUTE_INTERVAL_TIME = 10
 
-EXECUTE_RANGE_TIME = 10*60
+EXECUTE_RANGE_TIME = 60
 
-UPDATE_ITEM_NUM_INTERVAL = 5*60
+UPDATE_ITEM_NUM_INTERVAL = 2*60
 
 from celery.schedules import crontab
 from datetime import timedelta,datetime

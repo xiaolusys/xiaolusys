@@ -2,6 +2,13 @@
 
 {% block title%} 商品列表 {% endblock %}
 {% block content %}
+<div>
+
+<div>
+<button type=button onclick="window.open('/autolist/timetable/','_blank');return false;">上架时间表</button><button type=button onclick="window.open('/autolist/logs/','_blank');return false;">操作记录</button>
+</div>
+
+<div>
 <table>
   <tr>
     <th>序号</th><th>商品类别</th><th>商品编码</th><th>内部名称</th><th>出售标题</th>
@@ -39,4 +46,6 @@
   </tr>
   {% endfor %}
   </table>
+</div>
+</div>
 {% endblock %}
