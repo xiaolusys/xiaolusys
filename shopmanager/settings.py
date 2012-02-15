@@ -92,6 +92,7 @@ INSTALLED_APPS = (
     'django.contrib.staticfiles',
     'django.contrib.admin',
     'south',
+    'gunicorn',
     'sentry',
     'raven.contrib.django',
     'djangorestframework',
