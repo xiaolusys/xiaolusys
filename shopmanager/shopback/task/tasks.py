@@ -20,11 +20,12 @@ logger = logging.getLogger('updatelisting')
 START_TIME = '00:00'
 END_TIME = '23:59'
 
-def write_2_log_db(task, response):
+def write_to_log_db(task, response):
     log = Logs()
 
     item = ProductItem.objects.get(num_iid=task.num_iid)
     log.num_iid = item.num_iid
+    log.num = task.num
     log.cat_id = item.category_id
     log.cat_name = item.category_name
     log.ref_code = item.ref_code
@@ -54,25 +55,21 @@ def updateItemListTask(num_iid):
     success = True
     response = {'error_response':'the item num can not be updated!'}
     try:
-
         user = User.objects.get(visitor_id=task.user_id)
 
         if task.task_type == 'listing':
             item = apis.taobao_item_get(num_iid=int(task.num_iid),session=user.top_session)
 
             if item.has_key('item_get_response') and item['item_get_response'].has_key('item') :
-
+                task.num = int(item['item_get_response']['item']['num'])
                 if item['item_get_response']['item']['approve_status'] == 'onsale':
-
-                    response = apis.taobao_item_update_listing\
-                            (num_iid=task.num_iid,num=item['num'],session=user.top_session)
-
-                    task.num = item['num']
+                    response = apis.taobao_item_update_delisting(num_iid=task.num_iid,session=user.top_session)
+                    task.task_type = "delisting"
                     write_to_log_db(task, response)
-                else:
-                    success = False
-                    logger.warn('The item(%s) has been delisting: %s'%item)
 
+                task.task_type = "listing"
+                response = apis.taobao_item_update_listing(num_iid=task.num_iid,num=task.num,session=user.top_session)
+                write_to_log_db(task, response)
             else :
                 success = False
                 logger.warn('Get item unsuccess: %s'%item)
@@ -103,8 +100,6 @@ def updateItemListTask(num_iid):
     except Exception,exc:
         success = False
         logger.error('Executing ItemListTask(id:%s) error:%s' %(num_iid,exc), exc_info=True)
-        if not settings.DEBUG:
-            create_comment.retry(exc=exc,countdown=1)
 
     if success:
         task.status = SUCCESS
