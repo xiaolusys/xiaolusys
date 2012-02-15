@@ -26,8 +26,7 @@ DATABASES = {
 }
 
 
-TIME_ZONE = None
-
+TIME_ZONE = 'Asia/Shanghai'
 
 LANGUAGE_CODE = 'en-us'
 
@@ -81,7 +80,7 @@ MIDDLEWARE_CLASSES = (
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
-    'shopback.base.middlewares.RecordExceptionMiddleware',
+    #'shopback.base.middlewares.RecordExceptionMiddleware',
 )
 
 ROOT_URLCONF = 'shopmanager.urls'
@@ -201,6 +200,7 @@ LOGGING = {
 
     }
 }
+
 
 try:
     from task_settings import *

@@ -53,6 +53,9 @@ def login_taobo(request):
         return HttpResponseRedirect(settings.LOGIN_REDIRECT_URL)
 
 def home(request):
+    user = authenticate(request=request)
+    if not user or user.is_anonymous():
+        return HttpResponseRedirect('/accounts/login/')
     return HttpResponseRedirect('/autolist/')
     #return HttpResponse('Welcom to home page!')
 

@@ -91,8 +91,9 @@ def updateItemListTask(num_iid):
 
 
 @task()
-def updateAllItemListTask(currentdate):
+def updateAllItemListTask():
 
+    currentdate = datetime.datetime.now()
     currenttime = time.mktime(currentdate.timetuple())
     weekday = currentdate.isoweekday()
 
@@ -114,7 +115,6 @@ def updateAllItemListTask(currentdate):
             (list_weekday=weekday,list_time__gt=time_ago,list_time__lt=time_future,status=UNEXECUTE)
 
     for task in tasks:
-
         subtask(updateItemListTask).delay(task.num_iid)
 
 

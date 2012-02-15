@@ -5,7 +5,7 @@ CELERY_RESULT_BACKEND = 'database'
 
 BROKER_BACKEND = "djkombu.transport.DatabaseTransport"
 
-EXECUTE_INTERVAL_TIME = 10*60
+EXECUTE_INTERVAL_TIME = 10
 
 EXECUTE_RANGE_TIME = 10*60
 
@@ -18,7 +18,7 @@ CELERYBEAT_SCHEDULE = {
     'runs-every-10-minutes':{
         'task':'shopback.task.tasks.updateAllItemListTask',
         'schedule':timedelta(seconds=EXECUTE_INTERVAL_TIME),
-        'args':(datetime.now(),),
+        'args':(),
     },
     'runs-every-day':{
         'task':'shopback.items.tasks.updateAllItemNumTask',
