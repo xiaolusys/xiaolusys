@@ -48,6 +48,8 @@ STATIC_URL = '/static/'
 ADMIN_MEDIA_PREFIX = posixpath.join(STATIC_URL, "admin/")
 
 
+STATIC_DOC_ROOT = os.path.join(PROJECT_ROOT, "static")
+
 STATICFILES_DIRS = (
        os.path.join(PROJECT_ROOT, "static"),
 )
