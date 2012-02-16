@@ -5,7 +5,7 @@ import posixpath
 
 PROJECT_ROOT = os.path.abspath(os.path.dirname(__file__))
 
-DEBUG = True
+DEBUG = False
 TEMPLATE_DEBUG = DEBUG
 
 ADMINS = (
@@ -129,8 +129,6 @@ LOGIN_REDIRECT_URL = '/home/'
 LOGIN_URL = '/accounts/login/'
 
 LOGOUT_URL = '/accounts/logout/'
-
-
 
 
 LOGGING = {

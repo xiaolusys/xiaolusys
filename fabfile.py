@@ -68,23 +68,45 @@ def deploy():
 def restart_gunicorn():
     """docstring for restart_gunicorn"""
     if exists('/home/user1/deploy/taobao/gunicorn.pid'):
-        run('kill -QUIT `cat /home/user1/deploy/taobao/gunicorn.pid`')
+        try:
+            run('kill -QUIT `cat /home/user1/deploy/taobao/gunicorn.pid`')
+        except Exception:
+            pass
+        run('rm -rf /home/user1/deploy/taobao/gunicorn.pid')
     get_version()
     with cd(env.version_dir):
         run('source ve/bin/activate;cd shopmanager;python manage.py run_gunicorn --config=gunicorn_conf.py')
 
 
 def restart_celeryd():
+    if exists('/home/user1/deploy/taobao/celery.pid'):
+        try:
+            run('kill -QUIT `cat /home/user1/deploy/taobao/celery.pid`')
+            puts('Sleep 30 seconds before celery fully shutdown')
+            sleep(30)
+        except Exception:
+            pass
+        run('rm -rf /home/user1/deploy/taobao/celery.pid')        
+    get_version()
     with cd(env.version_dir):
-        run('source ve/bin/activate;cd shopmanager;python manage.py celeryd')
+        run('source ve/bin/activate;cd shopmanager;python manage.py celerydaemon --pidfile=/home/user1/deploy/taobao/celery.pid --stdout=/home/user1/deploy/taobao/celery.out --stderr=/home/user1/deploy/taobao/celery.err')
 
 def restart_celerybeat():
+    if exists('/home/user1/deploy/taobao/celerybeat.pid'):
+        try:
+            run('kill -QUIT `cat /home/user1/deploy/taobao/celerybeat.pid`')
+            puts('Sleep 10 seconds before celery fully shutdown')
+            sleep(10)
+        except Exception:
+            pass
+        run('rm -rf /home/user1/deploy/taobao/celerybeat.pid')        
+    get_version()
     with cd(env.version_dir):
-        run('source ve/bin/activate;cd shopmanager;python manage.py celerybeat')
+        run('source ve/bin/activate;cd shopmanager;python manage.py celery_beat --working_directory=/home/user1/deploy/taobao --pidfile=/home/user1/deploy/taobao/celerybeat.pid --stdout=/home/user1/deploy/taobao/celerybeat.out --stderr=/home/user1/deploy/taobao/celerybeat.err')
     
 def restart():
     """docstring for restart"""
     restart_gunicorn()
-    restart_celeryd()
     restart_celerybeat()
+    restart_celeryd()
   
