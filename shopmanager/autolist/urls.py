@@ -7,4 +7,5 @@ urlpatterns = patterns('autolist.views',
     url('timetable/$','show_time_table_summary',name='show_time_table_summary'),
     url('scheduletime/$','change_list_time',name='change_list_time'),
     url('timetablecats/$','show_timetable_cats',name='show_timetable_cats'),
+    url('logs/$', 'show_logs', name='show_logs'),
 )

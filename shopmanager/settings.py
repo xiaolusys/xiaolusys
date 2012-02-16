@@ -26,33 +26,26 @@ DATABASES = {
 }
 
 
-TIME_ZONE = None
-
+TIME_ZONE = 'Asia/Shanghai'
 
 LANGUAGE_CODE = 'en-us'
 
 SITE_ID = 1
 
-
 USE_I18N = True
-
 
 USE_L10N = True
 
+MEDIA_ROOT = os.path.join(PROJECT_ROOT, "site_media", "media")
 
-MEDIA_ROOT = ''
+MEDIA_URL = "/media/"
 
-
-MEDIA_URL = ''
-
-
-STATIC_ROOT = ''
-
+STATIC_ROOT = os.path.join(PROJECT_ROOT, "site_media", "static")
 
 STATIC_URL = '/static/'
 
 
-ADMIN_MEDIA_PREFIX = '/static/admin/'
+ADMIN_MEDIA_PREFIX = posixpath.join(STATIC_URL, "admin/")
 
 
 STATICFILES_DIRS = (
@@ -81,7 +74,7 @@ MIDDLEWARE_CLASSES = (
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
-    'shopback.base.middlewares.RecordExceptionMiddleware',
+    #'shopback.base.middlewares.RecordExceptionMiddleware',
 )
 
 ROOT_URLCONF = 'shopmanager.urls'
@@ -100,6 +93,7 @@ INSTALLED_APPS = (
     'django.contrib.admin',
     'chartit',
     'south',
+    'gunicorn',
     'sentry',
     'raven.contrib.django',
     'djangorestframework',
@@ -116,6 +110,13 @@ INSTALLED_APPS = (
 
 
 )
+
+APPKEY = '12476025'
+APPSECRET = '6ad15e39391d79fece77c1d092ef13b9'
+REDIRECT_URL = 'http://container.open.taobao.com/container'
+TAOBAO_API_ENDPOINT = 'http://gw.api.taobao.com/router/rest'
+REFRESH_URL = 'http://container.open.taobao.com/container/refresh'
+
 
 AUTH_PROFILE_MODULE = 'users.user'
 
@@ -208,6 +209,7 @@ LOGGING = {
 
     }
 }
+
 
 try:
     from task_settings import *

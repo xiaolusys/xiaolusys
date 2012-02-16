@@ -1,6 +1,7 @@
 import logging
 from celery.signals import task_failure
-from sentry.client.handlers import SentryHandler
+#from sentry.client.handlers import SentryHandler
+from raven.contrib.django.handlers import SentryHandler
 
 logger = logging.getLogger('sentry.errors')
 logger.addHandler(SentryHandler())
