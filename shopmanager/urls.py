@@ -14,5 +14,5 @@ urlpatterns = patterns('',
     (r'^$',login_taobo),
     (r'^admin/', include(admin.site.urls)),
 
-    
+    (r'search/rankchart/','search.views.genPeroidChart'),
 )

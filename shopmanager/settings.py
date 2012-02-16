@@ -98,6 +98,7 @@ INSTALLED_APPS = (
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'django.contrib.admin',
+    'chartit',
     'south',
     'sentry',
     'raven.contrib.django',
@@ -111,6 +112,7 @@ INSTALLED_APPS = (
     'shopback.orders',
     'shopback.users',
     'autolist',
+    'search',
 
 
 )
@@ -194,6 +196,11 @@ LOGGING = {
             'propagate': True,
         },
         'outeridmultiple': {
+            'handlers': ['sentry'],
+            'level': 'ERROR',
+            'propagate': True,
+        },
+        'period.search': {
             'handlers': ['sentry'],
             'level': 'ERROR',
             'propagate': True,

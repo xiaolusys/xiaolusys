@@ -1,0 +1,15 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+        "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+    <title>keywords-items-rank</title>
+    <script src='/static/js/jquery-1.7.1.min.js' type= 'text/javascript'></script>
+    <script src='/static/js/highcharts.js' type= 'text/javascript'></script>
+    {% load chartit %}
+    {{ keywordsrankchart|load_charts:"container1" }}
+</head>
+<body>
+    <div id='container1'> Chart will be rendered here </div>
+    <div id='container2'> Chart will be rendered here </div>
+</body>
+</html>
