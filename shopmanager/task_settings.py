@@ -5,7 +5,7 @@ CELERY_RESULT_BACKEND = 'database'
 
 BROKER_BACKEND = "djkombu.transport.DatabaseTransport"
 
-EXECUTE_INTERVAL_TIME = 10
+EXECUTE_INTERVAL_TIME = 2*60
 
 EXECUTE_RANGE_TIME = 3*60
 
