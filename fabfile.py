@@ -80,12 +80,9 @@ def restart_gunicorn():
 
 def restart_celeryd():
     if exists('/home/user1/deploy/taobao/celery.pid'):
-        try:
-            run('kill -QUIT `cat /home/user1/deploy/taobao/celery.pid`')
-            puts('Sleep 30 seconds before celery fully shutdown')
-            sleep(30)
-        except Exception:
-            pass
+        run('kill -QUIT `cat /home/user1/deploy/taobao/celery.pid`')
+        puts('Sleep 30 seconds before celery fully shutdown')
+        sleep(30)
         run('rm -rf /home/user1/deploy/taobao/celery.pid')        
     get_version()
     with cd(env.version_dir):
@@ -93,20 +90,17 @@ def restart_celeryd():
 
 def restart_celerybeat():
     if exists('/home/user1/deploy/taobao/celerybeat.pid'):
-        try:
-            run('kill -QUIT `cat /home/user1/deploy/taobao/celerybeat.pid`')
-            puts('Sleep 10 seconds before celery fully shutdown')
-            sleep(10)
-        except Exception:
-            pass
+        run('kill -QUIT `cat /home/user1/deploy/taobao/celerybeat.pid`')
+        puts('Sleep 10 seconds before celery fully shutdown')
+        sleep(10)
         run('rm -rf /home/user1/deploy/taobao/celerybeat.pid')        
     get_version()
     with cd(env.version_dir):
-        run('source ve/bin/activate;cd shopmanager;python manage.py celery_beat --working_directory=/home/user1/deploy/taobao --pidfile=/home/user1/deploy/taobao/celerybeat.pid --stdout=/home/user1/deploy/taobao/celerybeat.out --stderr=/home/user1/deploy/taobao/celerybeat.err')
+        run('source ve/bin/activate;cd shopmanager;python manage.py celery_beat --working_directory=/home/user1/deploy/taobao/ --stdout=/home/user1/deploy/taobao/celerybeat.out --stderr=/home/user1/deploy/taobao/celerybeat.err')
     
 def restart():
     """docstring for restart"""
     restart_gunicorn()
-    restart_celerybeat()
     restart_celeryd()
+    restart_celerybeat()
   
