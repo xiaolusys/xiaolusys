@@ -2,6 +2,7 @@ from django.conf.urls.defaults import patterns, include, url
 from auth.accounts.views import home,login_taobo
 # Uncomment the next two lines to enable the admin:
 from django.contrib import admin
+from django.conf import settings
 admin.autodiscover()
 
 urlpatterns = patterns('',
@@ -12,6 +13,8 @@ urlpatterns = patterns('',
     (r'^autolist/', include('autolist.urls')),
     url(r'^home/$',home,name='home_page'),
     (r'^$',login_taobo),
+    (r'^static/(?P<path>.*)$', 'django.views.static.serve',
+        {'document_root': settings.STATIC_DOC_ROOT}),
     (r'^admin/', include(admin.site.urls)),
 
     (r'search/rankchart/','search.views.genPeroidChart'),

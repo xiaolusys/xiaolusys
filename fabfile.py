@@ -52,8 +52,8 @@ def set_local_settings():
 def collect_static():
     """docstring for collect_static"""
     with cd(env.version_dir):
-        run('source ve/bin/activate;cd shopmanager;python manage.py collectstatic --noinput')
-        run('cd ..;unlink site_media;ln -s %s/shopmanager/site_media' % env.version_dir)
+        #run('source ve/bin/activate;cd shopmanager;python manage.py collectstatic --noinput')
+        run('cd ../site_media;unlink static;ln -s %s/shopmanager/static' % env.version_dir)
 
 def deploy():
     """docstring for deploy"""
@@ -61,9 +61,9 @@ def deploy():
     if not exists(env.version_dir):
         init_code_base()
         init_virtualenv()
-        get_static() # this is a hack for buggy network and should be removed in the future
-        set_local_settings()
-        #collect_static()
+        #get_static() # this is a hack for buggy network and should be removed in the future
+        #set_local_settings()
+        collect_static()
 
 def restart_gunicorn():
     """docstring for restart_gunicorn"""
