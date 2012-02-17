@@ -3,13 +3,29 @@
 <html>
 <head>
     <title>keywords-items-rank</title>
-    <script src='/static/js/jquery-1.7.1.min.js' type= 'text/javascript'></script>
-    <script src='/static/js/highcharts.js' type= 'text/javascript'></script>
+    <script src='{{ STATIC_URL }}/js/jquery-1.7.1.min.js' type= 'text/javascript'></script>
+    <script src='{{ STATIC_URL }}/js/highcharts.js' type= 'text/javascript'></script>
     {% load chartit %}
     {{ keywordsrankchart|load_charts:"container1" }}
 </head>
 <body>
     <div id='container1'> Chart will be rendered here </div>
-    <div id='container2'> Chart will be rendered here </div>
+    <div id='container2'>
+        <table>
+            <tr>
+                <td>nick:</td>
+                <td>{{ nick }}</td>
+                <td>keyword:</td>
+                <td>{{ keyword }}</td>
+            </tr>
+        {% for item in items %}
+            <tr >
+                <td>{{ item.item_id }}</td>
+                <td>{{ item.title }}</td>
+            </tr>
+        {% endfor %}
+        </table>
+
+    </div>
 </body>
 </html>

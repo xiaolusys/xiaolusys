@@ -11,8 +11,13 @@ class ProductPageRank(models.Model):
     user_id = models.CharField(max_length=32)
     nick = models.CharField(max_length=20)
 
-    search_datetime = models.DateTimeField()
+    month = models.IntegerField()
+    day = models.IntegerField()
+    time = models.CharField(max_length=5)
     rank = models.IntegerField()
 
     class Meta:
         db_table = 'product_pagerank'
+
+    def __str__(self):
+        return
