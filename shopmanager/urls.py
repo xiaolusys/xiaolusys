@@ -14,8 +14,8 @@ urlpatterns = patterns('',
     (r'^autolist/', include('autolist.urls')),
     url(r'^home/$',home,name='home_page'),
     (r'^$',login_taobo),
-    #(r'^static/(?P<path>.*)$', 'django.views.static.serve',
-        #{'document_root': settings.STATIC_DOC_ROOT}),
+    (r'^static/(?P<path>.*)$', 'django.views.static.serve',
+        {'document_root': settings.STATIC_DOC_ROOT}),
     (r'^admin/', include(admin.site.urls)),
 
 )

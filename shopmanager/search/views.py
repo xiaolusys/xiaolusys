@@ -10,6 +10,7 @@ from chartit import PivotDataPool, PivotChart
 from search.scrawurldata import getTaoBaoPageRank,getCustomShopsPageRank
 from search.models import ProductPageRank
 from auth.utils import parse_datetime
+from search.tasks import keywords
 
 def getShopsRank(request):
 
@@ -38,25 +39,13 @@ def getShopsRank(request):
     return HttpResponse(strings)
 
 
-def genPeroidChart(request):
-
-    nick = request.GET.get('nick',None)
-    keyword = request.GET.get('keyword',None)
-    dt = request.GET.get('dt',None)
-
-    if not dt:
-        dt = datetime.datetime.now()
-    else :
-        dt = datetime.datetime(*(time.strptime(dt, '%Y-%m-%d')[0:6]))
-
-    month = dt.month
-    day = dt.day
+def getProductPeriodChart(nick,keyword,month,day):
 
     rankqueryset = ProductPageRank.objects.filter(nick=nick,keyword=keyword,day=day,month=month)\
                    .values('item_id','title').distinct('item_id')
 
     if rankqueryset.count() == 0:
-        return HttpResponse('no items under this keyword or this day')
+        return None
 
     series = []
     series_option ={'options':{'type': 'line','stacking': False},'terms':{}}
@@ -81,43 +70,88 @@ def genPeroidChart(request):
                     'title': {
                        'text': 'per half hour'}}})
 
-    params = {'keywordsrankchart': productpagerankcht,'items':rankqueryset,'nick':nick,'keyword':keyword}
+    return productpagerankcht
+
+def genPeroidChart(request):
+
+    nick = request.GET.get('nick',u'\u4f18\u5c3c\u5c0f\u5c0f\u4e16\u754c')
+    dt = request.GET.get('dt',None)
+
+    if not dt:
+        dt = datetime.datetime.now()
+    else :
+        dt = datetime.datetime(*(time.strptime(dt, '%Y-%m-%d')[0:6]))
+
+    month = dt.month
+    day = dt.day
+
+    productpagerankchts = []
+
+    for keyword in keywords:
+        chts = getProductPeriodChart(nick,keyword,month,day)
+        if chts:
+            productpagerankchts.append(chts)
+
+    rankqueryset = ProductPageRank.objects.filter(nick=nick,day=day,month=month)\
+        .values('item_id','title').distinct('item_id')
+
+    params = {'keywordsrankcharts': productpagerankchts,'items':rankqueryset,'nick':nick}
 
 
     return render_to_response('keywords_itemsrank.html',params,context_instance=RequestContext(request))
 
 
-def genPageRankPivotChart(request):
+def genPageRankPivotChart(request,dt_f,dt_t):
 
-    productpagerankpivotdata = \
-        PivotDataPool(
-           series =
-            [{'options': {
-               'source': ProductPageRank.objects.all(),
-               'categories': ['month']},
-               'legend_by':['state','city'],
-               'top_n_per_cat':3,
+    nick = request.GET.get('nick',None)
+    keyword = request.GET.get('keyword',None)
+
+
+    dt_f = datetime.datetime(*(time.strptime(dt_f, '%Y-%m-%d')[0:6]))
+    dt_t = datetime.datetime(*(time.strptime(dt_t, '%Y-%m-%d')[0:6]))
+
+    f_month = dt_f.month-1
+    f_day = dt_f.day-1
+
+    t_month = dt_t.month+1
+    t_day = dt_t.day+1
+
+    serie = {'options': {
+               'source': ProductPageRank.objects.filter
+                       (nick=nick,keyword=keyword,month__gt=f_month,month__lt=t_month,day__gt=f_day,day__lt=t_day),
+               'categories': ['month','day'],
+               'legend_by':'item_id',
+               #'top_n_per_cat':3
+                       },
               'terms': {
-                'avg_rain': Avg('rainfall'),
+                'avg_rank': Avg('rank'),
                 }}
-             ])
+
+    rankqueryset = ProductPageRank.objects.filter\
+            (nick=nick,keyword=keyword,month__gt=f_month,month__lt=t_month,day__gt=f_day,day__lt=t_day)\
+            .values('item_id','title').distinct('item_id')
+
+
+    productpagerankpivotdata = PivotDataPool(series =[serie])
 
     productpagerankpivcht = \
         PivotChart(
             datasource = productpagerankpivotdata,
             series_options =
               [{'options':{
-                  'type': 'column',
-                  'stacking': True},
-                'terms':['avg_rain']}],
+                  'type': 'line',
+                  'stacking': False},
+                'terms':['avg_rank']}],
             chart_options =
               {'title': {
-                   'text': 'Rain by Month in top 3 cities'},
+                   'text': 'Items Avg Rank By Day'},
                'xAxis': {
                     'title': {
-                       'text': 'Month'}}})
+                       'text': 'Month&Day'}}})
 
-    return HttpResponse('ok')
+    params = {'keywordsrankchart':productpagerankpivcht,'items':rankqueryset,'nick':nick,'keyword':keyword}
+
+    return render_to_response('keywords_itemsrank.html',params,context_instance=RequestContext(request))
 
 
 
