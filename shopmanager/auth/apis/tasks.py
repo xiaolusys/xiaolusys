@@ -20,7 +20,7 @@ API_FIELDS = {
     'taobao.itemcats.get':'cid,parent_cid,name,is_parent,status,sort_order',
     'taobao.itemprops.get':'pid, name, must, multi, prop_values',
     'taobao.itempropvalues.get':'cid,pid,prop_name,vid,name,name_alias,status,sort_order',
-    'taobao.item.get':'detail_url,num_iid,title,outer_id,price,approve_status,delist_time,list_time,modified,num,'
+    'taobao.item.get':'has_showcase,detail_url,num_iid,title,outer_id,price,approve_status,delist_time,list_time,modified,num,'
          +'sku.sku_id,sku.properties,sku.quantity,sku.price,sku.outer_id,sku.status',
     'taobao.items.list.get':'item',
     'taobao.products.get':'product_id,tsc,cat_name,name',
@@ -174,6 +174,9 @@ def taobao_items_inventory_get(q=None,banner=None,cid=None,seller_cids=None,page
 def taobao_items_onsale_get(q=None,banner=None,cid=None,seller_cids=None,page_no=None,page_size=None,fields=API_FIELDS['taobao.items.onsale.get'],session=None):
     pass
 
+@apis('taobao.item.recommend.add')
+def taobao_item_recommend_add(num_iid=None,session=None):
+    pass
 
 ############# trades apis ###################
 
