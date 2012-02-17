@@ -40,6 +40,8 @@ def write_to_log_db(task, response):
             log.status = response["item_update_listing_response"]["item"]["modified"]
         elif task.task_type == "delisting":
             log.status = response["item_update_delisting_response"]["item"]["modified"]
+        elif task.task_type == "recommend":
+            log.status = response["item_recommend_add_response"]["item"]["num_iid"]
         else:
             log.status = 'failed'
     except Exception:
@@ -75,6 +77,11 @@ def updateItemListTask(num_iid):
                 task.task_type = "listing"
                 response = apis.taobao_item_update_listing(num_iid=task.num_iid,num=task.num,session=user.top_session)
                 write_to_log_db(task, response)
+
+                if item['item_get_response']['item']['has_showcase'] == True:
+                    task.task_type = "recommend"
+                    response = apis.taobao_item_recommend_add(num_iid=task.num_iid,session=user.top_session)
+                    write_to_log_db(task, response)
             else :
                 success = False
                 logger.warn('Get item unsuccess: %s'%item)
