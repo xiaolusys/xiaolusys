@@ -6,11 +6,11 @@
     <script src='{{ STATIC_URL }}js/jquery-1.7.1.min.js' type= 'text/javascript'></script>
     <script src='{{ STATIC_URL }}js/highcharts.js' type= 'text/javascript'></script>
     {% load chartit %}
-    {{ keywordsrankcharts|load_charts:"container1,container2,container3,container4,container5,container6,container7,container8,container9,container10,container11,container12,container13,container14" }}
+    {{ keywordsrankcharts|load_charts:"container1,container2,container3,container4,container5,container6,container7,container8,container9,container10,container11,container12,container13" }}
 </head>
 <body>
 
-    <div id='container1'> Chart will be rendered here </div>
+    <div id='container1' style="height:300px;width:300px;"> Chart will be rendered here </div>
     <div id='container2'> Chart will be rendered here </div>
     <div id='container3'> Chart will be rendered here </div>
     <div id='container4'> Chart will be rendered here </div>
@@ -23,7 +23,7 @@
     <div id='container11'> Chart will be rendered here </div>
     <div id='container12'> Chart will be rendered here </div>
     <div id='container13'> Chart will be rendered here </div>
-    <div id='container14'> Chart will be rendered here </div>
+
 
     <div id='items'>
         <table>

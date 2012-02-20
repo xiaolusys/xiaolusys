@@ -19,5 +19,3 @@ class ProductPageRank(models.Model):
     class Meta:
         db_table = 'product_pagerank'
 
-    def __str__(self):
-        return

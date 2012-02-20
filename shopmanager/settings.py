@@ -206,6 +206,11 @@ LOGGING = {
             'level': 'ERROR',
             'propagate': True,
         },
+        'taobao.urlcraw': {
+            'handlers': ['sentry'],
+            'level': 'ERROR',
+            'propagate': True,
+        },
 
     }
 }

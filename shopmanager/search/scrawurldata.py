@@ -3,7 +3,9 @@ import urllib2
 import urlparse
 from lxml import etree
 from StringIO import StringIO
+import logging
 
+logger = logging.getLogger('taobao.urlcraw')
 
 baseurl = 'http://s.taobao.com/search'
 itemhref_xpath = ['/html/body/div/div/div/div/div/form/ul/li/h3/a']
@@ -45,7 +47,8 @@ def parseElementAttr(tree):
 
     if len(itemhref_list) != len(itemuser_list):
         itemhref_list = itemuser_list = []
-        print 'Taobao page data is not parse right!'
+        logger.warn('Taobao page data is not parse right!itemhref len is %s and itemuser_list len is %s'
+                    %(len(itemhref_list),len(itemuser_list)))
 
     for i in xrange(0,len(itemhref_list)):
         itemhref = itemhref_list[i]
@@ -64,7 +67,7 @@ def parseElementAttr(tree):
             itemdict['user_id'] = urlparse.parse_qs(o.query)['user_number_id'][0]
             itemdict['nick'] = itemuser.text
         except :
-            print 'get user_id error:',itemuser_list[i].attrib
+            logger.error('Get user_id error:%s'%itemuser_list[i].attrib,exc_info=True)
 
         merge_list.append(itemdict)
 
@@ -84,23 +87,19 @@ def scrawTaoBaoPage(q,page_nums):
     return merge_list
 
 
-def getTaoBaoPageRank(nick,keyword,page_nums):
+def getTaoBaoPageRank(keyword,page_nums):
 
-    nick = nick.decode('utf8')
-    keyword = keywords.decode('utf8').encode('gbk')
+    keyword = keyword.encode('gbk')
     results = scrawTaoBaoPage(keyword,page_nums)
-    search_results = []
 
     for i in xrange(0,len(results)):
         item = results[i]
-        if item['nick'] == nick:
-            if item['model'] == 'a':
-                item['rank'] = i+3
-            elif item['model'] == 'b':
-                item['rank'] = i+4
-            search_results.append(item)
+        if item['model'] == 'a':
+            item['rank'] = i+3
+        elif item['model'] == 'b':
+            item['rank'] = i+4
 
-    return search_results
+    return results
 
 
 def getCustomShopsPageRank(nicks,keywords,page_nums):
