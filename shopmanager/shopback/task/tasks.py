@@ -74,14 +74,14 @@ def updateItemListTask(num_iid):
                     task.task_type = "delisting"
                     write_to_log_db(task, response)
 
-                task.task_type = "listing"
-                response = apis.taobao_item_update_listing(num_iid=task.num_iid,num=task.num,session=user.top_session)
-                write_to_log_db(task, response)
-
-                if item['item_get_response']['item']['has_showcase'] == True:
-                    task.task_type = "recommend"
-                    response = apis.taobao_item_recommend_add(num_iid=task.num_iid,session=user.top_session)
+                    task.task_type = "listing"
+                    response = apis.taobao_item_update_listing(num_iid=task.num_iid,num=task.num,session=user.top_session)
                     write_to_log_db(task, response)
+
+                    if item['item_get_response']['item']['has_showcase'] == True:
+                        task.task_type = "recommend"
+                        response = apis.taobao_item_recommend_add(num_iid=task.num_iid,session=user.top_session)
+                        write_to_log_db(task, response)
             else :
                 success = False
                 logger.warn('Get item unsuccess: %s'%item)
@@ -146,5 +146,10 @@ def updateAllItemListTask():
     tasks = ItemListTask.objects.filter\
             (list_weekday=weekday,list_time__gt=time_ago,list_time__lt=time_future,status=UNEXECUTE)
     
+    ## Assume all tasks are with the same user_id
+    if not tasks.empty():
+        user = User.objects.get(visitor_id=tasks[0].user_id)
+        refresh_session(user)
+
     for task in tasks:
         subtask(updateItemListTask).delay(task.num_iid)
