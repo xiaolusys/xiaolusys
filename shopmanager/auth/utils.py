@@ -5,7 +5,9 @@ import urllib2
 import datetime
 import time
 import json
+import logging
 
+logger = logging.getLogger('updatelisting')
 
 def getSignatureTaoBao(params,secret,both_side=True):
     key_pairs = None
@@ -43,7 +45,7 @@ def parse_urlparams(string):
 
 
 def refresh_session(user):
-    top_parameters = user.top_parameters
+    top_parameters = json.loads(user.top_parameters)
     expires_in = top_parameters['expires_in']
     ts = top_parameters['ts']
 
@@ -61,12 +63,12 @@ def refresh_session(user):
 
         req = urllib2.urlopen(refresh_url)
         content = req.read()
+
+        logger.warn('refreshed token : %s' % content )
         params = json.loads(content)
 
         user.top_session = params['top_session']
-        user.top_parameters['re_rexpires_in'] = params['re_expires_in']
-        user.top_parameters['expires_in'] = params['expires_in']
-        user.top_parameters['refresh_token'] = params['refresh_token']
+        user.top_parameters = content
         return True
 
     return False

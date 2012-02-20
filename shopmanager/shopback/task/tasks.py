@@ -147,7 +147,7 @@ def updateAllItemListTask():
             (list_weekday=weekday,list_time__gt=time_ago,list_time__lt=time_future,status=UNEXECUTE)
     
     ## Assume all tasks are with the same user_id
-    if not tasks.empty():
+    if tasks.count() > 0:
         user = User.objects.get(visitor_id=tasks[0].user_id)
         refresh_session(user)
 
