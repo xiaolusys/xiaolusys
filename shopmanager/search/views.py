@@ -40,10 +40,10 @@ def getShopsRank(request):
     return HttpResponse(strings)
 
 
-def getProductPeriodChart(nick,keyword,f_month,f_day,t_month,t_day):
 
-    rankqueryset = ProductPageRank.objects.filter\
-            (nick=nick,keyword=keyword,month__gt=f_month,month__lt=t_month,day__gt=f_day,day__lt=t_day)\
+def getProductPeriodChart(nick,keyword,month,day):
+
+    rankqueryset = ProductPageRank.objects.filter(nick=nick,keyword=keyword,day=day,month=month)\
                    .values('item_id','title').distinct('item_id')
 
     if rankqueryset.count() == 0:
@@ -54,10 +54,7 @@ def getProductPeriodChart(nick,keyword,f_month,f_day,t_month,t_day):
     for prod in rankqueryset:
 
         serie ={'options': {
-               'source': ProductPageRank.objects.filter
-                       (keyword=keyword,month__gt=f_month,month__lt=t_month,day__gt=f_day,day__lt=t_day,item_id=prod['item_id'])
-                       .aggregate()
-                    },
+               'source': ProductPageRank.objects.filter(keyword=keyword,day=day,month=month,item_id=prod['item_id'])},
                'terms': [{'time'+prod['item_id']:'time'},{prod['item_id']:'rank'}]}
         series.append(serie)
         series_option['terms'].update({'time'+prod['item_id']:[prod['item_id']]})
@@ -73,41 +70,107 @@ def getProductPeriodChart(nick,keyword,f_month,f_day,t_month,t_day):
                    'text': '%s'%(keyword.encode('utf8'))},
                'xAxis': {
                     'title': {
-                       'text': 'per half hour'}},
-               'yAxis': {
-                    'title': {
-                       'text': 'rank'}}})
-
+                       'text': 'per half hour'}}})
 
     return productpagerankcht
 
-def genPeroidChart(request,dt_f,dt_t):
+
+def genPeroidChart(request):
 
     nick = request.GET.get('nick',u'\u4f18\u5c3c\u5c0f\u5c0f\u4e16\u754c')
+    dt = request.GET.get('dt',None)
+    keyword = request.GET.get('keyword',None)
 
-    dt_f = datetime.datetime(*(time.strptime(dt_f, '%Y-%m-%d')[0:6]))
-    dt_t = datetime.datetime(*(time.strptime(dt_t, '%Y-%m-%d')[0:6]))
+    if not dt:
+        dt = datetime.datetime.now()
+    else :
+        dt = datetime.datetime(*(time.strptime(dt, '%Y-%m-%d')[0:6]))
 
-    f_month = dt_f.month-1
-    f_day = dt_f.day-1
+    month = dt.month
+    day = dt.day
 
-    t_month = dt_t.month+1
-    t_day = dt_t.day+1
+    productpagerankcht = getProductPeriodChart(nick,keyword,month,day)
 
-    productpagerankchts = []
+    if not productpagerankcht:
+        return HttpResponse('nick is not avalible under this keyword.')
 
-    for keyword in keywords:
-        chts = getProductPeriodChart(nick,keyword,f_month,f_day,t_month,t_day)
-        if chts:
-            productpagerankchts.append(chts)
-    print productpagerankchts
-    rankqueryset = ProductPageRank.objects.filter(nick=nick,month__gt=f_month,month__lt=t_month,day__gt=f_day,day__lt=t_day)\
+    rankqueryset = ProductPageRank.objects.filter(nick=nick,day=day,month=month)\
         .values('item_id','title').distinct('item_id')
 
-    params = {'keywordsrankcharts': productpagerankchts,'items':rankqueryset,'nick':nick}
+    params = {'keywordsrankcharts': productpagerankcht,'items':rankqueryset,'nick':nick}
 
 
     return render_to_response('keywords_itemsrank.html',params,context_instance=RequestContext(request))
+
+
+#def getProductPeriodChart(nick,keyword,f_month,f_day,t_month,t_day):
+#
+#    rankqueryset = ProductPageRank.objects.filter\
+#            (nick=nick,keyword=keyword,month__gt=f_month,month__lt=t_month,day__gt=f_day,day__lt=t_day)\
+#                   .values('item_id','title').distinct('item_id')
+#
+#    if rankqueryset.count() == 0:
+#        return None
+#
+#    series = []
+#    series_option ={'options':{'type': 'line','stacking': False},'terms':{}}
+#    for prod in rankqueryset:
+#
+#        serie ={'options': {
+#               'source': ProductPageRank.objects.filter
+#                       (keyword=keyword,month__gt=f_month,month__lt=t_month,day__gt=f_day,day__lt=t_day,item_id=prod['item_id'])
+#                       .aggregate()
+#                    },
+#               'terms': [{'time'+prod['item_id']:'time'},{prod['item_id']:'rank'}]}
+#        series.append(serie)
+#        series_option['terms'].update({'time'+prod['item_id']:[prod['item_id']]})
+#
+#
+#    productpagerankdata = DataPool(series=series)
+#
+#    productpagerankcht = Chart(
+#            datasource = productpagerankdata,
+#            series_options = [series_option],
+#            chart_options =
+#              {'title': {
+#                   'text': '%s'%(keyword.encode('utf8'))},
+#               'xAxis': {
+#                    'title': {
+#                       'text': 'per half hour'}},
+#               'yAxis': {
+#                    'title': {
+#                       'text': 'rank'}}})
+#
+#
+#    return productpagerankcht
+#
+#def genPeroidChart(request,dt_f,dt_t):
+#
+#    nick = request.GET.get('nick',u'\u4f18\u5c3c\u5c0f\u5c0f\u4e16\u754c')
+#
+#    dt_f = datetime.datetime(*(time.strptime(dt_f, '%Y-%m-%d')[0:6]))
+#    dt_t = datetime.datetime(*(time.strptime(dt_t, '%Y-%m-%d')[0:6]))
+#
+#    f_month = dt_f.month-1
+#    f_day = dt_f.day-1
+#
+#    t_month = dt_t.month+1
+#    t_day = dt_t.day+1
+#
+#    productpagerankchts = []
+#
+#    for keyword in keywords:
+#        chts = getProductPeriodChart(nick,keyword,f_month,f_day,t_month,t_day)
+#        if chts:
+#            productpagerankchts.append(chts)
+#    print productpagerankchts
+#    rankqueryset = ProductPageRank.objects.filter(nick=nick,month__gt=f_month,month__lt=t_month,day__gt=f_day,day__lt=t_day)\
+#        .values('item_id','title').distinct('item_id')
+#
+#    params = {'keywordsrankcharts': productpagerankchts,'items':rankqueryset,'nick':nick}
+#
+#
+#    return render_to_response('keywords_itemsrank.html',params,context_instance=RequestContext(request))
 
 
 def genPageRankPivotChart(request,dt_f,dt_t):
