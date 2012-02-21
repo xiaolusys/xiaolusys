@@ -6,27 +6,25 @@
     <script src='{{ STATIC_URL }}js/jquery-1.7.1.min.js' type= 'text/javascript'></script>
     <script src='{{ STATIC_URL }}js/highcharts.js' type= 'text/javascript'></script>
     {% load chartit %}
-    {{ keywordsrankcharts|load_charts:"container1" }}
 </head>
 <body>
-
-    <div id='container1'> Chart will be rendered here </div>
-
+    {% for chart in keywordsrankcharts  %}
+        <div id='container{{ forloop.counter }}'> Chart will be rendered here </div>
+    {% endfor %}
 
     <div id='items'>
         <table>
-            <tr>
-                <td>nick:</td>
-                <td>{{ nick }}</td>
-            </tr>
+        <thead style="background-color:#2C7400"><td>num_iid</td><td>nick</td><td>title</td></thead>
         {% for item in items %}
             <tr >
                 <td>{{ item.item_id }}</td>
+                <td>{{ item.nick }}</td>
                 <td>{{ item.title }}</td>
             </tr>
         {% endfor %}
         </table>
 
     </div>
+    <div>{{ keywordsrankcharts|load_charts:"" }}</div>
 </body>
 </html>

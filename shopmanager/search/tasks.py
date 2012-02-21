@@ -18,7 +18,7 @@ keywords = [u'\u7761\u888b \u513f\u7ae5 \u9632\u8e22\u88ab',u'\u5a74\u513f\u5e8a
 page_nums = 6
 
 @task(max_retry=3)
-def saveKeywordPageRank(keyword,month,day,time):
+def saveKeywordPageRank(keyword,month,day,time,created):
 
     try:
         results = getTaoBaoPageRank(keyword,page_nums)
@@ -33,7 +33,7 @@ def saveKeywordPageRank(keyword,month,day,time):
         try:
             ProductPageRank.objects.create(
                 keyword=keyword,item_id=value['item_id'],title=value['title'],user_id=value['user_id']
-                ,nick=value['nick'],month=month,day=day,time=time,rank=value['rank'])
+                ,nick=value['nick'],month=month,day=day,time=time,created=created,rank=value['rank'])
 
         except Exception,exc:
             logger.error('Create ProductPageRank record error.',exc_info=True)
@@ -47,9 +47,10 @@ def updateItemKeywordsPageRank():
     day = created_at.day
     time = format_time(created_at)
 
+    created = created_at.strftime("%Y-%m-%d %H:%M")
     for keyword in keywords:
 
-        subtask(saveKeywordPageRank).delay(keyword,month,day,time)
+        subtask(saveKeywordPageRank).delay(keyword,month,day,time,created)
 
 
 

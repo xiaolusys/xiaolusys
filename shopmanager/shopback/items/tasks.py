@@ -115,8 +115,8 @@ def pullPerUserTradesTask(user_id,start_created,end_created):
         return
 
     try:
-        trades = apis.taobao_trades_sold_get(session=user.top_session,page_no=1,page_size=200,
-                 start_created=start_created,end_created=end_created)
+        trades = apis.taobao_trades_sold_increment_get(session=user.top_session,page_no=1,page_size=200,
+                 start_modified=start_created,end_modified=end_created,use_has_next='true')
 
         #trades = apis.taobao_trades_sold_get(session=user.top_session,page_no=1,page_size=200,
         #       start_created='2012-02-03 00:00:00',end_created='2012-02-03 23:59:59')

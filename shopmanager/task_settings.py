@@ -11,6 +11,8 @@ EXECUTE_RANGE_TIME = 3*60
 
 UPDATE_ITEM_NUM_INTERVAL = 2*60
 
+GET_TAOBAO_DATA_PAGE_SIZE = 200
+
 from celery.schedules import crontab
 from datetime import timedelta,datetime
 
@@ -27,7 +29,12 @@ CELERYBEAT_SCHEDULE = {
     },
     'runs-every-30-minutes':{
         'task':'search.tasks.updateItemKeywordsPageRank',
-        'schedule':crontab(minute="*/2"),
+        'schedule':crontab(minute="*/30"),
+        'args':()
+    },
+    'runs-every-hours':{
+        'task':'shopback.orders.tasks.updateAllUserOrders',
+        'schedule':crontab(hour="*/1"),
         'args':()
     },
 }
