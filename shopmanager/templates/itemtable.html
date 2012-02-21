@@ -12,7 +12,8 @@
 <table>
   <tr>
     <th>序号</th><th>商品类别</th><th>商品编码</th><th>内部名称</th><th>出售标题</th>
-      <th>上架星期</th><th>淘宝上架</th><th>推荐上架</th><th>设定上架</th><th>库存</th><th>商品图片</th><th>同步状态</th>
+      <th>上架星期</th><th>淘宝上架</th><th>推荐上架</th><th>设定上架</th><th>库存</th>
+      <th>商品图片</th><th>同步状态</th><th>出售状态</th>
   </tr>
   {% for item in items %}
   <tr id="{{ item.num_iid }}" title="{{ item.title }}" num="{{ item.num }}">
@@ -56,6 +57,11 @@
               {% endif %}
            {% endif %}
        {% endif %}
+      {% if item.onsale == 1 %}
+      <td>出售</td>
+      {% else %}
+      <td style="background-color:red">下架</td>
+      {% endif %}
   </tr>
   {% endfor %}
   </table>
