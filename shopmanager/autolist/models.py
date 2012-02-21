@@ -1,8 +1,11 @@
 from django.db import models
+from django.contrib.auth.models import User as DjangoUser
 
 # Create your models here.
 class ProductItem(models.Model):
     num_iid = models.CharField(primary_key=True,max_length=64)
+    owner_id = models.CharField(max_length=32,blank=True)
+
     category_id = models.CharField(max_length=64)
     category_name = models.CharField(max_length=64)
     ref_code  = models.CharField(max_length=64)

@@ -10,7 +10,7 @@ django-celery==2.4.2
 django-kombu==0.9.4
 MySQL-python==1.2.3
 lxml==2.3
-git+ssh://user1@222.73.86.185/home/user1/repo/django-chartit.git#egg=django-chartit
-git+ssh://user1@222.73.86.185/home/user1/repo/django-rest-framework.git#egg=djangorestframework
+django-chartit==0.1
+djangorestframework==0.2.3
 
   

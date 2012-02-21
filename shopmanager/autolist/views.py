@@ -18,6 +18,8 @@ def pull_from_taobao(request):
 
     session['update_items_datetime'] = datetime.datetime.now()
 
+    owner_id = request.session['top_parameters']['visitor_id']
+
     for item in items:
         detail = apis.taobao_item_get(session=session['top_session'],num_iid=item['num_iid'])
         detail_item = detail['item_get_response']['item']
@@ -28,9 +30,11 @@ def pull_from_taobao(request):
         o = None
         try:
             o = ProductItem.objects.get(num_iid=item['num_iid'])
+            o.owner_id = owner_id
         except ProductItem.DoesNotExist:
             o = ProductItem()
             o.num_iid = item['num_iid']
+            o.owner_id = owner_id
 
         o.detail_url = detail_item['detail_url']
 
@@ -48,7 +52,8 @@ def pull_from_taobao(request):
     return HttpResponseRedirect('itemlist/')
 
 def list_all_items(request):
-    items = ProductItem.objects.all().order_by('category_id', 'ref_code')
+    owner_id = request.session['top_parameters']['visitor_id']
+    items = ProductItem.objects.filter(owner_id=owner_id).order_by('category_id', 'ref_code')
 
     from auth.utils import get_closest_time_slot
 
