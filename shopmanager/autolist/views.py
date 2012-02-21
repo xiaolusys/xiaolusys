@@ -20,6 +20,12 @@ def pull_from_taobao(request):
 
     owner_id = request.session['top_parameters']['visitor_id']
 
+    currItems = ProductItem.objects.filter(owner_id=owner_id)
+
+    itemstat = {}
+    for item in currItems:
+        itemstat[item.num_iid] = {'onsale':0, 'item':item}
+
     for item in items:
         detail = apis.taobao_item_get(session=session['top_session'],num_iid=item['num_iid'])
         detail_item = detail['item_get_response']['item']
@@ -28,14 +34,16 @@ def pull_from_taobao(request):
         cats_detail = cats['itemcats_get_response']['item_cats']['item_cat']
 
         o = None
-        try:
-            o = ProductItem.objects.get(num_iid=item['num_iid'])
-            o.owner_id = owner_id
-        except ProductItem.DoesNotExist:
+        num_iid = item['num_iid']
+        if num_iid in itemstat:
+            o = itemstat[num_iid]['item']
+            itemstat[o.num_iid]['onsale'] = 1
+        else:
             o = ProductItem()
-            o.num_iid = item['num_iid']
-            o.owner_id = owner_id
+            o.num_iid = num_iid
 
+        o.onsale = 1
+        o.owner_id = owner_id
         o.detail_url = detail_item['detail_url']
 
         o.title = item['title']
@@ -49,6 +57,12 @@ def pull_from_taobao(request):
         o.pic_url = item['pic_url']
         o.num = item['num']
         o.save()
+
+    for item in currItems:
+        if itemstat[item.num_iid]['onsale'] == 0:
+            item.onsale = 0
+            item.save()
+
     return HttpResponseRedirect('itemlist/')
 
 def list_all_items(request):
@@ -203,8 +217,6 @@ def show_logs(request):
 
 
 def change_list_time(request):
-
-
     num_iid = request.GET.get('num_iid')
     weekday = int(request.GET.get('weekday'))
     timeslot = request.GET.get('timeslot')
@@ -213,8 +225,6 @@ def change_list_time(request):
         o = ItemListTask.objects.get(num_iid=num_iid)
     except ItemListTask.DoesNotExist:
         o = ItemListTask()
-
-    print 'change_list_time', num_iid, ",", weekday, ",", timeslot
 
     from auth.utils import get_all_time_slots
     timekeys = get_all_time_slots().keys()
@@ -233,7 +243,6 @@ def change_list_time(request):
         target_time = target_time + datetime.timedelta(days=7)
 
     n = ProductItem.objects.filter(num_iid=num_iid).update(list_time=target_time)
-    print n, 'records updated'
 
     return HttpResponse(json.dumps({'date':target_time.strftime("%Y-%m-%d"), 'timeslot':target_time.strftime("%H:%M-%S")}),mimetype='application/json')
 

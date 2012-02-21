@@ -16,6 +16,7 @@ class ProductItem(models.Model):
     detail_url = models.URLField(verify_exists=False)
     pic_url = models.URLField(verify_exists=False)
     num = models.IntegerField()
+    onsale = models.IntegerField()
 
 class Logs(models.Model):
     num_iid = models.CharField(max_length=64)
