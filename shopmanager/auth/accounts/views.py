@@ -24,7 +24,6 @@ def login_taobo(request):
     if not user or user.is_anonymous():
         return HttpResponseRedirect(reverse('home_page'))
 
-    #refresh_session(request.session,settings)
     request.session[SESSION_KEY] = user.id
 
     login(request, user)

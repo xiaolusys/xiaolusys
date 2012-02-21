@@ -5,7 +5,7 @@ from django.http import HttpResponse
 from django.shortcuts import render_to_response
 from django.db.models import Avg
 from django.template import RequestContext
-from django.db.models import Sum,Q
+from django.db.models import Sum
 from chartit import DataPool, Chart
 from chartit import PivotDataPool, PivotChart
 from auth.utils import parse_datetime,format_time

@@ -18,7 +18,7 @@ def saveUserHourlyOrders(user_id):
     except User.DoesNotExist:
         pass
 
-    refresh_session(user)
+    refresh_session(user,settings.APPKEY,settings.APPSECRET,settings.REFRESH_URL)
 
     dt = datetime.datetime.now()
     #dt = datetime.datetime(2012,2,20,14,20)

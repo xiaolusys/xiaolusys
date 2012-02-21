@@ -44,7 +44,7 @@ def parse_urlparams(string):
     return map
 
 
-def refresh_session(user):
+def refresh_session(user,appkey,appsecret,refresh_url):
     top_parameters = json.loads(user.top_parameters)
     expires_in = top_parameters['expires_in']
     ts = top_parameters['ts']
@@ -53,13 +53,13 @@ def refresh_session(user):
 
     if expire_time < time.time():
         params = {
-            'appkey':settings.APPKEY,
+            'appkey':appkey,
             'refresh_token':top_parameters['refresh_token'],
             'sessionkey':user.top_session
         }
-        sign_result = getSignatureTaoBao(params,settings.APPSECRET,both_side=False)
+        sign_result = getSignatureTaoBao(params,appsecret,both_side=False)
         params['sign'] = sign_result
-        refresh_url = '%s?%s'%(settings.REFRESH_URL,urllib.urlencode(params))
+        refresh_url = '%s?%s'%(refresh_url,urllib.urlencode(params))
 
         req = urllib2.urlopen(refresh_url)
         content = req.read()
@@ -71,6 +71,7 @@ def refresh_session(user):
         user.top_parameters = content
 
         user.save()
+        print dict(user)
         return True
 
     return False
