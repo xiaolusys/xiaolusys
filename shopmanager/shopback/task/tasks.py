@@ -64,6 +64,8 @@ def updateItemListTask(num_iid):
     try:
         user = User.objects.get(visitor_id=task.user_id)
 
+        refresh_session(user,settings.APPKEY,settings.APPSECRET,settings.REFRESH_URL)
+
         if task.task_type == 'listing':
             item = apis.taobao_item_get(num_iid=int(task.num_iid),session=user.top_session)
 
@@ -145,11 +147,6 @@ def updateAllItemListTask():
 
     tasks = ItemListTask.objects.filter\
             (list_weekday=weekday,list_time__gt=time_ago,list_time__lt=time_future,status=UNEXECUTE)
-    
-    ## Assume all tasks are with the same user_id
-    if tasks.count() > 0:
-        user = User.objects.get(visitor_id=tasks[0].user_id)
-        refresh_session(user)
 
     for task in tasks:
         subtask(updateItemListTask).delay(task.num_iid)

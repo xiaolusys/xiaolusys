@@ -211,6 +211,11 @@ LOGGING = {
             'level': 'ERROR',
             'propagate': True,
         },
+        'hourly.saveorder':{
+            'handlers': ['sentry'],
+            'level': 'ERROR',
+            'propagate': True,
+        },
 
     }
 }

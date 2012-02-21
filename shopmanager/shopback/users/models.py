@@ -14,7 +14,7 @@ class User(models.Model):
 
     top_session = models.CharField(max_length=56,blank=True)
     top_appkey = models.CharField(max_length=24,blank=True)
-    top_parameters = models.CharField(max_length=256,blank=True)
+    top_parameters = models.CharField(max_length=512,blank=True)
 
     visitor_id = models.CharField(max_length=32,blank=True)
     uid = models.CharField(max_length=32,blank=True)
