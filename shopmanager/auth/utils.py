@@ -5,7 +5,9 @@ import urllib2
 import datetime
 import time
 import json
+import logging
 
+logger = logging.getLogger('updatelisting')
 
 def getSignatureTaoBao(params,secret,both_side=True):
     key_pairs = None
@@ -41,17 +43,19 @@ def parse_urlparams(string):
 
     return map
 
-def refresh_session(session,settings):
 
-    top_parameters = session['top_parameters']
-    expires_time = top_parameters['expires_in']
-    timestamp = top_parameters['ts']
+def refresh_session(user):
+    top_parameters = json.loads(user.top_parameters)
+    expires_in = top_parameters['expires_in']
+    ts = top_parameters['ts']
 
-    if int(expires_time)+int(timestamp) < time.time():
+    expire_time = int(expires_in) + int(ts)/1000.00 + 600
+
+    if expire_time < time.time():
         params = {
             'appkey':settings.APPKEY,
             'refresh_token':top_parameters['refresh_token'],
-            'sessionkey':session['top_session']
+            'sessionkey':user.top_session
         }
         sign_result = getSignatureTaoBao(params,settings.APPSECRET,both_side=False)
         params['sign'] = sign_result
@@ -59,12 +63,14 @@ def refresh_session(session,settings):
 
         req = urllib2.urlopen(refresh_url)
         content = req.read()
+
+        logger.warn('refreshed token : %s' % content )
         params = json.loads(content)
 
-        session['top_session'] = params.get['top_session']
-        session['top_parameters']['re_expires_id'] = params['re_expires_id']
-        session['top_parameters']['expires_in'] = params['expires_id']
-        session['top_parameters']['refresh_token'] = params['refresh_token']
+        user.top_session = params['top_session']
+        user.top_parameters = content
+
+        user.save()
         return True
 
     return False

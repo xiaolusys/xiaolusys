@@ -4,7 +4,7 @@ from celery.task.sets import subtask
 from django.conf import settings
 from shopback.orders.models import Order
 from shopback.users.models import User
-from auth.utils import format_time,format_datetime
+from auth.utils import format_time,format_datetime,refresh_session
 from auth import apis
 import logging
 
@@ -17,6 +17,9 @@ def saveUserHourlyOrders(user_id):
         user = User.objects.get(pk=user_id)
     except User.DoesNotExist:
         pass
+
+    refresh_session(user)
+
     dt = datetime.datetime.now()
     #dt = datetime.datetime(2012,2,20,14,20)
 
