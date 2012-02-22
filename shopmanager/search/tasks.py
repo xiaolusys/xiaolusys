@@ -20,7 +20,7 @@ keywords = [u'\u7761\u888b \u513f\u7ae5 \u9632\u8e22\u88ab',u'\u5a74\u513f\u5e8a
            u'\u63a8\u8f66 \u51c9\u5e2d']
 page_nums = 6
 
-
+#@task()
 def saveKeywordPageRank(keyword,month,day,time,created):
 
     try:
@@ -54,6 +54,7 @@ def updateItemKeywordsPageRank():
     for keyword in keywords:
 
         saveKeywordPageRank(keyword,month,day,time,created)
+        #subtask(saveKeywordPageRank).delay(keyword,month,day,time,created)
 
 
 

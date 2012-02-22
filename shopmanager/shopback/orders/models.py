@@ -12,6 +12,7 @@ class Order(models.Model):
     num_iid = models.BigIntegerField(null=True)
 
     month = models.IntegerField(null=True,db_index=True)
+    week = models.IntegerField(null=True,db_index=True)
     day = models.IntegerField(null=True,db_index=True)
     hour = models.CharField(max_length=5,blank=True,db_index=True)
 

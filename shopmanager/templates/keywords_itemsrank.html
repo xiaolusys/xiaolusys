@@ -14,17 +14,20 @@
 
     <div id='items'>
         <table>
-        <thead style="background-color:#2C7400"><td>num_iid</td><td>nick</td><td>title</td></thead>
+        <thead style="background-color:#2C7400"><td>num_iid</td><td>nick</td><td>title</td><td>image</td></thead>
         {% for item in items %}
             <tr >
                 <td>{{ item.item_id }}</td>
                 <td>{{ item.nick }}</td>
                 <td>{{ item.title }}</td>
+                <td><img src="{{  item.pic_url }}" style="width: 60px;height: 60px;"></td>
             </tr>
         {% endfor %}
         </table>
 
     </div>
-    <div>{{ keywordsrankcharts|load_charts:"" }}</div>
+    {{ keywordsrankcharts|load_charts:"" }}
+    <script type="text/javascript" src="{{ STATIC_URL }}js/modules/exporting.js"></script>
+
 </body>
 </html>

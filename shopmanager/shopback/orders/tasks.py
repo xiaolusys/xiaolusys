@@ -1,3 +1,4 @@
+import time
 import datetime
 from celery.task import task
 from celery.task.sets import subtask
@@ -20,13 +21,15 @@ def saveUserHourlyOrders(user_id):
 
     refresh_session(user,settings.APPKEY,settings.APPSECRET,settings.REFRESH_URL)
 
-    dt = datetime.datetime.now()
+    time = time.time()-60*60
     #dt = datetime.datetime(2012,2,20,14,20)
+    dt = datetime.datetime.fromtimestamp(time)
 
     year = dt.year
     month = dt.month
     day = dt.day
-    hour = dt.hour-1
+    hour = dt.hour
+    week = time.gmtime(t)[7]/7+1
 
     s_dt_f = format_datetime(datetime.datetime(year,month,day,hour,0,0))
     s_dt_t = format_datetime(datetime.datetime(year,month,day,hour,59,59))
@@ -38,6 +41,7 @@ def saveUserHourlyOrders(user_id):
     order.month = month
     order.day = day
     order.hour = hour
+    order.week = week
     try:
         while has_next:
             trades = apis.taobao_trades_sold_get(session=user.top_session,page_no=cur_page,
