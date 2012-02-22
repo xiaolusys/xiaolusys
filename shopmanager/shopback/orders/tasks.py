@@ -18,18 +18,19 @@ def saveUserHourlyOrders(user_id):
         user = User.objects.get(pk=user_id)
     except User.DoesNotExist,exc:
         logger.error('SaveUserHourlyOrders error:%s'%exc, exc_info=True)
+        return
 
     refresh_session(user,settings.APPKEY,settings.APPSECRET,settings.REFRESH_URL)
 
-    time = time.time()-60*60
+    t = time.time()-60*60
     #dt = datetime.datetime(2012,2,20,14,20)
-    dt = datetime.datetime.fromtimestamp(time)
+    dt = datetime.datetime.fromtimestamp(t)
 
     year = dt.year
     month = dt.month
     day = dt.day
     hour = dt.strftime("%H")
-    week = time.gmtime(time)[7]/7+1
+    week = time.gmtime(t)[7]/7+1
 
     s_dt_f = format_datetime(datetime.datetime(year,month,day,int(hour),0,0))
     s_dt_t = format_datetime(datetime.datetime(year,month,day,int(hour),59,59))

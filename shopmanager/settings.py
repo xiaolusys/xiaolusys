@@ -158,62 +158,67 @@ LOGGING = {
     'loggers': {
         'django.request': {
             'handlers': ['sentry'],
-            'level': 'ERROR',
+            'level': 'WARN',
             'propagate': True,
         },
         'updatelisting': {
             'handlers': ['sentry'],
-            'level': 'ERROR',
+            'level': 'WARN',
             'propagate': True,
         },
         'updateitemnum': {
             'handlers': ['sentry'],
-            'level': 'ERROR',
+            'level': 'WARN',
             'propagate': True,
         },
         'sentry.errors': {
             'handlers': ['sentry'],
-            'level': 'ERROR',
+            'level': 'WARN',
             'propagate': True,
         },
         'taobao.auth': {
             'handlers': ['sentry'],
-            'level': 'ERROR',
+            'level': 'WARN',
             'propagate': True,
         },
         'auth.apis': {
             'handlers': ['sentry'],
-            'level': 'ERROR',
+            'level': 'WARN',
             'propagate': True,
         },
         'permission': {
             'handlers': ['sentry'],
-            'level': 'ERROR',
+            'level': 'WARN',
             'propagate': True,
         },
         'exception.middleware': {
             'handlers': ['sentry'],
-            'level': 'ERROR',
+            'level': 'WARN',
             'propagate': True,
         },
         'outeridmultiple': {
             'handlers': ['sentry'],
-            'level': 'ERROR',
+            'level': 'WARN',
             'propagate': True,
         },
         'period.search': {
             'handlers': ['sentry'],
-            'level': 'ERROR',
+            'level': 'WARN',
             'propagate': True,
         },
         'taobao.urlcraw': {
             'handlers': ['sentry'],
-            'level': 'ERROR',
+            'level': 'WARN',
             'propagate': True,
         },
         'hourly.saveorder':{
             'handlers': ['sentry'],
-            'level': 'ERROR',
+            'level': 'WARN',
+            'propagate': True,
+        },
+        'token.refresh':{
+            'handlers': ['sentry'],
+            'level': 'WARN',
             'propagate': True,
         },
 

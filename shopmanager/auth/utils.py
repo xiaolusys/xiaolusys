@@ -7,7 +7,7 @@ import time
 import json
 import logging
 
-logger = logging.getLogger('updatelisting')
+logger = logging.getLogger('token.refresh')
 
 def getSignatureTaoBao(params,secret,both_side=True):
     key_pairs = None
@@ -52,27 +52,30 @@ def refresh_session(user,appkey,appsecret,refresh_url):
     expire_time = int(expires_in) + int(ts)/1000.00 + 600
 
     if expire_time < time.time():
-        params = {
-            'appkey':appkey,
-            'refresh_token':top_parameters['refresh_token'],
-            'sessionkey':user.top_session
-        }
-        sign_result = getSignatureTaoBao(params,appsecret,both_side=False)
-        params['sign'] = sign_result
-        refresh_url = '%s?%s'%(refresh_url,urllib.urlencode(params))
+        try:
+            params = {
+                'appkey':appkey,
+                'refresh_token':top_parameters['refresh_token'],
+                'sessionkey':user.top_session
+            }
+            sign_result = getSignatureTaoBao(params,appsecret,both_side=False)
+            params['sign'] = sign_result
+            refresh_url = '%s?%s'%(refresh_url,urllib.urlencode(params))
 
-        req = urllib2.urlopen(refresh_url)
-        content = req.read()
+            req = urllib2.urlopen(refresh_url)
+            content = req.read()
+            logger.warn('refreshed token : %s' % content)
+            params = json.loads(content)
+            user.top_session = params['top_session']
+            params.pop('top_session')
+            params['ts'] = time.time()
+            user.top_parameters = json.dumps(params)
 
-        logger.warn('refreshed token : %s' % content )
-        params = json.loads(content)
+            user.save()
 
-        user.top_session = params['top_session']
-        user.top_parameters = content
-
-        user.save()
-        print dict(user)
-        return True
+            return True
+        except Exception,exc:
+            logger.warn('refreshed token error: %s'%exc,exc_info=True)
 
     return False
 
