@@ -34,7 +34,7 @@ def pull_from_taobao(request):
         cats_detail = cats['itemcats_get_response']['item_cats']['item_cat']
 
         o = None
-        num_iid = item['num_iid']
+        num_iid = str(item['num_iid'])
         if num_iid in itemstat:
             o = itemstat[num_iid]['item']
             itemstat[o.num_iid]['onsale'] = 1
@@ -98,7 +98,8 @@ def show_timetable_cats(request):
     from auth.utils import get_closest_time_slot, get_all_time_slots
     catname = request.GET.get('catname', None)
 
-    items = ProductItem.objects.filter(category_name=catname)
+    owner_id = request.session['top_parameters']['visitor_id']
+    items = ProductItem.objects.filter(owner_id=owner_id, category_name=catname, onsale=1)
     data = [[],[],[],[],[],[],[]]
     for item in items:
         relist_slot, status = get_closest_time_slot(item.list_time)
@@ -122,8 +123,9 @@ def show_timetable_cats(request):
 def show_time_table_summary(request):
     from auth.utils import get_closest_time_slot, get_all_time_slots
 
+    owner_id = request.session['top_parameters']['visitor_id']
     weekday = request.GET.get('weekday', None)
-    items = ProductItem.objects.all().order_by('category_id', 'ref_code')
+    items = ProductItem.objects.filter(owner_id=owner_id, onsale=1).order_by('category_id', 'ref_code')
     weekstat = [0,0,0,0,0,0,0]
     data = {}
     for item in items:
