@@ -184,7 +184,7 @@ def getPageRankPivotChart(nick,keyword,dt_f,dt_t,index):
               { 'chart': {'renderTo':"container"+str(index),'zoomType': 'xy'},
                 'title': {'text': '%s-%s'%(nick.encode('utf8'),keyword.encode('utf8'))},
                 'xAxis': {'title': {'text': 'Month&Day'}},
-                'yAxis':[{},{'opposite': True}]
+                'yAxis':[{'title': {'text': 'rank avg'}},{'title': {'text': 'rank variance'},'opposite': True}]
                })
 
     return productpagerankpivcht

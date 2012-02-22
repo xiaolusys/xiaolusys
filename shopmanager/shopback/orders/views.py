@@ -43,7 +43,7 @@ def genHourlyOrdersChart(request,dt_f,dt_t):
     ordersdata = PivotDataPool(series=[series])
 
     series_options =[{'options':{'type': 'column','stacking': True,'yAxis': 0},
-                      'terms':['total_num',{'total_sales':{'type':'line','yAxis':1}}]},]
+                      'terms':['total_num',{'total_sales':{'type':'line','stacking':False,'yAxis':1}}]},]
     ordersdatacht = PivotChart(
             datasource = ordersdata,
             series_options = series_options,
