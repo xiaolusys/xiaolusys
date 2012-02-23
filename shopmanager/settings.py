@@ -113,8 +113,8 @@ INSTALLED_APPS = (
 
 )
 
-APPKEY = '12476025'
-APPSECRET = '6ad15e39391d79fece77c1d092ef13b9'
+APPKEY = '12517640'
+APPSECRET = 'e50beebdf9226e3fc991834375e32b5a'
 REDIRECT_URL = 'http://container.open.taobao.com/container'
 TAOBAO_API_ENDPOINT = 'http://gw.api.taobao.com/router/rest'
 REFRESH_URL = 'http://container.open.taobao.com/container/refresh'

@@ -75,7 +75,7 @@ def refresh_session(user,appkey,appsecret,refresh_url):
 
             return True
         except Exception,exc:
-            logger.warn('refreshed token error: %s'%exc,exc_info=True)
+            logger.error('refreshed token error: %s'%exc,exc_info=True)
 
     return False
 
