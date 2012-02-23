@@ -226,7 +226,7 @@ def genPageRankPivotChart(request,dt_f,dt_t):
 
     params = {'keywordsrankcharts':pagerankchts,'items':rankqueryset}
 
-    return render_to_response('keywords_itemsrank.html',params,context_instance=RequestContext(request))
+    return render_to_response('keywords_rankstatistic.html',params,context_instance=RequestContext(request))
 
 
 

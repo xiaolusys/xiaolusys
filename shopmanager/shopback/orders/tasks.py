@@ -19,31 +19,31 @@ def saveUserHourlyOrders(user_id):
     except User.DoesNotExist,exc:
         logger.error('SaveUserHourlyOrders error:%s'%exc, exc_info=True)
         return
-
-    refresh_session(user,settings.APPKEY,settings.APPSECRET,settings.REFRESH_URL)
-
-    t = time.time()-60*60
-    #dt = datetime.datetime(2012,2,20,14,20)
-    dt = datetime.datetime.fromtimestamp(t)
-
-    year = dt.year
-    month = dt.month
-    day = dt.day
-    hour = dt.strftime("%H")
-    week = time.gmtime(t)[7]/7+1
-
-    s_dt_f = format_datetime(datetime.datetime(year,month,day,int(hour),0,0))
-    s_dt_t = format_datetime(datetime.datetime(year,month,day,int(hour),59,59))
-
-    has_next = True
-    cur_page = 1
-    order = Order()
-
-    order.month = month
-    order.day = day
-    order.hour = hour
-    order.week = week
     try:
+        refresh_session(user,settings.APPKEY,settings.APPSECRET,settings.REFRESH_URL)
+
+        t = time.time()-60*60
+        #dt = datetime.datetime(2012,2,20,14,20)
+        dt = datetime.datetime.fromtimestamp(t)
+
+        year = dt.year
+        month = dt.month
+        day = dt.day
+        hour = dt.strftime("%H")
+        week = time.gmtime(t)[7]/7+1
+
+        s_dt_f = format_datetime(datetime.datetime(year,month,day,int(hour),0,0))
+        s_dt_t = format_datetime(datetime.datetime(year,month,day,int(hour),59,59))
+
+        has_next = True
+        cur_page = 1
+        order = Order()
+
+        order.month = month
+        order.day = day
+        order.hour = hour
+        order.week = week
+
         while has_next:
             trades = apis.taobao_trades_sold_get(session=user.top_session,page_no=cur_page,
                  page_size=settings.GET_TAOBAO_DATA_PAGE_SIZE,use_has_next='true',start_created=s_dt_f,end_created=s_dt_t)
