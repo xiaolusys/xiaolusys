@@ -59,9 +59,9 @@ def saveUserHourlyOrders(user_id):
                     order.seller_nick = t['seller_nick']
                     order.buyer_nick = t['buyer_nick']
                     order.modified = t['modified']
+                    order.tid = t['tid']
 
                     for o in t['orders']['order']:
-
                         for k,v in o.iteritems():
                             hasattr(order,k) and setattr(order,k,v)
                         order.save()
@@ -80,7 +80,7 @@ def saveUserHourlyOrders(user_id):
 
 
 @task()
-def updateAllUserOrders():
+def updateAllUserHourlyOrders():
 
     users = User.objects.all()
 

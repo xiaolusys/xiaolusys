@@ -11,7 +11,9 @@ EXECUTE_RANGE_TIME = 3*60
 
 UPDATE_ITEM_NUM_INTERVAL = 2*60
 
-GET_TAOBAO_DATA_PAGE_SIZE = 200
+UPDATE_UNPAY_ORDER_INTERVAL = 3*60
+
+GET_TAOBAO_DATA_PAGE_SIZE = 200 #the page_size of  per request
 
 from celery.schedules import crontab
 from datetime import timedelta,datetime
@@ -24,7 +26,7 @@ CELERYBEAT_SCHEDULE = {
     },
     'runs-every-day':{
         'task':'shopback.items.tasks.updateAllItemNumTask',
-        'schedule':crontab(minute=0, hour=0),
+        'schedule':crontab(minute='*/1'),
         'args':(),
     },
     'runs-every-30-minutes':{
@@ -33,8 +35,8 @@ CELERYBEAT_SCHEDULE = {
         'args':()
     },
     'runs-every-hours':{
-        'task':'shopback.orders.tasks.updateAllUserOrders',
-        'schedule':crontab(hour="*/1"),
+        'task':'shopback.orders.tasks.updateAllUserHourlyOrders',
+        'schedule':crontab(minute='*/1'),#hour="*/1"),
         'args':()
     },
 }

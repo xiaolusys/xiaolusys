@@ -49,7 +49,7 @@ def refresh_session(user,appkey,appsecret,refresh_url):
     expires_in = top_parameters['expires_in']
     ts = top_parameters['ts']
 
-    expire_time = int(expires_in) + int(ts)/1000.00 + 600
+    expire_time = int(expires_in) + int(ts)/1000.00
 
     if expire_time < time.time():
         try:
@@ -68,7 +68,7 @@ def refresh_session(user,appkey,appsecret,refresh_url):
             params = json.loads(content)
             user.top_session = params['top_session']
             params.pop('top_session')
-            params['ts'] = time.time()
+            params['ts'] = time.time()*1000
             user.top_parameters = json.dumps(params)
 
             user.save()

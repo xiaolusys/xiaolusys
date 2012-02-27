@@ -6,7 +6,8 @@ import urllib2
 from celery.task import task
 from celery.task.sets import subtask
 from django.conf import settings
-from auth.utils import format_datetime
+from shopback.base.aggregates import ConcatenateDistinct
+from auth.utils import format_datetime ,parse_datetime ,refresh_session
 from shopback.items.models import Item
 from shopback.orders.models import Order
 from shopback.users.models import User
@@ -16,6 +17,7 @@ import logging
 
 logger = logging.getLogger('updateitemnum')
 
+ORDER_SUCCESS_STATUS = ['WAIT_SELLER_SEND_GOODS','WAIT_BUYER_CONFIRM_GOODS','TRADE_BUYER_SIGNED','TRADE_FINISHED']
 
 @task(max_retries=3)
 def updateItemNumTask(itemNumTask_id):
@@ -81,28 +83,53 @@ def execAllItemNumTask():
     for itemNumTask in itemNumTasks:
         subtask(updateItemNumTask).delay(itemNumTask.id)
 
-
-
-@task(max_retries=3)
-def saveDailyOrdersTask(orders_list):
+@task(max_retry=3)
+def updateUnpayOrderTask(tid,nick):
 
     try:
-        for order in orders_list:
+        user = User.objects.get(nick=nick)
+
+        refresh_session(user,settings.APPKEY,settings.APPSECRET,settings.REFRESH_URL)
+    except Exception,exc:
+        logger.error('Excute updateUnpoyOrderTask error:%s'%exc,exc_info=True)
+        return
+
+    try:
+        trades = apis.taobao_trade_fullinfo_get(tid,session=user.top_session)
+
+        if trades.has_key('error_response'):
+            logger.error('Excute updateUnpoyOrderTask %s'%trades)
+            return
+
+        t = trades['trade_fullinfo_get_response']['trade']
+
+        for order in  t['orders']['order']:
             try:
-                o = Order.objects.get(oid=order['oid'])
-            except Order.DoesNotExist:
-                o = Order()
+                order_obj = Order.objects.get(oid=order['oid'])
+                order_obj.modified = t['modified']
 
                 for k,v in order.iteritems():
-                    hasattr(o,k) and setattr(o,k,v)
+                    hasattr(order_obj,k) and setattr(order_obj,k,v)
+                order_obj.save()
 
-                o.save()
+            except Exception,exc:
+                logger.error('Excute updateUnpoyOrderTask error:%s'%exc,exc_info=True)
 
     except Exception,exc:
-
-        logger.error('Executing saveDailyOrdersTask error:%s' %(exc), exc_info=True)
+        logger.error('Excute updateUnpoyOrderTask error:%s'%exc,exc_info=True)
         if not settings.DEBUG:
-            saveDailyOrdersTask.retry(exc=exc,countdown=2)
+            pullPerUserTradesTask.retry(exc=exc,countdown=2)
+
+
+@task()
+def updateAllUnpayOrderTask():
+
+    unpay_orders = Order.objects.filter(status='WAIT_BUYER_PAY')\
+        .values('tid','seller_nick').distinct('tid')
+
+    for order in unpay_orders:
+        subtask(updateUnpayOrderTask).delay(order['tid'],order['seller_nick'])
+
 
 
 @task(max_retries=3)
@@ -110,51 +137,72 @@ def pullPerUserTradesTask(user_id,start_created,end_created):
 
     try:
         user = User.objects.get(pk=user_id)
+
+        refresh_session(user,settings.APPKEY,settings.APPSECRET,settings.REFRESH_URL)
     except User.DoesNotExist:
         logger.error('Executing pullPerUserTrades error:%s' %(exc), exc_info=True)
         return
 
-    try:
-        trades = apis.taobao_trades_sold_increment_get(session=user.top_session,page_no=1,page_size=200,
-                 start_modified=start_created,end_modified=end_created,use_has_next='true')
+    has_next = True
+    cur_page = 1
 
-        #trades = apis.taobao_trades_sold_get(session=user.top_session,page_no=1,page_size=200,
-        #       start_created='2012-02-03 00:00:00',end_created='2012-02-03 23:59:59')
+    try:
+        while has_next:
+
+            trades = apis.taobao_trades_sold_increment_get(session=user.top_session,page_no=1,page_size=200,
+                     start_modified=start_created,end_modified=end_created,use_has_next='true')
+
+            if trades.has_key('error_response'):
+                logger.error('Get users trades errorresponse:%s' %(trades))
+                break
+
+            if trades['trades_sold_get_increment_response']['total_results']>0:
+
+                order_obj = Order()
+                for t in trades['trades_sold_get_increment_response']['trades']['trade']:
+
+                    dt = parse_datetime(t['created'])
+                    order_obj.month = dt.month
+                    order_obj.day = dt.day
+                    order_obj.hour = dt.strftime("%H")
+                    order_obj.week = time.gmtime(time.mktime(dt.timetuple()))[7]/7+1
+                    order_obj.created = t['created']
+                    order_obj.seller_nick = t['seller_nick']
+                    order_obj.buyer_nick = t['buyer_nick']
+                    order_obj.modified = t['modified']
+                    order_obj.tid = t['tid']
+
+                    for order in t['orders']['order']:
+
+                        for k,v in order.iteritems():
+                            hasattr(order_obj,k) and setattr(order_obj,k,v)
+
+                        order_obj.save()
+
+                        if order['status'] in ORDER_SUCCESS_STATUS and t['created']>=start_created:
+
+                            sku_outer_id = order.get('outer_sku_id','')
+                            try:
+                                itemNumTask = ItemNumTask.objects.get\
+                                        (outer_iid=order['outer_iid'],sku_outer_id=sku_outer_id,status=UNEXECUTE)
+                                itemNumTask.num += order['num']
+                            except ItemNumTask.DoesNotExist:
+                                itemNumTask = ItemNumTask()
+                                itemNumTask.outer_iid = order['outer_iid']
+                                itemNumTask.sku_outer_id = sku_outer_id
+                                itemNumTask.num = order['num']
+
+                            itemNumTask.save()
+
+            has_next = trades['trades_sold_increment_get_response']['has_next']
+            cur_page += 1
+
     except Exception,exc:
 
         logger.error('Executing pullPerUserTradesTask error:%s' %(exc), exc_info=True)
         if not settings.DEBUG:
             pullPerUserTradesTask.retry(exc=exc,countdown=2)
 
-    if trades.has_key('error_response'):
-        logger.warn('Get users trades errorresponse:%s' %(trades))
-        return
-
-    orders_list = []
-
-    if trades['trades_sold_get_response']['total_results']>0:
-        for t in trades['trades_sold_get_response']['trades']['trade']:
-            orders_list.extend(t['orders']['order'])
-
-    if orders_list:
-        subtask(saveDailyOrdersTask).delay(orders_list)
-
-
-    for order in orders_list:
-
-        if order['status'] != 'TRADE_CLOSED_BY_TAOBAO' and order['status'] != 'WAIT_BUYER_PAY':
-            sku_outer_id = order.get('outer_sku_id','')
-            try:
-                itemNumTask = ItemNumTask.objects.get\
-                        (outer_iid=order['outer_iid'],sku_outer_id=sku_outer_id,status=UNEXECUTE)
-                itemNumTask.num += order['num']
-            except ItemNumTask.DoesNotExist:
-                itemNumTask = ItemNumTask()
-                itemNumTask.outer_iid = order['outer_iid']
-                itemNumTask.sku_outer_id = sku_outer_id
-                itemNumTask.num = order['num']
-
-            itemNumTask.save()
 
 
 
@@ -198,6 +246,10 @@ def updateAllItemNumTask():
         print '----------------excute updateAllItemNumTask start---------------'
         subtask(execAllItemNumTask).delay()
 
+        time.sleep(settings.UPDATE_UNPAY_ORDER_INTERVAL)
+        print '----------------excute updateAllUnpayOrderTask start---------------'
+        subtask(updateAllUnpayOrderTask).delay()
+
     except Exception,exc:
 
         logger.error('Executing UpdateAllItemNumTask error:%s' %(exc), exc_info=True)
@@ -211,6 +263,8 @@ def saveItemInfoTask(num_iid):
         item = Item.objects.get(num_iid=num_iid)
 
         user = User.objects.get(visitor_id=item.user_id)
+
+        refresh_session(user,settings.APPKEY,settings.APPSECRET,settings.REFRESH_URL)
     except User.DoesNotExist:
         logger.error('User(id:%s) not valide!' %(item.user_id))
 

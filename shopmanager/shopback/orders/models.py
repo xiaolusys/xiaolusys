@@ -5,8 +5,9 @@ from shopback.base.fields import BigIntegerAutoField
 
 class Order(models.Model):
 
-    oid = models.CharField(primary_key=True,max_length=20)
+    oid = models.CharField(primary_key=True,max_length=64)
 
+    tid = models.CharField(max_length=32,blank=True)
     title =  models.CharField(max_length=128)
     price = models.CharField(max_length=12,blank=True)
     num_iid = models.BigIntegerField(null=True)

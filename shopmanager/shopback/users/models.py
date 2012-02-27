@@ -64,6 +64,7 @@ class User(models.Model):
 
         self.top_session = top_session
         self.top_appkey = top_appkey
+        top_parameters.pop('visitor_nick')
         self.top_parameters = json.dumps(top_parameters)
 
         self.save()

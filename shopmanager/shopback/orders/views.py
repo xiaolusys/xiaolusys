@@ -10,17 +10,23 @@ from chartit import DataPool, Chart
 from chartit import PivotDataPool, PivotChart
 from auth.utils import parse_datetime,format_time
 from shopback.orders.models import Order
+from shopback.items.tasks import ORDER_SUCCESS_STATUS
 
 
 def genHourlyOrdersChart(request,dt_f,dt_t):
 
     nicks = request.GET.get('nicks',None)
     cat_by = request.GET.get('cat_by','hour')
+    pay_type = request.GET.get('type','all')
 
     nicks_list = nicks.split(',')
 
     queryset = Order.objects.filter(created__gt=dt_f,created__lt=dt_t)\
         .filter(seller_nick__in = nicks_list)
+
+    if pay_type == 'pay':
+        queryset = queryset.filter(status__in = ORDER_SUCCESS_STATUS)
+
 
     if queryset.count() == 0:
         return HttpResponse('No data for these nick!')
