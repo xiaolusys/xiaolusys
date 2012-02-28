@@ -156,10 +156,10 @@ def pullPerUserTradesTask(user_id,start_created,end_created):
                 logger.error('Get users trades errorresponse:%s' %(trades))
                 break
 
-            if trades['trades_sold_get_increment_response']['total_results']>0:
+            if trades['trades_sold_increment_get_response']['total_results']>0:
 
                 order_obj = Order()
-                for t in trades['trades_sold_get_increment_response']['trades']['trade']:
+                for t in trades['trades_sold_increment_get_response']['trades']['trade']:
 
                     dt = parse_datetime(t['created'])
                     order_obj.month = dt.month

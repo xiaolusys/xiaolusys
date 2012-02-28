@@ -58,13 +58,13 @@ class User(models.Model):
         userdict['buyer_credit'] = json.dumps(userdict['buyer_credit'])
         userdict['seller_credit'] = json.dumps(userdict['seller_credit'])
         userdict['location'] = json.dumps(userdict['location'])
-        userdict.pop('user_id')
+        userdict.pop('user_id',None)
         for key, value in userdict.iteritems():
              hasattr(self, key) and  setattr(self, key, value)
 
         self.top_session = top_session
         self.top_appkey = top_appkey
-        top_parameters.pop('visitor_nick')
+        top_parameters.pop('visitor_nick',None)
         self.top_parameters = json.dumps(top_parameters)
 
         self.save()
