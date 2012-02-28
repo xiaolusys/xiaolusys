@@ -112,4 +112,4 @@ def get_closest_time_slot(t):
             return x, True
 
     t += datetime.timedelta(days=1)
-    return datetime.datetime(t.year(), t.month(), t.day(), 11, 50)
+    return datetime.datetime(t.year, t.month, t.day, 11, 50)
