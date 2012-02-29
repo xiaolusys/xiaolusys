@@ -18,6 +18,7 @@ def genHourlyOrdersChart(request,dt_f,dt_t):
     nicks = request.GET.get('nicks',None)
     cat_by = request.GET.get('cat_by','hour')
     pay_type = request.GET.get('type','all')
+    xy = request.GET.get('xy','horizontal')
 
     nicks_list = nicks.split(',')
 
@@ -31,14 +32,18 @@ def genHourlyOrdersChart(request,dt_f,dt_t):
     if queryset.count() == 0:
         return HttpResponse('No data for these nick!')
 
-    if cat_by == 'month':
-        categories = ['month']
-    elif cat_by == 'day':
-        categories = ['month','day']
-    elif cat_by == 'week':
-        categories = ['week']
-    else :
-        categories = ['month','day','hour']
+    if xy == 'vertical':
+        categories = [cat_by]
+    else:
+        if cat_by == 'month':
+            categories = ['month']
+        elif cat_by == 'day':
+            categories = ['month','day']
+        elif cat_by == 'week':
+            categories = ['week']
+        else :
+            categories = ['month','day','hour']
+
 
     series = {'options': {
            'source': queryset,
