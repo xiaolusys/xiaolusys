@@ -149,17 +149,17 @@ def pullPerUserTradesTask(user_id,start_created,end_created):
     try:
         while has_next:
 
-            trades = apis.taobao_trades_sold_increment_get(session=user.top_session,page_no=1,page_size=200,
+            response = apis.taobao_trades_sold_increment_get(session=user.top_session,page_no=cur_page,page_size=200,
                      start_modified=start_created,end_modified=end_created,use_has_next='true')
 
-            if trades.has_key('error_response'):
-                logger.error('Get users trades errorresponse:%s' %(trades))
+            if response.has_key('error_response'):
+                logger.error('Get users trades errorresponse:%s' %(response))
                 break
 
-            if trades['trades_sold_increment_get_response']['total_results']>0:
-
+            trades = response['trades_sold_increment_get_response']
+            if trades.has_key('trades') and trades.get('trades').has_key('trade'):
                 order_obj = Order()
-                for t in trades['trades_sold_increment_get_response']['trades']['trade']:
+                for t in trades['trades']['trade']:
 
                     dt = parse_datetime(t['created'])
                     order_obj.month = dt.month
@@ -194,7 +194,7 @@ def pullPerUserTradesTask(user_id,start_created,end_created):
 
                             itemNumTask.save()
 
-            has_next = trades['trades_sold_increment_get_response']['has_next']
+            has_next = trades['has_next']
             cur_page += 1
 
     except Exception,exc:
