@@ -6,6 +6,7 @@ from django.conf import settings
 admin.autodiscover()
 
 urlpatterns = patterns('',
+    (r'^subway/', include('subway.urls')),                       
     (r'^sentry/', include('sentry.web.urls')),
     (r'^accounts/', include('auth.accounts.urls')),
     (r'^task/',include('shopback.task.urls')),
