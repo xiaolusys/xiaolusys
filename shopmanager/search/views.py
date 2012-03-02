@@ -77,20 +77,6 @@ def getProductPeriodChart(nick,keyword,dt_f,dt_t,index):
                     'minorGridLineWidth':0,
                     'gridLineWidth':0,
                     'alternateGridColor':None,
-#                    'plotBands':[
-#                        {'from': 0,'to': 40,'color': 'rgba(0, 255, 0, 0.1)',
-#                         'label': {'text': 'page 1','style': {'color': '#606060'}}},
-#                        {'from': 40,'to': 80,'color': 'rgba(170, 190, 35, 0.2)',
-#                         'label': {'text': 'page 2','style': {'color': '#2A78CB'}}},
-#                        {'from': 80,'to': 120,'color': 'rgba(68, 170, 213, 0.1)',
-#                         'label': {'text': 'page 3','style': {'color': '#606060'}}},
-#                        {'from': 120,'to': 160,'color': 'rgba(170, 190, 35, 0.2)',
-#                         'label': {'text': 'page 4','style': {'color': '#2A78CB'}}},
-#                        {'from': 160,'to': 200,'color': 'rgba(68, 170, 213, 0.1)',
-#                         'label': {'text': 'page 5','style': {'color': '#606060'}}},
-#                        {'from': 200,'to': 240,'color': 'rgba(170, 190, 35, 0.2)',
-#                         'label': {'text': 'page 6','style': {'color': '#2A78CB'}}},
-#                    ]
                 },
                 'plotOptions': {
                     'spline': {
