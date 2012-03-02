@@ -49,6 +49,9 @@ class Hotkey(models.Model):
 class KeyScore(models.Model):
     hotkey = models.ForeignKey(Hotkey)
     num_iid = models.CharField(max_length=64,db_index=True)
+    num_view  = models.IntegerField(null=True)
+    num_click = models.IntegerField(null=True)
+    avg_cost = models.IntegerField(null=True)
     score = models.IntegerField(null=True)
     updated = models.DateTimeField(auto_now=True)
     status = models.IntegerField(default=0)

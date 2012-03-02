@@ -113,12 +113,15 @@ def saveOrUpdateKeyScores(request):
             continue
         try:
             ks_ins = KeyScore.objects.get(num_iid=num_iid,hotkey=hotkey)
-
-            ks_ins.score = ks[1]
+            ks_ins.num_view = ks[1]
+            ks_ins.num_click = ks[2]
+            ks_ins.avg_cost = ks[3]*100
+            ks_ins.score = ks[4]
             ks_ins.status = 1
             ks_ins.save()
         except KeyScore.DoesNotExist:
-            KeyScore.objects.create(num_iid=num_iid,hotkey=hotkey,score=ks[1],status=1)
+            KeyScore.objects.create(num_iid=num_iid,hotkey=hotkey,
+                num_view = ks[1],num_click = ks[2],avg_cost = ks[3]*100,score = ks[4],status=1)
 
     return HttpResponse(json.dumps({"code":0}))
 
