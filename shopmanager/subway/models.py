@@ -3,6 +3,7 @@ from django.db import models
 
 class Hotkey(models.Model):
     word = models.CharField(max_length=64,db_index=True)
+    category_id = models.CharField(max_length=64,blank=True)
     num_people = models.IntegerField()
     num_search = models.IntegerField()
     num_click = models.IntegerField()
@@ -48,8 +49,9 @@ class Hotkey(models.Model):
 class KeyScore(models.Model):
     hotkey = models.ForeignKey(Hotkey)
     num_iid = models.CharField(max_length=64,db_index=True)
-    score = models.IntegerField()
+    score = models.IntegerField(null=True)
     updated = models.DateTimeField(auto_now=True)
+    status = models.IntegerField(default=0)
 
     class Meta:
         db_table = 'subway_keyscore'
