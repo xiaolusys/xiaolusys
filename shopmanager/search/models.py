@@ -6,7 +6,7 @@ class ProductPageRank(models.Model):
     id = BigIntegerAutoField(primary_key=True)
     keyword = models.CharField(max_length=20,db_index=True)
 
-    item_id = models.CharField(max_length=32)
+    item_id = models.CharField(max_length=32,db_index=True)
     title = models.CharField(max_length=60)
     user_id = models.CharField(max_length=32)
     nick = models.CharField(max_length=20,db_index=True)

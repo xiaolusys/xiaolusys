@@ -101,7 +101,7 @@ def getTaoBaoPageRank(keyword,page_nums):
 
     for i in xrange(0,len(results)):
         item = results[i]
-        item['rank'] = i+i
+        item['rank'] = i+1
 
     return results
 
