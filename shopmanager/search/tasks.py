@@ -26,7 +26,7 @@ def saveKeywordPageRank(keyword,month,day,time,created):
     try:
         results = getTaoBaoPageRank(keyword,page_nums)
     except Exception,exc:
-        logger.error('getCustomShopsPageRank record error', exc_info=True)
+        logger.error('getCustomShopsPageRank record error:%s'%exc, exc_info=True)
 #        from django.conf import settings
 #        if not settings.DEBUG:
 #            create_comment.retry(exc=exc,countdown=1)
