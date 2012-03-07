@@ -55,7 +55,8 @@ def getProductPeriodChart(nick,keyword,dt_f,dt_t,index):
     for prod in rankqueryset:
 
         serie ={'options': {
-               'source': ProductPageRank.objects.filter(keyword=keyword,created__gt=dt_f,created__lt=dt_t,item_id=prod['item_id'])},
+               'source': ProductPageRank.objects.filter
+                       (keyword=keyword,created__gt=dt_f,created__lt=dt_t,item_id=prod['item_id'])},
                'terms': [{'created'+prod['item_id']:'created'},{prod['item_id']:'rank'}]}
         series.append(serie)
         series_option['terms'].update({'created'+prod['item_id']:[prod['item_id']]})
@@ -125,8 +126,9 @@ def genPeriodChart(request,dt_f,dt_t):
     if not pagerankchts:
         return HttpResponse('nick is not avalible under this keyword.')
 
-    rankqueryset = ProductPageRank.objects.filter(nick__in =nicks_list,keyword__in=keywords_list,created__gt=dt_f,created__lt=dt_t)\
-        .values('item_id','nick','title').distinct('item_id')
+    rankqueryset = ProductPageRank.objects.filter\
+            (nick__in =nicks_list,keyword__in=keywords_list,created__gt=dt_f,created__lt=dt_t)\
+            .values('item_id','nick','title').distinct('item_id')
 
     for item in  rankqueryset:
         try:

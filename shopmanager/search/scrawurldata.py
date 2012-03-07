@@ -101,6 +101,9 @@ def getTaoBaoPageRank(keyword,page_nums):
 
     for i in xrange(0,len(results)):
         item = results[i]
+        if i >2 and (item['num_iid'] == results[0] \
+           or item['num_iid'] == results[1] or item['num_iid'] == results[3]):
+            results.pop(i)
         item['rank'] = i+1
 
     return results
