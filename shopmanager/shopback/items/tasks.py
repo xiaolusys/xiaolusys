@@ -179,9 +179,10 @@ def pullPerUserTradesTask(user_id,start_created,end_created):
 
                         order_obj.save()
 
-                        if order['status'] in ORDER_SUCCESS_STATUS and t['created']>=start_created:
+                        if order['status'] in ORDER_SUCCESS_STATUS and t['created']>=start_created and order.get('outer_iid',None):
 
                             sku_outer_id = order.get('outer_sku_id','')
+
                             try:
                                 itemNumTask = ItemNumTask.objects.get\
                                         (outer_iid=order['outer_iid'],sku_outer_id=sku_outer_id,status=UNEXECUTE)
