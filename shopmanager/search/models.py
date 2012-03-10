@@ -31,7 +31,7 @@ class ProductTrade(models.Model):
     item_id = models.CharField(max_length=32,db_index=True)
     user_id = models.CharField(max_length=32,db_index=True)
 
-    title   = models.CharField(max_length=60)
+    nick = models.CharField(max_length=20,db_index=True)
     trade_id = models.CharField(max_length=20,db_index=True)
     num     = models.IntegerField(null=True)
     price   = models.CharField(blank=True,max_length=10)

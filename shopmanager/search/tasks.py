@@ -21,7 +21,6 @@ def saveKeywordPageRank(keyword,month,day,time,created):
         results = getTaoBaoPageRank(keyword,page_nums)
     except Exception,exc:
         logger.error('getCustomShopsPageRank record error:%s'%exc, exc_info=True)
-#        from django.conf import settings
 #        if not settings.DEBUG:
 #            create_comment.retry(exc=exc,countdown=1)
         return 'craw taobao url data error'
@@ -46,7 +45,7 @@ def updateItemKeywordsPageRank():
     for user in users:
         keys = user.craw_keywords
         keywords.update(keys.split(',') if keys else [])
-    print keywords
+
     created_at = datetime.datetime.now()
     month = created_at.month
     day = created_at.day
@@ -61,58 +60,42 @@ def updateItemKeywordsPageRank():
 
 
 
-@task(max_retry=3)
-def updateSellerItemTradesTask(seller_id,item_id,s_dt_f,s_dt_t):
-    try:
-        trades = crawTaoBaoTradePage(item_id,seller_id,s_dt_f,s_dt_t)
-
-        prod_trade = ProductTrade()
-        prod_trade.item_id = item_id
-        prod_trade.user_id = seller_id
-        for trade in trades:
-
-            try:
-                ProductTrade.objects.get(item_id=item_id,trade_id=trade['trade_id'],user_id=seller_id)
-            except ProductTrade.DoesNotExist:
-                prod_trade.id = None
-
-                for k,v in trade.iteritems():
-                    hasattr(prod_trade,k) and setattr(prod_trade,k,v)
-
-                prod_trade.price = int(trade['num'])*float(trade['price'])
-                dt = parse_datetime(trade['trade_at'])
-                prod_trade.year = dt.year
-                prod_trade.month = dt.month
-                prod_trade.day = dt.day
-                prod_trade.hour = dt.strftime("%H")
-                prod_trade.week = time.gmtime(time.mktime(dt.timetuple()))[7]/7+1
-
-                prod_trade.save()
-    except Exception,exc:
-
-        logger.error('UpdateSellerTradesTask  error:%s'%exc,exc_info=True)
-        if not settings.DEBUG:
-            updateSellerItemTradesTask.retry(exc=exc,countdown=2)
-
-    return True
-
-
-
 @task()
 def updateSellerAllTradesTask(seller_id,s_dt_f,s_dt_t):
 
     items = ProductPageRank.objects.filter\
             (user_id=seller_id,created__gte=s_dt_f,created__lte=s_dt_t).values('item_id').distinct('item_id')
-
+    seller = ProductPageRank.objects.filter(user_id=seller_id)[0]
     for item in items:
+        item_id = item['item_id']
+        try:
+            trades = crawTaoBaoTradePage(item_id,seller_id,s_dt_f,s_dt_t)
+            prod_trade = ProductTrade()
+            prod_trade.item_id = item_id
+            prod_trade.user_id = seller_id
 
-        result = subtask(updateSellerItemTradesTask).delay(seller_id,item['item_id'],s_dt_f,s_dt_t)
-        ready = result.ready()
-        while not ready:
-            time.sleep(1)
-            ready = result.ready()
-            print 'ready:',ready
+            for trade in trades:
+                try:
+                    ProductTrade.objects.get(item_id=item_id,trade_id=trade['trade_id'],user_id=seller_id)
+                except ProductTrade.DoesNotExist:
+                    prod_trade.id = None
 
+                    prod_trade.nick = seller.nick
+                    prod_trade.trade_id = trade['trade_id']
+                    prod_trade.num = trade['num']
+                    prod_trade.trade_at = trade['trade_at']
+                    prod_trade.state = trade['state']
+                    prod_trade.price = int(trade['num'])*float(trade['price'])
+                    dt = parse_datetime(trade['trade_at'])
+                    prod_trade.year = dt.year
+                    prod_trade.month = dt.month
+                    prod_trade.day = dt.day
+                    prod_trade.hour = dt.strftime("%H")
+                    prod_trade.week = time.gmtime(time.mktime(dt.timetuple()))[7]/7+1
+
+                    prod_trade.save()
+        except Exception,exc:
+            logger.error('updateSellerAllTradesTask  error:%s'%exc,exc_info=True)
 
 
 
@@ -152,7 +135,7 @@ def updateProductTradeBySellerTask():
     for seller_id in craw_trade_seller_ids:
 
         subtask(updateSellerAllTradesTask).delay(seller_id,s_dt_f,s_dt_t)
-        break
+
 
 
 
