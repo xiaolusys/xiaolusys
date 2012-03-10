@@ -374,7 +374,17 @@ def getTradePeroidChart(request,dt_f,dt_t):
            'legend_by': 'nick'},
            'terms': {'total_num':Sum('num'),'total_sales':{'func':Sum('price'),'legend_by':'nick'}}}
 
-    ordersdata = PivotDataPool(series=[series])
+    def mapf(*t):
+        names ={0:'0',1: '01', 2: '02', 3: '03', 4: '04',
+                5: '05', 6: '06', 7: '07', 8: '08',9: '09'}
+        num = t[0][-1]
+        if int(num)<10:
+            num = names[int(num)]
+        ret = list(t[0])
+        ret[-1] = num
+        return tuple(ret)
+
+    ordersdata = PivotDataPool(series=[series],sortf_mapf_mts=(None,mapf,True))
 
     series_options =[{'options':{'type': 'column','stacking': True,'yAxis': 0},
                       'terms':['total_num',{'total_sales':{'type':'line','stacking':False,'yAxis':1}}]},]
@@ -393,6 +403,41 @@ def getTradePeroidChart(request,dt_f,dt_t):
     return render_to_response('hourly_ordernumschart.html',params,context_instance=RequestContext(request))
 
 
+def getTradePivotChart(request,dt_f,dt_t):
+
+    seller_num = int(request.GET.get('seller_num',20))
+    type = request.GET.get('sort_by','total_nums')
+
+    queryset = ProductTrade.objects.filter(trade_at__gte=dt_f,trade_at__lt=dt_t)
+
+    if queryset.count() == 0:
+        return HttpResponse('No data for these nick!')
+
+    series = {'options': {'source': queryset,'categories': ['user_id',]},
+           'terms': {'total_nums':Sum('num'),'total_sales':{'func':Sum('price')},},
+    }
+
+    def mapf(*t):
+        key = t[0][0]
+        nick = ProductTrade.objects.filter(user_id=key)[0].nick
+        return (nick,)
+
+    ordersdata = PivotDataPool(series=[series],top_n=seller_num,top_n_term=type,pareto_term=type,sortf_mapf_mts=(None,mapf,True))
+
+    series_options =[{'options':{'type': 'column','yAxis': 0},
+                      'terms':['total_nums',{'total_sales':{'type':'column','stacking':False,'yAxis':1}}]},]
+    ordersdatacht = PivotChart(
+            datasource = ordersdata,
+            series_options = series_options,
+            chart_options =
+              { 'chart':{'zoomType': 'xy'},
+                'title': {'text': u'\u9500\u552e\u91cf\u53ca\u9500\u552e\u989d\u6392\u524d%s\u7684\u5356\u5bb6\u6570\u636e'%seller_num},
+                'xAxis': {'title': {'text': 'total nums & sales'}},
+                'yAxis': [{'title': {'text': 'total nums '}},{'title': {'text': 'total sales'},'opposite': True},],})
+
+    params = {'ordersdatacht':ordersdatacht}
+
+    return render_to_response('hourly_ordernumschart.html',params,context_instance=RequestContext(request))
 
 
 

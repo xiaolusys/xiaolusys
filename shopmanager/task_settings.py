@@ -15,7 +15,7 @@ UPDATE_UNPAY_ORDER_INTERVAL = 3*60
 
 GET_TAOBAO_DATA_PAGE_SIZE = 200 #the page_size of  per request
 
-PRODUCT_TRADE_RANK_BELOW = 3
+PRODUCT_TRADE_RANK_BELOW = 10
 
 from celery.schedules import crontab
 from datetime import timedelta,datetime

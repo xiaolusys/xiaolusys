@@ -49,6 +49,7 @@ class Order(models.Model):
 
     cid = models.BigIntegerField(null=True)
     status = models.CharField(max_length=30,blank=True)
+
     class Meta:
         db_table = 'shop_order'
   
