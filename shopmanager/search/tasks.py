@@ -1,23 +1,17 @@
+import time
 import datetime
 from celery.task import task
 from celery.task.sets import subtask
-from search.scrawurldata import getTaoBaoPageRank
-from search.models import ProductPageRank
-from auth.utils import format_time
+from django.conf import settings
+from search.crawurldata import getTaoBaoPageRank,crawTaoBaoTradePage
+from search.models import ProductPageRank,ProductTrade
+from shopback.users.models import User
+from auth.utils import format_time,parse_datetime,format_datetime
 import logging
 
 logger = logging.getLogger('period.search')
 
-keywords = [u'\u7761\u888b \u513f\u7ae5 \u9632\u8e22\u88ab',u'\u5a74\u513f\u5e8a\u54c1',
-           u'\u5a74\u513f\u5e8a\u4e0a\u7528\u54c1',u'\u7761\u888b \u51ac \u52a0\u539a',
-           u'\u7761\u888b \u5a74\u513f \u79cb\u51ac',u'\u7761\u888b \u5927\u7ae5 \u9632\u8e22\u88ab',
-           u'\u5a74\u513f \u5e8a\u54c1 \u5957',u'\u5a74\u513f\u5e8a\u56f4',
-           u'\u5a74\u513f\u5e8a\u4e0a\u7528\u54c1\u5957\u4ef6',u'\u5a74\u513f\u5e8a\u54c1\u5957\u4ef6',
-           u'\u5a74\u513f\u7761\u888b',u'\u5a74\u513f\u7761\u888b \u6625\u79cb',
-           u'\u5a74\u513f\u7761\u888b \u51ac\u6b3e',u'\u5b9d\u5b9d\u7761\u888b',
-           u'\u5a74\u513f\u51c9\u5e2d',u'\u5a74\u513f\u5e8a\u51c9\u5e2d',
-           u'\u5b9d\u5b9d\u51c9\u5e2d',u'\u5a74\u513f \u51c9\u5e2d',
-           u'\u63a8\u8f66 \u51c9\u5e2d']
+
 page_nums = 6
 
 #@task()
@@ -30,7 +24,7 @@ def saveKeywordPageRank(keyword,month,day,time,created):
 #        from django.conf import settings
 #        if not settings.DEBUG:
 #            create_comment.retry(exc=exc,countdown=1)
-        return 'scraw taobao url data error'
+        return 'craw taobao url data error'
 
     for value in results:
         try:
@@ -42,20 +36,123 @@ def saveKeywordPageRank(keyword,month,day,time,created):
             logger.error('Create ProductPageRank record error:%s'%exc,exc_info=True)
 
 
+
 @task()
 def updateItemKeywordsPageRank():
 
+    users = User.objects.all()
+
+    keywords = set()
+    for user in users:
+        keys = user.craw_keywords
+        keywords.update(keys.split(',') if keys else [])
+    print keywords
     created_at = datetime.datetime.now()
     month = created_at.month
     day = created_at.day
     time = format_time(created_at)
 
     created = created_at.strftime("%Y-%m-%d %H:%M")
+
     for keyword in keywords:
 
         saveKeywordPageRank(keyword,month,day,time,created)
         #subtask(saveKeywordPageRank).delay(keyword,month,day,time,created)
 
+
+
+@task(max_retry=3)
+def updateSellerItemTradesTask(seller_id,item_id,s_dt_f,s_dt_t):
+    try:
+        trades = crawTaoBaoTradePage(item_id,seller_id,s_dt_f,s_dt_t)
+
+        prod_trade = ProductTrade()
+        prod_trade.item_id = item_id
+        prod_trade.user_id = seller_id
+        for trade in trades:
+
+            try:
+                ProductTrade.objects.get(item_id=item_id,trade_id=trade['trade_id'],user_id=seller_id)
+            except ProductTrade.DoesNotExist:
+                prod_trade.id = None
+
+                for k,v in trade.iteritems():
+                    hasattr(prod_trade,k) and setattr(prod_trade,k,v)
+
+                prod_trade.price = int(trade['num'])*float(trade['price'])
+                dt = parse_datetime(trade['trade_at'])
+                prod_trade.year = dt.year
+                prod_trade.month = dt.month
+                prod_trade.day = dt.day
+                prod_trade.hour = dt.strftime("%H")
+                prod_trade.week = time.gmtime(time.mktime(dt.timetuple()))[7]/7+1
+
+                prod_trade.save()
+    except Exception,exc:
+
+        logger.error('UpdateSellerTradesTask  error:%s'%exc,exc_info=True)
+        if not settings.DEBUG:
+            updateSellerItemTradesTask.retry(exc=exc,countdown=2)
+
+    return True
+
+
+
+@task()
+def updateSellerAllTradesTask(seller_id,s_dt_f,s_dt_t):
+
+    items = ProductPageRank.objects.filter\
+            (user_id=seller_id,created__gte=s_dt_f,created__lte=s_dt_t).values('item_id').distinct('item_id')
+
+    for item in items:
+
+        result = subtask(updateSellerItemTradesTask).delay(seller_id,item['item_id'],s_dt_f,s_dt_t)
+        ready = result.ready()
+        while not ready:
+            time.sleep(1)
+            ready = result.ready()
+            print 'ready:',ready
+
+
+
+
+
+@task()
+def updateProductTradeBySellerTask():
+
+    t = time.time()-24*60*60
+    dt = datetime.datetime.fromtimestamp(t)
+
+    year = dt.year
+    month = dt.month
+    day = dt.day
+
+    s_dt_f = format_datetime(datetime.datetime(year,month,day,0,0,0))
+    s_dt_t = format_datetime(datetime.datetime(year,month,day,23,59,59))
+
+    users = User.objects.all()
+    craw_trade_seller_ids = set()
+    craw_trade_nicks      = set()
+
+    for user in users:
+        seller_nicks = user.craw_trade_seller_nicks
+        seller_nicks = seller_nicks.split(',') if seller_nicks else []
+        craw_trade_nicks.update(seller_nicks)
+
+    rank_sellers = ProductPageRank.objects.filter(nick__in=craw_trade_nicks)\
+        .values_list('user_id').distinct('user_id')
+
+    craw_trade_seller_ids.update([n[0] for n in rank_sellers])
+
+    rankset = ProductPageRank.objects.filter(rank__lte=settings.PRODUCT_TRADE_RANK_BELOW
+            ,created__gte=s_dt_f,created__lte=s_dt_t).values_list('user_id').distinct('user_id')
+
+    craw_trade_seller_ids.update([n[0] for n in rankset])
+
+    for seller_id in craw_trade_seller_ids:
+
+        subtask(updateSellerAllTradesTask).delay(seller_id,s_dt_f,s_dt_t)
+        break
 
 
 

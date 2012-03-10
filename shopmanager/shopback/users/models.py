@@ -42,7 +42,11 @@ class User(models.Model):
     alipay_account = models.CharField(max_length=48,blank=True)
     alipay_no = models.CharField(max_length=20,blank=True)
 
-    update_items_datetime = models.DateTimeField(null=True)
+    update_items_datetime = models.DateTimeField(null=True,blank=True)
+
+    craw_keywords = models.TextField(blank=True)
+    craw_trade_seller_nicks = models.TextField(blank=True)
+
 
     created_at = models.DateTimeField(null=True)
     status = models.CharField(max_length=12,blank=True) #normal,inactive,delete,reeze,supervise

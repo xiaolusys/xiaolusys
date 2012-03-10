@@ -166,6 +166,7 @@ def getValuableHotKeys(request):
         hot_keyscores = hot_keyscores.order_by('-hotkey__'+sort_by).extra(select={'sort_value':sort_by})\
             .values('sort_value','num_iid','score','hotkey__word','hotkey_id')[:num_keys]
         hot_keyscores = [hks for hks in hot_keyscores]
+
     elif sort_ratio_by:
 
         def sortIndex(sort_key,key_value,sort_list):
