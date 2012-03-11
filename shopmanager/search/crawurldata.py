@@ -147,7 +147,7 @@ def crawTaoBaoTradePage(item_id,seller_num_id,start_dt,end_dt):
         tree = craw_url(req_url)
         trades = parseTradeElementAttr(tree,trade_xpath)
         if not trades:
-            time.sleep(5)
+            time.sleep(10)
             continue
 
         for trade in trades:
