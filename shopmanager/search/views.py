@@ -139,15 +139,20 @@ def getItemKeywordsChart(item_id, dt_f, dt_t, index):
         serie = {'options': {
                  'source': ProductPageRank.objects.filter
                     (keyword=queryset[i]['keyword'], created__gt=dt_f, created__lt=dt_t, item_id=item_id)},
-                 'terms': [{'created'+str(i):'created'}, {queryset[i]['keyword']: 'rank'}]}
+                 'terms': [{'created'+str(i):'created'}, {queryset[i]['keyword']: 'rank'}],}
         series.append(serie)
         series_option['terms'].update({'created'+str(i):[queryset[i]['keyword']]})
 
     productpagerankdata = DataPool(series=series)
 
+#    def mapf(*t):
+#        ts = long(time.mktime(time.strptime(t[0], "%Y-%m-%d %H:%M")))*1000
+#        return ts
+
     productpagerankcht = Chart(
             datasource=productpagerankdata,
             series_options=[series_option],
+            #x_sortf_mapf_mts=(None,mapf,True),
             chart_options=
                 {'chart': {'renderTo': "container" + str(index)},
                  'title': {
@@ -167,6 +172,8 @@ def getItemKeywordsChart(item_id, dt_f, dt_t, index):
                              'enabled': False,
                              'states': {'hover': {'enabled': True,'symbol': 'cycle','radius': 0,'lineWidth': 1}}
                              },
+#                         'pointInterval':24*3600*1000,
+#                         'pointStart':0,
                          },
                      },
                  })
@@ -377,11 +384,13 @@ def getTradePeroidChart(request,dt_f,dt_t):
     def mapf(*t):
         names ={0:'0',1: '01', 2: '02', 3: '03', 4: '04',
                 5: '05', 6: '06', 7: '07', 8: '08',9: '09'}
-        num = t[0][-1]
-        if int(num)<10:
-            num = names[int(num)]
-        ret = list(t[0])
-        ret[-1] = num
+        num = t[0]
+        l = list(num)
+        ret = []
+        for s in l:
+            if int(s)<10:
+                s = names[int(s)]
+            ret.append(s)
         return tuple(ret)
 
     ordersdata = PivotDataPool(series=[series],sortf_mapf_mts=(None,mapf,True))
@@ -432,7 +441,9 @@ def getTradePivotChart(request,dt_f,dt_t):
             chart_options =
               { 'chart':{'zoomType': 'xy'},
                 'title': {'text': u'\u9500\u552e\u91cf\u53ca\u9500\u552e\u989d\u6392\u524d%s\u7684\u5356\u5bb6\u6570\u636e'%seller_num},
-                'xAxis': {'title': {'text': 'total nums & sales'}},
+                'xAxis': {'title': {'text': 'total nums & sales'},
+                         'labels':{'rotation': 155,'align':'left',
+                                   'style': {'font': 'normal 13px Verdana, sans-serif'}}},
                 'yAxis': [{'title': {'text': 'total nums '}},{'title': {'text': 'total sales'},'opposite': True},],})
 
     params = {'ordersdatacht':ordersdatacht}

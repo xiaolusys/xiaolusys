@@ -33,7 +33,7 @@ CELERYBEAT_SCHEDULE = {
     },
     'runs-every-30-minutes_a':{
         'task':'search.tasks.updateItemKeywordsPageRank',
-        'schedule':crontab(minute="*/30"),
+        'schedule':crontab(minute="*/30",hour=[i for i in range(7,24)]),
         'args':()
     },
     'runs-every-hours':{
