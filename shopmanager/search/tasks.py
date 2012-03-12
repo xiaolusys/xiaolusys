@@ -103,7 +103,7 @@ def updateSellerAllTradesTask(seller_id,s_dt_f,s_dt_t):
 @task()
 def updateProductTradeBySellerTask():
 
-    t = time.time()-24*60*60
+    t = time.time()#-24*60*60
     dt = datetime.datetime.fromtimestamp(t)
 
     year = dt.year

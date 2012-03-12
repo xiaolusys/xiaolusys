@@ -140,6 +140,7 @@ def crawTaoBaoTradePage(item_id,seller_num_id,start_dt,end_dt):
 
     page_no = 1
     has_next = True
+    retry = 0
     while True:
         params ={'page_size':15,'item_id':item_id,'seller_num_id':seller_num_id
                  ,'ends':int(ends),'starts':int(starts),'bidPage':page_no}
@@ -147,7 +148,10 @@ def crawTaoBaoTradePage(item_id,seller_num_id,start_dt,end_dt):
         tree = craw_url(req_url)
         trades = parseTradeElementAttr(tree,trade_xpath)
         if not trades:
-            time.sleep(10)
+            if retry == 4:
+                break
+            time.sleep(5)
+            retry += 1
             continue
 
         for trade in trades:

@@ -81,8 +81,8 @@ def restart_gunicorn():
 def restart_celeryd():
     if exists('/home/user1/deploy/taobao/celery.pid'):
         run('kill -QUIT `cat /home/user1/deploy/taobao/celery.pid`')
-        puts('Sleep 30 seconds before celery fully shutdown')
-        sleep(30)
+        puts('Sleep 60 seconds before celery fully shutdown')
+        sleep(60)
         run('rm -rf /home/user1/deploy/taobao/celery.pid')        
     get_version()
     with cd(env.version_dir):

@@ -15,7 +15,7 @@ UPDATE_UNPAY_ORDER_INTERVAL = 3*60
 
 GET_TAOBAO_DATA_PAGE_SIZE = 200 #the page_size of  per request
 
-PRODUCT_TRADE_RANK_BELOW = 8
+PRODUCT_TRADE_RANK_BELOW = 10
 
 from celery.schedules import crontab
 from datetime import timedelta,datetime
@@ -33,7 +33,7 @@ CELERYBEAT_SCHEDULE = {
     },
     'runs-every-30-minutes_a':{
         'task':'search.tasks.updateItemKeywordsPageRank',
-        'schedule':crontab(minute="*/30",hour=[i for i in range(7,24)]),
+        'schedule':crontab(minute="0,30",hour=[i for i in range(7,24)]),
         'args':()
     },
     'runs-every-hours':{
@@ -43,7 +43,7 @@ CELERYBEAT_SCHEDULE = {
     },
     'runs-every-30-minutes_b':{
         'task':'search.tasks.updateProductTradeBySellerTask',
-        'schedule':crontab(minute=0,hour=1),
+        'schedule':crontab(minute=0,hour=12),
         'args':()
     },
 }
