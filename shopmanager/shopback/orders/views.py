@@ -72,7 +72,7 @@ def genHourlyOrdersChart(request,dt_f,dt_t):
               { 'chart':{'zoomType': 'xy'},
                 'title': {'text': nicks},
                 'xAxis': {'title': {'text': 'per %s(%s)'%(cat_by,u'\u4e0d\u5305\u542b\u90ae\u8d39')},
-                          'labels':{'rotation': 155,'align':'left','style': {'font': 'normal 12px Verdana, sans-serif'}}},
+                          'labels':{'rotation': 150,'align':'right','style': {'font': 'normal 12px Verdana, sans-serif'}}},
                 'yAxis': [{'title': {'text': 'total num '}},{'title': {'text': 'total sales'},'opposite': True}]})
 
     params = {'ordersdatacht':ordersdatacht}
