@@ -89,6 +89,11 @@ def format_datetime(dt):
 def format_time(dt):
     return dt.strftime("%H:%M")
 
+def unquote(text):
+        def unicode_unquoter(match):
+            return unichr(int(match.group(1),16))
+        return re.sub(r'%5Cu([0-9a-fA-F]{4})',unicode_unquoter,text)
+
 def get_all_time_slots():
     return {"11:50":0, "12:20":1, "14:50":2, "15:20":3, "15:50":4,
             "16:20":5, "16:50":6, "21:00":7, "21:30":8, "22:00":9}

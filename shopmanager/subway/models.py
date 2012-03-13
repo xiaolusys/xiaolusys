@@ -58,3 +58,6 @@ class KeyScore(models.Model):
 
     class Meta:
         db_table = 'subway_keyscore'
+
+
+

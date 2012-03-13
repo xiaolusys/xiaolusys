@@ -126,6 +126,8 @@ def crawTaoBaoPage(q,page_nums):
             merge_list.extend(head_list)
 
         perpage_list = parseElementAttr(tree,item_href_xpath,item_user_xpath)
+        if not perpage_list :
+            return None
         merge_list.extend(perpage_list)
 
     return merge_list
@@ -154,6 +156,7 @@ def crawTaoBaoTradePage(item_id,seller_num_id,start_dt,end_dt):
             retry += 1
             continue
 
+        retry = 0
         for trade in trades:
             if trade['trade_at'] < start_dt:
                 has_next = False

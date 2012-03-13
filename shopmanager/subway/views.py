@@ -1,10 +1,12 @@
 import re
 import json
 import datetime
-from subway.models import Hotkey, KeyScore
-from autolist.models import ProductItem
 from django.http import HttpResponse
 from django.views.decorators.csrf import csrf_exempt
+from subway.models import Hotkey, KeyScore
+from autolist.models import ProductItem
+from auth.utils import unquote
+
 
 
 @csrf_exempt
@@ -57,6 +59,8 @@ def saveHotkeys(request):
 
     return HttpResponse(json.dumps({"code":0}))
 
+
+
 @csrf_exempt
 def selectAndCancleKeys(request):
 
@@ -95,6 +99,7 @@ def selectAndCancleKeys(request):
     return HttpResponse(json.dumps({"code":0}))
 
 
+
 @csrf_exempt
 def saveOrUpdateKeyScores(request):
 
@@ -124,6 +129,7 @@ def saveOrUpdateKeyScores(request):
                 num_view = ks[1],num_click = ks[2],avg_cost = ks[3]*100,score = ks[4],status=1)
 
     return HttpResponse(json.dumps({"code":0}))
+
 
 
 def getValuableHotKeys(request):
@@ -159,7 +165,7 @@ def getValuableHotKeys(request):
     elif type == 'F/C':
         sort_ratio_by = 'trade_click_ratio'
     else :
-        return HttpResponse(json.dumps({"code":1,"error":'Search type is not in Supplied type!'}))
+        return HttpResponse(json.dumps({"code":1,"error":'Search type is not in Supplied types!'}))
 
     hot_keyscores = KeyScore.objects.filter(num_iid=num_iid,status=0)
     if sort_by:
@@ -180,16 +186,41 @@ def getValuableHotKeys(request):
         hot_ks_dc = []
         for hks in hot_keyscores:
             hot_ks = {}
-            hot_ks['sort_value']  = eval('hks.hotkey.'+sort_ratio_by)
+            hot_ks['sort_value']   = eval('hks.hotkey.'+sort_ratio_by)
             hot_ks['num_iid']      = hks.num_iid
             hot_ks['hotkey__word'] = hks.hotkey.word
             hot_ks['score']        = hks.score
-            hot_ks['hotkey_id']   = hks.hotkey_id
+            hot_ks['hotkey_id']    = hks.hotkey_id
             index = sortIndex('sort_value',hot_ks['sort_value'],hot_ks_dc)
             hot_ks_dc.insert(index,hot_ks)
         hot_keyscores = hot_ks_dc[:num_keys]
 
     return HttpResponse(json.dumps({"code":0,"response_content":hot_keyscores}))
+
+
+def getClientCookie(request):
+
+    rex_user_id = re.compile('unb=(?P<user_id>\w+);')
+    rex_user_nick = re.compile('_nk_=(?P<user_nick>[\w%]+);')
+    cookie = request.POST.get('subway_cookie')
+
+    user_id_group = rex_user_id.search(cookie)
+    user_nick_group = rex_user_nick.search(cookie)
+
+    user_id = user_id_group.group('user_id')
+    user_nick = user_nick_group.group('user_nick')
+
+    if user_id and user_nick:
+        request.session['subway_user_id']   = user_id
+        request.session['subway_user_nick'] = unquote(user_nick)
+        request.session['subway_cookie']    = cookie
+
+        return HttpResponse(json.dumps({"code":0}))
+    else:
+        return HttpResponse(json.dumps({"code":0}))
+
+
+
     
 
 

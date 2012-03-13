@@ -38,8 +38,6 @@ class ProductTrade(models.Model):
     trade_at = models.CharField(max_length=19,blank=True,db_index=True)
     state = models.CharField(max_length=12,blank=True)
 
-
-
     year  = models.IntegerField(null=True,db_index=True)
     month = models.IntegerField(null=True,db_index=True)
     week  = models.IntegerField(null=True,db_index=True)

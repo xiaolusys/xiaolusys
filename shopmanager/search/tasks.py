@@ -1,3 +1,4 @@
+import re
 import time
 import datetime
 from celery.task import task
@@ -51,7 +52,7 @@ def updateItemKeywordsPageRank():
     day = created_at.day
     time = format_time(created_at)
 
-    created = created_at.strftime("%Y-%m-%d %H:%M")
+    created = created_at.strftime("%Y-%m-%d %H:%M") #+":00"
 
     for keyword in keywords:
 
@@ -61,13 +62,18 @@ def updateItemKeywordsPageRank():
 
 
 @task()
-def updateSellerAllTradesTask(seller_id,s_dt_f,s_dt_t):
+def updateSellerAllTradesTask(seller_id,item_ids,s_dt_f,s_dt_t):
 
     items = ProductPageRank.objects.filter\
             (user_id=seller_id,created__gte=s_dt_f,created__lte=s_dt_t).values('item_id').distinct('item_id')
     seller = ProductPageRank.objects.filter(user_id=seller_id)[0]
-    for item in items:
-        item_id = item['item_id']
+
+    if item_ids:
+        item_ids.union([i['item_id'] for i in items])
+    else :
+        item_ids = [i['item_id'] for i in items]
+
+    for item_id in item_ids:
         try:
             trades = crawTaoBaoTradePage(item_id,seller_id,s_dt_f,s_dt_t)
             prod_trade = ProductTrade()
@@ -114,27 +120,49 @@ def updateProductTradeBySellerTask():
     s_dt_t = format_datetime(datetime.datetime(year,month,day,23,59,59))
 
     users = User.objects.all()
-    craw_trade_seller_ids = set()
-    craw_trade_nicks      = set()
+    seller_map_item  = {}
+
+    rex = re.compile('(?P<user_nick>\W+)(-(?P<user_id>\w*))?(\((?P<item_ids>[\w,]*)\))?$')
 
     for user in users:
         seller_nicks = user.craw_trade_seller_nicks
-        seller_nicks = seller_nicks.split(',') if seller_nicks else []
-        craw_trade_nicks.update(seller_nicks)
+        seller_nicks = seller_nicks.split('|') if seller_nicks else []
 
-    rank_sellers = ProductPageRank.objects.filter(nick__in=craw_trade_nicks)\
-        .values_list('user_id').distinct('user_id')
+        for nick_item in seller_nicks:
 
-    craw_trade_seller_ids.update([n[0] for n in rank_sellers])
+            if not nick_item:
+                continue
+
+            m = rex.search(nick_item)
+            user_nick = m.group('user_nick')
+            user_id   = m.group('user_id')
+            item_ids  = m.group('item_ids')
+
+            if not user_id and user_nick:
+                prodrank = ProductPageRank.objects.filter(nick=user_nick)
+                if prodrank.count()>0:
+                    user_id = prodrank[0].user_id
+
+            if not user_id :
+                continue
+
+            user_id = str(user_id)
+            item_ids = item_ids.split(',') if item_ids else []
+
+            s_set = seller_map_item.get(user_id,set())
+            seller_map_item[user_id] = s_set.union(item_ids)
 
     rankset = ProductPageRank.objects.filter(rank__lte=settings.PRODUCT_TRADE_RANK_BELOW
             ,created__gte=s_dt_f,created__lte=s_dt_t).values_list('user_id').distinct('user_id')
 
-    craw_trade_seller_ids.update([n[0] for n in rankset])
+    for userid in rankset:
+        userid = str(userid)
+        if not seller_map_item.has_key(user_id):
+            seller_map_item[userid] = None
 
-    for seller_id in craw_trade_seller_ids:
-
-        subtask(updateSellerAllTradesTask).delay(seller_id,s_dt_f,s_dt_t)
+    for seller_id,item_ids in seller_map_item.iteritems():
+        item_ids = item_ids.discard('') if item_ids else None
+        subtask(updateSellerAllTradesTask).delay(seller_id,item_ids,s_dt_f,s_dt_t)
 
 
 

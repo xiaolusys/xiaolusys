@@ -83,6 +83,7 @@ def restart_celeryd():
         run('kill -QUIT `cat /home/user1/deploy/taobao/celery.pid`')
         puts('Sleep 60 seconds before celery fully shutdown')
         sleep(60)
+        run('ps auxww | grep celeryd | awk `{ print $2 }` | xargs kill -9')
         run('rm -rf /home/user1/deploy/taobao/celery.pid')        
     get_version()
     with cd(env.version_dir):

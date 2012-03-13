@@ -76,9 +76,6 @@ def saveUserHourlyOrders(user_id):
             saveUserHourlyOrders.retry(exc=exc,countdown=2)
 
 
-
-
-
 @task()
 def updateAllUserHourlyOrders():
 

@@ -43,7 +43,7 @@ CELERYBEAT_SCHEDULE = {
     },
     'runs-every-30-minutes_b':{
         'task':'search.tasks.updateProductTradeBySellerTask',
-        'schedule':crontab(minute=30,hour=12),
+        'schedule':crontab(minute=0,hour=1),
         'args':()
     },
 }

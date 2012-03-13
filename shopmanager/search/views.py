@@ -97,7 +97,6 @@ def genPeriodChart(request, dt_f, dt_t):
     else:
         keywords_list = keywords.split(',')
 
-    print 'keywords:',keywords_list
     pagerankchts = []
 
     for keyword in keywords_list:
@@ -139,25 +138,26 @@ def getItemKeywordsChart(item_id, dt_f, dt_t, index):
         serie = {'options': {
                  'source': ProductPageRank.objects.filter
                     (keyword=queryset[i]['keyword'], created__gt=dt_f, created__lt=dt_t, item_id=item_id)},
-                 'terms': [{'created'+str(i):'created'}, {queryset[i]['keyword']: 'rank'}],}
+                 'terms': [{'created'+str(i):'created'}, {queryset[i]['keyword']: 'rank'}],
+        }
         series.append(serie)
         series_option['terms'].update({'created'+str(i):[queryset[i]['keyword']]})
 
     productpagerankdata = DataPool(series=series)
 
-#    def mapf(*t):
-#        ts = long(time.mktime(time.strptime(t[0], "%Y-%m-%d %H:%M")))*1000
-#        return ts
+    def mapf(*t):
+        ts = long(time.mktime(time.strptime(t[0], "%Y-%m-%d %H:%M")))*1000
+        return (ts,)
 
     productpagerankcht = Chart(
             datasource=productpagerankdata,
             series_options=[series_option],
-            #x_sortf_mapf_mts=(None,mapf,True),
+            x_sortf_mapf_mts=(None,mapf,True),
             chart_options=
                 {'chart': {'renderTo': "container" + str(index)},
                  'title': {
                      'text': u'\u67e5\u8be2\u5546\u54c1ID\uff1a%s' % (item_id)},
-                 'xAxis': {'title': {'text': 'per half hour'}, 'type': 'string'},
+                 'xAxis': {'title': {'text': 'per half hour'},'type': 'datetime'},
                  'yAxis': {
                      'title': {'text': 'ranks'},
                      'min': 0,
@@ -170,11 +170,11 @@ def getItemKeywordsChart(item_id, dt_f, dt_t, index):
                          'lineWidth': 1, 'states': {'hover': {'lineWidth': 2}},
                          'marker': {
                              'enabled': False,
-                             'states': {'hover': {'enabled': True,'symbol': 'cycle','radius': 0,'lineWidth': 1}}
+                             'states':{'hover':{'enabled':True,'symbol':'cycle','radius':0,'lineWidth':1}}
                              },
-#                         'pointInterval':24*3600*1000,
-#                         'pointStart':0,
                          },
+                         #'pointInterval':3600000,
+                         #'pointStart':1330531200
                      },
                  })
 
@@ -431,7 +431,8 @@ def getTradePivotChart(request,dt_f,dt_t):
         nick = ProductTrade.objects.filter(user_id=key)[0].nick
         return (nick,)
 
-    ordersdata = PivotDataPool(series=[series],top_n=seller_num,top_n_term=type,pareto_term=type,sortf_mapf_mts=(None,mapf,True))
+    ordersdata = PivotDataPool(series=[series],top_n=seller_num,top_n_term=type
+                               ,pareto_term=type,sortf_mapf_mts=(None,mapf,True))
 
     series_options =[{'options':{'type': 'column','yAxis': 0},
                       'terms':['total_nums',{'total_sales':{'type':'column','stacking':False,'yAxis':1}}]},]
@@ -440,9 +441,11 @@ def getTradePivotChart(request,dt_f,dt_t):
             series_options = series_options,
             chart_options =
               { 'chart':{'zoomType': 'xy'},
-                'title': {'text': u'\u9500\u552e\u91cf\u53ca\u9500\u552e\u989d\u6392\u524d%s\u7684\u5356\u5bb6\u6570\u636e'%seller_num},
+                'title': {
+                    'text':u'\u9500\u552e\u91cf\u53ca\u9500\u552e\u989d\u6392\u524d%s\u7684\u5356\u5bb6\u6570\u636e'
+                      %seller_num},
                 'xAxis': {'title': {'text': 'total nums & sales'},
-                         'labels':{'rotation': 155,'align':'left',
+                          'labels':{'rotation': 155,'align':'left',
                                    'style': {'font': 'normal 13px Verdana, sans-serif'}}},
                 'yAxis': [{'title': {'text': 'total nums '}},{'title': {'text': 'total sales'},'opposite': True},],})
 
