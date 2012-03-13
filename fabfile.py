@@ -99,7 +99,7 @@ def restart_celerybeat():
         run('rm -rf /home/user1/deploy/taobao/celerybeat.pid')        
     get_version()
     with cd(env.version_dir):
-        run('source ve/bin/activate;cd shopmanager;python manage.py celery_beat --working_directory=/home/user1/deploy/taobao/ --stdout=/home/user1/deploy/taobao/celerybeat.out --stderr=/home/user1/deploy/taobao/celerybeat.err')
+        run('source ve/bin/activate;cd shopmanager;python manage.py celery_beat -S djcelery.schedulers.DatabaseScheduler --working_directory=/home/user1/deploy/taobao/ --stdout=/home/user1/deploy/taobao/celerybeat.out --stderr=/home/user1/deploy/taobao/celerybeat.err')
     
 def restart():
     """docstring for restart"""

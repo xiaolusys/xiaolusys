@@ -5,7 +5,7 @@ CELERY_RESULT_BACKEND = 'database'
 
 BROKER_BACKEND = "djkombu.transport.DatabaseTransport"
 
-EXECUTE_INTERVAL_TIME = 2*60
+EXECUTE_INTERVAL_TIME = 5*60
 
 EXECUTE_RANGE_TIME = 3*60
 
@@ -23,7 +23,7 @@ from datetime import timedelta,datetime
 CELERYBEAT_SCHEDULE = {
     'runs-every-10-minutes':{
         'task':'shopback.task.tasks.updateAllItemListTask',
-        'schedule':timedelta(seconds=EXECUTE_INTERVAL_TIME),
+        'schedule':crontab(minute='*/5'),
         'args':(),
     },
     'runs-every-day':{
@@ -33,7 +33,7 @@ CELERYBEAT_SCHEDULE = {
     },
     'runs-every-30-minutes_a':{
         'task':'search.tasks.updateItemKeywordsPageRank',
-        'schedule':crontab(minute="0,30",hour=[i for i in range(7,24)]),
+        'schedule':crontab(minute="0,30",hour=','.join([i for i in range(7,24)])),
         'args':()
     },
     'runs-every-hours':{

@@ -454,7 +454,7 @@ def getTradePivotChart(request,dt_f,dt_t):
                     'text':u'\u9500\u552e\u91cf\u53ca\u9500\u552e\u989d\u6392\u524d%s\u7684\u5356\u5bb6\u6570\u636e'
                       %seller_num},
                 'xAxis': {'title': {'text': 'total nums & sales'},
-                          'labels':{'rotation': 135,'align':'left',
+                          'labels':{'rotation': -45,'align':'right',
                                    'style': {'font': 'normal 12px Verdana, sans-serif'}}},
                 'yAxis': [{'title': {'text': 'total nums '}},{'title': {'text': 'total sales'},'opposite': True},],})
 
