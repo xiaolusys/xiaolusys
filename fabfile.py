@@ -1,5 +1,5 @@
 from time import sleep
-from fabric.api import env, run, local, cd, puts
+from fabric.api import env, run, local, cd, puts, settings
 from fabric.contrib.files import exists
 
 REPO_DIR="/home/user1/repo/"
@@ -81,12 +81,11 @@ def restart_gunicorn():
 def restart_celeryd():
     if exists('/home/user1/deploy/taobao/celery.pid'):
         run('kill -QUIT `cat /home/user1/deploy/taobao/celery.pid`')
-        puts('Sleep 60 seconds before celery fully shutdown')
-        sleep(60)
-        try:
-            run('ps auxww | grep celeryd | awk `{print $2}` | xargs kill -9')
-        except Exception,exc:
-            print '%s'%exc
+        puts('Sleep 30 seconds before celery fully shutdown')
+        sleep(30)
+        with settings(warn_only=True):
+            run("ps auxww | grep celeryd | awk '{ print $2 }' |xargs kill;")
+
         run('rm -rf /home/user1/deploy/taobao/celery.pid')
     get_version()
     with cd(env.version_dir):
