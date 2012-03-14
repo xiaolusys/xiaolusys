@@ -35,8 +35,9 @@ def login_taobo(request):
     taobao_logged_in.send(sender='web',user=user,top_session=top_session,top_appkey=top_appkey,top_parameters=top_parameters)
 
 
-    #content = apis.taobao_item_get(num_iid='4726175562',session=top_session)
+    #content = apis.taobao_itemcats_get(parent_cid='50025705',session=top_session)
     #print 'content:',content
+
 
     #print 'session:',dict(request.session)
 

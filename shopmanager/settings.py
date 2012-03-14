@@ -107,6 +107,7 @@ INSTALLED_APPS = (
     'shopback.items',
     'shopback.orders',
     'shopback.users',
+    'shopback.categorys',
     'subway',
     'autolist',
     'search',
@@ -218,6 +219,11 @@ LOGGING = {
             'propagate': True,
         },
         'token.refresh':{
+            'handlers': ['sentry'],
+            'level': 'WARN',
+            'propagate': True,
+        },
+        'recurupdate.categorey':{
             'handlers': ['sentry'],
             'level': 'WARN',
             'propagate': True,

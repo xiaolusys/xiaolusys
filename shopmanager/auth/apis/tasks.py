@@ -37,6 +37,7 @@ API_FIELDS = {
         +' orders.item_meal_name,orders.item_meal_id, orders.buyer_rate, orders.seller_rate, orders.outer_iid, orders.outer_sku_id, orders.refund_id, orders.seller_type  ',
     'taobao.trade.fullinfo.get':'seller_nick, buyer_nick, title, type, created, tid, status, modified, payment, received_payment, commission_fee, pic_path,'
         +'num_iid, num, price,orders',
+    'taobao.itemcats.get':'cid,parent_cid,name,is_parent,status,sort_order',
 
 }
 
@@ -199,7 +200,11 @@ def taobao_trade_fullinfo_get(tid=None,fields=API_FIELDS['taobao.trade.fullinfo.
 def taobao_topats_trades_fullinfo_get(tids=None,fields=API_FIELDS['taobao.trade.fullinfo.get'],session=None):
     pass
 
-############# items apis ###################
+############# itemcats apis ################
+
+@apis('taobao.itemcats.get')
+def taobao_itemcats_get(parent_cid=None,cids=None,fields=API_FIELDS['taobao.itemcats.get'],session=None):
+    pass
 
 ############# items apis ###################
 
