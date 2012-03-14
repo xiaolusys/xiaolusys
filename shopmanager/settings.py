@@ -230,9 +230,9 @@ LOGGING = {
 try:
     from task_settings import *
 except Exception,exc:
-    print 'Import Error:','%s'%exc
+    pass
 
 try:
     from local_settings import *
 except Exception,exc:
-    print 'Import Error:','%s'%exc
+    pass

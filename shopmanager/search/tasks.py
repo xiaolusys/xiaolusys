@@ -153,12 +153,12 @@ def updateProductTradeBySellerTask():
             seller_map_item[user_id] = s_set.union(item_ids)
 
     rankset = ProductPageRank.objects.filter(rank__lte=settings.PRODUCT_TRADE_RANK_BELOW
-            ,created__gte=s_dt_f,created__lte=s_dt_t).values_list('user_id').distinct('user_id')
+            ,created__gte=s_dt_f,created__lte=s_dt_t).values('user_id').distinct('user_id')
 
     for userid in rankset:
-        userid = str(userid)
+        user_id = str(userid['user_id'])
         if not seller_map_item.has_key(user_id):
-            seller_map_item[userid] = None
+            seller_map_item[user_id] = None
 
     for seller_id,item_ids in seller_map_item.iteritems():
         item_ids = item_ids.discard('') if item_ids else None

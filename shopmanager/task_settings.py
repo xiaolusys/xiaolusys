@@ -28,7 +28,7 @@ CELERYBEAT_SCHEDULE = {
     },
     'runs-every-day':{
         'task':'shopback.items.tasks.updateAllItemNumTask',
-        'schedule':crontab(minute="30",hour="11"),
+        'schedule':crontab(minute="0",hour="0"),
         'args':(),
     },
     'runs-every-30-minutes_a':{
@@ -41,9 +41,9 @@ CELERYBEAT_SCHEDULE = {
         'schedule':crontab(minute="0",hour="*/1"),
         'args':()
     },
-    'runs-every-30-minutes_b':{
+    'runs-every-day_b':{
         'task':'search.tasks.updateProductTradeBySellerTask',
-        'schedule':crontab(minute="50",hour="11"),
+        'schedule':crontab(minute="0",hour="1"),
         'args':()
     },
 }
