@@ -24,7 +24,7 @@ def saveKeywordPageRank(keyword,month,day,time,created):
         logger.error('getCustomShopsPageRank record error:%s'%exc, exc_info=True)
 #        if not settings.DEBUG:
 #            create_comment.retry(exc=exc,countdown=1)
-        return 'craw taobao url data error'
+        return
 
     for value in results:
         try:
@@ -45,7 +45,8 @@ def updateItemKeywordsPageRank():
     keywords = set()
     for user in users:
         keys = user.craw_keywords
-        keywords.update(keys.split(',') if keys else [])
+        keys_tmp = keys.split(',') if keys else []
+        keywords.union(keys_tmp)
 
     created_at = datetime.datetime.now()
     month = created_at.month

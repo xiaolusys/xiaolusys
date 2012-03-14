@@ -30,7 +30,7 @@ def saveHotkeys(request):
     for i in range(0,n):
         item = keys[0][i]
         try:
-            hotkey_item = Hotkey.objects.get(word=item[SRH_WRD])
+            hotkey_item = Hotkey.objects.get(word=item[SRH_WRD],category_id=cat_id)
 
             timedel = today_end - hotkey_item.updated
             if timedel.days > 1:

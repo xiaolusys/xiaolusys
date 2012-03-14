@@ -127,7 +127,7 @@ def crawTaoBaoPage(q,page_nums):
 
         perpage_list = parseElementAttr(tree,item_href_xpath,item_user_xpath)
         if not perpage_list :
-            return None
+            return []
         merge_list.extend(perpage_list)
 
     return merge_list
