@@ -83,8 +83,8 @@ def restart_celeryd():
         run('kill -QUIT `cat /home/user1/deploy/taobao/celery.pid`')
         puts('Sleep 30 seconds before celery fully shutdown')
         sleep(30)
-        #with settings(warn_only=True):
-        #    run("ps auxww | grep celeryd | awk '{ print $2 }' |xargs kill;")
+        with settings(warn_only=True):
+            run("ps auxww | grep celeryd | awk '{ print $2 }' |xargs kill;")
 
         run('rm -rf /home/user1/deploy/taobao/celery.pid')
     get_version()
@@ -99,7 +99,7 @@ def restart_celerybeat():
         run('rm -rf /home/user1/deploy/taobao/celerybeat.pid')        
     get_version()
     with cd(env.version_dir):
-        run('source ve/bin/activate;cd shopmanager;python manage.py celery_beat  --working_directory=/home/user1/deploy/taobao/ --stdout=/home/user1/deploy/taobao/celerybeat.out --stderr=/home/user1/deploy/taobao/celerybeat.err')
+        run('source ve/bin/activate;cd shopmanager;python manage.py celery_beat --scheduler_cls=djcelery.schedulers.DatabaseScheduler  --working_directory=/home/user1/deploy/taobao/ --stdout=/home/user1/deploy/taobao/celerybeat.out --stderr=/home/user1/deploy/taobao/celerybeat.err')
 
 def restart():
     """docstring for restart"""
