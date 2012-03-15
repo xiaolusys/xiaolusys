@@ -123,10 +123,11 @@ def crawTaoBaoPage(q,page_nums):
         tree = craw_url(req_url)
         if i == 0:
             head_list = parseElementAttr(tree,head_href_xpath,head_user_xpath)
-            merge_list.extend(head_list)
+            if head_list:
+                merge_list.extend(head_list)
 
         perpage_list = parseElementAttr(tree,item_href_xpath,item_user_xpath)
-        if not perpage_list :
+        if perpage_list :
             return []
         merge_list.extend(perpage_list)
 

@@ -307,19 +307,17 @@ def getItemAvgRankPivotChart(nick,dt_f, dt_t,index):
 
     productpagerankpivcht = PivotChart(
         datasource=productpagerankpivotdata,
-        series_options=
-        [{'options': {
+        series_options=[{'options': {
             'type': 'line',
             'stacking': False},
           'terms': ['avg_rank']}, ],
-        chart_options=
-            {'chart': {'renderTo': "container"+str(index), 'zoomType': 'xy'},
+        chart_options={'chart': {'renderTo': "container"+str(index), 'zoomType': 'xy'},
              'title': {'text': '%s' % (nick.encode('utf8'))},
              'xAxis': {'title': {'text': 'Month&Day'},
                        'labels':{'rotation': -45,'align':'right',
                                  'style': {'font': 'normal 12px Verdana, sans-serif'}}},
              'yAxis': [{'title': {'text': 'rank avg'}}]
-            }
+        }
     )
 
     return productpagerankpivcht
