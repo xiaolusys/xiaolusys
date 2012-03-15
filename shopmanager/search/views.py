@@ -40,7 +40,7 @@ def getShopsRank(request):
 
 def getProductPeriodChart(nick, keyword, dt_f, dt_t, index):
     rankqueryset = ProductPageRank.objects.filter(nick=nick, keyword=keyword, created__gt=dt_f, created__lt=dt_t)\
-    .values('item_id', 'title').distinct('item_id')
+    .values('item_id').distinct('item_id')
 
     if rankqueryset.count() == 0:
         return None

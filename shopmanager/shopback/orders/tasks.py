@@ -29,20 +29,15 @@ def saveUserHourlyOrders(user_id):
         year = dt.year
         month = dt.month
         day = dt.day
-        hour = dt.strftime("%H")
+        hour = dt.hour
         week = time.gmtime(t)[7]/7+1
 
-        s_dt_f = format_datetime(datetime.datetime(year,month,day,int(hour),0,0))
-        s_dt_t = format_datetime(datetime.datetime(year,month,day,int(hour),59,59))
+        s_dt_f = format_datetime(datetime.datetime(year,month,day,0,0,0))
+        s_dt_t = format_datetime(datetime.datetime(year,month,day,hour,59,59))
 
         has_next = True
         cur_page = 1
         order = Order()
-
-        order.month = month
-        order.day = day
-        order.hour = hour
-        order.week = week
 
         while has_next:
             trades = apis.taobao_trades_sold_get(session=user.top_session,page_no=cur_page,
@@ -56,6 +51,12 @@ def saveUserHourlyOrders(user_id):
                 for t in trades['trades_sold_get_response']['trades']['trade']:
 
                     order.created = t['created']
+                    dt = format_datetime(t['created'])
+                    order.hour =dt.hour
+                    order.month = dt.month
+                    order.day = dt.day
+                    order.week = week
+
                     order.seller_nick = t['seller_nick']
                     order.buyer_nick = t['buyer_nick']
                     order.modified = t['modified']
@@ -84,7 +85,7 @@ def updateAllUserHourlyOrders():
     for user in users:
 
         subtask(saveUserHourlyOrders).delay(user.pk)
-        #saveUserHourlyOrders(user.pk)
+
 
 
 
