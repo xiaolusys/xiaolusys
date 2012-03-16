@@ -5,7 +5,7 @@ from celery.task.sets import subtask
 from django.conf import settings
 from shopback.orders.models import Order
 from shopback.users.models import User
-from auth.utils import format_time,format_datetime,refresh_session
+from auth.utils import format_time,format_datetime,refresh_session,parse_datetime
 from auth import apis
 import logging
 
@@ -51,7 +51,7 @@ def saveUserHourlyOrders(user_id):
                 for t in trades['trades_sold_get_response']['trades']['trade']:
 
                     order.created = t['created']
-                    dt = format_datetime(t['created'])
+                    dt = parse_datetime(t['created'])
                     order.hour =dt.hour
                     order.month = dt.month
                     order.day = dt.day
