@@ -18,6 +18,9 @@ class ProductItem(models.Model):
     num = models.IntegerField()
     onsale = models.IntegerField(default=1)
 
+    class Meta:
+        db_table = 'autolist_productitem'
+
 class Logs(models.Model):
     num_iid = models.CharField(max_length=64)
     cat_id = models.CharField(max_length=64)
@@ -34,3 +37,6 @@ class Logs(models.Model):
     execute_time = models.DateTimeField(null=True,blank=True, auto_now_add=True)
 
     status = models.CharField(max_length=20) #unexec
+
+    class Meta:
+        db_table = 'autolist_logs'

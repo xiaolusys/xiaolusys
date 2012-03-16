@@ -13,7 +13,7 @@ class OrderAdmin(admin.ModelAdmin):
     #date_hierarchy = 'modified'
     #ordering = ['created_at']
 
-    list_filter = ('modified','status','refund_status')
+    list_filter = ('status','refund_status')
     search_fields = ['titile', 'oid', 'cid','buyer_nick','item_meal_name']
 
 

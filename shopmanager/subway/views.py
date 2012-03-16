@@ -74,9 +74,14 @@ def selectAndCancleKeys(request):
     if not num_iid  :
         return HttpResponse(json.dumps({"code":1,"error":"Num_iid can't be null."}))
 
+    try:
+        item_ins = ProductItem.objects.get(num_iid=num_iid)
+    except ProductItem.DoesNotExist:
+        return HttpResponse(json.dumps({"code":1,"error":"The num_iid doesnot be category."}))
+
     for key in old_keys:
         try:
-            hotkey = Hotkey.objects.get(word=key)
+            hotkey = Hotkey.objects.get(word=key,category_id=item_ins.category_id)
             ks_ins = KeyScore.objects.get(num_iid=num_iid,hotkey=hotkey)
             ks_ins.status = 0
             ks_ins.save()
@@ -87,7 +92,7 @@ def selectAndCancleKeys(request):
 
     for key in new_keys:
         try:
-            hotkey = Hotkey.objects.get(word=key)
+            hotkey = Hotkey.objects.get(word=key,category_id=item_ins.category_id)
             ks_ins = KeyScore.objects.get(num_iid=num_iid,hotkey=hotkey)
             ks_ins.status = 1
             ks_ins.save()
@@ -111,17 +116,25 @@ def saveOrUpdateKeyScores(request):
 
     keyscores   = json.loads(keyscores)
 
+    try:
+        item_ins = ProductItem.objects.get(num_iid=num_iid)
+    except ProductItem.DoesNotExist:
+        return HttpResponse(json.dumps({"code":1,"error":"The num_iid doesnot be category."}))
+
     for ks in keyscores:
         try:
-            hotkey = Hotkey.objects.get(word=ks[0])
+            hotkey = Hotkey.objects.get(word=ks[0],category_id=item_ins.category_id)
         except Hotkey.DoesNotExist:
             continue
         try:
             ks_ins = KeyScore.objects.get(num_iid=num_iid,hotkey=hotkey)
-            ks_ins.num_view = ks[1]
-            ks_ins.num_click = ks[2]
-            ks_ins.avg_cost = ks[3]*100
-            ks_ins.score = ks[4]
+            ks_ins.bid_price = ks[1]
+            ks_ins.num_view = ks[2]
+            ks_ins.num_click = ks[3]
+            ks_ins.avg_cost = ks[4]*100
+            ks_ins.score = ks[5]
+            ks_ins.bid_rank = ks[6]
+            ks_ins.modify = ks[7]
             ks_ins.status = 1
             ks_ins.save()
         except KeyScore.DoesNotExist:
@@ -203,6 +216,8 @@ def getClientCookie(request):
     rex_user_id = re.compile('unb=(?P<user_id>\w+);')
     rex_user_nick = re.compile('_nk_=(?P<user_nick>[\w%]+);')
     cookie = request.POST.get('subway_cookie')
+    token = request.POST.get('token',None)
+    campaignId = request.POST.get('campaignId',None)
 
     user_id_group = rex_user_id.search(cookie)
     user_nick_group = rex_user_nick.search(cookie)
@@ -211,13 +226,15 @@ def getClientCookie(request):
     user_nick = user_nick_group.group('user_nick')
 
     if user_id and user_nick:
+        request.session['subway_token'] = token
+        request.session['campaignId']   = campaignId
         request.session['subway_user_id']   = user_id
         request.session['subway_user_nick'] = unquote(user_nick)
         request.session['subway_cookie']    = cookie
 
         return HttpResponse(json.dumps({"code":0}))
     else:
-        return HttpResponse(json.dumps({"code":0}))
+        return HttpResponse(json.dumps({"code":1,"error":"The userid or usernick is not in the cookie."}))
 
 
 
