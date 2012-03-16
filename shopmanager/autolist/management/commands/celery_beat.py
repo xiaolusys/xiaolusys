@@ -7,6 +7,7 @@ class Command(DaemonCommand):
 
     def handle_daemon(self, *args, **options):
 
+        options.pop('pidfile',None)
         call_command('celerybeat',*args,**options)
 
   

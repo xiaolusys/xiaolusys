@@ -108,8 +108,6 @@ class DaemonCommand(BaseCommand):
             help='Standard Out'),
         make_option('--stderr', action='store', dest='stderr',
             help='Standard Error'),
-        make_option('--scheduler', action='store', dest='scheduler',
-            help='Store peroidtask info to database.'),
         make_option('--scheduler_cls', action='store', dest='scheduler_cls',
             help='Store peroidtask info to database.'),
     )
@@ -125,8 +123,7 @@ class DaemonCommand(BaseCommand):
     stderr = None
     pidfile = None
     uid = None
-    gid = None    
-    scheduler = None
+    gid = None
     scheduler_cls = None
     
     def get_option_value(self, options, name, expected=None):
@@ -179,10 +176,6 @@ class DaemonCommand(BaseCommand):
         gid = self.get_option_value(options, 'gid')
         if gid is not None:
             context.gid = uid
-
-        scheduler = self.get_option_value(options, 'scheduler')
-        if scheduler is not None:
-            context.scheduler = scheduler
 
         scheduler_cls = self.get_option_value(options, 'scheduler_cls')
         if scheduler_cls is not None:

@@ -245,7 +245,7 @@ def updateAllItemNumTask():
 
         time.sleep(settings.UPDATE_ITEM_NUM_INTERVAL)
         print '----------------excute updateAllItemNumTask start---------------'
-        subtask(execAllItemNumTask).delay()
+        #subtask(execAllItemNumTask).delay()
 
         time.sleep(settings.UPDATE_UNPAY_ORDER_INTERVAL)
         print '----------------excute updateAllUnpayOrderTask start---------------'

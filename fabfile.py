@@ -83,10 +83,11 @@ def restart_celeryd():
         run('kill -QUIT `cat /home/user1/deploy/taobao/celery.pid`')
         puts('Sleep 60 seconds before celery fully shutdown')
         sleep(60)
-        with settings(warn_only=True):
-            run("ps auxww | grep celeryd | awk '{ print $2 }' |xargs kill -KILL")
-
         run('rm -rf /home/user1/deploy/taobao/celery.pid')
+
+    with settings(warn_only=True):
+        run("ps auxww | grep celeryd | awk '{ print $2 }' |xargs kill -KILL")
+
     get_version()
     with cd(env.version_dir):
         run('source ve/bin/activate;cd shopmanager;python manage.py celerydaemon --pidfile=/home/user1/deploy/taobao/celery.pid --stdout=/home/user1/deploy/taobao/celery.out --stderr=/home/user1/deploy/taobao/celery.err')
@@ -96,9 +97,11 @@ def restart_celerybeat():
         run('kill -QUIT `cat /home/user1/deploy/taobao/celerybeat.pid`')
         puts('Sleep 10 seconds before celery fully shutdown')
         sleep(10)
-        with settings(warn_only=True):
-            run("ps auxww | grep celery_beat | awk '{ print $2 }' |xargs kill -KILL")
         run('rm -rf /home/user1/deploy/taobao/celerybeat.pid')        
+
+    with settings(warn_only=True):
+        run("ps auxww | grep celery_beat | awk '{ print $2 }' |xargs kill -KILL")
+
     get_version()
     with cd(env.version_dir):
         run('source ve/bin/activate;cd shopmanager;python manage.py celery_beat --scheduler_cls=djcelery.schedulers.DatabaseScheduler  --working_directory=/home/user1/deploy/taobao/ --stdout=/home/user1/deploy/taobao/celerybeat.out --stderr=/home/user1/deploy/taobao/celerybeat.err')
