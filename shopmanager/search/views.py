@@ -7,6 +7,9 @@ from django.db.models import Avg, Variance,Sum
 from django.template import RequestContext
 from chartit import DataPool, Chart
 from chartit import PivotDataPool, PivotChart
+from django.core.serializers.json import DateTimeAwareJSONEncoder
+from django.utils import simplejson as json
+from djangorestframework.serializer import Serializer
 from search.crawurldata import getTaoBaoPageRank, getCustomShopsPageRank
 from search.models import ProductPageRank,ProductTrade
 from auth.utils import parse_datetime, format_time
@@ -456,9 +459,12 @@ def getTradePivotChart(request,dt_f,dt_t):
                                    'style': {'font': 'normal 12px Verdana, sans-serif'}}},
                 'yAxis': [{'title': {'text': 'total nums '}},{'title': {'text': 'total sales'},'opposite': True},],})
 
-    params = {'ordersdatacht':ordersdatacht}
+    chartjson = json.dumps(Serializer().serialize(ordersdatacht.hcoptions),indent=4, cls=DateTimeAwareJSONEncoder)
 
-    return render_to_response('hourly_ordernumschart.html',params,context_instance=RequestContext(request))
+    return HttpResponse(chartjson,mimetype='application/json')
+
+    #params = {'ordersdatacht':ordersdatacht}
+    #return render_to_response('hourly_ordernumschart.html',params,context_instance=RequestContext(request))
 
 
 

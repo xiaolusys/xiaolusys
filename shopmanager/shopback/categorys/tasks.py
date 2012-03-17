@@ -19,7 +19,7 @@ def RecurUpdateCategoreyTask(top_session,cid):
 
             cats = categories.get('item_cat')
             category = Category()
-            print len(cats)
+
             for cat in cats:
 
                 for k,v in cat.iteritems():
