@@ -4,11 +4,11 @@ from search.models import ProductPageRank,ProductTrade
 
 
 class ProductPageRankAdmin(admin.ModelAdmin):
-    list_display = ('keyword','item_id','title','user_id','nick','rank')
+    list_display = ('keyword','item_id','title','user_id','nick','created','rank')
     #list_editable = ('update_time','task_type' ,'is_success','status')
 
-    list_filter = ('month','day','time','created')
-    search_fields = ['keyword','title','item_id']
+    list_filter = ('month','day')
+    search_fields = ['keyword','title','item_id','created']
 
 
 admin.site.register(ProductPageRank,ProductPageRankAdmin)

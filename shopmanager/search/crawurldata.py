@@ -2,6 +2,7 @@ import time
 import datetime
 import urllib
 import urllib2
+import httplib2
 import urlparse
 from lxml import etree
 from StringIO import StringIO
@@ -14,57 +15,38 @@ logger = logging.getLogger('taobao.urlcraw')
 baseurl = 'http://s.taobao.com/search'
 trade_url = 'http://tbskip.taobao.com/json/show_buyer_list.htm' #page_size=15&item_id=7402446227&seller_num_id=129712885&bidPage=1&ends=1331277827000&starts=1330673027000
 
-head_href_xpath = ['/html/body/div/div/div/div/div/form/div/ul/li/h3/a','/html/body/div/div/div/div/div/form/div/ul/li/h3/a']
-head_user_xpath = ['/html/body/div/div/div/div/div/form/div/ul/li/p/a','/html/body/div/div/div/div/div/form/div/ul/li/ul/li/a']
-item_href_xpath = ['/html/body/div/div/div/div/div/form/ul/li/h3/a']
-item_user_xpath = ['/html/body/div/div/div/div/div/form/ul/li/p/a','/html/body/div/div/div/div/div/form/ul/li/ul/li/a']
+head_xpath   = '/html/body/div/div/div/div/div/form/div/ul/li'
+item_xpath   = '/html/body/div/div/div/div/div/form/ul/li'
 
 trade_xpath = '/html/body/table/tr'
 
 def craw_url(url):
-    req =  urllib2.urlopen(url)
-    html_text = req.read()
+    headers = {'Accept':'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+               'Accept-Charset':'ISO-8859-1,utf-8;q=0.7,*;q=0.3',
+               'Accept-Encoding':'gzip,deflate,sdch',
+               'Accept-Language':'en-US,en;q=0.8',
+               'User-Agent':'Mozilla/5.0 (X11; Linux i686) AppleWebKit/535.7 (KHTML, like Gecko) Chrome/16.0.912.75 Safari/535.7'
+    }
+    http = httplib2.Http()
+    response,content = http.request(url,'GET',headers=headers)
     parser = etree.HTMLParser()
-    tree   = etree.parse(StringIO(html_text.decode('gbk')), parser)
+    tree   = etree.parse(StringIO(content.decode('gbk')), parser)
     return tree
 
 
+def parseRankElementAttr(tree,tree_xpath):
 
-def parseElementAttr(tree,itemhref_xpath,itemuser_xpath):
     merge_list = []
+    elements = tree.xpath(tree_xpath)
 
-    itemhref_list = []
-    itemuser_list = []
-
-    for xpath in itemhref_xpath:
-        itemhref_list = tree.xpath(xpath)
-        if itemhref_list:
-            break
-
-    for xpath in itemuser_xpath:
-        itemuser_list = tree.xpath(xpath)
-        if itemuser_list:
-            break
-
-    if len(itemuser_list)>len(itemhref_list):
-        for user in itemuser_list:
-            if user.attrib.has_key('title'):
-                itemuser_list.remove(user)
-
-    if len(itemhref_list) != len(itemuser_list):
-        itemhref_list = itemuser_list = []
-        logger.warn('Taobao page data is not parse right!itemhref len is %s and itemuser_list len is %s'
-                    %(len(itemhref_list),len(itemuser_list)))
-
-    for i in xrange(0,len(itemhref_list)):
-        itemhref = itemhref_list[i]
-        itemuser = itemuser_list[i]
-
+    for e in elements:
         itemdict = {}
+        prod = e.xpath('h3/a')
+        user = e.xpath('p/a') or e.xpath('ul/li/a')
+        pic  = e.xpath('div/a/span/img')
 
-        o = urlparse.urlparse(itemhref.attrib['href'])
-
-        itemdict['title'] = itemhref.attrib['title']
+        itemdict['title'] = prod[0].attrib['title']
+        o = urlparse.urlparse(prod[0].attrib['href'])
 
         params = urlparse.parse_qs(o.query)
         if not params.has_key('id') and params.has_key('url'):
@@ -73,13 +55,13 @@ def parseElementAttr(tree,itemhref_xpath,itemuser_xpath):
         else:
             itemdict['item_id'] = params['id'][0]
 
-        o = urlparse.urlparse(itemuser.attrib['href'])
-        try:
-            itemdict['user_id'] = urlparse.parse_qs(o.query)['user_number_id'][0]
-            itemdict['nick'] = itemuser.text
-        except :
-            logger.error('Get user_id error:%s'%itemuser_list[i].attrib,exc_info=True)
+        o = urlparse.urlparse(user[0].attrib['href'])
 
+        itemdict['user_id'] = urlparse.parse_qs(o.query)['user_number_id'][0]
+        itemdict['nick'] = user[0].text
+
+
+        itemdict['pic_url'] = pic[0].attrib.get('src',None) or pic[0].attrib.get('data-ks-lazyload',None)
         merge_list.append(itemdict)
 
     return merge_list
@@ -122,13 +104,13 @@ def crawTaoBaoPage(q,page_nums):
         req_url = '%s?%s'%(baseurl,urllib.urlencode(params))
         tree = craw_url(req_url)
         if i == 0:
-            head_list = parseElementAttr(tree,head_href_xpath,head_user_xpath)
+            head_list = parseRankElementAttr(tree,head_xpath)
             if head_list:
                 merge_list.extend(head_list)
 
-        perpage_list = parseElementAttr(tree,item_href_xpath,item_user_xpath)
-        if perpage_list :
-            return []
+        perpage_list = parseRankElementAttr(tree,item_xpath)
+        if not perpage_list:
+            return merge_list
         merge_list.extend(perpage_list)
 
     return merge_list
@@ -151,7 +133,7 @@ def crawTaoBaoTradePage(item_id,seller_num_id,start_dt,end_dt):
         tree = craw_url(req_url)
         trades = parseTradeElementAttr(tree,trade_xpath)
         if not trades:
-            if retry == 4:
+            if retry == 3:
                 break
             time.sleep(5)
             retry += 1

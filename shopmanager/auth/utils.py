@@ -37,10 +37,8 @@ def decodeBase64String(string):
 
 
 def parse_urlparams(string):
-
     arr = string.split('&')
     map = dict([(s.split('=')[0],s.split('=')[1]) for s in arr if s.find('=')>0])
-
     return map
 
 

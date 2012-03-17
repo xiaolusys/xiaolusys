@@ -15,15 +15,13 @@ logger = logging.getLogger('period.search')
 
 page_nums = 6
 
-#@task()
+
 def saveKeywordPageRank(keyword,month,day,time,created):
 
     try:
         results = getTaoBaoPageRank(keyword,page_nums)
     except Exception,exc:
         logger.error('getCustomShopsPageRank record error:%s'%exc, exc_info=True)
-#        if not settings.DEBUG:
-#            create_comment.retry(exc=exc,countdown=1)
         return
 
     for value in results:
@@ -39,14 +37,14 @@ def saveKeywordPageRank(keyword,month,day,time,created):
 
 @task()
 def updateItemKeywordsPageRank():
-
+    print 'keywords rank'
     users = User.objects.all()
 
     keywords = set()
     for user in users:
         keys = user.craw_keywords
         keys_tmp = keys.split(',') if keys else []
-        keywords.union(keys_tmp)
+        keywords = keywords.union(keys_tmp)
 
     created_at = datetime.datetime.now()
     month = created_at.month
@@ -58,7 +56,6 @@ def updateItemKeywordsPageRank():
     for keyword in keywords:
 
         saveKeywordPageRank(keyword,month,day,time,created)
-        #subtask(saveKeywordPageRank).delay(keyword,month,day,time,created)
 
 
 
@@ -70,7 +67,7 @@ def updateSellerAllTradesTask(seller_id,item_ids,s_dt_f,s_dt_t):
     seller = ProductPageRank.objects.filter(user_id=seller_id)[0]
 
     if item_ids:
-        item_ids.union([i['item_id'] for i in items])
+        item_ids = item_ids.union([i['item_id'] for i in items])
     else :
         item_ids = [i['item_id'] for i in items]
 
