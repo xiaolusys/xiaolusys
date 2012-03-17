@@ -60,11 +60,17 @@ def updateItemKeywordsPageRank():
 
 
 @task()
-def updateSellerAllTradesTask(seller_id,item_ids,s_dt_f,s_dt_t):
+def updateSellerAllTradesTask(seller_id,seller_nick,item_ids,s_dt_f,s_dt_t):
 
     items = ProductPageRank.objects.filter\
             (user_id=seller_id,created__gte=s_dt_f,created__lte=s_dt_t).values('item_id').distinct('item_id')
-    seller = ProductPageRank.objects.filter(user_id=seller_id)[0]
+
+    if not seller_nick:
+        seller = ProductPageRank.objects.filter(user_id=seller_id)
+        if seller.count()==0:
+            logger.error('the seller id %s is not in the product_pagerank table.'%seller_id)
+            return None
+        seller_nick = seller[0].nick
 
     if item_ids:
         item_ids = item_ids.union([i['item_id'] for i in items])
@@ -84,7 +90,7 @@ def updateSellerAllTradesTask(seller_id,item_ids,s_dt_f,s_dt_t):
                 except ProductTrade.DoesNotExist:
                     prod_trade.id = None
 
-                    prod_trade.nick = seller.nick
+                    prod_trade.nick = seller_nick
                     prod_trade.trade_id = trade['trade_id']
                     prod_trade.num = trade['num']
                     prod_trade.trade_at = trade['trade_at']
@@ -119,7 +125,7 @@ def updateProductTradeBySellerTask():
 
     users = User.objects.all()
     seller_map_item  = {}
-
+    seller_map_nick  = {}
     rex = re.compile('(?P<user_nick>\W+)(-(?P<user_id>\w*))?(\((?P<item_ids>[\w,]*)\))?$')
 
     for user in users:
@@ -149,6 +155,7 @@ def updateProductTradeBySellerTask():
 
             s_set = seller_map_item.get(user_id,set())
             seller_map_item[user_id] = s_set.union(item_ids)
+            seller_map_nick[user_id] = user_nick
 
     rankset = ProductPageRank.objects.filter(rank__lte=settings.PRODUCT_TRADE_RANK_BELOW
             ,created__gte=s_dt_f,created__lte=s_dt_t).values('user_id').distinct('user_id')
@@ -160,7 +167,8 @@ def updateProductTradeBySellerTask():
 
     for seller_id,item_ids in seller_map_item.iteritems():
         item_ids = item_ids.discard('') if item_ids else None
-        subtask(updateSellerAllTradesTask).delay(seller_id,item_ids,s_dt_f,s_dt_t)
+        seller_nick = seller_map_nick.get(seller_id,None)
+        subtask(updateSellerAllTradesTask).delay(seller_id,seller_nick,item_ids,s_dt_f,s_dt_t)
 
 
 
