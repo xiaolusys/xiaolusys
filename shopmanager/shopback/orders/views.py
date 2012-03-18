@@ -19,6 +19,7 @@ def genHourlyOrdersChart(request,dt_f,dt_t):
     cat_by = request.GET.get('cat_by','hour')
     pay_type = request.GET.get('type','all')
     xy = request.GET.get('xy','horizontal')
+    format = request.GET.get('format','html')
 
     nicks_list = nicks.split(',')
 
@@ -75,7 +76,10 @@ def genHourlyOrdersChart(request,dt_f,dt_t):
                           'labels':{'rotation': -45,'align':'right','style': {'font': 'normal 12px Verdana, sans-serif'}}},
                 'yAxis': [{'title': {'text': 'total num '}},{'title': {'text': 'total sales'},'opposite': True}]})
 
-    params = {'ordersdatacht':ordersdatacht}
 
-
-    return render_to_response('hourly_ordernumschart.html',params,context_instance=RequestContext(request))
+    if format=='json':
+        chartjson = json.dumps(Serializer().serialize(ordersdatacht.hcoptions),indent=4, cls=DateTimeAwareJSONEncoder)
+        return HttpResponse(chartjson,mimetype='application/json')
+    else :
+        params = {'ordersdatacht':ordersdatacht}
+        return render_to_response('hourly_ordernumschart.html',params,context_instance=RequestContext(request))

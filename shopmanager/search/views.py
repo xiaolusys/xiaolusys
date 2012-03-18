@@ -94,6 +94,7 @@ def getProductPeriodChart(nick, keyword, dt_f, dt_t, index):
 def genPeriodChart(request, dt_f, dt_t):
     nicks = request.GET.get('nicks')
     keywords = request.GET.get('keywords', None)
+    format = request.GET.get('format','html')
 
     nicks_list = nicks.split(',')
     if not keywords:
@@ -125,9 +126,12 @@ def genPeriodChart(request, dt_f, dt_t):
         except:
             pass
 
-    params = {'keywordsrankcharts': pagerankchts, 'items': rankqueryset}
-
-    return render_to_response('keywords_itemsrank.html', params, context_instance=RequestContext(request))
+    if format=='json':
+        chartjson = json.dumps(Serializer().serialize(pagerankchts.hcoptions),indent=4, cls=DateTimeAwareJSONEncoder)
+        return HttpResponse(chartjson,mimetype='application/json')
+    else :
+        params = {'keywordsrankcharts': pagerankchts, 'items': rankqueryset}
+        return render_to_response('keywords_itemsrank.html', params, context_instance=RequestContext(request))
 
 
 def getItemKeywordsChart(item_id, dt_f, dt_t, index):
@@ -189,6 +193,7 @@ def getItemKeywordsChart(item_id, dt_f, dt_t, index):
 def genItemKeywordsRankChart(request, dt_f, dt_t):
 
     item_ids = request.GET.get('item_ids')
+    format = request.GET.get('format','html')
 
     item_ids = item_ids.split(',')
     pagerankchts = []
@@ -212,9 +217,12 @@ def genItemKeywordsRankChart(request, dt_f, dt_t):
         except:
             pass
 
-    params = {'keywordsrankcharts': pagerankchts, 'items': rankqueryset}
-
-    return render_to_response('item_keywordsrank.html', params, context_instance=RequestContext(request))
+    if format=='json':
+        chartjson = json.dumps(Serializer().serialize(pagerankchts.hcoptions),indent=4, cls=DateTimeAwareJSONEncoder)
+        return HttpResponse(chartjson,mimetype='application/json')
+    else :
+        params = {'keywordsrankcharts': pagerankchts, 'items': rankqueryset}
+        return render_to_response('item_keywordsrank.html', params, context_instance=RequestContext(request))
 
 
 def getPageRankPivotChart(nick, keyword, dt_f, dt_t, index):
@@ -256,6 +264,7 @@ def getPageRankPivotChart(nick, keyword, dt_f, dt_t, index):
 def genPageRankPivotChart(request, dt_f, dt_t):
     nicks = request.GET.get('nicks')
     keywords = request.GET.get('keywords', None)
+    format = request.GET.get('format','html')
 
     nicks_list = nicks.split(',')
     if not keywords:
@@ -287,9 +296,12 @@ def genPageRankPivotChart(request, dt_f, dt_t):
         except:
             pass
 
-    params = {'keywordsrankcharts': pagerankchts, 'items': rankqueryset}
-
-    return render_to_response('keywords_rankstatistic.html', params, context_instance=RequestContext(request))
+    if format=='json':
+        chartjson = json.dumps(Serializer().serialize(pagerankchts.hcoptions),indent=4, cls=DateTimeAwareJSONEncoder)
+        return HttpResponse(chartjson,mimetype='application/json')
+    else :
+        params = {'keywordsrankcharts': pagerankchts, 'items': rankqueryset}
+        return render_to_response('keywords_rankstatistic.html', params, context_instance=RequestContext(request))
 
 
 
@@ -328,6 +340,7 @@ def getItemAvgRankPivotChart(nick,dt_f, dt_t,index):
 def genItemAvgRankPivotChart(request, dt_f, dt_t):
     nicks = request.GET.get('nicks')
     nicks_list = nicks.split(',')
+    format = request.GET.get('format','html')
 
     pagerankchts = []
 
@@ -350,9 +363,12 @@ def genItemAvgRankPivotChart(request, dt_f, dt_t):
         except:
             pass
 
-    params = {'keywordsrankcharts': pagerankchts, 'items': rankqueryset}
-
-    return render_to_response('keywords_rankstatistic.html', params, context_instance=RequestContext(request))
+    if format=='json':
+        chartjson = json.dumps(Serializer().serialize(pagerankchts.hcoptions),indent=4, cls=DateTimeAwareJSONEncoder)
+        return HttpResponse(chartjson,mimetype='application/json')
+    else :
+        params = {'keywordsrankcharts': pagerankchts, 'items': rankqueryset}
+        return render_to_response('keywords_rankstatistic.html', params, context_instance=RequestContext(request))
 
 
 ####################################### Trade views #######################################
@@ -361,6 +377,7 @@ def getTradePeroidChart(request,dt_f,dt_t):
     nicks = request.GET.get('nicks',None)
     cat_by = request.GET.get('cat_by','hour')
     xy = request.GET.get('xy','horizontal')
+    format = request.GET.get('format','html')
 
     nicks_list = nicks.split(',')
 
@@ -416,17 +433,19 @@ def getTradePeroidChart(request,dt_f,dt_t):
                                    'style': {'font': 'normal 12px Verdana, sans-serif'}}},
                 'yAxis': [{'title': {'text': 'total num '}},{'title': {'text': 'total sales'},'opposite': True}]})
 
-    params = {'ordersdatacht':ordersdatacht}
-
-
-    return render_to_response('hourly_ordernumschart.html',params,context_instance=RequestContext(request))
+    if format=='json':
+        chartjson = json.dumps(Serializer().serialize(ordersdatacht.hcoptions),indent=4, cls=DateTimeAwareJSONEncoder)
+        return HttpResponse(chartjson,mimetype='application/json')
+    else :
+        params = {'ordersdatacht':ordersdatacht}
+        return render_to_response('hourly_ordernumschart.html',params,context_instance=RequestContext(request))
 
 
 def getTradePivotChart(request,dt_f,dt_t):
 
     seller_num = int(request.GET.get('seller_num',20))
     type = request.GET.get('sort_by','total_nums')
-    format = request.GET.get('format','json')
+    format = request.GET.get('format','html')
 
     queryset = ProductTrade.objects.filter(trade_at__gte=dt_f,trade_at__lt=dt_t)
 
