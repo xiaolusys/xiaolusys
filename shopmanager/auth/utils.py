@@ -47,7 +47,7 @@ def refresh_session(user,appkey,appsecret,refresh_url):
     expires_in = top_parameters['expires_in']
     ts = top_parameters['ts']
 
-    expire_time = int(expires_in) + int(ts)/1000.00
+    expire_time = int(expires_in) + int(ts)/1000.00-60*60
 
     if expire_time < time.time():
         try:

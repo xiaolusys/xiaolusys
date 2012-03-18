@@ -116,7 +116,7 @@ def genPeriodChart(request, dt_f, dt_t):
 
     rankqueryset = ProductPageRank.objects.filter\
             (nick__in=nicks_list, keyword__in=keywords_list, created__gt=dt_f, created__lt=dt_t)\
-    .values('item_id', 'nick', 'title').distinct('item_id')
+            .values('item_id', 'nick', 'title').distinct('item_id')
 
     for item in  rankqueryset:
         try:
@@ -278,7 +278,7 @@ def genPageRankPivotChart(request, dt_f, dt_t):
 
     rankqueryset = ProductPageRank.objects.filter\
             (nick__in=nicks_list, keyword__in=keywords_list, created__gt=dt_f, created__lt=dt_t)\
-    .values('item_id', 'nick', 'title').distinct('item_id')
+            .values('item_id', 'nick', 'title').distinct('item_id')
 
     for item in  rankqueryset:
         try:
@@ -426,6 +426,7 @@ def getTradePivotChart(request,dt_f,dt_t):
 
     seller_num = int(request.GET.get('seller_num',20))
     type = request.GET.get('sort_by','total_nums')
+    format = request.GET.get('format','json')
 
     queryset = ProductTrade.objects.filter(trade_at__gte=dt_f,trade_at__lt=dt_t)
 
@@ -441,30 +442,27 @@ def getTradePivotChart(request,dt_f,dt_t):
         nick = ProductTrade.objects.filter(user_id=key)[0].nick
         return (nick,)
 
-    ordersdata = PivotDataPool(series=[series],top_n=seller_num,top_n_term=type
-                               ,pareto_term=type,sortf_mapf_mts=(None,mapf,True))
+    ordersdata = PivotDataPool(series=[series],top_n=seller_num,top_n_term=type,pareto_term=type,sortf_mapf_mts=(None,mapf,True))
 
     series_options =[{'options':{'type': 'column','yAxis': 0},
                       'terms':['total_nums',{'total_sales':{'type':'column','stacking':False,'yAxis':1}}]},]
     ordersdatacht = PivotChart(
             datasource = ordersdata,
             series_options = series_options,
-            chart_options =
-              { 'chart':{'zoomType': 'xy'},
+            chart_options ={ 'chart':{'zoomType': 'xy'},
                 'title': {
                     'text':u'\u9500\u552e\u91cf\u53ca\u9500\u552e\u989d\u6392\u524d%s\u7684\u5356\u5bb6\u6570\u636e'
                       %seller_num},
                 'xAxis': {'title': {'text': 'total nums & sales'},
-                          'labels':{'rotation': -45,'align':'right',
-                                   'style': {'font': 'normal 12px Verdana, sans-serif'}}},
+                        'labels':{'rotation': -45,'align':'right','style': {'font': 'normal 12px Verdana, sans-serif'}}},
                 'yAxis': [{'title': {'text': 'total nums '}},{'title': {'text': 'total sales'},'opposite': True},],})
 
-    chartjson = json.dumps(Serializer().serialize(ordersdatacht.hcoptions),indent=4, cls=DateTimeAwareJSONEncoder)
-
-    return HttpResponse(chartjson,mimetype='application/json')
-
-    #params = {'ordersdatacht':ordersdatacht}
-    #return render_to_response('hourly_ordernumschart.html',params,context_instance=RequestContext(request))
+    if format=='json':
+        chartjson = json.dumps(Serializer().serialize(ordersdatacht.hcoptions),indent=4, cls=DateTimeAwareJSONEncoder)
+        return HttpResponse(chartjson,mimetype='application/json')
+    else :
+        params = {'ordersdatacht':ordersdatacht}
+        return render_to_response('hourly_ordernumschart.html',params,context_instance=RequestContext(request))
 
 
 

@@ -37,7 +37,7 @@ def saveKeywordPageRank(keyword,month,day,time,created):
 
 @task()
 def updateItemKeywordsPageRank():
-    print 'keywords rank'
+
     users = User.objects.all()
 
     keywords = set()

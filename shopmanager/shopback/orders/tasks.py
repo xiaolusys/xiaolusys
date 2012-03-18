@@ -44,7 +44,7 @@ def saveUserHourlyOrders(user_id):
                  page_size=settings.GET_TAOBAO_DATA_PAGE_SIZE,use_has_next='true',start_created=s_dt_f,end_created=s_dt_t)
 
             if trades.has_key('error_response'):
-                logger.error('Get users trades errorresponse:%s' %(trades))
+                logger.error('Get users hour trades errorresponse:%s' %(trades))
                 break
 
             if trades['trades_sold_get_response']['total_results']>0:
