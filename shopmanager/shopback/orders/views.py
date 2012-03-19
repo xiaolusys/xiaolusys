@@ -8,6 +8,9 @@ from django.template import RequestContext
 from django.db.models import Sum
 from chartit import DataPool, Chart
 from chartit import PivotDataPool, PivotChart
+from django.core.serializers.json import DateTimeAwareJSONEncoder
+from django.utils import simplejson as json
+from djangorestframework.serializer import Serializer
 from auth.utils import parse_datetime,format_time
 from shopback.orders.models import Order
 from shopback.items.tasks import ORDER_SUCCESS_STATUS
@@ -78,8 +81,11 @@ def genHourlyOrdersChart(request,dt_f,dt_t):
 
 
     if format=='json':
-        chartjson = json.dumps(Serializer().serialize(ordersdatacht.hcoptions),indent=4, cls=DateTimeAwareJSONEncoder)
-        return HttpResponse(chartjson,mimetype='application/json')
+        chartjson = []
+        chartjson.append(Serializer().serialize(ordersdatacht.hcoptions))
+
+        chartstr = json.dumps({"code":0,"response_content":chartjson},indent=4, cls=DateTimeAwareJSONEncoder)
+        return HttpResponse(chartstr,mimetype='application/json')
     else :
         params = {'ordersdatacht':ordersdatacht}
         return render_to_response('hourly_ordernumschart.html',params,context_instance=RequestContext(request))

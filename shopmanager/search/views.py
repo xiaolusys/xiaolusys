@@ -113,7 +113,7 @@ def genPeriodChart(request, dt_f, dt_t):
                 pagerankchts.append(cht)
 
     if not pagerankchts:
-        return HttpResponse('nick is not avalible under this keyword.')
+        return HttpResponse(json.dumps({"code":1,"response_error":"There is no data for this nick!"}))
 
     rankqueryset = ProductPageRank.objects.filter\
             (nick__in=nicks_list, keyword__in=keywords_list, created__gt=dt_f, created__lt=dt_t)\
@@ -127,8 +127,13 @@ def genPeriodChart(request, dt_f, dt_t):
             pass
 
     if format=='json':
-        chartjson = json.dumps(Serializer().serialize(pagerankchts.hcoptions),indent=4, cls=DateTimeAwareJSONEncoder)
-        return HttpResponse(chartjson,mimetype='application/json')
+        chartjson = []
+
+        for chts in pagerankchts:
+            chartjson.append(Serializer().serialize(chts.hcoptions))
+
+        chartstr = json.dumps({"code":0,"response_content":chartjson},indent=4, cls=DateTimeAwareJSONEncoder)
+        return HttpResponse(chartstr,mimetype='application/json')
     else :
         params = {'keywordsrankcharts': pagerankchts, 'items': rankqueryset}
         return render_to_response('keywords_itemsrank.html', params, context_instance=RequestContext(request))
@@ -218,8 +223,13 @@ def genItemKeywordsRankChart(request, dt_f, dt_t):
             pass
 
     if format=='json':
-        chartjson = json.dumps(Serializer().serialize(pagerankchts.hcoptions),indent=4, cls=DateTimeAwareJSONEncoder)
-        return HttpResponse(chartjson,mimetype='application/json')
+        chartjson = []
+
+        for chts in pagerankchts:
+            chartjson.append(Serializer().serialize(chts.hcoptions))
+
+        chartstr = json.dumps({"code":0,"response_content":chartjson},indent=4, cls=DateTimeAwareJSONEncoder)
+        return HttpResponse(chartstr,mimetype='application/json')
     else :
         params = {'keywordsrankcharts': pagerankchts, 'items': rankqueryset}
         return render_to_response('item_keywordsrank.html', params, context_instance=RequestContext(request))
@@ -297,8 +307,13 @@ def genPageRankPivotChart(request, dt_f, dt_t):
             pass
 
     if format=='json':
-        chartjson = json.dumps(Serializer().serialize(pagerankchts.hcoptions),indent=4, cls=DateTimeAwareJSONEncoder)
-        return HttpResponse(chartjson,mimetype='application/json')
+        chartjson = []
+
+        for chts in pagerankchts:
+            chartjson.append(Serializer().serialize(chts.hcoptions))
+
+        chartstr = json.dumps({"code":0,"response_content":chartjson},indent=4, cls=DateTimeAwareJSONEncoder)
+        return HttpResponse(chartstr,mimetype='application/json')
     else :
         params = {'keywordsrankcharts': pagerankchts, 'items': rankqueryset}
         return render_to_response('keywords_rankstatistic.html', params, context_instance=RequestContext(request))
@@ -364,8 +379,13 @@ def genItemAvgRankPivotChart(request, dt_f, dt_t):
             pass
 
     if format=='json':
-        chartjson = json.dumps(Serializer().serialize(pagerankchts.hcoptions),indent=4, cls=DateTimeAwareJSONEncoder)
-        return HttpResponse(chartjson,mimetype='application/json')
+        chartjson = []
+
+        for chts in pagerankchts:
+            chartjson.append(Serializer().serialize(chts.hcoptions))
+
+        chartstr = json.dumps({"code":0,"response_content":chartjson},indent=4, cls=DateTimeAwareJSONEncoder)
+        return HttpResponse(chartstr,mimetype='application/json')
     else :
         params = {'keywordsrankcharts': pagerankchts, 'items': rankqueryset}
         return render_to_response('keywords_rankstatistic.html', params, context_instance=RequestContext(request))
@@ -434,8 +454,11 @@ def getTradePeroidChart(request,dt_f,dt_t):
                 'yAxis': [{'title': {'text': 'total num '}},{'title': {'text': 'total sales'},'opposite': True}]})
 
     if format=='json':
-        chartjson = json.dumps(Serializer().serialize(ordersdatacht.hcoptions),indent=4, cls=DateTimeAwareJSONEncoder)
-        return HttpResponse(chartjson,mimetype='application/json')
+        chartjson = []
+        chartjson.append(Serializer().serialize(ordersdatacht.hcoptions))
+
+        chartstr = json.dumps({"code":0,"response_content":chartjson},indent=4, cls=DateTimeAwareJSONEncoder)
+        return HttpResponse(chartstr,mimetype='application/json')
     else :
         params = {'ordersdatacht':ordersdatacht}
         return render_to_response('hourly_ordernumschart.html',params,context_instance=RequestContext(request))
@@ -477,8 +500,11 @@ def getTradePivotChart(request,dt_f,dt_t):
                 'yAxis': [{'title': {'text': 'total nums '}},{'title': {'text': 'total sales'},'opposite': True},],})
 
     if format=='json':
-        chartjson = json.dumps(Serializer().serialize(ordersdatacht.hcoptions),indent=4, cls=DateTimeAwareJSONEncoder)
-        return HttpResponse(chartjson,mimetype='application/json')
+        chartjson = []
+        chartjson.append(Serializer().serialize(ordersdatacht.hcoptions))
+
+        chartstr = json.dumps({"code":0,"response_content":chartjson},indent=4, cls=DateTimeAwareJSONEncoder)
+        return HttpResponse(chartstr,mimetype='application/json')
     else :
         params = {'ordersdatacht':ordersdatacht}
         return render_to_response('hourly_ordernumschart.html',params,context_instance=RequestContext(request))

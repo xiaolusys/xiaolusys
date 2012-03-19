@@ -14,7 +14,7 @@ class Item(BaseModel):
     type = models.CharField(max_length=12,blank=True)
     valid_thru = models.IntegerField(null=True)
 
-    cid = models.BigIntegerField()
+    cid = models.BigIntegerField(null=True)
     price = models.CharField(max_length=12,blank=True)
     postage_id = models.BigIntegerField(null=True)
 

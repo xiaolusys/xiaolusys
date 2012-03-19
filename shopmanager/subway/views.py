@@ -57,7 +57,7 @@ def saveHotkeys(request):
             KeyScore.objects.get_or_create(num_iid=prod.num_iid,hotkey=hotkey_item)
 
 
-    return HttpResponse(json.dumps({"code":0}))
+    return HttpResponse(json.dumps({"code":0,"response_content":None}))
 
 
 
@@ -72,12 +72,12 @@ def selectAndCancleKeys(request):
     old_keys  = json.loads(old_keys)
 
     if not num_iid  :
-        return HttpResponse(json.dumps({"code":1,"error":"Num_iid can't be null."}))
+        return HttpResponse(json.dumps({"code":1,"response_error":"Num_iid can't be null."}))
 
     try:
         item_ins = ProductItem.objects.get(num_iid=num_iid)
     except ProductItem.DoesNotExist:
-        return HttpResponse(json.dumps({"code":1,"error":"The num_iid doesnot be category."}))
+        return HttpResponse(json.dumps({"code":1,"response_error":"The num_iid doesnot be category."}))
 
     for key in old_keys:
         try:
@@ -101,7 +101,7 @@ def selectAndCancleKeys(request):
         except KeyScore.DoesNotExist:
             continue
 
-    return HttpResponse(json.dumps({"code":0}))
+    return HttpResponse(json.dumps({"code":0,"response_content":None}))
 
 
 
@@ -112,14 +112,14 @@ def saveOrUpdateKeyScores(request):
     num_iid   = request.POST.get('num_iid')
 
     if not (num_iid and keyscores):
-        return HttpResponse(json.dumps({"code":1,"error":"Num_iid and keyscores can't be null."}))
+        return HttpResponse(json.dumps({"code":1,"response_error":"Num_iid and keyscores can't be null."}))
 
     keyscores   = json.loads(keyscores)
 
     try:
         item_ins = ProductItem.objects.get(num_iid=num_iid)
     except ProductItem.DoesNotExist:
-        return HttpResponse(json.dumps({"code":1,"error":"The num_iid doesnot be category."}))
+        return HttpResponse(json.dumps({"code":1,"response_error":"The num_iid doesnot be category."}))
 
     for ks in keyscores:
         try:
@@ -141,7 +141,7 @@ def saveOrUpdateKeyScores(request):
             KeyScore.objects.create(num_iid=num_iid,hotkey=hotkey,
                 num_view = ks[1],num_click = ks[2],avg_cost = ks[3]*100,score = ks[4],status=1)
 
-    return HttpResponse(json.dumps({"code":0}))
+    return HttpResponse(json.dumps({"code":0,"response_content":None}))
 
 
 
@@ -151,7 +151,7 @@ def getValuableHotKeys(request):
     num_keys = int(request.GET.get("num", 20))
 
     if num_iid is None:
-        return HttpResponse(json.dumps({"code": 1, "error": "no product id"}))
+        return HttpResponse(json.dumps({"code": 1, "response_error": "no product id"}))
 
     sort_by = ''
     sort_ratio_by = ''
@@ -178,7 +178,7 @@ def getValuableHotKeys(request):
     elif type == 'F/C':
         sort_ratio_by = 'trade_click_ratio'
     else :
-        return HttpResponse(json.dumps({"code":1,"error":'Search type is not in Supplied types!'}))
+        return HttpResponse(json.dumps({"code":1,"response_error":'Search type is not in Supplied types!'}))
 
     hot_keyscores = KeyScore.objects.filter(num_iid=num_iid,status=0)
     if sort_by:
@@ -232,9 +232,9 @@ def getClientCookie(request):
         request.session['subway_user_nick'] = unquote(user_nick)
         request.session['subway_cookie']    = cookie
 
-        return HttpResponse(json.dumps({"code":0}))
+        return HttpResponse(json.dumps({"code":0,"response_content":None}))
     else:
-        return HttpResponse(json.dumps({"code":1,"error":"The userid or usernick is not in the cookie."}))
+        return HttpResponse(json.dumps({"code":1,"response_error":"The userid or usernick is not in the cookie."}))
 
 
 
