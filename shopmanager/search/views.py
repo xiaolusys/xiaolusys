@@ -1,20 +1,16 @@
 import time
 import datetime
-import json
-from django.http import HttpResponse
-from django.shortcuts import render_to_response
 from django.db.models import Avg, Variance,Sum
-from django.template import RequestContext
 from chartit import DataPool, Chart
 from chartit import PivotDataPool, PivotChart
-from django.core.serializers.json import DateTimeAwareJSONEncoder
-from django.utils import simplejson as json
-from djangorestframework.serializer import Serializer
-from search.crawurldata import getTaoBaoPageRank, getCustomShopsPageRank
+from djangorestframework.views import ModelView
+from djangorestframework.response import ErrorResponse
+from djangorestframework import status
+from shopback.items.models import Item
 from search.models import ProductPageRank,ProductTrade
-from auth.utils import parse_datetime, format_time
-from autolist.models import ProductItem
-from shopback.base.aggregates import ConcatenateDistinct
+from search.gencharts import genProductPeriodChart,genItemKeywordsChart,genPageRankPivotChart,genItemAvgRankPivotChart
+from search.crawurldata import getTaoBaoPageRank, getCustomShopsPageRank
+
 
 def getShopsRank(request):
     nicks = request.GET.get('nicks', None)
@@ -40,478 +36,303 @@ def getShopsRank(request):
 
     return HttpResponse(strings)
 
+####################################### PageRank Chart views #######################################
 
-def getProductPeriodChart(nick, keyword, dt_f, dt_t, index):
-    rankqueryset = ProductPageRank.objects.filter(nick=nick, keyword=keyword, created__gt=dt_f, created__lt=dt_t)\
-    .values('item_id').distinct('item_id')
+class KeywordsMapItemsRankView(ModelView):
+    """ docstring for class KeywordsMapItemsRankView """
 
-    if rankqueryset.count() == 0:
-        return None
+    def get(self, request, *args, **kwargs):
 
-    series = []
-    series_option = {'options': {'type': 'spline', 'stacking': False}, 'terms': {}}
-    for prod in rankqueryset:
-        serie = {'options': {
-            'source': ProductPageRank.objects.filter
-                    (keyword=keyword, created__gt=dt_f, created__lt=dt_t, item_id=prod['item_id'])},
-                 'terms': [{'created' + prod['item_id']: 'created'}, {prod['item_id']: 'rank'}]}
-        series.append(serie)
-        series_option['terms'].update({'created' + prod['item_id']: [prod['item_id']]})
+        dt_f = kwargs.get('dt_f')
+        dt_t = kwargs.get('dt_t')
+        nicks = request.GET.get('nicks')
+        keywords = request.GET.get('keywords', None)
 
-    productpagerankdata = DataPool(series=series)
+        nicks_list = nicks.split(',')
 
-    productpagerankcht = Chart(
-            datasource=productpagerankdata,
-            series_options=[series_option],
-            chart_options=
-                {'chart': {'renderTo': "container" + str(index)},
-                 'title': {
-                     'text': '%s-%s' % (nick.encode('utf8'), keyword.encode('utf8'))},
-                 'xAxis': {'title': {'text': 'per half hour'}, 'type': 'string',
-                           'labels':{'rotation': -45,'align':'right',
-                                   'style': {'font': 'normal 12px Verdana, sans-serif'}}},
-                 'yAxis': {
-                     'title': {'text': 'ranks'},
-                     'min': 0,
-                     'minorGridLineWidth': 0,
-                     'gridLineWidth': 0,
-                     'alternateGridColor': None,
-                     },
-                 'plotOptions': {
-                     'spline': {
-                         'lineWidth': 1, 'states': {'hover': {'lineWidth': 2}},
-                         'marker': {
-                             'enabled': False,
-                             'states': {'hover': {'enabled': True,'symbol': 'cycle','radius': 0,'lineWidth': 1}}
-                         },
-                     },
-                 }
-            })
+        if not keywords:
+            keys = request.user.get_profile().craw_keywords
+            keywords_list = keys.split(',') if keys else []
+        else:
+            keywords_list = keywords.split(',')
 
-    return productpagerankcht
+        page_rank_chts = []
+
+        for keyword in keywords_list:
+            for nick in nicks_list:
+                index = len(page_rank_chts) + 1
+                cht = genProductPeriodChart(nick, keyword, dt_f, dt_t, index)
+                if cht:
+                    page_rank_chts.append(cht)
+
+        if not page_rank_chts:
+
+            raise ErrorResponse(status.HTTP_404_NOT_FOUND,content="There is no data for this nick!")
+
+        page_rank_queryset = ProductPageRank.objects.filter\
+                (nick__in=nicks_list, keyword__in=keywords_list, created__gt=dt_f, created__lt=dt_t)\
+                .values('item_id','nick', 'title').distinct('item_id')
+
+        items_dict = {}
+        for item in  page_rank_queryset:
+            item_dict = {}
+            item_dict['title'] = item['title']
+            item_dict['nick']  = item['nick']
+            try:
+                prod = Item.objects.get(num_iid=item['item_id'])
+                item_dict['pic_url'] = prod.pic_url
+            except:
+                pass
+            items_dict[str(item['item_id'])] = item_dict
+
+        chart_data = {"charts":page_rank_chts,"item_dict":items_dict}
+
+        return chart_data
 
 
-def genPeriodChart(request, dt_f, dt_t):
-    nicks = request.GET.get('nicks')
-    keywords = request.GET.get('keywords', None)
-    format = request.GET.get('format','html')
 
-    nicks_list = nicks.split(',')
-    if not keywords:
-        keys = request.user.get_profile().craw_keywords
-        keywords_list = keys.split(',') if keys else []
-    else:
-        keywords_list = keywords.split(',')
+class ItemsMapKeywordsRankView(ModelView):
+    """ docstring for class ItemsMapKeywordsRankView """
 
-    pagerankchts = []
+    def get(self, request, *args, **kwargs):
 
-    for keyword in keywords_list:
-        for nick in nicks_list:
-            index = len(pagerankchts) + 1
-            cht = getProductPeriodChart(nick, keyword, dt_f, dt_t, index)
+        dt_f = kwargs.get('dt_f')
+        dt_t = kwargs.get('dt_t')
+        item_ids = request.GET.get('item_ids')
+        item_ids = item_ids.split(',')
+
+        page_rank_chts = []
+
+        for item_id in item_ids:
+            index = len(page_rank_chts) + 1
+            cht = genItemKeywordsChart(item_id, dt_f, dt_t, index)
             if cht:
-                pagerankchts.append(cht)
+                page_rank_chts.append(cht)
 
-    if not pagerankchts:
-        return HttpResponse(json.dumps({"code":1,"response_error":"There is no data for this nick!"}))
+        if not page_rank_chts:
+            raise ErrorResponse(status.HTTP_404_NOT_FOUND,content="item_ids is not avalible.")
 
-    rankqueryset = ProductPageRank.objects.filter\
-            (nick__in=nicks_list, keyword__in=keywords_list, created__gt=dt_f, created__lt=dt_t)\
+        page_rank_queryset = ProductPageRank.objects.filter(item_id__in = item_ids)\
             .values('item_id', 'nick', 'title').distinct('item_id')
 
-    for item in  rankqueryset:
-        try:
-            product = ProductItem.objects.get(num_iid=item['item_id'])
-            item['pic_url'] = product.pic_url
-        except:
-            pass
+        items_dict = {}
+        for item in  page_rank_queryset:
+            item_dict = {}
+            item_dict['title'] = item['title']
+            item_dict['nick']  = item['nick']
+            try:
+                prod = Item.objects.get(num_iid=item['item_id'])
+                item_dict['pic_url'] = prod.pic_url
+            except:
+                pass
+            items_dict[str(item['item_id'])] = item_dict
 
-    if format=='json':
-        chartjson = []
+        chart_data = {"charts":page_rank_chts,"item_dict":items_dict}
 
-        for chts in pagerankchts:
-            chartjson.append(Serializer().serialize(chts.hcoptions))
+        return chart_data
 
-        chartstr = json.dumps({"code":0,"response_content":chartjson},indent=4, cls=DateTimeAwareJSONEncoder)
-        return HttpResponse(chartstr,mimetype='application/json')
-    else :
-        params = {'keywordsrankcharts': pagerankchts, 'items': rankqueryset}
-        return render_to_response('keywords_itemsrank.html', params, context_instance=RequestContext(request))
+####################################### PageRank PivotChart views #######################################
 
+class KeywordsMapItemsRankPivotView(ModelView):
+    """ docstring for class ItemsMapKeywordsRankView """
 
-def getItemKeywordsChart(item_id, dt_f, dt_t, index):
-    queryset = ProductPageRank.objects.filter(item_id=item_id, created__gt=dt_f, created__lt=dt_t)\
-        .values('keyword').distinct('keyword')
+    def get(self, request, *args, **kwargs):
 
-    if queryset.count() == 0:
-        return None
+        dt_f = kwargs.get('dt_f')
+        dt_t = kwargs.get('dt_t')
+        nicks = request.GET.get('nicks')
+        keywords = request.GET.get('keywords', None)
 
-    series = []
-    series_option = {'options': {'type': 'spline', 'stacking': False}, 'terms': {}}
-    for i in xrange(0,queryset.count()):
-        serie = {'options': {
-                 'source': ProductPageRank.objects.filter
-                    (keyword=queryset[i]['keyword'], created__gt=dt_f, created__lt=dt_t, item_id=item_id)},
-                 'terms': [{'created'+str(i):'created'}, {queryset[i]['keyword']: 'rank'}],
-        }
-        series.append(serie)
-        series_option['terms'].update({'created'+str(i):[queryset[i]['keyword']]})
+        nicks_list = nicks.split(',')
+        if not keywords:
+            keys = request.user.get_profile().craw_keywords
+            keywords_list = keys.split(',') if keys else []
+        else:
+            keywords_list = keywords.split(',')
 
-    productpagerankdata = DataPool(series=series)
+        page_rank_chts = []
 
-    def mapf(*t):
-        ts = long(time.mktime(time.strptime(t[0], "%Y-%m-%d %H:%M")))*1000
-        return (ts,)
+        for keyword in keywords_list:
+            for nick in nicks_list:
+                index = len(page_rank_chts) + 1
+                cht = genPageRankPivotChart(nick, keyword, dt_f, dt_t, index)
+                if cht:
+                    page_rank_chts.append(cht)
 
-    productpagerankcht = Chart(
-            datasource=productpagerankdata,
-            series_options=[series_option],
-            #x_sortf_mapf_mts=(None,mapf,True),
-            chart_options=
-                {'chart': {'renderTo': "container" + str(index)},
-                 'title': {
-                     'text': u'\u67e5\u8be2\u5546\u54c1ID\uff1a%s' % (item_id)},
-                 'xAxis': {'title': {'text': 'per half hour'},'type': 'string',
-                           'labels':{'rotation': -45,'align':'right','style': {'font': 'normal 12px Verdana, sans-serif'}}},
-                 'yAxis': {
-                     'title': {'text': 'ranks'},
-                     'min': 0,
-                     'minorGridLineWidth': 0,
-                     'gridLineWidth': 0,
-                     'alternateGridColor': None,
-                     },
-                 'plotOptions': {
-                     'spline': {
-                         'lineWidth': 1, 'states': {'hover': {'lineWidth': 2}},
-                         'marker': {
-                             'enabled': False,
-                             'states':{'hover':{'enabled':True,'symbol':'cycle','radius':0,'lineWidth':1}}
-                             },
-                         },
-                         #'pointInterval':3600000,
-                         #'pointStart':1330531200
-                     },
-                 })
+        if not page_rank_chts:
+            raise ErrorResponse(status.HTTP_404_NOT_FOUND,content="nick is not avalible under this keyword.")
 
-    return productpagerankcht
+        page_rank_queryset = ProductPageRank.objects.filter\
+                (nick__in=nicks_list, keyword__in=keywords_list, created__gt=dt_f, created__lt=dt_t)\
+                .values('item_id', 'nick', 'title').distinct('item_id')
 
-def genItemKeywordsRankChart(request, dt_f, dt_t):
+        items_dict = {}
+        for item in  page_rank_queryset:
+            item_dict = {}
+            item_dict['title'] = item['title']
+            item_dict['nick']  = item['nick']
+            try:
+                prod = Item.objects.get(num_iid=item['item_id'])
+                item_dict['pic_url'] = prod.pic_url
+            except:
+                pass
+            items_dict[str(item['item_id'])] = item_dict
 
-    item_ids = request.GET.get('item_ids')
-    format = request.GET.get('format','html')
+        chart_data = {"charts":page_rank_chts,"item_dict":items_dict}
 
-    item_ids = item_ids.split(',')
-    pagerankchts = []
-
-    for item_id in item_ids:
-        index = len(pagerankchts) + 1
-        cht = getItemKeywordsChart(item_id, dt_f, dt_t, index)
-        if cht:
-            pagerankchts.append(cht)
-
-    if not pagerankchts:
-        return HttpResponse('item_ids is not avalible .')
-
-    rankqueryset = ProductPageRank.objects.filter(item_id__in = item_ids)\
-        .values('item_id', 'nick', 'title').distinct('item_id')
-
-    for item in  rankqueryset:
-        try:
-            product = ProductItem.objects.get(num_iid=item['item_id'])
-            item['pic_url'] = product.pic_url
-        except:
-            pass
-
-    if format=='json':
-        chartjson = []
-
-        for chts in pagerankchts:
-            chartjson.append(Serializer().serialize(chts.hcoptions))
-
-        chartstr = json.dumps({"code":0,"response_content":chartjson},indent=4, cls=DateTimeAwareJSONEncoder)
-        return HttpResponse(chartstr,mimetype='application/json')
-    else :
-        params = {'keywordsrankcharts': pagerankchts, 'items': rankqueryset}
-        return render_to_response('item_keywordsrank.html', params, context_instance=RequestContext(request))
+        return chart_data
 
 
-def getPageRankPivotChart(nick, keyword, dt_f, dt_t, index):
-    serie = {'options': {
-        'source': ProductPageRank.objects.filter
-                (nick=nick, keyword=keyword, created__gt=dt_f, created__lt=dt_t),
-        'categories': ['month', 'day'],
-        'legend_by': 'item_id',
-        #'top_n_per_cat':3
-        },
-        'terms': {
-         'avg_rank': Avg('rank'),
-         'variance_rank': {'func': Variance('rank'), 'legend_by': 'item_id'},
-        }
-    }
+class ItemsMapKeywordsRankPivotView(ModelView):
+    """ docstring for class ItemsMapKeywordsRankView """
 
-    productpagerankpivotdata = PivotDataPool(series=[serie])
+    def get(self, request, *args, **kwargs):
 
-    productpagerankpivcht =\
-    PivotChart(
-            datasource=productpagerankpivotdata,
-            series_options=
-            [{'options': {
-                'type': 'line',
-                'stacking': False},
-              'terms': ['avg_rank', {'variance_rank': {'type': 'column', 'yAxis': 1}}]}, ],
-            chart_options=
-                {'chart': {'renderTo': "container" + str(index), 'zoomType': 'xy'},
-                 'title': {'text': '%s-%s' % (nick.encode('utf8'), keyword.encode('utf8'))},
-                 'xAxis': {'title': {'text': 'Month&Day'},
-                           'labels':{'rotation': -45,'align':'right',
-                                   'style': {'font': 'normal 12px Verdana, sans-serif'}}},
-                 'yAxis': [{'title': {'text': 'rank avg'}}, {'title': {'text': 'rank variance'}, 'opposite': True}]
-                 }
-            )
+        dt_f = kwargs.get('dt_f')
+        dt_t = kwargs.get('dt_t')
+        nicks = request.GET.get('nicks')
+        nicks_list = nicks.split(',')
 
-    return productpagerankpivcht
+        page_rank_chts = []
 
-def genPageRankPivotChart(request, dt_f, dt_t):
-    nicks = request.GET.get('nicks')
-    keywords = request.GET.get('keywords', None)
-    format = request.GET.get('format','html')
-
-    nicks_list = nicks.split(',')
-    if not keywords:
-        keys = request.user.get_profile().craw_keywords
-        keywords_list = keys.split(',') if keys else []
-    else:
-        keywords_list = keywords.split(',')
-
-    pagerankchts = []
-
-    for keyword in keywords_list:
         for nick in nicks_list:
-            index = len(pagerankchts) + 1
-            cht = getPageRankPivotChart(nick, keyword, dt_f, dt_t, index)
+            index = len(page_rank_chts) + 1
+            cht = genItemAvgRankPivotChart(nick,dt_f, dt_t,index)
             if cht:
-                pagerankchts.append(cht)
+                page_rank_chts.append(cht)
 
-    if not pagerankchts:
-        return HttpResponse('nick is not avalible under this keyword.')
+        if not page_rank_chts:
+            raise ErrorResponse(status.HTTP_404_NOT_FOUND,content="nick is not avalible under this keyword.")
 
-    rankqueryset = ProductPageRank.objects.filter\
-            (nick__in=nicks_list, keyword__in=keywords_list, created__gt=dt_f, created__lt=dt_t)\
-            .values('item_id', 'nick', 'title').distinct('item_id')
+        page_rank_queryset = ProductPageRank.objects.filter\
+                (nick__in=nicks_list,created__gt=dt_f, created__lt=dt_t)\
+                   .values('item_id', 'nick', 'title').distinct('item_id')
 
-    for item in  rankqueryset:
-        try:
-            product = ProductItem.objects.get(num_iid=item['item_id'])
-            item['pic_url'] = product.pic_url
-        except:
-            pass
+        items_dict = {}
+        for item in  page_rank_queryset:
+            item_dict = {}
+            item_dict['title'] = item['title']
+            item_dict['nick']  = item['nick']
+            try:
+                prod = Item.objects.get(num_iid=item['item_id'])
+                item_dict['pic_url'] = prod.pic_url
+            except:
+                pass
+            items_dict[str(item['item_id'])] = item_dict
 
-    if format=='json':
-        chartjson = []
+        chart_data = {"charts":page_rank_chts,"item_dict":items_dict}
 
-        for chts in pagerankchts:
-            chartjson.append(Serializer().serialize(chts.hcoptions))
-
-        chartstr = json.dumps({"code":0,"response_content":chartjson},indent=4, cls=DateTimeAwareJSONEncoder)
-        return HttpResponse(chartstr,mimetype='application/json')
-    else :
-        params = {'keywordsrankcharts': pagerankchts, 'items': rankqueryset}
-        return render_to_response('keywords_rankstatistic.html', params, context_instance=RequestContext(request))
+        return chart_data
 
 
+####################################### Trade  views #######################################
 
-def getItemAvgRankPivotChart(nick,dt_f, dt_t,index):
-    serie = {'options': {
-        'source': ProductPageRank.objects.filter
-                (nick=nick, created__gt=dt_f, created__lt=dt_t),
-        'categories': ['month', 'day'],
-        'legend_by': 'item_id',
-        #'top_n_per_cat':3
-        },
-        'terms': {
-         'avg_rank': Avg('rank'),
+
+class ShopMapKeywordsTradeView(ModelView):
+    """ docstring for class ShopMapKeywordsTradeView """
+
+    def get(self, request, *args, **kwargs):
+
+        dt_f = kwargs.get('dt_f')
+        dt_t = kwargs.get('dt_t')
+        nicks = request.GET.get('nicks',None)
+        cat_by = request.GET.get('cat_by','hour')
+        xy = request.GET.get('xy','horizontal')
+
+        nicks_list = nicks.split(',')
+
+        prod_trade_queryset = ProductTrade.objects.filter(trade_at__gte=dt_f,trade_at__lt=dt_t)\
+            .filter(nick__in = nicks_list)
+
+        if prod_trade_queryset.count() == 0:
+            raise ErrorResponse(status.HTTP_404_NOT_FOUND,content="nick is not avalible under this keyword.")
+
+
+        if xy == 'vertical':
+            categories = [cat_by]
+        else:
+            if cat_by == 'month':
+                categories = ['month']
+            elif cat_by == 'day':
+                categories = ['month','day']
+            elif cat_by == 'week':
+                categories = ['week']
+            else :
+                categories = ['month','day','hour']
+
+        series = {
+            'options': {'source': prod_trade_queryset,'categories': categories,'legend_by': 'nick'},
+            'terms': {'total_num':Sum('num'),'total_sales':{'func':Sum('price'),'legend_by':'nick'}}
         }
-    }
 
-    productpagerankpivotdata = PivotDataPool(series=[serie])
+        ordersdata = PivotDataPool(series=[series],sortf_mapf_mts=(None,map_int2str,True))
 
-    productpagerankpivcht = PivotChart(
-        datasource=productpagerankpivotdata,
-        series_options=[{'options': {
-            'type': 'line',
-            'stacking': False},
-          'terms': ['avg_rank']}, ],
-        chart_options={'chart': {'renderTo': "container"+str(index), 'zoomType': 'xy'},
-             'title': {'text': '%s' % (nick.encode('utf8'))},
-             'xAxis': {'title': {'text': 'Month&Day'},
-                       'labels':{'rotation': -45,'align':'right',
-                                 'style': {'font': 'normal 12px Verdana, sans-serif'}}},
-             'yAxis': [{'title': {'text': 'rank avg'}}]
+        series_options =[{
+            'options':{'type': 'column','stacking': True,'yAxis': 0},
+            'terms':['total_num',{'total_sales':{'type':'line','stacking':False,'yAxis':1}}]},]
+
+        chart_options = {
+            'chart':{'zoomType': 'xy','renderTo': "container1"},
+            'title': {'text': nicks},
+            'xAxis': {'title': {'text': 'per %s'%(cat_by)},
+                      'labels':{'rotation': -45,'align':'right','style': {'font': 'normal 12px Verdana, sans-serif'}}},
+            'yAxis': [{'title': {'text': 'total num '}},{'title': {'text': 'total sales'},'opposite': True}]}
+
+        orders_data_cht = PivotChart(
+                datasource = ordersdata,
+                series_options = series_options,
+                chart_options = chart_options)
+
+        chart_data = {"charts":[orders_data_cht]}
+
+        return chart_data
+
+
+class ShopMapKeywordsTradePivotView(ModelView):
+    """ docstring for class ShopMapKeywordsTradeView """
+
+    def get(self, request, *args, **kwargs):
+
+        dt_f = kwargs.get('dt_f')
+        dt_t = kwargs.get('dt_t')
+        seller_num = int(request.GET.get('seller_num',20))
+        type = request.GET.get('sort_by','total_nums')
+
+        queryset = ProductTrade.objects.filter(trade_at__gte=dt_f,trade_at__lt=dt_t)
+
+        if queryset.count() == 0:
+            raise ErrorResponse(status.HTTP_404_NOT_FOUND,content="No data for these nick!")
+
+        series = {
+            'options': {'source': queryset,'categories': ['user_id',]},
+            'terms': {'total_nums':Sum('num'),'total_sales':{'func':Sum('price')},},
         }
-    )
 
-    return productpagerankpivcht
+        def map_id2nick(*t):
+            key = t[0][0]
+            nick = ProductTrade.objects.filter(user_id=key)[0].nick
+            return (nick,)
 
-def genItemAvgRankPivotChart(request, dt_f, dt_t):
-    nicks = request.GET.get('nicks')
-    nicks_list = nicks.split(',')
-    format = request.GET.get('format','html')
+        ordersdata = PivotDataPool(series=[series],top_n=seller_num,
+                                   top_n_term=type,pareto_term=type,sortf_mapf_mts=(None,map_id2nick,True))
 
-    pagerankchts = []
+        series_options =[{
+            'options':{'type': 'column','yAxis': 0},
+            'terms':['total_nums',{'total_sales':{'type':'column','stacking':False,'yAxis':1}}]},]
 
-    for nick in nicks_list:
-        index = len(pagerankchts) + 1
-        cht = getItemAvgRankPivotChart(nick,dt_f, dt_t,index)
-        if cht:
-            pagerankchts.append(cht)
+        chart_options = {
+            'chart':{'zoomType': 'xy','renderTo': "container1"},
+            'title': {'text':u'\u9500\u552e\u91cf\u53ca\u9500\u552e\u989d\u6392\u524d%s\u7684\u5356\u5bb6\u6570\u636e'%seller_num},
+            'xAxis': {'title': {'text': 'total nums & sales'},
+                    'labels':{'rotation': -45,'align':'right','style': {'font': 'normal 12px Verdana, sans-serif'}}},
+            'yAxis': [{'title': {'text': 'total nums '}},{'title': {'text': 'total sales'},'opposite': True},],}
 
-    if not pagerankchts:
-        return HttpResponse('nick is not avalible under this keyword.')
+        orders_data_cht = PivotChart(
+                datasource = ordersdata,
+                series_options = series_options,
+                chart_options =chart_options )
 
-    rankqueryset = ProductPageRank.objects.filter(nick__in=nicks_list,created__gt=dt_f, created__lt=dt_t)\
-               .values('item_id', 'nick', 'title').distinct('item_id')
+        chart_data = {"charts":[orders_data_cht]}
 
-    for item in  rankqueryset:
-        try:
-            product = ProductItem.objects.get(num_iid=item['item_id'])
-            item['pic_url'] = product.pic_url
-        except:
-            pass
-
-    if format=='json':
-        chartjson = []
-
-        for chts in pagerankchts:
-            chartjson.append(Serializer().serialize(chts.hcoptions))
-
-        chartstr = json.dumps({"code":0,"response_content":chartjson},indent=4, cls=DateTimeAwareJSONEncoder)
-        return HttpResponse(chartstr,mimetype='application/json')
-    else :
-        params = {'keywordsrankcharts': pagerankchts, 'items': rankqueryset}
-        return render_to_response('keywords_rankstatistic.html', params, context_instance=RequestContext(request))
-
-
-####################################### Trade views #######################################
-
-def getTradePeroidChart(request,dt_f,dt_t):
-    nicks = request.GET.get('nicks',None)
-    cat_by = request.GET.get('cat_by','hour')
-    xy = request.GET.get('xy','horizontal')
-    format = request.GET.get('format','html')
-
-    nicks_list = nicks.split(',')
-
-    queryset = ProductTrade.objects.filter(trade_at__gte=dt_f,trade_at__lt=dt_t)\
-        .filter(nick__in = nicks_list)
-
-    if queryset.count() == 0:
-        return HttpResponse('No data for these nick!')
-
-    if xy == 'vertical':
-        categories = [cat_by]
-    else:
-        if cat_by == 'month':
-            categories = ['month']
-        elif cat_by == 'day':
-            categories = ['month','day']
-        elif cat_by == 'week':
-            categories = ['week']
-        else :
-            categories = ['month','day','hour']
-
-
-    series = {'options': {
-           'source': queryset,
-           'categories': categories,
-           'legend_by': 'nick'},
-           'terms': {'total_num':Sum('num'),'total_sales':{'func':Sum('price'),'legend_by':'nick'}}}
-
-    def mapf(*t):
-        names ={0:'0',1: '01', 2: '02', 3: '03', 4: '04',
-                5: '05', 6: '06', 7: '07', 8: '08',9: '09'}
-        num = t[0]
-        l = list(num)
-        ret = []
-        for s in l:
-            if int(s)<10:
-                s = names[int(s)]
-            ret.append(s)
-        return tuple(ret)
-
-    ordersdata = PivotDataPool(series=[series],sortf_mapf_mts=(None,mapf,True))
-
-    series_options =[{'options':{'type': 'column','stacking': True,'yAxis': 0},
-                      'terms':['total_num',{'total_sales':{'type':'line','stacking':False,'yAxis':1}}]},]
-    ordersdatacht = PivotChart(
-            datasource = ordersdata,
-            series_options = series_options,
-            chart_options =
-              { 'chart':{'zoomType': 'xy'},
-                'title': {'text': nicks},
-                'xAxis': {'title': {'text': 'per %s'%(cat_by)},
-                          'labels':{'rotation': -45,'align':'right',
-                                   'style': {'font': 'normal 12px Verdana, sans-serif'}}},
-                'yAxis': [{'title': {'text': 'total num '}},{'title': {'text': 'total sales'},'opposite': True}]})
-
-    if format=='json':
-        chartjson = []
-        chartjson.append(Serializer().serialize(ordersdatacht.hcoptions))
-
-        chartstr = json.dumps({"code":0,"response_content":chartjson},indent=4, cls=DateTimeAwareJSONEncoder)
-        return HttpResponse(chartstr,mimetype='application/json')
-    else :
-        params = {'ordersdatacht':ordersdatacht}
-        return render_to_response('hourly_ordernumschart.html',params,context_instance=RequestContext(request))
-
-
-def getTradePivotChart(request,dt_f,dt_t):
-
-    seller_num = int(request.GET.get('seller_num',20))
-    type = request.GET.get('sort_by','total_nums')
-    format = request.GET.get('format','html')
-
-    queryset = ProductTrade.objects.filter(trade_at__gte=dt_f,trade_at__lt=dt_t)
-
-    if queryset.count() == 0:
-        return HttpResponse('No data for these nick!')
-
-    series = {'options': {'source': queryset,'categories': ['user_id',]},
-           'terms': {'total_nums':Sum('num'),'total_sales':{'func':Sum('price')},},
-    }
-
-    def mapf(*t):
-        key = t[0][0]
-        nick = ProductTrade.objects.filter(user_id=key)[0].nick
-        return (nick,)
-
-    ordersdata = PivotDataPool(series=[series],top_n=seller_num,top_n_term=type,pareto_term=type,sortf_mapf_mts=(None,mapf,True))
-
-    series_options =[{'options':{'type': 'column','yAxis': 0},
-                      'terms':['total_nums',{'total_sales':{'type':'column','stacking':False,'yAxis':1}}]},]
-    ordersdatacht = PivotChart(
-            datasource = ordersdata,
-            series_options = series_options,
-            chart_options ={ 'chart':{'zoomType': 'xy'},
-                'title': {
-                    'text':u'\u9500\u552e\u91cf\u53ca\u9500\u552e\u989d\u6392\u524d%s\u7684\u5356\u5bb6\u6570\u636e'
-                      %seller_num},
-                'xAxis': {'title': {'text': 'total nums & sales'},
-                        'labels':{'rotation': -45,'align':'right','style': {'font': 'normal 12px Verdana, sans-serif'}}},
-                'yAxis': [{'title': {'text': 'total nums '}},{'title': {'text': 'total sales'},'opposite': True},],})
-
-    if format=='json':
-        chartjson = []
-        chartjson.append(Serializer().serialize(ordersdatacht.hcoptions))
-
-        chartstr = json.dumps({"code":0,"response_content":chartjson},indent=4, cls=DateTimeAwareJSONEncoder)
-        return HttpResponse(chartstr,mimetype='application/json')
-    else :
-        params = {'ordersdatacht':ordersdatacht}
-        return render_to_response('hourly_ordernumschart.html',params,context_instance=RequestContext(request))
-
-
-
-
-
-
+        return chart_data
   

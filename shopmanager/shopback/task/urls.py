@@ -1,4 +1,4 @@
-from django.conf.urls.defaults import patterns, url
+from django.conf.urls.defaults import patterns, url,include
 from shopback.base.authentication import UserLoggedInAuthentication
 from shopback.base.views import InstanceModelView
 from shopback.task.views import CreateListItemTaskModelView
@@ -14,6 +14,6 @@ urlpatterns = patterns('',
     url(r'^$', CreateListItemTaskModelView.as_view(resource=ItemListTaskResource, authentication=(UserLoggedInAuthentication,), permissions=(IsAuthenticated,),)),
     url(r'^(?P<pk>[^/]+)/$', InstanceModelView.as_view(resource=ItemListTaskResource, authentication=(UserLoggedInAuthentication,), permissions=(IsAuthenticated,))),
     url(r'^list/self/$', ListItemTaskView.as_view(resource=ItemListTaskResource, authentication=(UserLoggedInAuthentication,), permissions=(IsAuthenticated,),)),
-
+    url(r'^djcelery/',include('djcelery.urls'),name="task_state")
 )
   

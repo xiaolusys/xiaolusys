@@ -1,0 +1,36 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+        "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+    <title>数据图表</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <script src='{{ STATIC_URL }}js/jquery-1.7.1.min.js' type= 'text/javascript'></script>
+    <script src='{{ STATIC_URL }}js/highcharts.js' type= 'text/javascript'></script>
+    {% load chartit %}
+</head>
+<body>
+    {% for chart in charts  %}
+        <div id='container{{ forloop.counter }}'> Chart will be rendered here ... </div>
+    {% endfor %}
+
+    {% if item_dict %}
+    <div id='items'>
+        <table align="center">
+        <thead style="background-color:#2C7400"><td>商品ID</td><td>卖家昵称</td><td>商品名</td><td>商品图片</td></thead>
+
+        {% for key,value in item_dict.items %}
+            <tr>
+                <td>{{ key }}</td>
+                <td>{{ value.nick }}</td>
+                <td>{{ value.title }}</td>
+                <td><img src="{{  value.pic_url }}" style="width: 60px;height: 60px;"></td>
+            </tr>
+        {% endfor %}
+        </table>
+    </div>
+    {% endif %}
+    {{ charts|load_charts:"" }}
+    <script type="text/javascript" src="{{ STATIC_URL }}js/modules/exporting.js"></script>
+
+</body>
+</html>

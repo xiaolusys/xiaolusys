@@ -6,9 +6,9 @@ def crawFullCategories(request,cid):
 
     top_session = request.session['top_session']
 
-    RecurUpdateCategoreyTask.delay(top_session,cid)
+    puctask = RecurUpdateCategoreyTask.delay(top_session,cid)
 
-    return HttpResponse(json.dumps({'code':0}))
+    return HttpResponse(json.dumps({'code':0,"response_content":[{"task_id":puctask.task_id}]}))
 
 
 

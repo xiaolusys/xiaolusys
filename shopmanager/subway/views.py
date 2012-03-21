@@ -141,7 +141,7 @@ def saveOrUpdateKeyScores(request):
             KeyScore.objects.create(num_iid=num_iid,hotkey=hotkey,
                 num_view = ks[1],num_click = ks[2],avg_cost = ks[3]*100,score = ks[4],status=1)
 
-    return HttpResponse(json.dumps({"code":0,"response_content":None}))
+    return HttpResponse(json.dumps({"code":0,"response_content":"success"}))
 
 
 
@@ -232,7 +232,7 @@ def getClientCookie(request):
         request.session['subway_user_nick'] = unquote(user_nick)
         request.session['subway_cookie']    = cookie
 
-        return HttpResponse(json.dumps({"code":0,"response_content":None}))
+        return HttpResponse(json.dumps({"code":0,"response_content":"save cookie success!"}))
     else:
         return HttpResponse(json.dumps({"code":1,"response_error":"The userid or usernick is not in the cookie."}))
 
