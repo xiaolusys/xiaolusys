@@ -11,7 +11,7 @@ from shopback.items.models import Item
 from search.models import ProductPageRank,ProductTrade
 from search.gencharts import genProductPeriodChart,genItemKeywordsChart,genPageRankPivotChart,genItemAvgRankPivotChart
 from search.crawurldata import getTaoBaoPageRank, getCustomShopsPageRank
-
+from auth.utils import map_int2str
 
 class ShopsRankView(ModelView):
     """ docstring for class ShopsRankView """
@@ -226,7 +226,7 @@ class ItemsMapKeywordsRankPivotView(ModelView):
 ####################################### Trade  views #######################################
 
 
-class ShopMapKeywordsTradeView(ModelView):
+class ShopMapKeywordsTradePivotView(ModelView):
     """ docstring for class ShopMapKeywordsTradeView """
 
     def get(self, request, *args, **kwargs):
@@ -286,7 +286,7 @@ class ShopMapKeywordsTradeView(ModelView):
         return chart_data
 
 
-class ShopMapKeywordsTradePivotView(ModelView):
+class ShopMapKeywordsTopTradeView(ModelView):
     """ docstring for class ShopMapKeywordsTradeView """
 
     def get(self, request, *args, **kwargs):
