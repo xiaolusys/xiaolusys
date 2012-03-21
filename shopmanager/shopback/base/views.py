@@ -2,7 +2,7 @@ from djangorestframework.views import ListOrCreateModelView as FrameworkListOrCr
 from djangorestframework.views import ModelView ,ListModelView as FrameworkListModelView
 from djangorestframework.views import InstanceModelView as FrameworkInstanceModelView
 from djangorestframework.mixins import CreateModelMixin, InstanceMixin,ReadModelMixin
-from djangorestframework import signals
+#from djangorestframework import signals
 from shopback.base.mixins import PaginatorMixin, CounterMixin, BatchGetMixin, DeleteModelMixin
 
 

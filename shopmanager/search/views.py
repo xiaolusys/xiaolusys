@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import time
 import datetime
 import json
@@ -64,7 +65,7 @@ def getProductPeriodChart(nick, keyword, dt_f, dt_t, index):
             datasource=productpagerankdata,
             series_options=[series_option],
             chart_options=
-                {'chart': {'renderTo': "container" + str(index)},
+                {'chart': {'renderTo': "chart_" + str(index)},
                  'title': {
                      'text': '%s-%s' % (nick.encode('utf8'), keyword.encode('utf8'))},
                  'xAxis': {'title': {'text': 'per half hour'}, 'type': 'string',
@@ -85,7 +86,7 @@ def getProductPeriodChart(nick, keyword, dt_f, dt_t, index):
                              'states': {'hover': {'enabled': True,'symbol': 'cycle','radius': 0,'lineWidth': 1}}
                          },
                      },
-                 }
+                 },
             })
 
     return productpagerankcht
@@ -126,16 +127,19 @@ def genPeriodChart(request, dt_f, dt_t):
         except:
             pass
 
+    keys = request.user.get_profile().craw_keywords.split(',')
+
     if format=='json':
         chartjson = []
 
         for chts in pagerankchts:
             chartjson.append(Serializer().serialize(chts.hcoptions))
 
-        chartstr = json.dumps({"code":0,"response_content":chartjson},indent=4, cls=DateTimeAwareJSONEncoder)
+        rankqueryset = Serializer().serialize(rankqueryset)
+        chartstr = json.dumps({"code":0,"response_content":chartjson, "items": rankqueryset},indent=4, cls=DateTimeAwareJSONEncoder)
         return HttpResponse(chartstr,mimetype='application/json')
     else :
-        params = {'keywordsrankcharts': pagerankchts, 'items': rankqueryset}
+        params = {'keywordsrankcharts': pagerankchts, 'items': rankqueryset, 'keywords':keys}
         return render_to_response('keywords_itemsrank.html', params, context_instance=RequestContext(request))
 
 

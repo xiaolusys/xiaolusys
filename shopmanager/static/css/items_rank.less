@@ -1,0 +1,55 @@
+@import "snippet.less";
+
+.tool-area, .charts-area  {
+  height: 100%; 
+  background: whitesmoke;
+}
+
+.tooltip-img  {
+  position: absolute;
+  top: 20px;
+  left: -70px;
+  img {
+    width: 100px; 
+  }
+}
+
+.tool-area  {
+  form {
+    .border-bottom; 
+    fieldset  {
+      .control-group  {
+        label {
+          width: 80px; 
+        }
+        .controls {
+          margin-left: @controls-margin-left;
+          input {
+            padding: 13px;
+          } 
+          .btn {
+            margin-right: 20px; 
+          }
+        } 
+        .select-control, .nick-control {
+          input, select {
+            display: inline;
+            margin-bottom: 9px;
+          } 
+          .cancel {
+            opacity: 0;
+            .fade;
+          }
+          &:hover {
+            .cancel {
+              opacity: 1;
+            } 
+          }
+        }
+      } 
+      .form-actions {
+        padding-left: @controls-padding-left; 
+      }
+    }
+  }
+}

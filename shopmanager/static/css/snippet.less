@@ -1,0 +1,18 @@
+/* default color/border-color/background-color */
+@blue: #049cbd;
+@border-color-1: #eee;
+@border-color-2: #ddd;
+
+/* default padding/margin */
+@controls-margin-left: 100px;
+
+.border-bottom {
+  border-bottom: 1px solid @border-color-1;
+}
+
+.fade (@time: 0.5s)  {
+  transition: opacity @time ease-in-out;
+  -webkit-transition: opacity @time ease-in-out;
+  -moz-transition: opacity @time ease-in-out;
+  -o-transition: opacity @time ease-in-out;
+}
