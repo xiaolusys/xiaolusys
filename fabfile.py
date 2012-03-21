@@ -102,9 +102,23 @@ def restart_celerybeat():
     with cd(env.version_dir):
         run('source ve/bin/activate;cd shopmanager;python manage.py celery_beat --scheduler_cls=djcelery.schedulers.DatabaseScheduler  --working_directory=/home/user1/deploy/taobao/ --stdout=/home/user1/deploy/taobao/celerybeat.out --stderr=/home/user1/deploy/taobao/celerybeat.err')
 
+def restart_celerycam():
+    if exists('/home/user1/deploy/taobao/celeryev.pid'):
+        run('kill -QUIT `cat /home/user1/deploy/taobao/celeryev.pid`')
+        puts('Sleep 10 seconds before celeryev fully shutdown')
+        sleep(10)
+        with settings(warn_only=True):
+            run("ps auxww | grep celery_cam | awk '{ print $2 }' |xargs kill -KILL")
+        run('rm -rf /home/user1/deploy/taobao/celeryev.pid')
+    get_version()
+    with cd(env.version_dir):
+        run('source ve/bin/activate;cd shopmanager;python manage.py celery_cam  --working_directory=/home/user1/deploy/taobao/ --stdout=/home/user1/deploy/taobao/celeryev.out --stderr=/home/user1/deploy/taobao/celeryev.err')
+
+
 def restart():
     """docstring for restart"""
     restart_gunicorn()
     restart_celeryd()
     restart_celerybeat()
+    #restart_celerycam() #use for nondb backend,like rabbitmq,redis .etc.
   

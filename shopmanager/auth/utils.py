@@ -116,3 +116,15 @@ def get_closest_time_slot(t):
 
     t += datetime.timedelta(days=1)
     return datetime.datetime(t.year, t.month, t.day, 11, 50), True
+
+def map_int2str(*t):
+        names ={0:'0',1: '01', 2: '02', 3: '03', 4: '04',
+                5: '05', 6: '06', 7: '07', 8: '08',9: '09'}
+        num = t[0]
+        l = list(num)
+        ret = []
+        for s in l:
+            if int(s)<10:
+                s = names[int(s)]
+            ret.append(s)
+        return tuple(ret)

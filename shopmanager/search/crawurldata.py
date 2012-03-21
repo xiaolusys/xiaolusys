@@ -196,20 +196,6 @@ def getCustomShopsPageRank(nicks,keywords,page_nums):
 
 
 
-#if __name__ == '__main__':
-
-#    results = getCustomShopsPageRank(nicks,keywords,5)
-#
-#    for keyword,nicks_result in  results.iteritems():
-#
-#        for nick,values in nicks_result.iteritems():
-#
-#            print keyword,'---------',nick
-#
-#            for value in values:
-#                print value['title'],'=======',value['rank']
-
-
 
 
 
