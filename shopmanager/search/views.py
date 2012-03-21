@@ -13,29 +13,26 @@ from search.gencharts import genProductPeriodChart,genItemKeywordsChart,genPageR
 from search.crawurldata import getTaoBaoPageRank, getCustomShopsPageRank
 
 
-def getShopsRank(request):
-    nicks = request.GET.get('nicks', None)
-    keywords = request.GET.get('keywords', None)
-    page_nums = int(request.GET.get('page_nums', '5'))
+class ShopsRankView(ModelView):
+    """ docstring for class ShopsRankView """
 
-    if not nicks and not keywords:
-        return HttpResponse('nicks and keywords can\'t be empty!')
+    def get(self, request, *args, **kwargs):
 
-    nicks = nicks.split(',')
-    keywords = keywords.split(',')
+        nicks = request.GET.get('nicks', None)
+        keywords = request.GET.get('keywords', None)
+        page_nums = int(request.GET.get('page_nums', '5'))
 
-    results = getCustomShopsPageRank(nicks, keywords, page_nums)
+        if not nicks and not keywords:
+            return ErrorResponse(status.HTTP_404_NOT_FOUND,content="There is no data for these nicks and keywords!")
 
-    strings = ''
-    for keyword, nicks_result in  results.iteritems():
-        for nick, values in nicks_result.iteritems():
-            strings += keyword.encode('utf8') + '---------' + nick.encode('utf8') + '<br>'
+        nicks = nicks.split(',')
+        keywords = keywords.split(',')
 
-            for value in values:
-                strings += value['item_id'] + '====' + value['title'].encode('utf8') + '=======' + str(
-                        value['rank']) + '<br>'
+        results = getCustomShopsPageRank(nicks, keywords, page_nums)
 
-    return HttpResponse(strings)
+        rank_result = {"results":results}
+
+        return rank_result
 
 ####################################### PageRank Chart views #######################################
 

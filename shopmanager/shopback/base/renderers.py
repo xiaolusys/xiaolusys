@@ -57,3 +57,24 @@ class ChartHtmlRenderer(TemplateRenderer):
         template = loader.get_template(self.template)
         context = RequestContext(self.view.request, obj)
         return template.render(context)
+
+class SearchRankHTMLRenderer(TemplateRenderer):
+    """
+    Renderer which provides a browsable HTML interface for an API.
+    See the examples at http://api.django-rest-framework.org to see this in action.
+    """
+
+    media_type = 'text/html'
+    format = 'html'
+    template = 'search_rank_template.html'
+
+    def render(self, obj=None, media_type=None):
+        """
+        Renders *obj* using the :attr:`template` specified on the class.
+        """
+        if type(obj) is not dict:
+            return obj
+
+        template = loader.get_template(self.template)
+        context = RequestContext(self.view.request, obj)
+        return template.render(context)

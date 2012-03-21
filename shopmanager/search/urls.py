@@ -1,14 +1,16 @@
 from django.conf.urls.defaults import patterns, include, url
-from search.resources  import SearchResource
-from search.views import KeywordsMapItemsRankView,ItemsMapKeywordsRankView,KeywordsMapItemsRankPivotView,ItemsMapKeywordsRankPivotView,ShopMapKeywordsTradeView,ShopMapKeywordsTradePivotView
+from search.resources  import SearchResource,RankResource
+from search.views import ShopsRankView,KeywordsMapItemsRankView,ItemsMapKeywordsRankView,KeywordsMapItemsRankPivotView,ItemsMapKeywordsRankPivotView,ShopMapKeywordsTradeView,ShopMapKeywordsTradePivotView
 from shopback.orders.views import UserHourlyOrderView
-from shopback.base.renderers import ChartJSONRenderer,ChartHtmlRenderer
+from shopback.base.renderers import JSONRenderer,ChartJSONRenderer,ChartHtmlRenderer,SearchRankHTMLRenderer
 
 
 urlpatterns = patterns('',
 
-    (r'^taobao/rank/','search.views.getShopsRank'),
-
+    (r'^taobao/rank/',ShopsRankView.as_view(
+        resource=RankResource,
+        renderers=(JSONRenderer,SearchRankHTMLRenderer,),
+    )),
     (r'^rank/chart/(?P<dt_f>[^/]+)/(?P<dt_t>[^/]+)/$',KeywordsMapItemsRankView.as_view(
         resource=SearchResource,
         renderers=(ChartJSONRenderer,ChartHtmlRenderer,),
