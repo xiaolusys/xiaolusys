@@ -41,10 +41,10 @@ class ChartJSONRenderer(JSONRenderer):
         return json.dumps(obj, cls=ChartEncoder, indent=indent, sort_keys=sort_keys)
 
 
-class ChartHtmlRenderer(TemplateRenderer):
+class ChartTemplateRenderer(TemplateRenderer):
 
-    media_type = 'text/html'
-    format = 'html'
+    media_type = 'chart/html'
+    format = 'chart'
     template = "chart_render_template.html"
 
     def render(self, obj=None, media_type=None):
@@ -57,6 +57,8 @@ class ChartHtmlRenderer(TemplateRenderer):
         template = loader.get_template(self.template)
         context = RequestContext(self.view.request, obj)
         return template.render(context)
+
+
 
 class SearchRankHTMLRenderer(TemplateRenderer):
     """
@@ -78,3 +80,47 @@ class SearchRankHTMLRenderer(TemplateRenderer):
         template = loader.get_template(self.template)
         context = RequestContext(self.view.request, obj)
         return template.render(context)
+
+
+class KeysChartHtmlRenderer(ChartTemplateRenderer):
+    """
+    Renderer which serializes to JSON
+    """
+    media_type = 'text/html'
+    format = 'html'
+    template = ""
+
+
+class RankPivotChartHtmlRenderer(ChartTemplateRenderer):
+    """
+    Renderer which serializes to JSON
+    """
+    template = ""
+
+
+class AvgRankPivotChartHtmlRenderer(ChartTemplateRenderer):
+    """
+    Renderer which serializes to JSON
+    """
+    template = ""
+
+
+class TradePivotChartHtmlRenderer(ChartTemplateRenderer):
+    """
+    Renderer which serializes to JSON
+    """
+    template = ""
+
+
+class TradeTopChartHtmlRenderer(ChartTemplateRenderer):
+    """
+    Renderer which serializes to JSON
+    """
+    template = ""
+
+class OrderNumPiovtChartHtmlRenderer(ChartTemplateRenderer):
+    """
+    Renderer which serializes to JSON
+    """
+    template = ""
+
