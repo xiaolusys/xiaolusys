@@ -25,9 +25,9 @@ class Hotkey(models.Model):
     def cmall_click_ratio(self):
         return round(self.num_cmall_click*1.0 / self.num_click,2)
 
-    @property
-    def click_ratio(self):
-        return round(self.num_click*1.0 / self.num_search,2)
+    #@property
+    #def click_ratio(self):
+    #    return round(self.num_click*1.0 / self.num_search,2)
 
     @property
     def trade_search_ratio(self):

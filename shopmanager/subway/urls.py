@@ -6,4 +6,8 @@ urlpatterns = patterns('',
     (r'^sackeys/$','subway.views.selectAndCancleKeys'),
     (r'^keyscores/$','subway.views.saveOrUpdateKeyScores'),
     (r'^topkeys/$','subway.views.getValuableHotKeys'),
+
+    (r'^sbcookie/$','subway.views.getSubwayCookie'),
+    (r'^tccookie/$','subway.views.getSubwayCookie'),
+    (r'^catkeys/$','subway.views.getCatHotKeys'),
 )

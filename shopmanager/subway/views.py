@@ -1,5 +1,6 @@
 import re
 import json
+import decimal
 import datetime
 from django.http import HttpResponse
 from django.views.decorators.csrf import csrf_exempt
@@ -144,7 +145,6 @@ def saveOrUpdateKeyScores(request):
     return HttpResponse(json.dumps({"code":0,"response_content":"success"}))
 
 
-
 def getValuableHotKeys(request):
     type = request.GET.get("type", None)
     num_iid  = request.GET.get("num_iid", None)
@@ -211,7 +211,37 @@ def getValuableHotKeys(request):
     return HttpResponse(json.dumps({"code":0,"response_content":hot_keyscores}))
 
 
-def getClientCookie(request):
+def getCatHotKeys(request):
+    cat_id = request.GET.get('cat_id')
+    id_map_key   = request.GET.get('id_map_key')
+
+    id_map_key = json.loads(id_map_key)
+
+    key_map_id = dict([(key[1],key[0]) for key in id_map_key])
+    keys = key_map_id.keys()
+
+    hotkeys = Hotkey.objects.filter(category_id=cat_id,word__in=keys)
+
+    hotkey_list = []
+    for key in hotkeys:
+        hk = []
+        key_id = key_map_id.get(key.word)
+        hk.append(key_id)
+        hk.append(key.word.encode('utf8'))
+        hk.append(key.num_people)
+        hk.append(key.num_search)
+        hk.append(key.num_click)
+        hk.append(key.num_tmall_click)
+        hk.append(key.num_cmall_click)
+        hk.append(key.num_trade)
+        hk.append(key.ads_price_cent)
+        hotkey_list.append(hk)
+
+    return HttpResponse(json.dumps(hotkey_list,indent=4),mimetype='application/json')
+
+
+
+def getSubwayCookie(request):
 
     rex_user_id = re.compile('unb=(?P<user_id>\w+);')
     rex_user_nick = re.compile('_nk_=(?P<user_nick>[\w%]+);')
@@ -235,6 +265,19 @@ def getClientCookie(request):
         return HttpResponse(json.dumps({"code":0,"response_content":"save cookie success!"}))
     else:
         return HttpResponse(json.dumps({"code":1,"response_error":"The userid or usernick is not in the cookie."}))
+
+
+def updateTaoci(request):
+
+    cookie = request.POST.get('taoci_cookie')
+
+    #user_id_group = rex_user_id.search(cookie)
+    #user_nick_group = rex_user_nick.search(cookie)
+
+    request.session['taoci_cookie']    = cookie
+
+    return HttpResponse(json.dumps({"code":0,"response_content":"save cookie success!"}))
+
 
 
 

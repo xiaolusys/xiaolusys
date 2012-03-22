@@ -38,3 +38,6 @@ def subway_proxy(api_url,method='GET'):
 @subway_proxy('bidword/queryScore4Words.htm',method='POST')
 def bidword_queryScore4Words(token=None,campaignId=None,cookie=None,params={}):
     pass
+
+
+#def taoci_request(url,cookie):
