@@ -7,7 +7,7 @@ urlpatterns = patterns('',
     (r'^keyscores/$','subway.views.saveOrUpdateKeyScores'),
     (r'^topkeys/$','subway.views.getValuableHotKeys'),
 
-    (r'^sbcookie/$','subway.views.getSubwayCookie'),
-    (r'^tccookie/$','subway.views.getSubwayCookie'),
+    (r'^cookie/save/$','subway.views.getSubwayCookie'),
+    (r'^taoci/update/$','subway.views.updateTaociByCats'),
     (r'^catkeys/$','subway.views.getCatHotKeys'),
 )

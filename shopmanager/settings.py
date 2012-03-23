@@ -228,6 +228,16 @@ LOGGING = {
             'level': 'WARN',
             'propagate': True,
         },
+        'taobao.taoci':{
+            'handlers': ['sentry'],
+            'level': 'WARN',
+            'propagate': True,
+        },
+        'subway.hotkey':{
+            'handlers': ['sentry'],
+            'level': 'WARN',
+            'propagate': True,
+        },
 
     }
 }

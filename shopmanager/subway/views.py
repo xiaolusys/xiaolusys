@@ -1,14 +1,18 @@
 import re
 import json
 import decimal
+import urllib
 import datetime
 from django.http import HttpResponse
 from django.views.decorators.csrf import csrf_exempt
 from subway.models import Hotkey, KeyScore
 from autolist.models import ProductItem
 from auth.utils import unquote
+from subway.apis import taoci_proxy
+from auth.utils import format_time,parse_datetime,format_datetime,format_date
+import logging
 
-
+logger = logging.getLogger('subway.hotkey')
 
 @csrf_exempt
 def saveHotkeys(request):
@@ -211,6 +215,7 @@ def getValuableHotKeys(request):
     return HttpResponse(json.dumps({"code":0,"response_content":hot_keyscores}))
 
 
+
 def getCatHotKeys(request):
     cat_id = request.GET.get('cat_id')
     id_map_key   = request.GET.get('id_map_key')
@@ -267,16 +272,70 @@ def getSubwayCookie(request):
         return HttpResponse(json.dumps({"code":1,"response_error":"The userid or usernick is not in the cookie."}))
 
 
-def updateTaoci(request):
+@csrf_exempt
+def updateTaociByCats(request):
+    try:
+        taoci_cookie = request.POST.get('taoci_cookie')
+        f_dt   = request.POST.get('f_dt')
+        t_dt   = request.POST.get('t_dt')
+        cat_ids = request.POST.get('cat_ids')
 
-    cookie = request.POST.get('taoci_cookie')
+        if not taoci_cookie or not cat_ids:
+            return HttpResponse(json.dumps({"code":1,"response_error":"taoci_cookie or cat_ids can't be null!"}))
 
-    #user_id_group = rex_user_id.search(cookie)
-    #user_nick_group = rex_user_nick.search(cookie)
+        dt = datetime.datetime.now()
+        today_end = datetime.datetime(dt.year,dt.month,dt.day,23,59,59)
 
-    request.session['taoci_cookie']    = cookie
+        if not f_dt or not t_dt:
 
-    return HttpResponse(json.dumps({"code":0,"response_content":"save cookie success!"}))
+            last_day = dt - datetime.timedelta(1,0,0)
+            f_dt = t_dt = format_date(last_day)
+
+
+        SRH_WRD=1; SRH_PPL=2; SRH_TMS=3; CLK_TMS=4; MAL_CLK=5; CML_CLK=6; NUM_TRD=8; PRICE=10;
+
+        cat_ids = cat_ids.split(',')
+        unupdate_cats = []
+        taoci_cookie = urllib.unquote(taoci_cookie)
+
+        for cat_id in cat_ids:
+
+            response,content = taoci_proxy(f_dt,t_dt,cat_id,taoci_cookie)
+            keys = json.loads(content)
+
+            if isinstance(keys,dict) and keys.has_key('code'):
+                unupdate_cats.append(cat_id)
+
+            n = keys[0][-1]
+            for i in range(0,n):
+                item = keys[0][i]
+                try:
+                    hotkey_item = Hotkey.objects.get(word=item[SRH_WRD],category_id=cat_id)
+
+                    timedel = today_end - hotkey_item.updated
+                    if timedel.days > 1:
+                        hotkey_item.num_people=item[SRH_PPL]
+                        hotkey_item.num_search=item[SRH_TMS]
+                        hotkey_item.num_click=item[CLK_TMS]
+                        hotkey_item.num_tmall_click=item[MAL_CLK]
+                        hotkey_item.num_cmall_click=item[CML_CLK]
+                        hotkey_item.num_trade=item[NUM_TRD] if cat_id else item[SRH_TMS]*float(item[SRH_CRT])
+                        hotkey_item.category_id= cat_id if cat_id else ''
+                        hotkey_item.ads_price_cent=item[PRICE]*100
+                        hotkey_item.save()
+
+                except Hotkey.DoesNotExist:
+                    hotkey_item = Hotkey.objects.create(
+                        word=item[SRH_WRD],num_people=item[SRH_PPL],
+                        num_search=item[SRH_TMS],num_click=item[CLK_TMS],
+                        num_tmall_click=item[MAL_CLK],num_cmall_click=item[CML_CLK],
+                        num_trade=item[NUM_TRD] if cat_id else item[SRH_TMS]*float(item[SRH_CRT])
+                        ,ads_price_cent=item[PRICE]*100,category_id=cat_id if cat_id else '')
+
+    except Exception,exc:
+        logger.error('updateTaociByCats error:%s'%exc, exc_info=True)
+
+    return HttpResponse(json.dumps({"code":0,"unupdate_cats":unupdate_cats}))
 
 
 
