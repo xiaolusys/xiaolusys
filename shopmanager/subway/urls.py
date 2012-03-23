@@ -11,4 +11,6 @@ urlpatterns = patterns('',
     (r'^taoci/update/$','subway.views.updateTaociByCats'),
     (r'^catkeys/$','subway.views.getCatHotKeys'),
     (r'^saveztcitem/$', 'subway.views.saveZtcItem'),
+
+    (r'^lzkey/update/$', 'subway.views.updateLzKeysItems'),
 )

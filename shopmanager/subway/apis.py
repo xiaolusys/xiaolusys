@@ -79,7 +79,7 @@ def liangzi_proxy(limit=50,f_dt=None,t_dt=None,session=None):
     get_url = liangzi_url%(limit,f_dt,t_dt,session)
 
     http = httplib2.Http()
-    headers, content = http.request(get_url,'GET',headers)
+    headers, content = http.request(get_url,'GET',headers=headers)
 
     return headers,content
 

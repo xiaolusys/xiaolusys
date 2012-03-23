@@ -4,11 +4,12 @@ import decimal
 import urllib
 import datetime
 from django.http import HttpResponse
+from django.db.models import Max
 from django.views.decorators.csrf import csrf_exempt
-from subway.models import Hotkey, KeyScore, ZtcItem
+from subway.models import Hotkey, KeyScore, ZtcItem,LzKeyItem
 from autolist.models import ProductItem
 from auth.utils import unquote
-from subway.apis import taoci_proxy
+from subway.apis import taoci_proxy,liangzi_proxy
 from auth.utils import format_time,parse_datetime,format_datetime,format_date
 import logging
 
@@ -274,6 +275,95 @@ def getSubwayCookie(request):
         return HttpResponse(json.dumps({"code":1,"response_error":"The userid or usernick is not in the cookie."}))
 
 
+def saveLzKeyItems(dt,owner,limit,lzsession):
+    try:
+        response,content = liangzi_proxy(limit=limit,f_dt=dt,t_dt=dt,session=lzsession)
+        lz_data_list = json.loads(content)
+        lz_data_list = lz_data_list.get('list',None)
+
+        if not lz_data_list:
+            logger.error('get seller liangzi data fault,return content:%s'%content)
+
+        lz_key = LzKeyItem()
+        lz_key.update = dt
+        lz_key.owner  = owner
+
+        for lz_data in lz_data_list:
+
+            lz_key.id = None
+            for k,v in lz_data.iteritems():
+                hasattr(lz_key,k) and setattr(lz_key,k,v)
+            lz_key.efficiency = lz_data['efficiency'] if lz_data['efficiency'] else ''
+            lz_key.save()
+
+    except Exception,exc:
+        logger.error(' saveLzKeyItems error:%s'%exc, exc_info=True)
+
+
+def updateLzKeysItems(request):
+
+    lzsession = request.GET.get('lzsession')
+    owner     = request.GET.get('owner')
+    limit     = request.GET.get('limit',50)
+
+    lzkey  = LzKeyItem.objects.filter(owner=owner).\
+        extra(select={'lastest_update':'MAX( distinct subway_lzkeyitem.update)'}).values('lastest_update')
+
+    lastest_update = lzkey[0]['lastest_update']
+    is_modify = False
+    today = datetime.datetime.now()
+    last_four_days = format_date(today - datetime.timedelta(4,0,0))
+
+    if not lastest_update or lastest_update<last_four_days:
+        for i in xrange(3,10):
+            time_delta = datetime.timedelta(i,0,0)
+            last_few_days = format_date(today - time_delta)
+            if not lastest_update or lastest_update<last_few_days:
+                saveLzKeyItems(last_few_days,owner,limit,lzsession)
+                is_modify = True
+                time.sleep(1)
+
+    elif lastest_update == last_four_days:
+
+        dt = format_date(today - datetime.timedelta(3,0,0))
+        saveLzKeyItems(dt,owner,limit,lzsession)
+        is_modify = True
+
+    return HttpResponse(json.dumps({"code":0,"modified":1 if is_modify else 0}))
+
+
+
+
+def saveTaociBycid(today_end,keys):
+    SRH_WRD=1; SRH_PPL=2; SRH_TMS=3; CLK_TMS=4; MAL_CLK=5; CML_CLK=6; NUM_TRD=8; PRICE=10;
+
+    n = keys[0][-1]
+    for i in range(0,n):
+        item = keys[0][i]
+        try:
+            hotkey_item = Hotkey.objects.get(word=item[SRH_WRD],category_id=cat_id)
+
+            timedel = today_end - hotkey_item.updated
+            if timedel.days > 1:
+                hotkey_item.num_people=item[SRH_PPL]
+                hotkey_item.num_search=item[SRH_TMS]
+                hotkey_item.num_click=item[CLK_TMS]
+                hotkey_item.num_tmall_click=item[MAL_CLK]
+                hotkey_item.num_cmall_click=item[CML_CLK]
+                hotkey_item.num_trade=item[NUM_TRD] if cat_id else item[SRH_TMS]*float(item[SRH_CRT])
+                hotkey_item.category_id= cat_id if cat_id else ''
+                hotkey_item.ads_price_cent=item[PRICE]*100
+                hotkey_item.save()
+
+        except Hotkey.DoesNotExist:
+            hotkey_item = Hotkey.objects.create(
+                word=item[SRH_WRD],num_people=item[SRH_PPL],
+                num_search=item[SRH_TMS],num_click=item[CLK_TMS],
+                num_tmall_click=item[MAL_CLK],num_cmall_click=item[CML_CLK],
+                num_trade=item[NUM_TRD] if cat_id else item[SRH_TMS]*float(item[SRH_CRT])
+                ,ads_price_cent=item[PRICE]*100,category_id=cat_id if cat_id else '')
+
+
 
 @csrf_exempt
 def updateTaociByCats(request):
@@ -294,9 +384,6 @@ def updateTaociByCats(request):
             last_day = dt - datetime.timedelta(1,0,0)
             f_dt = t_dt = format_date(last_day)
 
-
-        SRH_WRD=1; SRH_PPL=2; SRH_TMS=3; CLK_TMS=4; MAL_CLK=5; CML_CLK=6; NUM_TRD=8; PRICE=10;
-
         cat_ids = cat_ids.split(',')
         unupdate_cats = []
         taoci_cookie = urllib.unquote(taoci_cookie)
@@ -308,32 +395,9 @@ def updateTaociByCats(request):
 
             if isinstance(keys,dict) and keys.has_key('code'):
                 unupdate_cats.append(cat_id)
+                continue
 
-            n = keys[0][-1]
-            for i in range(0,n):
-                item = keys[0][i]
-                try:
-                    hotkey_item = Hotkey.objects.get(word=item[SRH_WRD],category_id=cat_id)
-
-                    timedel = today_end - hotkey_item.updated
-                    if timedel.days > 1:
-                        hotkey_item.num_people=item[SRH_PPL]
-                        hotkey_item.num_search=item[SRH_TMS]
-                        hotkey_item.num_click=item[CLK_TMS]
-                        hotkey_item.num_tmall_click=item[MAL_CLK]
-                        hotkey_item.num_cmall_click=item[CML_CLK]
-                        hotkey_item.num_trade=item[NUM_TRD] if cat_id else item[SRH_TMS]*float(item[SRH_CRT])
-                        hotkey_item.category_id= cat_id if cat_id else ''
-                        hotkey_item.ads_price_cent=item[PRICE]*100
-                        hotkey_item.save()
-
-                except Hotkey.DoesNotExist:
-                    hotkey_item = Hotkey.objects.create(
-                        word=item[SRH_WRD],num_people=item[SRH_PPL],
-                        num_search=item[SRH_TMS],num_click=item[CLK_TMS],
-                        num_tmall_click=item[MAL_CLK],num_cmall_click=item[CML_CLK],
-                        num_trade=item[NUM_TRD] if cat_id else item[SRH_TMS]*float(item[SRH_CRT])
-                        ,ads_price_cent=item[PRICE]*100,category_id=cat_id if cat_id else '')
+            saveTaociBycid(today_end,keys)
 
     except Exception,exc:
         logger.error('updateTaociByCats error:%s'%exc, exc_info=True)
