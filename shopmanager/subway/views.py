@@ -5,7 +5,7 @@ import urllib
 import datetime
 from django.http import HttpResponse
 from django.views.decorators.csrf import csrf_exempt
-from subway.models import Hotkey, KeyScore
+from subway.models import Hotkey, KeyScore, ZtcItem
 from autolist.models import ProductItem
 from auth.utils import unquote
 from subway.apis import taoci_proxy
@@ -217,14 +217,19 @@ def getValuableHotKeys(request):
 
 
 def getCatHotKeys(request):
-    cat_id = request.GET.get('cat_id')
-    id_map_key   = request.GET.get('id_map_key')
+    num_iid = request.GET.get('num_iid')
+    print num_iid
+    id_map_key = request.GET.get('id_map_key')
 
     id_map_key = json.loads(id_map_key)
 
     key_map_id = dict([(key[1],key[0]) for key in id_map_key])
     keys = key_map_id.keys()
 
+    print num_iid, keys
+    cat_id = ZtcItem.objects.get(num_iid=num_iid).cat_id
+    print cat_id
+    
     hotkeys = Hotkey.objects.filter(category_id=cat_id,word__in=keys)
 
     hotkey_list = []
@@ -236,10 +241,7 @@ def getCatHotKeys(request):
         hk.append(key.num_people)
         hk.append(key.num_search)
         hk.append(key.num_click)
-        hk.append(key.num_tmall_click)
-        hk.append(key.num_cmall_click)
-        hk.append(key.num_trade)
-        hk.append(key.ads_price_cent)
+        hk.append(key.trade_click_ratio)
         hotkey_list.append(hk)
 
     return HttpResponse(json.dumps(hotkey_list,indent=4),mimetype='application/json')
@@ -339,7 +341,17 @@ def updateTaociByCats(request):
     return HttpResponse(json.dumps({"code":0,"unupdate_cats":unupdate_cats}))
 
 
-
+@csrf_exempt
+def saveZtcItem(request):
+    owner = request.GET.get('owner', None)
+    num_iid = request.GET.get('num_iid', None)
+    cat_id = request.GET.get('cat_id', None)
+    cat_name = request.GET.get('cat_name', None)
+    if (owner and num_iid and cat_id and cat_name):
+        ZtcItem.objects.create(owner=owner,num_iid=num_iid,cat_id=cat_id,cat_name=cat_name)
+        return HttpResponse(json.dumps({"code":0}))
+    return HttpResponse(json.dumps({"code":1}))
+        
 
     
 

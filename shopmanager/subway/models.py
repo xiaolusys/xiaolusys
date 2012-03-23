@@ -65,4 +65,9 @@ class KeyScore(models.Model):
         db_table = 'subway_keyscore'
 
 
-
+class ZtcItem(models.Model):
+    owner = models.CharField(max_length=64,db_index=True)
+    num_iid = models.CharField(max_length=64,db_index=True)
+    cat_id = models.CharField(max_length=64,db_index=True)
+    cat_name = models.CharField(max_length=128)
+    
