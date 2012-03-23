@@ -7,7 +7,8 @@ taoci_url = 'http://cube.data.taobao.com/cubex/proxy/s/db/keywords/fact_cat_top_
                'get_taoci_hotkeys_rank_detail/param/tfix:200/where/f0:eq:%s/where/r1:ge:%s/'+\
                'where/r1:le:%s/where/cid:eq:%s/param/dtb:cat?'
 
-liangzi_url = 'http://api.linezing.com/=/view/p4p-adv/keyword/detail?limit=%s&offset=0&istop=1&sort=finprice&dir=desc&days=%s..%s'
+liangzi_url = 'http://api.linezing.com/=/view/p4p-adv/keyword/detail?limit=%s&offset=0&istop=1'+\
+              '&sort=alipay_amt&dir=desc&days=%s..%s&isd3=1&_s=%s'
 
 def subway_proxy(api_url,method='GET'):
     """ docstring for subway_proxy apis """
@@ -63,7 +64,7 @@ def taoci_proxy(from_date=None,to_date=None,cat_id=None,cookie=None):
 
 
 
-def liangzi_proxy(from_date=None,to_date=None,cat_id=None,cookie=None):
+def liangzi_proxy(limit=50,f_dt=None,t_dt=None,session=None):
 
     headers = {
                 'Accept':'*/*',
@@ -73,12 +74,12 @@ def liangzi_proxy(from_date=None,to_date=None,cat_id=None,cookie=None):
                 'Connection':'keep-alive',
                 'User-Agent':'Mozilla/5.0 (X11; Linux i686) AppleWebKit/535.7 (KHTML, like Gecko) Chrome/16.0.912.75 Safari/535.7',
                 'X-Requested-With':'XMLHttpRequest',
-                'Cookie':cookie,}
+                'Cookie':'',}
 
-    get_url = taoci_url%(from_date,from_date,to_date,cat_id)
+    get_url = liangzi_url%(limit,f_dt,t_dt,session)
 
     http = httplib2.Http()
-    headers, content = http.request(get_url,'GET',headers=headers)
+    headers, content = http.request(get_url,'GET',headers)
 
     return headers,content
 

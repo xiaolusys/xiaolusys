@@ -272,6 +272,7 @@ def getSubwayCookie(request):
         return HttpResponse(json.dumps({"code":1,"response_error":"The userid or usernick is not in the cookie."}))
 
 
+
 @csrf_exempt
 def updateTaociByCats(request):
     try:
