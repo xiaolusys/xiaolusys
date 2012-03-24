@@ -77,12 +77,12 @@ class ZtcItem(models.Model):
 
 class LzKeyItem(models.Model):
     owner       = models.CharField(max_length=64,db_index=True)
-    effect_rank = models.IntegerField(null=True)
+    effect_rank = models.CharField(max_length=8,blank=True,default='')
     inner_ipv   = models.IntegerField(null=True)
     coll_num    = models.IntegerField(null=True)
     adgroup_id  = models.IntegerField(null=True)
     efficiency  = models.CharField(max_length=8,blank=True,default='')
-    originalword   = models.CharField(max_length=16,blank=True,db_index=True,default='')
+    originalword   = models.CharField(max_length=24,blank=True,db_index=True,default='')
     shop_coll_num  = models.IntegerField(null=True)
     is_shop     = models.IntegerField(null=True)
     roc         = models.IntegerField(null=True)

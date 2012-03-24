@@ -1,10 +1,11 @@
 import re
 import json
+import time
 import decimal
 import urllib
 import datetime
 from django.http import HttpResponse
-from django.db.models import Max
+from django.db.models import Max,Sum
 from django.views.decorators.csrf import csrf_exempt
 from subway.models import Hotkey, KeyScore, ZtcItem,LzKeyItem
 from autolist.models import ProductItem
@@ -219,30 +220,45 @@ def getValuableHotKeys(request):
 
 def getCatHotKeys(request):
     num_iid = request.GET.get('num_iid')
-    print num_iid
     id_map_key = request.GET.get('id_map_key')
+    lz_f_dt = request.GET.get('lz_f_dt')
+    lz_t_dt = request.GET.get('lz_t_dt')
 
     id_map_key = json.loads(id_map_key)
 
-    key_map_id = dict([(key[1],key[0]) for key in id_map_key])
-    keys = key_map_id.keys()
+    #key_map_id = dict([(key[1],key[0]) for key in id_map_key])
+    #keys = key_map_id.keys()
 
-    print num_iid, keys
+    if not (lz_f_dt and lz_t_dt):
+        today = datetime.datetime.now() - datetime.timedelta(3,0,0)
+        lz_f_dt = lz_t_dt = format_date(today)
+
     cat_id = ZtcItem.objects.get(num_iid=num_iid).cat_id
-    print cat_id
-    
-    hotkeys = Hotkey.objects.filter(category_id=cat_id,word__in=keys)
 
     hotkey_list = []
-    for key in hotkeys:
+    for id,key in id_map_key:
         hk = []
-        key_id = key_map_id.get(key.word)
-        hk.append(key_id)
-        hk.append(key.word.encode('utf8'))
-        hk.append(key.num_people)
-        hk.append(key.num_search)
-        hk.append(key.num_click)
-        hk.append(key.trade_click_ratio)
+        hk.append(id)
+        try:
+            hotkey = Hotkey.objects.get(category_id=cat_id,word=key)
+        except Hotkey.DoesNotExist:
+            hotkey = None
+
+        lz_key = LzKeyItem.objects.filter(auction_id=num_iid,originalword=key)\
+            .filter(update__gte=lz_f_dt,update__lte=lz_t_dt)\
+            .aggregate(collnums=Sum('coll_num'),finclicks=Sum('finclick'),finprices=Sum('finprice')
+                       ,alipay_amts=Sum('alipay_amt'),alipay_nums=Sum('alipay_num'))
+
+        hk.append(key)
+        hk.append(hotkey.num_people if hotkey else None)
+        hk.append(hotkey.num_search if hotkey else None)
+        hk.append(hotkey.num_click if hotkey else None)
+        hk.append(hotkey.trade_click_ratio if hotkey else None)
+        hk.append(lz_key['finprices'])
+        hk.append(lz_key['finclicks'])
+        hk.append(lz_key['alipay_amts'])
+        hk.append(lz_key['alipay_nums'])
+        hk.append(lz_key['collnums'])
         hotkey_list.append(hk)
 
     return HttpResponse(json.dumps(hotkey_list,indent=4),mimetype='application/json')
@@ -293,7 +309,8 @@ def saveLzKeyItems(dt,owner,limit,lzsession):
             lz_key.id = None
             for k,v in lz_data.iteritems():
                 hasattr(lz_key,k) and setattr(lz_key,k,v)
-            lz_key.efficiency = lz_data['efficiency'] if lz_data['efficiency'] else ''
+            lz_key.effect_rank = lz_data['effect_rank'] if lz_data['effect_rank'] else '0'
+            lz_key.efficiency  = lz_data['efficiency'] if lz_data['efficiency'] else '0'
             lz_key.save()
 
     except Exception,exc:
