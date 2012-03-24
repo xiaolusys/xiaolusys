@@ -100,9 +100,20 @@ class LzKeyItem(models.Model):
     auction_id  = models.BigIntegerField(null=True,db_index=True)
     avg_finprice  = models.IntegerField(null=True)
 
-    update = models.CharField(max_length=10,db_index=True)
+    updated = models.CharField(max_length=10,db_index=True)
 
     class Meta:
         db_table = 'subway_lzkeyitem'
+
+
+class TcKeyLift(models.Model):
+    word        = models.CharField(max_length=64,db_index=True)
+    category_id = models.CharField(max_length=64,blank=True)
+    lift_val    = models.CharField(max_length=8,blank=True)
+
+    updated     = models.CharField(max_length=10,db_index=True)
+
+    class Meta:
+        db_table = 'subway_tckeylift'
 
 

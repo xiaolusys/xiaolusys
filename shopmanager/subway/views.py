@@ -7,10 +7,10 @@ import datetime
 from django.http import HttpResponse
 from django.db.models import Max,Sum
 from django.views.decorators.csrf import csrf_exempt
-from subway.models import Hotkey, KeyScore, ZtcItem,LzKeyItem
+from subway.models import Hotkey, KeyScore, ZtcItem,LzKeyItem,TcKeyLift
 from autolist.models import ProductItem
 from auth.utils import unquote
-from subway.apis import taoci_proxy,liangzi_proxy
+from subway.apis import taoci_proxy,liangzi_proxy,taoci_lift_proxy
 from auth.utils import format_time,parse_datetime,format_datetime,format_date
 import logging
 
@@ -230,10 +230,11 @@ def getCatHotKeys(request):
     #keys = key_map_id.keys()
 
     if not (lz_f_dt and lz_t_dt):
-        today = datetime.datetime.now() - datetime.timedelta(3,0,0)
-        lz_f_dt = lz_t_dt = format_date(today)
+        three_day_ago = datetime.datetime.now() - datetime.timedelta(3,0,0)
+        lz_f_dt = lz_t_dt = format_date(three_day_ago)
 
     cat_id = ZtcItem.objects.get(num_iid=num_iid).cat_id
+    last_day_dt = format_date(datetime.datetime.now()-datetime.timedelta(1,0,0))
 
     hotkey_list = []
     for id,key in id_map_key:
@@ -245,9 +246,13 @@ def getCatHotKeys(request):
             hotkey = None
 
         lz_key = LzKeyItem.objects.filter(auction_id=num_iid,originalword=key)\
-            .filter(update__gte=lz_f_dt,update__lte=lz_t_dt)\
+            .filter(updated__gte=lz_f_dt,updated__lte=lz_t_dt)\
             .aggregate(collnums=Sum('coll_num'),finclicks=Sum('finclick'),finprices=Sum('finprice')
                        ,alipay_amts=Sum('alipay_amt'),alipay_nums=Sum('alipay_num'))
+        try:
+            key_lift = TcKeyLift.objects.get(category_id= cat_id,word=key,updated=last_day_dt)
+        except TcKeyLift.DoesNotExist:
+            key_lift = None
 
         hk.append(key)
         hk.append(hotkey.num_people if hotkey else None)
@@ -259,6 +264,7 @@ def getCatHotKeys(request):
         hk.append(lz_key['alipay_amts'])
         hk.append(lz_key['alipay_nums'])
         hk.append(lz_key['collnums'])
+        hk.append(key_lift.lift_val if key_lift else None)
         hotkey_list.append(hk)
 
     return HttpResponse(json.dumps(hotkey_list,indent=4),mimetype='application/json')
@@ -301,7 +307,7 @@ def saveLzKeyItems(dt,owner,limit,lzsession):
             logger.error('get seller liangzi data fault,return content:%s'%content)
 
         lz_key = LzKeyItem()
-        lz_key.update = dt
+        lz_key.updated = dt
         lz_key.owner  = owner
 
         for lz_data in lz_data_list:
@@ -321,10 +327,10 @@ def updateLzKeysItems(request):
 
     lzsession = request.GET.get('lzsession')
     owner     = request.GET.get('owner')
-    limit     = request.GET.get('limit',50)
+    limit     = request.GET.get('limit',100)
 
     lzkey  = LzKeyItem.objects.filter(owner=owner).\
-        extra(select={'lastest_update':'MAX( distinct subway_lzkeyitem.update)'}).values('lastest_update')
+        extra(select={'lastest_update':'MAX(updated)'}).values('lastest_update')
 
     lastest_update = lzkey[0]['lastest_update']
     is_modify = False
@@ -382,10 +388,23 @@ def saveTaociBycid(today_end,keys):
 
 
 
+
+def saveTaociLiftValueByCid(last_day_dt,cat_id,keys):
+
+    n = keys[0][-1]
+
+    for i in range(0,n):
+        item = keys[0][i]
+        TcKeyLift.objects.get_or_create(category_id=cat_id,word=item[1],lift_val=item[2],updated=last_day_dt)
+
+
+
+
 @csrf_exempt
 def updateTaociByCats(request):
     try:
         taoci_cookie = request.POST.get('taoci_cookie')
+        base_dt = request.POST.get('base_dt')
         f_dt   = request.POST.get('f_dt')
         t_dt   = request.POST.get('t_dt')
         cat_ids = request.POST.get('cat_ids')
@@ -396,18 +415,18 @@ def updateTaociByCats(request):
         dt = datetime.datetime.now()
         today_end = datetime.datetime(dt.year,dt.month,dt.day,23,59,59)
 
-        if not f_dt or not t_dt:
+        if not base_dt or not f_dt or not t_dt:
 
             last_day = dt - datetime.timedelta(1,0,0)
-            f_dt = t_dt = format_date(last_day)
+            base_dt = f_dt = t_dt = format_date(last_day)
 
         cat_ids = cat_ids.split(',')
         unupdate_cats = []
         taoci_cookie = urllib.unquote(taoci_cookie)
 
         for cat_id in cat_ids:
-
-            response,content = taoci_proxy(f_dt,t_dt,cat_id,taoci_cookie)
+            #save category's taoci keys
+            response,content = taoci_proxy(base_dt=base_dt,f_dt=f_dt,t_dt=t_dt,cat_id=cat_id,cookie=taoci_cookie)
             keys = json.loads(content)
 
             if isinstance(keys,dict) and keys.has_key('code'):
@@ -415,6 +434,17 @@ def updateTaociByCats(request):
                 continue
 
             saveTaociBycid(today_end,keys)
+
+            #save category's taoci lift_val
+            last_day_dt = format_date(dt-datetime.timedelta(1,0,0))
+
+            response,content = taoci_lift_proxy(base_dt=base_dt,f_dt=f_dt,t_dt=t_dt,cat_id=cat_id,cookie=taoci_cookie)
+            keys = json.loads(content)
+
+            if isinstance(keys,dict) and keys.has_key('code'):
+                continue
+
+            saveTaociLiftValueByCid(last_day_dt,cat_id,keys)
 
     except Exception,exc:
         logger.error('updateTaociByCats error:%s'%exc, exc_info=True)
