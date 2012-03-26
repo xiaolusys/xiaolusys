@@ -47,6 +47,13 @@ def subway_proxy(api_url,method='GET'):
 
 
 
+@subway_proxy('bidword/queryScore4Words.htm',method='POST')
+def bidword_queryScore4Words(token=None,campaignId=None,cookie=None,params={}):
+    pass
+
+
+
+
 def taoci_proxy(base_dt=None,f_dt=None,t_dt=None,cat_id=None,cookie=None):
 
     headers = {
@@ -61,10 +68,10 @@ def taoci_proxy(base_dt=None,f_dt=None,t_dt=None,cat_id=None,cookie=None):
                 'Cookie':cookie,}
 
     get_url = taoci_url%(base_dt,f_dt,t_dt,cat_id)
-    print get_url
+
     http = httplib2.Http()
     headers, content = http.request(get_url,'GET',headers=headers)
-    print headers,content
+
     return headers,content
 
 
@@ -112,8 +119,6 @@ def liangzi_proxy(limit=50,f_dt=None,t_dt=None,session=None):
 
 
 
-@subway_proxy('bidword/queryScore4Words.htm',method='POST')
-def bidword_queryScore4Words(token=None,campaignId=None,cookie=None,params={}):
-    pass
+
 
 

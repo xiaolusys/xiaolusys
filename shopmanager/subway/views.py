@@ -11,6 +11,7 @@ from subway.models import Hotkey, KeyScore, ZtcItem,LzKeyItem,TcKeyLift
 from autolist.models import ProductItem
 from auth.utils import unquote
 from subway.apis import taoci_proxy,liangzi_proxy,taoci_lift_proxy
+from subway.tasks import saveCatsTaocibyCookieTask
 from auth.utils import format_time,parse_datetime,format_datetime,format_date
 import logging
 
@@ -356,50 +357,6 @@ def updateLzKeysItems(request):
 
 
 
-
-def saveTaociBycid(today_end,keys):
-    SRH_WRD=1; SRH_PPL=2; SRH_TMS=3; CLK_TMS=4; MAL_CLK=5; CML_CLK=6; NUM_TRD=8; PRICE=10;
-
-    n = keys[0][-1]
-    for i in range(0,n):
-        item = keys[0][i]
-        try:
-            hotkey_item = Hotkey.objects.get(word=item[SRH_WRD],category_id=cat_id)
-
-            timedel = today_end - hotkey_item.updated
-            if timedel.days > 1:
-                hotkey_item.num_people=item[SRH_PPL]
-                hotkey_item.num_search=item[SRH_TMS]
-                hotkey_item.num_click=item[CLK_TMS]
-                hotkey_item.num_tmall_click=item[MAL_CLK]
-                hotkey_item.num_cmall_click=item[CML_CLK]
-                hotkey_item.num_trade=item[NUM_TRD] if cat_id else item[SRH_TMS]*float(item[SRH_CRT])
-                hotkey_item.category_id= cat_id if cat_id else ''
-                hotkey_item.ads_price_cent=item[PRICE]*100
-                hotkey_item.save()
-
-        except Hotkey.DoesNotExist:
-            hotkey_item = Hotkey.objects.create(
-                word=item[SRH_WRD],num_people=item[SRH_PPL],
-                num_search=item[SRH_TMS],num_click=item[CLK_TMS],
-                num_tmall_click=item[MAL_CLK],num_cmall_click=item[CML_CLK],
-                num_trade=item[NUM_TRD] if cat_id else item[SRH_TMS]*float(item[SRH_CRT])
-                ,ads_price_cent=item[PRICE]*100,category_id=cat_id if cat_id else '')
-
-
-
-
-def saveTaociLiftValueByCid(last_day_dt,cat_id,keys):
-
-    n = keys[0][-1]
-
-    for i in range(0,n):
-        item = keys[0][i]
-        TcKeyLift.objects.get_or_create(category_id=cat_id,word=item[1],lift_val=item[2],updated=last_day_dt)
-
-
-
-
 @csrf_exempt
 def updateTaociByCats(request):
     try:
@@ -412,44 +369,21 @@ def updateTaociByCats(request):
         if not taoci_cookie or not cat_ids:
             return HttpResponse(json.dumps({"code":1,"response_error":"taoci_cookie or cat_ids can't be null!"}))
 
-        dt = datetime.datetime.now()
-        today_end = datetime.datetime(dt.year,dt.month,dt.day,23,59,59)
-
         if not base_dt or not f_dt or not t_dt:
-
+            dt = datetime.datetime.now()
             last_day = dt - datetime.timedelta(1,0,0)
             base_dt = f_dt = t_dt = format_date(last_day)
 
         cat_ids = cat_ids.split(',')
-        unupdate_cats = []
         taoci_cookie = urllib.unquote(taoci_cookie)
 
-        for cat_id in cat_ids:
-            #save category's taoci keys
-            response,content = taoci_proxy(base_dt=base_dt,f_dt=f_dt,t_dt=t_dt,cat_id=cat_id,cookie=taoci_cookie)
-            keys = json.loads(content)
-
-            if isinstance(keys,dict) and keys.has_key('code'):
-                unupdate_cats.append(cat_id)
-                continue
-
-            saveTaociBycid(today_end,keys)
-
-            #save category's taoci lift_val
-            last_day_dt = format_date(dt-datetime.timedelta(1,0,0))
-
-            response,content = taoci_lift_proxy(base_dt=base_dt,f_dt=f_dt,t_dt=t_dt,cat_id=cat_id,cookie=taoci_cookie)
-            keys = json.loads(content)
-
-            if isinstance(keys,dict) and keys.has_key('code'):
-                continue
-
-            saveTaociLiftValueByCid(last_day_dt,cat_id,keys)
+        tc_task = saveCatsTaocibyCookieTask.delay(base_dt,f_dt,t_dt,cat_ids,taoci_cookie)
 
     except Exception,exc:
         logger.error('updateTaociByCats error:%s'%exc, exc_info=True)
 
-    return HttpResponse(json.dumps({"code":0,"unupdate_cats":unupdate_cats}))
+    return HttpResponse(json.dumps({"code":0,"reponse_content":{"task_id":tc_task.task_id}}))
+
 
 
 @csrf_exempt
