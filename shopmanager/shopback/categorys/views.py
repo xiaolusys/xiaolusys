@@ -1,5 +1,6 @@
 import json
 from django.http import HttpResponse
+from djangorestframework.serializer import Serializer
 from shopback.categorys.models import Category
 from shopback.categorys.tasks import RecurUpdateCategoreyTask
 
@@ -34,3 +35,12 @@ def getCategoryIds(request):
 
     return HttpResponse(json.dumps({'code':0,"response_content":cat_list}))
 
+
+def getCategoryTree(request):
+
+    cat_id = request.GET.get('cat_id')
+    cats   = Category.objects.filter(parent_cid=cat_id).order_by('sort_order')
+
+    cats_json = Serializer().serialize(cats)
+
+    return HttpResponse(json.dumps(cats_json),mimetype='application/json')

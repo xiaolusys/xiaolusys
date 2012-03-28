@@ -1,5 +1,5 @@
 from django.db import models
-
+from django.db import connection
 
 class Hotkey(models.Model):
     word = models.CharField(max_length=64,db_index=True)
@@ -12,7 +12,7 @@ class Hotkey(models.Model):
     num_trade = models.IntegerField()
 
     ads_price_cent = models.IntegerField() # price in cents
-    updated = models.DateTimeField(auto_now=True)
+    updated = models.CharField(max_length=10,db_index=True)
     
     def __unicode__(self):
         return self.word.encode('utf8')
@@ -41,8 +41,21 @@ class Hotkey(models.Model):
     def ads_price(self):
         return self.ads_price_cent * 0.01
 
+    @classmethod
+    def getRecommendNewKey(cls,base_dt,cat_id,limit):
+        cursor = connection.cursor()
+        cursor.execute("select sh.word, sh.num_people, sh.num_search,sh.num_click, sh.num_trade, sh.ads_price_cent,"+\
+            "(ROUND(num_trade/num_search,4)) AS search_ratio,st.lift_val FROM subway_hotkey sh RIGHT JOIN "+\
+            "subway_tckeylift st ON sh.word = st.word WHERE sh.updated=%s AND sh.category_id=%s "+\
+            "AND st.updated=%s AND st.category_id=%s ORDER BY search_ratio DESC LIMIT %s"
+                       ,(base_dt,cat_id,base_dt,cat_id,limit))
+
+        return cursor.fetchall()
+
+
     class Meta:
         db_table = 'subway_hotkey'
+
 
 
 
@@ -65,6 +78,8 @@ class KeyScore(models.Model):
         db_table = 'subway_keyscore'
 
 
+
+
 class ZtcItem(models.Model):
     owner = models.CharField(max_length=64,db_index=True)
     num_iid = models.CharField(max_length=64,db_index=True)
@@ -73,6 +88,8 @@ class ZtcItem(models.Model):
 
     class Meta:
         db_table = 'subway_ztcitem'
+
+
     
 
 class LzKeyItem(models.Model):
@@ -104,6 +121,17 @@ class LzKeyItem(models.Model):
 
     class Meta:
         db_table = 'subway_lzkeyitem'
+
+    @classmethod
+    def getGroupAttrsByIdAndWord(cls,num_iid,key_str,lz_f_dt,lz_t_dt):
+
+        cursor = connection.cursor()
+        cursor.execute('select originalword ,SUM(coll_num) collnums,SUM(finclick) finclicks '+
+            ',SUM(finprice) finprices,SUM(alipay_amt) alipay_amts,SUM(alipay_num) alipay_nums from subway_lzkeyitem '+
+            'where auction_id=%s and originalword in (%s) and updated >=%s and updated <=%s group by originalword '
+            , (num_iid,key_str,lz_f_dt,lz_t_dt))
+        return cursor.fetchall()
+
 
 
 class TcKeyLift(models.Model):

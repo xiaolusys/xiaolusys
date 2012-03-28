@@ -238,6 +238,16 @@ LOGGING = {
             'level': 'WARN',
             'propagate': True,
         },
+        'subway.taoci':{
+            'handlers': ['sentry'],
+            'level': 'WARN',
+            'propagate': True,
+        },
+        'subway.liangzi':{
+            'handlers': ['sentry'],
+            'level': 'WARN',
+            'propagate': True,
+        },
 
     }
 }

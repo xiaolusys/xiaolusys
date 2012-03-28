@@ -1,16 +1,25 @@
 from django.conf.urls.defaults import patterns, include, url
 
 
-urlpatterns = patterns('',
-    (r'^hotkeys/$','subway.views.saveHotkeys'),
-    (r'^sackeys/$','subway.views.selectAndCancleKeys'),
-    (r'^keyscores/$','subway.views.saveOrUpdateKeyScores'),
-    (r'^topkeys/$','subway.views.getValuableHotKeys'),
+urlpatterns = patterns('subway.views',
+    (r'^hotkeys/$','saveHotkeys'),
+    (r'^sackeys/$','selectAndCancleKeys'),
+    (r'^keyscores/$','saveOrUpdateKeyScores'),
+    (r'^topkeys/$','getValuableHotKeys'),
+    (r'^cookie/save/$','getSubwayCookie'),
 
-    (r'^cookie/save/$','subway.views.getSubwayCookie'),
-    (r'^taoci/update/$','subway.views.updateTaociByCats'),
-    (r'^catkeys/$','subway.views.getCatHotKeys'),
-    (r'^saveztcitem/$', 'subway.views.saveZtcItem'),
+    (r'^saveztcitem/$', 'saveZtcItem'),
+    (r'^catkeys/$','getCatHotKeys'),
+)
 
-    (r'^lzkey/update/$', 'subway.views.updateLzKeysItems'),
+urlpatterns += patterns('subway.tc_views',
+    (r'^taoci/update/$','updateTaociByCats'),
+    (r'^taoci/getorupdate/$', 'getOrUpdateTaociKey'),
+    (r'^taoci/recomend/$','getRecommendNewAndHotKey'),
+)
+
+urlpatterns += patterns('subway.lz_views',
+
+    (r'^lzkey/update/$', 'updateLzKeysItems'),
+    (r'^lzkey/getorupdate/$', 'getOrUpdateLiangZiKey'),
 )

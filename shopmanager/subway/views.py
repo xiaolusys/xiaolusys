@@ -11,8 +11,8 @@ from subway.models import Hotkey, KeyScore, ZtcItem,LzKeyItem,TcKeyLift
 from autolist.models import ProductItem
 from auth.utils import unquote
 from subway.apis import taoci_proxy,liangzi_proxy,taoci_lift_proxy
-from subway.tasks import saveCatsTaocibyCookieTask
 from auth.utils import format_time,parse_datetime,format_datetime,format_date
+from subway.utils import access_control_allow_origin
 import logging
 
 logger = logging.getLogger('subway.hotkey')
@@ -218,7 +218,7 @@ def getValuableHotKeys(request):
     return HttpResponse(json.dumps({"code":0,"response_content":hot_keyscores}))
 
 
-
+@access_control_allow_origin
 def getCatHotKeys(request):
     num_iid = request.GET.get('num_iid')
     id_map_key = request.GET.get('id_map_key')
@@ -231,8 +231,10 @@ def getCatHotKeys(request):
     #keys = key_map_id.keys()
 
     if not (lz_f_dt and lz_t_dt):
+        ten_day_ago   = datetime.datetime.now() - datetime.timedelta(10,0,0)
         three_day_ago = datetime.datetime.now() - datetime.timedelta(3,0,0)
-        lz_f_dt = lz_t_dt = format_date(three_day_ago)
+        lz_f_dt = format_date(ten_day_ago)
+        lz_t_dt = format_date(three_day_ago)
 
     cat_id = ZtcItem.objects.get(num_iid=num_iid).cat_id
     last_day_dt = format_date(datetime.datetime.now()-datetime.timedelta(1,0,0))
@@ -242,7 +244,7 @@ def getCatHotKeys(request):
         hk = []
         hk.append(id)
         try:
-            hotkey = Hotkey.objects.get(category_id=cat_id,word=key)
+            hotkey = Hotkey.objects.get(category_id=cat_id,word=key,updated=last_day_dt)
         except Hotkey.DoesNotExist:
             hotkey = None
 
@@ -272,6 +274,7 @@ def getCatHotKeys(request):
 
 
 
+
 def getSubwayCookie(request):
 
     rex_user_id = re.compile('unb=(?P<user_id>\w+);')
@@ -298,103 +301,20 @@ def getSubwayCookie(request):
         return HttpResponse(json.dumps({"code":1,"response_error":"The userid or usernick is not in the cookie."}))
 
 
-def saveLzKeyItems(dt,owner,limit,lzsession):
-    try:
-        response,content = liangzi_proxy(limit=limit,f_dt=dt,t_dt=dt,session=lzsession)
-        lz_data_list = json.loads(content)
-        lz_data_list = lz_data_list.get('list',None)
-
-        if not lz_data_list:
-            logger.error('get seller liangzi data fault,return content:%s'%content)
-
-        lz_key = LzKeyItem()
-        lz_key.updated = dt
-        lz_key.owner  = owner
-
-        for lz_data in lz_data_list:
-
-            lz_key.id = None
-            for k,v in lz_data.iteritems():
-                hasattr(lz_key,k) and setattr(lz_key,k,v)
-            lz_key.effect_rank = lz_data['effect_rank'] if lz_data['effect_rank'] else '0'
-            lz_key.efficiency  = lz_data['efficiency'] if lz_data['efficiency'] else '0'
-            lz_key.save()
-
-    except Exception,exc:
-        logger.error(' saveLzKeyItems error:%s'%exc, exc_info=True)
-
-
-def updateLzKeysItems(request):
-
-    lzsession = request.GET.get('lzsession')
-    owner     = request.GET.get('owner')
-    limit     = request.GET.get('limit',100)
-
-    lzkey  = LzKeyItem.objects.filter(owner=owner).\
-        extra(select={'lastest_update':'MAX(updated)'}).values('lastest_update')
-
-    lastest_update = lzkey[0]['lastest_update']
-    is_modify = False
-    today = datetime.datetime.now()
-    last_four_days = format_date(today - datetime.timedelta(4,0,0))
-
-    if not lastest_update or lastest_update<last_four_days:
-        for i in xrange(3,10):
-            time_delta = datetime.timedelta(i,0,0)
-            last_few_days = format_date(today - time_delta)
-            if not lastest_update or lastest_update<last_few_days:
-                saveLzKeyItems(last_few_days,owner,limit,lzsession)
-                is_modify = True
-                time.sleep(1)
-
-    elif lastest_update == last_four_days:
-
-        dt = format_date(today - datetime.timedelta(3,0,0))
-        saveLzKeyItems(dt,owner,limit,lzsession)
-        is_modify = True
-
-    return HttpResponse(json.dumps({"code":0,"modified":1 if is_modify else 0}))
-
-
-
-@csrf_exempt
-def updateTaociByCats(request):
-    try:
-        taoci_cookie = request.POST.get('taoci_cookie')
-        base_dt = request.POST.get('base_dt')
-        f_dt   = request.POST.get('f_dt')
-        t_dt   = request.POST.get('t_dt')
-        cat_ids = request.POST.get('cat_ids')
-
-        if not taoci_cookie or not cat_ids:
-            return HttpResponse(json.dumps({"code":1,"response_error":"taoci_cookie or cat_ids can't be null!"}))
-
-        if not base_dt or not f_dt or not t_dt:
-            dt = datetime.datetime.now()
-            last_day = dt - datetime.timedelta(1,0,0)
-            base_dt = f_dt = t_dt = format_date(last_day)
-
-        cat_ids = cat_ids.split(',')
-        taoci_cookie = urllib.unquote(taoci_cookie)
-
-        tc_task = saveCatsTaocibyCookieTask.delay(base_dt,f_dt,t_dt,cat_ids,taoci_cookie)
-
-    except Exception,exc:
-        logger.error('updateTaociByCats error:%s'%exc, exc_info=True)
-
-    return HttpResponse(json.dumps({"code":0,"reponse_content":{"task_id":tc_task.task_id}}))
-
 
 
 @csrf_exempt
 def saveZtcItem(request):
+
     owner = request.GET.get('owner', None)
     num_iid = request.GET.get('num_iid', None)
     cat_id = request.GET.get('cat_id', None)
     cat_name = request.GET.get('cat_name', None)
+
     if (owner and num_iid and cat_id and cat_name):
         ZtcItem.objects.create(owner=owner,num_iid=num_iid,cat_id=cat_id,cat_name=cat_name)
         return HttpResponse(json.dumps({"code":0}))
+
     return HttpResponse(json.dumps({"code":1}))
         
 
