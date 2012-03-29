@@ -35,7 +35,7 @@ class Hotkey(models.Model):
 
     @property
     def trade_click_ratio(self):
-        return round(self.num_trade*1.0 / self.num_click,2)
+        return round(self.num_trade*1.0 / self.num_click,4)
 
     @property
     def ads_price(self):
@@ -125,11 +125,14 @@ class LzKeyItem(models.Model):
     @classmethod
     def getGroupAttrsByIdAndWord(cls,num_iid,key_str,lz_f_dt,lz_t_dt):
 
+        key_str = key_str.decode('utf8')
         cursor = connection.cursor()
-        cursor.execute('select originalword ,SUM(coll_num) collnums,SUM(finclick) finclicks '+
-            ',SUM(finprice) finprices,SUM(alipay_amt) alipay_amts,SUM(alipay_num) alipay_nums from subway_lzkeyitem '+
-            'where auction_id=%s and originalword in (%s) and updated >=%s and updated <=%s group by originalword '
-            , (num_iid,key_str,lz_f_dt,lz_t_dt))
+        sql = "select originalword ,SUM(coll_num) collnums,SUM(finclick) finclicks "+\
+            ",SUM(finprice) finprices,SUM(alipay_amt) alipay_amts,SUM(alipay_num) alipay_nums from subway_lzkeyitem "+\
+            "where auction_id=%s and originalword in (%s) and updated >='%s' and updated <='%s' group by originalword "%\
+           (num_iid,key_str,lz_f_dt,lz_t_dt)
+
+        cursor.execute(sql)
         return cursor.fetchall()
 
 

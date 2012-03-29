@@ -16,23 +16,21 @@ def saveLzKeyItems(dt,owner,limit,lzsession):
     try:
         response,content = liangzi_proxy(limit=limit,f_dt=dt,t_dt=dt,session=lzsession)
         lz_data_list = json.loads(content)
-        lz_data_list = lz_data_list.get('list',None)
+        lz_data_list = lz_data_list.get('list',[])
 
         if not lz_data_list:
             logger.error('get seller liangzi data fault,return content:%s'%content)
 
-        lz_key = LzKeyItem()
-        lz_key.updated = dt
-        lz_key.owner  = owner
-
         for lz_data in lz_data_list:
 
-            lz_key.id = None
-            for k,v in lz_data.iteritems():
-                hasattr(lz_key,k) and setattr(lz_key,k,v)
-            lz_key.effect_rank = lz_data['effect_rank'] if lz_data['effect_rank'] else '0'
-            lz_key.efficiency  = lz_data['efficiency'] if lz_data['efficiency'] else '0'
-            lz_key.save()
+            lz_key,create = LzKeyItem.objects.get_or_create\
+                    (owner=owner,update=dt,auction_id=lz_data['auction_id'],originalword=lz_data['originalword'])
+            if create:
+                for k,v in lz_data.iteritems():
+                    hasattr(lz_key,k) and setattr(lz_key,k,v)
+                lz_key.effect_rank = lz_data['effect_rank'] if lz_data['effect_rank'] else '0'
+                lz_key.efficiency  = lz_data['efficiency'] if lz_data['efficiency'] else '0'
+                lz_key.save()
 
     except Exception,exc:
         logger.error(' saveLzKeyItems error:%s'%exc, exc_info=True)
@@ -52,22 +50,16 @@ def updateLzKeysItems(request):
     lastest_update = lzkey[0]['lastest_update']
     is_modify = False
     today = datetime.datetime.now()
-    last_four_days = format_date(today - datetime.timedelta(4,0,0))
+    last_three_days = format_date(today - datetime.timedelta(3,0,0))
 
-    if not lastest_update or lastest_update<last_four_days:
+    if not lastest_update or lastest_update<=last_three_days:
         for i in xrange(3,10):
             time_delta = datetime.timedelta(i,0,0)
             last_few_days = format_date(today - time_delta)
             if not lastest_update or lastest_update<last_few_days:
                 saveLzKeyItems(last_few_days,owner,limit,lzsession)
                 is_modify = True
-                time.sleep(1)
 
-    elif lastest_update == last_four_days:
-
-        dt = format_date(today - datetime.timedelta(3,0,0))
-        saveLzKeyItems(dt,owner,limit,lzsession)
-        is_modify = True
 
     return HttpResponse(json.dumps({"code":0,"modified":1 if is_modify else 0}))
 
@@ -94,7 +86,7 @@ def getOrUpdateLiangZiKey(request):
         lz_f_dt = format_date(ten_day_ago)
         lz_t_dt = format_date(three_day_ago)
 
-    lz_key_items = LzKeyItem.objects.filter(updated__gte=lz_t_dt,updated__lte=lz_t_dt)[0:1]
+    lz_key_items = LzKeyItem.objects.filter(owner=owner,updated__gte=lz_t_dt,updated__lte=lz_t_dt)[0:1]
 
     if len(lz_key_items) == 0:
 
@@ -104,22 +96,18 @@ def getOrUpdateLiangZiKey(request):
         lastest_update = lzkey[0]['lastest_update']
 
         today = datetime.datetime.now()
-        last_four_days = format_date(today - datetime.timedelta(4,0,0))
+        last_three_days = today - datetime.timedelta(3,0,0)
 
-        if not lastest_update or lastest_update<last_four_days:
+        if not lastest_update or lastest_update<=last_three_days:
             for i in xrange(3,10):
                 time_delta = datetime.timedelta(i,0,0)
                 last_few_days = format_date(today - time_delta)
                 if not lastest_update or lastest_update<last_few_days:
                     saveLzKeyItems(last_few_days,owner,limit,lzsession)
-                    time.sleep(1)
-
-        elif lastest_update == last_four_days:
-            dt = format_date(today - datetime.timedelta(3,0,0))
-            saveLzKeyItems(dt,owner,limit,lzsession)
 
     keys = [ key.encode('utf8') for key in keys]
-    key_str   = ','.join(keys)
+    key_str   = ','.join(["'"+key+"'" for key in keys])
+
     lz_key_tuple = LzKeyItem.getGroupAttrsByIdAndWord(num_iid,key_str,lz_f_dt,lz_t_dt)
 
     lz_key_list  = []

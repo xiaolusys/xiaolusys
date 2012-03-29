@@ -69,6 +69,7 @@ def saveHotkeys(request):
 
 
 
+
 @csrf_exempt
 def selectAndCancleKeys(request):
 
@@ -113,6 +114,7 @@ def selectAndCancleKeys(request):
 
 
 
+
 @csrf_exempt
 def saveOrUpdateKeyScores(request):
 
@@ -150,6 +152,8 @@ def saveOrUpdateKeyScores(request):
                 num_view = ks[1],num_click = ks[2],avg_cost = ks[3]*100,score = ks[4],status=1)
 
     return HttpResponse(json.dumps({"code":0,"response_content":"success"}))
+
+
 
 
 def getValuableHotKeys(request):
@@ -218,6 +222,8 @@ def getValuableHotKeys(request):
     return HttpResponse(json.dumps({"code":0,"response_content":hot_keyscores}))
 
 
+
+
 @access_control_allow_origin
 def getCatHotKeys(request):
     num_iid = request.GET.get('num_iid')
@@ -236,7 +242,11 @@ def getCatHotKeys(request):
         lz_f_dt = format_date(ten_day_ago)
         lz_t_dt = format_date(three_day_ago)
 
-    cat_id = ZtcItem.objects.get(num_iid=num_iid).cat_id
+    try:
+        cat_id = ZtcItem.objects.get(num_iid=num_iid).cat_id
+    except ZtcItem.DoesNotExist:
+        return HttpResponse(json.dumps({"code":1,"response_error":"Cat_id is not record!"}))
+
     last_day_dt = format_date(datetime.datetime.now()-datetime.timedelta(1,0,0))
 
     hotkey_list = []
@@ -298,7 +308,7 @@ def getSubwayCookie(request):
 
         return HttpResponse(json.dumps({"code":0,"response_content":"save cookie success!"}))
     else:
-        return HttpResponse(json.dumps({"code":1,"response_error":"The userid or usernick is not in the cookie."}))
+        return HttpResponse(json.dumps({"code":1,"response_error":"The userid or usernick needed!"}))
 
 
 
