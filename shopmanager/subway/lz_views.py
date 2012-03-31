@@ -6,34 +6,36 @@ from django.http import HttpResponse
 from subway.models import LzKeyItem
 from subway.apis import taoci_proxy,liangzi_proxy,taoci_lift_proxy
 from subway.tasks import saveCatsTaocibyCookieTask
-from auth.utils import format_time,parse_datetime,format_datetime,format_date
+from auth.utils import format_time,parse_datetime,format_datetime,format_date,parse_date
 import logging
 
 logger = logging.getLogger('subway.liangzi')
 
 
 def saveLzKeyItems(dt,owner,limit,lzsession):
-    try:
-        response,content = liangzi_proxy(limit=limit,f_dt=dt,t_dt=dt,session=lzsession)
-        lz_data_list = json.loads(content)
-        lz_data_list = lz_data_list.get('list',[])
+    lz_keys = LzKeyItem.objects.filter(owner=owner,updated=dt)[0:1]
+    if len(lz_keys)==0:
+        try:
+            response,content = liangzi_proxy(limit=limit,f_dt=dt,t_dt=dt,session=lzsession)
+            lz_data_list = json.loads(content)
+            lz_data_list = lz_data_list.get('list',[])
 
-        if not lz_data_list:
-            logger.error('get seller liangzi data fault,return content:%s'%content)
+            if not lz_data_list:
+                logger.error('get seller liangzi data fault,return content:%s'%content)
 
-        for lz_data in lz_data_list:
+            for lz_data in lz_data_list:
 
-            lz_key,create = LzKeyItem.objects.get_or_create\
-                    (owner=owner,update=dt,auction_id=lz_data['auction_id'],originalword=lz_data['originalword'])
-            if create:
-                for k,v in lz_data.iteritems():
-                    hasattr(lz_key,k) and setattr(lz_key,k,v)
-                lz_key.effect_rank = lz_data['effect_rank'] if lz_data['effect_rank'] else '0'
-                lz_key.efficiency  = lz_data['efficiency'] if lz_data['efficiency'] else '0'
-                lz_key.save()
+                lz_key,create = LzKeyItem.objects.get_or_create\
+                        (owner=owner,update=dt,auction_id=lz_data['auction_id'],originalword=lz_data['originalword'])
+                if create:
+                    for k,v in lz_data.iteritems():
+                        hasattr(lz_key,k) and setattr(lz_key,k,v)
+                    lz_key.effect_rank = lz_data['effect_rank'] if lz_data['effect_rank'] else '0'
+                    lz_key.efficiency  = lz_data['efficiency'] if lz_data['efficiency'] else '0'
+                    lz_key.save()
 
-    except Exception,exc:
-        logger.error(' saveLzKeyItems error:%s'%exc, exc_info=True)
+        except Exception,exc:
+            logger.error(' saveLzKeyItems error:%s'%exc, exc_info=True)
 
 
 
@@ -41,24 +43,31 @@ def saveLzKeyItems(dt,owner,limit,lzsession):
 def updateLzKeysItems(request):
 
     lzsession = request.GET.get('lzsession')
+    lz_f_dt = request.GET.get('lz_f_dt')
+    lz_t_dt = request.GET.get('lz_t_dt')
     owner     = request.GET.get('owner')
     limit     = request.GET.get('limit',100)
 
-    lzkey  = LzKeyItem.objects.filter(owner=owner).\
-        extra(select={'lastest_update':'MAX(updated)'}).values('lastest_update')
+    dt = datetime.datetime.now()
+    if not (lz_f_dt and lz_t_dt):
+        ten_day_ago   = dt - datetime.timedelta(10,0,0)
+        three_day_ago = dt - datetime.timedelta(3,0,0)
+        lz_f_dt = ten_day_ago
+        lz_t_dt = three_day_ago
+    else:
+        lz_f_dt = parse_date(lz_f_dt)
+        lz_t_dt = parse_date(lz_t_dt)
+        det_dt = dt - lz_t_dt
+        if det_dt.days<3:
+            lz_t_dt = dt - datetime.timedelta(3,0,0)
 
-    lastest_update = lzkey[0]['lastest_update']
-    is_modify = False
-    today = datetime.datetime.now()
-    last_three_days = format_date(today - datetime.timedelta(3,0,0))
-
-    if not lastest_update or lastest_update<=last_three_days:
-        for i in xrange(3,10):
-            time_delta = datetime.timedelta(i,0,0)
-            last_few_days = format_date(today - time_delta)
-            if not lastest_update or lastest_update<last_few_days:
-                saveLzKeyItems(last_few_days,owner,limit,lzsession)
-                is_modify = True
+    del_dt  = lz_t_dt-lz_f_dt
+    days =  del_dt.days if del_dt.days>0 else 1
+    for i in xrange(0,days):
+        time_delta = datetime.timedelta(i,0,0)
+        last_few_days = format_date(lz_t_dt - time_delta)
+        saveLzKeyItems(last_few_days,owner,limit,lzsession)
+        is_modify = True
 
 
     return HttpResponse(json.dumps({"code":0,"modified":1 if is_modify else 0}))
@@ -80,30 +89,25 @@ def getOrUpdateLiangZiKey(request):
     key_map_id = dict([(key[1],key[0]) for key in id_map_key])
     keys = key_map_id.keys()
 
+    dt = datetime.datetime.now()
     if not (lz_f_dt and lz_t_dt):
-        ten_day_ago   = datetime.datetime.now() - datetime.timedelta(10,0,0)
-        three_day_ago = datetime.datetime.now() - datetime.timedelta(3,0,0)
-        lz_f_dt = format_date(ten_day_ago)
-        lz_t_dt = format_date(three_day_ago)
+        ten_day_ago   = dt - datetime.timedelta(10,0,0)
+        three_day_ago = dt - datetime.timedelta(3,0,0)
+        lz_f_dt = ten_day_ago
+        lz_t_dt = three_day_ago
+    else:
+        lz_f_dt = parse_date(lz_f_dt)
+        lz_t_dt = parse_date(lz_t_dt)
+        det_dt = dt - lz_t_dt
+        if det_dt.days<3:
+            lz_t_dt = dt - datetime.timedelta(3,0,0)
 
-    lz_key_items = LzKeyItem.objects.filter(owner=owner,updated__gte=lz_t_dt,updated__lte=lz_t_dt)[0:1]
-
-    if len(lz_key_items) == 0:
-
-        lzkey  = LzKeyItem.objects.filter(owner=owner).\
-            extra(select={'lastest_update':'MAX(updated)'}).values('lastest_update')
-
-        lastest_update = lzkey[0]['lastest_update']
-
-        today = datetime.datetime.now()
-        last_three_days = today - datetime.timedelta(3,0,0)
-
-        if not lastest_update or lastest_update<=last_three_days:
-            for i in xrange(3,10):
-                time_delta = datetime.timedelta(i,0,0)
-                last_few_days = format_date(today - time_delta)
-                if not lastest_update or lastest_update<last_few_days:
-                    saveLzKeyItems(last_few_days,owner,limit,lzsession)
+    del_dt  = lz_t_dt-lz_f_dt
+    days =  del_dt.days if del_dt.days>0 else 1
+    for i in xrange(0,days):
+        time_delta = datetime.timedelta(i,0,0)
+        last_few_days = format_date(lz_t_dt - time_delta)
+        saveLzKeyItems(last_few_days,owner,limit,lzsession)
 
     keys = [ key.encode('utf8') for key in keys]
     key_str   = ','.join(["'"+key+"'" for key in keys])

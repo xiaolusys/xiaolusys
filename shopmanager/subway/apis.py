@@ -2,6 +2,8 @@ import urllib
 import httplib2
 
 base_subway_url = 'http://subway.simba.taobao.com/'
+subway_keyword_url = "http://api.linezing.com/=/view/bp/keyword?adid=%s&dt=1&custid=%s&sign_t=%s&sign=%s&fmt=jsonp&t=%s&_s=1"
+
 
 taoci_url = 'http://cube.data.taobao.com/cubex/proxy/s/db/keywords/fact_cat_top_query_d/'+\
                'get_taoci_hotkeys_rank_detail/param/tfix:200/where/f0:eq:%s/where/r1:ge:%s/'+\

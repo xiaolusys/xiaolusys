@@ -60,19 +60,20 @@ class Hotkey(models.Model):
 
 
 class KeyScore(models.Model):
-    hotkey = models.ForeignKey(Hotkey)
+
+    word     = models.CharField(max_length=64,db_index=True)
+    num_iid  = models.CharField(max_length=64,db_index=True)
+    campaign_id  = models.CharField(max_length=32,blank=True)
 
     bid_price = models.CharField(max_length=10,blank=True)
-    num_iid = models.CharField(max_length=64,db_index=True)
     num_view  = models.IntegerField(null=True)
     num_click = models.IntegerField(null=True)
-    avg_cost = models.IntegerField(null=True)
-    score = models.IntegerField(null=True)
-    updated = models.DateTimeField(auto_now=True)
+    avg_cost  = models.IntegerField(null=True)
+    score     = models.IntegerField(null=True)
+    bid_rank  = models.CharField(max_length=10,blank=True)
 
-    bid_rank = models.CharField(max_length=10,blank=True)
-    modify = models.IntegerField(default=0)
-    status = models.IntegerField(default=0)
+    updated  = models.CharField(max_length=10,db_index=True)
+    status   = models.IntegerField(default=0)
 
     class Meta:
         db_table = 'subway_keyscore'
@@ -147,4 +148,38 @@ class TcKeyLift(models.Model):
     class Meta:
         db_table = 'subway_tckeylift'
 
+
+
+
+class HotkeyStatic(models.Model):
+    word = models.CharField(max_length=64,db_index=True)
+    category_id = models.CharField(max_length=64,blank=True)
+    num_people = models.IntegerField()
+    num_search = models.IntegerField()
+    num_click = models.IntegerField()
+    num_tmall_click = models.IntegerField()
+    num_cmall_click = models.IntegerField()
+    num_trade = models.IntegerField()
+
+    ads_price_cent = models.IntegerField() # price in cents
+
+    class Meta:
+        db_table = 'subway_hotkeystatic'
+
+    @classmethod
+    def updateHotkeyStaticFromHotkey(cls,cat_id,f_dt,t_dt):
+
+        cursor = connection.cursor()
+
+        #delete the old records
+        del_sql = "delete from subway_hotkeystatic where category_id =%s"%cat_id
+        cursor.execute(del_sql)
+        #save the new records
+        update_sql = "insert into subway_hotkeystatic(word,category_id,num_people,num_search,num_click,num_tmall_click"+\
+            ",num_cmall_click,num_trade,ads_price_cent) select word,category_id,SUM(num_people),SUM(num_search)"+\
+            ",SUM(num_click),SUM(num_tmall_click),SUM(num_cmall_click),SUM(num_trade),AVG(ads_price_cent) "+\
+            "from subway_hotkey where category_id = %s and updated >='%s' and updated <='%s' group by word "%\
+            (cat_id,f_dt,t_dt)
+
+        cursor.execute(update_sql)
 

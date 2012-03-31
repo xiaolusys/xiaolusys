@@ -2,11 +2,10 @@ from django.conf.urls.defaults import patterns, include, url
 
 
 urlpatterns = patterns('subway.views',
-    (r'^hotkeys/$','saveHotkeys'),
+
     (r'^sackeys/$','selectAndCancleKeys'),
-    (r'^keyscores/$','saveOrUpdateKeyScores'),
-    (r'^topkeys/$','getValuableHotKeys'),
-    (r'^cookie/save/$','getSubwayCookie'),
+    (r'^keyscores/save/$','saveKeyScores'),
+    #(r'^cookie/save/$','getSubwayCookie'),
 
     (r'^saveztcitem/$', 'saveZtcItem'),
     (r'^catkeys/$','getCatHotKeys'),
@@ -15,7 +14,8 @@ urlpatterns = patterns('subway.views',
 urlpatterns += patterns('subway.tc_views',
     (r'^taoci/update/$','updateTaociByCats'),
     (r'^taoci/getorupdate/$', 'getOrUpdateTaociKey'),
-    (r'^taoci/recomend/$','getRecommendNewAndHotKey'),
+    (r'^taoci/recomend/hotkey/$','getRecommendHotKey'),
+    (r'^taoci/recomend/newkey/$','getRecommendNewKey'),
 )
 
 urlpatterns += patterns('subway.lz_views',

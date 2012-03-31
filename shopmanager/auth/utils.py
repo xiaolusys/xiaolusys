@@ -81,6 +81,9 @@ def refresh_session(user,appkey,appsecret,refresh_url):
 def parse_datetime(dt):
     return datetime.datetime(*(time.strptime(dt, '%Y-%m-%d %H:%M:%S')[0:6]))
 
+def parse_date(dt):
+    return datetime.datetime(*(time.strptime(dt, '%Y-%m-%d')[0:6]))
+
 def format_datetime(dt):
     return dt.strftime("%Y-%m-%d %H:%M:%S")
 

@@ -4,10 +4,10 @@ import decimal
 import urllib
 from django.http import HttpResponse
 from django.views.decorators.csrf import csrf_exempt
-from subway.models import Hotkey, TcKeyLift,ZtcItem
+from subway.models import Hotkey,TcKeyLift,ZtcItem,HotkeyStatic,KeyScore
 from subway.apis import taoci_proxy,liangzi_proxy,taoci_lift_proxy
-from subway.tasks import saveCatsTaocibyCookieTask,saveTaociAndLiftValue
-from auth.utils import format_date
+from subway.tasks import saveCatsTaocibyCookieTask,saveTaociAndLiftValue,updateHotkeyStatic
+from auth.utils import format_date,parse_date
 import logging
 
 logger = logging.getLogger('subway.taoci')
@@ -16,16 +16,18 @@ logger = logging.getLogger('subway.taoci')
 @csrf_exempt
 def updateTaociByCats(request):
     try:
-        taoci_cookie = request.POST.get('taoci_cookie')
-        cat_ids = request.POST.get('cat_ids')
+        taoci_cookie = request.GET.get('taoci_cookie')
+        f_dt   = request.GET.get('f_dt')
+        t_dt   = request.GET.get('t_dt')
+        cat_ids = request.GET.get('cat_ids')
 
+        f_dt  = parse_date(f_dt)
+        t_dt  = parse_date(t_dt)
         if not taoci_cookie or not cat_ids:
             return HttpResponse(json.dumps({"code":1,"response_error":"taoci_cookie or cat_ids needed!"}))
 
         cat_ids = cat_ids.split(',')
-        taoci_cookie = urllib.unquote(taoci_cookie)
-
-        tc_task = saveCatsTaocibyCookieTask.delay(cat_ids,taoci_cookie)
+        tc_task = saveCatsTaocibyCookieTask.delay(f_dt,t_dt,cat_ids,taoci_cookie)
 
     except Exception,exc:
         logger.error('updateTaociByCats error:%s'%exc, exc_info=True)
@@ -39,37 +41,35 @@ def updateTaociByCats(request):
 def getOrUpdateTaociKey(request):
 
     taoci_cookie = request.GET.get('taoci_cookie')
-    base_dt = request.GET.get('base_dt')
     f_dt   = request.GET.get('f_dt')
     t_dt   = request.GET.get('t_dt')
     num_iid = request.GET.get('num_iid')
     id_map_key = request.GET.get('id_map_key')
 
     today = datetime.datetime.now()
-    if not base_dt or not f_dt or not t_dt:
-        last_day = today - datetime.timedelta(1,0,0)
-        base_dt = f_dt = t_dt = format_date(last_day)
+    last_day = today - datetime.timedelta(1,0,0)
+    last_day_dt = format_date(last_day)
+    if not f_dt or not t_dt:
+        f_dt = t_dt = last_day_dt
 
     try:
         cat_id = ZtcItem.objects.get(num_iid=num_iid).cat_id
     except ZtcItem.DoesNotExist:
         return HttpResponse(json.dumps({"code":1,"response_error":"Cat_id is not record!"}))
 
-    if not taoci_cookie:
-        return HttpResponse(json.dumps({"code":1,"response_error":"Taoci_cookie needed!"}))
+    f_dt  = parse_date(f_dt)
+    t_dt  = parse_date(t_dt)
 
-    ht_key  = Hotkey.objects.filter(category_id=cat_id)\
-        .extra(select={'lastest_update':'MAX(updated)'}).values('lastest_update')
+    del_dt  = t_dt-f_dt
+    days =  del_dt.days if del_dt.days>0 else 1
 
-    lastest_update = ht_key[0]['lastest_update']
-
-    if not lastest_update or lastest_update<base_dt:
-        for i in xrange(1,7):
-            time_delta = datetime.timedelta(i,0,0)
-            last_few_days = format_date(today - time_delta)
-            if not lastest_update or lastest_update<last_few_days:
-                #save taoci and key lift value
-                saveTaociAndLiftValue(last_few_days,cat_id,taoci_cookie)
+    for i in xrange(0,days):
+        time_delta = datetime.timedelta(i,0,0)
+        last_few_days = format_date(t_dt - time_delta)
+        ret_info = saveTaociAndLiftValue(last_few_days,cat_id,taoci_cookie)
+        if ret_info:
+            return HttpResponse(json.dumps(ret_info))
+        updateHotkeyStatic.delay(cat_id)
 
     id_map_key = json.loads(id_map_key)
     hotkey_list = []
@@ -77,11 +77,11 @@ def getOrUpdateTaociKey(request):
         hk = []
         hk.append(id)
         try:
-            hotkey = Hotkey.objects.get(category_id=cat_id,word=key,updated=base_dt)
+            hotkey = Hotkey.objects.get(category_id=cat_id,word=key,updated=last_day_dt)
         except Hotkey.DoesNotExist:
             hotkey=None
         try:
-            key_lift = TcKeyLift.objects.get(category_id= cat_id,word=key,updated=base_dt)
+            key_lift = TcKeyLift.objects.get(category_id= cat_id,word=key,updated=last_day_dt)
         except TcKeyLift.DoesNotExist:
             key_lift = None
 
@@ -98,7 +98,7 @@ def getOrUpdateTaociKey(request):
 
 
 
-def getRecommendNewAndHotKey(request):
+def getRecommendNewKey(request):
 
     num_iid = request.GET.get('num_iid')
     limit = int(request.GET.get('limit',50))
@@ -106,22 +106,12 @@ def getRecommendNewAndHotKey(request):
     dt = datetime.datetime.now()
     base_dt = format_date(dt - datetime.timedelta(1,0,0))
 
-
     try:
         cat_id = ZtcItem.objects.get(num_iid=num_iid).cat_id
     except ZtcItem.DoesNotExist:
         return HttpResponse(json.dumps({"code":1,"response_error":"Cat_id is not record!"}))
 
-    rec_hot_keys = Hotkey.objects.extra(
-        select={"search_ratio":"ROUND(num_trade/num_search,4)"},
-        where=['id in (select id from subway_hotkey where updated=%s and category_id=%s and num_people>1500 )'],
-        params=[base_dt,cat_id]).order_by('-search_ratio')\
-        .values_list('word','num_people','num_search','num_click','num_trade','ads_price_cent','search_ratio')[:limit]
-
-    rec_hot_keys = [key for key in rec_hot_keys]
     rec_new_keys = Hotkey.getRecommendNewKey(base_dt,cat_id,limit)
-
-    results = {"rec_hot_keys":rec_hot_keys,"rec_new_keys":rec_new_keys}
 
     class DecimalEncoder(json.JSONEncoder):
         def default(self, obj):
@@ -129,7 +119,47 @@ def getRecommendNewAndHotKey(request):
                 return str(obj)
             return json.JSONEncoder.default(self, obj)
 
-    return HttpResponse(json.dumps(results,cls=DecimalEncoder),mimetype='application/json')
+    return HttpResponse(json.dumps(rec_new_keys,cls=DecimalEncoder),mimetype='application/json')
+
+
+
+
+def getRecommendHotKey(request):
+
+    num_iid = request.GET.get('num_iid')
+    limit = int(request.GET.get('limit',800))
+
+    last_day_dt = format_date(datetime.datetime.now()-datetime.timedelta(1,0,0))
+    try:
+        cat_id = ZtcItem.objects.get(num_iid=num_iid).cat_id
+    except ZtcItem.DoesNotExist:
+        return HttpResponse(json.dumps({"code":1,"response_error":"Cat_id is not record!"}))
+
+    key_word_dict = KeyScore.objects.filter(num_iid=num_iid,updated=last_day_dt,status=1).values('word').distinct('word')
+
+    key_word_set = set([key['word'] for key in key_word_dict])
+
+    rec_hot_keys = HotkeyStatic.objects.filter(category_id=cat_id).order_by('-num_people').values_list\
+        ('word','num_people','num_search', 'num_click','num_tmall_click','num_cmall_click','num_trade','ads_price_cent')[:limit]
+
+    ret_hot_keys = []
+    for hot_key in rec_hot_keys:
+        temp_list = list(hot_key)
+
+        try:
+            key_word_set.remove(hot_key[0])
+            temp_list.append(1)
+        except Exception:
+            temp_list.append(0)
+        ret_hot_keys.append(temp_list)
+
+    class DecimalEncoder(json.JSONEncoder):
+        def default(self, obj):
+            if isinstance(obj,decimal.Decimal):
+                return str(obj)
+            return json.JSONEncoder.default(self, obj)
+
+    return HttpResponse(json.dumps(ret_hot_keys,cls=DecimalEncoder),mimetype='application/json')
 
 
 

@@ -6,11 +6,23 @@ from celery.task import task
 from celery.task.sets import subtask
 from subway.apis import taoci_proxy,liangzi_proxy,taoci_lift_proxy
 from shopback.categorys.models import Category
-from subway.models import ZtcItem,LzKeyItem,TcKeyLift,Hotkey
-from auth.utils import format_datetime,format_date
+from subway.models import ZtcItem,LzKeyItem,TcKeyLift,Hotkey,HotkeyStatic
+from auth.utils import format_datetime,format_date,parse_date
 import logging
 
 logger = logging.getLogger('taobao.taoci')
+
+
+@task()
+def updateHotkeyStatic(cat_id):
+    try:
+        dt = datetime.datetime.now()
+        last_day_dt = format_date( dt - datetime.timedelta(1,0,0))
+        seven_days_dt = format_date(dt - datetime.timedelta(14,0,0))
+
+        HotkeyStatic.updateHotkeyStaticFromHotkey(cat_id,seven_days_dt,last_day_dt)
+    except Exception,exc:
+        logger.warn('updateHotkeyStatic error:%s'%exc,exc_info=True)
 
 
 
@@ -45,7 +57,6 @@ def saveTaociAndLiftValue(base_dt,cat_id,taoci_cookie):
         #save category's taoci keys
         response,content = taoci_proxy(base_dt=base_dt,f_dt=base_dt,t_dt=base_dt,cat_id=cat_id,cookie=taoci_cookie)
         keys = json.loads(content)
-
         if isinstance(keys,dict) and keys.has_key('code'):
             logger.warn('get taoci fault,cat_id:%s,content%s'%(cat_id,content))
             return keys
@@ -70,44 +81,64 @@ def saveTaociAndLiftValue(base_dt,cat_id,taoci_cookie):
 
 
 
-def recurCrawTaoci(last_day_dt,cat_id,taoci_cookie):
+def recurCrawTaoci(f_dt,t_dt,cat_id,taoci_cookie):
 
     try:
-        ht_key  = Hotkey.objects.filter(category_id=cat_id)\
-            .extra(select={'lastest_update':'MAX(updated)'}).values('lastest_update')
+        del_dt  = t_dt-f_dt
+        days =  del_dt.days if del_dt.days>0 else 1
+        for i in xrange(1,days+1):
+            time_delta = datetime.timedelta(i,0,0)
+            last_few_days = format_date(t_dt - time_delta)
 
-        lastest_update = ht_key[0]['lastest_update']
-
-        if not lastest_update or lastest_update<last_day_dt:
-            today = datetime.datetime.now()
-            for i in xrange(1,7):
-                time_delta = datetime.timedelta(i,0,0)
-                last_few_days = format_date(today - time_delta)
-
-                if not lastest_update or lastest_update<last_few_days:
-                    ret_val = saveTaociAndLiftValue(last_few_days,cat_id,taoci_cookie)
-                    if ret_val:
-                        return ret_val
+            ret_val = saveTaociAndLiftValue(last_few_days,cat_id,taoci_cookie)
+            if ret_val:
+                return ret_val
 
     except Exception,exc:
-            logger.error('saveCatsTaocibyCookieTask error:%s'%exc, exc_info=True)
+        logger.error('saveCatsTaocibyCookieTask error:%s'%exc, exc_info=True)
+
 
     sub_cats = Category.objects.filter(parent_cid=cat_id)
     for cat in sub_cats:
 
-        recurCrawTaoci(last_day_dt,cat.cid,taoci_cookie)
+        recurCrawTaoci(f_dt,t_dt,cat.cid,taoci_cookie)
 
 
 
 
 @task()
-def saveCatsTaocibyCookieTask(cat_ids,taoci_cookie):
-    dt = datetime.datetime.now()
-    last_day_dt = format_date(dt-datetime.timedelta(1,0,0))
+def saveCatsTaocibyCookieTask(f_dt,t_dt,cat_ids,taoci_cookie):
+
     for cat_id in cat_ids:
 
-        results = recurCrawTaoci(last_day_dt,cat_id,taoci_cookie)
+        results = recurCrawTaoci(f_dt,t_dt,cat_id,taoci_cookie)
 
         if isinstance(results,dict) and results.has_key('code'):
             return results
+
+        subtask(updateHotkeyStatic).delay(cat_id)
+
+
+@task()
+def deleteHotkeyAndLiftValueTask():
+
+    dt = datetime.datetime.now()
+    seven_day_ago = dt - datetime.timedelta(7,0,0)
+    #delete out of last seven day's hotkey data
+    Hotkey.objects.filter(updated<seven_day_ago).delete()
+    #delete out of last seven day's tckeylift data
+    TcKeyLift.objects.filter(updated<seven_day_ago).delete()
+
+    logger.warn('excute deleteHotkeyAndLiftValueTask delete the data before %s'%seven_day_ago)
+
+
+@task()
+def saveZtcKeyScoreTask(id_map_key,num_iid):
+
+    #"name",'0.26',1679,5,0.12,5,'102',1
+    for id_key_list in id_map_key:
+        pass
+
+
+
 

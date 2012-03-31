@@ -26,9 +26,14 @@ CELERYBEAT_SCHEDULE = {
         'schedule':crontab(minute='*/5'),
         'args':(),
     },
-    'runs-every-day':{
+    'runs-every-day-a':{
         'task':'shopback.items.tasks.updateAllItemNumTask',
         'schedule':crontab(minute="0",hour="0"),
+        'args':(),
+    },
+    'runs-every-day-b':{
+        'task':'subway.tasks.deleteHotkeyAndLiftValueTask',
+        'schedule':crontab(minute="30",hour="0"),
         'args':(),
     },
     'runs-every-30-minutes_a':{
