@@ -1,4 +1,5 @@
-
+import json
+import decimal
 
 def access_control_allow_origin(func):
     def _warp(*args,**kwargs):
@@ -8,4 +9,10 @@ def access_control_allow_origin(func):
 
         return response
     return _warp
-  
+
+
+class DecimalEncoder(json.JSONEncoder):
+    def default(self, obj):
+        if isinstance(obj,decimal.Decimal):
+            return str(obj)
+        return json.JSONEncoder.default(self, obj)

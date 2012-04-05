@@ -8,7 +8,7 @@ from django.http import HttpResponse
 from django.db.models import Max,Sum
 from django.views.decorators.csrf import csrf_exempt
 from subway.models import Hotkey, KeyScore, ZtcItem,LzKeyItem,TcKeyLift
-from autolist.models import ProductItem
+from shopback.categorys.models import Category
 from auth.utils import unquote
 from subway.apis import taoci_proxy,liangzi_proxy,taoci_lift_proxy
 from auth.utils import format_time,parse_datetime,format_datetime,format_date
@@ -24,22 +24,16 @@ def selectAndCancleKeys(request):
     new_keys  = request.POST.get('new_keys')
     old_keys  = request.POST.get('old_keys')
     num_iid   = request.POST.get('num_iid')
+    campaign_id   = request.GET.get('campaign_id')
 
     new_keys  = json.loads(new_keys)
     old_keys  = json.loads(old_keys)
 
-    if not num_iid  :
-        return HttpResponse(json.dumps({"code":1,"response_error":"Num_iid can't be null."}))
-
-    try:
-        item_ins = ProductItem.objects.get(num_iid=num_iid)
-    except ProductItem.DoesNotExist:
-        return HttpResponse(json.dumps({"code":1,"response_error":"The num_iid doesnot be category."}))
+    last_day_dt = format_date(datetime.datetime.now()-datetime.timedelta(1,0,0))
 
     for key in old_keys:
         try:
-            hotkey = Hotkey.objects.get(word=key,category_id=item_ins.category_id)
-            ks_ins = KeyScore.objects.get(num_iid=num_iid,hotkey=hotkey)
+            ks_ins = KeyScore.objects.get(num_iid=num_iid,word=key,campaign_id=campaign_id,updated=last_day_dt)
             ks_ins.status = 0
             ks_ins.save()
         except Hotkey.DoesNotExist:
@@ -49,8 +43,7 @@ def selectAndCancleKeys(request):
 
     for key in new_keys:
         try:
-            hotkey = Hotkey.objects.get(word=key,category_id=item_ins.category_id)
-            ks_ins = KeyScore.objects.get(num_iid=num_iid,hotkey=hotkey)
+            ks_ins = KeyScore.objects.get(num_iid=num_iid,hotkey=key,campaign_id=campaign_id,updated=last_day_dt)
             ks_ins.status = 1
             ks_ins.save()
         except Hotkey.DoesNotExist:
@@ -71,22 +64,22 @@ def saveKeyScores(request):
 
     key_scores   = json.loads(key_scores)
     dt = datetime.datetime.now()
-    last_day_dt  = format_date(dt-datetime.timedelta(1,0,0))
+    today_dt  = format_date(dt)
 
     for ks in key_scores:
 
         ks_ins,state = KeyScore.objects.get_or_create\
-                (word=ks[0],num_iid=num_iid,campaign_id=campaign_id,updated=last_day_dt)
-        if state:
-            ks_ins.bid_price = ks[1]
-            ks_ins.num_view  = ks[2]
-            ks_ins.num_click = ks[3]
-            ks_ins.avg_cost  = ks[4]
-            ks_ins.score     = ks[5]
-            ks_ins.bid_rank  = ks[6]
-            ks_ins.updated   = last_day_dt
-            ks_ins.status    = 1
-            ks_ins.save()
+                (word=ks[0],num_iid=num_iid,campaign_id=campaign_id,updated=today_dt)
+
+        ks_ins.bid_price = ks[1]
+        ks_ins.num_view  = ks[2]
+        ks_ins.num_click = ks[3]
+        ks_ins.avg_cost  = ks[4]
+        ks_ins.score     = ks[5]
+        ks_ins.bid_rank  = ks[6]
+        ks_ins.updated   = today_dt
+        ks_ins.status    = 1
+        ks_ins.save()
 
     return HttpResponse(json.dumps({"code":0,"response_content":"success"}))
 
@@ -161,14 +154,45 @@ def saveZtcItem(request):
 
     owner = request.GET.get('owner', None)
     num_iid = request.GET.get('num_iid', None)
-    cat_id = request.GET.get('cat_id', None)
-    cat_name = request.GET.get('cat_name', None)
+    #cat_id = request.GET.get('cat_id', None)
+    cat_names = request.GET.get('cat_names', None)
+    campaign_id = request.GET.get('campaign_id',None)
 
-    if (owner and num_iid and cat_id and cat_name):
-        ZtcItem.objects.create(owner=owner,num_iid=num_iid,cat_id=cat_id,cat_name=cat_name)
-        return HttpResponse(json.dumps({"code":0}))
+    cat_names_list = cat_names.split(',')
 
-    return HttpResponse(json.dumps({"code":1}))
+    parent_cid = None
+    for cat_name in cat_names_list:
+        cat_name = cat_name.strip()
+        try:
+            if parent_cid:
+                category = Category.objects.get(name=cat_name,parent_cid=parent_cid)
+            else:
+                category = Category.objects.get(name=cat_name)
+
+            parent_cid = category.cid
+        except Category.DoesNotExist:
+            return HttpResponse(json.dumps({"code":1,"response_error":"Cat_name is not correct!"}))
+
+    if (owner and num_iid and parent_cid and campaign_id):
+
+        ZtcItem.objects.get_or_create\
+                (owner=owner,num_iid=num_iid,cat_id=parent_cid,cat_name=cat_names,campaign_id=campaign_id)
+
+    return HttpResponse(json.dumps({"code":0}))
+
+
+
+
+@csrf_exempt
+def getOwnerItems(request):
+
+    owner = request.GET.get('owner', None)
+
+    ztc_items = ZtcItem.objects.filter(owner=owner).values('owner','campaign_id','num_iid','cat_id','cat_name')
+
+    ztc_items = [item for item in ztc_items]
+
+    return HttpResponse(json.dumps({"code":0,"response_content":ztc_items}))
 
 
 

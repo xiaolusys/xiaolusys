@@ -67,10 +67,8 @@ def updateLzKeysItems(request):
         time_delta = datetime.timedelta(i,0,0)
         last_few_days = format_date(lz_t_dt - time_delta)
         saveLzKeyItems(last_few_days,owner,limit,lzsession)
-        is_modify = True
 
-
-    return HttpResponse(json.dumps({"code":0,"modified":1 if is_modify else 0}))
+    return HttpResponse(json.dumps({"code":0}))
 
 
 

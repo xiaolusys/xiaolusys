@@ -1,6 +1,5 @@
 import json
 import datetime
-import decimal
 import urllib
 from django.http import HttpResponse
 from django.views.decorators.csrf import csrf_exempt
@@ -8,6 +7,7 @@ from subway.models import Hotkey,TcKeyLift,ZtcItem,HotkeyStatic,KeyScore
 from subway.apis import taoci_proxy,liangzi_proxy,taoci_lift_proxy
 from subway.tasks import saveCatsTaocibyCookieTask,saveTaociAndLiftValue,updateHotkeyStatic
 from auth.utils import format_date,parse_date
+from subway.utils import DecimalEncoder
 import logging
 
 logger = logging.getLogger('subway.taoci')
@@ -113,12 +113,6 @@ def getRecommendNewKey(request):
 
     rec_new_keys = Hotkey.getRecommendNewKey(base_dt,cat_id,limit)
 
-    class DecimalEncoder(json.JSONEncoder):
-        def default(self, obj):
-            if isinstance(obj,decimal.Decimal):
-                return str(obj)
-            return json.JSONEncoder.default(self, obj)
-
     return HttpResponse(json.dumps(rec_new_keys,cls=DecimalEncoder),mimetype='application/json')
 
 
@@ -129,13 +123,13 @@ def getRecommendHotKey(request):
     num_iid = request.GET.get('num_iid')
     limit = int(request.GET.get('limit',800))
 
-    last_day_dt = format_date(datetime.datetime.now()-datetime.timedelta(1,0,0))
+    today_dt = format_date(datetime.datetime.now()-datetime.timedelta(1,0,0))
     try:
         cat_id = ZtcItem.objects.get(num_iid=num_iid).cat_id
     except ZtcItem.DoesNotExist:
         return HttpResponse(json.dumps({"code":1,"response_error":"Cat_id is not record!"}))
 
-    key_word_dict = KeyScore.objects.filter(num_iid=num_iid,updated=last_day_dt,status=1).values('word').distinct('word')
+    key_word_dict = KeyScore.objects.filter(num_iid=num_iid,updated=today_dt,status=1).values('word').distinct('word')
 
     key_word_set = set([key['word'] for key in key_word_dict])
 
@@ -153,13 +147,11 @@ def getRecommendHotKey(request):
             temp_list.append(0)
         ret_hot_keys.append(temp_list)
 
-    class DecimalEncoder(json.JSONEncoder):
-        def default(self, obj):
-            if isinstance(obj,decimal.Decimal):
-                return str(obj)
-            return json.JSONEncoder.default(self, obj)
-
     return HttpResponse(json.dumps(ret_hot_keys,cls=DecimalEncoder),mimetype='application/json')
+
+
+
+
 
 
 

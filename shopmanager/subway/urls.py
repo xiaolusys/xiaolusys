@@ -9,6 +9,7 @@ urlpatterns = patterns('subway.views',
 
     (r'^saveztcitem/$', 'saveZtcItem'),
     (r'^catkeys/$','getCatHotKeys'),
+    (r'^getztcitems/','getOwnerItems'),
 )
 
 urlpatterns += patterns('subway.tc_views',

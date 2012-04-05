@@ -22,6 +22,7 @@ def getCategoryIds(request):
     parent_cid = None
 
     for cat_name in cat_names_list:
+        cat_name = cat_name.strip()
         try:
             if parent_cid:
                 category = Category.objects.get(name=cat_name,parent_cid=parent_cid)

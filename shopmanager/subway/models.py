@@ -86,6 +86,7 @@ class ZtcItem(models.Model):
     num_iid = models.CharField(max_length=64,db_index=True)
     cat_id = models.CharField(max_length=64,db_index=True)
     cat_name = models.CharField(max_length=128)
+    campaign_id  = models.CharField(max_length=32,blank=True)
 
     class Meta:
         db_table = 'subway_ztcitem'
