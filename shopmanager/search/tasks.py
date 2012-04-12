@@ -185,7 +185,7 @@ def deletePageRankRecordTask(remain_days):
 
     remain_days_before = format_date(datetime.datetime.now()-datetime.timedelta(remain_days,0,0))
 
-    ProductPageRank.objects.filter(updated__lt=remain_days_before).delete()
+    ProductPageRank.objects.filter(created__lt=remain_days_before).delete()
 
 
   

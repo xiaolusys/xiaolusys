@@ -68,10 +68,9 @@ def deploy():
 def restart_gunicorn():
     """docstring for restart_gunicorn"""
     if exists('/home/user1/deploy/taobao/gunicorn.pid'):
-        try:
-            run('kill -QUIT `cat /home/user1/deploy/taobao/gunicorn.pid`')
-        except Exception:
-            pass
+        run('kill -QUIT `cat /home/user1/deploy/taobao/gunicorn.pid`')
+        with settings(warn_only=True):
+            run("ps auxww | grep gunicorn | awk '{ print $2 }' |xargs kill -KILL")
         run('rm -rf /home/user1/deploy/taobao/gunicorn.pid')
     get_version()
     with cd(env.version_dir):
