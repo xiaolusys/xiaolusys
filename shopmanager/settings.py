@@ -101,8 +101,8 @@ INSTALLED_APPS = (
     'djangorestframework',
     'djcelery',
     'djkombu',
+    'celery_sentry',
 
-    'celery_daemon.celery_sentry',
     'shopback.task',
     'shopback.items',
     'shopback.orders',
@@ -261,3 +261,4 @@ try:
     from local_settings import *
 except Exception,exc:
     pass
+

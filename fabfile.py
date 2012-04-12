@@ -62,7 +62,7 @@ def deploy():
         init_code_base()
         init_virtualenv()
         #get_static() # this is a hack for buggy network and should be removed in the future
-        #set_local_settings()
+        set_local_settings()
         collect_static()
 
 def restart_gunicorn():
