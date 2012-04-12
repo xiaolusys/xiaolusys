@@ -70,11 +70,11 @@ def restart_gunicorn():
     if exists('/home/user1/deploy/taobao/gunicorn.pid'):
         run('kill -QUIT `cat /home/user1/deploy/taobao/gunicorn.pid`')
         with settings(warn_only=True):
-            run("ps auxww | grep gunicorn | awk '{ print $2 }' |xargs kill -KILL")
+            run("ps auxww | grep taobao_gunicorn_conf | awk '{ print $2 }' |xargs kill -KILL")
         run('rm -rf /home/user1/deploy/taobao/gunicorn.pid')
     get_version()
     with cd(env.version_dir):
-        run('source ve/bin/activate;cd shopmanager;python manage.py run_gunicorn --config=gunicorn_conf.py')
+        run('source ve/bin/activate;cd shopmanager;python manage.py run_gunicorn --config=taobao_gunicorn_conf.py ')
 
 
 def restart_celeryd():
@@ -83,7 +83,7 @@ def restart_celeryd():
         puts('Sleep 30 seconds before celery fully shutdown')
         sleep(30)
         with settings(warn_only=True):
-            run("ps auxww | grep celeryd | awk '{ print $2 }' |xargs kill -KILL")
+            run("ps auxww | grep taobao/celery.err | awk '{ print $2 }' |xargs kill -KILL")
         run('rm -rf /home/user1/deploy/taobao/celery.pid')
     get_version()
     with cd(env.version_dir):
@@ -95,7 +95,7 @@ def restart_celerybeat():
         puts('Sleep 10 seconds before celery fully shutdown')
         sleep(10)
         with settings(warn_only=True):
-            run("ps auxww | grep celery_beat | awk '{ print $2 }' |xargs kill -KILL")
+            run("ps auxww | grep taobao/celerybeat.err | awk '{ print $2 }' |xargs kill -KILL")
         run('rm -rf /home/user1/deploy/taobao/celerybeat.pid')
     get_version()
     with cd(env.version_dir):
@@ -107,7 +107,7 @@ def restart_celerycam():
         puts('Sleep 10 seconds before celeryev fully shutdown')
         sleep(10)
         with settings(warn_only=True):
-            run("ps auxww | grep celery_cam | awk '{ print $2 }' |xargs kill -KILL")
+            run("ps auxww | grep taobao/celeryev.err | awk '{ print $2 }' |xargs kill -KILL")
         run('rm -rf /home/user1/deploy/taobao/celeryev.pid')
     get_version()
     with cd(env.version_dir):
