@@ -18,7 +18,7 @@ GET_TAOBAO_DATA_PAGE_SIZE = 200 #the page_size of  per request
 PRODUCT_TRADE_RANK_BELOW = 10
 
 from celery.schedules import crontab
-from datetime import timedelta,datetime
+
 
 CELERYBEAT_SCHEDULE = {
     'runs-every-10-minutes':{
@@ -50,6 +50,11 @@ CELERYBEAT_SCHEDULE = {
         'task':'search.tasks.updateProductTradeBySellerTask',
         'schedule':crontab(minute="0",hour="1"),
         'args':()
+    },
+    'runs-every-day_c':{
+        'task':'search.tasks.deletePageRankRecordTask',
+        'schedule':crontab(minute="0",hour="1"),
+        'args':(30,)
     },
 }
 

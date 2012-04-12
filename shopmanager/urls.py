@@ -6,7 +6,6 @@ from django.conf import settings
 admin.autodiscover()
 
 urlpatterns = patterns('',
-    (r'^subway/', include('subway.urls')),                       
     (r'^sentry/', include('sentry.web.urls')),
     (r'^accounts/', include('auth.accounts.urls')),
     (r'^task/',include('shopback.task.urls')),
@@ -19,5 +18,7 @@ urlpatterns = patterns('',
     (r'^static/(?P<path>.*)$', 'django.views.static.serve',
         {'document_root': settings.STATIC_DOC_ROOT}),
     (r'^admin/', include(admin.site.urls)),
+
+    (r'^tb/', include('tbsubway.category.urls')),
 
 )

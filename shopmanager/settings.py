@@ -108,10 +108,9 @@ INSTALLED_APPS = (
     'shopback.orders',
     'shopback.users',
     'shopback.categorys',
-    'subway',
+
     'autolist',
     'search',
-
 
 )
 

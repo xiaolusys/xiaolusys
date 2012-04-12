@@ -8,7 +8,7 @@ from search.crawurldata import getTaoBaoPageRank,crawTaoBaoTradePage
 from search.models import ProductPageRank,ProductTrade
 from shopback.users.models import User
 from shopback.items.models import Item
-from auth.utils import format_time,parse_datetime,format_datetime
+from auth.utils import format_time,parse_datetime,format_datetime,format_date
 import logging
 
 logger = logging.getLogger('period.search')
@@ -177,6 +177,15 @@ def updateProductTradeBySellerTask():
         subtask(updateSellerAllTradesTask).delay(seller_id,seller_nick,item_ids,s_dt_f,s_dt_t)
 
 
+
+@task()
+def deletePageRankRecordTask(remain_days):
+
+    remain_days = remain_days if remain_days>7 else 7
+
+    remain_days_before = format_date(datetime.datetime.now()-datetime.timedelta(remain_days,0,0))
+
+    ProductPageRank.objects.filter(updated__lt=remain_days_before).delete()
 
 
   
