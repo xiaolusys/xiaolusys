@@ -46,11 +46,11 @@ CELERYBEAT_SCHEDULE = {
         'schedule':crontab(minute="0",hour="*/1"),
         'args':()
     },
-    'runs-every-day_b':{
-        'task':'search.tasks.updateProductTradeBySellerTask',
-        'schedule':crontab(minute="0",hour="1"),
-        'args':()
-    },
+#    'runs-every-day_b':{
+#        'task':'search.tasks.updateProductTradeBySellerTask',
+#        'schedule':crontab(minute="0",hour="1"),
+#        'args':()
+#    },
     'runs-every-day_c':{
         'task':'search.tasks.deletePageRankRecordTask',
         'schedule':crontab(minute="0",hour="1"),
