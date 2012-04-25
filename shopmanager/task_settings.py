@@ -36,7 +36,7 @@ CELERYBEAT_SCHEDULE = {
         'schedule':crontab(minute="30",hour="0"),
         'args':(),
     },
-    'runs-every-30-minutes_a':{
+    'runs-every-30-minutes-a':{
         'task':'search.tasks.updateItemKeywordsPageRank',
         'schedule':crontab(minute="0,30",hour=','.join([str(i) for i in range(7,24)])),
         'args':()
@@ -44,14 +44,19 @@ CELERYBEAT_SCHEDULE = {
     'runs-every-hours':{
         'task':'shopback.orders.tasks.updateAllUserHourlyOrders',
         'schedule':crontab(minute="0",hour="*/1"),
-        'args':()
+        'args':(0,)
+    },
+    'runs-every-weeks':{
+        'task':'shopback.orders.tasks.updateAllUserHourlyOrders',
+        'schedule':crontab(minute="0",hour="1",day_of_week="sun"),
+        'args':(7,)
     },
 #    'runs-every-day_b':{
 #        'task':'search.tasks.updateProductTradeBySellerTask',
 #        'schedule':crontab(minute="0",hour="1"),
 #        'args':()
 #    },
-    'runs-every-day_c':{
+    'runs-every-day-c':{
         'task':'search.tasks.deletePageRankRecordTask',
         'schedule':crontab(minute="0",hour="1"),
         'args':(30,)

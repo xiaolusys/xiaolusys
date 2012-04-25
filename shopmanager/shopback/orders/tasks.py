@@ -13,7 +13,7 @@ logger = logging.getLogger('hourly.saveorder')
 
 
 @task(max_retry=3)
-def saveUserHourlyOrders(user_id):
+def saveUserHourlyOrders(user_id,days=0):
     try:
         user = User.objects.get(pk=user_id)
     except User.DoesNotExist,exc:
@@ -32,7 +32,7 @@ def saveUserHourlyOrders(user_id):
         hour = dt.hour
         week = time.gmtime(t)[7]/7+1
 
-        s_dt_f = format_datetime(datetime.datetime(year,month,day,0,0,0))
+        s_dt_f = format_datetime(datetime.datetime(year,month,day,0,0,0)-datetime.timedelta(days,0,0))
         s_dt_t = format_datetime(datetime.datetime(year,month,day,hour,59,59))
 
         has_next = True
@@ -78,13 +78,16 @@ def saveUserHourlyOrders(user_id):
 
 
 @task()
-def updateAllUserHourlyOrders():
+def updateAllUserHourlyOrders(days):
 
     users = User.objects.all()
 
     for user in users:
 
-        subtask(saveUserHourlyOrders).delay(user.pk)
+        subtask(saveUserHourlyOrders).delay(user.pk,days=days)
+
+
+
 
 
 
