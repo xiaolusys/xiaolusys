@@ -13,7 +13,7 @@ logger = logging.getLogger('hourly.saveorder')
 
 
 @task(max_retry=3)
-def saveUserHourlyOrders(user_id,days=0):
+def saveUserDuringOrders(user_id,days=0):
     try:
         user = User.objects.get(pk=user_id)
     except User.DoesNotExist,exc:
@@ -22,18 +22,13 @@ def saveUserHourlyOrders(user_id,days=0):
     try:
         refresh_session(user,settings.APPKEY,settings.APPSECRET,settings.REFRESH_URL)
 
-        t = time.time()-60*60
-        #dt = datetime.datetime(2012,2,20,14,20)
-        dt = datetime.datetime.fromtimestamp(t)
-
-        year = dt.year
-        month = dt.month
-        day = dt.day
-        hour = dt.hour
-        week = time.gmtime(t)[7]/7+1
-
-        s_dt_f = format_datetime(datetime.datetime(year,month,day,0,0,0)-datetime.timedelta(days,0,0))
-        s_dt_t = format_datetime(datetime.datetime(year,month,day,hour,59,59))
+        if days >0 :
+            s_dt_f = format_datetime(datetime.datetime(year,month,day,0,0,0)-datetime.timedelta(days,0,0))
+            s_dt_t = format_datetime(datetime.datetime(year,month,day,0,0,0))
+        else:
+            dt = datetime.datetime.now()
+            s_dt_f = format_datetime(datetime.datetime(dt.year,dt.month,dt.day,0,0,0))
+            s_dt_t = format_datetime(datetime.datetime(dt.year,dt.month,dt.day,dt.hour,59,59)-datetime.timedelta(0,1,0))
 
         has_next = True
         cur_page = 1
@@ -52,15 +47,15 @@ def saveUserHourlyOrders(user_id,days=0):
 
                     order.created = t['created']
                     dt = parse_datetime(t['created'])
-                    order.hour =dt.hour
+                    order.hour  =dt.hour
                     order.month = dt.month
-                    order.day = dt.day
-                    order.week = week
+                    order.day   = dt.day
+                    order.week  = time.gmtime(time.mktime(dt.timetuple()))[7]/7+1
 
                     order.seller_nick = t['seller_nick']
-                    order.buyer_nick = t['buyer_nick']
-                    order.modified = t['modified']
-                    order.tid = t['tid']
+                    order.buyer_nick  = t['buyer_nick']
+                    order.modified    = t['modified']
+                    order.tid         = t['tid']
 
                     for o in t['orders']['order']:
                         for k,v in o.iteritems():
@@ -78,13 +73,15 @@ def saveUserHourlyOrders(user_id,days=0):
 
 
 @task()
-def updateAllUserHourlyOrders(days):
+def updateAllUserDuringOrders(days):
 
     users = User.objects.all()
 
     for user in users:
 
-        subtask(saveUserHourlyOrders).delay(user.pk,days=days)
+        subtask(saveUserDuringOrders).delay(user.pk,days=days)
+
+
 
 
 

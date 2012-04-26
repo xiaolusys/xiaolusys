@@ -42,12 +42,12 @@ CELERYBEAT_SCHEDULE = {
         'args':()
     },
     'runs-every-hours':{
-        'task':'shopback.orders.tasks.updateAllUserHourlyOrders',
+        'task':'shopback.orders.tasks.updateAllUserDuringOrders',
         'schedule':crontab(minute="0",hour="*/1"),
         'args':(0,)
     },
     'runs-every-weeks':{
-        'task':'shopback.orders.tasks.updateAllUserHourlyOrders',
+        'task':'shopback.orders.tasks.updateAllUserDuringOrders',
         'schedule':crontab(minute="0",hour="1",day_of_week="sun"),
         'args':(7,)
     },
