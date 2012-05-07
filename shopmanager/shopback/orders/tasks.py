@@ -47,7 +47,8 @@ def saveUserDuringOrders(user_id,days=0):
 
                     order.created = t['created']
                     dt = parse_datetime(t['created'])
-                    order.hour  =dt.hour
+                    order.year  = dt.year
+                    order.hour  = dt.hour
                     order.month = dt.month
                     order.day   = dt.day
                     order.week  = time.gmtime(time.mktime(dt.timetuple()))[7]/7+1
