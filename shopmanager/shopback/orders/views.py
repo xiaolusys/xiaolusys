@@ -1,7 +1,6 @@
 import time
 import datetime
-from django.db.models import Avg
-from django.db.models import Sum
+from django.db.models import Sum,Count,Avg
 from djangorestframework.response import ErrorResponse
 from djangorestframework import status
 from djangorestframework.views import ModelView
@@ -51,21 +50,24 @@ class UserHourlyOrderView(ModelView):
 
         series = {
             'options': {'source': queryset,'categories': categories,'legend_by': 'seller_nick'},
-            'terms': {'total_num':Sum('num'),'total_sales':{'func':Sum('total_fee'),'legend_by':'seller_nick'}}}
+            'terms': {
+                'total_trades':Count('tid',distinct=True),
+                'total_sales':{'func':Sum('total_fee'),'legend_by':'seller_nick'}}}
 
 
         ordersdata = PivotDataPool(series=[series],sortf_mapf_mts=(None,map_int2str,True))
 
         series_options =[{
             'options':{'type': 'column','stacking': True,'yAxis': 0},
-            'terms':['total_num',{'total_sales':{'type':'line','stacking':False,'yAxis':1}}]},]
+            'terms':['total_trades',{'total_sales':{'type':'line','stacking':False,'yAxis':1}}]},]
 
         chart_options = {
             'chart':{'zoomType': 'xy','renderTo': "container1"},
             'title': {'text': nicks},
             'xAxis': {'title': {'text': 'per %s(%s)'%(cat_by,u'\u4e0d\u5305\u542b\u90ae\u8d39')},
                       'labels':{'rotation': -45,'align':'right','style': {'font': 'normal 12px Verdana, sans-serif'}}},
-            'yAxis': [{'title': {'text': 'total num '}},{'title': {'text': 'total sales'},'opposite': True}]}
+            'yAxis': [{'title': {'text': 'total trades '}},
+                      {'title': {'text': 'total sales'},'opposite': True}]}
 
         orders_data_cht = PivotChart(
                 datasource = ordersdata,

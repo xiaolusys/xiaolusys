@@ -13,6 +13,8 @@ class ProductPageRankAdmin(admin.ModelAdmin):
 
 admin.site.register(ProductPageRank,ProductPageRankAdmin)
 
+
+
 class ProductTradeAdmin(admin.ModelAdmin):
     list_display = ('item_id','user_id','nick','trade_id','num','price','trade_at','state')
     #list_editable = ('update_time','task_type' ,'is_success','status')

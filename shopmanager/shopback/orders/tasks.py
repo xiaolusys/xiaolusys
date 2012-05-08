@@ -22,11 +22,11 @@ def saveUserDuringOrders(user_id,days=0):
     try:
         refresh_session(user,settings.APPKEY,settings.APPSECRET,settings.REFRESH_URL)
 
+        dt = datetime.datetime.now()
         if days >0 :
-            s_dt_f = format_datetime(datetime.datetime(year,month,day,0,0,0)-datetime.timedelta(days,0,0))
-            s_dt_t = format_datetime(datetime.datetime(year,month,day,0,0,0))
+            s_dt_f = format_datetime(datetime.datetime(dt.year,dt.month,dt.day,0,0,0)-datetime.timedelta(days,0,0))
+            s_dt_t = format_datetime(datetime.datetime(dt.year,dt.month,dt.day,0,0,0))
         else:
-            dt = datetime.datetime.now()
             s_dt_f = format_datetime(datetime.datetime(dt.year,dt.month,dt.day,0,0,0))
             s_dt_t = format_datetime(datetime.datetime(dt.year,dt.month,dt.day,dt.hour,59,59)-datetime.timedelta(0,1,0))
 
@@ -47,7 +47,7 @@ def saveUserDuringOrders(user_id,days=0):
 
                     order.created = t['created']
                     dt = parse_datetime(t['created'])
-                    order.year  = dt.year
+
                     order.hour  = dt.hour
                     order.month = dt.month
                     order.day   = dt.day
