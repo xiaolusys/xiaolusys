@@ -32,8 +32,13 @@ CELERYBEAT_SCHEDULE = {
         'args':(),
     },
     'runs-every-day-b':{
-        'task':'subway.tasks.deleteHotkeyAndLiftValueTask',
-        'schedule':crontab(minute="30",hour="0"),
+        'task':'shopback.orders.tasks.updateAllUserDailyIncrementOrders',
+        'schedule':crontab(minute="0",hour="0"),
+        'args':(),
+    },
+    'runs-every-day-c':{
+        'task':'shopback.items.tasks.updateAllUnpayOrderTask',
+        'schedule':crontab(minute="30",hour="1"),
         'args':(),
     },
     'runs-every-30-minutes-a':{
@@ -56,10 +61,15 @@ CELERYBEAT_SCHEDULE = {
 #        'schedule':crontab(minute="0",hour="1"),
 #        'args':()
 #    },
-    'runs-every-day-c':{
+    'runs-every-day-d':{
         'task':'search.tasks.deletePageRankRecordTask',
         'schedule':crontab(minute="0",hour="1"),
         'args':(30,)
+    },
+    'runs-every-day-e':{
+        'task':'subway.tasks.deleteHotkeyAndLiftValueTask',
+        'schedule':crontab(minute="30",hour="0"),
+        'args':(),
     },
 }
 

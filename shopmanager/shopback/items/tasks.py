@@ -75,6 +75,8 @@ def updateItemNumTask(itemNumTask_id):
     itemNumTask.save()
 
 
+
+
 @task()
 def execAllItemNumTask():
 
@@ -82,6 +84,9 @@ def execAllItemNumTask():
 
     for itemNumTask in itemNumTasks:
         subtask(updateItemNumTask).delay(itemNumTask.id)
+
+
+
 
 @task(max_retry=3)
 def updateUnpayOrderTask(tid,nick):
@@ -121,6 +126,8 @@ def updateUnpayOrderTask(tid,nick):
             pullPerUserTradesTask.retry(exc=exc,countdown=2)
 
 
+
+
 @task()
 def updateAllUnpayOrderTask():
 
@@ -132,16 +139,18 @@ def updateAllUnpayOrderTask():
 
 
 
+
 @task(max_retries=3)
 def pullPerUserTradesTask(user_id,start_created,end_created):
 
     try:
         user = User.objects.get(pk=user_id)
 
-        refresh_session(user,settings.APPKEY,settings.APPSECRET,settings.REFRESH_URL)
     except User.DoesNotExist:
         logger.error('Executing pullPerUserTrades error:%s' %(exc), exc_info=True)
         return
+
+    refresh_session(user,settings.APPKEY,settings.APPSECRET,settings.REFRESH_URL)
 
     has_next = True
     cur_page = 1
@@ -149,8 +158,9 @@ def pullPerUserTradesTask(user_id,start_created,end_created):
     try:
         while has_next:
 
-            response = apis.taobao_trades_sold_increment_get(session=user.top_session,page_no=cur_page,page_size=200,
-                     start_modified=start_created,end_modified=end_created,use_has_next='true')
+            response = apis.taobao_trades_sold_increment_get(session=user.top_session,page_no=cur_page,
+                    page_size=settings.GET_TAOBAO_DATA_PAGE_SIZE,start_modified=start_created,
+                    end_modified=end_created,use_has_next='true')
 
             if response.has_key('error_response'):
                 logger.error('Get users trades errorresponse:%s' %(response))
@@ -163,14 +173,14 @@ def pullPerUserTradesTask(user_id,start_created,end_created):
 
                     dt = parse_datetime(t['created'])
                     order_obj.month = dt.month
-                    order_obj.day = dt.day
+                    order_obj.day  = dt.day
                     order_obj.hour = dt.strftime("%H")
                     order_obj.week = time.gmtime(time.mktime(dt.timetuple()))[7]/7+1
-                    order_obj.created = t['created']
+                    order_obj.created     = t['created']
                     order_obj.seller_nick = t['seller_nick']
-                    order_obj.buyer_nick = t['buyer_nick']
-                    order_obj.modified = t['modified']
-                    order_obj.tid = t['tid']
+                    order_obj.buyer_nick  = t['buyer_nick']
+                    order_obj.modified    = t['modified']
+                    order_obj.tid         = t['tid']
 
                     for order in t['orders']['order']:
 
@@ -247,15 +257,17 @@ def updateAllItemNumTask():
         print '----------------excute updateAllItemNumTask start---------------'
         #subtask(execAllItemNumTask).delay()
 
-        time.sleep(settings.UPDATE_UNPAY_ORDER_INTERVAL)
-        print '----------------excute updateAllUnpayOrderTask start---------------'
-        subtask(updateAllUnpayOrderTask).delay()
+#        time.sleep(settings.UPDATE_UNPAY_ORDER_INTERVAL)
+#        print '----------------excute updateAllUnpayOrderTask start---------------'
+#        subtask(updateAllUnpayOrderTask).delay()
 
     except Exception,exc:
 
         logger.error('Executing UpdateAllItemNumTask error:%s' %(exc), exc_info=True)
         if not settings.DEBUG:
             updateAllItemNumTask.retry(exc=exc,countdown=2)
+
+
 
 
 @task(max_retries=3)

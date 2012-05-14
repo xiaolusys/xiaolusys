@@ -48,8 +48,8 @@ class User(models.Model):
     craw_trade_seller_nicks = models.TextField(blank=True)
 
 
-    created_at = models.DateTimeField(null=True)
-    status = models.CharField(max_length=12,blank=True) #normal,inactive,delete,reeze,supervise
+    created_at = models.DateTimeField(auto_now=True,null=True)
+    status     = models.CharField(max_length=12,blank=True) #normal,inactive,delete,reeze,supervise
 
     class Meta:
         db_table = 'shop_user'
