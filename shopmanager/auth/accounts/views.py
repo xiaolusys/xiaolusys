@@ -34,17 +34,6 @@ def login_taobo(request):
 
     taobao_logged_in.send(sender='web',user=user,top_session=top_session,top_appkey=top_appkey,top_parameters=top_parameters)
 
-
-    #content = apis.taobao_itemcats_get(parent_cid='50025705',session=top_session)
-    #print 'content:',content
-
-
-    #print 'session:',dict(request.session)
-
-    #content = apis.taobao_items_get(q='\xe7\x9d\xa1\xe8\xa2\x8b',session=request.session['top_session'],page_no=1,page_size=100)
-    #print 'content:',content
-
-
     logger.info('user %s logged in.' % user.username)
 
     if request.GET.get('next'):
@@ -54,6 +43,7 @@ def login_taobo(request):
 
 def home(request):
     user = authenticate(request=request)
+
     if not user or user.is_anonymous():
         return HttpResponseRedirect('/accounts/login/')
 

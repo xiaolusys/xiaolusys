@@ -13,7 +13,7 @@ UPDATE_ITEM_NUM_INTERVAL = 2*60
 
 UPDATE_UNPAY_ORDER_INTERVAL = 3*60
 
-GET_TAOBAO_DATA_PAGE_SIZE = 200 #the page_size of  per request
+TAOBAO_PAGE_SIZE = 100 #the page_size of  per request
 
 PRODUCT_TRADE_RANK_BELOW = 10
 

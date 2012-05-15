@@ -32,4 +32,4 @@ def RecurUpdateCategoreyTask(top_session,cid):
 
         logger.error('RecurUpdateCategoreyTask error:%s' %(exc), exc_info=True)
         if not settings.DEBUG:
-            saveUserHourlyOrders.retry(exc=exc,countdown=2)
+            RecurUpdateCategoreyTask.retry(exc=exc,countdown=2)

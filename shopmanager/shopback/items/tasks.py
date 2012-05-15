@@ -1,15 +1,13 @@
 import datetime
 import time
 import json
-import urllib
-import urllib2
 from celery.task import task
 from celery.task.sets import subtask
 from django.conf import settings
 from shopback.base.aggregates import ConcatenateDistinct
 from auth.utils import format_datetime ,parse_datetime ,refresh_session
 from shopback.items.models import Item
-from shopback.orders.models import Order
+from shopback.orders.models import Order,Trade
 from shopback.users.models import User
 from shopback.task.models import ItemNumTask,UNEXECUTE,EXECERROR,SUCCESS
 from auth import apis
@@ -108,10 +106,12 @@ def updateUnpayOrderTask(tid,nick):
 
         t = trades['trade_fullinfo_get_response']['trade']
 
+        trade = Trade()
+        trade.trade.save_trade_through_dict(t)
+
         for order in  t['orders']['order']:
             try:
                 order_obj = Order.objects.get(oid=order['oid'])
-                order_obj.modified = t['modified']
 
                 for k,v in order.iteritems():
                     hasattr(order_obj,k) and setattr(order_obj,k,v)
@@ -154,36 +154,27 @@ def pullPerUserTradesTask(user_id,start_created,end_created):
 
     has_next = True
     cur_page = 1
+    trade    = Trade()
+    order_obj = Order()
 
-    try:
-        while has_next:
-
-            response = apis.taobao_trades_sold_increment_get(session=user.top_session,page_no=cur_page,
-                    page_size=settings.GET_TAOBAO_DATA_PAGE_SIZE,start_modified=start_created,
+    while has_next:
+        try:
+            response = apis.taobao_trades_sold_increment_get(session=user.top_session,
+                    page_size=settings.TAOBAO_PAGE_SIZE,start_modified=start_created,
                     end_modified=end_created,use_has_next='true')
-
-            if response.has_key('error_response'):
-                logger.error('Get users trades errorresponse:%s' %(response))
-                break
 
             trades = response['trades_sold_increment_get_response']
             if trades.has_key('trades') and trades.get('trades').has_key('trade'):
-                order_obj = Order()
+
                 for t in trades['trades']['trade']:
 
-                    dt = parse_datetime(t['created'])
-                    order_obj.month = dt.month
-                    order_obj.day  = dt.day
-                    order_obj.hour = dt.strftime("%H")
-                    order_obj.week = time.gmtime(time.mktime(dt.timetuple()))[7]/7+1
-                    order_obj.created     = t['created']
+                    trade.save_trade_through_dict(t)
+
                     order_obj.seller_nick = t['seller_nick']
                     order_obj.buyer_nick  = t['buyer_nick']
-                    order_obj.modified    = t['modified']
-                    order_obj.tid         = t['tid']
+                    order_obj.trade       = trade
 
                     for order in t['orders']['order']:
-
                         for k,v in order.iteritems():
                             hasattr(order_obj,k) and setattr(order_obj,k,v)
 
@@ -208,11 +199,9 @@ def pullPerUserTradesTask(user_id,start_created,end_created):
             has_next = trades['has_next']
             cur_page += 1
 
-    except Exception,exc:
+        except Exception,exc:
+            time.sleep(60)
 
-        logger.error('Executing pullPerUserTradesTask error:%s' %(exc), exc_info=True)
-        if not settings.DEBUG:
-            pullPerUserTradesTask.retry(exc=exc,countdown=2)
 
 
 

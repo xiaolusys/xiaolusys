@@ -3,9 +3,9 @@ import datetime
 from celery.task import task
 from celery.task.sets import subtask
 from django.conf import settings
-from shopback.orders.models import Order
+from shopback.orders.models import Order,Trade
 from shopback.users.models import User
-from auth.utils import format_time,format_datetime,refresh_session,parse_datetime
+from auth.utils import format_time,format_datetime,parse_datetime,refresh_session
 from auth import apis
 import logging
 
@@ -17,60 +17,49 @@ def saveUserDuringOrders(user_id,days=0):
     try:
         user = User.objects.get(pk=user_id)
     except User.DoesNotExist,exc:
-        logger.error('SaveUserHourlyOrders error:%s'%exc, exc_info=True)
+        logger.error('SaveUserDuringOrders error:%s'%exc, exc_info=True)
         return
-    try:
-        refresh_session(user,settings.APPKEY,settings.APPSECRET,settings.REFRESH_URL)
 
-        dt = datetime.datetime.now()
-        if days >0 :
-            s_dt_f = format_datetime(datetime.datetime(dt.year,dt.month,dt.day,0,0,0)-datetime.timedelta(days,0,0))
-            s_dt_t = format_datetime(datetime.datetime(dt.year,dt.month,dt.day,0,0,0))
-        else:
-            s_dt_f = format_datetime(datetime.datetime(dt.year,dt.month,dt.day,0,0,0))
-            s_dt_t = format_datetime(datetime.datetime(dt.year,dt.month,dt.day,dt.hour,59,59)-datetime.timedelta(0,1,0))
+    refresh_session(user,settings.APPKEY,settings.APPSECRET,settings.REFRESH_URL)
 
-        has_next = True
-        cur_page = 1
-        order = Order()
+    dt = datetime.datetime.now()
+    if days >0 :
+        s_dt_f = format_datetime(datetime.datetime(dt.year,dt.month,dt.day,0,0,0)-datetime.timedelta(days,0,0))
+        s_dt_t = format_datetime(datetime.datetime(dt.year,dt.month,dt.day,0,0,0))
+    else:
+        s_dt_f = format_datetime(datetime.datetime(dt.year,dt.month,dt.day,0,0,0))
+        s_dt_t = format_datetime(datetime.datetime(dt.year,dt.month,dt.day,dt.hour,59,59)-datetime.timedelta(0,1,0))
 
-        while has_next:
-            trades = apis.taobao_trades_sold_get(session=user.top_session,page_no=cur_page,
-                 page_size=settings.GET_TAOBAO_DATA_PAGE_SIZE,use_has_next='true',start_created=s_dt_f,end_created=s_dt_t)
+    has_next = True
+    cur_page = 1
+    trade = Trade()
+    order = Order()
 
-            if trades.has_key('error_response'):
-                logger.error('Get users hour trades errorresponse:%s' %(trades))
-                break
+    while has_next:
+        try:
+            trades = apis.taobao_trades_sold_get(session=user.top_session,page_no=cur_page
+                 ,page_size=settings.TAOBAO_PAGE_SIZE,use_has_next='true',start_created=s_dt_f,end_created=s_dt_t)
 
-            if trades['trades_sold_get_response']['total_results']>0:
-                for t in trades['trades_sold_get_response']['trades']['trade']:
+            for t in trades['trades_sold_get_response']['trades']['trade']:
 
-                    order.created = t['created']
-                    dt = parse_datetime(t['created'])
+                trade.save_trade_through_dict(t)
 
-                    order.hour  = dt.hour
-                    order.month = dt.month
-                    order.day   = dt.day
-                    order.week  = time.gmtime(time.mktime(dt.timetuple()))[7]/7+1
+                order.seller_nick = t['seller_nick']
+                order.buyer_nick  = t['buyer_nick']
+                order.trade       = trade
 
-                    order.seller_nick = t['seller_nick']
-                    order.buyer_nick  = t['buyer_nick']
-                    order.modified    = t['modified']
-                    order.tid         = t['tid']
-
-                    for o in t['orders']['order']:
-                        for k,v in o.iteritems():
-                            hasattr(order,k) and setattr(order,k,v)
-                        order.save()
+                for o in t['orders']['order']:
+                    for k,v in o.iteritems():
+                        hasattr(order,k) and setattr(order,k,v)
+                    order.save()
 
             has_next = trades['trades_sold_get_response']['has_next']
             cur_page += 1
+            time.sleep(0.5)
+        except Exception,exc:
+            time.sleep(60)
 
-    except Exception,exc:
 
-        logger.error('Executing saveUserHourlyOrders error:%s' %(exc), exc_info=True)
-        if not settings.DEBUG:
-            saveUserHourlyOrders.retry(exc=exc,countdown=2)
 
 
 @task()
@@ -92,40 +81,29 @@ def saveUserDailyIncrementOrders(user_id):
     except User.DoesNotExist,exc:
         logger.error('saveUserDailyIncrementOrders error:%s'%exc, exc_info=True)
         return
-    try:
-        refresh_session(user,settings.APPKEY,settings.APPSECRET,settings.REFRESH_URL)
 
-        dt = datetime.datetime.now()
-        s_dt_f = format_datetime(datetime.datetime(dt.year,dt.month,dt.day,0,0,0)-datetime.timedelta(1,0,0))
-        s_dt_t = format_datetime(datetime.datetime(dt.year,dt.month,dt.day,23,59,59)-datetime.timedelta(1,0,0))
+    refresh_session(user,settings.APPKEY,settings.APPSECRET,settings.REFRESH_URL)
 
-        has_next = True
-        cur_page = 1
-        order = Order()
+    dt = datetime.datetime.now()
+    s_dt_f = format_datetime(datetime.datetime(dt.year,dt.month,dt.day,0,0,0)-datetime.timedelta(1,0,0))
+    s_dt_t = format_datetime(datetime.datetime(dt.year,dt.month,dt.day,23,59,59)-datetime.timedelta(1,0,0))
 
-        while has_next:
-            trades = apis.taobao_trades_sold_increment_get(session=user.top_session,page_no=cur_page,
-                 page_size=settings.GET_TAOBAO_DATA_PAGE_SIZE,use_has_next='true',start_modified=s_dt_f,end_modified=s_dt_t)
+    has_next = True
+    cur_page = 1
+    trade = Trade()
+    order = Order()
 
-            if trades.has_key('error_response'):
-                logger.error('Get users hour trades errorresponse:%s' %(trades))
-                break
-
+    while has_next:
+        try:
+            trades = apis.taobao_trades_sold_increment_get(session=user.top_session,page_size=settings.TAOBAO_PAGE_SIZE,
+                 use_has_next='true',start_modified=s_dt_f,end_modified=s_dt_t)
 
             for t in trades['trades_sold_increment_get_response']['trades']['trade']:
-
-                order.created = t['created']
-                dt = parse_datetime(t['created'])
-
-                order.hour  = dt.hour
-                order.month = dt.month
-                order.day   = dt.day
-                order.week  = time.gmtime(time.mktime(dt.timetuple()))[7]/7+1
+                trade.save_trade_through_dict(t)
 
                 order.seller_nick = t['seller_nick']
                 order.buyer_nick  = t['buyer_nick']
-                order.modified    = t['modified']
-                order.tid         = t['tid']
+                order.trade       = trade
 
                 for o in t['orders']['order']:
                     for k,v in o.iteritems():
@@ -134,12 +112,10 @@ def saveUserDailyIncrementOrders(user_id):
 
             has_next = trades['trades_sold_increment_get_response']['has_next']
             cur_page += 1
+            time.sleep(0.5)
+        except Exception,exc:
+            time.sleep(60)
 
-    except Exception,exc:
-
-        logger.error('Executing saveUserDailyIncrementOrders error:%s' %(exc), exc_info=True)
-        if not settings.DEBUG:
-            saveUserDailyIncrementOrders.retry(exc=exc,countdown=2)
 
 
 

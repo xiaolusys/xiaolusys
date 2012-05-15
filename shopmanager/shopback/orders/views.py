@@ -1,13 +1,11 @@
-import time
-import datetime
 from django.db.models import Sum,Count,Avg
 from djangorestframework.response import ErrorResponse
 from djangorestframework import status
 from djangorestframework.views import ModelView
 from chartit import DataPool, Chart
 from chartit import PivotDataPool, PivotChart
-from auth.utils import parse_datetime,format_time,map_int2str
-from shopback.orders.models import Order
+from auth.utils import parse_datetime,parse_date,format_time,map_int2str
+from shopback.orders.models import Trade
 from shopback.items.tasks import ORDER_SUCCESS_STATUS
 
 
@@ -25,7 +23,10 @@ class UserHourlyOrderView(ModelView):
 
         nicks_list = nicks.split(',')
 
-        queryset = Order.objects.filter(created__gt=dt_f,created__lt=dt_t)\
+        dt_f = parse_date(dt_f)
+        dt_t = parse_date(dt_t)
+
+        queryset = Trade.objects.filter(created__gt=dt_f,created__lt=dt_t)\
             .filter(seller_nick__in = nicks_list)
 
         if pay_type == 'pay':
@@ -51,8 +52,8 @@ class UserHourlyOrderView(ModelView):
         series = {
             'options': {'source': queryset,'categories': categories,'legend_by': 'seller_nick'},
             'terms': {
-                'total_trades':Count('tid',distinct=True),
-                'total_sales':{'func':Sum('total_fee'),'legend_by':'seller_nick'}}}
+                'total_trades':Count('id'),
+                'total_sales':{'func':Sum('payment'),'legend_by':'seller_nick'}}}
 
 
         ordersdata = PivotDataPool(series=[series],sortf_mapf_mts=(None,map_int2str,True))

@@ -1,23 +1,82 @@
 from django.db import models
 from shopback.base.models import BaseModel
-from shopback.base.fields import BigIntegerAutoField
+from shopback.base.fields import BigIntegerAutoField,BigIntegerForeignKey
+
+
+class Trade(models.Model):
+
+    id           =  BigIntegerAutoField(primary_key=True)
+    seller_nick  =  models.CharField(max_length=64,blank=True)
+    buyer_nick   =  models.CharField(max_length=64,blank=True)
+    type         =  models.CharField(max_length=32,blank=True)
+
+    year  = models.IntegerField(null=True,db_index=True)
+    month = models.IntegerField(null=True,db_index=True)
+    week  = models.IntegerField(null=True,db_index=True)
+    day   = models.IntegerField(null=True,db_index=True)
+    hour  = models.CharField(max_length=5,blank=True,db_index=True)
+
+    created      =  models.DateTimeField(null=True,blank=True)
+    payment      =  models.CharField(max_length=10,blank=True)
+    discount_fee =  models.CharField(max_length=10,blank=True)
+    adjust_fee   =  models.CharField(max_length=10,blank=True)
+    post_fee    =  models.CharField(max_length=10,blank=True)
+    total_fee   =  models.CharField(max_length=10,blank=True)
+
+    commission_fee =  models.CharField(max_length=10,blank=True)
+
+    pay_time    =  models.DateTimeField(null=True,blank=True)
+    end_time    =  models.DateTimeField(null=True,blank=True)
+    modified    =  models.DateTimeField(null=True,blank=True)
+
+    buyer_message    =  models.CharField(max_length=256,blank=True)
+    buyer_memo       =  models.CharField(max_length=128,blank=True)
+    seller_memo      =  models.CharField(max_length=128,blank=True)
+
+    status      =  models.CharField(max_length=30,blank=True)
+
+
+    class Meta:
+        db_table = 'shop_trade'
+        verbose_name = u'\u4ea4\u6613'
+
+
+
+    def save_trade_through_dict(self,t):
+
+        import time
+        from auth.utils import parse_datetime
+
+        self.id = t['tid']
+        for k,v in t.iteritems():
+            hasattr(self,k) and setattr(self,k,v)
+
+        dt = parse_datetime(t['created'])
+        self.year  = dt.year
+        self.hour  = dt.hour
+        self.month = dt.month
+        self.day   = dt.day
+        self.week  = time.gmtime(time.mktime(dt.timetuple()))[7]/7+1
+
+        self.created  = parse_datetime(t['created'])
+        self.pay_time = parse_datetime(t['pay_time']) if t.get('pay_time',None) else None
+        self.end_time = parse_datetime(t['end_time']) if t.get('end_time',None) else None
+        self.modified = parse_datetime(t['modified']) if t.get('modified',None) else None
+
+        self.save()
+
+
+
 
 
 class Order(models.Model):
 
-    oid = models.CharField(primary_key=True,max_length=64)
+    oid   = BigIntegerAutoField(primary_key=True)
 
-    tid = models.CharField(max_length=32,blank=True)
+    trade = BigIntegerForeignKey(Trade,related_name='trade_orders')
     title =  models.CharField(max_length=128)
     price = models.CharField(max_length=12,blank=True)
     num_iid = models.BigIntegerField(null=True)
-
-    month = models.IntegerField(null=True,db_index=True)
-    week = models.IntegerField(null=True,db_index=True)
-    day = models.IntegerField(null=True,db_index=True)
-    hour = models.CharField(max_length=5,blank=True,db_index=True)
-
-    created = models.CharField(max_length=19,blank=True,db_index=True)
 
     item_meal_id = models.IntegerField(null=True)
     sku_id = models.CharField(max_length=20,blank=True)
@@ -52,4 +111,7 @@ class Order(models.Model):
 
     class Meta:
         db_table = 'shop_order'
-  
+        verbose_name = u'\u8ba2\u5355'
+
+
+

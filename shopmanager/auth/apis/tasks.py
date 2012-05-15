@@ -31,12 +31,12 @@ API_FIELDS = {
         +'price,has_discount,has_invoice,has_warranty,has_showcase, modified,delist_time,postage_id,seller_cids,outer_id',
     'taobao.items.onsale.get':'approve_status,num_iid,title,nick,type,cid,pic_url,num,props,valid_thru,list_time,price,has_discount,has_invoice,has_warranty'
         +',has_showcase,modified,delist_time,postage_id,seller_cids,outer_id',
-    'taobao.trades.sold.get':'seller_nick, buyer_nick, title, type, created, tid, status, modified, payment, received_payment, commission_fee, pic_path,'
-        +'num_iid, num, price,orders.title, orders.pic_path, orders.price, orders.num, orders.num_iid, orders.sku_id, orders.refund_status, '
+    'taobao.trades.sold.get':'seller_nick,buyer_nick,title,type,created,tid,status,modified,payment,discount_fee,adjust_fee,post_fee,total_fee,received_payment,commission_fee'
+        +',pic_path,pay_time,end_time,num_iid,num,price,orders.title, orders.pic_path, orders.price, orders.num, orders.num_iid, orders.sku_id, orders.refund_status, '
         +'orders.status, orders.oid, orders.total_fee, orders.payment, orders.discount_fee, orders.adjust_fee, orders.sku_properties_name,'
         +' orders.item_meal_name,orders.item_meal_id, orders.buyer_rate, orders.seller_rate, orders.outer_iid, orders.outer_sku_id, orders.refund_id, orders.seller_type  ',
-    'taobao.trade.fullinfo.get':'seller_nick, buyer_nick, title, type, created, tid, status, modified, payment, received_payment, commission_fee, pic_path,'
-        +'num_iid, num, price,orders',
+    'taobao.trade.fullinfo.get':'seller_nick,buyer_nick,title, type,created,tid,status,modified,payment,received_payment,commission_fee,pic_path,buyer_email,buyer_alipay_no'
+        +',seller_alipay_no,num_iid, num, price,orders',
     'taobao.itemcats.get':'cid,parent_cid,name,is_parent,status,sort_order',
 
 }
