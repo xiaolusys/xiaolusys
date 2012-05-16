@@ -24,8 +24,7 @@ admin.site.register(Order, OrderAdmin)
 
 class TradeAdmin(admin.ModelAdmin):
     list_display = ('id','seller_nick','buyer_nick','type','payment','discount_fee','adjust_fee','post_fee',
-                    'total_fee','commission_fee','buyer_obtain_point_fee','point_fee','real_point_fee',
-                    'pay_time','end_time','modified','status')
+                    'total_fee','commission_fee','pay_time','end_time','modified','status')
     list_display_links = ('id','buyer_nick','payment','status')
     #list_editable = ('update_time','task_type' ,'is_success','status')
 

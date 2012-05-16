@@ -2,10 +2,15 @@ from django.db import models
 from shopback.base.models import BaseModel
 from shopback.base.fields import BigIntegerAutoField,BigIntegerForeignKey
 
+ORDER_SUCCESS_STATUS = ['WAIT_SELLER_SEND_GOODS','WAIT_BUYER_CONFIRM_GOODS','TRADE_BUYER_SIGNED','TRADE_FINISHED']
+ORDER_FINISH_STATUS  = 'TRADE_FINISHED'
+ORDER_UNPAY_STATUS   = 'WAIT_BUYER_PAY'
 
 class Trade(models.Model):
 
     id           =  BigIntegerAutoField(primary_key=True)
+
+    seller_id    =  models.CharField(max_length=32,blank=True)
     seller_nick  =  models.CharField(max_length=64,blank=True)
     buyer_nick   =  models.CharField(max_length=64,blank=True)
     type         =  models.CharField(max_length=32,blank=True)
@@ -38,16 +43,17 @@ class Trade(models.Model):
 
     class Meta:
         db_table = 'shop_trade'
-        verbose_name = u'\u4ea4\u6613'
 
 
 
-    def save_trade_through_dict(self,t):
+
+    def save_trade_through_dict(self,user_id,t):
 
         import time
         from auth.utils import parse_datetime
 
         self.id = t['tid']
+        self.seller_id = user_id
         for k,v in t.iteritems():
             hasattr(self,k) and setattr(self,k,v)
 
@@ -111,7 +117,7 @@ class Order(models.Model):
 
     class Meta:
         db_table = 'shop_order'
-        verbose_name = u'\u8ba2\u5355'
+
 
 
 

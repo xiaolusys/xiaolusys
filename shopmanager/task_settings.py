@@ -51,10 +51,15 @@ CELERYBEAT_SCHEDULE = {
         'schedule':crontab(minute="0",hour="*/1"),
         'args':(0,)
     },
-    'runs-every-weeks':{
+    'runs-every-weeks-a':{
         'task':'shopback.orders.tasks.updateAllUserDuringOrders',
         'schedule':crontab(minute="0",hour="1",day_of_week="sun"),
         'args':(7,)
+    },
+    'runs-every-weeks-b':{
+        'task':'shopback.orders.tasks.updateAllUserOrdersAmountTask',
+        'schedule':crontab(minute="0",hour="1",day_of_week="mon"),
+        'args':()
     },
 #    'runs-every-day_b':{
 #        'task':'search.tasks.updateProductTradeBySellerTask',

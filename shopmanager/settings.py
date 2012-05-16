@@ -92,7 +92,7 @@ INSTALLED_APPS = (
     'django.contrib.sites',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'django.contrib.admin',
+
     'chartit',
     'south',
     'gunicorn',
@@ -111,7 +111,7 @@ INSTALLED_APPS = (
 
     'autolist',
     'search',
-
+    'django.contrib.admin',
 )
 
 APPKEY = '12517640'

@@ -43,6 +43,13 @@ def login_taobo(request):
 
 def home(request):
     user = authenticate(request=request)
+#    profile = user.get_profile()
+#
+#    trades = apis.taobao_trades_sold_get(session=profile.top_session,page_no=1
+#                 ,page_size=10,use_has_next='true',start_created='2012-05-10 00:00:00',end_created='2012-05-15 00:00:00')
+#    for t in trades['trades_sold_get_response']['trades']['trade']:
+#        trade_amount = apis.taobao_trade_amount_get(tid=t['tid'],session=profile.top_session)
+#        print trade_amount
 
     if not user or user.is_anonymous():
         return HttpResponseRedirect('/accounts/login/')

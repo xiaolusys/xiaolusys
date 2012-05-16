@@ -1,9 +1,8 @@
 from django.conf.urls.defaults import patterns, include, url
 
 
+urlpatterns = patterns('shopback.orders.views',
 
-urlpatterns = patterns('',
-
-
+   url('amount/(?P<dt_f>[^/]+)/(?P<dt_t>[^/]+)/$','update_finish_trade_amount',name='finish_trade_amount'),
 )
   

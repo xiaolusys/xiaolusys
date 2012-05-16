@@ -7,7 +7,7 @@ from django.conf import settings
 from shopback.base.aggregates import ConcatenateDistinct
 from auth.utils import format_datetime ,parse_datetime ,refresh_session
 from shopback.items.models import Item
-from shopback.orders.models import Order,Trade
+from shopback.orders.models import Order,Trade,ORDER_SUCCESS_STATUS
 from shopback.users.models import User
 from shopback.task.models import ItemNumTask,UNEXECUTE,EXECERROR,SUCCESS
 from auth import apis
@@ -15,7 +15,7 @@ import logging
 
 logger = logging.getLogger('updateitemnum')
 
-ORDER_SUCCESS_STATUS = ['WAIT_SELLER_SEND_GOODS','WAIT_BUYER_CONFIRM_GOODS','TRADE_BUYER_SIGNED','TRADE_FINISHED']
+
 
 @task(max_retries=3)
 def updateItemNumTask(itemNumTask_id):
@@ -131,11 +131,10 @@ def updateUnpayOrderTask(tid,nick):
 @task()
 def updateAllUnpayOrderTask():
 
-    unpay_orders = Order.objects.filter(status='WAIT_BUYER_PAY')\
-        .values('tid','seller_nick').distinct('tid')
+    unpay_orders = Order.objects.filter(status='WAIT_BUYER_PAY')
 
     for order in unpay_orders:
-        subtask(updateUnpayOrderTask).delay(order['tid'],order['seller_nick'])
+        subtask(updateUnpayOrderTask).delay(order.trade.id,order.seller_nick)
 
 
 
@@ -242,8 +241,8 @@ def updateAllItemNumTask():
 
                 subtask(pullPerUserTradesTask).delay(user.id,start_datetime,end_datetime)
 
-        time.sleep(settings.UPDATE_ITEM_NUM_INTERVAL)
-        print '----------------excute updateAllItemNumTask start---------------'
+        #time.sleep(settings.UPDATE_ITEM_NUM_INTERVAL)
+        #print '----------------excute updateAllItemNumTask start---------------'
         #subtask(execAllItemNumTask).delay()
 
 #        time.sleep(settings.UPDATE_UNPAY_ORDER_INTERVAL)
