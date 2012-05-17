@@ -13,26 +13,26 @@ logger = logging.getLogger('hourly.saveorder')
 BLANK_CHAR = ''
 
 @task(max_retry=3)
-def saveUserDuringOrders(user_id,days=0):
+def saveUserDuringOrders(user_id,days=0,s_dt_f=None,s_dt_t=None):
     try:
-        user = User.objects.get(pk=user_id)
+        user = User.objects.get(visitor_id=user_id)
     except User.DoesNotExist,exc:
         logger.error('SaveUserDuringOrders error:%s'%exc, exc_info=True)
         return
 
     refresh_session(user,settings.APPKEY,settings.APPSECRET,settings.REFRESH_URL)
 
-    dt = datetime.datetime.now()
-    if days >0 :
-        s_dt_f = format_datetime(datetime.datetime(dt.year,dt.month,dt.day,0,0,0)-datetime.timedelta(days,0,0))
-        s_dt_t = format_datetime(datetime.datetime(dt.year,dt.month,dt.day,0,0,0))
-    else:
-        s_dt_f = format_datetime(datetime.datetime(dt.year,dt.month,dt.day,0,0,0))
-        s_dt_t = format_datetime(datetime.datetime(dt.year,dt.month,dt.day,dt.hour,59,59)-datetime.timedelta(0,1,0))
+    if not(s_dt_f and s_dt_t):
+        dt = datetime.datetime.now()
+        if days >0 :
+            s_dt_f = format_datetime(datetime.datetime(dt.year,dt.month,dt.day,0,0,0)-datetime.timedelta(days,0,0))
+            s_dt_t = format_datetime(datetime.datetime(dt.year,dt.month,dt.day,0,0,0))
+        else:
+            s_dt_f = format_datetime(datetime.datetime(dt.year,dt.month,dt.day,0,0,0))
+            s_dt_t = format_datetime(datetime.datetime(dt.year,dt.month,dt.day,dt.hour,59,59)-datetime.timedelta(0,60,0))
 
     has_next = True
     cur_page = 1
-    trade = Trade()
     order = Order()
 
     while has_next:
@@ -43,6 +43,7 @@ def saveUserDuringOrders(user_id,days=0):
             if trades['trades_sold_increment_get_response'].has_key('trades'):
                 for t in trades['trades_sold_get_response']['trades']['trade']:
 
+                    trade,state = Trade.objects.get_or_create(pk=t['tid'])
                     trade.save_trade_through_dict(user_id,t)
 
                     order.seller_nick = t['seller_nick']
@@ -56,52 +57,63 @@ def saveUserDuringOrders(user_id,days=0):
 
             has_next = trades['trades_sold_get_response']['has_next']
             cur_page += 1
-            time.sleep(0.5)
+            time.sleep(5)
         except Exception,exc:
-            time.sleep(60)
+            time.sleep(120)
 
 
 
 
 @task()
-def updateAllUserDuringOrders(days):
+def updateAllUserDuringOrders(days=0,update_from=None,update_to=None):
+
+    hander_update  = update_from and update_to
+    if hander_update:
+        update_from = format_datetime(update_from)
+        update_to   = format_datetime(update_to)
 
     users = User.objects.all()
 
     for user in users:
-
-        subtask(saveUserDuringOrders).delay(user.visitor_id,days=days)
+        if hander_update:
+            saveUserDuringOrders(user.visitor_id,s_dt_f=update_from,s_dt_t=update_to)
+        else:
+            subtask(saveUserDuringOrders).delay(user.visitor_id,days=days)
 
 
 
 
 @task(max_retry=3)
-def saveUserDailyIncrementOrders(user_id):
+def saveUserDailyIncrementOrders(user_id,year=None,month=None,day=None):
     try:
-        user = User.objects.get(pk=user_id)
+        user = User.objects.get(visitor_id=user_id)
     except User.DoesNotExist,exc:
         logger.error('saveUserDailyIncrementOrders error:%s'%exc, exc_info=True)
         return
 
     refresh_session(user,settings.APPKEY,settings.APPSECRET,settings.REFRESH_URL)
 
-    dt = datetime.datetime.now()
-    s_dt_f = format_datetime(datetime.datetime(dt.year,dt.month,dt.day,0,0,0)-datetime.timedelta(1,0,0))
-    s_dt_t = format_datetime(datetime.datetime(dt.year,dt.month,dt.day,23,59,59)-datetime.timedelta(1,0,0))
+    if year and month and day:
+        s_dt_f = format_datetime(datetime.datetime(year,month,day,0,0,0))
+        s_dt_t = format_datetime(datetime.datetime(year,month,day,23,59,59))
+    else:
+        dt = datetime.datetime.now()
+        s_dt_f = format_datetime(datetime.datetime(dt.year,dt.month,dt.day,0,0,0)-datetime.timedelta(1,0,0))
+        s_dt_t = format_datetime(datetime.datetime(dt.year,dt.month,dt.day,23,59,59)-datetime.timedelta(1,0,0))
 
     has_next = True
     cur_page = 1
-    trade = Trade()
     order = Order()
 
     while has_next:
         try:
-            trades = apis.taobao_trades_sold_increment_get(session=user.top_session,page_size=settings.TAOBAO_PAGE_SIZE,
-                 use_has_next='true',start_modified=s_dt_f,end_modified=s_dt_t)
+            trades = apis.taobao_trades_sold_increment_get(session=user.top_session,page_no=cur_page
+                 ,page_size=settings.TAOBAO_PAGE_SIZE,use_has_next='true',start_modified=s_dt_f,end_modified=s_dt_t)
 
             if trades['trades_sold_increment_get_response'].has_key('trades'):
                 for t in trades['trades_sold_increment_get_response']['trades']['trade']:
 
+                    trade,state = Trade.objects.get_or_create(pk=t['tid'])
                     trade.save_trade_through_dict(user_id,t)
 
                     order.seller_nick = t['seller_nick']
@@ -115,22 +127,30 @@ def saveUserDailyIncrementOrders(user_id):
 
             has_next = trades['trades_sold_increment_get_response']['has_next']
             cur_page += 1
-            time.sleep(0.5)
+            time.sleep(5)
         except Exception,exc:
-            time.sleep(60)
+            time.sleep(120)
 
 
 
 
 
 @task()
-def updateAllUserDailyIncrementOrders():
+def updateAllUserDailyIncrementOrders(update_from=None,update_to=None):
+
+    hander_update = update_from and update_to
+    if hander_update:
+        time_delta = update_to - update_from
+        update_days  = time_delta.days+1
 
     users = User.objects.all()
-
     for user in users:
-
-        subtask(saveUserDailyIncrementOrders).delay(user.visitor_id)
+        if hander_update:
+            for i in xrange(0,update_days):
+                update_date = update_to - datetime.timedelta(i,0,0)
+                saveUserDailyIncrementOrders(user.visitor_id,update_date.year,update_date.month,update_date.day)
+        else:
+            subtask(saveUserDailyIncrementOrders).delay(user.visitor_id)
 
 
 
@@ -180,19 +200,28 @@ def updateOrdersAmountTask(user_id,f_dt,t_dt):
             logger.error('%s'%exc)
 
 
-@task()
-def updateAllUserOrdersAmountTask():
 
-    dt = datetime.datetime.now()
-    f_dt = datetime.datetime(dt.year,dt.month,dt.day,0,0,0)\
-        - datetime.timedelta(7,0,0)
-    t_dt = datetime.datetime(dt.year,dt.month,dt.day,23,59,59)\
-        - datetime.timedelta(1,0,0)
+
+@task()
+def updateAllUserOrdersAmountTask(dt_f=None,dt_t=None):
+
+    hander_update = dt_f and dt_t
+    if not hander_update:
+        dt = datetime.datetime.now()
+        dt_f = datetime.datetime(dt.year,dt.month,dt.day,0,0,0)\
+            - datetime.timedelta(7,0,0)
+        dt_t = datetime.datetime(dt.year,dt.month,dt.day,23,59,59)\
+            - datetime.timedelta(1,0,0)
 
     users = User.objects.all()
     for user in users:
+        if hander_update:
+            print dt_f,dt_t
+            updateOrdersAmountTask(user.visitor_id,dt_f,dt_t)
+        else:
+            subtask(updateOrdersAmountTask).delay(user.visitor_id,dt_f,dt_t)
 
-        subtask(updateOrdersAmountTask).delay(user.visitor_id,f_dt,t_dt)
+
 
 
 

@@ -1,3 +1,4 @@
+import datetime
 import json
 from django.http import HttpResponse
 from django.db.models import Sum,Count,Avg
@@ -9,7 +10,7 @@ from chartit import PivotDataPool, PivotChart
 from auth import staff_requried
 from auth.utils import parse_datetime,parse_date,format_time,map_int2str
 from shopback.orders.models import Order,Trade,ORDER_SUCCESS_STATUS,ORDER_FINISH_STATUS
-from shopback.orders.tasks import updateOrdersAmountTask
+from shopback.orders.tasks import updateAllUserOrdersAmountTask,updateAllUserDailyIncrementOrders
 
 
 class UserHourlyOrderView(ModelView):
@@ -23,14 +24,18 @@ class UserHourlyOrderView(ModelView):
         cat_by = request.GET.get('cat_by','hour')
         pay_type = request.GET.get('type','all')
         xy = request.GET.get('xy','horizontal')
+        base = request.GET.get('base','created')
 
         nicks_list = nicks.split(',')
 
         dt_f = parse_date(dt_f)
-        dt_t = parse_date(dt_t)
+        dt_t = parse_date(dt_t)+datetime.timedelta(23,59,59)
 
-        queryset = Trade.objects.filter(created__gt=dt_f,created__lt=dt_t)\
-            .filter(seller_nick__in = nicks_list)
+        queryset = Trade.objects.filter(seller_nick__in = nicks_list)
+        if base == 'created':
+            queryset = queryset.filter(created__gt=dt_f,created__lt=dt_t)
+        else:
+            queryset = queryset.filter(modified__gt=dt_f,modified__lt=dt_t)
 
         if pay_type == 'pay':
             queryset = queryset.filter(status__in = ORDER_SUCCESS_STATUS)
@@ -43,19 +48,21 @@ class UserHourlyOrderView(ModelView):
         if xy == 'vertical':
             categories = [cat_by]
         else:
-            if cat_by == 'month':
-                categories = ['month']
+            if cat_by == 'year':
+                categories = ['year']
+            elif cat_by == 'month':
+                categories = ['year','month']
             elif cat_by == 'day':
-                categories = ['month','day']
+                categories = ['year','month','day']
             elif cat_by == 'week':
-                categories = ['week']
+                categories = ['year','week']
             else :
-                categories = ['month','day','hour']
+                categories = ['year','month','day','hour']
 
         series = {
             'options': {'source': queryset,'categories': categories,'legend_by': 'seller_nick'},
             'terms': {
-                'total_trades':Count('id'),
+                'total_trades':{'func':Count('id'),'legend_by':'seller_nick'},
                 'total_sales':{'func':Sum('payment'),'legend_by':'seller_nick'},
                 'post_fees':{'func':Sum('post_fee'),'legend_by':'seller_nick'},
                 'commission_fees':{'func':Sum('commission_fee'),'legend_by':'seller_nick'},
@@ -96,15 +103,30 @@ class UserHourlyOrderView(ModelView):
         return chart_data
 
 
-#@staff_requried(login_url='/accounts/login/')
+@staff_requried(login_url='/admin/login/')
 def update_finish_trade_amount(request,dt_f,dt_t):
 
     dt_f = parse_date(dt_f)
     dt_t = parse_date(dt_t)
-    user_id = request.user.get_profile().visitor_id
-    order_amount_task = updateOrdersAmountTask.delay(user_id,dt_f,dt_t)
+
+    order_amount_task = updateAllUserOrdersAmountTask.delay(dt_f,dt_t)
 
     ret_params = {'task_id':order_amount_task.task_id}
+
+    return HttpResponse(json.dumps(ret_params),mimetype='application/json')
+
+
+
+
+@staff_requried(login_url='/admin/login/')
+def update_increment_trade(request,dt_f,dt_t):
+
+    dt_f = parse_date(dt_f)
+    dt_t = parse_date(dt_t)
+
+    increment_task = updateAllUserDailyIncrementOrders.delay(dt_f,dt_t)
+
+    ret_params = {'task_id':increment_task.task_id}
 
     return HttpResponse(json.dumps(ret_params),mimetype='application/json')
 

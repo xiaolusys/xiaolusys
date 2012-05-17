@@ -7,7 +7,7 @@ from django.conf import settings
 from shopback.base.aggregates import ConcatenateDistinct
 from auth.utils import format_datetime ,parse_datetime ,refresh_session
 from shopback.items.models import Item
-from shopback.orders.models import Order,Trade,ORDER_SUCCESS_STATUS
+from shopback.orders.models import Order,Trade,ORDER_SUCCESS_STATUS,ORDER_UNPAY_STATUS
 from shopback.users.models import User
 from shopback.task.models import ItemNumTask,UNEXECUTE,EXECERROR,SUCCESS
 from auth import apis
@@ -87,16 +87,15 @@ def execAllItemNumTask():
 
 
 @task(max_retry=3)
-def updateUnpayOrderTask(tid,nick):
+def updateUnpayOrderTask(tid,seller_id):
 
     try:
-        user = User.objects.get(nick=nick)
-
-        refresh_session(user,settings.APPKEY,settings.APPSECRET,settings.REFRESH_URL)
+        user = User.objects.get(visitor_id=seller_id)
     except Exception,exc:
         logger.error('Excute updateUnpoyOrderTask error:%s'%exc,exc_info=True)
         return
 
+    refresh_session(user,settings.APPKEY,settings.APPSECRET,settings.REFRESH_URL)
     try:
         trades = apis.taobao_trade_fullinfo_get(tid,session=user.top_session)
 
@@ -131,10 +130,10 @@ def updateUnpayOrderTask(tid,nick):
 @task()
 def updateAllUnpayOrderTask():
 
-    unpay_orders = Order.objects.filter(status='WAIT_BUYER_PAY')
+    trades = Trade.objects.filter(status=ORDER_UNPAY_STATUS)
 
-    for order in unpay_orders:
-        subtask(updateUnpayOrderTask).delay(order.trade.id,order.seller_nick)
+    for trade in trades:
+        subtask(updateUnfinishOrderTask).delay(trade.id,trade.seller_id)
 
 
 
@@ -153,20 +152,19 @@ def pullPerUserTradesTask(user_id,start_created,end_created):
 
     has_next = True
     cur_page = 1
-    trade    = Trade()
     order_obj = Order()
 
     while has_next:
         try:
-            response = apis.taobao_trades_sold_increment_get(session=user.top_session,
-                    page_size=settings.TAOBAO_PAGE_SIZE,start_modified=start_created,
-                    end_modified=end_created,use_has_next='true')
+            response = apis.taobao_trades_sold_increment_get(session=user.top_session,page_no=cur_page,use_has_next='true',
+                    page_size=settings.TAOBAO_PAGE_SIZE,start_modified=start_created,end_modified=end_created)
 
             trades = response['trades_sold_increment_get_response']
             if trades.has_key('trades') and trades.get('trades').has_key('trade'):
 
                 for t in trades['trades']['trade']:
 
+                    trade,state = Trade.objects.get_or_create(pk=t['tid'])
                     trade.save_trade_through_dict(t)
 
                     order_obj.seller_nick = t['seller_nick']
@@ -197,9 +195,9 @@ def pullPerUserTradesTask(user_id,start_created,end_created):
 
             has_next = trades['has_next']
             cur_page += 1
-
+            time.sleep(5)
         except Exception,exc:
-            time.sleep(60)
+            time.sleep(120)
 
 
 
