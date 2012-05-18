@@ -79,7 +79,7 @@ class UserHourlyOrderView(ModelView):
             'terms':['total_trades',
                      {'total_sales':{'type':'line','stacking':False,'yAxis':1}},
                      {'post_fees':{'type':'line','stacking':False,'yAxis':1}},
-                     {'commission_fees':{'type':'line','stacking':False,'yAxis':1}},
+                     {'commission_fees':{'type':'area','stacking':False,'yAxis':1}},
             ]},
         ]
 
@@ -91,7 +91,7 @@ class UserHourlyOrderView(ModelView):
             'yAxis': [{'title': {'text': u'\u8ba2\u5355\u6570'}},
                       {'title': {'text': u'\u4ea4\u6613\u989d'},'opposite': True},
                       {'title': {'text': u'\u90ae\u8d39'},'opposite': True},
-                      {'title': {'text': u'\u4f63\u91d1'},'opposite': True}
+                      {'title': {'text': u'\u4f63\u91d1'},'opposite': True},
             ]
         }
 
