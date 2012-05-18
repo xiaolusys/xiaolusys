@@ -11,6 +11,7 @@ class ItemAdmin(admin.ModelAdmin):
     #date_hierarchy = 'modified'
     #ordering = ['created_at']
 
+
     list_filter = ('approve_status',)
     search_fields = ['num_iid', 'outer_iid', 'title','nick']
 

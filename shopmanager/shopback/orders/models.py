@@ -22,18 +22,20 @@ class Trade(models.Model):
     day   = models.IntegerField(null=True,db_index=True)
     hour  = models.CharField(max_length=5,blank=True,db_index=True)
 
-    created      =  models.DateTimeField(null=True,blank=True)
     payment      =  models.CharField(max_length=10,blank=True)
     discount_fee =  models.CharField(max_length=10,blank=True)
     adjust_fee   =  models.CharField(max_length=10,blank=True)
     post_fee    =  models.CharField(max_length=10,blank=True)
     total_fee   =  models.CharField(max_length=10,blank=True)
+    buyer_obtain_point_fee  =  models.CharField(max_length=10,blank=True)
 
     commission_fee =  models.CharField(max_length=10,blank=True)
 
-    pay_time    =  models.DateTimeField(null=True,blank=True)
-    end_time    =  models.DateTimeField(null=True,blank=True)
-    modified    =  models.DateTimeField(null=True,blank=True)
+    created       =  models.DateTimeField(db_index=True,null=True,blank=True)
+    pay_time      =  models.DateTimeField(null=True,blank=True)
+    end_time      =  models.DateTimeField(db_index=True,null=True,blank=True)
+    modified      =  models.DateTimeField(db_index=True,null=True,blank=True)
+    consign_time  =  models.DateTimeField(db_index=True,null=True,blank=True)
 
     buyer_message    =  models.CharField(max_length=256,blank=True)
     buyer_memo       =  models.CharField(max_length=128,blank=True)
@@ -44,8 +46,6 @@ class Trade(models.Model):
 
     class Meta:
         db_table = 'shop_trade'
-
-
 
 
     def save_trade_through_dict(self,user_id,t):
@@ -68,7 +68,7 @@ class Trade(models.Model):
         self.pay_time = parse_datetime(t['pay_time']) if t.get('pay_time',None) else None
         self.end_time = parse_datetime(t['end_time']) if t.get('end_time',None) else None
         self.modified = parse_datetime(t['modified']) if t.get('modified',None) else None
-
+        self.consign_time = parse_datetime(t['consign_time']) if t.get('consign_time',None) else None
         self.save()
 
 

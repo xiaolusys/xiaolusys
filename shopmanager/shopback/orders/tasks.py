@@ -168,11 +168,12 @@ def updateOrdersAmountTask(user_id,f_dt,t_dt):
     finish_trades = Trade.objects.filter(seller_id=user_id,created__gt=f_dt,created__lt=t_dt,
                                          commission_fee=BLANK_CHAR,status=ORDER_FINISH_STATUS)
 
+
     for trade in finish_trades:
         try:
             trade_amount = apis.taobao_trade_amount_get(tid=trade.id,session=user.top_session)
             if not trade_amount.has_key('trade_amount_get_response'):
-                logger.warn('update trade amount fail:%s'%trade_amount)
+                logger.error('update trade amount fail:%s'%trade_amount)
                 continue
 
             tamt = trade_amount['trade_amount_get_response']['trade_amount']
@@ -180,6 +181,7 @@ def updateOrdersAmountTask(user_id,f_dt,t_dt):
             trade.total_fee = tamt['total_fee']
             trade.post_fee = tamt['post_fee']
             trade.commission_fee = tamt['commission_fee']
+            trade.buyer_obtain_point_fee  = tamt['buyer_obtain_point_fee']
             trade.pay_time = parse_datetime(tamt['pay_time'])
             trade.save()
 
@@ -193,7 +195,7 @@ def updateOrdersAmountTask(user_id,f_dt,t_dt):
                     order.num          = o['num']
                     order.num_iid      = o['num_iid']
                     order.save()
-                except Order.DoesNotExsit:
+                except Order.DoesNotExist:
                     logger.error('the order(id:%s) does not exist'%o['oid'])
 
         except Exception,exc:
@@ -203,20 +205,19 @@ def updateOrdersAmountTask(user_id,f_dt,t_dt):
 
 
 @task()
-def updateAllUserOrdersAmountTask(dt_f=None,dt_t=None):
+def updateAllUserOrdersAmountTask(days=0,dt_f=None,dt_t=None):
 
     hander_update = dt_f and dt_t
     if not hander_update:
         dt = datetime.datetime.now()
         dt_f = datetime.datetime(dt.year,dt.month,dt.day,0,0,0)\
-            - datetime.timedelta(7,0,0)
+            - datetime.timedelta(days,0,0)
         dt_t = datetime.datetime(dt.year,dt.month,dt.day,23,59,59)\
             - datetime.timedelta(1,0,0)
 
     users = User.objects.all()
     for user in users:
         if hander_update:
-            print dt_f,dt_t
             updateOrdersAmountTask(user.visitor_id,dt_f,dt_t)
         else:
             subtask(updateOrdersAmountTask).delay(user.visitor_id,dt_f,dt_t)

@@ -92,25 +92,29 @@ class RankChartHtmlRenderer(ChartTemplateRenderer):
     template = ""
 
 
+
 class KeysChartHtmlRenderer(RankChartHtmlRenderer):
     """
     Renderer which serializes to JSON
     """
-    template = ""
+    template = "keywords_itemsrank.html"
+
 
 
 class RankPivotChartHtmlRenderer(RankChartHtmlRenderer):
     """
     Renderer which serializes to JSON
     """
-    template = ""
+    template = "keywords_rankstatistic.html"
+
 
 
 class AvgRankPivotChartHtmlRenderer(RankChartHtmlRenderer):
     """
     Renderer which serializes to JSON
     """
-    template = ""
+    template = "keywords_itemsrank.html"
+
 
 
 class TradePivotChartHtmlRenderer(RankChartHtmlRenderer):
@@ -120,11 +124,14 @@ class TradePivotChartHtmlRenderer(RankChartHtmlRenderer):
     template = ""
 
 
+
 class TradeTopChartHtmlRenderer(RankChartHtmlRenderer):
     """
     Renderer which serializes to JSON
     """
     template = ""
+
+
 
 class OrderNumPiovtChartHtmlRenderer(RankChartHtmlRenderer):
     """

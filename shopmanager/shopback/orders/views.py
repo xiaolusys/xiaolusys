@@ -29,13 +29,15 @@ class UserHourlyOrderView(ModelView):
         nicks_list = nicks.split(',')
 
         dt_f = parse_date(dt_f)
-        dt_t = parse_date(dt_t)+datetime.timedelta(23,59,59)
+        dt_t = parse_date(dt_t)+datetime.timedelta(1,0,0)
 
         queryset = Trade.objects.filter(seller_nick__in = nicks_list)
-        if base == 'created':
-            queryset = queryset.filter(created__gt=dt_f,created__lt=dt_t)
+        if base == 'consign':
+            queryset = queryset.filter(consign_time__gte=dt_f,consign_time__lt=dt_t)
+        elif base == 'modified':
+            queryset = queryset.filter(modified__gte=dt_f,modified__lt=dt_t)
         else:
-            queryset = queryset.filter(modified__gt=dt_f,modified__lt=dt_t)
+            queryset = queryset.filter(created__gte=dt_f,created__lt=dt_t)
 
         if pay_type == 'pay':
             queryset = queryset.filter(status__in = ORDER_SUCCESS_STATUS)
@@ -84,7 +86,7 @@ class UserHourlyOrderView(ModelView):
         chart_options = {
             'chart':{'zoomType': 'xy','renderTo': "container1"},
             'title': {'text': nicks},
-            'xAxis': {'title': {'text': 'per %s(%s)'%(cat_by,u'\u4e0d\u5305\u542b\u90ae\u8d39')},
+            'xAxis': {'title': {'text': 'per %s'%(cat_by)},
                       'labels':{'rotation': -45,'align':'right','style': {'font': 'normal 12px Verdana, sans-serif'}}},
             'yAxis': [{'title': {'text': u'\u8ba2\u5355\u6570'}},
                       {'title': {'text': u'\u4ea4\u6613\u989d'},'opposite': True},

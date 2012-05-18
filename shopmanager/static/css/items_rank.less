@@ -1,4 +1,4 @@
-@import "snippet.less";
+@import "snippet";
 
 .tool-area, .charts-area  {
   height: 100%; 
@@ -16,14 +16,14 @@
 
 .tool-area  {
   form {
-    .border-bottom; 
+    .border-bottom
     fieldset  {
       .control-group  {
         label {
           width: 80px; 
         }
         .controls {
-          margin-left: @controls-margin-left;
+          margin-left:100px;
           input {
             padding: 13px;
           } 
@@ -38,7 +38,7 @@
           } 
           .cancel {
             opacity: 0;
-            .fade;
+
           }
           &:hover {
             .cancel {
@@ -48,7 +48,7 @@
         }
       } 
       .form-actions {
-        padding-left: @controls-padding-left; 
+        padding-left: 100px;
       }
     }
   }
