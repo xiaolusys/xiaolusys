@@ -133,7 +133,7 @@ def updateAllUnpayOrderTask():
     trades = Trade.objects.filter(status=ORDER_UNPAY_STATUS)
 
     for trade in trades:
-        subtask(updateUnfinishOrderTask).delay(trade.id,trade.seller_id)
+        subtask(updateUnpayOrderTask).delay(trade.id,trade.seller_id)
 
 
 

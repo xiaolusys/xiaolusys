@@ -29,7 +29,7 @@ def saveUserDuringOrders(user_id,days=0,s_dt_f=None,s_dt_t=None):
             s_dt_t = format_datetime(datetime.datetime(dt.year,dt.month,dt.day,0,0,0))
         else:
             s_dt_f = format_datetime(datetime.datetime(dt.year,dt.month,dt.day,0,0,0))
-            s_dt_t = format_datetime(datetime.datetime(dt.year,dt.month,dt.day,dt.hour,59,59)-datetime.timedelta(0,60,0))
+            s_dt_t = format_datetime(datetime.datetime(dt.year,dt.month,dt.day,dt.hour,59,59)-datetime.timedelta(0,3600,0))
 
     has_next = True
     cur_page = 1
@@ -40,8 +40,9 @@ def saveUserDuringOrders(user_id,days=0,s_dt_f=None,s_dt_t=None):
             trades = apis.taobao_trades_sold_get(session=user.top_session,page_no=cur_page
                  ,page_size=settings.TAOBAO_PAGE_SIZE,use_has_next='true',start_created=s_dt_f,end_created=s_dt_t)
 
-            if trades['trades_sold_increment_get_response'].has_key('trades'):
-                for t in trades['trades_sold_get_response']['trades']['trade']:
+            trades = trades['trades_sold_get_response']
+            if trades.has_key('trades'):
+                for t in trades['trades']['trade']:
 
                     trade,state = Trade.objects.get_or_create(pk=t['tid'])
                     trade.save_trade_through_dict(user_id,t)
@@ -55,7 +56,7 @@ def saveUserDuringOrders(user_id,days=0,s_dt_f=None,s_dt_t=None):
                             hasattr(order,k) and setattr(order,k,v)
                         order.save()
 
-            has_next = trades['trades_sold_get_response']['has_next']
+            has_next = trades['has_next']
             cur_page += 1
             time.sleep(5)
         except Exception,exc:
@@ -110,8 +111,9 @@ def saveUserDailyIncrementOrders(user_id,year=None,month=None,day=None):
             trades = apis.taobao_trades_sold_increment_get(session=user.top_session,page_no=cur_page
                  ,page_size=settings.TAOBAO_PAGE_SIZE,use_has_next='true',start_modified=s_dt_f,end_modified=s_dt_t)
 
-            if trades['trades_sold_increment_get_response'].has_key('trades'):
-                for t in trades['trades_sold_increment_get_response']['trades']['trade']:
+            trades = trades['trades_sold_increment_get_response']
+            if trades.has_key('trades'):
+                for t in trades['trades']['trade']:
 
                     trade,state = Trade.objects.get_or_create(pk=t['tid'])
                     trade.save_trade_through_dict(user_id,t)
@@ -125,7 +127,7 @@ def saveUserDailyIncrementOrders(user_id,year=None,month=None,day=None):
                             hasattr(order,k) and setattr(order,k,v)
                         order.save()
 
-            has_next = trades['trades_sold_increment_get_response']['has_next']
+            has_next = trades['has_next']
             cur_page += 1
             time.sleep(5)
         except Exception,exc:
@@ -167,7 +169,6 @@ def updateOrdersAmountTask(user_id,f_dt,t_dt):
 
     finish_trades = Trade.objects.filter(seller_id=user_id,created__gt=f_dt,created__lt=t_dt,
                                          commission_fee=BLANK_CHAR,status=ORDER_FINISH_STATUS)
-
 
     for trade in finish_trades:
         try:
