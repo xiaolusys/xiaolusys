@@ -168,3 +168,6 @@ class Logistics(models.Model):
 
 
 
+class TradeUpdateFlag(models.Model):
+
+    pass

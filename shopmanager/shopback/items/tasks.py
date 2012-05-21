@@ -87,7 +87,7 @@ def execAllItemNumTask():
 
 
 @task(max_retry=3)
-def updateUnpayOrderTask(tid,seller_id):
+def updateUnpayOrderTask(seller_id,tid):
 
     try:
         user = User.objects.get(visitor_id=seller_id)
@@ -106,7 +106,7 @@ def updateUnpayOrderTask(tid,seller_id):
         t = trades['trade_fullinfo_get_response']['trade']
 
         trade = Trade()
-        trade.trade.save_trade_through_dict(t)
+        trade.save_trade_through_dict(seller_id,t)
 
         for order in  t['orders']['order']:
             try:
@@ -133,7 +133,7 @@ def updateAllUnpayOrderTask():
     trades = Trade.objects.filter(status=ORDER_UNPAY_STATUS)
 
     for trade in trades:
-        subtask(updateUnpayOrderTask).delay(trade.id,trade.seller_id)
+        subtask(updateUnpayOrderTask).delay(trade.seller_id,trade.id)
 
 
 
@@ -165,7 +165,7 @@ def pullPerUserTradesTask(user_id,start_created,end_created):
                 for t in trades['trades']['trade']:
 
                     trade,state = Trade.objects.get_or_create(pk=t['tid'])
-                    trade.save_trade_through_dict(t)
+                    trade.save_trade_through_dict(user_id,t)
 
                     order_obj.seller_nick = t['seller_nick']
                     order_obj.buyer_nick  = t['buyer_nick']
@@ -239,9 +239,9 @@ def updateAllItemNumTask():
 
                 subtask(pullPerUserTradesTask).delay(user.id,start_datetime,end_datetime)
 
-        #time.sleep(settings.UPDATE_ITEM_NUM_INTERVAL)
-        #print '----------------excute updateAllItemNumTask start---------------'
-        #subtask(execAllItemNumTask).delay()
+#        time.sleep(settings.UPDATE_ITEM_NUM_INTERVAL)
+#        print '----------------excute updateAllItemNumTask start---------------'
+#        subtask(execAllItemNumTask).delay()
 
 #        time.sleep(settings.UPDATE_UNPAY_ORDER_INTERVAL)
 #        print '----------------excute updateAllUnpayOrderTask start---------------'

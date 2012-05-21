@@ -156,7 +156,8 @@ def updateAllUserDailyIncrementOrders(update_from=None,update_to=None):
         if hander_update:
             for i in xrange(0,update_days):
                 update_date = update_to - datetime.timedelta(i,0,0)
-                saveUserDailyIncrementOrders(user.visitor_id,year=update_date.year,month=update_date.month,day=update_date.day)
+                saveUserDailyIncrementOrders(user.visitor_id,year=update_date.year
+                                             ,month=update_date.month,day=update_date.day)
         else:
             subtask(saveUserDailyIncrementOrders).delay(user.visitor_id)
 

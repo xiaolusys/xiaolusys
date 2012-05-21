@@ -162,21 +162,3 @@ def gen_report_form_file(request):
     return HttpResponse(json.dumps(ret_params),mimetype='application/json')
 
 
-
-def get_month_trade_xsl_file(request,):
-    # do something...
-
-    def readFile(fn, buf_size=262144):
-        f = open(fn, "rb")
-        while True:
-            c = f.read(buf_size)
-            if c:
-                yield c
-            else:
-                break
-        f.close()
-
-    file_name = "big_file.txt"
-    response = HttpResponse(readFile(file_name),mimetype='application/octet-stream')
-
-    return response
