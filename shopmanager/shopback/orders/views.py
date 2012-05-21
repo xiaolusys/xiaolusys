@@ -10,7 +10,8 @@ from chartit import PivotDataPool, PivotChart
 from auth import staff_requried
 from auth.utils import parse_datetime,parse_date,format_time,map_int2str
 from shopback.orders.models import Order,Trade,ORDER_SUCCESS_STATUS,ORDER_FINISH_STATUS
-from shopback.orders.tasks import updateAllUserOrdersAmountTask,updateAllUserDailyIncrementOrders
+from shopback.orders.tasks import updateAllUserOrdersAmountTask,updateAllUserDuringOrders,\
+    updateAllUserOrdersLogisticsTask,updateMonthTradeXlsFileTask
 
 
 class UserHourlyOrderView(ModelView):
@@ -62,12 +63,13 @@ class UserHourlyOrderView(ModelView):
                 categories = ['year','month','day','hour']
 
         series = {
-            'options': {'source': queryset,'categories': categories,'legend_by': 'seller_nick'},
+            'options': {'source': queryset,'categories': categories,'legend_by':'seller_nick'},
             'terms': {
                 'total_trades':{'func':Count('id'),'legend_by':'seller_nick'},
                 'total_sales':{'func':Sum('payment'),'legend_by':'seller_nick'},
                 'post_fees':{'func':Sum('post_fee'),'legend_by':'seller_nick'},
                 'commission_fees':{'func':Sum('commission_fee'),'legend_by':'seller_nick'},
+                'buyer_obtain_point_fees':{'func':Sum('buyer_obtain_point_fee'),'legend_by':'seller_nick'},
             }
 
         }
@@ -75,11 +77,12 @@ class UserHourlyOrderView(ModelView):
         ordersdata = PivotDataPool(series=[series],sortf_mapf_mts=(None,map_int2str,True))
 
         series_options =[{
-            'options':{'type': 'column','stacking': True,'yAxis': 0},
+            'options':{'type':'column','stacking':True,'yAxis':0},
             'terms':['total_trades',
                      {'total_sales':{'type':'line','stacking':False,'yAxis':1}},
                      {'post_fees':{'type':'line','stacking':False,'yAxis':1}},
                      {'commission_fees':{'type':'area','stacking':False,'yAxis':1}},
+                     {'buyer_obtain_point_fees':{'type':'column','stacking':False,'yAxis':4}},
             ]},
         ]
 
@@ -92,6 +95,7 @@ class UserHourlyOrderView(ModelView):
                       {'title': {'text': u'\u4ea4\u6613\u989d'},'opposite': True},
                       {'title': {'text': u'\u90ae\u8d39'},'opposite': True},
                       {'title': {'text': u'\u4f63\u91d1'},'opposite': True},
+                      {'title': {'text': u'\u79ef\u5206'},},
             ]
         }
 
@@ -111,7 +115,7 @@ def update_finish_trade_amount(request,dt_f,dt_t):
     dt_f = parse_date(dt_f)
     dt_t = parse_date(dt_t)
 
-    order_amount_task = updateAllUserOrdersAmountTask.delay(dt_f,dt_t)
+    order_amount_task = updateAllUserOrdersAmountTask.delay(dt_f=dt_f,dt_t=dt_t)
 
     ret_params = {'task_id':order_amount_task.task_id}
 
@@ -121,14 +125,58 @@ def update_finish_trade_amount(request,dt_f,dt_t):
 
 
 @staff_requried(login_url='/admin/login/')
-def update_increment_trade(request,dt_f,dt_t):
+def update_interval_trade(request,dt_f,dt_t):
 
     dt_f = parse_date(dt_f)
     dt_t = parse_date(dt_t)
 
-    increment_task = updateAllUserDailyIncrementOrders.delay(dt_f,dt_t)
+    interval_task = updateAllUserDuringOrders.delay(update_from=dt_f,update_to=dt_t)
 
-    ret_params = {'task_id':increment_task.task_id}
+    ret_params = {'task_id':interval_task.task_id}
 
     return HttpResponse(json.dumps(ret_params),mimetype='application/json')
 
+
+
+@staff_requried(login_url='/admin/login/')
+def update_interval_logistics(request,dt_f,dt_t):
+
+    dt_f = parse_date(dt_f)
+    dt_t = parse_date(dt_t)
+
+    logistics_task = updateAllUserOrdersLogisticsTask.delay(update_from=dt_f,update_to=dt_t)
+
+    ret_params = {'task_id':logistics_task.task_id}
+
+    return HttpResponse(json.dumps(ret_params),mimetype='application/json')
+
+
+
+@staff_requried(login_url='/admin/login/')
+def gen_report_form_file(request):
+
+    update_month_trade_task = updateMonthTradeXlsFileTask.delay()
+
+    ret_params = {'task_id':update_month_trade_task.task_id}
+
+    return HttpResponse(json.dumps(ret_params),mimetype='application/json')
+
+
+
+def get_month_trade_xsl_file(request,):
+    # do something...
+
+    def readFile(fn, buf_size=262144):
+        f = open(fn, "rb")
+        while True:
+            c = f.read(buf_size)
+            if c:
+                yield c
+            else:
+                break
+        f.close()
+
+    file_name = "big_file.txt"
+    response = HttpResponse(readFile(file_name),mimetype='application/octet-stream')
+
+    return response

@@ -32,13 +32,15 @@ API_FIELDS = {
     'taobao.items.onsale.get':'approve_status,num_iid,title,nick,type,cid,pic_url,num,props,valid_thru,list_time,price,has_discount,has_invoice,has_warranty'
         +',has_showcase,modified,delist_time,postage_id,seller_cids,outer_id',
     'taobao.trades.sold.get':'seller_nick,buyer_nick,title,type,created,tid,status,modified,payment,discount_fee,adjust_fee,post_fee,total_fee,received_payment,commission_fee,buyer_obtain_point_fee'
-        +',pic_path,pay_time,end_time,consign_time,num_iid,num,price,orders.title, orders.pic_path, orders.price, orders.num, orders.num_iid, orders.sku_id, orders.refund_status, '
+        +',point_fee,real_point_fee,pic_path,pay_time,end_time,consign_time,num_iid,num,price,orders.title, orders.pic_path, orders.price, orders.num, orders.num_iid, orders.sku_id, orders.refund_status, '
         +'orders.status, orders.oid, orders.total_fee, orders.payment, orders.discount_fee, orders.adjust_fee, orders.sku_properties_name,'
         +' orders.item_meal_name,orders.item_meal_id, orders.buyer_rate, orders.seller_rate, orders.outer_iid, orders.outer_sku_id, orders.refund_id, orders.seller_type  ',
     'taobao.trade.fullinfo.get':'seller_nick,buyer_nick,title,type,created,tid,status,modified,payment,received_payment,adjust_fee,post_fee,total_fee,commission_fee,discount_fee,'
         +'buyer_obtain_point_fee,pic_path,buyer_email,seller_alipay_no,num_iid, num, price,orders',
     'taobao.trade.amount.get':'tid,alipay_no,created,pay_time,end_time,total_fee,payment,post_fee,cod_fee,commission_fee,buyer_obtain_point_fee,order_amounts,promotion_details',
     'taobao.itemcats.get':'cid,parent_cid,name,is_parent,status,sort_order',
+    'taobao.logistics.orders.detail.get':'tid,order_code,seller_nick,buyer_nick,item_title,receiver_location,status,type,company_name,created,modified,is_quick_cod_order',
+    'taobao.logistics.orders.get':'tid,seller_nick,buyer_nick,delivery_start, delivery_end,out_sid,item_title,receiver_name, created,modified,status,type,freight_payer,seller_confirm,company_name'
 
 }
 
@@ -88,13 +90,13 @@ def apis(api_method,method='GET'):
                     req = urllib2.urlopen(uri)
                     content = req.read()
                 except Exception,exc:
-                    logger.error('Error calling sina api: %s' % exc, exc_info=True)
+                    logger.error('Error calling taobao api: %s' % exc, exc_info=True)
             else:
                 try:
                     req = urllib2.urlopne(url,body=urllib.urlencode(params))
                     content = req.read()
                 except Exception,exc:
-                    logger.error('Error calling sina api: %s' % exc, exc_info=True)
+                    logger.error('Error calling taobao api: %s' % exc, exc_info=True)
 
             return json.loads(content)
 
@@ -211,6 +213,13 @@ def taobao_trade_amount_get(tid=None,fields=API_FIELDS['taobao.trade.amount.get'
 def taobao_itemcats_get(parent_cid=None,cids=None,fields=API_FIELDS['taobao.itemcats.get'],session=None):
     pass
 
-############# items apis ###################
+############# post apis ###################
+@apis('taobao.logistics.orders.detail.get')
+def taobao_logistics_orders_detail_get(tid=None,seller_confirm='yes',start_created=None,end_created=None,page_no=None,page_size=None,fields=API_FIELDS['taobao.logistics.orders.detail.get'],session=None):
+    pass
+
+@apis('taobao.logistics.orders.get')
+def taobao_logistics_orders_get(tid=None,seller_confirm='yes',start_created=None,end_created=None,page_no=None,page_size=None,fields=API_FIELDS['taobao.logistics.orders.get'],session=None):
+    pass
 
   

@@ -21,3 +21,6 @@ APPSECRET = 'e50beebdf9226e3fc991834375e32b5a'
 REDIRECT_URL = 'http://container.open.taobao.com/container'
 TAOBAO_API_ENDPOINT = 'http://gw.api.taobao.com/router/rest'
 REFRESH_URL = 'http://container.open.taobao.com/container/refresh'
+
+
+FONT_PATH = '/usr/share/fonts/truetype/ttf-dejavu/DejaVuSerif-Bold.ttf'

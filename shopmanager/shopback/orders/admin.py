@@ -1,5 +1,5 @@
 from django.contrib import admin
-from shopback.orders.models import Order,Trade
+from shopback.orders.models import Order,Trade,Logistics
 
 
 
@@ -23,16 +23,34 @@ admin.site.register(Order, OrderAdmin)
 
 
 class TradeAdmin(admin.ModelAdmin):
-    list_display = ('id','seller_nick','buyer_nick','type','payment','discount_fee','adjust_fee','post_fee',
-                    'buyer_obtain_point_fee','total_fee','commission_fee','consign_time','pay_time','end_time','modified','status')
+    list_display = ('id','seller_nick','buyer_nick','type','payment','discount_fee','adjust_fee','post_fee','buyer_obtain_point_fee',
+                    'point_fee','real_point_fee','total_fee','commission_fee','is_update_amount','consign_time','pay_time','end_time','modified','status')
     list_display_links = ('id','buyer_nick','payment','status')
     #list_editable = ('update_time','task_type' ,'is_success','status')
 
     date_hierarchy = 'created'
     #ordering = ['created_at']
 
-    list_filter = ('type','status',)
+    list_filter = ('type','is_update_amount','status',)
     search_fields = ['id','buyer_nick']
 
 
 admin.site.register(Trade, TradeAdmin)
+
+
+
+
+class LogisticsAdmin(admin.ModelAdmin):
+    list_display = ('tid','out_sid','company_name','seller_id','seller_nick','buyer_nick','delivery_start','delivery_end'
+                    ,'receiver_name','created','modified','type','freight_payer','seller_confirm','status')
+    list_display_links = ('tid','buyer_nick','status')
+    #list_editable = ('update_time','task_type' ,'is_success','status')
+
+    date_hierarchy = 'created'
+    #ordering = ['created_at']
+
+    list_filter = ('seller_nick','freight_payer','seller_confirm','type','status',)
+    search_fields = ['tid','out_sid','buyer_nick','receiver_name']
+
+
+admin.site.register(Logistics, LogisticsAdmin)

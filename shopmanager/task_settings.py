@@ -56,6 +56,11 @@ CELERYBEAT_SCHEDULE = {
         'schedule':crontab(minute="0",hour="1",day_of_week="mon"),
         'args':(7,)
     },
+    'runs-every-weeks-a':{
+        'task':'shopback.orders.tasks.updateMonthTradeXlsFileTask',
+        'schedule':crontab(minute="0",hour="1",day_of_week="sun"),
+        'args':()
+    },
 #    'runs-every-day_b':{
 #        'task':'search.tasks.updateProductTradeBySellerTask',
 #        'schedule':crontab(minute="0",hour="1"),

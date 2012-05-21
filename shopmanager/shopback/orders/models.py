@@ -27,9 +27,11 @@ class Trade(models.Model):
     adjust_fee   =  models.CharField(max_length=10,blank=True)
     post_fee    =  models.CharField(max_length=10,blank=True)
     total_fee   =  models.CharField(max_length=10,blank=True)
-    buyer_obtain_point_fee  =  models.CharField(max_length=10,blank=True)
 
-    commission_fee =  models.CharField(max_length=10,blank=True)
+    buyer_obtain_point_fee  =  models.CharField(max_length=10,blank=True)
+    point_fee        =  models.CharField(max_length=10,blank=True)
+    real_point_fee   =  models.CharField(max_length=10,blank=True)
+    commission_fee   =  models.CharField(max_length=10,blank=True)
 
     created       =  models.DateTimeField(db_index=True,null=True,blank=True)
     pay_time      =  models.DateTimeField(null=True,blank=True)
@@ -41,6 +43,7 @@ class Trade(models.Model):
     buyer_memo       =  models.CharField(max_length=128,blank=True)
     seller_memo      =  models.CharField(max_length=128,blank=True)
 
+    is_update_amount = models.BooleanField(default=False)
     status      =  models.CharField(max_length=30,blank=True)
 
 
@@ -117,6 +120,50 @@ class Order(models.Model):
 
     class Meta:
         db_table = 'shop_order'
+
+
+
+
+class Logistics(models.Model):
+
+    tid      =  BigIntegerAutoField(primary_key=True)
+    out_sid  =  models.CharField(max_length=64,blank=True)
+    company_name  =  models.CharField(max_length=30,blank=True)
+
+    seller_id    =  models.CharField(max_length=32,blank=True)
+    seller_nick  =  models.CharField(max_length=64,blank=True)
+    buyer_nick   =  models.CharField(max_length=64,blank=True)
+
+    delivery_start  =  models.DateTimeField(db_index=True,null=True,blank=True)
+    delivery_end    =  models.DateTimeField(db_index=True,null=True,blank=True)
+
+    item_title      =  models.CharField(max_length=64,blank=True)
+    receiver_name   =  models.CharField(max_length=64,blank=True)
+    created      =  models.DateTimeField(db_index=True,null=True,blank=True)
+    modified     =  models.DateTimeField(db_index=True,null=True,blank=True)
+
+    type         =  models.CharField(max_length=10,blank=True)
+    freight_payer   =  models.CharField(max_length=6,blank=True)
+    seller_confirm  =  models.CharField(max_length=3,default='no')
+    status   =  models.CharField(max_length=20,blank=True)
+
+    class Meta:
+        db_table = 'shop_logistic'
+
+
+    def save_logistics_through_dict(self,user_id,t):
+
+        from auth.utils import parse_datetime
+
+        self.seller_id = user_id
+        for k,v in t.iteritems():
+            hasattr(self,k) and setattr(self,k,v)
+
+        self.delivery_start = parse_datetime(t['delivery_start']) if t.get('delivery_start',None) else None
+        self.delivery_end   = parse_datetime(t['delivery_end']) if t.get('delivery_end',None) else None
+        self.created        = parse_datetime(t['created']) if t.get('created',None) else None
+        self.modified       = parse_datetime(t['modified']) if t.get('modified',None) else None
+        self.save()
 
 
 

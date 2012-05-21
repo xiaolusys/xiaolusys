@@ -14,13 +14,16 @@ DATABASES = {
     }
 }
 
-APPKEY = '12447689'
-APPSECRET = '67d32cd6e795f60414ce60c2ef51f941'
+#APPKEY = '12447689'
+#APPSECRET = '67d32cd6e795f60414ce60c2ef51f941'
+
+APPKEY = '12581301'
+APPSECRET = '018feaa22be64ab2c5ac6982579dd80f'
 
 REDIRECT_URL = 'http://container.open.taobao.com/container'
 TAOBAO_API_ENDPOINT = 'http://gw.api.taobao.com/router/rest'
 
 
-
-
 REFRESH_URL = 'http://container.open.taobao.com/container/refresh'
+
+FONT_PATH = '/usr/share/fonts/truetype/ttf-dejavu/DejaVuSerifCondensed-BoldItalic.ttf'

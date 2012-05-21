@@ -90,6 +90,9 @@ def format_datetime(dt):
 def format_date(dt):
     return dt.strftime("%Y-%m-%d")
 
+def format_year_month(dt):
+    return dt.strftime("%Y-%m")
+
 def format_time(dt):
     return dt.strftime("%H:%M")
 

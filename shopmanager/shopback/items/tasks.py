@@ -120,9 +120,9 @@ def updateUnpayOrderTask(tid,seller_id):
                 logger.error('Excute updateUnpoyOrderTask error:%s'%exc,exc_info=True)
 
     except Exception,exc:
-        logger.error('Excute updateUnpoyOrderTask error:%s'%exc,exc_info=True)
+        logger.error('Excute updateUnpayOrderTask error:%s'%exc,exc_info=True)
         if not settings.DEBUG:
-            pullPerUserTradesTask.retry(exc=exc,countdown=2)
+            updateUnpayOrderTask.retry(exc=exc,countdown=2)
 
 
 

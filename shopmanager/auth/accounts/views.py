@@ -43,8 +43,12 @@ def login_taobo(request):
 
 def home(request):
     user = authenticate(request=request)
-#    profile = user.get_profile()
+    profile = user.get_profile()
 
+    logistics_list = apis.taobao_trades_sold_increment_get(session=profile.top_session,page_no=1
+                 ,page_size=100,start_modified='2012-03-01 00:00:00',end_modified='2012-03-01 23:59:59')
+
+    print logistics_list['trades_sold_increment_get_response']['total_results'],len(logistics_list['trades_sold_increment_get_response']['trades']['trade'])
 #    trades = apis.taobao_trades_sold_get(session=profile.top_session,page_no=1
 #                 ,page_size=10,use_has_next='true',start_created='2012-05-10 00:00:00',end_created='2012-05-15 00:00:00')
 #    for t in trades['trades_sold_get_response']['trades']['trade']:

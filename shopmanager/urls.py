@@ -17,6 +17,10 @@ urlpatterns = patterns('',
     (r'^$',login_taobo),
     (r'^static/(?P<path>.*)$', 'django.views.static.serve',
         {'document_root': settings.STATIC_DOC_ROOT}),
+    (r'^media/(?P<path>.*)$', 'django.views.static.serve',
+        {'document_root': settings.MEDIA_ROOT}),
+    (r'^download/(?P<path>.*)$','django.views.static.serve',
+        {'document_root': settings.DOWNLOAD_ROOT,'show_indexes':True}),
     (r'^admin/', include(admin.site.urls)),
 
 )
