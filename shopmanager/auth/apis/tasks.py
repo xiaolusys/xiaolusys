@@ -40,8 +40,8 @@ API_FIELDS = {
     'taobao.trade.amount.get':'tid,alipay_no,created,pay_time,end_time,total_fee,payment,post_fee,cod_fee,commission_fee,buyer_obtain_point_fee,order_amounts,promotion_details',
     'taobao.itemcats.get':'cid,parent_cid,name,is_parent,status,sort_order',
     'taobao.logistics.orders.detail.get':'tid,order_code,seller_nick,buyer_nick,item_title,receiver_location,status,type,company_name,created,modified,is_quick_cod_order',
-    'taobao.logistics.orders.get':'tid,seller_nick,buyer_nick,delivery_start, delivery_end,out_sid,item_title,receiver_name, created,modified,status,type,freight_payer,seller_confirm,company_name'
-
+    'taobao.logistics.orders.get':'tid,seller_nick,buyer_nick,delivery_start, delivery_end,out_sid,item_title,receiver_name, created,modified,status,type,freight_payer,seller_confirm,company_name',
+    'taobao.refunds.receive.get':'refund_id,tid,title,buyer_nick,seller_nick,total_fee,status,created,refund_fee,oid,good_status,company_name,sid,payment,reason,desc,has_good_return,modified,order_status'
 }
 
 
@@ -222,4 +222,14 @@ def taobao_logistics_orders_detail_get(tid=None,seller_confirm='yes',start_creat
 def taobao_logistics_orders_get(tid=None,seller_confirm='yes',start_created=None,end_created=None,page_no=None,page_size=None,fields=API_FIELDS['taobao.logistics.orders.get'],session=None):
     pass
 
-  
+
+###############  fengxiao apis  ##################
+@apis('taobao.fenxiao.orders.get')
+def taobao_fenxiao_orders_get(start_created=None,end_created=None,time_type=None,purchase_order_id=None,page_no=None,page_size=None,status=None,session=None):
+    pass
+
+
+################  refund apis  ##################
+@apis('taobao.refunds.receive.get')
+def taobao_refunds_receive_get(status=None,start_modified=None,end_modified=None,page_no=None,page_size=None,type='guarantee_trade,auto_delivery,fenxiao',fields=API_FIELDS['taobao.refunds.receive.get'],session=None):
+    pass

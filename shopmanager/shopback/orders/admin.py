@@ -1,10 +1,10 @@
 from django.contrib import admin
-from shopback.orders.models import Order,Trade,Logistics
+from shopback.orders.models import Order,Trade,Logistics,PurchaseOrder,Refund,MonthTradeReportStatus
 
 
 
 class OrderAdmin(admin.ModelAdmin):
-    list_display = ('oid','price','num_iid','item_meal_id','sku_id','num','outer_sku_id','total_fee','payment','discount_fee',
+    list_display = ('oid','trade','price','num_iid','item_meal_id','sku_id','num','outer_sku_id','total_fee','payment','discount_fee',
                     'adjust_fee','sku_properties_name','refund_id','is_oversold','is_service_order','item_meal_name',
                     'pic_path','seller_nick','buyer_nick','refund_status','outer_iid','cid','status')
     list_display_links = ('num_iid','refund_id','status')
@@ -14,7 +14,7 @@ class OrderAdmin(admin.ModelAdmin):
     #ordering = ['created_at']
 
     list_filter = ('status','refund_status')
-    search_fields = ['titile','buyer_nick','item_meal_name']
+    search_fields = ['buyer_nick','item_meal_name']
 
 
 admin.site.register(Order, OrderAdmin)
@@ -54,3 +54,55 @@ class LogisticsAdmin(admin.ModelAdmin):
 
 
 admin.site.register(Logistics, LogisticsAdmin)
+
+
+
+
+class PurchaseOrderAdmin(admin.ModelAdmin):
+    list_display = ('fenxiao_id','id','seller_id','supplier_username','distributor_username','logistics_id',
+                    'logistics_company_name','post_fee','total_fee','shipping','trade_type','tc_order_id'
+                    ,'consign_time','created','pay_time','modified','pay_type','alipay_no','status')
+    list_display_links = ('fenxiao_id','id','supplier_username','distributor_username')
+    #list_editable = ('update_time','task_type' ,'is_success','status')
+
+    date_hierarchy = 'created'
+    #ordering = ['created_at']
+
+    list_filter = ('shipping','pay_type','trade_type','status',)
+    search_fields = ['fenxiao_id','id','supplier_username','distributor_username']
+
+
+admin.site.register(PurchaseOrder, PurchaseOrderAdmin)
+
+
+
+class RefundAdmin(admin.ModelAdmin):
+    list_display = ('refund_id','trade','oid','sid','buyer_nick','total_fee','refund_fee','payment','company_name',
+                    'has_good_return','created','modified','good_status','order_status','status')
+    list_display_links = ('refund_id','trade','buyer_nick','company_name','good_status')
+    #list_editable = ('update_time','task_type' ,'is_success','status')
+
+    date_hierarchy = 'created'
+    #ordering = ['created_at']
+
+    list_filter   = ('seller_nick','has_good_return','good_status','order_status','status',)
+    search_fields = ['refund_id','oid','sid','buyer_nick']
+
+
+admin.site.register(Refund,RefundAdmin)
+
+
+
+class MonthTradeReportStatusAdmin(admin.ModelAdmin):
+    list_display = ('refund_id','trade','oid','sid','buyer_nick','total_fee','refund_fee','payment','company_name')
+    list_display_links = ('refund_id','trade','buyer_nick','company_name','good_status')
+    #list_editable = ('update_time','task_type' ,'is_success','status')
+
+    date_hierarchy = 'created'
+    #ordering = ['created_at']
+
+    list_filter   = ('seller_nick','has_good_return','good_status','order_status','status',)
+    search_fields = ['refund_id','oid','sid','buyer_nick']
+
+
+admin.site.register(MonthTradeReportStatus,MonthTradeReportStatusAdmin)

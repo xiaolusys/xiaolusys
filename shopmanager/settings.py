@@ -50,10 +50,9 @@ ADMIN_MEDIA_PREFIX = posixpath.join(STATIC_URL, "admin/")
 
 STATIC_DOC_ROOT = os.path.join(PROJECT_ROOT, "/site_media/static")
 
-STATICFILES_DIRS = (
-       os.path.join(PROJECT_ROOT, "static"),
-       DOWNLOAD_ROOT,
-)
+#STATICFILES_DIRS = (
+#       os.path.join(PROJECT_ROOT, "static"),
+#)
 
 STATICFILES_FINDERS = (
     'django.contrib.staticfiles.finders.FileSystemFinder',
@@ -227,27 +226,11 @@ LOGGING = {
             'level': 'WARN',
             'propagate': True,
         },
-        'taobao.taoci':{
+        'trade.refund':{
             'handlers': ['sentry'],
             'level': 'WARN',
             'propagate': True,
         },
-        'subway.hotkey':{
-            'handlers': ['sentry'],
-            'level': 'WARN',
-            'propagate': True,
-        },
-        'subway.taoci':{
-            'handlers': ['sentry'],
-            'level': 'WARN',
-            'propagate': True,
-        },
-        'subway.liangzi':{
-            'handlers': ['sentry'],
-            'level': 'WARN',
-            'propagate': True,
-        },
-
     }
 }
 

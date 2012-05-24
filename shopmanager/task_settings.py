@@ -17,6 +17,8 @@ TAOBAO_PAGE_SIZE = 100 #the page_size of  per request
 
 PRODUCT_TRADE_RANK_BELOW = 10
 
+MAX_REQUEST_ERROR_TIMES = 15
+
 from celery.schedules import crontab
 
 
@@ -61,7 +63,7 @@ CELERYBEAT_SCHEDULE = {
         'schedule':crontab(minute="0",hour="1",day_of_week="sun"),
         'args':()
     },
-#    'runs-every-day_b':{
+#    'runs-every-day-e':{
 #        'task':'search.tasks.updateProductTradeBySellerTask',
 #        'schedule':crontab(minute="0",hour="1"),
 #        'args':()
