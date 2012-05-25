@@ -10,6 +10,7 @@ from shopback.items.models import Item
 from shopback.orders.models import Order,Trade,ORDER_SUCCESS_STATUS,ORDER_UNPAY_STATUS
 from shopback.users.models import User
 from shopback.task.models import ItemNumTask,UNEXECUTE,EXECERROR,SUCCESS
+from auth.apis import exceptions as exc
 from auth import apis
 import logging
 
@@ -58,7 +59,9 @@ def updateItemNumTask(itemNumTask_id):
                 success = False
             else:
                 item.save()
-
+        except exc.AppCallLimitedException,e:
+            logger.error('update trade during order task fail',exc_info=True)
+            raise e
         except Exception,exc:
             success = False
             logger.error('Executing UpdateItemNumTask(num_iid:%s) error:%s' %(item.num_iid,exc), exc_info=True)
@@ -118,7 +121,9 @@ def updateUnpayOrderTask(seller_id,tid):
 
             except Exception,exc:
                 logger.error('Excute updateUnpoyOrderTask error:%s'%exc,exc_info=True)
-
+    except exc.AppCallLimitedException,e:
+        logger.error('update trade during order task fail',exc_info=True)
+        raise e
     except Exception,exc:
         logger.error('Excute updateUnpayOrderTask error:%s'%exc,exc_info=True)
         if not settings.DEBUG:
@@ -196,6 +201,10 @@ def pullPerUserTradesTask(user_id,start_created,end_created):
             has_next = trades['has_next']
             cur_page += 1
             time.sleep(5)
+
+        except exc.AppCallLimitedException,e:
+            logger.error('update trade during order task fail',exc_info=True)
+            raise e
         except Exception,exc:
             time.sleep(120)
 

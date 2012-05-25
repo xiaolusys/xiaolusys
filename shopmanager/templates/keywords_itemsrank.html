@@ -5,13 +5,13 @@
 {% endblock %}
 
 {% block style %}
-    <link href="{{ STATIC_URL }}css/items_rank.less" rel="stylesheet/less" type="text/css" />
-    <link href="{{ STATIC_URL }}datepicker/css/datepicker.css" rel="stylesheet" type="text/css" />
+    <link href="{{ MEDIA_URL }}css/items_rank.less" rel="stylesheet/less" type="text/css" />
+    <link href="{{ MEDIA_URL }}datepicker/css/datepicker.css" rel="stylesheet" type="text/css" />
 {% endblock %}
 
 {% block preload_script %}
-  <script src="{{ STATIC_URL }}datepicker/js/bootstrap-datepicker.js" type="text/javascript"></script>
-  <script src='{{ STATIC_URL }}js/highcharts.js' type= 'text/javascript'></script>
+  <script src="{{ MEDIA_URL }}datepicker/js/bootstrap-datepicker.js" type="text/javascript"></script>
+  <script src='{{ MEDIA_URL }}js/highcharts.js' type= 'text/javascript'></script>
   {% load chartit %}
   {% load get_range %}
 {% endblock %}
@@ -83,5 +83,5 @@
 {% endblock %}
 
 {% block delayed_script %}
-  <script src="{{ STATIC_URL }}js/items_rank.js" type="text/javascript"></script>
+  <script src="{{ MEDIA_URL }}js/items_rank.js" type="text/javascript"></script>
   {% endblock %}

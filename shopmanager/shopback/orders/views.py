@@ -170,7 +170,11 @@ def update_interval_refunds(request,dt_f,dt_t):
 @staff_requried(login_url='/admin/login/')
 def gen_report_form_file(request):
 
-    update_month_trade_task = updateMonthTradeXlsFileTask.delay()
+    content = request.REQUEST
+    year    = content.get('year',None)
+    month   = content.get('month',None)
+
+    update_month_trade_task = updateMonthTradeXlsFileTask.delay(year=year,month=month)
 
     ret_params = {'task_id':update_month_trade_task.task_id}
 

@@ -1,3 +1,4 @@
+import re
 import inspect
 import copy
 import urllib
@@ -5,11 +6,14 @@ import urllib2
 import datetime
 import json
 from django.conf import settings
-from auth.utils import getSignatureTaoBao,format_datetime
-
+from auth.utils import getSignatureTaoBao,format_datetime,format_date
+from auth.apis.exceptions import TaobaoRequestException,RemoteConnectionException,UserFenxiaoUnuseException,\
+    AppCallLimitedException,APIConnectionTimeOutException,ServiceRejectionException
 
 import logging
 logger = logging.getLogger('auth.apis')
+
+reject_regex = re.compile(r'^isv.\w+-service-rejection$')
 
 
 API_FIELDS = {
@@ -45,6 +49,38 @@ API_FIELDS = {
 }
 
 
+def raise_except_or_ret_json(content):
+    content = json.loads(content)
+
+    if not isinstance(content,(dict,)):
+        raise exc.ContentNotRightException(sub_msg=content)
+    elif content.has_key('error_response'):
+        content = content['error_response']
+        code     = content.get('code',None)
+        sub_code = content.get('sub_code',None)
+        msg      = content.get('msg',None)
+        sub_msg  = content.get('sub_msg','')
+
+        if code == 520 and sub_code == u'isp.remote-connection-error':
+            raise RemoteConnectionException(
+                    code=code,msg=msg,sub_code=sub_code,sub_msg=sub_msg)
+        elif code == 520 and sub_code == u'isp.remote-service-timeout':
+            raise APIConnectionTimeOutException(
+                code=code,msg=msg,sub_code=sub_code,sub_msg=sub_msg)
+        elif code == 520 and  reject_regex.match(sub_code):
+            raise ServiceRejectionException(
+                code=code,msg=msg,sub_code=sub_code,sub_msg=sub_msg)
+        elif code == 670 and sub_code == u'isv.invalid-parameter:user_id_num':
+            raise UserFenxiaoUnuseException(
+                    code=code,msg=msg,sub_code=sub_code,sub_msg=sub_msg)
+        elif code == 7 and sub_code == u'accesscontrol.limited-by-app-access-count':
+            raise AppCallLimitedException(
+                    code=code,msg=msg,sub_code=sub_code,sub_msg=sub_msg)
+        else :
+            raise TaobaoRequestException(
+                    code=code,msg=msg,sub_code=sub_code,sub_msg=sub_msg)
+    return content
+
 
 def apis(api_method,method='GET'):
     """ docstring for tengxun apis """
@@ -76,6 +112,10 @@ def apis(api_method,method='GET'):
                     params.pop(k)
                 elif type(v) == unicode:
                     params[k] = v.encode('utf8')
+                elif type(v) == datetime.datetime:
+                    params[k] = format_datetime(v)
+                elif type(v) == datetime.date:
+                    params[k] = format_date(v)
 
             params_copy = None
 
@@ -83,22 +123,16 @@ def apis(api_method,method='GET'):
             params['sign'] = sign_value
 
             url = settings.TAOBAO_API_ENDPOINT
-            content = 'null'
-            if method == 'GET':
-                try:
-                    uri = '%s?%s'%(url,urllib.urlencode(params))
-                    req = urllib2.urlopen(uri)
-                    content = req.read()
-                except Exception,exc:
-                    logger.error('Error calling taobao api: %s' % exc, exc_info=True)
-            else:
-                try:
-                    req = urllib2.urlopne(url,body=urllib.urlencode(params))
-                    content = req.read()
-                except Exception,exc:
-                    logger.error('Error calling taobao api: %s' % exc, exc_info=True)
 
-            return json.loads(content)
+            if method == 'GET':
+                uri = '%s?%s'%(url,urllib.urlencode(params))
+                req = urllib2.urlopen(uri)
+                content = req.read()
+            else:
+                req = urllib2.urlopne(url,body=urllib.urlencode(params))
+                content = req.read()
+
+            return raise_except_or_ret_json(content)
 
         return decorate
 
@@ -162,11 +196,13 @@ def taobao_products_get(nick=None,page_no=1,page_size=20,fields=API_FIELDS['taob
     pass
 
 @apis('taobao.items.search')
-def taobao_items_search(q=None,cid=None,nicks=None,props=None,product_id=None,order_by=None,page_no=None,page_size=None,fields=API_FIELDS['taobao.items.search'],session=None):
+def taobao_items_search(q=None,cid=None,nicks=None,props=None,product_id=None,order_by=None,page_no=None,
+                        page_size=None,fields=API_FIELDS['taobao.items.search'],session=None):
     pass
 
 @apis('taobao.items.get')
-def taobao_items_get(q=None,cid=None,nicks=None,props=None,product_id=None,order_by=None,page_no=None,page_size=None,fields=API_FIELDS['taobao.items.get'],session=None):
+def taobao_items_get(q=None,cid=None,nicks=None,props=None,product_id=None,order_by=None,page_no=None,
+                     page_size=None,fields=API_FIELDS['taobao.items.get'],session=None):
     pass
 
 @apis('taobao.products.search')
@@ -174,11 +210,13 @@ def taobao_products_search(q=None,cid=None,props=None,fields=API_FIELDS['taobao.
     pass
 
 @apis('taobao.items.inventory.get')
-def taobao_items_inventory_get(q=None,banner=None,cid=None,seller_cids=None,page_no=None,page_size=None,fields=API_FIELDS['taobao.items.inventory.get'],session=None):
+def taobao_items_inventory_get(q=None,banner=None,cid=None,seller_cids=None,page_no=None,page_size=None,
+                               fields=API_FIELDS['taobao.items.inventory.get'],session=None):
     pass
 
 @apis('taobao.items.onsale.get')
-def taobao_items_onsale_get(q=None,banner=None,cid=None,seller_cids=None,page_no=None,page_size=None,fields=API_FIELDS['taobao.items.onsale.get'],session=None):
+def taobao_items_onsale_get(q=None,banner=None,cid=None,seller_cids=None,page_no=None,page_size=None,
+                            fields=API_FIELDS['taobao.items.onsale.get'],session=None):
     pass
 
 @apis('taobao.item.recommend.add')
@@ -188,11 +226,13 @@ def taobao_item_recommend_add(num_iid=None,session=None):
 ############# trades apis ###################
 
 @apis('taobao.trades.sold.get')
-def taobao_trades_sold_get(start_created=None,end_created=None,page_no=None,page_size=None,use_has_next=None,fields=API_FIELDS['taobao.trades.sold.get'],session=None):
+def taobao_trades_sold_get(start_created=None,end_created=None,page_no=None,page_size=None,use_has_next=None,
+                           fields=API_FIELDS['taobao.trades.sold.get'],session=None):
     pass
 
 @apis('taobao.trades.sold.increment.get')
-def taobao_trades_sold_increment_get(start_modified=None,end_modified=None,page_no=None,page_size=None,use_has_next=None,fields=API_FIELDS['taobao.trades.sold.get'],session=None):
+def taobao_trades_sold_increment_get(start_modified=None,end_modified=None,page_no=None,page_size=None,use_has_next=None,
+                                     fields=API_FIELDS['taobao.trades.sold.get'],session=None):
     pass
 
 @apis('taobao.trade.fullinfo.get')
@@ -215,21 +255,25 @@ def taobao_itemcats_get(parent_cid=None,cids=None,fields=API_FIELDS['taobao.item
 
 ############# post apis ###################
 @apis('taobao.logistics.orders.detail.get')
-def taobao_logistics_orders_detail_get(tid=None,seller_confirm='yes',start_created=None,end_created=None,page_no=None,page_size=None,fields=API_FIELDS['taobao.logistics.orders.detail.get'],session=None):
+def taobao_logistics_orders_detail_get(tid=None,seller_confirm='yes',start_created=None,end_created=None,page_no=None,page_size=None,
+                                       fields=API_FIELDS['taobao.logistics.orders.detail.get'],session=None):
     pass
 
 @apis('taobao.logistics.orders.get')
-def taobao_logistics_orders_get(tid=None,seller_confirm='yes',start_created=None,end_created=None,page_no=None,page_size=None,fields=API_FIELDS['taobao.logistics.orders.get'],session=None):
+def taobao_logistics_orders_get(tid=None,seller_confirm='yes',start_created=None,end_created=None,page_no=None,page_size=None,
+                                fields=API_FIELDS['taobao.logistics.orders.get'],session=None):
     pass
 
 
 ###############  fengxiao apis  ##################
 @apis('taobao.fenxiao.orders.get')
-def taobao_fenxiao_orders_get(start_created=None,end_created=None,time_type=None,purchase_order_id=None,page_no=None,page_size=None,status=None,session=None):
+def taobao_fenxiao_orders_get(start_created=None,end_created=None,time_type=None,purchase_order_id=None,
+                              page_no=None,page_size=None,status=None,session=None):
     pass
 
 
 ################  refund apis  ##################
 @apis('taobao.refunds.receive.get')
-def taobao_refunds_receive_get(status=None,start_modified=None,end_modified=None,page_no=None,page_size=None,type='guarantee_trade,auto_delivery,fenxiao',fields=API_FIELDS['taobao.refunds.receive.get'],session=None):
+def taobao_refunds_receive_get(status=None,start_modified=None,end_modified=None,type='guarantee_trade,auto_delivery,fenxiao',
+                               page_no=None,page_size=None,fields=API_FIELDS['taobao.refunds.receive.get'],session=None):
     pass

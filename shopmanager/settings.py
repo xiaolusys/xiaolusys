@@ -44,15 +44,15 @@ STATIC_ROOT = os.path.join(PROJECT_ROOT, "site_media", "static")
 
 STATIC_URL = '/static/'
 
-DOWNLOAD_ROOT = os.path.join(PROJECT_ROOT,"site_media",'download')
+DOWNLOAD_ROOT   = os.path.join(PROJECT_ROOT,"site_media",'download')
 
 ADMIN_MEDIA_PREFIX = posixpath.join(STATIC_URL, "admin/")
 
 STATIC_DOC_ROOT = os.path.join(PROJECT_ROOT, "/site_media/static")
 
-#STATICFILES_DIRS = (
-#       os.path.join(PROJECT_ROOT, "static"),
-#)
+STATICFILES_DIRS = (
+       os.path.join(PROJECT_ROOT,"static"),
+)
 
 STATICFILES_FINDERS = (
     'django.contrib.staticfiles.finders.FileSystemFinder',

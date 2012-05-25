@@ -43,11 +43,11 @@ def login_taobo(request):
 
 def home(request):
     user = authenticate(request=request)
-    profile = user.get_profile()
+#    profile = user.get_profile()
 
-    orders_list = apis.taobao_refunds_receive_get(session=profile.top_session,page_no=1,page_size=100,
-                 type='fenxiao',start_modified='2012-03-01 00:00:00',end_modified='2012-05-20 23:59:59')
-    print orders_list
+#    orders_list = apis.taobao_refunds_receive_get(session=profile.top_session,page_no=1,page_size=100,
+#                 type='fenxiao',start_modified='2012-03-01 00:00:00',end_modified='2012-05-20 23:59:59')
+#    print orders_list
 #    trades = apis.taobao_trades_sold_get(session=profile.top_session,page_no=1
 #                 ,page_size=10,use_has_next='true',start_created='2012-05-10 00:00:00',end_created='2012-05-15 00:00:00')
 #    for t in trades['trades_sold_get_response']['trades']['trade']:

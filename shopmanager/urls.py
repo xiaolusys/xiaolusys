@@ -15,6 +15,7 @@ urlpatterns = patterns('',
     (r'^autolist/', include('autolist.urls')),
     url(r'^home/$',home,name='home_page'),
     (r'^$',login_taobo),
+
     (r'^static/(?P<path>.*)$', 'django.views.static.serve',
         {'document_root': settings.STATIC_ROOT}),
     (r'^media/(?P<path>.*)$', 'django.views.static.serve',

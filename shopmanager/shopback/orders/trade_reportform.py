@@ -1,5 +1,5 @@
 import datetime
-from pyExcelerator import *
+from pyExcelerator import Workbook,XFStyle,Font,Formula
 from shopback.orders.models import Order,Trade,Refund,Logistics,PurchaseOrder,ORDER_SUCCESS_STATUS,REFUND_WILL_STATUS
 
 item_names = [
@@ -12,13 +12,13 @@ item_names = [
     u'\u4ed8\u6b3e\u91d1\u989d', #payment
     u'\u79ef\u5206',             #point
     u'\u4f63\u91d1',             #commission_fee
-    u'\u4ea4\u6613\u72b6\u6001',        #trade_status
+    u'\u4ea4\u6613\u72b6\u6001', #trade_status
     u'\u5230\u5e10\u91d1\u989d', #earnings
 ]
 
 refund_item_names =[
     u'\u4f1a\u5458\u540d\u79f0', #buyer_nick
-    u'\u9000\u6b3e\u5355ID',      #refund_id
+    u'\u9000\u6b3e\u5355ID',     #refund_id
     u'\u4ea4\u6613ID',           #tid
     u'\u8ba2\u5355ID',           #oid
     u'\u9000\u8d27\u8fd0\u5355\u53f7', #sid
@@ -64,19 +64,19 @@ purchase_format = [
 refund_format = [
     ('refund.buyer_nick','@'),          #C
     ('str(refund.refund_id)','@'),      #D
-    ('str(refund.trade)','@'),                 #E
-    ('str(refund.oid)','@'),                 #F
-    ('str(refund.sid)','@'),                 #G
+    ('str(refund.trade)','@'),          #E
+    ('str(refund.oid)','@'),            #F
+    ('str(refund.sid)','@'),            #G
     ('refund.company_name','@'),        #H
     ('refund.created','M/D'),           #I
     ('float(refund.total_fee)','0.00'),    #J
     ('float(refund.payment)','0.00'),      #K
     ('float(refund.refund_fee)','0.00'),   #L
-    ('refund.reason','@'),              #M
-    ('str(refund.has_good_return)','@'),#N
-    ('refund.good_status','@'),         #O
-    ('refund.order_status','@'),        #P
-    ('refund.status','@'),              #Q
+    ('refund.reason','@'),                 #M
+    ('str(refund.has_good_return)','@'),   #N
+    ('refund.good_status','@'),            #O
+    ('refund.order_status','@'),           #P
+    ('refund.status','@'),                 #Q
 ]
 
 title_col=2;title_row=1;text_col=2;text_row=2;col_items=11;refund_fee_row=11;
@@ -161,6 +161,8 @@ def write_seller_formula(sheet,row,col,sum_row,sum_name,sum_char,style=XFStyle()
     sheet.write(row,col+1,Formula(sell_formula),style)
 
 
+
+
 def genMonthTradeStatisticXlsFile(dt_from,dt_to,file_name):
 
     font0 = Font()
@@ -220,8 +222,8 @@ def genMonthTradeStatisticXlsFile(dt_from,dt_to,file_name):
         for col in xrange(0,len(refund_item_names)):
             ws_xxsj.write(end_row+2,title_col+col,refund_item_names[col],style0)
         end_row = end_row + 3
-        seller_refund_trades   = Refund.objects.filter(seller_id=seller_id,created__gte=dt_from,created__lte=dt_to,
-                status__in=REFUND_WILL_STATUS,trade__status__in = ORDER_SUCCESS_STATUS)
+        seller_refund_trades   = Refund.objects.filter(seller_id=seller_id,trade__consign_time__gte=dt_from,
+                trade__consign_time__lt=dt_to,status__in=REFUND_WILL_STATUS,trade__status__in = ORDER_SUCCESS_STATUS)
         write_refund_to_sheet(ws_xxsj,seller_refund_trades,end_row,text_col,col_items,style_fat)
 
         refund_trades_len = len(seller_refund_trades)
@@ -235,7 +237,6 @@ def genMonthTradeStatisticXlsFile(dt_from,dt_to,file_name):
 
         write_sum_formula(ws_xxsj,end_row,refund_fee_row,sum_start,sum_end,refund_char,style=style0)
 
-        ######## import this ######
         #unfinish trades
         seller_unfinish_trades = consign_trades.filter(
                 seller_id=seller_id).exclude(status__in=ORDER_SUCCESS_STATUS)
@@ -257,16 +258,15 @@ def genMonthTradeStatisticXlsFile(dt_from,dt_to,file_name):
 
         ws_xxsj.write(end_row+6,7,TOTAL_STATISTIC[5],style0)
         sell_formula = '%s%d-%s%d-%s%d/100-%s%d-%s%d'%('I',end_row+2,'I',end_row+3,'I',end_row+4,'I',end_row+5,'I',end_row+6)
-        ws_xxsj.write(end_row+6,8,Formula(sell_formula))
-
+        ws_xxsj.write(end_row+6,8,Formula(sell_formula),style0)
 
     w.save(file_name)
 
 
 #from django.conf import settings
 #
-#dt_f = datetime.datetime(2012,3,1,0,0,0)
-#dt_t = datetime.datetime(2012,3,31,23,59,59)
-#file_name = settings.DOWNLOAD_ROOT +'/2012-03-31.xls'
+#dt_f = datetime.datetime(2012,4,1,0,0,0)
+#dt_t = datetime.datetime(2012,4,30,23,59,59)
+#file_name = settings.DOWNLOAD_ROOT +'/2012-04-30.xls'
 #
 #genMonthTradeStatisticXlsFile(dt_f,dt_t,file_name)

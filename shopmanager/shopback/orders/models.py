@@ -48,7 +48,7 @@ class Trade(models.Model):
     seller_memo      =  models.CharField(max_length=128,blank=True)
 
     is_update_amount = models.BooleanField(default=False)
-    status      =  models.CharField(max_length=30,blank=True)
+    status      =  models.CharField(max_length=32,blank=True)
 
 
     class Meta:
@@ -119,7 +119,7 @@ class Order(models.Model):
     outer_iid = models.CharField(max_length=64,blank=True)
 
     cid    = models.BigIntegerField(null=True)
-    status = models.CharField(max_length=30,blank=True)
+    status = models.CharField(max_length=32,blank=True)
 
     class Meta:
         db_table = 'shop_order'
@@ -150,7 +150,7 @@ class Logistics(models.Model):
     type         =  models.CharField(max_length=10,blank=True)
     freight_payer   =  models.CharField(max_length=6,blank=True)
     seller_confirm  =  models.CharField(max_length=3,default='no')
-    status   =  models.CharField(max_length=20,blank=True)
+    status   =  models.CharField(max_length=32,blank=True)
 
     class Meta:
         db_table = 'shop_logistic'
@@ -210,7 +210,7 @@ class PurchaseOrder(models.Model):
 
     tc_order_id = models.CharField(max_length=64,blank=True)
     alipay_no   = models.CharField(max_length=64,blank=True)
-    status     = models.CharField(max_length=20,blank=True)
+    status     = models.CharField(max_length=32,blank=True)
 
     class Meta:
         db_table = 'shop_purchaseorder'
@@ -316,6 +316,7 @@ class MonthTradeReportStatus(models.Model):
 
     class Meta:
         db_table = 'shop_monthreportstatus'
+        unique_together = ("seller_id","year","month")
 
 
 

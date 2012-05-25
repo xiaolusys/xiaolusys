@@ -94,15 +94,15 @@ admin.site.register(Refund,RefundAdmin)
 
 
 class MonthTradeReportStatusAdmin(admin.ModelAdmin):
-    list_display = ('refund_id','trade','oid','sid','buyer_nick','total_fee','refund_fee','payment','company_name')
-    list_display_links = ('refund_id','trade','buyer_nick','company_name','good_status')
+    list_display = ('seller_id','year','month','update_order','update_purchase','update_amount','update_logistics','update_refund','created')
+    list_display_links = ('seller_id','year','month')
     #list_editable = ('update_time','task_type' ,'is_success','status')
 
     date_hierarchy = 'created'
     #ordering = ['created_at']
 
-    list_filter   = ('seller_nick','has_good_return','good_status','order_status','status',)
-    search_fields = ['refund_id','oid','sid','buyer_nick']
+    list_filter   = ('seller_id','year','month')
+    search_fields = ['seller_id','year','month']
 
 
 admin.site.register(MonthTradeReportStatus,MonthTradeReportStatusAdmin)
