@@ -5,7 +5,7 @@ import posixpath
 
 PROJECT_ROOT = os.path.abspath(os.path.dirname(__file__))
 
-DEBUG = False
+DEBUG = True
 TEMPLATE_DEBUG = DEBUG
 
 ADMINS = (
@@ -40,7 +40,7 @@ MEDIA_ROOT = os.path.join(PROJECT_ROOT, "site_media", "media")
 
 MEDIA_URL = "/media/"
 
-STATIC_ROOT = os.path.join(PROJECT_ROOT, "site_media", "static")
+STATIC_ROOT = os.path.join(PROJECT_ROOT, "static")
 
 STATIC_URL = '/static/'
 
@@ -51,7 +51,7 @@ ADMIN_MEDIA_PREFIX = posixpath.join(STATIC_URL, "admin/")
 STATIC_DOC_ROOT = os.path.join(PROJECT_ROOT, "/site_media/static")
 
 STATICFILES_DIRS = (
-       os.path.join(PROJECT_ROOT,"static"),
+       os.path.join(PROJECT_ROOT,"site_media","static"),
 )
 
 STATICFILES_FINDERS = (
@@ -110,8 +110,14 @@ INSTALLED_APPS = (
 
     'autolist',
     'search',
+
     'django.contrib.admin',
 )
+
+
+if DEBUG:
+    INSTALLED_APPS = INSTALLED_APPS + ('devserver',)
+
 
 APPKEY = '12517640'
 APPSECRET = 'e50beebdf9226e3fc991834375e32b5a'
@@ -227,6 +233,11 @@ LOGGING = {
             'propagate': True,
         },
         'trade.refund':{
+            'handlers': ['sentry'],
+            'level': 'WARN',
+            'propagate': True,
+        },
+        'exception.handler':{
             'handlers': ['sentry'],
             'level': 'WARN',
             'propagate': True,

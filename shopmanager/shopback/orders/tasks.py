@@ -8,16 +8,18 @@ from django.conf import settings
 from shopback.orders.models import Order,Trade,Logistics,PurchaseOrder,Refund,MonthTradeReportStatus,ORDER_FINISH_STATUS
 from shopback.users.models import User
 from auth.utils import format_time,format_datetime,format_year_month,parse_datetime,refresh_session
-from shopback.orders.trade_reportform import genMonthTradeStatisticXlsFile
+from shopback.orders.reportform import TradesToXLSFile
 from auth.apis.exceptions import RemoteConnectionException,AppCallLimitedException,UserFenxiaoUnuseException,\
     APIConnectionTimeOutException,ServiceRejectionException
 from auth import apis
 
 import logging
 
-logger = logging.getLogger('hourly.saveorder')
+logger = logging.getLogger('exception.handler')
 BLANK_CHAR = ''
 MONTH_TRADE_FILE_TEMPLATE = 'trade-month-%s.xls'
+
+
 
 @task(max_retry=3)
 def saveUserDuringOrders(user_id,days=0,update_from=None,update_to=None):
@@ -607,7 +609,8 @@ def updateMonthTradeXlsFileTask(year=None,month=None):
 
         report_status.save()
 
-    genMonthTradeStatisticXlsFile(last_month_first_days,last_month_last_days,file_name)
+    trade_file_builder = TradesToXLSFile()
+    trade_file_builder.gen_report_file(last_month_first_days,last_month_last_days,file_name)
 
     return {'update_from':format_datetime(last_month_first_days),'update_to':format_datetime(last_month_last_days)}
 
