@@ -14,6 +14,38 @@ DATABASES = {
     }
 }
 
+
+INSTALLED_APPS = (
+    'django.contrib.auth',
+    'django.contrib.contenttypes',
+    'django.contrib.sessions',
+    'django.contrib.sites',
+    'django.contrib.messages',
+    'django.contrib.staticfiles',
+
+    'chartit',
+    'south',
+    'gunicorn',
+    'sentry',
+    'raven.contrib.django',
+    'djangorestframework',
+    'djcelery',
+    'djkombu',
+    'celery_sentry',
+
+    'shopback.task',
+    'shopback.items',
+    'shopback.orders',
+    'shopback.users',
+    'shopback.categorys',
+
+    'autolist',
+    'search',
+
+    'devserver',
+    'django.contrib.admin',
+)
+
 #APPKEY = '12447689'
 #APPSECRET = '67d32cd6e795f60414ce60c2ef51f941'
 
