@@ -43,39 +43,40 @@ def parse_urlparams(string):
 
 
 def refresh_session(user,appkey,appsecret,refresh_url):
-    top_parameters = json.loads(user.top_parameters)
-    expires_in = top_parameters['expires_in']
-    ts = top_parameters['ts']
-
-    expire_time = int(expires_in) + int(ts)/1000.00-10*60
-
-    if expire_time < time.time():
-        try:
-            params = {
-                'appkey':appkey,
-                'refresh_token':top_parameters['refresh_token'],
-                'sessionkey':user.top_session
-            }
-            sign_result = getSignatureTaoBao(params,appsecret,both_side=False)
-            params['sign'] = sign_result
-            refresh_url = '%s?%s'%(refresh_url,urllib.urlencode(params))
-
-            req = urllib2.urlopen(refresh_url)
-            content = req.read()
-            logger.warn('refreshed token : %s' % content)
-            params = json.loads(content)
-            user.top_session = params['top_session']
-            params.pop('top_session')
-            params['ts'] = time.time()*1000
-            user.top_parameters = json.dumps(params)
-
-            user.save()
-
-            return True
-        except Exception,exc:
-            logger.error('refreshed token error: %s'%exc,exc_info=True)
-
-    return False
+    pass
+#    top_parameters = json.loads(user.top_parameters)
+#    expires_in = top_parameters['expires_in']
+#    ts = top_parameters['ts']
+#
+#    expire_time = int(expires_in) + int(ts)/1000.00-10*60
+#
+#    if expire_time < time.time():
+#        try:
+#            params = {
+#                'appkey':appkey,
+#                'refresh_token':top_parameters['refresh_token'],
+#                'sessionkey':user.top_session
+#            }
+#            sign_result = getSignatureTaoBao(params,appsecret,both_side=False)
+#            params['sign'] = sign_result
+#            refresh_url = '%s?%s'%(refresh_url,urllib.urlencode(params))
+#
+#            req = urllib2.urlopen(refresh_url)
+#            content = req.read()
+#            logger.warn('refreshed token : %s' % content)
+#            params = json.loads(content)
+#            user.top_session = params['top_session']
+#            params.pop('top_session')
+#            params['ts'] = time.time()*1000
+#            user.top_parameters = json.dumps(params)
+#
+#            user.save()
+#
+#            return True
+#        except Exception,exc:
+#            logger.error('refreshed token error: %s'%exc,exc_info=True)
+#
+#    return False
 
 
 def parse_datetime(dt):

@@ -14,8 +14,8 @@ pyExcelerator
 #geraldo
 reportlab==2.5
 
-line_profiler
-guppy
+#line_profiler
+#guppy
 
 git+ssh://git@ny/django-chartit.git#egg=django-chartit
 git+ssh://git@ny/django-rest-framework.git#egg=djangorestframework

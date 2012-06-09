@@ -1,24 +1,28 @@
 import json
+import settings
 from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import render_to_response
 from django.template import RequestContext
-
+from django.contrib.auth.decorators import login_required
 from auth import apis
 from autolist.models import ProductItem, Logs
 import datetime
 
 from shopback.task.models import ItemListTask
 
+@login_required(login_url=settings.LOGIN_URL)
 def pull_from_taobao(request):
+
+    profile = request.user.get_profile()
     session = request.session
 
-    onsaleItems = apis.taobao_items_onsale_get(session=session['top_session'],page_no=1,page_size=200)
+    onsaleItems = apis.taobao_items_onsale_get(session=profile.top_session,page_no=1,page_size=200)
 
     items = onsaleItems.get('items_onsale_get_response',[]) and onsaleItems['items_onsale_get_response']['items'].get('item',[])
 
     session['update_items_datetime'] = datetime.datetime.now()
 
-    owner_id = request.session['top_parameters']['visitor_id']
+    owner_id = profile.visitor_id
 
     currItems = ProductItem.objects.filter(owner_id=owner_id)
 
@@ -66,7 +70,7 @@ def pull_from_taobao(request):
     return HttpResponseRedirect('itemlist/')
 
 def list_all_items(request):
-    owner_id = request.session['top_parameters']['visitor_id']
+    owner_id = request.session['top_parameters']['taobao_user_id']
     items = ProductItem.objects.filter(owner_id=owner_id).order_by('category_id', 'ref_code')
 
     from auth.utils import get_closest_time_slot
@@ -94,11 +98,12 @@ def list_all_items(request):
     return render_to_response("itemtable.html", {'page':'itemlist', 'items':items}, RequestContext(request))
 
 
+
 def show_timetable_cats(request):
     from auth.utils import get_closest_time_slot, get_all_time_slots
     catname = request.GET.get('catname', None)
 
-    owner_id = request.session['top_parameters']['visitor_id']
+    owner_id = request.session['top_parameters']['taobao_user_id']
     items = ProductItem.objects.filter(owner_id=owner_id, category_name=catname, onsale=1)
     data = [[],[],[],[],[],[],[]]
     for item in items:
@@ -120,10 +125,12 @@ def show_timetable_cats(request):
 
     return  render_to_response("catstable.html", {'timeslots': timekeys, 'data':data, 'catname':catname}, RequestContext(request))
 
+
+
 def show_time_table_summary(request):
     from auth.utils import get_closest_time_slot, get_all_time_slots
 
-    owner_id = request.session['top_parameters']['visitor_id']
+    owner_id = request.session['top_parameters']['taobao_user_id']
     weekday = request.GET.get('weekday', None)
     items = ProductItem.objects.filter(owner_id=owner_id, onsale=1).order_by('category_id', 'ref_code')
     weekstat = [0,0,0,0,0,0,0]

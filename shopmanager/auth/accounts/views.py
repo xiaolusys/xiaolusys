@@ -2,6 +2,7 @@ from django.http import HttpResponse,HttpResponseRedirect
 from django.conf import settings
 from django.core.urlresolvers import reverse
 from django.contrib.auth import authenticate, login, SESSION_KEY
+from django.contrib.auth.decorators import login_required
 from shopback.users.signals import taobao_logged_in
 from auth.utils import verifySignature,decodeBase64String,parse_urlparams,getSignatureTaoBao,refresh_session
 from auth import apis
@@ -12,7 +13,8 @@ logger = logging.getLogger('taobao.auth')
 
 def request_taobo(request):
 
-    redirect_url = '%s?appkey=%s&encode=utf-8'%(settings.REDIRECT_URL,settings.APPKEY)
+    redirect_url = '%s?response_type=code&client_id=%s&redirect_uri=%s&scope=%s&view=web&state=autolist'%\
+                   (settings.AUTHRIZE_URL,settings.APPKEY,settings.REDIRECT_URI,settings.SCOPE)
 
     return HttpResponseRedirect(redirect_url)
 
@@ -20,7 +22,7 @@ def request_taobo(request):
 def login_taobo(request):
 
     user = authenticate(request=request)
-
+    print user
     if not user or user.is_anonymous():
         return HttpResponseRedirect(reverse('home_page'))
 
@@ -29,10 +31,9 @@ def login_taobo(request):
     login(request, user)
 
     top_session = request.session.get('top_session',None)
-    top_appkey  = request.session.get('top_appkey',None)
     top_parameters = request.session.get('top_parameters',None)
 
-    taobao_logged_in.send(sender='web',user=user,top_session=top_session,top_appkey=top_appkey,top_parameters=top_parameters)
+    taobao_logged_in.send(sender='web',user=user,top_session=top_session,top_parameters=top_parameters)
 
     logger.info('user %s logged in.' % user.username)
 
@@ -41,8 +42,10 @@ def login_taobo(request):
     else:
         return HttpResponseRedirect(settings.LOGIN_REDIRECT_URL)
 
+
+@login_required(login_url=settings.LOGIN_URL)
 def home(request):
-    user = authenticate(request=request)
+
 #    profile = user.get_profile()
 
 #    orders_list = apis.taobao_refunds_receive_get(session=profile.top_session,page_no=1,page_size=100,
@@ -54,9 +57,6 @@ def home(request):
 #        print t
 #        trade_info = apis.taobao_trade_amount_get(tid=t['tid'],session=profile.top_session)
 #        print trade_info
-
-    if not user or user.is_anonymous():
-        return HttpResponseRedirect('/accounts/login/')
 
     return HttpResponseRedirect('/autolist/')
 

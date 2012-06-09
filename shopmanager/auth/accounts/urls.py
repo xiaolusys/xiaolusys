@@ -5,7 +5,7 @@ from django.contrib.auth.views import logout
 urlpatterns = patterns('',
 
     url(r'login/$', request_taobo, name='request_taobao'),
-    url(r'login/taobao/$', login_taobo, name='login_taobao'),
+    url(r'login/taobao/$', login_taobo, name='top_auth2_redirect_uri'),
     url(r'^logout/$', logout, name='global_logout'),
 
 )

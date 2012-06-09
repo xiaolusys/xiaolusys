@@ -53,9 +53,12 @@ INSTALLED_APPS = (
 APPKEY = '12581301'
 APPSECRET = '018feaa22be64ab2c5ac6982579dd80f'
 
-REDIRECT_URL = 'http://container.open.taobao.com/container'
+AUTHRIZE_URL = 'https://oauth.taobao.com/authorize'
+AUTHRIZE_TOKEN_URL = 'https://oauth.taobao.com/token'
+REDIRECT_URI = 'http://localhost:8000/accounts/login/taobao/'
 TAOBAO_API_ENDPOINT = 'http://gw.api.taobao.com/router/rest'
 
+SCOPE = 'item,promotion,usergrade'
 
 REFRESH_URL = 'http://container.open.taobao.com/container/refresh'
 

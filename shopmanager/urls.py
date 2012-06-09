@@ -13,7 +13,7 @@ urlpatterns = patterns('',
     (r'^trade/',include('shopback.orders.urls')),
     (r'^search/', include('search.urls')),
     (r'^autolist/', include('autolist.urls')),
-    (r'^app/',include('shopapp.urls')),
+    #(r'^app/',include('shopapp.urls')),
     url(r'^home/$',home,name='home_page'),
     (r'^$',login_taobo),
 

@@ -14,7 +14,7 @@ class User(models.Model):
 
     top_session = models.CharField(max_length=56,blank=True)
     top_appkey = models.CharField(max_length=24,blank=True)
-    top_parameters = models.CharField(max_length=512,blank=True)
+    top_parameters = models.CharField(max_length=2000,blank=True)
 
     visitor_id = models.CharField(max_length=32,blank=True)
     uid = models.CharField(max_length=32,blank=True)
@@ -54,7 +54,7 @@ class User(models.Model):
     class Meta:
         db_table = 'shop_user'
 
-    def populate_user_info(self,top_session,top_appkey,top_parameters,):
+    def populate_user_info(self,top_session,top_parameters):
         """docstring for populate_user_info"""
         response = apis.taobao_user_get(session=top_session)
 
@@ -67,17 +67,16 @@ class User(models.Model):
              hasattr(self, key) and  setattr(self, key, value)
 
         self.top_session = top_session
-        self.top_appkey = top_appkey
         self.top_parameters = json.dumps(top_parameters)
 
         self.save()
 
 
 
-def add_taobao_user(sender, user,top_session,top_appkey,top_parameters, *args, **kwargs):
+def add_taobao_user(sender, user,top_session,top_parameters, *args, **kwargs):
     """docstring for user_logged_in"""
     profile = user.get_profile()
-    profile.populate_user_info(top_session,top_appkey,top_parameters)
+    profile.populate_user_info(top_session,top_parameters)
 
 taobao_logged_in.connect(add_taobao_user)
   

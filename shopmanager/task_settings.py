@@ -13,17 +13,18 @@ UPDATE_ITEM_NUM_INTERVAL = 2*60
 
 UPDATE_UNPAY_ORDER_INTERVAL = 3*60
 
-TAOBAO_PAGE_SIZE = 100 #the page_size of  per request
+TAOBAO_PAGE_SIZE = 100              #the page_size of  per request
 
 PRODUCT_TRADE_RANK_BELOW = 10
 
 MAX_REQUEST_ERROR_TIMES = 15
 
-API_REQUEST_INTERVAL_TIME = 10
+API_REQUEST_INTERVAL_TIME = 10      #(seconds)
+API_TIME_OUT_SLEEP = 60             #(seconds)
+API_OVER_LIMIT_SLEEP = 180          #(seconds)
 
-API_TIME_OUT_SLEEP = 60
-
-API_OVER_LIMIT_SLEEP = 180
+####### gen trade amount file config #######
+GEN_AMOUNT_FILE_MIN_DAYS = 8
 
 from celery.schedules import crontab
 

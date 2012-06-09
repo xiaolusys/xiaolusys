@@ -530,25 +530,28 @@ def updateAllUserRefundOrderTask(days=0,update_from=None,update_to=None):
 @task()
 def updateMonthTradeXlsFileTask(year=None,month=None):
 
+    dt = datetime.datetime.now()
     update_year_month = year and month
     if not update_year_month:
-        dt = datetime.datetime.now()
         last_month_date = dt - datetime.timedelta(dt.day,0,0)
     else:
-        last_month_date = datetime.datetime(year,month,0,0,0,0)
+        year,month = int(year),int(month)
+        last_month_date = datetime.datetime(year,month,1,0,0,0)
 
     year_month = format_year_month(last_month_date)
     year       = last_month_date.year
     month      = last_month_date.month
 
-    file_name  = settings.DOWNLOAD_ROOT+'/'+MONTH_TRADE_FILE_TEMPLATE%year_month
-
-    if os.path.isfile(file_name) or update_year_month or dt.day<10:
-        return {'error':'%s is already exist or must be ten days from last month at lest!'%file_name}
-
     month_range = calendar.monthrange(year,month)
     last_month_first_days = datetime.datetime(year,month,1,0,0,0)
     last_month_last_days = datetime.datetime(year,month,month_range[1],23,59,59)
+
+    time_delta = dt - last_month_last_days
+    file_name  = settings.DOWNLOAD_ROOT+'/'+MONTH_TRADE_FILE_TEMPLATE%year_month
+
+    if os.path.isfile(file_name) or not update_year_month or time_delta.days<settings.GEN_AMOUNT_FILE_MIN_DAYS:
+        return {'error':'%s is already exist or must be ten days from last month at lest!'%file_name}
+
     start_date   = last_month_first_days - datetime.timedelta(7,0,0)
 
     users = User.objects.all()
