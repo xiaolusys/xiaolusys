@@ -15,7 +15,7 @@ class Trade(models.Model):
 
     id           =  BigIntegerAutoField(primary_key=True)
 
-    seller_id    =  models.CharField(max_length=32,blank=True)
+    seller_id    =  models.CharField(max_length=32,blank=True,db_index=True)
     seller_nick  =  models.CharField(max_length=64,blank=True)
     buyer_nick   =  models.CharField(max_length=64,blank=True)
     type         =  models.CharField(max_length=32,blank=True)
@@ -43,13 +43,14 @@ class Trade(models.Model):
     modified      =  models.DateTimeField(db_index=True,null=True,blank=True)
     consign_time  =  models.DateTimeField(db_index=True,null=True,blank=True)
 
-    buyer_message    =  models.CharField(max_length=256,blank=True)
-    buyer_memo       =  models.CharField(max_length=128,blank=True)
-    seller_memo      =  models.CharField(max_length=128,blank=True)
+    buyer_message    =  models.CharField(max_length=1000,blank=True)
+    buyer_memo       =  models.CharField(max_length=1000,blank=True)
+    seller_memo      =  models.CharField(max_length=1000,blank=True)
 
     is_update_amount = models.BooleanField(default=False)
-    status      =  models.CharField(max_length=32,blank=True)
+    is_picking_print = models.BooleanField(default=False)
 
+    status      =  models.CharField(max_length=32,blank=True)
 
     class Meta:
         db_table = 'shop_trade'
@@ -57,25 +58,43 @@ class Trade(models.Model):
     def __unicode__(self):
         return str(self.id)
 
-    def save_trade_through_dict(self,user_id,t):
+    @classmethod
+    def save_trade_through_dict(cls,user_id,trade_dict):
 
-        self.seller_id = user_id
-        for k,v in t.iteritems():
-            hasattr(self,k) and setattr(self,k,v)
+        trade,state = Trade.objects.get_or_create(pk=trade_dict['tid'])
+        trade.seller_id = user_id
+        for k,v in trade_dict.iteritems():
+            hasattr(trade,k) and setattr(trade,k,v)
 
-        dt = parse_datetime(t['created'])
-        self.year  = dt.year
-        self.hour  = dt.hour
-        self.month = dt.month
-        self.day   = dt.day
-        self.week  = time.gmtime(time.mktime(dt.timetuple()))[7]/7+1
+        dt = parse_datetime(trade_dict['created'])
+        trade.year  = dt.year
+        trade.hour  = dt.hour
+        trade.month = dt.month
+        trade.day   = dt.day
+        trade.week  = time.gmtime(time.mktime(dt.timetuple()))[7]/7+1
 
-        self.created  = parse_datetime(t['created'])
-        self.pay_time = parse_datetime(t['pay_time']) if t.get('pay_time',None) else None
-        self.end_time = parse_datetime(t['end_time']) if t.get('end_time',None) else None
-        self.modified = parse_datetime(t['modified']) if t.get('modified',None) else None
-        self.consign_time = parse_datetime(t['consign_time']) if t.get('consign_time',None) else None
-        self.save()
+        trade.created  = parse_datetime(trade_dict['created'])
+        trade.pay_time = parse_datetime(trade_dict['pay_time']) \
+                           if trade_dict.get('pay_time',None) else None
+        trade.end_time = parse_datetime(trade_dict['end_time']) \
+                           if trade_dict.get('end_time',None) else None
+        trade.modified = parse_datetime(trade_dict['modified']) \
+                           if trade_dict.get('modified',None) else None
+        trade.consign_time = parse_datetime(trade_dict['consign_time']) \
+                           if trade_dict.get('consign_time',None) else None
+        trade.save()
+
+        order = Order()
+        order.seller_nick = trade_dict['seller_nick']
+        order.buyer_nick  = trade_dict['buyer_nick']
+        order.trade       = trade
+
+        for o in trade_dict['orders']['order']:
+            for k,v in o.iteritems():
+                hasattr(order,k) and setattr(order,k,v)
+            order.save()
+
+        return trade
 
 
 
@@ -102,7 +121,7 @@ class Order(models.Model):
     adjust_fee = models.CharField(max_length=12,blank=True)
 
     modified = models.CharField(max_length=19,blank=True)
-    sku_properties_name = models.CharField(max_length=88,blank=True)
+    sku_properties_name = models.CharField(max_length=256,blank=True)
     refund_id = models.BigIntegerField(null=True)
 
     is_oversold = models.BooleanField()
@@ -292,8 +311,10 @@ class Refund(models.Model):
         for k,v in refund.iteritems():
             hasattr(self,k) and setattr(self,k,v)
 
-        self.created  = parse_datetime(refund['created']) if refund.get('created',None) else None
-        self.modified = parse_datetime(refund['modified']) if refund.get('modified',None) else None
+        self.created  = parse_datetime(refund['created']) \
+            if refund.get('created',None) else None
+        self.modified = parse_datetime(refund['modified']) \
+            if refund.get('modified',None) else None
 
         self.save()
 
@@ -320,3 +341,14 @@ class MonthTradeReportStatus(models.Model):
 
 
 
+#class TradeSerialId(models.Model):
+#
+#    year  = models.IntegerField()
+#    month = models.IntegerField()
+#    day   = models.IntegerField()
+#
+#    serial_no = models.IntegerField(default=1)
+#
+#    class Meta:
+#        db_table = 'shop_tradeserialid'
+#        unique_together = ("year","month","day")

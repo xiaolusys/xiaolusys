@@ -247,6 +247,14 @@ def taobao_topats_trades_fullinfo_get(tids=None,fields=API_FIELDS['taobao.trade.
 def taobao_trade_amount_get(tid=None,fields=API_FIELDS['taobao.trade.amount.get'],session=None):
     pass
 
+@apis('taobao.trade.memo.update')
+def taobao_trade_memo_update(tid=None,memo=None,flag=None,reset=None,session=None):
+    pass
+
+@apis('taobao.trade.memo.add')
+def taobao_trade_memo_add(tid=None,memo=None,flag=None,session=None):
+    pass
+
 ############# itemcats apis ################
 
 @apis('taobao.itemcats.get')

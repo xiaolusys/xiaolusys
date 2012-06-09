@@ -106,21 +106,10 @@ def updateUnpayOrderTask(seller_id,tid):
             logger.error('Excute updateUnpoyOrderTask %s'%trades)
             return
 
-        t = trades['trade_fullinfo_get_response']['trade']
+        trade = trades['trade_fullinfo_get_response']['trade']
 
-        trade = Trade()
-        trade.save_trade_through_dict(seller_id,t)
+        Trade.save_trade_through_dict(seller_id,trade)
 
-        for order in  t['orders']['order']:
-            try:
-                order_obj = Order.objects.get(oid=order['oid'])
-
-                for k,v in order.iteritems():
-                    hasattr(order_obj,k) and setattr(order_obj,k,v)
-                order_obj.save()
-
-            except Exception,exc:
-                logger.error('Excute updateUnpoyOrderTask error:%s'%exc,exc_info=True)
     except exc.AppCallLimitedException,e:
         logger.error('update trade during order task fail',exc_info=True)
         raise e

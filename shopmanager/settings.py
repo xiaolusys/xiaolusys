@@ -110,6 +110,7 @@ INSTALLED_APPS = (
 
     'autolist',
     'search',
+    'shopapp.memorule',
 
     'django.contrib.admin',
 )
@@ -235,6 +236,11 @@ LOGGING = {
             'propagate': True,
         },
         'exception.handler':{
+            'handlers': ['sentry'],
+            'level': 'WARN',
+            'propagate': True,
+        },
+        'app.memorule':{
             'handlers': ['sentry'],
             'level': 'WARN',
             'propagate': True,

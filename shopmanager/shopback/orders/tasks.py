@@ -44,8 +44,7 @@ def saveUserDuringOrders(user_id,days=0,update_from=None,update_to=None):
 
     has_next = True
     cur_page = 1
-    error_times = 0
-    order = Order()
+    error_dict  = {'error_times':0}
 
     while has_next:
         try:
@@ -54,19 +53,9 @@ def saveUserDuringOrders(user_id,days=0,update_from=None,update_to=None):
 
             order_list = response_list['trades_sold_get_response']
             if order_list.has_key('trades'):
-                for t in order_list['trades']['trade']:
+                for trade in order_list['trades']['trade']:
 
-                    trade,state = Trade.objects.get_or_create(pk=t['tid'])
-                    trade.save_trade_through_dict(user_id,t)
-
-                    order.seller_nick = t['seller_nick']
-                    order.buyer_nick  = t['buyer_nick']
-                    order.trade       = trade
-
-                    for o in t['orders']['order']:
-                        for k,v in o.iteritems():
-                            hasattr(order,k) and setattr(order,k,v)
-                        order.save()
+                    Trade.save_trade_through_dict(user_id,trade)
 
             has_next = order_list['has_next']
             cur_page += 1
@@ -136,7 +125,6 @@ def saveUserDailyIncrementOrders(user_id,year=None,month=None,day=None):
     has_next = True
     cur_page = 1
     error_times = 0
-    order = Order()
 
     while has_next:
         try:
@@ -145,19 +133,9 @@ def saveUserDailyIncrementOrders(user_id,year=None,month=None,day=None):
 
             order_list = response_list['trades_sold_increment_get_response']
             if order_list.has_key('trades'):
-                for t in trades['trades']['trade']:
+                for trade in trades['trades']['trade']:
 
-                    trade,state = Trade.objects.get_or_create(pk=t['tid'])
-                    trade.save_trade_through_dict(user_id,t)
-
-                    order.seller_nick = t['seller_nick']
-                    order.buyer_nick  = t['buyer_nick']
-                    order.trade       = trade
-
-                    for o in t['orders']['order']:
-                        for k,v in o.iteritems():
-                            hasattr(order,k) and setattr(order,k,v)
-                        order.save()
+                    Trade.save_trade_through_dict(user_id,trade)
 
             has_next = order_list['has_next']
             cur_page += 1

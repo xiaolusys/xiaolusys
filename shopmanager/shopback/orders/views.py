@@ -7,7 +7,7 @@ from djangorestframework import status
 from djangorestframework.views import ModelView
 from chartit import DataPool, Chart
 from chartit import PivotDataPool, PivotChart
-from auth import staff_requried
+from auth import staff_requried,apis
 from auth.utils import parse_datetime,parse_date,format_time,map_int2str
 from shopback.orders.models import Order,Trade,ORDER_SUCCESS_STATUS,ORDER_FINISH_STATUS
 from shopback.orders.tasks import updateAllUserOrdersAmountTask,updateAllUserDuringOrders,\

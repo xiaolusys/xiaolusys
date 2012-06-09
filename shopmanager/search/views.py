@@ -1,6 +1,4 @@
 # -*- coding: utf-8 -*-
-import time
-import datetime
 from django.db.models import Avg, Variance,Sum
 from chartit import DataPool, Chart
 from chartit import PivotDataPool, PivotChart

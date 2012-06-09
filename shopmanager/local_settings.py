@@ -41,8 +41,9 @@ INSTALLED_APPS = (
 
     'autolist',
     'search',
+    'shopapp.memorule',
 
-    'devserver',
+    #'devserver',
     'django.contrib.admin',
 )
 
