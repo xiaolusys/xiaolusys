@@ -18,9 +18,13 @@ DATABASES = {
 
 APPKEY = '12517640'
 APPSECRET = 'e50beebdf9226e3fc991834375e32b5a'
-REDIRECT_URL = 'http://container.open.taobao.com/container'
-TAOBAO_API_ENDPOINT = 'http://gw.api.taobao.com/router/rest'
-REFRESH_URL = 'http://container.open.taobao.com/container/refresh'
 
+AUTHRIZE_URL = 'https://oauth.taobao.com/authorize'
+AUTHRIZE_TOKEN_URL = 'https://oauth.taobao.com/token'
+REDIRECT_URI = 'http://autolist.huyi.so/accounts/login/taobao/'
+TAOBAO_API_ENDPOINT = 'http://gw.api.taobao.com/router/rest'
+
+SCOPE = 'item,promotion,usergrade'
+REFRESH_URL = 'https://oauth.taobao.com/token'
 
 FONT_PATH = '/usr/share/fonts/truetype/ttf-dejavu/DejaVuSerif-Bold.ttf'
