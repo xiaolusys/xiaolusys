@@ -1,3 +1,4 @@
+import time
 import json
 from django.db import models
 from shopback.base.models import BaseModel
@@ -14,7 +15,7 @@ class User(models.Model):
 
     top_session = models.CharField(max_length=56,blank=True)
     top_appkey = models.CharField(max_length=24,blank=True)
-    top_parameters = models.CharField(max_length=2000,blank=True)
+    top_parameters = models.CharField(max_length=1000,blank=True)
 
     visitor_id = models.CharField(max_length=32,blank=True)
     uid = models.CharField(max_length=32,blank=True)
@@ -67,6 +68,7 @@ class User(models.Model):
              hasattr(self, key) and  setattr(self, key, value)
 
         self.top_session = top_session
+        top_parameters['ts'] = time.time()
         self.top_parameters = json.dumps(top_parameters)
 
         self.save()

@@ -60,7 +60,7 @@ TAOBAO_API_ENDPOINT = 'http://gw.api.taobao.com/router/rest'
 
 SCOPE = 'item,promotion,usergrade'
 
-REFRESH_URL = 'http://container.open.taobao.com/container/refresh'
+REFRESH_URL = 'https://oauth.taobao.com/token'
 
 FONT_PATH = '/usr/share/fonts/truetype/ttf-dejavu/DejaVuSerifCondensed-BoldItalic.ttf'
 

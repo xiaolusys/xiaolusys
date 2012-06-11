@@ -416,6 +416,7 @@ def saveUserPurchaseOrderTask(user_id,update_from=None,update_to=None):
             time.sleep(settings.API_OVER_LIMIT_SLEEP)
         except UserFenxiaoUnuseException:
             logger.error('the seller is not the user of fenxiao plateform',exc_info=True)
+            break
         except AppCallLimitedException,e:
             logger.error('update trade purchase order fail',exc_info=True)
             raise e

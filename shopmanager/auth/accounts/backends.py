@@ -11,19 +11,19 @@ import logging
 logger = logging.getLogger('taobao.auth')
 
 """
-content {
-  "w2_expires_in": 0,
-  "taobao_user_id": "121741189",
-  "taobao_user_nick": "%E4%BC%98%E5%B0%BC%E5%B0%8F%E5%B0%8F%E4%B8%96%E7%95%8C",
-  "w1_expires_in": 1800,
-  "re_expires_in": 2592000,
-  "r2_expires_in": 0,
-  "hra_expires_in": "1800",
-  "expires_in": 86400,
-  "token_type": "Bearer",
-  "refresh_token": "6201a02d59ZZ5a04911942af136db8a901de3efa62ff63c121741189",
-  "access_token": "6202b025cfhj953ffb3b2bdba4aedac383f01cf6ed27e48121741189",
-  "r1_expires_in": 1800
+token {
+    "w2_expires_in": 0,
+    "taobao_user_id": "121741189",
+    "taobao_user_nick": "%E4%BC%98%E5%B0%BC%E5%B0%8F%E5%B0%8F%E4%B8%96%E7%95%8C",
+    "w1_expires_in": 1800,
+    "re_expires_in": 2592000,
+    "r2_expires_in": 0,
+    "hra_expires_in": "1800",
+    "expires_in": 86400,
+    "token_type": "Bearer",
+    "refresh_token": "6201a02d59ZZ5a04911942af136db8a901de3efa62ff63c121741189",
+    "access_token": "6202b025cfhj953ffb3b2bdba4aedac383f01cf6ed27e48121741189",
+    "r1_expires_in": 1800
 }
 """
 class TaoBaoBackend:

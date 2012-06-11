@@ -123,7 +123,8 @@ AUTHRIZE_URL = 'https://oauth.taobao.com/authorize'
 AUTHRIZE_TOKEN_URL = 'https://oauth.taobao.com/token'
 REDIRECT_URI = 'http://autolist.huyi.so/accounts/login/taobao/'
 TAOBAO_API_ENDPOINT = 'http://gw.api.taobao.com/router/rest'
-REFRESH_URL = 'http://container.open.taobao.com/container/refresh'
+
+REFRESH_URL = 'https://oauth.taobao.com/token'
 SCOPE = 'item,promotion,usergrade'
 
 AUTH_PROFILE_MODULE = 'users.user'
