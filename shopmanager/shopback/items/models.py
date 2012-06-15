@@ -40,3 +40,7 @@ class Item(BaseModel):
 
     class Meta:
         db_table = 'shop_item'
+
+
+    def __unicode__(self):
+        return self.num_iid+'---'+self.outer_iid+'---'+self.title

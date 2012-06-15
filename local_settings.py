@@ -16,8 +16,8 @@ DATABASES = {
     }
 }
 
-APPKEY = '12517640'
-APPSECRET = 'e50beebdf9226e3fc991834375e32b5a'
+APPKEY = '12686908'
+APPSECRET = 'b3ddef5982a23c636739289949c01f59'
 
 AUTHRIZE_URL = 'https://oauth.taobao.com/authorize'
 AUTHRIZE_TOKEN_URL = 'https://oauth.taobao.com/token'

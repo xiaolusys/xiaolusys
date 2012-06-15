@@ -47,11 +47,12 @@ INSTALLED_APPS = (
     'django.contrib.admin',
 )
 
-#APPKEY = '12447689'
-#APPSECRET = '67d32cd6e795f60414ce60c2ef51f941'
 
-APPKEY = '12581301'
-APPSECRET = '018feaa22be64ab2c5ac6982579dd80f'
+APPKEY = '12686373'
+APPSECRET = '9179d4bea89b0712c9397b073ce17535'
+
+#APPKEY = '12686841'
+#APPSECRET = '501b8d23212601443eec4fef13e7c84d'
 
 AUTHRIZE_URL = 'https://oauth.taobao.com/authorize'
 AUTHRIZE_TOKEN_URL = 'https://oauth.taobao.com/token'

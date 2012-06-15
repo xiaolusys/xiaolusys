@@ -47,8 +47,17 @@ class Trade(models.Model):
     buyer_memo       =  models.CharField(max_length=1000,blank=True)
     seller_memo      =  models.CharField(max_length=1000,blank=True)
 
-    is_update_amount = models.BooleanField(default=False)
-    is_picking_print = models.BooleanField(default=False)
+    shipping_type    =  models.CharField(max_length=12,blank=True)
+    buyer_alipay_no  =  models.CharField(max_length=128,blank=True)
+    receiver_name    =  models.CharField(max_length=64,blank=True)
+    receiver_state   =  models.CharField(max_length=8,blank=True)
+    receiver_city    =  models.CharField(max_length=8,blank=True)
+    receiver_district  =  models.CharField(max_length=16,blank=True)
+
+    receiver_address   =  models.CharField(max_length=64,blank=True)
+    receiver_zip       =  models.CharField(max_length=10,blank=True)
+    receiver_mobile    =  models.CharField(max_length=20,blank=True)
+    receiver_phone     =  models.CharField(max_length=20,blank=True)
 
     status      =  models.CharField(max_length=32,blank=True)
 
@@ -97,6 +106,18 @@ class Trade(models.Model):
         return trade
 
 
+
+class TradeExtraInfo(models.Model):
+
+    tid   =  models.BigIntegerField(primary_key=True)
+
+    is_update_amount = models.BooleanField(default=False)
+    is_picking_print = models.BooleanField(default=False)
+    is_send_sms      = models.BooleanField(default=False)
+    seller_memo      = models.TextField(max_length=128,blank=True)
+
+    class Meta:
+        db_table = 'shop_tradeextrainfo'
 
 
 

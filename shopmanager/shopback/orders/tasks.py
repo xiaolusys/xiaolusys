@@ -5,7 +5,7 @@ import calendar
 from celery.task import task
 from celery.task.sets import subtask
 from django.conf import settings
-from shopback.orders.models import Order,Trade,Logistics,PurchaseOrder,Refund,MonthTradeReportStatus,ORDER_FINISH_STATUS
+from shopback.orders.models import Order,Trade,TradeExtraInfo,Logistics,PurchaseOrder,Refund,MonthTradeReportStatus,ORDER_FINISH_STATUS
 from shopback.users.models import User
 from auth.utils import format_time,format_datetime,format_year_month,parse_datetime,refresh_session
 from shopback.orders.reportform import TradesToXLSFile
@@ -198,12 +198,17 @@ def updateOrdersAmountTask(user_id,update_from=None,update_to=None):
 
     refresh_session(user,settings.APPKEY,settings.APPSECRET,settings.REFRESH_URL)
 
-    finish_trades = Trade.objects.filter(seller_id=user_id,consign_time__gte=update_from,consign_time__lte=update_to,
-                                         is_update_amount=False,status=ORDER_FINISH_STATUS)
+    finish_trades = Trade.objects.filter(seller_id=user_id,consign_time__gte=update_from,
+                                         consign_time__lte=update_to,status=ORDER_FINISH_STATUS)
 
     error_times = 0
 
     for trade in finish_trades:
+        trade_extra_info,state = TradeExtraInfo.objects.get_or_create(tid=trade.id)
+
+        if trade_extra_info.is_update_amount:
+            continue
+
         try:
             response_list = apis.taobao_trade_amount_get(tid=trade.id,session=user.top_session)
 
@@ -216,6 +221,9 @@ def updateOrdersAmountTask(user_id,update_from=None,update_to=None):
             trade.pay_time = parse_datetime(tamt['pay_time'])
             trade.is_update_amount = True
             trade.save()
+
+            trade_extra_info.is_update_amount = True
+            trade_extra_info.save()
 
             for o in tamt['order_amounts']['order_amount']:
                 try:

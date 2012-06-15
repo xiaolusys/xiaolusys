@@ -1,6 +1,7 @@
 from django.http import HttpResponse,HttpResponseRedirect
 from django.conf import settings
 from django.core.urlresolvers import reverse
+from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth import authenticate, login, SESSION_KEY
 from django.contrib.auth.decorators import login_required
 from shopback.users.signals import taobao_logged_in
@@ -18,7 +19,7 @@ def request_taobo(request):
 
     return HttpResponseRedirect(redirect_url)
 
-
+@csrf_exempt
 def login_taobo(request):
 
     user = authenticate(request=request)

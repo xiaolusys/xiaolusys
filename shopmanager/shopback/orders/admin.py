@@ -1,5 +1,5 @@
 from django.contrib import admin
-from shopback.orders.models import Order,Trade,Logistics,PurchaseOrder,Refund,MonthTradeReportStatus
+from shopback.orders.models import Order,Trade,TradeExtraInfo,Logistics,PurchaseOrder,Refund,MonthTradeReportStatus
 
 
 
@@ -24,18 +24,32 @@ admin.site.register(Order, OrderAdmin)
 
 class TradeAdmin(admin.ModelAdmin):
     list_display = ('id','seller_nick','buyer_nick','type','payment','discount_fee','adjust_fee','post_fee','buyer_obtain_point_fee',
-                    'point_fee','real_point_fee','total_fee','commission_fee','is_update_amount','consign_time','pay_time','end_time','modified','status')
+                    'point_fee','real_point_fee','total_fee','commission_fee','consign_time','pay_time','end_time','modified','shipping_type',
+                    'buyer_alipay_no','receiver_name','receiver_mobile','receiver_phone','status')
     list_display_links = ('id','buyer_nick','payment','status')
     #list_editable = ('update_time','task_type' ,'is_success','status')
 
     date_hierarchy = 'created'
     #ordering = ['created_at']
 
-    list_filter = ('type','is_update_amount','status',)
+    list_filter = ('type','status',)
     search_fields = ['id','buyer_nick']
 
 
 admin.site.register(Trade, TradeAdmin)
+
+
+
+class TradeExtraInfoAdmin(admin.ModelAdmin):
+    list_display = ('tid','is_update_amount','is_picking_print','is_send_sms','seller_memo')
+    list_display_links = ('tid',)
+    #list_editable = ('update_time','task_type' ,'is_success','status')
+
+    list_filter = ('is_update_amount','is_picking_print','is_send_sms')
+    search_fields = ['tid',]
+
+
+admin.site.register(TradeExtraInfo, TradeExtraInfoAdmin)
 
 
 

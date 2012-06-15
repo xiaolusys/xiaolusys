@@ -7,68 +7,12 @@ from djangorestframework import status
 from shopback.orders.models import Order,Trade
 from shopback.items.models import Item
 from shopback.users.models import User
-from shopapp.memorule.models import TradeRule
+from shopapp.memorule.models import TradeRule,TradeExtraInfo,ProductRuleField
 from auth import apis
 import logging
 
 logger = logging.getLogger('app.memorule')
 
-
-def is_over_lap(set_a,set_b):
-    len_a = len(set_a)
-    len_b = len(set_b)
-    set_a.union(set_b)
-    if len(set_a)<len_a+len_b:
-        return True
-    return False
-
-
-
-def gen_memo_by_params(params,trade):
-
-    trade_rules = TradeRule.objects.filter(status='US').order_by('-priority')
-    rule_list = []
-    rule_ids  = set([])
-    orders = trade.trade_orders.all()
-    for rule in trade_rules:
-        try:
-            memo_str = None
-            opposite_ids = rule.opposite_ids
-            if not opposite_ids:
-                opposite_ids = set([])
-            else :
-                opposite_ids = set(json.loads(opposite_ids))
-
-            over_lap = is_over_lap(rule_ids,opposite_ids)
-
-            if rule.scope == 'trade':
-                if not over_lap and eval(rule.formula):
-                    memo_str = eval(rule.match_tpl_memo)
-                    rule_ids.add(rule.id)
-                else:
-                    memo_str = eval(rule.unmatch_tpl_memo)
-
-            else:
-                for order in orders:
-                    try:
-                        item = Item.objects.get(num_iid=order.num_iid)
-                    except Item.DoesNotExist:
-                        item = None
-
-                    if not over_lap and eval(rule.formula):
-                        memo_str = eval(rule.match_tpl_memo)
-                        rule_ids.add(rule.id)
-                        break
-
-                if memo_str == None :
-                    memo_str = eval(rule.unmatch_tpl_memo)
-            if memo_str:
-                rule_list.append(memo_str)
-
-        except Exception,exc:
-            logger.error('%s'%exc,exc_info=True)
-
-    return '&'.join(rule_list)
 
 
 
@@ -89,37 +33,56 @@ def update_trade_memo(trade_id,trade_memo,session):
     try:
         apis.taobao_trade_memo_update(tid=trade_id,memo=trade_memo,session=session)
     except Exception,exc:
-        raise ErrorResponse('%s'%exc)
+        pass
 
     try:
-        trade = Trade.objects.get(pk=trade_id)
-        trade.seller_memo = trade_memo
+        trade_extra_info = TradeExtraInfo.objects.get_or_create(pk=trade_id)
+        trade_extra_info.seller_memo = trade_memo
         trade.save()
     except Trade.DoesNotExist:
         pass
 
 
 
+
 class UpdateTradeMemoView(ModelView):
 
     def get(self, request, *args, **kwargs):
-        content  = request.REQUEST
+        content   = request.REQUEST
 
-        trade_id    = content.get('tid')
-        seller_id   = content.get('seller_id')
+        params    = content.get('params')
+        trade_id  = params.get('tid')
+        user_id   = params.get('sid')
 
         try:
-            profile = User.objects.get(visitor_id=seller_id)
+            profile = User.objects.get(visitor_id=user_id)
             session = profile.top_session
         except User.DoesNotExist:
             raise ErrorResponse("the seller id is not record!")
 
+        update_trade_memo(trade_id,content,session)
 
-        trade = get_and_save_trade(seller_id,trade_id,session)
-        trade_memo = gen_memo_by_params(content,trade)
+        return {'success':True}
 
-        update_trade_memo(trade_id,trade_memo,session)
+    post = get
 
-        return {'trade_memo':trade_memo}
+
+
+class ProductRuleFieldsView(ModelView):
+
+    def get(self, request, *args, **kwargs):
+        content = request.REQUEST
+
+        out_iids = content.get('out_iids')
+        out_iid_list = out_iids.split(',')
+
+        product_fields = []
+        for out_iid in out_iid_list:
+
+            trade_extras = ProductRuleField.objects.filter(out_iid=out_iid)
+            trade_fields = [ extra.to_json() for extra in trade_extras]
+            product_fields.append([out_iid,trade_fields])
+
+        return product_fields
 
     post = get
