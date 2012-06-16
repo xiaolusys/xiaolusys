@@ -4,10 +4,10 @@ from django.http import HttpResponse
 from djangorestframework.views import ModelView
 from djangorestframework.response import ErrorResponse
 from djangorestframework import status
-from shopback.orders.models import Order,Trade
+from shopback.orders.models import Order,Trade,TradeExtraInfo
 from shopback.items.models import Item
 from shopback.users.models import User
-from shopapp.memorule.models import TradeRule,TradeExtraInfo,ProductRuleField
+from shopapp.memorule.models import TradeRule,ProductRuleField
 from auth import apis
 import logging
 
