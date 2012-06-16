@@ -57,7 +57,7 @@ CELERYBEAT_SCHEDULE = {
     },
     'runs-every-hours':{
         'task':'shopback.orders.tasks.updateAllUserDuringOrders',
-        'schedule':crontab(minute="0",hour="*/1"),
+        'schedule':crontab(minute="0,30"),
         'args':(0,)
     },
     'runs-every-weeks-b':{
@@ -75,6 +75,16 @@ CELERYBEAT_SCHEDULE = {
 #        'schedule':crontab(minute="0",hour="1"),
 #        'args':()
 #    },
+    'runs-every-weeks-c':{
+        'task':'shopback.items.tasks.updateUserItemsTask',
+        'schedule':crontab(minute="0",hour="1",day_of_week='tue'),
+        'args':()
+    },
+    'runs-every-weeks-d':{
+        'task':'shopback.items.tasks.updateAllUserItemsInfoTask',
+        'schedule':crontab(minute="0",hour="2",day_of_week='tue'),
+        'args':()
+    },
     'runs-every-day-d':{
         'task':'search.tasks.deletePageRankRecordTask',
         'schedule':crontab(minute="0",hour="1"),

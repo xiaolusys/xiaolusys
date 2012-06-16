@@ -4,7 +4,7 @@ from shopback.base.fields import BigIntegerAutoField
 
 class Item(BaseModel):
 
-    num_iid = models.CharField(primary_key=True,max_length=64)
+    num_iid = models.CharField(primary_key=True,max_length=64,blank=False)
 
     outer_iid = models.CharField(max_length=64,blank=True)
     num = models.IntegerField(null=True)
@@ -27,7 +27,7 @@ class Item(BaseModel):
     delist_time = models.CharField(max_length=19,blank=True)
     has_discount = models.BooleanField(default=False)
 
-    props = models.CharField(max_length=200,blank=True)
+    props = models.CharField(max_length=500,blank=True)
     title = models.CharField(max_length=148,blank=True)
 
     has_invoice = models.BooleanField(default=False)
@@ -36,7 +36,7 @@ class Item(BaseModel):
 
     desc = models.CharField(max_length=64)
 
-    skus = models.CharField(max_length=1500,blank=True)
+    skus = models.CharField(max_length=5000,blank=True)
 
     class Meta:
         db_table = 'shop_item'
@@ -44,3 +44,15 @@ class Item(BaseModel):
 
     def __unicode__(self):
         return self.num_iid+'---'+self.outer_iid+'---'+self.title
+
+    @classmethod
+    def save_item_through_dict(cls,user_id,item_dict):
+        item,state = cls.objects.get_or_create(num_iid = item_dict['num_iid'])
+        item.user_id = user_id
+        item.outer_iid = item_dict['outer_id']
+
+        for k,v in item_dict.iteritems():
+            hasattr(item,k) and setattr(item,k,v)
+
+        item.save()
+        return item

@@ -70,7 +70,7 @@ class ProductRuleField(models.Model):
     def default(self):
         value = self.custom_default or self.field.default_value
         if self.field.field_type == 'check' or self.field.field_type == 'single':
-            return value.split('|')
+            return value.split('(,|&)')
         return value
 
     def to_json(self):

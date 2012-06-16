@@ -1,4 +1,5 @@
 from django.conf.urls.defaults import patterns, include, url
+from django.views.decorators.csrf import csrf_exempt
 from auth.accounts.views import home,login_taobo
 from django.views.generic import TemplateView
 from django.contrib import admin
@@ -16,7 +17,7 @@ urlpatterns = patterns('',
     (r'^app/',include('shopapp.urls')),
     url(r'^home/$',home,name='home_page'),
 
-    (r'^top_monitor\.html$',TemplateView.as_view(template_name='top_monitor.html')),
+    (r'^top_monitor\.html$',csrf_exempt(TemplateView.as_view(template_name='top_monitor.html'))),
     (r'^$',login_taobo),
 
     (r'^static/(?P<path>.*)$', 'django.views.static.serve',

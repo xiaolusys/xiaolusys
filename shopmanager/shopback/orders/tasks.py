@@ -132,13 +132,13 @@ def saveUserDailyIncrementOrders(user_id,year=None,month=None,day=None):
             response_list = apis.taobao_trades_sold_increment_get(session=user.top_session,page_no=cur_page
                 ,page_size=settings.TAOBAO_PAGE_SIZE,use_has_next='true',start_modified=s_dt_f,end_modified=s_dt_t)
 
-            order_list = response_list['trades_sold_increment_get_response']
-            if order_list.has_key('trades'):
-                for trade in trades['trades']['trade']:
+            trade_list = response_list['trades_sold_increment_get_response']
+            if trade_list.has_key('trades'):
+                for trade in trade_list['trades']['trade']:
 
                     Trade.save_trade_through_dict(user_id,trade)
 
-            has_next = order_list['has_next']
+            has_next = trade_list['has_next']
             cur_page += 1
             error_times = 0
             time.sleep(settings.API_REQUEST_INTERVAL_TIME)

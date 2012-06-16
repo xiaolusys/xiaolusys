@@ -29,14 +29,6 @@ def saveKeywordPageRank(keyword,month,day,time,created):
                 keyword=keyword,item_id=value['item_id'],title=value['title'],user_id=value['user_id']
                 ,nick=value['nick'],month=month,day=day,time=time,created=created,rank=value['rank'])
 
-            item_tuple = Item.objects.get_or_create(num_iid=value['item_id'])
-            if item_tuple[1]:
-                item = item_tuple[0]
-                item.title = value['title']
-                item.user_id = value['user_id']
-                item.nick = value['nick']
-                item.pic_url = value['pic_url']
-                item.save()
         except Exception,exc:
             logger.error('Create ProductPageRank or Item record error:%s'%exc,exc_info=True)
 

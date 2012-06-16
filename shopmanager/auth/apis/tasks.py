@@ -24,8 +24,8 @@ API_FIELDS = {
     'taobao.itemcats.get':'cid,parent_cid,name,is_parent,status,sort_order',
     'taobao.itemprops.get':'pid, name, must, multi, prop_values',
     'taobao.itempropvalues.get':'cid,pid,prop_name,vid,name,name_alias,status,sort_order',
-    'taobao.item.get':'has_showcase,detail_url,num_iid,title,outer_id,price,approve_status,delist_time,list_time,modified,num,'
-         +'sku.sku_id,sku.properties,sku.quantity,sku.price,sku.outer_id,sku.status',
+    'taobao.item.get':'has_showcase,detail_url,num_iid,title,outer_id,price,approve_status,delist_time,list_time,modified,num,props_name'
+         +'skus,nick,type,cid,pic_url,num,props,valid_thru,price,has_discount,has_invoice,has_warranty,postage_id,seller_cids',
     'taobao.items.list.get':'item',
     'taobao.products.get':'product_id,tsc,cat_name,name',
     'taobao.items.get':'num_iid,title,nick,pic_url,cid,price,type,delist_time,post_fee,volume,score,location',
@@ -34,7 +34,7 @@ API_FIELDS = {
     'taobao.items.inventory.get':'approve_status,num_iid,title,nick,type,cid,pic_url,num,props,valid_thru,list_time,'
         +'price,has_discount,has_invoice,has_warranty,has_showcase, modified,delist_time,postage_id,seller_cids,outer_id',
     'taobao.items.onsale.get':'approve_status,num_iid,title,nick,type,cid,pic_url,num,props,valid_thru,list_time,price,has_discount,has_invoice,has_warranty'
-        +',has_showcase,modified,delist_time,postage_id,seller_cids,outer_id',
+        +',has_showcase,modified,delist_time,postage_id,seller_cids,outer_id,skus,props_name',
     'taobao.trades.sold.get':'seller_nick,buyer_nick,title,type,created,tid,status,modified,payment,discount_fee,adjust_fee,post_fee,total_fee,received_payment,commission_fee,buyer_obtain_point_fee'
         +',point_fee,real_point_fee,pic_path,pay_time,end_time,consign_time,num_iid,num,price,shipping_type,receiver_name,receiver_state,receiver_city,receiver_district,receiver_address,receiver_zip'
         +',receiver_mobile,receiver_phone,orders.title,orders.pic_path,orders.price,orders.num,orders.num_iid,orders.sku_id,orders.refund_status,'

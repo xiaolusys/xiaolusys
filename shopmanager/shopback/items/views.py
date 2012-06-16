@@ -1,54 +1,49 @@
 import json
-import datetime
+from django.core.serializers.json import DjangoJSONEncoder
 from django.http import HttpResponse
-from django.conf import settings
+from djangorestframework.serializer import Serializer
 from auth import apis
 from shopback.items.models import Item
 from shopback.users.models import User
-from shopback.items.tasks import updateItemsInfoTask
-import logging
+from shopback.items.tasks import updateUserItemsTask,saveUserItemsInfoTask
 
-logger = logging.getLogger('outeridmultiple')
 
-def updateItems(request):
+def update_user_items(request):
 
-    visitor_id = request.session['top_parameters']['visitor_id']
-    top_session = request.session['top_session']
+    content = request.REQUEST
+    user_id = content.get('user_id') or request.user.get_profile().visitor_id
 
-    onsaleItems = apis.taobao_items_onsale_get(session=top_session,page_no=1,page_size=200)
+    update_nums = updateUserItemsTask(user_id)
 
-    items = []
+    iteminfo_task = saveUserItemsInfoTask.delay(user_id)
 
-    if onsaleItems.has_key('items_onsale_get_response'):
-        if onsaleItems['items_onsale_get_response'].get('total_results',0)>0:
-            items.extend(onsaleItems['items_onsale_get_response']['items']['item'])
-
-    user = User.objects.get(visitor_id=visitor_id)
-    user.update_items_datetime = datetime.datetime.now()
-    user.save()
-
-    for item in items:
-        try:
-            itemobj = Item.objects.get(outer_iid=item['outer_id'],user_id=visitor_id)
-
-            if itemobj.num_iid  != str(item['num_iid']):
-                logger.error('Outer_iid multiple to items(outer_iid:%s,num_iid:%s)' %(item['outer_id'],item['num_iid']))
-                continue
-        except Item.DoesNotExist:
-
-            itemobj = Item()
-            itemobj.outer_iid = item['outer_id']
-            itemobj.user_id = visitor_id
-
-        for k,v in item.iteritems():
-            hasattr(itemobj,k) and setattr(itemobj,k,v)
-
-        itemobj.save()
-
-    updateItemsInfoTask.delay(visitor_id)
-
-    response = {'pulled':len(items)}
+    response = {'update_nums':update_nums,'update_item_info_task_id':iteminfo_task.task_id}
 
     return HttpResponse(json.dumps(response),mimetype='application/json')
 
-  
+
+
+def update_user_item(request):
+
+    content = request.REQUEST
+    user_id = content.get('user_id')
+    num_iid = content.get('num_iid')
+
+    try:
+        profile = User.objects.get(visitor_id=user_id)
+    except User.DoesNotExist:
+        return HttpResponse(json.dumps({'code':0,'error_reponse':'user_id is not correct'}))
+
+    try:
+        Item.objects.get(num_iid=None)
+    except Item.DoesNotExist:
+        try:
+            response = apis.taobao_item_get(num_iid=num_iid,session=profile.top_session)
+            item_dict = response['item_get_response']['item']
+            item = Item.save_item_through_dict(user_id,item_dict)
+
+        except Exception,e:
+            return HttpResponse(json.dumps({'code':0,'error_reponse':'update item fail.'}))
+
+    item_dict = {'code':1,'reponse':Serializer().serialize(item)}
+    return  HttpResponse(json.dumps(item_dict,cls=DjangoJSONEncoder))
