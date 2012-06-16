@@ -47,13 +47,13 @@ def login_taobo(request):
 @login_required(login_url=settings.LOGIN_URL)
 def home(request):
 
-#    profile = user.get_profile()
+    #profile = request.user.get_profile()
 
 #    orders_list = apis.taobao_refunds_receive_get(session=profile.top_session,page_no=1,page_size=100,
 #                 type='fenxiao',start_modified='2012-03-01 00:00:00',end_modified='2012-05-20 23:59:59')
 #    print orders_list
 #    trades = apis.taobao_trades_sold_get(session=profile.top_session,page_no=1
-#                 ,page_size=10,use_has_next='true',start_created='2012-05-10 00:00:00',end_created='2012-05-15 00:00:00')
+#                 ,page_size=5,use_has_next='true',start_created='2012-05-10 00:00:00',end_created='2012-05-15 00:00:00')
 #    for t in trades['trades_sold_get_response']['trades']['trade']:
 #        print t
 #        trade_info = apis.taobao_trade_amount_get(tid=t['tid'],session=profile.top_session)

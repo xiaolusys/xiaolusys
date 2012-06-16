@@ -110,7 +110,7 @@ INSTALLED_APPS = (
 
     'autolist',
     'search',
-    #'shopapp.memorule',
+    'shopapp.memorule',
 
     'django.contrib.admin',
 )

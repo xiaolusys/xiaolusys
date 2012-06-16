@@ -1,6 +1,6 @@
 from django.conf.urls.defaults import patterns, include, url
 from auth.accounts.views import home,login_taobo
-# Uncomment the next two lines to enable the admin:
+from django.views.generic import TemplateView
 from django.contrib import admin
 from django.conf import settings
 admin.autodiscover()
@@ -13,8 +13,10 @@ urlpatterns = patterns('',
     (r'^trade/',include('shopback.orders.urls')),
     (r'^search/', include('search.urls')),
     (r'^autolist/', include('autolist.urls')),
-    #(r'^app/',include('shopapp.urls')),
+    (r'^app/',include('shopapp.urls')),
     url(r'^home/$',home,name='home_page'),
+
+    (r'^top_monitor\.html$',TemplateView.as_view(template_name='top_monitor.html')),
     (r'^$',login_taobo),
 
     (r'^static/(?P<path>.*)$', 'django.views.static.serve',

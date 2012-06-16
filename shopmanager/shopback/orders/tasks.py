@@ -44,7 +44,8 @@ def saveUserDuringOrders(user_id,days=0,update_from=None,update_to=None):
 
     has_next = True
     cur_page = 1
-    error_dict  = {'error_times':0}
+    error_times = 0
+    #error_dict  = {'error_times':0}
 
     while has_next:
         try:
