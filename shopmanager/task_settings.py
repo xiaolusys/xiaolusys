@@ -60,11 +60,6 @@ CELERYBEAT_SCHEDULE = {
         'schedule':crontab(minute="0,30"),
         'args':(0,)
     },
-    'runs-every-weeks-b':{
-        'task':'shopback.orders.tasks.updateAllUserOrdersAmountTask',
-        'schedule':crontab(minute="0",hour="1",day_of_week="mon"),
-        'args':(7,)
-    },
     'runs-every-day-e':{
         'task':'shopback.orders.tasks.updateMonthTradeXlsFileTask',
         'schedule':crontab(minute="0",hour="1"),
@@ -75,6 +70,11 @@ CELERYBEAT_SCHEDULE = {
 #        'schedule':crontab(minute="0",hour="1"),
 #        'args':()
 #    },
+    'runs-every-weeks-b':{
+        'task':'shopback.orders.tasks.updateAllUserOrdersAmountTask',
+        'schedule':crontab(minute="0",hour="1",day_of_week="mon"),
+        'args':(7,)
+    },
     'runs-every-weeks-c':{
         'task':'shopback.items.tasks.updateUserItemsTask',
         'schedule':crontab(minute="0",hour="1",day_of_week='tue'),

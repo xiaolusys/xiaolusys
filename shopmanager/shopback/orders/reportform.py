@@ -1,6 +1,7 @@
 from pyExcelerator import Workbook,XFStyle,Font,Formula
 from shopback.orders.models import Order,Trade,Refund,Logistics,PurchaseOrder\
       ,ORDER_SUCCESS_STATUS,REFUND_WILL_STATUS
+from shopback.users.models import User
 
 
 item_names = [

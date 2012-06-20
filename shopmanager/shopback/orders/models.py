@@ -114,6 +114,8 @@ class TradeExtraInfo(models.Model):
     is_update_amount = models.BooleanField(default=False)
     is_picking_print = models.BooleanField(default=False)
     is_send_sms      = models.BooleanField(default=False)
+
+    modified         = models.DateTimeField(auto_now=True)
     seller_memo      = models.TextField(max_length=128,blank=True)
 
     class Meta:
@@ -155,7 +157,6 @@ class Order(models.Model):
     buyer_nick  = models.CharField(max_length=32,blank=True)
 
     refund_status = models.CharField(max_length=40,blank=True)
-
     outer_iid = models.CharField(max_length=64,blank=True)
 
     cid    = models.BigIntegerField(null=True)

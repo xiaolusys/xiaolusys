@@ -25,6 +25,7 @@ class Item(BaseModel):
     nick = models.CharField(max_length=64,blank=True)
     list_time = models.CharField(max_length=19,blank=True)
     delist_time = models.CharField(max_length=19,blank=True)
+
     has_discount = models.BooleanField(default=False)
 
     props = models.CharField(max_length=500,blank=True)
@@ -35,7 +36,6 @@ class Item(BaseModel):
     detail_url = models.URLField(verify_exists=False)
 
     desc = models.CharField(max_length=64)
-
     skus = models.CharField(max_length=5000,blank=True)
 
     class Meta:

@@ -23,7 +23,7 @@ admin.site.register(Order, OrderAdmin)
 
 
 class TradeAdmin(admin.ModelAdmin):
-    list_display = ('id','seller_nick','buyer_nick','type','payment','discount_fee','adjust_fee','post_fee','buyer_obtain_point_fee',
+    list_display = ('id','seller_nick','buyer_nick','type','payment','discount_fee','adjust_fee','post_fee','buyer_obtain_point_fee','seller_id',
                     'point_fee','real_point_fee','total_fee','commission_fee','consign_time','pay_time','end_time','modified','shipping_type',
                     'buyer_alipay_no','receiver_name','receiver_mobile','receiver_phone','status')
     list_display_links = ('id','buyer_nick','payment','status')
@@ -41,9 +41,11 @@ admin.site.register(Trade, TradeAdmin)
 
 
 class TradeExtraInfoAdmin(admin.ModelAdmin):
-    list_display = ('tid','is_update_amount','is_picking_print','is_send_sms','seller_memo')
+    list_display = ('tid','is_update_amount','is_picking_print','is_send_sms','modified','seller_memo')
     list_display_links = ('tid',)
     #list_editable = ('update_time','task_type' ,'is_success','status')
+
+    date_hierarchy = 'modified'
 
     list_filter = ('is_update_amount','is_picking_print','is_send_sms')
     search_fields = ['tid',]
