@@ -19,6 +19,6 @@ reportlab==2.5
 
 git+ssh://git@ny/django-chartit.git#egg=django-chartit
 git+ssh://git@ny/django-rest-framework.git#egg=djangorestframework
-pip install git+git://github.com/dcramer/django-devserver#egg=django-devserver
+git+git://github.com/dcramer/django-devserver#egg=django-devserver
 
   
