@@ -56,3 +56,48 @@ class Item(BaseModel):
 
         item.save()
         return item
+
+
+class Product(models.Model):
+
+#    product_id   = BigIntegerAutoField(primary_key=True)
+    outer_id     = models.CharField(max_length=64,primary_key=True)
+    name         = models.CharField(max_length=64,blank=True)
+
+#    inner_name   = models.CharField(max_length=64,blank=True)
+    created      = models.DateTimeField(blank=True)
+    modified     = models.DateTimeField(blank=True)
+
+    cid          = models.IntegerField(blank=True,null=True)
+    cat_name     = models.CharField(max_length=32,blank=True)
+
+#    tsc          = models.CharField(max_length=32,blank=True)
+#    props        = models.CharField(max_length=500,blank=True)
+#    props_str    = models.CharField(max_length=500,blank=True)
+#
+#    binds        = models.CharField(max_length=500,blank=True)
+#    binds_str    = models.CharField(max_length=500,blank=True)
+#
+#    sale_props     = models.CharField(max_length=500,blank=True)
+#    sale_props_str = models.CharField(max_length=500,blank=True)
+
+    collect_num  = models.IntegerField(null=True)
+    price        = models.CharField(max_length=10,blank=True)
+
+#    desc         = models.TextField(max_length=25000,blank=True)
+#    pic_url      = models.CharField(max_length=256,blank=True)
+#
+#    product_imgs = models.CharField(max_length=1000,blank=True)
+#    product_prop_imgs = models.CharField(max_length=2000,blank=True)
+#
+#    pic_path     = models.CharField(max_length=256,blank=True)
+#    vertical_market = models.IntegerField(null=True)
+#    customer_props  = models.CharField(max_length=500,blank=True)
+#    property_alias  = models.CharField(max_length=1000,blank=True)
+#
+#    level        = models.IntegerField(null=True)
+#    status       = models.IntegerField(null=True)
+
+
+    class Meta:
+        db_table = 'shop_product'

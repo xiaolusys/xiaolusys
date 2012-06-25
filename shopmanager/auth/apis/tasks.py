@@ -30,6 +30,8 @@ API_FIELDS = {
     'taobao.products.get':'product_id,tsc,cat_name,name',
     'taobao.items.get':'num_iid,title,nick,pic_url,cid,price,type,delist_time,post_fee,volume,score,location',
     'taobao.items.search':'iid,num_iid,title,nick,pic_url,cid,price,type,delist_time,post_fee',
+    'taobao.products.get':'product_id,outer_id,name,inner_name,created,modified,cid,cat_name,tsc,props,props_str,binds,binds_str,sale_props,'
+         +'sale_props_str,collect_num,price,desc,pic_url,product_imgs,product_prop_imgs,pic_path,vertical_market,customer_props,property_alias,level,status',
     'taobao.products.search':'product_id,name,pic_url,cid,props,price,tsc',
     'taobao.items.inventory.get':'approve_status,num_iid,title,nick,type,cid,pic_url,num,props,valid_thru,list_time,'
         +'price,has_discount,has_invoice,has_warranty,has_showcase, modified,delist_time,postage_id,seller_cids,outer_id',
@@ -204,6 +206,10 @@ def taobao_items_search(q=None,cid=None,nicks=None,props=None,product_id=None,or
 @apis('taobao.items.get')
 def taobao_items_get(q=None,cid=None,nicks=None,props=None,product_id=None,order_by=None,page_no=None,
                      page_size=None,fields=API_FIELDS['taobao.items.get'],session=None):
+    pass
+
+@apis('taobao.products.get')
+def taobao_products_get(nick=None,page_no=None,page_size=None,fields=API_FIELDS['taobao.products.get'],session=None):
     pass
 
 @apis('taobao.products.search')
