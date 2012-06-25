@@ -15,9 +15,18 @@ logger = logging.getLogger('app.memorule')
 
 
 
+def to_memo_string(memo):
+    s = [memo["post"]]
+    s.append(memo["addr"])
+    for product in memo["data"]:
+        t = [product["pid"]]
+        for k,v in product["property"].iteritems():
+            t.append(k + ":" + v)
+        s.append("|".join(t))
+    return "\r\n".join(s)
+
 
 def get_and_save_trade(seller_id,trade_id,session):
-
     try:
         trade = Trade.objects.get(pk=trade_id)
     except Trade.DoesNotExist:
@@ -28,29 +37,31 @@ def get_and_save_trade(seller_id,trade_id,session):
     return trade
 
 
-
 def update_trade_memo(trade_id,trade_memo,session):
     try:
-        apis.taobao_trade_memo_update(tid=trade_id,memo=trade_memo,session=session)
+        trade_extra_info, created = TradeExtraInfo.objects.get_or_create(pk=trade_id)
+        trade_extra_info.seller_memo = str(trade_memo)
+        trade_info.save()
     except Exception,exc:
-        pass
-
+        return {"success": False, "message":"write memo to backend failed"}
+    
     try:
-        trade_extra_info = TradeExtraInfo.objects.get_or_create(pk=trade_id)
-        trade_extra_info.seller_memo = trade_memo
-        trade.save()
-    except Trade.DoesNotExist:
-        pass
-
-
+        ms = to_memo_string(trade_memo)
+        print ms
+        apis.taobao_trade_memo_update(tid=trade_id,memo=ms,session=session)
+    except Exception,exc:
+        return {"success": True, "message":"write memo to frontend failed"}
+        
+    return {"success": True}
+    
 
 
 class UpdateTradeMemoView(ModelView):
 
     def get(self, request, *args, **kwargs):
         content   = request.REQUEST
-
-        params    = content.get('params')
+        params    = eval(content.get("params"))
+        
         trade_id  = params.get('tid')
         user_id   = params.get('sid')
 
@@ -58,11 +69,11 @@ class UpdateTradeMemoView(ModelView):
             profile = User.objects.get(visitor_id=user_id)
             session = profile.top_session
         except User.DoesNotExist:
-            raise ErrorResponse("the seller id is not record!")
+            return {"success":False, "message":"no such seller id: "+user_id}
+            #raise ErrorResponse("the seller id is not record!")
 
-        update_trade_memo(trade_id,content,session)
-
-        return {'success':True}
+        return update_trade_memo(trade_id,params,session)
+    
 
     post = get
 
