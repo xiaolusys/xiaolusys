@@ -111,7 +111,6 @@ class Product(models.Model):
 #    level        = models.IntegerField(null=True)
 #    status       = models.IntegerField(null=True)
 
-
     class Meta:
         db_table = 'shop_product'
 
