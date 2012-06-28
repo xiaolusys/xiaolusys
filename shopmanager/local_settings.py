@@ -1,4 +1,3 @@
-
 import os.path
 import posixpath
 
@@ -6,28 +5,28 @@ DEBUG = True
 TEMPLATE_DEBUG = DEBUG
 
 PROJECT_ROOT = os.path.abspath(os.path.dirname(__file__))
-
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3', # Add 'postgresql_psycopg2', 'postgresql', 'mysql', 'sqlite3' or 'oracle'.
-        'NAME': os.path.join(PROJECT_ROOT, 'database.db'),                      # Or path to database file if using sqlite3.
-        'USER': '',                      # Not used with sqlite3.
-        'PASSWORD': '',                  # Not used with sqlite3.
-        'HOST': '',                      # Set to empty string for localhost. Not used with sqlite3.
-        'PORT': '',                      # Set to empty string for default. Not used with sqlite3.
-    }
-}
-
+#
 #DATABASES = {
 #    'default': {
-#        'ENGINE': 'django.db.backends.mysql', # Add 'postgresql_psycopg2', 'postgresql', 'mysql', 'sqlite3' or 'oracle'.
-#        'NAME': 'shopmgr',                      # Or path to database file if using sqlite3.
-#        'USER': 'meixqhi',                      # Not used with sqlite3.
-#        'PASSWORD': '123123',                  # Not used with sqlite3.
+#        'ENGINE': 'django.db.backends.sqlite3', # Add 'postgresql_psycopg2', 'postgresql', 'mysql', 'sqlite3' or 'oracle'.
+#        'NAME': os.path.join(PROJECT_ROOT, 'database.db'),                      # Or path to database file if using sqlite3.
+#        'USER': '',                      # Not used with sqlite3.
+#        'PASSWORD': '',                  # Not used with sqlite3.
 #        'HOST': '',                      # Set to empty string for localhost. Not used with sqlite3.
 #        'PORT': '',                      # Set to empty string for default. Not used with sqlite3.
 #    }
 #}
+
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.mysql', # Add 'postgresql_psycopg2', 'postgresql', 'mysql', 'sqlite3' or 'oracle'.
+        'NAME': 'shopmgr',                      # Or path to database file if using sqlite3.
+        'USER': 'meixqhi',                      # Not used with sqlite3.
+        'PASSWORD': '123123',                  # Not used with sqlite3.
+        'HOST': '',                      # Set to empty string for localhost. Not used with sqlite3.
+        'PORT': '',                      # Set to empty string for default. Not used with sqlite3.
+    }
+}
 
 
 INSTALLED_APPS = (
@@ -46,25 +45,26 @@ INSTALLED_APPS = (
     'djangorestframework',
     'djcelery',
     'djkombu',
-    'celery_sentry',
+    'deamon',
+    'deamon.celery_sentry',
 
-    'shopback.task',
     'shopback.items',
     'shopback.orders',
     'shopback.users',
     'shopback.categorys',
 
-    'autolist',
-    'search',
+    'shopapp.autolist',
     'shopapp.memorule',
+    'shopapp.search',
+    'shopapp.syncnum',
 
     #'devserver',
     'django.contrib.admin',
 )
 
 
-#APPKEY = '12686373'
-#APPSECRET = '9179d4bea89b0712c9397b073ce17535'
+APPKEY = '12686373'
+APPSECRET = '9179d4bea89b0712c9397b073ce17535'
 
 #APPKEY = '12686841'
 #APPSECRET = '501b8d23212601443eec4fef13e7c84d'

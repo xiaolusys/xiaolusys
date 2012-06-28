@@ -1,5 +1,4 @@
 __author__ = 'meixqhi'
-import json
 from django.db import models
 from shopback.items.models import Item
 
@@ -53,7 +52,7 @@ class RuleFieldType(models.Model):
 
 class ProductRuleField(models.Model):
 
-    out_iid    = models.CharField(max_length=64,db_index=True)
+    outer_id    = models.CharField(max_length=64,db_index=True)
     field      = models.ForeignKey(RuleFieldType)
 
     custom_alias   = models.CharField(max_length=256,blank=True)

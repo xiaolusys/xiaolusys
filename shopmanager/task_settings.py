@@ -29,47 +29,23 @@ GEN_AMOUNT_FILE_MIN_DAYS = 8
 from celery.schedules import crontab
 
 
-CELERYBEAT_SCHEDULE = {
-    'runs-every-10-minutes':{
-        'task':'shopback.task.tasks.updateAllItemListTask',
-        'schedule':crontab(minute='*/5'),
-        'args':(),
-    },
-    'runs-every-day-a':{
-        'task':'shopback.items.tasks.updateAllItemNumTask',
-        'schedule':crontab(minute="0",hour="0"),
-        'args':(),
+SYNC_MODEL_SCHEDULE = {
+    'runs-every-hours':{
+        'task':'shopback.orders.tasks.updateAllUserDuringOrders',
+        'schedule':crontab(minute="0,30"),
+        'args':(0,)
     },
     'runs-every-day-b':{
         'task':'shopback.orders.tasks.updateAllUserDailyIncrementOrders',
         'schedule':crontab(minute="0",hour="0"),
         'args':(),
     },
-#    'runs-every-day-c':{
-#        'task':'shopback.items.tasks.updateAllUnpayOrderTask',
-#        'schedule':crontab(minute="30",hour="1"),
-#        'args':(),
-#    },
-    'runs-every-30-minutes-a':{
-        'task':'search.tasks.updateItemKeywordsPageRank',
-        'schedule':crontab(minute="0,30",hour=','.join([str(i) for i in range(7,24)])),
-        'args':()
-    },
-    'runs-every-hours':{
-        'task':'shopback.orders.tasks.updateAllUserDuringOrders',
-        'schedule':crontab(minute="0,30"),
-        'args':(0,)
-    },
     'runs-every-day-e':{
         'task':'shopback.orders.tasks.updateMonthTradeXlsFileTask',
         'schedule':crontab(minute="0",hour="1"),
         'args':()
     },
-#    'runs-every-day-e':{
-#        'task':'search.tasks.updateProductTradeBySellerTask',
-#        'schedule':crontab(minute="0",hour="1"),
-#        'args':()
-#    },
+
     'runs-every-weeks-b':{
         'task':'shopback.orders.tasks.updateAllUserOrdersAmountTask',
         'schedule':crontab(minute="0",hour="1",day_of_week="mon"),
@@ -85,11 +61,42 @@ CELERYBEAT_SCHEDULE = {
         'schedule':crontab(minute="0",hour="2",day_of_week='tue'),
         'args':()
     },
+}
+
+
+SHOP_APP_SCHEDULE = {
+    'runs-every-10-minutes':{
+        'task':'shopapp.autolist.tasks.updateAllItemListTask',
+        'schedule':crontab(minute='*/5'),
+        'args':(),
+    },
+    'runs-every-30-minutes-a':{
+        'task':'shopapp.search.tasks.updateItemKeywordsPageRank',
+        'schedule':crontab(minute="0,30",hour=','.join([str(i) for i in range(7,24)])),
+        'args':()
+    },
+    'runs-every-day-a':{
+        'task':'shopapp.syncnum.tasks.updateAllItemNumTask',
+        'schedule':crontab(minute="0",hour="0"),
+        'args':(),
+    },
     'runs-every-day-d':{
-        'task':'search.tasks.deletePageRankRecordTask',
+        'task':'shopapp.search.tasks.deletePageRankRecordTask',
         'schedule':crontab(minute="0",hour="1"),
         'args':(30,)
     },
+
+#    'runs-every-day-e':{
+#        'task':'search.tasks.updateProductTradeBySellerTask',
+#        'schedule':crontab(minute="0",hour="1"),
+#        'args':()
+#    },
 }
 
+
+CELERYBEAT_SCHEDULE = {}
+
+CELERYBEAT_SCHEDULE.update(SYNC_MODEL_SCHEDULE)
+
+CELERYBEAT_SCHEDULE.update(SHOP_APP_SCHEDULE)
 

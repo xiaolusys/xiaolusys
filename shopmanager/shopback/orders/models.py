@@ -157,7 +157,7 @@ class Order(models.Model):
     buyer_nick  = models.CharField(max_length=32,blank=True)
 
     refund_status = models.CharField(max_length=40,blank=True)
-    outer_iid = models.CharField(max_length=64,blank=True)
+    outer_id = models.CharField(max_length=64,blank=True)
 
     cid    = models.BigIntegerField(null=True)
     status = models.CharField(max_length=32,blank=True)
@@ -174,7 +174,7 @@ class Logistics(models.Model):
 
     tid      =  BigIntegerAutoField(primary_key=True)
     out_sid  =  models.CharField(max_length=64,blank=True)
-    company_name  =  models.CharField(max_length=30,blank=True)
+    company_name =  models.CharField(max_length=30,blank=True)
 
     seller_id    =  models.CharField(max_length=32,blank=True)
     seller_nick  =  models.CharField(max_length=64,blank=True)

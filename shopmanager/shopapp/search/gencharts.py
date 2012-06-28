@@ -1,11 +1,10 @@
 import time
-import datetime
 from django.db.models import Avg, Variance,Sum
 from chartit import DataPool, Chart
 from chartit import PivotDataPool, PivotChart
-from search.models import ProductPageRank,ProductTrade
+from shopapp.search.models import ProductPageRank,ProductTrade
 from auth.utils import parse_datetime, format_time,map_int2str
-from autolist.models import ProductItem
+
 
 
 def genProductPeriodChart(nick, keyword, dt_f, dt_t, index):
@@ -59,6 +58,8 @@ def genProductPeriodChart(nick, keyword, dt_f, dt_t, index):
             chart_options= chart_options )
 
     return productpagerankcht
+
+
 
 
 def genItemKeywordsChart(item_id, dt_f, dt_t, index):
@@ -120,6 +121,7 @@ def genItemKeywordsChart(item_id, dt_f, dt_t, index):
 
 
 
+
 def genPageRankPivotChart(nick, keyword, dt_f, dt_t, index):
 
     serie = {
@@ -155,6 +157,7 @@ def genPageRankPivotChart(nick, keyword, dt_f, dt_t, index):
         chart_options = chart_options )
 
     return productpagerankpivcht
+
 
 
 

@@ -100,17 +100,18 @@ INSTALLED_APPS = (
     'djangorestframework',
     'djcelery',
     'djkombu',
-    'celery_sentry',
+    'deamon',
+    'deamon.celery_sentry',
 
-    'shopback.task',
     'shopback.items',
     'shopback.orders',
     'shopback.users',
     'shopback.categorys',
 
-    'autolist',
-    'search',
+    'shopapp.autolist',
     'shopapp.memorule',
+    'shopapp.search',
+    'shopapp.syncnum',
 
     'django.contrib.admin',
 )
@@ -119,6 +120,7 @@ INSTALLED_APPS = (
 
 APPKEY = '12517640'
 APPSECRET = 'e50beebdf9226e3fc991834375e32b5a'
+
 AUTHRIZE_URL = 'https://oauth.taobao.com/authorize'
 AUTHRIZE_TOKEN_URL = 'https://oauth.taobao.com/token'
 REDIRECT_URI = 'http://autolist.huyi.so/accounts/login/taobao/'

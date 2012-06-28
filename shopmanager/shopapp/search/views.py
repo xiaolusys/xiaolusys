@@ -6,9 +6,9 @@ from djangorestframework.views import ModelView
 from djangorestframework.response import ErrorResponse
 from djangorestframework import status
 from shopback.items.models import Item
-from search.models import ProductPageRank,ProductTrade
-from search.gencharts import genProductPeriodChart,genItemKeywordsChart,genPageRankPivotChart,genItemAvgRankPivotChart
-from search.crawurldata import getTaoBaoPageRank, getCustomShopsPageRank
+from shopapp.search.models import ProductPageRank,ProductTrade
+from shopapp.search.gencharts import genProductPeriodChart,genItemKeywordsChart,genPageRankPivotChart,genItemAvgRankPivotChart
+from shopapp.search.crawurldata import getTaoBaoPageRank, getCustomShopsPageRank
 from auth.utils import map_int2str
 
 class ShopsRankView(ModelView):

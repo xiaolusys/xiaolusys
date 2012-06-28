@@ -1,14 +1,23 @@
 import json
 import settings
+import datetime
 from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import render_to_response
 from django.template import RequestContext
+from djangorestframework.utils import as_tuple
+from djangorestframework import status,signals
+from djangorestframework.response import Response
+from djangorestframework.mixins import CreateModelMixin
+from djangorestframework.views import ModelView
 from django.contrib.auth.decorators import login_required
+from shopback.base.views import ListModelView
+from shopapp.syncnum.models import UNEXECUTE
 from auth import apis
-from autolist.models import ProductItem, Logs
-import datetime
+from shopback.items.models import Item,ONSALE_STATUS,INSTOCK_STATUS
+from shopapp.autolist.models import Logs,ItemListTask
+from shopback.categorys.models import Category
 
-from shopback.task.models import ItemListTask
+
 
 @login_required(login_url=settings.LOGIN_URL)
 def pull_from_taobao(request):
@@ -22,9 +31,9 @@ def pull_from_taobao(request):
 
     session['update_items_datetime'] = datetime.datetime.now()
 
-    owner_id = profile.visitor_id
+    user_id = profile.visitor_id
 
-    currItems = ProductItem.objects.filter(owner_id=owner_id)
+    currItems = Item.objects.filter(user_id=user_id)
 
     itemstat = {}
     for item in currItems:
@@ -43,35 +52,38 @@ def pull_from_taobao(request):
             o = itemstat[num_iid]['item']
             itemstat[o.num_iid]['onsale'] = 1
         else:
-            o = ProductItem()
+            o = Item()
             o.num_iid = num_iid
 
-        o.onsale = 1
-        o.owner_id = owner_id
+        o.approve_status = INSTOCK_STATUS
+        o.user_id = user_id
         o.detail_url = detail_item['detail_url']
 
         o.title = item['title']
-        o.category_id = item['cid']
+        o.category_id   = item['cid']
         o.category_name = cats_detail[0]['name']
 
-        o.ref_code = item['outer_id']
+        o.outer_id  = item['outer_id']
 
         o.list_time = item['list_time']
-        o.modified = item['modified']
-        o.pic_url = item['pic_url']
-        o.num = item['num']
+        o.modified  = item['modified']
+        o.pic_url   = item['pic_url']
+        o.num       = item['num']
         o.save()
 
     for item in currItems:
-        if itemstat[item.num_iid]['onsale'] == 0:
-            item.onsale = 0
-            item.save()
+        sale_status = itemstat[item.num_iid]['onsale']
+        item.approve_status = ONSALE_STATUS if sale_status == 1 else INSTOCK_STATUS
+        item.save()
 
     return HttpResponseRedirect('itemlist/')
 
+
+
+
 def list_all_items(request):
-    owner_id = request.session['top_parameters']['taobao_user_id']
-    items = ProductItem.objects.filter(owner_id=owner_id).order_by('category_id', 'ref_code')
+    user_id = request.session['top_parameters']['taobao_user_id']
+    items = Item.objects.filter(user_id=user_id).order_by('cid', 'outer_id')
 
     from auth.utils import get_closest_time_slot
 
@@ -99,12 +111,18 @@ def list_all_items(request):
 
 
 
+
 def show_timetable_cats(request):
     from auth.utils import get_closest_time_slot, get_all_time_slots
     catname = request.GET.get('catname', None)
 
-    owner_id = request.session['top_parameters']['taobao_user_id']
-    items = ProductItem.objects.filter(owner_id=owner_id, category_name=catname, onsale=1)
+    user_id = request.session['top_parameters']['taobao_user_id']
+    try:
+        cid =  Category.objects.get(name=catname)
+    except Category.DoesNotExist:
+        cid = None
+
+    items = Item.objects.filter(user_id=user_id, cid=cid, approve_status=ONSALE_STATUS)
     data = [[],[],[],[],[],[],[]]
     for item in items:
         relist_slot, status = get_closest_time_slot(item.list_time)
@@ -116,23 +134,24 @@ def show_timetable_cats(request):
             idx = o.list_weekday - 1
         except ItemListTask.DoesNotExist:
             pass
-
         data[idx].append(item)
 
     slots = get_all_time_slots()
     timekeys = slots.keys()
     timekeys.sort()
 
-    return  render_to_response("catstable.html", {'timeslots': timekeys, 'data':data, 'catname':catname}, RequestContext(request))
+    return  render_to_response("catstable.html", {'timeslots': timekeys, 'data':data, 'catname':catname},
+                               RequestContext(request))
+
 
 
 
 def show_time_table_summary(request):
     from auth.utils import get_closest_time_slot, get_all_time_slots
 
-    owner_id = request.session['top_parameters']['taobao_user_id']
+    user_id = request.session['top_parameters']['taobao_user_id']
     weekday = request.GET.get('weekday', None)
-    items = ProductItem.objects.filter(owner_id=owner_id, onsale=1).order_by('category_id', 'ref_code')
+    items   = Item.objects.filter(user_id=user_id,approve_status=ONSALE_STATUS).order_by('cid', 'outer_id')
     weekstat = [0,0,0,0,0,0,0]
     data = {}
     for item in items:
@@ -176,12 +195,18 @@ def show_time_table_summary(request):
     timekeys.sort()
 
     if weekday:
-        return  render_to_response("weektable.html", {'page':'weektable', 'cats':cats, 'timeslots': timekeys, 'weekday': int(weekday), 'total': weekstat[int(weekday)-1]}, RequestContext(request))
+        return  render_to_response("weektable.html",
+                {'page':'weektable', 'cats':cats, 'timeslots': timekeys, 'weekday': int(weekday),
+                'total': weekstat[int(weekday)-1]}, RequestContext(request))
 
-    return render_to_response("tablesummary.html", {'page':'timetable', 'cats':cats, 'weekstat':weekstat}, RequestContext(request))
+    return render_to_response("tablesummary.html", {'page':'timetable', 'cats':cats, 'weekstat':weekstat},
+                              RequestContext(request))
+
+
+
 
 def show_time_table(request):
-    items = ProductItem.objects.all().order_by('category_id', 'ref_code')
+    items = Item.objects.all().order_by('cid', 'outer_id')
 
     from auth.utils import get_closest_time_slot, get_all_time_slots
 
@@ -201,7 +226,7 @@ def show_time_table(request):
         x.isoweekday = relist_time.isoweekday()
 
         slot = "%02d:%02d" % (relist_time.hour, relist_time.minute)
-        print 'slot', slot
+
         x.list_time = "%s" % x.list_time
 
         if slot in slots:
@@ -218,11 +243,17 @@ def show_time_table(request):
         cat = []
         for k in cats.keys():
             cat.append(k)
-    return render_to_response("base.html", {'page': 'timetable', 'data':data, 'cats':cat, 'slots':slots}, RequestContext(request))
+    return render_to_response("base.html", {'page': 'timetable', 'data':data, 'cats':cat, 'slots':slots},
+                              RequestContext(request))
+
+
+
 
 def show_logs(request):
     logs = Logs.objects.all().order_by('execute_time')
     return render_to_response("logs.html", {'logs':logs}, RequestContext(request))
+
+
 
 
 def change_list_time(request):
@@ -251,8 +282,94 @@ def change_list_time(request):
     if target_time < now:
         target_time = target_time + datetime.timedelta(days=7)
 
-    n = ProductItem.objects.filter(num_iid=num_iid).update(list_time=target_time)
+    n = Item.objects.filter(num_iid=num_iid).update(list_time=target_time)
 
-    return HttpResponse(json.dumps({'date':target_time.strftime("%Y-%m-%d"), 'timeslot':target_time.strftime("%H:%M-%S")}),mimetype='application/json')
+    return HttpResponse(json.dumps({'date':target_time.strftime("%Y-%m-%d"),
+                                    'timeslot':target_time.strftime("%H:%M-%S")}),mimetype='application/json')
+
+
+################################ List View ##############################
+
+class ListItemTaskView(ListModelView):
+    queryset = None
+
+    def get(self, request, *args, **kwargs):
+        model = self.resource.model
+        visitor_id = request.session['top_parameters']['visitor_id']
+
+        queryset = self.get_queryset() if self.get_queryset() is not None else model.objects.all()
+
+        if hasattr(self, 'resource'):
+            ordering = getattr(self.resource, 'ordering', None)
+        else:
+            ordering = None
+
+        kwargs.update({'user_id':visitor_id})
+
+        if ordering:
+            args = as_tuple(ordering)
+            queryset = queryset.order_by(*args)
+        return queryset.filter(**kwargs)
+
+    def get_queryset(self):
+        return self.queryset
+
+
+
+class CreateListItemTaskModelView(CreateModelMixin,ModelView):
+    """A view which provides default operations for create, against a model in the database."""
+
+    def post(self, request, *args, **kwargs):
+        model = self.resource.model
+
+        content = dict(self.CONTENT)
+
+        all_kw_args = dict(content.items() + kwargs.items())
+
+        update_nums = model.objects.filter(num_iid=all_kw_args['num_iid']).update(**all_kw_args)
+
+        if update_nums == 0:
+
+            if args:
+                instance = model(pk=args[-1], **all_kw_args)
+            else:
+                instance = model(**all_kw_args)
+            instance.save()
+
+            signals.obj_created.send(sender=model, obj=instance, request=self.request)
+
+        else:
+            instance = model.objects.get(num_iid=all_kw_args['num_iid'],status=UNEXECUTE)
+
+        headers = {}
+        if hasattr(instance, 'get_absolute_url'):
+            headers['Location'] = self.resource(self).url(instance)
+        return Response(status.HTTP_201_CREATED, instance, headers)
+
+
+
+@login_required
+def direct_update_listing(request,num_iid,num):
+
+    if not (num_iid.isdigit() and num.isdigit()):
+        response = {'errormsg':'The num_iid and num must be number!'}
+        return HttpResponse(json.dumps(response),mimetype='application/json')
+
+    response = apis.taobao_item_update_listing(num_iid,num,request.session.get('top_session'))
+
+    return HttpResponse(json.dumps(response),mimetype='application/json')
+
+
+
+@login_required
+def direct_del_listing(request,num_iid):
+
+    if not num_iid.isdigit():
+        response = {'errormsg':'The num_iid  must be number!'}
+        return HttpResponse(json.dumps(response),mimetype='application/json')
+
+    response = apis.taobao_item_update_delisting(num_iid,request.session.get('top_session'))
+
+    return HttpResponse(json.dumps(response),mimetype='application/json')
 
 

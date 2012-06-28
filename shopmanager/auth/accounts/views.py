@@ -19,6 +19,8 @@ def request_taobo(request):
 
     return HttpResponseRedirect(redirect_url)
 
+
+
 @csrf_exempt
 def login_taobo(request):
 
@@ -44,10 +46,13 @@ def login_taobo(request):
         return HttpResponseRedirect(settings.LOGIN_REDIRECT_URL)
 
 
+
 @login_required(login_url=settings.LOGIN_URL)
 def home(request):
 
     #profile = request.user.get_profile()
+
+
 
 #    orders_list = apis.taobao_refunds_receive_get(session=profile.top_session,page_no=1,page_size=100,
 #                 type='fenxiao',start_modified='2012-03-01 00:00:00',end_modified='2012-05-20 23:59:59')

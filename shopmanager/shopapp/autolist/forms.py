@@ -12,6 +12,4 @@ class ItemListTaskForm(forms.Form):
     list_weekday = forms.IntegerField()
     list_time = forms.CharField(max_length=8)
     task_type = forms.CharField(max_length=10)
-
-
   

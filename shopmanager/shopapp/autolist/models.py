@@ -1,11 +1,7 @@
 from django.db import models
-from shopback.base.fields import BigIntegerAutoField
+from shopback.base.models import UNEXECUTE
 
-#records status
-UNEXECUTE = 'unexecute'
-EXECERROR = 'execerror'
-SUCCESS = 'success'
-DELETE = 'delete'
+
 
 class ItemListTask(models.Model):
     num_iid = models.CharField(primary_key=True,max_length=64)
@@ -20,7 +16,6 @@ class ItemListTask(models.Model):
     list_time = models.CharField(max_length=8)
 
     task_type = models.CharField(max_length=10,blank=True)      #listing, delisting
-
     created_at = models.DateTimeField(null=True,blank=True, auto_now_add=True)
 
     status = models.CharField(max_length=10,default=UNEXECUTE) #unexecute,execerror,success,delete
@@ -30,23 +25,22 @@ class ItemListTask(models.Model):
 
 
 
+class Logs(models.Model):
+    num_iid = models.CharField(max_length=64)
+    cat_id = models.CharField(max_length=64)
+    cat_name = models.CharField(max_length=64)
+    ref_code = models.CharField(max_length=64)
+    title = models.CharField(max_length=128)
+    pic_url = models.URLField(verify_exists=False)
 
-
-class ItemNumTask(models.Model):
-
-    id = BigIntegerAutoField(primary_key=True)
-
-    outer_iid = models.CharField(max_length=64)
-    sku_outer_id = models.CharField(max_length=64,blank=True)
-
+    list_weekday = models.IntegerField()
+    list_time = models.CharField(max_length=8)
     num = models.IntegerField()
 
-    created_at = models.DateTimeField(null=True,blank=True, auto_now_add=True)
+    task_type = models.CharField(max_length=10,blank=True)
+    execute_time = models.DateTimeField(null=True,blank=True, auto_now_add=True)
 
-    status = models.CharField(max_length=10,default=UNEXECUTE) #unexecute,execerror,success,delete
+    status = models.CharField(max_length=20) #unexec
 
     class Meta:
-        db_table = 'shop_itemnumtask'
-
-
-
+        db_table = 'autolist_logs'

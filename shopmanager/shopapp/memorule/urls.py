@@ -10,7 +10,7 @@ from shopapp.memorule.resources import TradeRuleResource
 
 urlpatterns = patterns('',
 
-    url('memo/update/$',UpdateTradeMemoView.as_view(
+    url('update/$',UpdateTradeMemoView.as_view(
         resource=TradeRuleResource,
         renderers=(BaseJsonRenderer,),
         authentication=(UserLoggedInAuthentication,),

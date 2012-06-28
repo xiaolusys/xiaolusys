@@ -22,6 +22,8 @@ API_FIELDS = {
     'taobao.itemcats.authorize.get':'brand.vid, brand.name, item_cat.cid, item_cat.name, item_cat.status,item_cat.sort_order,item_cat.parent_cid,item_cat.is_parent,'
          +' xinpin_item_cat.cid, xinpin_item_cat.name, xinpin_item_cat.status, xinpin_item_cat.sort_order, xinpin_item_cat.parent_cid, xinpin_item_cat.is_parent',
     'taobao.itemcats.get':'cid,parent_cid,name,is_parent,status,sort_order',
+    'taobao.itemcats.authorize.get':'brand.vid,brand.name,item_cat.cid,item_cat.name,item_cat.status,item_cat.sort_order,item_cat.parent_cid,item_cat.is_parent,'
+         +'xinpin_item_cat.cid,xinpin_item_cat.name,xinpin_item_cat.status,xinpin_item_cat.sort_order,xinpin_item_cat.parent_cid,xinpin_item_cat.is_parent',
     'taobao.itemprops.get':'pid, name, must, multi, prop_values',
     'taobao.itempropvalues.get':'cid,pid,prop_name,vid,name,name_alias,status,sort_order',
     'taobao.item.get':'has_showcase,detail_url,num_iid,title,outer_id,price,approve_status,delist_time,list_time,modified,num,props_name'
@@ -266,6 +268,10 @@ def taobao_trade_memo_add(tid=None,memo=None,flag=None,session=None):
 
 @apis('taobao.itemcats.get')
 def taobao_itemcats_get(parent_cid=None,cids=None,fields=API_FIELDS['taobao.itemcats.get'],session=None):
+    pass
+
+@apis('taobao.itemcats.authorize.get')
+def taobao_itemcats_authorize_get(fields=API_FIELDS['taobao.itemcats.authorize.get'],session=None):
     pass
 
 ############# post apis ###################

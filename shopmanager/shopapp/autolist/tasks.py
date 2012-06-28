@@ -1,19 +1,17 @@
 import datetime
 import time
-import json
-import urllib
-import urllib2
 from celery.task import task
 from celery.task.sets import subtask
 from django.conf import settings
-from django.contrib.sessions.backends.db import SessionStore
-from shopback.task.models import ItemListTask,UNEXECUTE,EXECERROR,SUCCESS
+from shopback.base.models import UNEXECUTE,EXECERROR,SUCCESS
 from shopback.users.models import User
+from shopback.items.models import Item
+from shopapp.autolist.models import Logs,ItemListTask
 from auth.utils import getSignatureTaoBao,refresh_session ,format_time
 from auth import apis
 import logging
 
-from autolist.models import ProductItem, Logs
+
 
 logger = logging.getLogger('updatelisting')
 
@@ -23,7 +21,7 @@ END_TIME = '23:59'
 def write_to_log_db(task, response):
     log = Logs()
 
-    item = ProductItem.objects.get(num_iid=task.num_iid)
+    item = Item.objects.get(num_iid=task.num_iid)
     log.num_iid = item.num_iid
     log.num = task.num
     log.cat_id = item.category_id
@@ -46,7 +44,7 @@ def write_to_log_db(task, response):
             log.status = 'failed'
     except Exception:
         log.status = 'failed'
-    
+
     log.save()
 
 
@@ -131,7 +129,7 @@ def updateAllItemListTask():
 
     date_ago = datetime.datetime.fromtimestamp\
             (currenttime - settings.EXECUTE_RANGE_TIME)
-    
+
 
     if date_ago.isoweekday() <weekday:
         time_ago = START_TIME
@@ -150,3 +148,5 @@ def updateAllItemListTask():
 
     for task in tasks:
         subtask(updateItemListTask).delay(task.num_iid)
+
+

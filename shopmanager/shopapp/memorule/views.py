@@ -1,6 +1,4 @@
 __author__ = 'meixqhi'
-import json
-from django.http import HttpResponse
 from djangorestframework.views import ModelView
 from djangorestframework.response import ErrorResponse
 from djangorestframework import status
@@ -47,7 +45,7 @@ def update_trade_memo(trade_id,trade_memo,session):
     
     try:
         ms = to_memo_string(trade_memo)
-        print ms
+
         apis.taobao_trade_memo_update(tid=trade_id,memo=ms,session=session)
     except Exception,exc:
         return {"success": True, "message":"write memo to frontend failed"}
@@ -90,7 +88,7 @@ class ProductRuleFieldsView(ModelView):
         product_fields = []
         for out_iid in out_iid_list:
 
-            trade_extras = ProductRuleField.objects.filter(out_iid=out_iid)
+            trade_extras = ProductRuleField.objects.filter(outer_id=out_iid)
             trade_fields = [ extra.to_json() for extra in trade_extras]
             product_fields.append([out_iid,trade_fields])
 

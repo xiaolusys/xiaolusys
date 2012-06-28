@@ -13,6 +13,7 @@ def crawFullCategories(request,cid):
     return HttpResponse(json.dumps({'code':0,"response_content":[{"task_id":puctask.task_id}]}))
 
 
+
 def getCategoryIds(request):
 
     cat_names_str = request.GET.get('cat_names')
@@ -35,6 +36,7 @@ def getCategoryIds(request):
             break
 
     return HttpResponse(json.dumps({'code':0,"response_content":cat_list}))
+
 
 
 def getCategoryTree(request):

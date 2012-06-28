@@ -1,6 +1,6 @@
 from djangorestframework.resources import ModelResource
-from shopback.task.models import ItemListTask
-from shopback.task.forms import ItemListTaskForm
+from shopapp.autolist.models import ItemListTask
+from shopapp.autolist.forms import ItemListTaskForm
 
 
 class ItemListTaskResource(ModelResource):

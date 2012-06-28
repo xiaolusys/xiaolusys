@@ -38,15 +38,15 @@ admin.site.register(RuleFieldType, RuleFieldTypeAdmin)
 
 
 class ProductRuleFieldAdmin(admin.ModelAdmin):
-    list_display = ('id','out_iid','field','custom_alias','custom_default')
-    list_display_links = ('id','out_iid')
+    list_display = ('id','outer_id','field','custom_alias','custom_default')
+    list_display_links = ('id','outer_id')
     #list_editable = ('update_time','task_type' ,'is_success','status')
 
     #date_hierarchy = 'modified'
     #ordering = ['created_at']
 
     list_filter = ('field',)
-    search_fields = ['out_iid']
+    search_fields = ['outer_id']
 
 
 admin.site.register(ProductRuleField, ProductRuleFieldAdmin)

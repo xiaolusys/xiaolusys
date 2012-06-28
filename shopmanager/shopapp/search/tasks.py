@@ -4,8 +4,8 @@ import datetime
 from celery.task import task
 from celery.task.sets import subtask
 from django.conf import settings
-from search.crawurldata import getTaoBaoPageRank,crawTaoBaoTradePage
-from search.models import ProductPageRank,ProductTrade
+from shopapp.search.crawurldata import getTaoBaoPageRank,crawTaoBaoTradePage
+from shopapp.search.models import ProductPageRank,ProductTrade
 from shopback.users.models import User
 from shopback.items.models import Item
 from auth.utils import format_time,parse_datetime,format_datetime,format_date
