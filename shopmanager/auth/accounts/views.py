@@ -50,9 +50,10 @@ def login_taobo(request):
 @login_required(login_url=settings.LOGIN_URL)
 def home(request):
 
-    #profile = request.user.get_profile()
+    profile = request.user.get_profile()
 
-
+    response = apis.taobao_fenxiao_products_get(pids=131249579237105,tb_user_id=profile.visitor_id)
+    print 'response:',response
 
 #    orders_list = apis.taobao_refunds_receive_get(session=profile.top_session,page_no=1,page_size=100,
 #                 type='fenxiao',start_modified='2012-03-01 00:00:00',end_modified='2012-05-20 23:59:59')

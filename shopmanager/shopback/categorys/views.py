@@ -3,6 +3,9 @@ from django.http import HttpResponse
 from djangorestframework.serializer import Serializer
 from shopback.categorys.models import Category
 from shopback.categorys.tasks import RecurUpdateCategoreyTask
+import logging
+
+logger = logging.getLogger('category.update')
 
 def crawFullCategories(request,cid):
 

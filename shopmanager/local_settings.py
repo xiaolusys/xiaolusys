@@ -20,7 +20,7 @@ PROJECT_ROOT = os.path.abspath(os.path.dirname(__file__))
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql', # Add 'postgresql_psycopg2', 'postgresql', 'mysql', 'sqlite3' or 'oracle'.
-        'NAME': 'shopmgr',                      # Or path to database file if using sqlite3.
+        'NAME': 'shoptest',                      # Or path to database file if using sqlite3.
         'USER': 'meixqhi',                      # Not used with sqlite3.
         'PASSWORD': '123123',                  # Not used with sqlite3.
         'HOST': '',                      # Set to empty string for localhost. Not used with sqlite3.

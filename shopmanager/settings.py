@@ -245,7 +245,17 @@ LOGGING = {
             'level': 'WARN',
             'propagate': True,
         },
+        'category.update':{
+            'handlers': ['sentry'],
+            'level': 'WARN',
+            'propagate': True,
+        },
         'app.memorule':{
+            'handlers': ['sentry'],
+            'level': 'WARN',
+            'propagate': True,
+        },
+        'item.update':{
             'handlers': ['sentry'],
             'level': 'WARN',
             'propagate': True,

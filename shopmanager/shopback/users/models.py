@@ -15,7 +15,7 @@ class User(models.Model):
 
     top_session = models.CharField(max_length=56,blank=True)
     top_appkey = models.CharField(max_length=24,blank=True)
-    top_parameters = models.CharField(max_length=1000,blank=True)
+    top_parameters = models.TextField(max_length=1000,blank=True)
 
     visitor_id = models.CharField(max_length=32,blank=True)
     uid = models.CharField(max_length=32,blank=True)
@@ -41,7 +41,7 @@ class User(models.Model):
     alipay_bind = models.CharField(max_length=10,blank=True)
 
     alipay_account = models.CharField(max_length=48,blank=True)
-    alipay_no = models.CharField(max_length=20,blank=True)
+    alipay_no   = models.CharField(max_length=20,blank=True)
 
     update_items_datetime = models.DateTimeField(null=True,blank=True)
 
@@ -55,9 +55,14 @@ class User(models.Model):
     class Meta:
         db_table = 'shop_user'
 
+
+    def __unicode__(self):
+        return self.visitor_id+'-'+self.nick
+
+
     def populate_user_info(self,top_session,top_parameters):
         """docstring for populate_user_info"""
-        response = apis.taobao_user_get(session=top_session)
+        response = apis.taobao_user_get(tb_user_id=top_parameters['taobao_user_id'])
 
         userdict = response['user_get_response']['user']
         userdict['buyer_credit'] = json.dumps(userdict['buyer_credit'])

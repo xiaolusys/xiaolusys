@@ -1,3 +1,4 @@
+import time
 import json
 import urllib
 import urllib2
@@ -53,6 +54,7 @@ class TaoBaoBackend:
 
         request.session['top_session']    = top_parameters['access_token']
         request.session['top_parameters'] = top_parameters
+        top_parameters['ts']  = time.time()
 
         try:
             app_label, model_name = settings.AUTH_PROFILE_MODULE.split('.')
@@ -74,6 +76,9 @@ class TaoBaoBackend:
 
         try:
             profile = model.objects.get(visitor_id=user_id)
+            profile.top_session    = top_parameters['access_token']
+            profile.top_parameters = json.dumps(top_parameters)
+            profile.save()
 
             if profile.user:
                 if not profile.user.is_active:
@@ -87,7 +92,10 @@ class TaoBaoBackend:
                 return user
         except model.DoesNotExist:
             user = User.objects.create(username=user_id,is_active=True)
-            model.objects.get_or_create(user=user,visitor_id=user_id)
+            profile,state = model.objects.get_or_create(user=user,visitor_id=user_id)
+            profile.top_session    = top_parameters['access_token']
+            profile.top_parameters = json.dumps(top_parameters)
+            profile.save()
             return user
 
 

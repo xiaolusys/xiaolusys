@@ -7,7 +7,7 @@ from celery.task.sets import subtask
 from django.conf import settings
 from shopback.orders.models import Order,Trade,TradeExtraInfo,Logistics,PurchaseOrder,Refund,MonthTradeReportStatus,ORDER_FINISH_STATUS
 from shopback.users.models import User
-from auth.utils import format_time,format_datetime,format_year_month,parse_datetime,refresh_session
+from auth.utils import format_time,format_datetime,format_year_month,parse_datetime
 from shopback.orders.reportform import TradesToXLSFile
 from auth.apis.exceptions import RemoteConnectionException,AppCallLimitedException,UserFenxiaoUnuseException,\
     APIConnectionTimeOutException,ServiceRejectionException
@@ -23,13 +23,6 @@ MONTH_TRADE_FILE_TEMPLATE = 'trade-month-%s.xls'
 
 @task(max_retry=3)
 def saveUserDuringOrders(user_id,days=0,update_from=None,update_to=None):
-    try:
-        user = User.objects.get(visitor_id=user_id)
-    except User.DoesNotExist,exc:
-        logger.error('SaveUserDuringOrders error:%s'%exc, exc_info=True)
-        return
-
-    refresh_session(user,settings.APPKEY,settings.APPSECRET,settings.REFRESH_URL)
 
     if not(update_from and update_to):
         dt = datetime.datetime.now()
@@ -49,7 +42,7 @@ def saveUserDuringOrders(user_id,days=0,update_from=None,update_to=None):
 
     while has_next:
         try:
-            response_list = apis.taobao_trades_sold_get(session=user.top_session,page_no=cur_page
+            response_list = apis.taobao_trades_sold_get(tb_user_id=user_id,page_no=cur_page
                 ,page_size=settings.TAOBAO_PAGE_SIZE,use_has_next='true',start_created=update_from,end_created=update_to)
 
             order_list = response_list['trades_sold_get_response']
@@ -107,13 +100,6 @@ def updateAllUserDuringOrders(days=0,update_from=None,update_to=None):
 
 @task(max_retry=3)
 def saveUserDailyIncrementOrders(user_id,year=None,month=None,day=None):
-    try:
-        user = User.objects.get(visitor_id=user_id)
-    except User.DoesNotExist,exc:
-        logger.error('saveUserDailyIncrementOrders error:%s'%exc, exc_info=True)
-        return
-
-    refresh_session(user,settings.APPKEY,settings.APPSECRET,settings.REFRESH_URL)
 
     if year and month and day:
         s_dt_f = format_datetime(datetime.datetime(year,month,day,0,0,0))
@@ -129,7 +115,7 @@ def saveUserDailyIncrementOrders(user_id,year=None,month=None,day=None):
 
     while has_next:
         try:
-            response_list = apis.taobao_trades_sold_increment_get(session=user.top_session,page_no=cur_page
+            response_list = apis.taobao_trades_sold_increment_get(tb_user_id=user_id,page_no=cur_page
                 ,page_size=settings.TAOBAO_PAGE_SIZE,use_has_next='true',start_modified=s_dt_f,end_modified=s_dt_t)
 
             trade_list = response_list['trades_sold_increment_get_response']
@@ -191,13 +177,6 @@ def updateAllUserDailyIncrementOrders(update_from=None,update_to=None):
 
 @task()
 def updateOrdersAmountTask(user_id,update_from=None,update_to=None):
-    try:
-        user = User.objects.get(visitor_id=user_id)
-    except User.DoesNotExist,exc:
-        logger.error('updateOrdersAmountTask error:%s'%exc, exc_info=True)
-        return
-
-    refresh_session(user,settings.APPKEY,settings.APPSECRET,settings.REFRESH_URL)
 
     finish_trades = Trade.objects.filter(seller_id=user_id,consign_time__gte=update_from,
                                          consign_time__lte=update_to,status=ORDER_FINISH_STATUS)
@@ -211,7 +190,7 @@ def updateOrdersAmountTask(user_id,update_from=None,update_to=None):
             continue
 
         try:
-            response_list = apis.taobao_trade_amount_get(tid=trade.id,session=user.top_session)
+            response_list = apis.taobao_trade_amount_get(tid=trade.id,tb_user_id=user_id)
 
             tamt = response_list['trade_amount_get_response']['trade_amount']
             trade.cod_fee = tamt['cod_fee']
@@ -290,13 +269,6 @@ def updateAllUserOrdersAmountTask(days=0,dt_f=None,dt_t=None):
 
 @task(max_retry=3)
 def saveUserOrdersLogisticsTask(user_id,days=0,update_from=None,update_to=None):
-    try:
-        user = User.objects.get(visitor_id=user_id)
-    except User.DoesNotExist,exc:
-        logger.error('saveUserOrdersLogisticsTask error:%s'%exc, exc_info=True)
-        return
-
-    refresh_session(user,settings.APPKEY,settings.APPSECRET,settings.REFRESH_URL)
 
     if not(update_from and update_to):
         dt = datetime.datetime.now()
@@ -310,11 +282,11 @@ def saveUserOrdersLogisticsTask(user_id,days=0,update_from=None,update_to=None):
 
     while has_next:
         try:
-            response_list = apis.taobao_logistics_orders_get(session=user.top_session,page_no=cur_page
+            response_list = apis.taobao_logistics_orders_detail_get(tb_user_id=user_id,page_no=cur_page
                  ,page_size=settings.TAOBAO_PAGE_SIZE,start_created=update_from,end_created=update_to)
 
             logistics_list = response_list['logistics_orders_get_response']
-            if logistics_list.has_key('shippings'):
+            if logistics_list['total_results']>0:
                 for t in logistics_list['shippings']['shipping']:
 
                     logistics,state = Logistics.objects.get_or_create(pk=t['tid'])
@@ -372,13 +344,6 @@ def updateAllUserOrdersLogisticsTask(days=0,update_from=None,update_to=None):
 
 @task(max_retry=3)
 def saveUserPurchaseOrderTask(user_id,update_from=None,update_to=None):
-    try:
-        user = User.objects.get(visitor_id=user_id)
-    except User.DoesNotExist:
-        logger.error('saveUserPurchaseOrderTask error:%s'%exc, exc_info=True)
-        return
-
-    refresh_session(user,settings.APPKEY,settings.APPSECRET,settings.REFRESH_URL)
 
     update_from = format_datetime(update_from)
     update_to   = format_datetime(update_to)
@@ -389,7 +354,7 @@ def saveUserPurchaseOrderTask(user_id,update_from=None,update_to=None):
 
     while has_next:
         try:
-            response_list = apis.taobao_fenxiao_orders_get(session=user.top_session,page_no=cur_page,
+            response_list = apis.taobao_fenxiao_orders_get(tb_user_id=user_id,page_no=cur_page,
                 time_type='trade_time_type',page_size=settings.TAOBAO_PAGE_SIZE/2,start_created=update_from,end_created=update_to)
 
             orders_list = response_list['fenxiao_orders_get_response']
@@ -460,13 +425,6 @@ def updateAllUserPurchaseOrderTask(update_from=None,update_to=None):
 
 @task(max_retry=3)
 def saveUserRefundOrderTask(user_id,update_from=None,update_to=None):
-    try:
-        user = User.objects.get(visitor_id=user_id)
-    except User.DoesNotExist:
-        logger.error('saveUserRefundOrderTask error:%s'%exc, exc_info=True)
-        return
-
-    refresh_session(user,settings.APPKEY,settings.APPSECRET,settings.REFRESH_URL)
 
     update_from = format_datetime(update_from)
     update_to   = format_datetime(update_to)
@@ -477,7 +435,7 @@ def saveUserRefundOrderTask(user_id,update_from=None,update_to=None):
 
     while has_next:
         try:
-            response_list = apis.taobao_refunds_receive_get(session=user.top_session,page_no=cur_page,
+            response_list = apis.taobao_refunds_receive_get(tb_user_id=user_id,page_no=cur_page,
                  page_size=settings.TAOBAO_PAGE_SIZE,start_modified=update_from,end_modified=update_to)
 
             refund_list = response_list['refunds_receive_get_response']

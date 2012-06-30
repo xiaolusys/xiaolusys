@@ -1,9 +1,14 @@
+#encoding:utf8
 import json
 import time
 from auth.utils import parse_datetime
 from django.db import models
 from shopback.base.models import BaseModel
 from shopback.base.fields import BigIntegerAutoField,BigIntegerForeignKey
+from shopback.users.models import User
+from shopback.items.models import Item
+from auth import apis
+
 
 ORDER_SUCCESS_STATUS  = ['WAIT_SELLER_SEND_GOODS','WAIT_BUYER_CONFIRM_GOODS','TRADE_BUYER_SIGNED','TRADE_FINISHED']
 ORDER_UNFINISH_STATUS = ['WAIT_SELLER_SEND_GOODS','WAIT_BUYER_CONFIRM_GOODS','TRADE_BUYER_SIGNED']
@@ -15,7 +20,9 @@ class Trade(models.Model):
 
     id           =  BigIntegerAutoField(primary_key=True)
 
-    seller_id    =  models.CharField(max_length=32,blank=True,db_index=True)
+    user         =  models.ForeignKey(User,null=True,related_name='trades')
+
+    seller_id    =  models.CharField(max_length=64,blank=True)
     seller_nick  =  models.CharField(max_length=64,blank=True)
     buyer_nick   =  models.CharField(max_length=64,blank=True)
     type         =  models.CharField(max_length=32,blank=True)
@@ -43,9 +50,9 @@ class Trade(models.Model):
     modified      =  models.DateTimeField(db_index=True,null=True,blank=True)
     consign_time  =  models.DateTimeField(db_index=True,null=True,blank=True)
 
-    buyer_message    =  models.CharField(max_length=1000,blank=True)
-    buyer_memo       =  models.CharField(max_length=1000,blank=True)
-    seller_memo      =  models.CharField(max_length=1000,blank=True)
+    buyer_message    =  models.TextField(max_length=1000,blank=True)
+    buyer_memo       =  models.TextField(max_length=1000,blank=True)
+    seller_memo      =  models.TextField(max_length=1000,blank=True)
 
     shipping_type    =  models.CharField(max_length=12,blank=True)
     buyer_alipay_no  =  models.CharField(max_length=128,blank=True)
@@ -68,10 +75,21 @@ class Trade(models.Model):
         return str(self.id)
 
     @classmethod
+    def get_or_create(cls,trade_id,user_id):
+        user = User.objects.get(visitor_id=user_id)
+        trade,state = cls.objects.get_or_create(pk=trade_id,user=user)
+        if state:
+            response    = apis.taobao_trade_fullinfo_get(tid=trade_id,tb_user_id=user_id)
+            trade_dict  = response['trade_fullinfo_get_response']['trade']
+            trade = Trade.save_trade_through_dict(user_id,trade_dict)
+        return trade
+
+
+    @classmethod
     def save_trade_through_dict(cls,user_id,trade_dict):
 
         trade,state = Trade.objects.get_or_create(pk=trade_dict['tid'])
-        trade.seller_id = user_id
+        trade.user  = User.objects.get(visitor_id=user_id)
         for k,v in trade_dict.iteritems():
             hasattr(trade,k) and setattr(trade,k,v)
 
@@ -101,6 +119,8 @@ class Trade(models.Model):
         for o in trade_dict['orders']['order']:
             for k,v in o.iteritems():
                 hasattr(order,k) and setattr(order,k,v)
+
+            order.item = Item.get_or_create(user_id,num_iid)
             order.save()
 
         return trade
@@ -126,11 +146,14 @@ class TradeExtraInfo(models.Model):
 class Order(models.Model):
 
     oid   = BigIntegerAutoField(primary_key=True)
+    cid    = models.BigIntegerField(null=True)
 
-    trade = BigIntegerForeignKey(Trade,related_name='trade_orders')
+    trade = BigIntegerForeignKey(Trade,null=True,related_name='trade_orders')
+    item  = models.ForeignKey(Item,null=True,related_name='orders')
+
+    num_iid  = models.CharField(max_length=64,blank=True)
     title =  models.CharField(max_length=128)
     price = models.CharField(max_length=12,blank=True)
-    num_iid = models.BigIntegerField(null=True)
 
     item_meal_id = models.IntegerField(null=True)
     sku_id = models.CharField(max_length=20,blank=True)
@@ -144,7 +167,7 @@ class Order(models.Model):
     adjust_fee = models.CharField(max_length=12,blank=True)
 
     modified = models.CharField(max_length=19,blank=True)
-    sku_properties_name = models.CharField(max_length=256,blank=True)
+    sku_properties_name = models.TextField(max_length=256,blank=True)
     refund_id = models.BigIntegerField(null=True)
 
     is_oversold = models.BooleanField()
@@ -159,7 +182,6 @@ class Order(models.Model):
     refund_status = models.CharField(max_length=40,blank=True)
     outer_id = models.CharField(max_length=64,blank=True)
 
-    cid    = models.BigIntegerField(null=True)
     status = models.CharField(max_length=32,blank=True)
 
     class Meta:
@@ -173,38 +195,53 @@ class Order(models.Model):
 class Logistics(models.Model):
 
     tid      =  BigIntegerAutoField(primary_key=True)
+    user     =  models.ForeignKey(User,null=True,related_name='logistics')
+
+    order_code = models.CharField(max_length=64,blank=True)
+    is_quick_cod_order = models.BooleanField(default=True)
+
     out_sid  =  models.CharField(max_length=64,blank=True)
     company_name =  models.CharField(max_length=30,blank=True)
 
-    seller_id    =  models.CharField(max_length=32,blank=True)
+    seller_id    =  models.CharField(max_length=64,blank=True)
     seller_nick  =  models.CharField(max_length=64,blank=True)
     buyer_nick   =  models.CharField(max_length=64,blank=True)
+
+    item_title   = models.CharField(max_length=64,blank=True)
 
     delivery_start  =  models.DateTimeField(db_index=True,null=True,blank=True)
     delivery_end    =  models.DateTimeField(db_index=True,null=True,blank=True)
 
-    item_title      =  models.CharField(max_length=64,blank=True)
     receiver_name   =  models.CharField(max_length=64,blank=True)
+    receiver_phone  =  models.CharField(max_length=20,blank=True)
+    receiver_mobile =  models.CharField(max_length=20,blank=True)
+
+    location        =  models.TextField(max_length=500,blank=True)
+    type            =  models.CharField(max_length=6,blank=True)    #free(卖家包邮),post(平邮),express(快递),ems(EMS).
+
     created      =  models.DateTimeField(db_index=True,null=True,blank=True)
     modified     =  models.DateTimeField(db_index=True,null=True,blank=True)
 
-    type         =  models.CharField(max_length=10,blank=True)
-    freight_payer   =  models.CharField(max_length=6,blank=True)
     seller_confirm  =  models.CharField(max_length=3,default='no')
+    company_name    =  models.CharField(max_length=32,blank=True)
+
+    is_success      =  models.BooleanField(default=False)
+    freight_payer   =  models.CharField(max_length=6,blank=True)
     status   =  models.CharField(max_length=32,blank=True)
 
     class Meta:
         db_table = 'shop_logistic'
 
     def __unicode__(self):
-        return str(self.tid)
+        return self.company_name
 
     def save_logistics_through_dict(self,user_id,t):
 
-        self.seller_id = user_id
+        self.user = User.objects.get(visitor_id=user_id)
         for k,v in t.iteritems():
             hasattr(self,k) and setattr(self,k,v)
 
+        self.location       = json.dumps(t.get('location',None))
         self.delivery_start = parse_datetime(t['delivery_start']) if t.get('delivery_start',None) else None
         self.delivery_end   = parse_datetime(t['delivery_end']) if t.get('delivery_end',None) else None
         self.created        = parse_datetime(t['created']) if t.get('created',None) else None
@@ -220,10 +257,11 @@ class PurchaseOrder(models.Model):
     fenxiao_id = models.CharField(max_length=64,primary_key=True)
     id         = models.CharField(max_length=64,blank=True)
 
-    seller_id  = models.CharField(max_length=64,db_index=True,blank=True)
+    user       = models.ForeignKey(User,null=True,related_name='purchases')
 
+    seller_id          = models.CharField(max_length=64,blank=True)
     supplier_username  = models.CharField(max_length=64,blank=True)
-    supplier_memo      = models.CharField(max_length=256,blank=True)
+    supplier_memo      = models.TextField(max_length=1000,blank=True)
     supplier_from      = models.CharField(max_length=20,blank=True)
 
     distributor_from   = models.CharField(max_length=20,blank=True)
@@ -242,12 +280,12 @@ class PurchaseOrder(models.Model):
 
     shipping   = models.CharField(max_length=10,blank=True)
     trade_type = models.CharField(max_length=10,blank=True)
-    memo       = models.CharField(max_length=256,blank=True)
+    memo       = models.TextField(max_length=1000,blank=True)
 
     created    = models.DateTimeField(null=True,blank=True)
     modified   = models.DateTimeField(null=True,blank=True)
 
-    sub_purchase_orders = models.CharField(max_length=5000,blank=True)
+    sub_purchase_orders = models.TextField(max_length=5000,blank=True)
 
     tc_order_id = models.CharField(max_length=64,blank=True)
     alipay_no   = models.CharField(max_length=64,blank=True)
@@ -266,7 +304,7 @@ class PurchaseOrder(models.Model):
 
     def save_order_through_dict(self,seller_id,order):
 
-        self.seller_id = seller_id
+        self.user  =  User.objects.get(visitor_id=seller_id)
         for k,v in order.iteritems():
             hasattr(self,k) and setattr(self,k,v)
 
@@ -276,7 +314,6 @@ class PurchaseOrder(models.Model):
         self.consign_time = parse_datetime(order['consign_time']) if order.get('consign_time',None) else None
 
         self.sub_purchase_orders = json.dumps(order['sub_purchase_orders'])
-
         self.save()
 
 
@@ -286,10 +323,13 @@ class PurchaseOrder(models.Model):
 class Refund(models.Model):
 
     refund_id    = BigIntegerAutoField(primary_key=True)
-    trade        = BigIntegerForeignKey(Trade,null=True,blank=True,related_name='refunds')
-    title        = models.CharField(max_length=64,blank=True)
+    tid          = models.BigIntegerField(null=True)
 
-    seller_id    = models.CharField(max_length=64,db_index=True,blank=True)
+    title        = models.CharField(max_length=64,blank=True)
+    num_iid      = models.BigIntegerField(null=True)
+
+    user         = models.ForeignKey(User,null=True,related_name='refunds')
+    seller_id    = models.CharField(max_length=64,blank=True)
     buyer_nick   = models.CharField(max_length=64,blank=True)
     seller_nick  = models.CharField(max_length=64,blank=True)
 
@@ -304,8 +344,8 @@ class Refund(models.Model):
     company_name = models.CharField(max_length=64,blank=True)
     sid       = models.CharField(max_length=64,blank=True)
 
-    reason    = models.CharField(max_length=200,blank=True)
-    desc      = models.CharField(max_length=500,blank=True)
+    reason    = models.TextField(max_length=200,blank=True)
+    desc      = models.TextField(max_length=1000,blank=True)
     has_good_return = models.BooleanField(default=False)
 
     good_status  = models.CharField(max_length=32,blank=True)
@@ -320,16 +360,7 @@ class Refund(models.Model):
 
     def save_refund_through_dict(self,seller_id,refund):
 
-        self.seller_id = seller_id
-        try:
-            trade = Trade.objects.get(pk=refund['tid'])
-        except Trade.DoesNotExist:
-            import logging
-            logger = logging.getLogger('trade.refund')
-            logger.error('Trade(id:%s) is not exist.'%refund['tid'])
-            trade = None
-
-        self.trade = trade
+        self.user  = User.objects.get(visitor_id=seller_id)
         for k,v in refund.iteritems():
             hasattr(self,k) and setattr(self,k,v)
 

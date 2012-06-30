@@ -1,3 +1,4 @@
+# encoding:utf-8
 import djcelery
 djcelery.setup_loader()
 
@@ -57,10 +58,10 @@ SYNC_MODEL_SCHEDULE = {
         'args':()
     },
     'runs-every-weeks-d':{
-        'task':'shopback.items.tasks.updateAllUserItemsInfoTask',
+        'task':'shopback.items.tasks.updateAllUserItemsEntityTask',
         'schedule':crontab(minute="0",hour="2",day_of_week='tue'),
         'args':()
-    },
+    }, #
 }
 
 

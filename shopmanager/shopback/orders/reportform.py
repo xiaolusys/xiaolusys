@@ -83,7 +83,7 @@ purchase_format = [
 refund_format = [
     ('refund.buyer_nick','@'),          #C
     ('str(refund.refund_id)','@'),      #D
-    ('str(refund.trade)','@'),          #E
+    ('str(refund.tid)','@'),          #E
     ('str(refund.oid)','@'),            #F
     ('str(refund.sid)','@'),            #G
     ('refund.company_name','@'),        #H

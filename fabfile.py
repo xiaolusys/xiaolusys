@@ -55,6 +55,12 @@ def collect_static():
         #run('source ve/bin/activate;cd shopmanager;python manage.py collectstatic --noinput')
         run('cd ../site_media;unlink static;ln -s %s/shopmanager/static' % env.version_dir)
 
+def collect_download():
+    """docstring for collect_static"""
+    with cd(env.version_dir):
+        #run('source ve/bin/activate;cd shopmanager;python manage.py collectstatic --noinput')
+        run('cd %s/shopmanager/site_media;rmdir download ;ln -s ../../../site_media/download' % env.version_dir)
+
 def deploy():
     """docstring for deploy"""
     get_version()
@@ -63,7 +69,8 @@ def deploy():
         init_virtualenv()
         #get_static() # this is a hack for buggy network and should be removed in the future
         set_local_settings()
-        collect_static()
+        #collect_static()
+        collect_download()
 
 def restart_gunicorn():
     """docstring for restart_gunicorn"""
