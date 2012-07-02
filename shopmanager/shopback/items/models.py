@@ -5,6 +5,9 @@ from shopback.base.fields import BigIntegerAutoField
 from shopback.categorys.models import Category
 from shopback.users.models import User
 from auth import apis
+import logging
+
+logger  = logging.getLogger('item.update')
 
 ONSALE_STATUS  = 'onsale'
 INSTOCK_STATUS = 'instock'
@@ -19,8 +22,8 @@ class Product(models.Model):
     outer_id     = models.CharField(max_length=64,primary_key=True)
     name         = models.CharField(max_length=64,blank=True)
 
-    user         = models.ForeignKey(User,related_name='products')
-    category     = models.ForeignKey(Category,related_name='products')
+    user         = models.ForeignKey(User,null=True,related_name='products')
+    category     = models.ForeignKey(Category,null=True,related_name='products')
 
     collect_num  = models.IntegerField(null=True)
     price        = models.CharField(max_length=10,blank=True)
@@ -66,7 +69,7 @@ class Product(models.Model):
 class ProductSku(models.Model):
 
     outer_id = models.CharField(max_length=64,null=True,blank=True)
-    product  = models.ForeignKey(Product,related_name='prod_skus')
+    product  = models.ForeignKey(Product,null=True,related_name='prod_skus')
     quantity = models.IntegerField(null=True)
 
     properties_name = models.TextField(max_length=3000,blank=True)
@@ -143,12 +146,17 @@ class Item(models.Model):
 
         user          = User.objects.get(visitor_id=user_id)
         category      = Category.get_or_create(user_id,item_dict['cid'])
-        product,state = Product.objects.get_or_create(outer_id=item_dict['outer_id'],user=user,category=category)
+        try:
+            product,state = Product.objects.get_or_create(outer_id=item_dict['outer_id'],user=user)
+            if state:
+                product.collect_num = item_dict['num']
+                product.price       = item_dict['price']
+                product.category    = category
+                product.save()
+        except Exception,exc:
+            logger.error('该商品(%s)未设置外部编码'%str(item_dict['num_iid']),exc_info=True)
+            product = None
 
-        if state:
-            product.collect_num = item_dict['num']
-            product.price       = item_dict['price']
-            product.save()
 
         item,state    = cls.objects.get_or_create(num_iid = item_dict['num_iid'])
 

@@ -1,5 +1,7 @@
+__author__ = 'meixqhi'
 from shopback.base.fields import BigIntegerAutoField
 from django.db import models
+
 
 class ProductPageRank(models.Model):
 
@@ -20,7 +22,7 @@ class ProductPageRank(models.Model):
     rank = models.IntegerField()
 
     class Meta:
-        db_table = 'product_pagerank'
+        db_table = 'shop_app_product_pagerank'
 
 
 
@@ -45,6 +47,4 @@ class ProductTrade(models.Model):
     hour = models.IntegerField(null=True,db_index=True)
 
     class Meta:
-        db_table = 'product_trade'
-
-
+        db_table = 'shop_app_product_trade'

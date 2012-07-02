@@ -14,7 +14,7 @@ from auth.apis.exceptions import RemoteConnectionException,AppCallLimitedExcepti
 from auth import apis
 import logging
 
-logger = logging.getLogger('updateitemnum')
+logger = logging.getLogger('syncnum.handler')
 
 
 @task(max_retries=3)

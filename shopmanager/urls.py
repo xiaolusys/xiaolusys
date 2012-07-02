@@ -10,11 +10,14 @@ urlpatterns = patterns('',
 
     (r'^sentry/', include('sentry.web.urls')),
     (r'^accounts/', include('auth.accounts.urls')),
-    (r'^items/',include('shopback.items.urls')),
-    (r'^trade/',include('shopback.orders.urls')),
     (r'^category/',include('shopback.categorys.urls')),
-    (r'^app/',include('shopapp.urls')),
+    (r'^fenxiao/',include('shopback.fenxiao.urls')),
+    (r'^items/',include('shopback.items.urls')),
+    (r'^logistics/',include('shopback.logistics.urls')),
+    (r'^trade/',include('shopback.orders.urls')),
+    (r'^refunds/',include('shopback.refunds.urls')),
 
+    (r'^app/',include('shopapp.urls')),
     url(r'^home/$',home,name='home_page'),
 
     (r'^top_monitor\.html$',csrf_exempt(TemplateView.as_view(template_name='top_monitor.html'))),

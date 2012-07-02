@@ -103,14 +103,19 @@ INSTALLED_APPS = (
     'deamon',
     'deamon.celery_sentry',
 
-    'shopback.items',
-    'shopback.orders',
-    'shopback.users',
     'shopback.categorys',
+    'shopback.fenxiao',
+    'shopback.items',
+    'shopback.logistics',
+    'shopback.monitor',
+    'shopback.orders',
+    'shopback.refunds',
+    'shopback.users',
 
     'shopapp.autolist',
+    'shopapp.collector',
     'shopapp.memorule',
-    'shopapp.search',
+    'shopapp.report',
     'shopapp.syncnum',
 
     'django.contrib.admin',
@@ -170,12 +175,12 @@ LOGGING = {
             'level': 'WARN',
             'propagate': True,
         },
-        'updatelisting': {
+        'autolist.handler': {
             'handlers': ['sentry'],
             'level': 'WARN',
             'propagate': True,
         },
-        'updateitemnum': {
+        'syncnum.handler': {
             'handlers': ['sentry'],
             'level': 'WARN',
             'propagate': True,
@@ -205,12 +210,17 @@ LOGGING = {
             'level': 'WARN',
             'propagate': True,
         },
-        'outeridmultiple': {
+        'pagerank.handler': {
             'handlers': ['sentry'],
             'level': 'WARN',
             'propagate': True,
         },
-        'period.search': {
+        'traderank.handler': {
+            'handlers': ['sentry'],
+            'level': 'WARN',
+            'propagate': True,
+        },
+        'report.handler': {
             'handlers': ['sentry'],
             'level': 'WARN',
             'propagate': True,
@@ -220,7 +230,7 @@ LOGGING = {
             'level': 'WARN',
             'propagate': True,
         },
-        'hourly.saveorder':{
+        'orders.handler':{
             'handlers': ['sentry'],
             'level': 'WARN',
             'propagate': True,
@@ -235,27 +245,32 @@ LOGGING = {
             'level': 'WARN',
             'propagate': True,
         },
-        'trade.refund':{
+        'refunds.handler':{
             'handlers': ['sentry'],
             'level': 'WARN',
             'propagate': True,
         },
-        'exception.handler':{
+        'fenxiao.handler':{
             'handlers': ['sentry'],
             'level': 'WARN',
             'propagate': True,
         },
-        'category.update':{
+        'categoreys.handler':{
             'handlers': ['sentry'],
             'level': 'WARN',
             'propagate': True,
         },
-        'app.memorule':{
+        'memorule.handler':{
             'handlers': ['sentry'],
             'level': 'WARN',
             'propagate': True,
         },
-        'item.update':{
+        'items.handler':{
+            'handlers': ['sentry'],
+            'level': 'WARN',
+            'propagate': True,
+        },
+        'logistics.handler':{
             'handlers': ['sentry'],
             'level': 'WARN',
             'propagate': True,

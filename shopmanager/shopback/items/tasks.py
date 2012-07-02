@@ -16,7 +16,7 @@ from auth.apis.exceptions import RemoteConnectionException,AppCallLimitedExcepti
 from auth import apis
 import logging
 
-logger = logging.getLogger('item.update')
+logger = logging.getLogger('items.handler')
 
 
 

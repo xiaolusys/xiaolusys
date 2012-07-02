@@ -139,7 +139,6 @@ def apis(api_method,method='GET'):
             params['sign'] = sign_value
 
             url = settings.TAOBAO_API_ENDPOINT
-
             if method == 'GET':
                 uri = '%s?%s'%(url,urllib.urlencode(params))
                 req = urllib2.urlopen(uri)

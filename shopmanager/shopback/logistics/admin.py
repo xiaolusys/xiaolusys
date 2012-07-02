@@ -1,0 +1,21 @@
+from django.contrib import admin
+from shopback.logistics.models import Logistics
+
+__author__ = 'meixqhi'
+
+
+
+class LogisticsAdmin(admin.ModelAdmin):
+    list_display = ('tid','out_sid','company_name','seller_id','seller_nick','buyer_nick','delivery_start','delivery_end'
+                    ,'receiver_name','created','modified','type','freight_payer','seller_confirm','status')
+    list_display_links = ('tid','buyer_nick','status')
+    #list_editable = ('update_time','task_type' ,'is_success','status')
+
+    date_hierarchy = 'created'
+    #ordering = ['created_at']
+
+    list_filter = ('seller_nick','freight_payer','seller_confirm','type','status',)
+    search_fields = ['tid','out_sid','buyer_nick','receiver_name']
+
+
+admin.site.register(Logistics, LogisticsAdmin)

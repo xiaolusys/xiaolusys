@@ -14,7 +14,7 @@ logger = logging.getLogger('taobao.auth')
 
 def request_taobo(request):
 
-    redirect_url = '%s?response_type=code&client_id=%s&redirect_uri=%s&scope=%s&view=web&state=autolist'%\
+    redirect_url = '%s?response_type=code&client_id=%s&redirect_uri=%s&view=web&scope=%s&state=autolist'%\
                    (settings.AUTHRIZE_URL,settings.APPKEY,settings.REDIRECT_URI,settings.SCOPE)
 
     return HttpResponseRedirect(redirect_url)
@@ -25,7 +25,7 @@ def request_taobo(request):
 def login_taobo(request):
 
     user = authenticate(request=request)
-    print user
+
     if not user or user.is_anonymous():
         return HttpResponseRedirect(reverse('home_page'))
 
@@ -52,10 +52,14 @@ def home(request):
 
     profile = request.user.get_profile()
 
-    response = apis.taobao_fenxiao_products_get(pids=131249579237105,tb_user_id=profile.visitor_id)
+    response = apis.taobao_fenxiao_products_get(start_modified='2012-05-01 00:00:00',end_modified='2012-06-30 00:00:00',
+                                page_no=1,page_size=10,tb_user_id=profile.visitor_id)
     print 'response:',response
-
-#    orders_list = apis.taobao_refunds_receive_get(session=profile.top_session,page_no=1,page_size=100,
+#    response = apis.taobao_fenxiao_orders_get(page_no=1,
+#                time_type='trade_time_type',page_size=10,start_created='2012-06-01',end_created='2012-06-30',tb_user_id=profile.visitor_id)
+#    print 'response:',response
+#
+#    orders_list = apis.taobao_refunds_receive_get(tb_user_id=profile.visitor_id,page_no=1,page_size=100,
 #                 type='fenxiao',start_modified='2012-03-01 00:00:00',end_modified='2012-05-20 23:59:59')
 #    print orders_list
 #    trades = apis.taobao_trades_sold_get(session=profile.top_session,page_no=1

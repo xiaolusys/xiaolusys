@@ -56,7 +56,7 @@ def refresh_session(user,appkey,appsecret,refresh_url):
                 'client_secret':appsecret,
                 'grant_type':'refresh_token',
                 'refresh_token':top_parameters['refresh_token'],
-                'scope':'item,promotion,usergrade',
+                'scope':'item',
                 'state':'autolist',
                 'view':'web',
             }

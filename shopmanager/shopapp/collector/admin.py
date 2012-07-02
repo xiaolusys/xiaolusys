@@ -1,6 +1,6 @@
+__author__ = 'meixqhi'
 from django.contrib import admin
-from shopapp.search.models import ProductPageRank,ProductTrade
-
+from shopapp.collector.models import ProductPageRank,ProductTrade
 
 
 class ProductPageRankAdmin(admin.ModelAdmin):
@@ -24,4 +24,3 @@ class ProductTradeAdmin(admin.ModelAdmin):
 
 
 admin.site.register(ProductTrade,ProductTradeAdmin)
-  

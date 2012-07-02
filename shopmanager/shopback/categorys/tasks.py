@@ -6,7 +6,7 @@ from auth import apis
 
 import logging
 
-logger = logging.getLogger('recurupdate.categorey')
+logger = logging.getLogger('categoreys.handler')
 
 @task(max_retry=3)
 def RecurUpdateCategoreyTask(top_session,cid):

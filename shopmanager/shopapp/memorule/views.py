@@ -9,7 +9,7 @@ from shopapp.memorule.models import TradeRule,ProductRuleField
 from auth import apis
 import logging
 
-logger = logging.getLogger('app.memorule')
+logger = logging.getLogger('memorule.handler')
 
 
 

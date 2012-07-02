@@ -48,14 +48,20 @@ INSTALLED_APPS = (
     'deamon',
     'deamon.celery_sentry',
 
-    'shopback.items',
-    'shopback.orders',
-    'shopback.users',
     'shopback.categorys',
+    'shopback.fenxiao',
+    'shopback.items',
+    'shopback.logistics',
+    'shopback.monitor',
+    'shopback.orders',
+    'shopback.refunds',
+    'shopback.users',
+
 
     'shopapp.autolist',
+    'shopapp.collector',
     'shopapp.memorule',
-    'shopapp.search',
+    'shopapp.report',
     'shopapp.syncnum',
 
     #'devserver',

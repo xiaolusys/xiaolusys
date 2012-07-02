@@ -6,10 +6,13 @@ from djangorestframework.views import ModelView
 from djangorestframework.response import ErrorResponse
 from djangorestframework import status
 from shopback.items.models import Item
-from shopapp.search.models import ProductPageRank,ProductTrade
-from shopapp.search.gencharts import genProductPeriodChart,genItemKeywordsChart,genPageRankPivotChart,genItemAvgRankPivotChart
-from shopapp.search.crawurldata import getTaoBaoPageRank, getCustomShopsPageRank
+from shopapp.collector.models import ProductPageRank,ProductTrade
+from shopapp.collector.gencharts import genProductPeriodChart,genItemKeywordsChart,genPageRankPivotChart,genItemAvgRankPivotChart
+from shopapp.collector.crawurldata import getTaoBaoPageRank, getCustomShopsPageRank
 from auth.utils import map_int2str
+
+__author__ = 'meixqhi'
+
 
 class ShopsRankView(ModelView):
     """ docstring for class ShopsRankView """
@@ -331,4 +334,6 @@ class ShopMapKeywordsTopTradeView(ModelView):
         chart_data = {"charts":[orders_data_cht]}
 
         return chart_data
+
+
   

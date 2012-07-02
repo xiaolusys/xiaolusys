@@ -4,6 +4,7 @@ import urllib
 import urllib2
 from django.db import models
 from django.contrib.auth.models import User
+from django.contrib.auth.models import SiteProfileNotAvailable
 from auth.utils import verifySignature,decodeBase64String,parse_urlparams
 from django.conf import settings
 from auth import apis
@@ -69,7 +70,7 @@ class TaoBaoBackend:
                 raise SiteProfileNotAvailable('Unable to load the profile '
                                               'model, check AUTH_PROFILE_MODULE in your project sett'
                                               'ings')
-        except (ImportError, ImproperlyConfigured):
+        except (ImportError,ImproperlyConfigured):
             raise SiteProfileNotAvailable('ImportError, ImproperlyConfigured error')
 
         user_id  =  top_parameters['taobao_user_id']

@@ -1,18 +1,17 @@
-import re
+__author__ = 'meixqhi'
 import time
 import datetime
 from celery.task import task
-from celery.task.sets import subtask
-from django.conf import settings
-from shopapp.search.crawurldata import getTaoBaoPageRank,crawTaoBaoTradePage
-from shopapp.search.models import ProductPageRank,ProductTrade
+from shopapp.collector.crawurldata import getTaoBaoPageRank ,getTaoBaoPageRank
+from shopapp.collector.models import ProductTrade ,ProductPageRank
 from shopback.users.models import User
-from shopback.items.models import Item
 from auth.utils import format_time,parse_datetime,format_datetime,format_date
 import logging
 
-logger = logging.getLogger('period.search')
+logger = logging.getLogger('collector.handler')
 
+
+####################################### Keyword Page Rank ############################################
 page_nums = 6
 
 def saveKeywordPageRank(keyword,month,day,time,created):
@@ -31,6 +30,7 @@ def saveKeywordPageRank(keyword,month,day,time,created):
 
         except Exception,exc:
             logger.error('Create ProductPageRank or Item record error:%s'%exc,exc_info=True)
+
 
 
 @task()
@@ -54,6 +54,20 @@ def updateItemKeywordsPageRank():
     for keyword in keywords:
 
         saveKeywordPageRank(keyword,month,day,time,created)
+
+
+
+@task()
+def deletePageRankRecordTask(remain_days):
+
+    remain_days = remain_days if remain_days>7 else 7
+
+    remain_days_before = format_date(datetime.datetime.now()-datetime.timedelta(remain_days,0,0))
+
+    ProductPageRank.objects.filter(created__lt=remain_days_before).delete()
+
+
+#################################### Trade Rank Task ############################################
 
 
 
@@ -168,16 +182,3 @@ def updateProductTradeBySellerTask():
         seller_nick = seller_map_nick.get(seller_id,None)
         subtask(updateSellerAllTradesTask).delay(seller_id,seller_nick,item_ids,s_dt_f,s_dt_t)
 
-
-
-@task()
-def deletePageRankRecordTask(remain_days):
-
-    remain_days = remain_days if remain_days>7 else 7
-
-    remain_days_before = format_date(datetime.datetime.now()-datetime.timedelta(remain_days,0,0))
-
-    ProductPageRank.objects.filter(created__lt=remain_days_before).delete()
-
-
-  

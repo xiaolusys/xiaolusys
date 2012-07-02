@@ -41,12 +41,6 @@ SYNC_MODEL_SCHEDULE = {
         'schedule':crontab(minute="0",hour="0"),
         'args':(),
     },
-    'runs-every-day-e':{
-        'task':'shopback.orders.tasks.updateMonthTradeXlsFileTask',
-        'schedule':crontab(minute="0",hour="1"),
-        'args':()
-    },
-
     'runs-every-weeks-b':{
         'task':'shopback.orders.tasks.updateAllUserOrdersAmountTask',
         'schedule':crontab(minute="0",hour="1",day_of_week="mon"),
@@ -61,7 +55,8 @@ SYNC_MODEL_SCHEDULE = {
         'task':'shopback.items.tasks.updateAllUserItemsEntityTask',
         'schedule':crontab(minute="0",hour="2",day_of_week='tue'),
         'args':()
-    }, #
+    },
+
 }
 
 
@@ -72,23 +67,27 @@ SHOP_APP_SCHEDULE = {
         'args':(),
     },
     'runs-every-30-minutes-a':{
-        'task':'shopapp.search.tasks.updateItemKeywordsPageRank',
+        'task':'shopapp.collector.tasks.updateItemKeywordsPageRank',
         'schedule':crontab(minute="0,30",hour=','.join([str(i) for i in range(7,24)])),
         'args':()
     },
-    'runs-every-day-a':{
-        'task':'shopapp.syncnum.tasks.updateAllItemNumTask',
-        'schedule':crontab(minute="0",hour="0"),
-        'args':(),
-    },
     'runs-every-day-d':{
-        'task':'shopapp.search.tasks.deletePageRankRecordTask',
+        'task':'shopapp.collector.tasks.deletePageRankRecordTask',
         'schedule':crontab(minute="0",hour="1"),
         'args':(30,)
     },
-
+    'runs-every-day-e':{
+        'task':'shopapp.report.tasks.updateMonthTradeXlsFileTask',
+        'schedule':crontab(minute="0",hour="1"),
+        'args':()
+    },
+#    'runs-every-day-a':{
+#        'task':'shopapp.syncnum.tasks.updateAllItemNumTask',
+#        'schedule':crontab(minute="0",hour="0"),
+#        'args':(),
+#    },
 #    'runs-every-day-e':{
-#        'task':'search.tasks.updateProductTradeBySellerTask',
+#        'task':'shopapp.collector.tasks.updateProductTradeBySellerTask',
 #        'schedule':crontab(minute="0",hour="1"),
 #        'args':()
 #    },

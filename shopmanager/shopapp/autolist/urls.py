@@ -2,8 +2,7 @@ from django.conf.urls.defaults import patterns, url,include
 from shopback.base.authentication import UserLoggedInAuthentication
 from shopback.base.views import InstanceModelView
 from shopback.base.permissions import IsAuthenticated, PerUserThrottling
-from shopapp.autolist.views import CreateListItemTaskModelView
-from shopapp.autolist.views import direct_update_listing,direct_del_listing,ListItemTaskView
+from shopapp.autolist.views import direct_update_listing,direct_del_listing,ListItemTaskView,CreateListItemTaskModelView
 from shopapp.autolist.resources import ItemListTaskResource
 
 urlpatterns = patterns('shopapp.autolist.views',
