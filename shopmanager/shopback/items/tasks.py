@@ -25,48 +25,46 @@ def updateUserItemsTask(user_id):
 
     has_next = True
     cur_page = 1
-    error_times = 0
     update_nums = 0
 
     while has_next:
-        try:
-            response_list = apis.taobao_items_onsale_get(page_no=cur_page,tb_user_id=user_id
-                ,page_size=settings.TAOBAO_PAGE_SIZE)
+      
+        response_list = apis.taobao_items_onsale_get(page_no=cur_page,tb_user_id=user_id
+            ,page_size=settings.TAOBAO_PAGE_SIZE,fields='num_iid,cid,outer_id,num,price,title,delist_time,list_time')
 
-            item_list = response_list['items_onsale_get_response']
-            if item_list.has_key('items'):
-                for item in item_list['items']['item']:
-                    Item.save_item_through_dict(user_id,item)
+        item_list = response_list['items_onsale_get_response']
+        if item_list['total_results']>0:
+            items = item_list['items']['item']
+            for item in items:
+                Item.save_item_through_dict(user_id,item)
+            update_nums += len(items)    
 
-            total_nums = item_list['total_results']
-            cur_nums = cur_page*settings.TAOBAO_PAGE_SIZE
-            has_next = cur_nums<total_nums
-            cur_page += 1
-            error_times = 0
-            update_nums += total_nums
-            time.sleep(settings.API_REQUEST_INTERVAL_TIME)
+        total_nums = item_list['total_results']
+        cur_nums = cur_page*settings.TAOBAO_PAGE_SIZE
+        has_next = cur_nums<total_nums
+        
+        cur_page += 1
+    
+    has_next = True
+    cur_page = 1    
+    while has_next:
+      
+        response_list = apis.taobao_items_inventory_get(page_no=cur_page,tb_user_id=user_id
+            ,page_size=settings.TAOBAO_PAGE_SIZE,fields='num_iid,cid,outer_id,num,price,title,delist_time,list_time')
 
-        except RemoteConnectionException,e:
-            if error_times > settings.MAX_REQUEST_ERROR_TIMES:
-                logger.error('update trade during order fail:%s ,repeat times:%d'%(response_list,error_times))
-                raise e
-            error_times += 1
-        except APIConnectionTimeOutException,e:
-            if error_times > settings.MAX_REQUEST_ERROR_TIMES:
-                logger.error('update trade during order fail:%s ,repeat times:%d'%(response_list,error_times))
-                raise e
-            error_times += 1
-            time.sleep(settings.API_TIME_OUT_SLEEP)
-        except ServiceRejectionException,e:
-            if error_times > settings.MAX_REQUEST_ERROR_TIMES:
-                logger.error('update trade during order fail:%s ,repeat times:%d'%(response_list,error_times))
-                raise e
-            error_times += 1
-            time.sleep(settings.API_OVER_LIMIT_SLEEP)
-        except AppCallLimitedException,e:
-            logger.error('update trade sold increment fail',exc_info=True)
-            raise e
-
+        item_list = response_list['items_inventory_get_response']
+        if item_list['total_results']>0:
+            items = item_list['items']['item']
+            for item in item_list['items']['item']:
+                Item.save_item_through_dict(user_id,item)
+            update_nums += len(items)
+            
+        total_nums = item_list['total_results']
+        cur_nums = cur_page*settings.TAOBAO_PAGE_SIZE
+        has_next = cur_nums<total_nums
+        cur_page += 1
+   
+   
     return update_nums
 
 
@@ -88,22 +86,13 @@ def saveUserItemsInfoTask(user_id):
     user  = User.objects.get(visitor_id=user_id)
     items = user.items.all()
     for item in items:
-        try:
-            response = apis.taobao_item_get(num_iid=item.num_iid,tb_user_id=user_id)
-            itemdict = response['item_get_response']['item']
-            itemdict['skus'] = json.dumps(itemdict.get('skus',{}))
 
-            for k,v in itemdict.iteritems():
-                hasattr(item,k) and setattr(item,k,v)
-            item.save()
+        response = apis.taobao_item_get(num_iid=item.num_iid,tb_user_id=user_id)
+        item_dict = response['item_get_response']['item']
+        item_dict['skus'] = json.dumps(item_dict.get('skus',{}))
+        
 
-        except AppCallLimitedException,e:
-            logger.error('update trade during order task fail',exc_info=True)
-            raise e
-        except TaobaoRequestException,e:
-            logger.error('update trade during order task fail',exc_info=True)
-            if not settings.DEBUG:
-                updateAllItemNumTask.retry(exc=exc,countdown=2)
+        Item.save_item_through_dict(user_id,item_dict)
 
 
 

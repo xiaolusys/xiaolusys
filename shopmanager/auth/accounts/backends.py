@@ -87,12 +87,12 @@ class TaoBaoBackend:
                     profile.user.save()
                 return profile.user
             else:
-                user = User.objects.create(username=user_id,is_active=True)
+                user,state = User.objects.get_or_create(username=user_id,is_active=True)
                 profile.user = user
                 profile.save()
                 return user
         except model.DoesNotExist:
-            user = User.objects.create(username=user_id,is_active=True)
+            user,state = User.objects.get_or_create(username=user_id,is_active=True)
             profile,state = model.objects.get_or_create(user=user,visitor_id=user_id)
             profile.top_session    = top_parameters['access_token']
             profile.top_parameters = json.dumps(top_parameters)

@@ -2,7 +2,8 @@ __author__ = 'meixqhi'
 from djangorestframework.views import ModelView
 from djangorestframework.response import ErrorResponse
 from djangorestframework import status
-from shopback.orders.models import Order,Trade,TradeExtraInfo
+from shopback.orders.models import Order,Trade
+from shopback.monitor.models import TradeExtraInfo
 from shopback.items.models import Item
 from shopback.users.models import User
 from shopapp.memorule.models import TradeRule,ProductRuleField
@@ -24,29 +25,19 @@ def to_memo_string(memo):
     return "\r\n".join(s)
 
 
-def get_and_save_trade(seller_id,trade_id,session):
-    try:
-        trade = Trade.objects.get(pk=trade_id)
-    except Trade.DoesNotExist:
-        trade_dict = apis.taobao_trade_fullinfo_get(tid=trade_id,session=session)
-        trade_dict = trade_dict['trade_fullinfo_get_response']['trade']
-        trade = Trade.save_trade_through_dict(seller_id,trade_dict)
 
-    return trade
-
-
-def update_trade_memo(trade_id,trade_memo,session):
+def update_trade_memo(trade_id,trade_memo,user_id):
+    
     try:
         trade_extra_info, created = TradeExtraInfo.objects.get_or_create(pk=trade_id)
         trade_extra_info.seller_memo = str(trade_memo)
-        trade_info.save()
+        trade_extra_info.save()
     except Exception,exc:
         return {"success": False, "message":"write memo to backend failed"}
     
     try:
         ms = to_memo_string(trade_memo)
-
-        apis.taobao_trade_memo_update(tid=trade_id,memo=ms,session=session)
+        apis.taobao_trade_memo_update(tid=trade_id,memo=ms,tb_user_id=user_id)
     except Exception,exc:
         return {"success": True, "message":"write memo to frontend failed"}
         
@@ -65,12 +56,11 @@ class UpdateTradeMemoView(ModelView):
 
         try:
             profile = User.objects.get(visitor_id=user_id)
-            session = profile.top_session
         except User.DoesNotExist:
             return {"success":False, "message":"no such seller id: "+user_id}
             #raise ErrorResponse("the seller id is not record!")
 
-        return update_trade_memo(trade_id,params,session)
+        return update_trade_memo(trade_id,params,tb_user_id=profile.visitor_id)
     
 
     post = get

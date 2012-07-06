@@ -2,7 +2,7 @@ import time
 from django.db.models import Avg, Variance,Sum
 from chartit import DataPool, Chart
 from chartit import PivotDataPool, PivotChart
-from shopapp.search.models import ProductPageRank,ProductTrade
+from shopapp.collector.models import ProductPageRank,ProductTrade
 from auth.utils import parse_datetime, format_time,map_int2str
 
 

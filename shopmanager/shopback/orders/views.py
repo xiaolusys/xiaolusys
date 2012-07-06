@@ -10,7 +10,7 @@ from chartit import PivotDataPool, PivotChart
 from auth import staff_requried,apis
 from auth.utils import parse_datetime,parse_date,format_time,map_int2str
 from shopback.orders.models import Order,Trade,ORDER_SUCCESS_STATUS,ORDER_FINISH_STATUS
-from shopback.orders.tasks import updateAllUserOrdersAmountTask,updateAllUserDuringOrders
+from shopback.orders.tasks import updateAllUserDuringOrdersTask
 
 
 class UserHourlyOrderView(ModelView):
@@ -108,19 +108,6 @@ class UserHourlyOrderView(ModelView):
         return chart_data
 
 
-@staff_requried(login_url='/admin/login/')
-def update_finish_trade_amount(request,dt_f,dt_t):
-
-    dt_f = parse_date(dt_f)
-    dt_t = parse_date(dt_t)
-
-    order_amount_task = updateAllUserOrdersAmountTask.delay(dt_f=dt_f,dt_t=dt_t)
-
-    ret_params = {'task_id':order_amount_task.task_id}
-
-    return HttpResponse(json.dumps(ret_params),mimetype='application/json')
-
-
 
 
 @staff_requried(login_url='/admin/login/')
@@ -129,7 +116,7 @@ def update_interval_trade(request,dt_f,dt_t):
     dt_f = parse_date(dt_f)
     dt_t = parse_date(dt_t)
 
-    interval_task = updateAllUserDuringOrders.delay(update_from=dt_f,update_to=dt_t)
+    interval_task = updateAllUserDuringOrdersTask.delay(update_from=dt_f,update_to=dt_t)
 
     ret_params = {'task_id':interval_task.task_id}
 

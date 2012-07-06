@@ -21,7 +21,7 @@ class ItemListTask(models.Model):
     status = models.CharField(max_length=10,default=UNEXECUTE) #unexecute,execerror,success,delete
 
     class Meta:
-        db_table = 'shop_app_itemlisttask'
+        db_table = 'shop_autolist_itemlisttask'
 
 
 
@@ -43,4 +43,4 @@ class Logs(models.Model):
     status = models.CharField(max_length=20) #unexec
 
     class Meta:
-        db_table = 'shop_app_autolist_logs'
+        db_table = 'shop_autolist_logs'

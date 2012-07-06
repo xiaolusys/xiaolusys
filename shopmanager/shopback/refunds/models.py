@@ -1,4 +1,4 @@
-#encoding:utf8
+#-*- coding:utf8 -*-
 __author__ = 'meixqhi'
 import json
 import time
@@ -44,7 +44,7 @@ class Refund(models.Model):
     status       = models.CharField(max_length=32,blank=True)
 
     class Meta:
-        db_table = 'shop_refund'
+        db_table = 'shop_refunds_refund'
 
     def __unicode__(self):
         return str(self.refund_id)

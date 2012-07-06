@@ -1,4 +1,4 @@
-#encoding:utf8
+#-*- coding:utf8 -*-
 import json
 import time
 from auth.utils import parse_datetime
@@ -8,6 +8,9 @@ from shopback.base.fields import BigIntegerAutoField,BigIntegerForeignKey
 from shopback.users.models import User
 from shopback.items.models import Item
 from auth import apis
+import logging
+
+logger = logging.getLogger('orders.handler')
 
 
 ORDER_SUCCESS_STATUS  = ['WAIT_SELLER_SEND_GOODS','WAIT_BUYER_CONFIRM_GOODS','TRADE_BUYER_SIGNED','TRADE_FINISHED']
@@ -69,7 +72,7 @@ class Trade(models.Model):
     status      =  models.CharField(max_length=32,blank=True)
 
     class Meta:
-        db_table = 'shop_trade'
+        db_table = 'shop_orders_trade'
 
     def __unicode__(self):
         return str(self.id)
@@ -79,9 +82,12 @@ class Trade(models.Model):
         user = User.objects.get(visitor_id=user_id)
         trade,state = cls.objects.get_or_create(pk=trade_id,user=user)
         if state:
-            response    = apis.taobao_trade_fullinfo_get(tid=trade_id,tb_user_id=user_id)
-            trade_dict  = response['trade_fullinfo_get_response']['trade']
-            trade = Trade.save_trade_through_dict(user_id,trade_dict)
+            try:
+                response    = apis.taobao_trade_fullinfo_get(tid=trade_id,tb_user_id=user_id)
+                trade_dict  = response['trade_fullinfo_get_response']['trade']
+                trade = Trade.save_trade_through_dict(user_id,trade_dict)
+            except Exception,exc:
+                logger.error('淘宝后台更新交易信息(tid:%s)出错'%str(trade_id),exc_info=True)
         return trade
 
 
@@ -90,6 +96,7 @@ class Trade(models.Model):
 
         trade,state = Trade.objects.get_or_create(pk=trade_dict['tid'])
         trade.user  = User.objects.get(visitor_id=user_id)
+        trade.seller_id   = user_id
         for k,v in trade_dict.iteritems():
             hasattr(trade,k) and setattr(trade,k,v)
 
@@ -99,7 +106,7 @@ class Trade(models.Model):
         trade.month = dt.month
         trade.day   = dt.day
         trade.week  = time.gmtime(time.mktime(dt.timetuple()))[7]/7+1
-
+        
         trade.created  = parse_datetime(trade_dict['created'])
         trade.pay_time = parse_datetime(trade_dict['pay_time']) \
                            if trade_dict.get('pay_time',None) else None
@@ -170,7 +177,7 @@ class Order(models.Model):
     status = models.CharField(max_length=32,blank=True)
 
     class Meta:
-        db_table = 'shop_order'
+        db_table = 'shop_orders_order'
 
     def __unicode__(self):
         return str(self.oid)
@@ -178,19 +185,7 @@ class Order(models.Model):
 
 
 
-class TradeExtraInfo(models.Model):
 
-    tid   =  models.BigIntegerField(primary_key=True)
-
-    is_update_amount = models.BooleanField(default=False)
-    is_picking_print = models.BooleanField(default=False)
-    is_send_sms      = models.BooleanField(default=False)
-
-    modified         = models.DateTimeField(auto_now=True)
-    seller_memo      = models.TextField(max_length=128,blank=True)
-
-    class Meta:
-        db_table = 'shop_tradeextrainfo'
 
 
 

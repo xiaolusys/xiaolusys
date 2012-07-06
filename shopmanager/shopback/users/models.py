@@ -1,3 +1,4 @@
+#-*- coding:utf8 -*-
 import time
 import json
 from django.db import models
@@ -53,7 +54,7 @@ class User(models.Model):
     status     = models.CharField(max_length=12,blank=True) #normal,inactive,delete,reeze,supervise
 
     class Meta:
-        db_table = 'shop_user'
+        db_table = 'shop_users_user'
 
 
     def __unicode__(self):
@@ -84,6 +85,14 @@ def add_taobao_user(sender, user,top_session,top_parameters, *args, **kwargs):
     """docstring for user_logged_in"""
     profile = user.get_profile()
     profile.populate_user_info(top_session,top_parameters)
+    #更新用户淘宝商品，以及分销平台商品
+    from shopback.items.tasks import updateUserItemsTask,updateUserProductSkuTask,saveUserItemsInfoTask
+    from shopback.fenxiao.tasks import saveUserFenxiaoProductTask
+    
+    updateUserItemsTask(profile.visitor_id)
+    updateUserProductSkuTask.delay(profile.visitor_id)
+    saveUserItemsInfoTask.delay(profile.visitor_id)
+    saveUserFenxiaoProductTask(profile.visitor_id)
 
 taobao_logged_in.connect(add_taobao_user)
   

@@ -1,3 +1,4 @@
+#-*- coding:utf8 -*-
 from django.http import HttpResponse,HttpResponseRedirect
 from django.conf import settings
 from django.core.urlresolvers import reverse
@@ -51,10 +52,12 @@ def login_taobo(request):
 def home(request):
 
     profile = request.user.get_profile()
-
-    response = apis.taobao_fenxiao_products_get(start_modified='2012-05-01 00:00:00',end_modified='2012-06-30 00:00:00',
-                                page_no=1,page_size=10,tb_user_id=profile.visitor_id)
-    print 'response:',response
+    
+    response = apis.taobao_fenxiao_products_get(pids=15664863,tb_user_id=profile.visitor_id)
+    print response
+    
+#    response = apis.taobao_item_get(num_iid=9265927875,tb_user_id=profile.visitor_id)
+#    print 'response:',response
 #    response = apis.taobao_fenxiao_orders_get(page_no=1,
 #                time_type='trade_time_type',page_size=10,start_created='2012-06-01',end_created='2012-06-30',tb_user_id=profile.visitor_id)
 #    print 'response:',response
@@ -69,6 +72,6 @@ def home(request):
 #        trade_info = apis.taobao_trade_amount_get(tid=t['tid'],session=profile.top_session)
 #        print trade_info
 
-    return HttpResponseRedirect('/autolist/')
+    return HttpResponseRedirect('/app/autolist/')
 
 

@@ -30,7 +30,7 @@ def updateItemNumTask(itemNumTask_id):
 
     for item in items:
         try:
-            user = User.objects.get(visitor_id=item.user_id)
+            #user = User.objects.get(visitor_id=item.user_id)
 
             item.num -= itemNumTask.num
 
@@ -46,12 +46,12 @@ def updateItemNumTask(itemNumTask_id):
                         sku['quantity'] -= itemNumTask.num
 
                         response = apis.taobao_item_quantity_update\
-                                (num_iid=item.num_iid,quantity=sku['quantity'],sku_id=sku['sku_id'],session=user.top_session)
+                                (num_iid=item.num_iid,quantity=sku['quantity'],sku_id=sku['sku_id'],tb_user_id=item.user_id)
                         item.skus = json.dumps(skus)
                         break
 
             else:
-                response = apis.taobao_item_update(num_iid=item.num_iid,num=item.num,session=user.top_session)
+                response = apis.taobao_item_update(num_iid=item.num_iid,num=item.num,tb_user_id=item.user_id)
 
             if response.has_key('error_response'):
                 logger.error('Executing UpdateItemNumTask(num_iid:%s) errorresponse:%s' %(item.num_iid,response))
@@ -91,22 +91,13 @@ def execAllItemNumTask():
 @task(max_retries=3)
 def pullPerUserTradesTask(user_id,start_created,end_created):
 
-    try:
-        user = User.objects.get(pk=user_id)
-
-    except User.DoesNotExist:
-        logger.error('Executing pullPerUserTrades error:%s' %(exc), exc_info=True)
-        return
-
-    refresh_session(user,settings.APPKEY,settings.APPSECRET,settings.REFRESH_URL)
-
     has_next = True
     cur_page = 1
     order_obj = Order()
 
     while has_next:
         try:
-            response = apis.taobao_trades_sold_increment_get(session=user.top_session,page_no=cur_page,use_has_next='true',
+            response = apis.taobao_trades_sold_increment_get(tb_user_id=user_id,page_no=cur_page,use_has_next='true',
                     page_size=settings.TAOBAO_PAGE_SIZE,start_modified=start_created,end_modified=end_created)
 
             trades = response['trades_sold_increment_get_response']

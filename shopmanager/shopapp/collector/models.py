@@ -22,7 +22,7 @@ class ProductPageRank(models.Model):
     rank = models.IntegerField()
 
     class Meta:
-        db_table = 'shop_app_product_pagerank'
+        db_table = 'shop_collector_pagerank'
 
 
 
@@ -47,4 +47,4 @@ class ProductTrade(models.Model):
     hour = models.IntegerField(null=True,db_index=True)
 
     class Meta:
-        db_table = 'shop_app_product_trade'
+        db_table = 'shop_collector_producttrade'

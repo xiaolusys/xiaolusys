@@ -38,7 +38,7 @@ def update_user_item(request):
         Item.objects.get(num_iid=None)
     except Item.DoesNotExist:
         try:
-            response = apis.taobao_item_get(num_iid=num_iid,session=profile.top_session)
+            response = apis.taobao_item_get(num_iid=num_iid,tb_user_id=profile.visitor_id)
             item_dict = response['item_get_response']['item']
             item = Item.save_item_through_dict(user_id,item_dict)
 
@@ -47,3 +47,5 @@ def update_user_item(request):
 
     item_dict = {'code':1,'reponse':Serializer().serialize(item)}
     return  HttpResponse(json.dumps(item_dict,cls=DjangoJSONEncoder))
+
+

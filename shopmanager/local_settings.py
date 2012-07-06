@@ -48,14 +48,15 @@ INSTALLED_APPS = (
     'deamon',
     'deamon.celery_sentry',
 
+    'shopback.users',
+    'shopback.items',
+    'shopback.amounts',
     'shopback.categorys',
     'shopback.fenxiao',
-    'shopback.items',
     'shopback.logistics',
     'shopback.monitor',
     'shopback.orders',
     'shopback.refunds',
-    'shopback.users',
 
 
     'shopapp.autolist',
@@ -69,8 +70,8 @@ INSTALLED_APPS = (
 )
 
 
-APPKEY = '12686373'
-APPSECRET = '9179d4bea89b0712c9397b073ce17535'
+APPKEY = '21036602'
+APPSECRET = 'daa98d080842335088c3b80c2676b005'
 
 #APPKEY = '12686841'
 #APPSECRET = '501b8d23212601443eec4fef13e7c84d'

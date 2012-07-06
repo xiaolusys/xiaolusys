@@ -9,13 +9,11 @@ from shopback.orders.renderers import OrderNumPiovtChartHtmlRenderer
 
 urlpatterns = patterns('shopback.orders.views',
 
-   url('update/(?P<dt_f>[^/]+)/(?P<dt_t>[^/]+)/$','update_interval_trade',name='interval_trade'),
-
-   (r'^ordernum/pivotchart/(?P<dt_f>[^/]+)/(?P<dt_t>[^/]+)/$',UserHourlyOrderView.as_view(
-        resource=ChartsResource,
-        renderers=(ChartJSONRenderer,ChartTemplateRenderer,OrderNumPiovtChartHtmlRenderer,),
-        authentication=(UserLoggedInAuthentication,),
-        permissions=(IsAuthenticated,)
-    )),
+    url('amount/update/(?P<dt_f>[^/]+)/(?P<dt_t>[^/]+)/$','update_finish_trade_amount',name='finish_trade_amount'),
 )
-  
+
+
+
+
+
+

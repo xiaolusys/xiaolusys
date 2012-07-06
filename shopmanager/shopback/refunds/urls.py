@@ -6,6 +6,6 @@ __author__ = 'meixqhi'
 
 urlpatterns = patterns('shopback.refunds.views',
 
-    url('refund/(?P<dt_f>[^/]+)/(?P<dt_t>[^/]+)/$','update_interval_refunds',name='interval_refund'),
+    url('update/(?P<dt_f>[^/]+)/(?P<dt_t>[^/]+)/$','update_interval_refunds',name='interval_refund'),
 
 )

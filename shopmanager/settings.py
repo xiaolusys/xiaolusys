@@ -103,6 +103,7 @@ INSTALLED_APPS = (
     'deamon',
     'deamon.celery_sentry',
 
+    'shopback.amounts',
     'shopback.categorys',
     'shopback.fenxiao',
     'shopback.items',

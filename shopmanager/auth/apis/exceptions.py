@@ -48,6 +48,10 @@ class UserFenxiaoUnuseException(TaobaoRequestException):
     'msg': u'Remote service error',
     'sub_code': u'isv.invalid-parameter:user_id_num',
     'sub_msg': u'\u7528\u6237\u6570\u5b57ID\u4e0d\u5408\u6cd5\uff0c\u6216\u8005\u4e0d\u662f\u5206\u9500\u5e73\u53f0\u7528\u6237'}
+    {u'code': 15,
+     u'msg': u'Remote service error',
+     u'sub_code': u'isv.invalid-parameter:user_id_num',
+     u'sub_msg': u'\u7528\u6237\u6570\u5b57ID\u4e0d\u5408\u6cd5\uff0c\u6216\u8005\u4e0d\u662f\u5206\u9500\u5e73\u53f0\u7528\u6237'}
     """
 
 

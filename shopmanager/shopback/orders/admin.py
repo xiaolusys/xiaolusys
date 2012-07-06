@@ -1,5 +1,5 @@
 from django.contrib import admin
-from shopback.orders.models import Order,Trade,TradeExtraInfo
+from shopback.orders.models import Order,Trade
 
 
 
@@ -29,7 +29,7 @@ class TradeAdmin(admin.ModelAdmin):
     list_display_links = ('id','buyer_nick','payment','status')
     #list_editable = ('update_time','task_type' ,'is_success','status')
 
-    date_hierarchy = 'created'
+    date_hierarchy = 'consign_time'
     #ordering = ['created_at']
 
     list_filter = ('type','status',)
@@ -40,18 +40,7 @@ admin.site.register(Trade, TradeAdmin)
 
 
 
-class TradeExtraInfoAdmin(admin.ModelAdmin):
-    list_display = ('tid','is_update_amount','is_picking_print','is_send_sms','modified','seller_memo')
-    list_display_links = ('tid',)
-    #list_editable = ('update_time','task_type' ,'is_success','status')
 
-    date_hierarchy = 'modified'
-
-    list_filter = ('is_update_amount','is_picking_print','is_send_sms')
-    search_fields = ['tid',]
-
-
-admin.site.register(TradeExtraInfo, TradeExtraInfoAdmin)
 
 
 

@@ -20,15 +20,15 @@ admin.site.register(Item, ItemAdmin)
 
 
 class ProductAdmin(admin.ModelAdmin):
-    list_display = ('outer_id','name','user','category','collect_num','price','created','modified')
-    list_display_links = ('outer_id', 'name')
-    #list_editable = ('update_time','task_type' ,'is_success','status')
+    list_display = ('outer_id','name','category','collect_num','price','created','modified')
+    list_display_links = ('outer_id',)
+    list_editable = ('name','collect_num','price')
 
     date_hierarchy = 'modified'
     #ordering = ['created_at']
 
 
-    list_filter = ('category','user')
+    list_filter = ('category',)
     search_fields = ['outer_id', 'name']
 
 
@@ -37,8 +37,8 @@ admin.site.register(Product, ProductAdmin)
 
 class ProductSkuAdmin(admin.ModelAdmin):
     list_display = ('outer_id','product','quantity','properties_name','properties','status')
-    list_display_links = ('outer_id', 'product')
-    #list_editable = ('update_time','task_type' ,'is_success','status')
+    list_display_links = ('outer_id', 'product',)
+    list_editable = ('quantity',)
 
     #date_hierarchy = 'modified'
     #ordering = ['created_at']

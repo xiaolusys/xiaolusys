@@ -9,9 +9,9 @@ import logging
 logger = logging.getLogger('categoreys.handler')
 
 @task(max_retry=3)
-def RecurUpdateCategoreyTask(top_session,cid):
+def RecurUpdateCategoreyTask(user_id,cid):
     try:
-        response = apis.taobao_itemcats_get(parent_cid=cid,session=top_session)
+        response = apis.taobao_itemcats_get(parent_cid=cid,tb_user_id=user_id)
 
         categories = response['itemcats_get_response'].get('item_cats',None)
 
@@ -27,7 +27,7 @@ def RecurUpdateCategoreyTask(top_session,cid):
                 category.save()
 
                 if cat['is_parent']:
-                    subtask(RecurUpdateCategoreyTask).delay(top_session,cat['cid'])
+                    subtask(RecurUpdateCategoreyTask).delay(user_id,cat['cid'])
     except Exception,exc:
 
         logger.error('RecurUpdateCategoreyTask error:%s' %(exc), exc_info=True)

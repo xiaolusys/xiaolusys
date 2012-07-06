@@ -9,6 +9,7 @@ from shopback.refunds.models import Refund
 from auth.apis.exceptions import RemoteConnectionException,AppCallLimitedException,UserFenxiaoUnuseException,\
     APIConnectionTimeOutException,ServiceRejectionException
 from shopback.users.models import User
+from auth import apis
 import logging
 __author__ = 'meixqhi'
 
@@ -24,47 +25,24 @@ def saveUserRefundOrderTask(user_id,update_from=None,update_to=None):
 
     has_next = True
     cur_page = 1
-    error_times = 0
 
     while has_next:
-        try:
-            response_list = apis.taobao_refunds_receive_get(tb_user_id=user_id,page_no=cur_page,
-                 page_size=settings.TAOBAO_PAGE_SIZE,start_modified=update_from,end_modified=update_to)
 
-            refund_list = response_list['refunds_receive_get_response']
-            if refund_list['total_results']>0:
-                for r in refund_list['refunds']['refund']:
+        response_list = apis.taobao_refunds_receive_get(tb_user_id=user_id,page_no=cur_page,
+             page_size=settings.TAOBAO_PAGE_SIZE,start_modified=update_from,end_modified=update_to)
 
-                    refund,state = Refund.objects.get_or_create(pk=r['refund_id'])
-                    refund.save_refund_through_dict(user_id,r)
+        refund_list = response_list['refunds_receive_get_response']
+        if refund_list['total_results']>0:
+            for r in refund_list['refunds']['refund']:
 
-            total_nums = refund_list['total_results']
-            cur_nums = cur_page*settings.TAOBAO_PAGE_SIZE
-            has_next = cur_nums<total_nums
-            cur_page += 1
-            error_times = 0
-            time.sleep(settings.API_REQUEST_INTERVAL_TIME)
+                refund,state = Refund.objects.get_or_create(pk=r['refund_id'])
+                refund.save_refund_through_dict(user_id,r)
 
-        except RemoteConnectionException,e:
-            if error_times > settings.MAX_REQUEST_ERROR_TIMES:
-                logger.error('update trade during order fail:%s ,repeat times:%d'%(response_list,error_times))
-                raise e
-            error_times += 1
-        except APIConnectionTimeOutException,e:
-            if error_times > settings.MAX_REQUEST_ERROR_TIMES:
-                logger.error('update trade during order fail:%s ,repeat times:%d'%(response_list,error_times))
-                raise e
-            error_times += 1
-            time.sleep(settings.API_TIME_OUT_SLEEP)
-        except ServiceRejectionException,e:
-            if error_times > settings.MAX_REQUEST_ERROR_TIMES:
-                logger.error('update trade during order fail:%s ,repeat times:%d'%(response_list,error_times))
-                raise e
-            error_times += 1
-            time.sleep(settings.API_OVER_LIMIT_SLEEP)
-        except AppCallLimitedException,e:
-            logger.error('update refund orders fail',exc_info=True)
-            raise e
+        total_nums = refund_list['total_results']
+        cur_nums = cur_page*settings.TAOBAO_PAGE_SIZE
+        has_next = cur_nums<total_nums
+        cur_page += 1
+        
 
 
 
@@ -84,4 +62,11 @@ def updateAllUserRefundOrderTask(days=0,update_from=None,update_to=None):
             saveUserRefundOrderTask(user.visitor_id,update_from=update_from,update_to=update_to)
         else:
             subtask(saveUserRefundOrderTask).delay(user.visitor_id,update_from=update_from,update_to=update_to)
+            
+            
+                       
+                        
+
+            
+            
   

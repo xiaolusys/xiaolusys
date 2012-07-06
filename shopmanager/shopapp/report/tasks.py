@@ -6,19 +6,21 @@ import calendar
 from celery.task import task
 from celery.task.sets import subtask
 from django.conf import settings
-from shopback.fenxiao.models import PurchaseOrder
-from shopback.refunds.models import Refund
-from shopapp.report.models   import MonthTradeReportStatus
-from shopback.users.models import User
-from shopback.items.models import Item
+from shopback.orders.tasks import saveUserDuringOrdersTask,saveUserIncrementOrdersTask
+from shopback.fenxiao.tasks import saveUserPurchaseOrderTask,saveUserIncrementPurchaseOrderTask
+from shopback.refunds.tasks import saveUserRefundOrderTask
+from shopback.logistics.tasks import saveUserOrdersLogisticsTask,saveUserUnfinishOrdersLogisticsTask
+from shopback.amounts.tasks import updatePurchaseOrdersAmountTask,updateOrdersAmountTask
+from shopapp.report.models import MonthTradeReportStatus
 from shopapp.report.reportform import TradesToXLSFile
 from auth.utils import format_time,parse_datetime,format_datetime,format_date,format_year_month
+from shopback.users.models import User
 import logging
 
 logger = logging.getLogger('report.handler')
 
-
-
+BLANK_CHAR = ''
+MONTH_TRADE_FILE_TEMPLATE = 'trade-month-%s.xls'
 
 
 @task()
@@ -47,30 +49,37 @@ def updateMonthTradeXlsFileTask(year=None,month=None):
         return {'error':'%s is already exist or must be ten days from last month at lest!'%file_name}
 
     start_date   = last_month_first_days - datetime.timedelta(7,0,0)
-
+    
+    interval_date = dt - start_date
     users = User.objects.all()
     for user in users:
         report_status,state = MonthTradeReportStatus.objects.get_or_create\
                 (seller_id=user.visitor_id,year=year,month=month)
         try:
             if not report_status.update_order:
-                saveUserDuringOrders(user.visitor_id,update_from=start_date,update_to=dt)
+                for i in xrange(0,interval_date.days+1):
+                    update_date = start_date + datetime.timedelta(i,0,0)
+                    saveUserIncrementOrdersTask(
+                        user.visitor_id,year=update_date.year,month=update_date.month,day=update_date.day)
                 report_status.update_order = True
 
             if not report_status.update_purchase:
-                interval_date = dt - start_date
-                for i in range(0,interval_date.days/7+1):
-                    dt_f = start_date + datetime.timedelta(i*7,0,0)
-                    dt_t = start_date + datetime.timedelta((i+1)*7,0,0)
-                    saveUserPurchaseOrderTask(user.visitor_id,update_from=dt_f,update_to=dt_t)
+                for i in xrange(0,interval_date.days+1):
+                    update_date = start_date + datetime.timedelta(i,0,0)
+                    saveUserIncrementPurchaseOrderTask(
+                        user.visitor_id,year=update_date.year,month=update_date.month,day=update_date.day)
                 report_status.update_purchase = True
 
             if not report_status.update_amount:
                 updateOrdersAmountTask(user.visitor_id,update_from=last_month_first_days,update_to=dt)
                 report_status.update_amount = True
+            
+            if not report_status.update_purchase_amount:
+                updatePurchaseOrdersAmountTask(user.visitor_id,update_from=last_month_first_days,update_to=dt)
+                report_status.update_purchase_amount = True
 
             if not report_status.update_logistics:
-                saveUserOrdersLogisticsTask(user.visitor_id,update_from=last_month_first_days,update_to=last_month_last_days)
+                saveUserUnfinishOrdersLogisticsTask(user.visitor_id,update_from=last_month_first_days,update_to=last_month_last_days)
                 report_status.update_logistics = True
 
             if not report_status.update_refund:

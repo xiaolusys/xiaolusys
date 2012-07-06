@@ -22,7 +22,7 @@ class TradeRule(models.Model):
 
     items        = models.ManyToManyField(Item,related_name='rules',symmetrical=False,db_table='shop_app_itemrulemap')
     class Meta:
-        db_table = 'shop_app_traderule'
+        db_table = 'shop_memorule_traderule'
         verbose_name = u'\u8ba2\u5355\u89c4\u5219'
 
 
@@ -42,7 +42,7 @@ class RuleFieldType(models.Model):
     default_value = models.TextField(max_length=256,blank=True)
 
     class Meta:
-        db_table = 'shop_app_rulefieldtype'
+        db_table = 'shop_memorule_rulefieldtype'
 
     def __unicode__(self):
         return self.field_name+self.field_type
@@ -59,7 +59,7 @@ class ProductRuleField(models.Model):
     custom_default = models.TextField(max_length=256,blank=True)
 
     class Meta:
-        db_table = 'shop_app_productrulefield'
+        db_table = 'shop_memorule_productrulefield'
 
     @property
     def alias(self):

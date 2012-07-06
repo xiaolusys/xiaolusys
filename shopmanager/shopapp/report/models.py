@@ -13,11 +13,12 @@ class MonthTradeReportStatus(models.Model):
     update_order    = models.BooleanField(default=False)
     update_purchase = models.BooleanField(default=False)
     update_amount   = models.BooleanField(default=False)
+    update_purchase_amount = models.BooleanField(default=False)
     update_logistics  = models.BooleanField(default=False)
     update_refund   = models.BooleanField(default=False)
 
     created = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        db_table = 'shop_app_monthreportstatus'
+        db_table = 'shop_report_monthreportstatus'
         unique_together = ("seller_id","year","month")

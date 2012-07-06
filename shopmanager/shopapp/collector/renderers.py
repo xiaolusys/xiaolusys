@@ -81,9 +81,5 @@ class TradeTopChartHtmlRenderer(RankChartHtmlRenderer):
 
 
 
-class OrderNumPiovtChartHtmlRenderer(RankChartHtmlRenderer):
-    """
-    Renderer which serializes to JSON
-    """
-    template = ""
+
 

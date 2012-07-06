@@ -1,4 +1,4 @@
-#encoding:utf8
+#-*- coding:utf8 -*-
 __author__ = 'meixqhi'
 import json
 import time
@@ -7,8 +7,10 @@ from django.db import models
 from shopback.base.models import BaseModel
 from shopback.base.fields import BigIntegerAutoField,BigIntegerForeignKey
 from shopback.users.models import User
+from shopback.monitor.models import TradeExtraInfo
+from auth import apis
 
-
+LOGISTICS_FINISH_STATUS = ['ACCEPTED_BY_RECEIVER']
 
 class Logistics(models.Model):
 
@@ -48,20 +50,46 @@ class Logistics(models.Model):
     status   =  models.CharField(max_length=32,blank=True)
 
     class Meta:
-        db_table = 'shop_logistic'
+        db_table = 'shop_logistics_logistic'
 
     def __unicode__(self):
         return self.company_name
+    
+    @classmethod
+    def get_or_create(cls,user_id,tid):
+        logistic,state = cls.objects.get_or_create(tid=tid)
+        if state:
+            try:
+                response = apis.taobao_logistics_orders_detail_get(tid=tid,tb_user_id=user_id)
+                logistic_dict = response['logistics_orders_detail_get_response']['shippings']['shippings'][0]
+                logistic = cls.save_logistics_through_dict(user_id, logistic_dict)
+            except Exception,exc:
+                logger.error('淘宝后台更新交易(tid:%s)物流信息出错'%str(trade_id),exc_info=True)
+        return logistic
+        
+    
+    @classmethod
+    def save_logistics_through_dict(cls,user_id,logistic_dict):
+        
+        logistic,state = cls.objects.get_or_create(tid=logistic_dict['tid'])
+        logistic.user = User.objects.get(visitor_id=user_id)
+        for k,v in logistic_dict.iteritems():
+            hasattr(logistic,k) and setattr(logistic,k,v)
 
-    def save_logistics_through_dict(self,user_id,t):
-
-        self.user = User.objects.get(visitor_id=user_id)
-        for k,v in t.iteritems():
-            hasattr(self,k) and setattr(self,k,v)
-
-        self.location       = json.dumps(t.get('location',None))
-        self.delivery_start = parse_datetime(t['delivery_start']) if t.get('delivery_start',None) else None
-        self.delivery_end   = parse_datetime(t['delivery_end']) if t.get('delivery_end',None) else None
-        self.created        = parse_datetime(t['created']) if t.get('created',None) else None
-        self.modified       = parse_datetime(t['modified']) if t.get('modified',None) else None
-        self.save()
+        logistic.location       = json.dumps(logistic_dict.get('location',None))
+        logistic.delivery_start = parse_datetime(logistic_dict['delivery_start'])\
+            if logistic_dict.get('delivery_start',None) else None
+        logistic.delivery_end   = parse_datetime(logistic_dict['delivery_end'])\
+            if logistic_dict.get('delivery_end',None) else None
+        logistic.created        = parse_datetime(logistic_dict['created'])\
+            if logistic_dict.get('created',None) else None
+        logistic.modified       = parse_datetime(logistic_dict['modified'])\
+            if logistic_dict.get('modified',None) else None
+        logistic.save()
+        
+        if logistic_dict['status'] in LOGISTICS_FINISH_STATUS:
+            trade_extra_info,state = TradeExtraInfo.objects.get_or_create(tid=logistic_dict['tid'])
+            trade_extra_info.is_update_logistic = True
+            trade_extra_info.save()
+        return logistic
+        

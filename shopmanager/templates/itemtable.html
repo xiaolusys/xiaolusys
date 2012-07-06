@@ -1,8 +1,12 @@
 {% extends "base.html" %}
 
+{% block style %}
+<link href="{{ STATIC_URL }}css/autolist.css" rel="stylesheet/less" type="text/css" />
+{% endblock %}
+    
 {% block title%} 商品列表 {% endblock %}
-{% block content %}
-<div>
+{% block container %}
+<div class='list_top'>
 
 <div>
 <button type=button onclick="window.open('/autolist/timetable/','_blank');return false;">上架时间表</button><button type=button onclick="window.open('/autolist/logs/','_blank');return false;">操作记录</button>

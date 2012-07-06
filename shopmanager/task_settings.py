@@ -31,54 +31,73 @@ from celery.schedules import crontab
 
 
 SYNC_MODEL_SCHEDULE = {
-    'runs-every-hours':{
-        'task':'shopback.orders.tasks.updateAllUserDuringOrders',
+    'runs-every-hours-wait-post-orders':{
+        'task':'shopback.orders.tasks.updateAllUserDuringOrdersTask',
         'schedule':crontab(minute="0,30"),
-        'args':(0,)
+        'args':(None,None,'WAIT_SELLER_SEND_GOODS')
     },
-    'runs-every-day-b':{
-        'task':'shopback.orders.tasks.updateAllUserDailyIncrementOrders',
-        'schedule':crontab(minute="0",hour="0"),
-        'args':(),
+    'runs-every-hours-wait-post-purchase_orders':{
+        'task':'shopback.fenxiao.tasks.updateAllUserPurchaseOrderTask',
+        'schedule':crontab(minute="0,30"),
+        'args':(None,None,'WAIT_SELLER_SEND_GOODS'),
     },
-    'runs-every-weeks-b':{
-        'task':'shopback.orders.tasks.updateAllUserOrdersAmountTask',
-        'schedule':crontab(minute="0",hour="1",day_of_week="mon"),
-        'args':(7,)
+    'runs-every-day-orders':{
+        'task':'shopback.orders.tasks.updateAllUserIncrementOrdersTask',
+        'schedule':crontab(minute="0",hour="1"),
+        'args':(None,None),
     },
-    'runs-every-weeks-c':{
-        'task':'shopback.items.tasks.updateUserItemsTask',
-        'schedule':crontab(minute="0",hour="1",day_of_week='tue'),
-        'args':()
+    'runs-every-day-logistics':{
+        'task':'shopback.logistics.tasks.updateAllUserOrdersLogisticsTask',
+        'schedule':crontab(minute="0",hour="2"),
+        'args':(None,None)
     },
-    'runs-every-weeks-d':{
+    'runs-every-day-purchase-orders':{
+        'task':'shopback.fenxiao.tasks.updateAllUserIncrementPurchaseOrderTask',
+        'schedule':crontab(minute="30",hour="1"),
+        'args':(None,None),
+    },                   
+    'runs-every-weeks-order-amount':{
+        'task':'shopback.amounts.tasks.updateAllUserOrdersAmountTask',
+        'schedule':crontab(minute="0",hour="2",day_of_week="mon"),
+        'args':(7,None,None)
+    },
+    'runs-every-weeks-purchase-order-amount':{
+        'task':'shopback.amounts.tasks.updateAllUserPurchaseOrdersAmountTask',
+        'schedule':crontab(minute="30",hour="2",day_of_week='mon'),
+        'args':(7,None,None)
+    },
+    'runs-every-weeks-item-entity':{
         'task':'shopback.items.tasks.updateAllUserItemsEntityTask',
-        'schedule':crontab(minute="0",hour="2",day_of_week='tue'),
+        'schedule':crontab(minute="0",hour="3",day_of_week='tue'),
         'args':()
     },
-
+    'runs-every-weeks-purchase-product':{
+        'task':'shopback.fenxiao.tasks.updateAllUserFenxiaoProductTask',
+        'schedule':crontab(minute="30",hour="3",day_of_week='tue'),
+        'args':()
+    },                   
 }
 
 
 SHOP_APP_SCHEDULE = {
-    'runs-every-10-minutes':{
+    'runs-every-5-minutes-item-list':{
         'task':'shopapp.autolist.tasks.updateAllItemListTask',
         'schedule':crontab(minute='*/5'),
         'args':(),
     },
-    'runs-every-30-minutes-a':{
+    'runs-every-30-minutes-keyword-pagerank':{
         'task':'shopapp.collector.tasks.updateItemKeywordsPageRank',
         'schedule':crontab(minute="0,30",hour=','.join([str(i) for i in range(7,24)])),
         'args':()
     },
-    'runs-every-day-d':{
+    'runs-every-day-delete_keyword':{
         'task':'shopapp.collector.tasks.deletePageRankRecordTask',
         'schedule':crontab(minute="0",hour="1"),
         'args':(30,)
     },
-    'runs-every-day-e':{
+    'runs-every-day-trade-report-file':{
         'task':'shopapp.report.tasks.updateMonthTradeXlsFileTask',
-        'schedule':crontab(minute="0",hour="1"),
+        'schedule':crontab(minute="0",hour="4"),
         'args':()
     },
 #    'runs-every-day-a':{

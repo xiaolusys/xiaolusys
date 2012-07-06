@@ -1,9 +1,9 @@
+#-*- coding:utf8 -*-
 from django.db import models
 from auth import apis
-from shopback.users.models import User
 import logging
 
-logger = logging.getLogger('category.update')
+logger = logging.getLogger('categorys.handler')
 
 class Category(models.Model):
 
@@ -16,7 +16,7 @@ class Category(models.Model):
     sort_order = models.IntegerField(null=True)
 
     class Meta:
-        db_table = 'product_category'
+        db_table = 'shop_categorys_category'
 
 
     def __unicode__(self):
@@ -34,6 +34,6 @@ class Category(models.Model):
                     hasattr(category,key) and setattr(category,key,value)
                 category.save()
             except Exception,exc:
-                logger.error('update category id:%s error'%str(cat_id),exc_info=True)
+                logger.error('淘宝后台更新该类目(cat_id:%s)出错'%str(cat_id),exc_info=True)
 
         return category

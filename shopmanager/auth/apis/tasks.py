@@ -1,11 +1,15 @@
+#-*- coding:utf8 -*-
+__author__ = 'meixqhi'
 import re
 import inspect
 import copy
+import time
 import datetime
 import json
 import urllib
 import urllib2
 from django.conf import settings
+from django.core.cache import cache
 from auth.utils import getSignatureTaoBao,format_datetime,format_date,refresh_session
 from auth.apis.exceptions import TaobaoRequestException,RemoteConnectionException,UserFenxiaoUnuseException,\
     AppCallLimitedException,APIConnectionTimeOutException,ServiceRejectionException
@@ -48,7 +52,6 @@ API_FIELDS = {
     'taobao.trade.fullinfo.get':'seller_nick,buyer_nick,title,type,created,tid,status,modified,payment,received_payment,adjust_fee,post_fee,total_fee,commission_fee,discount_fee'
         +',buyer_obtain_point_fee,pic_path,buyer_email,seller_alipay_no,num_iid,num,price,orders',
     'taobao.trade.amount.get':'tid,alipay_no,created,pay_time,end_time,total_fee,payment,post_fee,cod_fee,commission_fee,buyer_obtain_point_fee,order_amounts,promotion_details',
-    'taobao.itemcats.get':'cid,parent_cid,name,is_parent,status,sort_order',
     'taobao.logistics.orders.detail.get':'tid,order_code,is_quick_cod_order,out_sid,company_name,seller_id,seller_nick,buyer_nick,item_title,delivery_start,delivery_end'
         +',receiver_name,receiver_phone,receiver_mobile,location,type,created,modified,seller_confirm,company_name,is_success,freight_payer,status',
     'taobao.logistics.orders.get':'tid,seller_nick,buyer_nick,delivery_start, delivery_end,out_sid,item_title,receiver_name, created,modified,status,type,freight_payer,seller_confirm,company_name',
@@ -78,7 +81,7 @@ def raise_except_or_ret_json(content):
         elif code == 520 and  reject_regex.match(sub_code):
             raise ServiceRejectionException(
                 code=code,msg=msg,sub_code=sub_code,sub_msg=sub_msg)
-        elif code == 670 and sub_code == u'isv.invalid-parameter:user_id_num':
+        elif code == 670 or code == 15 and sub_code == u'isv.invalid-parameter:user_id_num':
             raise UserFenxiaoUnuseException(
                     code=code,msg=msg,sub_code=sub_code,sub_msg=sub_msg)
         elif code == 7 and sub_code == u'accesscontrol.limited-by-app-access-count':
@@ -90,15 +93,48 @@ def raise_except_or_ret_json(content):
     return content
 
 
-def apis(api_method,method='GET'):
+def apis(api_method,method='GET',max_retry=3,limit_rate=0.5):
     """ docstring for tengxun apis """
     def decorator(func):
         """ docstring for decorator """
+        
+        def retry_func(fn):
+            def wrap(*args,**kwargs):
+                acquire_lock = lambda: cache.add(api_method, "true", limit_rate)
+                try_times = 0
+                for i in xrange(0,max_retry):
+                    if not acquire_lock():
+                        time.sleep(limit_rate)
+                    try:
+                        return fn(*args,**kwargs)
+                    except RemoteConnectionException,e:
+                        try_times += 1
+                        if try_times >= max_retry:
+                            logger.error('远程连接异常：%s ,重试次数：%d'%
+                                         (response_list,try_times))
+                            raise e    
+                    except APIConnectionTimeOutException,e:
+                        try_times += 1
+                        if try_times >= max_retry:
+                            logger.error('连接超时：%s ,重试次数：%d'%
+                                         (response_list,try_times))
+                            raise e
+                        time.sleep(settings.API_TIME_OUT_SLEEP)
+                    except ServiceRejectionException,e:
+                        try_times += 1
+                        if try_times >= max_retry:
+                            logger.error('服务请求频率过快：%s ,重试次数：%d'%
+                                         (response_list,try_times))
+                            raise e
+                        time.sleep(settings.API_OVER_LIMIT_SLEEP)
+            return wrap
+                    
+        
         func_args = copy.copy(inspect.getargspec(func).args)
         func_defaults = copy.copy(inspect.getargspec(func).defaults)
         def decorate(*args,**kwargs):
             """ docstring for decorate """
-
+            
             timestamp = format_datetime(datetime.datetime.now())
             params = {
                 'method':api_method,
@@ -148,8 +184,8 @@ def apis(api_method,method='GET'):
                 content = req.read()
 
             return raise_except_or_ret_json(content)
-
-        return decorate
+        
+        return retry_func(decorate)
 
     return decorator
 
@@ -248,12 +284,12 @@ def taobao_item_recommend_add(num_iid=None,tb_user_id=None):
 
 ############# trades apis ###################
 
-@apis('taobao.trades.sold.get')
+@apis('taobao.trades.sold.get',max_retry=20,limit_rate=10)
 def taobao_trades_sold_get(start_created=None,end_created=None,page_no=None,page_size=None,use_has_next=None,
                            fields=API_FIELDS['taobao.trades.sold.get'],tb_user_id=None):
     pass
 
-@apis('taobao.trades.sold.increment.get')
+@apis('taobao.trades.sold.increment.get',max_retry=20,limit_rate=10)
 def taobao_trades_sold_increment_get(start_modified=None,end_modified=None,page_no=None,page_size=None,use_has_next=None,
                                      fields=API_FIELDS['taobao.trades.sold.get'],tb_user_id=None):
     pass
@@ -266,7 +302,7 @@ def taobao_trade_fullinfo_get(tid=None,fields=API_FIELDS['taobao.trade.fullinfo.
 def taobao_topats_trades_fullinfo_get(tids=None,fields=API_FIELDS['taobao.trade.fullinfo.get'],tb_user_id=None):
     pass
 
-@apis('taobao.trade.amount.get')
+@apis('taobao.trade.amount.get',max_retry=5,limit_rate=1)
 def taobao_trade_amount_get(tid=None,fields=API_FIELDS['taobao.trade.amount.get'],tb_user_id=None):
     pass
 
@@ -289,7 +325,7 @@ def taobao_itemcats_authorize_get(fields=API_FIELDS['taobao.itemcats.authorize.g
     pass
 
 ############# post apis ###################
-@apis('taobao.logistics.orders.detail.get')
+@apis('taobao.logistics.orders.detail.get',max_retry=10,limit_rate=5)
 def taobao_logistics_orders_detail_get(tid=None,seller_confirm='yes',start_created=None,end_created=None,page_no=None,page_size=None,
                                        fields=API_FIELDS['taobao.logistics.orders.detail.get'],tb_user_id=None):
     pass
@@ -300,7 +336,7 @@ def taobao_logistics_orders_get(tid=None,seller_confirm='yes',start_created=None
     pass
 
 @apis('taobao.logistics.online.send')
-def taobao_logistics_orders_get(tid=None,out_sid=None,company_code=None,sender_id=None,cancel_id=None,feature=None,tb_user_id=None):
+def taobao_logistics_online_send(tid=None,out_sid=None,company_code=None,sender_id=None,cancel_id=None,feature=None,tb_user_id=None):
     pass
 
 @apis('taobao.logistics.online.confirm')
@@ -309,17 +345,17 @@ def taobao_logistics_online_confirm(tid=None,out_sid=None,tb_user_id=None):
 
 
 ###############  fengxiao apis  ##################
-@apis('taobao.fenxiao.orders.get')
+@apis('taobao.fenxiao.orders.get',max_retry=20,limit_rate=20)
 def taobao_fenxiao_orders_get(start_created=None,end_created=None,time_type=None,purchase_order_id=None,
                               page_no=None,page_size=None,status=None,tb_user_id=None):
     pass
 
-@apis('taobao.fenxiao.products.get')
+@apis('taobao.fenxiao.products.get',max_retry=20,limit_rate=20)
 def taobao_fenxiao_products_get(outer_id=None,productcat_id=None,status=None,pids=None,item_ids=None,start_modified=None,end_modified=None,
                                 page_no=None,page_size=None,fields=API_FIELDS['taobao.fenxiao.products.get'],tb_user_id=None):
     pass
 ################  refund apis  ##################
-@apis('taobao.refunds.receive.get')
+@apis('taobao.refunds.receive.get',max_retry=20,limit_rate=20)
 def taobao_refunds_receive_get(status=None,start_modified=None,end_modified=None,type='guarantee_trade,auto_delivery,fenxiao',
                                page_no=None,page_size=None,fields=API_FIELDS['taobao.refunds.receive.get'],tb_user_id=None):
     pass

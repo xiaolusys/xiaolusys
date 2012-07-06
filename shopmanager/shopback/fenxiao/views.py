@@ -8,7 +8,7 @@ __author__ = 'meixqhi'
 
 
 @staff_requried(login_url='/admin/login/')
-def update_interval_purchase(request,dt_f,dt_t):
+def update_interval_purchases(request,dt_f,dt_t):
 
     dt_f = parse_date(dt_f)
     dt_t = parse_date(dt_t)
