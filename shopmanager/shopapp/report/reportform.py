@@ -54,6 +54,7 @@ TITLE_FIELDS = {
     "TOTAL_COMMISSION_FEE_MSG":'佣金',
     "TOTAL_REFUND_FEE_MSG":'退款',
     "MONTH_FINAL_AMOUNT":'到帐金额',
+    "UNFOUND_MSG":'未找到！',
 }
 
 
@@ -63,10 +64,10 @@ data_format = [
     ('trade.consign_time','M/D'),         #E
     ('logistics.out_sid','general'),      #F
     ('logistics.company_name','@'),       #G
-    ('float(trade.post_fee)','0.00'),     #H
-    ('float(trade.payment)','0.00'),           #I
-    ('int(trade.buyer_obtain_point_fee)','0'), #J
-    ('float(trade.commission_fee)','0.00'),    #K
+    ('float(trade_amount.post_fee)','0.00'),     #H
+    ('float(trade_amount.payment)','0.00'),           #I
+    ('int(trade_amount.buyer_obtain_point_fee)','0'), #J
+    ('float(trade_amount.commission_fee)','0.00'),    #K
     ('trade.status','@'),                      #L
 ]
 
@@ -77,8 +78,8 @@ purchase_format = [
     ('trade.consign_time','M/D'),                 #E
     ('trade.logistics_id','general'),             #F
     ('trade.logistics_company_name','@'),         #G
-    ('float(trade.post_fee)','0.00'),             #H
-    ('float(trade.distributor_payment)','0.00'),  #I
+    ('float(trade_amount.post_fee)','0.00'),             #H
+    ('float(trade_amount.payment)','0.00'),  #I
     ('int(0)','0'),                               #J
     ('int(0)','0.00'),                            #K
     ('trade.status','@'),                         #L
@@ -150,13 +151,13 @@ class TradesToXLSFile(object):
             seller_finish_trades = consign_trades.filter(
                 seller_id=seller_id,status__in=ORDER_SUCCESS_STATUS)
 
-            self.write_trades_to_sheet(sheet,seller_finish_trades,TITLE_FIELDS['TRADE_FINISH_MSG'])
+            self.write_trades_to_sheet(sheet,seller_id,seller_finish_trades,TITLE_FIELDS['TRADE_FINISH_MSG'])
 
             seller_purchase_trades = PurchaseOrder.objects.filter(
                 seller_id=seller_id,consign_time__gte=dt_from
                 ,consign_time__lte=dt_to,status__in = ORDER_SUCCESS_STATUS)
 
-            self.write_purchase_to_sheet(sheet,seller_purchase_trades)
+            self.write_purchase_to_sheet(sheet,seller_id,seller_purchase_trades)
 
             self.cur_row += 1
             self.write_trade_account(sheet,3,self.cur_row,seller_nick)
@@ -184,7 +185,7 @@ class TradesToXLSFile(object):
 
 
 
-    def write_trades_to_sheet(self,sheet,trades,trade_finish_title):
+    def write_trades_to_sheet(self,sheet,seller_id,trades,trade_finish_title):
 
         sheet.write_merge(self.cur_row,self.title_row,0,self.text_col,trade_finish_title,self.title_style)
         if trades.count()>0:
@@ -195,8 +196,8 @@ class TradesToXLSFile(object):
             for trade in trades:
                 self.cur_row += 1
 
-                logistics = self.get_logistics(trade.id)
-                
+                logistics = self.get_logistics(seller_id,trade.id)
+                trade_amount = self.get_trade_amount(seller_id,trade_id)
                 for data_num,data_tuple in enumerate(data_format):
                     try:
                         self.content_style.num_format_str = data_tuple[1]
@@ -211,20 +212,26 @@ class TradesToXLSFile(object):
 
 
 
-    def get_logistics(self,trade_id):
+    def get_logistics(self,seller_id,trade_id):
 
-        try:
-            logistics = Logistics.objects.get(tid=trade_id)
-        except Exception,exc:
-            logistics = Logistics()
-            logistics.out_sid = u'\u672a\u627e\u5230\uff01'
-            logistics.company_name = u'\u672a\u627e\u5230\uff01'
-
+        logistics = Logistics.get_or_create(seller_id,trade_id)
+        logistics.out_sid = logistics.out_sid if logistics.out_sid else TITLE_FIELDS['UNFOUND_MSG']
+        logistics.company_name = logistics.company_name if logistics.company_name else TITLE_FIELDS['UNFOUND_MSG']
         return logistics
+    
+    
+    def get_trade_amount(self,seller_id,trade_id):
+
+        trade_amount = TradeAmount.get_or_create(seller_id,trade_id)
+        trade_amount.post_fee = trade_amount.post_fee if trade_amount.post_fee else '0.00'
+        trade_amount.payment  = trade_amount.payment  if trade_amount.payment else '0.00'
+        trade_amount.commission_fee  = trade_amount.commission_fee  if trade_amount.commission_fee else '0.00'
+        trade_amount.buyer_obtain_point_fee  = trade_amount.buyer_obtain_point_fee\
+            if trade_amount.buyer_obtain_point_fee else '0.00'
+        return trade_amount
 
 
-
-    def write_purchase_to_sheet(self,sheet,trades):
+    def write_purchase_to_sheet(self,sheet,seller_id,trades):
 
         self.cur_row += 1
         sheet.write_merge(self.cur_row,self.title_row,0,2,
@@ -233,6 +240,7 @@ class TradesToXLSFile(object):
         if trades_len>0:
             for trade in trades:
                 self.cur_row += 1
+                trade_amount = self.get_trade_amount(seller_id,trade_id)
                 for data_num,data_tuple in enumerate(purchase_format):
                     try:
                         self.content_style.num_format_str = data_tuple[1]

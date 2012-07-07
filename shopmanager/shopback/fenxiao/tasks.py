@@ -1,4 +1,3 @@
-#-*- coding:utf8 -*-
 import time
 import datetime
 import calendar
@@ -41,7 +40,7 @@ def saveUserFenxiaoProductTask(user_id):
             cur_page += 1
     
     except UserFenxiaoUnuseException,exc:
-        logger.warn('当前用户(id:%s)不是分销平台用户'%str(user_id))
+        logger.warn('the current user(id:%s)is not fenxiao platform user'%str(user_id))
 
 
 
@@ -85,7 +84,7 @@ def saveUserPurchaseOrderTask(user_id,update_from=None,update_to=None,status=Non
                 cur_page += 1
 
     except UserFenxiaoUnuseException,exc:
-        logger.warn('当前用户（%s）未使用分销平台'%user_id)
+        logger.warn("the current user (id:%s) is not fenxiao platform user"%str(user_id))
  
 
 
@@ -142,7 +141,7 @@ def saveUserIncrementPurchaseOrderTask(user_id,year=None,month=None,day=None):
         day_monitor_status.save()
     
     except UserFenxiaoUnuseException,exc:
-        logger.warn('当前用户（%s）未使用分销平台'%user_id)
+        logger.warn("the current user(id:%s) is not fenxiao platform user"%str(user_id))
 
     
     

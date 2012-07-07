@@ -9,7 +9,7 @@ class TradeAmountAdmin(admin.ModelAdmin):
     #list_editable = ('update_time','task_type' ,'is_success','status')
 
     list_filter = ('user',)
-    date_hierarchy = 'end_time'
+    date_hierarchy = 'pay_time'
     search_fields = ['tid',]
 
 
