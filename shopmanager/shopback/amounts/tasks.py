@@ -4,7 +4,7 @@ import datetime
 from celery.task import task
 from celery.task.sets import subtask
 from django.conf import settings
-from shopback.orders.models import Order,Trade,ORDER_FINISH_STATUS
+from shopback.orders.models import Order,Trade,ORDER_OK_STATUS
 from shopback.monitor.models import TradeExtraInfo
 from shopback.fenxiao.models import PurchaseOrder
 from shopback.users.models import User
@@ -22,8 +22,8 @@ logger = logging.getLogger('orders.handler')
 @task()
 def updateOrdersAmountTask(user_id,update_from=None,update_to=None):
 
-    finish_trades = Trade.objects.filter(seller_id=user_id,consign_time__gte=update_from,
-                                         consign_time__lte=update_to,status=ORDER_FINISH_STATUS)
+    finish_trades = Trade.objects.filter(user__visitor_id=user_id,consign_time__gte=update_from,
+                                         consign_time__lte=update_to,status__in=ORDER_OK_STATUS)
 
     for trade in finish_trades:
         trade_extra_info,state = TradeExtraInfo.objects.get_or_create(tid=trade.id)
@@ -65,8 +65,8 @@ def updateAllUserOrdersAmountTask(days=0,dt_f=None,dt_t=None):
 @task()
 def updatePurchaseOrdersAmountTask(user_id,update_from=None,update_to=None):
     
-    purchase_orders = PurchaseOrder.objects.filter(seller_id=user_id,consign_time__gte=update_from,
-                                         consign_time__lte=update_to,status=ORDER_FINISH_STATUS)
+    purchase_orders = PurchaseOrder.objects.filter(user__visitor_id=user_id,consign_time__gte=update_from,
+                                         consign_time__lte=update_to,status__in=ORDER_OK_STATUS)
     
     for order in purchase_orders:
         trade_extra_info,state = TradeExtraInfo.objects.get_or_create(tid=order.id)
@@ -77,7 +77,7 @@ def updatePurchaseOrdersAmountTask(user_id,update_from=None,update_to=None):
         response_list = apis.taobao_trade_amount_get(tid=order.id,tb_user_id=user_id)
         
         tamt = response_list['trade_amount_get_response']['trade_amount']
-        TradeAmount.save_trade_amount_through_dict(tamt)
+        TradeAmount.save_trade_amount_through_dict(user_id,tamt)
 
         trade_extra_info.is_update_amount = True
         trade_extra_info.save()

@@ -8,7 +8,7 @@ class TaobaoRequestException(Exception):
         self.sub_msg   = sub_msg
 
     def __str__(self):
-        return self.sub_msg
+        return self.msg or self.sub_msg or 'taobao request exception'
 
 
 

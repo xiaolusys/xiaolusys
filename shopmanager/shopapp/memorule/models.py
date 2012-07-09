@@ -1,3 +1,4 @@
+#-*- coding:utf8 -*-
 __author__ = 'meixqhi'
 from django.db import models
 from shopback.items.models import Item
@@ -12,18 +13,18 @@ SCOPE_CHOICE = (
 )
 class TradeRule(models.Model):
 
-    formula     = models.CharField(max_length=64,blank=True,verbose_name=u'\u89c4\u5219\u516c\u5f0f')
-    memo        = models.CharField(max_length=64,blank=True,verbose_name=u'\u89c4\u5219\u7559\u8a00')
+    formula     = models.CharField(max_length=64,blank=True,)
+    memo        = models.CharField(max_length=64,blank=True,)
 
-    formula_desc = models.TextField(max_length=256,blank=True,verbose_name=u'\u89c4\u5219\u63cf\u8ff0')
+    formula_desc = models.TextField(max_length=256,blank=True,)
 
-    scope       = models.CharField(max_length=10,choices=SCOPE_CHOICE,verbose_name=u'\u89c4\u5219\u8303\u56f4')
-    status      = models.CharField(max_length=2,choices=RULE_STATUS,verbose_name=u'\u89c4\u5219\u72b6\u6001')
+    scope       = models.CharField(max_length=10,choices=SCOPE_CHOICE,)
+    status      = models.CharField(max_length=2,choices=RULE_STATUS,)
 
-    items        = models.ManyToManyField(Item,related_name='rules',symmetrical=False,db_table='shop_app_itemrulemap')
+    items        = models.ManyToManyField(Item,related_name='rules',symmetrical=False,db_table='shop_memorule_itemrulemap')
     class Meta:
         db_table = 'shop_memorule_traderule'
-        verbose_name = u'\u8ba2\u5355\u89c4\u5219'
+
 
 
 
@@ -74,3 +75,5 @@ class ProductRuleField(models.Model):
 
     def to_json(self):
         return [self.field.field_name,self.alias,self.field.field_type,self.default]
+    
+    

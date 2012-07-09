@@ -9,6 +9,9 @@ from shopback.base.fields import BigIntegerAutoField,BigIntegerForeignKey
 from shopback.users.models import User
 from shopback.monitor.models import TradeExtraInfo
 from auth import apis
+import logging
+
+logger = logging.getLogger('logistics.handler')
 
 LOGISTICS_FINISH_STATUS = ['ACCEPTED_BY_RECEIVER']
 
@@ -64,7 +67,7 @@ class Logistics(models.Model):
                 logistic_dict = response['logistics_orders_detail_get_response']['shippings']['shippings'][0]
                 logistic = cls.save_logistics_through_dict(user_id, logistic_dict)
             except Exception,exc:
-                logger.error('淘宝后台更新交易(tid:%s)物流信息出错'%str(trade_id),exc_info=True)
+                logger.error('淘宝后台更新交易(tid:%s)物流信息出错'%str(tid),exc_info=True)
         return logistic
         
     
@@ -73,6 +76,7 @@ class Logistics(models.Model):
         
         logistic,state = cls.objects.get_or_create(tid=logistic_dict['tid'])
         logistic.user = User.objects.get(visitor_id=user_id)
+        logistic.seller_id = user_id
         for k,v in logistic_dict.iteritems():
             hasattr(logistic,k) and setattr(logistic,k,v)
 

@@ -155,6 +155,7 @@ class PurchaseOrder(models.Model):
         
         purchase_order,state = cls.objects.get_or_create(fenxiao_id=purchase_order_dict['fenxiao_id'])
         purchase_order.user  =  User.objects.get(visitor_id=seller_id)
+        purchase_order.seller_id  =  seller_id
         sub_purchase_orders  = purchase_order_dict.pop('sub_purchase_orders')   
         for k,v in purchase_order_dict.iteritems():
             hasattr(purchase_order,k) and setattr(purchase_order,k,v)

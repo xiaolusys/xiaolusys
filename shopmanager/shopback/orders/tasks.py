@@ -4,7 +4,7 @@ import datetime
 from celery.task import task
 from celery.task.sets import subtask
 from django.conf import settings
-from shopback.orders.models import Order,Trade,ORDER_FINISH_STATUS
+from shopback.orders.models import Order,Trade
 from shopback.users.models import User
 from shopback.monitor.models import TradeExtraInfo
 from shopback.monitor.models import DayMonitorStatus
@@ -56,7 +56,7 @@ def updateAllUserDuringOrdersTask(update_from=None,update_to=None,status=None):
 
     for user in users:
         
-        saveUserDuringOrders(user.visitor_id,update_from=update_from,update_to=update_to,status=status)
+        saveUserDuringOrdersTask(user.visitor_id,update_from=update_from,update_to=update_to,status=status)
    
 
 

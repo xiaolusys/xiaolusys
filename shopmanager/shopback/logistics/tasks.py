@@ -6,7 +6,7 @@ from celery.task.sets import subtask
 from django.conf import settings
 from auth.utils import format_time,format_datetime,format_year_month,parse_datetime
 from shopback.logistics.models import Logistics
-from shopback.orders.models import Trade,ORDER_FINISH_STATUS
+from shopback.orders.models import Trade,ORDER_OK_STATUS
 from shopback.fenxiao.models import PurchaseOrder
 from shopback.monitor.models import TradeExtraInfo
 from auth.apis.exceptions import RemoteConnectionException,AppCallLimitedException,UserFenxiaoUnuseException,\
@@ -70,7 +70,7 @@ def updateAllUserOrdersLogisticsTask(update_from=None,update_to=None):
 @task(max_retry=3)
 def saveUserUnfinishOrdersLogisticsTask(user_id,update_from=None,update_to=None):
 
-    trades = Trade.objects.filter(seller_id=user_id,status=ORDER_FINISH_STATUS,
+    trades = Trade.objects.filter(user__visitor_id=user_id,status__in=ORDER_OK_STATUS,
                                   consign_time__gte=update_from,consign_time__lte=update_to)
     for trade in trades:
         trade_extra_info,created = TradeExtraInfo.objects.get_or_create(tid=trade.id)
@@ -79,7 +79,7 @@ def saveUserUnfinishOrdersLogisticsTask(user_id,update_from=None,update_to=None)
             logistics_dict = response['logistics_orders_detail_get_response']['shippings']['shipping'][0]
             Logistics.save_logistics_through_dict(user_id,logistics_dict)
             
-    purchase_trades = PurchaseOrder.objects.filter(seller_id=user_id,status=ORDER_FINISH_STATUS,
+    purchase_trades = PurchaseOrder.objects.filter(user__visitor_id=user_id,status__in=ORDER_OK_STATUS,
                                   consign_time__gte=update_from,consign_time__lte=update_to)
     for trade in purchase_trades:
         trade_extra_info,created = TradeExtraInfo.objects.get_or_create(tid=trade.id)

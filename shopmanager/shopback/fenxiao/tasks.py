@@ -92,12 +92,10 @@ def saveUserPurchaseOrderTask(user_id,update_from=None,update_to=None,status=Non
 @task()
 def updateAllUserPurchaseOrderTask(update_from=None,update_to=None,status=None):
 
-    hander_update  = update_from and update_to
-
     users = User.objects.all()
     for user in users:
 
-        saveUserPurchaseOrderTask(user.visitor_id,update_from=dt_f,update_to=dt_t,status=status)
+        saveUserPurchaseOrderTask(user.visitor_id,update_from=update_from,update_to=update_to,status=status)
 
             
   

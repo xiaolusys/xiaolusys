@@ -58,22 +58,22 @@ SYNC_MODEL_SCHEDULE = {
     },                   
     'runs-every-weeks-order-amount':{
         'task':'shopback.amounts.tasks.updateAllUserOrdersAmountTask',
-        'schedule':crontab(minute="0",hour="2",day_of_week="mon"),
+        'schedule':crontab(minute="*/10",), #crontab(minute="0",hour="2",day_of_week="mon")
         'args':(7,None,None)
     },
     'runs-every-weeks-purchase-order-amount':{
         'task':'shopback.amounts.tasks.updateAllUserPurchaseOrdersAmountTask',
-        'schedule':crontab(minute="30",hour="2",day_of_week='mon'),
+        'schedule':crontab(minute="*/10",), #crontab(minute="30",hour="2",day_of_week='mon')
         'args':(7,None,None)
     },
     'runs-every-weeks-item-entity':{
         'task':'shopback.items.tasks.updateAllUserItemsEntityTask',
-        'schedule':crontab(minute="0",hour="3",day_of_week='tue'),
+        'schedule':crontab(minute="*/10"),#crontab(minute="0",hour="3",day_of_week='tue')
         'args':()
     },
     'runs-every-weeks-purchase-product':{
         'task':'shopback.fenxiao.tasks.updateAllUserFenxiaoProductTask',
-        'schedule':crontab(minute="30",hour="3",day_of_week='tue'),
+        'schedule':crontab(minute="*/10"),#crontab(minute="30",hour="3",day_of_week='tue')
         'args':()
     },                   
 }
@@ -82,7 +82,7 @@ SYNC_MODEL_SCHEDULE = {
 SHOP_APP_SCHEDULE = {
     'runs-every-5-minutes-item-list':{
         'task':'shopapp.autolist.tasks.updateAllItemListTask',
-        'schedule':crontab(minute='*/5'),
+        'schedule':crontab(minute='*/5',hour=','.join([str(i) for i in range(7,24)])),
         'args':(),
     },
     'runs-every-30-minutes-keyword-pagerank':{
@@ -100,12 +100,12 @@ SHOP_APP_SCHEDULE = {
         'schedule':crontab(minute="0",hour="4"),
         'args':()
     },
-#    'runs-every-day-a':{
+#    'runs-every-day-item-num':{
 #        'task':'shopapp.syncnum.tasks.updateAllItemNumTask',
 #        'schedule':crontab(minute="0",hour="0"),
 #        'args':(),
 #    },
-#    'runs-every-day-e':{
+#    'runs-every-day-product-trade':{
 #        'task':'shopapp.collector.tasks.updateProductTradeBySellerTask',
 #        'schedule':crontab(minute="0",hour="1"),
 #        'args':()
