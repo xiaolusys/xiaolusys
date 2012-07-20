@@ -69,6 +69,12 @@ INSTALLED_APPS = (
     'django.contrib.admin',
 )
 
+if DEBUG:
+    STATICFILES_DIRS = (
+       os.path.join(PROJECT_ROOT,"static"),
+    )
+else :
+    STATIC_ROOT = os.path.join(PROJECT_ROOT, "static")
 
 APPKEY = '21036602'
 APPSECRET = 'daa98d080842335088c3b80c2676b005'

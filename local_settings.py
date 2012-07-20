@@ -5,7 +5,9 @@ import os
 DEBUG = False
 TEMPLATE_DEBUG = DEBUG
 
+PROJECT_ROOT = os.path.abspath(os.path.dirname(__file__))
 STATICFILES_DIRS = ()
+STATIC_ROOT = os.path.join(PROJECT_ROOT, "site_media","static")
 
 DATABASES = {
     'default': {
@@ -17,6 +19,8 @@ DATABASES = {
         'PORT': '',                      # Set to empty string for default. Not used with sqlite3.
     }
 }
+
+SITE_URL = 'http://autolist.huyi.so/'
 
 APPKEY = '12686908'
 APPSECRET = 'b3ddef5982a23c636739289949c01f59'
