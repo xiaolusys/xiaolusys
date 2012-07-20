@@ -1,13 +1,5 @@
-import hashlib
-import base64
-import urllib
-import urllib2
-import datetime
-import time
-import json
-import logging
 
-logger = logging.getLogger('token.refresh')
+
 
 def getSignatureTaoBao(params,secret,both_side=True):
     key_pairs = None

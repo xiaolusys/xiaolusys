@@ -58,22 +58,22 @@ SYNC_MODEL_SCHEDULE = {
     },                   
     'runs-every-weeks-order-amount':{
         'task':'shopback.amounts.tasks.updateAllUserOrdersAmountTask',
-        'schedule':crontab(minute="*/10",), #crontab(minute="0",hour="2",day_of_week="mon")
+        'schedule':crontab(minute="0",hour="2",day_of_week="mon"), #
         'args':(7,None,None)
     },
     'runs-every-weeks-purchase-order-amount':{
         'task':'shopback.amounts.tasks.updateAllUserPurchaseOrdersAmountTask',
-        'schedule':crontab(minute="*/10",), #crontab(minute="30",hour="2",day_of_week='mon')
+        'schedule':crontab(minute="30",hour="2",day_of_week='mon'), #
         'args':(7,None,None)
     },
     'runs-every-weeks-item-entity':{
         'task':'shopback.items.tasks.updateAllUserItemsEntityTask',
-        'schedule':crontab(minute="*/10"),#crontab(minute="0",hour="3",day_of_week='tue')
+        'schedule':crontab(minute="0",hour="3",day_of_week='tue'),#
         'args':()
     },
     'runs-every-weeks-purchase-product':{
         'task':'shopback.fenxiao.tasks.updateAllUserFenxiaoProductTask',
-        'schedule':crontab(minute="*/10"),#crontab(minute="30",hour="3",day_of_week='tue')
+        'schedule':crontab(minute="30",hour="3",day_of_week='tue'),#
         'args':()
     },                   
 }

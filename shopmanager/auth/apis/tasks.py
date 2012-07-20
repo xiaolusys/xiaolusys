@@ -52,6 +52,7 @@ API_FIELDS = {
     'taobao.trade.fullinfo.get':'seller_nick,buyer_nick,title,type,created,tid,status,modified,payment,received_payment,adjust_fee,post_fee,total_fee,commission_fee,discount_fee'
         +',buyer_obtain_point_fee,pic_path,buyer_email,seller_alipay_no,num_iid,num,price,orders',
     'taobao.trade.amount.get':'tid,alipay_no,created,pay_time,end_time,total_fee,payment,post_fee,cod_fee,commission_fee,buyer_obtain_point_fee,order_amounts,promotion_details',
+    'taobao.logistics.companies.get':'id,code,name,reg_mail_no',
     'taobao.logistics.orders.detail.get':'tid,order_code,is_quick_cod_order,out_sid,company_name,seller_id,seller_nick,buyer_nick,item_title,delivery_start,delivery_end'
         +',receiver_name,receiver_phone,receiver_mobile,location,type,created,modified,seller_confirm,company_name,is_success,freight_payer,status',
     'taobao.logistics.orders.get':'tid,seller_nick,buyer_nick,delivery_start, delivery_end,out_sid,item_title,receiver_name, created,modified,status,type,freight_payer,seller_confirm,company_name',
@@ -325,6 +326,10 @@ def taobao_itemcats_authorize_get(fields=API_FIELDS['taobao.itemcats.authorize.g
     pass
 
 ############# post apis ###################
+@apis('taobao.logistics.companies.get')
+def taobao_logistics_companies_get(fields=API_FIELDS['taobao.logistics.companies.get'],tb_user_id=None):
+    pass
+
 @apis('taobao.logistics.orders.detail.get',max_retry=10,limit_rate=5)
 def taobao_logistics_orders_detail_get(tid=None,seller_confirm='yes',start_created=None,end_created=None,page_no=None,page_size=None,
                                        fields=API_FIELDS['taobao.logistics.orders.detail.get'],tb_user_id=None):

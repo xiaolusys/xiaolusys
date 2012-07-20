@@ -23,12 +23,17 @@ urlpatterns = patterns('',
     (r'^top_monitor\.html$',csrf_exempt(TemplateView.as_view(template_name='top_monitor.html'))),
     (r'^$',login_taobo),
 
-    (r'^static/(?P<path>.*)$', 'django.views.static.serve',
-        {'document_root': settings.STATIC_DOC_ROOT}),
-    (r'^media/(?P<path>.*)$', 'django.views.static.serve',
-        {'document_root': settings.MEDIA_ROOT}),
-    (r'^download/(?P<path>.*)$','django.views.static.serve',
-        {'document_root': settings.DOWNLOAD_ROOT,'show_indexes':True}),
+
+
     (r'^admin/', include(admin.site.urls)),
 
 )
+if settings.DEBUG == True:
+    urlpatterns += patterns('',
+        (r'^static/(?P<path>.*)$', 'django.views.static.serve',
+            {'document_root': settings.STATIC_DOC_ROOT}),
+        (r'^media/(?P<path>.*)$', 'django.views.static.serve',
+            {'document_root': settings.MEDIA_ROOT}),
+        (r'^download/(?P<path>.*)$','django.views.static.serve',
+            {'document_root': settings.DOWNLOAD_ROOT,'show_indexes':True}),
+    )

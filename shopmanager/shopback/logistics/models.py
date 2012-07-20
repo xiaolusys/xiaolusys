@@ -15,6 +15,31 @@ logger = logging.getLogger('logistics.handler')
 
 LOGISTICS_FINISH_STATUS = ['ACCEPTED_BY_RECEIVER']
 
+
+class LogisticsCompany(models.Model):
+    
+    id      = models.BigIntegerField(primary_key=True)
+    code    = models.CharField(max_length=64,blank=True)
+    name    = models.CharField(max_length=64,blank=True)
+    reg_mail_no = models.CharField(max_length=500,blank=True)
+    is_default  = models.BooleanField(default=False)
+    
+    class Meta:
+        db_table = 'shop_logistics_company'
+
+    def __unicode__(self):
+        return self.code+'--'+self.name
+    
+    @classmethod
+    def save_logistics_company_through_dict(cls,user_id,company_dict):
+        company,state = cls.objects.get_or_create(id=company_dict['id'])
+        for k,v in company_dict.iteritems():
+            hasattr(company, k) and setattr(company,k,v)
+        company.save()
+        return company
+    
+
+
 class Logistics(models.Model):
 
     tid      =  BigIntegerAutoField(primary_key=True)

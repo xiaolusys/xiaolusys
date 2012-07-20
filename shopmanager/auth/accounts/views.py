@@ -53,8 +53,8 @@ def home(request):
 
     profile = request.user.get_profile()
     
-    response = apis.taobao_trade_amount_get(tid=177514801223518,tb_user_id=profile.visitor_id)
-    print response
+#    response = apis.taobao_logistics_orders_get(tid=160781477791809,tb_user_id=profile.visitor_id)
+#    print response
     
 #    response = apis.taobao_fenxiao_products_get(pids=15664863,tb_user_id=profile.visitor_id)
 #    print response

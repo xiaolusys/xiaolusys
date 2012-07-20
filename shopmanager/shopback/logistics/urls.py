@@ -6,6 +6,7 @@ __author__ = 'meixqhi'
 
 urlpatterns = patterns('shopback.logistics.views',
 
+    url('company/$','update_logistics_company',name='update_company'),
     url('update/(?P<dt_f>[^/]+)/(?P<dt_t>[^/]+)/$','update_interval_logistics',name='update_logistic'),
 
 )

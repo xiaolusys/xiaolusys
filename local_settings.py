@@ -5,6 +5,8 @@ import os
 DEBUG = False
 TEMPLATE_DEBUG = DEBUG
 
+STATICFILES_DIRS = ()
+
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql', # Add 'postgresql_psycopg2', 'postgresql', 'mysql', 'sqlite3' or 'oracle'.
