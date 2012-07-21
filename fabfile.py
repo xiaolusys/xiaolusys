@@ -58,7 +58,7 @@ def collect_static():
 def collect_download():
     """docstring for collect_static"""
     with cd(env.version_dir):
-        run('cd %s/shopmanager/site_media;rmdir -rf download;ln -s ../../../site_media/download' % env.version_dir)
+        run('cd %s/shopmanager/site_media;rm -rf download;ln -s ../../../site_media/download' % env.version_dir)
 
 def deploy():
     """docstring for deploy"""

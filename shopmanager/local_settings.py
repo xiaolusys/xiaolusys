@@ -20,7 +20,7 @@ PROJECT_ROOT = os.path.abspath(os.path.dirname(__file__))
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql', # Add 'postgresql_psycopg2', 'postgresql', 'mysql', 'sqlite3' or 'oracle'.
-        'NAME': 'taobaoshop',                      # Or path to database file if using sqlite3.
+        'NAME': 'shoptest',                      # Or path to database file if using sqlite3.
         'USER': 'meixqhi',                      # Not used with sqlite3.
         'PASSWORD': '123123',                  # Not used with sqlite3.
         'HOST': '',                      # Set to empty string for localhost. Not used with sqlite3.
@@ -71,10 +71,10 @@ INSTALLED_APPS = (
 
 if DEBUG:
     STATICFILES_DIRS = (
-       os.path.join(PROJECT_ROOT,"static"),
+       os.path.join(PROJECT_ROOT,'site_media',"static"),
     )
 else :
-    STATIC_ROOT = os.path.join(PROJECT_ROOT, "static")
+    STATIC_ROOT = os.path.join(PROJECT_ROOT,'site_media', "static")
 
 APPKEY = '21036602'
 APPSECRET = 'daa98d080842335088c3b80c2676b005'
