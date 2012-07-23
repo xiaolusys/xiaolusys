@@ -22,8 +22,10 @@ DATABASES = {
 
 SITE_URL = 'http://autolist.huyi.so/'
 
-APPKEY = '12686908'
-APPSECRET = 'b3ddef5982a23c636739289949c01f59'
+#APPKEY = '12686908'
+#APPSECRET = 'b3ddef5982a23c636739289949c01f59'
+APPKEY = '21072630'
+APPSECRET  = '6e9e3a028202d91395820d477162385a'
 
 AUTHRIZE_URL = 'https://oauth.taobao.com/authorize'
 AUTHRIZE_TOKEN_URL = 'https://oauth.taobao.com/token'

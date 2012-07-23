@@ -23,7 +23,8 @@ urlpatterns = patterns('',
     (r'^top_monitor\.html$',csrf_exempt(TemplateView.as_view(template_name='top_monitor.html'))),
     (r'^$',login_taobo),
 
-
+    (r'^download/(?P<path>.*)$','django.views.static.serve',
+            {'document_root': settings.DOWNLOAD_ROOT,'show_indexes':True}),
 
     (r'^admin/', include(admin.site.urls)),
 
