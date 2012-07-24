@@ -112,7 +112,6 @@ def raise_except_or_ret_json(content):
             raise ServiceRejectionException(
                 code=code,msg=msg,sub_code=sub_code,sub_msg=sub_msg)
         elif code == 670 or code == 15 and sub_code == u'isv.invalid-parameter:user_id_num':
-            logger.error('not fenxiao user:'+str(content))
             raise UserFenxiaoUnuseException(
                     code=code,msg=msg,sub_code=sub_code,sub_msg=sub_msg)
         elif code == 7 and sub_code == u'accesscontrol.limited-by-app-access-count':
