@@ -3,8 +3,6 @@ import re
 import time
 import datetime
 import calendar
-from celery.task import task
-from celery.task.sets import subtask
 from django.conf import settings
 from shopback.orders.tasks import saveUserDuringOrdersTask,saveUserIncrementOrdersTask
 from shopback.fenxiao.tasks import saveUserPurchaseOrderTask,saveUserIncrementPurchaseOrderTask
@@ -15,6 +13,7 @@ from shopapp.report.models import MonthTradeReportStatus
 from shopapp.report.reportform import TradesToXLSFile
 from auth.utils import format_time,parse_datetime,format_datetime,format_date,format_year_month
 from shopback.users.models import User
+from auth.apis import single_instance_task
 import logging
 
 logger = logging.getLogger('report.handler')
@@ -23,10 +22,12 @@ BLANK_CHAR = ''
 MONTH_TRADE_FILE_TEMPLATE = 'trade-month-%s.xls'
 
 
-@task()
+
+@single_instance_task(24*60*60,prefix='shopapp.report.tasks.')
 def updateMonthTradeXlsFileTask(year=None,month=None):
 
     dt = datetime.datetime.now()
+    logger.warn('updateMonthTradeXlsFileTask start at :%s'%str(dt))
     update_year_month = year and month
     if not update_year_month:
         last_month_date = dt - datetime.timedelta(dt.day,0,0)
@@ -45,8 +46,9 @@ def updateMonthTradeXlsFileTask(year=None,month=None):
     time_delta = dt - last_month_last_days
     file_name  = settings.DOWNLOAD_ROOT+'/'+MONTH_TRADE_FILE_TEMPLATE%year_month
 
-    if os.path.isfile(file_name) or not update_year_month or time_delta.days<settings.GEN_AMOUNT_FILE_MIN_DAYS:
-        return {'error':'%s is already exist or must be ten days from last month at lest!'%file_name}
+    if os.path.isfile(file_name) or (not update_year_month and time_delta.days<settings.GEN_AMOUNT_FILE_MIN_DAYS):
+        return {'error':'%s is already exist or must be %d days from last month at lest!'
+            %(file_name,settings.GEN_AMOUNT_FILE_MIN_DAYS)}
 
     start_date   = last_month_first_days - datetime.timedelta(7,0,0)
     
@@ -88,13 +90,17 @@ def updateMonthTradeXlsFileTask(year=None,month=None):
 
         except Exception,exc:
             report_status.save()
-            logger.error('updateMonthTradeXlsFileTask excute error.',exc_info=True)
+            logger.error('updateMonthTradeXlsFileTask excute error',exc_info=True)
             return {'error':'%s'%exc}
 
         report_status.save()
+    try:
+        trade_file_builder = TradesToXLSFile()
+        trade_file_builder.gen_report_file(last_month_first_days,last_month_last_days,file_name)
+    except Exception,exc:
+        logger.error('gen report file error',exc_info=True)
 
-    trade_file_builder = TradesToXLSFile()
-    trade_file_builder.gen_report_file(last_month_first_days,last_month_last_days,file_name)
-
+    dt = datetime.datetime.now()
+    logger.warn('updateMonthTradeXlsFileTask end at :%s'%str(dt))
     return {'update_from':format_datetime(last_month_first_days),'update_to':format_datetime(last_month_last_days)}
 

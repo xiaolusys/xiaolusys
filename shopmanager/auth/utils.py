@@ -7,6 +7,10 @@ import urllib
 import urllib2
 import decimal
 import random
+import cStringIO
+import Image
+import ImageDraw
+import ImageFont
 
 
 def getSignatureTaoBao(params,secret,both_side=True):
@@ -135,3 +139,26 @@ def map_int2str(*t):
                 s = names[int(s)]
             ret.append(s)
         return tuple(ret)
+    
+    
+def gen_string_image(font_path,code_string):
+    """
+    gen string image
+    """
+
+    im     = Image.new ( "RGB", (75,24), "#ddd" )
+    draw   = ImageDraw.Draw(im)
+    sans16 = ImageFont.truetype(font_path,16)
+
+    for index,string in enumerate(code_string):
+        draw.text((10*(index+1),0), string, font=sans16,fill='red')
+
+    del draw
+
+    buf = cStringIO.StringIO()
+    im.save(buf, 'png')
+
+    return buf.getvalue()
+
+
+

@@ -18,5 +18,4 @@ urlpatterns = patterns('shopapp.autolist.views',
     url(r'^listtask/$', CreateListItemTaskModelView.as_view(resource=ItemListTaskResource, authentication=(UserLoggedInAuthentication,), permissions=(IsAuthenticated,),)),
     url(r'^(?P<pk>[^/]+)/$', InstanceModelView.as_view(resource=ItemListTaskResource, authentication=(UserLoggedInAuthentication,), permissions=(IsAuthenticated,))),
     url(r'^list/self/$', ListItemTaskView.as_view(resource=ItemListTaskResource, authentication=(UserLoggedInAuthentication,), permissions=(IsAuthenticated,),)),
-    url(r'^djcelery/',include('djcelery.urls'),name="task_state")
 )

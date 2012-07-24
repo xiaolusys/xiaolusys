@@ -15,11 +15,11 @@ def gen_report_form_file(request):
     content = request.REQUEST
     year    = content.get('year',None)
     month   = content.get('month',None)
-
+    print year,month
     update_month_trade_task = updateMonthTradeXlsFileTask.delay(year=year,month=month)
 
     ret_params = {'task_id':update_month_trade_task.task_id}
-
+    print ret_params
     return HttpResponse(json.dumps(ret_params),mimetype='application/json')
 
 

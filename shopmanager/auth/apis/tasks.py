@@ -1,6 +1,7 @@
 #-*- coding:utf8 -*-
 __author__ = 'meixqhi'
 import re
+import types
 import inspect
 import copy
 import time
@@ -10,6 +11,8 @@ import urllib
 import urllib2
 from django.conf import settings
 from django.core.cache import cache
+from celery.task import task
+from celery.app.task import BaseTask
 from auth.utils import getSignatureTaoBao,format_datetime,format_date,refresh_session
 from auth.apis.exceptions import TaobaoRequestException,RemoteConnectionException,UserFenxiaoUnuseException,\
     AppCallLimitedException,APIConnectionTimeOutException,ServiceRejectionException
@@ -61,6 +64,32 @@ API_FIELDS = {
 }
 
 
+def single_instance_task(timeout,prefix=''):
+    def task_exc(func):
+        def delay(self, *args, **kwargs):
+            return self.apply(args, kwargs)
+
+        def decorate(*args, **kwargs):
+#            if settings.DEBUG:
+#                return func(*args, **kwargs)
+
+            lock_id = "celery-single-instance-" + func.__name__
+            acquire_lock = lambda: cache.add(lock_id, "true", timeout)
+            release_lock = lambda: cache.delete(lock_id)
+            if acquire_lock() :
+                try:
+                    return func(*args, **kwargs)
+                finally:
+                    release_lock()
+            else :
+                logger.error('the task %s is executing.'%func.__name__)
+        result = task(name='%s%s' % (prefix,func.__name__))(decorate)
+        if settings.DEBUG:
+            result.delay = types.MethodType(delay, result)
+        return result
+    return task_exc
+
+
 def raise_except_or_ret_json(content):
     content = json.loads(content)
 
@@ -83,6 +112,7 @@ def raise_except_or_ret_json(content):
             raise ServiceRejectionException(
                 code=code,msg=msg,sub_code=sub_code,sub_msg=sub_msg)
         elif code == 670 or code == 15 and sub_code == u'isv.invalid-parameter:user_id_num':
+            logger.error('not fenxiao user:'+str(content))
             raise UserFenxiaoUnuseException(
                     code=code,msg=msg,sub_code=sub_code,sub_msg=sub_msg)
         elif code == 7 and sub_code == u'accesscontrol.limited-by-app-access-count':
@@ -111,20 +141,20 @@ def apis(api_method,method='GET',max_retry=3,limit_rate=0.5):
                     except RemoteConnectionException,e:
                         try_times += 1
                         if try_times >= max_retry:
-                            logger.error('远程连接异常：%s ,重试次数：%d'%
+                            logger.error('remote connect error：%s ,retry：%d'%
                                          (response_list,try_times))
                             raise e    
                     except APIConnectionTimeOutException,e:
                         try_times += 1
                         if try_times >= max_retry:
-                            logger.error('连接超时：%s ,重试次数：%d'%
+                            logger.error('connect error：%s ,retry：%d'%
                                          (response_list,try_times))
                             raise e
                         time.sleep(settings.API_TIME_OUT_SLEEP)
                     except ServiceRejectionException,e:
                         try_times += 1
                         if try_times >= max_retry:
-                            logger.error('服务请求频率过快：%s ,重试次数：%d'%
+                            logger.error('request over limit times per minute：%s ,retry：%d'%
                                          (response_list,try_times))
                             raise e
                         time.sleep(settings.API_OVER_LIMIT_SLEEP)

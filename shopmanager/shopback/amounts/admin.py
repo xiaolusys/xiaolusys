@@ -10,7 +10,7 @@ class TradeAmountAdmin(admin.ModelAdmin):
 
     list_filter = ('user',)
     date_hierarchy = 'pay_time'
-    search_fields = ['tid',]
+    search_fields = ['tid','alipay_no']
 
 
 admin.site.register(TradeAmount,TradeAmountAdmin)
@@ -23,7 +23,7 @@ class OrderAmountAdmin(admin.ModelAdmin):
     #list_editable = ('update_time','task_type' ,'is_success','status')
 
     #list_filter = ('status','is_parent')
-    search_fields = ['oid','sku_properties_name']
+    search_fields = ['oid','num_iid','title','sku_properties_name','']
 
 
 admin.site.register(OrderAmount,OrderAmountAdmin)

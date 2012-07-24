@@ -56,7 +56,7 @@ def home(request):
 #    response = apis.taobao_logistics_orders_get(tid=160781477791809,tb_user_id=profile.visitor_id)
 #    print response
     
-#    response = apis.taobao_fenxiao_products_get(pids=15664863,tb_user_id=profile.visitor_id)
+#    response = apis.taobao_fenxiao_products_get(tb_user_id=profile.visitor_id)
 #    print response
     
 #    response = apis.taobao_item_get(num_iid=9265927875,tb_user_id=profile.visitor_id)
