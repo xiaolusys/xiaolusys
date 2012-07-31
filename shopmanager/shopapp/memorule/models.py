@@ -2,6 +2,8 @@
 __author__ = 'meixqhi'
 from django.db import models
 from shopback.items.models import Item
+from shopback.orders.models import Trade
+from shopback.signals import rule_signal
 
 RULE_STATUS = (
     ('US',u'\u4f7f\u7528'),
@@ -76,4 +78,15 @@ class ProductRuleField(models.Model):
     def to_json(self):
         return [self.field.field_name,self.alias,self.field.field_type,self.default]
     
+
+def rule_match_product_raise_exc(sender, trade_id, *args, **kwargs):
+    trade = Trade.objects.get(id=trade_id)
+
+rule_signal.connect(rule_match_product_raise_exc,sender='product_rule',dispatch_uid='rule_match_product')
+
+
+def rule_match_trade_raise_exc(sender, trade_id, *args, **kwargs):
+    trade = Trade.objects.get(id=trade_id)
+
+rule_signal.connect(rule_match_trade_raise_exc,sender='trade_rule',dispatch_uid='rule_match_trade')
     

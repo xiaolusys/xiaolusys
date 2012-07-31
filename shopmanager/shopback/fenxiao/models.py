@@ -13,6 +13,7 @@ from django.db import models
 from shopback.base.models import BaseModel
 from shopback.users.models import User
 from shopback.categorys.models import Category
+from shopback.signals import merge_trade_signal
 from auth import apis
 import logging
 
@@ -88,7 +89,7 @@ class FenxiaoProduct(models.Model):
                     fenxiao_product_dict = response['fenxiao_products_get_response']['products']['fenxiao_product'][0]
                     fenxiao_product = cls.save_fenxiao_product_dict(user_id,fenxiao_product_dict)
             except Exception,exc:
-                logger.error('淘宝后台更新该分销商品(pid:%s)出错'%str(pid),exc_info=True)
+                logger.error('backend update fenxiao trade(pid:%s)error'%str(pid),exc_info=True)
         return fenxiao_product
     
     @classmethod
@@ -110,7 +111,7 @@ class FenxiaoProduct(models.Model):
 class PurchaseOrder(models.Model):
 
     fenxiao_id = models.CharField(max_length=64,primary_key=True)
-    id         = models.CharField(max_length=64,blank=True)
+    id         = models.CharField(max_length=64,db_index=True,blank=True)
 
     user       = models.ForeignKey(User,null=True,related_name='purchases')
 
@@ -170,7 +171,7 @@ class PurchaseOrder(models.Model):
             if purchase_order_dict.get('consign_time',None) else None
         
         purchase_order.save()
-
+        
         sub_purchase_order = SubPurchaseOrder()
         for sub_order in  sub_purchase_orders['sub_purchase_order']:
             
@@ -181,6 +182,9 @@ class PurchaseOrder(models.Model):
             sub_purchase_order.created  = parse_datetime(sub_order['created']) \
                 if sub_order.get('created',None) else None
             sub_purchase_order.save()
+            
+        merge_trade_signal.send(sender=PurchaseOrder,trade=purchase_order)
+        return purchase_order
             
         
 

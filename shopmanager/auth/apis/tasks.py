@@ -15,7 +15,7 @@ from celery.task import task
 from celery.app.task import BaseTask
 from auth.utils import getSignatureTaoBao,format_datetime,format_date,refresh_session
 from auth.apis.exceptions import TaobaoRequestException,RemoteConnectionException,UserFenxiaoUnuseException,\
-    AppCallLimitedException,APIConnectionTimeOutException,ServiceRejectionException
+    AppCallLimitedException,APIConnectionTimeOutException,ServiceRejectionException ,ContentNotRightException
 
 import logging
 logger = logging.getLogger('auth.apis')
@@ -70,9 +70,6 @@ def single_instance_task(timeout,prefix=''):
             return self.apply(args, kwargs)
 
         def decorate(*args, **kwargs):
-#            if settings.DEBUG:
-#                return func(*args, **kwargs)
-
             lock_id = "celery-single-instance-" + func.__name__
             acquire_lock = lambda: cache.add(lock_id, "true", timeout)
             release_lock = lambda: cache.delete(lock_id)
@@ -94,7 +91,7 @@ def raise_except_or_ret_json(content):
     content = json.loads(content)
 
     if not isinstance(content,(dict,)):
-        raise exc.ContentNotRightException(sub_msg=content)
+        raise ContentNotRightException(sub_msg=content)
     elif content.has_key('error_response'):
         content = content['error_response']
         code     = content.get('code',None)
@@ -111,13 +108,14 @@ def raise_except_or_ret_json(content):
         elif code == 520 and  reject_regex.match(sub_code):
             raise ServiceRejectionException(
                 code=code,msg=msg,sub_code=sub_code,sub_msg=sub_msg)
-        elif code == 670 or code == 15 and sub_code == u'isv.invalid-parameter:user_id_num':
+        elif code == 15 and sub_code == u'isv.invalid-parameter:user_id_num':
             raise UserFenxiaoUnuseException(
                     code=code,msg=msg,sub_code=sub_code,sub_msg=sub_msg)
         elif code == 7 and sub_code == u'accesscontrol.limited-by-app-access-count':
             raise AppCallLimitedException(
                     code=code,msg=msg,sub_code=sub_code,sub_msg=sub_msg)
         else :
+            print 'content:',code
             raise TaobaoRequestException(
                     code=code,msg=msg,sub_code=sub_code,sub_msg=sub_msg)
     return content
@@ -165,14 +163,10 @@ def apis(api_method,method='GET',max_retry=3,limit_rate=0.5):
         def decorate(*args,**kwargs):
             """ docstring for decorate """
             
-            timestamp = format_datetime(datetime.datetime.now())
             params = {
                 'method':api_method,
-                'timestamp':timestamp,
                 'format':'json',
-                'app_key':settings.APPKEY,
-                'v':'2.0',
-                'sign_method':'md5'}
+                'v':'2.0',}
 
             if func_defaults:
                 params.update(dict(zip(reversed(func_args), reversed(list(func_defaults)))))
@@ -187,7 +181,7 @@ def apis(api_method,method='GET',max_retry=3,limit_rate=0.5):
             refresh_session(user,settings.APPKEY,settings.APPSECRET,settings.REFRESH_URL)
             #remove the field with value None
 
-            params['session'] = user.top_session
+            params['access_token'] = user.top_session
             params_copy = dict(params)
             for k,v in params_copy.iteritems():
                 if not v:
@@ -198,15 +192,13 @@ def apis(api_method,method='GET',max_retry=3,limit_rate=0.5):
                     params[k] = format_datetime(v)
                 elif type(v) == datetime.date:
                     params[k] = format_date(v)
-
+                    
             params_copy = None
-
-            sign_value = getSignatureTaoBao(params,settings.APPSECRET)
-            params['sign'] = sign_value
-
             url = settings.TAOBAO_API_ENDPOINT
             if method == 'GET':
                 uri = '%s?%s'%(url,urllib.urlencode(params))
+                if api_method == 'taobao.fenxiao.orders.get':
+                    print 'uri:',uri
                 req = urllib2.urlopen(uri)
                 content = req.read()
             else:
@@ -315,12 +307,12 @@ def taobao_item_recommend_add(num_iid=None,tb_user_id=None):
 ############# trades apis ###################
 
 @apis('taobao.trades.sold.get',max_retry=20,limit_rate=10)
-def taobao_trades_sold_get(start_created=None,end_created=None,page_no=None,page_size=None,use_has_next=None,
+def taobao_trades_sold_get(start_created=None,end_created=None,page_no=None,page_size=None,use_has_next=None,status=None,type=None,
                            fields=API_FIELDS['taobao.trades.sold.get'],tb_user_id=None):
     pass
 
 @apis('taobao.trades.sold.increment.get',max_retry=20,limit_rate=10)
-def taobao_trades_sold_increment_get(start_modified=None,end_modified=None,page_no=None,page_size=None,use_has_next=None,
+def taobao_trades_sold_increment_get(start_modified=None,end_modified=None,page_no=None,page_size=None,use_has_next=None,status=None,type=None,
                                      fields=API_FIELDS['taobao.trades.sold.get'],tb_user_id=None):
     pass
 
@@ -380,7 +372,7 @@ def taobao_logistics_online_confirm(tid=None,out_sid=None,tb_user_id=None):
 
 ###############  fengxiao apis  ##################
 @apis('taobao.fenxiao.orders.get',max_retry=20,limit_rate=20)
-def taobao_fenxiao_orders_get(start_created=None,end_created=None,time_type=None,purchase_order_id=None,
+def taobao_fenxiao_orders_get(start_created=None,end_created=None,time_type=None,purchase_order_id=None,trade_type=None,
                               page_no=None,page_size=None,status=None,tb_user_id=None):
     pass
 

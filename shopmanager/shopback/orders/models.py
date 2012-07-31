@@ -7,6 +7,7 @@ from shopback.base.models import BaseModel
 from shopback.base.fields import BigIntegerAutoField,BigIntegerForeignKey
 from shopback.users.models import User
 from shopback.items.models import Item
+from shopback.signals import merge_trade_signal
 from auth import apis
 import logging
 
@@ -24,7 +25,7 @@ ORDER_UNPAY_STATUS    = 'WAIT_BUYER_PAY'
 class Trade(models.Model):
 
     id           =  BigIntegerAutoField(primary_key=True)
-
+    
     user         =  models.ForeignKey(User,null=True,related_name='trades')
 
     seller_id    =  models.CharField(max_length=64,blank=True)
@@ -59,6 +60,11 @@ class Trade(models.Model):
     buyer_memo       =  models.TextField(max_length=1000,blank=True)
     seller_memo      =  models.TextField(max_length=1000,blank=True)
 
+    seller_cod_fee = models.CharField(max_length=10,blank=True)
+    buyer_cod_fee  = models.CharField(max_length=10,blank=True)
+    cod_fee        = models.CharField(max_length=10,blank=True)
+    cod_status     = models.CharField(max_length=32,blank=True)
+    
     shipping_type    =  models.CharField(max_length=12,blank=True)
     buyer_alipay_no  =  models.CharField(max_length=128,blank=True)
     receiver_name    =  models.CharField(max_length=64,blank=True)
@@ -89,7 +95,7 @@ class Trade(models.Model):
                 trade_dict  = response['trade_fullinfo_get_response']['trade']
                 trade = Trade.save_trade_through_dict(user_id,trade_dict)
             except Exception,exc:
-                logger.error('淘宝后台更新交易信息(tid:%s)出错'%str(trade_id),exc_info=True)
+                logger.error('backend update trade (tid:%s)error'%str(trade_id),exc_info=True)
         return trade
 
 
@@ -119,7 +125,7 @@ class Trade(models.Model):
         trade.consign_time = parse_datetime(trade_dict['consign_time']) \
                            if trade_dict.get('consign_time',None) else None
         trade.save()
-
+        
         order = Order()
         order.seller_nick = trade_dict['seller_nick']
         order.buyer_nick  = trade_dict['buyer_nick']
@@ -131,7 +137,8 @@ class Trade(models.Model):
 
             order.item = Item.get_or_create(user_id,o['num_iid'])
             order.save()
-
+            
+        merge_trade_signal.send(sender=Trade,trade=trade)
         return trade
 
 

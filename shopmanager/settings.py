@@ -110,9 +110,10 @@ INSTALLED_APPS = (
     'shopback.logistics',
     'shopback.monitor',
     'shopback.orders',
+    'shopback.trades',
     'shopback.refunds',
     'shopback.users',
-
+    
     'shopapp.autolist',
     'shopapp.collector',
     'shopapp.memorule',
@@ -272,6 +273,11 @@ LOGGING = {
             'propagate': True,
         },
         'logistics.handler':{
+            'handlers': ['sentry'],
+            'level': 'WARN',
+            'propagate': True,
+        },
+        'trades.handler':{
             'handlers': ['sentry'],
             'level': 'WARN',
             'propagate': True,

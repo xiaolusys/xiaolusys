@@ -6,8 +6,8 @@ from celery.task.sets import subtask
 from django.conf import settings
 from auth.utils import format_time,format_datetime,format_year_month,parse_datetime
 from shopback.fenxiao.models import PurchaseOrder,FenxiaoProduct,SubPurchaseOrder
-from auth.apis.exceptions import RemoteConnectionException,AppCallLimitedException,UserFenxiaoUnuseException,\
-    APIConnectionTimeOutException,ServiceRejectionException
+from auth.apis.exceptions import UserFenxiaoUnuseException,TaobaoRequestException
+
 from shopback.users.models import User
 from shopback.monitor.models import DayMonitorStatus
 from auth import apis
@@ -40,8 +40,9 @@ def saveUserFenxiaoProductTask(user_id):
             cur_page += 1
     
     except UserFenxiaoUnuseException,exc:
-        logger.warn('the current user(id:%s)is not fenxiao platform user'%str(user_id))
-
+        logger.warn('the current user(id:%s)is not fenxiao platform user,error:%s'%(str(user_id),exc))
+    except TaobaoRequestException,exc:
+        logger.error('%s'%exc,exc_info=True)
 
 
 @task()
@@ -63,6 +64,10 @@ def saveUserPurchaseOrderTask(user_id,update_from=None,update_to=None,status=Non
         for i in range(0,exec_times):
             dt_f = update_from + datetime.timedelta(i*7,0,0) if update_handler else None
             dt_t = update_from + datetime.timedelta((i+1)*7,0,0) if update_handler else None
+            
+            if not (dt_f and dt_t):
+                dt_t = datetime.datetime.now()
+                dt_f = dt_t - datetime.timedelta(7,0,0)
             has_next = True
             cur_page = 1
         
@@ -84,8 +89,9 @@ def saveUserPurchaseOrderTask(user_id,update_from=None,update_to=None,status=Non
                 cur_page += 1
 
     except UserFenxiaoUnuseException,exc:
-        logger.warn("the current user (id:%s) is not fenxiao platform user"%str(user_id))
- 
+        logger.warn("the current user (id:%s) is not fenxiao platform user,error:%s"%(str(user_id),exc))
+    except TaobaoRequestException,exc:
+        logger.error('%s'%exc,exc_info=True)
 
 
 
@@ -139,9 +145,10 @@ def saveUserIncrementPurchaseOrderTask(user_id,year=None,month=None,day=None):
         day_monitor_status.save()
     
     except UserFenxiaoUnuseException,exc:
-        logger.warn("the current user(id:%s) is not fenxiao platform user"%str(user_id))
+        logger.warn("the current user(id:%s) is not fenxiao platform user,error:%s"%(str(user_id),exc))
 
-    
+    except TaobaoRequestException,exc:
+        logger.error('%s'%exc,exc_info=True)
     
     
 @task()

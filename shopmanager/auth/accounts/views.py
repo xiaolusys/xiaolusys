@@ -5,7 +5,7 @@ from django.core.urlresolvers import reverse
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth import authenticate, login, SESSION_KEY
 from django.contrib.auth.decorators import login_required
-from shopback.users.signals import taobao_logged_in
+from shopback.signals import taobao_logged_in
 from auth.utils import verifySignature,decodeBase64String,parse_urlparams,getSignatureTaoBao,refresh_session
 from auth import apis
 
@@ -68,13 +68,14 @@ def home(request):
 #    orders_list = apis.taobao_refunds_receive_get(tb_user_id=profile.visitor_id,page_no=1,page_size=100,
 #                 type='fenxiao',start_modified='2012-03-01 00:00:00',end_modified='2012-05-20 23:59:59')
 #    print orders_list
-#    trades = apis.taobao_trades_sold_get(session=profile.top_session,page_no=1
-#                 ,page_size=5,use_has_next='true',start_created='2012-05-10 00:00:00',end_created='2012-05-15 00:00:00')
+#    trades = apis.taobao_trades_sold_get(tb_user_id=profile.visitor_id,page_no=1
+#                 ,page_size=5,use_has_next='true',start_created='2012-03-10 00:00:00',end_created='2012-05-15 00:00:00',type='cod')
+#    print 'trades:',trades
 #    for t in trades['trades_sold_get_response']['trades']['trade']:
 #        print t
 #        trade_info = apis.taobao_trade_amount_get(tid=t['tid'],session=profile.top_session)
 #        print trade_info
-
+#    return HttpResponse('ok')
     return HttpResponseRedirect('/app/autolist/')
 
 

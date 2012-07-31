@@ -2,6 +2,22 @@
 __author__ = 'meixqhi'
 from django.db import models
 
+class SystemConfig(models.Model):
+    
+    is_rule_auto = models.BooleanField(default=False)   #是否开启自动规则过滤
+    is_sms_auto  = models.BooleanField(default=False)   #是否开启自动短信提醒
+    is_confirm_delivery_auto = models.BooleanField(default=False) #是否自动确认发货
+    
+    class Meta:
+        db_table = 'shop_monitor_systemconfig'
+    
+    @classmethod
+    def getconfig(cls):
+        configs = cls.objects.all()
+        if configs.count()==0:
+            cls.objects.create()
+        return configs[0]
+    
 
 class DayMonitorStatus(models.Model):
     
@@ -26,8 +42,6 @@ class TradeExtraInfo(models.Model):
 
     is_update_amount = models.BooleanField(default=False)
     is_update_logistic = models.BooleanField(default=False)
-    is_picking_print = models.BooleanField(default=False)
-    is_send_sms      = models.BooleanField(default=False)
 
     modified         = models.DateTimeField(auto_now=True)
     seller_memo      = models.TextField(max_length=128,blank=True)

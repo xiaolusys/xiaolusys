@@ -27,7 +27,6 @@ MONTH_TRADE_FILE_TEMPLATE = 'trade-month-%s.xls'
 def updateMonthTradeXlsFileTask(year=None,month=None):
 
     dt = datetime.datetime.now()
-    logger.warn('updateMonthTradeXlsFileTask start at :%s'%str(dt))
     update_year_month = year and month
     if not update_year_month:
         last_month_date = dt - datetime.timedelta(dt.day,0,0)
@@ -50,6 +49,7 @@ def updateMonthTradeXlsFileTask(year=None,month=None):
         return {'error':'%s is already exist or must be %d days from last month at lest!'
             %(file_name,settings.GEN_AMOUNT_FILE_MIN_DAYS)}
 
+    logger.warn('updateMonthTradeXlsFileTask start at :%s'%str(dt))
     start_date   = last_month_first_days - datetime.timedelta(7,0,0)
     
     interval_date = dt - start_date

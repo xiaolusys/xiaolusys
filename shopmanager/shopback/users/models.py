@@ -4,7 +4,7 @@ import json
 from django.db import models
 from shopback.base.models import BaseModel
 from django.contrib.auth.models import User as DjangoUser
-from shopback.users.signals import taobao_logged_in
+from shopback.signals import taobao_logged_in
 from shopback.base.fields import BigIntegerAutoField
 from auth import apis
 
@@ -49,8 +49,7 @@ class User(models.Model):
     craw_keywords = models.TextField(blank=True)
     craw_trade_seller_nicks = models.TextField(blank=True)
 
-
-    created_at = models.DateTimeField(auto_now=True,null=True)
+    created_at = models.DateTimeField(auto_now=True,null=True) 
     status     = models.CharField(max_length=12,blank=True) #normal,inactive,delete,reeze,supervise
 
     class Meta:

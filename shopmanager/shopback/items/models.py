@@ -146,7 +146,7 @@ class Item(models.Model):
                 item_dict = response['item_get_response']['item']
                 item = Item.save_item_through_dict(user_id,item_dict)
             except Exception,exc:
-                logger.error('淘宝后台更新该商品(num_iid:%s)出错'%str(num_iid),exc_info=True)
+                logger.error('backend update item (num_iid:%s)error'%str(num_iid),exc_info=True)
         return item
 
 
@@ -163,7 +163,7 @@ class Item(models.Model):
                 product.category    = category
                 product.save()
         except Exception,exc:
-            logger.warn('该商品（num_iid:%s）未设置外部编码'%str(item_dict['num_iid']))
+            logger.warn('the current item(num_iid:%s)has not set outer_id'%str(item_dict['num_iid']))
             product = None
         
         item,state    = cls.objects.get_or_create(num_iid = item_dict['num_iid'])

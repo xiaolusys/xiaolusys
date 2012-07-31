@@ -56,6 +56,7 @@ INSTALLED_APPS = (
     'shopback.logistics',
     'shopback.monitor',
     'shopback.orders',
+    'shopback.trades',
     'shopback.refunds',
 
 
@@ -85,7 +86,7 @@ APPSECRET = 'daa98d080842335088c3b80c2676b005'
 AUTHRIZE_URL = 'https://oauth.taobao.com/authorize'
 AUTHRIZE_TOKEN_URL = 'https://oauth.taobao.com/token'
 REDIRECT_URI = 'http://localhost:8000/accounts/login/taobao/'
-TAOBAO_API_ENDPOINT = 'http://gw.api.taobao.com/router/rest'
+TAOBAO_API_ENDPOINT = 'https://eco.taobao.com/router/rest'
 
 SCOPE = 'item,promotion,usergrade'
 

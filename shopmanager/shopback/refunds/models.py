@@ -9,7 +9,17 @@ from shopback.base.fields import BigIntegerAutoField,BigIntegerForeignKey
 from shopback.users.models import User
 
 
+
 REFUND_WILL_STATUS    = ['WAIT_BUYER_RETURN_GOODS','WAIT_SELLER_CONFIRM_GOODS','SUCCESS']
+REFUND_STATUS = (
+    ('WAIT_SELLER_AGREE','买家已经申请退款，等待卖家同意'),
+    ('WAIT_BUYER_RETURN_GOODS','卖家已经同意退款，等待买家退货'),
+    ('WAIT_SELLER_CONFIRM_GOODS','买家已经退货，等待卖家确认收货'),
+    ('SELLER_REFUSE_BUYER','卖家拒绝退款'),
+    ('CLOSED','退款关闭'),
+    ('SUCCESS','退款成功'),
+)
+
 
 class Refund(models.Model):
 
@@ -61,3 +71,4 @@ class Refund(models.Model):
             if refund.get('modified',None) else None
 
         self.save()
+        

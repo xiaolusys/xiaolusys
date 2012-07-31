@@ -63,5 +63,9 @@ class AppCallLimitedException(TaobaoRequestException):
         u'code': 7, u'sub_msg': u'This ban will last for 31062 more seconds'}
     """
 
+class ContentNotRightException(TaobaoRequestException):
+    """
+    connect repear or refuse
+    """
 
 

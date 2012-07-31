@@ -30,7 +30,7 @@ APPSECRET = 'b3ddef5982a23c636739289949c01f59'
 AUTHRIZE_URL = 'https://oauth.taobao.com/authorize'
 AUTHRIZE_TOKEN_URL = 'https://oauth.taobao.com/token'
 REDIRECT_URI = 'http://autolist.huyi.so/accounts/login/taobao/'
-TAOBAO_API_ENDPOINT = 'http://gw.api.taobao.com/router/rest'
+TAOBAO_API_ENDPOINT = 'https://eco.taobao.com/router/rest'
 
 SCOPE = 'item,promotion,usergrade'
 REFRESH_URL = 'https://oauth.taobao.com/token'
