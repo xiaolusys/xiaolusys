@@ -61,10 +61,16 @@ def home(request):
     
 #    response = apis.taobao_item_get(num_iid=9265927875,tb_user_id=profile.visitor_id)
 #    print 'response:',response
+
+
 #    response = apis.taobao_fenxiao_orders_get(page_no=1,
 #                time_type='trade_time_type',page_size=10,start_created='2012-06-01',end_created='2012-06-30',tb_user_id=profile.visitor_id)
 #    print 'response:',response
 #
+
+    response = apis.taobao_trade_fullinfo_get(tid='166803076931050',tb_user_id=profile.visitor_id)
+    print response
+
 #    orders_list = apis.taobao_refunds_receive_get(tb_user_id=profile.visitor_id,page_no=1,page_size=100,
 #                 type='fenxiao',start_modified='2012-03-01 00:00:00',end_modified='2012-05-20 23:59:59')
 #    print orders_list
@@ -75,7 +81,12 @@ def home(request):
 #        print t
 #        trade_info = apis.taobao_trade_amount_get(tid=t['tid'],session=profile.top_session)
 #        print trade_info
-#    return HttpResponse('ok')
-    return HttpResponseRedirect('/app/autolist/')
+    return HttpResponse('ok')
+    #return HttpResponseRedirect('/app/autolist/')
 
 
+def test_api(request):
+    profile = request.user.get_profile()
+    response = apis.taobao_trade_fullinfo_get(tid='166803076931050',tb_user_id=profile.visitor_id)
+    print response
+    return HttpResponse('ok')

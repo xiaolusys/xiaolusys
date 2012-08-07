@@ -44,7 +44,6 @@ class TradeExtraInfo(models.Model):
     is_update_logistic = models.BooleanField(default=False)
 
     modified         = models.DateTimeField(auto_now=True)
-    seller_memo      = models.TextField(max_length=128,blank=True)
 
     class Meta:
         db_table = 'shop_monitor_tradeextrainfo'

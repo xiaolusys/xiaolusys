@@ -108,14 +108,13 @@ def raise_except_or_ret_json(content):
         elif code == 520 and  reject_regex.match(sub_code):
             raise ServiceRejectionException(
                 code=code,msg=msg,sub_code=sub_code,sub_msg=sub_msg)
-        elif code == 15 and sub_code == u'isv.invalid-parameter:user_id_num':
+        elif code == 670 and sub_code == u'isv.invalid-parameter:user_id_num':
             raise UserFenxiaoUnuseException(
                     code=code,msg=msg,sub_code=sub_code,sub_msg=sub_msg)
         elif code == 7 and sub_code == u'accesscontrol.limited-by-app-access-count':
             raise AppCallLimitedException(
                     code=code,msg=msg,sub_code=sub_code,sub_msg=sub_msg)
         else :
-            print 'content:',code
             raise TaobaoRequestException(
                     code=code,msg=msg,sub_code=sub_code,sub_msg=sub_msg)
     return content
@@ -197,8 +196,6 @@ def apis(api_method,method='GET',max_retry=3,limit_rate=0.5):
             url = settings.TAOBAO_API_ENDPOINT
             if method == 'GET':
                 uri = '%s?%s'%(url,urllib.urlencode(params))
-                if api_method == 'taobao.fenxiao.orders.get':
-                    print 'uri:',uri
                 req = urllib2.urlopen(uri)
                 content = req.read()
             else:

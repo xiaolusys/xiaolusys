@@ -22,7 +22,7 @@ class LogisticsCompany(models.Model):
     code    = models.CharField(max_length=64,blank=True)
     name    = models.CharField(max_length=64,blank=True)
     reg_mail_no = models.CharField(max_length=500,blank=True)
-    is_default  = models.BooleanField(default=False)
+    priority    = models.IntegerField(null=True,default=0)
     
     class Meta:
         db_table = 'shop_logistics_company'

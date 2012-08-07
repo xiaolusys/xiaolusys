@@ -6,14 +6,13 @@ __author__ = 'meixqhi'
 
 
 class LogisticsCompanyAdmin(admin.ModelAdmin):
-    list_display = ('id','code','name','reg_mail_no','is_default')
+    list_display = ('id','code','name','reg_mail_no','priority')
     list_display_links = ('id',)
     #list_editable = ('update_time','task_type' ,'is_success','status')
 
     #date_hierarchy = 'created'
     #ordering = ['created_at']
 
-    list_filter = ('is_default',)
     search_fields = ['code','name']
 
 

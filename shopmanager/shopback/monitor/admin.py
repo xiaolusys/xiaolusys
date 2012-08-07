@@ -25,7 +25,7 @@ admin.site.register(DayMonitorStatus, DayMonitorStatusAdmin)
 
 
 class TradeExtraInfoAdmin(admin.ModelAdmin):
-    list_display = ('tid','is_update_amount','is_update_logistic','modified','seller_memo')
+    list_display = ('tid','is_update_amount','is_update_logistic','modified')
     list_display_links = ('tid',)
     #list_editable = ('update_time','task_type' ,'is_success','status')
 

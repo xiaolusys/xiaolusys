@@ -105,6 +105,11 @@ SHOP_APP_SCHEDULE = {
         'schedule':crontab(minute="0",hour="4"),
         'args':()
     },
+    'runs-every-10-minutes-update-rule-memo':{
+        'task':'shopapp.memorule.tasks.updateTradeAndOrderByRuleMemo',
+        'schedule':crontab(minute="*/10"),
+        'args':()
+    },
 #    'runs-every-day-item-num':{
 #        'task':'shopapp.syncnum.tasks.updateAllItemNumTask',
 #        'schedule':crontab(minute="0",hour="0"),
