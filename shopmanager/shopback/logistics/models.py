@@ -89,7 +89,7 @@ class Logistics(models.Model):
         if state:
             try:
                 response = apis.taobao_logistics_orders_detail_get(tid=tid,tb_user_id=user_id)
-                logistic_dict = response['logistics_orders_detail_get_response']['shippings']['shippings'][0]
+                logistic_dict = response['logistics_orders_detail_get_response']['shippings']['shipping'][0]
                 logistic = cls.save_logistics_through_dict(user_id, logistic_dict)
             except Exception,exc:
                 logger.error('淘宝后台更新交易(tid:%s)物流信息出错'%str(tid),exc_info=True)

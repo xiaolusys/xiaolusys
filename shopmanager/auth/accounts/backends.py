@@ -56,7 +56,7 @@ class TaoBaoBackend:
         request.session['top_session']    = top_parameters['access_token']
         request.session['top_parameters'] = top_parameters
         top_parameters['ts']  = time.time()
-
+        
         try:
             app_label, model_name = settings.AUTH_PROFILE_MODULE.split('.')
         except ValueError:

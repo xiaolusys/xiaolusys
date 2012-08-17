@@ -80,8 +80,8 @@ else :
 APPKEY = '21036602'
 APPSECRET = 'daa98d080842335088c3b80c2676b005'
 
-#APPKEY = '12686841'
-#APPSECRET = '501b8d23212601443eec4fef13e7c84d'
+#APPKEY = '21113235'
+#APPSECRET = '4fbb1d2591e6321d93540968c501efa0'
 
 AUTHRIZE_URL = 'https://oauth.taobao.com/authorize'
 AUTHRIZE_TOKEN_URL = 'https://oauth.taobao.com/token'

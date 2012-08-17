@@ -4,19 +4,23 @@ import time
 import datetime
 from celery.task import task
 from django.db.models import Q
-from shopback.trades.models import MergeTrade
+from shopback.trades.models import MergeTrade,WAIT_PREPARE_SEND_STATUS,WAIT_SCAN_WEIGHT_STATUS,\
+    WAIT_CONFIRM_SEND_STATUS,SYSTEM_SEND_TAOBAO_STATUS,FINISHED_STATUS,INVALID_STATUS,AUDITFAIL_STATUS
 from shopback.orders.models import Order,Trade
-from shopapp.memorule.models import RuleMemo,TradeRule
+from shopapp.memorule.models import RuleMemo,TradeRule,SYS_STATUS_MATCH_FLAGS
 from shopback.logistics.models import LogisticsCompany
+from shopback.monitor.models import SystemConfig
 from shopback.signals import rule_signal
+from auth.utils import parse_datetime
+from auth.apis import single_instance_task,taobao_trade_memo_update
 import logging
 
 logger = logging.getLogger('memorule.handler')
 
-@task()
+@single_instance_task(30*60,prefix='shopapp.memorule.tasks.')
 def updateTradeAndOrderByRuleMemo():
     
-    rule_memos = RuleMemo.objects.filter(is_used=False)
+    rule_memos = RuleMemo.objects.filter(is_used=False).exclude(rule_memo='')
     for rule_memo in rule_memos:
         rule_memo_dict = json.loads(rule_memo.rule_memo)
         try:
@@ -31,7 +35,7 @@ def updateTradeAndOrderByRuleMemo():
                     try:
                         logistics_company = LogisticsCompany.objects.get(name=express_name)
                     except:
-                        pass
+                        logger.error('get express company(%s) object error.'%express)
                     else:
                         merge_trade.logistics_company_name = express_name
                         merge_trade.logistics_company_code = logistics_company.code
@@ -39,19 +43,49 @@ def updateTradeAndOrderByRuleMemo():
                 if address:
                     merge_trade.receiver_address = address
                 
-                orders_data = rule_memo_dict['data']
+                orders_data = rule_memo_dict.get('data',[])
                 for o in orders_data:
                     order = Order.objects.get(Q(outer_id=o['pid'])|Q(outer_sku_id=o['pid']),trade=rule_memo_dict['tid'])
                     sku_properties = ' '.join([v for k,v in o['property'].items()])
                     order.sku_properties_name += sku_properties
                     order.save()
-                merge_trade.save()
+                    
+                merge_trade.reverse_audit_reason += '-->待准备发货(订单信息已匹配)'.decode('utf8')
+                merge_trade.sys_status = WAIT_PREPARE_SEND_STATUS
+                MergeTrade.objects.filter(tid=merge_trade.tid).update(
+                     logistics_company_name=merge_trade.logistics_company_name,
+                     logistics_company_code=merge_trade.logistics_company_code,
+                     receiver_address=merge_trade.receiver_address,
+                     reverse_audit_reason=merge_trade.reverse_audit_reason,
+                     sys_status=merge_trade.sys_status,
+                     )
                 
                 rule_signal.send(sender='trade_rule',trade_id=merge_trade.tid)
-                
-                rule_memo.is_used = True
-                rule_memo.save()
+                RuleMemo.objects.filter(tid=rule_memo.tid).update(is_used=True)
             except Exception,exc:
                 logger.error('update rule error',exc_info=True)
             
-            
+
+@single_instance_task(30*60,prefix='shopapp.memorule.tasks.')
+def updateTradeSellerFlagTask():
+    
+    system_config = SystemConfig.getconfig()
+    if system_config and system_config.is_flag_auto:
+        dt  = datetime.datetime.now()
+        start_date = datetime.datetime(dt.year,dt.month,dt.day,0,0,0)
+        trades = MergeTrade.objects.filter(sys_status__in = 
+                    (WAIT_PREPARE_SEND_STATUS,WAIT_SCAN_WEIGHT_STATUS,WAIT_CONFIRM_SEND_STATUS,AUDITFAIL_STATUS))\
+                    .include(modified__gt=modified,sys_status__in=(FINISHED_STATUS,INVALID_STATUS))
+                     
+        for trade in trades:
+            rule_memo,state  = RuleMemo.objects.get_or_create(tid=trade.tid)
+            seller_flag = SYS_STATUS_MATCH_FLAGS.get(trade.sys_status,None)
+            if seller_flag != rule_memo.seller_flag:
+                try:
+                    response = taobao_trade_memo_update(tid=trade.tid,flag=seller_flag,tb_user_id=trade.seller_id)
+                    trade_rep = response['trade_memo_update_response']['trade']
+                    if trade_rep: 
+                        RuleMemo.objects.filter(tid=trade.tid).update(seller_flag=seller_flag)
+                        MergeTrade.objects.filter(tid=trade_rep['tid']).update(modified=parse_datetime(trade_rep['modified']))
+                except:
+                    logger.error('update taobao trade flag error',exc_info=True) 

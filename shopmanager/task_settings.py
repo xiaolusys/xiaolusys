@@ -33,12 +33,12 @@ from celery.schedules import crontab
 SYNC_MODEL_SCHEDULE = {
     'runs-every-hours-wait-post-orders':{
         'task':'shopback.orders.tasks.updateAllUserDuringOrdersTask',
-        'schedule':crontab(minute="0,30"),
+        'schedule':crontab(minute="*/15"),
         'args':(None,None,'WAIT_SELLER_SEND_GOODS')
     },
     'runs-every-hours-wait-post-purchase_orders':{
         'task':'shopback.fenxiao.tasks.updateAllUserPurchaseOrderTask',
-        'schedule':crontab(minute="0,30"),
+        'schedule':crontab(minute="*/15"),
         'args':(None,None,'WAIT_SELLER_SEND_GOODS'),
     },
     'runs-every-day-orders':{
@@ -110,6 +110,12 @@ SHOP_APP_SCHEDULE = {
         'schedule':crontab(minute="*/10"),
         'args':()
     },
+    'runs-every-10-minutes-update-seller-flag':{
+        'task':'shopapp.memorule.tasks.updateTradeSellerFlagTask',
+        'schedule':crontab(minute="*/10"),
+        'args':()
+    },                 
+                     
 #    'runs-every-day-item-num':{
 #        'task':'shopapp.syncnum.tasks.updateAllItemNumTask',
 #        'schedule':crontab(minute="0",hour="0"),

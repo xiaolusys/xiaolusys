@@ -48,7 +48,7 @@ def write_to_log_db(task, response):
     log.save()
 
 
-@task(max_retries=3)
+@task(max_retry=3)
 def updateItemListTask(num_iid):
 
     try:
@@ -121,7 +121,7 @@ def updateItemListTask(num_iid):
     task.save()
 
 
-@task()
+@apis.single_instance_task(30*60,prefix='shopapp.autolist.tasks.')
 def updateAllItemListTask():
     currentdate = datetime.datetime.now()
     currenttime = time.mktime(currentdate.timetuple())

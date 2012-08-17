@@ -14,7 +14,7 @@ class RefundAdmin(admin.ModelAdmin):
     #ordering = ['created_at']
 
     list_filter   = ('seller_nick','has_good_return','good_status','order_status','status',)
-    search_fields = ['refund_id','oid','sid','buyer_nick']
+    search_fields = ['refund_id','tid','oid','sid','buyer_nick']
 
 
 admin.site.register(Refund,RefundAdmin)

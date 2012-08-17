@@ -26,44 +26,60 @@ def updateUserItemsTask(user_id):
     has_next = True
     cur_page = 1
     update_nums = 0
-
-    while has_next:
-      
-        response_list = apis.taobao_items_onsale_get(page_no=cur_page,tb_user_id=user_id
-            ,page_size=settings.TAOBAO_PAGE_SIZE,fields='num_iid,cid,outer_id,num,price,title,delist_time,list_time')
-
-        item_list = response_list['items_onsale_get_response']
-        if item_list['total_results']>0:
-            items = item_list['items']['item']
-            for item in items:
-                Item.save_item_through_dict(user_id,item)
-            update_nums += len(items)    
-
-        total_nums = item_list['total_results']
-        cur_nums = cur_page*settings.TAOBAO_PAGE_SIZE
-        has_next = cur_nums<total_nums
-        
-        cur_page += 1
+    try:
+        while has_next:
+          
+            response_list = apis.taobao_items_onsale_get(page_no=cur_page,tb_user_id=user_id
+                ,page_size=settings.TAOBAO_PAGE_SIZE,fields='num_iid,modified')
     
-    has_next = True
-    cur_page = 1    
-    while has_next:
-      
-        response_list = apis.taobao_items_inventory_get(page_no=cur_page,tb_user_id=user_id
-            ,page_size=settings.TAOBAO_PAGE_SIZE,fields='num_iid,cid,outer_id,num,price,title,delist_time,list_time')
-
-        item_list = response_list['items_inventory_get_response']
-        if item_list['total_results']>0:
-            items = item_list['items']['item']
-            for item in item_list['items']['item']:
-                Item.save_item_through_dict(user_id,item)
-            update_nums += len(items)
+            item_list = response_list['items_onsale_get_response']
+            if item_list['total_results']>0:
+                items = item_list['items']['item']
+                for item in items:
+                    modified = parse_datetime(item['modified']) if item.get('modified',None) else None
+                    item_obj,state    = Item.objects.get_or_create(num_iid = item['num_iid'])
+                    if modified != item_obj.modified:
+                        response = apis.taobao_item_get(num_iid=item['num_iid'],tb_user_id=user_id)
+                        item_dict = response['item_get_response']['item']
+                        item_dict['skus'] = json.dumps(item_dict.get('skus',{}))
+                        Item.save_item_through_dict(user_id,item_dict)
+                update_nums += len(items)    
+    
+            total_nums = item_list['total_results']
+            cur_nums = cur_page*settings.TAOBAO_PAGE_SIZE
+            has_next = cur_nums<total_nums
             
-        total_nums = item_list['total_results']
-        cur_nums = cur_page*settings.TAOBAO_PAGE_SIZE
-        has_next = cur_nums<total_nums
-        cur_page += 1
-   
+            cur_page += 1
+    except:
+        logger.error('update user onsale items task error',exc_info=True)
+        
+    try:
+        has_next = True
+        cur_page = 1    
+        while has_next:
+          
+            response_list = apis.taobao_items_inventory_get(page_no=cur_page,tb_user_id=user_id
+                ,page_size=settings.TAOBAO_PAGE_SIZE,fields='num_iid,modified')
+    
+            item_list = response_list['items_inventory_get_response']
+            if item_list['total_results']>0:
+                items = item_list['items']['item']
+                for item in item_list['items']['item']:
+                    modified = parse_datetime(item['modified']) if item.get('modified',None) else None
+                    item_obj,state    = Item.objects.get_or_create(num_iid = item['num_iid'])
+                    if modified != item_obj.modified:
+                        response = apis.taobao_item_get(num_iid=item['num_iid'],tb_user_id=user_id)
+                        item_dict = response['item_get_response']['item']
+                        item_dict['skus'] = json.dumps(item_dict.get('skus',{}))
+                        Item.save_item_through_dict(user_id,item)
+                update_nums += len(items)
+                
+            total_nums = item_list['total_results']
+            cur_nums = cur_page*settings.TAOBAO_PAGE_SIZE
+            has_next = cur_nums<total_nums
+            cur_page += 1
+    except:
+        logger.error('update user inventory items task error',exc_info=True)
    
     return update_nums
 
@@ -77,33 +93,6 @@ def updateAllUserItemsTask():
     for user in users:
         subtask(updateUserItemsTask).delay(user.visitor_id)
 
-
-
-
-@task(max_retries=3)
-def saveUserItemsInfoTask(user_id):
-
-    user  = User.objects.get(visitor_id=user_id)
-    items = user.items.all()
-    for item in items:
-
-        response = apis.taobao_item_get(num_iid=item.num_iid,tb_user_id=user_id)
-        item_dict = response['item_get_response']['item']
-        item_dict['skus'] = json.dumps(item_dict.get('skus',{}))
-        
-
-        Item.save_item_through_dict(user_id,item_dict)
-
-
-
-
-@task()
-def updateAllUserItemsInfoTask():
-
-    users = User.objects.all()
-    for user in users:
-
-        subtask(saveUserItemsInfoTask).delay(user.visitor_id)
 
 
 
@@ -152,8 +141,6 @@ def updateAllUserProductSkuTask():
 def updateUserItemsEntityTask(user_id):
 
     updateUserItemsTask(user_id)
-
-    subtask(saveUserItemsInfoTask).delay(user_id)
 
     subtask(updateUserProductSkuTask).delay(user_id)
 

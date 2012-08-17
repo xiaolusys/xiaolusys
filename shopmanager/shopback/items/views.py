@@ -5,7 +5,7 @@ from djangorestframework.serializer import Serializer
 from auth import apis
 from shopback.items.models import Item
 from shopback.users.models import User
-from shopback.items.tasks import updateUserItemsTask,saveUserItemsInfoTask
+from shopback.items.tasks import updateUserItemsTask
 
 
 def update_user_items(request):
@@ -15,9 +15,8 @@ def update_user_items(request):
 
     update_nums = updateUserItemsTask(user_id)
 
-    iteminfo_task = saveUserItemsInfoTask.delay(user_id)
 
-    response = {'update_nums':update_nums,'update_item_info_task_id':iteminfo_task.task_id}
+    response = {'update_nums':update_nums}
 
     return HttpResponse(json.dumps(response),mimetype='application/json')
 

@@ -8,7 +8,7 @@ __author__ = 'meixqhi'
 class LogisticsCompanyAdmin(admin.ModelAdmin):
     list_display = ('id','code','name','reg_mail_no','priority')
     list_display_links = ('id',)
-    #list_editable = ('update_time','task_type' ,'is_success','status')
+    list_editable = ('priority',)
 
     #date_hierarchy = 'created'
     #ordering = ['created_at']

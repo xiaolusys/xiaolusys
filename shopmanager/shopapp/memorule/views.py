@@ -4,9 +4,11 @@ from djangorestframework.views import ModelView
 from djangorestframework.response import ErrorResponse
 from djangorestframework import status
 from shopback.orders.models import Order,Trade
+from shopback.trades.models import MergeTrade
 from shopback.items.models import Item
 from shopback.users.models import User
 from shopapp.memorule.models import TradeRule,ProductRuleField,RuleMemo
+from auth.utils import parse_datetime
 from auth import apis
 import logging
 
@@ -38,9 +40,12 @@ def update_trade_memo(trade_id,trade_memo,user_id):
     
     try:
         ms = to_memo_string(trade_memo)
-        apis.taobao_trade_memo_update(tid=trade_id,memo=ms,tb_user_id=user_id)
-    except Exception,exc:
-        return {"success": True, "message":"write memo to taobao failed"}
+        response = apis.taobao_trade_memo_update(tid=trade_id,memo=ms,tb_user_id=user_id)
+        trade_rep = response['trade_memo_update_response']['trade']
+        if trade_rep:
+            MergeTrade.objects.filter(tid=trade_rep['tid']).update(modified=parse_datetime(trade_rep['modified']))
+    except:
+        pass
         
     return {"success": True}
     

@@ -24,7 +24,7 @@ def request_taobo(request):
 
 @csrf_exempt
 def login_taobo(request):
-
+    
     user = authenticate(request=request)
 
     if not user or user.is_anonymous():
@@ -68,8 +68,8 @@ def home(request):
 #    print 'response:',response
 #
 
-    response = apis.taobao_trade_fullinfo_get(tid='166803076931050',tb_user_id=profile.visitor_id)
-    print response
+#    response = apis.taobao_trade_fullinfo_get(tid='166803076931050',tb_user_id=profile.visitor_id)
+#    print response
 
 #    orders_list = apis.taobao_refunds_receive_get(tb_user_id=profile.visitor_id,page_no=1,page_size=100,
 #                 type='fenxiao',start_modified='2012-03-01 00:00:00',end_modified='2012-05-20 23:59:59')

@@ -7,7 +7,7 @@ from shopback.base.models import BaseModel
 from shopback.base.fields import BigIntegerAutoField,BigIntegerForeignKey
 from shopback.users.models import User
 from shopback.items.models import Item
-from shopback.signals import merge_trade_signal
+from shopback.signals import merge_trade_signal,merge_buyer_trade_signal
 from auth import apis
 import logging
 
@@ -127,7 +127,7 @@ class Trade(models.Model):
         trade.save()
             
         for o in trade_dict['orders']['order']:
-            order = Order()
+            order,state = Order.objects.get_or_create(pk=o['oid'])
             order.seller_nick = trade_dict['seller_nick']
             order.buyer_nick  = trade_dict['buyer_nick']
             order.trade       = trade
@@ -194,19 +194,7 @@ class Order(models.Model):
 
 
 
+def merge_buyer_trade_orders(sender, tid, sub_tid, *args, **kwargs):
+    Orders.objects.filter(trade=sub_tid).update(trade=tid)
 
-
-
-
-
-#class TradeSerialId(models.Model):
-#
-#    year  = models.IntegerField()
-#    month = models.IntegerField()
-#    day   = models.IntegerField()
-#
-#    serial_no = models.IntegerField(default=1)
-#
-#    class Meta:
-#        db_table = 'shop_tradeserialid'
-#        unique_together = ("year","month","day")
+merge_buyer_trade_signal.connect(merge_buyer_trade_orders,sender='fixed',dispatch_uid='merge_buyer_orders')

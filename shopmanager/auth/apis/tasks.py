@@ -49,11 +49,10 @@ API_FIELDS = {
         +',has_showcase,modified,delist_time,postage_id,seller_cids,outer_id,skus,props_name',
     'taobao.trades.sold.get':'seller_nick,buyer_nick,title,type,created,tid,status,modified,payment,discount_fee,adjust_fee,post_fee,total_fee,received_payment,commission_fee,buyer_obtain_point_fee'
         +',point_fee,real_point_fee,pic_path,pay_time,end_time,consign_time,num_iid,num,price,shipping_type,receiver_name,receiver_state,receiver_city,receiver_district,receiver_address,receiver_zip'
-        +',receiver_mobile,receiver_phone,orders.title,orders.pic_path,orders.price,orders.num,orders.num_iid,orders.sku_id,orders.refund_status'
-        +',orders.status,orders.oid,orders.total_fee,orders.payment,orders.discount_fee,orders.adjust_fee,orders.sku_properties_name'
-        +',orders.item_meal_name,orders.item_meal_id,orders.buyer_rate,orders.seller_rate,orders.outer_iid,orders.outer_sku_id,orders.refund_id,orders.seller_type',
-    'taobao.trade.fullinfo.get':'seller_nick,buyer_nick,title,type,created,tid,status,modified,payment,received_payment,adjust_fee,post_fee,total_fee,commission_fee,discount_fee'
-        +',buyer_obtain_point_fee,pic_path,buyer_email,seller_alipay_no,num_iid,num,price,orders',
+        +',receiver_mobile,receiver_phone,buyer_message,buyer_memo,seller_memo,orders',
+    'taobao.trade.fullinfo.get':'seller_nick,buyer_nick,title,type,created,tid,status,modified,payment,discount_fee,adjust_fee,post_fee,total_fee,received_payment,commission_fee,buyer_obtain_point_fee'
+        +',point_fee,real_point_fee,pic_path,pay_time,end_time,consign_time,num_iid,num,price,shipping_type,receiver_name,receiver_state,receiver_city,receiver_district,receiver_address,receiver_zip'
+        +',receiver_mobile,receiver_phone,buyer_message,buyer_memo,seller_memo,orders,promotion_details',
     'taobao.trade.amount.get':'tid,alipay_no,created,pay_time,end_time,total_fee,payment,post_fee,cod_fee,commission_fee,buyer_obtain_point_fee,order_amounts,promotion_details',
     'taobao.logistics.companies.get':'id,code,name,reg_mail_no',
     'taobao.logistics.orders.detail.get':'tid,order_code,is_quick_cod_order,out_sid,company_name,seller_id,seller_nick,buyer_nick,item_title,delivery_start,delivery_end'
@@ -237,7 +236,7 @@ def taobao_itempropvalues_get(cid=None,pvs=None,fields=API_FIELDS['taobao.itempr
 
 ############# items apis ###################
 
-@apis('taobao.item.get')
+@apis('taobao.item.get',max_retry=3,limit_rate=1)
 def taobao_item_get(num_iid=None,fields=API_FIELDS['taobao.item.get'],tb_user_id=None):
     pass
 
@@ -313,7 +312,7 @@ def taobao_trades_sold_increment_get(start_modified=None,end_modified=None,page_
                                      fields=API_FIELDS['taobao.trades.sold.get'],tb_user_id=None):
     pass
 
-@apis('taobao.trade.fullinfo.get')
+@apis('taobao.trade.fullinfo.get',max_retry=3,limit_rate=1)
 def taobao_trade_fullinfo_get(tid=None,fields=API_FIELDS['taobao.trade.fullinfo.get'],tb_user_id=None):
     pass
 

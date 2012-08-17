@@ -1,3 +1,4 @@
+#-*- coding:utf8 -*-
 import os
 import time
 import datetime
@@ -32,14 +33,21 @@ def saveUserDuringOrdersTask(user_id,update_from=None,update_to=None,status=None
 
     while has_next:
     
-        response_list = apis.taobao_trades_sold_get(tb_user_id=user_id,page_no=cur_page,use_has_next='true'
+        response_list = apis.taobao_trades_sold_get(tb_user_id=user_id,page_no=cur_page,use_has_next='true',fields='tid,modified'
             ,page_size=settings.TAOBAO_PAGE_SIZE,start_created=update_from,end_created=update_to,status=status)
 
         order_list = response_list['trades_sold_get_response']
         if order_list.has_key('trades'):
             for trade in order_list['trades']['trade']:
-
-                Trade.save_trade_through_dict(user_id,trade)
+                modified = parse_datetime(trade['modified']) if trade.get('modified',None) else None
+                trade_obj,state = Trade.objects.get_or_create(pk=trade['tid'])
+                if not modified or (trade_obj.modified and trade_obj.modified < modified ):
+                    try:
+                        response = apis.taobao_trade_fullinfo_get(tid=trade['tid'],tb_user_id=user_id)
+                        trade_dict = response['trade_fullinfo_get_response']['trade']
+                        Trade.save_trade_through_dict(user_id,trade_dict)
+                    except Exception,exc:
+                        logger.error('update trade fullinfo error:%s'%exc,exc_info=True)
 
         has_next = order_list['has_next']
         cur_page += 1
@@ -80,14 +88,21 @@ def saveUserIncrementOrdersTask(user_id,year=None,month=None,day=None):
     day_monitor_status,state = DayMonitorStatus.objects.get_or_create(user_id=user_id,year=year,month=month,day=day)
     while has_next:
        
-        response_list = apis.taobao_trades_sold_increment_get(tb_user_id=user_id,page_no=cur_page
+        response_list = apis.taobao_trades_sold_increment_get(tb_user_id=user_id,page_no=cur_page,fields='tid,modified'
             ,page_size=settings.TAOBAO_PAGE_SIZE,use_has_next='true',start_modified=s_dt_f,end_modified=s_dt_t)
 
         trade_list = response_list['trades_sold_increment_get_response']
         if trade_list.has_key('trades'):
             for trade in trade_list['trades']['trade']:
-
-                Trade.save_trade_through_dict(user_id,trade)
+                modified = parse_datetime(trade['modified']) if trade.get('modified',None) else None
+                trade_obj,state = Trade.objects.get_or_create(pk=trade['tid'])
+                if not modified or (trade_obj.modified and trade_obj.modified < modified ):
+                    try:
+                        response = apis.taobao_trade_fullinfo_get(tid=trade['tid'],tb_user_id=user_id)
+                        trade_dict = response['trade_fullinfo_get_response']['trade']
+                        Trade.save_trade_through_dict(user_id,trade_dict)
+                    except Exception,exc:
+                        logger.error('update trade fullinfo error：%s'%exc,exc_info=True)
 
         has_next = trade_list['has_next']
         cur_page += 1

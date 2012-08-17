@@ -7,7 +7,8 @@ from celery.task.sets import subtask
 from django.conf import settings
 from auth.utils import format_time,format_datetime,format_year_month,parse_datetime
 from shopback.monitor.models import SystemConfig
-from shopback.trades.models import MergeTrade,WAIT_CONFIRM_SEND_STATUS,SYSTEM_SEND_TAOBAO_STATUS,FINISHED_STATUS,AUDITFAIL_STATUS
+from shopback.trades.models import MergeTrade,MergeBuyerTrade,WAIT_CONFIRM_SEND_STATUS,SYSTEM_SEND_TAOBAO_STATUS\
+    ,FINISHED_STATUS,AUDITFAIL_STATUS,ON_THE_FLY_STATUS
 from shopback.users.models import User
 from auth import apis
 import logging
@@ -15,7 +16,7 @@ import logging
 logger = logging.getLogger('trades.handler')
 
 
-@task()
+@apis.single_instance_task(30*60,prefix='shopback.trades.tasks.')
 def syncConfirmDeliveryTradeTask():
     system_config = SystemConfig.getconfig()
     status_list = [WAIT_CONFIRM_SEND_STATUS,SYSTEM_SEND_TAOBAO_STATUS] if system_config.is_confirm_delivery_auto else [SYSTEM_SEND_TAOBAO_STATUS]
@@ -26,13 +27,45 @@ def syncConfirmDeliveryTradeTask():
                                           ,company_code=trade.logistics_company_code,tb_user_id=trades.seller_id)
         except Exception,exc:
             trade.sys_status = AUDITFAIL_STATUS
-            trade.reverse_audit_reason += '与淘宝后台同步确认发货失败，请查询淘宝该单状态是否改变,'
+            trade.reverse_audit_times += 1
+            trade.reverse_audit_reason += '--发货状态更新失败'.decode('utf8')
             trade.save()
         else:
             if response['delivery_online_send_response']['shipping']['is_success']:
                 trade.sys_status = FINISHED_STATUS
                 trade.consign_time = datetime.datetime.now()
-                trade.save()
+                MergeTrade.objects.filter(tid=trade.tid).update(
+                    sys_status=trade.sys_status,
+                    consign_time=trade.consign_time,
+                    )
+                try:
+                    merge_buyer_trade = MergeBuyerTrade.objects.get(tid=trade.tid)
+                except :
+                    pass
+                else:
+                    try:
+                        sub_merge_trade = MergeTrade.objects.get(tid=merge_buyer_trade.sub_tid,sys_status=ON_THE_FLY_STATUS)
+                    except Exception,exc:
+                        logger.error('飞行模式订单(tid:%s)未找到'%merge_buyer_trade.sub_tid)
+                    else:
+                        try:
+                            apis.taobao_logistics_online_send(tid=merge_buyer_trade.sub_tid,out_sid=trade.out_sid
+                                              ,company_code=trade.logistics_company_code,tb_user_id=trades.seller_id)
+                        except Exception,exc:
+                            sub_merge_trade.sys_status = AUDITFAIL_STATUS
+                            sub_merge_trade.reverse_audit_times += 1
+                            sub_merge_trade.reverse_audit_reason += ('主订单(id:%s)发货成功，但次订单(%s)发货失败'%(trade.tid,sub_merge_trade.tid)).decode('utf8')
+                            sub_merge_trade.save()
+                        else:
+                            if response['delivery_online_send_response']['shipping']['is_success']:
+                                sub_merge_trade.sys_status = FINISHED_STATUS
+                                sub_merge_trade.consign_time = datetime.datetime.now()
+                                MergeTrade.objects.filter(tid=sub_merge_trade.tid).update(
+                                    sys_status=sub_merge_trade.sys_status,
+                                    consign_time=sub_merge_trade.consign_time,
+                                    )
+                            else :
+                                logger.error('delivery trade(%s) fail,response:%s'%(sub_merge_trade.tid,response))
             else :
                 logger.error('delivery trade(%s) fail,response:%s'%(trade.tid,response))
         

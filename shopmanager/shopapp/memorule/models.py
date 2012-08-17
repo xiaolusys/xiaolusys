@@ -3,9 +3,12 @@ __author__ = 'meixqhi'
 from django.db import models
 from shopback.items.models import Item
 from shopback.orders.models import Trade
-from shopback.trades.models import MergeTrade
+from shopback.trades.models import MergeTrade,WAIT_PREPARE_SEND_STATUS,WAIT_SCAN_WEIGHT_STATUS,\
+    WAIT_CONFIRM_SEND_STATUS,FINISHED_STATUS,INVALID_STATUS
 from shopback.signals import rule_signal
+import logging
 
+logger = logging.getLogger('memorule.handler')
 
 
 RULE_STATUS = (
@@ -16,6 +19,16 @@ SCOPE_CHOICE = (
     ('trade','交易域'),
     ('product','商品域'),
 )
+SYS_STATUS_MATCH_FLAGS = {
+    'WAIT_PREPARE_SEND_STATUS':1, #已审核
+    'WAIT_SCAN_WEIGHT_STATUS':2,  #已开单
+    'WAIT_CONFIRM_SEND_STATUS':3, #已称重
+    'SYSTEM_SEND_TAOBAO_STATUS':3, #等待更新发货状态
+    'FINISHED_STATUS':4,          #已发货
+    'INVALID_STATUS':5,           #问题单
+    'AUDITFAIL_STATUS':5,         #审核为通过
+}
+
 class TradeRule(models.Model):
 
     formula     = models.CharField(max_length=64,blank=True,)
@@ -29,9 +42,6 @@ class TradeRule(models.Model):
     items       = models.ManyToManyField(Item,related_name='rules',symmetrical=False,db_table='shop_memorule_itemrulemap')
     class Meta:
         db_table = 'shop_memorule_traderule'
-
-
-
 
 
 FIELD_TYPE_CHOICE = (
@@ -88,6 +98,7 @@ class RuleMemo(models.Model):
     
     is_used   = models.BooleanField(default=False)
     rule_memo      = models.TextField(max_length=1000,blank=True)
+    seller_flag    = models.IntegerField(null=True)
     
     created  = models.DateTimeField(null=True,blank=True,auto_now_add=True)
     modified = models.DateTimeField(null=True,blank=True,auto_now=True)
@@ -104,7 +115,7 @@ def rule_match_product(sender, trade_id, *args, **kwargs):
         trade = Trade.objects.get(id=trade_id)
     except Trade.DoesNotExist:
         return 
-    orders  = trade.orders.filter(refund_status='NO_REFUND')
+    orders  = trade.trade_orders.filter(refund_status='NO_REFUND')
     for order in orders:
         rules = ProductRuleField.objects.filter(outer_id=order.outer_id)
         if rules.count()>0:
@@ -119,18 +130,13 @@ def rule_match_trade(sender, trade_id, *args, **kwargs):
         trade = Trade.objects.get(id=trade_id)
     except Trade.DoesNotExist:
         pass
-    else: 
+    else:
         orders = trade.trade_orders.filter(refund_status='NO_REFUND')
         trade_rules = TradeRule.objects.filter(scope='trade',status='US') 
         memo_list = []
-        for rule in trade_rules:
-            try:
-                if eval(rule.formula):
-                    memo_list.append(rule.memo)
-            except Exception,exc:
-                logger.error('全局交易规则匹配出错',exc_info=True)
-                memo_list.append('规则(%s)匹配出错'%rule.id)
+        payment = 0 
         for order in orders:
+            payment = float(order.payment)  
             item = Item.get_or_create(trade.seller_id,order.num_iid)
             order_rules = item.rules.filter(scope='product',status='US')
             for rule in order_rules:
@@ -138,10 +144,19 @@ def rule_match_trade(sender, trade_id, *args, **kwargs):
                     if eval(rule.formula):
                         memo_list.append(rule.memo)
                 except Exception,exc:
-                    logger.error('交易商品规则匹配出错',exc_info=True)
-                    memo_list.append('规则(%s)匹配出错'%rule.id)
-                    
+                    logger.error('交易商品规则(%s)匹配出错'%rule.formula,exc_info=True)
+        
+        trade.payment = payment  
+        for rule in trade_rules:
+            try:
+                if eval(rule.formula):
+                    memo_list.append(rule.memo)
+            except Exception,exc:
+                logger.error('交易订单规则(%s)匹配出错'%rule.formula,exc_info=True)
+ 
+            
         MergeTrade.objects.filter(tid=trade_id).update(sys_memo=','.join(memo_list))
+        
 
 rule_signal.connect(rule_match_trade,sender='trade_rule',dispatch_uid='rule_match_trade')
     
