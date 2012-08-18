@@ -78,7 +78,7 @@ SYNC_MODEL_SCHEDULE = {
     },
     'runs-every-10-minutes-confirm-delivery-send':{
         'task':'shopback.trades.tasks.syncConfirmDeliveryTradeTask',
-        'schedule':crontab(minute="*/10"),
+        'schedule':crontab(minute="*/5"),
         'args':()
     },
 }

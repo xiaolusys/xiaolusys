@@ -37,15 +37,15 @@ def update_trade_memo(trade_id,trade_memo,user_id):
         rule_memo.save()
     except Exception,exc:
         return {"success": False, "message":"write memo to backend failed"}
-    
-    try:
-        ms = to_memo_string(trade_memo)
-        response = apis.taobao_trade_memo_update(tid=trade_id,memo=ms,tb_user_id=user_id)
-        trade_rep = response['trade_memo_update_response']['trade']
-        if trade_rep:
-            MergeTrade.objects.filter(tid=trade_rep['tid']).update(modified=parse_datetime(trade_rep['modified']))
-    except:
-        pass
+#将备注信息同步淘宝后台    
+#    try:
+#        ms = to_memo_string(trade_memo)
+#        response = apis.taobao_trade_memo_update(tid=trade_id,memo=ms,tb_user_id=user_id)
+#        trade_rep = response['trade_memo_update_response']['trade']
+#        if trade_rep:
+#            MergeTrade.objects.filter(tid=trade_rep['tid']).update(modified=parse_datetime(trade_rep['modified']))
+#    except:
+#        pass
         
     return {"success": True}
     

@@ -1,5 +1,5 @@
 from django.contrib import admin
-from shopback.trades.models import MergeTrade
+from shopback.trades.models import MergeTrade,MergeBuyerTrade
 
 __author__ = 'meixqhi'
 
@@ -19,3 +19,16 @@ class MergeTradeAdmin(admin.ModelAdmin):
 
 
 admin.site.register(MergeTrade,MergeTradeAdmin)
+
+
+class MergeBuyerTradeAdmin(admin.ModelAdmin):
+    list_display = ('tid','sub_tid','created')
+    #list_editable = ('update_time','task_type' ,'is_success','status')
+
+    date_hierarchy = 'created'
+    #ordering = ['created_at']
+
+    search_fields = ['tid','sub_tid']
+    
+
+admin.site.register(MergeBuyerTrade,MergeBuyerTradeAdmin)

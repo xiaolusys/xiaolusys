@@ -195,6 +195,19 @@ class Order(models.Model):
 
 
 def merge_buyer_trade_orders(sender, tid, sub_tid, *args, **kwargs):
-    Orders.objects.filter(trade=sub_tid).update(trade=tid)
-
-merge_buyer_trade_signal.connect(merge_buyer_trade_orders,sender='fixed',dispatch_uid='merge_buyer_orders')
+    
+    from shopback.trades.models import MergeTrade
+    Order.objects.filter(trade=sub_tid).update(trade=tid)
+    orders = Order.objects.filter(trade=tid)
+    item_num = 0
+    payment  = 0
+    total_fee = 0
+    discount_fee = 0
+    for order in orders:
+        item_num += order.num
+        payment  += float(order.payment)
+        total_fee  += float(order.total_fee)
+        discount_fee  += float(order.discount_fee)
+    MergeTrade.objects.filter(tid=tid).update(num=item_num,payment=payment,total_fee=total_fee,discount_fee=discount_fee)
+        
+merge_buyer_trade_signal.connect(merge_buyer_trade_orders,sender=Trade,dispatch_uid='merge_buyer_orders')

@@ -3,8 +3,8 @@ __author__ = 'meixqhi'
 from django.db import models
 from shopback.items.models import Item
 from shopback.orders.models import Trade
-from shopback.trades.models import MergeTrade,WAIT_PREPARE_SEND_STATUS,WAIT_SCAN_WEIGHT_STATUS,\
-    WAIT_CONFIRM_SEND_STATUS,FINISHED_STATUS,INVALID_STATUS
+from shopback.trades.models import MergeTrade,WAIT_PREPARE_SEND_STATUS,WAIT_SCAN_WEIGHT_STATUS,AUDITFAIL_STATUS,\
+    WAIT_CONFIRM_SEND_STATUS,FINISHED_STATUS,INVALID_STATUS,ON_THE_FLY_STATUS,SYSTEM_SEND_TAOBAO_STATUS
 from shopback.signals import rule_signal
 import logging
 
@@ -20,13 +20,13 @@ SCOPE_CHOICE = (
     ('product','商品域'),
 )
 SYS_STATUS_MATCH_FLAGS = {
-    'WAIT_PREPARE_SEND_STATUS':1, #已审核
-    'WAIT_SCAN_WEIGHT_STATUS':2,  #已开单
-    'WAIT_CONFIRM_SEND_STATUS':3, #已称重
-    'SYSTEM_SEND_TAOBAO_STATUS':3, #等待更新发货状态
-    'FINISHED_STATUS':4,          #已发货
-    'INVALID_STATUS':5,           #问题单
-    'AUDITFAIL_STATUS':5,         #审核为通过
+    WAIT_PREPARE_SEND_STATUS:1, #已审核
+    WAIT_SCAN_WEIGHT_STATUS:2,  #已开单
+    WAIT_CONFIRM_SEND_STATUS:3, #已称重
+    SYSTEM_SEND_TAOBAO_STATUS:3, #等待更新发货状态
+    INVALID_STATUS:4,           #已作废
+    AUDITFAIL_STATUS:4,         #问题单
+    ON_THE_FLY_STATUS:5,               #表示已合并
 }
 
 class TradeRule(models.Model):

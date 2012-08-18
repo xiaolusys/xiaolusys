@@ -86,7 +86,12 @@ def home(request):
 
 
 def test_api(request):
-    profile = request.user.get_profile()
-    response = apis.taobao_trade_fullinfo_get(tid='166803076931050',tb_user_id=profile.visitor_id)
-    print response
+#    profile = request.user.get_profile()
+#    response = apis.taobao_trade_fullinfo_get(tid='166803076931050',tb_user_id=profile.visitor_id)
+#    print response
+    from shopback.signals import merge_trade_signal
+    from shopback.orders.models import Trade
+    trade = Trade.objects.get(id=207583442858125)
+    merge_trade_signal.send(sender=Trade,trade=trade)
+
     return HttpResponse('ok')

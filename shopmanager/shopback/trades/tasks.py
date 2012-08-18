@@ -46,7 +46,7 @@ def syncConfirmDeliveryTradeTask():
                     try:
                         sub_merge_trade = MergeTrade.objects.get(tid=merge_buyer_trade.sub_tid,sys_status=ON_THE_FLY_STATUS)
                     except Exception,exc:
-                        logger.error('飞行模式订单(tid:%s)未找到'%merge_buyer_trade.sub_tid)
+                        logger.error('飞行模式订单(tid:%d)未找到'%merge_buyer_trade.sub_tid)
                     else:
                         try:
                             apis.taobao_logistics_online_send(tid=merge_buyer_trade.sub_tid,out_sid=trade.out_sid
@@ -54,7 +54,7 @@ def syncConfirmDeliveryTradeTask():
                         except Exception,exc:
                             sub_merge_trade.sys_status = AUDITFAIL_STATUS
                             sub_merge_trade.reverse_audit_times += 1
-                            sub_merge_trade.reverse_audit_reason += ('主订单(id:%s)发货成功，但次订单(%s)发货失败'%(trade.tid,sub_merge_trade.tid)).decode('utf8')
+                            sub_merge_trade.reverse_audit_reason += ('--主订单(id:%d)发货成功，但次订单(%d)发货失败'%(trade.tid,sub_merge_trade.tid)).decode('utf8')
                             sub_merge_trade.save()
                         else:
                             if response['delivery_online_send_response']['shipping']['is_success']:
