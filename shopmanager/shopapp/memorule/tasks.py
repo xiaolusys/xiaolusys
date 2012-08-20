@@ -72,7 +72,7 @@ def updateTradeSellerFlagTask():
         dt  = datetime.datetime.now()
         start_date = datetime.datetime(dt.year,dt.month,dt.day,0,0,0)
         trades = MergeTrade.objects.filter(sys_status__in = 
-                    (WAIT_PREPARE_SEND_STATUS,WAIT_SCAN_WEIGHT_STATUS,WAIT_CONFIRM_SEND_STATUS,AUDITFAIL_STATUS,ON_THE_FLY_STATUS))\
+                    (WAIT_PREPARE_SEND_STATUS,WAIT_SCAN_WEIGHT_STATUS,WAIT_CONFIRM_SEND_STATUS,AUDITFAIL_STATUS))\
                     .include(modified__gt=modified,sys_status__in=(INVALID_STATUS))
                      
         for trade in trades:

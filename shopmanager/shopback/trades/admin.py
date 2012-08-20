@@ -22,13 +22,13 @@ admin.site.register(MergeTrade,MergeTradeAdmin)
 
 
 class MergeBuyerTradeAdmin(admin.ModelAdmin):
-    list_display = ('tid','sub_tid','created')
+    list_display = ('sub_tid','main_tid','created')
     #list_editable = ('update_time','task_type' ,'is_success','status')
 
     date_hierarchy = 'created'
     #ordering = ['created_at']
 
-    search_fields = ['tid','sub_tid']
+    search_fields = ['sub_tid','main_tid']
     
 
 admin.site.register(MergeBuyerTrade,MergeBuyerTradeAdmin)

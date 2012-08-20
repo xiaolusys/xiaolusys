@@ -1,3 +1,4 @@
+#-*- coding:utf8 -*-
 __author__ = 'meixqhi'
 import json
 from djangorestframework.views import ModelView

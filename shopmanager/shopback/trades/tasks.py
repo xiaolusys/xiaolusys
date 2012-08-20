@@ -38,11 +38,9 @@ def syncConfirmDeliveryTradeTask():
                     sys_status=trade.sys_status,
                     consign_time=trade.consign_time,
                     )
-                try:
-                    merge_buyer_trade = MergeBuyerTrade.objects.get(tid=trade.tid)
-                except :
-                    pass
-                else:
+                
+                merge_buyer_trades = MergeBuyerTrade.objects.filter(main_tid=trade.tid)
+                for merge_buyer_trade in merge_buyer_trades:
                     try:
                         sub_merge_trade = MergeTrade.objects.get(tid=merge_buyer_trade.sub_tid,sys_status=ON_THE_FLY_STATUS)
                     except Exception,exc:
@@ -54,7 +52,7 @@ def syncConfirmDeliveryTradeTask():
                         except Exception,exc:
                             sub_merge_trade.sys_status = AUDITFAIL_STATUS
                             sub_merge_trade.reverse_audit_times += 1
-                            sub_merge_trade.reverse_audit_reason += ('--主订单(id:%d)发货成功，但次订单(%d)发货失败'%(trade.tid,sub_merge_trade.tid)).decode('utf8')
+                            sub_merge_trade.reverse_audit_reason += ('--主订单(id:%d)发货成功，但次订单(%d)发货失败'%(trade.tid,sub_merge_trade.main_tid)).decode('utf8')
                             sub_merge_trade.save()
                         else:
                             if response['delivery_online_send_response']['shipping']['is_success']:

@@ -6,4 +6,4 @@ merge_trade_signal = Signal(providing_args=["trade"])
 refund_signal      = Signal(providing_args=["refund"])
 
 rule_signal = Signal(providing_args=["trade_id"])
-merge_buyer_trade_signal = Signal(providing_args=["tid","sub_tid"])
+merge_buyer_trade_signal = Signal(providing_args=["sub_tid","main_tid"])

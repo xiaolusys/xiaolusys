@@ -74,6 +74,12 @@ TRADE_TYPE = (
     ('netcn_trade','万网交易'),
     ('external_trade','统一外部交易'),
 )
+SHIPPING_TYPE = {
+    'FAST':'express',
+    'EMS':'ems',
+    'ORDINARY':'post',
+    'SELLER':'free',
+}
 
 class MergeTrade(models.Model):
 
@@ -147,9 +153,9 @@ class MergeTrade(models.Model):
  
 class MergeBuyerTrade(models.Model):
     
-    tid      =  models.BigIntegerField(primary_key=True)
-    sub_tid  =  models.BigIntegerField()
-    created  =  models.DateTimeField(null=True,auto_now=True)
+    sub_tid    =  models.BigIntegerField(primary_key=True)
+    main_tid   =  models.BigIntegerField()
+    created    =  models.DateTimeField(null=True,auto_now=True)
     
     class Meta:
         db_table = 'shop_trades_mergebuyertrade'
@@ -165,33 +171,30 @@ def set_storage_trade_sys_status(merge_trade,trade,has_refund,full_refund):
                 MergeBuyerTrade.objects.get(sub_tid=trade.id)
             except MergeBuyerTrade.DoesNotExist:
                 user_trades = MergeTrade.objects.filter(buyer_nick=trade.buyer_nick,type=trade.type).exclude(tid=trade.id)\
-                        .exclude(sys_status__in=(INVALID_STATUS,FINISHED_STATUS,SYSTEM_SEND_TAOBAO_STATUS,'')).order_by('-pay_time')
+                        .exclude(sys_status__in=(INVALID_STATUS,FINISHED_STATUS,SYSTEM_SEND_TAOBAO_STATUS,'',WAIT_CONFIRM_SEND_STATUS)).order_by('-pay_time')
                 if user_trades.count()>0:
                     main_merge_trade = user_trades[0]
-                    try:
-                        #如果主订单已经在合并单列表中
-                        MergeBuyerTrade.objects.get(tid=main_merge_trade.tid)
-                    except:
-                        if main_merge_trade.sys_status == WAIT_AUDIT_STATUS:
+                    if main_merge_trade.sys_status == WAIT_AUDIT_STATUS:
+                        merge_trade.sys_status = ON_THE_FLY_STATUS
+                        is_need_merge = True
+                    else:
+                        main_merge_trade.sys_status = AUDITFAIL_STATUS
+                        main_merge_trade.reverse_audit_reason = '--买家要求合单'.decode('utf8')
+                        rows = MergeTrade.objects.filter(tid=main_merge_trade.tid,).exclude(sys_status__in=
+                            (WAIT_CONFIRM_SEND_STATUS,SYSTEM_SEND_TAOBAO_STATUS,FINISHED_STATUS,INVALID_STATUS))\
+                            .update(sys_status=main_merge_trade.sys_status,reverse_audit_reason=main_merge_trade.reverse_audit_reason)
+                        if rows > 0:
                             merge_trade.sys_status = ON_THE_FLY_STATUS
                             is_need_merge = True
-                        else:
-                            main_merge_trade.sys_status = AUDITFAIL_STATUS
-                            main_merge_trade.reverse_audit_reason = '--买家要求合单'.decode('utf8')
-                            rows = MergeTrade.objects.filter(tid=main_merge_trade.tid,).exclude(sys_status__in=(FINISHED_STATUS,INVALID_STATUS))\
-                                .update(sys_status=main_merge_trade.sys_status,reverse_audit_reason=main_merge_trade.reverse_audit_reason)
-                            if rows > 0:
-                                merge_trade.sys_status = ON_THE_FLY_STATUS
-                                is_need_merge = True
 
-                        if is_need_merge:
-                            try:
-                                MergeBuyerTrade.objects.create(tid=main_merge_trade.tid,sub_tid=trade.id)
-                                merge_buyer_trade_signal.send(sender=Trade,tid=main_merge_trade.tid,sub_tid=trade.id)
-                                #合单后对主订单重新进行留言匹配
-                                rule_signal.send(sender='trade_rule',trade_id=main_merge_trade.tid)
-                            except Exception,exc:
-                                logger.error('%s'%exc,exc_info=True)
+                    if is_need_merge:
+                        try:
+                            MergeBuyerTrade.objects.create(sub_tid=trade.id,main_tid=main_merge_trade.tid)
+                            merge_buyer_trade_signal.send(sender=Trade,sub_tid=trade.id,main_tid=main_merge_trade.tid)
+                            #合单后对主订单重新进行留言匹配
+                            rule_signal.send(sender='trade_rule',trade_id=main_merge_trade.tid)
+                        except Exception,exc:
+                            logger.error('%s'%exc,exc_info=True)
                     
         if not has_refund and merge_trade.sys_status != ON_THE_FLY_STATUS:
             system_config = SystemConfig.getconfig()
@@ -223,7 +226,6 @@ def set_storage_trade_sys_status(merge_trade,trade,has_refund,full_refund):
                     
                 #如果订单指定使用平邮或EMS，则直接将物流信息更改为POST，EMS 
                 if shipping_type in ('post','ems'):
-                    shipping_type =  shiping_type == 'ORDINARY' and 'post' or shiping_type
                     post_company = LogisticsCompany.objects.filter(code=shipping_type.upper())
                     merge_trade.logistics_company_code=post_company.code
                     merge_trade.logistics_company_name=post_company.name 
@@ -237,22 +239,19 @@ def set_storage_trade_sys_status(merge_trade,trade,has_refund,full_refund):
                     merge_trade.logistics_company_name=post_company.name
                     
             #如果订单非第一次入库，有新加留言则进入问题单
-            elif not merge_trade.seller_memo and seller_memo :
+            elif not merge_trade.seller_memo and seller_memo and merge_trade.sys_status  not in (WAIT_AUDIT_STATUS,AUDITFAIL_STATUS):
                 merge_trade.sys_status = AUDITFAIL_STATUS
                 merge_trade.reverse_audit_times += 1
                 merge_trade.reverse_audit_reason += '--卖家有新备注'.decode('utf8') 
                 
         #全部退款的订单，如果状态不再作废或问题单域，则改为问题单        
         elif full_refund :
-            try:
-                merge_buyer_trade = MergeBuyerTrade.objects.get(tid=trade.id)
-            except:
-                pass 
-            else:
-                reverse_reason = '主订单全退款'.decode('utf8')
-                MergeTrade.objects.get(tid=merge_buyer_trade.sub_tid).update(sys_status=AUDITFAIL_STATUS,
+            merge_buyer_trades = MergeBuyerTrade.objects.filter(main_tid=trade.id)
+            for merge_buyer_trade in merge_buyer_trades:    
+                reverse_reason = '合单的主订单全退款'.decode('utf8')
+                MergeTrade.objects.get(tid=merge_buyer_trade.sub_tid,sys_status=ON_THE_FLY_STATUS).update(sys_status=AUDITFAIL_STATUS,
                                        reverse_audit_reason=reverse_reason,reverse_audit_times=1)
-            if merge_trade.sys_status not in (INVALID_STATUS,AUDITFAIL_STATUS):
+            if merge_trade.sys_status not in (INVALID_STATUS,AUDITFAIL_STATUS,FINISHED_STATUS):
                     merge_trade.sys_status = AUDITFAIL_STATUS
                     merge_trade.reverse_audit_times += 1
                     merge_trade.reverse_audit_reason += '--买家要求全退款'.decode('utf8')
@@ -269,9 +268,9 @@ def set_storage_trade_sys_status(merge_trade,trade,has_refund,full_refund):
                         logger.error('飞行模式订单(id:%d)部分退款时，对应主订单未找到'%(trade.id))
                     else:
                         try:
-                            main_merge_trade =MergeTrade.objects.get(tid=merge_buyer_trade.tid)
+                            main_merge_trade =MergeTrade.objects.get(tid=merge_buyer_trade.main_tid)
                         except:
-                            logger.error('主订单(id:%s)未找到'%(merge_buyer_trade.tid))
+                            logger.error('主订单(id:%s)未找到'%(merge_buyer_trade.main_tid))
                         else:
                             main_merge_trade.sys_status = AUDITFAIL_STATUS
                             main_merge_trade.reverse_audit_reason = '--买家要求部分退款'.decode('utf8')
@@ -279,7 +278,8 @@ def set_storage_trade_sys_status(merge_trade,trade,has_refund,full_refund):
                             MergeTrade.objects.filter(tid=main_merge_trade.tid).exclude(sys_status__in=(FINISHED_STATUS,INVALID_STATUS))\
                                 .update(sys_status=main_merge_trade.sys_status,reverse_audit_reason=main_merge_trade.reverse_audit_reason,
                                 reverse_audit_times=main_merge_trade.reverse_audit_times)
-                            merge_buyer_trade_signal.send(sender=Trade,tid=main_merge_trade.tid,sub_tid=trade.id)
+                            merge_buyer_trade_signal.send(sender=Trade,sub_tid=trade.id,main_tid=main_merge_trade.tid)
+                            #更新主订单备注信息
                             rule_signal.send(sender='trade_rule',trade_id=main_merge_trade.tid)
                             
             elif merge_trade.reverse_audit_times == 0:
@@ -415,7 +415,7 @@ def save_fenxiao_orders_to_mergetrade(sender, trade, *args, **kwargs):
     merge_trade.seller_nick = trade.supplier_username
     merge_trade.buyer_nick = trade.distributor_username
     merge_trade.type = FENXIAO_TYPE_NAME
-    merge_trade.shipping_type = trade.shipping
+    merge_trade.shipping_type = SHIPPING_TYPE.get(trade.shipping,trade.shipping)
     merge_trade.payment = trade.distributor_payment
     merge_trade.total_fee = trade.total_fee
     merge_trade.post_fee = trade.post_fee

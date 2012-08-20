@@ -194,11 +194,11 @@ class Order(models.Model):
 
 
 
-def merge_buyer_trade_orders(sender, tid, sub_tid, *args, **kwargs):
+def merge_buyer_trade_orders(sender, sub_tid, main_tid, *args, **kwargs):
     
     from shopback.trades.models import MergeTrade
-    Order.objects.filter(trade=sub_tid).update(trade=tid)
-    orders = Order.objects.filter(trade=tid)
+    Order.objects.filter(trade=sub_tid).update(trade=main_tid)
+    orders = Order.objects.filter(trade=main_tid,refund_status='NO_REFUND')
     item_num = 0
     payment  = 0
     total_fee = 0
@@ -208,6 +208,8 @@ def merge_buyer_trade_orders(sender, tid, sub_tid, *args, **kwargs):
         payment  += float(order.payment)
         total_fee  += float(order.total_fee)
         discount_fee  += float(order.discount_fee)
-    MergeTrade.objects.filter(tid=tid).update(num=item_num,payment=payment,total_fee=total_fee,discount_fee=discount_fee)
+    MergeTrade.objects.filter(tid=main_tid).update(total_num=item_num,payment=payment,total_fee=total_fee,discount_fee=discount_fee)
         
 merge_buyer_trade_signal.connect(merge_buyer_trade_orders,sender=Trade,dispatch_uid='merge_buyer_orders')
+
+
