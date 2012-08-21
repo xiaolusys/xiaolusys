@@ -1,0 +1,1 @@
+亲，您于{{ trade.pay_time|datetimeformat('%m月%d日%H时%M分') }}在{{ trade.seller_nick }}购买的婴儿凉席没有备注颜色和尺寸，请备注或联系客服，谢谢！

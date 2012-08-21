@@ -71,7 +71,7 @@ def updateUserItemsTask(user_id):
                         response = apis.taobao_item_get(num_iid=item['num_iid'],tb_user_id=user_id)
                         item_dict = response['item_get_response']['item']
                         item_dict['skus'] = json.dumps(item_dict.get('skus',{}))
-                        Item.save_item_through_dict(user_id,item)
+                        Item.save_item_through_dict(user_id,item_dict)
                 update_nums += len(items)
                 
             total_nums = item_list['total_results']
