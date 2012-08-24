@@ -171,9 +171,10 @@ def set_storage_trade_sys_status(merge_trade,trade,has_refund,full_refund):
                 MergeBuyerTrade.objects.get(sub_tid=trade.id)
             except MergeBuyerTrade.DoesNotExist:
                 user_trades = MergeTrade.objects.filter(buyer_nick=trade.buyer_nick,type=trade.type).exclude(tid=trade.id)\
-                        .exclude(sys_status__in=(INVALID_STATUS,FINISHED_STATUS,SYSTEM_SEND_TAOBAO_STATUS,'',WAIT_CONFIRM_SEND_STATUS)).order_by('-pay_time')
+                        .exclude(sys_status__in=(INVALID_STATUS,FINISHED_STATUS,SYSTEM_SEND_TAOBAO_STATUS,'',WAIT_CONFIRM_SEND_STATUS)).order_by('-created')
                 if user_trades.count()>0:
-                    main_merge_trade = user_trades[0]
+                    main_buyer_trades = MergeBuyerTrade.objects.filter(main_tid__in=[ut.tid for ut in user_trades])
+                    main_merge_trade = main_buyer_trades[0] if main_buyer_trades.count()>0 else user_trades[0]
                     if main_merge_trade.sys_status == WAIT_AUDIT_STATUS:
                         merge_trade.sys_status = ON_THE_FLY_STATUS
                         is_need_merge = True
@@ -250,7 +251,7 @@ def set_storage_trade_sys_status(merge_trade,trade,has_refund,full_refund):
             for merge_buyer_trade in merge_buyer_trades:    
                 reverse_reason = '合单的主订单全退款'.decode('utf8')
                 MergeTrade.objects.get(tid=merge_buyer_trade.sub_tid,sys_status=ON_THE_FLY_STATUS).update(sys_status=AUDITFAIL_STATUS,
-                                       reverse_audit_reason=reverse_reason,reverse_audit_times=1)
+                                       reverse_audit_reason=reverse_reason,reverse_audit_times=1,total_num=0)
             if merge_trade.sys_status not in (INVALID_STATUS,AUDITFAIL_STATUS,FINISHED_STATUS):
                     merge_trade.sys_status = AUDITFAIL_STATUS
                     merge_trade.reverse_audit_times += 1
