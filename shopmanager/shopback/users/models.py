@@ -62,12 +62,10 @@ class User(models.Model):
 
     def populate_user_info(self,top_session,top_parameters):
         """docstring for populate_user_info"""
-        response = apis.taobao_user_get(tb_user_id=top_parameters['taobao_user_id'])
+        response = apis.taobao_user_seller_get(tb_user_id=top_parameters['taobao_user_id'])
 
-        userdict = response['user_get_response']['user']
-        userdict['buyer_credit'] = json.dumps(userdict['buyer_credit'])
+        userdict = response['user_seller_get_response']['user']
         userdict['seller_credit'] = json.dumps(userdict['seller_credit'])
-        userdict['location'] = json.dumps(userdict['location'])
         userdict.pop('user_id',None)
         for key, value in userdict.iteritems():
              hasattr(self, key) and  setattr(self, key, value)

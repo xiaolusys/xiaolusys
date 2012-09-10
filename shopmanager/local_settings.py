@@ -85,11 +85,12 @@ if DEBUG:
 else :
     STATIC_ROOT = os.path.join(PROJECT_ROOT,'site_media', "static")
 
-APPKEY = '21036602'
-APPSECRET = 'daa98d080842335088c3b80c2676b005'
 
-#APPKEY = '21113235'
-#APPSECRET = '4fbb1d2591e6321d93540968c501efa0'
+#APPKEY = '21036602'
+#APPSECRET = 'daa98d080842335088c3b80c2676b005'
+
+APPKEY = '21165266'  #app name huyi ERP ,younishijie
+APPSECRET  = 'ea5f5687a856ec58199d538cfa04496d'
 
 AUTHRIZE_URL = 'https://oauth.taobao.com/authorize'
 AUTHRIZE_TOKEN_URL = 'https://oauth.taobao.com/token'
