@@ -48,10 +48,20 @@ SYNC_MODEL_SCHEDULE = {
         'schedule':crontab(minute="*/5"),
         'args':()
     },
+    'runs-every-day-increment-orders':{    #更新昨天一整天的商城增量订单
+        'task':'shopback.orders.tasks.updateAllUserIncrementOrdersTask',
+        'schedule':crontab(minute="30",hour="2"),
+        'args':()
+    },
     'runs-every-hours-wait-post-purchase_orders':{   #增量更新分销订单
         'task':'shopback.fenxiao.tasks.updateAllUserIncrementPurchasesTask',
         'schedule':crontab(minute="*/10"),
         'args':(),
+    },
+    'runs-every-day-increment-purchase-orders':{   #更新昨天一整天的分销增量订单
+        'task':'shopback.fenxiao.tasks.updateAllUserIncrementPurchaseOrderTask',
+        'schedule':crontab(minute="45",hour="2"),
+        'args':()
     },
     'runs-every-day-logistics':{     #更新订单物流信息
         'task':'shopback.logistics.tasks.updateAllUserOrdersLogisticsTask',

@@ -5,13 +5,14 @@ import datetime
 import calendar
 from django.conf import settings
 from celery.task.sets import subtask
-from shopback.asynctask.tasks import AsyncOrderTask,TASK_SUCCESS,TASK_INVALID
+from shopback.orders.tasks import saveUserIncrementOrdersTask
 from shopback.fenxiao.tasks import saveUserPurchaseOrderTask,saveUserIncrementPurchaseOrderTask
 from shopback.refunds.tasks import saveUserRefundOrderTask
 from shopback.logistics.tasks import saveUserOrdersLogisticsTask,saveUserUnfinishOrdersLogisticsTask
 from shopback.amounts.tasks import updatePurchaseOrdersAmountTask,updateOrdersAmountTask
 from shopapp.report.models import MonthTradeReportStatus
 from shopback.asynctask.models import TaobaoAsyncTask
+from shopback.monitor.models import DayMonitorStatus
 from shopapp.report.reportform import TradesToXLSFile
 from auth.utils import format_time,parse_datetime,format_datetime,format_date,format_year_month
 from shopback.users.models import User
@@ -27,7 +28,7 @@ MONTH_TRADE_FILE_TEMPLATE = 'trade-month-%s.xls'
 
 @single_instance_task(24*60*60,prefix='shopapp.report.tasks.')
 def updateMonthTradeXlsFileTask(year=None,month=None):
-
+    
     dt = datetime.datetime.now()
     update_year_month = year and month
     if not update_year_month:
@@ -61,23 +62,27 @@ def updateMonthTradeXlsFileTask(year=None,month=None):
                 (seller_id=user.visitor_id,year=year,month=month)
         try:
             if not report_status.update_order:
-                if report_status.order_task_id:
-                    async_task = TaobaoAsyncTask.objects.get(task_id=report_status.order_task_id)
-                    if async_task.status == TASK_INVALID:
-                        task_id = subtask(AsyncOrderTask).delay(start_date,dt,user.visitor_id)
-                        MonthTradeReportStatus.objects.filter(seller_id=user.visitor_id,year=year,month=month).update(order_task_id=task_id)
-                        continue
-                    elif async_task.status == TASK_SUCCESS:  
-                        report_status.update_order = True
-                    else:
-                        continue  
-                else:
-                   task_id = subtask(AsyncOrderTask).delay(start_date,dt,user.visitor_id)
-                   MonthTradeReportStatus.objects.filter(seller_id=user.visitor_id,year=year,month=month).update(order_task_id=task_id)
-                   continue
-
+                for i in xrange(0,time_delta.days):
+                    update_start = start_date - datetime.timedelta(i+1,0,0)
+                    update_end   = start_date - datetime.timedelta(i,0,0)
+                    monitor_status,state = DayMonitorStatus.objects.get_or_create(user_id=user.visitor_id,
+                                                year=update_start.year,month=update_start.month,day=update_start.day)
+                    if not monitor_status.update_trade_increment: 
+                       saveUserIncrementOrdersTask(user.visitor_id,update_from=update_start,update_to=update_end)
+                    monitor_status.update_trade_increment = True
+                    monitor_status.save()
+                report_status.update_order = True
+                
             if not report_status.update_purchase:
-                saveUserPurchaseOrderTask(user.visitor_id,update_from=start_date,update_to=dt)
+                for i in xrange(1,time_delta.days+1):
+                    update_start = start_date - datetime.timedelta(i+1,0,0)
+                    update_end   = start_date - datetime.timedelta(i,0,0)                 
+                    monitor_status,state = DayMonitorStatus.objects.get_or_create(user_id=user.visitor_id,\
+                                                year=update_start.year,month=update_start.month,day=update_start.day)
+                    if not monitor_status.update_purchase_increment: 
+                       saveUserIncrementPurchaseOrderTask(user.visitor_id,update_from=update_start,update_to=update_end)
+                    monitor_status.update_purchase_increment = True
+                    monitor_status.save()
                 report_status.update_purchase = True
 
             if not report_status.update_amount:

@@ -140,15 +140,38 @@ def saveUserIncrementPurchaseOrderTask(user_id,update_from=None,update_to=None):
     
 @task()
 def updateAllUserIncrementPurchaseOrderTask(update_from=None,update_to=None):
-
-    users = User.objects.all()
+    
+    update_handler = update_from and update_to
+    dt   = datetime.datetime.now()
+    
     interval_date = update_to - update_from
+    if update_handler:
+        time_delta = update_to - update_from
+        update_days  = time_delta.days+1
+    else:
+        update_to   = datetime.datetime(dt.year,dt.month,dt.day,0,0,0)
+        update_days = 1
+        
+    users = User.objects.all()
     
     for user in users:
-       for i in xrange(1,interval_date.days+1):
-           update_start = update_to - datetime.timedelta(i,0,0)
-           update_end   = update_to - datetime.timedelta(i-1,0,0)
-           saveUserIncrementPurchaseOrderTask(user.visitor_id,update_from=update_start,update_to=update_end)
+        for i in xrange(0,interval_date.days):
+            update_start = update_to - datetime.timedelta(i+1,0,0)
+            update_end   = update_to - datetime.timedelta(i,0,0)
+            
+            year  = update_start.year
+            month = update_start.month
+            day   = update_start.day
+             
+            monitor_status = DayMonitorStatus.objects.get_or_create(user_id=user.visitor_id,year=year,month=month,day=day)
+            try:
+               if not monitor_status.update_purchase_increment: 
+                   saveUserIncrementPurchaseOrderTask(user.visitor_id,update_from=update_start,update_to=update_end)
+            except Exception,exc:
+                logger.error('%s'%exc,exc_info=True)
+            else:
+                monitor_status.update_purchase_increment = True
+                monitor_status.save()
 
    
   

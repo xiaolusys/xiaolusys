@@ -86,11 +86,11 @@ else :
     STATIC_ROOT = os.path.join(PROJECT_ROOT,'site_media', "static")
 
 
-#APPKEY = '21036602'
-#APPSECRET = 'daa98d080842335088c3b80c2676b005'
+APPKEY = '12686908'  #app name super ERP ,younishijie
+APPSECRET = 'b3ddef5982a23c636739289949c01f59'
 
-APPKEY = '21165266'  #app name huyi ERP ,younishijie
-APPSECRET  = 'ea5f5687a856ec58199d538cfa04496d'
+#APPKEY = '21165266'  #app name huyi ERP ,younishijie
+#APPSECRET  = 'ea5f5687a856ec58199d538cfa04496d'
 
 AUTHRIZE_URL = 'https://oauth.taobao.com/authorize'
 AUTHRIZE_TOKEN_URL = 'https://oauth.taobao.com/token'
@@ -116,6 +116,4 @@ DEVSERVER_MODULES = (
     'devserver.modules.cache.CacheSummaryModule',
     #'devserver.modules.profile.LineProfilerModule',
 )
-
-
 

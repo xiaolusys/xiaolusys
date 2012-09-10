@@ -107,17 +107,36 @@ def saveUserIncrementOrdersTask(user_id,update_from=None,update_to=None):
 @task()
 def updateAllUserIncrementOrdersTask(update_from=None,update_to=None):
     """ 使用淘宝增量交易接口更新订单信息 """
-
-    time_delta = update_to - update_from
-    update_days  = time_delta.days+1
-
+    
+    update_handler = update_from and update_to
+    dt   = datetime.datetime.now()
+    
+    if update_handler:
+        time_delta = update_to - update_from
+        update_days  = time_delta.days+1
+    else:
+        update_to   = datetime.datetime(dt.year,dt.month,dt.day,0,0,0)
+        update_days = 1
+    
     users = User.objects.all()
     for user in users:
         
-        for i in xrange(1,update_days+1):
-            update_start = update_to - datetime.timedelta(i,0,0)
-            update_end   = update_to - datetime.timedelta(i-1,0,0)
-            saveUserIncrementOrdersTask(user.visitor_id,update_from=update_start,update_to=update_end)
+        for i in xrange(0,update_days):
+            update_start = update_to - datetime.timedelta(i+1,0,0)
+            update_end   = update_to - datetime.timedelta(i,0,0)
+            year  = update_start.year
+            month = update_start.month
+            day   = update_start.day
+            
+            monitor_status = DayMonitorStatus.objects.get_or_create(user_id=user.visitor_id,year=year,month=month,day=day)
+            try:
+                if not monitor_status.update_trade_increment:
+                    saveUserIncrementOrdersTask(user.visitor_id,update_from=update_start,update_to=update_end)
+            except Exception,exc:
+                logger.error('%s'%exc,exc_info=True)
+            else:
+                monitor_status.update_trade_increment = True
+                monitor_status.save()
 
 
 
