@@ -59,6 +59,11 @@ def collect_download():
     """docstring for collect_static"""
     with cd(env.version_dir):
         run('cd %s/shopmanager/site_media;rm -rf download;ln -s ../../../site_media/download' % env.version_dir)
+        
+def collect_asyncfile():
+    """docstring for collect_static"""
+    with cd(env.version_dir):
+        run('cd %s/shopmanager/site_media;rm -rf asyncfile;ln -s ../../../site_media/asyncfile' % env.version_dir)
 
 def deploy():
     """docstring for deploy"""
@@ -70,6 +75,7 @@ def deploy():
         set_local_settings()
         collect_static()
         collect_download()
+        collect_asyncfile()
 
 def restart_gunicorn():
     """docstring for restart_gunicorn"""
