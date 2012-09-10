@@ -152,7 +152,7 @@ class MergeTrade(models.Model):
     has_refund       = models.BooleanField(default=False)
     out_goods        = models.BooleanField(default=False)
     has_memo         = models.BooleanField(default=False)
-    remind_time      = models.DateTimeField(blank=True)
+    remind_time      = models.DateTimeField(null=True,blank=True)
     refund_num       = models.IntegerField(db_index=True,null=True,default=0)
     
     sys_status     = models.CharField(max_length=32,db_index=True,choices=SYS_STATUS,blank=True,default='')
