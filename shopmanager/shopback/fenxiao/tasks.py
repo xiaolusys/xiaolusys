@@ -1,3 +1,4 @@
+#-*- coding:utf8 -*-
 import time
 import datetime
 import calendar
@@ -6,10 +7,10 @@ from celery.task.sets import subtask
 from django.conf import settings
 from auth.utils import format_time,format_datetime,format_year_month,parse_datetime
 from shopback.fenxiao.models import PurchaseOrder,FenxiaoProduct,SubPurchaseOrder
+from shopback.trades.models import WAIT_SELLER_SEND_GOODS 
 from auth.apis.exceptions import UserFenxiaoUnuseException,TaobaoRequestException
-
+from shopback.monitor.models import TradeExtraInfo,SystemConfig,DayMonitorStatus
 from shopback.users.models import User
-from shopback.monitor.models import DayMonitorStatus
 from auth import apis
 import logging
 __author__ = 'meixqhi'
@@ -93,6 +94,7 @@ def saveUserPurchaseOrderTask(user_id,update_from=None,update_to=None,status=Non
     except TaobaoRequestException,exc:
         logger.error('%s'%exc,exc_info=True)
 
+        
 
 
 @task()
@@ -108,24 +110,15 @@ def updateAllUserPurchaseOrderTask(update_from=None,update_to=None,status=None):
   
   
 @task()
-def saveUserIncrementPurchaseOrderTask(user_id,year=None,month=None,day=None):
-    try:
-        if not(year and month and day):
-            last_day = datetime.datetime.now() - datetime.timedelta(1,0,0)
-            year  = last_day.year
-            month = last_day.month
-            day   = last_day.day
-                    
-        update_from = format_datetime(datetime.datetime(year,month,day,0,0,0))
-        update_to   = format_datetime(datetime.datetime(year,month,day,23,59,59))
+def saveUserIncrementPurchaseOrderTask(user_id,update_from=None,update_to=None):
+    try:           
+        update_from = format_datetime(update_from)
+        update_to   = format_datetime(update_to)
     
         has_next = True
         cur_page = 1
         
-        day_monitor_status,state = DayMonitorStatus.objects.get_or_create(user_id=user_id,year=year,month=month,day=day)
-        
         while has_next:
-    
             response_list = apis.taobao_fenxiao_orders_get(tb_user_id=user_id,page_no=cur_page,time_type='update_time_type'
                 ,page_size=settings.TAOBAO_PAGE_SIZE/2,start_created=update_from,end_created=update_to)
     
@@ -140,30 +133,46 @@ def saveUserIncrementPurchaseOrderTask(user_id,year=None,month=None,day=None):
             cur_nums = cur_page*settings.TAOBAO_PAGE_SIZE
             has_next = cur_nums<total_nums
             cur_page += 1 
-        
-        day_monitor_status.update_purchase_increment = True
-        day_monitor_status.save()
-    
+
     except UserFenxiaoUnuseException,exc:
         logger.warn("the current user(id:%s) is not fenxiao platform user,error:%s"%(str(user_id),exc))
 
-    except TaobaoRequestException,exc:
-        logger.error('%s'%exc,exc_info=True)
-    
     
 @task()
 def updateAllUserIncrementPurchaseOrderTask(update_from=None,update_to=None):
 
-    hander_update  = update_from and update_to
     users = User.objects.all()
+    interval_date = update_to - update_from
     
     for user in users:
-        if hander_update:
-            interval_date = update_to - update_from
-            for i in xrange(0,interval_date.days+1):
-                dt = update_from + datetime.timedelta(i,0,0)
-                saveUserIncrementPurchaseOrderTask(user.visitor_id,year=dt.year,month=dt.month,day=dt.day)
+       for i in xrange(1,interval_date.days+1):
+           update_start = update_to - datetime.timedelta(i,0,0)
+           update_end   = update_to - datetime.timedelta(i-1,0,0)
+           saveUserIncrementPurchaseOrderTask(user.visitor_id,update_from=update_start,update_to=update_end)
+
+   
+  
+@apis.single_instance_task(60*60,prefix='shopback.fenxiao.tasks.')
+def updateAllUserIncrementPurchasesTask():
+    """ 增量更新分销平台订单信息 """
+    
+    dt = datetime.datetime.now()
+    sysconf = SystemConfig.getconfig()
+    users   = User.objects.all()
+    updated = sysconf.fenxiao_order_updated 
+    try:
+        if updated:
+            bt_dt = dt-updated
+            if bt_dt.days>=1:
+                for user in users:
+                    saveUserPurchaseOrderTask(user.visitor_id,status=WAIT_SELLER_SEND_GOODS)
+            else:
+                for user in users:
+                    saveUserIncrementPurchaseOrderTask(user.visitor_id,update_from=updated,update_to=dt)
         else:
-            saveUserIncrementPurchaseOrderTask(user.visitor_id)    
-  
-  
+            for user in users:
+                saveUserPurchaseOrderTask(user.visitor_id,status=WAIT_SELLER_SEND_GOODS)
+    except Exception,exc:
+        logger.error('%s'%exc,exc_info=True)
+    else:
+        SystemConfig.objects.filter(id=sysconf.id).update(fenxiao_order_updated=dt)  

@@ -35,7 +35,8 @@ class Product(models.Model):
 
     created      = models.DateTimeField(null=True,auto_now_add=True)
     modified     = models.DateTimeField(null=True,auto_now=True)
-
+    
+    out_stock    = models.BooleanField(default=False)
 #    product_id   = BigIntegerAutoField(primary_key=True)
 #    inner_name   = models.CharField(max_length=64,blank=True)
 
@@ -79,7 +80,8 @@ class ProductSku(models.Model):
 
     properties_name = models.TextField(max_length=3000,blank=True)
     properties      = models.TextField(max_length=2000,blank=True)
-
+    
+    out_stock    = models.BooleanField(default=False)
     status   = models.CharField(max_length=10,blank=True)  #normal,delete
 
     class Meta:

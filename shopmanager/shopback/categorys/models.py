@@ -12,7 +12,7 @@ class Category(models.Model):
 
     name       = models.CharField(max_length=32)
     is_parent  = models.BooleanField(default=True)
-    status     = models.CharField(max_length=7)
+    status     = models.CharField(max_length=7,default='normal')
     sort_order = models.IntegerField(null=True)
 
     class Meta:

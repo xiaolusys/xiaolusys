@@ -4,12 +4,14 @@ import time
 import datetime
 import calendar
 from django.conf import settings
-from shopback.orders.tasks import saveUserDuringOrdersTask,saveUserIncrementOrdersTask
+from celery.task.sets import subtask
+from shopback.asynctask.tasks import AsyncOrderTask,TASK_SUCCESS,TASK_INVALID
 from shopback.fenxiao.tasks import saveUserPurchaseOrderTask,saveUserIncrementPurchaseOrderTask
 from shopback.refunds.tasks import saveUserRefundOrderTask
 from shopback.logistics.tasks import saveUserOrdersLogisticsTask,saveUserUnfinishOrdersLogisticsTask
 from shopback.amounts.tasks import updatePurchaseOrdersAmountTask,updateOrdersAmountTask
 from shopapp.report.models import MonthTradeReportStatus
+from shopback.asynctask.models import TaobaoAsyncTask
 from shopapp.report.reportform import TradesToXLSFile
 from auth.utils import format_time,parse_datetime,format_datetime,format_date,format_year_month
 from shopback.users.models import User
@@ -59,17 +61,23 @@ def updateMonthTradeXlsFileTask(year=None,month=None):
                 (seller_id=user.visitor_id,year=year,month=month)
         try:
             if not report_status.update_order:
-                for i in xrange(0,interval_date.days+1):
-                    update_date = start_date + datetime.timedelta(i,0,0)
-                    saveUserIncrementOrdersTask(
-                        user.visitor_id,year=update_date.year,month=update_date.month,day=update_date.day)
-                report_status.update_order = True
+                if report_status.order_task_id:
+                    async_task = TaobaoAsyncTask.objects.get(task_id=report_status.order_task_id)
+                    if async_task.status == TASK_INVALID:
+                        task_id = subtask(AsyncOrderTask).delay(start_date,dt,user.visitor_id)
+                        MonthTradeReportStatus.objects.filter(seller_id=user.visitor_id,year=year,month=month).update(order_task_id=task_id)
+                        continue
+                    elif async_task.status == TASK_SUCCESS:  
+                        report_status.update_order = True
+                    else:
+                        continue  
+                else:
+                   task_id = subtask(AsyncOrderTask).delay(start_date,dt,user.visitor_id)
+                   MonthTradeReportStatus.objects.filter(seller_id=user.visitor_id,year=year,month=month).update(order_task_id=task_id)
+                   continue
 
             if not report_status.update_purchase:
-                for i in xrange(0,interval_date.days+1):
-                    update_date = start_date + datetime.timedelta(i,0,0)
-                    saveUserIncrementPurchaseOrderTask(
-                        user.visitor_id,year=update_date.year,month=update_date.month,day=update_date.day)
+                saveUserPurchaseOrderTask(user.visitor_id,update_from=start_date,update_to=dt)
                 report_status.update_purchase = True
 
             if not report_status.update_amount:
@@ -94,9 +102,12 @@ def updateMonthTradeXlsFileTask(year=None,month=None):
             return {'error':'%s'%exc}
 
         report_status.save()
+    
     try:
-        trade_file_builder = TradesToXLSFile()
-        trade_file_builder.gen_report_file(last_month_first_days,last_month_last_days,file_name)
+        if report_status.update_order and report_status.update_purchase and report_status.update_amount \
+            and report_status.update_purchase_amount and report_status.update_logistics and report_status.update_refund:
+            trade_file_builder = TradesToXLSFile()
+            trade_file_builder.gen_report_file(last_month_first_days,last_month_last_days,file_name)
     except Exception,exc:
         logger.error('gen report file error',exc_info=True)
 

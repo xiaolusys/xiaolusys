@@ -37,7 +37,7 @@ admin.site.register(Product, ProductAdmin)
 
 class ProductSkuAdmin(admin.ModelAdmin):
     list_display = ('outer_id','product','quantity','properties_name','properties','status')
-    list_display_links = ('outer_id', 'product',)
+    list_display_links = ('outer_id',)
     list_editable = ('quantity',)
 
     #date_hierarchy = 'modified'
@@ -45,7 +45,7 @@ class ProductSkuAdmin(admin.ModelAdmin):
 
 
     list_filter = ('status',)
-    search_fields = ['outer_id', 'product']
+    search_fields = ['outer_id', 'properties_name']
 
 
 admin.site.register(ProductSku, ProductSkuAdmin)

@@ -86,12 +86,32 @@ def home(request):
 
 
 def test_api(request):
-#    profile = request.user.get_profile()
+    profile = request.user.get_profile()
 #    response = apis.taobao_trade_fullinfo_get(tid='166803076931050',tb_user_id=profile.visitor_id)
 #    print response
-    from shopback.signals import merge_trade_signal
-    from shopback.orders.models import Trade
-    trade = Trade.objects.get(id=207583442858125)
-    merge_trade_signal.send(sender=Trade,trade=trade)
+#    from shopback.signals import merge_trade_signal
+#    from shopback.orders.models import Trade
+#    trade = Trade.objects.get(id=207583442858125)
+#    merge_trade_signal.send(sender=Trade,trade=trade)
+#
+#    response = apis.taobao_topats_itemcats_get(seller_type='B',cids=25,output_format='csv',tb_user_id=profile.visitor_id)
+#    print response 
+
+#    import datetime
+#    
+#    dt = datetime.datetime.now()
+#    dt_t = dt - datetime.timedelta(1,0,0)
+#    dt_ago = dt-datetime.timedelta(30,0,0)
+#    
+#    end     = dt_t.strftime("%Y%m%d")
+#    start   = dt_ago.strftime("%Y%m%d")
+#    response = apis.taobao_topats_trades_sold_get(start_time=start,end_time=end,tb_user_id=profile.visitor_id)
+#    print response
+
+#    response = apis.taobao_topats_result_get(task_id=37606086,tb_user_id=profile.visitor_id)
+#    print response
+
+    response = apis.taobao_item_get(num_iid='276008711371',tb_user_id=profile.visitor_id)
+    print response
 
     return HttpResponse('ok')

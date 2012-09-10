@@ -9,7 +9,7 @@ logger = logging.getLogger('category.update')
 
 def crawFullCategories(request,cid):
 
-    profile = request.user.get_profile
+    profile = request.user.get_profile()
 
     puctask = RecurUpdateCategoreyTask.delay(profile.visitor_id,cid)
 

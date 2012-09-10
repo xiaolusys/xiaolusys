@@ -20,6 +20,7 @@ import logging
 logger = logging.getLogger('fenxiao.handler')
 
 
+
 class FenxiaoProduct(models.Model):
     
     pid               = models.CharField(max_length=64,primary_key=True)

@@ -1,4 +1,12 @@
+from django.db import models
+from django.db.models.query import QuerySet
+from django.db.models.fields.related import RelatedField
 from djangorestframework.serializer import Serializer,_RegisterSerializer
+from django.utils.encoding import smart_unicode, is_protected_type, smart_str
+
+import decimal
+import inspect
+import types
 from chartit import Chart,PivotChart
 
 
@@ -17,6 +25,5 @@ class ChartSerializer(Serializer):
         elif isinstance(obj,(tuple,list)):
             return self.serialize_iter(obj)
         else:
-            super(ChartSerializer,self).serialize(obj)
+            return super(ChartSerializer,self).serialize(obj)
 
-  

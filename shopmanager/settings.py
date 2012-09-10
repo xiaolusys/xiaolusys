@@ -113,6 +113,7 @@ INSTALLED_APPS = (
     'shopback.trades',
     'shopback.refunds',
     'shopback.users',
+    'shopback.asynctask',
     
     'shopapp.autolist',
     'shopapp.collector',
@@ -278,6 +279,11 @@ LOGGING = {
             'propagate': True,
         },
         'trades.handler':{
+            'handlers': ['sentry'],
+            'level': 'WARN',
+            'propagate': True,
+        },
+        'asynctask.handler':{
             'handlers': ['sentry'],
             'level': 'WARN',
             'propagate': True,

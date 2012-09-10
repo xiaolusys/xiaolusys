@@ -4,7 +4,7 @@ import time
 import datetime
 from celery.task import task
 from django.db.models import Q
-from shopback.trades.models import MergeTrade,WAIT_AUDIT_STATUS,WAIT_PREPARE_SEND_STATUS,WAIT_SCAN_WEIGHT_STATUS,\
+from shopback.trades.models import MergeTrade,MergeBuyerTrade,WAIT_PREPARE_SEND_STATUS,WAIT_SCAN_WEIGHT_STATUS,\
     WAIT_CONFIRM_SEND_STATUS,SYSTEM_SEND_TAOBAO_STATUS,FINISHED_STATUS,INVALID_STATUS,AUDITFAIL_STATUS,ON_THE_FLY_STATUS
 from shopback.orders.models import Order,Trade
 from shopapp.memorule.models import RuleMemo,TradeRule,SYS_STATUS_MATCH_FLAGS
@@ -29,6 +29,15 @@ def updateTradeAndOrderByRuleMemo():
             pass
         else:
             try:
+                has_memo = merge_trade.buyer_message or merge_trade.seller_memo
+                has_refunding = merge_trade.has_trade_refunding()
+                try:
+                    MergeBuyerTrade.objects.get(sub_tid=merge_trade.tid)
+                except:
+                    is_merge_trade = False
+                else:
+                    is_merge_trade = True
+                    
                 express_name = rule_memo_dict.get('post',None)
                 if express_name :
                     express_name = express_name.strip()
@@ -50,8 +59,9 @@ def updateTradeAndOrderByRuleMemo():
                     order.sku_properties_name += sku_properties
                     order.save()
                     
-                merge_trade.sys_status = WAIT_PREPARE_SEND_STATUS
-                MergeTrade.objects.filter(tid=merge_trade.tid,sys_status=WAIT_AUDIT_STATUS).update(
+                merge_trade.sys_status = ((AUDITFAIL_STATUS if has_memo else WAIT_PREPARE_SEND_STATUS) if not has_refunding else AUDITFAIL_STATUS)\
+                    if not is_merge_trade else ON_THE_FLY_STATUS
+                MergeTrade.objects.filter(tid=merge_trade.tid).update(
                      logistics_company_name=merge_trade.logistics_company_name,
                      logistics_company_code=merge_trade.logistics_company_code,
                      receiver_address=merge_trade.receiver_address,

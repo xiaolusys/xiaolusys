@@ -39,7 +39,7 @@ API_FIELDS = {
     'taobao.products.get':'product_id,tsc,cat_name,name',
     'taobao.items.get':'num_iid,title,nick,pic_url,cid,price,type,delist_time,post_fee,volume,score,location',
     'taobao.items.search':'iid,num_iid,title,nick,pic_url,cid,price,type,delist_time,post_fee',
-    'taobao.item.skus.get':'sku_id,num_iid,created,modified,num_iid,outer_id,price,properties,quantity,sku_id,status',
+    'taobao.item.skus.get':'sku_id,num_iid,created,modified,num_iid,outer_id,price,properties,quantity,sku_id,status,properties_name',
     'taobao.products.get':'product_id,outer_id,name,inner_name,created,modified,cid,cat_name,tsc,props,props_str,binds,binds_str,sale_props'
          +',sale_props_str,collect_num,price,desc,pic_url,product_imgs,product_prop_imgs,pic_path,vertical_market,customer_props,property_alias,level,status',
     'taobao.products.search':'product_id,name,pic_url,cid,props,price,tsc',
@@ -226,6 +226,10 @@ def taobao_itemcats_authorize_get(parent_cid=None,cids=None,fields=API_FIELDS['t
 def taobao_itemcats_get(parent_cid=None,cids=None,fields=API_FIELDS['taobao.itemcats.get'],tb_user_id=None):
     pass
 
+@apis('taobao.itemcats.increment.get')
+def taobao_itemcats_increment_get(cids=None,seller_type=None,days=None,tb_user_id=None):
+    pass
+
 @apis('taobao.itemprops.get')
 def taobao_itemprops_get(cid=None,pid=None,fields=API_FIELDS['taobao.itemprops.get'],tb_user_id=None):
     pass
@@ -234,6 +238,9 @@ def taobao_itemprops_get(cid=None,pid=None,fields=API_FIELDS['taobao.itemprops.g
 def taobao_itempropvalues_get(cid=None,pvs=None,fields=API_FIELDS['taobao.itempropvalues.get'],tb_user_id=None):
     pass
 
+@apis('taobao.topats.itemcats.get')
+def taobao_topats_itemcats_get(seller_type=None,cids=None,output_format='json',tb_user_id=None):
+    pass
 ############# items apis ###################
 
 @apis('taobao.item.get',max_retry=3,limit_rate=1)
@@ -332,14 +339,8 @@ def taobao_trade_memo_update(tid=None,memo=None,flag=None,reset=None,tb_user_id=
 def taobao_trade_memo_add(tid=None,memo=None,flag=None,tb_user_id=None):
     pass
 
-############# itemcats apis ################
-
-@apis('taobao.itemcats.get')
-def taobao_itemcats_get(parent_cid=None,cids=None,fields=API_FIELDS['taobao.itemcats.get'],tb_user_id=None):
-    pass
-
-@apis('taobao.itemcats.authorize.get')
-def taobao_itemcats_authorize_get(fields=API_FIELDS['taobao.itemcats.authorize.get'],tb_user_id=None):
+@apis('taobao.topats.trades.sold.get')
+def taobao_topats_trades_sold_get(start_time=None,end_time=None,fields=API_FIELDS['taobao.trades.sold.get'],tb_user_id=None):
     pass
 
 ############# post apis ###################
@@ -380,4 +381,9 @@ def taobao_fenxiao_products_get(outer_id=None,productcat_id=None,status=None,pid
 @apis('taobao.refunds.receive.get',max_retry=20,limit_rate=20)
 def taobao_refunds_receive_get(status=None,start_modified=None,end_modified=None,type='guarantee_trade,auto_delivery,fenxiao',
                                page_no=None,page_size=None,fields=API_FIELDS['taobao.refunds.receive.get'],tb_user_id=None):
+    pass
+
+################  topats result ################
+@apis('taobao.topats.result.get')
+def taobao_topats_result_get(task_id=None,tb_user_id=None):
     pass

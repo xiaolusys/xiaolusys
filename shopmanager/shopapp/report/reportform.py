@@ -186,7 +186,7 @@ class TradesToXLSFile(object):
 
     def write_trades_to_sheet(self,sheet,seller_id,trades,trade_finish_title):
 
-        sheet.write_merge(self.cur_row,self.title_row,0,self.text_col,trade_finish_title,self.title_style)
+        sheet.write(self.cur_row,0,trade_finish_title,self.title_style)
         if trades.count()>0:
             self.cur_row += 1
             for col in xrange(0,self.col_items):
@@ -233,8 +233,7 @@ class TradesToXLSFile(object):
     def write_purchase_to_sheet(self,sheet,seller_id,trades):
 
         self.cur_row += 1
-        sheet.write_merge(self.cur_row,self.title_row,0,2,
-                          TITLE_FIELDS['TRADE_FENXIAO_MSG'],self.title_style)
+        sheet.write(self.cur_row,0,TITLE_FIELDS['TRADE_FENXIAO_MSG'],self.title_style)
         trades_len =  len(trades)
         if trades_len>0:
             for trade in trades:
@@ -255,8 +254,7 @@ class TradesToXLSFile(object):
 
     def write_trade_account(self,sheet,sum_start,sum_end,seller_nick):
 
-        sheet.write_merge(self.cur_row,self.title_row,0,2,
-                         TITLE_FIELDS['SELLER_TRADE_ACCOUNT_MSG']%seller_nick,self.title_style)
+        sheet.write(self.cur_row,0,TITLE_FIELDS['SELLER_TRADE_ACCOUNT_MSG']%seller_nick,self.title_style)
 
         self.write_sum_formula(sheet,self.cur_row,7 ,sum_start,sum_end,self.post_char)
         self.write_sum_formula(sheet,self.cur_row,8 ,sum_start,sum_end,self.payment_char)
@@ -269,7 +267,7 @@ class TradesToXLSFile(object):
     def write_refund_to_sheet(self,sheet,refunds,seller_nick,dt_from,dt_to):
 
         self.cur_row += 1
-        sheet.write_merge(self.cur_row,self.cur_row,0,2,TITLE_FIELDS['TRADE_REFUND_MSG'],self.title_style)
+        sheet.write(self.cur_row,0,TITLE_FIELDS['TRADE_REFUND_MSG'],self.title_style)
         self.cur_row += 1
         for col in xrange(0,len(refund_item_names)):
             sheet.write(self.cur_row,self.text_col+col,refund_item_names[col],self.title_style)
@@ -289,7 +287,7 @@ class TradesToXLSFile(object):
 
         sum_end = self.cur_row
         self.cur_row += 1
-        sheet.write_merge(self.cur_row,self.cur_row,0,2,TITLE_FIELDS['TRADE_REFUND_ACCOUNT_MSG']%seller_nick,self.title_style)
+        sheet.write(self.cur_row,0,TITLE_FIELDS['TRADE_REFUND_ACCOUNT_MSG']%seller_nick,self.title_style)
 
         self.write_sum_formula(sheet,self.cur_row,11,sum_start,sum_end,self.refund_char)
 
@@ -321,7 +319,7 @@ class TradesToXLSFile(object):
     def write_final_account(self,sheet,trade_sum_row,refund_sum_row,seller_nick,formula_col=7,formula_char='I'):
 
         self.cur_row += 1
-        sheet.write_merge(self.cur_row,self.cur_row,0,3,TITLE_FIELDS['SELLER_TOTAL_INCOME_MSG']%seller_nick,self.title_style)
+        sheet.write(self.cur_row,0,TITLE_FIELDS['SELLER_TOTAL_INCOME_MSG']%seller_nick,self.title_style)
 
         self.cur_row += 1
         self.write_seller_formula(sheet,self.cur_row,formula_col,trade_sum_row,TITLE_FIELDS["TOTAL_SALE_MSG"],self.payment_char)

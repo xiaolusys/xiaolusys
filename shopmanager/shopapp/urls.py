@@ -9,6 +9,5 @@ urlpatterns = patterns('',
     (r'^report/',include('shopapp.report.urls')),
     (r'^syncnum/',include('shopapp.syncnum.urls')),
     (r'^autolist/',include('shopapp.autolist.urls')),
-    url(r'^djcelery/',include('djcelery.urls'),name="task_state")
 )
 

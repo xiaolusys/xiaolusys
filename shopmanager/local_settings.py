@@ -58,6 +58,7 @@ INSTALLED_APPS = (
     'shopback.orders',
     'shopback.trades',
     'shopback.refunds',
+    'shopback.asynctask',
 
 
     'shopapp.autolist',
@@ -69,6 +70,13 @@ INSTALLED_APPS = (
     #'devserver',
     'django.contrib.admin',
 )
+
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.memcached.MemcachedCache',
+        'LOCATION': '127.0.0.1:11211',
+    }
+}
 
 if DEBUG:
     STATICFILES_DIRS = (
@@ -93,7 +101,7 @@ SCOPE = 'item,promotion,usergrade'
 REFRESH_URL = 'https://oauth.taobao.com/token'
 
 FONT_PATH = '/usr/share/fonts/truetype/ttf-dejavu/DejaVuSerifCondensed-BoldItalic.ttf'
-
+ASYNC_FILE_PATH = os.path.join(PROJECT_ROOT,'site_media',"asyncfile")
 
 
 DEVSERVER_MODULES = (

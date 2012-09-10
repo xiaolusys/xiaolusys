@@ -12,7 +12,7 @@ STATIC_ROOT = os.path.join(PROJECT_ROOT, "site_media","static")
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql', # Add 'postgresql_psycopg2', 'postgresql', 'mysql', 'sqlite3' or 'oracle'.
-        'NAME': 'taobaoshop',                      # Or path to database file if using sqlite3.
+        'NAME': 'tbshop',                      # Or path to database file if using sqlite3.
         'USER': 'meixqhi',                      # Not used with sqlite3.
         'PASSWORD': '123123',                  # Not used with sqlite3.
         'HOST': '',                      # Set to empty string for localhost. Not used with sqlite3.
@@ -44,3 +44,5 @@ SCOPE = 'item,promotion,usergrade'
 REFRESH_URL = 'https://oauth.taobao.com/token'
 
 FONT_PATH = '/usr/share/fonts/truetype/ttf-dejavu/DejaVuSerif-Bold.ttf'
+ASYNC_FILE_PATH = '/home/user1/deploy/taobao/site_media/asyncfile'
+

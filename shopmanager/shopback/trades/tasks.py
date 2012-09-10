@@ -8,7 +8,7 @@ from django.conf import settings
 from auth.utils import format_time,format_datetime,format_year_month,parse_datetime
 from shopback.monitor.models import SystemConfig
 from shopback.trades.models import MergeTrade,MergeBuyerTrade,WAIT_CONFIRM_SEND_STATUS,SYSTEM_SEND_TAOBAO_STATUS\
-    ,FINISHED_STATUS,AUDITFAIL_STATUS,ON_THE_FLY_STATUS
+    ,FINISHED_STATUS,AUDITFAIL_STATUS,ON_THE_FLY_STATUS,REGULAR_REMAIN_STATUS
 from shopback.users.models import User
 from auth import apis
 import logging
@@ -66,4 +66,13 @@ def syncConfirmDeliveryTradeTask():
                                 logger.error('delivery trade(%s) fail,response:%s'%(sub_merge_trade.tid,response))
             else :
                 logger.error('delivery trade(%s) fail,response:%s'%(trade.tid,response))
+
+       
+@task()
+def regularRemainOrderTask():
+    
+    dt = datetime.datetime.now()
+    dt = datetime.datetime(dt.year,dt.month,dt.day,0,0,0)
+    MergeTrade.objects.filter(sys_status=REGULAR_REMAIN_STATUS,remind_time__lte=dt).update(sys_status=AUDITFAIL_STATUS)
+
         

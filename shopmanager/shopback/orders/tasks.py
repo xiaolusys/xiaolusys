@@ -7,11 +7,11 @@ from celery.task.sets import subtask
 from django.conf import settings
 from shopback.orders.models import Order,Trade
 from shopback.users.models import User
-from shopback.monitor.models import TradeExtraInfo
-from shopback.monitor.models import DayMonitorStatus
+from shopback.monitor.models import TradeExtraInfo,SystemConfig,DayMonitorStatus
 from auth.utils import format_time,format_datetime,format_year_month,parse_datetime
 from auth.apis.exceptions import RemoteConnectionException,AppCallLimitedException,UserFenxiaoUnuseException,\
     APIConnectionTimeOutException,ServiceRejectionException
+from shopback.trades.models import WAIT_SELLER_SEND_GOODS
 from auth import apis
 
 import logging
@@ -71,21 +71,14 @@ def updateAllUserDuringOrdersTask(update_from=None,update_to=None,status=None):
 
 
 @task()
-def saveUserIncrementOrdersTask(user_id,year=None,month=None,day=None):
-    
-    if not(year and month and day):
-        dt    = datetime.datetime.now()-datetime.timedelta(1,0,0)
-        year  = dt.year
-        month = dt.month
-        day   = dt.day
-        
-    s_dt_f = format_datetime(datetime.datetime(year,month,day,0,0,0))
-    s_dt_t = format_datetime(datetime.datetime(year,month,day,23,59,59))
+def saveUserIncrementOrdersTask(user_id,update_from=None,update_to=None):
+
+    s_dt_f = format_datetime(update_from)
+    s_dt_t = format_datetime(update_to)
 
     has_next = True
     cur_page = 1
     
-    day_monitor_status,state = DayMonitorStatus.objects.get_or_create(user_id=user_id,year=year,month=month,day=day)
     while has_next:
        
         response_list = apis.taobao_trades_sold_increment_get(tb_user_id=user_id,page_no=cur_page,fields='tid,modified'
@@ -106,38 +99,52 @@ def saveUserIncrementOrdersTask(user_id,year=None,month=None,day=None):
 
         has_next = trade_list['has_next']
         cur_page += 1
-        
-    day_monitor_status.update_trade_increment = True
-    day_monitor_status.save()
+
 
 
 
 
 @task()
 def updateAllUserIncrementOrdersTask(update_from=None,update_to=None):
+    """ 使用淘宝增量交易接口更新订单信息 """
 
-    hander_update = update_from and update_to
-    if hander_update:
-        time_delta = update_to - update_from
-        update_days  = time_delta.days+1
+    time_delta = update_to - update_from
+    update_days  = time_delta.days+1
 
     users = User.objects.all()
     for user in users:
-        if hander_update:
-            for i in xrange(0,update_days):
-                update_date = update_to - datetime.timedelta(i,0,0)
-                saveUserIncrementOrdersTask(
-                        user.visitor_id,year=update_date.year,month=update_date.month,day=update_date.day)
+        
+        for i in xrange(1,update_days+1):
+            update_start = update_to - datetime.timedelta(i,0,0)
+            update_end   = update_to - datetime.timedelta(i-1,0,0)
+            saveUserIncrementOrdersTask(user.visitor_id,update_from=update_start,update_to=update_end)
+
+
+
+@apis.single_instance_task(60*60,prefix='shopback.orders.tasks.')
+def updateAllUserIncrementTradesTask():
+    """ 增量更新订单信息 """
+    
+    dt = datetime.datetime.now()
+    sysconf = SystemConfig.getconfig()
+    users   = User.objects.all()
+    updated = sysconf.mall_order_updated
+    try:
+        if updated:
+            bt_dt = dt-updated
+            if bt_dt.days>=1:
+                for user in users:
+                    saveUserDuringOrdersTask(user.visitor_id,status=WAIT_SELLER_SEND_GOODS)
+            else:
+                for user in users:
+                    saveUserIncrementOrdersTask(user.visitor_id,update_from=updated,update_to=dt)
         else:
-            subtask(saveUserIncrementOrdersTask).delay(user.visitor_id)
-
-
-
-
-
-
-
-
+            for user in users:
+                saveUserDuringOrdersTask(user.visitor_id,status=WAIT_SELLER_SEND_GOODS)
+    except Exception,exc:
+        logger.error('%s'%exc,exc_info=True)
+    else:
+        SystemConfig.objects.filter(id=sysconf.id).update(mall_order_updated=dt)
 
 
 

@@ -7,8 +7,14 @@ class SystemConfig(models.Model):
     is_rule_auto = models.BooleanField(default=False)   #是否开启自动规则过滤
     is_sms_auto  = models.BooleanField(default=False)   #是否开启自动短信提醒
     
-    is_flag_auto = models.BooleanField(default=False)
+    is_flag_auto = models.BooleanField(default=False)   #是否将系统状态同步到淘宝旗帜颜色标识
     is_confirm_delivery_auto = models.BooleanField(default=False) #是否自动确认发货
+    
+    category_updated  = models.DateTimeField(null=True,blank=True)  #类目更新日期
+    
+    mall_order_updated  = models.DateTimeField(null=True,blank=True)  #商城订单更新日期  
+    fenxiao_order_updated = models.DateTimeField(null=True,blank=True)  #分销订单更新日期
+    
     
     class Meta:
         db_table = 'shop_monitor_systemconfig'

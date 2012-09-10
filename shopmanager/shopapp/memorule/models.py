@@ -26,7 +26,7 @@ SYS_STATUS_MATCH_FLAGS = {
     SYSTEM_SEND_TAOBAO_STATUS:3, #等待更新发货状态
     INVALID_STATUS:4,           #已作废
     AUDITFAIL_STATUS:4,         #问题单
-    ON_THE_FLY_STATUS:5,               #表示已合并
+    ON_THE_FLY_STATUS:5,        #表示已合并
 }
 
 class TradeRule(models.Model):

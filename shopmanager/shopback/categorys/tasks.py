@@ -12,22 +12,20 @@ logger = logging.getLogger('categoreys.handler')
 def RecurUpdateCategoreyTask(user_id,cid):
     try:
         response = apis.taobao_itemcats_get(parent_cid=cid,tb_user_id=user_id)
-
         categories = response['itemcats_get_response'].get('item_cats',None)
-
+        
         if categories:
-
             cats = categories.get('item_cat')
-            category = Category()
 
             for cat in cats:
-
+                category = Category()
                 for k,v in cat.iteritems():
                     hasattr(category,k) and setattr(category,k,v)
                 category.save()
 
                 if cat['is_parent']:
                     subtask(RecurUpdateCategoreyTask).delay(user_id,cat['cid'])
+                
     except Exception,exc:
 
         logger.error('RecurUpdateCategoreyTask error:%s' %(exc), exc_info=True)

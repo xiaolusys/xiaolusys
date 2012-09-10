@@ -21,6 +21,24 @@ ORDER_FINISH_STATUS   = 'TRADE_FINISHED'
 ORDER_REFUND_STATUS   = 'TRADE_CLOSED'
 ORDER_UNPAY_STATUS    = 'WAIT_BUYER_PAY'
 
+NO_REFUND = 'NO_REFUND'
+REFUND_WAIT_SELLER_AGREE  = 'WAIT_SELLER_AGREE'
+REFUND_WAIT_RETURN_GOODS  = 'WAIT_BUYER_RETURN_GOODS'
+REFUND_CONFIRM_GOODS      = 'WAIT_SELLER_CONFIRM_GOODS'
+REFUND_REFUSE_BUYER       = 'SELLER_REFUSE_BUYER'
+REFUND_CLOSED   = 'CLOSED'
+REFUND_SUCCESS  = 'SUCCESS'
+REFUND_STATUS = (
+    (NO_REFUND,'没有退款'),
+    (REFUND_WAIT_SELLER_AGREE,'等待卖家同意'),
+    (REFUND_WAIT_RETURN_GOODS,'等待买家退货'),
+    (REFUND_CONFIRM_GOODS,'卖家确认收货'),
+    (REFUND_REFUSE_BUYER,'买家拒绝退款'),
+    (REFUND_CLOSED,'退款已关闭'),
+    (REFUND_SUCCESS,'退款已成功'),
+)
+REFUND_APPROVAL_STATUS = [REFUND_WAIT_RETURN_GOODS,REFUND_CONFIRM_GOODS,REFUND_SUCCESS]
+
 
 class Trade(models.Model):
 
@@ -136,7 +154,15 @@ class Trade(models.Model):
             for k,v in o.iteritems():
                 hasattr(order,k) and setattr(order,k,v)
             order.outer_id = o.get('outer_iid','')
-            order.item = Item.get_or_create(user_id,o['num_iid'])
+            order.item  = Item.get_or_create(user_id,o['num_iid'])
+            order.year  = trade.year
+            order.month = trade.month
+            order.day   = trade.day
+            order.week  = trade.week
+            order.hour  = trade.hour
+            order.created   = trade.created
+            order.pay_time  = trade.pay_time
+            order.consign_time   = trade.consign_time
             order.save()
             
         merge_trade_signal.send(sender=Trade,trade=trade)
@@ -159,7 +185,7 @@ class Order(models.Model):
 
     item_meal_id = models.IntegerField(null=True)
     sku_id = models.CharField(max_length=20,blank=True)
-    num = models.IntegerField(null=True)
+    num = models.IntegerField(null=True,default=0)
 
     outer_sku_id = models.CharField(max_length=20,blank=True)
     total_fee = models.CharField(max_length=12,blank=True)
@@ -179,11 +205,21 @@ class Order(models.Model):
     pic_path = models.CharField(max_length=128,blank=True)
 
     seller_nick = models.CharField(max_length=32,blank=True,db_index=True)
-    buyer_nick  = models.CharField(max_length=32,blank=True)
+    buyer_nick  = models.CharField(max_length=32,db_index=True,blank=True)
 
-    refund_status = models.CharField(max_length=40,blank=True)
+    refund_status = models.CharField(max_length=40,choices=REFUND_STATUS,blank=True)
     outer_id = models.CharField(max_length=64,blank=True)
-
+    
+    year  = models.IntegerField(null=True,db_index=True)
+    month = models.IntegerField(null=True,db_index=True)
+    week  = models.IntegerField(null=True,db_index=True)
+    day   = models.IntegerField(null=True,db_index=True)
+    hour  = models.CharField(max_length=5,blank=True,db_index=True)
+    
+    created       =  models.DateTimeField(db_index=True,null=True,blank=True)
+    pay_time      =  models.DateTimeField(db_index=True,null=True,blank=True)
+    consign_time  =  models.DateTimeField(db_index=True,null=True,blank=True)
+    
     status = models.CharField(max_length=32,blank=True)
 
     class Meta:
@@ -197,8 +233,10 @@ class Order(models.Model):
 def merge_buyer_trade_orders(sender, sub_tid, main_tid, *args, **kwargs):
     
     from shopback.trades.models import MergeTrade
+    sub_trade = Trade.objects.get(id=sub_tid)
+    main_trade = Trade.objects.get(id=main_tid)
     Order.objects.filter(trade=sub_tid).update(trade=main_tid)
-    orders = Order.objects.filter(trade=main_tid,refund_status='NO_REFUND')
+    orders = Order.objects.filter(trade=main_tid,refund_status__in=(NO_REFUND,REFUND_REFUSE_BUYER,REFUND_CLOSED))
     item_num = 0
     payment  = 0
     total_fee = 0
@@ -208,7 +246,9 @@ def merge_buyer_trade_orders(sender, sub_tid, main_tid, *args, **kwargs):
         payment  += float(order.payment)
         total_fee  += float(order.total_fee)
         discount_fee  += float(order.discount_fee)
-    MergeTrade.objects.filter(tid=main_tid).update(total_num=item_num,payment=payment,total_fee=total_fee,discount_fee=discount_fee)
+    MergeTrade.objects.filter(tid=main_tid).update(total_num=item_num,payment=payment,total_fee=total_fee,discount_fee=discount_fee,
+        buyer_message='[%d:%s],[%d:%s]'%(main_trade.id,main_trade.buyer_message,sub_trade.id,sub_trade.buyer_message),
+        seller_memo='[%d:%s],[%d:%s]'%(main_trade.id,main_trade.seller_memo,sub_trade.id,sub_trade.seller_memo))
         
 merge_buyer_trade_signal.connect(merge_buyer_trade_orders,sender=Trade,dispatch_uid='merge_buyer_orders')
 

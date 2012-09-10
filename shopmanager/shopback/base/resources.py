@@ -7,3 +7,9 @@ class ChartsResource(ModelResource):
 
     fields = (('charts','ChartSerializer'),('item_dict',None))
     #exclude = ('url',)
+    
+class BaseResource(ModelResource):
+    """ docstring for TradeResource ModelResource """
+
+    #fields = (('charts','ChartSerializer'),('item_dict',None))
+    exclude = ('url',) 

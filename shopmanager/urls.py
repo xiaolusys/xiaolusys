@@ -16,7 +16,8 @@ urlpatterns = patterns('',
     (r'^logistics/',include('shopback.logistics.urls')),
     (r'^trade/',include('shopback.orders.urls')),
     (r'^refunds/',include('shopback.refunds.urls')),
-
+    (r'^async/',include('shopback.asynctask.urls')),
+    
     (r'^app/',include('shopapp.urls')),
     url(r'^home/$',home,name='home_page'),
 
@@ -27,8 +28,8 @@ urlpatterns = patterns('',
             {'document_root': settings.DOWNLOAD_ROOT,'show_indexes':True}),
 
     (r'^admin/', include(admin.site.urls)),
-
 )
+
 if settings.DEBUG == True:
     urlpatterns += patterns('',
         (r'^static/(?P<path>.*)$', 'django.views.static.serve',

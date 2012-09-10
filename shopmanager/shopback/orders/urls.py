@@ -1,10 +1,11 @@
 from django.conf.urls.defaults import patterns, include, url
-from shopback.orders.views import UserHourlyOrderView
-from shopback.base.resources import ChartsResource
+from shopback.orders.views import UserHourlyOrderView,ProductOrderView,RelatedOrderStateView
+from shopback.base.resources import ChartsResource,BaseResource
 from shopback.base.authentication import UserLoggedInAuthentication
 from shopback.base.permissions import IsAuthenticated
-from shopback.base.renderers  import ChartJSONRenderer,ChartTemplateRenderer
-from shopback.orders.renderers import OrderNumPiovtChartHtmlRenderer
+from shopback.base.renderers  import ChartJSONRenderer,ChartTemplateRenderer,BaseJsonRenderer
+from shopback.orders.renderers import OrderNumPiovtChartHtmlRenderer,ProductOrderTableRenderer,RelatedOrderRenderer
+from shopback.orders.resources import ChartJsonResource
 
 
 urlpatterns = patterns('shopback.orders.views',
@@ -14,6 +15,20 @@ urlpatterns = patterns('shopback.orders.views',
    (r'^ordernum/pivotchart/(?P<dt_f>[^/]+)/(?P<dt_t>[^/]+)/$',UserHourlyOrderView.as_view(
         resource=ChartsResource,
         renderers=(ChartJSONRenderer,ChartTemplateRenderer,OrderNumPiovtChartHtmlRenderer,),
+        authentication=(UserLoggedInAuthentication,),
+        permissions=(IsAuthenticated,)
+    )),
+                       
+    (r'^product/pivotchart/(?P<dt_f>[^/]+)/(?P<dt_t>[^/]+)/(?P<num_iid>[^/]+)/$',ProductOrderView.as_view(
+        resource=ChartsResource,
+        renderers=(ChartJSONRenderer,ChartTemplateRenderer,ProductOrderTableRenderer,),
+        authentication=(UserLoggedInAuthentication,),
+        permissions=(IsAuthenticated,)
+    )),
+                       
+    (r'^related/orders/(?P<dt_f>[^/]+)/(?P<dt_t>[^/]+)/(?P<num_iid>[^/]+)/$',RelatedOrderStateView.as_view(
+        resource=BaseResource,
+        renderers=(RelatedOrderRenderer,BaseJsonRenderer,),
         authentication=(UserLoggedInAuthentication,),
         permissions=(IsAuthenticated,)
     )),
