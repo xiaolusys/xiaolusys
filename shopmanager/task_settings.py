@@ -37,10 +37,18 @@ GEN_AMOUNT_FILE_MIN_DAYS = 20
 from celery.schedules import crontab
 from django.core.cache import cache
 try:
-    cache.delete('celery-single-instance-saveCategorybyUserCookie-121741189')
+    cache.delete('celery-single-instance-updateAllUserIncrementTradesTask')
+except:
+    print 'no cache' 
+try:
+    cache.delete('celery-single-instance-updateAllUserIncrementPurchasesTask')
 except:
     print 'no cache'
-
+try:
+    cache.delete('celery-single-instance-updateMonthTradeXlsFileTask')
+except:
+    print 'no cache'
+    
 
 SYNC_MODEL_SCHEDULE = {
     'runs-every-hours-wait-post-orders':{    #增量更新商城订单

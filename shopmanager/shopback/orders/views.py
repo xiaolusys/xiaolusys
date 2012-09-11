@@ -1,3 +1,4 @@
+#-*- coding:utf8 -*-
 import datetime
 import json
 from django.http import HttpResponse
@@ -10,7 +11,7 @@ from chartit import DataPool, Chart
 from chartit import PivotDataPool, PivotChart
 from auth import staff_requried,apis
 from auth.utils import parse_datetime,parse_date,format_time,map_int2str
-from shopback.items.models import Item
+from shopback.items.models import Item,Product,ProductSku
 from shopback.orders.models import Order,Trade,ORDER_SUCCESS_STATUS,ORDER_FINISH_STATUS
 from shopback.orders.tasks import updateAllUserDuringOrdersTask
 
@@ -135,8 +136,16 @@ class ProductOrderView(ModelView):
             outer_id = num_iid
         else:
             outer_id = item.outer_id
-            
+        
+        try:
+            product = Product.objects.get()
+        except:    
+            product_name = '商品名未知'
+        else:
+            product_name = product.name
+        print outer_id    
         queryset = Order.objects.filter(seller_nick__in = nicks_list,outer_id=outer_id)
+        print queryset.count()
         if base == 'consign':
             queryset = queryset.filter(trade__consign_time__gte=dt_f,trade__consign_time__lt=dt_t)
         else:
@@ -181,7 +190,7 @@ class ProductOrderView(ModelView):
 
         chart_options = {
             'chart':{'zoomType': 'xy','renderTo': "container1"},
-            'title': {'text': nicks},
+            'title': {'text': product_name},
             'xAxis': {'title': {'text': 'per %s'%(cat_by)},
                       'labels':{'rotation': -45,'align':'right','style': {'font': 'normal 12px Verdana, sans-serif'}}},
             'yAxis': [{'title': {'text': u'\u9500\u552e\u6570\u91cf'}},]
@@ -191,8 +200,16 @@ class ProductOrderView(ModelView):
                 datasource = ordersdata,
                 series_options = series_options,
                 chart_options = chart_options )
+        
+        product_sku = ProductSku.objects.filter(product=outer_id)
+        sku_list = []
+        for psku in product_sku:
+            sku = {}
+            sku['sku_outer_id'] = psku.outer_id
+            sku['sku_values'] = psku.properties_values
+            sku_list.append(sku)
 
-        chart_data = {"charts":[orders_data_cht]}
+        chart_data = {"charts":[orders_data_cht],'skus':sku_list}
         
         if self.request.REQUEST.get('format') == 'table':
             
@@ -232,9 +249,10 @@ class RelatedOrderStateView(ModelView):
         
     
     def get_join_query_sql(self):
-        return "select sob.outer_id ,sob.title ,count(sob.outer_id) cnum from shop_orders_order soa left join shop_orders_order sob"+\
-                " on soa.buyer_nick=sob.buyer_nick where soa.outer_id='%s' and sob.created >'%s' and sob.created<'%s' "+\
-                "group by sob.outer_id order by cnum desc limit %d;"
+        return "select sob.outer_id,sob.pic_path,sob.title ,count(sob.outer_id) cnum from shop_orders_order soa "+\
+                "left join shop_orders_order sob on soa.buyer_nick=sob.buyer_nick where soa.outer_id='%s' "+\
+                " and sob.status not in ('TRADE_CLOSED_BY_TAOBAO','WAIT_BUYER_PAY','TRADE_CLOSED') "+\
+                " and sob.created >'%s' and sob.created<'%s' group by sob.outer_id order by cnum desc limit %d;"
         
 
 @staff_requried(login_url='/admin/login/')

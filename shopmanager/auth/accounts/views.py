@@ -111,7 +111,7 @@ def test_api(request):
 #    response = apis.taobao_topats_result_get(task_id=37606086,tb_user_id=profile.visitor_id)
 #    print response
 
-    response = apis.taobao_item_get(num_iid='276008711371',tb_user_id=profile.visitor_id)
+    response = apis.taobao_item_get(num_iid='15065507658',tb_user_id=profile.visitor_id)
     print response
 
     return HttpResponse('ok')

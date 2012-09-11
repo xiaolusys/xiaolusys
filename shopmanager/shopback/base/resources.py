@@ -5,7 +5,7 @@ from shopback.base.serializer import ChartSerializer
 class ChartsResource(ModelResource):
     """ docstring for TradeResource ModelResource """
 
-    fields = (('charts','ChartSerializer'),('item_dict',None))
+    fields = (('charts','ChartSerializer'),('item_dict',None),('skus',None))
     #exclude = ('url',)
     
 class BaseResource(ModelResource):

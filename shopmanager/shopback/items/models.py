@@ -90,7 +90,15 @@ class ProductSku(models.Model):
 
     def __unicode__(self):
         return self.outer_id
-
+    
+    @property
+    def properties_values(self):
+        properties_list = self.properties_name.split(';')
+        value_list = []
+        for properties in properties_list:
+            values = properties.split(':')
+            value_list.append( values[3] if len(values)==4 else '')
+        return ' '.join(value_list)
 
 
 class Item(models.Model):

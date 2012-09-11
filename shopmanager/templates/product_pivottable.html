@@ -44,6 +44,24 @@
 	    </div>
 	    {% endfor %}
 	{% endif  %}
+	
+	{% if skus != None %}
+		<div class='w3c_tables'>
+	        <table align="center">
+		        <thead style="background-color:#2C7400">
+		        <td>外部编码SKU_OUTER_ID</td>
+		        <td>SKU属性</td>
+		        </thead>
+		        {% for sku in skus %}
+		            <tr >
+		            	<td >{{ sku.sku_outer_id }}</td>
+		                <td>{{ sku.sku_values }}</td>
+		            </tr>
+		        {% endfor %}
+	        </table>
+	    </div>
+	{% endif %}
+	
 
 </body>
 </html>

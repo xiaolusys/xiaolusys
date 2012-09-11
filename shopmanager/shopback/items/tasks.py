@@ -110,16 +110,17 @@ def updateUserProductSkuTask(user_id):
             try:
                 num_iids_str = ','.join(num_iids)
                 response = apis.taobao_item_skus_get(num_iids=num_iids_str,tb_user_id=user_id)
-                skus     = response['item_skus_get_response']['skus']['sku']
-
-                for sku in skus:
-                    sku_outer_id = sku.get('outer_id',None)
-                    item  = Item.objects.get(num_iid=sku['num_iid'])
-                    psku,state = ProductSku.objects.get_or_create(outer_id=sku_outer_id,product=item.product)
-                    if state:
-                        for key,value in sku.iteritems():
-                            hasattr(psku,key) and setattr(psku,key,value)
-                        psku.save()
+                if response['item_skus_get_response'].has_key('skus'):
+                    skus     = response['item_skus_get_response']['skus']['sku']
+    
+                    for sku in skus:
+                        sku_outer_id = sku.get('outer_id',None)
+                        item  = Item.objects.get(num_iid=sku['num_iid'])
+                        psku,state = ProductSku.objects.get_or_create(outer_id=sku_outer_id,product=item.product)
+                        if state:
+                            for key,value in sku.iteritems():
+                                hasattr(psku,key) and setattr(psku,key,value)
+                            psku.save()
                 num_iids = []
             except Exception,exc:
                 logger.error('update product sku error!',exc_info=True)
