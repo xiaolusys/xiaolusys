@@ -83,12 +83,10 @@ def add_taobao_user(sender, user,top_session,top_parameters, *args, **kwargs):
     profile = user.get_profile()
     profile.populate_user_info(top_session,top_parameters)
     #更新用户淘宝商品，以及分销平台商品
-    from shopback.items.tasks import updateUserItemsTask,updateUserProductSkuTask
-    from shopback.fenxiao.tasks import saveUserFenxiaoProductTask
+    from shopback.items.tasks import updateUserItemSkuFenxiaoProductTask
     
-    updateUserItemsTask(profile.visitor_id)
-    updateUserProductSkuTask.delay(profile.visitor_id)
-    saveUserFenxiaoProductTask(profile.visitor_id)
+    updateUserItemSkuFenxiaoProductTask.delay(profile.visitor_id)
+
 
 taobao_logged_in.connect(add_taobao_user)
   

@@ -13,6 +13,7 @@ from shopapp.syncnum.models import ItemNumTask
 from shopback.base.models   import UNEXECUTE,EXECERROR,SUCCESS
 from auth.apis.exceptions import RemoteConnectionException,AppCallLimitedException,UserFenxiaoUnuseException,\
     APIConnectionTimeOutException,ServiceRejectionException,TaobaoRequestException
+from shopback.fenxiao.tasks import saveUserFenxiaoProductTask
 from auth import apis
 import logging
 
@@ -154,6 +155,10 @@ def updateAllUserItemsEntityTask():
 
         subtask(updateUserItemsEntityTask).delay(user.visitor_id)
 
-
+@task()
+def updateUserItemSkuFenxiaoProductTask(user_id):
+    updateUserItemsTask(user_id)
+    updateUserProductSkuTask(user_id)
+    saveUserFenxiaoProductTask(user_id)
 
   

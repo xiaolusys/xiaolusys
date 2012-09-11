@@ -243,7 +243,7 @@ def taobao_topats_itemcats_get(seller_type=None,cids=None,output_format='json',t
     pass
 ############# items apis ###################
 
-@apis('taobao.item.get',max_retry=3,limit_rate=1)
+@apis('taobao.item.get',max_retry=3,limit_rate=5)
 def taobao_item_get(num_iid=None,fields=API_FIELDS['taobao.item.get'],tb_user_id=None):
     pass
 
