@@ -26,6 +26,8 @@ def pull_from_taobao(request):
     session = request.session
 
     onsaleItems = apis.taobao_items_onsale_get(session=profile.top_session,page_no=1,page_size=200)
+    if onsaleItems['items_onsale_get_response']['total_results'] <= 0:
+        return  HttpResponseRedirect('itemlist/')
 
     items = onsaleItems.get('items_onsale_get_response',[]) and onsaleItems['items_onsale_get_response']['items'].get('item',[])
 
