@@ -39,3 +39,4 @@ class RefundOrderRenderer(TemplateRenderer):
     media_type = 'text/html'
     format = 'html'
     template = 'refund_orders_template.html'
+

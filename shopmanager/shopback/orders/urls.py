@@ -4,7 +4,8 @@ from shopback.base.resources import ChartsResource,BaseResource
 from shopback.base.authentication import UserLoggedInAuthentication
 from shopback.base.permissions import IsAuthenticated
 from shopback.base.renderers  import ChartJSONRenderer,ChartTemplateRenderer,BaseJsonRenderer
-from shopback.orders.renderers import OrderNumPiovtChartHtmlRenderer,ProductOrderTableRenderer,RelatedOrderRenderer,RefundOrderRenderer
+from shopback.orders.renderers import OrderNumPiovtChartHtmlRenderer,ProductOrderTableRenderer,RelatedOrderRenderer\
+    ,RefundOrderRenderer
 from shopback.orders.resources import ChartJsonResource
 
 
@@ -39,5 +40,6 @@ urlpatterns = patterns('shopback.orders.views',
         authentication=(UserLoggedInAuthentication,),
         permissions=(IsAuthenticated,)
     )),
+                       
 )
   
