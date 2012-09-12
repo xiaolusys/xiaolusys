@@ -24,6 +24,62 @@ from auth import apis
 @login_required(login_url=settings.LOGIN_URL)
 def pull_from_taobao(request):
 
+    profile = request.user.get_profile()
+    session = request.session
+
+    onsaleItems = apis.taobao_items_onsale_get(session=profile.top_session,page_no=1,page_size=200)
+    if onsaleItems['items_onsale_get_response']['total_results'] <= 0:
+        return  HttpResponseRedirect('itemlist/')
+
+    items = onsaleItems.get('items_onsale_get_response',[]) and onsaleItems['items_onsale_get_response']['items'].get('item',[])
+
+    session['update_items_datetime'] = datetime.datetime.now()
+
+    user_id = profile.visitor_id
+
+    currItems = Item.objects.filter(user_id=user_id)
+
+    itemstat = {}
+    for item in currItems:
+        itemstat[item.num_iid] = {'onsale':0, 'item':item}
+
+    for item in items:
+        detail = apis.taobao_item_get(session=session['top_session'],num_iid=item['num_iid'])
+        detail_item = detail['item_get_response']['item']
+
+        cats = apis.taobao_itemcats_get(session=session['top_session'],cids=item['cid'])
+        cats_detail = cats['itemcats_get_response']['item_cats']['item_cat']
+
+        o = None
+        num_iid = str(item['num_iid'])
+        if num_iid in itemstat:
+            o = itemstat[num_iid]['item']
+            itemstat[o.num_iid]['onsale'] = 1
+        else:
+            o = Item()
+            o.num_iid = num_iid
+
+        o.approve_status = INSTOCK_STATUS
+        o.user_id = user_id
+        o.detail_url = detail_item['detail_url']
+
+        o.title = item['title']
+        o.category_id   = item['cid']
+        o.category_name = cats_detail[0]['name']
+
+        o.outer_id  = item['outer_id']
+
+        o.list_time = item['list_time']
+        o.modified  = item['modified']
+        o.pic_url   = item['pic_url']
+        o.num       = item['num']
+        o.save()
+
+    for item in currItems:
+        sale_status = itemstat[item.num_iid]['onsale']
+        item.approve_status = ONSALE_STATUS if sale_status == 1 else INSTOCK_STATUS
+        item.save()
+
     return HttpResponseRedirect(reverse('list_all_items'))
 
 
