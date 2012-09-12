@@ -6,3 +6,8 @@ celerybeat-schedule
 .idea/
 *~
 migrations
+.project
+.pydevproject
+.settings/
+change_log.txt
+test/

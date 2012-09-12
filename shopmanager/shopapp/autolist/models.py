@@ -21,7 +21,7 @@ class ItemListTask(models.Model):
     status = models.CharField(max_length=10,default=UNEXECUTE) #unexecute,execerror,success,delete
 
     class Meta:
-        db_table = 'shop_itemlisttask'
+        db_table = 'shop_autolist_itemlisttask'
 
 
 
@@ -29,7 +29,7 @@ class Logs(models.Model):
     num_iid = models.CharField(max_length=64)
     cat_id = models.CharField(max_length=64)
     cat_name = models.CharField(max_length=64)
-    ref_code = models.CharField(max_length=64)
+    outer_id = models.CharField(max_length=64)
     title = models.CharField(max_length=128)
     pic_url = models.URLField(verify_exists=False)
 
@@ -43,4 +43,4 @@ class Logs(models.Model):
     status = models.CharField(max_length=20) #unexec
 
     class Meta:
-        db_table = 'autolist_logs'
+        db_table = 'shop_autolist_logs'

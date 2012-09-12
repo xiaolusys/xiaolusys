@@ -1,6 +1,6 @@
 __author__ = 'meixqhi'
 from django.contrib import admin
-from shopapp.memorule.models import TradeRule,RuleFieldType,ProductRuleField
+from shopapp.memorule.models import TradeRule,RuleFieldType,ProductRuleField,RuleMemo
 
 
 
@@ -50,3 +50,20 @@ class ProductRuleFieldAdmin(admin.ModelAdmin):
 
 
 admin.site.register(ProductRuleField, ProductRuleFieldAdmin)
+
+
+
+
+class RuleMemoAdmin(admin.ModelAdmin):
+    list_display = ('tid','is_used','rule_memo','seller_flag','created','modified')
+    list_display_links = ('tid','rule_memo')
+    #list_editable = ('update_time','task_type' ,'is_success','status')
+
+    date_hierarchy = 'created'
+    #ordering = ['created_at']
+
+    list_filter = ('is_used','seller_flag')
+    search_fields = ['tid']
+
+
+admin.site.register(RuleMemo, RuleMemoAdmin)

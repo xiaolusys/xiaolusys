@@ -13,7 +13,7 @@ import logging
 
 
 
-logger = logging.getLogger('updatelisting')
+logger = logging.getLogger('autolist.handler')
 
 START_TIME = '00:00'
 END_TIME = '23:59'
@@ -26,7 +26,7 @@ def write_to_log_db(task, response):
     log.num = task.num
     log.cat_id = item.category_id
     log.cat_name = item.category_name
-    log.ref_code = item.ref_code
+    log.outer_id = item.outer_id
     log.title = item.title
     log.pic_url = item.pic_url
     log.list_weekday = task.list_weekday
@@ -48,7 +48,7 @@ def write_to_log_db(task, response):
     log.save()
 
 
-@task(max_retries=3)
+@task(max_retry=3)
 def updateItemListTask(num_iid):
 
     try:
@@ -121,7 +121,7 @@ def updateItemListTask(num_iid):
     task.save()
 
 
-@task()
+@apis.single_instance_task(30*60,prefix='shopapp.autolist.tasks.')
 def updateAllItemListTask():
     currentdate = datetime.datetime.now()
     currenttime = time.mktime(currentdate.timetuple())

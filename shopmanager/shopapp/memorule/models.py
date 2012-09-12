@@ -1,37 +1,53 @@
+#-*- coding:utf8 -*-
 __author__ = 'meixqhi'
 from django.db import models
 from shopback.items.models import Item
+from shopback.orders.models import Trade
+from shopback.trades.models import MergeTrade,WAIT_PREPARE_SEND_STATUS,WAIT_SCAN_WEIGHT_STATUS,AUDITFAIL_STATUS,\
+    WAIT_CONFIRM_SEND_STATUS,FINISHED_STATUS,INVALID_STATUS,ON_THE_FLY_STATUS,SYSTEM_SEND_TAOBAO_STATUS
+from shopback.signals import rule_signal
+import logging
+
+logger = logging.getLogger('memorule.handler')
+
 
 RULE_STATUS = (
-    ('US',u'\u4f7f\u7528'),
-    ('SX',u'\u5931\u6548'),
+    ('US','使用'),
+    ('SX','失效'),
 )
 SCOPE_CHOICE = (
-    ('trade',u'\u4ea4\u6613\u57df'),
-    ('product',u'\u5546\u54c1\u57df'),
+    ('trade','交易域'),
+    ('product','商品域'),
 )
+SYS_STATUS_MATCH_FLAGS = {
+    WAIT_PREPARE_SEND_STATUS:1, #已审核
+    WAIT_SCAN_WEIGHT_STATUS:2,  #已开单
+    WAIT_CONFIRM_SEND_STATUS:3, #已称重
+    SYSTEM_SEND_TAOBAO_STATUS:3, #等待更新发货状态
+    INVALID_STATUS:4,           #已作废
+    AUDITFAIL_STATUS:4,         #问题单
+    ON_THE_FLY_STATUS:5,        #表示已合并
+}
+
 class TradeRule(models.Model):
 
-    formula     = models.CharField(max_length=64,blank=True,verbose_name=u'\u89c4\u5219\u516c\u5f0f')
-    memo        = models.CharField(max_length=64,blank=True,verbose_name=u'\u89c4\u5219\u7559\u8a00')
+    formula     = models.CharField(max_length=64,blank=True,)
+    memo        = models.CharField(max_length=64,blank=True,)
 
-    formula_desc = models.TextField(max_length=256,blank=True,verbose_name=u'\u89c4\u5219\u63cf\u8ff0')
+    formula_desc = models.TextField(max_length=256,blank=True,)
 
-    scope       = models.CharField(max_length=10,choices=SCOPE_CHOICE,verbose_name=u'\u89c4\u5219\u8303\u56f4')
-    status      = models.CharField(max_length=2,choices=RULE_STATUS,verbose_name=u'\u89c4\u5219\u72b6\u6001')
+    scope       = models.CharField(max_length=10,choices=SCOPE_CHOICE,)
+    status      = models.CharField(max_length=2,choices=RULE_STATUS,)
 
-    items        = models.ManyToManyField(Item,related_name='rules',symmetrical=False,db_table='shop_app_itemrulemap')
+    items       = models.ManyToManyField(Item,related_name='rules',symmetrical=False,db_table='shop_memorule_itemrulemap')
     class Meta:
-        db_table = 'shop_app_traderule'
-        verbose_name = u'\u8ba2\u5355\u89c4\u5219'
-
-
+        db_table = 'shop_memorule_traderule'
 
 
 FIELD_TYPE_CHOICE = (
-    ('single',u'\u5355\u9009'),
-    ('check',u'\u590d\u9009'),
-    ('text',u'\u6587\u672c'),
+    ('single','单选'),
+    ('check','复选'),
+    ('text','文本'),
 )
 class RuleFieldType(models.Model):
 
@@ -42,7 +58,7 @@ class RuleFieldType(models.Model):
     default_value = models.TextField(max_length=256,blank=True)
 
     class Meta:
-        db_table = 'shop_app_rulefieldtype'
+        db_table = 'shop_memorule_rulefieldtype'
 
     def __unicode__(self):
         return self.field_name+self.field_type
@@ -59,7 +75,7 @@ class ProductRuleField(models.Model):
     custom_default = models.TextField(max_length=256,blank=True)
 
     class Meta:
-        db_table = 'shop_app_productrulefield'
+        db_table = 'shop_memorule_productrulefield'
 
     @property
     def alias(self):
@@ -74,3 +90,73 @@ class ProductRuleField(models.Model):
 
     def to_json(self):
         return [self.field.field_name,self.alias,self.field.field_type,self.default]
+ 
+ 
+class RuleMemo(models.Model):
+    
+    tid   =  models.BigIntegerField(primary_key=True)
+    
+    is_used   = models.BooleanField(default=False)
+    rule_memo      = models.TextField(max_length=1000,blank=True)
+    seller_flag    = models.IntegerField(null=True)
+    
+    created  = models.DateTimeField(null=True,blank=True,auto_now_add=True)
+    modified = models.DateTimeField(null=True,blank=True,auto_now=True)
+    
+    class Meta:
+        db_table = 'shop_memorule_rulememo'
+
+    def __unicode__(self):
+        return str(self.tid)
+    
+
+def rule_match_product(sender, trade_id, *args, **kwargs):
+    try:
+        trade = Trade.objects.get(id=trade_id)
+    except Trade.DoesNotExist:
+        return 
+    orders  = trade.trade_orders.filter(refund_status='NO_REFUND')
+    for order in orders:
+        rules = ProductRuleField.objects.filter(outer_id=order.outer_id)
+        if rules.count()>0:
+            raise Exception('该交易需要规则匹配')
+        
+
+rule_signal.connect(rule_match_product,sender='product_rule',dispatch_uid='rule_match_product')
+ 
+
+def rule_match_trade(sender, trade_id, *args, **kwargs):
+    try:
+        trade = Trade.objects.get(id=trade_id)
+    except Trade.DoesNotExist:
+        pass
+    else:
+        orders = trade.trade_orders.filter(refund_status='NO_REFUND')
+        trade_rules = TradeRule.objects.filter(scope='trade',status='US') 
+        memo_list = []
+        payment = 0 
+        for order in orders:
+            payment = float(order.payment)  
+            item = Item.get_or_create(trade.seller_id,order.num_iid)
+            order_rules = item.rules.filter(scope='product',status='US')
+            for rule in order_rules:
+                try:
+                    if eval(rule.formula):
+                        memo_list.append(rule.memo)
+                except Exception,exc:
+                    logger.error('交易商品规则(%s)匹配出错'%rule.formula,exc_info=True)
+        
+        trade.payment = payment  
+        for rule in trade_rules:
+            try:
+                if eval(rule.formula):
+                    memo_list.append(rule.memo)
+            except Exception,exc:
+                logger.error('交易订单规则(%s)匹配出错'%rule.formula,exc_info=True)
+ 
+            
+        MergeTrade.objects.filter(tid=trade_id).update(sys_memo=','.join(memo_list))
+        
+
+rule_signal.connect(rule_match_trade,sender='trade_rule',dispatch_uid='rule_match_trade')
+    

@@ -6,74 +6,82 @@ from celery.task.sets import subtask
 from django.conf import settings
 from shopback.base.aggregates import ConcatenateDistinct
 from auth.utils import format_datetime ,parse_datetime ,refresh_session
-from shopback.items.models import Item
+from shopback.items.models import Item,ProductSku
 from shopback.orders.models import Order,Trade,ORDER_SUCCESS_STATUS,ORDER_UNPAY_STATUS
 from shopback.users.models import User
 from shopapp.syncnum.models import ItemNumTask
 from shopback.base.models   import UNEXECUTE,EXECERROR,SUCCESS
 from auth.apis.exceptions import RemoteConnectionException,AppCallLimitedException,UserFenxiaoUnuseException,\
     APIConnectionTimeOutException,ServiceRejectionException,TaobaoRequestException
+from shopback.fenxiao.tasks import saveUserFenxiaoProductTask
 from auth import apis
 import logging
 
-logger = logging.getLogger('updateitem')
+logger = logging.getLogger('items.handler')
 
 
 
 @task()
 def updateUserItemsTask(user_id):
-    try:
-        user = User.objects.get(visitor_id=user_id)
-    except User.DoesNotExist,exc:
-        logger.error('User(pk:%d) does not exist.'%user_id, exc_info=True)
-        return
-
-    refresh_session(user,settings.APPKEY,settings.APPSECRET,settings.REFRESH_URL)
 
     has_next = True
     cur_page = 1
-    error_times = 0
     update_nums = 0
-
-    while has_next:
-        try:
-            response_list = apis.taobao_items_onsale_get(session=user.top_session,page_no=cur_page
-                ,page_size=settings.TAOBAO_PAGE_SIZE)
-
+    try:
+        while has_next:
+          
+            response_list = apis.taobao_items_onsale_get(page_no=cur_page,tb_user_id=user_id
+                ,page_size=settings.TAOBAO_PAGE_SIZE,fields='num_iid,modified')
+    
             item_list = response_list['items_onsale_get_response']
-            if item_list.has_key('items'):
+            if item_list['total_results']>0:
+                items = item_list['items']['item']
+                for item in items:
+                    modified = parse_datetime(item['modified']) if item.get('modified',None) else None
+                    item_obj,state    = Item.objects.get_or_create(num_iid = item['num_iid'])
+                    if modified != item_obj.modified:
+                        response = apis.taobao_item_get(num_iid=item['num_iid'],tb_user_id=user_id)
+                        item_dict = response['item_get_response']['item']
+                        item_dict['skus'] = json.dumps(item_dict.get('skus',{}))
+                        Item.save_item_through_dict(user_id,item_dict)
+                update_nums += len(items)    
+    
+            total_nums = item_list['total_results']
+            cur_nums = cur_page*settings.TAOBAO_PAGE_SIZE
+            has_next = cur_nums<total_nums
+            
+            cur_page += 1
+    except:
+        logger.error('update user onsale items task error',exc_info=True)
+        
+    try:
+        has_next = True
+        cur_page = 1    
+        while has_next:
+          
+            response_list = apis.taobao_items_inventory_get(page_no=cur_page,tb_user_id=user_id
+                ,page_size=settings.TAOBAO_PAGE_SIZE,fields='num_iid,modified')
+    
+            item_list = response_list['items_inventory_get_response']
+            if item_list['total_results']>0:
+                items = item_list['items']['item']
                 for item in item_list['items']['item']:
-                    Item.save_item_through_dict(user_id,item)
-
+                    modified = parse_datetime(item['modified']) if item.get('modified',None) else None
+                    item_obj,state    = Item.objects.get_or_create(num_iid = item['num_iid'])
+                    if modified != item_obj.modified:
+                        response = apis.taobao_item_get(num_iid=item['num_iid'],tb_user_id=user_id)
+                        item_dict = response['item_get_response']['item']
+                        item_dict['skus'] = json.dumps(item_dict.get('skus',{}))
+                        Item.save_item_through_dict(user_id,item_dict)
+                update_nums += len(items)
+                
             total_nums = item_list['total_results']
             cur_nums = cur_page*settings.TAOBAO_PAGE_SIZE
             has_next = cur_nums<total_nums
             cur_page += 1
-            error_times = 0
-            update_nums += total_nums
-            time.sleep(settings.API_REQUEST_INTERVAL_TIME)
-
-        except RemoteConnectionException,e:
-            if error_times > settings.MAX_REQUEST_ERROR_TIMES:
-                logger.error('update trade during order fail:%s ,repeat times:%d'%(response_list,error_times))
-                raise e
-            error_times += 1
-        except APIConnectionTimeOutException,e:
-            if error_times > settings.MAX_REQUEST_ERROR_TIMES:
-                logger.error('update trade during order fail:%s ,repeat times:%d'%(response_list,error_times))
-                raise e
-            error_times += 1
-            time.sleep(settings.API_TIME_OUT_SLEEP)
-        except ServiceRejectionException,e:
-            if error_times > settings.MAX_REQUEST_ERROR_TIMES:
-                logger.error('update trade during order fail:%s ,repeat times:%d'%(response_list,error_times))
-                raise e
-            error_times += 1
-            time.sleep(settings.API_OVER_LIMIT_SLEEP)
-        except AppCallLimitedException,e:
-            logger.error('update trade sold increment fail',exc_info=True)
-            raise e
-
+    except:
+        logger.error('update user inventory items task error',exc_info=True)
+   
     return update_nums
 
 
@@ -89,42 +97,68 @@ def updateAllUserItemsTask():
 
 
 
-@task(max_retries=3)
-def saveUserItemsInfoTask(user_id):
+@task()
+def updateUserProductSkuTask(user_id):
 
-    items = Item.objects.filter(user_id=user_id)
-    for item in items:
-        user = User.objects.get(visitor_id=user_id)
+    user  = User.objects.get(visitor_id=user_id)
+    items = user.items.all()
 
-        try:
-            response = apis.taobao_item_get(num_iid=item.num_iid,session=user.top_session)
-            itemdict = response['item_get_response']['item']
-            itemdict['skus'] = json.dumps(itemdict.get('skus',{}))
+    num_iids = []
+    for index,item in enumerate(items):
+        num_iids.append(item.num_iid)
 
-            for k,v in itemdict.iteritems():
-                hasattr(item,k) and setattr(item,k,v)
-            item.save()
-
-        except AppCallLimitedException,e:
-            logger.error('update trade during order task fail',exc_info=True)
-            raise e
-        except TaobaoRequestException,e:
-            logger.error('update trade during order task fail',exc_info=True)
-            if not settings.DEBUG:
-                updateAllItemNumTask.retry(exc=exc,countdown=2)
+        if len(num_iids)>=40 or index+1 ==len(items):
+            try:
+                num_iids_str = ','.join(num_iids)
+                response = apis.taobao_item_skus_get(num_iids=num_iids_str,tb_user_id=user_id)
+                if response['item_skus_get_response'].has_key('skus'):
+                    skus     = response['item_skus_get_response']['skus']['sku']
+    
+                    for sku in skus:
+                        sku_outer_id = sku.get('outer_id',None)
+                        item  = Item.objects.get(num_iid=sku['num_iid'])
+                        psku,state = ProductSku.objects.get_or_create(outer_id=sku_outer_id,product=item.product)
+                        if state:
+                            for key,value in sku.iteritems():
+                                hasattr(psku,key) and setattr(psku,key,value)
+                            psku.save()
+                num_iids = []
+            except Exception,exc:
+                logger.error('update product sku error!',exc_info=True)
 
 
 
 
 @task()
-def updateAllUserItemsInfoTask():
+def updateAllUserProductSkuTask():
 
     users = User.objects.all()
     for user in users:
 
-        subtask(saveUserItemsInfoTask).delay(user.visitor_id)
+        subtask(updateUserProductSkuTask).delay(user.visitor_id)
 
 
 
+@task()
+def updateUserItemsEntityTask(user_id):
+
+    updateUserItemsTask(user_id)
+
+    subtask(updateUserProductSkuTask).delay(user_id)
+
+
+@task()
+def updateAllUserItemsEntityTask():
+
+    users = User.objects.all()
+    for user in users:
+
+        subtask(updateUserItemsEntityTask).delay(user.visitor_id)
+
+@task()
+def updateUserItemSkuFenxiaoProductTask(user_id):
+    updateUserItemsTask(user_id)
+    updateUserProductSkuTask(user_id)
+    saveUserFenxiaoProductTask(user_id)
 
   

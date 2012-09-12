@@ -3,6 +3,7 @@ import settings
 import datetime
 from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import render_to_response
+from django.core.urlresolvers import reverse
 from django.template import RequestContext
 from djangorestframework.utils import as_tuple
 from djangorestframework import status,signals
@@ -11,11 +12,12 @@ from djangorestframework.mixins import CreateModelMixin
 from djangorestframework.views import ModelView
 from django.contrib.auth.decorators import login_required
 from shopback.base.views import ListModelView
-from shopapp.syncnum.models import UNEXECUTE
-from auth import apis
+from shopback.base.models import UNEXECUTE
+from shopback.categorys.models import Category
 from shopback.items.models import Item,ONSALE_STATUS,INSTOCK_STATUS
 from shopapp.autolist.models import Logs,ItemListTask
-from shopback.categorys.models import Category
+from auth import apis
+
 
 
 
@@ -78,14 +80,14 @@ def pull_from_taobao(request):
         item.approve_status = ONSALE_STATUS if sale_status == 1 else INSTOCK_STATUS
         item.save()
 
-    return HttpResponseRedirect('itemlist/')
+    return HttpResponseRedirect(reverse('list_all_items'))
 
 
 
 
 def list_all_items(request):
-    user_id = request.session['top_parameters']['taobao_user_id']
-    items = Item.objects.filter(user_id=user_id).order_by('cid', 'outer_id')
+    user = request.user.get_profile()
+    items = user.items.all().order_by('category', 'outer_id')
 
     from auth.utils import get_closest_time_slot
 
@@ -120,11 +122,11 @@ def show_timetable_cats(request):
 
     user_id = request.session['top_parameters']['taobao_user_id']
     try:
-        cid =  Category.objects.get(name=catname)
+        category =  Category.objects.get(name=catname)
     except Category.DoesNotExist:
-        cid = None
+        category = None
 
-    items = Item.objects.filter(user_id=user_id, cid=cid, approve_status=ONSALE_STATUS)
+    items = Item.objects.filter(user=user_id, category=category, approve_status=ONSALE_STATUS)
     data = [[],[],[],[],[],[],[]]
     for item in items:
         relist_slot, status = get_closest_time_slot(item.list_time)
@@ -153,7 +155,7 @@ def show_time_table_summary(request):
 
     user_id = request.session['top_parameters']['taobao_user_id']
     weekday = request.GET.get('weekday', None)
-    items   = Item.objects.filter(user_id=user_id,approve_status=ONSALE_STATUS).order_by('cid', 'outer_id')
+    items   = Item.objects.filter(user=user_id,approve_status=ONSALE_STATUS).order_by('cid', 'outer_id')
     weekstat = [0,0,0,0,0,0,0]
     data = {}
     for item in items:
@@ -208,7 +210,7 @@ def show_time_table_summary(request):
 
 
 def show_time_table(request):
-    items = Item.objects.all().order_by('cid', 'outer_id')
+    items = Item.objects.all().order_by('category', 'outer_id')
 
     from auth.utils import get_closest_time_slot, get_all_time_slots
 
@@ -356,8 +358,8 @@ def direct_update_listing(request,num_iid,num):
     if not (num_iid.isdigit() and num.isdigit()):
         response = {'errormsg':'The num_iid and num must be number!'}
         return HttpResponse(json.dumps(response),mimetype='application/json')
-
-    response = apis.taobao_item_update_listing(num_iid,num,request.session.get('top_session'))
+    
+    response = apis.taobao_item_update_listing(num_iid=num_iid,num=num,tb_user_id=user_id)
 
     return HttpResponse(json.dumps(response),mimetype='application/json')
 
@@ -370,7 +372,7 @@ def direct_del_listing(request,num_iid):
         response = {'errormsg':'The num_iid  must be number!'}
         return HttpResponse(json.dumps(response),mimetype='application/json')
 
-    response = apis.taobao_item_update_delisting(num_iid,request.session.get('top_session'))
+    response = apis.taobao_item_update_delisting(num_iid=num_iid,tb_user_id=user_id)
 
     return HttpResponse(json.dumps(response),mimetype='application/json')
 

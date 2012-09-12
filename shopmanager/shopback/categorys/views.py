@@ -3,12 +3,15 @@ from django.http import HttpResponse
 from djangorestframework.serializer import Serializer
 from shopback.categorys.models import Category
 from shopback.categorys.tasks import RecurUpdateCategoreyTask
+import logging
+
+logger = logging.getLogger('category.update')
 
 def crawFullCategories(request,cid):
 
-    top_session = request.session['top_session']
+    profile = request.user.get_profile()
 
-    puctask = RecurUpdateCategoreyTask.delay(top_session,cid)
+    puctask = RecurUpdateCategoreyTask.delay(profile.visitor_id,cid)
 
     return HttpResponse(json.dumps({'code':0,"response_content":[{"task_id":puctask.task_id}]}))
 

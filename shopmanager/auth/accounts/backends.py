@@ -1,8 +1,10 @@
+import time
 import json
 import urllib
 import urllib2
 from django.db import models
 from django.contrib.auth.models import User
+from django.contrib.auth.models import SiteProfileNotAvailable
 from auth.utils import verifySignature,decodeBase64String,parse_urlparams
 from django.conf import settings
 from auth import apis
@@ -53,7 +55,8 @@ class TaoBaoBackend:
 
         request.session['top_session']    = top_parameters['access_token']
         request.session['top_parameters'] = top_parameters
-
+        top_parameters['ts']  = time.time()
+        
         try:
             app_label, model_name = settings.AUTH_PROFILE_MODULE.split('.')
         except ValueError:
@@ -67,13 +70,16 @@ class TaoBaoBackend:
                 raise SiteProfileNotAvailable('Unable to load the profile '
                                               'model, check AUTH_PROFILE_MODULE in your project sett'
                                               'ings')
-        except (ImportError, ImproperlyConfigured):
+        except (ImportError,ImproperlyConfigured):
             raise SiteProfileNotAvailable('ImportError, ImproperlyConfigured error')
 
         user_id  =  top_parameters['taobao_user_id']
 
         try:
             profile = model.objects.get(visitor_id=user_id)
+            profile.top_session    = top_parameters['access_token']
+            profile.top_parameters = json.dumps(top_parameters)
+            profile.save()
 
             if profile.user:
                 if not profile.user.is_active:
@@ -81,13 +87,16 @@ class TaoBaoBackend:
                     profile.user.save()
                 return profile.user
             else:
-                user = User.objects.create(username=user_id,is_active=True)
+                user,state = User.objects.get_or_create(username=user_id,is_active=True)
                 profile.user = user
                 profile.save()
                 return user
         except model.DoesNotExist:
-            user = User.objects.create(username=user_id,is_active=True)
-            model.objects.get_or_create(user=user,visitor_id=user_id)
+            user,state = User.objects.get_or_create(username=user_id,is_active=True)
+            profile,state = model.objects.get_or_create(user=user,visitor_id=user_id)
+            profile.top_session    = top_parameters['access_token']
+            profile.top_parameters = json.dumps(top_parameters)
+            profile.save()
             return user
 
 

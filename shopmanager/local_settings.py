@@ -20,7 +20,7 @@ PROJECT_ROOT = os.path.abspath(os.path.dirname(__file__))
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql', # Add 'postgresql_psycopg2', 'postgresql', 'mysql', 'sqlite3' or 'oracle'.
-        'NAME': 'shopmgr',                      # Or path to database file if using sqlite3.
+        'NAME': 'shoptest',                      # Or path to database file if using sqlite3.
         'USER': 'meixqhi',                      # Not used with sqlite3.
         'PASSWORD': '123123',                  # Not used with sqlite3.
         'HOST': '',                      # Set to empty string for localhost. Not used with sqlite3.
@@ -48,38 +48,61 @@ INSTALLED_APPS = (
     'deamon',
     'deamon.celery_sentry',
 
-    'shopback.items',
-    'shopback.orders',
     'shopback.users',
+    'shopback.items',
+    'shopback.amounts',
     'shopback.categorys',
+    'shopback.fenxiao',
+    'shopback.logistics',
+    'shopback.monitor',
+    'shopback.orders',
+    'shopback.trades',
+    'shopback.refunds',
+    'shopback.asynctask',
+
 
     'shopapp.autolist',
+    'shopapp.collector',
     'shopapp.memorule',
-    'shopapp.search',
+    'shopapp.report',
     'shopapp.syncnum',
 
     #'devserver',
     'django.contrib.admin',
 )
 
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.memcached.MemcachedCache',
+        'LOCATION': '127.0.0.1:11211',
+    }
+}
 
-APPKEY = '12686373'
-APPSECRET = '9179d4bea89b0712c9397b073ce17535'
+if DEBUG:
+    STATICFILES_DIRS = (
+       os.path.join(PROJECT_ROOT,'site_media',"static"),
+    )
+else :
+    STATIC_ROOT = os.path.join(PROJECT_ROOT,'site_media', "static")
 
-#APPKEY = '12686841'
-#APPSECRET = '501b8d23212601443eec4fef13e7c84d'
+
+APPKEY = '12686908'  #app name super ERP ,younishijie
+APPSECRET = 'b3ddef5982a23c636739289949c01f59'
+
+#APPKEY = '21165266'  #app name huyi ERP ,younishijie
+#APPSECRET  = 'ea5f5687a856ec58199d538cfa04496d'
 
 AUTHRIZE_URL = 'https://oauth.taobao.com/authorize'
 AUTHRIZE_TOKEN_URL = 'https://oauth.taobao.com/token'
 REDIRECT_URI = 'http://localhost:8000/accounts/login/taobao/'
-TAOBAO_API_ENDPOINT = 'http://gw.api.taobao.com/router/rest'
+TAOBAO_API_ENDPOINT = 'https://eco.taobao.com/router/rest'
 
 SCOPE = 'item,promotion,usergrade'
 
 REFRESH_URL = 'https://oauth.taobao.com/token'
 
 FONT_PATH = '/usr/share/fonts/truetype/ttf-dejavu/DejaVuSerifCondensed-BoldItalic.ttf'
-
+ASYNC_FILE_PATH = os.path.join(PROJECT_ROOT,'site_media',"asyncfile")
 
 
 DEVSERVER_MODULES = (
@@ -93,6 +116,4 @@ DEVSERVER_MODULES = (
     'devserver.modules.cache.CacheSummaryModule',
     #'devserver.modules.profile.LineProfilerModule',
 )
-
-
 

@@ -18,7 +18,7 @@ class ItemNumTask(models.Model):
     status = models.CharField(max_length=10,default=UNEXECUTE) #unexecute,execerror,success,delete
 
     class Meta:
-        db_table = 'shop_itemnumtask'
+        db_table = 'shop_syncnum_itemnumtask'
 
 
 

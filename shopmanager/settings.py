@@ -17,7 +17,7 @@ MANAGERS = ADMINS
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql', # Add 'postgresql_psycopg2', 'postgresql', 'mysql', 'sqlite3' or 'oracle'.
-        'NAME': 'shopmgr',                      # Or path to database file if using sqlite3.
+        'NAME': 'taobaoshop',                      # Or path to database file if using sqlite3.
         'USER': 'shopmgr',                      # Not used with sqlite3.
         'PASSWORD': '123123',                  # Not used with sqlite3.
         'HOST': '',                      # Set to empty string for localhost. Not used with sqlite3.
@@ -51,7 +51,7 @@ ADMIN_MEDIA_PREFIX = posixpath.join(STATIC_URL, "admin/")
 STATIC_DOC_ROOT = os.path.join(PROJECT_ROOT, "site_media","static")
 
 STATICFILES_DIRS = (
-       os.path.join(PROJECT_ROOT,"site_media","static"),
+       #os.path.join(PROJECT_ROOT,"site_media","static"),
 )
 
 STATICFILES_FINDERS = (
@@ -103,14 +103,22 @@ INSTALLED_APPS = (
     'deamon',
     'deamon.celery_sentry',
 
-    'shopback.items',
-    'shopback.orders',
-    'shopback.users',
+    'shopback.amounts',
     'shopback.categorys',
-
+    'shopback.fenxiao',
+    'shopback.items',
+    'shopback.logistics',
+    'shopback.monitor',
+    'shopback.orders',
+    'shopback.trades',
+    'shopback.refunds',
+    'shopback.users',
+    'shopback.asynctask',
+    
     'shopapp.autolist',
+    'shopapp.collector',
     'shopapp.memorule',
-    'shopapp.search',
+    'shopapp.report',
     'shopapp.syncnum',
 
     'django.contrib.admin',
@@ -170,12 +178,12 @@ LOGGING = {
             'level': 'WARN',
             'propagate': True,
         },
-        'updatelisting': {
+        'autolist.handler': {
             'handlers': ['sentry'],
             'level': 'WARN',
             'propagate': True,
         },
-        'updateitemnum': {
+        'syncnum.handler': {
             'handlers': ['sentry'],
             'level': 'WARN',
             'propagate': True,
@@ -205,12 +213,17 @@ LOGGING = {
             'level': 'WARN',
             'propagate': True,
         },
-        'outeridmultiple': {
+        'pagerank.handler': {
             'handlers': ['sentry'],
             'level': 'WARN',
             'propagate': True,
         },
-        'period.search': {
+        'traderank.handler': {
+            'handlers': ['sentry'],
+            'level': 'WARN',
+            'propagate': True,
+        },
+        'report.handler': {
             'handlers': ['sentry'],
             'level': 'WARN',
             'propagate': True,
@@ -220,7 +233,7 @@ LOGGING = {
             'level': 'WARN',
             'propagate': True,
         },
-        'hourly.saveorder':{
+        'orders.handler':{
             'handlers': ['sentry'],
             'level': 'WARN',
             'propagate': True,
@@ -235,17 +248,42 @@ LOGGING = {
             'level': 'WARN',
             'propagate': True,
         },
-        'trade.refund':{
+        'refunds.handler':{
             'handlers': ['sentry'],
             'level': 'WARN',
             'propagate': True,
         },
-        'exception.handler':{
+        'fenxiao.handler':{
             'handlers': ['sentry'],
             'level': 'WARN',
             'propagate': True,
         },
-        'app.memorule':{
+        'categoreys.handler':{
+            'handlers': ['sentry'],
+            'level': 'WARN',
+            'propagate': True,
+        },
+        'memorule.handler':{
+            'handlers': ['sentry'],
+            'level': 'WARN',
+            'propagate': True,
+        },
+        'items.handler':{
+            'handlers': ['sentry'],
+            'level': 'WARN',
+            'propagate': True,
+        },
+        'logistics.handler':{
+            'handlers': ['sentry'],
+            'level': 'WARN',
+            'propagate': True,
+        },
+        'trades.handler':{
+            'handlers': ['sentry'],
+            'level': 'WARN',
+            'propagate': True,
+        },
+        'asynctask.handler':{
             'handlers': ['sentry'],
             'level': 'WARN',
             'propagate': True,

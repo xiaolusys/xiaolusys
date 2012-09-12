@@ -23,7 +23,7 @@ def get_version():
     """docstring for get_version"""
     version = local('git describe --tags', True)
     env.version = version
-    env.version_dir = '%s/taobao-%s' % (env.base_dir, env.version)
+    env.version_dir = '%s/taobao-%s' % (env.base_dir, env.version) 
 
 def init_code_base():
     """docstring for init_code_base"""
@@ -52,8 +52,18 @@ def set_local_settings():
 def collect_static():
     """docstring for collect_static"""
     with cd(env.version_dir):
-        #run('source ve/bin/activate;cd shopmanager;python manage.py collectstatic --noinput')
-        run('cd ../site_media;unlink static;ln -s %s/shopmanager/static' % env.version_dir)
+        run('source ve/bin/activate;cd shopmanager;python manage.py collectstatic --noinput')
+        run('cd ../site_media;unlink static;ln -s %s/shopmanager/site_media/static static' % env.version_dir)
+
+def collect_download():
+    """docstring for collect_static"""
+    with cd(env.version_dir):
+        run('cd %s/shopmanager/site_media;rm -rf download;ln -s ../../../site_media/download' % env.version_dir)
+        
+def collect_asyncfile():
+    """docstring for collect_static"""
+    with cd(env.version_dir):
+        run('cd %s/shopmanager/site_media;rm -rf asyncfile;ln -s ../../../site_media/asyncfile' % env.version_dir)
 
 def deploy():
     """docstring for deploy"""
@@ -64,6 +74,8 @@ def deploy():
         #get_static() # this is a hack for buggy network and should be removed in the future
         set_local_settings()
         collect_static()
+        collect_download()
+        collect_asyncfile()
 
 def restart_gunicorn():
     """docstring for restart_gunicorn"""

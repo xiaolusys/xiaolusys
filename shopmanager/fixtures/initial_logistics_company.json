@@ -1,0 +1,412 @@
+[
+  {
+    "pk": 1214,
+    "model": "logistics.logisticscompany",
+    "fields": {
+      "priority": 0,
+      "code": "LTS",
+      "name": "\u8054\u660a\u901a",
+      "reg_mail_no": "^[0-9]{9,12}$"
+    }
+  },
+  {
+    "pk": 1216,
+    "model": "logistics.logisticscompany",
+    "fields": {
+      "priority": 0,
+      "code": "QFKD",
+      "name": "\u5168\u5cf0\u5feb\u9012",
+      "reg_mail_no": "^[0-9]{12}$"
+    }
+  },
+  {
+    "pk": 1236,
+    "model": "logistics.logisticscompany",
+    "fields": {
+      "priority": 0,
+      "code": "SCKJ",
+      "name": "\u56db\u5ddd\u5feb\u6377",
+      "reg_mail_no": "^[0-9]{13}$"
+    }
+  },
+  {
+    "pk": 1237,
+    "model": "logistics.logisticscompany",
+    "fields": {
+      "priority": 0,
+      "code": "UNIPS",
+      "name": "\u53d1\u7f51",
+      "reg_mail_no": ""
+    }
+  },
+  {
+    "pk": 1259,
+    "model": "logistics.logisticscompany",
+    "fields": {
+      "priority": 0,
+      "code": "UAPEX",
+      "name": "\u5168\u4e00\u5feb\u9012",
+      "reg_mail_no": "^\\d{12}$"
+    }
+  },
+  {
+    "pk": 1,
+    "model": "logistics.logisticscompany",
+    "fields": {
+      "priority": 0,
+      "code": "POST",
+      "name": "\u4e2d\u56fd\u90ae\u653f\u5e73\u90ae",
+      "reg_mail_no": ""
+    }
+  },
+  {
+    "pk": 2,
+    "model": "logistics.logisticscompany",
+    "fields": {
+      "priority": 0,
+      "code": "EMS",
+      "name": "EMS",
+      "reg_mail_no": "^[A-Z]{2}[0-9]{9}[A-Z]{2}$"
+    }
+  },
+  {
+    "pk": 101,
+    "model": "logistics.logisticscompany",
+    "fields": {
+      "priority": 0,
+      "code": "YTO",
+      "name": "\u5706\u901a\u901f\u9012",
+      "reg_mail_no": "^(0|1|2|3|5|6|7|8|E|D|F|G|V|W|e|d|f|g|v|w)[0-9]{9}$"
+    }
+  },
+  {
+    "pk": 500,
+    "model": "logistics.logisticscompany",
+    "fields": {
+      "priority": 0,
+      "code": "ZTO",
+      "name": "\u4e2d\u901a\u901f\u9012",
+      "reg_mail_no": "^((618|680|688|618|828|988|118|888|571|518|010|628|205|880|717|718|728|738|761|762|763|701|757)[0-9]{9})$|^((2008|2010|8050|7518)[0-9]{8})$"
+    }
+  },
+  {
+    "pk": 1121,
+    "model": "logistics.logisticscompany",
+    "fields": {
+      "priority": 0,
+      "code": "HZABC",
+      "name": "\u676d\u5dde\u7231\u5f7c\u897f",
+      "reg_mail_no": "^[0-9]{10,11}$"
+    }
+  },
+  {
+    "pk": 103,
+    "model": "logistics.logisticscompany",
+    "fields": {
+      "priority": 0,
+      "code": "ZJS",
+      "name": "\u5b85\u6025\u9001",
+      "reg_mail_no": "^[a-zA-Z0-9]{10}$"
+    }
+  },
+  {
+    "pk": 102,
+    "model": "logistics.logisticscompany",
+    "fields": {
+      "priority": 0,
+      "code": "YUNDA",
+      "name": "\u97f5\u8fbe\u5feb\u8fd0",
+      "reg_mail_no": "^[\\s]*[0-9]{13}[\\s]*$"
+    }
+  },
+  {
+    "pk": 504,
+    "model": "logistics.logisticscompany",
+    "fields": {
+      "priority": 0,
+      "code": "TTKDEX",
+      "name": "\u6d77\u822a\u5929\u5929\u5feb\u9012",
+      "reg_mail_no": "^[0-9]{14}$"
+    }
+  },
+  {
+    "pk": 105,
+    "model": "logistics.logisticscompany",
+    "fields": {
+      "priority": 0,
+      "code": "BEST",
+      "name": "\u767e\u4e16\u7269\u6d41",
+      "reg_mail_no": "^[0-9]{10}$"
+    }
+  },
+  {
+    "pk": 106,
+    "model": "logistics.logisticscompany",
+    "fields": {
+      "priority": 0,
+      "code": "FEDEX",
+      "name": "\u8054\u90a6\u5feb\u9012",
+      "reg_mail_no": "^[0-9]{12}$"
+    }
+  },
+  {
+    "pk": 107,
+    "model": "logistics.logisticscompany",
+    "fields": {
+      "priority": 0,
+      "code": "DBL",
+      "name": "\u5fb7\u90a6\u7269\u6d41",
+      "reg_mail_no": "^[0-9]?[0-9]{7}$"
+    }
+  },
+  {
+    "pk": 108,
+    "model": "logistics.logisticscompany",
+    "fields": {
+      "priority": 0,
+      "code": "SHQ",
+      "name": "\u534e\u5f3a\u7269\u6d41",
+      "reg_mail_no": "^[A-Za-z0-9]*[0|2|4|6|8]$"
+    }
+  },
+  {
+    "pk": 1201,
+    "model": "logistics.logisticscompany",
+    "fields": {
+      "priority": 0,
+      "code": "WLB-STARS",
+      "name": "\u661f\u8fb0\u6025\u4fbf",
+      "reg_mail_no": "^TB[0-9]{12}$"
+    }
+  },
+  {
+    "pk": 502,
+    "model": "logistics.logisticscompany",
+    "fields": {
+      "priority": 0,
+      "code": "HTKY",
+      "name": "\u6c47\u901a\u5feb\u8fd0",
+      "reg_mail_no": "^(A|B|C|D|E|H|0)(D|X|[0-9])(A|[0-9])[0-9]{10}$|^(21|22|23|24|25|26|27|28|29|30|31|32|33|34|35|36|37|38|39)[0-9]{10}$"
+    }
+  },
+  {
+    "pk": 1016,
+    "model": "logistics.logisticscompany",
+    "fields": {
+      "priority": 0,
+      "code": "CRE",
+      "name": "\u4e2d\u94c1\u5feb\u8fd0",
+      "reg_mail_no": "^K[0-9]{13}$"
+    }
+  },
+  {
+    "pk": 1198,
+    "model": "logistics.logisticscompany",
+    "fields": {
+      "priority": 0,
+      "code": "WLB-ABC",
+      "name": "\u6d59\u6c5fABC",
+      "reg_mail_no": "^TB[0-9]{12}$"
+    }
+  },
+  {
+    "pk": 505,
+    "model": "logistics.logisticscompany",
+    "fields": {
+      "priority": 0,
+      "code": "SF",
+      "name": "\u987a\u4e30\u901f\u8fd0",
+      "reg_mail_no": "^[0-9]{12}$"
+    }
+  },
+  {
+    "pk": 507,
+    "model": "logistics.logisticscompany",
+    "fields": {
+      "priority": 0,
+      "code": "AIR",
+      "name": "\u4e9a\u98ce",
+      "reg_mail_no": ""
+    }
+  },
+  {
+    "pk": 511,
+    "model": "logistics.logisticscompany",
+    "fields": {
+      "priority": 0,
+      "code": "CYEXP",
+      "name": "\u957f\u5b87",
+      "reg_mail_no": ""
+    }
+  },
+  {
+    "pk": 512,
+    "model": "logistics.logisticscompany",
+    "fields": {
+      "priority": 0,
+      "code": "DTW",
+      "name": "\u5927\u7530",
+      "reg_mail_no": ""
+    }
+  },
+  {
+    "pk": 513,
+    "model": "logistics.logisticscompany",
+    "fields": {
+      "priority": 0,
+      "code": "YUD",
+      "name": "\u957f\u53d1",
+      "reg_mail_no": ""
+    }
+  },
+  {
+    "pk": 1008,
+    "model": "logistics.logisticscompany",
+    "fields": {
+      "priority": 0,
+      "code": "ANTO",
+      "name": "\u5b89\u5f97",
+      "reg_mail_no": ""
+    }
+  },
+  {
+    "pk": 501,
+    "model": "logistics.logisticscompany",
+    "fields": {
+      "priority": 0,
+      "code": "CCES",
+      "name": "CCES",
+      "reg_mail_no": "^(2|3|5|6|8|5|1)[0-9]{9}$"
+    }
+  },
+  {
+    "pk": 100,
+    "model": "logistics.logisticscompany",
+    "fields": {
+      "priority": 0,
+      "code": "STO",
+      "name": "\u7533\u901aE\u7269\u6d41",
+      "reg_mail_no": "^(268|888|588|688|368|468|568|668|768|868|968)[0-9]{9}$|^(268|888|588|688|368|468|568|668|768|868|968)[0-9]{10}$|^(STO)[0-9]{10}$"
+    }
+  },
+  {
+    "pk": 1140,
+    "model": "logistics.logisticscompany",
+    "fields": {
+      "priority": 0,
+      "code": "ZY",
+      "name": "\u4e2d\u8fdc",
+      "reg_mail_no": "^CO[A-Z]{2}[0-9]{10}$"
+    }
+  },
+  {
+    "pk": 1195,
+    "model": "logistics.logisticscompany",
+    "fields": {
+      "priority": 0,
+      "code": "LB",
+      "name": "\u9f99\u90a6\u7269\u6d41",
+      "reg_mail_no": "^[0-9]{12}$"
+    }
+  },
+  {
+    "pk": 1137,
+    "model": "logistics.logisticscompany",
+    "fields": {
+      "priority": 0,
+      "code": "DFH",
+      "name": "\u4e1c\u65b9\u6c47",
+      "reg_mail_no": "^[0-9]{10}$"
+    }
+  },
+  {
+    "pk": 1138,
+    "model": "logistics.logisticscompany",
+    "fields": {
+      "priority": 0,
+      "code": "SY",
+      "name": "\u9996\u4e1a",
+      "reg_mail_no": "^29[0-9]{8}$"
+    }
+  },
+  {
+    "pk": 1139,
+    "model": "logistics.logisticscompany",
+    "fields": {
+      "priority": 0,
+      "code": "YC",
+      "name": "\u8fdc\u957f",
+      "reg_mail_no": "^96[0-9]{12}$"
+    }
+  },
+  {
+    "pk": 1185,
+    "model": "logistics.logisticscompany",
+    "fields": {
+      "priority": 0,
+      "code": "YCT",
+      "name": "\u9ed1\u732b\u5b85\u6025\u4fbf",
+      "reg_mail_no": "^[0-9]{12}$"
+    }
+  },
+  {
+    "pk": 1186,
+    "model": "logistics.logisticscompany",
+    "fields": {
+      "priority": 0,
+      "code": "XB",
+      "name": "\u65b0\u90a6\u7269\u6d41",
+      "reg_mail_no": "[0-9]{8}"
+    }
+  },
+  {
+    "pk": 1192,
+    "model": "logistics.logisticscompany",
+    "fields": {
+      "priority": 0,
+      "code": "NEDA",
+      "name": "\u6e2f\u4e2d\u80fd\u8fbe",
+      "reg_mail_no": "^((88|)[0-9]{10})$|^((1|2|3|5|)[0-9]{9})$"
+    }
+  },
+  {
+    "pk": 1204,
+    "model": "logistics.logisticscompany",
+    "fields": {
+      "priority": 0,
+      "code": "FAST",
+      "name": "\u5feb\u6377\u901f\u9012",
+      "reg_mail_no": "^[0-9]{11,13}$"
+    }
+  },
+  {
+    "pk": 1207,
+    "model": "logistics.logisticscompany",
+    "fields": {
+      "priority": 0,
+      "code": "UC",
+      "name": "\u4f18\u901f\u7269\u6d41",
+      "reg_mail_no": "^VIP[0-9]{9}|V[0-9]{11}|[0-9]{12}$"
+    }
+  },
+  {
+    "pk": 1208,
+    "model": "logistics.logisticscompany",
+    "fields": {
+      "priority": 0,
+      "code": "QRT",
+      "name": "\u5168\u65e5\u901a\u5feb\u9012",
+      "reg_mail_no": "^[0-9]{12}$"
+    }
+  },
+  {
+    "pk": -1,
+    "model": "logistics.logisticscompany",
+    "fields": {
+      "priority": 0,
+      "code": "OTHER",
+      "name": "\u5176\u4ed6",
+      "reg_mail_no": ""
+    }
+  }
+]

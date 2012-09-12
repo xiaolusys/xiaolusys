@@ -1,13 +1,17 @@
 import hashlib
 import base64
-import urllib
-import urllib2
 import datetime
 import time
 import json
-import logging
+import urllib
+import urllib2
+import decimal
+import random
+import cStringIO
+import Image
+import ImageDraw
+import ImageFont
 
-logger = logging.getLogger('token.refresh')
 
 def getSignatureTaoBao(params,secret,both_side=True):
     key_pairs = None
@@ -56,7 +60,7 @@ def refresh_session(user,appkey,appsecret,refresh_url):
                 'client_secret':appsecret,
                 'grant_type':'refresh_token',
                 'refresh_token':top_parameters['refresh_token'],
-                'scope':'item,promotion,usergrade',
+                'scope':'item',
                 'state':'autolist',
                 'view':'web',
             }
@@ -135,3 +139,26 @@ def map_int2str(*t):
                 s = names[int(s)]
             ret.append(s)
         return tuple(ret)
+    
+    
+def gen_string_image(font_path,code_string):
+    """
+    gen string image
+    """
+
+    im     = Image.new ( "RGB", (75,24), "#ddd" )
+    draw   = ImageDraw.Draw(im)
+    sans16 = ImageFont.truetype(font_path,16)
+
+    for index,string in enumerate(code_string):
+        draw.text((10*(index+1),0), string, font=sans16,fill='red')
+
+    del draw
+
+    buf = cStringIO.StringIO()
+    im.save(buf, 'png')
+
+    return buf.getvalue()
+
+
+

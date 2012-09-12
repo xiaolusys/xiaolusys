@@ -1,15 +1,19 @@
+#-*- coding:utf8 -*-
 __author__ = 'meixqhi'
+import json
 from djangorestframework.views import ModelView
 from djangorestframework.response import ErrorResponse
 from djangorestframework import status
-from shopback.orders.models import Order,Trade,TradeExtraInfo
+from shopback.orders.models import Order,Trade
+from shopback.trades.models import MergeTrade
 from shopback.items.models import Item
 from shopback.users.models import User
-from shopapp.memorule.models import TradeRule,ProductRuleField
+from shopapp.memorule.models import TradeRule,ProductRuleField,RuleMemo
+from auth.utils import parse_datetime
 from auth import apis
 import logging
 
-logger = logging.getLogger('app.memorule')
+logger = logging.getLogger('memorule.handler')
 
 
 
@@ -24,31 +28,25 @@ def to_memo_string(memo):
     return "\r\n".join(s)
 
 
-def get_and_save_trade(seller_id,trade_id,session):
-    try:
-        trade = Trade.objects.get(pk=trade_id)
-    except Trade.DoesNotExist:
-        trade_dict = apis.taobao_trade_fullinfo_get(tid=trade_id,session=session)
-        trade_dict = trade_dict['trade_fullinfo_get_response']['trade']
-        trade = Trade.save_trade_through_dict(seller_id,trade_dict)
 
-    return trade
-
-
-def update_trade_memo(trade_id,trade_memo,session):
-    try:
-        trade_extra_info, created = TradeExtraInfo.objects.get_or_create(pk=trade_id)
-        trade_extra_info.seller_memo = str(trade_memo)
-        trade_info.save()
-    except Exception,exc:
-        return {"success": False, "message":"write memo to backend failed"}
+def update_trade_memo(trade_id,trade_memo,user_id):
     
     try:
-        ms = to_memo_string(trade_memo)
-
-        apis.taobao_trade_memo_update(tid=trade_id,memo=ms,session=session)
+        rule_memo, created = RuleMemo.objects.get_or_create(pk=trade_id)
+        rule_memo.rule_memo = json.dumps(trade_memo)
+        rule_memo.is_used   = False
+        rule_memo.save()
     except Exception,exc:
-        return {"success": True, "message":"write memo to frontend failed"}
+        return {"success": False, "message":"write memo to backend failed"}
+#将备注信息同步淘宝后台    
+#    try:
+#        ms = to_memo_string(trade_memo)
+#        response = apis.taobao_trade_memo_update(tid=trade_id,memo=ms,tb_user_id=user_id)
+#        trade_rep = response['trade_memo_update_response']['trade']
+#        if trade_rep:
+#            MergeTrade.objects.filter(tid=trade_rep['tid']).update(modified=parse_datetime(trade_rep['modified']))
+#    except:
+#        pass
         
     return {"success": True}
     
@@ -65,12 +63,11 @@ class UpdateTradeMemoView(ModelView):
 
         try:
             profile = User.objects.get(visitor_id=user_id)
-            session = profile.top_session
         except User.DoesNotExist:
             return {"success":False, "message":"no such seller id: "+user_id}
             #raise ErrorResponse("the seller id is not record!")
 
-        return update_trade_memo(trade_id,params,session)
+        return update_trade_memo(trade_id,params,user_id=profile.visitor_id)
     
 
     post = get
