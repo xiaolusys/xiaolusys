@@ -10,7 +10,7 @@ class OrderAdmin(admin.ModelAdmin):
     list_display_links = ('oid','trade','refund_id','status')
     #list_editable = ('update_time','task_type' ,'is_success','status')
 
-    #date_hierarchy = 'modified'
+    date_hierarchy = 'created'
     #ordering = ['created_at']
 
     list_filter = ('status','refund_status')
