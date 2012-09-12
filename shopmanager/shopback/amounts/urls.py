@@ -9,7 +9,7 @@ from shopback.orders.renderers import OrderNumPiovtChartHtmlRenderer
 
 urlpatterns = patterns('shopback.orders.views',
 
-    url('amount/update/(?P<dt_f>[^/]+)/(?P<dt_t>[^/]+)/$','update_finish_trade_amount',name='finish_trade_amount'),
+    url('update/(?P<dt_f>[^/]+)/(?P<dt_t>[^/]+)/$','update_finish_trade_amount',name='finish_trade_amount'),
 )
 
 

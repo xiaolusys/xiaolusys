@@ -37,3 +37,6 @@ class Category(models.Model):
                 logger.error('淘宝后台更新该类目(cat_id:%s)出错'%str(cat_id),exc_info=True)
 
         return category
+    
+    
+    
