@@ -173,7 +173,6 @@ class Trade(models.Model):
             for k,v in o.iteritems():
                 hasattr(order,k) and setattr(order,k,v)
             order.outer_id = o.get('outer_iid','')
-            order.item  = Item.get_or_create(user_id,o['num_iid'])
             order.year  = trade.year
             order.month = trade.month
             order.day   = trade.day
@@ -196,7 +195,6 @@ class Order(models.Model):
     cid    = models.BigIntegerField(null=True)
 
     trade = BigIntegerForeignKey(Trade,null=True,related_name='trade_orders')
-    item  = models.ForeignKey(Item,null=True,related_name='orders')
 
     num_iid  = models.CharField(max_length=64,blank=True)
     title =  models.CharField(max_length=128)

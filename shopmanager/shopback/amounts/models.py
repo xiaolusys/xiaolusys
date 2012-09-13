@@ -92,7 +92,6 @@ class TradeAmount(models.Model):
             for k,v in o.iteritems():
                 hasattr(order_amount,k) and setattr(order_amount,k,v)
 
-            order_amount.item = Item.get_or_create(user_id,o['num_iid'])
             order_amount.save()
 
         return trade_amount    
@@ -104,7 +103,6 @@ class OrderAmount(models.Model):
     
     oid                = models.BigIntegerField(primary_key=True)
     
-    item               = models.ForeignKey(Item,related_name='order_amounts') 
     num_iid            = models.BigIntegerField(null=True)
     trade_amount       = models.ForeignKey(TradeAmount,related_name='order_amounts')
     
