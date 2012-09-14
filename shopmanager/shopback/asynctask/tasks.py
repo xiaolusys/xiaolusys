@@ -231,12 +231,13 @@ tasks.register(AsyncCategoryTask)
 #================================ Async Order Task   ==================================
 class AsyncOrderTask(TaobaoAsyncBaseTask): 
     
-    def run(self,start_time,end_time,user_id,task_id,task_name,fetch_time=None,*args,**kwargs):
+    def run(self,start_time,end_time,user_id,task_id,task_name,delay_days=15,fetch_time=None,*args,**kwargs):
         if start_time>end_time:
             return 
-        dt = datetime.datetime.now()
+        #订单更新的期限不能小于指定天数
+        dt = datetime.datetime.now()-datetime.timedelta(delay_days,0,0)
         if dt.date() <= end_time.date():
-            end_time = dt - datetime.timedelta(1,0,0)
+            end_time = dt
             
         TaobaoAsyncTask.objects.filter(task_id=task_id).update(user_id=user_id,fetch_time=fetch_time)
         start_time = start_time.strftime("%Y%m%d")

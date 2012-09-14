@@ -80,7 +80,6 @@ def saveUserIncrementOrdersTask(user_id,update_from=None,update_to=None):
     cur_page = 1
     
     while has_next:
-       
         response_list = apis.taobao_trades_sold_increment_get(tb_user_id=user_id,page_no=cur_page,fields='tid,modified'
             ,page_size=settings.TAOBAO_PAGE_SIZE,use_has_next='true',start_modified=s_dt_f,end_modified=s_dt_t)
 
@@ -128,7 +127,7 @@ def updateAllUserIncrementOrdersTask(update_from=None,update_to=None):
             month = update_start.month
             day   = update_start.day
             
-            monitor_status = DayMonitorStatus.objects.get_or_create(user_id=user.visitor_id,year=year,month=month,day=day)
+            monitor_status,state = DayMonitorStatus.objects.get_or_create(user_id=user.visitor_id,year=year,month=month,day=day)
             try:
                 if not monitor_status.update_trade_increment:
                     saveUserIncrementOrdersTask(user.visitor_id,update_from=update_start,update_to=update_end)

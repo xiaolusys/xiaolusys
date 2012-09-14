@@ -10,9 +10,9 @@ from djangorestframework.views import ModelView
 from chartit import DataPool, Chart
 from chartit import PivotDataPool, PivotChart
 from auth import staff_requried,apis
-from auth.utils import parse_datetime,parse_date,format_time,map_int2str
+from auth.utils import parse_datetime,parse_date,format_time,map_int2str,format_datetime
 from shopback.items.models import Item,Product,ProductSku
-from shopback.orders.models import Order,Trade,ORDER_SUCCESS_STATUS,ORDER_FINISH_STATUS
+from shopback.orders.models import Order,Trade,ORDER_SUCCESS_STATUS,ORDER_FINISH_STATUS,REFUND_SUCCESS
 from shopback.orders.tasks import updateAllUserDuringOrdersTask
 
 
@@ -225,13 +225,14 @@ class ProductOrderView(ModelView):
    
    
 class RelatedOrderStateView(ModelView):
-    """ docstring for class ProductOrderView """
+    """ docstring for class RelatedOrderStateView """
     
     def get(self, request, *args, **kwargs):
         
         dt_f = kwargs.get('dt_f')
         dt_t = kwargs.get('dt_t')
         num_iid = kwargs.get('num_iid')
+        outer_sku_ids = request.REQUEST.get('sku_ids')
         limit  = request.REQUEST.get('limit',10) 
         
         try:
@@ -241,19 +242,85 @@ class RelatedOrderStateView(ModelView):
         else:
             outer_id = item.outer_id
         
+        if outer_sku_ids:
+            sku_ids = outer_sku_ids.split(',')
+            outer_sku_ids = ','.join([ "'%s'"%sku for sku in sku_ids])
+        
         cursor = connection.cursor()
-        cursor.execute(self.get_join_query_sql()%(outer_id,dt_f,dt_t,int(limit)))
+        cursor.execute(self.gen_query_sql(outer_id,outer_sku_ids,dt_f,dt_t,int(limit)))
         result = cursor.fetchall()
         
         return result
         
     
-    def get_join_query_sql(self):
-        return "select sob.outer_id,sob.pic_path,sob.title ,count(sob.outer_id) cnum from shop_orders_order soa "+\
-                "left join shop_orders_order sob on soa.buyer_nick=sob.buyer_nick where soa.outer_id='%s' "+\
-                " and sob.status not in ('TRADE_CLOSED_BY_TAOBAO','WAIT_BUYER_PAY','TRADE_CLOSED') "+\
-                " and sob.created >'%s' and sob.created<'%s' group by sob.outer_id order by cnum desc limit %d;"
+    def gen_query_sql(self,outer_id,outer_sku_ids,dt_f,dt_t,limit):
+        sql_list = []
+        sql_list.append("select sob.outer_id,sob.pic_path,sob.title ,count(sob.outer_id) cnum from shop_orders_order soa ")
+        sql_list.append("left join shop_orders_order sob on soa.buyer_nick=sob.buyer_nick where soa.outer_id='%s' "%outer_id)
+        if outer_sku_ids:
+            sql_list.append(" and soa.outer_sku_id in (%s)"%outer_sku_ids)
+            
+        sql_list.append(" and sob.status not in ('TRADE_CLOSED_BY_TAOBAO','WAIT_BUYER_PAY','TRADE_CLOSED') ")
+        sql_list.append(" and sob.created >'%s' and sob.created<'%s' group by sob.outer_id order by cnum desc limit %d;"%(dt_f,dt_t,limit))
+        return ''.join(sql_list)
+
+
+class RefundOrderView(ModelView):
+    """ docstring for class RefundOrderView """
+    
+    def get(self, request, *args, **kwargs):
         
+        dt_f = kwargs.get('dt_f')
+        dt_t = kwargs.get('dt_t')
+        
+        dt_f = parse_date(dt_f)
+        dt_t = parse_date(dt_t)+datetime.timedelta(1,0,0)
+
+        queryset = Order.objects.filter(created__gte=dt_f,created__lte=dt_t,refund_status=REFUND_SUCCESS)
+        total_refund_num = queryset.count()
+        
+        full_refunds_num = 0
+        part_refunds_num = 0
+        consign_full_refunds_num = 0
+        consign_part_refunds_num = 0
+        refund_orders = queryset.values_list('trade',flat=True).distinct('trade')
+        for trade in refund_orders:
+            trade  = Trade.objects.get(id=trade)
+            refunds = Order.objects.filter(trade=trade).exclude(refund_status=REFUND_SUCCESS)
+            if refunds.count()>0:
+                part_refunds_num += 1
+                if trade.consign_time:
+                    consign_part_refunds_num += 1
+            else:
+                full_refunds_num += 1
+                if trade.consign_time:
+                    consign_full_refunds_num += 1
+            
+            
+        cursor = connection.cursor()
+        cursor.execute(self.gen_refund_sql(format_datetime(dt_f),format_datetime(dt_t)))
+        result = cursor.fetchall()
+        
+        ret_dict = {
+                    'result':result,
+                    'total_refunds':total_refund_num,
+                    'full_refunds':full_refunds_num,
+                    'part_refunds':part_refunds_num,
+                    'consign_part_refunds':consign_part_refunds_num,
+                    'consign_full_refunds':consign_full_refunds_num,
+        }
+        
+        return ret_dict
+    
+    def gen_refund_sql(self,dt_f,dt_t):
+        sql_list = []
+        sql_list.append("select outer_id,outer_sku_id,pic_path,title,count(outer_sku_id) num from shop_orders_order ")
+        sql_list.append(" where created >='%s' and created<='%s' and consign_time is not NULL and refund_status='SUCCESS' "%(dt_f,dt_t))
+        sql_list.append('group by outer_id,outer_sku_id order by outer_id desc,num desc;')
+        return ' '.join(sql_list)
+        
+
+
 
 @staff_requried(login_url='/admin/login/')
 def update_interval_trade(request,dt_f,dt_t):

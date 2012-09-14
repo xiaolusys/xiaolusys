@@ -4,6 +4,7 @@ from auth.utils import parse_datetime
 from django.db import models
 from shopback.base.fields import BigIntegerAutoField,BigIntegerForeignKey
 from shopback.users.models import User
+from django.db.models import Sum
 from shopback.orders.models import Trade,REFUND_APPROVAL_STATUS,REFUND_WAIT_SELLER_AGREE
 from shopback.items.models import Item,Product,ProductSku
 from shopback.logistics.models import Logistics,LogisticsCompany
@@ -204,6 +205,8 @@ class MergeTrade(models.Model):
     
     @classmethod
     def judge_new_refund(cls,trade_id,trade_from):
+        #更新订单实际商品和退款商品数量，返回退款状态
+        has_refund = False
         has_new_refund = False
         new_full_refund = False
         merge_trades = cls.objects.get(tid=trade_id)
@@ -213,20 +216,26 @@ class MergeTrade(models.Model):
             trade   = Trade.objects.get(id=trade_id)
             refund_orders_num = trade.trade_orders.exclude(refund_status='').count()
             total_orders_num  = trade.trade_orders.count()
+            quality   = trade.trade_orders.exclude(refund_status__in=REFUND_APPROVAL_STATUS)\
+                .aggregate(real_nums=Sum('num'))['real_nums']
         else:            
             purchase_trade = PurchaseOrder.objects.get(id=trade_id)
             refund_orders_num = purchase_trade.sub_purchase_orders.filter(status__in=('TRADE_REFUNDED','TRADE_REFUNDING')).count()
             total_orders_num  = purchase_trade.sub_purchase_orders.count()
+            quality   = purchase_trade.sub_purchase_orders.filter(status="WAIT_SELLER_SEND_GOODS")\
+                .aggregate(real_nums=Sum('num'))['real_nums']
             
         if merge_trades.refund_num < refund_orders_num and refund_orders_num == total_orders_num:
-            cls.objects.filter(tid=trade_id).update(refund_num=refund_orders_num)
+            cls.objects.filter(tid=trade_id).update(total_num=quality,refund_num=refund_orders_num)
             new_full_refund = True
             has_new_refund = True
         elif merge_trades.refund_num < refund_orders_num:
-            cls.objects.filter(tid=trade_id).update(refund_num=refund_orders_num)
+            cls.objects.filter(tid=trade_id).update(total_num=quality,refund_num=refund_orders_num)
             has_new_refund = True    
+        else:
+            cls.objects.filter(tid=trade_id).update(total_num=quality)
         
-        return has_new_refund,new_full_refund
+        return refund_orders_num>0,has_new_refund,new_full_refund
     
     @classmethod
     def judge_rule_match(cls,trade_id,trade_from):
@@ -260,10 +269,10 @@ def set_storage_trade_sys_status(merge_trade,trade,trade_from,is_first_save):
     buyer_message = trade.buyer_message if hasattr(trade,'buyer_message') else trade.supplier_memo
     
     has_new_memo = merge_trade.seller_memo != seller_memo or merge_trade.buyer_message != buyer_message
-    has_new_refund,full_new_refund = MergeTrade.judge_new_refund(trade.id, trade_from) #新退款，新的全退款
+    has_refund,has_new_refund,full_new_refund = MergeTrade.judge_new_refund(trade.id, trade_from) #新退款，新的全退款
 
-    merge_trade.has_memo = has_new_memo
-    merge_trade.has_refund = has_new_refund
+    merge_trade.has_memo = seller_memo or buyer_message
+    merge_trade.has_refund = has_refund
     if trade.status == WAIT_SELLER_SEND_GOODS:
         #初次入库 
         if is_first_save: 
@@ -368,18 +377,18 @@ def set_storage_trade_sys_status(merge_trade,trade,trade_from,is_first_save):
                         merge_buyer_trade_signal.send(sender=Trade,sub_tid=trade.id,main_tid=merge_buyer_trade.main_tid)
                             
             elif  merge_trade.sys_status == REGULAR_REMAIN_STATUS: 
-                #全退款
-                if full_new_refund:
+                #有退款
+                if has_new_refund:
                     merge_trade.sys_status = AUDITFAIL_STATUS
                     merge_trade.reverse_audit_reason += '定时提醒订单全退款'.decode('utf8')
                     
             elif  merge_trade.sys_status in (WAIT_PREPARE_SEND_STATUS,WAIT_CHECK_BARCODE_STATUS,
                                         WAIT_SCAN_WEIGHT_STATUS,WAIT_CONFIRM_SEND_STATUS,SYSTEM_SEND_TAOBAO_STATUS,AUDITFAIL_STATUS):      
-                
+
                 merge_trade.sys_status = AUDITFAIL_STATUS
                 merge_trade.reverse_audit_reason += ('订单全退款'.decode('utf8') if full_new_refund else '订单部分退款'.decode('utf8'))\
                         if has_new_refund else '子订单更新'.decode('utf8')   
-           
+                
             rule_signal.send(sender='trade_rule',trade_id=trade.id)             
     #如果淘宝订单状态已改变，而系统内部状态非最终状态，则将订单作废        
     elif merge_trade.sys_status:
@@ -452,7 +461,6 @@ def save_orders_trade_to_mergetrade(sender, trade, *args, **kwargs):
         day   = merge_trade.day,
         week  = merge_trade.week,
         has_refund = merge_trade.has_refund,
-        total_num = merge_trade.total_num,
         has_memo = merge_trade.has_memo,
         out_goods = merge_trade.out_goods,
         sys_status = merge_trade.sys_status,
