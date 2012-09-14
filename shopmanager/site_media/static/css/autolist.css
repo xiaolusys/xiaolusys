@@ -1,33 +1,3 @@
-
-
-
-
-table {
-	border: 1px solid #8CACBB;
-	border-collapse:collapse;
-	border-spacing:0px;
-	font-size:12px;
-}
-
-table th {
-	border: 1px solid #8CACBB;
-	padding:4px;
-	background-color:#DEE7CE;
-
-}
-table td {
-	border: 1px solid #8CACBB;
-	padding:4px;
-}
-table .title {
-    width: 100px;
-}
-
-table p {
-    margin: 0px;
-    padding: 0px;
-}
-
 #id-timeslots {
     font-size: 12px;
     width:128px;

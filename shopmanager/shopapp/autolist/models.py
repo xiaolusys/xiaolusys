@@ -3,14 +3,18 @@ from shopback.base.models import UNEXECUTE
 
 
 
+class TimeSlots(models.Model):
+    timeslot = models.IntegerField(primary_key=True)
+
+    def hour(self):
+        return timeslot / 100
+
+    def minute(self):
+        return timeslot % 100
+
+
 class ItemListTask(models.Model):
     num_iid = models.CharField(primary_key=True,max_length=64)
-
-    user_id = models.CharField(max_length=32)
-    nick = models.CharField(max_length=32)
-
-    title = models.CharField(max_length=128)
-    num = models.IntegerField()
 
     list_weekday = models.IntegerField()
     list_time = models.CharField(max_length=8)

@@ -14,8 +14,8 @@ from django.contrib.auth.decorators import login_required
 from shopback.base.views import ListModelView
 from shopback.base.models import UNEXECUTE
 from shopback.categorys.models import Category
-from shopback.items.models import Item,ONSALE_STATUS,INSTOCK_STATUS
-from shopapp.autolist.models import Logs,ItemListTask
+from shopback.items.models import Item,Product,ONSALE_STATUS,INSTOCK_STATUS
+from shopapp.autolist.models import Logs,ItemListTask,TimeSlots
 from auth import apis
 
 
@@ -27,7 +27,7 @@ def pull_from_taobao(request):
     profile = request.user.get_profile()
     session = request.session
 
-    onsaleItems = apis.taobao_items_onsale_get(session=profile.top_session,page_no=1,page_size=200)
+    onsaleItems = apis.taobao_items_onsale_get(page_no=1,page_size=200,tb_user_id=profile.visitor_id)
     if onsaleItems['items_onsale_get_response']['total_results'] <= 0:
         return  HttpResponseRedirect('itemlist/')
 
@@ -35,50 +35,48 @@ def pull_from_taobao(request):
 
     session['update_items_datetime'] = datetime.datetime.now()
 
-    user_id = profile.visitor_id
-
-    currItems = Item.objects.filter(user_id=user_id)
+    currItems = profile.items.all()
 
     itemstat = {}
     for item in currItems:
         itemstat[item.num_iid] = {'onsale':0, 'item':item}
 
+    fields = ['outer_id','num','seller_cids','type','valid_thru','price','postage_id','has_showcase','has_discount','props','title','pic_url']
     for item in items:
-        detail = apis.taobao_item_get(session=session['top_session'],num_iid=item['num_iid'])
-        detail_item = detail['item_get_response']['item']
-
-        cats = apis.taobao_itemcats_get(session=session['top_session'],cids=item['cid'])
-        cats_detail = cats['itemcats_get_response']['item_cats']['item_cat']
-
         o = None
         num_iid = str(item['num_iid'])
         if num_iid in itemstat:
             o = itemstat[num_iid]['item']
-            itemstat[o.num_iid]['onsale'] = 1
+            itemstat[num_iid]['onsale'] = 1
         else:
             o = Item()
             o.num_iid = num_iid
 
-        o.approve_status = INSTOCK_STATUS
-        o.user_id = user_id
-        o.detail_url = detail_item['detail_url']
+        for field in fields:
+            setattr(o,field,item[field])
 
-        o.title = item['title']
-        o.category_id   = item['cid']
-        o.category_name = cats_detail[0]['name']
+        o.approve_status = ONSALE_STATUS
+        o.modified = datetime.datetime.strptime(item['modified'],'%Y-%m-%d %H:%M:%S')
+        o.list_time = datetime.datetime.strptime(item['list_time'],'%Y-%m-%d %H:%M:%S')
+        o.delist_time = datetime.datetime.strptime(item['delist_time'],'%Y-%m-%d %H:%M:%S')
 
-        o.outer_id  = item['outer_id']
+        o.user = profile
+        o.category = Category.objects.get(cid=item['cid'])
+        product = Product()
+        product.outer_id=item['outer_id']
+        product.name=item['title']
+        product.category=o.category
+        product.price=str(item['price'])
+        o.product = product
 
-        o.list_time = item['list_time']
-        o.modified  = item['modified']
-        o.pic_url   = item['pic_url']
-        o.num       = item['num']
+
         o.save()
 
     for item in currItems:
         sale_status = itemstat[item.num_iid]['onsale']
-        item.approve_status = ONSALE_STATUS if sale_status == 1 else INSTOCK_STATUS
-        item.save()
+        if sale_status == 0:
+            item.approve_status = INSTOCK_STATUS
+            item.save()
 
     return HttpResponseRedirect(reverse('list_all_items'))
 
@@ -87,7 +85,7 @@ def pull_from_taobao(request):
 
 def list_all_items(request):
     user = request.user.get_profile()
-    items = user.items.all().order_by('category', 'outer_id')
+    items = user.items.all().order_by('list_time')
 
     from auth.utils import get_closest_time_slot
 
@@ -110,10 +108,7 @@ def list_all_items(request):
             x.scheduled_hm = None
             x.status = 'unscheduled'
 
-
     return render_to_response("itemtable.html", {'page':'itemlist', 'items':items}, RequestContext(request))
-
-
 
 
 def show_timetable_cats(request):
@@ -148,30 +143,48 @@ def show_timetable_cats(request):
                                RequestContext(request))
 
 
+def show_weektable(request, weekday):
+    user_profile = request.user.get_profile()
+    items = Item.objects.filter(user=user_profile,approve_status=ONSALE_STATUS).order_by('category', 'outer_id')
+    timeslots = [int(o.timeslot) for o in TimeSlots.objects.all()]
+    print timeslots
+    cats = {}
+    total = 0
+    for item in items:
+        if item.list_time.isoweekday() == int(weekday):
+            timeslot = item.list_time.hour * 100 + item.list_time.minute
+            print timeslot
+            idx = 0
+            for i in range(0,len(timeslots)):
+                if timeslot < timeslots[i]:
+                    idx = i
+                    break
+            mapslot = timeslots[idx]
+            cat = item.category
+            if not cat in cats:
+                cats[cat] = {}
+                for slot in timeslots:
+                    cats[cat][slot] = []
+
+            cats[cat][mapslot].append(item)
+            total += 1
+
+    return render_to_response("weektable.html",
+        {'cats':cats, 'timeslots': timeslots, 'weekday': weekday, 'total': total},
+        RequestContext(request))
 
 
 def show_time_table_summary(request):
-    from auth.utils import get_closest_time_slot, get_all_time_slots
+    user_profile = request.user.get_profile()
+    items = Item.objects.filter(user=user_profile,approve_status=ONSALE_STATUS).order_by('category', 'outer_id')
 
-    user_id = request.session['top_parameters']['taobao_user_id']
-    weekday = request.GET.get('weekday', None)
-    items   = Item.objects.filter(user=user_id,approve_status=ONSALE_STATUS).order_by('cid', 'outer_id')
     weekstat = [0,0,0,0,0,0,0]
     data = {}
-    for item in items:
-        relist_time, status = get_closest_time_slot(item.list_time)
 
-        item.slot = relist_time.strftime("%H:%M")
+    for item in items:
         idx = item.list_time.isoweekday() - 1
 
-        try:
-            o = ItemListTask.objects.get(num_iid=item.num_iid)
-            item.slot = o.list_time
-            idx = o.list_weekday - 1
-        except ItemListTask.DoesNotExist:
-            pass
-
-        cat = item.category_name
+        cat = item.category
         if not cat in data:
             data[cat] = [[],[],[],[],[],[],[]]
 
@@ -183,28 +196,10 @@ def show_time_table_summary(request):
         t = 0
         for x in v:
             t += len(x)
-        cats.append({'cat':k, 'total':t})
+        cats.append({'cat':k,  'items':v, 'total':t})
     cats.sort(lambda a,b: cmp(b['total'], a['total']))
 
-    for c in cats:
-        key = c['cat']
-        if weekday:
-            c['items'] = data[key][int(weekday)-1]
-        else:
-            c['items'] = data[key]
-
-
-    slots = get_all_time_slots()
-    timekeys = slots.keys()
-    timekeys.sort()
-
-    if weekday:
-        return  render_to_response("weektable.html",
-                {'page':'weektable', 'cats':cats, 'timeslots': timekeys, 'weekday': int(weekday),
-                'total': weekstat[int(weekday)-1]}, RequestContext(request))
-
-    return render_to_response("tablesummary.html", {'page':'timetable', 'cats':cats, 'weekstat':weekstat},
-                              RequestContext(request))
+    return render_to_response("tablesummary.html", {'cats':cats, 'weekstat':weekstat}, RequestContext(request))
 
 
 
@@ -261,20 +256,16 @@ def show_logs(request):
 
 
 def change_list_time(request):
-    num_iid = request.GET.get('num_iid')
-    weekday = int(request.GET.get('weekday'))
-    timeslot = request.GET.get('timeslot')
+    num_iid = request.POST.get('num_iid')
+    weekday = int(request.POST.get('list_weekday'))
+    delist_time = request.POST.get('list_time')
 
     try:
         o = ItemListTask.objects.get(num_iid=num_iid)
     except ItemListTask.DoesNotExist:
         o = ItemListTask()
 
-    from auth.utils import get_all_time_slots
-    timekeys = get_all_time_slots().keys()
-    timekeys.sort()
-
-    tokens = timekeys[int(timeslot)-1].split(':')
+    tokens = delist_time.split(':')
     hour = int(tokens[0])
     minute = int(tokens[1])
 
@@ -286,10 +277,13 @@ def change_list_time(request):
     if target_time < now:
         target_time = target_time + datetime.timedelta(days=7)
 
-    n = Item.objects.filter(num_iid=num_iid).update(list_time=target_time)
+    o.num_iid = num_iid
+    o.list_weekday = target_time.isoweekday()
+    o.list_time = delist_time
+    o.save()
 
-    return HttpResponse(json.dumps({'date':target_time.strftime("%Y-%m-%d"),
-                                    'timeslot':target_time.strftime("%H:%M-%S")}),mimetype='application/json')
+    return HttpResponse(json.dumps({'list_weekday':target_time.strftime("%Y-%m-%d"),
+                                    'list_time':target_time.strftime("%H:%M")}),mimetype='application/json')
 
 
 ################################ List View ##############################

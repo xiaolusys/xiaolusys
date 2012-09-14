@@ -68,7 +68,7 @@ class Product(models.Model):
         db_table = 'shop_items_product'
 
     def __unicode__(self):
-        return self.outer_id+'---'+self.name
+        return self.outer_id
 
 
 
