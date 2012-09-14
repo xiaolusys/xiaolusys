@@ -125,7 +125,7 @@ def saveUserIncrementPurchaseOrderTask(user_id,update_from=None,update_to=None):
             orders_list = response_list['fenxiao_orders_get_response']
             if orders_list['total_results']>0:
                 for o in orders_list['purchase_orders']['purchase_order']:
-    
+                    
                     order,state = PurchaseOrder.objects.get_or_create(pk=o['fenxiao_id'])
                     order.save_order_through_dict(user_id,o)
     
@@ -144,7 +144,6 @@ def updateAllUserIncrementPurchaseOrderTask(update_from=None,update_to=None):
     update_handler = update_from and update_to
     dt   = datetime.datetime.now()
     
-    interval_date = update_to - update_from
     if update_handler:
         time_delta = update_to - update_from
         update_days  = time_delta.days+1
@@ -155,7 +154,7 @@ def updateAllUserIncrementPurchaseOrderTask(update_from=None,update_to=None):
     users = User.objects.all()
     
     for user in users:
-        for i in xrange(0,interval_date.days):
+        for i in xrange(0,update_days):
             update_start = update_to - datetime.timedelta(i+1,0,0)
             update_end   = update_to - datetime.timedelta(i,0,0)
             

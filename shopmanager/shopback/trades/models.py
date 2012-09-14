@@ -5,7 +5,7 @@ from django.db import models
 from shopback.base.fields import BigIntegerAutoField,BigIntegerForeignKey
 from shopback.users.models import User
 from django.db.models import Sum
-from shopback.orders.models import Trade,REFUND_APPROVAL_STATUS,REFUND_WAIT_SELLER_AGREE
+from shopback.orders.models import Trade,REFUND_APPROVAL_STATUS,REFUND_WAIT_SELLER_AGREE,NO_REFUND
 from shopback.items.models import Item,Product,ProductSku
 from shopback.logistics.models import Logistics,LogisticsCompany
 from shopback.fenxiao.models import PurchaseOrder,SubPurchaseOrder
@@ -214,7 +214,7 @@ class MergeTrade(models.Model):
         refund_orders_num = 0
         if trade_from == TAOBAO_TYPE:    
             trade   = Trade.objects.get(id=trade_id)
-            refund_orders_num = trade.trade_orders.exclude(refund_status='').count()
+            refund_orders_num = trade.trade_orders.exclude(refund_status=NO_REFUND).count()
             total_orders_num  = trade.trade_orders.count()
             quality   = trade.trade_orders.exclude(refund_status__in=REFUND_APPROVAL_STATUS)\
                 .aggregate(real_nums=Sum('num'))['real_nums']
@@ -427,7 +427,7 @@ def save_orders_trade_to_mergetrade(sender, trade, *args, **kwargs):
     MergeTrade.objects.filter(tid=trade.id).update(
         user = trade.user,
         seller_id = trade.seller_id,
-        seller_nick = merge_trade.seller_nick,
+        seller_nick = trade.seller_nick,
         buyer_nick = trade.buyer_nick,
         type = trade.type,
         shipping_type = trade.shipping_type,

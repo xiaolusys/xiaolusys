@@ -70,7 +70,7 @@ def syncConfirmDeliveryTradeTask():
        
 @task()
 def regularRemainOrderTask():
-    
+    #更新定时提醒订单
     dt = datetime.datetime.now()
     dt = datetime.datetime(dt.year,dt.month,dt.day,0,0,0)
     MergeTrade.objects.filter(sys_status=REGULAR_REMAIN_STATUS,remind_time__lte=dt).update(sys_status=AUDITFAIL_STATUS)

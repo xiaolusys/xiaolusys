@@ -22,8 +22,8 @@ admin.site.register(Order, OrderAdmin)
 
 
 class TradeAdmin(admin.ModelAdmin):
-    list_display = ('id','seller_nick','buyer_nick','type','payment','discount_fee','adjust_fee','post_fee','buyer_obtain_point_fee','seller_id',
-                    'point_fee','real_point_fee','total_fee','commission_fee','consign_time','pay_time','end_time','modified','shipping_type',
+    list_display = ('id','seller_nick','buyer_nick','type','payment','seller_id',
+                    'consign_time','pay_time','end_time','modified','shipping_type',
                     'buyer_alipay_no','receiver_name','receiver_mobile','receiver_phone','status')
     list_display_links = ('id','buyer_nick','payment','status')
     #list_editable = ('update_time','task_type' ,'is_success','status')

@@ -39,4 +39,9 @@ class Category(models.Model):
         return category
     
     
+class ProductCategory(models.Model):
     
+    cid        = models.IntegerField(primary_key=True)
+    
+    class Meta:
+        db_table = 'shop_categorys_productcategory'    
