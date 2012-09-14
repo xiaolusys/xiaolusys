@@ -81,8 +81,8 @@ def home(request):
 #        print t
 #        trade_info = apis.taobao_trade_amount_get(tid=t['tid'],session=profile.top_session)
 #        print trade_info
-    return HttpResponse('ok')
-    #return HttpResponseRedirect('/app/autolist/')
+#    return HttpResponse('ok')
+    return HttpResponseRedirect('/app/autolist/')
 
 
 def test_api(request):

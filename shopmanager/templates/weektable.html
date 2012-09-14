@@ -1,5 +1,8 @@
 {% extends "base.html" %}
 
+{% block style %}
+<link href="{{ STATIC_URL }}css/autolist.css" rel="stylesheet/less" type="text/css" />
+{% endblock %}
 
 {% block title %}
   {% if weekday == 7 %}
@@ -9,38 +12,56 @@
   {% endif %}
 {% endblock %}
 
-{% block content %}
-  <table>
-  {% if weekday == 7 %}
-  <tr><th colspan="12">周日 ({{ total }}件宝贝)</th></tr>
-  {% else %}
-  <tr><th colspan="12">周{{ weekday }} ({{ total }}件宝贝)</th></tr>
-  {% endif %}
+{% block navbar %}<div style="margin-top:30px"></div>{% endblock %}
 
-  <tr>
-      <th>序号</th><th>商品类别</th>
-      {% for slot in timeslots %}
-      <th>{{ slot }}</th>
-      {% endfor %}
-  </tr>
-  {% for c in cats %}
-  <tr>
-      {% if c.items|length > 0%}
-      <td>{{ forloop.counter }}</td><td>{{ c.cat }}</td>
-      {% for slot in timeslots %}
-      <td>
-      {% for item in c.items %}
-      {% if item.slot == slot %}
-      <a id="{{ item.num_iid }}" title="{{ item.title }}" num="{{ item.num }}" class="wrap-image">
-          <span class="time-select"><img src={{ item.pic_url }} class="profile-image"></span>
-      </a>
-      {% endif %}
-      {% endfor %}
-      </td>
-      {% endfor %}
-      {% endif %}
-  </tr>
-  {% endfor %}
-  </table>
+{% block container %}
+<div class="tabbable">
+    <ul class="nav nav-tabs">
+        <li class="active"><a href="#">当前时间</a></li>
+        <li><a href="#">计划时间</a></li>
+    </ul>
+
+    <div class="tab-content">
+        <div class="tab-pane active" id="1">
+            <table class="table table-bordered table-striped table-condensed">
+                {% if weekday == 7 %}
+                <tr>
+                    <th colspan="12">周日 ({{ total }}件宝贝)</th>
+                </tr>
+                {% else %}
+                <tr>
+                    <th colspan="12">周{{ weekday }} ({{ total }}件宝贝)</th>
+                </tr>
+                {% endif %}
+
+                <tr>
+                    <th>序号</th>
+                    <th>商品类别</th>
+                    {% for slot in timeslots %}
+                    <th>{{ slot }}</th>
+                    {% endfor %}
+                </tr>
+                {% for k,v in cats.iteritems %}
+                <tr>
+                    <td>{{ forloop.counter }}</td>
+                    <td>{{ k.name }}</td>
+                    {% for x,y in v.iteritems %}
+                    <td>
+                        {% if y|length > 0 %}
+                        {% for item in y %}
+                        <a id="{{ item.num_iid }}" title="{{ item.title }}" num="{{ item.num }}" class="wrap-image">
+                            <span class="time-select"><img src="{{ item.pic_url }}_60x60.jpg"></span>
+                        </a>
+                        {% endfor %}
+                        {% endif %}
+                    </td>
+                    {% endfor %}
+                </tr>
+                {% endfor %}
+            </table>
+        </div>
+        <div class="tab-pane" id="2"></div>
+    </div>
+</div>
 {% endblock %}
 

@@ -2,27 +2,34 @@
 
 {% block style %}
 <link href="{{ STATIC_URL }}css/autolist.css" rel="stylesheet/less" type="text/css" />
+<link href="{{ STATIC_URL }}css/dialog.css" rel="stylesheet/less" type="text/css" />
 {% endblock %}
     
 {% block title%} 商品列表 {% endblock %}
+
+{% block navbar %}<div style="margin-top:30px"></div>{% endblock %}
+
 {% block container %}
 <div class='list_top'>
 
-<div>
-<button type=button onclick="window.open('/autolist/timetable/','_blank');return false;">上架时间表</button><button type=button onclick="window.open('/autolist/logs/','_blank');return false;">操作记录</button>
+<div style="margin:5px; float:right">
+    <button class="btn btn-info" type=button onclick="window.open('/app/autolist/timetable/','_blank');return false;">上架时间表</button>
+    <button class="btn btn-info" type=button onclick="window.open('/app/autolist/logs/','_blank');return false;">操作记录</button>
 </div>
 
+<div id="id-csrftoken">{% csrf_token %}</div>
+
 <div>
-<table>
+<table class="table table-bordered table-striped table-condensed">
   <tr>
-    <th>序号</th><th>商品类别</th><th>商品编码</th><th>内部名称</th><th>出售标题</th>
-      <th>上架星期</th><th>淘宝上架</th><th>推荐上架</th><th>设定上架</th><th>库存</th>
+    <th>序号</th><th>商品类别</th><th>商品编码</th><th width="13%">出售标题</th>
+      <th>上架星期</th><th>淘宝上架</th><th>推荐上架</th><th width="8%">设定上架</th><th>库存</th>
       <th>商品图片</th><th>同步状态</th><th>出售状态</th>
   </tr>
   {% for item in items %}
   <tr id="{{ item.num_iid }}" title="{{ item.title }}" num="{{ item.num }}">
-      <td>{{ forloop.counter }}</td><td>{{ item.category_name }}</td><td>{{ item.ref_code }}</td><td></td>
-      <td class="title"><a href="{{ item.detail_url }}">{{ item.title }}</a></td>
+      <td>{{ forloop.counter }}</td><td>{{ item.category }}</td><td>{{ item.product }}</td>
+      <td class="title"><a href="http://detail.tmall.com/item.htm?id={{ item.num_iid }}">{{ item.title }}</a></td>
       {% if item.isoweekday == 7 %}
       <td>周 日</td>
       {% else %}
@@ -30,24 +37,19 @@
       {% endif %}
       <td><p>{{ item.list_day }}</p><p>{{ item.list_hm}}</p></td>
       <td><p>{{ item.relist_day }}</p><p>{{ item.relist_hm}}</p></td>
-      <td class="time-select">
-          {% if not item.scheduled_day %}
-          <p></p>
+      <td class="time-select"><a class="btn btn-small btn-danger" num_iid="{{ item.num_iid }}" img_src="{{ item.pic_url }}_60x60.jpg" style="display:none"><i class="icon-pencil"></i>修改时间</a><div id="id-scheduled-{{ item.num_iid }}">
+          {% if item.scheduled_day %}
+          {% if item.scheduled_day == 7 %}
+          <p>周 日</p>
           {% else %}
-              {% if item.scheduled_day == 7 %}
-              <p>周 日</p>
-              {% else %}
-              <p>周 {{ item.scheduled_day }}</p>
-              {% endif %}
+          <p>周 {{ item.scheduled_day }}</p>
           {% endif %}
-          {% if item.scheduled_hm %}
           <p>{{ item.scheduled_hm}}</p>
-          {% else %}
-          <p></p>
           {% endif %}
+          </div>
       </td>
       <td>{{ item.num }}</td>
-      <td><img src={{  item.pic_url }} class="profile-image"></td>
+      <td><img src="{{  item.pic_url }}_60x60.jpg"></td>
       {% if item.status == "execerror" %}
       <td style="background-color:red">{{ item.status }}</td>
       {% else %}  
@@ -55,14 +57,14 @@
           <td style="background-color:pink">{{ item.status }}</td>
           {% else %}  
               {% if item.status == "success" %}
-              <td style="background-color:grey">{{ item.status }}</td>
+              <td style="background-color:gray">{{ item.status }}</td>
               {% else %}
               <td>{{ item.status }}</td>
               {% endif %}
            {% endif %}
        {% endif %}
-      {% if item.onsale == 1 %}
-      <td>出售</td>
+      {% if item.approve_status == "onsale" %}
+      <td>出售中</td>
       {% else %}
       <td style="background-color:red">下架</td>
       {% endif %}
@@ -71,4 +73,10 @@
   </table>
 </div>
 </div>
+{% endblock %}
+
+{% block delayed_script %}
+  <script type="text/javascript">
+      new autolist.ItemList();
+  </script>
 {% endblock %}

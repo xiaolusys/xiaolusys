@@ -1,41 +1,63 @@
 {% extends "base.html" %}
 
-{% block title %} 上架时间统计 {% endblock %}
-{% block content %}
-  <table>
-  <tr>
-    <th>序号</th><th>商品类别</th>
-      <th class="timetable" day='1'><a href="?weekday=1" target="_blank">周一</a></th>
-      <th class="timetable" day='2'><a href="?weekday=2" target="_blank">周二</a></th>
-      <th class="timetable" day='3'><a href="?weekday=3" target="_blank">周三</a></th>
-      <th class="timetable" day='4'><a href="?weekday=4" target="_blank">周四</a></th>
-      <th class="timetable" day='5'><a href="?weekday=5" target="_blank">周五</a></th>
-      <th class="timetable" day='6'><a href="?weekday=6" target="_blank">周六</a></th>
-      <th class="timetable" day='7'><a href="?weekday=7" target="_blank">周日</a></th><th>总计</th>
-  </tr>
-  {% for c in cats %}
-  <tr>
-      <td>{{ forloop.counter }}</td>
-      <td><a href="/autolist/timetablecats/?catname={{ c.cat }}" target="_blank">{{ c.cat }}</a></td>
-      {% for item in c.items %}
-      {% if item|length > 0 %}
-      <td>{{ item|length }}</td>
-      {% else %}
-      <td></td>
-      {% endif %}
-      {% endfor %}
-      <td>{{ c.total }}</td>
-  </tr>
-  {% endfor %}
-  <tr>
-      <td></td><td>总计</td>
-      {% for w in weekstat %}
-      <td>{{ w }}</td>
-      {% endfor %}
-      <td></td>
-  </tr>
+{% block style %}
+<link href="{{ STATIC_URL }}css/autolist.css" rel="stylesheet/less" type="text/css" />
+{% endblock %}
 
-  </table>
+{% block title %} 上架时间统计 {% endblock %}
+
+{% block navbar %}<div style="margin-top:30px"></div>{% endblock %}
+
+{% block container %}
+<div class="tabbable">
+    <ul class="nav nav-tabs">
+        <li class="active"><a href="#">当前时间</a></li>
+        <li><a href="#">计划时间</a></li>
+    </ul>
+
+    <div class="tab-content">
+        <div class="tab-pane active" id="1">
+            <table class="table table-bordered table-striped table-condensed">
+                <tr>
+                    <th>序号</th>
+                    <th>商品类别</th>
+                    <th class="timetable" day='1'><a href="/app/autolist/weektable/1/" target="_blank">周一</a></th>
+                    <th class="timetable" day='2'><a href="/app/autolist/weektable/2/" target="_blank">周二</a></th>
+                    <th class="timetable" day='3'><a href="/app/autolist/weektable/3/" target="_blank">周三</a></th>
+                    <th class="timetable" day='4'><a href="/app/autolist/weektable/4/" target="_blank">周四</a></th>
+                    <th class="timetable" day='5'><a href="/app/autolist/weektable/5/" target="_blank">周五</a></th>
+                    <th class="timetable" day='6'><a href="/app/autolist/weektable/6/" target="_blank">周六</a></th>
+                    <th class="timetable" day='7'><a href="/app/autolist/weektable/7/" target="_blank">周日</a></th>
+                    <th>总计</th>
+                </tr>
+                {% for c in cats %}
+                <tr>
+                    <td>{{ forloop.counter }}</td>
+                    <td>{{ c.cat }}</td>
+                    {% for item in c.items %}
+                    {% if item|length > 0 %}
+                    <td>{{ item|length }}</td>
+                    {% else %}
+                    <td></td>
+                    {% endif %}
+                    {% endfor %}
+                    <td>{{ c.total }}</td>
+                </tr>
+                {% endfor %}
+                <tr>
+                    <td></td>
+                    <td>总计</td>
+                    {% for w in weekstat %}
+                    <td>{{ w }}</td>
+                    {% endfor %}
+                    <td></td>
+                </tr>
+
+            </table>
+        </div>
+        <div class="tab-pane" id="2"></div>
+    </div>
+</div>
 {% endblock %}
 
 {% block script %}
