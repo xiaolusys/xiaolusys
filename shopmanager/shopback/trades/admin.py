@@ -11,7 +11,7 @@ class MergeTradeAdmin(admin.ModelAdmin):
     list_display_links = ('tid','tid','seller_nick','receiver_name')
     #list_editable = ('update_time','task_type' ,'is_success','status')
 
-    date_hierarchy = 'modified'
+    date_hierarchy = 'created'
     #ordering = ['created_at']
 
     list_filter   = ('seller_nick','type','status','sys_status')

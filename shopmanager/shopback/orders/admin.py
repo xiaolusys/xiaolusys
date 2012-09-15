@@ -22,16 +22,16 @@ admin.site.register(Order, OrderAdmin)
 
 
 class TradeAdmin(admin.ModelAdmin):
-    list_display = ('id','seller_nick','buyer_nick','type','payment','seller_id',
+    list_display = ('id','seller_nick','buyer_nick','type','payment','seller_id','created',
                     'consign_time','pay_time','end_time','modified','shipping_type',
                     'buyer_alipay_no','receiver_name','receiver_mobile','receiver_phone','status')
     list_display_links = ('id','buyer_nick','payment','status')
     #list_editable = ('update_time','task_type' ,'is_success','status')
 
-    date_hierarchy = 'consign_time'
+    date_hierarchy = 'created'
     #ordering = ['created_at']
 
-    list_filter = ('type','status',)
+    list_filter = ('seller_nick','type','status',)
     search_fields = ['id','buyer_nick']
 
 

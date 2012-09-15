@@ -139,7 +139,7 @@ class Trade(models.Model):
     @classmethod
     def save_trade_through_dict(cls,user_id,trade_dict):
         
-        trade,state = Trade.objects.get_or_create(pk=trade_dict['tid'])
+        trade,state = cls.objects.get_or_create(pk=trade_dict['tid'])
         trade.user  = User.objects.get(visitor_id=user_id)
         trade.seller_id   = user_id
         for k,v in trade_dict.iteritems():
@@ -162,7 +162,7 @@ class Trade(models.Model):
         trade.consign_time = parse_datetime(trade_dict['consign_time']) \
                            if trade_dict.get('consign_time',None) else None
         trade.save()
-            
+
         for o in trade_dict['orders']['order']:
             order,state = Order.objects.get_or_create(pk=o['oid'])
             order.seller_nick = trade_dict['seller_nick']

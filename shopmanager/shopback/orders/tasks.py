@@ -19,12 +19,13 @@ import logging
 logger = logging.getLogger('orders.handler')
 BLANK_CHAR = ''
 
-
+TASK_SUCCESS = 'SUCCESS'
+TASK_FAIL = 'FAIL'
 
 
 @task(max_retry=3)
 def saveUserDuringOrdersTask(user_id,update_from=None,update_to=None,status=None):
-            
+         
     update_from = format_datetime(update_from) if update_from else None
     update_to   = format_datetime(update_to) if update_to else None
     
@@ -55,7 +56,6 @@ def saveUserDuringOrdersTask(user_id,update_from=None,update_to=None,status=None
 
 
 
-
 @task()
 def updateAllUserDuringOrdersTask(update_from=None,update_to=None,status=None):
 
@@ -72,7 +72,7 @@ def updateAllUserDuringOrdersTask(update_from=None,update_to=None,status=None):
 
 @task()
 def saveUserIncrementOrdersTask(user_id,update_from=None,update_to=None):
-
+    
     s_dt_f = format_datetime(update_from)
     s_dt_t = format_datetime(update_to)
 
@@ -82,7 +82,6 @@ def saveUserIncrementOrdersTask(user_id,update_from=None,update_to=None):
     while has_next:
         response_list = apis.taobao_trades_sold_increment_get(tb_user_id=user_id,page_no=cur_page,fields='tid,modified'
             ,page_size=settings.TAOBAO_PAGE_SIZE,use_has_next='true',start_modified=s_dt_f,end_modified=s_dt_t)
-
         trade_list = response_list['trades_sold_increment_get_response']
         if trade_list.has_key('trades'):
             for trade in trade_list['trades']['trade']:
