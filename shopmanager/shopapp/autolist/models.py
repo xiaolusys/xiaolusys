@@ -5,17 +5,28 @@ from shopback.base.models import UNEXECUTE
 
 class TimeSlots(models.Model):
     timeslot = models.IntegerField(primary_key=True)
-
+    
+    class Meta:
+        db_table = 'shop_autolist_timeslot'
+        ordering = ['timeslot']
+    
+    @property
     def hour(self):
-        return timeslot / 100
+        return self.timeslot / 100
 
+    @property
     def minute(self):
-        return timeslot % 100
+        return self.timeslot % 100
 
 
 class ItemListTask(models.Model):
     num_iid = models.CharField(primary_key=True,max_length=64)
-
+    user_id = models.CharField(max_length=32,blank=True)
+    
+    nick    = models.CharField(max_length=32,blank=True)
+    title   = models.CharField(max_length=128,blank=True)
+    num     = models.IntegerField()
+    
     list_weekday = models.IntegerField()
     list_time = models.CharField(max_length=8)
 
@@ -26,6 +37,14 @@ class ItemListTask(models.Model):
 
     class Meta:
         db_table = 'shop_autolist_itemlisttask'
+        
+    @property
+    def hour(self):
+        return int(self.list_time.split(':')[0])
+
+    @property
+    def minute(self):
+        return int(self.list_time.split(':')[1])
 
 
 

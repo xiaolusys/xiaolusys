@@ -62,14 +62,14 @@ def pull_from_taobao(request):
 
         o.user = profile
         o.category = Category.objects.get(cid=item['cid'])
-        product = Product()
-        product.outer_id=item['outer_id']
-        product.name=item['title']
-        product.category=o.category
-        product.price=str(item['price'])
+        product,state = Product.objects.get_or_create(outer_id=item['outer_id'])
+        if state:
+            product.name=item['title']
+            product.category=o.category
+            product.price=str(item['price'])
+            product.collect_num = item['num']
+            product.save()
         o.product = product
-
-
         o.save()
 
     for item in currItems:
@@ -85,7 +85,7 @@ def pull_from_taobao(request):
 
 def list_all_items(request):
     user = request.user.get_profile()
-    items = user.items.all().order_by('list_time')
+    items = user.items.filter(approve_status=ONSALE_STATUS).order_by('list_time')
 
     from auth.utils import get_closest_time_slot
 
@@ -107,8 +107,8 @@ def list_all_items(request):
             x.scheduled_day = None
             x.scheduled_hm = None
             x.status = 'unscheduled'
-
-    return render_to_response("itemtable.html", {'page':'itemlist', 'items':items}, RequestContext(request))
+            
+    return render_to_response("autolist/itemtable.html", {'page':'itemlist', 'items':items}, RequestContext(request))
 
 
 def show_timetable_cats(request):
@@ -139,7 +139,7 @@ def show_timetable_cats(request):
     timekeys = slots.keys()
     timekeys.sort()
 
-    return  render_to_response("catstable.html", {'timeslots': timekeys, 'data':data, 'catname':catname},
+    return  render_to_response("autolist/catstable.html", {'timeslots': timekeys, 'data':data, 'catname':catname},
                                RequestContext(request))
 
 
@@ -147,29 +147,49 @@ def show_weektable(request, weekday):
     user_profile = request.user.get_profile()
     items = Item.objects.filter(user=user_profile,approve_status=ONSALE_STATUS).order_by('category', 'outer_id')
     timeslots = [int(o.timeslot) for o in TimeSlots.objects.all()]
-    print timeslots
     cats = {}
     total = 0
-    for item in items:
-        if item.list_time.isoweekday() == int(weekday):
-            timeslot = item.list_time.hour * 100 + item.list_time.minute
-            print timeslot
-            idx = 0
-            for i in range(0,len(timeslots)):
-                if timeslot < timeslots[i]:
-                    idx = i
-                    break
-            mapslot = timeslots[idx]
-            cat = item.category
-            if not cat in cats:
-                cats[cat] = {}
-                for slot in timeslots:
-                    cats[cat][slot] = []
+    
+    print 'time slot:',timeslots
+    if timeslots:
+        for item in items:
+            try:
+                o = ItemListTask.objects.get(num_iid=item.num_iid)
+            except:
+                list_day = item.list_time.isoweekday()
+                list_hour = item.list_time.hour
+                list_minute = item.list_time.minute
+            else:   
+                list_day = o.list_weekday
+                list_hour = o.hour
+                list_minute = o.minute
+                print 'task',item.num_iid,item.title,list_day,list_hour,list_minute
+                
+            if list_day == int(weekday):
+                timeslot = list_hour * 100 + list_minute
+                
+                idx = 0
+                for i in range(0,len(timeslots)):
+                    if timeslot <= timeslots[i]:
+                        idx = i
+                        break
+                mapslot = timeslots[idx]
+                print timeslot,mapslot,i
+                cat = item.category
+                if not cat in cats:
+                    cats[cat] = {}
+                    for slot in timeslots:
+                        cats[cat][slot] = []
+    
+                cats[cat][mapslot].append(item)
+                total += 1
 
-            cats[cat][mapslot].append(item)
-            total += 1
-
-    return render_to_response("weektable.html",
+    for cat,slotitems in cats.items():
+        temp_items = slotitems.items()
+        temp_items.sort(lambda a,b: cmp(a[0], b[0]))
+        cats[cat]= [ i[1] for i in temp_items]
+          
+    return render_to_response("autolist/weektable.html",
         {'cats':cats, 'timeslots': timeslots, 'weekday': weekday, 'total': total},
         RequestContext(request))
 
@@ -182,7 +202,12 @@ def show_time_table_summary(request):
     data = {}
 
     for item in items:
-        idx = item.list_time.isoweekday() - 1
+        try:
+            o = ItemListTask.objects.get(num_iid=item.num_iid)
+        except:
+            idx = item.list_time.isoweekday() - 1
+        else:   
+            idx = o.list_weekday - 1
 
         cat = item.category
         if not cat in data:
@@ -199,7 +224,7 @@ def show_time_table_summary(request):
         cats.append({'cat':k,  'items':v, 'total':t})
     cats.sort(lambda a,b: cmp(b['total'], a['total']))
 
-    return render_to_response("tablesummary.html", {'cats':cats, 'weekstat':weekstat}, RequestContext(request))
+    return render_to_response("autolist/tablesummary.html", {'cats':cats, 'weekstat':weekstat}, RequestContext(request))
 
 
 
@@ -246,11 +271,15 @@ def show_time_table(request):
                               RequestContext(request))
 
 
+def get_timeslots_json(request):
 
+    time_slots = TimeSlots.objects.all()
+    slot_list = [ '%d:%d'%(s.hour,s.minute) for s in time_slots]
+    return HttpResponse(json.dumps(slot_list),mimetype='application/json')
 
 def show_logs(request):
     logs = Logs.objects.all().order_by('execute_time')
-    return render_to_response("logs.html", {'logs':logs}, RequestContext(request))
+    return render_to_response("autolist/logs.html", {'logs':logs}, RequestContext(request))
 
 
 
@@ -259,6 +288,9 @@ def change_list_time(request):
     num_iid = request.POST.get('num_iid')
     weekday = int(request.POST.get('list_weekday'))
     delist_time = request.POST.get('list_time')
+    
+
+    item = Item.objects.get(num_iid=num_iid)
 
     try:
         o = ItemListTask.objects.get(num_iid=num_iid)
@@ -276,8 +308,12 @@ def change_list_time(request):
 
     if target_time < now:
         target_time = target_time + datetime.timedelta(days=7)
-
+    
     o.num_iid = num_iid
+    o.user_id = item.user.visitor_id
+    o.nick    = item.user.nick
+    o.title   = item.title
+    o.num     = item.num
     o.list_weekday = target_time.isoweekday()
     o.list_time = delist_time
     o.save()

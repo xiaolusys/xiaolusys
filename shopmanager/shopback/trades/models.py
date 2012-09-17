@@ -313,7 +313,7 @@ def set_storage_trade_sys_status(merge_trade,trade,trade_from,is_first_save):
                             .update(sys_status=main_merge_trade.sys_status,reverse_audit_reason=main_merge_trade.reverse_audit_reason) 
                         
                         if update_rows>0:
-                            MergeBuyerTrade.objects.create(sub_tid=trade.id,main_tid=main_merge_trade.tid)
+                            MergeBuyerTrade.objects.get_or_create(sub_tid=trade.id,main_tid=main_merge_trade.tid)
                             merge_buyer_trade_signal.send(sender=Trade,sub_tid=trade.id,main_tid=main_merge_trade.tid)
                             rule_signal.send(sender='trade_rule',trade_id=main_merge_trade.tid)
                     else:

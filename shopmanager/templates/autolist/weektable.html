@@ -2,6 +2,7 @@
 
 {% block style %}
 <link href="{{ STATIC_URL }}css/autolist.css" rel="stylesheet/less" type="text/css" />
+<link href="{{ STATIC_URL }}css/dialog.css" rel="stylesheet/less" type="text/css" />
 {% endblock %}
 
 {% block title %}
@@ -15,10 +16,12 @@
 {% block navbar %}<div style="margin-top:30px"></div>{% endblock %}
 
 {% block container %}
+<div id="id-csrftoken">{% csrf_token %}</div>
+
 <div class="tabbable">
     <ul class="nav nav-tabs">
-        <li class="active"><a href="#">当前时间</a></li>
-        <li><a href="#">计划时间</a></li>
+        <li class="active"><a href="#">调整时间</a></li>
+        <!-- <li><a href="#">计划时间</a></li> -->
     </ul>
 
     <div class="tab-content">
@@ -41,17 +44,21 @@
                     <th>{{ slot }}</th>
                     {% endfor %}
                 </tr>
-                {% for k,v in cats.iteritems %}
+                {% for k,v in cats.items %}
                 <tr>
                     <td>{{ forloop.counter }}</td>
                     <td>{{ k.name }}</td>
-                    {% for x,y in v.iteritems %}
-                    <td>
+                    {% for y in v %}
+                    <td >
                         {% if y|length > 0 %}
                         {% for item in y %}
+                        <div class="time-select" style="float:left;">
+                        <a class="btn btn-small btn-danger" num_iid="{{ item.num_iid }}" img_src="{{ item.pic_url }}_60x60.jpg" style="display:none;"><i class="icon-pencil"></i>修改时间</a><div id="id-scheduled-{{ item.num_iid }}">
                         <a id="{{ item.num_iid }}" title="{{ item.title }}" num="{{ item.num }}" class="wrap-image">
                             <span class="time-select"><img src="{{ item.pic_url }}_60x60.jpg"></span>
                         </a>
+                        </div>
+                        </div>
                         {% endfor %}
                         {% endif %}
                     </td>
@@ -65,3 +72,8 @@
 </div>
 {% endblock %}
 
+{% block delayed_script %}
+  <script type="text/javascript">
+      new autolist.ListModify();
+  </script>
+{% endblock %}

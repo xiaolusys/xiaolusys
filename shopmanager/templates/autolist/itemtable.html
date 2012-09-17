@@ -37,7 +37,7 @@
       {% endif %}
       <td><p>{{ item.list_day }}</p><p>{{ item.list_hm}}</p></td>
       <td><p>{{ item.relist_day }}</p><p>{{ item.relist_hm}}</p></td>
-      <td class="time-select"><a class="btn btn-small btn-danger" num_iid="{{ item.num_iid }}" img_src="{{ item.pic_url }}_60x60.jpg" style="display:none"><i class="icon-pencil"></i>修改时间</a><div id="id-scheduled-{{ item.num_iid }}">
+      <td class="time-select"><a class="btn btn-small btn-danger" num_iid="{{ item.num_iid }}" img_src="{{ item.pic_url }}_60x60.jpg" style="display:None;"><i class="icon-pencil"></i>修改时间</a><div id="id-scheduled-{{ item.num_iid }}">
           {% if item.scheduled_day %}
           {% if item.scheduled_day == 7 %}
           <p>周 日</p>

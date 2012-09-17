@@ -12,6 +12,7 @@ urlpatterns = patterns('shopapp.autolist.views',
     url('weektable/(?P<weekday>\d+)/$', 'show_weektable', name='show_weektable'),
     url('scheduletime/$','change_list_time',name='change_list_time'),
     url('timetablecats/$','show_timetable_cats',name='show_timetable_cats'),
+    url('timeslots/$','get_timeslots_json',name='get_timeslots'),
     url('logs/$', 'show_logs', name='show_logs'),
 
     url(r'^update/(?P<num_iid>[^/]+)/(?P<num>[^/]+)/$',direct_update_listing,name='update_listing'),
