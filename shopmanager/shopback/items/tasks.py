@@ -122,11 +122,12 @@ def updateUserProductSkuTask(user_id):
                             for key,value in sku.iteritems():
                                 hasattr(psku,key) and setattr(psku,key,value)
                             psku.save()
-                num_iids = []
+                
             except Exception,exc:
                 logger.error('update product sku error!',exc_info=True)
-
-
+            finally:
+                num_iids = []
+                
 
 
 @task()

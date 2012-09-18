@@ -7,7 +7,7 @@ from shopback.base.models import UNEXECUTE,EXECERROR,SUCCESS
 from shopback.users.models import User
 from shopback.items.models import Item
 from shopapp.autolist.models import Logs,ItemListTask
-from auth.utils import getSignatureTaoBao,refresh_session ,format_time
+from auth.utils import getSignatureTaoBao,format_time
 from auth import apis
 import logging
 
@@ -60,41 +60,38 @@ def updateItemListTask(num_iid):
     success = True
     response = {'error_response':'the item num can not be updated!'}
     try:
-        user = User.objects.get(visitor_id=task.user_id)
-
-        refresh_session(user,settings.APPKEY,settings.APPSECRET,settings.REFRESH_URL)
 
         if task.task_type == 'listing':
-            item = apis.taobao_item_get(num_iid=int(task.num_iid),session=user.top_session)
+            item = apis.taobao_item_get(num_iid=int(task.num_iid),tb_user_id=task.user_id)
 
             if item.has_key('item_get_response') and item['item_get_response'].has_key('item') :
                 task.num = int(item['item_get_response']['item']['num'])
                 if item['item_get_response']['item']['approve_status'] == 'onsale':
-                    response = apis.taobao_item_update_delisting(num_iid=task.num_iid,session=user.top_session)
+                    response = apis.taobao_item_update_delisting(num_iid=task.num_iid,tb_user_id=task.user_id)
                     task.task_type = "delisting"
                     write_to_log_db(task, response)
 
                     task.task_type = "listing"
-                    response = apis.taobao_item_update_listing(num_iid=task.num_iid,num=task.num,session=user.top_session)
+                    response = apis.taobao_item_update_listing(num_iid=task.num_iid,num=task.num,tb_user_id=task.user_id)
                     write_to_log_db(task, response)
 
                     if item['item_get_response']['item']['has_showcase'] == True:
                         task.task_type = "recommend"
-                        response = apis.taobao_item_recommend_add(num_iid=task.num_iid,session=user.top_session)
+                        response = apis.taobao_item_recommend_add(num_iid=task.num_iid,tb_user_id=task.user_id)
                         write_to_log_db(task, response)
             else :
                 success = False
                 logger.warn('Get item unsuccess: %s'%item)
 
         elif task.task_type == 'delisting':
-            item = apis.taobao_item_get(num_iid=task.num_iid,session=user.top_session)
+            item = apis.taobao_item_get(num_iid=task.num_iid,tb_user_id=task.user_id)
 
             if item.has_key('item_get_response') and item['item_get_response'].has_key('item') :
 
                 if item['item_get_response']['item']['approve_status'] == 'onsale':
 
                     response = apis.taobao_item_update_delisting\
-                            (num_iid=task.num_iid,session=user.top_session)
+                            (num_iid=task.num_iid,tb_user_id=task.user_id)
 
                     task.num = item['num']
                 else:
