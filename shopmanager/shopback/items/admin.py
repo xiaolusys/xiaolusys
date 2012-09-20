@@ -20,7 +20,7 @@ admin.site.register(Item, ItemAdmin)
 
 
 class ProductAdmin(admin.ModelAdmin):
-    list_display = ('outer_id','name','category','collect_num','price','created','out_stock','modified')
+    list_display = ('outer_id','name','category','collect_num','warn_num','price','sync_stock','created','out_stock','modified')
     list_display_links = ('outer_id',)
     list_editable = ('name','collect_num','price')
 
@@ -36,7 +36,7 @@ admin.site.register(Product, ProductAdmin)
 
 
 class ProductSkuAdmin(admin.ModelAdmin):
-    list_display = ('outer_id','product','quantity','properties_name','properties','out_stock','status','modified')
+    list_display = ('outer_id','product','quantity','warn_num','sync_stock','properties_name','properties','out_stock','status','modified')
     list_display_links = ('outer_id',)
     list_editable = ('quantity',)
 

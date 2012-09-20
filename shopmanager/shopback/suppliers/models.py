@@ -4,7 +4,6 @@ from django.db import models
 
 class SupplierType(models.Model):
     
-    id        =  models.IntegerField(primary_key=True)
     type_name = models.CharField(max_length=32,blank=True)
     extra_info = models.TextField(blank=True)
     
@@ -18,7 +17,6 @@ class SupplierType(models.Model):
     
 class Supplier(models.Model):
     
-    id             = models.IntegerField(primary_key=True)
     type           = models.ForeignKey(SupplierType,null=True,related_name='suppliers')
     
     supplier_name  = models.CharField(max_length=32,blank=True)
@@ -26,7 +24,7 @@ class Supplier(models.Model):
     phone          = models.CharField(max_length=32,blank=True)
     mobile         = models.CharField(max_length=16,blank=True)
     fax            = models.CharField(max_length=16,blank=True)
-    zip_code            = models.CharField(max_length=16,blank=True)
+    zip_code       = models.CharField(max_length=16,blank=True)
     email          = models.CharField(max_length=64,blank=True)
     
     address        = models.CharField(max_length=64,blank=True)

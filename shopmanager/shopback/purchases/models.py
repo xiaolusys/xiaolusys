@@ -39,7 +39,6 @@ PURCHASE_ITEM_STATUS = (
 
 class Deposite(models.Model):
     
-    id           = models.IntegerField(primary_key=True)
     deposite_name = models.CharField(max_length=32,blank=True)
     location     = models.CharField(max_length=32,blank=True)
     
@@ -54,7 +53,6 @@ class Deposite(models.Model):
 
 class PurchaseType(models.Model):
     
-    id           = models.IntegerField(primary_key=True)
     type_name    = models.CharField(max_length=32,blank=True)
     in_use       = models.BooleanField(default=True)
     
@@ -68,8 +66,7 @@ class PurchaseType(models.Model):
     
 
 class Purchase(models.Model):
-    
-    id           = models.IntegerField(primary_key=True)
+
     supplier     = models.ForeignKey(Supplier,null=True,related_name='purchases')
     deposite     = models.ForeignKey(Deposite,null=True,related_name='purchases')
     type         = models.ForeignKey(PurchaseType,null=True,related_name='purchases')
@@ -87,13 +84,11 @@ class Purchase(models.Model):
         db_table = 'shop_purchases_purchase'
 
     def __unicode__(self):
-        return self.supplier+self.type
+        return self.supplier.supplier_name+self.type.type_name
     
     
     
 class PurchaseItem(models.Model):
-    
-    id           = models.IntegerField(primary_key=True)
     
     supplier_item_id = models.CharField(max_length=64,blank=True)
     
@@ -108,8 +103,8 @@ class PurchaseItem(models.Model):
     total_fee    = models.FloatField(null=True)
     payment      = models.FloatField(null=True)
     
-    created      = models.DateTimeField(auto_now=True)
-    modified     = models.DateTimeField(auto_now_add=True)
+    created      = models.DateTimeField(null=True,blank=True,auto_now=True)
+    modified     = models.DateTimeField(null=True,blank=True,auto_now_add=True)
     
     status       = models.CharField(max_length=32,db_index=True,choices=PURCHASE_ITEM_STATUS,default=PURCHASE_DRAFT)
     extra_info   = models.TextField(blank=True)
@@ -118,5 +113,8 @@ class PurchaseItem(models.Model):
         db_table = 'shop_purchases_item'
 
     def __unicode__(self):
-        return str(self.id)
+        return self.product.name
+    
+    
+    
     

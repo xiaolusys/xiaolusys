@@ -27,7 +27,6 @@ def syncConfirmDeliveryTradeTask():
                                           ,company_code=trade.logistics_company_code,tb_user_id=trades.seller_id)
         except Exception,exc:
             trade.sys_status = AUDITFAIL_STATUS
-            trade.reverse_audit_times += 1
             trade.reverse_audit_reason += '--发货状态更新失败'.decode('utf8')
             trade.save()
         else:
@@ -36,8 +35,7 @@ def syncConfirmDeliveryTradeTask():
                 trade.consign_time = datetime.datetime.now()
                 MergeTrade.objects.filter(tid=trade.tid).update(
                     sys_status=trade.sys_status,
-                    consign_time=trade.consign_time,
-                    )
+                    consign_time=trade.consign_time,)
                 
                 merge_buyer_trades = MergeBuyerTrade.objects.filter(main_tid=trade.tid)
                 for merge_buyer_trade in merge_buyer_trades:
@@ -51,7 +49,6 @@ def syncConfirmDeliveryTradeTask():
                                               ,company_code=trade.logistics_company_code,tb_user_id=trades.seller_id)
                         except Exception,exc:
                             sub_merge_trade.sys_status = AUDITFAIL_STATUS
-                            sub_merge_trade.reverse_audit_times += 1
                             sub_merge_trade.reverse_audit_reason += ('--主订单(id:%d)发货成功，但次订单(%d)发货失败'%(trade.tid,sub_merge_trade.main_tid)).decode('utf8')
                             sub_merge_trade.save()
                         else:

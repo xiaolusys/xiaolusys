@@ -39,6 +39,8 @@ class Product(models.Model):
     created      = models.DateTimeField(null=True,auto_now_add=True)
     modified     = models.DateTimeField(null=True,auto_now=True)
     
+    sync_stock   = models.BooleanField(default=True)
+    
     out_stock    = models.BooleanField(default=False)
     modified  = models.DateTimeField(null=True,blank=True,auto_now=True)
     status       = models.CharField(max_length=16,db_index=True,blank=True)
@@ -47,7 +49,7 @@ class Product(models.Model):
         db_table = 'shop_items_product'
 
     def __unicode__(self):
-        return self.outer_id
+        return self.name
 
 
 
@@ -55,12 +57,15 @@ class ProductSku(models.Model):
 
     outer_id = models.CharField(max_length=64,null=True,blank=True)
     product  = models.ForeignKey(Product,null=True,related_name='prod_skus')
+    
     quantity = models.IntegerField(null=True)
-
+    warn_num     = models.IntegerField(null=True,default=10)    #警戒库位
+    
     properties_name = models.TextField(max_length=3000,blank=True)
     properties      = models.TextField(max_length=2000,blank=True)
     
     out_stock    = models.BooleanField(default=False)
+    sync_stock   = models.BooleanField(default=True)
     
     modified = models.DateTimeField(null=True,blank=True,auto_now=True)
     status   = models.CharField(max_length=10,blank=True)  #normal,delete
@@ -70,7 +75,7 @@ class ProductSku(models.Model):
         unique_together = ("outer_id", "product",)
 
     def __unicode__(self):
-        return self.outer_id
+        return self.properties_values
     
     def setQuantity(self,num):
         self.quantity = num
@@ -91,7 +96,7 @@ class ProductSku(models.Model):
 
 
 class Item(models.Model):
-
+    
     num_iid = models.CharField(primary_key=True,max_length=64)
 
     user     = models.ForeignKey(User,null=True,related_name='items')

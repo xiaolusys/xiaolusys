@@ -1,3 +1,4 @@
+#-*- coding:utf8 -*-
 import datetime
 import json
 from celery.task import task
@@ -45,19 +46,20 @@ def updateUserItemNumTask(user_id,update_time):
                     else:
                         remain_num = product_sku.quantity
                     
-                    if remain_num != sku['quantity']:
+                    #如果自动更新库存状态开启，并且计算后库存不等于在线库存，则更新
+                    if product_sku.sync_stock and remain_num != sku['quantity'] :
                         response = apis.taobao_item_quantity_update\
                                 (num_iid=item.num_iid,quantity=remain_num,sku_id=outer_sku_id,tb_user_id=user_id)
                         item_dict = response['item_quantity_update_response']['item']
                         Item.save_item_through_dict(user_id,item_dict)
                         
-                    product_sku.setQuantity(remain_num)
-                    ItemNumTaskLog.objects.get_or_create(user_id=user_id,
-                                                 outer_id=product.outer_id,
-                                                 sku_outer_id= outer_sku_id,
-                                                 num=remain_num,
-                                                 start_at= item.last_num_updated,
-                                                 end_at=update_time )
+                        product_sku.setQuantity(remain_num)
+                        ItemNumTaskLog.objects.get_or_create(user_id=user_id,
+                                                     outer_id=product.outer_id,
+                                                     sku_outer_id= outer_sku_id,
+                                                     num=remain_num,
+                                                     start_at= item.last_num_updated,
+                                                     end_at=update_time )
                     
             else:
                 if product.modified < update_time:
@@ -69,20 +71,20 @@ def updateUserItemNumTask(user_id,update_time):
                     remain_num = product.collect_num - order_nums
                 else:
                     remain_num = product.collect_num
-                
-                if remain_num != product.collect_num:
+                #如果自动更新库存状态开启，并且计算后库存不等于在线库存，则更新
+                if product.sync_stock and remain_num != product.collect_num:
                     response = apis.taobao_item_update(num_iid=item.num_iid,num=item.num,tb_user_id=user_id)
                     item_dict = response['item_update_response']['item']
                     Item.save_item_through_dict(user_id,item_dict)
                 
-                product.collect_num = remain_num
-                product.save()
-                
-                ItemNumTaskLog.objects.get_or_create(user_id=user_id,
-                                                 outer_id=product.outer_id,
-                                                 num=remain_num,
-                                                 start_at= item.last_num_updated,
-                                                 end_at=update_time )
+                    product.collect_num = remain_num
+                    product.save()
+                    
+                    ItemNumTaskLog.objects.get_or_create(user_id=user_id,
+                                                     outer_id=product.outer_id,
+                                                     num=remain_num,
+                                                     start_at= item.last_num_updated,
+                                                     end_at=update_time )
             
             Item.objects.filter(num_iid=item.num_iid).update(last_num_updated=update_time)
         except Exception,exc :
