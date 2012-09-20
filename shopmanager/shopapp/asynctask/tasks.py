@@ -18,7 +18,7 @@ from celery.registry import tasks
 from celery.app.task import BaseTask
 from celery.signals import task_prerun
 from shopback.base.exception import NotImplement
-from shopback.asynctask.models import TaobaoAsyncTask,TASK_ASYNCOK,TASK_INVALID,TASK_CREATED,TASK_SUCCESS,\
+from shopapp.asynctask.models import TaobaoAsyncTask,TASK_ASYNCOK,TASK_INVALID,TASK_CREATED,TASK_SUCCESS,\
     TASK_ASYNCCOMPLETE,TASK_DOWNLOAD
 from shopback.monitor.models import SystemConfig
 from shopback.categorys.models import Category

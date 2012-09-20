@@ -2,8 +2,8 @@ from django.conf.urls.defaults import patterns, include, url
 from shopback.base.authentication import UserLoggedInAuthentication
 from shopback.base.permissions import IsAuthenticated
 from shopback.base.renderers  import ChartJSONRenderer
-from shopback.asynctask.views import AsyncCategoryView,AsyncOrderView
-from shopback.asynctask.resources import AsyncTaskResource
+from shopapp.asynctask.views import AsyncCategoryView,AsyncOrderView
+from shopapp.asynctask.resources import AsyncTaskResource
 
 
 urlpatterns = patterns('',

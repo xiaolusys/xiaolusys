@@ -58,14 +58,15 @@ INSTALLED_APPS = (
     'shopback.orders',
     'shopback.trades',
     'shopback.refunds',
-    'shopback.asynctask',
-
+    'shopback.suppliers',
+    'shopback.purchases',
 
     'shopapp.autolist',
     'shopapp.collector',
     'shopapp.memorule',
     'shopapp.report',
     'shopapp.syncnum',
+    'shopapp.asynctask',
 
     #'devserver',
     'django.contrib.admin',

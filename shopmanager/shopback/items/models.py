@@ -5,7 +5,9 @@ Product:系统内部商品，唯一对应多家店铺的商品外部编码,
 ProductSku:淘宝平台商品sku，
 Item:淘宝平台商品，
 """
+import datetime
 from django.db import models
+from django.db.models import Sum
 from shopback.base.models import BaseModel
 from shopback.base.fields import BigIntegerAutoField
 from shopback.categorys.models import Category
@@ -30,14 +32,15 @@ class Product(models.Model):
 
     category     = models.ForeignKey(Category,null=True,related_name='products')
 
-    collect_num  = models.IntegerField(null=True)
+    collect_num  = models.IntegerField(null=True)  #库存数
+    warn_num     = models.IntegerField(null=True,default=10)    #警戒库位
     price        = models.CharField(max_length=10,blank=True)
-
+    
     created      = models.DateTimeField(null=True,auto_now_add=True)
     modified     = models.DateTimeField(null=True,auto_now=True)
     
     out_stock    = models.BooleanField(default=False)
-
+    modified  = models.DateTimeField(null=True,blank=True,auto_now=True)
     status       = models.CharField(max_length=16,db_index=True,blank=True)
     
     class Meta:
@@ -59,6 +62,7 @@ class ProductSku(models.Model):
     
     out_stock    = models.BooleanField(default=False)
     
+    modified = models.DateTimeField(null=True,blank=True,auto_now=True)
     status   = models.CharField(max_length=10,blank=True)  #normal,delete
 
     class Meta:
@@ -67,6 +71,14 @@ class ProductSku(models.Model):
 
     def __unicode__(self):
         return self.outer_id
+    
+    def setQuantity(self,num):
+        self.quantity = num
+        self.save()
+        
+        total_nums = self.product.prod_skus.aggregate(total_nums=Sum('quantity')).get('total_nums')
+        self.product.collect_num = total_nums or 0
+        self.product.save()
     
     @property
     def properties_values(self):
@@ -109,9 +121,11 @@ class Item(models.Model):
     title = models.CharField(max_length=148,blank=True)
 
     has_invoice = models.BooleanField(default=False)
-    pic_url     = models.URLField(verify_exists=False)
-    detail_url  = models.URLField(verify_exists=False)
+    pic_url     = models.URLField(verify_exists=False,blank=True)
+    detail_url  = models.URLField(verify_exists=False,blank=True)
 
+    last_num_updated = models.DateTimeField(null=True,blank=True)  #该件商品最后库存同步日期
+    
     desc = models.TextField(max_length=25000,blank=True)
     skus = models.TextField(max_length=5000,blank=True)
 
@@ -157,7 +171,10 @@ class Item(models.Model):
         
         for k,v in item_dict.iteritems():
             hasattr(item,k) and setattr(item,k,v)
-            
+        
+        if not item.last_num_updated:
+            item.last_num_updated = datetime.datetime.now()  
+        
         item.user     = User.objects.get(visitor_id=user_id)
         item.product  = product
         item.category = category

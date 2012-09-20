@@ -11,7 +11,7 @@ from shopback.refunds.tasks import saveUserRefundOrderTask
 from shopback.logistics.tasks import saveUserOrdersLogisticsTask,saveUserUnfinishOrdersLogisticsTask
 from shopback.amounts.tasks import updatePurchaseOrdersAmountTask,updateOrdersAmountTask
 from shopapp.report.models import MonthTradeReportStatus
-from shopback.asynctask.models import TaobaoAsyncTask
+from shopapp.asynctask.models import TaobaoAsyncTask
 from shopback.monitor.models import DayMonitorStatus
 from shopapp.report.reportform import TradesToXLSFile
 from auth.utils import format_time,parse_datetime,format_datetime,format_date,format_year_month

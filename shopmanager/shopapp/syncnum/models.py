@@ -3,22 +3,24 @@ from shopback.base.fields import BigIntegerAutoField
 from shopback.base.models import UNEXECUTE
 
 
+    
 
-class ItemNumTask(models.Model):
+class ItemNumTaskLog(models.Model):
 
     id = BigIntegerAutoField(primary_key=True)
-
-    outer_id = models.CharField(max_length=64)
+    
+    user_id  = models.CharField(max_length=64,blank=True)
+    outer_id = models.CharField(max_length=64,blank=True)
     sku_outer_id = models.CharField(max_length=64,blank=True)
 
     num = models.IntegerField()
 
-    created_at = models.DateTimeField(null=True,blank=True, auto_now_add=True)
-
-    status = models.CharField(max_length=10,default=UNEXECUTE) #unexecute,execerror,success,delete
-
+    start_at   = models.DateTimeField(null=True,blank=True)
+    end_at     = models.DateTimeField(null=True,blank=True)
+    
     class Meta:
-        db_table = 'shop_syncnum_itemnumtask'
+        db_table = 'shop_syncnum_itemnumtasklog'
 
-
+    def __unicode__(self):
+        return self.outer_id+self.sku_outer_id
 

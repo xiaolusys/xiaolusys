@@ -4,7 +4,7 @@ from django.http import HttpResponse
 from djangorestframework.views import ModelView
 from djangorestframework.response import ErrorResponse
 from djangorestframework import status
-from shopback.asynctask.tasks import AsyncCategoryTask,AsyncOrderTask
+from shopapp.asynctask.tasks import AsyncCategoryTask,AsyncOrderTask
 from auth.utils import parse_date
 
 

@@ -4,15 +4,15 @@ from shopback.items.models import Item,Product,ProductSku
 
 
 class ItemAdmin(admin.ModelAdmin):
-    list_display = ('num_iid','product','category','price','user','title','pic_url')
+    list_display = ('num_iid','product','category','price','user','title','pic_url','last_num_updated')
     list_display_links = ('num_iid', 'title')
     #list_editable = ('update_time','task_type' ,'is_success','status')
 
-    #date_hierarchy = 'modified'
+    date_hierarchy = 'last_num_updated'
     #ordering = ['created_at']
 
 
-    list_filter = ('approve_status',)
+    list_filter = ('user','approve_status')
     search_fields = ['num_iid', 'title']
 
 
@@ -36,11 +36,11 @@ admin.site.register(Product, ProductAdmin)
 
 
 class ProductSkuAdmin(admin.ModelAdmin):
-    list_display = ('outer_id','product','quantity','properties_name','properties','out_stock','status')
+    list_display = ('outer_id','product','quantity','properties_name','properties','out_stock','status','modified')
     list_display_links = ('outer_id',)
     list_editable = ('quantity',)
 
-    #date_hierarchy = 'modified'
+    date_hierarchy = 'modified'
     #ordering = ['created_at']
 
 

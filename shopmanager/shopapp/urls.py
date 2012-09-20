@@ -9,5 +9,6 @@ urlpatterns = patterns('',
     (r'^report/',include('shopapp.report.urls')),
     (r'^syncnum/',include('shopapp.syncnum.urls')),
     (r'^autolist/',include('shopapp.autolist.urls')),
+    (r'^async/',include('shopapp.asynctask.urls')),
 )
 

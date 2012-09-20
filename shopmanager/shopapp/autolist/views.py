@@ -150,7 +150,6 @@ def show_weektable(request, weekday):
     cats = {}
     total = 0
     
-    print 'time slot:',timeslots
     if timeslots:
         for item in items:
             try:
@@ -163,7 +162,6 @@ def show_weektable(request, weekday):
                 list_day = o.list_weekday
                 list_hour = o.hour
                 list_minute = o.minute
-                print 'task',item.num_iid,item.title,list_day,list_hour,list_minute
                 
             if list_day == int(weekday):
                 timeslot = list_hour * 100 + list_minute
@@ -174,7 +172,6 @@ def show_weektable(request, weekday):
                         idx = i
                         break
                 mapslot = timeslots[idx]
-                print timeslot,mapslot,i
                 cat = item.category
                 if not cat in cats:
                     cats[cat] = {}

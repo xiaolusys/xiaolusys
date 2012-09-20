@@ -1,3 +1,4 @@
+#-*- coding:utf8 -*-
 import datetime
 import time
 import json
@@ -6,13 +7,10 @@ from celery.task.sets import subtask
 from django.conf import settings
 from shopback.base.aggregates import ConcatenateDistinct
 from auth.utils import format_datetime ,parse_datetime ,refresh_session
-from shopback.items.models import Item,ProductSku
+from shopback.items.models import Item,ProductSku,INSTOCK_STATUS,ONSALE_STATUS
 from shopback.orders.models import Order,Trade,ORDER_SUCCESS_STATUS,ORDER_UNPAY_STATUS
 from shopback.users.models import User
-from shopapp.syncnum.models import ItemNumTask
 from shopback.base.models   import UNEXECUTE,EXECERROR,SUCCESS
-from auth.apis.exceptions import RemoteConnectionException,AppCallLimitedException,UserFenxiaoUnuseException,\
-    APIConnectionTimeOutException,ServiceRejectionException,TaobaoRequestException
 from shopback.fenxiao.tasks import saveUserFenxiaoProductTask
 from auth import apis
 import logging
@@ -26,7 +24,8 @@ def updateUserItemsTask(user_id):
 
     has_next = True
     cur_page = 1
-    update_nums = 0
+    onsale_item_ids = []
+    #更新出售中的商品
     try:
         while has_next:
           
@@ -44,7 +43,7 @@ def updateUserItemsTask(user_id):
                         item_dict = response['item_get_response']['item']
                         item_dict['skus'] = json.dumps(item_dict.get('skus',{}))
                         Item.save_item_through_dict(user_id,item_dict)
-                update_nums += len(items)    
+                    onsale_item_ids.append(item['num_iid'])    
     
             total_nums = item_list['total_results']
             cur_nums = cur_page*settings.TAOBAO_PAGE_SIZE
@@ -53,7 +52,7 @@ def updateUserItemsTask(user_id):
             cur_page += 1
     except:
         logger.error('update user onsale items task error',exc_info=True)
-        
+    #更新库存中的商品
     try:
         has_next = True
         cur_page = 1    
@@ -73,7 +72,7 @@ def updateUserItemsTask(user_id):
                         item_dict = response['item_get_response']['item']
                         item_dict['skus'] = json.dumps(item_dict.get('skus',{}))
                         Item.save_item_through_dict(user_id,item_dict)
-                update_nums += len(items)
+                    onsale_item_ids.append(item['num_iid'])
                 
             total_nums = item_list['total_results']
             cur_nums = cur_page*settings.TAOBAO_PAGE_SIZE
@@ -82,7 +81,9 @@ def updateUserItemsTask(user_id):
     except:
         logger.error('update user inventory items task error',exc_info=True)
    
-    return update_nums
+    Item.objects.filter(user__visitor_id=user_id).exclude(num_iid__in=onsale_item_ids).update(approve_status=INSTOCK_STATUS)
+   
+    return len(onsale_item_ids)
 
 
 
@@ -108,24 +109,35 @@ def updateUserProductSkuTask(user_id):
         num_iids.append(item.num_iid)
 
         if len(num_iids)>=40 or index+1 ==len(items):
+            sku_dict = {}
             try:
                 num_iids_str = ','.join(num_iids)
                 response = apis.taobao_item_skus_get(num_iids=num_iids_str,tb_user_id=user_id)
                 if response['item_skus_get_response'].has_key('skus'):
-                    skus     = response['item_skus_get_response']['skus']['sku']
+                    skus     = response['item_skus_get_response']['skus']
     
-                    for sku in skus:
+                    for sku in skus.get('sku'):
+                        
+                        if sku_dict.has_key(sku['num_iid']):
+                            sku_dict[sku['num_iid']].append(sku)
+                        else:
+                            sku_dict[sku['num_iid']] = [sku]
+                            
                         sku_outer_id = sku.get('outer_id',None)
                         item  = Item.objects.get(num_iid=sku['num_iid'])
+                        
                         psku,state = ProductSku.objects.get_or_create(outer_id=sku_outer_id,product=item.product)
                         if state:
                             for key,value in sku.iteritems():
                                 hasattr(psku,key) and setattr(psku,key,value)
                             psku.save()
-                
             except Exception,exc:
                 logger.error('update product sku error!',exc_info=True)
             finally:
+                for num_iid,sku_list in sku_dict.items():
+                    item = Item.objects.get(num_iid=num_iid)
+                    item.skus = json.dumps({'sku':sku_list})
+                    item.save()
                 num_iids = []
                 
 

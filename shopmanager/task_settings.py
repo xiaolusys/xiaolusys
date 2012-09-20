@@ -86,11 +86,6 @@ SYNC_MODEL_SCHEDULE = {
         'schedule':crontab(minute="30",hour="2",day_of_week='mon'), #
         'args':(7,None,None)
     },
-    'runs-every-weeks-item-entity':{     #更新用户商城商品信息
-        'task':'shopback.items.tasks.updateAllUserItemsEntityTask',
-        'schedule':crontab(minute="0",hour="3",day_of_week='tue'),#
-        'args':()
-    },
     'runs-every-weeks-purchase-product':{    #更新用户分销商品
         'task':'shopback.fenxiao.tasks.updateAllUserFenxiaoProductTask',
         'schedule':crontab(minute="30",hour="3",day_of_week='tue'),#
@@ -106,51 +101,51 @@ SYNC_MODEL_SCHEDULE = {
          'schedule':crontab(minute="10",hour='0'),
          'args':()
      },
-    'runs-every-quarter-taobao-async-handle':{     #淘宝异步任务执行主任务
-         'task':'shopback.asynctask.tasks.taobaoAsyncHandleTask',
-         'schedule':crontab(minute="*/30"),
-         'args':()
-     },
 }
 
 
 SHOP_APP_SCHEDULE = {
-#    'runs-every-5-minutes-item-list':{  #定时上架任务
-#        'task':'shopapp.autolist.tasks.updateAllItemListTask',
-#        'schedule':crontab(minute='*/10',hour=','.join([str(i) for i in range(7,24)])),
-#        'args':(),
-#    },
-#    'runs-every-30-minutes-keyword-pagerank':{  
-#        'task':'shopapp.collector.tasks.updateItemKeywordsPageRank',
-#        'schedule':crontab(minute="0,30",hour=','.join([str(i) for i in range(7,24)])),
-#        'args':()
-#    },
-#    'runs-every-day-delete_keyword':{
-#        'task':'shopapp.collector.tasks.deletePageRankRecordTask',
-#        'schedule':crontab(minute="0",hour="1"),
-#        'args':(30,)
-#    },
-#    'runs-every-day-trade-report-file':{
-#        'task':'shopapp.report.tasks.updateMonthTradeXlsFileTask',
-#        'schedule':crontab(minute="0",hour="4"),
-#        'args':()
-#    },
-#    'runs-every-10-minutes-update-rule-memo':{
-#        'task':'shopapp.memorule.tasks.updateTradeAndOrderByRuleMemo',
-#        'schedule':crontab(minute="*/10"),
-#        'args':()
-#    },
-#    'runs-every-10-minutes-update-seller-flag':{
-#        'task':'shopapp.memorule.tasks.updateTradeSellerFlagTask',
-#        'schedule':crontab(minute="*/10"),
-#        'args':()
-#    },                 
-                     
-#    'runs-every-day-item-num':{
-#        'task':'shopapp.syncnum.tasks.updateAllItemNumTask',
-#        'schedule':crontab(minute="0",hour="0"),
-#        'args':(),
-#    },
+    'runs-every-5-minutes-item-list':{  #定时上架任务
+        'task':'shopapp.autolist.tasks.updateAllItemListTask',
+        'schedule':crontab(minute='*/10',hour=','.join([str(i) for i in range(7,24)])),
+        'args':(),
+    },
+    'runs-every-30-minutes-keyword-pagerank':{  
+        'task':'shopapp.collector.tasks.updateItemKeywordsPageRank',
+        'schedule':crontab(minute="0,30",hour=','.join([str(i) for i in range(7,24)])),
+        'args':()
+    },
+    'runs-every-day-delete_keyword':{
+        'task':'shopapp.collector.tasks.deletePageRankRecordTask',
+        'schedule':crontab(minute="0",hour="1"),
+        'args':(30,)
+    },
+    'runs-every-day-trade-report-file':{
+        'task':'shopapp.report.tasks.updateMonthTradeXlsFileTask',
+        'schedule':crontab(minute="0",hour="4"),
+        'args':()
+    },
+    'runs-every-10-minutes-update-rule-memo':{
+        'task':'shopapp.memorule.tasks.updateTradeAndOrderByRuleMemo',
+        'schedule':crontab(minute="*/10"),
+        'args':()
+    },
+    'runs-every-10-minutes-update-seller-flag':{
+        'task':'shopapp.memorule.tasks.updateTradeSellerFlagTask',
+        'schedule':crontab(minute="*/10"),
+        'args':()
+    },                    
+    'runs-every-quarter-taobao-async-handle':{     #淘宝异步任务执行主任务
+         'task':'shopapp.asynctask.tasks.taobaoAsyncHandleTask',
+         'schedule':crontab(minute="*/30"),
+         'args':()
+     },           
+    'runs-every-day-item-num':{     #更新库存
+        'task':'shopapp.syncnum.tasks.updateAllUserItemNumTask',
+        'schedule':crontab(minute="20",hour="4"),#
+        'args':()
+    },
+
 #    'runs-every-day-product-trade':{
 #        'task':'shopapp.collector.tasks.updateProductTradeBySellerTask',
 #        'schedule':crontab(minute="0",hour="1"),

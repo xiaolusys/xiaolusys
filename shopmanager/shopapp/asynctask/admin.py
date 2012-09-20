@@ -1,5 +1,5 @@
 from django.contrib import admin
-from shopback.asynctask.models import TaobaoAsyncTask
+from shopapp.asynctask.models import TaobaoAsyncTask
 
 
 

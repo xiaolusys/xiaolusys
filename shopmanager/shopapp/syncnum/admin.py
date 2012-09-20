@@ -1,18 +1,17 @@
 from django.contrib import admin
-from shopapp.syncnum.models import ItemNumTask
+from shopapp.syncnum.models import ItemNumTaskLog
 
 
 
 
-class ItemNumTaskAdmin(admin.ModelAdmin):
-    list_display = ('id','outer_id', 'sku_outer_id', 'num', 'created_at', 'status')
+class ItemNumTaskLogAdmin(admin.ModelAdmin):
+    list_display = ('id','user_id','outer_id', 'sku_outer_id', 'num', 'start_at', 'end_at')
     list_display_links = ('outer_id', 'sku_outer_id')
     #list_editable = ('update_time','task_type' ,'is_success','status')
 
-    date_hierarchy = 'created_at'
-    ordering = ['created_at']
+    date_hierarchy = 'end_at'
 
-    list_filter = ('status', 'created_at')
+    list_filter = ('user_id',)
     search_fields = ['id','outer_id','sku_outer_id']
 
     actions = ['cancleExecute']
@@ -23,5 +22,5 @@ class ItemNumTaskAdmin(admin.ModelAdmin):
     cancleExecute.short_description = "Cancle Task!"
 
 
-admin.site.register(ItemNumTask, ItemNumTaskAdmin)
+admin.site.register(ItemNumTaskLog, ItemNumTaskLogAdmin)
 

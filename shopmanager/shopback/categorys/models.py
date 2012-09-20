@@ -4,6 +4,10 @@ from auth import apis
 import logging
 
 logger = logging.getLogger('categorys.handler')
+CAT_STATUS = (
+    ('normal','正常'),
+    ('delete','删除'),
+) 
 
 class Category(models.Model):
 
@@ -12,7 +16,7 @@ class Category(models.Model):
 
     name       = models.CharField(max_length=32)
     is_parent  = models.BooleanField(default=True)
-    status     = models.CharField(max_length=7,default='normal')
+    status     = models.CharField(max_length=7,choices=CAT_STATUS,default='normal')
     sort_order = models.IntegerField(null=True)
 
     class Meta:
@@ -41,7 +45,17 @@ class Category(models.Model):
     
 class ProductCategory(models.Model):
     
-    cid        = models.IntegerField(primary_key=True)
+    cid     = models.IntegerField(primary_key=True)
+    name    = models.CharField(max_length=32,blank=True)
+    parent_cid = models.CharField(max_length=32,blank=True)
+    
+    is_parent  = models.BooleanField(default=True)
+    status  = models.CharField(max_length=7,choices=CAT_STATUS,default='normal')
+    sort_order = models.IntegerField(null=True)
     
     class Meta:
-        db_table = 'shop_categorys_productcategory'    
+        db_table = 'shop_categorys_productcategory' 
+        
+    def __unicode__(self):
+        return self.name
+       
