@@ -10,7 +10,7 @@ from django.db import models
 from django.db.models import Sum
 from shopback.base.models import BaseModel
 from shopback.base.fields import BigIntegerAutoField
-from shopback.categorys.models import Category
+from shopback.categorys.models import Category,ProductCategory
 from shopback.users.models import User
 from auth import apis
 import logging
@@ -29,8 +29,8 @@ class Product(models.Model):
 
     outer_id     = models.CharField(max_length=64,primary_key=True)
     name         = models.CharField(max_length=64,blank=True)
-
-    category     = models.ForeignKey(Category,null=True,related_name='products')
+    
+    category     = models.ForeignKey(ProductCategory,null=True,related_name='products')
 
     collect_num  = models.IntegerField(null=True)  #库存数
     warn_num     = models.IntegerField(null=True,default=10)    #警戒库位
@@ -166,7 +166,6 @@ class Item(models.Model):
                 product.collect_num = item_dict['num']
                 product.price       = item_dict['price']
                 product.name        = item_dict['title']
-                product.category    = category
                 product.save()
         except Exception,exc:
             logger.warn('the current item(num_iid:%s)has not set outer_id'%str(item_dict['num_iid']))

@@ -37,7 +37,7 @@ admin.site.register(Purchase,PurchaseAdmin)
 
 
 class PurchaseItemAdmin(admin.ModelAdmin):
-    list_display = ('id','product','product_sku','supplier_item_id','purchase_num','discount','price'
+    list_display = ('id','purchase','product','product_sku','supplier_item_id','purchase_num','discount','price'
                     ,'total_fee','payment','created','modified','status')
     #list_editable = ('update_time','task_type' ,'is_success','status')
 

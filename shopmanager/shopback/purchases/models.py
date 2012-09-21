@@ -60,6 +60,7 @@ class PurchaseType(models.Model):
     
     class Meta:
         db_table = 'shop_purchases_purchasetype'
+        
 
     def __unicode__(self):
         return self.type_name
@@ -84,12 +85,13 @@ class Purchase(models.Model):
         db_table = 'shop_purchases_purchase'
 
     def __unicode__(self):
-        return self.supplier.supplier_name+self.type.type_name
+        return '%d-%s'%(self.id,self.type.type_name)
     
     
     
 class PurchaseItem(models.Model):
     
+    purchase     = models.ForeignKey(Purchase,related_name='purchase_items')
     supplier_item_id = models.CharField(max_length=64,blank=True)
     
     product      = models.ForeignKey(Product,null=True,related_name='purchase_items')

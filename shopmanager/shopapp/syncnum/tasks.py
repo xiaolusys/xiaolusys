@@ -60,7 +60,8 @@ def updateUserItemNumTask(user_id,update_time):
                                                      num=remain_num,
                                                      start_at= item.last_num_updated,
                                                      end_at=update_time )
-                    
+                    elif remain_num != sku['quantity']:
+                        product_sku.setQuantity(remain_num)
             else:
                 if product.modified < update_time:
                     order_nums = Order.objects.filter(outer_id=product.outer_id,status__in=ORDER_POST_STATUS)\
@@ -85,6 +86,9 @@ def updateUserItemNumTask(user_id,update_time):
                                                      num=remain_num,
                                                      start_at= item.last_num_updated,
                                                      end_at=update_time )
+                elif remain_num != product.collect_num:
+                    product.collect_num = remain_num
+                    product.save()
             
             Item.objects.filter(num_iid=item.num_iid).update(last_num_updated=update_time)
         except Exception,exc :

@@ -65,7 +65,6 @@ def pull_from_taobao(request):
         product,state = Product.objects.get_or_create(outer_id=item['outer_id'])
         if state:
             product.name=item['title']
-            product.category=o.category
             product.price=str(item['price'])
             product.collect_num = item['num']
             product.save()
