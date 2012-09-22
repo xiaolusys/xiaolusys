@@ -270,7 +270,7 @@ def show_time_table(request):
 def get_timeslots_json(request):
 
     time_slots = TimeSlots.objects.all()
-    slot_list = [ '%d:%d'%(s.hour,s.minute) for s in time_slots]
+    slot_list = [ '%02d:%02d'%(s.hour,s.minute) for s in time_slots]
     return HttpResponse(json.dumps(slot_list),mimetype='application/json')
 
 def show_logs(request):
