@@ -16,8 +16,8 @@ def ny():
     """docstring for ny"""
     env.hosts = ['user1@ny'] # replace with real setting
     env.base_dir = '/home/user1/deploy/taobao'
-    env.repo_url = 'git@ny:taobao-backend.git'
-    env.require_file = 'requirement_staging.txt'
+    env.repo_url = 'file:///home/user1/repo/taobao-backend.git'
+    env.require_file = 'requirements.txt'
 
 def production():
     """docstring for production"""
