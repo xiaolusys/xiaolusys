@@ -48,7 +48,7 @@
                     <td >
                         {% if y|length > 0 %}
                         {% for item in y %}
-                        <div class="time-select" style="float:left;">
+                        <div class="time-select" style="float:left;height:60px;width:80px">
                         <a class="btn btn-small btn-danger" num_iid="{{ item.num_iid }}" img_src="{{ item.pic_url }}_60x60.jpg" style="display:none;"><i class="icon-pencil"></i>修改时间</a><div id="id-scheduled-{{ item.num_iid }}">
                         <a id="{{ item.num_iid }}" title="{{ item.title }}" num="{{ item.num }}" class="wrap-image">
                             <span class="time-select"><img src="{{ item.pic_url }}_60x60.jpg"></span>
