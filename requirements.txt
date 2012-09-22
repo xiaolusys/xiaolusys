@@ -11,6 +11,7 @@ django-kombu==0.9.4
 MySQL-python==1.2.3
 lxml==2.3
 pyExcelerator
+python-memcached==1.45
 #geraldo
 reportlab==2.5
 
@@ -19,6 +20,6 @@ reportlab==2.5
 
 git+ssh://git@ny/django-chartit.git#egg=django-chartit
 git+ssh://git@ny/django-rest-framework.git#egg=djangorestframework
-git+git://github.com/dcramer/django-devserver#egg=django-devserver
+#git+git://github.com/dcramer/django-devserver#egg=django-devserver
 
   

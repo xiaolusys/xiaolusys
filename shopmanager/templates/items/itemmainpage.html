@@ -1,0 +1,58 @@
+{% extends "items/base.html" %}
+
+{% block title%} 产品管理界面 {% endblock %}
+
+{% block navbar %}<div style="margin-top:30px"></div>{% endblock %}
+
+{% block container %}
+<div class='list_top'>
+
+<div style="margin:5px; float:right">
+    <button class="btn btn-info" type=button onclick="window.open('/app/autolist/timetable/','_blank');return false;">上架时间表</button>
+    <button class="btn btn-info" type=button onclick="window.open('/app/autolist/logs/','_blank');return false;">操作记录</button>
+</div>
+
+<div id="id-csrftoken">{% csrf_token %}</div>
+
+<div>
+<table class="table table-bordered table-striped table-condensed">
+  <tr>
+      <th>序号</th><th>商品编码</th><th>商品简称</th><th>内部分类</th><th>库存</th><th>库位警告</th><th>同步</th>
+      <th>缺货</th><th>操作</th><th>销售编码</th><th>销售属性</th><th>库存</th><th>库位警告</th>
+      <th>同步</th><th>缺货</th>
+  </tr>
+  {% for prod in object %}
+  	{% for sku in prod.prod_skus %}
+  	<tr>
+  		{% if forloop.first %}
+  		<td rowspan="{{ prod.prod_skus|length }}">{{ forloop.parentloop.counter }}</td>
+  		<td rowspan="{{ prod.prod_skus|length }}" class="item_info"><a href="#">{{ prod.outer_id }}</a></td>
+  		<td rowspan="{{ prod.prod_skus|length }}" class="item_info"><a href="#">{{ prod.name }}</a></td>
+  		<td rowspan="{{ prod.prod_skus|length }}">{{ prod.category.name }}</td>
+  		<td rowspan="{{ prod.prod_skus|length }}">{{ prod.collect_num }}</td>
+  		<td rowspan="{{ prod.prod_skus|length }}">{% if prod.warn_num >= prod.collect_num %}<img src="/static/admin/img/admin/icon-no.gif" alt="True"/>{% else %}<img src="/static/admin/img/admin/icon-yes.gif" alt="True">{% endif %}</td>
+  		<td rowspan="{{ prod.prod_skus|length }}"><input type="checkbox" id="{{ prod.outer_id }}_sync_stock" name="sync_stock" {% if prod.sync_stock %}checked="yes"{% endif %} onclick= "return false"  /></td>
+  		<td rowspan="{{ prod.prod_skus|length }}"><input type="checkbox" id="{{ prod.outer_id }}_out_stock" name="out_stock" {% if prod.out_stock %}checked="yes"{% endif %} onclick= "return false" /></td>
+  		<td rowspan="{{ prod.prod_skus|length }}"><a class="btn btn-small btn-warning" num_iid="{{ prod.outer_id }}"  style="display:block;"><i class="icon-edit"></i>修改</a>
+  			<a class="btn btn-small btn-danger" num_iid="{{ prod.outer_id }}"  style="display:block;"><i class="icon-remove"></i>删除</a></td>
+  		{% endif %}
+  		<td>{{ sku.outer_id }}</td>
+  		<td>{{ sku.properties_name }}</td>
+  		<td>{{ sku.quantity }}</td>
+  		<td>{% if sku.warn_num >= sku.quantity %}<img src="/static/admin/img/admin/icon-no.gif" alt="True"/>{% else %}<img src="/static/admin/img/admin/icon-yes.gif" alt="True">{% endif %}</td>
+  		<td><input type="checkbox" id="{{ prod.outer_id }}_{{ sku.outer_id }}_sync_stock" name="sku{{ forloop.counter }}.sync_stock" {% if sku.sync_stock %}checked="yes"{% endif %} onclick= "return false" /></td>
+  		<td><input type="checkbox" id="{{ prod.outer_id }}_{{ sku.outer_id }}_out_stock" name="sku{{ forloop.counter }}.out_stock" {% if sku.out_stock %}checked="yes"{% endif %} onclick= "return false" /></td>
+  	</tr>
+  	{% endfor %}
+  {% endfor %}
+  </table>
+</div>
+</div>
+
+{% endblock %}
+
+{% block delayed_script %}
+  <script type="text/javascript">
+      new autolist.ItemList();
+  </script>
+{% endblock %}

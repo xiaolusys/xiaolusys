@@ -130,6 +130,7 @@ def updateUserProductSkuTask(user_id):
                         if state:
                             for key,value in sku.iteritems():
                                 hasattr(psku,key) and setattr(psku,key,value)
+                            psku.properties_name = psku.properties_values
                             psku.save()
             except Exception,exc:
                 logger.error('update product sku error!',exc_info=True)

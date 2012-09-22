@@ -22,7 +22,6 @@ class Category(models.Model):
     class Meta:
         db_table = 'shop_categorys_category'
 
-
     def __unicode__(self):
         return self.name
 

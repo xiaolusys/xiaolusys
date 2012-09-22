@@ -1,9 +1,5 @@
-{% extends "base.html" %}
+{% extends "autolist/base.html" %}
 
-{% block style %}
-<link href="{{ STATIC_URL }}css/autolist.css" rel="stylesheet/less" type="text/css" />
-<link href="{{ STATIC_URL }}css/dialog.css" rel="stylesheet/less" type="text/css" />
-{% endblock %}
     
 {% block title%} 商品列表 {% endblock %}
 
@@ -28,7 +24,7 @@
   </tr>
   {% for item in items %}
   <tr id="{{ item.num_iid }}" title="{{ item.title }}" num="{{ item.num }}">
-      <td>{{ forloop.counter }}</td><td>{{ item.category }}</td><td>{{ item.product }}</td>
+      <td>{{ forloop.counter }}</td><td>{{ item.category }}</td><td>{{ item.outer_id }}</td>
       <td class="title"><a href="http://detail.tmall.com/item.htm?id={{ item.num_iid }}">{{ item.title }}</a></td>
       {% if item.isoweekday == 7 %}
       <td>周 日</td>

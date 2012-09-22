@@ -26,4 +26,7 @@ class ChartSerializer(Serializer):
             return self.serialize_iter(obj)
         else:
             return super(ChartSerializer,self).serialize(obj)
+        
+        
+
 

@@ -5,6 +5,7 @@ from django.db import models
 UNEXECUTE = 'unexecute'
 EXECERROR = 'execerror'
 SUCCESS = 'success'
+NORMAL = 'normal'
 DELETE = 'delete'
 
 class BaseModel(models.Model):

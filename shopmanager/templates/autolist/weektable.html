@@ -1,9 +1,5 @@
-{% extends "base.html" %}
+{% extends "autolist/base.html" %}
 
-{% block style %}
-<link href="{{ STATIC_URL }}css/autolist.css" rel="stylesheet/less" type="text/css" />
-<link href="{{ STATIC_URL }}css/dialog.css" rel="stylesheet/less" type="text/css" />
-{% endblock %}
 
 {% block title %}
   {% if weekday == 7 %}

@@ -2,10 +2,16 @@ import json
 from django.core.serializers.json import DjangoJSONEncoder
 from django.http import HttpResponse
 from djangorestframework.serializer import Serializer
-from auth import apis
-from shopback.items.models import Item
+from djangorestframework.utils import as_tuple
+from djangorestframework import status,signals
+from djangorestframework.response import Response
+from djangorestframework.mixins import CreateModelMixin
+from djangorestframework.views import ModelView,ListOrCreateModelView,ListModelView
+from shopback.base.models import NORMAL
+from shopback.items.models import Item,Product,ProductSku
 from shopback.users.models import User
 from shopback.items.tasks import updateUserItemsTask
+from auth import apis
 
 
 def update_user_items(request):
@@ -46,5 +52,63 @@ def update_user_item(request):
 
     item_dict = {'code':1,'reponse':Serializer().serialize(item)}
     return  HttpResponse(json.dumps(item_dict,cls=DjangoJSONEncoder))
+
+
+
+class ProductListView(ListOrCreateModelView):
+    """ docstring for ProductListView """
+    queryset = None
+    
+    def get(self, request, *args, **kwargs):
+        
+        model = self.resource.model
+
+        queryset = self.get_queryset() if self.get_queryset() is not None else model.objects.all()
+
+        if hasattr(self, 'resource'):
+            ordering = getattr(self.resource, 'ordering', None)
+        else:
+            ordering = None
+
+        kwargs.update({'status':NORMAL})
+
+        if ordering:
+            args = as_tuple(ordering)
+            queryset = queryset.order_by(*args)
+        return queryset.filter(**kwargs)
+
+    
+    def post(self, request, *args, **kwargs):
+        
+        
+        
+        return None
+    
+    def get_queryset(self):
+        return self.queryset
+    
+
+class ProductItemView(ListModelView):
+    """ docstring for ProductListView """
+    queryset = None
+    
+    def get(self, request, *args, **kwargs):
+        
+        model = self.resource.model
+
+        queryset = self.get_queryset() if self.get_queryset() is not None else model.objects.all()
+
+        if hasattr(self, 'resource'):
+            ordering = getattr(self.resource, 'ordering', None)
+        else:
+            ordering = None
+
+        if ordering:
+            args = as_tuple(ordering)
+            queryset = queryset.order_by(*args)
+        return queryset.filter(**kwargs)
+    
+    def get_queryset(self):
+        return self.queryset
 
 

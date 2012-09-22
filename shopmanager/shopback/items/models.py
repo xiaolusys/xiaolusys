@@ -5,10 +5,11 @@ Product:系统内部商品，唯一对应多家店铺的商品外部编码,
 ProductSku:淘宝平台商品sku，
 Item:淘宝平台商品，
 """
+import json
 import datetime
 from django.db import models
 from django.db.models import Sum
-from shopback.base.models import BaseModel
+from shopback.base.models import BaseModel,NORMAL,DELETE
 from shopback.base.fields import BigIntegerAutoField
 from shopback.categorys.models import Category,ProductCategory
 from shopback.users.models import User
@@ -25,6 +26,12 @@ APPROVE_STATUS  = (
     (INSTOCK_STATUS,'库中'),
 )
 
+
+PRODUCT_STATUS = (
+    (NORMAL,'使用'),
+    (DELETE,'删除'),
+)
+
 class Product(models.Model):
 
     outer_id     = models.CharField(max_length=64,primary_key=True)
@@ -36,14 +43,13 @@ class Product(models.Model):
     warn_num     = models.IntegerField(null=True,default=10)    #警戒库位
     price        = models.CharField(max_length=10,blank=True)
     
-    created      = models.DateTimeField(null=True,auto_now_add=True)
-    modified     = models.DateTimeField(null=True,auto_now=True)
+    created      = models.DateTimeField(null=True,blank=True,auto_now_add=True)
+    modified     = models.DateTimeField(null=True,blank=True,auto_now=True)
     
     sync_stock   = models.BooleanField(default=True)
     
     out_stock    = models.BooleanField(default=False)
-    modified  = models.DateTimeField(null=True,blank=True,auto_now=True)
-    status       = models.CharField(max_length=16,db_index=True,blank=True)
+    status       = models.CharField(max_length=16,db_index=True,choices=PRODUCT_STATUS,default=NORMAL)
     
     class Meta:
         db_table = 'shop_items_product'
@@ -68,7 +74,7 @@ class ProductSku(models.Model):
     sync_stock   = models.BooleanField(default=True)
     
     modified = models.DateTimeField(null=True,blank=True,auto_now=True)
-    status   = models.CharField(max_length=10,blank=True)  #normal,delete
+    status   = models.CharField(max_length=10,db_index=True,choices=PRODUCT_STATUS,default=NORMAL)  #normal,delete
 
     class Meta:
         db_table = 'shop_items_productsku'
@@ -91,7 +97,7 @@ class ProductSku(models.Model):
         value_list = []
         for properties in properties_list:
             values = properties.split(':')
-            value_list.append( values[3] if len(values)==4 else '')
+            value_list.append( values[3] if len(values)==4 else properties)
         return ' '.join(value_list)
 
 
@@ -141,7 +147,14 @@ class Item(models.Model):
 
     def __unicode__(self):
         return self.num_iid+'---'+self.outer_id+'---'+self.title
-
+    
+    @property
+    def sku_list(self):
+        try:
+            return json.loads(self.skus)
+        except:
+            return {}
+ 
 
     @classmethod
     def get_or_create(cls,user_id,num_iid):
