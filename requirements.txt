@@ -11,6 +11,7 @@ django-kombu==0.9.4
 pyExcelerator
 python-memcached==1.45
 djangorestframework
+MySQL-python==1.2.3
 #geraldo
 #reportlab==2.5
 
