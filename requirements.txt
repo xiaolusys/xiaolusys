@@ -22,3 +22,8 @@ git+file:///home/user1/repo/django-chartit.git#egg=django-chartit
 #git+git://github.com/dcramer/django-devserver#egg=django-devserver
 
   
+##########extra package##########
+#python-mysqldb
+#PIL
+#lxml
+#virtualenv==1.4.9
