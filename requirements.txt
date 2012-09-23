@@ -27,3 +27,4 @@ git+file:///home/user1/repo/django-chartit.git#egg=django-chartit
 #PIL
 #lxml
 #virtualenv==1.4.9
+#South

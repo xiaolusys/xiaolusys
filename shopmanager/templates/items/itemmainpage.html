@@ -22,18 +22,20 @@
       <th>同步</th><th>缺货</th>
   </tr>
   {% for prod in object %}
+  	{% if prod.prod_skus %}
+  	{% with prod.prod_skus|length as sku_len %}
   	{% for sku in prod.prod_skus %}
   	<tr>
   		{% if forloop.first %}
-  		<td rowspan="{{ prod.prod_skus|length }}">{{ forloop.parentloop.counter }}</td>
-  		<td rowspan="{{ prod.prod_skus|length }}" class="item_info"><a href="#">{{ prod.outer_id }}</a></td>
-  		<td rowspan="{{ prod.prod_skus|length }}" class="item_info"><a href="#">{{ prod.name }}</a></td>
-  		<td rowspan="{{ prod.prod_skus|length }}">{{ prod.category.name }}</td>
-  		<td rowspan="{{ prod.prod_skus|length }}">{{ prod.collect_num }}</td>
-  		<td rowspan="{{ prod.prod_skus|length }}">{% if prod.warn_num >= prod.collect_num %}<img src="/static/admin/img/admin/icon-no.gif" alt="True"/>{% else %}<img src="/static/admin/img/admin/icon-yes.gif" alt="True">{% endif %}</td>
-  		<td rowspan="{{ prod.prod_skus|length }}"><input type="checkbox" id="{{ prod.outer_id }}_sync_stock" name="sync_stock" {% if prod.sync_stock %}checked="yes"{% endif %} onclick= "return false"  /></td>
-  		<td rowspan="{{ prod.prod_skus|length }}"><input type="checkbox" id="{{ prod.outer_id }}_out_stock" name="out_stock" {% if prod.out_stock %}checked="yes"{% endif %} onclick= "return false" /></td>
-  		<td rowspan="{{ prod.prod_skus|length }}"><a class="btn btn-small btn-warning" num_iid="{{ prod.outer_id }}"  style="display:block;"><i class="icon-edit"></i>修改</a>
+  		<td rowspan="{{ sku_len }}">{{ forloop.parentloop.counter }}</td>
+  		<td rowspan="{{ sku_len }}" class="item_info"><a href="#">{{ prod.outer_id }}</a></td>
+  		<td rowspan="{{ sku_len }}" class="item_info"><a href="#">{{ prod.name }}</a></td>
+  		<td rowspan="{{ sku_len }}">{{ prod.category.name }}</td>
+  		<td rowspan="{{ sku_len }}">{{ prod.collect_num }}</td>
+  		<td rowspan="{{ sku_len }}">{% if prod.warn_num >= prod.collect_num %}<img src="/static/admin/img/admin/icon-no.gif" alt="True"/>{% else %}<img src="/static/admin/img/admin/icon-yes.gif" alt="True">{% endif %}</td>
+  		<td rowspan="{{ sku_len }}"><input type="checkbox" id="{{ prod.outer_id }}_sync_stock" name="sync_stock" {% if prod.sync_stock %}checked="yes"{% endif %} onclick= "return false"  /></td>
+  		<td rowspan="{{ sku_len }}"><input type="checkbox" id="{{ prod.outer_id }}_out_stock" name="out_stock" {% if prod.out_stock %}checked="yes"{% endif %} onclick= "return false" /></td>
+  		<td rowspan="{{ sku_len }}"><a class="btn btn-small btn-warning" num_iid="{{ prod.outer_id }}"  style="display:block;"><i class="icon-edit"></i>修改</a>
   			<a class="btn btn-small btn-danger" num_iid="{{ prod.outer_id }}"  style="display:block;"><i class="icon-remove"></i>删除</a></td>
   		{% endif %}
   		<td>{{ sku.outer_id }}</td>
@@ -44,6 +46,22 @@
   		<td><input type="checkbox" id="{{ prod.outer_id }}_{{ sku.outer_id }}_out_stock" name="sku{{ forloop.counter }}.out_stock" {% if sku.out_stock %}checked="yes"{% endif %} onclick= "return false" /></td>
   	</tr>
   	{% endfor %}
+  	{% endwith %}
+  	{% else%}
+  		<tr>
+  		<td >{{ forloop.counter }}</td>
+  		<td class="item_info"><a href="#">{{ prod.outer_id }}</a></td>
+  		<td class="item_info"><a href="#">{{ prod.name }}</a></td>
+  		<td >{{ prod.category.name }}</td>
+  		<td >{{ prod.collect_num }}</td>
+  		<td >{% if prod.warn_num >= prod.collect_num %}<img src="/static/admin/img/admin/icon-no.gif" alt="True"/>{% else %}<img src="/static/admin/img/admin/icon-yes.gif" alt="True">{% endif %}</td>
+  		<td ><input type="checkbox" id="{{ prod.outer_id }}_sync_stock" name="sync_stock" {% if prod.sync_stock %}checked="yes"{% endif %} onclick= "return false"  /></td>
+  		<td ><input type="checkbox" id="{{ prod.outer_id }}_out_stock" name="out_stock" {% if prod.out_stock %}checked="yes"{% endif %} onclick= "return false" /></td>
+  		<td ><a class="btn btn-small btn-warning" num_iid="{{ prod.outer_id }}"  style="display:block;"><i class="icon-edit"></i>修改</a>
+  			<a class="btn btn-small btn-danger" num_iid="{{ prod.outer_id }}"  style="display:block;"><i class="icon-remove"></i>删除</a></td>
+  		<td colspan="6">该商品没有设置销售属性</td>
+  		</tr>
+  	{% endif %}
   {% endfor %}
   </table>
 </div>
@@ -53,6 +71,28 @@
 
 {% block delayed_script %}
   <script type="text/javascript">
-      new autolist.ItemList();
+      $.layer({
+	    type : 2,
+	    closeBtn : [0,false],
+	    time : 5,
+	    iframe : {
+	        src : 'http://localhost:8000/items/product/item/2116BG7/?format=html'
+	    },
+	    title : ['' , false],
+	    area : ['500px','300px'],
+	    success : function(){ //层加载成功后进行的回调
+	        LAYER.shift('right-bottom',1000); //浏览器右下角弹出
+	    },
+	    end : function(){ //层彻底关闭后执行的回调
+	        $.layer({
+	            type : 2,
+	            offset : ['100px' , ''],
+	            iframe : {
+	                src : 'http://localhost:8000/items/product/item/2116BG7/?format=html'
+	            },	
+	            area : ['960px','500px']
+	        })
+	    }
+	});
   </script>
 {% endblock %}
