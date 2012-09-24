@@ -3,7 +3,7 @@ from django.core.serializers.json import DjangoJSONEncoder
 from django.http import HttpResponse
 from djangorestframework.serializer import Serializer
 from djangorestframework.utils import as_tuple
-from djangorestframework import status,signals
+from djangorestframework import status
 from djangorestframework.response import Response
 from djangorestframework.mixins import CreateModelMixin
 from djangorestframework.views import ModelView,ListOrCreateModelView,ListModelView

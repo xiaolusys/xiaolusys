@@ -1,12 +1,13 @@
 import json
 import settings
 import datetime
+from django.db.models import signals
 from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import render_to_response
 from django.core.urlresolvers import reverse
 from django.template import RequestContext
 from djangorestframework.utils import as_tuple
-from djangorestframework import status,signals
+from djangorestframework import status
 from djangorestframework.response import Response
 from djangorestframework.mixins import CreateModelMixin
 from djangorestframework.views import ModelView
@@ -366,7 +367,7 @@ class CreateListItemTaskModelView(CreateModelMixin,ModelView):
                 instance = model(**all_kw_args)
             instance.save()
 
-            signals.obj_created.send(sender=model, obj=instance, request=self.request)
+            signals.post_save.send(sender=model, obj=instance, request=self.request)
 
         else:
             instance = model.objects.get(num_iid=all_kw_args['num_iid'],status=UNEXECUTE)
