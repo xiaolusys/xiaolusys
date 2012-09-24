@@ -1,5 +1,6 @@
 from django.core.paginator import Paginator
 from django.db.models.query import QuerySet
+from django.db.models import signals
 from djangorestframework.response import ErrorResponse
 
 class PaginatorMixin(object):
@@ -136,5 +137,26 @@ class BatchGetMixin(object):
         return queryset
 
 
+class DeleteModelMixin(object):
+    """docstring for ClassName"""
+    def delete(self, request, *args, **kwargs):
+        model = self.resource.model
+
+        try:
+            if args:
+                # If we have any none kwargs then assume the last represents the primrary key
+                instance = model.objects.get(pk=args[-1], **kwargs)
+            else:
+                # Otherwise assume the kwargs uniquely identify the model
+                instance = model.objects.get(**kwargs)
+        except model.DoesNotExist:
+            raise ErrorResponse(status.HTTP_404_NOT_FOUND, None, {})
+
+        instance.status=False
+        instance.save()
+
+        signals.post_delete.send(sender=model, obj=instance, request=self.request)
+
+        return
 
 
