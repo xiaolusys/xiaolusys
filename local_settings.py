@@ -28,18 +28,19 @@ CACHES = {
     }
 }
 
-SITE_URL = "http://autolist.huyi.so/" #'http://192.168.1.101:8080/' 
+#SITE_URL = "http://autolist.huyi.so/" 
+SITE_URL = 'http://192.168.1.101:8080/' 
 
 
-APPKEY = '21165266'  #app name huyi ERP ,younishijie
-APPSECRET  = 'ea5f5687a856ec58199d538cfa04496d'
+#APPKEY = '21165266'  #app name huyi ERP ,younishijie
+#APPSECRET  = 'ea5f5687a856ec58199d538cfa04496d'
 
-#APPKEY = '12686908'
-#APPSECRET = 'b3ddef5982a23c636739289949c01f59'
+APPKEY = '12686908'
+APPSECRET = 'b3ddef5982a23c636739289949c01f59'
 
 AUTHRIZE_URL = 'https://oauth.taobao.com/authorize'
 AUTHRIZE_TOKEN_URL = 'https://oauth.taobao.com/token'
-REDIRECT_URI = 'http://autolist.huyi.so/accounts/login/taobao/'
+REDIRECT_URI = ''.join([SITE_URL,'accounts/login/taobao/'])
 TAOBAO_API_ENDPOINT = 'https://eco.taobao.com/router/rest'
 
 SCOPE = 'item,promotion,usergrade'
