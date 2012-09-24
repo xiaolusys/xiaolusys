@@ -28,7 +28,7 @@ CACHES = {
     }
 }
 
-SITE_URL = 'http://192.168.1.101:8080/' #http://autolist.huyi.so/
+SITE_URL = "http://autolist.huyi.so/" #'http://192.168.1.101:8080/' 
 
 
 APPKEY = '21165266'  #app name huyi ERP ,younishijie
