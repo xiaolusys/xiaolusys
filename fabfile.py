@@ -40,7 +40,7 @@ def init_code_base():
 def init_virtualenv():
     """docstring for init_virtualenv"""
     with cd(env.version_dir):
-        run('virtualenv ve')
+        run('virtualenv --system-site-packages ve')
         run('source ve/bin/activate;pip install -r %s' % env.require_file)
 
 def get_static():
