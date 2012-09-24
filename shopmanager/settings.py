@@ -288,12 +288,13 @@ LOGGING = {
 
 
 try:
-    from task_settings import *
+    from local_settings import *
 except Exception,exc:
     pass
 
+
 try:
-    from local_settings import *
+    from task_settings import *
 except Exception,exc:
     pass
 

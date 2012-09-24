@@ -86,16 +86,20 @@ if DEBUG:
 else :
     STATIC_ROOT = os.path.join(PROJECT_ROOT,'site_media', "static")
 
+SITE_URL = 'http://localhost:8000/' 
 
-APPKEY = '12686908'  #app name super ERP ,younishijie
-APPSECRET = 'b3ddef5982a23c636739289949c01f59'
+APPKEY = '21189152'  #app name huyi ERP test1 ,meixqhi
+APPSECRET = '5250e0e553fb65f674752d5850af547c'
+
+#APPKEY = '12686908'  #app name super ERP ,younishijie
+#APPSECRET = 'b3ddef5982a23c636739289949c01f59'
 
 #APPKEY = '21165266'  #app name huyi ERP ,younishijie
 #APPSECRET  = 'ea5f5687a856ec58199d538cfa04496d'
 
 AUTHRIZE_URL = 'https://oauth.taobao.com/authorize'
 AUTHRIZE_TOKEN_URL = 'https://oauth.taobao.com/token'
-REDIRECT_URI = 'http://localhost:8000/accounts/login/taobao/'
+REDIRECT_URI = ''.join([SITE_URL,'accounts/login/taobao/'])
 TAOBAO_API_ENDPOINT = 'https://eco.taobao.com/router/rest'
 
 SCOPE = 'item,promotion,usergrade'

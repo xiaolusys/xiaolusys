@@ -29,13 +29,13 @@ CACHES = {
 }
 
 #SITE_URL = "http://autolist.huyi.so/" 
-SITE_URL = 'http://192.168.1.101:8080/' 
+SITE_URL = 'http://192.168.1.101/' 
 
 
 #APPKEY = '21165266'  #app name huyi ERP ,younishijie
 #APPSECRET  = 'ea5f5687a856ec58199d538cfa04496d'
 
-APPKEY = '12686908'
+APPKEY = '12686908'   #app name super ERP ,younishijie
 APPSECRET = 'b3ddef5982a23c636739289949c01f59'
 
 AUTHRIZE_URL = 'https://oauth.taobao.com/authorize'
