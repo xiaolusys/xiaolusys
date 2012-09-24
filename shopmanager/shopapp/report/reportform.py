@@ -10,52 +10,52 @@ from auth import apis
 
 
 item_names = [
-    '会员名称',        #buyer_nick
-    '来源单号(分销ID)', #trade_id
-    '发货日期',        #consign_time
-    '物流运单号',       #logistics_id
-    '物流公司',        #logisticscompany
-    '物流费用',        #post_fee
-    '付款金额',        #payment
-    '积分',           #point
-    '佣金',           #commission_fee
-    '交易状态',        #trade_status
-    '到帐金额',        #earnings
+    '会员名称'.decode('utf8'),        #buyer_nick
+    '来源单号(分销ID)'.decode('utf8'), #trade_id
+    '发货日期'.decode('utf8'),        #consign_time
+    '物流运单号'.decode('utf8'),       #logistics_id
+    '物流公司'.decode('utf8'),        #logisticscompany
+    '物流费用'.decode('utf8'),        #post_fee
+    '付款金额'.decode('utf8'),        #payment
+    '积分'.decode('utf8'),           #point
+    '佣金'.decode('utf8'),           #commission_fee
+    '交易状态'.decode('utf8'),        #trade_status
+    '到帐金额'.decode('utf8'),        #earnings
 ]
 
 refund_item_names =[
-    '会员名称',       #buyer_nick
-    '退款单ID',       #refund_id
-    '交易ID',         #tid
-    '订单ID',        #oid
-    '退货运单号',     #sid
-    '物流公司',       #company_name
-    '退货时间',       #created
-    '总金额',        #total_fee
-    '实付金额',      #payment
-    '退款金额',      #refund_fee
-    '退货原因',      #reason
-    '商品退回',     #has_good_return
-    '商品状态',     #good_status
-    '订单状态',     #order_status
-    '退货状态',     #status
+    '会员名称'.decode('utf8'),       #buyer_nick
+    '退款单ID'.decode('utf8'),       #refund_id
+    '交易ID'.decode('utf8'),         #tid
+    '订单ID'.decode('utf8'),        #oid
+    '退货运单号'.decode('utf8'),     #sid
+    '物流公司'.decode('utf8'),       #company_name
+    '退货时间'.decode('utf8'),       #created
+    '总金额'.decode('utf8'),        #total_fee
+    '实付金额'.decode('utf8'),      #payment
+    '退款金额'.decode('utf8'),      #refund_fee
+    '退货原因'.decode('utf8'),      #reason
+    '商品退回'.decode('utf8'),     #has_good_return
+    '商品状态'.decode('utf8'),     #good_status
+    '订单状态'.decode('utf8'),     #order_status
+    '退货状态'.decode('utf8'),     #status
 ]
 
 TITLE_FIELDS = {
-    "TRADE_FINISH_MSG":'发货已成功的交易',
-    "TRADE_POST_UNFINISH_MSG":'发货但未完成的交易',
-    "TRADE_FENXIAO_MSG":'来自淘宝分销的订单',
-    "SELLER_TRADE_ACCOUNT_MSG":'%s合计：',
-    "TRADE_REFUND_MSG":'部分退款交易(包含商城与分销)',
-    "TRADE_REFUND_ACCOUNT_MSG":'%s退款金额合计',
-    "SELLER_TOTAL_INCOME_MSG":'%s买家实付款-邮费-积分/100-佣金-部分退款金额',
-    "TOTAL_SALE_MSG":'总销售额',
-    "TOTAL_POST_FEE_MSG":'邮费',
-    "TOTAL_POINT_FEE_MSG":'积分',
-    "TOTAL_COMMISSION_FEE_MSG":'佣金',
-    "TOTAL_REFUND_FEE_MSG":'退款',
-    "MONTH_FINAL_AMOUNT":'到帐金额',
-    "UNFOUND_MSG":'未找到！',
+    "TRADE_FINISH_MSG":'发货已成功的交易'.decode('utf8'),
+    "TRADE_POST_UNFINISH_MSG":'发货但未完成的交易'.decode('utf8'),
+    "TRADE_FENXIAO_MSG":'来自淘宝分销的订单'.decode('utf8'),
+    "SELLER_TRADE_ACCOUNT_MSG":'%s合计：'.decode('utf8'),
+    "TRADE_REFUND_MSG":'部分退款交易(包含商城与分销)'.decode('utf8'),
+    "TRADE_REFUND_ACCOUNT_MSG":'%s退款金额合计'.decode('utf8'),
+    "SELLER_TOTAL_INCOME_MSG":'%s买家实付款-邮费-积分/100-佣金-部分退款金额'.decode('utf8'),
+    "TOTAL_SALE_MSG":'总销售额'.decode('utf8'),
+    "TOTAL_POST_FEE_MSG":'邮费'.decode('utf8'),
+    "TOTAL_POINT_FEE_MSG":'积分'.decode('utf8'),
+    "TOTAL_COMMISSION_FEE_MSG":'佣金'.decode('utf8'),
+    "TOTAL_REFUND_FEE_MSG":'退款'.decode('utf8'),
+    "MONTH_FINAL_AMOUNT":'到帐金额'.decode('utf8'),
+    "UNFOUND_MSG":'未找到！'.decode('utf8'),
 }
 
 
