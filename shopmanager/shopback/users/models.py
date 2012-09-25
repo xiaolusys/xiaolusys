@@ -86,6 +86,7 @@ class User(models.Model):
             self.has_fenxiao = False
         else:
             self.has_fenxiao = True
+        self.save()
         return self.has_fenxiao
 
 
