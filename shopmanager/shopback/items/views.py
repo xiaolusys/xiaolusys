@@ -1,6 +1,7 @@
 import json
 from django.core.serializers.json import DjangoJSONEncoder
 from django.http import HttpResponse
+from django.template.loader import render_to_string
 from djangorestframework.serializer import Serializer
 from djangorestframework.utils import as_tuple
 from djangorestframework import status
@@ -106,7 +107,13 @@ class ProductItemView(ListModelView):
         if ordering:
             args = as_tuple(ordering)
             queryset = queryset.order_by(*args)
-        return queryset.filter(**kwargs)
+            
+        item_dict = {}
+        items = queryset.filter(**kwargs)
+        item_dict['items'] =  Serializer().serialize(items)
+        item_dict['layer_table'] = render_to_string('items/itemstable.html', { 'object':items})    
+        
+        return item_dict
     
     def get_queryset(self):
         return self.queryset

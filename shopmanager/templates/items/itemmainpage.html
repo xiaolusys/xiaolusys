@@ -28,8 +28,8 @@
   	<tr>
   		{% if forloop.first %}
   		<td rowspan="{{ sku_len }}">{{ forloop.parentloop.counter }}</td>
-  		<td rowspan="{{ sku_len }}" class="item_info"><a href="#">{{ prod.outer_id }}</a></td>
-  		<td rowspan="{{ sku_len }}" class="item_info"><a href="#">{{ prod.name }}</a></td>
+  		<td rowspan="{{ sku_len }}" class="click_title"><a href="#">{{ prod.outer_id }}</a></td>
+  		<td rowspan="{{ sku_len }}" class="click_title"><a href="#">{{ prod.name }}</a></td>
   		<td rowspan="{{ sku_len }}">{{ prod.category.name }}</td>
   		<td rowspan="{{ sku_len }}">{{ prod.collect_num }}</td>
   		<td rowspan="{{ sku_len }}">{% if prod.warn_num >= prod.collect_num %}<img src="/static/admin/img/admin/icon-no.gif" alt="True"/>{% else %}<img src="/static/admin/img/admin/icon-yes.gif" alt="True">{% endif %}</td>
@@ -65,34 +65,37 @@
   {% endfor %}
   </table>
 </div>
+<div id="item_info" class="item_info" node-type="outer" style="z-index: 9999; display:'none'; "><div class="bg"><div class="effect" id="layer_table" >
+	
+</div></div></div>
 </div>
 
 {% endblock %}
 
 {% block delayed_script %}
   <script type="text/javascript">
-      $.layer({
-	    type : 2,
-	    closeBtn : [0,false],
-	    time : 5,
-	    iframe : {
-	        src : 'http://localhost:8000/items/product/item/2116BG7/?format=html'
-	    },
-	    title : ['' , false],
-	    area : ['500px','300px'],
-	    success : function(){ //层加载成功后进行的回调
-	        LAYER.shift('right-bottom',1000); //浏览器右下角弹出
-	    },
-	    end : function(){ //层彻底关闭后执行的回调
-	        $.layer({
-	            type : 2,
-	            offset : ['100px' , ''],
-	            iframe : {
-	                src : 'http://localhost:8000/items/product/item/2116BG7/?format=html'
-	            },	
-	            area : ['960px','500px']
-	        })
-	    }
-	});
+  	var show_layer = function(){
+  		$.get('/items/product/item/211BG3/?format=json',function(data){
+  			console.log(data);
+  			if (data.items != 'undefine'){
+  				$('#layer_table').html(data.layer_table);
+	  			$.layer({
+				    shade : ['',false],
+				    type : 1,
+				    title : ['关联商品信息' , true],
+				    area : ['1000px','auto'],
+				    offset : ['100px','200px'],
+				    maxWidth : 1000,
+				    border : [5 , 0.5 , '#628C1C', true],
+				    page : {dom : '#item_info'},
+				    close : function(index){
+				        LAYER.close(index);
+				    }
+				});
+			}
+  		});
+  	} 
+    show_layer();
+
   </script>
 {% endblock %}

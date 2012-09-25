@@ -1,5 +1,5 @@
 from django.conf.urls.defaults import patterns, url
-from shopback.items.views import ProductListView
+from shopback.items.views import ProductListView,ProductItemView
 from shopback.items.resources import ProductListResource,ProductItemResource
 from shopback.items.renderers import ProductListHtmlRenderer,JSONRenderer,ProductItemHtmlRenderer
 
@@ -15,7 +15,7 @@ urlpatterns = patterns('shopback.items.views',
 #        authentication=(UserLoggedInAuthentication,),
 #        permissions=(IsAuthenticated,)
     )),
-    (r'^product/item/(?P<outer_id>[\w^_]+)/$',ProductListView.as_view(
+    (r'^product/item/(?P<outer_id>[\w^_]+)/$',ProductItemView.as_view(
         resource=ProductItemResource,
         renderers=(ProductItemHtmlRenderer,JSONRenderer,),
 #        authentication=(UserLoggedInAuthentication,),

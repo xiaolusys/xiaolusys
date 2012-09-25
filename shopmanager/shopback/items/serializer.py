@@ -8,6 +8,7 @@ from shopback.items.models import ProductSku
 import decimal
 import inspect
 import types
+import json
 
 class ProductSerializer(Serializer):
     """ docstring for class ChartSerializer """
@@ -51,7 +52,7 @@ class ProductSerializer(Serializer):
         return data
 
 
-class UserSerializer(Serializer):
+class ItemSerializer(Serializer):
     """ docstring for class ChartSerializer """
 
     __metaclass__ = _RegisterSerializer
@@ -66,8 +67,15 @@ class UserSerializer(Serializer):
 
         # serialize each required field 
         for fname in fields:
-            if fname in ('user','buyer_credit','seller_credit','top_session','top_parameters','top_appkey'):
+            if fname in ('buyer_credit','seller_credit','top_session','top_parameters',
+                         'top_appkey','user_permissions','password','groups'):
                 continue
+            elif fname == 'skus':
+                obj=json.loads(instance.get(fname,'none'))
+            elif fname == 'user':
+                user = instance.get(fname,None)
+                if user and user.has_key('top_session'):
+                    obj = user
             elif hasattr(self, smart_str(fname)):
                 # check first for a method 'fname' on self first
                 meth = getattr(self, fname)

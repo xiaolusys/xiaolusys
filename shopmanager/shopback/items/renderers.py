@@ -22,3 +22,6 @@ class ProductItemHtmlRenderer(TemplateRenderer):
     format = 'html'
     template = 'items/productitemspage.html'
     
+    
+
+    

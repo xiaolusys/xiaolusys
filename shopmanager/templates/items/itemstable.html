@@ -1,0 +1,24 @@
+<table cellspacing="0" cellpadding="0" border="0" class="table table-bordered table-striped table-condensed">
+	{% if object %}
+	<tr>
+	  <th>序号</th><th>商品图片</th><th>商品简称</th><th>商品数量</th><th>上架时间</th><th>销售状态</th><th>操作</th>
+	</tr>
+	{% endif %}
+	{% for item in object %}
+	<tr>
+		<td>{{ forloop.counter }}</td><td><img src="{{ item.pic_url }}" width="50px" heigth="50px" /></td><td class="info_title">{{ item.title }}</td>
+		<td>{{ item.num }}</td><td>{{ item.list_time }}</td>
+		<td>{% if item.approve_status == 'onsale' %}<a class="btn btn-small btn-success" style="display:block;"><i class="icon-ok"></i>在售</a>
+  			{% else %}<a class="btn btn-small btn-warning" style="display:block;"><i class="icon-move"></i>下架</a>{%endif%}</td>
+  		{% if forloop.first %}
+  		<td rowspan="{{ object|length }}">
+  		<a class="btn btn-small btn-info" style="display:block;" href="/items/product/item/{{ item.outer_id }}/" target="_blank" >
+  		<i class="icon-star"></i>详细信息</a></td>
+  		{% endif%}
+	</tr>
+	{% empty %}
+	<tr>
+		<td colspan="">该产品没有关联商品信息！</td>
+	<tr>
+	{% endfor %}
+</table>

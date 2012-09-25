@@ -1,7 +1,23 @@
+#-*- coding:utf8 -*-
 from django.db import models
-from shopback.base.models import UNEXECUTE
 
+LISTING_TYPE   = 'listing'
+DELISTING_TYPE = 'delisting'
+TASK_TYPE = (
+    (LISTING_TYPE,'上架'),
+    (DELISTING_TYPE,'下架')
+)
 
+UNEXECUTE = 'unexecute'
+EXECERROR = 'execerror'
+SUCCESS   = 'success'
+DELETE    = 'delete'
+TASK_STATUS = (
+    (UNEXECUTE,'未执行'),
+    (EXECERROR,'执行出错'),
+    (SUCCESS,'成功'),
+    (DELETE,'删除'),
+)
 
 class TimeSlots(models.Model):
     timeslot = models.IntegerField(primary_key=True)
@@ -30,10 +46,10 @@ class ItemListTask(models.Model):
     list_weekday = models.IntegerField()
     list_time = models.CharField(max_length=8)
 
-    task_type = models.CharField(max_length=10,blank=True)      #listing, delisting
+    task_type = models.CharField(max_length=10,choices=TASK_TYPE,blank=True,default=LISTING_TYPE)      #listing, delisting
     created_at = models.DateTimeField(null=True,blank=True, auto_now_add=True)
 
-    status = models.CharField(max_length=10,default=UNEXECUTE) #unexecute,execerror,success,delete
+    status = models.CharField(max_length=10,choices=TASK_STATUS,default=UNEXECUTE) #unexecute,execerror,success,delete
 
     class Meta:
         db_table = 'shop_autolist_itemlisttask'

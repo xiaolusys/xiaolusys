@@ -23,8 +23,9 @@ git+file:///home/user1/repo/django-chartit.git#egg=django-chartit
 #git+git://github.com/dcramer/django-devserver#egg=django-devserver
 
   
-##########extra package##########
-#python-mysqldb
-#virtualenv==1.4.9
+##########extra package(not install in the virtualenv)##########
+#sudo apt-get install python-mysqldb
+#sudo pip instal sentry==2.9.0
+#virtualenv==1.8.2
 #lxml==2.3
 #PIL==1.1.7
