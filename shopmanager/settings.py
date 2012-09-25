@@ -183,6 +183,11 @@ LOGGING = {
             'level': 'WARN',
             'propagate': True,
         },
+        'sentry.setup': {
+            'handlers': ['sentry'],
+            'level': 'WARN',
+            'propagate': True,
+        },
         'sentry.errors': {
             'handlers': ['sentry'],
             'level': 'WARN',

@@ -24,8 +24,8 @@ def write_to_log_db(task, response):
     item = Item.objects.get(num_iid=task.num_iid)
     log.num_iid = item.num_iid
     log.num = task.num
-    log.cat_id = item.category_id
-    log.cat_name = item.category_name
+    log.cat_id = item.category.cid if item.category else 0
+    log.cat_name = item.category.name if item.category else ''
     log.outer_id = item.outer_id
     log.title = item.title
     log.pic_url = item.pic_url
@@ -141,9 +141,9 @@ def updateAllItemListTask():
         time_future = format_time(date_future)
 
     tasks = ItemListTask.objects.filter\
-            (list_weekday=weekday,list_time__gt=time_ago,list_time__lt=time_future,status=UNEXECUTE)
+            (list_weekday=weekday,list_time__gte=time_ago,list_time__lte=time_future,status=UNEXECUTE)
 
     for task in tasks:
-        subtask(updateItemListTask).delay(task.num_iid)
+        updateItemListTask(task.num_iid)
 
 
