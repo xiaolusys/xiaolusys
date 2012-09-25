@@ -75,6 +75,8 @@ def refresh_session(user,appkey,appsecret,refresh_url):
             user.save()
             return True
         except Exception,exc:
+            import logging
+            logger = logging.getLogger("token.refresh")
             logger.error('refreshed token error: %s'%exc,exc_info=True)
 
     return False

@@ -22,10 +22,12 @@ class User(models.Model):
     uid = models.CharField(max_length=32,blank=True)
     nick = models.CharField(max_length=32,blank=True)
     sex = models.CharField(max_length=1,blank=True)
-
+    
     buyer_credit = models.CharField(max_length=80,blank=True)
     seller_credit = models.CharField(max_length=80,blank=True)
-
+    
+    has_fenxiao = models.BooleanField(default=False)
+    
     location = models.CharField(max_length=256,blank=True)
     created = models.CharField(max_length=19,blank=True)
     birthday = models.CharField(max_length=19,blank=True)
@@ -75,13 +77,24 @@ class User(models.Model):
         self.top_parameters = json.dumps(top_parameters)
 
         self.save()
-
+        
+    def verify_fenxiao_user(self):
+        from auth.apis.exceptions import UserFenxiaoUnuseException,InsufficientIsvPermissionsException
+        try:
+            apis.taobao_fenxiao_login_user_get(tb_user_id=self.visitor_id)
+        except (UserFenxiaoUnuseException,InsufficientIsvPermissionsException):
+            self.has_fenxiao = False
+        else:
+            self.has_fenxiao = True
+        return self.has_fenxiao
 
 
 def add_taobao_user(sender, user,top_session,top_parameters, *args, **kwargs):
     """docstring for user_logged_in"""
     profile = user.get_profile()
     profile.populate_user_info(top_session,top_parameters)
+    
+    profile.verify_fenxiao_user()
     #更新用户淘宝商品，以及分销平台商品
     from shopback.items.tasks import updateUserItemSkuFenxiaoProductTask
     

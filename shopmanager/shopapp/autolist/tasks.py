@@ -70,18 +70,17 @@ def updateItemListTask(num_iid):
                     response = apis.taobao_item_update_delisting(num_iid=task.num_iid,tb_user_id=task.user_id)
                     task.task_type = "delisting"
                     write_to_log_db(task, response)
+                
+                task.task_type = "listing"
+                response = apis.taobao_item_update_listing(num_iid=task.num_iid,num=task.num,tb_user_id=task.user_id)
+                write_to_log_db(task, response)
 
-                    task.task_type = "listing"
-                    response = apis.taobao_item_update_listing(num_iid=task.num_iid,num=task.num,tb_user_id=task.user_id)
+                if item['item_get_response']['item']['has_showcase'] == True:
+                    task.task_type = "recommend"
+                    response = apis.taobao_item_recommend_add(num_iid=task.num_iid,tb_user_id=task.user_id)
                     write_to_log_db(task, response)
-
-                    if item['item_get_response']['item']['has_showcase'] == True:
-                        task.task_type = "recommend"
-                        response = apis.taobao_item_recommend_add(num_iid=task.num_iid,tb_user_id=task.user_id)
-                        write_to_log_db(task, response)
             else :
                 success = False
-                logger.warn('Get item unsuccess: %s'%item)
 
         elif task.task_type == 'delisting':
             item = apis.taobao_item_get(num_iid=task.num_iid,tb_user_id=task.user_id)
@@ -96,14 +95,12 @@ def updateItemListTask(num_iid):
                     task.num = item['num']
                 else:
                     success = False
-                    logger.warn('The item(%s) has been delisting: %s'%item)
 
             else :
                 success = False
-                logger.warn('Get item unsuccess: %s'%item)
 
         if response.has_key('error_response'):
-            logger.error('Executing updateItemListTask(num_iid:%s) errorresponse:%s' %(task.num_iid,response))
+            logger.error('Executing updateItemListTask(num_iid:%s) errorresponse:%s' %(task.num_iid,response),exc_info=True)
             success = False
 
     except Exception,exc:

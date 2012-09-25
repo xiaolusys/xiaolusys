@@ -113,6 +113,10 @@ def test_api(request):
 #    print response
     
     user_id = profile.visitor_id
+    
+    response = apis.taobao_item_update_listing(num_iid='19554132278',num='5104',tb_user_id=user_id)
+    print response
+    
 #    response_list = apis.taobao_trades_sold_increment_get(tb_user_id=user_id,page_no=1,fields='tid,modified'
 #            ,page_size=settings.TAOBAO_PAGE_SIZE,use_has_next='true',start_modified='2012-09-18 00:00:00',end_modified='2012-09-18 10:25:00')
 

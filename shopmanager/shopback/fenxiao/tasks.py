@@ -21,6 +21,10 @@ logger = logging.getLogger('fenxiao.handler')
 
 @task()
 def saveUserFenxiaoProductTask(user_id):
+    user = User.objects.get(visitor_id=user_id)
+    if not user.has_fenxiao:
+        return 
+    
     try:
         has_next    = True
         cur_page    = 1
@@ -58,41 +62,40 @@ def updateAllUserFenxiaoProductTask():
 
 @task()
 def saveUserPurchaseOrderTask(user_id,update_from=None,update_to=None,status=None):
-    try:
-        update_handler = update_from and update_to
-        exec_times = (update_from - update_to).days/7+1 if update_handler else 1
+    user = User.objects.get(visitor_id=user_id)
+    if not user.has_fenxiao:
+        return 
+    
+    update_handler = update_from and update_to
+    exec_times = (update_from - update_to).days/7+1 if update_handler else 1
+    
+    for i in range(0,exec_times):
+        dt_f = update_from + datetime.timedelta(i*7,0,0) if update_handler else None
+        dt_t = update_from + datetime.timedelta((i+1)*7,0,0) if update_handler else None
         
-        for i in range(0,exec_times):
-            dt_f = update_from + datetime.timedelta(i*7,0,0) if update_handler else None
-            dt_t = update_from + datetime.timedelta((i+1)*7,0,0) if update_handler else None
-            
-            if not (dt_f and dt_t):
-                dt_t = datetime.datetime.now()
-                dt_f = dt_t - datetime.timedelta(7,0,0)
-            has_next = True
-            cur_page = 1
-        
-            while has_next:
-        
-                response_list = apis.taobao_fenxiao_orders_get(tb_user_id=user_id,page_no=cur_page,time_type='trade_time_type'
-                    ,page_size=settings.TAOBAO_PAGE_SIZE/2,start_created=dt_f,end_created=dt_t,status=status)
-        
-                orders_list = response_list['fenxiao_orders_get_response']
-                if orders_list['total_results']>0:
-                    for o in orders_list['purchase_orders']['purchase_order']:
-        
-                        order,state = PurchaseOrder.objects.get_or_create(pk=o['fenxiao_id'])
-                        order.save_order_through_dict(user_id,o)
-        
-                total_nums = orders_list['total_results']
-                cur_nums = cur_page*settings.TAOBAO_PAGE_SIZE
-                has_next = cur_nums<total_nums
-                cur_page += 1
+        if not (dt_f and dt_t):
+            dt_t = datetime.datetime.now()
+            dt_f = dt_t - datetime.timedelta(7,0,0)
+        has_next = True
+        cur_page = 1
+    
+        while has_next:
+    
+            response_list = apis.taobao_fenxiao_orders_get(tb_user_id=user_id,page_no=cur_page,time_type='trade_time_type'
+                ,page_size=settings.TAOBAO_PAGE_SIZE/2,start_created=dt_f,end_created=dt_t,status=status)
+    
+            orders_list = response_list['fenxiao_orders_get_response']
+            if orders_list['total_results']>0:
+                for o in orders_list['purchase_orders']['purchase_order']:
+    
+                    order,state = PurchaseOrder.objects.get_or_create(pk=o['fenxiao_id'])
+                    order.save_order_through_dict(user_id,o)
+    
+            total_nums = orders_list['total_results']
+            cur_nums = cur_page*settings.TAOBAO_PAGE_SIZE
+            has_next = cur_nums<total_nums
+            cur_page += 1
 
-    except UserFenxiaoUnuseException,exc:
-        logger.warn("the current user (id:%s) is not fenxiao platform user,error:%s"%(str(user_id),exc))
-    except TaobaoRequestException,exc:
-        logger.error('%s'%exc,exc_info=True)
 
         
 
@@ -111,31 +114,33 @@ def updateAllUserPurchaseOrderTask(update_from=None,update_to=None,status=None):
   
 @task()
 def saveUserIncrementPurchaseOrderTask(user_id,update_from=None,update_to=None):
-    try:           
-        update_from = format_datetime(update_from)
-        update_to   = format_datetime(update_to)
-    
-        has_next = True
-        cur_page = 1
-        
-        while has_next:
-            response_list = apis.taobao_fenxiao_orders_get(tb_user_id=user_id,page_no=cur_page,time_type='update_time_type'
-                ,page_size=settings.TAOBAO_PAGE_SIZE/2,start_created=update_from,end_created=update_to)
-    
-            orders_list = response_list['fenxiao_orders_get_response']
-            if orders_list['total_results']>0:
-                for o in orders_list['purchase_orders']['purchase_order']:
-                    
-                    order,state = PurchaseOrder.objects.get_or_create(pk=o['fenxiao_id'])
-                    order.save_order_through_dict(user_id,o)
-    
-            total_nums = orders_list['total_results']
-            cur_nums = cur_page*settings.TAOBAO_PAGE_SIZE
-            has_next = cur_nums<total_nums
-            cur_page += 1 
+    user = User.objects.get(visitor_id=user_id)
+    if not user.has_fenxiao:
+        return 
+         
+    update_from = format_datetime(update_from)
+    update_to   = format_datetime(update_to)
 
-    except UserFenxiaoUnuseException,exc:
-        logger.warn("the current user(id:%s) is not fenxiao platform user,error:%s"%(str(user_id),exc))
+    has_next = True
+    cur_page = 1
+    
+    while has_next:
+        response_list = apis.taobao_fenxiao_orders_get(tb_user_id=user_id,page_no=cur_page,time_type='update_time_type'
+            ,page_size=settings.TAOBAO_PAGE_SIZE/2,start_created=update_from,end_created=update_to)
+
+        orders_list = response_list['fenxiao_orders_get_response']
+        if orders_list['total_results']>0:
+            for o in orders_list['purchase_orders']['purchase_order']:
+                
+                order,state = PurchaseOrder.objects.get_or_create(pk=o['fenxiao_id'])
+                order.save_order_through_dict(user_id,o)
+
+        total_nums = orders_list['total_results']
+        cur_nums = cur_page*settings.TAOBAO_PAGE_SIZE
+        has_next = cur_nums<total_nums
+        cur_page += 1 
+
+
 
     
 @task()
@@ -198,3 +203,5 @@ def updateAllUserIncrementPurchasesTask():
         logger.error('%s'%exc,exc_info=True)
     else:
         SystemConfig.objects.filter(id=sysconf.id).update(fenxiao_order_updated=dt)  
+
+

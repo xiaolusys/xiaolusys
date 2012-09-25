@@ -15,7 +15,7 @@ from celery.task import task
 from celery.app.task import BaseTask
 from auth.utils import getSignatureTaoBao,format_datetime,format_date,refresh_session
 from auth.apis.exceptions import TaobaoRequestException,RemoteConnectionException,UserFenxiaoUnuseException,\
-    AppCallLimitedException,APIConnectionTimeOutException,ServiceRejectionException ,ContentNotRightException
+    AppCallLimitedException,APIConnectionTimeOutException,ServiceRejectionException ,ContentNotRightException,InsufficientIsvPermissionsException
 
 import logging
 logger = logging.getLogger('auth.apis')
@@ -112,6 +112,9 @@ def raise_except_or_ret_json(content):
                     code=code,msg=msg,sub_code=sub_code,sub_msg=sub_msg)
         elif code == 7 and sub_code == u'accesscontrol.limited-by-app-access-count':
             raise AppCallLimitedException(
+                    code=code,msg=msg,sub_code=sub_code,sub_msg=sub_msg)
+        elif code == 11 and sub_code ==u'isv.permission-api-package-limit':
+            raise InsufficientIsvPermissionsException(
                     code=code,msg=msg,sub_code=sub_code,sub_msg=sub_msg)
         else :
             raise TaobaoRequestException(
@@ -376,6 +379,10 @@ def taobao_fenxiao_orders_get(start_created=None,end_created=None,time_type=None
 @apis('taobao.fenxiao.products.get',max_retry=20,limit_rate=20)
 def taobao_fenxiao_products_get(outer_id=None,productcat_id=None,status=None,pids=None,item_ids=None,start_modified=None,end_modified=None,
                                 page_no=None,page_size=None,fields=API_FIELDS['taobao.fenxiao.products.get'],tb_user_id=None):
+    pass
+
+@apis('taobao.fenxiao.login.user.get')
+def taobao_fenxiao_login_user_get(tb_user_id=None):
     pass
 ################  refund apis  ##################
 @apis('taobao.refunds.receive.get',max_retry=20,limit_rate=20)
