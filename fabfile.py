@@ -11,6 +11,7 @@ def staging():
     env.base_dir = '/home/user1/deploy/taobao'
     env.repo_url = 'file:///home/user1/repo/taobao-backend.git'
     env.require_file = 'requirements_staging.txt'
+    env.setup_file   = 'stage_settings.py'
 
 def ny():
     """docstring for ny"""
@@ -18,6 +19,7 @@ def ny():
     env.base_dir = '/home/user1/deploy/taobao'
     env.repo_url = 'file:///home/user1/repo/taobao-backend.git'
     env.require_file = 'requirements.txt'
+    env.setup_file   = 'ny_settings.py'
 
 def production():
     """docstring for production"""
@@ -25,6 +27,7 @@ def production():
     env.base_dir = '/home/user1/deploy/taobao'
     env.repo_url = 'file:///home/user1/repo/taobao-backend.git'
     env.require_file = 'requirements_production.txt'
+    env.setup_file   = 'prod_settings.py'
 
 def get_version():
     """docstring for get_version"""
@@ -54,7 +57,7 @@ def get_static():
 def set_local_settings():
     """docstring for set_local_settings"""
     with cd(env.version_dir):
-        run('cp ./local_settings.py shopmanager/')
+        run('cp ./%s shopmanager/local_settings.py'%env.setup_file)
 
 def collect_static():
     """docstring for collect_static"""
