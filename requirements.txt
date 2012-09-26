@@ -8,7 +8,7 @@ httplib2==0.7.2
 django-kombu==0.9.4
 pyExcelerator
 python-memcached==1.45
-djangorestframework==0.2.3
+djangorestframework==0.3.0
 
 #geraldo
 #reportlab==2.5
@@ -18,6 +18,7 @@ djangorestframework==0.2.3
 #guppy
 
 git+file:///home/user1/repo/django-chartit.git#egg=django-chartit
+#git+shh://user1@222.73.86.185:repo/django-rest-framework.git#egg=djangorestframework
 #git+git://github.com/dcramer/django-devserver#egg=django-devserver
 
   

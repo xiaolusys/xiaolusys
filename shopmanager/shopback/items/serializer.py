@@ -2,7 +2,7 @@
 from django.db import models
 from django.db.models.query import QuerySet
 from django.db.models.fields.related import RelatedField
-from djangorestframework.serializer import Serializer,_RegisterSerializer
+from djangorestframework.serializer import Serializer,_RegisterSerializer,_SkipField
 from django.utils.encoding import smart_unicode, is_protected_type, smart_str
 from shopback.items.models import ProductSku
 
