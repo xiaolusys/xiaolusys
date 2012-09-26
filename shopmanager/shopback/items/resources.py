@@ -16,6 +16,6 @@ class ProductItemResource(ModelResource):
     """ docstring for ProductItem ModelResource """
 
     model = Item
-    fields = (('items','ItemSerializer'),'layer_table') 
+    fields = (('itemobjs','ItemSerializer'),'layer_table') 
     exclude = ('url',)
     

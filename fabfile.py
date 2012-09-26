@@ -78,7 +78,7 @@ def collect_asyncfile():
 def collect_closure_library():
     """docstring for collect_static"""
     with cd(env.version_dir):
-        run('cd %s/shopmanager/site_media/static;rm -rf closure-library;ln -s /home/user1/deploy/google-closure/closure-library' % env.version_dir)
+        run('cd %s/shopmanager/site_media/static;unlink closure-library;ln -s /home/user1/deploy/google-closure/closure-library' % env.version_dir)
 
 def deploy():
     """docstring for deploy"""

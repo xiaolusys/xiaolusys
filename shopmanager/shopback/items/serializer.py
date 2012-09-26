@@ -74,8 +74,8 @@ class ItemSerializer(Serializer):
                          'top_appkey','user_permissions','password','groups'):
                 continue
             elif fname == 'skus':
-                skus = instance.get(fname,'{}') or '{}'
-                obj=json.loads( skus)
+                skus = instance.get(fname,'null') or 'null'
+                obj=json.loads(skus)
             elif fname == 'user':
                 user = instance.get(fname,None)
                 if user and user.has_key('top_session'):

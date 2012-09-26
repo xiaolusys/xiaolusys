@@ -84,8 +84,8 @@
   		var url = '/items/product/item/'+outer_id+'/?format=json'
 
   		$.get(url,function(data){
-  			var item_num    = data.items.length
-  			if (data.items != 'undefine'){
+  			var item_num    = data.itemobjs.length
+  			if (data.itemobjs != 'undefine'){
   				$('#item_info').html(data.layer_table);
 	  			$.layer({
 				    shade : ['',false],
