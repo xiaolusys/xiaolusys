@@ -28,8 +28,8 @@
   	<tr>
   		{% if forloop.first %}
   		<td rowspan="{{ sku_len }}">{{ forloop.parentloop.counter }}</td>
-  		<td rowspan="{{ sku_len }}" class="click_title"><a href="#">{{ prod.outer_id }}</a></td>
-  		<td rowspan="{{ sku_len }}" class="click_title"><a href="#">{{ prod.name }}</a></td>
+  		<td rowspan="{{ sku_len }}" class="click_title"><a href="#" onclick="return false;" outer_id="{{ prod.outer_id }}">{{ prod.outer_id }}</a></td>
+  		<td rowspan="{{ sku_len }}" class="click_title"><a href="#" onclick="return false;" outer_id="{{ prod.outer_id }}">{{ prod.name }}</a></td>
   		<td rowspan="{{ sku_len }}">{{ prod.category.name }}</td>
   		<td rowspan="{{ sku_len }}">{{ prod.collect_num }}</td>
   		<td rowspan="{{ sku_len }}">{% if prod.warn_num >= prod.collect_num %}<img src="/static/admin/img/admin/icon-no.gif" alt="True"/>{% else %}<img src="/static/admin/img/admin/icon-yes.gif" alt="True">{% endif %}</td>
@@ -50,8 +50,8 @@
   	{% else%}
   		<tr>
   		<td >{{ forloop.counter }}</td>
-  		<td class="item_info"><a href="#">{{ prod.outer_id }}</a></td>
-  		<td class="item_info"><a href="#">{{ prod.name }}</a></td>
+  		<td class="click_title"><a href="#" onclick="return false;" outer_id="{{ prod.outer_id }}">{{ prod.outer_id }}</a></td>
+  		<td class="click_title"><a href="#" onclick="return false;" outer_id="{{ prod.outer_id }}">{{ prod.name }}</a></td>
   		<td >{{ prod.category.name }}</td>
   		<td >{{ prod.collect_num }}</td>
   		<td >{% if prod.warn_num >= prod.collect_num %}<img src="/static/admin/img/admin/icon-no.gif" alt="True"/>{% else %}<img src="/static/admin/img/admin/icon-yes.gif" alt="True">{% endif %}</td>
@@ -65,29 +65,37 @@
   {% endfor %}
   </table>
 </div>
-<div id="item_info" class="item_info" node-type="outer" style="z-index: 9999; display:'none'; "><div class="bg"><div class="effect" id="layer_table" >
+<div id="item_info" class="item_info" node-type="outer" style="z-index: 9999; display:block; ">
 	
-</div></div></div>
+</div>
 </div>
 
 {% endblock %}
 
 {% block delayed_script %}
   <script type="text/javascript">
-  	var show_layer = function(){
-  		$.get('/items/product/item/211BG3/?format=json',function(data){
-  			console.log(data);
+  	var show_layer = function(ev){
+  		ev  =  ev  ||  window.event;
+  		var  target    =  ev.target  ||  ev.srcElement;
+  		var screenX = ev.screenX
+  		var screenY = ev.screenY/1.5
+
+  		var  outer_id  =  target.getAttribute('outer_id');
+  		var url = '/items/product/item/'+outer_id+'/?format=json'
+
+  		$.get(url,function(data){
+  			var item_num    = data.items.length
   			if (data.items != 'undefine'){
-  				$('#layer_table').html(data.layer_table);
+  				$('#item_info').html(data.layer_table);
 	  			$.layer({
 				    shade : ['',false],
 				    type : 1,
 				    title : ['关联商品信息' , true],
-				    area : ['1000px','auto'],
-				    offset : ['100px','200px'],
-				    maxWidth : 1000,
-				    border : [5 , 0.5 , '#628C1C', true],
-				    page : {dom : '#item_info'},
+				    area : ['1000px',(item_num*150).toString()+'px'],
+				    offset : [screenY.toString()+'px',screenX.toString()+'px'],
+				    maxWidth : 1200,
+				    border : [5 , 0.3 , '#628C1C', true],
+				    page : {dom : '#layer_table'},
 				    close : function(index){
 				        LAYER.close(index);
 				    }
@@ -95,7 +103,8 @@
 			}
   		});
   	} 
-    show_layer();
+    $(".click_title a").click(show_layer);
+
 
   </script>
 {% endblock %}

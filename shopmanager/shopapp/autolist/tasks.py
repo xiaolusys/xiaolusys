@@ -74,7 +74,9 @@ def updateItemListTask(num_iid):
                 task.task_type = "listing"
                 response = apis.taobao_item_update_listing(num_iid=task.num_iid,num=task.num,tb_user_id=task.user_id)
                 write_to_log_db(task, response)
-
+                
+                Item.objects.filter(num_iid=num_iid).update(list_time=response['item_update_listing_response']['item']['modified'])
+                
                 if item['item_get_response']['item']['has_showcase'] == True:
                     task.task_type = "recommend"
                     response = apis.taobao_item_recommend_add(num_iid=task.num_iid,tb_user_id=task.user_id)

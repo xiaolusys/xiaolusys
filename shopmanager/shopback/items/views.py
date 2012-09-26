@@ -111,7 +111,8 @@ class ProductItemView(ListModelView):
         item_dict = {}
         items = queryset.filter(**kwargs)
         item_dict['items'] =  Serializer().serialize(items)
-        item_dict['layer_table'] = render_to_string('items/itemstable.html', { 'object':items})    
+        
+        item_dict['layer_table'] = render_to_string('items/itemstable.html', { 'object':item_dict['items']})    
         
         return item_dict
     

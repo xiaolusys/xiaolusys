@@ -29,4 +29,6 @@ def arraysum(value):
     for v in value:
         if v:
             sum += v
-    return sum              
+    return sum    
+
+         
