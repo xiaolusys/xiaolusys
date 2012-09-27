@@ -4,7 +4,6 @@ Django==1.4.1
 gunicorn==0.14.6
 raven==2.0.6
 httplib2==0.7.2
-kombu 2.4.7
 django-kombu==0.9.4
 pyExcelerator
 python-memcached==1.45
