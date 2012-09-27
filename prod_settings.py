@@ -40,7 +40,7 @@ APPSECRET  = 'ea5f5687a856ec58199d538cfa04496d'
 
 AUTHRIZE_URL = 'https://oauth.taobao.com/authorize'
 AUTHRIZE_TOKEN_URL = 'https://oauth.taobao.com/token'
-REDIRECT_URI = ''.join([SITE_URL,'accounts/login/taobao/'])
+REDIRECT_URI = ''.join([SITE_URL,'accounts/login/auth/'])
 TAOBAO_API_ENDPOINT = 'https://eco.taobao.com/router/rest'
 
 SCOPE = 'item,promotion,usergrade'

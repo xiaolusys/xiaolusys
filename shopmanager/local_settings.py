@@ -92,7 +92,7 @@ RAVEN_CONFIG = {
 
 #SENTRY_CLIENT = 'raven.contrib.django.DjangoClient'
 
-SITE_URL = 'http://localhost:8000/'
+SITE_URL = 'http://127.0.0.1:8000/'
 
 #from raven.contrib.django.models import client
 #
@@ -110,7 +110,7 @@ APPSECRET = '5250e0e553fb65f674752d5850af547c'
 
 AUTHRIZE_URL = 'https://oauth.taobao.com/authorize'
 AUTHRIZE_TOKEN_URL = 'https://oauth.taobao.com/token'
-REDIRECT_URI = ''.join([SITE_URL,'accounts/login/taobao/'])
+REDIRECT_URI = ''.join([SITE_URL,'accounts/login/auth/'])
 TAOBAO_API_ENDPOINT = 'https://eco.taobao.com/router/rest'
 
 SCOPE = 'item,promotion,usergrade'
