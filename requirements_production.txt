@@ -5,7 +5,6 @@ gunicorn==0.14.6
 raven==2.0.6
 httplib2==0.7.2
 django-kombu==0.9.4
-pyExcelerator
 python-memcached==1.45
 djangorestframework==0.3.0
 git+file:///home/user1/repo/django-chartit.git#egg=django-chartit
