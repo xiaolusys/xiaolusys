@@ -5,7 +5,6 @@ import json
 from celery.task import task
 from celery.task.sets import subtask
 from django.conf import settings
-from shopback.base.aggregates import ConcatenateDistinct
 from auth.utils import format_datetime ,parse_datetime ,refresh_session
 from shopback.items.models import Item,ProductSku,INSTOCK_STATUS,ONSALE_STATUS
 from shopback.orders.models import Order,Trade,ORDER_SUCCESS_STATUS,ORDER_UNPAY_STATUS

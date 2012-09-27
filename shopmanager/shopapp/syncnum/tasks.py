@@ -5,7 +5,6 @@ from celery.task import task
 from celery.task.sets import subtask
 from django.conf import settings
 from django.db.models import Sum
-from shopback.base.aggregates import ConcatenateDistinct
 from auth.utils import format_datetime ,parse_datetime
 from shopback.items.models import Item,ONSALE_STATUS
 from shopback.items.tasks import updateUserItemsTask,updateUserProductSkuTask

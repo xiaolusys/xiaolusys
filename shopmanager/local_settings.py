@@ -20,7 +20,7 @@ PROJECT_ROOT = os.path.abspath(os.path.dirname(__file__))
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql', # Add 'postgresql_psycopg2', 'postgresql', 'mysql', 'sqlite3' or 'oracle'.
-        'NAME': 'shoptest',                      # Or path to database file if using sqlite3.
+        'NAME': 'shoptest2',                      # Or path to database file if using sqlite3.
         'USER': 'meixqhi',                      # Not used with sqlite3.
         'PASSWORD': '123123',                  # Not used with sqlite3.
         'HOST': '',                      # Set to empty string for localhost. Not used with sqlite3.
@@ -40,7 +40,6 @@ INSTALLED_APPS = (
     'chartit',
     'south',
     'gunicorn',
-    'sentry',
     'raven.contrib.django',
     'djangorestframework',
     'djcelery',
@@ -86,7 +85,19 @@ if DEBUG:
 else :
     STATIC_ROOT = os.path.join(PROJECT_ROOT,'site_media', "static")
 
-SITE_URL = 'http://localhost:8000/' 
+RAVEN_CONFIG = {
+    'dsn': 'http://981b39c5e0c14275b7da7c671eb76513:faf7926e18a5403f8e054996042ad592@sentry/2',
+    'register_signals': True,
+}
+
+#SENTRY_CLIENT = 'raven.contrib.django.DjangoClient'
+
+SITE_URL = 'http://localhost:8000/'
+
+#from raven.contrib.django.models import client
+#
+#client.captureException()
+ 
 
 APPKEY = '21189152'  #app name huyi ERP test1 ,meixqhi
 APPSECRET = '5250e0e553fb65f674752d5850af547c'

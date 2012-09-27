@@ -13,7 +13,9 @@ from shopback.items.models import Item,Product,ProductSku
 from shopback.users.models import User
 from shopback.items.tasks import updateUserItemsTask
 from auth import apis
+import logging
 
+logger = logging.getLogger('items.handler')
 
 def update_user_items(request):
 
@@ -76,6 +78,7 @@ class ProductListView(ListOrCreateModelView):
         if ordering:
             args = as_tuple(ordering)
             queryset = queryset.order_by(*args)
+        
         return queryset.filter(**kwargs)
 
     
