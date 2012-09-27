@@ -12,9 +12,9 @@ class ItemListTaskAdmin(admin.ModelAdmin):
 
     #date_hierarchy = 'list_time'
     ordering = ['created_at']
-
-    list_filter = ('status', 'list_weekday', 'list_time')
-
+    
+    list_filter = ('status', 'list_weekday', 'list_time','task_type')
+    search_fields = ['num_iid','list_time']
     actions = ['cancleExecute']
 
     def cancleExecute(self, request, queryset):

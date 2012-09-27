@@ -54,7 +54,7 @@
   		<td class="click_title"><a href="#" onclick="return false;" outer_id="{{ prod.outer_id }}">{{ prod.name }}</a></td>
   		<td >{{ prod.category.name }}</td>
   		<td >{{ prod.collect_num }}</td>
-  		<td >{% if prod.warn_num >= prod.collect_num %}<img src="/static/admin/img/admin/icon-no.gif" alt="True"/>{% else %}<img src="/static/admin/img/admin/icon-yes.gif" alt="True">{% endif %}</td>
+  		<td >{% if prod.warn_num >= prod.collect_num %}<img src="/static/admin/img/icon-no.gif" alt="True"/>{% else %}<img src="/static/admin/img/icon-yes.gif" alt="True">{% endif %}</td>
   		<td ><input type="checkbox" id="{{ prod.outer_id }}_sync_stock" name="sync_stock" {% if prod.sync_stock %}checked="yes"{% endif %} onclick= "return false"  /></td>
   		<td ><input type="checkbox" id="{{ prod.outer_id }}_out_stock" name="out_stock" {% if prod.out_stock %}checked="yes"{% endif %} onclick= "return false" /></td>
   		<td ><a class="btn btn-small btn-warning" num_iid="{{ prod.outer_id }}"  style="display:block;"><i class="icon-edit"></i>修改</a>

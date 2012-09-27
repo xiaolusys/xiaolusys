@@ -28,6 +28,10 @@ CACHES = {
     }
 }
 
+RAVEN_CONFIG = {
+    'dsn': 'http://eea330200a05408f9f74c47ca95e16e9:5223e7e8ab4c40cfa28813f5f1743d1e@autolist.huyi.so/2',
+    'register_signals': True,
+}
 
 SITE_URL = "http://autolist.huyi.so/" 
 #SITE_URL = 'http://192.168.1.101/' 
