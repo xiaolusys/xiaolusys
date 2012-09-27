@@ -86,7 +86,7 @@ else :
     STATIC_ROOT = os.path.join(PROJECT_ROOT,'site_media', "static")
 
 RAVEN_CONFIG = {
-    'dsn': 'http://981b39c5e0c14275b7da7c671eb76513:faf7926e18a5403f8e054996042ad592@sentry/2',
+    'dsn': 'http://93556d02ae254080999d90448d8396ed:1d37106c125345588b89628dc953556d@sentry.huyi.so/2',
     'register_signals': True,
 }
 

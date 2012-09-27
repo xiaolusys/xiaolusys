@@ -28,6 +28,7 @@ CACHES = {
     }
 }
 
+
 SITE_URL = "http://autolist.huyi.so/" 
 #SITE_URL = 'http://192.168.1.101/' 
 
