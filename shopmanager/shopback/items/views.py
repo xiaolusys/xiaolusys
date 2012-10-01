@@ -1,3 +1,4 @@
+import datetime
 import json
 from django.core.serializers.json import DjangoJSONEncoder
 from django.http import HttpResponse
@@ -8,10 +9,11 @@ from djangorestframework import status
 from djangorestframework.response import Response
 from djangorestframework.mixins import CreateModelMixin
 from djangorestframework.views import ModelView,ListOrCreateModelView,ListModelView
-from shopback.base.models import NORMAL
-from shopback.items.models import Item,Product,ProductSku
+from shopback.base.models import NORMAL,DELETE
+from shopback.items.models import Item,Product,ProductSku,ONSALE_STATUS
 from shopback.users.models import User
 from shopback.items.tasks import updateUserItemsTask
+from shopapp.syncnum.tasks import updateItemNum
 from auth import apis
 import logging
 
@@ -57,7 +59,6 @@ def update_user_item(request):
     return  HttpResponse(json.dumps(item_dict,cls=DjangoJSONEncoder))
 
 
-
 class ProductListView(ListOrCreateModelView):
     """ docstring for ProductListView """
     queryset = None
@@ -80,13 +81,7 @@ class ProductListView(ListOrCreateModelView):
             queryset = queryset.order_by(*args)
         
         return queryset.filter(**kwargs)
-
-    
-    def post(self, request, *args, **kwargs):
-        
-        
-        
-        return None
+ 
     
     def get_queryset(self):
         return self.queryset
@@ -98,8 +93,16 @@ class ProductItemView(ListModelView):
     
     def get(self, request, *args, **kwargs):
         
+        outer_id = kwargs.get('outer_id','')
+        sync_stock = request.REQUEST.get('sync_stock','no')
         model = self.resource.model
-
+        
+        update_time  = datetime.datetime.now()
+        if sync_stock == 'yes':
+            items = model.objects.filter(outer_id=outer_id,approve_status=ONSALE_STATUS)
+            for item in items:
+                updateItemNum(item.num_iid,update_time)
+        
         queryset = self.get_queryset() if self.get_queryset() is not None else model.objects.all()
 
         if hasattr(self, 'resource'):
@@ -118,6 +121,13 @@ class ProductItemView(ListModelView):
         item_dict['layer_table'] = render_to_string('items/itemstable.html', { 'object':item_dict['itemobjs']})    
         
         return item_dict
+    
+    def post(self, request, *args, **kwargs):
+        
+        outer_id = kwargs.get('outer_id')
+        row = model.objects.filter(outer_id=outer_id).update(status=DELETE)
+        
+        return {'updates_num':row}
     
     def get_queryset(self):
         return self.queryset

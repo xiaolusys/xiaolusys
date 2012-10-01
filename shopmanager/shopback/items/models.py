@@ -12,6 +12,7 @@ from django.db.models import Sum
 from shopback.base.models import BaseModel,NORMAL,DELETE
 from shopback.base.fields import BigIntegerAutoField
 from shopback.categorys.models import Category,ProductCategory
+from shopback.purchases.models import PurchaseProduct,PurchaseProductSku
 from shopback.users.models import User
 from auth import apis
 import logging
@@ -33,22 +34,28 @@ PRODUCT_STATUS = (
 )
 
 class Product(models.Model):
-
+    """ 抽象商品（根据淘宝外部编码)，描述：
+        1,映射淘宝出售商品与采购商品桥梁；
+        2,库存管理的核心类；
+    """
+    
     outer_id     = models.CharField(max_length=64,primary_key=True)
     name         = models.CharField(max_length=64,blank=True)
     
+    purchase_product = models.ForeignKey(PurchaseProduct,null=True,related_name='products')
     category     = models.ForeignKey(ProductCategory,null=True,related_name='products')
 
     collect_num  = models.IntegerField(null=True)  #库存数
     warn_num     = models.IntegerField(null=True,default=10)    #警戒库位
+    remain_num   = models.IntegerField(null=True,default=0)    #预留库存
     price        = models.CharField(max_length=10,blank=True)
     
     created      = models.DateTimeField(null=True,blank=True,auto_now_add=True)
     modified     = models.DateTimeField(null=True,blank=True,auto_now=True)
     
     sync_stock   = models.BooleanField(default=True)
-    
     out_stock    = models.BooleanField(default=False)
+    
     status       = models.CharField(max_length=16,db_index=True,choices=PRODUCT_STATUS,default=NORMAL)
     
     class Meta:
@@ -60,12 +67,19 @@ class Product(models.Model):
 
 
 class ProductSku(models.Model):
-
+    """ 抽象商品规格（根据淘宝规格外部编码），描述：
+        1,映射淘宝出售商品规格与采购商品规格桥梁；
+        2,库存管理的规格核心类；
+    """
+    
     outer_id = models.CharField(max_length=64,null=True,blank=True)
     product  = models.ForeignKey(Product,null=True,related_name='prod_skus')
     
+    purchase_product_sku = models.ForeignKey(PurchaseProductSku,null=True,related_name='prod_skus')
+    
     quantity = models.IntegerField(null=True)
     warn_num     = models.IntegerField(null=True,default=10)    #警戒库位
+    remain_num   = models.IntegerField(null=True,default=0)    #预留库存
     
     properties_name = models.TextField(max_length=3000,blank=True)
     properties      = models.TextField(max_length=2000,blank=True)
@@ -102,6 +116,7 @@ class ProductSku(models.Model):
 
 
 class Item(models.Model):
+    """ 淘宝线上商品 """
     
     num_iid = models.CharField(primary_key=True,max_length=64)
 

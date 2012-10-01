@@ -54,7 +54,7 @@ def pull_from_taobao(request):
             o.num_iid = num_iid
 
         for field in fields:
-            setattr(o,field,item[field])
+            hasattr(o,field) and setattr(o,field,item[field])
 
         o.approve_status = ONSALE_STATUS
         o.modified = datetime.datetime.strptime(item['modified'],'%Y-%m-%d %H:%M:%S')

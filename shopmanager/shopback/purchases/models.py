@@ -1,12 +1,12 @@
 #-*- coding:utf8 -*-
 from django.db import models
+from shopback.base.models import NORMAL,DELETE
 from shopback.suppliers.models import Supplier
-from shopback.items.models import Product,ProductSku
+from shopback.categorys.models import ProductCategory
 
 
 PURCHASE_DRAFT    = 'DRAFT'
 PURCHASE_APPROVAL = 'APPROVAL'
-PURCHASE_ARRIVAL  = 'ARRIVAL'
 PURCHASE_RETURN   = 'RETURN'
 PURCHASE_FINISH   = 'FINISH'
 PURCHASE_INVALID  = 'INVALID'  
@@ -18,8 +18,6 @@ PURCHASE_REWORDOVER  = 'REWORDOVER' #返修结束
 PURCHASE_STATUS = (
     (PURCHASE_DRAFT,'草稿'),
     (PURCHASE_APPROVAL,'审批'),
-    (PURCHASE_ARRIVAL,'到货'),
-    (PURCHASE_CLOSE,'退货关闭'),
     (PURCHASE_FINISH,'完成'),
     (PURCHASE_INVALID,'作废'),
 )
@@ -27,7 +25,6 @@ PURCHASE_STATUS = (
 PURCHASE_ITEM_STATUS = (
     (PURCHASE_DRAFT,'草稿'),
     (PURCHASE_APPROVAL,'审批'),
-    (PURCHASE_ARRIVAL,'到货'),
     (PURCHASE_RETURN,'退货'),
     (PURCHASE_CLOSE,'退货关闭'),
     (PURCHASE_FINISH,'完成'),
@@ -36,8 +33,58 @@ PURCHASE_ITEM_STATUS = (
     (PURCHASE_REWORDOVER,'返修结束'),
 )
 
+PURCHASE_STORAGE_STATUS = (
+    (PURCHASE_DRAFT,'草稿'),
+    (PURCHASE_APPROVAL,'审批'),
+    (PURCHASE_DRAFT,'草稿'),
+)
+
+PRODUCT_STATUS = (
+    (NORMAL,'使用'),
+    (DELETE,'删除'),
+)
+
+class PurchaseProduct(models.Model):
+    """ 采购产品 """
+    
+    outer_id     = models.CharField(max_length=64)
+    name         = models.CharField(max_length=128,blank=True)
+    
+    category     = models.ForeignKey(ProductCategory,null=True,related_name='purchase_products')
+    
+    created      = models.DateTimeField(null=True,blank=True,auto_now_add=True)
+    modified     = models.DateTimeField(null=True,blank=True,auto_now=True)
+    
+    status       = models.CharField(max_length=16,db_index=True,choices=PRODUCT_STATUS,default=NORMAL)
+    
+    class Meta:
+        db_table = 'shop_purchase_product'
+
+    def __unicode__(self):
+        return self.name
+
+
+class PurchaseProductSku(models.Model):
+    """ 采购产品规格 """
+    
+    product      = models.ForeignKey(PurchaseProduct,related_name='purchase_productskus')
+    outer_id     = models.CharField(max_length=64)
+    properties   = models.CharField(max_length=256,blank=True)
+    
+    created      = models.DateTimeField(null=True,blank=True,auto_now_add=True)
+    modified     = models.DateTimeField(null=True,blank=True,auto_now=True)
+    
+    status       = models.CharField(max_length=16,db_index=True,choices=PRODUCT_STATUS,default=NORMAL)
+    
+    class Meta:
+        db_table = 'shop_purchase_productsku'
+
+    def __unicode__(self):
+        return self.properties
+
 
 class Deposite(models.Model):
+    """ 采购仓库 """
     
     deposite_name = models.CharField(max_length=32,blank=True)
     location     = models.CharField(max_length=32,blank=True)
@@ -52,6 +99,7 @@ class Deposite(models.Model):
 
 
 class PurchaseType(models.Model):
+    """ 采购类型 """
     
     type_name    = models.CharField(max_length=32,blank=True)
     in_use       = models.BooleanField(default=True)
@@ -67,7 +115,8 @@ class PurchaseType(models.Model):
     
 
 class Purchase(models.Model):
-
+    """ 采购单 """
+    
     supplier     = models.ForeignKey(Supplier,null=True,related_name='purchases')
     deposite     = models.ForeignKey(Deposite,null=True,related_name='purchases')
     type         = models.ForeignKey(PurchaseType,null=True,related_name='purchases')
@@ -85,17 +134,18 @@ class Purchase(models.Model):
         db_table = 'shop_purchases_purchase'
 
     def __unicode__(self):
-        return '%d-%s'%(self.id,self.type.type_name)
+        return 'CGD%d'%self.id
     
     
     
 class PurchaseItem(models.Model):
+    """ 采购子订单 """
     
     purchase     = models.ForeignKey(Purchase,related_name='purchase_items')
     supplier_item_id = models.CharField(max_length=64,blank=True)
     
-    product      = models.ForeignKey(Product,null=True,related_name='purchase_items')
-    product_sku  = models.ForeignKey(ProductSku,null=True,related_name='purchase_items')
+    product      = models.ForeignKey(PurchaseProduct,null=True,related_name='purchase_items')
+    product_sku  = models.ForeignKey(PurchaseProductSku,null=True,related_name='purchase_items')
     
     purchase_num = models.IntegerField(null=True)
     discount     = models.FloatField(null=True)
@@ -115,8 +165,59 @@ class PurchaseItem(models.Model):
         db_table = 'shop_purchases_item'
 
     def __unicode__(self):
-        return self.product.name
+        return 'CGZD%d'%self.id
     
+    
+class PurchaseStorage(models.Model):
+    """ 采购入库单 """
+    
+    supplier     = models.ForeignKey(Supplier,null=True,related_name='purchase_storages')
+    deposite     = models.ForeignKey(Deposite,null=True,related_name='purchases_storages')
+    type         = models.ForeignKey(PurchaseType,null=True,related_name='purchases_storages')
+    
+    forecast_time = models.DateTimeField(null=True,blank=True)
+    post_time    = models.DateTimeField(null=True,blank=True)
+    
+    purchase     = models.ForeignKey(Purchase,null=True,related_name='purchases_storages')
+    
+    created      = models.DateTimeField(auto_now=True)
+    modified     = models.DateTimeField(auto_now_add=True)
+    
+    status       = models.CharField(max_length=32,db_index=True,choices=PURCHASE_STORAGE_STATUS,default=PURCHASE_DRAFT)
+    extra_info   = models.TextField(blank=True)
+    
+    class Meta:
+        db_table = 'shop_purchases_storage'
+
+    def __unicode__(self):
+        return 'RKD%d'%self.id
+    
+
+class PurchaseStorageItem(models.Model):
+    """ 采购入库详情单 """
+    
+    purchase_storage     = models.ForeignKey(PurchaseStorage,related_name='purchase_storageitems')
+    supplier_item_id     = models.CharField(max_length=64,blank=True)
+    
+    product      = models.ForeignKey(PurchaseProduct,null=True,related_name='purchase_storageitems')
+    product_sku  = models.ForeignKey(PurchaseProductSku,null=True,related_name='purchase_storageitems')
+    
+    storage_num = models.IntegerField(null=True)
+    
+    created      = models.DateTimeField(null=True,blank=True,auto_now=True)
+    modified     = models.DateTimeField(null=True,blank=True,auto_now_add=True)
+    
+    status       = models.CharField(max_length=32,db_index=True,choices=PURCHASE_STORAGE_STATUS,default=PURCHASE_DRAFT)
+    extra_info   = models.TextField(blank=True)
+    
+    class Meta:
+        db_table = 'shop_purchases_storageitem'
+
+    def __unicode__(self):
+        return 'RKZD%d'%self.id
+    
+        
+
     
     
     

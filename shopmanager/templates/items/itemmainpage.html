@@ -35,8 +35,10 @@
   		<td rowspan="{{ sku_len }}">{% if prod.warn_num >= prod.collect_num %}<img src="/static/admin/img/icon-no.gif" alt="True"/>{% else %}<img src="/static/admin/img/icon-yes.gif" alt="True">{% endif %}</td>
   		<td rowspan="{{ sku_len }}"><input type="checkbox" id="{{ prod.outer_id }}_sync_stock" name="sync_stock" {% if prod.sync_stock %}checked="yes"{% endif %} onclick= "return false"  /></td>
   		<td rowspan="{{ sku_len }}"><input type="checkbox" id="{{ prod.outer_id }}_out_stock" name="out_stock" {% if prod.out_stock %}checked="yes"{% endif %} onclick= "return false" /></td>
-  		<td rowspan="{{ sku_len }}"><a class="btn btn-small btn-warning" num_iid="{{ prod.outer_id }}"  style="display:block;"><i class="icon-edit"></i>修改</a>
-  			<a class="btn btn-small btn-danger" num_iid="{{ prod.outer_id }}"  style="display:block;"><i class="icon-remove"></i>删除</a></td>
+  		<td rowspan="{{ sku_len }}" style="width:75px;"><div style="margin:5px;" ><a outer_id="{{ prod.outer_id }}"  style="display:inline;float:left;" title="修改"><i class="icon-edit" style="background-color:#56B8D5;"></i></a>
+  			<a  outer_id="{{ prod.outer_id }}"  class="del_prod" style="display:inline;float:right;" title="删除"><i class="icon-remove" style="background-color:#CC0000;"></i></a>	
+  			<a class="btn btn-small btn-danger sync-stock"  outer_id="{{ prod.outer_id }}" style="display:block;clear:both;">同步库存</a><div>
+  		</td>
   		{% endif %}
   		<td>{{ sku.outer_id }}</td>
   		<td>{{ sku.properties_name }}</td>
@@ -57,8 +59,9 @@
   		<td >{% if prod.warn_num >= prod.collect_num %}<img src="/static/admin/img/icon-no.gif" alt="True"/>{% else %}<img src="/static/admin/img/icon-yes.gif" alt="True">{% endif %}</td>
   		<td ><input type="checkbox" id="{{ prod.outer_id }}_sync_stock" name="sync_stock" {% if prod.sync_stock %}checked="yes"{% endif %} onclick= "return false"  /></td>
   		<td ><input type="checkbox" id="{{ prod.outer_id }}_out_stock" name="out_stock" {% if prod.out_stock %}checked="yes"{% endif %} onclick= "return false" /></td>
-  		<td ><a class="btn btn-small btn-warning" num_iid="{{ prod.outer_id }}"  style="display:block;"><i class="icon-edit"></i>修改</a>
-  			<a class="btn btn-small btn-danger" num_iid="{{ prod.outer_id }}"  style="display:block;"><i class="icon-remove"></i>删除</a></td>
+  		<td ><div style="margin:5px;"><a outer_id="{{ prod.outer_id }}"  style="display:inline;float:left;" title="修改"><i class="icon-edit" style="background-color:#56B8D5;"></i></a>
+  			<a outer_id="{{ prod.outer_id }}" class="del_prod"  style="display:inline;float:right;" title="删除"><i class="icon-remove" style="background-color:#CC0000;"></i></a>	
+  			<a class="btn btn-small btn-danger sync-stock"  outer_id="{{ prod.outer_id }}" style="display:block;clear:both;">同步库存</a><div></td>
   		<td colspan="6">该商品没有设置销售属性</td>
   		</tr>
   	{% endif %}
@@ -74,6 +77,8 @@
 
 {% block delayed_script %}
   <script type="text/javascript"> 
-    $(".click_title a").click(show_layer);
+    $(".click_title a").click(show_items_layer);
+    $(".sync-stock").click(sync_stock_layer);
+    $(".del_prod").click(remove_prod_layer);
   </script>
 {% endblock %}
