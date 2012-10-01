@@ -54,7 +54,7 @@ def pull_from_taobao(request):
             o.num_iid = num_iid
 
         for field in fields:
-            hasattr(o,field) and setattr(o,field,item[field])
+            hasattr(o,field) and item.get(field,None) and setattr(o,field,item[field])
 
         o.approve_status = ONSALE_STATUS
         o.modified = datetime.datetime.strptime(item['modified'],'%Y-%m-%d %H:%M:%S')
@@ -63,13 +63,14 @@ def pull_from_taobao(request):
 
         o.user = profile
         o.category = Category.objects.get(cid=item['cid'])
-        product,state = Product.objects.get_or_create(outer_id=item['outer_id'])
-        if state:
-            product.name=item['title']
-            product.price=str(item['price'])
-            product.collect_num = item['num']
-            product.save()
-        o.product = product
+        if item.get("outer_id",None):
+            product,state = Product.objects.get_or_create(outer_id=item['outer_id'])
+            if state:
+                product.name=item['title']
+                product.price=str(item['price'])
+                product.collect_num = item['num']
+                product.save()
+            o.product = product
         o.save()
 
     for item in currItems:
