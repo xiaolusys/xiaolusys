@@ -16,7 +16,7 @@ from shopback.base.views import ListModelView
 from shopback.base.models import UNEXECUTE
 from shopback.categorys.models import Category
 from shopback.items.models import Item,Product,ONSALE_STATUS,INSTOCK_STATUS
-from shopapp.autolist.models import Logs,ItemListTask,TimeSlots
+from shopapp.autolist.models import Logs,ItemListTask,TimeSlots,UNEXECUTE
 from auth import apis
 
 
@@ -314,6 +314,7 @@ def change_list_time(request):
     o.num     = item.num
     o.list_weekday = target_time.isoweekday()
     o.list_time = delist_time
+    o.status  = UNEXECUTE
     o.save()
 
     return HttpResponse(json.dumps({'list_weekday':target_time.strftime("%Y-%m-%d"),
