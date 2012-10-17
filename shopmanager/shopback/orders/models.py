@@ -64,7 +64,6 @@ ORDER_UNPAY_STATUS    = WAIT_BUYER_PAY
 class Trade(models.Model):
 
     id           =  BigIntegerAutoField(primary_key=True)
-    
     user         =  models.ForeignKey(User,null=True,related_name='trades')
 
     seller_id    =  models.CharField(max_length=64,blank=True)
@@ -246,7 +245,15 @@ class Order(models.Model):
 
     def __unicode__(self):
         return str(self.oid)
-
+    
+    @property
+    def properties_values(self):
+        properties_list = self.sku_properties_name.split(';')
+        value_list = []
+        for properties in properties_list:
+            values = properties.split(':')
+            value_list.append( values[1] if len(values)==2 else properties)
+        return ' '.join(value_list)
 
 
 def merge_buyer_trade_orders(sender, sub_tid, main_tid, *args, **kwargs):

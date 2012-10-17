@@ -2,6 +2,7 @@ from django.core.paginator import Paginator
 from django.db.models.query import QuerySet
 from django.db.models import signals
 from djangorestframework.response import ErrorResponse
+from djangorestframework import status
 
 class PaginatorMixin(object):
     """
@@ -97,8 +98,7 @@ class PaginatorMixin(object):
         serialized_page_info = self.serialize_page_info(page)
 
         serialized_page_info['results'] = serialized_object_list
-
-
+        
         return serialized_page_info
 
 

@@ -1,0 +1,139 @@
+{% extends "items/base.html" %}
+
+{% block title%} 修改产品信息界面 {% endblock %}
+
+{% block navbar %}<div style="margin-top:30px"></div>{% endblock %}
+
+{% block container %}
+<div class='list_top'>
+
+<div class="left-field">
+	<fieldset>
+		<legend>产品信息列表</legend>
+		<form class="form-horizontal" action="" >
+			<div id="id-csrftoken">{% csrf_token %}</div>
+			<div class="control-group">
+				<label class="control-label" for="name">商家编码:</label>
+				<div class="controls">
+					<input id="outer_id" name="outer_id" type="text" value="{{ object.outer_id }}" disabled="disabled"/>
+				</div>
+			</div>
+			<div class="control-group">
+				<label class="control-label" for="name">商品简称:</label>
+				<div class="controls">
+					<input id="name" name="name" type="text" value="{{ object.name }}" />
+				</div>
+			</div>
+			<div class="control-group">
+				<label class="control-label" for="purchase">对应采购产品:</label>
+				<div class="controls">
+					<input id="purchase_product" name="purchase_product" type="select" value="{{ object.purchase_product.name }}" />
+				</div>
+			</div>
+			<div class="control-group">
+				<label class="control-label"  for="category">内部分类:</label>
+				<div class="controls">
+					<input id="category" name="category" type="text" disabled="disabled" value="{{ object.category.name }}" />
+					</div>
+			</div>
+			<div class="control-group">
+				<label class="control-label"  for="collect">库存数:</label>
+				<div class="controls">
+					<input id="collect_num" name="collect_num" type="text" value="{{ object.collect_num }}" {% if object.prod_skus %}disabled="disabled"{% endif %} />
+				</div>
+			</div>
+			<div class="control-group">
+				<label class="control-label"  for="warn">警告库位:</label>
+				<div class="controls">
+					<input id="warn_num" name="warn_num" type="text" value="{{ object.warn_num }}" {% if object.prod_skus %}disabled="disabled"{% endif %}/>
+					</div>
+			</div>
+			<div class="control-group">
+				<label class="control-label"  for="remain">保留库存:</label>
+				<div class="controls">
+					<input id="remain_num" name="remain_num" type="text" value="{{ object.remain_num }}" {% if object.prod_skus %}disabled="disabled"{% endif %}/>
+				</div>
+			</div>
+			<div class="control-group">
+				<label class="control-label"  for="price">参考价格:</label>
+				<div class="controls">
+					<input id="price" name="price" type="text" value="{{ object.price }}" />
+				</div>
+			</div>
+			<div class="control-group">
+				<label class="control-label"  for="syncstock">库存同步:</label>
+				<div class="controls">
+					<input id="sync_stock" name="sync_stock" type="checkbox" {% if object.sync_stock %}checked="yes"{% endif %} />
+				</div>
+			</div>
+			<div class="control-group">
+				<label class="control-label"  for="outstock">缺货:</label>
+				<div class="controls">
+					<input id="out_stock" name="out_stock" type="checkbox" {% if object.out_stock %}checked="yes"{% endif %} />
+				</div>
+			</div>
+			<div class="control-group">
+				<label class="control-label"  for="assign">库位警告:</label>
+				<div class="controls">
+					<input id="is_assign" name="is_assign" type="checkbox" {% if object.is_assign %}checked="yes"{% endif %} />
+				</div>
+			</div>
+			<div class="control-group">
+				<label class="control-label"  for="status">产品状态:</label>
+				<div class="controls">
+					<select id="status" name="status">
+						<option value="1" {% if object.status == 'normal'%}selected{% endif %}>已使用</option>
+						<option value="0" {% if object.status == 'delete'%}selected{% endif %}>未使用</option>
+					</select>
+				</div>
+			</div>
+			<div class="control-group">
+				<div class="controls">
+					<button type="submit" class="btn">保存</button>
+				</div>
+			</div>
+		</form>
+	</fieldset>
+</div>
+<div class="right-field">
+	<fieldset>
+		<legend>产品销售属性列表</legend>
+		{% if object.prod_skus %}
+		<table class="table table-bordered table-striped table-condensed">
+			<thead>
+		 	 	<th>销售编码</th><th>采购属性</th><th>库存</th><th>警告库位</th><th>保留库位</th>
+		 	 	<th>属性名</th><th>缺货</th><th>同步</th><th>库位警告</th><th>属性状态</th><th>操作</th>
+			</thead>
+			{% for sku in object.prod_skus %}
+			<tr>
+			<td>{{ sku.outer_id }}</td>
+			<td class="warp_title">{{ sku.purchase_product_sku.properties }}</td>
+			<td>{{ sku.quantity }}</td>
+			<td>{{ sku.warn_num }}</td>
+			<td>{{ sku.remain_num }}</td>
+			<td class="warp_title">{{ sku.properties_name }}</td>
+			<td><input type="checkbox" id="out_stock" name="out_stock" {% if sku.out_stock %}checked="yes"{% endif %} onclick= "return false" /></td>
+			<td><input type="checkbox" id="sync_stock" name="sync_stock" {% if sku.sync_stock %}checked="yes"{% endif %} onclick= "return false" /></td>
+			<td><input type="checkbox" id="is_assign" name="is_assign" {% if sku.is_assign %}checked="yes"{% endif %} onclick= "return false" /></td>
+			<td><a class="btn btn-small {% if sku.status == 'normal' %}btn-success{% else %}btn-warning{% endif %}" style="display:block;">
+			 {% if sku.status == 'normal' %}<i class="icon-ok"></i>已使用{% else %}<i class="icon-remove-sign"></i>未使用{% endif %}</a></td>
+			<td><a prod_sku_id="{{ sku.id }}" class="update_sku"  title="修改"><i class="icon-edit"></i></a></td>
+			</tr>	
+			{% endfor %}
+		<table>
+		{% else %}
+		<div>该产品没设置销售属性！ </div>
+		{% endif %}
+	</fieldset>
+</div>
+<div id="product_sku_modify" class="product_sku_modify" node-type="outer" style="z-index: 9999; display:block; ">
+</div>
+</div>
+
+{% endblock %}
+
+{% block delayed_script %}
+  <script type="text/javascript">
+      $(".update_sku").click(product_sku_modify_layer);
+  </script>
+{% endblock %}

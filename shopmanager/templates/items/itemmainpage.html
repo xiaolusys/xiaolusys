@@ -5,71 +5,102 @@
 {% block navbar %}<div style="margin-top:30px"></div>{% endblock %}
 
 {% block container %}
+{% load item_extras %}
 <div class='list_top'>
 
-<div style="margin:5px; float:right">
-    <button class="btn btn-info" type=button onclick="window.open('/app/autolist/timetable/','_blank');return false;">上架时间表</button>
-    <button class="btn btn-info" type=button onclick="window.open('/app/autolist/logs/','_blank');return false;">操作记录</button>
-</div>
-
 <div id="id-csrftoken">{% csrf_token %}</div>
-
+<div class="pagination pagination-left">
+    <ul>
+    	{% if object.page > 1 %}<li class="disabled"><a href="{{ object.previous }}">上一页</a>{% endif %}
+	    {% for i in object.pages|int_to_list %}
+	    <li class="{% if object.page == forloop.counter %}active{% else %}disabled{% endif %}">
+	    	<a href="/items/product/?page={{ forloop.counter }}&limit={{ object.per_page }}">{{ forloop.counter }}</a>
+	    </li>
+	    {% endfor %}
+	    {% if object.page < object.pages  %}<li class="disabled"><a href="{{ object.next }}">下一页</a>{% endif %}
+    </ul>
+</div>
 <div>
 <table class="table table-bordered table-striped table-condensed">
   <tr>
-      <th>序号</th><th>商品编码</th><th>商品简称</th><th>内部分类</th><th>库存</th><th>库位警告</th><th>同步</th>
-      <th>缺货</th><th>操作</th><th>销售编码</th><th>销售属性</th><th>库存</th><th>库位警告</th>
-      <th>同步</th><th>缺货</th>
+      <th>编号</th><th>商品编码</th><th>商品简称</th><th>内部分类</th><th>库存</th><th>同步</th>
+      <th>缺货</th><th>商品操作</th><th>销售编码</th><th>销售属性</th><th>库存</th><th>同步</th>
+      <th>缺货</th><th>规格操作</th>
   </tr>
-  {% for prod in object %}
-  	{% if prod.prod_skus %}
-  	{% with prod.prod_skus|length as sku_len %}
-  	{% for sku in prod.prod_skus %}
+  {% for prod in object.results %}
+  	{% if prod.pskus %}
+  	{% with prod.pskus|length as sku_len %}
+  	<!-- 有属性的商品 -->
+  	{% for sku in prod.pskus %}
   	<tr>
   		{% if forloop.first %}
   		<td rowspan="{{ sku_len }}">{{ forloop.parentloop.counter }}</td>
-  		<td rowspan="{{ sku_len }}" class="click_title"><a href="#" onclick="return false;" outer_id="{{ prod.outer_id }}">{{ prod.outer_id }}</a></td>
-  		<td rowspan="{{ sku_len }}" class="click_title"><a href="#" onclick="return false;" outer_id="{{ prod.outer_id }}">{{ prod.name }}</a></td>
+  		<td rowspan="{{ sku_len }}" class="click_title">{{ prod.outer_id }}<a href="#" onclick="return false;" class="rel_item" outer_id="{{ prod.outer_id }}" title="查看关联在线商品"><i class="icon-leaf"></i></a></td>
+  		<td rowspan="{{ sku_len }}" class="click_title">{{ prod.name }}</td>
   		<td rowspan="{{ sku_len }}">{{ prod.category.name }}</td>
   		<td rowspan="{{ sku_len }}">{{ prod.collect_num }}</td>
-  		<td rowspan="{{ sku_len }}">{% if prod.warn_num >= prod.collect_num %}<img src="/static/admin/img/icon-no.gif" alt="True"/>{% else %}<img src="/static/admin/img/icon-yes.gif" alt="True">{% endif %}</td>
   		<td rowspan="{{ sku_len }}"><input type="checkbox" id="{{ prod.outer_id }}_sync_stock" name="sync_stock" {% if prod.sync_stock %}checked="yes"{% endif %} onclick= "return false"  /></td>
   		<td rowspan="{{ sku_len }}"><input type="checkbox" id="{{ prod.outer_id }}_out_stock" name="out_stock" {% if prod.out_stock %}checked="yes"{% endif %} onclick= "return false" /></td>
-  		<td rowspan="{{ sku_len }}" style="width:75px;"><div style="margin:5px;" ><a outer_id="{{ prod.outer_id }}"  style="display:inline;float:left;" title="修改"><i class="icon-edit" style="background-color:#56B8D5;"></i></a>
-  			<a  outer_id="{{ prod.outer_id }}"  class="del_prod" style="display:inline;float:right;" title="删除"><i class="icon-remove" style="background-color:#CC0000;"></i></a>	
-  			<a class="btn btn-small btn-danger sync-stock"  outer_id="{{ prod.outer_id }}" style="display:block;clear:both;">同步库存</a><div>
+  		<td rowspan="{{ sku_len }}" style="width:75px;">
+	  		<div style="margin:5px;" >
+	  		<a outer_id="{{ prod.outer_id }}" class="modify_prod" href="/items/product/update/{{ prod.outer_id }}/" target="_blank" style="display:inline;float:left;" title="修改"><i class="icon-edit"></i></a>
+	  		{% if prod.purchase_product  %}<a  purchase_id="{{ prod.purchase_product.id }}"  class="rel_purchase" style="display:inline;float:left;" title="查看关联采购商品"><i class="icon-info-sign"></i></a>{% endif %}
+	  		<a  outer_id="{{ prod.outer_id }}"  class="del_prod" style="display:inline;float:right;" title="删除"><i class="icon-remove"></i></a>	
+	  		</div>
   		</td>
   		{% endif %}
-  		<td>{{ sku.outer_id }}</td>
-  		<td>{{ sku.properties_name }}</td>
+  		<td style="color:#08C;">{{ sku.outer_id }}{% if sku.purchase_product_sku %}<i class="icon-star-empty" title="采购规格:{{ sku.purchase_product_sku.outer_id }}-{{ sku.purchase_product_sku.properties }}"></i>{% endif %}</td>
+  		<td style="color:#08C;">{{ sku.properties_name }}</td>
   		<td>{{ sku.quantity }}</td>
-  		<td>{% if sku.warn_num >= sku.quantity %}<img src="/static/admin/img/icon-no.gif" alt="True"/>{% else %}<img src="/static/admin/img/icon-yes.gif" alt="True">{% endif %}</td>
   		<td><input type="checkbox" id="{{ prod.outer_id }}_{{ sku.outer_id }}_sync_stock" name="sku{{ forloop.counter }}.sync_stock" {% if sku.sync_stock %}checked="yes"{% endif %} onclick= "return false" /></td>
   		<td><input type="checkbox" id="{{ prod.outer_id }}_{{ sku.outer_id }}_out_stock" name="sku{{ forloop.counter }}.out_stock" {% if sku.out_stock %}checked="yes"{% endif %} onclick= "return false" /></td>
+  		<td>
+	  		{% if sku.warn_num >= sku.quantity and not sku.is_assign %}<a outer_id="{{ prod.outer_id }}" outer_sku_id="{{ sku.outer_id }}" class="stock_assign" style="display:inline;float:left;" title="库位警告，点击取消"><i class="icon-warning-sign"></i></a>{% endif %}
+	  		{% if sku.warn_num < sku.quantity  %}<a outer_id="{{ prod.outer_id }}" outer_sku_id="{{ sku.outer_id }}" class="sync-stock" style="display:inline;float:left;" title="同步在线库存"><i class="icon-refresh"></i></a>{% endif %}
+	  		<a outer_id="{{ prod.outer_id }}" outer_sku_id="{{ sku.outer_id }}"  class="del_prod" style="display:inline;float:right;" title="删除"><i class="icon-remove"></i></a>
+  		</td>
   	</tr>
   	{% endfor %}
   	{% endwith %}
+  	<!-- 没有属性的商品 -->
   	{% else%}
   		<tr>
-  		<td >{{ forloop.counter }}</td>
-  		<td class="click_title"><a href="#" onclick="return false;" outer_id="{{ prod.outer_id }}">{{ prod.outer_id }}</a></td>
-  		<td class="click_title"><a href="#" onclick="return false;" outer_id="{{ prod.outer_id }}">{{ prod.name }}</a></td>
+  		<td >{{ prod.id }}</td>
+  		<td class="click_title">{{ prod.outer_id }}<a href="#" onclick="return false;" class="rel_item" outer_id="{{ prod.outer_id }}" title="查看关联在线商品"><i class="icon-leaf"></a></td>
+  		<td class="click_title">{{ prod.name }}</td>
   		<td >{{ prod.category.name }}</td>
   		<td >{{ prod.collect_num }}</td>
-  		<td >{% if prod.warn_num >= prod.collect_num %}<img src="/static/admin/img/icon-no.gif" alt="True"/>{% else %}<img src="/static/admin/img/icon-yes.gif" alt="True">{% endif %}</td>
   		<td ><input type="checkbox" id="{{ prod.outer_id }}_sync_stock" name="sync_stock" {% if prod.sync_stock %}checked="yes"{% endif %} onclick= "return false"  /></td>
   		<td ><input type="checkbox" id="{{ prod.outer_id }}_out_stock" name="out_stock" {% if prod.out_stock %}checked="yes"{% endif %} onclick= "return false" /></td>
-  		<td ><div style="margin:5px;"><a outer_id="{{ prod.outer_id }}"  style="display:inline;float:left;" title="修改"><i class="icon-edit" style="background-color:#56B8D5;"></i></a>
-  			<a outer_id="{{ prod.outer_id }}" class="del_prod"  style="display:inline;float:right;" title="删除"><i class="icon-remove" style="background-color:#CC0000;"></i></a>	
-  			<a class="btn btn-small btn-danger sync-stock"  outer_id="{{ prod.outer_id }}" style="display:block;clear:both;">同步库存</a><div></td>
-  		<td colspan="6">该商品没有设置销售属性</td>
+  		<td >
+  			<div style="margin:5px;">
+	  			<a outer_id="{{ prod.outer_id }}" class="modify_prod" href="/items/product/update/{{ prod.outer_id }}/" target="_blank" style="display:inline;float:left;" title="修改"><i class="icon-edit"></i></a>
+	  			{% if prod.warn_num >= prod.collect_num and not prod.is_assign  %}<a  outer_id="{{ prod.outer_id }}" outer_sku_id="{{ sku.outer_id }}" class="stock_assign" style="display:inline;float:left;" title="库位警告，点击取消"><i class="icon-warning-sign"></i></a>{% endif %}
+	  			{% if prod.warn_num < prod.collect_num  %}<a outer_id="{{ prod.outer_id }}" class="sync-stock" style="display:inline;float:left;" title="同步在线库存"><i class="icon-refresh"></i></a>{% endif %}
+	  			{% if prod.purchase_product  %}<a  purchase_id="{{ prod.purchase_product.id }}"  class="rel_purchase" style="display:inline;float:left;" title="查看关联采购商品"><i class="icon-info-sign"></i></a>{% endif %}
+	  			<a outer_id="{{ prod.outer_id }}" class="del_prod"  style="display:inline;float:right;" title="删除"><i class="icon-remove"></i></a>	
+  			</div>
+		</td>
+  		<td colspan="7">该商品没有设置销售属性</td>
   		</tr>
   	{% endif %}
   {% endfor %}
   </table>
 </div>
+<div class="pagination pagination-left">
+    <ul>
+    	{% if object.page > 1 %}<li class="disabled"><a href="{{ object.previous }}">上一页</a>{% endif %}
+	    {% for i in object.pages|int_to_list %}
+	    <li class="{% if object.page == forloop.counter %}active{% else %}disabled{% endif %}">
+	    	<a href="/items/product/?page={{ forloop.counter }}&limit={{ object.per_page }}">{{ forloop.counter }}</a>
+	    </li>
+	    {% endfor %}
+	    {% if object.page < object.pages  %}<li class="disabled"><a href="{{ object.next }}">下一页</a>{% endif %}
+    </ul>
+</div>
 <div id="item_info" class="item_info" node-type="outer" style="z-index: 9999; display:block; ">
-	
+</div>
+<div id="purchase_info" class="purchase_info" node-type="outer" style="z-index: 9999; display:block; ">
 </div>
 </div>
 
@@ -77,8 +108,11 @@
 
 {% block delayed_script %}
   <script type="text/javascript"> 
-    $(".click_title a").click(show_items_layer);
+    $(".rel_item").click(show_items_layer);
     $(".sync-stock").click(sync_stock_layer);
     $(".del_prod").click(remove_prod_layer);
+    $(".rel_purchase").click(show_purchase_layer);
+    $(".stock_assign").click(cancle_stockwarn_layer);
   </script>
 {% endblock %}
+

@@ -33,13 +33,15 @@ PRODUCT_STATUS = (
     (DELETE,'删除'),
 )
 
+
+
 class Product(models.Model):
     """ 抽象商品（根据淘宝外部编码)，描述：
         1,映射淘宝出售商品与采购商品桥梁；
         2,库存管理的核心类；
     """
     
-    outer_id     = models.CharField(max_length=64,primary_key=True)
+    outer_id     = models.CharField(max_length=64,unique=True,null=False,blank=False)
     name         = models.CharField(max_length=64,blank=True)
     
     purchase_product = models.ForeignKey(PurchaseProduct,null=True,related_name='products')
@@ -55,6 +57,7 @@ class Product(models.Model):
     
     sync_stock   = models.BooleanField(default=True)
     out_stock    = models.BooleanField(default=False)
+    is_assign    = models.BooleanField(default=False) #是否手动分配库存，当库存充足时，系统自动设为False，手动分配过后，确定后置为True
     
     status       = models.CharField(max_length=16,db_index=True,choices=PRODUCT_STATUS,default=NORMAL)
     
@@ -63,7 +66,10 @@ class Product(models.Model):
 
     def __unicode__(self):
         return self.name
-
+    
+    @property
+    def pskus(self):
+        return self.prod_skus.filter(status=NORMAL)
 
 
 class ProductSku(models.Model):
@@ -73,9 +79,10 @@ class ProductSku(models.Model):
     """
     
     outer_id = models.CharField(max_length=64,null=True,blank=True)
-    product  = models.ForeignKey(Product,null=True,related_name='prod_skus')
     
-    purchase_product_sku = models.ForeignKey(PurchaseProductSku,null=True,related_name='prod_skus')
+    prod_outer_id = models.CharField(max_length=64,db_index=True,blank=True,default='')
+    product  = models.ForeignKey(Product,null=True,related_name='prod_skus')
+    purchase_product_sku = models.ForeignKey(PurchaseProductSku,null=True,blank=True,related_name='prod_skus')
     
     quantity = models.IntegerField(null=True)
     warn_num     = models.IntegerField(null=True,default=10)    #警戒库位
@@ -84,12 +91,13 @@ class ProductSku(models.Model):
     properties_name = models.TextField(max_length=3000,blank=True)
     properties      = models.TextField(max_length=2000,blank=True)
     
-    out_stock    = models.BooleanField(default=False)
-    sync_stock   = models.BooleanField(default=True)
+    out_stock    = models.BooleanField(default=False) 
+    sync_stock   = models.BooleanField(default=True) 
+    is_assign    = models.BooleanField(default=False) #是否手动分配库存，当库存充足时，系统自动设为False，手动分配过后，确定后置为True
     
     modified = models.DateTimeField(null=True,blank=True,auto_now=True)
     status   = models.CharField(max_length=10,db_index=True,choices=PRODUCT_STATUS,default=NORMAL)  #normal,delete
-
+    
     class Meta:
         db_table = 'shop_items_productsku'
         unique_together = ("outer_id", "product",)
@@ -118,7 +126,7 @@ class ProductSku(models.Model):
 class Item(models.Model):
     """ 淘宝线上商品 """
     
-    num_iid = models.CharField(primary_key=True,max_length=64)
+    num_iid  = models.CharField(primary_key=True,max_length=64)
 
     user     = models.ForeignKey(User,null=True,related_name='items')
     category = models.ForeignKey(Category,null=True,related_name='items')

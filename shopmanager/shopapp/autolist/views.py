@@ -78,7 +78,7 @@ def pull_from_taobao(request):
         if sale_status == 0:
             item.approve_status = INSTOCK_STATUS
             item.save()
-
+            
     return HttpResponseRedirect(reverse('list_all_items'))
 
 

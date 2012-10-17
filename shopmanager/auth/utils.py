@@ -54,6 +54,8 @@ def refresh_session(user,appkey,appsecret,refresh_url):
 
     expire_time = int(expires_in) + ts - 10*60
     if expire_time < time.time():
+        import logging
+        logger = logging.getLogger("token.refresh")
         try:
             params = {
                 'client_id':appkey,
@@ -75,8 +77,6 @@ def refresh_session(user,appkey,appsecret,refresh_url):
             user.save()
             return True
         except Exception,exc:
-            import logging
-            logger = logging.getLogger("token.refresh")
             logger.error('refreshed token error: %s'%exc,exc_info=True)
 
     return False

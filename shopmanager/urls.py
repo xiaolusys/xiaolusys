@@ -15,7 +15,8 @@ urlpatterns = patterns('',
     (r'^logistics/',include('shopback.logistics.urls')),
     (r'^trade/',include('shopback.orders.urls')),
     (r'^refunds/',include('shopback.refunds.urls')),
-
+    (r'^purchases/',include('shopback.purchases.urls')),
+    
     (r'^app/',include('shopapp.urls')),
     url(r'^home/$',home,name='home_page'),
 

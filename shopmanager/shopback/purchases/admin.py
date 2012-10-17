@@ -1,5 +1,5 @@
 from django.contrib import admin
-from shopback.purchases.models import Deposite,PurchaseType,Purchase,PurchaseItem
+from shopback.purchases.models import Deposite,PurchaseType,Purchase,PurchaseItem,PurchaseProductSku,PurchaseProduct
 
 
 
@@ -47,3 +47,22 @@ class PurchaseItemAdmin(admin.ModelAdmin):
 
 admin.site.register(PurchaseItem,PurchaseItemAdmin)
 
+class PurchaseProductAdmin(admin.ModelAdmin):
+    list_display = ('id','outer_id','name','category','created','modified','status')
+    #list_editable = ('update_time','task_type' ,'is_success','status')
+
+    list_filter = ('status',)
+    search_fields = ['id','outer_id']
+
+
+admin.site.register(PurchaseProduct,PurchaseProductAdmin)
+
+class PurchaseProductSkuAdmin(admin.ModelAdmin):
+    list_display = ('id','product','outer_id','properties','created','modified','status')
+    #list_editable = ('update_time','task_type' ,'is_success','status')
+
+    list_filter = ('status',)
+    search_fields = ['id','outer_id']
+
+
+admin.site.register(PurchaseProductSku,PurchaseProductSkuAdmin)

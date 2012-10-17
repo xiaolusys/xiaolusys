@@ -30,14 +30,14 @@
   		<td rowspan="{{ sku_len }}">{{ item.num }}</td>
   		<td rowspan="{{ sku_len }}">{{ item.list_time }}</td>
   		<td rowspan="{{ sku_len }}">{% if item.approve_status == 'onsale' %}<a class="btn btn-small btn-success" style="display:block;"><i class="icon-ok"></i>在售</a>
-  			{% else %}<a class="btn btn-small btn-warning" style="display:block;"><i class="icon-move"></i>下架</a>{%endif%}</td>
+  			{% else %}<a class="btn btn-small btn-warning" style="display:block;"><i class="icon-move icon-white"></i>下架</a>{%endif%}</td>
   		{% endif %}
   		<td>{{ sku.outer_id }}</td>
   		<td>{{ sku.properties_name }}</td>
   		<td>{{ sku.quantity }}</td>
   		<td>{{ sku.price }}</td>
-  		<td rowspan="{{ item.sku_list|length }}">{% if sku.status == "normal" %}<a class="btn btn-small btn-success" style="display:block;"><i class="icon-ok"></i>在售</a>
-  			{% else %}<a class="btn btn-small btn-warning" style="display:block;"><i class="icon-move"></i>下架</a>{%endif%}</td>
+  		<td >{% if sku.status == "normal" %}<a class="btn btn-small btn-success" style="display:block;"><i class="icon-ok"></i>在售</a>
+  			{% else %}<a class="btn btn-small btn-warning" style="display:block;"><i class="icon-move icon-white"></i>下架</a>{%endif%}</td>
   		</tr>
   	{% endfor %}
  	{% endwith %}
@@ -54,7 +54,7 @@
   		<td >{% if item.approve_status == 'onsale' %}<a class="btn btn-small btn-info" style="display:block;"><i class="icon-ok"></i>在售</a>
   			{% else %}<a class="btn btn-small btn-warning" style="display:block;"><i class="icon-move"></i>下架</a>{%endif%}</td>
   		<td colspan="5">该商品没有设置销售属性</td>
-  		<tr>
+  		</tr>
   	{% endif %}
   {% endfor %}
   </table>

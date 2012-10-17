@@ -1,3 +1,23 @@
 .info_title , .click_title {
-	word-break:break-all; width:100px; overflow:auto;
+	word-break:break-all; 
+	width:100px; 
+	overflow:auto;
+	color:#08C;
+}
+.warp_title{
+	word-break:break-all; 
+	width:60px; 
+	overflow:auto;
+	color:#08C;
+}
+.left-field {
+	width:400px;
+	float:left;
+}
+.right-field {
+	width:750px;
+	float:right;
+}
+.pagination{
+	margin: 0 0;
 }

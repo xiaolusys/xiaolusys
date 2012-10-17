@@ -23,5 +23,26 @@ class ProductItemHtmlRenderer(TemplateRenderer):
     template = 'items/productitemspage.html'
     
     
+    
+class ProductUpdateHtmlRenderer(TemplateRenderer):
+    """
+    Renderer which serializes to JSON
+    """
+    
+    media_type = 'text/html'
+    format = 'html'
+    template = 'items/productupdate.html'
+    
+    
+class ProductSkuHtmlRenderer(TemplateRenderer):
+    """
+    Renderer which serializes to JSON
+    """
+    
+    media_type = 'text/html'
+    format = 'html'
+    template = 'items/productskutable.html'
+    
+    
 
     

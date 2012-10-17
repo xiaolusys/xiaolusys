@@ -5,10 +5,11 @@ from django.db import models
 from shopback.base.fields import BigIntegerAutoField,BigIntegerForeignKey
 from shopback.users.models import User
 from django.db.models import Sum
-from shopback.orders.models import Trade,REFUND_APPROVAL_STATUS,REFUND_WAIT_SELLER_AGREE,NO_REFUND
+from shopback.orders.models import Trade,Order,REFUND_APPROVAL_STATUS,REFUND_WAIT_SELLER_AGREE,NO_REFUND,REFUND_STATUS,REFUND_SUCCESS
 from shopback.items.models import Item,Product,ProductSku
 from shopback.logistics.models import Logistics,LogisticsCompany
-from shopback.fenxiao.models import PurchaseOrder,SubPurchaseOrder
+from shopback.fenxiao.models import PurchaseOrder,SubPurchaseOrder,FenxiaoProduct,TRADE_REFUNDING,TRADE_REFUNDED,TRADE_CLOSED\
+    ,WAIT_CONFIRM_WAIT_SEND_GOODS,WAIT_CONFIRM_SEND_GOODS,WAIT_CONFIRM_GOODS_CONFIRM,CONFIRM_WAIT_SEND_GOODS,CONFIRM_SEND_GOODS,TRADE_REFUNDED,TRADE_REFUNDING
 from shopback.refunds.models import Refund
 from shopback.monitor.models import SystemConfig
 from shopback.signals import merge_trade_signal,rule_signal,merge_buyer_trade_signal
@@ -29,8 +30,9 @@ AUDITFAIL_STATUS = 'AUDITFAIL'
 INVALID_STATUS = 'INVALID' 
 REGULAR_REMAIN_STATUS = 'REGULAR_REMAIN'
 ON_THE_FLY_STATUS= 'ON_THE_FLY' #客户端不可操作
+IN_EFFECT = "IN_EFFECT"
 
-SYS_STATUS = (
+SYS_TRADE_STATUS = (
     (WAIT_PREPARE_SEND_STATUS,'待发货准备'),
     (WAIT_CHECK_BARCODE_STATUS,'待扫描验货'),
     (WAIT_SCAN_WEIGHT_STATUS,'待扫描称重'),
@@ -43,6 +45,10 @@ SYS_STATUS = (
     (REGULAR_REMAIN_STATUS,'定时提醒')
 )
 
+SYS_ORDER_STATUS = (
+    (IN_EFFECT ,'有效'),
+    (INVALID_STATUS,'已作废'),
+)
 
 TRADE_NO_CREATE_PAY = 'TRADE_NO_CREATE_PAY'
 WAIT_BUYER_PAY      = 'WAIT_BUYER_PAY'
@@ -54,19 +60,38 @@ TRADE_CLOSED       = 'TRADE_CLOSED'
 TRADE_CLOSED_BY_TAOBAO = 'TRADE_CLOSED_BY_TAOBAO'
 
 TAOBAO_TRADE_STATUS = (
-    ('TRADE_NO_CREATE_PAY','没有创建支付宝交易'),
-    ('WAIT_BUYER_PAY','等待买家付款'),
-    ('WAIT_SELLER_SEND_GOODS','等待卖家发货'),
-    ('WAIT_BUYER_CONFIRM_GOODS','等待买家确认收货'),
-    ('TRADE_BUYER_SIGNED','买家已签收,货到付款专用'),
-    ('TRADE_FINISHED','交易成功'),
-    ('TRADE_CLOSED','付款以后用户退款成功，交易自动关闭'),
-    ('TRADE_CLOSED_BY_TAOBAO','付款以前，卖家或买家主动关闭交易'),
+    (TRADE_NO_CREATE_PAY,'没有创建支付宝交易'),
+    (WAIT_BUYER_PAY,'等待买家付款'),
+    (WAIT_SELLER_SEND_GOODS,'等待卖家发货'),
+    (WAIT_BUYER_CONFIRM_GOODS,'等待买家确认收货'),
+    (TRADE_BUYER_SIGNED,'买家已签收,货到付款专用'),
+    (TRADE_FINISHED,'交易成功'),
+    (TRADE_CLOSED,'付款以后用户退款成功，交易自动关闭'),
+    (TRADE_CLOSED_BY_TAOBAO,'付款以前，卖家或买家主动关闭交易'),
 )
 
+TAOBAO_ORDER_STATUS = (
+    (TRADE_NO_CREATE_PAY,'没有创建支付宝交易'),
+    (WAIT_BUYER_PAY,'等待买家付款'),
+    (WAIT_SELLER_SEND_GOODS,'等待卖家发货'),
+    (WAIT_BUYER_CONFIRM_GOODS,'等待买家确认收货'),
+    (TRADE_BUYER_SIGNED,'买家已签收,货到付款专用'),
+    (TRADE_FINISHED,'交易成功'),
+    (TRADE_CLOSED,'付款以后用户退款成功，交易自动关闭'),
+    (TRADE_CLOSED_BY_TAOBAO,'付款以前，卖家或买家主动关闭交易'),
+    (WAIT_CONFIRM_WAIT_SEND_GOODS,"付款信息待确认，待发货"),
+    (WAIT_CONFIRM_SEND_GOODS,"付款信息待确认，已发货"),
+    (WAIT_CONFIRM_GOODS_CONFIRM,"付款信息待确认，已收货"),
+    (CONFIRM_WAIT_SEND_GOODS,"付款信息已确认，待发货"),
+    (CONFIRM_SEND_GOODS,"付款信息已确认，已发货"),
+    (TRADE_REFUNDED,"已退款"),
+    (TRADE_REFUNDING,"退款中"),
+)
 
 TRADE_TYPE = (
     ('fixed','一口价'),
+    ('fenxiao','分销'),
+    ('direct','直售'),
     ('auction','拍卖'),
     ('guarantee_trade','一口价、拍卖'),
     ('auto_delivery','自动发货'),
@@ -74,7 +99,6 @@ TRADE_TYPE = (
     ('independent_shop_trade','旺店标准版交易'),
     ('ec','直冲'),
     ('cod','货到付款'),
-    ('fenxiao','分销'),
     ('game_equipment','游戏装备'),
     ('shopex_trade','ShopEX交易'),
     ('netcn_trade','万网交易'),
@@ -88,8 +112,9 @@ SHIPPING_TYPE = {
 }
 
 class MergeTrade(models.Model):
-
-    tid   =  models.BigIntegerField(primary_key=True)
+    
+    id    = BigIntegerAutoField(primary_key=True)
+    tid   = models.BigIntegerField(unique=True,null=True)
     
     user       = models.ForeignKey(User,null=True,related_name='merge_trades')
     seller_id  = models.CharField(max_length=64,blank=True)
@@ -156,7 +181,7 @@ class MergeTrade(models.Model):
     remind_time      = models.DateTimeField(null=True,blank=True)
     refund_num       = models.IntegerField(db_index=True,null=True,default=0)
     
-    sys_status     = models.CharField(max_length=32,db_index=True,choices=SYS_STATUS,blank=True,default='')
+    sys_status     = models.CharField(max_length=32,db_index=True,choices=SYS_TRADE_STATUS,blank=True,default='')
     
     class Meta:
         db_table = 'shop_trades_mergetrade'
@@ -249,7 +274,61 @@ class MergeTrade(models.Model):
             has_rule_match = True
             
         return has_rule_match
-     
+ 
+ 
+ 
+class MergeOrder(models.Model):
+    
+    id    = BigIntegerAutoField(primary_key=True)
+    
+    oid   = models.BigIntegerField(null=True)
+    tid   = models.BigIntegerField(null=True)
+    
+    cid    = models.BigIntegerField(null=True)
+    merge_trade = BigIntegerForeignKey(MergeTrade,null=True,related_name='merge_trade_orders')
+
+    num_iid  = models.CharField(max_length=64,blank=True)
+    title  =  models.CharField(max_length=128)
+    price  = models.CharField(max_length=12,blank=True)
+
+    sku_id = models.CharField(max_length=20,blank=True)
+    num = models.IntegerField(null=True,default=0)
+    
+    outer_id = models.CharField(max_length=64,blank=True)
+    outer_sku_id = models.CharField(max_length=20,blank=True)
+    
+    total_fee = models.CharField(max_length=12,blank=True)
+    payment = models.CharField(max_length=12,blank=True)
+    discount_fee = models.CharField(max_length=12,blank=True)
+    adjust_fee = models.CharField(max_length=12,blank=True)
+
+    modified = models.CharField(max_length=19,blank=True)
+    sku_properties_name = models.TextField(max_length=256,blank=True)
+    
+    refund_id = models.BigIntegerField(null=True)
+    refund_status = models.CharField(max_length=40,choices=REFUND_STATUS,blank=True)
+    
+    pic_path = models.CharField(max_length=128,blank=True)
+    
+    seller_nick = models.CharField(max_length=32,blank=True,db_index=True)
+    buyer_nick  = models.CharField(max_length=32,db_index=True,blank=True)
+    
+    year  = models.IntegerField(null=True,db_index=True)
+    month = models.IntegerField(null=True,db_index=True)
+    week  = models.IntegerField(null=True,db_index=True)
+    day   = models.IntegerField(null=True,db_index=True)
+    hour  = models.CharField(max_length=5,blank=True,db_index=True)
+    
+    created       =  models.DateTimeField(db_index=True,null=True,blank=True)
+    pay_time      =  models.DateTimeField(db_index=True,null=True,blank=True)
+    consign_time  =  models.DateTimeField(db_index=True,null=True,blank=True)
+    
+    status = models.CharField(max_length=32,choices=TAOBAO_ORDER_STATUS,blank=True)
+    sys_status = models.CharField(max_length=32,choices=SYS_ORDER_STATUS,blank=True,default='')
+    
+    class Meta:
+        db_table = 'shop_trades_mergeorder'
+        unique_together = ("oid","tid")
                         
         
 class MergeBuyerTrade(models.Model):
@@ -262,6 +341,29 @@ class MergeBuyerTrade(models.Model):
         db_table = 'shop_trades_mergebuyertrade'
 
 
+def merge_trade_maker(sub_tid,main_merge_trade):
+    #合单操作
+    if main_merge_trade.sys_status in (WAIT_CONFIRM_SEND_STATUS,SYSTEM_SEND_TAOBAO_STATUS):
+        main_merge_trade.sys_status = AUDITFAIL_STATUS
+        main_merge_trade.reverse_audit_reason = '--买家要求合单(该订单已扫描称重，需找出重新发货)'.decode('utf8')
+    else:
+        main_merge_trade.sys_status = AUDITFAIL_STATUS
+        main_merge_trade.reverse_audit_reason = '--买家要求合单'.decode('utf8')
+    update_rows = MergeTrade.objects.filter(tid=main_merge_trade.tid,).exclude(sys_status__in=(FINISHED_STATUS,INVALID_STATUS))\
+        .update(sys_status=main_merge_trade.sys_status,reverse_audit_reason=main_merge_trade.reverse_audit_reason) 
+    
+    if update_rows>0:
+        MergeBuyerTrade.objects.get_or_create(sub_tid=sub_tid,main_tid=main_merge_trade.tid)
+        #merge_buyer_trade_signal.send(sender=Trade,sub_tid=trade.id,main_tid=main_merge_trade.tid)
+        rule_signal.send(sender='trade_rule',trade_id=main_merge_trade.tid)
+        
+    return update_rows
+
+
+def merge_trade_unpicker(sub_tid,main_trade):
+    #拆单单操作
+    return 0
+    
 
 def set_storage_trade_sys_status(merge_trade,trade,trade_from,is_first_save):
     shipping_type = trade.shipping if trade_from==FENXIAO_TYPE else trade.shipping_type
@@ -314,7 +416,7 @@ def set_storage_trade_sys_status(merge_trade,trade,trade_from,is_first_save):
                         
                         if update_rows>0:
                             MergeBuyerTrade.objects.get_or_create(sub_tid=trade.id,main_tid=main_merge_trade.tid)
-                            merge_buyer_trade_signal.send(sender=Trade,sub_tid=trade.id,main_tid=main_merge_trade.tid)
+                            #merge_buyer_trade_signal.send(sender=Trade,sub_tid=trade.id,main_tid=main_merge_trade.tid)
                             rule_signal.send(sender='trade_rule',trade_id=main_merge_trade.tid)
                     else:
                         has_rule_match = MergeTrade.judge_rule_match(trade.id, trade_from)
@@ -446,6 +548,7 @@ def save_orders_trade_to_mergetrade(sender, trade, *args, **kwargs):
         created = trade.created,
         pay_time = trade.pay_time,
         modified = trade.modified,
+        consign_time = trade.consign_time,
         receiver_name = merge_trade.receiver_name,
         receiver_state = merge_trade.receiver_state,
         receiver_city  = merge_trade.receiver_city,
@@ -468,6 +571,45 @@ def save_orders_trade_to_mergetrade(sender, trade, *args, **kwargs):
         logistics_company_name = merge_trade.logistics_company_name,
         reverse_audit_reason = merge_trade.reverse_audit_reason, 
     )
+    #保存商城或C店订单到抽象全局抽象订单表
+    for order in trade.trade_orders.all():
+        merge_order,state = MergeOrder.objects.get_or_create(oid=order.oid)
+        if state:
+            MergeOrder.objects.filter(id=merge_order.id).update(
+                tid = trade.id,
+                merge_trade = merge_trade,
+                num_iid = order.num_iid,
+                title  = order.title,
+                price  = order.price,
+                sku_id = order.sku_id,
+                num = order.num,
+                outer_id = order.outer_id,
+                outer_sku_id = order.outer_sku_id,
+                total_fee = order.total_fee,
+                payment = order.payment,
+                sku_properties_name = properties_values,
+                refund_status = order.refund_status,
+                pic_path = order.pic_path,
+                seller_nick = order.seller_nick,
+                buyer_nick  = order.buyer_nick,
+                year  = order.year,
+                month = order.month,
+                week  = order.week,
+                day   = order.day,
+                hour  = order.hour,
+                created  = order.created,
+                pay_time = order.pay_time,
+                consign_time = order.consign_time,
+                status   = order.status,
+                sys_status = IN_EFFECT
+            )
+        else:
+            MergeOrder.objects.filter(id=merge_order.id).update(
+                refund_status = order.refund_status,
+                pay_time = order.pay_time,
+                consign_time = order.consign_time,
+                status   = order.status
+            )
 
 merge_trade_signal.connect(save_orders_trade_to_mergetrade,sender=Trade,dispatch_uid='merge_trade')
 
@@ -511,6 +653,7 @@ def save_fenxiao_orders_to_mergetrade(sender, trade, *args, **kwargs):
         created = trade.created,
         pay_time = trade.created,
         modified = trade.modified,
+        consign_time = trade.consign_time,
         receiver_name = merge_trade.receiver_name,
         receiver_address = merge_trade.receiver_address,
         receiver_mobile = merge_trade.receiver_mobile,
@@ -530,6 +673,51 @@ def save_fenxiao_orders_to_mergetrade(sender, trade, *args, **kwargs):
         logistics_company_name = merge_trade.logistics_company_name,
         reverse_audit_reason = merge_trade.reverse_audit_reason, 
     )
+    #保存分销订单到抽象全局抽象订单表
+    for order in trade.sub_purchase_orders.all():
+        merge_order,state = MergeOrder.objects.get_or_create(oid=order.tc_order_id)
+        fenxiao_product = FenxiaoProduct.get_or_create(trade.user.visitor_id,order.pid)
+        if order.status == TRADE_REFUNDING:
+            refund_status = REFUND_WAIT_SELLER_AGREE
+        elif order.status == TRADE_REFUNDED:
+            refund_status = REFUND_SUCCESS
+        elif refund_status != TRADE_CLOSED:
+            refund_status = NO_REFUND
+        if state:    
+            MergeOrder.objects.filter(id=merge_order.id).update(
+                tid = trade.id,
+                merge_trade = merge_trade,
+                num_iid = fenxiao_product.item_id,
+                title  = order.title,
+                price  = order.price,
+                sku_id = order.sku_id,
+                num    = order.num,
+                outer_id = order.item_outer_id,
+                outer_sku_id = order.sku_outer_id,
+                total_fee = order.total_fee,
+                payment = order.distributor_payment,
+                sku_properties_name = order.properties_values,
+                refund_status = refund_status,
+                pic_path = fenxiao_product.pictures and fenxiao_product.pictures.split(',')[0] or '',
+                seller_nick = merge_trade.seller_nick,
+                buyer_nick  = merge_trade.buyer_nick,
+                year  = merge_trade.year,
+                month = merge_trade.month,
+                week  = merge_trade.week,
+                day   = merge_trade.day,
+                hour  = merge_trade.hour,
+                created  = order.created,
+                pay_time = merge_trade.created,
+                consign_time = merge_trade.consign_time,
+                status   = order.status,
+                sys_status = IN_EFFECT
+            )
+        else:
+            MergeOrder.objects.filter(id=merge_order.id).update(
+                refund_status = refund_status,
+                consign_time  = merge_trade.consign_time,
+                status        = order.status
+            )
 
 merge_trade_signal.connect(save_fenxiao_orders_to_mergetrade,sender=PurchaseOrder,dispatch_uid='merge_purchaseorder')
 

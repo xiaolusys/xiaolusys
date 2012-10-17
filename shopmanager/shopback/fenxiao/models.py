@@ -20,6 +20,47 @@ import logging
 logger = logging.getLogger('fenxiao.handler')
 
 
+WAIT_BUYER_PAY = "WAIT_BUYER_PAY"
+WAIT_SELLER_SEND_GOODS   = "WAIT_SELLER_SEND_GOODS"
+WAIT_BUYER_CONFIRM_GOODS = "WAIT_BUYER_CONFIRM_GOODS"
+TRADE_FINISHED = "TRADE_FINISHED"
+TRADE_CLOSED   = "TRADE_CLOSED"
+WAIT_BUYER_CONFIRM_GOODS_ACOUNTED = "WAIT_BUYER_CONFIRM_GOODS_ACOUNTED"
+WAIT_SELLER_SEND_GOODS_ACOUNTED   = "WAIT_SELLER_SEND_GOODS_ACOUNTED"
+
+PURCHASE_ORDER_STATUS = (
+    (WAIT_BUYER_PAY,"等待付款"),
+    (WAIT_SELLER_SEND_GOODS,"已付款，待发货"),
+    (WAIT_BUYER_CONFIRM_GOODS,"已付款，已发货"),
+    (TRADE_FINISHED,"交易成功"),
+    (TRADE_CLOSED,"交易关闭"),
+    (WAIT_BUYER_CONFIRM_GOODS_ACOUNTED,"已付款（已分账），已发货"),
+    (WAIT_SELLER_SEND_GOODS_ACOUNTED,"已付款（已分账），待发货"),
+) 
+
+WAIT_CONFIRM = "WAIT_CONFIRM"
+WAIT_CONFIRM_WAIT_SEND_GOODS = "WAIT_CONFIRM_WAIT_SEND_GOODS"
+WAIT_CONFIRM_SEND_GOODS    = "WAIT_CONFIRM_SEND_GOODS"
+WAIT_CONFIRM_GOODS_CONFIRM = "WAIT_CONFIRM_GOODS_CONFIRM"
+CONFIRM_WAIT_SEND_GOODS    = "CONFIRM_WAIT_SEND_GOODS"
+CONFIRM_SEND_GOODS   = "CONFIRM_SEND_GOODS"
+TRADE_REFUNDED       = "TRADE_REFUNDED"
+TRADE_REFUNDING      = "TRADE_REFUNDING"
+SUB_PURCHASE_ORDER_STATUS = (
+    (WAIT_BUYER_PAY,"等待付款"),
+    (WAIT_CONFIRM,"付款信息待确认"),
+    (WAIT_CONFIRM_WAIT_SEND_GOODS,"付款信息待确认，待发货"),
+    (WAIT_CONFIRM_SEND_GOODS,"付款信息待确认，已发货"),
+    (WAIT_CONFIRM_GOODS_CONFIRM,"付款信息待确认，已收货"),
+    (WAIT_SELLER_SEND_GOODS,"已付款，待发货"),
+    (WAIT_BUYER_CONFIRM_GOODS,"已付款，已发货"),
+    (CONFIRM_WAIT_SEND_GOODS,"付款信息已确认，待发货"),
+    (CONFIRM_SEND_GOODS,"付款信息已确认，已发货"),
+    (TRADE_REFUNDED,"已退款"),
+    (TRADE_REFUNDING,"退款中"),
+    (TRADE_FINISHED,"交易成功"),
+    (TRADE_CLOSED,"交易关闭"),
+)
 
 class FenxiaoProduct(models.Model):
     
@@ -144,7 +185,7 @@ class PurchaseOrder(models.Model):
     
     tc_order_id = models.CharField(max_length=64,blank=True)
     alipay_no   = models.CharField(max_length=64,blank=True)
-    status     = models.CharField(max_length=32,blank=True)
+    status     = models.CharField(max_length=32,choices=PURCHASE_ORDER_STATUS,blank=True)
 
     class Meta:
         db_table = 'shop_fenxiao_purchaseorder'
@@ -223,13 +264,24 @@ class SubPurchaseOrder(models.Model):
     created          = models.DateTimeField(null=True)
     
     refund_fee       = models.CharField(max_length=10,blank=True)
-    status           = models.CharField(max_length=32,blank=True)
+    status           = models.CharField(max_length=32,choices=SUB_PURCHASE_ORDER_STATUS,blank=True)
     
     class Meta:
         db_table = 'shop_fenxiao_subpurchaseorder'
 
     def __unicode__(self):
         return str(self.fenxiao_id)  
+    
+    @property
+    def properties_values(self):
+        sku_properties = self.old_sku_properties or self.sku_properties
+        properties_list = sku_properties.split('，'.decode('utf8'))
+        value_list = []
+        for properties in properties_list:
+            values = properties.split('：'.decode('utf8'))
+            value_list.append( values[1] if len(values)==2 else properties)
+        return ' '.join(value_list)
+        
   
 
     

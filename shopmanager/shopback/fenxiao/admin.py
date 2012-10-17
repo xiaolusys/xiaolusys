@@ -7,7 +7,7 @@ __author__ = 'meixqhi'
 class FenxiaoProductAdmin(admin.ModelAdmin):
     list_display = ('pid','name','productcat_id','user','trade_type','standard_price','category','item_id',
                     'cost_price','outer_id','quantity','have_invoice','items_count','orders_count','created','modified','status')
-    list_filter = ('user','category','trade_type','status',)
+    list_filter = ('user','trade_type','status',)
     #list_editable = ('update_time','task_type' ,'is_success','status')
 
     date_hierarchy = 'created'

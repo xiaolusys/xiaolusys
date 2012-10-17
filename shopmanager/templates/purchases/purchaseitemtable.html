@@ -1,0 +1,35 @@
+<div id="purchase_layer_table">
+	<table cellspacing="0" cellpadding="0" border="0" class="table table-bordered table-striped table-condensed">
+		{% if object %}
+		<tr>
+		  <th>简称</th><th>采购编码</th><th>修改日期</th><th>分类</th><th>规格采购编码</th><th>规格属性</th>
+		</tr>
+			{% with object.purchase_productskus|length as sku_len %}
+			{% for sku in object.purchase_productskus %}
+			<tr>
+				{% if forloop.first %}
+				<td rowspan="{{ object|length }}">{{ object.name }}</td>
+				<td rowspan="{{ object|length }}">{{ object.outer_id }}</td>
+				<td rowspan="{{ object|length }}">{{ object.modified|date:"Y-m-d" }}</td>
+				<td rowspan="{{ object|length }}">{{ object.category.name }}</td>
+				{% endif %}
+		  		<td>{{ sku.outer_id }}</td>
+		  		<td>{{ sku.properties }}</td>
+			</tr>
+			{% empty %}
+			<tr>
+				<td>{{ object.name }}</td>
+				<td>{{ object.outer_id }}</td>
+				<td>{{ object.modified }}</td>
+				<td>{{ object.category.name }}</td>
+				<td colspan="2"></td>
+			<tr>
+			{% endfor %}
+			{% endwith %}
+		{% else %}
+		<tr>
+			<td >该产品没有采购产品信息！</td>
+		<tr>
+		{% endif %}
+	</table>
+</div>

@@ -1,14 +1,17 @@
+#-*- coding:utf8 -*-
 import datetime
 import json
 from django.core.serializers.json import DjangoJSONEncoder
 from django.http import HttpResponse
+from  django.shortcuts import render_to_response
+from django.template import RequestContext
 from django.template.loader import render_to_string
 from djangorestframework.serializer import Serializer
 from djangorestframework.utils import as_tuple
 from djangorestframework import status
-from djangorestframework.response import Response
+from djangorestframework.response import Response,ErrorResponse
 from djangorestframework.mixins import CreateModelMixin
-from djangorestframework.views import ModelView,ListOrCreateModelView,ListModelView
+from shopback.base.views import ModelView,ListOrCreateModelView,ListModelView
 from shopback.base.models import NORMAL,DELETE
 from shopback.items.models import Item,Product,ProductSku,ONSALE_STATUS
 from shopback.users.models import User
@@ -64,7 +67,7 @@ class ProductListView(ListOrCreateModelView):
     queryset = None
     
     def get(self, request, *args, **kwargs):
-        
+        #获取库存商品列表
         model = self.resource.model
 
         queryset = self.get_queryset() if self.get_queryset() is not None else model.objects.all()
@@ -79,8 +82,10 @@ class ProductListView(ListOrCreateModelView):
         if ordering:
             args = as_tuple(ordering)
             queryset = queryset.order_by(*args)
-        
-        return queryset.filter(**kwargs)
+            
+        queryset = queryset.filter(**kwargs)
+
+        return queryset
  
     
     def get_queryset(self):
@@ -92,7 +97,7 @@ class ProductItemView(ListModelView):
     queryset = None
     
     def get(self, request, *args, **kwargs):
-        
+        #获取某outer_id对应的商品，以及同步商品库存
         outer_id = kwargs.get('outer_id','')
         sync_stock = request.REQUEST.get('sync_stock','no')
         model = self.resource.model
@@ -117,19 +122,111 @@ class ProductItemView(ListModelView):
         item_dict = {}
         items = queryset.filter(**kwargs)
         item_dict['itemobjs'] =  Serializer().serialize(items)
-        
         item_dict['layer_table'] = render_to_string('items/itemstable.html', { 'object':item_dict['itemobjs']})    
         
         return item_dict
     
     def post(self, request, *args, **kwargs):
-        
+        #删除product或productsku
         outer_id = kwargs.get('outer_id')
-        row = model.objects.filter(outer_id=outer_id).update(status=DELETE)
+        outer_sku_id = request.REQUEST.get('outer_sku_id',None)
+        if outer_sku_id:
+            row = ProductSku.objects.filter(product=outer_id,outer_id=outer_sku_id).update(status=DELETE)
+        else:
+            row = Product.objects.filter(outer_id=outer_id).update(status=DELETE)
         
         return {'updates_num':row}
     
     def get_queryset(self):
         return self.queryset
+
+
+class ProductModifyView(ListModelView):
+    """ docstring for ProductListView """
+    
+    def get(self, request, *args, **kwargs):
+        #取消库存警告
+        outer_id = kwargs.get('outer_id')
+        outer_sku_id = request.REQUEST.get('outer_sku_id',None)
+        if outer_sku_id :
+            row = ProductSku.objects.filter(product=outer_id,outer_id=outer_sku_id).update(is_assign=True)
+        else:
+            row = Product.objects.filter(outer_id=outer_id).update(is_assign=True)
+            
+        return {'updates_num':row}
+    
+    
+    
+class ProductUpdateView(ModelView):
+    """ docstring for ProductListView """
+    
+    def get(self, request, *args, **kwargs):
+        
+        outer_id = kwargs.get('outer_id',None)
+        try:
+            instance = Product.objects.get(outer_id=outer_id)
+        except:
+            instance = None
+            
+        return instance
+    
+    
+    def post(self, request, *args, **kwargs):
+        #修改库存商品信息
+        
+        
+        
+            
+        return 0
+   
+   
+class ProductSkuCreateView(ModelView):
+    """ docstring for ProductSkuCreateView """
+    
+    def get(self, request, *args, **kwargs):
+        
+        prod_sku_id = request.REQUEST.get('prod_sku_id',None)
+        try:
+            instance = ProductSku.objects.get(id=prod_sku_id)
+        except:
+            raise ErrorResponse(status.HTTP_404_NOT_FOUND)
+        
+        return instance
+    
+    
+    def post(self, request, *args, **kwargs):
+        #创建库存产品属性信息
+    
+            
+        return 0
+    
+    
+class ProductSkuInstanceView(ModelView):
+    """ docstring for ProductSkuInstanceView """
+    
+    def get(self, request, sku_id, *args, **kwargs):
+        
+        print sku_id
+        try:
+            instance = ProductSku.objects.get(id=sku_id)
+        except:
+            raise ErrorResponse(status.HTTP_404_NOT_FOUND)
+        
+        product_sku = self._resource.filter_response(instance)
+        product_sku['layer_table'] = render_to_string('items/productskutable.html', { 'object':instance}) 
+        
+        return product_sku
+    
+    
+    def post(self, request, *args, **kwargs):
+        #修改库存商品信息
+        
+
+            
+        return 0
+
+
+
+
 
 
