@@ -167,16 +167,14 @@ class MergeTrade(models.Model):
     week  = models.IntegerField(null=True,db_index=True)
     day   = models.IntegerField(null=True,db_index=True)
     hour  = models.CharField(max_length=5,blank=True,db_index=True)
-    
-    reverse_audit_times = models.IntegerField(default=0)
-    reverse_audit_reason = models.TextField(max_length=1000,blank=True)
+
+    reason_code = models.CharField(max_length=100,blank=True)  #1|2|3 问题单原因编码集合
     status  = models.CharField(max_length=32,db_index=True,choices=TAOBAO_TRADE_STATUS,blank=True)
         
     is_picking_print = models.BooleanField(default=False)
     is_express_print = models.BooleanField(default=False)
     is_send_sms      = models.BooleanField(default=False)
     has_refund       = models.BooleanField(default=False)
-    out_goods        = models.BooleanField(default=False)
     has_memo         = models.BooleanField(default=False)
     remind_time      = models.DateTimeField(null=True,blank=True)
     refund_num       = models.IntegerField(db_index=True,null=True,default=0)
@@ -383,7 +381,6 @@ def set_storage_trade_sys_status(merge_trade,trade,trade_from,is_first_save):
                 is_out_stock = MergeTrade.judge_out_stock(trade.id, trade_from)
                 #缺货
                 if is_out_stock:
-                    merge_trade.out_goods = True
                     merge_trade.sys_status = AUDITFAIL_STATUS
                     merge_trade.reverse_audit_reason = '订单缺货'.decode('utf8')
                 else:
@@ -565,7 +562,6 @@ def save_orders_trade_to_mergetrade(sender, trade, *args, **kwargs):
         week  = merge_trade.week,
         has_refund = merge_trade.has_refund,
         has_memo = merge_trade.has_memo,
-        out_goods = merge_trade.out_goods,
         sys_status = merge_trade.sys_status,
         logistics_company_code = merge_trade.logistics_company_code,
         logistics_company_name = merge_trade.logistics_company_name,
@@ -667,7 +663,6 @@ def save_fenxiao_orders_to_mergetrade(sender, trade, *args, **kwargs):
         has_refund = merge_trade.has_refund,
         total_num = merge_trade.total_num,
         has_memo = merge_trade.has_memo,
-        out_goods = merge_trade.out_goods,
         sys_status = merge_trade.sys_status,
         logistics_company_code = merge_trade.logistics_company_code,
         logistics_company_name = merge_trade.logistics_company_name,

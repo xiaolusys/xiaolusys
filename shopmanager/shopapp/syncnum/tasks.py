@@ -32,17 +32,12 @@ def updateItemNum(num_iid,update_time):
             product_sku = product.prod_skus.get(outer_id=outer_sku_id)
             
             order_nums = 0
-            if product.modified < update_time:
-                order_nums = Order.objects.filter(outer_id=product.outer_id,outer_sku_id=outer_sku_id,status__in=ORDER_POST_STATUS)\
-                    .filter(consign_time__gte=item.last_num_updated,consign_time__lt=update_time)\
-                    .aggregate(sale_nums=Sum('num')).get('sale_nums')
-                       
+            if product.modified < update_time:     
                 wait_nums = Order.objects.filter(outer_id=product.outer_id,outer_sku_id=outer_sku_id,status=WAIT_SELLER_SEND_GOODS)\
                     .aggregate(sale_nums=Sum('num')).get('sale_nums')
-                order_nums  = order_nums or 0
                 wait_nums   = wait_nums or 0
                 remain_nums = product_sku.remain_num or 0
-                real_num   = product_sku.quantity - order_nums 
+                real_num   = product_sku.quantity
                 sync_num   = real_num - wait_nums - remain_nums
             else:
                 real_num = product_sku.quantity
@@ -61,23 +56,15 @@ def updateItemNum(num_iid,update_time):
                                              num=sync_num,
                                              start_at= item.last_num_updated,
                                              end_at=update_time )
-            #如果不同步
-            elif not product_sku.sync_stock and order_nums > 0:
-                product_sku.setQuantity(real_num)
     else:
         order_nums = 0
         if product.modified < update_time:
-            order_nums = Order.objects.filter(outer_id=product.outer_id,status__in=ORDER_POST_STATUS)\
-                    .filter(consign_time__gte=item.last_num_updated,consign_time__lt=update_time)\
-                    .aggregate(sale_nums=Sum('num')).get('sale_nums')
-            
             wait_nums = Order.objects.filter(outer_id=product.outer_id,status=WAIT_SELLER_SEND_GOODS)\
                     .aggregate(sale_nums=Sum('num')).get('sale_nums')
-                    
-            order_nums = order_nums or 0  
+
             wait_nums  = wait_nums or 0
             remain_nums = product.remain_num or 0
-            real_num   = product.collect_num - order_nums
+            real_num   = product.collect_num
             sync_num   = real_num - wait_nums - remain_nums
         else:
             real_num = product.collect_num
@@ -95,9 +82,6 @@ def updateItemNum(num_iid,update_time):
                                              num=sync_num,
                                              start_at= item.last_num_updated,
                                              end_at=update_time )
-        elif not product.sync_stock and order_nums > 0:
-            product.collect_num = real_num
-            product.save()
     
     Item.objects.filter(num_iid=item.num_iid).update(last_num_updated=update_time)
 
