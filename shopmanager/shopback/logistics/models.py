@@ -19,7 +19,7 @@ LOGISTICS_FINISH_STATUS = ['ACCEPTED_BY_RECEIVER']
 class LogisticsCompany(models.Model):
     
     id      = models.BigIntegerField(primary_key=True)
-    code    = models.CharField(max_length=64,blank=True)
+    code    = models.CharField(max_length=64,unique=True,blank=True)
     name    = models.CharField(max_length=64,blank=True)
     reg_mail_no = models.CharField(max_length=500,blank=True)
     priority    = models.IntegerField(null=True,default=0)
@@ -28,7 +28,7 @@ class LogisticsCompany(models.Model):
         db_table = 'shop_logistics_company'
 
     def __unicode__(self):
-        return self.code+'--'+self.name
+        return '<%s,%s>'%(self.code,self.name)
     
     @classmethod
     def save_logistics_company_through_dict(cls,user_id,company_dict):
@@ -92,7 +92,7 @@ class Logistics(models.Model):
                 logistic_dict = response['logistics_orders_detail_get_response']['shippings']['shipping'][0]
                 logistic = cls.save_logistics_through_dict(user_id, logistic_dict)
             except Exception,exc:
-                logger.error('淘宝后台更新交易(tid:%s)物流信息出错'%str(tid),exc_info=True)
+                logger.error('淘宝后台更新交易(tid:%s)物流信息出错'.decode('utf8')%str(tid),exc_info=True)
         return logistic
         
     

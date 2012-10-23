@@ -56,7 +56,7 @@ class TradeAmount(models.Model):
                 trade_amount_dict  = response['trade_amount_get_response']['trade_amount']
                 trade_amount = cls.save_trade_amount_through_dict(user_id,trade_amount_dict)
             except Exception,exc:
-                logger.error('淘宝后台更新该交易帐务(tid:%s)出错'%str(trade_id),exc_info=True)
+                logger.error('淘宝后台更新该交易帐务(tid:%s)出错'.decode('utf8')%str(trade_id),exc_info=True)
         return trade_amount
 
 

@@ -1,0 +1,74 @@
+[
+  {
+    "pk": 1,
+    "model": "monitor.reason",
+    "fields": {
+      "priority": 0,
+      "reason_text": "\u65b0\u7559\u8a00",
+      "created": "2012-10-23 15:02:32"
+    }
+  },
+  {
+    "pk": 2,
+    "model": "monitor.reason",
+    "fields": {
+      "priority": 0,
+      "reason_text": "\u65b0\u9000\u6b3e",
+      "created": "2012-10-23 15:02:48"
+    }
+  },
+  {
+    "pk": 3,
+    "model": "monitor.reason",
+    "fields": {
+      "priority": 0,
+      "reason_text": "\u65b0\u5408\u5355",
+      "created": "2012-10-23 15:03:05"
+    }
+  },
+  {
+    "pk": 4,
+    "model": "monitor.reason",
+    "fields": {
+      "priority": 0,
+      "reason_text": "\u7533\u8bf7\u9000\u6b3e\u4e2d",
+      "created": "2012-10-23 15:03:21"
+    }
+  },
+  {
+    "pk": 5,
+    "model": "monitor.reason",
+    "fields": {
+      "priority": 0,
+      "reason_text": "\u6709\u89c4\u5219\u5339\u914d",
+      "created": "2012-10-23 15:03:38"
+    }
+  },
+  {
+    "pk": 6,
+    "model": "monitor.reason",
+    "fields": {
+      "priority": 0,
+      "reason_text": "\u8ba2\u5355\u7f3a\u8d27",
+      "created": "2012-10-23 15:03:55"
+    }
+  },
+  {
+    "pk": 7,
+    "model": "monitor.reason",
+    "fields": {
+      "priority": 0,
+      "reason_text": "\u8ba2\u5355\u975e\u6b63\u5e38\u7ed3\u675f",
+      "created": "2012-10-23 15:04:19"
+    }
+  },
+  {
+    "pk": 8,
+    "model": "monitor.reason",
+    "fields": {
+      "priority": 0,
+      "reason_text": "\u8ba2\u5355\u6709\u6539\u52a8",
+      "created": "2012-10-23 15:04:31"
+    }
+  }
+]

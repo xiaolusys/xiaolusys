@@ -30,7 +30,7 @@ APPROVE_STATUS  = (
 
 PRODUCT_STATUS = (
     (NORMAL,'使用'),
-    (DELETE,'删除'),
+    (DELETE,'作废'),
 )
 
 
@@ -41,28 +41,29 @@ class Product(models.Model):
         2,库存管理的核心类；
     """
     
-    outer_id     = models.CharField(max_length=64,unique=True,null=False,blank=False)
-    name         = models.CharField(max_length=64,blank=True)
+    outer_id     = models.CharField(max_length=64,unique=True,null=False,blank=False,verbose_name='外部编码')
+    name         = models.CharField(max_length=64,blank=True,verbose_name='商品名称')
     
-    purchase_product = models.ForeignKey(PurchaseProduct,null=True,related_name='products')
-    category     = models.ForeignKey(ProductCategory,null=True,related_name='products')
+    purchase_product = models.ForeignKey(PurchaseProduct,null=True,related_name='products',verbose_name='关联采购商品')
+    category     = models.ForeignKey(ProductCategory,null=True,related_name='products',verbose_name='内部分类')
 
-    collect_num  = models.IntegerField(null=True)  #库存数
-    warn_num     = models.IntegerField(null=True,default=10)    #警戒库位
-    remain_num   = models.IntegerField(null=True,default=0)    #预留库存
-    price        = models.CharField(max_length=10,blank=True)
+    collect_num  = models.IntegerField(null=True,verbose_name='库存数')  #库存数
+    warn_num     = models.IntegerField(null=True,default=10,verbose_name='警告库位')    #警戒库位
+    remain_num   = models.IntegerField(null=True,default=0,verbose_name='预留库位')    #预留库存
+    price        = models.CharField(max_length=10,blank=True,verbose_name='参考价格')
     
-    created      = models.DateTimeField(null=True,blank=True,auto_now_add=True)
-    modified     = models.DateTimeField(null=True,blank=True,auto_now=True)
+    created      = models.DateTimeField(null=True,blank=True,auto_now_add=True,verbose_name='创建时间')
+    modified     = models.DateTimeField(null=True,blank=True,auto_now=True,verbose_name='修改时间')
     
-    sync_stock   = models.BooleanField(default=True)
-    out_stock    = models.BooleanField(default=False)
-    is_assign    = models.BooleanField(default=False) #是否手动分配库存，当库存充足时，系统自动设为False，手动分配过后，确定后置为True
+    sync_stock   = models.BooleanField(default=True,verbose_name='库存同步')
+    out_stock    = models.BooleanField(default=False,verbose_name='缺货')
+    is_assign    = models.BooleanField(default=False,verbose_name='取消库位警告') #是否手动分配库存，当库存充足时，系统自动设为False，手动分配过后，确定后置为True
     
-    status       = models.CharField(max_length=16,db_index=True,choices=PRODUCT_STATUS,default=NORMAL)
+    status       = models.CharField(max_length=16,db_index=True,choices=PRODUCT_STATUS,default=NORMAL,verbose_name='商品状态')
     
     class Meta:
         db_table = 'shop_items_product'
+        verbose_name='库存商品'
 
     def __unicode__(self):
         return self.name
@@ -78,29 +79,30 @@ class ProductSku(models.Model):
         2,库存管理的规格核心类；
     """
     
-    outer_id = models.CharField(max_length=64,null=True,blank=True)
+    outer_id = models.CharField(max_length=64,null=True,blank=True,verbose_name='规格外部编码')
     
-    prod_outer_id = models.CharField(max_length=64,db_index=True,blank=True,default='')
-    product  = models.ForeignKey(Product,null=True,related_name='prod_skus')
-    purchase_product_sku = models.ForeignKey(PurchaseProductSku,null=True,blank=True,related_name='prod_skus')
+    prod_outer_id = models.CharField(max_length=64,db_index=True,blank=True,default='',verbose_name='商品外部编码')
+    product  = models.ForeignKey(Product,null=True,related_name='prod_skus',verbose_name='商品')
+    purchase_product_sku = models.ForeignKey(PurchaseProductSku,null=True,blank=True,related_name='prod_skus',verbose_name='关联采购规格')
     
-    quantity = models.IntegerField(null=True)
-    warn_num     = models.IntegerField(null=True,default=10)    #警戒库位
-    remain_num   = models.IntegerField(null=True,default=0)    #预留库存
+    quantity = models.IntegerField(null=True,verbose_name='库存数')
+    warn_num     = models.IntegerField(null=True,default=10,verbose_name='警戒库位')    #警戒库位
+    remain_num   = models.IntegerField(null=True,default=0,verbose_name='预留库位')    #预留库存
     
-    properties_name = models.TextField(max_length=3000,blank=True)
-    properties      = models.TextField(max_length=2000,blank=True)
+    properties_name = models.TextField(max_length=200,blank=True,verbose_name='规格属性')
+    properties      = models.TextField(max_length=200,blank=True,verbose_name='属性编码')
     
-    out_stock    = models.BooleanField(default=False) 
-    sync_stock   = models.BooleanField(default=True) 
-    is_assign    = models.BooleanField(default=False) #是否手动分配库存，当库存充足时，系统自动设为False，手动分配过后，确定后置为True
+    out_stock    = models.BooleanField(default=False,verbose_name='缺货') 
+    sync_stock   = models.BooleanField(default=True,verbose_name='库存同步') 
+    is_assign    = models.BooleanField(default=False,verbose_name='已分配库存(取消库位警告)') #是否手动分配库存，当库存充足时，系统自动设为False，手动分配过后，确定后置为True
     
-    modified = models.DateTimeField(null=True,blank=True,auto_now=True)
-    status   = models.CharField(max_length=10,db_index=True,choices=PRODUCT_STATUS,default=NORMAL)  #normal,delete
+    modified = models.DateTimeField(null=True,blank=True,auto_now=True,verbose_name='修改时间')
+    status   = models.CharField(max_length=10,db_index=True,choices=PRODUCT_STATUS,default=NORMAL,verbose_name='规格状态')  #normal,delete
     
     class Meta:
         db_table = 'shop_items_productsku'
         unique_together = ("outer_id", "product",)
+        verbose_name='库存商品规格'
 
     def __unicode__(self):
         return self.properties_values
@@ -126,46 +128,48 @@ class ProductSku(models.Model):
 class Item(models.Model):
     """ 淘宝线上商品 """
     
-    num_iid  = models.CharField(primary_key=True,max_length=64)
+    num_iid  = models.CharField(primary_key=True,max_length=64,verbose_name='商品ID')
 
-    user     = models.ForeignKey(User,null=True,related_name='items')
-    category = models.ForeignKey(Category,null=True,related_name='items')
-    product  = models.ForeignKey(Product,null=True,related_name='items')
+    user     = models.ForeignKey(User,null=True,related_name='items',verbose_name='店铺')
+    category = models.ForeignKey(Category,null=True,related_name='items',verbose_name='淘宝分类')
+    product  = models.ForeignKey(Product,null=True,related_name='items',verbose_name='关联库存商品')
 
-    outer_id = models.CharField(max_length=64,blank=True)
-    num      = models.IntegerField(null=True)
+    outer_id = models.CharField(max_length=64,blank=True,verbose_name='外部编码')
+    num      = models.IntegerField(null=True,verbose_name='数量')
 
-    seller_cids = models.CharField(max_length=126,blank=True)
-    approve_status = models.CharField(max_length=20,choices=APPROVE_STATUS,blank=True)  # onsale,instock
-    type = models.CharField(max_length=12,blank=True)
-    valid_thru = models.IntegerField(null=True)
+    seller_cids = models.CharField(max_length=126,blank=True,verbose_name='卖家分类')
+    approve_status = models.CharField(max_length=20,choices=APPROVE_STATUS,blank=True,verbose_name='在售状态')  # onsale,instock
+    type = models.CharField(max_length=12,blank=True,verbose_name='商品类型')
+    valid_thru = models.IntegerField(null=True,verbose_name='有效期')
 
-    price      = models.CharField(max_length=12,blank=True)
-    postage_id = models.BigIntegerField(null=True)
+    price      = models.CharField(max_length=12,blank=True,verbose_name='价格')
+    postage_id = models.BigIntegerField(null=True,verbose_name='运费模板ID')
 
-    has_showcase = models.BooleanField(default=False)
-    modified     = models.DateTimeField(null=True,blank=True)
+    has_showcase = models.BooleanField(default=False,verbose_name='橱窗推荐')
+    modified     = models.DateTimeField(null=True,blank=True,verbose_name='修改时间')
 
-    list_time   = models.DateTimeField(null=True,blank=True)
-    delist_time = models.DateTimeField(null=True,blank=True)
+    list_time   = models.DateTimeField(null=True,blank=True,verbose_name='上架时间')
+    delist_time = models.DateTimeField(null=True,blank=True,verbose_name='下架时间')
 
-    has_discount = models.BooleanField(default=False)
+    has_discount = models.BooleanField(default=False,verbose_name='有折扣')
 
-    props = models.TextField(max_length=500,blank=True)
-    title = models.CharField(max_length=148,blank=True)
+    props = models.TextField(max_length=500,blank=True,verbose_name='商品属性')
+    title = models.CharField(max_length=148,blank=True,verbose_name='商品标题')
 
-    has_invoice = models.BooleanField(default=False)
-    pic_url     = models.URLField(verify_exists=False,blank=True)
-    detail_url  = models.URLField(verify_exists=False,blank=True)
+    has_invoice = models.BooleanField(default=False,verbose_name='有发票')
+    pic_url     = models.URLField(verify_exists=False,blank=True,verbose_name='商品图片')
+    detail_url  = models.URLField(verify_exists=False,blank=True,verbose_name='详情链接')
 
-    last_num_updated = models.DateTimeField(null=True,blank=True)  #该件商品最后库存同步日期
+    last_num_updated = models.DateTimeField(null=True,blank=True,verbose_name='最后库存同步日期')  #该件商品最后库存同步日期
     
-    desc = models.TextField(max_length=25000,blank=True)
-    skus = models.TextField(max_length=5000,blank=True)
+    desc = models.TextField(max_length=25000,blank=True,verbose_name='商品描述')
+    skus = models.TextField(max_length=5000,blank=True,verbose_name='规格')
 
-    status = models.BooleanField(default=True)
+    status = models.BooleanField(default=True,verbose_name='系统状态')
     class Meta:
         db_table = 'shop_items_item'
+        verbose_name='线上商品'
+
 
 
     def __unicode__(self):

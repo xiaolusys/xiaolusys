@@ -7,8 +7,7 @@ from celery.task.sets import subtask
 from django.conf import settings
 from auth.utils import format_time,format_datetime,format_year_month,parse_datetime
 from shopback.monitor.models import SystemConfig
-from shopback.trades.models import MergeTrade,MergeBuyerTrade,WAIT_CONFIRM_SEND_STATUS,SYSTEM_SEND_TAOBAO_STATUS\
-    ,FINISHED_STATUS,AUDITFAIL_STATUS,ON_THE_FLY_STATUS,REGULAR_REMAIN_STATUS
+from shopback.trades.models import MergeTrade,MergeBuyerTrade,FINISHED_STATUS,WAIT_AUDIT_STATUS,ON_THE_FLY_STATUS,REGULAR_REMAIN_STATUS
 from shopback.users.models import User
 from auth import apis
 import logging
@@ -26,7 +25,7 @@ def syncConfirmDeliveryTradeTask():
             response = apis.taobao_logistics_online_send(tid=trade.tid,out_sid=trade.out_sid
                                           ,company_code=trade.logistics_company_code,tb_user_id=trades.seller_id)
         except Exception,exc:
-            trade.sys_status = AUDITFAIL_STATUS
+            trade.sys_status = WAIT_AUDIT_STATUS
             trade.reverse_audit_reason += '--发货状态更新失败'.decode('utf8')
             trade.save()
         else:
@@ -48,7 +47,7 @@ def syncConfirmDeliveryTradeTask():
                             apis.taobao_logistics_online_send(tid=merge_buyer_trade.sub_tid,out_sid=trade.out_sid
                                               ,company_code=trade.logistics_company_code,tb_user_id=trades.seller_id)
                         except Exception,exc:
-                            sub_merge_trade.sys_status = AUDITFAIL_STATUS
+                            sub_merge_trade.sys_status = WAIT_AUDIT_STATUS
                             sub_merge_trade.reverse_audit_reason += ('--主订单(id:%d)发货成功，但次订单(%d)发货失败'%(trade.tid,sub_merge_trade.main_tid)).decode('utf8')
                             sub_merge_trade.save()
                         else:
@@ -70,6 +69,6 @@ def regularRemainOrderTask():
     #更新定时提醒订单
     dt = datetime.datetime.now()
     dt = datetime.datetime(dt.year,dt.month,dt.day,0,0,0)
-    MergeTrade.objects.filter(sys_status=REGULAR_REMAIN_STATUS,remind_time__lte=dt).update(sys_status=AUDITFAIL_STATUS)
+    MergeTrade.objects.filter(sys_status=REGULAR_REMAIN_STATUS,remind_time__lte=dt).update(sys_status=WAIT_AUDIT_STATUS)
 
         

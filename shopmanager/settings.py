@@ -28,6 +28,7 @@ DATABASES = {
 
 TIME_ZONE = 'Asia/Shanghai'
 
+
 LANGUAGE_CODE = 'en-us'
 
 SITE_ID = 1
@@ -278,6 +279,11 @@ LOGGING = {
             'propagate': True,
         },
         'asynctask.handler':{
+            'handlers': ['sentry'],
+            'level': 'WARN',
+            'propagate': True,
+        },
+        'tradepost.handler':{
             'handlers': ['sentry'],
             'level': 'WARN',
             'propagate': True,

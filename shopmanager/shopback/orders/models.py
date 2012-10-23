@@ -7,7 +7,7 @@ from shopback.base.models import BaseModel
 from shopback.base.fields import BigIntegerAutoField,BigIntegerForeignKey
 from shopback.users.models import User
 from shopback.items.models import Item
-from shopback.signals import merge_trade_signal,merge_buyer_trade_signal
+from shopback.signals import merge_trade_signal
 from auth import apis
 import logging
 
@@ -66,9 +66,9 @@ class Trade(models.Model):
     id           =  BigIntegerAutoField(primary_key=True)
     user         =  models.ForeignKey(User,null=True,related_name='trades')
 
-    seller_id    =  models.CharField(max_length=64,blank=True)
-    seller_nick  =  models.CharField(max_length=64,blank=True)
-    buyer_nick   =  models.CharField(max_length=64,blank=True)
+    seller_id    =  models.CharField(max_length=64,db_index=True,blank=True)
+    seller_nick  =  models.CharField(max_length=64,db_index=True,blank=True)
+    buyer_nick   =  models.CharField(max_length=64,db_index=True,blank=True)
     type         =  models.CharField(max_length=32,blank=True)
 
     year  = models.IntegerField(null=True,db_index=True)
@@ -212,7 +212,6 @@ class Order(models.Model):
     discount_fee = models.CharField(max_length=12,blank=True)
     adjust_fee = models.CharField(max_length=12,blank=True)
 
-    modified = models.CharField(max_length=19,blank=True)
     sku_properties_name = models.TextField(max_length=256,blank=True)
     refund_id = models.BigIntegerField(null=True)
 
@@ -256,26 +255,5 @@ class Order(models.Model):
         return ' '.join(value_list)
 
 
-def merge_buyer_trade_orders(sender, sub_tid, main_tid, *args, **kwargs):
-    
-    from shopback.trades.models import MergeTrade
-    sub_trade = Trade.objects.get(id=sub_tid)
-    main_trade = Trade.objects.get(id=main_tid)
-    Order.objects.filter(trade=sub_tid).update(trade=main_tid)
-    orders = Order.objects.filter(trade=main_tid,refund_status__in=(NO_REFUND,REFUND_REFUSE_BUYER,REFUND_CLOSED))
-    item_num = 0
-    payment  = 0
-    total_fee = 0
-    discount_fee = 0
-    for order in orders:
-        item_num += order.num
-        payment  += float(order.payment)
-        total_fee  += float(order.total_fee)
-        discount_fee  += float(order.discount_fee)
-    MergeTrade.objects.filter(tid=main_tid).update(total_num=item_num,payment=payment,total_fee=total_fee,discount_fee=discount_fee,
-        buyer_message='[%d:%s],[%d:%s]'%(main_trade.id,main_trade.buyer_message,sub_trade.id,sub_trade.buyer_message),
-        seller_memo='[%d:%s],[%d:%s]'%(main_trade.id,main_trade.seller_memo,sub_trade.id,sub_trade.seller_memo))
-        
-merge_buyer_trade_signal.connect(merge_buyer_trade_orders,sender=Trade,dispatch_uid='merge_buyer_orders')
 
 

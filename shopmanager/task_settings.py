@@ -1,4 +1,4 @@
-#-*- encoding:utf-8 -*-
+#-*- coding:utf-8 -*-
 import djcelery
 djcelery.setup_loader()
 
@@ -11,6 +11,7 @@ BROKER_BACKEND = "djkombu.transport.DatabaseTransport"
 #BROKER_USER = "guest"
 #BROKER_PASSWORD = "guest"
 #BROKER_VHOST = "/"
+
 
 EXECUTE_INTERVAL_TIME = 5*60
 

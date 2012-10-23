@@ -5,9 +5,9 @@ import datetime
 from celery.task import task
 from django.db.models import Q
 from shopback.trades.models import MergeTrade,MergeBuyerTrade,WAIT_PREPARE_SEND_STATUS,WAIT_SCAN_WEIGHT_STATUS,\
-    WAIT_CONFIRM_SEND_STATUS,SYSTEM_SEND_TAOBAO_STATUS,FINISHED_STATUS,INVALID_STATUS,AUDITFAIL_STATUS,ON_THE_FLY_STATUS
+    FINISHED_STATUS,INVALID_STATUS,WAIT_AUDIT_STATUS,ON_THE_FLY_STATUS
 from shopback.orders.models import Order,Trade
-from shopapp.memorule.models import RuleMemo,TradeRule,SYS_STATUS_MATCH_FLAGS
+from shopapp.memorule.models import RuleMemo,TradeRule
 from shopback.logistics.models import LogisticsCompany
 from shopback.monitor.models import SystemConfig
 from shopback.signals import rule_signal
@@ -59,7 +59,7 @@ def updateTradeAndOrderByRuleMemo():
                     order.sku_properties_name += sku_properties
                     order.save()
                     
-                merge_trade.sys_status = ((AUDITFAIL_STATUS if has_memo else WAIT_PREPARE_SEND_STATUS) if not has_refunding else AUDITFAIL_STATUS)\
+                merge_trade.sys_status = ((WAIT_AUDIT_STATUS if has_memo else WAIT_PREPARE_SEND_STATUS) if not has_refunding else WAIT_AUDIT_STATUS)\
                     if not is_merge_trade else ON_THE_FLY_STATUS
                 MergeTrade.objects.filter(tid=merge_trade.tid).update(
                      logistics_company_name=merge_trade.logistics_company_name,
@@ -82,7 +82,7 @@ def updateTradeSellerFlagTask():
         dt  = datetime.datetime.now()
         start_date = datetime.datetime(dt.year,dt.month,dt.day,0,0,0)
         trades = MergeTrade.objects.filter(sys_status__in = 
-                    (WAIT_PREPARE_SEND_STATUS,WAIT_SCAN_WEIGHT_STATUS,WAIT_CONFIRM_SEND_STATUS,AUDITFAIL_STATUS))\
+                    (WAIT_PREPARE_SEND_STATUS,WAIT_SCAN_WEIGHT_STATUS,WAIT_CONFIRM_SEND_STATUS,WAIT_AUDIT_STATUS))\
                     .include(modified__gt=modified,sys_status__in=(INVALID_STATUS))
                      
         for trade in trades:

@@ -59,7 +59,7 @@ class User(models.Model):
 
 
     def __unicode__(self):
-        return self.visitor_id+'-'+self.nick
+        return self.nick
 
 
     def populate_user_info(self,top_session,top_parameters):

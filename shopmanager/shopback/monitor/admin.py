@@ -1,5 +1,5 @@
 from django.contrib import admin
-from shopback.monitor.models import DayMonitorStatus,TradeExtraInfo,SystemConfig
+from shopback.monitor.models import DayMonitorStatus,TradeExtraInfo,SystemConfig,Reason
 
 
 class SystemConfigAdmin(admin.ModelAdmin):
@@ -37,3 +37,16 @@ class TradeExtraInfoAdmin(admin.ModelAdmin):
 
 
 admin.site.register(TradeExtraInfo, TradeExtraInfoAdmin)
+
+class ReasonAdmin(admin.ModelAdmin):
+    list_display = ('id','reason_text','priority','created')
+    list_display_links = ('id',)
+    #list_editable = ('update_time','task_type' ,'is_success','status')
+
+    date_hierarchy = 'created'
+
+    #list_filter = ('is_update_amount','is_update_logistic')
+    search_fields = ['id','reason_text']
+
+
+admin.site.register(Reason, ReasonAdmin)

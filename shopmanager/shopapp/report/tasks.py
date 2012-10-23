@@ -87,11 +87,11 @@ def updateMonthTradeXlsFileTask(year=None,month=None):
                 report_status.update_purchase = True
 
             if not report_status.update_amount:
-                updateOrdersAmountTask(user.visitor_id,update_from=last_month_first_days,update_to=dt)
+                #updateOrdersAmountTask(user.visitor_id,update_from=last_month_first_days,update_to=dt)
                 report_status.update_amount = True
             
             if not report_status.update_purchase_amount:
-                updatePurchaseOrdersAmountTask(user.visitor_id,update_from=last_month_first_days,update_to=dt)
+                #updatePurchaseOrdersAmountTask(user.visitor_id,update_from=last_month_first_days,update_to=dt)
                 report_status.update_purchase_amount = True
 
             if not report_status.update_logistics:

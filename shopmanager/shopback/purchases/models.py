@@ -59,6 +59,7 @@ class PurchaseProduct(models.Model):
     
     class Meta:
         db_table = 'shop_purchase_product'
+        verbose_name='采购商品'
 
     def __unicode__(self):
         return self.name
@@ -78,6 +79,7 @@ class PurchaseProductSku(models.Model):
     
     class Meta:
         db_table = 'shop_purchase_productsku'
+        verbose_name='采购商品规格'
 
     def __unicode__(self):
         return self.properties
@@ -93,6 +95,7 @@ class Deposite(models.Model):
     extra_info   = models.TextField(blank=True)
     class Meta:
         db_table = 'shop_purchases_deposite'
+        verbose_name='仓库'
 
     def __unicode__(self):
         return self.deposite_name
@@ -108,7 +111,7 @@ class PurchaseType(models.Model):
     
     class Meta:
         db_table = 'shop_purchases_purchasetype'
-        
+        verbose_name='采购类型'
 
     def __unicode__(self):
         return self.type_name
@@ -132,6 +135,7 @@ class Purchase(models.Model):
     
     class Meta:
         db_table = 'shop_purchases_purchase'
+        verbose_name='采购单'
 
     def __unicode__(self):
         return 'CGD%d'%self.id
@@ -163,7 +167,8 @@ class PurchaseItem(models.Model):
     
     class Meta:
         db_table = 'shop_purchases_item'
-
+        verbose_name='采购子订单'
+    
     def __unicode__(self):
         return 'CGZD%d'%self.id
     
@@ -188,6 +193,7 @@ class PurchaseStorage(models.Model):
     
     class Meta:
         db_table = 'shop_purchases_storage'
+        verbose_name='采购入库单'
 
     def __unicode__(self):
         return 'RKD%d'%self.id
@@ -212,7 +218,8 @@ class PurchaseStorageItem(models.Model):
     
     class Meta:
         db_table = 'shop_purchases_storageitem'
-
+        verbose_name='采购入库详情单'
+    
     def __unicode__(self):
         return 'RKZD%d'%self.id
     

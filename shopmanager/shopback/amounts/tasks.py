@@ -21,7 +21,6 @@ logger = logging.getLogger('orders.handler')
 
 @task()
 def updateOrdersAmountTask(user_id,update_from=None,update_to=None):
-
     finish_trades = Trade.objects.filter(user__visitor_id=user_id,consign_time__gte=update_from,
                                          consign_time__lte=update_to,status__in=ORDER_OK_STATUS)
 
@@ -64,6 +63,9 @@ def updateAllUserOrdersAmountTask(days=0,dt_f=None,dt_t=None):
 
 @task()
 def updatePurchaseOrdersAmountTask(user_id,update_from=None,update_to=None):
+    user = User.objects.get(visitor_id=user_id)
+    if not user.has_fenxiao:
+        return 
     
     purchase_orders = PurchaseOrder.objects.filter(user__visitor_id=user_id,consign_time__gte=update_from,
                                          consign_time__lte=update_to,status__in=ORDER_OK_STATUS)

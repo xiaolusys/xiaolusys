@@ -311,6 +311,9 @@ def taobao_item_recommend_add(num_iid=None,tb_user_id=None):
     pass
 
 ############# trades apis ###################
+@apis('taobao.trade.get')
+def taobao_trade_get(tid=None,fields=API_FIELDS['taobao.trades.sold.get'],tb_user_id=None):
+    pass
 
 @apis('taobao.trades.sold.get',max_retry=20,limit_rate=10)
 def taobao_trades_sold_get(start_created=None,end_created=None,page_no=None,page_size=None,use_has_next=None,status=None,type=None,

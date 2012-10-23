@@ -45,7 +45,7 @@ class DayMonitorStatus(models.Model):
 
 
 class TradeExtraInfo(models.Model):
-
+    #订单财务及物流单是否更新
     tid   =  models.BigIntegerField(primary_key=True)
 
     is_update_amount = models.BooleanField(default=False)
@@ -55,8 +55,28 @@ class TradeExtraInfo(models.Model):
 
     class Meta:
         db_table = 'shop_monitor_tradeextrainfo'
-        
+ 
+ 
+NEW_MEMO_CODE = 1     #新留言
+NEW_REFUND_CODE = 2   #新退款
+NEW_MERGE_TRADE_CODE = 3  #新合单
+WAITING_REFUND_CODE = 4   #申请退款中
+RULE_MATCH_CODE = 5   #有规则匹配
+OUT_GOOD_CODE = 6   #订单缺货
+INVALID_END_CODE = 7  #订单非正常结束
+POST_MODIFY_CODE = 8 #订单有改动
 
 
 
+
+class Reason(models.Model):
+    #问题理由
+    id  = models.AutoField(primary_key=True)
+    reason_text = models.TextField(max_length=64,verbose_name='问题原因')
+    priority    = models.IntegerField(default=0,verbose_name='优先级')
+    created     = models.DateTimeField(auto_now=True,verbose_name='创建日期')
+    
+    class Meta:
+        db_table = 'shop_monitor_reason'
+        verbose_name='订单问题'
   

@@ -5,7 +5,7 @@ from shopback.orders.models import Order,Trade
 
 class OrderAdmin(admin.ModelAdmin):
     list_display = ('oid','seller_nick','buyer_nick','trade','price','num_iid','sku_id','num','outer_sku_id','sku_properties_name',
-                    'payment','modified','refund_id','is_oversold','refund_status','outer_id','cid','status')
+                    'payment','refund_id','is_oversold','refund_status','outer_id','cid','status')
     list_display_links = ('oid','trade','refund_id','status')
     #list_editable = ('update_time','task_type' ,'is_success','status')
 

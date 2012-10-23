@@ -65,10 +65,10 @@ data_format = [
     ('trade.consign_time','M/D'),         #E
     ('logistics.out_sid','general'),      #F
     ('logistics.company_name','@'),       #G
-    ('float(trade_amount.post_fee)','0.00'),     #H
-    ('float(trade_amount.payment)','0.00'),           #I
-    ('int(trade_amount.buyer_obtain_point_fee)','0'), #J
-    ('float(trade_amount.commission_fee)','0.00'),    #K
+    ('float(trade.post_fee)','0.00'),     #H
+    ('float(trade.payment)','0.00'),           #I
+    ('int(trade.buyer_obtain_point_fee)','0'), #J
+    ('float(trade.commission_fee)','0.00'),    #K
     ('trade.status','@'),                      #L
 ]
 
@@ -79,8 +79,8 @@ purchase_format = [
     ('trade.consign_time','M/D'),                 #E
     ('trade.logistics_id','general'),             #F
     ('trade.logistics_company_name','@'),         #G
-    ('float(trade_amount.post_fee)','0.00'),             #H
-    ('float(trade_amount.payment)','0.00'),  #I
+    ('float(trade.post_fee)','0.00'),             #H
+    ('float(trade.distributor_payment)','0.00'),  #I
     ('int(0)','0'),                               #J
     ('int(0)','0.00'),                            #K
     ('trade.status','@'),                         #L
@@ -195,8 +195,9 @@ class TradesToXLSFile(object):
             for trade in trades:
                 self.cur_row += 1
 
+                
                 logistics = self.get_logistics(seller_id,trade.id)
-                trade_amount = self.get_trade_amount(seller_id,trade.id)
+                #trade_amount = self.get_trade_amount(seller_id,trade.id)
                 for data_num,data_tuple in enumerate(data_format):
                     try:
                         self.content_style.num_format_str = data_tuple[1]
@@ -238,7 +239,7 @@ class TradesToXLSFile(object):
         if trades_len>0:
             for trade in trades:
                 self.cur_row += 1
-                trade_amount = self.get_trade_amount(seller_id,trade.id)
+                #trade_amount = self.get_trade_amount(seller_id,trade.id)
                 for data_num,data_tuple in enumerate(purchase_format):
                     try:
                         self.content_style.num_format_str = data_tuple[1]

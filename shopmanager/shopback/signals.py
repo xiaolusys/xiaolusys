@@ -5,5 +5,5 @@ taobao_logged_in = Signal(providing_args=["user","top_session","top_parameters"]
 merge_trade_signal = Signal(providing_args=["trade"])
 refund_signal      = Signal(providing_args=["refund"])
 
-rule_signal = Signal(providing_args=["trade_id"])
-merge_buyer_trade_signal = Signal(providing_args=["sub_tid","main_tid"])
+rule_signal = Signal(providing_args=["trade_tid"])
+
