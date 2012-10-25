@@ -79,4 +79,8 @@ class ContentNotRightException(TaobaoRequestException):
     connect repear or refuse
     """
 
+class SessionExpiredException(TaobaoRequestException):
+    """
+    connect repear or refuse
+    """
 

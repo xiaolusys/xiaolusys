@@ -6,14 +6,14 @@ __author__ = 'meixqhi'
 
 
 class LogisticsCompanyAdmin(admin.ModelAdmin):
-    list_display = ('id','code','name','reg_mail_no','priority')
+    list_display = ('id','code','name','reg_mail_no','priority','district','status')
     list_display_links = ('id',)
     list_editable = ('priority',)
 
     #date_hierarchy = 'created'
     #ordering = ['created_at']
 
-    search_fields = ['code','name']
+    search_fields = ['code','name','district']
 
 
 admin.site.register(LogisticsCompany, LogisticsCompanyAdmin)

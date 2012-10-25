@@ -18,18 +18,32 @@ LOGISTICS_FINISH_STATUS = ['ACCEPTED_BY_RECEIVER']
 
 class LogisticsCompany(models.Model):
     
-    id      = models.BigIntegerField(primary_key=True)
-    code    = models.CharField(max_length=64,unique=True,blank=True)
-    name    = models.CharField(max_length=64,blank=True)
-    reg_mail_no = models.CharField(max_length=500,blank=True)
-    priority    = models.IntegerField(null=True,default=0)
+    id      = models.BigIntegerField(primary_key=True,verbose_name='ID')
+    code    = models.CharField(max_length=64,unique=True,blank=True,verbose_name='快递编码')
+    name    = models.CharField(max_length=64,blank=True,verbose_name='快递名称')
+    reg_mail_no = models.CharField(max_length=500,blank=True,verbose_name='单号匹配规则')
+    district    = models.CharField(max_length=1000,blank=True,verbose_name='服务区域(,号分隔)')
+    priority    = models.IntegerField(null=True,default=0,verbose_name='优先级')
+    status      = models.BooleanField(default=True,verbose_name='使用')
     
     class Meta:
         db_table = 'shop_logistics_company'
+        verbose_name='物流公司'.decode('utf8')
 
     def __unicode__(self):
         return '<%s,%s>'%(self.code,self.name)
     
+    @classmethod
+    def get_recommend_express(cls,receiver_city):
+        logistics = cls.objects.filter(status=True).order_by('-priority')
+        
+        for logistic in logistics:
+            districts = logistic.district.split(',')
+            if receiver_city in districts:
+                return logistic
+        return logistics[0]
+            
+        
     @classmethod
     def save_logistics_company_through_dict(cls,user_id,company_dict):
         company,state = cls.objects.get_or_create(id=company_dict['id'])

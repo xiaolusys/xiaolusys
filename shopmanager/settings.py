@@ -166,6 +166,11 @@ LOGGING = {
             'class':'logging.StreamHandler',
             'formatter': 'simple'
         },
+        'mail_admins': {
+            'level': 'ERROR',
+            'class': 'django.utils.log.AdminEmailHandler',
+            'include_html': True,
+        }
     },
     'loggers': {
         'django.request': {
@@ -179,7 +184,7 @@ LOGGING = {
             'propagate': True,
         },
         'syncnum.handler': {
-            'handlers': ['sentry'],
+            'handlers': ['sentry','mail_admins'],
             'level': 'WARN',
             'propagate': True,
         },
@@ -234,7 +239,7 @@ LOGGING = {
             'propagate': True,
         },
         'token.refresh':{
-            'handlers': ['sentry'],
+            'handlers': ['sentry','mail_admins'],
             'level': 'WARN',
             'propagate': True,
         },
@@ -274,7 +279,7 @@ LOGGING = {
             'propagate': True,
         },
         'trades.handler':{
-            'handlers': ['sentry'],
+            'handlers': ['sentry','mail_admins'],
             'level': 'WARN',
             'propagate': True,
         },

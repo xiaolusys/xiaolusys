@@ -1,4 +1,5 @@
 #-*- coding:utf8 -*-
+import json
 from django.contrib import admin
 from django.db import models
 from django.forms import TextInput, Textarea
@@ -7,9 +8,9 @@ from django.shortcuts import render_to_response
 from django.template import RequestContext
 from django.core import serializers
 from django.contrib.contenttypes.models import ContentType
-from shopback.trades.models import MergeTrade,MergeOrder,MergeBuyerTrade,WAIT_AUDIT_STATUS,WAIT_PREPARE_SEND_STATUS\
+from shopback.trades.models import MergeTrade,MergeOrder,MergeBuyerTrade,ReplayPostTrade,WAIT_AUDIT_STATUS,WAIT_PREPARE_SEND_STATUS\
     ,WAIT_CHECK_BARCODE_STATUS,IN_EFFECT,WAIT_SELLER_SEND_GOODS
-from shopback.monitor.models import POST_MODIFY_CODE
+from shopback.monitor.models import POST_MODIFY_CODE,POST_SUB_TRADE_ERROR_CODE
 from shopback.orders.models import REFUND_APPROVAL_STATUS
 from auth import apis
 import logging 
@@ -35,13 +36,14 @@ class OrderInline(admin.TabularInline):
 class MergeTradeAdmin(admin.ModelAdmin):
     list_display = ('id','tid','user','buyer_nick','type','payment','create_date','pay_date'
                     ,'status','logistics_company','is_picking_print','is_express_print','is_send_sms'
-                    ,'has_memo','has_refund','sys_status','reason_code')
+                    ,'has_memo','has_refund','sys_status','operator','reason_code')
     list_display_links = ('tid',)
     #list_editable = ('update_time','task_type' ,'is_success','status')
 
     date_hierarchy = 'created'
     ordering = ['pay_time',]
-    
+    list_per_page = 100
+     
     def pay_date(self, obj):
         return obj.pay_time.strftime('%Y-%m-%d %H:%M')
 
@@ -85,15 +87,23 @@ class MergeTradeAdmin(admin.ModelAdmin):
     
     #--------定义action----------------
     def check_order(self, request, queryset):
-        queryset.filter(sys_status=WAIT_AUDIT_STATUS,reason_code='').update(sys_status=WAIT_PREPARE_SEND_STATUS)
+        queryset.filter(sys_status=WAIT_AUDIT_STATUS,reason_code='').exclude(logistics_company=None).update(sys_status=WAIT_PREPARE_SEND_STATUS)
         return queryset
 
     check_order.short_description = "审核订单".decode('utf8')
     
     def sync_trade_post_taobao(self, request, queryset):
-        trade_ids = [t.tid for t in queryset]
-        prapare_trades = queryset.filter(is_picking_print=True,is_express_print=True,sys_status=WAIT_PREPARE_SEND_STATUS)
+
+        trade_ids = [t.id for t in queryset]
+        prapare_trades = queryset.filter(is_picking_print=True,is_express_print=True,sys_status=WAIT_PREPARE_SEND_STATUS
+                                         ,operator=request.user.username).exclude(out_sid='')
+        if prapare_trades.count() == 0:
+            return queryset 
         for trade in prapare_trades:
+            if not trade.tid and trade.type == 'direct':
+                MergeTrade.objects.filter(tid=trade.tid).update(sys_status=WAIT_CHECK_BARCODE_STATUS
+                                                                ,consign_time=datetime.datetime.now())
+                continue
             try:
                 trade_modified = apis.taobao_trade_get(tid=trade.tid,fields='tid,modified',tb_user_id=trade.seller_id)
                 latest_modified = trade_modified['trade_get_response']['trade']['modified']
@@ -126,15 +136,15 @@ class MergeTradeAdmin(admin.ModelAdmin):
                             raise Exception('订单(%d)的子订单(%d)本地修改日期(%s)与线上修改日期(%s)不一致'.decode('utf8')%
                                             (trade.tid,merge_buyer_trade.sub_tid,trade.modified,latest_modified))
                     except Exception,exc:
-                        trade.append_reason_code(POST_MODIFY_CODE)
+                        trade.append_reason_code(POST_SUB_TRADE_ERROR_CODE)
                         MergeTrade.objects.filter(tid=merge_buyer_trade.sub_tid).update(sys_status=WAIT_AUDIT_STATUS)
                         logger.error(exc.message,exc_info=True)
                     else:
                         MergeTrade.objects.filter(tid=sub_merge_trade.tid).update(sys_status=WAIT_CHECK_BARCODE_STATUS,consign_time=datetime.datetime.now())
 #        MergeTrade.objects.filter(tid__in=(queryset[0].tid,queryset[1].tid)).update(sys_status=WAIT_AUDIT_STATUS,is_picking_print=True,is_express_print=True)
-#        MergeTrade.objects.filter(tid__in=[s.tid for s in queryset[2:]]).update(sys_status=WAIT_CHECK_BARCODE_STATUS,is_picking_print=True,is_express_print=True)
-#        
-        queryset = MergeTrade.objects.filter(tid__in=trade_ids)
+#        MergeTrade.objects.filter(tid__in=[s.tid for s in queryset]).update(sys_status=WAIT_CHECK_BARCODE_STATUS,is_picking_print=True,is_express_print=True)
+   
+        queryset = MergeTrade.objects.filter(id__in=trade_ids)
         post_trades = queryset.filter(sys_status=WAIT_CHECK_BARCODE_STATUS)
         trade_items = {}
         for trade in post_trades:
@@ -156,11 +166,32 @@ class MergeTradeAdmin(admin.ModelAdmin):
                     trade_items[outer_id]={
                                            'num':order.num,
                                            'title':order.title,
-                                           'skus':{outer_sku_id:{'sku_name':order.sku_properties_name,'num':order.num}}}
+                                           'skus':{outer_sku_id:{'sku_name':order.sku_properties_name,'num':order.num}}
+                                           }
                      
+        trades = []
+        for trade in queryset:
+            trade_dict = {}
+            trade_dict['id'] = trade.id
+            trade_dict['tid'] = trade.tid
+            trade_dict['seller_nick'] = trade.seller_nick
+            trade_dict['buyer_nick'] = trade.buyer_nick
+            trade_dict['pay_time'] = trade.pay_time.strftime('%Y-%m-%d %H:%M:%S')
+            trade_dict['sys_status'] = trade.sys_status
+            trades.append(trade_dict)
             
         trade_list = sorted(trade_items.items(),key=lambda d:d[1]['num'],reverse=True)
-        response_dict = {'trades':queryset,'trade_items':trade_list}
+        for trade in trade_list:
+            skus = trade[1]['skus']
+            trade[1]['skus'] = sorted(skus.items(),key=lambda d:d[1]['num'],reverse=True)
+ 
+        response_dict = {'trades':trades,'trade_items':trade_list}
+        
+        try:
+            ReplayPostTrade.objects.create(operator=request.user.username,post_data=json.dumps(response_dict))
+        except Exception,exc:
+            logger.error(exc.message,exc_info=True)
+            
         return render_to_response('trades/tradepostsuccess.html',response_dict,
                                   context_instance=RequestContext(request),mimetype="text/html")
                           
@@ -201,3 +232,24 @@ class MergeBuyerTradeAdmin(admin.ModelAdmin):
     
 
 admin.site.register(MergeBuyerTrade,MergeBuyerTradeAdmin)
+
+
+class ReplayPostTradeAdmin(admin.ModelAdmin):
+    list_display = ('id','operator','post_data','created')
+    #list_editable = ('update_time','task_type' ,'is_success','status')
+
+    date_hierarchy = 'created'
+    #ordering = ['created_at']
+    search_fields = ['operator','id']
+    
+    def replay_post(self, request, queryset):
+        object = queryset.order_by('-created')[0]
+        replay_data = json.loads(object.post_data)
+        return render_to_response('trades/tradepostsuccess.html',replay_data,
+                                  context_instance=RequestContext(request),mimetype="text/html")
+    
+    replay_post.short_description = "重现发货清单".decode('utf8')
+    
+    actions = ['replay_post']
+
+admin.site.register(ReplayPostTrade,ReplayPostTradeAdmin)

@@ -51,10 +51,10 @@ def refresh_session(user,appkey,appsecret,refresh_url):
     top_parameters = json.loads(user.top_parameters)
     expires_in = top_parameters['expires_in']
     ts = top_parameters['ts']
-
     expire_time = int(expires_in) + ts - 10*60
     if expire_time < time.time():
         import logging
+        from django.conf import settings
         logger = logging.getLogger("token.refresh")
         try:
             params = {
@@ -62,11 +62,10 @@ def refresh_session(user,appkey,appsecret,refresh_url):
                 'client_secret':appsecret,
                 'grant_type':'refresh_token',
                 'refresh_token':top_parameters['refresh_token'],
-                'scope':'item',
+                'scope':settings.SCOPE,
                 'state':'autolist',
                 'view':'web',
             }
-
             req = urllib2.urlopen(refresh_url,urllib.urlencode(params))
             content = req.read()
             logger.warn('refreshed token : %s' % content)

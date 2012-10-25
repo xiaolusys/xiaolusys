@@ -7,6 +7,9 @@
 {% block container %}
 <div class='list_top'>
 	<div>
+		<div>
+			<button e_id="post-status" class="btn btn-small btn-success fold">收起</button>
+		</div>
 		<div id="post-status" style="display:block;">
 		  <fieldset>
 		  	<legend>发货订单状态</legend>
@@ -15,24 +18,38 @@
 			      <th>订单ID</th><th>淘宝订单编号</th><th>店铺名称</th><th>买家昵称</th><th>付款日期</th><th>发货成功</th>
 			    </tr>
 			    {% for trade in trades %}
+			    {% if trade.sys_status == "WAIT_CHECK_BARCODE" %}
+			    <tr>
+			    	<td>{{ trade.id }}</td>
+					<td>{{ trade.tid }}</td>
+					<td>{{ trade.seller_nick }}</td>
+			    	<td>{{ trade.buyer_nick }}</td>
+			    	<td>{{ trade.pay_time }}</td>
+			    	<td><img src="/static/admin/img/admin/icon-yes.gif" alt="yes"></td>
+			    </tr>
+			    {% endif %}
+			    {% endfor %}
+			    <tr><td colspan="6">发货失败的订单</td></tr>
+			    {% for trade in trades %}
+			    {% if trade.sys_status != "WAIT_CHECK_BARCODE" %}
 			    <tr>
 			    	<td>{{ trade.id }}</td>
 					<td>{{ trade.tid }}</td>
 					<td>{{ trade.seller_nick }}</td>
 			    	<td>{{ trade.buyer_nick }}</td>
 			    	<td>{{ trade.pay_time|date:'Y-m-d H:i:s' }}</td>
-			    	<td>{% if trade.sys_status == "WAIT_CHECK_BARCODE" %}<img src="/static/admin/img/admin/icon-yes.gif" alt="yes">
-			    	{% else %}<img src="/static/admin/img/admin/icon-no.gif" alt="no">{% endif %}</td>
+			    	<td><img src="/static/admin/img/admin/icon-no.gif" alt="no"></td>
 			    </tr>
+			    {% endif %}
 			    {% endfor %}
 			  </table>
 		  </fieldset>
 		</div>
-		<div>
-			<button e_id="post-status" class="btn btn-small btn-success fold">收起</button>
-		</div>
 	</div>
 	<div>
+		<div>
+			<button e_id="post-items" class="btn btn-small btn-success fold">收起</button>
+		</div>
 		<div id="post-items" style="display:block;">
 		  <fieldset>
 		  	<legend>发货商品列表</legend>
@@ -41,9 +58,9 @@
 			      <th>商品编码</th><th>商品名称</th><th>总数量</th><th>规格编码</th><th>商品规格</th><th>数量</th>
 			    </tr>
 			    {% for trade in trade_items %}
-				    {% with trade.1.skus.items|length as sku_len %}
+				    {% with trade.1.skus|length as sku_len %}
 				    {% if sku_len > 0 %}
-					    {% for sku_id,sku in trade.1.skus.items %}
+					    {% for sku_id,sku in trade.1.skus %}
 					    <tr>
 					    	{% if forloop.first %}
 					    	<td rowspan="{{ sku_len }}">{{ trade.0 }}</td>
@@ -67,9 +84,6 @@
 			    {% endfor %}
 			  </table>
 		  </fieldset>
-		</div>
-		<div>
-			<button e_id="post-items" class="btn btn-small btn-success fold">收起</button>
 		</div>
 	</div>
 </div>

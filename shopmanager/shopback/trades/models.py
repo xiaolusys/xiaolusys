@@ -163,7 +163,7 @@ class MergeTrade(models.Model):
     week  = models.IntegerField(null=True,db_index=True)
     day   = models.IntegerField(null=True,db_index=True)
     hour  = models.CharField(max_length=5,blank=True,db_index=True)
-
+    
     reason_code = models.CharField(max_length=100,blank=True,verbose_name='问题编号')  #1|2|3 问题单原因编码集合
     status  = models.CharField(max_length=32,db_index=True,choices=TAOBAO_TRADE_STATUS,blank=True,verbose_name='淘宝订单状态')
         
@@ -175,6 +175,7 @@ class MergeTrade(models.Model):
     remind_time      = models.DateTimeField(null=True,blank=True,verbose_name='定时日期')
     refund_num       = models.IntegerField(db_index=True,null=True,default=0,verbose_name='退款单数')  #退款数
     
+    operator       =  models.CharField(max_length=32,verbose_name='操作员')
     sys_status     = models.CharField(max_length=32,db_index=True,choices=SYS_TRADE_STATUS,blank=True,default='',verbose_name='系统状态')
     
     class Meta:
@@ -183,6 +184,10 @@ class MergeTrade(models.Model):
     
     def __unicode__(self):
         return str(self.id)
+    
+    @property
+    def user_full_address(self):
+        return '%s%s%s%s%s'%(self.receiver_name,self.receiver_state,self.receiver_city,self.receiver_district,self.receiver_address)
     
     def append_reason_code(self,code):  
         reason_set = set(self.reason_code.split(','))
@@ -194,7 +199,7 @@ class MergeTrade(models.Model):
         return old_len<new_len
          
         
-    def remove_reason_code(cls,code):   
+    def remove_reason_code(self,code):   
         reason_set = set(self.reason_code.split(','))
         try:
             reason_set.remove(str(code))
@@ -364,7 +369,7 @@ class MergeTrade(models.Model):
         return False
     
     @classmethod
-    def judge_merge_need(cls,trade_id,buyer_nick,trade_from):
+    def judge_merge_need(cls,trade_id,buyer_nick,trade_from,full_address):
         #分销部分不做规则匹配
         if trade_from == FENXIAO_TYPE:
             return False
@@ -373,10 +378,11 @@ class MergeTrade(models.Model):
                 WAIT_AUDIT_STATUS)).exclude(tid=trade_id)
         
         for trade in trades:
+            older_addr = trade.user_full_address
             trade_out_stock = cls.judge_out_stock(trade.tid, trade_from) 
             order_nums = Order.objects.filter(trade=trade.tid).exclude(refund_status__in=REFUND_APPROVAL_STATUS).count()
-            #如果主订单不缺货，并且没有全退款
-            if not trade_out_stock and order_nums>0:
+            #如果主订单不缺货，并且没有全退款,收货人急收货地址相同
+            if not trade_out_stock and order_nums>0 and full_address==older_addr:
                 return True
         
         return False
@@ -417,7 +423,7 @@ class MergeOrder(models.Model):
     
     seller_nick = models.CharField(max_length=32,blank=True,db_index=True,verbose_name='卖家昵称')
     buyer_nick  = models.CharField(max_length=32,db_index=True,blank=True,verbose_name='买家昵称')
-    
+     
     year  = models.IntegerField(null=True,db_index=True)
     month = models.IntegerField(null=True,db_index=True)
     week  = models.IntegerField(null=True,db_index=True)
@@ -518,6 +524,8 @@ def trade_download_controller(merge_trade,trade,trade_from,is_first_save):
         wait_refunding = merge_trade.has_trade_refunding()
         if wait_refunding:
             merge_trade.append_reason_code(WAITING_REFUND_CODE)
+        else:
+            merge_trade.remove_reason_code(WAITING_REFUND_CODE)
         #设置订单是否有退款属性    
         merge_trade.has_refund = has_refund
         #初次入库 
@@ -530,25 +538,35 @@ def trade_download_controller(merge_trade,trade,trade_from,is_first_save):
             is_rule_match  =  MergeTrade.judge_rule_match(trade.id, trade_from)    
             if is_rule_match: 
                 merge_trade.append_reason_code(RULE_MATCH_CODE)
+
+            full_address = merge_trade.user_full_address
             #订单合并   
             is_merge_success = False
             if not full_new_refund:
-                is_need_merge = MergeTrade.judge_merge_need(trade.id,trade.buyer_nick,trade_from)
+                is_need_merge = MergeTrade.judge_merge_need(trade.id,trade.buyer_nick,trade_from,full_address)
                 if is_need_merge:
                     trades = MergeTrade.objects.filter(buyer_nick=trade.buyer_nick,sys_status__in=
                                                 (WAIT_PREPARE_SEND_STATUS,WAIT_AUDIT_STATUS)).exclude(tid=trade.id).order_by('-created')
                     if trades.count()>0:
                         merge_buyer_trades = MergeBuyerTrade.objects.filter(main_tid__in=[t.tid for t in trades])
                         #如果有已有合并记录，则将现有主订单作为合并主订单
+                        main_tid = None
                         if merge_buyer_trades.count()>0:
-                            main_tid = merge_buyer_trades[0].main_tid
+                            main_merge_tid = merge_buyer_trades[0].main_tid
+                            main_trade = MergeTrade.objects.get(tid=main_merge_tid)
+                            if main_trade.user_full_address == full_address:
+                                main_tid = main_merge_tid
                         #如果没有则将按时间排序的第一符合条件的订单作为主订单
-                        else:
-                            main_tid = trades[0].tid
-                        #进行合单
-                        is_merge_success = merge_trade_maker(trade.id,main_tid)
-                        if is_merge_success:
-                             merge_trade.append_reason_code(NEW_MERGE_TRADE_CODE)
+                        if not main_tid:
+                            for t in trades:
+                                if t.user_full_address == full_address:
+                                    main_tid = t.tid
+                                    break
+                        if main_tid:  
+                            #进行合单
+                            is_merge_success = merge_trade_maker(trade.id,main_tid)
+                            if is_merge_success:
+                                 merge_trade.append_reason_code(NEW_MERGE_TRADE_CODE)
             #如果合单成功则将新单置为飞行模式                 
             if is_merge_success:
                 merge_trade.sys_status = ON_THE_FLY_STATUS
@@ -559,7 +577,8 @@ def trade_download_controller(merge_trade,trade,trade_from,is_first_save):
                 merge_trade.sys_status = WAIT_PREPARE_SEND_STATUS
                 
             if shipping_type in ('free','express','FAST','SELLER'):
-                default_company = LogisticsCompany.objects.all().order_by('-priority')[0]
+                receiver_city = merge_trade.receiver_city
+                default_company = LogisticsCompany.get_recommend_express(receiver_city)
                 merge_trade.logistics_company = default_company
             elif shipping_type in ('post','ems'):
                 post_company = LogisticsCompany.objects.get(code=shipping_type.upper())
@@ -724,6 +743,7 @@ def save_orders_trade_to_mergetrade(sender, trade, *args, **kwargs):
         else:
             MergeOrder.objects.filter(id=merge_order.id).update(
                 refund_status = order.refund_status,
+                payment = order.payment,
                 pay_time = order.pay_time,
                 consign_time = order.consign_time,
                 status   = order.status
@@ -826,6 +846,7 @@ def save_fenxiao_orders_to_mergetrade(sender, trade, *args, **kwargs):
         else:
             MergeOrder.objects.filter(id=merge_order.id).update(
                 refund_status = refund_status,
+                payment       = order.distributor_payment,
                 consign_time  = merge_trade.consign_time,
                 status        = order.status
             )
@@ -833,5 +854,14 @@ def save_fenxiao_orders_to_mergetrade(sender, trade, *args, **kwargs):
 merge_trade_signal.connect(save_fenxiao_orders_to_mergetrade,sender=PurchaseOrder,dispatch_uid='merge_purchaseorder')
 
 
-
+class ReplayPostTrade(models.Model):
+    #重现发货表单
+    operator   =  models.CharField(max_length=32,verbose_name='操作员')
+    post_data  =  models.TextField(blank=True,verbose_name='发货清单数据')
+    created    =  models.DateTimeField(null=True,auto_now=True,verbose_name='创建日期')
+    
+    class Meta:
+        db_table = 'shop_trades_replayposttrade'
+        verbose_name='已发货清单'.decode('utf8')
+        
         
