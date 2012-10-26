@@ -110,7 +110,7 @@ def rule_match_product(sender, trade_id, *args, **kwargs):
     for order in orders:
         rules = ProductRuleField.objects.filter(outer_id=order.outer_id)
         if rules.count()>0:
-            raise Exception('该交易需要规则匹配')
+            raise Exception('该交易需要规则匹配'.decode('utf8'))
         
 
 rule_signal.connect(rule_match_product,sender='product_rule',dispatch_uid='rule_match_product')
@@ -138,7 +138,7 @@ def rule_match_trade(sender, trade_tid, *args, **kwargs):
                     if eval(rule.formula):
                         memo_list.append(rule.memo)
                 except Exception,exc:
-                    logger.error('交易商品规则(%s)匹配出错'%rule.formula,exc_info=True)
+                    logger.error('交易商品规则(%s)匹配出错'.decode('utf8')%rule.formula,exc_info=True)
         
         trade.payment = trade_payment  
         for rule in trade_rules:
@@ -146,7 +146,7 @@ def rule_match_trade(sender, trade_tid, *args, **kwargs):
                 if eval(rule.formula):
                     memo_list.append(rule.memo)
             except Exception,exc:
-                logger.error('交易订单规则(%s)匹配出错'%rule.formula,exc_info=True)
+                logger.error('交易订单规则(%s)匹配出错'.decode('utf8')%rule.formula,exc_info=True)
     
         MergeTrade.objects.filter(tid=trade_tid).update(sys_memo=','.join(memo_list))
         
@@ -176,7 +176,7 @@ def rule_match_merge_trade(sender, trade_tid, *args, **kwargs):
                     if eval(rule.formula):
                         memo_list.append(rule.memo)
                 except Exception,exc:
-                    logger.error('交易商品规则(%s)匹配出错'%rule.formula,exc_info=True)
+                    logger.error('交易商品规则(%s)匹配出错'.decode('utf8')%rule.formula,exc_info=True)
         
         trade.payment = trade_payment  
         for rule in trade_rules:
@@ -184,11 +184,11 @@ def rule_match_merge_trade(sender, trade_tid, *args, **kwargs):
                 if eval(rule.formula):
                     memo_list.append(rule.memo)
             except Exception,exc:
-                logger.error('交易订单规则(%s)匹配出错'%rule.formula,exc_info=True)
+                logger.error('交易订单规则(%s)匹配出错'.decode('utf8')%rule.formula,exc_info=True)
     
         MergeTrade.objects.filter(tid=trade_id).update(sys_memo=','.join(memo_list))
         
 
-rule_signal.connect(rule_match_trade,sender='merge_trade_rule',dispatch_uid='rule_match_trade')
+rule_signal.connect(rule_match_trade,sender='merge_trade_rule',dispatch_uid='rule_match_merge_trade')
     
     

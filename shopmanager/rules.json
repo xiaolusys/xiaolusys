@@ -1,0 +1,11 @@
+{
+	'payment_rules':[
+			('150',[(outer_id,outer_sku_id,num)])
+		],
+	'present_rules':[
+			('outer_id','outer_sku_id',[(outer_id,outer_sku_id,num)])
+		]
+	'split_rules':[
+			('outer_id','outer_sku_id',[(outer_id,outer_sku_id,num)])
+		],
+}

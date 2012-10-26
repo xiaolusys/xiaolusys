@@ -503,6 +503,7 @@ def merge_trade_maker(sub_tid,main_tid):
     
 
 def trade_download_controller(merge_trade,trade,trade_from,is_first_save):
+    
     shipping_type = trade.shipping if trade_from==FENXIAO_TYPE else trade.shipping_type
     seller_memo   = trade.memo  if hasattr(trade,'memo') else trade.seller_memo
     buyer_message = trade.buyer_message if hasattr(trade,'buyer_message') else trade.supplier_memo
@@ -514,8 +515,8 @@ def trade_download_controller(merge_trade,trade,trade_from,is_first_save):
         has_new_memo = merge_trade.seller_memo != seller_memo or merge_trade.buyer_message != buyer_message
         if has_new_memo:
             merge_trade.append_reason_code(NEW_MEMO_CODE)
-            merge_trade.buyer_message = trade.buyer_message
-            merge_trade.seller_memo   = trade.seller_memo
+            merge_trade.buyer_message = buyer_message
+            merge_trade.seller_memo   = seller_memo
         #新退款
         has_refund,has_new_refund,full_new_refund = MergeTrade.judge_new_refund(trade.id, trade_from) #新退款，新的全退款
         if has_new_refund:
@@ -608,12 +609,12 @@ def trade_download_controller(merge_trade,trade,trade_from,is_first_save):
                     rule_signal.send(sender='merge_trade_rule',trade_tid=main_tid)    
                 #新留言备注
                 elif has_new_memo:
-                    main_trade = MergeBuyerTrade.objects.get(tid=merge_trade.tid)
-                    main_trade.update_seller_memo(tid,trade.seller_memo)
+                    main_trade = MergeTrade.objects.get(tid=main_tid)
+                    main_trade.update_seller_memo(trade.id,trade.seller_memo)
                     merge_trade.append_reason_code(NEW_MEMO_CODE)
                     MergeTrade.objects.filter(tid=main_tid,sys_status__in=(WAIT_AUDIT_STATUS,WAIT_PREPARE_SEND_STATUS))\
                         .update(sys_status=WAIT_AUDIT_STATUS)
-                    main_merge_trade.append_reason_code(NEW_MEMO_CODE)
+                    main_trade.append_reason_code(NEW_MEMO_CODE)
             elif merge_trade.sys_status in (WAIT_PREPARE_SEND_STATUS,WAIT_AUDIT_STATUS):
                 #判断当前单是否是合并主订单
                 try:
@@ -648,209 +649,215 @@ def trade_download_controller(merge_trade,trade,trade_from,is_first_save):
     
      
 def save_orders_trade_to_mergetrade(sender, trade, *args, **kwargs):
-
-    merge_trade,state = MergeTrade.objects.get_or_create(tid=trade.id)
     
-    is_first_save = not merge_trade.sys_status 
-    if is_first_save and trade.status not in (TRADE_NO_CREATE_PAY,WAIT_BUYER_PAY):
-        #保存时
-        merge_trade.receiver_name = trade.receiver_name
-        merge_trade.receiver_state = trade.receiver_state
-        merge_trade.receiver_city = trade.receiver_city
-        merge_trade.receiver_district = trade.receiver_district
-        merge_trade.receiver_address = trade.receiver_address
-        merge_trade.receiver_zip = trade.receiver_zip
-        merge_trade.receiver_mobile = trade.receiver_mobile
-        merge_trade.receiver_phone = trade.receiver_phone
-        merge_trade.save()
-    merge_trade.status = trade.status
-    
-    dt = trade.created
-    merge_trade.year  = dt.year
-    merge_trade.hour  = dt.hour
-    merge_trade.month = dt.month
-    merge_trade.day   = dt.day
-    merge_trade.week  = time.gmtime(time.mktime(dt.timetuple()))[7]/7+1
-    
-    trade_from = TAOBAO_TYPE
-    trade_download_controller(merge_trade,trade,trade_from,is_first_save)    
-    MergeTrade.objects.filter(tid=trade.id).update(
-        user = trade.user,
-        seller_id = trade.seller_id,
-        seller_nick = trade.seller_nick,
-        buyer_nick = trade.buyer_nick,
-        type = trade.type,
-        shipping_type = trade.shipping_type,
-        payment = trade.payment,
-        total_fee = trade.total_fee,
-        discount_fee = trade.discount_fee,
-        adjust_fee   = trade.adjust_fee,
-        post_fee = trade.post_fee,
-        alipay_no  = trade.buyer_alipay_no,
-        seller_cod_fee = trade.seller_cod_fee,
-        buyer_cod_fee  = trade.buyer_cod_fee,
-        cod_fee    = trade.cod_fee,
-        cod_status = trade.cod_status,
-        buyer_message = merge_trade.buyer_message,
-        seller_memo   = merge_trade.seller_memo,
-        logistics_company = merge_trade.logistics_company,
-        created = trade.created,
-        pay_time = trade.pay_time,
-        modified = trade.modified,
-        consign_time = trade.consign_time,
-        status = merge_trade.status,
-        year  = merge_trade.year,
-        hour  = merge_trade.hour,
-        month = merge_trade.month,
-        day   = merge_trade.day,
-        week  = merge_trade.week,
-        has_refund = merge_trade.has_refund,
-        has_memo = merge_trade.has_memo,
-        sys_status = merge_trade.sys_status,
-    )
-    #保存商城或C店订单到抽象全局抽象订单表
-    for order in trade.trade_orders.all():
-        merge_order,state = MergeOrder.objects.get_or_create(oid=order.oid,tid=trade.id)
-        if state:
-            MergeOrder.objects.filter(id=merge_order.id).update(
-                tid = trade.id,
-                merge_trade = merge_trade,
-                num_iid = order.num_iid,
-                title  = order.title,
-                price  = order.price,
-                sku_id = order.sku_id,
-                num = order.num,
-                outer_id = order.outer_id,
-                outer_sku_id = order.outer_sku_id,
-                total_fee = order.total_fee,
-                payment = order.payment,
-                sku_properties_name = order.sku_properties_name,
-                refund_status = order.refund_status,
-                pic_path = order.pic_path,
-                seller_nick = order.seller_nick,
-                buyer_nick  = order.buyer_nick,
-                year  = order.year,
-                month = order.month,
-                week  = order.week,
-                day   = order.day,
-                hour  = order.hour,
-                created  = order.created,
-                pay_time = order.pay_time,
-                consign_time = order.consign_time,
-                status   = order.status,
-                sys_status = IN_EFFECT
-            )
-        else:
-            MergeOrder.objects.filter(id=merge_order.id).update(
-                refund_status = order.refund_status,
-                payment = order.payment,
-                pay_time = order.pay_time,
-                consign_time = order.consign_time,
-                status   = order.status
-            )
-
+    try:
+        merge_trade,state = MergeTrade.objects.get_or_create(tid=trade.id)
+        
+        is_first_save = not merge_trade.sys_status 
+        if is_first_save and trade.status not in (TRADE_NO_CREATE_PAY,WAIT_BUYER_PAY):
+            #保存时
+            merge_trade.receiver_name = trade.receiver_name
+            merge_trade.receiver_state = trade.receiver_state
+            merge_trade.receiver_city = trade.receiver_city
+            merge_trade.receiver_district = trade.receiver_district
+            merge_trade.receiver_address = trade.receiver_address
+            merge_trade.receiver_zip = trade.receiver_zip
+            merge_trade.receiver_mobile = trade.receiver_mobile
+            merge_trade.receiver_phone = trade.receiver_phone
+            merge_trade.save()
+        merge_trade.status = trade.status
+        
+        dt = trade.created
+        merge_trade.year  = dt.year
+        merge_trade.hour  = dt.hour
+        merge_trade.month = dt.month
+        merge_trade.day   = dt.day
+        merge_trade.week  = time.gmtime(time.mktime(dt.timetuple()))[7]/7+1
+        
+        trade_from = TAOBAO_TYPE
+        trade_download_controller(merge_trade,trade,trade_from,is_first_save)    
+        MergeTrade.objects.filter(tid=trade.id).update(
+            user = trade.user,
+            seller_id = trade.seller_id,
+            seller_nick = trade.seller_nick,
+            buyer_nick = trade.buyer_nick,
+            type = trade.type,
+            shipping_type = trade.shipping_type,
+            payment = trade.payment,
+            total_fee = trade.total_fee,
+            discount_fee = trade.discount_fee,
+            adjust_fee   = trade.adjust_fee,
+            post_fee = trade.post_fee,
+            alipay_no  = trade.buyer_alipay_no,
+            seller_cod_fee = trade.seller_cod_fee,
+            buyer_cod_fee  = trade.buyer_cod_fee,
+            cod_fee    = trade.cod_fee,
+            cod_status = trade.cod_status,
+            buyer_message = merge_trade.buyer_message,
+            seller_memo   = merge_trade.seller_memo,
+            logistics_company = merge_trade.logistics_company,
+            created = trade.created,
+            pay_time = trade.pay_time,
+            modified = trade.modified,
+            consign_time = trade.consign_time,
+            status = merge_trade.status,
+            year  = merge_trade.year,
+            hour  = merge_trade.hour,
+            month = merge_trade.month,
+            day   = merge_trade.day,
+            week  = merge_trade.week,
+            has_refund = merge_trade.has_refund,
+            has_memo = merge_trade.has_memo,
+            sys_status = merge_trade.sys_status,
+        )
+        #保存商城或C店订单到抽象全局抽象订单表
+        for order in trade.trade_orders.all():
+            merge_order,state = MergeOrder.objects.get_or_create(oid=order.oid,tid=trade.id)
+            if state:
+                MergeOrder.objects.filter(id=merge_order.id).update(
+                    tid = trade.id,
+                    merge_trade = merge_trade,
+                    num_iid = order.num_iid,
+                    title  = order.title,
+                    price  = order.price,
+                    sku_id = order.sku_id,
+                    num = order.num,
+                    outer_id = order.outer_id,
+                    outer_sku_id = order.outer_sku_id,
+                    total_fee = order.total_fee,
+                    payment = order.payment,
+                    sku_properties_name = order.sku_properties_name,
+                    refund_status = order.refund_status,
+                    pic_path = order.pic_path,
+                    seller_nick = order.seller_nick,
+                    buyer_nick  = order.buyer_nick,
+                    year  = order.year,
+                    month = order.month,
+                    week  = order.week,
+                    day   = order.day,
+                    hour  = order.hour,
+                    created  = order.created,
+                    pay_time = order.pay_time,
+                    consign_time = order.consign_time,
+                    status   = order.status,
+                    sys_status = IN_EFFECT
+                )
+            else:
+                MergeOrder.objects.filter(id=merge_order.id).update(
+                    refund_status = order.refund_status,
+                    payment = order.payment,
+                    pay_time = order.pay_time,
+                    consign_time = order.consign_time,
+                    status   = order.status
+                )
+    except Exception,exc:
+        logger.error(exc.message,exc_info=True)
+        
 merge_trade_signal.connect(save_orders_trade_to_mergetrade,sender=Trade,dispatch_uid='merge_trade')
 
 
 
 def save_fenxiao_orders_to_mergetrade(sender, trade, *args, **kwargs):
-    if not trade.id:
-        return 
-    merge_trade,state = MergeTrade.objects.get_or_create(tid=trade.id)
+    try:
+        if not trade.id:
+            return 
+        merge_trade,state = MergeTrade.objects.get_or_create(tid=trade.id)
+        
+        is_first_save = not merge_trade.sys_status 
+        if is_first_save and trade.status not in (TRADE_NO_CREATE_PAY,WAIT_BUYER_PAY,TRADE_CLOSED) :
+            logistics = Logistics.get_or_create(trade.seller_id,trade.id)
+            merge_trade.receiver_name = logistics.receiver_name
+            merge_trade.receiver_address = logistics.location
+            merge_trade.receiver_mobile = logistics.receiver_mobile
+            merge_trade.receiver_phone = logistics.receiver_phone
+            merge_trade.save()
+        merge_trade.status = trade.status
+        
+        dt = trade.created
+        merge_trade.year  = dt.year
+        merge_trade.hour  = dt.hour
+        merge_trade.month = dt.month
+        merge_trade.day   = dt.day
+        merge_trade.week  = time.gmtime(time.mktime(dt.timetuple()))[7]/7+1
     
-    is_first_save = not merge_trade.sys_status 
-    if is_first_save and trade.status not in (TRADE_NO_CREATE_PAY,WAIT_BUYER_PAY,TRADE_CLOSED) :
-        logistics = Logistics.get_or_create(trade.seller_id,trade.id)
-        merge_trade.receiver_name = logistics.receiver_name
-        merge_trade.receiver_address = logistics.location
-        merge_trade.receiver_mobile = logistics.receiver_mobile
-        merge_trade.receiver_phone = logistics.receiver_phone
-        merge_trade.save()
-    merge_trade.status = trade.status
+        trade_from = FENXIAO_TYPE
+        trade_download_controller(merge_trade,trade,trade_from,is_first_save)
+        MergeTrade.objects.filter(tid=trade.id).update(
+            user = trade.user,
+            seller_id = trade.seller_id,
+            seller_nick = trade.supplier_username,
+            buyer_nick = trade.distributor_username,
+            type = FENXIAO_TYPE,
+            shipping_type = SHIPPING_TYPE.get(trade.shipping,trade.shipping),
+            payment = trade.distributor_payment,
+            total_fee = trade.total_fee,
+            post_fee = trade.post_fee,
+            buyer_message = trade.memo,
+            seller_memo = trade.supplier_memo,
+            created = trade.created,
+            pay_time = trade.created,
+            modified = trade.modified,
+            consign_time = trade.consign_time,
+            status = merge_trade.status,
+            year  = merge_trade.year,
+            hour  = merge_trade.hour,
+            month = merge_trade.month,
+            day   = merge_trade.day,
+            week  = merge_trade.week,
+            has_refund = merge_trade.has_refund,
+            total_num = merge_trade.total_num,
+            has_memo = merge_trade.has_memo,
+            sys_status = merge_trade.sys_status,
+        )
+        #保存分销订单到抽象全局抽象订单表
+        for order in trade.sub_purchase_orders.all():
+            merge_order,state = MergeOrder.objects.get_or_create(oid=order.tc_order_id,tid=trade.id)
+            fenxiao_product = FenxiaoProduct.get_or_create(trade.user.visitor_id,order.item_id)
+            if order.status == TRADE_REFUNDING:
+                refund_status = REFUND_WAIT_SELLER_AGREE
+            elif order.status == TRADE_REFUNDED:
+                refund_status = REFUND_SUCCESS
+            elif order.status != TRADE_CLOSED:
+                refund_status = NO_REFUND
+            if state:    
+                MergeOrder.objects.filter(id=merge_order.id).update(
+                    tid = trade.id,
+                    merge_trade = merge_trade,
+                    num_iid = fenxiao_product.item_id,
+                    title  = order.title,
+                    price  = order.price,
+                    sku_id = order.sku_id,
+                    num    = order.num,
+                    outer_id = order.item_outer_id,
+                    outer_sku_id = order.sku_outer_id,
+                    total_fee = order.total_fee,
+                    payment = order.distributor_payment,
+                    sku_properties_name = order.properties_values,
+                    refund_status = refund_status,
+                    pic_path = fenxiao_product.pictures and fenxiao_product.pictures.split(',')[0] or '',
+                    seller_nick = merge_trade.seller_nick,
+                    buyer_nick  = merge_trade.buyer_nick,
+                    year  = merge_trade.year,
+                    month = merge_trade.month,
+                    week  = merge_trade.week,
+                    day   = merge_trade.day,
+                    hour  = merge_trade.hour,
+                    created  = order.created,
+                    pay_time = merge_trade.created,
+                    consign_time = merge_trade.consign_time,
+                    status   = order.status,
+                    sys_status = IN_EFFECT
+                )
+            else:
+                MergeOrder.objects.filter(id=merge_order.id).update(
+                    refund_status = refund_status,
+                    payment       = order.distributor_payment,
+                    consign_time  = merge_trade.consign_time,
+                    status        = order.status
+                )
+    except Exception,exc:
+        logger.error(exc.message,exc_info=True)
     
-    dt = trade.created
-    merge_trade.year  = dt.year
-    merge_trade.hour  = dt.hour
-    merge_trade.month = dt.month
-    merge_trade.day   = dt.day
-    merge_trade.week  = time.gmtime(time.mktime(dt.timetuple()))[7]/7+1
-
-    trade_from = FENXIAO_TYPE
-    trade_download_controller(merge_trade,trade,trade_from,is_first_save)
-    MergeTrade.objects.filter(tid=trade.id).update(
-        user = trade.user,
-        seller_id = trade.seller_id,
-        seller_nick = trade.supplier_username,
-        buyer_nick = trade.distributor_username,
-        type = FENXIAO_TYPE,
-        shipping_type = SHIPPING_TYPE.get(trade.shipping,trade.shipping),
-        payment = trade.distributor_payment,
-        total_fee = trade.total_fee,
-        post_fee = trade.post_fee,
-        buyer_message = trade.memo,
-        seller_memo = trade.supplier_memo,
-        created = trade.created,
-        pay_time = trade.created,
-        modified = trade.modified,
-        consign_time = trade.consign_time,
-        status = merge_trade.status,
-        year  = merge_trade.year,
-        hour  = merge_trade.hour,
-        month = merge_trade.month,
-        day   = merge_trade.day,
-        week  = merge_trade.week,
-        has_refund = merge_trade.has_refund,
-        total_num = merge_trade.total_num,
-        has_memo = merge_trade.has_memo,
-        sys_status = merge_trade.sys_status,
-    )
-    #保存分销订单到抽象全局抽象订单表
-    for order in trade.sub_purchase_orders.all():
-        merge_order,state = MergeOrder.objects.get_or_create(oid=order.tc_order_id,tid=trade.id)
-        fenxiao_product = FenxiaoProduct.get_or_create(trade.user.visitor_id,order.pid)
-        if order.status == TRADE_REFUNDING:
-            refund_status = REFUND_WAIT_SELLER_AGREE
-        elif order.status == TRADE_REFUNDED:
-            refund_status = REFUND_SUCCESS
-        elif refund_status != TRADE_CLOSED:
-            refund_status = NO_REFUND
-        if state:    
-            MergeOrder.objects.filter(id=merge_order.id).update(
-                tid = trade.id,
-                merge_trade = merge_trade,
-                num_iid = fenxiao_product.item_id,
-                title  = order.title,
-                price  = order.price,
-                sku_id = order.sku_id,
-                num    = order.num,
-                outer_id = order.item_outer_id,
-                outer_sku_id = order.sku_outer_id,
-                total_fee = order.total_fee,
-                payment = order.distributor_payment,
-                sku_properties_name = order.properties_values,
-                refund_status = refund_status,
-                pic_path = fenxiao_product.pictures and fenxiao_product.pictures.split(',')[0] or '',
-                seller_nick = merge_trade.seller_nick,
-                buyer_nick  = merge_trade.buyer_nick,
-                year  = merge_trade.year,
-                month = merge_trade.month,
-                week  = merge_trade.week,
-                day   = merge_trade.day,
-                hour  = merge_trade.hour,
-                created  = order.created,
-                pay_time = merge_trade.created,
-                consign_time = merge_trade.consign_time,
-                status   = order.status,
-                sys_status = IN_EFFECT
-            )
-        else:
-            MergeOrder.objects.filter(id=merge_order.id).update(
-                refund_status = refund_status,
-                payment       = order.distributor_payment,
-                consign_time  = merge_trade.consign_time,
-                status        = order.status
-            )
-
 merge_trade_signal.connect(save_fenxiao_orders_to_mergetrade,sender=PurchaseOrder,dispatch_uid='merge_purchaseorder')
 
 
