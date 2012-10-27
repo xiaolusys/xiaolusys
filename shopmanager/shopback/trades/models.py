@@ -686,7 +686,8 @@ def trade_download_controller(merge_trade,trade,trade_from,is_first_save):
                     merge_trade.append_reason_code(NEW_MEMO_CODE)
                 else:
                     merge_trade.append_reason_code(POST_MODIFY_CODE)
-
+    elif trade.status==WAIT_BUYER_CONFIRM_GOODS:
+        pass
     #如果淘宝订单状态已改变，而系统内部状态非最终状态，则将订单作废        
     elif merge_trade.sys_status:
         if merge_trade.sys_status not in (FINISHED_STATUS,INVALID_STATUS):

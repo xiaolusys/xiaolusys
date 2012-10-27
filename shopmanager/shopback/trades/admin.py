@@ -13,6 +13,7 @@ from shopback.trades.models import MergeTrade,MergeOrder,MergeBuyerTrade,ReplayP
 from shopback.monitor.models import POST_MODIFY_CODE,POST_SUB_TRADE_ERROR_CODE
 from shopback.orders.models import REFUND_APPROVAL_STATUS
 from auth import apis
+from auth.utils import parse_datetime
 import logging 
 
 logger =  logging.getLogger('tradepost.handler')
@@ -105,15 +106,16 @@ class MergeTradeAdmin(admin.ModelAdmin):
                                                                 ,consign_time=datetime.datetime.now())
                 continue
             try:
-                trade_modified = apis.taobao_trade_get(tid=trade.tid,fields='tid,modified',tb_user_id=trade.seller_id)
-                latest_modified = trade_modified['trade_get_response']['trade']['modified']
+                trade_dict = apis.taobao_trade_get(tid=trade.tid,fields='tid,modified',tb_user_id=trade.seller_id)
+                trade_modified = trade_dict['trade_get_response']['trade']['modified']
+                latest_modified = parse_datetime(trade_modified)
                 if latest_modified==trade.modified:
                     response = apis.taobao_logistics_online_send(tid=trade.tid,out_sid=trade.out_sid
                                                   ,company_code=trade.logistics_company.code,tb_user_id=trade.seller_id)  
                     if not response['delivery_confirm_send_response']['shipping']['is_success']:
-                        raise Exception('订单(%d)淘宝发货失败'.decode('utf8')%trade.tid)
+                        raise Exception(u'订单(%d)淘宝发货失败'%trade.tid)
                 else:
-                    raise Exception('订单(%d)本地修改日期(%s)与线上修改日期(%s)不一致'.decode('utf8')%(trade.tid,trade.modified,latest_modified))
+                    raise Exception(u'订单(%d)本地修改日期(%s)与线上修改日期(%s)不一致'%(trade.tid,trade.modified,latest_modified))
             except Exception,exc:
                 trade.append_reason_code(POST_MODIFY_CODE)
                 MergeTrade.objects.filter(tid=trade.tid).update(sys_status=WAIT_AUDIT_STATUS)
@@ -130,10 +132,10 @@ class MergeTradeAdmin(admin.ModelAdmin):
                         if latest_modified==trade.modified:
                             response = apis.taobao_logistics_online_send(tid=merge_buyer_trade.sub_tid,out_sid=trade.out_sid
                                                           ,company_code=trade.logistics_company.code,tb_user_id=trade.seller_id)  
-                            if not response['delivery_confirm_send_response']['shipping']['is_success']:
-                                raise Exception('订单(%d)的子订单(%d)淘宝发货失败'.decode('utf8')%(trade.tid,merge_buyer_trade.sub_tid))
+                            if not response['logistics_online_send_response']['shipping']['is_success']:
+                                raise Exception(u'订单(%d)的子订单(%d)淘宝发货失败'%(trade.tid,merge_buyer_trade.sub_tid))
                         else:
-                            raise Exception('订单(%d)的子订单(%d)本地修改日期(%s)与线上修改日期(%s)不一致'.decode('utf8')%
+                            raise Exception(u'订单(%d)的子订单(%d)本地修改日期(%s)与线上修改日期(%s)不一致'%
                                             (trade.tid,merge_buyer_trade.sub_tid,trade.modified,latest_modified))
                     except Exception,exc:
                         trade.append_reason_code(POST_SUB_TRADE_ERROR_CODE)
