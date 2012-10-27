@@ -22,7 +22,7 @@ class LogisticsCompany(models.Model):
     code    = models.CharField(max_length=64,unique=True,blank=True,verbose_name='快递编码')
     name    = models.CharField(max_length=64,blank=True,verbose_name='快递名称')
     reg_mail_no = models.CharField(max_length=500,blank=True,verbose_name='单号匹配规则')
-    district    = models.CharField(max_length=1000,blank=True,verbose_name='服务区域(,号分隔)')
+    district    = models.TextField(blank=True,verbose_name='服务区域(,号分隔)')
     priority    = models.IntegerField(null=True,default=0,verbose_name='优先级')
     status      = models.BooleanField(default=True,verbose_name='使用')
     

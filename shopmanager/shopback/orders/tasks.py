@@ -31,9 +31,9 @@ def saveUserDuringOrdersTask(user_id,update_from=None,update_to=None,status=None
     
     has_next = True
     cur_page = 1
-
+   
+    from shopback.trades.models import MergeTrade
     while has_next:
-    
         response_list = apis.taobao_trades_sold_get(tb_user_id=user_id,page_no=cur_page,use_has_next='true',fields='tid,modified'
             ,page_size=settings.TAOBAO_PAGE_SIZE,start_created=update_from,end_created=update_to,status=status)
 
@@ -41,8 +41,8 @@ def saveUserDuringOrdersTask(user_id,update_from=None,update_to=None,status=None
         if order_list.has_key('trades'):
             for trade in order_list['trades']['trade']:
                 modified = parse_datetime(trade['modified']) if trade.get('modified',None) else None
-                trade_obj,state = Trade.objects.get_or_create(pk=trade['tid'])
-                if trade_obj.modified != modified:
+                need_pull = MergeTrade.judge_need_pull(trade['tid'],modified)
+                if need_pull:
                     try:
                         response = apis.taobao_trade_fullinfo_get(tid=trade['tid'],tb_user_id=user_id)
                         trade_dict = response['trade_fullinfo_get_response']['trade']
@@ -79,6 +79,7 @@ def saveUserIncrementOrdersTask(user_id,update_from=None,update_to=None):
     has_next = True
     cur_page = 1
     
+    from shopback.trades.models import MergeTrade
     while has_next:
         response_list = apis.taobao_trades_sold_increment_get(tb_user_id=user_id,page_no=cur_page,fields='tid,modified'
             ,page_size=settings.TAOBAO_PAGE_SIZE,use_has_next='true',start_modified=s_dt_f,end_modified=s_dt_t)
@@ -86,8 +87,8 @@ def saveUserIncrementOrdersTask(user_id,update_from=None,update_to=None):
         if trade_list.has_key('trades'):
             for trade in trade_list['trades']['trade']:
                 modified = parse_datetime(trade['modified']) if trade.get('modified',None) else None
-                trade_obj,state = Trade.objects.get_or_create(pk=trade['tid'])
-                if trade_obj.modified != modified:
+                need_pull = MergeTrade.judge_need_pull(trade['tid'],modified)
+                if need_pull:
                     try:
                         response = apis.taobao_trade_fullinfo_get(tid=trade['tid'],tb_user_id=user_id)
                         trade_dict = response['trade_fullinfo_get_response']['trade']

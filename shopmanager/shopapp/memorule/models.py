@@ -1,9 +1,12 @@
 #-*- coding:utf8 -*-
 __author__ = 'meixqhi'
+import os.path
+import json
 from django.db import models
+from django.conf import settings
 from shopback.items.models import Item
 from shopback.orders.models import Trade,REFUND_APPROVAL_STATUS
-from shopback.trades.models import MergeTrade
+from shopback.trades.models import MergeTrade,MergeOrder,WAIT_SELLER_SEND_GOODS,CONFIRM_WAIT_SEND_GOODS,WAIT_CONFIRM_WAIT_SEND_GOODS,IN_EFFECT
 from shopback.signals import rule_signal
 import logging
 
@@ -155,40 +158,45 @@ rule_signal.connect(rule_match_trade,sender='trade_rule',dispatch_uid='rule_matc
 
 
 def rule_match_merge_trade(sender, trade_tid, *args, **kwargs):
-    
+    print 'rules'
+    rules_file_name = os.path.join(settings.PROJECT_ROOT,'rules.json')
+    rules = None
+    print 'rule_file_name',rules_file_name
+    if os.path.isfile(rules_file_name):
+        with open(rules_file_name) as f:
+            rules = f.read()
+        if rules:
+            rules = json.loads(rules)
+    if not rules:
+        return 
     try:
         trade = MergeTrade.objects.get(id=trade_tid)
     except MergeTrade.DoesNotExist:
         pass
     else:
-        orders = trade.merge_trade_orders.exclude(refund_status__in=REFUND_APPROVAL_STATUS)
-        trade_rules = TradeRule.objects.filter(scope='trade',status='US') 
-        memo_list = []
+        print 'payment:',trade.payment
+        orders = trade.merge_trade_orders.filter(status__in=(WAIT_SELLER_SEND_GOODS,CONFIRM_WAIT_SEND_GOODS,WAIT_CONFIRM_WAIT_SEND_GOODS),sys_status=IN_EFFECT).exclude(refund_status__in=REFUND_APPROVAL_STATUS)
         payment = 0 
-        trade_payment = 0
         for order in orders:
-            payment = float(order.payment)  
-            trade_payment += payment
-            item = Item.get_or_create(trade.seller_id,order.num_iid)
-            order_rules = item.rules.filter(scope='product',status='US')
-            for rule in order_rules:
-                try:
-                    if eval(rule.formula):
-                        memo_list.append(rule.memo)
-                except Exception,exc:
-                    logger.error('交易商品规则(%s)匹配出错'%rule.formula,exc_info=True)
+            payment += float(order.payment)
+            for rule in rules['split-rules']:
+                if (rule[1] and rule[0]==order.outer_id and rule[1]==order.outer_sku_id) \
+                   or (not rule[1] and rule[0]==order.outer_id):
+                    MergeOrder.object.filter(oid=order.oid).update(sys_status=INVALIDE_STATUS)
+                    for item in rule[2]:
+                        MergeOrder.gen_new_order(trade_tid,item[0],item[1],item[2])
         
-        trade.payment = trade_payment  
-        for rule in trade_rules:
-            try:
-                if eval(rule.formula):
-                    memo_list.append(rule.memo)
-            except Exception,exc:
-                logger.error('交易订单规则(%s)匹配出错'%rule.formula,exc_info=True)
-    
-        MergeTrade.objects.filter(tid=trade_id).update(sys_memo=','.join(memo_list))
+        self_rule = None
+        for rule in rules['payment-rules']:
+            if payment < rule[0]:
+                break
+            if payment >= rule[0]:
+                self_rule = rule
+        if self_rule:
+            for item in self_rule[1]:
+                MergeOrder.gen_new_order(trade_tid,item[0],item[1],item[2])
         
 
-rule_signal.connect(rule_match_trade,sender='merge_trade_rule',dispatch_uid='rule_match_trade')
+rule_signal.connect(rule_match_trade,sender='merge_trade_rule',dispatch_uid='rule_match_merge_trade')
     
     
