@@ -551,6 +551,7 @@ def merge_trade_maker(sub_tid,main_tid):
     
 
 def trade_download_controller(merge_trade,trade,trade_from,is_first_save):
+    
     shipping_type = trade.shipping if trade_from==FENXIAO_TYPE else trade.shipping_type
     seller_memo   = trade.memo  if hasattr(trade,'memo') else trade.seller_memo
     buyer_message = trade.buyer_message if hasattr(trade,'buyer_message') else trade.supplier_memo
@@ -562,6 +563,7 @@ def trade_download_controller(merge_trade,trade,trade_from,is_first_save):
         has_new_memo = merge_trade.seller_memo != seller_memo or merge_trade.buyer_message != buyer_message
         if has_new_memo:
             merge_trade.append_reason_code(NEW_MEMO_CODE)
+
             merge_trade.buyer_message = buyer_message 
             merge_trade.seller_memo   = seller_memo
         #新退款
@@ -693,6 +695,7 @@ def trade_download_controller(merge_trade,trade,trade_from,is_first_save):
     
      
 def save_orders_trade_to_mergetrade(sender, trade, *args, **kwargs):
+
     try:
         merge_trade,state = MergeTrade.objects.get_or_create(tid=trade.id)
         
@@ -708,6 +711,7 @@ def save_orders_trade_to_mergetrade(sender, trade, *args, **kwargs):
             merge_trade.receiver_mobile = trade.receiver_mobile
             merge_trade.receiver_phone = trade.receiver_phone
             merge_trade.save()
+
             
         #保存商城或C店订单到抽象全局抽象订单表
         for order in trade.trade_orders.all():
@@ -751,6 +755,7 @@ def save_orders_trade_to_mergetrade(sender, trade, *args, **kwargs):
                     )
 
         merge_trade.status = trade.status
+
         dt = trade.created
         merge_trade.year  = dt.year
         merge_trade.hour  = dt.hour
@@ -793,12 +798,11 @@ def save_orders_trade_to_mergetrade(sender, trade, *args, **kwargs):
             has_refund = merge_trade.has_refund,
             has_memo = merge_trade.has_memo,
             sys_status = merge_trade.sys_status,
-            )
-       
+        )
+ 
     except Exception,exc:
         logger.error(exc.message,exc_info=True)
-
-merge_trade_signal.connect(save_orders_trade_to_mergetrade,sender=Trade,dispatch_uid='merge_trade')
+        
 
 
 
@@ -816,7 +820,7 @@ def save_fenxiao_orders_to_mergetrade(sender, trade, *args, **kwargs):
             merge_trade.receiver_mobile = logistics.receiver_mobile
             merge_trade.receiver_phone = logistics.receiver_phone
             merge_trade.save()
-            
+
         #保存分销订单到抽象全局抽象订单表
         for order in trade.sub_purchase_orders.all():
             merge_order,state = MergeOrder.objects.get_or_create(oid=order.tc_order_id,tid=trade.id)
@@ -902,11 +906,10 @@ def save_fenxiao_orders_to_mergetrade(sender, trade, *args, **kwargs):
             sys_status = merge_trade.sys_status,
         )
        
+
     except Exception,exc:
         logger.error(exc.message,exc_info=True)
-
-merge_trade_signal.connect(save_fenxiao_orders_to_mergetrade,sender=PurchaseOrder,dispatch_uid='merge_purchaseorder')
-
+    
 
 class ReplayPostTrade(models.Model):
     #重现发货表单
