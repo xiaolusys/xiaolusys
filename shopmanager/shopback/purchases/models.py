@@ -50,7 +50,7 @@ class PurchaseProduct(models.Model):
     outer_id     = models.CharField(max_length=64)
     name         = models.CharField(max_length=128,blank=True)
     
-    category     = models.ForeignKey(ProductCategory,null=True,related_name='purchase_products')
+    category     = models.ForeignKey(ProductCategory,null=True,blank=True,related_name='purchase_products')
     
     created      = models.DateTimeField(null=True,blank=True,auto_now_add=True)
     modified     = models.DateTimeField(null=True,blank=True,auto_now=True)
@@ -120,9 +120,9 @@ class PurchaseType(models.Model):
 class Purchase(models.Model):
     """ 采购单 """
     
-    supplier     = models.ForeignKey(Supplier,null=True,related_name='purchases')
-    deposite     = models.ForeignKey(Deposite,null=True,related_name='purchases')
-    type         = models.ForeignKey(PurchaseType,null=True,related_name='purchases')
+    supplier     = models.ForeignKey(Supplier,null=True,blank=True,related_name='purchases')
+    deposite     = models.ForeignKey(Deposite,null=True,blank=True,related_name='purchases')
+    type         = models.ForeignKey(PurchaseType,null=True,blank=True,related_name='purchases')
     
     forecast_time = models.DateTimeField(null=True,blank=True)
     post_time    = models.DateTimeField(null=True,blank=True)
@@ -148,8 +148,8 @@ class PurchaseItem(models.Model):
     purchase     = models.ForeignKey(Purchase,related_name='purchase_items')
     supplier_item_id = models.CharField(max_length=64,blank=True)
     
-    product      = models.ForeignKey(PurchaseProduct,null=True,related_name='purchase_items')
-    product_sku  = models.ForeignKey(PurchaseProductSku,null=True,related_name='purchase_items')
+    product      = models.ForeignKey(PurchaseProduct,related_name='purchase_items')
+    product_sku  = models.ForeignKey(PurchaseProductSku,related_name='purchase_items')
     
     purchase_num = models.IntegerField(null=True)
     discount     = models.FloatField(null=True)
@@ -176,14 +176,14 @@ class PurchaseItem(models.Model):
 class PurchaseStorage(models.Model):
     """ 采购入库单 """
     
-    supplier     = models.ForeignKey(Supplier,null=True,related_name='purchase_storages')
-    deposite     = models.ForeignKey(Deposite,null=True,related_name='purchases_storages')
-    type         = models.ForeignKey(PurchaseType,null=True,related_name='purchases_storages')
+    supplier     = models.ForeignKey(Supplier,null=True,blank=True,related_name='purchase_storages')
+    deposite     = models.ForeignKey(Deposite,null=True,blank=True,related_name='purchases_storages')
+    type         = models.ForeignKey(PurchaseType,null=True,blank=True,related_name='purchases_storages')
     
     forecast_time = models.DateTimeField(null=True,blank=True)
     post_time    = models.DateTimeField(null=True,blank=True)
     
-    purchase     = models.ForeignKey(Purchase,null=True,related_name='purchases_storages')
+    purchase     = models.ForeignKey(Purchase,null=True,blank=True,related_name='purchases_storages')
     
     created      = models.DateTimeField(auto_now=True)
     modified     = models.DateTimeField(auto_now_add=True)
@@ -205,8 +205,8 @@ class PurchaseStorageItem(models.Model):
     purchase_storage     = models.ForeignKey(PurchaseStorage,related_name='purchase_storageitems')
     supplier_item_id     = models.CharField(max_length=64,blank=True)
     
-    product      = models.ForeignKey(PurchaseProduct,null=True,related_name='purchase_storageitems')
-    product_sku  = models.ForeignKey(PurchaseProductSku,null=True,related_name='purchase_storageitems')
+    product      = models.ForeignKey(PurchaseProduct,related_name='purchase_storageitems')
+    product_sku  = models.ForeignKey(PurchaseProductSku,related_name='purchase_storageitems')
     
     storage_num = models.IntegerField(null=True)
     

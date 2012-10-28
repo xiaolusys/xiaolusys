@@ -1,6 +1,8 @@
 __author__ = 'meixqhi'
 from django.contrib import admin
-from shopapp.memorule.models import TradeRule,RuleFieldType,ProductRuleField,RuleMemo
+from django.db import models
+from django.forms import TextInput, Textarea
+from shopapp.memorule.models import TradeRule,RuleFieldType,ProductRuleField,RuleMemo,ComposeRule,ComposeItem
 
 
 
@@ -67,3 +69,43 @@ class RuleMemoAdmin(admin.ModelAdmin):
 
 
 admin.site.register(RuleMemo, RuleMemoAdmin)
+
+
+class ComposeItemInline(admin.TabularInline):
+    
+    model = ComposeItem
+    fields = ('compose_rule','outer_id','outer_sku_id','num','extra_info')
+    
+    formfield_overrides = {
+        models.CharField: {'widget': TextInput(attrs={'size':'20'})},
+        models.TextField: {'widget': Textarea(attrs={'rows':4, 'cols':40})},
+    }
+    
+
+class ComposeRuleAdmin(admin.ModelAdmin):
+    list_display = ('id','outer_id','outer_sku_id','payment','type')
+    list_display_links = ('id','outer_id')
+    #list_editable = ('update_time','task_type' ,'is_success','status')
+
+    date_hierarchy = 'created'
+    #ordering = ['created_at']
+    search_fields = ['id','outer_id']
+    
+    inlines = [ComposeItemInline]
+
+
+admin.site.register(ComposeRule, ComposeRuleAdmin)
+
+
+class ComposeItemAdmin(admin.ModelAdmin):
+    list_display = ('id','compose_rule','outer_id','outer_sku_id','num')
+    list_display_links = ('id',)
+    #list_editable = ('update_time','task_type' ,'is_success','status')
+
+    date_hierarchy = 'created'
+    #ordering = ['created_at']
+
+    search_fields = ['id','outer_id']
+
+
+admin.site.register(ComposeItem, ComposeItemAdmin)

@@ -44,8 +44,8 @@ class Product(models.Model):
     outer_id     = models.CharField(max_length=64,unique=True,null=False,blank=False,verbose_name='外部编码')
     name         = models.CharField(max_length=64,blank=True,verbose_name='商品名称')
     
-    purchase_product = models.ForeignKey(PurchaseProduct,null=True,related_name='products',verbose_name='关联采购商品')
-    category     = models.ForeignKey(ProductCategory,null=True,related_name='products',verbose_name='内部分类')
+    purchase_product = models.ForeignKey(PurchaseProduct,null=True,blank=True,related_name='products',verbose_name='关联采购商品')
+    category     = models.ForeignKey(ProductCategory,null=True,blank=True,related_name='products',verbose_name='内部分类')
 
     collect_num  = models.IntegerField(null=True,verbose_name='库存数')  #库存数
     warn_num     = models.IntegerField(null=True,default=10,verbose_name='警告库位')    #警戒库位
