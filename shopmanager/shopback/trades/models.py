@@ -387,7 +387,17 @@ class MergeTrade(models.Model):
         
         return False
  
- 
+    @classmethod
+    def need_pull(cls,tid):
+        need_pull = False
+        try:
+            trade_obj = cls.objects.get(tid=trade['tid'])
+        except MergeTrade.DoesNotExist:
+            need_pull = True
+        else:
+            if trade_obj.modified != modified:
+                need_pull = True
+        return need_pull
  
 class MergeOrder(models.Model):
     

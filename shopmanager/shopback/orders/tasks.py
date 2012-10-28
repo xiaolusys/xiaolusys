@@ -41,8 +41,15 @@ def saveUserDuringOrdersTask(user_id,update_from=None,update_to=None,status=None
         if order_list.has_key('trades'):
             for trade in order_list['trades']['trade']:
                 modified = parse_datetime(trade['modified']) if trade.get('modified',None) else None
-                trade_obj,state = Trade.objects.get_or_create(pk=trade['tid'])
-                if trade_obj.modified != modified:
+                need_pull = False
+                try:
+                    trade_obj = MergeTrade.objects.get(tid=trade['tid'])
+                except MergeTrade.DoesNotExist:
+                    need_pull = True
+                else:
+                    if trade_obj.modified != modified:
+                        need_pull = True
+                if need_pull:
                     try:
                         response = apis.taobao_trade_fullinfo_get(tid=trade['tid'],tb_user_id=user_id)
                         trade_dict = response['trade_fullinfo_get_response']['trade']
