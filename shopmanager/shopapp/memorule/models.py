@@ -7,7 +7,8 @@ from django.conf import settings
 from shopback.items.models import Item,Product,ProductSku
 from shopback.orders.models import Trade,REFUND_APPROVAL_STATUS
 from shopback.fenxiao.models import PurchaseOrder
-from shopback.trades.models import MergeTrade,MergeOrder,WAIT_SELLER_SEND_GOODS,CONFIRM_WAIT_SEND_GOODS,WAIT_CONFIRM_WAIT_SEND_GOODS,IN_EFFECT
+from shopback.trades.models import MergeTrade,MergeOrder,WAIT_SELLER_SEND_GOODS,CONFIRM_WAIT_SEND_GOODS,WAIT_CONFIRM_WAIT_SEND_GOODS,IN_EFFECT,INVALID_STATUS
+from shopback.monitor.models import COMPOSE_RULE_ERROR_CODE
 from shopback.signals import rule_signal
 import logging
 
@@ -212,35 +213,40 @@ def rule_match_merge_trade(sender, trade_tid, *args, **kwargs):
     except MergeTrade.DoesNotExist:
         pass
     else:
-        orders = trade.merge_trade_orders.filter(status__in=(WAIT_SELLER_SEND_GOODS,CONFIRM_WAIT_SEND_GOODS,WAIT_CONFIRM_WAIT_SEND_GOODS)
-                                                 ,sys_status=IN_EFFECT).exclude(refund_status__in=REFUND_APPROVAL_STATUS)
-        payment = 0 
-        for order in orders:
-            payment += float(order.payment)
-            try:
-                compose_rule = ComposeRule.objects.get(outer_id=order.outer_id,outer_sku_id=order.outer_sku_id,type='product')
-            except:
-                pass
-            else:
-                for item in compose_rule.compose_items.all():
-                    MergeOrder.gen_new_order(trade_tid,item.outer_id,item.outer_sku_id,item.num)
-
-        post_fee = trade.post_fee
-        if not post_fee:
-            try:
-                post_fee = Trade.objects.get(id=trade_tid).post_fee
-            except:
-                post_fee = PurchaseOrder.objects.get(id=trade_tid).post_fee
-        
-        real_payment = payment - float(post_fee)
-        self_rule = None
-        payment_rules = ComposeRule.objects.filter(type='payment').order_by('-payment')
-        for rule in payment_rules:
-            if real_payment >= rule.payment:
-                for item in rule.compose_items.all():
-                    MergeOrder.gen_new_order(trade_tid,item.outer_id,item.outer_sku_id,item.num)
-                break
-
+        try:
+            orders = trade.merge_trade_orders.filter(status__in=(WAIT_SELLER_SEND_GOODS,CONFIRM_WAIT_SEND_GOODS,WAIT_CONFIRM_WAIT_SEND_GOODS)
+                                                     ,sys_status=IN_EFFECT).exclude(refund_status__in=REFUND_APPROVAL_STATUS)
+            payment = 0 
+            for order in orders:
+                payment += float(order.payment)
+                try:
+                    compose_rule = ComposeRule.objects.get(outer_id=order.outer_id,outer_sku_id=order.outer_sku_id,type='product')
+                except:
+                    pass
+                else:
+                    MergeOrder.filter(id=order.id).update(sys_status=INVALID_STATUS)
+                    for item in compose_rule.compose_items.all():
+                        MergeOrder.gen_new_order(trade_tid,item.outer_id,item.outer_sku_id,item.num)
+    
+            post_fee = trade.post_fee
+            if not post_fee:
+                try:
+                    post_fee = Trade.objects.get(id=trade_tid).post_fee
+                except:
+                    post_fee = PurchaseOrder.objects.get(id=trade_tid).post_fee
+            
+            real_payment = payment - float(post_fee)
+            self_rule = None
+            payment_rules = ComposeRule.objects.filter(type='payment').order_by('-payment')
+            for rule in payment_rules:
+                if real_payment >= rule.payment:
+                    for item in rule.compose_items.all():
+                        MergeOrder.gen_new_order(trade_tid,item.outer_id,item.outer_sku_id,item.num)
+                    break
+        except Exception,exc:
+            logger.error(exc.message,exc_info)
+            trade.append_reason_code(COMPOSE_RULE_ERROR_CODE)
+            
 rule_signal.connect(rule_match_merge_trade,sender='merge_trade_rule',dispatch_uid='rule_match_merge_trade')
 
 

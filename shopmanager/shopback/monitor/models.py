@@ -66,7 +66,7 @@ OUT_GOOD_CODE = 6   #订单缺货
 INVALID_END_CODE = 7  #订单非正常结束
 POST_MODIFY_CODE = 8 #订单有改动
 POST_SUB_TRADE_ERROR_CODE = 9 #子订单发货失败，请检查子订单是否退款,(如退款拆包并保留父订单物流单)
-
+COMPOSE_RULE_ERROR_CODE = 10 #组合商品拆分出错 
 
 
 
