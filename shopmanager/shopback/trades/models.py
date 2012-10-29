@@ -175,7 +175,7 @@ class MergeTrade(models.Model):
     remind_time      = models.DateTimeField(null=True,blank=True,verbose_name='定时日期')
     refund_num       = models.IntegerField(db_index=True,null=True,default=0,verbose_name='退款单数')  #退款数
     
-    operator       =  models.CharField(max_length=32,verbose_name='操作员')
+    operator       =  models.CharField(max_length=32,blank=True,verbose_name='操作员')
     sys_status     = models.CharField(max_length=32,db_index=True,choices=SYS_TRADE_STATUS,blank=True,default='',verbose_name='系统状态')
     
     class Meta:

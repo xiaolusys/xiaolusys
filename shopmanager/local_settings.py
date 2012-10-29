@@ -2,12 +2,12 @@ __author__ = 'zfz'
 
 import os
 
-DEBUG = True
+DEBUG = False
 TEMPLATE_DEBUG = DEBUG
 
 PROJECT_ROOT = os.path.abspath(os.path.dirname(__file__))
 STATICFILES_DIRS = ()
-#STATIC_ROOT = os.path.join(PROJECT_ROOT, "site_media","static")
+STATIC_ROOT = os.path.join(PROJECT_ROOT, "site_media","static")
 
 DATABASES = {
     'default': {
@@ -28,21 +28,13 @@ CACHES = {
     }
 }
 
-if DEBUG:
-    STATICFILES_DIRS = (
-       os.path.join(PROJECT_ROOT,'site_media',"static"),
-    )
-else :
-    STATIC_ROOT = os.path.join(PROJECT_ROOT,'site_media', "static")
-
 RAVEN_CONFIG = {
-    'dsn': 'http://93556d02ae254080999d90448d8396ed:1d37106c125345588b89628dc953556d@sentry.huyi.so/2',
-    #'dsn': 'http://eea330200a05408f9f74c47ca95e16e9:5223e7e8ab4c40cfa28813f5f1743d1e@huyi.so/2',
+    'dsn': 'http://eea330200a05408f9f74c47ca95e16e9:5223e7e8ab4c40cfa28813f5f1743d1e@huyi.so/2',
     'register_signals': True,
 }
 
 #SITE_URL = "http://autolist.huyi.so/" 
-SITE_URL = 'http://127.0.0.1:8000/' 
+SITE_URL = 'http://192.168.0.42/' 
 
 #
 #APPKEY = '21165266'  #app name huyi ERP ,younishijie

@@ -94,7 +94,7 @@ def saveUserIncrementOrdersTask(user_id,update_from=None,update_to=None):
                         trade_dict = response['trade_fullinfo_get_response']['trade']
                         Trade.save_trade_through_dict(user_id,trade_dict)
                     except Exception,exc:
-                        logger.error('update trade fullinfo error：%s'%exc,exc_info=True)
+                        logger.error(exc.message,exc_info=True)
 
         has_next = trade_list['has_next']
         cur_page += 1

@@ -1,5 +1,6 @@
 #-*- coding:utf8 -*-
 import json
+import datetime
 from django.contrib import admin
 from django.db import models
 from django.forms import TextInput, Textarea
@@ -9,7 +10,7 @@ from django.template import RequestContext
 from django.core import serializers
 from django.contrib.contenttypes.models import ContentType
 from shopback.trades.models import MergeTrade,MergeOrder,MergeBuyerTrade,ReplayPostTrade,WAIT_AUDIT_STATUS,WAIT_PREPARE_SEND_STATUS\
-    ,WAIT_CHECK_BARCODE_STATUS,IN_EFFECT,WAIT_SELLER_SEND_GOODS
+    ,WAIT_CHECK_BARCODE_STATUS,IN_EFFECT,WAIT_SELLER_SEND_GOODS,WAIT_BUYER_CONFIRM_GOODS
 from shopback.monitor.models import POST_MODIFY_CODE,POST_SUB_TRADE_ERROR_CODE
 from shopback.orders.models import REFUND_APPROVAL_STATUS
 from auth import apis
@@ -76,7 +77,7 @@ class MergeTradeAdmin(admin.ModelAdmin):
                 }),
                 ('系统内部信息:', {
                     'classes': ('collapse',),
-                    'fields': ('weight','post_cost','is_picking_print','is_express_print','is_send_sms','has_memo','has_refund','remind_time'
+                    'fields': ('operator','weight','post_cost','is_picking_print','is_express_print','is_send_sms','has_memo','has_refund','remind_time'
                                ,'sys_memo','refund_num','sys_status','reason_code')
                 }))
 
@@ -112,11 +113,13 @@ class MergeTradeAdmin(admin.ModelAdmin):
                 if latest_modified==trade.modified:
                     response = apis.taobao_logistics_online_send(tid=trade.tid,out_sid=trade.out_sid
                                                   ,company_code=trade.logistics_company.code,tb_user_id=trade.seller_id)  
-                    if not response['delivery_confirm_send_response']['shipping']['is_success']:
+		    #response = {'logistics_online_send_response': {'shipping': {'is_success': True}}}
+                    if not response['logistics_online_send_response']['shipping']['is_success']:
                         raise Exception(u'订单(%d)淘宝发货失败'%trade.tid)
                 else:
                     raise Exception(u'订单(%d)本地修改日期(%s)与线上修改日期(%s)不一致'%(trade.tid,trade.modified,latest_modified))
             except Exception,exc:
+		print exc.message,exc
                 trade.append_reason_code(POST_MODIFY_CODE)
                 MergeTrade.objects.filter(tid=trade.tid).update(sys_status=WAIT_AUDIT_STATUS)
                 logger.error(exc.message,exc_info=True)
@@ -132,6 +135,7 @@ class MergeTradeAdmin(admin.ModelAdmin):
                         if latest_modified==trade.modified:
                             response = apis.taobao_logistics_online_send(tid=merge_buyer_trade.sub_tid,out_sid=trade.out_sid
                                                           ,company_code=trade.logistics_company.code,tb_user_id=trade.seller_id)  
+			    #response = {'logistics_online_send_response': {'shipping': {'is_success': True}}}
                             if not response['logistics_online_send_response']['shipping']['is_success']:
                                 raise Exception(u'订单(%d)的子订单(%d)淘宝发货失败'%(trade.tid,merge_buyer_trade.sub_tid))
                         else:
@@ -143,14 +147,12 @@ class MergeTradeAdmin(admin.ModelAdmin):
                         logger.error(exc.message,exc_info=True)
                     else:
                         MergeTrade.objects.filter(tid=sub_merge_trade.tid).update(sys_status=WAIT_CHECK_BARCODE_STATUS,consign_time=datetime.datetime.now())
-#        MergeTrade.objects.filter(tid__in=(queryset[0].tid,queryset[1].tid)).update(sys_status=WAIT_AUDIT_STATUS,is_picking_print=True,is_express_print=True)
-#        MergeTrade.objects.filter(tid__in=[s.tid for s in queryset]).update(sys_status=WAIT_CHECK_BARCODE_STATUS,is_picking_print=True,is_express_print=True)
-   
+	
         queryset = MergeTrade.objects.filter(id__in=trade_ids)
         post_trades = queryset.filter(sys_status=WAIT_CHECK_BARCODE_STATUS)
         trade_items = {}
         for trade in post_trades:
-            used_orders = trade.merge_trade_orders.filter(status=WAIT_SELLER_SEND_GOODS,sys_status=IN_EFFECT)\
+            used_orders = trade.merge_trade_orders.filter(status__in=(WAIT_BUYER_CONFIRM_GOODS,WAIT_SELLER_SEND_GOODS),sys_status=IN_EFFECT)\
                 .exclude(refund_status__in=REFUND_APPROVAL_STATUS)
             for order in used_orders:
                 outer_id = order.outer_id or str(order.num_iid)
