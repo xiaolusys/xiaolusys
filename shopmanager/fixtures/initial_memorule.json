@@ -1,0 +1,288 @@
+[
+  {
+    "pk": 1,
+    "model": "memorule.composerule",
+    "fields": {
+      "created": "2012-10-28 16:40:20",
+      "modified": "2012-10-28 16:40:20",
+      "outer_sku_id": "",
+      "outer_id": "",
+      "type": "payment",
+      "payment": 150,
+      "extra_info": "\u6ee1150\u9001\u6e7f\u5dfe"
+    }
+  },
+  {
+    "pk": 2,
+    "model": "memorule.composerule",
+    "fields": {
+      "created": "2012-10-28 16:40:56",
+      "modified": "2012-10-29 13:54:53",
+      "outer_sku_id": "",
+      "outer_id": "",
+      "type": "payment",
+      "payment": 500,
+      "extra_info": "\u6ee1500\u9001\u6d74\u5dfe"
+    }
+  },
+  {
+    "pk": 3,
+    "model": "memorule.composerule",
+    "fields": {
+      "created": "2012-10-28 16:45:07",
+      "modified": "2012-10-28 16:45:07",
+      "outer_sku_id": "30I10",
+      "outer_id": "2115DD2",
+      "type": "product",
+      "payment": null,
+      "extra_info": "\u7eb8\u5c3f\u5e9310\u7247\u88c5\u9001\u5c3f\u5e03\u5e26"
+    }
+  },
+  {
+    "pk": 4,
+    "model": "memorule.composerule",
+    "fields": {
+      "created": "2012-10-28 16:48:10",
+      "modified": "2012-10-29 11:08:34",
+      "outer_sku_id": "46CA",
+      "outer_id": "1115BN4",
+      "type": "product",
+      "payment": null,
+      "extra_info": "\u5e8a\u56f4\u7761\u888b\u7ec4\u5408"
+    }
+  },
+  {
+    "pk": 5,
+    "model": "memorule.composerule",
+    "fields": {
+      "created": "2012-10-28 16:58:26",
+      "modified": "2012-10-29 11:08:28",
+      "outer_sku_id": "46CB",
+      "outer_id": "1115BN4",
+      "type": "product",
+      "payment": 1000,
+      "extra_info": "\u5e8a\u56f4\u7761\u888b\u7ec4\u5408\u5546\u54c1"
+    }
+  },
+  {
+    "pk": 6,
+    "model": "memorule.composerule",
+    "fields": {
+      "created": "2012-10-28 17:01:03",
+      "modified": "2012-10-29 11:08:23",
+      "outer_sku_id": "46EB",
+      "outer_id": "1115BN4",
+      "type": "product",
+      "payment": null,
+      "extra_info": "\u5e8a\u56f4\u4e0e\u5e8a\u54c1\u7ec4\u5408"
+    }
+  },
+  {
+    "pk": 7,
+    "model": "memorule.composerule",
+    "fields": {
+      "created": "2012-10-29 10:35:18",
+      "modified": "2012-10-29 11:22:39",
+      "outer_sku_id": "62CB",
+      "outer_id": "1115BN4",
+      "type": "product",
+      "payment": null,
+      "extra_info": "\u5e8a\u56f4\u7761\u888b\u7ec4\u5408"
+    }
+  },
+  {
+    "pk": 8,
+    "model": "memorule.composerule",
+    "fields": {
+      "created": "2012-10-29 10:35:18",
+      "modified": "2012-10-29 11:22:46",
+      "outer_sku_id": "62EB",
+      "outer_id": "1115BN4",
+      "type": "product",
+      "payment": null,
+      "extra_info": "\u5e8a\u56f4\u7761\u888b\u7ec4\u5408"
+    }
+  },
+  {
+    "pk": 1,
+    "model": "memorule.composeitem",
+    "fields": {
+      "created": "2012-10-28 16:40:20",
+      "modified": "2012-10-28 16:40:20",
+      "num": 1,
+      "outer_sku_id": "",
+      "compose_rule": 1,
+      "outer_id": "2115ZB1",
+      "extra_info": "\u6e7f\u5dfe"
+    }
+  },
+  {
+    "pk": 2,
+    "model": "memorule.composeitem",
+    "fields": {
+      "created": "2012-10-28 16:40:56",
+      "modified": "2012-10-29 13:54:53",
+      "num": 1,
+      "outer_sku_id": "46K",
+      "compose_rule": 2,
+      "outer_id": "2115DA1",
+      "extra_info": "\u6d74\u5dfe"
+    }
+  },
+  {
+    "pk": 3,
+    "model": "memorule.composeitem",
+    "fields": {
+      "created": "2012-10-28 16:45:07",
+      "modified": "2012-10-28 16:45:07",
+      "num": 1,
+      "outer_sku_id": "",
+      "compose_rule": 3,
+      "outer_id": "2115DD3",
+      "extra_info": "\u5c3f\u5e03\u5e26"
+    }
+  },
+  {
+    "pk": 4,
+    "model": "memorule.composeitem",
+    "fields": {
+      "created": "2012-10-28 16:45:07",
+      "modified": "2012-10-28 16:45:07",
+      "num": 1,
+      "outer_sku_id": "30I10",
+      "compose_rule": 3,
+      "outer_id": "2115DD2",
+      "extra_info": "\u7eb8\u5c3f\u88e410\u7247\u88c5"
+    }
+  },
+  {
+    "pk": 5,
+    "model": "memorule.composeitem",
+    "fields": {
+      "created": "2012-10-28 16:48:10",
+      "modified": "2012-10-28 16:48:10",
+      "num": 1,
+      "outer_sku_id": "46C",
+      "compose_rule": 4,
+      "outer_id": "1115BN4",
+      "extra_info": "\u5e8a\u56f4"
+    }
+  },
+  {
+    "pk": 6,
+    "model": "memorule.composeitem",
+    "fields": {
+      "created": "2012-10-28 16:48:10",
+      "modified": "2012-10-29 11:08:34",
+      "num": 1,
+      "outer_sku_id": "30L",
+      "compose_rule": 4,
+      "outer_id": "2115BN1",
+      "extra_info": "\u88ab\u80c6"
+    }
+  },
+  {
+    "pk": 7,
+    "model": "memorule.composeitem",
+    "fields": {
+      "created": "2012-10-28 16:58:26",
+      "modified": "2012-10-28 16:58:26",
+      "num": 1,
+      "outer_sku_id": "46C",
+      "compose_rule": 5,
+      "outer_id": "1115BN4",
+      "extra_info": "\u5e8a\u56f4"
+    }
+  },
+  {
+    "pk": 8,
+    "model": "memorule.composeitem",
+    "fields": {
+      "created": "2012-10-28 16:58:26",
+      "modified": "2012-10-29 11:08:28",
+      "num": 1,
+      "outer_sku_id": "30LH",
+      "compose_rule": 5,
+      "outer_id": "2115BN1",
+      "extra_info": "\u88ab\u80c6"
+    }
+  },
+  {
+    "pk": 9,
+    "model": "memorule.composeitem",
+    "fields": {
+      "created": "2012-10-28 17:01:03",
+      "modified": "2012-10-28 17:01:03",
+      "num": 1,
+      "outer_sku_id": "46E",
+      "compose_rule": 6,
+      "outer_id": "1115BN4",
+      "extra_info": "\u5e8a\u56f4"
+    }
+  },
+  {
+    "pk": 10,
+    "model": "memorule.composeitem",
+    "fields": {
+      "created": "2012-10-28 17:01:03",
+      "modified": "2012-10-29 11:08:23",
+      "num": 1,
+      "outer_sku_id": "30LH",
+      "compose_rule": 6,
+      "outer_id": "2115BN1",
+      "extra_info": "\u88ab\u80c6"
+    }
+  },
+  {
+    "pk": 11,
+    "model": "memorule.composeitem",
+    "fields": {
+      "created": "2012-10-29 10:35:18",
+      "modified": "2012-10-29 11:22:39",
+      "num": 1,
+      "outer_sku_id": "62C",
+      "compose_rule": 7,
+      "outer_id": "1115BN4",
+      "extra_info": "\u5e8a\u56f4"
+    }
+  },
+  {
+    "pk": 12,
+    "model": "memorule.composeitem",
+    "fields": {
+      "created": "2012-10-29 10:35:18",
+      "modified": "2012-10-29 11:08:17",
+      "num": 1,
+      "outer_sku_id": "30LH",
+      "compose_rule": 7,
+      "outer_id": "1115BN1",
+      "extra_info": "\u88ab\u80c6"
+    }
+  },
+  {
+    "pk": 13,
+    "model": "memorule.composeitem",
+    "fields": {
+      "created": "2012-10-29 10:35:18",
+      "modified": "2012-10-29 11:22:46",
+      "num": 1,
+      "outer_sku_id": "62E",
+      "compose_rule": 8,
+      "outer_id": "1115BN4",
+      "extra_info": "\u5e8a\u56f4"
+    }
+  },
+  {
+    "pk": 14,
+    "model": "memorule.composeitem",
+    "fields": {
+      "created": "2012-10-29 10:35:18",
+      "modified": "2012-10-29 11:08:12",
+      "num": 1,
+      "outer_sku_id": "30LH",
+      "compose_rule": 8,
+      "outer_id": "1115BN1",
+      "extra_info": "\u88ab\u80c6"
+    }
+  }
+]
