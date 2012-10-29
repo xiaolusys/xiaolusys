@@ -405,7 +405,7 @@ class MergeOrder(models.Model):
     
     id    = BigIntegerAutoField(primary_key=True)
     
-    oid   = models.BigIntegerField(db_index=True,null=True,verbose_name='子订单编号')
+    oid   = models.BigIntegerField(db_index=True,null=True,blank=True,verbose_name='子订单编号')
     tid   = models.BigIntegerField(db_index=True,null=True,verbose_name='订单编号')
     
     cid    = models.BigIntegerField(db_index=True,null=True,verbose_name='商品分类')
@@ -418,8 +418,8 @@ class MergeOrder(models.Model):
     sku_id = models.CharField(max_length=20,blank=True,verbose_name='属性编码')
     num = models.IntegerField(null=True,default=0,verbose_name='商品数量')
     
-    outer_id = models.CharField(max_length=64,blank=True,verbose_name='订单商品外部编码')
-    outer_sku_id = models.CharField(max_length=20,blank=True,verbose_name='商品属性外部编码')
+    outer_id = models.CharField(max_length=64,blank=True,verbose_name='商品外部编码')
+    outer_sku_id = models.CharField(max_length=20,blank=True,verbose_name='属性外部编码')
     
     total_fee = models.CharField(max_length=12,blank=True,verbose_name='总费用')
     payment = models.CharField(max_length=12,blank=True,verbose_name='实付款')
@@ -457,7 +457,6 @@ class MergeOrder(models.Model):
     @classmethod
     def gen_new_order(cls,tid,outer_id,outer_sku_id,num):
         
-        trade = Trade.objects.get(id=tid)
         merge_trade,state = MergeTrade.objects.get_or_create(tid=tid)
         product = Product.objects.get(outer_id=outer_id)
         sku_properties_name = ''
@@ -474,16 +473,16 @@ class MergeOrder(models.Model):
             outer_sku_id = outer_sku_id,
             sku_properties_name = sku_properties_name,
             refund_status = NO_REFUND,
-            seller_nick = trade.seller_nick,
-            buyer_nick = trade.buyer_nick,
-            year = trade.year,
-            month = trade.month,
-            week  = trade.week,
-            day   = trade.day,
-            hour  = trade.hour,
-            created = trade.created,
-            pay_time = trade.pay_time,
-            consign_time = trade.consign_time,
+            seller_nick = merge_trade.seller_nick,
+            buyer_nick = merge_trade.buyer_nick,
+            year = merge_trade.year,
+            month = merge_trade.month,
+            week  = merge_trade.week,
+            day   = merge_trade.day,
+            hour  = merge_trade.hour,
+            created = merge_trade.created,
+            pay_time = merge_trade.pay_time,
+            consign_time = merge_trade.consign_time,
             status = WAIT_SELLER_SEND_GOODS,
             sys_status = IN_EFFECT
             )
@@ -509,8 +508,8 @@ def merge_trade_maker(sub_tid,main_tid):
     main_merge_trade = MergeTrade.objects.get(tid=main_tid)
     update_rows = MergeTrade.objects.filter(tid=main_tid,sys_status__in=(WAIT_AUDIT_STATUS,WAIT_PREPARE_SEND_STATUS))\
         .update(sys_status=WAIT_AUDIT_STATUS) 
-    
     if update_rows>0:
+        main_merge_trade.merge_trade_orders.filter(oid=None).delete()
         MergeBuyerTrade.objects.get_or_create(sub_tid=sub_tid,main_tid=main_tid)
         main_merge_trade.append_reason_code(NEW_MERGE_TRADE_CODE)
         orders = Order.objects.filter(trade=sub_tid)
@@ -634,7 +633,7 @@ def trade_download_controller(merge_trade,trade,trade_from,is_first_save):
             elif shipping_type in ('post','ems'):
                 post_company = LogisticsCompany.objects.get(code=shipping_type.upper())
                 merge_trade.logistics_company = post_company
-	        print 'merge trade rule',trade.id
+
             rule_signal.send(sender='merge_trade_rule',trade_tid=trade.id)    
         #再次入库
         else: 
@@ -647,7 +646,7 @@ def trade_download_controller(merge_trade,trade,trade_from,is_first_save):
                 #如果有新退款
                 if has_new_refund:     
                     merge_trade.append_reason_code(NEW_REFUND_CODE)
-                    main_trade.merge_trade_orders.filter(oid__in=[o.oid for o in trade.trade_orders.all()]).include(oid=None).delete()
+                    main_trade.merge_trade_orders.filter(oid__in=[o.oid for o in trade.trade_orders.all()].append(None)).delete()
                     if not full_new_refund:
                          merge_trade_maker(trade.id,main_tid)
                     main_trade.append_reason_code(NEW_REFUND_CODE)
@@ -678,7 +677,7 @@ def trade_download_controller(merge_trade,trade,trade_from,is_first_save):
                             MergeTrade.objects.filter(tid=buyer_trades.sub_tid).update(sys_status=WAIT_AUDIT_STATUS)
                             buyer_trades.delete()
                     
-                    merge_buyer.merge_trade_orders.filter(oid=None).delete()
+                    merge_trade.merge_trade_orders.filter(oid=None).delete()
                     merge_trade.sys_status = WAIT_AUDIT_STATUS
                     merge_trade.append_reason_code(NEW_REFUND_CODE)
                     rule_signal.send(sender='merge_trade_rule',trade_tid=trade.id)    
@@ -694,6 +693,15 @@ def trade_download_controller(merge_trade,trade,trade_from,is_first_save):
         if merge_trade.sys_status not in (FINISHED_STATUS,INVALID_STATUS):
             merge_trade.sys_status = INVALID_STATUS  
             merge_trade.append_reason_code(INVALID_END_CODE)
+    #更新系统订单状态
+    MergeTrade.objects.filter(tid=trade.id).update(
+            buyer_message = merge_trade.buyer_message,
+            seller_memo   = merge_trade.seller_memo,
+            logistics_company = merge_trade.logistics_company,
+            has_refund = merge_trade.has_refund,
+            has_memo = merge_trade.has_memo,
+            sys_status = merge_trade.sys_status,
+    )
     
      
 def save_orders_trade_to_mergetrade(sender, trade, *args, **kwargs):
@@ -755,18 +763,15 @@ def save_orders_trade_to_mergetrade(sender, trade, *args, **kwargs):
                     consign_time = order.consign_time,
                     status   = order.status
                     )
-
+        #保存基本订单信息
         merge_trade.status = trade.status
-
         dt = trade.created
         merge_trade.year  = dt.year
         merge_trade.hour  = dt.hour
         merge_trade.month = dt.month
         merge_trade.day   = dt.day
-        merge_trade.week  = time.gmtime(time.mktime(dt.timetuple()))[7]/7+1
-        
-        trade_from = TAOBAO_TYPE
-        trade_download_controller(merge_trade,trade,trade_from,is_first_save)    
+        merge_trade.week  = time.gmtime(time.mktime(dt.timetuple()))[7]/7+1 
+        trade_from = TAOBAO_TYPE   
         MergeTrade.objects.filter(tid=trade.id).update(
             user = trade.user,
             seller_id = trade.seller_id,
@@ -784,9 +789,8 @@ def save_orders_trade_to_mergetrade(sender, trade, *args, **kwargs):
             buyer_cod_fee  = trade.buyer_cod_fee,
             cod_fee    = trade.cod_fee,
             cod_status = trade.cod_status,
-            buyer_message = merge_trade.buyer_message,
-            seller_memo   = merge_trade.seller_memo,
-            logistics_company = merge_trade.logistics_company,
+            buyer_message = trade.buyer_message,
+            seller_memo   = trade.seller_memo,
             created = trade.created,
             pay_time = trade.pay_time,
             modified = trade.modified,
@@ -796,12 +800,11 @@ def save_orders_trade_to_mergetrade(sender, trade, *args, **kwargs):
             hour  = merge_trade.hour,
             month = merge_trade.month,
             day   = merge_trade.day,
-            week  = merge_trade.week,
-            has_refund = merge_trade.has_refund,
-            has_memo = merge_trade.has_memo,
-            sys_status = merge_trade.sys_status,
+            week  = merge_trade.week,   
         )
- 
+        #设置系统内部状态信息
+        trade_download_controller(merge_trade,trade,trade_from,is_first_save) 
+  
     except Exception,exc:
         logger.error(exc.message,exc_info=True)
 
@@ -879,7 +882,6 @@ def save_fenxiao_orders_to_mergetrade(sender, trade, *args, **kwargs):
         merge_trade.week  = time.gmtime(time.mktime(dt.timetuple()))[7]/7+1
         
         trade_from = FENXIAO_TYPE
-        trade_download_controller(merge_trade,trade,trade_from,is_first_save)
         MergeTrade.objects.filter(tid=trade.id).update(
             user = trade.user,
             seller_id = trade.seller_id,
@@ -902,12 +904,10 @@ def save_fenxiao_orders_to_mergetrade(sender, trade, *args, **kwargs):
             month = merge_trade.month,
             day   = merge_trade.day,
             week  = merge_trade.week,
-            has_refund = merge_trade.has_refund,
-            total_num = merge_trade.total_num,
-            has_memo = merge_trade.has_memo,
-            sys_status = merge_trade.sys_status,
         )
-       
+        #更新系统内部状态
+        trade_download_controller(merge_trade,trade,trade_from,is_first_save)
+        
     except Exception,exc:
         logger.error(exc.message,exc_info=True)
     

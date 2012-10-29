@@ -29,7 +29,7 @@ class OrderInline(admin.TabularInline):
                     'refund_id','refund_status','status','sys_status')
     
     formfield_overrides = {
-        models.CharField: {'widget': TextInput(attrs={'size':'20'})},
+        models.CharField: {'widget': TextInput(attrs={'size':'15'})},
         models.TextField: {'widget': Textarea(attrs={'rows':4, 'cols':40})},
     }
 

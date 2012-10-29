@@ -141,11 +141,11 @@ SHOP_APP_SCHEDULE = {
          'schedule':crontab(minute="*/30"),
          'args':()
      },           
-    'runs-every-day-item-num':{     #更新库存
-        'task':'shopapp.syncnum.tasks.updateAllUserItemNumTask',
-        'schedule':crontab(minute="20",hour="4"),#
-        'args':()
-    },
+#    'runs-every-day-item-num':{     #更新库存
+#        'task':'shopapp.syncnum.tasks.updateAllUserItemNumTask',
+#        'schedule':crontab(minute="20",hour="4"),#
+#        'args':()
+#    },
 
 #    'runs-every-day-product-trade':{
 #        'task':'shopapp.collector.tasks.updateProductTradeBySellerTask',

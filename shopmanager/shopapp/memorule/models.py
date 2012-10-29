@@ -8,7 +8,7 @@ from shopback.items.models import Item,Product,ProductSku
 from shopback.orders.models import Trade,REFUND_APPROVAL_STATUS
 from shopback.fenxiao.models import PurchaseOrder
 from shopback.trades.models import MergeTrade,MergeOrder,WAIT_SELLER_SEND_GOODS,CONFIRM_WAIT_SEND_GOODS,WAIT_CONFIRM_WAIT_SEND_GOODS,IN_EFFECT,INVALID_STATUS
-from shopback.monitor.models import COMPOSE_RULE_ERROR_CODE
+from shopback.monitor.models import COMPOSE_RULE_ERROR_CODE,RULE_MATCH_CODE
 from shopback.signals import rule_signal
 import logging
 
@@ -111,13 +111,13 @@ class RuleMemo(models.Model):
     
 class ComposeRule(models.Model):
     #匹配规则
-    outer_id = models.CharField(max_length=64,db_index=True,blank=True)
-    outer_sku_id = models.CharField(max_length=64,db_index=True,blank=True)
+    outer_id = models.CharField(max_length=64,db_index=True,blank=True,verbose_name=u'商品外部编码')
+    outer_sku_id = models.CharField(max_length=64,db_index=True,blank=True,verbose_name=u'商品规格编码')
     
-    payment  = models.IntegerField(null=True,blank=True)
-    type     = models.CharField(max_length=10,choices=RULE_TYPE_CHOICE)
+    payment  = models.IntegerField(null=True,blank=True,verbose_name=u'大于金额')
+    type     = models.CharField(max_length=10,choices=RULE_TYPE_CHOICE,verbose_name=u'规则类型')
     
-    extra_info = models.TextField(blank=True)
+    extra_info = models.TextField(blank=True,verbose_name=u'信息')
     
     created  = models.DateTimeField(null=True,blank=True,auto_now_add=True)
     modified = models.DateTimeField(null=True,blank=True,auto_now=True)
@@ -134,13 +134,13 @@ class ComposeRule(models.Model):
 class ComposeItem(models.Model):
     #匹配后的拆分商品
     
-    compose_rule = models.ForeignKey(ComposeRule,related_name="compose_items")
+    compose_rule = models.ForeignKey(ComposeRule,related_name="compose_items",verbose_name=u'商品规则')
     
-    outer_id     = models.CharField(max_length=64,db_index=True,blank=True)
-    outer_sku_id = models.CharField(max_length=64,db_index=True,blank=True)
-    num = models.IntegerField(default=1)
+    outer_id     = models.CharField(max_length=64,db_index=True,blank=True,verbose_name=u'组合商品外部编码')
+    outer_sku_id = models.CharField(max_length=64,db_index=True,blank=True,verbose_name=u'组合商品规格编码')
+    num = models.IntegerField(default=1,verbose_name=u'商品数量')
     
-    extra_info = models.TextField(blank=True)
+    extra_info = models.TextField(blank=True,verbose_name=u'信息')
     
     created  = models.DateTimeField(null=True,blank=True,auto_now_add=True)
     modified = models.DateTimeField(null=True,blank=True,auto_now=True)
@@ -157,12 +157,13 @@ def rule_match_product(sender, trade_tid, *args, **kwargs):
     try:
         trade = Trade.objects.get(id=trade_tid)
     except Trade.DoesNotExist:
-        return 
-    orders  = trade.trade_orders.exclude(refund_status__in=REFUND_APPROVAL_STATUS)
-    for order in orders:
-        rules = ProductRuleField.objects.filter(outer_id=order.outer_tid)
-        if rules.count()>0:
-            raise Exception('该交易需要规则匹配'.decode('utf8'))
+        pass
+    else: 
+        orders  = trade.trade_orders.filter(status=WAIT_SELLER_SEND_GOODS).exclude(refund_status__in=REFUND_APPROVAL_STATUS)
+        for order in orders:
+            rules = ProductRuleField.objects.filter(outer_id=order.outer_tid)
+            if rules.count()>0:
+                raise Exception(u'该订单商品有匹配规则')
         
 
 rule_signal.connect(rule_match_product,sender='product_rule',dispatch_uid='rule_match_product')
@@ -224,9 +225,9 @@ def rule_match_merge_trade(sender, trade_tid, *args, **kwargs):
                 except:
                     pass
                 else:
-                    MergeOrder.filter(id=order.id).update(sys_status=INVALID_STATUS)
+                    MergeOrder.objects.filter(id=order.id).update(sys_status=INVALID_STATUS)
                     for item in compose_rule.compose_items.all():
-                        MergeOrder.gen_new_order(trade_tid,item.outer_id,item.outer_sku_id,item.num)
+                        MergeOrder.gen_new_order(trade_tid,item.outer_id,item.outer_sku_id,item.num*order.num)
     
             post_fee = trade.post_fee
             if not post_fee:
@@ -244,7 +245,7 @@ def rule_match_merge_trade(sender, trade_tid, *args, **kwargs):
                         MergeOrder.gen_new_order(trade_tid,item.outer_id,item.outer_sku_id,item.num)
                     break
         except Exception,exc:
-            logger.error(exc.message,exc_info)
+            logger.error(exc.message,exc_info=True)
             trade.append_reason_code(COMPOSE_RULE_ERROR_CODE)
             
 rule_signal.connect(rule_match_merge_trade,sender='merge_trade_rule',dispatch_uid='rule_match_merge_trade')

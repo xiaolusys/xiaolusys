@@ -83,7 +83,7 @@ class ComposeItemInline(admin.TabularInline):
     
 
 class ComposeRuleAdmin(admin.ModelAdmin):
-    list_display = ('id','outer_id','outer_sku_id','payment','type')
+    list_display = ('id','outer_id','outer_sku_id','payment','type','extra_info')
     list_display_links = ('id','outer_id')
     #list_editable = ('update_time','task_type' ,'is_success','status')
 

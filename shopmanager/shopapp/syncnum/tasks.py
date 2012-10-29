@@ -18,13 +18,13 @@ import logging
 logger = logging.getLogger('syncnum.handler')
 
 @transaction.commit_on_success
-def updateItemNum(num_iid,update_time):
+def updateItemNum(user_id,num_iid,update_time):
     
     item = Item.objects.get(num_iid=num_iid)
     product = item.product
     if not product:
         return
-    
+
     skus = json.loads(item.skus) if item.skus else None
     if skus:
         for sku in skus.get('sku',[]):
@@ -95,7 +95,7 @@ def updateUserItemNumTask(user_id,update_time):
     items = Item.objects.filter(user__visitor_id=user_id,approve_status=ONSALE_STATUS)
     for item in items:
         try:
-            updateItemNum(item.num_iid,update_time)
+            updateItemNum(user_id,item.num_iid,update_time)
         except Exception,exc :
             logger.error('%s'%exc,exc_info=True)
         
