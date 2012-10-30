@@ -46,7 +46,9 @@ class Product(models.Model):
     
     purchase_product = models.ForeignKey(PurchaseProduct,null=True,blank=True,related_name='products',verbose_name='关联采购商品')
     category     = models.ForeignKey(ProductCategory,null=True,blank=True,related_name='products',verbose_name='内部分类')
-
+    
+    pic_path = models.CharField(max_length=256,blank=True)
+    
     collect_num  = models.IntegerField(null=True,verbose_name='库存数')  #库存数
     warn_num     = models.IntegerField(null=True,default=10,verbose_name='警告库位')    #警戒库位
     remain_num   = models.IntegerField(null=True,default=0,verbose_name='预留库位')    #预留库存
@@ -121,8 +123,8 @@ class ProductSku(models.Model):
         value_list = []
         for properties in properties_list:
             values = properties.split(':')
-            value_list.append( values[3] if len(values)==4 else properties)
-        return ' '.join(value_list)
+            value_list.append( '%s:%s'%(values[2],values[3]) if len(values)==4 else properties)
+        return ','.join(value_list)
 
 
 class Item(models.Model):
@@ -206,6 +208,7 @@ class Item(models.Model):
                 product.collect_num = item_dict['num']
                 product.price       = item_dict['price']
                 product.name        = item_dict['title']
+                product.pic_path    = item_dict['pic_url']
                 product.save()
         except Exception,exc:
             logger.warn('the current item(num_iid:%s)has not set outer_id'%str(item_dict['num_iid']))
