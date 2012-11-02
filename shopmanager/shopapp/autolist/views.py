@@ -69,6 +69,7 @@ def pull_from_taobao(request):
                 product.name=item['title']
                 product.price=str(item['price'])
                 product.collect_num = item['num']
+                product.pic_path    = item['pic_url']
                 product.save()
             o.product = product
         o.save()

@@ -94,6 +94,7 @@ class MergeTradeAdmin(admin.ModelAdmin):
 
     check_order.short_description = "审核订单".decode('utf8')
     
+    
     def sync_trade_post_taobao(self, request, queryset):
 
         trade_ids = [t.id for t in queryset]
@@ -105,21 +106,30 @@ class MergeTradeAdmin(admin.ModelAdmin):
             if not trade.tid and trade.type == 'direct':
                 MergeTrade.objects.filter(tid=trade.tid).update(sys_status=WAIT_CHECK_BARCODE_STATUS
                                                                 ,consign_time=datetime.datetime.now())
-                continue
+                continue        
             try:
                 trade_dict = apis.taobao_trade_get(tid=trade.tid,fields='tid,modified',tb_user_id=trade.seller_id)
                 trade_modified = trade_dict['trade_get_response']['trade']['modified']
                 latest_modified = parse_datetime(trade_modified)
                 if latest_modified==trade.modified:
+                    #判断子订单是否有改动，如果有则不能发货
+                    merge_buyer_trades = MergeBuyerTrade.objects.filter(main_tid=trade.tid)
+                    for sub_buyer_trade in merge_buyer_trades:
+                        sub_trade = MergeTrade.objects.get(tid=sub_buyer_trade.sub_tid)
+                        trade_dict = apis.taobao_trade_get(tid=sub_trade.tid,fields='tid,modified',tb_user_id=sub_trade.seller_id)
+                        trade_modified = trade_dict['trade_get_response']['trade']['modified']
+                        latest_modified = parse_datetime(trade_modified)
+                        if latest_modified !=sub_trade.modified:
+                            raise Exception(u'订单(%d)合并子订单(%d)本地修改日期(%s)与线上修改日期(%s)不一致'%(trade.tid,sub_trade.tid,sub_trade.modified,latest_modified))
+                        
                     response = apis.taobao_logistics_online_send(tid=trade.tid,out_sid=trade.out_sid
                                                   ,company_code=trade.logistics_company.code,tb_user_id=trade.seller_id)  
-		    #response = {'logistics_online_send_response': {'shipping': {'is_success': True}}}
+                    #response = {'logistics_online_send_response': {'shipping': {'is_success': True}}}
                     if not response['logistics_online_send_response']['shipping']['is_success']:
                         raise Exception(u'订单(%d)淘宝发货失败'%trade.tid)
                 else:
                     raise Exception(u'订单(%d)本地修改日期(%s)与线上修改日期(%s)不一致'%(trade.tid,trade.modified,latest_modified))
             except Exception,exc:
-		print exc.message,exc
                 trade.append_reason_code(POST_MODIFY_CODE)
                 MergeTrade.objects.filter(tid=trade.tid).update(sys_status=WAIT_AUDIT_STATUS)
                 logger.error(exc.message,exc_info=True)
@@ -128,25 +138,19 @@ class MergeTradeAdmin(admin.ModelAdmin):
                 
                 merge_buyer_trades = MergeBuyerTrade.objects.filter(main_tid=trade.tid)
                 for merge_buyer_trade in merge_buyer_trades:
-                    sub_merge_trade = MergeTrade.objects.get(tid=merge_buyer_trade.sub_tid)
+                    sub_trade = MergeTrade.objects.get(tid=merge_buyer_trade.sub_tid)
                     try:
-                        trade_modified = apis.taobao_trade_get(tid=trade.tid,fields='tid,modified',tb_user_id=trade.seller_id)
-                        latest_modified = trade_modified['trade_get_response']['trade']['modified']
-                        if latest_modified==trade.modified:
-                            response = apis.taobao_logistics_online_send(tid=merge_buyer_trade.sub_tid,out_sid=trade.out_sid
-                                                          ,company_code=trade.logistics_company.code,tb_user_id=trade.seller_id)  
-			    #response = {'logistics_online_send_response': {'shipping': {'is_success': True}}}
-                            if not response['logistics_online_send_response']['shipping']['is_success']:
-                                raise Exception(u'订单(%d)的子订单(%d)淘宝发货失败'%(trade.tid,merge_buyer_trade.sub_tid))
-                        else:
-                            raise Exception(u'订单(%d)的子订单(%d)本地修改日期(%s)与线上修改日期(%s)不一致'%
-                                            (trade.tid,merge_buyer_trade.sub_tid,trade.modified,latest_modified))
+                        response = apis.taobao_logistics_online_send(tid=sub_trade.tid,out_sid=trade.out_sid
+                                                      ,company_code=trade.logistics_company.code,tb_user_id=sub_trade.seller_id)  
+                        #response = {'logistics_online_send_response': {'shipping': {'is_success': True}}}
+                        if not response['logistics_online_send_response']['shipping']['is_success']:
+                            raise Exception(u'订单(%d)合并子订单(%d)淘宝发货失败'%(trade.tid,sub_trade.tid))
                     except Exception,exc:
-                        trade.append_reason_code(POST_SUB_TRADE_ERROR_CODE)
-                        MergeTrade.objects.filter(tid=merge_buyer_trade.sub_tid).update(sys_status=WAIT_AUDIT_STATUS)
+                        sub_trade.append_reason_code(POST_SUB_TRADE_ERROR_CODE)
+                        MergeTrade.objects.filter(tid=sub_trade.sub_tid).update(sys_status=WAIT_AUDIT_STATUS)
                         logger.error(exc.message,exc_info=True)
                     else:
-                        MergeTrade.objects.filter(tid=sub_merge_trade.tid).update(sys_status=WAIT_CHECK_BARCODE_STATUS,consign_time=datetime.datetime.now())
+                        MergeTrade.objects.filter(tid=sub_trade.tid).update(sys_status=WAIT_CHECK_BARCODE_STATUS,consign_time=datetime.datetime.now())
 	
         queryset = MergeTrade.objects.filter(id__in=trade_ids)
         post_trades = queryset.filter(sys_status=WAIT_CHECK_BARCODE_STATUS)
@@ -159,7 +163,6 @@ class MergeTradeAdmin(admin.ModelAdmin):
                 outer_sku_id = order.outer_sku_id or str(order.sku_id)
                 
                 if trade_items.has_key(outer_id):
-                    
                     trade_items[outer_id]['num'] += order.num
                     skus = trade_items[outer_id]['skus']
                     if skus.has_key(outer_sku_id):

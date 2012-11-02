@@ -2,7 +2,7 @@ __author__ = 'zfz'
 
 import os
 
-DEBUG = False
+DEBUG = True
 TEMPLATE_DEBUG = DEBUG
 
 PROJECT_ROOT = os.path.abspath(os.path.dirname(__file__))
@@ -34,7 +34,7 @@ RAVEN_CONFIG = {
 }
 
 #SITE_URL = "http://autolist.huyi.so/" 
-SITE_URL = 'http://192.168.0.42/' 
+SITE_URL = 'http://127.0.0.1:8000/' 
 
 APPKEY  = '12651489'
 APPSECRET = 'c31214c3060c888c35e410d5f71112d7'

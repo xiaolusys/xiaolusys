@@ -15,7 +15,7 @@
 		  	<legend>发货订单状态</legend>
 			  <table class="table table-bordered table-striped table-condensed">
 			    <tr>
-			      <th>订单ID</th><th>淘宝订单编号</th><th>店铺名称</th><th>买家昵称</th><th>付款日期</th><th>发货成功</th>
+			      <th>订单ID</th><th>淘宝订单编号</th><th>店铺名称</th><th>买家昵称</th><th>付款日期</th><th>发货状态</th>
 			    </tr>
 			    {% for trade in trades %}
 			    {% if trade.sys_status == "WAIT_CHECK_BARCODE" %}

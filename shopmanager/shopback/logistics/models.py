@@ -2,6 +2,7 @@
 __author__ = 'meixqhi'
 import json
 import time
+import random
 from auth.utils import parse_datetime
 from django.db import models
 from shopback.base.models import BaseModel
@@ -41,7 +42,13 @@ class LogisticsCompany(models.Model):
             districts = logistic.district.split(',')
             if receiver_city in districts:
                 return logistic
-        return logistics[0]
+                
+        recommend_logistics = cls.objects.filter(status=True,priority=logistics[0].priority)    
+        recommend_len = recommend_logistics.count()
+        if recommend_len == 0:
+            return None
+        index = random.randint(0,recommend_len-1)
+        return recommend_logistics[index]
             
         
     @classmethod
