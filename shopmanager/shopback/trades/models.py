@@ -2,6 +2,7 @@
 import time
 import datetime
 from django.db import models
+from django.db.models import Q
 from shopback.base.fields import BigIntegerAutoField,BigIntegerForeignKey
 from shopback.users.models import User
 from django.db.models import Sum
@@ -305,6 +306,7 @@ class MergeTrade(models.Model):
                         pass
                     else:
                         is_out_stock  |= product_sku.out_stock
+                        is_out_stock |= product_sku.quantity <= 0
                 elif order.outer_id:
                     try:
                         product = Product.objects.get(outer_id=order.outer_id)
@@ -312,6 +314,7 @@ class MergeTrade(models.Model):
                         pass
                     else:
                         is_out_stock |= product.out_stock
+                        is_out_stock |= product.collect_num <= 0
                 
         return is_out_stock
     
@@ -671,7 +674,7 @@ def trade_download_controller(merge_trade,trade,trade_from,is_first_save):
                 #如果有新退款
                 if has_new_refund:     
                     merge_trade.append_reason_code(NEW_REFUND_CODE)
-                    main_trade.merge_trade_orders.filter(oid=None).include(oid__in=[o.oid for o in trade.trade_orders.all()]).delete()
+                    main_trade.merge_trade_orders.filter(Q(oid__isnull=True)|Q(oid__in=[o.oid for o in trade.trade_orders.all()])).delete()
                     if not full_new_refund:
                          merge_trade_maker(trade.id,main_tid)
                     main_trade.append_reason_code(NEW_REFUND_CODE)
@@ -695,6 +698,7 @@ def trade_download_controller(merge_trade,trade,trade_from,is_first_save):
                     is_main_trade = True
                 
                 if has_new_refund:
+                    is_merge_success = False
                     #如果主订单全退款，则主订单及子订单全部进入问题单，子订单需重新审批,合并记录全删除
                     if full_new_refund and is_main_trade:
                         merge_buyer_trades = MergeBuyerTrade.objects.filter(main_tid=trade.id)
@@ -709,7 +713,7 @@ def trade_download_controller(merge_trade,trade,trade_from,is_first_save):
                                     break
                                 
                             for sub_trade in sub_merge_trades[main_index:]:
-                               is_merge_success = merge_trade_maker(sub_trade.tid,main_trade.tid)
+                               is_merge_success |= merge_trade_maker(sub_trade.tid,main_trade.tid)
                             
                             if is_merge_success:    
                                 rule_signal.send(sender='merge_trade_rule',trade_tid=main_trade.tid) 
