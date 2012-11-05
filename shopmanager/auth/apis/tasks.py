@@ -400,3 +400,9 @@ def taobao_refunds_receive_get(status=None,start_modified=None,end_modified=None
 @apis('taobao.topats.result.get')
 def taobao_topats_result_get(task_id=None,tb_user_id=None):
     pass
+
+################  increament service ###########
+@apis('taobao.increment.customer.permit')
+def taobao_increment_customer_permit(type='get,syn,notify',topics='trade;refund;item',status='all;all;ItemAdd,ItemUpdate',tb_user_id=None):
+    pass
+

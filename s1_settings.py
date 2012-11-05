@@ -36,12 +36,14 @@ RAVEN_CONFIG = {
 #SITE_URL = "http://autolist.huyi.so/" 
 SITE_URL = 'http://192.168.0.42/' 
 
-#
+APPKEY = '21196643'  #app name super ERP test3,younishijie
+APPSECRET  = '05da170f8eeb8725f5efb6ea1d623fb0'
+
 #APPKEY = '21165266'  #app name huyi ERP ,younishijie
 #APPSECRET  = 'ea5f5687a856ec58199d538cfa04496d'
 
-APPKEY = '12686908'   #app name super ERP ,younishijie
-APPSECRET = 'b3ddef5982a23c636739289949c01f59'
+#APPKEY = '12686908'   #app name super ERP ,younishijie
+#APPSECRET = 'b3ddef5982a23c636739289949c01f59'
 
 AUTHRIZE_URL = 'https://oauth.taobao.com/authorize'
 AUTHRIZE_TOKEN_URL = 'https://oauth.taobao.com/token'

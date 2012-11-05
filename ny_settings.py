@@ -36,7 +36,7 @@ RAVEN_CONFIG = {
 #SITE_URL = "http://autolist.huyi.so/" 
 SITE_URL = 'http://erp.huyi.so/' 
 
-#
+
 #APPKEY = '21165266'  #app name huyi ERP ,younishijie
 #APPSECRET  = 'ea5f5687a856ec58199d538cfa04496d'
 

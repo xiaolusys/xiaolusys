@@ -42,6 +42,7 @@ class Product(models.Model):
     """
     
     outer_id     = models.CharField(max_length=64,unique=True,null=False,blank=False,verbose_name='外部编码')
+   
     name         = models.CharField(max_length=64,blank=True,verbose_name='商品名称')
     
     purchase_product = models.ForeignKey(PurchaseProduct,null=True,blank=True,related_name='products',verbose_name='关联采购商品')
@@ -209,6 +210,7 @@ class Item(models.Model):
                 product.price       = item_dict['price']
                 product.name        = item_dict['title']
                 product.pic_path    = item_dict['pic_url']
+                
                 product.save()
         except Exception,exc:
             logger.warn('the current item(num_iid:%s)has not set outer_id'%str(item_dict['num_iid']))
