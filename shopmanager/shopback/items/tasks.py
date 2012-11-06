@@ -38,7 +38,7 @@ def updateUserItemsTask(user_id):
                     modified = parse_datetime(item['modified']) if item.get('modified',None) else None
                     item_obj,state    = Item.objects.get_or_create(num_iid = item['num_iid'])
                     if modified != item_obj.modified:
-                        response = apis.taobao_item_get(num_iid=item['num_iid'],tb_user_id=user_id)
+		        response = apis.taobao_item_get(num_iid=item['num_iid'],tb_user_id=user_id)
                         item_dict = response['item_get_response']['item']
                         item_dict['skus'] = json.dumps(item_dict.get('skus',{}))
                         Item.save_item_through_dict(user_id,item_dict)
@@ -67,7 +67,7 @@ def updateUserItemsTask(user_id):
                     modified = parse_datetime(item['modified']) if item.get('modified',None) else None
                     item_obj,state    = Item.objects.get_or_create(num_iid = item['num_iid'])
                     if modified != item_obj.modified:
-                        response = apis.taobao_item_get(num_iid=item['num_iid'],tb_user_id=user_id)
+		        response = apis.taobao_item_get(num_iid=item['num_iid'],tb_user_id=user_id)
                         item_dict = response['item_get_response']['item']
                         item_dict['skus'] = json.dumps(item_dict.get('skus',{}))
                         Item.save_item_through_dict(user_id,item_dict)

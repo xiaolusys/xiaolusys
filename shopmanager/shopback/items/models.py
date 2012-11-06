@@ -1,4 +1,4 @@
-#-*- coding:utf8 -*-
+#-*- coding:utf-8 -*-
 """
 淘宝普通平台模型:
 Product:系统内部商品，唯一对应多家店铺的商品外部编码,
@@ -41,7 +41,7 @@ class Product(models.Model):
         2,库存管理的核心类；
     """
     
-    outer_id     = models.CharField(max_length=64,unique=True,null=False,blank=False,verbose_name='外部编码')
+    outer_id     = models.CharField(max_length=64,unique=True,null=False,blank=True,verbose_name='外部编码')
    
     name         = models.CharField(max_length=64,blank=True,verbose_name='商品名称')
     
@@ -195,7 +195,7 @@ class Item(models.Model):
                 item_dict = response['item_get_response']['item']
                 item = Item.save_item_through_dict(user_id,item_dict)
             except Exception,exc:
-                logger.error('backend update item (num_iid:%s)error'%str(num_iid),exc_info=True)
+                logger.error('线上商品(num_iid:%s)更新出错'.decode('utf8')%str(num_iid),exc_info=True)
         return item
 
 
@@ -205,7 +205,7 @@ class Item(models.Model):
         category = Category.get_or_create(user_id,item_dict['cid'])
         try:
             product,state = Product.objects.get_or_create(outer_id=item_dict['outer_id'])
-            if state:
+            if not product.name:
                 product.collect_num = item_dict['num']
                 product.price       = item_dict['price']
                 product.name        = item_dict['title']
@@ -213,7 +213,7 @@ class Item(models.Model):
                 
                 product.save()
         except Exception,exc:
-            logger.warn('the current item(num_iid:%s)has not set outer_id'%str(item_dict['num_iid']))
+            logger.warn('线上商品保存出错(num_iid:%s)'.decode('utf8')%str(item_dict['num_iid']),exc_info=True)
             product = None
         
         item,state    = cls.objects.get_or_create(num_iid = item_dict['num_iid'])
