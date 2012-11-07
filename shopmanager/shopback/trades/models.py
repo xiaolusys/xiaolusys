@@ -637,7 +637,7 @@ def trade_download_controller(merge_trade,trade,trade_from,is_first_save):
                 if is_need_merge:
                     trades = MergeTrade.objects.filter(buyer_nick=trade.buyer_nick,sys_status__in=
                                                 (WAIT_PREPARE_SEND_STATUS,WAIT_AUDIT_STATUS,REGULAR_REMAIN_STATUS)).exclude(tid=trade.id).order_by('-created')
-                    if trades.count()>0:
+		    if trades.count()>0:
                         merge_buyer_trades = MergeBuyerTrade.objects.filter(main_tid__in=[t.tid for t in trades])
                         #如果有已有合并记录，则将现有主订单作为合并主订单
                         if merge_buyer_trades.count()>0:
@@ -657,14 +657,13 @@ def trade_download_controller(merge_trade,trade,trade_from,is_first_save):
                             is_merge_success = merge_trade_maker(trade.id,main_tid)
 
 			merge_trade.append_reason_code(NEW_MERGE_TRADE_CODE)
-		    	merge_trade.sys_status = WAIT_AUDIT_STATUS
                     
             #如果合单成功则将新单置为飞行模式                 
             if is_merge_success:
                 merge_trade.sys_status = ON_THE_FLY_STATUS
 
             #有问题则进入问题单域
-            elif has_new_memo or has_new_refund or wait_refunding or out_stock or is_rule_match:
+            elif has_new_memo or has_new_refund or wait_refunding or out_stock or is_rule_match or is_need_merge:
                 merge_trade.sys_status = WAIT_AUDIT_STATUS
             else:
                 merge_trade.sys_status = WAIT_PREPARE_SEND_STATUS

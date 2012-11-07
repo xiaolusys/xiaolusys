@@ -33,7 +33,7 @@ API_FIELDS = {
          +',xinpin_item_cat.cid,xinpin_item_cat.name,xinpin_item_cat.status,xinpin_item_cat.sort_order,xinpin_item_cat.parent_cid,xinpin_item_cat.is_parent',
     'taobao.itemprops.get':'pid, name, must, multi, prop_values',
     'taobao.itempropvalues.get':'cid,pid,prop_name,vid,name,name_alias,status,sort_order',
-    'taobao.item.get':'has_showcase,detail_url,num_iid,title,outer_id,price,approve_status,delist_time,list_time,modified,num,props_name,skus'
+    'taobao.item.get':'has_showcase,detail_url,num_iid,title,outer_id,price,approve_status,delist_time,list_time,modified,num,props_name,skus,property_alias'
          +',nick,type,cid,pic_url,num,props,valid_thru,price,has_discount,has_invoice,has_warranty,postage_id,seller_cids',
     'taobao.items.list.get':'item',
     'taobao.products.get':'product_id,tsc,cat_name,name',
@@ -287,6 +287,10 @@ def taobao_items_get(q=None,cid=None,nicks=None,props=None,product_id=None,order
                      page_size=None,fields=API_FIELDS['taobao.items.get'],tb_user_id=None):
     pass
 
+@apis('taobao.item.sku.get')
+def taobao_item_sku_get(num_iid=None,sku_id=None,fields=API_FIELDS['taobao.item.skus.get'],nick=None,tb_user_id=None):
+    pass
+
 @apis('taobao.item.skus.get')
 def taobao_item_skus_get(num_iids=None,fields=API_FIELDS['taobao.item.skus.get'],tb_user_id=None):
     pass
@@ -404,5 +408,9 @@ def taobao_topats_result_get(task_id=None,tb_user_id=None):
 ################  increament service ###########
 @apis('taobao.increment.customer.permit')
 def taobao_increment_customer_permit(type='get,syn,notify',topics='trade;refund;item',status='all;all;ItemAdd,ItemUpdate',tb_user_id=None):
+    pass
+
+@apis('tmall.product.specs.get')
+def tmall_product_specs_get(product_id=None,properties=None,cat_id=None,tb_user_id=None):
     pass
 
