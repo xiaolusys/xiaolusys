@@ -10,9 +10,10 @@ from django.template import RequestContext
 from django.core import serializers
 from django.contrib.contenttypes.models import ContentType
 from shopback.trades.models import MergeTrade,MergeOrder,MergeBuyerTrade,ReplayPostTrade,WAIT_AUDIT_STATUS,WAIT_PREPARE_SEND_STATUS\
-    ,WAIT_CHECK_BARCODE_STATUS,IN_EFFECT,WAIT_SELLER_SEND_GOODS,WAIT_BUYER_CONFIRM_GOODS
+    ,WAIT_CHECK_BARCODE_STATUS,IN_EFFECT,WAIT_SELLER_SEND_GOODS,WAIT_BUYER_CONFIRM_GOODS,ON_THE_FLY_STATUS,merge_order_maker
 from shopback.monitor.models import POST_MODIFY_CODE,POST_SUB_TRADE_ERROR_CODE
 from shopback.orders.models import REFUND_APPROVAL_STATUS
+from shopback.signals import rule_signal
 from auth import apis
 from auth.utils import parse_datetime
 import logging 
@@ -61,7 +62,7 @@ class MergeTradeAdmin(admin.ModelAdmin):
     inlines = [OrderInline]
     
     list_filter   = ('sys_status','status','user','type')
-    search_fields = ['buyer_nick','tid','reason_code']
+    search_fields = ['id','buyer_nick','tid','reason_code']
     #--------设置页面布局----------------
     fieldsets =(('订单基本信息:', {
                     'classes': ('collapse',),
@@ -92,9 +93,49 @@ class MergeTradeAdmin(admin.ModelAdmin):
         queryset.filter(sys_status=WAIT_AUDIT_STATUS,reason_code='').exclude(logistics_company=None).update(sys_status=WAIT_PREPARE_SEND_STATUS)
         return queryset
 
-    check_order.short_description = "审核订单".decode('utf8')
-    
-    
+    check_order.short_description = "审核订单".decode('utf8') 
+
+    def merge_order_action(self,request,queryset):
+	myset = queryset.filter(sys_status=WAIT_AUDIT_STATUS)
+	if queryset.count()<2 or myset.count()!=queryset.count():
+	    return 
+	queryset = queryset.order_by('pay_time')	
+	merge_buyer_trades = MergeBuyerTrade.objects.filter(main_tid__in=[t.tid for t in queryset])
+	if merge_buyer_trades.count()>0:
+	    main_merge_tid = merge_buyer_trades[0].main_tid
+	    main_trade = MergeTrade.objects.get(tid=main_merge_tid)
+	else:
+	    main_trade = queryset[0] #主订单
+	
+	queryset = queryset.exclude(tid=main_trade.tid)		
+	main_full_addr = main_trade.user_full_address #主订单收货人地址
+	is_merge_success = False #合单成功
+	merge_trade_ids  = []	 #合单成的订单ID
+	for trade in queryset:
+	    if trade.user_full_address != main_full_addr:
+		is_merge_success = False
+		break
+	    is_merge_success = merge_order_maker(trade.tid,main_trade.tid)
+	    if not is_merge_success:
+		break
+	    merge_trade_ids.append(trade.tid)
+	
+	if is_merge_success:
+	    MergeTrade.objects.filter(tid__in=merge_trade_ids).update(sys_status=ON_THE_FLY_STATUS)
+
+	elif merge_trade_ids:
+	    main_trade.remove_reason_code(NEW_MERGE_TRADE_CODE)    
+	    for tid in merge_trade_ids:	        
+		sub_orders = MergeOrder.objects.filter(tid=iid)
+		main_trade.merge_trade_orders.filter(oid_in=[o.oid for o in sub_orders]).delete() 
+		MergeBuyerTrade.objects.filter(sub_tid=tid).delete()
+	
+	    main_trade.merge_trade_orders.filter(oid=None).delete()
+	    rule_signal.send(sender='merge_trade_rule',trade_tid=main_trade.tid)  
+	return queryset 	
+	
+    merge_order_action.short_description = "合并订单".decode('utf8')
+
     def sync_trade_post_taobao(self, request, queryset):
 
         trade_ids = [t.id for t in queryset]
@@ -204,10 +245,8 @@ class MergeTradeAdmin(admin.ModelAdmin):
                           
     sync_trade_post_taobao.short_description = "同步发货".decode('utf8')
     
-    actions = ['check_order','sync_trade_post_taobao']
+    actions = ['check_order','sync_trade_post_taobao','merge_order_action']
     
-    
-
 
 admin.site.register(MergeTrade,MergeTradeAdmin)
 

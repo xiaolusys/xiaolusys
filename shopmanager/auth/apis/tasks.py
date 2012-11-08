@@ -46,7 +46,7 @@ API_FIELDS = {
     'taobao.items.inventory.get':'approve_status,num_iid,title,nick,type,cid,pic_url,num,props,valid_thru,list_time'
         +',price,has_discount,has_invoice,has_warranty,has_showcase, modified,delist_time,postage_id,seller_cids,outer_id',
     'taobao.items.onsale.get':'num_iid,cid,outer_id,num,seller_cids,approve_status,type,valid_thru,price,postage_id,'
-        + 'has_showcase,modified,list_time,delist_time,has_discount,props,title,has_invoice,pic_url,detail_url',
+        + 'has_showcase,list_time,delist_time,has_discount,props,title,has_invoice,pic_url,detail_url',
     'taobao.trades.sold.get':'seller_nick,buyer_nick,title,type,created,tid,status,modified,payment,discount_fee,adjust_fee,post_fee,total_fee,received_payment,commission_fee,buyer_obtain_point_fee'
         +',point_fee,real_point_fee,pic_path,pay_time,end_time,consign_time,num_iid,num,price,shipping_type,receiver_name,receiver_state,receiver_city,receiver_district,receiver_address,receiver_zip'
         +',receiver_mobile,receiver_phone,buyer_message,buyer_memo,seller_memo,orders',

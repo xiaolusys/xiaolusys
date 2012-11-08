@@ -14,7 +14,7 @@ from shopback.fenxiao.models import PurchaseOrder,SubPurchaseOrder,FenxiaoProduc
 from shopback.refunds.models import Refund
 from auth.utils import parse_datetime
 from shopback.monitor.models import SystemConfig,Reason,NEW_MEMO_CODE,NEW_REFUND_CODE,NEW_MERGE_TRADE_CODE,WAITING_REFUND_CODE,\
-    RULE_MATCH_CODE,OUT_GOOD_CODE,INVALID_END_CODE,POST_MODIFY_CODE
+    RULE_MATCH_CODE,OUT_GOOD_CODE,INVALID_END_CODE,POST_MODIFY_CODE,MULTIPLE_ORDERS_CODE
 from shopback.signals import merge_trade_signal,rule_signal
 import logging
 
@@ -540,7 +540,7 @@ class MergeBuyerTrade(models.Model):
         verbose_name='合单记录'.decode('utf8')
 
 
-def merge_trade_maker(sub_tid,main_tid):
+def merge_order_maker(sub_tid,main_tid):
     #合单操作
     trade      = Trade.objects.get(id=sub_tid)
     main_merge_trade = MergeTrade.objects.get(tid=main_tid)
@@ -585,8 +585,6 @@ def merge_trade_maker(sub_tid,main_tid):
         
     return False
 
-
-    
 
 def trade_download_controller(merge_trade,trade,trade_from,is_first_save):
     
@@ -654,9 +652,9 @@ def trade_download_controller(merge_trade,trade,trade_from,is_first_save):
                                     break
                         if main_tid:  
                             #进行合单
-                            is_merge_success = merge_trade_maker(trade.id,main_tid)
+                            is_merge_success = merge_order_maker(trade.id,main_tid)
 
-			merge_trade.append_reason_code(NEW_MERGE_TRADE_CODE)
+			merge_trade.append_reason_code(MULTIPLE_ORDERS_CODE)
                     
             #如果合单成功则将新单置为飞行模式                 
             if is_merge_success:
@@ -693,7 +691,7 @@ def trade_download_controller(merge_trade,trade,trade_from,is_first_save):
                     merge_trade.append_reason_code(NEW_REFUND_CODE)
                     main_trade.merge_trade_orders.filter(Q(oid__isnull=True)|Q(oid__in=[o.oid for o in trade.trade_orders.all()])).delete()
                     if not full_new_refund:
-                         merge_trade_maker(trade.id,main_tid)
+                         merge_order_maker(trade.id,main_tid)
                     main_trade.append_reason_code(NEW_REFUND_CODE)
                     rule_signal.send(sender='merge_trade_rule',trade_tid=main_tid)    
                 #新留言备注
@@ -730,7 +728,7 @@ def trade_download_controller(merge_trade,trade,trade_from,is_first_save):
                                     break
                                 
                             for sub_trade in sub_merge_trades[main_index:]:
-                               is_merge_success |= merge_trade_maker(sub_trade.tid,main_trade.tid)
+                               is_merge_success |= merge_order_maker(sub_trade.tid,main_trade.tid)
                             
                             if is_merge_success:    
                                 rule_signal.send(sender='merge_trade_rule',trade_tid=main_trade.tid) 
@@ -980,5 +978,6 @@ class ReplayPostTrade(models.Model):
     class Meta:
         db_table = 'shop_trades_replayposttrade'
         verbose_name='已发货清单'.decode('utf8')
+
         
         

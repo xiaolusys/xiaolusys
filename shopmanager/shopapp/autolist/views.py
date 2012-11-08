@@ -42,37 +42,12 @@ def pull_from_taobao(request):
     for item in currItems:
         itemstat[item.num_iid] = {'onsale':0, 'item':item}
 
-    fields = ['outer_id','num','seller_cids','type','valid_thru','price','postage_id','has_showcase','has_discount','props','title','pic_url']
     for item in items:
-        o = None
         num_iid = str(item['num_iid'])
         if num_iid in itemstat:
-            o = itemstat[num_iid]['item']
             itemstat[num_iid]['onsale'] = 1
-        else:
-            o = Item()
-            o.num_iid = num_iid
-
-        for field in fields:
-            hasattr(o,field) and item.get(field,None) and setattr(o,field,item[field])
-
-        o.approve_status = ONSALE_STATUS
-        o.modified = datetime.datetime.strptime(item['modified'],'%Y-%m-%d %H:%M:%S')
-        o.list_time = datetime.datetime.strptime(item['list_time'],'%Y-%m-%d %H:%M:%S')
-        o.delist_time = datetime.datetime.strptime(item['delist_time'],'%Y-%m-%d %H:%M:%S')
-
-        o.user = profile
-        o.category = Category.objects.get(cid=item['cid'])
-        if item.get("outer_id",None):
-            product,state = Product.objects.get_or_create(outer_id=item['outer_id'])
-            if state:
-                product.name=item['title']
-                product.price=str(item['price'])
-                product.collect_num = item['num']
-                product.pic_path    = item['pic_url']
-                product.save()
-            o.product = product
-        o.save()
+	item.pop('modified',None)
+        Item.save_item_through_dict(profile.visitor_id,item)
 
     for item in currItems:
         sale_status = itemstat[item.num_iid]['onsale']

@@ -223,14 +223,14 @@ class Item(models.Model):
             product.pic_path    = item_dict['pic_url']    
             product.save()
     	else:
-            logger.warn('item has no outer_id(num_iid:%s)'.decode('utf-8')%str(item_dict['num_iid']))
+            logger.warn('item has no outer_id(num_iid:%s)'%str(item_dict['num_iid']))
             product = None
         
         item,state    = cls.objects.get_or_create(num_iid = item_dict['num_iid'])
         
         for k,v in item_dict.iteritems():
             hasattr(item,k) and setattr(item,k,v)
-        print item.outer_id,item.property_alias
+
         if not item.last_num_updated:
             item.last_num_updated = datetime.datetime.now()  
         
