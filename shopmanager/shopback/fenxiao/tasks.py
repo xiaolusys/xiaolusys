@@ -87,9 +87,7 @@ def saveUserPurchaseOrderTask(user_id,update_from=None,update_to=None,status=Non
             orders_list = response_list['fenxiao_orders_get_response']
             if orders_list['total_results']>0:
                 for o in orders_list['purchase_orders']['purchase_order']:
-    
-                    order,state = PurchaseOrder.objects.get_or_create(pk=o['fenxiao_id'])
-                    order.save_order_through_dict(user_id,o)
+                    PurchaseOrder.save_order_through_dict(user_id,o)
     
             total_nums = orders_list['total_results']
             cur_nums = cur_page*settings.TAOBAO_PAGE_SIZE

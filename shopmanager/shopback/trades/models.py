@@ -579,6 +579,8 @@ def merge_order_maker(sub_tid,main_tid):
 		                               payment   = payment + float(main_merge_trade.payment),
 		                               total_fee = total_fee + float(main_merge_trade.total_fee),
 		                               discount_fee = discount_fee + float(main_merge_trade.discount_fee))
+    
+    MergeTrade.objects.filter(tid=main_tid,out_sid='').update(sys_status=WAIT_AUDIT_STATUS)
     rule_signal.send(sender='merge_trade_rule',trade_tid=main_tid)
     MergeTrade.objects.get(tid=sub_tid).append_reason_code(NEW_MERGE_TRADE_CODE)
 
@@ -657,6 +659,7 @@ def trade_download_controller(merge_trade,trade,trade_from,is_first_save):
 		    	for t in trades:
 			    if t.sys_status == WAIT_PREPARE_SEND_STATUS:
 				MergeTrade.objects.get(id=t.id).append_reason_code(MULTIPLE_ORDERS_CODE)
+				MergeTrade.objects.filter(id=t.id,out_sid='').update(sys_status=WAIT_AUDIT_STATUS)
 			    else:
 				MergeTrade.objects.get(id=t.id).append_reason_code(MULTIPLE_ORDERS_CODE)
 				MergeTrade.objects.filter(id=t.id).update(sys_status=WAIT_AUDIT_STATUS)
@@ -743,9 +746,9 @@ def trade_download_controller(merge_trade,trade,trade_from,is_first_save):
                     merge_trade.append_reason_code(NEW_MEMO_CODE)
                 else:
                     merge_trade.append_reason_code(POST_MODIFY_CODE)
-		if merge_trade.sys_status == REGULAR_REMAIN_STATUS:
-		    merge_trade.sys_status = WAIT_AUDIT_STATUS
 
+		if merge_trade.out_sid == '':
+	    	    merge_trade.sys_status = WAIT_AUDIT_STATUS
         rule_signal.send(sender='merge_trade_rule',trade_tid=trade.id)      
     elif trade.status==WAIT_BUYER_CONFIRM_GOODS:
         if merge_trade.sys_status in WAIT_DELIVERY_STATUS:
