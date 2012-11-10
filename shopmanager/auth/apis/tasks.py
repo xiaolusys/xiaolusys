@@ -56,7 +56,7 @@ API_FIELDS = {
     'taobao.trade.amount.get':'tid,alipay_no,created,pay_time,end_time,total_fee,payment,post_fee,cod_fee,commission_fee,buyer_obtain_point_fee,order_amounts,promotion_details',
     'taobao.logistics.companies.get':'id,code,name,reg_mail_no',
     'taobao.logistics.orders.detail.get':'tid,order_code,is_quick_cod_order,out_sid,company_name,seller_id,seller_nick,buyer_nick,item_title,delivery_start,delivery_end'
-        +',receiver_name,receiver_phone,receiver_mobile,location,type,created,modified,seller_confirm,company_name,is_success,freight_payer,status',
+        +',receiver_name,receiver_phone,receiver_mobile,type,created,modified,seller_confirm,company_name,is_success,freight_payer,status,receiver_location',
     'taobao.logistics.orders.get':'tid,seller_nick,buyer_nick,delivery_start, delivery_end,out_sid,item_title,receiver_name, created,modified,status,type,freight_payer,seller_confirm,company_name',
     'taobao.refunds.receive.get':'refund_id,tid,title,buyer_nick,num_iid,seller_nick,total_fee,status,created,refund_fee,oid,good_status,company_name,sid,payment,reason,desc,has_good_return,modified,order_status',
     'taobao.fenxiao.products.get':'skus,images',

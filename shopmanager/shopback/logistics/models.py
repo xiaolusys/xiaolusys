@@ -125,8 +125,10 @@ class Logistics(models.Model):
         logistic.seller_id = user_id
         for k,v in logistic_dict.iteritems():
             hasattr(logistic,k) and setattr(logistic,k,v)
-
-        logistic.location       = json.dumps(logistic_dict.get('location',None))
+	
+	location  = logistic_dict.get('location',None)
+        logistic.location       = json.dumps(location)
+	
         logistic.delivery_start = parse_datetime(logistic_dict['delivery_start'])\
             if logistic_dict.get('delivery_start',None) else None
         logistic.delivery_end   = parse_datetime(logistic_dict['delivery_end'])\

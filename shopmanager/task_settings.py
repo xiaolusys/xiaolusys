@@ -54,7 +54,7 @@ except:
 SYNC_MODEL_SCHEDULE = {
     'runs-every-hours-wait-post-orders':{    #增量更新商城订单
         'task':'shopback.orders.tasks.updateAllUserIncrementTradesTask',
-        'schedule':crontab(minute="*/10"),
+        'schedule':crontab(minute="*/5"),
         'args':()
     },
     'runs-every-day-increment-orders':{    #更新昨天一整天的商城增量订单

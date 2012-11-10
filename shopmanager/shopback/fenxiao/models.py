@@ -13,6 +13,7 @@ from django.db import models
 from shopback.base.models import BaseModel
 from shopback.users.models import User
 from shopback.categorys.models import Category
+from shopback.logistics.models import Logistics
 from shopback.signals import merge_trade_signal
 from auth import apis
 import logging
@@ -202,7 +203,7 @@ class PurchaseOrder(models.Model):
         sub_purchase_orders  = purchase_order_dict.pop('sub_purchase_orders')   
         for k,v in purchase_order_dict.iteritems():
             hasattr(purchase_order,k) and setattr(purchase_order,k,v)
-
+	
         purchase_order.created  = parse_datetime(purchase_order_dict['created']) \
             if purchase_order_dict.get('created',None) else None
         purchase_order.pay_time = parse_datetime(purchase_order_dict['pay_time']) \

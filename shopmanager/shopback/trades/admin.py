@@ -11,7 +11,7 @@ from django.core import serializers
 from django.contrib.contenttypes.models import ContentType
 from shopback.trades.models import MergeTrade,MergeOrder,MergeBuyerTrade,ReplayPostTrade,WAIT_AUDIT_STATUS,WAIT_PREPARE_SEND_STATUS\
     ,WAIT_CHECK_BARCODE_STATUS,IN_EFFECT,WAIT_SELLER_SEND_GOODS,WAIT_BUYER_CONFIRM_GOODS,ON_THE_FLY_STATUS,merge_order_maker
-from shopback.monitor.models import POST_MODIFY_CODE,POST_SUB_TRADE_ERROR_CODE
+from shopback.monitor.models import POST_MODIFY_CODE,POST_SUB_TRADE_ERROR_CODE,MULTIPLE_ORDERS_CODE,NEW_MERGE_TRADE_CODE
 from shopback.orders.models import REFUND_APPROVAL_STATUS
 from shopback.signals import rule_signal
 from auth import apis
@@ -39,7 +39,7 @@ class OrderInline(admin.TabularInline):
 class MergeTradeAdmin(admin.ModelAdmin):
     list_display = ('id','tid','user','buyer_nick','type','payment','create_date','pay_date'
                     ,'status','logistics_company','is_picking_print','is_express_print','is_send_sms'
-                    ,'has_memo','has_refund','sys_status','operator','reason_code')
+                    ,'has_memo','has_refund','sys_status','operator','reason_code','remind_time')
     list_display_links = ('tid',)
     #list_editable = ('update_time','task_type' ,'is_success','status')
 
@@ -62,7 +62,7 @@ class MergeTradeAdmin(admin.ModelAdmin):
     inlines = [OrderInline]
     
     list_filter   = ('sys_status','status','user','type')
-    search_fields = ['id','buyer_nick','tid','reason_code']
+    search_fields = ['id','buyer_nick','tid','reason_code','operator']
     #--------设置页面布局----------------
     fieldsets =(('订单基本信息:', {
                     'classes': ('collapse',),
@@ -124,11 +124,15 @@ class MergeTradeAdmin(admin.ModelAdmin):
 	    MergeTrade.objects.filter(tid__in=merge_trade_ids).update(sys_status=ON_THE_FLY_STATUS)
 
 	elif merge_trade_ids:
-	    main_trade.remove_reason_code(NEW_MERGE_TRADE_CODE)    
+	    main_trade.remove_reason_code(NEW_MERGE_TRADE_CODE)
+	    main_trade.append_reason_code(MULTIPLE_ORDERS_CODE)    
 	    for tid in merge_trade_ids:	        
 		sub_orders = MergeOrder.objects.filter(tid=iid)
 		main_trade.merge_trade_orders.filter(oid_in=[o.oid for o in sub_orders]).delete() 
 		MergeBuyerTrade.objects.filter(sub_tid=tid).delete()
+		sub_merge_trade = MergeTrade.objects.get(tid=tid)
+		sub_merge_trade.remove_reason_code(NEW_MERGE_TRADE_CODE)
+		sub_merge_trade.append_reason_code(MULTIPLE_ORDERS_CODE)
 	
 	    main_trade.merge_trade_orders.filter(oid=None).delete()
 	    rule_signal.send(sender='merge_trade_rule',trade_tid=main_trade.tid)  
@@ -140,7 +144,7 @@ class MergeTradeAdmin(admin.ModelAdmin):
 
         trade_ids = [t.id for t in queryset]
         prapare_trades = queryset.filter(is_picking_print=True,is_express_print=True,sys_status=WAIT_PREPARE_SEND_STATUS
-                                         ,operator=request.user.username).exclude(out_sid='')
+                                         ,operator=request.user.username,reason_code='').exclude(out_sid='')
         if prapare_trades.count() == 0:
             return queryset 
         for trade in prapare_trades:
@@ -193,6 +197,8 @@ class MergeTradeAdmin(admin.ModelAdmin):
                     else:
                         MergeTrade.objects.filter(tid=sub_trade.tid).update(sys_status=WAIT_CHECK_BARCODE_STATUS,consign_time=datetime.datetime.now())
 	
+	queryset.exclude(reason_code='').update(sys_status=WAIT_AUDIT_STATUS)
+
         queryset = MergeTrade.objects.filter(id__in=trade_ids)
         post_trades = queryset.filter(sys_status=WAIT_CHECK_BARCODE_STATUS)
         trade_items = {}

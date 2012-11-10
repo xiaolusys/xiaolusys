@@ -138,15 +138,10 @@ def test_api(request):
 
     #response = apis.taobao_itempropvalues_get(cid='50012413',pvs='1627207:3232478',type=1,tb_user_id=174265168)
     #res = response["itempropvalues_get_response"]["prop_values"]["prop_value"]
-    import json
-    from shopback.items.models import Item
-    response = apis.taobao_item_get(num_iid=15065195444,tb_user_id=174265168)
-    item_dict = response['item_get_response']['item']
-    item_dict['skus'] = json.dumps(item_dict.get('skus',{}))
-    Item.save_item_through_dict(174265168,item_dict)
-    print response
 
-    print_iterables(response)
+    from shopback.logistics.models import Logistics
+    logistics  = Logistics.get_or_create(174265168,58497521)
+    print logistics.__dict__
 
 #    url = 'http://stream.api.taobao.com/stream'
 #    import time
