@@ -190,9 +190,9 @@ class MergeTradeAdmin(admin.ModelAdmin):
                         if latest_modified !=sub_trade.modified:
                             raise Exception(u'订单(%d)合并子订单(%d)本地修改日期(%s)与线上修改日期(%s)不一致'%(trade.tid,sub_trade.tid,sub_trade.modified,latest_modified))
                         
-                    #response = apis.taobao_logistics_online_send(tid=trade.tid,out_sid=trade.out_sid
-                    #                              ,company_code=trade.logistics_company.code,tb_user_id=trade.seller_id)  
-                    response = {'logistics_online_send_response': {'shipping': {'is_success': True}}}
+                    response = apis.taobao_logistics_online_send(tid=trade.tid,out_sid=trade.out_sid
+                                                  ,company_code=trade.logistics_company.code,tb_user_id=trade.seller_id)  
+                    #response = {'logistics_online_send_response': {'shipping': {'is_success': True}}}
                     if not response['logistics_online_send_response']['shipping']['is_success']:
                         raise Exception(u'订单(%d)淘宝发货失败'%trade.tid)
                 else:
