@@ -33,7 +33,7 @@ API_FIELDS = {
          +',xinpin_item_cat.cid,xinpin_item_cat.name,xinpin_item_cat.status,xinpin_item_cat.sort_order,xinpin_item_cat.parent_cid,xinpin_item_cat.is_parent',
     'taobao.itemprops.get':'pid, name, must, multi, prop_values',
     'taobao.itempropvalues.get':'cid,pid,prop_name,vid,name,name_alias,status,sort_order',
-    'taobao.item.get':'has_showcase,detail_url,num_iid,title,outer_id,price,approve_status,delist_time,list_time,modified,num,props_name,skus'
+    'taobao.item.get':'has_showcase,detail_url,num_iid,title,outer_id,price,approve_status,delist_time,list_time,modified,num,props_name,skus,property_alias'
          +',nick,type,cid,pic_url,num,props,valid_thru,price,has_discount,has_invoice,has_warranty,postage_id,seller_cids',
     'taobao.items.list.get':'item',
     'taobao.products.get':'product_id,tsc,cat_name,name',
@@ -46,7 +46,7 @@ API_FIELDS = {
     'taobao.items.inventory.get':'approve_status,num_iid,title,nick,type,cid,pic_url,num,props,valid_thru,list_time'
         +',price,has_discount,has_invoice,has_warranty,has_showcase, modified,delist_time,postage_id,seller_cids,outer_id',
     'taobao.items.onsale.get':'num_iid,cid,outer_id,num,seller_cids,approve_status,type,valid_thru,price,postage_id,'
-        + 'has_showcase,modified,list_time,delist_time,has_discount,props,title,has_invoice,pic_url,detail_url',
+        + 'has_showcase,list_time,delist_time,has_discount,props,title,has_invoice,pic_url,detail_url',
     'taobao.trades.sold.get':'seller_nick,buyer_nick,title,type,created,tid,status,modified,payment,discount_fee,adjust_fee,post_fee,total_fee,received_payment,commission_fee,buyer_obtain_point_fee'
         +',point_fee,real_point_fee,pic_path,pay_time,end_time,consign_time,num_iid,num,price,shipping_type,receiver_name,receiver_state,receiver_city,receiver_district,receiver_address,receiver_zip'
         +',receiver_mobile,receiver_phone,buyer_message,buyer_memo,seller_memo,orders',
@@ -56,7 +56,7 @@ API_FIELDS = {
     'taobao.trade.amount.get':'tid,alipay_no,created,pay_time,end_time,total_fee,payment,post_fee,cod_fee,commission_fee,buyer_obtain_point_fee,order_amounts,promotion_details',
     'taobao.logistics.companies.get':'id,code,name,reg_mail_no',
     'taobao.logistics.orders.detail.get':'tid,order_code,is_quick_cod_order,out_sid,company_name,seller_id,seller_nick,buyer_nick,item_title,delivery_start,delivery_end'
-        +',receiver_name,receiver_phone,receiver_mobile,location,type,created,modified,seller_confirm,company_name,is_success,freight_payer,status',
+        +',receiver_name,receiver_phone,receiver_mobile,type,created,modified,seller_confirm,company_name,is_success,freight_payer,status,receiver_location',
     'taobao.logistics.orders.get':'tid,seller_nick,buyer_nick,delivery_start, delivery_end,out_sid,item_title,receiver_name, created,modified,status,type,freight_payer,seller_confirm,company_name',
     'taobao.refunds.receive.get':'refund_id,tid,title,buyer_nick,num_iid,seller_nick,total_fee,status,created,refund_fee,oid,good_status,company_name,sid,payment,reason,desc,has_good_return,modified,order_status',
     'taobao.fenxiao.products.get':'skus,images',
@@ -287,6 +287,10 @@ def taobao_items_get(q=None,cid=None,nicks=None,props=None,product_id=None,order
                      page_size=None,fields=API_FIELDS['taobao.items.get'],tb_user_id=None):
     pass
 
+@apis('taobao.item.sku.get')
+def taobao_item_sku_get(num_iid=None,sku_id=None,fields=API_FIELDS['taobao.item.skus.get'],nick=None,tb_user_id=None):
+    pass
+
 @apis('taobao.item.skus.get')
 def taobao_item_skus_get(num_iids=None,fields=API_FIELDS['taobao.item.skus.get'],tb_user_id=None):
     pass
@@ -404,5 +408,9 @@ def taobao_topats_result_get(task_id=None,tb_user_id=None):
 ################  increament service ###########
 @apis('taobao.increment.customer.permit')
 def taobao_increment_customer_permit(type='get,syn,notify',topics='trade;refund;item',status='all;all;ItemAdd,ItemUpdate',tb_user_id=None):
+    pass
+
+@apis('tmall.product.specs.get')
+def tmall_product_specs_get(product_id=None,properties=None,cat_id=None,tb_user_id=None):
     pass
 

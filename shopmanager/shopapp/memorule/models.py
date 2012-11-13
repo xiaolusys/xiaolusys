@@ -214,6 +214,7 @@ def rule_match_merge_trade(sender, trade_tid, *args, **kwargs):
     except MergeTrade.DoesNotExist:
         pass
     else:
+	trade.merge_trade_orders.filter(oid=None).delete()
         try:
             orders = trade.merge_trade_orders.filter(status__in=(WAIT_SELLER_SEND_GOODS,CONFIRM_WAIT_SEND_GOODS,WAIT_CONFIRM_WAIT_SEND_GOODS)
                                                      ,sys_status=IN_EFFECT).exclude(refund_status__in=REFUND_APPROVAL_STATUS)

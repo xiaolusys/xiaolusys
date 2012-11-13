@@ -1,5 +1,6 @@
 #-*- coding:utf8 -*-
 import time
+import json
 import datetime
 from django.db import models
 from django.db.models import Q
@@ -14,7 +15,7 @@ from shopback.fenxiao.models import PurchaseOrder,SubPurchaseOrder,FenxiaoProduc
 from shopback.refunds.models import Refund
 from auth.utils import parse_datetime
 from shopback.monitor.models import SystemConfig,Reason,NEW_MEMO_CODE,NEW_REFUND_CODE,NEW_MERGE_TRADE_CODE,WAITING_REFUND_CODE,\
-    RULE_MATCH_CODE,OUT_GOOD_CODE,INVALID_END_CODE,POST_MODIFY_CODE
+    RULE_MATCH_CODE,OUT_GOOD_CODE,INVALID_END_CODE,POST_MODIFY_CODE,MULTIPLE_ORDERS_CODE
 from shopback.signals import merge_trade_signal,rule_signal
 import logging
 
@@ -42,6 +43,10 @@ SYS_TRADE_STATUS = (
     (ON_THE_FLY_STATUS,'飞行模式'),
     (REGULAR_REMAIN_STATUS,'定时提醒')
 )
+
+OUT_STOCK_KEYWORD = [u'到货',u'预售',u'到']
+WAIT_DELIVERY_STATUS = [WAIT_AUDIT_STATUS,WAIT_PREPARE_SEND_STATUS,REGULAR_REMAIN_STATUS,ON_THE_FLY_STATUS]
+HAS_DELIVERY_STATUS = [WAIT_CHECK_BARCODE_STATUS,WAIT_SCAN_WEIGHT_STATUS,FINISHED_STATUS,INVALID_STATUS]
 
 SYS_ORDER_STATUS = (
     (IN_EFFECT ,'有效'),
@@ -315,6 +320,15 @@ class MergeTrade(models.Model):
                     else:
                         is_out_stock |= product.out_stock
                         is_out_stock |= product.collect_num <= 0
+		#预售关键字匹配		
+		for kw in OUT_STOCK_KEYWORD:
+		    try:
+		    	order.sku_properties_name.index(kw)
+		    except:
+			pass
+		    else:
+			is_out_stock = True
+			break
                 
         return is_out_stock
     
@@ -382,7 +396,7 @@ class MergeTrade(models.Model):
             return False
         #分销部分不做规则匹配
         if trade_from == FENXIAO_TYPE:
-            return False
+            return True
         
         try:
             rule_signal.send(sender='product_rule',trade_tid=trade_id)
@@ -393,20 +407,19 @@ class MergeTrade(models.Model):
     
     @classmethod
     def judge_merge_need(cls,trade_id,buyer_nick,trade_from,full_address):
-        #分销部分不做规则匹配
+        #分销部分不做合单
         if trade_from == FENXIAO_TYPE:
             return False
         
         trades = cls.objects.filter(buyer_nick=buyer_nick,sys_status__in=(WAIT_PREPARE_SEND_STATUS,
-                WAIT_AUDIT_STATUS)).exclude(tid=trade_id)
+                WAIT_AUDIT_STATUS,REGULAR_REMAIN_STATUS)).exclude(tid=trade_id)
         
-        for trade in trades:
-            older_addr = trade.user_full_address
-            trade_out_stock = cls.judge_out_stock(trade.tid, trade_from) 
-            order_nums = Order.objects.filter(trade=trade.tid).exclude(refund_status__in=REFUND_APPROVAL_STATUS).count()
-            #如果主订单不缺货，并且没有全退款,收货人急收货地址相同
-            if not trade_out_stock and order_nums>0 and full_address==older_addr:
-                return True
+        #for trade in trades:
+        #    older_addr = trade.user_full_address
+        #    trade_out_stock = cls.judge_out_stock(trade.tid, trade_from) 
+        #    order_nums = Order.objects.filter(trade=trade.tid).exclude(refund_status__in=REFUND_APPROVAL_STATUS).count()
+	if trades.count() > 0:
+            return True
         
         return False
 
@@ -529,60 +542,56 @@ class MergeBuyerTrade(models.Model):
         verbose_name='合单记录'.decode('utf8')
 
 
-def merge_trade_maker(sub_tid,main_tid):
+def merge_order_maker(sub_tid,main_tid):
     #合单操作
-    trade      = Trade.objects.get(id=sub_tid)
+    sub_trade      = MergeTrade.objects.get(tid=sub_tid)
     main_merge_trade = MergeTrade.objects.get(tid=main_tid)
-    update_rows = MergeTrade.objects.filter(tid=main_tid,sys_status__in=(WAIT_AUDIT_STATUS,WAIT_PREPARE_SEND_STATUS))\
-        .update(sys_status=WAIT_AUDIT_STATUS) 
-    if update_rows>0:
-        main_merge_trade.merge_trade_orders.filter(oid=None).delete()
-        MergeBuyerTrade.objects.get_or_create(sub_tid=sub_tid,main_tid=main_tid)
-        main_merge_trade.append_reason_code(NEW_MERGE_TRADE_CODE)
-        orders = Order.objects.filter(trade=sub_tid)
-        merge_order = MergeOrder()
-        
-        total_num    = 0
-        payment      = 0
-        total_fee    = 0
-        discount_fee = 0
-        for order in orders:
-            for field in order._meta.fields:
-                hasattr(merge_order,field.name) and setattr(merge_order,field.name,getattr(order,field.name))
-            merge_order.id  = None
-            merge_order.merge_trade = main_merge_trade
-            merge_order.tid = main_tid
-            merge_order.sys_status = IN_EFFECT
-            merge_order.save()
-            if order.refund_status not in REFUND_APPROVAL_STATUS :
-                total_num += order.num
-                payment   += float(order.payment)
-                total_fee += float(order.total_fee)
-                discount_fee += float(order.discount_fee)
-        
-        if trade.buyer_message:
-            main_merge_trade.update_buyer_message(sub_tid,trade.buyer_message)
-        if trade.seller_memo:
-            main_merge_trade.update_seller_memo(sub_tid,trade.seller_memo)
-        MergeTrade.objects.filter(tid=main_tid).update(total_num = total_num + main_merge_trade.total_num,
-                                                       payment   = payment + float(main_merge_trade.payment),
-                                                       total_fee = total_fee + float(main_merge_trade.total_fee),
-                                                       discount_fee = discount_fee + float(main_merge_trade.discount_fee))
-        rule_signal.send(sender='merge_trade_rule',trade_tid=main_tid)
-        
-        return True
-        
-    return False
-
-
     
+    main_merge_trade.merge_trade_orders.filter(oid=None).delete()
+    MergeBuyerTrade.objects.get_or_create(sub_tid=sub_tid,main_tid=main_tid)
+    main_merge_trade.append_reason_code(NEW_MERGE_TRADE_CODE)
+    orders = Order.objects.filter(trade=sub_tid)
+    merge_order = MergeOrder()
+
+    total_num    = 0
+    payment      = 0
+    total_fee    = 0
+    discount_fee = 0
+    for order in orders:
+        for field in order._meta.fields:
+	    hasattr(merge_order,field.name) and setattr(merge_order,field.name,getattr(order,field.name))
+        merge_order.id  = None
+        merge_order.merge_trade = main_merge_trade
+        merge_order.tid = main_tid
+        merge_order.sys_status = IN_EFFECT
+        merge_order.save()
+        if order.refund_status not in REFUND_APPROVAL_STATUS :
+	    total_num += order.num
+	    payment   += float(order.payment)
+	    total_fee += float(order.total_fee)
+	    discount_fee += float(order.discount_fee)
+
+    if sub_trade.buyer_message:
+        main_merge_trade.update_buyer_message(sub_tid,sub_trade.buyer_message)
+    if sub_trade.seller_memo:
+        main_merge_trade.update_seller_memo(sub_tid,sub_trade.seller_memo)
+    MergeTrade.objects.filter(tid=main_tid).update(total_num = total_num + main_merge_trade.total_num,
+		                               payment   = payment + float(main_merge_trade.payment),
+		                               total_fee = total_fee + float(main_merge_trade.total_fee),
+		                               discount_fee = discount_fee + float(main_merge_trade.discount_fee))
+    
+    MergeTrade.objects.filter(tid=main_tid,out_sid='').update(sys_status=WAIT_AUDIT_STATUS)
+    rule_signal.send(sender='merge_trade_rule',trade_tid=main_tid)
+    MergeTrade.objects.get(tid=sub_tid).append_reason_code(NEW_MERGE_TRADE_CODE)
+
+
 
 def trade_download_controller(merge_trade,trade,trade_from,is_first_save):
     
     shipping_type = trade.shipping if trade_from==FENXIAO_TYPE else trade.shipping_type
     seller_memo   = trade.memo  if hasattr(trade,'memo') else trade.seller_memo
-    buyer_message = trade.buyer_message if hasattr(trade,'buyer_message') else trade.supplier_memo
-     
+    buyer_message = trade.buyer_message if hasattr(trade,'buyer_message') else trade.supplier_memo   
+ 
     merge_trade.has_memo = seller_memo or buyer_message
 
     if trade.status == WAIT_SELLER_SEND_GOODS:
@@ -619,15 +628,16 @@ def trade_download_controller(merge_trade,trade,trade_from,is_first_save):
             full_address = merge_trade.user_full_address
             #订单合并   
             is_merge_success = False
-            if not full_new_refund and trade_from==TAOBAO_TYPE:
+	    is_need_merge    = False
+	    main_tid = None
+            if not full_new_refund and trade_from == TAOBAO_TYPE:
                 is_need_merge = MergeTrade.judge_merge_need(trade.id,trade.buyer_nick,trade_from,full_address)
-                if is_need_merge:
+                if is_need_merge :
                     trades = MergeTrade.objects.filter(buyer_nick=trade.buyer_nick,sys_status__in=
-                                                (WAIT_PREPARE_SEND_STATUS,WAIT_AUDIT_STATUS)).exclude(tid=trade.id).order_by('-created')
-                    if trades.count()>0:
+                                                (WAIT_AUDIT_STATUS,WAIT_PREPARE_SEND_STATUS,REGULAR_REMAIN_STATUS)).exclude(tid=trade.id).order_by('-created')
+		    if trades.count()>0 and not out_stock:
                         merge_buyer_trades = MergeBuyerTrade.objects.filter(main_tid__in=[t.tid for t in trades])
                         #如果有已有合并记录，则将现有主订单作为合并主订单
-                        main_tid = None
                         if merge_buyer_trades.count()>0:
                             main_merge_tid = merge_buyer_trades[0].main_tid
                             main_trade = MergeTrade.objects.get(tid=main_merge_tid)
@@ -642,27 +652,39 @@ def trade_download_controller(merge_trade,trade,trade_from,is_first_save):
                                     break
                         if main_tid:  
                             #进行合单
-                            is_merge_success = merge_trade_maker(trade.id,main_tid)
-                            if is_merge_success:
-                                 merge_trade.append_reason_code(NEW_MERGE_TRADE_CODE)
+                            is_merge_success = merge_order_maker(trade.id,main_tid)
+
+			merge_trade.append_reason_code(MULTIPLE_ORDERS_CODE)
+		    elif trades.count()>0 and out_stock:
+		    	for t in trades:
+			    if t.sys_status == WAIT_PREPARE_SEND_STATUS:
+				MergeTrade.objects.get(id=t.id).append_reason_code(MULTIPLE_ORDERS_CODE)
+				MergeTrade.objects.filter(id=t.id,out_sid='').update(sys_status=WAIT_AUDIT_STATUS)
+			    else:
+				MergeTrade.objects.get(id=t.id).append_reason_code(MULTIPLE_ORDERS_CODE)
+				MergeTrade.objects.filter(id=t.id).update(sys_status=WAIT_AUDIT_STATUS)
+		    
+                    
             #如果合单成功则将新单置为飞行模式                 
             if is_merge_success:
                 merge_trade.sys_status = ON_THE_FLY_STATUS
             #有问题则进入问题单域
-            elif has_new_memo or has_new_refund or wait_refunding or out_stock or is_rule_match:
+            elif has_new_memo or has_new_refund or wait_refunding or out_stock or is_rule_match or is_need_merge:
                 merge_trade.sys_status = WAIT_AUDIT_STATUS
             else:
                 merge_trade.sys_status = WAIT_PREPARE_SEND_STATUS
                 
-            if shipping_type in ('free','express','FAST','SELLER'):
+	    if is_need_merge and main_tid:
+		main_trade = MergeTrade.objects.get(tid=main_tid)
+	        merge_trade.logistics_company = main_trade.logistics_company
+            elif shipping_type in ('free','express','FAST','SELLER'):	
                 receiver_state = merge_trade.receiver_state
                 default_company = LogisticsCompany.get_recommend_express(receiver_state)
                 merge_trade.logistics_company = default_company
             elif shipping_type in ('post','ems'):
                 post_company = LogisticsCompany.objects.get(code=shipping_type.upper())
                 merge_trade.logistics_company = post_company
-
-            rule_signal.send(sender='merge_trade_rule',trade_tid=trade.id)    
+   
         #再次入库
         else: 
             #如过该交易是合并后的子订单，如果有新留言或新退款，则需要将他的状态添加到合并主订单上面，
@@ -676,7 +698,7 @@ def trade_download_controller(merge_trade,trade,trade_from,is_first_save):
                     merge_trade.append_reason_code(NEW_REFUND_CODE)
                     main_trade.merge_trade_orders.filter(Q(oid__isnull=True)|Q(oid__in=[o.oid for o in trade.trade_orders.all()])).delete()
                     if not full_new_refund:
-                         merge_trade_maker(trade.id,main_tid)
+                         merge_order_maker(trade.id,main_tid)
                     main_trade.append_reason_code(NEW_REFUND_CODE)
                     rule_signal.send(sender='merge_trade_rule',trade_tid=main_tid)    
                 #新留言备注
@@ -686,7 +708,7 @@ def trade_download_controller(merge_trade,trade,trade_from,is_first_save):
                     MergeTrade.objects.filter(tid=main_tid,sys_status__in=(WAIT_AUDIT_STATUS,WAIT_PREPARE_SEND_STATUS))\
                         .update(sys_status=WAIT_AUDIT_STATUS)
                     main_trade.append_reason_code(NEW_MEMO_CODE)
-            elif merge_trade.sys_status in (WAIT_PREPARE_SEND_STATUS,WAIT_AUDIT_STATUS):
+            else:
                 #判断当前单是否是合并主订单
                 try:
                     MergeBuyerTrade.objects.get(main_tid=trade.id)
@@ -713,7 +735,7 @@ def trade_download_controller(merge_trade,trade,trade_from,is_first_save):
                                     break
                                 
                             for sub_trade in sub_merge_trades[main_index:]:
-                               is_merge_success |= merge_trade_maker(sub_trade.tid,main_trade.tid)
+                               is_merge_success |= merge_order_maker(sub_trade.tid,main_trade.tid)
                             
                             if is_merge_success:    
                                 rule_signal.send(sender='merge_trade_rule',trade_tid=main_trade.tid) 
@@ -724,10 +746,13 @@ def trade_download_controller(merge_trade,trade,trade_from,is_first_save):
                     merge_trade.append_reason_code(NEW_MEMO_CODE)
                 else:
                     merge_trade.append_reason_code(POST_MODIFY_CODE)
-                merge_trade.sys_status = WAIT_AUDIT_STATUS
-                
+
+		if merge_trade.out_sid == '':
+	    	    merge_trade.sys_status = WAIT_AUDIT_STATUS
+        rule_signal.send(sender='merge_trade_rule',trade_tid=trade.id)      
     elif trade.status==WAIT_BUYER_CONFIRM_GOODS:
-        pass
+        if merge_trade.sys_status in WAIT_DELIVERY_STATUS:
+	    merge_trade.sys_status = INVALID_STATUS
     #如果淘宝订单状态已改变，而系统内部状态非最终状态，则将订单作废        
     elif merge_trade.sys_status:
         if merge_trade.sys_status not in (FINISHED_STATUS,INVALID_STATUS):
@@ -859,10 +884,17 @@ def save_fenxiao_orders_to_mergetrade(sender, trade, *args, **kwargs):
         is_first_save = not merge_trade.sys_status 
         if is_first_save and trade.status not in (TRADE_NO_CREATE_PAY,WAIT_BUYER_PAY,TRADE_CLOSED) :
             logistics = Logistics.get_or_create(trade.seller_id,trade.id)
+	    location = json.loads(logistics.location)
+	    
             merge_trade.receiver_name = logistics.receiver_name
-            merge_trade.receiver_address = logistics.location
+            merge_trade.receiver_zip  = location.get('zip','') if location else ''
             merge_trade.receiver_mobile = logistics.receiver_mobile
             merge_trade.receiver_phone = logistics.receiver_phone
+
+	    merge_trade.receiver_state = location.get('state','') if location else ''
+            merge_trade.receiver_city  = location.get('city','') if location else ''
+            merge_trade.receiver_district = location.get('district','') if location else ''
+            merge_trade.receiver_address  = location.get('address','') if location else ''
             merge_trade.save()
 
         #保存分销订单到抽象全局抽象订单表
@@ -962,5 +994,6 @@ class ReplayPostTrade(models.Model):
     class Meta:
         db_table = 'shop_trades_replayposttrade'
         verbose_name='已发货清单'.decode('utf8')
+
         
         

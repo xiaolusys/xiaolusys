@@ -1,4 +1,4 @@
-#-*- coding:utf8 -*-
+#-*- coding:utf-8 -*-
 """
 淘宝普通平台模型:
 Product:系统内部商品，唯一对应多家店铺的商品外部编码,
@@ -41,7 +41,8 @@ class Product(models.Model):
         2,库存管理的核心类；
     """
     
-    outer_id     = models.CharField(max_length=64,unique=True,null=False,blank=False,verbose_name='外部编码')
+    outer_id     = models.CharField(max_length=64,unique=True,null=False,blank=True,verbose_name='外部编码')
+   
     name         = models.CharField(max_length=64,blank=True,verbose_name='商品名称')
     
     purchase_product = models.ForeignKey(PurchaseProduct,null=True,blank=True,related_name='products',verbose_name='关联采购商品')
@@ -49,7 +50,7 @@ class Product(models.Model):
     
     pic_path = models.CharField(max_length=256,blank=True)
     
-    collect_num  = models.IntegerField(null=True,verbose_name='库存数')  #库存数
+    collect_num  = models.IntegerField(verbose_name='库存数',default=0)  #库存数
     warn_num     = models.IntegerField(null=True,default=10,verbose_name='警告库位')    #警戒库位
     remain_num   = models.IntegerField(null=True,default=0,verbose_name='预留库位')    #预留库存
     price        = models.CharField(max_length=10,blank=True,verbose_name='参考价格')
@@ -87,7 +88,7 @@ class ProductSku(models.Model):
     product  = models.ForeignKey(Product,null=True,related_name='prod_skus',verbose_name='商品')
     purchase_product_sku = models.ForeignKey(PurchaseProductSku,null=True,blank=True,related_name='prod_skus',verbose_name='关联采购规格')
     
-    quantity = models.IntegerField(null=True,verbose_name='库存数')
+    quantity = models.IntegerField(verbose_name='库存数',default=0)
     warn_num     = models.IntegerField(null=True,default=10,verbose_name='警戒库位')    #警戒库位
     remain_num   = models.IntegerField(null=True,default=0,verbose_name='预留库位')    #预留库存
     
@@ -123,7 +124,7 @@ class ProductSku(models.Model):
         value_list = []
         for properties in properties_list:
             values = properties.split(':')
-            value_list.append( '%s:%s'%(values[2],values[3]) if len(values)==4 else properties)
+            value_list.append( '%s'%values[3] if len(values)==4 else properties)
         return ','.join(value_list)
 
 
@@ -157,6 +158,7 @@ class Item(models.Model):
 
     props = models.TextField(max_length=500,blank=True,verbose_name='商品属性')
     title = models.CharField(max_length=148,blank=True,verbose_name='商品标题')
+    property_alias = models.TextField(max_length=5000,blank=True,verbose_name='自定义属性')
 
     has_invoice = models.BooleanField(default=False,verbose_name='有发票')
     pic_url     = models.URLField(verify_exists=False,blank=True,verbose_name='商品图片')
@@ -183,7 +185,17 @@ class Item(models.Model):
             return json.loads(self.skus)
         except:
             return {}
- 
+    
+    @property
+    def property_alias_dict(self):
+	property_list = self.property_alias.split(';')
+	property_dict = {}
+	for p in property_list:
+	    if p :
+		r = p.split(':')
+		property_dict['%s:%s'%(r[0],r[1])]=r[2]
+	return property_dict
+
 
     @classmethod
     def get_or_create(cls,user_id,num_iid):
@@ -194,7 +206,7 @@ class Item(models.Model):
                 item_dict = response['item_get_response']['item']
                 item = Item.save_item_through_dict(user_id,item_dict)
             except Exception,exc:
-                logger.error('backend update item (num_iid:%s)error'%str(num_iid),exc_info=True)
+                logger.error('商品更新出错(num_iid:%s)'%str(num_iid),exc_info=True)
         return item
 
 
@@ -202,23 +214,23 @@ class Item(models.Model):
     def save_item_through_dict(cls,user_id,item_dict):
         
         category = Category.get_or_create(user_id,item_dict['cid'])
-        try:
+        if item_dict.has_key('outer_id'):
             product,state = Product.objects.get_or_create(outer_id=item_dict['outer_id'])
-            if state:
+            if not product.name:
                 product.collect_num = item_dict['num']
                 product.price       = item_dict['price']
                 product.name        = item_dict['title']
-                product.pic_path    = item_dict['pic_url']
-                product.save()
-        except Exception,exc:
-            logger.warn('the current item(num_iid:%s)has not set outer_id'%str(item_dict['num_iid']))
+            product.pic_path    = item_dict['pic_url']    
+            product.save()
+    	else:
+            logger.warn('item has no outer_id(num_iid:%s)'%str(item_dict['num_iid']))
             product = None
         
         item,state    = cls.objects.get_or_create(num_iid = item_dict['num_iid'])
         
         for k,v in item_dict.iteritems():
             hasattr(item,k) and setattr(item,k,v)
-        
+
         if not item.last_num_updated:
             item.last_num_updated = datetime.datetime.now()  
         

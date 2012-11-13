@@ -86,6 +86,14 @@ def home(request):
     return HttpResponseRedirect('/app/autolist/')
 
 
+def print_iterables(item):
+    if not hasattr(item, 'iteritems'):
+        print item
+        return
+    for k,v in item.iteritems():
+        print k, ':',
+        print_iterables(v)
+
 def test_api(request):
     #profile = request.user.get_profile()
 #    response = apis.taobao_trade_fullinfo_get(tid='166803076931050',tb_user_id=profile.visitor_id)
@@ -122,24 +130,37 @@ def test_api(request):
 #    response_list = apis.taobao_increment_customer_permit(tb_user_id=174265168)
 #    print 'response list:',response_list
     
-    url = 'http://stream.api.taobao.com/stream'
-    import time
-    import urllib
-    import pycurl,StringIO
+#    response =  apis.taobao_item_skus_get(num_iids='15065195444',tb_user_id=174265168)  
+#    print response
+
+#    response = apis.taobao_item_sku_get(num_iid='15065195444',sku_id='1627207',tb_user_id=174265168)
+#    print response
+
+    #response = apis.taobao_itempropvalues_get(cid='50012413',pvs='1627207:3232478',type=1,tb_user_id=174265168)
+    #res = response["itempropvalues_get_response"]["prop_values"]["prop_value"]
+
+    from shopback.logistics.models import Logistics
+    logistics  = Logistics.get_or_create(174265168,58497521)
+    print logistics.__dict__
+
+#    url = 'http://stream.api.taobao.com/stream'
+#    import time
+#    import urllib
+#    import pycurl,StringIO
 #    import urllib3 
-    from auth.utils import getSignatureTaoBao
-    USER_AGENT = 'Mozilla/5.0 (X11; U; Linux x86_64; en-US; rv:1.9.0.1) Gecko/2008071620 Firefox/3.0.1'
-    HEADERS = ['Accept-Language: en-us,en;q=0.5', 'Accept-Encoding: gzip,deflate', 'Accept-Charset: ISO-8859-1,utf-8;q=0.7,*;q=0.7', 'Keep-Alive: 300', 'Connection: Keep-Alive']
+#    from auth.utils import getSignatureTaoBao
+#    USER_AGENT = 'Mozilla/5.0 (X11; U; Linux x86_64; en-US; rv:1.9.0.1) Gecko/2008071620 Firefox/3.0.1'
+#    HEADERS = ['Accept-Language: en-us,en;q=0.5', 'Accept-Encoding: gzip,deflate', 'Accept-Charset: ISO-8859-1,utf-8;q=0.7,*;q=0.7', 'Keep-Alive: 300', 'Connection: Keep-Alive']
 
     
-    params = {}
-    params['app_key'] = '12686908'
+#    params = {}
+#    params['app_key'] = '12686908'
     #params['user']    = '174265168'
     #params['v']       = '2.0'
     #params['format']  = 'json'
     #params['sign_method']    = 'md5'
-    params['timestamp'] = int(time.time())
-    params['sign']    = getSignatureTaoBao(params,'b3ddef5982a23c636739289949c01f59')
+#    params['timestamp'] = int(time.time())
+#    params['sign']    = getSignatureTaoBao(params,'b3ddef5982a23c636739289949c01f59')
     
 #    print params
 #    manager = urllib3.PoolManager(10,headers=HEADERS)
@@ -150,26 +171,30 @@ def test_api(request):
 #
 #    print r.data
 
-    dev_null = StringIO.StringIO()
-    pycurlConnect = pycurl.Curl()
-    #pycurlConnect.setopt(pycurl.HTTPHEADER, HEADERS)
-    pycurlConnect.setopt(pycurl.URL, url)
-    pycurlConnect.setopt(pycurl.POSTFIELDS, urllib.urlencode(params))
-    pycurlConnect.setopt(pycurl.WRITEFUNCTION, dev_null.write)
-    pycurlConnect.setopt(pycurl.POST, 1)
-    pycurlConnect.setopt(pycurl.VERBOSE, 1)
-    #pycurlConnect.perform()
-    pycurlConnect.close()
-    print dev_null.getvalue()
-    dev_null.close()
+#    dev_null = StringIO.StringIO()
+#    pycurlConnect = pycurl.Curl()
+#    #pycurlConnect.setopt(pycurl.HTTPHEADER, HEADERS)
+#    pycurlConnect.setopt(pycurl.URL, url)
+#    pycurlConnect.setopt(pycurl.POSTFIELDS, urllib.urlencode(params))
+#    pycurlConnect.setopt(pycurl.WRITEFUNCTION, dev_null.write)
+#    pycurlConnect.setopt(pycurl.POST, 1)
+#    pycurlConnect.setopt(pycurl.VERBOSE, 1)
+#    #pycurlConnect.perform()
+#    pycurlConnect.close()
+#    print dev_null.getvalue()
+#    dev_null.close()
 
      
 
 #    response_list = apis.taobao_trades_sold_increment_get(tb_user_id='121741189',page_no=1,fields='tid,modified'
 #            ,page_size=settings.TAOBAO_PAGE_SIZE,use_has_next='true',start_modified='2012-10-24 15:00:00',end_modified='2012-10-24 16:25:00')
 #    print response_list
-#    response = apis.taobao_item_get(num_iid=14443413131,tb_user_id=profile.visitor_id)
-#    print response
+
+#    from shopback.orders.models import Trade,Order
+#    response = apis.taobao_trade_fullinfo_get(tid=167807698490680,tb_user_id=174265168)
+#    trade = Trade.save_trade_through_dict(174265168,response['trade_fullinfo_get_response']['trade'])
+#    print trade
+
 #    from shopback.trades.models import WAIT_SELLER_SEND_GOODS
 #    response_list = apis.taobao_trades_sold_get(start_created=None,end_created=None,page_no=1,page_size=100,use_has_next='true',status=WAIT_SELLER_SEND_GOODS,type=None,
 #                           fields='tid,modified',tb_user_id='174265168')

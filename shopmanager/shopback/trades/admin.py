@@ -9,10 +9,12 @@ from django.shortcuts import render_to_response
 from django.template import RequestContext
 from django.core import serializers
 from django.contrib.contenttypes.models import ContentType
-from shopback.trades.models import MergeTrade,MergeOrder,MergeBuyerTrade,ReplayPostTrade,WAIT_AUDIT_STATUS,WAIT_PREPARE_SEND_STATUS\
-    ,WAIT_CHECK_BARCODE_STATUS,IN_EFFECT,WAIT_SELLER_SEND_GOODS,WAIT_BUYER_CONFIRM_GOODS
-from shopback.monitor.models import POST_MODIFY_CODE,POST_SUB_TRADE_ERROR_CODE
+from shopback.trades.models import MergeTrade,MergeOrder,MergeBuyerTrade,ReplayPostTrade,FENXIAO_TYPE,TAOBAO_TYPE,WAIT_AUDIT_STATUS,WAIT_PREPARE_SEND_STATUS\
+    ,WAIT_CHECK_BARCODE_STATUS,IN_EFFECT,WAIT_SELLER_SEND_GOODS,WAIT_BUYER_CONFIRM_GOODS,ON_THE_FLY_STATUS,merge_order_maker
+from shopback.monitor.models import POST_MODIFY_CODE,POST_SUB_TRADE_ERROR_CODE,MULTIPLE_ORDERS_CODE,NEW_MERGE_TRADE_CODE
 from shopback.orders.models import REFUND_APPROVAL_STATUS
+from shopback.fenxiao.models import PurchaseOrder
+from shopback.signals import rule_signal
 from auth import apis
 from auth.utils import parse_datetime
 import logging 
@@ -38,7 +40,7 @@ class OrderInline(admin.TabularInline):
 class MergeTradeAdmin(admin.ModelAdmin):
     list_display = ('id','tid','user','buyer_nick','type','payment','create_date','pay_date'
                     ,'status','logistics_company','is_picking_print','is_express_print','is_send_sms'
-                    ,'has_memo','has_refund','sys_status','operator','reason_code')
+                    ,'has_memo','has_refund','sys_status','operator','reason_code','remind_time')
     list_display_links = ('tid',)
     #list_editable = ('update_time','task_type' ,'is_success','status')
 
@@ -61,7 +63,7 @@ class MergeTradeAdmin(admin.ModelAdmin):
     inlines = [OrderInline]
     
     list_filter   = ('sys_status','status','user','type')
-    search_fields = ['buyer_nick','tid','reason_code']
+    search_fields = ['id','buyer_nick','tid','reason_code','operator']
     #--------设置页面布局----------------
     fieldsets =(('订单基本信息:', {
                     'classes': ('collapse',),
@@ -92,14 +94,80 @@ class MergeTradeAdmin(admin.ModelAdmin):
         queryset.filter(sys_status=WAIT_AUDIT_STATUS,reason_code='').exclude(logistics_company=None).update(sys_status=WAIT_PREPARE_SEND_STATUS)
         return queryset
 
-    check_order.short_description = "审核订单".decode('utf8')
-    
-    
-    def sync_trade_post_taobao(self, request, queryset):
+    check_order.short_description = "审核订单".decode('utf8') 
 
+    def merge_order_action(self,request,queryset):
+	myset = queryset.filter(sys_status=WAIT_AUDIT_STATUS)
+	if queryset.count()<2 or myset.count()!=queryset.count():
+	    return 
+	queryset = queryset.order_by('pay_time')	
+	merge_buyer_trades = MergeBuyerTrade.objects.filter(main_tid__in=[t.tid for t in queryset])
+	if merge_buyer_trades.count()>0:
+	    main_merge_tid = merge_buyer_trades[0].main_tid
+	    main_trade = MergeTrade.objects.get(tid=main_merge_tid)
+	else:
+	    main_trade = queryset[0] #主订单
+	
+	queryset = queryset.exclude(tid=main_trade.tid)		
+	main_full_addr = main_trade.user_full_address #主订单收货人地址
+	is_merge_success = False #合单成功
+	merge_trade_ids  = []	 #合单成的订单ID
+	for trade in queryset:
+	    if trade.user_full_address != main_full_addr:
+		is_merge_success = False
+		break
+	    is_merge_success = merge_order_maker(trade.tid,main_trade.tid)
+	    if not is_merge_success:
+		break
+	    merge_trade_ids.append(trade.tid)
+	
+	if is_merge_success:
+	    MergeTrade.objects.filter(tid__in=merge_trade_ids).update(sys_status=ON_THE_FLY_STATUS)
+
+	elif merge_trade_ids:
+	    main_trade.remove_reason_code(NEW_MERGE_TRADE_CODE)
+	    main_trade.append_reason_code(MULTIPLE_ORDERS_CODE)    
+	    for tid in merge_trade_ids:	        
+		sub_orders = MergeOrder.objects.filter(tid=iid)
+		main_trade.merge_trade_orders.filter(oid_in=[o.oid for o in sub_orders]).delete() 
+		MergeBuyerTrade.objects.filter(sub_tid=tid).delete()
+		sub_merge_trade = MergeTrade.objects.get(tid=tid)
+		sub_merge_trade.remove_reason_code(NEW_MERGE_TRADE_CODE)
+		sub_merge_trade.append_reason_code(MULTIPLE_ORDERS_CODE)
+	
+	    main_trade.merge_trade_orders.filter(oid=None).delete()
+	    rule_signal.send(sender='merge_trade_rule',trade_tid=main_trade.tid)  
+	return queryset 	
+	
+    merge_order_action.short_description = "合并订单".decode('utf8')
+
+    def pull_order_action(self, request, queryset):
+        queryset = queryset.filter(sys_status=WAIT_AUDIT_STATUS)
+	for trade in queryset:
+	    try:
+	        if trade.type == TAOBAO_TYPE:
+		    response = apis.taobao_trade_fullinfo_get(tid=trade.tid,tb_user_id=trade.seller_id)
+		    MergeTrade.objects.filter(tid=trade.tid).delete()
+		    trade_dict = response['trade_fullinfo_get_response']['trade']
+		    Trade.save_trade_through_dict(trade.seller_id,trade_dict)
+	        elif trade.type == FENXIAO_TYPE:
+		    purchase = PurchaseOrder.objects.get(id=trade.tid)
+		    response_list = apis.taobao_fenxiao_orders_get(purchase_order_id=purchase.fenxiao_id,tb_user_id=trade.seller_id)
+		    MergeTrade.objects.filter(tid=trade.tid).delete()
+		    orders_list = response_list['fenxiao_orders_get_response']
+	    	    if orders_list['total_results']>0:
+	                for o in orders_list['purchase_orders']['purchase_order']:
+	                    PurchaseOrder.save_order_through_dict(trade.seller_id,o)
+	    except Exception,exc:
+		logger.error(exc.message,exc_info=True)
+        return queryset
+    
+    pull_order_action.short_description = "重新下载".decode('utf8')
+
+    def sync_trade_post_taobao(self, request, queryset):
         trade_ids = [t.id for t in queryset]
-        prapare_trades = queryset.filter(is_picking_print=True,is_express_print=True,sys_status=WAIT_PREPARE_SEND_STATUS
-                                         ,operator=request.user.username).exclude(out_sid='')
+        prapare_trades = queryset.filter(is_picking_print=True,is_express_print=True#,sys_status=WAIT_PREPARE_SEND_STATUS
+                                         ,operator=request.user.username,reason_code='').exclude(out_sid='')
         if prapare_trades.count() == 0:
             return queryset 
         for trade in prapare_trades:
@@ -152,6 +220,8 @@ class MergeTradeAdmin(admin.ModelAdmin):
                     else:
                         MergeTrade.objects.filter(tid=sub_trade.tid).update(sys_status=WAIT_CHECK_BARCODE_STATUS,consign_time=datetime.datetime.now())
 	
+	queryset.exclude(reason_code='').update(sys_status=WAIT_AUDIT_STATUS)
+
         queryset = MergeTrade.objects.filter(id__in=trade_ids)
         post_trades = queryset.filter(sys_status=WAIT_CHECK_BARCODE_STATUS)
         trade_items = {}
@@ -204,10 +274,8 @@ class MergeTradeAdmin(admin.ModelAdmin):
                           
     sync_trade_post_taobao.short_description = "同步发货".decode('utf8')
     
-    actions = ['check_order','sync_trade_post_taobao']
+    actions = ['check_order','sync_trade_post_taobao','merge_order_action','pull_order_action']
     
-    
-
 
 admin.site.register(MergeTrade,MergeTradeAdmin)
 

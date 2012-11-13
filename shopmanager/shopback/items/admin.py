@@ -28,7 +28,7 @@ class ItemAdmin(admin.ModelAdmin):
 
 
     list_filter = ('user','approve_status')
-    search_fields = ['num_iid', 'title']
+    search_fields = ['num_iid', 'outer_id', 'title']
 
 
 admin.site.register(Item, ItemAdmin)
