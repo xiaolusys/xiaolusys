@@ -12,7 +12,8 @@ from chartit import PivotDataPool, PivotChart
 from auth import staff_requried,apis
 from auth.utils import parse_datetime,parse_date,format_time,map_int2str,format_datetime
 from shopback.items.models import Item,Product,ProductSku
-from shopback.orders.models import Order,Trade,ORDER_SUCCESS_STATUS,ORDER_FINISH_STATUS,REFUND_SUCCESS
+from shopback.orders.models import Order,Trade
+from shopback import paramconfig as pcfg
 from shopback.orders.tasks import updateAllUserDuringOrdersTask
 
 
@@ -43,9 +44,9 @@ class UserHourlyOrderView(ModelView):
             queryset = queryset.filter(created__gte=dt_f,created__lt=dt_t)
 
         if pay_type == 'pay':
-            queryset = queryset.filter(status__in = ORDER_SUCCESS_STATUS)
+            queryset = queryset.filter(status__in = pcfg.ORDER_SUCCESS_STATUS)
         elif pay_type == 'finish':
-            queryset = queryset.filter(status = ORDER_FINISH_STATUS)
+            queryset = queryset.filter(status = pcfg.ORDER_FINISH_STATUS)
 
         if queryset.count() == 0:
             raise ErrorResponse(status.HTTP_404_NOT_FOUND,content="No data for these nick!")
@@ -152,9 +153,9 @@ class ProductOrderView(ModelView):
             queryset = queryset.filter(trade__created__gte=dt_f,trade__created__lt=dt_t)
            
         if pay_type == 'pay':
-            queryset = queryset.filter(status__in = ORDER_SUCCESS_STATUS)
+            queryset = queryset.filter(status__in = pcfg.ORDER_SUCCESS_STATUS)
         elif pay_type == 'finish':
-            queryset = queryset.filter(status = ORDER_FINISH_STATUS)
+            queryset = queryset.filter(status = pcfg.ORDER_FINISH_STATUS)
              
         if queryset.count() == 0:
             raise ErrorResponse(status.HTTP_404_NOT_FOUND,content="No data for these nick!")
@@ -276,7 +277,7 @@ class RefundOrderView(ModelView):
         dt_f = parse_date(dt_f)
         dt_t = parse_date(dt_t)+datetime.timedelta(1,0,0)
 
-        queryset = Order.objects.filter(created__gte=dt_f,created__lte=dt_t,refund_status=REFUND_SUCCESS)
+        queryset = Order.objects.filter(created__gte=dt_f,created__lte=dt_t,refund_status=pcfg.REFUND_SUCCESS)
         total_refund_num = queryset.count()
         
         full_refunds_num = 0
@@ -286,7 +287,7 @@ class RefundOrderView(ModelView):
         refund_orders = queryset.values_list('trade',flat=True).distinct('trade')
         for trade in refund_orders:
             trade  = Trade.objects.get(id=trade)
-            refunds = Order.objects.filter(trade=trade).exclude(refund_status=REFUND_SUCCESS)
+            refunds = Order.objects.filter(trade=trade).exclude(refund_status=pcfg.REFUND_SUCCESS)
             if refunds.count()>0:
                 part_refunds_num += 1
                 if trade.consign_time:

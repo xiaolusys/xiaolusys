@@ -7,9 +7,10 @@ from django.conf import settings
 from django.db.models import Sum
 from django.db import transaction
 from auth.utils import format_datetime ,parse_datetime
-from shopback.items.models import Item,ONSALE_STATUS
+from shopback import paramconfig as pcfg
+from shopback.items.models import Item
 from shopback.items.tasks import updateUserItemsTask,updateUserProductSkuTask
-from shopback.orders.models import Order,Trade,ORDER_SUCCESS_STATUS,ORDER_UNPAY_STATUS,ORDER_POST_STATUS,WAIT_SELLER_SEND_GOODS
+from shopback.orders.models import Order,Trade
 from shopback.users.models import User
 from shopapp.syncnum.models import ItemNumTaskLog
 from auth import apis
@@ -33,7 +34,7 @@ def updateItemNum(user_id,num_iid,update_time):
             
             order_nums = 0
             if product.modified < update_time:     
-                wait_nums = Order.objects.filter(outer_id=product.outer_id,outer_sku_id=outer_sku_id,status=WAIT_SELLER_SEND_GOODS)\
+                wait_nums = Order.objects.filter(outer_id=product.outer_id,outer_sku_id=outer_sku_id,status=pcfg.WAIT_SELLER_SEND_GOODS)\
                     .aggregate(sale_nums=Sum('num')).get('sale_nums')
                 wait_nums   = wait_nums or 0
                 remain_nums = product_sku.remain_num or 0
@@ -59,7 +60,7 @@ def updateItemNum(user_id,num_iid,update_time):
     else:
         order_nums = 0
         if product.modified < update_time:
-            wait_nums = Order.objects.filter(outer_id=product.outer_id,status=WAIT_SELLER_SEND_GOODS)\
+            wait_nums = Order.objects.filter(outer_id=product.outer_id,status=pcfg.WAIT_SELLER_SEND_GOODS)\
                     .aggregate(sale_nums=Sum('num')).get('sale_nums')
 
             wait_nums  = wait_nums or 0
@@ -92,7 +93,7 @@ def updateUserItemNumTask(user_id,update_time):
     updateUserItemsTask(user_id)
     updateUserProductSkuTask(user_id)
 
-    items = Item.objects.filter(user__visitor_id=user_id,approve_status=ONSALE_STATUS)
+    items = Item.objects.filter(user__visitor_id=user_id,approve_status=pcfg.ONSALE_STATUS)
     for item in items:
         try:
             updateItemNum(user_id,item.num_iid,update_time)

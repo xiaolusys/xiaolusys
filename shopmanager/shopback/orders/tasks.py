@@ -11,7 +11,7 @@ from shopback.monitor.models import TradeExtraInfo,SystemConfig,DayMonitorStatus
 from auth.utils import format_time,format_datetime,format_year_month,parse_datetime
 from auth.apis.exceptions import RemoteConnectionException,AppCallLimitedException,UserFenxiaoUnuseException,\
     APIConnectionTimeOutException,ServiceRejectionException
-from shopback.trades.models import WAIT_SELLER_SEND_GOODS
+from shopback import paramconfig as pcfg
 from auth import apis
 
 import logging
@@ -23,7 +23,7 @@ TASK_SUCCESS = 'SUCCESS'
 TASK_FAIL = 'FAIL'
 
 
-@task(max_retry=3)
+@task()
 def saveUserDuringOrdersTask(user_id,update_from=None,update_to=None,status=None):
          
     update_from = format_datetime(update_from) if update_from else None
@@ -152,13 +152,13 @@ def updateAllUserIncrementTradesTask():
             bt_dt = dt-updated
             if bt_dt.days>=1:
                 for user in users:
-                    saveUserDuringOrdersTask(user.visitor_id,status=WAIT_SELLER_SEND_GOODS)
+                    saveUserDuringOrdersTask(user.visitor_id,status=pcfg.WAIT_SELLER_SEND_GOODS)
             else:
                 for user in users:
                     saveUserIncrementOrdersTask(user.visitor_id,update_from=updated,update_to=dt)
         else:
             for user in users:
-                saveUserDuringOrdersTask(user.visitor_id,status=WAIT_SELLER_SEND_GOODS)
+                saveUserDuringOrdersTask(user.visitor_id,status=pcfg.WAIT_SELLER_SEND_GOODS)
     except Exception,exc:
         logger.error('%s'%exc,exc_info=True)
     else:

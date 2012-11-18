@@ -56,19 +56,6 @@ class TradeExtraInfo(models.Model):
     class Meta:
         db_table = 'shop_monitor_tradeextrainfo'
  
- 
-NEW_MEMO_CODE = 1     #新留言
-NEW_REFUND_CODE = 2   #新退款
-NEW_MERGE_TRADE_CODE = 3  #新合单
-WAITING_REFUND_CODE = 4   #申请退款中
-RULE_MATCH_CODE = 5   #有规则匹配
-OUT_GOOD_CODE = 6   #订单缺货
-INVALID_END_CODE = 7  #订单非正常结束
-POST_MODIFY_CODE = 8 #订单有改动
-POST_SUB_TRADE_ERROR_CODE = 9 #子订单发货失败，请检查子订单是否退款,(如退款拆包并保留父订单物流单)
-COMPOSE_RULE_ERROR_CODE = 10 #组合商品拆分出错 
-MULTIPLE_ORDERS_CODE = 11 #买家有多单等待合并 
-
 
 
 class Reason(models.Model):

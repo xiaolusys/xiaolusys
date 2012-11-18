@@ -7,6 +7,7 @@ from shopback.base.models import BaseModel
 from shopback.base.fields import BigIntegerAutoField,BigIntegerForeignKey
 from shopback.users.models import User
 from shopback.items.models import Item
+from shopback import paramconfig as pcfg
 from shopback.signals import merge_trade_signal
 from auth import apis
 import logging
@@ -14,52 +15,26 @@ import logging
 logger = logging.getLogger('orders.handler')
 
 
-
-NO_REFUND = 'NO_REFUND'
-REFUND_WAIT_SELLER_AGREE  = 'WAIT_SELLER_AGREE'
-REFUND_WAIT_RETURN_GOODS  = 'WAIT_BUYER_RETURN_GOODS'
-REFUND_CONFIRM_GOODS      = 'WAIT_SELLER_CONFIRM_GOODS'
-REFUND_REFUSE_BUYER       = 'SELLER_REFUSE_BUYER'
-REFUND_CLOSED   = 'CLOSED'
-REFUND_SUCCESS  = 'SUCCESS'
 REFUND_STATUS = (
-    (NO_REFUND,'没有退款'),
-    (REFUND_WAIT_SELLER_AGREE,'等待卖家同意'),
-    (REFUND_WAIT_RETURN_GOODS,'等待买家退货'),
-    (REFUND_CONFIRM_GOODS,'卖家确认收货'),
-    (REFUND_REFUSE_BUYER,'买家拒绝退款'),
-    (REFUND_CLOSED,'退款已关闭'),
-    (REFUND_SUCCESS,'退款已成功'),
+    (pcfg.NO_REFUND,'没有退款'),
+    (pcfg.REFUND_WAIT_SELLER_AGREE,'等待卖家同意'),
+    (pcfg.REFUND_WAIT_RETURN_GOODS,'等待买家退货'),
+    (pcfg.REFUND_CONFIRM_GOODS,'卖家确认收货'),
+    (pcfg.REFUND_REFUSE_BUYER,'买家拒绝退款'),
+    (pcfg.REFUND_CLOSED,'退款已关闭'),
+    (pcfg.REFUND_SUCCESS,'退款已成功'),
 )
-REFUND_APPROVAL_STATUS = [REFUND_WAIT_RETURN_GOODS,REFUND_CONFIRM_GOODS,REFUND_SUCCESS]
-
-TRADE_NO_CREATE_PAY = 'TRADE_NO_CREATE_PAY'
-WAIT_BUYER_PAY      = 'WAIT_BUYER_PAY'
-WAIT_SELLER_SEND_GOODS = 'WAIT_SELLER_SEND_GOODS'
-WAIT_BUYER_CONFIRM_GOODS = 'WAIT_BUYER_CONFIRM_GOODS'
-TRADE_BUYER_SIGNED = 'TRADE_BUYER_SIGNED'
-TRADE_FINISHED     = 'TRADE_FINISHED'
-TRADE_CLOSED       = 'TRADE_CLOSED'
-TRADE_CLOSED_BY_TAOBAO = 'TRADE_CLOSED_BY_TAOBAO'
 
 TAOBAO_TRADE_STATUS = (
-    ('TRADE_NO_CREATE_PAY','没有创建支付宝交易'),
-    ('WAIT_BUYER_PAY','等待买家付款'),
-    ('WAIT_SELLER_SEND_GOODS','等待卖家发货'),
-    ('WAIT_BUYER_CONFIRM_GOODS','等待买家确认收货'),
-    ('TRADE_BUYER_SIGNED','买家已签收,货到付款专用'),
-    ('TRADE_FINISHED','交易成功'),
-    ('TRADE_CLOSED','付款以后用户退款成功，交易自动关闭'),
-    ('TRADE_CLOSED_BY_TAOBAO','付款以前，卖家或买家主动关闭交易'),
+    (pcfg.TRADE_NO_CREATE_PAY,'没有创建支付宝交易'),
+    (pcfg.WAIT_BUYER_PAY,'等待买家付款'),
+    (pcfg.WAIT_SELLER_SEND_GOODS,'等待卖家发货'),
+    (pcfg.WAIT_BUYER_CONFIRM_GOODS,'等待买家确认收货'),
+    (pcfg.TRADE_BUYER_SIGNED,'买家已签收,货到付款专用'),
+    (pcfg.TRADE_FINISHED,'交易成功'),
+    (pcfg.TRADE_CLOSED,'付款以后用户退款成功，交易自动关闭'),
+    (pcfg.TRADE_CLOSED_BY_TAOBAO,'付款以前，卖家或买家主动关闭交易'),
 )
-
-ORDER_SUCCESS_STATUS  = (WAIT_SELLER_SEND_GOODS,WAIT_BUYER_CONFIRM_GOODS,TRADE_BUYER_SIGNED,TRADE_FINISHED)
-ORDER_UNFINISH_STATUS = (WAIT_SELLER_SEND_GOODS,WAIT_BUYER_CONFIRM_GOODS,TRADE_BUYER_SIGNED)
-ORDER_POST_STATUS     = (WAIT_BUYER_CONFIRM_GOODS,TRADE_BUYER_SIGNED,TRADE_FINISHED)
-ORDER_OK_STATUS       = (TRADE_FINISHED,TRADE_CLOSED)
-ORDER_FINISH_STATUS   = TRADE_FINISHED
-ORDER_REFUND_STATUS   = TRADE_CLOSED
-ORDER_UNPAY_STATUS    = WAIT_BUYER_PAY
 
 class Trade(models.Model):
 
@@ -135,6 +110,7 @@ class Trade(models.Model):
             except Exception,exc:
                 logger.error('backend update trade (tid:%s)error'%str(trade_id),exc_info=True)
         return trade
+    
 
 
     @classmethod

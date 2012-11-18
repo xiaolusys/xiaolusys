@@ -181,10 +181,8 @@ def apis(api_method,method='GET',max_retry=3,limit_rate=0.5):
             #refresh user taobao session
             tb_user_id = params.pop('tb_user_id')
             user       = User.objects.get(visitor_id=tb_user_id)
-
             refresh_session(user,settings.APPKEY,settings.APPSECRET,settings.REFRESH_URL)
             #remove the field with value None
-
             params['access_token'] = user.top_session
             params_copy = dict(params)
             for k,v in params_copy.iteritems():
@@ -356,6 +354,7 @@ def taobao_trade_memo_add(tid=None,memo=None,flag=None,tb_user_id=None):
 def taobao_topats_trades_sold_get(start_time=None,end_time=None,fields=API_FIELDS['taobao.trades.sold.get'],tb_user_id=None):
     pass
 
+
 ############# post apis ###################
 @apis('taobao.logistics.companies.get')
 def taobao_logistics_companies_get(fields=API_FIELDS['taobao.logistics.companies.get'],tb_user_id=None):
@@ -406,11 +405,41 @@ def taobao_topats_result_get(task_id=None,tb_user_id=None):
     pass
 
 ################  increament service ###########
+
+@apis('tmall.product.specs.get')
+def tmall_product_specs_get(product_id=None,properties=None,cat_id=None,tb_user_id=None):
+    pass
+
+################## 主动通知接口 ####################
+@apis('taobao.increment.authorize.message.get')
+def taobao_increment_authorize_message_get(topic=None,status=None,nick=None,start_modified=None,end_modified=None,page_no=None,page_size=None,tb_user_id=None):
+    pass
+
 @apis('taobao.increment.customer.permit')
 def taobao_increment_customer_permit(type='get,syn,notify',topics='trade;refund;item',status='all;all;ItemAdd,ItemUpdate',tb_user_id=None):
     pass
 
-@apis('tmall.product.specs.get')
-def tmall_product_specs_get(product_id=None,properties=None,cat_id=None,tb_user_id=None):
+@apis('taobao.increment.customers.get')
+def taobao_increment_customers_get(nicks=None,page_size=None,page_no=None,type=None,fields="nick,created,status,type,subscription",tb_user_id=None):
+    pass
+
+@apis('taobao.increment.customer.stop')
+def taobao_increment_customer_stop(nick=None,type=None,tb_user_id=None):
+    pass
+
+@apis('taobao.comet.discardinfo.get')
+def taobao_comet_discardinfo_get(types=None,user_id=None,start=None,end=None,tb_user_id=None):
+    pass
+
+@apis('taobao.increment.items.get')
+def taobao_increment_items_get(status=None,nick=None,start_modified=None,end_modified=None,page_no=None,page_size=None,tb_user_id=None):
+    pass
+
+@apis('taobao.increment.refunds.get')
+def taobao_increment_refunds_get(status=None,nick=None,start_modified=None,end_modified=None,page_no=None,page_size=None,tb_user_id=None):
+    pass
+
+@apis('taobao.increment.trades.get')
+def taobao_increment_trades_get(status=None,type=None,nick=None,start_modified=None,end_modified=None,page_no=None,page_size=None,tb_user_id=None):
     pass
 

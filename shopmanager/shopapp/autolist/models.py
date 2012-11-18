@@ -12,11 +12,13 @@ UNEXECUTE = 'unexecute'
 EXECERROR = 'execerror'
 SUCCESS   = 'success'
 DELETE    = 'delete'
+UNSCHEDULED = 'unscheduled'
 TASK_STATUS = (
     (UNEXECUTE,'未执行'),
     (EXECERROR,'执行出错'),
     (SUCCESS,'成功'),
     (DELETE,'删除'),
+    (UNSCHEDULED,'未设定')
 )
 
 class TimeSlots(models.Model):

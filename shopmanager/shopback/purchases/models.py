@@ -1,47 +1,37 @@
 #-*- coding:utf8 -*-
 from django.db import models
-from shopback.base.models import NORMAL,DELETE
+from shopback import paramconfig as pcfg
 from shopback.suppliers.models import Supplier
 from shopback.categorys.models import ProductCategory
 
 
-PURCHASE_DRAFT    = 'DRAFT'
-PURCHASE_APPROVAL = 'APPROVAL'
-PURCHASE_RETURN   = 'RETURN'
-PURCHASE_FINISH   = 'FINISH'
-PURCHASE_INVALID  = 'INVALID'  
-PURCHASE_CLOSE    = 'CLOSE'  #退货确认后该交易关闭
-PURCHASE_REWORD   = 'REWORD' #返修
-PURCHASE_REWORDOVER  = 'REWORDOVER' #返修结束
-
-
 PURCHASE_STATUS = (
-    (PURCHASE_DRAFT,'草稿'),
-    (PURCHASE_APPROVAL,'审批'),
-    (PURCHASE_FINISH,'完成'),
-    (PURCHASE_INVALID,'作废'),
+    (pcfg.PURCHASE_DRAFT,'草稿'),
+    (pcfg.PURCHASE_APPROVAL,'审批'),
+    (pcfg.PURCHASE_FINISH,'完成'),
+    (pcfg.PURCHASE_INVALID,'作废'),
 )
 
 PURCHASE_ITEM_STATUS = (
-    (PURCHASE_DRAFT,'草稿'),
-    (PURCHASE_APPROVAL,'审批'),
-    (PURCHASE_RETURN,'退货'),
-    (PURCHASE_CLOSE,'退货关闭'),
-    (PURCHASE_FINISH,'完成'),
-    (PURCHASE_INVALID,'作废'),
-    (PURCHASE_REWORD,'返修'),
-    (PURCHASE_REWORDOVER,'返修结束'),
+    (pcfg.PURCHASE_DRAFT,'草稿'),
+    (pcfg.PURCHASE_APPROVAL,'审批'),
+    (pcfg.PURCHASE_RETURN,'退货'),
+    (pcfg.PURCHASE_CLOSE,'退货关闭'),
+    (pcfg.PURCHASE_FINISH,'完成'),
+    (pcfg.PURCHASE_INVALID,'作废'),
+    (pcfg.PURCHASE_REWORD,'返修'),
+    (pcfg.PURCHASE_REWORDOVER,'返修结束'),
 )
 
 PURCHASE_STORAGE_STATUS = (
-    (PURCHASE_DRAFT,'草稿'),
-    (PURCHASE_APPROVAL,'审批'),
-    (PURCHASE_DRAFT,'草稿'),
+    (pcfg.PURCHASE_DRAFT,'草稿'),
+    (pcfg.PURCHASE_APPROVAL,'审批'),
+    (pcfg.PURCHASE_DRAFT,'草稿'),
 )
 
 PRODUCT_STATUS = (
-    (NORMAL,'使用'),
-    (DELETE,'删除'),
+    (pcfg.NORMAL,'使用'),
+    (pcfg.DELETE,'删除'),
 )
 
 class PurchaseProduct(models.Model):
@@ -55,7 +45,7 @@ class PurchaseProduct(models.Model):
     created      = models.DateTimeField(null=True,blank=True,auto_now_add=True)
     modified     = models.DateTimeField(null=True,blank=True,auto_now=True)
     
-    status       = models.CharField(max_length=16,db_index=True,choices=PRODUCT_STATUS,default=NORMAL)
+    status       = models.CharField(max_length=16,db_index=True,choices=PRODUCT_STATUS,default=pcfg.NORMAL)
     
     class Meta:
         db_table = 'shop_purchase_product'
@@ -75,7 +65,7 @@ class PurchaseProductSku(models.Model):
     created      = models.DateTimeField(null=True,blank=True,auto_now_add=True)
     modified     = models.DateTimeField(null=True,blank=True,auto_now=True)
     
-    status       = models.CharField(max_length=16,db_index=True,choices=PRODUCT_STATUS,default=NORMAL)
+    status       = models.CharField(max_length=16,db_index=True,choices=PRODUCT_STATUS,default=pcfg.NORMAL)
     
     class Meta:
         db_table = 'shop_purchase_productsku'
@@ -130,7 +120,7 @@ class Purchase(models.Model):
     created      = models.DateTimeField(auto_now=True)
     modified     = models.DateTimeField(auto_now_add=True)
     
-    status       = models.CharField(max_length=32,db_index=True,choices=PURCHASE_STATUS,default=PURCHASE_DRAFT)
+    status       = models.CharField(max_length=32,db_index=True,choices=PURCHASE_STATUS,default=pcfg.PURCHASE_DRAFT)
     extra_info   = models.TextField(blank=True)
     
     class Meta:
@@ -162,7 +152,7 @@ class PurchaseItem(models.Model):
     created      = models.DateTimeField(null=True,blank=True,auto_now=True)
     modified     = models.DateTimeField(null=True,blank=True,auto_now_add=True)
     
-    status       = models.CharField(max_length=32,db_index=True,choices=PURCHASE_ITEM_STATUS,default=PURCHASE_DRAFT)
+    status       = models.CharField(max_length=32,db_index=True,choices=PURCHASE_ITEM_STATUS,default=pcfg.PURCHASE_DRAFT)
     extra_info   = models.TextField(blank=True)
     
     class Meta:
@@ -188,7 +178,7 @@ class PurchaseStorage(models.Model):
     created      = models.DateTimeField(auto_now=True)
     modified     = models.DateTimeField(auto_now_add=True)
     
-    status       = models.CharField(max_length=32,db_index=True,choices=PURCHASE_STORAGE_STATUS,default=PURCHASE_DRAFT)
+    status       = models.CharField(max_length=32,db_index=True,choices=PURCHASE_STORAGE_STATUS,default=pcfg.PURCHASE_DRAFT)
     extra_info   = models.TextField(blank=True)
     
     class Meta:
@@ -213,7 +203,7 @@ class PurchaseStorageItem(models.Model):
     created      = models.DateTimeField(null=True,blank=True,auto_now=True)
     modified     = models.DateTimeField(null=True,blank=True,auto_now_add=True)
     
-    status       = models.CharField(max_length=32,db_index=True,choices=PURCHASE_STORAGE_STATUS,default=PURCHASE_DRAFT)
+    status       = models.CharField(max_length=32,db_index=True,choices=PURCHASE_STORAGE_STATUS,default=pcfg.PURCHASE_DRAFT)
     extra_info   = models.TextField(blank=True)
     
     class Meta:

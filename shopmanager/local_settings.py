@@ -2,7 +2,7 @@ __author__ = 'zfz'
 
 import os
 
-DEBUG = True
+DEBUG = False
 TEMPLATE_DEBUG = DEBUG
 
 PROJECT_ROOT = os.path.abspath(os.path.dirname(__file__))
@@ -49,6 +49,8 @@ AUTHRIZE_URL = 'https://oauth.taobao.com/authorize'
 AUTHRIZE_TOKEN_URL = 'https://oauth.taobao.com/token'
 REDIRECT_URI = ''.join([SITE_URL,'accounts/login/auth/'])
 TAOBAO_API_ENDPOINT = 'https://eco.taobao.com/router/rest'
+#TAOBAO_NOTIFY_URL   = 'http://stream.api.taobao.com/stream'
+TAOBAO_NOTIFY_URL   = 'http://localhost:8000/accounts/test/api/'
 
 SCOPE = 'item,promotion,usergrade'
 REFRESH_URL = 'https://oauth.taobao.com/token'

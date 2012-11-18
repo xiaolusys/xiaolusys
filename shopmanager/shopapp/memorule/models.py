@@ -4,11 +4,11 @@ import os.path
 import json
 from django.db import models
 from django.conf import settings
+from shopback import paramconfig as pcfg
 from shopback.items.models import Item,Product,ProductSku
-from shopback.orders.models import Trade,REFUND_APPROVAL_STATUS
+from shopback.orders.models import Trade
 from shopback.fenxiao.models import PurchaseOrder
-from shopback.trades.models import MergeTrade,MergeOrder,WAIT_SELLER_SEND_GOODS,CONFIRM_WAIT_SEND_GOODS,WAIT_CONFIRM_WAIT_SEND_GOODS,IN_EFFECT,INVALID_STATUS
-from shopback.monitor.models import COMPOSE_RULE_ERROR_CODE,RULE_MATCH_CODE
+from shopback.trades.models import MergeTrade,MergeOrder
 from shopback.signals import rule_signal
 import logging
 
@@ -154,16 +154,21 @@ class ComposeItem(models.Model):
     
     
 def rule_match_product(sender, trade_tid, *args, **kwargs):
+    is_rule_match = False
     try:
-        trade = Trade.objects.get(id=trade_tid)
+        trade = MergeTrade.objects.get(tid=trade_tid)
     except Trade.DoesNotExist:
         pass
     else: 
-        orders  = trade.trade_orders.filter(status=WAIT_SELLER_SEND_GOODS).exclude(refund_status__in=REFUND_APPROVAL_STATUS)
+        orders  = trade.merge_trade_orders.filter(status=pcfg.WAIT_SELLER_SEND_GOODS).exclude(refund_status__in=pcfg.REFUND_APPROVAL_STATUS)
         for order in orders:
             rules = ProductRuleField.objects.filter(outer_id=order.outer_tid)
             if rules.count()>0:
-                raise Exception(u'该订单商品有匹配规则')
+                MergeOrder.objects.filter(id=order.id).update(is_rule_match=True)
+                is_rule_match = True
+        if is_rule_match:
+            raise Exception(u'该订单商品有匹配规则')
+                
         
 
 rule_signal.connect(rule_match_product,sender='product_rule',dispatch_uid='rule_match_product')
@@ -176,7 +181,7 @@ def rule_match_trade(sender, trade_tid, *args, **kwargs):
     except Trade.DoesNotExist:
         pass
     else:
-        orders = trade.trade_orders.exclude(refund_status__in=REFUND_APPROVAL_STATUS)
+        orders = trade.trade_orders.exclude(refund_status__in=pcfg.REFUND_APPROVAL_STATUS)
         trade_rules = TradeRule.objects.filter(scope='trade',status='US') 
         memo_list = []
         payment = 0 
@@ -216,8 +221,8 @@ def rule_match_merge_trade(sender, trade_tid, *args, **kwargs):
     else:
 	trade.merge_trade_orders.filter(oid=None).delete()
         try:
-            orders = trade.merge_trade_orders.filter(status__in=(WAIT_SELLER_SEND_GOODS,CONFIRM_WAIT_SEND_GOODS,WAIT_CONFIRM_WAIT_SEND_GOODS)
-                                                     ,sys_status=IN_EFFECT).exclude(refund_status__in=REFUND_APPROVAL_STATUS)
+            orders = trade.merge_trade_orders.filter(status__in=(pcfg.WAIT_SELLER_SEND_GOODS,pcfg.CONFIRM_WAIT_SEND_GOODS,pcfg.WAIT_CONFIRM_WAIT_SEND_GOODS)
+                                                     ,sys_status=pcfg.IN_EFFECT).exclude(refund_status__in=pcfg.REFUND_APPROVAL_STATUS)
             payment = 0 
             for order in orders:
                 payment += float(order.payment)
@@ -226,7 +231,7 @@ def rule_match_merge_trade(sender, trade_tid, *args, **kwargs):
                 except:
                     pass
                 else:
-                    MergeOrder.objects.filter(id=order.id).update(sys_status=INVALID_STATUS)
+                    MergeOrder.objects.filter(id=order.id).update(sys_status=pcfg.INVALID_STATUS)
                     for item in compose_rule.compose_items.all():
                         MergeOrder.gen_new_order(trade_tid,item.outer_id,item.outer_sku_id,item.num*order.num)
     
@@ -247,7 +252,7 @@ def rule_match_merge_trade(sender, trade_tid, *args, **kwargs):
                     break
         except Exception,exc:
             logger.error(exc.message,exc_info=True)
-            trade.append_reason_code(COMPOSE_RULE_ERROR_CODE)
+            trade.append_reason_code(pcfg.COMPOSE_RULE_ERROR_CODE)
             
 rule_signal.connect(rule_match_merge_trade,sender='merge_trade_rule',dispatch_uid='rule_match_merge_trade')
 

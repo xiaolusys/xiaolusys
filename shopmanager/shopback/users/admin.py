@@ -11,7 +11,7 @@ class UserAdmin(admin.ModelAdmin):
     #date_hierarchy = 'modified'
     #ordering = ['created_at']
 
-    list_filter = ('update_items_datetime','status')
+    list_filter = ('status',)
     search_fields = ['nick','craw_keywords','craw_trade_seller_nicks']
 
 

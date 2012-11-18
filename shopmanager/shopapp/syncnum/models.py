@@ -1,6 +1,5 @@
 from django.db import models
 from shopback.base.fields import BigIntegerAutoField
-from shopback.base.models import UNEXECUTE
 
 
     

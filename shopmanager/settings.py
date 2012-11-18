@@ -123,6 +123,7 @@ INSTALLED_APPS = (
     'shopapp.report',
     'shopapp.syncnum',
     'shopapp.asynctask',
+    'shopapp.notify',
 
 )
 
@@ -289,6 +290,16 @@ LOGGING = {
             'propagate': True,
         },
         'tradepost.handler':{
+            'handlers': ['sentry'],
+            'level': 'WARN',
+            'propagate': True,
+        },
+        'notifyserver.handler':{
+            'handlers': ['sentry'],
+            'level': 'WARN',
+            'propagate': True,
+        },
+        'notify.handler':{
             'handlers': ['sentry'],
             'level': 'WARN',
             'propagate': True,

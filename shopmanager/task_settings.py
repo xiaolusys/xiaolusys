@@ -92,11 +92,6 @@ SYNC_MODEL_SCHEDULE = {
 #        'schedule':crontab(minute="30",hour="3",day_of_week='tue'),#
 #        'args':()
 #    },
-#    'runs-every-10-minutes-confirm-delivery-send':{   #更新淘宝发货状态
-#        'task':'shopback.trades.tasks.syncConfirmDeliveryTradeTask',
-#        'schedule':crontab(minute="*/5",hour=','.join([str(i) for i in range(7,24)])),
-#        'args':()
-#    },
 #    'runs-every-day-regular-remaind-order':{     #更新定时提醒订单
 #         'task':'shopback.trades.tasks.regularRemainOrderTask',
 #         'schedule':crontab(minute="10",hour='0'),

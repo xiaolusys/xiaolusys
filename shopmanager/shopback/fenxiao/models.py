@@ -14,6 +14,7 @@ from shopback.base.models import BaseModel
 from shopback.users.models import User
 from shopback.categorys.models import Category
 from shopback.logistics.models import Logistics
+from shopback import paramconfig as pcfg
 from shopback.signals import merge_trade_signal
 from auth import apis
 import logging
@@ -21,46 +22,31 @@ import logging
 logger = logging.getLogger('fenxiao.handler')
 
 
-WAIT_BUYER_PAY = "WAIT_BUYER_PAY"
-WAIT_SELLER_SEND_GOODS   = "WAIT_SELLER_SEND_GOODS"
-WAIT_BUYER_CONFIRM_GOODS = "WAIT_BUYER_CONFIRM_GOODS"
-TRADE_FINISHED = "TRADE_FINISHED"
-TRADE_CLOSED   = "TRADE_CLOSED"
-WAIT_BUYER_CONFIRM_GOODS_ACOUNTED = "WAIT_BUYER_CONFIRM_GOODS_ACOUNTED"
-WAIT_SELLER_SEND_GOODS_ACOUNTED   = "WAIT_SELLER_SEND_GOODS_ACOUNTED"
 
 PURCHASE_ORDER_STATUS = (
-    (WAIT_BUYER_PAY,"等待付款"),
-    (WAIT_SELLER_SEND_GOODS,"已付款，待发货"),
-    (WAIT_BUYER_CONFIRM_GOODS,"已付款，已发货"),
-    (TRADE_FINISHED,"交易成功"),
-    (TRADE_CLOSED,"交易关闭"),
-    (WAIT_BUYER_CONFIRM_GOODS_ACOUNTED,"已付款（已分账），已发货"),
-    (WAIT_SELLER_SEND_GOODS_ACOUNTED,"已付款（已分账），待发货"),
+    (pcfg.WAIT_BUYER_PAY,"等待付款"),
+    (pcfg.WAIT_SELLER_SEND_GOODS,"已付款，待发货"),
+    (pcfg.WAIT_BUYER_CONFIRM_GOODS,"已付款，已发货"),
+    (pcfg.TRADE_FINISHED,"交易成功"),
+    (pcfg.TRADE_CLOSED,"交易关闭"),
+    (pcfg.WAIT_BUYER_CONFIRM_GOODS_ACOUNTED,"已付款（已分账），已发货"),
+    (pcfg.WAIT_SELLER_SEND_GOODS_ACOUNTED,"已付款（已分账），待发货"),
 ) 
 
-WAIT_CONFIRM = "WAIT_CONFIRM"
-WAIT_CONFIRM_WAIT_SEND_GOODS = "WAIT_CONFIRM_WAIT_SEND_GOODS"
-WAIT_CONFIRM_SEND_GOODS    = "WAIT_CONFIRM_SEND_GOODS"
-WAIT_CONFIRM_GOODS_CONFIRM = "WAIT_CONFIRM_GOODS_CONFIRM"
-CONFIRM_WAIT_SEND_GOODS    = "CONFIRM_WAIT_SEND_GOODS"
-CONFIRM_SEND_GOODS   = "CONFIRM_SEND_GOODS"
-TRADE_REFUNDED       = "TRADE_REFUNDED"
-TRADE_REFUNDING      = "TRADE_REFUNDING"
 SUB_PURCHASE_ORDER_STATUS = (
-    (WAIT_BUYER_PAY,"等待付款"),
-    (WAIT_CONFIRM,"付款信息待确认"),
-    (WAIT_CONFIRM_WAIT_SEND_GOODS,"付款信息待确认，待发货"),
-    (WAIT_CONFIRM_SEND_GOODS,"付款信息待确认，已发货"),
-    (WAIT_CONFIRM_GOODS_CONFIRM,"付款信息待确认，已收货"),
-    (WAIT_SELLER_SEND_GOODS,"已付款，待发货"),
-    (WAIT_BUYER_CONFIRM_GOODS,"已付款，已发货"),
-    (CONFIRM_WAIT_SEND_GOODS,"付款信息已确认，待发货"),
-    (CONFIRM_SEND_GOODS,"付款信息已确认，已发货"),
-    (TRADE_REFUNDED,"已退款"),
-    (TRADE_REFUNDING,"退款中"),
-    (TRADE_FINISHED,"交易成功"),
-    (TRADE_CLOSED,"交易关闭"),
+    (pcfg.WAIT_BUYER_PAY,"等待付款"),
+    (pcfg.WAIT_CONFIRM,"付款信息待确认"),
+    (pcfg.WAIT_CONFIRM_WAIT_SEND_GOODS,"付款信息待确认，待发货"),
+    (pcfg.WAIT_CONFIRM_SEND_GOODS,"付款信息待确认，已发货"),
+    (pcfg.WAIT_CONFIRM_GOODS_CONFIRM,"付款信息待确认，已收货"),
+    (pcfg.WAIT_SELLER_SEND_GOODS,"已付款，待发货"),
+    (pcfg.WAIT_BUYER_CONFIRM_GOODS,"已付款，已发货"),
+    (pcfg.CONFIRM_WAIT_SEND_GOODS,"付款信息已确认，待发货"),
+    (pcfg.CONFIRM_SEND_GOODS,"付款信息已确认，已发货"),
+    (pcfg.TRADE_REFUNDED,"已退款"),
+    (pcfg.TRADE_REFUNDING,"退款中"),
+    (pcfg.TRADE_FINISHED,"交易成功"),
+    (pcfg.TRADE_CLOSED,"交易关闭"),
 )
 
 class FenxiaoProduct(models.Model):
@@ -194,6 +180,7 @@ class PurchaseOrder(models.Model):
     def __unicode__(self):
         return str(self.fenxiao_id)
     
+        
     @classmethod
     def save_order_through_dict(cls,seller_id,purchase_order_dict):
         

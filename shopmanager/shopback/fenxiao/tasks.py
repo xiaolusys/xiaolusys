@@ -7,9 +7,9 @@ from celery.task.sets import subtask
 from django.conf import settings
 from auth.utils import format_time,format_datetime,format_year_month,parse_datetime
 from shopback.fenxiao.models import PurchaseOrder,FenxiaoProduct,SubPurchaseOrder
-from shopback.trades.models import WAIT_SELLER_SEND_GOODS 
 from auth.apis.exceptions import UserFenxiaoUnuseException,TaobaoRequestException
 from shopback.monitor.models import TradeExtraInfo,SystemConfig,DayMonitorStatus
+from shopback import paramconfig as pcfg
 from shopback.users.models import User
 from auth import apis
 import logging
@@ -190,13 +190,13 @@ def updateAllUserIncrementPurchasesTask():
             bt_dt = dt-updated
             if bt_dt.days>=1:
                 for user in users:
-                    saveUserPurchaseOrderTask(user.visitor_id,status=WAIT_SELLER_SEND_GOODS)
+                    saveUserPurchaseOrderTask(user.visitor_id,status=pcfg.WAIT_SELLER_SEND_GOODS)
             else:
                 for user in users:
                     saveUserIncrementPurchaseOrderTask(user.visitor_id,update_from=updated,update_to=dt)
         else:
             for user in users:
-                saveUserPurchaseOrderTask(user.visitor_id,status=WAIT_SELLER_SEND_GOODS)
+                saveUserPurchaseOrderTask(user.visitor_id,status=pcfg.WAIT_SELLER_SEND_GOODS)
     except Exception,exc:
         logger.error('%s'%exc,exc_info=True)
     else:

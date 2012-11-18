@@ -13,10 +13,10 @@ from djangorestframework.mixins import CreateModelMixin
 from djangorestframework.views import ModelView
 from django.contrib.auth.decorators import login_required
 from shopback.base.views import ListModelView
-from shopback.base.models import UNEXECUTE
+from shopback import paramconfig as pcfg
 from shopback.categorys.models import Category
-from shopback.items.models import Item,Product,ONSALE_STATUS,INSTOCK_STATUS
-from shopapp.autolist.models import Logs,ItemListTask,TimeSlots,UNEXECUTE
+from shopback.items.models import Item,Product
+from shopapp.autolist.models import Logs,ItemListTask,TimeSlots,UNEXECUTE,UNSCHEDULED
 from auth import apis
 
 
@@ -34,8 +34,6 @@ def pull_from_taobao(request):
 
     items = onsaleItems.get('items_onsale_get_response',[]) and onsaleItems['items_onsale_get_response']['items'].get('item',[])
 
-    session['update_items_datetime'] = datetime.datetime.now()
-
     currItems = profile.items.all()
 
     itemstat = {}
@@ -52,7 +50,7 @@ def pull_from_taobao(request):
     for item in currItems:
         sale_status = itemstat[item.num_iid]['onsale']
         if sale_status == 0:
-            item.approve_status = INSTOCK_STATUS
+            item.approve_status = pcfg.INSTOCK_STATUS
             item.save()
             
     return HttpResponseRedirect(reverse('list_all_items'))
@@ -62,7 +60,7 @@ def pull_from_taobao(request):
 
 def list_all_items(request):
     user = request.user.get_profile()
-    items = user.items.filter(approve_status=ONSALE_STATUS).order_by('list_time')
+    items = user.items.filter(approve_status=pcfg.ONSALE_STATUS).order_by('list_time')
 
     from auth.utils import get_closest_time_slot
 
@@ -83,7 +81,7 @@ def list_all_items(request):
         except ItemListTask.DoesNotExist:
             x.scheduled_day = None
             x.scheduled_hm = None
-            x.status = 'unscheduled'
+            x.status = UNSCHEDULED
             
     return render_to_response("autolist/itemtable.html", {'page':'itemlist', 'items':items}, RequestContext(request))
 
@@ -98,7 +96,7 @@ def show_timetable_cats(request):
     except Category.DoesNotExist:
         category = None
 
-    items = Item.objects.filter(user=user_id, category=category, approve_status=ONSALE_STATUS)
+    items = Item.objects.filter(user=user_id, category=category, approve_status=pcfg.ONSALE_STATUS)
     data = [[],[],[],[],[],[],[]]
     for item in items:
         relist_slot, status = get_closest_time_slot(item.list_time)
@@ -122,7 +120,7 @@ def show_timetable_cats(request):
 
 def show_weektable(request, weekday):
     user_profile = request.user.get_profile()
-    items = Item.objects.filter(user=user_profile,approve_status=ONSALE_STATUS).order_by('category', 'outer_id')
+    items = Item.objects.filter(user=user_profile,approve_status=pcfg.ONSALE_STATUS).order_by('category', 'outer_id')
     timeslots = [int(o.timeslot) for o in TimeSlots.objects.all()]
     cats = {}
     total = 0
@@ -170,7 +168,7 @@ def show_weektable(request, weekday):
 
 def show_time_table_summary(request):
     user_profile = request.user.get_profile()
-    items = Item.objects.filter(user=user_profile,approve_status=ONSALE_STATUS).order_by('category', 'outer_id')
+    items = Item.objects.filter(user=user_profile,approve_status=pcfg.ONSALE_STATUS).order_by('category', 'outer_id')
 
     weekstat = [0,0,0,0,0,0,0]
     data = {}

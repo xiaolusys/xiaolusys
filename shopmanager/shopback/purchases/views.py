@@ -11,7 +11,7 @@ from djangorestframework.renderers import BaseRenderer
 from djangorestframework.response import Response
 from djangorestframework.mixins import CreateModelMixin
 from djangorestframework.views import ModelView,ListOrCreateModelView,InstanceModelView
-from shopback.base.models import NORMAL,DELETE
+from shopback import paramconfig as pcfg
 
 class PurchaseItemView(InstanceModelView):
     """ docstring for PurchaseItemView """

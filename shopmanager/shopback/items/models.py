@@ -9,28 +9,28 @@ import json
 import datetime
 from django.db import models
 from django.db.models import Sum
-from shopback.base.models import BaseModel,NORMAL,DELETE
+from shopback.base.models import BaseModel
 from shopback.base.fields import BigIntegerAutoField
 from shopback.categorys.models import Category,ProductCategory
 from shopback.purchases.models import PurchaseProduct,PurchaseProductSku
+from shopback import paramconfig as pcfg
 from shopback.users.models import User
 from auth import apis
 import logging
 
 logger  = logging.getLogger('items.handler')
 
-ONSALE_STATUS  = 'onsale'
-INSTOCK_STATUS = 'instock'
+
 
 APPROVE_STATUS  = (
-    (ONSALE_STATUS,'出售中'),
-    (INSTOCK_STATUS,'库中'),
+    (pcfg.ONSALE_STATUS,'出售中'),
+    (pcfg.INSTOCK_STATUS,'库中'),
 )
 
 
 PRODUCT_STATUS = (
-    (NORMAL,'使用'),
-    (DELETE,'作废'),
+    (pcfg.NORMAL,'使用'),
+    (pcfg.DELETE,'作废'),
 )
 
 
@@ -62,7 +62,7 @@ class Product(models.Model):
     out_stock    = models.BooleanField(default=False,verbose_name='缺货')
     is_assign    = models.BooleanField(default=False,verbose_name='取消库位警告') #是否手动分配库存，当库存充足时，系统自动设为False，手动分配过后，确定后置为True
     
-    status       = models.CharField(max_length=16,db_index=True,choices=PRODUCT_STATUS,default=NORMAL,verbose_name='商品状态')
+    status       = models.CharField(max_length=16,db_index=True,choices=PRODUCT_STATUS,default=pcfg.NORMAL,verbose_name='商品状态')
     
     class Meta:
         db_table = 'shop_items_product'
@@ -73,7 +73,7 @@ class Product(models.Model):
     
     @property
     def pskus(self):
-        return self.prod_skus.filter(status=NORMAL)
+        return self.prod_skus.filter(status=pcfg.NORMAL)
 
 
 class ProductSku(models.Model):
@@ -100,7 +100,7 @@ class ProductSku(models.Model):
     is_assign    = models.BooleanField(default=False,verbose_name='已分配库存(取消库位警告)') #是否手动分配库存，当库存充足时，系统自动设为False，手动分配过后，确定后置为True
     
     modified = models.DateTimeField(null=True,blank=True,auto_now=True,verbose_name='修改时间')
-    status   = models.CharField(max_length=10,db_index=True,choices=PRODUCT_STATUS,default=NORMAL,verbose_name='规格状态')  #normal,delete
+    status   = models.CharField(max_length=10,db_index=True,choices=PRODUCT_STATUS,default=pcfg.NORMAL,verbose_name='规格状态')  #normal,delete
     
     class Meta:
         db_table = 'shop_items_productsku'

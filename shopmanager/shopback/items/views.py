@@ -11,9 +11,9 @@ from djangorestframework.utils import as_tuple
 from djangorestframework import status
 from djangorestframework.response import Response,ErrorResponse
 from djangorestframework.mixins import CreateModelMixin
+from shopback import paramconfig as pcfg
 from shopback.base.views import ModelView,ListOrCreateModelView,ListModelView
-from shopback.base.models import NORMAL,DELETE
-from shopback.items.models import Item,Product,ProductSku,ONSALE_STATUS
+from shopback.items.models import Item,Product,ProductSku
 from shopback.users.models import User
 from shopback.items.tasks import updateUserItemsTask
 from shopapp.syncnum.tasks import updateItemNum
@@ -77,7 +77,7 @@ class ProductListView(ListOrCreateModelView):
         else:
             ordering = None
 
-        kwargs.update({'status':NORMAL})
+        kwargs.update({'status':pcfg.NORMAL})
 
         if ordering:
             args = as_tuple(ordering)
@@ -104,7 +104,7 @@ class ProductItemView(ListModelView):
         
         update_time  = datetime.datetime.now()
         if sync_stock == 'yes':
-            items = model.objects.filter(outer_id=outer_id,approve_status=ONSALE_STATUS)
+            items = model.objects.filter(outer_id=outer_id,approve_status=pcfg.ONSALE_STATUS)
             for item in items:
                 updateItemNum(item.num_iid,update_time)
         
@@ -131,9 +131,9 @@ class ProductItemView(ListModelView):
         outer_id = kwargs.get('outer_id')
         outer_sku_id = request.REQUEST.get('outer_sku_id',None)
         if outer_sku_id:
-            row = ProductSku.objects.filter(product=outer_id,outer_id=outer_sku_id).update(status=DELETE)
+            row = ProductSku.objects.filter(product=outer_id,outer_id=outer_sku_id).update(status=pcfg.DELETE)
         else:
-            row = Product.objects.filter(outer_id=outer_id).update(status=DELETE)
+            row = Product.objects.filter(outer_id=outer_id).update(status=pcfg.DELETE)
         
         return {'updates_num':row}
     

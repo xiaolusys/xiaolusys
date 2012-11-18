@@ -1,5 +1,5 @@
 #-*- coding:utf8 -*-
-from django.http import HttpResponse,HttpResponseRedirect
+from django.http import HttpResponse,HttpResponseRedirect,HttpResponseBadRequest
 from django.conf import settings
 from django.core.urlresolvers import reverse
 from django.views.decorators.csrf import csrf_exempt
@@ -139,53 +139,61 @@ def test_api(request):
     #response = apis.taobao_itempropvalues_get(cid='50012413',pvs='1627207:3232478',type=1,tb_user_id=174265168)
     #res = response["itempropvalues_get_response"]["prop_values"]["prop_value"]
 
-    from shopback.logistics.models import Logistics
-    logistics  = Logistics.get_or_create(174265168,58497521)
-    print logistics.__dict__
-
 #    url = 'http://stream.api.taobao.com/stream'
 #    import time
 #    import urllib
 #    import pycurl,StringIO
-#    import urllib3 
+#    #import urllib3 
 #    from auth.utils import getSignatureTaoBao
 #    USER_AGENT = 'Mozilla/5.0 (X11; U; Linux x86_64; en-US; rv:1.9.0.1) Gecko/2008071620 Firefox/3.0.1'
 #    HEADERS = ['Accept-Language: en-us,en;q=0.5', 'Accept-Encoding: gzip,deflate', 'Accept-Charset: ISO-8859-1,utf-8;q=0.7,*;q=0.7', 'Keep-Alive: 300', 'Connection: Keep-Alive']
-
-    
+#
+#    
 #    params = {}
 #    params['app_key'] = '12686908'
-    #params['user']    = '174265168'
-    #params['v']       = '2.0'
-    #params['format']  = 'json'
-    #params['sign_method']    = 'md5'
+#    params['user']    = '174265168'
+#    params['v']       = '2.0'
+#    params['format']  = 'json'
+#    params['sign_method']    = 'md5'
 #    params['timestamp'] = int(time.time())
 #    params['sign']    = getSignatureTaoBao(params,'b3ddef5982a23c636739289949c01f59')
-    
-#    print params
-#    manager = urllib3.PoolManager(10,headers=HEADERS)
-#    r = manager.request('POST',url,fields=params)
+#    
+##    print params
+##    manager = urllib3.PoolManager(10,headers=HEADERS)
+##    r = manager.request('POST',url,fields=params)
 ##    http_pool = urllib3.connection_from_url(url)
 ##    r         = http_pool.post_url('/stream', params)
-#    print r.headers
-#
-#    print r.data
-
-#    dev_null = StringIO.StringIO()
+##    print r.headers
+##
+##    print r.data
+#    
+#    def body(buf):
+#        import sys
+#        sys.stdout.write('body :'+buf)
+#        
+#    def header(buf):
+#        import sys
+#        sys.stderr.write('header :'+buf)
+#    
+#    #dev_null = StringIO.StringIO()
 #    pycurlConnect = pycurl.Curl()
 #    #pycurlConnect.setopt(pycurl.HTTPHEADER, HEADERS)
 #    pycurlConnect.setopt(pycurl.URL, url)
 #    pycurlConnect.setopt(pycurl.POSTFIELDS, urllib.urlencode(params))
-#    pycurlConnect.setopt(pycurl.WRITEFUNCTION, dev_null.write)
-#    pycurlConnect.setopt(pycurl.POST, 1)
-#    pycurlConnect.setopt(pycurl.VERBOSE, 1)
-#    #pycurlConnect.perform()
+#    pycurlConnect.setopt(pycurl.WRITEFUNCTION,body)
+#    pycurlConnect.setopt(pycurl.HEADERFUNCTION,header)
+#    #pycurlConnect.setopt(pycurl.POST, 1)
+#    #pycurlConnect.setopt(pycurl.VERBOSE, 1)
+#    pycurlConnect.perform()
 #    pycurlConnect.close()
 #    print dev_null.getvalue()
 #    dev_null.close()
 
-     
+    #response = apis.taobao_comet_discardinfo_get(start='2012-11-13 14:00:00',end='2012-11-13 14:35:00',tb_user_id=174265168)
+    #print response
 
+#    response  = apis.taobao_increment_trades_get(nick=u'优尼世界旗舰店',start_modified='2012-11-13 14:00:00',end_modified='2012-11-13 14:35:00',page_no=1,page_size=10,tb_user_id=174265168)
+#    print response
 #    response_list = apis.taobao_trades_sold_increment_get(tb_user_id='121741189',page_no=1,fields='tid,modified'
 #            ,page_size=settings.TAOBAO_PAGE_SIZE,use_has_next='true',start_modified='2012-10-24 15:00:00',end_modified='2012-10-24 16:25:00')
 #    print response_list
@@ -201,5 +209,5 @@ def test_api(request):
 #    print len(response_list['trades_sold_get_response']['trades']['trade'])
 #    response = apis.taobao_item_skus_get(num_iids="14443413131,4037729908",tb_user_id=profile.visitor_id)
 #    print response
-
-    return HttpResponse('ok')
+    
+    return HttpResponseBadRequest('error') #HttpResponse('ok')

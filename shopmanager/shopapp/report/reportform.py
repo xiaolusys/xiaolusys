@@ -1,8 +1,9 @@
 #-*- coding:utf8 -*-
 from pyExcelerator import Workbook,XFStyle,Font,Formula
-from shopback.orders.models import Order,Trade,ORDER_SUCCESS_STATUS,ORDER_REFUND_STATUS
+from shopback import paramconfig as pcfg
+from shopback.orders.models import Order,Trade
 from shopback.amounts.models import TradeAmount,OrderAmount
-from shopback.refunds.models import Refund ,REFUND_WILL_STATUS
+from shopback.refunds.models import Refund 
 from shopback.logistics.models import Logistics
 from shopback.fenxiao.models import PurchaseOrder
 from shopback.users.models import User
@@ -150,13 +151,13 @@ class TradesToXLSFile(object):
             sheet = self.wb.add_sheet(seller_nick)
 
             seller_finish_trades = consign_trades.filter(
-                user__visitor_id=seller_id,status__in=ORDER_SUCCESS_STATUS)
+                user__visitor_id=seller_id,status__in=pcfg.ORDER_SUCCESS_STATUS)
 
             self.write_trades_to_sheet(sheet,seller_id,seller_finish_trades,TITLE_FIELDS['TRADE_FINISH_MSG'])
 
             seller_purchase_trades = PurchaseOrder.objects.filter(
                 user__visitor_id=seller_id,consign_time__gte=dt_from
-                ,consign_time__lte=dt_to,status__in = ORDER_SUCCESS_STATUS)
+                ,consign_time__lte=dt_to,status__in = pcfg.ORDER_SUCCESS_STATUS)
 
             self.write_purchase_to_sheet(sheet,seller_id,seller_purchase_trades)
 
@@ -166,14 +167,14 @@ class TradesToXLSFile(object):
             trade_sum_row = self.cur_row+1
 
             seller_refund_trades   = Refund.objects.filter(
-                    user__visitor_id=seller_id,status__in=REFUND_WILL_STATUS)
+                    user__visitor_id=seller_id,status__in=pcfg.REFUND_APPROVAL_STATUS)
 
             self.write_refund_to_sheet(sheet,seller_refund_trades,seller_nick,dt_from,dt_to)
 
             refund_sum_row = self.cur_row+1
 
             seller_unfinish_trades = consign_trades.filter(
-                user__visitor_id=seller_id,status=ORDER_REFUND_STATUS)
+                user__visitor_id=seller_id,status=pcfg.ORDER_REFUND_STATUS)
             
             self.cur_row += 1
             self.write_trades_to_sheet(sheet,seller_id,seller_unfinish_trades,TITLE_FIELDS['TRADE_POST_UNFINISH_MSG'])
