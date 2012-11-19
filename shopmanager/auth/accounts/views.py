@@ -204,10 +204,17 @@ def test_api(request):
 #    print trade
 
 #    from shopback.trades.models import WAIT_SELLER_SEND_GOODS
-#    response_list = apis.taobao_trades_sold_get(start_created=None,end_created=None,page_no=1,page_size=100,use_has_next='true',status=WAIT_SELLER_SEND_GOODS,type=None,
+#    response_list = apis.taobao_trades_sold_get(start_created=None,end_created=None,page_no=1,page_size=10,
+#                           use_has_next='true',status="WAIT_SELLER_SEND_GOODS",type=None,
 #                           fields='tid,modified',tb_user_id='174265168')
 #    print len(response_list['trades_sold_get_response']['trades']['trade'])
-#    response = apis.taobao_item_skus_get(num_iids="14443413131,4037729908",tb_user_id=profile.visitor_id)
+    #response = apis.taobao_item_skus_get(num_iids="14443413131,4037729908",tb_user_id=174265168)
+    #print response
+
+#    response = apis.taobao_increment_customer_permit(tb_user_id=174265168)
+#    print response
+    
+#    response = apis.taobao_increment_authorize_message_get(nick='优尼世界旗舰店',topic='item',tb_user_id=174265168)
 #    print response
     
     return HttpResponseBadRequest('error') #HttpResponse('ok')

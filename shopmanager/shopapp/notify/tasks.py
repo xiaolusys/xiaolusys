@@ -6,8 +6,8 @@ from celery.task import task
 from celery.task.sets import subtask
 from django.conf import settings
 from shopback import paramconfig as pcfg
+from shopapp.notify.models import TradeNotify,ItemNotify,RefundNotify
 from shopback.orders.models import Trade
-from shopapp.notify.models import TradeNotify
 from shopback.trades.models import MergeTrade,MergeBuyerTrade
 from shopback.users.models import User
 from auth import apis

@@ -2,7 +2,7 @@ __author__ = 'zfz'
 
 import os
 
-DEBUG = False
+DEBUG = True
 TEMPLATE_DEBUG = DEBUG
 
 PROJECT_ROOT = os.path.abspath(os.path.dirname(__file__))
@@ -42,8 +42,8 @@ SITE_URL = 'http://192.168.1.8/'
 APPKEY = '21165266'  #app name huyi ERP ,younishijie
 APPSECRET  = 'ea5f5687a856ec58199d538cfa04496d'
 
-APPKEY = '12686908'   #app name super ERP ,younishijie
-APPSECRET = 'b3ddef5982a23c636739289949c01f59'
+#APPKEY = '12686908'   #app name super ERP ,younishijie
+#APPSECRET = 'b3ddef5982a23c636739289949c01f59'
 
 AUTHRIZE_URL = 'https://oauth.taobao.com/authorize'
 AUTHRIZE_TOKEN_URL = 'https://oauth.taobao.com/token'

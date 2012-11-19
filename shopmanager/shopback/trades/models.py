@@ -11,7 +11,7 @@ from shopback.orders.models import Trade,Order
 from shopback.items.models import Item,Product,ProductSku
 from shopback.logistics.models import Logistics,LogisticsCompany
 from shopback.fenxiao.models import PurchaseOrder,SubPurchaseOrder,FenxiaoProduct
-from shopback.refunds.models import Refund
+from shopback.refunds.models import Refund,REFUND_STATUS
 from auth.utils import parse_datetime
 from shopback import paramconfig as pcfg
 from shopback.monitor.models import SystemConfig,Reason
@@ -805,7 +805,7 @@ def save_orders_trade_to_mergetrade(sender, trade, *args, **kwargs):
             week  = merge_trade.week,   
         )
         #设置系统内部状态信息
-        trade_download_controller(merge_trade,trade,trade_from,is_first_save) 
+        trade_download_controller(merge_trade,trade,trade_from) 
   
     except Exception,exc:
         logger.error(exc.message,exc_info=True)
@@ -822,7 +822,7 @@ def save_fenxiao_orders_to_mergetrade(sender, trade, *args, **kwargs):
         is_first_save = not merge_trade.sys_status 
         if is_first_save and trade.status not in (pcfg.TRADE_NO_CREATE_PAY,pcfg.WAIT_BUYER_PAY,pcfg.TRADE_CLOSED) :
             logistics = Logistics.get_or_create(trade.seller_id,trade.id)
-            location = json.loads(logistics.location)
+            location = json.loads(logistics.location or 'null')
         
             merge_trade.receiver_name = logistics.receiver_name
             merge_trade.receiver_zip  = location.get('zip','') if location else ''
@@ -915,7 +915,7 @@ def save_fenxiao_orders_to_mergetrade(sender, trade, *args, **kwargs):
             week  = merge_trade.week,
         )
         #更新系统内部状态
-        trade_download_controller(merge_trade,trade,trade_from,is_first_save)
+        trade_download_controller(merge_trade,trade,trade_from)
         
     except Exception,exc:
         logger.error(exc.message,exc_info=True)

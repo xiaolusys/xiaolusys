@@ -4,14 +4,13 @@ import datetime
 from celery.task import task
 from celery.task.sets import subtask
 from django.conf import settings
-from shopback.orders.models import Order,Trade,ORDER_OK_STATUS
+from shopback.orders.models import Order,Trade
 from shopback.monitor.models import TradeExtraInfo
 from shopback.fenxiao.models import PurchaseOrder
 from shopback.users.models import User
 from shopback.amounts.models import TradeAmount
+from shopback import paramconfig as pcfg
 from auth.utils import format_time,format_datetime,format_year_month,parse_datetime
-from auth.apis.exceptions import RemoteConnectionException,AppCallLimitedException,UserFenxiaoUnuseException,\
-    APIConnectionTimeOutException,ServiceRejectionException
 from auth import apis
 
 import logging
@@ -22,7 +21,7 @@ logger = logging.getLogger('orders.handler')
 @task()
 def updateOrdersAmountTask(user_id,update_from=None,update_to=None):
     finish_trades = Trade.objects.filter(user__visitor_id=user_id,consign_time__gte=update_from,
-                                         consign_time__lte=update_to,status__in=ORDER_OK_STATUS)
+                                         consign_time__lte=update_to,status__in=pcfg.ORDER_OK_STATUS)
 
     for trade in finish_trades:
         trade_extra_info,state = TradeExtraInfo.objects.get_or_create(tid=trade.id)
@@ -68,7 +67,7 @@ def updatePurchaseOrdersAmountTask(user_id,update_from=None,update_to=None):
         return 
     
     purchase_orders = PurchaseOrder.objects.filter(user__visitor_id=user_id,consign_time__gte=update_from,
-                                         consign_time__lte=update_to,status__in=ORDER_OK_STATUS)
+                                         consign_time__lte=update_to,status__in=pcfg.ORDER_OK_STATUS)
     
     for order in purchase_orders:
         trade_extra_info,state = TradeExtraInfo.objects.get_or_create(tid=order.id)

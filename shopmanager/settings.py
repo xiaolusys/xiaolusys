@@ -304,6 +304,11 @@ LOGGING = {
             'level': 'WARN',
             'propagate': True,
         },
+        'initservice.handler':{
+            'handlers': ['sentry'],
+            'level': 'WARN',
+            'propagate': True,
+        },
     }
 }
 

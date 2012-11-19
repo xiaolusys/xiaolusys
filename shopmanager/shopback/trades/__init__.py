@@ -4,6 +4,7 @@
          
 #如过该交易是合并后的子订单，如果有新留言或新退款，则需要将他的状态添加到合并主订单上面，
 #并将主订单置为问题单，如果全退，则将子订单的留言备注从主订单删除，并清除合并记录
+"""
 if merge_trade.sys_status == pcfg.ON_THE_FLY_STATUS:
     merge_buyer_trade = MergeBuyerTrade.objects.get(sub_tid=trade.id)
     main_tid = merge_buyer_trade.main_tid
@@ -64,3 +65,4 @@ else:
 
 if merge_trade.out_sid == '':
     merge_trade.sys_status = pcfg.WAIT_AUDIT_STATUS
+"""

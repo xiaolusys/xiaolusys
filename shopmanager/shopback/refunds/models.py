@@ -11,12 +11,12 @@ from shopback.users.models import User
 
 
 REFUND_STATUS = (
-    (pcfg.WAIT_SELLER_AGREE,'买家已经申请退款，等待卖家同意'),
-    (pcfg.WAIT_BUYER_RETURN_GOODS,'卖家已经同意退款，等待买家退货'),
-    (pcfg.WAIT_SELLER_CONFIRM_GOODS,'买家已经退货，等待卖家确认收货'),
-    (pcfg.SELLER_REFUSE_BUYER,'卖家拒绝退款'),
-    (pcfg.CLOSED,'退款关闭'),
-    (pcfg.SUCCESS,'退款成功'),
+    (pcfg.REFUND_WAIT_SELLER_AGREE,'买家已经申请退款，等待卖家同意'),
+    (pcfg.REFUND_WAIT_RETURN_GOODS,'卖家已经同意退款，等待买家退货'),
+    (pcfg.REFUND_CONFIRM_GOODS,'买家已经退货，等待卖家确认收货'),
+    (pcfg.REFUND_REFUSE_BUYER,'卖家拒绝退款'),
+    (pcfg.REFUND_CLOSED,'退款关闭'),
+    (pcfg.REFUND_SUCCESS,'退款成功'),
 )
 
 

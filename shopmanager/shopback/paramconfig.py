@@ -1,3 +1,4 @@
+#-*- coding:utf8 -*-
 #任务状态
 UNEXECUTE = 'unexecute'
 EXECERROR = 'execerror'
