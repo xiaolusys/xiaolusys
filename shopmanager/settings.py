@@ -140,11 +140,10 @@ AUTHENTICATION_BACKENDS = (
     'django.contrib.auth.backends.ModelBackend')
 
 LOGIN_REDIRECT_URL = '/home/'
-
 LOGIN_URL = '/accounts/login/'
-
 LOGOUT_URL = '/accounts/logout/'
 
+TAOBAO_PAGE_SIZE = 100              #the page_size of  per request
 
 LOGGING = {
     'version': 1,

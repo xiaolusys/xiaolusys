@@ -2,30 +2,44 @@
 import djcelery
 djcelery.setup_loader()
 
-CELERY_RESULT_BACKEND = 'database'
+#CELERY_RESULT_BACKEND = 'database'
+#BROKER_BACKEND = "djkombu.transport.DatabaseTransport"
 
-BROKER_BACKEND = "djkombu.transport.DatabaseTransport"
+BROKER_URL = 'amqp://user1:passwd1@192.168.1.101:5672/vhost1'
+CELERY_RESULT_BACKEND = "amqp"
+CELERY_TASK_RESULT_EXPIRES = 18000  # 5 hours.
+BROKER_POOL_LIMIT = 10 # 10 connections
+CELERYD_CONCURRENCY = 8 # 8 processes in parallel
 
-#BROKER_HOST = "localhost"
-#BROKER_PORT = 5672
-#BROKER_USER = "guest"
-#BROKER_PASSWORD = "guest"
-#BROKER_VHOST = "/"
+from kombu import Exchange, Queue
+CELERY_DEFAULT_QUEUE = 'default'
+CELERY_QUEUES = (
+    Queue('default', routing_key='tasks.#'),
+    Queue('item_notify', routing_key='item.#'),
+    Queue('trade_notify', routing_key='trade.#'),
+    Queue('refund_notify', routing_key='refund.#'),
+    Queue('peroid', routing_key='peroid.#'),
+)
 
+CELERY_DEFAULT_EXCHANGE = 'peroid'
+CELERY_DEFAULT_EXCHANGE_TYPE = 'topic'
+CELERY_DEFAULT_ROUTING_KEY = 'peroid.default'
 
-EXECUTE_INTERVAL_TIME = 5*60
+CELERY_ROUTES = {
+        'shopapp.notify.tasks.process_trade_notify_task': {
+            'queue': 'trade_notify',
+            'routing_key': 'trade.process_trade_notify',
+        },
+        'shopapp.notify.tasks.process_item_notify_task': {
+            'queue': 'item_notify',
+            'routing_key': 'item.process_item_notify',
+        },
+        'shopapp.notify.tasks.process_refund_notify_task': {
+            'queue': 'refund_notify',
+            'routing_key': 'refund.process_refund_notify',
+        },
+}
 
-EXECUTE_RANGE_TIME = 3*60
-
-UPDATE_ITEM_NUM_INTERVAL = 2*60
-
-UPDATE_UNPAY_ORDER_INTERVAL = 3*60
-
-TAOBAO_PAGE_SIZE = 100              #the page_size of  per request
-
-PRODUCT_TRADE_RANK_BELOW = 10
-
-MAX_REQUEST_ERROR_TIMES = 15
 
 API_REQUEST_INTERVAL_TIME = 10      #(seconds)
 API_TIME_OUT_SLEEP = 60             #(seconds)
@@ -34,7 +48,7 @@ API_OVER_LIMIT_SLEEP = 180          #(seconds)
 ####### gen trade amount file config #######
 GEN_AMOUNT_FILE_MIN_DAYS = 20
 
-
+####### schedule task  ########
 from celery.schedules import crontab
 from django.core.cache import cache
 try:
@@ -52,26 +66,26 @@ except:
     
 
 SYNC_MODEL_SCHEDULE = {
-    'runs-every-hours-wait-post-orders':{    #增量更新商城订单
-        'task':'shopback.orders.tasks.updateAllUserIncrementTradesTask',
-        'schedule':crontab(minute="*/5"),
-        'args':()
-    },
-    'runs-every-day-increment-orders':{    #更新昨天一整天的商城增量订单
-        'task':'shopback.orders.tasks.updateAllUserIncrementOrdersTask',
-        'schedule':crontab(minute="30",hour="2"),
-        'args':()
-    },
-    'runs-every-hours-wait-post-purchase_orders':{   #增量更新分销订单
-        'task':'shopback.fenxiao.tasks.updateAllUserIncrementPurchasesTask',
-        'schedule':crontab(minute="*/10"),
-        'args':(),
-    },
-    'runs-every-day-increment-purchase-orders':{   #更新昨天一整天的分销增量订单
-        'task':'shopback.fenxiao.tasks.updateAllUserIncrementPurchaseOrderTask',
-        'schedule':crontab(minute="45",hour="2"),
-        'args':()
-    },
+#    'runs-every-hours-wait-post-orders':{    #增量更新商城订单
+#        'task':'shopback.orders.tasks.updateAllUserIncrementTradesTask',
+#        'schedule':crontab(minute="*/5"),
+#        'args':()
+#    },
+#    'runs-every-day-increment-orders':{    #更新昨天一整天的商城增量订单
+#        'task':'shopback.orders.tasks.updateAllUserIncrementOrdersTask',
+#        'schedule':crontab(minute="30",hour="2"),
+#        'args':()
+#    },
+#    'runs-every-hours-wait-post-purchase_orders':{   #增量更新分销订单
+#        'task':'shopback.fenxiao.tasks.updateAllUserIncrementPurchasesTask',
+#        'schedule':crontab(minute="*/10"),
+#        'args':(),
+#    },
+#    'runs-every-day-increment-purchase-orders':{   #更新昨天一整天的分销增量订单
+#        'task':'shopback.fenxiao.tasks.updateAllUserIncrementPurchaseOrderTask',
+#        'schedule':crontab(minute="45",hour="2"),
+#        'args':()
+#    },
 #    'runs-every-day-logistics':{     #更新订单物流信息
 #        'task':'shopback.logistics.tasks.updateAllUserOrdersLogisticsTask',
 #        'schedule':crontab(minute="0",hour="2"),
@@ -101,11 +115,11 @@ SYNC_MODEL_SCHEDULE = {
 
 
 SHOP_APP_SCHEDULE = {
-    'runs-every-5-minutes-item-list':{  #定时上架任务
-        'task':'shopapp.autolist.tasks.updateAllItemListTask',
-        'schedule':crontab(minute='*/10',hour=','.join([str(i) for i in range(7,24)])),
-        'args':(),
-    },
+#    'runs-every-5-minutes-item-list':{  #定时上架任务
+#        'task':'shopapp.autolist.tasks.updateAllItemListTask',
+#        'schedule':crontab(minute='*/10',hour=','.join([str(i) for i in range(7,24)])),
+#        'args':(),
+#    },
 #    'runs-every-30-minutes-keyword-pagerank':{  
 #        'task':'shopapp.collector.tasks.updateItemKeywordsPageRank',
 #        'schedule':crontab(minute="0,30",hour=','.join([str(i) for i in range(7,24)])),
@@ -131,11 +145,11 @@ SHOP_APP_SCHEDULE = {
 #        'schedule':crontab(minute="*/10"),
 #        'args':()
 #    },                    
-    'runs-every-quarter-taobao-async-handle':{     #淘宝异步任务执行主任务
-         'task':'shopapp.asynctask.tasks.taobaoAsyncHandleTask',
-         'schedule':crontab(minute="*/30"),
-         'args':()
-     },           
+#    'runs-every-quarter-taobao-async-handle':{     #淘宝异步任务执行主任务
+#         'task':'shopapp.asynctask.tasks.taobaoAsyncHandleTask',
+#         'schedule':crontab(minute="*/30"),
+#         'args':()
+#     },           
 #    'runs-every-day-item-num':{     #更新库存
 #        'task':'shopapp.syncnum.tasks.updateAllUserItemNumTask',
 #        'schedule':crontab(minute="20",hour="4"),#

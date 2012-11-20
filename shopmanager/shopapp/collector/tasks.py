@@ -13,6 +13,7 @@ logger = logging.getLogger('collector.handler')
 
 ####################################### Keyword Page Rank ############################################
 page_nums = 6
+PRODUCT_TRADE_RANK_BELOW = 10
 
 def saveKeywordPageRank(keyword,month,day,time,created):
 
@@ -169,7 +170,7 @@ def updateProductTradeBySellerTask():
             seller_map_item[user_id] = s_set.union(item_ids)
             seller_map_nick[user_id] = user_nick
 
-    rankset = ProductPageRank.objects.filter(rank__lte=settings.PRODUCT_TRADE_RANK_BELOW
+    rankset = ProductPageRank.objects.filter(rank__lte=PRODUCT_TRADE_RANK_BELOW
             ,created__gte=s_dt_f,created__lte=s_dt_t).values('user_id').distinct('user_id')
 
     for userid in rankset:

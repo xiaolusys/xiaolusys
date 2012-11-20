@@ -152,4 +152,5 @@ def process_refund_increment_notify_task():
 ############################ 丢弃主动消息处理  ###############################
 @task
 def process_discard_notify_task(begin,end):
+    logger.warn('%d:%d'%(begin,end))
     pass

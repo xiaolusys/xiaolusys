@@ -156,9 +156,9 @@ class Item(models.Model):
 
     has_discount = models.BooleanField(default=False,verbose_name='有折扣')
 
-    props = models.TextField(max_length=500,blank=True,verbose_name='商品属性')
+    props = models.TextField(blank=True,verbose_name='商品属性')
     title = models.CharField(max_length=148,blank=True,verbose_name='商品标题')
-    property_alias = models.TextField(max_length=5000,blank=True,verbose_name='自定义属性')
+    property_alias = models.TextField(blank=True,verbose_name='自定义属性')
 
     has_invoice = models.BooleanField(default=False,verbose_name='有发票')
     pic_url     = models.URLField(verify_exists=False,blank=True,verbose_name='商品图片')
@@ -166,8 +166,8 @@ class Item(models.Model):
 
     last_num_updated = models.DateTimeField(null=True,blank=True,verbose_name='最后库存同步日期')  #该件商品最后库存同步日期
     
-    desc = models.TextField(max_length=25000,blank=True,verbose_name='商品描述')
-    skus = models.TextField(max_length=5000,blank=True,verbose_name='规格')
+    desc = models.TextField(blank=True,verbose_name='商品描述')
+    skus = models.TextField(blank=True,verbose_name='规格')
 
     status = models.BooleanField(default=True,verbose_name='系统状态')
     class Meta:

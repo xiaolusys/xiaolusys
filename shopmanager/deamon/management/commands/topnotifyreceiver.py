@@ -16,10 +16,11 @@ import logging
 
 logger = logging.getLogger('notifyserver.handler')
 
-CURL_READ_TIMEOUT    = 10
+CURL_READ_TIMEOUT    = 30
 CURL_CONNECT_TIMEOUT = 60
 
-class Command(DaemonCommand):
+#class Command(DaemonCommand):
+class Command():
     c = None
     fail_wait_time = 0
     
@@ -34,7 +35,7 @@ class Command(DaemonCommand):
                 self.notify()
             except Exception,exc:
                 #服务暂时不可用，休眠一分钟
-                logger.error(exc.message,exc_info=True)
+                logger.error(exc.message or str(exc.args),exc_info=True)
                 time.sleep(60)
             else:
                 #服务端断开连接，则选择服务端返回的时间来休眠
@@ -48,13 +49,14 @@ class Command(DaemonCommand):
         
     def notify(self,user=None):
         params = self.get_params(user=user)
+        print 'debug params:',params
         c = self.get_curl()
         c.setopt(pycurl.URL, settings.TAOBAO_NOTIFY_URL)
         c.setopt(pycurl.POSTFIELDS, urllib.urlencode(params))
         c.setopt(pycurl.WRITEFUNCTION,self.handle_body)
         c.setopt(pycurl.CONNECTTIMEOUT, CURL_CONNECT_TIMEOUT)
         c.setopt(pycurl.TIMEOUT, CURL_READ_TIMEOUT)
-        c.setopt(pycurl.FAILONERROR,True)
+        #c.setopt(pycurl.FAILONERROR,True)
         c.perform()
         
     def get_params(self,user=None):
@@ -70,10 +72,11 @@ class Command(DaemonCommand):
         return params
         
     def handle_body(self,buf):
+        print 'debug buf:',buf
         if not buf:
             return 
         note  = json.loads(buf)
-        code,msg = note['packet']['code'],not['packet'].get('msg',None)
+        code,msg = note['packet']['code'],note['packet'].get('msg',None)
         
         if code == 202:
             if not msg:

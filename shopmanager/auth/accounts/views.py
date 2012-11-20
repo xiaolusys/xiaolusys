@@ -139,24 +139,24 @@ def test_api(request):
     #response = apis.taobao_itempropvalues_get(cid='50012413',pvs='1627207:3232478',type=1,tb_user_id=174265168)
     #res = response["itempropvalues_get_response"]["prop_values"]["prop_value"]
 
-#    url = 'http://stream.api.taobao.com/stream'
-#    import time
-#    import urllib
-#    import pycurl,StringIO
-#    #import urllib3 
-#    from auth.utils import getSignatureTaoBao
+    url = 'http://stream.api.taobao.com/stream'
+    import time
+    import urllib
+    import pycurl,StringIO
+    #import urllib3 
+    from auth.utils import getSignatureTaoBao
 #    USER_AGENT = 'Mozilla/5.0 (X11; U; Linux x86_64; en-US; rv:1.9.0.1) Gecko/2008071620 Firefox/3.0.1'
 #    HEADERS = ['Accept-Language: en-us,en;q=0.5', 'Accept-Encoding: gzip,deflate', 'Accept-Charset: ISO-8859-1,utf-8;q=0.7,*;q=0.7', 'Keep-Alive: 300', 'Connection: Keep-Alive']
 #
 #    
-#    params = {}
-#    params['app_key'] = '12686908'
+    params = {}
+    params['app_key'] = '12686908'
 #    params['user']    = '174265168'
-#    params['v']       = '2.0'
-#    params['format']  = 'json'
-#    params['sign_method']    = 'md5'
-#    params['timestamp'] = int(time.time())
-#    params['sign']    = getSignatureTaoBao(params,'b3ddef5982a23c636739289949c01f59')
+    params['v']       = '2.0'
+    params['format']  = 'json'
+    params['sign_method']    = 'md5'
+    params['timestamp'] = int(time.time())
+    params['sign']    = getSignatureTaoBao(params,'b3ddef5982a23c636739289949c01f59')
 #    
 ##    print params
 ##    manager = urllib3.PoolManager(10,headers=HEADERS)
@@ -167,24 +167,24 @@ def test_api(request):
 ##
 ##    print r.data
 #    
-#    def body(buf):
-#        import sys
-#        sys.stdout.write('body :'+buf)
-#        
-#    def header(buf):
-#        import sys
-#        sys.stderr.write('header :'+buf)
-#    
-#    #dev_null = StringIO.StringIO()
-#    pycurlConnect = pycurl.Curl()
-#    #pycurlConnect.setopt(pycurl.HTTPHEADER, HEADERS)
-#    pycurlConnect.setopt(pycurl.URL, url)
-#    pycurlConnect.setopt(pycurl.POSTFIELDS, urllib.urlencode(params))
-#    pycurlConnect.setopt(pycurl.WRITEFUNCTION,body)
-#    pycurlConnect.setopt(pycurl.HEADERFUNCTION,header)
-#    #pycurlConnect.setopt(pycurl.POST, 1)
-#    #pycurlConnect.setopt(pycurl.VERBOSE, 1)
-#    pycurlConnect.perform()
+    def body(buf):
+        import sys
+        sys.stdout.write('body :'+buf)
+        
+    def header(buf):
+        import sys
+        sys.stderr.write('header :'+buf)
+    
+    #dev_null = StringIO.StringIO()
+    pycurlConnect = pycurl.Curl()
+    #pycurlConnect.setopt(pycurl.HTTPHEADER, HEADERS)
+    pycurlConnect.setopt(pycurl.URL, url)
+    pycurlConnect.setopt(pycurl.POSTFIELDS, urllib.urlencode(params))
+    pycurlConnect.setopt(pycurl.WRITEFUNCTION,body)
+    pycurlConnect.setopt(pycurl.HEADERFUNCTION,header)
+    #pycurlConnect.setopt(pycurl.POST, 1)
+    #pycurlConnect.setopt(pycurl.VERBOSE, 1)
+    pycurlConnect.perform()
 #    pycurlConnect.close()
 #    print dev_null.getvalue()
 #    dev_null.close()

@@ -1,3 +1,4 @@
+#-*- coding:utf-8 -*-
 import datetime
 import time
 from celery.task import task
@@ -16,6 +17,9 @@ logger = logging.getLogger('autolist.handler')
 
 START_TIME = '00:00'
 END_TIME = '23:59'
+#商品上架时间幅度，当前时间加减后的时间间隔
+EXECUTE_RANGE_TIME = 3*60
+#
 
 def write_to_log_db(task, response):
     log = Logs()
@@ -123,7 +127,7 @@ def updateAllItemListTask():
     weekday = currentdate.isoweekday()
 
     date_ago = datetime.datetime.fromtimestamp\
-            (currenttime - settings.EXECUTE_RANGE_TIME)
+            (currenttime - EXECUTE_RANGE_TIME)
 
 
     if date_ago.isoweekday() <weekday:
@@ -132,7 +136,7 @@ def updateAllItemListTask():
         time_ago = format_time(date_ago)
 
     date_future = datetime.datetime.fromtimestamp\
-            (currenttime + settings.EXECUTE_RANGE_TIME)
+            (currenttime + EXECUTE_RANGE_TIME)
     if date_future.isoweekday() >weekday:
         time_future = END_TIME
     else:
