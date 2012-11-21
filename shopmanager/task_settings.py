@@ -12,7 +12,7 @@ BROKER_POOL_LIMIT = 10 # 10 connections
 CELERYD_CONCURRENCY = 8 # 8 processes in parallel
 
 from kombu import Exchange, Queue
-CELERY_DEFAULT_QUEUE = 'default'
+CELERY_DEFAULT_QUEUE = 'peroid'
 CELERY_QUEUES = (
     Queue('default', routing_key='tasks.#'),
     Queue('item_notify', routing_key='item.#'),
@@ -37,6 +37,10 @@ CELERY_ROUTES = {
         'shopapp.notify.tasks.process_refund_notify_task': {
             'queue': 'refund_notify',
             'routing_key': 'refund.process_refund_notify',
+        },
+        'shopapp.notify.tasks.process_discard_notify_task': {
+            'queue': 'peroid',
+            'routing_key': 'refund.process_discard_notify',
         },
 }
 

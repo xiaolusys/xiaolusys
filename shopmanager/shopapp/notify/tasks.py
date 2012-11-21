@@ -42,8 +42,8 @@ def process_trade_notify_task(id):
                         return
                     #如果交易存在，并且等待卖家发货
                     if trade.status == pcfg.WAIT_SELLER_SEND_GOODS:
-                        response    = apis.taobao_trade_get(tid=notify.tid,fields='tid,seller_memo',tb_user_id=notify.user_id)
-                        trade_dict  = response['trade_get_response']['trade']
+                        response    = apis.taobao_trade_fullinfo_get(tid=notify.tid,fields='tid,seller_memo',tb_user_id=notify.user_id)
+                        trade_dict  = response['trade_fullinfo_get_response']['trade']
                         Trade.objects.filter(id=notify.tid).update(modified=notify.modified,seller_memo=trade_dict['seller_memo'])
                         MergeTrade.objects.filter(id=notify.tid).update(modified=notify.modified,seller_memo=trade_dict['seller_memo'])
     
@@ -54,6 +54,7 @@ def process_trade_notify_task(id):
                                                 .exclude(tid=trade.id).order_by('-pay_time')
                         merge_buyer_trades = MergeBuyerTrade.objects.filter(main_tid__in=[t.tid for t in trades])
                         #如果有已有合并记录，则将现有主订单作为合并主订单
+                        main_tid = None
                         if merge_buyer_trades.count()>0:
                             main_merge_tid = merge_buyer_trades[0].main_tid
                             main_trade = MergeTrade.objects.get(tid=main_merge_tid)
@@ -76,9 +77,9 @@ def process_trade_notify_task(id):
                     MergeTrade.objects.filter(tid=notify.tid).update(status=pcfg.TRADE_CLOSED,modified=notify.modified)  
                 #买家付款     
                 elif notify.status == 'TradeBuyerPay':
-                    response    = apis.taobao_trade_fullinfo_get(tid=trade_id,tb_user_id=user_id)
+                    response    = apis.taobao_trade_fullinfo_get(tid=notify.tid,tb_user_id=notify.user_id)
                     trade_dict  = response['trade_fullinfo_get_response']['trade']
-                    trade = Trade.save_trade_through_dict(user_id,trade_dict)
+                    trade = Trade.save_trade_through_dict(notify.user_id,trade_dict)
                 #卖家发货    
                 elif notify.status == 'TradeSellerShip':
                     Trade.objects.filter(id=notify.tid).update(status=pcfg.WAIT_BUYER_CONFIRM_GOODS,modified=notify.modified)
@@ -119,38 +120,186 @@ def process_trade_notify_task(id):
                 logger.error('%d:%s:%d'%(notify.user_id,notify.type,notify.tid))
         except Exception,exc:
             logger.error(exc.message,exc_info=True)
-            raise send_twitter_status.retry(exc=exc,countdown=60)
+            raise process_trade_notify_task.retry(exc=exc,countdown=60)
         else:
             notify.is_exec = True
             notify.save()
             
 ############################ 商品主动消息处理  ###############################
-@task    
+@task(max_retries=3)     
 def process_item_notify_task(id):
     pass
 
 ############################ 退款主动消息处理  ###############################
-@task    
+@task(max_retries=3) 
 def process_refund_notify_task(id):
     pass
+
+############################ 批量下载订单主动消息处理  ###############################
+@task(max_retries=3) 
+def process_trade_interval_notify_task(user_id,update_from=None,update_to=None):
+    
+    try:
+        user = User.objects.get(id=user.id)
+        if not update_from and not update_to:
+            update_from = user.trade_notify_updated
+            updated = update_to   = datetime.datetime.now() - datetime.timedelta(0,3,0)
+        
+        nick = user.nick
+        update_from = update_from.strptime('%Y-%m-%d %H:%M:%S')
+        update_to   = update_to.strptime('%Y-%m-%d %H:%M:%S')
+        
+        has_next = True
+        cur_page = 1
+        
+        while has_next:
+            response_list = apis.taobao_increment_trades_get(tb_user_id=user_id,nick=nick,page_no=cur_page
+                ,page_size=settings.TAOBAO_PAGE_SIZE*2,start_modified=update_from,end_modified=update_to)
+            
+            notify_list = response_list['increment_trades_get_response']['notify_trades']['notify_trade']
+            for notify in notify_list:
+                TradeNotify.save_and_post_notify(notify)
+                
+            total_nums = response_list['increment_trades_get_response']['total_results']
+            cur_nums = cur_page*settings.TAOBAO_PAGE_SIZE*2
+            has_next = cur_nums<total_nums
+            cur_page += 1
+    except Exception,exc:
+        logger.error(exc.message,exc_info=True)
+        raise process_trade_interval_notify_task.retry(exc=exc,countdown=60)
+    else:
+        if not (update_from and update_to):
+            user.trade_notify_updated = updated
+            user.save()
+
+############################ 批量下载商品主动消息处理  ###############################
+@task(max_retries=3)
+def process_item_interval_notify_task(user_id,update_from=None,update_to=None):
+    
+    try:
+        user = User.objects.get(id=user.id)
+        if not update_from and not update_to:
+            update_from = user.trade_notify_updated
+            updated = update_to   = datetime.datetime.now() - datetime.timedelta(0,3,0)
+        
+        nick = user.nick
+        update_from = update_from.strptime('%Y-%m-%d %H:%M:%S')
+        update_to   = update_to.strptime('%Y-%m-%d %H:%M:%S')
+        
+        has_next = True
+        cur_page = 1
+        
+        while has_next:
+            response_list = apis.taobao_increment_items_get(tb_user_id=user_id,nick=nick,page_no=cur_page
+                ,page_size=settings.TAOBAO_PAGE_SIZE*2,start_modified=update_from,end_modified=update_to)
+            
+            notify_list = response_list['increment_items_get_response']['notify_items']['notify_item']
+            for notify in notify_list:
+                ItemNotify.save_and_post_notify(notify)
+                
+            total_nums = response_list['increment_items_get_response']['total_results']
+            cur_nums = cur_page*settings.TAOBAO_PAGE_SIZE*2
+            has_next = cur_nums<total_nums
+            cur_page += 1
+    except Exception,exc:
+        logger.error(exc.message,exc_info=True)
+        raise process_item_interval_notify_task.retry(exc=exc,countdown=60)
+    else:
+        if not (update_from and update_to):
+            user.item_notify_updated = updated
+            user.save()
+            
+
+############################ 批量下载退款主动消息处理  ###############################
+@task(max_retries=3)
+def process_refund_interval_notify_task(user_id,update_from=None,update_to=None):
+    
+    try:
+        user = User.objects.get(id=user.id)
+        if not update_from and not update_to:
+            update_from = user.trade_notify_updated
+            updated = update_to   = datetime.datetime.now() - datetime.timedelta(0,3,0)
+        
+        nick = user.nick
+        update_from = update_from.strptime('%Y-%m-%d %H:%M:%S')
+        update_to   = update_to.strptime('%Y-%m-%d %H:%M:%S')
+    
+        has_next = True
+        cur_page = 1
+        
+        while has_next:
+            response_list = apis.taobao_increment_refunds_get(tb_user_id=user_id,nick=nick,page_no=cur_page
+                ,page_size=settings.TAOBAO_PAGE_SIZE*2,start_modified=update_from,end_modified=update_to)
+            
+            notify_list = response_list['increment_refunds_get_response']['notify_refunds']['notify_refund']
+            for notify in notify_list:
+                RefundNotify.save_and_post_notify(notify)
+                
+            total_nums = response_list['increment_refunds_get_response']['total_results']
+            cur_nums = cur_page*settings.TAOBAO_PAGE_SIZE*2
+            has_next = cur_nums<total_nums
+            cur_page += 1
+    except Exception,exc:
+        logger.error(exc.message,exc_info=True)
+        raise process_refund_interval_notify_task.retry(exc=exc,countdown=60)
+    else:
+        if not (update_from and update_to):
+            user.refund_notify_updated = updated
+            user.save()
+    
 
 ############################ 增量订单主动消息处理  ###############################
 @task
 def process_trade_increment_notify_task():
-    pass
 
+    users = User.objects.all()
+    for user in users:
+
+        process_trade_interval_notify_task.s(user.visitor_id)()
+        
+        
 ############################ 增量商品主动消息处理  ###############################
 @task
 def process_item_increment_notify_task():
-    pass
+    
+    users = User.objects.all()
+    for user in users:
+
+        process_item_interval_notify_task.s(user.visitor_id)()
 
 ############################ 增量退款主动消息处理  ###############################
 @task
 def process_refund_increment_notify_task():
-    pass
+    
+    users = User.objects.all()
+    for user in users:
 
-############################ 丢弃主动消息处理  ###############################
+        process_refund_interval_notify_task.s(user.visitor_id)()
+
+############################ 丢失主动消息处理  ###############################
 @task
-def process_discard_notify_task(begin,end):
-    logger.warn('%d:%d'%(begin,end))
-    pass
+def process_discard_notify_task(begin,end,user_id=None):
+    
+    if not user_id:
+       user_id = User.objects.all()[0].visitor_id
+    
+    sdt = datetime.datetime.fromtimestamp(begin).strptime('%Y-%m-%d %H:%M:%S')
+    edt = datetime.datetime.fromtimestamp(end).strptime('%Y-%m-%d %H:%M:%S')
+       
+    response = apis.taobao_comet_discardinfo_get(start=sdt,end=edt,tb_user_id=user_id)
+    discard_info = response['comet_discardinfo_get_response']['discard_info_list']['discard_info']
+    
+    for info in discard_info:
+        
+        user_id  = info['user_id']
+        nick     = info['nick']
+        start = datetime.datetime.fromtimestamp(info['start'])
+        end   = datetime.datetime.fromtimestamp(info['end'])
+        if info['type'] == 'trade':
+            process_trade_interval_notify_task.s(user_id,nick,update_from=start,update_to=end)()
+            
+        elif info['type'] == 'item':
+            process_item_interval_notify_task.s(user_id,nick,update_from=start,update_to=end)()
+            
+        elif info['type'] == 'refund':
+            process_refund_interval_notify_task.s(user_id,nick,update_from=start,update_to=end)()

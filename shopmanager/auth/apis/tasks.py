@@ -50,6 +50,8 @@ API_FIELDS = {
     'taobao.trades.sold.get':'seller_nick,buyer_nick,title,type,created,tid,status,modified,payment,discount_fee,adjust_fee,post_fee,total_fee,received_payment,commission_fee,buyer_obtain_point_fee'
         +',point_fee,real_point_fee,pic_path,pay_time,end_time,consign_time,num_iid,num,price,shipping_type,receiver_name,receiver_state,receiver_city,receiver_district,receiver_address,receiver_zip'
         +',receiver_mobile,receiver_phone,buyer_message,buyer_memo,seller_memo,orders',
+    'taobao.trade.get':'seller_nick,buyer_nick,title, type,created,tid,seller_rate,buyer_rate,status,payment,discount_fee,adjust_fee,post_fee,total_fee,pay_time,end_time,modified,consign_time,'
+        +'buyer_obtain_point_fee,point_fee,real_point_fee,received_payment,commission_fee,buyer_memo,seller_memo,alipay_no,buyer_message,pic_path,num_iid,num,price,cod_fee,cod_status,shipping_type,orders',
     'taobao.trade.fullinfo.get':'seller_nick,buyer_nick,title,type,created,tid,status,modified,payment,discount_fee,adjust_fee,post_fee,total_fee,received_payment,commission_fee,buyer_obtain_point_fee'
         +',point_fee,real_point_fee,pic_path,pay_time,end_time,consign_time,num_iid,num,price,shipping_type,receiver_name,receiver_state,receiver_city,receiver_district,receiver_address,receiver_zip'
         +',receiver_mobile,receiver_phone,buyer_message,buyer_memo,seller_memo,orders,promotion_details',
@@ -317,7 +319,7 @@ def taobao_item_recommend_add(num_iid=None,tb_user_id=None):
 
 ############# trades apis ###################
 @apis('taobao.trade.get')
-def taobao_trade_get(tid=None,fields=API_FIELDS['taobao.trades.sold.get'],tb_user_id=None):
+def taobao_trade_get(tid=None,fields=API_FIELDS['taobao.trade.get'],tb_user_id=None):
     pass
 
 @apis('taobao.trades.sold.get',max_retry=20,limit_rate=10)

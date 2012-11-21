@@ -310,7 +310,7 @@ class MergeTrade(models.Model):
                         break
                 
                 if is_order_out:
-                     MergeOrder.objects.fiter(tid=trade_id,oid=order.oid).filter(out_stock=True)
+                     MergeOrder.objects.filter(tid=trade_id,oid=order.oid).update(out_stock=True)
                 is_out_stock |= is_order_out
                 
         return is_out_stock
@@ -334,41 +334,7 @@ class MergeTrade(models.Model):
             return True
 
         return False
-    
-    @classmethod
-    def judge_new_refund(cls,trade_id,trade_from):
-        #更新订单实际商品和退款商品数量，返回退款状态
-        has_refund = False
-        has_new_refund = False
-        new_full_refund = False
-        merge_trades = cls.objects.get(tid=trade_id)
-        
-        refund_orders_num = 0
-        if trade_from == pcfg.TAOBAO_TYPE:    
-            trade   = Trade.objects.get(id=trade_id)
-            refund_orders_num   = trade.trade_orders.exclude(refund_status=pcfg.NO_REFUND).count()
-            refund_approval_num = trade.trade_orders.filter(refund_status__in=pcfg.REFUND_APPROVAL_STATUS).count()
-            total_orders_num  = trade.trade_orders.count()
-            quality   = trade.trade_orders.exclude(refund_status__in=pcfg.REFUND_APPROVAL_STATUS)\
-                .aggregate(real_nums=Sum('num'))['real_nums']
-        else:            
-            purchase_trade = PurchaseOrder.objects.get(id=trade_id)
-            refund_approval_num = refund_orders_num = purchase_trade.sub_purchase_orders.filter(status__in=(pcfg.TRADE_REFUNDED,pcfg.TRADE_REFUNDING)).count()
-            total_orders_num  = purchase_trade.sub_purchase_orders.count()
-            quality   = purchase_trade.sub_purchase_orders.filter(status=pcfg.WAIT_SELLER_SEND_GOODS)\
-                .aggregate(real_nums=Sum('num'))['real_nums']
-            
-        if merge_trades.refund_num < refund_orders_num and refund_approval_num==total_orders_num:
-            cls.objects.filter(tid=trade_id).update(total_num=quality,refund_num=refund_orders_num)
-            new_full_refund = True
-            has_new_refund = True
-        elif merge_trades.refund_num < refund_orders_num:
-            cls.objects.filter(tid=trade_id).update(total_num=quality,refund_num=refund_orders_num)
-            has_new_refund = True    
-        else:
-            cls.objects.filter(tid=trade_id).update(total_num=quality)
-        
-        return refund_orders_num>0,has_new_refund,new_full_refund
+
     
     @classmethod
     def judge_rule_match(cls,trade_id,trade_from):
@@ -575,7 +541,7 @@ def merge_order_maker(sub_tid,main_tid):
     return True
 
 
-def trade_download_controller(merge_trade,trade,trade_from):
+def trade_download_controller(merge_trade,trade,trade_from,first_pay_load):
     
     shipping_type = trade.shipping if trade_from==pcfg.FENXIAO_TYPE else trade.shipping_type
     seller_memo   = trade.memo  if hasattr(trade,'memo') else trade.seller_memo
@@ -584,6 +550,9 @@ def trade_download_controller(merge_trade,trade,trade_from):
     merge_trade.has_memo = seller_memo or buyer_message
 
     if trade.status == pcfg.WAIT_SELLER_SEND_GOODS:
+        #如果不是首次付款入库 ，则不做处理
+        if not first_pay_load:
+            return 
         #新留言
         has_new_memo = merge_trade.seller_memo != seller_memo or merge_trade.buyer_message != buyer_message
         if has_new_memo:
@@ -598,7 +567,8 @@ def trade_download_controller(merge_trade,trade,trade_from):
             merge_trade.append_reason_code(pcfg.WAITING_REFUND_CODE)
 
         #设置订单是否有退款属性    
-        merge_trade.has_refund = has_refund
+        merge_trade.has_refund = wait_refunding
+        has_full_refund = MergeTrade.judge_full_refund(trade.id, trade_from)
  
         #缺货 
         out_stock      =  MergeTrade.judge_out_stock(trade.id, trade_from)
@@ -619,7 +589,7 @@ def trade_download_controller(merge_trade,trade,trade_from):
         is_merge_success = False #是否合并成功
         is_need_merge    = False #是否有合并的可能
         main_tid = None  #主订单ID
-        if not full_new_refund and trade_from == pcfg.TAOBAO_TYPE:
+        if not has_full_refund:
             is_need_merge = MergeTrade.judge_merge_need(trade.id,trade.buyer_nick,trade_from,full_address)
             if is_need_merge :
                 trades = MergeTrade.objects.filter(buyer_nick=trade.buyer_nick,sys_status__in=
@@ -712,8 +682,8 @@ def save_orders_trade_to_mergetrade(sender, trade, *args, **kwargs):
     try:
         merge_trade,state = MergeTrade.objects.get_or_create(tid=trade.id)
         
-        is_first_save = not merge_trade.sys_status and trade.status == pcfg.WAIT_SELLER_SEND_GOODS 
-        if is_first_save:
+        first_pay_load = not merge_trade.sys_status  
+        if first_pay_load and trade.status not in (pcfg.WAIT_BUYER_PAY,pcfg.TRADE_NO_CREATE_PAY,pcfg.TRADE_CLOSED,pcfg.TRADE_CLOSED_BY_TAOBAO):
             #保存时
             merge_trade.receiver_name = trade.receiver_name
             merge_trade.receiver_state = trade.receiver_state
@@ -805,7 +775,7 @@ def save_orders_trade_to_mergetrade(sender, trade, *args, **kwargs):
             week  = merge_trade.week,   
         )
         #设置系统内部状态信息
-        trade_download_controller(merge_trade,trade,trade_from) 
+        trade_download_controller(merge_trade,trade,trade_from,first_pay_load) 
   
     except Exception,exc:
         logger.error(exc.message,exc_info=True)
@@ -819,8 +789,8 @@ def save_fenxiao_orders_to_mergetrade(sender, trade, *args, **kwargs):
             return 
         merge_trade,state = MergeTrade.objects.get_or_create(tid=trade.id)
         
-        is_first_save = not merge_trade.sys_status 
-        if is_first_save and trade.status not in (pcfg.TRADE_NO_CREATE_PAY,pcfg.WAIT_BUYER_PAY,pcfg.TRADE_CLOSED) :
+        first_pay_load = not merge_trade.sys_status 
+        if first_pay_load and trade.status not in (pcfg.TRADE_NO_CREATE_PAY,pcfg.WAIT_BUYER_PAY,pcfg.TRADE_CLOSED):
             logistics = Logistics.get_or_create(trade.seller_id,trade.id)
             location = json.loads(logistics.location or 'null')
         
@@ -915,7 +885,7 @@ def save_fenxiao_orders_to_mergetrade(sender, trade, *args, **kwargs):
             week  = merge_trade.week,
         )
         #更新系统内部状态
-        trade_download_controller(merge_trade,trade,trade_from)
+        trade_download_controller(merge_trade,trade,trade_from,first_pay_load)
         
     except Exception,exc:
         logger.error(exc.message,exc_info=True)
