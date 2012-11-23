@@ -37,8 +37,8 @@ admin.site.register(Item, ItemAdmin)
 class ProductAdmin(admin.ModelAdmin):
     list_display = ('id','outer_id','name','category','collect_num','warn_num','remain_num','price','sync_stock','out_stock','create_date','modify_date','status')
     list_display_links = ('id','outer_id',)
-    #list_editable = ('name','collect_num','price')
-
+    list_editable = ('name','collect_num')
+    
     date_hierarchy = 'modified'
     #ordering = ['created_at']
     

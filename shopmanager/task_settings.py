@@ -40,7 +40,23 @@ CELERY_ROUTES = {
         },
         'shopapp.notify.tasks.process_discard_notify_task': {
             'queue': 'peroid',
-            'routing_key': 'refund.process_discard_notify',
+            'routing_key': 'peroid.process_discard_notify',
+        },
+        'shopapp.notify.tasks.process_trade_increment_notify_task': {
+            'queue': 'peroid',
+            'routing_key': 'peroid.process_trade_increment',
+        },
+        'shopapp.notify.tasks.process_item_increment_notify_task': {
+            'queue': 'peroid',
+            'routing_key': 'peroid.process_item_increment',
+        },
+        'shopapp.notify.tasks.process_refund_increment_notify_task': {
+            'queue': 'peroid',
+            'routing_key': 'peroid.process_refund_increment',
+        },
+        'shopapp.notify.tasks.delete_success_notify_record_task': {
+            'queue': 'peroid',
+            'routing_key': 'peroid.delete_success_notify_record',
         },
 }
 
@@ -70,60 +86,50 @@ except:
     
 
 SYNC_MODEL_SCHEDULE = {
-#    'runs-every-hours-wait-post-orders':{    #增量更新商城订单
-#        'task':'shopback.orders.tasks.updateAllUserIncrementTradesTask',
-#        'schedule':crontab(minute="*/5"),
-#        'args':()
-#    },
-#    'runs-every-day-increment-orders':{    #更新昨天一整天的商城增量订单
-#        'task':'shopback.orders.tasks.updateAllUserIncrementOrdersTask',
-#        'schedule':crontab(minute="30",hour="2"),
-#        'args':()
-#    },
-#    'runs-every-hours-wait-post-purchase_orders':{   #增量更新分销订单
-#        'task':'shopback.fenxiao.tasks.updateAllUserIncrementPurchasesTask',
-#        'schedule':crontab(minute="*/10"),
-#        'args':(),
-#    },
-#    'runs-every-day-increment-purchase-orders':{   #更新昨天一整天的分销增量订单
-#        'task':'shopback.fenxiao.tasks.updateAllUserIncrementPurchaseOrderTask',
-#        'schedule':crontab(minute="45",hour="2"),
-#        'args':()
-#    },
-#    'runs-every-day-logistics':{     #更新订单物流信息
-#        'task':'shopback.logistics.tasks.updateAllUserOrdersLogisticsTask',
-#        'schedule':crontab(minute="0",hour="2"),
-#        'args':(None,None)
-#    },
+    'runs-every-half-hour-trade-increment-notify-task':{    #增量更新交易主动通知
+        'task':'shopapp.notify.tasks.process_trade_increment_notify_task',
+        'schedule':crontab(minute="*/30"),
+        'args':()
+    },
+    'runs-every-half-hour-item-increment-notify-task':{    #增量更新商品主动通知
+        'task':'shopapp.notify.tasks.process_item_increment_notify_task',
+        'schedule':crontab(minute="*/30"),
+        'args':()
+    },
+    'runs-every-half-hour-refund-increment-notify-task':{    #增量更新退款主动通知
+        'task':'shopapp.notify.tasks.process_refund_increment_notify_task',
+        'schedule':crontab(minute="*/30"),
+        'args':()
+    },
+    'runs-every-10-minites-fenxiao-increment-purchases':{    #增量更新分销部分订单
+        'task':'shopback.fenxiao.tasks.updateAllUserIncrementPurchasesTask',
+        'schedule':crontab(minute="*/10"),
+        'args':()
+    },
 #    'runs-every-weeks-order-amount':{   #更新用户商城订单结算，按周
 #        'task':'shopback.amounts.tasks.updateAllUserOrdersAmountTask',
-#        'schedule':crontab(minute="0",hour="2",day_of_week="mon"), #
-#        'args':(7,None,None)
+#        'schedule':crontab(minute="0",hour="2"), #
+#        'args':(1,None,None)
 #    },
 #    'runs-every-weeks-purchase-order-amount':{  #更新用户分销订单结算 按周
 #        'task':'shopback.amounts.tasks.updateAllUserPurchaseOrdersAmountTask',
 #        'schedule':crontab(minute="30",hour="2",day_of_week='mon'), #
 #        'args':(7,None,None)
 #    },
-#    'runs-every-weeks-purchase-product':{    #更新用户分销商品
-#        'task':'shopback.fenxiao.tasks.updateAllUserFenxiaoProductTask',
-#        'schedule':crontab(minute="30",hour="3",day_of_week='tue'),#
-#        'args':()
-#    },
-#    'runs-every-day-regular-remaind-order':{     #更新定时提醒订单
-#         'task':'shopback.trades.tasks.regularRemainOrderTask',
-#         'schedule':crontab(minute="10",hour='0'),
-#         'args':()
-#     },
+    'runs-every-day-regular-remaind-order':{     #更新定时提醒订单
+         'task':'shopback.trades.tasks.regularRemainOrderTask',
+         'schedule':crontab(minute="10",hour='0'),
+         'args':()
+     },
 }
 
 
 SHOP_APP_SCHEDULE = {
-#    'runs-every-5-minutes-item-list':{  #定时上架任务
-#        'task':'shopapp.autolist.tasks.updateAllItemListTask',
-#        'schedule':crontab(minute='*/10',hour=','.join([str(i) for i in range(7,24)])),
-#        'args':(),
-#    },
+    'runs-every-5-minutes-item-list':{  #定时上架任务
+        'task':'shopapp.autolist.tasks.updateAllItemListTask',
+        'schedule':crontab(minute='*/10',hour=','.join([str(i) for i in range(7,24)])),
+        'args':(),
+    },
 #    'runs-every-30-minutes-keyword-pagerank':{  
 #        'task':'shopapp.collector.tasks.updateItemKeywordsPageRank',
 #        'schedule':crontab(minute="0,30",hour=','.join([str(i) for i in range(7,24)])),
@@ -159,12 +165,16 @@ SHOP_APP_SCHEDULE = {
 #        'schedule':crontab(minute="20",hour="4"),#
 #        'args':()
 #    },
-
 #    'runs-every-day-product-trade':{
 #        'task':'shopapp.collector.tasks.updateProductTradeBySellerTask',
 #        'schedule':crontab(minute="0",hour="1"),
 #        'args':()
 #    },
+    'runs-every-day-delete-notify-record':{
+        'task':'shopapp.notify.tasks.delete_success_notify_record_task',
+        'schedule':crontab(minute="30",hour="0"),
+        'args':()
+    },
 }
 
 

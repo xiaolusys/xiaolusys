@@ -3,13 +3,14 @@ import json
 import datetime
 from django.contrib import admin
 from django.db import models
+from django.db.models import Q
 from django.forms import TextInput, Textarea
 from django.http import HttpResponse,HttpResponseRedirect
 from django.shortcuts import render_to_response
 from django.template import RequestContext
 from django.core import serializers
 from django.contrib.contenttypes.models import ContentType
-from shopback.trades.models import MergeTrade,MergeOrder,MergeBuyerTrade,ReplayPostTrade,merge_order_maker
+from shopback.trades.models import MergeTrade,MergeOrder,MergeBuyerTrade,ReplayPostTrade,merge_order_maker,merge_order_remover
 from shopback import paramconfig as pcfg
 from shopback.fenxiao.models import PurchaseOrder
 from shopback.signals import rule_signal
@@ -27,10 +28,10 @@ class OrderInline(admin.TabularInline):
     
     model = MergeOrder
     fields = ('oid','outer_id','outer_sku_id','title','buyer_nick','price','payment','num','sku_properties_name',
-                    'refund_id','refund_status','status','sys_status')
+                    'out_stock','is_merge','is_rule_match','refund_id','refund_status','status','sys_status')
     
     formfield_overrides = {
-        models.CharField: {'widget': TextInput(attrs={'size':'15'})},
+        models.CharField: {'widget': TextInput(attrs={'size':'12'})},
         models.TextField: {'widget': Textarea(attrs={'rows':4, 'cols':40})},
     }
 
@@ -77,8 +78,8 @@ class MergeTradeAdmin(admin.ModelAdmin):
                 }),
                 ('系统内部信息:', {
                     'classes': ('collapse',),
-                    'fields': ('operator','weight','post_cost','is_picking_print','is_express_print','is_send_sms','has_memo','has_refund','remind_time'
-                               ,'sys_memo','refund_num','sys_status','reason_code')
+                    'fields': ('operator','weight','post_cost','is_picking_print','is_express_print','is_send_sms','has_memo','has_refund','has_out_stock'
+                               ,'has_rule_match','has_merge','remind_time','sys_memo','refund_num','sys_status','reason_code')
                 }))
 
      #--------定制控件属性----------------
@@ -88,11 +89,22 @@ class MergeTradeAdmin(admin.ModelAdmin):
     }
     
     #--------定义action----------------
-    def check_order(self, request, queryset):
-        queryset.filter(sys_status=pcfg.WAIT_AUDIT_STATUS,reason_code='').exclude(logistics_company=None).update(sys_status=pcfg.WAIT_PREPARE_SEND_STATUS)
+    def check_orders(self, request, queryset):
+        
+        effect_trades = queryset.fliter(sys_status=pcfg.WAIT_AUDIT_STATUS,reason_code='',
+                                        has_refund=False,has_out_stock=False).exclude(logistics_company=None)
+        for trade in effect_trades:
+            rule_signal.send(sender='merge_trade_rule',trade_tid=trade.tid)
+            MergeTrade.objects.filter(id=trade.id,reason_code='').update(
+                                                                         sys_status=pcfg.WAIT_PREPARE_SEND_STATUS,
+                                                                         out_sid='',
+                                                                         is_picking_print=False,
+                                                                         is_express_print=False,
+                                                                         operator='')
+            
         return queryset
 
-    check_order.short_description = "审核订单".decode('utf8') 
+    check_orders.short_description = "审核订单".decode('utf8') 
 
     def merge_order_action(self,request,queryset):
     	myset = queryset.filter(sys_status=pcfg.WAIT_AUDIT_STATUS)
@@ -112,53 +124,43 @@ class MergeTradeAdmin(admin.ModelAdmin):
     	merge_trade_ids  = []	 #合单成的订单ID
     	for trade in queryset:
     	    if trade.user_full_address != main_full_addr:
-    		is_merge_success = False
-    		break
+                is_merge_success = False
+                break
     	    is_merge_success = merge_order_maker(trade.tid,main_trade.tid)
-    	    if not is_merge_success:
-    		break
+            if not is_merge_success:
+                break
     	    merge_trade_ids.append(trade.tid)
     	
     	if is_merge_success:
     	    MergeTrade.objects.filter(tid__in=merge_trade_ids).update(sys_status=pcfg.ON_THE_FLY_STATUS)
     
     	elif merge_trade_ids:
-    	    main_trade.remove_reason_code(pcfg.NEW_MERGE_TRADE_CODE)
-    	    main_trade.append_reason_code(pcfg.MULTIPLE_ORDERS_CODE)    
-    	    for tid in merge_trade_ids:	        
-    		sub_orders = MergeOrder.objects.filter(tid=iid)
-    		main_trade.merge_trade_orders.filter(oid_in=[o.oid for o in sub_orders]).delete() 
-    		MergeBuyerTrade.objects.filter(sub_tid=tid).delete()
-    		sub_merge_trade = MergeTrade.objects.get(tid=tid)
-    		sub_merge_trade.remove_reason_code(pcfg.NEW_MERGE_TRADE_CODE)
-    		sub_merge_trade.append_reason_code(pcfg.MULTIPLE_ORDERS_CODE)
-    	
-    	    main_trade.merge_trade_orders.filter(oid=None).delete()
-    	    rule_signal.send(sender='merge_trade_rule',trade_tid=main_trade.tid)  
+    	    merge_order_remover(main_trade.tid)
+
     	return queryset 	
     	
     merge_order_action.short_description = "合并订单".decode('utf8')
 
     def pull_order_action(self, request, queryset):
         queryset = queryset.filter(sys_status=pcfg.WAIT_AUDIT_STATUS)
-    	for trade in queryset:
-    	    try:
-    	        if trade.type == pcfg.TAOBAO_TYPE:
-    		    response = apis.taobao_trade_fullinfo_get(tid=trade.tid,tb_user_id=trade.seller_id)
-    		    MergeTrade.objects.filter(tid=trade.tid).delete()
-    		    trade_dict = response['trade_fullinfo_get_response']['trade']
-    		    Trade.save_trade_through_dict(trade.seller_id,trade_dict)
-    	        elif trade.type == pcfg.FENXIAO_TYPE:
-    		    purchase = PurchaseOrder.objects.get(id=trade.tid)
-    		    response_list = apis.taobao_fenxiao_orders_get(purchase_order_id=purchase.fenxiao_id,tb_user_id=trade.seller_id)
-    		    MergeTrade.objects.filter(tid=trade.tid).delete()
-    		    orders_list = response_list['fenxiao_orders_get_response']
-    	    	    if orders_list['total_results']>0:
-    	                for o in orders_list['purchase_orders']['purchase_order']:
-    	                    PurchaseOrder.save_order_through_dict(trade.seller_id,o)
-    	    except Exception,exc:
-    		logger.error(exc.message,exc_info=True)
-            return queryset
+        for trade in queryset:
+            try:
+                if trade.type == pcfg.TAOBAO_TYPE:
+                    response = apis.taobao_trade_fullinfo_get(tid=trade.tid,tb_user_id=trade.seller_id)
+                    MergeTrade.objects.filter(tid=trade.tid).delete()
+                    trade_dict = response['trade_fullinfo_get_response']['trade']
+                    Trade.save_trade_through_dict(trade.seller_id,trade_dict)
+                elif trade.type == pcfg.FENXIAO_TYPE:
+                    purchase = PurchaseOrder.objects.get(id=trade.tid)
+                    response_list = apis.taobao_fenxiao_orders_get(purchase_order_id=purchase.fenxiao_id,tb_user_id=trade.seller_id)
+                    MergeTrade.objects.filter(tid=trade.tid).delete()
+                    orders_list = response_list['fenxiao_orders_get_response']
+                    if orders_list['total_results']>0:
+                        for o in orders_list['purchase_orders']['purchase_order']:
+                            PurchaseOrder.save_order_through_dict(trade.seller_id,o)
+            except Exception,exc:
+                logger.error(exc.message,exc_info=True)
+        return queryset
 
     pull_order_action.short_description = "重新下载".decode('utf8')
 
@@ -272,7 +274,7 @@ class MergeTradeAdmin(admin.ModelAdmin):
                           
     sync_trade_post_taobao.short_description = "同步发货".decode('utf8')
     
-    actions = ['check_order','sync_trade_post_taobao','merge_order_action','pull_order_action']
+    actions = ['check_orders','sync_trade_post_taobao','merge_order_action','pull_order_action']
     
 
 admin.site.register(MergeTrade,MergeTradeAdmin)

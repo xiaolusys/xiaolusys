@@ -294,16 +294,11 @@ LOGGING = {
             'propagate': True,
         },
         'notifyserver.handler':{
-            'handlers': ['sentry'],
+            'handlers': ['sentry','console'],
             'level': 'WARN',
             'propagate': True,
         },
         'notify.handler':{
-            'handlers': ['sentry'],
-            'level': 'WARN',
-            'propagate': True,
-        },
-        'initservice.handler':{
             'handlers': ['sentry'],
             'level': 'WARN',
             'propagate': True,

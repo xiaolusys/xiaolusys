@@ -72,7 +72,8 @@ class Trade(models.Model):
     buyer_message    =  models.TextField(max_length=1000,blank=True)
     buyer_memo       =  models.TextField(max_length=1000,blank=True)
     seller_memo      =  models.TextField(max_length=1000,blank=True)
-
+    seller_flag      = models.IntegerField(null=True)
+    
     seller_cod_fee = models.CharField(max_length=10,blank=True)
     buyer_cod_fee  = models.CharField(max_length=10,blank=True)
     cod_fee        = models.CharField(max_length=10,blank=True)

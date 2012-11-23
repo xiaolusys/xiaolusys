@@ -166,7 +166,8 @@ class PurchaseOrder(models.Model):
     shipping   = models.CharField(max_length=10,blank=True)
     trade_type = models.CharField(max_length=10,blank=True)
     memo       = models.TextField(max_length=1000,blank=True)
-
+    supplier_flag  = models.IntegerField(null=True)
+    
     created    = models.DateTimeField(null=True,blank=True)
     modified   = models.DateTimeField(null=True,blank=True)
     

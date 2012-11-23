@@ -199,9 +199,9 @@ def test_api(request):
 #    print response_list
 
 #    from shopback.orders.models import Trade,Order
-    response = apis.taobao_trade_fullinfo_get(tid=174808452614926,tb_user_id=174265168)
-    #trade = Trade.save_trade_through_dict(174265168,response['trade_fullinfo_get_response']['trade'])
-    print response
+#    response = apis.taobao_trade_fullinfo_get(tid=61119154,tb_user_id=174265168)
+#    #trade = Trade.save_trade_through_dict(174265168,response['trade_fullinfo_get_response']['trade'])
+#    print response
 
 #    from shopback.trades.models import WAIT_SELLER_SEND_GOODS
 #    response_list = apis.taobao_trades_sold_get(start_created=None,end_created=None,page_no=1,page_size=10,
@@ -217,4 +217,11 @@ def test_api(request):
 #    response = apis.taobao_increment_authorize_message_get(nick='优尼世界旗舰店',topic='item',tb_user_id=174265168)
 #    print response
     
+#    response = apis.taobao_fenxiao_orders_get(tb_user_id=174265168,fields='fenxiao_id,id',page_no=1,start_created='2012-11-17 00:00:00',end_created='2012-11-22 00:00:00'
+#                                              ,time_type='trade_time_type',page_size=50,status='WAIT_SELLER_SEND_GOODS')
+#    print response
+    
+#    response = apis.taobao_logistics_orders_detail_get(tid=61119154,tb_user_id=174265168)
+#    print response
     return HttpResponseBadRequest('error') #HttpResponse('ok')
+

@@ -36,7 +36,7 @@ class Command():
             except Exception,exc:
                 #服务暂时不可用，休眠一分钟
                 logger.error(exc.message or str(exc.args),exc_info=True)
-                time.sleep(60)
+                time.sleep(30)
             else:
                 #服务端断开连接，则选择服务端返回的时间来休眠
                 time.sleep(self.fail_wait_time or 5)
@@ -54,8 +54,8 @@ class Command():
         c.setopt(pycurl.POSTFIELDS, urllib.urlencode(params))
         c.setopt(pycurl.WRITEFUNCTION,self.handle_body)
         c.setopt(pycurl.HEADERFUNCTION,self.handle_header)
-        c.setopt(pycurl.CONNECTTIMEOUT, CURL_CONNECT_TIMEOUT)
-        c.setopt(pycurl.TIMEOUT, CURL_READ_TIMEOUT)
+        #c.setopt(pycurl.CONNECTTIMEOUT, CURL_CONNECT_TIMEOUT)
+        #c.setopt(pycurl.TIMEOUT, CURL_READ_TIMEOUT)
         c.setopt(pycurl.FAILONERROR,True)
         c.perform()
         
@@ -72,10 +72,10 @@ class Command():
         return params
     
     def handle_header(self,buf):
-        print 'header :',buf    
+        print 'header:'+buf    
     
     def handle_body(self,buf):
-        print 'body :',buf
+        print 'body:'+buf
         if not buf:
             return 
         note  = json.loads(buf)

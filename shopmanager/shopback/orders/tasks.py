@@ -23,50 +23,39 @@ TASK_SUCCESS = 'SUCCESS'
 TASK_FAIL = 'FAIL'
 
 
-@task()
+@task(max_retry=3)
 def saveUserDuringOrdersTask(user_id,update_from=None,update_to=None,status=None):
-         
-    update_from = format_datetime(update_from) if update_from else None
-    update_to   = format_datetime(update_to) if update_to else None
-    
-    has_next = True
-    cur_page = 1
-   
-    from shopback.trades.models import MergeTrade
-    while has_next:
-        response_list = apis.taobao_trades_sold_get(tb_user_id=user_id,page_no=cur_page,use_has_next='true',fields='tid,modified'
-            ,page_size=settings.TAOBAO_PAGE_SIZE,start_created=update_from,end_created=update_to,status=status)
-
-        order_list = response_list['trades_sold_get_response']
-        if order_list.has_key('trades'):
-            for trade in order_list['trades']['trade']:
-                modified = parse_datetime(trade['modified']) if trade.get('modified',None) else None
-                need_pull = MergeTrade.judge_need_pull(trade['tid'],modified)
-                if need_pull:
-                    try:
-                        response = apis.taobao_trade_fullinfo_get(tid=trade['tid'],tb_user_id=user_id)
-                        trade_dict = response['trade_fullinfo_get_response']['trade']
-                        Trade.save_trade_through_dict(user_id,trade_dict)
-                    except Exception,exc:
-                        logger.error('update trade fullinfo error:%s'%exc,exc_info=True)
-
-        has_next = order_list['has_next']
-        cur_page += 1
-
-
-
-
-@task()
-def updateAllUserDuringOrdersTask(update_from=None,update_to=None,status=None):
-
-
-    users = User.objects.all()
-
-    for user in users:
+    """ 下载用户商城订单 """
+    try: 
+        update_from = format_datetime(update_from) if update_from else None
+        update_to   = format_datetime(update_to) if update_to else None
         
-        saveUserDuringOrdersTask(user.visitor_id,update_from=update_from,update_to=update_to,status=status)
-   
-
+        has_next = True
+        cur_page = 1
+       
+        from shopback.trades.models import MergeTrade
+        while has_next:
+            response_list = apis.taobao_trades_sold_get(tb_user_id=user_id,page_no=cur_page,use_has_next='true',fields='tid,modified'
+                ,page_size=settings.TAOBAO_PAGE_SIZE,start_created=update_from,end_created=update_to,status=status)
+    
+            order_list = response_list['trades_sold_get_response']
+            if order_list.has_key('trades'):
+                for trade in order_list['trades']['trade']:
+                    modified = parse_datetime(trade['modified']) if trade.get('modified',None) else None
+                    need_pull = MergeTrade.judge_need_pull(trade['tid'],modified)
+                    if need_pull:
+                        try:
+                            response = apis.taobao_trade_fullinfo_get(tid=trade['tid'],tb_user_id=user_id)
+                            trade_dict = response['trade_fullinfo_get_response']['trade']
+                            Trade.save_trade_through_dict(user_id,trade_dict)
+                        except Exception,exc:
+                            logger.error('update trade fullinfo error:%s'%exc,exc_info=True)
+    
+            has_next = order_list['has_next']
+            cur_page += 1
+    except Exception,exc:
+        logger.error(exc.message,exc_info=True)
+        raise saveUserDuringOrdersTask.retry(exc=exc,countdown=60)
 
 
 

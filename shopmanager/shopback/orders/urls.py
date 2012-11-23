@@ -11,7 +11,6 @@ from shopback.orders.resources import ChartJsonResource
 
 urlpatterns = patterns('shopback.orders.views',
 
-    url('update/(?P<dt_f>[^/]+)/(?P<dt_t>[^/]+)/$','update_interval_trade',name='interval_trade'),
 
     (r'^ordernum/pivotchart/(?P<dt_f>[^/]+)/(?P<dt_t>[^/]+)/$',UserHourlyOrderView.as_view(
         resource=ChartsResource,
