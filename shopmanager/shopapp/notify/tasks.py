@@ -82,7 +82,34 @@ def process_trade_notify_task(id):
         elif notify.status == 'TradeSuccess':
             Trade.objects.filter(id=notify.tid).update(status=pcfg.TRADE_FINISHED,modified=notify.modified)
             MergeTrade.objects.filter(tid=notify.tid).update(status=pcfg.TRADE_FINISHED,modified=notify.modified)
-
+        #修改地址
+        elif notify.status == 'TradeLogisticsAddressChanged':
+            trade = MergeTrade.objects.get(tid=notify.tid)
+            response    = apis.taobao_logistics_orders_get(tid=notify.tid,tb_user_id=notify.user_id)
+            ship_dict  = response['logistics_orders_get_response']['shippings']['shipping'][0]
+            Logistics.save_logistics_through_dict(notify.user_id,ship_dict)
+            
+            trade.append_reason_code(pcfg.ADDR_CHANGE_CODE)
+            MergeTrade.objects.filter(tid=notify.tid).update(
+                                                            receiver_name  = ship_dict['receiver_name'],
+                                                            receiver_state = ship_dict['receiver_state'],
+                                                            receiver_city  = ship_dict['receiver_city'],
+                                                            receiver_district = ship_dict['receiver_district'],
+                                                            receiver_address  = ship_dict['receiver_address'],
+                                                            receiver_zip   = ship_dict['receiver_zip'],
+                                                            receiver_mobile   = ship_dict['receiver_mobile'],
+                                                            receiver_phone = ship_dict['receiver_phone'])
+            MergeTrade.objects.filter(tid=notify.tid,out_sid='',sys_statu__in=pcfg.WAIT_DELIVERY_STATUS)\
+                .update(sys_status=pcfg.WAIT_AUDIT_STATUS,modified=notify.modified)
+            try:
+                main_tid = MergeBuyerTrade.objects.filter(sub_tid=trade.tid).main_tid
+            except:
+                pass
+            else:
+                main_trade = MergeTrade.objects.get(tid=main_tid)
+                main_trade.append_reason_code(pcfg.ADDR_CHANGE_CODE)
+                MergeTrade.objects.filter(tid=main_tid,out_sid='',sys_statu__in=pcfg.WAIT_DELIVERY_STATUS)\
+                    .update(sys_status=pcfg.WAIT_AUDIT_STATUS)
         
     except Exception,exc:
         logger.error(exc.message,exc_info=True)
@@ -145,7 +172,6 @@ def process_refund_notify_task(id):
             has_refunding = merge_trade.has_trade_refunding()
             MergeTrade.objects.filter(tid=notify.tid).update(modified=notify.modified,has_refund=has_refunding)
             
-       
     except Exception,exc:
         logger.error(exc.message,exc_info=True)
         raise process_refund_notify_task.retry(exc=exc,countdown=60)
@@ -161,8 +187,8 @@ def process_trade_interval_notify_task(user_id,update_from=None,update_to=None):
     try:
         user = User.objects.get(visitor_id=user_id)
         if not update_handler:
-            update_from = user.trade_notify_updated
-            updated = update_to   = datetime.datetime.now() - datetime.timedelta(0,3,0)
+            update_from = user.trade_notify_updated - datetime.timedelta(0,3,0)
+            updated = update_to   = datetime.datetime.now()
         
         nick = user.nick
         update_from = update_from.strftime('%Y-%m-%d %H:%M:%S')
@@ -199,8 +225,8 @@ def process_item_interval_notify_task(user_id,update_from=None,update_to=None):
     try:
         user = User.objects.get(visitor_id=user_id)
         if not update_handler:
-            update_from = user.trade_notify_updated
-            updated = update_to   = datetime.datetime.now() - datetime.timedelta(0,3,0)
+            update_from = user.trade_notify_updated - datetime.timedelta(0,3,0)
+            updated = update_to   = datetime.datetime.now() 
         
         nick = user.nick
         update_from = update_from.strftime('%Y-%m-%d %H:%M:%S')
@@ -238,8 +264,8 @@ def process_refund_interval_notify_task(user_id,update_from=None,update_to=None)
     try:
         user = User.objects.get(visitor_id=user_id)
         if not update_handler:
-            update_from = user.trade_notify_updated
-            updated = update_to   = datetime.datetime.now() - datetime.timedelta(0,3,0)
+            update_from = user.trade_notify_updated - datetime.timedelta(0,3,0)
+            updated = update_to = datetime.datetime.now()
         
         nick = user.nick
         update_from = update_from.strftime('%Y-%m-%d %H:%M:%S')

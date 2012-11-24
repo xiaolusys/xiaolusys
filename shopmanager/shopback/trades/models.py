@@ -261,14 +261,9 @@ class MergeTrade(models.Model):
         
     def has_trade_refunding(self):
         #判断是否有等待退款的订单
-        if self.type == 'fenxiao':
-            sub_orders = SubPurchaseOrder.objects.filter(id=self.tid,status=pcfg.TRADE_REFUNDING)
-            if sub_orders.count()>0:
-                return True
-        else:
-            orders = Order.objects.filter(trade=self.tid,refund_status=pcfg.REFUND_WAIT_SELLER_AGREE)
-            if orders.count()>0:
-                return True
+        orders = self.merge_trade_orders.filter(refund_status=pcfg.REFUND_WAIT_SELLER_AGREE)
+        if orders.count()>0:
+            return True
         return False
    
     @classmethod
