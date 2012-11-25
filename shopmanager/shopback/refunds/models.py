@@ -9,7 +9,9 @@ from shopback.base.fields import BigIntegerAutoField,BigIntegerForeignKey
 from shopback import paramconfig as pcfg
 from shopback.users.models import User
 from auth import apis
+import logging
 
+logger = logging.getLogger('refunds.handler')
 
 REFUND_STATUS = (
     (pcfg.REFUND_WAIT_SELLER_AGREE,'买家已经申请退款'),

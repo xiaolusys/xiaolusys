@@ -123,7 +123,7 @@ def process_trade_notify_task(id):
 def process_item_notify_task(id):
 
     try:
-        notify = TradeNotify.objects.get(id=id)
+        notify = ItemNotify.objects.get(id=id)
         pass
     except Exception,exc:
         logger.error(exc.message,exc_info=True)
@@ -137,13 +137,13 @@ def process_item_notify_task(id):
 def process_refund_notify_task(id):
     """
     退款处理
-    
     """
     try:
-        notify = TradeNotify.objects.get(id=id)
+        notify = RefundNotify.objects.get(id=id)
+        Trade.get_or_create(notify.tid,notify.user_id)
+        merge_trade = MergeTrade.objects.get(tid=notify.tid)
         if notify.status == 'RefundCreated':
             refund = Refund.get_or_create(notify.user_id,notify.rid)
-            merge_trade = MergeTrade.objects.get(tid=notify.tid)
             merge_type  = MergeBuyerTrade.get_merge_type(notify.tid)
             merge_trade.append_reason_code(pcfg.WAITING_REFUND_CODE)
             if merge_type == 0:    
@@ -159,19 +159,21 @@ def process_refund_notify_task(id):
         elif notify.status in('RefundClosed','RefundSuccess','RefundSellerAgreeAgreement','RefundSellerRefuseAgreement'):
             if notify.status == 'RefundClosed':
                 refund_status = pcfg.REFUND_CLOSED
+                order_status  = pcfg.WAIT_SELLER_SEND_GOODS
             elif notify.status == 'RefundSuccess':
                 refund_status = pcfg.REFUND_SUCCESS
+                order_status  = pcfg.TRADE_CLOSED
             elif notify.status == 'RefundSellerAgreeAgreement':
                 refund_status = pcfg.REFUND_WAIT_RETURN_GOODS
+                order_status  = pcfg.TRADE_CLOSED
             else:
                 refund_status = pcfg.REFUND_REFUSE_BUYER
+                order_status  = pcfg.WAIT_SELLER_SEND_GOODS
             refund = Refund.get_or_create(notify.user_id,notify.rid)
             merge_trade = MergeTrade.objects.get(tid=notify.tid)
             merge_trade.remove_reason_code(pcfg.WAITING_REFUND_CODE)
-            MergeOrder.objects.filter(tid=notify.tid,oid=notify.oid).update(refund_status=refund_status)
-            has_refunding = merge_trade.has_trade_refunding()
-            MergeTrade.objects.filter(tid=notify.tid).update(modified=notify.modified,has_refund=has_refunding)
-            
+            MergeOrder.objects.filter(tid=notify.tid,oid=notify.oid).update(refund_status=refund_status,status=order_status)
+   
     except Exception,exc:
         logger.error(exc.message,exc_info=True)
         raise process_refund_notify_task.retry(exc=exc,countdown=60)

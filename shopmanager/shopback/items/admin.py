@@ -10,7 +10,7 @@ logger =  logging.getLogger('tradepost.handler')
 class ProductSkuInline(admin.TabularInline):
     
     model = ProductSku
-    fields = ('outer_id','purchase_product_sku','quantity','warn_num','remain_num','properties_name','out_stock',
+    fields = ('outer_id','prod_outer_id','purchase_product_sku','quantity','warn_num','remain_num','properties_name','out_stock',
                     'sync_stock','is_assign','status')
     
     formfield_overrides = {
