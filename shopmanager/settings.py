@@ -303,6 +303,11 @@ LOGGING = {
             'level': 'WARN',
             'propagate': True,
         },
+        'user.handler':{
+            'handlers': ['sentry'],
+            'level': 'WARN',
+            'propagate': True,
+        },
     }
 }
 

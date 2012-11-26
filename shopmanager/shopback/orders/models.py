@@ -101,15 +101,20 @@ class Trade(models.Model):
 
     @classmethod
     def get_or_create(cls,trade_id,user_id):
+        
+        from shopback.trades.models import MergeTrade
         user = User.objects.get(visitor_id=user_id)
-        trade,state = cls.objects.get_or_create(pk=trade_id,user=user)
-        if state:
+        trade,state = cls.objects.get_or_create(id=trade_id,user=user)
+        try:
+            MergeTrade.objects.get(tid=trade_id)
+        except MergeTrade.DoesNotExist:
             try:
                 response    = apis.taobao_trade_fullinfo_get(tid=trade_id,tb_user_id=user_id)
                 trade_dict  = response['trade_fullinfo_get_response']['trade']
                 trade = Trade.save_trade_through_dict(user_id,trade_dict)
             except Exception,exc:
                 logger.error('backend update trade (tid:%s)error'%str(trade_id),exc_info=True)
+       
         return trade
     
 

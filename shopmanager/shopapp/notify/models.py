@@ -37,7 +37,7 @@ class ItemNotify(models.Model):
         item_notify,state = cls.objects.get_or_create(
                                                        user_id=item_dict['user_id'],
                                                        num_iid=item_dict['num_iid'],
-                                                       sku_id =item_dict['sku_id'],
+                                                       sku_id =item_dict.get('sku_id',None),
                                                        status =item_dict['status'],
                                                        )
         item_modified = datetime.datetime.strptime(item_dict['modified'],'%Y-%m-%d %H:%M:%S')

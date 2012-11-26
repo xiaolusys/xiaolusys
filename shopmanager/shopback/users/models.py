@@ -9,7 +9,9 @@ from shopback.signals import taobao_logged_in
 from shopback.base.fields import BigIntegerAutoField
 from shopback import paramconfig as pcfg
 from auth import apis
+import logging
 
+logger = logging.getLogger('user.handler')
 
 class User(models.Model):
 

@@ -676,7 +676,7 @@ def trade_download_controller(merge_trade,trade,trade_from,first_pay_load):
                         for t in trades:
                             MergeTrade.objects.get(id=t.id).append_reason_code(pcfg.MULTIPLE_ORDERS_CODE)
                             if t.sys_status == pcfg.WAIT_PREPARE_SEND_STATUS:
-                                MergeTrade.objects.filter(id=t.id,out_sid='').update(sys_status=pcfg.WAIT_AUDIT_STATUS,has_merge=False)
+                                MergeTrade.objects.filter(id=t.id,out_sid='').update(sys_status=pcfg.WAIT_AUDIT_STATUS)
                             else:
                                 MergeTrade.objects.filter(id=t.id).update(sys_status=pcfg.WAIT_AUDIT_STATUS,has_merge=False)
                             

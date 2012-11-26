@@ -89,9 +89,11 @@ class MergeTradeAdmin(admin.ModelAdmin):
     }
     
     #--------定义action----------------
+    #审核订单
     def check_orders(self, request, queryset):
         
-        effect_trades = queryset.fliter(sys_status=pcfg.WAIT_AUDIT_STATUS,reason_code='',
+        trade_ids = [t.id for t in queryset]
+        effect_trades = queryset.filter(sys_status=pcfg.WAIT_AUDIT_STATUS,reason_code='',
                                         has_refund=False,has_out_stock=False).exclude(logistics_company=None)
         for trade in effect_trades:
             rule_signal.send(sender='merge_trade_rule',trade_tid=trade.tid)
@@ -101,12 +103,17 @@ class MergeTradeAdmin(admin.ModelAdmin):
                                                                          is_picking_print=False,
                                                                          is_express_print=False,
                                                                          operator='')
-            
-        return queryset
+        trades = MergeTrade.objects.filter(id__in=trade_ids) 
+        print trades  
+        return render_to_response('trades/auditsuccess.html',{'trades':trades},
+                                  context_instance=RequestContext(request),mimetype="text/html")
 
     check_orders.short_description = "审核订单".decode('utf8') 
-
+    
+    #合并订单
     def merge_order_action(self,request,queryset):
+        
+        trade_ids = [t.id for t in queryset]
     	myset = queryset.filter(sys_status=pcfg.WAIT_AUDIT_STATUS)
     	if queryset.count()<2 or myset.count()!=queryset.count():
     	    return 
@@ -136,11 +143,14 @@ class MergeTradeAdmin(admin.ModelAdmin):
     
     	elif merge_trade_ids:
     	    merge_order_remover(main_trade.tid)
-
-    	return queryset 	
+        
+        trades = MergeTrade.objects.filter(id__in=trade_ids)
+    	return render_to_response('trades/mergesuccess.html',{'trades':trades,'merge_status':is_merge_success},
+                                  context_instance=RequestContext(request),mimetype="text/html") 	
     	
     merge_order_action.short_description = "合并订单".decode('utf8')
-
+    
+    #重新下载订单
     def pull_order_action(self, request, queryset):
         queryset = queryset.filter(sys_status=pcfg.WAIT_AUDIT_STATUS)
         for trade in queryset:
@@ -160,10 +170,12 @@ class MergeTradeAdmin(admin.ModelAdmin):
                             PurchaseOrder.save_order_through_dict(trade.seller_id,o)
             except Exception,exc:
                 logger.error(exc.message,exc_info=True)
-        return queryset
+        return render_to_response('trades/mergesuccess.html',{},
+                                  context_instance=RequestContext(request),mimetype="text/html") 
 
     pull_order_action.short_description = "重新下载".decode('utf8')
-
+    
+    #淘宝后台同步发货
     def sync_trade_post_taobao(self, request, queryset):
         trade_ids = [t.id for t in queryset]
         prapare_trades = queryset.filter(is_picking_print=True,is_express_print=True#,sys_status=WAIT_PREPARE_SEND_STATUS
@@ -226,8 +238,8 @@ class MergeTradeAdmin(admin.ModelAdmin):
         post_trades = queryset.filter(sys_status=pcfg.WAIT_CHECK_BARCODE_STATUS)
         trade_items = {}
         for trade in post_trades:
-            used_orders = trade.merge_trade_orders.filter(status__in=(pcfg.WAIT_BUYER_CONFIRM_GOODS,pcfg.WAIT_SELLER_SEND_GOODS),sys_status=pcfg.IN_EFFECT)\
-                .exclude(refund_status__in=pcfg.REFUND_APPROVAL_STATUS)
+            used_orders = trade.merge_trade_orders.filter(status__in=(pcfg.WAIT_BUYER_CONFIRM_GOODS,pcfg.WAIT_SELLER_SEND_GOODS),
+                sys_status=pcfg.IN_EFFECT).exclude(refund_status__in=pcfg.REFUND_APPROVAL_STATUS)
             for order in used_orders:
                 outer_id = order.outer_id or str(order.num_iid)
                 outer_sku_id = order.outer_sku_id or str(order.sku_id)
@@ -274,7 +286,7 @@ class MergeTradeAdmin(admin.ModelAdmin):
                           
     sync_trade_post_taobao.short_description = "同步发货".decode('utf8')
     
-    actions = ['check_orders','sync_trade_post_taobao','merge_order_action','pull_order_action']
+    actions = ['check_orders','sync_trade_post_taobao','merge_order_action']
     
 
 admin.site.register(MergeTrade,MergeTradeAdmin)
