@@ -27,14 +27,14 @@ CACHES = {
         'LOCATION': '127.0.0.1:11211',
     }
 }
-
+    
 RAVEN_CONFIG = {
     'dsn': 'http://eea330200a05408f9f74c47ca95e16e9:5223e7e8ab4c40cfa28813f5f1743d1e@huyi.so/2',
     'register_signals': True,
 }
 
 #SITE_URL = "http://autolist.huyi.so/" 
-SITE_URL = 'http://192.168.1.8/' 
+SITE_URL = 'http://192.168.1.26/' 
 
 #APPKEY  = '12651489'
 #APPSECRET = 'c31214c3060c888c35e410d5f71112d7'
