@@ -42,15 +42,17 @@ def updateItemNum(user_id,num_iid,update_time):
                 sync_num   = real_num - wait_nums - remain_nums
             else:
                 real_num = product_sku.quantity
+                sync_num = real_num
             
             #如果自动更新库存状态开启，并且计算后库存不等于在线库存，则更新
             if product_sku.sync_stock and sync_num != sku['quantity']:
                 response = apis.taobao_item_quantity_update\
-                        (num_iid=item.num_iid,quantity=real_num,sku_id=outer_sku_id,tb_user_id=user_id)
+                        (num_iid=item.num_iid,quantity=real_num,outer_id=outer_sku_id,tb_user_id=user_id)
                 item_dict = response['item_quantity_update_response']['item']
                 Item.save_item_through_dict(user_id,item_dict)
                 
-                product_sku.setQuantity(real_num)
+                product_sku.quantity = real_num
+                product_sku.save()
                 ItemNumTaskLog.objects.get_or_create(user_id=user_id,
                                              outer_id=product.outer_id,
                                              sku_outer_id= outer_sku_id,
@@ -69,9 +71,10 @@ def updateItemNum(user_id,num_iid,update_time):
             sync_num   = real_num - wait_nums - remain_nums
         else:
             real_num = product.collect_num
+            sync_num = real_num
         #如果自动更新库存状态开启，并且计算后库存不等于在线库存，则更新
         if product.sync_stock and sync_num != product.collect_num:
-            response = apis.taobao_item_update(num_iid=item.num_iid,num=sync_num,tb_user_id=user_id)
+            response = apis.taobao_item_quantity_update(num_iid=item.num_iid,quantity=sync_num,tb_user_id=user_id)
             item_dict = response['item_update_response']['item']
             Item.save_item_through_dict(user_id,item_dict)
         

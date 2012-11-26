@@ -1,11 +1,13 @@
 #-*- coding:utf8 -*-
 import time
 import json
+import datetime
 from django.db import models
 from shopback.base.models import BaseModel
 from django.contrib.auth.models import User as DjangoUser
 from shopback.signals import taobao_logged_in
 from shopback.base.fields import BigIntegerAutoField
+from shopback import paramconfig as pcfg
 from auth import apis
 
 
@@ -91,7 +93,23 @@ class User(models.Model):
         self.save()
         return self.has_fenxiao
 
-
+    def authorize_increment_notify(self):
+        #对用户的主动通知授权
+        try:
+            response = apis.taobao_increment_customer_permit(type='get,syn,notify',topics='trade;refund;item',
+                                                status='all;all;ItemAdd,ItemUpdate',tb_user_id=self.visitor_id)
+        except Exception,exc:
+            logger.error('主动消息服务授权失败'.decode('utf8'),exc_info=True)
+        else:                
+            logger.warn('主动消息服务授权成功'.decode('utf8'),exc_info=True)
+            modified = response['increment_customer_permit_response']['app_customer']['created']
+            created = datetime.datetime.strptime(modified,'%Y-%m-%d %H:%M:%S')-datetime.timedelta(0,15,0)
+            
+            self.item_notify_updated=created
+            self.trade_notify_updated=created
+            self.refund_notify_updated=created
+            self.save()
+            
 def add_taobao_user(sender, user,top_session,top_parameters, *args, **kwargs):
     """docstring for user_logged_in"""
     profile = user.get_profile()
@@ -102,7 +120,19 @@ def add_taobao_user(sender, user,top_session,top_parameters, *args, **kwargs):
     from shopback.items.tasks import updateUserItemSkuFenxiaoProductTask
     
     updateUserItemSkuFenxiaoProductTask.delay(profile.visitor_id)
+    
+    #对用户的主动通知进行授权
+    profile.authorize_increment_notify()
+    
+    #更新等待发货商城订单
+    from shopback.orders.tasks import saveUserDuringOrdersTask
 
-
+    saveUserDuringOrdersTask.delay(profile.visitor_id,status=pcfg.WAIT_SELLER_SEND_GOODS)
+    
+    #更新待发货分销订单
+    from shopback.fenxiao.tasks import saveUserPurchaseOrderTask
+    
+    saveUserPurchaseOrderTask.delay(profile.visitor_id,status=pcfg.WAIT_SELLER_SEND_GOODS)
+    
 taobao_logged_in.connect(add_taobao_user)
   

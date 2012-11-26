@@ -1,4 +1,5 @@
 #-*- coding:utf8 -*-
+import datetime
 from django.db import models
 from shopback.base.fields import BigIntegerAutoField
 from auth.utils import parse_datetime
@@ -21,7 +22,7 @@ class ItemNotify(models.Model):
     
     changed_fields = models.CharField(max_length=256,blank=True)
     price   = models.CharField(max_length=10,blank=True)
-    modified = models.DateTimeField(db_index=True,null=True,blank=True) 
+    modified = models.DateTimeField(db_index=True,null=True,blank=True,verbose_name='修改时间') 
        
     is_exec  = models.BooleanField(default=False)
     class Meta:
@@ -30,6 +31,23 @@ class ItemNotify(models.Model):
         
     def __unicode__(self):
         return '<%d,%d,%s,%s>'%(self.user_id,self.num_iid,str(self.sku_id),self.status)
+    
+    @classmethod
+    def save_and_post_notify(cls,item_dict):
+        item_notify,state = cls.objects.get_or_create(
+                                                       user_id=item_dict['user_id'],
+                                                       num_iid=item_dict['num_iid'],
+                                                       sku_id =item_dict['sku_id'],
+                                                       status =item_dict['status'],
+                                                       )
+        item_modified = datetime.datetime.strptime(item_dict['modified'],'%Y-%m-%d %H:%M:%S')
+        if state or item_notify.modified < item_modified:
+            for k,v in item_dict.iteritems():
+                hasattr(item_notify,k) and setattr(item_notify,k,v)
+            item_notify.save()
+            
+            from shopapp.notify import tasks
+            tasks.process_item_notify_task.s(item_notify.id)()
     
     
 class TradeNotify(models.Model):
@@ -50,7 +68,7 @@ class TradeNotify(models.Model):
     
     trade_mark = models.CharField(max_length=256,blank=True)
    
-    modified = models.DateTimeField(db_index=True,null=True,blank=True)
+    modified = models.DateTimeField(db_index=True,null=True,blank=True,verbose_name='修改时间')
     
     is_exec  = models.BooleanField(default=False)
     class Meta:
@@ -60,6 +78,22 @@ class TradeNotify(models.Model):
     def __unicode__(self):
         return '<%d,%d,%d,%s>'%(self.user_id,self.tid,self.oid,self.status)
     
+    @classmethod
+    def save_and_post_notify(cls,trade_dict):
+        trade_notify,state = cls.objects.get_or_create(
+                                                       user_id=trade_dict['user_id'],
+                                                       tid=trade_dict['tid'],
+                                                       oid=trade_dict['oid'],
+                                                       status=trade_dict['status'],
+                                                       )
+        trade_modified = datetime.datetime.strptime(trade_dict['modified'],'%Y-%m-%d %H:%M:%S')
+        if state or trade_notify.modified < trade_modified:
+            for k,v in trade_dict.iteritems():
+                hasattr(trade_notify,k) and setattr(trade_notify,k,v)
+            trade_notify.save()  
+             
+            from shopapp.notify import tasks
+            tasks.process_trade_notify_task.s(trade_notify.id)()
     
 class RefundNotify(models.Model):
     id      = BigIntegerAutoField(primary_key=True)
@@ -75,8 +109,7 @@ class RefundNotify(models.Model):
     refund_fee   = models.CharField(max_length=10,blank=True)
     status  = models.CharField(max_length=32,blank=True)
     
-    modified = models.DateTimeField(db_index=True,null=True,blank=True)
-    
+    modified = models.DateTimeField(db_index=True,null=True,blank=True,verbose_name='修改时间')
     is_exec  = models.BooleanField(default=False)
     class Meta:
         db_table = 'shop_notify_refund'
@@ -85,4 +118,21 @@ class RefundNotify(models.Model):
     def __unicode__(self):
         return '<%d,%d,%d,%d,%s>'%(self.user_id,self.tid,self.oid,self.rid,self.status)
    
+    @classmethod
+    def save_and_post_notify(cls,refund_dict):
+        refund_notify,state = RefundNotify.objects.get_or_create(
+                                                               user_id=refund_dict['user_id'],
+                                                               tid=refund_dict['tid'],
+                                                               oid=refund_dict['oid'],
+                                                               rid=refund_dict['rid'],
+                                                               status=refund_dict['status'],
+                                                               )
+        refund_modified = datetime.datetime.strptime(refund_dict['modified'],'%Y-%m-%d %H:%M:%S')
+        if state or refund_notify.modified < refund_modified:
+            for k,v in refund_dict.iteritems():
+                hasattr(refund_notify,k) and setattr(refund_notify,k,v)
+            refund_notify.save()
+            
+            from shopapp.notify import tasks
+            tasks.process_refund_notify_task.s(refund_notify.id)()
     

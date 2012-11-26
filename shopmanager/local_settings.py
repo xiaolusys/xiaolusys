@@ -34,9 +34,10 @@ RAVEN_CONFIG = {
 }
 
 #SITE_URL = "http://autolist.huyi.so/" 
+
 SITE_URL = 'http://192.168.1.26/' 
 
-#APPKEY  = '12651489'
+#APPKEY  = '12651489' #meixqhi,erp manager
 #APPSECRET = 'c31214c3060c888c35e410d5f71112d7'
 
 APPKEY = '21165266'  #app name huyi ERP ,younishijie
@@ -49,8 +50,8 @@ AUTHRIZE_URL = 'https://oauth.taobao.com/authorize'
 AUTHRIZE_TOKEN_URL = 'https://oauth.taobao.com/token'
 REDIRECT_URI = ''.join([SITE_URL,'accounts/login/auth/'])
 TAOBAO_API_ENDPOINT = 'https://eco.taobao.com/router/rest'
-#TAOBAO_NOTIFY_URL   = 'http://stream.api.taobao.com/stream'
-TAOBAO_NOTIFY_URL   = 'http://localhost:8000/accounts/test/api/'
+TAOBAO_NOTIFY_URL   = 'http://stream.api.taobao.com/stream'
+
 
 SCOPE = 'item,promotion,usergrade'
 REFRESH_URL = 'https://oauth.taobao.com/token'

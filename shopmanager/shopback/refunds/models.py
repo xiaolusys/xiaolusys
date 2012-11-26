@@ -8,12 +8,15 @@ from shopback.base.models import BaseModel
 from shopback.base.fields import BigIntegerAutoField,BigIntegerForeignKey
 from shopback import paramconfig as pcfg
 from shopback.users.models import User
+from auth import apis
+import logging
 
+logger = logging.getLogger('refunds.handler')
 
 REFUND_STATUS = (
-    (pcfg.REFUND_WAIT_SELLER_AGREE,'买家已经申请退款，等待卖家同意'),
-    (pcfg.REFUND_WAIT_RETURN_GOODS,'卖家已经同意退款，等待买家退货'),
-    (pcfg.REFUND_CONFIRM_GOODS,'买家已经退货，等待卖家确认收货'),
+    (pcfg.REFUND_WAIT_SELLER_AGREE,'买家已经申请退款'),
+    (pcfg.REFUND_WAIT_RETURN_GOODS,'卖家已经同意退款'),
+    (pcfg.REFUND_CONFIRM_GOODS,'买家已经退货'),
     (pcfg.REFUND_REFUSE_BUYER,'卖家拒绝退款'),
     (pcfg.REFUND_CLOSED,'退款关闭'),
     (pcfg.REFUND_SUCCESS,'退款成功'),
@@ -58,6 +61,18 @@ class Refund(models.Model):
     def __unicode__(self):
         return str(self.refund_id)
 
+    @classmethod
+    def get_or_create(cls,user_id,refund_id,force_update=False):
+        refund,state = cls.objects.get_or_create(refund_id=refund_id)
+        if state or force_update:
+            try:
+                response = apis.taobao_refund_get(refund_id,tb_user_id=user_id)
+                refund_dict = response['refund_get_response']['refund']
+                refund.save_refund_through_dict(user_id,refund_dict)
+            except Exception,exc:
+                logger.error(exc.message,exc_info=True)
+        return refund
+                
     def save_refund_through_dict(self,seller_id,refund):
 
         self.user  = User.objects.get(visitor_id=seller_id)

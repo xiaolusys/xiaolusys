@@ -1,0 +1,56 @@
+########  2012-11-22  #########
+alter table shop_orders_trade add column seller_flag int(11) DEFAULT NULL;
+alter table shop_trades_mergetrade add column seller_flag int(11) DEFAULT NULL;
+alter table shop_fenxiao_purchaseorder add column supplier_flag int(11) DEFAULT NULL;
+########  2012-11-15  #########
+alter table shop_trades_mergetrade add column has_out_stock tinyint(1) NOT NULL;
+alter table shop_trades_mergetrade add column has_rule_match tinyint(1) NOT NULL;
+alter table shop_trades_mergeorder add column out_stock tinyint(1) NOT NULL; 
+
+alter table shop_users_user drop column update_items_datetime ;
+alter table shop_users_user add column item_notify_updated datetime DEFAULT NULL;
+alter table shop_users_user add column refund_notify_updated datetime DEFAULT NULL;
+alter table shop_users_user add column trade_notify_updated datetime DEFAULT NULL;
+
+alter table shop_trades_mergetrade add column has_merge tinyint(1) NOT NULL;
+alter table shop_trades_mergeorder add column is_merge tinyint(1) NOT NULL;
+alter table shop_trades_mergeorder add column is_rule_match tinyint(1) NOT NULL;
+########  2012-10-12  #########
+alter table shop_trades_mergeorder add column sys_status varchar(32) NOT NULL;
+alter table shop_items_product add column is_assign tinyint(1) NOT NULL;
+alter table shop_items_productsku add column is_assign tinyint(1) NOT NULL;
+########  2012-10-07  #########
+insert into shop_trades_mergetrade(tid,user_id,seller_id,seller_nick,buyer_nick,type,shipping_type,total_num,payment,discount_fee,adjust_fee,post_fee,total_fee,alipay_no,seller_cod_fee,buyer_cod_fee,cod_fee,cod_status,weight,post_cost,buyer_message,seller_memo,sys_memo,created,pay_time,modified,consign_time,out_sid,logistics_company_name,receiver_name,receiver_state,receiver_city,receiver_district,receiver_address,receiver_zip,receiver_mobile,receiver_phone,year,month,week,day,hour,reverse_audit_reason,status,is_picking_print,is_express_print,is_send_sms,has_refund,out_goods,has_memo,remind_time,refund_num,sys_status) select tid,user_id,seller_id,seller_nick,buyer_nick,type,shipping_type,total_num,payment,discount_fee,adjust_fee,post_fee,total_fee,alipay_no,seller_cod_fee,buyer_cod_fee,cod_fee,cod_status,weight,post_cost,buyer_message,seller_memo,sys_memo,created,pay_time,modified,consign_time,out_sid,logistics_company_name,receiver_name,receiver_state,receiver_city,receiver_district,receiver_address,receiver_zip,receiver_mobile,receiver_phone,year,month,week,day,hour,reverse_audit_reason,status,is_picking_print,is_express_print,is_send_sms,has_refund,out_goods,has_memo,remind_time,refund_num,sys_status from shop_trades_mergetrade_tmp;
+########  2012-09-29  #########
+shop_items_product :
+purchase_product
+wait_num
+remain_num
+shop_items_productsku:
+purchase_product_sku
+wait_num
+remain_num
+############## 2012-09-16 ###############
+ alter table shop_items_product add column status varchar(16)  NOT NULL; #add index
+########  2012-07-28  #########
+alter table shop_orders_trade add column seller_cod_fee varchar(10) NOT NULL;
+
+alter table shop_orders_trade add column buyer_cod_fee varchar(10) NOT NULL;
+
+alter table shop_orders_trade add column cod_fee varchar(10) NOT NULL;
+
+alter table shop_orders_trade add column cod_status varchar(32) NOT NULL;
+
+######## 2012-06-26 ########
+alter table shop_item change column outer_iid outer_id varchar(64) NOT NULL;
+
+alter table shop_itemnumtask change column outer_iid outer_id varchar(64) NOT NULL;
+
+alter table shop_app_productrulefield change column out_iid outer_id varchar(64) NOT NULL;
+
+alter table shop_item change column modified modified datetime DEFAULT NULL;
+
+alter table shop_item change column list_time list_time datetime DEFAULT NULL;
+
+alter table shop_item change column delist_time delist_time datetime DEFAULT NULL;
+

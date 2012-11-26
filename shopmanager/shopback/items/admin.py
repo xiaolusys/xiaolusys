@@ -10,7 +10,7 @@ logger =  logging.getLogger('tradepost.handler')
 class ProductSkuInline(admin.TabularInline):
     
     model = ProductSku
-    fields = ('outer_id','purchase_product_sku','quantity','warn_num','remain_num','properties_name','out_stock',
+    fields = ('outer_id','prod_outer_id','purchase_product_sku','quantity','warn_num','remain_num','properties_name','out_stock',
                     'sync_stock','is_assign','status')
     
     formfield_overrides = {
@@ -37,8 +37,8 @@ admin.site.register(Item, ItemAdmin)
 class ProductAdmin(admin.ModelAdmin):
     list_display = ('id','outer_id','name','category','collect_num','warn_num','remain_num','price','sync_stock','out_stock','create_date','modify_date','status')
     list_display_links = ('id','outer_id',)
-    #list_editable = ('name','collect_num','price')
-
+    list_editable = ('name','collect_num')
+    
     date_hierarchy = 'modified'
     #ordering = ['created_at']
     

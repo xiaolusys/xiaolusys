@@ -49,16 +49,20 @@ API_FIELDS = {
         + 'has_showcase,list_time,delist_time,has_discount,props,title,has_invoice,pic_url,detail_url',
     'taobao.trades.sold.get':'seller_nick,buyer_nick,title,type,created,tid,status,modified,payment,discount_fee,adjust_fee,post_fee,total_fee,received_payment,commission_fee,buyer_obtain_point_fee'
         +',point_fee,real_point_fee,pic_path,pay_time,end_time,consign_time,num_iid,num,price,shipping_type,receiver_name,receiver_state,receiver_city,receiver_district,receiver_address,receiver_zip'
-        +',receiver_mobile,receiver_phone,buyer_message,buyer_memo,seller_memo,orders',
+        +',receiver_mobile,receiver_phone,buyer_message,buyer_memo,seller_memo,seller_flag,orders',
+    'taobao.trade.get':'seller_nick,buyer_nick,title, type,created,tid,seller_rate,buyer_rate,status,payment,discount_fee,adjust_fee,post_fee,total_fee,pay_time,end_time,modified,consign_time,'
+        +'buyer_obtain_point_fee,point_fee,real_point_fee,received_payment,commission_fee,buyer_memo,seller_memo,alipay_no,buyer_message,pic_path,num_iid,num,price,cod_fee,cod_status,shipping_type,orders',
     'taobao.trade.fullinfo.get':'seller_nick,buyer_nick,title,type,created,tid,status,modified,payment,discount_fee,adjust_fee,post_fee,total_fee,received_payment,commission_fee,buyer_obtain_point_fee'
         +',point_fee,real_point_fee,pic_path,pay_time,end_time,consign_time,num_iid,num,price,shipping_type,receiver_name,receiver_state,receiver_city,receiver_district,receiver_address,receiver_zip'
-        +',receiver_mobile,receiver_phone,buyer_message,buyer_memo,seller_memo,orders,promotion_details',
+        +',receiver_mobile,receiver_phone,buyer_message,buyer_memo,seller_memo,seller_flag,orders,promotion_details',
     'taobao.trade.amount.get':'tid,alipay_no,created,pay_time,end_time,total_fee,payment,post_fee,cod_fee,commission_fee,buyer_obtain_point_fee,order_amounts,promotion_details',
     'taobao.logistics.companies.get':'id,code,name,reg_mail_no',
     'taobao.logistics.orders.detail.get':'tid,order_code,is_quick_cod_order,out_sid,company_name,seller_id,seller_nick,buyer_nick,item_title,delivery_start,delivery_end'
         +',receiver_name,receiver_phone,receiver_mobile,type,created,modified,seller_confirm,company_name,is_success,freight_payer,status,receiver_location',
     'taobao.logistics.orders.get':'tid,seller_nick,buyer_nick,delivery_start, delivery_end,out_sid,item_title,receiver_name, created,modified,status,type,freight_payer,seller_confirm,company_name',
     'taobao.refunds.receive.get':'refund_id,tid,title,buyer_nick,num_iid,seller_nick,total_fee,status,created,refund_fee,oid,good_status,company_name,sid,payment,reason,desc,has_good_return,modified,order_status',
+    'taobao.refund.get':'refund_id,alipay_no,tid,oid,buyer_nick,seller_nick,total_fee,status,created,refund_fee,good_status,has_good_return,payment,reason,desc,num_iid,title'
+        +',price,num,good_return_time,company_name,sid,address,shipping_type,refund_remind_timeout',
     'taobao.fenxiao.products.get':'skus,images',
 }
 
@@ -256,7 +260,7 @@ def taobao_item_update(num_iid=None,num=None,tb_user_id=None):
     pass
 
 @apis('taobao.item.quantity.update')
-def taobao_item_quantity_update(num_iid=None,quantity=None,sku_id=None,type=1,tb_user_id=None):
+def taobao_item_quantity_update(num_iid=None,quantity=None,sku_id=None,outer_id=None,type=1,tb_user_id=None):
     pass
 
 @apis('taobao.item.update.delisting')
@@ -317,7 +321,7 @@ def taobao_item_recommend_add(num_iid=None,tb_user_id=None):
 
 ############# trades apis ###################
 @apis('taobao.trade.get')
-def taobao_trade_get(tid=None,fields=API_FIELDS['taobao.trades.sold.get'],tb_user_id=None):
+def taobao_trade_get(tid=None,fields=API_FIELDS['taobao.trade.get'],tb_user_id=None):
     pass
 
 @apis('taobao.trades.sold.get',max_retry=20,limit_rate=10)
@@ -399,6 +403,9 @@ def taobao_refunds_receive_get(status=None,start_modified=None,end_modified=None
                                page_no=None,page_size=None,fields=API_FIELDS['taobao.refunds.receive.get'],tb_user_id=None):
     pass
 
+@apis('taobao.refund.get')
+def taobao_refund_get(refund_id=None,fields=API_FIELDS['taobao.refund.get'],tb_user_id=None):
+    pass
 ################  topats result ################
 @apis('taobao.topats.result.get')
 def taobao_topats_result_get(task_id=None,tb_user_id=None):

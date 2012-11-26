@@ -9,6 +9,7 @@ from auth.utils import format_time,format_datetime,format_year_month,parse_datet
 from shopback.fenxiao.models import PurchaseOrder,FenxiaoProduct,SubPurchaseOrder
 from auth.apis.exceptions import UserFenxiaoUnuseException,TaobaoRequestException
 from shopback.monitor.models import TradeExtraInfo,SystemConfig,DayMonitorStatus
+from shopback.trades.models import MergeTrade
 from shopback import paramconfig as pcfg
 from shopback.users.models import User
 from auth import apis
@@ -24,19 +25,18 @@ def saveUserFenxiaoProductTask(user_id):
     user = User.objects.get(visitor_id=user_id)
     if not user.has_fenxiao:
         return 
-    
     try:
         has_next    = True
         cur_page    = 1
         
         while has_next:
-    
             response_list = apis.taobao_fenxiao_products_get(page_no=cur_page,page_size=settings.TAOBAO_PAGE_SIZE/2
                         ,tb_user_id=user_id)
             products = response_list['fenxiao_products_get_response']
             if products['total_results']>0:
                 fenxiao_product_list = products['products']['fenxiao_product']
                 for fenxiao_product in fenxiao_product_list:
+                    
                     FenxiaoProduct.save_fenxiao_product_dict(user_id,fenxiao_product)
             
             total_nums = products['total_results']
@@ -49,65 +49,47 @@ def saveUserFenxiaoProductTask(user_id):
     except TaobaoRequestException,exc:
         logger.error('%s'%exc,exc_info=True)
 
-
-@task()
-def updateAllUserFenxiaoProductTask():
-
-    users = User.objects.all()
-    for user in users:
-
-        saveUserFenxiaoProductTask(user.visitor_id)
      
-
-
-@task()
+@task(max_retries=3)
 def saveUserPurchaseOrderTask(user_id,update_from=None,update_to=None,status=None):
     user = User.objects.get(visitor_id=user_id)
     if not user.has_fenxiao:
         return 
     
-    update_handler = update_from and update_to
-    exec_times = (update_from - update_to).days/7+1 if update_handler else 1
-    
-    for i in range(0,exec_times):
-        dt_f = update_from + datetime.timedelta(i*7,0,0) if update_handler else None
-        dt_t = update_from + datetime.timedelta((i+1)*7,0,0) if update_handler else None
-        
-        if not (dt_f and dt_t):
-            dt_t = datetime.datetime.now()
-            dt_f = dt_t - datetime.timedelta(7,0,0)
-        has_next = True
-        cur_page = 1
-    
-        while has_next:
-    
-            response_list = apis.taobao_fenxiao_orders_get(tb_user_id=user_id,page_no=cur_page,time_type='trade_time_type'
-                ,page_size=settings.TAOBAO_PAGE_SIZE/2,start_created=dt_f,end_created=dt_t,status=status)
-    
-            orders_list = response_list['fenxiao_orders_get_response']
-            if orders_list['total_results']>0:
-                for o in orders_list['purchase_orders']['purchase_order']:
-                    PurchaseOrder.save_order_through_dict(user_id,o)
-    
-            total_nums = orders_list['total_results']
-            cur_nums = cur_page*settings.TAOBAO_PAGE_SIZE
-            has_next = cur_nums<total_nums
-            cur_page += 1
-
-
-        
-
-
-@task()
-def updateAllUserPurchaseOrderTask(update_from=None,update_to=None,status=None):
-
-    users = User.objects.all()
-    for user in users:
-
-        saveUserPurchaseOrderTask(user.visitor_id,update_from=update_from,update_to=update_to,status=status)
-
+    try: 
+        if not (update_from and update_to):
+            update_from = datetime.datetime.now() - datetime.timedelta(28,0,0)
+            update_to   = datetime.datetime.now()
             
-  
+        exec_times = (update_from - update_to).days/7+1 
+        for i in range(0,exec_times):
+            dt_f = update_from + datetime.timedelta(i*7,0,0) 
+            dt_t = update_from + datetime.timedelta((i+1)*7,0,0) 
+            
+            has_next = True
+            cur_page = 1
+        
+            while has_next:
+        
+                response_list = apis.taobao_fenxiao_orders_get(tb_user_id=user_id,page_no=cur_page,time_type='trade_time_type'
+                    ,page_size=settings.TAOBAO_PAGE_SIZE/2,start_created=dt_f,end_created=dt_t,status=status)
+        
+                orders_list = response_list['fenxiao_orders_get_response']
+                if orders_list['total_results']>0:
+                    for o in orders_list['purchase_orders']['purchase_order']:
+                        if MergeTrade.judge_need_pull(o['id'],datetime.datetime.strptime(o['modified'],'%Y-%m-%d %H:%M:%S')):
+                            PurchaseOrder.save_order_through_dict(user_id,o)
+        
+                total_nums = orders_list['total_results']
+                cur_nums = cur_page*settings.TAOBAO_PAGE_SIZE
+                has_next = cur_nums<total_nums
+                cur_page += 1
+                
+    except Exception,exc:
+        logger.error(exc.message,exc_info=True)
+        raise saveUserPurchaseOrderTask.retry(exc=exc,countdown=60)
+
+        
   
   
 @task()
@@ -129,9 +111,8 @@ def saveUserIncrementPurchaseOrderTask(user_id,update_from=None,update_to=None):
         orders_list = response_list['fenxiao_orders_get_response']
         if orders_list['total_results']>0:
             for o in orders_list['purchase_orders']['purchase_order']:
-                
-                order,state = PurchaseOrder.objects.get_or_create(pk=o['fenxiao_id'])
-                order.save_order_through_dict(user_id,o)
+                if MergeTrade.judge_need_pull(o['id'],datetime.datetime.strptime(o['modified'],'%Y-%m-%d %H:%M:%S')):
+                    PurchaseOrder.save_order_through_dict(user_id,o)
 
         total_nums = orders_list['total_results']
         cur_nums = cur_page*settings.TAOBAO_PAGE_SIZE

@@ -78,8 +78,8 @@ purchase_format = [
     ('trade.distributor_username','@'),           #C
     ('str(trade.id)','@'),                        #D
     ('trade.consign_time','M/D'),                 #E
-    ('trade.logistics_id','general'),             #F
-    ('trade.logistics_company_name','@'),         #G
+    ('logistics.out_sid','general'),             #F
+    ('logistics.company_name','@'),         #G
     ('float(trade.post_fee)','0.00'),             #H
     ('float(trade.distributor_payment)','0.00'),  #I
     ('int(0)','0'),                               #J
@@ -142,11 +142,11 @@ class TradesToXLSFile(object):
     def gen_report_file(self,dt_from,dt_to,file_name):
 
         consign_trades = Trade.objects.filter(consign_time__gte=dt_from,consign_time__lte=dt_to)
-        seller_ids_list = consign_trades.values('seller_id').distinct('seller_id')
-        for seller_id_dict in seller_ids_list:
+        seller_list = User.objects.all()
+        for seller in seller_list:
 
             self.cur_row = 0
-            seller_id = seller_id_dict['seller_id']
+            seller_id = seller.visitor_id
             seller_nick = consign_trades.filter(seller_id=seller_id)[0].seller_nick
             sheet = self.wb.add_sheet(seller_nick)
 
@@ -240,6 +240,7 @@ class TradesToXLSFile(object):
         if trades_len>0:
             for trade in trades:
                 self.cur_row += 1
+                logistics = self.get_logistics(seller_id,trade.id)
                 #trade_amount = self.get_trade_amount(seller_id,trade.id)
                 for data_num,data_tuple in enumerate(purchase_format):
                     try:

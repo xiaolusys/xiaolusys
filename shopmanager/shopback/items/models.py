@@ -14,6 +14,7 @@ from shopback.base.fields import BigIntegerAutoField
 from shopback.categorys.models import Category,ProductCategory
 from shopback.purchases.models import PurchaseProduct,PurchaseProductSku
 from shopback import paramconfig as pcfg
+from django.db.models.signals import post_save
 from shopback.users.models import User
 from auth import apis
 import logging
@@ -109,15 +110,7 @@ class ProductSku(models.Model):
 
     def __unicode__(self):
         return self.properties_values
-    
-    def setQuantity(self,num):
-        self.quantity = num
-        self.save()
-        
-        total_nums = self.product.prod_skus.aggregate(total_nums=Sum('quantity')).get('total_nums')
-        self.product.collect_num = total_nums or 0
-        self.product.save()
-    
+      
     @property
     def properties_values(self):
         properties_list = self.properties_name.split(';')
@@ -126,6 +119,16 @@ class ProductSku(models.Model):
             values = properties.split(':')
             value_list.append( '%s'%values[3] if len(values)==4 else properties)
         return ','.join(value_list)
+
+
+def calculate_product_collect_num(sender, instance, *args, **kwargs):
+    """修改SKU库存后，更新库存商品的总库存 """
+    product = instance.product
+    total_num = instance.product.prod_skus.filter(status=pcfg.NORMAL).aggregate(total_nums=Sum('quantity')).get('total_nums')
+    product.collect_num = total_num
+    product.save()
+    
+post_save.connect(calculate_product_collect_num, sender=ProductSku, dispatch_uid='calculate_product_num')
 
 
 class Item(models.Model):
@@ -156,9 +159,9 @@ class Item(models.Model):
 
     has_discount = models.BooleanField(default=False,verbose_name='有折扣')
 
-    props = models.TextField(max_length=500,blank=True,verbose_name='商品属性')
+    props = models.TextField(blank=True,verbose_name='商品属性')
     title = models.CharField(max_length=148,blank=True,verbose_name='商品标题')
-    property_alias = models.TextField(max_length=5000,blank=True,verbose_name='自定义属性')
+    property_alias = models.TextField(blank=True,verbose_name='自定义属性')
 
     has_invoice = models.BooleanField(default=False,verbose_name='有发票')
     pic_url     = models.URLField(verify_exists=False,blank=True,verbose_name='商品图片')
@@ -166,8 +169,8 @@ class Item(models.Model):
 
     last_num_updated = models.DateTimeField(null=True,blank=True,verbose_name='最后库存同步日期')  #该件商品最后库存同步日期
     
-    desc = models.TextField(max_length=25000,blank=True,verbose_name='商品描述')
-    skus = models.TextField(max_length=5000,blank=True,verbose_name='规格')
+    desc = models.TextField(blank=True,verbose_name='商品描述')
+    skus = models.TextField(blank=True,verbose_name='规格')
 
     status = models.BooleanField(default=True,verbose_name='系统状态')
     class Meta:

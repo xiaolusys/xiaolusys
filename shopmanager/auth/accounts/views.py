@@ -150,13 +150,13 @@ def test_api(request):
 #
 #    
 #    params = {}
-#    params['app_key'] = '12686908'
-#    params['user']    = '174265168'
+#    params['app_key'] = '21165266'
+##    params['user']    = '174265168'
 #    params['v']       = '2.0'
 #    params['format']  = 'json'
 #    params['sign_method']    = 'md5'
 #    params['timestamp'] = int(time.time())
-#    params['sign']    = getSignatureTaoBao(params,'b3ddef5982a23c636739289949c01f59')
+#    params['sign']    = getSignatureTaoBao(params,'ea5f5687a856ec58199d538cfa04496d')
 #    
 ##    print params
 ##    manager = urllib3.PoolManager(10,headers=HEADERS)
@@ -188,9 +188,9 @@ def test_api(request):
 #    pycurlConnect.close()
 #    print dev_null.getvalue()
 #    dev_null.close()
-
-    #response = apis.taobao_comet_discardinfo_get(start='2012-11-13 14:00:00',end='2012-11-13 14:35:00',tb_user_id=174265168)
-    #print response
+#
+#    response = apis.taobao_comet_discardinfo_get(start='2012-11-21 15:45:00',end='2012-11-21 16:00:00',tb_user_id=174265168)
+#    print response
 
 #    response  = apis.taobao_increment_trades_get(nick=u'优尼世界旗舰店',start_modified='2012-11-13 14:00:00',end_modified='2012-11-13 14:35:00',page_no=1,page_size=10,tb_user_id=174265168)
 #    print response
@@ -199,9 +199,9 @@ def test_api(request):
 #    print response_list
 
 #    from shopback.orders.models import Trade,Order
-#    response = apis.taobao_trade_fullinfo_get(tid=167807698490680,tb_user_id=174265168)
-#    trade = Trade.save_trade_through_dict(174265168,response['trade_fullinfo_get_response']['trade'])
-#    print trade
+#    response = apis.taobao_trade_fullinfo_get(tid=61119154,tb_user_id=174265168)
+#    #trade = Trade.save_trade_through_dict(174265168,response['trade_fullinfo_get_response']['trade'])
+#    print response
 
 #    from shopback.trades.models import WAIT_SELLER_SEND_GOODS
 #    response_list = apis.taobao_trades_sold_get(start_created=None,end_created=None,page_no=1,page_size=10,
@@ -217,4 +217,11 @@ def test_api(request):
 #    response = apis.taobao_increment_authorize_message_get(nick='优尼世界旗舰店',topic='item',tb_user_id=174265168)
 #    print response
     
+#    response = apis.taobao_fenxiao_orders_get(tb_user_id=174265168,fields='fenxiao_id,id',page_no=1,start_created='2012-11-17 00:00:00',end_created='2012-11-22 00:00:00'
+#                                              ,time_type='trade_time_type',page_size=50,status='WAIT_SELLER_SEND_GOODS')
+#    print response
+    
+#    response = apis.taobao_logistics_orders_detail_get(tid=61119154,tb_user_id=174265168)
+#    print response
     return HttpResponseBadRequest('error') #HttpResponse('ok')
+

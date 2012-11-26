@@ -9,7 +9,7 @@ from celery.task.sets import subtask
 from shopback.orders.tasks import saveUserIncrementOrdersTask
 from shopback.fenxiao.tasks import saveUserPurchaseOrderTask,saveUserIncrementPurchaseOrderTask
 from shopback.refunds.tasks import saveUserRefundOrderTask
-from shopback.logistics.tasks import saveUserOrdersLogisticsTask,saveUserUnfinishOrdersLogisticsTask
+from shopback.logistics.tasks import saveUserOrdersLogisticsTask
 from shopback.amounts.tasks import updatePurchaseOrdersAmountTask,updateOrdersAmountTask
 from shopapp.report.models import MonthTradeReportStatus
 from shopapp.asynctask.models import TaobaoAsyncTask
@@ -95,7 +95,7 @@ def updateMonthTradeXlsFileTask(year=None,month=None):
                 report_status.update_purchase_amount = True
 
             if not report_status.update_logistics:
-                saveUserUnfinishOrdersLogisticsTask(user.visitor_id,update_from=last_month_first_days,update_to=last_month_last_days)
+                saveUserOrdersLogisticsTask(user.visitor_id,update_from=last_month_first_days,update_to=last_month_last_days)
                 report_status.update_logistics = True
 
             if not report_status.update_refund:

@@ -125,7 +125,7 @@ def updateUserProductSkuTask(user_id):
                         sku_outer_id = sku.get('outer_id', None)
                         item = Item.objects.get(num_iid=sku['num_iid'])
                         
-			sku_prop_dict = dict([ ('%s:%s' % (p.split(':')[0], p.split(':')[1]), p.split(':')[3]) for p in sku['properties_name'].split(';') if p])
+                        sku_prop_dict = dict([ ('%s:%s' % (p.split(':')[0], p.split(':')[1]), p.split(':')[3]) for p in sku['properties_name'].split(';') if p])
                         psku, state = ProductSku.objects.get_or_create(outer_id=sku_outer_id, product=item.product)
                         if state:
                             for key, value in sku.iteritems():

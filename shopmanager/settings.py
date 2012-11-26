@@ -140,11 +140,10 @@ AUTHENTICATION_BACKENDS = (
     'django.contrib.auth.backends.ModelBackend')
 
 LOGIN_REDIRECT_URL = '/home/'
-
 LOGIN_URL = '/accounts/login/'
-
 LOGOUT_URL = '/accounts/logout/'
 
+TAOBAO_PAGE_SIZE = 100              #the page_size of  per request
 
 LOGGING = {
     'version': 1,
@@ -295,16 +294,11 @@ LOGGING = {
             'propagate': True,
         },
         'notifyserver.handler':{
-            'handlers': ['sentry'],
+            'handlers': ['sentry','console'],
             'level': 'WARN',
             'propagate': True,
         },
         'notify.handler':{
-            'handlers': ['sentry'],
-            'level': 'WARN',
-            'propagate': True,
-        },
-        'initservice.handler':{
             'handlers': ['sentry'],
             'level': 'WARN',
             'propagate': True,

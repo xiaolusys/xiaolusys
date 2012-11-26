@@ -14,8 +14,6 @@ from auth.utils import parse_datetime,parse_date,format_time,map_int2str,format_
 from shopback.items.models import Item,Product,ProductSku
 from shopback.orders.models import Order,Trade
 from shopback import paramconfig as pcfg
-from shopback.orders.tasks import updateAllUserDuringOrdersTask
-
 
 class UserHourlyOrderView(ModelView):
     """ docstring for class UserHourlyOrderView """
@@ -93,7 +91,7 @@ class UserHourlyOrderView(ModelView):
             'chart':{'zoomType': 'xy','renderTo': "container1"},
             'title': {'text': nicks},
             'xAxis': {'title': {'text': 'per %s'%(cat_by)},
-                      'labels':{'rotation': -45,'align':'right','style': {'font': 'normal 12px Verdana, sans-serif'}}},
+                      'labels':{'rotation': 45,'align':'right','style': {'font': 'normal 12px Verdana, sansserif'}}},
             'yAxis': [{'title': {'text': u'\u8ba2\u5355\u6570'}},
                       {'title': {'text': u'\u4ea4\u6613\u989d'},'opposite': True},
                       {'title': {'text': u'\u90ae\u8d39'},'opposite': True},
@@ -111,8 +109,6 @@ class UserHourlyOrderView(ModelView):
 
         return chart_data
 
-  
-  
 class ProductOrderView(ModelView):
     """ docstring for class ProductOrderView """
 
@@ -193,7 +189,7 @@ class ProductOrderView(ModelView):
             'chart':{'zoomType': 'xy','renderTo': "container1"},
             'title': {'text': product_name},
             'xAxis': {'title': {'text': 'per %s'%(cat_by)},
-                      'labels':{'rotation': -45,'align':'right','style': {'font': 'normal 12px Verdana, sans-serif'}}},
+                      'labels':{'rotation': 45,'align':'right','style': {'font': 'normal 12px Verdana, sansserif'}}},
             'yAxis': [{'title': {'text': u'\u9500\u552e\u6570\u91cf'}},]
         }
 
@@ -323,17 +319,6 @@ class RefundOrderView(ModelView):
 
 
 
-@staff_requried(login_url='/admin/login/')
-def update_interval_trade(request,dt_f,dt_t):
-
-    dt_f = parse_date(dt_f)
-    dt_t = parse_date(dt_t)
-
-    interval_task = updateAllUserDuringOrdersTask.delay(update_from=dt_f,update_to=dt_t)
-
-    ret_params = {'task_id':interval_task.task_id}
-
-    return HttpResponse(json.dumps(ret_params),mimetype='application/json')
 
 
 

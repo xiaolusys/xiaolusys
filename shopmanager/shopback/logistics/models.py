@@ -126,7 +126,7 @@ class Logistics(models.Model):
         for k,v in logistic_dict.iteritems():
             hasattr(logistic,k) and setattr(logistic,k,v)
 	
-	location  = logistic_dict.get('location',None)
+        location  = logistic_dict.get('location',None)
         logistic.location       = json.dumps(location)
 	
         logistic.delivery_start = parse_datetime(logistic_dict['delivery_start'])\
