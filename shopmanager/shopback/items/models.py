@@ -124,7 +124,7 @@ class ProductSku(models.Model):
 def calculate_product_collect_num(sender, instance, *args, **kwargs):
     """修改SKU库存后，更新库存商品的总库存 """
     product = instance.product
-    total_num = instance.product.prod_skus.filter(status=pcfg.NORMAL).aggregate(total_nums=Sum('quantity')).get('total_nums')
+    total_num = product.prod_skus.filter(status=pcfg.NORMAL).aggregate(total_nums=Sum('quantity')).get('total_nums')
     product.collect_num = total_num
     product.save()
     
