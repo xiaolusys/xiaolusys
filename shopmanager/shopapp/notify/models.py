@@ -41,7 +41,7 @@ class ItemNotify(models.Model):
                                                        status =item_dict['status'],
                                                        )
         item_modified = datetime.datetime.strptime(item_dict['modified'],'%Y-%m-%d %H:%M:%S')
-        if state or item_notify.modified < item_modified:
+        if state or not item_notify.modified or item_notify.modified < item_modified:
             for k,v in item_dict.iteritems():
                 hasattr(item_notify,k) and setattr(item_notify,k,v)
             item_notify.save()
@@ -87,7 +87,7 @@ class TradeNotify(models.Model):
                                                        status=trade_dict['status'],
                                                        )
         trade_modified = datetime.datetime.strptime(trade_dict['modified'],'%Y-%m-%d %H:%M:%S')
-        if state or trade_notify.modified < trade_modified:
+        if state or not trade_notify.modified or trade_notify.modified < trade_modified:
             for k,v in trade_dict.iteritems():
                 hasattr(trade_notify,k) and setattr(trade_notify,k,v)
             trade_notify.save()  
@@ -128,7 +128,7 @@ class RefundNotify(models.Model):
                                                                status=refund_dict['status'],
                                                                )
         refund_modified = datetime.datetime.strptime(refund_dict['modified'],'%Y-%m-%d %H:%M:%S')
-        if state or refund_notify.modified < refund_modified:
+        if state or not refund_notify.modified or refund_notify.modified < refund_modified:
             for k,v in refund_dict.iteritems():
                 hasattr(refund_notify,k) and setattr(refund_notify,k,v)
             refund_notify.save()

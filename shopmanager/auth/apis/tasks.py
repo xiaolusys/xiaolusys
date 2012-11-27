@@ -99,7 +99,7 @@ def raise_except_or_ret_json(content):
         content = content['error_response']
         code     = content.get('code',None)
         sub_code = content.get('sub_code',None)
-        msg      = content.get('msg',None)
+        msg      = content.get('msg','400')
         sub_msg  = content.get('sub_msg','')
 
         if code == 520 and sub_code == u'isp.remote-connection-error':

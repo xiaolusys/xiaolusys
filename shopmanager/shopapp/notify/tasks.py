@@ -60,10 +60,12 @@ def process_trade_notify_task(id):
                     if main_trade.user_full_address == full_address:
                         main_trade.update_seller_memo(trade.tid,trade_dict['seller_memo'])
                         #主订单入问题单
-                        MergeTrade.objects.filter(tid=main_merge_tid,out_sid='',sys_status=pcfg.WAIT_PREPARE_SEND_STATUS).update(sys_status=pcfg.WAIT_AUDIT_STATUS)
+                        MergeTrade.objects.filter(tid=main_merge_tid,out_sid='',sys_status=pcfg.WAIT_PREPARE_SEND_STATUS)\
+                            .update(sys_status=pcfg.WAIT_AUDIT_STATUS)
                 
                 #如果非合并子订单，则入问题单
-                MergeTrade.objects.filter(tid=notify.tid,out_sid='',sys_status = pcfg.WAIT_PREPARE_SEND_STATUS).update(sys_status=pcfg.WAIT_AUDIT_STATUS)
+                MergeTrade.objects.filter(tid=notify.tid,out_sid='',sys_status = pcfg.WAIT_PREPARE_SEND_STATUS)\
+                    .update(sys_status=pcfg.WAIT_AUDIT_STATUS)
    
         #交易关闭
         elif notify.status == 'TradeClose':
@@ -78,6 +80,7 @@ def process_trade_notify_task(id):
         elif notify.status == 'TradeSellerShip':
             Trade.objects.filter(id=notify.tid).update(status=pcfg.WAIT_BUYER_CONFIRM_GOODS,modified=notify.modified)
             MergeTrade.objects.filter(tid=notify.tid).update(status=pcfg.WAIT_BUYER_CONFIRM_GOODS,modified=notify.modified)
+            MergeTrade.objects.filter(tid=notify.tid,sys_status__in=pcfg.WAIT_DELIVERY_STATUS).update(sys_status=pcfg.INVALID_STATUS)
         #交易成功
         elif notify.status == 'TradeSuccess':
             Trade.objects.filter(id=notify.tid).update(status=pcfg.TRADE_FINISHED,modified=notify.modified)
@@ -250,7 +253,7 @@ def process_item_interval_notify_task(user_id,update_from=None,update_to=None):
             has_next = cur_nums<total_nums
             cur_page += 1
     except Exception,exc:
-        logger.error(exc.message,exc_info=True)
+        logger.error(exc.message or '400',exc_info=True)
         raise process_item_interval_notify_task.retry(exc=exc,countdown=60)
     else:
         if not update_handler:
@@ -289,7 +292,7 @@ def process_refund_interval_notify_task(user_id,update_from=None,update_to=None)
             has_next = cur_nums<total_nums
             cur_page += 1
     except Exception,exc:
-        logger.error(exc.message,exc_info=True)
+        logger.error(exc.message or '400',exc_info=True)
         raise process_refund_interval_notify_task.retry(exc=exc,countdown=60)
     else:
         if not update_handler:

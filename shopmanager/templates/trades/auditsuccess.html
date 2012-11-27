@@ -14,7 +14,7 @@
 			    <tr>
 			      <th>订单ID</th><th>淘宝订单编号</th><th>店铺名称</th><th>买家昵称</th><th>付款日期</th><th>审核状态</th><th>问题编号</th>
 			    </tr>
-			    <tr><td colspan="7">审核通过的订单</td></tr>
+			    <tr><td colspan="7">通过审核的订单</td></tr>
 			    {% for trade in trades %}
 			    {% if trade.sys_status == "WAIT_PREPARE_SEND" %}
 			    <tr>
@@ -28,7 +28,7 @@
 			    </tr>
 			    {% endif %}
 			    {% endfor %}
-			    <tr><td colspan="7">审核未通过的订单</td></tr>
+			    <tr><td colspan="7">未通过审核的订单</td></tr>
 			    {% for trade in trades %}
 			    {% if trade.sys_status != "WAIT_PREPARE_SEND" %}
 			    <tr>

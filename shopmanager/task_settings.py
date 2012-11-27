@@ -5,7 +5,7 @@ djcelery.setup_loader()
 #CELERY_RESULT_BACKEND = 'database'
 #BROKER_BACKEND = "djkombu.transport.DatabaseTransport"
 
-BROKER_URL = 'amqp://user1:passwd1@192.168.1.27:5672/vhost1'
+BROKER_URL = 'amqp://user1:passwd1@127.0.0.1:5672/vhost1'
 CELERY_RESULT_BACKEND = "amqp"
 CELERY_TASK_RESULT_EXPIRES = 18000  # 5 hours.
 BROKER_POOL_LIMIT = 10 # 10 connections

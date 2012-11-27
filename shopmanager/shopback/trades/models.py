@@ -92,6 +92,11 @@ SHIPPING_TYPE = {
     'SELLER':'free',
 }
 
+PRIORITY_TYPE = (
+    (-1,'低'),
+    (0,'中'),
+    (1,'高'),
+)
 class MergeTrade(models.Model):
     
     id    = BigIntegerAutoField(primary_key=True)
@@ -161,8 +166,9 @@ class MergeTrade(models.Model):
     has_memo         = models.BooleanField(default=False,verbose_name='有留言')
     has_merge        = models.BooleanField(default=False,verbose_name='有合单')
     remind_time      = models.DateTimeField(null=True,blank=True,verbose_name='定时日期')
-    refund_num       = models.IntegerField(db_index=True,null=True,default=0,verbose_name='退款单数')  #退款单数
+    refund_num       = models.IntegerField(null=True,default=0,verbose_name='退款单数')  #退款单数
     
+    priority       = models.IntegerField(db_index=True,default=0,choices=PRIORITY_TYPE,verbose_name='优先级')
     operator       =  models.CharField(max_length=32,blank=True,verbose_name='操作员')
     sys_status     = models.CharField(max_length=32,db_index=True,choices=SYS_TRADE_STATUS,blank=True,default='',verbose_name='系统状态')
     
@@ -534,7 +540,7 @@ def merge_order_maker(sub_tid,main_tid):
     main_merge_trade.append_reason_code(pcfg.NEW_MERGE_TRADE_CODE)
     orders = sub_trade.merge_trade_orders.exclude(oid=None)
     merge_order = MergeOrder()
-
+    
     total_num    = 0
     payment      = 0
     total_fee    = 0
@@ -553,7 +559,7 @@ def merge_order_maker(sub_tid,main_tid):
             payment   += float(order.payment )
             total_fee += float(order.total_fee )
             discount_fee += float(order.discount_fee or 0)
-
+    
     if sub_trade.buyer_message:
         main_merge_trade.update_buyer_message(sub_tid,sub_trade.buyer_message)
     if sub_trade.seller_memo:
@@ -564,6 +570,7 @@ def merge_order_maker(sub_tid,main_tid):
                                                    total_fee = total_fee + float(main_merge_trade.total_fee ),
                                                    discount_fee = discount_fee + float(main_merge_trade.discount_fee or 0))
     
+    MergeBuyerTrade.objects.get_or_create(sub_tid=sub_tid,main_tid=main_tid)
     MergeTrade.objects.filter(tid=main_tid,out_sid='',status=pcfg.WAIT_SELLER_SEND_GOODS).update(sys_status=pcfg.WAIT_AUDIT_STATUS) 
     MergeTrade.objects.get(tid=sub_tid).append_reason_code(pcfg.NEW_MERGE_TRADE_CODE)
     

@@ -106,7 +106,7 @@ def updateUserProductSkuTask(user_id):
     prop_dict = {}
     for index, item in enumerate(items):
         num_iids.append(item.num_iid)
-	    prop_dict[int(item.num_iid)] = item.property_alias_dict
+        prop_dict[int(item.num_iid)] = item.property_alias_dict
         if len(num_iids) >= 40 or index + 1 == len(items):
             sku_dict = {}
             try:
@@ -133,18 +133,18 @@ def updateUserProductSkuTask(user_id):
                             for key, value in sku.iteritems():
                                 hasattr(psku, key) and setattr(psku, key, value)
                             psku.prod_outer_id = item.outer_id
-			            else:
-			                psku.properties_name = sku['properties_name']
-			                psku.properties = sku['properties']
-			                psku.prod_outer_id = item.outer_id
+                        else:
+                            psku.properties_name = sku['properties_name']
+                            psku.properties = sku['properties']
+                            psku.prod_outer_id = item.outer_id
 
-			            properties = ''
-			            props = sku['properties'].split(';')
-	                    for prop in props:
-		                    if prop :
+                        properties = ''
+                        props = sku['properties'].split(';')
+                        for prop in props:
+                            if prop :
                                 properties += prop_dict[sku['num_iid']].get(prop, '') or sku_prop_dict.get(prop, u'规格有误') 
                                 psku.properties_name = properties or psku.properties_values
-			            psku.save()
+                        psku.save()
 			                
             except Exception, exc:
                 logger.error('update product sku error!', exc_info=True)
