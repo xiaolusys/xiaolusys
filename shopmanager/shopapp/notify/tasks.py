@@ -12,6 +12,7 @@ from shopback.orders.models import Trade,Order
 from shopback.trades.models import MergeTrade,MergeOrder,MergeBuyerTrade,merge_order_remover
 from shopback.refunds.models import Refund
 from shopback.users.models import User
+#from shopapp.signals import modify_fee_signal
 from auth import apis
 import logging
 
@@ -30,6 +31,7 @@ def process_trade_notify_task(id):
             trade_dict  = response['trade_get_response']['trade']
             trade = Trade.save_trade_through_dict(notify.user_id,trade_dict)
             #修改订单价格
+            #modify_fee_signal.send(sender='modify_post_fee',user_id=notify.user_id,trade_id=notify.tid)
         #修改交易备注
         elif notify.status == 'TradeMemoModified':
             try:

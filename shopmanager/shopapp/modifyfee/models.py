@@ -1,0 +1,72 @@
+#-*- coding:utf8 -*-
+import datetime
+from django.db import models
+from shopback.base.fields import BigIntegerAutoField
+from shopapp.signals import modify_fee_signal
+
+class FeeRule(models.Model):
+    
+    payment  = models.FloatField(verbose_name='交易金额')
+    discount = models.FloatField(verbose_name='邮费折扣')
+    adjust_fee = models.FloatField(verbose_name='邮费调整金额')
+    
+    class Meta:
+        db_table = 'shop_modifyfee_feerule'
+        verbose_name='邮费规则'
+
+
+class ModifyFee(models.Model):
+    
+    id         = models.BigIntegerAutoField(primary_key=True)
+    tid        = models.BigIntegerField(verbose_name='淘宝交易ID')
+    buyer_nick = models.CharField(max_length=32,verbose_name='买家昵称')
+    total_fee  = models.CharField(max_length=10,verbose_name='订单金额')
+    payment    = models.CharField(max_length=10,verbose_name='实付金额')
+    post_fee   = models.CharField(max_length=10,verbose_name='实付邮费')
+    modify_fee = models.CharField(max_length=10,verbose_name='修改邮费')
+    modified   = models.DatetimeField(blank=True,null=True)
+    
+    class Meta:
+        db_table = 'shop_modifyfee_modifyfee'
+        verbose_name='邮费修改记录'
+        
+
+def modify_post_fee_func(sender,user_id,trade_id,*args,**kwargs):
+    
+    from shopback.orders.models import Trade
+    from shopback.trades.models import MergeTrade
+    try:
+        trade = Trade.objects.get(id=trade_id)
+    except:
+        pass
+    else:
+        payment = float(trade.payment or '0')
+        post_fee = float(trade.post_fee or '0')
+        fee_rules = FeeRule.objects.order_by('-payment')
+        for rule in fee_rules:
+            if payment >= rule.payment:
+                modify_fee = rule.adjust_fee if rule.adjust_fee else post_fee*rule.discount
+                response = taobao_trade_postage_update(tid=trade_id,post_fee=modify_fee,tb_user_id=trade.seller_id)
+                postage = response['trade_postage_update_response']['trade']
+                ModifyFee.objects.get_or_create(tid=trade_id,
+                                                buyer_nick=trade.buyer_nick,
+                                                total_fee=postage['total_fee'],
+                                                post_fee=post_fee,
+                                                modify_fee=postage['post_fee'],
+                                                payment=postage['payment'],
+                                                modified=postage['modified'])
+                Trade.objects.filter(id=trade_id).update(total_fee=postage['total_fee'],
+                                                        post_fee=postage['post_fee'],
+                                                        payment=postage['payment'],
+                                                        modified=postage['modified'])
+                MergeTrade.objects.filter(tid=trade_id).update(total_fee=postage['total_fee'],
+                                                        post_fee=postage['post_fee'],
+                                                        payment=postage['payment'],
+                                                        modified=postage['modified'])
+                break
+            
+            
+modify_fee_signal.connect(modify_post_fee_func,sender='modify_post_fee',,dispatch_uid='modify_post_fee')            
+            
+    
+    

@@ -124,7 +124,7 @@ INSTALLED_APPS = (
     'shopapp.syncnum',
     'shopapp.asynctask',
     'shopapp.notify',
-
+    
 )
 
 
@@ -304,6 +304,11 @@ LOGGING = {
             'propagate': True,
         },
         'user.handler':{
+            'handlers': ['sentry'],
+            'level': 'WARN',
+            'propagate': True,
+        },
+        'modifyfee.handler':{
             'handlers': ['sentry'],
             'level': 'WARN',
             'propagate': True,

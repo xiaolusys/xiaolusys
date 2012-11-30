@@ -252,7 +252,7 @@ def rule_match_merge_trade(sender, trade_tid, *args, **kwargs):
                         MergeOrder.gen_new_order(trade_tid,item.outer_id,item.outer_sku_id,item.num)
                     break
             
-            MergeTrade.objects.filter(tid=trade_tid).update(total_num=orders.filter_by(sys_status=pcfg.IN_EFFECT).count())
+            MergeTrade.objects.filter(tid=trade_tid).update(total_num=orders.filter(sys_status=pcfg.IN_EFFECT).count())
         except Exception,exc:
             logger.error(exc.message,exc_info=True)
             trade.append_reason_code(pcfg.COMPOSE_RULE_ERROR_CODE)

@@ -358,6 +358,9 @@ def taobao_trade_memo_add(tid=None,memo=None,flag=None,tb_user_id=None):
 def taobao_topats_trades_sold_get(start_time=None,end_time=None,fields=API_FIELDS['taobao.trades.sold.get'],tb_user_id=None):
     pass
 
+@apsi('taobao.trade.postage.update')
+def taobao_trade_postage_update(tid=None,post_fee=None,tb_user_id=None):
+    pass
 
 ############# post apis ###################
 @apis('taobao.logistics.companies.get')
