@@ -106,7 +106,7 @@ class RuleMemo(models.Model):
         db_table = 'shop_memorule_rulememo'
 
     def __unicode__(self):
-        return str(self.tid)
+        return str(self.tid)    
     
     
 class ComposeRule(models.Model):
@@ -208,21 +208,22 @@ def rule_match_trade(sender, trade_tid, *args, **kwargs):
     
         MergeTrade.objects.filter(tid=trade_tid).update(sys_memo=','.join(memo_list))
         
-
 rule_signal.connect(rule_match_trade,sender='trade_rule',dispatch_uid='rule_match_orders')
 
 
 def rule_match_merge_trade(sender, trade_tid, *args, **kwargs):
- 
+    #拆分规则
     try:
         trade = MergeTrade.objects.get(tid=trade_tid)
     except MergeTrade.DoesNotExist:
         pass
     else:
-	trade.merge_trade_orders.filter(oid=None).delete()
+        trade.merge_trade_orders.filter(oid=None).delete()
         try:
-            orders = trade.merge_trade_orders.filter(status__in=(pcfg.WAIT_SELLER_SEND_GOODS,pcfg.CONFIRM_WAIT_SEND_GOODS,pcfg.WAIT_CONFIRM_WAIT_SEND_GOODS)
-                                                     ,sys_status=pcfg.IN_EFFECT).exclude(refund_status__in=pcfg.REFUND_APPROVAL_STATUS)
+            orders = trade.merge_trade_orders.filter(status__in=(pcfg.WAIT_SELLER_SEND_GOODS,
+                            pcfg.CONFIRM_WAIT_SEND_GOODS,pcfg.WAIT_CONFIRM_WAIT_SEND_GOODS))\
+                            .exclude(refund_status__in=pcfg.REFUND_APPROVAL_STATUS)
+            
             payment = 0 
             for order in orders:
                 payment += float(order.payment)
@@ -250,6 +251,8 @@ def rule_match_merge_trade(sender, trade_tid, *args, **kwargs):
                     for item in rule.compose_items.all():
                         MergeOrder.gen_new_order(trade_tid,item.outer_id,item.outer_sku_id,item.num)
                     break
+            
+            MergeTrade.objects.filter(tid=trade_tid).update(total_num=orders.filter_by(sys_status=pcfg.IN_EFFECT).count())
         except Exception,exc:
             logger.error(exc.message,exc_info=True)
             trade.append_reason_code(pcfg.COMPOSE_RULE_ERROR_CODE)

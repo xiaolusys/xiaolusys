@@ -8,7 +8,7 @@ from django.conf import settings
 from django.db.models import Q,F
 from shopback import paramconfig as pcfg
 from shopapp.notify.models import TradeNotify,ItemNotify,RefundNotify
-from shopback.orders.models import Trade
+from shopback.orders.models import Trade,Order
 from shopback.trades.models import MergeTrade,MergeOrder,MergeBuyerTrade,merge_order_remover
 from shopback.refunds.models import Refund
 from shopback.users.models import User
@@ -34,39 +34,40 @@ def process_trade_notify_task(id):
         elif notify.status == 'TradeMemoModified':
             try:
                 trade = MergeTrade.objects.get(tid=notify.tid)
-            except MergeTrade.DoesNotExist:
-                return
-            #如果交易存在，并且等待卖家发货
-            if trade.status == pcfg.WAIT_SELLER_SEND_GOODS:
-                response    = apis.taobao_trade_fullinfo_get(tid=notify.tid,fields='tid,seller_memo,seller_flag',tb_user_id=notify.user_id)
-                trade_dict  = response['trade_fullinfo_get_response']['trade']
-                seller_memo  = trade_dict.get('seller_memo','')
-                seller_flag  = trade_dict.get('seller_flag',0)
-                Trade.objects.filter(id=notify.tid).update(modified=notify.modified,seller_memo=seller_memo,seller_flag=seller_flag)
-                MergeTrade.objects.filter(id=notify.tid).update(modified=notify.modified,seller_memo=seller_memo,seller_flag=seller_flag)
-                #如果是更新了旗帜，则不继续处理
-                if not seller_memo:
-                    return 
-                trade.append_reason_code(pcfg.NEW_MEMO_CODE)
-                
-                trades = MergeTrade.objects.filter(buyer_nick=trade.buyer_nick,sys_status__in=(pcfg.WAIT_AUDIT_STATUS,pcfg.WAIT_PREPARE_SEND_STATUS))\
-                                        .exclude(tid=trade.id).order_by('-pay_time')
-                merge_buyer_trades = MergeBuyerTrade.objects.filter(main_tid__in=[t.tid for t in trades])
-                #如果有已有合并记录，则将现有主订单作为合并主订单
-                main_tid = None
-                if merge_buyer_trades.count()>0 :
-                    main_merge_tid = merge_buyer_trades[0].main_tid
-                    main_trade = MergeTrade.objects.get(tid=main_merge_tid)
-                    if main_trade.user_full_address == full_address:
-                        main_trade.update_seller_memo(trade.tid,trade_dict['seller_memo'])
-                        #主订单入问题单
-                        MergeTrade.objects.filter(tid=main_merge_tid,out_sid='',sys_status=pcfg.WAIT_PREPARE_SEND_STATUS)\
+            except MergeTrade.DoesNotExist,exc:
+                logger.error(exc.message,exc_info=True)
+            else:
+                #如果交易存在，并且等待卖家发货
+                if trade.status == pcfg.WAIT_SELLER_SEND_GOODS:
+                    response    = apis.taobao_trade_fullinfo_get(tid=notify.tid,fields='tid,seller_memo,seller_flag',tb_user_id=notify.user_id)
+                    trade_dict  = response['trade_fullinfo_get_response']['trade']
+                    seller_memo  = trade_dict.get('seller_memo','')
+                    seller_flag  = trade_dict.get('seller_flag',0)
+                    Trade.objects.filter(id=notify.tid).update(modified=notify.modified,seller_memo=seller_memo,seller_flag=seller_flag)
+                    MergeTrade.objects.filter(id=notify.tid).update(modified=notify.modified,seller_memo=seller_memo,seller_flag=seller_flag)
+                    #如果是更新了卖家备注，则继续处理，更新旗帜则布处理
+                    if seller_memo: 
+                        trade.append_reason_code(pcfg.NEW_MEMO_CODE)
+                        
+                        trades = MergeTrade.objects.filter(buyer_nick=trade.buyer_nick,
+                                sys_status__in=(pcfg.WAIT_AUDIT_STATUS,pcfg.WAIT_PREPARE_SEND_STATUS))\
+                                                .exclude(tid=trade.id).order_by('-pay_time')
+                        merge_buyer_trades = MergeBuyerTrade.objects.filter(main_tid__in=[t.tid for t in trades])
+                        #如果有已有合并记录，则将现有主订单作为合并主订单
+                        main_tid = None
+                        if merge_buyer_trades.count()>0 :
+                            main_merge_tid = merge_buyer_trades[0].main_tid
+                            main_trade = MergeTrade.objects.get(tid=main_merge_tid)
+                            if main_trade.user_full_address == trade.user_full_address:
+                                main_trade.update_seller_memo(trade.tid,trade_dict['seller_memo'])
+                                #主订单入问题单
+                                MergeTrade.objects.filter(tid=main_merge_tid,out_sid='',sys_status=pcfg.WAIT_PREPARE_SEND_STATUS)\
+                                    .update(sys_status=pcfg.WAIT_AUDIT_STATUS)
+                        
+                        #如果非合并子订单，则入问题单
+                        MergeTrade.objects.filter(tid=notify.tid,out_sid='',sys_status = pcfg.WAIT_PREPARE_SEND_STATUS)\
                             .update(sys_status=pcfg.WAIT_AUDIT_STATUS)
-                
-                #如果非合并子订单，则入问题单
-                MergeTrade.objects.filter(tid=notify.tid,out_sid='',sys_status = pcfg.WAIT_PREPARE_SEND_STATUS)\
-                    .update(sys_status=pcfg.WAIT_AUDIT_STATUS)
-   
+       
         #交易关闭
         elif notify.status == 'TradeClose':
             Trade.objects.filter(id=notify.tid).update(status=pcfg.TRADE_CLOSED,modified=notify.modified)
@@ -147,18 +148,20 @@ def process_refund_notify_task(id):
         merge_trade = MergeTrade.objects.get(tid=notify.tid)
         if notify.status == 'RefundCreated':
             refund = Refund.get_or_create(notify.user_id,notify.rid)
-            merge_type  = MergeBuyerTrade.get_merge_type(notify.tid)
             merge_trade.append_reason_code(pcfg.WAITING_REFUND_CODE)
-            if merge_type == 0:    
-                MergeOrder.objects.filter(tid=notify.tid,oid=notify.oid).update(refund_status=pcfg.REFUND_WAIT_SELLER_AGREE)
-                MergeTrade.objects.filter(tid=notify.tid,out_sid='')\
-                    .update(modified=notify.modified,sys_status=pcfg.WAIT_AUDIT_STATUS,has_refund=True,refund_num=F('refund_num')+1)
-            elif merge_type == 1:
-                main_tid = MergeBuyerTrade.objects.get(sub_tid=notify.tid).main_tid
-                merge_order_remover(main_tid)
-            else:
-                merge_order_remover(notify.tid)
-                    
+            Order.objects.filter(oid=notify.oid,trade=notify.tid).update(status=pcfg.REFUND_WAIT_SELLER_AGREE)
+            MergeOrder.objects.filter(tid=notify.tid,oid=notify.oid).update(refund_id=notify.rid,refund_status=pcfg.REFUND_WAIT_SELLER_AGREE)
+            if merge_trade.status == pcfg.WAIT_SELLER_SEND_GOODS:
+                merge_type  = MergeBuyerTrade.get_merge_type(notify.tid)
+                if merge_type == 0:    
+                    MergeTrade.objects.filter(tid=notify.tid,out_sid='')\
+                        .update(modified=notify.modified,sys_status=pcfg.WAIT_AUDIT_STATUS,refund_num=F('refund_num')+1)
+                elif merge_type == 1:
+                    main_tid = MergeBuyerTrade.objects.get(sub_tid=notify.tid).main_tid
+                    merge_order_remover(main_tid)
+                else:
+                    merge_order_remover(notify.tid)
+
         elif notify.status in('RefundClosed','RefundSuccess','RefundSellerAgreeAgreement','RefundSellerRefuseAgreement'):
             if notify.status == 'RefundClosed':
                 refund_status = pcfg.REFUND_CLOSED
@@ -206,16 +209,17 @@ def process_trade_interval_notify_task(user_id,update_from=None,update_to=None):
             response_list = apis.taobao_increment_trades_get(tb_user_id=user_id,nick=nick,page_no=cur_page
                 ,page_size=settings.TAOBAO_PAGE_SIZE*2,start_modified=update_from,end_modified=update_to)
             
-            notify_list = response_list['increment_trades_get_response']['notify_trades']['notify_trade']
-            for notify in notify_list:
-                TradeNotify.save_and_post_notify(notify)
-                
             total_nums = response_list['increment_trades_get_response']['total_results']
+            if total_nums > 0:
+                notify_list = response_list['increment_trades_get_response']['notify_trades']['notify_trade']
+                for notify in notify_list:
+                    TradeNotify.save_and_post_notify(notify)
+    
             cur_nums = cur_page*settings.TAOBAO_PAGE_SIZE*2
             has_next = cur_nums<total_nums
             cur_page += 1
     except Exception,exc:
-        logger.error(exc.message,exc_info=True)
+        logger.error(exc.message or '400',exc_info=True)
         raise process_trade_interval_notify_task.retry(exc=exc,countdown=60)
     else:
         if not update_handler:
@@ -244,11 +248,12 @@ def process_item_interval_notify_task(user_id,update_from=None,update_to=None):
             response_list = apis.taobao_increment_items_get(tb_user_id=user_id,nick=nick,page_no=cur_page
                 ,page_size=settings.TAOBAO_PAGE_SIZE*2,start_modified=update_from,end_modified=update_to)
             
-            notify_list = response_list['increment_items_get_response']['notify_items']['notify_item']
-            for notify in notify_list:
-                ItemNotify.save_and_post_notify(notify)
-                
             total_nums = response_list['increment_items_get_response']['total_results']
+            if total_nums > 0:
+                notify_list = response_list['increment_items_get_response']['notify_items']['notify_item']
+                for notify in notify_list:
+                    ItemNotify.save_and_post_notify(notify)
+                
             cur_nums = cur_page*settings.TAOBAO_PAGE_SIZE*2
             has_next = cur_nums<total_nums
             cur_page += 1
@@ -283,11 +288,12 @@ def process_refund_interval_notify_task(user_id,update_from=None,update_to=None)
             response_list = apis.taobao_increment_refunds_get(tb_user_id=user_id,nick=nick,page_no=cur_page
                 ,page_size=settings.TAOBAO_PAGE_SIZE*2,start_modified=update_from,end_modified=update_to)
             
-            notify_list = response_list['increment_refunds_get_response']['notify_refunds']['notify_refund']
-            for notify in notify_list:
-                RefundNotify.save_and_post_notify(notify)
-                
             total_nums = response_list['increment_refunds_get_response']['total_results']
+            if total_nums > 0:
+                notify_list = response_list['increment_refunds_get_response']['notify_refunds']['notify_refund']
+                for notify in notify_list:
+                    RefundNotify.save_and_post_notify(notify)
+
             cur_nums = cur_page*settings.TAOBAO_PAGE_SIZE*2
             has_next = cur_nums<total_nums
             cur_page += 1

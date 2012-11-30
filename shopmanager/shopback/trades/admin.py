@@ -31,7 +31,7 @@ class SubTradePostException(Exception):
     def __str__(self):
         return self.msg
 
-class OrderInline(admin.TabularInline):
+class MergeOrderInline(admin.TabularInline):
     
     model = MergeOrder
     fields = ('oid','outer_id','outer_sku_id','title','buyer_nick','price','payment','num','sku_properties_name',
@@ -55,20 +55,20 @@ class MergeTradeAdmin(admin.ModelAdmin):
     list_per_page = 100
      
     def pay_date(self, obj):
-        return obj.pay_time.strftime('%Y-%m-%d %H:%M')
+        return obj.pay_time.strftime('%Y-%m-%d %H:%M:%S')
 
     pay_date.short_description = '付款日期'.decode('utf8')
     pay_date.admin_order_field = 'pay_time'
     
     def create_date(self, obj):
-        return obj.created.strftime('%Y-%m-%d %H:%M')
+        return obj.created.strftime('%Y-%m-%d %H:%M:%S')
     
     create_date.short_description = '生成日期'.decode('utf8')
     create_date.admin_order_field = 'created'
     
-    inlines = [OrderInline]
+    inlines = [MergeOrderInline]
     
-    list_filter   = ('sys_status','status','user','type')
+    list_filter   = ('sys_status','status','user','type','has_out_stock','has_refund')
     search_fields = ['id','buyer_nick','tid','reason_code','operator']
     #--------设置页面布局----------------
     fieldsets =(('订单基本信息:', {
@@ -89,7 +89,7 @@ class MergeTradeAdmin(admin.ModelAdmin):
                                ,'has_rule_match','has_merge','remind_time','sys_memo','refund_num','priority','sys_status','reason_code')
                 }))
 
-     #--------定制控件属性----------------
+    #--------定制控件属性----------------
     formfield_overrides = {
         models.CharField: {'widget': TextInput(attrs={'size':'20'})},
         models.TextField: {'widget': Textarea(attrs={'rows':4, 'cols':40})},

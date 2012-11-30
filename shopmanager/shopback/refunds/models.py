@@ -14,6 +14,7 @@ import logging
 logger = logging.getLogger('refunds.handler')
 
 REFUND_STATUS = (
+    (pcfg.NO_REFUND,'没有退款'),
     (pcfg.REFUND_WAIT_SELLER_AGREE,'买家已经申请退款'),
     (pcfg.REFUND_WAIT_RETURN_GOODS,'卖家已经同意退款'),
     (pcfg.REFUND_CONFIRM_GOODS,'买家已经退货'),

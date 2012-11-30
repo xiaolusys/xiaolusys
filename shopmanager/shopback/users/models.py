@@ -104,9 +104,7 @@ class User(models.Model):
             logger.error('主动消息服务授权失败'.decode('utf8'),exc_info=True)
         else:                
             logger.warn('主动消息服务授权成功'.decode('utf8'),exc_info=True)
-            modified = response['increment_customer_permit_response']['app_customer']['created']
-            created = datetime.datetime.strptime(modified,'%Y-%m-%d %H:%M:%S')-datetime.timedelta(0,15,0)
-            
+            created = datetime.datetime.now()-datetime.timedelta(0,15,0)
             self.item_notify_updated=created
             self.trade_notify_updated=created
             self.refund_notify_updated=created

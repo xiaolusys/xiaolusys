@@ -10,7 +10,7 @@ class ItemNotifyAdmin(admin.ModelAdmin):
     #list_editable = ('update_time','task_type' ,'is_success','status')
     
     def modified_time(self, obj):
-        return obj.modified.strftime('%Y-%m-%d %H:%M')
+        return obj.modified.strftime('%Y-%m-%d %H:%M:%S')
 
     modified_time.short_description = '修改时间'.decode('utf8')
     modified_time.admin_order_field = 'modified'
@@ -28,13 +28,13 @@ class TradeNotifyAdmin(admin.ModelAdmin):
     #list_editable = ('update_time','task_type' ,'is_success','status')
 
     def modified_time(self, obj):
-        return obj.modified.strftime('%Y-%m-%d %H:%M')
+        return obj.modified.strftime('%Y-%m-%d %H:%M:%S')
 
     modified_time.short_description = '修改时间'.decode('utf8')
     modified_time.admin_order_field = 'modified'
     
     list_filter = ('seller_nick','status','is_exec')
-    search_fields = ['id','tid','oid','nick','seller_nick']
+    search_fields = ['id','tid','oid','nick','buyer_nick']
 
 
 admin.site.register(TradeNotify,TradeNotifyAdmin)
@@ -46,13 +46,13 @@ class RefundNotifyAdmin(admin.ModelAdmin):
     #list_editable = ('update_time','task_type' ,'is_success','status')
     
     def modified_time(self, obj):
-        return obj.modified.strftime('%Y-%m-%d %H:%M')
+        return obj.modified.strftime('%Y-%m-%d %H:%M:%S')
 
     modified_time.short_description = '修改时间'.decode('utf8')
     modified_time.admin_order_field = 'modified'
     
     list_filter = ('nick','status','is_exec')
-    search_fields = ['id','tid','oid','rid','nick','seller_nick']
+    search_fields = ['id','tid','oid','rid','nick','buyer_nick']
 
 admin.site.register(RefundNotify,RefundNotifyAdmin)
 

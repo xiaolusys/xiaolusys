@@ -33,7 +33,7 @@ SYS_TRADE_STATUS = (
     (pcfg.REGULAR_REMAIN_STATUS,'定时提醒')
 )
 
-OUT_STOCK_KEYWORD = [u'到货',u'预售',u'到']
+OUT_STOCK_KEYWORD = [u'到',u'到货',u'预售']
 
 SYS_ORDER_STATUS = (
     (pcfg.IN_EFFECT ,'有效'),
@@ -312,7 +312,7 @@ class MergeTrade(models.Model):
                             pass
                         else:
                             is_order_out = True
-                        break
+                            break
                 
                 if is_order_out:
                      MergeOrder.objects.filter(tid=trade_id,oid=order.oid).update(out_stock=True)
@@ -342,7 +342,6 @@ class MergeTrade(models.Model):
         refund_orders_num   = merge_trade.merge_trade_orders.exclude(Q(oid=None)|Q(is_merge=True)|Q(refund_status=pcfg.NO_REFUND)).count()
         
         if refund_orders_num >merge_trade.refund_num:
-            MergeTrade.objects.filter(tid=trade_id).update(refund_num=refund_orders_num)
             return True
         
         return False
@@ -368,15 +367,18 @@ class MergeTrade(models.Model):
         #是否需要合单      
         trades = cls.objects.filter(buyer_nick=buyer_nick,sys_status__in=(pcfg.WAIT_PREPARE_SEND_STATUS,
                 pcfg.WAIT_AUDIT_STATUS,pcfg.REGULAR_REMAIN_STATUS)).exclude(tid=trade_id)
-        
+        is_need_merge = False
         if trade_from == pcfg.TAOBAO_TYPE:
             if trades.count() > 0:
-                return True
+                for trade in trades:
+                    trade.append_reason_code(pcfg.MULTIPLE_ORDERS_CODE)
+                is_need_merge = True
         else:
             for trade in trades:
                 if trade.full_address == full_address:
-                    return True
-        return False
+                    trade.append_reason_code(pcfg.MULTIPLE_ORDERS_CODE)
+                    is_need_merge = True
+        return is_need_merge
 
     @classmethod
     def judge_need_pull(cls,trade_id,modified):
@@ -500,7 +502,7 @@ def refresh_trade_status(sender,instance,*args,**kwargs):
     merge_trade.has_merge = has_merge
     merge_trade.save()
         
-post_save.connect(refresh_trade_status, sender=MergeOrder, dispatch_uid='refresh_trade_status')
+post_save.connect(refresh_trade_status, sender=MergeOrder)
 
 class MergeBuyerTrade(models.Model):
     
@@ -594,6 +596,8 @@ def merge_order_remover(main_tid):
         sub_merge_trade.remove_reason_code(pcfg.NEW_MERGE_TRADE_CODE)
         sub_merge_trade.append_reason_code(pcfg.MULTIPLE_ORDERS_CODE)
         MergeTrade.objects.filter(tid=sub_merge_trade.tid,sys_status=pcfg.ON_THE_FLY_STATUS).update(sys_status=pcfg.WAIT_AUDIT_STATUS)
+        
+    MergeBuyerTrade.objects.filter(main_tid=main_tid).delete()
     
 
 def trade_download_controller(merge_trade,trade,trade_from,first_pay_load):
@@ -603,15 +607,13 @@ def trade_download_controller(merge_trade,trade,trade_from,first_pay_load):
     buyer_message = trade.buyer_message if hasattr(trade,'buyer_message') else trade.supplier_memo   
  
     merge_trade.has_memo = seller_memo or buyer_message
-
+    merge_trade.buyer_message = buyer_message 
+    merge_trade.seller_memo   = seller_memo
+    
     if trade.status == pcfg.WAIT_SELLER_SEND_GOODS:
         #新留言
-        has_new_memo = merge_trade.seller_memo != seller_memo or merge_trade.buyer_message != buyer_message
-        if has_new_memo:
+        if merge_trade.has_memo:
             merge_trade.append_reason_code(pcfg.NEW_MEMO_CODE)
-
-            merge_trade.buyer_message = buyer_message 
-            merge_trade.seller_memo   = seller_memo
 
         #退款中
         wait_refunding = merge_trade.has_trade_refunding()
@@ -622,6 +624,7 @@ def trade_download_controller(merge_trade,trade,trade_from,first_pay_load):
         
         has_full_refund = MergeTrade.judge_full_refund(trade.id, trade_from)
         has_new_refund  = MergeTrade.judge_new_refund(trade.id, trade_from)
+
         #如果首次付款后入库
         if first_pay_load:  
             #缺货 
@@ -646,6 +649,7 @@ def trade_download_controller(merge_trade,trade,trade_from,first_pay_load):
             if not has_full_refund  and trade_from == pcfg.TAOBAO_TYPE:
                 is_need_merge = MergeTrade.judge_need_merge(trade.id,trade.buyer_nick,trade_from,full_address)
                 if is_need_merge :
+                    merge_trade.append_reason_code(pcfg.MULTIPLE_ORDERS_CODE)
                     trades = MergeTrade.objects.filter(buyer_nick=trade.buyer_nick,sys_status__in=
                                                 (pcfg.WAIT_AUDIT_STATUS,pcfg.WAIT_PREPARE_SEND_STATUS,pcfg.REGULAR_REMAIN_STATUS))\
                                                 .exclude(tid=trade.id).order_by('-pay_time')
@@ -673,25 +677,22 @@ def trade_download_controller(merge_trade,trade,trade_from,first_pay_load):
                         if main_tid and can_merge:  
                             #进行合单
                             is_merge_success = merge_order_maker(trade.id,main_tid)
-            
-                        merge_trade.append_reason_code(pcfg.MULTIPLE_ORDERS_CODE)
+   
                     #如果入库订单缺货,待退款，则将同名的单置放入待审核区域
                     elif trades.count()>0 and out_stock or wait_refunding:
                         if main_tid :
-                            MergeOrder.objects.filter(tid=main_tid,is_merge=True).delete()
-                            MergeBuyerTrade.objects.filter(main_tid=main_tid).delete()
+                            merge_order_remover(main_tid)
                         for t in trades:
-                            MergeTrade.objects.get(id=t.id).append_reason_code(pcfg.MULTIPLE_ORDERS_CODE)
                             if t.sys_status == pcfg.WAIT_PREPARE_SEND_STATUS:
                                 MergeTrade.objects.filter(id=t.id,out_sid='').update(sys_status=pcfg.WAIT_AUDIT_STATUS)
                             else:
                                 MergeTrade.objects.filter(id=t.id).update(sys_status=pcfg.WAIT_AUDIT_STATUS,has_merge=False)
-                            
+                    
             #如果合单成功则将新单置为飞行模式                 
             if is_merge_success:
                 merge_trade.sys_status = pcfg.ON_THE_FLY_STATUS
             #有问题则进入问题单域
-            elif has_new_memo or wait_refunding or out_stock or is_rule_match or is_need_merge:
+            elif merge_trade.has_memo or wait_refunding or out_stock or is_rule_match or is_need_merge:
                 merge_trade.sys_status = pcfg.WAIT_AUDIT_STATUS
             else:
                 merge_trade.sys_status = pcfg.WAIT_PREPARE_SEND_STATUS
@@ -724,7 +725,7 @@ def trade_download_controller(merge_trade,trade,trade_from,first_pay_load):
                 else:
                     merge_order_remover(notify.tid)
             
-            if merge_trade.out_sid == '' and merge_trade.sys_status == pcfg.WAIT_PREPARE_SEND_STATUS:
+            if merge_trade.reason_code and merge_trade.out_sid == '' and merge_trade.sys_status == pcfg.WAIT_PREPARE_SEND_STATUS:
                 merge_trade.sys_status = pcfg.WAIT_AUDIT_STATUS
      
     elif trade.status==pcfg.WAIT_BUYER_CONFIRM_GOODS:
