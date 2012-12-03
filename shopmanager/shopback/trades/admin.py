@@ -49,7 +49,13 @@ class MergeTradeAdmin(admin.ModelAdmin):
                     ,'has_memo','has_refund','sys_status','operator','reason_code','remind_time')
     list_display_links = ('tid',)
     #list_editable = ('update_time','task_type' ,'is_success','status')
-
+    
+    readonly_fields=('tid','user','seller_nick','buyer_nick','payment','total_num','discount_fee'
+                     ,'adjust_fee','post_fee','total_fee','alipay_no','seller_cod_fee','buyer_cod_fee','cod_fee'
+                     ,'cod_status','buyer_message','seller_memo','created','pay_time','modified','consign_time'
+                     ,'type','status','shipping_type','operator','is_picking_print','is_express_print','is_send_sms'
+                     ,'has_memo','has_refund','has_out_stock','has_rule_match','has_merge','sys_status')
+    
     date_hierarchy = 'created'
     ordering = ['-priority','pay_time',]
     list_per_page = 100

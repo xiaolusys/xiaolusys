@@ -411,7 +411,7 @@ class MergeOrder(models.Model):
     num = models.IntegerField(null=True,default=0,verbose_name='商品数量')
     
     outer_id = models.CharField(max_length=64,blank=True,verbose_name='商品外部编码')
-    outer_sku_id = models.CharField(max_length=20,blank=True,verbose_name='属性外部编码')
+    outer_sku_id = models.CharField(max_length=20,blank=True,verbose_name='规格外部编码')
     
     total_fee = models.CharField(max_length=12,blank=True,verbose_name='总费用')
     payment = models.CharField(max_length=12,blank=True,verbose_name='实付款')
