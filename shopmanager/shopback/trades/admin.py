@@ -111,7 +111,7 @@ class MergeTradeAdmin(admin.ModelAdmin):
                                                                          is_express_print=False,
                                                                          operator='')
         trades = MergeTrade.objects.filter(id__in=trade_ids) 
-        print trades  
+        
         return render_to_response('trades/auditsuccess.html',{'trades':trades},
                                   context_instance=RequestContext(request),mimetype="text/html")
 
@@ -156,18 +156,18 @@ class MergeTradeAdmin(admin.ModelAdmin):
                                   context_instance=RequestContext(request),mimetype="text/html") 	
     	
     merge_order_action.short_description = "合并订单".decode('utf8')
-    
+
     #重新下载订单
     def pull_order_action(self, request, queryset):
         queryset = queryset.filter(sys_status=pcfg.WAIT_AUDIT_STATUS)
-        print queryset
+        
         pull_success_ids = []
         pull_fail_ids    = []
         for trade in queryset:
+            MergeTrade.objects.filter(tid=trade.tid).update(sys_status='')
             try:
                 if trade.type == pcfg.TAOBAO_TYPE:
                     response = apis.taobao_trade_fullinfo_get(tid=trade.tid,tb_user_id=trade.seller_id)
-                    MergeTrade.objects.filter(tid=trade.tid).delete()
                     trade_dict = response['trade_fullinfo_get_response']['trade']
                     Trade.save_trade_through_dict(trade.seller_id,trade_dict)
                 elif trade.type == pcfg.FENXIAO_TYPE:
@@ -176,24 +176,22 @@ class MergeTradeAdmin(admin.ModelAdmin):
                     except Exception,exc:
                         purchase = PurchaseOrder.objects.get(id=trade.tid)
                         response_list = apis.taobao_fenxiao_orders_get(purchase_order_id=purchase.fenxiao_id,tb_user_id=trade.seller_id)
-                        MergeTrade.objects.filter(tid=trade.tid).delete()
                         orders_list = response_list['fenxiao_orders_get_response']
                         if orders_list['total_results']>0:
                             o = orders_list['purchase_orders']['purchase_order'][0]
                             PurchaseOrder.save_order_through_dict(trade.seller_id,o)
                     else:
                         response = apis.taobao_trade_fullinfo_get(tid=trade.tid,tb_user_id=trade.seller_id)
-                        MergeTrade.objects.filter(tid=trade.tid).delete()
                         trade_dict = response['trade_fullinfo_get_response']['trade']
                         Trade.save_trade_through_dict(trade.seller_id,trade_dict)                          
             except Exception,exc:
                 logger.error(exc.message,exc_info=True)
+                MergeTrade.objects.filter(tid=trade.tid).update(sys_status=pcfg.WAIT_AUDIT_STATUS)
                 pull_fail_ids.append(trade.tid)
             else:
                 pull_success_ids.append(trade.tid)
         success_trades = MergeTrade.objects.filter(tid__in=pull_success_ids)
         fail_trades    = MergeTrade.objects.filter(tid__in=pull_fail_ids)
-        print success_trades,fail_trades
         return render_to_response('trades/repullsuccess.html',{'success_trades':success_trades,'fail_trades':fail_trades},
                                   context_instance=RequestContext(request),mimetype="text/html") 
 
@@ -202,10 +200,10 @@ class MergeTradeAdmin(admin.ModelAdmin):
     #淘宝后台同步发货
     def sync_trade_post_taobao(self, request, queryset):
         trade_ids = [t.id for t in queryset]
-        prapare_trades = queryset.filter(is_picking_print=True,is_express_print=True#,sys_status=WAIT_PREPARE_SEND_STATUS
+        
+        prapare_trades = queryset.filter(is_picking_print=True,is_express_print=True,sys_status=pcfg.WAIT_PREPARE_SEND_STATUS
                                          ,operator=request.user.username,reason_code='').exclude(out_sid='')
-        if prapare_trades.count() == 0:
-            return queryset 
+
         for trade in prapare_trades:
             if not trade.tid and trade.type == 'direct':
                 MergeTrade.objects.filter(tid=trade.tid).update(sys_status=pcfg.WAIT_CHECK_BARCODE_STATUS
@@ -223,23 +221,23 @@ class MergeTradeAdmin(admin.ModelAdmin):
                 for sub_buyer_trade in merge_buyer_trades:
                     try:
                         sub_trade = MergeTrade.objects.get(tid=sub_buyer_trade.sub_tid)
-                        response = apis.taobao_logistics_online_send(tid=sub_trade.tid,out_sid=trade.out_sid
+                        response = apis.taobao_logistics_offline_send(tid=sub_trade.tid,out_sid=trade.out_sid
                                                       ,company_code=trade.logistics_company.code,tb_user_id=sub_trade.seller_id)
-                        #response = {'logistics_online_send_response': {'shipping': {'is_success': True}}}
-                        if not response['logistics_online_send_response']['shipping']['is_success']:
+                        #response = {'logistics_offline_send_response': {'shipping': {'is_success': True}}}
+                        if not response['logistics_offline_send_response']['shipping']['is_success']:
                             raise Exception(u'子订单(%d)淘宝发货失败'%sub_trade.tid)
                     except Exception,exc:
                         sub_trade.append_reason_code(pcfg.POST_SUB_TRADE_ERROR_CODE)
                         MergeTrade.objects.filter(tid=sub_trade.tid).update(sys_status=pcfg.WAIT_AUDIT_STATUS)
                         raise SubTradePostException(exc.message)
                     else:
-                        MergeTrade.objects.filter(tid=sub_trade.tid).update(sys_status=pcfg.FINISHED_STATUS
+                        MergeTrade.objects.filter(tid=sub_trade.tid).update(out_sid=trade.out_sid,sys_status=pcfg.FINISHED_STATUS
                             ,consign_time=datetime.datetime.now())
                 
-                response = apis.taobao_logistics_online_send(tid=trade.tid,out_sid=trade.out_sid
+                response = apis.taobao_logistics_offline_send(tid=trade.tid,out_sid=trade.out_sid
                                               ,company_code=trade.logistics_company.code,tb_user_id=trade.seller_id)  
-                #response = {'logistics_online_send_response': {'shipping': {'is_success': True}}}
-                if not response['logistics_online_send_response']['shipping']['is_success']:
+                #response = {'logistics_offline_send_response': {'shipping': {'is_success': True}}}
+                if not response['logistics_offline_send_response']['shipping']['is_success']:
                     raise Exception(u'订单(%d)淘宝发货失败'%trade.tid)
                 #else:
                 #    raise Exception(u'订单(%d)本地修改日期(%s)与线上修改日期(%s)不一致'%(trade.tid,trade.modified,latest_modified))
@@ -248,14 +246,14 @@ class MergeTradeAdmin(admin.ModelAdmin):
                 MergeTrade.objects.filter(tid=trade.tid).update(sys_status=pcfg.WAIT_AUDIT_STATUS)
                 logger.error(exc.message,exc_info=True)
             except Exception,exc:
-                trade.append_reason_code(POST_MODIFY_CODE)
+                trade.append_reason_code(pcfg.POST_MODIFY_CODE)
                 MergeTrade.objects.filter(tid=trade.tid).update(sys_status=pcfg.WAIT_AUDIT_STATUS)
-                logger.error(exc.message,exc_info=True)
+                logger.error(exc.message+'----post',exc_info=True)
             else:
                 MergeTrade.objects.filter(tid=trade.tid).update(sys_status=pcfg.WAIT_CHECK_BARCODE_STATUS,consign_time=datetime.datetime.now())
 	
-	    queryset.exclude(reason_code='').update(sys_status=pcfg.WAIT_AUDIT_STATUS)
-
+	    queryset.filter(sys_status=pcfg.WAIT_PREPARE_SEND_STATUS).exclude(reason_code='').update(sys_status=pcfg.WAIT_AUDIT_STATUS)
+        
         queryset = MergeTrade.objects.filter(id__in=trade_ids)
         post_trades = queryset.filter(sys_status=pcfg.WAIT_CHECK_BARCODE_STATUS)
         trade_items = {}
@@ -324,7 +322,7 @@ class MergeOrderAdmin(admin.ModelAdmin):
     #ordering = ['created_at']
 
     list_filter = ('seller_nick','status','refund_status')
-    search_fields = ['oid','tid','buyer_nick','outer_id']
+    search_fields = ['oid','tid','buyer_nick','outer_id','outer_sku_id']
 
 
 admin.site.register(MergeOrder,MergeOrderAdmin)

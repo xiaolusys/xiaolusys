@@ -58,7 +58,7 @@ class RuleFieldType(models.Model):
 
     class Meta:
         db_table = 'shop_memorule_rulefieldtype'
-
+    
     def __unicode__(self):
         return self.field_name+self.field_type
 
@@ -75,11 +75,12 @@ class ProductRuleField(models.Model):
 
     class Meta:
         db_table = 'shop_memorule_productrulefield'
-
+        verbose_name = u'待审核规则'
+        
     @property
     def alias(self):
         return self.custom_alias or self.field.alias
-
+        
     @property
     def default(self):
         value = self.custom_default or self.field.default_value
@@ -162,7 +163,7 @@ def rule_match_product(sender, trade_tid, *args, **kwargs):
     else: 
         orders  = trade.merge_trade_orders.filter(status=pcfg.WAIT_SELLER_SEND_GOODS).exclude(refund_status__in=pcfg.REFUND_APPROVAL_STATUS)
         for order in orders:
-            rules = ProductRuleField.objects.filter(outer_id=order.outer_tid)
+            rules = ProductRuleField.objects.filter(outer_id=order.outer_id)
             if rules.count()>0:
                 MergeOrder.objects.filter(id=order.id).update(is_rule_match=True)
                 is_rule_match = True

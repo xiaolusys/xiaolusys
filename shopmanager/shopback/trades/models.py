@@ -358,7 +358,6 @@ class MergeTrade(models.Model):
         try:
             rule_signal.send(sender='product_rule',trade_tid=trade_id)
         except Exception,exc:
-            
             return True
         return False
     
@@ -515,7 +514,7 @@ class MergeBuyerTrade(models.Model):
         verbose_name='合单记录'.decode('utf8')
         
     def __unicode__(self):
-        return str(self.id)
+        return '<%d,%d>'%(sub_tid,main_tid)
     
     @classmethod
     def get_merge_type(cls,tid):
@@ -749,22 +748,23 @@ def trade_download_controller(merge_trade,trade,trade_from,first_pay_load):
     )
     
      
-def save_orders_trade_to_mergetrade(sender, trade, *args, **kwargs):
-
+def save_orders_trade_to_mergetrade(sender, tid, *args, **kwargs):
+    
     try:
+        trade = Trade.objects.get(id=tid)
         merge_trade,state = MergeTrade.objects.get_or_create(tid=trade.id)
         
-        first_pay_load = not merge_trade.sys_status  
-        if first_pay_load and trade.status not in (pcfg.WAIT_BUYER_PAY,pcfg.TRADE_NO_CREATE_PAY,pcfg.TRADE_CLOSED,pcfg.TRADE_CLOSED_BY_TAOBAO):
-            #保存时
-            merge_trade.receiver_name = trade.receiver_name
-            merge_trade.receiver_state = trade.receiver_state
-            merge_trade.receiver_city = trade.receiver_city
-            merge_trade.receiver_district = trade.receiver_district
-            merge_trade.receiver_address = trade.receiver_address
-            merge_trade.receiver_zip = trade.receiver_zip
-            merge_trade.receiver_mobile = trade.receiver_mobile
-            merge_trade.receiver_phone = trade.receiver_phone
+        first_pay_load = not merge_trade.sys_status 
+        if first_pay_load:
+            #保存地址
+            merge_trade.receiver_name = trade.receiver_name 
+            merge_trade.receiver_state   = trade.receiver_state 
+            merge_trade.receiver_city = trade.receiver_city 
+            merge_trade.receiver_district = trade.receiver_district 
+            merge_trade.receiver_address = trade.receiver_address 
+            merge_trade.receiver_zip  = trade.receiver_zip 
+            merge_trade.receiver_mobile  = trade.receiver_mobile 
+            merge_trade.receiver_phone = trade.receiver_phone 
             merge_trade.save()
       
         #保存商城或C店订单到抽象全局抽象订单表
@@ -855,26 +855,27 @@ def save_orders_trade_to_mergetrade(sender, trade, *args, **kwargs):
 merge_trade_signal.connect(save_orders_trade_to_mergetrade,sender=Trade,dispatch_uid='merge_trade')        
 
 
-def save_fenxiao_orders_to_mergetrade(sender, trade, *args, **kwargs):
+def save_fenxiao_orders_to_mergetrade(sender, tid, *args, **kwargs):
     try:
-        if not trade.id:
+        if not tid:
             return 
+        trade = PurchaseOrder.objects.get(id=tid)
         merge_trade,state = MergeTrade.objects.get_or_create(tid=trade.id)
         
         first_pay_load = not merge_trade.sys_status 
-        if first_pay_load and trade.status not in (pcfg.TRADE_NO_CREATE_PAY,pcfg.WAIT_BUYER_PAY,pcfg.TRADE_CLOSED):
+        if first_pay_load :
             logistics = Logistics.get_or_create(trade.seller_id,trade.id)
             location = json.loads(logistics.location or 'null')
         
-            merge_trade.receiver_name = logistics.receiver_name
-            merge_trade.receiver_zip  = location.get('zip','') if location else ''
-            merge_trade.receiver_mobile = logistics.receiver_mobile
-            merge_trade.receiver_phone = logistics.receiver_phone
+            merge_trade.receiver_name = logistics.receiver_name 
+            merge_trade.receiver_zip  = (location.get('zip','') if location else '') 
+            merge_trade.receiver_mobile = logistics.receiver_mobile 
+            merge_trade.receiver_phone = logistics.receiver_phone 
 
-            merge_trade.receiver_state = location.get('state','') if location else ''
-            merge_trade.receiver_city  = location.get('city','') if location else ''
-            merge_trade.receiver_district = location.get('district','') if location else ''
-            merge_trade.receiver_address  = location.get('address','') if location else ''
+            merge_trade.receiver_state = (location.get('state','') if location else '') 
+            merge_trade.receiver_city  = (location.get('city','') if location else '') 
+            merge_trade.receiver_district = (location.get('district','') if location else '') 
+            merge_trade.receiver_address  = (location.get('address','') if location else '') 
             merge_trade.save()
 
         #保存分销订单到抽象全局抽象订单表

@@ -27,9 +27,12 @@ def process_trade_notify_task(id):
         notify = TradeNotify.objects.get(id=id)
         #订单创建，修改，关闭，则重新下载该订单，并对订单价格进行修改
         if notify.status in ('TradeCreate','TradeCloseAndModifyDetailOrder'):
-            response    = apis.taobao_trade_get(tid=notify.tid,tb_user_id=notify.user_id)
-            trade_dict  = response['trade_get_response']['trade']
-            trade = Trade.save_trade_through_dict(notify.user_id,trade_dict)
+            if MergeTrade.judge_need_pull(notify.tid,notify.modified):
+                response    = apis.taobao_trade_get(tid=notify.tid,tb_user_id=notify.user_id)
+                trade_dict  = response['trade_get_response']['trade']
+                trade_modify = datetime.datetime.strptime(trade_dict['modified'],'%Y-%m-%d %H:%M:%S')
+                if MergeTrade.judge_need_pull(notify.tid,trade_modify):
+                    trade = Trade.save_trade_through_dict(notify.user_id,trade_dict)
             #修改订单价格
             #modify_fee_signal.send(sender='modify_post_fee',user_id=notify.user_id,trade_id=notify.tid)
         #修改交易备注
@@ -46,7 +49,7 @@ def process_trade_notify_task(id):
                     seller_memo  = trade_dict.get('seller_memo','')
                     seller_flag  = trade_dict.get('seller_flag',0)
                     Trade.objects.filter(id=notify.tid).update(modified=notify.modified,seller_memo=seller_memo,seller_flag=seller_flag)
-                    MergeTrade.objects.filter(id=notify.tid).update(modified=notify.modified,seller_memo=seller_memo,seller_flag=seller_flag)
+                    MergeTrade.objects.filter(tid=notify.tid).update(modified=notify.modified,seller_memo=seller_memo,seller_flag=seller_flag)
                     #如果是更新了卖家备注，则继续处理，更新旗帜则布处理
                     if seller_memo: 
                         trade.append_reason_code(pcfg.NEW_MEMO_CODE)
@@ -197,8 +200,12 @@ def process_trade_interval_notify_task(user_id,update_from=None,update_to=None):
     try:
         user = User.objects.get(visitor_id=user_id)
         if not update_handler:
-            update_from = user.trade_notify_updated - datetime.timedelta(0,3,0)
-            updated = update_to   = datetime.datetime.now()
+            update_from = user.trade_notify_updated 
+            dt = datetime.datetime.now()
+            update_to   = dt if dt.day == update_from.day else \
+                datetime.datetime(update_from.year,update_from.month,update_from.day,23,59,59)
+            updated = dt if dt.day == update_from.day else \
+                datetime.datetime(dt.year,dt.month,dt.day,0,0,0)
         
         nick = user.nick
         update_from = update_from.strftime('%Y-%m-%d %H:%M:%S')
@@ -236,8 +243,12 @@ def process_item_interval_notify_task(user_id,update_from=None,update_to=None):
     try:
         user = User.objects.get(visitor_id=user_id)
         if not update_handler:
-            update_from = user.trade_notify_updated - datetime.timedelta(0,3,0)
-            updated = update_to   = datetime.datetime.now() 
+            update_from = user.trade_notify_updated
+            dt = datetime.datetime.now()
+            update_to   = dt if dt.day == update_from.day else \
+                datetime.datetime(update_from.year,update_from.month,update_from.day,23,59,59)
+            updated = dt if dt.day == update_from.day else \
+                datetime.datetime(dt.year,dt.month,dt.day,0,0,0)
         
         nick = user.nick
         update_from = update_from.strftime('%Y-%m-%d %H:%M:%S')
@@ -276,8 +287,12 @@ def process_refund_interval_notify_task(user_id,update_from=None,update_to=None)
     try:
         user = User.objects.get(visitor_id=user_id)
         if not update_handler:
-            update_from = user.trade_notify_updated - datetime.timedelta(0,3,0)
-            updated = update_to = datetime.datetime.now()
+            update_from = user.trade_notify_updated
+            dt = datetime.datetime.now()
+            update_to   = dt if dt.day == update_from.day else \
+                datetime.datetime(update_from.year,update_from.month,update_from.day,23,59,59)
+            updated = dt if dt.day == update_from.day else \
+                datetime.datetime(dt.year,dt.month,dt.day,0,0,0)
         
         nick = user.nick
         update_from = update_from.strftime('%Y-%m-%d %H:%M:%S')

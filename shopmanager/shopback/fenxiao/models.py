@@ -215,7 +215,7 @@ class PurchaseOrder(models.Model):
                 if sub_order.get('created',None) else None
             sub_purchase_order.save()
             
-        merge_trade_signal.send(sender=PurchaseOrder,trade=purchase_order)
+        merge_trade_signal.send(sender=PurchaseOrder,tid=purchase_order.id)
         return purchase_order
             
         
