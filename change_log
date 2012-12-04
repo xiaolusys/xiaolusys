@@ -1,3 +1,6 @@
+########  2012-12-04  #########
+alter table shop_trades_mergeorder add column is_split tinyint(1) NOT NULL;
+alter table shop_trades_mergeorder add column is_gift   tinyint(1) NOT NULL;
 ########  2012-11-22  #########
 alter table shop_orders_trade add column seller_flag int(11) DEFAULT NULL;
 alter table shop_trades_mergetrade add column seller_flag int(11) DEFAULT NULL;

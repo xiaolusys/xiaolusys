@@ -35,7 +35,7 @@ class MergeOrderInline(admin.TabularInline):
     
     model = MergeOrder
     fields = ('oid','outer_id','outer_sku_id','title','buyer_nick','price','payment','num','sku_properties_name',
-                    'out_stock','is_merge','is_rule_match','refund_id','refund_status','status','sys_status')
+                    'out_stock','is_merge','is_rule_match','is_split','is_gift','refund_id','refund_status','status','sys_status')
     
     formfield_overrides = {
         models.CharField: {'widget': TextInput(attrs={'size':'12'})},

@@ -392,7 +392,7 @@ class MergeTrade(models.Model):
                 need_pull = True
         return need_pull
  
- 
+   
 class MergeOrder(models.Model):
     
     id    = BigIntegerAutoField(primary_key=True)
@@ -439,8 +439,10 @@ class MergeOrder(models.Model):
     consign_time  =  models.DateTimeField(db_index=True,null=True,blank=True,verbose_name='发货日期')
     
     out_stock   = models.BooleanField(default=False,verbose_name='缺货')
-    is_merge    = models.BooleanField(default=False,verbose_name='合并订单') 
-    is_rule_match    = models.BooleanField(default=False,verbose_name='规则匹配')
+    is_merge    = models.BooleanField(default=False,verbose_name='合并') 
+    is_rule_match    = models.BooleanField(default=False,verbose_name='匹配')
+    is_split    = models.BooleanField(default=False,verbose_name='拆分')
+    is_gift     = models.BooleanField(default=False,verbose_name='赠品')
     
     status = models.CharField(max_length=32,choices=TAOBAO_ORDER_STATUS,blank=True,verbose_name='淘宝订单状态')
     sys_status = models.CharField(max_length=32,choices=SYS_ORDER_STATUS,blank=True,default='',verbose_name='系统订单状态')
