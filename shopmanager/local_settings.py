@@ -6,8 +6,8 @@ DEBUG = True
 TEMPLATE_DEBUG = DEBUG
 
 PROJECT_ROOT = os.path.abspath(os.path.dirname(__file__))
-STATICFILES_DIRS = ()
-STATIC_ROOT = os.path.join(PROJECT_ROOT, "site_media","static")
+#STATICFILES_DIRS = ()
+#STATIC_ROOT = os.path.join(PROJECT_ROOT, "site_media","static")
 
 DATABASES = {
     'default': {
@@ -20,6 +20,12 @@ DATABASES = {
     }
 }
 
+if DEBUG:
+    STATICFILES_DIRS = (
+       os.path.join(PROJECT_ROOT,"site_media","static"),
+    )
+else :
+    STATIC_ROOT = os.path.join(PROJECT_ROOT, "static")
 
 CACHES = {
     'default': {

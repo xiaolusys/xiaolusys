@@ -57,7 +57,8 @@
 
 {% block after_related_objects %}{% endblock %}
 
-{% submit_row %}
+{% load trade_tags %}
+{% trade_submit_row %}
 
 {% if adminform and add %}
    <script type="text/javascript">document.getElementById("{{ adminform.first_field.id_for_label }}").focus();</script>

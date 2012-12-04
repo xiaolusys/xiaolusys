@@ -3,7 +3,7 @@ import json
 import datetime
 from django.contrib import admin
 from django.db import models
-from django.db.models import Q
+from django.views.decorators.csrf import csrf_protect
 from django.forms import TextInput, Textarea
 from django.http import HttpResponse,HttpResponseRedirect
 from django.shortcuts import render_to_response
@@ -31,11 +31,16 @@ class SubTradePostException(Exception):
     def __str__(self):
         return self.msg
 
+def has_modify_trade_info_status_permission(request, obj=None):
+     if request.user.has_perm('mergetrade.can_trade_modify'):
+         return True
+     return False
+
 class MergeOrderInline(admin.TabularInline):
     
     model = MergeOrder
-    fields = ('oid','outer_id','outer_sku_id','title','buyer_nick','price','payment','num','sku_properties_name',
-                    'out_stock','is_merge','is_rule_match','is_split','is_gift','refund_id','refund_status','status','sys_status')
+    fields = ('oid','outer_id','outer_sku_id','title','price','payment','num','sku_properties_name',
+                    'out_stock','is_merge','is_rule_match','gift_type','refund_id','refund_status','status','sys_status')
     
     formfield_overrides = {
         models.CharField: {'widget': TextInput(attrs={'size':'12'})},
@@ -44,55 +49,46 @@ class MergeOrderInline(admin.TabularInline):
 
 
 class MergeTradeAdmin(admin.ModelAdmin):
-    list_display = ('id','tid','user','buyer_nick','type','payment','create_date','pay_date'
+    list_display = ('id','popup_tid_link','user','buyer_nick','type','payment','created','pay_time'
                     ,'status','logistics_company','is_picking_print','is_express_print','is_send_sms'
                     ,'has_memo','has_refund','sys_status','operator','reason_code','remind_time')
-    list_display_links = ('tid',)
+    list_display_links = ('id','popup_tid_link')
     #list_editable = ('update_time','task_type' ,'is_success','status')
-    
-    readonly_fields=('tid','user','seller_nick','buyer_nick','payment','total_num','discount_fee'
-                     ,'adjust_fee','post_fee','total_fee','alipay_no','seller_cod_fee','buyer_cod_fee','cod_fee'
-                     ,'cod_status','buyer_message','seller_memo','created','pay_time','modified','consign_time'
-                     ,'type','status','shipping_type','operator','is_picking_print','is_express_print','is_send_sms'
-                     ,'has_memo','has_refund','has_out_stock','has_rule_match','has_merge','sys_status')
-    
+
     date_hierarchy = 'created'
     ordering = ['-priority','pay_time',]
     list_per_page = 100
      
-    def pay_date(self, obj):
-        return obj.pay_time.strftime('%Y-%m-%d %H:%M:%S')
+    def popup_tid_link(self, obj):
+        return u'<a href="%d/" onclick="return showTradePopup(this);">%d</a>' %(obj.id,obj.tid)
+    popup_tid_link.allow_tags = True
+    popup_tid_link.short_description = "淘宝ID" 
 
-    pay_date.short_description = '付款日期'.decode('utf8')
-    pay_date.admin_order_field = 'pay_time'
-    
-    def create_date(self, obj):
-        return obj.created.strftime('%Y-%m-%d %H:%M:%S')
-    
-    create_date.short_description = '生成日期'.decode('utf8')
-    create_date.admin_order_field = 'created'
-    
     inlines = [MergeOrderInline]
     
     list_filter   = ('sys_status','status','user','type','has_out_stock','has_refund')
     search_fields = ['id','buyer_nick','tid','reason_code','operator']
+    
+    class Media:
+        js = ("script/admin/adminpopup.js",)
+        
     #--------设置页面布局----------------
     fieldsets =(('订单基本信息:', {
                     'classes': ('collapse',),
-                    'fields': ('tid','user','seller_nick','buyer_nick','payment','total_num','discount_fee'
-                               ,'adjust_fee','post_fee','total_fee','alipay_no','seller_cod_fee','buyer_cod_fee','cod_fee'
-                               ,'cod_status','buyer_message','seller_memo','created','pay_time','modified','consign_time'
-                               ,'type','status')
+                    'fields': ('user',('total_fee','payment','discount_fee'
+                               ,'adjust_fee','post_fee'),('seller_cod_fee','buyer_cod_fee','cod_fee'
+                               ,'cod_status','alipay_no'),('modified','consign_time'),('post_cost','refund_num','operator','weight'))
+                }),
+                ('系统内部信息:', {
+                    'classes': ('expand',),
+                    'fields': (('tid','buyer_nick','seller_nick','created','pay_time','total_num'),('is_picking_print','is_express_print','is_send_sms','has_memo','has_refund','has_out_stock'
+                               ,'has_rule_match','has_merge'),('type','status','sys_status','remind_time','priority','reason_code')
+                               ,('shipping_type','out_sid','logistics_company'),('buyer_message','seller_memo','sys_memo'))
                 }),
                 ('收货人及物流信息:', {
                     'classes': ('collapse',),
-                    'fields': ('shipping_type','out_sid','logistics_company','receiver_name','receiver_state'
-                               ,'receiver_city','receiver_district','receiver_address','receiver_zip','receiver_mobile','receiver_phone')
-                }),
-                ('系统内部信息:', {
-                    'classes': ('collapse',),
-                    'fields': ('operator','weight','post_cost','is_picking_print','is_express_print','is_send_sms','has_memo','has_refund','has_out_stock'
-                               ,'has_rule_match','has_merge','remind_time','sys_memo','refund_num','priority','sys_status','reason_code')
+                    'fields': (('receiver_name','receiver_state'
+                               ,'receiver_city','receiver_district','receiver_address'),('receiver_zip','receiver_mobile','receiver_phone'))
                 }))
 
     #--------定制控件属性----------------
@@ -100,6 +96,54 @@ class MergeTradeAdmin(admin.ModelAdmin):
         models.CharField: {'widget': TextInput(attrs={'size':'20'})},
         models.TextField: {'widget': Textarea(attrs={'rows':4, 'cols':40})},
     }
+    
+    #重写订单视图
+    def changelist_view(self, request, extra_context=None, **kwargs):
+
+        if not has_modify_trade_info_status_permission(request):
+            self.readonly_fields=('tid','user','seller_nick','buyer_nick','payment','total_num','discount_fee'
+                     ,'adjust_fee','post_fee','total_fee','alipay_no','seller_cod_fee','buyer_cod_fee','cod_fee'
+                     ,'cod_status','buyer_message','seller_memo','created','pay_time','modified','consign_time'
+                     ,'type','status','shipping_type','operator','is_picking_print','is_express_print','is_send_sms'
+                     ,'has_memo','has_refund','has_out_stock','has_rule_match','has_merge','sys_status')
+            
+        return super(MergeTradeAdmin, self).changelist_view(request, extra_context)
+    
+    def response_change(self, request, obj, *args, **kwargs):
+        #保存并审核
+        opts = obj._meta
+        # Handle proxy models automatically created by .only() or .defer()
+        verbose_name = opts.verbose_name
+        if obj._deferred:
+            opts_ = opts.proxy_for_model._meta
+            verbose_name = opts_.verbose_name
+
+        pk_value = obj._get_pk_val()
+        if request.POST.has_key("_save_audit"):
+            audit_success = False
+            if obj.sys_status==pcfg.WAIT_AUDIT_STATUS and not obj.reason_code and not obj.has_rule_match\
+                and not obj.has_refund and not obj.has_out_stock and obj.logistics_company:
+                try:
+                    rule_signal.send(sender='merge_trade_rule',trade_tid=obj.tid)
+                    MergeTrade.objects.filter(id=obj.id,reason_code='').update(
+                                                                                 sys_status=pcfg.WAIT_PREPARE_SEND_STATUS,
+                                                                                 out_sid='',
+                                                                                 is_picking_print=False,
+                                                                                 is_express_print=False,
+                                                                                 operator='')
+                except Exception,exc:
+                    logger.error(exc.message,exc_info=True)
+                    audit_success = False
+                else:
+                    audit_success = True
+            if audit_success:
+                self.message_user(request, "审核通过")
+                return HttpResponseRedirect("../%s/" % pk_value)
+            else:
+                self.message_user(request, "审核未通过（请确保订单状态为待审核，无退款，无问题编码，无匹配，无缺货，已选择快递）")
+                return HttpResponseRedirect("../%s/" % pk_value)
+        
+        return super(MergeTradeAdmin, self).response_change(request, obj, *args, **kwargs)
     
     #--------定义action----------------
     #审核订单
@@ -216,11 +260,6 @@ class MergeTradeAdmin(admin.ModelAdmin):
                                                                 ,consign_time=datetime.datetime.now())
                 continue        
             try:
-                #trade_dict = apis.taobao_trade_get(tid=trade.tid,fields='tid,modified',tb_user_id=trade.seller_id)
-                #trade_modified = trade_dict['trade_get_response']['trade']['modified']
-                #latest_modified = parse_datetime(trade_modified)
-                #if latest_modified == trade.modified:
-
                 #判断子订单是否有改动，如果有则不能发货
                 merge_buyer_trades = MergeBuyerTrade.objects.filter(main_tid=trade.tid)
                 
@@ -319,15 +358,15 @@ admin.site.register(MergeTrade,MergeTradeAdmin)
 
 
 class MergeOrderAdmin(admin.ModelAdmin):
-    list_display = ('id','tid','oid','seller_nick','buyer_nick','price','num_iid','sku_id','num','outer_sku_id','sku_properties_name',
-                    'payment','refund_id','refund_status','outer_id','cid','status')
+    list_display = ('id','tid','oid','outer_id','outer_sku_id','seller_nick','buyer_nick','price','num_iid','sku_id','num','sku_properties_name',
+                    'payment','refund_id','refund_status','cid','status')
     list_display_links = ('oid','tid')
     #list_editable = ('update_time','task_type' ,'is_success','status')
 
     date_hierarchy = 'created'
     #ordering = ['created_at']
 
-    list_filter = ('seller_nick','status','refund_status')
+    list_filter = ('seller_nick','status','gift_type','refund_status')
     search_fields = ['oid','tid','buyer_nick','outer_id','outer_sku_id']
 
 

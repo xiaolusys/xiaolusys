@@ -1,8 +1,10 @@
 {% load i18n %}
 <div class="submit-row" {% if is_popup %}style="overflow: auto;"{% endif %}>
-{% if show_save %}<input type="submit" value="{% trans '保存' %}" class="default" name="_save" {{ onclick_attrib }}/>{% endif %}
+{% if show_save_and_continue %}<input type="submit" value="{% trans '关闭' %}" class="default" name="_close" onclick="window.close();" {{ onclick_attrib }}/>{% endif %}
 {% if show_delete_link %}<p class="deletelink-box"><a href="delete/" class="deletelink">{% trans "删除" %}</a></p>{% endif %}
-{% if show_save_as_new %}<input type="submit" value="{% trans '保存为新记录' %}" name="_saveasnew" {{ onclick_attrib }}/>{%endif%}
-{% if show_save_and_add_another %}<input type="submit" value="{% trans '保存并新建' %}" name="_addanother" {{ onclick_attrib }} />{% endif %}
-{% if show_save_and_continue %}<input type="submit" value="{% trans '保存并编辑' %}" name="_continue" {{ onclick_attrib }}/>{% endif %}
+{% if show_save_and_continue %}<input type="submit" value="{% trans '取消合并' %}" class="default" name="_split" {{ onclick_attrib }}/>{% endif %}
+{% if show_save_and_continue %}<input type="submit" value="{% trans '取消定时' %}" class="default" name="_unregular" {{ onclick_attrib }}/>{% endif %}
+{% if show_save_and_continue %}<input type="submit" value="{% trans '作废' %}" class="default" name="_invalid" {{ onclick_attrib }}/>{% endif %}
+{% if show_save %}<input type="submit" value="{% trans '保存' %}" class="default" name="_save" {{ onclick_attrib }}/>{% endif %}
+{% if show_save_and_continue %}<input type="submit" value="{% trans '保存并审核' %}" class="default" name="_save_audit" {{ onclick_attrib }}/>{% endif %}
 </div>

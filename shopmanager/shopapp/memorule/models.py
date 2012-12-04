@@ -219,7 +219,7 @@ def rule_match_merge_trade(sender, trade_tid, *args, **kwargs):
     except MergeTrade.DoesNotExist:
         pass
     else:
-        trade.merge_trade_orders.filter(oid=None).delete()
+        trade.merge_trade_orders.filter(gift_type__in=(pcfg.OVER_PAYMENT_GIT_TYPE,pcfg.COMBOSE_SPLIT_GIT_TYPE)).delete()
         try:
             orders = trade.merge_trade_orders.filter(status__in=(pcfg.WAIT_SELLER_SEND_GOODS,
                             pcfg.CONFIRM_WAIT_SEND_GOODS,pcfg.WAIT_CONFIRM_WAIT_SEND_GOODS))\
@@ -235,7 +235,7 @@ def rule_match_merge_trade(sender, trade_tid, *args, **kwargs):
                 else:
                     MergeOrder.objects.filter(id=order.id).update(sys_status=pcfg.INVALID_STATUS)
                     for item in compose_rule.compose_items.all():
-                        MergeOrder.gen_new_order(trade_tid,item.outer_id,item.outer_sku_id,item.num*order.num)
+                        MergeOrder.gen_new_order(trade_tid,item.outer_id,item.outer_sku_id,item.num*order.num,gift_type=pcfg.COMBOSE_SPLIT_GIT_TYPE)
     
             post_fee = trade.post_fee
             if not post_fee:
@@ -250,7 +250,7 @@ def rule_match_merge_trade(sender, trade_tid, *args, **kwargs):
             for rule in payment_rules:
                 if real_payment >= rule.payment:
                     for item in rule.compose_items.all():
-                        MergeOrder.gen_new_order(trade_tid,item.outer_id,item.outer_sku_id,item.num)
+                        MergeOrder.gen_new_order(trade_tid,item.outer_id,item.outer_sku_id,item.num,gift_type=pcfg.OVER_PAYMENT_GIT_TYPE)
                     break
             
             MergeTrade.objects.filter(tid=trade_tid).update(total_num=orders.filter(sys_status=pcfg.IN_EFFECT).count())
