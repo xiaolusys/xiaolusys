@@ -185,6 +185,7 @@ class MergeTrade(models.Model):
         verbose_name=u'订单'
         permissions = (
              ("can_trade_modify", "能否修改订单状态"),
+             ("can_trade_aduit", "能否审核订单信息"),
         )
         
     

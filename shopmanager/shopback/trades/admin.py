@@ -9,7 +9,9 @@ from django.http import HttpResponse,HttpResponseRedirect
 from django.shortcuts import render_to_response
 from django.template import RequestContext
 from django.core import serializers
+from django.contrib.admin.models import LogEntry, User, ADDITION, CHANGE
 from django.contrib.contenttypes.models import ContentType
+from django.utils.encoding import force_unicode
 from shopback.orders.models import Trade
 from shopback.trades.models import MergeTrade,MergeOrder,MergeBuyerTrade,ReplayPostTrade,merge_order_maker,merge_order_remover
 from shopback import paramconfig as pcfg
@@ -70,6 +72,7 @@ class MergeTradeAdmin(admin.ModelAdmin):
     search_fields = ['id','buyer_nick','tid','reason_code','operator']
     
     class Media:
+        css = {"all": ("admin/css/forms.css/",)}
         js = ("script/admin/adminpopup.js",)
         
     #--------设置页面布局----------------
@@ -81,9 +84,10 @@ class MergeTradeAdmin(admin.ModelAdmin):
                 }),
                 ('系统内部信息:', {
                     'classes': ('expand',),
-                    'fields': (('tid','buyer_nick','seller_nick','created','pay_time','total_num'),('is_picking_print','is_express_print','is_send_sms','has_memo','has_refund','has_out_stock'
-                               ,'has_rule_match','has_merge'),('type','status','sys_status','remind_time','priority','reason_code')
-                               ,('shipping_type','out_sid','logistics_company'),('buyer_message','seller_memo','sys_memo'))
+                    'fields': (('is_picking_print','is_express_print','is_send_sms','has_memo','has_refund','has_out_stock','has_rule_match','has_merge')
+                            ,('tid','buyer_nick','seller_nick','created','pay_time'),('type','total_num','priority','reason_code')
+                            ,('status','sys_status','remind_time'),('shipping_type','out_sid','logistics_company')
+                            ,('buyer_message','seller_memo','sys_memo'))
                 }),
                 ('收货人及物流信息:', {
                     'classes': ('collapse',),
@@ -108,9 +112,23 @@ class MergeTradeAdmin(admin.ModelAdmin):
                      ,'has_memo','has_refund','has_out_stock','has_rule_match','has_merge','sys_status')
             
         return super(MergeTradeAdmin, self).changelist_view(request, extra_context)
+    #订单日志记录
+    def log_action(self,user_id,obj,action,msg):
+        try:
+            LogEntry.objects.log_action(
+                    user_id = user_id,
+                    content_type_id = ContentType.objects.get_for_model(obj).id,
+                    object_id = obj.id,
+                    object_repr = repr(obj),
+                    change_message = msg,
+                    action_flag = action,
+                )
+        except Exception,exc:
+            logger.error(exc.message,exc_info=True)
+            
     
     def response_change(self, request, obj, *args, **kwargs):
-        #保存并审核
+        #订单处理页面
         opts = obj._meta
         # Handle proxy models automatically created by .only() or .defer()
         verbose_name = opts.verbose_name
@@ -119,8 +137,8 @@ class MergeTradeAdmin(admin.ModelAdmin):
             verbose_name = opts_.verbose_name
 
         pk_value = obj._get_pk_val()
+        operate_success = False
         if request.POST.has_key("_save_audit"):
-            audit_success = False
             if obj.sys_status==pcfg.WAIT_AUDIT_STATUS and not obj.reason_code and not obj.has_rule_match\
                 and not obj.has_refund and not obj.has_out_stock and obj.logistics_company:
                 try:
@@ -133,40 +151,86 @@ class MergeTradeAdmin(admin.ModelAdmin):
                                                                                  operator='')
                 except Exception,exc:
                     logger.error(exc.message,exc_info=True)
-                    audit_success = False
+                    operate_success = False
                 else:
-                    audit_success = True
-            if audit_success:
-                self.message_user(request, "审核通过")
+                    operate_success = True
+            if operate_success:
+                msg = "审核通过"
+                self.message_user(request, msg)
+                
+                self.log_action(request.user.id,obj,CHANGE,msg)
+                
                 return HttpResponseRedirect("../%s/" % pk_value)
             else:
-                self.message_user(request, "审核未通过（请确保订单状态为待审核，无退款，无问题编码，无匹配，无缺货，已选择快递）")
+                self.message_user(request, "审核未通过（请确保订单状态为问题单，无退款，无问题编码，无匹配，无缺货，已选择快递）")
                 return HttpResponseRedirect("../%s/" % pk_value)
-        
+        elif request.POST.has_key("_invalid"):
+            if obj.sys_status==pcfg.WAIT_AUDIT_STATUS:
+                MergeTrade.objects.filter(id=obj.id).update(sys_status=pcfg.INVALID_STATUS)
+                msg = "订单已作废"
+                self.message_user(request, msg)
+                
+                self.log_action(request.user.id,obj,CHANGE,msg)
+                
+                return HttpResponseRedirect("../%s/" % pk_value)
+            else:
+                self.message_user(request, "作废未成功（请确保订单状态为问题单）")
+                return HttpResponseRedirect("../%s/" % pk_value)
+        elif request.POST.has_key("_uninvalid"):
+            if obj.sys_status==pcfg.INVALID_STATUS:
+                MergeTrade.objects.filter(id=obj.id).update(sys_status=pcfg.WAIT_AUDIT_STATUS)
+                msg = "订单已作废"
+                self.message_user(request, msg)
+                self.log_action(request.user.id,obj,CHANGE,msg)
+                return HttpResponseRedirect("../%s/" % pk_value)
+            else:
+                self.message_user(request, "订单非作废状态,不需反作废")
+                return HttpResponseRedirect("../%s/" % pk_value)
+        elif request.POST.has_key("_regular"):
+            if obj.sys_status==pcfg.WAIT_AUDIT_STATUS and obj.remind_time:
+                MergeTrade.objects.filter(id=obj.id).update(sys_status=pcfg.REGULAR_REMAIN_STATUS)
+                msg = "订单定时时间:%s"%obj.remind_time
+                self.message_user(request, msg)
+                self.log_action(request.user.id,obj,CHANGE,msg)
+                return HttpResponseRedirect("../%s/" % pk_value)
+            else:
+                self.message_user(request, "订单不是问题单或没有设定提醒时间")
+                return HttpResponseRedirect("../%s/" % pk_value)
+        elif request.POST.has_key("_unregular"):
+            if obj.sys_status==pcfg.REGULAR_REMAIN_STATUS:
+                MergeTrade.objects.filter(id=obj.id).update(sys_status=pcfg.WAIT_AUDIT_STATUS,remind_time=None)
+                msg = "订单定时已取消"
+                self.message_user(request, msg)
+                self.log_action(request.user.id,obj,CHANGE,msg)
+                return HttpResponseRedirect("../%s/" % pk_value)
+            else:
+                self.message_user(request, "订单不在定时提醒区，不需要取消定时")
+                return HttpResponseRedirect("../%s/" % pk_value)
+        elif request.POST.has_key("_split"):
+            buyertrades = MergeBuyerTrade.objects.filter(main_tid=obj.tid)
+            if obj.sys_status==pcfg.WAIT_AUDIT_STATUS and buyertrades.count() >0:
+                subtids = [t.sub_tid for t in buyertrades]
+                buyertrades.delete()
+                for subtid in subtids:
+                    MergeTrade.objects.get(tid=subtid).remove_reason_code(pcfg.NEW_MERGE_TRADE_CODE)
+                MergeTrade.objects.filter(tid__in=subtids).update(sys_status=pcfg.WAIT_AUDIT_STATUS)
+                obj.merge_trade_orders.filter(is_merge=True).delete()
+                obj.remove_reason_code(pcfg.NEW_MERGE_TRADE_CODE)
+                msg = "订单已取消合并"
+                self.message_user(request, msg)
+                self.log_action(request.user.id,obj,CHANGE,msg)
+                return HttpResponseRedirect("../%s/" % pk_value)
+            else:
+                self.message_user(request, "该订单不是问题单,或没有合并子订单")
+                return HttpResponseRedirect("../%s/" % pk_value)
+        elif request.POST.has_key("_save"):
+            msg = ' %(name)s "%(obj)s" 保存成功.'.decode('utf8')% {'name': force_unicode(verbose_name), 'obj': force_unicode(obj)}
+            self.message_user(request, msg)
+            return HttpResponseRedirect("../%s/" % pk_value)
         return super(MergeTradeAdmin, self).response_change(request, obj, *args, **kwargs)
     
     #--------定义action----------------
-    #审核订单
-    def check_orders(self, request, queryset):
-        
-        trade_ids = [t.id for t in queryset]
-        effect_trades = queryset.filter(sys_status=pcfg.WAIT_AUDIT_STATUS,reason_code='',
-                                        has_refund=False,has_out_stock=False).exclude(logistics_company=None)
-        for trade in effect_trades:
-            rule_signal.send(sender='merge_trade_rule',trade_tid=trade.tid)
-            MergeTrade.objects.filter(id=trade.id,reason_code='').update(
-                                                                         sys_status=pcfg.WAIT_PREPARE_SEND_STATUS,
-                                                                         out_sid='',
-                                                                         is_picking_print=False,
-                                                                         is_express_print=False,
-                                                                         operator='')
-        trades = MergeTrade.objects.filter(id__in=trade_ids) 
-        
-        return render_to_response('trades/auditsuccess.html',{'trades':trades},
-                                  context_instance=RequestContext(request),mimetype="text/html")
 
-    check_orders.short_description = "审核订单".decode('utf8') 
-    
     #合并订单
     def merge_order_action(self,request,queryset):
         
@@ -207,7 +271,7 @@ class MergeTradeAdmin(admin.ModelAdmin):
     	
     merge_order_action.short_description = "合并订单".decode('utf8')
 
-    #重新下载订单
+    #更新订单
     def pull_order_action(self, request, queryset):
         queryset = queryset.filter(sys_status=pcfg.WAIT_AUDIT_STATUS)
         
@@ -351,7 +415,9 @@ class MergeTradeAdmin(admin.ModelAdmin):
                           
     sync_trade_post_taobao.short_description = "同步发货".decode('utf8')
     
-    actions = ['check_orders','sync_trade_post_taobao','merge_order_action','pull_order_action']
+    actions = ['sync_trade_post_taobao','merge_order_action','pull_order_action']
+    
+    
     
 
 admin.site.register(MergeTrade,MergeTradeAdmin)
