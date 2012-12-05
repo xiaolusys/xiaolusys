@@ -76,7 +76,9 @@ def process_trade_notify_task(id):
         #交易关闭
         elif notify.status == 'TradeClose':
             Trade.objects.filter(id=notify.tid).update(status=pcfg.TRADE_CLOSED,modified=notify.modified)
+            Order.objects.filter(trade=notify.tid).update(status=pcfg.TRADE_CLOSED)
             MergeTrade.objects.filter(tid=notify.tid).update(status=pcfg.TRADE_CLOSED,modified=notify.modified)  
+            MergeOrder.objects.filter(tid=notify.tid).update(status=pcfg.TRADE_CLOSED)
         #买家付款     
         elif notify.status == 'TradeBuyerPay':
             response    = apis.taobao_trade_fullinfo_get(tid=notify.tid,tb_user_id=notify.user_id)
@@ -85,12 +87,16 @@ def process_trade_notify_task(id):
         #卖家发货    
         elif notify.status == 'TradeSellerShip':
             Trade.objects.filter(id=notify.tid).update(status=pcfg.WAIT_BUYER_CONFIRM_GOODS,modified=notify.modified)
+            Order.objects.filter(trade=notify.tid,status=pcfg.WAIT_SELLER_SEND_GOODS).update(status=pcfg.WAIT_BUYER_CONFIRM_GOODS)
             MergeTrade.objects.filter(tid=notify.tid).update(status=pcfg.WAIT_BUYER_CONFIRM_GOODS,modified=notify.modified)
             MergeTrade.objects.filter(tid=notify.tid,sys_status__in=pcfg.WAIT_DELIVERY_STATUS).update(sys_status=pcfg.INVALID_STATUS)
+            MergeOrder.objects.filter(tid=notify.tid,status=pcfg.WAIT_SELLER_SEND_GOODS).update(status=pcfg.WAIT_BUYER_CONFIRM_GOODS)
         #交易成功
         elif notify.status == 'TradeSuccess':
             Trade.objects.filter(id=notify.tid).update(status=pcfg.TRADE_FINISHED,modified=notify.modified)
+            Order.objects.filter(trade=notify.tid,status=WAIT_BUYER_CONFIRM_GOODS).update(status=pcfg.TRADE_FINISHED)
             MergeTrade.objects.filter(tid=notify.tid).update(status=pcfg.TRADE_FINISHED,modified=notify.modified)
+            MergeOrder.objects.filter(tid=notify.tid,status=WAIT_BUYER_CONFIRM_GOODS).update(status=pcfg.TRADE_FINISHED)
         #修改地址
         elif notify.status == 'TradeLogisticsAddressChanged':
             trade = MergeTrade.objects.get(tid=notify.tid)

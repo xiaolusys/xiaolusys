@@ -37,7 +37,7 @@ OUT_STOCK_KEYWORD = [u'到',u'到货',u'预售']
 
 SYS_ORDER_STATUS = (
     (pcfg.IN_EFFECT ,'有效'),
-    (pcfg.INVALID_STATUS,'已作废'),
+    (pcfg.INVALID_STATUS,'无效'),
 )
 
 TAOBAO_TRADE_STATUS = (
@@ -97,6 +97,14 @@ PRIORITY_TYPE = (
     (0,'中'),
     (1,'高'),
 )
+
+GIFT_TYPE = (
+    (pcfg.REAL_ORDER_GIT_TYPE,'实付订单'),
+    (pcfg.CS_PERMI_GIT_TYPE,'客服赠送'),
+    (pcfg.OVER_PAYMENT_GIT_TYPE,'满就送'),
+    (pcfg.COMBOSE_SPLIT_GIT_TYPE,'组合拆分'),
+)
+
 class MergeTrade(models.Model):
     
     id    = BigIntegerAutoField(primary_key=True)
@@ -165,16 +173,20 @@ class MergeTrade(models.Model):
     has_rule_match   = models.BooleanField(default=False,verbose_name='有匹配')
     has_memo         = models.BooleanField(default=False,verbose_name='有留言')
     has_merge        = models.BooleanField(default=False,verbose_name='有合单')
-    remind_time      = models.DateTimeField(null=True,blank=True,verbose_name='定时日期')
+    remind_time      = models.DateTimeField(null=True,blank=True,verbose_name='提醒日期')
     refund_num       = models.IntegerField(null=True,default=0,verbose_name='退款单数')  #退款单数
     
     priority       = models.IntegerField(db_index=True,default=0,choices=PRIORITY_TYPE,verbose_name='优先级')
-    operator       =  models.CharField(max_length=32,blank=True,verbose_name='操作员')
+    operator       =  models.CharField(max_length=32,blank=True,verbose_name='发货员')
     sys_status     = models.CharField(max_length=32,db_index=True,choices=SYS_TRADE_STATUS,blank=True,default='',verbose_name='系统状态')
     
     class Meta:
         db_table = 'shop_trades_mergetrade'
         verbose_name=u'订单'
+        permissions = (
+             ("can_trade_modify", "能否修改订单状态"),
+        )
+        
     
     def __unicode__(self):
         return str(self.id)
@@ -326,9 +338,9 @@ class MergeTrade(models.Model):
 
         merge_trade = cls.objects.get(tid=trade_id)  
 
-        refund_approval_num = merge_trade.merge_trade_orders.filter(refund_status__in=pcfg.REFUND_APPROVAL_STATUS)\
-                            .exclude(Q(oid=None)|Q(is_merge=True)).count()
-        total_orders_num  = merge_trade.merge_trade_orders.exclude(Q(oid=None)|Q(is_merge=True)).count()
+        refund_approval_num = merge_trade.merge_trade_orders.filter(refund_status__in=pcfg.REFUND_APPROVAL_STATUS
+                            ,gift_type=pcfg.REAL_ORDER_GIT_TYPE).exclude(is_merge=True).count()
+        total_orders_num  = merge_trade.merge_trade_orders.filter(gift_type=pcfg.REAL_ORDER_GIT_TYPE).exclude(is_merge=True).count()
 
         if refund_approval_num==total_orders_num:
             return True
@@ -339,7 +351,8 @@ class MergeTrade(models.Model):
     def judge_new_refund(cls,trade_id,trade_from):
         #判断是否有新退款
         merge_trade = cls.objects.get(tid=trade_id)
-        refund_orders_num   = merge_trade.merge_trade_orders.exclude(Q(oid=None)|Q(is_merge=True)|Q(refund_status=pcfg.NO_REFUND)).count()
+        refund_orders_num   = merge_trade.merge_trade_orders.filter(gift_type=pcfg.REAL_ORDER_GIT_TYPE)\
+            .exclude(Q(is_merge=True)|Q(refund_status=pcfg.NO_REFUND)).count()
         
         if refund_orders_num >merge_trade.refund_num:
             return True
@@ -392,7 +405,7 @@ class MergeTrade(models.Model):
                 need_pull = True
         return need_pull
  
- 
+   
 class MergeOrder(models.Model):
     
     id    = BigIntegerAutoField(primary_key=True)
@@ -411,7 +424,7 @@ class MergeOrder(models.Model):
     num = models.IntegerField(null=True,default=0,verbose_name='商品数量')
     
     outer_id = models.CharField(max_length=64,blank=True,verbose_name='商品外部编码')
-    outer_sku_id = models.CharField(max_length=20,blank=True,verbose_name='属性外部编码')
+    outer_sku_id = models.CharField(max_length=20,blank=True,verbose_name='规格外部编码')
     
     total_fee = models.CharField(max_length=12,blank=True,verbose_name='总费用')
     payment = models.CharField(max_length=12,blank=True,verbose_name='实付款')
@@ -439,8 +452,9 @@ class MergeOrder(models.Model):
     consign_time  =  models.DateTimeField(db_index=True,null=True,blank=True,verbose_name='发货日期')
     
     out_stock   = models.BooleanField(default=False,verbose_name='缺货')
-    is_merge    = models.BooleanField(default=False,verbose_name='合并订单') 
-    is_rule_match    = models.BooleanField(default=False,verbose_name='规则匹配')
+    is_merge    = models.BooleanField(default=False,verbose_name='合并') 
+    is_rule_match   = models.BooleanField(default=False,verbose_name='匹配')
+    gift_type   = models.IntegerField(choices=GIFT_TYPE,default=0,verbose_name='赠品类型')
     
     status = models.CharField(max_length=32,choices=TAOBAO_ORDER_STATUS,blank=True,verbose_name='淘宝订单状态')
     sys_status = models.CharField(max_length=32,choices=SYS_ORDER_STATUS,blank=True,default='',verbose_name='系统订单状态')
@@ -451,7 +465,7 @@ class MergeOrder(models.Model):
         verbose_name=u'子订单'
     
     @classmethod
-    def gen_new_order(cls,tid,outer_id,outer_sku_id,num):
+    def gen_new_order(cls,tid,outer_id,outer_sku_id,num,gift_type=pcfg.REAL_ORDER_GIT_TYPE):
         
         merge_trade,state = MergeTrade.objects.get_or_create(tid=tid)
         product = Product.objects.get(outer_id=outer_id)
@@ -467,6 +481,7 @@ class MergeOrder(models.Model):
             tid = tid,
             merge_trade = merge_trade,
             outer_id = outer_id,
+            price = product.price,
             payment = '0',
             num = num,
             title = product.name,
@@ -483,6 +498,7 @@ class MergeOrder(models.Model):
             created = merge_trade.created,
             pay_time = merge_trade.pay_time,
             consign_time = merge_trade.consign_time,
+            gift_type = gift_type,
             status = pcfg.WAIT_SELLER_SEND_GOODS,
             sys_status = pcfg.IN_EFFECT
             )
@@ -495,10 +511,12 @@ def refresh_trade_status(sender,instance,*args,**kwargs):
     has_refunding = merge_trade.has_trade_refunding()
     out_stock     = merge_trade.merge_trade_orders.filter(out_stock=True,status=pcfg.WAIT_SELLER_SEND_GOODS).count()>0
     has_merge     = merge_trade.merge_trade_orders.filter(is_merge=True).count()>0
+    has_rule_match = merge_trade.merge_trade_orders.filter(is_rule_match=True)
     
     merge_trade.has_refund = has_refunding
     merge_trade.has_out_stock = out_stock
     merge_trade.has_merge = has_merge
+    merge_trade.has_rule_match = has_rule_match
     merge_trade.save()
         
 post_save.connect(refresh_trade_status, sender=MergeOrder)

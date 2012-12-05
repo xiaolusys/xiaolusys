@@ -5,7 +5,7 @@ import posixpath
 
 PROJECT_ROOT = os.path.abspath(os.path.dirname(__file__))
 
-DEBUG = True
+DEBUG = False
 TEMPLATE_DEBUG = DEBUG
 
 ADMINS = (
@@ -28,6 +28,10 @@ DATABASES = {
 
 TIME_ZONE = 'Asia/Shanghai'
 
+#DATETIME_INPUT_FORMATS = '%Y-%m-%d %H:%M:%S'
+#DATE_INPUT_FORMATS = '%Y-%m-%d'
+DATETIME_FORMAT    = 'Y-m-d H:i:s'
+DATE_FORMAT        = 'Y-m-d'
 
 LANGUAGE_CODE = 'en-us'
 
@@ -35,13 +39,13 @@ SITE_ID = 1
 
 USE_I18N = True
 
-USE_L10N = True
+#USE_L10N = True
 
 MEDIA_ROOT = os.path.join(PROJECT_ROOT, "site_media", "media")
 
 MEDIA_URL = "/media/"
 
-#STATIC_ROOT = os.path.join(PROJECT_ROOT, "static")
+#STATIC_ROOT = os.path.join(PROJECT_ROOT,"static")
 
 STATIC_URL = '/static/'
 
