@@ -5,6 +5,8 @@ from shopback.items.resources import ProductListResource,ProductItemResource,Pro
 from shopback.items.renderers import ProductListHtmlRenderer,JSONRenderer,ProductItemHtmlRenderer,ProductUpdateHtmlRenderer,ProductSkuHtmlRenderer
 
 
+
+
 urlpatterns = patterns('shopback.items.views',
 
     url('update/items/$','update_user_items',name='update_items'),
@@ -40,4 +42,5 @@ urlpatterns = patterns('shopback.items.views',
 #        authentication=(UserLoggedInAuthentication,),
 #        permissions=(IsAuthenticated,)
     )),
+    #(r'^product_lookup/$', 'shopback.items.views.json_lookup', product_lookup),
 )
