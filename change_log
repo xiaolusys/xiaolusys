@@ -1,3 +1,18 @@
+########  2012-12-06  #########
+alter table shop_trades_mergetrade drop year;
+alter table shop_trades_mergetrade drop month;
+alter table shop_trades_mergetrade drop day;
+alter table shop_trades_mergetrade drop hour;
+alter table shop_trades_mergetrade drop week;
+
+alter table shop_trades_mergeorder drop year;
+alter table shop_trades_mergeorder drop month;
+alter table shop_trades_mergeorder drop day;
+alter table shop_trades_mergeorder drop hour;
+alter table shop_trades_mergeorder drop week;
+
+create index outer_id_idx on shop_trades_mergeorder(outer_id);
+create index outer_sku_id_idx on shop_trades_mergeorder(outer_sku_id);
 ########  2012-12-04  #########
 alter table shop_trades_mergeorder add column gift_type int(11) NOT NULL;
 

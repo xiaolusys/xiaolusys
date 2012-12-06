@@ -11,3 +11,4 @@ function showTradePopup(triggeringLink) {
     win.focus();
     return false;
 }
+

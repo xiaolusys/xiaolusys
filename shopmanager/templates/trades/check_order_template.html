@@ -1,0 +1,129 @@
+<div class="container" style="width:720px">
+<div class="row-fluid">
+<div class="span3"><label style="color:#999;display:inline">订单号: </label>{{ trade.tid }}</div>
+<div class="span3"><label style="color:#999;display:inline">买家: </label>{{ trade.buyer_nick }}</div>
+<div class="span3"><label style="color:#999;display:inline">店铺: </label>{{ trade.seller_nick }}</div>
+<div class="span3"><label style="color:#999;display:inline">付款时间: </label>{{ trade.pay_time }}</div>
+</div>
+<div class="row-fluid">
+<div class="alert alert-warning"><strong>买家留言: </strong>{{ trade.buyer_message }}</div>
+<div class="alert alert-error"><strong>卖家留言: </strong>{{ trade.seller_memo }}</div>
+</div>
+<div style="padding:9px 15px">
+<label style="color:#999;display:inline">快递: </label>
+<select id="select01">
+{% for lg in logistics %}
+<option {% if trade.logistics_company_id == lg.id %}selected0{% endif %}>{{ lg.name }}</option>
+{% endfor %}
+</select>
+</div>
+<div class="accordion-group">  
+<div class="accordion-heading"> 
+<div style="padding:2px 15px">
+<div class="row-fluid">
+<div class="span7">
+<label style="color:#999;display:inline">收货人: </label>{{ trade.receiver_name }}
+<label style="color:#999;display:inline">地址: </label>
+{{ trade.receiver_state }},{{ trade.receiver_city }},{{ trade.receiver_district }},{{ trade.receiver_address }}</div>
+<div class="span5"><label style="color:#999;display:inline">手机: </label>{{ trade.receiver_mobile }}
+<label style="color:#999;display:inline">固话: </label>{{ trade.receiver_phone }}</div>
+</div>
+</div>
+    <a class="accordion-toggle" style="padding:0px 15px" data-toggle="collapse" href="#collapseOne">修改地址››</a>  
+</div>
+<div id="collapseOne" class="accordion-body collapse" style="height: 0px; ">  
+    <div class="accordion-inner">  
+<form class="form-inline">
+<div>
+<label style="color:#999;display:inline">新地址: </label>
+<input type="text" class="input-small" placeholder="省">
+<input type="text" class="input-small" placeholder="市">
+<input type="text" class="input-small" placeholder="区">
+<input type="text" style="width:310px" placeholder="详细地址">
+</div>
+<div style="margin-top:5px;margin-left:46px;width:630px">
+<input type="text" class="input-small" placeholder="收货人">
+<input type="text" class="input-small" placeholder="手机">
+<input type="text" class="input-small" placeholder="固话">
+<input type="submit" class="btn btn-small" style="float:right" value="确定修改">
+</div>
+</form>
+    </div>
+</div>
+</div>
+<div style="padding:9px 15px">
+<ul class="thumbnails">
+{% if trade.has_memo %}<li><span class="badge badge-warning">有留言</span></li>{% endif %}
+{% if trade.has_refund %}<li><span class="badge badge-important">待退款</span></li>{% endif %}
+{% if trade.has_out_stock %}<li><span class="badge badge-inverse">缺货</span></li>{% endif %}
+{% if trade.has_rule_match %}<li><span class="badge badge-info">信息不全</span></li>{% endif %}
+{% if trade.has_merge %}<li><span class="badge badge-info">订单合并</span></li>{% endif %}
+</ul>
+</div>
+<div class="accordion-group">
+<div class="accordion-heading" style="margin: 5px 0px">
+    <a class="accordion-toggle" style="padding:0px 15px" data-toggle="collapse" href="#collapseTwo">商品列表››</a>
+</div>
+<div id="collapseTwo" class="accordion-body collapse" style="height: 0px; ">
+    <div class="accordion-inner">
+<form class="well form-search">
+<input type="text" class="input-medium search-query">
+<select id="select02">
+<option>商家编码</option>
+<option>商品简称</option>
+</select>
+<button type="submit" class="btn">商品搜索</button>
+<div style="height:10px"></div>
+<table class="table table-bordered table-striped table-condensed fixed-layout">
+<thead>
+<tr>
+<td>编号</td><td>商家编码</td><td>商品简称</td><td>规格</td><td>数量</td><td>正品单价</td><td>操作</td>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>ABCDEFG</td>
+<td>竹纤维凉毯盖毯</td>
+<td><div>120*60</div><div>枫叶</div></td>
+<td>1</td>
+<td>99.00</td>
+<td><a type="submit" class="btn btn-small">添加</a></td>
+</tr>
+<tr>
+<td>2</td>
+<td>ABCDEFG</td>
+<td>竹纤维凉毯盖毯</td>
+<td><div>120*60</div><div>枫叶</div></td>
+<td>1</td>
+<td>99.00</td>
+<td><a href="#" class="btn btn-small">添加</a></td>
+</tr>
+</tbody>
+</table>
+</form>
+<table class="table table-bordered table-striped table-condensed fixed-layout">
+<thead>
+<tr>
+<td>编号</td><td>商家编码</td><td>商品简称</td><td>规格</td><td>数量</td><td>正品单价</td><td>订单类型</td><td>操作</td>
+</tr>
+</thead>
+<tbody>
+{% for order in trade.inuse_orders %}
+<tr>
+<td>{{ order.id }}</td>
+<td>{{ order.outer_id }}</td>
+<td>{{ order.title }}</td>
+<td>{{ order.sku_properties_name }}</td>
+<td>{{ order.num }}</td>
+<td>{{ order.price }}</td>
+<td>{% if order.gift_type == 0 %}实付订单{% elif order.gift_type == 1 %}客服赠送{% elif order.gift_type == 2 %}满就送{% elif order.gift_type == 3 %}组合拆分{% endif %}</td>
+<td><a class="btn btn-small" href="#"><i class="icon-remove"></i> 删除</a></td>
+</tr>
+{% endfor %}
+<tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>

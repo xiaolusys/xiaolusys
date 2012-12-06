@@ -73,26 +73,26 @@ class MergeTradeAdmin(admin.ModelAdmin):
     
     class Media:
         css = {"all": ("admin/css/forms.css/",)}
-        js = ("script/admin/adminpopup.js",)
+        js = ("script/admin/adminpopup.js","script/admin/custom/js/inlinecollapsed.js")
         
     #--------设置页面布局----------------
     fieldsets =(('订单基本信息:', {
                     'classes': ('collapse',),
-                    'fields': ('user',('total_fee','payment','discount_fee'
-                               ,'adjust_fee','post_fee'),('seller_cod_fee','buyer_cod_fee','cod_fee'
-                               ,'cod_status','alipay_no'),('modified','consign_time'),('post_cost','refund_num','operator','weight'))
+                    'fields': (('user','type','status','sys_status'),('total_fee','payment','discount_fee','adjust_fee','post_fee')
+                               ,('seller_cod_fee','buyer_cod_fee','cod_fee','cod_status','alipay_no'),('modified','consign_time','created')
+                               ,('post_cost','refund_num','operator','weight','out_sid'),('is_send_sms','is_picking_print','is_express_print'))
                 }),
-                ('系统内部信息:', {
+                ('审单信息:', {
                     'classes': ('expand',),
-                    'fields': (('is_picking_print','is_express_print','is_send_sms','has_memo','has_refund','has_out_stock','has_rule_match','has_merge')
-                            ,('tid','buyer_nick','seller_nick','created','pay_time'),('type','total_num','priority','reason_code')
-                            ,('status','sys_status','remind_time'),('shipping_type','out_sid','logistics_company')
+                    'fields': (('has_memo','has_refund','has_out_stock','has_rule_match','has_merge')
+                            ,('tid','buyer_nick','seller_nick','pay_time','total_num')
+                            ,('priority','reason_code','remind_time'),('shipping_type','logistics_company')
                             ,('buyer_message','seller_memo','sys_memo'))
                 }),
                 ('收货人及物流信息:', {
                     'classes': ('collapse',),
-                    'fields': (('receiver_name','receiver_state'
-                               ,'receiver_city','receiver_district','receiver_address'),('receiver_zip','receiver_mobile','receiver_phone'))
+                    'fields': (('receiver_name','receiver_state','receiver_city','receiver_district','receiver_address')
+                               ,('receiver_zip','receiver_mobile','receiver_phone'))
                 }))
 
     #--------定制控件属性----------------
@@ -108,7 +108,7 @@ class MergeTradeAdmin(admin.ModelAdmin):
             self.readonly_fields=('tid','user','seller_nick','buyer_nick','payment','total_num','discount_fee'
                      ,'adjust_fee','post_fee','total_fee','alipay_no','seller_cod_fee','buyer_cod_fee','cod_fee'
                      ,'cod_status','buyer_message','seller_memo','created','pay_time','modified','consign_time'
-                     ,'type','status','shipping_type','operator','is_picking_print','is_express_print','is_send_sms'
+                     ,'type','status','shipping_type','operator','is_send_sms','out_sid'
                      ,'has_memo','has_refund','has_out_stock','has_rule_match','has_merge','sys_status')
             
         return super(MergeTradeAdmin, self).changelist_view(request, extra_context)
@@ -143,12 +143,7 @@ class MergeTradeAdmin(admin.ModelAdmin):
                 and not obj.has_refund and not obj.has_out_stock and obj.logistics_company:
                 try:
                     rule_signal.send(sender='merge_trade_rule',trade_tid=obj.tid)
-                    MergeTrade.objects.filter(id=obj.id,reason_code='').update(
-                                                                                 sys_status=pcfg.WAIT_PREPARE_SEND_STATUS,
-                                                                                 out_sid='',
-                                                                                 is_picking_print=False,
-                                                                                 is_express_print=False,
-                                                                                 operator='')
+                    MergeTrade.objects.filter(id=obj.id,reason_code='').update(sys_status=pcfg.WAIT_PREPARE_SEND_STATUS)
                 except Exception,exc:
                     logger.error(exc.message,exc_info=True)
                     operate_success = False
@@ -352,12 +347,12 @@ class MergeTradeAdmin(admin.ModelAdmin):
                 #    raise Exception(u'订单(%d)本地修改日期(%s)与线上修改日期(%s)不一致'%(trade.tid,trade.modified,latest_modified))
             except SubTradePostException,exc:
                 trade.append_reason_code(pcfg.POST_SUB_TRADE_ERROR_CODE)
-                MergeTrade.objects.filter(tid=trade.tid).update(sys_status=pcfg.WAIT_AUDIT_STATUS)
+                MergeTrade.objects.filter(tid=trade.tid).update(sys_status=pcfg.WAIT_AUDIT_STATUS,sys_memo=exc.message)
                 logger.error(exc.message,exc_info=True)
             except Exception,exc:
                 trade.append_reason_code(pcfg.POST_MODIFY_CODE)
-                MergeTrade.objects.filter(tid=trade.tid).update(sys_status=pcfg.WAIT_AUDIT_STATUS)
-                logger.error(exc.message+'----post',exc_info=True)
+                MergeTrade.objects.filter(tid=trade.tid).update(sys_status=pcfg.WAIT_AUDIT_STATUS,sys_memo=exc.message)
+                logger.error(exc.message+'--post',exc_info=True)
             else:
                 MergeTrade.objects.filter(tid=trade.tid).update(sys_status=pcfg.WAIT_CHECK_BARCODE_STATUS,consign_time=datetime.datetime.now())
 	

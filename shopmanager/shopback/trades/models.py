@@ -156,12 +156,6 @@ class MergeTrade(models.Model):
     receiver_mobile    =  models.CharField(max_length=20,blank=True,verbose_name='手机')
     receiver_phone     =  models.CharField(max_length=20,blank=True,verbose_name='电话')
     
-    year  = models.IntegerField(null=True,db_index=True)
-    month = models.IntegerField(null=True,db_index=True)
-    week  = models.IntegerField(null=True,db_index=True)
-    day   = models.IntegerField(null=True,db_index=True)
-    hour  = models.CharField(max_length=5,blank=True,db_index=True)
-    
     reason_code = models.CharField(max_length=100,blank=True,verbose_name='问题编号')  #1|2|3 问题单原因编码集合
     status  = models.CharField(max_length=32,db_index=True,choices=TAOBAO_TRADE_STATUS,blank=True,verbose_name='淘宝订单状态')
         
@@ -187,11 +181,15 @@ class MergeTrade(models.Model):
              ("can_trade_modify", "能否修改订单状态"),
              ("can_trade_aduit", "能否审核订单信息"),
         )
-        
-    
+
     def __unicode__(self):
         return str(self.id)
     
+    @property
+    def inuse_orders(self):
+        return self.merge_trade_orders.filter(status=pcfg.WAIT_SELLER_SEND_GOODS,sys_status=pcfg.IN_EFFECT)\
+                .exclude(refund_status__in=pcfg.REFUND_APPROVAL_STATUS)
+        
     @property
     def user_full_address(self):
         return '%s%s%s%s%s'%(self.receiver_name,self.receiver_state,self.receiver_city,self.receiver_district,self.receiver_address)
@@ -424,8 +422,8 @@ class MergeOrder(models.Model):
     sku_id = models.CharField(max_length=20,blank=True,verbose_name='属性编码')
     num = models.IntegerField(null=True,default=0,verbose_name='商品数量')
     
-    outer_id = models.CharField(max_length=64,blank=True,verbose_name='商品外部编码')
-    outer_sku_id = models.CharField(max_length=20,blank=True,verbose_name='规格外部编码')
+    outer_id = models.CharField(max_length=64,db_index=True,blank=True,verbose_name='商品外部编码')
+    outer_sku_id = models.CharField(max_length=20,db_index=True,blank=True,verbose_name='规格外部编码')
     
     total_fee = models.CharField(max_length=12,blank=True,verbose_name='总费用')
     payment = models.CharField(max_length=12,blank=True,verbose_name='实付款')
@@ -441,12 +439,6 @@ class MergeOrder(models.Model):
     
     seller_nick = models.CharField(max_length=32,blank=True,db_index=True,verbose_name='卖家昵称')
     buyer_nick  = models.CharField(max_length=32,db_index=True,blank=True,verbose_name='买家昵称')
-    
-    year  = models.IntegerField(null=True,db_index=True)
-    month = models.IntegerField(null=True,db_index=True)
-    week  = models.IntegerField(null=True,db_index=True)
-    day   = models.IntegerField(null=True,db_index=True)
-    hour  = models.CharField(max_length=5,blank=True,db_index=True)
     
     created       =  models.DateTimeField(db_index=True,null=True,blank=True,verbose_name='创建日期')
     pay_time      =  models.DateTimeField(db_index=True,null=True,blank=True,verbose_name='付款日期')
@@ -806,11 +798,6 @@ def save_orders_trade_to_mergetrade(sender, tid, *args, **kwargs):
                     pic_path = order.pic_path,
                     seller_nick = order.seller_nick,
                     buyer_nick  = order.buyer_nick,
-                    year  = order.year,
-                    month = order.month,
-                    week  = order.week,
-                    day   = order.day,
-                    hour  = order.hour,
                     created  = order.created,
                     pay_time = order.pay_time,
                     consign_time = order.consign_time,
@@ -859,11 +846,6 @@ def save_orders_trade_to_mergetrade(sender, tid, *args, **kwargs):
             modified = trade.modified,
             consign_time = trade.consign_time,
             status = merge_trade.status,
-            year  = merge_trade.year,
-            hour  = merge_trade.hour,
-            month = merge_trade.month,
-            day   = merge_trade.day,
-            week  = merge_trade.week,   
         )
         #设置系统内部状态信息
         trade_download_controller(merge_trade,trade,trade_from,first_pay_load) 
@@ -924,11 +906,6 @@ def save_fenxiao_orders_to_mergetrade(sender, tid, *args, **kwargs):
                     pic_path = fenxiao_product.pictures and fenxiao_product.pictures.split(',')[0] or '',
                     seller_nick = merge_trade.seller_nick,
                     buyer_nick  = merge_trade.buyer_nick,
-                    year  = merge_trade.year,
-                    month = merge_trade.month,
-                    week  = merge_trade.week,
-                    day   = merge_trade.day,
-                    hour  = merge_trade.hour,
                     created  = order.created,
                     pay_time = merge_trade.created,
                     consign_time = merge_trade.consign_time,
@@ -970,11 +947,6 @@ def save_fenxiao_orders_to_mergetrade(sender, tid, *args, **kwargs):
             consign_time = trade.consign_time,
             seller_flag  = trade.supplier_flag,
             status = merge_trade.status,
-            year  = merge_trade.year,
-            hour  = merge_trade.hour,
-            month = merge_trade.month,
-            day   = merge_trade.day,
-            week  = merge_trade.week,
         )
         #更新系统内部状态
         trade_download_controller(merge_trade,trade,trade_from,first_pay_load)

@@ -17,6 +17,7 @@ def trade_submit_row(context):
     sys_status = trade.sys_status
     is_wait_audit = sys_status == pcfg.WAIT_AUDIT_STATUS
     can_trade_audit = context['perms'].user.has_perm('trades.can_trade_aduit')
+    print 'debug audit:',can_trade_audit
     return {
         'onclick_attrib': (opts.get_ordered_objects() and change
                             and 'onclick="submitOrderForm();"' or ''),
