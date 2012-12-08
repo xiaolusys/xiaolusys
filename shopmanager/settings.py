@@ -53,7 +53,7 @@ DOWNLOAD_ROOT   = os.path.join(PROJECT_ROOT,"site_media",'download')
 
 #ADMIN_MEDIA_PREFIX = posixpath.join(STATIC_URL, "admin/")
 
-STATIC_DOC_ROOT = os.path.join(PROJECT_ROOT, "site_media","static")
+STATIC_DOC_ROOT = os.path.join(PROJECT_ROOT,"site_media","static")
 
 STATICFILES_DIRS = (
        #os.path.join(PROJECT_ROOT,"site_media","static"),

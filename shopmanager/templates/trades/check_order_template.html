@@ -1,5 +1,7 @@
 <div class="container" style="width:720px">
+{% with trade=object.trade  logistics=object.logistics %}
 <div class="row-fluid">
+<input type="hidden" id="id_check_trade" value="{{ trade.id }}"/>
 <div class="span3"><label style="color:#999;display:inline">订单号: </label>{{ trade.tid }}</div>
 <div class="span3"><label style="color:#999;display:inline">买家: </label>{{ trade.buyer_nick }}</div>
 <div class="span3"><label style="color:#999;display:inline">店铺: </label>{{ trade.seller_nick }}</div>
@@ -11,10 +13,16 @@
 </div>
 <div style="padding:9px 15px">
 <label style="color:#999;display:inline">快递: </label>
-<select id="select01">
+<select id="id_logistics" name="logistics">
 {% for lg in logistics %}
-<option {% if trade.logistics_company_id == lg.id %}selected0{% endif %}>{{ lg.name }}</option>
+<option value="{{ lg.code }}" {% if trade.logistics_company_id == lg.id %}selected{% endif %}>{{ lg.name }}</option>
 {% endfor %}
+</select>
+<label style="color:#999;display:inline">优先级: </label>
+<select id="id_priority" name="priority">
+<option {% if trade.priority == -1 %}selected{% endif %} value="-1">低</option>
+<option {% if trade.priority == 0 %}selected{% endif %} value="0">中</option>
+<option {% if trade.priority == 1 %}selected{% endif %} value="1">高</option>
 </select>
 </div>
 <div class="accordion-group">  
@@ -33,18 +41,18 @@
 </div>
 <div id="collapseOne" class="accordion-body collapse" style="height: 0px; ">  
     <div class="accordion-inner">  
-<form class="form-inline">
+<form class="form-inline" action="/trades/address/" method="POST">
 <div>
 <label style="color:#999;display:inline">新地址: </label>
-<input type="text" class="input-small" placeholder="省">
-<input type="text" class="input-small" placeholder="市">
-<input type="text" class="input-small" placeholder="区">
-<input type="text" style="width:310px" placeholder="详细地址">
+<input type="text" name="receiver_state" class="input-small" placeholder="省">
+<input type="text" name="receiver_city" class="input-small" placeholder="市">
+<input type="text" name="receiver_district" class="input-small" placeholder="区">
+<input type="text" name="receiver_address" style="width:310px" placeholder="详细地址">
 </div>
 <div style="margin-top:5px;margin-left:46px;width:630px">
-<input type="text" class="input-small" placeholder="收货人">
-<input type="text" class="input-small" placeholder="手机">
-<input type="text" class="input-small" placeholder="固话">
+<input type="text" name="receiver_name" class="input-small" placeholder="收货人">
+<input type="text" name="receiver_mobile" class="input-small" placeholder="手机">
+<input type="text" name="receiver_phone" class="input-small" placeholder="固话">
 <input type="submit" class="btn btn-small" style="float:right" value="确定修改">
 </div>
 </form>
@@ -85,19 +93,12 @@
 <td>1</td>
 <td>ABCDEFG</td>
 <td>竹纤维凉毯盖毯</td>
-<td><div>120*60</div><div>枫叶</div></td>
+<td>
+
+</td>
 <td>1</td>
 <td>99.00</td>
 <td><a type="submit" class="btn btn-small">添加</a></td>
-</tr>
-<tr>
-<td>2</td>
-<td>ABCDEFG</td>
-<td>竹纤维凉毯盖毯</td>
-<td><div>120*60</div><div>枫叶</div></td>
-<td>1</td>
-<td>99.00</td>
-<td><a href="#" class="btn btn-small">添加</a></td>
 </tr>
 </tbody>
 </table>
@@ -126,4 +127,5 @@
 </table>
 </div>
 </div>
+{% endwith %}
 </div>

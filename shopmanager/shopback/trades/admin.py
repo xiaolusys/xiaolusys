@@ -62,9 +62,10 @@ class MergeTradeAdmin(admin.ModelAdmin):
     list_per_page = 100
      
     def popup_tid_link(self, obj):
-        return u'<a href="%d/" onclick="return showTradePopup(this);">%d</a>' %(obj.id,obj.tid)
+        return u'<a href="%d/" onclick="return showTradePopup(this);">%d</a><a class="btn-mini check-order" trade_id="%d">审核</icon></a>' %(obj.id,obj.tid,obj.id)
     popup_tid_link.allow_tags = True
     popup_tid_link.short_description = "淘宝ID" 
+    
 
     inlines = [MergeOrderInline]
     
@@ -72,8 +73,8 @@ class MergeTradeAdmin(admin.ModelAdmin):
     search_fields = ['id','buyer_nick','tid','reason_code','operator']
     
     class Media:
-        css = {"all": ("admin/css/forms.css/",)}
-        js = ("script/admin/adminpopup.js","script/admin/custom/js/inlinecollapsed.js")
+        css = {"all": ("admin/css/forms.css","css/admin/dialog.css","bootstrap/css/bootstrap.css")}
+        js = ("script/admin/adminpopup.js","closure-library/closure/goog/base.js","script/admin.checkorder.js")
         
     #--------设置页面布局----------------
     fieldsets =(('订单基本信息:', {
