@@ -1,6 +1,7 @@
 from django import template
 from shopback import paramconfig as pcfg
 from shopback.trades.models import MergeTrade
+from shopback.items.models import Product,ProductSku
 
 register = template.Library()
 
@@ -37,3 +38,9 @@ def trade_submit_row(context):
         'is_popup': is_popup,
         'show_save': True
     }
+
+@register.filter(name='prod_skus')  
+def prod_skus(order):
+    prods = Product.objects.filter(outer_id=order.outer_id)
+    return prods
+    

@@ -27,7 +27,7 @@ ordercheck.Dialog.prototype.init = function (id) {
         	dialog.setContent(res);
 		    dialog.setTitle('订单审核详情');
 		    dialog.setButtonSet(new goog.ui.Dialog.ButtonSet().addButton({key: 'OK', caption: "审核订单"}
-		        ,true,false).addButton({key: 'CLOSE', caption: "关闭"},true,false));
+		        ,true,false));
 		    goog.events.listen(dialog, goog.ui.Dialog.EventType.SELECT, that);
         } catch (err) {
             console.log('Error: (ajax callback) - ', err);
@@ -46,11 +46,6 @@ ordercheck.Dialog.prototype.handleEvent= function (e) {
         var logisticsDom = goog.dom.getElement("id_logistics");
         var priorityDom  = goog.dom.getElement("id_priority");
         var retval    = this.orderManager.checkorder(tradeDom.value, logisticsDom.value, priorityDom.value);
-        if (retval == false) {
-            return false;
-        }
-    }else if(e.key == 'CLOSE'){
-    	return true;
     }
     return false;
 }
@@ -72,22 +67,22 @@ ordercheck.Manager.prototype.showDialog = function(e) {
 }
 
 ordercheck.Manager.prototype.checkorder = function(trade_id,logistic_code,priority) {
-    console.log(trade_id,logistic_code,priority);
     var callback = function(e){
         var xhr = e.target;
         try {
         	var res = xhr.getResponseJson();
-        	console.log(res);
-            if (res.code == 0){
-            	alert("审核失败:"+res.msg);
+        	console.log('msg',res);
+            if (res.code == 1){
+            	alert("审核成功！");
             }else{
-                alert("审核成功！");
+                alert("审核失败:"+res.msg);
             }
         } catch (err) {
             console.log('Error: (ajax callback) - ', err);
         } 
-	}
+	};
 	goog.net.XhrIo.send('/trades/checkorder/'+trade_id+'/',callback,'POST',{'format':'json','logistic_code':logistic_code,'priority':priority});
 }
+
 
 new ordercheck.Manager()

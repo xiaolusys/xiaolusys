@@ -7,4 +7,3 @@ class ChartJsonResource(ModelResource):
     #fields = (('charts','ChartSerializer'),('item_dict',None))
     exclude = ('url',) 
     
- 

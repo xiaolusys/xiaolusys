@@ -458,9 +458,9 @@ class MergeOrder(models.Model):
         verbose_name=u'子订单'
     
     @classmethod
-    def gen_new_order(cls,tid,outer_id,outer_sku_id,num,gift_type=pcfg.REAL_ORDER_GIT_TYPE):
+    def gen_new_order(cls,trade_id,outer_id,outer_sku_id,num,gift_type=pcfg.REAL_ORDER_GIT_TYPE):
         
-        merge_trade,state = MergeTrade.objects.get_or_create(tid=tid)
+        merge_trade,state = MergeTrade.objects.get_or_create(id=trade_id)
         product = Product.objects.get(outer_id=outer_id)
         sku_properties_name = ''
         if outer_sku_id:
@@ -471,7 +471,7 @@ class MergeOrder(models.Model):
                  logger.error(exc.message,exc_info=True)
                  sku_properties_name = u'该规格编码没有入库'
         merge_order = MergeOrder.objects.create(
-            tid = tid,
+            tid = merge_trade.tid,
             merge_trade = merge_trade,
             outer_id = outer_id,
             price = product.price,
@@ -500,6 +500,13 @@ class MergeOrder(models.Model):
 
 def refresh_trade_status(sender,instance,*args,**kwargs):
     #更新主订单的状态
+    if not instance.seller_nick or instance.buyer_nick:
+        instance.seller_nick = merge_trade.seller_nick
+        instance.buyer_nick  = merge_trade.buyer_nick
+        instance.created     = merge_trade.created
+        instance.pay_time    = merge_trade.pay_time
+        instance.save()
+        return 
     merge_trade   = instance.merge_trade
     has_refunding = merge_trade.has_trade_refunding()
     out_stock     = merge_trade.merge_trade_orders.filter(out_stock=True,status=pcfg.WAIT_SELLER_SEND_GOODS).count()>0
@@ -510,6 +517,7 @@ def refresh_trade_status(sender,instance,*args,**kwargs):
     merge_trade.has_out_stock = out_stock
     merge_trade.has_merge = has_merge
     merge_trade.has_rule_match = has_rule_match
+
     merge_trade.save()
         
 post_save.connect(refresh_trade_status, sender=MergeOrder)
