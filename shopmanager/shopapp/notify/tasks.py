@@ -169,9 +169,10 @@ def process_item_notify_task(id):
     
                     properties = ''
                     props = sku['properties'].split(';')
+                    prop_dict = item.property_alias_dict
                     for prop in props:
                         if prop :
-                            properties += prop_dict[sku['num_iid']].get(prop, '') or sku_prop_dict.get(prop, u'规格有误') 
+                            properties += prop_dict.get(prop, '') or sku_prop_dict.get(prop, u'规格有误') 
                             psku.properties_name = properties or psku.properties_values
                     psku.save()
 
