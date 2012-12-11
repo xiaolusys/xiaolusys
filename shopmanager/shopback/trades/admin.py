@@ -273,8 +273,7 @@ class MergeTradeAdmin(admin.ModelAdmin):
 
     #更新订单
     def pull_order_action(self, request, queryset):
-        queryset = queryset.filter(sys_status=pcfg.WAIT_AUDIT_STATUS)
-        
+        queryset = queryset.filter(sys_status__in=(pcfg.WAIT_AUDIT_STATUS,''))
         pull_success_ids = []
         pull_fail_ids    = []
         for trade in queryset:
