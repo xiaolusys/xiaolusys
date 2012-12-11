@@ -3,8 +3,8 @@ Django==1.4.1
 gunicorn==0.14.6
 httplib2==0.7.2
 raven==2.0.6
-celery==2.5.5
-django-celery==2.5.5
+celery==3.0.10
+django-celery==3.0.10
 django-kombu==0.9.4
 python-memcached==1.45
 djangorestframework==0.3.0
@@ -29,7 +29,7 @@ git+file:///home/user1/repo/django-chartit.git#egg=django-chartit
 #PIL==1.1.7
 #raven==2.0.6
 #sentry==4.8.1
-#celery==2.5.5
-#django-celery==2.5.5
+#celery==3.0.10
+#django-celery==3.0.10
 #kombu==2.4.7
 #pyExcelerator==0.6.4.1

@@ -10,6 +10,7 @@ from shopback import paramconfig as pcfg
 from shopapp.notify.models import TradeNotify,ItemNotify,RefundNotify
 from shopback.orders.models import Trade,Order
 from shopback.trades.models import MergeTrade,MergeOrder,MergeBuyerTrade,merge_order_remover
+from shopapp.items.models import Product,ProductSku
 from shopback.refunds.models import Refund
 from shopback.users.models import User
 #from shopapp.signals import modify_fee_signal
@@ -22,7 +23,6 @@ logger = logging.getLogger('notify.handler')
 @task(max_retries=5)    
 def process_trade_notify_task(id):
     #处理交易主动通知信息
-
     try:
         notify = TradeNotify.objects.get(id=id)
         #订单创建，修改，关闭，则重新下载该订单，并对订单价格进行修改
@@ -141,10 +141,40 @@ def process_trade_notify_task(id):
 ############################ 商品主动消息处理  ###############################
 @task(max_retries=5)     
 def process_item_notify_task(id):
-
+    """商品主动消息处理"""
     try:
         notify = ItemNotify.objects.get(id=id)
-        pass
+        if notify.status == "ItemAdd":
+            Item.get_or_create(notify.user_id,notify.num_iid,force_update=True)
+        elif notify.status == "ItemUpdate":
+            if 'sku' in notify.changed_fields.split(','):
+                item = Item.get_or_create(notify.user_id,notify.num_iid,force_update=True)
+                response = apis.taobao_item_sku_get(num_iid=notify.num_iid,sku_id=notify.sku_id,tb_user_id=notify.user_id)
+                
+                sku = response['item_sku_get_response']['sku']
+                sku_outer_id = sku.get('outer_id', None)
+                
+                sku_prop_dict = dict([ ('%s:%s' % (p.split(':')[0], p.split(':')[1]), p.split(':')[3]) for p in sku['properties_name'].split(';') if p])
+                
+                if item.product:
+                    psku, state = ProductSku.objects.get_or_create(outer_id=sku_outer_id, product=item.product)
+                    if state:
+                        for key, value in sku.iteritems():
+                            hasattr(psku, key) and setattr(psku, key, value)
+                        psku.prod_outer_id = item.outer_id
+                    else:
+                        psku.properties_name = sku['properties_name']
+                        psku.properties = sku['properties']
+                        psku.prod_outer_id = item.outer_id
+    
+                    properties = ''
+                    props = sku['properties'].split(';')
+                    for prop in props:
+                        if prop :
+                            properties += prop_dict[sku['num_iid']].get(prop, '') or sku_prop_dict.get(prop, u'规格有误') 
+                            psku.properties_name = properties or psku.properties_values
+                    psku.save()
+
     except Exception,exc:
         logger.error(exc.message,exc_info=True)
         raise process_item_notify_task.retry(exc=exc,countdown=60)

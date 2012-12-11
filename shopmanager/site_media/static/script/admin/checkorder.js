@@ -80,6 +80,7 @@ ordercheck.Manager.prototype.checkorder = function(trade_id,logistic_code,priori
             console.log('Error: (ajax callback) - ', err);
         } 
 	};
+	console.log({'format':'json','logistic_code':logistic_code,'priority':priority});
 	goog.net.XhrIo.send('/trades/checkorder/'+trade_id+'/',callback,'POST',{'format':'json','logistic_code':logistic_code,'priority':priority});
 }
 

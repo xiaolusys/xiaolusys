@@ -119,7 +119,10 @@ class ProductSku(models.Model):
             values = properties.split(':')
             value_list.append( '%s'%values[3] if len(values)==4 else properties)
         return ','.join(value_list)
-
+    
+    
+    
+    
 
 def calculate_product_collect_num(sender, instance, *args, **kwargs):
     """修改SKU库存后，更新库存商品的总库存 """
@@ -201,9 +204,9 @@ class Item(models.Model):
 
 
     @classmethod
-    def get_or_create(cls,user_id,num_iid):
+    def get_or_create(cls,user_id,num_iid,force_update=False):
         item,state = Item.objects.get_or_create(num_iid=num_iid)
-        if state:
+        if state or force_update:
             try:
                 response  = apis.taobao_item_get(num_iid=num_iid,tb_user_id=user_id)
                 item_dict = response['item_get_response']['item']
@@ -230,7 +233,7 @@ class Item(models.Model):
             product = None
         
         item,state    = cls.objects.get_or_create(num_iid = item_dict['num_iid'])
-        
+        item_dict['skus'] = item_dict.get('skus','{}')
         for k,v in item_dict.iteritems():
             hasattr(item,k) and setattr(item,k,v)
 
