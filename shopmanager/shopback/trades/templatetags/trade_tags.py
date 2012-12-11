@@ -1,6 +1,7 @@
 from django import template
 from shopback import paramconfig as pcfg
 from shopback.trades.models import MergeTrade
+from shopback.items.models import Product,ProductSku
 
 register = template.Library()
 
@@ -27,7 +28,7 @@ def trade_submit_row(context):
         'show_save_and_add_another': context['has_add_permission'] and
                             not is_popup and (not save_as or context['add']),
         'show_save_and_continue': context['has_change_permission'],
-        'show_close':True,
+        'show_close':True if is_popup else False,
         'show_split':trade.has_merge and is_wait_audit and can_trade_audit,
         'show_invalid':is_wait_audit and can_trade_audit,
         'show_uninvalid':sys_status == pcfg.INVALID_STATUS and can_trade_audit,
@@ -37,3 +38,9 @@ def trade_submit_row(context):
         'is_popup': is_popup,
         'show_save': True
     }
+
+@register.filter(name='prod_skus')  
+def prod_skus(order):
+    prods = ProductSku.objects.filter(prod_outer_id=order['outer_id'])
+    return prods
+    
