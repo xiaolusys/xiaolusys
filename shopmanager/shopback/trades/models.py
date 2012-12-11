@@ -404,7 +404,15 @@ class MergeTrade(models.Model):
                 need_pull = True
         return need_pull
  
-   
+    
+def remove_trade_orders(sender,instance,*args,**kwargs):
+    
+    if instance.sys_status == pcfg.WAIT_AUDIT_STATUS:
+        instance.merge_trade_orders.filter(sys_status=pcfg.INVALID_STATUS).update(sys_status=pcfg.IN_EFFECT)
+        instance.merge_trade_orders.filter(gift_type__in=(pcfg.OVER_PAYMENT_GIT_TYPE,pcfg.COMBOSE_SPLIT_GIT_TYPE)).delete()
+      
+post_save.connect(remove_trade_orders, sender=MergeTrade)
+
 class MergeOrder(models.Model):
     
     id    = BigIntegerAutoField(primary_key=True)
@@ -500,14 +508,15 @@ class MergeOrder(models.Model):
 
 def refresh_trade_status(sender,instance,*args,**kwargs):
     #更新主订单的状态
-    if not instance.seller_nick or instance.buyer_nick:
+    merge_trade   = instance.merge_trade
+    if not instance.seller_nick or not instance.buyer_nick:
         instance.seller_nick = merge_trade.seller_nick
         instance.buyer_nick  = merge_trade.buyer_nick
         instance.created     = merge_trade.created
         instance.pay_time    = merge_trade.pay_time
         instance.save()
         return 
-    merge_trade   = instance.merge_trade
+
     has_refunding = merge_trade.has_trade_refunding()
     out_stock     = merge_trade.merge_trade_orders.filter(out_stock=True,status=pcfg.WAIT_SELLER_SEND_GOODS).count()>0
     has_merge     = merge_trade.merge_trade_orders.filter(is_merge=True).count()>0

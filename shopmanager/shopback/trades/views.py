@@ -5,7 +5,7 @@ from django.db.models import Q
 from django.views.decorators.csrf import csrf_exempt
 from djangorestframework.views import ModelView
 from djangorestframework.response import ErrorResponse
-from shopback.trades.models import MergeTrade,MergeOrder
+from shopback.trades.models import MergeTrade,MergeOrder,GIFT_TYPE
 from shopback.logistics.models import LogisticsCompany
 from shopback.items.models import Product,ProductSku
 from shopback.signals import rule_signal
@@ -20,7 +20,7 @@ class CheckOrderView(ModelView):
         try:
             trade = MergeTrade.objects.get(id=id)
         except MergeTrade.DoesNotExist:
-            raise ErrorResponse('该订单不存在'.decode('utf8'))
+            return '该订单不存在'.decode('utf8')
         
         logistics = LogisticsCompany.objects.filter(status=True)
         
@@ -58,7 +58,7 @@ class CheckOrderView(ModelView):
         try:
             trade = MergeTrade.objects.get(id=id)
         except MergeTrade.DoesNotExist:
-            raise ErrorResponse('该订单不存在'.decode('utf8'))
+            return '该订单不存在'.decode('utf8')
         
         priority = request.GET.get('priority')
         logistic_code = request.GET.get('logistic_code')
@@ -82,7 +82,7 @@ class CheckOrderView(ModelView):
             check_msg.append("订单暂不能审核".decode('utf8'))
             
         if check_msg:
-            raise ErrorResponse('，'.join(check_msg))
+            return '，'.join(check_msg)
 
         rule_signal.send(sender='merge_trade_rule',trade_tid=trade.tid)
         
@@ -98,7 +98,7 @@ class OrderPlusView(ModelView):
         
         q  = request.GET.get('q')
         if not q:
-            raise ErrorResponse('没有输入查询关键字'.decode('utf8'))
+            return '没有输入查询关键字'.decode('utf8')
         products = Product.objects.filter(Q(outer_id=q)|Q(name__contains=q))
         
         prod_list = [(prod.outer_id,prod.name,[[(sku.outer_id,sku.properties_name) for sku in 
@@ -115,39 +115,23 @@ class OrderPlusView(ModelView):
         try:
             merge_trade = MergeTrade.objects.get(id=trade_id)
         except MergeTrade.DoesNotExist:
-            raise ErrorResponse('该订单不存在'.decode('utf8'))
+            return '该订单不存在'.decode('utf8')
         try:
             product = Product.objects.get(outer_id=outer_id)
         except Product.DoesNotExist:
-            raise ErrorResponse('该商品不存在'.decode('utf8'))
+            return '该商品不存在'.decode('utf8')
         
         if outer_sku_id:
             try:
                 prod_sku = ProductSku.objects.get(prod_outer_id=outer_sku_id)
             except ProductSku.DoesNotExist:
-                raise ErrorResponse('该商品规格不存在'.decode('utf8'))
+                return '该商品规格不存在'.decode('utf8')
             
         merge_order = MergeOrder.gen_new_order(trade_id,outer_id,outer_sku_id,num,gift_type=pcfg.CS_PERMI_GIT_TYPE)
         
         return merge_order
     
-    
-class ProdSkuPlusView(ModelView):
-    """ docstring for class SkuPlusView """
-    
-    def get(self, request, *args, **kwargs):
         
-        outer_id = request.GET.get('outer_id')
-        try:
-            prod = Product.objects.get(outer_id=outer_id)
-        except Product.DoesNotExsit:
-            raise ErrorResponse('商品不存在'.decode('utf8'))
-        
-        return (prod.outer_id,prod.name,[[(sku.outer_id,sku.properties_name) for sku in 
-                                                prod.prod_skus.filter(status=pcfg.NORMAL)]])
-        
-    def post(self, request, *args, **kwargs):
-        pass
         
 @csrf_exempt     
 def change_trade_addr(request):
@@ -157,7 +141,7 @@ def change_trade_addr(request):
     try:
         trade = MergeTrade.objects.get(id=trade_id)
     except MergeTrade.DoesNotExist:
-        raise ErrorResponse('该订单不存在'.decode('utf8'))
+        return HttpResponse(json.dumps({'code':1,"response_error":"订单不存在！"}),mimetype="application/json")
         
     for (key, val) in CONTENT.items():
          setattr(trade, key, val)
@@ -166,6 +150,49 @@ def change_trade_addr(request):
     trade.append_reason_code(pcfg.ADDR_CHANGE_CODE)
     ret_params = {'code':0,'success':True}
     
+    return HttpResponse(json.dumps(ret_params),mimetype="application/json")
+
+@csrf_exempt     
+def change_trade_order(request,id):
+    
+    CONTENT    = request.REQUEST
+    outer_sku_id = CONTENT.get('outer_sku_id')
+    try:
+        order = MergeOrder.objects.get(id=id)
+    except MergeOrder.DoesNotExist:
+        return HttpResponse(json.dumps({'code':1,"response_error":"订单不存在！"}),mimetype="application/json")
+    
+    try:
+        prod_sku = ProductSku.objects.get(prod_outer_id=order.outer_id,outer_id=outer_sku_id) 
+    except ProductSku.DoesNotExist:
+        return HttpResponse(json.dumps({'code':1,"response_error":"商品规格不存在！"}),mimetype="application/json")
+    
+    MergeOrder.objects.filter(id=order.id).update(outer_sku_id=prod_sku.outer_id,
+                                                  sku_properties_name=prod_sku.properties_name,is_rule_match=False)
+    order = MergeOrder.objects.get(id=order.id)
+   
+    ret_params = {'code':0,'response_content':{'id':order.id,
+                                               'outer_id':order.outer_id,
+                                               'title':order.title,
+                                               'sku_properties_name':order.sku_properties_name,
+                                               'num':order.num,
+                                               'price':order.price,
+                                               'gift_type':GIFT_TYPE.get(order.gift_type),
+                                               }}
+    
+    return HttpResponse(json.dumps(ret_params),mimetype="application/json")
+
+
+@csrf_exempt     
+def delete_trade_order(request,id):
+    
+    CONTENT    = request.REQUEST
+    num = MergeOrder.objects.filter(id=id).delete()
+    if num >0:
+        ret_params = {'code':0,'response_content':{'success':True}}
+    else :
+        ret_params = {'code':1,'response_error':'failure'}
+        
     return HttpResponse(json.dumps(ret_params),mimetype="application/json")
 
     

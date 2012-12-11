@@ -1,5 +1,5 @@
 from django.conf.urls.defaults import patterns, include, url
-from shopback.trades.views import change_trade_addr,CheckOrderView,OrderPlusView
+from shopback.trades.views import CheckOrderView,OrderPlusView,change_trade_addr,change_trade_order,delete_trade_order
 from shopback.base.renderers  import BaseJsonRenderer
 from shopback.trades.renderers import CheckOrderRenderer
 from shopback.trades.resources import TradeResource,OrderPlusResource
@@ -20,5 +20,7 @@ urlpatterns = patterns('',
         authentication=(UserLoggedInAuthentication,),
         permissions=(IsAuthenticated,)
     )),
-    (r'address/',change_trade_addr)
+    (r'address/',change_trade_addr),
+    (r'update/(?P<id>\d{1,20})/',change_trade_order),
+    (r'delete/(?P<id>\d{1,20})/',delete_trade_order),
 )

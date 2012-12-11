@@ -71,11 +71,10 @@ ordercheck.Manager.prototype.checkorder = function(trade_id,logistic_code,priori
         var xhr = e.target;
         try {
         	var res = xhr.getResponseJson();
-        	console.log('msg',res);
-            if (res.code == 1){
+            if (res.code == 0){
             	alert("审核成功！");
             }else{
-                alert("审核失败:"+res.msg);
+                alert("审核失败:"+res.response_error);
             }
         } catch (err) {
             console.log('Error: (ajax callback) - ', err);

@@ -1,138 +1,159 @@
+{% load trade_tags %} 
 {% with trade=object.trade logistics=object.logistics %}
-<div class="body1" style="margin-left:auto; margin-right:auto; width:720px">
-    <div class="row-through">
-    <input type="hidden" id="id_check_trade"  name="trade_id" value="{{ trade.id }}">
-	<div style="margin:0px;display:inline-block;width:25%"><label class="simple-label">订单号: </label>{{ trade.tid }}</div>
-	<div style="margin:0px;display:inline-block;width:25%"><label class="simple-label">买家: </label>{{ trade.buyer_nick }}</div>
-	<div style="margin:0px;display:inline-block;width:20%"><label class="simple-label">店铺: </label>{{ trade.seller_nick }}</div>
-	<div style="margin:0px;display:inline-block;width:25%"><label class="simple-label">付款时间: </label>{{ trade.pay_time }}</div>
-      </div>
-      <div class="row-through">
-	<div class="alert-message buyer"><strong>买家留言: </strong>{{ trade.buyer_message }}</div>
-	<div class="alert-message seller"><strong>卖家留言: </strong>{{ trade.seller_memo }}</div>
-      </div>
-      <div style="padding:9px 15px">
-	<label class="simple-label">快递: </label>
-	<select id="id_logistics" class="selection" >
-	  {% for lg in logistics %}
-	  <option value='{{ lg.code }}' {% if lg.id == trade.logistics_company.id %}selected{% endif %} >{{ lg.name }}</option>
-	  {% endfor %}
-	</select>
-	<label class="simple-label">优先级: </label>
-	<select id="id_priority" name="priority" class="selection">
-	  <option {% if trade.priority == -1 %}selected{% endif %} value="-1">低</option>
-	  <option {% if trade.priority == 0 %}selected{% endif %} value="0">中</option>
-	  <option {% if trade.priority == 1 %}selected{% endif %} value="1">高</option>
-	</select>
-      </div>
-      <div class="accordion-group1">
-	<div class="accordion-heading1">
-	  <div style="padding:2px 15px">
-	    <div class="row-through">
-	      <div style="margin:0px;display:inline-block;width:30%"><label class="simple-label">收货人: </label>{{ trade.receiver_name }}</div>
-	      <div style="margin:0px;display:inline-block;width:25%"><label class="simple-label">手机: </label>{{ trade.receiver_mobile }}</div>
-	      <div style="margin:0px;display:inline-block;width:25%"><label class="simple-label">固话: </label>{{ trade.receiver_phone }}</div>
-	    </div>
-	    <div class="row-through">
-	      <label class="simple-label">地址: </label>{{ trade.receiver_state }}，{{ trade.receiver_city }}，{{ trade.receiver_district }}，{{ trade.receiver_address }}
-	    </div>
-	  </div>
-          <a class="accordion-toggle1" style="padding:0px 15px">修改地址››</a>
-	</div>
-	<div id="collapseOne" class="collapse1">
-      <div class="accordion-inner1">
-	    <form id="id-addr-form" class="form-inline" >
-	      <div>
-		<label class="simple-label">收货人: </label>
-		<input type="hidden" id="id_trade_addr" class="input-small1" name="trade_id" value="{{ trade.id }}">
-		<input type="text" id="id_receiver_name" class="input-small1" placeholder="收货人" name="receiver_name" >
-		<input type="text" id="id_receiver_mobile" class="input-small1" placeholder="手机" name="receiver_mobile" >
-		<input type="text" id="id_receiver_phone" class="input-small1" placeholder="固话" name="receiver_phone" >
-		<input type="submit" class="btn btn-small" style="float:right" value="确定修改">
-	      </div>
-	      <div style="margin-top:5px">
-		<label class="simple-label">新地址: </label>
-		<input type="text" id="id_receiver_state" class="input-small1" placeholder="省" name="receiver_state" >
-		<input type="text" id="id_receiver_city" class="input-small1" placeholder="市" name="receiver_city" >
-		<input type="text" id="id_receiver_district" class="input-small1" placeholder="区" name="receiver_district" >
-		<input type="text" id="id_receiver_address" style="width:310px" placeholder="详细地址" name="receiver_address" >
-	      </div>
-	    </form>
-      </div>
-	</div>
-    </div>
-    <div style="padding:9px 15px">
-	<ul class="thumbnails1">
-	  {% if trade.has_memo %}<li><span class="badge1 badge-warning1">有留言</span></li>{% endif %}
-	  {% if trade.has_refund %}<li><span class="badge1 badge-warning1">待退款</span></li>{% endif %}
-	  {% if trade.has_out_stock %}<li><span class="badge1 badge-warning1">缺货</span></li>{% endif %}
-	  {% if trade.has_rule_match %}<li><span class="badge1 badge-warning1">信息不全</span></li>{% endif %}
-	  {% if trade.has_merge %}<li><span class="badge1 badge-warning1">订单合并</span>{% endif %}
-	</ul>
-      </div>
-      <div class="accordion-group1">
-	<div class="accordion-heading1" style="margin: 5px 0px">
-          <a class="accordion-toggle1" style="padding:0px 15px">商品列表››</a>
-	</div>
-	<div id="collapseTwo" class="collapse1">
-      <div class="accordion-inner1">
-	    <form class="well form-search">
-	      <input type="text" name="q" class="input-medium search-query" action="/trades/orderplus/" method="GET">
-	      <button type="submit" class="btn">商品搜索</button>
-	      <div style="height:10px"></div>
-	      <table class="table table-bordered">
+<div class="body1" style="margin-left: auto; margin-right: auto; width: 720px">
+<div class="row-through"><input type="hidden" id="id_check_trade" name="trade_id" value="{{ trade.id }}">
+<div style="margin: 0px; display: inline-block; width: 25%"><label class="simple-label">订单号: </label>{{ trade.tid }}</div>
+<div style="margin: 0px; display: inline-block; width: 25%"><label class="simple-label">买家: </label>{{ trade.buyer_nick }}</div>
+<div style="margin: 0px; display: inline-block; width: 20%"><label class="simple-label">店铺: </label>{{ trade.seller_nick }}</div>
+<div style="margin: 0px; display: inline-block; width: 25%"><label class="simple-label">付款时间: </label>{{ trade.pay_time }}</div>
+</div>
+<div class="row-through">
+<div class="alert-message buyer"><strong>买家留言: </strong>{{ trade.buyer_message }}</div>
+<div class="alert-message seller"><strong>卖家留言: </strong>{{ trade.seller_memo }}</div>
+</div>
+<div style="padding: 9px 15px"><label class="simple-label">快递:
+</label> <select id="id_logistics" class="selection">
+	{% for lg in logistics %}
+	<option value='{{ lg.code }}' {% if lg.id == trade.logistics_company.id %}selected{% endif %} >{{ lg.name }}</option>
+	{% endfor %}
+</select> <label class="simple-label">优先级: </label> <select id="id_priority"
+	name="priority" class="selection">
+	<option {% if trade.priority == -1 %}selected{% endif %} value="-1">低</option>
+	<option {% if trade.priority == 0 %}selected{% endif %} value="0">中</option>
+	<option {% if trade.priority == 1 %}selected{% endif %} value="1">高</option>
+</select></div>
+<div class="accordion-group1">
+<div class="accordion-heading1">
+<div style="padding: 2px 15px">
+<div class="row-through">
+<div style="margin: 0px; display: inline-block; width: 30%"><label
+	class="simple-label">收货人: </label>{{ trade.receiver_name }}</div>
+<div style="margin: 0px; display: inline-block; width: 25%"><label
+	class="simple-label">手机: </label>{{ trade.receiver_mobile }}</div>
+<div style="margin: 0px; display: inline-block; width: 25%"><label
+	class="simple-label">固话: </label>{{ trade.receiver_phone }}</div>
+</div>
+<div class="row-through"><label class="simple-label">地址: </label>{{ trade.receiver_state }}，{{ trade.receiver_city }}，
+{{ trade.receiver_district }}，{{ trade.receiver_address }}</div>
+</div>
+<a class="accordion-toggle1" style="padding: 0px 15px">修改地址››</a></div>
+<div id="collapseOne" class="collapse1">
+<div class="accordion-inner1">
+<form id="id-addr-form" class="form-inline">
+<div><label class="simple-label">收货人: </label> <input
+	type="hidden" id="id_trade_addr" class="input-small1" name="trade_id"
+	value="{{ trade.id }}"> <input type="text"
+	id="id_receiver_name" class="input-small1" placeholder="收货人"
+	name="receiver_name"> <input type="text"
+	id="id_receiver_mobile" class="input-small1" placeholder="手机"
+	name="receiver_mobile"> <input type="text"
+	id="id_receiver_phone" class="input-small1" placeholder="固话"
+	name="receiver_phone"> <input type="submit"
+	class="btn btn-small" style="float: right" value="确定修改"></div>
+<div style="margin-top: 5px"><label class="simple-label">新地址:
+</label> <input type="text" id="id_receiver_state" class="input-small1"
+	placeholder="省" name="receiver_state"> <input type="text"
+	id="id_receiver_city" class="input-small1" placeholder="市"
+	name="receiver_city"> <input type="text"
+	id="id_receiver_district" class="input-small1" placeholder="区"
+	name="receiver_district"> <input type="text"
+	id="id_receiver_address" style="width: 310px" placeholder="详细地址"
+	name="receiver_address"></div>
+</form>
+</div>
+</div>
+</div>
+<div style="padding: 9px 15px">
+<ul class="thumbnails1">
+	{% if trade.has_memo %}
+	<li><span class="badge1 badge-warning1">有留言</span></li>
+	{% endif %} {% if trade.has_refund %}
+	<li><span class="badge1 badge-warning1">待退款</span></li>
+	{% endif %} {% if trade.has_out_stock %}
+	<li><span class="badge1 badge-warning1">缺货</span></li>
+	{% endif %} {% if trade.has_rule_match %}
+	<li><span class="badge1 badge-warning1">信息不全</span></li>
+	{% endif %} {% if trade.has_merge %}
+	<li><span class="badge1 badge-warning1">订单合并</span>{% endif %}
+</ul>
+</div>
+<div class="accordion-group1">
+<div class="accordion-heading1" style="margin: 5px 0px"><a
+	class="accordion-toggle1" style="padding: 0px 15px">商品列表››</a></div>
+<div id="collapseTwo" class="collapse1">
+<div class="accordion-inner1">
+<form class="well form-search"><input type="text" name="q" class="input-medium search-query" action="/trades/orderplus/" method="GET">
+	<button type="submit" class="btn">商品搜索</button>
+	<div style="height: 10px"></div>
+	<table class="table table-bordered">
 		<thead>
-		  <tr>
-		    <td>编号</td><td>商家编码</td><td>商品简称</td><td>规格</td><td>数量</td><td>正品单价</td><td>操作</td>
-		  </tr>
+			<tr>
+				<td>编号</td>
+				<td>商家编码</td>
+				<td>商品简称</td>
+				<td>规格</td>
+				<td>数量</td>
+				<td>正品单价</td>
+				<td>操作</td>
+			</tr>
 		</thead>
 		<tbody>
-		  <tr>
-		    <td>1</td>
-		    <td>ABCDEFG</td>
-		    <td>竹纤维凉毯盖毯</td>
-		    <td><div>120*60</div><div>枫叶</div></td>
-		    <td>1</td>
-		    <td>99.00</td>
-		    <td><button>添加</button></td>
-		  </tr>
+			<tr>
+				<td>1</td>
+				<td>ABCDEFG</td>
+				<td>竹纤维凉毯盖毯</td>
+				<td>
+				<div>120*60</div>
+				<div>枫叶</div>
+				</td>
+				<td>1</td>
+				<td>99.00</td>
+				<td>
+				<button>添加</button>
+				</td>
+			</tr>
 		</tbody>
-	      </table>
-	    </form>
-	    <table class="table table-bordered">
-	      <thead>
+	</table>
+</form>
+<table class="table table-bordered">
+	<thead>
 		<tr>
-		  <td>编号</td><td>商家编码</td><td>商品简称</td><td>规格</td><td>数量</td><td>正品单价</td><td>订单类型</td><td>操作</td>
+			<td>编号</td>
+			<td>商家编码</td>
+			<td>商品简称</td>
+			<td>规格</td>
+			<td>数量</td>
+			<td>正品单价</td>
+			<td>订单类型</td>
+			<td>操作</td>
 		</tr>
-	      </thead>
-	      <tbody>
-	      {% for order in trade.used_orders %}
+	</thead>
+	<tbody>
+		{% for order in trade.used_orders %}
 		<tr>
-		  <td>{{ order.id }}</td>
-		  <td>{{ order.outer_id }}</td>
-		  <td>{{ order.title }}</td>
-		  <td>
-		     {% if prod.has_rule_match %}
-		        <select id="id_order_sku" name="id_order_sku" >
-		          {% for sku in order|prod_skus %}
-		            <option value="{{ sku.outer_id }}">{{ sku.properties_name }}</option>
-		          {% endfor %}
-		        </select>
-		     {% else %}
-		        {{ order.sku_properties_name }}
-		     {% endif %}
-		  </td>
-		  <td>{{ order.num }}</td>
-		  <td>{{ order.price }}</td>
-		  <td>{% if trade.gift_type == 0 %}实付订单{% elif trade.gift_type == 1 %}客服赠送
-		      {% elif trade.gift_type == 2 %}满就送{% elif trade.gift_type == 3 %}组合拆分{% endif %}
-		  </td>
-		  <td><button>删除</button></td>
+			<td>{{ order.id }}</td>
+			<td>{{ order.outer_id }}</td>
+			<td>{{ order.title }}</td>
+			<td>{% if order.is_rule_match %} 
+				<select id="id_order_sku" name="id_order_sku">
+					{% for sku in order|prod_skus %}
+					<option value="{{ sku.outer_id }}">{{ sku.properties_name }}</option>
+					{% endfor %}
+				</select> 
+			    {% else %}{{ order.sku_properties_name }}{% endif %}
+			</td>
+			<td>{{ order.num }}</td>
+			<td>{{ order.price }}</td>
+			<td>{% if order.gift_type == 0 %}实付订单{% elif order.gift_type == 1 %}客服赠送 {% elif order.gift_type == 2 %}
+			满就送{% elif order.gift_type == 3 %}组合拆分{% endif %}</td>
+			<td>{% if order.is_rule_match %}<button>修改</button>{% endif %}
+			    {% if order.gift_type == 1 %}<button>删除</button>{% endif %}
+			</td>
 		</tr>
-		 {% endfor %}
-	      </tbody>
-	    </table>
-      </div>
-	</div>
- </div>
- {% endwith %}
+		{% endfor %}
+	</tbody>
+</table>
+</div>
+</div>
+</div>
+{% endwith %}

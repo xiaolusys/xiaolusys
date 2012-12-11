@@ -41,6 +41,6 @@ def trade_submit_row(context):
 
 @register.filter(name='prod_skus')  
 def prod_skus(order):
-    prods = Product.objects.filter(outer_id=order.outer_id)
+    prods = ProductSku.objects.filter(prod_outer_id=order['outer_id'])
     return prods
     

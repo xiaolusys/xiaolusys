@@ -51,7 +51,7 @@ class MergeOrderInline(admin.TabularInline):
 
 
 class MergeTradeAdmin(admin.ModelAdmin):
-    list_display = ('id','popup_tid_link','user','buyer_nick','type','payment','created','pay_time'
+    list_display = ('id','popup_tid_link','user','buyer_nick_link','type','payment','created','pay_time'
                     ,'status','logistics_company','is_picking_print','is_express_print','is_send_sms'
                     ,'has_memo','has_refund','sys_status','operator','reason_code','remind_time')
     list_display_links = ('id','popup_tid_link')
@@ -62,10 +62,14 @@ class MergeTradeAdmin(admin.ModelAdmin):
     list_per_page = 100
      
     def popup_tid_link(self, obj):
-        return u'<a href="%d/" onclick="return showTradePopup(this);">%d</a><a class="check-order" trade_id="%d">审核</a>' %(obj.id,obj.tid,obj.id)
+        return u'<a href="%d/" onclick="return showTradePopup(this);">%d</a>' %(obj.id,obj.tid)
     popup_tid_link.allow_tags = True
     popup_tid_link.short_description = "淘宝ID" 
     
+    def buyer_nick_link(self, obj):
+        return '<a href="#" class="check-order" trade_id="%d">%s</a>' %(obj.id,obj.buyer_nick)
+    buyer_nick_link.allow_tags = True
+    buyer_nick_link.short_description = "买家昵称" 
 
     inlines = [MergeOrderInline]
     
@@ -175,7 +179,7 @@ class MergeTradeAdmin(admin.ModelAdmin):
         elif request.POST.has_key("_uninvalid"):
             if obj.sys_status==pcfg.INVALID_STATUS:
                 MergeTrade.objects.filter(id=obj.id).update(sys_status=pcfg.WAIT_AUDIT_STATUS)
-                msg = "订单已作废"
+                msg = "订单已入问题单"
                 self.message_user(request, msg)
                 self.log_action(request.user.id,obj,CHANGE,msg)
                 return HttpResponseRedirect("../%s/" % pk_value)
