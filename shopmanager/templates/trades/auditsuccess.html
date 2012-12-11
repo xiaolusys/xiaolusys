@@ -23,7 +23,7 @@
 					<td>{{ trade.seller_nick }}</td>
 			    	<td>{{ trade.buyer_nick }}</td>
 			    	<td>{{ trade.pay_time|date:'Y-m-d H:i:s' }}</td>
-			    	<td><img src="/static/admin/img/admin/icon-yes.gif" alt="yes"></td>
+			    	<td><img src="{{ STATIC_URL }}admin/img/icon-yes.gif" alt="yes"></td>
 			    	<td>{{ trade.reason_code }}</td>
 			    </tr>
 			    {% endif %}
@@ -37,7 +37,7 @@
 					<td>{{ trade.seller_nick }}</td>
 			    	<td>{{ trade.buyer_nick }}</td>
 			    	<td>{{ trade.pay_time|date:'Y-m-d H:i:s' }}</td>
-			    	<td><img src="/static/admin/img/admin/icon-no.gif" alt="no"></td>
+			    	<td><img src="{{ STATIC_URL }}admin/img/icon-no.gif" alt="no"></td>
 			    	<td>{{ trade.reason_code }}</td>
 			    </tr>
 			    {% endif %}
