@@ -491,11 +491,6 @@ class MergeOrder(models.Model):
             refund_status = pcfg.NO_REFUND,
             seller_nick = merge_trade.seller_nick,
             buyer_nick = merge_trade.buyer_nick,
-            year = merge_trade.year,
-            month = merge_trade.month,
-            week  = merge_trade.week,
-            day   = merge_trade.day,
-            hour  = merge_trade.hour,
             created = merge_trade.created,
             pay_time = merge_trade.pay_time,
             consign_time = merge_trade.consign_time,
@@ -509,7 +504,7 @@ class MergeOrder(models.Model):
 def refresh_trade_status(sender,instance,*args,**kwargs):
     #更新主订单的状态
     merge_trade   = instance.merge_trade
-    if not instance.seller_nick or not instance.buyer_nick:
+    if merge_trade.seller_nick and merge_trade.buyer_nick and (not instance.seller_nick or not instance.buyer_nick):
         instance.seller_nick = merge_trade.seller_nick
         instance.buyer_nick  = merge_trade.buyer_nick
         instance.created     = merge_trade.created
