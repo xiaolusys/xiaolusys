@@ -83,7 +83,7 @@ class MergeTradeAdmin(admin.ModelAdmin):
     #--------设置页面布局----------------
     fieldsets =(('订单基本信息:', {
                     'classes': ('collapse',),
-                    'fields': (('user','type','status','sys_status'),('total_fee','payment','discount_fee','adjust_fee','post_fee')
+                    'fields': (('user','type','status','sys_status','seller_id'),('total_fee','payment','discount_fee','adjust_fee','post_fee')
                                ,('seller_cod_fee','buyer_cod_fee','cod_fee','cod_status','alipay_no'),('modified','consign_time','created')
                                ,('post_cost','refund_num','operator','weight','out_sid'),('is_send_sms','is_picking_print','is_express_print'))
                 }),
