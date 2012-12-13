@@ -128,7 +128,7 @@ INSTALLED_APPS = (
     'shopapp.syncnum',
     'shopapp.asynctask',
     'shopapp.notify',
-    
+    'shopapp.modifyfee',
 )
 
 

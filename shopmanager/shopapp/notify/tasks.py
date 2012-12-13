@@ -13,7 +13,7 @@ from shopback.trades.models import MergeTrade,MergeOrder,MergeBuyerTrade,merge_o
 from shopback.items.models import Product,ProductSku,Item
 from shopback.refunds.models import Refund
 from shopback.users.models import User
-#from shopapp.signals import modify_fee_signal
+from shopapp.signals import modify_fee_signal
 from auth import apis
 import logging
 
@@ -22,7 +22,7 @@ logger = logging.getLogger('notify.handler')
 ############################ 订单主动消息处理  ###############################
 @task(max_retries=5)    
 def process_trade_notify_task(id):
-    #处理交易主动通知信息
+    """ 处理交易主动通知信息 """
     try:
         notify = TradeNotify.objects.get(id=id)
         #订单创建，修改，关闭，则重新下载该订单，并对订单价格进行修改
@@ -34,7 +34,7 @@ def process_trade_notify_task(id):
                 if MergeTrade.judge_need_pull(notify.tid,trade_modify):
                     trade = Trade.save_trade_through_dict(notify.user_id,trade_dict)
             #修改订单价格
-            #modify_fee_signal.send(sender='modify_post_fee',user_id=notify.user_id,trade_id=notify.tid)
+            modify_fee_signal.send(sender='modify_post_fee',user_id=notify.user_id,trade_id=notify.tid)
         #修改交易备注
         elif notify.status == 'TradeMemoModified':
             try:

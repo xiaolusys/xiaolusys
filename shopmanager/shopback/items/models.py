@@ -35,7 +35,6 @@ PRODUCT_STATUS = (
 )
 
 
-
 class Product(models.Model):
     """ 抽象商品（根据淘宝外部编码)，描述：
         1,映射淘宝出售商品与采购商品桥梁；
@@ -82,7 +81,6 @@ class ProductSku(models.Model):
         1,映射淘宝出售商品规格与采购商品规格桥梁；
         2,库存管理的规格核心类；
     """
-    
     outer_id = models.CharField(max_length=64,null=True,blank=True,verbose_name='规格外部编码')
     
     prod_outer_id = models.CharField(max_length=64,db_index=True,blank=True,default='',verbose_name='商品外部编码')
@@ -128,8 +126,8 @@ def calculate_product_collect_num(sender, instance, *args, **kwargs):
     """修改SKU库存后，更新库存商品的总库存 """
     product = instance.product
     total_num = product.prod_skus.filter(status=pcfg.NORMAL).aggregate(total_nums=Sum('quantity')).get('total_nums')
-    product.collect_num = total_num
-    product.save()
+    has_out_stock = product.prod_skus.filter(status=pcfg.NORMAL,out_stock=True).count()>0
+    Product.objects.filter(id=product.id).update(collect_num=total_num,out_stock=has_out_stock)
     
 post_save.connect(calculate_product_collect_num, sender=ProductSku, dispatch_uid='calculate_product_num')
 
