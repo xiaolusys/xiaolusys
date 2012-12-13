@@ -2,7 +2,7 @@ __author__ = 'zfz'
 
 import os
 
-DEBUG = True
+DEBUG = False
 TEMPLATE_DEBUG = DEBUG
 
 PROJECT_ROOT = os.path.abspath(os.path.dirname(__file__))
@@ -25,7 +25,7 @@ if DEBUG:
        os.path.join(PROJECT_ROOT,"site_media","static"),
     )
 else :
-    STATIC_ROOT = os.path.join(PROJECT_ROOT,"site_media", "static")
+    STATIC_ROOT = os.path.join(PROJECT_ROOT, "static")
 
 CACHES = {
     'default': {
