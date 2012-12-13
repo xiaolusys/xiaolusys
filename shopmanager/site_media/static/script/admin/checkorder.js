@@ -9,9 +9,46 @@ goog.require('goog.net.XhrIo');
 goog.require('goog.uri.utils');
 
 var createDTText  = function(text){
-	var td = goog.dom.createElement('td');
-	td.appendChild(goog.dom.createTextNode(text));
-	return td
+    var td = goog.dom.createElement('td');
+    td.appendChild(goog.dom.createTextNode(text));
+    return td
+}
+
+var addSearchRow  = function(tableID,prod){
+
+	var table = goog.dom.getElement(tableID);
+	var rowCount = table.rows.length;
+    var row = table.insertRow(rowCount);
+    var index = rowCount;
+    
+	var id_cell = createDTText(index+'');
+	var outer_id_cell = createDTText(prod[0]);
+	var title_cell    = createDTText(prod[1]);
+	var sku_cell = goog.dom.createElement('td');
+	var sku_options = '<select id="id-order-sku-'+index.toString()+'" >';
+	for(var i=0;i<prod[3].length;i++){
+		var sku = prod[3][i];
+		sku_options += '<option value="'+sku[0]+'">'+sku[1]+'</option>';
+	}
+	sku_options += '</select>';
+	sku_cell.innerHTML = sku_options;
+	
+	var num_cell = goog.dom.createElement('td');
+	num_cell.innerHTML = '<input id="id-order-num-'+index.toString()+'" type="text" value="1" size="2" />';
+	
+	var price_cell = createDTText(prod[2]);
+	
+	var addbtn_cell = goog.dom.createElement('td');
+	addbtn_cell.innerHTML = '<button class="add-order" outer_id="'+prod[0]+'" idx="'+index.toString()+'">添加</button>';
+	
+	row.appendChild(id_cell);
+	row.appendChild(outer_id_cell);
+	row.appendChild(title_cell);
+	row.appendChild(sku_cell);
+	row.appendChild(num_cell);
+	row.appendChild(price_cell);
+	row.appendChild(addbtn_cell);
+	
 }
 
 /** @constructor */
@@ -98,6 +135,8 @@ ordercheck.Dialog.prototype.changeAddr=function(e){
 ordercheck.Dialog.prototype.searchProd=function(e){
 	var q = goog.dom.getElement('id-search-q').value;
 	var sch_table = goog.dom.getElement('id-search-table');
+	that = this
+	
 	for(var i=1;i<sch_table.rows.length;i++){
 		sch_table.deleteRow(i);
 	}
@@ -107,40 +146,12 @@ ordercheck.Dialog.prototype.searchProd=function(e){
         try {
         	var res = xhr.getResponseJson();
             if (res.code == 0){
-            	console.log(res);
             	for(var i=0;i<res.response_content.length;i++){
-            		index = i+1;
-            		var prod = res.response_content[i];
-            		var tr = goog.dom.createElement('tr');
-            		var id_cell = createDTText(index+'');
-            		var outer_id_cell = createDTText(prod[0]);
-            		var title_cell    = createDTText(prod[1]);
-            		
-            		var sku_cell = goog.dom.createElement('td');
-            		var sku_options = '<select id="id-order-sku-'+index.toString()+'" >';
-            		for(var i=0;i<prod[3].length;i++){
-            			var sku = prod[3][i];
-            			sku_options += '<option value="'+sku[0]+'">'+sku[1]+'</option>';
-            		}
-            		sku_options += '</select>';
-            		sku_cell.innerHTML = sku_options;
-            		
-            		var num_cell = goog.dom.createElement('td');
-            		num_cell.innerHTML = '<input id="id-order-num-'+index.toString()+'" type="text" size="2" />';
-            		
-            		var price_cell = createDTText(prod[2]);
-            		
-            		var addbtn_cell = goog.dom.createElement('td');
-            		addbtn_cell.innerHTML = '<input class="add-order" idx="'+index.toString()+'" type="button" />';
-            		
-            		tr.appendChild(id_cell);
-            		tr.appendChild(outer_id_cell);
-            		tr.appendChild(title_cell);
-            		tr.appendChild(sku_cell);
-            		tr.appendChild(num_cell);
-            		tr.appendChild(price_cell);
-            		tr.appendChild(addbtn_cell);
-            		sch_table.appendChild(tr);
+            		addSearchRow('id-search-table',res.response_content[i]);
+            	}
+            	var addOrderBtns = goog.dom.getElementsByClass('add-order');
+            	for(var i=0;i<addOrderBtns.length;i++){
+            		goog.events.listen(addOrderBtns[i], goog.events.EventType.CLICK,that.addOrder,false,that);
             	}
             }else{
                 alert("地址修改失败:"+res.response_error);
@@ -155,24 +166,30 @@ ordercheck.Dialog.prototype.searchProd=function(e){
 
 //添加订单
 ordercheck.Dialog.prototype.addOrder=function(e){
-	var q = goog.dom.getElement('id-search-q').value;
-	params = {'q':q}
+	var target = e.target;
+	var idx    = target.getAttribute('idx');
+	var trade_id     = goog.dom.getElement('id_check_trade').value;
+	var outer_id     = target.getAttribute('outer_id');
+	var sku_outer_id = goog.dom.getElement('id-order-sku-'+idx).value;
+	var num          = goog.dom.getElement('id-order-num-'+idx).value;
+	
+	params     = {'trade_id':trade_id,'outer_id':outer_id,'outer_sku_id':sku_outer_id,'num':num}
 	var callback = function(e){
 		var xhr = e.target;
         try {
         	var res = xhr.getResponseJson();
-        	console.log('debug search:',res);
+        	console.log('debug add order:',res);
             if (res.code == 0){
-            	alert("地址修改成功！");
+            	alert("订单添加成功！");
             }else{
-                alert("地址修改失败:"+res.response_error);
+                alert("添加失败:"+res.response_error);
             }
         } catch (err) {
             console.log('Error: (ajax callback) - ', err);
         } 
 	};
 	content = goog.uri.utils.buildQueryDataFromMap(params);
-	goog.net.XhrIo.send('/trades/orderplus/?'+content,callback,'GET');
+	goog.net.XhrIo.send('/trades/orderplus/',callback,'POST',content);
 }
 
 //修改订单信息

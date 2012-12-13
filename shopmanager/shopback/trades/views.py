@@ -110,7 +110,7 @@ class OrderPlusView(ModelView):
         trade_id = request.POST.get('trade_id')
         outer_id = request.POST.get('outer_id')
         outer_sku_id = request.POST.get('outer_sku_id')
-        num      = request.POST.get('num',1)    
+        num      = int(request.POST.get('num',1))    
         
         try:
             merge_trade = MergeTrade.objects.get(id=trade_id)
@@ -123,7 +123,7 @@ class OrderPlusView(ModelView):
         
         if outer_sku_id:
             try:
-                prod_sku = ProductSku.objects.get(prod_outer_id=outer_sku_id)
+                prod_sku = ProductSku.objects.get(prod_outer_id=outer_id,outer_id=outer_sku_id)
             except ProductSku.DoesNotExist:
                 return '该商品规格不存在'.decode('utf8')
             
