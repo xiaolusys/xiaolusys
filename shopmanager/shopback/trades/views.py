@@ -101,8 +101,8 @@ class OrderPlusView(ModelView):
             return '没有输入查询关键字'.decode('utf8')
         products = Product.objects.filter(Q(outer_id=q)|Q(name__contains=q))
         
-        prod_list = [(prod.outer_id,prod.name,[[(sku.outer_id,sku.properties_name) for sku in 
-                                                prod.prod_skus.filter(status=pcfg.NORMAL) ]]) for prod in products]
+        prod_list = [(prod.outer_id,prod.name,prod.price,[(sku.outer_id,sku.properties_name) for sku in 
+                                                prod.prod_skus.filter(status=pcfg.NORMAL)]) for prod in products]
         return prod_list
         
     def post(self, request, *args, **kwargs):
@@ -138,6 +138,7 @@ def change_trade_addr(request):
     
     CONTENT    = request.REQUEST
     trade_id   = CONTENT.get('trade_id')
+    print trade_id
     try:
         trade = MergeTrade.objects.get(id=trade_id)
     except MergeTrade.DoesNotExist:
