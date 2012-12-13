@@ -46,7 +46,7 @@ def modify_post_fee_func(sender,user_id,trade_id,*args,**kwargs):
         fee_rules = FeeRule.objects.order_by('-payment')
         for rule in fee_rules:
             if payment >= rule.payment:
-                modify_fee = rule.adjust_fee if rule.adjust_fee==None else post_fee*(rule.discount or 1.0)
+                modify_fee = rule.adjust_fee if rule.adjust_fee!=None else post_fee*(rule.discount or 1.0)
                 response = apis.taobao_trade_postage_update(tid=trade_id,post_fee=modify_fee,tb_user_id=trade.seller_id)
                 postage = response['trade_postage_update_response']['trade']
                 ModifyFee.objects.get_or_create(tid=trade_id,
