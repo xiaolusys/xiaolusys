@@ -13,7 +13,7 @@ from shopback.trades.models import MergeTrade,MergeOrder,MergeBuyerTrade,merge_o
 from shopback.items.models import Product,ProductSku,Item
 from shopback.refunds.models import Refund
 from shopback.users.models import User
-#from shopapp.signals import modify_fee_signal
+from shopapp.signals import modify_fee_signal
 from auth import apis
 import logging
 
