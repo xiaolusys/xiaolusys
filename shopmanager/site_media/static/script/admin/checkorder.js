@@ -117,9 +117,9 @@ ordercheck.Dialog.prototype.searchProd=function(e){
             		var title_cell    = createDTText(prod[1]);
             		
             		var sku_cell = goog.dom.createElement('td');
-            		sku_options = '<select id="id-order-sku-'+index.toString()+'" >';
+            		var sku_options = '<select id="id-order-sku-'+index.toString()+'" >';
             		for(var i=0;i<prod[3].length;i++){
-            			sku = prod[3][i];
+            			var sku = prod[3][i];
             			sku_options += '<option value="'+sku[0]+'">'+sku[1]+'</option>';
             		}
             		sku_options += '</select>';
