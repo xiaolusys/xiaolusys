@@ -40,25 +40,20 @@
 <div id="collapseOne" class="collapse1">
 <div class="accordion-inner1">
 <form id="id-addr-form" class="form-inline">
-<div><label class="simple-label">收货人: </label> <input
-	type="hidden" id="id_trade_addr" class="input-small1" name="trade_id"
-	value="{{ trade.id }}"> <input type="text"
-	id="id_receiver_name" class="input-small1" placeholder="收货人"
-	name="receiver_name"> <input type="text"
-	id="id_receiver_mobile" class="input-small1" placeholder="手机"
-	name="receiver_mobile"> <input type="text"
-	id="id_receiver_phone" class="input-small1" placeholder="固话"
-	name="receiver_phone"> <input type="submit"
-	class="btn btn-small" style="float: right" value="确定修改"></div>
-<div style="margin-top: 5px"><label class="simple-label">新地址:
-</label> <input type="text" id="id_receiver_state" class="input-small1"
-	placeholder="省" name="receiver_state"> <input type="text"
-	id="id_receiver_city" class="input-small1" placeholder="市"
-	name="receiver_city"> <input type="text"
-	id="id_receiver_district" class="input-small1" placeholder="区"
-	name="receiver_district"> <input type="text"
-	id="id_receiver_address" style="width: 310px" placeholder="详细地址"
-	name="receiver_address"></div>
+<div>
+    <label class="simple-label">收货人信息: </label> 
+	<input type="text" id="id_receiver_name" class="input-small1" placeholder="收货人" name="receiver_name">
+	<input type="text" id="id_receiver_mobile" class="input-small1" placeholder="手机" name="receiver_mobile"> 
+	<input type="text" id="id_receiver_phone" class="input-small1" placeholder="固话" name="receiver_phone"> 
+	<input type="button" id="addr-from-submit" class="btn btn-small" style="float: right" value="确定修改">
+</div>
+<div style="margin-top: 5px">
+	<label class="simple-label">新地址:</label> 
+	<input type="text" id="id_receiver_state" class="input-small1" placeholder="省" name="receiver_state"> 
+	<input type="text" id="id_receiver_city" class="input-small1" placeholder="市" name="receiver_city"> 
+	<input type="text" id="id_receiver_district" class="input-small1" placeholder="区" name="receiver_district"> 
+	<input type="text" id="id_receiver_address" style="width: 310px" placeholder="详细地址" name="receiver_address">
+</div>
 </form>
 </div>
 </div>
@@ -82,10 +77,11 @@
 <a class="accordion-toggle1" style="padding: 0px 15px">商品列表››</a></div>
 <div id="collapseTwo" class="collapse1">
 <div class="accordion-inner1">
-<form class="well form-search"><input type="text" name="q" class="input-medium search-query" action="/trades/orderplus/" method="GET">
-	<button type="submit" class="btn">商品搜索</button>
+<div class="well form-search">
+	<input type="text" id="id-search-q" class="input-medium search-query" >
+	<button id="id-search-prod" class="btn">商品搜索</button>
 	<div style="height: 10px"></div>
-	<table class="table table-bordered">
+	<table id="id-search-table" class="table table-bordered">
 		<thead>
 			<tr>
 				<td>编号</td>
@@ -98,24 +94,11 @@
 			</tr>
 		</thead>
 		<tbody>
-			<tr>
-				<td>1</td>
-				<td>ABCDEFG</td>
-				<td>竹纤维凉毯盖毯</td>
-				<td>
-				<div>120*60</div>
-				<div>枫叶</div>
-				</td>
-				<td>1</td>
-				<td>99.00</td>
-				<td>
-				<button>添加</button>
-				</td>
-			</tr>
 		</tbody>
 	</table>
-</form>
-<table class="table table-bordered">
+</div>
+<div>
+<table id="id_trade_order" class="table table-bordered">
 	<thead>
 		<tr>
 			<td>编号</td>
@@ -135,7 +118,7 @@
 			<td>{{ order.outer_id }}</td>
 			<td>{{ order.title }}</td>
 			<td>{% if order.is_rule_match %} 
-				<select id="id_order_sku" name="id_order_sku">
+				<select id="id-select-ordersku-{{ forloop.counter }}" name="id_order_sku">
 					{% for sku in order|prod_skus %}
 					<option value="{{ sku.outer_id }}">{{ sku.properties_name }}</option>
 					{% endfor %}
@@ -146,13 +129,15 @@
 			<td>{{ order.price }}</td>
 			<td>{% if order.gift_type == 0 %}实付订单{% elif order.gift_type == 1 %}客服赠送 {% elif order.gift_type == 2 %}
 			满就送{% elif order.gift_type == 3 %}组合拆分{% endif %}</td>
-			<td>{% if order.is_rule_match %}<button>修改</button>{% endif %}
-			    {% if order.gift_type == 1 %}<button>删除</button>{% endif %}
+			<td>{% if order.is_rule_match %}<button class="change-order btn-mini" idx="{{ forloop.counter }}" 
+				oid="{{ order.id }}" >修改</button>{% endif %}
+			    {% if order.gift_type == 1 %}<button class="delete-order btn-mini" oid="{{ order.id }}">删除</button>{% endif %}
 			</td>
 		</tr>
 		{% endfor %}
 	</tbody>
 </table>
+</div>
 </div>
 </div>
 </div>

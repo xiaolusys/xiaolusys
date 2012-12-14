@@ -101,8 +101,8 @@ class OrderPlusView(ModelView):
             return '没有输入查询关键字'.decode('utf8')
         products = Product.objects.filter(Q(outer_id=q)|Q(name__contains=q))
         
-        prod_list = [(prod.outer_id,prod.name,[[(sku.outer_id,sku.properties_name) for sku in 
-                                                prod.prod_skus.filter(status=pcfg.NORMAL) ]]) for prod in products]
+        prod_list = [(prod.outer_id,prod.name,prod.price,[(sku.outer_id,sku.properties_name) for sku in 
+                                                prod.prod_skus.filter(status=pcfg.NORMAL)]) for prod in products]
         return prod_list
         
     def post(self, request, *args, **kwargs):
@@ -110,7 +110,7 @@ class OrderPlusView(ModelView):
         trade_id = request.POST.get('trade_id')
         outer_id = request.POST.get('outer_id')
         outer_sku_id = request.POST.get('outer_sku_id')
-        num      = request.POST.get('num',1)    
+        num      = int(request.POST.get('num',1))    
         
         try:
             merge_trade = MergeTrade.objects.get(id=trade_id)
@@ -123,7 +123,7 @@ class OrderPlusView(ModelView):
         
         if outer_sku_id:
             try:
-                prod_sku = ProductSku.objects.get(prod_outer_id=outer_sku_id)
+                prod_sku = ProductSku.objects.get(prod_outer_id=outer_id,outer_id=outer_sku_id)
             except ProductSku.DoesNotExist:
                 return '该商品规格不存在'.decode('utf8')
             
@@ -138,6 +138,7 @@ def change_trade_addr(request):
     
     CONTENT    = request.REQUEST
     trade_id   = CONTENT.get('trade_id')
+    print trade_id
     try:
         trade = MergeTrade.objects.get(id=trade_id)
     except MergeTrade.DoesNotExist:
@@ -177,7 +178,7 @@ def change_trade_order(request,id):
                                                'sku_properties_name':order.sku_properties_name,
                                                'num':order.num,
                                                'price':order.price,
-                                               'gift_type':GIFT_TYPE.get(order.gift_type),
+                                               'gift_type':dict(GIFT_TYPE).get(order.gift_type),
                                                }}
     
     return HttpResponse(json.dumps(ret_params),mimetype="application/json")
@@ -186,13 +187,10 @@ def change_trade_order(request,id):
 @csrf_exempt     
 def delete_trade_order(request,id):
     
-    CONTENT    = request.REQUEST
     num = MergeOrder.objects.filter(id=id).delete()
-    if num >0:
-        ret_params = {'code':0,'response_content':{'success':True}}
-    else :
-        ret_params = {'code':1,'response_error':'failure'}
-        
+    
+    ret_params = {'code':0,'response_content':{'success':True}}
+  
     return HttpResponse(json.dumps(ret_params),mimetype="application/json")
 
     

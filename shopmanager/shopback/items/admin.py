@@ -64,7 +64,7 @@ admin.site.register(Product, ProductAdmin)
 
 
 class ProductSkuAdmin(admin.ModelAdmin):
-    list_display = ('id','outer_id','product','quantity','warn_num','remain_num','sync_stock','properties_name','properties','out_stock','modified','status')
+    list_display = ('id','outer_id','prod_outer_id','product','quantity','warn_num','remain_num','sync_stock','properties_name','properties','out_stock','modified','status')
     list_display_links = ('outer_id',)
     list_editable = ('quantity',)
 
@@ -73,7 +73,7 @@ class ProductSkuAdmin(admin.ModelAdmin):
     
 
     list_filter = ('status',)
-    search_fields = ['outer_id', 'properties_name']
+    search_fields = ['outer_id','product__outer_id','properties_name']
 
 
 admin.site.register(ProductSku, ProductSkuAdmin)
