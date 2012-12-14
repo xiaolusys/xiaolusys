@@ -21,6 +21,6 @@ urlpatterns = patterns('',
         permissions=(IsAuthenticated,)
     )),
     (r'address/',change_trade_addr),
-    (r'update/(?P<id>\d{1,20})/',change_trade_order),
-    (r'delete/(?P<id>\d{1,20})/',delete_trade_order),
+    (r'order/update/(?P<id>\d{1,20})/',change_trade_order),
+    (r'order/delete/(?P<id>\d{1,20})/',delete_trade_order),
 )
