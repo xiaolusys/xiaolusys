@@ -162,3 +162,9 @@ tr {
 .badge-warning1 {
     background-color: #F89406;
 }
+
+.btn-mini {
+	padding: 2px 4px;
+	font-size: 11px;
+	line-height: 14px;
+}

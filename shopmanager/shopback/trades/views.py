@@ -178,7 +178,7 @@ def change_trade_order(request,id):
                                                'sku_properties_name':order.sku_properties_name,
                                                'num':order.num,
                                                'price':order.price,
-                                               'gift_type':GIFT_TYPE.get(order.gift_type),
+                                               'gift_type':dict(GIFT_TYPE).get(order.gift_type),
                                                }}
     
     return HttpResponse(json.dumps(ret_params),mimetype="application/json")
@@ -187,13 +187,10 @@ def change_trade_order(request,id):
 @csrf_exempt     
 def delete_trade_order(request,id):
     
-    CONTENT    = request.REQUEST
     num = MergeOrder.objects.filter(id=id).delete()
-    if num >0:
-        ret_params = {'code':0,'response_content':{'success':True}}
-    else :
-        ret_params = {'code':1,'response_error':'failure'}
-        
+    
+    ret_params = {'code':0,'response_content':{'success':True}}
+  
     return HttpResponse(json.dumps(ret_params),mimetype="application/json")
 
     

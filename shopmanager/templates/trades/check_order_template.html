@@ -98,7 +98,7 @@
 	</table>
 </div>
 <div>
-<table class="table table-bordered">
+<table id="id_trade_order" class="table table-bordered">
 	<thead>
 		<tr>
 			<td>编号</td>
@@ -129,9 +129,9 @@
 			<td>{{ order.price }}</td>
 			<td>{% if order.gift_type == 0 %}实付订单{% elif order.gift_type == 1 %}客服赠送 {% elif order.gift_type == 2 %}
 			满就送{% elif order.gift_type == 3 %}组合拆分{% endif %}</td>
-			<td>{% if order.is_rule_match %}<button class="change-order" id="id-change-order-{{ forloop.counter }}" idx="{{ forloop.counter }}" 
+			<td>{% if order.is_rule_match %}<button class="change-order btn-mini" idx="{{ forloop.counter }}" 
 				oid="{{ order.id }}" >修改</button>{% endif %}
-			    {% if order.gift_type == 1 %}<button class="delete-order" id="id-delete-order-{{ forloop.counter }}" oid="{{ order.id }}">删除</button>{% endif %}
+			    {% if order.gift_type == 1 %}<button class="delete-order btn-mini" oid="{{ order.id }}">删除</button>{% endif %}
 			</td>
 		</tr>
 		{% endfor %}
