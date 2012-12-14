@@ -37,6 +37,7 @@ class TaoBaoBackend:
         content = request.REQUEST
         code    = content.get('code')
         state   = content.get('state')
+        
         if not code:
             return None
 
