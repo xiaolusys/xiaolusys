@@ -285,9 +285,8 @@ ordercheck.Dialog.prototype.deleteOrder=function(e){
 	var target = e.target;
 	var row    = target.parentElement.parentElement;
 	var rowIndex = row.rowIndex;
-	var table    = row.parentElement;
+	var table    = row.parentElement.parentElement;
 	var order_id = target.getAttribute('oid');
-	console.log(row,rowIndex,table);
 	var callback = function(e){
 		var xhr = e.target;
         try {
