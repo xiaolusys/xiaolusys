@@ -8,6 +8,8 @@ goog.require('goog.style');
 goog.require('goog.net.XhrIo');
 goog.require('goog.uri.utils');
 
+var GIT_TYPE = {0:'实付订单',1:'客服赠送',2:'满就送',3:'组合拆分'}
+
 var createDTText  = function(text){
     var td = goog.dom.createElement('td');
     td.appendChild(goog.dom.createTextNode(text));
@@ -65,16 +67,7 @@ var addOrderRow  = function(tableID,order){
 	var num_cell = createDTText(order.num+'');
 	var price_cell = createDTText(order.price);
 	
-	var gift_type_name = '';
-	if(order.gift_type==1){
-		gift_type_name = '客服赠送';
-	}else if(order.gift_type==2){
-		gift_type_name = '满就送';
-	}else if(order.gift_type==3){
-		gift_type_name = '组合拆分';
-	}else{
-		gift_type_name = '实付订单';
-	}
+	var gift_type_name = GIT_TYPE[order.gift_type];
 	
 	var gift_type_cell  = createDTText(gift_type_name);
 	var delete_btn_cell = goog.dom.createElement('td');
@@ -256,17 +249,7 @@ ordercheck.Dialog.prototype.changeOrder=function(e){
             	cell.cells[4].innerText = order.num;
             	cell.cells[5].innerText = order.price;
             	
-            	var gift_type_name = '';
-				if(order.gift_type==1){
-					gift_type_name = '客服赠送';
-				}else if(order.gift_type==2){
-					gift_type_name = '满就送';
-				}else if(order.gift_type==3){
-					gift_type_name = '组合拆分';
-				}else{
-					gift_type_name = '实付订单';
-				}
-				cell.cells[6].innerText = gift_type_name;
+				cell.cells[6].innerText = GIT_TYPE[order.gift_type];
 				cell.cells[7].innerText = '';
             }else{
                 alert("订单修改失败:"+res.response_error);

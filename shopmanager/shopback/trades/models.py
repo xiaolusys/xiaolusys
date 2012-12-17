@@ -365,8 +365,6 @@ class MergeTrade(models.Model):
         config  = SystemConfig.getconfig()
         if not config.is_rule_auto:
             return False
-        if trade_from == pcfg.FENXIAO_TYPE:
-            return True
         try:
             rule_signal.send(sender='product_rule',trade_tid=trade_id)
         except Exception,exc:
@@ -636,12 +634,12 @@ def trade_download_controller(merge_trade,trade,trade_from,first_pay_load):
         #新留言
         if merge_trade.has_memo:
             merge_trade.append_reason_code(pcfg.NEW_MEMO_CODE)
-
+               
         #退款中
         wait_refunding = merge_trade.has_trade_refunding()
         if wait_refunding:
             merge_trade.append_reason_code(pcfg.WAITING_REFUND_CODE)
-        #设置订单是否有待退款属性    
+        #设置订单待退款属性    
         merge_trade.has_refund = wait_refunding
         
         has_full_refund = MergeTrade.judge_full_refund(trade.id, trade_from)
@@ -668,12 +666,12 @@ def trade_download_controller(merge_trade,trade,trade_from,first_pay_load):
             is_merge_success = False #是否合并成功
             is_need_merge    = False #是否有合并的可能
             main_tid = None  #主订单ID
-            if not has_full_refund  and trade_from == pcfg.TAOBAO_TYPE:
+            if not has_full_refund:
                 is_need_merge = MergeTrade.judge_need_merge(trade.id,trade.buyer_nick,trade_from,full_address)
-                if is_need_merge :
+                if is_need_merge and trade_from == pcfg.TAOBAO_TYPE:
                     merge_trade.append_reason_code(pcfg.MULTIPLE_ORDERS_CODE)
-                    trades = MergeTrade.objects.filter(buyer_nick=trade.buyer_nick,sys_status__in=
-                                                (pcfg.WAIT_AUDIT_STATUS,pcfg.WAIT_PREPARE_SEND_STATUS,pcfg.REGULAR_REMAIN_STATUS))\
+                    trades = MergeTrade.objects.filter(buyer_nick=trade.buyer_nick,receiver_name=trade.receiver_name,receiver_address=trade.receiver_address
+                                                ,sys_status__in=(pcfg.WAIT_AUDIT_STATUS,pcfg.WAIT_PREPARE_SEND_STATUS,pcfg.REGULAR_REMAIN_STATUS))\
                                                 .exclude(tid=trade.id).order_by('-pay_time')
                                                 
                     merge_buyer_trades = MergeBuyerTrade.objects.filter(main_tid__in=[t.tid for t in trades])

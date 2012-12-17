@@ -25,12 +25,12 @@ def updateItemNum(user_id,num_iid,update_time):
     product = item.product
     if not product:
         return
-
+    
     skus = json.loads(item.skus) if item.skus else None
     if skus:
         for sku in skus.get('sku',[]):
             outer_sku_id = sku.get('outer_id','')
-            product_sku = product.prod_skus.get(outer_id=outer_sku_id)
+            product_sku  = product.prod_skus.get(outer_id=outer_sku_id)
             
             order_nums = 0
             if product.modified < update_time:     
