@@ -12,6 +12,7 @@ from django.core import serializers
 from django.contrib.admin.models import LogEntry, User, ADDITION, CHANGE
 from django.contrib.contenttypes.models import ContentType
 from django.utils.encoding import force_unicode
+from django.conf import settings
 from shopback.orders.models import Trade
 from shopback.trades.models import MergeTrade,MergeOrder,MergeBuyerTrade,ReplayPostTrade,merge_order_maker,merge_order_remover
 from shopback import paramconfig as pcfg
@@ -67,7 +68,11 @@ class MergeTradeAdmin(admin.ModelAdmin):
     popup_tid_link.short_description = "淘宝ID" 
     
     def buyer_nick_link(self, obj):
-        return '<a href="#" class="check-order" trade_id="%d">%s</a>' %(obj.id,obj.buyer_nick)
+        symbol_link = obj.buyer_nick
+        if obj.sys_status == pcfg.WAIT_AUDIT_STATUS:
+            symbol_link = '%s<img  class="check-order" trade_id="%d" src="%sadmin/img/icon_changelink.gif"></img>'\
+                %(symbol_link,obj.id,settings.STATIC_URL)
+        return symbol_link
     buyer_nick_link.allow_tags = True
     buyer_nick_link.short_description = "买家昵称" 
 
