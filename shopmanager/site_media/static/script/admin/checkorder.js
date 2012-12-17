@@ -3,6 +3,7 @@ goog.provide('ordercheck.Dialog');
 
 goog.require('goog.dom');
 goog.require('goog.ui.Dialog');
+goog.require('goog.ui.Zippy');
 goog.require('goog.style');
 
 goog.require('goog.net.XhrIo');
@@ -129,7 +130,11 @@ ordercheck.Dialog.prototype.setEvent=function(){
 	var deleteOrderBtns = goog.dom.getElementsByClass("delete-order");
 	for (var i=0;i<deleteOrderBtns.length;i++){
 		goog.events.listen(deleteOrderBtns[i], goog.events.EventType.CLICK,this.deleteOrder,false,this);
-	}                                                                                                                                                                                                                                               
+	} 
+	
+	var addr1  = new goog.ui.Zippy('collapseOne', 'addrContent');   
+	
+	var order1 = new goog.ui.Zippy('collapseTwo', 'orderContent');                                                                                                                                                                                                                                      
 }
 
 //修改地址
