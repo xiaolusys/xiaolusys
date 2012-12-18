@@ -191,7 +191,7 @@ class MergeTrade(models.Model):
                 .exclude(refund_status__in=pcfg.REFUND_APPROVAL_STATUS)
         
     @property
-    def user_full_address(self):
+    def buyer_full_address(self):
         return '%s%s%s%s%s'%(self.receiver_name,self.receiver_state,self.receiver_city,self.receiver_district,self.receiver_address)
     
     def append_reason_code(self,code):  
@@ -384,7 +384,7 @@ class MergeTrade(models.Model):
                 is_need_merge = True
         else:
             for trade in trades:
-                if trade.full_address == full_address:
+                if trade.buyer_full_address == full_address:
                     trade.append_reason_code(pcfg.MULTIPLE_ORDERS_CODE)
                     is_need_merge = True
         return is_need_merge
@@ -661,7 +661,7 @@ def trade_download_controller(merge_trade,trade,trade_from,first_pay_load):
             #设置订单是否有缺货属性    
             merge_trade.has_rule_match = is_rule_match
     
-            full_address = merge_trade.user_full_address
+            full_address = merge_trade.buyer_full_address
             #订单合并   
             is_merge_success = False #是否合并成功
             is_need_merge    = False #是否有合并的可能
@@ -679,7 +679,7 @@ def trade_download_controller(merge_trade,trade,trade_from,first_pay_load):
                     if merge_buyer_trades.count()>0:
                         main_merge_tid = merge_buyer_trades[0].main_tid
                         main_trade = MergeTrade.objects.get(tid=main_merge_tid)
-                        if main_trade.user_full_address == full_address:
+                        if main_trade.buyer_full_address == full_address:
                             main_tid = main_merge_tid
                     #如果入库订单不缺货,没有待退款，则进行合单操作
                     if trades.count()>0 and not out_stock and not wait_refunding:
@@ -688,7 +688,7 @@ def trade_download_controller(merge_trade,trade,trade_from,first_pay_load):
                         if not main_tid:
                             for t in trades:
                                 full_refund = MergeTrade.judge_full_refund(t.tid,t.type)
-                                if not main_tid and not full_refund and not t.has_out_stock and not t.has_refund and t.user_full_address == full_address:
+                                if not main_tid and not full_refund and not t.has_out_stock and not t.has_refund and t.buyer_full_address == full_address:
                                     main_tid = t.tid
                                 if t.has_out_stock or t.has_refund:
                                     can_merge = False
