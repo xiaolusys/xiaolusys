@@ -60,8 +60,8 @@ class CheckOrderView(ModelView):
         except MergeTrade.DoesNotExist:
             return '该订单不存在'.decode('utf8')
         
-        priority = request.GET.get('priority')
-        logistic_code = request.GET.get('logistic_code')
+        priority = request.POST.get('priority')
+        logistic_code = request.POST.get('logistic_code')
         
         params = {}
         if priority:
@@ -69,8 +69,8 @@ class CheckOrderView(ModelView):
         if logistic_code:
             params['logistics_company'] = LogisticsCompany.objects.get(code=logistic_code)
         if params:
-            MergeTrade.objects.filter(id=id).update(params)
-
+            MergeTrade.objects.filter(id=id).update(**params)
+        
         check_msg = []
         if trade.has_refund:
             check_msg.append("有待退款".decode('utf8'))
@@ -80,9 +80,14 @@ class CheckOrderView(ModelView):
             check_msg.append("信息不全".decode('utf8'))
         if trade.sys_status != pcfg.WAIT_AUDIT_STATUS:
             check_msg.append("订单暂不能审核".decode('utf8'))
-            
+        orders = trade.merge_trade_orders.filter(status__in=(pcfg.WAIT_SELLER_SEND_GOODS,
+                    pcfg.CONFIRM_WAIT_SEND_GOODS,pcfg.WAIT_CONFIRM_WAIT_SEND_GOODS))\
+                    .exclude(refund_status__in=pcfg.REFUND_APPROVAL_STATUS)
+        if orders.count() <= 0:
+            check_msg.append("没有可发订单！".decode('utf8'))
+         
         if check_msg:
-            return '，'.join(check_msg)
+            return ','.join(check_msg)
 
         rule_signal.send(sender='merge_trade_rule',trade_tid=trade.tid)
         
@@ -99,7 +104,7 @@ class OrderPlusView(ModelView):
         q  = request.GET.get('q')
         if not q:
             return '没有输入查询关键字'.decode('utf8')
-        products = Product.objects.filter(Q(outer_id=q)|Q(name__contains=q))
+        products = Product.objects.filter(Q(outer_id=q)|Q(name__contains=q),status=pcfg.NORMAL)
         
         prod_list = [(prod.outer_id,prod.name,prod.price,[(sku.outer_id,sku.properties_name) for sku in 
                                                 prod.prod_skus.filter(status=pcfg.NORMAL)]) for prod in products]
@@ -138,7 +143,6 @@ def change_trade_addr(request):
     
     CONTENT    = request.REQUEST
     trade_id   = CONTENT.get('trade_id')
-    print trade_id
     try:
         trade = MergeTrade.objects.get(id=trade_id)
     except MergeTrade.DoesNotExist:

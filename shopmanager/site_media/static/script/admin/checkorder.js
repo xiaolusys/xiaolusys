@@ -3,10 +3,13 @@ goog.provide('ordercheck.Dialog');
 
 goog.require('goog.dom');
 goog.require('goog.ui.Dialog');
+goog.require('goog.ui.Zippy');
 goog.require('goog.style');
 
 goog.require('goog.net.XhrIo');
 goog.require('goog.uri.utils');
+
+var GIT_TYPE = {0:'实付订单',1:'客服赠送',2:'满就送',3:'组合拆分'}
 
 var createDTText  = function(text){
     var td = goog.dom.createElement('td');
@@ -65,16 +68,7 @@ var addOrderRow  = function(tableID,order){
 	var num_cell = createDTText(order.num+'');
 	var price_cell = createDTText(order.price);
 	
-	var gift_type_name = '';
-	if(order.gift_type==1){
-		gift_type_name = '客服赠送';
-	}else if(order.gift_type==2){
-		gift_type_name = '满就送';
-	}else if(order.gift_type==3){
-		gift_type_name = '组合拆分';
-	}else{
-		gift_type_name = '实付订单';
-	}
+	var gift_type_name = GIT_TYPE[order.gift_type];
 	
 	var gift_type_cell  = createDTText(gift_type_name);
 	var delete_btn_cell = goog.dom.createElement('td');
@@ -136,7 +130,11 @@ ordercheck.Dialog.prototype.setEvent=function(){
 	var deleteOrderBtns = goog.dom.getElementsByClass("delete-order");
 	for (var i=0;i<deleteOrderBtns.length;i++){
 		goog.events.listen(deleteOrderBtns[i], goog.events.EventType.CLICK,this.deleteOrder,false,this);
-	}                                                                                                                                                                                                                                               
+	} 
+	
+	var addr1  = new goog.ui.Zippy('collapseOne', 'addrContent');   
+	
+	var order1 = new goog.ui.Zippy('collapseTwo', 'orderContent');                                                                                                                                                                                                                                      
 }
 
 //修改地址
@@ -256,17 +254,7 @@ ordercheck.Dialog.prototype.changeOrder=function(e){
             	cell.cells[4].innerText = order.num;
             	cell.cells[5].innerText = order.price;
             	
-            	var gift_type_name = '';
-				if(order.gift_type==1){
-					gift_type_name = '客服赠送';
-				}else if(order.gift_type==2){
-					gift_type_name = '满就送';
-				}else if(order.gift_type==3){
-					gift_type_name = '组合拆分';
-				}else{
-					gift_type_name = '实付订单';
-				}
-				cell.cells[6].innerText = gift_type_name;
+				cell.cells[6].innerText = GIT_TYPE[order.gift_type];
 				cell.cells[7].innerText = '';
             }else{
                 alert("订单修改失败:"+res.response_error);
@@ -285,9 +273,8 @@ ordercheck.Dialog.prototype.deleteOrder=function(e){
 	var target = e.target;
 	var row    = target.parentElement.parentElement;
 	var rowIndex = row.rowIndex;
-	var table    = row.parentElement;
+	var table    = row.parentElement.parentElement;
 	var order_id = target.getAttribute('oid');
-	console.log(row,rowIndex,table);
 	var callback = function(e){
 		var xhr = e.target;
         try {

@@ -48,7 +48,7 @@ class Product(models.Model):
     purchase_product = models.ForeignKey(PurchaseProduct,null=True,blank=True,related_name='products',verbose_name='关联采购商品')
     category     = models.ForeignKey(ProductCategory,null=True,blank=True,related_name='products',verbose_name='内部分类')
     
-    pic_path = models.CharField(max_length=256,blank=True)
+    pic_path     = models.CharField(max_length=256,blank=True)
     
     collect_num  = models.IntegerField(verbose_name='库存数',default=0)  #库存数
     warn_num     = models.IntegerField(null=True,default=10,verbose_name='警告库位')    #警戒库位
@@ -146,7 +146,7 @@ class Item(models.Model):
 
     seller_cids = models.CharField(max_length=126,blank=True,verbose_name='卖家分类')
     approve_status = models.CharField(max_length=20,choices=APPROVE_STATUS,blank=True,verbose_name='在售状态')  # onsale,instock
-    type = models.CharField(max_length=12,blank=True,verbose_name='商品类型')
+    type       = models.CharField(max_length=12,blank=True,verbose_name='商品类型')
     valid_thru = models.IntegerField(null=True,verbose_name='有效期')
 
     price      = models.CharField(max_length=12,blank=True,verbose_name='价格')

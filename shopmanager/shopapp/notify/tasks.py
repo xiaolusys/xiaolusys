@@ -65,7 +65,7 @@ def process_trade_notify_task(id):
                         if merge_buyer_trades.count()>0 :
                             main_merge_tid = merge_buyer_trades[0].main_tid
                             main_trade = MergeTrade.objects.get(tid=main_merge_tid)
-                            if main_trade.user_full_address == trade.user_full_address:
+                            if main_trade.buyer_full_address == trade.buyer_full_address:
                                 main_trade.update_seller_memo(trade.tid,trade_dict['seller_memo'])
                                 #主订单入问题单
                                 MergeTrade.objects.filter(tid=main_merge_tid,out_sid='',sys_status=pcfg.WAIT_PREPARE_SEND_STATUS)\
