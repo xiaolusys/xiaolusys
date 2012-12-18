@@ -36,9 +36,8 @@
 <div class="row-through"><label class="simple-label">地址: </label>{{ trade.receiver_state }}，{{ trade.receiver_city }}，
 {{ trade.receiver_district }}，{{ trade.receiver_address }}</div>
 </div>
-<a class="accordion-toggle1" style="padding: 0px 15px">修改地址››</a></div>
-<div id="collapseOne" class="collapse1">
-<div class="accordion-inner1">
+<a id="collapseOne" class="goog-zippy-header goog-zippy-expanded" aria-expanded="true" style="padding: 0px 15px">修改地址››</a></div>
+<div id="addrContent" class="accordion-inner1">
 <form id="id-addr-form" class="form-inline">
 <div>
     <label class="simple-label">收货人信息: </label> 
@@ -57,7 +56,6 @@
 </form>
 </div>
 </div>
-</div>
 <div style="padding: 9px 15px">
 <ul class="thumbnails1">
 	{% if trade.has_memo %}
@@ -74,9 +72,8 @@
 </div>
 <div class="accordion-group1">
 <div class="accordion-heading1" style="margin: 5px 0px">
-<a class="accordion-toggle1" style="padding: 0px 15px">商品列表››</a></div>
-<div id="collapseTwo" class="collapse1">
-<div class="accordion-inner1">
+<a id="collapseTwo" class="goog-zippy-header goog-zippy-expanded" style="padding: 0px 15px">商品列表››</a></div>
+<div id="orderContent" class="accordion-inner1">
 <div class="well form-search">
 	<input type="text" id="id-search-q" class="input-medium search-query" >
 	<button id="id-search-prod" class="btn">商品搜索</button>
@@ -137,7 +134,6 @@
 		{% endfor %}
 	</tbody>
 </table>
-</div>
 </div>
 </div>
 </div>

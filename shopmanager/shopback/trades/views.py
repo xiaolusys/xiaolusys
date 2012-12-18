@@ -87,7 +87,7 @@ class CheckOrderView(ModelView):
             check_msg.append("没有可发订单！".decode('utf8'))
          
         if check_msg:
-            return '，'.join(check_msg)
+            return ','.join(check_msg)
 
         rule_signal.send(sender='merge_trade_rule',trade_tid=trade.tid)
         

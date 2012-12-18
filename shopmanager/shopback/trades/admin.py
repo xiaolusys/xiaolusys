@@ -252,11 +252,11 @@ class MergeTradeAdmin(admin.ModelAdmin):
     	    main_trade = queryset[0] #主订单
     	
     	queryset = queryset.exclude(tid=main_trade.tid)		
-    	main_full_addr = main_trade.user_full_address #主订单收货人地址
+    	main_full_addr = main_trade.buyer_full_address #主订单收货人地址
     	is_merge_success = False #合单成功
     	merge_trade_ids  = []	 #合单成的订单ID
     	for trade in queryset:
-    	    if trade.user_full_address != main_full_addr:
+    	    if trade.buyer_full_address != main_full_addr:
                 is_merge_success = False
                 break
     	    is_merge_success = merge_order_maker(trade.tid,main_trade.tid)
