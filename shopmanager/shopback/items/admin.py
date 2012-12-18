@@ -56,7 +56,7 @@ class ProductAdmin(admin.ModelAdmin):
     
     inlines = [ProductSkuInline]
     
-    list_filter = ('status',)
+    list_filter = ('status','')
     search_fields = ['outer_id', 'name']
 
 
