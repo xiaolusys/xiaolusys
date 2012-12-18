@@ -2,6 +2,7 @@ from django.conf import settings
 from celery.task import task
 from celery.task.sets import subtask
 from shopback.categorys.models import Category
+from shopback.monitor.models import SystemConfig
 from auth import apis
 
 import logging
@@ -31,3 +32,12 @@ def RecurUpdateCategoreyTask(user_id,cid):
         logger.error('RecurUpdateCategoreyTask error:%s' %(exc), exc_info=True)
         if not settings.DEBUG:
             RecurUpdateCategoreyTask.retry(exc=exc,countdown=2)
+            
+
+@task(max_retry=3)
+def UpdateCategoryIncrementTask():
+    
+    config = SystemConfig.getconfig()
+    
+    category_updated = config.category_updated
+    
