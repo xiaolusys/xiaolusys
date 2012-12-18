@@ -121,7 +121,7 @@ PURCHASE_CLOSE    = 'CLOSE'  #退货确认后该交易关闭
 PURCHASE_REWORD   = 'REWORD' #返修
 PURCHASE_REWORDOVER  = 'REWORDOVER' #返修结束
 
-#为题单问题编号
+#问题单问题编号
 NEW_MEMO_CODE = 1     #新留言
 NEW_REFUND_CODE = 2   #新退款
 NEW_MERGE_TRADE_CODE = 3  #新合单
