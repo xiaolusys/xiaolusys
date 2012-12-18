@@ -11,6 +11,7 @@ from shopback.items.models import Item, ProductSku
 from shopback.orders.models import Order, Trade
 from shopback.users.models import User
 from shopback.fenxiao.tasks import saveUserFenxiaoProductTask
+from shopback import paramconfig as pcfg
 from auth import apis
 import logging
 
@@ -79,7 +80,8 @@ def updateUserItemsTask(user_id):
     except:
         logger.error('update user inventory items task error', exc_info=True)
    
-    Item.objects.filter(user__visitor_id=user_id).exclude(num_iid__in=onsale_item_ids).update(approve_status=pcfg.INSTOCK_STATUS)
+    Item.objects.filter(user__visitor_id=user_id).exclude(num_iid__in=onsale_item_ids)\
+        .update(approve_status=pcfg.INSTOCK_STATUS,status=pcfg.DELETE)
    
     return len(onsale_item_ids)
 
@@ -100,7 +102,7 @@ def updateAllUserItemsTask():
 def updateUserProductSkuTask(user_id):
 
     user = User.objects.get(visitor_id=user_id)
-    items = user.items.all()
+    items = user.items.filter(status=pcfg.NORMAL)
 	
     num_iids = []
     prop_dict = {}
