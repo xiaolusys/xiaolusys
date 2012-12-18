@@ -42,11 +42,35 @@ class UserAdmin(admin.ModelAdmin):
                 pull_dict['success']=True
             pull_users.append(pull_dict)
        
-        return render_to_response('users/pullunposttradessuccess.html',{'users':pull_users},
+        return render_to_response('users/pull_wait_post_trade.html',{'users':pull_users},
                                   context_instance=RequestContext(request),mimetype="text/html")     
         
     pull_user_unpost_trades.short_description = "下载待发货订单".decode('utf8')
     
-    actions = ['pull_user_unpost_trades',]
+    #更新用户线上商品入库
+    def pull_user_items(self,request,queryset):
+        
+        from shopback.items.tasks import updateUserItemSkuFenxiaoProductTask
+        
+        pull_users = []
+        for user in queryset:
+            pull_dict = {'uid':user.visitor_id,'nick':user.nick}
+            try:
+                #下载更新用户商品分销商品
+                updateUserItemSkuFenxiaoProductTask.delay(user.visitor_id)
+            except Exception,exc:
+                pull_dict['success']=False
+                pull_dict['errmsg']=exc.message or '%s'%exc
+                
+            else:
+                pull_dict['success']=True
+            pull_users.append(pull_dict)
+       
+        return render_to_response('users/pull_online_items.html',{'users':pull_users},
+                                  context_instance=RequestContext(request),mimetype="text/html")     
+        
+    pull_user_items.short_description = "下载线上商品".decode('utf8')
+    
+    actions = ['pull_user_unpost_trades','pull_user_items']
 
 admin.site.register(User, UserAdmin)
