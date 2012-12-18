@@ -7,7 +7,7 @@ from celery.task.sets import subtask
 from django.conf import settings
 from auth.utils import format_datetime,parse_datetime
 from shopback import paramconfig as pcfg
-from shopback.items.models import Item, ProductSku
+from shopback.items.models import Item,Product, ProductSku
 from shopback.orders.models import Order, Trade
 from shopback.users.models import User
 from shopback.fenxiao.tasks import saveUserFenxiaoProductTask
@@ -42,13 +42,13 @@ def updateUserItemsTask(user_id):
                         item_dict = response['item_get_response']['item']
                         item_dict['skus'] = json.dumps(item_dict.get('skus', {}))
                         Item.save_item_through_dict(user_id, item_dict)
-                    onsale_item_ids.append(item['num_iid'])   
-
+                    onsale_item_ids.append(item['num_iid'])
+                    
             total_nums = item_list['total_results']
             cur_nums = cur_page * settings.TAOBAO_PAGE_SIZE
             has_next = cur_nums < total_nums
-            
             cur_page += 1
+            
     except:
         logger.error('update user onsale items task error', exc_info=True)
     #更新库存中的商品
@@ -81,8 +81,8 @@ def updateUserItemsTask(user_id):
         logger.error('update user inventory items task error', exc_info=True)
    
     Item.objects.filter(user__visitor_id=user_id).exclude(num_iid__in=onsale_item_ids)\
-        .update(approve_status=pcfg.INSTOCK_STATUS,status=pcfg.DELETE)
-   
+        .update(approve_status=pcfg.INSTOCK_STATUS)
+    
     return len(onsale_item_ids)
 
 
