@@ -172,9 +172,9 @@ ordercheck.Dialog.prototype.changeAddr=function(e){
 ordercheck.Dialog.prototype.searchProd=function(e){
 	var q = goog.dom.getElement('id-search-q').value;
 	var sch_table = goog.dom.getElement('id-search-table');
-	that = this
-	
-	for(var i=1;i<sch_table.rows.length;i++){
+	var that = this;
+	var sch_table_len = sch_table.rows.length;
+	for(var i=1;i<sch_table_len;i++){
 		sch_table.deleteRow(i);
 	}
 	params = {'q':q}
