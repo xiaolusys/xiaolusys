@@ -148,8 +148,9 @@ ordercheck.Dialog.prototype.changeAddr=function(e){
 	var receiver_district = goog.dom.getElement('id_receiver_district').value;
 	var receiver_address  = goog.dom.getElement('id_receiver_address').value;
 	
-	params = {'trade_id':trade_id,'receiver_name':receiver_name,'receiver_mobile':receiver_mobile,'receiver_phone':receiver_phone,
-			'receiver_state':receiver_state,'receiver_city':receiver_city,'receiver_district':receiver_district,'receiver_address':receiver_address}		
+	params = {'trade_id':trade_id,'receiver_name':receiver_name,'receiver_mobile':receiver_mobile,
+			'receiver_phone':receiver_phone,'receiver_state':receiver_state,'receiver_city':receiver_city,
+			'receiver_district':receiver_district,'receiver_address':receiver_address}		
 	
 	var callback = function(e){
 		var xhr = e.target;
@@ -173,9 +174,8 @@ ordercheck.Dialog.prototype.searchProd=function(e){
 	var q = goog.dom.getElement('id-search-q').value;
 	var sch_table = goog.dom.getElement('id-search-table');
 	var that = this;
-	var sch_table_len = sch_table.rows.length;
-	for(var i=1;i<sch_table_len;i++){
-		sch_table.deleteRow(i);
+	for(var i=sch_table.rows.length;i>1;i--){
+		sch_table.deleteRow(i-1);
 	}
 	params = {'q':q}
 	var callback = function(e){
@@ -191,7 +191,7 @@ ordercheck.Dialog.prototype.searchProd=function(e){
             		goog.events.listen(addOrderBtns[i], goog.events.EventType.CLICK,that.addOrder,false,that);
             	}
             }else{
-                alert("地址修改失败:"+res.response_error);
+                alert("商品查询失败:"+res.response_error);
             }
         } catch (err) {
             console.log('Error: (ajax callback) - ', err);
