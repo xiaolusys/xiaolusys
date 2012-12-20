@@ -41,7 +41,7 @@ RAVEN_CONFIG = {
 
 #SITE_URL = "http://autolist.huyi.so/" 
 
-SITE_URL = 'http://192.168.1.26/' 
+SITE_URL = 'http://127.0.0.1:8000/' 
 
 #APPKEY  = '12651489' #meixqhi,erp manager
 #APPSECRET = 'c31214c3060c888c35e410d5f71112d7'

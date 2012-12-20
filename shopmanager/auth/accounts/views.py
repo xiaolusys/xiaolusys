@@ -202,9 +202,9 @@ def test_api(request):
 #    print response_list
 
 #    from shopback.orders.models import Trade,Order
-    response = apis.taobao_trade_fullinfo_get(tid=251739089889670,tb_user_id=174265168)
-    #trade = Trade.save_trade_through_dict(174265168,response['trade_fullinfo_get_response']['trade'])
-    print response
+#    response = apis.taobao_trade_fullinfo_get(tid=251739089889670,tb_user_id=174265168)
+#    trade = Trade.save_trade_through_dict(174265168,response['trade_fullinfo_get_response']['trade'])
+#    print response
 
 #    from shopback.trades.models import WAIT_SELLER_SEND_GOODS
 #    response_list = apis.taobao_trades_sold_get(start_created=None,end_created=None,page_no=1,page_size=10,
@@ -226,5 +226,12 @@ def test_api(request):
     
 #    response = apis.taobao_logistics_orders_detail_get(tid=61119154,tb_user_id=174265168)
 #    print response
+
+#    response = apis.taobao_itemcats_increment_get(cids='50008165,50014812',type=1,days=1,tb_user_id=174265168)
+#    print 'debug response:',response
+
+#    response = apis.taobao_topats_result_get(task_id=60293083,tb_user_id=174265168)
+#    print response
+
     return HttpResponseBadRequest('error') #HttpResponse('ok')
 
