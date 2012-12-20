@@ -94,15 +94,12 @@ class TaobaoAsyncBaseTask(Task):
     def is_taobao_complete(self,task_id): 
         try:
             async_task = TaobaoAsyncTask.objects.get(task_id=task_id)
-            print 'debug async task:',async_task.__dict__
         except:
             logger.error('the taobao async task(id:%s) is not exist'%task_id)
         else:
             try:
                 response = apis.taobao_topats_result_get(task_id=async_task.top_task_id,tb_user_id=async_task.user_id)
-                print 'debug taobao complete:',response
             except Exception,exc:
-                print exc.message,'%s'%exc
                 logger.error(exc.message,exc_info=True)
             else:
                 task_status = response['topats_result_get_response']['task']['status'] 
@@ -189,10 +186,8 @@ class TaobaoAsyncBaseTask(Task):
 #========================== Async Category Task ============================
 class AsyncCategoryTask(TaobaoAsyncBaseTask): 
     
-    def run(self,cids,user_id,seller_type='B',fetch_time=None,*args,**kwargs):
-        
-        task_id   = kwargs.get('task_id')
-        task_name = kwargs.get('task_name')
+    def run(self,cids,user_id,task_id,seller_type='B',fetch_time=None,*args,**kwargs):
+
         TaobaoAsyncTask.objects.filter(task_id=task_id).update(user_id=user_id,fetch_time=fetch_time)
         try:
             response = apis.taobao_topats_itemcats_get(seller_type=seller_type,cids=cids,tb_user_id=user_id)
@@ -238,10 +233,8 @@ tasks.register(AsyncCategoryTask)
 #================================ Async Order Task   ==================================
 class AsyncOrderTask(TaobaoAsyncBaseTask): 
     
-    def run(self,start_time,end_time,user_id,delay_days=15,fetch_time=None,*args,**kwargs):
-        
-        task_id   = kwargs.get('task_id')
-        task_name = kwargs.get('task_name')
+    def run(self,start_time,end_time,user_id,task_id,delay_days=15,fetch_time=None,*args,**kwargs):
+
         if start_time>end_time:
             return 
         #订单更新的期限不能小于指定天数
@@ -250,7 +243,6 @@ class AsyncOrderTask(TaobaoAsyncBaseTask):
             end_time = dt
             
         TaobaoAsyncTask.objects.filter(task_id=task_id).update(user_id=user_id,fetch_time=fetch_time)
-        print 'debug async task:',task_id,TaobaoAsyncTask.objects.get(task_id=task_id)
         start_time = start_time.strftime("%Y%m%d")
         end_time   = end_time.strftime("%Y%m%d")
         try:
