@@ -34,7 +34,7 @@ class AsyncOrderView(ModelView):
         
         start_dt   = parse_date(start_dt)
         end_dt     = parse_date(end_dt)
-        print 'debug profile:',profile.__dict__
+
         result = AsyncOrderTask.delay(start_dt,end_dt,profile.visitor_id)
 
         return {"task_id":result}
