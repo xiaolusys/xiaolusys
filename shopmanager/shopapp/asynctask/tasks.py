@@ -80,8 +80,8 @@ class TaobaoAsyncBaseTask(Task):
     def run(self,*args,**kwargs):
         raise NotImplement("该方法没有实现")
     
-    def after_return(self,status,result_dict,task_id,*args,**kwargs):
-
+    def after_return(self,status,result_dict,*args,**kwargs):
+        task_id = kwargs.get('task_id')
         next_status = TASK_ASYNCOK if result_dict['success'] else TASK_INVALID
         result_json = json.dumps(result_dict['result']) if result_dict['success'] else result_dict['result']
         top_task_id = result_dict.get('top_task_id','')
