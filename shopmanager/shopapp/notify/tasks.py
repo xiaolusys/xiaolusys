@@ -175,6 +175,13 @@ def process_item_notify_task(id):
                             properties += prop_dict.get(prop, '') or sku_prop_dict.get(prop, u'规格有误') 
                             psku.properties_name = properties or psku.properties_values
                     psku.save()
+        elif notify.status == "ItemUpshelf":
+            item = Item.get_or_create(notify.user_id,notify.num_iid,force_update=True)
+            Product.objects.filter(outer_id=item.outer_id).update(status=pcfg.NORMAL)
+        elif notify.status == "ItemDownshelf":
+            Item.get_or_create(notify.user_id,notify.num_iid,force_update=True)
+        elif notify.status == "ItemDelete":
+            Item.get_or_create(notify.user_id,notify.num_iid,force_update=True)
 
     except Exception,exc:
         logger.error(exc.message,exc_info=True)

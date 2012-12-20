@@ -667,10 +667,10 @@ def trade_download_controller(merge_trade,trade,trade_from,first_pay_load):
             is_need_merge    = False #是否有合并的可能
             main_tid = None  #主订单ID
             if not has_full_refund:
-                is_need_merge = MergeTrade.judge_need_merge(trade.id,trade.buyer_nick,trade_from,full_address)
+                is_need_merge = MergeTrade.judge_need_merge(trade.id,merge_trade.buyer_nick,trade_from,full_address)
                 if is_need_merge and trade_from == pcfg.TAOBAO_TYPE:
                     merge_trade.append_reason_code(pcfg.MULTIPLE_ORDERS_CODE)
-                    trades = MergeTrade.objects.filter(buyer_nick=trade.buyer_nick,receiver_name=trade.receiver_name,receiver_address=trade.receiver_address
+                    trades = MergeTrade.objects.filter(buyer_nick=merge_trade.buyer_nick,receiver_name=trade.receiver_name,receiver_address=trade.receiver_address
                                                 ,sys_status__in=(pcfg.WAIT_AUDIT_STATUS,pcfg.WAIT_PREPARE_SEND_STATUS,pcfg.REGULAR_REMAIN_STATUS))\
                                                 .exclude(tid=trade.id).order_by('-pay_time')
                                                 

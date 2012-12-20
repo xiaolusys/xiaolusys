@@ -1,3 +1,5 @@
+#-*- coding:utf8 -*-
+import datetime
 from django.conf import settings
 from celery.task import task
 from celery.task.sets import subtask
@@ -36,8 +38,14 @@ def RecurUpdateCategoreyTask(user_id,cid):
 
 @task(max_retry=3)
 def UpdateCategoryIncrementTask():
-    
-    config = SystemConfig.getconfig()
-    
+    """增量更新类目，暂未实现！！"""
+    config    = SystemConfig.getconfig()
     category_updated = config.category_updated
+    today_dt  = datetime.datetime.now()
+    
+    day_delta = today_dt - category_updated
+    
+    response = apis.taobao_itemcats_increment_get(cids=None,type=None,days=None,tb_user_id=None)
+    
+    
     
