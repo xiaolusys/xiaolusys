@@ -231,7 +231,9 @@ tasks.register(AsyncCategoryTask)
 #================================ Async Order Task   ==================================
 class AsyncOrderTask(TaobaoAsyncBaseTask): 
     
-    def run(self,start_time,end_time,user_id,task_id,task_name,delay_days=15,fetch_time=None,*args,**kwargs):
+    def run(self,start_time,end_time,user_id,delay_days=15,fetch_time=None,*args,**kwargs):
+        task_id   = kwargs.get('task_id')
+        task_name = kwargs.get('task_name')
         if start_time>end_time:
             return 
         #订单更新的期限不能小于指定天数
