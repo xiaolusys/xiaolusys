@@ -823,13 +823,6 @@ def save_orders_trade_to_mergetrade(sender, tid, *args, **kwargs):
                     status   = order.status
                     )
         #保存基本订单信息
-        merge_trade.status = trade.status
-        dt = trade.created
-        merge_trade.year  = dt.year
-        merge_trade.hour  = dt.hour
-        merge_trade.month = dt.month
-        merge_trade.day   = dt.day
-        merge_trade.week  = time.gmtime(time.mktime(dt.timetuple()))[7]/7+1 
         trade_from = pcfg.FENXIAO_TYPE if trade.type==pcfg.FENXIAO_TYPE else pcfg.TAOBAO_TYPE   
         MergeTrade.objects.filter(tid=trade.id).update(
             user = trade.user,
@@ -855,7 +848,7 @@ def save_orders_trade_to_mergetrade(sender, tid, *args, **kwargs):
             pay_time = trade.pay_time,
             modified = trade.modified,
             consign_time = trade.consign_time,
-            status = merge_trade.status,
+            status = trade.status,
         )
         #设置系统内部状态信息
         trade_download_controller(merge_trade,trade,trade_from,first_pay_load) 
@@ -929,14 +922,6 @@ def save_fenxiao_orders_to_mergetrade(sender, tid, *args, **kwargs):
                     consign_time  = merge_trade.consign_time,
                     status        = order.status
                 )
-
-        merge_trade.status = trade.status 
-        dt = trade.created
-        merge_trade.year  = dt.year
-        merge_trade.hour  = dt.hour
-        merge_trade.month = dt.month
-        merge_trade.day   = dt.day
-        merge_trade.week  = time.gmtime(time.mktime(dt.timetuple()))[7]/7+1
         
         trade_from = pcfg.FENXIAO_TYPE
         MergeTrade.objects.filter(tid=trade.id).update(
@@ -956,7 +941,7 @@ def save_fenxiao_orders_to_mergetrade(sender, tid, *args, **kwargs):
             modified = trade.modified,
             consign_time = trade.consign_time,
             seller_flag  = trade.supplier_flag,
-            status = merge_trade.status,
+            status = trade.status,
         )
         #更新系统内部状态
         trade_download_controller(merge_trade,trade,trade_from,first_pay_load)

@@ -9,7 +9,7 @@ goog.require('goog.style');
 goog.require('goog.net.XhrIo');
 goog.require('goog.uri.utils');
 
-var GIT_TYPE = {0:'实付订单',1:'客服赠送',2:'满就送',3:'组合拆分'}
+var GIT_TYPE = {0:'实付',1:'赠送',2:'满就送',3:'拆分'}
 
 var createDTText  = function(text){
     var td = goog.dom.createElement('td');
@@ -115,6 +115,10 @@ ordercheck.Dialog.prototype.show = function(data) {
     this.dialog.setVisible(true);
 }
 
+ordercheck.Dialog.prototype.hide = function(data) {
+    this.dialog.setVisible(false);
+}
+
 ordercheck.Dialog.prototype.setEvent=function(){
 	var addrBtn = goog.dom.getElement("addr-from-submit");
 	goog.events.listen(addrBtn, goog.events.EventType.CLICK,this.changeAddr,false,this);
@@ -133,7 +137,6 @@ ordercheck.Dialog.prototype.setEvent=function(){
 	} 
 	
 	var addr1  = new goog.ui.Zippy('collapseOne', 'addrContent');   
-	
 	var order1 = new goog.ui.Zippy('collapseTwo', 'orderContent');                                                                                                                                                                                                                                      
 }
 
@@ -148,8 +151,9 @@ ordercheck.Dialog.prototype.changeAddr=function(e){
 	var receiver_district = goog.dom.getElement('id_receiver_district').value;
 	var receiver_address  = goog.dom.getElement('id_receiver_address').value;
 	
-	params = {'trade_id':trade_id,'receiver_name':receiver_name,'receiver_mobile':receiver_mobile,'receiver_phone':receiver_phone,
-			'receiver_state':receiver_state,'receiver_city':receiver_city,'receiver_district':receiver_district,'receiver_address':receiver_address}		
+	params = {'trade_id':trade_id,'receiver_name':receiver_name,'receiver_mobile':receiver_mobile,
+			'receiver_phone':receiver_phone,'receiver_state':receiver_state,'receiver_city':receiver_city,
+			'receiver_district':receiver_district,'receiver_address':receiver_address}		
 	
 	var callback = function(e){
 		var xhr = e.target;
@@ -173,9 +177,8 @@ ordercheck.Dialog.prototype.searchProd=function(e){
 	var q = goog.dom.getElement('id-search-q').value;
 	var sch_table = goog.dom.getElement('id-search-table');
 	var that = this;
-	var sch_table_len = sch_table.rows.length;
-	for(var i=1;i<sch_table_len;i++){
-		sch_table.deleteRow(i);
+	for(var i=sch_table.rows.length;i>1;i--){
+		sch_table.deleteRow(i-1);
 	}
 	params = {'q':q}
 	var callback = function(e){
@@ -191,7 +194,7 @@ ordercheck.Dialog.prototype.searchProd=function(e){
             		goog.events.listen(addOrderBtns[i], goog.events.EventType.CLICK,that.addOrder,false,that);
             	}
             }else{
-                alert("地址修改失败:"+res.response_error);
+                alert("商品查询失败:"+res.response_error);
             }
         } catch (err) {
             console.log('Error: (ajax callback) - ', err);
@@ -305,6 +308,7 @@ ordercheck.Dialog.prototype.handleEvent= function (e) {
 goog.provide("ordercheck.Manager");
 ordercheck.Manager = function () {
     this.dialog = new ordercheck.Dialog(this);
+    this.check_row_idx = null;
     this.buttons = goog.dom.getElementsByClass("check-order");
     for(var i=0;i<this.buttons.length;i++){
         goog.events.listen(this.buttons[i], goog.events.EventType.CLICK, this.showDialog, false, this);
@@ -313,18 +317,22 @@ ordercheck.Manager = function () {
 
 ordercheck.Manager.prototype.showDialog = function(e) {
     var elt = e.target;
-    trade_id = elt.getAttribute('trade_id')
+    var trade_id = elt.getAttribute('trade_id');
     this.dialog.init(trade_id);
+    this.check_row_idx = elt.parentElement.parentElement.rowIndex;
     this.dialog.show(); 
 }
 
 ordercheck.Manager.prototype.checkorder = function(trade_id,logistic_code,priority) {
+	var that  = this;
     var callback = function(e){
         var xhr = e.target;
         try {
         	var res = xhr.getResponseJson();
             if (res.code == 0){
-            	alert("审核成功！");
+            	that.dialog.hide(false);
+            	var result_table = goog.dom.getElement('result_list');
+            	result_table.deleteRow(this.check_row_idx);
             }else{
                 alert("审核失败:"+res.response_error);
             }
