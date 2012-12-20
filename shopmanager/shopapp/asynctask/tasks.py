@@ -194,7 +194,6 @@ class AsyncCategoryTask(TaobaoAsyncBaseTask):
         task_id   = kwargs.get('task_id')
         task_name = kwargs.get('task_name')
         TaobaoAsyncTask.objects.filter(task_id=task_id).update(user_id=user_id,fetch_time=fetch_time)
-        print 'debug async task:',task_id,TaobaoAsyncTask.objects.get(task_id=task_id)
         try:
             response = apis.taobao_topats_itemcats_get(seller_type=seller_type,cids=cids,tb_user_id=user_id)
         except Exception,exc:
@@ -251,6 +250,7 @@ class AsyncOrderTask(TaobaoAsyncBaseTask):
             end_time = dt
             
         TaobaoAsyncTask.objects.filter(task_id=task_id).update(user_id=user_id,fetch_time=fetch_time)
+        print 'debug async task:',task_id,TaobaoAsyncTask.objects.get(task_id=task_id)
         start_time = start_time.strftime("%Y%m%d")
         end_time   = end_time.strftime("%Y%m%d")
         try:
