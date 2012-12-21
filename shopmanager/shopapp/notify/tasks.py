@@ -9,7 +9,7 @@ from django.db.models import Q,F
 from shopback import paramconfig as pcfg
 from shopapp.notify.models import TradeNotify,ItemNotify,RefundNotify
 from shopback.orders.models import Trade,Order
-from shopback.trades.models import MergeTrade,MergeOrder,MergeBuyerTrade,merge_order_remover
+from shopback.trades.models import MergeTrade,MergeOrder,MergeBuyerTrade,merge_order_remover,drive_merge_trade_action
 from shopback.items.models import Product,ProductSku,Item
 from shopback.refunds.models import Refund
 from shopback.users.models import User
@@ -233,7 +233,9 @@ def process_refund_notify_task(id):
             merge_trade = MergeTrade.objects.get(tid=notify.tid)
             merge_trade.remove_reason_code(pcfg.WAITING_REFUND_CODE)
             MergeOrder.objects.filter(tid=notify.tid,oid=notify.oid).update(refund_status=refund_status,status=order_status)
-   
+            if notify.status == 'RefundSuccess' :
+                drive_merge_trade_action(notify.tid)
+            
     except Exception,exc:
         logger.error(exc.message,exc_info=True)
         raise process_refund_notify_task.retry(exc=exc,countdown=60)
