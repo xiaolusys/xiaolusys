@@ -80,9 +80,11 @@ class CheckOrderView(ModelView):
             check_msg.append("信息不全".decode('utf8'))
         if trade.sys_status != pcfg.WAIT_AUDIT_STATUS:
             check_msg.append("订单暂不能审核".decode('utf8'))
+        if trade.has_reason_code(pcfg.MULTIPLE_ORDERS_CODE):
+            check_msg.append("需手动合单".decode('utf8'))
         orders = trade.merge_trade_orders.filter(status__in=(pcfg.WAIT_SELLER_SEND_GOODS,
                     pcfg.CONFIRM_WAIT_SEND_GOODS,pcfg.WAIT_CONFIRM_WAIT_SEND_GOODS))\
-                    .exclude(refund_status__in=pcfg.REFUND_APPROVAL_STATUS)
+                    .exclude(refund_status__in=pcfg.REFUND_APPROVAL_STATUS)   
         if orders.count() <= 0:
             check_msg.append("没有可发订单！".decode('utf8'))
          

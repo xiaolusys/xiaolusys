@@ -148,8 +148,8 @@ class MergeTradeAdmin(admin.ModelAdmin):
         pk_value = obj._get_pk_val()
         operate_success = False
         if request.POST.has_key("_save_audit"):
-            if obj.sys_status==pcfg.WAIT_AUDIT_STATUS and not obj.reason_code and not obj.has_rule_match\
-                and not obj.has_refund and not obj.has_out_stock and obj.logistics_company:
+            if obj.sys_status==pcfg.WAIT_AUDIT_STATUS and not obj.reason_code and not obj.has_rule_match and not obj.has_refund\
+                 and not obj.has_out_stock and obj.logistics_company and not obj.has_reason_code(pcfg.MULTIPLE_ORDERS_CODE):
                 try:
                     rule_signal.send(sender='merge_trade_rule',trade_tid=obj.tid)
                     MergeTrade.objects.filter(id=obj.id,reason_code='').update(sys_status=pcfg.WAIT_PREPARE_SEND_STATUS)
@@ -158,6 +158,7 @@ class MergeTradeAdmin(admin.ModelAdmin):
                     operate_success = False
                 else:
                     operate_success = True
+     
             if operate_success:
                 msg = "审核通过"
                 self.message_user(request, msg)
@@ -166,7 +167,7 @@ class MergeTradeAdmin(admin.ModelAdmin):
                 
                 return HttpResponseRedirect("../%s/" % pk_value)
             else:
-                self.message_user(request, "审核未通过（请确保订单状态为问题单，无退款，无问题编码，无匹配，无缺货，已选择快递）")
+                self.message_user(request, "审核未通过（请确保订单状态为问题单，无退款，无问题编码，无匹配，无缺货, 是否手动合单，已选择快递）")
                 return HttpResponseRedirect("../%s/" % pk_value)
         elif request.POST.has_key("_invalid"):
             if obj.sys_status==pcfg.WAIT_AUDIT_STATUS:
