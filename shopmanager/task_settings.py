@@ -91,7 +91,7 @@ SYNC_MODEL_SCHEDULE = {
 #    },
     'runs-every-day-regular-remaind-order':{     #更新定时提醒订单
          'task':'shopback.trades.tasks.regularRemainOrderTask',
-         'schedule':crontab(minute="10",hour='0'),
+         'schedule':crontab(minute="0",hour='*/12'),
          'args':()
      },
 }
@@ -127,7 +127,7 @@ SHOP_APP_SCHEDULE = {
          'task':'shopapp.asynctask.tasks.taobaoAsyncHandleTask',
          'schedule':crontab(minute="*/30"),
          'args':()
-     },           
+    },           
     'runs-every-day-item-num':{     #更新库存
         'task':'shopapp.syncnum.tasks.updateAllUserItemNumTask',
         'schedule':crontab(minute="20",hour="4"),#

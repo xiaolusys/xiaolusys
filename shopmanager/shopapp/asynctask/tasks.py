@@ -35,6 +35,10 @@ TASK_STATUS ={
     'doing':TASK_ASYNCOK              
 }
 
+def full_class_name(ins):
+    return ins.__module__+'.'+ins.__class__.__name__
+    
+    
 @task()
 def taobaoAsyncHandleTask():
     """ 淘宝异步任务处理核心类 """
@@ -84,7 +88,7 @@ class TaobaoAsyncBaseTask(Task):
     def after_return(self,status,result_dict,*args,**kwargs):
 
         try:
-            async_task = TaobaoAsyncTask.objects.create(task=self.__class__.__name__) 
+            async_task = TaobaoAsyncTask.objects.create(task=full_class_name(self)) 
         except Exception,exc:
             raise
         else:
