@@ -41,7 +41,7 @@ def taobaoAsyncHandleTask():
     asynctasks = TaobaoAsyncTask.objects.filter(status__in=(TASK_ASYNCOK,TASK_ASYNCCOMPLETE,TASK_DOWNLOAD))
     for asynctask in asynctasks:
         task_name = asynctask.task
-        
+
         if not task_name:
             continue
         task_handler = tasks[task_name.groupdict()['task_name']]
@@ -82,19 +82,19 @@ class TaobaoAsyncBaseTask(Task):
         raise NotImplement("该方法没有实现")
     
     def after_return(self,status,result_dict,*args,**kwargs):
-        task_class_name = self.__class__.__name__
-        print 'debug task class  name:',task_class_name
+
         try:
-            async_task = TaobaoAsyncTask.objects.create(task=task_class_name) 
+            async_task = TaobaoAsyncTask.objects.create(task=self.__class__.__name__) 
         except Exception,exc:
             raise
         else:
+            user_id     = result_dict['user_id']
             next_status = TASK_ASYNCOK if result_dict['success'] else TASK_INVALID
             result_json = json.dumps(result_dict['result']) if result_dict['success'] else result_dict['result']
             top_task_id = result_dict.get('top_task_id','')
-            params      = json.dumps(result_dict['params'])
+            params      = json.dumps(result_dict.get('params',{}))
             TaobaoAsyncTask.objects.filter(task_id=async_task.task_id)\
-                .update(status=next_status,result=result_json,top_task_id=top_task_id,params=params)
+                .update(user_id=user_id,status=next_status,result=result_json,top_task_id=top_task_id,params=params)
          
          
     def is_taobao_complete(self,task_id): 
@@ -194,15 +194,18 @@ class AsyncCategoryTask(TaobaoAsyncBaseTask):
     
     def run(self,cids,user_id,seller_type='B',fetch_time=None,*args,**kwargs):
 
-        TaobaoAsyncTask.objects.filter(task_id=task_id).update(user_id=user_id,fetch_time=fetch_time)
         try:
             response = apis.taobao_topats_itemcats_get(seller_type=seller_type,cids=cids,tb_user_id=user_id)
         except Exception,exc:
             logger.error('%s'%exc,exc_info=True)
-            return {'success':False,'result':'%s'%exc} 
+            return {'user_id':user_id,'success':False,'result':'%s'%exc} 
         else:
             top_task_id =response['topats_itemcats_get_response']['task']['task_id']
-            return {'success':True,'result':response,'top_task_id':top_task_id}
+            return {'user_id':user_id,
+                    'success':True,
+                    'result':response,
+                    'top_task_id':top_task_id,
+                    'params':{}}
 
  
     def handle_result_file(self,task_id):
@@ -244,24 +247,22 @@ class AsyncOrderTask(TaobaoAsyncBaseTask):
         if start_time>end_time:
             return 
         
-        try:
-            asynctask = TaobaoAsyncTask.objects.create(task='AsyncOrderTask') 
-        except Exception,exc:
-            logger.error(exc.message,exc_info=True)
-            return 
-        
         task_id = asynctask.task_id
         start_time = start_time.strftime("%Y%m%d")
         end_time   = end_time.strftime("%Y%m%d")
         try:
-            #response = apis.taobao_topats_trades_sold_get(start_time=start_time,end_time=end_time,tb_user_id=user_id)
-            response = {u'topats_trades_sold_get_response': {u'task': {u'task_id': 37606086, u'created': u'2012-08-31 17:40:42'}}}
+            response = apis.taobao_topats_trades_sold_get(start_time=start_time,end_time=end_time,tb_user_id=user_id)
+            #response = {u'topats_trades_sold_get_response': {u'task': {u'task_id': 37606086, u'created': u'2012-08-31 17:40:42'}}}
         except Exception,exc:
             logger.error('%s'%exc,exc_info=True)
-            return {'success':False,'result':'%s'%exc} 
+            return {'user_id':user_id,'success':False,'result':'%s'%exc} 
         else:
             top_task_id =response['topats_trades_sold_get_response']['task']['task_id']
-            return {'success':True,'result':response,'top_task_id':top_task_id,'params':{'start_time':start_time,'end_time':end_time,'user_id':user_id}}
+            return {'user_id':user_id,
+                    'success':True,
+                    'result':response,
+                    'top_task_id':top_task_id,
+                    'params':{'start_time':start_time,'end_time':end_time}}
 
  
     def handle_result_file(self,task_id):
