@@ -205,7 +205,7 @@ class AsyncCategoryTask(TaobaoAsyncBaseTask):
                     'success':True,
                     'result':response,
                     'top_task_id':top_task_id,
-                    'params':{}}
+                    'params':{'cids':cids,'seller_type':seller_type}}
 
  
     def handle_result_file(self,task_id):
@@ -247,7 +247,6 @@ class AsyncOrderTask(TaobaoAsyncBaseTask):
         if start_time>end_time:
             return 
         
-        task_id = asynctask.task_id
         start_time = start_time.strftime("%Y%m%d")
         end_time   = end_time.strftime("%Y%m%d")
         try:
