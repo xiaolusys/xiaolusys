@@ -40,6 +40,16 @@ def trade_submit_row(context):
 
 @register.filter(name='prod_skus')  
 def prod_skus(order):
-    prods = ProductSku.objects.filter(prod_outer_id=order['outer_id'])
+    prods = ProductSku.objects.filter(prod_outer_id=order['outer_id'],status=pcfg.NORMAL)
     return prods
     
+    
+@register.filter(name='prod_name')  
+def prod_name(order):
+    try:
+        prod = Product.objects.get(outer_id=order['outer_id'])
+    except:
+        prod_name = order.title 
+    else:
+        prod_name = prod.name or order.title
+    return prod_name

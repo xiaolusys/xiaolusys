@@ -44,7 +44,7 @@ def taobaoAsyncHandleTask():
 
         if not task_name:
             continue
-        task_handler = tasks[task_name.groupdict()['task_name']]
+        task_handler = tasks[task_name]
         if asynctask.status == TASK_ASYNCOK:
             task_handler.is_taobao_complete(asynctask.task_id)
             asynctask = TaobaoAsyncTask.objects.get(task_id=asynctask.task_id)

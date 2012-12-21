@@ -21,7 +21,9 @@
 	<option {% if trade.priority == -1 %}selected{% endif %} value="-1">低</option>
 	<option {% if trade.priority == 0 %}selected{% endif %} value="0">中</option>
 	<option {% if trade.priority == 1 %}selected{% endif %} value="1">高</option>
-</select></div>
+</select>
+
+</div>
 <div class="accordion-group1">
 <div class="accordion-heading1">
 <div style="padding: 2px 15px">
@@ -113,7 +115,7 @@
 		<tr>
 			<td>{{ order.id }}</td>
 			<td>{{ order.outer_id }}</td>
-			<td>{{ order.title }}</td>
+			<td>{{ order|prod_name }}</td>
 			<td>{% if order.is_rule_match %} 
 				<select id="id-select-ordersku-{{ forloop.counter }}" name="id_order_sku">
 					{% for sku in order|prod_skus %}

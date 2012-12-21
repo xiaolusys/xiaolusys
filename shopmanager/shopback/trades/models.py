@@ -99,10 +99,10 @@ PRIORITY_TYPE = (
 )
 
 GIFT_TYPE = (
-    (pcfg.REAL_ORDER_GIT_TYPE,'实付订单'),
-    (pcfg.CS_PERMI_GIT_TYPE,'客服赠送'),
+    (pcfg.REAL_ORDER_GIT_TYPE,'实付'),
+    (pcfg.CS_PERMI_GIT_TYPE,'赠送'),
     (pcfg.OVER_PAYMENT_GIT_TYPE,'满就送'),
-    (pcfg.COMBOSE_SPLIT_GIT_TYPE,'组合拆分'),
+    (pcfg.COMBOSE_SPLIT_GIT_TYPE,'拆分'),
 )
 
 class MergeTrade(models.Model):

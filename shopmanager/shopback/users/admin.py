@@ -67,7 +67,8 @@ class UserAdmin(admin.ModelAdmin):
             pull_users.append(pull_dict)
        
         return render_to_response('users/pull_online_items.html',{'users':pull_users},
-                                  context_instance=RequestContext(request),mimetype="text/html")     
+                                  context_instance=RequestContext(request),mimetype="text/html")
+    
         
     pull_user_items.short_description = "下载线上商品".decode('utf8')
     
