@@ -71,7 +71,7 @@ class UserAdmin(admin.ModelAdmin):
     
         
     pull_user_items.short_description = "下载线上商品".decode('utf8')
-    
+       
     actions = ['pull_user_unpost_trades','pull_user_items']
 
 admin.site.register(User, UserAdmin)

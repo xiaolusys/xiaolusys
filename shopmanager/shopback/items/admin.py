@@ -58,7 +58,33 @@ class ProductAdmin(admin.ModelAdmin):
     
     list_filter = ('status',)
     search_fields = ['outer_id', 'name']
-
+    
+    #更新用户线上商品入库
+    def pull_items_stock(self,request,queryset):
+        
+        from shopapp.syncnum.tasks import updateItemNum
+        
+        dt   =   datetime.datetime.now()
+        sync_items = []
+        for prod in queryset:
+            pull_dict = {'outer_id':prod.outer_id,'name':prod.name}
+            try:
+                items = Item.objects.filter(outer_id=prod.outer_id)
+                for item in items:
+                    updateItemNum(item.user.visitor_id,item.num_iid,dt)
+            except Exception,exc:
+                pull_dict['success']=False
+                pull_dict['errmsg']=exc.message or '%s'%exc  
+            else:
+                pull_dict['success']=True
+            sync_items.append(pull_dict)
+       
+        return render_to_response('items/sync_taobao.stock.html',{'prods':sync_items},
+                                  context_instance=RequestContext(request),mimetype="text/html")
+    
+    pull_items_stock.short_description = "同步商品库存".decode('utf8')
+    
+    actions = ['pull_items_stock',]
 
 admin.site.register(Product, ProductAdmin)
 
