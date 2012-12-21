@@ -1,0 +1,32 @@
+{% extends "asyncnum/base.html" %}
+
+{% block title%} 更新用户线上商品库存 {% endblock %}
+
+{% block navbar %}<div style="margin-top:30px;"><a href="{{ request.META.HTTP_REFERER }}" class="btn btn-large btn-success" target="_blank">打开上一页</a></div>{% endblock %}
+
+{% block container %}
+<div class='list_top'>
+	<div>
+		<div style="display:block;">
+		  <fieldset>
+		  	<legend>更新用户线上商品库存</legend>
+			  <table class="table table-bordered table-striped table-condensed">
+			    <tr>
+			      <th>用户ID</th><th>用户昵称</th><th>库存同步状态</th><th>错误信息</th>
+			    </tr>
+			    {% for user in users %}
+			    <tr>
+			    	<td>{{ user.uid }}</td>
+					<td>{{ user.nick }}</td>
+			    	<td>{% if user.success %}<img src="{{ STATIC_URL }}admin/img/icon-yes.gif" alt="yes">{% else %}
+			    		<img src="{{ STATIC_URL }}admin/img/icon-no.gif" alt="yes">{% endif %}</td>
+			    	<td>{{ user.errmsg }}</td>
+			    </tr>
+			    {% endfor %}
+			  </table>
+		  </fieldset>
+		</div>
+	</div>
+</div>
+
+{% endblock %}
