@@ -230,8 +230,8 @@ def test_api(request):
 #    response = apis.taobao_itemcats_increment_get(cids='50008165,50014812',type=1,days=1,tb_user_id=174265168)
 #    print 'debug response:',response
 
-#    response = apis.taobao_topats_result_get(task_id=60293083,tb_user_id=174265168)
-#    print response
+    response = apis.taobao_topats_result_get(task_id=60646019,tb_user_id=121741189)
+    print response
 
     return HttpResponseBadRequest('error') #HttpResponse('ok')
 

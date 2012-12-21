@@ -40,7 +40,7 @@ def trade_submit_row(context):
 
 @register.filter(name='prod_skus')  
 def prod_skus(order):
-    prods = ProductSku.objects.filter(prod_outer_id=order['outer_id'],status=pcfg.NORMAL)
+    prods = ProductSku.objects.filter(prod_outer_id=order['outer_id'],status=pcfg.NORMAL,quantity__gt=0)
     return prods
     
     
