@@ -632,9 +632,10 @@ def drive_merge_trade_action(trade_id):
     main_tid = None 
     try:
         merge_trade      = MergeTrade.objects.get(tid=trade_id)
-        if not merge_trade.status == pcfg.WAIT_SELLER_SEND_GOODS:
+        if merge_trade.status != pcfg.WAIT_SELLER_SEND_GOODS:
             return is_merge_success,main_tid
         
+        full_address     = merge_trade.buyer_full_address
         out_stock        = merge_trade.has_out_stock
         wait_refunding   = merge_trade.has_trade_refunding()
         receiver_name    = merge_trade.receiver_name
@@ -665,7 +666,7 @@ def drive_merge_trade_action(trade_id):
                         
             if main_tid and can_merge:  
                 #进行合单
-                is_merge_success = merge_order_maker(trade.id,main_tid)
+                is_merge_success = merge_order_maker(trade_id,main_tid)
         
         #如果入库订单缺货,待退款，则将同名的单置放入待审核区域
         elif trades.count()>0 and out_stock or wait_refunding:
@@ -683,7 +684,8 @@ def drive_merge_trade_action(trade_id):
 
 
 def trade_download_controller(merge_trade,trade,trade_from,first_pay_load):
-    
+
+    merge_trade = MergeTrade.objects.get(id=merge_trade.id)
     shipping_type = trade.shipping if hasattr(trade,'shipping') else trade.shipping_type
     seller_memo   = trade.memo  if hasattr(trade,'memo') else trade.seller_memo
     buyer_message = trade.buyer_message if hasattr(trade,'buyer_message') else trade.supplier_memo   
@@ -729,7 +731,7 @@ def trade_download_controller(merge_trade,trade,trade_from,first_pay_load):
             is_need_merge    = False #是否有合并的可能
             main_tid = None  #主订单ID
             if not has_full_refund:
-                is_need_merge = MergeTrade.judge_need_merge(trade.id,merge_trade.buyer_nick,trade_from,full_address)
+                is_need_merge = MergeTrade.judge_need_merge(trade.id,trade.buyer_nick,trade_from,full_address)
                 if is_need_merge :
                     merge_trade.append_reason_code(pcfg.MULTIPLE_ORDERS_CODE)
                     #驱动合单程序

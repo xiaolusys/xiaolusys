@@ -15,7 +15,7 @@ DATABASES = {
         'NAME': 'shopmgr',                      # Or path to database file if using sqlite3.
         'USER': 'meixqhi',                      # Not used with sqlite3.
         'PASSWORD': '123123',                  # Not used with sqlite3.
-        'HOST': '192.168.1.26',                      # Set to empty string for localhost. Not used with sqlite3.
+        'HOST': '',                      # Set to empty string for localhost. Not used with sqlite3.
         'PORT': '',                      # Set to empty string for default. Not used with sqlite3.
     }
 }
@@ -41,7 +41,7 @@ RAVEN_CONFIG = {
 
 #SITE_URL = "http://autolist.huyi.so/" 
 
-SITE_URL = 'http://192.168.1.26/' 
+SITE_URL = 'http://192.168.0.8/' 
 
 #APPKEY  = '12651489' #meixqhi,erp manager
 #APPSECRET = 'c31214c3060c888c35e410d5f71112d7'
