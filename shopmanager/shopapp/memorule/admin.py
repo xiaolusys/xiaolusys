@@ -89,7 +89,7 @@ class ComposeRuleAdmin(admin.ModelAdmin):
 
     date_hierarchy = 'created'
     #ordering = ['created_at']
-    search_fields = ['id','outer_id']
+    search_fields = ['id','outer_id','extra_info']
     
     inlines = [ComposeItemInline]
 

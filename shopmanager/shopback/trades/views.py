@@ -184,7 +184,7 @@ def change_trade_order(request,id):
                                                'sku_properties_name':order.sku_properties_name,
                                                'num':order.num,
                                                'price':order.price,
-                                               'gift_type':dict(GIFT_TYPE).get(order.gift_type),
+                                               'gift_type':order.gift_type,
                                                }}
     
     return HttpResponse(json.dumps(ret_params),mimetype="application/json")

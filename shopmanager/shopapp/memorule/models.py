@@ -230,7 +230,7 @@ def rule_match_merge_trade(sender, trade_tid, *args, **kwargs):
                 payment += float(order.payment)
                 try:
                     compose_rule = ComposeRule.objects.get(outer_id=order.outer_id,outer_sku_id=order.outer_sku_id,type='product')
-                except:
+                except Exception,exc:
                     pass
                 else:
                     MergeOrder.objects.filter(id=order.id).update(sys_status=pcfg.INVALID_STATUS)

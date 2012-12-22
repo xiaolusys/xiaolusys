@@ -77,7 +77,7 @@ class MergeTradeAdmin(admin.ModelAdmin):
 
     inlines = [MergeOrderInline]
     
-    list_filter   = ('sys_status','status','user','type','has_out_stock','has_refund')
+    list_filter   = ('sys_status','status','user','type','has_out_stock','has_refund','is_picking_print','is_express_print')
     search_fields = ['id','buyer_nick','tid','reason_code','operator']
     
     class Media:
@@ -383,11 +383,22 @@ class MergeTradeAdmin(admin.ModelAdmin):
                     if skus.has_key(outer_sku_id):
                         skus[outer_sku_id]['num'] += order.num
                     else:
-                        skus[outer_sku_id] = {'sku_name':order.sku_properties_name,'num':order.num}
+                        prod_sku = None
+                        try:
+                            prod_sku = ProductSku.objects.get(outer_id=outer_id)
+                        except:
+                            prod_sku = None
+                        prod_sku_name =prod_sku.properties_name if prod_sku else order.sku_properties_name
+                        skus[outer_sku_id] = {'sku_name':prod_sku_name,'num':order.num}
                 else:
+                    prod = None
+                    try:
+                        prod = Product.objects.get(outer_id=outer_id)
+                    except:
+                        prod = None
                     trade_items[outer_id]={
                                            'num':order.num,
-                                           'title':order.title,
+                                           'title': prod.name if prod else order.title,
                                            'skus':{outer_sku_id:{'sku_name':order.sku_properties_name,'num':order.num}}
                                            }
                      

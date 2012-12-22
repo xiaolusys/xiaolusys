@@ -62,7 +62,7 @@ class User(models.Model):
 
     class Meta:
         db_table = 'shop_users_user'
-
+        verbose_name= u'店铺'
 
     def __unicode__(self):
         return self.nick

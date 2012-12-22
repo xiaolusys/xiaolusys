@@ -376,21 +376,17 @@ class MergeTrade(models.Model):
         return False
     
     @classmethod
-    def judge_need_merge(cls,trade_id,buyer_nick,trade_from,full_address):
+    def judge_need_merge(cls,trade_id,buyer_nick,receiver_name,receiver_address):
         #是否需要合单      
-        trades = cls.objects.filter(buyer_nick=buyer_nick,sys_status__in=(pcfg.WAIT_PREPARE_SEND_STATUS,
-                pcfg.WAIT_AUDIT_STATUS,pcfg.REGULAR_REMAIN_STATUS)).exclude(tid=trade_id)
+        trades = cls.objects.filter(buyer_nick=buyer_nick,receiver_name=receiver_name,receiver_address=receiver_address
+                ,sys_status__in=(pcfg.WAIT_PREPARE_SEND_STATUS,pcfg.WAIT_AUDIT_STATUS,pcfg.REGULAR_REMAIN_STATUS)).exclude(tid=trade_id)
         is_need_merge = False
-        if trade_from == pcfg.TAOBAO_TYPE:
-            if trades.count() > 0:
-                for trade in trades:
-                    trade.append_reason_code(pcfg.MULTIPLE_ORDERS_CODE)
-                is_need_merge = True
-        else:
+
+        if trades.count() > 0:
             for trade in trades:
-                if trade.buyer_full_address == full_address:
-                    trade.append_reason_code(pcfg.MULTIPLE_ORDERS_CODE)
-                    is_need_merge = True
+                trade.append_reason_code(pcfg.MULTIPLE_ORDERS_CODE)
+            is_need_merge = True
+
         return is_need_merge
 
     @classmethod
@@ -517,7 +513,7 @@ def refresh_trade_status(sender,instance,*args,**kwargs):
     has_refunding = merge_trade.has_trade_refunding()
     out_stock     = merge_trade.merge_trade_orders.filter(out_stock=True,status=pcfg.WAIT_SELLER_SEND_GOODS).count()>0
     has_merge     = merge_trade.merge_trade_orders.filter(is_merge=True).count()>0
-    has_rule_match = merge_trade.merge_trade_orders.filter(is_rule_match=True)
+    has_rule_match = merge_trade.merge_trade_orders.filter(is_rule_match=True).count()>0
     
     merge_trade.has_refund = has_refunding
     merge_trade.has_out_stock = out_stock
@@ -724,14 +720,14 @@ def trade_download_controller(merge_trade,trade,trade_from,first_pay_load):
                 merge_trade.append_reason_code(pcfg.RULE_MATCH_CODE)
             #设置订单是否有缺货属性    
             merge_trade.has_rule_match = is_rule_match
-    
-            full_address = merge_trade.buyer_full_address
+  
             #订单合并   
             is_merge_success = False #是否合并成功
             is_need_merge    = False #是否有合并的可能
             main_tid = None  #主订单ID
             if not has_full_refund:
-                is_need_merge = MergeTrade.judge_need_merge(trade.id,merge_trade.buyer_nick,trade_from,full_address)
+                is_need_merge = MergeTrade.judge_need_merge(trade.id,merge_trade.buyer_nick,merge_trade.receiver_name,
+                                                            merge_trade.receiver_address)
                 if is_need_merge :
                     merge_trade.append_reason_code(pcfg.MULTIPLE_ORDERS_CODE)
                     #驱动合单程序
