@@ -75,15 +75,15 @@ def updateMonthTradeXlsFileTask(year=None,month=None):
                 report_status.update_order = True
                 
             if not report_status.update_purchase:
-                for i in xrange(1,time_delta.days+1):
-                    update_start = start_date - datetime.timedelta(i+1,0,0)
-                    update_end   = start_date - datetime.timedelta(i,0,0)                 
-                    monitor_status,state = DayMonitorStatus.objects.get_or_create(user_id=user.visitor_id,\
-                                                year=update_start.year,month=update_start.month,day=update_start.day)
-                    if not monitor_status.update_purchase_increment: 
-                       saveUserIncrementPurchaseOrderTask(user.visitor_id,update_from=update_start,update_to=update_end)
-                    monitor_status.update_purchase_increment = True
-                    monitor_status.save()
+#                for i in xrange(1,time_delta.days+1):
+#                    update_start = start_date - datetime.timedelta(i+1,0,0)
+#                    update_end   = start_date - datetime.timedelta(i,0,0)                 
+#                    monitor_status,state = DayMonitorStatus.objects.get_or_create(user_id=user.visitor_id,\
+#                                                year=update_start.year,month=update_start.month,day=update_start.day)
+#                    if not monitor_status.update_purchase_increment: 
+#                       saveUserIncrementPurchaseOrderTask(user.visitor_id,update_from=update_start,update_to=update_end)
+#                    monitor_status.update_purchase_increment = True
+#                    monitor_status.save()
                 report_status.update_purchase = True
 
             if not report_status.update_amount:
