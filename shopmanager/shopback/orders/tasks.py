@@ -26,6 +26,7 @@ TASK_FAIL = 'FAIL'
 @task(max_retry=3)
 def saveUserDuringOrdersTask(user_id,update_from=None,update_to=None,status=None):
     """ 下载用户商城订单 """
+    update_tids = []
     try: 
         update_from = format_datetime(update_from) if update_from else None
         update_to   = format_datetime(update_to) if update_to else None
@@ -50,14 +51,23 @@ def saveUserDuringOrdersTask(user_id,update_from=None,update_to=None,status=None
                             Trade.save_trade_through_dict(user_id,trade_dict)
                         except Exception,exc:
                             logger.error('update trade fullinfo error:%s'%exc,exc_info=True)
-    
+                    update_tids.append(trade['tid'])
             has_next = order_list['has_next']
             cur_page += 1
     except Exception,exc:
         logger.error(exc.message,exc_info=True)
         raise saveUserDuringOrdersTask.retry(exc=exc,countdown=60)
-
-
+    else: 
+        wait_update_trades = MergeTrade.objects.filter(status=pcfg.WAIT_SELLER_SEND_GOODS).exclude(tid__in=update_tids)
+        for trade in wait_update_trades:
+            user_id = trade.user.visitor_id
+            try:
+                response = apis.taobao_trade_fullinfo_get(tid=trade.tid,tb_user_id=user_id)
+                trade_dict = response['trade_fullinfo_get_response']['trade']
+                Trade.save_trade_through_dict(user_id,trade_dict)
+            except Exception,exc:
+                logger.error('update trade fullinfo error:%s'%exc,exc_info=True)
+                
 
 @task()
 def saveUserIncrementOrdersTask(user_id,update_from=None,update_to=None):

@@ -74,11 +74,11 @@ except:
     
 
 SYNC_MODEL_SCHEDULE = {
-    'runs-every-10-minites-fenxiao-increment-purchases':{    #增量更新分销部分订单
-        'task':'shopback.fenxiao.tasks.updateAllUserIncrementPurchasesTask',
-        'schedule':crontab(minute="*/10"),
-        'args':()
-    },
+#    'runs-every-10-minites-fenxiao-increment-purchases':{    #增量更新分销部分订单
+#        'task':'shopback.fenxiao.tasks.updateAllUserIncrementPurchasesTask',
+#        'schedule':crontab(minute="*/10"),
+#        'args':()
+#    },
 #    'runs-every-weeks-order-amount':{   #更新用户商城订单结算，按周
 #        'task':'shopback.amounts.tasks.updateAllUserOrdersAmountTask',
 #        'schedule':crontab(minute="0",hour="2"), #

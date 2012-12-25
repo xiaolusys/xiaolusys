@@ -1,4 +1,5 @@
 from django import template
+from django.contrib.admin.templatetags.admin_list import result_headers,result_hidden_fields,results
 from shopback import paramconfig as pcfg
 from shopback.trades.models import MergeTrade
 from shopback.items.models import Product,ProductSku
@@ -17,6 +18,7 @@ def trade_submit_row(context):
     trade   = context['original']
     sys_status = trade.sys_status
     is_wait_audit = sys_status == pcfg.WAIT_AUDIT_STATUS
+    can_split_trade = trade.has_merge or trade.has_reason_code(pcfg.MULTIPLE_ORDERS_CODE)
     can_trade_audit = context['perms'].user.has_perm('trades.can_trade_aduit')
     return {
         'onclick_attrib': (opts.get_ordered_objects() and change
@@ -28,7 +30,7 @@ def trade_submit_row(context):
                             not is_popup and (not save_as or context['add']),
         'show_save_and_continue': context['has_change_permission'],
         'show_close':True ,
-        'show_split':trade.has_merge and is_wait_audit and can_trade_audit,
+        'show_split':can_split_trade and is_wait_audit and can_trade_audit,
         'show_invalid':is_wait_audit and can_trade_audit,
         'show_uninvalid':sys_status == pcfg.INVALID_STATUS and can_trade_audit,
         'show_unregular':sys_status == pcfg.REGULAR_REMAIN_STATUS and can_trade_audit,
@@ -37,6 +39,23 @@ def trade_submit_row(context):
         'is_popup': is_popup,
         'show_save': True
     }
+    
+@register.inclusion_tag("admin/trades/change_list_results.html")
+def trade_result_list(cl):
+    """
+    Displays the headers and data list together
+    """
+    headers = list(result_headers(cl))
+    num_sorted_fields = 0
+    for h in headers:
+        if h['sortable'] and h['sorted']:
+            num_sorted_fields += 1
+    return {'cl': cl,
+            'result_hidden_fields': list(result_hidden_fields(cl)),
+            'result_headers': headers,
+            'num_sorted_fields': num_sorted_fields,
+            'results': list(results(cl))}    
+
 
 @register.filter(name='prod_skus')  
 def prod_skus(order):
@@ -49,7 +68,7 @@ def prod_name(order):
     try:
         prod = Product.objects.get(outer_id=order['outer_id'])
     except:
-        prod_name = order.title 
+        prod_name = order['title'] 
     else:
-        prod_name = prod.name or order.title
+        prod_name = prod.name or order['title']
     return prod_name

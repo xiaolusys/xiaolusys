@@ -279,7 +279,7 @@ class TradesToXLSFile(object):
         for refund in refunds:
             trade = self.get_trade_or_purchase_trade(refund.tid)
             if trade and trade.consign_time and trade.consign_time >=dt_from and trade.consign_time<=dt_to\
-                and trade.status in ORDER_SUCCESS_STATUS:
+                and trade.status in pcfg.ORDER_SUCCESS_STATUS:
                 self.cur_row += 1
                 for data_num,data_tuple in enumerate(refund_format):
                     try:

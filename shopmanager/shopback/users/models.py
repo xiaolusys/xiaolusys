@@ -129,10 +129,10 @@ def add_taobao_user(sender, user,top_session,top_parameters, *args, **kwargs):
 
     saveUserDuringOrdersTask.delay(profile.visitor_id,status=pcfg.WAIT_SELLER_SEND_GOODS)
     
-    #更新待发货分销订单
-    from shopback.fenxiao.tasks import saveUserPurchaseOrderTask
-    
-    saveUserPurchaseOrderTask.delay(profile.visitor_id,status=pcfg.WAIT_SELLER_SEND_GOODS)
+#    #更新待发货分销订单
+#    from shopback.fenxiao.tasks import saveUserPurchaseOrderTask
+#    
+#    saveUserPurchaseOrderTask.delay(profile.visitor_id,status=pcfg.WAIT_SELLER_SEND_GOODS)
     
 taobao_logged_in.connect(add_taobao_user)
   

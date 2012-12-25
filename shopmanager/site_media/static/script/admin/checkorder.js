@@ -42,7 +42,7 @@ var addSearchRow  = function(tableID,prod){
 	var price_cell = createDTText(prod[2]);
 	
 	var addbtn_cell = goog.dom.createElement('td');
-	addbtn_cell.innerHTML = '<button class="add-order btn-mini" outer_id="'+prod[0]+'" idx="'+index.toString()+'">添加</button>';
+	addbtn_cell.innerHTML = '<button class="add-order btn-mini" outer_id="'+prod[0]+'" idx="'+index.toString()+'">赠送</button>';
 	
 	row.appendChild(id_cell);
 	row.appendChild(outer_id_cell);
@@ -160,7 +160,10 @@ ordercheck.Dialog.prototype.changeAddr=function(e){
         try {
         	var res = xhr.getResponseJson();
             if (res.code == 0){
-            	alert("地址修改成功！");
+            	goog.dom.getElement('id_receiver').innerText = receiver_name;
+            	goog.dom.getElement('id_mobile').innerText   = receiver_mobile;
+            	goog.dom.getElement('id_phone').innerText    = receiver_phone;
+            	goog.dom.getElement('id_address').innerText  = receiver_state+'，'+receiver_city+'，'+receiver_district+'，'+receiver_address;
             }else{
                 alert("地址修改失败:"+res.response_error);
             }
@@ -332,7 +335,8 @@ ordercheck.Manager.prototype.checkorder = function(trade_id,logistic_code,priori
             if (res.code == 0){
             	that.dialog.hide(false);
             	var result_table = goog.dom.getElement('result_list');
-            	result_table.deleteRow(this.check_row_idx);
+            	result_table.deleteRow(that.check_row_idx);
+            	that.check_row_idx = null;
             }else{
                 alert("审核失败:"+res.response_error);
             }

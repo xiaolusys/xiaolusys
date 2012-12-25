@@ -82,8 +82,7 @@ class CheckOrderView(ModelView):
             check_msg.append("订单暂不能审核".decode('utf8'))
         if trade.has_reason_code(pcfg.MULTIPLE_ORDERS_CODE):
             check_msg.append("需手动合单".decode('utf8'))
-        orders = trade.merge_trade_orders.filter(status__in=(pcfg.WAIT_SELLER_SEND_GOODS,
-                    pcfg.CONFIRM_WAIT_SEND_GOODS,pcfg.WAIT_CONFIRM_WAIT_SEND_GOODS))\
+        orders = trade.merge_trade_orders.filter(status=pcfg.WAIT_SELLER_SEND_GOODS)\
                     .exclude(refund_status__in=pcfg.REFUND_APPROVAL_STATUS)   
         if orders.count() <= 0:
             check_msg.append("没有可发订单！".decode('utf8'))
@@ -193,9 +192,11 @@ def change_trade_order(request,id):
 @csrf_exempt     
 def delete_trade_order(request,id):
     
-    num = MergeOrder.objects.filter(id=id).delete()
-    
-    ret_params = {'code':0,'response_content':{'success':True}}
+    num = MergeOrder.objects.filter(id=id).update(sys_status=pcfg.INVALID_STATUS)
+    if num == 1:
+        ret_params = {'code':0,'response_content':{'success':True}}
+    else:
+        ret_params = {'code':1,'response_content':{'success':False}}
   
     return HttpResponse(json.dumps(ret_params),mimetype="application/json")
 

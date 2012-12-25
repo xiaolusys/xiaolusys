@@ -15,7 +15,7 @@ DATABASES = {
         'NAME': 'shopmgr',                      # Or path to database file if using sqlite3.
         'USER': 'meixqhi',                      # Not used with sqlite3.
         'PASSWORD': '123123',                  # Not used with sqlite3.
-        'HOST': '',                      # Set to empty string for localhost. Not used with sqlite3.
+        'HOST': '192.168.1.26',                      # Set to empty string for localhost. Not used with sqlite3.
         'PORT': '',                      # Set to empty string for default. Not used with sqlite3.
     }
 }

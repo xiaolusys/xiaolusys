@@ -57,6 +57,8 @@ class MergeTradeAdmin(admin.ModelAdmin):
                     ,'has_memo','has_refund','sys_status','operator','reason_code','remind_time')
     list_display_links = ('id','popup_tid_link')
     #list_editable = ('update_time','task_type' ,'is_success','status')
+    
+    #change_list_template = "admin/trades/change_list_result.html"
 
     date_hierarchy = 'created'
     ordering = ['-priority','pay_time',]
@@ -77,7 +79,8 @@ class MergeTradeAdmin(admin.ModelAdmin):
 
     inlines = [MergeOrderInline]
     
-    list_filter   = ('sys_status','status','user','type','has_out_stock','has_refund','is_picking_print','is_express_print')
+    list_filter   = ('sys_status','status','user','type','has_out_stock','has_refund','has_rule_match',
+                     'is_picking_print','is_express_print')
     search_fields = ['id','buyer_nick','tid','reason_code','operator']
     
     class Media:
@@ -213,15 +216,18 @@ class MergeTradeAdmin(admin.ModelAdmin):
                 return HttpResponseRedirect("../%s/" % pk_value)
         elif request.POST.has_key("_split"):
             buyertrades = MergeBuyerTrade.objects.filter(main_tid=obj.tid)
-            if obj.sys_status==pcfg.WAIT_AUDIT_STATUS and buyertrades.count() >0:
-                subtids = [t.sub_tid for t in buyertrades]
-                buyertrades.delete()
-                for subtid in subtids:
-                    MergeTrade.objects.get(tid=subtid).remove_reason_code(pcfg.NEW_MERGE_TRADE_CODE)
-                MergeTrade.objects.filter(tid__in=subtids).update(sys_status=pcfg.WAIT_AUDIT_STATUS)
-                obj.merge_trade_orders.filter(is_merge=True).delete()
-                obj.remove_reason_code(pcfg.NEW_MERGE_TRADE_CODE)
-                msg = "订单已取消合并"
+            if obj.sys_status==pcfg.WAIT_AUDIT_STATUS:
+                if buyertrades.count() >0:
+                    subtids = [t.sub_tid for t in buyertrades]
+                    buyertrades.delete()
+                    for subtid in subtids:
+                        MergeTrade.objects.get(tid=subtid).remove_reason_code(pcfg.NEW_MERGE_TRADE_CODE)
+                    MergeTrade.objects.filter(tid__in=subtids).update(sys_status=pcfg.WAIT_AUDIT_STATUS)
+                    obj.merge_trade_orders.filter(is_merge=True).delete()
+                    obj.remove_reason_code(pcfg.NEW_MERGE_TRADE_CODE)
+                else:
+                    obj.remove_reason_code(pcfg.MULTIPLE_ORDERS_CODE)
+                msg = "订单已取消合并状态"
                 self.message_user(request, msg)
                 self.log_action(request.user.id,obj,CHANGE,msg)
                 return HttpResponseRedirect("../%s/" % pk_value)

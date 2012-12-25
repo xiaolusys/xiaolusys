@@ -32,8 +32,8 @@ class UserAdmin(admin.ModelAdmin):
                 #更新等待发货商城订单
                 saveUserDuringOrdersTask.delay(user.visitor_id,status=pcfg.WAIT_SELLER_SEND_GOODS)
             
-                #更新待发货分销订单
-                saveUserPurchaseOrderTask.delay(user.visitor_id,status=pcfg.WAIT_SELLER_SEND_GOODS)
+#                #更新待发货分销订单
+#                saveUserPurchaseOrderTask.delay(user.visitor_id,status=pcfg.WAIT_SELLER_SEND_GOODS)
             except Exception,exc:
                 pull_dict['success']=False
                 pull_dict['errmsg']=exc.message or '%s'%exc

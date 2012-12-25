@@ -4,6 +4,7 @@ import os.path
 import json
 from django.db import models
 from django.conf import settings
+from django.db.models import Sum
 from shopback import paramconfig as pcfg
 from shopback.items.models import Item,Product,ProductSku
 from shopback.orders.models import Trade
@@ -212,37 +213,20 @@ def rule_match_trade(sender, trade_tid, *args, **kwargs):
 rule_signal.connect(rule_match_trade,sender='trade_rule',dispatch_uid='rule_match_orders')
 
 
-def rule_match_merge_trade(sender, trade_tid, *args, **kwargs):
-    #拆分规则
+def rule_match_payment(sender, trade_tid, *args, **kwargs):
+    #赠品规则
     try:
         trade = MergeTrade.objects.get(tid=trade_tid)
     except MergeTrade.DoesNotExist:
         pass
     else:
-        trade.merge_trade_orders.filter(gift_type__in=(pcfg.OVER_PAYMENT_GIT_TYPE,pcfg.COMBOSE_SPLIT_GIT_TYPE)).delete()
+        trade.merge_trade_orders.filter(gift_type=pcfg.OVER_PAYMENT_GIT_TYPE).delete()
         try:
-            orders = trade.merge_trade_orders.filter(status__in=(pcfg.WAIT_SELLER_SEND_GOODS,
-                            pcfg.CONFIRM_WAIT_SEND_GOODS,pcfg.WAIT_CONFIRM_WAIT_SEND_GOODS))\
+            orders = trade.merge_trade_orders.filter(status=pcfg.WAIT_SELLER_SEND_GOODS,gift_type=pcfg.REAL_ORDER_GIT_TYPE)\
                             .exclude(refund_status__in=pcfg.REFUND_APPROVAL_STATUS)
             
-            payment = 0 
-            for order in orders:
-                payment += float(order.payment)
-                try:
-                    compose_rule = ComposeRule.objects.get(outer_id=order.outer_id,outer_sku_id=order.outer_sku_id,type='product')
-                except Exception,exc:
-                    pass
-                else:
-                    MergeOrder.objects.filter(id=order.id).update(sys_status=pcfg.INVALID_STATUS)
-                    for item in compose_rule.compose_items.all():
-                        MergeOrder.gen_new_order(trade.id,item.outer_id,item.outer_sku_id,item.num*order.num,gift_type=pcfg.COMBOSE_SPLIT_GIT_TYPE)
-    
-            post_fee = trade.post_fee
-            if not post_fee:
-                try:
-                    post_fee = Trade.objects.get(id=trade_tid).post_fee
-                except:
-                    post_fee = PurchaseOrder.objects.get(id=trade_tid).post_fee
+            payment = orders.aggregate(total_payment=Sum('payment'))['total_payment'] 
+            post_fee = trade.post_fee or 0
             
             real_payment = payment - float(post_fee)
             self_rule = None
@@ -256,9 +240,34 @@ def rule_match_merge_trade(sender, trade_tid, *args, **kwargs):
             MergeTrade.objects.filter(tid=trade_tid).update(total_num=orders.filter(sys_status=pcfg.IN_EFFECT).count())
         except Exception,exc:
             logger.error(exc.message,exc_info=True)
-            trade.append_reason_code(pcfg.COMPOSE_RULE_ERROR_CODE)
+            trade.append_reason_code(pcfg.PAYMENT_RULE_ERROR_CODE)
             
-rule_signal.connect(rule_match_merge_trade,sender='merge_trade_rule',dispatch_uid='rule_match_merge_trade')
+rule_signal.connect(rule_match_payment,sender='payment_rule',dispatch_uid='rule_match_payment')
 
 
-    
+def rule_match_combose_split(sender, trade_tid, *args, **kwargs):
+    #拆分规则
+    try:
+        trade = MergeTrade.objects.get(tid=trade_tid)
+    except MergeTrade.DoesNotExist:
+        pass
+    else:
+        trade.merge_trade_orders.filter(gift_type=pcfg.COMBOSE_SPLIT_GIT_TYPE).delete()
+        try:
+            orders = trade.merge_trade_orders.filter(status=pcfg.WAIT_SELLER_SEND_GOODS)\
+                    .exclude(refund_status__in=pcfg.REFUND_APPROVAL_STATUS)
+            for order in orders:
+                try:
+                    compose_rule = ComposeRule.objects.get(outer_id=order.outer_id,outer_sku_id=order.outer_sku_id,type='product')
+                except Exception,exc:
+                    pass
+                else:
+                    for item in compose_rule.compose_items.all():
+                        MergeOrder.gen_new_order(trade.id,item.outer_id,item.outer_sku_id,item.num*order.num,gift_type=pcfg.COMBOSE_SPLIT_GIT_TYPE)
+                    MergeOrder.objects.filter(id=order.id).update(sys_status=pcfg.INVALID_STATUS)
+        except Exception,exc:
+            logger.error(exc.message,exc_info=True)
+            trade.append_reason_code(pcfg.COMPOSE_RULE_ERROR_CODE)
+
+rule_signal.connect(rule_match_combose_split,sender='combose_split_rule',dispatch_uid='rule_match_combose_split')    
+
