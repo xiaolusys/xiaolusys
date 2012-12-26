@@ -99,8 +99,7 @@ ordercheck.Dialog.prototype.init = function (id) {
         	var res = xhr.getResponse();
         	dialog.setContent(res);
 		    dialog.setTitle('订单审核详情');
-		    dialog.setButtonSet(new goog.ui.Dialog.ButtonSet().addButton({key: 'OK', caption: "审核订单"}
-		        ,false,false));
+		    dialog.setButtonSet(new goog.ui.Dialog.ButtonSet().addButton({key: 'OK', caption: "审核订单"},false,false));
 		    goog.events.listen(dialog, goog.ui.Dialog.EventType.SELECT, that);
 		    that.setEvent();
         } catch (err) {
@@ -298,13 +297,10 @@ ordercheck.Dialog.prototype.deleteOrder=function(e){
 
 ordercheck.Dialog.prototype.handleEvent= function (e) {
     if (e.key == 'OK') {
-    	console.log('key',e.key);
         var tradeDom  = goog.dom.getElement("id_check_trade");
         var logisticsDom = goog.dom.getElement("id_logistics");
         var priorityDom  = goog.dom.getElement("id_priority");
         var retval    = this.orderManager.checkorder(tradeDom.value, logisticsDom.value, priorityDom.value);
-    }else{
-    	console.log('key',e.key);
     }
     return false;
 }
