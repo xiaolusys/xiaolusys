@@ -170,17 +170,24 @@ def change_trade_order(request,id):
         return HttpResponse(json.dumps({'code':1,"response_error":"订单不存在！"}),mimetype="application/json")
     
     try:
+        prod  = Product.objects.get()
+    except Product.DoesNotExist:
+        return HttpResponse(json.dumps({'code':1,"response_error":"商品不存在！"}),mimetype="application/json")
+        
+    try:
         prod_sku = ProductSku.objects.get(prod_outer_id=order.outer_id,outer_id=outer_sku_id) 
     except ProductSku.DoesNotExist:
         return HttpResponse(json.dumps({'code':1,"response_error":"商品规格不存在！"}),mimetype="application/json")
     
-    MergeOrder.objects.filter(id=order.id).update(outer_sku_id=prod_sku.outer_id,
-                                                  sku_properties_name=prod_sku.properties_name,is_rule_match=False)
     order = MergeOrder.objects.get(id=order.id)
-   
+    order.outer_sku_id=prod_sku.outer_id
+    order.sku_properties_name=prod_sku.properties_name
+    order.is_rule_match=False
+    order.save()
+    
     ret_params = {'code':0,'response_content':{'id':order.id,
                                                'outer_id':order.outer_id,
-                                               'title':order.title,
+                                               'title':prod.name,
                                                'sku_properties_name':order.sku_properties_name,
                                                'num':order.num,
                                                'price':order.price,

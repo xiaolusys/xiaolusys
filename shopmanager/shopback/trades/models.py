@@ -508,8 +508,8 @@ def refresh_trade_status(sender,instance,*args,**kwargs):
                                                               sys_status=pcfg.IN_EFFECT).aggregate(total_num=Sum('num'))['total_num']
         has_refunding = merge_trade.has_trade_refunding()
         out_stock     = merge_trade.merge_trade_orders.filter(out_stock=True,status=pcfg.WAIT_SELLER_SEND_GOODS).count()>0
-        has_merge     = merge_trade.merge_trade_orders.filter(is_merge=True).count()>0
-        has_rule_match = merge_trade.merge_trade_orders.filter(is_rule_match=True).count()>0
+        has_merge     = merge_trade.merge_trade_orders.filter(is_merge=True,status=pcfg.WAIT_SELLER_SEND_GOODS).count()>0
+        has_rule_match = merge_trade.merge_trade_orders.filter(is_rule_match=True,status=pcfg.WAIT_SELLER_SEND_GOODS).count()>0
         
         merge_trade.total_num = total_num
         merge_trade.has_refund = has_refunding
@@ -893,7 +893,7 @@ def save_fenxiao_orders_to_mergetrade(sender, tid, *args, **kwargs):
         merge_trade,state = MergeTrade.objects.get_or_create(tid=trade.id)
         
         first_pay_load = not merge_trade.sys_status 
-        if first_pay_load :
+        if first_pay_load and merge_trade.status == pcfg.WAIT_SELLER_SEND_GOODS:
             logistics = Logistics.get_or_create(trade.seller_id,trade.id)
             location = json.loads(logistics.location or 'null')
         
