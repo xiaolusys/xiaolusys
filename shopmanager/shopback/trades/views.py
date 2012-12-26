@@ -170,7 +170,7 @@ def change_trade_order(request,id):
         return HttpResponse(json.dumps({'code':1,"response_error":"订单不存在！"}),mimetype="application/json")
     
     try:
-        prod  = Product.objects.get()
+        prod  = Product.objects.get(outer_id=order.outer_id)
     except Product.DoesNotExist:
         return HttpResponse(json.dumps({'code':1,"response_error":"商品不存在！"}),mimetype="application/json")
         
