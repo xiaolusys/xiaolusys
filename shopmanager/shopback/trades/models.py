@@ -117,6 +117,7 @@ class MergeTrade(models.Model):
     
     type       = models.CharField(max_length=32,choices=TRADE_TYPE,blank=True,verbose_name='订单类型')
     shipping_type = models.CharField(max_length=12,blank=True,verbose_name='物流方式')
+    pay_type   = models.CharField(max_length=12,blank=True,verbose_name='物流方式')
     
     total_num  =   models.IntegerField(null=True,default=0,verbose_name='商品数量')
     payment    =   models.CharField(max_length=10,blank=True,verbose_name='实付款')

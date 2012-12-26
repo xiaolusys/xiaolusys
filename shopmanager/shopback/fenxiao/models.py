@@ -49,6 +49,14 @@ SUB_PURCHASE_ORDER_STATUS = (
     (pcfg.TRADE_CLOSED,"交易关闭"),
 )
 
+PAY_TYPE_CHOICES = (
+    (pcfg.ALIPAY_SURETY_TYPE,'支付宝担保交易'),
+    (pcfg.ALIPAY_CHAIN_TYPE,'分账交易'),
+    (pcfg.TRANSFER_TYPE,'线下转账'),
+    (pcfg.PREPAY_TYPE,'预存款'),
+    (pcfg.IMMEDIATELY_TYPE,'即时到账'),
+)
+
 class FenxiaoProduct(models.Model):
     
     pid               = models.CharField(max_length=64,primary_key=True)
@@ -158,7 +166,7 @@ class PurchaseOrder(models.Model):
     consign_time       = models.DateTimeField(db_index=True,null=True,blank=True)
 
     pay_time   = models.DateTimeField(db_index=True,null=True,blank=True)
-    pay_type   = models.CharField(max_length=32,blank=True)
+    pay_type   = models.CharField(max_length=32,choices=PAY_TYPE_CHOICES,blank=True)
 
     post_fee   = models.CharField(max_length=10,blank=True)
     total_fee  = models.CharField(max_length=10,blank=True)
@@ -214,7 +222,7 @@ class PurchaseOrder(models.Model):
             sub_purchase_order.created  = parse_datetime(sub_order['created']) \
                 if sub_order.get('created',None) else None
             sub_purchase_order.save()
-            
+           
         merge_trade_signal.send(sender=PurchaseOrder,tid=purchase_order.id)
         return purchase_order
             

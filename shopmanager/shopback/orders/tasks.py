@@ -61,13 +61,15 @@ def saveUserDuringOrdersTask(user_id,update_from=None,update_to=None,status=None
         wait_update_trades = MergeTrade.objects.filter(status=pcfg.WAIT_SELLER_SEND_GOODS).exclude(tid__in=update_tids)
         for trade in wait_update_trades:
             user_id = trade.user.visitor_id
-            try:
-                response = apis.taobao_trade_fullinfo_get(tid=trade.tid,tb_user_id=user_id)
-                trade_dict = response['trade_fullinfo_get_response']['trade']
-                Trade.save_trade_through_dict(user_id,trade_dict)
-            except Exception,exc:
-                logger.error('update trade fullinfo error:%s'%exc,exc_info=True)
-                
+            need_update = False
+            if trade.type != pcfg.FENXIAO_TYPE:
+                try:
+                    response = apis.taobao_trade_fullinfo_get(tid=trade.tid,tb_user_id=user_id)
+                    trade_dict = response['trade_fullinfo_get_response']['trade']
+                    Trade.save_trade_through_dict(user_id,trade_dict)
+                except Exception,exc:
+                    logger.error('update trade fullinfo error:%s'%exc,exc_info=True)
+
 
 @task()
 def saveUserIncrementOrdersTask(user_id,update_from=None,update_to=None):
