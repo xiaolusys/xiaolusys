@@ -59,7 +59,7 @@ def trade_result_list(cl):
 
 @register.filter(name='prod_skus')  
 def prod_skus(order):
-    prods = ProductSku.objects.filter(prod_outer_id=order['outer_id'],status=pcfg.NORMAL,quantity__gt=0)
+    prods = ProductSku.objects.filter(prod_outer_id=order['outer_id'],status=pcfg.NORMAL)
     return prods
     
     

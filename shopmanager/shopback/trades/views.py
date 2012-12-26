@@ -3,6 +3,7 @@ import json
 from django.http import HttpResponse
 from django.db.models import Q
 from django.views.decorators.csrf import csrf_exempt
+from django.contrib.admin.models import ADDITION, CHANGE
 from djangorestframework.views import ModelView
 from djangorestframework.response import ErrorResponse
 from shopback.trades.models import MergeTrade,MergeOrder,GIFT_TYPE
@@ -30,6 +31,7 @@ class CheckOrderView(ModelView):
             'buyer_nick':trade.buyer_nick,
             'seller_nick':trade.seller_nick,
             'pay_time':trade.pay_time,
+            'payment':trade.payment,
             'buyer_message':trade.buyer_message,
             'seller_memo':trade.seller_memo,
             'logistics_company':trade.logistics_company,
@@ -56,6 +58,7 @@ class CheckOrderView(ModelView):
         
     def post(self, request, id, *args, **kwargs):
         
+        user_id = request.user.id
         try:
             trade = MergeTrade.objects.get(id=id)
         except MergeTrade.DoesNotExist:
@@ -90,11 +93,11 @@ class CheckOrderView(ModelView):
          
         if check_msg:
             return ','.join(check_msg)
-
-        rule_signal.send(sender='merge_trade_rule',trade_tid=trade.tid)
         
+        rule_signal.send(sender='payment_rule',trade_tid=trade.tid)
         MergeTrade.objects.filter(id=id,sys_status = pcfg.WAIT_AUDIT_STATUS)\
             .update(sys_status=pcfg.WAIT_PREPARE_SEND_STATUS,reason_code='')
+        
         return {'success':True}    
       
        
@@ -114,6 +117,7 @@ class OrderPlusView(ModelView):
         
     def post(self, request, *args, **kwargs):
         
+        user_id  = request.user.id
         trade_id = request.POST.get('trade_id')
         outer_id = request.POST.get('outer_id')
         outer_sku_id = request.POST.get('outer_sku_id')
@@ -143,6 +147,7 @@ class OrderPlusView(ModelView):
 @csrf_exempt     
 def change_trade_addr(request):
     
+    user_id  = request.user.id
     CONTENT    = request.REQUEST
     trade_id   = CONTENT.get('trade_id')
     try:
@@ -162,6 +167,7 @@ def change_trade_addr(request):
 @csrf_exempt     
 def change_trade_order(request,id):
     
+    user_id    = request.user.id
     CONTENT    = request.REQUEST
     outer_sku_id = CONTENT.get('outer_sku_id')
     try:
@@ -200,12 +206,18 @@ def change_trade_order(request,id):
 @csrf_exempt     
 def delete_trade_order(request,id):
     
-    num = MergeOrder.objects.filter(id=id).update(sys_status=pcfg.INVALID_STATUS)
+    user_id      = request.user.id
+    try:
+        merge_order  = MergeOrder.objects.get(id=id)
+    except:
+        HttpResponse(json.dumps({'code':1,'response_content':{'success':False}}),mimetype="application/json")
+        
+    num = MergeOrder.objects.filter(id=id,status=pcfg.WAIT_SELLER_SEND_GOODS).update(sys_status=pcfg.INVALID_STATUS)
     if num == 1:
         ret_params = {'code':0,'response_content':{'success':True}}
     else:
         ret_params = {'code':1,'response_content':{'success':False}}
-  
+        
     return HttpResponse(json.dumps(ret_params),mimetype="application/json")
 
     

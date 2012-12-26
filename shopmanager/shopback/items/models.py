@@ -118,9 +118,7 @@ class ProductSku(models.Model):
             value_list.append( '%s'%values[3] if len(values)==4 else properties)
         return ','.join(value_list)
     
-    
-    
-    
+  
 
 def calculate_product_collect_num(sender, instance, *args, **kwargs):
     """修改SKU库存后，更新库存商品的总库存 """

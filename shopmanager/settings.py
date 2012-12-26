@@ -317,6 +317,11 @@ LOGGING = {
             'level': 'WARN',
             'propagate': True,
         },
+        'logaction.handler':{
+            'handlers': ['sentry'],
+            'level': 'WARN',
+            'propagate': True,
+        },
     }
 }
 
