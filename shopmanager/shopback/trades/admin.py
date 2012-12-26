@@ -42,8 +42,8 @@ def has_modify_trade_info_status_permission(request, obj=None):
 class MergeOrderInline(admin.TabularInline):
     
     model = MergeOrder
-    fields = ('oid','outer_id','outer_sku_id','title','price','payment','num','sku_properties_name',
-                    'out_stock','is_merge','is_rule_match','gift_type','refund_id','refund_status','status','sys_status')
+    fields = ('oid','outer_id','outer_sku_id','title','price','payment','num','sku_properties_name','out_stock',
+                    'is_merge','is_rule_match','gift_type','refund_id','refund_status','status','sys_status')
     
     formfield_overrides = {
         models.CharField: {'widget': TextInput(attrs={'size':'12'})},
@@ -59,7 +59,8 @@ class MergeTradeAdmin(admin.ModelAdmin):
     #list_editable = ('update_time','task_type' ,'is_success','status')
     
     #change_list_template = "admin/trades/change_list_result.html"
-
+    change_form_template  = "admin/trades/change_trade_form.html"
+    
     date_hierarchy = 'created'
     ordering = ['-priority','pay_time',]
     list_per_page = 100

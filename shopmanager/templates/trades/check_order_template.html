@@ -22,7 +22,7 @@
 	<option {% if trade.priority == 0 %}selected{% endif %} value="0">中</option>
 	<option {% if trade.priority == 1 %}selected{% endif %} value="1">高</option>
 </select>
-
+<label class="simple-label">问题编号:</label><span>{{ trade.reason_code }}</span>
 </div>
 <div class="accordion-group1">
 <div class="accordion-heading1">

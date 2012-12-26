@@ -46,6 +46,7 @@ class CheckOrderView(ModelView):
             'has_out_stock':trade.has_out_stock,
             'has_rule_match':trade.has_rule_match,
             'has_merge':trade.has_merge,
+            'reason_code':trade.reason_code,
             'status':trade.status,
             'sys_status':trade.sys_status,
             'used_orders':trade.inuse_orders,
