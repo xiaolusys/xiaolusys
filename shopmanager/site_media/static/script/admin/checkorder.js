@@ -50,8 +50,7 @@ var addSearchRow  = function(tableID,prod){
 	row.appendChild(sku_cell);
 	row.appendChild(num_cell);
 	row.appendChild(price_cell);
-	row.appendChild(addbtn_cell);
-	
+	row.appendChild(addbtn_cell);	
 }
 
 var addOrderRow  = function(tableID,order){
@@ -101,7 +100,7 @@ ordercheck.Dialog.prototype.init = function (id) {
         	dialog.setContent(res);
 		    dialog.setTitle('订单审核详情');
 		    dialog.setButtonSet(new goog.ui.Dialog.ButtonSet().addButton({key: 'OK', caption: "审核订单"}
-		        ,true,false));
+		        ,false,false));
 		    goog.events.listen(dialog, goog.ui.Dialog.EventType.SELECT, that);
 		    that.setEvent();
         } catch (err) {
@@ -299,10 +298,13 @@ ordercheck.Dialog.prototype.deleteOrder=function(e){
 
 ordercheck.Dialog.prototype.handleEvent= function (e) {
     if (e.key == 'OK') {
+    	console.log('key',e.key);
         var tradeDom  = goog.dom.getElement("id_check_trade");
         var logisticsDom = goog.dom.getElement("id_logistics");
         var priorityDom  = goog.dom.getElement("id_priority");
         var retval    = this.orderManager.checkorder(tradeDom.value, logisticsDom.value, priorityDom.value);
+    }else{
+    	console.log('key',e.key);
     }
     return false;
 }

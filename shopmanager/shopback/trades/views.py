@@ -3,7 +3,6 @@ import json
 from django.http import HttpResponse
 from django.db.models import Q
 from django.views.decorators.csrf import csrf_exempt
-from django.contrib.admin.models import ADDITION, CHANGE
 from djangorestframework.views import ModelView
 from djangorestframework.response import ErrorResponse
 from shopback.trades.models import MergeTrade,MergeOrder,GIFT_TYPE
