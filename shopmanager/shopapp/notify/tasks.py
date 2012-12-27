@@ -204,47 +204,49 @@ def process_refund_notify_task(id):
         notify = RefundNotify.objects.get(id=id)
         #只处理非分销订单
         try:
-            merge_trade = MergeTrade.objects.get(tid=notify.tid,type=pcfg.FENXIAO_TYPE)
+            merge_trade = MergeTrade.objects.get(tid=notify.tid)
         except MergeTrade.DoesNotExist:
-            if notify.status == 'RefundCreated':
-                refund = Refund.get_or_create(notify.user_id,notify.rid)
-                merge_trade.append_reason_code(pcfg.WAITING_REFUND_CODE)
-                Order.objects.filter(oid=notify.oid,trade=notify.tid).update(status=pcfg.REFUND_WAIT_SELLER_AGREE)
-                MergeOrder.objects.filter(tid=notify.tid,oid=notify.oid).update(refund_id=notify.rid,refund_status=pcfg.REFUND_WAIT_SELLER_AGREE)
-                if merge_trade.status == pcfg.WAIT_SELLER_SEND_GOODS:
-                    merge_type  = MergeBuyerTrade.get_merge_type(notify.tid)
-                    if merge_type == 0:    
-                        MergeTrade.objects.filter(tid=notify.tid,out_sid='')\
-                            .update(modified=notify.modified,sys_status=pcfg.WAIT_AUDIT_STATUS,refund_num=F('refund_num')+1)
-                    elif merge_type == 1:
-                        main_tid = MergeBuyerTrade.objects.get(sub_tid=notify.tid).main_tid
-                        merge_order_remover(main_tid)
+            pass
+        else:
+            if merge_trade.type == pcfg.FENXIAO_TYPE:
+                if notify.status == 'RefundCreated':
+                    refund = Refund.get_or_create(notify.user_id,notify.rid)
+                    merge_trade.append_reason_code(pcfg.WAITING_REFUND_CODE)
+                    Order.objects.filter(oid=notify.oid,trade=notify.tid).update(status=pcfg.REFUND_WAIT_SELLER_AGREE)
+                    MergeOrder.objects.filter(tid=notify.tid,oid=notify.oid).update(refund_id=notify.rid,refund_status=pcfg.REFUND_WAIT_SELLER_AGREE)
+                    if merge_trade.status == pcfg.WAIT_SELLER_SEND_GOODS:
+                        merge_type  = MergeBuyerTrade.get_merge_type(notify.tid)
+                        if merge_type == 0:    
+                            MergeTrade.objects.filter(tid=notify.tid,out_sid='')\
+                                .update(modified=notify.modified,sys_status=pcfg.WAIT_AUDIT_STATUS,refund_num=F('refund_num')+1)
+                        elif merge_type == 1:
+                            main_tid = MergeBuyerTrade.objects.get(sub_tid=notify.tid).main_tid
+                            merge_order_remover(main_tid)
+                        else:
+                            merge_order_remover(notify.tid)
+        
+                elif notify.status in('RefundClosed','RefundSuccess','RefundSellerAgreeAgreement','RefundSellerRefuseAgreement'):
+                    if notify.status == 'RefundClosed':
+                        refund_status = pcfg.REFUND_CLOSED
+                        order_status  = pcfg.WAIT_SELLER_SEND_GOODS
+                    elif notify.status == 'RefundSuccess':
+                        refund_status = pcfg.REFUND_SUCCESS
+                        order_status  = pcfg.TRADE_CLOSED
+                    elif notify.status == 'RefundSellerAgreeAgreement':
+                        refund_status = pcfg.REFUND_WAIT_RETURN_GOODS
+                        order_status  = pcfg.TRADE_CLOSED
                     else:
-                        merge_order_remover(notify.tid)
-    
-            elif notify.status in('RefundClosed','RefundSuccess','RefundSellerAgreeAgreement','RefundSellerRefuseAgreement'):
-                if notify.status == 'RefundClosed':
-                    refund_status = pcfg.REFUND_CLOSED
-                    order_status  = pcfg.WAIT_SELLER_SEND_GOODS
-                elif notify.status == 'RefundSuccess':
-                    refund_status = pcfg.REFUND_SUCCESS
-                    order_status  = pcfg.TRADE_CLOSED
-                elif notify.status == 'RefundSellerAgreeAgreement':
-                    refund_status = pcfg.REFUND_WAIT_RETURN_GOODS
-                    order_status  = pcfg.TRADE_CLOSED
-                else:
-                    refund_status = pcfg.REFUND_REFUSE_BUYER
-                    order_status  = pcfg.WAIT_SELLER_SEND_GOODS
-                refund = Refund.get_or_create(notify.user_id,notify.rid)
-                merge_trade = MergeTrade.objects.get(tid=notify.tid)
-                merge_trade.remove_reason_code(pcfg.WAITING_REFUND_CODE)
-                MergeOrder.objects.filter(tid=notify.tid,oid=notify.oid).update(refund_status=refund_status,status=order_status)
-                
-                if notify.status == 'RefundSuccess' and merge_trade.status==pcfg.WAIT_SELLER_SEND_GOODS:
-                    drive_merge_trade_action(notify.tid)
-                    rule_signal.send(sender='combose_split_rule',trade_tid=notify.tid)
-                    rule_signal.send(sender='payment_rule',trade_tid=notify.tid)
-
+                        refund_status = pcfg.REFUND_REFUSE_BUYER
+                        order_status  = pcfg.WAIT_SELLER_SEND_GOODS
+                    refund = Refund.get_or_create(notify.user_id,notify.rid)
+                    merge_trade = MergeTrade.objects.get(tid=notify.tid)
+                    merge_trade.remove_reason_code(pcfg.WAITING_REFUND_CODE)
+                    MergeOrder.objects.filter(tid=notify.tid,oid=notify.oid).update(refund_status=refund_status,status=order_status)
+                    
+                    if notify.status == 'RefundSuccess' and merge_trade.status==pcfg.WAIT_SELLER_SEND_GOODS:
+                        drive_merge_trade_action(notify.tid)
+                        rule_signal.send(sender='combose_split_rule',trade_tid=notify.tid)
+                        rule_signal.send(sender='payment_rule',trade_tid=notify.tid)
     except Exception,exc:
         logger.error(exc.message,exc_info=True)
         raise process_refund_notify_task.retry(exc=exc,countdown=60)

@@ -225,7 +225,7 @@ def rule_match_payment(sender, trade_tid, *args, **kwargs):
             orders = trade.merge_trade_orders.filter(status=pcfg.WAIT_SELLER_SEND_GOODS,gift_type=pcfg.REAL_ORDER_GIT_TYPE)\
                             .exclude(refund_status__in=pcfg.REFUND_APPROVAL_STATUS)
             
-            payment = orders.aggregate(total_payment=Sum('payment'))['total_payment'] 
+            payment = orders.aggregate(total_payment=Sum('payment'))['total_payment'] or 0
             post_fee = trade.post_fee or 0
             
             real_payment = payment - float(post_fee)
