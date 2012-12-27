@@ -190,7 +190,7 @@ def apis(api_method,method='GET',max_retry=3,limit_rate=0.5):
             params['access_token'] = user.top_session
             params_copy = dict(params)
             for k,v in params_copy.iteritems():
-                if not v:
+                if v == None:
                     params.pop(k)
                 elif type(v) == unicode:
                     params[k] = v.encode('utf8')

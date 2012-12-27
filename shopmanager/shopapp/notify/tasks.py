@@ -202,11 +202,10 @@ def process_refund_notify_task(id):
     """
     try:
         notify = RefundNotify.objects.get(id=id)
+        #只处理非分销订单
         try:
             merge_trade = MergeTrade.objects.get(tid=notify.tid,type=pcfg.FENXIAO_TYPE)
         except MergeTrade.DoesNotExist:
-            pass
-        else:
             if notify.status == 'RefundCreated':
                 refund = Refund.get_or_create(notify.user_id,notify.rid)
                 merge_trade.append_reason_code(pcfg.WAITING_REFUND_CODE)
@@ -442,9 +441,9 @@ def process_discard_notify_task(begin,end,user_id=None):
 
 
 @task()
-def delete_success_notify_record_task():
+def delete_success_notify_record_task(days):
     #更新定时提醒订单
-    dt = datetime.datetime.now() - datetime.timedelta(1,0,0)
+    dt = datetime.datetime.now() - datetime.timedelta(days,0,0)
     
     ItemNotify.objects.filter(modified__lt=dt,is_exec=True).delete()
     

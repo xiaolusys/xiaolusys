@@ -141,7 +141,7 @@ SHOP_APP_SCHEDULE = {
     'runs-every-day-delete-notify-record':{
         'task':'shopapp.notify.tasks.delete_success_notify_record_task',
         'schedule':crontab(minute="30",hour="0"),
-        'args':()
+        'args':(7,)
     },
 }
 
