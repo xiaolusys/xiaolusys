@@ -534,7 +534,7 @@ class MergeBuyerTrade(models.Model):
         verbose_name='合单记录'.decode('utf8')
         
     def __unicode__(self):
-        return '<%d,%d>'%(sub_tid,main_tid)
+        return '<%d,%d>'%(self.sub_tid,self.main_tid)
     
     @classmethod
     def get_merge_type(cls,tid):
