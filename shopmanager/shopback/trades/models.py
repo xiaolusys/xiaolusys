@@ -377,7 +377,9 @@ class MergeTrade(models.Model):
     
     @classmethod
     def judge_need_merge(cls,trade_id,buyer_nick,receiver_name,receiver_address):
-        #是否需要合单      
+        #是否需要合单 
+        if not receiver_address and not receiver_name:   
+            return False  
         trades = cls.objects.filter(buyer_nick=buyer_nick,receiver_name=receiver_name,receiver_address=receiver_address
                 ,sys_status__in=(pcfg.WAIT_PREPARE_SEND_STATUS,pcfg.WAIT_AUDIT_STATUS,pcfg.REGULAR_REMAIN_STATUS)).exclude(tid=trade_id)
         is_need_merge = False
@@ -558,15 +560,13 @@ def merge_order_maker(sub_tid,main_tid):
     sub_trade      = MergeTrade.objects.get(tid=sub_tid)
     main_merge_trade = MergeTrade.objects.get(tid=main_tid)
     
-    main_merge_trade.merge_trade_orders.filter(oid=None).delete()
     main_merge_trade.append_reason_code(pcfg.NEW_MERGE_TRADE_CODE)
-    orders = sub_trade.merge_trade_orders.exclude(oid=None)
     merge_order = MergeOrder()
     
     payment      = 0
     total_fee    = 0
     discount_fee = 0
-    for order in orders:
+    for order in sub_trade.merge_trade_orders:
         for field in order._meta.fields:
             hasattr(merge_order,field.name) and setattr(merge_order,field.name,getattr(order,field.name))
         merge_order.id  = None
