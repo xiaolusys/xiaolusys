@@ -299,7 +299,8 @@ class MergeTrade(models.Model):
         except Trade.DoesNotExist:
             logger.error('trade(tid:%d) does not exist'%trade_id)
         else:
-            orders = trade.merge_trade_orders.exclude(refund_status__in=pcfg.REFUND_APPROVAL_STATUS,sys_status=pcfg.IN_EFFECT)
+            orders = trade.merge_trade_orders.filter(sys_status=pcfg.IN_EFFECT)\
+                .exclude(refund_status__in=pcfg.REFUND_APPROVAL_STATUS,sys_status=pcfg.IN_EFFECT)
             for order in orders:
                 is_order_out = False
                 if order.outer_sku_id:
@@ -576,8 +577,8 @@ def merge_order_maker(sub_tid,main_tid):
         merge_order.sys_status = pcfg.IN_EFFECT
         merge_order.save()
         if order.refund_status not in pcfg.REFUND_APPROVAL_STATUS:
-            payment   += float(order.payment)
-            total_fee += float(order.total_fee)
+            payment   += float(order.payment or 0)
+            total_fee += float(order.total_fee or 0)
             discount_fee += float(order.discount_fee or 0)
     
     if sub_trade.buyer_message:
