@@ -148,12 +148,11 @@ class MergeTradeAdmin(admin.ModelAdmin):
                     operate_success = False
                 else:
                     operate_success = True
-     
-            if operate_success: 
-                rule_signal.send(sender='payment_rule',trade_tid=obj.tid)
+                    
+            if operate_success:
+                rule_signal.send(sender='payment_rule',trade_tid=obj.tid) 
                 msg = "审核通过"
                 self.message_user(request, msg)
-                
                 log_action(request.user.id,obj,CHANGE,msg)
                 
                 return HttpResponseRedirect("../%s/" % pk_value)

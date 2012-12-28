@@ -22,6 +22,7 @@ class CheckOrderView(ModelView):
         except MergeTrade.DoesNotExist:
             return '该订单不存在'.decode('utf8')
         
+        rule_signal.send(sender='payment_rule',trade_tid=trade.tid)
         logistics = LogisticsCompany.objects.filter(status=True)
         
         trade_dict = {
@@ -52,7 +53,7 @@ class CheckOrderView(ModelView):
             'sys_status':trade.sys_status,
             'used_orders':trade.inuse_orders,
         }
-
+        
         return {'trade':trade_dict,'logistics':logistics}
         
     def post(self, request, id, *args, **kwargs):
@@ -92,8 +93,7 @@ class CheckOrderView(ModelView):
          
         if check_msg:
             return ','.join(check_msg)
-        
-        rule_signal.send(sender='payment_rule',trade_tid=trade.tid)
+
         MergeTrade.objects.filter(id=id,sys_status = pcfg.WAIT_AUDIT_STATUS)\
             .update(sys_status=pcfg.WAIT_PREPARE_SEND_STATUS,reason_code='')
         
