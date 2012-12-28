@@ -893,7 +893,7 @@ def save_fenxiao_orders_to_mergetrade(sender, tid, *args, **kwargs):
         merge_trade,state = MergeTrade.objects.get_or_create(tid=trade.id)
         
         first_pay_load = not merge_trade.sys_status 
-        if first_pay_load and merge_trade.status == pcfg.WAIT_SELLER_SEND_GOODS:
+        if first_pay_load and trade.status == pcfg.WAIT_SELLER_SEND_GOODS:
             logistics = Logistics.get_or_create(trade.seller_id,trade.id)
             location = json.loads(logistics.location or 'null')
         
