@@ -566,7 +566,7 @@ def merge_order_maker(sub_tid,main_tid):
     payment      = 0
     total_fee    = 0
     discount_fee = 0
-    for order in sub_trade.merge_trade_orders:
+    for order in sub_trade.merge_trade_orders.all():
         for field in order._meta.fields:
             hasattr(merge_order,field.name) and setattr(merge_order,field.name,getattr(order,field.name))
         merge_order.id  = None
