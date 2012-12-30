@@ -110,6 +110,8 @@ class DaemonCommand(BaseCommand):
             help='Standard Error'),
         make_option('--scheduler_cls', action='store', dest='scheduler_cls',
             help='Store peroidtask info to database.'),
+        make_option('--file_path', action='store', dest='file_path',
+            help='input file for the program.'),
     )
     help = 'Create a daemon'
     
@@ -125,6 +127,7 @@ class DaemonCommand(BaseCommand):
     uid = None
     gid = None
     scheduler_cls = None
+    file_path = None
     
     def get_option_value(self, options, name, expected=None):
         value = options.get(name)

@@ -22,6 +22,7 @@ class CheckOrderView(ModelView):
         except MergeTrade.DoesNotExist:
             return '该订单不存在'.decode('utf8')
         
+        rule_signal.send(sender='payment_rule',trade_tid=trade.tid)
         logistics = LogisticsCompany.objects.filter(status=True)
         
         trade_dict = {
@@ -30,6 +31,7 @@ class CheckOrderView(ModelView):
             'buyer_nick':trade.buyer_nick,
             'seller_nick':trade.seller_nick,
             'pay_time':trade.pay_time,
+            'payment':trade.payment,
             'buyer_message':trade.buyer_message,
             'seller_memo':trade.seller_memo,
             'logistics_company':trade.logistics_company,
@@ -46,15 +48,17 @@ class CheckOrderView(ModelView):
             'has_out_stock':trade.has_out_stock,
             'has_rule_match':trade.has_rule_match,
             'has_merge':trade.has_merge,
+            'reason_code':trade.reason_code,
             'status':trade.status,
             'sys_status':trade.sys_status,
             'used_orders':trade.inuse_orders,
         }
-
+        
         return {'trade':trade_dict,'logistics':logistics}
         
     def post(self, request, id, *args, **kwargs):
         
+        user_id = request.user.id
         try:
             trade = MergeTrade.objects.get(id=id)
         except MergeTrade.DoesNotExist:
@@ -80,19 +84,19 @@ class CheckOrderView(ModelView):
             check_msg.append("信息不全".decode('utf8'))
         if trade.sys_status != pcfg.WAIT_AUDIT_STATUS:
             check_msg.append("订单暂不能审核".decode('utf8'))
-        orders = trade.merge_trade_orders.filter(status__in=(pcfg.WAIT_SELLER_SEND_GOODS,
-                    pcfg.CONFIRM_WAIT_SEND_GOODS,pcfg.WAIT_CONFIRM_WAIT_SEND_GOODS))\
-                    .exclude(refund_status__in=pcfg.REFUND_APPROVAL_STATUS)
+        if trade.has_reason_code(pcfg.MULTIPLE_ORDERS_CODE):
+            check_msg.append("需手动合单".decode('utf8'))
+        orders = trade.merge_trade_orders.filter(status=pcfg.WAIT_SELLER_SEND_GOODS)\
+                    .exclude(refund_status__in=pcfg.REFUND_APPROVAL_STATUS)   
         if orders.count() <= 0:
             check_msg.append("没有可发订单！".decode('utf8'))
          
         if check_msg:
             return ','.join(check_msg)
 
-        rule_signal.send(sender='merge_trade_rule',trade_tid=trade.tid)
-        
         MergeTrade.objects.filter(id=id,sys_status = pcfg.WAIT_AUDIT_STATUS)\
             .update(sys_status=pcfg.WAIT_PREPARE_SEND_STATUS,reason_code='')
+        
         return {'success':True}    
       
        
@@ -112,6 +116,7 @@ class OrderPlusView(ModelView):
         
     def post(self, request, *args, **kwargs):
         
+        user_id  = request.user.id
         trade_id = request.POST.get('trade_id')
         outer_id = request.POST.get('outer_id')
         outer_sku_id = request.POST.get('outer_sku_id')
@@ -141,6 +146,7 @@ class OrderPlusView(ModelView):
 @csrf_exempt     
 def change_trade_addr(request):
     
+    user_id  = request.user.id
     CONTENT    = request.REQUEST
     trade_id   = CONTENT.get('trade_id')
     try:
@@ -160,6 +166,7 @@ def change_trade_addr(request):
 @csrf_exempt     
 def change_trade_order(request,id):
     
+    user_id    = request.user.id
     CONTENT    = request.REQUEST
     outer_sku_id = CONTENT.get('outer_sku_id')
     try:
@@ -168,21 +175,28 @@ def change_trade_order(request,id):
         return HttpResponse(json.dumps({'code':1,"response_error":"订单不存在！"}),mimetype="application/json")
     
     try:
+        prod  = Product.objects.get(outer_id=order.outer_id)
+    except Product.DoesNotExist:
+        return HttpResponse(json.dumps({'code':1,"response_error":"商品不存在！"}),mimetype="application/json")
+        
+    try:
         prod_sku = ProductSku.objects.get(prod_outer_id=order.outer_id,outer_id=outer_sku_id) 
     except ProductSku.DoesNotExist:
         return HttpResponse(json.dumps({'code':1,"response_error":"商品规格不存在！"}),mimetype="application/json")
     
-    MergeOrder.objects.filter(id=order.id).update(outer_sku_id=prod_sku.outer_id,
-                                                  sku_properties_name=prod_sku.properties_name,is_rule_match=False)
     order = MergeOrder.objects.get(id=order.id)
-   
+    order.outer_sku_id=prod_sku.outer_id
+    order.sku_properties_name=prod_sku.properties_name
+    order.is_rule_match=False
+    order.save()
+    
     ret_params = {'code':0,'response_content':{'id':order.id,
                                                'outer_id':order.outer_id,
-                                               'title':order.title,
+                                               'title':prod.name,
                                                'sku_properties_name':order.sku_properties_name,
                                                'num':order.num,
                                                'price':order.price,
-                                               'gift_type':dict(GIFT_TYPE).get(order.gift_type),
+                                               'gift_type':order.gift_type,
                                                }}
     
     return HttpResponse(json.dumps(ret_params),mimetype="application/json")
@@ -191,10 +205,18 @@ def change_trade_order(request,id):
 @csrf_exempt     
 def delete_trade_order(request,id):
     
-    num = MergeOrder.objects.filter(id=id).delete()
-    
-    ret_params = {'code':0,'response_content':{'success':True}}
-  
+    user_id      = request.user.id
+    try:
+        merge_order  = MergeOrder.objects.get(id=id)
+    except:
+        HttpResponse(json.dumps({'code':1,'response_content':{'success':False}}),mimetype="application/json")
+        
+    num = MergeOrder.objects.filter(id=id,status=pcfg.WAIT_SELLER_SEND_GOODS).update(sys_status=pcfg.INVALID_STATUS)
+    if num == 1:
+        ret_params = {'code':0,'response_content':{'success':True}}
+    else:
+        ret_params = {'code':1,'response_content':{'success':False}}
+        
     return HttpResponse(json.dumps(ret_params),mimetype="application/json")
 
     

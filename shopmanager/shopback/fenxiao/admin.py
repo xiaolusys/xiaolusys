@@ -48,7 +48,7 @@ class SubPurchaseOrderAdmin(admin.ModelAdmin):
     #ordering = ['created_at']
 
     list_filter = ('order_200_status','status',)
-    search_fields = ['fenxiao_id','id','sku_id','title']
+    search_fields = ['fenxiao_id','id','sku_id','tc_order_id','title']
 
 
 admin.site.register(SubPurchaseOrder, SubPurchaseOrderAdmin)

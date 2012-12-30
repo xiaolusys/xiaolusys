@@ -155,11 +155,11 @@ class TradesToXLSFile(object):
 
             self.write_trades_to_sheet(sheet,seller_id,seller_finish_trades,TITLE_FIELDS['TRADE_FINISH_MSG'])
 
-            seller_purchase_trades = PurchaseOrder.objects.filter(
-                user__visitor_id=seller_id,consign_time__gte=dt_from
-                ,consign_time__lte=dt_to,status__in = pcfg.ORDER_SUCCESS_STATUS)
-
-            self.write_purchase_to_sheet(sheet,seller_id,seller_purchase_trades)
+#            seller_purchase_trades = PurchaseOrder.objects.filter(
+#                user__visitor_id=seller_id,consign_time__gte=dt_from
+#                ,consign_time__lte=dt_to,status__in = pcfg.ORDER_SUCCESS_STATUS)
+#
+#            self.write_purchase_to_sheet(sheet,seller_id,seller_purchase_trades)
 
             self.cur_row += 1
             self.write_trade_account(sheet,3,self.cur_row,seller_nick)
@@ -279,7 +279,7 @@ class TradesToXLSFile(object):
         for refund in refunds:
             trade = self.get_trade_or_purchase_trade(refund.tid)
             if trade and trade.consign_time and trade.consign_time >=dt_from and trade.consign_time<=dt_to\
-                and trade.status in ORDER_SUCCESS_STATUS:
+                and trade.status in pcfg.ORDER_SUCCESS_STATUS:
                 self.cur_row += 1
                 for data_num,data_tuple in enumerate(refund_format):
                     try:

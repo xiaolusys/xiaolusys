@@ -20,7 +20,19 @@ logger = logging.getLogger('syncnum.handler')
 
 @transaction.commit_on_success
 def updateItemNum(user_id,num_iid,update_time):
-    
+    """
+    taobao_item_quantity_update response:
+    {'iid': '21557036378',
+    'modified': '2012-12-26 12:51:16',
+    'num': 24,
+    'num_iid': 21557036378,
+    'skus': {'sku': ({'modified': <type 'str'>,
+                      'quantity': <type 'int'>,
+                      'sku_id': <type 'int'>},
+                     {'modified': <type 'str'>,
+                      'quantity': <type 'int'>,
+                      'sku_id': <type 'int'>})}}
+    """
     item = Item.objects.get(num_iid=num_iid)
     product = item.product
     if not product:
@@ -49,7 +61,7 @@ def updateItemNum(user_id,num_iid,update_time):
                 response = apis.taobao_item_quantity_update\
                         (num_iid=item.num_iid,quantity=real_num,outer_id=outer_sku_id,tb_user_id=user_id)
                 item_dict = response['item_quantity_update_response']['item']
-                Item.save_item_through_dict(user_id,item_dict)
+                Item.objects.filter(num_iid=item_dict['num_iid']).update(modified=item_dict['modified'],num=item_dict['num'])
                 
                 product_sku.quantity = real_num
                 product_sku.save()
@@ -76,7 +88,7 @@ def updateItemNum(user_id,num_iid,update_time):
         if product.sync_stock and sync_num != product.collect_num:
             response = apis.taobao_item_quantity_update(num_iid=item.num_iid,quantity=sync_num,tb_user_id=user_id)
             item_dict = response['item_update_response']['item']
-            Item.save_item_through_dict(user_id,item_dict)
+            Item.objects.filter(num_iid=item_dict['num_iid']).update(modified=item_dict['modified'],num=item_dict['num'])
         
             product.collect_num = real_num
             product.save()

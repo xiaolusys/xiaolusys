@@ -28,7 +28,6 @@ import logging
 
 logger = logging.getLogger('asynctask.handler')
 
-TASK_NAME_COMPILE=re.compile('^\<\@task\:\W+(?P<task_name>[\w\.]+)\>$')
 TASK_STATUS ={
     'new':TASK_ASYNCOK,          
     'done':TASK_ASYNCCOMPLETE,
@@ -36,21 +35,28 @@ TASK_STATUS ={
     'doing':TASK_ASYNCOK              
 }
 
+def full_class_name(ins):
+    return ins.__module__+'.'+ins.__class__.__name__
+    
+    
 @task()
 def taobaoAsyncHandleTask():
+    """ 淘宝异步任务处理核心类 """
     asynctasks = TaobaoAsyncTask.objects.filter(status__in=(TASK_ASYNCOK,TASK_ASYNCCOMPLETE,TASK_DOWNLOAD))
     for asynctask in asynctasks:
-        task_name = TASK_NAME_COMPILE.search(asynctask.task)
+        task_name = asynctask.task
+
         if not task_name:
             continue
-        task_handler = tasks[task_name.groupdict()['task_name']]
-
+        
+        task_handler = tasks[task_name]
         if asynctask.status == TASK_ASYNCOK:
             task_handler.is_taobao_complete(asynctask.task_id)
             asynctask = TaobaoAsyncTask.objects.get(task_id=asynctask.task_id)
             
         if asynctask.status == TASK_ASYNCCOMPLETE:
             task_handler.download_result_file(asynctask.task_id)
+            
             asynctask = TaobaoAsyncTask.objects.get(task_id=asynctask.task_id)
                 
         if asynctask.status == TASK_DOWNLOAD:
@@ -80,12 +86,20 @@ class TaobaoAsyncBaseTask(Task):
     def run(self,*args,**kwargs):
         raise NotImplement("该方法没有实现")
     
-    def after_return(self,status,result_dict,task_id,*args,**kwargs):
+    def after_return(self,status,result_dict,*args,**kwargs):
 
-        next_status = TASK_ASYNCOK if result_dict['success'] else TASK_INVALID
-        result_json = json.dumps(result_dict['result']) if result_dict['success'] else result_dict['result']
-        top_task_id = result_dict.get('top_task_id','')
-        TaobaoAsyncTask.objects.filter(task_id=task_id).update(status=next_status,result=result_json,top_task_id=top_task_id)
+        try:
+            async_task = TaobaoAsyncTask.objects.create(task=full_class_name(self)) 
+        except Exception,exc:
+            raise
+        else:
+            user_id     = result_dict['user_id']
+            next_status = TASK_ASYNCOK if result_dict['success'] else TASK_INVALID
+            result_json = json.dumps(result_dict['result']) if result_dict['success'] else result_dict['result']
+            top_task_id = result_dict.get('top_task_id','')
+            params      = json.dumps(result_dict.get('params',{}))
+            TaobaoAsyncTask.objects.filter(task_id=async_task.task_id)\
+                .update(user_id=user_id,status=next_status,result=result_json,top_task_id=top_task_id,params=params)
          
          
     def is_taobao_complete(self,task_id): 
@@ -96,8 +110,8 @@ class TaobaoAsyncBaseTask(Task):
         else:
             try:
                 response = apis.taobao_topats_result_get(task_id=async_task.top_task_id,tb_user_id=async_task.user_id)
-            except:
-                pass
+            except Exception,exc:
+                logger.error(exc.message,exc_info=True)
             else:
                 task_status = response['topats_result_get_response']['task']['status'] 
                 async_task_status = TASK_STATUS.get(task_status,TASK_INVALID) 
@@ -183,16 +197,20 @@ class TaobaoAsyncBaseTask(Task):
 #========================== Async Category Task ============================
 class AsyncCategoryTask(TaobaoAsyncBaseTask): 
     
-    def run(self,cids,user_id,task_id,task_name,seller_type='B',fetch_time=None,*args,**kwargs):
-        TaobaoAsyncTask.objects.filter(task_id=task_id).update(user_id=user_id,fetch_time=fetch_time)
+    def run(self,cids,user_id,seller_type='B',fetch_time=None,*args,**kwargs):
+
         try:
             response = apis.taobao_topats_itemcats_get(seller_type=seller_type,cids=cids,tb_user_id=user_id)
         except Exception,exc:
             logger.error('%s'%exc,exc_info=True)
-            return {'success':False,'result':'%s'%exc} 
+            return {'user_id':user_id,'success':False,'result':'%s'%exc} 
         else:
             top_task_id =response['topats_itemcats_get_response']['task']['task_id']
-            return {'success':True,'result':response,'top_task_id':top_task_id}
+            return {'user_id':user_id,
+                    'success':True,
+                    'result':response,
+                    'top_task_id':top_task_id,
+                    'params':{'cids':cids,'seller_type':seller_type}}
 
  
     def handle_result_file(self,task_id):
@@ -208,9 +226,7 @@ class AsyncCategoryTask(TaobaoAsyncBaseTask):
             return True
         except Exception,exc:
             logger.error('async task result handle fail: %s'%exc,exc_info=True)
-            return False
-
-            
+            return False        
             
     def save_category(self,cat_json):
         cat,state = Category.objects.get_or_create(cid=cat_json['cid'])
@@ -231,15 +247,11 @@ tasks.register(AsyncCategoryTask)
 #================================ Async Order Task   ==================================
 class AsyncOrderTask(TaobaoAsyncBaseTask): 
     
-    def run(self,start_time,end_time,user_id,task_id,task_name,delay_days=15,fetch_time=None,*args,**kwargs):
+    def run(self,start_time,end_time,user_id,fetch_time=None,*args,**kwargs):
+
         if start_time>end_time:
             return 
-        #订单更新的期限不能小于指定天数
-        dt = datetime.datetime.now()-datetime.timedelta(delay_days,0,0)
-        if dt.date() <= end_time.date():
-            end_time = dt
-            
-        TaobaoAsyncTask.objects.filter(task_id=task_id).update(user_id=user_id,fetch_time=fetch_time)
+        
         start_time = start_time.strftime("%Y%m%d")
         end_time   = end_time.strftime("%Y%m%d")
         try:
@@ -247,10 +259,14 @@ class AsyncOrderTask(TaobaoAsyncBaseTask):
             #response = {u'topats_trades_sold_get_response': {u'task': {u'task_id': 37606086, u'created': u'2012-08-31 17:40:42'}}}
         except Exception,exc:
             logger.error('%s'%exc,exc_info=True)
-            return {'success':False,'result':'%s'%exc} 
+            return {'user_id':user_id,'success':False,'result':'%s'%exc} 
         else:
             top_task_id =response['topats_trades_sold_get_response']['task']['task_id']
-            return {'success':True,'result':response,'top_task_id':top_task_id}
+            return {'user_id':user_id,
+                    'success':True,
+                    'result':response,
+                    'top_task_id':top_task_id,
+                    'params':{'start_time':start_time,'end_time':end_time}}
 
  
     def handle_result_file(self,task_id):
@@ -275,16 +291,9 @@ class AsyncOrderTask(TaobaoAsyncBaseTask):
 
 tasks.register(AsyncOrderTask) 
 
-def _save_task_to_schedules(sender,task_id,task,**kwargs):
-    async_task,state = TaobaoAsyncTask.objects.get_or_create(task_id=task_id,task=task.name)   
-    if state:
-        async_task.status = TASK_CREATED
-        async_task.task = task
-        async_task.save()
 
 
-task_prerun.connect(_save_task_to_schedules, sender=tasks[AsyncCategoryTask.name])
 
-task_prerun.connect(_save_task_to_schedules, sender=tasks[AsyncOrderTask.name])
+
 
 

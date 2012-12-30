@@ -2,7 +2,7 @@ __author__ = 'zfz'
 
 import os
 
-DEBUG = True
+DEBUG = False
 TEMPLATE_DEBUG = DEBUG
 
 PROJECT_ROOT = os.path.abspath(os.path.dirname(__file__))
@@ -15,7 +15,7 @@ DATABASES = {
         'NAME': 'shopmgr',                      # Or path to database file if using sqlite3.
         'USER': 'meixqhi',                      # Not used with sqlite3.
         'PASSWORD': '123123',                  # Not used with sqlite3.
-        'HOST': '192.168.1.26',                      # Set to empty string for localhost. Not used with sqlite3.
+        'HOST': '',                      # Set to empty string for localhost. Not used with sqlite3.
         'PORT': '',                      # Set to empty string for default. Not used with sqlite3.
     }
 }
@@ -25,7 +25,7 @@ if DEBUG:
        os.path.join(PROJECT_ROOT,"site_media","static"),
     )
 else :
-    STATIC_ROOT = os.path.join(PROJECT_ROOT,"site_media", "static")
+    STATIC_ROOT = os.path.join(PROJECT_ROOT, "static")
 
 CACHES = {
     'default': {
@@ -42,6 +42,9 @@ RAVEN_CONFIG = {
 #SITE_URL = "http://autolist.huyi.so/" 
 
 SITE_URL = 'http://192.168.1.26/' 
+
+#APPKEY  = '21196642' #super erp test3,younishijie
+#APPSECRET = '027fd632d388f2391a06b40cf292519c'
 
 #APPKEY  = '12651489' #meixqhi,erp manager
 #APPSECRET = 'c31214c3060c888c35e410d5f71112d7'

@@ -45,7 +45,7 @@ def pull_from_taobao(request):
         if num_iid in itemstat:
             itemstat[num_iid]['onsale'] = 1
 	item.pop('modified',None)
-        Item.save_item_through_dict(profile.visitor_id,item)
+    Item.save_item_through_dict(profile.visitor_id,item)
 
     for item in currItems:
         sale_status = itemstat[item.num_iid]['onsale']

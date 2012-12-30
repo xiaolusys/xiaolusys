@@ -34,6 +34,8 @@ PRODUCT_STATUS = (
     (pcfg.DELETE,'删除'),
 )
 
+
+
 class PurchaseProduct(models.Model):
     """ 采购产品 """
     

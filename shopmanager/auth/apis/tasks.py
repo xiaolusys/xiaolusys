@@ -190,7 +190,7 @@ def apis(api_method,method='GET',max_retry=3,limit_rate=0.5):
             params['access_token'] = user.top_session
             params_copy = dict(params)
             for k,v in params_copy.iteritems():
-                if not v:
+                if v == None:
                     params.pop(k)
                 elif type(v) == unicode:
                     params[k] = v.encode('utf8')
@@ -235,7 +235,7 @@ def taobao_itemcats_get(parent_cid=None,cids=None,fields=API_FIELDS['taobao.item
     pass
 
 @apis('taobao.itemcats.increment.get')
-def taobao_itemcats_increment_get(cids=None,seller_type=None,days=None,tb_user_id=None):
+def taobao_itemcats_increment_get(cids=None,type=None,days=None,tb_user_id=None):
     pass
 
 @apis('taobao.itemprops.get')

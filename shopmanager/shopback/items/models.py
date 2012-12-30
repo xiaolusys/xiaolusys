@@ -118,16 +118,15 @@ class ProductSku(models.Model):
             value_list.append( '%s'%values[3] if len(values)==4 else properties)
         return ','.join(value_list)
     
-    
-    
-    
+  
 
 def calculate_product_collect_num(sender, instance, *args, **kwargs):
     """修改SKU库存后，更新库存商品的总库存 """
     product = instance.product
-    total_num = product.prod_skus.filter(status=pcfg.NORMAL).aggregate(total_nums=Sum('quantity')).get('total_nums')
-    has_out_stock = product.prod_skus.filter(status=pcfg.NORMAL,out_stock=True).count()>0
-    Product.objects.filter(id=product.id).update(collect_num=total_num,out_stock=has_out_stock)
+    if product:
+        total_num = product.prod_skus.filter(status=pcfg.NORMAL).aggregate(total_nums=Sum('quantity')).get('total_nums')
+        has_out_stock = product.prod_skus.filter(status=pcfg.NORMAL,out_stock=True).count()>0
+        Product.objects.filter(id=product.id).update(collect_num=total_num,out_stock=has_out_stock)
     
 post_save.connect(calculate_product_collect_num, sender=ProductSku, dispatch_uid='calculate_product_num')
 

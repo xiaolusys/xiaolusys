@@ -67,10 +67,30 @@ class UserAdmin(admin.ModelAdmin):
             pull_users.append(pull_dict)
        
         return render_to_response('users/pull_online_items.html',{'users':pull_users},
-                                  context_instance=RequestContext(request),mimetype="text/html")     
-        
+                                  context_instance=RequestContext(request),mimetype="text/html")
+
     pull_user_items.short_description = "下载线上商品".decode('utf8')
     
-    actions = ['pull_user_unpost_trades','pull_user_items']
+    #线上库存覆盖系统库存
+    def sync_online_prodnum_to_offline(self,request,queryset):
+        
+        if queryset.count() != 1:
+            ret_params = {'success':False,'errmsg':'请选择一个主店'}
+        user = queryset[0]
+        
+        try:
+            from shopback.items.tasks import updateUserProductSkuTask
+            
+            updateUserProductSkuTask(user.visitor_id,force_update_num=True)
+        except Exception,exc :
+            ret_params = {'success':False,'errmsg':exc.message}
+        else:
+            ret_params = {'success':True}
+        return render_to_response('users/sync_online_prodnum_template.html',ret_params,
+                                  context_instance=RequestContext(request),mimetype="text/html")     
+        
+    sync_online_prodnum_to_offline.short_description = "线上库存覆盖系统库存".decode('utf8')
+       
+    actions = ['pull_user_unpost_trades','pull_user_items','sync_online_prodnum_to_offline']
 
 admin.site.register(User, UserAdmin)

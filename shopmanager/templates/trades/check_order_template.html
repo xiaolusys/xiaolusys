@@ -2,10 +2,11 @@
 {% with trade=object.trade logistics=object.logistics %}
 <div class="body1" style="margin-left: auto; margin-right: auto; width: 720px">
 <div class="row-through"><input type="hidden" id="id_check_trade" name="trade_id" value="{{ trade.id }}">
-<div style="margin: 0px; display: inline-block; width: 25%"><label class="simple-label">订单号: </label>{{ trade.tid }}</div>
-<div style="margin: 0px; display: inline-block; width: 25%"><label class="simple-label">买家: </label>{{ trade.buyer_nick }}</div>
+<div style="margin: 0px; display: inline-block; width: 22%"><label class="simple-label">订单号: </label>{{ trade.tid }}</div>
+<div style="margin: 0px; display: inline-block; width: 18%"><label class="simple-label">买家: </label>{{ trade.buyer_nick }}</div>
 <div style="margin: 0px; display: inline-block; width: 20%"><label class="simple-label">店铺: </label>{{ trade.seller_nick }}</div>
 <div style="margin: 0px; display: inline-block; width: 25%"><label class="simple-label">付款时间: </label>{{ trade.pay_time }}</div>
+<div style="margin: 0px; display: inline-block; width: 12%"><label class="simple-label">实付款: </label>{{ trade.payment }}</div>
 </div>
 <div class="row-through">
 <div class="alert-message buyer"><strong>买家留言: </strong>{{ trade.buyer_message }}</div>
@@ -21,20 +22,22 @@
 	<option {% if trade.priority == -1 %}selected{% endif %} value="-1">低</option>
 	<option {% if trade.priority == 0 %}selected{% endif %} value="0">中</option>
 	<option {% if trade.priority == 1 %}selected{% endif %} value="1">高</option>
-</select></div>
+</select>
+<label class="simple-label">问题编号:</label><span>{{ trade.reason_code }}</span>
+</div>
 <div class="accordion-group1">
 <div class="accordion-heading1">
 <div style="padding: 2px 15px">
 <div class="row-through">
+<div style="margin: 0px; display: inline-block; width: 25%"><label
+	class="simple-label">收货人: </label><span id="id_receiver">{{ trade.receiver_name }}</span></div>
 <div style="margin: 0px; display: inline-block; width: 30%"><label
-	class="simple-label">收货人: </label>{{ trade.receiver_name }}</div>
-<div style="margin: 0px; display: inline-block; width: 25%"><label
-	class="simple-label">手机: </label>{{ trade.receiver_mobile }}</div>
-<div style="margin: 0px; display: inline-block; width: 25%"><label
-	class="simple-label">固话: </label>{{ trade.receiver_phone }}</div>
+	class="simple-label">手机: </label><span id="id_mobile">{{ trade.receiver_mobile }}</span></div>
+<div style="margin: 0px; display: inline-block; width: 30%"><label
+	class="simple-label">固话: </label><span id="id_phone">{{ trade.receiver_phone }}</span></div>
 </div>
-<div class="row-through"><label class="simple-label">地址: </label>{{ trade.receiver_state }}，{{ trade.receiver_city }}，
-{{ trade.receiver_district }}，{{ trade.receiver_address }}</div>
+<div class="row-through"><label class="simple-label">地址: </label><span id="id_address">{{ trade.receiver_state }}，{{ trade.receiver_city }}，
+{{ trade.receiver_district }}，{{ trade.receiver_address }}</span></div>
 </div>
 <a id="collapseOne" class="goog-zippy-header goog-zippy-expanded" aria-expanded="true" style="padding: 0px 15px">修改地址››</a></div>
 <div id="addrContent" class="accordion-inner1">
@@ -86,7 +89,7 @@
 				<td>商品简称</td>
 				<td>规格</td>
 				<td>数量</td>
-				<td>正品单价</td>
+				<td>单价</td>
 				<td>操作</td>
 			</tr>
 		</thead>
@@ -103,8 +106,8 @@
 			<td>商品简称</td>
 			<td>规格</td>
 			<td>数量</td>
-			<td>正品单价</td>
-			<td>订单类型</td>
+			<td>单价</td>
+			<td>类型</td>
 			<td>操作</td>
 		</tr>
 	</thead>
@@ -113,22 +116,22 @@
 		<tr>
 			<td>{{ order.id }}</td>
 			<td>{{ order.outer_id }}</td>
-			<td>{{ order.title }}</td>
-			<td>{% if order.is_rule_match %} 
+			<td>{{ order|prod_name }}</td>
+			<td>
 				<select id="id-select-ordersku-{{ forloop.counter }}" name="id_order_sku">
+					<option value="">---------</option>
 					{% for sku in order|prod_skus %}
-					<option value="{{ sku.outer_id }}">{{ sku.properties_name }}</option>
+					<option value="{{ sku.outer_id }}" {% if order.outer_sku_id == sku.outer_id %}selected{% endif %}>{{ sku.properties_name }}</option>
 					{% endfor %}
 				</select> 
-			    {% else %}{{ order.sku_properties_name }}{% endif %}
 			</td>
 			<td>{{ order.num }}</td>
 			<td>{{ order.price }}</td>
-			<td>{% if order.gift_type == 0 %}实付订单{% elif order.gift_type == 1 %}客服赠送 {% elif order.gift_type == 2 %}
-			满就送{% elif order.gift_type == 3 %}组合拆分{% endif %}</td>
-			<td>{% if order.is_rule_match %}<button class="change-order btn-mini" idx="{{ forloop.counter }}" 
-				oid="{{ order.id }}" >修改</button>{% endif %}
-			    {% if order.gift_type == 1 %}<button class="delete-order btn-mini" oid="{{ order.id }}">删除</button>{% endif %}
+			<td>{% if order.gift_type == 0 %}实付{% elif order.gift_type == 1 %}赠送{% elif order.gift_type == 2 %}
+				满就送{% elif order.gift_type == 3 %}拆分{% elif order.gift_type == 4 %}换货{% endif %}</td>
+			<td><button class="change-order btn-mini" idx="{{ forloop.counter }}" 
+				oid="{{ order.id }}" >修改</button>
+			    <button class="delete-order btn-mini" oid="{{ order.id }}">删除</button>
 			</td>
 		</tr>
 		{% endfor %}

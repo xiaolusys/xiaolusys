@@ -17,7 +17,7 @@ class User(models.Model):
 
     id = BigIntegerAutoField(primary_key=True)
     user = models.ForeignKey(DjangoUser, null=True)
-
+    
     top_session = models.CharField(max_length=56,blank=True)
     top_appkey = models.CharField(max_length=24,blank=True)
     top_parameters = models.TextField(max_length=1000,blank=True)
@@ -26,13 +26,17 @@ class User(models.Model):
     uid = models.CharField(max_length=32,blank=True)
     nick = models.CharField(max_length=32,blank=True)
     sex = models.CharField(max_length=1,blank=True)
+    contacter = models.CharField(max_length=32,blank=True,verbose_name= u'联络人')
+    phone     = models.CharField(max_length=20,blank=True,verbose_name= u'电话')
+    mobile    = models.CharField(max_length=20,blank=True,verbose_name= u'手机')
+    area_code = models.CharField(max_length=10,blank=True,verbose_name= u'区号')
     
     buyer_credit = models.CharField(max_length=80,blank=True)
     seller_credit = models.CharField(max_length=80,blank=True)
     
     has_fenxiao = models.BooleanField(default=False)
     
-    location = models.CharField(max_length=256,blank=True)
+    location = models.CharField(max_length=256,blank=True,verbose_name= u'店铺地址')
     created = models.CharField(max_length=19,blank=True)
     birthday = models.CharField(max_length=19,blank=True)
 
@@ -59,10 +63,10 @@ class User(models.Model):
     
     created_at = models.DateTimeField(auto_now=True,null=True) 
     status     = models.CharField(max_length=12,blank=True) #normal,inactive,delete,reeze,supervise
-
+    
     class Meta:
         db_table = 'shop_users_user'
-
+        verbose_name= u'店铺'
 
     def __unicode__(self):
         return self.nick

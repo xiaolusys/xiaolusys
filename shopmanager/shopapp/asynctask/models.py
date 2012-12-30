@@ -19,7 +19,7 @@ TAOBAO_ASYNC_TASK_STATUS =(
 
 class TaobaoAsyncTask(models.Model):
     #淘宝异步任务处理MODEL
-    task_id  = models.CharField(max_length=128,primary_key=True)
+    task_id  = models.AutoField(primary_key=True)
     task = models.TextField(max_length=256,blank=True)
     
     top_task_id = models.CharField(max_length=128,db_index=True,blank=True)
@@ -32,6 +32,9 @@ class TaobaoAsyncTask(models.Model):
     create   = models.DateField(auto_now=True)
     modified = models.DateField(auto_now_add=True)
     status   = models.CharField(max_length=32,choices=TAOBAO_ASYNC_TASK_STATUS,default=TASK_CREATED)
-
+    
+    params   = models.CharField(max_length=1000,blank=True,null=True)
     class Meta:
         db_table = 'shop_taobao_asynctask'
+        
+        

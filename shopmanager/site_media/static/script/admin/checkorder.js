@@ -9,7 +9,7 @@ goog.require('goog.style');
 goog.require('goog.net.XhrIo');
 goog.require('goog.uri.utils');
 
-var GIT_TYPE = {0:'实付订单',1:'客服赠送',2:'满就送',3:'组合拆分'}
+var GIT_TYPE = {0:'实付',1:'赠送',2:'满就送',3:'拆分'}
 
 var createDTText  = function(text){
     var td = goog.dom.createElement('td');
@@ -42,7 +42,7 @@ var addSearchRow  = function(tableID,prod){
 	var price_cell = createDTText(prod[2]);
 	
 	var addbtn_cell = goog.dom.createElement('td');
-	addbtn_cell.innerHTML = '<button class="add-order btn-mini" outer_id="'+prod[0]+'" idx="'+index.toString()+'">添加</button>';
+	addbtn_cell.innerHTML = '<button class="add-order btn-mini" outer_id="'+prod[0]+'" idx="'+index.toString()+'">赠送</button>';
 	
 	row.appendChild(id_cell);
 	row.appendChild(outer_id_cell);
@@ -50,8 +50,7 @@ var addSearchRow  = function(tableID,prod){
 	row.appendChild(sku_cell);
 	row.appendChild(num_cell);
 	row.appendChild(price_cell);
-	row.appendChild(addbtn_cell);
-	
+	row.appendChild(addbtn_cell);	
 }
 
 var addOrderRow  = function(tableID,order){
@@ -100,8 +99,7 @@ ordercheck.Dialog.prototype.init = function (id) {
         	var res = xhr.getResponse();
         	dialog.setContent(res);
 		    dialog.setTitle('订单审核详情');
-		    dialog.setButtonSet(new goog.ui.Dialog.ButtonSet().addButton({key: 'OK', caption: "审核订单"}
-		        ,true,false));
+		    dialog.setButtonSet(new goog.ui.Dialog.ButtonSet().addButton({key: 'OK', caption: "审核订单"},false,false));
 		    goog.events.listen(dialog, goog.ui.Dialog.EventType.SELECT, that);
 		    that.setEvent();
         } catch (err) {
@@ -113,6 +111,10 @@ ordercheck.Dialog.prototype.init = function (id) {
 
 ordercheck.Dialog.prototype.show = function(data) {
     this.dialog.setVisible(true);
+}
+
+ordercheck.Dialog.prototype.hide = function(data) {
+    this.dialog.setVisible(false);
 }
 
 ordercheck.Dialog.prototype.setEvent=function(){
@@ -133,7 +135,6 @@ ordercheck.Dialog.prototype.setEvent=function(){
 	} 
 	
 	var addr1  = new goog.ui.Zippy('collapseOne', 'addrContent');   
-	
 	var order1 = new goog.ui.Zippy('collapseTwo', 'orderContent');                                                                                                                                                                                                                                      
 }
 
@@ -148,15 +149,19 @@ ordercheck.Dialog.prototype.changeAddr=function(e){
 	var receiver_district = goog.dom.getElement('id_receiver_district').value;
 	var receiver_address  = goog.dom.getElement('id_receiver_address').value;
 	
-	params = {'trade_id':trade_id,'receiver_name':receiver_name,'receiver_mobile':receiver_mobile,'receiver_phone':receiver_phone,
-			'receiver_state':receiver_state,'receiver_city':receiver_city,'receiver_district':receiver_district,'receiver_address':receiver_address}		
+	params = {'trade_id':trade_id,'receiver_name':receiver_name,'receiver_mobile':receiver_mobile,
+			'receiver_phone':receiver_phone,'receiver_state':receiver_state,'receiver_city':receiver_city,
+			'receiver_district':receiver_district,'receiver_address':receiver_address}		
 	
 	var callback = function(e){
 		var xhr = e.target;
         try {
         	var res = xhr.getResponseJson();
             if (res.code == 0){
-            	alert("地址修改成功！");
+            	goog.dom.getElement('id_receiver').innerText = receiver_name;
+            	goog.dom.getElement('id_mobile').innerText   = receiver_mobile;
+            	goog.dom.getElement('id_phone').innerText    = receiver_phone;
+            	goog.dom.getElement('id_address').innerText  = receiver_state+'，'+receiver_city+'，'+receiver_district+'，'+receiver_address;
             }else{
                 alert("地址修改失败:"+res.response_error);
             }
@@ -172,10 +177,9 @@ ordercheck.Dialog.prototype.changeAddr=function(e){
 ordercheck.Dialog.prototype.searchProd=function(e){
 	var q = goog.dom.getElement('id-search-q').value;
 	var sch_table = goog.dom.getElement('id-search-table');
-	that = this
-	
-	for(var i=1;i<sch_table.rows.length;i++){
-		sch_table.deleteRow(i);
+	var that = this;
+	for(var i=sch_table.rows.length;i>1;i--){
+		sch_table.deleteRow(i-1);
 	}
 	params = {'q':q}
 	var callback = function(e){
@@ -191,7 +195,7 @@ ordercheck.Dialog.prototype.searchProd=function(e){
             		goog.events.listen(addOrderBtns[i], goog.events.EventType.CLICK,that.addOrder,false,that);
             	}
             }else{
-                alert("地址修改失败:"+res.response_error);
+                alert("商品查询失败:"+res.response_error);
             }
         } catch (err) {
             console.log('Error: (ajax callback) - ', err);
@@ -305,6 +309,7 @@ ordercheck.Dialog.prototype.handleEvent= function (e) {
 goog.provide("ordercheck.Manager");
 ordercheck.Manager = function () {
     this.dialog = new ordercheck.Dialog(this);
+    this.check_row_idx = null;
     this.buttons = goog.dom.getElementsByClass("check-order");
     for(var i=0;i<this.buttons.length;i++){
         goog.events.listen(this.buttons[i], goog.events.EventType.CLICK, this.showDialog, false, this);
@@ -313,18 +318,23 @@ ordercheck.Manager = function () {
 
 ordercheck.Manager.prototype.showDialog = function(e) {
     var elt = e.target;
-    trade_id = elt.getAttribute('trade_id')
+    var trade_id = elt.getAttribute('trade_id');
     this.dialog.init(trade_id);
+    this.check_row_idx = elt.parentElement.parentElement.rowIndex;
     this.dialog.show(); 
 }
 
 ordercheck.Manager.prototype.checkorder = function(trade_id,logistic_code,priority) {
+	var that  = this;
     var callback = function(e){
         var xhr = e.target;
         try {
         	var res = xhr.getResponseJson();
             if (res.code == 0){
-            	alert("审核成功！");
+            	that.dialog.hide(false);
+            	var result_table = goog.dom.getElement('result_list');
+            	result_table.deleteRow(that.check_row_idx);
+            	that.check_row_idx = null;
             }else{
                 alert("审核失败:"+res.response_error);
             }

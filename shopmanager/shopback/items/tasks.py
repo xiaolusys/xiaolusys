@@ -28,7 +28,6 @@ def updateUserItemsTask(user_id):
     #更新出售中的商品
     try:
         while has_next:
-          
             response_list = apis.taobao_items_onsale_get(page_no=cur_page, tb_user_id=user_id
                 , page_size=settings.TAOBAO_PAGE_SIZE, fields='num_iid,modified')
             item_list = response_list['items_onsale_get_response']
@@ -99,7 +98,7 @@ def updateAllUserItemsTask():
 
 
 @task()
-def updateUserProductSkuTask(user_id):
+def updateUserProductSkuTask(user_id,force_update_num=False):
 
     user = User.objects.get(visitor_id=user_id)
     items = user.items.filter(status=pcfg.NORMAL)
@@ -139,6 +138,8 @@ def updateUserProductSkuTask(user_id):
                             psku.properties_name = sku['properties_name']
                             psku.properties = sku['properties']
                             psku.prod_outer_id = item.outer_id
+                            if force_update_num:
+                                psku.quantity = sku['quantity']
 
                         properties = ''
                         props = sku['properties'].split(';')
