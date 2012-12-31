@@ -347,7 +347,8 @@ class MergeTradeAdmin(admin.ModelAdmin):
                 logger.error(exc.message+'--sub post error',exc_info=True)
             except Exception,exc:
                 trade.append_reason_code(pcfg.POST_MODIFY_CODE)
-                MergeTrade.objects.filter(tid=trade.tid).update(sys_status=pcfg.WAIT_AUDIT_STATUS,sys_memo=exc.message)
+                MergeTrade.objects.filter(tid=trade.tid).update(sys_status=pcfg.WAIT_AUDIT_STATUS,
+                                                                sys_memo=exc.message,is_picking_print=False,is_express_print=False,out_sid='')
                 logger.error(exc.message+'--main post error',exc_info=True)
             else:
                 MergeTrade.objects.filter(tid=trade.tid).update(sys_status=pcfg.WAIT_CHECK_BARCODE_STATUS,consign_time=datetime.datetime.now())
