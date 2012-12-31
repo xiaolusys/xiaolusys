@@ -96,7 +96,7 @@ class ProductSku(models.Model):
     
     out_stock    = models.BooleanField(default=False,verbose_name='缺货') 
     sync_stock   = models.BooleanField(default=True,verbose_name='库存同步') 
-    is_assign    = models.BooleanField(default=False,verbose_name='已分配库存(取消库位警告)') #是否手动分配库存，当库存充足时，系统自动设为False，手动分配过后，确定后置为True
+    is_assign    = models.BooleanField(default=False,verbose_name='已分配库存') #是否手动分配库存，当库存充足时，系统自动设为False，手动分配过后，确定后置为True
     
     modified = models.DateTimeField(null=True,blank=True,auto_now=True,verbose_name='修改时间')
     status   = models.CharField(max_length=10,db_index=True,choices=PRODUCT_STATUS,default=pcfg.NORMAL,verbose_name='规格状态')  #normal,delete

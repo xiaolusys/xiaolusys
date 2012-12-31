@@ -41,7 +41,7 @@ RAVEN_CONFIG = {
 
 #SITE_URL = "http://autolist.huyi.so/" 
 
-SITE_URL = 'http://192.168.1.26/' 
+SITE_URL = 'http://qiyue.huyi.so/' 
 
 #APPKEY  = '21196642' #super erp test3,younishijie
 #APPSECRET = '027fd632d388f2391a06b40cf292519c'

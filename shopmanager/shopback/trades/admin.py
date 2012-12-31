@@ -54,9 +54,9 @@ class MergeOrderInline(admin.TabularInline):
 
 
 class MergeTradeAdmin(admin.ModelAdmin):
-    list_display = ('id','popup_tid_link','user','buyer_nick_link','type','payment','created','pay_time'
+    list_display = ('id','popup_tid_link','user','buyer_nick_link','type','payment','created','pay_time','consign_time'
                     ,'status','logistics_company','is_picking_print','is_express_print','is_send_sms'
-                    ,'has_memo','has_refund','sys_status','operator','reason_code','remind_time')
+                    ,'reason_code','has_memo','has_refund','sys_status','operator','remind_time')
     list_display_links = ('id','popup_tid_link')
     #list_editable = ('update_time','task_type' ,'is_success','status')
     
@@ -84,7 +84,7 @@ class MergeTradeAdmin(admin.ModelAdmin):
     
     list_filter   = ('sys_status','status','user','type','has_out_stock','has_refund','has_rule_match',
                      'is_picking_print','is_express_print')
-    search_fields = ['id','buyer_nick','tid','reason_code','operator']
+    search_fields = ['id','buyer_nick','tid','reason_code','operator','out_sid']
     
     class Media:
         css = {"all": ("admin/css/forms.css","css/admin/dialog.css","css/admin/checkorder.css")}

@@ -191,8 +191,10 @@ def change_trade_order(request,id):
     order = MergeOrder.objects.get(id=order.id)
     order.outer_sku_id=prod_sku.outer_id
     order.sku_properties_name=prod_sku.properties_name
-    order.is_rule_match=False
+    order.is_rule_match = False
+    order.out_stock     = False
     order.save()
+    MergeTrade.judge_out_stock(order.merge_trade.tid,None)
     
     ret_params = {'code':0,'response_content':{'id':order.id,
                                                'outer_id':order.outer_id,

@@ -16,7 +16,7 @@ def trade_submit_row(context):
     is_popup = context['is_popup']
     save_as = context['save_as']
     trade   = context.get('original',None)
-    is_wait_audit   = False
+    is_wait_audit   = True
     sys_status      = None
     can_split_trade = False
     can_trade_audit = False
@@ -71,6 +71,8 @@ def prod_skus(order):
     
 @register.filter(name='prod_name')  
 def prod_name(order):
+    if order['is_rule_match']:
+        return order['title']
     try:
         prod = Product.objects.get(outer_id=order['outer_id'])
     except:

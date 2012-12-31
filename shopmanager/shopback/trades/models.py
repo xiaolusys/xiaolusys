@@ -331,7 +331,8 @@ class MergeTrade(models.Model):
                             break
                 
                 if is_order_out:
-                     MergeOrder.objects.filter(tid=trade_id,oid=order.oid).update(out_stock=True)
+                    print 'debug out stock:',order.oid,order.id
+                    MergeOrder.objects.filter(tid=trade_id,oid=order.oid).update(out_stock=True)
                 is_out_stock |= is_order_out
                 
         return is_out_stock
