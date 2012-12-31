@@ -84,7 +84,7 @@ class MergeTradeAdmin(admin.ModelAdmin):
     
     list_filter   = ('sys_status','status','user','type','has_out_stock','has_refund','has_rule_match',
                      'is_picking_print','is_express_print')
-    search_fields = ['id','buyer_nick','tid','reason_code','operator','out_sid']
+    search_fields = ['id','buyer_nick','tid','reason_code','operator','out_sid','receiver_name']
     
     class Media:
         css = {"all": ("admin/css/forms.css","css/admin/dialog.css","css/admin/checkorder.css")}
@@ -348,7 +348,7 @@ class MergeTradeAdmin(admin.ModelAdmin):
             except Exception,exc:
                 trade.append_reason_code(pcfg.POST_MODIFY_CODE)
                 MergeTrade.objects.filter(tid=trade.tid).update(sys_status=pcfg.WAIT_AUDIT_STATUS,
-                                                                sys_memo=exc.message,is_picking_print=False,is_express_print=False,out_sid='')
+                                                                sys_memo=exc.message,is_picking_print=False,is_express_print=False)
                 logger.error(exc.message+'--main post error',exc_info=True)
             else:
                 MergeTrade.objects.filter(tid=trade.tid).update(sys_status=pcfg.WAIT_CHECK_BARCODE_STATUS,consign_time=datetime.datetime.now())
