@@ -17,6 +17,7 @@ def trade_submit_row(context):
     save_as = context['save_as']
     trade   = context.get('original',None)
     is_wait_audit   = False
+    sys_status      = None
     can_split_trade = False
     can_trade_audit = False
     if trade :
