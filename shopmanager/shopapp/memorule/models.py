@@ -127,6 +127,7 @@ class ComposeRule(models.Model):
     class Meta:
         db_table = 'shop_memorule_composerule'
         verbose_name=u'匹配规则'
+        unique_together = ("outer_id","outer_sku_id")
         
     def __unicode__(self):
         return str(self.id)

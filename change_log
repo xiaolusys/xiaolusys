@@ -1,3 +1,5 @@
+########  2012-12-29  #########
+CREATE UNIQUE INDEX uniq_item_outer_and_sku_id ON shop_memorule_composerule(outer_id,outer_sku_id);
 ########  2012-12-28  #########
 alter table shop_users_user add column contacter varchar(32) NOT NULL;
 alter table shop_users_user add column phone varchar(20) NOT NULL;
