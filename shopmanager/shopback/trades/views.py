@@ -89,7 +89,7 @@ class CheckOrderView(ModelView):
         if trade.has_reason_code(pcfg.POST_MODIFY_CODE) or trade.has_reason_code(pcfg.INVALID_END_CODE)\
              or trade.has_reason_code(pcfg.POST_SUB_TRADE_ERROR_CODE) or trade.has_reason_code(pcfg.COMPOSE_RULE_ERROR_CODE)\
              or trade.has_reason_code(pcfg.PAYMENT_RULE_ERROR_CODE) or trade.has_reason_code(pcfg.MERGE_TRADE_ERROR_CODE):
-            check_msg.append("订单需管理审核".decode('utf8'))
+            check_msg.append("该订单需管理员审核".decode('utf8'))
         orders = trade.merge_trade_orders.filter(status=pcfg.WAIT_SELLER_SEND_GOODS)\
                     .exclude(refund_status__in=pcfg.REFUND_APPROVAL_STATUS)   
         if orders.count() <= 0:
