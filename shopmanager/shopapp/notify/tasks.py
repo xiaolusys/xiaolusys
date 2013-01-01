@@ -208,7 +208,7 @@ def process_refund_notify_task(id):
         except MergeTrade.DoesNotExist:
             pass
         else:
-            if merge_trade.type == pcfg.FENXIAO_TYPE:
+            if merge_trade.type != pcfg.FENXIAO_TYPE:
                 if notify.status == 'RefundCreated':
                     refund = Refund.get_or_create(notify.user_id,notify.rid)
                     merge_trade.append_reason_code(pcfg.WAITING_REFUND_CODE)

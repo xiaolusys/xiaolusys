@@ -26,7 +26,6 @@ def saveUserFenxiaoProductTask(user_id):
     if not user.has_fenxiao:
         return 
     
-    update_tids = []
     try:
         has_next    = True
         cur_page    = 1
@@ -39,7 +38,6 @@ def saveUserFenxiaoProductTask(user_id):
                 fenxiao_product_list = products['products']['fenxiao_product']
                 for fenxiao_product in fenxiao_product_list:
                     FenxiaoProduct.save_fenxiao_product_dict(user_id,fenxiao_product)
-                    update_tids.append(fenxiao_product['fenxiao_id'])
                     
             total_nums = products['total_results']
             cur_nums = cur_page*settings.TAOBAO_PAGE_SIZE
@@ -50,15 +48,7 @@ def saveUserFenxiaoProductTask(user_id):
         logger.warn('the current user(id:%s)is not fenxiao platform user,error:%s'%(str(user_id),exc))
     except TaobaoRequestException,exc:
         logger.error('%s'%exc,exc_info=True)
-    else:
-        wait_update_trades = PurchaseOrder.objects.filter(status=pcfg.WAIT_SELLER_SEND_GOODS).exclude(fenxiao_id__in=update_tids)
-        for trade in wait_update_trades:
-            response = apis.taobao_fenxiao_orders_get(tb_user_id=user_id,purchase_order_id=trade.fenxiao_id)
-            orders_list = response_list['fenxiao_orders_get_response']
-            if orders_list['total_results']>0:
-                for o in orders_list['purchase_orders']['purchase_order']:
-                    if MergeTrade.judge_need_pull(o['id'],datetime.datetime.strptime(o['modified'],'%Y-%m-%d %H:%M:%S')):
-                        PurchaseOrder.save_order_through_dict(user_id,o)
+
  
 @task(max_retries=3)
 def saveUserPurchaseOrderTask(user_id,update_from=None,update_to=None,status=None):

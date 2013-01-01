@@ -119,12 +119,12 @@ class MergeTradeAdmin(admin.ModelAdmin):
     #重写订单视图
     def changelist_view(self, request, extra_context=None, **kwargs):
 
-        #if not has_modify_trade_info_status_permission(request):
-        #    self.readonly_fields=('tid','user','seller_nick','buyer_nick','payment','total_num','discount_fee'
-        #             ,'adjust_fee','post_fee','total_fee','alipay_no','seller_cod_fee','buyer_cod_fee','cod_fee'
-        #             ,'cod_status','buyer_message','seller_memo','created','pay_time','modified','consign_time'
-        #             ,'type','status','shipping_type','operator','is_send_sms','out_sid'
-        #             ,'has_memo','has_refund','has_out_stock','has_rule_match','has_merge','sys_status')
+        if not has_modify_trade_info_status_permission(request):
+            self.readonly_fields=('tid','user','seller_nick','buyer_nick','payment','total_num','discount_fee'
+                     ,'adjust_fee','post_fee','total_fee','alipay_no','seller_cod_fee','buyer_cod_fee','cod_fee'
+                     ,'cod_status','buyer_message','seller_memo','created','pay_time','modified','consign_time'
+                     ,'type','status','shipping_type','operator','is_send_sms','out_sid'
+                     ,'has_memo','has_refund','has_out_stock','has_rule_match','has_merge','sys_status')
             
         return super(MergeTradeAdmin, self).changelist_view(request, extra_context)     
     

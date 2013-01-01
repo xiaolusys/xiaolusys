@@ -32,6 +32,7 @@ class CheckOrderView(ModelView):
             'seller_nick':trade.seller_nick,
             'pay_time':trade.pay_time,
             'payment':trade.payment,
+            'post_fee':trade.post_fee,
             'buyer_message':trade.buyer_message,
             'seller_memo':trade.seller_memo,
             'logistics_company':trade.logistics_company,
@@ -195,7 +196,7 @@ def change_trade_order(request,id):
     order.out_stock     = False
     order.save()
     MergeTrade.judge_out_stock(order.merge_trade.tid,None)
-    
+    order = MergeOrder.objects.get(id=order.id)
     ret_params = {'code':0,'response_content':{'id':order.id,
                                                'outer_id':order.outer_id,
                                                'title':prod.name,
