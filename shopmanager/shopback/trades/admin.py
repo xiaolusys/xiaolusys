@@ -328,14 +328,14 @@ class MergeTradeAdmin(admin.ModelAdmin):
                             raise Exception(u'子订单(%d)淘宝发货失败'%sub_trade.tid)
                     except Exception,exc:
                         if exc.sub_code == 'isv.logistics-offline-service-error:B04':
-                            MergeTrade.objects.filter(tid=sub_trade.tid).update(out_sid=trade.out_sid,operator=trade.operator
+                            MergeTrade.objects.filter(tid=sub_trade.tid,sys_status=pcfg.ON_THE_FLY_STATUS).update(out_sid=trade.out_sid,operator=trade.operator
                                                     ,sys_status=pcfg.FINISHED_STATUS,consign_time=datetime.datetime.now())
                         else:
                             sub_trade.append_reason_code(pcfg.POST_SUB_TRADE_ERROR_CODE)
-                            MergeTrade.objects.filter(tid=sub_trade.tid,sys_status=pcfg.WAIT_PREPARE_SEND_STATUS).update(sys_status=pcfg.WAIT_AUDIT_STATUS)
+                            MergeTrade.objects.filter(tid=sub_trade.tid,sys_status=pcfg.ON_THE_FLY_STATUS).update(sys_status=pcfg.WAIT_AUDIT_STATUS)
                             raise SubTradePostException(exc.message)
                     else:
-                        MergeTrade.objects.filter(tid=sub_trade.tid).update(out_sid=trade.out_sid,operator=trade.operator
+                        MergeTrade.objects.filter(tid=sub_trade.tid,sys_status=pcfg.ON_THE_FLY_STATUS).update(out_sid=trade.out_sid,operator=trade.operator
                             ,sys_status=pcfg.FINISHED_STATUS,consign_time=datetime.datetime.now())
                 
                 response = apis.taobao_logistics_offline_send(tid=trade.tid,out_sid=trade.out_sid
@@ -351,14 +351,14 @@ class MergeTradeAdmin(admin.ModelAdmin):
                 logger.error(exc.message+'--sub post error',exc_info=True)
             except Exception,exc:
                 if exc.sub_code == 'isv.logistics-offline-service-error:B04':
-                    MergeTrade.objects.filter(tid=trade.tid).update(sys_status=pcfg.WAIT_CHECK_BARCODE_STATUS,consign_time=datetime.datetime.now())
+                    MergeTrade.objects.filter(tid=trade.tid,sys_status=pcfg.WAIT_PREPARE_SEND_STATUS).update(sys_status=pcfg.WAIT_CHECK_BARCODE_STATUS,consign_time=datetime.datetime.now())
                 else:
                     trade.append_reason_code(pcfg.POST_MODIFY_CODE)
                     MergeTrade.objects.filter(tid=trade.tid,sys_status=pcfg.WAIT_PREPARE_SEND_STATUS).update(sys_status=pcfg.WAIT_AUDIT_STATUS,
                                                                     sys_memo=exc.message,is_picking_print=False,is_express_print=False)
                     logger.error(exc.message+'--main post error',exc_info=True)
             else:
-                MergeTrade.objects.filter(tid=trade.tid).update(sys_status=pcfg.WAIT_CHECK_BARCODE_STATUS,consign_time=datetime.datetime.now())
+                MergeTrade.objects.filter(tid=trade.tid,sys_status=pcfg.WAIT_PREPARE_SEND_STATUS).update(sys_status=pcfg.WAIT_CHECK_BARCODE_STATUS,consign_time=datetime.datetime.now())
 	
 	    queryset.filter(sys_status=pcfg.WAIT_PREPARE_SEND_STATUS).exclude(reason_code='').update(sys_status=pcfg.WAIT_AUDIT_STATUS)
         
