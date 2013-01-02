@@ -331,8 +331,9 @@ class MergeTrade(models.Model):
                             break
                 
                 if is_order_out:
-                    print 'debug out stock:',order.oid,order.id
-                    MergeOrder.objects.filter(tid=trade_id,oid=order.oid).update(out_stock=True)
+                    order.out_stock=True
+                    order.save()
+                    
                 is_out_stock |= is_order_out
                 
         return is_out_stock
@@ -506,7 +507,6 @@ def refresh_trade_status(sender,instance,*args,**kwargs):
         instance.pay_time    = merge_trade.pay_time
         instance.save()
         return 
-    
     if merge_trade.status == pcfg.WAIT_SELLER_SEND_GOODS:
         total_num     = merge_trade.merge_trade_orders.filter(status=pcfg.WAIT_SELLER_SEND_GOODS,
                                                               sys_status=pcfg.IN_EFFECT).aggregate(total_num=Sum('num'))['total_num']
@@ -514,7 +514,6 @@ def refresh_trade_status(sender,instance,*args,**kwargs):
         out_stock     = merge_trade.merge_trade_orders.filter(out_stock=True,status=pcfg.WAIT_SELLER_SEND_GOODS).count()>0
         has_merge     = merge_trade.merge_trade_orders.filter(is_merge=True,status=pcfg.WAIT_SELLER_SEND_GOODS).count()>0
         has_rule_match = merge_trade.merge_trade_orders.filter(is_rule_match=True,status=pcfg.WAIT_SELLER_SEND_GOODS).count()>0
-        
         merge_trade.total_num = total_num
         merge_trade.has_refund = has_refunding
         merge_trade.has_out_stock = out_stock
