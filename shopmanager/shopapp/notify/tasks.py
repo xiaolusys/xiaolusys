@@ -213,7 +213,7 @@ def process_refund_notify_task(id):
                     refund = Refund.get_or_create(notify.user_id,notify.rid)
                     merge_trade.append_reason_code(pcfg.WAITING_REFUND_CODE)
                     Order.objects.filter(oid=notify.oid,trade=notify.tid).update(status=pcfg.REFUND_WAIT_SELLER_AGREE)
-                    MergeOrder.objects.filter(tid=notify.tid,oid=notify.oid).update(refund_id=notify.rid,refund_status=pcfg.REFUND_WAIT_SELLER_AGREE)
+                    MergeOrder.objects.get(tid=notify.tid,oid=notify.oid).update(refund_id=notify.rid,refund_status=pcfg.REFUND_WAIT_SELLER_AGREE)
                     if merge_trade.status == pcfg.WAIT_SELLER_SEND_GOODS:
                         merge_type  = MergeBuyerTrade.get_merge_type(notify.tid)
                         if merge_type == 0:    
