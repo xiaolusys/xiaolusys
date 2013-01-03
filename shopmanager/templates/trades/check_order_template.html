@@ -2,12 +2,12 @@
 {% with trade=object.trade logistics=object.logistics %}
 <div class="body1" style="margin-left: auto; margin-right: auto; width: 720px">
 <div class="row-through"><input type="hidden" id="id_check_trade" name="trade_id" value="{{ trade.id }}">
-<div style="margin: 0px; display: inline-block; width: 33%"><label class="simple-label">订单号: </label>{{ trade.tid }}</div>
-<div style="margin: 0px; display: inline-block; width: 33%"><label class="simple-label">买家: </label>{{ trade.buyer_nick }}</div>
-<div style="margin: 0px; display: inline-block; width: 33%"><label class="simple-label">店铺: </label>{{ trade.seller_nick }}</div><br>
-<div style="margin: 0px; display: inline-block; width: 33%"><label class="simple-label">付款时间: </label>{{ trade.pay_time }}</div>
-<div style="margin: 0px; display: inline-block; width: 33%"><label class="simple-label">实付款: </label>{{ trade.payment }}</div>
-<div style="margin: 0px; display: inline-block; width: 33%"><label class="simple-label">邮费: </label>{{ trade.post_fee }}</div>
+<div style="margin: 0px; display: inline-block; width: 30%"><label class="simple-label">订单号: </label>{{ trade.tid }}</div>
+<div style="margin: 0px; display: inline-block; width: 30%"><label class="simple-label">买家: </label>{{ trade.buyer_nick }}</div>
+<div style="margin: 0px; display: inline-block; width: 30%"><label class="simple-label">店铺: </label>{{ trade.seller_nick }}</div><br>
+<div style="margin: 0px; display: inline-block; width: 30%"><label class="simple-label">付款时间: </label>{{ trade.pay_time }}</div>
+<div style="margin: 0px; display: inline-block; width: 30%"><label class="simple-label">实付款: </label>{{ trade.payment }}</div>
+<div style="margin: 0px; display: inline-block; width: 30%"><label class="simple-label">邮费: </label>{{ trade.post_fee }}</div>
 </div>
 <div class="row-through">
 <div class="alert-message buyer"><strong>买家留言: </strong>{{ trade.buyer_message }}</div>

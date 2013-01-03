@@ -178,8 +178,8 @@ class MergeTrade(models.Model):
         db_table = 'shop_trades_mergetrade'
         verbose_name=u'订单'
         permissions = (
-             ("can_trade_modify", "能否修改订单状态"),
-             ("can_trade_aduit", "能否审核订单信息"),
+             ("can_trade_modify", "修改订单状态"),
+             ("can_trade_aduit", "审核订单信息"),
         )
 
     def __unicode__(self):
