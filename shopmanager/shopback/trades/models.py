@@ -773,7 +773,7 @@ def trade_download_controller(merge_trade,trade,trade_from,first_pay_load):
                     merge_order_remover(notify.tid)
             
             if merge_trade.sys_status == pcfg.WAIT_PREPARE_SEND_STATUS: 
-                merge_trade.append_reason_code(pcfg.NEW_MEMO_CODE)
+                merge_trade.remove_reason_code(pcfg.NEW_MEMO_CODE)
             elif merge_trade.reason_code and merge_trade.out_sid == '' and merge_trade.sys_status == pcfg.WAIT_PREPARE_SEND_STATUS:
                 merge_trade.sys_status = pcfg.WAIT_AUDIT_STATUS
             
