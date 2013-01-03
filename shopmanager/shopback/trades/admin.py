@@ -119,12 +119,12 @@ class MergeTradeAdmin(admin.ModelAdmin):
     #重写订单视图
     def changelist_view(self, request, extra_context=None, **kwargs):
 
-        if not has_modify_trade_info_status_permission(request):
-            self.readonly_fields=('tid','user','seller_nick','buyer_nick','payment','total_num','discount_fee'
-                     ,'adjust_fee','post_fee','total_fee','alipay_no','seller_cod_fee','buyer_cod_fee','cod_fee'
-                     ,'cod_status','buyer_message','seller_memo','created','pay_time','modified','consign_time'
-                     ,'type','status','shipping_type','operator','is_send_sms','out_sid'
-                     ,'has_memo','has_refund','has_out_stock','has_rule_match','has_merge','sys_status')
+        #if not has_modify_trade_info_status_permission(request):
+        #    self.readonly_fields=('tid','user','seller_nick','buyer_nick','payment','total_num','discount_fee'
+        #             ,'adjust_fee','post_fee','total_fee','alipay_no','seller_cod_fee','buyer_cod_fee','cod_fee'
+        #             ,'cod_status','buyer_message','seller_memo','created','pay_time','modified','consign_time'
+        #             ,'type','status','shipping_type','operator','is_send_sms','out_sid'
+        #             ,'has_memo','has_refund','has_out_stock','has_rule_match','has_merge','sys_status')
             
         return super(MergeTradeAdmin, self).changelist_view(request, extra_context)     
     
@@ -328,8 +328,9 @@ class MergeTradeAdmin(admin.ModelAdmin):
                             raise Exception(u'子订单(%d)淘宝发货失败'%sub_trade.tid)
                     except Exception,exc:
                         if exc.sub_code == 'isv.logistics-offline-service-error:B04':
-                            MergeTrade.objects.filter(tid=sub_trade.tid,sys_status=pcfg.ON_THE_FLY_STATUS).update(out_sid=trade.out_sid,operator=trade.operator
-                                                    ,sys_status=pcfg.FINISHED_STATUS,consign_time=datetime.datetime.now())
+                            MergeTrade.objects.filter(tid=sub_trade.tid,sys_status=pcfg.ON_THE_FLY_STATUS)\
+                               .update(out_sid=trade.out_sid,operator=trade.operator,sys_status=pcfg.FINISHED_STATUS\
+                               ,consign_time=datetime.datetime.now())
                         else:
                             sub_trade.append_reason_code(pcfg.POST_SUB_TRADE_ERROR_CODE)
                             MergeTrade.objects.filter(tid=sub_trade.tid,sys_status=pcfg.ON_THE_FLY_STATUS).update(sys_status=pcfg.WAIT_AUDIT_STATUS)
@@ -351,7 +352,8 @@ class MergeTradeAdmin(admin.ModelAdmin):
                 logger.error(exc.message+'--sub post error',exc_info=True)
             except Exception,exc:
                 if exc.sub_code == 'isv.logistics-offline-service-error:B04':
-                    MergeTrade.objects.filter(tid=trade.tid,sys_status=pcfg.WAIT_PREPARE_SEND_STATUS).update(sys_status=pcfg.WAIT_CHECK_BARCODE_STATUS,consign_time=datetime.datetime.now())
+                    MergeTrade.objects.filter(tid=trade.tid,sys_status=pcfg.WAIT_PREPARE_SEND_STATUS)\
+                    .update(sys_status=pcfg.WAIT_CHECK_BARCODE_STATUS,consign_time=datetime.datetime.now())
                 else:
                     trade.append_reason_code(pcfg.POST_MODIFY_CODE)
                     MergeTrade.objects.filter(tid=trade.tid,sys_status=pcfg.WAIT_PREPARE_SEND_STATUS).update(sys_status=pcfg.WAIT_AUDIT_STATUS,
