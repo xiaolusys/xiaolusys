@@ -178,8 +178,8 @@ class MergeTrade(models.Model):
         db_table = 'shop_trades_mergetrade'
         verbose_name=u'订单'
         permissions = (
-             ("can_trade_modify", "能否修改订单状态"),
-             ("can_trade_aduit", "能否审核订单信息"),
+             ("can_trade_modify", "修改订单状态"),
+             ("can_trade_aduit", "审核订单信息"),
         )
 
     def __unicode__(self):
@@ -331,8 +331,9 @@ class MergeTrade(models.Model):
                             break
                 
                 if is_order_out:
-                    print 'debug out stock:',order.oid,order.id
-                    MergeOrder.objects.filter(tid=trade_id,oid=order.oid).update(out_stock=True)
+                    order.out_stock=True
+                    order.save()
+                    
                 is_out_stock |= is_order_out
                 
         return is_out_stock
@@ -506,7 +507,6 @@ def refresh_trade_status(sender,instance,*args,**kwargs):
         instance.pay_time    = merge_trade.pay_time
         instance.save()
         return 
-    
     if merge_trade.status == pcfg.WAIT_SELLER_SEND_GOODS:
         total_num     = merge_trade.merge_trade_orders.filter(status=pcfg.WAIT_SELLER_SEND_GOODS,
                                                               sys_status=pcfg.IN_EFFECT).aggregate(total_num=Sum('num'))['total_num']
@@ -514,7 +514,6 @@ def refresh_trade_status(sender,instance,*args,**kwargs):
         out_stock     = merge_trade.merge_trade_orders.filter(out_stock=True,status=pcfg.WAIT_SELLER_SEND_GOODS).count()>0
         has_merge     = merge_trade.merge_trade_orders.filter(is_merge=True,status=pcfg.WAIT_SELLER_SEND_GOODS).count()>0
         has_rule_match = merge_trade.merge_trade_orders.filter(is_rule_match=True,status=pcfg.WAIT_SELLER_SEND_GOODS).count()>0
-        
         merge_trade.total_num = total_num
         merge_trade.has_refund = has_refunding
         merge_trade.has_out_stock = out_stock
@@ -771,11 +770,13 @@ def trade_download_controller(merge_trade,trade,trade_from,first_pay_load):
                     main_tid = MergeBuyerTrade.objects.get(sub_tid=trade.id).main_tid
                     merge_order_remover(main_tid)
                 else:
-                    merge_order_remover(notify.tid)
+                    merge_order_remover(trade.id)
             
-            if merge_trade.reason_code and merge_trade.out_sid == '' and merge_trade.sys_status == pcfg.WAIT_PREPARE_SEND_STATUS:
+            if merge_trade.sys_status == pcfg.WAIT_PREPARE_SEND_STATUS: 
+                merge_trade.remove_reason_code(pcfg.NEW_MEMO_CODE)
+            elif merge_trade.reason_code and merge_trade.out_sid == '' and merge_trade.sys_status == pcfg.WAIT_PREPARE_SEND_STATUS:
                 merge_trade.sys_status = pcfg.WAIT_AUDIT_STATUS
-     
+
     elif trade.status==pcfg.WAIT_BUYER_CONFIRM_GOODS:
         if merge_trade.sys_status in pcfg.WAIT_DELIVERY_STATUS:
             merge_trade.sys_status = pcfg.INVALID_STATUS

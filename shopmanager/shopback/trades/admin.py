@@ -84,7 +84,7 @@ class MergeTradeAdmin(admin.ModelAdmin):
     
     list_filter   = ('sys_status','status','user','type','has_out_stock','has_refund','has_rule_match',
                      'is_picking_print','is_express_print')
-    search_fields = ['id','buyer_nick','tid','reason_code','operator','out_sid','receiver_name']
+    search_fields = ['id','buyer_nick','tid','operator','out_sid','receiver_name','receiver_mobile','receiver_phone']
     
     class Media:
         css = {"all": ("admin/css/forms.css","css/admin/dialog.css","css/admin/checkorder.css")}
@@ -93,21 +93,23 @@ class MergeTradeAdmin(admin.ModelAdmin):
     #--------设置页面布局----------------
     fieldsets =(('订单基本信息:', {
                     'classes': ('collapse',),
-                    'fields': (('user','type','status','sys_status','seller_id'),('total_fee','payment','discount_fee','adjust_fee','post_fee')
-                               ,('seller_cod_fee','buyer_cod_fee','cod_fee','cod_status','alipay_no'),('modified','consign_time','created')
-                               ,('post_cost','refund_num','operator','weight','out_sid'),('is_send_sms','is_picking_print','is_express_print'))
-                }),
-                ('审单信息:', {
-                    'classes': ('expand',),
-                    'fields': (('has_memo','has_refund','has_out_stock','has_rule_match','has_merge')
-                            ,('tid','buyer_nick','seller_nick','pay_time','total_num')
-                            ,('priority','reason_code','remind_time'),('shipping_type','logistics_company')
-                            ,('buyer_message','seller_memo','sys_memo'))
+                    'fields': (('tid','user','type','status','seller_id','alipay_no'),('buyer_nick','seller_nick','pay_time','total_num')
+                               ,('total_fee','payment','discount_fee','adjust_fee','post_fee')
+                               ,('seller_cod_fee','buyer_cod_fee','cod_fee','cod_status'),('modified','consign_time','created')
+                               ,('buyer_message','seller_memo','sys_memo'))
                 }),
                 ('收货人及物流信息:', {
+                    'classes': ('expand',),
+                    'fields': (('receiver_name','receiver_state','receiver_city','receiver_district')
+                            ,('receiver_address','receiver_zip','receiver_mobile','receiver_phone')
+                            ,('shipping_type','logistics_company','out_sid')
+                            )
+                }),
+                ('系统内部信息:', {
                     'classes': ('collapse',),
-                    'fields': (('receiver_name','receiver_state','receiver_city','receiver_district','receiver_address')
-                               ,('receiver_zip','receiver_mobile','receiver_phone'))
+                    'fields': (('has_memo','has_refund','has_out_stock','has_rule_match','has_merge','is_send_sms','is_picking_print','is_express_print')
+                               ,('priority','remind_time','reason_code','refund_num')
+                               ,('post_cost','operator','weight','sys_status',))
                 }))
 
     #--------定制控件属性----------------
@@ -119,12 +121,12 @@ class MergeTradeAdmin(admin.ModelAdmin):
     #重写订单视图
     def changelist_view(self, request, extra_context=None, **kwargs):
 
-        if not has_modify_trade_info_status_permission(request):
-            self.readonly_fields=('tid','user','seller_nick','buyer_nick','payment','total_num','discount_fee'
-                     ,'adjust_fee','post_fee','total_fee','alipay_no','seller_cod_fee','buyer_cod_fee','cod_fee'
-                     ,'cod_status','buyer_message','seller_memo','created','pay_time','modified','consign_time'
-                     ,'type','status','shipping_type','operator','is_send_sms','out_sid'
-                     ,'has_memo','has_refund','has_out_stock','has_rule_match','has_merge','sys_status')
+        #if not has_modify_trade_info_status_permission(request):
+        #    self.readonly_fields=('tid','user','seller_nick','buyer_nick','payment','total_num','discount_fee'
+        #             ,'adjust_fee','post_fee','total_fee','alipay_no','seller_cod_fee','buyer_cod_fee','cod_fee'
+        #             ,'cod_status','buyer_message','seller_memo','created','pay_time','modified','consign_time'
+        #             ,'type','status','shipping_type','operator','is_send_sms','out_sid'
+        #             ,'has_memo','has_refund','has_out_stock','has_rule_match','has_merge','sys_status')
             
         return super(MergeTradeAdmin, self).changelist_view(request, extra_context)     
     
@@ -327,12 +329,17 @@ class MergeTradeAdmin(admin.ModelAdmin):
                         if not response['logistics_offline_send_response']['shipping']['is_success']:
                             raise Exception(u'子订单(%d)淘宝发货失败'%sub_trade.tid)
                     except Exception,exc:
-                        sub_trade.append_reason_code(pcfg.POST_SUB_TRADE_ERROR_CODE)
-                        MergeTrade.objects.filter(tid=sub_trade.tid).update(sys_status=pcfg.WAIT_AUDIT_STATUS)
-                        raise SubTradePostException(exc.message)
+                        if exc.sub_code == 'isv.logistics-offline-service-error:B04':
+                            MergeTrade.objects.filter(tid=sub_trade.tid,sys_status=pcfg.ON_THE_FLY_STATUS)\
+                               .update(out_sid=trade.out_sid,operator=trade.operator,sys_status=pcfg.FINISHED_STATUS\
+                               ,consign_time=datetime.datetime.now())
+                        else:
+                            sub_trade.append_reason_code(pcfg.POST_SUB_TRADE_ERROR_CODE)
+                            MergeTrade.objects.filter(tid=sub_trade.tid,sys_status=pcfg.ON_THE_FLY_STATUS).update(sys_status=pcfg.WAIT_AUDIT_STATUS)
+                            raise SubTradePostException(exc.message)
                     else:
-                        MergeTrade.objects.filter(tid=sub_trade.tid).update(out_sid=trade.out_sid,sys_status=pcfg.FINISHED_STATUS
-                            ,consign_time=datetime.datetime.now())
+                        MergeTrade.objects.filter(tid=sub_trade.tid,sys_status=pcfg.ON_THE_FLY_STATUS).update(out_sid=trade.out_sid,operator=trade.operator
+                            ,sys_status=pcfg.FINISHED_STATUS,consign_time=datetime.datetime.now())
                 
                 response = apis.taobao_logistics_offline_send(tid=trade.tid,out_sid=trade.out_sid
                                               ,company_code=trade.logistics_company.code,tb_user_id=trade.seller_id)  
@@ -346,12 +353,16 @@ class MergeTradeAdmin(admin.ModelAdmin):
                 MergeTrade.objects.filter(tid=trade.tid).update(sys_status=pcfg.WAIT_AUDIT_STATUS,sys_memo=exc.message)
                 logger.error(exc.message+'--sub post error',exc_info=True)
             except Exception,exc:
-                trade.append_reason_code(pcfg.POST_MODIFY_CODE)
-                MergeTrade.objects.filter(tid=trade.tid).update(sys_status=pcfg.WAIT_AUDIT_STATUS,
-                                                                sys_memo=exc.message,is_picking_print=False,is_express_print=False)
-                logger.error(exc.message+'--main post error',exc_info=True)
+                if exc.sub_code == 'isv.logistics-offline-service-error:B04':
+                    MergeTrade.objects.filter(tid=trade.tid,sys_status=pcfg.WAIT_PREPARE_SEND_STATUS)\
+                    .update(sys_status=pcfg.WAIT_CHECK_BARCODE_STATUS,consign_time=datetime.datetime.now())
+                else:
+                    trade.append_reason_code(pcfg.POST_MODIFY_CODE)
+                    MergeTrade.objects.filter(tid=trade.tid,sys_status=pcfg.WAIT_PREPARE_SEND_STATUS).update(sys_status=pcfg.WAIT_AUDIT_STATUS,
+                                                                    sys_memo=exc.message,is_picking_print=False,is_express_print=False)
+                    logger.error(exc.message+'--main post error',exc_info=True)
             else:
-                MergeTrade.objects.filter(tid=trade.tid).update(sys_status=pcfg.WAIT_CHECK_BARCODE_STATUS,consign_time=datetime.datetime.now())
+                MergeTrade.objects.filter(tid=trade.tid,sys_status=pcfg.WAIT_PREPARE_SEND_STATUS).update(sys_status=pcfg.WAIT_CHECK_BARCODE_STATUS,consign_time=datetime.datetime.now())
 	
 	    queryset.filter(sys_status=pcfg.WAIT_PREPARE_SEND_STATUS).exclude(reason_code='').update(sys_status=pcfg.WAIT_AUDIT_STATUS)
         

@@ -112,6 +112,8 @@ class DaemonCommand(BaseCommand):
             help='Store peroidtask info to database.'),
         make_option('--file_path', action='store', dest='file_path',
             help='input file for the program.'),
+        make_option('--queues', action='store', dest='queues',
+            help='task queue list.'),
     )
     help = 'Create a daemon'
     
@@ -128,6 +130,7 @@ class DaemonCommand(BaseCommand):
     gid = None
     scheduler_cls = None
     file_path = None
+    queues = None
     
     def get_option_value(self, options, name, expected=None):
         value = options.get(name)
@@ -183,6 +186,10 @@ class DaemonCommand(BaseCommand):
         scheduler_cls = self.get_option_value(options, 'scheduler_cls')
         if scheduler_cls is not None:
             context.scheduler_cls = scheduler_cls
+            
+        queues = self.get_option_value(options, 'queues')
+        if queues is not None:
+            context.queues = queues
         
         context.open()        
         #raise Exception('handle daemon error! %s,%s'%(context.__dict__,self.scheduler))

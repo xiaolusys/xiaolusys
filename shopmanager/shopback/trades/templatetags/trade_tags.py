@@ -24,8 +24,7 @@ def trade_submit_row(context):
         sys_status = trade.sys_status
         is_wait_audit = sys_status == pcfg.WAIT_AUDIT_STATUS
         can_split_trade = trade.has_merge or trade.has_reason_code(pcfg.MULTIPLE_ORDERS_CODE)
-        #can_trade_audit = context['perms'].user.has_perm('trades.can_trade_aduit')
-        can_trade_audit = False
+        can_trade_audit = context['perms'].user.has_perm('trades.can_trade_aduit')
     return {
         'onclick_attrib': (opts.get_ordered_objects() and change
                             and 'onclick="submitOrderForm();"' or ''),
