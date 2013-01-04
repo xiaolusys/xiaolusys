@@ -329,7 +329,7 @@ class MergeTradeAdmin(admin.ModelAdmin):
                         if not response['logistics_offline_send_response']['shipping']['is_success']:
                             raise Exception(u'子订单(%d)淘宝发货失败'%sub_trade.tid)
                     except Exception,exc:
-                        if exc.sub_code == 'isv.logistics-offline-service-error:B04':
+                        if hasattr(exc,'sub_code') and exc.sub_code == 'isv.logistics-offline-service-error:B04':
                             MergeTrade.objects.filter(tid=sub_trade.tid)\
                                .update(out_sid=trade.out_sid,operator=trade.operator,sys_status=pcfg.FINISHED_STATUS\
                                ,consign_time=datetime.datetime.now())
@@ -353,7 +353,7 @@ class MergeTradeAdmin(admin.ModelAdmin):
                 MergeTrade.objects.filter(tid=trade.tid).update(sys_status=pcfg.WAIT_AUDIT_STATUS,sys_memo=exc.message)
                 logger.error(exc.message+'--sub post error',exc_info=True)
             except Exception,exc:
-                if exc.sub_code == 'isv.logistics-offline-service-error:B04':
+                if hasattr(exc,'sub_code') and exc.sub_code == 'isv.logistics-offline-service-error:B04':
                     MergeTrade.objects.filter(tid=trade.tid)\
                     .update(sys_status=pcfg.WAIT_CHECK_BARCODE_STATUS,consign_time=datetime.datetime.now())
                 else:
