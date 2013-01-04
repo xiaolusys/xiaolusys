@@ -335,7 +335,7 @@ class MergeTradeAdmin(admin.ModelAdmin):
                                ,consign_time=datetime.datetime.now())
                         else:
                             sub_trade.append_reason_code(pcfg.POST_SUB_TRADE_ERROR_CODE)
-                            MergeTrade.objects.filter(tid=sub_trade.tid,sys_status=pcfg.ON_THE_FLY_STATUS).update(sys_status=pcfg.WAIT_AUDIT_STATUS)
+                            MergeTrade.objects.filter(tid=sub_trade.tid).update(sys_status=pcfg.WAIT_AUDIT_STATUS)
                             raise SubTradePostException(exc.message)
                     else:
                         MergeTrade.objects.filter(tid=sub_trade.tid,sys_status=pcfg.ON_THE_FLY_STATUS).update(out_sid=trade.out_sid,operator=trade.operator

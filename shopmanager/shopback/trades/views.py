@@ -174,6 +174,7 @@ def change_trade_order(request,id):
     user_id    = request.user.id
     CONTENT    = request.REQUEST
     outer_sku_id = CONTENT.get('outer_sku_id')
+    order_num    = int(CONTENT.get('order_num',0))
     try:
         order = MergeOrder.objects.get(id=id)
     except MergeOrder.DoesNotExist:
@@ -194,6 +195,7 @@ def change_trade_order(request,id):
     order.sku_properties_name=prod_sku.properties_name
     order.is_rule_match = False
     order.out_stock     = False
+    order.num           = order_num
     order.save()
     MergeTrade.judge_out_stock(order.merge_trade.tid,None)
     order = MergeOrder.objects.get(id=order.id)

@@ -126,7 +126,7 @@
 					{% endfor %}
 				</select> 
 			</td>
-			<td><input id="id-order-num-{{ forloop.counter }}" type="text" value="{{ order.num }}" size="2" /></td>
+			<td><input id="id-change-order-num-{{ forloop.counter }}" type="text" value="{{ order.num }}" size="2" /></td>
 			<td>{{ order.price }}</td>
 			<td>{% if order.gift_type == 0 %}实付{% elif order.gift_type == 1 %}赠送{% elif order.gift_type == 2 %}
 				满就送{% elif order.gift_type == 3 %}拆分{% elif order.gift_type == 4 %}换货{% endif %}</td>

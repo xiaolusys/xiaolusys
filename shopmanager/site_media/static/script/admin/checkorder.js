@@ -244,6 +244,7 @@ ordercheck.Dialog.prototype.changeOrder=function(e){
 	var idx     = target.getAttribute('idx');
 	var order_id     = target.getAttribute('oid');
 	var outer_sku_id = goog.dom.getElement('id-select-ordersku-'+idx).value;
+	var order_num    = goog.dom.getElement('id-change-order-num-'+idx).value;
 	var callback = function(e){
 		var xhr  = e.target;
         try {
@@ -267,7 +268,7 @@ ordercheck.Dialog.prototype.changeOrder=function(e){
             console.log('Error: (ajax callback) - ', err);
         } 
 	};
-	params = {'outer_sku_id':outer_sku_id};
+	params = {'outer_sku_id':outer_sku_id,'order_num':order_num};
 	content = goog.uri.utils.buildQueryDataFromMap(params);
 	goog.net.XhrIo.send('/trades/order/update/'+order_id+'/',callback,'POST',content);
 }
