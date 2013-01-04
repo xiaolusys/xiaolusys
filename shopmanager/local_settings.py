@@ -52,11 +52,11 @@ SITE_URL = 'http://qiyue.huyi.so/'
 #APPKEY = '21165266'  #app name huyi ERP ,younishijie
 #APPSECRET  = 'ea5f5687a856ec58199d538cfa04496d'
 
-#APPKEY = '12686908'   #app name super ERP ,younishijie
-#APPSECRET = 'b3ddef5982a23c636739289949c01f59'
+APPKEY = '12686908'   #app name super ERP ,younishijie
+APPSECRET = 'b3ddef5982a23c636739289949c01f59'
 
-APPKEY = '12545735'   #app name guanyi erp ,younishijie
-APPSECRET = '2b966d4f5f05d201a48a75fe8b5251af '
+#APPKEY = '12545735'   #app name guanyi erp ,younishijie
+#APPSECRET = '2b966d4f5f05d201a48a75fe8b5251af '
 
 AUTHRIZE_URL = 'https://oauth.taobao.com/authorize'
 AUTHRIZE_TOKEN_URL = 'https://oauth.taobao.com/token'
