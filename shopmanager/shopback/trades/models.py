@@ -574,7 +574,7 @@ def merge_order_maker(sub_tid,main_tid):
         merge_order.merge_trade = main_merge_trade
         merge_order.tid = main_tid
         merge_order.is_merge = True
-        merge_order.sys_status = pcfg.IN_EFFECT
+        merge_order.sys_status = order.sys_status
         merge_order.save()
         if order.refund_status not in pcfg.REFUND_APPROVAL_STATUS:
             payment   += float(order.payment or 0)
