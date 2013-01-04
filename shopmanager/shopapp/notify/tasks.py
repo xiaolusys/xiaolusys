@@ -96,8 +96,8 @@ def process_trade_notify_task(id):
                 Trade.objects.filter(id=notify.tid).update(status=pcfg.WAIT_BUYER_CONFIRM_GOODS,modified=notify.modified)
                 Order.objects.filter(trade=notify.tid,status=pcfg.WAIT_SELLER_SEND_GOODS).update(status=pcfg.WAIT_BUYER_CONFIRM_GOODS)
                 MergeTrade.objects.filter(tid=notify.tid).update(status=pcfg.WAIT_BUYER_CONFIRM_GOODS,modified=notify.modified)
-                MergeTrade.objects.filter(tid=notify.tid,sys_status__in=(pcfg.WAIT_AUDIT_STATUS,#pcfg.WAIT_PREPARE_SEND_STATUS,
-                        pcfg.REGULAR_REMAIN_STATUS)).update(sys_status=pcfg.INVALID_STATUS)
+                MergeTrade.objects.filter(tid=notify.tid,sys_status__in=(pcfg.WAIT_AUDIT_STATUS,pcfg.WAIT_PREPARE_SEND_STATUS,
+                        pcfg.REGULAR_REMAIN_STATUS),reason_code='').update(sys_status=pcfg.INVALID_STATUS)
                 MergeOrder.objects.filter(tid=notify.tid,status=pcfg.WAIT_SELLER_SEND_GOODS).update(status=pcfg.WAIT_BUYER_CONFIRM_GOODS)            
             #交易成功
             elif notify.status == 'TradeSuccess':

@@ -770,15 +770,13 @@ def trade_download_controller(merge_trade,trade,trade_from,first_pay_load):
                     main_tid = MergeBuyerTrade.objects.get(sub_tid=trade.id).main_tid
                     merge_order_remover(main_tid)
                 else:
-                    merge_order_remover(notify.tid)
+                    merge_order_remover(trade.id)
             
             if merge_trade.sys_status == pcfg.WAIT_PREPARE_SEND_STATUS: 
                 merge_trade.remove_reason_code(pcfg.NEW_MEMO_CODE)
             elif merge_trade.reason_code and merge_trade.out_sid == '' and merge_trade.sys_status == pcfg.WAIT_PREPARE_SEND_STATUS:
                 merge_trade.sys_status = pcfg.WAIT_AUDIT_STATUS
-            
-                   
-            
+
     elif trade.status==pcfg.WAIT_BUYER_CONFIRM_GOODS:
         if merge_trade.sys_status in pcfg.WAIT_DELIVERY_STATUS:
             merge_trade.sys_status = pcfg.INVALID_STATUS

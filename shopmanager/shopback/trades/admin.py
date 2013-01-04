@@ -93,21 +93,23 @@ class MergeTradeAdmin(admin.ModelAdmin):
     #--------设置页面布局----------------
     fieldsets =(('订单基本信息:', {
                     'classes': ('collapse',),
-                    'fields': (('user','type','status','sys_status','seller_id'),('total_fee','payment','discount_fee','adjust_fee','post_fee')
-                               ,('seller_cod_fee','buyer_cod_fee','cod_fee','cod_status','alipay_no'),('modified','consign_time','created')
-                               ,('post_cost','refund_num','operator','weight','out_sid'),('is_send_sms','is_picking_print','is_express_print'))
-                }),
-                ('审单信息:', {
-                    'classes': ('expand',),
-                    'fields': (('has_memo','has_refund','has_out_stock','has_rule_match','has_merge')
-                            ,('tid','buyer_nick','seller_nick','pay_time','total_num')
-                            ,('priority','reason_code','remind_time'),('shipping_type','logistics_company')
-                            ,('buyer_message','seller_memo','sys_memo'))
+                    'fields': (('tid','user','type','status','seller_id','alipay_no'),('buyer_nick','seller_nick','pay_time','total_num')
+                               ,('total_fee','payment','discount_fee','adjust_fee','post_fee')
+                               ,('seller_cod_fee','buyer_cod_fee','cod_fee','cod_status'),('modified','consign_time','created')
+                               ,('buyer_message','seller_memo','sys_memo'))
                 }),
                 ('收货人及物流信息:', {
+                    'classes': ('expand',),
+                    'fields': (('receiver_name','receiver_state','receiver_city','receiver_district')
+                            ,('receiver_address','receiver_zip','receiver_mobile','receiver_phone')
+                            ,('shipping_type','logistics_company','out_sid')
+                            )
+                }),
+                ('系统内部信息:', {
                     'classes': ('collapse',),
-                    'fields': (('receiver_name','receiver_state','receiver_city','receiver_district','receiver_address')
-                               ,('receiver_zip','receiver_mobile','receiver_phone'))
+                    'fields': (('has_memo','has_refund','has_out_stock','has_rule_match','has_merge','is_send_sms','is_picking_print','is_express_print')
+                               ,('priority','remind_time','reason_code','refund_num')
+                               ,('post_cost','operator','weight','sys_status',))
                 }))
 
     #--------定制控件属性----------------
