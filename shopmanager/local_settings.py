@@ -2,7 +2,7 @@ __author__ = 'zfz'
 
 import os
 
-DEBUG = True
+DEBUG = False
 TEMPLATE_DEBUG = DEBUG
 
 PROJECT_ROOT = os.path.abspath(os.path.dirname(__file__))
@@ -41,7 +41,7 @@ RAVEN_CONFIG = {
 
 #SITE_URL = "http://autolist.huyi.so/" 
 
-SITE_URL = 'http://192.168.1.133/' 
+SITE_URL = 'http://qiyue.huyi.so/' 
 
 #APPKEY  = '21196642' #super erp test3,younishijie
 #APPSECRET = '027fd632d388f2391a06b40cf292519c'
@@ -52,11 +52,11 @@ SITE_URL = 'http://192.168.1.133/'
 #APPKEY = '21165266'  #app name huyi ERP ,younishijie
 #APPSECRET  = 'ea5f5687a856ec58199d538cfa04496d'
 
-#APPKEY = '12686908'   #app name super ERP ,younishijie
-#APPSECRET = 'b3ddef5982a23c636739289949c01f59'
+APPKEY = '12686908'   #app name super ERP ,younishijie
+APPSECRET = 'b3ddef5982a23c636739289949c01f59'
 
-APPKEY = '12545735'   #app name guanyi erp ,younishijie
-APPSECRET = '2b966d4f5f05d201a48a75fe8b5251af '
+#APPKEY = '12545735'   #app name guanyi erp ,younishijie
+#APPSECRET = '2b966d4f5f05d201a48a75fe8b5251af '
 
 AUTHRIZE_URL = 'https://oauth.taobao.com/authorize'
 AUTHRIZE_TOKEN_URL = 'https://oauth.taobao.com/token'
