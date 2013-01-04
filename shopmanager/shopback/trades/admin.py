@@ -84,7 +84,7 @@ class MergeTradeAdmin(admin.ModelAdmin):
     
     list_filter   = ('sys_status','status','user','type','has_out_stock','has_refund','has_rule_match',
                      'has_merge','is_picking_print','is_express_print')
-    search_fields = ['id','buyer_nick','tid','operator','out_sid','receiver_name','receiver_mobile','receiver_phone']
+    search_fields = ['id','buyer_nick','tid','operator','out_sid','receiver_name']
     
     class Media:
         css = {"all": ("admin/css/forms.css","css/admin/dialog.css","css/admin/checkorder.css")}
@@ -93,17 +93,16 @@ class MergeTradeAdmin(admin.ModelAdmin):
     #--------设置页面布局----------------
     fieldsets =(('订单基本信息:', {
                     'classes': ('collapse',),
-                    'fields': (('tid','user','type','status','seller_id','alipay_no'),('buyer_nick','seller_nick','pay_time','total_num')
+                    'fields': (('tid','user','type','status','seller_id'),('buyer_nick','seller_nick','pay_time','total_num')
                                ,('total_fee','payment','discount_fee','adjust_fee','post_fee')
-                               ,('seller_cod_fee','buyer_cod_fee','cod_fee','cod_status'),('modified','consign_time','created')
+                               ,('seller_cod_fee','buyer_cod_fee','cod_fee','cod_status','alipay_no'),('modified','consign_time','created')
                                ,('buyer_message','seller_memo','sys_memo'))
                 }),
                 ('收货人及物流信息:', {
                     'classes': ('expand',),
                     'fields': (('receiver_name','receiver_state','receiver_city','receiver_district')
                             ,('receiver_address','receiver_zip','receiver_mobile','receiver_phone')
-                            ,('shipping_type','logistics_company','out_sid')
-                            )
+                            ,('shipping_type','logistics_company','out_sid'))
                 }),
                 ('系统内部信息:', {
                     'classes': ('collapse',),
@@ -309,7 +308,7 @@ class MergeTradeAdmin(admin.ModelAdmin):
         trade_ids = [t.id for t in queryset]
         
         prapare_trades = queryset.filter(is_picking_print=True,is_express_print=True,sys_status=pcfg.WAIT_PREPARE_SEND_STATUS
-                                         ,operator=request.user.username,reason_code='').exclude(out_sid='')
+                                         ,operator=request.user.username,reason_code='',status=pcfg.WAIT_SELLER_SEND_GOODS).exclude(out_sid='')
 
         for trade in prapare_trades:
             if not trade.tid and trade.type == 'direct':
@@ -317,9 +316,10 @@ class MergeTradeAdmin(admin.ModelAdmin):
                                                                 ,consign_time=datetime.datetime.now())
                 continue        
             try:
-                #判断子订单是否有改动，如果有则不能发货
-                merge_buyer_trades = MergeBuyerTrade.objects.filter(main_tid=trade.tid)
-                
+                merge_buyer_trades = []
+                if trade.has_merge:
+                    #判断子订单是否有改动，如果有则不能发货
+                    merge_buyer_trades = MergeBuyerTrade.objects.filter(main_tid=trade.tid)
                 for sub_buyer_trade in merge_buyer_trades:
                     try:
                         sub_trade = MergeTrade.objects.get(tid=sub_buyer_trade.sub_tid)
@@ -358,14 +358,15 @@ class MergeTradeAdmin(admin.ModelAdmin):
                     .update(sys_status=pcfg.WAIT_CHECK_BARCODE_STATUS,consign_time=datetime.datetime.now())
                 else:
                     trade.append_reason_code(pcfg.POST_MODIFY_CODE)
-                    MergeTrade.objects.filter(tid=trade.tid,sys_status=pcfg.WAIT_PREPARE_SEND_STATUS).update(
+                    MergeTrade.objects.filter(tid=trade.tid,sys_status=pcfg.WAIT_PREPARE_SEND_STATUS).update(sys_status=pcfg.WAIT_AUDIT_STATUS,
                                                                     sys_memo=exc.message,is_picking_print=False,is_express_print=False)
                     logger.error(exc.message+'--main post error',exc_info=True)
             else:
                 MergeTrade.objects.filter(tid=trade.tid,sys_status=pcfg.WAIT_PREPARE_SEND_STATUS).update(
                     sys_status=pcfg.WAIT_CHECK_BARCODE_STATUS,consign_time=datetime.datetime.now())
 	
-	    queryset.filter(sys_status=pcfg.WAIT_PREPARE_SEND_STATUS).exclude(reason_code='').update(sys_status=pcfg.WAIT_AUDIT_STATUS)
+	    queryset.filter(sys_status=pcfg.WAIT_PREPARE_SEND_STATUS).exclude(reason_code='').update(
+                                    is_picking_print=False,is_express_print=False,sys_status=pcfg.WAIT_AUDIT_STATUS)
         
         queryset = MergeTrade.objects.filter(id__in=trade_ids)
         post_trades = queryset.filter(sys_status=pcfg.WAIT_CHECK_BARCODE_STATUS)

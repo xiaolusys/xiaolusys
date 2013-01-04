@@ -146,7 +146,7 @@ class MergeTrade(models.Model):
     
     out_sid    = models.CharField(max_length=64,db_index=True,blank=True,verbose_name='物流（快递）编号')
     logistics_company  = models.ForeignKey(LogisticsCompany,null=True,blank=True,verbose_name='物流公司')
-    receiver_name    =  models.CharField(max_length=64,blank=True,verbose_name='收货人姓名')
+    receiver_name    =  models.CharField(max_length=64,db_index=True,blank=True,verbose_name='收货人姓名')
     receiver_state   =  models.CharField(max_length=16,blank=True,verbose_name='省')
     receiver_city    =  models.CharField(max_length=16,blank=True,verbose_name='市')
     receiver_district  =  models.CharField(max_length=16,blank=True,verbose_name='区')
