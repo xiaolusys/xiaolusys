@@ -51,9 +51,12 @@ class TaoBaoBackend:
             'state':state,
             'view':'web'
         }
-        req = urllib2.urlopen(settings.AUTHRIZE_TOKEN_URL,urllib.urlencode(params))
-        top_parameters = json.loads(req.read())
-        
+        try:
+            req = urllib2.urlopen(settings.AUTHRIZE_TOKEN_URL,urllib.urlencode(params))
+            top_parameters = json.loads(req.read())
+        except Exception,exc:
+            logger.error(exc.message,exc_info=True)
+            return None
         request.session['top_session']    = top_parameters['access_token']
         request.session['top_parameters'] = top_parameters
         top_parameters['ts']  = time.time()
