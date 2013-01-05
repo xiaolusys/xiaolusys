@@ -84,7 +84,7 @@ def process_trade_notify_task(id):
                 Trade.objects.filter(id=notify.tid).update(status=pcfg.TRADE_CLOSED,modified=notify.modified)
                 Order.objects.filter(trade=notify.tid).update(status=pcfg.TRADE_CLOSED)
                 MergeTrade.objects.filter(tid=notify.tid).update(status=pcfg.TRADE_CLOSED,modified=notify.modified) 
-                MergeTrade.objects.filter(tid=notify.tid,sys_status__in=pcfg.WAIT_DELIVERY_STATUS).update(sys_status=pcfg.INVALID_STATUS) 
+                MergeTrade.objects.filter(tid=notify.tid).exlude(sys_status='').update(sys_status=pcfg.INVALID_STATUS) 
                 MergeOrder.objects.filter(tid=notify.tid).update(status=pcfg.TRADE_CLOSED)
             #买家付款     
             elif notify.status == 'TradeBuyerPay':
