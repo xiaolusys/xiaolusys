@@ -1,4 +1,5 @@
 #-*- coding:utf8 -*-
+import datetime
 from django.contrib import admin
 from django.db import models
 from django.forms import TextInput, Textarea
@@ -60,7 +61,7 @@ class ProductAdmin(admin.ModelAdmin):
     search_fields = ['outer_id', 'name']
     
     #更新用户线上商品入库
-    def pull_items_stock(self,request,queryset):
+    def sync_items_stock(self,request,queryset):
         
         from shopapp.syncnum.tasks import updateItemNum
         
@@ -82,9 +83,9 @@ class ProductAdmin(admin.ModelAdmin):
         return render_to_response('items/sync_taobao.stock.html',{'prods':sync_items},
                                   context_instance=RequestContext(request),mimetype="text/html")
     
-    pull_items_stock.short_description = "同步商品库存".decode('utf8')
+    sync_items_stock.short_description = "同步商品库存".decode('utf8')
     
-    actions = ['pull_items_stock',]
+    actions = ['sync_items_stock',]
 
 admin.site.register(Product, ProductAdmin)
 

@@ -102,25 +102,25 @@ def raise_except_or_ret_json(content):
         msg      = content.get('msg','400')
         sub_msg  = content.get('sub_msg','')
 
-        if code == 520 and sub_code == u'isp.remote-connection-error':
+        if sub_code == u'isp.remote-connection-error':
             raise RemoteConnectionException(
                     code=code,msg=msg,sub_code=sub_code,sub_msg=sub_msg)
-        elif code == 520 and sub_code == u'isp.remote-service-timeout':
+        elif sub_code == u'isp.remote-service-timeout':
             raise APIConnectionTimeOutException(
                 code=code,msg=msg,sub_code=sub_code,sub_msg=sub_msg)
-        elif code == 520 and  reject_regex.match(sub_code):
+        elif reject_regex.match(sub_code):
             raise ServiceRejectionException(
                 code=code,msg=msg,sub_code=sub_code,sub_msg=sub_msg)
-        elif code == 670 and sub_code == u'isv.invalid-parameter:user_id_num':
+        elif sub_code == u'isv.invalid-parameter:user_id_num':
             raise UserFenxiaoUnuseException(
                     code=code,msg=msg,sub_code=sub_code,sub_msg=sub_msg)
-        elif code == 7 and sub_code == u'accesscontrol.limited-by-app-access-count':
+        elif sub_code == u'accesscontrol.limited-by-app-access-count':
             raise AppCallLimitedException(
                     code=code,msg=msg,sub_code=sub_code,sub_msg=sub_msg)
-        elif code == 11 and sub_code ==u'isv.permission-api-package-limit':
+        elif sub_code ==u'isv.permission-api-package-limit':
             raise InsufficientIsvPermissionsException(
                     code=code,msg=msg,sub_code=sub_code,sub_msg=sub_msg)
-        elif code == 44 and sub_code == u'session-expired':
+        elif sub_code == u'session-expired':
             raise SessionExpiredException(
                     code=code,msg=msg,sub_code=sub_code,sub_msg=sub_msg)
         else :
