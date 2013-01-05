@@ -17,6 +17,7 @@ from auth.utils import parse_datetime
 from shopback import paramconfig as pcfg
 from shopback.monitor.models import SystemConfig,Reason
 from shopback.signals import merge_trade_signal,rule_signal
+from auth import apis
 import logging
 
 logger = logging.getLogger('trades.handler')
@@ -193,6 +194,23 @@ class MergeTrade(models.Model):
     @property
     def buyer_full_address(self):
         return '%s%s%s%s%s'%(self.receiver_name,self.receiver_state,self.receiver_city,self.receiver_district,self.receiver_address)
+    
+    def is_post_success(self):
+        user_id = self.user.visitor_id
+        if self.status in (pcfg.WAIT_BUYER_CONFIRM_GOODS,pcfg.TRADE_FINISHED) \
+            and self.sys_status in (pcfg.WAIT_CHECK_BARCODE_STATUS,pcfg.WAIT_SCAN_WEIGHT_STATUS,pcfg.FINISHED_STATUS):
+            return True
+ 
+        response = apis.taobao_logistics_orders_get(tid=self.tid,tb_user_id=user_id,fields='out_sid,tid')
+        trade_dicts = response['logistics_orders_get_response']['shippings']['shipping']
+        if len(trade_dicts)>0:
+            trade_dict = trade_dicts[0]
+            out_sid = trade_dict.get('out_sid','') 
+            if out_sid == self.out_sid:
+                return True
+            elif out_sid != self.out_sid: 
+                raise Exception(u'系统快递单号与线上发货快递单号不一致')       
+        return False
     
     def append_reason_code(self,code):  
         reason_set = set(self.reason_code.split(','))
