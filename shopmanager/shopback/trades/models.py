@@ -200,27 +200,15 @@ class MergeTrade(models.Model):
         if self.status in (pcfg.WAIT_BUYER_CONFIRM_GOODS,pcfg.TRADE_FINISHED) \
             and self.sys_status in (pcfg.WAIT_CHECK_BARCODE_STATUS,pcfg.WAIT_SCAN_WEIGHT_STATUS,pcfg.FINISHED_STATUS):
             return True
-    
-        if self.type == pcfg.FENXIAO_TYPE:
-            fenxiao_id = PurchaseOrder.objects.get(id=self.tid).fenxiao_id
-            response_list = apis.taobao_fenxiao_orders_get(tb_user_id=user_id,purchase_order_id=fenxiao_id,fields='status,logistics_id')
-            orders_list = response_list['fenxiao_orders_get_response']
-            if orders_list['total_results']>0:
-                o      = orders_list['purchase_orders']['purchase_order'][0]
-                status = o.get('status','')
-                logistics_id = o.get('logistics_id','') 
-                if status==pcfg.WAIT_BUYER_CONFIRM_GOODS and logistics_id==self.out_sid:
-                    return True
-                elif status==pcfg.WAIT_BUYER_CONFIRM_GOODS and logistics_id != self.out_sid: 
-                    raise Exception(u'系统快递单号与线上发货快递单号不一致')        
-        elif self.type == pcfg.TAOBAO_TYPE:
-            response = apis.taobao_trade_fullinfo_get(tid=trade['tid'],tb_user_id=user_id,fields='status,out_sid')
-            trade_dict = response['trade_fullinfo_get_response']['trade']
-            status = trade_dict.get('status','')
+ 
+        response = apis.taobao_logistics_orders_get(tid=self.tid,tb_user_id=user_id,fields='out_sid,tid')
+        trade_dicts = response['logistics_orders_get_response']['shippings']['shipping']
+        if len(trade_dicts)>0:
+            trade_dict = trade_dicts[0]
             out_sid = trade_dict.get('out_sid','') 
-            if status==pcfg.WAIT_BUYER_CONFIRM_GOODS and out_sid == self.out_sid:
+            if out_sid == self.out_sid:
                 return True
-            elif status==pcfg.WAIT_BUYER_CONFIRM_GOODS and out_sid != self.out_sid: 
+            elif out_sid != self.out_sid: 
                 raise Exception(u'系统快递单号与线上发货快递单号不一致')       
         return False
     

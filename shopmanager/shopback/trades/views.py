@@ -2,7 +2,6 @@
 import json
 from django.http import HttpResponse
 from django.db.models import Q
-from django.views.decorators.csrf import csrf_exempt
 from djangorestframework.views import ModelView
 from djangorestframework.response import ErrorResponse
 from shopback.trades.models import MergeTrade,MergeOrder,GIFT_TYPE
@@ -146,9 +145,7 @@ class OrderPlusView(ModelView):
         
         return merge_order
     
-        
-        
-@csrf_exempt     
+            
 def change_trade_addr(request):
     
     user_id  = request.user.id
@@ -167,8 +164,7 @@ def change_trade_addr(request):
     ret_params = {'code':0,'success':True}
     
     return HttpResponse(json.dumps(ret_params),mimetype="application/json")
-
-@csrf_exempt     
+    
 def change_trade_order(request,id):
     
     user_id    = request.user.id
@@ -210,8 +206,7 @@ def change_trade_order(request,id):
     
     return HttpResponse(json.dumps(ret_params),mimetype="application/json")
 
-
-@csrf_exempt     
+     
 def delete_trade_order(request,id):
     
     user_id      = request.user.id
