@@ -49,17 +49,18 @@ def process_trade_notify_task(id):
                     trade = Trade.save_trade_through_dict(notify.user_id,trade_dict)
                 else:
                     #如果交易存在，并且等待卖家发货
-                    if trade.status == pcfg.WAIT_SELLER_SEND_GOODS:
-                        response    = apis.taobao_trade_fullinfo_get(tid=notify.tid,fields='tid,seller_memo,seller_flag',tb_user_id=notify.user_id)
-                        trade_dict  = response['trade_fullinfo_get_response']['trade']
-                        seller_memo  = trade_dict.get('seller_memo','')
-                        seller_flag  = trade_dict.get('seller_flag',0)
-                        Trade.objects.filter(id=notify.tid).update(modified=notify.modified,seller_memo=seller_memo,seller_flag=seller_flag)
-                        MergeTrade.objects.filter(tid=notify.tid).update(has_memo=True,modified=notify.modified,seller_memo=seller_memo,seller_flag=seller_flag)
-                        #如果是更新了卖家备注，则继续处理，更新旗帜则不处理
-                        if seller_memo: 
-                            trade.append_reason_code(pcfg.NEW_MEMO_CODE)
-                            
+                    response    = apis.taobao_trade_fullinfo_get(tid=notify.tid,fields='tid,seller_memo,seller_flag',tb_user_id=notify.user_id)
+                    trade_dict  = response['trade_fullinfo_get_response']['trade']
+                    seller_memo  = trade_dict.get('seller_memo','')
+                    seller_flag  = trade_dict.get('seller_flag',0)
+                    Trade.objects.filter(id=notify.tid).update(modified=notify.modified,seller_memo=seller_memo,seller_flag=seller_flag)
+                    MergeTrade.objects.filter(tid=notify.tid).update(has_memo=True,modified=notify.modified,seller_memo=seller_memo,seller_flag=seller_flag)
+                    #如果是更新了卖家备注，则继续处理，更新旗帜则不处理
+                    if seller_memo: 
+                        trade.append_reason_code(pcfg.NEW_MEMO_CODE)
+                        trade.has_memo = True
+                        trade.save()
+                        if trade.status == pcfg.WAIT_SELLER_SEND_GOODS:
                             trades = MergeTrade.objects.filter(buyer_nick=trade.buyer_nick,
                                     sys_status__in=(pcfg.WAIT_AUDIT_STATUS,pcfg.WAIT_PREPARE_SEND_STATUS))\
                                                     .exclude(tid=trade.id).order_by('-pay_time')
@@ -78,7 +79,7 @@ def process_trade_notify_task(id):
                             #如果非合并子订单，则入问题单
                             MergeTrade.objects.filter(tid=notify.tid,out_sid='',sys_status = pcfg.WAIT_PREPARE_SEND_STATUS)\
                                 .update(sys_status=pcfg.WAIT_AUDIT_STATUS)
-           
+
             #交易关闭
             elif notify.status == 'TradeClose':
                 Trade.objects.filter(id=notify.tid).update(status=pcfg.TRADE_CLOSED,modified=notify.modified)
