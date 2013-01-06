@@ -312,7 +312,7 @@ class MergeTradeAdmin(admin.ModelAdmin):
 
         for trade in prapare_trades:
             
-            if not trade.sys_status == pcfg.WAIT_PREPARE_SEND_STATUS:
+            if trade.sys_status != pcfg.WAIT_PREPARE_SEND_STATUS:
                 continue
             if trade.type == 'direct':
                 MergeTrade.objects.filter(tid=trade.tid).update(sys_status=pcfg.WAIT_CHECK_BARCODE_STATUS
@@ -320,8 +320,8 @@ class MergeTradeAdmin(admin.ModelAdmin):
                 continue      
             try:
                 merge_buyer_trades = []
+                #判断是否有合单子订单
                 if trade.has_merge:
-                    #判断子订单是否有改动，如果有则不能发货
                     merge_buyer_trades = MergeBuyerTrade.objects.filter(main_tid=trade.tid)
 
                 for sub_buyer_trade in merge_buyer_trades:
@@ -370,11 +370,10 @@ class MergeTradeAdmin(admin.ModelAdmin):
             else:
                 MergeTrade.objects.filter(tid=trade.tid,sys_status=pcfg.WAIT_PREPARE_SEND_STATUS).update(
                     sys_status=pcfg.WAIT_CHECK_BARCODE_STATUS,consign_time=datetime.datetime.now())
-                
-	    queryset.filter(sys_status=pcfg.WAIT_PREPARE_SEND_STATUS).update(
-                    is_picking_print=False,is_express_print=False,sys_status=pcfg.WAIT_AUDIT_STATUS)
 
         queryset = MergeTrade.objects.filter(id__in=trade_ids)
+        queryset.filter(sys_status=pcfg.WAIT_PREPARE_SEND_STATUS).exclude(out_sid='').update(
+            is_picking_print=False,is_express_print=False,sys_status=pcfg.WAIT_AUDIT_STATUS)
         post_trades = queryset.filter(sys_status=pcfg.WAIT_CHECK_BARCODE_STATUS)
         trade_items = {}
         for trade in post_trades:
