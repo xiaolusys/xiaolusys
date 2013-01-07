@@ -191,13 +191,13 @@ class Item(models.Model):
     
     @property
     def property_alias_dict(self):
-	property_list = self.property_alias.split(';')
-	property_dict = {}
-	for p in property_list:
-	    if p :
-		r = p.split(':')
-		property_dict['%s:%s'%(r[0],r[1])]=r[2]
-	return property_dict
+    	property_list = self.property_alias.split(';')
+    	property_dict = {}
+    	for p in property_list:
+            if p:
+                r = p.split(':')
+                property_dict['%s:%s'%(r[0],r[1])]=r[2]
+    	return property_dict
 
 
     @classmethod

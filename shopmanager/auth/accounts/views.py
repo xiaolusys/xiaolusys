@@ -233,7 +233,8 @@ def test_api(request):
 #    response = apis.taobao_topats_result_get(task_id=60646019,tb_user_id=121741189)
 #    print response
 
-    response = apis.taobao_item_get(num_iid=20489004618,tb_user_id=121741189)
+    response = apis.taobao_item_get(num_iid=13169180245,tb_user_id=121741189,
+        fields='has_showcase,detail_url,num_iid,title,outer_id,price,approve_status,delist_time,list_time,modified,num,props_name,property_alias')
     print response
 
     return HttpResponseBadRequest('error') #HttpResponse('ok')
