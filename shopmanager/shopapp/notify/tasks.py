@@ -54,7 +54,10 @@ def process_trade_notify_task(id):
                     seller_memo  = trade_dict.get('seller_memo','')
                     seller_flag  = trade_dict.get('seller_flag',0)
                     Trade.objects.filter(id=notify.tid).update(modified=notify.modified,seller_memo=seller_memo,seller_flag=seller_flag)
-                    MergeTrade.objects.filter(tid=notify.tid).update(has_memo=True,modified=notify.modified,seller_memo=seller_memo,seller_flag=seller_flag)
+                    trade.modified    = notify.modified
+                    trade.seller_memo = seller_memo
+                    trade.seller_flag = seller_flag
+                    trade.save()
                     #如果是更新了卖家备注，则继续处理，更新旗帜则不处理
                     if seller_memo: 
                         trade.append_reason_code(pcfg.NEW_MEMO_CODE)
