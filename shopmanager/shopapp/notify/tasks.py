@@ -54,10 +54,28 @@ def process_trade_notify_task(id):
                     seller_memo  = trade_dict.get('seller_memo','')
                     seller_flag  = trade_dict.get('seller_flag',0)
                     Trade.objects.filter(id=notify.tid).update(modified=notify.modified,seller_memo=seller_memo,seller_flag=seller_flag)
+                    merge_type = MergeBuyerTrade.get_merge_type(trade.tid)
                     trade.modified    = notify.modified
-                    trade.seller_memo = seller_memo
                     trade.seller_flag = seller_flag
-                    trade.save()
+                    if merge_type == 0:
+                        trade.seller_memo = seller_memo
+                        trade.save()
+                    elif merge_type == 2:
+                        trade.save()
+                        trade.update_seller_memo(notify.tid,seller_memo)
+                    elif merge_type == 1:
+                        trade.seller_memo = seller_memo
+                        try:
+                            main_tid = MergeBuyerTrade.objects.filter(sub_tid=notify.tid).main_tid
+                        except MergeBuyerTrade.DoesNotExist:
+                            pass
+                        else:
+                            main_trade = MergeTrade.objects.get(tid=main_tid)
+                            main_trade.update_seller_memo(notify.tid,seller_memo)
+                            main_trade.append_reason_code(pcfg.NEW_MEMO_CODE)
+                            main_trade.has_memo = True
+                            main_trade.save()
+                    
                     #如果是更新了卖家备注，则继续处理，更新旗帜则不处理
                     if seller_memo: 
                         trade.append_reason_code(pcfg.NEW_MEMO_CODE)
@@ -82,7 +100,8 @@ def process_trade_notify_task(id):
                             #如果非合并子订单，则入问题单
                             MergeTrade.objects.filter(tid=notify.tid,out_sid='',sys_status = pcfg.WAIT_PREPARE_SEND_STATUS)\
                                 .update(sys_status=pcfg.WAIT_AUDIT_STATUS)
-
+                        
+                                
             #交易关闭
             elif notify.status == 'TradeClose':
                 Trade.objects.filter(id=notify.tid).update(status=pcfg.TRADE_CLOSED,modified=notify.modified)
