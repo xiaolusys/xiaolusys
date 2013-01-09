@@ -71,20 +71,11 @@ TAOBAO_ORDER_STATUS = (
 )
 
 TRADE_TYPE = (
-    ('fixed','一口价'),
-    ('fenxiao','分销'),
-    ('direct','内售'),
-    ('auction','拍卖'),
-    ('guarantee_trade','一口价、拍卖'),
-    ('auto_delivery','自动发货'),
-    ('independent_simple_trade','旺店入门版交易'),
-    ('independent_shop_trade','旺店标准版交易'),
-    ('ec','直冲'),
-    ('cod','货到付款'),
-    ('game_equipment','游戏装备'),
-    ('shopex_trade','ShopEX交易'),
-    ('netcn_trade','万网交易'),
-    ('external_trade','统一外部交易'),
+    (pcfg.TAOBAO_TYPE,'一口价'),
+    (pcfg.FENXIAO_TYPE,'分销'),
+    (pcfg.EXCHANGE_TYPE,'退换货'),
+    (pcfg.DIRECT_TYPE,'内售'),
+    (pcfg.GUARANTEE_TYPE,'一口价、拍卖'),
 )
 SHIPPING_TYPE = {
     'FAST':'express',
