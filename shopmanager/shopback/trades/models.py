@@ -646,10 +646,10 @@ def drive_merge_trade_action(trade_id):
         wait_refunding   = merge_trade.has_trade_refunding()
         receiver_name    = merge_trade.receiver_name
         receiver_address = merge_trade.receiver_address
+        
         trades = MergeTrade.objects.filter(buyer_nick=merge_trade.buyer_nick,receiver_name=receiver_name,receiver_address=receiver_address
                                     ,sys_status__in=(pcfg.WAIT_AUDIT_STATUS,pcfg.WAIT_PREPARE_SEND_STATUS,pcfg.REGULAR_REMAIN_STATUS))\
-                                    .exclude(tid=trade_id).order_by('-pay_time')
-                                    
+                                    .exclude(tid=trade_id).order_by('-pay_time')                          
         merge_buyer_trades = MergeBuyerTrade.objects.filter(main_tid__in=[t.tid for t in trades])
         #如果有已有合并记录，则将现有主订单作为合并主订单
         if merge_buyer_trades.count()>0:

@@ -82,26 +82,15 @@ def process_trade_notify_task(id):
                         trade.has_memo = True
                         trade.save()
                         if trade.status == pcfg.WAIT_SELLER_SEND_GOODS:
-                            trades = MergeTrade.objects.filter(buyer_nick=trade.buyer_nick,
-                                    sys_status__in=(pcfg.WAIT_AUDIT_STATUS,pcfg.WAIT_PREPARE_SEND_STATUS))\
-                                                    .exclude(tid=trade.id).order_by('-pay_time')
-                            merge_buyer_trades = MergeBuyerTrade.objects.filter(main_tid__in=[t.tid for t in trades])
-                            #如果有已有合并记录，则将现有主订单作为合并主订单
-                            main_tid = None
-                            if merge_buyer_trades.count()>0 :
-                                main_merge_tid = merge_buyer_trades[0].main_tid
-                                main_trade = MergeTrade.objects.get(tid=main_merge_tid)
-                                if main_trade.buyer_full_address == trade.buyer_full_address:
-                                    main_trade.update_seller_memo(trade.tid,trade_dict['seller_memo'])
-                                    #主订单入问题单
-                                    MergeTrade.objects.filter(tid=main_merge_tid,out_sid='',sys_status=pcfg.WAIT_PREPARE_SEND_STATUS)\
-                                        .update(sys_status=pcfg.WAIT_AUDIT_STATUS)
-                            
-                            #如果非合并子订单，则入问题单
-                            MergeTrade.objects.filter(tid=notify.tid,out_sid='',sys_status = pcfg.WAIT_PREPARE_SEND_STATUS)\
-                                .update(sys_status=pcfg.WAIT_AUDIT_STATUS)
-                        
-                                
+                            if merge_type == 1:
+                                main_trade_tid = MergeBuyerTrade.objects.get(sub_tid=trade.tid).main_tid
+                                MergeTrade.objects.filter(tid=main_merge_tid,out_sid='',sys_status=pcfg.WAIT_PREPARE_SEND_STATUS)\
+                                    .update(sys_status=pcfg.WAIT_AUDIT_STATUS)
+                            else:
+                                #如果非合并主订单，或没有合单，且没有打单则入问题单
+                                MergeTrade.objects.filter(tid=notify.tid,out_sid='',sys_status=pcfg.WAIT_PREPARE_SEND_STATUS)\
+                                    .update(sys_status=pcfg.WAIT_AUDIT_STATUS)
+                                         
             #交易关闭
             elif notify.status == 'TradeClose':
                 Trade.objects.filter(id=notify.tid).update(status=pcfg.TRADE_CLOSED,modified=notify.modified)
