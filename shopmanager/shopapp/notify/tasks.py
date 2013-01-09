@@ -239,6 +239,7 @@ def process_refund_notify_task(id):
                     order = MergeOrder.objects.get(tid=notify.tid,oid=notify.oid)
                     order.refund_id=notify.rid
                     order.refund_status=pcfg.REFUND_WAIT_SELLER_AGREE
+                    order.sys_status = pcfg.INVALID_STATUS
                     order.save()
                     if merge_trade.status == pcfg.WAIT_SELLER_SEND_GOODS:
                         merge_type  = MergeBuyerTrade.get_merge_type(notify.tid)
