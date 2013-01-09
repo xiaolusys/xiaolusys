@@ -643,8 +643,9 @@ def merge_order_remover(main_tid):
 def drive_merge_trade_action(trade_id):
     """ 合单驱动程序 """
     is_merge_success = False
-    main_tid = None 
+    main_tid   = None 
     merge_trade      = MergeTrade.objects.get(tid=trade_id)
+    trades     =  []
     try:
         if merge_trade.status != pcfg.WAIT_SELLER_SEND_GOODS:
             return is_merge_success,main_tid
@@ -692,8 +693,12 @@ def drive_merge_trade_action(trade_id):
                 else:
                     MergeTrade.objects.filter(id=t.id).update(sys_status=pcfg.WAIT_AUDIT_STATUS,has_merge=False)
     except Exception,exc:        
-        logger.error(exc.message,exc_info=True)
+        logger.error(exc.message+'-- merge trade fail --',exc_info=True)
         merge_trade.append_reason_code(pcfg.MERGE_TRADE_ERROR_CODE)   
+        for trade in trades:
+            trade.append_reason_code(pcfg.MERGE_TRADE_ERROR_CODE)
+            MergeTrade.objects.filter(id=trade.id,out_sid='').update(sys_status=pcfg.WAIT_AUDIT_STATUS)
+            
     return is_merge_success,main_tid
 
 
@@ -838,6 +843,10 @@ def save_orders_trade_to_mergetrade(sender, tid, *args, **kwargs):
         #保存商城或C店订单到抽象全局抽象订单表
         for order in trade.trade_orders.all():
             merge_order,state = MergeOrder.objects.get_or_create(oid=order.oid,tid=trade.id,merge_trade = merge_trade)
+            if state and order.refund_status == pcfg.REFUND_WAIT_SELLER_AGREE:
+                sys_status = pcfg.INVALID_STATUS
+            else:
+                sys_status = merge_order.sys_status or pcfg.IN_EFFECT
             if state:
                 MergeOrder.objects.filter(id=merge_order.id).update(
                     tid = trade.id,
@@ -859,7 +868,7 @@ def save_orders_trade_to_mergetrade(sender, tid, *args, **kwargs):
                     pay_time = order.pay_time,
                     consign_time = order.consign_time,
                     status   = order.status,
-                    sys_status = pcfg.IN_EFFECT
+                    sys_status = sys_status
                     )
             else:
                 MergeOrder.objects.filter(id=merge_order.id).update(
@@ -867,7 +876,8 @@ def save_orders_trade_to_mergetrade(sender, tid, *args, **kwargs):
                     payment = order.payment,
                     pay_time = order.pay_time,
                     consign_time = order.consign_time,
-                    status   = order.status
+                    status   = order.status,
+                    sys_status = sys_status
                     )
         #保存基本订单信息
         trade_from = pcfg.FENXIAO_TYPE if trade.type==pcfg.FENXIAO_TYPE else pcfg.TAOBAO_TYPE   
@@ -939,6 +949,10 @@ def save_fenxiao_orders_to_mergetrade(sender, tid, *args, **kwargs):
                 refund_status = pcfg.REFUND_SUCCESS
             else:
                 refund_status = pcfg.NO_REFUND
+            if state and order.status == pcfg.TRADE_REFUNDING:
+                sys_status = pcfg.INVALID_STATUS
+            else:
+                sys_status = merge_order.sys_status or pcfg.IN_EFFECT     
             if state:    
                 MergeOrder.objects.filter(id=merge_order.id).update(
                     tid = trade.id,
@@ -960,14 +974,15 @@ def save_fenxiao_orders_to_mergetrade(sender, tid, *args, **kwargs):
                     pay_time = merge_trade.created,
                     consign_time = merge_trade.consign_time,
                     status   = pcfg.FENXIAO_TAOBAO_STATUS_MAP.get(order.status,order.status),
-                    sys_status = pcfg.IN_EFFECT
+                    sys_status = sys_status
                 )
             else:
                 MergeOrder.objects.filter(id=merge_order.id).update(
                     refund_status = refund_status,
                     payment       = order.distributor_payment,
                     consign_time  = merge_trade.consign_time,
-                    status        = order.status
+                    status        = order.status,
+                    sys_status = sys_status
                 )
         
         trade_from = pcfg.FENXIAO_TYPE
