@@ -73,8 +73,8 @@ TAOBAO_ORDER_STATUS = (
 TRADE_TYPE = (
     (pcfg.TAOBAO_TYPE,'一口价'),
     (pcfg.FENXIAO_TYPE,'分销'),
-    (pcfg.EXCHANGE_TYPE,'退换货'),
     (pcfg.DIRECT_TYPE,'内售'),
+    (pcfg.EXCHANGE_TYPE,'退换货'),
     (pcfg.GUARANTEE_TYPE,'一口价、拍卖'),
 )
 SHIPPING_TYPE = {
