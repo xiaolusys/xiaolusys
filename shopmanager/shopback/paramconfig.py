@@ -8,9 +8,14 @@ DELETE = 'delete'
 #订单类型
 FENXIAO_TYPE = 'fenxiao'
 TAOBAO_TYPE  = 'fixed'
+DIRECT_TYPE  = 'direct'
+EXCHANGE_TYPE  = 'exchange'
+GUARANTEE_TYPE  = 'guarantee_trade'
+
 #商品状态
 ONSALE_STATUS  = 'onsale'
 INSTOCK_STATUS = 'instock'
+
 
 REAL_ORDER_GIT_TYPE = 0 #实付
 CS_PERMI_GIT_TYPE   = 1 #赠送
