@@ -66,7 +66,7 @@ def process_trade_notify_task(id):
                     elif merge_type == 1:
                         trade.seller_memo = seller_memo
                         try:
-                            main_tid = MergeBuyerTrade.objects.filter(sub_tid=notify.tid).main_tid
+                            main_tid = MergeBuyerTrade.objects.get(sub_tid=notify.tid).main_tid
                         except MergeBuyerTrade.DoesNotExist:
                             pass
                         else:

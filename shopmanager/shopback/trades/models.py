@@ -200,7 +200,7 @@ class MergeTrade(models.Model):
         if self.status in (pcfg.WAIT_BUYER_CONFIRM_GOODS,pcfg.TRADE_FINISHED) \
             and self.sys_status in (pcfg.WAIT_CHECK_BARCODE_STATUS,pcfg.WAIT_SCAN_WEIGHT_STATUS,pcfg.FINISHED_STATUS):
             return True
- 
+
         response = apis.taobao_logistics_orders_get(tid=self.tid,tb_user_id=user_id,fields='out_sid,tid')
         trade_dicts = response['logistics_orders_get_response']['shippings']['shipping']
         if len(trade_dicts)>0:
