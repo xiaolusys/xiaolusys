@@ -159,6 +159,7 @@ class MergeTrade(models.Model):
     has_rule_match   = models.BooleanField(default=False,verbose_name='有匹配')
     has_memo         = models.BooleanField(default=False,verbose_name='有留言')
     has_merge        = models.BooleanField(default=False,verbose_name='有合单')
+    has_sys_err      = models.BooleanField(default=False,verbose_name='系统错误')
     remind_time      = models.DateTimeField(null=True,blank=True,verbose_name='提醒日期')
     refund_num       = models.IntegerField(null=True,default=0,verbose_name='退款单数')  #退款单数
     
@@ -199,7 +200,7 @@ class MergeTrade(models.Model):
             out_sid = trade_dict.get('out_sid','') 
             if out_sid == self.out_sid:
                 return True
-            elif out_sid != self.out_sid: 
+            elif out_sid and out_sid != self.out_sid: 
                 raise Exception(u'系统快递单号与线上发货快递单号不一致')       
         return False
     
@@ -209,7 +210,10 @@ class MergeTrade(models.Model):
         reason_set.add(str(code))
         new_len = len(reason_set)
         self.reason_code = ','.join(list(reason_set))
-        MergeTrade.objects.filter(id=self.id).update(reason_code=self.reason_code)    
+        if code in (pcfg.POST_MODIFY_CODE,pcfg.POST_SUB_TRADE_ERROR_CODE,pcfg.COMPOSE_RULE_ERROR_CODE,
+                    pcfg.PAYMENT_RULE_ERROR_CODE,pcfg.MERGE_TRADE_ERROR_CODE):
+            self.has_sys_err = True
+        MergeTrade.objects.filter(id=self.id).update(reason_code=self.reason_code,has_sys_err=self.has_sys_err)    
         return old_len<new_len
          
         
@@ -345,6 +349,9 @@ class MergeTrade(models.Model):
                     
                 is_out_stock |= is_order_out
                 
+        if not is_out_stock:
+            trade.remove_reason_code(pcfg.OUT_GOOD_CODE)
+            
         return is_out_stock
     
     @classmethod

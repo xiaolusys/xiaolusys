@@ -18,8 +18,7 @@
 	{% for lg in logistics %}
 	<option value='{{ lg.code }}' {% if lg.id == trade.logistics_company.id %}selected{% endif %} >{{ lg.name }}</option>
 	{% endfor %}
-</select> <label class="simple-label">优先级: </label> <select id="id_priority"
-	name="priority" class="selection">
+</select> <label class="simple-label">优先级: </label> <select id="id_priority" name="priority" class="selection">
 	<option {% if trade.priority == -1 %}selected{% endif %} value="-1">低</option>
 	<option {% if trade.priority == 0 %}selected{% endif %} value="0">中</option>
 	<option {% if trade.priority == 1 %}selected{% endif %} value="1">高</option>
@@ -71,7 +70,9 @@
 	{% endif %} {% if trade.has_rule_match %}
 	<li><span class="badge1 badge-warning1">信息不全</span></li>
 	{% endif %} {% if trade.has_merge %}
-	<li><span class="badge1 badge-warning1">订单合并</span>{% endif %}
+	<li><span class="badge1 badge-warning1">订单合并</span>
+	{% endif %} {% if trade.has_sys_err %}
+	<li><span class="badge1 badge-warning1">系统错误</span>{% endif %}
 </ul>
 </div>
 <div class="accordion-group1">
@@ -108,6 +109,7 @@
 			<td>规格</td>
 			<td>数量</td>
 			<td>单价</td>
+			<td>缺货</td>
 			<td>类型</td>
 			<td>操作</td>
 		</tr>
@@ -128,6 +130,12 @@
 			</td>
 			<td><input id="id-change-order-num-{{ forloop.counter }}" type="text" value="{{ order.num }}" size="2" /></td>
 			<td>{{ order.price }}</td>
+			<td>{% if order.has_out_stock %}
+				<img src="{{ STATIC_URL }}admin/img/icon-yes.gif" alt="yes">
+			    {% else %}
+			    <img src="{{ STATIC_URL }}admin/img/icon-no.gif" alt="no">
+			    {% endif%}
+			</td>
 			<td>{% if order.gift_type == 0 %}实付{% elif order.gift_type == 1 %}赠送{% elif order.gift_type == 2 %}
 				满就送{% elif order.gift_type == 3 %}拆分{% elif order.gift_type == 4 %}换货{% endif %}</td>
 			<td><button class="change-order btn-mini" idx="{{ forloop.counter }}" 

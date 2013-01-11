@@ -62,7 +62,7 @@ from celery.schedules import crontab
 SYNC_MODEL_SCHEDULE = {
     'runs-every-10-minites-fenxiao-increment-purchases':{    #增量更新分销部分订单
         'task':'shopback.fenxiao.tasks.updateAllUserIncrementPurchasesTask',
-        'schedule':crontab(minute="*/10"),
+        'schedule':crontab(minute="*/15"),
         'args':()
     },
 #    'runs-every-weeks-order-amount':{   #更新用户商城订单结算，按周

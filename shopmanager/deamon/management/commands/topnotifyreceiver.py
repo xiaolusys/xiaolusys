@@ -91,7 +91,6 @@ class Command():
             self.fail_wait_time = msg or 10
         elif code in (104,105):
             self.fail_wait_time = 10
-            logger.warn(buf)
         
 
     def save_message(self,item):
