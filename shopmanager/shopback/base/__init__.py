@@ -1,5 +1,5 @@
 __author__ = 'meixqhi'
-from django.contrib.admin.models import LogEntry
+from django.contrib.admin.models import LogEntry,User, ADDITION, CHANGE
 from django.contrib.contenttypes.models import ContentType
 import logging 
 

@@ -7,6 +7,7 @@ from djangorestframework.response import ErrorResponse
 from shopback.trades.models import MergeTrade,MergeOrder,GIFT_TYPE
 from shopback.logistics.models import LogisticsCompany
 from shopback.items.models import Product,ProductSku
+from shopback.base import log_action, User, ADDITION, CHANGE
 from shopback.signals import rule_signal
 from shopback import paramconfig as pcfg
 
@@ -48,6 +49,7 @@ class CheckOrderView(ModelView):
             'has_out_stock':trade.has_out_stock,
             'has_rule_match':trade.has_rule_match,
             'has_merge':trade.has_merge,
+            'has_sys_err':trade.has_sys_err,
             'reason_code':trade.reason_code,
             'status':trade.status,
             'sys_status':trade.sys_status,
@@ -97,9 +99,11 @@ class CheckOrderView(ModelView):
          
         if check_msg:
             return ','.join(check_msg)
-
+        
         MergeTrade.objects.filter(id=id,sys_status = pcfg.WAIT_AUDIT_STATUS)\
             .update(sys_status=pcfg.WAIT_PREPARE_SEND_STATUS,reason_code='')
+        
+        log_action(user_id,trade,CHANGE,u'审核成功')
         
         return {'success':True}    
       
@@ -143,6 +147,8 @@ class OrderPlusView(ModelView):
             
         merge_order = MergeOrder.gen_new_order(trade_id,outer_id,outer_sku_id,num,gift_type=pcfg.CS_PERMI_GIT_TYPE)
         
+        log_action(user_id,merge_order.merge_trade,ADDITION,u'添加子订单(%d)'%merge_order.id)
+        
         return merge_order
     
             
@@ -158,12 +164,30 @@ def change_trade_addr(request):
         
     for (key, val) in CONTENT.items():
          setattr(trade, key, val)
-         
-    trade.save()
-    trade.append_reason_code(pcfg.ADDR_CHANGE_CODE)
-    ret_params = {'code':0,'success':True}
+    
+    try:
+        response = apis.taobao_trade_shippingaddress_update(
+                                                            receiver_name    =trade.receiver_name,
+                                                            receiver_phone   =trade.receiver_phone,
+                                                            receiver_mobile  =trade.receiver_mobile,
+                                                            receiver_state   =trade.receiver_state,
+                                                            receiver_city    =trade.receiver_city,
+                                                            receiver_district=trade.receiver_district,
+                                                            receiver_address =trade.receiver_address,
+                                                            receiver_zip     =trade.receiver_zip,
+                                                            tb_user_id=request.user.visitor_id)
+    except Exception,exc:
+        ret_params = {'code':1,'success':False}
+    else:    
+        trade.save()
+        trade.append_reason_code(pcfg.ADDR_CHANGE_CODE)
+        
+        log_action(user_id,trade,CHANGE,u'修改地址')
+        
+        ret_params = {'code':0,'success':True}
     
     return HttpResponse(json.dumps(ret_params),mimetype="application/json")
+    
     
 def change_trade_order(request,id):
     
@@ -193,8 +217,12 @@ def change_trade_order(request,id):
     order.out_stock     = False
     order.num           = order_num
     order.save()
+    order.merge_trade.remove_reason_code(pcfg.RULE_MATCH_CODE)
     MergeTrade.judge_out_stock(order.merge_trade.tid,None)
     order = MergeOrder.objects.get(id=order.id)
+    
+    log_action(user_id,order.merge_trade,CHANGE,u'修改子订单(%d)'%order.id)
+    
     ret_params = {'code':0,'response_content':{'id':order.id,
                                                'outer_id':order.outer_id,
                                                'title':prod.name,
@@ -217,6 +245,8 @@ def delete_trade_order(request,id):
         
     num = MergeOrder.objects.filter(id=id,status=pcfg.WAIT_SELLER_SEND_GOODS).update(sys_status=pcfg.INVALID_STATUS)
     if num == 1:
+        log_action(user_id,merge_order.merge_trade,CHANGE,u'设子订单无效(%d)'%merge_order.id)
+        
         ret_params = {'code':0,'response_content':{'success':True}}
     else:
         ret_params = {'code':1,'response_content':{'success':False}}

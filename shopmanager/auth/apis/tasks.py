@@ -362,6 +362,10 @@ def taobao_topats_trades_sold_get(start_time=None,end_time=None,fields=API_FIELD
 def taobao_trade_postage_update(tid=None,post_fee=None,tb_user_id=None):
     pass
 
+@apis('taobao.trade.shippingaddress.update')
+def taobao_trade_shippingaddress_update(receiver_name=None,receiver_phone=None,receiver_mobile=None,receiver_state=None
+            ,receiver_city=None,receiver_district=None,receiver_address=None,receiver_zip=None,tb_user_id=None):
+    pass
 ############# post apis ###################
 @apis('taobao.logistics.companies.get')
 def taobao_logistics_companies_get(fields=API_FIELDS['taobao.logistics.companies.get'],tb_user_id=None):

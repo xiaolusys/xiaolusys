@@ -67,6 +67,13 @@ var addOrderRow  = function(tableID,order){
 	var num_cell = createDTText(order.num+'');
 	var price_cell = createDTText(order.price);
 	
+	var stock_status_cell   = goog.dom.createElement('td');
+	console.log('order',order);
+	if (order.out_stock){
+		stock_status_cell.innerHTML = '<img src="/static/admin/img/icon-yes.gif" alt="True">';
+	}else{
+		stock_status_cell.innerHTML = '<img src="/static/admin/img/icon-no.gif" alt="False">';	
+	}
 	var gift_type_name = GIT_TYPE[order.gift_type];
 	
 	var gift_type_cell  = createDTText(gift_type_name);
@@ -79,6 +86,7 @@ var addOrderRow  = function(tableID,order){
 	row.appendChild(sku_properties_name_cell);
 	row.appendChild(num_cell);
 	row.appendChild(price_cell);
+	row.appendChild(stock_status_cell);
 	row.appendChild(gift_type_cell);
 	row.appendChild(delete_btn_cell);
 }
