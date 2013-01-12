@@ -55,9 +55,9 @@ class MergeOrderInline(admin.TabularInline):
 
 
 class MergeTradeAdmin(admin.ModelAdmin):
-    list_display = ('id','popup_tid_link','user','buyer_nick_link','type','payment','created','pay_time','consign_time'
-                    ,'status','logistics_company','is_picking_print','is_express_print','is_send_sms'
-                    ,'reason_code','has_memo','has_refund','sys_status','operator','remind_time')
+    list_display = ('id','popup_tid_link','user','buyer_nick_link','type','payment','pay_time','consign_time'
+                    ,'status','sys_status','logistics_company','is_picking_print','is_express_print','is_send_sms'
+                    ,'reason_code','operator','created','remind_time')
     list_display_links = ('id','popup_tid_link')
     #list_editable = ('update_time','task_type' ,'is_success','status')
     
@@ -396,7 +396,7 @@ class MergeTradeAdmin(admin.ModelAdmin):
 
         queryset = MergeTrade.objects.filter(id__in=trade_ids)
         queryset.filter(sys_status=pcfg.WAIT_PREPARE_SEND_STATUS).exclude(out_sid='').update(
-            is_picking_print=False,is_express_print=False,sys_status=pcfg.WAIT_AUDIT_STATUS)
+            is_picking_print=False,is_express_print=False,has_sys_err=True,sys_status=pcfg.WAIT_AUDIT_STATUS)
         post_trades = queryset.filter(sys_status=pcfg.WAIT_CHECK_BARCODE_STATUS)
         trade_items = {}
         for trade in post_trades:

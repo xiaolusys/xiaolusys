@@ -151,8 +151,8 @@ class MergeTrade(models.Model):
     reason_code = models.CharField(max_length=100,blank=True,verbose_name='问题编号')  #1|2|3 问题单原因编码集合
     status  = models.CharField(max_length=32,db_index=True,choices=TAOBAO_TRADE_STATUS,blank=True,verbose_name='淘宝订单状态')
         
-    is_picking_print = models.BooleanField(default=False,verbose_name='打印发货单')
-    is_express_print = models.BooleanField(default=False,verbose_name='打印物流单')
+    is_picking_print = models.BooleanField(default=False,verbose_name='发货单')
+    is_express_print = models.BooleanField(default=False,verbose_name='物流单')
     is_send_sms      = models.BooleanField(default=False,verbose_name='短信提醒')
     has_refund       = models.BooleanField(default=False,verbose_name='待退款')
     has_out_stock    = models.BooleanField(default=False,verbose_name='缺货')
@@ -419,7 +419,7 @@ class MergeTrade(models.Model):
         except:
             need_pull = True
         else:
-            if not obj.modified or obj.modified < modified:
+            if not obj.modified or obj.modified < modified or obj.status in (pcfg.WAIT_BUYER_PAY,pcfg.TRADE_NO_CREATE_PAY):
                 need_pull = True
         return need_pull
  

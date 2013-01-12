@@ -130,7 +130,7 @@
 			</td>
 			<td><input id="id-change-order-num-{{ forloop.counter }}" type="text" value="{{ order.num }}" size="2" /></td>
 			<td>{{ order.price }}</td>
-			<td>{% if order.has_out_stock %}
+			<td>{% if order.out_stock %}
 				<img src="{{ STATIC_URL }}admin/img/icon-yes.gif" alt="yes">
 			    {% else %}
 			    <img src="{{ STATIC_URL }}admin/img/icon-no.gif" alt="no">
