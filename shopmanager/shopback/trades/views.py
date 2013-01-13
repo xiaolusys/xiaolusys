@@ -11,7 +11,9 @@ from shopback.base import log_action, User, ADDITION, CHANGE
 from shopback.signals import rule_signal
 from shopback import paramconfig as pcfg
 from auth import apis
+import logging
 
+logger = logging.getLogger('trades.handler')
 
 class CheckOrderView(ModelView):
     """ docstring for class CheckOrderView """
@@ -167,7 +169,7 @@ def change_trade_addr(request):
          setattr(trade, key, val)
     
     try:
-        response = apis.taobao_trade_shippingaddress_update(
+        response = apis.taobao_trade_shippingaddress_update(tid=trade.tid,
                                                             receiver_name=trade.receiver_name,
                                                             receiver_phone=trade.receiver_phone,
                                                             receiver_mobile=trade.receiver_mobile,
@@ -176,7 +178,7 @@ def change_trade_addr(request):
                                                             receiver_district=trade.receiver_district,
                                                             receiver_address=trade.receiver_address,
                                                             receiver_zip=trade.receiver_zip,
-                                                            tb_user_id=request.user.visitor_id)
+                                                            tb_user_id=trade.user.visitor_id)
     except Exception,exc:
         logger.error(exc.message,exc_info=True)
         ret_params = {'code':1,'response_error':exc.message}
