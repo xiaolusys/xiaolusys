@@ -193,14 +193,15 @@ class MergeTrade(models.Model):
             and self.sys_status in (pcfg.WAIT_CHECK_BARCODE_STATUS,pcfg.WAIT_SCAN_WEIGHT_STATUS,pcfg.FINISHED_STATUS):
             return True
 
-        response = apis.taobao_logistics_orders_get(tid=self.tid,tb_user_id=user_id,fields='out_sid,tid')
+        response = apis.taobao_logistics_orders_get(tid=self.tid,tb_user_id=user_id,fields='out_sid,tid,is_success')
         trade_dicts = response['logistics_orders_get_response']['shippings']['shipping']
         if len(trade_dicts)>0:
             trade_dict = trade_dicts[0]
             out_sid = trade_dict.get('out_sid','') 
-            if out_sid == self.out_sid:
+            is_success = trade_dict.get('is_success',False)
+            if is_success and out_sid == self.out_sid:
                 return True
-            elif out_sid and out_sid != self.out_sid: 
+            elif is_success and out_sid and out_sid != self.out_sid: 
                 raise Exception(u'系统快递单号与线上发货快递单号不一致')       
         return False
     

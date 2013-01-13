@@ -68,7 +68,6 @@ var addOrderRow  = function(tableID,order){
 	var price_cell = createDTText(order.price);
 	
 	var stock_status_cell   = goog.dom.createElement('td');
-	console.log('order',order);
 	if (order.out_stock){
 		stock_status_cell.innerHTML = '<img src="/static/admin/img/icon-yes.gif" alt="True">';
 	}else{
@@ -266,9 +265,13 @@ ordercheck.Dialog.prototype.changeOrder=function(e){
             	cell.cells[3].innerText = order.sku_properties_name;
             	cell.cells[4].innerText = order.num;
             	cell.cells[5].innerText = order.price;
-            	
-				cell.cells[6].innerText = GIT_TYPE[order.gift_type];
-				cell.cells[7].innerText = '';
+            	if (order.out_stock){
+            		cell.cells[6].innerHTML = '<img src="/static/admin/img/icon-yes.gif" alt="True">';
+            	}else{
+            		cell.cells[6].innerHTML = '<img src="/static/admin/img/icon-no.gif" alt="False">';	
+            	} 
+				cell.cells[7].innerText = GIT_TYPE[order.gift_type];
+				cell.cells[8].innerText = '';
             }else{
                 alert("订单修改失败:"+res.response_error);
             }
