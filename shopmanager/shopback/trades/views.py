@@ -10,7 +10,10 @@ from shopback.items.models import Product,ProductSku
 from shopback.base import log_action, User, ADDITION, CHANGE
 from shopback.signals import rule_signal
 from shopback import paramconfig as pcfg
+from auth import apis
+import logging
 
+logger = logging.getLogger('trades.handler')
 
 class CheckOrderView(ModelView):
     """ docstring for class CheckOrderView """
@@ -166,18 +169,19 @@ def change_trade_addr(request):
          setattr(trade, key, val)
     
     try:
-        response = apis.taobao_trade_shippingaddress_update(
-                                                            receiver_name    =trade.receiver_name,
-                                                            receiver_phone   =trade.receiver_phone,
-                                                            receiver_mobile  =trade.receiver_mobile,
-                                                            receiver_state   =trade.receiver_state,
-                                                            receiver_city    =trade.receiver_city,
+        response = apis.taobao_trade_shippingaddress_update(tid=trade.tid,
+                                                            receiver_name=trade.receiver_name,
+                                                            receiver_phone=trade.receiver_phone,
+                                                            receiver_mobile=trade.receiver_mobile,
+                                                            receiver_state=trade.receiver_state,
+                                                            receiver_city=trade.receiver_city,
                                                             receiver_district=trade.receiver_district,
-                                                            receiver_address =trade.receiver_address,
-                                                            receiver_zip     =trade.receiver_zip,
-                                                            tb_user_id=request.user.visitor_id)
+                                                            receiver_address=trade.receiver_address,
+                                                            receiver_zip=trade.receiver_zip,
+                                                            tb_user_id=trade.user.visitor_id)
     except Exception,exc:
-        ret_params = {'code':1,'success':False}
+        logger.error(exc.message,exc_info=True)
+        ret_params = {'code':1,'response_error':exc.message}
     else:    
         trade.save()
         trade.append_reason_code(pcfg.ADDR_CHANGE_CODE)
@@ -228,6 +232,7 @@ def change_trade_order(request,id):
                                                'title':prod.name,
                                                'sku_properties_name':order.sku_properties_name,
                                                'num':order.num,
+                                               'out_stock':order.out_stock,
                                                'price':order.price,
                                                'gift_type':order.gift_type,
                                                }}

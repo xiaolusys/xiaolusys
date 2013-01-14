@@ -10,7 +10,6 @@ from django.http import HttpResponse,HttpResponseRedirect
 from django.shortcuts import render_to_response
 from django.template import RequestContext
 from django.core import serializers
-from django.contrib.admin.models import LogEntry, User, ADDITION, CHANGE
 from django.contrib.contenttypes.models import ContentType
 from django.utils.encoding import force_unicode
 from django.conf import settings
@@ -19,7 +18,7 @@ from shopback.items.models import Product,ProductSku
 from shopback.trades.models import MergeTrade,MergeOrder,MergeBuyerTrade,ReplayPostTrade,merge_order_maker,merge_order_remover
 from shopback import paramconfig as pcfg
 from shopback.fenxiao.models import PurchaseOrder
-from shopback.base import log_action
+from shopback.base import log_action,User, ADDITION, CHANGE
 from shopback.signals import rule_signal
 from auth import apis
 from auth.utils import parse_datetime
@@ -55,9 +54,9 @@ class MergeOrderInline(admin.TabularInline):
 
 
 class MergeTradeAdmin(admin.ModelAdmin):
-    list_display = ('id','popup_tid_link','user','buyer_nick_link','type','payment','created','pay_time','consign_time'
-                    ,'status','logistics_company','is_picking_print','is_express_print','is_send_sms'
-                    ,'reason_code','has_memo','has_refund','sys_status','operator','remind_time')
+    list_display = ('id','popup_tid_link','user','buyer_nick_link','type','payment','pay_time','consign_time'
+                    ,'status','sys_status','logistics_company','is_picking_print','is_express_print','is_send_sms'
+                    ,'reason_code','operator','created','remind_time')
     list_display_links = ('id','popup_tid_link')
     #list_editable = ('update_time','task_type' ,'is_success','status')
     
@@ -262,7 +261,7 @@ class MergeTradeAdmin(admin.ModelAdmin):
         
         if is_merge_success:
             MergeTrade.objects.filter(tid__in=merge_trade_ids).update(sys_status=pcfg.ON_THE_FLY_STATUS)
-        
+            log_action(request.user.id,main_trade,CHANGE,u'合并订单,主订单:%d,子订单:%s'%(merge_trade.id,','.join(merge_trade_ids)))
         elif merge_trade_ids:
             merge_order_remover(main_trade.tid)
         
@@ -297,6 +296,7 @@ class MergeTradeAdmin(admin.ModelAdmin):
                 pull_fail_ids.append(trade.tid)
             else:
                 pull_success_ids.append(trade.tid)
+                log_action(request.user.id,trade,CHANGE,u'重新下载订单')
         success_trades = MergeTrade.objects.filter(tid__in=pull_success_ids)
         fail_trades    = MergeTrade.objects.filter(tid__in=pull_fail_ids)
         return render_to_response('trades/repullsuccess.html',{'success_trades':success_trades,'fail_trades':fail_trades},
@@ -317,7 +317,7 @@ class MergeTradeAdmin(admin.ModelAdmin):
             if trade.sys_status != pcfg.WAIT_PREPARE_SEND_STATUS:
                 continue
             if trade.type in (pcfg.DIRECT_TYPE,pcfg.EXCHANGE_TYPE):
-                MergeTrade.objects.filter(tid=trade.tid).update(sys_status=pcfg.WAIT_CHECK_BARCODE_STATUS
+                MergeTrade.objects.filter(tid=trade.tid).update(sys_status=pcfg.WAIT_CHECK_BARCODE_STATUS,status=pcfg.WAIT_BUYER_CONFIRM_GOOD
                                                                 ,consign_time=datetime.datetime.now())
                 continue 
             
@@ -352,14 +352,17 @@ class MergeTradeAdmin(admin.ModelAdmin):
                             MergeTrade.objects.filter(tid=sub_trade.tid)\
                                .update(out_sid=trade.out_sid,operator=trade.operator,sys_status=pcfg.FINISHED_STATUS\
                                ,consign_time=datetime.datetime.now())
+                            log_action(request.user.id,sub_trade,CHANGE,u'订单发货成功')
                         else:
                             sub_trade.append_reason_code(pcfg.POST_SUB_TRADE_ERROR_CODE)
                             MergeTrade.objects.filter(tid=sub_trade.tid).update(
                                                 sys_status=pcfg.WAIT_AUDIT_STATUS,sys_memo=exc.message,is_picking_print=False,is_express_print=False)
+                            log_action(request.user.id,sub_trade,CHANGE,u'订单发货失败')
                             raise SubTradePostException(error_msg)
                     else:
                         MergeTrade.objects.filter(tid=sub_trade.tid,sys_status=pcfg.ON_THE_FLY_STATUS).update(out_sid=trade.out_sid
                             ,operator=trade.operator,sys_status=pcfg.FINISHED_STATUS,consign_time=datetime.datetime.now())
+                        log_action(request.user.id,sub_trade,CHANGE,u'订单发货成功')
                 
                 response = apis.taobao_logistics_offline_send(tid=trade.tid,out_sid=trade.out_sid
                                               ,company_code=logistics_company_code,tb_user_id=trade.seller_id)  
@@ -371,6 +374,7 @@ class MergeTradeAdmin(admin.ModelAdmin):
             except SubTradePostException,exc:
                 trade.append_reason_code(pcfg.POST_SUB_TRADE_ERROR_CODE)
                 MergeTrade.objects.filter(tid=trade.tid).update(sys_status=pcfg.WAIT_AUDIT_STATUS,sys_memo=exc.message)
+                log_action(request.user.id,trade,CHANGE,u'子订单(%d)发货成功'%sub_trade.id)
                 logger.error(exc.message+'--sub post error',exc_info=True)
             except Exception,exc:
                 time.sleep(1)
@@ -384,19 +388,21 @@ class MergeTradeAdmin(admin.ModelAdmin):
                 if is_post_success:
                     MergeTrade.objects.filter(tid=trade.tid)\
                         .update(sys_status=pcfg.WAIT_CHECK_BARCODE_STATUS,consign_time=datetime.datetime.now())
+                    log_action(request.user.id,trade,CHANGE,u'订单发货成功')
                 else:
                     trade.append_reason_code(pcfg.POST_MODIFY_CODE)
                     MergeTrade.objects.filter(tid=trade.tid).update(
                                        sys_status=pcfg.WAIT_AUDIT_STATUS,sys_memo=exc.message,is_picking_print=False,is_express_print=False)
-
+                    log_action(request.user.id,trade,CHANGE,u'订单发货失败')
                     logger.error(error_msg,exc_info=True)
             else:
                 MergeTrade.objects.filter(tid=trade.tid,sys_status=pcfg.WAIT_PREPARE_SEND_STATUS).update(
                     sys_status=pcfg.WAIT_CHECK_BARCODE_STATUS,consign_time=datetime.datetime.now())
+                log_action(request.user.id,trade,CHANGE,u'订单发货成功')
 
         queryset = MergeTrade.objects.filter(id__in=trade_ids)
         queryset.filter(sys_status=pcfg.WAIT_PREPARE_SEND_STATUS).exclude(out_sid='').update(
-            is_picking_print=False,is_express_print=False,sys_status=pcfg.WAIT_AUDIT_STATUS)
+            is_picking_print=False,is_express_print=False,has_sys_err=True,sys_status=pcfg.WAIT_AUDIT_STATUS)
         post_trades = queryset.filter(sys_status=pcfg.WAIT_CHECK_BARCODE_STATUS)
         trade_items = {}
         for trade in post_trades:
