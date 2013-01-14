@@ -106,9 +106,14 @@ ordercheck.Dialog.prototype.init = function (id) {
         try {
         	var res = xhr.getResponse();
         	dialog.setContent(res);
-		    dialog.setTitle('订单审核详情');
-		    dialog.setButtonSet(new goog.ui.Dialog.ButtonSet().addButton({key: 'OK', caption: "审核订单"},false,false));
-		    goog.events.listen(dialog, goog.ui.Dialog.EventType.SELECT, that);
+        	var trade_status = goog.dom.getElement('id_trade_status').value;
+        	if (trade_status == ''){
+        		dialog.setTitle('订单审核详情');
+			    dialog.setButtonSet(new goog.ui.Dialog.ButtonSet().addButton({key: 'OK', caption: "审核订单"},false,false));
+			    goog.events.listen(dialog, goog.ui.Dialog.EventType.SELECT, that);
+        	}else{
+        		dialog.setTitle('订单追加处理页面');
+        	}
 		    that.setEvent();
         } catch (err) {
             console.log('Error: (ajax callback) - ', err);

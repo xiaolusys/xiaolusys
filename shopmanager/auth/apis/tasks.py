@@ -393,7 +393,10 @@ def taobao_logistics_online_send(tid=None,out_sid=None,company_code=None,sender_
 def taobao_logistics_online_confirm(tid=None,out_sid=None,tb_user_id=None):
     pass
 
-
+@apis('taobao.logistics.consign.resend')
+def taobao_logistics_consign_resend(tid=None,out_sid=None,company_code=None,tb_user_id=None):
+    pass
+    
 ###############  fengxiao apis  ##################
 @apis('taobao.fenxiao.orders.get',max_retry=20,limit_rate=20)
 def taobao_fenxiao_orders_get(start_created=None,end_created=None,time_type=None,purchase_order_id=None,trade_type=None,
