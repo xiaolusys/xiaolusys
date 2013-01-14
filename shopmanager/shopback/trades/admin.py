@@ -317,7 +317,7 @@ class MergeTradeAdmin(admin.ModelAdmin):
             if trade.sys_status != pcfg.WAIT_PREPARE_SEND_STATUS:
                 continue
             if trade.type in (pcfg.DIRECT_TYPE,pcfg.EXCHANGE_TYPE):
-                MergeTrade.objects.filter(tid=trade.tid).update(sys_status=pcfg.WAIT_CHECK_BARCODE_STATUS,status=pcfg.WAIT_BUYER_CONFIRM_GOOD
+                MergeTrade.objects.filter(tid=trade.tid).update(sys_status=pcfg.WAIT_CHECK_BARCODE_STATUS,status=pcfg.WAIT_BUYER_CONFIRM_GOODS
                                                                 ,consign_time=datetime.datetime.now())
                 continue 
             
