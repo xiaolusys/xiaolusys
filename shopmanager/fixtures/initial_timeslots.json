@@ -1,0 +1,77 @@
+[
+  {
+    "pk": 900,
+    "model": "autolist.timeslots",
+    "fields": {}
+  },
+  {
+    "pk": 1000,
+    "model": "autolist.timeslots",
+    "fields": {}
+  },
+  {
+    "pk": 1100,
+    "model": "autolist.timeslots",
+    "fields": {}
+  },
+  {
+    "pk": 1200,
+    "model": "autolist.timeslots",
+    "fields": {}
+  },
+  {
+    "pk": 1300,
+    "model": "autolist.timeslots",
+    "fields": {}
+  },
+  {
+    "pk": 1400,
+    "model": "autolist.timeslots",
+    "fields": {}
+  },
+  {
+    "pk": 1500,
+    "model": "autolist.timeslots",
+    "fields": {}
+  },
+  {
+    "pk": 1600,
+    "model": "autolist.timeslots",
+    "fields": {}
+  },
+  {
+    "pk": 1700,
+    "model": "autolist.timeslots",
+    "fields": {}
+  },
+  {
+    "pk": 1800,
+    "model": "autolist.timeslots",
+    "fields": {}
+  },
+  {
+    "pk": 1900,
+    "model": "autolist.timeslots",
+    "fields": {}
+  },
+  {
+    "pk": 2000,
+    "model": "autolist.timeslots",
+    "fields": {}
+  },
+  {
+    "pk": 2100,
+    "model": "autolist.timeslots",
+    "fields": {}
+  },
+  {
+    "pk": 2200,
+    "model": "autolist.timeslots",
+    "fields": {}
+  },
+  {
+    "pk": 2300,
+    "model": "autolist.timeslots",
+    "fields": {}
+  }
+]
