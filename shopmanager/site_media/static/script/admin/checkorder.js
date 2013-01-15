@@ -108,10 +108,12 @@ ordercheck.Dialog.prototype.init = function (id) {
         	var trade_status = goog.dom.getElement('id_trade_status').value;
         	if (trade_status == ''){
         		dialog.setTitle('订单审核详情');
-			    dialog.setButtonSet(new goog.ui.Dialog.ButtonSet().addButton({key: 'OK', caption: "审核订单"},false,false));
+			    dialog.setButtonSet(new goog.ui.Dialog.ButtonSet().addButton({key: 'CHECK', caption: "审核订单"},false,false));
 			    goog.events.listen(dialog, goog.ui.Dialog.EventType.SELECT, that);
         	}else{
-        		dialog.setTitle('订单追加处理页面');
+        		dialog.setTitle('订单重审页面');
+        		dialog.setButtonSet(new goog.ui.Dialog.ButtonSet().addButton({key: 'REVIEW', caption: "重审订单"},false,false));
+			    goog.events.listen(dialog, goog.ui.Dialog.EventType.SELECT, that);
         	}
 		    that.setEvent();
         } catch (err) {
@@ -193,7 +195,7 @@ ordercheck.Dialog.prototype.searchProd=function(e){
 	for(var i=sch_table.rows.length;i>1;i--){
 		sch_table.deleteRow(i-1);
 	}
-	params = {'q':q}
+	params = {'q':q};
 	var callback = function(e){
 		var xhr = e.target;
         try {
@@ -313,11 +315,16 @@ ordercheck.Dialog.prototype.deleteOrder=function(e){
 }
 
 ordercheck.Dialog.prototype.handleEvent= function (e) {
-    if (e.key == 'OK') {
+    if (e.key == 'CHECK') {
         var tradeDom  = goog.dom.getElement("id_check_trade");
         var logisticsDom = goog.dom.getElement("id_logistics");
         var priorityDom  = goog.dom.getElement("id_priority");
-        var retval    = this.orderManager.checkorder(tradeDom.value, logisticsDom.value, priorityDom.value);
+        var retval    = this.orderManager.checkorder(tradeDom.value,logisticsDom.value,priorityDom.value,'check');
+    }else if (e.key == 'REVIEW'){
+    	var tradeDom  = goog.dom.getElement("id_check_trade");
+        var logisticsDom = goog.dom.getElement("id_logistics");
+        var priorityDom  = goog.dom.getElement("id_priority");
+        var retval    = this.orderManager.checkorder(tradeDom.value,logisticsDom.value,priorityDom.value,'review');
     }
     return false;
 }
@@ -341,7 +348,7 @@ ordercheck.Manager.prototype.showDialog = function(e) {
     this.dialog.show(); 
 }
 
-ordercheck.Manager.prototype.checkorder = function(trade_id,logistic_code,priority) {
+ordercheck.Manager.prototype.checkorder = function(trade_id,logistic_code,priority,action) {
 	var that  = this;
     var callback = function(e){
         var xhr = e.target;
@@ -359,7 +366,7 @@ ordercheck.Manager.prototype.checkorder = function(trade_id,logistic_code,priori
             console.log('Error: (ajax callback) - ', err);
         } 
 	};
-	params  = {'format':'json','logistic_code':logistic_code,'priority':priority};
+	params  = {'format':'json','logistic_code':logistic_code,'priority':priority,'action':action};
 	content = goog.uri.utils.buildQueryDataFromMap(params);
 	goog.net.XhrIo.send('/trades/checkorder/'+trade_id+'/',callback,'POST',content);
 }

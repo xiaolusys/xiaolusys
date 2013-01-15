@@ -75,7 +75,18 @@ def prod_name(order):
     try:
         prod = Product.objects.get(outer_id=order['outer_id'])
     except:
-        prod_name = order['title'] 
+        p_name = order['title'] 
     else:
-        prod_name = prod.name or order['title']
-    return prod_name
+        p_name = prod.name or order['title']
+    return p_name
+
+@register.filter(name='sku_name')  
+def sku_name(order):
+
+    try:
+        prod = ProductSku.objects.get(outer_id=order['outer_sku_id'],prod_outer_id=order['outer_id'])
+    except:
+        s_name = order['sku_properties_name']
+    else:
+        s_name = prod.properties_name or order['sku_properties_name']
+    return s_name

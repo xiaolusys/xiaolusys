@@ -15,8 +15,9 @@
 <div class="alert-message buyer"><strong>买家留言: </strong>{{ trade.buyer_message }}</div>
 <div class="alert-message seller"><strong>卖家留言: </strong>{{ trade.seller_memo }}</div>
 </div>
-<div style="padding: 9px 15px"><label class="simple-label">快递:
-</label> <select id="id_logistics" class="selection">
+<div style="padding: 9px 15px">
+<label class="simple-label">快递:</label> 
+<select id="id_logistics" class="selection">
 	{% for lg in logistics %}
 	<option value='{{ lg.code }}' {% if lg.id == trade.logistics_company.id %}selected{% endif %} >{{ lg.name }}</option>
 	{% endfor %}

@@ -69,8 +69,9 @@ class CheckOrderView(ModelView):
         except MergeTrade.DoesNotExist:
             return '该订单不存在'.decode('utf8')
         
-        priority = request.POST.get('priority')
+        priority      = request.POST.get('priority')
         logistic_code = request.POST.get('logistic_code')
+        action_code   = request.POST.get('action')
         
         params = {}
         if priority:
@@ -79,35 +80,41 @@ class CheckOrderView(ModelView):
             params['logistics_company'] = LogisticsCompany.objects.get(code=logistic_code)
         if params:
             MergeTrade.objects.filter(id=id).update(**params)
-        
-        check_msg = []
-        if trade.has_refund:
-            check_msg.append("有待退款".decode('utf8'))
-        if trade.has_out_stock :
-            check_msg.append("有缺货".decode('utf8'))
-        if trade.has_rule_match:
-            check_msg.append("信息不全".decode('utf8'))
-        if trade.sys_status != pcfg.WAIT_AUDIT_STATUS:
-            check_msg.append("订单暂不能审核".decode('utf8'))
-        if trade.has_reason_code(pcfg.MULTIPLE_ORDERS_CODE):
-            check_msg.append("需手动合单".decode('utf8'))
-        if trade.has_reason_code(pcfg.POST_MODIFY_CODE) or trade.has_reason_code(pcfg.INVALID_END_CODE)\
-             or trade.has_reason_code(pcfg.POST_SUB_TRADE_ERROR_CODE) or trade.has_reason_code(pcfg.COMPOSE_RULE_ERROR_CODE)\
-             or trade.has_reason_code(pcfg.PAYMENT_RULE_ERROR_CODE) or trade.has_reason_code(pcfg.MERGE_TRADE_ERROR_CODE):
-            check_msg.append("该订单需管理员审核".decode('utf8'))
-        orders = trade.merge_trade_orders.filter(status=pcfg.WAIT_SELLER_SEND_GOODS)\
-                    .exclude(refund_status__in=pcfg.REFUND_APPROVAL_STATUS)   
-        if orders.count() <= 0:
-            check_msg.append("没有可发订单！".decode('utf8'))
-         
-        if check_msg:
-            return ','.join(check_msg)
-        
-        MergeTrade.objects.filter(id=id,sys_status = pcfg.WAIT_AUDIT_STATUS)\
-            .update(sys_status=pcfg.WAIT_PREPARE_SEND_STATUS,reason_code='')
-        
-        log_action(user_id,trade,CHANGE,u'审核成功')
-        
+        if action_code == 'check':
+            check_msg = []
+            if trade.has_refund:
+                check_msg.append("有待退款".decode('utf8'))
+            if trade.has_out_stock :
+                check_msg.append("有缺货".decode('utf8'))
+            if trade.has_rule_match:
+                check_msg.append("信息不全".decode('utf8'))
+            if trade.sys_status != pcfg.WAIT_AUDIT_STATUS:
+                check_msg.append("订单暂不能审核".decode('utf8'))
+            if trade.has_reason_code(pcfg.MULTIPLE_ORDERS_CODE):
+                check_msg.append("需手动合单".decode('utf8'))
+            if trade.has_reason_code(pcfg.POST_MODIFY_CODE) or trade.has_reason_code(pcfg.INVALID_END_CODE)\
+                 or trade.has_reason_code(pcfg.POST_SUB_TRADE_ERROR_CODE) or trade.has_reason_code(pcfg.COMPOSE_RULE_ERROR_CODE)\
+                 or trade.has_reason_code(pcfg.PAYMENT_RULE_ERROR_CODE) or trade.has_reason_code(pcfg.MERGE_TRADE_ERROR_CODE):
+                check_msg.append("该订单需管理员审核".decode('utf8'))
+            orders = trade.merge_trade_orders.filter(status=pcfg.WAIT_SELLER_SEND_GOODS)\
+                        .exclude(refund_status__in=pcfg.REFUND_APPROVAL_STATUS)   
+            if orders.count() <= 0:
+                check_msg.append("没有可发订单！".decode('utf8'))
+             
+            if check_msg:
+                return ','.join(check_msg)
+            
+            MergeTrade.objects.filter(id=id,sys_status = pcfg.WAIT_AUDIT_STATUS)\
+                .update(sys_status=pcfg.WAIT_PREPARE_SEND_STATUS,reason_code='')  
+            log_action(user_id,trade,CHANGE,u'审核成功')
+            
+        elif action_code == 'review':
+            if trade.sys_status != pcfg.WAIT_CHECK_BARCODE_STATUS:
+                return u'不能复审'
+            MergeTrade.objects.filter(id=id,sys_status = pcfg.WAIT_CHECK_BARCODE_STATUS)\
+                .update(can_review=True)
+            log_action(user_id,trade,CHANGE,u'订单复审')
+            
         return {'success':True}    
       
        
@@ -147,14 +154,20 @@ class OrderPlusView(ModelView):
                 prod_sku = ProductSku.objects.get(prod_outer_id=outer_id,outer_id=outer_sku_id)
             except ProductSku.DoesNotExist:
                 return '该商品规格不存在'.decode('utf8')
-            
-        merge_order = MergeOrder.gen_new_order(trade_id,outer_id,outer_sku_id,num,gift_type=pcfg.CS_PERMI_GIT_TYPE)
         
-        log_action(user_id,merge_order.merge_trade,ADDITION,u'添加子订单(%d)'%merge_order.id)
+        is_reverse_order = False
+        if merge_trade.sys_status == pcfg.WAIT_CHECK_BARCODE_STATUS:
+            merge_trade.append_reason_code(pcfg.ORDER_ADD_REMOVE_CODE)
+            is_reverse_order = True    
+        
+        merge_order = MergeOrder.gen_new_order(trade_id,outer_id,outer_sku_id,num,gift_type=pcfg.CS_PERMI_GIT_TYPE
+                                               ,status=pcfg.WAIT_BUYER_CONFIRM_GOODS,is_reverse=is_reverse_order)
+        
+        log_action(user_id,merge_trade,ADDITION,u'添加子订单(%d)'%merge_order.id)
         
         return merge_order
     
-            
+           
 def change_trade_addr(request):
     
     user_id  = request.user.id
@@ -169,7 +182,8 @@ def change_trade_addr(request):
          setattr(trade, key, val)
     
     try:
-        response = apis.taobao_trade_shippingaddress_update(tid=trade.tid,
+        if trade.type in (pcfg.TAOBAO_TYPE,pcfg.FENXIAO_TYPE,pcfg.GUARANTEE_TYPE) and trade.sys_status==pcfg.WAIT_AUDIT_STATUS:
+            response = apis.taobao_trade_shippingaddress_update(tid=trade.tid,
                                                             receiver_name=trade.receiver_name,
                                                             receiver_phone=trade.receiver_phone,
                                                             receiver_mobile=trade.receiver_mobile,
@@ -214,18 +228,24 @@ def change_trade_order(request,id):
     except ProductSku.DoesNotExist:
         return HttpResponse(json.dumps({'code':1,"response_error":"商品规格不存在！"}),mimetype="application/json")
     
-    order = MergeOrder.objects.get(id=order.id)
+    merge_trade = order.merge_trade
+    is_reverse_order = False
+    if merge_trade.sys_status == pcfg.WAIT_CHECK_BARCODE_STATUS:
+        merge_trade.append_reason_code(pcfg.ORDER_ADD_REMOVE_CODE)
+        is_reverse_order = True
+        
     order.outer_sku_id=prod_sku.outer_id
     order.sku_properties_name=prod_sku.properties_name
     order.is_rule_match = False
     order.out_stock     = False
+    order.is_reverse_order = is_reverse_order
     order.num           = order_num
     order.save()
-    order.merge_trade.remove_reason_code(pcfg.RULE_MATCH_CODE)
-    MergeTrade.judge_out_stock(order.merge_trade.tid,None)
+    merge_trade.remove_reason_code(pcfg.RULE_MATCH_CODE)
+    MergeTrade.judge_out_stock(merge_trade.tid,None)
     order = MergeOrder.objects.get(id=order.id)
     
-    log_action(user_id,order.merge_trade,CHANGE,u'修改子订单(%d)'%order.id)
+    log_action(user_id,merge_trade,CHANGE,u'修改子订单(%d)'%order.id)
     
     ret_params = {'code':0,'response_content':{'id':order.id,
                                                'outer_id':order.outer_id,
@@ -247,10 +267,17 @@ def delete_trade_order(request,id):
         merge_order  = MergeOrder.objects.get(id=id)
     except:
         HttpResponse(json.dumps({'code':1,'response_content':{'success':False}}),mimetype="application/json")
+    
+    merge_trade = merge_order.merge_trade
+    is_reverse_order = False
+    if merge_trade.sys_status == pcfg.WAIT_CHECK_BARCODE_STATUS:
+        merge_trade.append_reason_code(pcfg.ORDER_ADD_REMOVE_CODE)
+        is_reverse_order = True
         
-    num = MergeOrder.objects.filter(id=id,status=pcfg.WAIT_SELLER_SEND_GOODS).update(sys_status=pcfg.INVALID_STATUS)
+    num = MergeOrder.objects.filter(id=id,status=pcfg.WAIT_SELLER_SEND_GOODS)\
+        .update(sys_status=pcfg.INVALID_STATUS,is_reverse_order=is_reverse_order)
     if num == 1:
-        log_action(user_id,merge_order.merge_trade,CHANGE,u'设子订单无效(%d)'%merge_order.id)
+        log_action(user_id,merge_trade,CHANGE,u'设子订单无效(%d)'%merge_order.id)
         
         ret_params = {'code':0,'response_content':{'success':True}}
     else:
@@ -259,7 +286,67 @@ def delete_trade_order(request,id):
     return HttpResponse(json.dumps(ret_params),mimetype="application/json")
 
     
+        
+############################### 订单复审 #################################       
+class ReviewOrderView(ModelView):
+    """ docstring for class ReviewOrderView """
+    
+    def get(self, request, id, *args, **kwargs):
+        
+        try:
+            trade = MergeTrade.objects.get(id=id)
+        except MergeTrade.DoesNotExist:
+            return '该订单不存在'.decode('utf8')
+        
+        logistics = LogisticsCompany.objects.filter(status=True)
+        
+        trade_dict = {
+            'id':trade.id,
+            'tid':trade.tid,
+            'buyer_nick':trade.buyer_nick,
+            'seller_nick':trade.seller_nick,
+            'pay_time':trade.pay_time,
+            'payment':trade.payment,
+            'post_fee':trade.post_fee,
+            'buyer_message':trade.buyer_message,
+            'seller_memo':trade.seller_memo,
+            'logistics_company':trade.logistics_company,
+            'priority':trade.priority,
+            'receiver_name':trade.receiver_name,
+            'receiver_state':trade.receiver_state,
+            'receiver_city':trade.receiver_city,
+            'receiver_district':trade.receiver_district,
+            'receiver_address':trade.receiver_address,
+            'receiver_mobile':trade.receiver_mobile,
+            'receiver_phone':trade.receiver_phone,
+            'reason_code':trade.reason_code,
+            'status':trade.status,
+            'sys_status':trade.sys_status,
+            'used_orders':trade.inuse_orders,
+            'new_memo':trade.has_reason_code(pcfg.NEW_MEMO_CODE),
+            'new_refund':trade.has_reason_code(pcfg.WAITING_REFUND_CODE),
+            'order_modify':trade.has_reason_code(pcfg.ORDER_ADD_REMOVE_CODE),
+            'addr_modify':trade.has_reason_code(pcfg.ADDR_CHANGE_CODE),
+        }
+        
+        return {'trade':trade_dict,'logistics':logistics}
+        
+    def post(self, request, *args, **kwargs):
+        
+        user_id  = request.user.id
+        trade_id = request.POST.get('trade_id') 
+        
+        try:
+            merge_trade = MergeTrade.objects.get(id=trade_id)
+        except MergeTrade.DoesNotExist:
+            return u'该订单不存在'
+        
+        if not merge_trade.can_review:
+            return u'该订单不能复审'
+        MergeTrade.objects.filter(id=trade_id).update(out_sid='')
+        
+        log_action(user_id,merge_trade,ADDITION,u'复审通过')
+        
+        return {'success':True}
 
-        
-       
-        
+

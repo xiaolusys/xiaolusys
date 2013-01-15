@@ -163,6 +163,7 @@ class MergeTrade(models.Model):
     remind_time      = models.DateTimeField(null=True,blank=True,verbose_name='提醒日期')
     refund_num       = models.IntegerField(null=True,default=0,verbose_name='退款单数')  #退款单数
     
+    can_review       = models.BooleanField(default=False,verbose_name='验货复审') 
     priority       = models.IntegerField(db_index=True,default=0,choices=PRIORITY_TYPE,verbose_name='优先级')
     operator       =  models.CharField(max_length=32,blank=True,verbose_name='发货员')
     sys_status     = models.CharField(max_length=32,db_index=True,choices=SYS_TRADE_STATUS,blank=True,default='',verbose_name='系统状态')
@@ -180,9 +181,8 @@ class MergeTrade(models.Model):
     
     @property
     def inuse_orders(self):
-        return self.merge_trade_orders.filter(status=pcfg.WAIT_SELLER_SEND_GOODS,sys_status=pcfg.IN_EFFECT)\
-                .exclude(refund_status__in=pcfg.REFUND_APPROVAL_STATUS)
-        
+        return self.merge_trade_orders.filter(status__in=(pcfg.WAIT_SELLER_SEND_GOODS,pcfg.WAIT_BUYER_CONFIRM_GOODS)
+                    ,sys_status=pcfg.IN_EFFECT)       
     @property
     def buyer_full_address(self):
         return '%s%s%s%s%s'%(self.receiver_name,self.receiver_state,self.receiver_city,self.receiver_district,self.receiver_address)
@@ -467,7 +467,8 @@ class MergeOrder(models.Model):
     
     out_stock   = models.BooleanField(default=False,verbose_name='缺货')
     is_merge    = models.BooleanField(default=False,verbose_name='合并') 
-    is_rule_match   = models.BooleanField(default=False,verbose_name='匹配')
+    is_rule_match    = models.BooleanField(default=False,verbose_name='匹配')
+    is_reverse_order = models.BooleanField(default=False,verbose_name='追改')
     gift_type   = models.IntegerField(choices=GIFT_TYPE,default=0,verbose_name='赠品类型')
     
     status = models.CharField(max_length=32,choices=TAOBAO_ORDER_STATUS,blank=True,verbose_name='淘宝订单状态')
@@ -479,7 +480,8 @@ class MergeOrder(models.Model):
         verbose_name=u'子订单'
     
     @classmethod
-    def gen_new_order(cls,trade_id,outer_id,outer_sku_id,num,gift_type=pcfg.REAL_ORDER_GIT_TYPE):
+    def gen_new_order(cls,trade_id,outer_id,outer_sku_id,num,gift_type=pcfg.REAL_ORDER_GIT_TYPE
+                      ,status=pcfg.WAIT_SELLER_SEND_GOODS,is_reverse=False):
         
         merge_trade,state = MergeTrade.objects.get_or_create(id=trade_id)
         product = Product.objects.get(outer_id=outer_id)
@@ -508,7 +510,8 @@ class MergeOrder(models.Model):
             pay_time = merge_trade.pay_time,
             consign_time = merge_trade.consign_time,
             gift_type = gift_type,
-            status = pcfg.WAIT_SELLER_SEND_GOODS,
+            is_reverse_order = is_reverse,
+            status = status,
             sys_status = pcfg.IN_EFFECT
             )
         return merge_order
