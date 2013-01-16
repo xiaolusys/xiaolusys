@@ -1,5 +1,6 @@
 from django.conf.urls.defaults import patterns, include, url
-from shopback.trades.views import CheckOrderView,OrderPlusView,ReviewOrderView,change_trade_addr,change_trade_order,delete_trade_order
+from shopback.trades.views import CheckOrderView,OrderPlusView,ReviewOrderView,change_trade_addr,\
+    change_trade_order,delete_trade_order,change_logistic_and_outsid
 from shopback.base.renderers  import BaseJsonRenderer
 from django.views.decorators.csrf import csrf_exempt
 from shopback.trades.renderers import CheckOrderRenderer,ReviewOrderRenderer
@@ -31,4 +32,5 @@ urlpatterns = patterns('',
         authentication=(UserLoggedInAuthentication,),
         permissions=(IsAuthenticated,)
     )),
+    (r'logistic/',csrf_exempt(login_required_ajax(change_logistic_and_outsid))),
 )

@@ -1,7 +1,8 @@
 #-*- coding:utf8 -*-
+import re
 import json
 from django.http import HttpResponse
-from django.db.models import Q
+from django.db.models import Q,Sum
 from djangorestframework.views import ModelView
 from djangorestframework.response import ErrorResponse
 from shopback.trades.models import MergeTrade,MergeOrder,GIFT_TYPE
@@ -299,6 +300,7 @@ class ReviewOrderView(ModelView):
             return '该订单不存在'.decode('utf8')
         
         logistics = LogisticsCompany.objects.filter(status=True)
+        order_nums = trade.inuse_orders.aggregate(total_num=Sum('num')).get('total_num')
         
         trade_dict = {
             'id':trade.id,
@@ -311,7 +313,11 @@ class ReviewOrderView(ModelView):
             'buyer_message':trade.buyer_message,
             'seller_memo':trade.seller_memo,
             'logistics_company':trade.logistics_company,
+            'out_sid':trade.out_sid,
+            'consign_time':trade.consign_time,
             'priority':trade.priority,
+            'buyer_message':trade.buyer_message,
+            'seller_memo':trade.seller_memo,
             'receiver_name':trade.receiver_name,
             'receiver_state':trade.receiver_state,
             'receiver_city':trade.receiver_city,
@@ -320,9 +326,11 @@ class ReviewOrderView(ModelView):
             'receiver_mobile':trade.receiver_mobile,
             'receiver_phone':trade.receiver_phone,
             'reason_code':trade.reason_code,
+            'can_review':trade.can_review,
             'status':trade.status,
             'sys_status':trade.sys_status,
             'used_orders':trade.inuse_orders,
+            'order_nums':order_nums,
             'new_memo':trade.has_reason_code(pcfg.NEW_MEMO_CODE),
             'new_refund':trade.has_reason_code(pcfg.WAITING_REFUND_CODE),
             'order_modify':trade.has_reason_code(pcfg.ORDER_ADD_REMOVE_CODE),
@@ -331,22 +339,67 @@ class ReviewOrderView(ModelView):
         
         return {'trade':trade_dict,'logistics':logistics}
         
-    def post(self, request, *args, **kwargs):
+    def post(self, request, id, *args, **kwargs):
         
         user_id  = request.user.id
-        trade_id = request.POST.get('trade_id') 
-        
         try:
-            merge_trade = MergeTrade.objects.get(id=trade_id)
+            merge_trade = MergeTrade.objects.get(id=id)
         except MergeTrade.DoesNotExist:
             return u'该订单不存在'
         
         if not merge_trade.can_review:
             return u'该订单不能复审'
-        MergeTrade.objects.filter(id=trade_id).update(out_sid='')
+        MergeTrade.objects.filter(id=id).update(reason_code='')
         
         log_action(user_id,merge_trade,ADDITION,u'复审通过')
         
         return {'success':True}
-
+    
+    
+def change_logistic_and_outsid(request):
+    
+    user_id  = request.user.id
+    CONTENT    = request.REQUEST
+    trade_id   = CONTENT.get('trade_id')
+    out_sid    = CONTENT.get('out_sid')
+    logistic_code = CONTENT.get('logistic_code','').upper()
+    
+    if not trade_id or not out_sid or not logistic_code:
+        ret_params = {'code':1,'response_content':u'请填写快递名称及单号'}
+        return HttpResponse(json.dumps(ret_params),mimetype="application/json")
+    
+    try:
+        merge_trade = MergeTrade.objects.get(id=trade_id)
+    except:    
+        ret_params = {'code':1,'response_content':u'未找到该订单'}
+        return HttpResponse(json.dumps(ret_params),mimetype="application/json")
+        
+    try:
+        logistic   = LogisticsCompany.objects.get(code=logistic_code)
+        logistic_regex = re.compile(logistic.reg_mail_no)
+        if merge_trade.sys_status == pcfg.WAIT_CHECK_BARCODE_STATUS and logistic_regex.match(out_sid): 
+            
+            try:
+                response = apis.taobao_logistics_consign_resend(tid=merge_trade.tid,out_sid=out_sid
+                                                 ,company_code=logistic_code,tb_user_id=merge_trade.user.visitor_id)
+                if not response['logistics_consign_resend_response']['shipping']['is_success']:
+                    raise Exception(u'重发失败')
+            except Exception,exc:
+                merge_trade.sys_memo = exc.message
+                logger.error(exc.message,exc_info=True)
+                
+            merge_trade.logistics_company = logistic
+            merge_trade.out_sid   = out_sid
+            merge_trade.save()
+            
+            log_action(user_id,merge_trade,CHANGE,u'复审修改快递及单号(修改前:%s,%s)'%(logistic_code,out_sid))
+        else:
+            raise Exception(u'快递单号不匹配')
+    except Exception,exc:
+        ret_params = {'code':1,'response_content':exc.message}
+        return HttpResponse(json.dumps(ret_params),mimetype="application/json")
+        
+    ret_params = {'code':0,'response_content':{'logistic_company_name':logistic.name
+                                               ,'logistic_company_code':logistic.code,'out_sid':out_sid}}
+    return HttpResponse(json.dumps(ret_params),mimetype="application/json")
 
