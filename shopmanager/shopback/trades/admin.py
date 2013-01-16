@@ -83,7 +83,7 @@ class MergeTradeAdmin(admin.ModelAdmin):
     inlines = [MergeOrderInline]
     
     list_filter   = ('sys_status','status','user','type','has_out_stock','has_refund','has_rule_match','has_sys_err',
-                     'has_merge','is_picking_print','is_express_print')
+                     'has_merge','has_memo','is_picking_print','is_express_print')
     search_fields = ['id','buyer_nick','tid','operator','out_sid','receiver_name']
     
     class Media:
