@@ -830,7 +830,7 @@ def save_orders_trade_to_mergetrade(sender, tid, *args, **kwargs):
         merge_trade,state = MergeTrade.objects.get_or_create(tid=trade.id)
         
         first_pay_load = not merge_trade.sys_status 
-        if first_pay_load:
+        if first_pay_load or not merge_trade.receiver_name:
             #保存地址
             merge_trade.receiver_name = trade.receiver_name 
             merge_trade.receiver_state   = trade.receiver_state 
@@ -926,7 +926,7 @@ def save_fenxiao_orders_to_mergetrade(sender, tid, *args, **kwargs):
         merge_trade,state = MergeTrade.objects.get_or_create(tid=trade.id)
         
         first_pay_load = not merge_trade.sys_status 
-        if first_pay_load and trade.status == pcfg.WAIT_SELLER_SEND_GOODS:
+        if first_pay_load or not merge_trade.receiver_name:
             logistics = Logistics.get_or_create(trade.seller_id,trade.id)
             location = json.loads(logistics.location or 'null')
         

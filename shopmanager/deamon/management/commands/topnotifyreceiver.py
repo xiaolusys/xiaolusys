@@ -16,8 +16,9 @@ import logging
 
 logger = logging.getLogger('notifyserver.handler')
 
-CURL_READ_TIMEOUT    = 30
+CURL_READ_TIMEOUT    = 100
 CURL_CONNECT_TIMEOUT = 60
+
 
 #class Command(DaemonCommand):
 class Command():
@@ -89,8 +90,10 @@ class Command():
             tasks.process_discard_notify_task.s(msg['begin'],msg['end'])()
         elif code in (101,102,103):
             self.fail_wait_time = msg or 10
-        elif code in (104,105):
-            self.fail_wait_time = 10
+        elif code == 105:
+            self.fail_wait_time = 1
+        elif code == 104:
+            self.fail_wait_time = 0
         
 
     def save_message(self,item):
