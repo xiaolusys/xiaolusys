@@ -131,7 +131,7 @@
 		<fieldset>
 			<legend>问题列表</legend>
 			<div style="padding: 9px 15px">
-				<ul class="thumbnails1">
+				<ul id="id-trade-problems" class="thumbnails1">
 					{% if trade.new_memo %}<li><span class="badge1 badge-warning1">新留言</span></li>{% endif %} 
 					{% if trade.new_refund %}<li><span class="badge1 badge-warning1">新退款</span></li>{% endif %} 
 					{% if trade.order_modify %}<li><span class="badge1 badge-warning1">订单修改</span></li>{% endif %} 
@@ -156,6 +156,7 @@
 					<span id="id_logistic_name">{{ trade.logistics_company.name }}</span></div>
 				<div  class="trade_info"><label class="simple-label">快递单号: </label>
 					<span id="id_out_sid">{{ trade.out_sid }}</span></div>
+				<div  class="trade_info"><label class="simple-label">问题编号: </label>{{ trade.reason_code }}</div>
 				<br><br>
 				<div  class="trade_info"><label class="simple-label">收货人: </label>{{ trade.receiver_name }}</div>
 				<div  class="trade_info"><label class="simple-label">省: </label>{{ trade.receiver_state }}</div>
@@ -257,7 +258,8 @@
 				{},
 				function(data, textStatus){
 					if(data.code == 0){
-						window.location = '/trades/revieworder/'+trade_id+'/';
+						$('#id-trade-problems').html('');
+						$('#id-review-order-btn').hide();
 					}else{
 						alert('订单复核失败:'+data.response_error);
 					}
