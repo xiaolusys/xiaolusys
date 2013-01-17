@@ -279,21 +279,22 @@ class MergeTradeAdmin(admin.ModelAdmin):
         pull_success_ids = []
         pull_fail_ids    = []
         for trade in queryset:
+            seller_id  = trade.user.visitor_id
             MergeTrade.objects.filter(tid=trade.tid).update(sys_status='')
             try:
                 if trade.type == pcfg.TAOBAO_TYPE:
-                    response = apis.taobao_trade_fullinfo_get(tid=trade.tid,tb_user_id=trade.seller_id)
+                    response = apis.taobao_trade_fullinfo_get(tid=trade.tid,tb_user_id=seller_id)
                     trade_dict = response['trade_fullinfo_get_response']['trade']
-                    Trade.save_trade_through_dict(trade.seller_id,trade_dict)
+                    Trade.save_trade_through_dict(seller_id,trade_dict)
                 elif trade.type == pcfg.FENXIAO_TYPE:
                     purchase = PurchaseOrder.objects.get(id=trade.tid)
-                    response_list = apis.taobao_fenxiao_orders_get(purchase_order_id=purchase.fenxiao_id,tb_user_id=trade.seller_id)
+                    response_list = apis.taobao_fenxiao_orders_get(purchase_order_id=purchase.fenxiao_id,tb_user_id=seller_id)
                     orders_list = response_list['fenxiao_orders_get_response']
                     if orders_list['total_results']>0:
                         o = orders_list['purchase_orders']['purchase_order'][0]
-                        PurchaseOrder.save_order_through_dict(trade.seller_id,o)    
+                        PurchaseOrder.save_order_through_dict(seller_id,o)    
             except Exception,exc:
-                logger.error(exc.message,exc_info=True)
+                logger.error('pull error '+exc.message,exc_info=True)
                 MergeTrade.objects.filter(tid=trade.tid,reason_code='').update(sys_status=pcfg.WAIT_AUDIT_STATUS)
                 pull_fail_ids.append(trade.tid)
             else:

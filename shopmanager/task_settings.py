@@ -75,6 +75,11 @@ SYNC_MODEL_SCHEDULE = {
 #        'schedule':crontab(minute="30",hour="2",day_of_week='mon'), #
 #        'args':(7,None,None)
 #    },
+    'runs-every-half-day-increment-orders':{
+        'task':'shopback.orders.tasks.updateAllUserIncrementTradesTask',
+        'schedule':crontab(minute="0",hour="*/12"),
+        'args':()
+    },
     'runs-every-day-regular-remaind-order':{     #更新定时提醒订单
          'task':'shopback.trades.tasks.regularRemainOrderTask',
          'schedule':crontab(minute="0",hour='*/12'),

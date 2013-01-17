@@ -422,7 +422,7 @@ class MergeTrade(models.Model):
         except:
             need_pull = True
         else:
-            if not obj.modified or obj.modified < modified or obj.status in (pcfg.WAIT_BUYER_PAY,pcfg.TRADE_NO_CREATE_PAY):
+            if not obj.modified or obj.modified < modified or obj.sys_status == '':
                 need_pull = True
         return need_pull
  
@@ -925,11 +925,11 @@ def save_fenxiao_orders_to_mergetrade(sender, tid, *args, **kwargs):
         if not tid:
             return 
         trade = PurchaseOrder.objects.get(id=tid)
-        merge_trade,state = MergeTrade.objects.get_or_create(tid=trade.id)
+        merge_trade,state = MergeTrade.objects.get_or_create(tid=tid)
         
         first_pay_load = not merge_trade.sys_status 
         if first_pay_load or not merge_trade.receiver_name:
-            logistics = Logistics.get_or_create(trade.seller_id,trade.id)
+            logistics = Logistics.get_or_create(trade.user.visitor_id,tid)
             location = json.loads(logistics.location or 'null')
         
             merge_trade.receiver_name = logistics.receiver_name 
