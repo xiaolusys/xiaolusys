@@ -56,7 +56,7 @@ class Command():
         c.setopt(pycurl.WRITEFUNCTION,self.handle_body)
         c.setopt(pycurl.HEADERFUNCTION,self.handle_header)
         #c.setopt(pycurl.CONNECTTIMEOUT, CURL_CONNECT_TIMEOUT)
-        #c.setopt(pycurl.TIMEOUT, CURL_READ_TIMEOUT)
+        c.setopt(pycurl.TIMEOUT, CURL_READ_TIMEOUT)
         c.setopt(pycurl.FAILONERROR,True)
         c.perform()
         
