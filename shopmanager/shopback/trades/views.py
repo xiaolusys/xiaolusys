@@ -1,5 +1,6 @@
 #-*- coding:utf8 -*-
 import re
+import datetime
 import json
 from django.http import HttpResponse
 from django.db.models import Q,Sum
@@ -196,14 +197,13 @@ def change_trade_addr(request):
                                                             tb_user_id=trade.user.visitor_id)
     except Exception,exc:
         logger.error(exc.message,exc_info=True)
-        ret_params = {'code':1,'response_error':exc.message}
-    else:    
-        trade.save()
-        trade.append_reason_code(pcfg.ADDR_CHANGE_CODE)
-        
-        log_action(user_id,trade,CHANGE,u'修改地址')
-        
-        ret_params = {'code':0,'success':True}
+  
+    trade.save()
+    trade.append_reason_code(pcfg.ADDR_CHANGE_CODE)
+    
+    log_action(user_id,trade,CHANGE,u'修改地址')
+    
+    ret_params = {'code':0,'success':True}
     
     return HttpResponse(json.dumps(ret_params),mimetype="application/json")
     
@@ -378,8 +378,8 @@ def change_logistic_and_outsid(request):
     try:
         logistic   = LogisticsCompany.objects.get(code=logistic_code)
         logistic_regex = re.compile(logistic.reg_mail_no)
+        print 'logistic_regex', logistic_regex,'out sid',out_sid,merge_trade.sys_status,logistic_regex.match(out_sid)
         if merge_trade.sys_status == pcfg.WAIT_CHECK_BARCODE_STATUS and logistic_regex.match(out_sid): 
-            
             try:
                 response = apis.taobao_logistics_consign_resend(tid=merge_trade.tid,out_sid=out_sid
                                                  ,company_code=logistic_code,tb_user_id=merge_trade.user.visitor_id)
@@ -387,7 +387,7 @@ def change_logistic_and_outsid(request):
                     raise Exception(u'重发失败')
             except Exception,exc:
                 dt  = datetime.datetime.now()
-                merge_trade.sys_memo = '%s,修改单号[%s]:(%s)%s'%(merge_trade.sys_memo,
+                merge_trade.sys_memo = u'%s,修改单号[%s]:(%s)%s'%(merge_trade.sys_memo,
                                                              dt.strftime('%Y-%m-%d %H:%M'),logistic_code,out_sid)
                 logger.error(exc.message,exc_info=True)
                 
