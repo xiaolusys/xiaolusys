@@ -106,7 +106,7 @@ ordercheck.Dialog.prototype.init = function (id) {
         	var res = xhr.getResponse();
         	dialog.setContent(res);
         	var trade_status = goog.dom.getElement('id_trade_status').value;
-        	if (trade_status == ''){
+        	if (trade_status == 'WAIT_AUDIT'){
         		dialog.setTitle('订单审核详情');
 			    dialog.setButtonSet(new goog.ui.Dialog.ButtonSet().addButton({key: 'CHECK', caption: "审核订单"},false,false));
 			    goog.events.listen(dialog, goog.ui.Dialog.EventType.SELECT, that);
@@ -315,17 +315,17 @@ ordercheck.Dialog.prototype.deleteOrder=function(e){
 }
 
 ordercheck.Dialog.prototype.handleEvent= function (e) {
-    if (e.key == 'CHECK') {
-        var tradeDom  = goog.dom.getElement("id_check_trade");
-        var logisticsDom = goog.dom.getElement("id_logistics");
-        var priorityDom  = goog.dom.getElement("id_priority");
-        var retval    = this.orderManager.checkorder(tradeDom.value,logisticsDom.value,priorityDom.value,'check');
+	var action_code = '';
+    if (== 'CHECK') {
+        action_code = 'check';
     }else if (e.key == 'REVIEW'){
-    	var tradeDom  = goog.dom.getElement("id_check_trade");
-        var logisticsDom = goog.dom.getElement("id_logistics");
-        var priorityDom  = goog.dom.getElement("id_priority");
-        var retval    = this.orderManager.checkorder(tradeDom.value,logisticsDom.value,priorityDom.value,'review');
+        action_code = 'review';
     }
+	var tradeDom  = goog.dom.getElement("id_check_trade");
+    var logisticsDom = goog.dom.getElement("id_logistics");
+    var priorityDom  = goog.dom.getElement("id_priority");
+    var retval    = this.orderManager.checkorder(tradeDom.value,logisticsDom.value,priorityDom.value,action_code);
+   
     return false;
 }
 
