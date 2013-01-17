@@ -10,6 +10,8 @@ FENXIAO_TYPE = 'fenxiao'
 TAOBAO_TYPE  = 'fixed'
 DIRECT_TYPE  = 'direct'
 EXCHANGE_TYPE  = 'exchange'
+AUTO_DELIVERY_TYPE = 'auto_delivery'
+COD_TYPE       = 'cod'
 GUARANTEE_TYPE  = 'guarantee_trade'
 
 #商品状态

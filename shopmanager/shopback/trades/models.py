@@ -75,6 +75,8 @@ TRADE_TYPE = (
     (pcfg.FENXIAO_TYPE,'分销'),
     (pcfg.DIRECT_TYPE,'内售'),
     (pcfg.EXCHANGE_TYPE,'退换货'),
+    (pcfg.COD_TYPE,'货到付款'),
+    (pcfg.AUTO_DELIVERY_TYPE,'自动发货'),
     (pcfg.GUARANTEE_TYPE,'一口价、拍卖'),
 )
 SHIPPING_TYPE = {

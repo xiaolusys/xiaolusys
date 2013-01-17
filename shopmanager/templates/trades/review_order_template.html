@@ -3,7 +3,7 @@
   <head>
     <title>{% block title %}{% endblock %}</title>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-    <link href="{{ STATIC_URL }}bootstrap/css/bootstrap.min.css" rel="stylesheet" type="text/css" />
+     <link href="{{ STATIC_URL }}bootstrap/css/bootstrap.min.css" rel="stylesheet" type="text/css" />
     <link href="{{ STATIC_URL }}bootstrap/css/bootstrap-responsive.min.css" rel="stylesheet" type="text/css" />
     <link href="{{ STATIC_URL }}css/base.less" rel="stylesheet/less" type="text/css" />
     <script src="{{ STATIC_URL }}script/jquery-1.7.1.min.js" type="text/javascript"></script>
@@ -14,7 +14,6 @@
     }
     body{
     	width:1000px;
-    	#text-align:center;
     }
     .table-bordered {
 	    border: 1px solid #DDD;
@@ -76,6 +75,14 @@
 	    color: #C09853;
 	    background-color: #FCF8E3;
 	}
+	
+	.trade_info {
+		display: inline-block; 
+		width: 18%;
+		*zoom: 1;
+    	*display: inline;
+	}
+	
     .simple-label {
 	    color:#999;
 	    display:inline;
@@ -137,29 +144,29 @@
 			<div class="row-through">
 				<input type="hidden" id="id_review_trade" name="trade_id" value="{{ trade.id }}">
 				<input type="hidden" id="id_trade_status" name="trade_status" value="{{ trade.sys_status }}">
-				<div style="display: inline-block; width: 18%;" class="trade_info"><label class="simple-label">订单号: </label>{{ trade.id }}</div>
-				<div style="display: inline-block; width: 18%;" class="trade_info"><label class="simple-label">买家: </label>{{ trade.buyer_nick }}</div>
-				<div style="display: inline-block; width: 18%;" class="trade_info"><label class="simple-label">店铺: </label>{{ trade.seller_nick }}</div>
-				<div style="display: inline-block; width: 18%;" class="trade_info"><label class="simple-label">付款时间: </label>{{ trade.pay_time }}</div>
-				<div style="display: inline-block; width: 18%;" class="trade_info"><label class="simple-label">发货日期: </label>{{ trade.consign_time }}</div>
+				<div  class="trade_info"><label class="simple-label">订单号: </label>{{ trade.id }}</div>
+				<div  class="trade_info"><label class="simple-label">买家: </label>{{ trade.buyer_nick }}</div>
+				<div  class="trade_info"><label class="simple-label">店铺: </label>{{ trade.seller_nick }}</div>
+				<div  class="trade_info"><label class="simple-label">付款时间: </label>{{ trade.pay_time }}</div>
+				<div  class="trade_info"><label class="simple-label">发货日期: </label>{{ trade.consign_time }}</div>
 				<br><br>
-				<div style="display: inline-block; width: 18%;" class="trade_info"><label class="simple-label">实付款: </label>{{ trade.payment }}</div>
-				<div style="display: inline-block; width: 18%;" class="trade_info"><label class="simple-label">邮费: </label>{{ trade.post_fee }}</div>
-				<div style="display: inline-block; width: 18%;" class="trade_info"><label class="simple-label">快递公司: </label>
+				<div  class="trade_info"><label class="simple-label">实付款: </label>{{ trade.payment }}</div>
+				<div  class="trade_info"><label class="simple-label">邮费: </label>{{ trade.post_fee }}</div>
+				<div  class="trade_info"><label class="simple-label">快递公司: </label>
 					<span id="id_logistic_name">{{ trade.logistics_company.name }}</span></div>
-				<div style="display: inline-block; width: 18%;" class="trade_info"><label class="simple-label">快递单号: </label>
+				<div  class="trade_info"><label class="simple-label">快递单号: </label>
 					<span id="id_out_sid">{{ trade.out_sid }}</span></div>
 				<br><br>
-				<div style="display: inline-block; width: 18%;" class="trade_info"><label class="simple-label">收货人: </label>{{ trade.receiver_name }}</div>
-				<div style="display: inline-block; width: 18%;"  class="trade_info"><label class="simple-label">省: </label>{{ trade.receiver_state }}</div>
-				<div style="display: inline-block; width: 18%;"  class="trade_info"><label class="simple-label">市: </label>{{ trade.receiver_city }}</div>
-				<div style="display: inline-block; width: 18%;" class="trade_info"><label class="simple-label">区: </label>{{ trade.receiver_district }}</div>
-				<div style="display: inline-block; width: 18%;" class="trade_info">
+				<div  class="trade_info"><label class="simple-label">收货人: </label>{{ trade.receiver_name }}</div>
+				<div  class="trade_info"><label class="simple-label">省: </label>{{ trade.receiver_state }}</div>
+				<div  class="trade_info"><label class="simple-label">市: </label>{{ trade.receiver_city }}</div>
+				<div  class="trade_info"><label class="simple-label">区: </label>{{ trade.receiver_district }}</div>
+				<div  class="trade_info">
 					<label class="simple-label">联系方式: </label>
 					{% if trade.receiver_mobile %}{{ trade.receiver_mobile }}{% else %}{{ trade.receiver_phone }}{% endif %}
 				</div>
 				<br><br>
-				<div style="display: inline-block; width: 100%;" class="trade_info"><label class="simple-label">详细地址: </label>{{ trade.receiver_address }}</div>
+				<div style="display: inline-block; width: 100%;" ><label class="simple-label">详细地址: </label>{{ trade.receiver_address }}</div>
 			</div>
 			<div class="row-through">
 				<div class="alert-message buyer"><strong>买家留言: </strong>{{ trade.buyer_message }}</div>
@@ -191,7 +198,7 @@
 					<th>规格编码</th>
 					<th>规格名称</th>
 					<th>数量</th>
-					<th>类型</th>
+					<th>有修改</th>
 				</tr>
 				{% for order in trade.used_orders %}
 				<tr>
@@ -201,17 +208,24 @@
 					<td>{{ order.outer_sku_id }}</td>
 					<td>{{ order|sku_name }}</td>
 					<td>{{ order.num }}</td>
-					<td>{% if order.gift_type == 0 %}实付{% elif order.gift_type == 1 %}赠送{% elif order.gift_type == 2 %}
-					满就送{% elif order.gift_type == 3 %}拆分{% elif order.gift_type == 4 %}换货{% endif %}</td>
+					<td>
+						{% if order.is_reverse_order %}
+						<img src="{{ STATIC_URL }}admin/img/icon-yes.gif" alt="yes">
+					    {% else %}
+					    <img src="{{ STATIC_URL }}admin/img/icon-no.gif" alt="no">
+					    {% endif%}
+					</td>
 				</tr>
 				{% endfor %}
 			</table>
 		</fieldset>
 		<div class="bottom-area" >
-			{% if trade.can_review %}
+			{% if trade.can_review and trade.sys_status == "WAIT_CHECK_BARCODE" %}
 			<button id="id-review-order-btn" class="btn-large btn-primary">复审通过</button>
-			{% else %}
+			{% elif not trade.can_review and trade.sys_status == "WAIT_CHECK_BARCODE" %}
 			<button id="id-review-order-btn" class="btn-large " disabled="disabled">客服未处理，暂不能复审</button>
+			{% else%}
+			<button id="id-review-order-btn" class="btn-large " disabled="disabled">该页面只能修改快递单号</button>
 			{% endif %}
 		</div>
 	</div>
@@ -243,8 +257,7 @@
 				{},
 				function(data, textStatus){
 					if(data.code == 0){
-						console.log(data);
-						//window.location = '/trades/revieworder/'+trade_id+'/';
+						window.location = '/trades/revieworder/'+trade_id+'/';
 					}else{
 						alert('订单复核失败:'+data.response_error);
 					}

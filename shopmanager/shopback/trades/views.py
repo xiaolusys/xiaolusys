@@ -347,7 +347,8 @@ class ReviewOrderView(ModelView):
         except MergeTrade.DoesNotExist:
             return u'该订单不存在'
         
-        if not merge_trade.can_review:
+        if not merge_trade.can_review and merge_trade.sys_status \
+            not in (pcfg.WAIT_CHECK_BARCODE_STATUS,pcfg.WAIT_SCAN_WEIGHT_STATUS):
             return u'该订单不能复审'
         MergeTrade.objects.filter(id=id).update(reason_code='')
         
@@ -385,7 +386,9 @@ def change_logistic_and_outsid(request):
                 if not response['logistics_consign_resend_response']['shipping']['is_success']:
                     raise Exception(u'重发失败')
             except Exception,exc:
-                merge_trade.sys_memo = exc.message
+                dt  = datetime.datetime.now()
+                merge_trade.sys_memo = '%s,修改单号[%s]:(%s)%s'%(merge_trade.sys_memo,
+                                                             dt.strftime('%Y-%m-%d %H:%M'),logistic_code,out_sid)
                 logger.error(exc.message,exc_info=True)
                 
             merge_trade.logistics_company = logistic
