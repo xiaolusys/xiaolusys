@@ -120,23 +120,13 @@ def add_taobao_user(sender, user,top_session,top_parameters, *args, **kwargs):
     profile.populate_user_info(top_session,top_parameters)
     
     profile.verify_fenxiao_user()
-    #更新用户淘宝商品，以及分销平台商品
-    from shopback.items.tasks import updateUserItemSkuFenxiaoProductTask
-    
-    updateUserItemSkuFenxiaoProductTask.delay(profile.visitor_id)
-    
     #对用户的主动通知进行授权
     profile.authorize_increment_notify()
+    #初始化系统数据
+    from shopback.users.tasks import initSystemDataFromAuthTask
     
-    #更新等待发货商城订单
-    from shopback.orders.tasks import saveUserDuringOrdersTask
-
-    saveUserDuringOrdersTask.delay(profile.visitor_id,status=pcfg.WAIT_SELLER_SEND_GOODS)
+    initSystemDataFromAuthTask.delay(profile.visitor_id)
     
-    #更新待发货分销订单
-    from shopback.fenxiao.tasks import saveUserPurchaseOrderTask
-    
-    saveUserPurchaseOrderTask.delay(profile.visitor_id,status=pcfg.WAIT_SELLER_SEND_GOODS)
     
 taobao_logged_in.connect(add_taobao_user)
   

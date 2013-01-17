@@ -154,7 +154,7 @@ def test_api(request):
 #    
 #    params = {}
 #    params['app_key'] = '21165266'
-##    params['user']    = '174265168'
+#    params['user']    = '174265168'
 #    params['v']       = '2.0'
 #    params['format']  = 'json'
 #    params['sign_method']    = 'md5'
@@ -202,9 +202,9 @@ def test_api(request):
 #    print response_list
 
 #    from shopback.orders.models import Trade,Order
-#    response = apis.taobao_trade_fullinfo_get(tid=251739089889670,tb_user_id=174265168)
+    response = apis.taobao_trade_fullinfo_get(tid=189639938007903,tb_user_id=174265168)
 #    trade = Trade.save_trade_through_dict(174265168,response['trade_fullinfo_get_response']['trade'])
-#    print response
+    print response
 
 #    from shopback.trades.models import WAIT_SELLER_SEND_GOODS
 #    response_list = apis.taobao_trades_sold_get(start_created=None,end_created=None,page_no=1,page_size=10,

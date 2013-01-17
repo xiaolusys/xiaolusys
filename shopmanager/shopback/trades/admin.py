@@ -45,7 +45,7 @@ class MergeOrderInline(admin.TabularInline):
     
     model = MergeOrder
     fields = ('oid','outer_id','outer_sku_id','title','price','payment','num','sku_properties_name','out_stock',
-                    'is_merge','is_rule_match','gift_type','refund_id','refund_status','status','sys_status')
+                    'is_merge','is_rule_match','is_reverse_order','gift_type','refund_id','refund_status','status','sys_status')
     
     formfield_overrides = {
         models.CharField: {'widget': TextInput(attrs={'size':'12'})},
@@ -74,7 +74,7 @@ class MergeTradeAdmin(admin.ModelAdmin):
     
     def buyer_nick_link(self, obj):
         symbol_link = obj.buyer_nick
-        if obj.sys_status == pcfg.WAIT_AUDIT_STATUS:
+        if obj.sys_status in (pcfg.WAIT_AUDIT_STATUS,pcfg.WAIT_CHECK_BARCODE_STATUS):
             symbol_link = '<a href="javascript:void(0);" class="check-order" trade_id="%d" >%s</a>'%(obj.id,symbol_link) 
         return symbol_link
     buyer_nick_link.allow_tags = True
@@ -83,7 +83,8 @@ class MergeTradeAdmin(admin.ModelAdmin):
     inlines = [MergeOrderInline]
     
     list_filter   = ('sys_status','status','user','type','has_out_stock','has_refund','has_rule_match','has_sys_err',
-                     'has_merge','has_memo','is_picking_print','is_express_print')
+                     'has_merge','is_picking_print','is_express_print','can_review')
+
     search_fields = ['id','buyer_nick','tid','operator','out_sid','receiver_name']
     
     class Media:
@@ -106,7 +107,8 @@ class MergeTradeAdmin(admin.ModelAdmin):
                 }),
                 ('系统内部信息:', {
                     'classes': ('collapse',),
-                    'fields': (('has_sys_err','has_memo','has_refund','has_out_stock','has_rule_match','has_merge','is_send_sms','is_picking_print','is_express_print')
+                    'fields': (('has_sys_err','has_memo','has_refund','has_out_stock','has_rule_match','has_merge'
+                                ,'is_send_sms','is_picking_print','is_express_print','can_review')
                                ,('priority','remind_time','reason_code','refund_num')
                                ,('post_cost','operator','weight','sys_status',))
                 }))
@@ -374,7 +376,7 @@ class MergeTradeAdmin(admin.ModelAdmin):
             except SubTradePostException,exc:
                 trade.append_reason_code(pcfg.POST_SUB_TRADE_ERROR_CODE)
                 MergeTrade.objects.filter(tid=trade.tid).update(sys_status=pcfg.WAIT_AUDIT_STATUS,sys_memo=exc.message)
-                log_action(request.user.id,trade,CHANGE,u'子订单(%d)发货成功'%sub_trade.id)
+                log_action(request.user.id,trade,CHANGE,u'子订单(%d)发货失败'%sub_trade.id)
                 logger.error(exc.message+'--sub post error',exc_info=True)
             except Exception,exc:
                 time.sleep(1)

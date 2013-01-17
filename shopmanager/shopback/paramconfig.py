@@ -10,6 +10,8 @@ FENXIAO_TYPE = 'fenxiao'
 TAOBAO_TYPE  = 'fixed'
 DIRECT_TYPE  = 'direct'
 EXCHANGE_TYPE  = 'exchange'
+AUTO_DELIVERY_TYPE = 'auto_delivery'
+COD_TYPE       = 'cod'
 GUARANTEE_TYPE  = 'guarantee_trade'
 
 #商品状态
@@ -148,3 +150,4 @@ MULTIPLE_ORDERS_CODE = 11 #买家有多单等待合并
 ADDR_CHANGE_CODE = 12 #交易地址修改
 PAYMENT_RULE_ERROR_CODE = 13 #金额规则执行出错
 MERGE_TRADE_ERROR_CODE = 14 #合单出错
+ORDER_ADD_REMOVE_CODE  = 15 #子订单增删编号

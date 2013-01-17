@@ -221,6 +221,8 @@ def rule_match_payment(sender, trade_tid, *args, **kwargs):
     except MergeTrade.DoesNotExist:
         pass
     else:
+        if trade.sys_status not in (pcfg.WAIT_AUDIT_STATUS,''):
+            return
         trade.merge_trade_orders.filter(gift_type=pcfg.OVER_PAYMENT_GIT_TYPE).delete()
         try:
             orders = trade.merge_trade_orders.filter(status=pcfg.WAIT_SELLER_SEND_GOODS,gift_type=pcfg.REAL_ORDER_GIT_TYPE)\
@@ -253,6 +255,8 @@ def rule_match_combose_split(sender, trade_tid, *args, **kwargs):
     except MergeTrade.DoesNotExist:
         pass
     else:
+        if trade.sys_status != pcfg.WAIT_AUDIT_STATUS:
+            return 
         trade.merge_trade_orders.filter(gift_type=pcfg.COMBOSE_SPLIT_GIT_TYPE).delete()
         try:
             orders = trade.merge_trade_orders.filter(status=pcfg.WAIT_SELLER_SEND_GOODS)\

@@ -146,7 +146,7 @@ def updateUserProductSkuTask(user_id,force_update_num=False):
                         for prop in props:
                             if prop :
                                 properties += prop_dict[sku['num_iid']].get(prop, '') or sku_prop_dict.get(prop, u'规格有误') 
-                                psku.properties_name = properties or psku.properties_values
+                                #psku.properties_name = properties or psku.properties_values
                         psku.save()
 			                
             except Exception, exc:

@@ -31,14 +31,21 @@ def process_trade_notify_task(id):
             
             #订单创建，修改，关闭，则重新下载该订单，并对订单价格进行修改
             if notify.status in ('TradeCreate','TradeCloseAndModifyDetailOrder'):
-                if MergeTrade.judge_need_pull(notify.tid,notify.modified):
+                if notify.type != pcfg.COD_TYPE and MergeTrade.judge_need_pull(notify.tid,notify.modified):
                     response    = apis.taobao_trade_get(tid=notify.tid,tb_user_id=notify.user_id)
                     trade_dict  = response['trade_get_response']['trade']
                     trade_modify = datetime.datetime.strptime(trade_dict['modified'],'%Y-%m-%d %H:%M:%S')
                     if MergeTrade.judge_need_pull(notify.tid,trade_modify):
                         trade = Trade.save_trade_through_dict(notify.user_id,trade_dict)
-                #修改订单价格
-                modify_fee_signal.send(sender='modify_post_fee',user_id=notify.user_id,trade_id=notify.tid)
+                #货到付款处理
+                elif notify.type == pcfg.COD_TYPE:
+                    response    = apis.taobao_trade_fullinfo_get(tid=notify.tid,tb_user_id=notify.user_id)
+                    trade_dict  = response['trade_fullinfo_get_response']['trade']
+                    trade = Trade.save_trade_through_dict(notify.user_id,trade_dict)
+                
+                if notify.type != pcfg.COD_TYPE:
+                    #修改订单价格
+                    modify_fee_signal.send(sender='modify_post_fee',user_id=notify.user_id,trade_id=notify.tid)
             #修改交易备注
             elif notify.status == 'TradeMemoModified':
                 try:
@@ -179,7 +186,7 @@ def process_item_notify_task(id):
                             hasattr(psku, key) and setattr(psku, key, value)
                         psku.prod_outer_id = item.outer_id
                     else:
-                        psku.properties_name = sku['properties_name']
+                        #psku.properties_name = sku['properties_name']
                         psku.properties = sku['properties']
                         psku.prod_outer_id = item.outer_id
     
@@ -189,7 +196,7 @@ def process_item_notify_task(id):
                     for prop in props:
                         if prop :
                             properties += prop_dict.get(prop, '') or sku_prop_dict.get(prop, u'规格有误') 
-                            psku.properties_name = properties or psku.properties_values
+                            #psku.properties_name = properties or psku.properties_values
                     psku.save()
         elif notify.status == "ItemUpshelf":
             item = Item.get_or_create(notify.user_id,notify.num_iid,force_update=True)
