@@ -316,7 +316,7 @@ ordercheck.Dialog.prototype.deleteOrder=function(e){
 
 ordercheck.Dialog.prototype.handleEvent= function (e) {
 	var action_code = '';
-    if (== 'CHECK') {
+    if (e.key == 'CHECK') {
         action_code = 'check';
     }else if (e.key == 'REVIEW'){
         action_code = 'review';
