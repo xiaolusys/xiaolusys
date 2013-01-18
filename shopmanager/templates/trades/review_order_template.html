@@ -177,6 +177,7 @@
 				<div id="id_express_content" class="accordion-inner1">
 					<label class="simple-label">选择快递:</label> 
 					<select id="id_logistics" class="selection">
+						<option value="">--------</option>
 						{% for lg in logistics %}
 						<option value='{{ lg.code }}' {% if lg.id == trade.logistics_company.id %}selected{% endif %} >{{ lg.name }}</option>
 						{% endfor %}

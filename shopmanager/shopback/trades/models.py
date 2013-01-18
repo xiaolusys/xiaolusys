@@ -761,17 +761,6 @@ def trade_download_controller(merge_trade,trade,trade_from,first_pay_load):
                     merge_trade.append_reason_code(pcfg.MULTIPLE_ORDERS_CODE)
                     #驱动合单程序
                     is_merge_success,main_tid = drive_merge_trade_action(trade.id)
-                    
-            #如果合单成功则将新单置为飞行模式                 
-            if is_merge_success:
-                merge_trade.sys_status = pcfg.ON_THE_FLY_STATUS
-            #有问题则进入问题单域
-            elif merge_trade.has_memo or wait_refunding or out_stock or is_rule_match or is_need_merge:
-                merge_trade.sys_status = pcfg.WAIT_AUDIT_STATUS
-            else:
-                merge_trade.sys_status = pcfg.WAIT_PREPARE_SEND_STATUS
-                #进入待发货区域，需要进行商品规则匹配
-                rule_signal.send(sender='payment_rule',trade_tid=trade.id)
             
             #更新物流公司信息    
             if is_need_merge and main_tid:
@@ -783,7 +772,23 @@ def trade_download_controller(merge_trade,trade,trade_from,first_pay_load):
                 merge_trade.logistics_company = default_company
             elif shipping_type in ('post','ems'):
                 post_company = LogisticsCompany.objects.get(code=shipping_type.upper())
-                merge_trade.logistics_company = post_company
+                merge_trade.logistics_company = post_company       
+             
+            #如果合单成功则将新单置为飞行模式                 
+            if is_merge_success:
+                merge_trade.sys_status = pcfg.ON_THE_FLY_STATUS
+            #如果没有选择快递公司
+            elif not merge_trade.logistics_company:
+                merge_trade.append_reason_code(pcfg.LOGISTIC_ERROR_CODE)
+                merge_trade.sys_status = pcfg.WAIT_AUDIT_STATUS
+            #有问题则进入问题单域
+            elif merge_trade.type in () or merge_trade.has_memo or wait_refunding or out_stock or is_rule_match or is_need_merge:
+                merge_trade.sys_status = pcfg.WAIT_AUDIT_STATUS
+            else:
+                merge_trade.sys_status = pcfg.WAIT_PREPARE_SEND_STATUS
+                #进入待发货区域，需要进行商品规则匹配
+                rule_signal.send(sender='payment_rule',trade_tid=trade.id)
+
         #非付款后首次入库
         else:
             #再次入库，现在只针对非担保交易的分销订单

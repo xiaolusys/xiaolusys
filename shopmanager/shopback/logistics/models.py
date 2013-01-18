@@ -25,6 +25,7 @@ class LogisticsCompany(models.Model):
     reg_mail_no = models.CharField(max_length=500,blank=True,verbose_name='单号匹配规则')
     district    = models.TextField(blank=True,verbose_name='服务区域(,号分隔)')
     priority    = models.IntegerField(null=True,default=0,verbose_name='优先级')
+    
     status      = models.BooleanField(default=True,verbose_name='使用')
     
     class Meta:
@@ -35,20 +36,30 @@ class LogisticsCompany(models.Model):
         return '<%s,%s>'%(self.code,self.name)
     
     @classmethod
-    def get_recommend_express(cls,receiver_city):
-        logistics = cls.objects.filter(status=True).order_by('-priority')
+    def get_recommend_express(cls,receiver_state):
+        if not receiver_state:
+            return None
         
+        logistics = cls.objects.filter(status=True).order_by('-priority')
+        total_priority = logistics.aggregate(total_priority=Sum('priority')).get('priority')
+        priority_ranges = []
+        cur_range      = 0
         for logistic in logistics:
             districts = logistic.district.split(',')
-            if receiver_city in districts:
+            if receiver_state in districts:
                 return logistic
-                
-        recommend_logistics = cls.objects.filter(status=True,priority=logistics[0].priority)    
-        recommend_len = recommend_logistics.count()
-        if recommend_len == 0:
-            return None
-        index = random.randint(0,recommend_len-1)
-        return recommend_logistics[index]
+            
+            start_range = total_priority-cur_range-logistic.priority
+            end_range   = total_priority-cur_range
+            priority_range = (start_range,end_range,logistic)
+            cur_range   += logistic.priority
+            priority_ranges.append(priority_range)
+        
+        index = random.randint(0,total_priority)    
+        for rg in priority_ranges:
+            if index>=rg[0] and index<=rg[1]:
+                 return rg[2]
+        return None
             
         
     @classmethod

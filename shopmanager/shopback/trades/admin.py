@@ -337,11 +337,18 @@ class MergeTradeAdmin(admin.ModelAdmin):
                         sub_trade.out_sid      = trade.out_sid
                         sub_trade.company_code = logistics_company_code
                         sub_trade.save()
-                        response = apis.taobao_logistics_offline_send(tid=sub_trade.tid,out_sid=trade.out_sid
-                                                      ,company_code=trade.logistics_company.code,tb_user_id=sub_trade.seller_id)
-                        #response = {'logistics_offline_send_response': {'shipping': {'is_success': True}}}
-                        if not response['logistics_offline_send_response']['shipping']['is_success']:
-                            raise Exception(u'子订单(%d)淘宝发货失败'%sub_trade.tid)
+                        if sub_trade.type == pcfg.COD_TYPE:
+                            response = apis.taobao_logistics_online_send(tid=sub_trade.tid,out_sid=trade.out_sid
+                                                          ,company_code=trade.logistics_company.code,tb_user_id=sub_trade.seller_id)
+                            #response = {'logistics_online_send_response': {'shipping': {'is_success': True}}}
+                            if not response['logistics_online_send_response']['shipping']['is_success']:
+                                raise Exception(u'子订单(%d)淘宝发货失败'%sub_trade.tid)
+                        else:
+                            response = apis.taobao_logistics_offline_send(tid=sub_trade.tid,out_sid=trade.out_sid
+                                                          ,company_code=trade.logistics_company.code,tb_user_id=sub_trade.seller_id)
+                            #response = {'logistics_offline_send_response': {'shipping': {'is_success': True}}}
+                            if not response['logistics_offline_send_response']['shipping']['is_success']:
+                                raise Exception(u'子订单(%d)淘宝发货失败'%sub_trade.tid)
                     except Exception,exc:
                         time.sleep(1)
                         is_post_success = False
@@ -367,13 +374,19 @@ class MergeTradeAdmin(admin.ModelAdmin):
                             ,operator=trade.operator,sys_status=pcfg.FINISHED_STATUS,consign_time=datetime.datetime.now())
                         log_action(request.user.id,sub_trade,CHANGE,u'订单发货成功')
                 
-                response = apis.taobao_logistics_offline_send(tid=trade.tid,out_sid=trade.out_sid
-                                              ,company_code=logistics_company_code,tb_user_id=trade.seller_id)  
-                #response = {'logistics_offline_send_response': {'shipping': {'is_success': True}}}
-                if not response['logistics_offline_send_response']['shipping']['is_success']:
-                    raise Exception(u'订单(%d)淘宝发货失败'%trade.tid)
-                #else:
-                #    raise Exception(u'订单(%d)本地修改日期(%s)与线上修改日期(%s)不一致'%(trade.tid,trade.modified,latest_modified))
+                if trade.type == pcfg.COD_TYPE:
+                    response = apis.taobao_logistics_online_send(tid=trade.tid,out_sid=trade.out_sid
+                                                  ,company_code=logistics_company_code,tb_user_id=trade.seller_id)  
+                    #response = {'logistics_online_send_response': {'shipping': {'is_success': True}}}
+                    if not response['logistics_online_send_response']['shipping']['is_success']:
+                        raise Exception(u'订单(%d)淘宝发货失败'%trade.tid)
+                else: 
+                    response = apis.taobao_logistics_offline_send(tid=trade.tid,out_sid=trade.out_sid
+                                                  ,company_code=logistics_company_code,tb_user_id=trade.seller_id)  
+                    #response = {'logistics_offline_send_response': {'shipping': {'is_success': True}}}
+                    if not response['logistics_offline_send_response']['shipping']['is_success']:
+                        raise Exception(u'订单(%d)淘宝发货失败'%trade.tid)
+
             except SubTradePostException,exc:
                 trade.append_reason_code(pcfg.POST_SUB_TRADE_ERROR_CODE)
                 MergeTrade.objects.filter(tid=trade.tid).update(sys_status=pcfg.WAIT_AUDIT_STATUS,sys_memo=exc.message)

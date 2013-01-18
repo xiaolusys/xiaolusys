@@ -18,6 +18,7 @@
 <div style="padding: 9px 15px">
 <label class="simple-label">快递:</label> 
 <select id="id_logistics" class="selection">
+	<option value="">--------</option>
 	{% for lg in logistics %}
 	<option value='{{ lg.code }}' {% if lg.id == trade.logistics_company.id %}selected{% endif %} >{{ lg.name }}</option>
 	{% endfor %}

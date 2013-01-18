@@ -69,19 +69,23 @@ class CheckOrderView(ModelView):
         try:
             trade = MergeTrade.objects.get(id=id)
         except MergeTrade.DoesNotExist:
-            return '该订单不存在'.decode('utf8')
-        
-        priority      = request.POST.get('priority')
-        logistic_code = request.POST.get('logistic_code')
-        action_code   = request.POST.get('action')
+            return u'该订单不存在'
+        content       = request.REQUEST
+        priority      = content.get('priority')
+        logistic_code = content.get('logistic_code')
+        action_code   = content.get('action')
         
         params = {}
         if priority:
             params['priority'] = priority
         if logistic_code:
             params['logistics_company'] = LogisticsCompany.objects.get(code=logistic_code)
+        else:
+            return u'请选择快递'
+        
         if params:
             MergeTrade.objects.filter(id=id).update(**params)
+
         if action_code == 'check':
             check_msg = []
             if trade.has_refund:
