@@ -32,12 +32,16 @@ class Command():
             return 
         
         while 1:
+            self.fail_wait_time = 1
             try:
                 self.notify()
             except Exception,exc:
                 #服务暂时不可用，休眠一分钟
-                logger.error(exc.message or str(exc.args),exc_info=True)
-                time.sleep(5)
+                if hasattr(exc,'args') and exc.args[0] == 28:
+                    time.sleep(1)
+                else:
+                    logger.error(exc.message or str(exc.args),exc_info=True)
+                    time.sleep(60) 
             else:
                 #服务端断开连接，则选择服务端返回的时间来休眠
                 time.sleep(self.fail_wait_time or 5)
