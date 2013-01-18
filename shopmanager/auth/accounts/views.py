@@ -237,9 +237,9 @@ def test_api(request):
 #                    ,company_code='STO',tb_user_id=174265168)
 #    print response
 
-#    from shopback.logistics.models import Logistics
-#    logistic = Logistics.get_or_create(174265168,189837583118295)
-#    print logistic.__dict__
+    from shopback.logistics.models import Logistics
+    logistic = Logistics.get_or_create(174265168,285984882765617)
+    print 'logistic:',logistic.__dict__
 
     return HttpResponseBadRequest('error') #HttpResponse('ok')
 

@@ -928,10 +928,10 @@ def save_fenxiao_orders_to_mergetrade(sender, tid, *args, **kwargs):
         merge_trade,state = MergeTrade.objects.get_or_create(tid=tid)
         
         first_pay_load = not merge_trade.sys_status 
-        if first_pay_load or not merge_trade.receiver_name:
+        if first_pay_load or (trade.status == pcfg.WAIT_SELLER_SEND_GOODS and not merge_trade.receiver_name):
             logistics = Logistics.get_or_create(trade.user.visitor_id,tid)
             location = json.loads(logistics.location or 'null')
-        
+            
             merge_trade.receiver_name = logistics.receiver_name 
             merge_trade.receiver_zip  = (location.get('zip','') if location else '') 
             merge_trade.receiver_mobile = logistics.receiver_mobile 

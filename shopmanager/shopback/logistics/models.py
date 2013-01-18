@@ -107,7 +107,7 @@ class Logistics(models.Model):
     @classmethod
     def get_or_create(cls,user_id,tid):
         logistic,state = cls.objects.get_or_create(tid=tid)
-        if state:
+        if not logistic.is_success:
             try:
                 response = apis.taobao_logistics_orders_detail_get(tid=tid,tb_user_id=user_id)
                 logistic_dict = response['logistics_orders_detail_get_response']['shippings']['shipping'][0]

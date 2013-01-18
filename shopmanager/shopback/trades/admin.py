@@ -263,7 +263,7 @@ class MergeTradeAdmin(admin.ModelAdmin):
         
         if is_merge_success:
             MergeTrade.objects.filter(tid__in=merge_trade_ids).update(sys_status=pcfg.ON_THE_FLY_STATUS)
-            log_action(request.user.id,main_trade,CHANGE,u'合并订单,主订单:%d,子订单:%s'%(merge_trade.id,','.join(merge_trade_ids)))
+            log_action(request.user.id,main_trade,CHANGE,u'合并订单,主订单:%d,子订单:%s'%(main_trade.id,','.join(merge_trade_ids)))
         elif merge_trade_ids:
             merge_order_remover(main_trade.tid)
         

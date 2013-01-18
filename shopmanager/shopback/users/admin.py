@@ -37,7 +37,6 @@ class UserAdmin(admin.ModelAdmin):
             except Exception,exc:
                 pull_dict['success']=False
                 pull_dict['errmsg']=exc.message or '%s'%exc
-                
             else:
                 pull_dict['success']=True
             pull_users.append(pull_dict)
