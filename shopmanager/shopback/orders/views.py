@@ -140,9 +140,8 @@ class ProductOrderView(ModelView):
             product_name = '商品名未知'
         else:
             product_name = product.name
-        print outer_id    
+ 
         queryset = Order.objects.filter(seller_nick__in = nicks_list,outer_id=outer_id)
-        print queryset.count()
         if base == 'consign':
             queryset = queryset.filter(trade__consign_time__gte=dt_f,trade__consign_time__lt=dt_t)
         else:

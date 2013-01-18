@@ -378,7 +378,6 @@ def change_logistic_and_outsid(request):
     try:
         logistic   = LogisticsCompany.objects.get(code=logistic_code)
         logistic_regex = re.compile(logistic.reg_mail_no)
-        print 'logistic_regex', logistic_regex,'out sid',out_sid,merge_trade.sys_status,logistic_regex.match(out_sid)
         if merge_trade.sys_status == pcfg.WAIT_CHECK_BARCODE_STATUS and logistic_regex.match(out_sid): 
             try:
                 response = apis.taobao_logistics_consign_resend(tid=merge_trade.tid,out_sid=out_sid

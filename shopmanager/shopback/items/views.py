@@ -205,8 +205,7 @@ class ProductSkuInstanceView(ModelView):
     """ docstring for ProductSkuInstanceView """
     
     def get(self, request, sku_id, *args, **kwargs):
-        
-        print sku_id
+
         try:
             instance = ProductSku.objects.get(id=sku_id)
         except:
