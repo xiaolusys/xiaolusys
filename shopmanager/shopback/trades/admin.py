@@ -445,7 +445,7 @@ class MergeTradeAdmin(admin.ModelAdmin):
             trade_dict['tid'] = trade.tid
             trade_dict['seller_nick'] = trade.seller_nick
             trade_dict['buyer_nick'] = trade.buyer_nick
-            trade_dict['pay_time'] = trade.pay_time.strftime('%Y-%m-%d %H:%M:%S')
+            trade_dict['pay_time'] = trade.pay_time.strftime('%Y-%m-%d %H:%M:%S') if trade.pay_time else ''
             trade_dict['sys_status'] = trade.sys_status
             trades.append(trade_dict)
             
