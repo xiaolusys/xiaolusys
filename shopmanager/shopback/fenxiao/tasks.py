@@ -61,7 +61,7 @@ def saveUserPurchaseOrderTask(user_id,update_from=None,update_to=None,status=Non
             update_from = datetime.datetime.now() - datetime.timedelta(28,0,0)
             update_to   = datetime.datetime.now()
             
-        exec_times = (update_from - update_to).days/7+1 
+        exec_times = (update_to - update_from).days/7+1 
         for i in range(0,exec_times):
             dt_f = update_from + datetime.timedelta(i*7,0,0) 
             dt_t = update_from + datetime.timedelta((i+1)*7,0,0) 

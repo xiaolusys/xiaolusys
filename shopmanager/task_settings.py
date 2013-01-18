@@ -46,6 +46,14 @@ CELERY_ROUTES = {
             'queue': 'peroid',
             'routing_key': 'peroid.delete_success_notify_record',
         },
+        'shopback.fenxiao.tasks.saveUserPurchaseOrderTask': {
+            'queue': 'peroid',
+            'routing_key': 'peroid.save_purchase_order_task',
+        },
+        'shopback.orders.tasks.saveUserDuringOrdersTask': {
+            'queue': 'peroid',
+            'routing_key': 'peroid.save_user_during_orders_task',
+        },
 }
 
 
