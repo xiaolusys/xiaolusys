@@ -5,6 +5,7 @@ import time
 import random
 from auth.utils import parse_datetime
 from django.db import models
+from django.db.models import Sum
 from shopback.base.models import BaseModel
 from shopback.base.fields import BigIntegerAutoField,BigIntegerForeignKey
 from shopback.users.models import User
@@ -41,7 +42,7 @@ class LogisticsCompany(models.Model):
             return None
         
         logistics = cls.objects.filter(status=True).order_by('-priority')
-        total_priority = logistics.aggregate(total_priority=Sum('priority')).get('priority')
+        total_priority = logistics.aggregate(total_priority=Sum('priority')).get('total_priority')
         priority_ranges = []
         cur_range      = 0
         for logistic in logistics:
