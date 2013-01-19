@@ -10,6 +10,7 @@ class OwnsObjPermission(BasePermission):
         if uid and uid != user.get_profile().uid:
             raise _403_FORBIDDEN_RESPONSE
 
+
 class CommentUserPermission(BasePermission):
     """docstring for OwnsObjPermission"""
     def check_permission(self, user, obj=None):

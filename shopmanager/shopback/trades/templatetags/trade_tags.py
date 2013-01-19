@@ -17,12 +17,14 @@ def trade_submit_row(context):
     save_as = context['save_as']
     trade   = context.get('original',None)
     is_wait_audit   = True
+    is_can_review   = False
     sys_status      = None
     can_split_trade = False
     can_trade_audit = False
     if trade :
         sys_status = trade.sys_status
         is_wait_audit = sys_status == pcfg.WAIT_AUDIT_STATUS
+        is_can_review = (sys_status == pcfg.WAIT_CHECK_BARCODE_STATUS) or (sys_status == pcfg.WAIT_SCAN_WEIGHT_STATUS)
         can_split_trade = trade.has_merge or trade.has_reason_code(pcfg.MULTIPLE_ORDERS_CODE)
         can_trade_audit = context['perms'].user.has_perm('trades.can_trade_aduit')
     return {
@@ -36,7 +38,7 @@ def trade_submit_row(context):
         'show_save_and_continue': context['has_change_permission'],
         'show_close':True ,
         'show_split':can_split_trade and is_wait_audit and can_trade_audit,
-        'show_invalid':is_wait_audit and can_trade_audit,
+        'show_invalid':(is_wait_audit or is_can_review) and can_trade_audit,
         'show_uninvalid':sys_status == pcfg.INVALID_STATUS and can_trade_audit,
         'show_unregular':sys_status == pcfg.REGULAR_REMAIN_STATUS and can_trade_audit,
         'show_save_and_regular':is_wait_audit and can_trade_audit,
