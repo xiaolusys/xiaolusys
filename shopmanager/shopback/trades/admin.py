@@ -400,6 +400,7 @@ class MergeTradeAdmin(admin.ModelAdmin):
                     is_post_success = trade.is_post_success()
                 except Exception,exc:
                     error_msg = error_msg+','+exc.message
+                    logger.error(error_msg,exc_info=True)
                     
                 if is_post_success:
                     MergeTrade.objects.filter(tid=trade.tid)\
@@ -410,7 +411,7 @@ class MergeTradeAdmin(admin.ModelAdmin):
                     MergeTrade.objects.filter(tid=trade.tid).update(
                                        sys_status=pcfg.WAIT_AUDIT_STATUS,sys_memo=exc.message,is_picking_print=False,is_express_print=False)
                     log_action(request.user.id,trade,CHANGE,u'订单发货失败')
-                    logger.error(error_msg,exc_info=True)
+                    
             else:
                 MergeTrade.objects.filter(tid=trade.tid,sys_status=pcfg.WAIT_PREPARE_SEND_STATUS).update(
                     sys_status=pcfg.WAIT_CHECK_BARCODE_STATUS,consign_time=datetime.datetime.now())
