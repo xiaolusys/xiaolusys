@@ -6,7 +6,7 @@ from django.http import HttpResponse
 from django.db.models import Q,Sum
 from djangorestframework.views import ModelView
 from djangorestframework.response import ErrorResponse
-from shopback.trades.models import MergeTrade,MergeOrder,GIFT_TYPE
+from shopback.trades.models import MergeTrade,MergeOrder,GIFT_TYPE,SYS_TRADE_STATUS,TAOBAO_TRADE_STATUS
 from shopback.logistics.models import LogisticsCompany
 from shopback.items.models import Product,ProductSku
 from shopback.base import log_action, User, ADDITION, CHANGE
@@ -271,7 +271,7 @@ def delete_trade_order(request,id):
     try:
         merge_order  = MergeOrder.objects.get(id=id)
     except:
-        HttpResponse(json.dumps({'code':1,'response_content':{'success':False}}),mimetype="application/json")
+        HttpResponse(json.dumps({'code':1,'response_error':u'订单不存在'}),mimetype="application/json")
     
     merge_trade = merge_order.merge_trade
     is_reverse_order = False
@@ -279,14 +279,14 @@ def delete_trade_order(request,id):
         merge_trade.append_reason_code(pcfg.ORDER_ADD_REMOVE_CODE)
         is_reverse_order = True
         
-    num = MergeOrder.objects.filter(id=id,status=pcfg.WAIT_SELLER_SEND_GOODS)\
+    num = MergeOrder.objects.filter(id=id,status__in=(pcfg.WAIT_SELLER_SEND_GOODS,pcfg.WAIT_BUYER_CONFIRM_GOODS))\
         .update(sys_status=pcfg.INVALID_STATUS,is_reverse_order=is_reverse_order)
     if num == 1:
         log_action(user_id,merge_trade,CHANGE,u'设子订单无效(%d)'%merge_order.id)
         
         ret_params = {'code':0,'response_content':{'success':True}}
     else:
-        ret_params = {'code':1,'response_content':{'success':False}}
+        ret_params = {'code':1,'response_error':u'系统操作失败'}
         
     return HttpResponse(json.dumps(ret_params),mimetype="application/json")
 
@@ -333,6 +333,8 @@ class ReviewOrderView(ModelView):
             'can_review':trade.can_review,
             'status':trade.status,
             'sys_status':trade.sys_status,
+            'status_name':dict(TAOBAO_TRADE_STATUS).get(trade.status,u'未知'),
+            'sys_status_name':dict(SYS_TRADE_STATUS).get(trade.sys_status,u'未知'),
             'used_orders':trade.inuse_orders,
             'order_nums':order_nums,
             'new_memo':trade.has_reason_code(pcfg.NEW_MEMO_CODE),
@@ -343,23 +345,23 @@ class ReviewOrderView(ModelView):
         
         return {'trade':trade_dict,'logistics':logistics}
         
-    def post(self, request, id, *args, **kwargs):
+              
+def review_order(request,id):
         
-        user_id  = request.user.id
-        try:
-            merge_trade = MergeTrade.objects.get(id=id)
-        except MergeTrade.DoesNotExist:
-            return u'该订单不存在'
-        
-        if not merge_trade.can_review and merge_trade.sys_status \
-            not in (pcfg.WAIT_CHECK_BARCODE_STATUS,pcfg.WAIT_SCAN_WEIGHT_STATUS):
-            return u'该订单不能复审'
-        MergeTrade.objects.filter(id=id).update(reason_code='')
-        
-        log_action(user_id,merge_trade,ADDITION,u'复审通过')
-        
-        return {'success':True}
+    user_id  = request.user.id
+    try:
+        merge_trade = MergeTrade.objects.get(id=id)
+    except MergeTrade.DoesNotExist:
+        return HttpResponse(json.dumps({'code':1,'response_error':u'该订单不存在'}),mimetype="application/json")
+
+    if not merge_trade.can_review and merge_trade.sys_status \
+        not in (pcfg.WAIT_CHECK_BARCODE_STATUS,pcfg.WAIT_SCAN_WEIGHT_STATUS):
+        return HttpResponse(json.dumps({'code':1,'response_error':u'该订单不能复审'}),mimetype="application/json")
+    MergeTrade.objects.filter(id=id).update(reason_code='')
     
+    log_action(user_id,merge_trade,CHANGE,u'复审通过')
+    return HttpResponse(json.dumps({'code':0,'response_content':{'success':True}}),mimetype="application/json")
+
     
 def change_logistic_and_outsid(request):
     
@@ -370,19 +372,19 @@ def change_logistic_and_outsid(request):
     logistic_code = CONTENT.get('logistic_code','').upper()
     
     if not trade_id or not out_sid or not logistic_code:
-        ret_params = {'code':1,'response_content':u'请填写快递名称及单号'}
+        ret_params = {'code':1,'response_error':u'请填写快递名称及单号'}
         return HttpResponse(json.dumps(ret_params),mimetype="application/json")
     
     try:
         merge_trade = MergeTrade.objects.get(id=trade_id)
     except:    
-        ret_params = {'code':1,'response_content':u'未找到该订单'}
+        ret_params = {'code':1,'response_error':u'未找到该订单'}
         return HttpResponse(json.dumps(ret_params),mimetype="application/json")
         
     try:
         logistic   = LogisticsCompany.objects.get(code=logistic_code)
         logistic_regex = re.compile(logistic.reg_mail_no)
-        if merge_trade.sys_status == pcfg.WAIT_CHECK_BARCODE_STATUS and logistic_regex.match(out_sid): 
+        if merge_trade.sys_status in (pcfg.WAIT_CHECK_BARCODE_STATUS,pcfg.WAIT_SCAN_WEIGHT_STATUS,pcfg.FINISHED_STATUS) and logistic_regex.match(out_sid): 
             try:
                 response = apis.taobao_logistics_consign_resend(tid=merge_trade.tid,out_sid=out_sid
                                                  ,company_code=logistic_code,tb_user_id=merge_trade.user.visitor_id)
@@ -402,7 +404,7 @@ def change_logistic_and_outsid(request):
         else:
             raise Exception(u'快递单号不匹配')
     except Exception,exc:
-        ret_params = {'code':1,'response_content':exc.message}
+        ret_params = {'code':1,'response_error':exc.message}
         return HttpResponse(json.dumps(ret_params),mimetype="application/json")
         
     ret_params = {'code':0,'response_content':{'logistic_company_name':logistic.name

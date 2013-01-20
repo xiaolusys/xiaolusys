@@ -60,7 +60,7 @@ class MergeTradeAdmin(admin.ModelAdmin):
     list_display_links = ('id','popup_tid_link')
     #list_editable = ('update_time','task_type' ,'is_success','status')
     
-    #change_list_template = "admin/trades/change_list_result.html"
+    change_list_template  = "admin/trades/change_list.html"
     change_form_template  = "admin/trades/change_trade_form.html"
     
     date_hierarchy = 'created'
@@ -164,7 +164,7 @@ class MergeTradeAdmin(admin.ModelAdmin):
                 self.message_user(request, "审核未通过（请确保订单状态为问题单，无退款，无问题编码，无匹配，无缺货, 是否手动合单，已选择快递）")
                 return HttpResponseRedirect("../%s/" % pk_value)
         elif request.POST.has_key("_invalid"):
-            if obj.sys_status==pcfg.WAIT_AUDIT_STATUS:
+            if obj.sys_status in (pcfg.WAIT_AUDIT_STATUS,pcfg.WAIT_CHECK_BARCODE_STATUS):
                 MergeTrade.objects.filter(id=obj.id).update(sys_status=pcfg.INVALID_STATUS)
                 msg = "订单已作废"
                 self.message_user(request, msg)
@@ -275,6 +275,7 @@ class MergeTradeAdmin(admin.ModelAdmin):
 
     #更新下载订单
     def pull_order_action(self, request, queryset):
+        time.sleep(5);
         queryset = queryset.filter(sys_status__in=(pcfg.WAIT_AUDIT_STATUS,''))
         pull_success_ids = []
         pull_fail_ids    = []

@@ -305,7 +305,7 @@ ordercheck.Dialog.prototype.deleteOrder=function(e){
             if (res.code == 0){
             	table.deleteRow(rowIndex);
             }else{
-                alert("地址修改失败:"+res.response_error);
+                alert("订单删除失败:"+res.response_error);
             }
         } catch (err) {
             console.log('Error: (ajax callback) - ', err);

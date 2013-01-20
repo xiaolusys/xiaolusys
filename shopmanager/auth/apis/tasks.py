@@ -185,7 +185,7 @@ def apis(api_method,method='GET',max_retry=3,limit_rate=0.5):
             #refresh user taobao session
             tb_user_id = params.pop('tb_user_id')
             user       = User.objects.get(visitor_id=tb_user_id)
-            refresh_session(user,settings.APPKEY,settings.APPSECRET,settings.REFRESH_URL)
+            #refresh_session(user,settings.APPKEY,settings.APPSECRET,settings.REFRESH_URL)
             #remove the field with value None
             params['access_token'] = user.top_session
             params_copy = dict(params)
