@@ -275,7 +275,6 @@ class MergeTradeAdmin(admin.ModelAdmin):
 
     #更新下载订单
     def pull_order_action(self, request, queryset):
-        time.sleep(5);
         queryset = queryset.filter(sys_status__in=(pcfg.WAIT_AUDIT_STATUS,''))
         pull_success_ids = []
         pull_fail_ids    = []
@@ -440,7 +439,6 @@ class MergeTradeAdmin(admin.ModelAdmin):
         for prepare_trade in wait_prepare_trades:
             prepare_trade.is_picking_print=False
             prepare_trade.is_express_print=False
-            prepare_trade.has_sys_err=True
             prepare_trade.sys_status=pcfg.WAIT_AUDIT_STATUS
             prepare_trade.save()
         post_trades = queryset.filter(sys_status=pcfg.WAIT_CHECK_BARCODE_STATUS)

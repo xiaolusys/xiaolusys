@@ -135,7 +135,7 @@ def updateUserProductSkuTask(user_id,force_update_num=False):
                                 hasattr(psku, key) and setattr(psku, key, value)
                             psku.prod_outer_id = item.outer_id
                         else:
-                            psku.properties_name = sku['properties_name']
+                            #psku.properties_name = sku['properties_name']
                             psku.properties = sku['properties']
                             psku.prod_outer_id = item.outer_id
                             if force_update_num:
@@ -146,7 +146,7 @@ def updateUserProductSkuTask(user_id,force_update_num=False):
                         for prop in props:
                             if prop :
                                 properties += prop_dict[sku['num_iid']].get(prop, '') or sku_prop_dict.get(prop, u'规格有误') 
-                                #psku.properties_name = properties or psku.properties_values
+                                psku.properties_name = properties or psku.properties_values
                         psku.save()
 			                
             except Exception, exc:

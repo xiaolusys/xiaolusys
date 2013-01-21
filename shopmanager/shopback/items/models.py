@@ -217,7 +217,7 @@ class Item(models.Model):
     def save_item_through_dict(cls,user_id,item_dict):
         
         category = Category.get_or_create(user_id,item_dict['cid'])
-        if item_dict.has_key('outer_id'):
+        if item_dict.has_key('outer_id') and item_dict['outer_id']:
             product,state = Product.objects.get_or_create(outer_id=item_dict['outer_id'])
             if not product.name:
                 product.collect_num = item_dict['num']

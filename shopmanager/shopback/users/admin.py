@@ -2,6 +2,7 @@
 from django.contrib import admin
 from django.http import HttpResponse,HttpResponseRedirect
 from django.shortcuts import render_to_response
+from django.core.urlresolvers import reverse
 from django.template import RequestContext
 from shopback.users.models import User
 from shopback import paramconfig as pcfg
@@ -70,6 +71,19 @@ class UserAdmin(admin.ModelAdmin):
 
     pull_user_items.short_description = "下载线上商品".decode('utf8')
     
+    
+    #商品上下架
+    def autolist_user_items(self,request,queryset):
+        
+        if queryset.count() != 1:
+            return 
+        
+        user = queryset[0]
+       
+        return HttpResponseRedirect(reverse('pull_from_taobao')+'?user_id='+str(user.user.id))
+
+    autolist_user_items.short_description = "商品自动上架".decode('utf8')
+    
     #线上库存覆盖系统库存
     def sync_online_prodnum_to_offline(self,request,queryset):
         
@@ -90,6 +104,6 @@ class UserAdmin(admin.ModelAdmin):
         
     sync_online_prodnum_to_offline.short_description = "线上库存覆盖系统库存".decode('utf8')
        
-    actions = ['pull_user_unpost_trades','pull_user_items','sync_online_prodnum_to_offline']
+    actions = ['pull_user_unpost_trades','autolist_user_items','pull_user_items','sync_online_prodnum_to_offline']
 
 admin.site.register(User, UserAdmin)

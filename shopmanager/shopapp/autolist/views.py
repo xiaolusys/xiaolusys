@@ -16,6 +16,7 @@ from shopback.base.views import ListModelView
 from shopback import paramconfig as pcfg
 from shopback.categorys.models import Category
 from shopback.items.models import Item,Product
+from shopback.users.models import User
 from shopapp.autolist.models import Logs,ItemListTask,TimeSlots,UNEXECUTE,UNSCHEDULED
 from auth import apis
 
@@ -24,13 +25,17 @@ from auth import apis
 
 @login_required(login_url=settings.LOGIN_URL)
 def pull_from_taobao(request):
-
-    profile = request.user.get_profile()
-    session = request.session
+    
+    content = request.REQUEST
+    user_id = content.get('user_id','')
+    try:
+        profile = User.objects.get(user=user_id)
+    except User.DoesNotExist:
+        profile = request.user.get_profile()
 
     onsaleItems = apis.taobao_items_onsale_get(page_no=1,page_size=200,tb_user_id=profile.visitor_id)
     if onsaleItems['items_onsale_get_response']['total_results'] <= 0:
-        return  HttpResponseRedirect('itemlist/')
+        return  HttpResponseRedirect('itemlist/?user_id='+user_id)
 
     items = onsaleItems.get('items_onsale_get_response',[]) and onsaleItems['items_onsale_get_response']['items'].get('item',[])
 
@@ -44,8 +49,8 @@ def pull_from_taobao(request):
         num_iid = str(item['num_iid'])
         if num_iid in itemstat:
             itemstat[num_iid]['onsale'] = 1
-	item.pop('modified',None)
-    Item.save_item_through_dict(profile.visitor_id,item)
+    	item.pop('modified',None)
+        Item.save_item_through_dict(profile.visitor_id,item)
 
     for item in currItems:
         sale_status = itemstat[item.num_iid]['onsale']
@@ -53,14 +58,21 @@ def pull_from_taobao(request):
             item.approve_status = pcfg.INSTOCK_STATUS
             item.save()
             
-    return HttpResponseRedirect(reverse('list_all_items'))
+    return HttpResponseRedirect(reverse('list_all_items')+'?user_id='+user_id)
 
 
 
 
 def list_all_items(request):
-    user = request.user.get_profile()
-    items = user.items.filter(approve_status=pcfg.ONSALE_STATUS).order_by('list_time')
+    
+    content = request.REQUEST
+    user_id = content.get('user_id','')
+    try:
+        profile = User.objects.get(user=user_id)
+    except User.DoesNotExist:
+        profile = request.user.get_profile()
+        
+    items = profile.items.filter(approve_status=pcfg.ONSALE_STATUS).order_by('list_time')
 
     from auth.utils import get_closest_time_slot
 
@@ -83,20 +95,27 @@ def list_all_items(request):
             x.scheduled_hm = None
             x.status = UNSCHEDULED
             
-    return render_to_response("autolist/itemtable.html", {'page':'itemlist', 'items':items}, RequestContext(request))
+    return render_to_response("autolist/itemtable.html", {'page':'itemlist', 'items':items, 'user_id':user_id}, RequestContext(request))
 
 
 def show_timetable_cats(request):
+    
+    content = request.REQUEST
+    user_id = content.get('user_id','')
+    try:
+        profile = User.objects.get(user=user_id)
+    except User.DoesNotExist:
+        profile = request.user.get_profile()
+        
     from auth.utils import get_closest_time_slot, get_all_time_slots
     catname = request.GET.get('catname', None)
 
-    user_id = request.session['top_parameters']['taobao_user_id']
     try:
         category =  Category.objects.get(name=catname)
     except Category.DoesNotExist:
         category = None
 
-    items = Item.objects.filter(user=user_id, category=category, approve_status=pcfg.ONSALE_STATUS)
+    items = Item.objects.filter(user=profile, category=category, approve_status=pcfg.ONSALE_STATUS)
     data = [[],[],[],[],[],[],[]]
     for item in items:
         relist_slot, status = get_closest_time_slot(item.list_time)
@@ -114,13 +133,20 @@ def show_timetable_cats(request):
     timekeys = slots.keys()
     timekeys.sort()
 
-    return  render_to_response("autolist/catstable.html", {'timeslots': timekeys, 'data':data, 'catname':catname},
+    return  render_to_response("autolist/catstable.html", {'timeslots': timekeys, 'data':data, 'catname':catname, 'user_id':user_id},
                                RequestContext(request))
 
 
 def show_weektable(request, weekday):
-    user_profile = request.user.get_profile()
-    items = Item.objects.filter(user=user_profile,approve_status=pcfg.ONSALE_STATUS).order_by('category', 'outer_id')
+    
+    content = request.REQUEST
+    user_id = content.get('user_id','')
+    try:
+        profile = User.objects.get(user=user_id)
+    except User.DoesNotExist:
+        profile = request.user.get_profile()
+
+    items = Item.objects.filter(user=profile,approve_status=pcfg.ONSALE_STATUS).order_by('category', 'outer_id')
     timeslots = [int(o.timeslot) for o in TimeSlots.objects.all()]
     cats = {}
     total = 0
@@ -167,8 +193,15 @@ def show_weektable(request, weekday):
 
 
 def show_time_table_summary(request):
-    user_profile = request.user.get_profile()
-    items = Item.objects.filter(user=user_profile,approve_status=pcfg.ONSALE_STATUS).order_by('category', 'outer_id')
+    
+    content = request.REQUEST
+    user_id = content.get('user_id','')
+    try:
+        profile = User.objects.get(user=user_id)
+    except User.DoesNotExist:
+        profile = request.user.get_profile()
+        
+    items = Item.objects.filter(user=profile,approve_status=pcfg.ONSALE_STATUS).order_by('category', 'outer_id')
 
     weekstat = [0,0,0,0,0,0,0]
     data = {}
@@ -196,7 +229,9 @@ def show_time_table_summary(request):
         cats.append({'cat':k,  'items':v, 'total':t})
     cats.sort(lambda a,b: cmp(b['total'], a['total']))
 
-    return render_to_response("autolist/tablesummary.html", {'cats':cats, 'weekstat':weekstat}, RequestContext(request))
+    return render_to_response("autolist/tablesummary.html", 
+                {'cats':cats, 'weekstat':weekstat,'user_id':user_id}, 
+                RequestContext(request))
 
 
 
