@@ -413,6 +413,7 @@ class MergeTradeAdmin(admin.ModelAdmin):
                     is_post_success = trade.is_post_success()
                 except Exception,exc:
                     error_msg = error_msg+','+exc.message
+                    logger.error(error_msg,exc_info=True)
                     
                 if is_post_success:
                     trade.sys_status=pcfg.WAIT_CHECK_BARCODE_STATUS
@@ -427,7 +428,7 @@ class MergeTradeAdmin(admin.ModelAdmin):
                     trade.is_express_print=False
                     trade.save()
                     log_action(request.user.id,trade,CHANGE,u'订单发货失败')
-                    logger.error(error_msg,exc_info=True)
+                    
             else:
                 trade.sys_status=pcfg.WAIT_CHECK_BARCODE_STATUS
                 trade.consign_time=datetime.datetime.now()
