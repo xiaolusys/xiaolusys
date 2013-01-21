@@ -263,7 +263,7 @@ class MergeTradeAdmin(admin.ModelAdmin):
         
         if is_merge_success:
             MergeTrade.objects.filter(tid__in=merge_trade_ids).update(sys_status=pcfg.ON_THE_FLY_STATUS)
-            log_action(request.user.id,main_trade,CHANGE,u'合并订单,主订单:%d,子订单:%s'%(main_trade.id,','.join(merge_trade_ids)))
+            log_action(request.user.id,main_trade,CHANGE,u'合并订单,主订单:%d,子订单:%s'%(main_trade.id,','.join([str(id) for id in merge_trade_ids])))
         elif merge_trade_ids:
             merge_order_remover(main_trade.tid)
         
@@ -321,8 +321,10 @@ class MergeTradeAdmin(admin.ModelAdmin):
             if trade.sys_status != pcfg.WAIT_PREPARE_SEND_STATUS:
                 continue
             if trade.type in (pcfg.DIRECT_TYPE,pcfg.EXCHANGE_TYPE):
-                MergeTrade.objects.filter(tid=trade.tid).update(sys_status=pcfg.WAIT_CHECK_BARCODE_STATUS,status=pcfg.WAIT_BUYER_CONFIRM_GOODS
-                                                                ,consign_time=datetime.datetime.now())
+                trade.sys_status=pcfg.WAIT_CHECK_BARCODE_STATUS
+                trade.status=pcfg.WAIT_BUYER_CONFIRM_GOODS
+                trade.consign_time=datetime.datetime.now()
+                trade.save()
                 continue 
             
             logistics_company_code = trade.logistics_company.code     
@@ -360,19 +362,27 @@ class MergeTradeAdmin(admin.ModelAdmin):
                             error_msg = error_msg+','+exc.message
                             
                         if is_post_success:
-                            MergeTrade.objects.filter(tid=sub_trade.tid)\
-                               .update(out_sid=trade.out_sid,operator=trade.operator,sys_status=pcfg.FINISHED_STATUS\
-                               ,consign_time=datetime.datetime.now())
+                            sub_trade.out_sid=trade.out_sid
+                            sub_trade.operator=trade.operator
+                            sub_trade.sys_status=pcfg.FINISHED_STATUS
+                            sub_trade.consign_time=datetime.datetime.now()
+                            sub_trade.save()
                             log_action(request.user.id,sub_trade,CHANGE,u'订单发货成功')
                         else:
                             sub_trade.append_reason_code(pcfg.POST_SUB_TRADE_ERROR_CODE)
-                            MergeTrade.objects.filter(tid=sub_trade.tid).update(
-                                                sys_status=pcfg.WAIT_AUDIT_STATUS,sys_memo=exc.message,is_picking_print=False,is_express_print=False)
+                            sub_trade.sys_status=pcfg.WAIT_AUDIT_STATUS
+                            sub_trade.sys_memo=exc.message
+                            sub_trade.is_picking_print=False
+                            sub_trade.is_express_print=False
+                            sub_trade.save()
                             log_action(request.user.id,sub_trade,CHANGE,u'订单发货失败')
                             raise SubTradePostException(error_msg)
                     else:
-                        MergeTrade.objects.filter(tid=sub_trade.tid,sys_status=pcfg.ON_THE_FLY_STATUS).update(out_sid=trade.out_sid
-                            ,operator=trade.operator,sys_status=pcfg.FINISHED_STATUS,consign_time=datetime.datetime.now())
+                        sub_trade.out_sid=trade.out_sid
+                        sub_trade.operator=trade.operator
+                        sub_trade.sys_status=pcfg.FINISHED_STATUS
+                        sub_trade.consign_time=datetime.datetime.now()
+                        sub_trade.save()
                         log_action(request.user.id,sub_trade,CHANGE,u'订单发货成功')
                 
                 if trade.type == pcfg.COD_TYPE:
@@ -390,7 +400,9 @@ class MergeTradeAdmin(admin.ModelAdmin):
 
             except SubTradePostException,exc:
                 trade.append_reason_code(pcfg.POST_SUB_TRADE_ERROR_CODE)
-                MergeTrade.objects.filter(tid=trade.tid).update(sys_status=pcfg.WAIT_AUDIT_STATUS,sys_memo=exc.message)
+                trade.sys_status=pcfg.WAIT_AUDIT_STATUS
+                trade.sys_memo=exc.message
+                trade.save()
                 log_action(request.user.id,trade,CHANGE,u'子订单(%d)发货失败'%sub_trade.id)
                 logger.error(exc.message+'--sub post error',exc_info=True)
             except Exception,exc:
@@ -403,23 +415,33 @@ class MergeTradeAdmin(admin.ModelAdmin):
                     error_msg = error_msg+','+exc.message
                     
                 if is_post_success:
-                    MergeTrade.objects.filter(tid=trade.tid)\
-                        .update(sys_status=pcfg.WAIT_CHECK_BARCODE_STATUS,consign_time=datetime.datetime.now())
+                    trade.sys_status=pcfg.WAIT_CHECK_BARCODE_STATUS
+                    trade.consign_time=datetime.datetime.now()
+                    trade.save()
                     log_action(request.user.id,trade,CHANGE,u'订单发货成功')
                 else:
                     trade.append_reason_code(pcfg.POST_MODIFY_CODE)
-                    MergeTrade.objects.filter(tid=trade.tid).update(
-                                       sys_status=pcfg.WAIT_AUDIT_STATUS,sys_memo=exc.message,is_picking_print=False,is_express_print=False)
+                    trade.sys_status=pcfg.WAIT_AUDIT_STATUS
+                    trade.sys_memo=exc.message
+                    trade.is_picking_print=False
+                    trade.is_express_print=False
+                    trade.save()
                     log_action(request.user.id,trade,CHANGE,u'订单发货失败')
                     logger.error(error_msg,exc_info=True)
             else:
-                MergeTrade.objects.filter(tid=trade.tid,sys_status=pcfg.WAIT_PREPARE_SEND_STATUS).update(
-                    sys_status=pcfg.WAIT_CHECK_BARCODE_STATUS,consign_time=datetime.datetime.now())
+                trade.sys_status=pcfg.WAIT_CHECK_BARCODE_STATUS
+                trade.consign_time=datetime.datetime.now()
+                trade.save()
                 log_action(request.user.id,trade,CHANGE,u'订单发货成功')
 
         queryset = MergeTrade.objects.filter(id__in=trade_ids)
-        queryset.filter(sys_status=pcfg.WAIT_PREPARE_SEND_STATUS).exclude(out_sid='').update(
-            is_picking_print=False,is_express_print=False,has_sys_err=True,sys_status=pcfg.WAIT_AUDIT_STATUS)
+        wait_prepare_trades = queryset.filter(sys_status=pcfg.WAIT_PREPARE_SEND_STATUS).exclude(out_sid='')
+        for prepare_trade in wait_prepare_trades:
+            prepare_trade.is_picking_print=False
+            prepare_trade.is_express_print=False
+            prepare_trade.has_sys_err=True
+            prepare_trade.sys_status=pcfg.WAIT_AUDIT_STATUS
+            prepare_trade.save()
         post_trades = queryset.filter(sys_status=pcfg.WAIT_CHECK_BARCODE_STATUS)
         trade_items = {}
         for trade in post_trades:

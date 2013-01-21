@@ -319,21 +319,21 @@ class MergeTrade(models.Model):
                 .exclude(refund_status__in=pcfg.REFUND_APPROVAL_STATUS,sys_status=pcfg.IN_EFFECT)
             for order in orders:
                 is_order_out = False
-                if order.outer_sku_id:
-                    try:
-                        product_sku = ProductSku.objects.get(prod_outer_id=order.outer_id,outer_id=order.outer_sku_id)    
-                    except:
-                        pass
-                    else:
-                        is_order_out  |= product_sku.out_stock or product_sku.quantity <= 0
-  
-                elif order.outer_id:
-                    try:
-                        product = Product.objects.get(outer_id=order.outer_id)
-                    except:
-                        pass
-                    else:
-                        is_order_out |= product.out_stock or product.collect_num <= 0
+#                if order.outer_sku_id:
+#                    try:
+#                        product_sku = ProductSku.objects.get(prod_outer_id=order.outer_id,outer_id=order.outer_sku_id)    
+#                    except:
+#                        pass
+#                    else:
+#                        is_order_out  |= product_sku.out_stock or product_sku.quantity <= 0
+#  
+#                elif order.outer_id:
+#                    try:
+#                        product = Product.objects.get(outer_id=order.outer_id)
+#                    except:
+#                        pass
+#                    else:
+#                        is_order_out |= product.out_stock or product.collect_num <= 0
                 
                 if not is_order_out:
                     #预售关键字匹配        
