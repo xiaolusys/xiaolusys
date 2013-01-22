@@ -27,8 +27,10 @@ urlpatterns = patterns('',
 
     (r'^download/(?P<path>.*)$','django.views.static.serve',
             {'document_root': settings.DOWNLOAD_ROOT,'show_indexes':True}),
-
+    
+    #(r'^admin/doc/', include('django.contrib.admindocs.urls')),
     (r'^admin/', include(admin.site.urls)),
+    
 )
 
 if settings.DEBUG == True:

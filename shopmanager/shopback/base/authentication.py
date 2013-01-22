@@ -46,3 +46,4 @@ def login_required_ajax(function=None,redirect_field_name=None):
     else:
         return _decorator(function)
     
+    

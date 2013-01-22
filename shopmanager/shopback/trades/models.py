@@ -165,7 +165,7 @@ class MergeTrade(models.Model):
     remind_time      = models.DateTimeField(null=True,blank=True,verbose_name='提醒日期')
     refund_num       = models.IntegerField(null=True,default=0,verbose_name='退款单数')  #退款单数
     
-    can_review       = models.BooleanField(default=False,verbose_name='要复审') 
+    can_review       = models.BooleanField(default=False,verbose_name='复审') 
     priority       = models.IntegerField(db_index=True,default=0,choices=PRIORITY_TYPE,verbose_name='优先级')
     operator       =  models.CharField(max_length=32,blank=True,verbose_name='发货员')
     sys_status     = models.CharField(max_length=32,db_index=True,choices=SYS_TRADE_STATUS,blank=True,default='',verbose_name='系统状态')

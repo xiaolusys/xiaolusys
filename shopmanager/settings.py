@@ -91,6 +91,7 @@ TEMPLATE_DIRS = (
 
 INSTALLED_APPS = (
     'django.contrib.admin',
+    #'django.contrib.admindocs',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
@@ -146,6 +147,7 @@ AUTHENTICATION_BACKENDS = (
 LOGIN_REDIRECT_URL = '/home/'
 LOGIN_URL = '/accounts/login/'
 LOGOUT_URL = '/accounts/logout/'
+
 
 TAOBAO_PAGE_SIZE = 100              #the page_size of  per request
 

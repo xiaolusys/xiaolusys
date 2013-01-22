@@ -1,6 +1,7 @@
 import json
 from django.http import HttpResponse
 from django.contrib.auth.decorators import login_required
+from django.conf import settings
 from auth import staff_requried
 from auth.utils import parse_datetime,parse_date,format_time,map_int2str
 from shopback.logistics.tasks import updateAllUserOrdersLogisticsTask
@@ -9,7 +10,7 @@ from auth import apis
 
 __author__ = 'meixqhi'
 
-@login_required(login_url='/accounts/login/')
+@login_required(login_url=settings.LOGIN_URL)
 def update_logistics_company(request):
 
     profile  = request.user.get_profile()
@@ -23,7 +24,7 @@ def update_logistics_company(request):
 
 
 
-@staff_requried(login_url='/admin/login/')
+@staff_requried(login_url=settings.LOGIN_URL)
 def update_interval_logistics(request,dt_f,dt_t):
 
     dt_f = parse_date(dt_f)

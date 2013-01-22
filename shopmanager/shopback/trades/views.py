@@ -98,9 +98,7 @@ class CheckOrderView(ModelView):
                 check_msg.append("订单暂不能审核".decode('utf8'))
             if trade.has_reason_code(pcfg.MULTIPLE_ORDERS_CODE):
                 check_msg.append("需手动合单".decode('utf8'))
-            if trade.has_reason_code(pcfg.POST_MODIFY_CODE) or trade.has_reason_code(pcfg.INVALID_END_CODE)\
-                 or trade.has_reason_code(pcfg.POST_SUB_TRADE_ERROR_CODE) or trade.has_reason_code(pcfg.COMPOSE_RULE_ERROR_CODE)\
-                 or trade.has_reason_code(pcfg.PAYMENT_RULE_ERROR_CODE) or trade.has_reason_code(pcfg.MERGE_TRADE_ERROR_CODE):
+            if trade.has_sys_err:
                 check_msg.append("该订单需管理员审核".decode('utf8'))
             orders = trade.merge_trade_orders.filter(status=pcfg.WAIT_SELLER_SEND_GOODS)\
                         .exclude(refund_status__in=pcfg.REFUND_APPROVAL_STATUS)   
@@ -384,25 +382,33 @@ def change_logistic_and_outsid(request):
     try:
         logistic   = LogisticsCompany.objects.get(code=logistic_code)
         logistic_regex = re.compile(logistic.reg_mail_no)
-        if merge_trade.sys_status in (pcfg.WAIT_CHECK_BARCODE_STATUS,pcfg.WAIT_SCAN_WEIGHT_STATUS,pcfg.FINISHED_STATUS) and logistic_regex.match(out_sid): 
-            try:
-                response = apis.taobao_logistics_consign_resend(tid=merge_trade.tid,out_sid=out_sid
-                                                 ,company_code=logistic_code,tb_user_id=merge_trade.user.visitor_id)
-                if not response['logistics_consign_resend_response']['shipping']['is_success']:
-                    raise Exception(u'重发失败')
-            except Exception,exc:
+        if logistic_regex.match(out_sid): 
+            if merge_trade.sys_status in (pcfg.WAIT_CHECK_BARCODE_STATUS,pcfg.WAIT_SCAN_WEIGHT_STATUS):
+                try:
+                    response = apis.taobao_logistics_consign_resend(tid=merge_trade.tid,out_sid=out_sid
+                                                     ,company_code=logistic_code,tb_user_id=merge_trade.user.visitor_id)
+                    if not response['logistics_consign_resend_response']['shipping']['is_success']:
+                        raise Exception(u'重发失败')
+                except Exception,exc:
+                    dt  = datetime.datetime.now()
+                    merge_trade.sys_memo = u'%s,修改快递单号[%s]:(%s)%s'%(merge_trade.sys_memo,
+                                                                 dt.strftime('%Y-%m-%d %H:%M'),logistic_code,out_sid)
+                    logger.error(exc.message,exc_info=True)
+    
+                merge_trade.logistics_company = logistic
+                merge_trade.out_sid   = out_sid
+                merge_trade.save()
+                log_action(user_id,merge_trade,CHANGE,u'修改快递及单号(修改前:%s,%s)'%(logistic_code,out_sid))
+            elif merge_trade.sys_status == pcfg.FINISHED_STATUS:
                 dt  = datetime.datetime.now()
-                merge_trade.sys_memo = u'%s,修改单号[%s]:(%s)%s'%(merge_trade.sys_memo,
-                                                             dt.strftime('%Y-%m-%d %H:%M'),logistic_code,out_sid)
-                logger.error(exc.message,exc_info=True)
-                
-            merge_trade.logistics_company = logistic
-            merge_trade.out_sid   = out_sid
-            merge_trade.save()
-            
-            log_action(user_id,merge_trade,CHANGE,u'复审修改快递及单号(修改前:%s,%s)'%(logistic_code,out_sid))
+                merge_trade.sys_memo = u'%s,退回重发单号[%s]:(%s)%s'%(merge_trade.sys_memo,
+                                                                 dt.strftime('%Y-%m-%d %H:%M'),logistic_code,out_sid)
+                merge_trade.save()
+                log_action(user_id,merge_trade,CHANGE,u'快递退回重发(修改前:%s,%s)'%(logistic_code,out_sid))
+            else:
+                raise Exception(u'该订单不能修改')
         else:
-            raise Exception(u'快递单号不匹配')
+            raise Exception(u'快递单号不合规则')
     except Exception,exc:
         ret_params = {'code':1,'response_error':exc.message}
         return HttpResponse(json.dumps(ret_params),mimetype="application/json")

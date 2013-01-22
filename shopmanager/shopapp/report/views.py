@@ -2,6 +2,7 @@
 import json
 import datetime
 from django.http import HttpResponse
+from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from auth import staff_requried
 from auth.utils import parse_datetime,parse_date,format_time,map_int2str
@@ -9,7 +10,7 @@ from shopapp.report.tasks import updateMonthTradeXlsFileTask
 
 
 
-@staff_requried(login_url='/admin/login/')
+@staff_requried(login_url=settings.LOGIN_URL)
 def gen_report_form_file(request):
 
     content = request.REQUEST

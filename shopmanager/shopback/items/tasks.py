@@ -96,7 +96,6 @@ def updateAllUserItemsTask():
 
 
 
-
 @task()
 def updateUserProductSkuTask(user_id,force_update_num=False):
 
