@@ -233,8 +233,8 @@ def test_api(request):
 #    response = apis.taobao_topats_result_get(task_id=60646019,tb_user_id=121741189)
 #    print response
 
-    response = apis.taobao_logistics_online_send(tid=189639938007903,out_sid=568912355255
-                    ,company_code='STO',tb_user_id=174265168)
+    response = apis.taobao_logistics_offline_send(tid=288127123875836,out_sid=728072074956
+                    ,company_code='ZTO',tb_user_id=174265168)
     print response
 
     

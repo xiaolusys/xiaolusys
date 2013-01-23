@@ -252,12 +252,15 @@ class MergeTradeAdmin(admin.ModelAdmin):
         main_full_addr = main_trade.buyer_full_address #主订单收货人地址
         is_merge_success = False #合单成功
         merge_trade_ids  = []	 #合单成的订单ID
+        fail_reason      = ''
         for trade in queryset:
             if trade.buyer_full_address != main_full_addr:
                 is_merge_success = False
+                fail_reason      = u'订单地址不同'
                 break
             is_merge_success = merge_order_maker(trade.tid,main_trade.tid)
             if not is_merge_success:
+                fail_reason      = u'订单合并错误'
                 break
             merge_trade_ids.append(trade.tid)
         
@@ -268,7 +271,7 @@ class MergeTradeAdmin(admin.ModelAdmin):
             merge_order_remover(main_trade.tid)
         
         trades = MergeTrade.objects.filter(id__in=trade_ids)
-        return render_to_response('trades/mergesuccess.html',{'trades':trades,'merge_status':is_merge_success},
+        return render_to_response('trades/mergesuccess.html',{'trades':trades,'merge_status':is_merge_success,'fail_reason':fail_reason},
                                   context_instance=RequestContext(request),mimetype="text/html") 	
 
     merge_order_action.short_description = "合并订单".decode('utf8')
@@ -313,7 +316,7 @@ class MergeTradeAdmin(admin.ModelAdmin):
         trade_ids = [t.id for t in queryset]
         
         prapare_trades = queryset.filter(is_picking_print=True,is_express_print=True,sys_status=pcfg.WAIT_PREPARE_SEND_STATUS
-                                         ,operator=request.user.username,reason_code='',status=pcfg.WAIT_SELLER_SEND_GOODS).exclude(out_sid='')
+                                         ,reason_code='',status=pcfg.WAIT_SELLER_SEND_GOODS).exclude(out_sid='')
 
         for trade in prapare_trades:
             
@@ -412,7 +415,7 @@ class MergeTradeAdmin(admin.ModelAdmin):
                     is_post_success = trade.is_post_success()
                 except Exception,exc:
                     error_msg = error_msg+','+exc.message
-                    logger.error(error_msg,exc_info=True)
+                logger.error(error_msg,exc_info=True)
                     
                 if is_post_success:
                     trade.sys_status=pcfg.WAIT_CHECK_BARCODE_STATUS
@@ -427,7 +430,6 @@ class MergeTradeAdmin(admin.ModelAdmin):
                     trade.is_express_print=False
                     trade.save()
                     log_action(request.user.id,trade,CHANGE,u'订单发货失败')
-                    
             else:
                 trade.sys_status=pcfg.WAIT_CHECK_BARCODE_STATUS
                 trade.consign_time=datetime.datetime.now()
@@ -435,7 +437,8 @@ class MergeTradeAdmin(admin.ModelAdmin):
                 log_action(request.user.id,trade,CHANGE,u'订单发货成功')
 
         queryset = MergeTrade.objects.filter(id__in=trade_ids)
-        wait_prepare_trades = queryset.filter(sys_status=pcfg.WAIT_PREPARE_SEND_STATUS).exclude(out_sid='')
+        wait_prepare_trades = queryset.filter(sys_status=pcfg.WAIT_PREPARE_SEND_STATUS,is_picking_print=True
+                                              ,is_express_print=True).exclude(out_sid='')
         for prepare_trade in wait_prepare_trades:
             prepare_trade.is_picking_print=False
             prepare_trade.is_express_print=False
@@ -445,7 +448,7 @@ class MergeTradeAdmin(admin.ModelAdmin):
         trade_items = {}
         for trade in post_trades:
             used_orders = trade.merge_trade_orders.filter(status__in=(pcfg.WAIT_BUYER_CONFIRM_GOODS,pcfg.WAIT_SELLER_SEND_GOODS),
-                sys_status=pcfg.IN_EFFECT).exclude(refund_status__in=pcfg.REFUND_APPROVAL_STATUS)
+                sys_status=pcfg.IN_EFFECT)
             for order in used_orders:
                 outer_id = order.outer_id or str(order.num_iid)
                 outer_sku_id = order.outer_sku_id or str(order.sku_id)

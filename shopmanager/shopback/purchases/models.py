@@ -43,6 +43,7 @@ class PurchaseProduct(models.Model):
     name         = models.CharField(max_length=128,blank=True)
     
     category     = models.ForeignKey(ProductCategory,null=True,blank=True,related_name='purchase_products')
+    #stock_num    = models.IntegerField(default=0)
     
     created      = models.DateTimeField(null=True,blank=True,auto_now_add=True)
     modified     = models.DateTimeField(null=True,blank=True,auto_now=True)
@@ -54,7 +55,7 @@ class PurchaseProduct(models.Model):
         verbose_name='采购商品'
 
     def __unicode__(self):
-        return self.name
+        return '<%s,%s>'%(self.outer_id,self.name)
 
 
 class PurchaseProductSku(models.Model):
@@ -64,6 +65,7 @@ class PurchaseProductSku(models.Model):
     outer_id     = models.CharField(max_length=64)
     properties   = models.CharField(max_length=256,blank=True)
     
+    #sku_num      = models.IntegerField(default=0)
     created      = models.DateTimeField(null=True,blank=True,auto_now_add=True)
     modified     = models.DateTimeField(null=True,blank=True,auto_now=True)
     
@@ -74,7 +76,7 @@ class PurchaseProductSku(models.Model):
         verbose_name='采购商品规格'
 
     def __unicode__(self):
-        return self.properties
+        return '<%s,%s>'%(self.outer_id,self.properties)
 
 
 class Deposite(models.Model):
