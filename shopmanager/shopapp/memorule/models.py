@@ -163,7 +163,7 @@ def rule_match_product(sender, trade_tid, *args, **kwargs):
     except Trade.DoesNotExist:
         pass
     else: 
-        orders  = trade.merge_trade_orders.filter(status=pcfg.WAIT_SELLER_SEND_GOODS).exclude(refund_status__in=pcfg.REFUND_APPROVAL_STATUS)
+        orders  = trade.merge_trade_orders.filter(status=pcfg.WAIT_SELLER_SEND_GOODS,sys_status=pcfg.IN_EFFECT)
         for order in orders:
             rules = ProductRuleField.objects.filter(outer_id=order.outer_id)
             if rules.count()>0:

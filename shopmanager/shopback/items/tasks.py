@@ -5,6 +5,7 @@ import json
 from celery.task import task
 from celery.task.sets import subtask
 from django.conf import settings
+from django.db.models.query import QuerySet
 from auth.utils import format_datetime,parse_datetime
 from shopback import paramconfig as pcfg
 from shopback.items.models import Item,Product, ProductSku
@@ -97,10 +98,11 @@ def updateAllUserItemsTask():
 
 
 @task()
-def updateUserProductSkuTask(user_id,force_update_num=False):
+def updateUserProductSkuTask(user_id=None,items=None,force_update_num=False):
 
-    user = User.objects.get(visitor_id=user_id)
-    items = user.items.filter(status=pcfg.NORMAL)
+    if not items or not isinstance(items,(list,tuple,QuerySet)):
+        user = User.objects.get(visitor_id=user_id)
+        items = user.items.filter(status=pcfg.NORMAL)
 	
     num_iids = []
     prop_dict = {}
@@ -111,7 +113,7 @@ def updateUserProductSkuTask(user_id,force_update_num=False):
             sku_dict = {}
             try:
                 num_iids_str = ','.join(num_iids)
-                response = apis.taobao_item_skus_get(num_iids=num_iids_str, tb_user_id=user_id)
+                response = apis.taobao_item_skus_get(num_iids=num_iids_str, tb_user_id=item.user.visitor_id)
                 if response['item_skus_get_response'].has_key('skus'):
                     skus = response['item_skus_get_response']['skus']
     

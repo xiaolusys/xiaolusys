@@ -1,7 +1,10 @@
 #-*- coding:utf8 -*-
+import json
 import datetime
 from django.contrib import admin
 from django.db import models
+from django.shortcuts import render_to_response
+from django.template import RequestContext
 from django.forms import TextInput, Textarea
 from shopback.items.models import Item,Product,ProductSku
 import logging 
@@ -80,12 +83,41 @@ class ProductAdmin(admin.ModelAdmin):
                 pull_dict['success']=True
             sync_items.append(pull_dict)
        
-        return render_to_response('items/sync_taobao.stock.html',{'prods':sync_items},
+        return render_to_response('items/product_action.html',{'prods':sync_items,'action_name':u'更新线上库存'},
                                   context_instance=RequestContext(request),mimetype="text/html")
     
-    sync_items_stock.short_description = "同步商品库存".decode('utf8')
+    sync_items_stock.short_description = u"同步淘宝线上库存"
     
-    actions = ['sync_items_stock',]
+    #根据线上商品SKU 更新系统商品SKU
+    def update_items_sku(self,request,queryset):
+        
+        from shopback.items.tasks import updateUserProductSkuTask
+        sync_items = []
+        for prod in queryset:
+            pull_dict = {'outer_id':prod.outer_id,'name':prod.name}
+            try:
+                items = Item.objects.filter(outer_id=prod.outer_id)
+                updateUserProductSkuTask(items=items)
+                item_sku_outer_ids = set()
+                for item in items:
+                    sku_dict = json.loads(item.skus or '{}')
+                    if sku_dict:
+                        sku_list = sku_dict.get('sku')
+                        item_sku_outer_ids.update([ sku.get('outer_id','') for sku in sku_list])
+                prod.prod_skus.exclude(outer_id__in=item_sku_outer_ids).delete()
+            except Exception,exc:
+                pull_dict['success']=False
+                pull_dict['errmsg']=exc.message or '%s'%exc  
+            else:
+                pull_dict['success']=True
+            sync_items.append(pull_dict)
+       
+        return render_to_response('items/product_action.html',{'prods':sync_items,'action_name':u'更新商品SKU'},
+                                  context_instance=RequestContext(request),mimetype="text/html")
+    
+    update_items_sku.short_description = u"更新系统商品SKU"
+    
+    actions = ['sync_items_stock','update_items_sku']
 
 admin.site.register(Product, ProductAdmin)
 

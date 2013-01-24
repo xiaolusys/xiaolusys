@@ -65,7 +65,7 @@ class UserAdmin(admin.ModelAdmin):
             else:
                 pull_dict['success']=True
             pull_users.append(pull_dict)
-       
+        
         return render_to_response('users/pull_online_items.html',{'users':pull_users},
                                   context_instance=RequestContext(request),mimetype="text/html")
 

@@ -102,7 +102,7 @@ GIFT_TYPE = (
 class MergeTrade(models.Model):
     
     id    = BigIntegerAutoField(primary_key=True)
-    tid   = models.BigIntegerField(unique=True,null=True,verbose_name='淘宝订单编号')
+    tid   = models.BigIntegerField(unique=True,null=True,blank=True,default=None,verbose_name='淘宝订单编号')
     
     user       = models.ForeignKey(User,null=True,related_name='merge_trades',verbose_name='所属店铺')
     seller_id  = models.CharField(max_length=64,blank=True,verbose_name='店铺ID')
@@ -951,7 +951,7 @@ def save_fenxiao_orders_to_mergetrade(sender, tid, *args, **kwargs):
 
         #保存分销订单到抽象全局抽象订单表
         for order in trade.sub_purchase_orders.all():
-            merge_order,state = MergeOrder.objects.get_or_create(oid=order.tc_order_id,tid=trade.id,merge_trade = merge_trade)
+            merge_order,state = MergeOrder.objects.get_or_create(oid=order.fenxiao_id,tid=trade.id,merge_trade = merge_trade)
             fenxiao_product = FenxiaoProduct.get_or_create(trade.user.visitor_id,order.item_id)
             if order.status == pcfg.TRADE_REFUNDING:
                 refund_status = pcfg.REFUND_WAIT_SELLER_AGREE

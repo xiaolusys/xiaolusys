@@ -288,7 +288,7 @@ class TradesToXLSFile(object):
                     except Exception,exc:
                         pass
 
-        sum_end = self.cur_row
+        sum_end = self.cur_row+1
         self.cur_row += 1
         sheet.write(self.cur_row,0,TITLE_FIELDS['TRADE_REFUND_ACCOUNT_MSG']%seller_nick,self.title_style)
 

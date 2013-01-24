@@ -9,10 +9,10 @@
 	<div>
 		<div style="display:block;">
 		  <fieldset>
-		  	<legend>同步库存</legend>
+		  	<legend>{{ action_name }}</legend>
 			  <table class="table table-bordered table-striped table-condensed">
 			    <tr>
-			      <th>用户ID</th><th>用户昵称</th><th>下单任务状态</th><th>错误信息</th>
+			      <th>商品编码</th><th>商品名称</th><th>执行状态</th><th>错误信息</th>
 			    </tr>
 			    {% for prod in prods %}
 			    <tr>

@@ -68,7 +68,7 @@ class MergeTradeAdmin(admin.ModelAdmin):
     list_per_page = 100
      
     def popup_tid_link(self, obj):
-        return u'<a href="%d/" onclick="return showTradePopup(this);">%d</a>' %(obj.id,obj.tid)
+        return u'<a href="%d/" onclick="return showTradePopup(this);">%s</a>' %(obj.id,obj.tid and str(obj.tid) or '' )
     popup_tid_link.allow_tags = True
     popup_tid_link.short_description = "淘宝ID" 
     
@@ -313,10 +313,11 @@ class MergeTradeAdmin(admin.ModelAdmin):
     
     #淘宝后台同步发货
     def sync_trade_post_taobao(self, request, queryset):
+        time.sleep(5)
         trade_ids = [t.id for t in queryset]
         
         prapare_trades = queryset.filter(is_picking_print=True,is_express_print=True,sys_status=pcfg.WAIT_PREPARE_SEND_STATUS
-                                         ,reason_code='',status=pcfg.WAIT_SELLER_SEND_GOODS).exclude(out_sid='')
+                                         ,reason_code='',status=pcfg.WAIT_SELLER_SEND_GOODS).exclude(out_sid='')#,operator=request.user.username
 
         for trade in prapare_trades:
             
@@ -438,7 +439,7 @@ class MergeTradeAdmin(admin.ModelAdmin):
 
         queryset = MergeTrade.objects.filter(id__in=trade_ids)
         wait_prepare_trades = queryset.filter(sys_status=pcfg.WAIT_PREPARE_SEND_STATUS,is_picking_print=True
-                                              ,is_express_print=True).exclude(out_sid='')
+                                              ,is_express_print=True,operator=request.user.username).exclude(out_sid='')
         for prepare_trade in wait_prepare_trades:
             prepare_trade.is_picking_print=False
             prepare_trade.is_express_print=False
