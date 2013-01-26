@@ -9,8 +9,9 @@ from djangorestframework.response import ErrorResponse
 from shopback.trades.models import MergeTrade,MergeOrder,GIFT_TYPE,SYS_TRADE_STATUS,TAOBAO_TRADE_STATUS
 from shopback.logistics.models import LogisticsCompany
 from shopback.items.models import Product,ProductSku
-from shopback.base import log_action, User, ADDITION, CHANGE
+from shopback.base import log_action, ADDITION, CHANGE
 from shopback.signals import rule_signal
+from shopback.users.models import User
 from shopback import paramconfig as pcfg
 from auth import apis
 import logging
@@ -417,3 +418,93 @@ def change_logistic_and_outsid(request):
                                                ,'logistic_company_code':logistic.code,'out_sid':out_sid}}
     return HttpResponse(json.dumps(ret_params),mimetype="application/json")
 
+
+############################### 退换货订单 #################################       
+class ExchangeOrderView(ModelView):
+    """ docstring for class ExchangeOrderView """
+    
+    def get(self, request, *args, **kwargs):
+        
+        trades  = MergeTrade.objects.filter(type=pcfg.EXCHANGE_TYPE,sys_status=pcfg.WAIT_AUDIT_STATUS,user=None)
+        if trades.count()==0:
+            trade   = MergeTrade.objects.create(type=pcfg.EXCHANGE_TYPE,
+                                                sys_status=pcfg.WAIT_AUDIT_STATUS,status=pcfg.WAIT_SELLER_SEND_GOODS)
+        else:
+            trade = trades[0]
+            trade.merge_trade_orders.all().delete()
+        sellers = User.objects.all()
+        
+        return {'trade':trade,'sellers':sellers}
+    
+    def post(self, request, *args, **kwargs):
+        
+        content     = request.REQUEST
+        trade_id    = content.get('trade_id')
+        seller_id   = content.get('sellerId')
+        try:
+            merge_trade = MergeTrade.objects.get(id=trade_id)
+        except MergeTrade.DoesNotExist:
+            return u'订单未找到'
+        
+        try:
+            user = User.objects.get(id=seller_id)
+        except User.DoesNotExist:
+            return u'卖家不存在'
+        
+        if merge_trade.sys_status != pcfg.WAIT_AUDIT_STATUS:
+            return u'订单暂不能保存'
+        
+        dt = datetime.datetime.now()
+        params = content.copy()
+        params['seller_nick']= user.nick
+        params['seller_id']  = user.visitor_id
+        params['shipping_type'] = "express"
+        params['created']    = dt
+        params['pay_time']   = dt
+        params['modified']    = dt
+        for key,val in content.iteritems():
+            hasattr(merge_trade,key) and setattr(merge_trade,key,val)    
+        merge_trade.save()
+        
+        return {'success':True}
+        
+
+class TradeSearchView(ModelView):   
+    """ docstring for class ExchangeOrderView """
+         
+    def get(self, request, *args, **kwargs):
+         
+        q  = request.REQUEST.get('q')
+        if not q:
+            return u'请输入查询字符串'
+         
+        trades = MergeTrade.objects.filter(Q(id=q)|Q(buyer_nick=q)|Q(receiver_name=q)
+                                           ,status__in=(pcfg.WAIT_BUYER_CONFIRM_GOODS,pcfg.TRADE_FINISHED))
+        
+        trade_list = []
+        for trade in trades:
+            trade_dict       = {}
+            trade_dict['id'] = trade.id
+            trade_dict['seller_id']  = trade.user.id
+            trade_dict['buyer_nick'] = trade.buyer_nick
+            trade_dict['payment']    = trade.payment
+            trade_dict['total_num']  = trade.total_num
+            trade_dict['pay_time']   = trade.pay_time
+            
+            trade_dict['receiver_name']  = trade.receiver_name
+            trade_dict['receiver_state'] = trade.receiver_state
+            trade_dict['receiver_city']  = trade.receiver_city
+            trade_dict['receiver_district'] = trade.receiver_district
+            trade_dict['receiver_address']  = trade.receiver_address
+            trade_dict['receiver_mobile'] = trade.receiver_mobile
+            trade_dict['receiver_phone']  = trade.receiver_phone
+            
+            trade_dict['status']      = trade.status
+            trade_dict['sys_status']  = trade.sys_status
+            trade_list.append(trade_dict)
+        
+        return trade_list
+         
+         
+    def post(self, request, *args, **kwargs):
+        pass   

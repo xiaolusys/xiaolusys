@@ -313,7 +313,6 @@ class MergeTradeAdmin(admin.ModelAdmin):
     
     #淘宝后台同步发货
     def sync_trade_post_taobao(self, request, queryset):
-        time.sleep(5)
         trade_ids = [t.id for t in queryset]
         
         prapare_trades = queryset.filter(is_picking_print=True,is_express_print=True,sys_status=pcfg.WAIT_PREPARE_SEND_STATUS

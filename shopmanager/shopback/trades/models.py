@@ -96,7 +96,9 @@ GIFT_TYPE = (
     (pcfg.REAL_ORDER_GIT_TYPE,'实付'),
     (pcfg.CS_PERMI_GIT_TYPE,'赠送'),
     (pcfg.OVER_PAYMENT_GIT_TYPE,'满就送'),
-    (pcfg.COMBOSE_SPLIT_GIT_TYPE,'拆分')
+    (pcfg.COMBOSE_SPLIT_GIT_TYPE,'拆分'),
+    (pcfg.RETURN_GOODS_GIT_TYPE,'退货'),
+    (pcfg.CHANGE_GOODS_GIT_TYPE,'换货')
 )
 
 class MergeTrade(models.Model):
@@ -104,7 +106,7 @@ class MergeTrade(models.Model):
     id    = BigIntegerAutoField(primary_key=True)
     tid   = models.BigIntegerField(unique=True,null=True,blank=True,default=None,verbose_name='淘宝订单编号')
     
-    user       = models.ForeignKey(User,null=True,related_name='merge_trades',verbose_name='所属店铺')
+    user       = models.ForeignKey(User,null=True,default=None,related_name='merge_trades',verbose_name='所属店铺')
     seller_id  = models.CharField(max_length=64,blank=True,verbose_name='店铺ID')
     seller_nick = models.CharField(max_length=64,blank=True,verbose_name='店铺名称')
     buyer_nick  = models.CharField(max_length=64,db_index=True,blank=True,verbose_name='买家昵称')

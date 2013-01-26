@@ -97,6 +97,8 @@ class ProductAdmin(admin.ModelAdmin):
             pull_dict = {'outer_id':prod.outer_id,'name':prod.name}
             try:
                 items = Item.objects.filter(outer_id=prod.outer_id)
+                for item in items:
+                    Item.get_or_create(item.user.visitor_id,item.num_iid,force_update=True)
                 updateUserProductSkuTask(items=items)
                 item_sku_outer_ids = set()
                 for item in items:

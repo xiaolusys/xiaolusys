@@ -9,14 +9,6 @@ goog.require('goog.style');
 goog.require('goog.net.XhrIo');
 goog.require('goog.uri.utils');
 
-var GIT_TYPE = {0:'实付',1:'赠送',2:'满就送',3:'拆分'}
-
-var createDTText  = function(text){
-    var td = goog.dom.createElement('td');
-    td.appendChild(goog.dom.createTextNode(text));
-    return td
-}
-
 var addSearchRow  = function(tableID,prod){
 
 	var table = goog.dom.getElement(tableID);
@@ -98,8 +90,8 @@ ordercheck.Dialog = function (manager) {
 }
 
 ordercheck.Dialog.prototype.init = function (id) {
-	dialog = this.dialog ;
-    that   = this ;
+	var dialog = this.dialog ;
+    var that   = this ;
     var callback = function(e){
         var xhr = e.target;
         try {
@@ -163,7 +155,7 @@ ordercheck.Dialog.prototype.changeAddr=function(e){
 	var receiver_district = goog.dom.getElement('id_receiver_district').value;
 	var receiver_address  = goog.dom.getElement('id_receiver_address').value;
 	
-	params = {'trade_id':trade_id,'receiver_name':receiver_name,'receiver_mobile':receiver_mobile,
+	var params = {'trade_id':trade_id,'receiver_name':receiver_name,'receiver_mobile':receiver_mobile,
 			'receiver_phone':receiver_phone,'receiver_state':receiver_state,'receiver_city':receiver_city,
 			'receiver_district':receiver_district,'receiver_address':receiver_address}		
 	
@@ -183,7 +175,7 @@ ordercheck.Dialog.prototype.changeAddr=function(e){
             console.log('Error: (ajax callback) - ', err);
         } 
 	};
-	content = goog.uri.utils.buildQueryDataFromMap(params);
+	var content = goog.uri.utils.buildQueryDataFromMap(params);
 	goog.net.XhrIo.send('/trades/address/',callback,'POST',content);
 }
 
@@ -195,7 +187,7 @@ ordercheck.Dialog.prototype.searchProd=function(e){
 	for(var i=sch_table.rows.length;i>1;i--){
 		sch_table.deleteRow(i-1);
 	}
-	params = {'q':q};
+	var params = {'q':q};
 	var callback = function(e){
 		var xhr = e.target;
         try {
@@ -215,7 +207,7 @@ ordercheck.Dialog.prototype.searchProd=function(e){
             console.log('Error: (ajax callback) - ', err);
         } 
 	};
-	content = goog.uri.utils.buildQueryDataFromMap(params);
+	var content = goog.uri.utils.buildQueryDataFromMap(params);
 	goog.net.XhrIo.send('/trades/orderplus/?'+content,callback,'GET');
 }
 
@@ -229,7 +221,7 @@ ordercheck.Dialog.prototype.addOrder=function(e){
 	var sku_outer_id = goog.dom.getElement('id-order-sku-'+idx).value;
 	var num          = goog.dom.getElement('id-order-num-'+idx).value;
 	
-	params     = {'trade_id':trade_id,'outer_id':outer_id,'outer_sku_id':sku_outer_id,'num':num}
+	var params     = {'trade_id':trade_id,'outer_id':outer_id,'outer_sku_id':sku_outer_id,'num':num}
 	var callback = function(e){
 		var xhr = e.target;
         try {
@@ -248,7 +240,7 @@ ordercheck.Dialog.prototype.addOrder=function(e){
             console.log('Error: (ajax callback) - ', err);
         } 
 	};
-	content = goog.uri.utils.buildQueryDataFromMap(params);
+	var content = goog.uri.utils.buildQueryDataFromMap(params);
 	goog.net.XhrIo.send('/trades/orderplus/',callback,'POST',content);
 }
 
@@ -286,8 +278,8 @@ ordercheck.Dialog.prototype.changeOrder=function(e){
             console.log('Error: (ajax callback) - ', err);
         } 
 	};
-	params = {'outer_sku_id':outer_sku_id,'order_num':order_num};
-	content = goog.uri.utils.buildQueryDataFromMap(params);
+	var params = {'outer_sku_id':outer_sku_id,'order_num':order_num};
+	var content = goog.uri.utils.buildQueryDataFromMap(params);
 	goog.net.XhrIo.send('/trades/order/update/'+order_id+'/',callback,'POST',content);
 }
 
@@ -366,10 +358,10 @@ ordercheck.Manager.prototype.checkorder = function(trade_id,logistic_code,priori
             console.log('Error: (ajax callback) - ', err);
         } 
 	};
-	params  = {'format':'json','logistic_code':logistic_code,'priority':priority,'action':action};
-	content = goog.uri.utils.buildQueryDataFromMap(params);
+	var params  = {'format':'json','logistic_code':logistic_code,'priority':priority,'action':action};
+	var content = goog.uri.utils.buildQueryDataFromMap(params);
 	goog.net.XhrIo.send('/trades/checkorder/'+trade_id+'/',callback,'POST',content);
 }
 
 
-new ordercheck.Manager()
+

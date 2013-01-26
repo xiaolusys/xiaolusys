@@ -19,3 +19,14 @@ class ReviewOrderRenderer(TemplateRenderer):
     media_type = 'text/html'
     format = 'html'
     template = 'trades/review_order_template.html'
+    
+    
+class ExchangeOrderRender(TemplateRenderer):
+    """
+    Renderer which serializes to Table
+    """
+    
+    media_type = 'text/html'
+    format = 'html'
+    template = 'trades/exchanges_template.html'
+    

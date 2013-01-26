@@ -12,12 +12,6 @@
 a.section:link, a.section:visited { color: #666666; }
 </style>
 <script src="{{ STATIC_URL }}closure-library/closure/goog/base.js"></script>
-<script>goog.require('goog.dom');</script>
-<script>goog.require('goog.ui.Dialog');</script>
-<script>goog.require('goog.ui.TableSorter');</script>
-<script>goog.require('goog.net.XhrIo');</script>
-<script>goog.require('goog.net.IframeIo');</script>
-<script>goog.require('goog.net.Jsonp');</script>
 {% endblock %}
 
 {% block branding %}
@@ -27,8 +21,8 @@ a.section:link, a.section:visited { color: #666666; }
 {% block nav-global %}{% endblock %}
 
 {% block footer %}
-  
-  <script src="{{ STATIC_URL }}script/admin/checkorder.js" type="text/javascript"></script>
-
+  <script src="{{ STATIC_URL }}script/trades/base.js" type="text/javascript"></script>
+  <script src="{{ STATIC_URL }}script/trades/checkorder.js" type="text/javascript"></script>
+  <script type="text/javascript">new ordercheck.Manager();</script>
 <div id="footer"></div>
 {% endblock %}
