@@ -474,7 +474,7 @@ class MergeOrder(models.Model):
     is_merge    = models.BooleanField(default=False,verbose_name='合并') 
     is_rule_match    = models.BooleanField(default=False,verbose_name='匹配')
     is_reverse_order = models.BooleanField(default=False,verbose_name='追改')
-    gift_type   = models.IntegerField(choices=GIFT_TYPE,default=0,verbose_name='赠品类型')
+    gift_type   = models.IntegerField(choices=GIFT_TYPE,default=0,verbose_name='类型')
     
     status = models.CharField(max_length=32,choices=TAOBAO_ORDER_STATUS,blank=True,verbose_name='淘宝订单状态')
     sys_status = models.CharField(max_length=32,choices=SYS_ORDER_STATUS,blank=True,default='',verbose_name='系统订单状态')
