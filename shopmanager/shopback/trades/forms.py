@@ -1,10 +1,11 @@
+import sys
 from django import forms
 
 
 class ExchangeTradeForm(forms.Form):
 
-    trade_id  = forms.BigIntegerField(required=True)
-    sellerId = forms.BigIntegerField(required=True)
+    trade_id  = forms.IntegerField(min_value=0,max_value=sys.float_info.max,required=True)
+    sellerId = forms.IntegerField(min_value=0,max_value=sys.float_info.max,required=True)
 
     buyer_nick         = forms.CharField(max_length=64,required=True)
     receiver_name      = forms.CharField(max_length=64,required=True)

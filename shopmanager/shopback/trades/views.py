@@ -441,6 +441,7 @@ class ExchangeOrderView(ModelView):
         content     = request.REQUEST
         trade_id    = content.get('trade_id')
         seller_id   = content.get('sellerId')
+
         try:
             merge_trade = MergeTrade.objects.get(id=trade_id)
         except MergeTrade.DoesNotExist:
@@ -456,14 +457,16 @@ class ExchangeOrderView(ModelView):
         
         dt = datetime.datetime.now()
         params = content.copy()
-        params['seller_nick']= user.nick
-        params['seller_id']  = user.visitor_id
-        params['shipping_type'] = "express"
-        params['created']    = dt
-        params['pay_time']   = dt
-        params['modified']    = dt
+
         for key,val in content.iteritems():
-            hasattr(merge_trade,key) and setattr(merge_trade,key,val)    
+            hasattr(merge_trade,key) and setattr(merge_trade,key,val)  
+        merge_trade.user = user 
+        merge_trade.seller_nick= user.nick
+        merge_trade.seller_id  = user.visitor_id
+        merge_trade.shipping_type = "express"
+        merge_trade.created    = dt
+        merge_trade.pay_time   = dt
+        merge_trade.modified   = dt 
         merge_trade.save()
         
         return {'success':True}
@@ -486,7 +489,7 @@ class TradeSearchView(ModelView):
         for trade in trades:
             trade_dict       = {}
             trade_dict['id'] = trade.id
-            trade_dict['seller_id']  = trade.user.id
+            trade_dict['seller_id']  = trade.user.id if trade.user else ''
             trade_dict['buyer_nick'] = trade.buyer_nick
             trade_dict['payment']    = trade.payment
             trade_dict['total_num']  = trade.total_num

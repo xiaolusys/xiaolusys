@@ -534,7 +534,7 @@ def refresh_trade_status(sender,instance,*args,**kwargs):
         return 
     if merge_trade.status == pcfg.WAIT_SELLER_SEND_GOODS:
         total_num     = merge_trade.merge_trade_orders.filter(status=pcfg.WAIT_SELLER_SEND_GOODS,
-                                                              sys_status=pcfg.IN_EFFECT).aggregate(total_num=Sum('num'))['total_num']
+                                                              sys_status=pcfg.IN_EFFECT).count()
         has_refunding = merge_trade.has_trade_refunding()
         out_stock     = merge_trade.merge_trade_orders.filter(out_stock=True,status=pcfg.WAIT_SELLER_SEND_GOODS).count()>0
         has_merge     = merge_trade.merge_trade_orders.filter(is_merge=True,status=pcfg.WAIT_SELLER_SEND_GOODS).count()>0
@@ -859,37 +859,35 @@ def save_orders_trade_to_mergetrade(sender, tid, *args, **kwargs):
             else:
                 sys_status = merge_order.sys_status or pcfg.IN_EFFECT
             if state:
-                MergeOrder.objects.filter(id=merge_order.id).update(
-                    tid = trade.id,
-                    num_iid = order.num_iid,
-                    title  = order.title,
-                    price  = order.price,
-                    sku_id = order.sku_id,
-                    num = order.num,
-                    outer_id = order.outer_id,
-                    outer_sku_id = order.outer_sku_id,
-                    total_fee = order.total_fee,
-                    payment = order.payment,
-                    sku_properties_name = order.sku_properties_name,
-                    refund_status = order.refund_status,
-                    pic_path = order.pic_path,
-                    seller_nick = order.seller_nick,
-                    buyer_nick  = order.buyer_nick,
-                    created  = order.created,
-                    pay_time = order.pay_time,
-                    consign_time = order.consign_time,
-                    status   = order.status,
-                    sys_status = sys_status
-                    )
+                merge_order.tid = trade.id,
+                merge_order.num_iid = order.num_iid,
+                merge_order.title  = order.title,
+                merge_order.price  = order.price,
+                merge_order.sku_id = order.sku_id,
+                merge_order.num = order.num,
+                merge_order.outer_id = order.outer_id,
+                merge_order.outer_sku_id = order.outer_sku_id,
+                merge_order.total_fee = order.total_fee,
+                merge_order.payment = order.payment,
+                merge_order.sku_properties_name = order.sku_properties_name,
+                merge_order.refund_status = order.refund_status,
+                merge_order.pic_path = order.pic_path,
+                merge_order.seller_nick = order.seller_nick,
+                merge_order.buyer_nick  = order.buyer_nick,
+                merge_order.created  = order.created,
+                merge_order.pay_time = order.pay_time,
+                merge_order.consign_time = order.consign_time,
+                merge_order.status   = order.status,
+                merge_order.sys_status = sys_status
             else:
-                MergeOrder.objects.filter(id=merge_order.id).update(
-                    refund_status = order.refund_status,
-                    payment = order.payment,
-                    pay_time = order.pay_time,
-                    consign_time = order.consign_time,
-                    status   = order.status,
-                    sys_status = sys_status
-                    )
+                merge_order.refund_status = order.refund_status,
+                merge_order.payment = order.payment,
+                merge_order.pay_time = order.pay_time,
+                merge_order.consign_time = order.consign_time,
+                merge_order.status   = order.status,
+                merge_order.sys_status = sys_status
+            merge_order.save()
+            
         #保存基本订单信息
         trade_from = pcfg.FENXIAO_TYPE if trade.type==pcfg.FENXIAO_TYPE else pcfg.TAOBAO_TYPE   
         MergeTrade.objects.filter(tid=trade.id).update(
@@ -965,36 +963,33 @@ def save_fenxiao_orders_to_mergetrade(sender, tid, *args, **kwargs):
             else:
                 sys_status = merge_order.sys_status or pcfg.IN_EFFECT     
             if state:    
-                MergeOrder.objects.filter(id=merge_order.id).update(
-                    tid = trade.id,
-                    num_iid = fenxiao_product.item_id,
-                    title  = order.title,
-                    price  = order.price,
-                    sku_id = order.sku_id,
-                    num    = order.num,
-                    outer_id = order.item_outer_id,
-                    outer_sku_id = order.sku_outer_id,
-                    total_fee = order.total_fee,
-                    payment = order.distributor_payment,
-                    sku_properties_name = order.properties_values,
-                    refund_status = refund_status,
-                    pic_path = fenxiao_product.pictures and fenxiao_product.pictures.split(',')[0] or '',
-                    seller_nick = merge_trade.seller_nick,
-                    buyer_nick  = merge_trade.buyer_nick,
-                    created  = order.created,
-                    pay_time = merge_trade.created,
-                    consign_time = merge_trade.consign_time,
-                    status   = pcfg.FENXIAO_TAOBAO_STATUS_MAP.get(order.status,order.status),
-                    sys_status = sys_status
-                )
+                merge_order.tid = trade.id,
+                merge_order.num_iid = fenxiao_product.item_id,
+                merge_order.title  = order.title,
+                merge_order.price  = order.price,
+                merge_order.sku_id = order.sku_id,
+                merge_order.num    = order.num,
+                merge_order.outer_id = order.item_outer_id,
+                merge_order.outer_sku_id = order.sku_outer_id,
+                merge_order.total_fee = order.total_fee,
+                merge_order.payment = order.distributor_payment,
+                merge_order.sku_properties_name = order.properties_values,
+                merge_order.refund_status = refund_status,
+                merge_order.pic_path = fenxiao_product.pictures and fenxiao_product.pictures.split(',')[0] or '',
+                merge_order.seller_nick = merge_trade.seller_nick,
+                merge_order.buyer_nick  = merge_trade.buyer_nick,
+                merge_order.created  = order.created,
+                merge_order.pay_time = merge_trade.created,
+                merge_order.consign_time = merge_trade.consign_time,
+                merge_order.status   = pcfg.FENXIAO_TAOBAO_STATUS_MAP.get(order.status,order.status),
+                merge_order.sys_status = sys_status
             else:
-                MergeOrder.objects.filter(id=merge_order.id).update(
-                    refund_status = refund_status,
-                    payment       = order.distributor_payment,
-                    consign_time  = merge_trade.consign_time,
-                    status        = order.status,
-                    sys_status = sys_status
-                )
+                merge_order.refund_status = refund_status,
+                merge_order.payment       = order.distributor_payment,
+                merge_order.consign_time  = merge_trade.consign_time,
+                merge_order.status        = order.status,
+                merge_order.sys_status = sys_status
+            merge_order.save()
         
         trade_from = pcfg.FENXIAO_TYPE
         MergeTrade.objects.filter(tid=trade.id).update(

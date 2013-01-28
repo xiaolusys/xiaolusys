@@ -54,9 +54,10 @@
 	}
 	.content-main{
 		margin-top:40px;
+		display:fixed;
 	}
 	.content-base-info {
-		
+		display:fixed;
 	}
 	.product-search,.trade-search{
 		margin:0px 10px;
@@ -66,6 +67,7 @@
 	.content-search {
 		width:500px;
 		height:20px;
+		display:fixed;
 	}
     </style>
   </head>
@@ -73,7 +75,7 @@
 {% with trade=object.trade sellers=object.sellers %}
   <body>
 	<div class="content-main">
-		<fieldset >
+		<fieldset>
 			<legend><h1 class="head-title" >退换货单</h1></legend>
 			<div class="content-search">
 				<div class="navbar-search product-search">
@@ -90,7 +92,7 @@
 						<tr>
 							<td>编号</td>
 							<td>商家编码</td>
-							<td>商品简称</td>
+							<td style="width:250px;">商品简称</td>
 							<td>规格</td>
 							<td>数量</td>
 							<td>单价</td>
@@ -111,7 +113,7 @@
 							<td>付款日期</td>
 							<td>发货日期</td>
 							<td>收货人</td>
-							<td style="width:100px;">收货地址</td>
+							<td style="width:200px;">收货地址</td>
 							<td>手机</td>
 							<td>固话</td>
 							<td>操作</td>
@@ -129,6 +131,7 @@
 						<td>所属店铺:</td>
 						<td>
 							<select id="id_seller_id" class="selection" style="width:130px;">
+								<option value='' >-----请选择-----</option>
 								{% for seller in sellers %}
 								<option value='{{ seller.id }}' >{{ seller.nick }}</option>
 								{% endfor %}
@@ -147,8 +150,7 @@
 					<tr>
 						<td>详细地址:</td><td colspan="5"><input type="text" id="id_receiver_address" class="simple-text" style="width:400px;" /></td>
 						<td colspan="2">
-							<button id="id_change_trade" class="btn btn-small btn-success">修改</button>&nbsp;&nbsp;&nbsp;&nbsp;
-							<button id="id_save_trade" class="btn btn-small btn-success">保存</button>
+							<button id="id_save_trade" class="btn btn-small btn-success">保存 +</button>
 						</td>
 					</tr>
 				</table>

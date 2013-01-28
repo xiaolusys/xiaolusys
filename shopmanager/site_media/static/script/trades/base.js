@@ -16,3 +16,8 @@ var showElement   = function(el){
 var hideElement   = function(el){
 	goog.style.setStyle(el, "display", "none");
 }
+
+var disableElement = function(el,status){
+	goog.dom.setProperties(el,"disabled",status);
+}
+

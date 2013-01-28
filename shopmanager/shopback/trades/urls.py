@@ -5,7 +5,7 @@ from shopback.trades.views import CheckOrderView,OrderPlusView,ReviewOrderView,E
     change_trade_addr,change_trade_order,delete_trade_order,change_logistic_and_outsid,review_order
 from shopback.base.renderers  import BaseJsonRenderer
 from shopback.trades.renderers import CheckOrderRenderer,ReviewOrderRenderer,ExchangeOrderRender
-from shopback.trades.resources import TradeResource,OrderPlusResource
+from shopback.trades.resources import TradeResource,OrderPlusResource,ExchangeOrderResource
 from shopback.base.permissions import IsAuthenticated
 
 from shopback.base.authentication import UserLoggedInAuthentication,login_required_ajax
@@ -38,7 +38,7 @@ urlpatterns = patterns('',
     (r'logistic/',csrf_exempt(login_required_ajax(change_logistic_and_outsid))),
     
     (r'^exchange/add/$',staff_member_required(ExchangeOrderView.as_view(
-        resource=OrderPlusResource,
+        resource=ExchangeOrderResource,
         renderers=(BaseJsonRenderer,ExchangeOrderRender),
         authentication=(UserLoggedInAuthentication,),
         permissions=(IsAuthenticated,)
