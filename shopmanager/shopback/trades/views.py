@@ -114,7 +114,7 @@ class CheckOrderView(ModelView):
             log_action(user_id,trade,CHANGE,u'审核成功')
             
         elif action_code == 'review':
-            if trade.sys_status != pcfg.WAIT_CHECK_BARCODE_STATUS:
+            if trade.sys_status not in (pcfg.WAIT_CHECK_BARCODE_STATUS,pcfg.WAIT_SCAN_WEIGHT_STATUS):
                 return u'不能复审'
             MergeTrade.objects.filter(id=id,sys_status = pcfg.WAIT_CHECK_BARCODE_STATUS)\
                 .update(can_review=True)
