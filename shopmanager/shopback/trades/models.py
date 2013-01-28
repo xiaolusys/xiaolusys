@@ -678,13 +678,8 @@ def drive_merge_trade_action(trade_id):
             can_merge = True
             if not main_tid:
                 for t in trades:
-<<<<<<< HEAD
-                    full_refund = MergeTrade.judge_full_refund(t.id)
-                    if not main_tid and not full_refund and not t.has_out_stock and not t.has_refund and t.buyer_full_address == full_address:
-=======
                     full_refund = MergeTrade.judge_full_refund(t.tid,t.type)
                     if not main_tid and not full_refund and not t.has_refund and t.buyer_full_address == full_address:
->>>>>>> dd752bfbb9d5499292073f59423f2e2d9863e58e
                         main_tid = t.tid
                     if t.has_refund:
                         can_merge = False
