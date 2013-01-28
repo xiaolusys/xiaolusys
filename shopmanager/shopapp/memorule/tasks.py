@@ -68,7 +68,7 @@ def updateTradeAndOrderByRuleMemo():
                      sys_status=merge_trade.sys_status,
                 )
                 
-                rule_signal.send(sender='trade_rule',trade_id=merge_trade.tid)
+                #rule_signal.send(sender='trade_rule',trade_id=merge_trade.id)
                 RuleMemo.objects.filter(tid=rule_memo.tid).update(is_used=True)
             except Exception,exc:
                 logger.error('update rule error',exc_info=True)

@@ -114,7 +114,7 @@ class MergeTrade(models.Model):
     type       = models.CharField(max_length=32,choices=TRADE_TYPE,blank=True,verbose_name='订单类型')
     shipping_type = models.CharField(max_length=12,blank=True,verbose_name='物流方式')
     
-    total_num  =   models.IntegerField(null=True,default=0,verbose_name='商品数量')
+    total_num  =   models.IntegerField(null=True,default=0,verbose_name='单数')
     payment    =   models.CharField(max_length=10,blank=True,verbose_name='实付款')
     discount_fee = models.CharField(max_length=10,blank=True,verbose_name='折扣')
     adjust_fee =   models.CharField(max_length=10,blank=True,verbose_name='调整费用')
@@ -310,13 +310,13 @@ class MergeTrade(models.Model):
    
     
     @classmethod
-    def judge_out_stock(cls,trade_id,trade_from):
+    def judge_out_stock(cls,trade_id):
         #判断是否有缺货
         is_out_stock = False
         try:
-            trade = MergeTrade.objects.get(tid=trade_id)
+            trade = MergeTrade.objects.get(id=trade_id)
         except Trade.DoesNotExist:
-            logger.error('trade(tid:%d) does not exist'%trade_id)
+            logger.error('trade(id:%d) does not exist'%trade_id)
         else:
             orders = trade.merge_trade_orders.filter(sys_status=pcfg.IN_EFFECT)\
                 .exclude(refund_status__in=pcfg.REFUND_APPROVAL_STATUS,sys_status=pcfg.IN_EFFECT)
@@ -361,10 +361,10 @@ class MergeTrade(models.Model):
         return is_out_stock
     
     @classmethod
-    def judge_full_refund(cls,trade_id,trade_from):
+    def judge_full_refund(cls,trade_id):
         #更新订单实际商品和退款商品数量，返回退款状态
 
-        merge_trade = cls.objects.get(tid=trade_id)  
+        merge_trade = cls.objects.get(id=trade_id)  
 
         refund_approval_num = merge_trade.merge_trade_orders.filter(refund_status__in=pcfg.REFUND_APPROVAL_STATUS
                             ,gift_type=pcfg.REAL_ORDER_GIT_TYPE).exclude(is_merge=True).count()
@@ -376,9 +376,9 @@ class MergeTrade(models.Model):
         return False
 
     @classmethod
-    def judge_new_refund(cls,trade_id,trade_from):
+    def judge_new_refund(cls,trade_id):
         #判断是否有新退款
-        merge_trade = cls.objects.get(tid=trade_id)
+        merge_trade = cls.objects.get(id=trade_id)
         refund_orders_num   = merge_trade.merge_trade_orders.filter(gift_type=pcfg.REAL_ORDER_GIT_TYPE)\
             .exclude(Q(is_merge=True)|Q(refund_status=pcfg.NO_REFUND)).count()
         
@@ -388,14 +388,14 @@ class MergeTrade(models.Model):
         return False
         
     @classmethod
-    def judge_rule_match(cls,trade_id,trade_from):
+    def judge_rule_match(cls,trade_id):
         
         #系统设置是否进行规则匹配
         config  = SystemConfig.getconfig()
         if not config.is_rule_auto:
             return False
         try:
-            rule_signal.send(sender='product_rule',trade_tid=trade_id)
+            rule_signal.send(sender='product_rule',trade_id=trade_id)
         except Exception,exc:
             return True
         return False
@@ -643,15 +643,15 @@ def merge_order_remover(main_tid):
         
     MergeBuyerTrade.objects.filter(main_tid=main_tid).delete()
     
-    rule_signal.send(sender='combose_split_rule',trade_tid=main_tid)
-    rule_signal.send(sender='payment_rule',trade_tid=main_tid) 
+    rule_signal.send(sender='combose_split_rule',trade_id=main_trade.id)
+    rule_signal.send(sender='payment_rule',trade_id=main_main_trade.id) 
     
 
 def drive_merge_trade_action(trade_id):
     """ 合单驱动程序 """
     is_merge_success = False
     main_tid   = None 
-    merge_trade      = MergeTrade.objects.get(tid=trade_id)
+    merge_trade      = MergeTrade.objects.get(id=trade_id)
     trades     =  []
     try:
         if merge_trade.status != pcfg.WAIT_SELLER_SEND_GOODS:
@@ -665,7 +665,7 @@ def drive_merge_trade_action(trade_id):
         
         trades = MergeTrade.objects.filter(buyer_nick=merge_trade.buyer_nick,receiver_name=receiver_name,receiver_address=receiver_address
                                     ,sys_status__in=(pcfg.WAIT_AUDIT_STATUS,pcfg.WAIT_PREPARE_SEND_STATUS,pcfg.REGULAR_REMAIN_STATUS))\
-                                    .exclude(tid=trade_id).order_by('-pay_time')                          
+                                    .exclude(id=trade_id).order_by('-pay_time')                          
         merge_buyer_trades = MergeBuyerTrade.objects.filter(main_tid__in=[t.tid for t in trades])
         #如果有已有合并记录，则将现有主订单作为合并主订单
         if merge_buyer_trades.count()>0:
@@ -679,7 +679,7 @@ def drive_merge_trade_action(trade_id):
             can_merge = True
             if not main_tid:
                 for t in trades:
-                    full_refund = MergeTrade.judge_full_refund(t.tid,t.type)
+                    full_refund = MergeTrade.judge_full_refund(t.id)
                     if not main_tid and not full_refund and not t.has_out_stock and not t.has_refund and t.buyer_full_address == full_address:
                         main_tid = t.tid
                     if t.has_out_stock or t.has_refund:
@@ -688,7 +688,7 @@ def drive_merge_trade_action(trade_id):
                         
             if main_tid and can_merge:  
                 #进行合单
-                is_merge_success = merge_order_maker(trade_id,main_tid)
+                is_merge_success = merge_order_maker(merge_trade.tid,main_tid)
         
         #如果入库订单缺货,待退款，则将同名的单置放入待审核区域
         elif trades.count()>0 and out_stock or wait_refunding:
@@ -732,22 +732,22 @@ def trade_download_controller(merge_trade,trade,trade_from,first_pay_load):
         #设置订单待退款属性    
         merge_trade.has_refund = wait_refunding
         
-        has_full_refund = MergeTrade.judge_full_refund(trade.id, trade_from)
-        has_new_refund  = MergeTrade.judge_new_refund(trade.id, trade_from)
+        has_full_refund = MergeTrade.judge_full_refund(merge_trade.id)
+        has_new_refund  = MergeTrade.judge_new_refund(merge_trade.id)
 
         #如果首次付款后入库
         if first_pay_load:  
             
-            rule_signal.send(sender='combose_split_rule',trade_tid=trade.id)
+            rule_signal.send(sender='combose_split_rule',trade_id=merge_trade.id)
             #缺货 
-            out_stock      =  MergeTrade.judge_out_stock(trade.id, trade_from)
+            out_stock      =  MergeTrade.judge_out_stock(merge_trade.id)
             if out_stock:
                 merge_trade.append_reason_code(pcfg.OUT_GOOD_CODE)
             #设置订单是否有缺货属性    
             merge_trade.has_out_stock = out_stock
             
             #规则匹配
-            is_rule_match  =  MergeTrade.judge_rule_match(trade.id, trade_from)    
+            is_rule_match  =  MergeTrade.judge_rule_match(merge_trade.id)    
             if is_rule_match: 
                 merge_trade.append_reason_code(pcfg.RULE_MATCH_CODE)
             #设置订单是否有缺货属性    
@@ -758,12 +758,12 @@ def trade_download_controller(merge_trade,trade,trade_from,first_pay_load):
             is_need_merge    = False #是否有合并的可能
             main_tid = None  #主订单ID
             if not has_full_refund:
-                is_need_merge = MergeTrade.judge_need_merge(trade.id,merge_trade.buyer_nick,merge_trade.receiver_name,
+                is_need_merge = MergeTrade.judge_need_merge(merge_trade.id,merge_trade.buyer_nick,merge_trade.receiver_name,
                                                             merge_trade.receiver_address)
                 if is_need_merge :
                     merge_trade.append_reason_code(pcfg.MULTIPLE_ORDERS_CODE)
                     #驱动合单程序
-                    is_merge_success,main_tid = drive_merge_trade_action(trade.id)
+                    is_merge_success,main_tid = drive_merge_trade_action(merge_trade.id)
             
             #更新物流公司信息    
             if is_need_merge and main_tid:
@@ -790,7 +790,7 @@ def trade_download_controller(merge_trade,trade,trade_from,first_pay_load):
             else:
                 merge_trade.sys_status = pcfg.WAIT_PREPARE_SEND_STATUS
                 #进入待发货区域，需要进行商品规则匹配
-                rule_signal.send(sender='payment_rule',trade_tid=trade.id)
+                rule_signal.send(sender='payment_rule',trade_id=merge_trade.id)
 
         #非付款后首次入库
         else:

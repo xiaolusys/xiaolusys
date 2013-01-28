@@ -28,7 +28,7 @@ class CheckOrderView(ModelView):
         except MergeTrade.DoesNotExist:
             return '该订单不存在'.decode('utf8')
         
-        rule_signal.send(sender='payment_rule',trade_tid=trade.tid)
+        rule_signal.send(sender='payment_rule',trade_id=trade.id)
         logistics = LogisticsCompany.objects.filter(status=True)
         
         trade_dict = {
@@ -246,7 +246,7 @@ def change_trade_order(request,id):
     order.num           = order_num
     order.save()
     merge_trade.remove_reason_code(pcfg.RULE_MATCH_CODE)
-    MergeTrade.judge_out_stock(merge_trade.tid,None)
+    MergeTrade.judge_out_stock(merge_trade.id)
     order = MergeOrder.objects.get(id=order.id)
     
     log_action(user_id,merge_trade,CHANGE,u'修改子订单(%d)'%order.id)
@@ -477,10 +477,11 @@ class TradeSearchView(ModelView):
         q  = request.REQUEST.get('q')
         if not q:
             return u'请输入查询字符串'
-         
-        trades = MergeTrade.objects.filter(Q(id=q)|Q(buyer_nick=q)|Q(receiver_name=q)
-                                           ,status__in=(pcfg.WAIT_BUYER_CONFIRM_GOODS,pcfg.TRADE_FINISHED))
         
+        if q.isdigit():
+            trades = MergeTrade.objects.filter(Q(id=q)|Q(tid=q)|Q(buyer_nick=q)|Q(receiver_name=q))
+        else:
+            trades = MergeTrade.objects.filter(Q(buyer_nick=q)|Q(receiver_name=q))
         trade_list = []
         for trade in trades:
             trade_dict       = {}
@@ -490,6 +491,7 @@ class TradeSearchView(ModelView):
             trade_dict['payment']    = trade.payment
             trade_dict['total_num']  = trade.total_num
             trade_dict['pay_time']   = trade.pay_time
+            trade_dict['consign_time']   = trade.consign_time
             
             trade_dict['receiver_name']  = trade.receiver_name
             trade_dict['receiver_state'] = trade.receiver_state
@@ -499,12 +501,60 @@ class TradeSearchView(ModelView):
             trade_dict['receiver_mobile'] = trade.receiver_mobile
             trade_dict['receiver_phone']  = trade.receiver_phone
             
-            trade_dict['status']      = trade.status
-            trade_dict['sys_status']  = trade.sys_status
+            trade_dict['status']      = dict(TAOBAO_TRADE_STATUS).get(trade.status,u'其他')
+            trade_dict['sys_status']  = dict(SYS_TRADE_STATUS).get(trade.sys_status,u'其他')
             trade_list.append(trade_dict)
         
         return trade_list
          
          
     def post(self, request, *args, **kwargs):
-        pass   
+        
+        content     = request.REQUEST
+        cp_tid      = content.get('cp_tid')
+        pt_tid      = content.get('pt_tid')
+        type        = content.get('type')
+        
+        if not cp_tid or not pt_tid or not type:
+            return u'请输入订单编号及退换货类型'
+            
+        try:
+            cp_trade = MergeTrade.objects.get(id=cp_tid)
+        except MergeTrade.DoesNotExist:
+            return u'订单未找到'
+        
+        try:
+            pt_trade = MergeTrade.objects.get(id=pt_tid)
+        except MergeTrade.DoesNotExist:
+            return u'订单未找到'
+        
+        if type == 'returns':
+            gift_type = pcfg.RETURN_GOODS_GIT_TYPE
+        else :
+            gift_type = pcfg.CHANGE_GOODS_GIT_TYPE
+        
+        can_post_orders = cp_trade.merge_trade_orders.filter(status__in=(pcfg.WAIT_SELLER_SEND_GOODS
+                                ,pcfg.WAIT_BUYER_CONFIRM_GOODS,pcfg.TRADE_FINISHED),sys_status=pcfg.IN_EFFECT)
+           
+        for order in can_post_orders:
+            try:
+                MergeOrder.gen_new_order(pt_trade.id,order.outer_id,order.outer_sku_id,order.num,gift_type=gift_type)
+            except Exception,exc:
+                logger.error(exc.message,exc_info=True)
+                
+        MergeTrade.judge_out_stock(pt_trade.id)      
+        orders = pt_trade.merge_trade_orders.all()
+        order_list = []
+        for order in orders:
+            order_dict = {
+            'id':order.id,
+            'outer_id':order.outer_id,
+            'title':prod.name,
+            'sku_properties_name':order.sku_properties_name,
+            'num':order.num,
+            'out_stock':order.out_stock,
+            'price':order.price,
+            'gift_type':order.gift_type,}
+            order_list.append(order_dict)
+        
+        return order_list

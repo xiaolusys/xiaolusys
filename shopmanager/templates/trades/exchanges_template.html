@@ -107,10 +107,13 @@
 						<tr>
 							<td>编号</td>
 							<td>卖家昵称</td>
+							<td>单数</td>
+							<td>付款日期</td>
 							<td>发货日期</td>
 							<td>收货人</td>
-							<td>收货地址</td>
-							<td>电话</td>
+							<td style="width:100px;">收货地址</td>
+							<td>手机</td>
+							<td>固话</td>
 							<td>操作</td>
 						</tr>
 					</thead>
@@ -205,11 +208,9 @@
 	
 </body>
 {% endwith %}
-<script src="{{ STATIC_URL }}script/trade/base.js"></script>
-<script src="{{ STATIC_URL }}script/trade/exchange.js"></script>
-<script>goog.require('goog.ui.Zippy');</script>
+<script src="{{ STATIC_URL }}script/trades/base.js"></script>
+<script src="{{ STATIC_URL }}script/trades/exchange.js"></script>
 <script type="text/javascript">
-	var returns_zippy  = new goog.ui.Zippy('id-return-head', 'id-return-goods');   
-	var changes_zippy  = new goog.ui.Zippy('id-change-head', 'id-change-goods'); 
+	 new exchange.Manager();
 </script>
 </html>

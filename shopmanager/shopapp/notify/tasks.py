@@ -273,8 +273,8 @@ def process_refund_notify_task(id):
                     
                     if notify.status == 'RefundSuccess' and merge_trade.status==pcfg.WAIT_SELLER_SEND_GOODS and real_order_num>0:
                         drive_merge_trade_action(notify.tid)
-                        rule_signal.send(sender='combose_split_rule',trade_tid=notify.tid)
-                        rule_signal.send(sender='payment_rule',trade_tid=notify.tid)
+                        rule_signal.send(sender='combose_split_rule',trade_id=merge_trade.id)
+                        rule_signal.send(sender='payment_rule',trade_id=merge_trade.id)
                     elif real_order_num == 0:
                         merge_trade.merge_trade_orders.exclude(gift_type=pcfg.REAL_ORDER_GIT_TYPE).delete()
     except Exception,exc:

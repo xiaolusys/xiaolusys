@@ -1,8 +1,8 @@
 from django.conf.urls.defaults import patterns, include, url
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib.admin.views.decorators import staff_member_required
-from shopback.trades.views import CheckOrderView,OrderPlusView,ReviewOrderView,ExchangeOrderView,change_trade_addr,\
-    change_trade_order,delete_trade_order,change_logistic_and_outsid,review_order
+from shopback.trades.views import CheckOrderView,OrderPlusView,ReviewOrderView,ExchangeOrderView,TradeSearchView,\
+    change_trade_addr,change_trade_order,delete_trade_order,change_logistic_and_outsid,review_order
 from shopback.base.renderers  import BaseJsonRenderer
 from shopback.trades.renderers import CheckOrderRenderer,ReviewOrderRenderer,ExchangeOrderRender
 from shopback.trades.resources import TradeResource,OrderPlusResource
@@ -43,4 +43,11 @@ urlpatterns = patterns('',
         authentication=(UserLoggedInAuthentication,),
         permissions=(IsAuthenticated,)
     ))),
+    
+    (r'^tradeplus/$',TradeSearchView.as_view(
+        resource=OrderPlusResource,
+        renderers=(BaseJsonRenderer,),
+        authentication=(UserLoggedInAuthentication,),
+        permissions=(IsAuthenticated,)
+    )),
 )
