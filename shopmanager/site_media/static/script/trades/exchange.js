@@ -201,15 +201,14 @@ exchange.Manager.prototype.addReturnOrder = function (e) {
 	var outer_id     = target.getAttribute('outer_id');
 	var sku_outer_id = goog.dom.getElement('id-order-sku-'+idx).value;
 	var num          = goog.dom.getElement('id-order-num-'+idx).value;
-	var params     = {'trade_id':trade_id,'outer_id':outer_id,'outer_sku_id':sku_outer_id,'num':num}
-	
+
     var callback = function(e){
         var xhr = e.target;
-        try {
+        //try {
         	var res = xhr.getResponseJson();
         	if (res.code == 0){
             	addOrderRow('id-return-table',res.response_content);
-            	var deleteOrderBtns = that.return_table.getElementsByClass('delete-order');
+            	var deleteOrderBtns = goog.dom.getElementsByClass('delete-order',that.return_table);
             	for(var i =0;i<deleteOrderBtns.length;i++){
             		goog.events.removeAll(deleteOrderBtns[i]);
             		goog.events.listen(deleteOrderBtns[i], goog.events.EventType.CLICK,that.deleteOrder,false,that);
@@ -217,10 +216,11 @@ exchange.Manager.prototype.addReturnOrder = function (e) {
             }else{
                 alert("添加失败:"+res.response_error);
             }
-        } catch (err) {
-            console.log('Error: (ajax callback) - ', err);
-        } 
+        //} catch (err) {
+        //    console.log('Error: (ajax callback) - ', err);
+        //} 
 	}
+	var params     = {'trade_id':trade_id,'outer_id':outer_id,'outer_sku_id':sku_outer_id,'num':num,'type':4}
 	var content = goog.uri.utils.buildQueryDataFromMap(params);
 	goog.net.XhrIo.send('/trades/orderplus/?',callback,'POST',content);
 }
@@ -234,26 +234,29 @@ exchange.Manager.prototype.addChangeOrder = function (e) {
 	var outer_id     = target.getAttribute('outer_id');
 	var sku_outer_id = goog.dom.getElement('id-order-sku-'+idx).value;
 	var num          = goog.dom.getElement('id-order-num-'+idx).value;
-	var params     = {'trade_id':trade_id,'outer_id':outer_id,'outer_sku_id':sku_outer_id,'num':num}
 	
     var callback = function(e){
         var xhr = e.target;
-        try {
+        //try {
         	var res = xhr.getResponseJson();
         	if (res.code == 0){
             	addOrderRow('id-change-table',res.response_content);
-            	var deleteOrderBtns = that.change_table.getElementsByClass('delete-order');
+            	
+            	var deleteOrderBtns = goog.dom.getElementsByClass('delete-order',that.change_table);
+            	console.log('change',deleteOrderBtns.length);
             	for(var i =0;i<deleteOrderBtns.length;i++){
+            		console.log(i,deleteOrderBtns[i]);
             		goog.events.removeAll(deleteOrderBtns[i]);
             		goog.events.listen(deleteOrderBtns[i], goog.events.EventType.CLICK,that.deleteOrder,false,that);
             	}
             }else{
                 alert("添加失败:"+res.response_error);
             }
-        } catch (err) {
-            console.log('Error: (ajax callback) - ', err);
-        } 
+        //} catch (err) {
+        //    console.log('Error: (ajax callback) - ', err);
+        //} 
 	}
+	var params     = {'trade_id':trade_id,'outer_id':outer_id,'outer_sku_id':sku_outer_id,'num':num,'type':5}
 	var content = goog.uri.utils.buildQueryDataFromMap(params);
 	goog.net.XhrIo.send('/trades/orderplus/?',callback,'POST',content);
 }
@@ -376,7 +379,9 @@ exchange.Manager.prototype.saveBuyerInfo = function(e){
 //删除订单
 exchange.Manager.prototype.deleteOrder = function(e){
 	var target = e.target;
+	console.log('delete order',target);
 	var row    = target.parentElement.parentElement;
+	console.log('delete order',target,row);
 	var rowIndex = row.rowIndex;
 	var table    = row.parentElement.parentElement;
 	var order_id = target.getAttribute('oid');

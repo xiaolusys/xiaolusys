@@ -144,7 +144,7 @@ class OrderPlusView(ModelView):
         outer_id = request.POST.get('outer_id')
         outer_sku_id = request.POST.get('outer_sku_id')
         num      = int(request.POST.get('num',1))    
-        
+        type     = request.POST.get('type',pcfg.CS_PERMI_GIT_TYPE) 
         try:
             merge_trade = MergeTrade.objects.get(id=trade_id)
         except MergeTrade.DoesNotExist:
@@ -165,7 +165,7 @@ class OrderPlusView(ModelView):
             merge_trade.append_reason_code(pcfg.ORDER_ADD_REMOVE_CODE)
             is_reverse_order = True    
         
-        merge_order = MergeOrder.gen_new_order(trade_id,outer_id,outer_sku_id,num,gift_type=pcfg.CS_PERMI_GIT_TYPE
+        merge_order = MergeOrder.gen_new_order(trade_id,outer_id,outer_sku_id,num,gift_type=type
                                                ,status=pcfg.WAIT_BUYER_CONFIRM_GOODS,is_reverse=is_reverse_order)
         
         log_action(user_id,merge_trade,ADDITION,u'添加子订单(%d)'%merge_order.id)
