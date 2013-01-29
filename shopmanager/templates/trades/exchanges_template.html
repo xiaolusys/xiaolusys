@@ -77,53 +77,7 @@
 	<div class="content-main">
 		<fieldset>
 			<legend><h1 class="head-title" >退换货单</h1></legend>
-			<div class="content-search">
-				<div class="navbar-search product-search">
-					<input type="text" id="id_prod_q" class="search-query"  placeholder="商品搜索" />
-				</div>
-				<div class="navbar-search trade-search">
-					<input type="text" id="id_trade_q" class="search-query"  placeholder="订单搜索" />
-				</div>
-			</div>
-			<hr/>
-			<div id="id-prod-search-dialog" style="display:none;">
-				<table id="id-prod-search-table" class="table table-bordered">
-					<thead>
-						<tr>
-							<td>编号</td>
-							<td>商家编码</td>
-							<td style="width:250px;">商品简称</td>
-							<td>规格</td>
-							<td>数量</td>
-							<td>单价</td>
-							<td>操作</td>
-						</tr>
-					</thead>
-					<tbody>
-					</tbody>
-				</table>
-			</div>
-			<div id="id-trade-search-dialog" style="display:none;">
-				<table id="id-trade-search-table" class="table table-bordered">
-					<thead>
-						<tr>
-							<td>编号</td>
-							<td>卖家昵称</td>
-							<td>单数</td>
-							<td>付款日期</td>
-							<td>发货日期</td>
-							<td>收货人</td>
-							<td style="width:200px;">收货地址</td>
-							<td>手机</td>
-							<td>固话</td>
-							<td>操作</td>
-						</tr>
-					</thead>
-					<tbody>
-					</tbody>
-				</table>
-			</div>
-			<hr/>
+			
 			<div class="content-base-info">
 				<div><input type="hidden" id="id_exchange_trade" value="{{ trade.id }}" /></div>
 				<table class="table table-bordered table-striped table-condensed">
@@ -205,6 +159,54 @@
 					</div>
 				</div>
 			</div>
+			<hr/>
+			<div class="content-search">
+				<div class="navbar-search product-search">
+					<input type="text" id="id_prod_q" class="search-query"  placeholder="商品搜索" />
+				</div>
+				<div class="navbar-search trade-search">
+					<input type="text" id="id_trade_q" class="search-query"  placeholder="订单搜索" />
+				</div>
+			</div>
+			<hr/>
+			<div id="id-prod-search-dialog" style="display:none;">
+				<table id="id-prod-search-table" class="table table-bordered">
+					<thead>
+						<tr>
+							<td>序号</td>
+							<td>商家编码</td>
+							<td style="width:250px;">商品简称</td>
+							<td>规格</td>
+							<td>数量</td>
+							<td>单价</td>
+							<td>操作</td>
+						</tr>
+					</thead>
+					<tbody>
+					</tbody>
+				</table>
+			</div>
+			<div id="id-trade-search-dialog" style="display:none;">
+				<table id="id-trade-search-table" class="table table-bordered">
+					<thead>
+						<tr>
+							<td>序号</td>
+							<td>卖家昵称</td>
+							<td>单数</td>
+							<td>付款日期</td>
+							<td>发货日期</td>
+							<td>收货人</td>
+							<td style="width:200px;">收货地址及电话</td>
+							<td>淘宝状态</td>
+							<td>系统状态</td>
+							<td>操作</td>
+						</tr>
+					</thead>
+					<tbody>
+					</tbody>
+				</table>
+			</div>
+			<hr/>
 		</fieldset>
 	</div>
 	

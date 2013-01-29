@@ -108,9 +108,27 @@ class CheckOrderView(ModelView):
              
             if check_msg:
                 return ','.join(check_msg)
-            
-            MergeTrade.objects.filter(id=id,sys_status = pcfg.WAIT_AUDIT_STATUS)\
-                .update(sys_status=pcfg.WAIT_PREPARE_SEND_STATUS,reason_code='')  
+            if trade.type == pcfg.EXCHANGE_TYPE:
+                change_orders = trade.merge_trade_orders.filter(sys_status=pcfg.IN_EFFECT)\
+                    .exclude(gift_type=pcfg.RETURN_GOODS_GIT_TYPE)
+                return_orders = trade.merge_trade_orders.filter(sys_status=pcfg.IN_EFFECT
+                     ,gift_type=pcfg.RETURN_GOODS_GIT_TYPE)
+                if change_orders.count()>0:
+                    for t in return_orders:
+                        #此处需要减库存
+                        t.sys_status = pcfg.INVALID_STATUS
+                        t.save()
+                    trade.sys_status = pcfg.WAIT_PREPARE_SEND_STATUS
+                    trade.reason_code = ''
+                    trade.save()
+                elif return_orders.count()>0:
+                    #此处需要减库存
+                    trade.sys_status = pcfg.FINISHED_STATUS
+                    trade.status     = pcfg.TRADE_FINISHED
+                    trade.save()
+            else:
+                MergeTrade.objects.filter(id=id,sys_status = pcfg.WAIT_AUDIT_STATUS)\
+                    .update(sys_status=pcfg.WAIT_PREPARE_SEND_STATUS,reason_code='')  
             log_action(user_id,trade,CHANGE,u'审核成功')
             
         elif action_code == 'review':
@@ -425,10 +443,9 @@ class ExchangeOrderView(ModelView):
     
     def get(self, request, *args, **kwargs):
         
-        trades  = MergeTrade.objects.filter(type=pcfg.EXCHANGE_TYPE,sys_status=pcfg.WAIT_AUDIT_STATUS,user=None)
+        trades  = MergeTrade.objects.filter(type=pcfg.EXCHANGE_TYPE,sys_status='',user=None)
         if trades.count()==0:
-            trade   = MergeTrade.objects.create(type=pcfg.EXCHANGE_TYPE,
-                                                sys_status=pcfg.WAIT_AUDIT_STATUS,status=pcfg.WAIT_SELLER_SEND_GOODS)
+            trade   = MergeTrade.objects.create(type=pcfg.EXCHANGE_TYPE,status=pcfg.WAIT_SELLER_SEND_GOODS)
         else:
             trade = trades[0]
             trade.merge_trade_orders.all().delete()
@@ -452,12 +469,10 @@ class ExchangeOrderView(ModelView):
         except User.DoesNotExist:
             return u'卖家不存在'
         
-        if merge_trade.sys_status != pcfg.WAIT_AUDIT_STATUS:
+        if merge_trade.sys_status not in('',pcfg.WAIT_AUDIT_STATUS):
             return u'订单暂不能保存'
         
         dt = datetime.datetime.now()
-        params = content.copy()
-
         for key,val in content.iteritems():
             hasattr(merge_trade,key) and setattr(merge_trade,key,val)  
         merge_trade.user = user 
@@ -466,7 +481,8 @@ class ExchangeOrderView(ModelView):
         merge_trade.shipping_type = "express"
         merge_trade.created    = dt
         merge_trade.pay_time   = dt
-        merge_trade.modified   = dt 
+        merge_trade.modified   = dt
+        merge_trade.sys_status = pcfg.WAIT_AUDIT_STATUS
         merge_trade.save()
         
         return {'success':True}
@@ -516,9 +532,9 @@ class TradeSearchView(ModelView):
         content     = request.REQUEST
         cp_tid      = content.get('cp_tid')
         pt_tid      = content.get('pt_tid')
-        type        = content.get('type')
+        type        = content.get('type','')
         
-        if not cp_tid or not pt_tid or not type:
+        if not cp_tid or not pt_tid or not type.isdigit():
             return u'请输入订单编号及退换货类型'
             
         try:
@@ -531,17 +547,12 @@ class TradeSearchView(ModelView):
         except MergeTrade.DoesNotExist:
             return u'订单未找到'
         
-        if type == 'returns':
-            gift_type = pcfg.RETURN_GOODS_GIT_TYPE
-        else :
-            gift_type = pcfg.CHANGE_GOODS_GIT_TYPE
-        
         can_post_orders = cp_trade.merge_trade_orders.filter(status__in=(pcfg.WAIT_SELLER_SEND_GOODS
                                 ,pcfg.WAIT_BUYER_CONFIRM_GOODS,pcfg.TRADE_FINISHED),sys_status=pcfg.IN_EFFECT)
            
         for order in can_post_orders:
             try:
-                MergeOrder.gen_new_order(pt_trade.id,order.outer_id,order.outer_sku_id,order.num,gift_type=gift_type)
+                MergeOrder.gen_new_order(pt_trade.id,order.outer_id,order.outer_sku_id,order.num,gift_type=type)
             except Exception,exc:
                 logger.error(exc.message,exc_info=True)
                 
@@ -549,11 +560,19 @@ class TradeSearchView(ModelView):
         orders = pt_trade.merge_trade_orders.all()
         order_list = []
         for order in orders:
+            try:
+                prod = Product.objects.get(outer_id=order.outer_id)
+            except Exception,exc:
+                prod = None
+            try:
+                prod_sku = ProductSku.objects.get(outer_id=order.outer_sku_id,prod_outer_id=order.outer_id)
+            except:
+                prod_sku = None
             order_dict = {
             'id':order.id,
             'outer_id':order.outer_id,
-            'title':prod.name,
-            'sku_properties_name':order.sku_properties_name,
+            'title':prod.name if prod else order.title,
+            'sku_properties_name':prod_sku.properties_name if prod_sku else order.sku_properties_name,
             'num':order.num,
             'out_stock':order.out_stock,
             'price':order.price,

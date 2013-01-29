@@ -227,11 +227,15 @@
 		</fieldset>
 		<div class="bottom-area" >
 			{% if trade.can_review and trade.sys_status == "WAIT_CHECK_BARCODE" %}
-			<button id="id-review-order-btn" class="btn-large btn-primary">复审通过</button>
+				{% if trade.reason_code %}
+				<button id="id-review-order-btn" class="btn-large btn-primary">复审通过</button>
+				{% else %}
+				<button id="id-review-order-btn" class="btn-large" disabled="disabled">订单已复审</button>
+				{% endif %}
 			{% elif not trade.can_review and trade.sys_status == "WAIT_CHECK_BARCODE" %}
-			<button id="id-review-order-btn" class="btn-large " disabled="disabled">客服未处理，暂不能复审</button>
+			<button id="id-review-order-btn" class="btn-large" disabled="disabled">客服未处理，暂不能复审</button>
 			{% else%}
-			<button id="id-review-order-btn" class="btn-large " disabled="disabled">该页面只能修改快递单号</button>
+			<button id="id-review-order-btn" class="btn-large" disabled="disabled">该页面只能修改快递单号</button>
 			{% endif %}
 		</div>
 	</div>
