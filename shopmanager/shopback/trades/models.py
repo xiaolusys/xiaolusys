@@ -859,31 +859,31 @@ def save_orders_trade_to_mergetrade(sender, tid, *args, **kwargs):
             else:
                 sys_status = merge_order.sys_status or pcfg.IN_EFFECT
             if state:
-                merge_order.num_iid = order.num_iid,
-                merge_order.title  = order.title,
-                merge_order.price  = order.price,
-                merge_order.sku_id = order.sku_id,
-                merge_order.num = order.num,
-                merge_order.outer_id = order.outer_id,
-                merge_order.outer_sku_id = order.outer_sku_id,
-                merge_order.total_fee = order.total_fee,
-                merge_order.payment = order.payment,
-                merge_order.sku_properties_name = order.sku_properties_name,
-                merge_order.refund_status = order.refund_status,
-                merge_order.pic_path = order.pic_path,
-                merge_order.seller_nick = order.seller_nick,
-                merge_order.buyer_nick  = order.buyer_nick,
-                merge_order.created  = order.created,
-                merge_order.pay_time = order.pay_time,
-                merge_order.consign_time = order.consign_time,
-                merge_order.status   = order.status,
+                merge_order.num_iid = order.num_iid
+                merge_order.title  = order.title
+                merge_order.price  = order.price
+                merge_order.sku_id = order.sku_id
+                merge_order.num = order.num
+                merge_order.outer_id = order.outer_id
+                merge_order.outer_sku_id = order.outer_sku_id
+                merge_order.total_fee = order.total_fee
+                merge_order.payment = order.payment
+                merge_order.sku_properties_name = order.sku_properties_name
+                merge_order.refund_status = order.refund_status
+                merge_order.pic_path = order.pic_path
+                merge_order.seller_nick = order.seller_nick
+                merge_order.buyer_nick  = order.buyer_nick
+                merge_order.created  = order.created
+                merge_order.pay_time = order.pay_time
+                merge_order.consign_time = order.consign_time
+                merge_order.status   = order.status
                 merge_order.sys_status = sys_status
             else:
-                merge_order.refund_status = order.refund_status,
-                merge_order.payment = order.payment,
-                merge_order.pay_time = order.pay_time,
-                merge_order.consign_time = order.consign_time,
-                merge_order.status   = order.status,
+                merge_order.refund_status = order.refund_status
+                merge_order.payment = order.payment
+                merge_order.pay_time = order.pay_time
+                merge_order.consign_time = order.consign_time
+                merge_order.status   = order.status
                 merge_order.sys_status = sys_status
             merge_order.save()
             
@@ -962,30 +962,30 @@ def save_fenxiao_orders_to_mergetrade(sender, tid, *args, **kwargs):
             else:
                 sys_status = merge_order.sys_status or pcfg.IN_EFFECT     
             if state:    
-                merge_order.num_iid = fenxiao_product.item_id,
-                merge_order.title  = order.title,
-                merge_order.price  = order.price,
-                merge_order.sku_id = order.sku_id,
-                merge_order.num    = order.num,
-                merge_order.outer_id = order.item_outer_id,
-                merge_order.outer_sku_id = order.sku_outer_id,
-                merge_order.total_fee = order.total_fee,
-                merge_order.payment = order.distributor_payment,
-                merge_order.sku_properties_name = order.properties_values,
-                merge_order.refund_status = refund_status,
-                merge_order.pic_path = fenxiao_product.pictures and fenxiao_product.pictures.split(',')[0] or '',
-                merge_order.seller_nick = merge_trade.seller_nick,
-                merge_order.buyer_nick  = merge_trade.buyer_nick,
-                merge_order.created  = order.created,
-                merge_order.pay_time = merge_trade.created,
-                merge_order.consign_time = merge_trade.consign_time,
-                merge_order.status   = pcfg.FENXIAO_TAOBAO_STATUS_MAP.get(order.status,order.status),
+                merge_order.num_iid = fenxiao_product.item_id
+                merge_order.title  = order.title
+                merge_order.price  = order.price
+                merge_order.sku_id = order.sku_id
+                merge_order.num    = order.num
+                merge_order.outer_id = order.item_outer_id
+                merge_order.outer_sku_id = order.sku_outer_id
+                merge_order.total_fee = order.total_fee
+                merge_order.payment = order.distributor_payment
+                merge_order.sku_properties_name = order.properties_values
+                merge_order.refund_status = refund_status
+                merge_order.pic_path = fenxiao_product.pictures and fenxiao_product.pictures.split(',')[0] or ''
+                merge_order.seller_nick = merge_trade.seller_nick
+                merge_order.buyer_nick  = merge_trade.buyer_nick
+                merge_order.created  = order.created
+                merge_order.pay_time = merge_trade.created
+                merge_order.consign_time = merge_trade.consign_time
+                merge_order.status   = pcfg.FENXIAO_TAOBAO_STATUS_MAP.get(order.status,order.status)
                 merge_order.sys_status = sys_status
             else:
-                merge_order.refund_status = refund_status,
-                merge_order.payment       = order.distributor_payment,
-                merge_order.consign_time  = merge_trade.consign_time,
-                merge_order.status        = order.status,
+                merge_order.refund_status = refund_status
+                merge_order.payment       = order.distributor_payment
+                merge_order.consign_time  = merge_trade.consign_time
+                merge_order.status        = order.status
                 merge_order.sys_status = sys_status
             merge_order.save()
         
