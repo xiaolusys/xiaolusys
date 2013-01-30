@@ -35,8 +35,8 @@ var addSearchProdRow  = function(tableID,prod){
 	var price_cell = createDTText(prod[2]);
 	
 	var addbtn_cell = goog.dom.createElement('td');
-	addbtn_cell.innerHTML = '<button class="return-order btn-mini" outer_id="'+prod[0]+'" idx="'+index.toString()+'">退货</button>'
-							+'&nbsp;<button class="change-order btn-mini" outer_id="'+prod[0]+'" idx="'+index.toString()+'">换货</button>';
+	addbtn_cell.innerHTML = '<button class="return-order btn-mini btn-success" outer_id="'+prod[0]+'" idx="'+index.toString()+'">退货</button>'
+							+'&nbsp;<button class="change-order btn-mini btn-success" outer_id="'+prod[0]+'" idx="'+index.toString()+'">换货</button>';
 	
 	row.appendChild(id_cell);
 	row.appendChild(outer_id_cell);
@@ -108,7 +108,7 @@ var addOrderRow  = function(tableID,order){
 	
 	var gift_type_cell  = createDTText(gift_type_name);
 	var delete_btn_cell = goog.dom.createElement('td');
-	delete_btn_cell.innerHTML = '<button class="delete-order btn-mini" oid="'+order.id.toString()+'">删除</button>';
+	delete_btn_cell.innerHTML = '<button class="delete-order btn-mini btn-warning" oid="'+order.id.toString()+'">删除</button>';
 	
 	row.appendChild(id_order_cell);
 	row.appendChild(outer_id_cell);
