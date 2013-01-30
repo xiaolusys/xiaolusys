@@ -285,6 +285,7 @@ class MergeTradeAdmin(admin.ModelAdmin):
             seller_id  = trade.user.visitor_id
             MergeTrade.objects.filter(tid=trade.tid).update(sys_status='')
             try:
+                trade.merge_trade_orders.all().delete()
                 if trade.type == pcfg.TAOBAO_TYPE:
                     response = apis.taobao_trade_fullinfo_get(tid=trade.tid,tb_user_id=seller_id)
                     trade_dict = response['trade_fullinfo_get_response']['trade']
