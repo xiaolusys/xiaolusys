@@ -283,14 +283,15 @@ class MergeTradeAdmin(admin.ModelAdmin):
         pull_fail_ids    = []
         for trade in queryset:
             seller_id  = trade.user.visitor_id
-            MergeTrade.objects.filter(tid=trade.tid).update(sys_status='',
-                                                            reason_code='',
-                                                            has_sys_err=False,
-                                                            has_merge=False,
-                                                            has_memo=False,
-                                                            has_rule_match=False,
-                                                            has_out_stock=False,
-                                                            has_refund=False,)
+            trade.sys_status = ''
+            trade.reason_code=''
+            trade.has_sys_err=False
+            trade.has_merge=False
+            trade.has_memo=False
+            trade.has_rule_match=False
+            trade.has_out_stock=False
+            trade.has_refund=False
+            trade.save()
             try:
                 trade.merge_trade_orders.all().delete()
                 if trade.type == pcfg.TAOBAO_TYPE:
