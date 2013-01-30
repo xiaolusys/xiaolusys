@@ -159,7 +159,7 @@ class ComposeItem(models.Model):
 def rule_match_product(sender, trade_id, *args, **kwargs):
     is_rule_match = False
     try:
-        trade = MergeTrade.objects.get(tid=trade_id)
+        trade = MergeTrade.objects.get(id=trade_id)
     except Trade.DoesNotExist:
         pass
     else: 
@@ -209,7 +209,7 @@ def rule_match_trade(sender, trade_id, *args, **kwargs):
             except Exception,exc:
                 logger.error('交易订单规则(%s)匹配出错'.decode('utf8')%rule.formula,exc_info=True)
     
-        MergeTrade.objects.filter(tid=trade_id).update(sys_memo=','.join(memo_list))
+        MergeTrade.objects.filter(id=trade_id).update(sys_memo=','.join(memo_list))
         
 #rule_signal.connect(rule_match_trade,sender='trade_rule',dispatch_uid='rule_match_orders')
 
@@ -238,7 +238,7 @@ def rule_match_payment(sender, trade_id, *args, **kwargs):
                         MergeOrder.gen_new_order(trade.id,item.outer_id,item.outer_sku_id,item.num,gift_type=pcfg.OVER_PAYMENT_GIT_TYPE)
                     break
             
-            MergeTrade.objects.filter(tid=trade_id).update(total_num=orders.filter(sys_status=pcfg.IN_EFFECT).count())
+            MergeTrade.objects.filter(id=trade_id).update(total_num=orders.filter(sys_status=pcfg.IN_EFFECT).count())
         except Exception,exc:
             logger.error(exc.message,exc_info=True)
             trade.append_reason_code(pcfg.PAYMENT_RULE_ERROR_CODE)
