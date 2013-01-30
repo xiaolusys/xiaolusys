@@ -238,7 +238,7 @@ def rule_match_payment(sender, trade_id, *args, **kwargs):
                         MergeOrder.gen_new_order(trade.id,item.outer_id,item.outer_sku_id,item.num,gift_type=pcfg.OVER_PAYMENT_GIT_TYPE)
                     break
             
-            MergeTrade.objects.filter(id=trade_id).update(total_num=orders.filter(sys_status=pcfg.IN_EFFECT).count())
+            MergeTrade.objects.filter(id=trade_id).update(total_num=orders.filter(sys_status=pcfg.IN_EFFECT).count(),payment=payment)
         except Exception,exc:
             logger.error(exc.message,exc_info=True)
             trade.append_reason_code(pcfg.PAYMENT_RULE_ERROR_CODE)

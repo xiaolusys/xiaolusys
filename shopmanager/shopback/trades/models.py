@@ -632,7 +632,6 @@ def merge_order_remover(main_tid):
     main_trade.save()
     
     main_trade.merge_trade_orders.filter(Q(oid=None)|Q(is_merge=True)).delete()
-    
     sub_merges = MergeBuyerTrade.objects.filter(main_tid=main_tid)
     for sub_merge in sub_merges:   
         sub_tid  = sub_merge.sub_tid

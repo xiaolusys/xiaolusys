@@ -42,6 +42,9 @@ tr {
     text-align: left;
     vertical-align: top;
     border-top: 1px solid #DDD;
+    max-width: 150px;
+    max-height: 150px;
+    overflow: hidden;
 }
 
 .table tbody tr:hover td, .table tbody tr:hover th {
