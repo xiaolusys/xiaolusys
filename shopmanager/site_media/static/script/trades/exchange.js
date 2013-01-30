@@ -55,15 +55,15 @@ var addSearchTradeRow  = function(tableID,trade){
     var row   = table.insertRow(rowCount);
     var index = rowCount;
     
-	var id_cell = createDTText(index.toString());
+	var id_cell = createDTText(index+'');
 	var buyer_nick_cell   = createDTText(trade.buyer_nick);
-	var num_cell     = createDTText(trade.total_num.toString());
+	var num_cell     = createDTText(trade.total_num+'');
 	var pay_time_cell     = createDTText(trade.pay_time);
 	var consign_time_cell = createDTText(trade.consign_time);
 	var receiver_cell     = createDTText(trade.receiver_name);
 	var address_cell      = createDTText(trade.receiver_state+','+trade.receiver_city
 		+','+trade.receiver_district+','+trade.receiver_address+','
-		+trade.receiver_mobile+','+trade.receiver_phone);
+		+trade.receiver_mobile+','+trade.receiver_phone+','+trade.receiver_zip);
 	
 	var status_cell = createDTText(trade.status);
 	var sys_status_cell  = createDTText(trade.sys_status);

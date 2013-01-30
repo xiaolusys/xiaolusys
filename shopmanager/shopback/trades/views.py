@@ -520,6 +520,7 @@ class TradeSearchView(ModelView):
             trade_dict['receiver_address']  = trade.receiver_address
             trade_dict['receiver_mobile'] = trade.receiver_mobile
             trade_dict['receiver_phone']  = trade.receiver_phone
+            trade_dict['receiver_zip']    = trade.receiver_zip
             
             trade_dict['status']      = dict(TAOBAO_TRADE_STATUS).get(trade.status,u'其他')
             trade_dict['sys_status']  = dict(SYS_TRADE_STATUS).get(trade.sys_status,u'其他')
