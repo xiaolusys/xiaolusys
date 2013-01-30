@@ -435,8 +435,8 @@ class MergeOrder(models.Model):
     
     id    = BigIntegerAutoField(primary_key=True)
     
-    oid   = models.BigIntegerField(db_index=True,null=True,blank=True,verbose_name='子订单编号')
-    tid   = models.BigIntegerField(db_index=True,null=True,verbose_name='订单编号')
+    oid   = models.BigIntegerField(db_index=True,null=True,blank=True,default=None,verbose_name='子订单编号')
+    tid   = models.BigIntegerField(db_index=True,null=True,blank=True,default=None,verbose_name='订单编号')
     
     cid    = models.BigIntegerField(db_index=True,null=True,verbose_name='商品分类')
     merge_trade = BigIntegerForeignKey(MergeTrade,null=True,related_name='merge_trade_orders',verbose_name='所属订单')
@@ -853,13 +853,12 @@ def save_orders_trade_to_mergetrade(sender, tid, *args, **kwargs):
       
         #保存商城或C店订单到抽象全局抽象订单表
         for order in trade.trade_orders.all():
-            merge_order,state = MergeOrder.objects.get_or_create(oid=order.oid,tid=trade.id,merge_trade = merge_trade)
+            merge_order,state = MergeOrder.objects.get_or_create(oid=order.oid,tid=tid,merge_trade = merge_trade)
             if state and order.refund_status == pcfg.REFUND_WAIT_SELLER_AGREE:
                 sys_status = pcfg.INVALID_STATUS
             else:
                 sys_status = merge_order.sys_status or pcfg.IN_EFFECT
             if state:
-                merge_order.tid = trade.id,
                 merge_order.num_iid = order.num_iid,
                 merge_order.title  = order.title,
                 merge_order.price  = order.price,
@@ -950,7 +949,7 @@ def save_fenxiao_orders_to_mergetrade(sender, tid, *args, **kwargs):
 
         #保存分销订单到抽象全局抽象订单表
         for order in trade.sub_purchase_orders.all():
-            merge_order,state = MergeOrder.objects.get_or_create(oid=order.fenxiao_id,tid=trade.id,merge_trade = merge_trade)
+            merge_order,state = MergeOrder.objects.get_or_create(oid=order.fenxiao_id,tid=tid,merge_trade = merge_trade)
             fenxiao_product = FenxiaoProduct.get_or_create(trade.user.visitor_id,order.item_id)
             if order.status == pcfg.TRADE_REFUNDING:
                 refund_status = pcfg.REFUND_WAIT_SELLER_AGREE
@@ -963,7 +962,6 @@ def save_fenxiao_orders_to_mergetrade(sender, tid, *args, **kwargs):
             else:
                 sys_status = merge_order.sys_status or pcfg.IN_EFFECT     
             if state:    
-                merge_order.tid = trade.id,
                 merge_order.num_iid = fenxiao_product.item_id,
                 merge_order.title  = order.title,
                 merge_order.price  = order.price,
