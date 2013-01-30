@@ -33,32 +33,37 @@
 <div class="accordion-heading1">
 <div style="padding: 2px 15px">
 <div class="row-through">
-<div style="margin: 0px; display: inline-block; width: 25%"><label
+<div style="margin: 0px; display: inline-block; width: 20%"><label
 	class="simple-label">收货人: </label><span id="id_receiver">{{ trade.receiver_name }}</span></div>
-<div style="margin: 0px; display: inline-block; width: 30%"><label
+<div style="margin: 0px; display: inline-block; width: 25%"><label
 	class="simple-label">手机: </label><span id="id_mobile">{{ trade.receiver_mobile }}</span></div>
-<div style="margin: 0px; display: inline-block; width: 30%"><label
+<div style="margin: 0px; display: inline-block; width: 25%"><label
 	class="simple-label">固话: </label><span id="id_phone">{{ trade.receiver_phone }}</span></div>
+<div style="margin: 0px; display: inline-block; width: 20%"><label
+	class="simple-label">邮编: </label><span id="id_zip">{{ trade.receiver_zip }}</span></div>
 </div>
+</div>
+
 <div class="row-through"><label class="simple-label">地址: </label><span id="id_address">{{ trade.receiver_state }}，{{ trade.receiver_city }}，
-{{ trade.receiver_district }}，{{ trade.receiver_address }}</span></div>
+{{ trade.receiver_district }}，{{ trade.receiver_address }}，{{ trade.receiver_zip }}</span></div>
 </div>
 <a id="collapseOne" class="goog-zippy-header goog-zippy-expanded" aria-expanded="true" style="padding: 0px 15px">修改地址››</a></div>
 <div id="addrContent" class="accordion-inner1">
 <form id="id-addr-form" class="form-inline">
 <div>
     <label class="simple-label">收货人信息: </label> 
-	<input type="text" id="id_receiver_name" class="input-small1" value="{{ trade.receiver_name }}" alt="收货人" name="receiver_name">
-	<input type="text" id="id_receiver_mobile" class="input-small1" value="{{ trade.receiver_mobile }}" alt="手机" name="receiver_mobile"> 
-	<input type="text" id="id_receiver_phone" class="input-small1" value="{{ trade.receiver_phone }}" alt="固话" name="receiver_phone"> 
+	<input type="text" id="id_receiver_name" class="input-small1" value="{{ trade.receiver_name }}" placeholder="收货人" name="receiver_name">
+	<input type="text" id="id_receiver_mobile" class="input-small1" value="{{ trade.receiver_mobile }}" placeholder="手机" name="receiver_mobile"> 
+	<input type="text" id="id_receiver_phone" class="input-small1" value="{{ trade.receiver_phone }}" placeholder="固话" name="receiver_phone">
+	<input type="text" id="id_receiver_zip" class="input-small1" value="{{ trade.receiver_zip }}" placeholder="邮编" name="receiver_zip">  
 	<input type="button" id="addr-from-submit" class="btn btn-small" style="float: right" value="确定修改">
 </div>
 <div style="margin-top: 5px">
 	<label class="simple-label">新地址:</label> 
-	<input type="text" id="id_receiver_state" class="input-small1" value="{{ trade.receiver_state }}" alt="省" name="receiver_state"> 
-	<input type="text" id="id_receiver_city" class="input-small1" value="{{ trade.receiver_city }}" alt="市" name="receiver_city"> 
-	<input type="text" id="id_receiver_district" class="input-small1" value="{{ trade.receiver_district }}" alt="区" name="receiver_district"> 
-	<input type="text" id="id_receiver_address" style="width: 310px" value="{{ trade.receiver_address }}" alt="详细地址" name="receiver_address">
+	<input type="text" id="id_receiver_state" class="input-small1" value="{{ trade.receiver_state }}" placeholder="省" name="receiver_state"> 
+	<input type="text" id="id_receiver_city" class="input-small1" value="{{ trade.receiver_city }}" placeholder="市" name="receiver_city"> 
+	<input type="text" id="id_receiver_district" class="input-small1" value="{{ trade.receiver_district }}" placeholder="区" name="receiver_district"> 
+	<input type="text" id="id_receiver_address" style="width: 310px" value="{{ trade.receiver_address }}" placeholder="详细地址" name="receiver_address">
 </div>
 </form>
 </div>

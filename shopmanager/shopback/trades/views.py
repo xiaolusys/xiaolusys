@@ -50,6 +50,7 @@ class CheckOrderView(ModelView):
             'receiver_address':trade.receiver_address,
             'receiver_mobile':trade.receiver_mobile,
             'receiver_phone':trade.receiver_phone,
+            'receiver_zip':trade.receiver_zip,
             'has_memo':trade.has_memo,
             'has_refund':trade.has_refund,
             'has_out_stock':trade.has_out_stock,

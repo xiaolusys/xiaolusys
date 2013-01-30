@@ -189,8 +189,8 @@ class MergeTrade(models.Model):
                     ,sys_status=pcfg.IN_EFFECT)       
     @property
     def buyer_full_address(self):
-        return '%s%s%s%s%s'%(self.receiver_name.strip(),self.receiver_state.strip(),self.receiver_city.strip()
-                             ,self.receiver_district.strip(),self.receiver_address.strip())
+        return '%s%s%s%s%s%s%s%s'%(self.receiver_name.strip(),self.receiver_mobile.strip(),self.receiver_phone.strip(),self.receiver_state.strip()
+                             ,self.receiver_city.strip(),self.receiver_district.strip(),self.receiver_address.strip(),self.receiver_zip.strip())
     
     def is_post_success(self):
         user_id = self.user.visitor_id
