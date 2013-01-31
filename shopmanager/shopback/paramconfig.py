@@ -13,6 +13,7 @@ EXCHANGE_TYPE  = 'exchange'
 AUTO_DELIVERY_TYPE = 'auto_delivery'
 COD_TYPE       = 'cod'
 GUARANTEE_TYPE  = 'guarantee_trade'
+AUCTION_TYPE    = 'auction'
 
 #商品状态
 ONSALE_STATUS  = 'onsale'

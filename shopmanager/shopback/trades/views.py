@@ -115,13 +115,10 @@ class CheckOrderView(ModelView):
                 return_orders = trade.merge_trade_orders.filter(sys_status=pcfg.IN_EFFECT
                      ,gift_type=pcfg.RETURN_GOODS_GIT_TYPE)
                 if change_orders.count()>0:
-                    for t in return_orders:
-                        #此处需要减库存
-                        t.sys_status = pcfg.INVALID_STATUS
-                        t.save()
                     trade.sys_status = pcfg.WAIT_PREPARE_SEND_STATUS
                     trade.reason_code = ''
                     trade.save()
+                    #此处需要减库存
                 elif return_orders.count()>0:
                     #此处需要减库存
                     trade.sys_status = pcfg.FINISHED_STATUS
