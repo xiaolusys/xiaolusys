@@ -86,8 +86,10 @@ class CheckOrderView(ModelView):
             return u'请选择快递'
         
         if params:
-            MergeTrade.objects.filter(id=id).update(**params)
-
+            trade.logistics_company = params['logistics_company']
+            trade.priority = params['priority']
+            trade.save()
+            
         if action_code == 'check':
             check_msg = []
             if trade.has_refund:

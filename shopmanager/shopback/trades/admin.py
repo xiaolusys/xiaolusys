@@ -457,7 +457,7 @@ class MergeTradeAdmin(admin.ModelAdmin):
         trade_items = {}
         for trade in post_trades:
             used_orders = trade.merge_trade_orders.filter(status__in=(pcfg.WAIT_BUYER_CONFIRM_GOODS,pcfg.WAIT_SELLER_SEND_GOODS),
-                sys_status=pcfg.IN_EFFECT)
+                sys_status=pcfg.IN_EFFECT).exclude(gift_type=pcfg.RETURN_GOODS_GIT_TYPE)
             for order in used_orders:
                 outer_id = order.outer_id or str(order.num_iid)
                 outer_sku_id = order.outer_sku_id or str(order.sku_id)
