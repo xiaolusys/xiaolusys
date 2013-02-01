@@ -3,6 +3,7 @@
 <div class="body1" style="margin-left: auto; margin-right: auto; width: 720px">
 <div class="row-through">
 <input type="hidden" id="id_check_trade" name="trade_id" value="{{ trade.id }}">
+<input type="hidden" id="id_trade_type" name="trade_type" value="{{ trade.type }}">
 <input type="hidden" id="id_trade_status" name="trade_status" value="{{ trade.sys_status }}">
 <div style="margin: 0px; display: inline-block; width: 30%"><label class="simple-label">订单号: </label>{{ trade.tid }}</div>
 <div style="margin: 0px; display: inline-block; width: 30%"><label class="simple-label">买家: </label>{{ trade.buyer_nick }}</div>

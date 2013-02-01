@@ -1,10 +1,12 @@
 goog.require('goog.dom');
 goog.require('goog.style');
 
+var EXCHANGE_TRADE_TYPE = 'exchange'
+
 var REAL_PAYMENT_TYPE = 0; 
-var HANDSEL_TYPE = 1;
-var OVER_GIFT_TYPE = 2;
-var SPLIT_TYPE = 3;
+var HANDSEL_TYPE      = 1;
+var OVER_GIFT_TYPE    = 2;
+var SPLIT_TYPE        = 3;
 var RETURN_GOODS_TYPE = 4;
 var CHANGE_GOODS_TYPE = 5;
 

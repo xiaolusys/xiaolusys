@@ -39,24 +39,12 @@ admin.site.register(Item, ItemAdmin)
 
 
 class ProductAdmin(admin.ModelAdmin):
-    list_display = ('id','outer_id','name','category','collect_num','warn_num','remain_num','price','sync_stock','out_stock','create_date','modify_date','status')
+    list_display = ('id','outer_id','name','category','collect_num','warn_num','remain_num','price','sync_stock','out_stock','created','modified','status')
     list_display_links = ('id','outer_id',)
     list_editable = ('name','collect_num')
     
     date_hierarchy = 'modified'
     #ordering = ['created_at']
-    
-    def create_date(self, obj):
-        return obj.created.strftime('%Y-%m-%d %H:%M')
-
-    create_date.short_description = '创建日期'.decode('utf8')
-    create_date.admin_order_field = 'created'
-    
-    def modify_date(self, obj):
-        return obj.modified.strftime('%Y-%m-%d %H:%M')
-    
-    modify_date.short_description = '修改日期'.decode('utf8')
-    modify_date.admin_order_field = 'modified'
     
     inlines = [ProductSkuInline]
     
@@ -98,9 +86,11 @@ class ProductAdmin(admin.ModelAdmin):
             try:
                 items = Item.objects.filter(outer_id=prod.outer_id)
                 for item in items:
-                    Item.get_or_create(item.user.visitor_id,item.num_iid,force_update=True)
-                updateUserProductSkuTask(items=items)
+                    Item.get_or_create(item.user.visitor_id,item.num_iid,force_update=True)    
+                
+                updateUserProductSkuTask(outer_ids=[prod.outer_id])
                 item_sku_outer_ids = set()
+                items = Item.objects.filter(outer_id=prod.outer_id)
                 for item in items:
                     sku_dict = json.loads(item.skus or '{}')
                     if sku_dict:

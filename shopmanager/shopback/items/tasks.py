@@ -98,12 +98,14 @@ def updateAllUserItemsTask():
 
 
 @task()
-def updateUserProductSkuTask(user_id=None,items=None,force_update_num=False):
+def updateUserProductSkuTask(user_id=None,outer_ids=None,force_update_num=False):
 
-    if not items or not isinstance(items,(list,tuple,QuerySet)):
+    if not items or not isinstance(items,(list,tuple)):
         user = User.objects.get(visitor_id=user_id)
         items = user.items.filter(status=pcfg.NORMAL)
-	
+    else:
+        items =  Item.objects.filter(outer_id__in=outer_ids)
+        
     num_iids = []
     prop_dict = {}
     for index, item in enumerate(items):

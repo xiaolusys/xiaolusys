@@ -34,7 +34,13 @@ var addSearchRow  = function(tableID,prod){
 	var price_cell = createDTText(prod[2]);
 	
 	var addbtn_cell = goog.dom.createElement('td');
-	addbtn_cell.innerHTML = '<button class="add-order btn-mini" outer_id="'+prod[0]+'" idx="'+index.toString()+'">赠送</button>';
+	var trade_type  = goog.dom.getElement('id_trade_type').value;
+	if (trade_type==EXCHANGE_TRADE_TYPE){
+		addbtn_cell.innerHTML = '<button class="add-order btn-mini" outer_id="'+prod[0]+'" idx="'+index.toString()+'" action="return"'+'">退货</button>'
+								+'<button class="add-order btn-mini" outer_id="'+prod[0]+'" idx="'+index.toString()+'" action="change"'+'">换货</button>';
+	}else{
+		addbtn_cell.innerHTML = '<button class="add-order btn-mini" outer_id="'+prod[0]+'" idx="'+index.toString()+'" action="present"'+'">添加</button>';
+	}
 	
 	row.appendChild(id_cell);
 	row.appendChild(outer_id_cell);
@@ -157,7 +163,7 @@ ordercheck.Dialog.prototype.changeAddr=function(e){
 	
 	var params = {'trade_id':trade_id,'receiver_name':receiver_name,'receiver_mobile':receiver_mobile,
 			'receiver_phone':receiver_phone,'receiver_state':receiver_state,'receiver_city':receiver_city,
-			'receiver_district':receiver_district,'receiver_address':receiver_address}		
+			'receiver_district':receiver_district,'receiver_address':receiver_address};		
 	
 	var callback = function(e){
 		var xhr = e.target;
@@ -216,12 +222,22 @@ ordercheck.Dialog.prototype.addOrder=function(e){
     var that = this;
 	var target = e.target;
 	var idx    = target.getAttribute('idx');
+	var action = target.getAttribute('action');
 	var trade_id     = goog.dom.getElement('id_check_trade').value;
 	var outer_id     = target.getAttribute('outer_id');
 	var sku_outer_id = goog.dom.getElement('id-order-sku-'+idx).value;
 	var num          = goog.dom.getElement('id-order-num-'+idx).value;
+	var order_type   = null;
 	
-	var params     = {'trade_id':trade_id,'outer_id':outer_id,'outer_sku_id':sku_outer_id,'num':num}
+	if (action=="return"){
+		order_type = RETURN_GOODS_TYPE;
+	}else if (action=="change"){
+		order_type = CHANGE_GOODS_TYPE;
+	}else{
+		order_type = HANDSEL_TYPE;
+	}
+	
+	var params     = {'trade_id':trade_id,'outer_id':outer_id,'outer_sku_id':sku_outer_id,'num':num,'type':order_type}
 	var callback = function(e){
 		var xhr = e.target;
         try {
@@ -291,7 +307,7 @@ ordercheck.Dialog.prototype.deleteOrder=function(e){
 	var table    = row.parentElement.parentElement;
 	var order_id = target.getAttribute('oid');
 	var callback = function(e){
-		var xhr = e.target;
+		var xhr  = e.target;
         try {
         	var res = xhr.getResponseJson();
             if (res.code == 0){

@@ -12,6 +12,7 @@
   top:252px !important;
 }*/
 
+
 .modal-dialog a,
 .modal-dialog a:link,
 .modal-dialog a:visited  {
@@ -63,3 +64,38 @@
   font-size: 12px;
   margin-left: 10px;
 }
+
+.trade_memo {
+  width:96%;
+  height:100px;
+  background-color:rgba(246, 167,222, 0.8);
+}
+
+.memo_label {
+  margin: 5px 0px; 
+  display: inline-block; 
+  width: 49%;
+  height:18px;
+  background-color:rgba(82, 168, 236, 0.8);
+}
+
+.buyer_message_label{
+  margin: 0px; 
+  display: inline-block; 
+  width: 98%;
+  background-color:rgba(246, 167,222, 0.8);
+}
+
+.icon-tags  {
+  font-family: FontAwesome;
+  font-weight: normal;
+  font-style: normal;
+  text-decoration: inherit;
+  height: auto;
+  line-height: normal;
+  vertical-align: baseline;
+  display: inline-block;
+  width: 1.25em;
+  text-align: center;
+}
+

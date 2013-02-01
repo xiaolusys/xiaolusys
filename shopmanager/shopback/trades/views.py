@@ -43,6 +43,7 @@ class CheckOrderView(ModelView):
             'seller_memo':trade.seller_memo,
             'logistics_company':trade.logistics_company,
             'priority':trade.priority,
+            'type':trade.type,
             'receiver_name':trade.receiver_name,
             'receiver_state':trade.receiver_state,
             'receiver_city':trade.receiver_city,
