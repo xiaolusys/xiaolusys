@@ -75,11 +75,11 @@
   margin: 5px 0px; 
   display: inline-block; 
   width: 49%;
-  height:18px;
+  height:20px;
   background-color:rgba(82, 168, 236, 0.8);
 }
 
-.buyer_message_label{
+.buyer_message_label,.seller_message_label{
   margin: 0px; 
   display: inline-block; 
   width: 98%;

@@ -133,7 +133,7 @@ class MergeTrade(models.Model):
     
     buyer_message = models.TextField(max_length=1000,blank=True,verbose_name='买家留言')
     seller_memo = models.TextField(max_length=1000,blank=True,verbose_name='卖家备注')
-    sys_memo    = models.TextField(max_length=500,blank=True,verbose_name='系统备注')
+    sys_memo    = models.TextField(max_length=1000,blank=True,verbose_name='系统备注')
     seller_flag    = models.IntegerField(null=True,verbose_name='淘宝旗帜')
     
     created    = models.DateTimeField(db_index=True,null=True,blank=True,verbose_name='生成日期')

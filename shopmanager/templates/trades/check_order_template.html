@@ -14,10 +14,10 @@
 </div>
 <div class="row-through">
 <div class="alert-message buyer"><strong>买家留言: </strong>{{ trade.buyer_message }}</div>
-<div class="alert-message seller"><strong>卖家留言: </strong>{{ trade.seller_memo }}</div>
+<div class="alert-message seller"><strong>卖家留言: </strong>{{ trade.seller_memo }} {{ trade.sys_memo }}</div>
 </div>
 <div style="padding: 9px 15px">
-<label class="simple-label">快递:</label> 
+<label class="simple-label">快递:</label>    
 <select id="id_logistics" class="selection">
 	<option value="">--------</option>
 	{% for lg in logistics %}
