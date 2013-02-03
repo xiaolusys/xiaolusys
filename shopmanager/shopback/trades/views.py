@@ -205,7 +205,7 @@ def change_trade_addr(request):
         
     for (key, val) in CONTENT.items():
          setattr(trade, key, val)
-    
+    trade.save()
     try:
         if trade.type in (pcfg.TAOBAO_TYPE,pcfg.FENXIAO_TYPE,pcfg.GUARANTEE_TYPE) and trade.sys_status==pcfg.WAIT_AUDIT_STATUS:
             response = apis.taobao_trade_shippingaddress_update(tid=trade.tid,
@@ -220,8 +220,7 @@ def change_trade_addr(request):
                                                             tb_user_id=trade.user.visitor_id)
     except Exception,exc:
         logger.error(exc.message,exc_info=True)
-  
-    trade.save()
+
     trade.append_reason_code(pcfg.ADDR_CHANGE_CODE)
     
     log_action(user_id,trade,CHANGE,u'修改地址')

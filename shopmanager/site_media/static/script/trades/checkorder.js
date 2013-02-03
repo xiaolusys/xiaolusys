@@ -160,10 +160,11 @@ ordercheck.Dialog.prototype.changeAddr=function(e){
 	var receiver_city   = goog.dom.getElement('id_receiver_city').value;
 	var receiver_district = goog.dom.getElement('id_receiver_district').value;
 	var receiver_address  = goog.dom.getElement('id_receiver_address').value;
+	var receiver_zip    = goog.dom.getElement('id_receiver_zip').value;
 	
 	var params = {'trade_id':trade_id,'receiver_name':receiver_name,'receiver_mobile':receiver_mobile,
 			'receiver_phone':receiver_phone,'receiver_state':receiver_state,'receiver_city':receiver_city,
-			'receiver_district':receiver_district,'receiver_address':receiver_address};		
+			'receiver_district':receiver_district,'receiver_address':receiver_address,'receiver_zip':receiver_zip};		
 	
 	var callback = function(e){
 		var xhr = e.target;
@@ -173,6 +174,7 @@ ordercheck.Dialog.prototype.changeAddr=function(e){
             	goog.dom.getElement('id_receiver').innerText = receiver_name;
             	goog.dom.getElement('id_mobile').innerText   = receiver_mobile;
             	goog.dom.getElement('id_phone').innerText    = receiver_phone;
+            	goog.dom.getElement('id_zip').innerText      = receiver_zip;
             	goog.dom.getElement('id_address').innerText  = receiver_state+'，'+receiver_city+'，'+receiver_district+'，'+receiver_address;
             }else{
                 alert("地址修改失败:"+res.response_error);
