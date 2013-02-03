@@ -501,9 +501,11 @@ def update_sys_memo(request):
     except:
         return HttpResponse(json.dumps({'code':1,'response_error':u'订单未找到'}),mimetype="application/json")
     else:
-        merge_trade.sys_memo = sys_memo
-        merge_trade.save()
         merge_trade.append_reason_code(pcfg.NEW_MEMO_CODE)
+        merge_trade.sys_memo   = sys_memo
+        merge_trade.save()
+        MergeTrade.objects.filter(id=merge_trade.id,sys_status= cfg.WAIT_PREPARE_SEND_STATUS,out_sid='')\
+            .update(sys_status = pcfg.WAIT_AUDIT_STATUS)
         log_action(user_id,merge_trade,CHANGE,u'系统备注:%s'%sys_memo)
         return HttpResponse(json.dumps({'code':0,'response_content':{'success':True}}),mimetype="application/json")
 
