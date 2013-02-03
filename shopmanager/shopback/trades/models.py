@@ -496,27 +496,28 @@ class MergeOrder(models.Model):
             except Exception,exc:
                  logger.error(exc.message,exc_info=True)
                  sku_properties_name = u'该规格编码没有入库'
-        merge_order = MergeOrder.objects.create(
+        merge_order,state = MergeOrder.objects.get_or_create(
             tid = merge_trade.tid,
             merge_trade = merge_trade,
-            outer_id = outer_id,
-            price = product.price,
-            payment = '0',
-            num = num,
-            title = product.name,
-            outer_sku_id = outer_sku_id,
-            sku_properties_name = sku_properties_name,
-            refund_status = pcfg.NO_REFUND,
-            seller_nick = merge_trade.seller_nick,
-            buyer_nick = merge_trade.buyer_nick,
-            created = merge_trade.created,
-            pay_time = merge_trade.pay_time,
-            consign_time = merge_trade.consign_time,
-            gift_type = gift_type,
-            is_reverse_order = is_reverse,
-            status = status,
-            sys_status = pcfg.IN_EFFECT
-            )
+        )
+        merge_order.outer_id = outer_id,
+        merge_order.price = product.price,
+        merge_order.payment = '0',
+        merge_order.num = num,
+        merge_order.title = product.name,
+        merge_order.outer_sku_id = outer_sku_id,
+        merge_order.sku_properties_name = sku_properties_name,
+        merge_order.refund_status = pcfg.NO_REFUND,
+        merge_order.seller_nick = merge_trade.seller_nick,
+        merge_order.buyer_nick = merge_trade.buyer_nick,
+        merge_order.created = merge_trade.created,
+        merge_order.pay_time = merge_trade.pay_time,
+        merge_order.consign_time = merge_trade.consign_time,
+        merge_order.gift_type = gift_type,
+        merge_order.is_reverse_order = is_reverse,
+        merge_order.status = status,
+        merge_order.sys_status = pcfg.IN_EFFECT
+        merge_order.save()
         return merge_order
 
 
@@ -532,7 +533,7 @@ def refresh_trade_status(sender,instance,*args,**kwargs):
         return 
     
     total_num     = merge_trade.merge_trade_orders.filter(status__in=(pcfg.WAIT_SELLER_SEND_GOODS
-                  ,pcfg.WAIT_BUYER_CONFIRM_GOODS,TRADE_FINISHED),sys_status=pcfg.IN_EFFECT).count()
+                  ,pcfg.WAIT_BUYER_CONFIRM_GOODS,pcfg.TRADE_FINISHED),sys_status=pcfg.IN_EFFECT).count()
     merge_trade.total_num = total_num
     if merge_trade.status == pcfg.WAIT_SELLER_SEND_GOODS:
         has_refunding = merge_trade.has_trade_refunding()

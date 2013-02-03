@@ -232,7 +232,7 @@ class MergeTradeAdmin(admin.ModelAdmin):
                 self.message_user(request, u"该订单不是问题单,或没有合并子订单")
                 return HttpResponseRedirect("../%s/" % pk_value)
         elif request.POST.has_key("_save"):
-            msg = u' %(name)s "%(obj)s" 保存成功.'.decode('utf8')% {'name': force_unicode(verbose_name), 'obj': force_unicode(obj)}
+            msg = u'%(name)s "%(obj)s" 保存成功.'% {'name': force_unicode(verbose_name), 'obj': force_unicode(obj)}
             self.message_user(request, msg)
             return HttpResponseRedirect("../%s/" % pk_value)
         return super(MergeTradeAdmin, self).response_change(request, obj, *args, **kwargs)
