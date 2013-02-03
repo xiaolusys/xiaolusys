@@ -222,26 +222,26 @@ def rule_match_payment(sender, trade_id, *args, **kwargs):
         pass
     else:
         trade.merge_trade_orders.filter(gift_type=pcfg.OVER_PAYMENT_GIT_TYPE).delete()
-        try:
-            orders = trade.merge_trade_orders.filter(status=pcfg.WAIT_SELLER_SEND_GOODS,gift_type=pcfg.REAL_ORDER_GIT_TYPE)\
-                            .exclude(refund_status__in=pcfg.REFUND_APPROVAL_STATUS)
-            
-            payment = orders.aggregate(total_payment=Sum('payment'))['total_payment'] or 0
-            post_fee = trade.post_fee or 0
-            
-            real_payment = payment - float(post_fee)
-            self_rule = None
-            payment_rules = ComposeRule.objects.filter(type='payment').order_by('-payment')
-            for rule in payment_rules:
-                if real_payment >= rule.payment:
-                    for item in rule.compose_items.all():
-                        MergeOrder.gen_new_order(trade.id,item.outer_id,item.outer_sku_id,item.num,gift_type=pcfg.OVER_PAYMENT_GIT_TYPE)
-                    break
-            
-            MergeTrade.objects.filter(id=trade_id).update(total_num=orders.filter(sys_status=pcfg.IN_EFFECT).count(),payment=payment)
-        except Exception,exc:
-            logger.error(exc.message,exc_info=True)
-            trade.append_reason_code(pcfg.PAYMENT_RULE_ERROR_CODE)
+#        try:
+        orders = trade.merge_trade_orders.filter(status=pcfg.WAIT_SELLER_SEND_GOODS,gift_type=pcfg.REAL_ORDER_GIT_TYPE)\
+                        .exclude(refund_status__in=pcfg.REFUND_APPROVAL_STATUS)
+        
+        payment = orders.aggregate(total_payment=Sum('payment'))['total_payment'] or 0
+        post_fee = trade.post_fee or 0
+        
+        real_payment = payment - float(post_fee)
+        self_rule = None
+        payment_rules = ComposeRule.objects.filter(type='payment').order_by('-payment')
+        for rule in payment_rules:
+            if real_payment >= rule.payment:
+                for item in rule.compose_items.all():
+                    MergeOrder.gen_new_order(trade.id,item.outer_id,item.outer_sku_id,item.num,gift_type=pcfg.OVER_PAYMENT_GIT_TYPE)
+                break
+        
+        MergeTrade.objects.filter(id=trade_id).update(total_num=orders.filter(sys_status=pcfg.IN_EFFECT).count(),payment=payment)
+#        except Exception,exc:
+#            logger.error(exc.message,exc_info=True)
+#            trade.append_reason_code(pcfg.PAYMENT_RULE_ERROR_CODE)
             
 rule_signal.connect(rule_match_payment,sender='payment_rule',dispatch_uid='rule_match_payment')
 
