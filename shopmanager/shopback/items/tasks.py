@@ -100,7 +100,7 @@ def updateAllUserItemsTask():
 @task()
 def updateUserProductSkuTask(user_id=None,outer_ids=None,force_update_num=False):
 
-    if not items or not isinstance(items,(list,tuple)):
+    if not outer_ids or not isinstance(outer_ids,(list,tuple)):
         user = User.objects.get(visitor_id=user_id)
         items = user.items.filter(status=pcfg.NORMAL)
     else:

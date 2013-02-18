@@ -20,8 +20,8 @@ CURL_READ_TIMEOUT    = 100
 CURL_CONNECT_TIMEOUT = 60
 
 
-#class Command(DaemonCommand):
-class Command():
+class Command(DaemonCommand):
+    #class Command():
     c = None
     fail_wait_time = 0
     
