@@ -7,7 +7,7 @@ from shopback.trades.models import MergeTrade
 class TradeResource(ModelResource):
     """ docstring for TradeResource TradeResource """
 
-    fields = ('trade','logistics')
+    fields = ('trade','logistics','shippings')
     exclude = ('url',) 
     
 

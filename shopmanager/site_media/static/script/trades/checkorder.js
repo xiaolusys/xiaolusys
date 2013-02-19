@@ -98,6 +98,7 @@ ordercheck.Dialog = function (manager) {
 ordercheck.Dialog.prototype.init = function (id) {
 	var dialog = this.dialog ;
     var that   = this ;
+    dialog.setContent('');
     var callback = function(e){
         var xhr = e.target;
         try {
@@ -334,7 +335,8 @@ ordercheck.Dialog.prototype.handleEvent= function (e) {
 	var tradeDom  = goog.dom.getElement("id_check_trade");
     var logisticsDom = goog.dom.getElement("id_logistics");
     var priorityDom  = goog.dom.getElement("id_priority");
-    var retval    = this.orderManager.checkorder(tradeDom.value,logisticsDom.value,priorityDom.value,action_code);
+    var shippingDom  = goog.dom.getElement("id_shipping_type");
+    var retval    = this.orderManager.checkorder(tradeDom.value,logisticsDom.value,priorityDom.value,shippingDom.value,action_code);
    
     return false;
 }
@@ -358,7 +360,7 @@ ordercheck.Manager.prototype.showDialog = function(e) {
     this.dialog.show(); 
 }
 
-ordercheck.Manager.prototype.checkorder = function(trade_id,logistic_code,priority,action) {
+ordercheck.Manager.prototype.checkorder = function(trade_id,logistic_code,priority,shipping,action) {
 	var that  = this;
     var callback = function(e){
         var xhr = e.target;
@@ -376,7 +378,13 @@ ordercheck.Manager.prototype.checkorder = function(trade_id,logistic_code,priori
             console.log('Error: (ajax callback) - ', err);
         } 
 	};
-	var params  = {'format':'json','logistic_code':logistic_code,'priority':priority,'action':action};
+	var params  = {
+					'format':'json',
+					'logistic_code':logistic_code,
+					'priority':priority,
+					'shipping_type':shipping,
+					'action':action
+				};
 	var content = goog.uri.utils.buildQueryDataFromMap(params);
 	goog.net.XhrIo.send('/trades/checkorder/'+trade_id+'/',callback,'POST',content);
 }

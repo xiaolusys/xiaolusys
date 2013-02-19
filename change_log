@@ -1,4 +1,7 @@
 ########  2013-1-15   #########
+alter table shop_trades_mergetrade add column weight_time datetime DEFAULT NULL;
+(update shop_trades_mergetrade set weight_time = consign_time;)
+########  2013-1-15   #########
 alter table shop_trades_mergetrade add column can_review tinyint(1) NOT NULL;
 ########  2013-1-14   #########
 alter table shop_trades_mergeorder add column is_reverse_order tinyint(1) NOT NULL;

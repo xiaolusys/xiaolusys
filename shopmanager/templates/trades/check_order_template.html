@@ -1,5 +1,5 @@
 {% load trade_tags %} 
-{% with trade=object.trade logistics=object.logistics %}
+{% with trade=object.trade logistics=object.logistics shippings=object.shippings %}
 <div class="body1" style="margin-left: auto; margin-right: auto; width: 720px">
 <div class="row-through">
 <input type="hidden" id="id_check_trade" name="trade_id" value="{{ trade.id }}">
@@ -17,13 +17,20 @@
 <div class="alert-message seller"><strong>卖家留言: </strong>{{ trade.seller_memo }} {{ trade.sys_memo }}</div>
 </div>
 <div style="padding: 9px 15px">
+<label class="simple-label">物流方式:</label>   
+<select id="id_shipping_type" class="selection" style="width:100px;">
+	{% for k,v in shippings.items %}
+	<option value='{{ k }}' {% if k == trade.shipping_type %}selected{% endif %} >{{ v }}</option>
+	{% endfor %}
+</select> 
 <label class="simple-label">快递:</label>    
-<select id="id_logistics" class="selection">
+<select id="id_logistics" class="selection" style="width:100px;">
 	<option value="">--------</option>
 	{% for lg in logistics %}
 	<option value='{{ lg.code }}' {% if lg.id == trade.logistics_company.id %}selected{% endif %} >{{ lg.name }}</option>
 	{% endfor %}
-</select> <label class="simple-label">优先级: </label> <select id="id_priority" name="priority" class="selection">
+</select> 
+<label class="simple-label">优先级: </label> <select id="id_priority" name="priority" class="selection" style="width:100px;">
 	<option {% if trade.priority == -1 %}selected{% endif %} value="-1">低</option>
 	<option {% if trade.priority == 0 %}selected{% endif %} value="0">中</option>
 	<option {% if trade.priority == 1 %}selected{% endif %} value="1">高</option>

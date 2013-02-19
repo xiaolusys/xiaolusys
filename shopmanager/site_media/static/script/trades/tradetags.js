@@ -60,6 +60,7 @@ tradetag.Manager.prototype.handleEvent= function (e) {
 	var that = this;
     if (e.key == 'SAVE') {
         var sys_memo = goog.dom.getElement('id_sys_memo').value;
+        if (sys_memo==''||sys_memo=='undifine'){ return };
         var callback = function(e){
 	    	var xhr = e.target;
 	        try {

@@ -80,12 +80,13 @@ TRADE_TYPE = (
     (pcfg.GUARANTEE_TYPE,'一口价、拍卖'),
     (pcfg.AUCTION_TYPE,'拍卖'),
 )
-SHIPPING_TYPE = {
-    'FAST':'express',
-    'EMS':'ems',
-    'ORDINARY':'post',
-    'SELLER':'free',
-}
+
+SHIPPING_TYPE_CHOICE = (
+    (pcfg.EXPRESS_SHIPPING_TYPE,'快递'),
+    (pcfg.POST_SHIPPING_TYPE,'平邮'),
+    (pcfg.EMS_SHIPPING_TYPE,'EMS'),
+    (pcfg.EXTRACT_SHIPPING_TYPE,'无需物流'),
+)
 
 PRIORITY_TYPE = (
     (-1,'低'),
@@ -113,7 +114,7 @@ class MergeTrade(models.Model):
     buyer_nick  = models.CharField(max_length=64,db_index=True,blank=True,verbose_name='买家昵称')
     
     type       = models.CharField(max_length=32,choices=TRADE_TYPE,blank=True,verbose_name='订单类型')
-    shipping_type = models.CharField(max_length=12,blank=True,verbose_name='物流方式')
+    shipping_type = models.CharField(max_length=12,blank=True,choices=SHIPPING_TYPE_CHOICE,verbose_name='物流方式')
     
     total_num  =   models.IntegerField(null=True,default=0,verbose_name='单数')
     payment    =   models.CharField(max_length=10,blank=True,verbose_name='实付款')
@@ -140,6 +141,7 @@ class MergeTrade(models.Model):
     pay_time   = models.DateTimeField(db_index=True,null=True,blank=True,verbose_name='付款日期')
     modified   = models.DateTimeField(db_index=True,null=True,blank=True,verbose_name='修改日期') 
     consign_time = models.DateTimeField(db_index=True,null=True,blank=True,verbose_name='发货日期')
+    weight_time  = models.DateTimeField(db_index=True,null=True,blank=True,verbose_name='称重日期')
     
     out_sid    = models.CharField(max_length=64,db_index=True,blank=True,verbose_name='物流（快递）编号')
     logistics_company  = models.ForeignKey(LogisticsCompany,null=True,blank=True,verbose_name='物流公司')
@@ -153,7 +155,7 @@ class MergeTrade(models.Model):
     receiver_mobile    =  models.CharField(max_length=20,blank=True,verbose_name='手机')
     receiver_phone     =  models.CharField(max_length=20,blank=True,verbose_name='电话')
     
-    reason_code = models.CharField(max_length=100,blank=True,verbose_name='问题编号')  #1|2|3 问题单原因编码集合
+    reason_code = models.CharField(max_length=100,blank=True,verbose_name='问题编号')  #1,2,3 问题单原因编码集合
     status  = models.CharField(max_length=32,db_index=True,choices=TAOBAO_TRADE_STATUS,blank=True,verbose_name='淘宝订单状态')
         
     is_picking_print = models.BooleanField(default=False,verbose_name='发货单')
@@ -194,6 +196,7 @@ class MergeTrade(models.Model):
                              ,self.receiver_city.strip(),self.receiver_district.strip(),self.receiver_address.strip(),self.receiver_zip.strip())
     
     def is_post_success(self):
+        #订单淘宝发货成功
         user_id = self.user.visitor_id
         if self.status in (pcfg.WAIT_BUYER_CONFIRM_GOODS,pcfg.TRADE_FINISHED) \
             and self.sys_status in (pcfg.WAIT_CHECK_BARCODE_STATUS,pcfg.WAIT_SCAN_WEIGHT_STATUS,pcfg.FINISHED_STATUS):
@@ -218,7 +221,7 @@ class MergeTrade(models.Model):
         new_len = len(reason_set)
         self.reason_code = ','.join(list(reason_set))
         if code in (pcfg.POST_MODIFY_CODE,pcfg.POST_SUB_TRADE_ERROR_CODE,pcfg.COMPOSE_RULE_ERROR_CODE,
-                    pcfg.PAYMENT_RULE_ERROR_CODE,pcfg.MERGE_TRADE_ERROR_CODE):
+                    pcfg.PAYMENT_RULE_ERROR_CODE,pcfg.MERGE_TRADE_ERROR_CODE,pcfg.RULE_MATCH_ERROR_CODE):
             self.has_sys_err = True
         MergeTrade.objects.filter(id=self.id).update(reason_code=self.reason_code,has_sys_err=self.has_sys_err)    
         return old_len<new_len
@@ -392,12 +395,8 @@ class MergeTrade(models.Model):
         config  = SystemConfig.getconfig()
         if not config.is_rule_auto:
             return False
-        try:
-            rule_signal.send(sender='product_rule',trade_id=trade_id)
-        except Exception,exc:
-            return True
-        return False
-    
+        return rule_signal.send(sender='product_rule',trade_id=trade_id)
+
     @classmethod
     def judge_need_merge(cls,trade_id,buyer_nick,receiver_name,receiver_address):
         #是否需要合单 
@@ -687,22 +686,29 @@ def drive_merge_trade_action(trade_id):
             if main_tid and can_merge:  
                 #进行合单
                 is_merge_success = merge_order_maker(merge_trade.tid,main_tid)
-        
+                #合并后金额匹配
+                rule_signal.send(sender='payment_rule',trade_id=main_tid)
         #如果入库订单待退款，则将同名的单置放入待审核区域
         elif trades.count()>0 or wait_refunding:
             if main_tid :
                 merge_order_remover(main_tid)
             for t in trades:
                 if t.sys_status == pcfg.WAIT_PREPARE_SEND_STATUS:
-                    MergeTrade.objects.filter(id=t.id,out_sid='').update(sys_status=pcfg.WAIT_AUDIT_STATUS)
+                    if t.out_sid == '':
+                        t.sys_status=pcfg.WAIT_AUDIT_STATUS
+                        t.save()
                 else:
-                    MergeTrade.objects.filter(id=t.id).update(sys_status=pcfg.WAIT_AUDIT_STATUS,has_merge=False)
+                    t.sys_status=pcfg.WAIT_AUDIT_STATUS
+                    t.has_merge=False
+                    t.save()
     except Exception,exc:        
         logger.error(exc.message+'-- merge trade fail --',exc_info=True)
         merge_trade.append_reason_code(pcfg.MERGE_TRADE_ERROR_CODE)   
         for trade in trades:
             trade.append_reason_code(pcfg.MERGE_TRADE_ERROR_CODE)
-            MergeTrade.objects.filter(id=trade.id,out_sid='').update(sys_status=pcfg.WAIT_AUDIT_STATUS)
+            if trade.out_sid == '':
+                trade.sys_status=pcfg.WAIT_AUDIT_STATUS
+                trade.save()
             
     return is_merge_success,main_tid
 
@@ -710,7 +716,7 @@ def drive_merge_trade_action(trade_id):
 def trade_download_controller(merge_trade,trade,trade_from,first_pay_load):
 
     merge_trade = MergeTrade.objects.get(id=merge_trade.id)
-    shipping_type = trade.shipping if hasattr(trade,'shipping') else trade.shipping_type
+    shipping_type = merge_trade.shipping_type
     seller_memo   = trade.memo  if hasattr(trade,'memo') else trade.seller_memo
     buyer_message = trade.buyer_message if hasattr(trade,'buyer_message') else trade.supplier_memo   
  
@@ -767,11 +773,11 @@ def trade_download_controller(merge_trade,trade,trade_from,first_pay_load):
             if is_need_merge and main_tid:
                 main_trade = MergeTrade.objects.get(tid=main_tid)
                 merge_trade.logistics_company = main_trade.logistics_company
-            elif shipping_type in ('free','express','FAST','SELLER'):
+            elif shipping_type == pcfg.EXPRESS_SHIPPING_TYPE:
                 receiver_state = merge_trade.receiver_state
                 default_company = LogisticsCompany.get_recommend_express(receiver_state)
                 merge_trade.logistics_company = default_company
-            elif shipping_type in ('post','ems'):
+            elif shipping_type in (pcfg.POST_SHIPPING_TYPE,pcfg.EMS_SHIPPING_TYPE):
                 post_company = LogisticsCompany.objects.get(code=shipping_type.upper())
                 merge_trade.logistics_company = post_company       
              
@@ -788,7 +794,7 @@ def trade_download_controller(merge_trade,trade,trade_from,first_pay_load):
             else:
                 merge_trade.sys_status = pcfg.WAIT_PREPARE_SEND_STATUS
                 #进入待发货区域，需要进行商品规则匹配
-                rule_signal.send(sender='payment_rule',trade_id=merge_trade.id)
+            rule_signal.send(sender='payment_rule',trade_id=merge_trade.id)
 
         #非付款后首次入库
         else:
@@ -811,7 +817,7 @@ def trade_download_controller(merge_trade,trade,trade_from,first_pay_load):
                 merge_trade.sys_status = pcfg.WAIT_AUDIT_STATUS
 
     elif trade.status==pcfg.WAIT_BUYER_CONFIRM_GOODS:
-        if merge_trade.sys_status in pcfg.WAIT_DELIVERY_STATUS:
+        if merge_trade.sys_status in pcfg.WAIT_DELIVERY_STATUS and not merge_trade.out_sid:
             merge_trade.sys_status = pcfg.INVALID_STATUS
     #如果淘宝订单状态已改变，而系统内部状态非最终状态，则将订单作废        
     elif merge_trade.sys_status:
@@ -887,14 +893,14 @@ def save_orders_trade_to_mergetrade(sender, tid, *args, **kwargs):
             merge_order.save()
             
         #保存基本订单信息
-        trade_from = pcfg.FENXIAO_TYPE if trade.type==pcfg.FENXIAO_TYPE else pcfg.TAOBAO_TYPE   
+        trade_from    = pcfg.FENXIAO_TYPE if trade.type==pcfg.FENXIAO_TYPE else pcfg.TAOBAO_TYPE
         MergeTrade.objects.filter(tid=trade.id).update(
             user = trade.user,
             seller_id = trade.seller_id,
             seller_nick = trade.seller_nick,
             buyer_nick = trade.buyer_nick,
             type = trade.type,
-            shipping_type = trade.shipping_type,
+            shipping_type = pcfg.SHIPPING_TYPE_MAP.get(trade.shipping_type,pcfg.EXPRESS_SHIPPING_TYPE),
             payment = trade.payment,
             total_fee = trade.total_fee,
             discount_fee = trade.discount_fee,
@@ -995,7 +1001,7 @@ def save_fenxiao_orders_to_mergetrade(sender, tid, *args, **kwargs):
             seller_nick = trade.supplier_username,
             buyer_nick = trade.distributor_username,
             type = pcfg.FENXIAO_TYPE,
-            shipping_type = SHIPPING_TYPE.get(trade.shipping,trade.shipping),
+            shipping_type = pcfg.SHIPPING_TYPE_MAP.get(trade.shipping,pcfg.EXPRESS_SHIPPING_TYPE),
             payment = trade.distributor_payment,
             total_fee = trade.total_fee,
             post_fee = trade.post_fee,

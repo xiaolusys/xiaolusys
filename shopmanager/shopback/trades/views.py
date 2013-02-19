@@ -6,7 +6,8 @@ from django.http import HttpResponse
 from django.db.models import Q,Sum
 from djangorestframework.views import ModelView
 from djangorestframework.response import ErrorResponse
-from shopback.trades.models import MergeTrade,MergeOrder,GIFT_TYPE,SYS_TRADE_STATUS,TAOBAO_TRADE_STATUS
+from shopback.trades.models import MergeTrade,MergeOrder,GIFT_TYPE\
+    ,SYS_TRADE_STATUS,TAOBAO_TRADE_STATUS,SHIPPING_TYPE_CHOICE
 from shopback.logistics.models import LogisticsCompany
 from shopback.items.models import Product,ProductSku
 from shopback.base import log_action, ADDITION, CHANGE
@@ -28,7 +29,7 @@ class CheckOrderView(ModelView):
         except MergeTrade.DoesNotExist:
             return '该订单不存在'.decode('utf8')
         
-        rule_signal.send(sender='payment_rule',trade_id=trade.id)
+        #rule_signal.send(sender='payment_rule',trade_id=trade.id)
         logistics = LogisticsCompany.objects.filter(status=True)
         
         trade_dict = {
@@ -43,6 +44,7 @@ class CheckOrderView(ModelView):
             'seller_memo':trade.seller_memo,
             'sys_memo':trade.sys_memo,
             'logistics_company':trade.logistics_company,
+            'shipping_type':trade.shipping_type,
             'priority':trade.priority,
             'type':trade.type,
             'receiver_name':trade.receiver_name,
@@ -65,7 +67,7 @@ class CheckOrderView(ModelView):
             'used_orders':trade.inuse_orders,
         }
         
-        return {'trade':trade_dict,'logistics':logistics}
+        return {'trade':trade_dict,'logistics':logistics,'shippings':dict(SHIPPING_TYPE_CHOICE)}
         
     def post(self, request, id, *args, **kwargs):
         
@@ -77,26 +79,26 @@ class CheckOrderView(ModelView):
         content       = request.REQUEST
         priority      = content.get('priority')
         logistic_code = content.get('logistic_code')
+        shipping_type = content.get('shipping_type')
         action_code   = content.get('action')
-        
-        params = {}
-        if priority:
-            params['priority'] = priority
+        logistics_company = None
+           
         if logistic_code:
-            params['logistics_company'] = LogisticsCompany.objects.get(code=logistic_code)
-        else:
-            return u'请选择快递'
-        
-        if params:
-            trade.logistics_company = params['logistics_company']
-            trade.priority = params['priority']
-            trade.save()
+            logistics_company = LogisticsCompany.objects.get(code=logistic_code)
+        elif shipping_type != pcfg.EXTRACT_SHIPPING_TYPE:
+            #如果没有选择物流也非自提订单，则提示
+            return u'请选择物流公司'
+
+        trade.logistics_company = logistics_company
+        trade.priority = priority
+        trade.shipping_type = shipping_type
+        trade.save()
             
         if action_code == 'check':
             check_msg = []
             if trade.has_refund:
                 check_msg.append("有待退款".decode('utf8'))
-            if trade.has_out_stock :
+            if trade.has_out_stock:
                 check_msg.append("有缺货".decode('utf8'))
             if trade.has_rule_match:
                 check_msg.append("信息不全".decode('utf8'))
@@ -106,31 +108,66 @@ class CheckOrderView(ModelView):
                 check_msg.append("需手动合单".decode('utf8'))
             if trade.has_sys_err:
                 check_msg.append("该订单需管理员审核".decode('utf8'))
-            orders = trade.merge_trade_orders.filter(status=pcfg.WAIT_SELLER_SEND_GOODS)\
-                        .exclude(refund_status__in=pcfg.REFUND_APPROVAL_STATUS)   
-            if orders.count() <= 0:
-                check_msg.append("没有可发订单！".decode('utf8'))
-             
+            orders = trade.merge_trade_orders.filter(status__in=(pcfg.WAIT_SELLER_SEND_GOODS,pcfg.WAIT_BUYER_CONFIRM_GOODS))\
+                        .exclude(refund_status__in=pcfg.REFUND_APPROVAL_STATUS) 
+            if orders.count()==0:
+                check_msg.append("没有可操作订单".decode('utf8'))   
             if check_msg:
                 return ','.join(check_msg)
+            
             if trade.type == pcfg.EXCHANGE_TYPE:
                 change_orders = trade.merge_trade_orders.filter(sys_status=pcfg.IN_EFFECT)\
                     .exclude(gift_type=pcfg.RETURN_GOODS_GIT_TYPE)
-                return_orders = trade.merge_trade_orders.filter(sys_status=pcfg.IN_EFFECT
-                     ,gift_type=pcfg.RETURN_GOODS_GIT_TYPE)
                 if change_orders.count()>0:
-                    trade.sys_status = pcfg.WAIT_PREPARE_SEND_STATUS
+                    #订单为自提
+                    if shipping_type == pcfg.EXTRACT_SHIPPING_TYPE:
+                        trade.sys_status = pcfg.FINISHED_STATUS
+                        trade.status     = pcfg.TRADE_FINISHED
+                        ####此处减加库存####
+                    #订单需物流
+                    else:  
+                        ####此处加库存####
+                        trade.sys_status = pcfg.WAIT_PREPARE_SEND_STATUS
+                        trade.status = pcfg.WAIT_SELLER_SEND_GOODS
                     trade.reason_code = ''
                     trade.save()
-                    #此处需要减库存
-                elif return_orders.count()>0:
-                    #此处需要减库存
+                else:
+                    ####此处需要加库存####
                     trade.sys_status = pcfg.FINISHED_STATUS
                     trade.status     = pcfg.TRADE_FINISHED
-                    trade.save()
+                    trade.save()    
+            elif trade.type == pcfg.DIRECT_TYPE:   
+                #订单为自提
+                if shipping_type == pcfg.EXTRACT_SHIPPING_TYPE: 
+                    trade.sys_status = pcfg.FINISHED_STATUS
+                    trade.status     = pcfg.TRADE_FINISHED
+                    ####此处减库存####
+                #订单需物流
+                else:
+                    trade.sys_status = pcfg.WAIT_PREPARE_SEND_STATUS
+                    trade.status     = pcfg.WAIT_SELLER_SEND_GOODS
+                trade.reason_code = ''
+                trade.save()
             else:
-                MergeTrade.objects.filter(id=id,sys_status = pcfg.WAIT_AUDIT_STATUS)\
-                    .update(sys_status=pcfg.WAIT_PREPARE_SEND_STATUS,reason_code='')  
+                if shipping_type == pcfg.EXTRACT_SHIPPING_TYPE: 
+                    try:
+                        response = apis.taobao_logistics_offline_send(tid=trade.tid,out_sid=1111111111
+                                                  ,company_code=pcfg.EXTRACT_COMPANEY_CODE,tb_user_id=trade.seller_id)
+                    except Exception,exc:
+                        trade.append_reason_code(pcfg.POST_MODIFY_CODE)
+                        trade.sys_status=pcfg.WAIT_AUDIT_STATUS
+                        trade.sys_memo=exc.message
+                        trade.save()
+                        log_action(request.user.id,trade,CHANGE,u'订单发货失败')
+                    else:
+                        trade.sys_status=pcfg.FINISHED_STATUS
+                        trade.consign_time=datetime.datetime.now()
+                        trade.save()
+                        log_action(request.user.id,trade,CHANGE,u'订单发货成功')
+                    ####此处减库存####
+                else:
+                    MergeTrade.objects.filter(id=id,sys_status = pcfg.WAIT_AUDIT_STATUS)\
+                        .update(sys_status=pcfg.WAIT_PREPARE_SEND_STATUS,reason_code='')  
             log_action(user_id,trade,CHANGE,u'审核成功')
             
         elif action_code == 'review':
@@ -420,9 +457,16 @@ def change_logistic_and_outsid(request):
                 merge_trade.save()
                 log_action(user_id,merge_trade,CHANGE,u'修改快递及单号(修改前:%s,%s)'%(logistic_code,out_sid))
             elif merge_trade.sys_status == pcfg.FINISHED_STATUS:
+                try:
+                    apis.taobao_logistics_consign_resend(tid=merge_trade.tid,out_sid=out_sid
+                                                     ,company_code=logistic_code,tb_user_id=merge_trade.user.visitor_id)
+                except:
+                    pass
                 dt  = datetime.datetime.now()
                 merge_trade.sys_memo = u'%s,退回重发单号[%s]:(%s)%s'%(merge_trade.sys_memo,
                                                                  dt.strftime('%Y-%m-%d %H:%M'),logistic_code,out_sid)
+                merge_trade.logistics_company = logistic
+                merge_trade.out_sid   = out_sid
                 merge_trade.save()
                 log_action(user_id,merge_trade,CHANGE,u'快递退回重发(修改前:%s,%s)'%(logistic_code,out_sid))
             else:
@@ -570,7 +614,8 @@ class TradeSearchView(ModelView):
             return u'订单未找到'
         
         can_post_orders = cp_trade.merge_trade_orders.filter(status__in=(pcfg.WAIT_SELLER_SEND_GOODS
-                                ,pcfg.WAIT_BUYER_CONFIRM_GOODS,pcfg.TRADE_FINISHED),sys_status=pcfg.IN_EFFECT)
+                                ,pcfg.WAIT_BUYER_CONFIRM_GOODS,pcfg.TRADE_FINISHED),sys_status=pcfg.IN_EFFECT)\
+            .include(status=pcfg.TRADE_CLOSED_BY_TAOBAO)
            
         for order in can_post_orders:
             try:

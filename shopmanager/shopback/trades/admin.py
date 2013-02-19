@@ -56,7 +56,7 @@ class MergeOrderInline(admin.TabularInline):
 class MergeTradeAdmin(admin.ModelAdmin):
     list_display = ('trade_id_link','popup_tid_link','user','buyer_nick_link','type','payment','pay_time','consign_time'
                     ,'status','sys_status','logistics_company','is_picking_print','is_express_print','is_send_sms'
-                    ,'reason_code','operator','created')
+                    ,'reason_code','operator','created','weight_time')
     #list_display_links = ('trade_id_link','popup_tid_link')
     #list_editable = ('update_time','task_type' ,'is_success','status')
     
@@ -102,7 +102,8 @@ class MergeTradeAdmin(admin.ModelAdmin):
                     'classes': ('collapse',),
                     'fields': (('tid','user','type','status','seller_id'),('buyer_nick','seller_nick','pay_time','total_num')
                                ,('total_fee','payment','discount_fee','adjust_fee','post_fee')
-                               ,('seller_cod_fee','buyer_cod_fee','cod_fee','cod_status','alipay_no'),('modified','consign_time','created')
+                               ,('seller_cod_fee','buyer_cod_fee','cod_fee','cod_status','alipay_no')
+                               ,('modified','consign_time','created','weight_time')
                                ,('buyer_message','seller_memo','sys_memo'))
                 }),
                 ('收货人及物流信息:', {
@@ -365,7 +366,7 @@ class MergeTradeAdmin(admin.ModelAdmin):
                                 raise Exception(u'子订单(%d)淘宝发货失败'%sub_trade.tid)
                         else:
                             response = apis.taobao_logistics_offline_send(tid=sub_trade.tid,out_sid=trade.out_sid
-                                                          ,company_code=trade.logistics_company.code,tb_user_id=sub_trade.seller_id)
+                                                          ,company_code=pcfg.SUB_TRADE_COMPANEY_CODE,tb_user_id=sub_trade.seller_id)
                             #response = {'logistics_offline_send_response': {'shipping': {'is_success': True}}}
                             if not response['logistics_offline_send_response']['shipping']['is_success']:
                                 raise Exception(u'子订单(%d)淘宝发货失败'%sub_trade.tid)
