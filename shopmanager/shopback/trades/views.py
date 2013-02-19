@@ -613,7 +613,7 @@ class TradeSearchView(ModelView):
         except MergeTrade.DoesNotExist:
             return u'订单未找到'
         
-        can_post_orders = cp_trade.merge_trade_orders
+        can_post_orders = cp_trade.merge_trade_orders.all()
            
         for order in can_post_orders:
             try:
