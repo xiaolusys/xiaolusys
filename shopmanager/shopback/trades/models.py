@@ -395,8 +395,13 @@ class MergeTrade(models.Model):
         config  = SystemConfig.getconfig()
         if not config.is_rule_auto:
             return False
-        return rule_signal.send(sender='product_rule',trade_id=trade_id)
-
+        try:
+            rule_signal.send(sender='product_rule',trade_id=trade_id)
+        except:
+            return True
+        else:
+            return False
+        
     @classmethod
     def judge_need_merge(cls,trade_id,buyer_nick,receiver_name,receiver_address):
         #是否需要合单 

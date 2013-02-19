@@ -164,18 +164,15 @@ def rule_match_product(sender, trade_id, *args, **kwargs):
     except Trade.DoesNotExist:
         pass
     else: 
-        try:
-            orders  = trade.merge_trade_orders.filter(status=pcfg.WAIT_SELLER_SEND_GOODS,sys_status=pcfg.IN_EFFECT)
-            for order in orders:
-                rules = ProductRuleField.objects.filter(outer_id=order.outer_id)
-                if rules.count()>0:
-                    is_rule_match = True
-                    order.is_rule_match = True
-                    order.save()
-        except Exception,exc:
-            logger.error(exc.messge,exc_info=True)
-            trade.append_reason_code(trade.RULE_MATCH_ERROR_CODE)  
-        return is_rule_match
+        orders  = trade.merge_trade_orders.filter(status=pcfg.WAIT_SELLER_SEND_GOODS,sys_status=pcfg.IN_EFFECT)
+        for order in orders:
+            rules = ProductRuleField.objects.filter(outer_id=order.outer_id)
+            if rules.count()>0:
+                is_rule_match = True
+                order.is_rule_match = True
+                order.save()
+        if is_rule_match:
+            raise Exception(u'有匹配')
 
                 
         
