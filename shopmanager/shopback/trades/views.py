@@ -613,9 +613,7 @@ class TradeSearchView(ModelView):
         except MergeTrade.DoesNotExist:
             return u'订单未找到'
         
-        can_post_orders = cp_trade.merge_trade_orders.filter(status__in=(pcfg.WAIT_SELLER_SEND_GOODS
-                                ,pcfg.WAIT_BUYER_CONFIRM_GOODS,pcfg.TRADE_FINISHED),sys_status=pcfg.IN_EFFECT)\
-            .include(status=pcfg.TRADE_CLOSED_BY_TAOBAO)
+        can_post_orders = cp_trade.merge_trade_orders
            
         for order in can_post_orders:
             try:
