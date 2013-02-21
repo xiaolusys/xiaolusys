@@ -109,17 +109,17 @@ class UserAdmin(admin.ModelAdmin):
     def async_pull_lastest_trades(self,request,queryset):
         
         from shopapp.asynctask.tasks import AsyncOrderTask
-        from auth.utils import parse_date
         
         pull_users = []
         for user in queryset:
             pull_dict = {'uid':user.visitor_id,'nick':user.nick}
             try:
-                end_dt   = datetime.datetime.now()
-                start_dt = end_dt - datetime.timedelta(89,0,0)
-                
-                #异步批量更新订单
-                AsyncOrderTask.delay(start_dt,end_dt,user.visitor_id)
+                end_dt   = datetime.datetime.now()-datetime.timedelta(1,0,0)
+                for i in range(3):
+                    s_dt = end_dt - datetime.timedelta((i+1)*30,0,0)
+                    e_dt = end_dt - datetime.timedelta(i*30,0,0)
+                    #异步批量更新订单
+                    AsyncOrderTask.delay(s_dt,e_dt,user.visitor_id)
             except Exception,exc:
                 pull_dict['success']=False
                 pull_dict['errmsg']=exc.message or '%s'%exc

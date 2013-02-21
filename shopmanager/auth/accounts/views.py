@@ -233,11 +233,12 @@ def test_api(request):
 #    response = apis.taobao_topats_result_get(task_id=60646019,tb_user_id=121741189)
 #    print response
 
-    response = apis.taobao_logistics_offline_send(tid=288127123875836,out_sid=728072074956
-                    ,company_code='ZTO',tb_user_id=174265168)
-    print response
+#    response = apis.taobao_logistics_offline_send(tid=288127123875836,out_sid=728072074956
+#                    ,company_code='ZTO',tb_user_id=174265168)
+#    print response
 
-    
+    response = apis.taobao_topats_trades_sold_get(start_time='20130124',end_time='20130219',tb_user_id=174265168)
+    print response
 
     return HttpResponseBadRequest('error') #HttpResponse('ok')
 
