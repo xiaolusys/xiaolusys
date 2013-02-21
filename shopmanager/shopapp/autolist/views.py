@@ -28,10 +28,13 @@ def pull_from_taobao(request):
     
     content = request.REQUEST
     user_id = content.get('user_id','')
-    try:
-        profile = User.objects.get(user=user_id)
-    except User.DoesNotExist:
+    if not user_id :
         profile = request.user.get_profile()
+    else:
+        try:
+            profile = User.objects.get(user=user_id)
+        except User.DoesNotExist:
+            profile = request.user.get_profile()
 
     onsaleItems = apis.taobao_items_onsale_get(page_no=1,page_size=200,tb_user_id=profile.visitor_id)
     if onsaleItems['items_onsale_get_response']['total_results'] <= 0:

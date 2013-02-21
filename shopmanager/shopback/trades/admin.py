@@ -348,6 +348,7 @@ class MergeTradeAdmin(admin.ModelAdmin):
                 trade.save()
                 continue 
             
+            main_post_success = False
             logistics_company_code = trade.logistics_company.code     
             try:
                 merge_buyer_trades = []
@@ -356,6 +357,7 @@ class MergeTradeAdmin(admin.ModelAdmin):
                     merge_buyer_trades = MergeBuyerTrade.objects.filter(main_tid=trade.tid)
                     
                 for sub_buyer_trade in merge_buyer_trades:
+                    sub_post_success = False
                     try:
                         sub_trade = MergeTrade.objects.get(tid=sub_buyer_trade.sub_tid)
                         sub_trade.out_sid      = trade.out_sid
@@ -375,36 +377,31 @@ class MergeTradeAdmin(admin.ModelAdmin):
                                 raise Exception(u'子订单(%d)淘宝发货失败'%sub_trade.tid)
                     except Exception,exc:
                         time.sleep(1)
-                        is_post_success = False
                         error_msg = exc.message
                         try:
-                            is_post_success = trade.is_post_success()
+                            sub_post_success = trade.is_post_success()
                         except Exception,exc:
                             error_msg = error_msg+','+exc.message
-                            
-                        if is_post_success:
-                            sub_trade.operator=trade.operator
-                            sub_trade.sys_status=pcfg.FINISHED_STATUS
-                            sub_trade.consign_time=datetime.datetime.now()
-                            sub_trade.save()
-                            log_action(request.user.id,sub_trade,CHANGE,u'订单发货成功')
-                        else:
-                            sub_trade.append_reason_code(pcfg.POST_SUB_TRADE_ERROR_CODE)
-                            sub_trade.sys_status=pcfg.WAIT_AUDIT_STATUS
-                            sub_trade.sys_memo=exc.message
-                            sub_trade.is_picking_print=False
-                            sub_trade.is_express_print=False
-                            sub_trade.save()
-                            log_action(request.user.id,sub_trade,CHANGE,u'订单发货失败')
-                            raise SubTradePostException(error_msg)
                     else:
-                        sub_trade.out_sid=trade.out_sid
+                        sub_post_success = True
+                            
+                    if sub_post_success:
                         sub_trade.operator=trade.operator
                         sub_trade.sys_status=pcfg.FINISHED_STATUS
                         sub_trade.consign_time=datetime.datetime.now()
                         sub_trade.save()
                         log_action(request.user.id,sub_trade,CHANGE,u'订单发货成功')
-                
+                    else:
+                        sub_trade.append_reason_code(pcfg.POST_SUB_TRADE_ERROR_CODE)
+                        sub_trade.sys_status=pcfg.WAIT_AUDIT_STATUS
+                        sub_trade.sys_memo=exc.message
+                        sub_trade.is_picking_print=False
+                        sub_trade.is_express_print=False
+                        sub_trade.save()
+                        log_action(request.user.id,sub_trade,CHANGE,u'订单发货失败')
+                        raise SubTradePostException(error_msg)
+  
+                #如果货到付款
                 if trade.type == pcfg.COD_TYPE:
                     response = apis.taobao_logistics_online_send(tid=trade.tid,out_sid=trade.out_sid
                                                   ,company_code=logistics_company_code,tb_user_id=trade.seller_id)  
@@ -427,32 +424,29 @@ class MergeTradeAdmin(admin.ModelAdmin):
                 logger.error(exc.message+'--sub post error',exc_info=True)
             except Exception,exc:
                 time.sleep(1)
-                is_post_success = False
                 error_msg = exc.message
                 try:
-                    is_post_success = trade.is_post_success()
+                    main_post_success = trade.is_post_success()
                 except Exception,exc:
                     error_msg = error_msg+','+exc.message
                 logger.error(error_msg,exc_info=True)
-                    
-                if is_post_success:
-                    trade.sys_status=pcfg.WAIT_CHECK_BARCODE_STATUS
-                    trade.consign_time=datetime.datetime.now()
-                    trade.save()
-                    log_action(request.user.id,trade,CHANGE,u'订单发货成功')
-                else:
-                    trade.append_reason_code(pcfg.POST_MODIFY_CODE)
-                    trade.sys_status=pcfg.WAIT_AUDIT_STATUS
-                    trade.sys_memo=exc.message
-                    trade.is_picking_print=False
-                    trade.is_express_print=False
-                    trade.save()
-                    log_action(request.user.id,trade,CHANGE,u'订单发货失败')
             else:
+                main_post_success = True
+                    
+            if main_post_success:
                 trade.sys_status=pcfg.WAIT_CHECK_BARCODE_STATUS
                 trade.consign_time=datetime.datetime.now()
                 trade.save()
                 log_action(request.user.id,trade,CHANGE,u'订单发货成功')
+            else:
+                trade.append_reason_code(pcfg.POST_MODIFY_CODE)
+                trade.sys_status=pcfg.WAIT_AUDIT_STATUS
+                trade.sys_memo=exc.message
+                trade.is_picking_print=False
+                trade.is_express_print=False
+                trade.save()
+                log_action(request.user.id,trade,CHANGE,u'订单发货失败')
+
 
         queryset = MergeTrade.objects.filter(id__in=trade_ids)
         wait_prepare_trades = queryset.filter(sys_status=pcfg.WAIT_PREPARE_SEND_STATUS,is_picking_print=True
