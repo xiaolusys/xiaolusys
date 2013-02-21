@@ -1009,7 +1009,7 @@ def save_fenxiao_orders_to_mergetrade(sender, tid, *args, **kwargs):
             type = pcfg.FENXIAO_TYPE,
             shipping_type = merge_trade.shipping_type or pcfg.SHIPPING_TYPE_MAP.get(trade.shipping,pcfg.EXPRESS_SHIPPING_TYPE),
             payment = merge_trade.payment or trade.distributor_payment,
-            total_fee = merge_trade.merge_trade or trade.total_fee,
+            total_fee = merge_trade.total_fee or trade.total_fee,
             post_fee = merge_trade.post_fee or trade.post_fee,
             buyer_message = trade.memo,
             seller_memo = trade.supplier_memo,
