@@ -103,7 +103,33 @@ class UserAdmin(admin.ModelAdmin):
                                   context_instance=RequestContext(request),mimetype="text/html")     
         
     sync_online_prodnum_to_offline.short_description = "线上库存覆盖系统库存".decode('utf8')
+    
+    #异步下载近三个月订单
+    def async_pull_lastest_trades(self,request,queryset):
+        
+        from shopapp.asynctask.tasks import AsyncOrderTask
+        
+        pull_users = []
+        for user in queryset:
+            pull_dict = {'uid':user.visitor_id,'nick':user.nick}
+            try:
+                end_dt   = datetime.datetime.now()
+                start_dt = end_dt - datetime.timedelta(90,0,0)
+                #异步批量更新订单
+                AsyncOrderTask.delay(start_dt,end_dt,user.visitor_id)
+            except Exception,exc:
+                pull_dict['success']=False
+                pull_dict['errmsg']=exc.message or '%s'%exc
+            else:
+                pull_dict['success']=True
+            pull_users.append(pull_dict)
+        
+        return render_to_response('users/async_lastest_trades.html',{'users':pull_users},
+                                  context_instance=RequestContext(request),mimetype="text/html")
+
+    async_pull_lastest_trades.short_description = "异步下载近三个月订单".decode('utf8')
        
-    actions = ['pull_user_unpost_trades','autolist_user_items','pull_user_items','sync_online_prodnum_to_offline']
+    actions = ['pull_user_unpost_trades','autolist_user_items','pull_user_items',
+               'sync_online_prodnum_to_offline','async_pull_lastest_trades']
 
 admin.site.register(User, UserAdmin)

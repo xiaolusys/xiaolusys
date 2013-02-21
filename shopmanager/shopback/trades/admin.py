@@ -289,6 +289,9 @@ class MergeTradeAdmin(admin.ModelAdmin):
         pull_success_ids = []
         pull_fail_ids    = []
         for trade in queryset:
+            #如果有合单，则取消合并
+            if trade.has_merge:
+                merge_order_remover(trade.tid)
             seller_id  = trade.user.visitor_id
             trade.sys_status = ''
             trade.reason_code=''
@@ -356,11 +359,11 @@ class MergeTradeAdmin(admin.ModelAdmin):
                     try:
                         sub_trade = MergeTrade.objects.get(tid=sub_buyer_trade.sub_tid)
                         sub_trade.out_sid      = trade.out_sid
-                        sub_trade.company_code = logistics_company_code
+                        sub_trade.logistics_company = trade.logistics_company
                         sub_trade.save()
                         if sub_trade.type == pcfg.COD_TYPE:
                             response = apis.taobao_logistics_online_send(tid=sub_trade.tid,out_sid=trade.out_sid
-                                                          ,company_code=trade.logistics_company.code,tb_user_id=sub_trade.seller_id)
+                                                          ,company_code=logistics_company_code,tb_user_id=sub_trade.seller_id)
                             #response = {'logistics_online_send_response': {'shipping': {'is_success': True}}}
                             if not response['logistics_online_send_response']['shipping']['is_success']:
                                 raise Exception(u'子订单(%d)淘宝发货失败'%sub_trade.tid)
@@ -380,7 +383,6 @@ class MergeTradeAdmin(admin.ModelAdmin):
                             error_msg = error_msg+','+exc.message
                             
                         if is_post_success:
-                            sub_trade.out_sid=trade.out_sid
                             sub_trade.operator=trade.operator
                             sub_trade.sys_status=pcfg.FINISHED_STATUS
                             sub_trade.consign_time=datetime.datetime.now()

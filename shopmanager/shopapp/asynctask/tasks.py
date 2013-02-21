@@ -91,7 +91,7 @@ class TaobaoAsyncBaseTask(Task):
         try:
             async_task = TaobaoAsyncTask.objects.create(task=full_class_name(self)) 
         except Exception,exc:
-            raise
+            raise exc
         else:
             user_id     = result_dict['user_id']
             next_status = TASK_ASYNCOK if result_dict['success'] else TASK_INVALID

@@ -148,7 +148,7 @@
 			    {% endif%}
 			</td>
 			<td>{% if order.gift_type == 0 %}实付{% elif order.gift_type == 1 %}赠送{% elif order.gift_type == 2 %}
-				满就送{% elif order.gift_type == 3 %}拆分{% elif order.gift_type == 4 %}换货{% elif order.gift_type == 5 %}退货{% else %}其他{% endif %}</td>
+				满就送{% elif order.gift_type == 3 %}拆分{% elif order.gift_type == 4 %}退货{% elif order.gift_type == 5 %}换货{% else %}其他{% endif %}</td>
 			<td><button class="change-order btn-mini" idx="{{ forloop.counter }}" 
 				oid="{{ order.id }}" >修改</button>
 			    <button class="delete-order btn-mini" oid="{{ order.id }}">删除</button>

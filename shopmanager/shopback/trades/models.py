@@ -135,7 +135,7 @@ class MergeTrade(models.Model):
     buyer_message = models.TextField(max_length=1000,blank=True,verbose_name='买家留言')
     seller_memo = models.TextField(max_length=1000,blank=True,verbose_name='卖家备注')
     sys_memo    = models.TextField(max_length=1000,blank=True,verbose_name='系统备注')
-    seller_flag    = models.IntegerField(null=True,verbose_name='淘宝旗帜')
+    seller_flag   = models.IntegerField(null=True,verbose_name='淘宝旗帜')
     
     created    = models.DateTimeField(db_index=True,null=True,blank=True,verbose_name='生成日期')
     pay_time   = models.DateTimeField(db_index=True,null=True,blank=True,verbose_name='付款日期')
@@ -647,7 +647,7 @@ def merge_order_remover(main_tid):
     MergeBuyerTrade.objects.filter(main_tid=main_tid).delete()
     
     rule_signal.send(sender='combose_split_rule',trade_id=main_trade.id)
-    rule_signal.send(sender='payment_rule',trade_id=main_main_trade.id) 
+    rule_signal.send(sender='payment_rule',trade_id=main_trade.id) 
     
 
 def drive_merge_trade_action(trade_id):
@@ -899,18 +899,19 @@ def save_orders_trade_to_mergetrade(sender, tid, *args, **kwargs):
             
         #保存基本订单信息
         trade_from    = pcfg.FENXIAO_TYPE if trade.type==pcfg.FENXIAO_TYPE else pcfg.TAOBAO_TYPE
+         
         MergeTrade.objects.filter(tid=trade.id).update(
             user = trade.user,
             seller_id = trade.seller_id,
             seller_nick = trade.seller_nick,
             buyer_nick = trade.buyer_nick,
             type = trade.type,
-            shipping_type = pcfg.SHIPPING_TYPE_MAP.get(trade.shipping_type,pcfg.EXPRESS_SHIPPING_TYPE),
-            payment = trade.payment,
-            total_fee = trade.total_fee,
-            discount_fee = trade.discount_fee,
-            adjust_fee   = trade.adjust_fee,
-            post_fee = trade.post_fee,
+            shipping_type = merge_trade.shipping_type or pcfg.SHIPPING_TYPE_MAP.get(trade.shipping_type,pcfg.EXPRESS_SHIPPING_TYPE),
+            payment = merge_trade.payment or trade.payment,
+            total_fee = merge_trade.total_fee or trade.total_fee,
+            discount_fee = merge_trade.discount_fee or trade.discount_fee,
+            adjust_fee   = merge_trade.adjust_fee or trade.adjust_fee,
+            post_fee = merge_trade.post_fee or trade.post_fee,
             alipay_no  = trade.buyer_alipay_no,
             seller_cod_fee = trade.seller_cod_fee,
             buyer_cod_fee  = trade.buyer_cod_fee,
@@ -1006,10 +1007,10 @@ def save_fenxiao_orders_to_mergetrade(sender, tid, *args, **kwargs):
             seller_nick = trade.supplier_username,
             buyer_nick = trade.distributor_username,
             type = pcfg.FENXIAO_TYPE,
-            shipping_type = pcfg.SHIPPING_TYPE_MAP.get(trade.shipping,pcfg.EXPRESS_SHIPPING_TYPE),
-            payment = trade.distributor_payment,
-            total_fee = trade.total_fee,
-            post_fee = trade.post_fee,
+            shipping_type = merge_trade.shipping_type or pcfg.SHIPPING_TYPE_MAP.get(trade.shipping,pcfg.EXPRESS_SHIPPING_TYPE),
+            payment = merge_trade.payment or trade.distributor_payment,
+            total_fee = merge_trade.merge_trade or trade.total_fee,
+            post_fee = merge_trade.post_fee or trade.post_fee,
             buyer_message = trade.memo,
             seller_memo = trade.supplier_memo,
             created = trade.created,
