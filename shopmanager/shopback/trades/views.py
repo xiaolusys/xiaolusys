@@ -622,7 +622,7 @@ class TradeSearchView(ModelView):
                 logger.error(exc.message,exc_info=True)
                 
         MergeTrade.judge_out_stock(pt_trade.id)      
-        orders = pt_trade.merge_trade_orders.all()
+        orders = pt_trade.merge_trade_orders.filter(sys_status=pcfg.IN_EFFECT)
         order_list = []
         for order in orders:
             try:
