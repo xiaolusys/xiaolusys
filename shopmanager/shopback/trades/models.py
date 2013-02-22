@@ -152,8 +152,8 @@ class MergeTrade(models.Model):
 
     receiver_address   =  models.CharField(max_length=128,blank=True,verbose_name='详细地址')
     receiver_zip       =  models.CharField(max_length=10,blank=True,verbose_name='邮编')
-    receiver_mobile    =  models.CharField(max_length=20,blank=True,verbose_name='手机')
-    receiver_phone     =  models.CharField(max_length=20,blank=True,verbose_name='电话')
+    receiver_mobile    =  models.CharField(max_length=20,db_index=True,blank=True,verbose_name='手机')
+    receiver_phone     =  models.CharField(max_length=20,db_index=True,blank=True,verbose_name='电话')
     
     reason_code = models.CharField(max_length=100,blank=True,verbose_name='问题编号')  #1,2,3 问题单原因编码集合
     status  = models.CharField(max_length=32,db_index=True,choices=TAOBAO_TRADE_STATUS,blank=True,verbose_name='淘宝订单状态')

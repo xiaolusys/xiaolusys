@@ -91,7 +91,7 @@ class MergeTradeAdmin(admin.ModelAdmin):
     list_filter   = ('sys_status','status','user','type','has_out_stock','has_refund','has_rule_match','has_sys_err',
                      'has_merge','has_memo','is_picking_print','is_express_print','can_review')
 
-    search_fields = ['id','buyer_nick','tid','operator','out_sid','receiver_name','return_out_sid']
+    search_fields = ['id','buyer_nick','tid','operator','out_sid','receiver_name','return_out_sid','receiver_mobile','receiver_phone']
     
     class Media:
         css = {"all": ("admin/css/forms.css","css/admin/dialog.css","css/admin/checkorder.css")}
