@@ -82,8 +82,9 @@
 				<label class="control-label"  for="status">产品状态:</label>
 				<div class="controls">
 					<select id="status" name="status">
-						<option value="1" {% if object.status == 'normal'%}selected{% endif %}>已使用</option>
-						<option value="0" {% if object.status == 'delete'%}selected{% endif %}>未使用</option>
+						<option value="normal" {% if object.status == 'normal'%}selected{% endif %}>使用</option>
+						<option value="remain" {% if object.status == 'remain'%}selected{% endif %}>待用</option>
+						<option value="delete" {% if object.status == 'delete'%}selected{% endif %}>作废</option>
 					</select>
 				</div>
 			</div>
@@ -101,8 +102,10 @@
 		{% if object.prod_skus %}
 		<table class="table table-bordered table-striped table-condensed">
 			<thead>
-		 	 	<th>销售编码</th><th>采购属性</th><th>库存</th><th>警告库位</th><th>保留库位</th>
-		 	 	<th>属性名</th><th>缺货</th><th>同步</th><th>库位警告</th><th>属性状态</th><th>操作</th>
+		 	 	<th>销售编码</th><th style="width:150px;">采购属性</th><th style="width:50px;">库存</th><th style="width:10px;">警告库位</th>
+		 	 	<th style="width:20px;">保留库位</th><th style="width:240px;">属性名</th>
+		 	 	<th style="width:10px;">缺货</th><th style="width:10px;">同步</th><th style="width:10px;">库位警告</th>
+		 	 	<th style="width:30px;">状态</th><th>操作</th>
 			</thead>
 			{% for sku in object.prod_skus %}
 			<tr>
@@ -115,8 +118,9 @@
 			<td><input type="checkbox" id="out_stock" name="out_stock" {% if sku.out_stock %}checked="yes"{% endif %} onclick= "return false" /></td>
 			<td><input type="checkbox" id="sync_stock" name="sync_stock" {% if sku.sync_stock %}checked="yes"{% endif %} onclick= "return false" /></td>
 			<td><input type="checkbox" id="is_assign" name="is_assign" {% if sku.is_assign %}checked="yes"{% endif %} onclick= "return false" /></td>
-			<td><a class="btn btn-small {% if sku.status == 'normal' %}btn-success{% else %}btn-warning{% endif %}" style="display:block;">
-			 {% if sku.status == 'normal' %}<i class="icon-ok"></i>已使用{% else %}<i class="icon-remove-sign"></i>未使用{% endif %}</a></td>
+			<td>
+			 	{% if sku.status == 'normal' %}使用{% elif sku.status == 'remain' %}待用{% else %}作废{% endif %}
+			</td>
 			<td><a prod_sku_id="{{ sku.id }}" class="update_sku"  title="修改"><i class="icon-edit"></i></a></td>
 			</tr>	
 			{% endfor %}

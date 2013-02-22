@@ -5,6 +5,7 @@ EXECERROR = 'execerror'
 SUCCESS = 'success'
 NORMAL = 'normal'
 DELETE = 'delete'
+REMAIN = 'remain'
 #订单类型
 FENXIAO_TYPE = 'fenxiao'
 TAOBAO_TYPE  = 'fixed'

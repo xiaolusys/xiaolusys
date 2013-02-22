@@ -23,8 +23,8 @@
 <div>
 <table class="table table-bordered table-striped table-condensed">
   <tr>
-      <th>编号</th><th>商品编码</th><th>商品简称</th><th>内部分类</th><th>库存</th><th>同步</th>
-      <th>缺货</th><th>商品操作</th><th>销售编码</th><th>销售属性</th><th>库存</th><th>同步</th>
+      <th>编号</th><th>商品编码</th><th style="width:100px;">商品简称</th><th>内部分类</th><th>库存</th><th>同步</th>
+      <th>缺货</th><th style="width:75px;">商品操作</th><th>销售编码</th><th>销售属性</th><th>库存</th><th>同步</th>
       <th>缺货</th><th>规格操作</th>
   </tr>
   {% for prod in object.results %}
@@ -41,8 +41,8 @@
   		<td rowspan="{{ sku_len }}">{{ prod.collect_num }}</td>
   		<td rowspan="{{ sku_len }}"><input type="checkbox" id="{{ prod.outer_id }}_sync_stock" name="sync_stock" {% if prod.sync_stock %}checked="yes"{% endif %} onclick= "return false"  /></td>
   		<td rowspan="{{ sku_len }}"><input type="checkbox" id="{{ prod.outer_id }}_out_stock" name="out_stock" {% if prod.out_stock %}checked="yes"{% endif %} onclick= "return false" /></td>
-  		<td rowspan="{{ sku_len }}" style="width:75px;">
-	  		<div style="margin:5px;" >
+  		<td rowspan="{{ sku_len }}" >
+	  		<div style="margin:5px;">
 	  		<a outer_id="{{ prod.outer_id }}" class="modify_prod" href="/items/product/update/{{ prod.outer_id }}/" target="_blank" style="display:inline;float:left;" title="修改"><i class="icon-edit"></i></a>
 	  		{% if prod.purchase_product  %}<a  purchase_id="{{ prod.purchase_product.id }}"  class="rel_purchase" style="display:inline;float:left;" title="查看关联采购商品"><i class="icon-info-sign"></i></a>{% endif %}
 	  		<a  outer_id="{{ prod.outer_id }}"  class="del_prod" style="display:inline;float:right;" title="删除"><i class="icon-remove"></i></a>	

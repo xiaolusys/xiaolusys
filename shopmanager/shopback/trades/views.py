@@ -188,10 +188,10 @@ class OrderPlusView(ModelView):
         q  = request.GET.get('q')
         if not q:
             return '没有输入查询关键字'.decode('utf8')
-        products = Product.objects.filter(Q(outer_id=q)|Q(name__contains=q),status=pcfg.NORMAL)
+        products = Product.objects.filter(Q(outer_id=q)|Q(name__contains=q),status__in=(pcfg.NORMAL,pcfg.REMAIN))
         
         prod_list = [(prod.outer_id,prod.name,prod.price,[(sku.outer_id,sku.properties_name) for sku in 
-                                                prod.prod_skus.filter(status=pcfg.NORMAL)]) for prod in products]
+                    prod.prod_skus.filter(status__in=(pcfg.NORMAL,pcfg.REMAIN))]) for prod in products]
         return prod_list
         
     def post(self, request, *args, **kwargs):

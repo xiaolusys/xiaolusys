@@ -31,6 +31,7 @@ APPROVE_STATUS  = (
 
 PRODUCT_STATUS = (
     (pcfg.NORMAL,'使用'),
+    (pcfg.REMAIN,'待用'),
     (pcfg.DELETE,'作废'),
 )
 

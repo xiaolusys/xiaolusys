@@ -35,7 +35,7 @@ def write_to_log_db(task, response):
     log.list_weekday = task.list_weekday
     log.list_time = task.list_time
     log.task_type = task.task_type
-
+    
     try:
         if task.task_type == "listing":
             log.status = response["item_update_listing_response"]["item"]["modified"]
