@@ -57,7 +57,7 @@ def updateItemListTask(num_iid):
     try:
         task = ItemListTask.objects.get(num_iid=num_iid)
     except ItemListTask.DoesNotExist:
-        logger.error('ItemListTask(num_iid:%s) Does Not Exist' %(num_iid))
+        logger.error(u'上架任务不存在(num_iid:%s)' %(num_iid))
         return
 
     success = True
@@ -66,7 +66,7 @@ def updateItemListTask(num_iid):
         if task.task_type == 'listing':
             item = apis.taobao_item_get(num_iid=int(task.num_iid),tb_user_id=task.user_id)
 
-            if item.has_key('item_get_response') and item['item_get_response'].has_key('item') :
+            if item.has_key('item_get_response') and item['item_get_response'].has_key('item'):
                 task.num = int(item['item_get_response']['item']['num'])
                 if item['item_get_response']['item']['approve_status'] == 'onsale':
                     response = apis.taobao_item_update_delisting(num_iid=task.num_iid,tb_user_id=task.user_id)
@@ -77,7 +77,8 @@ def updateItemListTask(num_iid):
                 response = apis.taobao_item_update_listing(num_iid=task.num_iid,num=task.num,tb_user_id=task.user_id)
                 write_to_log_db(task, response)
                 
-                Item.objects.filter(num_iid=num_iid).update(list_time=response['item_update_listing_response']['item']['modified'])
+                item_modified = response['item_update_listing_response']['item']['modified']
+                Item.objects.filter(num_iid=num_iid).update(list_time=item_modified)
                 
                 if item['item_get_response']['item']['has_showcase'] == True:
                     task.task_type = "recommend"
@@ -85,10 +86,10 @@ def updateItemListTask(num_iid):
                     write_to_log_db(task, response)
             else :
                 success = False
-
+    
         elif task.task_type == 'delisting':
             item = apis.taobao_item_get(num_iid=task.num_iid,tb_user_id=task.user_id)
-
+    
             if item.has_key('item_get_response') and item['item_get_response'].has_key('item') :
                 if item['item_get_response']['item']['approve_status'] == 'onsale':
                     response = apis.taobao_item_update_delisting(num_iid=task.num_iid,tb_user_id=task.user_id)
@@ -97,10 +98,10 @@ def updateItemListTask(num_iid):
                     success = False
             else :
                 success = False
-
+    
         if response.has_key('error_response'):
-            logger.error(u'上下架任务未成功(商品ID:%s) 原因:%s'%(task.num_iid,response['error_response']))
             success = False
+            raise Exception(response['error_response'])
 
     except Exception,exc:
         success = False
