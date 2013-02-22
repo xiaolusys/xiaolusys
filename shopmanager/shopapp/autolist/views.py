@@ -17,7 +17,7 @@ from shopback import paramconfig as pcfg
 from shopback.categorys.models import Category
 from shopback.items.models import Item,Product
 from shopback.users.models import User
-from shopapp.autolist.models import Logs,ItemListTask,TimeSlots,UNEXECUTE,UNSCHEDULED
+from shopapp.autolist.models import Logs,ItemListTask,TimeSlots,UNEXECUTE,UNSCHEDULED,LISTING_TYPE,DELISTING_TYPE
 from auth import apis
 
 
@@ -326,6 +326,7 @@ def change_list_time(request):
     o.num     = item.num
     o.list_weekday = target_time.isoweekday()
     o.list_time = delist_time
+    o.task_type = LISTING_TYPE
     o.status  = UNEXECUTE
     o.save()
 
@@ -385,7 +386,7 @@ class CreateListItemTaskModelView(CreateModelMixin,ModelView):
 
         else:
             instance = model.objects.get(num_iid=all_kw_args['num_iid'],status=UNEXECUTE)
-
+            
         headers = {}
         if hasattr(instance, 'get_absolute_url'):
             headers['Location'] = self.resource(self).url(instance)
