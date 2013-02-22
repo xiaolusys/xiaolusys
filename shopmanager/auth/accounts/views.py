@@ -237,7 +237,7 @@ def test_api(request):
 #                    ,company_code='ZTO',tb_user_id=174265168)
 #    print response
 
-    response = apis.taobao_topats_trades_sold_get(start_time='20130124',end_time='20130219',tb_user_id=174265168)
+    response = apis.taobao_item_update_listing(num_iid=9280965492,num=123,tb_user_id=174265168)
     print response
 
     return HttpResponseBadRequest('error') #HttpResponse('ok')

@@ -4,6 +4,8 @@ from auth.accounts.views import home,login_taobo
 from django.views.generic import TemplateView
 from django.contrib import admin
 from django.conf import settings
+from django.views.static import serve
+from django.contrib.admin.views.decorators import staff_member_required
 admin.autodiscover()
 
 
@@ -25,7 +27,7 @@ urlpatterns = patterns('',
     (r'^top_monitor\.html$',csrf_exempt(TemplateView.as_view(template_name='top_monitor.html'))),
     (r'^$',login_taobo),
 
-    (r'^download/(?P<path>.*)$','django.views.static.serve',
+    (r'^download/(?P<path>.*)$',staff_member_required(serve),
             {'document_root': settings.DOWNLOAD_ROOT,'show_indexes':True}),
     
     #(r'^admin/doc/', include('django.contrib.admindocs.urls')),

@@ -61,9 +61,8 @@ def updateItemListTask(num_iid):
         return
 
     success = True
-    response = {'error_response':'the item num can not be updated!'}
+    response = {'error_response':u'商品上下架失败！'}
     try:
-
         if task.task_type == 'listing':
             item = apis.taobao_item_get(num_iid=int(task.num_iid),tb_user_id=task.user_id)
 
@@ -91,26 +90,21 @@ def updateItemListTask(num_iid):
             item = apis.taobao_item_get(num_iid=task.num_iid,tb_user_id=task.user_id)
 
             if item.has_key('item_get_response') and item['item_get_response'].has_key('item') :
-
                 if item['item_get_response']['item']['approve_status'] == 'onsale':
-
-                    response = apis.taobao_item_update_delisting\
-                            (num_iid=task.num_iid,tb_user_id=task.user_id)
-
+                    response = apis.taobao_item_update_delisting(num_iid=task.num_iid,tb_user_id=task.user_id)
                     task.num = item['num']
                 else:
                     success = False
-
             else :
                 success = False
 
         if response.has_key('error_response'):
-            logger.error('Executing updateItemListTask(num_iid:%s) errorresponse:%s' %(task.num_iid,response),exc_info=True)
+            logger.error(u'上下架任务未成功(商品ID:%s) 原因:%s'%(task.num_iid,response['error_response']))
             success = False
 
     except Exception,exc:
         success = False
-        logger.error('Executing ItemListTask(id:%s) error:%s' %(num_iid,exc), exc_info=True)
+        logger.error(u'上下架任务异常(商品ID:%s) 错误:%s' %(num_iid,exc), exc_info=True)
 
     if success:
         task.status = SUCCESS

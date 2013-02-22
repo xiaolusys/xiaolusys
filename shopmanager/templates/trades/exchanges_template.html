@@ -104,9 +104,15 @@
 						<td>区:</td><td><input type="text" id="id_receiver_district" class="simple-text" /></td>
 					</tr>
 					<tr>
-						<td>详细地址:</td><td colspan="5"><input type="text" id="id_receiver_address" class="simple-text" style="width:400px;" /></td>
+						<td>详细地址:</td><td colspan="3"><input type="text" id="id_receiver_address" class="simple-text" style="width:400px;" /></td>
+						<td>退货快递名称:</td><td><input type="text" id="id_return_company_name" class="simple-text" /></td>
+						<td>退货快递单号:</td><td><input type="text" id="id_return_out_sid" class="simple-text" /></td>
+					</tr>
+					<tr>
+						<td colspan="6"></td>
 						<td colspan="2">
-							<button id="id_save_trade" class="btn btn-small btn-success">保存 +</button>
+							<button id="id_save_trade" class="btn btn-small btn-success">保存 +</button>&nbsp;&nbsp;
+							<a href="{{ request.path }}?q={{ trade.id }}&type__exact=exchange" class="btn btn-small btn-success">审核 -></a>
 						</td>
 					</tr>
 				</table>

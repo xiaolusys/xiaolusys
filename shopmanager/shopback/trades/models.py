@@ -143,7 +143,7 @@ class MergeTrade(models.Model):
     consign_time = models.DateTimeField(db_index=True,null=True,blank=True,verbose_name='发货日期')
     weight_time  = models.DateTimeField(db_index=True,null=True,blank=True,verbose_name='称重日期')
     
-    out_sid    = models.CharField(max_length=64,db_index=True,blank=True,verbose_name='物流（快递）编号')
+    out_sid    = models.CharField(max_length=64,db_index=True,blank=True,verbose_name='物流编号')
     logistics_company  = models.ForeignKey(LogisticsCompany,null=True,blank=True,verbose_name='物流公司')
     receiver_name    =  models.CharField(max_length=64,db_index=True,blank=True,verbose_name='收货人姓名')
     receiver_state   =  models.CharField(max_length=16,blank=True,verbose_name='省')
@@ -169,6 +169,9 @@ class MergeTrade(models.Model):
     has_sys_err      = models.BooleanField(default=False,verbose_name='系统错误')
     remind_time      = models.DateTimeField(null=True,blank=True,verbose_name='提醒日期')
     refund_num       = models.IntegerField(null=True,default=0,verbose_name='退款单数')  #退款单数
+    
+    return_out_sid   = models.CharField(max_length=64,db_index=True,blank=True,verbose_name='退货物流单号')
+    return_logistic_company = models.CharField(max_length=64,blank=True,verbose_name='退货物流公司')
     
     can_review       = models.BooleanField(default=False,verbose_name='复审') 
     priority       = models.IntegerField(db_index=True,default=0,choices=PRIORITY_TYPE,verbose_name='优先级')

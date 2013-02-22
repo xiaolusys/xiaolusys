@@ -55,8 +55,8 @@ class MergeOrderInline(admin.TabularInline):
 
 class MergeTradeAdmin(admin.ModelAdmin):
     list_display = ('trade_id_link','popup_tid_link','user','buyer_nick_link','type','payment','pay_time','consign_time'
-                    ,'status','sys_status','logistics_company','is_picking_print','is_express_print','is_send_sms'
-                    ,'reason_code','operator','created','weight_time')
+                    ,'status','sys_status','logistics_company','reason_code','is_picking_print','is_express_print'
+                    ,'can_review','operator','created','weight_time')
     #list_display_links = ('trade_id_link','popup_tid_link')
     #list_editable = ('update_time','task_type' ,'is_success','status')
     
@@ -91,7 +91,7 @@ class MergeTradeAdmin(admin.ModelAdmin):
     list_filter   = ('sys_status','status','user','type','has_out_stock','has_refund','has_rule_match','has_sys_err',
                      'has_merge','has_memo','is_picking_print','is_express_print','can_review')
 
-    search_fields = ['id','buyer_nick','tid','operator','out_sid','receiver_name']
+    search_fields = ['id','buyer_nick','tid','operator','out_sid','receiver_name','return_out_sid']
     
     class Media:
         css = {"all": ("admin/css/forms.css","css/admin/dialog.css","css/admin/checkorder.css")}
@@ -110,7 +110,7 @@ class MergeTradeAdmin(admin.ModelAdmin):
                     'classes': ('expand',),
                     'fields': (('receiver_name','receiver_state','receiver_city','receiver_district')
                             ,('receiver_address','receiver_zip','receiver_mobile','receiver_phone')
-                            ,('shipping_type','logistics_company','out_sid'))
+                            ,('shipping_type','logistics_company','out_sid','return_out_sid','return_logistic_company'))
                 }),
                 ('系统内部信息:', {
                     'classes': ('collapse',),
@@ -456,6 +456,7 @@ class MergeTradeAdmin(admin.ModelAdmin):
             prepare_trade.is_express_print=False
             prepare_trade.sys_status=pcfg.WAIT_AUDIT_STATUS
             prepare_trade.save()
+            log_action(request.user.id,prepare_trade,CHANGE,u'订单发货被拦截入问题单')
         post_trades = queryset.filter(sys_status=pcfg.WAIT_CHECK_BARCODE_STATUS)
         trade_items = {}
         for trade in post_trades:

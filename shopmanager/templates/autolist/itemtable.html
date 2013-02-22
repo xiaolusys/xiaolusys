@@ -47,15 +47,15 @@
       <td>{{ item.num }}</td>
       <td><img src="{{  item.pic_url }}_60x60.jpg"></td>
       {% if item.status == "execerror" %}
-      <td style="background-color:red">{{ 执行出错 }}</td>
+      <td style="background-color:red">执行出错</td>
       {% else %}  
           {% if item.status == "unscheduled" %}
-          <td style="background-color:pink">{{ 未设定 }}</td>
+          <td style="background-color:pink">未设定</td>
           {% else %}  
               {% if item.status == "success" %}
-              <td style="background-color:gray">{{ 成功 }}</td>
+              <td style="background-color:gray">成功</td>
               {% else %}
-              <td>{{ 未执行 }}</td>
+              <td>未执行</td>
               {% endif %}
            {% endif %}
        {% endif %}
