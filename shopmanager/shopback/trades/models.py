@@ -217,6 +217,48 @@ class MergeTrade(models.Model):
                 raise Exception(u'系统快递单号与线上发货快递单号不一致')       
         return False
     
+    def send_trade_to_taobao(self,company_code,out_sid,retry_times=3):
+        """ 订单在淘宝后台发货 """
+        
+        trade_id   = self.tid
+        trade_type = self.type
+        seller_id  = self.seller_id
+        
+        if trade_type in (pcfg.EXCHANGE_TYPE,pcfg.DIRECT_TYPE):
+            return False
+        try:
+            #如果货到付款
+            if trade_type == pcfg.COD_TYPE:
+                response = apis.taobao_logistics_online_send(tid=trade_id,out_sid=out_sid
+                                              ,company_code=company_code,tb_user_id=seller_id)  
+                #response = {'logistics_online_send_response': {'shipping': {'is_success': True}}}
+                if not response['logistics_online_send_response']['shipping']['is_success']:
+                    raise Exception(u'订单(%d)淘宝发货失败'%trade.tid)
+            else: 
+                response = apis.taobao_logistics_offline_send(tid=trade_id,out_sid=out_sid
+                                              ,company_code=company_code,tb_user_id=seller_id)  
+                #response = {'logistics_offline_send_response': {'shipping': {'is_success': True}}}
+                if not response['logistics_offline_send_response']['shipping']['is_success']:
+                    raise Exception(u'订单(%d)淘宝发货失败'%trade.tid)
+        except Exception,exc:
+            time.sleep(2)
+            post_success = False
+            try:
+                post_success = self.is_post_success()
+            except Exception,exc:
+                post_success = False
+            
+            if post_success:
+                return True
+            
+            logger.error(exc.message or u'订单发货出错',exc_info=True)
+            retry_times = retry_times - 1
+            if retry_times<=0:
+                return False
+            self.send_trade_to_taobao(company_code,out_sid,retry_times=retry_times)
+            
+        return True
+    
     def append_reason_code(self,code):  
         reason_set = set(self.reason_code.split(','))
         old_len = len(reason_set)
@@ -608,7 +650,7 @@ def merge_order_maker(sub_tid,main_tid):
         merge_order.is_merge = True
         merge_order.sys_status = order.sys_status
         merge_order.save()
-        if order.refund_status not in pcfg.REFUND_APPROVAL_STATUS:
+        if order.sys_status == pcfg.IN_EFFECT:
             payment   += float(order.payment or 0)
             total_fee += float(order.total_fee or 0)
             discount_fee += float(order.discount_fee or 0)
@@ -617,8 +659,7 @@ def merge_order_maker(sub_tid,main_tid):
         main_merge_trade.update_buyer_message(sub_tid,sub_trade.buyer_message)
     if sub_trade.seller_memo:
         main_merge_trade.update_seller_memo(sub_tid,sub_trade.seller_memo)
-    MergeTrade.objects.filter(tid=main_tid).update(has_merge = True,
-                                                   payment   = payment + float(main_merge_trade.payment ),
+    MergeTrade.objects.filter(tid=main_tid).update(payment   = payment + float(main_merge_trade.payment ),
                                                    total_fee = total_fee + float(main_merge_trade.total_fee ),
                                                    discount_fee = discount_fee + float(main_merge_trade.discount_fee or 0))
     
@@ -632,13 +673,15 @@ def merge_order_maker(sub_tid,main_tid):
 
 def merge_order_remover(main_tid):
     #拆单操作
+    
+    main_trade.merge_trade_orders.filter(Q(oid=None)|Q(is_merge=True)).delete()
+    
     main_trade = MergeTrade.objects.get(tid=main_tid)
     main_trade.remove_reason_code(pcfg.NEW_MERGE_TRADE_CODE)
     main_trade.append_reason_code(pcfg.MULTIPLE_ORDERS_CODE) 
     main_trade.has_merge = False
     main_trade.save()
     
-    main_trade.merge_trade_orders.filter(Q(oid=None)|Q(is_merge=True)).delete()
     sub_merges = MergeBuyerTrade.objects.filter(main_tid=main_tid)
     for sub_merge in sub_merges:   
         sub_tid  = sub_merge.sub_tid

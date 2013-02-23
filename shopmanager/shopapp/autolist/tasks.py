@@ -61,7 +61,7 @@ def updateItemListTask(num_iid):
         return
 
     success = True
-    response = {'error_response':u'商品上下架失败！'}
+    response = {'error_response':u'商品上下架任务不正常！'}
     try:
         if task.task_type == 'listing':
             item = apis.taobao_item_get(num_iid=int(task.num_iid),tb_user_id=task.user_id)
