@@ -429,6 +429,7 @@ class MergeTradeAdmin(admin.ModelAdmin):
                         sub_trade.sys_memo=exc.message
                         sub_trade.is_picking_print=False
                         sub_trade.is_express_print=False
+                        sub_trade.operator=''
                         sub_trade.save()
                         log_action(request.user.id,sub_trade,CHANGE,u'订单发货失败')
                         raise SubTradePostException(error_msg)
@@ -476,6 +477,7 @@ class MergeTradeAdmin(admin.ModelAdmin):
                 trade.sys_memo=exc.message
                 trade.is_picking_print=False
                 trade.is_express_print=False
+                trade.operator=''
                 trade.save()
                 log_action(request.user.id,trade,CHANGE,u'订单发货失败')
 
