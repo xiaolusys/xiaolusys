@@ -910,7 +910,8 @@ def save_orders_trade_to_mergetrade(sender, tid, *args, **kwargs):
         #保存商城或C店订单到抽象全局抽象订单表
         for order in trade.trade_orders.all():
             merge_order,state = MergeOrder.objects.get_or_create(oid=order.oid,tid=tid,merge_trade = merge_trade)
-            if state and order.refund_status == pcfg.REFUND_WAIT_SELLER_AGREE:
+            if state and order.refund_status in pcfg.REFUND_APPROVAL_STATUS.append(pcfg.REFUND_WAIT_SELLER_AGREE)\
+                    or order.status in (pcfg.TRADE_CLOSED,pcfg.TRADE_CLOSED_BY_TAOBAO):
                 sys_status = pcfg.INVALID_STATUS
             else:
                 sys_status = merge_order.sys_status or pcfg.IN_EFFECT
@@ -1014,7 +1015,7 @@ def save_fenxiao_orders_to_mergetrade(sender, tid, *args, **kwargs):
                 refund_status = pcfg.REFUND_SUCCESS
             else:
                 refund_status = pcfg.NO_REFUND
-            if state and order.status == pcfg.TRADE_REFUNDING:
+            if state and order.status in (pcfg.TRADE_REFUNDING,pcfg.TRADE_CLOSED,pcfg.TRADE_REFUNDED):
                 sys_status = pcfg.INVALID_STATUS
             else:
                 sys_status = merge_order.sys_status or pcfg.IN_EFFECT     
