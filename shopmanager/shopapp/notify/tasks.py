@@ -105,6 +105,9 @@ def process_trade_notify_task(id):
                 MergeTrade.objects.filter(tid=notify.tid).update(status=pcfg.TRADE_CLOSED,modified=notify.modified) 
                 MergeTrade.objects.filter(tid=notify.tid).exclude(sys_status__in=('',pcfg.FINISHED_STATUS)).update(sys_status=pcfg.INVALID_STATUS) 
                 MergeOrder.objects.filter(tid=notify.tid).update(status=pcfg.TRADE_CLOSED)
+                merge_trade = MergeTrade.objects.filter(tid=notify.tid)
+                if merge_trade.sys_status == pcfg.INVALID_STATUS and merge_trade.has_merge:
+                    merge_order_remover(notify.tid)
             #买家付款     
             elif notify.status == 'TradeBuyerPay':
                 response    = apis.taobao_trade_fullinfo_get(tid=notify.tid,tb_user_id=notify.user_id)
@@ -117,7 +120,11 @@ def process_trade_notify_task(id):
                 MergeTrade.objects.filter(tid=notify.tid).update(status=pcfg.WAIT_BUYER_CONFIRM_GOODS,modified=notify.modified)
                 MergeTrade.objects.filter(tid=notify.tid,sys_status__in=(pcfg.WAIT_AUDIT_STATUS,pcfg.WAIT_PREPARE_SEND_STATUS,
                         pcfg.REGULAR_REMAIN_STATUS),out_sid='').exclude(shipping_type=pcfg.EXTRACT_SHIPPING_TYPE).update(sys_status=pcfg.INVALID_STATUS)
-                MergeOrder.objects.filter(tid=notify.tid,status=pcfg.WAIT_SELLER_SEND_GOODS).update(status=pcfg.WAIT_BUYER_CONFIRM_GOODS)            
+                MergeOrder.objects.filter(tid=notify.tid,status=pcfg.WAIT_SELLER_SEND_GOODS).update(status=pcfg.WAIT_BUYER_CONFIRM_GOODS)
+                merge_trade = MergeTrade.objects.filter(tid=notify.tid)
+                if merge_trade.sys_status == pcfg.INVALID_STATUS and merge_trade.has_merge:
+                    merge_order_remover(notify.tid)
+                   
             #交易成功
             elif notify.status == 'TradeSuccess':
                 Trade.objects.filter(id=notify.tid).update(status=pcfg.TRADE_FINISHED,modified=notify.modified)
@@ -282,7 +289,7 @@ def process_refund_notify_task(id):
                     order.status=order_status
                     order.save()
                     
-                    if notify.status == 'RefundSuccess':
+                    if notify.status == 'RefundSuccess' and merge_trade.status in (pcfg.WAIT_SELLER_SEND_GOODS,pcfg.WAIT_BUYER_CONFIRM_GOODS):
                         merge_type  = MergeBuyerTrade.get_merge_type(notify.tid)
                         if merge_type == 1:
                             main_tid = MergeBuyerTrade.objects.get(sub_tid=notify.tid).main_tid
@@ -295,12 +302,15 @@ def process_refund_notify_task(id):
                             else:
                                 merge_order.refund_status=pcfg.REFUND_SUCCESS
                                 merge_order.save()
+                            rule_signal.send(sender='payment_rule',trade_id=main_trade.id)
                             
                         real_order_num = merge_trade.merge_trade_orders.filter(gift_type=pcfg.REAL_ORDER_GIT_TYPE)\
                             .exclude(refund_status__in=pcfg.REFUND_APPROVAL_STATUS).count()
 
                         if real_order_num == 0:
                             merge_trade.merge_trade_orders.exclude(gift_type=pcfg.REAL_ORDER_GIT_TYPE).delete()
+                        else:    
+                            rule_signal.send(sender='payment_rule',trade_id=merge_trade.id)
     except Exception,exc:
         logger.error(exc.message,exc_info=True)
         raise process_refund_notify_task.retry(exc=exc,countdown=60)

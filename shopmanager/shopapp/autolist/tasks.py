@@ -143,4 +143,13 @@ def updateAllItemListTask():
     for task in tasks:
         updateItemListTask(task.num_iid)
 
+@task
+def add(a,b):
+    print a ,b
+    return a+b
 
+@task
+def xsum(*args,**kwargs):
+    print 'debug args:',args
+    return sum(args[0])
+    

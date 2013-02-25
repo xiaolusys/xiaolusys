@@ -226,8 +226,7 @@ def rule_match_payment(sender, trade_id, *args, **kwargs):
     else:
         trade.merge_trade_orders.filter(gift_type=pcfg.OVER_PAYMENT_GIT_TYPE).delete()
         try:
-            orders = trade.merge_trade_orders.filter(status__in=(pcfg.WAIT_SELLER_SEND_GOODS,pcfg.WAIT_BUYER_CONFIRM_GOODS)
-                            ,gift_type=pcfg.REAL_ORDER_GIT_TYPE).exclude(refund_status__in=pcfg.REFUND_APPROVAL_STATUS)
+            orders = trade.merge_trade_orders.filter(sys_status=pcfg.IN_EFFECT)
             
             payment = orders.aggregate(total_payment=Sum('payment'))['total_payment'] or 0
             post_fee = trade.post_fee or 0
@@ -258,8 +257,7 @@ def rule_match_combose_split(sender, trade_id, *args, **kwargs):
     else:
         trade.merge_trade_orders.filter(gift_type=pcfg.COMBOSE_SPLIT_GIT_TYPE).delete()
         try:
-            orders = trade.merge_trade_orders.filter(status__in=(pcfg.WAIT_SELLER_SEND_GOODS,pcfg.WAIT_BUYER_CONFIRM_GOODS))\
-                    .exclude(refund_status__in=pcfg.REFUND_APPROVAL_STATUS)
+            orders = trade.merge_trade_orders.filter(sys_status=pcfg.IN_EFFECT)
             for order in orders:
                 try:
                     compose_rule = ComposeRule.objects.get(outer_id=order.outer_id,outer_sku_id=order.outer_sku_id,type='product')
@@ -267,7 +265,8 @@ def rule_match_combose_split(sender, trade_id, *args, **kwargs):
                     pass
                 else:
                     for item in compose_rule.compose_items.all():
-                        MergeOrder.gen_new_order(trade.id,item.outer_id,item.outer_sku_id,item.num*order.num,gift_type=pcfg.COMBOSE_SPLIT_GIT_TYPE)
+                        MergeOrder.gen_new_order(trade.id,item.outer_id,item.outer_sku_id,
+                                                 item.num*order.num,gift_type=pcfg.COMBOSE_SPLIT_GIT_TYPE)
                     MergeOrder.objects.filter(id=order.id).update(sys_status=pcfg.INVALID_STATUS)
         except Exception,exc:
             logger.error(exc.message,exc_info=True)

@@ -191,8 +191,7 @@ class MergeTrade(models.Model):
     
     @property
     def inuse_orders(self):
-        return self.merge_trade_orders.filter(status__in=(pcfg.WAIT_SELLER_SEND_GOODS,pcfg.WAIT_BUYER_CONFIRM_GOODS)
-                    ,sys_status=pcfg.IN_EFFECT)       
+        return self.merge_trade_orders.filter(sys_status=pcfg.IN_EFFECT)       
     @property
     def buyer_full_address(self):
         return '%s%s%s%s%s%s%s%s'%(self.receiver_name.strip(),self.receiver_mobile.strip(),self.receiver_phone.strip(),self.receiver_state.strip()
@@ -641,6 +640,7 @@ def merge_order_maker(sub_tid,main_tid):
     payment      = 0
     total_fee    = 0
     discount_fee = 0
+    post_fee     = float(sub_trade.post_fee or 0 ) + float(main_merge_trade.post_fee or 0)
     for order in sub_trade.merge_trade_orders.all():
         for field in order._meta.fields:
             hasattr(merge_order,field.name) and setattr(merge_order,field.name,getattr(order,field.name))
@@ -661,7 +661,8 @@ def merge_order_maker(sub_tid,main_tid):
         main_merge_trade.update_seller_memo(sub_tid,sub_trade.seller_memo)
     MergeTrade.objects.filter(tid=main_tid).update(payment   = payment + float(main_merge_trade.payment ),
                                                    total_fee = total_fee + float(main_merge_trade.total_fee ),
-                                                   discount_fee = discount_fee + float(main_merge_trade.discount_fee or 0))
+                                                   discount_fee = discount_fee + float(main_merge_trade.discount_fee or 0),
+                                                   post_fee = post_fee)
     
     MergeBuyerTrade.objects.get_or_create(sub_tid=sub_tid,main_tid=main_tid) 
     sub_trade.append_reason_code(pcfg.NEW_MERGE_TRADE_CODE)
@@ -674,21 +675,33 @@ def merge_order_maker(sub_tid,main_tid):
 def merge_order_remover(main_tid):
     #拆单操作
     
-    main_trade.merge_trade_orders.filter(Q(oid=None)|Q(is_merge=True)).delete()
-    
     main_trade = MergeTrade.objects.get(tid=main_tid)
+    if main_trade.type == pcfg.TAOBAO_TYPE:
+        trade = Trade.objects.get(tid=main_tid)
+        main_trade.payment    = trade.payment
+        main_trade.total_fee  = trade.total_fee
+        main_trade.post_fee   = trade.post_fee
+        main_trade.adjust_fee = trade.adjust_fee
+        main_trade.discount_fee = trade.discount_fee
+    elif main_trade.type == pcfg.FENXIAO_TYPE:
+        purchase_order = PurchaseOrder.objects.get(id=main_tid)
+        main_trade.payment   = purchase_order.distributor_payment
+        main_trade.post_fee  = purchase_order.post_fee
+        main_trade.total_fee = purchase_order.total_fee
     main_trade.remove_reason_code(pcfg.NEW_MERGE_TRADE_CODE)
     main_trade.append_reason_code(pcfg.MULTIPLE_ORDERS_CODE) 
     main_trade.has_merge = False
     main_trade.save()
     
+    main_trade.merge_trade_orders.filter(Q(oid=None)|Q(is_merge=True)).delete()
     sub_merges = MergeBuyerTrade.objects.filter(main_tid=main_tid)
     for sub_merge in sub_merges:   
         sub_tid  = sub_merge.sub_tid
         sub_merge_trade = MergeTrade.objects.get(tid=sub_tid)
         sub_merge_trade.remove_reason_code(pcfg.NEW_MERGE_TRADE_CODE)
         sub_merge_trade.append_reason_code(pcfg.MULTIPLE_ORDERS_CODE)
-        MergeTrade.objects.filter(tid=sub_merge_trade.tid,sys_status=pcfg.ON_THE_FLY_STATUS).update(sys_status=pcfg.WAIT_AUDIT_STATUS)
+        MergeTrade.objects.filter(tid=sub_merge_trade.tid,sys_status=pcfg.ON_THE_FLY_STATUS)\
+            .update(sys_status=pcfg.WAIT_AUDIT_STATUS)
         
     MergeBuyerTrade.objects.filter(main_tid=main_tid).delete()
     
@@ -738,7 +751,7 @@ def drive_merge_trade_action(trade_id):
                 #进行合单
                 is_merge_success = merge_order_maker(merge_trade.tid,main_tid)
                 #合并后金额匹配
-                rule_signal.send(sender='payment_rule',trade_id=main_tid)
+                rule_signal.send(sender='payment_rule',trade_id=main_trade.id)
         #如果入库订单待退款，则将同名的单置放入待审核区域
         elif trades.count()>0 or wait_refunding:
             if main_tid :
@@ -910,7 +923,7 @@ def save_orders_trade_to_mergetrade(sender, tid, *args, **kwargs):
         #保存商城或C店订单到抽象全局抽象订单表
         for order in trade.trade_orders.all():
             merge_order,state = MergeOrder.objects.get_or_create(oid=order.oid,tid=tid,merge_trade = merge_trade)
-            if state and order.refund_status in pcfg.REFUND_APPROVAL_STATUS.append(pcfg.REFUND_WAIT_SELLER_AGREE)\
+            if state and order.refund_status in (pcfg.REFUND_WAIT_SELLER_AGREE,pcfg.REFUND_SUCCESS)\
                     or order.status in (pcfg.TRADE_CLOSED,pcfg.TRADE_CLOSED_BY_TAOBAO):
                 sys_status = pcfg.INVALID_STATUS
             else:
