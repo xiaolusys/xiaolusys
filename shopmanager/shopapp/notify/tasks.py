@@ -105,7 +105,7 @@ def process_trade_notify_task(id):
                 MergeTrade.objects.filter(tid=notify.tid).update(status=pcfg.TRADE_CLOSED,modified=notify.modified) 
                 MergeTrade.objects.filter(tid=notify.tid).exclude(sys_status__in=('',pcfg.FINISHED_STATUS)).update(sys_status=pcfg.INVALID_STATUS) 
                 MergeOrder.objects.filter(tid=notify.tid).update(status=pcfg.TRADE_CLOSED)
-                merge_trade = MergeTrade.objects.filter(tid=notify.tid)
+                merge_trade = MergeTrade.objects.get(tid=notify.tid)
                 if merge_trade.sys_status == pcfg.INVALID_STATUS and merge_trade.has_merge:
                     merge_order_remover(notify.tid)
             #买家付款     
@@ -121,7 +121,7 @@ def process_trade_notify_task(id):
                 MergeTrade.objects.filter(tid=notify.tid,sys_status__in=(pcfg.WAIT_AUDIT_STATUS,pcfg.WAIT_PREPARE_SEND_STATUS,
                         pcfg.REGULAR_REMAIN_STATUS),out_sid='').exclude(shipping_type=pcfg.EXTRACT_SHIPPING_TYPE).update(sys_status=pcfg.INVALID_STATUS)
                 MergeOrder.objects.filter(tid=notify.tid,status=pcfg.WAIT_SELLER_SEND_GOODS).update(status=pcfg.WAIT_BUYER_CONFIRM_GOODS)
-                merge_trade = MergeTrade.objects.filter(tid=notify.tid)
+                merge_trade = MergeTrade.objects.get(tid=notify.tid)
                 if merge_trade.sys_status == pcfg.INVALID_STATUS and merge_trade.has_merge:
                     merge_order_remover(notify.tid)
                    

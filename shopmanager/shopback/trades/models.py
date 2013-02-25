@@ -750,6 +750,7 @@ def drive_merge_trade_action(trade_id):
             if main_tid and can_merge:  
                 #进行合单
                 is_merge_success = merge_order_maker(merge_trade.tid,main_tid)
+                main_trade = MergeTrade.objects.get(tid=main_tid)
                 #合并后金额匹配
                 rule_signal.send(sender='payment_rule',trade_id=main_trade.id)
         #如果入库订单待退款，则将同名的单置放入待审核区域
