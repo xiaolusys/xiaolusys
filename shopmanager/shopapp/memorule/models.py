@@ -231,7 +231,7 @@ def rule_match_payment(sender, trade_id, *args, **kwargs):
         try:
             orders = trade.merge_trade_orders.filter(gift_type=pcfg.REAL_ORDER_GIT_TYPE
                             ,status__in=(pcfg.WAIT_SELLER_SEND_GOODS,pcfg.WAIT_BUYER_CONFIRM_GOODS)
-                            ).exlude(refund_status=pcfg.REFUND_SUCCESS)
+                            ).exclude(refund_status=pcfg.REFUND_SUCCESS)
             
             payment = orders.aggregate(total_payment=Sum('payment'))['total_payment'] or 0
             post_fee = trade.post_fee or 0
@@ -269,7 +269,7 @@ def rule_match_combose_split(sender, trade_id, *args, **kwargs):
         try:
             orders = trade.merge_trade_orders.filter(gift_type=pcfg.REAL_ORDER_GIT_TYPE
                             ,status__in=(pcfg.WAIT_SELLER_SEND_GOODS,pcfg.WAIT_BUYER_CONFIRM_GOODS)
-                            ).exlude(refund_status=pcfg.REFUND_SUCCESS)
+                            ).exclude(refund_status=pcfg.REFUND_SUCCESS)
             for order in orders:
                 try:
                     compose_rule = ComposeRule.objects.get(outer_id=order.outer_id,outer_sku_id=order.outer_sku_id,type='product')
