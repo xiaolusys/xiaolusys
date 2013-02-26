@@ -216,7 +216,12 @@ def rule_match_trade(sender, trade_id, *args, **kwargs):
 
 
 def rule_match_payment(sender, trade_id, *args, **kwargs):
-    #赠品规则
+    """
+    赠品规则:
+        1,针对实付订单，不能根据有效来计算，由于需拆分的实付订单拆分后会变成无效；
+        2，赠品是根据最大匹配金额来赠送；
+        3，该规则执行前，应先将所以满就送的订单删除；
+    """
     try:
         trade = MergeTrade.objects.get(id=trade_id)
     except MergeTrade.DoesNotExist:
@@ -224,7 +229,9 @@ def rule_match_payment(sender, trade_id, *args, **kwargs):
     else:
         trade.merge_trade_orders.filter(gift_type=pcfg.OVER_PAYMENT_GIT_TYPE).delete()
         try:
-            orders = trade.merge_trade_orders.filter(sys_status=pcfg.IN_EFFECT)
+            orders = trade.merge_trade_orders.filter(gift_type==pcfg.REAL_ORDER_GIT_TYPE
+                            ,status__in(pcfg.WAIT_SELLER_SEND_GOODS,pcfg.WAIT_BUYER_CONFIRM_GOODS)
+                            ).exlude(refund_status=pcfg.REFUND_SUCCESS)
             
             payment = orders.aggregate(total_payment=Sum('payment'))['total_payment'] or 0
             post_fee = trade.post_fee or 0
@@ -247,7 +254,12 @@ rule_signal.connect(rule_match_payment,sender='payment_rule',dispatch_uid='rule_
 
 
 def rule_match_combose_split(sender, trade_id, *args, **kwargs):
-    #拆分规则
+    """
+    拆分规则:
+        1,针对实付订单，不能根据有效来计算，由于需拆分的实付订单拆分后会变成无效；
+        2，赠品是根据最大匹配金额来赠送；
+        3，该规则执行前，应先将所以满就送的订单删除；
+    """
     try:
         trade = MergeTrade.objects.get(id=trade_id)
     except MergeTrade.DoesNotExist:
@@ -255,7 +267,9 @@ def rule_match_combose_split(sender, trade_id, *args, **kwargs):
     else:
         trade.merge_trade_orders.filter(gift_type=pcfg.COMBOSE_SPLIT_GIT_TYPE).delete()
         try:
-            orders = trade.merge_trade_orders.filter(sys_status=pcfg.IN_EFFECT)
+            orders = trade.merge_trade_orders.filter(gift_type==pcfg.REAL_ORDER_GIT_TYPE
+                            ,status__in(pcfg.WAIT_SELLER_SEND_GOODS,pcfg.WAIT_BUYER_CONFIRM_GOODS)
+                            ).exlude(refund_status=pcfg.REFUND_SUCCESS)
             for order in orders:
                 try:
                     compose_rule = ComposeRule.objects.get(outer_id=order.outer_id,outer_sku_id=order.outer_sku_id,type='product')
