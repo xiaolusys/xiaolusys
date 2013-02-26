@@ -677,7 +677,7 @@ def merge_order_remover(main_tid):
     
     main_trade = MergeTrade.objects.get(tid=main_tid)
     if main_trade.type == pcfg.TAOBAO_TYPE:
-        trade = Trade.objects.get(tid=main_tid)
+        trade = Trade.objects.get(id=main_tid)
         main_trade.payment    = trade.payment
         main_trade.total_fee  = trade.total_fee
         main_trade.post_fee   = trade.post_fee
