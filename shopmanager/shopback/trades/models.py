@@ -571,7 +571,7 @@ class MergeOrder(models.Model):
 
 def refresh_trade_status(sender,instance,*args,**kwargs):
     #更新主订单的状态
-    merge_trade   = instance.merge_trade
+    merge_trade   = MergeTrade.objects.get(tid=instance.tid)
     if merge_trade.seller_nick and merge_trade.buyer_nick and (not instance.seller_nick or not instance.buyer_nick):
         instance.seller_nick = merge_trade.seller_nick
         instance.buyer_nick  = merge_trade.buyer_nick
@@ -960,19 +960,32 @@ def save_orders_trade_to_mergetrade(sender, tid, *args, **kwargs):
             
         #保存基本订单信息
         trade_from    = pcfg.FENXIAO_TYPE if trade.type==pcfg.FENXIAO_TYPE else pcfg.TAOBAO_TYPE
-         
+        if trade.status == pcfg.WAIT_BUYER_PAY:
+            payment   = trade.payment
+            total_fee = trade.total_fee
+            discount_fee = trade.discount_fee
+            adjust_fee   = trade.adjust_fee
+            post_fee     = trade.post_fee
+        else:
+            payment   = merge_trade.payment or trade.payment
+            total_fee   = merge_trade.total_fee or trade.total_fee
+            discount_fee   = merge_trade.discount_fee or trade.discount_fee
+            adjust_fee   = merge_trade.adjust_fee or trade.adjust_fee
+            post_fee   = merge_trade.post_fee or trade.post_fee
+            
         MergeTrade.objects.filter(tid=trade.id).update(
             user = trade.user,
             seller_id = trade.seller_id,
             seller_nick = trade.seller_nick,
             buyer_nick = trade.buyer_nick,
             type = trade.type,
-            shipping_type = merge_trade.shipping_type or pcfg.SHIPPING_TYPE_MAP.get(trade.shipping_type,pcfg.EXPRESS_SHIPPING_TYPE),
-            payment = merge_trade.payment or trade.payment,
-            total_fee = merge_trade.total_fee or trade.total_fee,
-            discount_fee = merge_trade.discount_fee or trade.discount_fee,
-            adjust_fee   = merge_trade.adjust_fee or trade.adjust_fee,
-            post_fee = merge_trade.post_fee or trade.post_fee,
+            shipping_type = merge_trade.shipping_type or 
+                pcfg.SHIPPING_TYPE_MAP.get(trade.shipping_type,pcfg.EXPRESS_SHIPPING_TYPE),
+            payment = payment,
+            total_fee = total_fee,
+            discount_fee = discount_fee,
+            adjust_fee   = adjust_fee,
+            post_fee = post_fee,
             alipay_no  = trade.buyer_alipay_no,
             seller_cod_fee = trade.seller_cod_fee,
             buyer_cod_fee  = trade.buyer_cod_fee,
@@ -1062,16 +1075,26 @@ def save_fenxiao_orders_to_mergetrade(sender, tid, *args, **kwargs):
             merge_order.save()
         
         trade_from = pcfg.FENXIAO_TYPE
+        if trade.status == pcfg.WAIT_BUYER_PAY:
+            payment   = trade.distributor_payment
+            total_fee = trade.total_fee
+            post_fee  = trade.post_fee
+        else:
+            payment   = merge_trade.payment or trade.distributor_payment
+            total_fee   = merge_trade.total_fee or trade.total_fee
+            post_fee   = merge_trade.post_fee or trade.post_fee
+            
         MergeTrade.objects.filter(tid=trade.id).update(
             user = trade.user,
             seller_id = trade.seller_id,
             seller_nick = trade.supplier_username,
             buyer_nick = trade.distributor_username,
             type = pcfg.FENXIAO_TYPE,
-            shipping_type = merge_trade.shipping_type or pcfg.SHIPPING_TYPE_MAP.get(trade.shipping,pcfg.EXPRESS_SHIPPING_TYPE),
-            payment = merge_trade.payment or trade.distributor_payment,
-            total_fee = merge_trade.total_fee or trade.total_fee,
-            post_fee = merge_trade.post_fee or trade.post_fee,
+            shipping_type = merge_trade.shipping_type or 
+                pcfg.SHIPPING_TYPE_MAP.get(trade.shipping,pcfg.EXPRESS_SHIPPING_TYPE),
+            payment = payment,
+            total_fee = total_fee,
+            post_fee = post_fee,
             buyer_message = trade.memo,
             seller_memo = trade.supplier_memo,
             created = trade.created,
