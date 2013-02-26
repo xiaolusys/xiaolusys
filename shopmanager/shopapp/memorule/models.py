@@ -229,8 +229,8 @@ def rule_match_payment(sender, trade_id, *args, **kwargs):
     else:
         trade.merge_trade_orders.filter(gift_type=pcfg.OVER_PAYMENT_GIT_TYPE).delete()
         try:
-            orders = trade.merge_trade_orders.filter(gift_type==pcfg.REAL_ORDER_GIT_TYPE
-                            ,status__in(pcfg.WAIT_SELLER_SEND_GOODS,pcfg.WAIT_BUYER_CONFIRM_GOODS)
+            orders = trade.merge_trade_orders.filter(gift_type=pcfg.REAL_ORDER_GIT_TYPE
+                            ,status__in=(pcfg.WAIT_SELLER_SEND_GOODS,pcfg.WAIT_BUYER_CONFIRM_GOODS)
                             ).exlude(refund_status=pcfg.REFUND_SUCCESS)
             
             payment = orders.aggregate(total_payment=Sum('payment'))['total_payment'] or 0
@@ -267,8 +267,8 @@ def rule_match_combose_split(sender, trade_id, *args, **kwargs):
     else:
         trade.merge_trade_orders.filter(gift_type=pcfg.COMBOSE_SPLIT_GIT_TYPE).delete()
         try:
-            orders = trade.merge_trade_orders.filter(gift_type==pcfg.REAL_ORDER_GIT_TYPE
-                            ,status__in(pcfg.WAIT_SELLER_SEND_GOODS,pcfg.WAIT_BUYER_CONFIRM_GOODS)
+            orders = trade.merge_trade_orders.filter(gift_type=pcfg.REAL_ORDER_GIT_TYPE
+                            ,status__in=(pcfg.WAIT_SELLER_SEND_GOODS,pcfg.WAIT_BUYER_CONFIRM_GOODS)
                             ).exlude(refund_status=pcfg.REFUND_SUCCESS)
             for order in orders:
                 try:
