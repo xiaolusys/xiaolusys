@@ -28,13 +28,10 @@ def pull_from_taobao(request):
     
     content = request.REQUEST
     user_id = content.get('user_id','')
-    if not user_id :
+    try:
+        profile = User.objects.get(user=user_id)
+    except Exception:
         profile = request.user.get_profile()
-    else:
-        try:
-            profile = User.objects.get(user=user_id)
-        except User.DoesNotExist:
-            profile = request.user.get_profile()
 
     onsaleItems = apis.taobao_items_onsale_get(page_no=1,page_size=200,tb_user_id=profile.visitor_id)
     if onsaleItems['items_onsale_get_response']['total_results'] <= 0:
@@ -72,7 +69,7 @@ def list_all_items(request):
     user_id = content.get('user_id','')
     try:
         profile = User.objects.get(user=user_id)
-    except User.DoesNotExist:
+    except Exception:
         profile = request.user.get_profile()
         
     items = profile.items.filter(approve_status=pcfg.ONSALE_STATUS).order_by('list_time')
@@ -107,7 +104,7 @@ def show_timetable_cats(request):
     user_id = content.get('user_id','')
     try:
         profile = User.objects.get(user=user_id)
-    except User.DoesNotExist:
+    except Exception:
         profile = request.user.get_profile()
         
     from auth.utils import get_closest_time_slot, get_all_time_slots
@@ -146,7 +143,7 @@ def show_weektable(request, weekday):
     user_id = content.get('user_id','')
     try:
         profile = User.objects.get(user=user_id)
-    except User.DoesNotExist:
+    except Exception:
         profile = request.user.get_profile()
 
     items = Item.objects.filter(user=profile,approve_status=pcfg.ONSALE_STATUS).order_by('category', 'outer_id')
@@ -201,7 +198,7 @@ def show_time_table_summary(request):
     user_id = content.get('user_id','')
     try:
         profile = User.objects.get(user=user_id)
-    except User.DoesNotExist:
+    except Exception:
         profile = request.user.get_profile()
         
     items = Item.objects.filter(user=profile,approve_status=pcfg.ONSALE_STATUS).order_by('category', 'outer_id')
