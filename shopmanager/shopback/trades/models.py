@@ -265,7 +265,7 @@ class MergeTrade(models.Model):
         new_len = len(reason_set)
         self.reason_code = ','.join(list(reason_set))
         if code in (pcfg.POST_MODIFY_CODE,pcfg.POST_SUB_TRADE_ERROR_CODE,pcfg.COMPOSE_RULE_ERROR_CODE,
-                    pcfg.PAYMENT_RULE_ERROR_CODE,pcfg.MERGE_TRADE_ERROR_CODE,pcfg.RULE_MATCH_ERROR_CODE):
+                    pcfg.PAYMENT_RULE_ERROR_CODE,pcfg.MERGE_TRADE_ERROR_CODE):
             self.has_sys_err = True
         MergeTrade.objects.filter(id=self.id).update(reason_code=self.reason_code,has_sys_err=self.has_sys_err)    
         return old_len<new_len
@@ -452,7 +452,8 @@ class MergeTrade(models.Model):
         if not receiver_address and not receiver_name:   
             return False  
         trades = cls.objects.filter(buyer_nick=buyer_nick,receiver_name=receiver_name
-                ,sys_status__in=(pcfg.WAIT_PREPARE_SEND_STATUS,pcfg.WAIT_AUDIT_STATUS,pcfg.REGULAR_REMAIN_STATUS)).exclude(tid=trade_id)
+                ,sys_status__in=(pcfg.WAIT_PREPARE_SEND_STATUS,pcfg.WAIT_AUDIT_STATUS,pcfg.WAIT_CHECK_BARCODE_STATUS
+                                 ,pcfg.WAIT_SCAN_WEIGHT_STATUS,pcfg.REGULAR_REMAIN_STATUS)).exclude(tid=trade_id)
         is_need_merge = False
         
         if trades.count() > 0:
@@ -674,7 +675,6 @@ def merge_order_maker(sub_tid,main_tid):
 
 def merge_order_remover(main_tid):
     #拆单操作
-    
     main_trade = MergeTrade.objects.get(tid=main_tid)
     if main_trade.type == pcfg.TAOBAO_TYPE:
         trade = Trade.objects.get(id=main_tid)
