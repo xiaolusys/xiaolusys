@@ -1,3 +1,6 @@
+######### 2013-2-26   #########
+alter table shop_purchase_product add column stock_num int(11) default 0;
+alter table shop_purchase_productsku add column sku_num int(11) default 0;
 ######### 2013-2-22   #########
 create index idx_mergetrade_receiver_mobile on shop_trades_mergetrade(receiver_mobile);
 create index idx_mergetrade_receiver_phone on shop_trades_mergetrade(receiver_phone);

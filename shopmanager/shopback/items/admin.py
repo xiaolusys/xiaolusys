@@ -6,7 +6,8 @@ from django.db import models
 from django.shortcuts import render_to_response
 from django.template import RequestContext
 from django.forms import TextInput, Textarea
-from shopback.items.models import Item,Product,ProductSku
+from shopback.items.models import Item,Product,ProductSku,PurchaseProduct,PurchaseProductSku
+from shopback import paramconfig as pcfg
 import logging 
 
 logger =  logging.getLogger('tradepost.handler')
@@ -16,6 +17,16 @@ class ProductSkuInline(admin.TabularInline):
     model = ProductSku
     fields = ('outer_id','prod_outer_id','purchase_product_sku','quantity','warn_num','remain_num','properties_name','out_stock',
                     'sync_stock','is_assign','status')
+    
+    formfield_overrides = {
+        models.CharField: {'widget': TextInput(attrs={'size':'20'})},
+        models.TextField: {'widget': Textarea(attrs={'rows':4, 'cols':40})},
+    }
+
+class PurchaseProductSkuInline(admin.TabularInline):
+    
+    model = PurchaseProductSku
+    fields = ('product','outer_id','properties','sku_num','status')
     
     formfield_overrides = {
         models.CharField: {'widget': TextInput(attrs={'size':'20'})},
@@ -39,7 +50,7 @@ admin.site.register(Item, ItemAdmin)
 
 
 class ProductAdmin(admin.ModelAdmin):
-    list_display = ('id','outer_id','name','category','collect_num','warn_num','remain_num','price','sync_stock','out_stock','created','modified','status')
+    list_display = ('id','outer_id','name','category','warn_num','remain_num','price','sync_stock','out_stock','created','modified','status')
     list_display_links = ('id','outer_id',)
     list_editable = ('name',)
     
@@ -115,7 +126,7 @@ admin.site.register(Product, ProductAdmin)
 
 
 class ProductSkuAdmin(admin.ModelAdmin):
-    list_display = ('id','outer_id','prod_outer_id','product','quantity','warn_num','remain_num','sync_stock','properties_name','properties','out_stock','modified','status')
+    list_display = ('id','outer_id','prod_outer_id','product','warn_num','remain_num','sync_stock','properties_name','properties','out_stock','modified','status')
     list_display_links = ('outer_id',)
     list_editable = ('quantity',)
 
@@ -129,3 +140,26 @@ class ProductSkuAdmin(admin.ModelAdmin):
 
 admin.site.register(ProductSku, ProductSkuAdmin)
   
+  
+class PurchaseProductAdmin(admin.ModelAdmin):
+    list_display = ('id','outer_id','name','category','created','modified','status')
+    #list_editable = ('update_time','task_type' ,'is_success','status')
+
+    list_filter = ('status',)
+    search_fields = ['id','outer_id']
+    
+    inlines = [PurchaseProductSkuInline]
+
+admin.site.register(PurchaseProduct,PurchaseProductAdmin)
+
+
+class PurchaseProductSkuAdmin(admin.ModelAdmin):
+    list_display = ('id','product','outer_id','properties','created','modified','status')
+    #list_editable = ('update_time','task_type' ,'is_success','status')
+
+    list_filter = ('status',)
+    search_fields = ['id','outer_id']
+    
+
+admin.site.register(PurchaseProductSku,PurchaseProductSkuAdmin)
+

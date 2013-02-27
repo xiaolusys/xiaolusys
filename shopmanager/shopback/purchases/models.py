@@ -3,7 +3,7 @@ from django.db import models
 from shopback import paramconfig as pcfg
 from shopback.suppliers.models import Supplier
 from shopback.categorys.models import ProductCategory
-
+from shopback.items.models import PurchaseProduct,PurchaseProductSku
 
 PURCHASE_STATUS = (
     (pcfg.PURCHASE_DRAFT,'草稿'),
@@ -25,68 +25,23 @@ PURCHASE_ITEM_STATUS = (
 
 PURCHASE_STORAGE_STATUS = (
     (pcfg.PURCHASE_DRAFT,'草稿'),
-    (pcfg.PURCHASE_APPROVAL,'审批'),
-    (pcfg.PURCHASE_DRAFT,'草稿'),
+    (pcfg.PURCHASE_APPROVAL,'审批')
 )
 
 PRODUCT_STATUS = (
     (pcfg.NORMAL,'使用'),
-    (pcfg.DELETE,'删除'),
+    (pcfg.DELETE,'作废'),
 )
-
-
-
-class PurchaseProduct(models.Model):
-    """ 采购产品 """
-    
-    outer_id     = models.CharField(max_length=64)
-    name         = models.CharField(max_length=128,blank=True)
-    
-    category     = models.ForeignKey(ProductCategory,null=True,blank=True,related_name='purchase_products')
-    #stock_num    = models.IntegerField(default=0)
-    
-    created      = models.DateTimeField(null=True,blank=True,auto_now_add=True)
-    modified     = models.DateTimeField(null=True,blank=True,auto_now=True)
-    
-    status       = models.CharField(max_length=16,db_index=True,choices=PRODUCT_STATUS,default=pcfg.NORMAL)
-    
-    class Meta:
-        db_table = 'shop_purchase_product'
-        verbose_name='采购商品'
-
-    def __unicode__(self):
-        return '<%s,%s>'%(self.outer_id,self.name)
-
-
-class PurchaseProductSku(models.Model):
-    """ 采购产品规格 """
-    
-    product      = models.ForeignKey(PurchaseProduct,related_name='purchase_productskus')
-    outer_id     = models.CharField(max_length=64)
-    properties   = models.CharField(max_length=256,blank=True)
-    
-    #sku_num      = models.IntegerField(default=0)
-    created      = models.DateTimeField(null=True,blank=True,auto_now_add=True)
-    modified     = models.DateTimeField(null=True,blank=True,auto_now=True)
-    
-    status       = models.CharField(max_length=16,db_index=True,choices=PRODUCT_STATUS,default=pcfg.NORMAL)
-    
-    class Meta:
-        db_table = 'shop_purchase_productsku'
-        verbose_name='采购商品规格'
-
-    def __unicode__(self):
-        return '<%s,%s>'%(self.outer_id,self.properties)
 
 
 class Deposite(models.Model):
     """ 采购仓库 """
     
-    deposite_name = models.CharField(max_length=32,blank=True)
-    location     = models.CharField(max_length=32,blank=True)
+    deposite_name = models.CharField(max_length=32,blank=True,verbose_name='仓库名')
+    location     = models.CharField(max_length=32,blank=True,verbose_name='仓库位置')
     
-    in_use       = models.BooleanField(default=True)
-    extra_info   = models.TextField(blank=True)
+    in_use       = models.BooleanField(default=True,verbose_name='使用')
+    extra_info   = models.TextField(blank=True,verbose_name='备注')
     class Meta:
         db_table = 'shop_purchases_deposite'
         verbose_name='仓库'
@@ -98,10 +53,10 @@ class Deposite(models.Model):
 class PurchaseType(models.Model):
     """ 采购类型 """
     
-    type_name    = models.CharField(max_length=32,blank=True)
-    in_use       = models.BooleanField(default=True)
+    type_name    = models.CharField(max_length=32,blank=True,verbose_name='采购类型')
+    in_use       = models.BooleanField(default=True,verbose_name='使用')
     
-    extra_info   = models.TextField(blank=True)
+    extra_info   = models.TextField(blank=True,verbose_name='备注')
     
     class Meta:
         db_table = 'shop_purchases_purchasetype'
@@ -114,18 +69,18 @@ class PurchaseType(models.Model):
 class Purchase(models.Model):
     """ 采购单 """
     
-    supplier     = models.ForeignKey(Supplier,null=True,blank=True,related_name='purchases')
-    deposite     = models.ForeignKey(Deposite,null=True,blank=True,related_name='purchases')
-    type         = models.ForeignKey(PurchaseType,null=True,blank=True,related_name='purchases')
+    supplier     = models.ForeignKey(Supplier,null=True,blank=True,related_name='purchases',verbose_name='供应商')
+    deposite     = models.ForeignKey(Deposite,null=True,blank=True,related_name='purchases',verbose_name='仓库')
+    type         = models.ForeignKey(PurchaseType,null=True,blank=True,related_name='purchases',verbose_name='采购类型')
     
-    forecast_time = models.DateTimeField(null=True,blank=True)
-    post_time    = models.DateTimeField(null=True,blank=True)
+    forecast_time = models.DateTimeField(null=True,blank=True,verbose_name='预测到货时间')
+    post_time    = models.DateTimeField(null=True,blank=True,verbose_name='业务时间')
 
-    created      = models.DateTimeField(auto_now=True)
-    modified     = models.DateTimeField(auto_now_add=True)
+    created      = models.DateTimeField(null=True,blank=True,auto_now=True,verbose_name='创建日期')
+    modified     = models.DateTimeField(null=True,blank=True,auto_now_add=True,verbose_name='修改日期')
     
-    status       = models.CharField(max_length=32,db_index=True,choices=PURCHASE_STATUS,default=pcfg.PURCHASE_DRAFT)
-    extra_info   = models.TextField(blank=True)
+    status       = models.CharField(max_length=32,db_index=True,choices=PURCHASE_STATUS,default=pcfg.PURCHASE_DRAFT,verbose_name='采购状态')
+    extra_info   = models.TextField(blank=True,verbose_name='备注')
     
     class Meta:
         db_table = 'shop_purchases_purchase'
@@ -135,29 +90,28 @@ class Purchase(models.Model):
         return 'CGD%d'%self.id
     
     
-    
 class PurchaseItem(models.Model):
     """ 采购子订单 """
     
-    purchase     = models.ForeignKey(Purchase,related_name='purchase_items')
-    supplier_item_id = models.CharField(max_length=64,blank=True)
+    purchase     = models.ForeignKey(Purchase,related_name='purchase_items',verbose_name='采购单')
+    supplier_item_id = models.CharField(max_length=64,blank=True,verbose_name='供应商产品编码')
     
-    product      = models.ForeignKey(PurchaseProduct,related_name='purchase_items')
-    product_sku  = models.ForeignKey(PurchaseProductSku,related_name='purchase_items')
+    product      = models.ForeignKey(PurchaseProduct,related_name='purchase_items',verbose_name='采购产品')
+    product_sku  = models.ForeignKey(PurchaseProductSku,related_name='purchase_items',verbose_name='采购产品规格')
     
-    purchase_num = models.IntegerField(null=True)
-    discount     = models.FloatField(null=True)
+    purchase_num = models.IntegerField(null=True,verbose_name='采购数量')
+    discount     = models.FloatField(null=True,verbose_name='折扣')
     
-    price        = models.FloatField(null=True)
+    price        = models.FloatField(null=True,verbose_name='价格')
 
-    total_fee    = models.FloatField(null=True)
-    payment      = models.FloatField(null=True)
+    total_fee    = models.FloatField(null=True,verbose_name='总费用')
+    payment      = models.FloatField(null=True,verbose_name='实付')
     
-    created      = models.DateTimeField(null=True,blank=True,auto_now=True)
-    modified     = models.DateTimeField(null=True,blank=True,auto_now_add=True)
+    created      = models.DateTimeField(null=True,blank=True,auto_now=True,verbose_name='创建日期')
+    modified     = models.DateTimeField(null=True,blank=True,auto_now_add=True,verbose_name='修改日期')
     
-    status       = models.CharField(max_length=32,db_index=True,choices=PURCHASE_ITEM_STATUS,default=pcfg.PURCHASE_DRAFT)
-    extra_info   = models.TextField(blank=True)
+    status       = models.CharField(max_length=32,db_index=True,choices=PURCHASE_ITEM_STATUS,default=pcfg.PURCHASE_DRAFT,verbose_name='状态')
+    extra_info   = models.TextField(blank=True,verbose_name='备注')
     
     class Meta:
         db_table = 'shop_purchases_item'
@@ -170,20 +124,20 @@ class PurchaseItem(models.Model):
 class PurchaseStorage(models.Model):
     """ 采购入库单 """
     
-    supplier     = models.ForeignKey(Supplier,null=True,blank=True,related_name='purchase_storages')
-    deposite     = models.ForeignKey(Deposite,null=True,blank=True,related_name='purchases_storages')
-    type         = models.ForeignKey(PurchaseType,null=True,blank=True,related_name='purchases_storages')
+    supplier     = models.ForeignKey(Supplier,null=True,blank=True,related_name='purchase_storages',verbose_name='供应商')
+    deposite     = models.ForeignKey(Deposite,null=True,blank=True,related_name='purchases_storages',verbose_name='仓库')
+    type         = models.ForeignKey(PurchaseType,null=True,blank=True,related_name='purchases_storages',verbose_name='采购类型')
     
-    forecast_time = models.DateTimeField(null=True,blank=True)
-    post_time    = models.DateTimeField(null=True,blank=True)
+    forecast_time = models.DateTimeField(null=True,blank=True,verbose_name='预计到货日期')
+    post_time    = models.DateTimeField(null=True,blank=True,verbose_name='实际到货日期')
     
-    purchase     = models.ForeignKey(Purchase,null=True,blank=True,related_name='purchases_storages')
+    purchase     = models.ForeignKey(Purchase,null=True,blank=True,related_name='purchases_storages',verbose_name='关联采购单')
     
-    created      = models.DateTimeField(auto_now=True)
-    modified     = models.DateTimeField(auto_now_add=True)
+    created      = models.DateTimeField(null=True,blank=True,auto_now=True,verbose_name='创建日期')
+    modified     = models.DateTimeField(null=True,blank=True,auto_now_add=True,verbose_name='修改日期')
     
-    status       = models.CharField(max_length=32,db_index=True,choices=PURCHASE_STORAGE_STATUS,default=pcfg.PURCHASE_DRAFT)
-    extra_info   = models.TextField(blank=True)
+    status       = models.CharField(max_length=32,db_index=True,choices=PURCHASE_STORAGE_STATUS,default=pcfg.PURCHASE_DRAFT,verbose_name='状态')
+    extra_info   = models.TextField(blank=True,verbose_name='备注')
     
     class Meta:
         db_table = 'shop_purchases_storage'
@@ -196,19 +150,19 @@ class PurchaseStorage(models.Model):
 class PurchaseStorageItem(models.Model):
     """ 采购入库详情单 """
     
-    purchase_storage     = models.ForeignKey(PurchaseStorage,related_name='purchase_storageitems')
-    supplier_item_id     = models.CharField(max_length=64,blank=True)
+    purchase_storage     = models.ForeignKey(PurchaseStorage,related_name='purchase_storage_items',verbose_name='关联入库单')
+    supplier_item_id     = models.CharField(max_length=64,blank=True,verbose_name='提供商商品编号')
     
-    product      = models.ForeignKey(PurchaseProduct,related_name='purchase_storageitems')
-    product_sku  = models.ForeignKey(PurchaseProductSku,related_name='purchase_storageitems')
+    product      = models.ForeignKey(PurchaseProduct,related_name='purchase_storage_items',verbose_name='采购商品')
+    product_sku  = models.ForeignKey(PurchaseProductSku,related_name='purchase_storage_items',verbose_name='采购商品规格')
     
-    storage_num = models.IntegerField(null=True)
+    storage_num = models.IntegerField(null=True,verbose_name='入库数量')
     
-    created      = models.DateTimeField(null=True,blank=True,auto_now=True)
-    modified     = models.DateTimeField(null=True,blank=True,auto_now_add=True)
+    created      = models.DateTimeField(null=True,blank=True,auto_now=True,verbose_name='创建日期')
+    modified     = models.DateTimeField(null=True,blank=True,auto_now_add=True,verbose_name='修改日期')
     
-    status       = models.CharField(max_length=32,db_index=True,choices=PURCHASE_STORAGE_STATUS,default=pcfg.PURCHASE_DRAFT)
-    extra_info   = models.TextField(blank=True)
+    status       = models.CharField(max_length=32,db_index=True,choices=PURCHASE_STORAGE_STATUS,default=pcfg.PURCHASE_DRAFT,verbose_name='入库状态')
+    extra_info   = models.TextField(blank=True,verbose_name='备注')
     
     class Meta:
         db_table = 'shop_purchases_storageitem'

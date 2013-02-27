@@ -1,6 +1,6 @@
 __author__ = 'meixqhi'
 from djangorestframework.resources import ModelResource
-from shopback.purchases.models import PurchaseProduct,PurchaseProductSku
+from shopback.items.models import PurchaseProduct,PurchaseProductSku
 from shopback.purchases.serializer import PurchaseProductSkuSerializer
 
 class PurchaseItemResource(ModelResource):

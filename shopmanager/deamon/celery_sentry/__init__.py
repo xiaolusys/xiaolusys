@@ -21,4 +21,6 @@ def process_failure_signal(exception, traceback, sender, task_id,
     }
   )
 task_failure.connect(process_failure_signal)
+
+
   

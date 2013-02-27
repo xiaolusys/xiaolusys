@@ -36,12 +36,6 @@ class SubTradePostException(Exception):
     def __str__(self):
         return self.msg
 
-def has_modify_trade_info_status_permission(request, obj=None):
-    
-    if request.user.has_perm('mergetrade.can_trade_modify'):
-        return True
-    
-    return False
 
 class MergeOrderInline(admin.TabularInline):
     
@@ -128,12 +122,18 @@ class MergeTradeAdmin(admin.ModelAdmin):
         models.TextField: {'widget': Textarea(attrs={'rows':6, 'cols':35})},
     }
     
+    def get_readonly_fields(self, request, obj=None):
+        if not request.user.has_perm('mergetrade.can_trade_modify'):
+            return self.readonly_fields + ('tid','user','seller_nick','status','reason_code','sys_status')
+        return self.readonly_fields
+    
+    def change_view(self, request, extra_context=None, **kwargs):
+
+        return super(MergeTradeAdmin, self).change_view(request, extra_context)  
+        
     #重写订单视图
     def changelist_view(self, request, extra_context=None, **kwargs):
-
-        if not has_modify_trade_info_status_permission(request):
-            self.readonly_fields=('tid','user','seller_nick','status','reason_code','sys_status')
-            
+      
         return super(MergeTradeAdmin, self).changelist_view(request, extra_context)     
     
     def response_change(self, request, obj, *args, **kwargs):

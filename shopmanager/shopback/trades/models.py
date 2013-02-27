@@ -181,10 +181,8 @@ class MergeTrade(models.Model):
     class Meta:
         db_table = 'shop_trades_mergetrade'
         verbose_name=u'订单'
-        permissions = (
-             ("can_trade_modify", "修改订单状态"),
-             ("can_trade_aduit", "审核订单信息"),
-        )
+        verbose_name_plural = u'订单列表'
+        permissions = [("can_trade_modify", u"修改订单状态"),("can_trade_aduit", u"审核订单信息")]
 
     def __unicode__(self):
         return str(self.id)
@@ -530,7 +528,8 @@ class MergeOrder(models.Model):
         db_table = 'shop_trades_mergeorder'
         unique_together = ("oid","tid")
         verbose_name=u'子订单'
-    
+        verbose_name_plural = u'子订单列表'
+        
     @classmethod
     def gen_new_order(cls,trade_id,outer_id,outer_sku_id,num,gift_type=pcfg.REAL_ORDER_GIT_TYPE
                       ,status=pcfg.WAIT_SELLER_SEND_GOODS,is_reverse=False):
@@ -606,7 +605,8 @@ class MergeBuyerTrade(models.Model):
     
     class Meta:
         db_table = 'shop_trades_mergebuyertrade'
-        verbose_name='合单记录'.decode('utf8')
+        verbose_name = u'合单记录'
+        verbose_name_plural = u'合单列表'
         
     def __unicode__(self):
         return '<%d,%d>'%(self.sub_tid,self.main_tid)
@@ -1122,7 +1122,8 @@ class ReplayPostTrade(models.Model):
     
     class Meta:
         db_table = 'shop_trades_replayposttrade'
-        verbose_name='已发货清单'.decode('utf8')
+        verbose_name = u'已发货清单'
+        verbose_name_plural = u'发货清单列表'
 
         
         

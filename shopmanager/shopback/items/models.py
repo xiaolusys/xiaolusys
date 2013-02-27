@@ -12,7 +12,6 @@ from django.db.models import Sum
 from shopback.base.models import BaseModel
 from shopback.base.fields import BigIntegerAutoField
 from shopback.categorys.models import Category,ProductCategory
-from shopback.purchases.models import PurchaseProduct,PurchaseProductSku
 from shopback import paramconfig as pcfg
 from django.db.models.signals import post_save
 from shopback.users.models import User
@@ -34,6 +33,50 @@ PRODUCT_STATUS = (
     (pcfg.REMAIN,'待用'),
     (pcfg.DELETE,'作废'),
 )
+
+class PurchaseProduct(models.Model):
+    """ 库存产品 """
+    
+    outer_id     = models.CharField(max_length=64,verbose_name='采购编码')
+    name         = models.CharField(max_length=128,blank=True,verbose_name='产品名称')
+    
+    category     = models.ForeignKey(ProductCategory,null=True,blank=True,related_name='purchase_products',verbose_name='商品分类')
+    stock_num    = models.IntegerField(default=0,verbose_name='库存数量')
+    
+    created      = models.DateTimeField(null=True,blank=True,auto_now_add=True,verbose_name='创建日期')
+    modified     = models.DateTimeField(null=True,blank=True,auto_now=True,verbose_name='修改日期')
+    
+    status       = models.CharField(max_length=16,db_index=True,choices=PRODUCT_STATUS,default=pcfg.NORMAL,verbose_name='商品状态')
+    
+    class Meta:
+        db_table = 'shop_purchase_product'
+        verbose_name=u'库存商品'
+        verbose_name_plural = u'库存商品列表'
+
+    def __unicode__(self):
+        return '<%s,%s>'%(self.outer_id,self.name)
+
+
+class PurchaseProductSku(models.Model):
+    """ 采购产品规格 """
+    
+    product      = models.ForeignKey(PurchaseProduct,related_name='purchase_productskus',verbose_name='关联库存产品')
+    outer_id     = models.CharField(max_length=64,verbose_name='采购规格编码')
+    properties   = models.CharField(max_length=256,blank=True,verbose_name='采购规格名称')
+    
+    sku_num      = models.IntegerField(default=0,verbose_name='规格库存数量')
+    created      = models.DateTimeField(null=True,blank=True,auto_now_add=True,verbose_name='创建日期')
+    modified     = models.DateTimeField(null=True,blank=True,auto_now=True,verbose_name='修改日期')
+    
+    status       = models.CharField(max_length=16,db_index=True,choices=PRODUCT_STATUS,default=pcfg.NORMAL,verbose_name='规格状态')
+    
+    class Meta:
+        db_table = 'shop_purchase_productsku'
+        verbose_name=u'库存商品规格'
+        verbose_name_plural = u'库存商品规格列表'
+
+    def __unicode__(self):
+        return '<%s,%s>'%(self.outer_id,self.properties)
 
 
 class Product(models.Model):
@@ -67,7 +110,8 @@ class Product(models.Model):
     
     class Meta:
         db_table = 'shop_items_product'
-        verbose_name='库存商品'
+        verbose_name = u'线上商品'
+        verbose_name_plural = u'线上商品列表'
 
     def __unicode__(self):
         return self.name
@@ -105,7 +149,8 @@ class ProductSku(models.Model):
     class Meta:
         db_table = 'shop_items_productsku'
         unique_together = ("outer_id", "product",)
-        verbose_name='库存商品规格'
+        verbose_name=u'线上商品规格'
+        verbose_name_plural = u'线上商品规格列表'
 
     def __unicode__(self):
         return self.properties_values
@@ -176,7 +221,8 @@ class Item(models.Model):
     status = models.BooleanField(default=True,verbose_name='系统状态')
     class Meta:
         db_table = 'shop_items_item'
-        verbose_name='线上商品'
+        verbose_name = u'淘宝商品'
+        verbose_name_plural = u'淘宝商品列表'
 
 
 
