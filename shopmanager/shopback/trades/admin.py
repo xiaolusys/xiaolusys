@@ -170,7 +170,8 @@ class MergeTradeAdmin(admin.ModelAdmin):
                 return HttpResponseRedirect("../%s/" % pk_value)
         elif request.POST.has_key("_invalid"):
             if obj.sys_status in (pcfg.WAIT_AUDIT_STATUS,pcfg.WAIT_CHECK_BARCODE_STATUS):
-                MergeTrade.objects.filter(id=obj.id).update(sys_status=pcfg.INVALID_STATUS)
+                obj.sys_status=pcfg.INVALID_STATUS
+                obj.save()
                 msg = u"订单已作废"
                 self.message_user(request, msg)
                 
@@ -182,7 +183,8 @@ class MergeTradeAdmin(admin.ModelAdmin):
                 return HttpResponseRedirect("../%s/" % pk_value)
         elif request.POST.has_key("_uninvalid"):
             if obj.sys_status==pcfg.INVALID_STATUS:
-                MergeTrade.objects.filter(id=obj.id).update(sys_status=pcfg.WAIT_AUDIT_STATUS)
+                obj.sys_status=pcfg.WAIT_AUDIT_STATUS
+                obj.save()
                 msg = u"订单已入问题单"
                 self.message_user(request, msg)
                 log_action(request.user.id,obj,CHANGE,msg)
@@ -192,7 +194,8 @@ class MergeTradeAdmin(admin.ModelAdmin):
                 return HttpResponseRedirect("../%s/" % pk_value)
         elif request.POST.has_key("_regular"):
             if obj.sys_status==pcfg.WAIT_AUDIT_STATUS and obj.remind_time:
-                MergeTrade.objects.filter(id=obj.id).update(sys_status=pcfg.REGULAR_REMAIN_STATUS)
+                obj.sys_status=pcfg.REGULAR_REMAIN_STATUS
+                obj.save()
                 msg = u"订单定时时间:%s"%obj.remind_time
                 self.message_user(request, msg)
                 log_action(request.user.id,obj,CHANGE,msg)
@@ -213,14 +216,7 @@ class MergeTradeAdmin(admin.ModelAdmin):
         elif request.POST.has_key("_split"):
             if obj.sys_status==pcfg.WAIT_AUDIT_STATUS:
                 if obj.has_merge:
-                    buyertrades = MergeBuyerTrade.objects.filter(main_tid=obj.tid)
-                    subtids = [t.sub_tid for t in buyertrades]
-                    buyertrades.delete()
-                    for subtid in subtids:
-                        MergeTrade.objects.get(tid=subtid).remove_reason_code(pcfg.NEW_MERGE_TRADE_CODE)
-                    MergeTrade.objects.filter(tid__in=subtids).update(sys_status=pcfg.WAIT_AUDIT_STATUS)
-                    obj.merge_trade_orders.filter(is_merge=True).delete()
-                    obj.remove_reason_code(pcfg.NEW_MERGE_TRADE_CODE)
+                    merge_order_remover(obj.tid)
                 else:
                     obj.remove_reason_code(pcfg.MULTIPLE_ORDERS_CODE)
                 msg = u"订单已取消合并状态"
@@ -494,8 +490,8 @@ class MergeTradeAdmin(admin.ModelAdmin):
         post_trades = queryset.filter(sys_status=pcfg.WAIT_CHECK_BARCODE_STATUS)
         trade_items = {}
         for trade in post_trades:
-            used_orders = trade.merge_trade_orders.filter(status__in=(pcfg.WAIT_BUYER_CONFIRM_GOODS,pcfg.WAIT_SELLER_SEND_GOODS),
-                sys_status=pcfg.IN_EFFECT).exclude(gift_type=pcfg.RETURN_GOODS_GIT_TYPE)
+            used_orders = trade.merge_trade_orders.filter(sys_status=pcfg.IN_EFFECT)\
+                .exclude(gift_type=pcfg.RETURN_GOODS_GIT_TYPE)
             for order in used_orders:
                 outer_id = order.outer_id or str(order.num_iid)
                 outer_sku_id = order.outer_sku_id or str(order.sku_id)

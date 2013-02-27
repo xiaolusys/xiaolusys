@@ -960,7 +960,7 @@ def save_orders_trade_to_mergetrade(sender, tid, *args, **kwargs):
             
         #保存基本订单信息
         trade_from    = pcfg.FENXIAO_TYPE if trade.type==pcfg.FENXIAO_TYPE else pcfg.TAOBAO_TYPE
-        if trade.status == pcfg.WAIT_BUYER_PAY:
+        if first_pay_load:
             payment   = trade.payment
             total_fee = trade.total_fee
             discount_fee = trade.discount_fee
@@ -1017,6 +1017,7 @@ def save_fenxiao_orders_to_mergetrade(sender, tid, *args, **kwargs):
         merge_trade,state = MergeTrade.objects.get_or_create(tid=tid)
         
         first_pay_load = not merge_trade.sys_status 
+        #如果交易是等待卖家发货，第一次入库，或者没有卖家收货信息，则更新其物流信息
         if  trade.status == pcfg.WAIT_SELLER_SEND_GOODS and (first_pay_load or not merge_trade.receiver_name):
             logistics = Logistics.get_or_create(trade.user.visitor_id,tid)
             location = json.loads(logistics.location or 'null')
@@ -1075,7 +1076,7 @@ def save_fenxiao_orders_to_mergetrade(sender, tid, *args, **kwargs):
             merge_order.save()
         
         trade_from = pcfg.FENXIAO_TYPE
-        if trade.status == pcfg.WAIT_BUYER_PAY:
+        if first_pay_load:
             payment   = trade.distributor_payment
             total_fee = trade.total_fee
             post_fee  = trade.post_fee
