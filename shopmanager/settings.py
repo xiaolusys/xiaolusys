@@ -131,7 +131,7 @@ INSTALLED_APPS = (
     'shopapp.notify',
     'shopapp.modifyfee',
     
-    'test.celery',
+    #'test.celery',
 )
 
 
