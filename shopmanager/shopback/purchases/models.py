@@ -34,7 +34,6 @@ PRODUCT_STATUS = (
 )
 
 
-
 class Purchase(models.Model):
     """ 采购单 """
     

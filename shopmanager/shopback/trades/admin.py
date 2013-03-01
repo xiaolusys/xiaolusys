@@ -30,15 +30,6 @@ logger =  logging.getLogger('tradepost.handler')
 
 __author__ = 'meixqhi'
 
-class SubTradePostException(Exception):
-
-    def __init__(self,msg=''):
-        self.msg  = msg
-
-    def __str__(self):
-        return self.msg
-
-
 class MergeOrderInline(admin.TabularInline):
     
     model = MergeOrder
@@ -267,9 +258,13 @@ class MergeTradeAdmin(admin.ModelAdmin):
                         trade.operator   = main_trade.operator
                         trade.consign_time = main_trade.consign_time
                         trade.save()
-                        trade.send_trade_to_taobao(pcfg.SUB_TRADE_COMPANEY_CODE,trade.out_sid)
+                        
                         log_action(request.user.id,trade,CHANGE,u'订单并入主订单（%d），并发货完成'%main_trade.tid)
-                
+                        try:
+                            trade.send_trade_to_taobao(pcfg.SUB_TRADE_COMPANEY_CODE,trade.out_sid)
+                        except:
+                            log_action(request.user.id,trade,CHANGE,u'订单合并发货失败')
+                                        
                 if len(merge_trade_ids)<sub_trades.count():
                     fail_reason = u'部分订单未合并成功'
                     is_merge_success = False 

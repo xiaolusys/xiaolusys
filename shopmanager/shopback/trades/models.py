@@ -244,12 +244,13 @@ class MergeTrade(models.Model):
         except apis.LogisticServiceBO4Exception,exc:
             return self.is_post_success()
         except Exception,exc:
-            logger.error(exc.message or u'订单发货出错',exc_info=True)
             retry_times = retry_times - 1
             if retry_times<=0:
+                logger.error(exc.message or u'订单发货出错',exc_info=True)
                 raise exc
             time.sleep(5)
-            self.send_trade_to_taobao(company_code,out_sid,retry_times=retry_times) 
+            self.send_trade_to_taobao(company_code,out_sid,retry_times=retry_times)
+             
         return True
     
     def append_reason_code(self,code):  
