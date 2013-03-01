@@ -117,7 +117,7 @@ class MergeTradeAdmin(admin.ModelAdmin):
     
     def get_readonly_fields(self, request, obj=None):
         if not request.user.has_perm('mergetrade.can_trade_modify'):
-            return self.readonly_fields + ('tid','status','reason_code','sys_status')
+            return self.readonly_fields + ('tid','reason_code','sys_status')
         return self.readonly_fields
     
     def change_view(self, request, extra_context=None, **kwargs):

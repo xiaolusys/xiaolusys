@@ -397,6 +397,7 @@ class ReviewOrderView(ModelView):
             'order_modify':trade.has_reason_code(pcfg.ORDER_ADD_REMOVE_CODE),
             'addr_modify':trade.has_reason_code(pcfg.ADDR_CHANGE_CODE),
             'new_merge':trade.has_reason_code(pcfg.NEW_MERGE_TRADE_CODE),
+            'wait_merge':trade.has_reason_code(pcfg.MULTIPLE_ORDERS_CODE)
         }
         
         return {'trade':trade_dict,'logistics':logistics}

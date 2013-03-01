@@ -140,6 +140,7 @@
 					{% if trade.new_refund %}<li><span class="badge1 badge-warning1">新退款</span></li>{% endif %} 
 					{% if trade.order_modify %}<li><span class="badge1 badge-warning1">订单修改</span></li>{% endif %} 
 					{% if trade.new_merge %}<li><span class="badge1 badge-warning1">新合单</span></li>{% endif %}
+					{% if trade.wait_merge %}<li><span class="badge1 badge-warning1">待合单</span></li>{% endif %}
 					{% if trade.addr_modify %}<li><span class="badge1 badge-warning1">修改地址</span></li>{% endif %}
 				</ul>
 			</div>
