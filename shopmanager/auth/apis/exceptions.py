@@ -85,3 +85,11 @@ class SessionExpiredException(TaobaoRequestException):
     connect repear or refuse
     """
 
+class LogisticServiceBO4Exception(TaobaoRequestException):
+    """
+    {'code': 15,
+     'msg': 'Remote service error',
+     'sub_code': 'isv.logistics-offline-service-error:B04',
+     'sub_msg': u'\u8ba2\u5355\u72b6\u6001\u4e0d\u5bf9\u8be5\u7269\u6d41\u8ba2\u5355\u5df2\u7ecf\u53d1\u8d27\u6216\u8005\u5df2\u5173\u95ed\uff0c\u4e0d\u80fd\u91cd\u590d\u53d1\u8d27'}
+    """
+    

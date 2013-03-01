@@ -1,3 +1,15 @@
+######### 2013-2-28   #########
+drop table shop_purchase_product;
+drop table shop_purchase_productsku;
+drop table shop_purchases_deposite;
+drop table shop_purchases_item;
+drop table shop_purchases_purchase;
+drop table shop_purchases_purchasetype;
+drop table shop_purchases_storage;
+drop table shop_purchases_storageitem;
+drop table shop_purchases_supplier;
+drop table shop_purchases_suppliertype;
+
 ######### 2013-2-26   #########
 alter table shop_purchase_product add column stock_num int(11) default 0;
 alter table shop_purchase_productsku add column sku_num int(11) default 0;

@@ -237,9 +237,8 @@ def test_api(request):
 #                    ,company_code='ZTO',tb_user_id=174265168)
 #    print response
 
-    item = apis.taobao_item_get(num_iid=16760713933,tb_user_id=174265168)
-    print item
-
+    response = apis.taobao_logistics_orders_get(tid='188319065341318',tb_user_id=174265168,fields='out_sid,tid,is_success')
+    print response
 
     return HttpResponseBadRequest('error') #HttpResponse('ok')
 

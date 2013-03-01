@@ -13,15 +13,17 @@ from django.core import serializers
 from django.contrib.contenttypes.models import ContentType
 from django.utils.encoding import force_unicode
 from django.conf import settings
+from celery import group
 from shopback.orders.models import Trade
 from shopback.items.models import Product,ProductSku
 from shopback.trades.models import MergeTrade,MergeOrder,MergeBuyerTrade,ReplayPostTrade,merge_order_maker,merge_order_remover
 from shopback import paramconfig as pcfg
 from shopback.fenxiao.models import PurchaseOrder
+from shopback.trades.tasks import sendTaobaoTradeTask
 from shopback.base import log_action,User, ADDITION, CHANGE
 from shopback.signals import rule_signal
-from auth import apis
 from auth.utils import parse_datetime
+from auth import apis
 import logging 
 
 logger =  logging.getLogger('tradepost.handler')
@@ -124,7 +126,7 @@ class MergeTradeAdmin(admin.ModelAdmin):
     
     def get_readonly_fields(self, request, obj=None):
         if not request.user.has_perm('mergetrade.can_trade_modify'):
-            return self.readonly_fields + ('tid','user','seller_nick','status','reason_code','sys_status')
+            return self.readonly_fields + ('tid','status','reason_code','sys_status')
         return self.readonly_fields
     
     def change_view(self, request, extra_context=None, **kwargs):
@@ -357,137 +359,9 @@ class MergeTradeAdmin(admin.ModelAdmin):
 
     pull_order_action.short_description = "重新下单".decode('utf8')
     
-    
-    #淘宝后台同步发货
-    def sync_trade_post_taobao(self, request, queryset):
-        trade_ids = [t.id for t in queryset]
+    def get_trade_pickle_list_data(self,post_trades):
+        """生成配货单数据列表"""
         
-        prapare_trades = queryset.filter(is_picking_print=True,is_express_print=True,sys_status=pcfg.WAIT_PREPARE_SEND_STATUS
-                                         ,reason_code='',status=pcfg.WAIT_SELLER_SEND_GOODS).exclude(out_sid='')#,operator=request.user.username
-
-        for trade in prapare_trades:
-            
-            if trade.sys_status != pcfg.WAIT_PREPARE_SEND_STATUS:
-                continue
-            if trade.type in (pcfg.DIRECT_TYPE,pcfg.EXCHANGE_TYPE):
-                trade.sys_status=pcfg.WAIT_CHECK_BARCODE_STATUS
-                trade.status=pcfg.WAIT_BUYER_CONFIRM_GOODS
-                trade.consign_time=datetime.datetime.now()
-                trade.save()
-                continue 
-            
-            main_post_success = False
-            logistics_company_code = trade.logistics_company.code     
-            try:
-                merge_buyer_trades = []
-                #判断是否有合单子订单
-                if trade.has_merge:
-                    merge_buyer_trades = MergeBuyerTrade.objects.filter(main_tid=trade.tid)
-                    
-                for sub_buyer_trade in merge_buyer_trades:
-                    sub_post_success = False
-                    try:
-                        sub_trade = MergeTrade.objects.get(tid=sub_buyer_trade.sub_tid)
-                        sub_trade.out_sid      = trade.out_sid
-                        sub_trade.logistics_company = trade.logistics_company
-                        sub_trade.save()
-                        if sub_trade.type == pcfg.COD_TYPE:
-                            response = apis.taobao_logistics_online_send(tid=sub_trade.tid,out_sid=trade.out_sid
-                                                          ,company_code=logistics_company_code,tb_user_id=sub_trade.seller_id)
-                            #response = {'logistics_online_send_response': {'shipping': {'is_success': True}}}
-                            if not response['logistics_online_send_response']['shipping']['is_success']:
-                                raise Exception(u'子订单(%d)淘宝发货失败'%sub_trade.tid)
-                        else:
-                            response = apis.taobao_logistics_offline_send(tid=sub_trade.tid,out_sid=trade.out_sid
-                                                          ,company_code=pcfg.SUB_TRADE_COMPANEY_CODE,tb_user_id=sub_trade.seller_id)
-                            #response = {'logistics_offline_send_response': {'shipping': {'is_success': True}}}
-                            if not response['logistics_offline_send_response']['shipping']['is_success']:
-                                raise Exception(u'子订单(%d)淘宝发货失败'%sub_trade.tid)
-                    except Exception,exc:
-                        time.sleep(1)
-                        error_msg = exc.message
-                        try:
-                            sub_post_success = trade.is_post_success()
-                        except Exception,exc:
-                            error_msg = error_msg+','+exc.message
-                    else:
-                        sub_post_success = True
-                            
-                    if sub_post_success:
-                        sub_trade.operator=trade.operator
-                        sub_trade.sys_status=pcfg.FINISHED_STATUS
-                        sub_trade.consign_time=datetime.datetime.now()
-                        sub_trade.save()
-                        log_action(request.user.id,sub_trade,CHANGE,u'订单发货成功')
-                    else:
-                        sub_trade.append_reason_code(pcfg.POST_SUB_TRADE_ERROR_CODE)
-                        sub_trade.sys_status=pcfg.WAIT_AUDIT_STATUS
-                        sub_trade.sys_memo=exc.message
-                        sub_trade.is_picking_print=False
-                        sub_trade.is_express_print=False
-                        sub_trade.operator=''
-                        sub_trade.save()
-                        log_action(request.user.id,sub_trade,CHANGE,u'订单发货失败')
-                        raise SubTradePostException(error_msg)
-  
-                #如果货到付款
-                if trade.type == pcfg.COD_TYPE:
-                    response = apis.taobao_logistics_online_send(tid=trade.tid,out_sid=trade.out_sid
-                                                  ,company_code=logistics_company_code,tb_user_id=trade.seller_id)  
-                    #response = {'logistics_online_send_response': {'shipping': {'is_success': True}}}
-                    if not response['logistics_online_send_response']['shipping']['is_success']:
-                        raise Exception(u'订单(%d)淘宝发货失败'%trade.tid)
-                else: 
-                    response = apis.taobao_logistics_offline_send(tid=trade.tid,out_sid=trade.out_sid
-                                                  ,company_code=logistics_company_code,tb_user_id=trade.seller_id)  
-                    #response = {'logistics_offline_send_response': {'shipping': {'is_success': True}}}
-                    if not response['logistics_offline_send_response']['shipping']['is_success']:
-                        raise Exception(u'订单(%d)淘宝发货失败'%trade.tid)
-
-            except SubTradePostException,exc:
-                trade.append_reason_code(pcfg.POST_SUB_TRADE_ERROR_CODE)
-                trade.sys_status=pcfg.WAIT_AUDIT_STATUS
-                trade.sys_memo=exc.message
-                trade.save()
-                log_action(request.user.id,trade,CHANGE,u'子订单(%d)发货失败'%sub_trade.id)
-                logger.error(exc.message+'--sub post error',exc_info=True)
-            except Exception,exc:
-                time.sleep(1)
-                error_msg = exc.message
-                try:
-                    main_post_success = trade.is_post_success()
-                except Exception,exc:
-                    error_msg = error_msg+','+exc.message
-                logger.error(error_msg,exc_info=True)
-            else:
-                main_post_success = True
-                    
-            if main_post_success:
-                trade.sys_status=pcfg.WAIT_CHECK_BARCODE_STATUS
-                trade.consign_time=datetime.datetime.now()
-                trade.save()
-                log_action(request.user.id,trade,CHANGE,u'订单发货成功')
-            else:
-                trade.append_reason_code(pcfg.POST_MODIFY_CODE)
-                trade.sys_status=pcfg.WAIT_AUDIT_STATUS
-                trade.sys_memo=exc.message
-                trade.is_picking_print=False
-                trade.is_express_print=False
-                trade.operator=''
-                trade.save()
-                log_action(request.user.id,trade,CHANGE,u'订单发货失败')
-
-
-        queryset = MergeTrade.objects.filter(id__in=trade_ids)
-        wait_prepare_trades = queryset.filter(sys_status=pcfg.WAIT_PREPARE_SEND_STATUS,is_picking_print=True
-                                              ,is_express_print=True,operator=request.user.username).exclude(out_sid='')
-        for prepare_trade in wait_prepare_trades:
-            prepare_trade.is_picking_print=False
-            prepare_trade.is_express_print=False
-            prepare_trade.sys_status=pcfg.WAIT_AUDIT_STATUS
-            prepare_trade.save()
-            log_action(request.user.id,prepare_trade,CHANGE,u'订单发货被拦截入问题单')
-        post_trades = queryset.filter(sys_status=pcfg.WAIT_CHECK_BARCODE_STATUS)
         trade_items = {}
         for trade in post_trades:
             used_orders = trade.merge_trade_orders.filter(sys_status=pcfg.IN_EFFECT)\
@@ -521,6 +395,38 @@ class MergeTradeAdmin(admin.ModelAdmin):
                                            'skus':{outer_sku_id:{'sku_name':order.sku_properties_name,'num':order.num}}
                                            }
                      
+        trade_list = sorted(trade_items.items(),key=lambda d:d[1]['num'],reverse=True)
+        for trade in trade_list:
+            skus = trade[1]['skus']
+            trade[1]['skus'] = sorted(skus.items(),key=lambda d:d[1]['num'],reverse=True)
+        
+        return trade_list
+        
+    #淘宝后台同步发货
+    def sync_trade_post_taobao(self, request, queryset):
+        
+        user_id   = request.user.id
+        trade_ids = [t.id for t in queryset]
+        
+        prapare_trades = queryset.filter(is_picking_print=True,is_express_print=True,sys_status=pcfg.WAIT_PREPARE_SEND_STATUS
+                                         ,reason_code='',status=pcfg.WAIT_SELLER_SEND_GOODS).exclude(out_sid='')#,operator=request.user.username
+                                         
+        send_tasks = group([ sendTaobaoTradeTask.s(user_id,trade.id) for trade in prapare_trades])()
+        send_tasks.get()
+        
+        queryset = MergeTrade.objects.filter(id__in=trade_ids)
+        wait_prepare_trades = queryset.filter(sys_status=pcfg.WAIT_PREPARE_SEND_STATUS,is_picking_print=True
+                                              ,is_express_print=True,operator=request.user.username).exclude(out_sid='')
+        for prepare_trade in wait_prepare_trades:
+            prepare_trade.is_picking_print=False
+            prepare_trade.is_express_print=False
+            prepare_trade.sys_status=pcfg.WAIT_AUDIT_STATUS
+            prepare_trade.save()
+            log_action(user_id,prepare_trade,CHANGE,u'订单未发货被拦截入问题单')
+        
+        post_trades = queryset.filter(sys_status=pcfg.WAIT_CHECK_BARCODE_STATUS)
+        trade_list = self.get_trade_pickle_list_data(post_trades)
+        
         trades = []
         for trade in queryset:
             trade_dict = {}
@@ -531,12 +437,7 @@ class MergeTradeAdmin(admin.ModelAdmin):
             trade_dict['pay_time'] = trade.pay_time.strftime('%Y-%m-%d %H:%M:%S') if trade.pay_time else ''
             trade_dict['sys_status'] = trade.sys_status
             trades.append(trade_dict)
-            
-        trade_list = sorted(trade_items.items(),key=lambda d:d[1]['num'],reverse=True)
-        for trade in trade_list:
-            skus = trade[1]['skus']
-            trade[1]['skus'] = sorted(skus.items(),key=lambda d:d[1]['num'],reverse=True)
- 
+        
         response_dict = {'trades':trades,'trade_items':trade_list}
         
         try:

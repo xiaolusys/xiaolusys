@@ -1,7 +1,7 @@
 #-*- coding:utf8 -*-
 from django.db import models
 from shopback import paramconfig as pcfg
-from shopback.suppliers.models import Supplier
+from shopback.archives.models import Supplier,PurchaseType,Deposite
 from shopback.categorys.models import ProductCategory
 from shopback.items.models import PurchaseProduct,PurchaseProductSku
 
@@ -34,37 +34,6 @@ PRODUCT_STATUS = (
 )
 
 
-class Deposite(models.Model):
-    """ 采购仓库 """
-    
-    deposite_name = models.CharField(max_length=32,blank=True,verbose_name='仓库名')
-    location     = models.CharField(max_length=32,blank=True,verbose_name='仓库位置')
-    
-    in_use       = models.BooleanField(default=True,verbose_name='使用')
-    extra_info   = models.TextField(blank=True,verbose_name='备注')
-    class Meta:
-        db_table = 'shop_purchases_deposite'
-        verbose_name='仓库'
-
-    def __unicode__(self):
-        return self.deposite_name
-
-
-class PurchaseType(models.Model):
-    """ 采购类型 """
-    
-    type_name    = models.CharField(max_length=32,blank=True,verbose_name='采购类型')
-    in_use       = models.BooleanField(default=True,verbose_name='使用')
-    
-    extra_info   = models.TextField(blank=True,verbose_name='备注')
-    
-    class Meta:
-        db_table = 'shop_purchases_purchasetype'
-        verbose_name='采购类型'
-
-    def __unicode__(self):
-        return self.type_name
-    
 
 class Purchase(models.Model):
     """ 采购单 """

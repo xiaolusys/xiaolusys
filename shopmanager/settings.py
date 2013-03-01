@@ -119,7 +119,7 @@ INSTALLED_APPS = (
     'shopback.trades',
     'shopback.refunds',
     'shopback.users',
-    'shopback.suppliers',
+    'shopback.archives',
     'shopback.purchases',
     
     'shopapp.autolist',
@@ -130,6 +130,8 @@ INSTALLED_APPS = (
     'shopapp.asynctask',
     'shopapp.notify',
     'shopapp.modifyfee',
+    
+    'test.celery',
 )
 
 

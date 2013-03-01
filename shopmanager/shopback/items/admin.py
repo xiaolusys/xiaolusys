@@ -15,7 +15,7 @@ logger =  logging.getLogger('tradepost.handler')
 class ProductSkuInline(admin.TabularInline):
     
     model = ProductSku
-    fields = ('outer_id','prod_outer_id','purchase_product_sku','quantity','warn_num','remain_num','properties_name','out_stock',
+    fields = ('outer_id','prod_outer_id','purchase_product_sku','warn_num','remain_num','properties_name','out_stock',
                     'sync_stock','is_assign','status')
     
     formfield_overrides = {
@@ -40,7 +40,6 @@ class ItemAdmin(admin.ModelAdmin):
 
     date_hierarchy = 'last_num_updated'
     #ordering = ['created_at']
-
 
     list_filter = ('user','approve_status')
     search_fields = ['num_iid', 'outer_id', 'title']
@@ -142,7 +141,7 @@ admin.site.register(ProductSku, ProductSkuAdmin)
   
   
 class PurchaseProductAdmin(admin.ModelAdmin):
-    list_display = ('id','outer_id','name','category','created','modified','status')
+    list_display = ('id','outer_id','name','category','stock_num','created','modified','status')
     #list_editable = ('update_time','task_type' ,'is_success','status')
 
     list_filter = ('status',)
@@ -154,7 +153,7 @@ admin.site.register(PurchaseProduct,PurchaseProductAdmin)
 
 
 class PurchaseProductSkuAdmin(admin.ModelAdmin):
-    list_display = ('id','product','outer_id','properties','created','modified','status')
+    list_display = ('id','product','outer_id','properties','sku_num','created','modified','status')
     #list_editable = ('update_time','task_type' ,'is_success','status')
 
     list_filter = ('status',)

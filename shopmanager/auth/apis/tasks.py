@@ -14,8 +14,9 @@ from django.core.cache import cache
 from celery.task import task
 from celery.app.task import BaseTask
 from auth.utils import getSignatureTaoBao,format_datetime,format_date,refresh_session
-from auth.apis.exceptions import TaobaoRequestException,RemoteConnectionException,UserFenxiaoUnuseException,SessionExpiredException,\
-    AppCallLimitedException,APIConnectionTimeOutException,ServiceRejectionException ,ContentNotRightException,InsufficientIsvPermissionsException
+from auth.apis.exceptions import ContentNotRightException,RemoteConnectionException,APIConnectionTimeOutException,\
+    ServiceRejectionException,UserFenxiaoUnuseException,AppCallLimitedException,InsufficientIsvPermissionsException,\
+    SessionExpiredException,LogisticServiceBO4Exception,TaobaoRequestException
 
 import logging
 logger = logging.getLogger('auth.apis')
@@ -122,6 +123,9 @@ def raise_except_or_ret_json(content):
                     code=code,msg=msg,sub_code=sub_code,sub_msg=sub_msg)
         elif sub_code == u'session-expired':
             raise SessionExpiredException(
+                    code=code,msg=msg,sub_code=sub_code,sub_msg=sub_msg)
+        elif sub_code == u'isv.logistics-offline-service-error:B04':
+            raise LogisticServiceBO4Exception(
                     code=code,msg=msg,sub_code=sub_code,sub_msg=sub_msg)
         else :
             raise TaobaoRequestException(

@@ -238,27 +238,57 @@ class RelatedOrderStateView(ModelView):
         else:
             outer_id = item.outer_id
         
+        dt_f = datetime.datetime.strptime(dt_f,'%Y-%m-%d')
+        dt_t = datetime.datetime.strptime(dt_t,'%Y-%m-%d')
+        
+        merge_orders = Order.objects.filter(outer_id=outer_id,created__gte=dt_f,created__lte=dt_t).exclude(
+                    status__in=(pcfg.TRADE_CLOSED_BY_TAOBAO,pcfg.WAIT_BUYER_PAY,pcfg.TRADE_CLOSED))
         if outer_sku_ids:
             sku_ids = outer_sku_ids.split(',')
-            outer_sku_ids = ','.join([ "'%s'"%sku for sku in sku_ids])
+            merge_orders = merge_orders.filter(outer_sku_id__in=sku_ids)
         
-        cursor = connection.cursor()
-        cursor.execute(self.gen_query_sql(outer_id,outer_sku_ids,dt_f,dt_t,int(limit)))
-        result = cursor.fetchall()
-        
-        return result
-        
-    
-    def gen_query_sql(self,outer_id,outer_sku_ids,dt_f,dt_t,limit):
-        sql_list = []
-        sql_list.append("select sob.outer_id,sob.pic_path,sob.title ,count(sob.outer_id) cnum from shop_orders_order soa ")
-        sql_list.append("left join shop_orders_order sob on soa.buyer_nick=sob.buyer_nick where soa.outer_id='%s' "%outer_id)
-        if outer_sku_ids:
-            sql_list.append(" and soa.outer_sku_id in (%s)"%outer_sku_ids)
+        buyer_set = set()
+        relative_orders_dict = {} 
+        for order in merge_orders:
+            buyer_nick = order.buyer_nick
+            try:
+                buyer_set.remove(buyer_nick)
+            except:
+                buyer_set.add(buyer_nick)
+                relat_orders = Order.objects.filter(buyer_nick=buyer_nick,created__gte=dt_f,created__lte=dt_t).exclude(
+                    status__in=(pcfg.TRADE_CLOSED_BY_TAOBAO,pcfg.WAIT_BUYER_PAY,pcfg.TRADE_CLOSED))
+                for o in relat_orders:
+                    relat_outer_id = o.outer_id
+                    if relative_orders_dict.has_key(relat_outer_id):
+                        relative_orders_dict[relat_outer_id]['cnum'] += o.num
+                    else:
+                        relative_orders_dict[relat_outer_id] = {'pic_path':o.pic_path,'title':o.title,'cnum':o.num}
+            else:
+                buyer_set.add(buyer_nick)
             
-        sql_list.append(" and sob.status not in ('TRADE_CLOSED_BY_TAOBAO','WAIT_BUYER_PAY','TRADE_CLOSED') ")
-        sql_list.append(" and sob.created >'%s' and sob.created<'%s' group by sob.outer_id order by cnum desc limit %d;"%(dt_f,dt_t,limit))
-        return ''.join(sql_list)
+        relat_order_list = sorted(relative_orders_dict.items(),key=lambda d:d[1]['cnum'],reverse=True)  
+        order_item_list  = []
+        for order in relat_order_list[0:limit]:
+            order_item = []
+            order_item.append(order[0])
+            order_item.append(order[1]['pic_path'])
+            order_item.append(order[1]['title'])
+            order_item.append(order[1]['cnum'])
+            order_item_list.append(order_item)
+
+        return order_item_list
+        
+        
+        #    def gen_query_sql(self,outer_id,outer_sku_ids,dt_f,dt_t,limit):
+        #        sql_list = []
+        #        sql_list.append("select sob.outer_id,sob.pic_path,sob.title ,count(sob.outer_id) cnum from shop_orders_order soa ")
+        #        sql_list.append("left join shop_orders_order sob on soa.buyer_nick=sob.buyer_nick where soa.outer_id='%s' "%outer_id)
+        #        if outer_sku_ids:
+        #            sql_list.append(" and soa.outer_sku_id in (%s)"%outer_sku_ids)
+        #            
+        #        sql_list.append(" and sob.status not in ('TRADE_CLOSED_BY_TAOBAO','WAIT_BUYER_PAY','TRADE_CLOSED') ")
+        #        sql_list.append(" and sob.created >'%s' and sob.created<'%s' group by sob.outer_id order by cnum desc limit %d;"%(dt_f,dt_t,limit))
+        #        return ''.join(sql_list)
 
 
 class RefundOrderView(ModelView):

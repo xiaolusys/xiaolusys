@@ -197,29 +197,33 @@ class MergeTrade(models.Model):
     
     def is_post_success(self):
         #订单淘宝发货成功
+        if not self.tid:
+            return False
+        
         user_id = self.user.visitor_id
-        if self.status in (pcfg.WAIT_BUYER_CONFIRM_GOODS,pcfg.TRADE_FINISHED) \
-            and self.sys_status in (pcfg.WAIT_CHECK_BARCODE_STATUS,pcfg.WAIT_SCAN_WEIGHT_STATUS,pcfg.FINISHED_STATUS):
-            return True
-
-        response = apis.taobao_logistics_orders_get(tid=self.tid,tb_user_id=user_id,fields='out_sid,tid,is_success')
+        response = apis.taobao_logistics_orders_get(tid=self.tid,tb_user_id=user_id,fields='out_sid,tid')
         trade_dicts = response['logistics_orders_get_response']['shippings']['shipping']
+        
         if len(trade_dicts)>0:
             trade_dict = trade_dicts[0]
             out_sid = trade_dict.get('out_sid','') 
-            is_success = trade_dict.get('is_success',False)
-            if is_success and out_sid == self.out_sid:
+            if out_sid and out_sid == self.out_sid:
                 return True
-            elif is_success and out_sid and out_sid != self.out_sid: 
-                raise Exception(u'系统快递单号与线上发货快递单号不一致')       
-        return False
+            elif out_sid and out_sid != self.out_sid: 
+                raise Exception(u'系统快递单号与线上发货快递单号不一致')
+            else:
+                raise Exception(u'订单未发货')    
+        else:       
+            raise Exception(u'订单物流信息未查到')
     
-    def send_trade_to_taobao(self,company_code,out_sid,retry_times=3):
+    def send_trade_to_taobao(self,company_code=None,out_sid=None,retry_times=3):
         """ 订单在淘宝后台发货 """
         
         trade_id   = self.tid
         trade_type = self.type
         seller_id  = self.seller_id
+        company_code = company_code or self.logistics_company.code
+        out_sid    = out_sid or self.out_sid
         
         if trade_type in (pcfg.EXCHANGE_TYPE,pcfg.DIRECT_TYPE):
             return False
@@ -237,23 +241,15 @@ class MergeTrade(models.Model):
                 #response = {'logistics_offline_send_response': {'shipping': {'is_success': True}}}
                 if not response['logistics_offline_send_response']['shipping']['is_success']:
                     raise Exception(u'订单(%d)淘宝发货失败'%trade.tid)
+        except apis.LogisticServiceBO4Exception,exc:
+            return self.is_post_success()
         except Exception,exc:
-            time.sleep(2)
-            post_success = False
-            try:
-                post_success = self.is_post_success()
-            except Exception,exc:
-                post_success = False
-            
-            if post_success:
-                return True
-            
             logger.error(exc.message or u'订单发货出错',exc_info=True)
             retry_times = retry_times - 1
             if retry_times<=0:
-                return False
-            self.send_trade_to_taobao(company_code,out_sid,retry_times=retry_times)
-            
+                raise exc
+            time.sleep(5)
+            self.send_trade_to_taobao(company_code,out_sid,retry_times=retry_times) 
         return True
     
     def append_reason_code(self,code):  
@@ -586,13 +582,14 @@ def refresh_trade_status(sender,instance,*args,**kwargs):
     if merge_trade.status == pcfg.WAIT_SELLER_SEND_GOODS:
         has_refunding = merge_trade.has_trade_refunding()
         out_stock     = merge_trade.merge_trade_orders.filter(out_stock=True,status=pcfg.WAIT_SELLER_SEND_GOODS).count()>0
-        has_merge     = merge_trade.merge_trade_orders.filter(is_merge=True,status=pcfg.WAIT_SELLER_SEND_GOODS).count()>0
         has_rule_match = merge_trade.merge_trade_orders.filter(is_rule_match=True,status=pcfg.WAIT_SELLER_SEND_GOODS).count()>0
         
         merge_trade.has_refund = has_refunding
         merge_trade.has_out_stock = out_stock
-        merge_trade.has_merge = has_merge
         merge_trade.has_rule_match = has_rule_match
+        
+    has_merge     = merge_trade.merge_trade_orders.filter(is_merge=True,status=pcfg.WAIT_SELLER_SEND_GOODS).count()>0
+    merge_trade.has_merge = has_merge
     merge_trade.save()
         
 post_save.connect(refresh_trade_status, sender=MergeOrder)

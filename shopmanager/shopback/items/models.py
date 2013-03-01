@@ -12,6 +12,7 @@ from django.db.models import Sum
 from shopback.base.models import BaseModel
 from shopback.base.fields import BigIntegerAutoField
 from shopback.categorys.models import Category,ProductCategory
+from shopback.archives.models import Deposite,DepositeDistrict
 from shopback import paramconfig as pcfg
 from django.db.models.signals import post_save
 from shopback.users.models import User
@@ -28,9 +29,14 @@ APPROVE_STATUS  = (
 )
 
 
-PRODUCT_STATUS = (
+ONLINE_PRODUCT_STATUS = (
     (pcfg.NORMAL,'使用'),
     (pcfg.REMAIN,'待用'),
+    (pcfg.DELETE,'作废'),
+)
+
+PRODUCT_STATUS = (
+    (pcfg.NORMAL,'使用'),
     (pcfg.DELETE,'作废'),
 )
 
@@ -40,8 +46,16 @@ class PurchaseProduct(models.Model):
     outer_id     = models.CharField(max_length=64,verbose_name='采购编码')
     name         = models.CharField(max_length=128,blank=True,verbose_name='产品名称')
     
-    category     = models.ForeignKey(ProductCategory,null=True,blank=True,related_name='purchase_products',verbose_name='商品分类')
+    category     = models.ForeignKey(ProductCategory,null=True,blank=True,related_name='products',verbose_name='商品分类')
     stock_num    = models.IntegerField(default=0,verbose_name='库存数量')
+    
+    deposite    = models.ForeignKey(Deposite,null=True,blank=True,related_name='products',verbose_name='仓库')
+    deposite_district  = models.ForeignKey(DepositeDistrict,null=True,blank=True,verbose_name='仓库区位')
+    
+    weight      = models.CharField(max_length=128,blank=True,verbose_name='重量(g)')
+    length      = models.IntegerField(default=0,verbose_name='长(cm)')
+    width       = models.IntegerField(default=0,verbose_name='宽(cm)')
+    height      = models.IntegerField(default=0,verbose_name='高(cm)')
     
     created      = models.DateTimeField(null=True,blank=True,auto_now_add=True,verbose_name='创建日期')
     modified     = models.DateTimeField(null=True,blank=True,auto_now=True,verbose_name='修改日期')
@@ -60,11 +74,18 @@ class PurchaseProduct(models.Model):
 class PurchaseProductSku(models.Model):
     """ 采购产品规格 """
     
-    product      = models.ForeignKey(PurchaseProduct,related_name='purchase_productskus',verbose_name='关联库存产品')
+    product      = models.ForeignKey(PurchaseProduct,related_name='product_skus',verbose_name='关联库存产品')
     outer_id     = models.CharField(max_length=64,verbose_name='采购规格编码')
     properties   = models.CharField(max_length=256,blank=True,verbose_name='采购规格名称')
     
     sku_num      = models.IntegerField(default=0,verbose_name='规格库存数量')
+    deposite_district  = models.ForeignKey(DepositeDistrict,null=True,blank=True,verbose_name='仓库区位')
+    
+    weight      = models.CharField(max_length=128,blank=True,verbose_name='重量(g)')
+    length      = models.IntegerField(default=0,verbose_name='长(cm)')
+    width       = models.IntegerField(default=0,verbose_name='宽(cm)')
+    height      = models.IntegerField(default=0,verbose_name='高(cm)')
+    
     created      = models.DateTimeField(null=True,blank=True,auto_now_add=True,verbose_name='创建日期')
     modified     = models.DateTimeField(null=True,blank=True,auto_now=True,verbose_name='修改日期')
     
@@ -79,22 +100,34 @@ class PurchaseProductSku(models.Model):
         return '<%s,%s>'%(self.outer_id,self.properties)
 
 
+def calculate_purchase_product_stock_num(sender, instance, *args, **kwargs):
+    """修改SKU库存后，更新库存商品的总库存 """
+    product = instance.product
+    if product:
+        total_num = product.product_skus.filter(status=pcfg.NORMAL)\
+            .aggregate(total_nums=Sum('sku_num')).get('total_nums')
+        product.stock_num=total_num
+        product.save()
+    
+post_save.connect(calculate_purchase_product_stock_num, sender=PurchaseProductSku, dispatch_uid='calculate_purchase_product_num')
+
+
 class Product(models.Model):
     """ 抽象商品（根据淘宝外部编码)，描述：
         1,映射淘宝出售商品与采购商品桥梁；
-        2,库存管理的核心类；
+        2,淘宝线上库存管理的核心类；
     """
     
     outer_id     = models.CharField(max_length=64,unique=True,null=False,blank=True,verbose_name='外部编码')
    
     name         = models.CharField(max_length=64,blank=True,verbose_name='商品名称')
     
-    purchase_product = models.ForeignKey(PurchaseProduct,null=True,blank=True,related_name='products',verbose_name='关联采购商品')
-    category     = models.ForeignKey(ProductCategory,null=True,blank=True,related_name='products',verbose_name='内部分类')
+    purchase_product = models.ForeignKey(PurchaseProduct,null=True,blank=True,related_name='online_products',verbose_name='关联采购商品')
+    category     = models.ForeignKey(ProductCategory,null=True,blank=True,related_name='online_products',verbose_name='内部分类')
     
     pic_path     = models.CharField(max_length=256,blank=True)
     
-    collect_num  = models.IntegerField(verbose_name='库存数',default=0)  #库存数
+    collect_num  = models.IntegerField(default=0,verbose_name='库存数(已废弃)')  #库存数
     warn_num     = models.IntegerField(null=True,default=10,verbose_name='警告库位')    #警戒库位
     remain_num   = models.IntegerField(null=True,default=0,verbose_name='预留库位')    #预留库存
     price        = models.CharField(max_length=10,blank=True,verbose_name='参考价格')
@@ -106,7 +139,7 @@ class Product(models.Model):
     out_stock    = models.BooleanField(default=False,verbose_name='缺货')
     is_assign    = models.BooleanField(default=False,verbose_name='取消库位警告') #是否手动分配库存，当库存充足时，系统自动设为False，手动分配过后，确定后置为True
     
-    status       = models.CharField(max_length=16,db_index=True,choices=PRODUCT_STATUS,default=pcfg.NORMAL,verbose_name='商品状态')
+    status       = models.CharField(max_length=16,db_index=True,choices=ONLINE_PRODUCT_STATUS,default=pcfg.NORMAL,verbose_name='商品状态')
     
     class Meta:
         db_table = 'shop_items_product'
@@ -132,7 +165,7 @@ class ProductSku(models.Model):
     product  = models.ForeignKey(Product,null=True,related_name='prod_skus',verbose_name='商品')
     purchase_product_sku = models.ForeignKey(PurchaseProductSku,null=True,blank=True,related_name='prod_skus',verbose_name='关联采购规格')
     
-    quantity = models.IntegerField(verbose_name='库存数',default=0)
+    quantity = models.IntegerField(default=0,verbose_name='库存数(已废弃)')
     warn_num     = models.IntegerField(null=True,default=10,verbose_name='警戒库位')    #警戒库位
     remain_num   = models.IntegerField(null=True,default=0,verbose_name='预留库位')    #预留库存
     
@@ -144,7 +177,7 @@ class ProductSku(models.Model):
     is_assign    = models.BooleanField(default=False,verbose_name='已分配库存') #是否手动分配库存，当库存充足时，系统自动设为False，手动分配过后，确定后置为True
     
     modified = models.DateTimeField(null=True,blank=True,auto_now=True,verbose_name='修改时间')
-    status   = models.CharField(max_length=10,db_index=True,choices=PRODUCT_STATUS,default=pcfg.NORMAL,verbose_name='规格状态')  #normal,delete
+    status   = models.CharField(max_length=10,db_index=True,choices=ONLINE_PRODUCT_STATUS,default=pcfg.NORMAL,verbose_name='规格状态')  #normal,delete
     
     class Meta:
         db_table = 'shop_items_productsku'
@@ -170,9 +203,9 @@ def calculate_product_collect_num(sender, instance, *args, **kwargs):
     """修改SKU库存后，更新库存商品的总库存 """
     product = instance.product
     if product:
-        total_num = product.prod_skus.filter(status=pcfg.NORMAL).aggregate(total_nums=Sum('quantity')).get('total_nums')
         has_out_stock = product.prod_skus.filter(status=pcfg.NORMAL,out_stock=True).count()>0
-        Product.objects.filter(id=product.id).update(collect_num=total_num,out_stock=has_out_stock)
+        product.out_stock=has_out_stock
+        product.save()
     
 post_save.connect(calculate_product_collect_num, sender=ProductSku, dispatch_uid='calculate_product_num')
 

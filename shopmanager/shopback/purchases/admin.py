@@ -2,7 +2,7 @@
 from django.contrib import admin
 from django.db import models
 from django.forms import TextInput, Textarea
-from shopback.purchases.models import Deposite,PurchaseType,Purchase,PurchaseItem,PurchaseStorage,PurchaseStorageItem
+from shopback.purchases.models import PurchaseType,Purchase,PurchaseItem,PurchaseStorage,PurchaseStorageItem
 
 import logging 
 
@@ -28,28 +28,6 @@ class PurchaseStorageItemInline(admin.TabularInline):
         models.CharField: {'widget': TextInput(attrs={'size':'20'})},
         models.TextField: {'widget': Textarea(attrs={'rows':4, 'cols':40})},
     }
-
-
-class DepositeAdmin(admin.ModelAdmin):
-    list_display = ('id','deposite_name','location','in_use','extra_info')
-    #list_editable = ('update_time','task_type' ,'is_success','status')
-
-    list_filter = ('in_use',)
-    search_fields = ['id','deposite_name','location']
-
-
-admin.site.register(Deposite,DepositeAdmin)
-
-
-class PurchaseTypeAdmin(admin.ModelAdmin):
-    list_display = ('id','type_name','in_use','extra_info')
-    #list_editable = ('update_time','task_type' ,'is_success','status')
-
-    list_filter = ('in_use',)
-    search_fields = ['id','type_name']
-
-
-admin.site.register(PurchaseType,PurchaseTypeAdmin)
 
 
 class PurchaseAdmin(admin.ModelAdmin):
