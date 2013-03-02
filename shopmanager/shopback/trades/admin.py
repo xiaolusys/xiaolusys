@@ -15,7 +15,7 @@ from django.utils.encoding import force_unicode
 from django.conf import settings
 from celery import group
 from shopback.orders.models import Trade
-from shopback.items.models import Product,ProductSku
+from shopback.items.models import OnlineProduct,OnlineProductSku
 from shopback.trades.models import MergeTrade,MergeOrder,MergeBuyerTrade,ReplayPostTrade,merge_order_maker,merge_order_remover
 from shopback import paramconfig as pcfg
 from shopback.fenxiao.models import PurchaseOrder
@@ -373,7 +373,7 @@ class MergeTradeAdmin(admin.ModelAdmin):
                     else:
                         prod_sku = None
                         try:
-                            prod_sku = ProductSku.objects.get(outer_id=outer_id)
+                            prod_sku = OnlineProductSku.objects.get(outer_id=outer_id)
                         except:
                             prod_sku = None
                         prod_sku_name =prod_sku.properties_name if prod_sku else order.sku_properties_name
@@ -381,7 +381,7 @@ class MergeTradeAdmin(admin.ModelAdmin):
                 else:
                     prod = None
                     try:
-                        prod = Product.objects.get(outer_id=outer_id)
+                        prod = OnlineProduct.objects.get(outer_id=outer_id)
                     except:
                         prod = None
                     trade_items[outer_id]={
@@ -405,13 +405,14 @@ class MergeTradeAdmin(admin.ModelAdmin):
         
         prapare_trades = queryset.filter(is_picking_print=True,is_express_print=True,sys_status=pcfg.WAIT_PREPARE_SEND_STATUS
                                          ,reason_code='',status=pcfg.WAIT_SELLER_SEND_GOODS).exclude(out_sid='')#,operator=request.user.username
-                                         
-        send_tasks = group([ sendTaobaoTradeTask.s(user_id,trade.id) for trade in prapare_trades])()
-        send_tasks.get()
+        
+        if prapare_trades.count() > 0:                                 
+            send_tasks = group([ sendTaobaoTradeTask.s(user_id,trade.id) for trade in prapare_trades])()
+            send_tasks.get()
         
         queryset = MergeTrade.objects.filter(id__in=trade_ids)
         wait_prepare_trades = queryset.filter(sys_status=pcfg.WAIT_PREPARE_SEND_STATUS,is_picking_print=True
-                                              ,is_express_print=True,operator=request.user.username).exclude(out_sid='')
+                                              ,is_express_print=True).exclude(out_sid='')#,operator=request.user.username
         for prepare_trade in wait_prepare_trades:
             prepare_trade.is_picking_print=False
             prepare_trade.is_express_print=False

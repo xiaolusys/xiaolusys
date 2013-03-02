@@ -6,15 +6,15 @@ from django.db import models
 from django.shortcuts import render_to_response
 from django.template import RequestContext
 from django.forms import TextInput, Textarea
-from shopback.items.models import Item,Product,ProductSku,PurchaseProduct,PurchaseProductSku
+from shopback.items.models import Item,Product,ProductSku,OnlineProduct,OnlineProductSku
 from shopback import paramconfig as pcfg
 import logging 
 
 logger =  logging.getLogger('tradepost.handler')
 
-class ProductSkuInline(admin.TabularInline):
+class OnlineProductSkuInline(admin.TabularInline):
     
-    model = ProductSku
+    model = OnlineProductSku
     fields = ('outer_id','prod_outer_id','purchase_product_sku','warn_num','remain_num','properties_name','out_stock',
                     'sync_stock','is_assign','status')
     
@@ -23,10 +23,11 @@ class ProductSkuInline(admin.TabularInline):
         models.TextField: {'widget': Textarea(attrs={'rows':4, 'cols':40})},
     }
 
-class PurchaseProductSkuInline(admin.TabularInline):
+class ProductSkuInline(admin.TabularInline):
     
-    model = PurchaseProductSku
-    fields = ('product','outer_id','properties','sku_num','status')
+    model = ProductSku
+    fields = ('product','outer_id','properties','quantity','warn_num',
+              'remain_num','wait_post_num','weight','status')
     
     formfield_overrides = {
         models.CharField: {'widget': TextInput(attrs={'size':'20'})},
@@ -48,7 +49,7 @@ class ItemAdmin(admin.ModelAdmin):
 admin.site.register(Item, ItemAdmin)
 
 
-class ProductAdmin(admin.ModelAdmin):
+class OnlineProductAdmin(admin.ModelAdmin):
     list_display = ('id','outer_id','name','category','warn_num','remain_num','price','sync_stock','out_stock','created','modified','status')
     list_display_links = ('id','outer_id',)
     list_editable = ('name',)
@@ -56,7 +57,7 @@ class ProductAdmin(admin.ModelAdmin):
     date_hierarchy = 'modified'
     #ordering = ['created_at']
     
-    inlines = [ProductSkuInline]
+    inlines = [OnlineProductSkuInline]
     
     list_filter = ('status',)
     search_fields = ['outer_id', 'name']
@@ -121,10 +122,10 @@ class ProductAdmin(admin.ModelAdmin):
     
     actions = ['sync_items_stock','update_items_sku']
 
-admin.site.register(Product, ProductAdmin)
+admin.site.register(OnlineProduct, OnlineProductAdmin)
 
 
-class ProductSkuAdmin(admin.ModelAdmin):
+class OnlineProductSkuAdmin(admin.ModelAdmin):
     list_display = ('id','outer_id','prod_outer_id','product','warn_num','remain_num','sync_stock','properties_name','properties','out_stock','modified','status')
     list_display_links = ('outer_id',)
     list_editable = ('quantity',)
@@ -137,28 +138,30 @@ class ProductSkuAdmin(admin.ModelAdmin):
     search_fields = ['outer_id','product__outer_id','properties_name']
 
 
-admin.site.register(ProductSku, ProductSkuAdmin)
+admin.site.register(OnlineProductSku, OnlineProductSkuAdmin)
   
   
-class PurchaseProductAdmin(admin.ModelAdmin):
-    list_display = ('id','outer_id','name','category','stock_num','created','modified','status')
+class ProductAdmin(admin.ModelAdmin):
+    list_display = ('id','outer_id','name','category','collect_num','warn_num','remain_num'
+                    ,'wait_post_num','weight','created','modified','status')
     #list_editable = ('update_time','task_type' ,'is_success','status')
 
     list_filter = ('status',)
     search_fields = ['id','outer_id']
     
-    inlines = [PurchaseProductSkuInline]
+    inlines = [ProductSkuInline]
 
-admin.site.register(PurchaseProduct,PurchaseProductAdmin)
+admin.site.register(Product,ProductAdmin)
 
 
-class PurchaseProductSkuAdmin(admin.ModelAdmin):
-    list_display = ('id','product','outer_id','properties','sku_num','created','modified','status')
+class ProductSkuAdmin(admin.ModelAdmin):
+    list_display = ('id','product','outer_id','properties','quantity',
+                    'warn_num','remain_num','wait_post_num','weight','created','modified','status')
     #list_editable = ('update_time','task_type' ,'is_success','status')
 
     list_filter = ('status',)
     search_fields = ['id','outer_id']
     
 
-admin.site.register(PurchaseProductSku,PurchaseProductSkuAdmin)
+admin.site.register(ProductSku,ProductSkuAdmin)
 

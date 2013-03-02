@@ -11,7 +11,7 @@ from chartit import DataPool, Chart
 from chartit import PivotDataPool, PivotChart
 from auth import staff_requried,apis
 from auth.utils import parse_datetime,parse_date,format_time,map_int2str,format_datetime
-from shopback.items.models import Item,Product,ProductSku
+from shopback.items.models import Item,OnlineProduct,OnlineProductSku
 from shopback.orders.models import Order,Trade
 from shopback import paramconfig as pcfg
 
@@ -135,7 +135,7 @@ class ProductOrderView(ModelView):
             outer_id = item.outer_id
         
         try:
-            product = Product.objects.get()
+            product = OnlineProduct.objects.get()
         except:    
             product_name = '商品名未知'
         else:
@@ -197,7 +197,7 @@ class ProductOrderView(ModelView):
                 series_options = series_options,
                 chart_options = chart_options )
         
-        product_sku = ProductSku.objects.filter(product=outer_id)
+        product_sku = OnlineProductSku.objects.filter(product=outer_id)
         sku_list = []
         for psku in product_sku:
             sku = {}

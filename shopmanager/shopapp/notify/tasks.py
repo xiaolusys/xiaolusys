@@ -10,7 +10,7 @@ from shopback import paramconfig as pcfg
 from shopapp.notify.models import TradeNotify,ItemNotify,RefundNotify
 from shopback.orders.models import Trade,Order
 from shopback.trades.models import MergeTrade,MergeOrder,MergeBuyerTrade,merge_order_remover,drive_merge_trade_action
-from shopback.items.models import Product,ProductSku,Item
+from shopback.items.models import OnlineProduct,OnlineProductSku,Item
 from shopback.refunds.models import Refund
 from shopback.users.models import User
 from shopback.signals import rule_signal
@@ -185,37 +185,24 @@ def process_item_notify_task(id):
         if notify.status == "ItemAdd":
             Item.get_or_create(notify.user_id,notify.num_iid,force_update=True)
         elif notify.status == "ItemUpdate":
-            if 'sku' in notify.changed_fields.split(','):
-                item = Item.get_or_create(notify.user_id,notify.num_iid,force_update=True)
-                response = apis.taobao_item_sku_get(num_iid=notify.num_iid,sku_id=notify.sku_id,tb_user_id=notify.user_id)
+            item = Item.get_or_create(notify.user_id,notify.num_iid,force_update=True)
+            prod = OnlineProduct.objects.filter(outer_id=item.outer_id)
+            
+            from shopback.items.tasks import updateUserProductSkuTask
+            updateUserProductSkuTask(outer_ids=[prod.outer_id])
+            
+            item_sku_outer_ids = set()
+            items = Item.objects.filter(outer_id=prod.outer_id)
+            for item in items:
+                sku_dict = json.loads(item.skus or '{}')
+                if sku_dict:
+                    sku_list = sku_dict.get('sku')
+                    item_sku_outer_ids.update([ sku.get('outer_id','') for sku in sku_list])
+            prod.prod_skus.exclude(outer_id__in=item_sku_outer_ids).update(status=pcfg.REMAIN)
                 
-                sku = response['item_sku_get_response']['sku']
-                sku_outer_id = sku.get('outer_id', None)
-                
-                sku_prop_dict = dict([ ('%s:%s' % (p.split(':')[0], p.split(':')[1]), p.split(':')[3]) for p in sku['properties_name'].split(';') if p])
-                
-                if item.product:
-                    psku, state = ProductSku.objects.get_or_create(outer_id=sku_outer_id, product=item.product)
-                    if state:
-                        for key, value in sku.iteritems():
-                            hasattr(psku, key) and setattr(psku, key, value)
-                        psku.prod_outer_id = item.outer_id
-                    else:
-                        #psku.properties_name = sku['properties_name']
-                        psku.properties = sku['properties']
-                        psku.prod_outer_id = item.outer_id
-    
-                    properties = ''
-                    props = sku['properties'].split(';')
-                    prop_dict = item.property_alias_dict
-                    for prop in props:
-                        if prop :
-                            properties += prop_dict.get(prop, '') or sku_prop_dict.get(prop, u'规格有误') 
-                            psku.properties_name = properties or psku.properties_values
-                    psku.save()
         elif notify.status == "ItemUpshelf":
             item = Item.get_or_create(notify.user_id,notify.num_iid,force_update=True)
-            Product.objects.filter(outer_id=item.outer_id).update(status=pcfg.NORMAL)
+            OnlineProduct.objects.filter(outer_id=item.outer_id).update(status=pcfg.NORMAL)
         elif notify.status == "ItemDownshelf":
             Item.get_or_create(notify.user_id,notify.num_iid,force_update=True)
         elif notify.status == "ItemDelete":

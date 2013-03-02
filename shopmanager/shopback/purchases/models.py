@@ -3,7 +3,7 @@ from django.db import models
 from shopback import paramconfig as pcfg
 from shopback.archives.models import Supplier,PurchaseType,Deposite
 from shopback.categorys.models import ProductCategory
-from shopback.items.models import PurchaseProduct,PurchaseProductSku
+from shopback.items.models import Product,ProductSku
 
 PURCHASE_STATUS = (
     (pcfg.PURCHASE_DRAFT,'草稿'),
@@ -64,8 +64,8 @@ class PurchaseItem(models.Model):
     purchase     = models.ForeignKey(Purchase,related_name='purchase_items',verbose_name='采购单')
     supplier_item_id = models.CharField(max_length=64,blank=True,verbose_name='供应商产品编码')
     
-    product      = models.ForeignKey(PurchaseProduct,related_name='purchase_items',verbose_name='采购产品')
-    product_sku  = models.ForeignKey(PurchaseProductSku,related_name='purchase_items',verbose_name='采购产品规格')
+    product      = models.ForeignKey(Product,related_name='purchase_items',verbose_name='采购产品')
+    product_sku  = models.ForeignKey(ProductSku,related_name='purchase_items',verbose_name='采购产品规格')
     
     purchase_num = models.IntegerField(null=True,verbose_name='采购数量')
     discount     = models.FloatField(null=True,verbose_name='折扣')
@@ -121,8 +121,8 @@ class PurchaseStorageItem(models.Model):
     purchase_storage     = models.ForeignKey(PurchaseStorage,related_name='purchase_storage_items',verbose_name='关联入库单')
     supplier_item_id     = models.CharField(max_length=64,blank=True,verbose_name='提供商商品编号')
     
-    product      = models.ForeignKey(PurchaseProduct,related_name='purchase_storage_items',verbose_name='采购商品')
-    product_sku  = models.ForeignKey(PurchaseProductSku,related_name='purchase_storage_items',verbose_name='采购商品规格')
+    product      = models.ForeignKey(Product,related_name='purchase_storage_items',verbose_name='采购商品')
+    product_sku  = models.ForeignKey(ProductSku,related_name='purchase_storage_items',verbose_name='采购商品规格')
     
     storage_num = models.IntegerField(null=True,verbose_name='入库数量')
     

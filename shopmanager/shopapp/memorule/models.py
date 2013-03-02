@@ -6,7 +6,7 @@ from django.db import models
 from django.conf import settings
 from django.db.models import Sum
 from shopback import paramconfig as pcfg
-from shopback.items.models import Item,Product,ProductSku
+from shopback.items.models import Item,OnlineProduct,OnlineProductSku
 from shopback.orders.models import Trade
 from shopback.fenxiao.models import PurchaseOrder
 from shopback.trades.models import MergeTrade,MergeOrder

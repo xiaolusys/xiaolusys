@@ -9,7 +9,7 @@ from shopback.base.fields import BigIntegerAutoField,BigIntegerForeignKey
 from shopback.users.models import User
 from django.db.models import Sum
 from shopback.orders.models import Trade,Order
-from shopback.items.models import Item,Product,ProductSku
+from shopback.items.models import Item,OnlineProduct,OnlineProductSku
 from shopback.logistics.models import Logistics,LogisticsCompany
 from shopback.fenxiao.models import PurchaseOrder,SubPurchaseOrder,FenxiaoProduct
 from shopback.refunds.models import Refund,REFUND_STATUS
@@ -442,13 +442,13 @@ class MergeTrade(models.Model):
             return False
         
     @classmethod
-    def judge_need_merge(cls,trade_id,buyer_nick,receiver_name,receiver_address):
+    def judge_need_merge(cls,trade_id,buyer_nick,receiver_name):
         #是否需要合单 
         if not receiver_address and not receiver_name:   
             return False  
         trades = cls.objects.filter(buyer_nick=buyer_nick,receiver_name=receiver_name
                 ,sys_status__in=(pcfg.WAIT_PREPARE_SEND_STATUS,pcfg.WAIT_AUDIT_STATUS,pcfg.WAIT_CHECK_BARCODE_STATUS
-                                 ,pcfg.WAIT_SCAN_WEIGHT_STATUS,pcfg.REGULAR_REMAIN_STATUS)).exclude(tid=trade_id)
+                                 ,pcfg.WAIT_SCAN_WEIGHT_STATUS,pcfg.REGULAR_REMAIN_STATUS)).exclude(id=trade_id)
         is_need_merge = False
         
         if trades.count() > 0:
@@ -532,11 +532,11 @@ class MergeOrder(models.Model):
                       ,status=pcfg.WAIT_SELLER_SEND_GOODS,is_reverse=False):
         
         merge_trade,state = MergeTrade.objects.get_or_create(id=trade_id)
-        product = Product.objects.get(outer_id=outer_id)
+        product = OnlineProduct.objects.get(outer_id=outer_id)
         sku_properties_name = ''
         if outer_sku_id:
             try:
-                productsku = ProductSku.objects.get(outer_id=outer_sku_id,product__outer_id=outer_id)
+                productsku = OnlineProductSku.objects.get(outer_id=outer_sku_id,product__outer_id=outer_id)
                 sku_properties_name = productsku.properties_name
             except Exception,exc:
                  logger.error(exc.message,exc_info=True)
@@ -825,8 +825,8 @@ def trade_download_controller(merge_trade,trade,trade_from,first_pay_load):
             is_need_merge    = False #是否有合并的可能
             main_tid = None  #主订单ID
             if not has_full_refund:
-                is_need_merge = MergeTrade.judge_need_merge(merge_trade.id,merge_trade.buyer_nick,merge_trade.receiver_name,
-                                                            merge_trade.receiver_address)
+                is_need_merge = MergeTrade.judge_need_merge(
+                    merge_trade.id,merge_trade.buyer_nick,merge_trade.receiver_name)
                 if is_need_merge :
                     merge_trade.append_reason_code(pcfg.MULTIPLE_ORDERS_CODE)
                     #驱动合单程序

@@ -2,7 +2,7 @@ from django import template
 from django.contrib.admin.templatetags.admin_list import result_headers,result_hidden_fields,results
 from shopback import paramconfig as pcfg
 from shopback.trades.models import MergeTrade
-from shopback.items.models import Product,ProductSku
+from shopback.items.models import OnlineProduct,OnlineProductSku
 
 register = template.Library()
 
@@ -66,7 +66,7 @@ def trade_result_list(cl):
 
 @register.filter(name='prod_skus')  
 def prod_skus(order):
-    prods = ProductSku.objects.filter(prod_outer_id=order['outer_id'],status=pcfg.NORMAL)
+    prods = OnlineProductSku.objects.filter(prod_outer_id=order['outer_id'],status=pcfg.NORMAL)
     return prods
     
     
@@ -75,7 +75,7 @@ def prod_name(order):
     if order['is_rule_match']:
         return order['title']
     try:
-        prod = Product.objects.get(outer_id=order['outer_id'])
+        prod = OnlineProduct.objects.get(outer_id=order['outer_id'])
     except:
         p_name = order['title'] 
     else:
@@ -86,7 +86,7 @@ def prod_name(order):
 def sku_name(order):
 
     try:
-        prod = ProductSku.objects.get(outer_id=order['outer_sku_id'],prod_outer_id=order['outer_id'])
+        prod = OnlineProductSku.objects.get(outer_id=order['outer_sku_id'],prod_outer_id=order['outer_id'])
     except:
         s_name = order['sku_properties_name']
     else:

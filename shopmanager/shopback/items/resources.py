@@ -1,21 +1,21 @@
 __author__ = 'meixqhi'
 from djangorestframework.resources import ModelResource
-from shopback.items.models import Product,ProductSku,Item
+from shopback.items.models import OnlineProduct,OnlineProductSku,Item
 from shopback.items.serializer import ProductSerializer,ItemSerializer
 
 class ProductListResource(ModelResource):
     """ docstring for ProductList ModelResource """
 
-    model = Product
-    fields = ('id','outer_id','name','category','collect_num','collect_num','warn_num','price','modified','sync_stock','out_stock'
+    model = OnlineProduct
+    fields = ('id','outer_id','name','category','collect_num','warn_num','price','modified','sync_stock','out_stock'
                ,('pskus','ProductSerializer'),'purchase_product','status') 
     exclude = ('url',)
     
 class ProductResource(ModelResource):
     """ docstring for ProductList ModelResource """
 
-    model = Product
-    fields = ('outer_id','name','category','collect_num','collect_num','warn_num','price','modified','sync_stock','out_stock'
+    model = OnlineProduct
+    fields = ('outer_id','name','category','collect_num','warn_num','price','modified','sync_stock','out_stock'
                ,('prod_skus','ProductSerializer'),'purchase_product','status') 
     exclude = ('url',)
     
@@ -29,7 +29,7 @@ class ProductItemResource(ModelResource):
 class ProductSkuResource(ModelResource):
     """ docstring for ProductItem ModelResource """
 
-    model = ProductSku
+    model = OnlineProductSku
     fields = ('outer_id','prod_outer_id','product','purchase_product_sku','quantity','warn_num','remain_num','properties_name'
               ,'out_stock','sync_stock','is_assign','status','layer_table') 
     exclude = ('url',)
