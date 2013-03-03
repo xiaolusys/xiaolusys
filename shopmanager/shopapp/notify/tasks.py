@@ -186,7 +186,7 @@ def process_item_notify_task(id):
             Item.get_or_create(notify.user_id,notify.num_iid,force_update=True)
         elif notify.status == "ItemUpdate":
             item = Item.get_or_create(notify.user_id,notify.num_iid,force_update=True)
-            prod = OnlineProduct.objects.filter(outer_id=item.outer_id)
+            prod = OnlineProduct.objects.get(outer_id=item.outer_id)
             
             from shopback.items.tasks import updateUserProductSkuTask
             updateUserProductSkuTask(outer_ids=[prod.outer_id])

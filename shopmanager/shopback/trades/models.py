@@ -442,7 +442,7 @@ class MergeTrade(models.Model):
             return False
         
     @classmethod
-    def judge_need_merge(cls,trade_id,buyer_nick,receiver_name):
+    def judge_need_merge(cls,trade_id,buyer_nick,receiver_name,receiver_address):
         #是否需要合单 
         if not receiver_address and not receiver_name:   
             return False  
@@ -826,7 +826,7 @@ def trade_download_controller(merge_trade,trade,trade_from,first_pay_load):
             main_tid = None  #主订单ID
             if not has_full_refund:
                 is_need_merge = MergeTrade.judge_need_merge(
-                    merge_trade.id,merge_trade.buyer_nick,merge_trade.receiver_name)
+                    merge_trade.id,merge_trade.buyer_nick,merge_trade.receiver_name,merge_trade.buyer_full_address)
                 if is_need_merge :
                     merge_trade.append_reason_code(pcfg.MULTIPLE_ORDERS_CODE)
                     #驱动合单程序
