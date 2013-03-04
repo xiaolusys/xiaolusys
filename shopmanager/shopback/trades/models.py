@@ -9,7 +9,7 @@ from shopback.base.fields import BigIntegerAutoField,BigIntegerForeignKey
 from shopback.users.models import User
 from django.db.models import Sum
 from shopback.orders.models import Trade,Order
-from shopback.items.models import Item,OnlineProduct,OnlineProductSku
+from shopback.items.models import Item,OnlineProduct,OnlineProductSku,Product,ProductSku
 from shopback.logistics.models import Logistics,LogisticsCompany
 from shopback.fenxiao.models import PurchaseOrder,SubPurchaseOrder,FenxiaoProduct
 from shopback.refunds.models import Refund,REFUND_STATUS
@@ -365,21 +365,25 @@ class MergeTrade(models.Model):
                 .exclude(refund_status__in=pcfg.REFUND_APPROVAL_STATUS,sys_status=pcfg.IN_EFFECT)
             for order in orders:
                 is_order_out = False
-#                if order.outer_sku_id:
-#                    try:
-#                        product_sku = ProductSku.objects.get(prod_outer_id=order.outer_id,outer_id=order.outer_sku_id)    
-#                    except:
-#                        pass
-#                    else:
-#                        is_order_out  |= product_sku.out_stock or product_sku.quantity <= 0
-#  
-#                elif order.outer_id:
-#                    try:
-#                        product = Product.objects.get(outer_id=order.outer_id)
-#                    except:
-#                        pass
-#                    else:
-#                        is_order_out |= product.out_stock or product.collect_num <= 0
+                if order.outer_sku_id:
+                    try:
+                        online_product_sku = OnlineProductSku.objects.get(prod_outer_id=order.outer_id,outer_id=order.outer_sku_id)    
+                    except:
+                        pass
+                    else:
+                        if online_product_sku.purchase_product_sku:
+                            product_sku = online_product_sku.purchase_product_sku
+                            is_order_out  |= product_sku.is_out_stock
+  
+                elif order.outer_id:
+                    try:
+                        online_product = OnlineProduct.objects.get(outer_id=order.outer_id)
+                    except:
+                        pass
+                    else:
+                        if online_product.purchase_product:
+                            product = online_product.purchase_product
+                            is_order_out |= product.is_out_stock
                 if not is_order_out:
                     #预售关键字匹配        
                     for kw in OUT_STOCK_KEYWORD:

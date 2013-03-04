@@ -80,6 +80,10 @@ class Product(models.Model):
 
     def __unicode__(self):
         return '<%s,%s>'%(self.outer_id,self.name)
+    
+    @property
+    def is_out_stock(self):
+       return self.collect_num <= 0 or self.collect_num-self.wait_post_num <= 0
 
 
 class ProductSku(models.Model):
@@ -110,7 +114,10 @@ class ProductSku(models.Model):
 
     def __unicode__(self):
         return '<%s,%s>'%(self.outer_id,self.properties)
-
+    
+    @property
+    def is_out_stock(self):
+       return self.quantity <= 0 or self.quantity-self.wait_post_num <= 0
 
 def calculate_purchase_product_stock_num(sender, instance, *args, **kwargs):
     """修改SKU库存后，更新库存商品的总库存 """
@@ -158,14 +165,14 @@ class OnlineProduct(models.Model):
     
     sync_stock   = models.BooleanField(default=True,verbose_name='库存同步')
     out_stock    = models.BooleanField(default=False,verbose_name='缺货')
-    is_assign    = models.BooleanField(default=False,verbose_name='取消库位警告') #是否手动分配库存，当库存充足时，系统自动设为False，手动分配过后，确定后置为True
+    is_assign    = models.BooleanField(default=False,verbose_name='库位警告') #是否手动分配库存，当库存充足时，系统自动设为False，手动分配过后，确定后置为True
     
     status       = models.CharField(max_length=16,db_index=True,choices=ONLINE_PRODUCT_STATUS,default=pcfg.NORMAL,verbose_name='商品状态')
     
     class Meta:
         db_table = 'shop_items_product'
-        verbose_name = u'线上商品'
-        verbose_name_plural = u'线上商品列表'
+        verbose_name = u'淘宝商品'
+        verbose_name_plural = u'淘宝商品列表'
 
     def __unicode__(self):
         return self.name
@@ -203,8 +210,8 @@ class OnlineProductSku(models.Model):
     class Meta:
         db_table = 'shop_items_productsku'
         unique_together = ("outer_id", "product",)
-        verbose_name=u'线上商品规格'
-        verbose_name_plural = u'线上商品规格列表'
+        verbose_name=u'淘宝商品规格'
+        verbose_name_plural = u'淘宝商品规格列表'
 
     def __unicode__(self):
         return self.properties_values
@@ -263,8 +270,8 @@ class Item(models.Model):
     status = models.BooleanField(default=True,verbose_name='系统状态')
     class Meta:
         db_table = 'shop_items_item'
-        verbose_name = u'淘宝商品'
-        verbose_name_plural = u'淘宝商品列表'
+        verbose_name = u'线上商品'
+        verbose_name_plural = u'淘线上商品列表'
 
 
 
