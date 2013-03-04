@@ -233,7 +233,7 @@ class Item(models.Model):
 
     user     = models.ForeignKey(User,null=True,related_name='items',verbose_name='店铺')
     category = models.ForeignKey(Category,null=True,related_name='items',verbose_name='淘宝分类')
-    product  = models.ForeignKey(Product,null=True,related_name='items',verbose_name='关联库存商品')
+    product  = models.ForeignKey(OnlineProduct,null=True,related_name='items',verbose_name='关联库存商品')
 
     outer_id = models.CharField(max_length=64,blank=True,verbose_name='外部编码')
     num      = models.IntegerField(null=True,verbose_name='数量')
