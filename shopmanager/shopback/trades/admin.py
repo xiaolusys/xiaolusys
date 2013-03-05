@@ -269,6 +269,8 @@ class MergeTradeAdmin(admin.ModelAdmin):
                     fail_reason = u'部分订单未合并成功'
                     is_merge_success = False 
                 else:
+                    #合并后金额匹配
+                    rule_signal.send(sender='payment_rule',trade_id=main_trade.id)
                     is_merge_success = True
                 log_action(request.user.id,main_trade,CHANGE,u'合并订单(%s)'%','.join(merge_trade_ids))
             else:
