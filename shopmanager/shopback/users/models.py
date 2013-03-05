@@ -22,9 +22,9 @@ class User(models.Model):
     top_appkey = models.CharField(max_length=24,blank=True)
     top_parameters = models.TextField(max_length=1000,blank=True)
 
-    visitor_id = models.CharField(max_length=32,blank=True,u'店铺ID')
-    uid = models.CharField(max_length=32,blank=True,u'用户ID')
-    nick = models.CharField(max_length=32,blank=True,u'店铺名')
+    visitor_id = models.CharField(max_length=32,blank=True,verbose_name=u'店铺ID')
+    uid = models.CharField(max_length=32,blank=True,verbose_name=u'用户ID')
+    nick = models.CharField(max_length=32,blank=True,verbose_name=u'店铺名')
     sex = models.CharField(max_length=1,blank=True)
     contacter = models.CharField(max_length=32,blank=True,verbose_name= u'联络人')
     phone     = models.CharField(max_length=20,blank=True,verbose_name= u'电话')
@@ -40,7 +40,7 @@ class User(models.Model):
     created = models.CharField(max_length=19,blank=True)
     birthday = models.CharField(max_length=19,blank=True)
 
-    type = models.CharField(max_length=2,blank=True,u'店铺类型')
+    type = models.CharField(max_length=2,blank=True,verbose_name= u'店铺类型')
     item_img_num = models.IntegerField(null=True)
     item_img_size = models.IntegerField(null=True)
 
