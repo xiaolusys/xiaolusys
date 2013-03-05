@@ -187,19 +187,21 @@ def process_item_notify_task(id):
             Item.get_or_create(notify.user_id,notify.num_iid,force_update=True)
         elif notify.status == "ItemUpdate":
             item = Item.get_or_create(notify.user_id,notify.num_iid,force_update=True)
-            prod = OnlineProduct.objects.get(outer_id=item.outer_id)
-            
-            from shopback.items.tasks import updateUserProductSkuTask
-            updateUserProductSkuTask(outer_ids=[prod.outer_id])
-            
-            item_sku_outer_ids = set()
-            items = Item.objects.filter(outer_id=prod.outer_id)
-            for item in items:
-                sku_dict = json.loads(item.skus or '{}')
-                if sku_dict:
-                    sku_list = sku_dict.get('sku')
-                    item_sku_outer_ids.update([ sku.get('outer_id','') for sku in sku_list])
-            prod.prod_skus.exclude(outer_id__in=item_sku_outer_ids).update(status=pcfg.REMAIN)
+            outer_id = item.outer_id
+            if outer_id:
+                prod = OnlineProduct.objects.get(outer_id=outer_id)
+                
+                from shopback.items.tasks import updateUserProductSkuTask
+                updateUserProductSkuTask(outer_ids=[outer_id])
+                
+                item_sku_outer_ids = set()
+                items = Item.objects.filter(outer_id=outer_id)
+                for item in items:
+                    sku_dict = json.loads(item.skus or '{}')
+                    if sku_dict:
+                        sku_list = sku_dict.get('sku')
+                        item_sku_outer_ids.update([ sku.get('outer_id','') for sku in sku_list])
+                prod.prod_skus.exclude(outer_id__in=item_sku_outer_ids).update(status=pcfg.REMAIN)
                 
         elif notify.status == "ItemUpshelf":
             item = Item.get_or_create(notify.user_id,notify.num_iid,force_update=True)
