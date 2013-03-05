@@ -1,3 +1,5 @@
+######### 2013-3-5   #########
+alter table shop_users_user add column is_primary tinyint(1) NOT NULL;
 ######### 2013-2-28   #########
 drop table shop_purchase_product;
 drop table shop_purchase_productsku;

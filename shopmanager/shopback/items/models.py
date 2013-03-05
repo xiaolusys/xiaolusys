@@ -271,7 +271,7 @@ class Item(models.Model):
     class Meta:
         db_table = 'shop_items_item'
         verbose_name = u'线上商品'
-        verbose_name_plural = u'淘线上商品列表'
+        verbose_name_plural = u'线上商品列表'
 
 
 
