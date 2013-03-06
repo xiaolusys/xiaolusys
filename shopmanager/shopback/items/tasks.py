@@ -8,7 +8,7 @@ from django.conf import settings
 from django.db.models.query import QuerySet
 from auth.utils import format_datetime,parse_datetime
 from shopback import paramconfig as pcfg
-from shopback.items.models import Item,OnlineProduct, OnlineProductSku
+from shopback.items.models import Item,Product, ProductSku
 from shopback.orders.models import Order, Trade
 from shopback.users.models import User
 from shopback.fenxiao.tasks import saveUserFenxiaoProductTask
@@ -133,14 +133,13 @@ def updateUserProductSkuTask(user_id=None,outer_ids=None,force_update_num=False)
                             continue
                         sku_prop_dict = dict([('%s:%s' % (p.split(':')[0], p.split(':')[1]), p.split(':')[3]) for p in sku['properties_name'].split(';') if p])
                         
-                        psku, state = OnlineProductSku.objects.get_or_create(outer_id=sku_outer_id, product=item.product)
+                        psku, state = ProductSku.objects.get_or_create(outer_id=sku_outer_id, product=item.product)
                         if state:
                             for key, value in sku.iteritems():
                                 hasattr(psku, key) and setattr(psku, key, value)
                             psku.prod_outer_id = item.outer_id
                         else:
                             psku.properties_name = psku.properties_name or sku['properties_name']
-                            psku.properties = sku['properties']
                             psku.prod_outer_id = item.outer_id
                             if force_update_num:
                                 psku.quantity = sku['quantity']
@@ -150,7 +149,7 @@ def updateUserProductSkuTask(user_id=None,outer_ids=None,force_update_num=False)
                         for prop in props:
                             if prop :
                                 properties += prop_dict[sku['num_iid']].get(prop, '') or sku_prop_dict.get(prop,'') 
-                                psku.properties_name = properties or psku.properties_values
+                                psku.properties_name = properties
                         psku.status = pcfg.NORMAL
                         psku.save()
 			                

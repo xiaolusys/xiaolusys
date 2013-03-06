@@ -9,7 +9,7 @@ from djangorestframework.response import ErrorResponse
 from shopback.trades.models import MergeTrade,MergeOrder,GIFT_TYPE\
     ,SYS_TRADE_STATUS,TAOBAO_TRADE_STATUS,SHIPPING_TYPE_CHOICE
 from shopback.logistics.models import LogisticsCompany
-from shopback.items.models import OnlineProduct,OnlineProductSku
+from shopback.items.models import Product,ProductSku
 from shopback.base import log_action, ADDITION, CHANGE
 from shopback.signals import rule_signal
 from shopback.users.models import User
@@ -116,32 +116,35 @@ class CheckOrderView(ModelView):
                 return ','.join(check_msg)
             
             if trade.type == pcfg.EXCHANGE_TYPE:
-                change_orders = trade.merge_trade_orders.filter(sys_status=pcfg.IN_EFFECT)\
-                    .exclude(gift_type=pcfg.RETURN_GOODS_GIT_TYPE)
+                change_orders = trade.merge_trade_orders.filter(gift_type=pcfg.CHANGE_GOODS_GIT_TYPE,sys_status=pcfg.IN_EFFECT)
                 if change_orders.count()>0:
                     #订单为自提
                     if shipping_type == pcfg.EXTRACT_SHIPPING_TYPE:
                         trade.sys_status = pcfg.FINISHED_STATUS
                         trade.status     = pcfg.TRADE_FINISHED
-                        ####此处减加库存####
+                        #更新退换货库存
+                        trade.update_inventory()
                     #订单需物流
-                    else:  
-                        ####此处加库存####
+                    else:    
                         trade.sys_status = pcfg.WAIT_PREPARE_SEND_STATUS
                         trade.status = pcfg.WAIT_SELLER_SEND_GOODS
                     trade.reason_code = ''
                     trade.save()
                 else:
-                    ####此处需要加库存####
+                    #更新退货库存
+                    trade.update_inventory()
+                    
                     trade.sys_status = pcfg.FINISHED_STATUS
                     trade.status     = pcfg.TRADE_FINISHED
-                    trade.save()    
+                    trade.save()
+                
             elif trade.type == pcfg.DIRECT_TYPE:   
                 #订单为自提
                 if shipping_type == pcfg.EXTRACT_SHIPPING_TYPE: 
                     trade.sys_status = pcfg.FINISHED_STATUS
                     trade.status     = pcfg.TRADE_FINISHED
-                    ####此处减库存####
+                    #更新库存
+                    trade.update_inventory()
                 #订单需物流
                 else:
                     trade.sys_status = pcfg.WAIT_PREPARE_SEND_STATUS
@@ -164,7 +167,8 @@ class CheckOrderView(ModelView):
                         trade.consign_time=datetime.datetime.now()
                         trade.save()
                         log_action(request.user.id,trade,CHANGE,u'订单发货成功')
-                    ####此处减库存####
+                    #更新库存
+                    trade.update_inventory()
                 else:
                     MergeTrade.objects.filter(id=id,sys_status = pcfg.WAIT_AUDIT_STATUS)\
                         .update(sys_status=pcfg.WAIT_PREPARE_SEND_STATUS,reason_code='')  
@@ -188,7 +192,7 @@ class OrderPlusView(ModelView):
         q  = request.GET.get('q')
         if not q:
             return '没有输入查询关键字'.decode('utf8')
-        products = OnlineProduct.objects.filter(Q(outer_id=q)|Q(name__contains=q),status__in=(pcfg.NORMAL,pcfg.REMAIN))
+        products = Product.objects.filter(Q(outer_id=q)|Q(name__contains=q),status__in=(pcfg.NORMAL,pcfg.REMAIN))
         
         prod_list = [(prod.outer_id,prod.name,prod.price,[(sku.outer_id,sku.properties_name) for sku in 
                     prod.prod_skus.filter(status__in=(pcfg.NORMAL,pcfg.REMAIN))]) for prod in products]
@@ -207,14 +211,14 @@ class OrderPlusView(ModelView):
         except MergeTrade.DoesNotExist:
             return '该订单不存在'.decode('utf8')
         try:
-            product = OnlineProduct.objects.get(outer_id=outer_id)
-        except OnlineProduct.DoesNotExist:
+            product = Product.objects.get(outer_id=outer_id)
+        except Product.DoesNotExist:
             return '该商品不存在'.decode('utf8')
         
         if outer_sku_id:
             try:
-                prod_sku = OnlineProductSku.objects.get(prod_outer_id=outer_id,outer_id=outer_sku_id)
-            except OnlineProductSku.DoesNotExist:
+                prod_sku = ProductSku.objects.get(prod_outer_id=outer_id,outer_id=outer_sku_id)
+            except ProductSku.DoesNotExist:
                 return '该商品规格不存在'.decode('utf8')
         
         is_reverse_order = False
@@ -279,13 +283,13 @@ def change_trade_order(request,id):
         return HttpResponse(json.dumps({'code':1,"response_error":"订单不存在！"}),mimetype="application/json")
     
     try:
-        prod  = OnlineProduct.objects.get(outer_id=order.outer_id)
-    except OnlineProduct.DoesNotExist:
+        prod  = Product.objects.get(outer_id=order.outer_id)
+    except Product.DoesNotExist:
         return HttpResponse(json.dumps({'code':1,"response_error":"商品不存在！"}),mimetype="application/json")
         
     try:
-        prod_sku = OnlineProductSku.objects.get(prod_outer_id=order.outer_id,outer_id=outer_sku_id) 
-    except OnlineProductSku.DoesNotExist:
+        prod_sku = ProductSku.objects.get(prod_outer_id=order.outer_id,outer_id=outer_sku_id) 
+    except ProductSku.DoesNotExist:
         return HttpResponse(json.dumps({'code':1,"response_error":"商品规格不存在！"}),mimetype="application/json")
     
     merge_trade = order.merge_trade
@@ -628,11 +632,11 @@ class TradeSearchView(ModelView):
         order_list = []
         for order in orders:
             try:
-                prod = OnlineProduct.objects.get(outer_id=order.outer_id)
+                prod = Product.objects.get(outer_id=order.outer_id)
             except Exception,exc:
                 prod = None
             try:
-                prod_sku = OnlineProductSku.objects.get(outer_id=order.outer_sku_id,prod_outer_id=order.outer_id)
+                prod_sku = ProductSku.objects.get(outer_id=order.outer_sku_id,prod_outer_id=order.outer_id)
             except:
                 prod_sku = None
             order_dict = {

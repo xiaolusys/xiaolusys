@@ -9,7 +9,7 @@ from shopback.base.fields import BigIntegerAutoField,BigIntegerForeignKey
 from shopback.users.models import User
 from django.db.models import Sum
 from shopback.orders.models import Trade,Order
-from shopback.items.models import Item,OnlineProduct,OnlineProductSku,Product,ProductSku
+from shopback.items.models import Item,Product,ProductSku
 from shopback.logistics.models import Logistics,LogisticsCompany
 from shopback.fenxiao.models import PurchaseOrder,SubPurchaseOrder,FenxiaoProduct
 from shopback.refunds.models import Refund,REFUND_STATUS
@@ -253,6 +253,32 @@ class MergeTrade(models.Model):
              
         return True
     
+    def update_inventory(self,update_returns=True,update_changes=True):
+        #自提直接更新订单库存信息
+        
+        post_orders = self.inuse_orders     
+        if not update_returns:
+            post_orders.exclude(gift_type = pcfg.RETURN_GOODS_GIT_TYPE)
+            
+        if not update_changes:
+            post_orders.exclude(gift_type = pcfg.CHANGE_GOODS_GIT_TYPE)
+            
+        for order in post_orders:   
+            outer_sku_id = order.outer_sku_id
+            outer_id  = order.outer_id
+            order_num = order.num
+            is_reverse = False if order.gift_type == pcfg.RETURN_GOODS_GIT_TYPE else True
+            if outer_sku_id and outer_id:
+                prod_sku = ProductSku.objects.get(outer_id=outer_sku_id,prod_outer_id=outer_id)
+                prod_sku.update_quantity_incremental(order_num,reverse=is_reverse)
+            elif outer_id:
+                prod  = Product.objects.get(outer_id=outer_id)
+                prod.update_collect_num_incremental(order_num,reverse=is_reverse)
+            else:
+                raise Exception('订单商品没有商家编码')
+        return True            
+        
+    
     def append_reason_code(self,code):  
         reason_set = set(self.reason_code.split(','))
         old_len = len(reason_set)
@@ -367,23 +393,18 @@ class MergeTrade(models.Model):
                 is_order_out = False
                 if order.outer_sku_id:
                     try:
-                        online_product_sku = OnlineProductSku.objects.get(prod_outer_id=order.outer_id,outer_id=order.outer_sku_id)    
+                        product_sku = ProductSku.objects.get(prod_outer_id=order.outer_id,outer_id=order.outer_sku_id)    
                     except:
                         pass
                     else:
-                        if online_product_sku.purchase_product_sku:
-                            product_sku = online_product_sku.purchase_product_sku
-                            is_order_out  |= product_sku.is_out_stock
-  
+                        is_order_out  |= product_sku.is_out_stock
                 elif order.outer_id:
                     try:
-                        online_product = OnlineProduct.objects.get(outer_id=order.outer_id)
+                        product = Product.objects.get(outer_id=order.outer_id)
                     except:
                         pass
                     else:
-                        if online_product.purchase_product:
-                            product = online_product.purchase_product
-                            is_order_out |= product.is_out_stock
+                        is_order_out |= product.is_out_stock
                 if not is_order_out:
                     #预售关键字匹配        
                     for kw in OUT_STOCK_KEYWORD:
@@ -401,6 +422,8 @@ class MergeTrade(models.Model):
                 
         if not is_out_stock:
             trade.remove_reason_code(pcfg.OUT_GOOD_CODE)
+        else:
+            trade.append_reason_code(pcfg.OUT_GOOD_CODE)
             
         return is_out_stock
     
@@ -536,11 +559,11 @@ class MergeOrder(models.Model):
                       ,status=pcfg.WAIT_SELLER_SEND_GOODS,is_reverse=False):
         
         merge_trade,state = MergeTrade.objects.get_or_create(id=trade_id)
-        product = OnlineProduct.objects.get(outer_id=outer_id)
+        product = Product.objects.get(outer_id=outer_id)
         sku_properties_name = ''
         if outer_sku_id:
             try:
-                productsku = OnlineProductSku.objects.get(outer_id=outer_sku_id,product__outer_id=outer_id)
+                productsku = ProductSku.objects.get(outer_id=outer_sku_id,product__outer_id=outer_id)
                 sku_properties_name = productsku.properties_name
             except Exception,exc:
                  logger.error(exc.message,exc_info=True)
@@ -812,8 +835,7 @@ def trade_download_controller(merge_trade,trade,trade_from,first_pay_load):
             rule_signal.send(sender='combose_split_rule',trade_id=merge_trade.id)
             #缺货 
             out_stock      =  MergeTrade.judge_out_stock(merge_trade.id)
-            if out_stock:
-                merge_trade.append_reason_code(pcfg.OUT_GOOD_CODE)
+            
             #设置订单是否有缺货属性    
             merge_trade.has_out_stock = out_stock
             
@@ -856,7 +878,7 @@ def trade_download_controller(merge_trade,trade,trade_from,first_pay_load):
                 merge_trade.append_reason_code(pcfg.LOGISTIC_ERROR_CODE)
                 merge_trade.sys_status = pcfg.WAIT_AUDIT_STATUS
             #有问题则进入问题单域
-            elif merge_trade.type in () or merge_trade.has_memo or wait_refunding or out_stock or is_rule_match or is_need_merge:
+            elif  merge_trade.has_memo or wait_refunding or out_stock or is_rule_match or is_need_merge:
                 merge_trade.sys_status = pcfg.WAIT_AUDIT_STATUS
             else:
                 merge_trade.sys_status = pcfg.WAIT_PREPARE_SEND_STATUS
@@ -941,7 +963,7 @@ def save_orders_trade_to_mergetrade(sender, tid, *args, **kwargs):
                 merge_order.outer_sku_id = order.outer_sku_id
                 merge_order.total_fee = order.total_fee
                 merge_order.payment = order.payment
-                merge_order.sku_properties_name = order.sku_properties_name
+                merge_order.sku_properties_name = order.properties_values
                 merge_order.refund_status = order.refund_status
                 merge_order.pic_path = order.pic_path
                 merge_order.seller_nick = order.seller_nick

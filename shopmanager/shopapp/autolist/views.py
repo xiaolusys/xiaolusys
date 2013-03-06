@@ -15,7 +15,7 @@ from django.contrib.auth.decorators import login_required
 from shopback.base.views import ListModelView
 from shopback import paramconfig as pcfg
 from shopback.categorys.models import Category
-from shopback.items.models import Item,OnlineProduct
+from shopback.items.models import Item,Product
 from shopback.users.models import User
 from shopapp.autolist.models import Logs,ItemListTask,TimeSlots,UNEXECUTE,UNSCHEDULED,LISTING_TYPE,DELISTING_TYPE
 from auth import apis

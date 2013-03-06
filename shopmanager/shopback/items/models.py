@@ -40,21 +40,23 @@ PRODUCT_STATUS = (
     (pcfg.DELETE,'作废'),
 )
 
+
 class Product(models.Model):
-    """ 库存产品 """
+    """ 抽象商品（根据淘宝外部编码)，描述：
+        1,映射淘宝出售商品与采购商品桥梁；
+        2,淘宝线上库存管理的核心类；
+    """
     
-    outer_id     = models.CharField(max_length=64,verbose_name='采购编码')
-    name         = models.CharField(max_length=128,blank=True,verbose_name='产品名称')
+    outer_id     = models.CharField(max_length=64,unique=True,null=False,blank=True,verbose_name='外部编码')
+    name         = models.CharField(max_length=64,blank=True,verbose_name='商品名称')
     
-    category     = models.ForeignKey(ProductCategory,null=True,blank=True,related_name='products',verbose_name='商品分类')
+    category     = models.ForeignKey(ProductCategory,null=True,blank=True,related_name='products',verbose_name='内部分类')
+    pic_path     = models.CharField(max_length=256,blank=True)
     
-    collect_num  = models.IntegerField(default=0,verbose_name='库存数量')
+    collect_num  = models.IntegerField(default=0,verbose_name='库存数')  #库存数
     warn_num     = models.IntegerField(null=True,default=10,verbose_name='警告库位')    #警戒库位
-    remain_num   = models.IntegerField(null=True,default=0,verbose_name='预留库位')     #预留库存
+    remain_num   = models.IntegerField(null=True,default=0,verbose_name='预留库位')    #预留库存
     wait_post_num   = models.IntegerField(null=True,default=0,verbose_name='待发数')    #待发数
-    
-    deposite     = models.ForeignKey(Deposite,null=True,blank=True,related_name='products',verbose_name='仓库')
-    deposite_district  = models.ForeignKey(DepositeDistrict,null=True,blank=True,verbose_name='仓库区位')
     
     cost        = models.FloatField(default=0,verbose_name='成本价')
     std_purchase_price = models.FloatField(default=0,verbose_name='标准进价')
@@ -62,127 +64,46 @@ class Product(models.Model):
     agent_price        = models.FloatField(default=0,verbose_name='代理售价')
     staff_price        = models.FloatField(default=0,verbose_name='员工价')
     
-    weight      = models.CharField(max_length=128,blank=True,verbose_name='重量(g)')
-    #    length      = models.IntegerField(default=0,verbose_name='长(cm)')
-    #    width       = models.IntegerField(default=0,verbose_name='宽(cm)')
-    #    height      = models.IntegerField(default=0,verbose_name='高(cm)')
-    
-    created      = models.DateTimeField(null=True,blank=True,auto_now_add=True,verbose_name='创建日期')
-    modified     = models.DateTimeField(null=True,blank=True,auto_now=True,verbose_name='修改日期')
-    
-    status       = models.CharField(max_length=16,db_index=True,choices=PRODUCT_STATUS,default=pcfg.NORMAL,verbose_name='商品状态')
-    
-    memo         = models.CharField(max_length=1000,blank=True,verbose_name='备注')
-    class Meta:
-        db_table = 'shop_purchase_product'
-        verbose_name=u'库存商品'
-        verbose_name_plural = u'库存商品列表'
-
-    def __unicode__(self):
-        return '<%s,%s>'%(self.outer_id,self.name)
-    
-    @property
-    def is_out_stock(self):
-       return self.collect_num <= 0 or self.collect_num-self.wait_post_num <= 0
-
-
-class ProductSku(models.Model):
-    """ 采购产品规格 """
-    
-    product      = models.ForeignKey(Product,related_name='product_skus',verbose_name='关联库存产品')
-    outer_id     = models.CharField(max_length=64,verbose_name='采购规格编码')
-    properties   = models.CharField(max_length=256,blank=True,verbose_name='采购规格名称')
-
-    quantity     = models.IntegerField(default=0,verbose_name='库存数')
-    warn_num     = models.IntegerField(null=True,default=10,verbose_name='警告库位')    #警戒库位
-    remain_num   = models.IntegerField(null=True,default=0,verbose_name='预留库位')    #预留库存
-    wait_post_num = models.IntegerField(null=True,default=0,verbose_name='待发数')    #待发数
-    
-    deposite_district  = models.ForeignKey(DepositeDistrict,null=True,blank=True,verbose_name='仓库区位')
-    
-    weight      = models.CharField(max_length=128,blank=True,verbose_name='重量(g)')
-    
-    created      = models.DateTimeField(null=True,blank=True,auto_now_add=True,verbose_name='创建日期')
-    modified     = models.DateTimeField(null=True,blank=True,auto_now=True,verbose_name='修改日期')
-    
-    status       = models.CharField(max_length=16,db_index=True,choices=PRODUCT_STATUS,default=pcfg.NORMAL,verbose_name='规格状态')
-    
-    class Meta:
-        db_table = 'shop_purchase_productsku'
-        verbose_name=u'库存商品规格'
-        verbose_name_plural = u'库存商品规格列表'
-
-    def __unicode__(self):
-        return '<%s,%s>'%(self.outer_id,self.properties)
-    
-    @property
-    def is_out_stock(self):
-       return self.quantity <= 0 or self.quantity-self.wait_post_num <= 0
-
-def calculate_purchase_product_stock_num(sender, instance, *args, **kwargs):
-    """修改SKU库存后，更新库存商品的总库存 """
-    product = instance.product
-    if product:
-        collect_num = product.product_skus.filter(status=pcfg.NORMAL)\
-            .aggregate(total_nums=Sum('quantity')).get('total_nums')
-        warn_num = product.product_skus.filter(status=pcfg.NORMAL)\
-            .aggregate(total_nums=Sum('warn_num')).get('total_nums')
-        remain_num = product.product_skus.filter(status=pcfg.NORMAL)\
-            .aggregate(total_nums=Sum('remain_num')).get('total_nums')
-        wait_post_num = product.product_skus.filter(status=pcfg.NORMAL)\
-            .aggregate(total_nums=Sum('wait_post_num')).get('total_nums')    
-        product.collect_num = collect_num
-        product.warn_num = warn_num
-        product.remain_num = remain_num
-        product.wait_post_num = wait_post_num
-        product.save()
-    
-post_save.connect(calculate_purchase_product_stock_num, sender=ProductSku, dispatch_uid='calculate_product_num')
-
-
-class OnlineProduct(models.Model):
-    """ 抽象商品（根据淘宝外部编码)，描述：
-        1,映射淘宝出售商品与采购商品桥梁；
-        2,淘宝线上库存管理的核心类；
-    """
-    
-    outer_id     = models.CharField(max_length=64,unique=True,null=False,blank=True,verbose_name='外部编码')
-   
-    name         = models.CharField(max_length=64,blank=True,verbose_name='商品名称')
-    
-    purchase_product = models.ForeignKey(Product,null=True,blank=True,related_name='online_products',verbose_name='关联采购商品')
-    category     = models.ForeignKey(ProductCategory,null=True,blank=True,related_name='online_products',verbose_name='内部分类')
-    
-    pic_path     = models.CharField(max_length=256,blank=True)
-    
-    collect_num  = models.IntegerField(default=0,verbose_name='库存数(已废弃)')  #库存数
-    warn_num     = models.IntegerField(null=True,default=10,verbose_name='警告库位')    #警戒库位
-    remain_num   = models.IntegerField(null=True,default=0,verbose_name='预留库位')    #预留库存
-    price        = models.CharField(max_length=10,blank=True,verbose_name='参考价格')
+    weight       = models.CharField(max_length=128,blank=True,verbose_name='重量(g)')
     
     created      = models.DateTimeField(null=True,blank=True,auto_now_add=True,verbose_name='创建时间')
     modified     = models.DateTimeField(null=True,blank=True,auto_now=True,verbose_name='修改时间')
     
     sync_stock   = models.BooleanField(default=True,verbose_name='库存同步')
-    out_stock    = models.BooleanField(default=False,verbose_name='缺货')
     is_assign    = models.BooleanField(default=False,verbose_name='库位警告') #是否手动分配库存，当库存充足时，系统自动设为False，手动分配过后，确定后置为True
     
     status       = models.CharField(max_length=16,db_index=True,choices=ONLINE_PRODUCT_STATUS,default=pcfg.NORMAL,verbose_name='商品状态')
     
+    memo         = models.TextField(max_length=1000,blank=True,verbose_name='备注')
     class Meta:
         db_table = 'shop_items_product'
-        verbose_name = u'淘宝商品'
-        verbose_name_plural = u'淘宝商品列表'
+        verbose_name = u'库存商品'
+        verbose_name_plural = u'库存商品列表'
 
     def __unicode__(self):
         return self.name
     
     @property
     def pskus(self):
-        return self.prod_skus.filter(status=pcfg.NORMAL)
-
-
-class OnlineProductSku(models.Model):
+        return self.prod_skus.filter(status__in=(pcfg.NORMAL,pcfg.REMAIN))
+    
+    @property
+    def is_out_stock(self):
+       return self.collect_num <= 0 or self.collect_num-self.wait_post_num <= 0
+    
+    def update_collect_num_incremental(self,num,reverse=False):
+        """
+        参数:
+            reverse:True表示加库存，False表示减相应的库存
+        """
+        if reverse:
+            self.collect_num = models.F('quantity')-num
+        else:
+            self.collect_num = models.F('quantity')+num
+        self.save()
+        
+        
+class ProductSku(models.Model):
     """ 抽象商品规格（根据淘宝规格外部编码），描述：
         1,映射淘宝出售商品规格与采购商品规格桥梁；
         2,库存管理的规格核心类；
@@ -190,40 +111,75 @@ class OnlineProductSku(models.Model):
     outer_id = models.CharField(max_length=64,null=True,blank=True,verbose_name='规格外部编码')
     
     prod_outer_id = models.CharField(max_length=64,db_index=True,blank=True,default='',verbose_name='商品外部编码')
-    product  = models.ForeignKey(OnlineProduct,null=True,related_name='prod_skus',verbose_name='商品')
-    purchase_product_sku = models.ForeignKey(ProductSku,null=True,blank=True,related_name='prod_skus',verbose_name='关联采购规格')
+    product  = models.ForeignKey(Product,null=True,related_name='prod_skus',verbose_name='商品')
     
-    quantity = models.IntegerField(default=0,verbose_name='库存数(已废弃)')
+    quantity = models.IntegerField(default=0,verbose_name='库存数')
     warn_num     = models.IntegerField(null=True,default=10,verbose_name='警戒库位')    #警戒库位
     remain_num   = models.IntegerField(null=True,default=0,verbose_name='预留库位')    #预留库存
+    wait_post_num = models.IntegerField(null=True,default=0,verbose_name='待发数')    #待发数
     
-    properties_name = models.TextField(max_length=200,blank=True,verbose_name='规格属性')
-    properties      = models.TextField(max_length=200,blank=True,verbose_name='属性编码')
+    cost        = models.FloatField(default=0,verbose_name='成本价')
+    std_purchase_price = models.FloatField(default=0,verbose_name='标准进价')
+    std_sale_price     = models.FloatField(default=0,verbose_name='标准售价')
+    agent_price        = models.FloatField(default=0,verbose_name='代理售价')
+    staff_price        = models.FloatField(default=0,verbose_name='员工价')
     
-    out_stock    = models.BooleanField(default=False,verbose_name='缺货') 
+    weight             = models.CharField(max_length=128,blank=True,verbose_name='重量(g)')
+    
+    properties_name    = models.TextField(max_length=200,blank=True,verbose_name='线上规格名称')
+    properties_alias   = models.TextField(max_length=200,blank=True,verbose_name='系统规格名称')
+    
     sync_stock   = models.BooleanField(default=True,verbose_name='库存同步') 
-    is_assign    = models.BooleanField(default=False,verbose_name='已分配库存') #是否手动分配库存，当库存充足时，系统自动设为False，手动分配过后，确定后置为True
+    #是否手动分配库存，当库存充足时，系统自动设为False，手动分配过后，确定后置为True
+    is_assign    = models.BooleanField(default=False,verbose_name='已分配库存') 
     
-    modified = models.DateTimeField(null=True,blank=True,auto_now=True,verbose_name='修改时间')
-    status   = models.CharField(max_length=10,db_index=True,choices=ONLINE_PRODUCT_STATUS,default=pcfg.NORMAL,verbose_name='规格状态')  #normal,delete
+    modified     = models.DateTimeField(null=True,blank=True,auto_now=True,verbose_name='修改时间')
+    status       = models.CharField(max_length=10,db_index=True,choices=ONLINE_PRODUCT_STATUS,default=pcfg.NORMAL,verbose_name='规格状态')  #normal,delete
     
+    memo         = models.TextField(max_length=1000,blank=True,verbose_name='备注')
     class Meta:
         db_table = 'shop_items_productsku'
         unique_together = ("outer_id", "product",)
-        verbose_name=u'淘宝商品规格'
-        verbose_name_plural = u'淘宝商品规格列表'
+        verbose_name=u'库存商品规格'
+        verbose_name_plural = u'库存商品规格列表'
 
     def __unicode__(self):
-        return self.properties_values
+        return '<%s,%s>'%(self.outer_id,self.properties_alias)
       
     @property
-    def properties_values(self):
-        properties_list = self.properties_name.split(';')
-        value_list = []
-        for properties in properties_list:
-            values = properties.split(':')
-            value_list.append( '%s'%values[3] if len(values)==4 else properties)
-        return ','.join(value_list)
+    def is_out_stock(self):
+       return self.quantity <= 0 or self.quantity-self.wait_post_num <= 0
+
+    def update_quantity_incremental(self,num,reverse=False):
+        """
+        参数:
+            reverse:True表示加库存，False表示减相应的库存
+        """
+        if reverse:
+            self.quantity = models.F('quantity')-num
+        else:
+            self.quantity = models.F('quantity')+num
+        self.save()
+
+def calculate_product_stock_num(sender, instance, *args, **kwargs):
+    """修改SKU库存后，更新库存商品的总库存 """
+    product = instance.product
+    if product:
+        collect_num = product.prod_skus.filter(status=pcfg.NORMAL)\
+            .aggregate(total_nums=Sum('quantity')).get('total_nums')
+        warn_num = product.prod_skus.filter(status=pcfg.NORMAL)\
+            .aggregate(total_nums=Sum('warn_num')).get('total_nums')
+        remain_num = product.prod_skus.filter(status=pcfg.NORMAL)\
+            .aggregate(total_nums=Sum('remain_num')).get('total_nums')
+        wait_post_num = product.prod_skus.filter(status=pcfg.NORMAL)\
+            .aggregate(total_nums=Sum('wait_post_num')).get('total_nums')    
+        product.collect_num = collect_num
+        product.warn_num = warn_num
+        product.remain_num = remain_num
+        product.wait_post_num = wait_post_num
+        product.save()
+    
+post_save.connect(calculate_product_stock_num, sender=ProductSku, dispatch_uid='calculate_product_num')
 
 
 class Item(models.Model):
@@ -233,7 +189,7 @@ class Item(models.Model):
 
     user     = models.ForeignKey(User,null=True,related_name='items',verbose_name='店铺')
     category = models.ForeignKey(Category,null=True,related_name='items',verbose_name='淘宝分类')
-    product  = models.ForeignKey(OnlineProduct,null=True,related_name='items',verbose_name='关联库存商品')
+    product  = models.ForeignKey(Product,null=True,related_name='items',verbose_name='关联库存商品')
 
     outer_id = models.CharField(max_length=64,blank=True,verbose_name='外部编码')
     num      = models.IntegerField(null=True,verbose_name='数量')
@@ -270,8 +226,8 @@ class Item(models.Model):
     status = models.BooleanField(default=True,verbose_name='系统状态')
     class Meta:
         db_table = 'shop_items_item'
-        verbose_name = u'线上商品'
-        verbose_name_plural = u'线上商品列表'
+        verbose_name = u'淘宝线上商品'
+        verbose_name_plural = u'淘宝线上商品列表'
 
 
 
@@ -314,7 +270,7 @@ class Item(models.Model):
         
         category = Category.get_or_create(user_id,item_dict['cid'])
         if item_dict.has_key('outer_id') and item_dict['outer_id']:
-            product,state = OnlineProduct.objects.get_or_create(outer_id=item_dict['outer_id'])
+            product,state = Product.objects.get_or_create(outer_id=item_dict['outer_id'])
             if not product.name:
                 product.collect_num = item_dict['num']
                 product.price       = item_dict['price']

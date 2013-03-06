@@ -13,7 +13,7 @@ from djangorestframework.response import Response,ErrorResponse
 from djangorestframework.mixins import CreateModelMixin
 from shopback import paramconfig as pcfg
 from shopback.base.views import ModelView,ListOrCreateModelView,ListModelView
-from shopback.items.models import Item,OnlineProduct,OnlineProductSku
+from shopback.items.models import Item,Product,ProductSku
 from shopback.users.models import User
 from shopback.items.tasks import updateUserItemsTask
 from shopapp.syncnum.tasks import updateItemNum
@@ -131,9 +131,9 @@ class ProductItemView(ListModelView):
         outer_id = kwargs.get('outer_id')
         outer_sku_id = request.REQUEST.get('outer_sku_id',None)
         if outer_sku_id:
-            row = OnlineProductSku.objects.filter(product=outer_id,outer_id=outer_sku_id).update(status=pcfg.DELETE)
+            row = ProductSku.objects.filter(product=outer_id,outer_id=outer_sku_id).update(status=pcfg.DELETE)
         else:
-            row = OnlineProduct.objects.filter(outer_id=outer_id).update(status=pcfg.DELETE)
+            row = Product.objects.filter(outer_id=outer_id).update(status=pcfg.DELETE)
         
         return {'updates_num':row}
     
@@ -149,9 +149,9 @@ class ProductModifyView(ListModelView):
         outer_id = kwargs.get('outer_id')
         outer_sku_id = request.REQUEST.get('outer_sku_id',None)
         if outer_sku_id :
-            row = OnlineProductSku.objects.filter(product=outer_id,outer_id=outer_sku_id).update(is_assign=True)
+            row = ProductSku.objects.filter(product=outer_id,outer_id=outer_sku_id).update(is_assign=True)
         else:
-            row = OnlineProduct.objects.filter(outer_id=outer_id).update(is_assign=True)
+            row = Product.objects.filter(outer_id=outer_id).update(is_assign=True)
             
         return {'updates_num':row}
     
@@ -164,7 +164,7 @@ class ProductUpdateView(ModelView):
         
         outer_id = kwargs.get('outer_id',None)
         try:
-            instance = OnlineProduct.objects.get(outer_id=outer_id)
+            instance = Product.objects.get(outer_id=outer_id)
         except:
             instance = None
             
@@ -187,7 +187,7 @@ class ProductSkuCreateView(ModelView):
         
         prod_sku_id = request.REQUEST.get('prod_sku_id',None)
         try:
-            instance = OnlineProductSku.objects.get(id=prod_sku_id)
+            instance = ProductSku.objects.get(id=prod_sku_id)
         except:
             raise ErrorResponse(status.HTTP_404_NOT_FOUND)
         
@@ -207,7 +207,7 @@ class ProductSkuInstanceView(ModelView):
     def get(self, request, sku_id, *args, **kwargs):
 
         try:
-            instance = OnlineProductSku.objects.get(id=sku_id)
+            instance = ProductSku.objects.get(id=sku_id)
         except:
             raise ErrorResponse(status.HTTP_404_NOT_FOUND)
         

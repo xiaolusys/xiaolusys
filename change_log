@@ -1,3 +1,35 @@
+######### 2013-3-6   #########
+drop table shop_purchase_product;
+drop table shop_purchase_productsku;
+drop table shop_purchases_purchase;
+drop table shop_purchases_item;
+drop table shop_purchases_storage;
+drop table shop_purchases_storageitem;
+
+alter table shop_items_product drop column price;
+alter table shop_items_product drop column purchase_product_id;
+alter table shop_items_product drop column out_stock;
+alter table shop_items_product add column wait_post_num int(11) DEFAULT NULL;
+alter table shop_items_product add column cost decimal(5,2) DEFAULT NULL;
+alter table shop_items_product add column std_purchase_price decimal(5,2) DEFAULT NULL;
+alter table shop_items_product add column std_sale_price decimal(5,2) DEFAULT NULL;
+alter table shop_items_product add column agent_price decimal(5,2) DEFAULT NULL;
+alter table shop_items_product add column staff_price decimal(5,2) DEFAULT NULL;
+alter table shop_items_product add column weight int(11) DEFAULT NULL;
+alter table shop_items_product add column memo varchar(1000) NOT NULL;
+
+alter table shop_items_productsku drop column purchase_product_sku_id;
+alter table shop_items_productsku drop column out_stock;
+alter table shop_items_productsku drop column properties;
+alter table shop_items_productsku add column properties_alias varchar(200) NOT NULL;
+alter table shop_items_productsku add column wait_post_num int(11) DEFAULT NULL;
+alter table shop_items_productsku add column cost decimal(5,2) DEFAULT NULL;
+alter table shop_items_productsku add column std_purchase_price decimal(5,2) DEFAULT NULL;
+alter table shop_items_productsku add column std_sale_price decimal(5,2) DEFAULT NULL;
+alter table shop_items_productsku add column agent_price decimal(5,2) DEFAULT NULL;
+alter table shop_items_productsku add column staff_price decimal(5,2) DEFAULT NULL;
+alter table shop_items_productsku add column weight int(11) DEFAULT NULL;
+alter table shop_items_productsku add column memo varchar(1000) NOT NULL;
 ######### 2013-3-5   #########
 alter table shop_users_user add column is_primary tinyint(1) NOT NULL;
 ######### 2013-2-28   #########
@@ -12,9 +44,6 @@ drop table shop_purchases_storageitem;
 drop table shop_purchases_supplier;
 drop table shop_purchases_suppliertype;
 
-######### 2013-2-26   #########
-alter table shop_purchase_product add column stock_num int(11) default 0;
-alter table shop_purchase_productsku add column sku_num int(11) default 0;
 ######### 2013-2-22   #########
 create index idx_mergetrade_receiver_mobile on shop_trades_mergetrade(receiver_mobile);
 create index idx_mergetrade_receiver_phone on shop_trades_mergetrade(receiver_phone);

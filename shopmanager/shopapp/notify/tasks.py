@@ -11,7 +11,7 @@ from shopback import paramconfig as pcfg
 from shopapp.notify.models import TradeNotify,ItemNotify,RefundNotify
 from shopback.orders.models import Trade,Order
 from shopback.trades.models import MergeTrade,MergeOrder,MergeBuyerTrade,merge_order_remover,drive_merge_trade_action
-from shopback.items.models import OnlineProduct,OnlineProductSku,Item
+from shopback.items.models import Product,ProductSku,Item
 from shopback.refunds.models import Refund
 from shopback.users.models import User
 from shopback.signals import rule_signal
@@ -189,7 +189,7 @@ def process_item_notify_task(id):
             item = Item.get_or_create(notify.user_id,notify.num_iid,force_update=True)
             outer_id = item.outer_id
             if outer_id:
-                prod = OnlineProduct.objects.get(outer_id=outer_id)
+                prod = Product.objects.get(outer_id=outer_id)
                 
                 from shopback.items.tasks import updateUserProductSkuTask
                 updateUserProductSkuTask(outer_ids=[outer_id])
@@ -205,7 +205,7 @@ def process_item_notify_task(id):
                 
         elif notify.status == "ItemUpshelf":
             item = Item.get_or_create(notify.user_id,notify.num_iid,force_update=True)
-            OnlineProduct.objects.filter(outer_id=item.outer_id).update(status=pcfg.NORMAL)
+            Product.objects.filter(outer_id=item.outer_id).update(status=pcfg.NORMAL)
         elif notify.status == "ItemDownshelf":
             Item.get_or_create(notify.user_id,notify.num_iid,force_update=True)
         elif notify.status == "ItemDelete":

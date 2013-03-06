@@ -15,7 +15,7 @@ from django.utils.encoding import force_unicode
 from django.conf import settings
 from celery import group
 from shopback.orders.models import Trade
-from shopback.items.models import OnlineProduct,OnlineProductSku
+from shopback.items.models import Product,ProductSku
 from shopback.trades.models import MergeTrade,MergeOrder,MergeBuyerTrade,ReplayPostTrade,merge_order_maker,merge_order_remover
 from shopback import paramconfig as pcfg
 from shopback.fenxiao.models import PurchaseOrder
@@ -375,7 +375,7 @@ class MergeTradeAdmin(admin.ModelAdmin):
                     else:
                         prod_sku = None
                         try:
-                            prod_sku = OnlineProductSku.objects.get(outer_id=outer_id)
+                            prod_sku = ProductSku.objects.get(outer_id=outer_id)
                         except:
                             prod_sku = None
                         prod_sku_name =prod_sku.properties_name if prod_sku else order.sku_properties_name
@@ -383,7 +383,7 @@ class MergeTradeAdmin(admin.ModelAdmin):
                 else:
                     prod = None
                     try:
-                        prod = OnlineProduct.objects.get(outer_id=outer_id)
+                        prod = Product.objects.get(outer_id=outer_id)
                     except:
                         prod = None
                     trade_items[outer_id]={
