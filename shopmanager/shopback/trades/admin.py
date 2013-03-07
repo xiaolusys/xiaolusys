@@ -329,6 +329,25 @@ class MergeTradeAdmin(admin.ModelAdmin):
             trade.has_out_stock=False
             trade.has_refund=False
             trade.save()
+            #减去商品的待发货数，订单重新入库时（判断是否缺货功能），会重新肩上
+            wait_post_orders = trade.merge_trade_orders.filter(sys_status=pcfg.IN_EFFECT
+                            ,gift_type__in=(pcfg.REAL_ORDER_GIT_TYPE,pcfg.COMBOSE_SPLIT_GIT_TYPE))
+            for order in wait_post_orders:
+                if order.outer_sku_id:
+                    try:
+                        product_sku = ProductSku.objects.get(prod_outer_id=order.outer_id,outer_id=order.outer_sku_id)
+                    except:
+                        pass
+                    else:
+                        product_sku.update_waitpostnum_incremental(order.num)
+                elif order.outer_id:
+                    try:
+                        product = Product.objects.get(outer_id=order.outer_id)
+                    except:
+                        pass
+                    else:
+                        product.update_waitpostnum_incremental(order.num) 
+                        
             try:
                 trade.merge_trade_orders.all().delete()
                 if trade.type == pcfg.TAOBAO_TYPE:
@@ -375,7 +394,7 @@ class MergeTradeAdmin(admin.ModelAdmin):
                     else:
                         prod_sku = None
                         try:
-                            prod_sku = ProductSku.objects.get(outer_id=outer_id)
+                            prod_sku = ProductSku.objects.get(outer_id=outer_sku_id,prod_outer_id=outer_id)
                         except:
                             prod_sku = None
                         prod_sku_name =prod_sku.properties_name if prod_sku else order.sku_properties_name

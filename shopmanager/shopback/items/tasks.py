@@ -10,6 +10,7 @@ from auth.utils import format_datetime,parse_datetime
 from shopback import paramconfig as pcfg
 from shopback.items.models import Item,Product, ProductSku
 from shopback.orders.models import Order, Trade
+from shopback.trades.models import MergeOrder, MergeTrade
 from shopback.users.models import User
 from shopback.fenxiao.tasks import saveUserFenxiaoProductTask
 from shopback import paramconfig as pcfg
@@ -164,6 +165,57 @@ def updateUserProductSkuTask(user_id=None,outer_ids=None,force_update_num=False)
                 prop_dict = {}
     
 
+@task()
+def updateProductWaitPostNumTask():
+    
+    products = Product.objects.filter(status=pcfg.NORMAL)
+    for prod in products:
+        
+        outer_id  = prod.outer_id 
+        prod_skus = prod.pskus
+        if prod_skus.count()>0:
+            for sku in prod_skus:
+                outer_sku_id = sku.outer_id
+                wait_post_num = MergeTrade.get_trades_wait_post_prod_num(outer_id,outer_sku_id)
+                sku.wait_post_num = wait_post_num
+                sku.save()
+
+        else:
+            outer_sku_id = ''
+            wait_post_num = MergeTrade.get_trades_wait_post_prod_num(outer_id,outer_sku_id)
+            prod.wait_post_num = wait_post_num
+            prod.save()
+
+
+@task()
+def updateProductWarnNumTask():
+    
+    dt     = datetime.datetime.now()-datetime.timedelta(1,0,0)
+    year   = dt.year
+    month  = dt.month
+    day    = dt.day
+    st_f   = datetime.datetime(year,month,day,0,0,0)
+    st_t   = datetime.datetime(year,month,day,23,59,59)
+    products = Product.objects.filter(status=pcfg.NORMAL)
+    for prod in products:
+        
+        outer_id  = prod.outer_id 
+        prod_skus = prod.pskus
+        if prod_skus.count()>0:
+            for sku in prod_skus:
+                outer_sku_id = sku.outer_id
+                lastday_pay_num = MergeOrder.objects.filter(outer_id=outer_id,outer_sku_id=outer_sku_id
+                    ,merge_trade__pay_time__gte=st_f,merge_trade__pay_time__lte=st_t,sys_status=pcfg.IN_EFFECT)\
+                    .aggregate(sale_nums=Sum('num')).get('sale_nums')
+                sku.warn_num = lastday_pay_num
+                sku.save()
+        else:
+            outer_sku_id = ''
+            lastday_pay_num = MergeOrder.objects.filter(outer_id=outer_id,outer_sku_id=outer_sku_id
+                ,merge_trade__pay_time__gte=st_f,merge_trade__pay_time__lte=st_t,sys_status=pcfg.IN_EFFECT)\
+                .aggregate(sale_nums=Sum('num')).get('sale_nums')
+            sku.warn_num = lastday_pay_num
+            sku.save()
 
 @task()
 def updateAllUserProductSkuTask():

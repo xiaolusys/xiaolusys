@@ -322,7 +322,6 @@ class RefundOrderView(ModelView):
                 if trade.consign_time:
                     consign_full_refunds_num += 1
             
-            
         cursor = connection.cursor()
         cursor.execute(self.gen_refund_sql(format_datetime(dt_f),format_datetime(dt_t)))
         result = cursor.fetchall()

@@ -15,13 +15,13 @@ logger =  logging.getLogger('tradepost.handler')
 class ProductSkuInline(admin.TabularInline):
     
     model = ProductSku
-    fields = ('outer_id','prod_outer_id','warn_num','remain_num','wait_post_num','cost','std_purchase_price','std_sale_price'
-                    ,'agent_price','staff_price','properties_name','properties_alias','sync_stock','is_assign','status')
+    fields = ('outer_id','prod_outer_id','properties_name','properties_alias','quantity','warn_num','remain_num','wait_post_num','cost','std_purchase_price','std_sale_price'
+                    ,'agent_price','staff_price','sync_stock','is_assign','status','memo')
     
     formfield_overrides = {
-        models.CharField: {'widget': TextInput(attrs={'size':'12'})},
-        models.FloatField: {'widget': TextInput(attrs={'size':'10'})},
-        models.TextField: {'widget': Textarea(attrs={'rows':2, 'cols':25})},
+        models.CharField: {'widget': TextInput(attrs={'size':'10'})},
+        models.FloatField: {'widget': TextInput(attrs={'size':'8'})},
+        models.TextField: {'widget': Textarea(attrs={'rows':1, 'cols':20})},
     }
 
 
@@ -41,7 +41,7 @@ admin.site.register(Item, ItemAdmin)
 
 
 class ProductAdmin(admin.ModelAdmin):
-    list_display = ('id','outer_id','name','category','warn_num','remain_num','wait_post_num','cost','std_purchase_price'
+    list_display = ('id','outer_id','name','collect_num','category','warn_num','remain_num','wait_post_num','cost','std_purchase_price'
                     ,'std_sale_price','agent_price','sync_stock','created','modified','status')
     list_display_links = ('id','outer_id',)
     list_editable = ('name',)
@@ -53,6 +53,21 @@ class ProductAdmin(admin.ModelAdmin):
     
     list_filter = ('status',)
     search_fields = ['outer_id', 'name']
+    
+    #--------设置页面布局----------------
+    fieldsets =(('商品基本信息:', {
+                    'classes': ('expand',),
+                    'fields': (('outer_id','name','category','pic_path','status')
+                               ,('collect_num','warn_num','remain_num','wait_post_num')
+                               ,('cost','std_purchase_price','std_sale_price','agent_price','staff_price')
+                               ,('weight','sync_stock','is_assign','memo'))
+                }),)
+    
+    formfield_overrides = {
+        models.CharField: {'widget': TextInput(attrs={'size':'16'})},
+        models.FloatField: {'widget': TextInput(attrs={'size':'16'})},
+        models.TextField: {'widget': Textarea(attrs={'rows':4, 'cols':40})},
+    }
     
     #更新用户线上商品入库
     def sync_items_stock(self,request,queryset):
@@ -118,7 +133,7 @@ admin.site.register(Product, ProductAdmin)
 
 
 class ProductSkuAdmin(admin.ModelAdmin):
-    list_display = ('id','outer_id','prod_outer_id','product','warn_num','remain_num','wait_post_num','cost','std_purchase_price'
+    list_display = ('id','outer_id','prod_outer_id','product','quantity','warn_num','remain_num','wait_post_num','cost','std_purchase_price'
                     ,'std_sale_price','agent_price','staff_price','sync_stock','properties_name','properties_alias','modified','status')
     list_display_links = ('outer_id',)
     list_editable = ('quantity',)

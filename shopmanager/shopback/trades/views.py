@@ -15,9 +15,80 @@ from shopback.signals import rule_signal
 from shopback.users.models import User
 from shopback import paramconfig as pcfg
 from auth import apis
+from auth.utils import parse_datetime,format_datetime
 import logging
 
 logger = logging.getLogger('trades.handler')
+
+
+class StatisticMergeOrderView(ModelView):
+    """ docstring for class StatisticsMergeOrderView """
+    
+    def get(self, request, *args, **kwargs):
+        
+        content  = self.CONTENT
+        start_dt = content.get('df')
+        end_dt   = content.get('dt')
+        outer_id = content.get('outer_id')
+        statistic_by = content.get('sc_by','pay')
+        if start_dt and end_dt:
+            start_dt = parse_datetime(start_dt)
+            end_dt   = parse_datetime(end_dt)
+        else:
+            dt  = datetime.datetime.now()
+            start_dt = datetime.datetime(dt.year,dt.month,dt.day,0,0,0)
+            end_dt   = dt
+            
+        if statistic_by == 'pay':
+            effect_orders = MergeOrder.objects.filter(merge_trade__pay_time__gte=start_dt,merge_trade__pay_time__lte=end_dt)
+        else:
+            effect_orders = MergeOrder.objects.filter(merge_trade__weight_time__gte=start_dt,merge_trade__weight_time__lte=end_dt)
+            
+        effect_orders     = effect_orders.filter(merge_trade__status__in=pcfg.ORDER_SUCCESS_STATUS,sys_status=pcfg.IN_EFFECT)\
+            .exclude(gift_type=pcfg.RETURN_GOODS_GIT_TYPE)
+
+        if outer_id:
+            effect_orders = effect_orders.filter(outer_id=outer_id)
+            
+        trade_items  = {}
+        for order in effect_orders:
+            
+            outer_id = order.outer_id or str(order.num_iid)
+            outer_sku_id = order.outer_sku_id or str(order.sku_id)
+            
+            if trade_items.has_key(outer_id):
+                trade_items[outer_id]['num'] += order.num
+                skus = trade_items[outer_id]['skus']
+                if skus.has_key(outer_sku_id):
+                    skus[outer_sku_id]['num'] += order.num
+                else:
+                    prod_sku = None
+                    try:
+                        prod_sku = ProductSku.objects.get(outer_id=outer_id,prod_outer_id=outer_id)
+                    except:
+                        prod_sku = None
+                    prod_sku_name =prod_sku.properties_name if prod_sku else order.sku_properties_name
+                    skus[outer_sku_id] = {'sku_name':prod_sku_name,'num':order.num}
+            else:
+                prod = None
+                try:
+                    prod = Product.objects.get(outer_id=outer_id)
+                except:
+                    prod = None
+                trade_items[outer_id]={
+                                       'num':order.num,
+                                       'title': prod.name if prod else order.title,
+                                       'skus':{outer_sku_id:{'sku_name':order.sku_properties_name,'num':order.num}}
+                                       }
+            
+        trade_list = sorted(trade_items.items(),key=lambda d:d[1]['num'],reverse=True)
+        for trade in trade_list:
+            skus = trade[1]['skus']
+            trade[1]['skus'] = sorted(skus.items(),key=lambda d:d[1]['num'],reverse=True)
+            
+        return {'df':format_datetime(start_dt),'dt':format_datetime(end_dt), 'trade_items':trade_list }
+        
+        
 
 class CheckOrderView(ModelView):
     """ docstring for class CheckOrderView """
@@ -194,7 +265,7 @@ class OrderPlusView(ModelView):
             return '没有输入查询关键字'.decode('utf8')
         products = Product.objects.filter(Q(outer_id=q)|Q(name__contains=q),status__in=(pcfg.NORMAL,pcfg.REMAIN))
         
-        prod_list = [(prod.outer_id,prod.name,prod.price,[(sku.outer_id,sku.properties_name) for sku in 
+        prod_list = [(prod.outer_id,prod.name,prod.std_sale_price,[(sku.outer_id,sku.properties_name) for sku in 
                     prod.prod_skus.filter(status__in=(pcfg.NORMAL,pcfg.REMAIN))]) for prod in products]
         return prod_list
         
@@ -301,12 +372,11 @@ def change_trade_order(request,id):
     order.outer_sku_id=prod_sku.outer_id
     order.sku_properties_name=prod_sku.properties_name
     order.is_rule_match = False
-    order.out_stock     = False
+    order.out_stock     = prod_sku.is_out_stock if prod_sku else prod.is_out_stock
     order.is_reverse_order = is_reverse_order
     order.num           = order_num
     order.save()
     merge_trade.remove_reason_code(pcfg.RULE_MATCH_CODE)
-    MergeTrade.judge_out_stock(merge_trade.id)
     order = MergeOrder.objects.get(id=order.id)
     
     log_action(user_id,merge_trade,CHANGE,u'修改子订单(%d)'%order.id)
@@ -626,8 +696,7 @@ class TradeSearchView(ModelView):
                 MergeOrder.gen_new_order(pt_trade.id,order.outer_id,order.outer_sku_id,order.num,gift_type=type)
             except Exception,exc:
                 logger.error(exc.message,exc_info=True)
-                
-        MergeTrade.judge_out_stock(pt_trade.id)      
+                    
         orders = pt_trade.merge_trade_orders.filter(sys_status=pcfg.IN_EFFECT)
         order_list = []
         for order in orders:

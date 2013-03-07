@@ -262,12 +262,12 @@ class MergeTrade(models.Model):
             
         if not update_changes:
             post_orders.exclude(gift_type = pcfg.CHANGE_GOODS_GIT_TYPE)
-            
+
         for order in post_orders:   
             outer_sku_id = order.outer_sku_id
             outer_id  = order.outer_id
             order_num = order.num
-            is_reverse = False if order.gift_type == pcfg.RETURN_GOODS_GIT_TYPE else True
+            is_reverse = True if order.gift_type == pcfg.RETURN_GOODS_GIT_TYPE else False
             if outer_sku_id and outer_id:
                 prod_sku = ProductSku.objects.get(outer_id=outer_sku_id,prod_outer_id=outer_id)
                 prod_sku.update_quantity_incremental(order_num,reverse=is_reverse)
@@ -276,8 +276,21 @@ class MergeTrade(models.Model):
                 prod.update_collect_num_incremental(order_num,reverse=is_reverse)
             else:
                 raise Exception('订单商品没有商家编码')
+            if order.gift_type in (pcfg.REAL_ORDER_GIT_TYPE,pcfg.COMBOSE_SPLIT_GIT_TYPE):
+                if prod_sku:
+                    prod_sku.update_waitpostnum_incremental(order_num)
+                else:
+                    prod.update_waitpostnum_incremental(order_num)
+            
         return True            
         
+    @classmethod
+    def get_trades_wait_post_prod_num(cls,outer_id,outer_sku_id):
+        """ 获取订单商品待发数"""
+        wait_nums = MergeOrder.objects.filter(outer_id=outer_id,outer_sku_id=outer_sku_id,
+            merge_trade__status=pcfg.WAIT_SELLER_SEND_GOODS,status=pcfg.WAIT_SELLER_SEND_GOODS,sys_status=pcfg.IN_EFFECT)\
+            .aggregate(sale_nums=Sum('num')).get('sale_nums')
+        return wait_nums or 0
     
     def append_reason_code(self,code):  
         reason_set = set(self.reason_code.split(','))
@@ -286,7 +299,7 @@ class MergeTrade(models.Model):
         new_len = len(reason_set)
         self.reason_code = ','.join(list(reason_set))
         if code in (pcfg.POST_MODIFY_CODE,pcfg.POST_SUB_TRADE_ERROR_CODE,pcfg.COMPOSE_RULE_ERROR_CODE,
-                    pcfg.PAYMENT_RULE_ERROR_CODE,pcfg.MERGE_TRADE_ERROR_CODE):
+                    pcfg.PAYMENT_RULE_ERROR_CODE,pcfg.MERGE_TRADE_ERROR_CODE,pcfg.OUTER_ID_NOT_MAP_CODE):
             self.has_sys_err = True
         MergeTrade.objects.filter(id=self.id).update(reason_code=self.reason_code,has_sys_err=self.has_sys_err)    
         return old_len<new_len
@@ -387,24 +400,28 @@ class MergeTrade(models.Model):
         except Trade.DoesNotExist:
             logger.error('trade(id:%d) does not exist'%trade_id)
         else:
-            orders = trade.merge_trade_orders.filter(sys_status=pcfg.IN_EFFECT)\
-                .exclude(refund_status__in=pcfg.REFUND_APPROVAL_STATUS,sys_status=pcfg.IN_EFFECT)
+            orders = trade.merge_trade_orders.filter(sys_status=pcfg.IN_EFFECT)
             for order in orders:
                 is_order_out = False
                 if order.outer_sku_id:
                     try:
                         product_sku = ProductSku.objects.get(prod_outer_id=order.outer_id,outer_id=order.outer_sku_id)    
                     except:
-                        pass
+                        trade.append_reason_code(pcfg.OUTER_ID_NOT_MAP_CODE)
                     else:
                         is_order_out  |= product_sku.is_out_stock
+                        #更新待发数
+                        product_sku.update_waitpostnum_incremental(order.num,reverse=True)
                 elif order.outer_id:
                     try:
                         product = Product.objects.get(outer_id=order.outer_id)
                     except:
-                        pass
+                        trade.append_reason_code(pcfg.OUTER_ID_NOT_MAP_CODE)
                     else:
                         is_order_out |= product.is_out_stock
+                        #更新待发数
+                        product_sku.update_waitpostnum_incremental(order.num,reverse=True)
+                
                 if not is_order_out:
                     #预售关键字匹配        
                     for kw in OUT_STOCK_KEYWORD:
@@ -561,18 +578,19 @@ class MergeOrder(models.Model):
         merge_trade,state = MergeTrade.objects.get_or_create(id=trade_id)
         product = Product.objects.get(outer_id=outer_id)
         sku_properties_name = ''
+        productsku = None
         if outer_sku_id:
             try:
                 productsku = ProductSku.objects.get(outer_id=outer_sku_id,product__outer_id=outer_id)
                 sku_properties_name = productsku.properties_name
             except Exception,exc:
                  logger.error(exc.message,exc_info=True)
-                 sku_properties_name = u'该规格编码没有入库'
+                 merge_trade.append_reason_code(pcfg.OUTER_ID_NOT_MAP_CODE)
         merge_order = MergeOrder.objects.create(
             tid = merge_trade.tid,
             merge_trade = merge_trade,
             outer_id = outer_id,
-            price = product.price,
+            price = product.std_sale_price,
             payment = '0',
             num = num,
             title = product.name,
@@ -586,6 +604,7 @@ class MergeOrder(models.Model):
             consign_time = merge_trade.consign_time,
             gift_type = gift_type,
             is_reverse_order = is_reverse,
+            out_stock = productsku.is_out_stock if productsku else product.is_out_stock,
             status = status,
             sys_status = pcfg.IN_EFFECT
         )
@@ -869,7 +888,8 @@ def trade_download_controller(merge_trade,trade,trade_from,first_pay_load):
             elif shipping_type in (pcfg.POST_SHIPPING_TYPE,pcfg.EMS_SHIPPING_TYPE):
                 post_company = LogisticsCompany.objects.get(code=shipping_type.upper())
                 merge_trade.logistics_company = post_company       
-             
+            
+            trade_reason_code = Mergetrade.objects.get(id=merge_trade.id).reason_code 
             #如果合单成功则将新单置为飞行模式                 
             if is_merge_success:
                 merge_trade.sys_status = pcfg.ON_THE_FLY_STATUS
@@ -878,7 +898,7 @@ def trade_download_controller(merge_trade,trade,trade_from,first_pay_load):
                 merge_trade.append_reason_code(pcfg.LOGISTIC_ERROR_CODE)
                 merge_trade.sys_status = pcfg.WAIT_AUDIT_STATUS
             #有问题则进入问题单域
-            elif  merge_trade.has_memo or wait_refunding or out_stock or is_rule_match or is_need_merge:
+            elif trade_reason_code:
                 merge_trade.sys_status = pcfg.WAIT_AUDIT_STATUS
             else:
                 merge_trade.sys_status = pcfg.WAIT_PREPARE_SEND_STATUS

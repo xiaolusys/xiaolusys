@@ -30,3 +30,15 @@ class ExchangeOrderRender(TemplateRenderer):
     format = 'html'
     template = 'trades/exchanges_template.html'
     
+    
+class StatisticMergeOrderRender(TemplateRenderer):
+    """
+    Renderer which serializes to Table
+    """
+    
+    media_type = 'text/html'
+    format = 'html'
+    template = 'trades/statistic_trade_products.html'
+    
+    
+    

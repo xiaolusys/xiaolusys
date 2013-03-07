@@ -16,4 +16,13 @@ class ExchangeTradeForm(forms.Form):
     
     receiver_mobile   = forms.CharField(max_length=20,required=False)
     receiver_phone    = forms.CharField(max_length=20,required=False)
-  
+    
+    
+class StatisticMergeOrderForm(forms.Form):
+    
+    df   = forms.DateField(input_formats='%Y-%m-%d %H:%M:%S',required=False)
+    dt   = forms.DateField(input_formats='%Y-%m-%d %H:%M:%S',required=False)
+    outer_id      = forms.CharField(max_length=64,required=False)
+    statistic_by  = forms.CharField(max_length=64,required=False)
+    
+    

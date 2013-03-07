@@ -97,11 +97,26 @@ class Product(models.Model):
             reverse:True表示加库存，False表示减相应的库存
         """
         if reverse:
-            self.collect_num = models.F('quantity')-num
-        else:
             self.collect_num = models.F('quantity')+num
+        else:
+            self.collect_num = models.F('quantity')-num
         self.save()
         
+    def update_waitpostnum_incremental(self,num,reverse=False):
+        """
+        参数:
+            reverse:True表示加库存，False表示减相应的库存
+        """
+        if reverse:
+            self.wait_post_num = models.F('wait_post_num')+num
+        else:
+            self.wait_post_num = models.F('wait_post_num')-num
+        self.save()
+        
+        if self.wait_post_num <0:
+            self.wait_post_num = 0
+            self.save()
+    
         
 class ProductSku(models.Model):
     """ 抽象商品规格（根据淘宝规格外部编码），描述：
@@ -131,7 +146,7 @@ class ProductSku(models.Model):
     
     sync_stock   = models.BooleanField(default=True,verbose_name='库存同步') 
     #是否手动分配库存，当库存充足时，系统自动设为False，手动分配过后，确定后置为True
-    is_assign    = models.BooleanField(default=False,verbose_name='已分配库存') 
+    is_assign    = models.BooleanField(default=False,verbose_name='库位警告') 
     
     modified     = models.DateTimeField(null=True,blank=True,auto_now=True,verbose_name='修改时间')
     status       = models.CharField(max_length=10,db_index=True,choices=ONLINE_PRODUCT_STATUS,default=pcfg.NORMAL,verbose_name='规格状态')  #normal,delete
@@ -156,10 +171,25 @@ class ProductSku(models.Model):
             reverse:True表示加库存，False表示减相应的库存
         """
         if reverse:
-            self.quantity = models.F('quantity')-num
-        else:
             self.quantity = models.F('quantity')+num
+        else:
+            self.quantity = models.F('quantity')-num
         self.save()
+        
+    def update_waitpostnum_incremental(self,num,reverse=False):
+        """
+        参数:
+            reverse:True表示加库存，False表示减相应的库存
+        """
+        if reverse:
+            self.wait_post_num = models.F('wait_post_num')+num
+        else:
+            self.wait_post_num = models.F('wait_post_num')-num
+        self.save()
+        
+        if self.wait_post_num <0:
+            self.wait_post_num = 0
+            self.save()
 
 def calculate_product_stock_num(sender, instance, *args, **kwargs):
     """修改SKU库存后，更新库存商品的总库存 """

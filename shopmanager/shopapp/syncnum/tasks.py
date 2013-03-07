@@ -9,7 +9,7 @@ from django.db import transaction
 from auth.utils import format_datetime ,parse_datetime
 from shopback import paramconfig as pcfg
 from shopback.items.models import Item
-from shopback.items.tasks import updateUserItemsTask,updateUserProductSkuTask
+from shopback.items.tasks import updateUserItemsTask,updateUserProductSkuTask,updateProductWaitPostNumTask
 from shopback.orders.models import Order,Trade
 from shopback.users.models import User
 from shopapp.syncnum.models import ItemNumTaskLog
@@ -46,9 +46,7 @@ def updateItemNum(user_id,num_iid,update_time):
             
             order_nums = 0
             if product.modified < update_time:     
-                wait_nums = Order.objects.filter(outer_id=product.outer_id,outer_sku_id=outer_sku_id,status=pcfg.WAIT_SELLER_SEND_GOODS)\
-                    .aggregate(sale_nums=Sum('num')).get('sale_nums')
-                wait_nums   = wait_nums or 0
+                wait_nums   = product_sku.wait_post_num
                 remain_nums = product_sku.remain_num or 0
                 real_num   = product_sku.quantity
                 sync_num   = real_num - wait_nums - remain_nums
@@ -57,7 +55,7 @@ def updateItemNum(user_id,num_iid,update_time):
                 sync_num = real_num
             
             #如果自动更新库存状态开启，并且计算后库存不等于在线库存，则更新
-            if product_sku.sync_stock and sync_num != sku['quantity']:
+            if product_sku.sync_stock and sync_num != sku['quantity'] and sync_num > product_sku.warn_num:
                 response = apis.taobao_item_quantity_update\
                         (num_iid=item.num_iid,quantity=real_num,outer_id=outer_sku_id,tb_user_id=user_id)
                 item_dict = response['item_quantity_update_response']['item']
@@ -74,10 +72,7 @@ def updateItemNum(user_id,num_iid,update_time):
     else:
         order_nums = 0
         if product.modified < update_time:
-            wait_nums = Order.objects.filter(outer_id=product.outer_id,status=pcfg.WAIT_SELLER_SEND_GOODS)\
-                    .aggregate(sale_nums=Sum('num')).get('sale_nums')
-
-            wait_nums  = wait_nums or 0
+            wait_nums  = product.wait_post_num
             remain_nums = product.remain_num or 0
             real_num   = product.collect_num
             sync_num   = real_num - wait_nums - remain_nums
@@ -85,7 +80,7 @@ def updateItemNum(user_id,num_iid,update_time):
             real_num = product.collect_num
             sync_num = real_num
         #如果自动更新库存状态开启，并且计算后库存不等于在线库存，则更新
-        if product.sync_stock and sync_num != product.collect_num:
+        if product.sync_stock and sync_num != product.collect_num and sync_num > product.warn_num:
             response = apis.taobao_item_quantity_update(num_iid=item.num_iid,quantity=sync_num,tb_user_id=user_id)
             item_dict = response['item_update_response']['item']
             Item.objects.filter(num_iid=item_dict['num_iid']).update(modified=item_dict['modified'],num=item_dict['num'])
@@ -107,7 +102,7 @@ def updateUserItemNumTask(user_id,update_time):
     
     updateUserItemsTask(user_id)
     updateUserProductSkuTask(user_id)
-
+        
     items = Item.objects.filter(user__visitor_id=user_id,approve_status=pcfg.ONSALE_STATUS)
     for item in items:
         try:
@@ -118,6 +113,8 @@ def updateUserItemNumTask(user_id,update_time):
 
 @task()
 def updateAllUserItemNumTask():
+    
+    updateProductWaitPostNumTask()
     
     dt = datetime.datetime.now()
     users = User.objects.all()

@@ -1,7 +1,7 @@
 __author__ = 'meixqhi'
 from djangorestframework.resources import ModelResource
 from shopback.trades.serializer import MergeTradetSerializer
-from shopback.trades.forms import ExchangeTradeForm
+from shopback.trades.forms import ExchangeTradeForm,StatisticMergeOrderForm
 from shopback.trades.models import MergeTrade
 
 class TradeResource(ModelResource):
@@ -31,3 +31,13 @@ class ExchangeOrderResource(ModelResource):
     #fields = (('charts','ChartSerializer'),('item_dict',None))
     form    = ExchangeTradeForm
     exclude = ('url',) 
+    
+class StatisticMergeOrderResource(ModelResource):
+    """ docstring for StatisticMergeOrderResource ModelResource """
+
+    #fields = (('charts','ChartSerializer'),('item_dict',None))
+    form    = StatisticMergeOrderForm
+    exclude = ('url',) 
+    
+    
+    

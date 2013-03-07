@@ -54,6 +54,10 @@ CELERY_ROUTES = {
             'queue': 'peroid',
             'routing_key': 'peroid.save_user_during_orders_task',
         },
+        'shopback.items.tasks.updateProductWarnNumTask': {
+            'queue': 'peroid',
+            'routing_key': 'peroid.update_prod_warn_num_task',
+        },
 }
 
 
@@ -88,6 +92,11 @@ SYNC_MODEL_SCHEDULE = {
         'schedule':crontab(minute="0",hour="*/12"),
         'args':()
     },
+    'runs-every-day-warn-num-update':{     #将昨日的订单数更新为商品的警告库位
+         'task':'shopback.items.tasks.updateProductWarnNumTask',
+         'schedule':crontab(minute="30",hour='1'),
+         'args':()
+     },
     'runs-every-day-regular-remaind-order':{     #更新定时提醒订单
          'task':'shopback.trades.tasks.regularRemainOrderTask',
          'schedule':crontab(minute="0",hour='*/12'),
@@ -114,7 +123,7 @@ SHOP_APP_SCHEDULE = {
 #    },
     'runs-every-day-trade-report-file':{
         'task':'shopapp.report.tasks.updateMonthTradeXlsFileTask',
-        'schedule':crontab(minute="0",hour="4"),
+        'schedule':crontab(minute="0",hour="3"),
         'args':()
     },
 #    'runs-every-10-minutes-update-seller-flag':{
