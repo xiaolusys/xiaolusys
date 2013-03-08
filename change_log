@@ -17,7 +17,7 @@ alter table shop_items_product add column std_purchase_price decimal(5,2) DEFAUL
 alter table shop_items_product add column std_sale_price decimal(5,2) DEFAULT NULL;
 alter table shop_items_product add column agent_price decimal(5,2) DEFAULT NULL;
 alter table shop_items_product add column staff_price decimal(5,2) DEFAULT NULL;
-alter table shop_items_product add column weight varchar(11) NOT NULL;
+alter table shop_items_product add column weight varchar(10) NOT NULL;
 alter table shop_items_product add column memo varchar(1000) NOT NULL;
 
 alter table shop_items_productsku drop column purchase_product_sku_id;
@@ -30,7 +30,7 @@ alter table shop_items_productsku add column std_purchase_price decimal(5,2) DEF
 alter table shop_items_productsku add column std_sale_price decimal(5,2) DEFAULT NULL;
 alter table shop_items_productsku add column agent_price decimal(5,2) DEFAULT NULL;
 alter table shop_items_productsku add column staff_price decimal(5,2) DEFAULT NULL;
-alter table shop_items_productsku add column weight varchar(11) NOT NULL;
+alter table shop_items_productsku add column weight varchar(10) NOT NULL;
 alter table shop_items_productsku add column memo varchar(1000) NOT NULL;
 ######### 2013-3-5   #########
 alter table shop_users_user add column is_primary tinyint(1) NOT NULL;

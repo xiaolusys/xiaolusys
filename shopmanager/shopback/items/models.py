@@ -54,8 +54,8 @@ class Product(models.Model):
     pic_path     = models.CharField(max_length=256,blank=True)
     
     collect_num  = models.IntegerField(default=0,verbose_name='库存数')  #库存数
-    warn_num     = models.IntegerField(null=True,default=10,verbose_name='警告库位')    #警戒库位
-    remain_num   = models.IntegerField(null=True,default=0,verbose_name='预留库位')    #预留库存
+    warn_num     = models.IntegerField(null=True,default=0,verbose_name='警告库位')    #警戒库位
+    remain_num   = models.IntegerField(null=True,default=10,verbose_name='预留库位')    #预留库存
     wait_post_num   = models.IntegerField(null=True,default=0,verbose_name='待发数')    #待发数
     
     cost        = models.FloatField(default=0,verbose_name='成本价')
@@ -89,7 +89,7 @@ class Product(models.Model):
     
     @property
     def is_out_stock(self):
-       return self.collect_num <= 0 or self.collect_num-self.wait_post_num <= 0
+        return self.collect_num <= 0 or self.collect_num-self.wait_post_num <= 0
     
     def update_collect_num_incremental(self,num,reverse=False):
         """
@@ -128,8 +128,8 @@ class ProductSku(models.Model):
     product  = models.ForeignKey(Product,null=True,related_name='prod_skus',verbose_name='商品')
     
     quantity = models.IntegerField(default=0,verbose_name='库存数')
-    warn_num     = models.IntegerField(null=True,default=10,verbose_name='警戒库位')    #警戒库位
-    remain_num   = models.IntegerField(null=True,default=0,verbose_name='预留库位')    #预留库存
+    warn_num     = models.IntegerField(null=True,default=0,verbose_name='警戒库位')    #警戒库位
+    remain_num   = models.IntegerField(null=True,default=10,verbose_name='预留库位')    #预留库存
     wait_post_num = models.IntegerField(null=True,default=0,verbose_name='待发数')    #待发数
     
     cost        = models.FloatField(default=0,verbose_name='成本价')
@@ -162,7 +162,7 @@ class ProductSku(models.Model):
       
     @property
     def is_out_stock(self):
-       return self.quantity <= 0 or self.quantity-self.wait_post_num <= 0
+        return self.quantity <= 0 or self.quantity-self.wait_post_num <= 0
 
     def update_quantity_incremental(self,num,reverse=False):
         """
