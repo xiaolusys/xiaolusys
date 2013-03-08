@@ -236,9 +236,9 @@ class MergeTrade(models.Model):
                 if not response['logistics_online_send_response']['shipping']['is_success']:
                     raise Exception(u'订单(%d)淘宝发货失败'%trade.tid)
             else: 
-                #response = apis.taobao_logistics_offline_send(tid=trade_id,out_sid=out_sid
-                #                              ,company_code=company_code,tb_user_id=seller_id)  
-                response = {'logistics_offline_send_response': {'shipping': {'is_success': True}}}
+                response = apis.taobao_logistics_offline_send(tid=trade_id,out_sid=out_sid
+                                              ,company_code=company_code,tb_user_id=seller_id)  
+                #response = {'logistics_offline_send_response': {'shipping': {'is_success': True}}}
                 if not response['logistics_offline_send_response']['shipping']['is_success']:
                     raise Exception(u'订单(%d)淘宝发货失败'%trade.tid)
         except apis.LogisticServiceBO4Exception,exc:
