@@ -896,6 +896,9 @@ def trade_download_controller(merge_trade,trade,trade_from,first_pay_load):
                 post_company = LogisticsCompany.objects.get(code=shipping_type.upper())
                 merge_trade.logistics_company = post_company       
             
+            #进入待发货区域，需要进行商品金额规则匹配
+            rule_signal.send(sender='payment_rule',trade_id=merge_trade.id)
+            
             trade_reason_code = MergeTrade.objects.get(id=merge_trade.id).reason_code 
             #如果合单成功则将新单置为飞行模式                 
             if is_merge_success:
@@ -909,8 +912,6 @@ def trade_download_controller(merge_trade,trade,trade_from,first_pay_load):
                 merge_trade.sys_status = pcfg.WAIT_AUDIT_STATUS
             else:
                 merge_trade.sys_status = pcfg.WAIT_PREPARE_SEND_STATUS
-                #进入待发货区域，需要进行商品规则匹配
-            rule_signal.send(sender='payment_rule',trade_id=merge_trade.id)
 
         #非付款后首次入库
         else:

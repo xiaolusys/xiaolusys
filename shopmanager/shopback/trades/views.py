@@ -46,7 +46,7 @@ class StatisticMergeOrderView(ModelView):
             effect_orders = MergeOrder.objects.filter(merge_trade__weight_time__gte=start_dt,merge_trade__weight_time__lte=end_dt)
         else:
             effect_orders = MergeOrder.objects.filter(merge_trade__created__gte=start_dt,merge_trade__created__lte=end_dt)
-        effect_orders     = effect_orders.filter(merge_trade__status__in=pcfg.ORDER_SUCCESS_STATUS,sys_status=pcfg.IN_EFFECT)\
+        effect_orders     = effect_orders.filter(merge_trade__status__in=pcfg.ORDER_SUCCESS_STATUS,sys_status=pcfg.IN_EFFECT,is_merge=False)\
             .exclude(gift_type=pcfg.RETURN_GOODS_GIT_TYPE)
 
         if p_outer_id:
