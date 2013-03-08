@@ -236,9 +236,9 @@ class MergeTrade(models.Model):
                 if not response['logistics_online_send_response']['shipping']['is_success']:
                     raise Exception(u'订单(%d)淘宝发货失败'%trade.tid)
             else: 
-                response = apis.taobao_logistics_offline_send(tid=trade_id,out_sid=out_sid
-                                              ,company_code=company_code,tb_user_id=seller_id)  
-                #response = {'logistics_offline_send_response': {'shipping': {'is_success': True}}}
+                #response = apis.taobao_logistics_offline_send(tid=trade_id,out_sid=out_sid
+                #                              ,company_code=company_code,tb_user_id=seller_id)  
+                response = {'logistics_offline_send_response': {'shipping': {'is_success': True}}}
                 if not response['logistics_offline_send_response']['shipping']['is_success']:
                     raise Exception(u'订单(%d)淘宝发货失败'%trade.tid)
         except apis.LogisticServiceBO4Exception,exc:
@@ -269,7 +269,7 @@ class MergeTrade(models.Model):
             order_num = order.num
             is_reverse = True if order.gift_type == pcfg.RETURN_GOODS_GIT_TYPE else False
             if outer_sku_id and outer_id:
-                prod_sku = ProductSku.objects.get(outer_id=outer_sku_id,prod_outer_id=outer_id)
+                prod_sku = ProductSku.objects.get(outer_id=outer_sku_id,product__outer_id=outer_id)
                 prod_sku.update_quantity_incremental(order_num,reverse=is_reverse)
             elif outer_id:
                 prod  = Product.objects.get(outer_id=outer_id)
@@ -405,7 +405,7 @@ class MergeTrade(models.Model):
                 is_order_out = False
                 if order.outer_sku_id:
                     try:
-                        product_sku = ProductSku.objects.get(prod_outer_id=order.outer_id,outer_id=order.outer_sku_id)    
+                        product_sku = ProductSku.objects.get(product__outer_id=order.outer_id,outer_id=order.outer_sku_id)    
                     except:
                         trade.append_reason_code(pcfg.OUTER_ID_NOT_MAP_CODE)
                     else:
@@ -420,7 +420,7 @@ class MergeTrade(models.Model):
                     else:
                         is_order_out |= product.is_out_stock
                         #更新待发数
-                        product_sku.update_waitpostnum_incremental(order.num,reverse=True)
+                        product.update_waitpostnum_incremental(order.num,reverse=True)
                 
                 if not is_order_out:
                     #预售关键字匹配        
@@ -634,9 +634,16 @@ def refresh_trade_status(sender,instance,*args,**kwargs):
         merge_trade.has_refund = has_refunding
         merge_trade.has_out_stock = out_stock
         merge_trade.has_rule_match = has_rule_match
+        if not out_stock:
+            merge_trade.remove_reason_code(pcfg.OUT_GOOD_CODE)
         
     has_merge     = merge_trade.merge_trade_orders.filter(is_merge=True,status=pcfg.WAIT_SELLER_SEND_GOODS).count()>0
     merge_trade.has_merge = has_merge
+    
+    if not merge_trade.reason_code and merge_trade.status==pcfg.WAIT_SELLER_SEND_GOODS \
+        and merge_trade.logistics_company and merge_trade.sys_status==pcfg.WAIT_AUDIT_STATUS:
+        merge_trade.sys_status = pcfg.WAIT_PREPARE_SEND_STATUS
+        
     merge_trade.save()
         
 post_save.connect(refresh_trade_status, sender=MergeOrder)
@@ -889,7 +896,7 @@ def trade_download_controller(merge_trade,trade,trade_from,first_pay_load):
                 post_company = LogisticsCompany.objects.get(code=shipping_type.upper())
                 merge_trade.logistics_company = post_company       
             
-            trade_reason_code = Mergetrade.objects.get(id=merge_trade.id).reason_code 
+            trade_reason_code = MergeTrade.objects.get(id=merge_trade.id).reason_code 
             #如果合单成功则将新单置为飞行模式                 
             if is_merge_success:
                 merge_trade.sys_status = pcfg.ON_THE_FLY_STATUS

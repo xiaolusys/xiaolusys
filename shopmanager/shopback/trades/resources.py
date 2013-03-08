@@ -34,7 +34,7 @@ class ExchangeOrderResource(ModelResource):
     
 class StatisticMergeOrderResource(ModelResource):
     """ docstring for StatisticMergeOrderResource ModelResource """
-
+    model   = MergeTrade
     #fields = (('charts','ChartSerializer'),('item_dict',None))
     form    = StatisticMergeOrderForm
     exclude = ('url',) 

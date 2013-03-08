@@ -30,7 +30,7 @@ class ProductSkuResource(ModelResource):
     """ docstring for ProductItem ModelResource """
 
     model = ProductSku
-    fields = ('outer_id','prod_outer_id','product','purchase_product_sku','quantity','warn_num','remain_num','properties_name'
+    fields = ('outer_id','product','purchase_product_sku','quantity','warn_num','remain_num','properties_name'
               ,'out_stock','sync_stock','is_assign','status','layer_table') 
     exclude = ('url',)
     

@@ -138,7 +138,7 @@ SHOP_APP_SCHEDULE = {
     },           
     'runs-every-day-item-num':{     #更新库存
         'task':'shopapp.syncnum.tasks.updateAllUserItemNumTask',
-        'schedule':crontab(minute="20",hour="4"),#
+        'schedule':crontab(minute="20",hour="3,13"),#
         'args':()
     },
 #    'runs-every-day-product-trade':{

@@ -7,7 +7,9 @@ from django.shortcuts import render_to_response
 from django.template import RequestContext
 from django.forms import TextInput, Textarea
 from shopback.items.models import Item,Product,ProductSku
+from shopback.trades.models import MergeTrade,MergeOrder
 from shopback import paramconfig as pcfg
+from shopback.base import log_action,User, ADDITION, CHANGE
 import logging 
 
 logger =  logging.getLogger('tradepost.handler')
@@ -15,7 +17,7 @@ logger =  logging.getLogger('tradepost.handler')
 class ProductSkuInline(admin.TabularInline):
     
     model = ProductSku
-    fields = ('outer_id','prod_outer_id','properties_name','properties_alias','quantity','warn_num','remain_num','wait_post_num','cost','std_purchase_price','std_sale_price'
+    fields = ('outer_id','properties_name','properties_alias','quantity','warn_num','remain_num','wait_post_num','cost','std_purchase_price','std_sale_price'
                     ,'agent_price','staff_price','sync_stock','is_assign','status','memo')
     
     formfield_overrides = {
@@ -125,15 +127,39 @@ class ProductAdmin(admin.ModelAdmin):
         return render_to_response('items/product_action.html',{'prods':sync_items,'action_name':u'更新商品SKU'},
                                   context_instance=RequestContext(request),mimetype="text/html")
     
-    update_items_sku.short_description = u"更新系统商品SKU"
+    update_items_sku.short_description = u"更新系统商品SKU"    
     
-    actions = ['sync_items_stock','update_items_sku']
+    #取消该商品缺货订单
+    def cancle_items_out_stock(self,request,queryset):
+        
+        sync_items = []
+        for prod in queryset:
+            pull_dict = {'outer_id':prod.outer_id,'name':prod.name}
+            try:
+                orders = MergeOrder.objects.filter(outer_id=prod.outer_id,out_stock=True)
+                for order in orders:
+                    order.out_stock = False
+                    order.save()
+                    log_action(request.user.id,order.merge_trade,CHANGE,u'取消子订单（%d）缺货'%order.id)
+            except Exception,exc:
+                pull_dict['success']=False
+                pull_dict['errmsg']=exc.message or '%s'%exc  
+            else:
+                pull_dict['success']=True
+            sync_items.append(pull_dict)
+       
+        return render_to_response('items/product_action.html',{'prods':sync_items,'action_name':u'取消商品对应订单缺货状态'},
+                                  context_instance=RequestContext(request),mimetype="text/html")
+        
+    cancle_items_out_stock.short_description = u"取消商品订单缺货"
+    
+    actions = ['sync_items_stock','update_items_sku','cancle_items_out_stock']
 
 admin.site.register(Product, ProductAdmin)
 
 
 class ProductSkuAdmin(admin.ModelAdmin):
-    list_display = ('id','outer_id','prod_outer_id','product','quantity','warn_num','remain_num','wait_post_num','cost','std_purchase_price'
+    list_display = ('id','outer_id','product','quantity','warn_num','remain_num','wait_post_num','cost','std_purchase_price'
                     ,'std_sale_price','agent_price','staff_price','sync_stock','properties_name','properties_alias','modified','status')
     list_display_links = ('outer_id',)
     list_editable = ('quantity',)

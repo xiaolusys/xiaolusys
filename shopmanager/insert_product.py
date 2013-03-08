@@ -7,6 +7,6 @@ with open('/home/user1/meixqhi/product_sku.csv', 'rb') as csvfile:
         prod,state = Product.objects.get_or_create(outer_id=row[0])
         prod.name  = row[1] if row[2]=='null' else row[2] 
         prod.save()
-        sku,state = ProductSku.objects.get_or_create(outer_id=row[3],prod_outer_id=row[0],product=prod)
+        sku,state = ProductSku.objects.get_or_create(outer_id=row[3],product=prod)
         sku.properties_alias=row[4]
         sku.save()

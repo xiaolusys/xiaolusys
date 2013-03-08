@@ -335,7 +335,7 @@ class MergeTradeAdmin(admin.ModelAdmin):
             for order in wait_post_orders:
                 if order.outer_sku_id:
                     try:
-                        product_sku = ProductSku.objects.get(prod_outer_id=order.outer_id,outer_id=order.outer_sku_id)
+                        product_sku = ProductSku.objects.get(product__outer_id=order.outer_id,outer_id=order.outer_sku_id)
                     except:
                         pass
                     else:
@@ -394,7 +394,7 @@ class MergeTradeAdmin(admin.ModelAdmin):
                     else:
                         prod_sku = None
                         try:
-                            prod_sku = ProductSku.objects.get(outer_id=outer_sku_id,prod_outer_id=outer_id)
+                            prod_sku = ProductSku.objects.get(outer_id=outer_sku_id,product__outer_id=outer_id)
                         except:
                             prod_sku = None
                         prod_sku_name =prod_sku.properties_name if prod_sku else order.sku_properties_name
@@ -405,10 +405,18 @@ class MergeTradeAdmin(admin.ModelAdmin):
                         prod = Product.objects.get(outer_id=outer_id)
                     except:
                         prod = None
+                        
+                    prod_sku = None
+                    try:
+                        prod_sku = ProductSku.objects.get(outer_id=outer_id,product__outer_id=outer_id)
+                    except:
+                        prod_sku = None
+                    prod_sku_name =prod_sku.properties_name if prod_sku else order.sku_properties_name
+                        
                     trade_items[outer_id]={
                                            'num':order.num,
                                            'title': prod.name if prod else order.title,
-                                           'skus':{outer_sku_id:{'sku_name':order.sku_properties_name,'num':order.num}}
+                                           'skus':{outer_sku_id:{'sku_name':prod_sku_name,'num':order.num}}
                                            }
                      
         trade_list = sorted(trade_items.items(),key=lambda d:d[1]['num'],reverse=True)

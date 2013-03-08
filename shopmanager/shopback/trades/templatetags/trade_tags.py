@@ -66,7 +66,7 @@ def trade_result_list(cl):
 
 @register.filter(name='prod_skus')  
 def prod_skus(order):
-    prods = ProductSku.objects.filter(prod_outer_id=order['outer_id'],status__in=(pcfg.NORMAL,pcfg.REMAIN))
+    prods = ProductSku.objects.filter(product__outer_id=order['outer_id'],status__in=(pcfg.NORMAL,pcfg.REMAIN))
     return prods
     
     
@@ -86,7 +86,7 @@ def prod_name(order):
 def sku_name(order):
 
     try:
-        prod = ProductSku.objects.get(outer_id=order['outer_sku_id'],prod_outer_id=order['outer_id'])
+        prod = ProductSku.objects.get(outer_id=order['outer_sku_id'],product__outer_id=order['outer_id'])
     except:
         s_name = order['sku_properties_name']
     else:

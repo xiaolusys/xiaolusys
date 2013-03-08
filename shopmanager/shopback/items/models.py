@@ -64,13 +64,13 @@ class Product(models.Model):
     agent_price        = models.FloatField(default=0,verbose_name='代理售价')
     staff_price        = models.FloatField(default=0,verbose_name='员工价')
     
-    weight       = models.CharField(max_length=128,blank=True,verbose_name='重量(g)')
+    weight       = models.CharField(max_length=10,blank=True,verbose_name='重量(g)')
     
     created      = models.DateTimeField(null=True,blank=True,auto_now_add=True,verbose_name='创建时间')
     modified     = models.DateTimeField(null=True,blank=True,auto_now=True,verbose_name='修改时间')
     
     sync_stock   = models.BooleanField(default=True,verbose_name='库存同步')
-    is_assign    = models.BooleanField(default=False,verbose_name='库位警告') #是否手动分配库存，当库存充足时，系统自动设为False，手动分配过后，确定后置为True
+    is_assign    = models.BooleanField(default=False,verbose_name='警告解除') #是否手动分配库存，当库存充足时，系统自动设为False，手动分配过后，确定后置为True
     
     status       = models.CharField(max_length=16,db_index=True,choices=ONLINE_PRODUCT_STATUS,default=pcfg.NORMAL,verbose_name='商品状态')
     
@@ -125,7 +125,6 @@ class ProductSku(models.Model):
     """
     outer_id = models.CharField(max_length=64,null=True,blank=True,verbose_name='规格外部编码')
     
-    prod_outer_id = models.CharField(max_length=64,db_index=True,blank=True,default='',verbose_name='商品外部编码')
     product  = models.ForeignKey(Product,null=True,related_name='prod_skus',verbose_name='商品')
     
     quantity = models.IntegerField(default=0,verbose_name='库存数')
@@ -139,14 +138,14 @@ class ProductSku(models.Model):
     agent_price        = models.FloatField(default=0,verbose_name='代理售价')
     staff_price        = models.FloatField(default=0,verbose_name='员工价')
     
-    weight             = models.CharField(max_length=128,blank=True,verbose_name='重量(g)')
+    weight             = models.CharField(max_length=10,blank=True,verbose_name='重量(g)')
     
     properties_name    = models.TextField(max_length=200,blank=True,verbose_name='线上规格名称')
     properties_alias   = models.TextField(max_length=200,blank=True,verbose_name='系统规格名称')
     
     sync_stock   = models.BooleanField(default=True,verbose_name='库存同步') 
     #是否手动分配库存，当库存充足时，系统自动设为False，手动分配过后，确定后置为True
-    is_assign    = models.BooleanField(default=False,verbose_name='库位警告') 
+    is_assign    = models.BooleanField(default=False,verbose_name='警告解除') 
     
     modified     = models.DateTimeField(null=True,blank=True,auto_now=True,verbose_name='修改时间')
     status       = models.CharField(max_length=10,db_index=True,choices=ONLINE_PRODUCT_STATUS,default=pcfg.NORMAL,verbose_name='规格状态')  #normal,delete
@@ -260,7 +259,6 @@ class Item(models.Model):
         verbose_name_plural = u'淘宝线上商品列表'
 
 
-
     def __unicode__(self):
         return self.num_iid+'---'+self.outer_id+'---'+self.title
     
@@ -302,8 +300,10 @@ class Item(models.Model):
         if item_dict.has_key('outer_id') and item_dict['outer_id']:
             product,state = Product.objects.get_or_create(outer_id=item_dict['outer_id'])
             if not product.name:
-                product.collect_num = item_dict['num']
-                product.price       = item_dict['price']
+                product.collect_num  = item_dict['num']
+                product.std_sale_price  = item_dict['price']
+                product.agent_price  = item_dict['price']
+                product.staff_price  = item_dict['price']
                 product.name        = item_dict['title']
             product.pic_path    = item_dict['pic_url']    
             product.save()

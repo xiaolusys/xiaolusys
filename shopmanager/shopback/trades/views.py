@@ -15,7 +15,7 @@ from shopback.signals import rule_signal
 from shopback.users.models import User
 from shopback import paramconfig as pcfg
 from auth import apis
-from auth.utils import parse_datetime,format_datetime
+from auth.utils import parse_date,format_date
 import logging
 
 logger = logging.getLogger('trades.handler')
@@ -26,29 +26,31 @@ class StatisticMergeOrderView(ModelView):
     
     def get(self, request, *args, **kwargs):
         
-        content  = self.CONTENT
+
+        content  = request.REQUEST
         start_dt = content.get('df')
         end_dt   = content.get('dt')
-        outer_id = content.get('outer_id')
+        p_outer_id = content.get('outer_id','')
         statistic_by = content.get('sc_by','pay')
         if start_dt and end_dt:
-            start_dt = parse_datetime(start_dt)
-            end_dt   = parse_datetime(end_dt)
+            start_dt = parse_date(start_dt)
+            end_dt   = parse_date(end_dt)
         else:
             dt  = datetime.datetime.now()
             start_dt = datetime.datetime(dt.year,dt.month,dt.day,0,0,0)
             end_dt   = dt
-            
+    
         if statistic_by == 'pay':
             effect_orders = MergeOrder.objects.filter(merge_trade__pay_time__gte=start_dt,merge_trade__pay_time__lte=end_dt)
-        else:
+        elif statistic_by == 'weight':
             effect_orders = MergeOrder.objects.filter(merge_trade__weight_time__gte=start_dt,merge_trade__weight_time__lte=end_dt)
-            
+        else:
+            effect_orders = MergeOrder.objects.filter(merge_trade__created__gte=start_dt,merge_trade__created__lte=end_dt)
         effect_orders     = effect_orders.filter(merge_trade__status__in=pcfg.ORDER_SUCCESS_STATUS,sys_status=pcfg.IN_EFFECT)\
             .exclude(gift_type=pcfg.RETURN_GOODS_GIT_TYPE)
 
-        if outer_id:
-            effect_orders = effect_orders.filter(outer_id=outer_id)
+        if p_outer_id:
+            effect_orders = effect_orders.filter(outer_id=p_outer_id)
             
         trade_items  = {}
         for order in effect_orders:
@@ -64,7 +66,7 @@ class StatisticMergeOrderView(ModelView):
                 else:
                     prod_sku = None
                     try:
-                        prod_sku = ProductSku.objects.get(outer_id=outer_id,prod_outer_id=outer_id)
+                        prod_sku = ProductSku.objects.get(outer_id=outer_sku_id,product__outer_id=outer_id)
                     except:
                         prod_sku = None
                     prod_sku_name =prod_sku.properties_name if prod_sku else order.sku_properties_name
@@ -75,10 +77,18 @@ class StatisticMergeOrderView(ModelView):
                     prod = Product.objects.get(outer_id=outer_id)
                 except:
                     prod = None
+                    
+                prod_sku = None
+                try:
+                    prod_sku = ProductSku.objects.get(outer_id=outer_sku_id,product__outer_id=outer_id)
+                except:
+                    prod_sku = None
+                prod_sku_name =prod_sku.properties_name if prod_sku else order.sku_properties_name
+                    
                 trade_items[outer_id]={
                                        'num':order.num,
                                        'title': prod.name if prod else order.title,
-                                       'skus':{outer_sku_id:{'sku_name':order.sku_properties_name,'num':order.num}}
+                                       'skus':{outer_sku_id:{'sku_name':prod_sku_name,'num':order.num}}
                                        }
             
         trade_list = sorted(trade_items.items(),key=lambda d:d[1]['num'],reverse=True)
@@ -86,9 +96,9 @@ class StatisticMergeOrderView(ModelView):
             skus = trade[1]['skus']
             trade[1]['skus'] = sorted(skus.items(),key=lambda d:d[1]['num'],reverse=True)
             
-        return {'df':format_datetime(start_dt),'dt':format_datetime(end_dt), 'trade_items':trade_list }
+        return {'df':format_date(start_dt),'dt':format_date(end_dt),'sc_by':statistic_by,'outer_id':p_outer_id, 'trade_items':trade_list }
         
-        
+    post = get    
 
 class CheckOrderView(ModelView):
     """ docstring for class CheckOrderView """
@@ -288,7 +298,7 @@ class OrderPlusView(ModelView):
         
         if outer_sku_id:
             try:
-                prod_sku = ProductSku.objects.get(prod_outer_id=outer_id,outer_id=outer_sku_id)
+                prod_sku = ProductSku.objects.get(product__outer_id=outer_id,outer_id=outer_sku_id)
             except ProductSku.DoesNotExist:
                 return '该商品规格不存在'.decode('utf8')
         
@@ -359,7 +369,7 @@ def change_trade_order(request,id):
         return HttpResponse(json.dumps({'code':1,"response_error":"商品不存在！"}),mimetype="application/json")
         
     try:
-        prod_sku = ProductSku.objects.get(prod_outer_id=order.outer_id,outer_id=outer_sku_id) 
+        prod_sku = ProductSku.objects.get(product__outer_id=order.outer_id,outer_id=outer_sku_id) 
     except ProductSku.DoesNotExist:
         return HttpResponse(json.dumps({'code':1,"response_error":"商品规格不存在！"}),mimetype="application/json")
     
@@ -705,7 +715,7 @@ class TradeSearchView(ModelView):
             except Exception,exc:
                 prod = None
             try:
-                prod_sku = ProductSku.objects.get(outer_id=order.outer_sku_id,prod_outer_id=order.outer_id)
+                prod_sku = ProductSku.objects.get(outer_id=order.outer_sku_id,product__outer_id=order.outer_id)
             except:
                 prod_sku = None
             order_dict = {

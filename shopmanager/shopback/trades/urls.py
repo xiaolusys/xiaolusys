@@ -59,8 +59,8 @@ urlpatterns = patterns('',
     (r'^order/statistic/$',StatisticMergeOrderView.as_view(
         resource=StatisticMergeOrderResource,
         renderers=(BaseJsonRenderer,StatisticMergeOrderRender),
-        authentication=(UserLoggedInAuthentication,),
-        permissions=(IsAuthenticated,)
+        #authentication=(UserLoggedInAuthentication,),
+        #permissions=(IsAuthenticated,)
     )),
     (r'^memo/$',csrf_exempt(login_required_ajax(update_sys_memo))), 
 )

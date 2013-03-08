@@ -19,7 +19,7 @@ import logging
 logger = logging.getLogger('syncnum.handler')
 
 @transaction.commit_on_success
-def updateItemNum(user_id,num_iid,update_time):
+def updateItemNum(user_id,num_iid):
     """
     taobao_item_quantity_update response:
     {'iid': '21557036378',
@@ -45,60 +45,54 @@ def updateItemNum(user_id,num_iid,update_time):
             product_sku  = product.prod_skus.get(outer_id=outer_sku_id)
             
             order_nums = 0
-            if product.modified < update_time:     
-                wait_nums   = product_sku.wait_post_num
-                remain_nums = product_sku.remain_num or 0
-                real_num   = product_sku.quantity
-                sync_num   = real_num - wait_nums - remain_nums
-            else:
-                real_num = product_sku.quantity
-                sync_num = real_num
+            wait_nums   = product_sku.wait_post_num or 0
+            remain_nums = product_sku.remain_num or 0
+            real_num   = product_sku.quantity
+            sync_num   = real_num - wait_nums - remain_nums
+   
             
             #如果自动更新库存状态开启，并且计算后库存不等于在线库存，则更新
             if product_sku.sync_stock and sync_num != sku['quantity'] and sync_num > product_sku.warn_num:
                 response = apis.taobao_item_quantity_update\
-                        (num_iid=item.num_iid,quantity=real_num,outer_id=outer_sku_id,tb_user_id=user_id)
+                        (num_iid=item.num_iid,quantity=sync_num,outer_id=outer_sku_id,tb_user_id=user_id)
                 item_dict = response['item_quantity_update_response']['item']
                 Item.objects.filter(num_iid=item_dict['num_iid']).update(modified=item_dict['modified'],num=item_dict['num'])
                 
-                product_sku.quantity = real_num
+                product_sku.is_assign = False
                 product_sku.save()
                 ItemNumTaskLog.objects.get_or_create(user_id=user_id,
                                              outer_id=product.outer_id,
                                              sku_outer_id= outer_sku_id,
                                              num=sync_num,
                                              start_at= item.last_num_updated,
-                                             end_at=update_time )
+                                             end_at=datetime.datetime.now())
     else:
         order_nums = 0
-        if product.modified < update_time:
-            wait_nums  = product.wait_post_num
-            remain_nums = product.remain_num or 0
-            real_num   = product.collect_num
-            sync_num   = real_num - wait_nums - remain_nums
-        else:
-            real_num = product.collect_num
-            sync_num = real_num
+        wait_nums  = product.wait_post_num
+        remain_nums = product.remain_num or 0
+        real_num   = product.collect_num
+        sync_num   = real_num - wait_nums - remain_nums
+
         #如果自动更新库存状态开启，并且计算后库存不等于在线库存，则更新
         if product.sync_stock and sync_num != product.collect_num and sync_num > product.warn_num:
             response = apis.taobao_item_quantity_update(num_iid=item.num_iid,quantity=sync_num,tb_user_id=user_id)
             item_dict = response['item_update_response']['item']
             Item.objects.filter(num_iid=item_dict['num_iid']).update(modified=item_dict['modified'],num=item_dict['num'])
         
-            product.collect_num = real_num
+            product.is_assign = False
             product.save()
             
             ItemNumTaskLog.objects.get_or_create(user_id=user_id,
                                              outer_id=product.outer_id,
                                              num=sync_num,
                                              start_at= item.last_num_updated,
-                                             end_at=update_time )
+                                             end_at=datetime.datetime.now())
     
-    Item.objects.filter(num_iid=item.num_iid).update(last_num_updated=update_time)
+    Item.objects.filter(num_iid=item.num_iid).update(last_num_updated=datetime.datetime.now())
 
 
 @task()
-def updateUserItemNumTask(user_id,update_time):
+def updateUserItemNumTask(user_id):
     
     updateUserItemsTask(user_id)
     updateUserProductSkuTask(user_id)
@@ -106,7 +100,7 @@ def updateUserItemNumTask(user_id,update_time):
     items = Item.objects.filter(user__visitor_id=user_id,approve_status=pcfg.ONSALE_STATUS)
     for item in items:
         try:
-            updateItemNum(user_id,item.num_iid,update_time)
+            updateItemNum(user_id,item.num_iid)
         except Exception,exc :
             logger.error('%s'%exc,exc_info=True)
         
@@ -115,10 +109,9 @@ def updateUserItemNumTask(user_id,update_time):
 def updateAllUserItemNumTask():
     
     updateProductWaitPostNumTask()
-    
-    dt = datetime.datetime.now()
+
     users = User.objects.all()
     for user in users:
-        updateUserItemNumTask(user.visitor_id,dt)
+        updateUserItemNumTask(user.visitor_id)
         
         

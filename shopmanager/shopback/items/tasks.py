@@ -138,10 +138,8 @@ def updateUserProductSkuTask(user_id=None,outer_ids=None,force_update_num=False)
                         if state:
                             for key, value in sku.iteritems():
                                 hasattr(psku, key) and setattr(psku, key, value)
-                            psku.prod_outer_id = item.outer_id
                         else:
                             psku.properties_name = psku.properties_name or sku['properties_name']
-                            psku.prod_outer_id = item.outer_id
                             if force_update_num:
                                 psku.quantity = sku['quantity']
 

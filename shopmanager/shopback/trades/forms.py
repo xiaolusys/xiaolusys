@@ -20,8 +20,8 @@ class ExchangeTradeForm(forms.Form):
     
 class StatisticMergeOrderForm(forms.Form):
     
-    df   = forms.DateField(input_formats='%Y-%m-%d %H:%M:%S',required=False)
-    dt   = forms.DateField(input_formats='%Y-%m-%d %H:%M:%S',required=False)
+    df   = forms.DateField(input_formats='%Y-%m-%d',required=False)
+    dt   = forms.DateField(input_formats='%Y-%m-%d',required=False)
     outer_id      = forms.CharField(max_length=64,required=False)
     statistic_by  = forms.CharField(max_length=64,required=False)
     
