@@ -1,5 +1,5 @@
 from django.contrib import admin
-from shopback.refunds.models import Refund
+from shopback.refunds.models import Refund,RefundProduct
 
 __author__ = 'meixqhi'
 
@@ -19,3 +19,19 @@ class RefundAdmin(admin.ModelAdmin):
 
 admin.site.register(Refund,RefundAdmin)
   
+  
+class RefundProductAdmin(admin.ModelAdmin):
+    list_display = ('id','outer_id','outer_sku_id','buyer_nick','buyer_mobile','buyer_phone','trade_id'
+                    ,'out_sid','company','can_reuse','is_finish','created','modified','memo')
+    list_display_links = ('id','outer_id')
+    #list_editable = ('update_time','task_type' ,'is_success','status')
+
+    date_hierarchy = 'created'
+    #ordering = ['created_at']
+
+    list_filter   = ('can_reuse','is_finish')
+    search_fields = ['buyer_nick','buyer_mobile','buyer_phone','trade_id','out_sid']
+
+
+admin.site.register(RefundProduct,RefundProductAdmin)
+

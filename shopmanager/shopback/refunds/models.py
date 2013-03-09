@@ -70,7 +70,7 @@ class Refund(models.Model):
 
     good_status  = models.CharField(max_length=32,blank=True,choices=GOOD_STATUS_CHOICES,verbose_name='退货商品状态')
     order_status = models.CharField(max_length=32,blank=True,choices=ORDER_STATUS_CHOICES,verbose_name='订单状态')
-    status       = models.CharField(max_length=32,blank=True,choices=REFUND_STATUS,verbose_name='退款ID')
+    status       = models.CharField(max_length=32,blank=True,choices=REFUND_STATUS,verbose_name='退款状态')
 
     class Meta:
         db_table = 'shop_refunds_refund'
@@ -105,3 +105,35 @@ class Refund(models.Model):
 
         self.save()
         
+
+class RefundProduct(models.Model):
+    
+    buyer_nick   = models.CharField(max_length=64,db_index=True,blank=True,verbose_name='商品编码')
+    buyer_mobile = models.CharField(max_length=22,db_index=True,blank=True,verbose_name='手机')
+    buyer_phone  = models.CharField(max_length=22,db_index=True,blank=True,verbose_name='固话')
+    trade_id     = models.CharField(max_length=64,db_index=True,blank=True,verbose_name='订单编号')
+    out_sid      = models.CharField(max_length=64,db_index=True,blank=True,verbose_name='物流单号')
+    company      = models.CharField(max_length=64,db_index=True,blank=True,verbose_name='物流名称')
+    
+    outer_id     = models.CharField(max_length=64,db_index=True,blank=True,verbose_name='商品编码')
+    outer_sku_id = models.CharField(max_length=64,db_index=True,blank=True,verbose_name='规格编码')
+    
+    can_reuse    = models.CharField(max_length=64,blank=True,verbose_name='能否二次销售')
+    is_finish    = models.CharField(max_length=64,blank=True,verbose_name='处理完成')
+    
+    created      = models.DateTimeField(null=True,blank=True,auto_now_add=True,verbose_name='创建时间')
+    modified     = models.DateTimeField(null=True,blank=True,auto_now=True,verbose_name='修改时间')
+    
+    memo         = models.TextField(max_length=1000,blank=True,verbose_name='备注')
+    
+    class Meta:
+        db_table = 'shop_refunds_product'
+        verbose_name = u'退货商品'
+        verbose_name_plural = u'退货商品列表'
+
+    def __unicode__(self):
+        info_list = [self.buyer_nick,self.buyer_mobile,self.buyer_phone,self.trade_id,self.out_sid,self.company]
+        info_string = '-'.join([ s for s in info_list if s])    
+        return '<%s,%s,%s>'%(info_string,self.outer_id,self.outer_sku_id)
+    
+    

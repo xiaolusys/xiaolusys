@@ -116,6 +116,14 @@ class Product(models.Model):
         if self.wait_post_num <0:
             self.wait_post_num = 0
             self.save()
+            
+    @property
+    def is_stock_warn(self):
+        """
+        库存是否警告
+        """
+        sync_num = self.quantity - self.remain_num - self.wait_post_num
+        return self.warn_num > sync_num
     
         
 class ProductSku(models.Model):
@@ -189,7 +197,18 @@ class ProductSku(models.Model):
         if self.wait_post_num <0:
             self.wait_post_num = 0
             self.save()
-
+            
+    @property
+    def is_stock_warn(self):
+        """
+        库存是否警告:
+        1，如果当前库存小于0；
+        2，同步库存（当前库存-预留库存-待发数）小于警告库位 且没有设置警告取消；
+        """
+        sync_num = self.quantity - self.remain_num - self.wait_post_num
+        return self.warn_num > (sync_num > 0 and sync_num or 0) 
+    
+        
 def calculate_product_stock_num(sender, instance, *args, **kwargs):
     """修改SKU库存后，更新库存商品的总库存 """
     product = instance.product
