@@ -23,7 +23,7 @@ class ProductSkuInline(admin.TabularInline):
     formfield_overrides = {
         models.CharField: {'widget': TextInput(attrs={'size':'10'})},
         models.FloatField: {'widget': TextInput(attrs={'size':'8'})},
-        models.TextField: {'widget': Textarea(attrs={'rows':1, 'cols':20})},
+        models.TextField: {'widget': Textarea(attrs={'rows':2, 'cols':20})},
     }
 
 

@@ -5,6 +5,7 @@ import json
 from celery.task import task
 from celery.task.sets import subtask
 from django.conf import settings
+from django.db.models import Sum
 from django.db.models.query import QuerySet
 from auth.utils import format_datetime,parse_datetime
 from shopback import paramconfig as pcfg

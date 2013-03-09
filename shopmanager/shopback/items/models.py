@@ -81,7 +81,7 @@ class Product(models.Model):
         verbose_name_plural = u'库存商品列表'
 
     def __unicode__(self):
-        return self.name
+        return '<%s,%s>'%(self.outer_id,self.name)
     
     @property
     def pskus(self):
@@ -158,7 +158,7 @@ class ProductSku(models.Model):
         verbose_name_plural = u'库存商品规格列表'
 
     def __unicode__(self):
-        return '<%s,%s>'%(self.outer_id,self.properties_alias)
+        return '<%s,%s,%s>'%(self.outer_id,self.product.outer_id,self.properties_alias or self.properties_name)
       
     @property
     def is_out_stock(self):
@@ -260,7 +260,7 @@ class Item(models.Model):
 
 
     def __unicode__(self):
-        return self.num_iid+'---'+self.outer_id+'---'+self.title
+        return '<%s,%s>'%(self.outer_id or str(self.num_iid),self.title)
     
     @property
     def sku_list(self):
