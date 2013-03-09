@@ -35,7 +35,7 @@ def updateItemNum(user_id,num_iid):
     """
     item = Item.objects.get(num_iid=num_iid)
     product = item.product
-    if item.status != pcfg.NORMAL or not product:
+    if not product:
         return
     
     skus = json.loads(item.skus) if item.skus else None
