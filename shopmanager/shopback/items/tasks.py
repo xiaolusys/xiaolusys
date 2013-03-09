@@ -206,14 +206,14 @@ def updateProductWarnNumTask():
                 lastday_pay_num = MergeOrder.objects.filter(outer_id=outer_id,outer_sku_id=outer_sku_id
                     ,merge_trade__pay_time__gte=st_f,merge_trade__pay_time__lte=st_t,sys_status=pcfg.IN_EFFECT)\
                     .aggregate(sale_nums=Sum('num')).get('sale_nums')
-                sku.warn_num = lastday_pay_num
+                sku.warn_num = lastday_pay_num or 0
                 sku.save()
         else:
             outer_sku_id = ''
             lastday_pay_num = MergeOrder.objects.filter(outer_id=outer_id,outer_sku_id=outer_sku_id
                 ,merge_trade__pay_time__gte=st_f,merge_trade__pay_time__lte=st_t,sys_status=pcfg.IN_EFFECT)\
                 .aggregate(sale_nums=Sum('num')).get('sale_nums')
-            sku.warn_num = lastday_pay_num
+            sku.warn_num = lastday_pay_num or 0
             sku.save()
 
 @task()
