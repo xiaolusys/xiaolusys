@@ -288,7 +288,7 @@ class MergeTrade(models.Model):
     def get_trades_wait_post_prod_num(cls,outer_id,outer_sku_id):
         """ 获取订单商品待发数"""
         wait_nums = MergeOrder.objects.filter(outer_id=outer_id,outer_sku_id=outer_sku_id,
-            merge_trade__status=pcfg.WAIT_SELLER_SEND_GOODS,status=pcfg.WAIT_SELLER_SEND_GOODS,sys_status=pcfg.IN_EFFECT)\
+            merge_trade__sys_status__in=pcfg.WAIT_WEIGHT_STATUS,sys_status=pcfg.IN_EFFECT)\
             .aggregate(sale_nums=Sum('num')).get('sale_nums')
         return wait_nums or 0
     
