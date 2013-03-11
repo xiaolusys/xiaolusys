@@ -413,6 +413,7 @@ exchange.Manager.prototype.saveBuyerInfo = function(e){
 		'receiver_state':receiver_state,
 		'receiver_city':receiver_city,
 		'receiver_district':receiver_district,
+		'receiver_address':receiver_address,
 		'return_logistic_company':return_company_name,
 		'return_out_sid':return_out_sid,
 	}

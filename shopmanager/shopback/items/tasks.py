@@ -16,6 +16,7 @@ from shopback.users.models import User
 from shopback.fenxiao.tasks import saveUserFenxiaoProductTask
 from shopback import paramconfig as pcfg
 from auth import apis
+from auth.utils import get_yesterday_interval_time
 import logging
 
 logger = logging.getLogger('items.handler')
@@ -142,8 +143,10 @@ def updateUserProductSkuTask(user_id=None,outer_ids=None,force_update_num=False)
                         else:
                             psku.properties_name = psku.properties_name or sku['properties_name']
                             if force_update_num:
-                                psku.quantity = sku['quantity']
-
+                                wait_post_num = psku.wait_post_num >= 0 and psku.wait_post_num or 0
+                                psku.quantity = sku['quantity'] + wait_post_num
+                                
+                        psku.std_sale_price =  float(sku['price'])
                         properties = ''
                         props = sku['properties'].split(';')
                         for prop in props:
@@ -189,12 +192,7 @@ def updateProductWaitPostNumTask():
 @task()
 def updateProductWarnNumTask():
     
-    dt     = datetime.datetime.now()-datetime.timedelta(1,0,0)
-    year   = dt.year
-    month  = dt.month
-    day    = dt.day
-    st_f   = datetime.datetime(year,month,day,0,0,0)
-    st_t   = datetime.datetime(year,month,day,23,59,59)
+    st_f,st_t = get_yesterday_interval_time()
     products = Product.objects.filter(status=pcfg.NORMAL)
     for prod in products:
         

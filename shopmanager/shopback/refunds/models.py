@@ -117,9 +117,11 @@ class RefundProduct(models.Model):
     
     outer_id     = models.CharField(max_length=64,db_index=True,blank=True,verbose_name='商品编码')
     outer_sku_id = models.CharField(max_length=64,db_index=True,blank=True,verbose_name='规格编码')
+    title        = models.CharField(max_length=64,blank=True,verbose_name='商品名称')
+    property     = models.CharField(max_length=64,blank=True,verbose_name='规格名称')
     
-    can_reuse    = models.CharField(max_length=64,blank=True,verbose_name='能否二次销售')
-    is_finish    = models.CharField(max_length=64,blank=True,verbose_name='处理完成')
+    can_reuse    = models.BooleanField(default=False,verbose_name='能否二次销售')
+    is_finish    = models.BooleanField(default=False,verbose_name='处理完成')
     
     created      = models.DateTimeField(null=True,blank=True,auto_now_add=True,verbose_name='创建时间')
     modified     = models.DateTimeField(null=True,blank=True,auto_now=True,verbose_name='修改时间')

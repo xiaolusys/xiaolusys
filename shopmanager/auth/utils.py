@@ -99,6 +99,15 @@ def format_year_month(dt):
 def format_time(dt):
     return dt.strftime("%H:%M")
 
+def get_yesterday_interval_time():
+    dt     = datetime.datetime.now()-datetime.timedelta(1,0,0)
+    year   = dt.year
+    month  = dt.month
+    day    = dt.day
+    st_f   = datetime.datetime(year,month,day,0,0,0)
+    st_t   = datetime.datetime(year,month,day,23,59,59)
+    return st_f,st_t
+
 def unquote(text):
         def unicode_unquoter(match):
             return unichr(int(match.group(1),16))

@@ -184,7 +184,7 @@ class CheckOrderView(ModelView):
             if trade.has_rule_match:
                 check_msg.append("信息不全".decode('utf8'))
             if trade.sys_status != pcfg.WAIT_AUDIT_STATUS:
-                check_msg.append("订单暂不能审核".decode('utf8'))
+                check_msg.append("订单不在问题单".decode('utf8'))
             if trade.has_reason_code(pcfg.MULTIPLE_ORDERS_CODE):
                 check_msg.append("需手动合单".decode('utf8'))
             if trade.has_sys_err:
@@ -257,7 +257,7 @@ class CheckOrderView(ModelView):
             
         elif action_code == 'review':
             if trade.sys_status not in (pcfg.WAIT_CHECK_BARCODE_STATUS,pcfg.WAIT_SCAN_WEIGHT_STATUS):
-                return u'不能复审'
+                return u'订单不在待扫描状态'
             MergeTrade.objects.filter(id=id,sys_status = pcfg.WAIT_CHECK_BARCODE_STATUS)\
                 .update(can_review=True)
             log_action(user_id,trade,CHANGE,u'订单复审')

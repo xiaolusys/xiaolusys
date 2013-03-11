@@ -89,6 +89,10 @@ class Product(models.Model):
     
     @property
     def is_out_stock(self):
+        if self.collect_num<0 or self.wait_post_num <0 :
+            self.collect_num = self.collect_num >0 and self.collect_num or 0 
+            self.wait_post_num = self.wait_post_num >0 and self.wait_post_num or 0 
+            self.save()
         return self.collect_num <= 0 or self.collect_num-self.wait_post_num <= 0
     
     def update_collect_num_incremental(self,num,reverse=False):
@@ -122,7 +126,10 @@ class Product(models.Model):
         """
         库存是否警告
         """
-        sync_num = self.quantity - self.remain_num - self.wait_post_num
+        for sku in self.prod_skus.all():
+            if sku.is_stock_warn:
+                return True   
+        sync_num = (self.collect_num or 0) - self.remain_num - (self.wait_post_num or 0)
         return self.warn_num > sync_num
     
         
@@ -170,6 +177,10 @@ class ProductSku(models.Model):
       
     @property
     def is_out_stock(self):
+        if self.quantity<0 or self.wait_post_num <0 :
+            self.quantity      = self.quantity >= 0 and self.quantity or 0
+            self.wait_post_num = self.wait_post_num >= 0 and self.wait_post_num or 0
+            self.save()
         return self.quantity <= 0 or self.quantity-self.wait_post_num <= 0
 
     def update_quantity_incremental(self,num,reverse=False):
@@ -205,8 +216,8 @@ class ProductSku(models.Model):
         1，如果当前库存小于0；
         2，同步库存（当前库存-预留库存-待发数）小于警告库位 且没有设置警告取消；
         """
-        sync_num = self.quantity - self.remain_num - self.wait_post_num
-        return self.warn_num > (sync_num > 0 and sync_num or 0) 
+        sync_num = (self.quantity or 0) - self.remain_num - (self.wait_post_num or 0)
+        return self.warn_num > sync_num 
     
         
 def calculate_product_stock_num(sender, instance, *args, **kwargs):

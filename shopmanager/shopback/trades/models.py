@@ -13,7 +13,7 @@ from shopback.items.models import Item,Product,ProductSku
 from shopback.logistics.models import Logistics,LogisticsCompany
 from shopback.fenxiao.models import PurchaseOrder,SubPurchaseOrder,FenxiaoProduct
 from shopback.refunds.models import Refund,REFUND_STATUS
-from auth.utils import parse_datetime
+from auth.utils import parse_datetime ,get_yesterday_interval_time
 from shopback import paramconfig as pcfg
 from shopback.monitor.models import SystemConfig,Reason
 from shopback.signals import merge_trade_signal,rule_signal
@@ -570,6 +570,17 @@ class MergeOrder(models.Model):
         unique_together = ("oid","tid")
         verbose_name=u'子订单'
         verbose_name_plural = u'子订单列表'
+        
+    @classmethod
+    def get_yesterday_orders_totalnum(cls,shop_user_id,outer_id,outer_sku_id):
+        """ 获取某店铺昨日某商品销售量，与总销量 """
+        st_f,st_t = get_yesterday_interval_time()
+        orders    = cls.objects.filter(merge_trade__pay_time__gte=st_f,merge_trade__pay_time__lte=st_t
+                        ,outer_id=outer_id,outer_sku_id=outer_sku_id)
+        total_num = orders.count()
+        user_order_num = orders.filter(merge_trade__user__id=shop_user_id).count()
+        
+        return total_num,user_order_num
         
     @classmethod
     def gen_new_order(cls,trade_id,outer_id,outer_sku_id,num,gift_type=pcfg.REAL_ORDER_GIT_TYPE
