@@ -11,6 +11,7 @@ from shopback import paramconfig as pcfg
 from shopback.items.models import Item
 from shopback.items.tasks import updateUserItemsTask,updateUserProductSkuTask,updateProductWaitPostNumTask
 from shopback.orders.models import Order,Trade
+from shopback.trades.models import MergeOrder
 from shopback.users.models import User
 from shopapp.syncnum.models import ItemNumTaskLog
 from auth.utils import get_yesterday_interval_time
@@ -45,7 +46,7 @@ def updateItemNum(user_id,num_iid):
         for sku in skus.get('sku',[]):
             
             outer_sku_id = sku.get('outer_id','')
-            if sku['status'] != pcfg.NORMAL and not outer_sku_id:
+            if sku['status'] != pcfg.NORMAL or not outer_sku_id:
                 continue
             product_sku  = product.prod_skus.get(outer_id=outer_sku_id)
             

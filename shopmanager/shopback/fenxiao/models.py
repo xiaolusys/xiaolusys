@@ -187,7 +187,7 @@ class PurchaseOrder(models.Model):
         db_table = 'shop_fenxiao_purchaseorder'
 
     def __unicode__(self):
-        return str(self.fenxiao_id)
+        return '<%s,%s>'%(self.fenxiao_id,self.supplier_username)
     
         
     @classmethod

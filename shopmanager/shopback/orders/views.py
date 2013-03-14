@@ -10,10 +10,11 @@ from djangorestframework.views import ModelView
 from chartit import DataPool, Chart
 from chartit import PivotDataPool, PivotChart
 from auth import staff_requried,apis
-from auth.utils import parse_datetime,parse_date,format_time,map_int2str,format_datetime
+from auth.utils import parse_datetime,parse_date,format_date,format_time,map_int2str,format_datetime
 from shopback.items.models import Item,Product,ProductSku
 from shopback.orders.models import Order,Trade
 from shopback import paramconfig as pcfg
+
 
 class UserHourlyOrderView(ModelView):
     """ docstring for class UserHourlyOrderView """
@@ -225,60 +226,72 @@ class RelatedOrderStateView(ModelView):
     
     def get(self, request, *args, **kwargs):
         
-        dt_f = kwargs.get('dt_f')
-        dt_t = kwargs.get('dt_t')
-        num_iid = kwargs.get('num_iid')
-        outer_sku_ids = request.REQUEST.get('sku_ids')
-        limit  = request.REQUEST.get('limit',10) 
+        content = request.REQUEST
+        df   = content.get('df')
+        dt   = content.get('dt')
+        outer_id = content.get('outer_id','')
+        outer_sku_ids = content.get('sku_ids')
+        limit  = content.get('limit',10) 
         
+        limit  = int(limit)
         try:
-            item = Item.objects.get(num_iid=num_iid)
+            item = Item.objects.get(num_iid=outer_id)
         except Item.DoesNotExist:    
-            outer_id = num_iid
+            pass
         else:
             outer_id = item.outer_id
         
-        dt_f = datetime.datetime.strptime(dt_f,'%Y-%m-%d')
-        dt_t = datetime.datetime.strptime(dt_t,'%Y-%m-%d')
+        if df and dt:
+            start_dt = parse_date(df)
+            end_dt   = parse_date(dt)
+            start_dt = datetime.datetime(start_dt.year,start_dt.month,start_dt.day,0,0,0)
+            end_dt   = datetime.datetime(end_dt.year,end_dt.month,end_dt.day,23,59,59)
+        else:
+            dt  = datetime.datetime.now()
+            start_dt = datetime.datetime(dt.year,dt.month,dt.day,0,0,0)
+            end_dt   = datetime.datetime(dt.year,dt.month,dt.day,23,59,59)
         
-        merge_orders = Order.objects.filter(outer_id=outer_id,created__gte=dt_f,created__lte=dt_t).exclude(
-                    status__in=(pcfg.TRADE_CLOSED_BY_TAOBAO,pcfg.WAIT_BUYER_PAY,pcfg.TRADE_CLOSED))
-        if outer_sku_ids:
-            sku_ids = outer_sku_ids.split(',')
-            merge_orders = merge_orders.filter(outer_sku_id__in=sku_ids)
-        
-        buyer_set = set()
-        relative_orders_dict = {} 
-        for order in merge_orders:
-            buyer_nick = order.buyer_nick
-            try:
-                buyer_set.remove(buyer_nick)
-            except:
-                buyer_set.add(buyer_nick)
-                relat_orders = Order.objects.filter(buyer_nick=buyer_nick,created__gte=dt_f,created__lte=dt_t).exclude(
-                    status__in=(pcfg.TRADE_CLOSED_BY_TAOBAO,pcfg.WAIT_BUYER_PAY,pcfg.TRADE_CLOSED))
-                for o in relat_orders:
-                    relat_outer_id = o.outer_id
-                    if relative_orders_dict.has_key(relat_outer_id):
-                        relative_orders_dict[relat_outer_id]['cnum'] += o.num
-                    else:
-                        relative_orders_dict[relat_outer_id] = {'pic_path':o.pic_path,'title':o.title,'cnum':o.num}
-            else:
-                buyer_set.add(buyer_nick)
-            
-        relat_order_list = sorted(relative_orders_dict.items(),key=lambda d:d[1]['cnum'],reverse=True)  
         order_item_list  = []
-        for order in relat_order_list[0:limit]:
-            order_item = []
-            order_item.append(order[0])
-            order_item.append(order[1]['pic_path'])
-            order_item.append(order[1]['title'])
-            order_item.append(order[1]['cnum'])
-            order_item_list.append(order_item)
+        if outer_id:
+            merge_orders = Order.objects.filter(outer_id=outer_id,created__gte=start_dt,created__lte=end_dt).exclude(
+                        status__in=(pcfg.TRADE_CLOSED_BY_TAOBAO,pcfg.WAIT_BUYER_PAY,pcfg.TRADE_CLOSED))
+            if outer_sku_ids:
+                sku_ids = outer_sku_ids.split(',')
+                merge_orders = merge_orders.filter(outer_sku_id__in=sku_ids)
+            
+            buyer_set = set()
+            relative_orders_dict = {} 
+            for order in merge_orders:
+                buyer_nick = order.buyer_nick
+                try:
+                    buyer_set.remove(buyer_nick)
+                except:
+                    buyer_set.add(buyer_nick)
+                    relat_orders = Order.objects.filter(buyer_nick=buyer_nick,created__gte=start_dt,created__lte=end_dt).exclude(
+                        status__in=(pcfg.TRADE_CLOSED_BY_TAOBAO,pcfg.WAIT_BUYER_PAY,pcfg.TRADE_CLOSED))
+                    for o in relat_orders:
+                        relat_outer_id = o.outer_id
+                        if relative_orders_dict.has_key(relat_outer_id):
+                            relative_orders_dict[relat_outer_id]['cnum'] += o.num
+                        else:
+                            relative_orders_dict[relat_outer_id] = {'pic_path':o.pic_path,'title':o.title,'cnum':o.num}
+                else:
+                    buyer_set.add(buyer_nick)
+                
+            relat_order_list = sorted(relative_orders_dict.items(),key=lambda d:d[1]['cnum'],reverse=True)  
+            
+            for order in relat_order_list[0:limit]:
+                order_item = []
+                order_item.append(order[0])
+                order_item.append(order[1]['pic_path'])
+                order_item.append(order[1]['title'])
+                order_item.append(order[1]['cnum'])
+                order_item_list.append(order_item)
 
-        return order_item_list
+
+        return {'df':format_date(start_dt),'dt':format_date(end_dt),'outer_id':outer_id,'limit':limit,'order_items':order_item_list}
         
-        
+    post = get 
         #    def gen_query_sql(self,outer_id,outer_sku_ids,dt_f,dt_t,limit):
         #        sql_list = []
         #        sql_list.append("select sob.outer_id,sob.pic_path,sob.title ,count(sob.outer_id) cnum from shop_orders_order soa ")

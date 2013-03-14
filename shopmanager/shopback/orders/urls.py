@@ -26,7 +26,7 @@ urlpatterns = patterns('shopback.orders.views',
         permissions=(IsAuthenticated,)
     )),
                        
-    (r'^related/orders/(?P<dt_f>[^/]+)/(?P<dt_t>[^/]+)/(?P<num_iid>[^/]+)/$',RelatedOrderStateView.as_view(
+    (r'^related/orders/$',RelatedOrderStateView.as_view(
         resource=BaseResource,
         renderers=(RelatedOrderRenderer,BaseJsonRenderer,),
         authentication=(UserLoggedInAuthentication,),

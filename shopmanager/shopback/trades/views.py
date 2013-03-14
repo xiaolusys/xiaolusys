@@ -20,6 +20,71 @@ import logging
 
 logger = logging.getLogger('trades.handler')
 
+############################### 缺货订单商品列表 #################################       
+class OutStockOrderProductView(ModelView):
+    """ docstring for class OutStockOrderProductView """
+    
+    def get(self, request, *args, **kwargs):
+        
+        outer_stock_orders  = MergeOrder.objects.filter(merge_trade__sys_status__in=pcfg.WAIT_WEIGHT_STATUS,out_stock=True) 
+        trade_items = {}
+        
+        for order in outer_stock_orders:
+            outer_id = order.outer_id or str(order.num_iid)
+            outer_sku_id = order.outer_sku_id or str(order.sku_id)
+            
+            if trade_items.has_key(outer_id):
+                trade_items[outer_id]['num'] += order.num
+                skus = trade_items[outer_id]['skus']
+                if skus.has_key(outer_sku_id):
+                    skus[outer_sku_id]['num'] += order.num
+                else:
+                    prod_sku = None
+                    try:
+                        prod_sku = ProductSku.objects.get(outer_id=outer_sku_id,product__outer_id=outer_id)
+                    except:
+                        prod_sku = None
+                    prod_sku_name =prod_sku.properties_name if prod_sku else order.sku_properties_name
+                    skus[outer_sku_id] = {
+                                          'sku_name':prod_sku_name,
+                                          'num':order.num,
+                                          'quality':prod_sku.quantity if prod_sku else 0,
+                                          'wait_post_num':prod_sku.wait_post_num if prod_sku else 0}
+            else:
+                prod = None
+                try:
+                    prod = Product.objects.get(outer_id=outer_id)
+                except:
+                    prod = None
+                    
+                prod_sku = None
+                try:
+                    prod_sku = ProductSku.objects.get(outer_id=outer_id,product__outer_id=outer_id)
+                except:
+                    prod_sku = None
+                prod_sku_name =prod_sku.properties_name if prod_sku else order.sku_properties_name
+                    
+                trade_items[outer_id]={
+                                       'num':order.num,
+                                       'title': prod.name if prod else order.title,
+                                       'collect_num':prod.collect_num if prod else 0,
+                                       'wait_post_num':prod.wait_post_num if prod else 0,
+                                       'skus':{outer_sku_id:{
+                                                             'sku_name':prod_sku_name,
+                                                             'num':order.num,
+                                                             'quality':prod_sku.quantity if prod_sku else 0,
+                                                             'wait_post_num':prod_sku.wait_post_num if prod_sku else 0,
+                                                             }
+                                               }
+                                       }
+        
+        trade_list = sorted(trade_items.items(),key=lambda d:d[1]['num'],reverse=True)
+        for trade in trade_list:
+            skus = trade[1]['skus']
+            trade[1]['skus'] = sorted(skus.items(),key=lambda d:d[1]['num'],reverse=True)
+
+        return {'trade_items':trade_list,}
+    
 
 class StatisticMergeOrderView(ModelView):
     """ docstring for class StatisticsMergeOrderView """
@@ -35,10 +100,12 @@ class StatisticMergeOrderView(ModelView):
         if start_dt and end_dt:
             start_dt = parse_date(start_dt)
             end_dt   = parse_date(end_dt)
+            start_dt = datetime.datetime(start_dt.year,start_dt.month,start_dt.day,0,0,0)
+            end_dt   = datetime.datetime(end_dt.year,end_dt.month,end_dt.day,23,59,59)
         else:
             dt  = datetime.datetime.now()
             start_dt = datetime.datetime(dt.year,dt.month,dt.day,0,0,0)
-            end_dt   = dt
+            end_dt   = datetime.datetime(dt.year,dt.month,dt.day,23,59,59)
     
         if statistic_by == 'pay':
             effect_orders = MergeOrder.objects.filter(merge_trade__pay_time__gte=start_dt,merge_trade__pay_time__lte=end_dt)
@@ -730,3 +797,6 @@ class TradeSearchView(ModelView):
             order_list.append(order_dict)
         
         return order_list
+
+
+    

@@ -1,11 +1,32 @@
 from django.conf.urls.defaults import patterns, include, url
+from djangorestframework.resources import ModelResource
+from django.contrib.admin.views.decorators import staff_member_required
 from shopback.base.authentication import UserLoggedInAuthentication
 from shopback.base.permissions import IsAuthenticated
+from shopback.refunds.views import RefundProductView,RefundView
+from shopback.base.renderers  import BaseJsonRenderer
+from shopback.refunds.renderers import RefundProductRenderer
+from shopback.refunds.resources import RefundProductResource,RefundResource
 
 __author__ = 'meixqhi'
 
 urlpatterns = patterns('shopback.refunds.views',
 
     url('update/(?P<dt_f>[^/]+)/(?P<dt_t>[^/]+)/$','update_interval_refunds',name='interval_refund'),
-
+    
+    (r'^product/add/$',staff_member_required(RefundProductView.as_view(
+        resource=RefundProductResource,
+        renderers=(BaseJsonRenderer,RefundProductRenderer),
+        authentication=(UserLoggedInAuthentication,),
+        permissions=(IsAuthenticated,)
+    ))),
+                       
+    url('^product/del/(?P<id>\d{1,20})/$','delete_trade_order',name='refund_product_del'),  
+                     
+    (r'^refund/$',staff_member_required(RefundView.as_view(
+        resource=RefundProductResource,
+        renderers=(BaseJsonRenderer,),
+        authentication=(UserLoggedInAuthentication,),
+        permissions=(IsAuthenticated,)
+    ))),
 )

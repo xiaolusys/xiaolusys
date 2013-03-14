@@ -38,7 +38,14 @@ class StatisticMergeOrderRender(TemplateRenderer):
     
     media_type = 'text/html'
     format = 'html'
-    template = 'trades/statistic_trade_products.html'
+    template = 'trades/trade_products_statistic.html'
     
     
+class StatisticOutStockRender(TemplateRenderer):
+    """
+    Renderer which serializes to Table
+    """
     
+    media_type = 'text/html'
+    format = 'html'
+    template = 'trades/out_stock_statistic.html'    

@@ -97,6 +97,11 @@ SYNC_MODEL_SCHEDULE = {
          'schedule':crontab(minute="30",hour='1'),
          'args':()
      },
+    'runs-every-day-refund-order-update':{     #更新昨日退货退款单
+         'task':'shopback.refunds.tasks.updateAllUserRefundOrderTask',
+         'schedule':crontab(minute="0",hour='2'),
+         'args':(1,None,None)
+     },
     'runs-every-day-regular-remaind-order':{     #更新定时提醒订单
          'task':'shopback.trades.tasks.regularRemainOrderTask',
          'schedule':crontab(minute="0",hour='*/12'),

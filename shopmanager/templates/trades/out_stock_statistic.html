@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>缺货订单商品统计</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+     <link href="{{ STATIC_URL }}bootstrap/css/bootstrap.min.css" rel="stylesheet" type="text/css" />
+    <link href="{{ STATIC_URL }}bootstrap/css/bootstrap-responsive.min.css" rel="stylesheet" type="text/css" />
+    <link href="{{ STATIC_URL }}css/base.less" rel="stylesheet/less" type="text/css" />
+    <style type="text/css">
+		*{ margin:0; padding:0;}
+		ul li{ 
+			list-style:none; 
+			display:inline; 
+			float:left; 
+			margin-left:40px;  
+			margin-top:30px;
+		}
+		input{
+			width:120px;
+		}
+		select{
+			width:120px;
+		}
+	</style>
+</head>
+<body>
+	{% with object.trade_items as trade_items %}
+	<div class="container">
+		<div id="post-items" style="display:block;">
+		  <fieldset>
+		  	<legend>缺货商品统计列表</legend>
+			  <table class="table table-bordered table-striped table-condensed">
+			    <tr>
+			      <th>商品编码</th><th style="width:250px;">商品名称</th><th>缺货量</th><th>库存</th><th>待发数</th>
+			      <th>规格编码</th><th>商品规格</th><th>缺货量</th><th>库存</th><th>待发数</th>
+			    </tr>
+			    {% for trade in trade_items %}
+				    {% with trade.1.skus|length as sku_len %}
+				    {% if sku_len > 0 %}
+					    {% for sku_id,sku in trade.1.skus %}
+					    <tr>
+					    	{% if forloop.first %}
+					    	<td rowspan="{{ sku_len }}">{{ trade.0 }}</td>
+					    	<td rowspan="{{ sku_len }}">{{ trade.1.title }}</td>
+					    	<td rowspan="{{ sku_len }}">{{ trade.1.num }}</td>
+					    	<td rowspan="{{ sku_len }}">{{ trade.1.collect_num }}</td>
+					    	<td rowspan="{{ sku_len }}">{{ trade.1.wait_post_num }}</td>
+							{% endif %}
+							<td >{{ sku_id }}</td>
+							<td >{{ sku.sku_name }}</td>
+							<td >{{ sku.num }}</td>
+							<td >{{ sku.quality }}</td>
+							<td >{{ sku.wait_post_num }}</td>
+					    </tr>
+					    {% endfor %}
+				    {% else %}
+				    	<tr>
+					    	<td >{{ trade.0 }}</td>
+					    	<td >{{ trade.1.title }}</td>
+					    	<td >{{ trade.1.num }}</td>
+					    	<td >{{ trade.1.collect_num }}</td>
+					    	<td >{{ trade.1.wait_post_num }}</td>
+							<td colspan="5">--</td>
+						</tr>
+				    {% endif %}
+				    {% endwith %}
+			    {% endfor %}
+			  </table>
+		  </fieldset>
+		</div>
+	</div>	
+	{% endwith %}
+</body>
+</html>

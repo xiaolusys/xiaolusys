@@ -40,19 +40,32 @@ ORDER_STATUS_CHOICES = (
     (pcfg.TRADE_CLOSED_BY_TAOBAO,'付款前关闭交易'),
 )
 
+#不需客服介入1; 需要客服介入2; 客服已经介入3; 客服初审完成 4; 客服主管复审失败5; 客服处理完成6;
+CS_STATUS_CHOICES = (
+    (1,'不需客服介入'),
+    (2,'需要客服介入'),
+    (3,'客服已经介入'),
+    (4,'客服初审完成'),
+    (5,'客服主管复审失败'),
+    (6,'客服处理完成'),
+)
+
 class Refund(models.Model):
 
     refund_id    = BigIntegerAutoField(primary_key=True,verbose_name='退款ID')
-    tid          = models.BigIntegerField(null=True,verbose_name='交易ID')
+    tid          = models.BigIntegerField(null=True,db_index=True,verbose_name='交易ID')
 
     title        = models.CharField(max_length=64,blank=True,verbose_name='出售标题')
     num_iid      = models.BigIntegerField(null=True,verbose_name='商品ID')
 
     user         = models.ForeignKey(User,null=True,related_name='refunds',verbose_name='店铺')
     seller_id    = models.CharField(max_length=64,blank=True,verbose_name='卖家ID')
-    buyer_nick   = models.CharField(max_length=64,blank=True,verbose_name='买家昵称')
+    buyer_nick   = models.CharField(max_length=64,db_index=True,blank=True,verbose_name='买家昵称')
     seller_nick  = models.CharField(max_length=64,blank=True,verbose_name='卖家昵称')
-
+    
+    mobile = models.CharField(max_length=20,db_index=True,blank=True,verbose_name='手机')
+    phone  = models.CharField(max_length=20,db_index=True,blank=True,verbose_name='固话')
+    
     total_fee    = models.CharField(max_length=10,blank=True,verbose_name='总费用')
     refund_fee   = models.CharField(max_length=10,blank=True,verbose_name='退款费用')
     payment      = models.CharField(max_length=10,blank=True,verbose_name='实付')
@@ -62,7 +75,7 @@ class Refund(models.Model):
 
     oid       = models.CharField(db_index=True,max_length=64,blank=True,verbose_name='订单ID')
     company_name = models.CharField(max_length=64,blank=True,verbose_name='快递公司')
-    sid       = models.CharField(max_length=64,blank=True,verbose_name='快递单号')
+    sid       = models.CharField(max_length=64,db_index=True,blank=True,verbose_name='快递单号')
 
     reason    = models.TextField(max_length=200,blank=True,verbose_name='退款原因')
     desc      = models.TextField(max_length=1000,blank=True,verbose_name='描述')
@@ -70,6 +83,7 @@ class Refund(models.Model):
 
     good_status  = models.CharField(max_length=32,blank=True,choices=GOOD_STATUS_CHOICES,verbose_name='退货商品状态')
     order_status = models.CharField(max_length=32,blank=True,choices=ORDER_STATUS_CHOICES,verbose_name='订单状态')
+    cs_status    = models.IntegerField(default=1,choices=CS_STATUS_CHOICES,verbose_name='天猫客服介入状态')
     status       = models.CharField(max_length=32,blank=True,choices=REFUND_STATUS,verbose_name='退款状态')
 
     class Meta:
@@ -94,15 +108,24 @@ class Refund(models.Model):
                 
     def save_refund_through_dict(self,seller_id,refund):
 
-        self.user  = User.objects.get(visitor_id=seller_id)
+        self.user   = User.objects.get(visitor_id=seller_id)
+        from shopback.trades.models import MergeTrade
+        try:
+            merge_trade = MergeTrade.objects.get(tid=refund['tid'])
+        except:
+            pass
+        
+        self.mobile = merge_trade and merge_trade.receiver_mobile or ''
+        self.phone  = merge_trade and merge_trade.receiver_phone  or ''
+        
         for k,v in refund.iteritems():
             hasattr(self,k) and setattr(self,k,v)
-
+            
         self.created  = parse_datetime(refund['created']) \
             if refund.get('created',None) else None
         self.modified = parse_datetime(refund['modified']) \
             if refund.get('modified',None) else None
-
+        
         self.save()
         
 
@@ -111,12 +134,13 @@ class RefundProduct(models.Model):
     buyer_nick   = models.CharField(max_length=64,db_index=True,blank=True,verbose_name='商品编码')
     buyer_mobile = models.CharField(max_length=22,db_index=True,blank=True,verbose_name='手机')
     buyer_phone  = models.CharField(max_length=22,db_index=True,blank=True,verbose_name='固话')
-    trade_id     = models.CharField(max_length=64,db_index=True,blank=True,verbose_name='订单编号')
+    trade_id     = models.CharField(max_length=64,db_index=True,blank=True,verbose_name='淘宝订单编号')
     out_sid      = models.CharField(max_length=64,db_index=True,blank=True,verbose_name='物流单号')
     company      = models.CharField(max_length=64,db_index=True,blank=True,verbose_name='物流名称')
     
     outer_id     = models.CharField(max_length=64,db_index=True,blank=True,verbose_name='商品编码')
     outer_sku_id = models.CharField(max_length=64,db_index=True,blank=True,verbose_name='规格编码')
+    num          = models.IntegerField(default=0,verbose_name='数量')
     title        = models.CharField(max_length=64,blank=True,verbose_name='商品名称')
     property     = models.CharField(max_length=64,blank=True,verbose_name='规格名称')
     

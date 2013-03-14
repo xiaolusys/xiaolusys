@@ -35,8 +35,8 @@ var addSearchProdRow  = function(tableID,prod){
 	var price_cell = createDTText(prod[2]);
 	
 	var addbtn_cell = goog.dom.createElement('td');
-	addbtn_cell.innerHTML = '<button class="return-order btn-mini btn-success" outer_id="'+prod[0]+'" idx="'+index.toString()+'">退货</button>'
-							+'&nbsp;<button class="change-order btn-mini btn-success" outer_id="'+prod[0]+'" idx="'+index.toString()+'">换货</button>';
+	addbtn_cell.innerHTML = '<button class="return-order btn btn-mini btn-success" outer_id="'+prod[0]+'" idx="'+index.toString()+'">退货</button>'
+							+'&nbsp;<button class="change-order btn btn-mini btn-success" outer_id="'+prod[0]+'" idx="'+index.toString()+'">换货</button>';
 	
 	row.appendChild(id_cell);
 	row.appendChild(outer_id_cell);
@@ -68,9 +68,9 @@ var addSearchTradeRow  = function(tableID,trade){
 	var status_cell = createDTText(trade.status);
 	var sys_status_cell  = createDTText(trade.sys_status);
 	var addbtn_cell = goog.dom.createElement('td');
-	addbtn_cell.innerHTML = '<button class="copy-trade-buyer-info btn-mini btn-info" style="margin:1px 0;" trade_id="'+trade.id+'">复制用户</button>'
-							+'<br> <button class="add-trade-order btn-mini btn-success" style="margin:1px 0;" action="return" trade_id="'+trade.id+'">加退货单</button>'
-							+'<br> <button class="add-trade-order btn-mini btn-primary" style="margin:1px 0;" action="change" trade_id="'+trade.id+'">加换货单</button>';
+	addbtn_cell.innerHTML = '<button class="copy-trade-buyer-info btn btn-mini btn-info" style="margin:1px 0;" trade_id="'+trade.id+'">复制用户</button>'
+							+'<br> <button class="add-trade-order btn btn-mini btn-success" style="margin:1px 0;" action="return" trade_id="'+trade.id+'">加退货单</button>'
+							+'<br> <button class="add-trade-order btn btn-mini btn-primary" style="margin:1px 0;" action="change" trade_id="'+trade.id+'">加换货单</button>';
 	
 	row.appendChild(id_cell);
 	row.appendChild(buyer_nick_cell);

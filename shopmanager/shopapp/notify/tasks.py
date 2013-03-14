@@ -192,7 +192,7 @@ def process_item_notify_task(id):
                 prod = Product.objects.get(outer_id=outer_id)
                 
                 from shopback.items.tasks import updateUserProductSkuTask
-                updateUserProductSkuTask(outer_ids=[outer_id])
+                updateUserProductSkuTask(outer_ids=[outer_id],force_update_num=True) #线上库存修改覆盖系统库存
                 
                 item_sku_outer_ids = set()
                 items = Item.objects.filter(outer_id=outer_id)

@@ -1,7 +1,21 @@
 from django.contrib import admin
+from django.db import models
+from django.forms import TextInput, Textarea
 from shopback.fenxiao.models import PurchaseOrder,FenxiaoProduct,SubPurchaseOrder
 
 __author__ = 'meixqhi'
+
+
+class SubPurchaseOrderInline(admin.TabularInline):
+    
+    model = SubPurchaseOrder
+    fields = ('id','purchase_order','tc_order_id','title','sku_properties',
+                    'num','price','order_200_status','status')
+    
+    formfield_overrides = {
+        models.CharField: {'widget': TextInput(attrs={'size':'12'})},
+        models.TextField: {'widget': Textarea(attrs={'rows':2, 'cols':20})},
+    }
 
 
 class FenxiaoProductAdmin(admin.ModelAdmin):
@@ -26,10 +40,12 @@ class PurchaseOrderAdmin(admin.ModelAdmin):
                     'logistics_company_name','trade_type','consign_time','created','pay_time','modified','pay_type','status')
     list_display_links = ('fenxiao_id','id','supplier_username','distributor_username')
     #list_editable = ('update_time','task_type' ,'is_success','status')
-
+    
     date_hierarchy = 'created'
     #ordering = ['created_at']
-
+    
+    inlines = [SubPurchaseOrderInline]
+    
     list_filter = ('shipping','pay_type','trade_type','status',)
     search_fields = ['fenxiao_id','id','supplier_username','distributor_username']
 
@@ -48,7 +64,7 @@ class SubPurchaseOrderAdmin(admin.ModelAdmin):
     #ordering = ['created_at']
 
     list_filter = ('order_200_status','status',)
-    search_fields = ['fenxiao_id','id','sku_id','tc_order_id','title']
+    search_fields = ['fenxiao_id','purchase_order__fenxiao_id','sku_id','tc_order_id','title']
 
 
 admin.site.register(SubPurchaseOrder, SubPurchaseOrderAdmin)

@@ -170,6 +170,32 @@ class ProductSkuAdmin(admin.ModelAdmin):
 
     list_filter = ('status',)
     search_fields = ['outer_id','product__outer_id','properties_name']
+    
+    #取消该商品缺货订单
+    def cancle_items_out_stock(self,request,queryset):
+        
+        sync_items = []
+        for prod in queryset:
+            pull_dict = {'outer_id':prod.outer_id,'name':prod.properties_name}
+            try:
+                orders = MergeOrder.objects.filter(outer_id=prod.product.outer_id,outer_sku_id=prod.outer_id,out_stock=True)
+                for order in orders:
+                    order.out_stock = False
+                    order.save()
+                    log_action(request.user.id,order.merge_trade,CHANGE,u'取消子订单（%d）缺货'%order.id)
+            except Exception,exc:
+                pull_dict['success']=False
+                pull_dict['errmsg']=exc.message or '%s'%exc  
+            else:
+                pull_dict['success']=True
+            sync_items.append(pull_dict)
+       
+        return render_to_response('items/product_action.html',{'prods':sync_items,'action_name':u'取消规格对应订单缺货状态'},
+                                  context_instance=RequestContext(request),mimetype="text/html")
+        
+    cancle_items_out_stock.short_description = u"取消规格订单缺货"
+    
+    actions = ['cancle_items_out_stock']
 
 
 admin.site.register(ProductSku, ProductSkuAdmin)

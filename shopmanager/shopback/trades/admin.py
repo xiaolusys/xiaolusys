@@ -38,7 +38,7 @@ class MergeOrderInline(admin.TabularInline):
     
     formfield_overrides = {
         models.CharField: {'widget': TextInput(attrs={'size':'12'})},
-        models.TextField: {'widget': Textarea(attrs={'rows':6, 'cols':50})},
+        models.TextField: {'widget': Textarea(attrs={'rows':2, 'cols':20})},
     }
 
 
@@ -117,7 +117,8 @@ class MergeTradeAdmin(admin.ModelAdmin):
     
     def get_readonly_fields(self, request, obj=None):
         if not request.user.has_perm('mergetrade.can_trade_modify'):
-            return self.readonly_fields + ('tid','reason_code','sys_status')
+            return self.readonly_fields + ('tid','reason_code','has_rule_match','has_merge','has_memo',
+                                           'can_review','is_picking_print','is_picking_print','sys_status')
         return self.readonly_fields
     
     def change_view(self, request, extra_context=None, **kwargs):
@@ -482,15 +483,15 @@ admin.site.register(MergeTrade,MergeTradeAdmin)
 
 
 class MergeOrderAdmin(admin.ModelAdmin):
-    list_display = ('id','tid','oid','outer_id','outer_sku_id','seller_nick','buyer_nick','price','num_iid','sku_id','num','sku_properties_name',
-                    'payment','refund_id','refund_status','cid','status')
+    list_display = ('id','tid','oid','outer_id','outer_sku_id','seller_nick','buyer_nick','price','num','sku_properties_name',
+                    'out_stock','is_rule_match','payment','refund_id','refund_status','cid','status')
     list_display_links = ('oid','tid')
     #list_editable = ('update_time','task_type' ,'is_success','status')
 
     date_hierarchy = 'created'
     #ordering = ['created_at']
 
-    list_filter = ('seller_nick','status','gift_type','refund_status')
+    list_filter = ('seller_nick','status','gift_type','refund_status','out_stock','is_rule_match')
     search_fields = ['oid','tid','buyer_nick','outer_id','outer_sku_id']
 
 

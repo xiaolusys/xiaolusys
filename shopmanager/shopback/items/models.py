@@ -232,10 +232,10 @@ def calculate_product_stock_num(sender, instance, *args, **kwargs):
             .aggregate(total_nums=Sum('remain_num')).get('total_nums')
         wait_post_num = product.prod_skus.filter(status=pcfg.NORMAL)\
             .aggregate(total_nums=Sum('wait_post_num')).get('total_nums')    
-        product.collect_num = collect_num
-        product.warn_num = warn_num
-        product.remain_num = remain_num
-        product.wait_post_num = wait_post_num
+        product.collect_num = collect_num or 0
+        product.warn_num = warn_num or 0
+        product.remain_num = remain_num or 0
+        product.wait_post_num = wait_post_num or 0
         product.save()
     
 post_save.connect(calculate_product_stock_num, sender=ProductSku, dispatch_uid='calculate_product_num')

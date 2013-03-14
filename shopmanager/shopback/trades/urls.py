@@ -2,10 +2,10 @@ from django.conf.urls.defaults import patterns, include, url
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib.admin.views.decorators import staff_member_required
 from djangorestframework.views import InstanceModelView
-from shopback.trades.views import StatisticMergeOrderView,CheckOrderView,OrderPlusView,ReviewOrderView,ExchangeOrderView,\
+from shopback.trades.views import StatisticMergeOrderView,CheckOrderView,OrderPlusView,ReviewOrderView,ExchangeOrderView,OutStockOrderProductView,\
     TradeSearchView,change_trade_addr,change_trade_order,delete_trade_order,change_logistic_and_outsid,review_order,update_sys_memo
 from shopback.base.renderers  import BaseJsonRenderer
-from shopback.trades.renderers import CheckOrderRenderer,ReviewOrderRenderer,ExchangeOrderRender,StatisticMergeOrderRender
+from shopback.trades.renderers import CheckOrderRenderer,ReviewOrderRenderer,ExchangeOrderRender,StatisticMergeOrderRender,StatisticOutStockRender
 from shopback.trades.resources import TradeResource,OrderPlusResource,ExchangeOrderResource,MergeTradeResource,StatisticMergeOrderResource
 from shopback.base.permissions import IsAuthenticated
 
@@ -59,6 +59,12 @@ urlpatterns = patterns('',
     (r'^order/statistic/$',StatisticMergeOrderView.as_view(
         resource=StatisticMergeOrderResource,
         renderers=(BaseJsonRenderer,StatisticMergeOrderRender),
+        #authentication=(UserLoggedInAuthentication,),
+        #permissions=(IsAuthenticated,)
+    )),
+    (r'^order/outstock/$',OutStockOrderProductView.as_view(
+        resource=StatisticMergeOrderResource,
+        renderers=(BaseJsonRenderer,StatisticOutStockRender),
         #authentication=(UserLoggedInAuthentication,),
         #permissions=(IsAuthenticated,)
     )),
