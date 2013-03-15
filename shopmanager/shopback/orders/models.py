@@ -151,8 +151,6 @@ class Trade(models.Model):
             order.seller_nick = trade_dict['seller_nick']
             order.buyer_nick  = trade_dict['buyer_nick']
             order.trade       = trade
-            if not state:
-                o.pop('sku_properties_name',None)
             for k,v in o.iteritems():
                 hasattr(order,k) and setattr(order,k,v)
             order.outer_id = o.get('outer_iid','')

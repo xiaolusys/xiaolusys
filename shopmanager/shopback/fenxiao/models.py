@@ -211,10 +211,9 @@ class PurchaseOrder(models.Model):
         
         purchase_order.save()
         
-        sub_purchase_order = SubPurchaseOrder()
         for sub_order in  sub_purchase_orders['sub_purchase_order']:
-            if not state:
-                sub_order.pop('sku_properties',None)
+            sub_purchase_order,state= SubPurchaseOrder.objects.get_or_create(fenxiao_id=sub_order['fenxiao_id'])
+
             for k,v in sub_order.iteritems():
                 hasattr(sub_purchase_order,k) and setattr(sub_purchase_order,k,v)
             sub_purchase_order.purchase_order  = purchase_order
