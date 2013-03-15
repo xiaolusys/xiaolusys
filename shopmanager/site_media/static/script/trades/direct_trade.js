@@ -1,4 +1,4 @@
-goog.provide('exchange');
+goog.provide('direct');
 
 goog.require('goog.dom');
 goog.require('goog.ui.Dialog');
@@ -35,8 +35,7 @@ var addSearchProdRow  = function(tableID,prod){
 	var price_cell = createDTText(prod[2]);
 	
 	var addbtn_cell = goog.dom.createElement('td');
-	addbtn_cell.innerHTML = '<button class="return-order btn btn-mini btn-success" outer_id="'+prod[0]+'" idx="'+index.toString()+'">退货</button>'
-							+'&nbsp;<button class="change-order btn btn-mini btn-success" outer_id="'+prod[0]+'" idx="'+index.toString()+'">换货</button>';
+	addbtn_cell.innerHTML = '<button class="add-order btn btn-mini btn-success" outer_id="'+prod[0]+'" idx="'+index.toString()+'">添加</button>';
 	
 	row.appendChild(id_cell);
 	row.appendChild(outer_id_cell);
@@ -69,8 +68,7 @@ var addSearchTradeRow  = function(tableID,trade){
 	var sys_status_cell  = createDTText(trade.sys_status);
 	var addbtn_cell = goog.dom.createElement('td');
 	addbtn_cell.innerHTML = '<button class="copy-trade-buyer-info btn btn-mini btn-info" style="margin:1px 0;" trade_id="'+trade.id+'">复制用户</button>'
-							+'<br> <button class="add-trade-order btn btn-mini btn-success" style="margin:1px 0;" action="return" trade_id="'+trade.id+'">加退货单</button>'
-							+'<br> <button class="add-trade-order btn btn-mini btn-primary" style="margin:1px 0;" action="change" trade_id="'+trade.id+'">加换货单</button>';
+							+'<br> <button class="copy-trade-order btn btn-mini btn-success" style="margin:1px 0;" action="direct" trade_id="'+trade.id+'">复制订单</button>';
 	
 	row.appendChild(id_cell);
 	row.appendChild(buyer_nick_cell);
@@ -121,15 +119,14 @@ var addOrderRow  = function(tableID,order){
 	row.appendChild(delete_btn_cell);
 }
 
-goog.provide('exchange.Manager');
+goog.provide('direct.Manager');
 /** @constructor */
-exchange.Manager = function () {
+direct.Manager = function () {
     this.prod_q   = null;
     this.trade_q  = null;
     this.search_prod_table  = null;
     this.search_trade_table = null;
     this.return_table = null;
-    this.change_table = null;
     this.saveBtn      = null;
 	this.tid     = null
     this.trades_dict   = {};
@@ -139,14 +136,13 @@ exchange.Manager = function () {
 	this.search_trade_table = goog.dom.getElement('id-trade-search-table');
 	this.search_prod_table  = goog.dom.getElement('id-prod-search-table');
 	this.return_table = goog.dom.getElement('id-return-table');
-	this.change_table = goog.dom.getElement('id-change-table');
 	this.saveBtn      = goog.dom.getElement('id_save_trade');
-	this.tid     = goog.dom.getElement('id_exchange_trade').value;
+	this.tid     = goog.dom.getElement('id_direct_trade').value;
 	this.bindEvent();
 }
 
 //商品搜索事件处理
-exchange.Manager.prototype.onProdSearchKeyDown = function(e){
+direct.Manager.prototype.onProdSearchKeyDown = function(e){
 	
 	var prod_qstr = this.prod_q.value;
 	if (e.keyCode==13){
@@ -156,7 +152,7 @@ exchange.Manager.prototype.onProdSearchKeyDown = function(e){
 }
 
 //显示商品搜索记录
-exchange.Manager.prototype.showProduct = function (q) {
+direct.Manager.prototype.showProduct = function (q) {
 	this.search_q = q;
     var that      = this;
     if (q==''||q=='undifine'){return;}
@@ -173,15 +169,11 @@ exchange.Manager.prototype.showProduct = function (q) {
             		addSearchProdRow('id-prod-search-table',res.response_content[i]);
             	}
             	
-            	var addReturnOrderBtns = goog.dom.getElementsByClass('return-order');
-            	for(var i=0;i<addReturnOrderBtns.length;i++){
-            		goog.events.listen(addReturnOrderBtns[i], goog.events.EventType.CLICK,that.addReturnOrder,false,that);
+            	var addOrderBtns = goog.dom.getElementsByClass('add-order');
+            	for(var i=0;i<addOrderBtns.length;i++){
+            		goog.events.listen(addOrderBtns[i], goog.events.EventType.CLICK,that.addOrder,false,that);
             	}
             	
-            	var addChangeOrderBtns = goog.dom.getElementsByClass('change-order');
-            	for(var i=0;i<addChangeOrderBtns.length;i++){
-            		goog.events.listen(addChangeOrderBtns[i], goog.events.EventType.CLICK,that.addChangeOrder,false,that);
-            	}
             }else{
                 alert("商品查询失败:"+res.response_error);
             }
@@ -192,8 +184,8 @@ exchange.Manager.prototype.showProduct = function (q) {
 	goog.net.XhrIo.send('/trades/orderplus/?q='+q,callback,'GET');
 }
 
-//添加退货订单
-exchange.Manager.prototype.addReturnOrder = function (e) {
+//添加订单
+direct.Manager.prototype.addOrder = function (e) {
 	var that   = this;
 	var target = e.target;
 	var idx    = target.getAttribute('idx');
@@ -221,47 +213,14 @@ exchange.Manager.prototype.addReturnOrder = function (e) {
             console.log('Error: (ajax callback) - ', err);
         } 
 	}
-	var params     = {'trade_id':that.tid,'outer_id':outer_id,'outer_sku_id':sku_outer_id,'num':num,'type':RETURN_GOODS_TYPE}
+	var params     = {'trade_id':that.tid,'outer_id':outer_id,'outer_sku_id':sku_outer_id,'num':num,'type':HANDSEL_TYPE}
 	var content = goog.uri.utils.buildQueryDataFromMap(params);
 	goog.net.XhrIo.send('/trades/orderplus/?',callback,'POST',content);
 }
 
-//添加换货订单
-exchange.Manager.prototype.addChangeOrder = function (e) {
-	var that   = this;
-	var target = e.target;
-	var idx    = target.getAttribute('idx');
-	var outer_id     = target.getAttribute('outer_id');
-	var sku_outer_id = goog.dom.getElement('id-order-sku-'+idx).value;
-	var num          = goog.dom.getElement('id-order-num-'+idx).value;
-	
-    var callback = function(e){
-        var xhr = e.target;
-        try {
-        	var res = xhr.getResponseJson();
-        	if (res.code == 0){
-            	addOrderRow('id-change-table',res.response_content);
-            	
-            	var deleteOrderBtns = goog.dom.getElementsByClass('delete-order',that.change_table);
-            	for(var i =0;i<deleteOrderBtns.length;i++){
-            		goog.events.removeAll(deleteOrderBtns[i]);
-            		goog.events.listen(deleteOrderBtns[i], goog.events.EventType.CLICK,that.deleteOrder,false,that);
-            	}
-            	showElement(that.change_table.parentElement);
-            }else{
-                alert("添加失败:"+res.response_error);
-            }
-        } catch (err) {
-            console.log('Error: (ajax callback) - ', err);
-        } 
-	}
-	var params     = {'trade_id':that.tid,'outer_id':outer_id,'outer_sku_id':sku_outer_id,'num':num,'type':CHANGE_GOODS_TYPE}
-	var content = goog.uri.utils.buildQueryDataFromMap(params);
-	goog.net.XhrIo.send('/trades/orderplus/?',callback,'POST',content);
-}
 
 //订单搜索事件处理
-exchange.Manager.prototype.onTradeSearchKeyDown = function(e){
+direct.Manager.prototype.onTradeSearchKeyDown = function(e){
 	
 	var prod_qstr = this.trade_q.value;
 	if (e.keyCode==13){
@@ -271,7 +230,7 @@ exchange.Manager.prototype.onTradeSearchKeyDown = function(e){
 }
 
 //显示交易搜索记录
-exchange.Manager.prototype.showTrade = function(q){
+direct.Manager.prototype.showTrade = function(q){
     this.search_q = q;
     var that      = this;
     if (q==''||q=='undifine'){return;}
@@ -279,7 +238,7 @@ exchange.Manager.prototype.showTrade = function(q){
     
     var callback = function(e){
         var xhr = e.target;
-        try {
+        //try {
         	var res = xhr.getResponseJson();
         	if (res.code == 0){
         		clearTable(that.search_trade_table);
@@ -295,7 +254,7 @@ exchange.Manager.prototype.showTrade = function(q){
             		goog.events.listen(copyBuyerInfoBtns[i], goog.events.EventType.CLICK,that.copyBuyerInfo,false,that);
             	}
             	
-            	var addToReturnBtns = goog.dom.getElementsByClass('add-trade-order');
+            	var addToReturnBtns = goog.dom.getElementsByClass('copy-trade-order');
             	for(var i=0;i<addToReturnBtns.length;i++){
             		goog.events.listen(addToReturnBtns[i], goog.events.EventType.CLICK,that.addTradeOrder,false,that);
             	}
@@ -304,43 +263,31 @@ exchange.Manager.prototype.showTrade = function(q){
             }else{
                 alert("订单查询失败:"+res.response_error);
             }
-        } catch (err) {
-            console.log('Error: (ajax callback) - ', err);
-        } 
+        //} catch (err) {
+        //    console.log('Error: (ajax callback) - ', err);
+        //} 
 	}
 	goog.net.XhrIo.send('/trades/tradeplus/?q='+q,callback,'GET');
 }
 
 
-//将交易订单加入退换货单
-exchange.Manager.prototype.addTradeOrder = function(e){
+//将交易订单加入内售单
+direct.Manager.prototype.addTradeOrder = function(e){
 	var that = this;
 	var target = e.target;
 	var cp_tid = target.getAttribute('trade_id');
-	var action = target.getAttribute('action');
-	var gift_type = null;
-	if (action=="return"){
-		gift_type = RETURN_GOODS_TYPE;
-	}else{
-		gift_type = CHANGE_GOODS_TYPE;
-	}
-	
+
 	var callback = function(e){
 		var xhr = e.target;
-		try{
+		//try{
 			var res = xhr.getResponseJson();
         	if (res.code == 0){
         		clearTable(that.return_table);
-        		clearTable(that.change_table);
         		
         		var trade_list = res.response_content;
         		for(var i=0;i<trade_list.length;i++){
         			var trade = trade_list[i];
-        			if (trade.gift_type==RETURN_GOODS_TYPE){
-        				addOrderRow('id-return-table',trade);
-        			}else if(trade.gift_type==CHANGE_GOODS_TYPE){
-        				addOrderRow('id-change-table',trade);
-        			}
+        			addOrderRow('id-return-table',trade);
         		}
         		
         		var deleteOrderBtns = goog.dom.getElementsByClass('delete-order');
@@ -351,20 +298,20 @@ exchange.Manager.prototype.addTradeOrder = function(e){
             	showElement(that.return_table.parentElement);
             	showElement(that.change_table.parentElement);
         	}else{
-                alert("加退货单失败:"+res.response_error);
+                alert("加内售单失败:"+res.response_error);
             }
 		} catch (err) {
-            console.log('Error: (ajax callback) - ', err);
-        }
+        //    console.log('Error: (ajax callback) - ', err);
+        //}
 	}
-    var params = {'pt_tid':that.tid,'cp_tid':cp_tid,'type':gift_type};
+    var params = {'pt_tid':that.tid,'cp_tid':cp_tid,'type':HANDSEL_TYPE};
     var content = goog.uri.utils.buildQueryDataFromMap(params);
 	goog.net.XhrIo.send('/trades/tradeplus/?',callback,'POST',content);
     
 }
 
 //复制订单用户信息
-exchange.Manager.prototype.copyBuyerInfo = function(e){
+direct.Manager.prototype.copyBuyerInfo = function(e){
 	var target = e.target;
 	var trade_id    = target.getAttribute('trade_id');
     if (trade_id in this.trades_dict){
@@ -383,7 +330,7 @@ exchange.Manager.prototype.copyBuyerInfo = function(e){
 
 
 //保存基本信息
-exchange.Manager.prototype.saveBuyerInfo = function(e){
+direct.Manager.prototype.saveBuyerInfo = function(e){
 	var that  = this;
 	var seller_id         = goog.dom.getElement('id_seller_id').value;
 	var buyer_nick        = goog.dom.getElement('id_buyer_nick').value;
@@ -400,8 +347,6 @@ exchange.Manager.prototype.saveBuyerInfo = function(e){
 	var receiver_city     = goog.dom.getElement('id_receiver_city').value;
 	var receiver_district = goog.dom.getElement('id_receiver_district').value;
 	var receiver_address  = goog.dom.getElement('id_receiver_address').value;
-	var return_company_name  = goog.dom.getElement('id_return_company_name').value;
-	var return_out_sid    = goog.dom.getElement('id_return_out_sid').value;
 	
 	var params = {
 		'trade_id':that.tid,
@@ -414,8 +359,6 @@ exchange.Manager.prototype.saveBuyerInfo = function(e){
 		'receiver_city':receiver_city,
 		'receiver_district':receiver_district,
 		'receiver_address':receiver_address,
-		'return_logistic_company':return_company_name,
-		'return_out_sid':return_out_sid,
 	}
 	var callback = function(e){
 		var xhr = e.target;
@@ -435,7 +378,7 @@ exchange.Manager.prototype.saveBuyerInfo = function(e){
 }
 
 //删除订单
-exchange.Manager.prototype.deleteOrder = function(e){
+direct.Manager.prototype.deleteOrder = function(e){
 	var target = e.target;
 	var row    = target.parentElement.parentElement;
 	var rowIndex = row.rowIndex;
@@ -459,7 +402,7 @@ exchange.Manager.prototype.deleteOrder = function(e){
 
 
 //绑定事件
-exchange.Manager.prototype.bindEvent = function () {
+direct.Manager.prototype.bindEvent = function () {
 
 	goog.events.listen(this.prod_q, goog.events.EventType.KEYDOWN,this.onProdSearchKeyDown,false,this);
 	goog.events.listen(this.trade_q, goog.events.EventType.KEYDOWN,this.onTradeSearchKeyDown,false,this);
@@ -470,10 +413,9 @@ exchange.Manager.prototype.bindEvent = function () {
 	goog.events.listen(this.saveBtn, goog.events.EventType.CLICK,this.saveBuyerInfo,false,this);
 	
 	var returns_zippy  = new goog.ui.Zippy('id-return-head', 'id-return-goods');   
-	var changes_zippy  = new goog.ui.Zippy('id-change-head', 'id-change-goods');
 }
 
-exchange.Manager.prototype.focus = function(e){
+direct.Manager.prototype.focus = function(e){
 	var target = e.target;
 	if (target==this.prod_q){
 		showElement(this.search_prod_table.parentElement);

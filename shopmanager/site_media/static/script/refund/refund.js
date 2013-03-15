@@ -65,6 +65,8 @@ var addSearchRefundRow  = function(tableID,refund){
 	
 	var num_cell = goog.dom.createElement('td');
 	num_cell.innerHTML = '<input id="id-refund-num-'+index.toString()+'" type="text" value="1" style="width:25px;" size="2" />';
+	var reuse_cell = goog.dom.createElement('td');
+	reuse_cell.innerHTML = '<input id="id-refund-reuse-'+index.toString()+'" type="checkbox" />';
 	
 	var pay_time_cell   = createDTText(refund.created);
 	var connect_cell    = createDTText(refund.mobile+'/'+refund.phone);
@@ -79,6 +81,7 @@ var addSearchRefundRow  = function(tableID,refund){
 	row.appendChild(title_cell);
 	row.appendChild(property_cell);
 	row.appendChild(num_cell);
+	row.appendChild(reuse_cell);
 	row.appendChild(pay_time_cell);
 	row.appendChild(connect_cell);
 	row.appendChild(refund_logistic_cell);
@@ -103,7 +106,14 @@ var addRefundOrderRow  = function(tableID,order){
 	var title_cell    = createDTText(order.title);
 	var property_cell = createDTText(order.property);
 	var num_cell   = createDTText(order.num+'');
-
+	
+	var reuse_cell   = goog.dom.createElement('td');
+	if (order.can_reuse){
+		reuse_cell.innerHTML = '<img src="/static/admin/img/icon-yes.gif" alt="True">';
+	}else{
+		reuse_cell.innerHTML = '<img src="/static/admin/img/icon-no.gif" alt="False">';	
+	}
+	
 	var delete_btn_cell = goog.dom.createElement('td');
 	delete_btn_cell.innerHTML = '<button class="delete-order btn btn-mini btn-warning" rid="'+order.id.toString()+'">删除</button>';
 	
@@ -117,6 +127,7 @@ var addRefundOrderRow  = function(tableID,order){
 	row.appendChild(title_cell);
 	row.appendChild(property_cell);
 	row.appendChild(num_cell);
+	row.appendChild(reuse_cell);
 	row.appendChild(delete_btn_cell);
 }
 
@@ -179,7 +190,7 @@ refund.Manager.prototype.showProduct = function (q) {
             console.log('Error: (ajax callback) - ', err);
         } 
 	}
-	goog.net.XhrIo.send('/trades/orderplus/?q='+q,callback,'GET');
+	goog.net.XhrIo.send('/trades/orderplus/?q='+q,callback);
 }
 
 //添加退货订单
@@ -190,7 +201,7 @@ refund.Manager.prototype.addRefundOrder = function (e) {
 	var outer_id     = target.getAttribute('outer_id');
 	var sku_outer_id = goog.dom.getElement('id-order-sku-'+idx).value;
 	var num          = goog.dom.getElement('id-order-num-'+idx).value;
-	var reuse  = goog.dom.getElement('id-order-reuse-'+idx).value;
+	var reuse  = goog.dom.getElement('id-order-reuse-'+idx).checked;
 	
 	var memo      = goog.dom.getElement('id-return-memo').value;
 	var trade_id  = goog.dom.getElement('id_trade_id').value;
@@ -202,7 +213,7 @@ refund.Manager.prototype.addRefundOrder = function (e) {
 	
     var callback = function(e){
         var xhr = e.target;
-        //try {
+        try {
         	var res = xhr.getResponseJson();
         	if (res.code == 0){
             	addRefundOrderRow('id-refund-table',res.response_content);
@@ -216,9 +227,9 @@ refund.Manager.prototype.addRefundOrder = function (e) {
             }else{
                 alert("添加失败:"+res.response_error);
             }
-        /**} catch (err) {
+        } catch (err) {
             console.log('Error: (ajax callback) - ', err);
-        }**/ 
+        } 
 	}
 	var params     = {
 		'trade_id':that.tid,'outer_id':outer_id,'outer_sku_id':sku_outer_id,
@@ -249,7 +260,7 @@ refund.Manager.prototype.showRefund = function(q){
     
     var callback = function(e){
         var xhr = e.target;
-        //try {
+        try {
         	var res = xhr.getResponseJson();
         	if (res.code == 0){
         		clearTable(that.search_trade_table);
@@ -257,10 +268,10 @@ refund.Manager.prototype.showRefund = function(q){
             	for(var i=0;i<res.response_content.length;i++){
             		var refund_dict = res.response_content[i];
             		addSearchRefundRow('id-trade-search-table',refund_dict);
-            		console.log(refund_dict);
-            		that.refund_dicts[refund_dict['refund_id']] = refund_dict;
+ 
+            		//that.refund_dicts[refund_dict['refund_id']] = refund_dict;
             	}
- 				console.log(that.refund_dicts);
+
             	var confirmRefundBtns = goog.dom.getElementsByClass('confirm-refund-order');
             	for(var i=0;i<confirmRefundBtns.length;i++){
             		goog.events.listen(confirmRefundBtns[i], goog.events.EventType.CLICK,that.addRefundProduct,false,that);
@@ -269,11 +280,11 @@ refund.Manager.prototype.showRefund = function(q){
             }else{
                 alert("退款单查询失败:"+res.response_error);
             }
-        //} catch (err) {
-        //    console.log('Error: (ajax callback) - ', err);
-        //} 
+        } catch (err) {
+            console.log('Error: (ajax callback) - ', err);
+        } 
 	}
-	goog.net.XhrIo.send('/refunds/refund/?q='+q,callback,'GET');
+	goog.net.XhrIo.send('/refunds/refund/?q='+q,callback);
 }
 
 
@@ -284,6 +295,7 @@ refund.Manager.prototype.addRefundProduct = function(e){
 	var idx    = target.getAttribute('idx');
 	var refund_id     = target.getAttribute('refund_id');
 	var num    = goog.dom.getElement('id-refund-num-'+idx).value;
+	var reuse  = goog.dom.getElement('id-refund-reuse-'+idx).checked;
 	
 	var buyer_mobile = goog.dom.getElement('id_receiver_mobile').value;
 	var buyer_phone  = goog.dom.getElement('id_receiver_phone').value;
@@ -291,7 +303,7 @@ refund.Manager.prototype.addRefundProduct = function(e){
 	var out_sid   = goog.dom.getElement('id_return_out_sid').value;
 	var callback = function(e){
 		var xhr = e.target;
-		//try{
+		try{
 			var res = xhr.getResponseJson();
         	if (res.code == 0){
         		refund = res.response_content;
@@ -306,11 +318,11 @@ refund.Manager.prototype.addRefundProduct = function(e){
         	}else{
                 alert("加退货单失败:"+res.response_error);
             }
-		//} catch (err) {
-        //    console.log('Error: (ajax callback) - ', err);
-        //}
+		} catch (err) {
+            console.log('Error: (ajax callback) - ', err);
+        }
 	}
-    var params = {'refund_id':refund_id,'num':num,'out_sid':out_sid,
+    var params = {'refund_id':refund_id,'num':num,'out_sid':out_sid,'can_reuse':reuse,
     	'company':company,'mobile':buyer_mobile,'phone':buyer_phone};
 
     var content = goog.uri.utils.buildQueryDataFromMap(params);
@@ -327,16 +339,16 @@ refund.Manager.prototype.deleteOrder = function(e){
 	var rid = target.getAttribute('rid');
 	var callback = function(e){
 		var xhr = e.target;
-        //try {
+        try {
         	var res = xhr.getResponseJson();
             if (res.code == 0){
             	table.deleteRow(rowIndex);
             }else{
                 alert("错误:"+res.response_error);
             }
-        /**} catch (err) {
+        } catch (err) {
             console.log('Error: (ajax callback) - ', err);
-        }**/ 
+        } 
 	};
 	goog.net.XhrIo.send('/refunds/product/del/'+rid+'/',callback,'GET');
 }

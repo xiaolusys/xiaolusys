@@ -1,7 +1,8 @@
 goog.require('goog.dom');
 goog.require('goog.style');
 
-var EXCHANGE_TRADE_TYPE = 'exchange'
+var EXCHANGE_TRADE_TYPE = 'exchange';
+var DIRECT_TRADE_TYPE   = 'direct';
 
 var REAL_PAYMENT_TYPE = 0; 
 var HANDSEL_TYPE      = 1;

@@ -522,12 +522,11 @@ class ReviewOrderView(ModelView):
             'post_fee':trade.post_fee,
             'buyer_message':trade.buyer_message,
             'seller_memo':trade.seller_memo,
+            'sys_memo':trade.sys_memo,
             'logistics_company':trade.logistics_company,
             'out_sid':trade.out_sid,
             'consign_time':trade.consign_time,
             'priority':trade.priority,
-            'buyer_message':trade.buyer_message,
-            'seller_memo':trade.seller_memo,
             'receiver_name':trade.receiver_name,
             'receiver_state':trade.receiver_state,
             'receiver_city':trade.receiver_city,
@@ -685,6 +684,22 @@ class ExchangeOrderView(ModelView):
         
         return {'success':True}
         
+############################### 内售订单 #################################       
+class DirectOrderView(ModelView):
+    """ docstring for class DirectOrderView """
+    
+    def get(self, request, *args, **kwargs):
+        
+        trades  = MergeTrade.objects.filter(type=pcfg.DIRECT_TYPE,sys_status='',user=None)
+        if trades.count()==0:
+            trade   = MergeTrade.objects.create(type=pcfg.DIRECT_TYPE,status=pcfg.WAIT_SELLER_SEND_GOODS)
+        else:
+            trade = trades[0]
+            trade.merge_trade_orders.all().delete()
+        sellers = User.objects.all()
+        
+        return {'trade':trade,'sellers':sellers}
+        
         
 def update_sys_memo(request):
         
@@ -767,13 +782,12 @@ class TradeSearchView(ModelView):
             return u'订单未找到'
         
         can_post_orders = cp_trade.merge_trade_orders.all()
-           
         for order in can_post_orders:
             try:
                 MergeOrder.gen_new_order(pt_trade.id,order.outer_id,order.outer_sku_id,order.num,gift_type=type)
             except Exception,exc:
                 logger.error(exc.message,exc_info=True)
-                    
+                   
         orders = pt_trade.merge_trade_orders.filter(sys_status=pcfg.IN_EFFECT)
         order_list = []
         for order in orders:
@@ -795,7 +809,7 @@ class TradeSearchView(ModelView):
             'price':order.price,
             'gift_type':order.gift_type,}
             order_list.append(order_dict)
-        
+ 
         return order_list
 
 

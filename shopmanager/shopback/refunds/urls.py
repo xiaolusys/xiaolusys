@@ -24,7 +24,7 @@ urlpatterns = patterns('shopback.refunds.views',
     url('^product/del/(?P<id>\d{1,20})/$','delete_trade_order',name='refund_product_del'),  
                      
     (r'^refund/$',staff_member_required(RefundView.as_view(
-        resource=RefundProductResource,
+        resource=RefundResource,
         renderers=(BaseJsonRenderer,),
         authentication=(UserLoggedInAuthentication,),
         permissions=(IsAuthenticated,)

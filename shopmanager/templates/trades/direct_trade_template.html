@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html >
   <head>
-    <title>创建退换货单</title>
+    <title>创建内售单</title>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
      <link href="{{ STATIC_URL }}bootstrap/css/bootstrap.min.css" rel="stylesheet" type="text/css" />
     <link href="{{ STATIC_URL }}bootstrap/css/bootstrap-responsive.min.css" rel="stylesheet" type="text/css" />
@@ -78,10 +78,10 @@
   <body>
 	<div class="content-main">
 		<fieldset>
-			<legend><h1 class="head-title" >退换货单</h1></legend>
+			<legend><h1 class="head-title" >内售订单</h1></legend>
 			
 			<div class="content-base-info">
-				<div><input type="hidden" id="id_exchange_trade" value="{{ trade.id }}" /></div>
+				<div><input type="hidden" id="id_direct_trade" value="{{ trade.id }}" /></div>
 				<table class="table table-bordered table-striped table-condensed">
 					<tr>
 						<td>所属店铺:</td>
@@ -105,14 +105,12 @@
 					</tr>
 					<tr>
 						<td>详细地址:</td><td colspan="3"><input type="text" id="id_receiver_address" class="simple-text" style="width:400px;" /></td>
-						<td>退货快递名称:</td><td><input type="text" id="id_return_company_name" class="simple-text" /></td>
-						<td>退货快递单号:</td><td><input type="text" id="id_return_out_sid" class="simple-text" /></td>
 					</tr>
 					<tr>
 						<td colspan="6"></td>
 						<td colspan="2">
 							<button id="id_save_trade" class="btn btn-small btn-success">保存 +</button>&nbsp;&nbsp;
-							<a href="/admin/trades/mergetrade/?q={{ trade.id }}&type__exact=exchange" class="btn btn-small btn-success">审核 -></a>
+							<a href="/admin/trades/mergetrade/?q={{ trade.id }}&type__exact=direct" class="btn btn-small btn-success">审核 -></a>
 						</td>
 					</tr>
 				</table>
@@ -121,33 +119,9 @@
 			<div class="order-content">
 				<div class="up-orders-panel">
 					<h3 class="head-title" id="id-return-head">
-						<img src="{{ STATIC_URL }}img/tri_right.png" style="cursor:pointer;margin-right:5px;"></img> 退货单</h3>
+						<img src="{{ STATIC_URL }}img/tri_right.png" style="cursor:pointer;margin-right:5px;"></img>内售单列表</h3>
 					<div id="id-return-goods">
 						<table id="id-return-table" class="table table-bordered table-striped table-condensed">
-							<thead>
-								<tr>
-									<td>编号</td>
-									<td>商家编码</td>
-									<td>商品简称</td>
-									<td>规格</td>
-									<td>数量</td>
-									<td>单价</td>
-									<td>缺货</td>
-									<td>类型</td>
-									<td>操作</td>
-								</tr>
-							</thead>
-							<tbody>
-							</tbody>
-						</table>
-					</div>
-				</div>
-				<hr/>
-				<div class="down-orders-panel">
-					<h3 class="head-title" id="id-change-head">
-						<img src="{{ STATIC_URL }}img/tri_right.png" style="cursor:pointer;margin-right:5px;"></img> 换货单</h3>
-					<div id="id-change-goods">
-						<table id="id-change-table" class="table table-bordered table-striped table-condensed">
 							<thead>
 								<tr>
 									<td>编号</td>
@@ -217,12 +191,11 @@
 			<hr/>
 		</fieldset>
 	</div>
-	
 </body>
 {% endwith %}
 <script src="{{ STATIC_URL }}script/base.js"></script>
-<script src="{{ STATIC_URL }}script/trades/exchange.js"></script>
+<script src="{{ STATIC_URL }}script/trades/direct_trade.js"></script>
 <script type="text/javascript">
-	 new exchange.Manager();
+	 new direct.Manager();
 </script>
 </html>

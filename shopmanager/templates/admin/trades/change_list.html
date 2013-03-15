@@ -57,13 +57,13 @@
         <ul class="object-tools">
           {% block object-tools-items %}
             <li>
-              <a href="{% url cl.opts|admin_urlname:'add' %}{% if is_popup %}?_popup=1{% endif %}" class="addlink">
-                {% blocktrans with cl.opts.verbose_name as name %}新{{ name }}{% endblocktrans %}
+              <a href="/trades/direct/add/" class="addlink" target="_blank">
+                内售单
               </a>
-             </li>
-             <li>
+            </li>
+            <li>
               <a href="/trades/exchange/add/" class="addlink" target="_blank">
-                新退换货单
+                退换货单
               </a>
             </li>
             <li>

@@ -233,7 +233,6 @@ class RelatedOrderStateView(ModelView):
         outer_sku_ids = content.get('sku_ids')
         limit  = content.get('limit',10) 
         
-        limit  = int(limit)
         try:
             item = Item.objects.get(num_iid=outer_id)
         except Item.DoesNotExist:    
@@ -279,8 +278,8 @@ class RelatedOrderStateView(ModelView):
                     buyer_set.add(buyer_nick)
                 
             relat_order_list = sorted(relative_orders_dict.items(),key=lambda d:d[1]['cnum'],reverse=True)  
-            
-            for order in relat_order_list[0:limit]:
+
+            for order in relat_order_list[0:int(limit)]:
                 order_item = []
                 order_item.append(order[0])
                 order_item.append(order[1]['pic_path'])

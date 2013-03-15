@@ -42,7 +42,7 @@ class RefundProductView(ModelView):
         content    = request.REQUEST
         outer_id   = content.get('outer_id')
         outer_sku_id = content.get('outer_sku_id')
-        
+
         prod_sku = None
         prod     = None
         if outer_sku_id:
@@ -63,7 +63,7 @@ class RefundProductView(ModelView):
             
         for k,v in content.iteritems():
             hasattr(rf,k) and setattr(rf,k,v)
-
+        rf.can_reuse = content.get('can_reuse') == 'true' and True or False
         rf.title = prod_sku.product.name if prod_sku else prod.name
         rf.property = prod_sku.properties_alias or prod_sku.properties_name if prod_sku else ''
         
@@ -73,10 +73,10 @@ class RefundProductView(ModelView):
     
 ############################### 退货单 #################################       
 class RefundView(ModelView):
-    """ docstring for class RefundProductView """
+    """ docstring for class RefundView """
     
     def get(self, request, *args, **kwargs):
-        
+
         content   = request.REQUEST
         q  = content.get('q')
         if not q:
@@ -133,6 +133,7 @@ class RefundView(ModelView):
             
         return prod_list
     
+    
     def post(self, request, *args, **kwargs):
         
         content    = request.REQUEST
@@ -188,6 +189,7 @@ class RefundView(ModelView):
         rf.outer_id = outer_id
         rf.outer_sku_id = outer_sku_id
         rf.num   = num
+        rf.can_reuse = content.get('can_reuse') == 'true' and True or False
         rf.title = prod_sku.product.name if prod_sku else prod.name
         rf.property = (prod_sku.properties_alias or prod_sku.properties_name) if prod_sku else ''
         

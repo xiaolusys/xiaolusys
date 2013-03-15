@@ -619,7 +619,7 @@ class MergeOrder(models.Model):
             status = status,
             sys_status = pcfg.IN_EFFECT
         )
-
+        merge_order.save()
         return merge_order
 
 

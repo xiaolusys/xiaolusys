@@ -9,7 +9,7 @@ __author__ = 'meixqhi'
 class SubPurchaseOrderInline(admin.TabularInline):
     
     model = SubPurchaseOrder
-    fields = ('id','purchase_order','tc_order_id','title','sku_properties',
+    fields = ('tc_order_id','item_outer_id','title','sku_outer_id','old_sku_properties',
                     'num','price','order_200_status','status')
     
     formfield_overrides = {

@@ -131,7 +131,7 @@ class Refund(models.Model):
 
 class RefundProduct(models.Model):
     
-    buyer_nick   = models.CharField(max_length=64,db_index=True,blank=True,verbose_name='商品编码')
+    buyer_nick   = models.CharField(max_length=64,db_index=True,blank=True,verbose_name='买家昵称')
     buyer_mobile = models.CharField(max_length=22,db_index=True,blank=True,verbose_name='手机')
     buyer_phone  = models.CharField(max_length=22,db_index=True,blank=True,verbose_name='固话')
     trade_id     = models.CharField(max_length=64,db_index=True,blank=True,verbose_name='淘宝订单编号')
