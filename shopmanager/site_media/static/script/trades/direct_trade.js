@@ -296,7 +296,6 @@ direct.Manager.prototype.addTradeOrder = function(e){
             		goog.events.listen(deleteOrderBtns[i], goog.events.EventType.CLICK,that.deleteOrder,false,that);
             	}
             	showElement(that.return_table.parentElement);
-            	showElement(that.change_table.parentElement);
         	}else{
                 alert("加内售单失败:"+res.response_error);
             }

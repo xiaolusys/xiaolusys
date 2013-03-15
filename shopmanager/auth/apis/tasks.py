@@ -65,6 +65,7 @@ API_FIELDS = {
     'taobao.refund.get':'refund_id,alipay_no,tid,oid,buyer_nick,seller_nick,total_fee,created,refund_fee,has_good_return,payment,reason,desc,num_iid,title'
         +',price,num,good_return_time,company_name,sid,address,shipping_type,refund_remind_timeout,cs_status,status,good_status',
     'taobao.fenxiao.products.get':'skus,images',
+    'taobao.trade.close':'tid,close_reason',
 }
 
 
@@ -369,6 +370,10 @@ def taobao_trade_postage_update(tid=None,post_fee=None,tb_user_id=None):
 @apis('taobao.trade.shippingaddress.update')
 def taobao_trade_shippingaddress_update(tid=None,receiver_name=None,receiver_phone=None,receiver_mobile=None,receiver_state=None
             ,receiver_city=None,receiver_district=None,receiver_address=None,receiver_zip=None,tb_user_id=None):
+    pass
+
+@apis('taobao.trade.close')
+def taobao_trade_close(tid=None,close_reason=None):
     pass
 ############# post apis ###################
 @apis('taobao.logistics.companies.get')
