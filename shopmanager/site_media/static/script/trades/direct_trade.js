@@ -238,7 +238,7 @@ direct.Manager.prototype.showTrade = function(q){
     
     var callback = function(e){
         var xhr = e.target;
-        //try {
+        try {
         	var res = xhr.getResponseJson();
         	if (res.code == 0){
         		clearTable(that.search_trade_table);
@@ -263,9 +263,9 @@ direct.Manager.prototype.showTrade = function(q){
             }else{
                 alert("订单查询失败:"+res.response_error);
             }
-        //} catch (err) {
-        //    console.log('Error: (ajax callback) - ', err);
-        //} 
+        } catch (err) {
+            console.log('Error: (ajax callback) - ', err);
+        } 
 	}
 	goog.net.XhrIo.send('/trades/tradeplus/?q='+q,callback,'GET');
 }
@@ -279,7 +279,7 @@ direct.Manager.prototype.addTradeOrder = function(e){
 
 	var callback = function(e){
 		var xhr = e.target;
-		//try{
+		try{
 			var res = xhr.getResponseJson();
         	if (res.code == 0){
         		clearTable(that.return_table);
@@ -301,8 +301,8 @@ direct.Manager.prototype.addTradeOrder = function(e){
                 alert("加内售单失败:"+res.response_error);
             }
 		} catch (err) {
-        //    console.log('Error: (ajax callback) - ', err);
-        //}
+            console.log('Error: (ajax callback) - ', err);
+        }
 	}
     var params = {'pt_tid':that.tid,'cp_tid':cp_tid,'type':HANDSEL_TYPE};
     var content = goog.uri.utils.buildQueryDataFromMap(params);
