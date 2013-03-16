@@ -318,7 +318,7 @@ def rule_match_combose_split(sender, trade_id, *args, **kwargs):
                     pass
                 else:
                     for item in compose_rule.compose_items.all():
-                        MergeOrder.gen_new_order(trade.id,outer_id,outer_sku_id,
+                        MergeOrder.gen_new_order(trade.id,item.outer_id,item.outer_sku_id,
                                                  item.num*order_num,gift_type=pcfg.COMBOSE_SPLIT_GIT_TYPE)
                     order.sys_status=pcfg.INVALID_STATUS
                     order.save()
