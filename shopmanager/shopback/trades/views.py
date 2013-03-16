@@ -319,7 +319,7 @@ class CheckOrderView(ModelView):
                     trade.update_inventory()
                 else:
                     MergeTrade.objects.filter(id=id,sys_status = pcfg.WAIT_AUDIT_STATUS)\
-                        .update(sys_status=pcfg.WAIT_PREPARE_SEND_STATUS,reason_code='')  
+                        .update(sys_status=pcfg.WAIT_PREPARE_SEND_STATUS,reason_code='',oparetor='',out_sid='')  
             log_action(user_id,trade,CHANGE,u'审核成功')
             
         elif action_code == 'review':
@@ -682,6 +682,8 @@ class ExchangeOrderView(ModelView):
         merge_trade.sys_status = pcfg.WAIT_AUDIT_STATUS
         merge_trade.save()
         
+        log_action(request.user.id,merge_trade,CHANGE,u'订单创建')
+        
         return {'success':True}
         
 ############################### 内售订单 #################################       
@@ -740,6 +742,7 @@ class TradeSearchView(ModelView):
             trade_dict['id'] = trade.id
             trade_dict['seller_id']  = trade.user.id if trade.user else ''
             trade_dict['buyer_nick'] = trade.buyer_nick
+            trade_dict['post_fee']   = trade.post_fee
             trade_dict['payment']    = trade.payment
             trade_dict['total_num']  = trade.total_num
             trade_dict['pay_time']   = trade.pay_time
