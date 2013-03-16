@@ -69,6 +69,9 @@ class Product(models.Model):
     created      = models.DateTimeField(null=True,blank=True,auto_now_add=True,verbose_name='创建时间')
     modified     = models.DateTimeField(null=True,blank=True,auto_now=True,verbose_name='修改时间')
     
+    is_split   = models.BooleanField(default=False,verbose_name='需拆分')
+    is_match    = models.BooleanField(default=False,verbose_name='有匹配')
+    
     sync_stock   = models.BooleanField(default=True,verbose_name='库存同步')
     is_assign    = models.BooleanField(default=False,verbose_name='警告解除') #是否手动分配库存，当库存充足时，系统自动设为False，手动分配过后，确定后置为True
     
@@ -158,6 +161,8 @@ class ProductSku(models.Model):
     properties_name    = models.TextField(max_length=200,blank=True,verbose_name='线上规格名称')
     properties_alias   = models.TextField(max_length=200,blank=True,verbose_name='系统规格名称')
     
+    is_split   = models.BooleanField(default=False,verbose_name='需拆分')
+    is_match   = models.BooleanField(default=False,verbose_name='有匹配')
     sync_stock   = models.BooleanField(default=True,verbose_name='库存同步') 
     #是否手动分配库存，当库存充足时，系统自动设为False，手动分配过后，确定后置为True
     is_assign    = models.BooleanField(default=False,verbose_name='警告解除') 

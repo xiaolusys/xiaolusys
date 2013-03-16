@@ -166,13 +166,32 @@ def rule_match_product(sender, trade_id, *args, **kwargs):
     else: 
         orders  = trade.merge_trade_orders.filter(sys_status=pcfg.IN_EFFECT)
         for order in orders:
-            rules = ProductRuleField.objects.filter(outer_id=order.outer_id)
-            if rules.count()>0:
-                is_rule_match = True
-                order.is_rule_match = True
-                order.save()
+            outer_id     = order.outer_id
+            outer_sku_id = order.outer_sku_id
+            prod_sku = None
+            prod     = None
+            if outer_sku_id:
+                try:
+                    prod_sku = ProductSku.objects.get(product__outer_id=outer_id,outer_id=outer_sku_id)
+                except:
+                    continue
+                else:
+                    if not prod_sku.is_match:
+                        continue 
+            else:
+                try:
+                    prod     = Product.objects.get(outer_id=outer_id)
+                except:
+                    continue
+                else:
+                    if not prod.is_match:
+                        continue 
+            is_rule_match = True
+            order.is_rule_match = True
+            order.save()
+            
         if is_rule_match:
-            raise Exception(u'有匹配')
+            raise Exception('订单商品有匹配')
 
 
 rule_signal.connect(rule_match_product,sender='product_rule',dispatch_uid='rule_match_product')
@@ -271,14 +290,36 @@ def rule_match_combose_split(sender, trade_id, *args, **kwargs):
                             ,status__in=(pcfg.WAIT_SELLER_SEND_GOODS,pcfg.WAIT_BUYER_CONFIRM_GOODS)
                             ).exclude(refund_status=pcfg.REFUND_SUCCESS)
             for order in orders:
+                outer_id     = order.outer_id
+                outer_sku_id = order.outer_sku_id
+                order_num    = order.num
+                prod_sku = None
+                prod     = None
+                if outer_sku_id:
+                    try:
+                        prod_sku = ProductSku.objects.get(product__outer_id=outer_id,outer_id=outer_sku_id)
+                    except:
+                        trade.append_reason_code(pcfg.OUTER_ID_NOT_MAP_CODE)
+                        continue
+                    else:
+                        if not prod_sku.is_split:
+                            continue
+                else:
+                    try:
+                        prod     = Product.objects.get(outer_id=outer_id)
+                    except:
+                        trade.append_reason_code(pcfg.OUTER_ID_NOT_MAP_CODE)
+                    else:
+                        if not prod.is_split:
+                            continue            
                 try:
-                    compose_rule = ComposeRule.objects.get(outer_id=order.outer_id,outer_sku_id=order.outer_sku_id,type='product')
+                    compose_rule = ComposeRule.objects.get(outer_id=outer_id,outer_sku_id=outer_sku_id,type='product')
                 except Exception,exc:
                     pass
                 else:
                     for item in compose_rule.compose_items.all():
-                        MergeOrder.gen_new_order(trade.id,item.outer_id,item.outer_sku_id,
-                                                 item.num*order.num,gift_type=pcfg.COMBOSE_SPLIT_GIT_TYPE)
+                        MergeOrder.gen_new_order(trade.id,outer_id,outer_sku_id,
+                                                 item.num*order_num,gift_type=pcfg.COMBOSE_SPLIT_GIT_TYPE)
                     order.sys_status=pcfg.INVALID_STATUS
                     order.save()
                     

@@ -12,11 +12,12 @@ from django.template import RequestContext
 from django.core import serializers
 from django.contrib.contenttypes.models import ContentType
 from django.utils.encoding import force_unicode
+from django.contrib.admin import SimpleListFilter
 from django.conf import settings
 from celery import group
 from shopback.orders.models import Trade
 from shopback.items.models import Product,ProductSku
-from shopback.trades.models import MergeTrade,MergeOrder,MergeBuyerTrade,ReplayPostTrade,merge_order_maker,merge_order_remover
+from shopback.trades.models import MergeTrade,MergeOrder,MergeBuyerTrade,ReplayPostTrade,merge_order_maker,merge_order_remover,SYS_TRADE_STATUS
 from shopback import paramconfig as pcfg
 from shopback.fenxiao.models import PurchaseOrder
 from shopback.trades.tasks import sendTaobaoTradeTask
@@ -40,6 +41,39 @@ class MergeOrderInline(admin.TabularInline):
         models.CharField: {'widget': TextInput(attrs={'size':'12'})},
         models.TextField: {'widget': Textarea(attrs={'rows':2, 'cols':20})},
     }
+
+class TradeStatusFilter(SimpleListFilter):
+    # Human-readable title which will be displayed in the
+    title = u'系统状态'
+
+    # Parameter for the filter that will be used in the URL query.
+    parameter_name = 'sys_status'
+
+    def lookups(self, request, model_admin):
+        """
+        Returns a list of tuples. The first element in each
+        tuple is the coded value for the option that will
+        appear in the URL query. The second element is the
+        human-readable name for the option that will appear
+        in the right sidebar.
+        """
+        return SYS_TRADE_STATUS
+
+    def queryset(self, request, queryset):
+        """
+        Returns the filtered queryset based on the value
+        provided in the query string and retrievable via
+        `self.value()`.
+        """
+        status_name  = self.value()
+        if not status_name:
+            return queryset
+        elif status_name == pcfg.WAIT_AUDIT_STATUS:
+            return queryset.filter(sys_status__in=(pcfg.WAIT_AUDIT_STATUS,pcfg.WAIT_CHECK_BARCODE_STATUS
+                                ,pcfg.WAIT_SCAN_WEIGHT_STATUS)).exclude(reason_code='',is_express_print=True)
+        else:
+            return queryset.filter(sys_status=status_name)
+                
 
 
 class MergeTradeAdmin(admin.ModelAdmin):
@@ -77,7 +111,7 @@ class MergeTradeAdmin(admin.ModelAdmin):
 
     inlines = [MergeOrderInline]
     
-    list_filter   = ('sys_status','status','user','type','has_out_stock','has_refund','has_rule_match','has_sys_err',
+    list_filter   = (TradeStatusFilter,'status','user','type','has_out_stock','has_refund','has_rule_match','has_sys_err',
                      'has_merge','has_memo','is_picking_print','is_express_print','can_review')
 
     search_fields = ['id','buyer_nick','tid','operator','out_sid','receiver_name','return_out_sid','receiver_mobile','receiver_phone']
@@ -127,7 +161,7 @@ class MergeTradeAdmin(admin.ModelAdmin):
         
     #重写订单视图
     def changelist_view(self, request, extra_context=None, **kwargs):
-      
+
         return super(MergeTradeAdmin, self).changelist_view(request, extra_context)     
     
     def response_change(self, request, obj, *args, **kwargs):
@@ -467,7 +501,8 @@ class MergeTradeAdmin(admin.ModelAdmin):
         response_dict = {'trades':trades,'trade_items':trade_list}
         
         try:
-            ReplayPostTrade.objects.create(operator=request.user.username,post_data=json.dumps(response_dict))
+            ReplayPostTrade.objects.create(operator=request.user.username,
+                                           order_num=len(trade_ids),post_data=json.dumps(response_dict))
         except Exception,exc:
             logger.error(exc.message,exc_info=True)
             
@@ -512,7 +547,7 @@ admin.site.register(MergeBuyerTrade,MergeBuyerTradeAdmin)
 
 
 class ReplayPostTradeAdmin(admin.ModelAdmin):
-    list_display = ('id','operator','post_data','created')
+    list_display = ('id','operator','order_num','created')
     #list_editable = ('update_time','task_type' ,'is_success','status')
 
     date_hierarchy = 'created'

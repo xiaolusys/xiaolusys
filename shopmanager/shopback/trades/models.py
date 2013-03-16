@@ -478,9 +478,12 @@ class MergeTrade(models.Model):
         config  = SystemConfig.getconfig()
         if not config.is_rule_auto:
             return False
+        
+        merge_trade = cls.objects.get(id=trade_id)
         try:
             rule_signal.send(sender='product_rule',trade_id=trade_id)
         except:
+            merge_trade.append_reason_code(pcfg.RULE_MATCH_CODE)
             return True
         else:
             return False
@@ -878,8 +881,7 @@ def trade_download_controller(merge_trade,trade,trade_from,first_pay_load):
             
             #规则匹配
             is_rule_match  =  MergeTrade.judge_rule_match(merge_trade.id)    
-            if is_rule_match: 
-                merge_trade.append_reason_code(pcfg.RULE_MATCH_CODE)
+     
             #设置订单是否有缺货属性    
             merge_trade.has_rule_match = is_rule_match
   
@@ -1181,6 +1183,7 @@ class ReplayPostTrade(models.Model):
     #重现发货表单
     operator   =  models.CharField(max_length=32,verbose_name='操作员')
     post_data  =  models.TextField(blank=True,verbose_name='发货清单数据')
+    order_num  =  models.BigIntegerField(default=0,verbose_name='订单数')
     created    =  models.DateTimeField(null=True,auto_now=True,verbose_name='创建日期')
     
     class Meta:

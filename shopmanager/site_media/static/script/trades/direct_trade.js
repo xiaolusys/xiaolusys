@@ -324,6 +324,8 @@ direct.Manager.prototype.copyBuyerInfo = function(e){
     	goog.dom.getElement('id_receiver_city').value = trade_dict.receiver_city;
     	goog.dom.getElement('id_receiver_district').value = trade_dict.receiver_district;
     	goog.dom.getElement('id_receiver_address').value = trade_dict.receiver_address;
+    	goog.dom.getElement('id_payment').value = trade_dict.payment;
+    	goog.dom.getElement('id_post_fee').value = trade_dict.post_fee;
     }
 }
 
@@ -346,6 +348,8 @@ direct.Manager.prototype.saveBuyerInfo = function(e){
 	var receiver_city     = goog.dom.getElement('id_receiver_city').value;
 	var receiver_district = goog.dom.getElement('id_receiver_district').value;
 	var receiver_address  = goog.dom.getElement('id_receiver_address').value;
+	var payment   = goog.dom.getElement('id_payment').value;
+	var post_fee  = goog.dom.getElement('id_post_fee').value;
 	
 	var params = {
 		'trade_id':that.tid,
@@ -358,6 +362,8 @@ direct.Manager.prototype.saveBuyerInfo = function(e){
 		'receiver_city':receiver_city,
 		'receiver_district':receiver_district,
 		'receiver_address':receiver_address,
+		'payment':payment,
+		'post_fee':post_fee,
 	}
 	var callback = function(e){
 		var xhr = e.target;

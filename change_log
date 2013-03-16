@@ -1,3 +1,9 @@
+######### 2013-3-15  ##########
+alter table shop_items_product add column is_split tinyint(1) NOT NULL;
+alter table shop_items_product add column is_match tinyint(1) NOT NULL;
+alter table shop_items_productsku add column is_split tinyint(1) NOT NULL;
+alter table shop_items_productsku add column is_match tinyint(1) NOT NULL;
+alter table shop_trades_replayposttrade add column order_num int(11) default 0;
 ######### 2013-3-13  ########
 alter table shop_refunds_refund add column cs_status int(11) default 0;
 alter table shop_refunds_refund add column mobile varchar(20) NOT NULL;

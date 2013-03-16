@@ -18,7 +18,7 @@ class ProductSkuInline(admin.TabularInline):
     
     model = ProductSku
     fields = ('outer_id','properties_name','properties_alias','quantity','warn_num','remain_num','wait_post_num','cost','std_purchase_price','std_sale_price'
-                    ,'agent_price','staff_price','sync_stock','is_assign','status','memo')
+                    ,'agent_price','staff_price','sync_stock','is_assign','is_split','is_match','status','memo')
     
     formfield_overrides = {
         models.CharField: {'widget': TextInput(attrs={'size':'10'})},
@@ -44,7 +44,7 @@ admin.site.register(Item, ItemAdmin)
 
 class ProductAdmin(admin.ModelAdmin):
     list_display = ('id','outer_id','name','collect_num','category','warn_num','remain_num','wait_post_num','cost','std_purchase_price'
-                    ,'std_sale_price','agent_price','sync_stock','created','modified','status')
+                    ,'std_sale_price','agent_price','sync_stock','is_split','is_match','created','modified','status')
     list_display_links = ('id','outer_id',)
     list_editable = ('name',)
     
@@ -62,7 +62,7 @@ class ProductAdmin(admin.ModelAdmin):
                     'fields': (('outer_id','name','category','pic_path','status')
                                ,('collect_num','warn_num','remain_num','wait_post_num')
                                ,('cost','std_purchase_price','std_sale_price','agent_price','staff_price')
-                               ,('weight','sync_stock','is_assign','memo'))
+                               ,('weight','sync_stock','is_assign','is_split','is_match','memo'))
                 }),)
     
     formfield_overrides = {
@@ -160,7 +160,7 @@ admin.site.register(Product, ProductAdmin)
 
 class ProductSkuAdmin(admin.ModelAdmin):
     list_display = ('id','outer_id','product','quantity','warn_num','remain_num','wait_post_num','cost','std_purchase_price'
-                    ,'std_sale_price','agent_price','staff_price','sync_stock','properties_name','properties_alias','modified','status')
+                    ,'std_sale_price','agent_price','staff_price','sync_stock','is_split','is_match','properties_name','properties_alias','status')
     list_display_links = ('outer_id',)
     list_editable = ('quantity',)
 
