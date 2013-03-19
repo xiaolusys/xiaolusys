@@ -3,9 +3,9 @@ from djangorestframework.resources import ModelResource
 from django.contrib.admin.views.decorators import staff_member_required
 from shopback.base.authentication import UserLoggedInAuthentication
 from shopback.base.permissions import IsAuthenticated
-from shopback.refunds.views import RefundProductView,RefundView
+from shopback.refunds.views import RefundProductView,RefundView,RefundManagerView
 from shopback.base.renderers  import BaseJsonRenderer
-from shopback.refunds.renderers import RefundProductRenderer
+from shopback.refunds.renderers import RefundProductRenderer,RefundManagerRenderer
 from shopback.refunds.resources import RefundProductResource,RefundResource
 
 __author__ = 'meixqhi'
@@ -26,6 +26,13 @@ urlpatterns = patterns('shopback.refunds.views',
     (r'^refund/$',staff_member_required(RefundView.as_view(
         resource=RefundResource,
         renderers=(BaseJsonRenderer,),
+        authentication=(UserLoggedInAuthentication,),
+        permissions=(IsAuthenticated,)
+    ))),
+    
+    (r'^manager/$',staff_member_required(RefundManagerView.as_view(
+        resource=RefundResource,
+        renderers=(BaseJsonRenderer,RefundManagerRenderer),
         authentication=(UserLoggedInAuthentication,),
         permissions=(IsAuthenticated,)
     ))),

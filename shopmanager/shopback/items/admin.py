@@ -28,7 +28,7 @@ class ProductSkuInline(admin.TabularInline):
 
 
 class ItemAdmin(admin.ModelAdmin):
-    list_display = ('num_iid','product','category','price','user','title','pic_url','last_num_updated')
+    list_display = ('num_iid','user','outer_id','type','category','title','price','has_showcase','list_time','last_num_updated','approve_status','status')
     list_display_links = ('num_iid', 'title')
     #list_editable = ('update_time','task_type' ,'is_success','status')
 
@@ -44,7 +44,7 @@ admin.site.register(Item, ItemAdmin)
 
 class ProductAdmin(admin.ModelAdmin):
     list_display = ('id','outer_id','name','collect_num','category','warn_num','remain_num','wait_post_num','cost','std_purchase_price'
-                    ,'std_sale_price','agent_price','sync_stock','is_split','is_match','created','modified','status')
+                    ,'std_sale_price','agent_price','sync_stock','is_assign','is_split','is_match','modified','status')
     list_display_links = ('id','outer_id',)
     list_editable = ('name',)
     
@@ -53,7 +53,7 @@ class ProductAdmin(admin.ModelAdmin):
     
     inlines = [ProductSkuInline]
     
-    list_filter = ('status',)
+    list_filter = ('status','sync_stock','is_split','is_match','is_assign',)
     search_fields = ['outer_id', 'name']
     
     #--------设置页面布局----------------
@@ -159,8 +159,8 @@ admin.site.register(Product, ProductAdmin)
 
 
 class ProductSkuAdmin(admin.ModelAdmin):
-    list_display = ('id','outer_id','product','quantity','warn_num','remain_num','wait_post_num','cost','std_purchase_price'
-                    ,'std_sale_price','agent_price','staff_price','sync_stock','is_split','is_match','properties_name','properties_alias','status')
+    list_display = ('id','outer_id','product','quantity','warn_num','remain_num','wait_post_num','cost','std_purchase_price','std_sale_price'
+                    ,'agent_price','staff_price','sync_stock','is_assign','is_split','is_match','properties_name','properties_alias','status')
     list_display_links = ('outer_id',)
     list_editable = ('quantity',)
 
@@ -168,7 +168,7 @@ class ProductSkuAdmin(admin.ModelAdmin):
     #ordering = ['created_at']
     
 
-    list_filter = ('status',)
+    list_filter = ('status','sync_stock','is_split','is_match','is_assign',)
     search_fields = ['outer_id','product__outer_id','properties_name']
     
     #取消该商品缺货订单

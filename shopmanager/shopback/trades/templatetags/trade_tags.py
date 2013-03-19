@@ -1,7 +1,8 @@
+#-*- coding:utf8 -*-
 from django import template
 from django.contrib.admin.templatetags.admin_list import result_headers,result_hidden_fields,results
 from shopback import paramconfig as pcfg
-from shopback.trades.models import MergeTrade
+from shopback.trades.models import MergeTrade,MergeOrder
 from shopback.items.models import Product,ProductSku
 
 register = template.Library()
@@ -91,4 +92,26 @@ def sku_name(order):
         s_name = order['sku_properties_name']
     else:
         s_name = prod.properties_name or order['sku_properties_name']
+    return s_name
+
+@register.filter(name='refund_sku')  
+def refund_sku(refund,field='name'):
+
+    tid  = refund['tid']
+    oid  = refund['oid']
+    try:
+        order = MergeOrder.objects.get(tid=tid,oid=oid)
+    except:
+        return u'关联订单未找到'
+    
+    if field=='num':
+        return order.num
+    outer_sku_id  = order.outer_sku_id
+    outer_id      = order.outer_id
+    try:
+        prod = ProductSku.objects.get(outer_id=outer_sku_id,product__outer_id=outer_id)
+    except:
+        s_name = order.sku_properties_name
+    else:
+        s_name = prod.properties_name or order.sku_properties_name
     return s_name

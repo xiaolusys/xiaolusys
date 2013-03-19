@@ -9,3 +9,13 @@ class RefundProductRenderer(TemplateRenderer):
     media_type = 'text/html'
     format = 'html'
     template = 'refunds/refund_products.html'
+    
+    
+class RefundManagerRenderer(TemplateRenderer):
+    """
+    Renderer which serializes to Table
+    """
+    
+    media_type = 'text/html'
+    format = 'html'
+    template = 'refunds/refund_manager.html'

@@ -57,7 +57,7 @@ def updateItemNum(user_id,num_iid):
             sync_num    = real_num - wait_nums - remain_nums
             
             #如果自动更新库存状态开启，并且计算后库存不等于在线库存，则更新
-            if product_sku.sync_stock and sync_num != sku['quantity'] and sync_num > product_sku.warn_num:
+            if  sync_num != sku['quantity'] and sync_num > product_sku.warn_num:
                 product_sku.is_assign = False
             elif sync_num >0 and sync_num < product_sku.warn_num:
                 user_order_num,total_num = MergeOrder.get_yesterday_orders_totalnum(item.user.id,outer_id,outer_sku_id)
@@ -71,7 +71,7 @@ def updateItemNum(user_id,num_iid):
             else:
                 sync_num = 0
                 
-            if sync_num >0 :
+            if sync_num >0 and product_sku.sync_stock:
                 sync_num = int(sync_num)
                 response = apis.taobao_item_quantity_update\
                         (num_iid=item.num_iid,quantity=sync_num,outer_id=outer_sku_id,tb_user_id=user_id)
@@ -95,7 +95,7 @@ def updateItemNum(user_id,num_iid):
         sync_num   = real_num - wait_nums - remain_nums
 
         #如果自动更新库存状态开启，并且计算后库存不等于在线库存，则更新
-        if product.sync_stock and sync_num != product.collect_num and sync_num > product.warn_num:
+        if sync_num != product.collect_num and sync_num > product.warn_num:
             product.is_assign = False
         elif sync_num >0 and sync_num < product.warn_num:
             user_order_num,total_num = MergeOrder.get_yesterday_orders_totalnum(item.user.id,outer_id,outer_sku_id)
@@ -109,7 +109,7 @@ def updateItemNum(user_id,num_iid):
         else:
             sync_num = 0    
             
-        if sync_num > 0: 
+        if sync_num > 0 and product.sync_stock: 
             sync_num = int(sync_num)   
             response = apis.taobao_item_quantity_update(num_iid=item.num_iid,quantity=sync_num,tb_user_id=user_id)
             item_dict = response['item_update_response']['item']

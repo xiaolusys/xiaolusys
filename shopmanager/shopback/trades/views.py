@@ -20,6 +20,8 @@ import logging
 
 logger = logging.getLogger('trades.handler')
 
+
+    
 ############################### 缺货订单商品列表 #################################       
 class OutStockOrderProductView(ModelView):
     """ docstring for class OutStockOrderProductView """

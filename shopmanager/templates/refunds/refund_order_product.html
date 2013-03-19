@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html >
+  <head>
+    <title>退货商品管理</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+     <link href="{{ STATIC_URL }}bootstrap/css/bootstrap.min.css" rel="stylesheet" type="text/css" />
+    <link href="{{ STATIC_URL }}bootstrap/css/bootstrap-responsive.min.css" rel="stylesheet" type="text/css" />
+    <link href="{{ STATIC_URL }}css/base.less" rel="stylesheet/less" type="text/css" />
+    <script src="{{ STATIC_URL }}script/jquery-1.7.1.min.js" type="text/javascript"></script>
+    <script src="{{ STATIC_URL }}closure-library/closure/goog/base.js"></script>
+  </head>
+<body>
+{% load trade_tags %}
+{% with refund_orders=object.refund_orders refund_products=object.refund_products STATIC_URL=object.STATIC_URL%}
+<div class="refact-content">
+	<div>
+		<div class="order-head"><label>退货单列表</label></div>
+		<div class="order-content">
+			<table class="table table-bordered table-striped table-condensed">
+				<thead>
+					<th>序号</th><th>标题</th><th>规格</th><th>数量</th><th>退款状态</th><th>已处理</th><th>描述</th>
+				</thead>
+				<tbody>
+					{% for order in refund_orders %}
+					<tr>
+					<td>{{ forloop.counter }}</td>
+					<td>{{ order.title }}</td>
+					<td>{{ order|refund_sku:'name' }}</td>
+					<td>{{ order|refund_sku:'num' }}</td>
+					<td>待卖家确认收货</td>
+					<td>{% if order.is_reissue %}<img src="{{ STATIC_URL }}admin/img/icon-yes.gif" alt="yes">
+					{% else %}<img src="{{ STATIC_URL }}admin/img/icon-no.gif" alt="no">{% endif %}</td>
+					<td>{{ order.desc }}</td>
+					{% endfor %}
+					</tr>
+				</tbody>
+			</table>
+		</div>
+	</div>
+	<div>
+		<div class="product-head"><label>退回商品列表</label></div>
+		<div class="product-content">
+			<table class="table table-bordered table-stdiped table-condensed">
+				<thead>
+					<th>序号</th><th>标题</th><th>规格</th><th>数量</th><th>二次销售</th><th>已确认</th><th>备注</th>	
+				</thead>
+				<tbody>
+					{% for prod in refund_products %}
+					<tr>
+					<td>{{ forloop.counter }}</td>
+					<td>{{ prod.title }}</td>
+					<td>{{ prod.property }}</td>
+					<td>{{ prod.num }}</td>
+					<td>{% if prod.can_reuse %}<img src="{{ STATIC_URL }}admin/img/icon-yes.gif" alt="yes">
+					{% else %}<img src="{{ STATIC_URL }}admin/img/icon-no.gif" alt="no">{% endif %}</td>
+					<td>{% if prod.is_finish %}<img src="{{ STATIC_URL }}admin/img/icon-yes.gif" alt="yes">
+					{% else %}<img src="{{ STATIC_URL }}admin/img/icon-no.gif" alt="no">{% endif %}</td>
+					<td>{{ prod.memo }}</td>
+					{% endfor %}
+					</tr>
+				</tbody>
+			</table>
+		</div>
+	</div>
+</div>
+{% endwith %}
+</body>
+</html>

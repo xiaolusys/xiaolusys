@@ -4,13 +4,15 @@ from django.http import HttpResponse
 from django.conf import settings
 from auth import staff_requried
 from django.db.models import Q
+from django.template.loader import render_to_string
 from django.contrib.admin.views.decorators import staff_member_required
 from djangorestframework.views import ModelView
 from shopback.trades.models import MergeTrade,MergeOrder
 from shopback.items.models import ProductSku,Item
-from shopback.refunds.models import RefundProduct,Refund
+from shopback.refunds.models import RefundProduct,Refund,REFUND_STATUS,CS_STATUS_CHOICES
 from auth.utils import parse_datetime,parse_date,format_time,map_int2str
 from shopback.refunds.tasks import updateAllUserRefundOrderTask
+from shopback import paramconfig as pcfg
 
 __author__ = 'meixqhi'
 
@@ -28,7 +30,54 @@ def update_interval_refunds(request,dt_f,dt_t):
     return HttpResponse(json.dumps(ret_params),mimetype='application/json')
 
 
-
+############################### 缺货订单商品列表 #################################       
+class RefundManagerView(ModelView):
+    """ docstring for class RefundManagerView """
+    
+    def get(self, request, *args, **kwargs):
+        
+        handling_refunds = Refund.objects.filter(has_good_return=True,
+                                status__in=(pcfg.REFUND_WAIT_RETURN_GOODS,pcfg.REFUND_CONFIRM_GOODS))
+        refund_dict  = {}
+        
+        for refund in handling_refunds:
+            refund_tid = refund.tid
+            if refund_dict.has_key(refund_tid):
+                refund_dict[refund_tid]['order_num'] += 1
+                refund_dict[refund_tid]['is_reissue'] &= refund.is_reissue
+            else:
+                refund_dict[refund_tid] = {'tid':refund_tid,
+                                           'buyer_nick':refund.buyer_nick,
+                                           'seller_nick':refund.seller_nick,
+                                           'order_num':1,
+                                           'created':refund.created,
+                                           'reason':refund.reason,
+                                           'desc':refund.desc,
+                                           'company_name':refund.company_name,
+                                           'sid':refund.sid,
+                                           'is_reissue':refund.is_reissue,
+                                           'cs_status':dict(CS_STATUS_CHOICES).get(refund.cs_status,u'状态不对'),
+                                           'status':dict(REFUND_STATUS).get(refund.status,u'状态不对'),
+                                           }
+   
+        return {'refund_trades':refund_dict,}
+        
+    def post(self, request, *args, **kwargs):
+        
+        content = request.REQUEST
+        tid     = content.get('tid')
+        if not tid :
+            return '请输入交易ID'
+        refund_orders = Refund.objects.filter(tid=tid)
+        refund_products  = RefundProduct.objects.filter(trade_id=tid)
+        
+        op_str  = render_to_string('refunds/refund_order_product.html', 
+                { 'refund_orders': refund_orders,'refund_products': refund_products ,'STATIC_URL':settings.STATIC_URL})
+        
+        return {'template_string':op_str,'trade_id':tid}
+        #return { 'refund_orders': refund_orders,'refund_products': refund_products ,'STATIC_URL':settings.STATIC_URL}
+    
+    
 ############################### 退货商品订单 #################################       
 class RefundProductView(ModelView):
     """ docstring for class RefundProductView """
@@ -183,6 +232,7 @@ class RefundView(ModelView):
         rf.buyer_mobile = mobile or refund.mobile
         rf.buyer_phone = phone or refund.phone
         rf.trade_id = refund.tid
+        rf.oid      = refund.oid
         rf.out_sid =  out_sid or refund.sid
         rf.company =  company or refund.company_name
         

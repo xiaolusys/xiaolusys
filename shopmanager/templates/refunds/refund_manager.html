@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>退货单管理</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+     <link href="{{ STATIC_URL }}bootstrap/css/bootstrap.min.css" rel="stylesheet" type="text/css" />
+    <link href="{{ STATIC_URL }}bootstrap/css/bootstrap-responsive.min.css" rel="stylesheet" type="text/css" />
+    <link href="{{ STATIC_URL }}css/base.less" rel="stylesheet/less" type="text/css" />
+    <link rel="stylesheet" href="http://code.jquery.com/ui/1.10.1/themes/base/jquery-ui.css" />
+	<script src="http://code.jquery.com/jquery-1.9.1.js"></script>
+	<script src="http://code.jquery.com/ui/1.10.1/jquery-ui.js"></script>
+    <style type="text/css">
+		*{ margin:0; padding:0;}
+		ul li { 
+			list-style:none; 
+			display:inline; 
+			float:left; 
+			margin-left:40px;  
+			margin-top:30px;
+		}
+		input{
+			width:120px;
+		}
+		select{
+			width:120px;
+		}
+		td {
+			word-break:break-all; 
+			max-width:120px;
+			max-height:20px; 
+			overflow:hidden;
+			color:#08C;
+		}
+		td textarea {
+			margin:0; padding:0;
+		}
+	</style>
+</head>
+<body>
+	{% with object.refund_trades as refund_trades %}
+	<div class="container">
+		<div id="post-items" style="display:block;">
+		  <fieldset>
+		  	<legend>退货单列表</legend>
+			  <table class="table table-bordered table-striped table-condensed">
+			    <tr>
+			      <th>买家昵称</th><th>卖家昵称</th><th>退货单数</th><th>创建日期</th><th>退回快递</th><th>快递单号</th><th>已处理</th><th>退款状态</th><th>天猫介入</th><th>原因</th><th>描述</th>
+			    </tr>
+			    {% for key,trade in refund_trades.items %}
+			    <tr>
+			    	<td>{{ trade.buyer_nick }}</td>
+			    	<td>{{ trade.seller_nick }}</td>
+			    	<td>{{ trade.order_num }}</td>
+			    	<td>{{ trade.created }}</td>
+			    	<td>{{ trade.company_name }}</td>
+			    	<td>{{ trade.sid }}</td>
+			    	<td>{% if trade.is_reissue %}<img src="{{ STATIC_URL }}admin/img/icon-yes.gif" alt="yes">
+					{% else %}<img src="{{ STATIC_URL }}admin/img/icon-no.gif" alt="no">{% endif %}</td>
+			    	<td>{{ trade.status }}</td>
+			    	<td>{{ trade.cs_status }}</td>
+			    	<td>{{ trade.reason }}</td>
+			    	<td><textarea rows="2" cols="10">{{ trade.desc }}</textarea></td>
+			    </tr>
+			    {% endfor %}	
+			  </table>
+		  </fieldset>
+		</div>
+	</div>	
+	{% endwith %}
+</body>
+</html>

@@ -287,7 +287,7 @@ class Item(models.Model):
     desc = models.TextField(blank=True,verbose_name='商品描述')
     skus = models.TextField(blank=True,verbose_name='规格')
 
-    status = models.BooleanField(default=True,verbose_name='系统状态')
+    status = models.BooleanField(default=True,verbose_name='使用')
     class Meta:
         db_table = 'shop_items_item'
         verbose_name = u'淘宝线上商品'

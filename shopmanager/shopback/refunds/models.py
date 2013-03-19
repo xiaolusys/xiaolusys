@@ -80,7 +80,9 @@ class Refund(models.Model):
     reason    = models.TextField(max_length=200,blank=True,verbose_name='退款原因')
     desc      = models.TextField(max_length=1000,blank=True,verbose_name='描述')
     has_good_return = models.BooleanField(default=False,verbose_name='是否退货')
-
+    
+    is_reissue = models.BooleanField(default=False,verbose_name='已处理')
+    
     good_status  = models.CharField(max_length=32,blank=True,choices=GOOD_STATUS_CHOICES,verbose_name='退货商品状态')
     order_status = models.CharField(max_length=32,blank=True,choices=ORDER_STATUS_CHOICES,verbose_name='订单状态')
     cs_status    = models.IntegerField(default=1,choices=CS_STATUS_CHOICES,verbose_name='天猫客服介入状态')
@@ -134,10 +136,11 @@ class RefundProduct(models.Model):
     buyer_nick   = models.CharField(max_length=64,db_index=True,blank=True,verbose_name='买家昵称')
     buyer_mobile = models.CharField(max_length=22,db_index=True,blank=True,verbose_name='手机')
     buyer_phone  = models.CharField(max_length=22,db_index=True,blank=True,verbose_name='固话')
-    trade_id     = models.CharField(max_length=64,db_index=True,blank=True,verbose_name='淘宝订单编号')
+    trade_id     = models.CharField(max_length=64,db_index=True,blank=True,default='',verbose_name='淘宝订单编号')
     out_sid      = models.CharField(max_length=64,db_index=True,blank=True,verbose_name='物流单号')
     company      = models.CharField(max_length=64,db_index=True,blank=True,verbose_name='物流名称')
     
+    oid          = models.CharField(max_length=64,db_index=True,blank=True,default='',verbose_name='子订单编号')
     outer_id     = models.CharField(max_length=64,db_index=True,blank=True,verbose_name='商品编码')
     outer_sku_id = models.CharField(max_length=64,db_index=True,blank=True,verbose_name='规格编码')
     num          = models.IntegerField(default=0,verbose_name='数量')
