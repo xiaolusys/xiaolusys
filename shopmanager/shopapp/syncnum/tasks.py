@@ -111,7 +111,7 @@ def updateItemNum(user_id,num_iid):
             
         if sync_num > 0 and product.sync_stock: 
             sync_num = int(sync_num)   
-            response = apis.taobao_item_quantity_update(num_iid=item.num_iid,quantity=sync_num,tb_user_id=user_id)
+            response = apis.taobao_item_update(num_iid=item.num_iid,num=sync_num,tb_user_id=user_id)
             item_dict = response['item_update_response']['item']
             Item.objects.filter(num_iid=item_dict['num_iid']).update(modified=item_dict['modified'],num=item_dict['num'])
 

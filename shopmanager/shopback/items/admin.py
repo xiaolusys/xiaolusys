@@ -83,7 +83,7 @@ class ProductAdmin(admin.ModelAdmin):
             try:
                 items = Item.objects.filter(outer_id=prod.outer_id)
                 for item in items:
-                    updateItemNum(item.user.visitor_id,item.num_iid,dt)
+                    updateItemNum(item.user.visitor_id,item.num_iid)
             except Exception,exc:
                 pull_dict['success']=False
                 pull_dict['errmsg']=exc.message or '%s'%exc  
