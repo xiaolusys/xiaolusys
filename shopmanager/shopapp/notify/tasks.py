@@ -204,7 +204,7 @@ def process_item_notify_task(id):
                 prod.prod_skus.exclude(outer_id__in=item_sku_outer_ids).update(status=pcfg.REMAIN)
                 
         elif notify.status == "ItemUpshelf":
-            item = Item.get_or_create(notify.user_id,notify.num_iid,force_update=True)
+            item = Item.get_or_create(notify.user_id,notify.num_iid,force_update=False)
             Product.objects.filter(outer_id=item.outer_id).update(status=pcfg.NORMAL)
         elif notify.status == "ItemDownshelf":
             Item.get_or_create(notify.user_id,notify.num_iid,force_update=True)
