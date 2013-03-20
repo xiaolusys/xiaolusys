@@ -36,10 +36,9 @@ class RefundManagerView(ModelView):
     
     def get(self, request, *args, **kwargs):
         
-        handling_refunds = Refund.objects.filter(has_good_return=True,
+        handling_refunds = Refund.objects.filter(has_good_return=True,is_reissue=False,
                                 status__in=(pcfg.REFUND_WAIT_RETURN_GOODS,pcfg.REFUND_CONFIRM_GOODS))
         refund_dict  = {}
-        
         for refund in handling_refunds:
             refund_tid = refund.tid
             if refund_dict.has_key(refund_tid):

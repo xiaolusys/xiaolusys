@@ -13,7 +13,7 @@ class RefundProductResource(ModelResource):
 class RefundResource(ModelResource):
     """ docstring for RefundResource """
 
-    fields = ('refund_id','id','buyer_nick','buyer_mobile','buyer_phone','trade_id','out_sid','sid','mobile','phone','company','title'
+    fields = ('refund_id','id','buyer_nick','buyer_mobile','buyer_phone','trade_id','out_sid','sid','mobile','phone','company','title','template_string'
               ,'property','num','can_reuse','is_finish','created','modified','memo','status','refund_trades','refund_products','refund_orders','STATIC_URL')
     exclude = ('url',) 
     
