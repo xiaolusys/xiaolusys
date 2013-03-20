@@ -28,7 +28,7 @@ SYS_TRADE_STATUS = (
     (pcfg.WAIT_PREPARE_SEND_STATUS,'待发货准备'),
     (pcfg.WAIT_CHECK_BARCODE_STATUS,'待扫描验货'),
     (pcfg.WAIT_SCAN_WEIGHT_STATUS,'待扫描称重'),
-    (pcfg.FINISHED_STATUS,'已发货'),
+    (pcfg.FINISHED_STATUS,'已完成'),
     (pcfg.INVALID_STATUS,'已作废'),
     (pcfg.ON_THE_FLY_STATUS,'飞行模式'),
     (pcfg.REGULAR_REMAIN_STATUS,'定时提醒')

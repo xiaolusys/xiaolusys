@@ -192,7 +192,7 @@ def process_item_notify_task(id):
                 prod = Product.objects.get(outer_id=outer_id)
                 
                 from shopback.items.tasks import updateUserProductSkuTask
-                updateUserProductSkuTask(outer_ids=[outer_id],force_update_num=True) #线上库存修改覆盖系统库存
+                updateUserProductSkuTask(outer_ids=[outer_id],force_update_num=False) #线上库存修改覆盖系统库存
                 
                 item_sku_outer_ids = set()
                 items = Item.objects.filter(outer_id=outer_id)
@@ -204,7 +204,7 @@ def process_item_notify_task(id):
                 prod.prod_skus.exclude(outer_id__in=item_sku_outer_ids).update(status=pcfg.REMAIN)
                 
         elif notify.status == "ItemUpshelf":
-            item = Item.get_or_create(notify.user_id,notify.num_iid,force_update=False)
+            item = Item.get_or_create(notify.user_id,notify.num_iid,force_update=True)
             Product.objects.filter(outer_id=item.outer_id).update(status=pcfg.NORMAL)
         elif notify.status == "ItemDownshelf":
             Item.get_or_create(notify.user_id,notify.num_iid,force_update=True)
