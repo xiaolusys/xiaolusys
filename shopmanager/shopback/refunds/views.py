@@ -1,7 +1,9 @@
 #-*- encoding:utf8 -*-
 import json
-from django.http import HttpResponse
+import datetime
+from django.http import HttpResponse,HttpResponseRedirect,HttpResponseNotFound
 from django.conf import settings
+from django.core.urlresolvers import reverse
 from auth import staff_requried
 from django.db.models import Q
 from django.template.loader import render_to_string
@@ -245,7 +247,61 @@ class RefundView(ModelView):
         rf.save()
         
         return rf  
+ 
+
+def create_refund_exchange_trade(request,tid):
     
+    try:
+        origin_trade = MergeTrade.objects.get(tid=tid)
+    except:
+        return HttpResponseNotFound('<h1>订单未找到 404<h1>')
+    refunds  = Refund.objects.filter(tid=tid)
+    rfprods  = RefundProduct.objects.filter(trade_id=tid)
+    if rfprods.count()<0:
+        return HttpResponseNotFound('<h1>未找到退货商品 404<h1>')
+    
+    dt = datetime.datetime.now()
+    merge_trade = MergeTrade.objects.create(
+                                            user = origin_trade.user,
+                                            seller_id = origin_trade.seller_id,
+                                            seller_nick = origin_trade.seller_nick,
+                                            buyer_nick = origin_trade.buyer_nick,
+                                            type = pcfg.EXCHANGE_TYPE,
+                                            shipping_type = origin_trade.shipping_type,
+                                            logistics_company = origin_trade.logistics_company,
+                                            receiver_name = origin_trade.receiver_name,
+                                            receiver_state = origin_trade.receiver_state,
+                                            receiver_city = origin_trade.receiver_city,
+                                            receiver_district = origin_trade.receiver_district,
+                                            receiver_address = origin_trade.receiver_address,
+                                            receiver_zip = origin_trade.receiver_zip,
+                                            receiver_mobile = origin_trade.receiver_mobile,
+                                            receiver_phone = origin_trade.receiver_phone,
+                                            sys_status = pcfg.WAIT_AUDIT_STATUS,
+                                            status=pcfg.WAIT_SELLER_SEND_GOODS,
+                                            created=dt,
+                                            pay_time=dt,
+                                            modified=dt
+                                            )
+    for prod in rfprods:
+        merge_order = MergeOrder()
+        merge_order.merge_trade = merge_trade
+        merge_order.title       = prod.title
+        merge_order.sku_properties_name   = prod.property
+        merge_order.outer_id       = prod.outer_id
+        merge_order.outer_sku_id   = prod.outer_sku_id
+        merge_order.seller_nick    = origin_trade.seller_nick
+        merge_order.buyer_nick     = origin_trade.buyer_nick
+        merge_order.gift_type      = pcfg.RETURN_GOODS_GIT_TYPE
+        merge_order.sys_status     = pcfg.IN_EFFECT
+        merge_order.created        = dt
+        merge_order.save()
+    
+    refunds.update(is_reissue=True)
+    rfprods.update(is_finish=True)    
+    
+    return HttpResponseRedirect('/admin/trades/mergetrade/?type__exact=exchange&sys_status=WAIT_AUDIT&q=%s'%str(merge_trade.id))  
+   
     
 def delete_trade_order(request,id):
     

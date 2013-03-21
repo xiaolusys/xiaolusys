@@ -12,8 +12,11 @@ goog.require('goog.uri.utils');
 /** @constructor */
 checkrefund.Dialog = function (manager) {
     this.dialog = new goog.ui.Dialog();
-    this.orderManager = manager;
-    this.tid = null; 
+    this.refundManager = manager;
+    this.refundTable   = null;
+    this.tid = null;
+    
+    this.refundTable   = goog.dom.getElement('id_refund_table'); 
 }
 
 checkrefund.Dialog.prototype.init = function (tid) {
@@ -54,7 +57,11 @@ checkrefund.Dialog.prototype.hide = function(data) {
 
 checkrefund.Dialog.prototype.handleEvent= function (e) {
     if (e.key == 'OK') {
-		
+		var url = '/refunds/exchange/'+this.tid+'/';
+		var row_idx = this.refundManager.check_row_idx;
+		this.refundTable.deleteRow(row_idx);
+		this.hide();
+		window.open(url);  
     }
     return false;
 }
