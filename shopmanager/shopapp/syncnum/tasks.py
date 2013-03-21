@@ -62,7 +62,7 @@ def updateItemNum(user_id,num_iid):
             elif sync_num >0 and sync_num <= product_sku.warn_num:
                 total_num,user_order_num = MergeOrder.get_yesterday_orders_totalnum(item.user.id,outer_id,outer_sku_id)
                 if total_num>0 and user_order_num>0:
-                    sync_num = round(float(user_order_num/total_num)*sync_num)
+                    sync_num = round(float(user_order_num)/float(total_num)*sync_num)
                 elif total_num == 0:
                     item_count = Item.objects.filter(outer_id=outer_id,approve_status=pcfg.ONSALE_STATUS).count() or 1
                     sync_num = sync_num/item_count or sync_num
@@ -100,7 +100,7 @@ def updateItemNum(user_id,num_iid):
         elif sync_num >0 and sync_num <= product.warn_num:
             total_num,user_order_num = MergeOrder.get_yesterday_orders_totalnum(item.user.id,outer_id,outer_sku_id)
             if total_num>0 and user_order_num>0:
-                sync_num = round(float(user_order_num/total_num)*sync_num)
+                sync_num = round(float(user_order_num)/float(total_num)*sync_num)
             elif total_num == 0:
                 item_count = Item.objects.filter(outer_id=outer_id,approve_status=pcfg.ONSALE_STATUS).count() or 1
                 sync_num = sync_num/item_count or sync_num
