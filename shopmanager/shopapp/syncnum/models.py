@@ -1,3 +1,4 @@
+#-*- coding:utf8 -*-
 from django.db import models
 from shopback.base.fields import BigIntegerAutoField
 
@@ -19,7 +20,9 @@ class ItemNumTaskLog(models.Model):
     
     class Meta:
         db_table = 'shop_syncnum_itemnumtasklog'
+        verbose_name=u'库存同步日志'
+        verbose_name_plural = u'库存同步日志列表'
 
     def __unicode__(self):
-        return self.outer_id+self.sku_outer_id
+        return '<%s,%s,%d>'%(self.outer_id,self.sku_outer_id,self.num)
 

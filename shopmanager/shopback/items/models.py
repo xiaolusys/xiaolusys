@@ -55,7 +55,7 @@ class Product(models.Model):
     
     collect_num  = models.IntegerField(default=0,verbose_name='库存数')  #库存数
     warn_num     = models.IntegerField(null=True,default=0,verbose_name='警告库位')    #警戒库位
-    remain_num   = models.IntegerField(null=True,default=10,verbose_name='预留库位')    #预留库存
+    remain_num   = models.IntegerField(null=True,default=0,verbose_name='预留库位')    #预留库存
     wait_post_num   = models.IntegerField(null=True,default=0,verbose_name='待发数')    #待发数
     
     cost        = models.FloatField(default=0,verbose_name='成本价')
@@ -147,7 +147,7 @@ class ProductSku(models.Model):
     
     quantity = models.IntegerField(default=0,verbose_name='库存数')
     warn_num     = models.IntegerField(null=True,default=0,verbose_name='警戒库位')    #警戒库位
-    remain_num   = models.IntegerField(null=True,default=10,verbose_name='预留库位')    #预留库存
+    remain_num   = models.IntegerField(null=True,default=0,verbose_name='预留库位')    #预留库存
     wait_post_num = models.IntegerField(null=True,default=0,verbose_name='待发数')    #待发数
     
     cost        = models.FloatField(default=0,verbose_name='成本价')

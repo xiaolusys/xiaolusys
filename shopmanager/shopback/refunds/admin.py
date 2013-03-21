@@ -1,4 +1,6 @@
+#-*- coding:utf8 -*-
 from django.contrib import admin
+from django.http import HttpResponseRedirect
 from shopback.refunds.models import Refund,RefundProduct
 
 __author__ = 'meixqhi'
@@ -12,10 +14,24 @@ class RefundAdmin(admin.ModelAdmin):
 
     date_hierarchy = 'created'
     #ordering = ['created_at']
-
+    
     list_filter   = ('seller_nick','has_good_return','good_status','is_reissue','order_status','status',)
     search_fields = ['refund_id','tid','oid','sid','buyer_nick']
-
+    
+    #标记为已处理
+    def tag_as_finished(self,request,queryset):
+        
+        http_referer = request.META.get('HTTP_REFERER')
+        for refund in queryset:
+            refund.is_reissue = True
+            refund.save()
+            
+        return HttpResponseRedirect(http_referer)
+    
+    tag_as_finished.short_description = u"标记为已处理"
+    
+    actions = ['tag_as_finished',]
+    
 
 admin.site.register(Refund,RefundAdmin)
   
@@ -31,7 +47,20 @@ class RefundProductAdmin(admin.ModelAdmin):
 
     list_filter   = ('can_reuse','is_finish')
     search_fields = ['buyer_nick','buyer_mobile','buyer_phone','trade_id','out_sid']
-
+    
+    #标记为已处理
+    def tag_as_finished(self,request,queryset):
+        
+        http_referer = request.META.get('HTTP_REFERER')
+        for prod in queryset:
+            prod.is_finish = True
+            prod.save()
+            
+        return HttpResponseRedirect(http_referer)
+    
+    tag_as_finished.short_description = u"标记为已处理"
+    
+    actions = ['tag_as_finished',]
 
 admin.site.register(RefundProduct,RefundProductAdmin)
 

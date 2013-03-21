@@ -68,14 +68,22 @@ class RefundManagerView(ModelView):
         content = request.REQUEST
         tid     = content.get('tid')
         if not tid :
-            return '请输入交易ID'
+            return u'请输入交易ID'
+        
+        try:
+            merge_trade = MergeTrade.objects.get(tid=tid)
+        except:
+            return u'订单未找到'
         refund_orders = Refund.objects.filter(tid=tid)
         refund_products  = RefundProduct.objects.filter(trade_id=tid)
         
         op_str  = render_to_string('refunds/refund_order_product.html', 
-                { 'refund_orders': refund_orders,'refund_products': refund_products ,'STATIC_URL':settings.STATIC_URL})
+                { 'refund_orders': refund_orders,
+                 'refund_products': refund_products ,
+                 'STATIC_URL':settings.STATIC_URL,
+                 'trade':merge_trade})
         
-        return {'template_string':op_str,'trade_id':tid}
+        return {'template_string':op_str,'trade_id':tid,}
         #return { 'refund_orders': refund_orders,'refund_products': refund_products ,'STATIC_URL':settings.STATIC_URL}
     
     

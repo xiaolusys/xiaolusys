@@ -54,7 +54,7 @@ def updateItemNum(user_id,num_iid):
             wait_nums   = product_sku.wait_post_num>0 and product_sku.wait_post_num or 0
             remain_nums = product_sku.remain_num or 0
             real_num    = product_sku.quantity
-            sync_num    = real_num - wait_nums # - remain_nums
+            sync_num    = real_num - wait_nums - remain_nums
             
             #如果自动更新库存状态开启，并且计算后库存不等于在线库存，则更新
             if  sync_num != sku['quantity'] and sync_num > product_sku.warn_num:
@@ -71,7 +71,7 @@ def updateItemNum(user_id,num_iid):
             else:
                 sync_num = 0
                 
-            if  sync_num >0 and product_sku.sync_stock:
+            if  sync_num >0 and product.sync_stock and product_sku.sync_stock:
                 sync_num = int(sync_num)
                 response = apis.taobao_item_quantity_update\
                         (num_iid=item.num_iid,quantity=sync_num,outer_id=outer_sku_id,tb_user_id=user_id)

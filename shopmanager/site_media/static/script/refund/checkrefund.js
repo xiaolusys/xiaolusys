@@ -36,6 +36,7 @@ checkrefund.Dialog.prototype.init = function (tid) {
 			    dialog.setButtonSet(new goog.ui.Dialog.ButtonSet().addButton({key: 'OK', caption: "确认收货并创建退换货单"},false,false));
 			    goog.events.listen(dialog, goog.ui.Dialog.EventType.SELECT, that);
 		    }else{
+		    	that.hide();
 		    	alert('错误:'+res.response_error);
 		    }
 	
