@@ -2,7 +2,10 @@
 {% load trade_tags %}
 <div class="map-content" style="margin-left: auto; margin-right: auto; width: 800px">
 	<div>
-		<div ><label>买家昵称:</label>{{ trade.buyer_nick }}<label>收货人:</label>{{ trade.receiver_name }}</div>
+		<div class="well well-small">
+			<div class="order-userinfo" style="float:left;"><label class="label label-success">买家昵称:</label>{{ trade.buyer_nick }}</div>
+			<div class="order-userinfo" style="float:right;"><label class="label label-success">收货人:</label>{{ trade.receiver_name }}</div>
+		</div>
 		<div class="order-head"><h3 class="head-title">退货单列表</h3></div>
 		<div class="order-content">
 			<table class="table table-bordered table-striped table-condensed">
