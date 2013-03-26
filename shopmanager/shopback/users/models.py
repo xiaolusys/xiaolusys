@@ -87,7 +87,7 @@ class User(models.Model):
     @property
     def stock_percent(self):
         #获取该店铺商品库存同步比例
-        if self.self.percentage <= 0:
+        if self.percentage <= 0:
             return -1
         total_percent = User.objects.filter(status=pcfg.USER_NORMAL).aggregate(
                                         total_percent=models.Sum('percentage')).get('total_percent')
