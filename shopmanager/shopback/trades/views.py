@@ -589,7 +589,9 @@ def change_logistic_and_outsid(request):
     except:    
         ret_params = {'code':1,'response_error':u'未找到该订单'}
         return HttpResponse(json.dumps(ret_params),mimetype="application/json")
-        
+    
+    origin_logistic_code = merge_trade.logistics_company.code
+    origin_out_sid       = merge_trade.out_sid  
     try:
         logistic   = LogisticsCompany.objects.get(code=logistic_code)
         logistic_regex = re.compile(logistic.reg_mail_no)
@@ -609,7 +611,7 @@ def change_logistic_and_outsid(request):
                 merge_trade.logistics_company = logistic
                 merge_trade.out_sid   = out_sid
                 merge_trade.save()
-                log_action(user_id,merge_trade,CHANGE,u'修改快递及单号(修改前:%s,%s)'%(logistic_code,out_sid))
+                log_action(user_id,merge_trade,CHANGE,u'修改快递及单号(修改前:%s,%s)'%(origin_logistic_code,origin_out_sid))
             elif merge_trade.sys_status == pcfg.FINISHED_STATUS:
                 try:
                     apis.taobao_logistics_consign_resend(tid=merge_trade.tid,out_sid=out_sid
@@ -622,7 +624,7 @@ def change_logistic_and_outsid(request):
                 merge_trade.logistics_company = logistic
                 merge_trade.out_sid   = out_sid
                 merge_trade.save()
-                log_action(user_id,merge_trade,CHANGE,u'快递退回重发(修改前:%s,%s)'%(logistic_code,out_sid))
+                log_action(user_id,merge_trade,CHANGE,u'快递退回重发(修改前:%s,%s)'%(origin_logistic_code,origin_out_sid))
             else:
                 raise Exception(u'该订单不能修改')
         else:

@@ -120,6 +120,8 @@ tr {
 
 .row-through {
     width:100%;
+    margin-bottom:5px;
+    padding: 0px 5px
 }
 
 .seller {

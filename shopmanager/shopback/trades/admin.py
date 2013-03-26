@@ -258,6 +258,17 @@ class MergeTradeAdmin(admin.ModelAdmin):
             msg = u'%(name)s "%(obj)s" 保存成功.'% {'name': force_unicode(verbose_name), 'obj': force_unicode(obj)}
             self.message_user(request, msg)
             return HttpResponseRedirect("../%s/" % pk_value)
+        elif request.POST.has_key("_finish"):
+            if obj.sys_status in (pcfg.WAIT_CHECK_BARCODE_STATUS,pcfg.WAIT_SCAN_WEIGHT_STATUS):
+                obj.sys_status = pcfg.FINISHED_STATUS
+                obj.weight_time = datetime.datetime.now()
+                obj.save()
+                msg = u'%(name)s "%(obj)s" 订单手动修改已完成.'% {'name': force_unicode(verbose_name), 'obj': force_unicode(obj)} 
+                log_action(request.user.id,obj,CHANGE,msg)
+            else:
+                msg = u"订单不在待扫描验货或待扫描称重，不能修改为已完成状态"
+            self.message_user(request, msg)
+            return HttpResponseRedirect("../%s/" % pk_value)
         return super(MergeTradeAdmin, self).response_change(request, obj, *args, **kwargs)
     
     #--------定义action----------------

@@ -56,7 +56,7 @@ class LogisticsCompany(models.Model):
             cur_range   += logistic.priority
             priority_ranges.append(priority_range)
         
-        index = random.randint(0,total_priority)    
+        index = random.randint(1,total_priority)    
         for rg in priority_ranges:
             if index>=rg[0] and index<=rg[1]:
                  return rg[2]

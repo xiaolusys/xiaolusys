@@ -10,6 +10,7 @@ from shopback.items.models import Item,Product,ProductSku
 from shopback.orders.models import Trade
 from shopback.fenxiao.models import PurchaseOrder
 from shopback.trades.models import MergeTrade,MergeOrder
+from shopback.base import log_action,User, ADDITION, CHANGE
 from shopback.signals import rule_signal
 import logging
 
@@ -262,8 +263,10 @@ def rule_match_payment(sender, trade_id, *args, **kwargs):
                 if real_payment >= rule.payment:
                     for item in rule.compose_items.all():
                         MergeOrder.gen_new_order(trade.id,item.outer_id,item.outer_sku_id,item.num,gift_type=pcfg.OVER_PAYMENT_GIT_TYPE)
+                        msg = u'交易金额匹配（实付:%s）'%str(real_payment)
+                        log_action(trade.user.user.id,trade,CHANGE,msg)
                     break
-            
+                
             MergeTrade.objects.filter(id=trade_id).update(total_num=orders.filter(sys_status=pcfg.IN_EFFECT).count(),payment=payment)
         except Exception,exc:
             logger.error(exc.message or 'payment rule error',exc_info=True)
@@ -322,6 +325,8 @@ def rule_match_combose_split(sender, trade_id, *args, **kwargs):
                                                  item.num*order_num,gift_type=pcfg.COMBOSE_SPLIT_GIT_TYPE)
                     order.sys_status=pcfg.INVALID_STATUS
                     order.save()
+                    msg = u'拆分订单商品(oid:%d)'%order.id
+                    log_action(trade.user.user.id,trade,CHANGE,msg)
                     
         except Exception,exc:
             logger.error(exc.message or 'combose split error',exc_info=True)

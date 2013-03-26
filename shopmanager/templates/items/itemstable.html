@@ -9,11 +9,11 @@
 		<tr>
 			<td><img src="{{ item.pic_url }}" width="50px" heigth="50px" /></td><td>{{ item.user.nick }}</td><td class="info_title"><a href="{{ item.detail_url }}" target="_blank">{{ item.title }}</a></td><td>{{ item.price }}</td>
 			<td>{{ item.num }}</td><td>{% with item.list_time|date:"w" as week %}{% if week == '0' %}周日{% else %}周{{ week }}{% endif %}{%  endwith %},{{ item.list_time|date:" H时i分 " }}</td>
-			<td>{% if item.approve_status == 'onsale' %}<a class="btn btn-small btn-success" style="display:block;"><i class="icon-ok"></i>在售</a>
-	  			{% else %}<a class="btn btn-small btn-warning" style="display:block;"><i class="icon-move"></i>下架</a>{%endif%}</td>
+			<td>{% if item.approve_status == 'onsale' %}<a class="badge badge-success" style="display:block;"><i class="icon-ok"></i>在售</a>
+	  			{% else %}<a class="badge" style="display:block;"><i class="icon-move"></i>下架</a>{%endif%}</td>
 	  		{% if forloop.first %}
 	  		<td rowspan="{{ object|length }}">
-	  		<a class="btn btn-small btn-info" style="display:block;" href="/items/product/item/{{ item.outer_id }}/" target="_blank" >
+	  		<a class="label label-info" style="display:block;" href="/items/product/item/{{ item.outer_id }}/" target="_blank" >
 	  		<i class="icon-star"></i>详细信息</a></td>
 	  		{% endif%}
 		</tr>

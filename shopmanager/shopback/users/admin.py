@@ -11,7 +11,7 @@ from shopback import paramconfig as pcfg
 
 
 class UserAdmin(admin.ModelAdmin):
-    list_display = ('id','top_session','has_fenxiao','visitor_id','uid','nick','is_primary','status')
+    list_display = ('id','top_session','has_fenxiao','visitor_id','uid','nick','is_primary','sync_stock','percentage','status')
     list_display_links = ('id', 'nick')
     #list_editable = ('update_time','task_type' ,'is_success','status')
 

@@ -1,3 +1,4 @@
+#-*- coding:utf8 -*-
 import json
 import settings
 import datetime
@@ -17,10 +18,21 @@ from shopback import paramconfig as pcfg
 from shopback.categorys.models import Category
 from shopback.items.models import Item,Product
 from shopback.users.models import User
-from shopapp.autolist.models import Logs,ItemListTask,TimeSlots,UNEXECUTE,UNSCHEDULED,LISTING_TYPE,DELISTING_TYPE
+from shopapp.autolist.models import Logs,ItemListTask,TimeSlots,UNEXECUTE,UNSCHEDULED,DELETE,LISTING_TYPE,DELISTING_TYPE
 from auth import apis
 
 
+@login_required
+def invalid_list_task(request,num_iid):
+
+    if not (num_iid.isdigit() and num.isdigit()):
+        response = {'code':1,'response_error':u'商品编号不合规则'}
+        return HttpResponse(json.dumps(response),mimetype='application/json')
+    
+    ItemListTask.objects.get(num_iid=num_iid).update(status=DELETE)
+    response = {'code':0,'response_content':'success'}
+    
+    return HttpResponse(json.dumps(response),mimetype='application/json')
 
 
 @login_required(login_url=settings.LOGIN_URL)

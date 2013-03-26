@@ -185,7 +185,7 @@ class MergeTrade(models.Model):
         permissions = [("can_trade_modify", u"修改订单状态"),("can_trade_aduit", u"审核订单信息")]
 
     def __unicode__(self):
-        return str(self.id)
+        return '<%d,%s>'%(self.id,self.buyer_nick)
     
     @property
     def inuse_orders(self):
@@ -574,6 +574,9 @@ class MergeOrder(models.Model):
         verbose_name=u'子订单'
         verbose_name_plural = u'子订单列表'
         
+    def __unicode__(self):
+        return '<%d,%s>'%(self.id,self.outer_id)
+        
     @classmethod
     def get_yesterday_orders_totalnum(cls,shop_user_id,outer_id,outer_sku_id):
         """ 获取某店铺昨日某商品销售量，与总销量 """
@@ -620,9 +623,9 @@ class MergeOrder(models.Model):
             is_reverse_order = is_reverse,
             out_stock = productsku.is_out_stock if productsku else product.is_out_stock,
             status = status,
-            sys_status = pcfg.IN_EFFECT
+            sys_status = pcfg.IN_EFFECT,
         )
-        merge_order.save()
+        post_save.send(sender=cls, instance=merge_order) #通知消息更新主订单
         return merge_order
 
 
@@ -654,8 +657,8 @@ def refresh_trade_status(sender,instance,*args,**kwargs):
     has_merge     = merge_trade.merge_trade_orders.filter(is_merge=True,status=pcfg.WAIT_SELLER_SEND_GOODS).count()>0
     merge_trade.has_merge = has_merge
     
-    if not merge_trade.reason_code and merge_trade.status==pcfg.WAIT_SELLER_SEND_GOODS \
-        and merge_trade.logistics_company and merge_trade.sys_status==pcfg.WAIT_AUDIT_STATUS:
+    if not merge_trade.reason_code and merge_trade.status==pcfg.WAIT_SELLER_SEND_GOODS and merge_trade.logistics_company\
+         and merge_trade.sys_status==pcfg.WAIT_AUDIT_STATUS and merge_trade.type not in (pcfg.DIRECT_TYPE,pcfg.EXCHANGE_TYPE):
         merge_trade.sys_status = pcfg.WAIT_PREPARE_SEND_STATUS
         
     merge_trade.save()

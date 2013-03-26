@@ -36,10 +36,12 @@ def updateItemNum(user_id,num_iid):
                       'sku_id': <type 'int'>})}}
     """
     item = Item.objects.get(num_iid=num_iid)
+    user = item.user
     product = item.product
     if not product:
         return
     
+    user_percent = user.stock_percent
     outer_id = product.outer_id
     skus = json.loads(item.skus) if item.skus else None
     if skus:
@@ -57,7 +59,9 @@ def updateItemNum(user_id,num_iid):
             sync_num    = real_num - wait_nums - remain_nums
             
             #如果自动更新库存状态开启，并且计算后库存不等于在线库存，则更新
-            if sync_num > product_sku.warn_num:
+            if sync_num>0 and user_percent>0:
+                sync_num = round(user_percet*sync_num)
+            elif sync_num > product_sku.warn_num:
                 product_sku.is_assign = False
             elif sync_num >0 and sync_num <= product_sku.warn_num:
                 total_num,user_order_num = MergeOrder.get_yesterday_orders_totalnum(item.user.id,outer_id,outer_sku_id)
@@ -71,7 +75,8 @@ def updateItemNum(user_id,num_iid):
             else:
                 sync_num = 0
                 
-            if sync_num != sku['quantity'] and sync_num >0 and product.sync_stock and product_sku.sync_stock:
+            #同步库存数不为0，或者没有分配库存，同步数量不等于线上库存，并且店铺，商品，规格同步状态正确
+            if not (sync_num == 0 and product_sku.is_assign) and sync_num != sku['quantity'] and user.sync_stock and product.sync_stock and product_sku.sync_stock:
                 sync_num = int(sync_num)
                 response = apis.taobao_item_quantity_update\
                         (num_iid=item.num_iid,quantity=sync_num,outer_id=outer_sku_id,tb_user_id=user_id)
@@ -95,7 +100,9 @@ def updateItemNum(user_id,num_iid):
         sync_num   = real_num - wait_nums - remain_nums
 
         #如果自动更新库存状态开启，并且计算后库存不等于在线库存，则更新
-        if sync_num > product.warn_num:
+        if sync_num>0 and user_percent>0:
+            sync_num = round(user_percet*sync_num)
+        elif sync_num > product.warn_num:
             product.is_assign = False
         elif sync_num >0 and sync_num <= product.warn_num:
             total_num,user_order_num = MergeOrder.get_yesterday_orders_totalnum(item.user.id,outer_id,outer_sku_id)
@@ -109,7 +116,8 @@ def updateItemNum(user_id,num_iid):
         else:
             sync_num = 0    
             
-        if sync_num != item.num and sync_num >0 and product.sync_stock: 
+        #同步库存数不为0，或者没有分配库存，同步数量不等于线上库存，并且店铺，商品同步状态正确
+        if not (sync_num == 0 and product.is_assign) and sync_num != item.num and user.sync_stock and product.sync_stock: 
             sync_num = int(sync_num)   
             response = apis.taobao_item_update(num_iid=item.num_iid,num=sync_num,tb_user_id=user_id)
             item_dict = response['item_update_response']['item']

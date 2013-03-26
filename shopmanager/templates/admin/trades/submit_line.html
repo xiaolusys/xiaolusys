@@ -5,6 +5,7 @@
 {% if show_split %}<input type="submit" value="{% trans '取消合并' %}" class="default" name="_split" {{ onclick_attrib }}/>{% endif %}
 {% if show_uninvalid %}<input type="submit" value="{% trans '反作废' %}" class="default" name="_uninvalid" {{ onclick_attrib }}/>{% endif %}
 {% if show_invalid %}<input type="submit" value="{% trans '作废' %}" class="default" name="_invalid" {{ onclick_attrib }}/>{% endif %}
+{% if show_finish %}<input type="submit" value="{% trans '已完成' %}" class="default" name="_finish" {{ onclick_attrib }}/>{% endif %}
 {% if show_unregular %}<input type="submit" value="{% trans '取消定时' %}" class="default" name="_unregular" {{ onclick_attrib }}/>{% endif %}
 {% if show_save_and_regular %}<input type="submit" value="{% trans '定时提醒' %}" class="default" name="_regular" {{ onclick_attrib }}/>{% endif %}
 {% if show_save %}<input type="submit" value="{% trans '保存' %}" class="default" name="_save" {{ onclick_attrib }}/>{% endif %}

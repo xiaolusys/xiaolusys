@@ -27,6 +27,8 @@ class TimeSlots(models.Model):
     class Meta:
         db_table = 'shop_autolist_timeslot'
         ordering = ['timeslot']
+        verbose_name=u'上架时间轴'
+        verbose_name_plural = u'上架时间轴'
     
     @property
     def hour(self):
@@ -55,6 +57,8 @@ class ItemListTask(models.Model):
 
     class Meta:
         db_table = 'shop_autolist_itemlisttask'
+        verbose_name=u'上架任务'
+        verbose_name_plural = u'上架任务列表'
         
     @property
     def hour(self):
@@ -85,3 +89,5 @@ class Logs(models.Model):
 
     class Meta:
         db_table = 'shop_autolist_logs'
+        verbose_name=u'上架任务日志'
+        verbose_name_plural = u'任务日志'

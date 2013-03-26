@@ -83,10 +83,10 @@ tradetag.Manager.prototype.handleEvent= function (e) {
 
 tradetag.Manager.prototype.getDialogContent = function() {
     return '<div style="width:400px;"><div>'
-  		+'<div class="memo_label"><label>买家昵称：</label><span id="id_buyer_nick"></span></div>'
-  		+'<div class="memo_label"><label>收货人：</label><span id="id_receiver_name"></span></div>'
-  		+'<div class="buyer_message_label"><label>买家留言：</label><span id="id_buyer_message"></span></div>'
-  		+'<div class="seller_message_label"><label>卖家留言：</label><span id="id_seller_message"></span></div>'
+  		+'<div class="alert alert-message memo_label"><label>买家昵称：</label><span id="id_buyer_nick"></span></div>'
+  		+'<div class="alert alert-message memo_label"><label>收货人：</label><span id="id_receiver_name"></span></div>'
+  		+'<div class="buyer_message_label alert "><label>买家留言：</label><span id="id_buyer_message"></span></div>'
+  		+'<div class="seller_message_label alert "><label>卖家留言：</label><span id="id_seller_message"></span></div>'
   		+'</div><div><h3>系统备注</h3>'
   		+'<div><textarea id="id_sys_memo" class="trade_memo"></textarea></div></div></div>'
 }

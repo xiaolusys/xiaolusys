@@ -1,11 +1,17 @@
 #-*- coding:utf8 -*-
+USER_NORMAL = "normal"     #正常
+USER_INACTIVE = "inactive" #待用
+USER_DELETE = "delete"     #删除
+USER_FREEZE = "freeze"     #冻结
+USER_SUPERVISE = "supervise" #监管
+
 #任务状态
 UNEXECUTE = 'unexecute'
 EXECERROR = 'execerror'
 SUCCESS = 'success'
 NORMAL = 'normal'
 DELETE = 'delete'
-REMAIN = 'remain'
+REMAIN = 'remain'  #保留
 #订单类型
 FENXIAO_TYPE = 'fenxiao'
 TAOBAO_TYPE  = 'fixed'

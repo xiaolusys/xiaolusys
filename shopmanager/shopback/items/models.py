@@ -87,6 +87,10 @@ class Product(models.Model):
         return '<%s,%s>'%(self.outer_id,self.name)
     
     @property
+    def eskus(self):
+        return self.prod_skus.filter(status=pcfg.NORMAL)
+    
+    @property
     def pskus(self):
         return self.prod_skus.filter(status__in=(pcfg.NORMAL,pcfg.REMAIN))
     
@@ -96,7 +100,7 @@ class Product(models.Model):
             self.collect_num = self.collect_num >0 and self.collect_num or 0 
             self.wait_post_num = self.wait_post_num >0 and self.wait_post_num or 0 
             self.save()
-        return self.collect_num <= 0 or self.collect_num-self.wait_post_num <= 0
+        return self.collect_num-self.wait_post_num <= 0
     
     def update_collect_num_incremental(self,num,reverse=False):
         """
@@ -129,11 +133,31 @@ class Product(models.Model):
         """
         库存是否警告
         """
-        for sku in self.prod_skus.all():
-            if sku.is_stock_warn:
+        for sku in self.eskus:
+            if sku.is_stock_warn and not sku.is_assign:
                 return True   
-        sync_num = (self.collect_num or 0) - self.remain_num - (self.wait_post_num or 0)
-        return self.warn_num > sync_num
+            
+        collect_num = self.collect_num >0 and self.collect_num or 0
+        remain_num = self.remain_num >0 and self.remain_num or 0
+        wait_post_num = self.wait_post_num >0 and self.wait_post_num or 0 
+        
+        sync_num = collect_num - remain_num - wait_post_num
+        return sync_num <= 0
+    
+    @property
+    def is_warning(self):
+        """
+        库存预警,昨天的销售大今天能同步的库存
+        """
+        for sku in self.eskus:
+            if sku.is_warning:
+                return True
+            
+        collect_num = self.collect_num >0 and self.collect_num or 0
+        remain_num = self.remain_num >0 and self.remain_num or 0
+        wait_post_num = self.wait_post_num >0 and self.wait_post_num or 0   
+        sync_num = collect_num - remain_num - wait_post_num
+        return self.warn_num >0 and self.warn_num >= sync_num
     
         
 class ProductSku(models.Model):
@@ -186,7 +210,7 @@ class ProductSku(models.Model):
             self.quantity      = self.quantity >= 0 and self.quantity or 0
             self.wait_post_num = self.wait_post_num >= 0 and self.wait_post_num or 0
             self.save()
-        return self.quantity <= 0 or self.quantity-self.wait_post_num <= 0
+        return self.quantity-self.wait_post_num <= 0
 
     def update_quantity_incremental(self,num,reverse=False):
         """
@@ -221,26 +245,42 @@ class ProductSku(models.Model):
         1，如果当前库存小于0；
         2，同步库存（当前库存-预留库存-待发数）小于警告库位 且没有设置警告取消；
         """
-        sync_num = (self.quantity or 0) - self.remain_num - (self.wait_post_num or 0)
-        return self.warn_num > sync_num 
+        quantity = self.quantity >0 and self.quantity or 0
+        remain_num = self.remain_num >0 and self.remain_num or 0
+        wait_post_num = self.wait_post_num >0 and self.wait_post_num or 0
+        sync_num = quantity - remain_num - wait_post_num
+        return sync_num <= 0
+    
+    @property
+    def is_warning(self):
+        """
+        库存预警:
+        1，如果当前能同步的库存小昨日销量；
+        """
+        quantity = self.quantity >0 and self.quantity or 0
+        remain_num = self.remain_num >0 and self.remain_num or 0
+        wait_post_num = self.wait_post_num >0 and self.wait_post_num or 0
+        sync_num = quantity - remain_num - wait_post_num
+        return self.warn_num >0 and self.warn_num >= sync_num 
     
         
 def calculate_product_stock_num(sender, instance, *args, **kwargs):
     """修改SKU库存后，更新库存商品的总库存 """
     product = instance.product
     if product:
-        collect_num = product.prod_skus.filter(status=pcfg.NORMAL)\
-            .aggregate(total_nums=Sum('quantity')).get('total_nums')
-        warn_num = product.prod_skus.filter(status=pcfg.NORMAL)\
-            .aggregate(total_nums=Sum('warn_num')).get('total_nums')
-        remain_num = product.prod_skus.filter(status=pcfg.NORMAL)\
-            .aggregate(total_nums=Sum('remain_num')).get('total_nums')
-        wait_post_num = product.prod_skus.filter(status=pcfg.NORMAL)\
-            .aggregate(total_nums=Sum('wait_post_num')).get('total_nums')    
+        product_skus = product.pskus
+        collect_num = product_skus.aggregate(total_nums=Sum('quantity')).get('total_nums')
+        warn_num = product_skus.aggregate(total_nums=Sum('warn_num')).get('total_nums')
+        remain_num = product_skus.aggregate(total_nums=Sum('remain_num')).get('total_nums')
+        wait_post_num = product_skus.aggregate(total_nums=Sum('wait_post_num')).get('total_nums')
+            
+        product.is_split    = product_skus.filter(is_split=True)>0    
+        product.is_match    = product_skus.filter(is_match=True)>0 
         product.collect_num = collect_num or 0
-        product.warn_num = warn_num or 0
-        product.remain_num = remain_num or 0
+        product.warn_num    = warn_num or 0
+        product.remain_num  = remain_num or 0
         product.wait_post_num = wait_post_num or 0
+        
         product.save()
     
 post_save.connect(calculate_product_stock_num, sender=ProductSku, dispatch_uid='calculate_product_num')
@@ -313,8 +353,7 @@ class Item(models.Model):
                 r = p.split(':')
                 property_dict['%s:%s'%(r[0],r[1])]=r[2]
     	return property_dict
-
-
+    
     @classmethod
     def get_or_create(cls,user_id,num_iid,force_update=False):
         item,state = Item.objects.get_or_create(num_iid=num_iid)

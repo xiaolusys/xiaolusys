@@ -1,3 +1,6 @@
+######### 2013-3-22  ##########
+alter table shop_users_user add column sync_stock tinyint(1) NOT NULL;
+alter table shop_users_user add column percentage int(11) DEFAULT 0;
 ######### 2013-3-19  ##########
 alter table shop_refunds_refund add column is_reissue tinyint(1) NOT NULL;
 ######### 2013-3-18  ##########

@@ -13,6 +13,14 @@ import logging
 
 logger = logging.getLogger('user.handler')
 
+USER_STATUS_CHOICES = (
+    (pcfg.USER_NORMAL,u'正常'),
+    (pcfg.USER_INACTIVE,u'未激活'),
+    (pcfg.USER_DELETE,u'删除'),
+    (pcfg.USER_FREEZE,u'冻结'),
+    (pcfg.USER_SUPERVISE,u'监管'),
+)
+
 class User(models.Model):
 
     id = BigIntegerAutoField(primary_key=True)
@@ -57,14 +65,16 @@ class User(models.Model):
     item_notify_updated   = models.DateTimeField(null=True,blank=True)
     refund_notify_updated = models.DateTimeField(null=True,blank=True)
     trade_notify_updated  = models.DateTimeField(null=True,blank=True)
-
+    
     craw_keywords = models.TextField(blank=True)
     craw_trade_seller_nicks = models.TextField(blank=True)
     
+    sync_stock    = models.BooleanField(default=True,verbose_name= u'同步库存')
+    percentage    = models.IntegerField(default=0,verbose_name= u'库存同步比例')
     is_primary    = models.BooleanField(default=False,verbose_name= u'主店铺')
     
     created_at = models.DateTimeField(auto_now=True,null=True) 
-    status     = models.CharField(max_length=12,blank=True) #normal,inactive,delete,reeze,supervise
+    status     = models.CharField(max_length=12,choices=USER_STATUS_CHOICES,blank=True) #normal,inactive,delete,reeze,supervise
     
     class Meta:
         db_table = 'shop_users_user'
@@ -74,7 +84,22 @@ class User(models.Model):
     def __unicode__(self):
         return self.nick
 
-
+    @property
+    def stock_percent(self):
+        #获取该店铺商品库存同步比例
+        if self.self.percentage <= 0:
+            return -1
+        total_percent = User.objects.filter(status=pcfg.USER_NORMAL).aggregate(
+                                        total_percent=models.Sum('percentage')).get('total_percent')
+        if total_percent >0 and total_percent > self.percentage>0:
+            return self.percentage/float(total_percent)
+        elif total_percent >0 and 100>=self.percentage>0:
+            return self.percetage
+        elif self.percentage>=100:
+            return 1
+        else:
+            return -1
+            
     def populate_user_info(self,top_session,top_parameters):
         """docstring for populate_user_info"""
         response = apis.taobao_user_seller_get(tb_user_id=top_parameters['taobao_user_id'])

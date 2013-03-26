@@ -45,7 +45,8 @@ def trade_submit_row(context):
         'show_save_and_regular':is_wait_audit and can_trade_audit,
         'show_save_and_aduit':False,
         'is_popup': is_popup,
-        'show_save': True
+        'show_save': True,
+        'show_finish':sys_status in (pcfg.WAIT_CHECK_BARCODE_STATUS,pcfg.WAIT_SCAN_WEIGHT_STATUS) and can_trade_audit,
     }
     
 @register.inclusion_tag("admin/trades/change_list_results.html")

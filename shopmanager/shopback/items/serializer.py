@@ -13,7 +13,7 @@ import json
 import datetime
 
 class ProductSerializer(Serializer):
-    """ docstring for class ChartSerializer """
+    """ docstring for class ProductSerializer """
 
     __metaclass__ = _RegisterSerializer
 
@@ -23,7 +23,6 @@ class ProductSerializer(Serializer):
         """
         data = {}
         fields = self.get_fields(instance)
-
         # serialize each required field 
         for fname in fields:
             if fname == 'product':
@@ -53,8 +52,9 @@ class ProductSerializer(Serializer):
         return data
 
 
+
 class ItemSerializer(Serializer):
-    """ docstring for class ChartSerializer """
+    """ docstring for class ItemSerializer """
 
     __metaclass__ = _RegisterSerializer
 

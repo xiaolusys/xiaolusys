@@ -17,20 +17,6 @@
 			    <tr>
 			      <th>订单ID</th><th>淘宝订单编号</th><th>店铺名称</th><th>买家昵称</th><th>快递名称</th><th>快递单号</th><th>发货状态</th>
 			    </tr>
-			    <tr><td colspan="6">发货成功的订单</td></tr>
-			    {% for trade in trades %}
-			    {% if trade.sys_status == "WAIT_CHECK_BARCODE" %}
-			    <tr>
-			    	<td>{{ trade.id }}</td>
-					<td>{{ trade.tid }}</td>
-					<td>{{ trade.seller_nick }}</td>
-			    	<td>{{ trade.buyer_nick }}</td>
-			    	<td>{{ trade.company_name }}</td>
-			    	<td>{{ trade.out_sid }}</td>
-			    	<td><img src="{{ STATIC_URL }}admin/img/icon-yes.gif" alt="yes"></td>
-			    </tr>
-			    {% endif %}
-			    {% endfor %}
 			    <tr><td colspan="6">发货失败的订单</td></tr>
 			    {% for trade in trades %}
 			    {% if trade.sys_status != "WAIT_CHECK_BARCODE" %}
@@ -42,6 +28,20 @@
 			    	<td>{{ trade.company_name }}</td>
 			    	<td>{{ trade.out_sid }}</td>
 			    	<td><img src="{{ STATIC_URL }}admin/img/icon-no.gif" alt="no"></td>
+			    </tr>
+			    {% endif %}
+			    {% endfor %}
+			    <tr><td colspan="6">发货成功的订单</td></tr>
+			    {% for trade in trades %}
+			    {% if trade.sys_status == "WAIT_CHECK_BARCODE" %}
+			    <tr>
+			    	<td>{{ trade.id }}</td>
+					<td>{{ trade.tid }}</td>
+					<td>{{ trade.seller_nick }}</td>
+			    	<td>{{ trade.buyer_nick }}</td>
+			    	<td>{{ trade.company_name }}</td>
+			    	<td>{{ trade.out_sid }}</td>
+			    	<td><img src="{{ STATIC_URL }}admin/img/icon-yes.gif" alt="yes"></td>
 			    </tr>
 			    {% endif %}
 			    {% endfor %}

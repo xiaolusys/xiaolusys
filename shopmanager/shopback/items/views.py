@@ -167,8 +167,43 @@ class ProductUpdateView(ModelView):
             instance = Product.objects.get(outer_id=outer_id)
         except:
             instance = None
-            
-        return instance
+        
+        ins_dict = {
+                    'id':instance.id,
+                    'outer_id':instance.outer_id,
+                    'name':instance.name,
+                    'collect_num':instance.collect_num,
+                    'remain_num':instance.remain_num,
+                    'sync_stock':instance.sync_stock,
+                    'is_split':instance.is_split,
+                    'is_match':instance.is_match,
+                    'is_assign':instance.is_assign,
+                    'is_stock_warn':instance.is_stock_warn,
+                    'is_warning':instance.is_warning,
+                    }
+        
+        sku_list = []
+        ins_dict['pskus'] = sku_list
+        for sku in instance.pskus:
+            sku_dict = {
+                        'id':sku.id,
+                        'outer_id':sku.outer_id,
+                        'properties_name':sku.properties_name,
+                        'properties_alias':sku.properties_alias,
+                        'quantity':sku.quantity,
+                        'warn_num':sku.warn_num,
+                        'remain_num':sku.remain_num,
+                        'sync_stock':sku.sync_stock,
+                        'is_split':sku.is_split,
+                        'is_match':sku.is_match,
+                        'status':sku.status,
+                        'is_stock_warn':sku.is_stock_warn,
+                        'is_assign':sku.is_assign,
+                        'is_warning':sku.is_warning,
+                        }
+            sku_list.append(sku_dict)
+        
+        return ins_dict
     
     
     def post(self, request, *args, **kwargs):

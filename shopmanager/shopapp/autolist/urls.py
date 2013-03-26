@@ -14,6 +14,7 @@ urlpatterns = patterns('shopapp.autolist.views',
     url('timetablecats/$','show_timetable_cats',name='show_timetable_cats'),
     url('timeslots/$','get_timeslots_json',name='get_timeslots'),
     url('logs/$', 'show_logs', name='show_logs'),
+    url('invalid/(?P<num_iid>[^/]+)/$', 'invalid_list_task', name='invalid_list'),
 
     url(r'^update/(?P<num_iid>[^/]+)/(?P<num>[^/]+)/$',direct_update_listing,name='update_listing'),
     url(r'^delete/(?P<num_iid>[^/]+)/$',direct_del_listing,name='delete_listing'),
