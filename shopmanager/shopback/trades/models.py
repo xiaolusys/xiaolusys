@@ -185,7 +185,7 @@ class MergeTrade(models.Model):
         permissions = [("can_trade_modify", u"修改订单状态"),("can_trade_aduit", u"审核订单信息")]
 
     def __unicode__(self):
-        return '<%d,%s>'%(self.id,self.buyer_nick)
+        return '<%s,%s>'%(str(self.id),self.buyer_nick)
     
     @property
     def inuse_orders(self):
@@ -575,7 +575,7 @@ class MergeOrder(models.Model):
         verbose_name_plural = u'子订单列表'
         
     def __unicode__(self):
-        return '<%d,%s>'%(self.id,self.outer_id)
+        return '<%s,%s>'%(str(self.id),self.outer_id)
         
     @classmethod
     def get_yesterday_orders_totalnum(cls,shop_user_id,outer_id,outer_sku_id):

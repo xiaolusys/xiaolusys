@@ -325,7 +325,7 @@ def rule_match_combose_split(sender, trade_id, *args, **kwargs):
                                                  item.num*order_num,gift_type=pcfg.COMBOSE_SPLIT_GIT_TYPE)
                     order.sys_status=pcfg.INVALID_STATUS
                     order.save()
-                    msg = u'拆分订单商品(oid:%d)'%order.id
+                    msg = u'拆分订单商品(oid:%s)'%str(order.id)
                     log_action(trade.user.user.id,trade,CHANGE,msg)
                     
         except Exception,exc:
