@@ -46,6 +46,7 @@ def update_product_stock(request):
     mode     = content.get('mode') #0增量，1全量
     
     prod     = None
+    prod_sku = None
     num ,mode = int(num),int(mode)
     if sku_id:
         try:
