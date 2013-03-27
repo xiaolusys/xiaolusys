@@ -2,9 +2,10 @@
 import datetime
 import json
 from django.core.serializers.json import DjangoJSONEncoder
-from django.http import HttpResponse
+from django.http import HttpResponse,HttpResponseNotFound
 from  django.shortcuts import render_to_response
 from django.template import RequestContext
+from django.views.decorators.csrf import csrf_exempt
 from django.template.loader import render_to_string
 from djangorestframework.serializer import Serializer
 from djangorestframework.utils import as_tuple
@@ -34,6 +35,60 @@ def update_user_items(request):
 
     return HttpResponse(json.dumps(response),mimetype='application/json')
 
+
+@csrf_exempt
+def update_product_stock(request):
+
+    content  = request.REQUEST
+    outer_id = content.get('outer_id')
+    sku_id   = content.get('sku_id')
+    num      = content.get('num')
+    mode     = content.get('mode') #0增量，1全量
+    
+    prod     = None
+    num ,mode = int(num),int(mode)
+    if sku_id:
+        try:
+            prod_sku = ProductSku.objects.get(id=sku_id)
+        except:
+            response = {'code':1,'response_error':u'商品规格未找到'}
+            return HttpResponse(json.dumps(response),mimetype='application/json')
+        else:
+            if mode == 0:
+                prod_sku.update_quantity_incremental(num)
+            else:
+                prod_sku.quantity=num
+                prod_sku.save()
+            prod = prod_sku.product
+    else:       
+        try:
+            prod = Product.objects.get(outer_id=outer_id)
+        except:
+            response = {'code':1,'response_error':u'商品未找到'}
+            return HttpResponse(json.dumps(response),mimetype='application/json')
+        else:
+            if mode == 0:
+                prod.update_collect_num_incremental(num)
+            else:
+                prod.collect_num = num
+                prod.save()
+         
+    response = {
+                'outer_id':prod.outer_id,
+                'collect_num':prod.collect_num,
+                'is_stock_warn':prod.is_stock_warn,
+                'is_warning':prod.is_warning,
+                }
+    if prod_sku:
+        response['sku'] = {
+                        'id':prod_sku.id,
+                        'outer_id':prod_sku.outer_id,
+                        'quantity':prod_sku.quantity,
+                        'is_stock_warn':prod_sku.is_stock_warn,
+                        'is_warning':prod_sku.is_warning,
+                        }
+    response = {'code':0,'response_content':response}
+    return HttpResponse(json.dumps(response),mimetype='application/json')
 
 
 def update_user_item(request):
@@ -166,7 +221,7 @@ class ProductUpdateView(ModelView):
         try:
             instance = Product.objects.get(outer_id=outer_id)
         except:
-            instance = None
+            return HttpResponseNotFound(u'商品未找到')
         
         ins_dict = {
                     'id':instance.id,

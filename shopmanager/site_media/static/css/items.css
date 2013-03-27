@@ -77,3 +77,16 @@
 	margin:0px 0px;
 	padding:0px 0px;
 }
+
+.prompt-dialog{
+	display:none;
+	z-index:99;
+	background: #fff;
+	border: 1px solid #999;
+}
+
+.prompt-dialog label,.prompt-dialog input{
+	display:inline;
+	margin:1px 2px;
+	padding:1px 1px;
+}

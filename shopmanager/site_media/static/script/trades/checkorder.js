@@ -119,7 +119,7 @@ ordercheck.Dialog.prototype.init = function (id) {
             console.log('Error: (ajax callback) - ', err);
         } 
 	}
-	goog.net.XhrIo.send('/trades/checkorder/'+id+'/?format=html',callback,'GET')
+	goog.net.XhrIo.send('/trades/checkorder/'+id+'/?format=html',callback,'GET');
 }
 
 ordercheck.Dialog.prototype.show = function(data) {

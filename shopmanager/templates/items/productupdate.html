@@ -1,15 +1,7 @@
-{% extends "items/base.html" %}
-
-{% block title%} 修改产品信息界面 {% endblock %}
-
-{% block navbar %}<div style="margin-top:30px"></div>{% endblock %}
-
-{% block container %}
-<div class='list_top' style="width:800px;height:800px;">
-
+<div class='list_top' style="width:800px;">
 <div class="left-field">
 	<fieldset>
-		<legend>产品信息列表</legend>
+		<legend>产品信息</legend>
 		<form id="id_product_form" action="" >
 			<div id="id-csrftoken">{% csrf_token %}</div>
 			<div>
@@ -29,7 +21,7 @@
 			<div>
 				<div class="sample-item">
 					<label class=""  for="collect">库存数量:</label>
-					<input id="collect_num" name="collect_num" type="text" value="{{ object.collect_num }}" {% if object.pskus %}disabled="disabled"{% endif %} />
+					<input id="collect_num" name="collect_num" sku_id="" class="stock-modify" type="text" value="{{ object.collect_num }}" {% if object.pskus %}disabled="disabled"{% endif %} />
 				</div>
 				<div class="sample-item">
 					<label class=""  for="remain">预留库位:</label>
@@ -79,8 +71,8 @@
 			<tr class="{% if sku.is_stock_warn %}{% if sku.is_assign %}label-info{% else %}label-important{% endif %}{% elif sku.is_warning %}label-warning{% endif %}">
 			<td><input type="checkbox" pid="{{ sku.id }}" /></td>
 			<td>{{ sku.outer_id }}</td>
-			<td class="warp_title">{{ sku.properties_name }}</td>
-			<td><input type="text" value="{{ sku.quantity }}" /></td>
+			<td >{% if sku.properties_alias %}{{ sku.properties_alias }}{% else %}{{ sku.properties_name }}{% endif %}</td>
+			<td><input type="text" sku_id="{{ sku.id }}" class="stock-modify" value="{{ sku.quantity }}" /></td>
 			<td>{{ sku.warn_num }}</td>
 			<td><input type="text" value="{{ sku.remain_num }}" /></td>
 			<td><input type="checkbox" id="id_sync_stock"  {% if sku.sync_stock %}checked="yes"{% endif %} onclick= "return false" /></td>
@@ -100,4 +92,3 @@
 </div>
 </div>
 
-{% endblock %}
