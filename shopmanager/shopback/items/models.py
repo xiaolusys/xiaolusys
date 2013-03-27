@@ -112,6 +112,7 @@ class Product(models.Model):
         else:
             self.collect_num = models.F('quantity')-num
         self.save()
+        self.collect_num = Product.objects.get(id=self.id).collect_num
         
     def update_waitpostnum_incremental(self,num,reverse=False):
         """
@@ -127,7 +128,8 @@ class Product(models.Model):
         if self.wait_post_num <0:
             self.wait_post_num = 0
             self.save()
-            
+        self.wait_post_num = Product.objects.get(id=self.id).wait_post_num
+        
     @property
     def is_stock_warn(self):
         """
@@ -222,6 +224,7 @@ class ProductSku(models.Model):
         else:
             self.quantity = models.F('quantity')-num
         self.save()
+        self.quantity = ProductSku.objects.get(id=self.id).quantity
         
     def update_waitpostnum_incremental(self,num,reverse=False):
         """
@@ -237,7 +240,8 @@ class ProductSku(models.Model):
         if self.wait_post_num <0:
             self.wait_post_num = 0
             self.save()
-            
+        self.wait_post_num = ProductSku.objects.get(id=self.id).wait_post_num  
+          
     @property
     def is_stock_warn(self):
         """

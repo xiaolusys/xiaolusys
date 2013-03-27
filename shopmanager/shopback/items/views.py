@@ -56,7 +56,7 @@ def update_product_stock(request):
             return HttpResponse(json.dumps(response),mimetype='application/json')
         else:
             if mode == 0:
-                prod_sku.update_quantity_incremental(num)
+                prod_sku.update_quantity_incremental(num,reverse=True)
             else:
                 prod_sku.quantity=num
                 prod_sku.save()
@@ -69,7 +69,7 @@ def update_product_stock(request):
             return HttpResponse(json.dumps(response),mimetype='application/json')
         else:
             if mode == 0:
-                prod.update_collect_num_incremental(num)
+                prod.update_collect_num_incremental(num,reverse=True)
             else:
                 prod.collect_num = num
                 prod.save()
@@ -81,6 +81,8 @@ def update_product_stock(request):
                 'is_warning':prod.is_warning,
                 }
     if prod_sku:
+        quantity = prod_sku.quantity
+        print 'quantity:',str(quantity)
         response['sku'] = {
                         'id':prod_sku.id,
                         'outer_id':prod_sku.outer_id,
