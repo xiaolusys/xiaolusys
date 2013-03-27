@@ -35,6 +35,7 @@ product.PromptDialog.prototype.show = function(data) {
 	var pos = goog.style.getPageOffset(this.inputText);
     goog.style.setStyle(this.promptDiv,{'display':'block','position':'absolute'});
     goog.style.setPageOffset(this.promptDiv,pos);
+    goog.dom.getElement('id_stock_num').focus();
 }
 
 product.PromptDialog.prototype.hide = function(data) {
