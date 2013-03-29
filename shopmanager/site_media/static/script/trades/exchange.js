@@ -300,7 +300,6 @@ exchange.Manager.prototype.showTrade = function(q){
             		goog.events.listen(addToReturnBtns[i], goog.events.EventType.CLICK,that.addTradeOrder,false,that);
             	}
             	
-
             }else{
                 alert("订单查询失败:"+res.response_error);
             }

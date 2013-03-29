@@ -545,7 +545,7 @@ class ReviewOrderView(ModelView):
             'used_orders':trade.inuse_orders,
             'order_nums':order_nums,
             'new_memo':trade.has_reason_code(pcfg.NEW_MEMO_CODE),
-            'new_refund':trade.has_reason_code(pcfg.WAITING_REFUND_CODE),
+            'new_refund':trade.has_reason_code(pcfg.WAITING_REFUND_CODE) or trade.has_reason_code(pcfg.NEW_REFUND_CODE),
             'order_modify':trade.has_reason_code(pcfg.ORDER_ADD_REMOVE_CODE),
             'addr_modify':trade.has_reason_code(pcfg.ADDR_CHANGE_CODE),
             'new_merge':trade.has_reason_code(pcfg.NEW_MERGE_TRADE_CODE),

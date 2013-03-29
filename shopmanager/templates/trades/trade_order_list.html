@@ -1,0 +1,18 @@
+<table class="table table-bordered table-striped table-condensed">
+	<thead>
+		<th>买家昵称</th><th>收货人</th><th style="width:200px;">标题</th><th>规格</th><th>数量</th><th>付款日期</th><th>退款状态</th><th>操作</th>
+	</thead>
+	<tbody>
+		{% for order in refund_orders %}
+		<tr>
+		<td>{{ forloop.counter }}</td>
+		<td>{{ order.title }}</td>
+		<td>{{ order|refund_sku:'name' }}</td>
+		<td>{{ order|refund_sku:'num' }}</td>
+		<td>待卖家确认收货</td>
+		<td>{% if order.is_reissue %}<img src="{{ STATIC_URL }}admin/img/icon-yes.gif" alt="yes">
+		{% else %}<img src="{{ STATIC_URL }}admin/img/icon-no.gif" alt="no">{% endif %}</td>
+		{% endfor %}
+		</tr>
+	</tbody>
+</table>

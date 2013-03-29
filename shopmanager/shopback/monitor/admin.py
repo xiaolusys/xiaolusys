@@ -3,7 +3,7 @@ from shopback.monitor.models import DayMonitorStatus,TradeExtraInfo,SystemConfig
 
 
 class SystemConfigAdmin(admin.ModelAdmin):
-    list_display = ('id','is_rule_auto','is_sms_auto','is_flag_auto'
+    list_display = ('id','is_rule_auto','is_sms_auto','is_flag_auto','client_num'
                     ,'category_updated','mall_order_updated','fenxiao_order_updated')
     list_display_links = ('id',)
 

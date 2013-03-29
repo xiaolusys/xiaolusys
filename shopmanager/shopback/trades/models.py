@@ -710,6 +710,7 @@ def merge_order_maker(sub_tid,main_tid):
     total_fee    = 0
     discount_fee = 0
     post_fee     = float(sub_trade.post_fee or 0 ) + float(main_merge_trade.post_fee or 0)
+    is_reverse_order = True if main_merge_trade.sys_status in (pcfg.WAIT_CHECK_BARCODE_STATUS,pcfg.WAIT_SCAN_WEIGHT_STATUS) else False
     for order in sub_trade.merge_trade_orders.all():
         for field in order._meta.fields:
             hasattr(merge_order,field.name) and setattr(merge_order,field.name,getattr(order,field.name))
@@ -718,6 +719,7 @@ def merge_order_maker(sub_tid,main_tid):
         merge_order.tid = main_tid
         merge_order.is_merge = True
         merge_order.sys_status = order.sys_status
+        merge_order.is_reverse_order = is_reverse_order
         merge_order.save()
         if order.sys_status == pcfg.IN_EFFECT:
             payment   += float(order.payment or 0)

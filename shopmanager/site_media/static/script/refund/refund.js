@@ -51,7 +51,7 @@ var addSearchProdRow  = function(tableID,prod){
 }
 
 //添加订单搜索结果
-var addSearchRefundRow  = function(tableID,refund){
+var addSearchTradeRow  = function(tableID,trade){
 
 	var table = goog.dom.getElement(tableID);
 	var rowCount = table.rows.length;
@@ -59,34 +59,30 @@ var addSearchRefundRow  = function(tableID,refund){
     var index = rowCount;
     
 	var id_cell = createDTText(index+'');
-	var buyer_nick_cell = createDTText(refund.buyer_nick);
-	var title_cell      = createDTText(refund.title);
-	var property_cell   = createDTText(refund.property);
+	var buyer_nick_cell   = createDTText(trade.buyer_nick);
+	var num_cell     = createDTText(trade.total_num+'');
+	var pay_time_cell     = createDTText(trade.pay_time);
+	var consign_time_cell = createDTText(trade.consign_time);
+	var receiver_cell     = createDTText(trade.receiver_name);
+	var address_cell      = createDTText(trade.receiver_state+','+trade.receiver_city
+		+','+trade.receiver_district+','+trade.receiver_address+','
+		+trade.receiver_mobile+','+trade.receiver_phone+','+trade.receiver_zip);
 	
-	var num_cell = goog.dom.createElement('td');
-	num_cell.innerHTML = '<input id="id-refund-num-'+index.toString()+'" type="text" value="1" style="width:25px;" size="2" />';
-	var reuse_cell = goog.dom.createElement('td');
-	reuse_cell.innerHTML = '<input id="id-refund-reuse-'+index.toString()+'" type="checkbox" />';
+	var status_cell = createDTText(trade.status);
+	var sys_status_cell  = createDTText(trade.sys_status);
+	var addbtn_cell = goog.dom.createElement('td');
+	addbtn_cell.innerHTML = '<button class="show-trade-orders btn btn-mini btn-info" style="margin:1px 0;" trade_id="'+trade.id+'">查看订单</button>';
 	
-	var pay_time_cell   = createDTText(refund.created);
-	var connect_cell    = createDTText(refund.mobile+'/'+refund.phone);
-	var refund_logistic_cell   = createDTText(refund.company_name+'/'+refund.sid);
-	var status_cell  = createDTText(REFUND_STATUS[refund.status]);
-	var addbtn_cell  = goog.dom.createElement('td');
-	addbtn_cell.innerHTML = '<button class="confirm-refund-order btn btn-mini btn-info" style="margin:1px 0;" refund_id="'
-		+refund.refund_id.toString()+'" idx="'+index.toString()+'">退回</button>';
-
 	row.appendChild(id_cell);
 	row.appendChild(buyer_nick_cell);
-	row.appendChild(title_cell);
-	row.appendChild(property_cell);
 	row.appendChild(num_cell);
-	row.appendChild(reuse_cell);
 	row.appendChild(pay_time_cell);
-	row.appendChild(connect_cell);
-	row.appendChild(refund_logistic_cell);
+	row.appendChild(consign_time_cell);
+	row.appendChild(receiver_cell);
+	row.appendChild(address_cell);
 	row.appendChild(status_cell);	
-	row.appendChild(addbtn_cell);
+	row.appendChild(sys_status_cell);	
+	row.appendChild(addbtn_cell);	
 }
 
 var addRefundOrderRow  = function(tableID,order){
@@ -139,7 +135,6 @@ refund.Manager = function () {
     this.search_prod_table  = null;
     this.search_trade_table = null;
     this.refund_table = null;
-    this.refund_dicts = {};
     this.clearBtn     = null;
 
     this.prod_q   = goog.dom.getElement('id_prod_q');
@@ -241,18 +236,19 @@ refund.Manager.prototype.addRefundOrder = function (e) {
 }
 
 
+
 //订单搜索事件处理
-refund.Manager.prototype.onRefundSearchKeyDown = function(e){
+refund.Manager.prototype.onTradeSearchKeyDown = function(e){
 	
 	var prod_qstr = this.trade_q.value;
 	if (e.keyCode==13){
-		this.showRefund(prod_qstr);	
+		this.showTrade(prod_qstr);	
 	}
 	return;
 }
 
-//显示退款单搜索记录
-refund.Manager.prototype.showRefund = function(q){
+//显示交易搜索记录
+refund.Manager.prototype.showTrade = function(q){
     this.search_q = q;
     var that      = this;
     if (q==''||q=='undifine'){return;}
@@ -260,61 +256,52 @@ refund.Manager.prototype.showRefund = function(q){
     
     var callback = function(e){
         var xhr = e.target;
-        try {
+        //try {
         	var res = xhr.getResponseJson();
         	if (res.code == 0){
         		clearTable(that.search_trade_table);
         		
             	for(var i=0;i<res.response_content.length;i++){
-            		var refund_dict = res.response_content[i];
-            		addSearchRefundRow('id-trade-search-table',refund_dict);
+            		var trade_dict = res.response_content[i];
+            		addSearchTradeRow('id-trade-search-table',trade_dict);
+            	}
  
-            		//that.refund_dicts[refund_dict['refund_id']] = refund_dict;
+            	var showTradeOrders = goog.dom.getElementsByClass('show-trade-orders');
+            	for(var i=0;i<showTradeOrders.length;i++){
+            		goog.events.listen(showTradeOrders[i], goog.events.EventType.CLICK,that.showTradeOrderList,false,that);
             	}
 
-            	var confirmRefundBtns = goog.dom.getElementsByClass('confirm-refund-order');
-            	for(var i=0;i<confirmRefundBtns.length;i++){
-            		goog.events.listen(confirmRefundBtns[i], goog.events.EventType.CLICK,that.addRefundProduct,false,that);
-            	}
-            	
             }else{
-                alert("退款单查询失败:"+res.response_error);
+                alert("订单查询失败:"+res.response_error);
             }
-        } catch (err) {
+        /**} catch (err) {
             console.log('Error: (ajax callback) - ', err);
-        } 
+        } */
 	}
-	goog.net.XhrIo.send('/refunds/refund/?q='+q,callback);
+	goog.net.XhrIo.send('/trades/tradeplus/?q='+q,callback,'GET');
 }
 
-
-//将交易订单加入退回商品
-refund.Manager.prototype.addRefundProduct = function(e){
+//显示交易订单列表信息
+refund.Manager.prototype.showTradeOrderList = function(e){
 	var that = this;
 	var target = e.target;
-	var idx    = target.getAttribute('idx');
-	var refund_id     = target.getAttribute('refund_id');
-	var num    = goog.dom.getElement('id-refund-num-'+idx).value;
-	var reuse  = goog.dom.getElement('id-refund-reuse-'+idx).checked;
+	var trade_id = target.getAttribute('trade_id');
+	var params   = { 'trade_id':trade_id };
 	
-	var buyer_mobile = goog.dom.getElement('id_receiver_mobile').value;
-	var buyer_phone  = goog.dom.getElement('id_receiver_phone').value;
-	var company   = goog.dom.getElement('id_return_company_name').value;
-	var out_sid   = goog.dom.getElement('id_return_out_sid').value;
 	var callback = function(e){
 		var xhr = e.target;
 		try{
 			var res = xhr.getResponseJson();
         	if (res.code == 0){
-        		refund = res.response_content;
-    			addRefundOrderRow('id-refund-table',refund);
-
+				
+        		
         		var deleteOrderBtns = goog.dom.getElementsByClass('delete-order');
             	for(var i =0;i<deleteOrderBtns.length;i++){
             		goog.events.removeAll(deleteOrderBtns[i]);
             		goog.events.listen(deleteOrderBtns[i], goog.events.EventType.CLICK,that.deleteOrder,false,that);
             	}
-            	showElement(that.refund_table.parentElement);
+            	showElement(that.return_table.parentElement);
+            	showElement(that.change_table.parentElement);
         	}else{
                 alert("加退货单失败:"+res.response_error);
             }
@@ -322,11 +309,51 @@ refund.Manager.prototype.addRefundProduct = function(e){
             console.log('Error: (ajax callback) - ', err);
         }
 	}
-    var params = {'refund_id':refund_id,'num':num,'out_sid':out_sid,'can_reuse':reuse,
-    	'company':company,'mobile':buyer_mobile,'phone':buyer_phone};
+	var content = goog.uri.utils.buildQueryDataFromMap(params);
+	goog.net.XhrIo.send('/trades/tradeplus/?',callback,'POST',content); 
+}
 
+//将交易订单加入退回商品清单
+refund.Manager.prototype.addTradeOrder = function(e){
+	var that = this;
+	var target = e.target;
+	var cp_tid = target.getAttribute('trade_id');
+	var action = target.getAttribute('action');
+	var gift_type = null;
+	if (action=="return"){
+		gift_type = RETURN_GOODS_TYPE;
+	}else{
+		gift_type = CHANGE_GOODS_TYPE;
+	}
+	
+	var callback = function(e){
+		var xhr = e.target;
+		try{
+			var res = xhr.getResponseJson();
+        	if (res.code == 0){
+        		clearTable(that.return_table);
+        		clearTable(that.change_table);
+        		
+        		var trade_list = res.response_content;
+        		//将订单加入退货单列表
+        		
+        		var deleteOrderBtns = goog.dom.getElementsByClass('delete-order');
+            	for(var i =0;i<deleteOrderBtns.length;i++){
+            		goog.events.removeAll(deleteOrderBtns[i]);
+            		goog.events.listen(deleteOrderBtns[i], goog.events.EventType.CLICK,that.deleteOrder,false,that);
+            	}
+            	showElement(that.return_table.parentElement);
+            	showElement(that.change_table.parentElement);
+        	}else{
+                alert("加退货单失败:"+res.response_error);
+            }
+		} catch (err) {
+            console.log('Error: (ajax callback) - ', err);
+        }
+	}
+    var params = {'pt_tid':that.tid,'cp_tid':cp_tid,'type':gift_type};
     var content = goog.uri.utils.buildQueryDataFromMap(params);
-	goog.net.XhrIo.send('/refunds/refund/?',callback,'POST',content);   
+	goog.net.XhrIo.send('/trades/tradeplus/?',callback,'POST',content); 
 }
 
 
@@ -354,7 +381,7 @@ refund.Manager.prototype.deleteOrder = function(e){
 }
 
 
-//清楚基本信息表格
+//清除基本信息表格
 refund.Manager.prototype.clearPanel = function(e){
 	goog.dom.getElement('id-return-memo').value='';
 	goog.dom.getElement('id_trade_id').value='';
@@ -370,7 +397,7 @@ refund.Manager.prototype.clearPanel = function(e){
 refund.Manager.prototype.bindEvent = function () {
 
 	goog.events.listen(this.prod_q, goog.events.EventType.KEYDOWN,this.onProdSearchKeyDown,false,this);
-	goog.events.listen(this.trade_q, goog.events.EventType.KEYDOWN,this.onRefundSearchKeyDown,false,this);
+	goog.events.listen(this.trade_q, goog.events.EventType.KEYDOWN,this.onTradeSearchKeyDown,false,this);
 	
 	goog.events.listen(this.prod_q, goog.events.EventType.FOCUS,this.focus,false,this);
 	goog.events.listen(this.trade_q, goog.events.EventType.FOCUS,this.focus,false,this);

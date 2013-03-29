@@ -43,6 +43,7 @@ class TradeRule(models.Model):
     items       = models.ManyToManyField(Item,related_name='rules',symmetrical=False,db_table='shop_memorule_itemrulemap')
     class Meta:
         db_table = 'shop_memorule_traderule'
+        
 
 
 FIELD_TYPE_CHOICE = (
@@ -128,6 +129,7 @@ class ComposeRule(models.Model):
     class Meta:
         db_table = 'shop_memorule_composerule'
         verbose_name=u'匹配规则'
+        verbose_name_plural = u'拆分规则列表'
         unique_together = ("outer_id","outer_sku_id")
         
     def __unicode__(self):
@@ -150,7 +152,8 @@ class ComposeItem(models.Model):
     modified = models.DateTimeField(null=True,blank=True,auto_now=True)
     class Meta:
         db_table = 'shop_memorule_composeitem'
-        verbose_name=u'规则组合商品'
+        verbose_name=u'拆分规则商品'
+        verbose_name_plural = u'拆分规则商品列表'
         
     def __unicode__(self):
         return str(self.id)

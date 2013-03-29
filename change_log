@@ -1,3 +1,5 @@
+######### 2013-3-29  ##########
+alter table shop_monitor_systemconfig add column client_num int(11) DEFAULT 3;
 ######### 2013-3-22  ##########
 alter table shop_users_user add column sync_stock tinyint(1) NOT NULL;
 alter table shop_users_user add column percentage int(11) DEFAULT 0;

@@ -57,6 +57,11 @@
         <ul class="object-tools">
           {% block object-tools-items %}
           	<li>
+              <a href="{% url cl.opts|admin_urlname:'add' %}{% if is_popup %}?_popup=1{% endif %}" class="addlink">
+                {% blocktrans with cl.opts.verbose_name as name %}新退货单{% endblocktrans %}
+              </a>
+            </li>
+          	<li>
               <a href="/refunds/manager/" class="addlink" target="_blank">
                 退货单管理
               </a>

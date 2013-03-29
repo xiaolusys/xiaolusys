@@ -4,6 +4,7 @@ goog.provide('checkrefund.Dialog');
 goog.require('goog.dom');
 goog.require('goog.ui.Dialog');
 goog.require('goog.ui.Zippy');
+goog.require('goog.ui.TableSorter');
 goog.require('goog.style');
 
 goog.require('goog.net.XhrIo');
@@ -75,6 +76,14 @@ checkrefund.Manager = function () {
     for(var i=0;i<this.buttons.length;i++){
         goog.events.listen(this.buttons[i], goog.events.EventType.CLICK, this.showDialog, false, this);
     }
+    
+    var component = new goog.ui.TableSorter();
+    var refund_table = goog.dom.getElement('id_refund_table');
+    console.log(refund_table);
+    component.decorate(refund_table);
+    component.setSortFunction(1, goog.ui.TableSorter.alphaSort);
+    component.setSortFunction(2,
+        goog.ui.TableSorter.createReverseSort(goog.ui.TableSorter.numericSort));
 }
 
 checkrefund.Manager.prototype.showDialog = function(e) {

@@ -103,7 +103,7 @@ product.SkuDialog.prototype.init = function (id) {
         	var res = xhr.getResponse();
         	dialog.setContent(res);
 
-    		dialog.setTitle('库存商品及规格信息管理对话框');
+    		dialog.setTitle('库存商品及规格信息修改');
 		    dialog.setButtonSet(new goog.ui.Dialog.ButtonSet());
 			
 			that.setEvent();

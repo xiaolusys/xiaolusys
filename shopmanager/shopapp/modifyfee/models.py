@@ -13,8 +13,12 @@ class FeeRule(models.Model):
     
     class Meta:
         db_table = 'shop_modifyfee_feerule'
-        verbose_name='邮费规则'
-
+        verbose_name=u'邮费规则'
+        verbose_name_plural = u'邮费规则列表'
+    
+    def __unicode__(self):
+        return '<%d,%s,%s,%s>'%(self.id,str(self.payment),str(self.discount),str(self.adjust_fee))
+    
 
 class ModifyFee(models.Model):
     
@@ -29,8 +33,12 @@ class ModifyFee(models.Model):
     
     class Meta:
         db_table = 'shop_modifyfee_modifyfee'
-        verbose_name='邮费修改记录'
+        verbose_name=u'邮费修改记录'
+        verbose_name_plural = u'邮费修改记录列表'
         
+    def __unicode__(self):
+        return '<%d,%s,%s,%s>'%(self.id,self.name,self.payment,self.modify_fee)
+    
 
 def modify_post_fee_func(sender,user_id,trade_id,*args,**kwargs):
     

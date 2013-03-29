@@ -151,8 +151,8 @@ class MergeTradeAdmin(admin.ModelAdmin):
     
     def get_readonly_fields(self, request, obj=None):
         if not request.user.has_perm('mergetrade.can_trade_modify'):
-            return self.readonly_fields + ('tid','reason_code','has_rule_match','has_merge','has_memo',
-                                           'can_review','is_picking_print','is_picking_print','sys_status')
+            return self.readonly_fields + ('tid','reason_code','has_rule_match','has_merge','has_memo','payment','post_fee',
+                                           '','can_review','is_picking_print','is_express_print','sys_status')
         return self.readonly_fields
     
     def change_view(self, request, extra_context=None, **kwargs):
@@ -272,7 +272,6 @@ class MergeTradeAdmin(admin.ModelAdmin):
         return super(MergeTradeAdmin, self).response_change(request, obj, *args, **kwargs)
     
     #--------定义action----------------
-
     #合并订单
     def merge_order_action(self,request,queryset):
         

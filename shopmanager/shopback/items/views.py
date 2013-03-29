@@ -82,7 +82,6 @@ def update_product_stock(request):
                 }
     if prod_sku:
         quantity = prod_sku.quantity
-        print 'quantity:',str(quantity)
         response['sku'] = {
                         'id':prod_sku.id,
                         'outer_id':prod_sku.outer_id,

@@ -16,6 +16,7 @@ from auth.utils import parse_datetime,parse_date,format_time,map_int2str
 from shopback.refunds.tasks import updateAllUserRefundOrderTask
 from shopback import paramconfig as pcfg
 
+
 __author__ = 'meixqhi'
 
 
@@ -47,11 +48,16 @@ class RefundManagerView(ModelView):
                 refund_dict[refund_tid]['order_num'] += 1
                 refund_dict[refund_tid]['is_reissue'] &= refund.is_reissue
             else:
+                try:
+                    receiver_name = MergeTrade.objects.filter(tid=refund_tid).receiver_name
+                except:
+                    receiver_name = ''
                 refund_dict[refund_tid] = {'tid':refund_tid,
                                            'buyer_nick':refund.buyer_nick,
                                            'seller_nick':refund.seller_nick,
+                                           'receiver_name':receiver_name,
                                            'order_num':1,
-                                           'created':refund.created,
+                                           'created':refund.created.strftime('%Y.%m.%d'),
                                            'reason':refund.reason,
                                            'desc':refund.desc,
                                            'company_name':refund.company_name,
@@ -60,8 +66,12 @@ class RefundManagerView(ModelView):
                                            'cs_status':dict(CS_STATUS_CHOICES).get(refund.cs_status,u'状态不对'),
                                            'status':dict(REFUND_STATUS).get(refund.status,u'状态不对'),
                                            }
-   
-        return {'refund_trades':refund_dict,}
+        
+        refund_items = sorted(refund_dict.items(),key=lambda d:d[1]['created'],reverse=True)
+        
+        refund_list  = [v for k,v in refund_items]
+        
+        return {'refund_trades':refund_list,}
         
     def post(self, request, *args, **kwargs):
         

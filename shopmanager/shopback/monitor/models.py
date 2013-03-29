@@ -8,6 +8,7 @@ class SystemConfig(models.Model):
     is_sms_auto  = models.BooleanField(default=False,verbose_name='短信提醒')   #是否开启自动短信提醒
     is_flag_auto = models.BooleanField(default=False,verbose_name='同步淘宝旗帜')   #是否将系统状态同步到淘宝旗帜颜色标识
     
+    client_num   = models.IntegerField(default=1,verbose_name='客户端数量')
     category_updated  = models.DateTimeField(null=True,blank=True,verbose_name='类目更新日期')  #类目更新日期
     
     mall_order_updated  = models.DateTimeField(null=True,blank=True,verbose_name='商城订单更新日期')  #商城订单更新日期  

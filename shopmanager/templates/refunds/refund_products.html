@@ -77,6 +77,13 @@
 		height:20px;
 		display:fixed;
 	}
+	
+	.order-prompt{
+		display:none;
+	    z-index:99;
+	    background: #fff;
+	    border: 1px solid #999;
+	}
     </style>
   </head>
   <body>
@@ -134,23 +141,21 @@
 					<input type="text" id="id_prod_q" class="search-query"  placeholder="商品搜索" />
 				</div>
 				<div class="navbar-search trade-search">
-					<input type="text" id="id_trade_q" class="search-query"  placeholder="退货单搜索" />
+					<input type="text" id="id_trade_q" class="search-query"  placeholder="订单搜索" />
 				</div>
 			</div>
 			<hr/>
 			<div id="id-prod-search-dialog" style="display:none;">
 				<table id="id-prod-search-table" class="table table-bordered">
 					<thead>
-						<tr>
-							<td>序号</td>
-							<td>商家编码</td>
-							<td style="width:200px;">商品简称</td>
-							<td>规格</td>
-							<td>数量</td>
-							<td>单价</td>
-							<td>二次销售</td>
-							<td>操作</td>
-						</tr>
+							<th>序号</th>
+							<th>商家编码</th>
+							<th style="width:200px;">商品简称</th>
+							<th>规格</th>
+							<th>数量</th>
+							<th>单价</th>
+							<th>二次销售</th>
+							<th>操作</th>
 					</thead>
 					<tbody>
 					</tbody>
@@ -159,19 +164,16 @@
 			<div id="id-trade-search-dialog" style="display:none;">
 				<table id="id-trade-search-table" class="table table-bordered">
 					<thead>
-						<tr>
-							<td>序号</td>
-							<td>买家昵称</td>
-							<td style="width:150px;">商品标题</td>
-							<td>规格</td>
-							<td>数量</td>
-							<td>二次销售</td>
-							<td>退款日期</td>
-							<td>联系方式</td>
-							<td>退货物流</td>
-							<td>退货状态</td>
-							<td>操作</td>
-						</tr>
+							<th>序号</th>
+							<th>买家昵称</th>
+							<th>单数</th>
+							<th>付款日期</th>
+							<th>发货日期</th>
+							<th>收货人</th>
+							<th style="width:200px;">收货地址及电话</th>
+							<th>淘宝交易状态</th>
+							<th>系统状态</th>
+							<th>操作</th>
 					</thead>
 					<tbody>
 					</tbody>
@@ -180,6 +182,8 @@
 			<hr/>
 		</fieldset>
 	</div>
+	<!-- 子订单列表弹出对话框 -->
+	<div id="order-prompt" class="order-prompt"></div>
   </body>
 <script src="{{ STATIC_URL }}script/base.js"></script>
 <script src="{{ STATIC_URL }}script/refund/refund.js"></script>

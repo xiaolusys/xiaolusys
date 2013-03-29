@@ -58,21 +58,20 @@
 		  <fieldset>
 		  	<legend><h1 class="head-title" >退货单列表</h1></legend>
 			  <table id='id_refund_table' class="table table-bordered table-striped table-condensed">
-			    <tr>
-			      <td>序号</td><th>买家昵称</th><th>卖家昵称</th><th>退货单数</th><th>创建日期</th><th>退回快递</th><th>快递单号</th><th>已处理</th><th>退款状态</th><th>天猫介入</th><th>原因</th><th>描述</th>
-			    </tr>
-			    {% for key,trade in refund_trades.items %}
+			    <thead>
+			      <th>序号</th><th>买家昵称</th><th>卖家昵称</th><th>收货人</th><th>退货单数</th><th>创建日期</th><th>退回快递</th><th>快递单号</th><th>退款状态</th><th>天猫介入</th><th>原因</th><th>描述</th>
+			    </thead>
+			    {% for trade in refund_trades %}
 			    <tr>
 			    	<td>{{ forloop.counter }}</td>
 			    	<td><a href="javascript:void(0);" class="check-refund-order" style="cursor:pointer;" tid="{{ trade.tid }}">
 			    		{{ trade.buyer_nick }}</a></td>
 			    	<td>{{ trade.seller_nick }}</td>
+			    	<td>{{ trade.receiver_name }}</td>
 			    	<td>{{ trade.order_num }}<a></a></td>
 			    	<td>{{ trade.created }}</td>
 			    	<td>{{ trade.company_name }}</td>
 			    	<td>{{ trade.sid }}</td>
-			    	<td>{% if trade.is_reissue %}<img src="{{ STATIC_URL }}admin/img/icon-yes.gif" alt="yes">
-					{% else %}<img src="{{ STATIC_URL }}admin/img/icon-no.gif" alt="no">{% endif %}</td>
 			    	<td>{{ trade.status }}</td>
 			    	<td>{{ trade.cs_status }}</td>
 			    	<td>{{ trade.reason }}</td>
@@ -87,6 +86,6 @@
 </body>
 <script src="{{ STATIC_URL }}script/refund/checkrefund.js"></script>
 <script type="text/javascript">
-	 new checkrefund.Manager();
+	new checkrefund.Manager();
 </script>
 </html>
