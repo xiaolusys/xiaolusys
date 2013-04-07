@@ -88,6 +88,6 @@ tradetag.Manager.prototype.getDialogContent = function() {
   		+'<div class="buyer_message_label alert "><label>买家留言：</label><span id="id_buyer_message"></span></div>'
   		+'<div class="seller_message_label alert "><label>卖家留言：</label><span id="id_seller_message"></span></div>'
   		+'</div><div><h3>系统备注</h3>'
-  		+'<div><textarea id="id_sys_memo" class="trade_memo"></textarea></div></div></div>'
+  		+'<div><textarea id="id_sys_memo" class="trade_memo"></textarea></div></div></div>';
 }
 

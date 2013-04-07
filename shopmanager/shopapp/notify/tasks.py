@@ -297,6 +297,8 @@ def process_refund_notify_task(id):
                             main_trade = MergeTrade.objects.get(tid=main_tid)
                             main_trade.remove_reason_code(pcfg.WAITING_REFUND_CODE)
                             main_trade.append_reason_code(pcfg.NEW_REFUND_CODE)
+                            main_trade.has_refund = False
+                            main_trade.save()
                             try:
                                 merge_order = MergeOrder.objects.get(tid=main_tid,oid=notify.oid)
                             except MergeOrder.DoesNotExist:

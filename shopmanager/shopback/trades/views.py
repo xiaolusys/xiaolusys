@@ -2,15 +2,16 @@
 import re
 import datetime
 import json
-from django.http import HttpResponse
+from django.http import HttpResponse,HttpResponseNotFound
 from django.db.models import Q,Sum
 from djangorestframework.views import ModelView
 from djangorestframework.response import ErrorResponse
 from shopback.trades.models import MergeTrade,MergeOrder,GIFT_TYPE\
-    ,SYS_TRADE_STATUS,TAOBAO_TRADE_STATUS,SHIPPING_TYPE_CHOICE
+    ,SYS_TRADE_STATUS,TAOBAO_TRADE_STATUS,SHIPPING_TYPE_CHOICE,TAOBAO_ORDER_STATUS
 from shopback.logistics.models import LogisticsCompany
 from shopback.items.models import Product,ProductSku
 from shopback.base import log_action, ADDITION, CHANGE
+from shopback.refunds.models import REFUND_STATUS
 from shopback.signals import rule_signal
 from shopback.users.models import User
 from shopback import paramconfig as pcfg
@@ -820,4 +821,41 @@ class TradeSearchView(ModelView):
         return order_list
 
 
+############################### 交易订单列表 #################################       
+class OrderListView(ModelView):
+    """ docstring for class OrderListView """
+    
+    def get(self, request, id, *args, **kwargs):
+        
+        order_list = []
+        try:
+            trade  = MergeTrade.objects.get(id=id)
+        except:
+            return HttpResponseNotFound('<h1>订单未找到</h1>')
+        for order in trade.merge_trade_orders.filter(sys_status=pcfg.IN_EFFECT):
+            try:
+                prod = Product.objects.get(outer_id=order.outer_id)
+            except:
+                prod = None
+            order_dict = {}
+            order_dict['id']  = order.id
+            order_dict['tid'] = order.merge_trade.tid
+            order_dict['outer_id']     = order.outer_id
+            order_dict['outer_sku_id'] = order.outer_sku_id
+            order_dict['total_fee']    = order.total_fee
+            order_dict['payment']      = order.payment
+            order_dict['title']        = prod and prod.name or order.title
+            order_dict['num']          = order.num
+            order_dict['sku_properties_name'] = order.sku_properties_name
+            order_dict['refund_status'] = dict(REFUND_STATUS).get(order.refund_status,u'其他')
+            order_dict['seller_nick']  = order.seller_nick
+            order_dict['buyer_nick']   = order.buyer_nick
+            order_dict['receiver_name'] = trade.receiver_name
+            order_dict['pay_time']     = order.pay_time
+            order_dict['status']     = dict(TAOBAO_ORDER_STATUS).get(order.status,u'其他')
+            order_list.append(order_dict)
+            
+        return {'order_list':order_list}
+    
+    
     

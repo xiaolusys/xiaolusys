@@ -2,10 +2,12 @@ from django.conf.urls.defaults import patterns, include, url
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib.admin.views.decorators import staff_member_required
 from djangorestframework.views import InstanceModelView
-from shopback.trades.views import StatisticMergeOrderView,CheckOrderView,OrderPlusView,ReviewOrderView,ExchangeOrderView,OutStockOrderProductView,\
-    TradeSearchView,DirectOrderView,change_trade_addr,change_trade_order,delete_trade_order,change_logistic_and_outsid,review_order,update_sys_memo
+from shopback.trades.views import StatisticMergeOrderView,CheckOrderView,OrderPlusView,ReviewOrderView,ExchangeOrderView,\
+    OutStockOrderProductView,TradeSearchView,DirectOrderView,OrderListView,change_trade_addr,change_trade_order,\
+    delete_trade_order,change_logistic_and_outsid,review_order,update_sys_memo
 from shopback.base.renderers  import BaseJsonRenderer
-from shopback.trades.renderers import CheckOrderRenderer,ReviewOrderRenderer,ExchangeOrderRender,DirectOrderRender,StatisticMergeOrderRender,StatisticOutStockRender
+from shopback.trades.renderers import CheckOrderRenderer,ReviewOrderRenderer,ExchangeOrderRender,DirectOrderRender,\
+    StatisticMergeOrderRender,StatisticOutStockRender,OrderListRender
 from shopback.trades.resources import TradeResource,OrderPlusResource,ExchangeOrderResource,MergeTradeResource,StatisticMergeOrderResource
 from shopback.base.permissions import IsAuthenticated
 
@@ -50,14 +52,12 @@ urlpatterns = patterns('',
         authentication=(UserLoggedInAuthentication,),
         permissions=(IsAuthenticated,)
     ))),
-    
     (r'^direct/add/$',staff_member_required(DirectOrderView.as_view(
         resource=ExchangeOrderResource,
         renderers=(BaseJsonRenderer,DirectOrderRender),
         authentication=(UserLoggedInAuthentication,),
         permissions=(IsAuthenticated,)
     ))),
-    
     (r'^tradeplus/$',TradeSearchView.as_view(
         resource=OrderPlusResource,
         renderers=(BaseJsonRenderer,),
@@ -73,6 +73,12 @@ urlpatterns = patterns('',
     (r'^order/outstock/$',OutStockOrderProductView.as_view(
         resource=StatisticMergeOrderResource,
         renderers=(BaseJsonRenderer,StatisticOutStockRender),
+        #authentication=(UserLoggedInAuthentication,),
+        #permissions=(IsAuthenticated,)
+    )),
+    (r'^order/list/(?P<id>\d{1,20})/$',OrderListView.as_view(
+        resource=OrderPlusResource,
+        renderers=(BaseJsonRenderer,OrderListRender),
         #authentication=(UserLoggedInAuthentication,),
         #permissions=(IsAuthenticated,)
     )),

@@ -80,17 +80,44 @@
 	
 	.order-prompt{
 		display:none;
+		width:1000px;
+		position:absolute;
 	    z-index:99;
 	    background: #fff;
 	    border: 1px solid #999;
 	}
+	
+	.order-confirm-prompt{
+		display:none;
+		width:1000px;
+	    z-index:100;
+	    position:absolute;
+	    background: #fff;
+	    margin-bottom:0px;
+	    border: 1px solid #999;
+	}
+	
+	.order-prompt-head{
+		height:16px;
+		background-color:#3A87AD;
+	}
+	
+	.prompt-title{
+		float:left;
+	}
+	
+	.prompt-close{
+		float:right;
+	}
+
     </style>
+    
   </head>
   <body>
 	<div class="content-main">
 		<fieldset>
 			<legend><h1 class="head-title" >退回商品录入单</h1></legend>
-			<div class="content-base-info">
+			<div id="id-baseinfo-panel" class="content-base-info">
 				<table class="table table-bordered table-striped table-condensed">
 					<tr>
 						<td>交易ID:</td><td><input type="text" id="id_trade_id" class="simple-text" /></td>
@@ -115,18 +142,18 @@
 						<table id="id-refund-table" class="table table-bordered table-striped table-condensed">
 							<thead>
 								<tr>
-									<td>序号</td>
-									<td>交易ID</td>
-									<td>买家ID</td>
-									<td>手机</td>
-									<td>固话</td>
-									<td>物流单号</td>
-									<td>物流公司</td>
-									<td>商品简称</td>
-									<td>规格</td>
-									<td>数量</td>
-									<td>二次销售</td>
-									<td>操作</td>
+								<th>序号</th>
+								<th>交易ID</th>
+								<th>买家昵称</th>
+								<th>手机</th>
+								<th>固话</th>
+								<th>物流单号</th>
+								<th>物流公司</th>
+								<th style="width:200px;">商品简称</th>
+								<th>规格</th>
+								<th>数量</th>
+								<th>二次销售</th>
+								<th>操作</th>
 								</tr>
 							</thead>
 							<tbody>
@@ -136,7 +163,7 @@
 				</div>
 			</div>
 			<hr/>
-			<div class="content-search">
+			<div id="id-search-panel" class="content-search">
 				<div class="navbar-search product-search">
 					<input type="text" id="id_prod_q" class="search-query"  placeholder="商品搜索" />
 				</div>
@@ -148,14 +175,14 @@
 			<div id="id-prod-search-dialog" style="display:none;">
 				<table id="id-prod-search-table" class="table table-bordered">
 					<thead>
+							<tr>
 							<th>序号</th>
 							<th>商家编码</th>
 							<th style="width:200px;">商品简称</th>
 							<th>规格</th>
-							<th>数量</th>
 							<th>单价</th>
-							<th>二次销售</th>
 							<th>操作</th>
+							</tr>
 					</thead>
 					<tbody>
 					</tbody>
@@ -164,16 +191,18 @@
 			<div id="id-trade-search-dialog" style="display:none;">
 				<table id="id-trade-search-table" class="table table-bordered">
 					<thead>
-							<th>序号</th>
-							<th>买家昵称</th>
-							<th>单数</th>
-							<th>付款日期</th>
-							<th>发货日期</th>
-							<th>收货人</th>
-							<th style="width:200px;">收货地址及电话</th>
-							<th>淘宝交易状态</th>
-							<th>系统状态</th>
-							<th>操作</th>
+						<tr>
+						<th style="width:5px;">序号</th>
+						<th>买家昵称</th>
+						<th>单数</th>
+						<th>付款日期</th>
+						<th>发货日期</th>
+						<th>收货人</th>
+						<th style="width:200px;">收货地址及电话</th>
+						<th>淘宝交易状态</th>
+						<th>系统状态</th>
+						<th>操作</th>
+						</tr>
 					</thead>
 					<tbody>
 					</tbody>
@@ -183,10 +212,28 @@
 		</fieldset>
 	</div>
 	<!-- 子订单列表弹出对话框 -->
-	<div id="order-prompt" class="order-prompt"></div>
+	<div id="order-prompt" class="order-prompt">
+		<div class="order-prompt-head">
+			<span class="prompt-title">子订单列表</span>
+			<a id="prompt-close" class="prompt-close"><i class="icon-remove-sign"></i></a>
+		</div>
+		<div id="order-prompt-body" class="order-prompt-body"></div>
+	</div>
+	<!-- 确认退回商品对话框 -->
+	<div id="id-confirm-order-dialog" class="order-confirm-prompt">
+		<table id="id-confirm-order-table" class="table table-bordered table-condensed">
+		<thead>
+			<tr>
+			<th>交易ID</th><th>买家昵称</th><th>手机</th><th>固话</th><th>物流公司</th><th>物流单号</th>
+			<th>商品名</th><th>规格</th><th>数量</th><th>二次销售</th><th>操作</th>
+			</tr>
+		</thead>
+		<tbody></tbody>
+		</table>
+	</div>
   </body>
-<script src="{{ STATIC_URL }}script/base.js"></script>
-<script src="{{ STATIC_URL }}script/refund/refund.js"></script>
+<script type="text/javascript" src="{{ STATIC_URL }}script/base.js"></script>
+<script type="text/javascript" src="{{ STATIC_URL }}script/refund/refund.js"></script>
 <script type="text/javascript">
 	 new refund.Manager();
 </script>

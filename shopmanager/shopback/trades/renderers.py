@@ -58,4 +58,14 @@ class StatisticOutStockRender(TemplateRenderer):
     
     media_type = 'text/html'
     format = 'html'
-    template = 'trades/out_stock_statistic.html'    
+    template = 'trades/out_stock_statistic.html'   
+    
+class OrderListRender(TemplateRenderer):
+    """
+    Renderer which serializes to Table
+    """
+    
+    media_type = 'text/html'
+    format = 'html'
+    template = 'trades/trade_order_list.html'
+     

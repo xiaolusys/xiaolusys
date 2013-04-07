@@ -31,14 +31,14 @@ product.PromptDialog.prototype.init = function (elt ,outer_id,sku_id) {
 }
 
 
-product.PromptDialog.prototype.show = function(data) {
+product.PromptDialog.prototype.show = function() {
 	var pos = goog.style.getPageOffset(this.inputText);
     goog.style.setStyle(this.promptDiv,{'display':'block','position':'absolute'});
     goog.style.setPageOffset(this.promptDiv,pos);
     goog.dom.getElement('id_stock_num').focus();
 }
 
-product.PromptDialog.prototype.hide = function(data) {
+product.PromptDialog.prototype.hide = function() {
     goog.style.setStyle(this.promptDiv,{'display':'none','position':'absolute'});
 }
 
@@ -147,7 +147,7 @@ product.SkuDialog.prototype.showPrompt = function(e) {
 
 product.SkuDialog.prototype.show = function(data) {
     this.dialog.setVisible(true);
-    this.dialog.reposition();
+    goog.style.setPageOffset(this.dialog.getDialogElement(),260,50);
 }
 
 product.SkuDialog.prototype.hide = function(data) {
@@ -157,6 +157,7 @@ product.SkuDialog.prototype.hide = function(data) {
 
 goog.provide("product.Manager");
 product.Manager = function () {
+	this.clickPos = null;
     this.skudialog = new product.SkuDialog(this);
     this.buttons = goog.dom.getElementsByClass("product_modify");
     for(var i=0;i<this.buttons.length;i++){
@@ -170,6 +171,7 @@ product.Manager.prototype.showDialog = function(e) {
     if (outer_id==null||outer_id==''||outer_id=='undifine'){
     	outer_id = elt.parentElement.getAttribute('outer_id');
     }
+    this.clickPos = goog.style.getPageOffset(elt);
     this.skudialog.init(outer_id);
     this.skudialog.show(); 
 

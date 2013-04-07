@@ -205,65 +205,14 @@ class RefundView(ModelView):
     def post(self, request, *args, **kwargs):
         
         content    = request.REQUEST
-        refund_id  = content.get('refund_id')
-        out_sid    = content.get('out_sid')
-        company    = content.get('company')
-        mobile     = content.get('mobile')
-        phone      = content.get('phone')
-        num        = content.get('num',1)
-        
-        try:
-            refund = Refund.objects.get(refund_id=refund_id)
-        except:
-            return u'退款单未找到'
-        
-        tid  = refund.tid
-        oid  = refund.oid
-        
-        try:
-            order = MergeOrder.objects.get(tid=tid,oid=oid)
-        except:
-            return u'订单未找到'
-        
-        outer_id = order.outer_id
-        outer_sku_id = order.outer_sku_id
-        
-        prod_sku = None
-        prod     = None
-        if outer_sku_id:
-            try:
-                prod_sku = ProductSku.objects.get(product__outer_id=outer_id,outer_id=outer_sku_id)
-            except:
-                pass
-        else:
-            try:
-                prod     = Product.objects.get(outer_id=outer_id)
-            except:
-                pass
-        
-        rf_prod  = RefundProduct.objects.filter(outer_id='')
-        if rf_prod.count() >0:
-            rf = rf_prod[0]
-        else:
-            rf = RefundProduct()
-        
-        rf.buyer_nick =  refund.buyer_nick
-        rf.buyer_mobile = mobile or refund.mobile
-        rf.buyer_phone = phone or refund.phone
-        rf.trade_id = refund.tid
-        rf.oid      = refund.oid
-        rf.out_sid =  out_sid or refund.sid
-        rf.company =  company or refund.company_name
-        
-        rf.outer_id = outer_id
-        rf.outer_sku_id = outer_sku_id
-        rf.num   = num
-        rf.can_reuse = content.get('can_reuse') == 'true' and True or False
-        rf.title = prod_sku.product.name if prod_sku else prod.name
-        rf.property = (prod_sku.properties_alias or prod_sku.properties_name) if prod_sku else ''
+
+        rf = RefundProduct()
+        for k,v in content.iteritems():
+            if k=='can_reuse':
+                v = v=="true" and True or False
+            hasattr(rf,k) and setattr(rf,k,v)
         
         rf.save()
-        
         return rf  
  
 

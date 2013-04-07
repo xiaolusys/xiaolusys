@@ -132,7 +132,7 @@ def updateUserProductSkuTask(user_id=None,outer_ids=None,force_update_num=False)
                         sku_outer_id = sku.get('outer_id', None)
                         item = Item.objects.get(num_iid=sku['num_iid'])
                         
-                        if not item.user.is_primary or not item.product:
+                        if not item.user.is_primary or not item.product and not sku_outer_id:
                             continue
                         sku_prop_dict = dict([('%s:%s' % (p.split(':')[0], p.split(':')[1]), p.split(':')[3]) for p in sku['properties_name'].split(';') if p])
                         
