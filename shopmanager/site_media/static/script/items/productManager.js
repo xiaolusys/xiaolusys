@@ -147,7 +147,8 @@ product.SkuDialog.prototype.showPrompt = function(e) {
 
 product.SkuDialog.prototype.show = function(data) {
     this.dialog.setVisible(true);
-    goog.style.setPageOffset(this.dialog.getDialogElement(),260,50);
+    var pos = this.productManager.clickPos;
+    goog.style.setPageOffset(this.dialog.getDialogElement(),260,pos.y); 
 }
 
 product.SkuDialog.prototype.hide = function(data) {
