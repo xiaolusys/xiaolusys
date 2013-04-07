@@ -24,6 +24,7 @@ var addSearchProdRow  = function(tableID,prod){
 	var title_cell    = createDTText(prod[1]);
 	var sku_cell      = goog.dom.createElement('td');
 	var sku_options   = '<select id="id-order-sku-'+index.toString()+'" style="width:100px;">';
+	sku_options += '<option value="">--------</option>';
 	for(var i=0;i<prod[3].length;i++){
 		var sku = prod[3][i];
 		sku_options += '<option value="'+sku[0]+'">'+sku[1]+'</option>';
@@ -228,7 +229,7 @@ refund.OrderConfirmDialog.prototype.showdialog = function(order){
 }
 
 refund.OrderConfirmDialog.prototype.show = function(){
-	var baseinfo_panel = goog.dom.getElement('id-baseinfo-panel');
+	var baseinfo_panel = goog.dom.getElement('id-baseinfo-table');
 	var pos = goog.style.getPageOffset(baseinfo_panel);
 	goog.style.setPageOffset(this.confirmDialog,pos);
 	goog.style.setStyle(this.confirmDialog, "display", "block");
@@ -359,22 +360,10 @@ refund.Manager.prototype.addRefundOrder = function (e) {
 	var buyer_nick = cells[0].innerHTML;
 
 	if(idx!=null&&idx!='undifine'&&idx!=''){
-		outer_sku_id = goog.dom.getElement('id-order-sku-'+idx).value;
+		var sku_select = goog.dom.getElement('id-order-sku-'+idx);
+		outer_sku_id = sku_select.value;
 		buyer_nick   = goog.dom.getElement('id_buyer_nick').value;
-		for(var i=0;i<this.prod_dicts.length;i++){
-			prod = this.prod_dicts[i];
-			console.log(prod);
-			if(prod[0]==outer_id){
-				console.log('debug prod:',prod[3],outer_sku_id);
-				for(var i=0;i<prod[3].length;i++){
-					var sku_item = prod[3][i];
-					if(sku_item[0]==outer_sku_id){
-						property=sku_item[1];
-						break;
-					}
-				}
-			}
-		}
+		property = sku_select.options[sku_select.selectedIndex].innerHTML;
 	}
 	
 	var memo      = goog.dom.getElement('id-return-memo').value;
