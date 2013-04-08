@@ -46,11 +46,11 @@ class RefundManagerView(ModelView):
         refund_dict  = {}
         for refund in handling_refunds:
             refund_tid = refund.tid
-            handling_tids.append(refund_tid)
             if refund_dict.has_key(refund_tid):
                 refund_dict[refund_tid]['order_num'] += 1
                 refund_dict[refund_tid]['is_reissue'] &= refund.is_reissue
             else:
+                handling_tids.append(refund_tid)
                 try:
                     receiver_name = MergeTrade.objects.filter(tid=refund_tid).receiver_name
                 except:
@@ -270,10 +270,12 @@ def create_refund_exchange_trade(request,tid):
         merge_order.sku_properties_name   = prod.property
         merge_order.outer_id       = prod.outer_id
         merge_order.outer_sku_id   = prod.outer_sku_id
+        merge_order.num            = prod.num
         merge_order.seller_nick    = origin_trade.seller_nick
         merge_order.buyer_nick     = origin_trade.buyer_nick
         merge_order.gift_type      = pcfg.RETURN_GOODS_GIT_TYPE
         merge_order.sys_status     = pcfg.IN_EFFECT
+        merge_order.status         = pcfg.WAIT_SELLER_SEND_GOODS
         merge_order.created        = dt
         merge_order.save()
     
