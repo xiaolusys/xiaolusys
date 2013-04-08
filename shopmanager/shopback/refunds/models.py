@@ -90,8 +90,8 @@ class Refund(models.Model):
 
     class Meta:
         db_table = 'shop_refunds_refund'
-        verbose_name = u'退款单'
-        verbose_name_plural = u'退款单列表'
+        verbose_name = u'退货款单'
+        verbose_name_plural = u'退货款单列表'
 
     def __unicode__(self):
         return '<%s,%s,%s>'%(str(self.refund_id),self.buyer_nick,self.refund_fee)

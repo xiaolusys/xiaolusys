@@ -58,7 +58,7 @@
           {% block object-tools-items %}
           	<li>
               <a href="{% url cl.opts|admin_urlname:'add' %}{% if is_popup %}?_popup=1{% endif %}" class="addlink">
-                {% blocktrans with cl.opts.verbose_name as name %}新退货单{% endblocktrans %}
+                {% blocktrans with cl.opts.verbose_name as name %}新{{ name }}{% endblocktrans %}
               </a>
             </li>
           	<li>

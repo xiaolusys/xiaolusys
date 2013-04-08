@@ -283,7 +283,7 @@ class MergeTradeAdmin(admin.ModelAdmin):
         if queryset.count()<2 or myset.count()>0 or postset.count()>1:
             trades = queryset
             is_merge_success = False
-            fail_reason = u'订单不符合合并条件（合并订单必须两单以上并且系统状态在问题单，待扫描验货，待扫描称重,而后两状态共至多一单）'
+            fail_reason = u'订单不符合合并条件（合并订单必须两单以上，订单类型为一口价，分销,订单状态在问题单或待扫描）'
         else:
             merge_trade_ids  = []     #合单成的订单ID
             fail_reason      = ''
