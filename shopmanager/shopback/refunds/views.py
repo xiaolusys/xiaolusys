@@ -7,6 +7,7 @@ from django.core.urlresolvers import reverse
 from auth import staff_requried
 from django.db.models import Q
 from django.template.loader import render_to_string
+from django.views.decorators.csrf import csrf_exempt
 from django.contrib.admin.views.decorators import staff_member_required
 from djangorestframework.views import ModelView
 from shopback.trades.models import MergeTrade,MergeOrder
@@ -54,6 +55,7 @@ class RefundManagerView(ModelView):
                     receiver_name = MergeTrade.objects.filter(tid=refund_tid).receiver_name
                 except:
                     receiver_name = ''
+                has_refund_prod = RefundProduct.objects.filter(trade_id=refund_tid).count()>0
                 refund_dict[refund_tid] = {'tid':refund_tid,
                                            'buyer_nick':refund.buyer_nick,
                                            'seller_nick':refund.seller_nick,
@@ -65,6 +67,7 @@ class RefundManagerView(ModelView):
                                            'company_name':refund.company_name,
                                            'sid':refund.sid,
                                            'is_reissue':refund.is_reissue,
+                                           'has_refund_prod':has_refund_prod,
                                            'cs_status':dict(CS_STATUS_CHOICES).get(refund.cs_status,u'状态不对'),
                                            'status':dict(REFUND_STATUS).get(refund.status,u'状态不对'),
                                            }
@@ -224,6 +227,8 @@ class RefundView(ModelView):
         return rf  
  
 
+@csrf_exempt
+@staff_member_required
 def create_refund_exchange_trade(request,tid):
     
     try:
@@ -258,7 +263,7 @@ def create_refund_exchange_trade(request,tid):
                                             pay_time=dt,
                                             modified=dt
                                             )
-    for prod in rfprods:
+    for prod in rfprods.filter(can_reuse=True):
         merge_order = MergeOrder()
         merge_order.merge_trade = merge_trade
         merge_order.title       = prod.title
@@ -277,7 +282,9 @@ def create_refund_exchange_trade(request,tid):
     
     return HttpResponseRedirect('/admin/trades/mergetrade/?type__exact=exchange&sys_status=WAIT_AUDIT&q=%s'%str(merge_trade.id))  
    
-    
+
+@csrf_exempt
+@staff_member_required   
 def delete_trade_order(request,id):
     
     user_id      = request.user.id
@@ -287,6 +294,32 @@ def delete_trade_order(request,id):
         HttpResponse(json.dumps({'code':1,'response_error':u'订单不存在'}),mimetype="application/json")
     
     refund_prod.delete()    
+    ret_params = {'code':0,'response_content':{'success':True}}
+
+    return HttpResponse(json.dumps(ret_params),mimetype="application/json")    
+
+
+@csrf_exempt
+@staff_member_required
+def relate_refund_product(request):
+    
+    content      = request.REQUEST
+    refund_tid   = content.get('refund_tid')
+    rpid         = content.get('rpid')
+    print refund_tid,rpid
+    try:
+        trade  = MergeTrade.objects.get(tid=refund_tid)
+    except:
+        return HttpResponse(json.dumps({'code':1,'response_error':u'订单不存在'}),mimetype="application/json")
+        
+    try:
+        refund_prod  = RefundProduct.objects.get(id=rpid)
+    except:
+        return HttpResponse(json.dumps({'code':1,'response_error':u'退回商品不存在'}),mimetype="application/json")
+    
+    refund_prod.trade_id   = trade.tid   
+    refund_prod.buyer_nick = trade.buyer_nick 
+    refund_prod.save() 
     ret_params = {'code':0,'response_content':{'success':True}}
 
     return HttpResponse(json.dumps(ret_params),mimetype="application/json")    

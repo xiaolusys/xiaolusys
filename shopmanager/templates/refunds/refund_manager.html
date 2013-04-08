@@ -38,16 +38,28 @@
 		}
 		.order-userinfo {
 			display:inline;
-			margin:0 60px;
+			margin:0 10px;
 			font-size:20px;
 		}
 		label{
 			display:inline;
-			margin:0 20px;
-			
+			margin:0 5px;	
 		}
 		.label{
 			font-size:20px;
+		}
+		.prompt-dialog{
+			display:none;
+		    z-index:100;
+		    position:absolute;
+		    background: #fff;
+		    margin-bottom:0px;
+		    border: 1px solid #999;
+		}
+		.prompt-dialog input,.prompt-dialog button{
+			margin-left:5px;
+			display:inline;
+			margin-bottom:0px;
 		}
 	</style>
 </head>
@@ -59,12 +71,12 @@
 		  	<legend><h1 class="head-title" >退货单列表</h1></legend>
 			  <table id='id_refund_table' class="table table-bordered table-striped table-condensed">
 			    <thead>
-			      <th>序号</th><th>买家昵称</th><th>卖家昵称</th><th>收货人</th><th>退货单数</th><th>创建日期</th><th>退回快递</th><th>快递单号</th><th>退款状态</th><th>天猫介入</th><th>原因</th><th>描述</th>
+			      <tr><th>序号</th><th>买家昵称</th><th>卖家昵称</th><th>收货人</th><th>退货单数</th><th>创建日期</th><th>退回快递</th><th>快递单号</th><th>退款状态</th><th>天猫介入</th><th>原因</th><th>描述</th></tr>
 			    </thead>
 			    {% for trade in refund_trades %}
-			    <tr>
+			    <tr class="{% if trade.has_refund_prod %}label-warning{% endif %}">
 			    	<td>{{ forloop.counter }}</td>
-			    	<td><a href="javascript:void(0);" class="check-refund-order" style="cursor:pointer;" tid="{{ trade.tid }}">
+			    	<td><a href="javascript:void(0);" class="check-refund-order" style="cursor:pointer;" title="{{ trade.tid }}" tid="{{ trade.tid }}">
 			    		{{ trade.buyer_nick }}</a></td>
 			    	<td>{{ trade.seller_nick }}</td>
 			    	<td>{{ trade.receiver_name }}</td>
@@ -81,7 +93,7 @@
 			  </table>
 		  </fieldset>
 		</div>	
-		<div class="product-panel">
+		<div id="id-refund-prod-panel" class="product-panel">
 			<h3 class="head-title" id="id-refund-head">
 				<img src="{{ STATIC_URL }}img/tri_right.png" style="cursor:pointer;margin-right:5px;"></img>未关联退货单退回商品列表</h3>
 			<div id="id-refund-goods">
@@ -89,7 +101,7 @@
 					<thead>
 						<tr>
 						<th>序号</th>
-						<th>交易ID</th>
+						<th style="width:140px;">交易ID</th>
 						<th>买家昵称</th>
 						<th>手机</th>
 						<th>固话</th>
@@ -115,10 +127,9 @@
 					    	<td>{{ prod.title }}</td>
 					    	<td>{{ prod.property }}</td>
 					    	<td>{{ prod.num }}</td>
-					    	<td>{% if prod.can_reuse %}
-					    	{% else %}{% endif %}</td>
-					    	<td><button class="btn btn-mini btn-primary" title="关联到退货单">关联</button>
-					    	<button class="btn btn-mini btn-primary" title="将该退回商品改为已处理状态">处理</button></td>
+					    	<td>{% if prod.can_reuse %}<img src="{{ STATIC_URL }}admin/img/icon-yes.gif" alt="yes">
+							{% else %}<img src="{{ STATIC_URL }}admin/img/icon-no.gif" alt="no">{% endif %}</td>
+					    	<td><button class="relate-refund btn btn-mini btn-primary" rpid="{{ prod.id }}" title="关联到退货单">关联</button></td>
 					    </tr>	
 						{% endfor %}
 					</tbody>
@@ -127,6 +138,9 @@
 		</div>
 	</div>	
 	{% endwith %}
+	<div id="rel-refundorder-dialog" class="prompt-dialog">
+		<label class="label label-important">交易ID：</label><input id="relate_refund_tid" type="text" /><button id="id_rel_refundbtn" class="btn btn-small btn-primary">确定</button>
+	</div>
 </body>
 <script src="{{ STATIC_URL }}script/refund/checkrefund.js"></script>
 <script type="text/javascript">

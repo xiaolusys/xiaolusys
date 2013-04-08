@@ -487,7 +487,7 @@ refund.Manager.prototype.bindEvent = function () {
 	goog.events.listen(this.trade_q, goog.events.EventType.FOCUS,this.focus,false,this);
 	
 	goog.events.listen(this.clearBtn, goog.events.EventType.CLICK,this.clearPanel,false,this);
-	var returns_zippy  = new goog.ui.Zippy('id-refund-head', 'id-refund-goods');   
+	new goog.ui.Zippy('id-refund-head', 'id-refund-goods');   
 }
 
 refund.Manager.prototype.focus = function(e){
