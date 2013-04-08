@@ -399,8 +399,6 @@ exchange.Manager.prototype.saveBuyerInfo = function(e){
 	var receiver_city     = goog.dom.getElement('id_receiver_city').value;
 	var receiver_district = goog.dom.getElement('id_receiver_district').value;
 	var receiver_address  = goog.dom.getElement('id_receiver_address').value;
-	var return_company_name  = goog.dom.getElement('id_return_company_name').value;
-	var return_out_sid    = goog.dom.getElement('id_return_out_sid').value;
 	
 	var params = {
 		'trade_id':that.tid,
@@ -413,8 +411,6 @@ exchange.Manager.prototype.saveBuyerInfo = function(e){
 		'receiver_city':receiver_city,
 		'receiver_district':receiver_district,
 		'receiver_address':receiver_address,
-		'return_logistic_company':return_company_name,
-		'return_out_sid':return_out_sid,
 	}
 	var callback = function(e){
 		var xhr = e.target;

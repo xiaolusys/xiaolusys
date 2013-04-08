@@ -170,9 +170,6 @@ class MergeTrade(models.Model):
     remind_time      = models.DateTimeField(null=True,blank=True,verbose_name='提醒日期')
     refund_num       = models.IntegerField(null=True,default=0,verbose_name='退款单数')  #退款单数
     
-    return_out_sid   = models.CharField(max_length=64,db_index=True,blank=True,verbose_name='退货物流单号')
-    return_logistic_company = models.CharField(max_length=64,blank=True,verbose_name='退货物流公司')
-    
     can_review       = models.BooleanField(default=False,verbose_name='复审') 
     priority       = models.IntegerField(db_index=True,default=0,choices=PRIORITY_TYPE,verbose_name='优先级')
     operator       =  models.CharField(max_length=32,blank=True,verbose_name='发货员')

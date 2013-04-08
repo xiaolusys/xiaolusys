@@ -114,7 +114,7 @@ class MergeTradeAdmin(admin.ModelAdmin):
     list_filter   = (TradeStatusFilter,'status','user','type','has_out_stock','has_refund','has_rule_match','has_sys_err',
                      'has_merge','has_memo','is_picking_print','is_express_print','can_review')
 
-    search_fields = ['id','buyer_nick','tid','operator','out_sid','receiver_name','return_out_sid','receiver_mobile','receiver_phone']
+    search_fields = ['id','buyer_nick','tid','operator','out_sid','receiver_name','receiver_mobile','receiver_phone']
     
     class Media:
         css = {"all": ("admin/css/forms.css","css/admin/dialog.css","css/admin/checkorder.css")}
@@ -133,7 +133,7 @@ class MergeTradeAdmin(admin.ModelAdmin):
                     'classes': ('expand',),
                     'fields': (('receiver_name','receiver_state','receiver_city','receiver_district')
                             ,('receiver_address','receiver_zip','receiver_mobile','receiver_phone')
-                            ,('shipping_type','logistics_company','out_sid','return_out_sid','return_logistic_company'))
+                            ,('shipping_type','logistics_company','out_sid'))
                 }),
                 ('系统内部信息:', {
                     'classes': ('collapse',),
