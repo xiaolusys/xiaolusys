@@ -52,7 +52,7 @@
 	</style>
 </head>
 <body>
-	{% with object.refund_trades as refund_trades %}
+	{% with refund_trades=object.refund_trades  unrelate_prods=object.unrelate_prods %}
 	<div class="container">
 		<div id="post-items" style="display:block;">
 		  <fieldset>
@@ -80,35 +80,53 @@
 			    {% endfor %}	
 			  </table>
 		  </fieldset>
+		</div>	
+		<div class="product-panel">
+			<h3 class="head-title" id="id-refund-head">
+				<img src="{{ STATIC_URL }}img/tri_right.png" style="cursor:pointer;margin-right:5px;"></img>未关联退货单退回商品列表</h3>
+			<div id="id-refund-goods">
+				<table id="id-refund-table" class="table table-bordered table-striped table-condensed">
+					<thead>
+						<tr>
+						<th>序号</th>
+						<th>交易ID</th>
+						<th>买家昵称</th>
+						<th>手机</th>
+						<th>固话</th>
+						<th>物流单号</th>
+						<th>物流公司</th>
+						<th style="width:200px;">商品简称</th>
+						<th style="width:150px;">规格</th>
+						<th>数量</th>
+						<th>二次销售</th>
+						<th>操作</th>
+						</tr>
+					</thead>
+					<tbody>
+						{% for prod in unrelate_prods %}
+						<tr>
+					    	<td>{{ forloop.counter }}</td>
+					    	<td>{{ prod.trade_id }}</a></td>
+					    	<td>{{ prod.buyer_nick }}</td>
+					    	<td>{{ prod.buyer_mobile }}</td>
+					    	<td>{{ prod.buyer_phone }}<a></a></td>
+					    	<td>{{ prod.out_sid }}</td>
+					    	<td>{{ prod.company }}</td>
+					    	<td>{{ prod.title }}</td>
+					    	<td>{{ prod.property }}</td>
+					    	<td>{{ prod.num }}</td>
+					    	<td>{% if prod.can_reuse %}
+					    	{% else %}{% endif %}</td>
+					    	<td><button class="btn btn-mini btn-primary" title="关联到退货单">关联</button>
+					    	<button class="btn btn-mini btn-primary" title="将该退回商品改为已处理状态">处理</button></td>
+					    </tr>	
+						{% endfor %}
+					</tbody>
+				</table>
+			</div>
 		</div>
 	</div>	
 	{% endwith %}
-	<div class="product-panel">
-		<h3 class="head-title" id="id-refund-head">
-			<img src="{{ STATIC_URL }}img/tri_right.png" style="cursor:pointer;margin-right:5px;"></img>未关联退货单退回商品列表</h3>
-		<div id="id-refund-goods">
-			<table id="id-refund-table" class="table table-bordered table-striped table-condensed">
-				<thead>
-					<tr>
-					<th>序号</th>
-					<th>交易ID</th>
-					<th>买家昵称</th>
-					<th>手机</th>
-					<th>固话</th>
-					<th>物流单号</th>
-					<th>物流公司</th>
-					<th style="width:200px;">商品简称</th>
-					<th style="width:150px;">规格</th>
-					<th>数量</th>
-					<th>二次销售</th>
-					<th>操作</th>
-					</tr>
-				</thead>
-				<tbody>
-				</tbody>
-			</table>
-		</div>
-	</div>
 </body>
 <script src="{{ STATIC_URL }}script/refund/checkrefund.js"></script>
 <script type="text/javascript">

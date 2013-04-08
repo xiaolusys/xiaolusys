@@ -1,7 +1,7 @@
 {% with object.order_list as order_list %}
 <table class="table table-bordered table-striped table-condensed">
 	<thead>
-		<th>买家昵称</th><th>收货人</th><th style="width:200px;">标题</th><th>规格</th><th>数量</th><th>付款日期</th><th>退款状态</th><th>操作</th>
+		<tr><th>买家昵称</th><th>收货人</th><th style="width:200px;">标题</th><th>规格</th><th>数量</th><th>付款日期</th><th>退款状态</th><th>操作</th></tr>
 	</thead>
 	<tbody>
 		{% for order in order_list %}
@@ -15,9 +15,9 @@
 			<td>{{ order.refund_status }}</td>
 			<td>{{ order.status }}</td>
 			<td><button outer_id="{{ order.outer_id }}" outer_sku_id="{{ order.outer_sku_id }}" tid="{{ order.tid }}" 
-				title="{{ order.title }}" property="{{ order.sku_properties_name }}" class="order-list-add btn btn-mini btn-primary">添加</button></td>
-			{% endfor %}
+				title="{{ order.title }}" property="{{ order.sku_properties_name }}" class="order-list-add btn btn-mini btn-primary">添加</button></td>	
 		</tr>
+		{% endfor %}
 	</tbody>
 </table>
 {% endwith %}

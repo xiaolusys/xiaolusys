@@ -832,7 +832,7 @@ class OrderListView(ModelView):
             trade  = MergeTrade.objects.get(id=id)
         except:
             return HttpResponseNotFound('<h1>订单未找到</h1>')
-        for order in trade.merge_trade_orders.filter(sys_status=pcfg.IN_EFFECT):
+        for order in trade.merge_trade_orders.all():
             try:
                 prod = Product.objects.get(outer_id=order.outer_id)
             except:
