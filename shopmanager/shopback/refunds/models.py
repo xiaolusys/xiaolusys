@@ -56,7 +56,7 @@ class Refund(models.Model):
     tid          = models.BigIntegerField(null=True,db_index=True,verbose_name='交易ID')
 
     title        = models.CharField(max_length=64,blank=True,verbose_name='出售标题')
-    num_iid      = models.BigIntegerField(null=True,verbose_name='商品ID')
+    num_iid      = models.BigIntegerField(null=True,default=0,verbose_name='商品ID')
 
     user         = models.ForeignKey(User,null=True,related_name='refunds',verbose_name='店铺')
     seller_id    = models.CharField(max_length=64,blank=True,verbose_name='卖家ID')
@@ -70,8 +70,8 @@ class Refund(models.Model):
     refund_fee   = models.CharField(max_length=10,blank=True,verbose_name='退款费用')
     payment      = models.CharField(max_length=10,blank=True,verbose_name='实付')
 
-    created   = models.DateTimeField(db_index=True,null=True,blank=True,verbose_name='创建日期')
-    modified  = models.DateTimeField(db_index=True,null=True,blank=True,verbose_name='修改日期')
+    created   = models.DateTimeField(db_index=True,null=True,auto_now_add=True,verbose_name='创建日期')
+    modified  = models.DateTimeField(db_index=True,null=True,auto_now=True,verbose_name='修改日期')
 
     oid       = models.CharField(db_index=True,max_length=64,blank=True,verbose_name='订单ID')
     company_name = models.CharField(max_length=64,blank=True,verbose_name='快递公司')

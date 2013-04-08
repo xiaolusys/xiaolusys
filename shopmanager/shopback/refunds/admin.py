@@ -1,5 +1,7 @@
 #-*- coding:utf8 -*-
 from django.contrib import admin
+from django.db import models
+from django.forms import TextInput, Textarea
 from django.http import HttpResponseRedirect
 from shopback.refunds.models import Refund,RefundProduct
 
@@ -14,6 +16,24 @@ class RefundAdmin(admin.ModelAdmin):
 
     date_hierarchy = 'created'
     #ordering = ['created_at']
+    
+    #--------设置页面布局----------------
+    fieldsets =(('重要信息', {
+                    'classes': ('collapse',),
+                    'fields': (('tid','user','buyer_nick','has_good_return','good_status'),
+                               ('order_status','status','desc'))
+                }),
+                ('参考信息:', {
+                    'classes': ('collapse',),
+                    'fields': (('oid','title','seller_id','seller_nick','num_iid','total_fee','refund_fee','payment'
+                                ,'company_name','sid','is_reissue','reason','cs_status'))
+                }))
+
+     #--------定制控件属性----------------
+    formfield_overrides = {
+        models.CharField: {'widget': TextInput(attrs={'size':'16'})},
+        models.TextField: {'widget': Textarea(attrs={'rows':6, 'cols':35})},
+    }
     
     list_filter   = ('seller_nick','has_good_return','good_status','is_reissue','order_status','status',)
     search_fields = ['refund_id','tid','oid','sid','buyer_nick']
