@@ -81,10 +81,11 @@ class ProductAdmin(admin.ModelAdmin):
         for prod in queryset:
             pull_dict = {'outer_id':prod.outer_id,'name':prod.name}
             try:
-                items = Item.objects.filter(outer_id=prod.outer_id)
+                items = Item.objects.filter(outer_id=prod.outer_id,approve_status=pcfg.ONSALE_STATUS)
                 for item in items:
                     updateItemNum(item.user.visitor_id,item.num_iid)
             except Exception,exc:
+                logger.error(exc.message,exc_info=True)
                 pull_dict['success']=False
                 pull_dict['errmsg']=exc.message or '%s'%exc  
             else:
