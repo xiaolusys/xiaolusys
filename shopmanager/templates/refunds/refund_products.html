@@ -108,7 +108,11 @@
 	.prompt-close{
 		float:right;
 	}
-
+	
+	.head-title h3 ,.head-title button{
+		display:inline;
+	}
+	
     </style>
     
   </head>
@@ -135,8 +139,10 @@
 			<hr/>
 			<div class="product-content">
 				<div class="product-panel">
-					<h3 class="head-title" id="id-refund-head">
-						<img src="{{ STATIC_URL }}img/tri_right.png" style="cursor:pointer;margin-right:5px;"></img>退回商品列表</h3>
+					<div class="head-title">
+						<h3 id="id-refund-head"><img src="{{ STATIC_URL }}img/tri_right.png" style="cursor:pointer;margin-right:5px;"></img>退回商品列表</h3>
+						<button id="id_clear_list_btn" class="btn btn-mini btn-reverse" style="float:right;">清空列表</button>
+					</div>
 					<div id="id-refund-goods">
 						<table id="id-refund-table" class="table table-bordered table-striped table-condensed">
 							<thead>

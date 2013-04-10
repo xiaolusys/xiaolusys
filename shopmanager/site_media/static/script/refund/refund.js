@@ -295,6 +295,7 @@ refund.Manager = function () {
 	this.search_prod_table  = goog.dom.getElement('id-prod-search-table');
 	this.refund_table  = goog.dom.getElement('id-refund-table');
 	this.clearBtn      = goog.dom.getElement('id_clear_btn');
+	this.clearListBtn  = goog.dom.getElement('id_clear_list_btn');
 	
 	this.orderlist_dialog    = new refund.OrderListDialog(this);
     this.orderconfirm_dialog = new refund.OrderConfirmDialog(this);
@@ -465,6 +466,10 @@ refund.Manager.prototype.deleteOrder = function(e){
 	goog.net.XhrIo.send('/refunds/product/del/'+rid+'/',callback,'GET');
 }
 
+//清空退货记录列表
+refund.Manager.prototype.clearRefundProductTable = function(e){
+	clearTable(this.refund_table);
+}
 
 //清除基本信息表格
 refund.Manager.prototype.clearPanel = function(e){
@@ -488,6 +493,8 @@ refund.Manager.prototype.bindEvent = function () {
 	goog.events.listen(this.trade_q, goog.events.EventType.FOCUS,this.focus,false,this);
 	
 	goog.events.listen(this.clearBtn, goog.events.EventType.CLICK,this.clearPanel,false,this);
+	goog.events.listen(this.clearListBtn, goog.events.EventType.CLICK,this.clearRefundProductTable,false,this);
+	
 	new goog.ui.Zippy('id-refund-head', 'id-refund-goods');   
 }
 

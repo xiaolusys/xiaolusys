@@ -134,9 +134,13 @@ class Refund(models.Model):
        
 #如果创建的退货单有退款编号，就要删除系统没有退款编号的交易 
 def save_refund_and_remove_unrefunded(sender,instance,*args,**kwargs):
-    if instance.refund_id:
-        Refund.objects.filter(tid=instance.tid,refund_id=None).delete()
-    
+    if instance.refund_id and not instance.is_reissue:
+        refunds = Refund.objects.filter(tid=instance.tid,refund_id=None)
+        if refunds.filter(is_reissue=True):
+            instance.is_reissue = True
+            instance.save()
+        else:
+            refunds.delete()
     
 pre_save.connect(save_refund_and_remove_unrefunded, sender=Refund, dispatch_uid="id_remove_unrefunded")
 
