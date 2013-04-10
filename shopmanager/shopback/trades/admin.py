@@ -140,7 +140,7 @@ class MergeTradeAdmin(admin.ModelAdmin):
                     'fields': (('has_sys_err','has_memo','has_refund','has_out_stock','has_rule_match','has_merge'
                                 ,'is_send_sms','is_picking_print','is_express_print','can_review')
                                ,('priority','remind_time','reason_code','refund_num')
-                               ,('post_cost','operator','weight','sys_status',))
+                               ,('is_locked','post_cost','operator','weight','sys_status',))
                 }))
 
     #--------定制控件属性----------------
@@ -269,6 +269,7 @@ class MergeTradeAdmin(admin.ModelAdmin):
                 msg = u"订单不在待扫描验货或待扫描称重，不能修改为已完成状态"
             self.message_user(request, msg)
             return HttpResponseRedirect("../%s/" % pk_value)
+        
         return super(MergeTradeAdmin, self).response_change(request, obj, *args, **kwargs)
     
     #--------定义action----------------

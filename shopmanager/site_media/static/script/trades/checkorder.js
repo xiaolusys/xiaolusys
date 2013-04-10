@@ -93,6 +93,7 @@ ordercheck.Dialog = function (manager) {
     this.dialog = new goog.ui.Dialog();
     this.orderManager = manager;
     this.trade_id = null; 
+    this.clickPos = null;
 }
 
 ordercheck.Dialog.prototype.init = function (id) {
@@ -124,6 +125,7 @@ ordercheck.Dialog.prototype.init = function (id) {
 
 ordercheck.Dialog.prototype.show = function(data) {
     this.dialog.setVisible(true);
+    goog.style.setPageOffset(this.dialog.getDialogElement(),this.clickPos);
 }
 
 ordercheck.Dialog.prototype.hide = function(data) {
@@ -356,6 +358,7 @@ ordercheck.Manager.prototype.showDialog = function(e) {
     var elt = e.target;
     var trade_id = elt.getAttribute('trade_id');
     this.dialog.init(trade_id);
+    this.dialog.clickPos = goog.style.getPageOffset(elt);
     this.check_row_idx = elt.parentElement.parentElement.rowIndex;
     this.dialog.show(); 
 }

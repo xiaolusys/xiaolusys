@@ -75,6 +75,7 @@ class ProductAdmin(admin.ModelAdmin):
     def sync_items_stock(self,request,queryset):
         
         from shopapp.syncnum.tasks import updateItemNum
+        from shopback.items.tasks import updateUserProductSkuTask
         
         dt   =   datetime.datetime.now()
         sync_items = []
@@ -82,6 +83,7 @@ class ProductAdmin(admin.ModelAdmin):
             pull_dict = {'outer_id':prod.outer_id,'name':prod.name}
             try:
                 items = Item.objects.filter(outer_id=prod.outer_id,approve_status=pcfg.ONSALE_STATUS)
+                updateUserProductSkuTask(outer_ids=[i.outer_id for i in items if i.outer_id ])
                 for item in items:
                     updateItemNum(item.user.visitor_id,item.num_iid)
             except Exception,exc:

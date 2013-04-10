@@ -8,6 +8,7 @@ from shopback.base.models import BaseModel
 from shopback.base.fields import BigIntegerAutoField,BigIntegerForeignKey
 from shopback import paramconfig as pcfg
 from shopback.users.models import User
+from django.db.models.signals import pre_save
 from auth import apis
 import logging
 
@@ -51,8 +52,9 @@ CS_STATUS_CHOICES = (
 )
 
 class Refund(models.Model):
-
-    refund_id    = BigIntegerAutoField(primary_key=True,verbose_name='退款ID')
+    
+    id           = BigIntegerAutoField(primary_key=True,verbose_name='ID')
+    refund_id    = models.BigIntegerField(unique=True,null=True,blank=True,default=None,verbose_name='退款单ID')
     tid          = models.BigIntegerField(null=True,db_index=True,verbose_name='交易ID')
 
     title        = models.CharField(max_length=64,blank=True,verbose_name='出售标题')
@@ -94,7 +96,7 @@ class Refund(models.Model):
         verbose_name_plural = u'退货款单列表'
 
     def __unicode__(self):
-        return '<%s,%s,%s>'%(str(self.refund_id),self.buyer_nick,self.refund_fee)
+        return '<%s,%s,%s>'%(self.tid,self.buyer_nick,self.refund_fee)
 
     @classmethod
     def get_or_create(cls,user_id,refund_id,force_update=False):
@@ -109,7 +111,7 @@ class Refund(models.Model):
         return refund
                 
     def save_refund_through_dict(self,seller_id,refund):
-
+        
         self.user   = User.objects.get(visitor_id=seller_id)
         from shopback.trades.models import MergeTrade
         try:
@@ -129,7 +131,14 @@ class Refund(models.Model):
             if refund.get('modified',None) else None
         
         self.save()
-        
+       
+#如果创建的退货单有退款编号，就要删除系统没有退款编号的交易 
+def save_refund_and_remove_unrefunded(sender,instance,*args,**kwargs):
+    if instance.refund_id:
+        Refund.objects.filter(tid=instance.tid,refund_id=None).delete()
+    
+    
+pre_save.connect(save_refund_and_remove_unrefunded, sender=Refund, dispatch_uid="id_remove_unrefunded")
 
 class RefundProduct(models.Model):
     

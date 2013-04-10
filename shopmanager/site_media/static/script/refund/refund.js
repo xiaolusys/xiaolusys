@@ -231,7 +231,8 @@ refund.OrderConfirmDialog.prototype.showdialog = function(order){
 refund.OrderConfirmDialog.prototype.show = function(){
 	var baseinfo_panel = goog.dom.getElement('id-baseinfo-table');
 	var pos = goog.style.getPageOffset(baseinfo_panel);
-	goog.style.setPageOffset(this.confirmDialog,pos);
+	var scrollTop = document.body.scrollTop;
+	goog.style.setPageOffset(this.confirmDialog,pos.x,scrollTop+77);
 	goog.style.setStyle(this.confirmDialog, "display", "block");
 }
 

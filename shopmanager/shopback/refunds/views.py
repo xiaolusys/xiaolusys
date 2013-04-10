@@ -42,7 +42,7 @@ class RefundManagerView(ModelView):
         
         handling_refunds = Refund.objects.filter(has_good_return=True,is_reissue=False,
                                 status__in=(pcfg.REFUND_WAIT_RETURN_GOODS,pcfg.REFUND_CONFIRM_GOODS))
-        handling_tids = []
+        handling_tids = set()
         refund_dict  = {}
         for refund in handling_refunds:
             refund_tid = refund.tid
@@ -50,7 +50,7 @@ class RefundManagerView(ModelView):
                 refund_dict[refund_tid]['order_num'] += 1
                 refund_dict[refund_tid]['is_reissue'] &= refund.is_reissue
             else:
-                handling_tids.append(refund_tid)
+                handling_tids.add(refund_tid)
                 try:
                     receiver_name = MergeTrade.objects.filter(tid=refund_tid).receiver_name
                 except:
@@ -75,11 +75,10 @@ class RefundManagerView(ModelView):
         refund_items = sorted(refund_dict.items(),key=lambda d:d[1]['created'],reverse=True)
         
         refund_list  = [v for k,v in refund_items]
-        
         unrelate_prods = []
         unfinish_prods = RefundProduct.objects.filter(is_finish=False)
         for prod in unfinish_prods:
-            if not prod.trade_id or prod.trade_id not in handling_tids:
+            if not prod.trade_id or (int(prod.trade_id) not in handling_tids):
                 unrelate_prods.append(prod)
 
         return {'refund_trades':refund_list,'unrelate_prods':unrelate_prods}

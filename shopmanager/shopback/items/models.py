@@ -390,10 +390,11 @@ class Item(models.Model):
             product = None
         
         item,state    = cls.objects.get_or_create(num_iid = item_dict['num_iid'])
-        item_dict['skus'] = item_dict.get('skus','{}')
+        skus = item_dict.get('skus',None)
+        item_dict['skus'] = skus and skus or item.skus
         for k,v in item_dict.iteritems():
             hasattr(item,k) and setattr(item,k,v)
-
+            
         if not item.last_num_updated:
             item.last_num_updated = datetime.datetime.now()  
         

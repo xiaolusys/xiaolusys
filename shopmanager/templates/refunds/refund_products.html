@@ -91,9 +91,8 @@
 		display:none;
 		width:1000px;
 	    z-index:100;
-	    position:absolute;
-	    background: #fff;
-	    margin-bottom:0px;
+	    position:fixed;
+	    background-color:#ddd;
 	    border: 1px solid #999;
 	}
 	
@@ -221,7 +220,7 @@
 	</div>
 	<!-- 确认退回商品对话框 -->
 	<div id="id-confirm-order-dialog" class="order-confirm-prompt">
-		<table id="id-confirm-order-table" class="table table-bordered table-condensed">
+		<table id="id-confirm-order-table" class="table table-bordered table-condensed" style="background-color: #ddd;">
 		<thead>
 			<tr>
 			<th>交易ID</th><th>买家昵称</th><th>手机</th><th>固话</th><th>物流公司</th><th>物流单号</th>
@@ -236,5 +235,6 @@
 <script type="text/javascript" src="{{ STATIC_URL }}script/refund/refund.js"></script>
 <script type="text/javascript">
 	 new refund.Manager();
+
 </script>
 </html>

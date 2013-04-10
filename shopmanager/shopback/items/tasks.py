@@ -43,7 +43,6 @@ def updateUserItemsTask(user_id):
                     if modified != item_obj.modified:
                         response = apis.taobao_item_get(num_iid=item['num_iid'], tb_user_id=user_id)
                         item_dict = response['item_get_response']['item']
-                        item_dict['skus'] = json.dumps(item_dict.get('skus', {}))
                         Item.save_item_through_dict(user_id, item_dict)
                     onsale_item_ids.append(item['num_iid'])
                     
@@ -72,7 +71,6 @@ def updateUserItemsTask(user_id):
                     if modified != item_obj.modified:
                         response = apis.taobao_item_get(num_iid=item['num_iid'], tb_user_id=user_id)
                         item_dict = response['item_get_response']['item']
-                        item_dict['skus'] = json.dumps(item_dict.get('skus', {}))
                         Item.save_item_through_dict(user_id, item_dict)
                     onsale_item_ids.append(item['num_iid'])
                 
@@ -132,7 +130,7 @@ def updateUserProductSkuTask(user_id=None,outer_ids=None,force_update_num=False)
                         sku_outer_id = sku.get('outer_id', None)
                         item = Item.objects.get(num_iid=sku['num_iid'])
                         
-                        if not item.user.is_primary or not item.product and not sku_outer_id:
+                        if not item.user.is_primary or not item.product or not sku_outer_id:
                             continue
                         sku_prop_dict = dict([('%s:%s' % (p.split(':')[0], p.split(':')[1]), p.split(':')[3]) for p in sku['properties_name'].split(';') if p])
                         
@@ -161,7 +159,7 @@ def updateUserProductSkuTask(user_id=None,outer_ids=None,force_update_num=False)
             finally:
                 for num_iid, sku_list in sku_dict.items():
                     item = Item.objects.get(num_iid=num_iid)
-                    item.skus = json.dumps({'sku':sku_list})
+                    item.skus = sku_list and json.dumps({'sku':sku_list}) or item.skus
                     item.save()
                 num_iids = []
                 prop_dict = {}
