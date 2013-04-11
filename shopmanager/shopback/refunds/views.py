@@ -16,6 +16,7 @@ from shopback.refunds.models import RefundProduct,Refund,REFUND_STATUS,CS_STATUS
 from auth.utils import parse_datetime,parse_date,format_time,map_int2str
 from shopback.refunds.tasks import updateAllUserRefundOrderTask
 from shopback import paramconfig as pcfg
+from shopback.base import log_action,User, ADDITION, CHANGE
 
 
 __author__ = 'meixqhi'
@@ -223,6 +224,9 @@ class RefundView(ModelView):
             hasattr(rf,k) and setattr(rf,k,v)
         
         rf.save()
+        
+        log_action(request.user.id,rf,CHANGE,u'创建退货商品记录')
+        
         return rf  
  
 
@@ -281,6 +285,8 @@ def create_refund_exchange_trade(request,tid):
     refunds.update(is_reissue=True)
     rfprods.update(is_finish=True)    
     
+    log_action(request.user.id,merge_trade,ADDITION,u'创建退换货单')
+    
     return HttpResponseRedirect('/admin/trades/mergetrade/?type__exact=exchange&sys_status=WAIT_AUDIT&q=%s'%str(merge_trade.id))  
    
 
@@ -321,6 +327,9 @@ def relate_refund_product(request):
     refund_prod.trade_id   = trade.tid   
     refund_prod.buyer_nick = trade.buyer_nick 
     refund_prod.save() 
+    
+    log_action(request.user.id,refund_prod,CHANGE,u'关联订单')
+    
     ret_params = {'code':0,'response_content':{'success':True}}
 
     return HttpResponse(json.dumps(ret_params),mimetype="application/json")    
