@@ -19,7 +19,7 @@ class RefundAdmin(admin.ModelAdmin):
     
     #--------设置页面布局----------------
     fieldsets =(('重要信息', {
-                    'classes': ('collapse',),
+                    'classes': ('expand',),
                     'fields': (('tid','user','buyer_nick','has_good_return'),
                                ('good_status','status','desc'))
                 }),

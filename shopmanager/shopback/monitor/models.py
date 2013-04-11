@@ -9,7 +9,7 @@ class SystemConfig(models.Model):
     is_flag_auto = models.BooleanField(default=False,verbose_name='同步淘宝旗帜')   #是否将系统状态同步到淘宝旗帜颜色标识
     
     
-    per_requset_num  = models.IntegerField(default=100,verbose_name='最大单次请求单数')
+    per_request_num  = models.IntegerField(default=100,verbose_name='最大单次请求单数')
     client_num   = models.IntegerField(default=1,verbose_name='客户端数量')
     category_updated  = models.DateTimeField(null=True,blank=True,verbose_name='类目更新日期')  #类目更新日期
     

@@ -8,7 +8,7 @@ from shopback.base.models import BaseModel
 from shopback.base.fields import BigIntegerAutoField,BigIntegerForeignKey
 from shopback import paramconfig as pcfg
 from shopback.users.models import User
-from django.db.models.signals import pre_save
+from django.db.models.signals import post_save
 from auth import apis
 import logging
 
@@ -142,7 +142,7 @@ def save_refund_and_remove_unrefunded(sender,instance,*args,**kwargs):
         else:
             refunds.delete()
     
-pre_save.connect(save_refund_and_remove_unrefunded, sender=Refund, dispatch_uid="id_remove_unrefunded")
+post_save.connect(save_refund_and_remove_unrefunded, sender=Refund, dispatch_uid="id_remove_unrefunded")
 
 class RefundProduct(models.Model):
     
