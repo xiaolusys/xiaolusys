@@ -33,7 +33,7 @@ def saveUserRefundOrderTask(user_id,update_from=None,update_to=None):
         if refund_list['total_results']>0:
             for r in refund_list['refunds']['refund']:
 
-                refund,state = Refund.objects.get_or_create(pk=r['refund_id'])
+                refund,state = Refund.objects.get_or_create(refund_id=r['refund_id'])
                 refund.save_refund_through_dict(user_id,r)
 
         total_nums = refund_list['total_results']
