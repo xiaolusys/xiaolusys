@@ -738,6 +738,10 @@ def merge_order_maker(sub_tid,main_tid):
     
     main_merge_trade.remove_reason_code(pcfg.MULTIPLE_ORDERS_CODE)
     sub_trade.remove_reason_code(pcfg.MULTIPLE_ORDERS_CODE)
+    
+    if not main_merge_trade.reason_code and not main_merge_trade.out_sid :
+        main_merge_trade.sys_status = pcfg.WAIT_PREPARE_SEND_STATUS
+        main_merge_trade.save()
     return True
 
 
@@ -778,13 +782,18 @@ def merge_order_remover(main_tid):
     
 
 def drive_merge_trade_action(trade_id):
-    """ 合单驱动程序 """
+    """ 合单驱动程序执行条件:
+        1，订单必须是等待卖家发货
+    """
     is_merge_success = False
     main_tid   = None 
     merge_trade      = MergeTrade.objects.get(id=trade_id)
     trades     =  []
     try:
-        if merge_trade.status != pcfg.WAIT_SELLER_SEND_GOODS:
+        if merge_trade.has_merge:
+            return is_merge_success,merge_trade.tid
+            
+        if merge_trade.status != pcfg.WAIT_SELLER_SEND_GOODS :
             return is_merge_success,main_tid
         
         full_address     = merge_trade.buyer_full_address
@@ -794,20 +803,19 @@ def drive_merge_trade_action(trade_id):
         
         trades = MergeTrade.objects.filter(buyer_nick=merge_trade.buyer_nick,receiver_name=receiver_name,receiver_address=receiver_address
                                     ,sys_status__in=(pcfg.WAIT_AUDIT_STATUS,pcfg.WAIT_PREPARE_SEND_STATUS,pcfg.REGULAR_REMAIN_STATUS))\
-                                    .exclude(id=trade_id).order_by('-pay_time')                          
-        merge_buyer_trades = MergeBuyerTrade.objects.filter(main_tid__in=[t.tid for t in trades])
-        #如果有已有合并记录，则将现有主订单作为合并主订单
-        if merge_buyer_trades.count()>0:
-            main_merge_tid = merge_buyer_trades[0].main_tid
-            main_trade = MergeTrade.objects.get(tid=main_merge_tid)
-            if main_trade.buyer_full_address == full_address:
-                main_tid = main_merge_tid
+                                    .order_by('-pay_time')        
+         
+        #如果有已有合并记录，则将现有主订单作为合并主订单                           
+        has_merge_trades = trades.filter(has_merge=True)                  
+        if has_merge_trades.count()>0:
+            main_tid = has_merge_trades[0].tid
+
         #如果入库订单不缺货,没有待退款，则进行合单操作
         if trades.count()>0 and not wait_refunding:
             #如果没有则将按时间排序的第一符合条件的订单作为主订单
             can_merge = True
             if not main_tid:
-                for t in trades:
+                for t in trades.exclude(id=trade_id):
                     full_refund = MergeTrade.judge_full_refund(t.id)
                     if not main_tid and not full_refund and not t.has_refund and t.buyer_full_address == full_address:
                         main_tid = t.tid
@@ -899,7 +907,7 @@ def trade_download_controller(merge_trade,trade,trade_from,first_pay_load):
                     merge_trade.append_reason_code(pcfg.MULTIPLE_ORDERS_CODE)
                     #驱动合单程序
                     is_merge_success,main_tid = drive_merge_trade_action(merge_trade.id)
-            
+                
             #更新物流公司信息    
             if is_need_merge and main_tid:
                 main_trade = MergeTrade.objects.get(tid=main_tid)

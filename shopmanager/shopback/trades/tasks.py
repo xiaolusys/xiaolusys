@@ -6,13 +6,15 @@ from celery.task import task
 from celery.task.sets import subtask
 from django.conf import settings
 from shopback import paramconfig as pcfg
-from shopback.trades.models import MergeTrade,MergeBuyerTrade,drive_merge_trade_action
+from shopback.orders.models import Trade,Order
+from shopback.trades.models import MergeTrade,MergeBuyerTrade,merge_order_remover
+from shopback.base import log_action,DjangoUser, ADDITION, CHANGE
 from shopback.users.models import User
-from shopback.base import log_action,User, ADDITION, CHANGE
 from auth import apis
 import logging
 
 logger = logging.getLogger('trades.handler')
+
 
 class SubTradePostException(Exception):
 
@@ -21,6 +23,7 @@ class SubTradePostException(Exception):
 
     def __str__(self):
         return self.msg
+       
        
 @task(max_retry=3)
 def sendTaobaoTradeTask(request_user_id,trade_id):
@@ -85,7 +88,7 @@ def sendTaobaoTradeTask(request_user_id,trade_id):
             trade.sys_memo=exc.message
             trade.save()
             log_action(request_user_id,trade,CHANGE,u'子订单(%d)发货失败'%sub_trade.id)
-            drive_merge_trade_action(trade_id)
+            merge_order_remover(trade.tid)
         except Exception,exc:
             error_msg = exc.message
         else:
@@ -104,15 +107,33 @@ def sendTaobaoTradeTask(request_user_id,trade_id):
             trade.is_express_print=False
             trade.operator=''
             trade.save()                                                                                       
-            log_action(request_user_id,trade,CHANGE,u'订单发货失败')   
+            log_action(request_user_id,trade,CHANGE,u'订单发货失败')
+            merge_order_remover(trade.tid)   
     except Exception,exc:
         sendTaobaoTradeTask.retry(countdown=5, exc=exc)
        
 @task()
 def regularRemainOrderTask():
-    #更新定时提醒订单
+    """更新定时提醒订单"""
     dt = datetime.datetime.now()
     MergeTrade.objects.filter(sys_status=pcfg.REGULAR_REMAIN_STATUS,remind_time__lte=dt).update(sys_status=pcfg.WAIT_AUDIT_STATUS)
 
+@task
+def saveTradeByTidTask(tid,seller_nick):
+    user = User.objects.get(nick=seller_nick)
+    Trade.get_or_create(tid,user.visitor_id)
     
-
+@task()
+def importTradeFromFileTask(fileName):
+    """根据导入文件获取淘宝订单"""
+    with open(fileName,'r') as f:
+        for line in f:
+            if line:
+                try:
+                    seller_nick,tid = line.split(',')
+                    if tid:
+                        subtask(saveTradeByTidTask).delay(tid,seller_nick.decode('gbk'))
+                except:
+                    pass
+    
+    

@@ -1,3 +1,4 @@
+import os
 import hashlib
 import base64
 import datetime
@@ -171,4 +172,10 @@ def gen_string_image(font_path,code_string):
     return buf.getvalue()
 
 
-
+def pinghost(hostid):
+    try:
+        pingurl = 'ping %s -c 2'%hostid
+        ret = os.system(pingurl)
+    except:
+        ret = -1
+    return ret

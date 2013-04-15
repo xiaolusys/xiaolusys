@@ -23,7 +23,7 @@ from shopback.fenxiao.models import PurchaseOrder
 from shopback.trades.tasks import sendTaobaoTradeTask
 from shopback.base import log_action,User, ADDITION, CHANGE
 from shopback.signals import rule_signal
-from auth.utils import parse_datetime
+from auth.utils import parse_datetime,pinghost
 from auth import apis
 import logging 
 
@@ -474,6 +474,10 @@ class MergeTradeAdmin(admin.ModelAdmin):
         
     #淘宝后台同步发货
     def sync_trade_post_taobao(self, request, queryset):
+        
+        pingstatus = pinghost(settings.TAOBAO_API_HOSTNAME)
+        if pingstatus:
+            return HttpResponse('<body style="text-align:center;"><h1>当前网络不稳定，请稍后再试...</h1></body>')
         
         user_id   = request.user.id
         trade_ids = [t.id for t in queryset]

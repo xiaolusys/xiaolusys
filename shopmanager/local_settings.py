@@ -41,7 +41,7 @@ RAVEN_CONFIG = {
 
 #SITE_URL = "http://autolist.huyi.so/" 
 
-SITE_URL = 'http://qiyue.huyi.so/' 
+SITE_URL = 'http://qiyue.f3322.org/' 
 
 #APPKEY  = '21196642' #super erp test3,younishijie
 #APPSECRET = '027fd632d388f2391a06b40cf292519c'
@@ -58,10 +58,11 @@ SITE_URL = 'http://qiyue.huyi.so/'
 APPKEY = '12545735'   #app name guanyi erp ,younishijie
 APPSECRET = '2b966d4f5f05d201a48a75fe8b5251af'
 
-AUTHRIZE_URL = 'https://oauth.taobao.com/authorize'
+TAOBAO_API_HOSTNAME = 'eco.taobao.com'
+AUTHRIZE_URL   = 'https://oauth.taobao.com/authorize'
 AUTHRIZE_TOKEN_URL = 'https://oauth.taobao.com/token'
 REDIRECT_URI = ''.join([SITE_URL,'accounts/login/auth/'])
-TAOBAO_API_ENDPOINT = 'https://eco.taobao.com/router/rest'
+TAOBAO_API_ENDPOINT = 'https://%s/router/rest'%TAOBAO_API_HOSTNAME
 TAOBAO_NOTIFY_URL   = 'http://stream.api.taobao.com/stream'
 
 
