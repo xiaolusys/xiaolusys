@@ -8,7 +8,7 @@ from django.conf import settings
 from shopback import paramconfig as pcfg
 from shopback.orders.models import Trade,Order
 from shopback.trades.models import MergeTrade,MergeBuyerTrade,merge_order_remover
-from shopback.base import log_action,DjangoUser, ADDITION, CHANGE
+from shopback.base import log_action,User as DjangoUser, ADDITION, CHANGE
 from shopback.users.models import User
 from auth import apis
 import logging
