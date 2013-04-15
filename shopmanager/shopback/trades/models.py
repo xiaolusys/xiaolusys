@@ -701,7 +701,6 @@ def merge_order_maker(sub_tid,main_tid):
     sub_trade      = MergeTrade.objects.get(tid=sub_tid)
     main_merge_trade = MergeTrade.objects.get(tid=main_tid)
     
-    main_merge_trade.append_reason_code(pcfg.NEW_MERGE_TRADE_CODE)
     merge_order = MergeOrder()
     
     payment      = 0
@@ -742,6 +741,8 @@ def merge_order_maker(sub_tid,main_tid):
     if not main_merge_trade.reason_code and not main_merge_trade.out_sid :
         main_merge_trade.sys_status = pcfg.WAIT_PREPARE_SEND_STATUS
         main_merge_trade.save()
+    else:
+        main_merge_trade.append_reason_code(pcfg.NEW_MERGE_TRADE_CODE)
     return True
 
 
