@@ -117,7 +117,7 @@ class Refund(models.Model):
         try:
             merge_trade = MergeTrade.objects.get(tid=refund['tid'])
         except:
-            pass
+            merge_trade = None
         
         self.mobile = merge_trade and merge_trade.receiver_mobile or ''
         self.phone  = merge_trade and merge_trade.receiver_phone  or ''

@@ -3,6 +3,7 @@ from django.contrib import admin
 from django.db import models
 from django.forms import TextInput, Textarea
 from django.http import HttpResponseRedirect
+from django.contrib.auth.models import User as DjangoUser
 from shopback.refunds.models import Refund,RefundProduct
 
 __author__ = 'meixqhi'
@@ -50,7 +51,19 @@ class RefundAdmin(admin.ModelAdmin):
     
     tag_as_finished.short_description = u"标记为已处理"
     
-    actions = ['tag_as_finished',]
+    #更新退货款订单
+    def pull_all_refund_orders(self,request,queryset):
+        
+        http_referer = request.META.get('HTTP_REFERER')
+        
+        from shopback.refunds.tasks import updateAllUserRefundOrderTask
+        updateAllUserRefundOrderTask(days=7)
+        
+        return HttpResponseRedirect(http_referer)
+    
+    pull_all_refund_orders.short_description = u"更新退货款订单"
+    
+    actions = ['tag_as_finished','pull_all_refund_orders']
     
 
 admin.site.register(Refund,RefundAdmin)

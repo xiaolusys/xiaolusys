@@ -25,7 +25,7 @@ def saveUserRefundOrderTask(user_id,update_from=None,update_to=None):
     cur_page = 1
 
     while has_next:
-
+        
         response_list = apis.taobao_refunds_receive_get(tb_user_id=user_id,page_no=cur_page,
              page_size=settings.TAOBAO_PAGE_SIZE,start_modified=update_from,end_modified=update_to)
 
@@ -52,14 +52,12 @@ def updateAllUserRefundOrderTask(days=0,update_from=None,update_to=None):
     if not hander_update:
         dt  = datetime.datetime.now()
         update_from = datetime.datetime(dt.year,dt.month,dt.day,0,0,0)-datetime.timedelta(days,0,0)
-        update_to   = datetime.datetime(dt.year,dt.month,dt.day,23,59,59)-datetime.timedelta(1,0,0)
+        update_to   = dt
 
     users = User.objects.all()
     for user in users:
-        if hander_update:
-            saveUserRefundOrderTask(user.visitor_id,update_from=update_from,update_to=update_to)
-        else:
-            subtask(saveUserRefundOrderTask).delay(user.visitor_id,update_from=update_from,update_to=update_to)
+        saveUserRefundOrderTask(user.visitor_id,update_from=update_from,update_to=update_to)
+
             
             
                        
