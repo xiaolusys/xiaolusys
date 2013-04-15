@@ -749,6 +749,10 @@ def merge_order_maker(sub_tid,main_tid):
 def merge_order_remover(main_tid):
     #拆单操作
     main_trade = MergeTrade.objects.get(tid=main_tid)
+    
+    if not main_trade.has_merge:
+        return
+    
     if main_trade.type == pcfg.TAOBAO_TYPE:
         trade = Trade.objects.get(id=main_tid)
         main_trade.payment    = trade.payment
