@@ -1,6 +1,6 @@
 {% extends "trades/base.html" %}
 
-{% block title%} 重新下单 {% endblock %}
+{% block title%} 交易解锁操作状态 {% endblock %}
 
 {% block navbar %}<div style="margin-top:30px;"><a href="{{ request.META.HTTP_REFERER }}" class="btn btn-large btn-success" target="_blank">打开上一页</a></div>{% endblock %}
 
@@ -9,12 +9,12 @@
 	<div>
 		<div style="display:block;">
 		  <fieldset>
-		  	<legend>重新下载订单状态</legend>
+		  	<legend>交易解锁操作状态 (解锁订单状态条件为:问题单,待发货准备)</legend>
 			  <table class="table table-bordered table-striped table-condensed">
 			    <tr>
-			      <th>订单ID</th><th>淘宝订单编号</th><th>店铺名称</th><th>买家昵称</th><th>付款日期</th><th>下载状态</th><th>问题编号</th>
+			      <th>订单ID</th><th>淘宝订单编号</th><th>店铺名称</th><th>买家昵称</th><th>付款日期</th><th>解锁状态</th>
 			    </tr>
-			    <tr><td colspan="7">下载成功的订单{{ success_trades|length }}</td></tr>
+			    <tr><td colspan="7">解锁成功的订单{{ success_trades|length }}</td></tr>
 			    {% for trade in success_trades %}
 			    <tr>
 			    	<td>{{ trade.id }}</td>
@@ -23,10 +23,9 @@
 			    	<td>{{ trade.buyer_nick }}</td>
 			    	<td>{{ trade.pay_time|date:'Y-m-d H:i:s' }}</td>
 			    	<td><img src="{{ STATIC_URL }}admin/img/icon-yes.gif" alt="yes"></td>
-			    	<td>{{ trade.reason_code }}</td>
 			    </tr>
 			    {% endfor %}
-			    <tr><td colspan="7">下载失败的订单{{ fail_trades|length }}</td></tr>
+			    <tr><td colspan="7">解锁失败的订单{{ fail_trades|length }}</td></tr>
 			    {% for trade in fail_trades %}
 			    <tr>
 			    	<td>{{ trade.id }}</td>
@@ -35,7 +34,6 @@
 			    	<td>{{ trade.buyer_nick }}</td>
 			    	<td>{{ trade.pay_time|date:'Y-m-d H:i:s' }}</td>
 			    	<td><img src="{{ STATIC_URL }}admin/img/icon-no.gif" alt="no"></td>
-			    	<td>{{ trade.reason_code }}</td>
 			    </tr>
 			    {% endfor %}
 			  </table>
@@ -45,5 +43,3 @@
 </div>
 
 {% endblock %}
-
-

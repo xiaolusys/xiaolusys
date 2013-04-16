@@ -322,7 +322,7 @@ class CheckOrderView(ModelView):
                     trade.update_inventory()
                 else:
                     MergeTrade.objects.filter(id=id,sys_status = pcfg.WAIT_AUDIT_STATUS)\
-                        .update(sys_status=pcfg.WAIT_PREPARE_SEND_STATUS,reason_code='',operator='',out_sid='')  
+                        .update(sys_status=pcfg.WAIT_PREPARE_SEND_STATUS,reason_code='',out_sid='')  
             log_action(user_id,trade,CHANGE,u'审核成功')
             
         elif action_code == 'review':

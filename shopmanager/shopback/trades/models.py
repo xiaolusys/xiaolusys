@@ -180,7 +180,14 @@ class MergeTrade(models.Model):
         db_table = 'shop_trades_mergetrade'
         verbose_name=u'订单'
         verbose_name_plural = u'订单列表'
-        permissions = [("can_trade_modify", u"修改订单状态"),("can_trade_aduit", u"审核订单信息")]
+        permissions = [
+                       ("can_trade_modify", u"修改订单状态权限"),
+                       ("can_trade_aduit", u"审核订单权限"),
+                       ("sync_trade_post_taobao", u"同步淘宝发货权限"),
+                       ("merge_order_action", u"合并订单权限"),
+                       ("pull_order_action", u"重新下载订单权限"),
+                       ("unlock_trade_action", u"订单解锁权限"),
+                       ]
 
     def __unicode__(self):
         return '<%s,%s>'%(str(self.id),self.buyer_nick)
@@ -569,8 +576,8 @@ class MergeOrder(models.Model):
     class Meta:
         db_table = 'shop_trades_mergeorder'
         unique_together = ("oid","tid")
-        verbose_name=u'子订单'
-        verbose_name_plural = u'子订单列表'
+        verbose_name=u'订单商品'
+        verbose_name_plural = u'订单商品列表'
         
     def __unicode__(self):
         return '<%s,%s>'%(str(self.id),self.outer_id)

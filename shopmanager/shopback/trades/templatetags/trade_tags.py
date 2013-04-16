@@ -2,6 +2,7 @@
 from django import template
 from django.contrib.admin.templatetags.admin_list import result_headers,result_hidden_fields,results
 from shopback import paramconfig as pcfg
+from shopback.trades import permissions as perms
 from shopback.trades.models import MergeTrade,MergeOrder
 from shopback.items.models import Product,ProductSku
 
@@ -27,7 +28,7 @@ def trade_submit_row(context):
         is_wait_audit = sys_status == pcfg.WAIT_AUDIT_STATUS
         is_can_review = (sys_status == pcfg.WAIT_CHECK_BARCODE_STATUS) or (sys_status == pcfg.WAIT_SCAN_WEIGHT_STATUS)
         can_split_trade = trade.has_merge or trade.has_reason_code(pcfg.MULTIPLE_ORDERS_CODE)
-        can_trade_audit = context['perms'].user.has_perm('trades.can_trade_aduit')
+        can_trade_audit = perms.has_check_order_permission(context['perms'].user)
     return {
         'onclick_attrib': (opts.get_ordered_objects() and change
                             and 'onclick="submitOrderForm();"' or ''),

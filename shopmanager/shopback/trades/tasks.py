@@ -76,7 +76,6 @@ def sendTaobaoTradeTask(request_user_id,trade_id):
                     sub_trade.sys_memo=error_msg
                     sub_trade.is_picking_print=False
                     sub_trade.is_express_print=False
-                    sub_trade.operator=''
                     sub_trade.save()
                     log_action(request_user_id,sub_trade,CHANGE,u'订单发货失败')
                     raise SubTradePostException(error_msg)
@@ -88,7 +87,6 @@ def sendTaobaoTradeTask(request_user_id,trade_id):
             trade.sys_memo=exc.message
             trade.save()
             log_action(request_user_id,trade,CHANGE,u'子订单(%d)发货失败'%sub_trade.id)
-            merge_order_remover(trade.tid)
         except Exception,exc:
             error_msg = exc.message
         else:
@@ -105,7 +103,6 @@ def sendTaobaoTradeTask(request_user_id,trade_id):
             trade.sys_memo=error_msg
             trade.is_picking_print=False
             trade.is_express_print=False
-            trade.operator=''
             trade.save()                                                                                       
             log_action(request_user_id,trade,CHANGE,u'订单发货失败')
             merge_order_remover(trade.tid)   

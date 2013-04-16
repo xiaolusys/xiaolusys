@@ -21,6 +21,7 @@ from shopback.trades.models import MergeTrade,MergeOrder,MergeBuyerTrade,ReplayP
 from shopback import paramconfig as pcfg
 from shopback.fenxiao.models import PurchaseOrder
 from shopback.trades.tasks import sendTaobaoTradeTask
+from shopback.trades import permissions as perms
 from shopback.base import log_action,User, ADDITION, CHANGE
 from shopback.signals import rule_signal
 from auth.utils import parse_datetime,pinghost
@@ -36,6 +37,12 @@ class MergeOrderInline(admin.TabularInline):
     model = MergeOrder
     fields = ('oid','outer_id','outer_sku_id','title','price','payment','num','sku_properties_name','out_stock',
                     'is_merge','is_rule_match','is_reverse_order','gift_type','refund_id','refund_status','status','sys_status')
+    
+    def get_readonly_fields(self, request, obj=None):
+        if not request.user.has_perm('trades.can_trade_modify'):
+            return self.readonly_fields + ('oid','outer_id','outer_sku_id','is_merge',
+                                           'is_reverse_order','operator','gift_type','status','refund_status')
+        return self.readonly_fields
     
     formfield_overrides = {
         models.CharField: {'widget': TextInput(attrs={'size':'12'})},
@@ -103,7 +110,8 @@ class MergeTradeAdmin(admin.ModelAdmin):
     
     def buyer_nick_link(self, obj):
         symbol_link = obj.buyer_nick
-        if obj.sys_status in (pcfg.WAIT_AUDIT_STATUS,pcfg.WAIT_CHECK_BARCODE_STATUS,pcfg.WAIT_SCAN_WEIGHT_STATUS):
+
+        if  obj.sys_status in (pcfg.WAIT_AUDIT_STATUS,pcfg.WAIT_CHECK_BARCODE_STATUS,pcfg.WAIT_SCAN_WEIGHT_STATUS):
             symbol_link = '<a href="javascript:void(0);" class="check-order" trade_id="%d" >%s</a>'%(obj.id,symbol_link) 
         return symbol_link
     buyer_nick_link.allow_tags = True
@@ -112,7 +120,7 @@ class MergeTradeAdmin(admin.ModelAdmin):
     inlines = [MergeOrderInline]
     
     list_filter   = (TradeStatusFilter,'status','user','type','has_out_stock','has_refund','has_rule_match','has_sys_err',
-                     'has_merge','has_memo','is_picking_print','is_express_print','can_review')
+                     'has_merge','has_memo','is_picking_print','is_express_print','can_review','is_locked')
 
     search_fields = ['id','buyer_nick','tid','operator','out_sid','receiver_name','receiver_mobile','receiver_phone']
     
@@ -150,10 +158,27 @@ class MergeTradeAdmin(admin.ModelAdmin):
     }
     
     def get_readonly_fields(self, request, obj=None):
-        if not request.user.has_perm('mergetrade.can_trade_modify'):
+        if not request.user.has_perm('trades.can_trade_modify'):
             return self.readonly_fields + ('tid','reason_code','has_rule_match','has_merge','has_memo','payment','post_fee',
-                                           '','can_review','is_picking_print','is_express_print','sys_status')
+                                           'is_locked','operator','can_review','is_picking_print','is_express_print','sys_status')
         return self.readonly_fields
+    
+    def get_actions(self, request):
+        
+        user = request.user
+        actions = super(MergeTradeAdmin, self).get_actions(request)
+
+        if not perms.has_delete_trade_permission(user) and 'delete_selected' in actions:
+            del actions['delete_selected']
+        if not perms.has_sync_post_permission(user) and 'sync_trade_post_taobao' in actions:
+            del actions['sync_trade_post_taobao']
+        if not perms.has_merge_order_permission(user) and 'merge_order_action' in actions:
+            del actions['merge_order_action']
+        if not perms.has_pull_order_permission(user) and 'pull_order_action' in actions:
+            del actions['pull_order_action']
+        if not perms.has_unlock_trade_permission(user) and 'unlock_trade_action' in actions:
+            del actions['unlock_trade_action']
+        return actions
     
     def change_view(self, request, extra_context=None, **kwargs):
 
@@ -527,7 +552,32 @@ class MergeTradeAdmin(admin.ModelAdmin):
                           
     sync_trade_post_taobao.short_description = "同步发货".decode('utf8')
     
-    actions = ['sync_trade_post_taobao','merge_order_action','pull_order_action']
+    
+    def unlock_trade_action(self, request, queryset):
+        """ 解除订单锁定 """
+        trade_ids = [t.id for t in queryset]
+        unlockable_trades = queryset.filter(sys_status__in=(pcfg.WAIT_AUDIT_STATUS,pcfg.WAIT_PREPARE_SEND_STATUS),
+                        is_locked=True)
+        
+        for trade in unlockable_trades:
+            operator = trade.operator
+            trade.is_locked = False
+            trade.operator  = ''
+            trade.save()
+            log_action(request.user.id,trade,CHANGE,u'解除订单锁定(前锁定人:%s)'%operator)
+                        
+        success_trades = MergeTrade.objects.filter(id__in=trade_ids,is_locked=False)
+        
+        fail_trades    = MergeTrade.objects.filter(id__in=trade_ids,is_locked=True)
+        
+        
+        
+        return render_to_response('trades/unlock_trade_status_template.html',{'success_trades':success_trades,'fail_trades':fail_trades},
+                                  context_instance=RequestContext(request),mimetype="text/html") 
+
+    unlock_trade_action.short_description = "订单解锁".decode('utf8')
+    
+    actions = ['sync_trade_post_taobao','merge_order_action','pull_order_action','unlock_trade_action']
    
 
 admin.site.register(MergeTrade,MergeTradeAdmin)
