@@ -212,6 +212,7 @@ class CheckOrderView(ModelView):
             'has_rule_match':trade.has_rule_match,
             'has_merge':trade.has_merge,
             'has_sys_err':trade.has_sys_err,
+            'need_manual_merge':trade.has_reason_code(pcfg.MULTIPLE_ORDERS_CODE),
             'reason_code':trade.reason_code,
             'status':trade.status,
             'sys_status':trade.sys_status,
