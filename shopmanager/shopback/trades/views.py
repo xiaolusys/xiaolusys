@@ -746,6 +746,7 @@ class TradeSearchView(ModelView):
         for trade in trades:
             trade_dict       = {}
             trade_dict['id'] = trade.id
+            trade_dict['tid'] = trade.tid
             trade_dict['seller_id']  = trade.user.id if trade.user else ''
             trade_dict['buyer_nick'] = trade.buyer_nick
             trade_dict['post_fee']   = trade.post_fee
