@@ -1192,6 +1192,7 @@ def save_fenxiao_orders_to_mergetrade(sender, tid, *args, **kwargs):
             consign_time = trade.consign_time,
             seller_flag  = trade.supplier_flag,
             status = trade.status,
+            priority = -1,
         )
         #更新系统内部状态
         trade_download_controller(merge_trade,trade,trade_from,first_pay_load)

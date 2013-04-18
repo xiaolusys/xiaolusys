@@ -31,7 +31,7 @@ class ListLogsAdmin(admin.ModelAdmin):
     list_display = ('num_iid','cat_id','cat_name','list_weekday','list_time','num','task_type','execute_time','status')
     #list_editable = ('update_time','task_type' ,'is_success','status')
 
-    list_filter = ('task_type','list_weekday','status')
+    list_filter = ('task_type','list_weekday')
     search_fields = ['cat_name','cat_id','num_iid','list_time']
 
 

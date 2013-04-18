@@ -55,10 +55,10 @@ var addSearchTradeRow  = function(tableID,trade){
     var index = rowCount;
     
 	var id_cell = createDTText(index+'');
+	var trade_id_cell = createDTText(trade.tid+'');
 	var buyer_nick_cell   = createDTText(trade.buyer_nick);
 	var num_cell     = createDTText(trade.total_num+'');
 	var pay_time_cell     = createDTText(trade.pay_time);
-	var consign_time_cell = createDTText(trade.consign_time);
 	var receiver_cell     = createDTText(trade.receiver_name);
 	var address_cell      = createDTText(trade.receiver_state+','+trade.receiver_city
 		+','+trade.receiver_district+','+trade.receiver_address+','
@@ -70,10 +70,10 @@ var addSearchTradeRow  = function(tableID,trade){
 	addbtn_cell.innerHTML = '<button class="show-trade-orders btn btn-mini btn-info" style="margin:1px 0;" trade_id="'+trade.id+'">查看订单</button>';
 	
 	row.appendChild(id_cell);
+	row.appendChild(trade_id_cell);
 	row.appendChild(buyer_nick_cell);
 	row.appendChild(num_cell);
 	row.appendChild(pay_time_cell);
-	row.appendChild(consign_time_cell);
 	row.appendChild(receiver_cell);
 	row.appendChild(address_cell);
 	row.appendChild(status_cell);	
@@ -362,6 +362,7 @@ refund.Manager.prototype.addRefundOrder = function (e) {
 	var buyer_nick = cells[0].innerHTML;
 
 	if(idx!=null&&idx!='undifine'&&idx!=''){
+		tid     =  goog.dom.getElement('id_trade_id');
 		var sku_select = goog.dom.getElement('id-order-sku-'+idx);
 		outer_sku_id = sku_select.value;
 		buyer_nick   = goog.dom.getElement('id_buyer_nick').value;

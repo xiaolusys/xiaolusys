@@ -240,8 +240,9 @@ def process_refund_notify_task(id):
                     order = MergeOrder.objects.get(tid=notify.tid,oid=notify.oid)
                     order.refund_id=notify.rid
                     order.refund_status=pcfg.REFUND_WAIT_SELLER_AGREE
-                    #买家申请退款后订单状态变化
-                    order_sys_status = pcfg.INVALID_STATUS if refund.has_good_return or refund.order_status==pcfg.WAIT_SELLER_SEND_GOODS else pcfg.IN_EFFECT
+                    #买家申请退款后订单状态变化,如果有申请退货，退款金额等于订单金额，订单状态在等待卖家发货，则将订单状态设为无效
+                    order_sys_status = pcfg.INVALID_STATUS if refund.has_good_return or (refund.refund_fee==order.payment) or\
+                        (refund.order_status==pcfg.WAIT_SELLER_SEND_GOODS) else pcfg.IN_EFFECT
                     order.sys_status = order_sys_status
                     order.save()
                     

@@ -510,10 +510,13 @@ class MergeTradeAdmin(admin.ModelAdmin):
         prapare_trades = queryset.filter(is_picking_print=True,is_express_print=True,sys_status=pcfg.WAIT_PREPARE_SEND_STATUS
                                          ,reason_code='',status=pcfg.WAIT_SELLER_SEND_GOODS).exclude(out_sid='')#,operator=request.user.username
         
-        if prapare_trades.count() > 0:                                 
-            send_tasks = group([ sendTaobaoTradeTask.s(user_id,trade.id) for trade in prapare_trades])()
-            send_tasks.get()
-        
+        if prapare_trades.count() > 0:
+            try:                                     
+                send_tasks = group([ sendTaobaoTradeTask.s(user_id,trade.id) for trade in prapare_trades])()
+                send_tasks.get()
+            except Exception,exc:
+                logger.error(exc.message,exc_info=True)
+                return HttpResponse('<body style="text-align:center;"><h1>发货任务执行出错:（%s）！</h1></body>'%exc.message) 
         queryset = MergeTrade.objects.filter(id__in=trade_ids)
         wait_prepare_trades = queryset.filter(sys_status=pcfg.WAIT_PREPARE_SEND_STATUS,is_picking_print=True
                                               ,is_express_print=True).exclude(out_sid='')#,operator=request.user.username
