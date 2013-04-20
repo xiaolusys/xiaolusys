@@ -2,14 +2,14 @@ from djangorestframework.renderers import TemplateRenderer
 from shopback.base.renderers import ChartTemplateRenderer
 
 
-class OrderNumPiovtChartHtmlRenderer(ChartTemplateRenderer):
+class TimerOrderStatChartRenderer(ChartTemplateRenderer):
     """
     Renderer which serializes to JSON
     """
     
     media_type = 'text/html'
     format = 'html'
-    template = ''
+    template = 'trades/timer_order_statistic_chart.html'
     
     
 class ProductOrderTableRenderer(ChartTemplateRenderer):

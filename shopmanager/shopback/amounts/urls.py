@@ -1,5 +1,4 @@
 from django.conf.urls.defaults import patterns, include, url
-from shopback.orders.views import UserHourlyOrderView
 from shopback.base.resources import ChartsResource
 from shopback.base.authentication import UserLoggedInAuthentication
 from shopback.base.permissions import IsAuthenticated

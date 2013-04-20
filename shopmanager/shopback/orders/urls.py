@@ -1,20 +1,20 @@
 from django.conf.urls.defaults import patterns, include, url
-from shopback.orders.views import UserHourlyOrderView,ProductOrderView,RelatedOrderStateView,RefundOrderView
+from shopback.orders.views import TimerOrderStatisticsView,ProductOrderView,RelatedOrderStateView,RefundOrderView
 from shopback.base.resources import ChartsResource,BaseResource
 from shopback.base.authentication import UserLoggedInAuthentication
 from shopback.base.permissions import IsAuthenticated
 from shopback.base.renderers  import ChartJSONRenderer,ChartTemplateRenderer,BaseJsonRenderer
-from shopback.orders.renderers import OrderNumPiovtChartHtmlRenderer,ProductOrderTableRenderer,RelatedOrderRenderer\
+from shopback.orders.renderers import TimerOrderStatChartRenderer,ProductOrderTableRenderer,RelatedOrderRenderer\
     ,RefundOrderRenderer
-from shopback.orders.resources import ChartJsonResource
+from shopback.orders.resources import ChartJsonResource,TimeOrderStatResource
 
 
 urlpatterns = patterns('shopback.orders.views',
 
 
-    (r'^ordernum/pivotchart/(?P<dt_f>[^/]+)/(?P<dt_t>[^/]+)/$',UserHourlyOrderView.as_view(
-        resource=ChartsResource,
-        renderers=(ChartJSONRenderer,ChartTemplateRenderer,OrderNumPiovtChartHtmlRenderer,),
+    (r'^ordernum/pivotchart/$',TimerOrderStatisticsView.as_view(
+        resource=TimeOrderStatResource,
+        renderers=(ChartJSONRenderer,TimerOrderStatChartRenderer,),
         authentication=(UserLoggedInAuthentication,),
         permissions=(IsAuthenticated,)
     )),

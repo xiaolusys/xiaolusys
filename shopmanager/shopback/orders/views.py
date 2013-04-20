@@ -16,99 +16,104 @@ from shopback.orders.models import Order,Trade
 from shopback import paramconfig as pcfg
 
 
-class UserHourlyOrderView(ModelView):
-    """ docstring for class UserHourlyOrderView """
+class TimerOrderStatisticsView(ModelView):
+    """ docstring for class TimerOrderStatisticsView """
 
     def get(self, request, *args, **kwargs):
-
-        dt_f = kwargs.get('dt_f')
-        dt_t = kwargs.get('dt_t')
-        nicks = request.GET.get('nicks',None)
-        cat_by = request.GET.get('cat_by','hour')
-        pay_type = request.GET.get('type','all')
-        xy = request.GET.get('xy','horizontal')
-        base = request.GET.get('base','created')
-
+        
+        content    = request.REQUEST
+        df         = content.get('df')
+        dt         = content.get('dt')
+        nicks      = content.get('nicks','')
+        cat_by     = content.get('cat_by','hour')
+        trade_type = content.get('type','all')
+        xy         = content.get('xy','horizon')
         nicks_list = nicks.split(',')
 
-        dt_f = parse_date(dt_f)
-        dt_t = parse_date(dt_t)+datetime.timedelta(1,0,0)
-
-        queryset = Trade.objects.filter(seller_nick__in = nicks_list)
-        if base == 'consign':
-            queryset = queryset.filter(consign_time__gte=dt_f,consign_time__lt=dt_t)
-        elif base == 'modified':
-            queryset = queryset.filter(modified__gte=dt_f,modified__lt=dt_t)
+        if df and dt:
+            start_dt = parse_date(df)
+            end_dt   = parse_date(dt)
+            start_dt = datetime.datetime(start_dt.year,start_dt.month,start_dt.day,0,0,0)
+            end_dt   = datetime.datetime(end_dt.year,end_dt.month,end_dt.day,23,59,59)
         else:
-            queryset = queryset.filter(created__gte=dt_f,created__lt=dt_t)
+            dt  = datetime.datetime.now()
+            start_dt = datetime.datetime(dt.year,dt.month,dt.day,0,0,0)
+            end_dt   = datetime.datetime(dt.year,dt.month,dt.day,23,59,59)
 
-        if pay_type == 'pay':
-            queryset = queryset.filter(status__in = pcfg.ORDER_SUCCESS_STATUS)
-        elif pay_type == 'finish':
-            queryset = queryset.filter(status = pcfg.ORDER_FINISH_STATUS)
+        queryset = Trade.objects.filter(seller_nick__in = nicks_list,status__in=pcfg.ORDER_SUCCESS_STATUS)
+        queryset = queryset.filter(pay_time__gte=start_dt,pay_time__lte=end_dt)
+        
+        if trade_type != 'all':
+            queryset = queryset.filter(type=trade_type)
+            
+        orders_data_chts = []
+        
+        if queryset.count() != 0:
 
-        if queryset.count() == 0:
-            raise ErrorResponse(status.HTTP_404_NOT_FOUND,content="No data for these nick!")
-
-        if xy == 'vertical':
-            categories = [cat_by]
-        else:
-            if cat_by == 'year':
-                categories = ['year']
-            elif cat_by == 'month':
-                categories = ['year','month']
-            elif cat_by == 'day':
-                categories = ['year','month','day']
-            elif cat_by == 'week':
-                categories = ['year','week']
-            else :
-                categories = ['year','month','day','hour']
-
-        series = {
-            'options': {'source': queryset,'categories': categories,'legend_by':'seller_nick'},
-            'terms': {
-                'total_trades':{'func':Count('id'),'legend_by':'seller_nick'},
-                'total_sales':{'func':Sum('payment'),'legend_by':'seller_nick'},
-                'post_fees':{'func':Sum('post_fee'),'legend_by':'seller_nick'},
-                'commission_fees':{'func':Sum('commission_fee'),'legend_by':'seller_nick'},
-                'buyer_obtain_point_fees':{'func':Sum('buyer_obtain_point_fee'),'legend_by':'seller_nick'},
+            if xy == 'vertical':
+                categories = [cat_by]
+            else:
+                if cat_by == 'year':
+                    categories = ['year']
+                elif cat_by == 'month':
+                    categories = ['year','month']
+                elif cat_by == 'day':
+                    categories = ['year','month','day']
+                elif cat_by == 'week':
+                    categories = ['year','week']
+                else :
+                    categories = ['year','month','day','hour']
+    
+            series = {
+                'options': {'source': queryset,'categories': categories,'legend_by':'seller_nick'},
+                'terms': {
+                    'total_trades':{'func':Count('id'),'legend_by':'seller_nick'},
+                    'total_sales':{'func':Sum('payment'),'legend_by':'seller_nick'},
+                    'post_fees':{'func':Sum('post_fee'),'legend_by':'seller_nick'},
+#                    'commission_fees':{'func':Sum('commission_fee'),'legend_by':'seller_nick'},
+#                    'buyer_obtain_point_fees':{'func':Sum('buyer_obtain_point_fee'),'legend_by':'seller_nick'},
+                }
+    
             }
-
-        }
-
-        ordersdata = PivotDataPool(series=[series],sortf_mapf_mts=(None,map_int2str,True))
-
-        series_options =[{
-            'options':{'type':'column','stacking':True,'yAxis':0},
-            'terms':['total_trades',
-                     {'total_sales':{'type':'line','stacking':False,'yAxis':1}},
-                     {'post_fees':{'type':'line','stacking':False,'yAxis':1}},
-                     {'commission_fees':{'type':'area','stacking':False,'yAxis':1}},
-                     {'buyer_obtain_point_fees':{'type':'column','stacking':False,'yAxis':4}},
-            ]},
-        ]
-
-        chart_options = {
-            'chart':{'zoomType': 'xy','renderTo': "container1"},
-            'title': {'text': nicks},
-            'xAxis': {'title': {'text': 'per %s'%(cat_by)},
-                      'labels':{'rotation': 45,'align':'right','style': {'font': 'normal 12px Verdana, sansserif'}}},
-            'yAxis': [{'title': {'text': u'\u8ba2\u5355\u6570'}},
-                      {'title': {'text': u'\u4ea4\u6613\u989d'},'opposite': True},
-                      {'title': {'text': u'\u90ae\u8d39'},'opposite': True},
-                      {'title': {'text': u'\u4f63\u91d1'},'opposite': True},
-                      {'title': {'text': u'\u79ef\u5206'},},
+    
+            ordersdata = PivotDataPool(series=[series],sortf_mapf_mts=(None,map_int2str,True))
+    
+            series_options =[{
+                'options':{'type':'column','stacking':True,'yAxis':0},
+                'terms':['total_trades',
+                         {'total_sales':{'type':'line','stacking':False,'yAxis':1}},
+                         {'post_fees':{'type':'line','stacking':False,'yAxis':1}},
+#                         {'commission_fees':{'type':'area','stacking':False,'yAxis':1}},
+#                         {'buyer_obtain_point_fees':{'type':'column','stacking':False,'yAxis':4}},
+                ]},
             ]
-        }
+    
+            chart_options = {
+                'chart':{'zoomType': 'xy','renderTo': "container1"},
+                'title': {'text': nicks},
+                'xAxis': {'title': {'text': 'per %s'%(cat_by)},
+                          'labels':{'rotation': 45,'align':'right','style': {'font': 'normal 12px Verdana, sansserif'}}},
+                'yAxis': [{'title': {'text': u'\u8ba2\u5355\u6570'}},
+                          {'title': {'text': u'\u4ea4\u6613\u989d'},'opposite': True},
+                          {'title': {'text': u'\u90ae\u8d39'},'opposite': True},
+#                          {'title': {'text': u'\u4f63\u91d1'},'opposite': True},
+#                          {'title': {'text': u'\u79ef\u5206'},},
+                ]
+            }
+    
+            orders_data_chts.append(
+                PivotChart(
+                    datasource = ordersdata,
+                    series_options = series_options,
+                    chart_options = chart_options )
+                )
 
-        orders_data_cht = PivotChart(
-                datasource = ordersdata,
-                series_options = series_options,
-                chart_options = chart_options )
-
-        chart_data = {"charts":[orders_data_cht]}
+        chart_data = {'df':format_date(start_dt),'dt':format_date(end_dt),'nicks':nicks,'cat_by':cat_by,
+                      'type':trade_type,'xy':xy,'charts':orders_data_chts}
 
         return chart_data
+    
+    post = get
 
 class ProductOrderView(ModelView):
     """ docstring for class ProductOrderView """
@@ -219,7 +224,7 @@ class ProductOrderView(ModelView):
 
         return chart_data
   
-   
+    
    
 class RelatedOrderStateView(ModelView):
     """ docstring for class RelatedOrderStateView """

@@ -362,7 +362,7 @@ refund.Manager.prototype.addRefundOrder = function (e) {
 	var buyer_nick = cells[0].innerHTML;
 
 	if(idx!=null&&idx!='undifine'&&idx!=''){
-		tid     =  goog.dom.getElement('id_trade_id');
+		tid     =  goog.dom.getElement('id_trade_id').value;
 		var sku_select = goog.dom.getElement('id-order-sku-'+idx);
 		outer_sku_id = sku_select.value;
 		buyer_nick   = goog.dom.getElement('id_buyer_nick').value;
