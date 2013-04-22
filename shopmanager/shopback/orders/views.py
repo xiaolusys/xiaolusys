@@ -73,7 +73,6 @@ class TimerOrderStatisticsView(ModelView):
 #                    'commission_fees':{'func':Sum('commission_fee'),'legend_by':'seller_nick'},
 #                    'buyer_obtain_point_fees':{'func':Sum('buyer_obtain_point_fee'),'legend_by':'seller_nick'},
                 }
-    
             }
     
             ordersdata = PivotDataPool(series=[series],sortf_mapf_mts=(None,map_int2str,True))

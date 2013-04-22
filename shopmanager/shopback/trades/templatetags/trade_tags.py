@@ -87,13 +87,14 @@ def prod_name(order):
 
 @register.filter(name='sku_name')  
 def sku_name(order):
-
+    
+    property_name  = (type(order) == dict) and order['sku_properties_name'] or order.sku_properties_name
     try:
         prod = ProductSku.objects.get(outer_id=order['outer_sku_id'],product__outer_id=order['outer_id'])
     except:
-        s_name = order['sku_properties_name']
+        s_name = property_name
     else:
-        s_name = prod.properties_name or order['sku_properties_name']
+        s_name = prod.properties_name or property_name
     return s_name
 
 @register.filter(name='refund_sku')  

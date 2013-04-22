@@ -138,6 +138,7 @@
 					{% if trade.new_merge %}<li><span class="badge1 badge-warning1">新合单</span></li>{% endif %}
 					{% if trade.wait_merge %}<li><span class="badge1 badge-warning1">待合单</span></li>{% endif %}
 					{% if trade.addr_modify %}<li><span class="badge1 badge-warning1">修改地址</span></li>{% endif %}
+					{% if trade.has_out_stock %}<li><span class="badge1 badge-warning1">缺货</span></li>{% endif %}
 				</ul>
 			</div>
 		</fieldset>
@@ -203,6 +204,7 @@
 					<th>规格名称</th>
 					<th>数量</th>
 					<th>有修改</th>
+					<th>缺货</th>
 				</tr>
 				{% for order in trade.used_orders %}
 				<tr>
@@ -219,6 +221,7 @@
 					    <img src="{{ STATIC_URL }}admin/img/icon-no.gif" alt="no">
 					    {% endif%}
 					</td>
+					<td><input type="checkbox" class="order_stock_status" oid="{{ order.id }}" {% if order.out_stock %}checked{% endif %} /></td>
 				</tr>
 				{% endfor %}
 			</table>
@@ -275,8 +278,30 @@
 				'json');
 		};
 		
+		var check_outstock  = function(evt){
+			var target      = evt.target;
+			var oid         = target.getAttribute('oid');
+			var out_stock  = target.checked;
+			var post_url    = '/trades/order/outstock/'+oid+'/';
+			$.post(post_url,
+				{'format':'json','out_stock': out_stock?1:0},
+				function(data){
+					if(data.code == 0 ){
+						if (data.response_content.out_stock){
+							alert('缺货状态设置成功');
+						}else{
+							alert('缺货状态取消成功');
+						}
+					}else{
+						alert('订单修改失败:'+data.response_error);
+					}
+				},
+				'json');
+		};
+		
 		$('#id-chg-express-no-btn').click(change_logistic);
 		$('#id-review-order-btn').click(review_order);
+		$('.order_stock_status').click(check_outstock);
 	</script>
 </body>
 {% endwith %}

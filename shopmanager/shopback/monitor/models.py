@@ -8,10 +8,10 @@ class SystemConfig(models.Model):
     is_sms_auto  = models.BooleanField(default=False,verbose_name='短信提醒')   #是否开启自动短信提醒
     is_flag_auto = models.BooleanField(default=False,verbose_name='同步旗帜')   #是否将系统状态同步到淘宝旗帜颜色标识
     
-    
-    per_request_num  = models.IntegerField(default=100,verbose_name='最大单次锁定单数')
-    client_num   = models.IntegerField(default=1,verbose_name='客户端数量')
-    category_updated  = models.DateTimeField(null=True,blank=True,verbose_name='类目更新日期')  #类目更新日期
+    normal_print_limit = models.BooleanField(default=True,verbose_name='单打模式连打')   #单打模式是否能连打
+    per_request_num    = models.IntegerField(default=30,verbose_name='最大单次锁定单数')
+    client_num         = models.IntegerField(default=1,verbose_name='客户端数量')
+    category_updated   = models.DateTimeField(null=True,blank=True,verbose_name='类目更新日期')  #类目更新日期
     
     mall_order_updated  = models.DateTimeField(null=True,blank=True,verbose_name='商城订单更新日期')  #商城订单更新日期  
     fenxiao_order_updated = models.DateTimeField(null=True,blank=True,verbose_name='分销订单更新日期')  #分销订单更新日期

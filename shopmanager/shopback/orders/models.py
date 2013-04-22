@@ -127,13 +127,14 @@ class Trade(models.Model):
         trade.seller_id   = user_id
         for k,v in trade_dict.iteritems():
             hasattr(trade,k) and setattr(trade,k,v)
-
-        dt = parse_datetime(trade_dict['created'])
-        trade.year  = dt.year
-        trade.hour  = dt.hour
-        trade.month = dt.month
-        trade.day   = dt.day
-        trade.week  = time.gmtime(time.mktime(dt.timetuple()))[7]/7+1
+        
+        if trade_dict.get('pay_time',''):
+            dt = parse_datetime(trade_dict['pay_time'])
+            trade.year  = dt.year
+            trade.hour  = dt.hour
+            trade.month = dt.month
+            trade.day   = dt.day
+            trade.week  = time.gmtime(time.mktime(dt.timetuple()))[7]/7+1
         
         trade.created  = parse_datetime(trade_dict['created'])
         trade.pay_time = parse_datetime(trade_dict['pay_time']) \

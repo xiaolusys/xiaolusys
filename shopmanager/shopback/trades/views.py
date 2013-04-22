@@ -551,7 +551,8 @@ class ReviewOrderView(ModelView):
             'order_modify':trade.has_reason_code(pcfg.ORDER_ADD_REMOVE_CODE),
             'addr_modify':trade.has_reason_code(pcfg.ADDR_CHANGE_CODE),
             'new_merge':trade.has_reason_code(pcfg.NEW_MERGE_TRADE_CODE),
-            'wait_merge':trade.has_reason_code(pcfg.MULTIPLE_ORDERS_CODE)
+            'wait_merge':trade.has_reason_code(pcfg.MULTIPLE_ORDERS_CODE),
+            'has_out_stock':trade.has_out_stock,
         }
         
         return {'trade':trade_dict,'logistics':logistics}
@@ -572,6 +573,31 @@ def review_order(request,id):
     
     log_action(user_id,merge_trade,CHANGE,u'复审通过')
     return HttpResponse(json.dumps({'code':0,'response_content':{'success':True}}),mimetype="application/json")
+
+
+def change_order_stock_status(request,id):
+        
+    content   = request.REQUEST
+    out_stock = content.get('out_stock','0')
+    user_id  = request.user.id
+    
+    try:
+        merge_order = MergeOrder.objects.get(id=id)
+    except MergeOrder.DoesNotExist:
+        return HttpResponse(json.dumps({'code':1,'response_error':u'该订单不存在'}),mimetype="application/json")
+    
+    merge_trade = merge_order.merge_trade
+    if  merge_trade.sys_status not in (pcfg.WAIT_CHECK_BARCODE_STATUS,pcfg.WAIT_SCAN_WEIGHT_STATUS,pcfg.FINISHED_STATUS):
+        return HttpResponse(json.dumps({'code':1,'response_error':u'该订单不能修改缺货状态'}),mimetype="application/json")
+    
+    merge_order.out_stock = out_stock=='1' and True or False
+    merge_order.save()
+    
+    if merge_order.out_stock:
+        merge_trade.append_reason_code(pcfg.OUT_GOOD_CODE)
+    
+    log_action(user_id,merge_trade,CHANGE,u'设置订单(%d)缺货状态:%s'%(merge_order.id,str(merge_order.out_stock)))
+    return HttpResponse(json.dumps({'code':0,'response_content':{'out_stock':merge_order.out_stock}}),mimetype="application/json")
 
     
 def change_logistic_and_outsid(request):

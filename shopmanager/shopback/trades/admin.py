@@ -468,7 +468,7 @@ class MergeTradeAdmin(admin.ModelAdmin):
                             prod_sku = ProductSku.objects.get(outer_id=outer_sku_id,product__outer_id=outer_id)
                         except:
                             prod_sku = None
-                        prod_sku_name =prod_sku.properties_name if prod_sku else order.sku_properties_name
+                        prod_sku_name = (prod_sku.properties_alias or prod_sku.properties_name ) if prod_sku else order.sku_properties_name
                         skus[outer_sku_id] = {'sku_name':prod_sku_name,'num':order.num}
                 else:
                     prod = None

@@ -630,7 +630,7 @@ class MergeOrder(models.Model):
             status = status,
             sys_status = pcfg.IN_EFFECT,
         )
-        post_save.send(sender=cls, instance=merge_order) #通知消息更新主订单
+        #post_save.send(sender=cls, instance=merge_order) #通知消息更新主订单
         return merge_order
 
 
@@ -648,16 +648,17 @@ def refresh_trade_status(sender,instance,*args,**kwargs):
     total_num     = merge_trade.merge_trade_orders.filter(status__in=(pcfg.WAIT_SELLER_SEND_GOODS
                   ,pcfg.WAIT_BUYER_CONFIRM_GOODS,pcfg.TRADE_FINISHED),sys_status=pcfg.IN_EFFECT).count()
     merge_trade.total_num = total_num
-    if merge_trade.status == pcfg.WAIT_SELLER_SEND_GOODS:
+    if merge_trade.status in(pcfg.WAIT_SELLER_SEND_GOODS,pcfg.WAIT_BUYER_CONFIRM_GOODS):
         has_refunding = merge_trade.has_trade_refunding()
-        out_stock     = merge_trade.merge_trade_orders.filter(out_stock=True,status=pcfg.WAIT_SELLER_SEND_GOODS).count()>0
-        has_rule_match = merge_trade.merge_trade_orders.filter(is_rule_match=True,status=pcfg.WAIT_SELLER_SEND_GOODS).count()>0
+        out_stock     = merge_trade.merge_trade_orders.filter(out_stock=True,sys_status=pcfg.IN_EFFECT).count()>0
+        has_rule_match = merge_trade.merge_trade_orders.filter(is_rule_match=True,sys_status=pcfg.IN_EFFECT).count()>0
         
         merge_trade.has_refund = has_refunding
         merge_trade.has_out_stock = out_stock
         merge_trade.has_rule_match = has_rule_match
+    
         if not out_stock:
-            merge_trade.remove_reason_code(pcfg.OUT_GOOD_CODE)
+            merge_trade.remove_reason_code(pcfg.OUT_GOOD_CODE)    
         
     has_merge     = merge_trade.merge_trade_orders.filter(is_merge=True,status=pcfg.WAIT_SELLER_SEND_GOODS).count()>0
     merge_trade.has_merge = has_merge
