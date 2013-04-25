@@ -496,7 +496,7 @@ class MergeTrade(models.Model):
     @classmethod
     def judge_need_merge(cls,trade_id,buyer_nick,receiver_name,receiver_mobile):
         #是否需要合单 
-        if not receiver_address and not receiver_name:   
+        if not receiver_name:   
             return False  
         trades = cls.objects.filter(Q(receiver_name=receiver_name)|Q(receiver_mobile=receiver_mobile),buyer_nick=buyer_nick
                 ,sys_status__in=(pcfg.WAIT_PREPARE_SEND_STATUS,pcfg.WAIT_AUDIT_STATUS,pcfg.WAIT_CHECK_BARCODE_STATUS
