@@ -718,6 +718,7 @@ def merge_order_maker(sub_tid,main_tid):
         merge_order = MergeOrder()
         for field in order._meta.fields:
             hasattr(merge_order,field.name) and setattr(merge_order,field.name,getattr(order,field.name))
+        merge_order.id = None
         merge_order.merge_trade = main_merge_trade
         merge_order.tid = main_tid
         merge_order.is_merge = True
