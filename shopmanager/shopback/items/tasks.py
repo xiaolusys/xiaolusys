@@ -88,7 +88,6 @@ def updateUserItemsTask(user_id):
 
 
 
-
 @task()
 def updateAllUserItemsTask():
     users = User.objects.all()
@@ -219,7 +218,6 @@ def updateAllUserProductSkuTask():
     for user in users:
 
         subtask(updateUserProductSkuTask).delay(user.visitor_id)
-
 
 
 @task()

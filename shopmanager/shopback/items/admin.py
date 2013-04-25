@@ -82,8 +82,17 @@ class ProductAdmin(admin.ModelAdmin):
         for prod in queryset:
             pull_dict = {'outer_id':prod.outer_id,'name':prod.name}
             try:
-                items = Item.objects.filter(outer_id=prod.outer_id,approve_status=pcfg.ONSALE_STATUS)
+                items = Item.objects.filter(outer_id=prod.outer_id)
+                #更新商品信息
+                for item in items:
+                    Item.get_or_create(item.user.visitor_id,item.num_iid,force_update=True)
+                    
+                items = items.filter(approve_status=pcfg.ONSALE_STATUS)
+                if items.count() < 1:
+                    raise Exception(u'请确保商品在售')
+                #更新商品线上SKU状态
                 updateUserProductSkuTask(outer_ids=[i.outer_id for i in items if i.outer_id ])
+                #更新商品及SKU库存
                 for item in items:
                     updateItemNum(item.user.visitor_id,item.num_iid)
             except Exception,exc:

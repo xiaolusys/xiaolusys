@@ -303,7 +303,7 @@ class MergeTradeAdmin(admin.ModelAdmin):
         
         trade_ids = [t.id for t in queryset]
         queryset  = queryset.filter(type__in=(pcfg.FENXIAO_TYPE,pcfg.TAOBAO_TYPE))
-        myset = queryset.exclude(sys_status__in=(pcfg.WAIT_AUDIT_STATUS,
+        myset = queryset.exclude(sys_status__in=(pcfg.WAIT_AUDIT_STATUS,pcfg.ON_THE_FLY_STATUS,
                                 pcfg.WAIT_CHECK_BARCODE_STATUS,pcfg.WAIT_SCAN_WEIGHT_STATUS))
         postset = queryset.filter(sys_status__in=(pcfg.WAIT_CHECK_BARCODE_STATUS,pcfg.WAIT_SCAN_WEIGHT_STATUS))
         if queryset.count()<2 or myset.count()>0 or postset.count()>1:
@@ -345,11 +345,10 @@ class MergeTradeAdmin(admin.ModelAdmin):
                     is_merge_success = True
                 log_action(request.user.id,main_trade,CHANGE,u'合并订单(%s)'%','.join(merge_trade_ids))
             else:
-                queryset = queryset.order_by('pay_time')	
-                merge_buyer_trades = MergeBuyerTrade.objects.filter(main_tid__in=[t.tid for t in queryset])
-                if merge_buyer_trades.count()>0:
-                    main_merge_tid = merge_buyer_trades[0].main_tid
-                    main_trade = MergeTrade.objects.get(tid=main_merge_tid)
+                queryset = queryset.filter(sys_status=pcfg.WAIT_AUDIT_STATUS).order_by('pay_time')	
+                merge_trades = queryset.filter(has_merge=True)
+                if merge_trades.count()>0:
+                    main_trade = merge_trades[0]
                 else:
                     main_trade = queryset[0] #主订单
                 

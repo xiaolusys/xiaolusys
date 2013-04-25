@@ -494,11 +494,11 @@ class MergeTrade(models.Model):
             return False
         
     @classmethod
-    def judge_need_merge(cls,trade_id,buyer_nick,receiver_name,receiver_address):
+    def judge_need_merge(cls,trade_id,buyer_nick,receiver_name,receiver_mobile):
         #是否需要合单 
         if not receiver_address and not receiver_name:   
             return False  
-        trades = cls.objects.filter(buyer_nick=buyer_nick,receiver_name=receiver_name
+        trades = cls.objects.filter(Q(receiver_name=receiver_name)|Q(receiver_mobile=receiver_mobile),buyer_nick=buyer_nick
                 ,sys_status__in=(pcfg.WAIT_PREPARE_SEND_STATUS,pcfg.WAIT_AUDIT_STATUS,pcfg.WAIT_CHECK_BARCODE_STATUS
                                  ,pcfg.WAIT_SCAN_WEIGHT_STATUS,pcfg.REGULAR_REMAIN_STATUS)).exclude(id=trade_id)
         is_need_merge = False
@@ -630,7 +630,7 @@ class MergeOrder(models.Model):
             status = status,
             sys_status = pcfg.IN_EFFECT,
         )
-        #post_save.send(sender=cls, instance=merge_order) #通知消息更新主订单
+        post_save.send(sender=cls, instance=merge_order) #通知消息更新主订单
         return merge_order
 
 
@@ -709,17 +709,15 @@ def merge_order_maker(sub_tid,main_tid):
     sub_trade      = MergeTrade.objects.get(tid=sub_tid)
     main_merge_trade = MergeTrade.objects.get(tid=main_tid)
     
-    merge_order = MergeOrder()
-    
     payment      = 0
     total_fee    = 0
     discount_fee = 0
     post_fee     = float(sub_trade.post_fee or 0 ) + float(main_merge_trade.post_fee or 0)
     is_reverse_order = True if main_merge_trade.sys_status in (pcfg.WAIT_CHECK_BARCODE_STATUS,pcfg.WAIT_SCAN_WEIGHT_STATUS) else False
     for order in sub_trade.merge_trade_orders.all():
+        merge_order = MergeOrder()
         for field in order._meta.fields:
             hasattr(merge_order,field.name) and setattr(merge_order,field.name,getattr(order,field.name))
-        merge_order.id  = None
         merge_order.merge_trade = main_merge_trade
         merge_order.tid = main_tid
         merge_order.is_merge = True
@@ -806,32 +804,33 @@ def drive_merge_trade_action(trade_id):
         if merge_trade.has_merge:
             return is_merge_success,merge_trade.tid
             
-        if merge_trade.status != pcfg.WAIT_SELLER_SEND_GOODS :
+        if merge_trade.status != pcfg.WAIT_SELLER_SEND_GOODS:
             return is_merge_success,main_tid
         
-        full_address     = merge_trade.buyer_full_address
-        wait_refunding   = merge_trade.has_trade_refunding()
-        receiver_name    = merge_trade.receiver_name
-        receiver_address = merge_trade.receiver_address
+        full_address     = merge_trade.buyer_full_address      #详细地址
+        wait_refunding   = merge_trade.has_trade_refunding()   #待退款
+        receiver_name    = merge_trade.receiver_name           #收货人
+        receiver_address = merge_trade.receiver_address        #收货地址
         
         trades = MergeTrade.objects.filter(buyer_nick=merge_trade.buyer_nick,receiver_name=receiver_name,receiver_address=receiver_address
                                     ,sys_status__in=(pcfg.WAIT_AUDIT_STATUS,pcfg.WAIT_PREPARE_SEND_STATUS,pcfg.REGULAR_REMAIN_STATUS))\
-                                    .order_by('-pay_time')        
+                                    .order_by('pay_time')        
          
         #如果有已有合并记录，则将现有主订单作为合并主订单                           
         has_merge_trades = trades.filter(has_merge=True)                  
         if has_merge_trades.count()>0:
             main_tid = has_merge_trades[0].tid
 
-        #如果入库订单不缺货,没有待退款，则进行合单操作
+        #如果入库订单没有待退款，则进行合单操作
         if trades.count()>0 and not wait_refunding:
             #如果没有则将按时间排序的第一符合条件的订单作为主订单
             can_merge = True
             if not main_tid:
                 for t in trades.exclude(id=trade_id):
                     full_refund = MergeTrade.judge_full_refund(t.id)
-                    if not main_tid and not full_refund and not t.has_refund and t.buyer_full_address == full_address:
+                    if not full_refund and not t.has_refund and t.buyer_full_address == full_address:
                         main_tid = t.tid
+                        break
                     if t.has_refund:
                         can_merge = False
                         break
@@ -915,7 +914,7 @@ def trade_download_controller(merge_trade,trade,trade_from,first_pay_load):
             main_tid = None  #主订单ID
             if not has_full_refund:
                 is_need_merge = MergeTrade.judge_need_merge(
-                    merge_trade.id,merge_trade.buyer_nick,merge_trade.receiver_name,merge_trade.buyer_full_address)
+                    merge_trade.id,merge_trade.buyer_nick,merge_trade.receiver_name,merge_trade.receiver_mobile)
                 if is_need_merge :
                     merge_trade.append_reason_code(pcfg.MULTIPLE_ORDERS_CODE)
                     #驱动合单程序
