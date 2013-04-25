@@ -718,6 +718,7 @@ def merge_order_maker(sub_tid,main_tid):
         merge_order = MergeOrder()
         for field in order._meta.fields:
             hasattr(merge_order,field.name) and setattr(merge_order,field.name,getattr(order,field.name))
+        merge_order.id = None
         merge_order.merge_trade = main_merge_trade
         merge_order.tid = main_tid
         merge_order.is_merge = True
@@ -905,7 +906,7 @@ def trade_download_controller(merge_trade,trade,trade_from,first_pay_load):
             #规则匹配
             is_rule_match  =  MergeTrade.judge_rule_match(merge_trade.id)    
      
-            #设置订单是否有缺货属性    
+            #设置订单匹配属性   
             merge_trade.has_rule_match = is_rule_match
   
             #订单合并   
@@ -949,9 +950,8 @@ def trade_download_controller(merge_trade,trade,trade_from,first_pay_load):
             else:
                 merge_trade.sys_status = pcfg.WAIT_PREPARE_SEND_STATUS
 
-        #非付款后首次入库
+        #再次入库
         else:
-            #再次入库
             if has_new_refund:
                 merge_trade.append_reason_code(pcfg.NEW_REFUND_CODE)
 
