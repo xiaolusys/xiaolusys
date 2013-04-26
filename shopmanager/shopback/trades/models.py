@@ -8,6 +8,7 @@ from django.db.models.signals import post_save
 from shopback.base.fields import BigIntegerAutoField,BigIntegerForeignKey
 from shopback.users.models import User
 from django.db.models import Sum
+from shopback.base import log_action,User, ADDITION, CHANGE
 from shopback.orders.models import Trade,Order
 from shopback.items.models import Item,Product,ProductSku
 from shopback.logistics.models import Logistics,LogisticsCompany
@@ -703,6 +704,7 @@ class MergeBuyerTrade(models.Model):
 
 def merge_order_maker(sub_tid,main_tid):
     #合单操作
+    
     MergeTrade.objects.filter(tid=main_tid,out_sid='',status=pcfg.WAIT_SELLER_SEND_GOODS)\
             .update(sys_status=pcfg.WAIT_AUDIT_STATUS)
     
@@ -715,14 +717,22 @@ def merge_order_maker(sub_tid,main_tid):
     post_fee     = float(sub_trade.post_fee or 0 ) + float(main_merge_trade.post_fee or 0)
     is_reverse_order = True if main_merge_trade.sys_status in (pcfg.WAIT_CHECK_BARCODE_STATUS,pcfg.WAIT_SCAN_WEIGHT_STATUS) else False
     for order in sub_trade.merge_trade_orders.all():
-        merge_order = MergeOrder()
+        try:
+            if order.oid:
+                merge_order = MergeOrder.objects.get(oid=order.oid,tid=main_tid,merge_trade=main_merge_trade)
+            else:
+                merge_order = MergeOrder()
+        except:
+            merge_order = MergeOrder()
+        
         for field in order._meta.fields:
-            hasattr(merge_order,field.name) and setattr(merge_order,field.name,getattr(order,field.name))
-        merge_order.id = None
+            if field.name not in ('id','tid','merge_trade'):
+                setattr(merge_order,field.name,getattr(order,field.name))
+        
+        merge_order.tid         = main_tid
         merge_order.merge_trade = main_merge_trade
-        merge_order.tid = main_tid
-        merge_order.is_merge = True
-        merge_order.sys_status = order.sys_status
+        merge_order.is_merge    = True
+        merge_order.sys_status  = order.sys_status
         merge_order.is_reverse_order = is_reverse_order
         merge_order.save()
         if order.sys_status == pcfg.IN_EFFECT:
@@ -734,7 +744,7 @@ def merge_order_maker(sub_tid,main_tid):
         main_merge_trade.update_buyer_message(sub_tid,sub_trade.buyer_message)
     if sub_trade.seller_memo:
         main_merge_trade.update_seller_memo(sub_tid,sub_trade.seller_memo)
-    MergeTrade.objects.filter(tid=main_tid).update(payment   = payment + float(main_merge_trade.payment ),
+    MergeTrade.objects.filter(tid=main_tid).update(payment = payment + float(main_merge_trade.payment ),
                                                    total_fee = total_fee + float(main_merge_trade.total_fee ),
                                                    discount_fee = discount_fee + float(main_merge_trade.discount_fee or 0),
                                                    post_fee = post_fee)
@@ -745,7 +755,9 @@ def merge_order_maker(sub_tid,main_tid):
     main_merge_trade.remove_reason_code(pcfg.MULTIPLE_ORDERS_CODE)
     sub_trade.remove_reason_code(pcfg.MULTIPLE_ORDERS_CODE)
     
-    if not main_merge_trade.reason_code and not main_merge_trade.out_sid :
+    log_action(main_merge_trade.user.user.id,main_merge_trade,CHANGE,u'订单自动合并（%s,%s）'%(main_tid,sub_tid))
+    
+    if not main_merge_trade.reason_code and not main_merge_trade.out_sid:
         main_merge_trade.sys_status = pcfg.WAIT_PREPARE_SEND_STATUS
         main_merge_trade.save()
     else:
@@ -779,7 +791,7 @@ def merge_order_remover(main_tid):
     
     main_trade.merge_trade_orders.filter(Q(oid=None)|Q(is_merge=True)).delete()
     sub_merges = MergeBuyerTrade.objects.filter(main_tid=main_tid)
-    for sub_merge in sub_merges:   
+    for sub_merge in sub_merges:    
         sub_tid  = sub_merge.sub_tid
         sub_merge_trade = MergeTrade.objects.get(tid=sub_tid)
         sub_merge_trade.remove_reason_code(pcfg.NEW_MERGE_TRADE_CODE)
@@ -788,6 +800,8 @@ def merge_order_remover(main_tid):
             .update(sys_status=pcfg.WAIT_AUDIT_STATUS)
         
     MergeBuyerTrade.objects.filter(main_tid=main_tid).delete()
+    
+    log_action(main_trade.user.user.id,main_trade,CHANGE,u'订单取消合并成功')
     
     rule_signal.send(sender='combose_split_rule',trade_id=main_trade.id)
     rule_signal.send(sender='payment_rule',trade_id=main_trade.id) 

@@ -47,7 +47,7 @@ MEDIA_URL = "/media/"
 
 #STATIC_ROOT = os.path.join(PROJECT_ROOT,"static")
 
-STATIC_URL = 'static/'
+STATIC_URL = '/static/'
 
 DOWNLOAD_ROOT   = os.path.join(PROJECT_ROOT,"site_media",'download')
 

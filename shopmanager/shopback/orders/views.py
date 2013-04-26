@@ -27,6 +27,7 @@ class TimerOrderStatisticsView(ModelView):
         nicks      = content.get('nicks','')
         cat_by     = content.get('cat_by','hour')
         trade_type = content.get('type','all')
+        logistic_company = content.get('lg_company')
         xy         = content.get('xy','horizon')
         nicks_list = nicks.split(',')
 
@@ -43,6 +44,9 @@ class TimerOrderStatisticsView(ModelView):
         queryset = Trade.objects.filter(seller_nick__in = nicks_list,status__in=pcfg.ORDER_SUCCESS_STATUS)
         queryset = queryset.filter(pay_time__gte=start_dt,pay_time__lte=end_dt)
         
+        if logistic_company:
+            queryset = queryset.filter(logistics_company=logistic_company)
+            
         if trade_type != 'all':
             queryset = queryset.filter(type=trade_type)
             

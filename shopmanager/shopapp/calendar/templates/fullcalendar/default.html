@@ -23,6 +23,20 @@
 				right: 'month,agendaWeek,agendaDay'
 			},
 			editable: true,
+			monthNames: ['一月','二月','三月','四月','五月','六月','七月','八月','九月','十月','十一月','十二月'],
+			monthNamesShort: ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'],
+			dayNames: ['星期日','星期一','星期二','星期三','星期四','星期五','星期六'],
+			dayNamesShort: ['日','一','二','三','四','五','六'],
+			buttonText: {
+				prev: "<span class='fc-text-arrow'>&lsaquo;</span>",
+				next: "<span class='fc-text-arrow'>&rsaquo;</span>",
+				prevYear: "<span class='fc-text-arrow'>&laquo;</span>",
+				nextYear: "<span class='fc-text-arrow'>&raquo;</span>",
+				today: '今天',
+				month: '月',
+				week: '周',
+				day: '天',
+			},
 			events: [
 				{
 					title: 'All Day Event',
@@ -70,33 +84,63 @@
 				}
 			],
 			dayClick: function(date, allDay, jsEvent, view) {
-
+				console.log('date:'+date.getMonth(),date.getDay(),date.getHours());
                 if (allDay) {
-                    alert('Clicked on the entire day: ' + date);
+                    console.log('Clicked on the entire day: ' + date);
                 }else{
-                    alert('Clicked on the slot: ' + date);
+                    console.log('Clicked on the slot: ' + date);
                 }
 
-                alert('Coordinates: ' + jsEvent.pageX + ',' + jsEvent.pageY);
+                console.log(jsEvent);
 
-                alert('Current view: ' + view.name);
+                console.log(view);
 
                 // change the day's background color just for fun
                 $(this).css('background-color', 'red');
+                
+                var event = {
+					title: 'just be lay',
+					start: new Date(y, m, 26, 0, 0),
+					//end: new Date(y, m, d, 26, 10),
+					allDay: false
+				};
+                
+                $('#calendar').fullCalendar( 'renderEvent', event , true)
 
     		},
     		eventClick: function(calEvent, jsEvent, view) {
 
-        		alert('Event: ' + calEvent.title);
-        		alert('Coordinates: ' + jsEvent.pageX + ',' + jsEvent.pageY);
-        		alert('View: ' + view.name);
-
+        		console.log(calEvent);
+        		console.log(jsEvent);
+        		console.log('View: ' + view.name);
+				
         		// change the border color just for fun
         		$(this).css('border-color', 'red');
 
+    		},
+    		eventDragStop:function(event, jsEvent, ui, view ){
+    			console.log(event, jsEvent, ui, view);
+    			console.log('eve:',event.start.getMonth(),event.end);
+    		},
+    		eventDrop: function(event,dayDelta,minuteDelta,allDay,revertFunc) {
+
+        		console.log(
+            		event.title + " was moved " +
+            		dayDelta + " days and " +
+           			minuteDelta + " minutes."
+        		);
+
+        		if (allDay) {
+            		console.log("Event is now all-day");
+        		}else{
+            		console.log("Event has a time-of-day");
+        		}
+
+        		if (!confirm("Are you sure about this change?")) {
+            		revertFunc();
+        		}
     		}
 		});
-		
 	});
 
 	
