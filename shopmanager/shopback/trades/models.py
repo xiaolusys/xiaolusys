@@ -755,7 +755,7 @@ def merge_order_maker(sub_tid,main_tid):
     main_merge_trade.remove_reason_code(pcfg.MULTIPLE_ORDERS_CODE)
     sub_trade.remove_reason_code(pcfg.MULTIPLE_ORDERS_CODE)
     
-    log_action(main_merge_trade.user.user.id,main_merge_trade,CHANGE,u'订单自动合并（%s,%s）'%(main_tid,sub_tid))
+    log_action(main_merge_trade.user.user.id,main_merge_trade,CHANGE,u'订单合并成功（%s,%s）'%(main_tid,sub_tid))
     
     if not main_merge_trade.reason_code and not main_merge_trade.out_sid:
         main_merge_trade.sys_status = pcfg.WAIT_PREPARE_SEND_STATUS

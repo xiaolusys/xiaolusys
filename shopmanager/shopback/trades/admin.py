@@ -302,6 +302,7 @@ class MergeTradeAdmin(admin.ModelAdmin):
     def merge_order_action(self,request,queryset):
         
         trade_ids = [t.id for t in queryset]
+        is_merge_success = False
         queryset  = queryset.filter(type__in=(pcfg.FENXIAO_TYPE,pcfg.TAOBAO_TYPE))
         myset = queryset.exclude(sys_status__in=(pcfg.WAIT_AUDIT_STATUS,pcfg.ON_THE_FLY_STATUS,
                                 pcfg.WAIT_CHECK_BARCODE_STATUS,pcfg.WAIT_SCAN_WEIGHT_STATUS))
