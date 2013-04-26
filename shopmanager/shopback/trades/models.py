@@ -8,7 +8,7 @@ from django.db.models.signals import post_save
 from shopback.base.fields import BigIntegerAutoField,BigIntegerForeignKey
 from shopback.users.models import User
 from django.db.models import Sum
-from shopback.base import log_action,User, ADDITION, CHANGE
+from shopback.base import log_action, ADDITION, CHANGE
 from shopback.orders.models import Trade,Order
 from shopback.items.models import Item,Product,ProductSku
 from shopback.logistics.models import Logistics,LogisticsCompany
