@@ -79,7 +79,7 @@ class RefundManagerView(ModelView):
         unrelate_prods = []
         unfinish_prods = RefundProduct.objects.filter(is_finish=False)
         for prod in unfinish_prods:
-            if not prod.trade_id or (int(prod.trade_id) not in handling_tids):
+            if not prod.trade_id or not prod.trade_id.isdigit() or (int(prod.trade_id) not in handling_tids):
                 unrelate_prods.append(prod)
 
         return {'refund_trades':refund_list,'unrelate_prods':unrelate_prods}
@@ -142,6 +142,7 @@ class RefundProductView(ModelView):
             
         for k,v in content.iteritems():
             hasattr(rf,k) and setattr(rf,k,v)
+        rf.trade_id  = rf.trade_id.isdigit() and rf.trade_id or ''
         rf.can_reuse = content.get('can_reuse') == 'true' and True or False
         rf.title = prod_sku.product.name if prod_sku else prod.name
         rf.property = prod_sku.properties_alias or prod_sku.properties_name if prod_sku else ''
