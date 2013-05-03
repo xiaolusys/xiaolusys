@@ -304,8 +304,10 @@ class MergeTrade(models.Model):
         reason_set.add(str(code))
         new_len = len(reason_set)
         self.reason_code = ','.join(list(reason_set))
-        if code in (pcfg.POST_MODIFY_CODE,pcfg.POST_SUB_TRADE_ERROR_CODE,pcfg.COMPOSE_RULE_ERROR_CODE,
-                    pcfg.PAYMENT_RULE_ERROR_CODE,pcfg.MERGE_TRADE_ERROR_CODE,pcfg.OUTER_ID_NOT_MAP_CODE):
+        if code in (pcfg.POST_MODIFY_CODE,pcfg.POST_SUB_TRADE_ERROR_CODE,
+                    pcfg.COMPOSE_RULE_ERROR_CODE,pcfg.PULL_ORDER_ERROR_CODE,
+                    pcfg.PAYMENT_RULE_ERROR_CODE,pcfg.MERGE_TRADE_ERROR_CODE,
+                    pcfg.OUTER_ID_NOT_MAP_CODE):
             self.has_sys_err = True
         MergeTrade.objects.filter(id=self.id).update(reason_code=self.reason_code,has_sys_err=self.has_sys_err)    
         return old_len<new_len

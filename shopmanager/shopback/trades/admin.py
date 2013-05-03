@@ -102,7 +102,7 @@ class MergeTradeAdmin(admin.ModelAdmin):
                 +'<img src="/static/img/tags.png" class="icon-tags" alt="系统备注"/></a>')%(obj.id,obj.id,obj.id)
     trade_id_link.allow_tags = True
     trade_id_link.short_description = "ID"
-     
+    
     def popup_tid_link(self, obj):
         return u'<a href="%d/" onclick="return showTradePopup(this);">%s</a>' %(obj.id,obj.tid and str(obj.tid) or '' )
     popup_tid_link.allow_tags = True
@@ -159,8 +159,8 @@ class MergeTradeAdmin(admin.ModelAdmin):
     
     def get_readonly_fields(self, request, obj=None):
         if not request.user.has_perm('trades.can_trade_modify'):
-            return self.readonly_fields + ('tid','reason_code','has_rule_match','has_merge','has_memo','payment','post_fee',
-                                           'is_locked','operator','can_review','is_picking_print','is_express_print','sys_status')
+            return self.readonly_fields + ('tid','reason_code','has_rule_match','has_merge','has_memo','payment','post_fee','tid','user','type'
+                                           'is_locked','operator','can_review','is_picking_print','is_express_print','sys_status','status')
         return self.readonly_fields
     
     def get_actions(self, request):
@@ -434,7 +434,7 @@ class MergeTradeAdmin(admin.ModelAdmin):
                         PurchaseOrder.save_order_through_dict(seller_id,o)    
             except Exception,exc:
                 logger.error('pull error '+exc.message,exc_info=True)
-                MergeTrade.objects.filter(tid=trade.tid,reason_code='').update(sys_status=pcfg.WAIT_AUDIT_STATUS)
+                trade.append_reason_code(pcfg.PULL_ORDER_ERROR_CODE)
                 pull_fail_ids.append(trade.tid)
             else:
                 pull_success_ids.append(trade.tid)

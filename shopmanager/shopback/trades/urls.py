@@ -10,7 +10,6 @@ from shopback.trades.renderers import CheckOrderRenderer,ReviewOrderRenderer,Exc
     StatisticMergeOrderRender,StatisticOutStockRender,OrderListRender
 from shopback.trades.resources import TradeResource,OrderPlusResource,ExchangeOrderResource,MergeTradeResource,StatisticMergeOrderResource
 from shopback.base.permissions import IsAuthenticated
-
 from shopback.base.authentication import UserLoggedInAuthentication,login_required_ajax
 
 urlpatterns = patterns('',

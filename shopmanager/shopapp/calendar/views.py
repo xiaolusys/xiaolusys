@@ -1,5 +1,119 @@
 #-*- coding:utf8 -*-
+import datetime
 from django.http import HttpResponse,HttpResponseNotFound
 from django.db.models import Q,Sum
+from shopback.base import log_action,User as DjangoUser, ADDITION, CHANGE
+from djangorestframework.views import ModelView
+from djangorestframework.response import ErrorResponse
+from shopapp.calendar.models import StaffEvent
+from auth.utils import parse_datetime
 
 
+def get_users_by_string(executor_strng):
+    
+    ectors = executor_strng.split(',')
+    
+    exectors = []
+    
+    for s in ectors:
+        try:
+            django_user = DjangoUser.objects.get(username=s)
+        except:
+            continue
+        exectors.append(django_user)
+        
+    return exectors
+            
+    
+class MainEventPageView(ModelView):
+    """ docstring for class MainEventPageView """
+            
+    def get(self, request, *args, **kwargs):
+        
+        cur_user = request.user
+        staffs = DjangoUser.objects.filter(is_active=True,is_staff=True)
+            
+        return {'curuser':cur_user,'staffs':staffs}
+
+    
+class StaffEventView(ModelView):
+    """ docstring for class StaffEventView """
+    
+    def get(self, request, *args, **kwargs):
+        
+        content   = request.REQUEST
+        exector   = content.get('exector')
+        date_type = content.get('date_type')
+        finished  = content.get('is_finished',None)
+        order_desc  = content.get('order_desc')
+        
+        django_user = DjangoUser.objects.get(username=exector)
+        
+        df      = content.get('df')
+        dt      = content.get('dt')
+        
+        start   = parse_datetime(df) 
+        end     = mdt and parse_datetime(dt) or None
+        
+        
+        staff_events = StaffEvent.objects.filter(exector=django_user,status='normal')
+        if finished:
+            staff_events = staff_events.filter(is_finished= finished.upper()=='Y')
+          
+        order_by = ''  
+        if date_type == 'task':
+            staff_events = staff_events.filter(Q(start__gte=start)|Q(end__lte=end))
+            order_by = order_desc == '1' and '-end' or 'start'
+        elif date_type == 'modify':
+            staff_events = staff_events.filter(modified__gte=start,modified__lte=end)
+            order_by = order_desc == '1' and '-modified' or 'modified'
+        elif date_type == 'create':
+            staff_events = staff_events.filter(created__gte=start,created__lte=end)
+            order_by = order_desc == '1' and '-created' or 'created'
+        
+        if order_by:
+            staff_events = staff_events.order_by(order_by)
+        
+        return staff_events
+        
+    def post(self, request, *args, **kwargs):
+        creator    = request.user
+        content = request.REQUEST
+        
+        start   = content.get('start')
+        end     = content.get('end')
+        
+        start   = parse_datetime(start) 
+        end     = end and parse_datetime(start) 
+        
+        interval_day = content.get('interval_day','0')
+        title   = content.get('title')
+        type    = content.get('type','temp')
+        
+        executor_string = content.get('executor','')
+        
+        exectors  = get_users_by_string(executor_string) or [creator]
+        
+        staff_events = []
+        for executor in exectors:
+            
+            staff_event = StaffEvent.objects.create(
+                                                    executor=executor,
+                                                    creator=creator,
+                                                    start=start,
+                                                    end=end,
+                                                    interval_day=interval_day,
+                                                    title=title,
+                                                    type=type
+                                                    )
+            staff_events.append(staff_event)
+            
+        return staff_events
+        
+
+    
+    
+    
+    
+    
+    

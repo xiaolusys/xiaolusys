@@ -3,11 +3,17 @@
 <head>
 <title>事件日历</title>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<link href="{{ STATIC_URL }}bootstrap/css/bootstrap.min.css" rel="stylesheet" type="text/css" />
+<link href="{{ STATIC_URL }}bootstrap/css/bootstrap-responsive.min.css" rel="stylesheet" type="text/css" />
 <link href='{{ STATIC_URL }}fullcalendar/css/fullcalendar.css' rel='stylesheet' />
 <link href='{{ STATIC_URL }}fullcalendar/css/fullcalendar.print.css' rel='stylesheet' media='print' />
+<link href='{{ STATIC_URL }}fullcalendar/tags/jquery.tagsinput.css' rel='stylesheet'  />
 <script src='{{ STATIC_URL }}fullcalendar/js/jquery-1.9.1.min.js'></script>
 <script src='{{ STATIC_URL }}fullcalendar/js/jquery-ui-1.10.2.custom.min.js'></script>
+<script src="{{ STATIC_URL }}bootstrap/js/bootstrap.js" ></script>
 <script src='{{ STATIC_URL }}fullcalendar/js/fullcalendar.min.js'></script>
+<script src='{{ STATIC_URL }}fullcalendar/tags/jquery.tagsinput.min.js'></script>
+<script src="{{ STATIC_URL }}fullcalendar/staffevent.js" ></script>
 <script>
 	$(document).ready(function() {
 	
@@ -43,6 +49,7 @@
 					start: new Date(y, m, 1)
 				},
 				{
+					id:110,
 					title: 'Long Event',
 					start: new Date(y, m, d-5),
 					end: new Date(y, m, d-2)
@@ -97,15 +104,9 @@
 
                 // change the day's background color just for fun
                 $(this).css('background-color', 'red');
-                
-                var event = {
-					title: 'just be lay',
-					start: new Date(y, m, 26, 0, 0),
-					//end: new Date(y, m, d, 26, 10),
-					allDay: false
-				};
-                
-                $('#calendar').fullCalendar( 'renderEvent', event , true)
+                console.log(jsEvent);
+                var pos = {'x':jsEvent.clientX,'y':jsEvent.clientY};
+        		showStaffEventAddDialog(pos);
 
     		},
     		eventClick: function(calEvent, jsEvent, view) {
@@ -116,6 +117,7 @@
 				
         		// change the border color just for fun
         		$(this).css('border-color', 'red');
+        		
 
     		},
     		eventDragStop:function(event, jsEvent, ui, view ){
@@ -149,20 +151,260 @@
 <style>
 
 	body {
-		margin-top: 40px;
-		text-align: center;
-		font-size: 14px;
+		margin-top:40px;
 		font-family: "Lucida Grande",Helvetica,Arial,Verdana,sans-serif;
 		}
-
+	
+	.btn-group {
+		position: relative;
+		display: inline-block;
+		font-size: 0;
+		white-space: nowrap;
+		vertical-align: middle;
+	}
+	
+	.left-nav {
+		width:250px;
+		display:inline;
+		float:left;
+		font-size: 14px;
+	}
+	
+	.left-nav-search  .span2{
+		width:140px;
+	}
+	
+	.right-panel{
+		width:900px;
+		display:inline;
+		float:right;
+	}
+	
+	.search-results{
+		margin-top:5px;
+	}
+	
+	.search-result-events {
+		height:570px;
+		overflow-y:scroll;
+		overflow-x:none;
+	}
+	
+	.event-label {
+		margin-top:2px;
+		width:215px;
+		overflow: hidden;
+	}
+	
+	.nav > li > a{
+		padding-top:0px;
+		padding-bottom:0px;
+	}
+	
+	.search-filter{
+		border:1px solid #DDD;
+		padding:5px;
+	}
+	
+	.filter-line label{
+		display:inline;
+		font-size:16px;
+	}
+	
+	.filter-line select{
+		display:inline;
+		height:25px;
+		width:95px;
+		margin-bottom:8px;
+		margin-right:2px;
+	}
+	
+	.filter-line input[type="checkbox"]{
+		dispaly:inline;
+		margin-bottom:8px;
+	}
+	
+	.filter-line input[type="text"]{
+		display:inline;
+		width:100px;
+		height:16px;
+		margin-right:2px;
+	}
+	
 	#calendar {
 		width: 900px;
-		margin: 0 auto;
-		}
-
+	}
+	
+	.add_staff_event{
+		display:none;
+		width:342px;
+		position:absolute;
+	    z-index:11111;
+	}
+	
+	.staff-head {
+		background-color:#222;
+		height:25px;
+		text-align:center;
+		-webkit-border-radius: 5px;
+    	-moz-border-radius: 5px;
+	}
+	
+	.staff-body{
+		padding:5px 2px;
+		border:2px solid #999999;
+		-webkit-border-radius: 5px;
+    	-moz-border-radius: 5px;
+    	background-color:white;
+	}
+	
+	.control-group {
+		display:block;
+		margin-bottom:5px;
+		clear:both;
+	}
+	
+	.control-group a,.control-group div,.control-group input,.control-group label{
+		display:inline;
+	}
+	
+	#executors {
+		width:272px;
+	}
+	
+	.event-datetime{
+		width:60px;
+	}
+	
+	#event-content {
+		width:318px;
+	}
+	
+	.event-bottom{
+		text-align:center;
+	}
+	
 </style>
 </head>
 <body>
-<div id='calendar'></div>
+	<div class="container">
+		<div class="left-nav">
+			<div class="left-nav-search">
+				<div class="input-append">
+				  <input class="span2" id="appendedDropdownButton" type="text" placeholder="输入事件描述">
+				  <div class="btn-group">
+				    <button class="btn dropdown-toggle" data-toggle="dropdown">
+				     {{ object.curuser.username }}
+				      <span class="caret"></span>
+				    </button>
+				    <ul class="dropdown-menu">
+				      {% for u in object.staffs %}
+				      	<li>{{ u.username }}</li>
+				      {% endfor %}
+				    </ul>
+				  </div>
+				</div>
+				<div class="search-filter">
+					<div class="filter-line">
+						<label for="id_date_type">日期类型:</label>
+						<select id="id_date_type" class="selector">
+							<option value="task">任务日期</option>
+							<option value="create">创建日期</option>
+							<option value="modify">修改日期</option>
+						</select>
+						<input id="id_result_order" type="checkbox" />
+						<label for="id_result_order" >降序</label> 
+					</div>
+					<div class="filter-line">
+						<input id="id_start_dt" type="text" placeholder="开始日期"/>
+						<input id="id_end_dt" type="text" placeholder="结束日期"/>
+					</div>
+				</div>
+			</div>
+			<div class="search-results">
+				<div class="tabbable" > 
+				  <ul class="nav nav-tabs" style="margin-bottom:0px;">
+				    <li class="active"><a href="#tab1" data-toggle="tab">全部</a></li>
+				    <li><a href="#tab2" data-toggle="tab">未完成</a></li>
+				    <li><a href="#tab3" data-toggle="tab">已完成</a></li>
+				  </ul>
+				</div>
+				<div class="tab-content">
+					<div class="tab-pane search-result-events active" id="tab1">
+						<div class="label label-info event-label">
+							<label class="badge badge-inverse">1</label>
+							事件一，事件一，事件一，事件一，事件一，事件一，事件一，事件一
+						</div>
+						<div class="label label-info event-label">
+							<label class="badge badge-inverse">2</label>
+							事件一，事件一，事件一，事件一，事件一，事件一，事件一，事件一
+						</div>
+						<div class="label label-info event-label">
+							<label class="badge badge-inverse">3</label>
+							事件一，事件一，事件一，事件一，事件一，事件一，事件一，事件一
+						</div>
+					</div>
+					<div class="tab-pane search-result-events" id="tab2">
+						<div class="label label-info event-label">
+							<label class="badge badge-inverse">1</label>
+							完成事件，完成事件，完成事件，完成事件，完成事件，完成事件
+						</div>
+						<div class="label label-info event-label">
+							<label class="badge badge-inverse">2</label>
+							完成事件，完成事件，完成事件，完成事件，完成事件，完成事件
+						</div>
+					</div>
+					<div class="tab-pane search-result-events" id="tab3">
+						<div class="label label-info event-label">
+							<label class="badge badge-inverse">1</label>
+							未完成事件，未完成事件，未完成事件，未完成事件，未完成事件
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+		<div class="right-panel">
+			<div id='calendar'></div>
+			<div id="add_staff_event" class="add_staff_event draggable ui-widget-content" >
+				<div class="staff-head">
+					<h4 style="color:white;padding:2px;">填写事件信息</h4>
+				</div>
+				<div class="staff-body">
+					<div class="control-group">
+						<input id="executors" name="executors" type="text" value="abc,def,ghi" />
+					</div>
+					<div class="control-group">
+						<input id="start-date" class="event-datetime" type='text' placeholder="最早执行" />-<input id="start-time" class="event-datetime" type="text" placeholder="日期时间">
+						<lable class="label">to</lable>
+						<input id="end-date" class="event-datetime" type='text' placeholder="最晚完成" />-<input id="end-time" class="event-datetime" type="text" placeholder="日期时间">
+					</div>
+					<div class="control-group">
+						<div class="controls"><textarea id="event-content" rows="3" cols="50" placeholder="描述规范：开头用14字以内写任务标题，然后再写任务内容" ></textarea></div>
+					</div>
+					<div class="control-group event-bottom">
+						<button class="btn btn-small btn-inverse">提交</button>
+						<button class="btn btn-small btn-inverse">取消</button>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+	<script type="text/javascript">
+		//使输入的执行标记化
+		$('#executors').tagsInput({
+			'autocomplete_url': url_to_autocomplete_api,
+   			'autocomplete': { selectFirst:true,width:'100px',autoFill:true},
+			'height':'100px',
+   			'width':'260px',
+   			'interactive':true,
+   			'defaultText':'选择执行人',
+   			'placeholderColor' : '#999999',
+   			'removeWithBackspace' : true,
+		    'minChars' : 0,
+		    'maxChars' : 0,
+		});
+		//设置填写事件对话框可拖动
+		$( "#add_staff_event" ).draggable({ containment: "parent" });
+	</script>
 </body>
 </html>
