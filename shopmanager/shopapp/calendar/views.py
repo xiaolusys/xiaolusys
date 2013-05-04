@@ -15,6 +15,9 @@ def get_users_by_string(executor_strng):
     
     exectors = []
     
+    if 'everyone' in ectors:
+        return DjangoUser.objects.filter(is_active=True,is_staff=True)
+    
     for s in ectors:
         try:
             django_user = DjangoUser.objects.get(username=s)
@@ -43,32 +46,46 @@ class StaffEventView(ModelView):
         
         content   = request.REQUEST
         exector   = content.get('exector')
-        date_type = content.get('date_type')
-        finished  = content.get('is_finished',None)
+        date_type = content.get('date_type','task')
+        finished  = content.get('is_finished','')
         order_desc  = content.get('order_desc')
-        
-        django_user = DjangoUser.objects.get(username=exector)
-        
         df      = content.get('df')
         dt      = content.get('dt')
         
+        try:
+            django_user = DjangoUser.objects.get(username=exector)
+        except:
+            django_user = request.user
+        
+        
+        
         start   = parse_datetime(df) 
-        end     = mdt and parse_datetime(dt) or None
+        end     = dt and parse_datetime(dt) or None
         
         
-        staff_events = StaffEvent.objects.filter(exector=django_user,status='normal')
+        staff_events = StaffEvent.objects.filter(executor=django_user,status='normal')
         if finished:
             staff_events = staff_events.filter(is_finished= finished.upper()=='Y')
           
         order_by = ''  
         if date_type == 'task':
-            staff_events = staff_events.filter(Q(start__gte=start)|Q(end__lte=end))
+            if end:
+                staff_events = staff_events.filter(Q(start__gte=start)|Q(end__lte=end))
+            else:
+                staff_events = staff_events.filter(start__gte=start)
+                
             order_by = order_desc == '1' and '-end' or 'start'
         elif date_type == 'modify':
-            staff_events = staff_events.filter(modified__gte=start,modified__lte=end)
+            staff_events = staff_events.filter(modified__gte=start)
+            if end:
+                staff_events = staff_events.filter(modified__lte=end)
+            
             order_by = order_desc == '1' and '-modified' or 'modified'
         elif date_type == 'create':
-            staff_events = staff_events.filter(created__gte=start,created__lte=end)
+            staff_events = staff_events.filter(created__gte=start)
+            if end:
+                staff_events = staff_events.filter(created__lte=end)
+                
             order_by = order_desc == '1' and '-created' or 'created'
         
         if order_by:
@@ -82,9 +99,9 @@ class StaffEventView(ModelView):
         
         start   = content.get('start')
         end     = content.get('end')
-        
-        start   = parse_datetime(start) 
-        end     = end and parse_datetime(start) 
+
+        start   = parse_datetime(start)   
+        end     = end and parse_datetime(start) or datetime.datetime(start.year,start.month,start.day)
         
         interval_day = content.get('interval_day','0')
         title   = content.get('title')

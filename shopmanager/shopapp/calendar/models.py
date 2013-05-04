@@ -35,10 +35,10 @@ class StaffEvent(models.Model):
     
     class Meta:
         db_table = 'shop_calendar_staffevent'
-        verbose_name = u'退货款单'
-        verbose_name_plural = u'退货款单列表'
+        verbose_name = u'事件'
+        verbose_name_plural = u'事件列表'
 
     def __unicode__(self):
-        return '<%d,%s,%s>'%(self.id,self.executor.name,self.creator.name)
+        return '<%d,%s,%s>'%(self.id,self.executor.username,self.creator.username)
 
 

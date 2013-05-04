@@ -20,6 +20,7 @@ urlpatterns = patterns('',
     (r'^trades/',include('shopback.trades.urls')),
     (r'^refunds/',include('shopback.refunds.urls')),
     (r'^purchases/',include('shopback.purchases.urls')),
+    (r'^users/',include('shopback.users.urls')),
     
     (r'^app/',include('shopapp.urls')),
     url(r'^home/$',home,name='home_page'),

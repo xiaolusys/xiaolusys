@@ -1,159 +1,18 @@
-<!DOCTYPE html>
-<html>
-<head>
-<title>事件日历</title>
-<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
 <link href="{{ STATIC_URL }}bootstrap/css/bootstrap.min.css" rel="stylesheet" type="text/css" />
 <link href="{{ STATIC_URL }}bootstrap/css/bootstrap-responsive.min.css" rel="stylesheet" type="text/css" />
 <link href='{{ STATIC_URL }}fullcalendar/css/fullcalendar.css' rel='stylesheet' />
 <link href='{{ STATIC_URL }}fullcalendar/css/fullcalendar.print.css' rel='stylesheet' media='print' />
 <link href='{{ STATIC_URL }}fullcalendar/tags/jquery.tagsinput.css' rel='stylesheet'  />
-<script src='{{ STATIC_URL }}fullcalendar/js/jquery-1.9.1.min.js'></script>
-<script src='{{ STATIC_URL }}fullcalendar/js/jquery-ui-1.10.2.custom.min.js'></script>
+<link href='{{ STATIC_URL }}fullcalendar/js/jquery-ui-1.8.13.css' rel='stylesheet'  />
+<script src='{{ STATIC_URL }}fullcalendar/js/jquery-1.8.13.min.js'></script>
+<script src='{{ STATIC_URL }}fullcalendar/js/jquery-ui-1.8.13.min.js'></script>
 <script src="{{ STATIC_URL }}bootstrap/js/bootstrap.js" ></script>
+<script src='{{ STATIC_URL }}fullcalendar/js/jquery-ui-timepicker-addon.js'></script>
 <script src='{{ STATIC_URL }}fullcalendar/js/fullcalendar.min.js'></script>
-<script src='{{ STATIC_URL }}fullcalendar/tags/jquery.tagsinput.min.js'></script>
+<script src='{{ STATIC_URL }}fullcalendar/tags/jquery.tagsinput.js'></script>
 <script src="{{ STATIC_URL }}fullcalendar/staffevent.js" ></script>
-<script>
-	$(document).ready(function() {
-	
-		var date = new Date();
-		var d = date.getDate();
-		var m = date.getMonth();
-		var y = date.getFullYear();
-		
-		$('#calendar').fullCalendar({
-			header: {
-				left: 'prev,next today',
-				center: 'title',
-				right: 'month,agendaWeek,agendaDay'
-			},
-			editable: true,
-			monthNames: ['一月','二月','三月','四月','五月','六月','七月','八月','九月','十月','十一月','十二月'],
-			monthNamesShort: ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'],
-			dayNames: ['星期日','星期一','星期二','星期三','星期四','星期五','星期六'],
-			dayNamesShort: ['日','一','二','三','四','五','六'],
-			buttonText: {
-				prev: "<span class='fc-text-arrow'>&lsaquo;</span>",
-				next: "<span class='fc-text-arrow'>&rsaquo;</span>",
-				prevYear: "<span class='fc-text-arrow'>&laquo;</span>",
-				nextYear: "<span class='fc-text-arrow'>&raquo;</span>",
-				today: '今天',
-				month: '月',
-				week: '周',
-				day: '天',
-			},
-			events: [
-				{
-					title: 'All Day Event',
-					start: new Date(y, m, 1)
-				},
-				{
-					id:110,
-					title: 'Long Event',
-					start: new Date(y, m, d-5),
-					end: new Date(y, m, d-2)
-				},
-				{
-					id: 999,
-					title: 'Repeating Event',
-					start: new Date(y, m, d-3, 16, 0),
-					allDay: false
-				},
-				{
-					id: 999,
-					title: 'Repeating Event',
-					start: new Date(y, m, d+4, 16, 0),
-					allDay: false
-				},
-				{
-					title: 'Meeting',
-					start: new Date(y, m, d, 10, 30),
-					allDay: false
-				},
-				{
-					title: 'Lunch',
-					start: new Date(y, m, d, 12, 0),
-					end: new Date(y, m, d, 14, 0),
-					allDay: false
-				},
-				{
-					title: 'Birthday Party',
-					start: new Date(y, m, d+1, 19, 0),
-					end: new Date(y, m, d+1, 22, 30),
-					allDay: false
-				},
-				{
-					title: 'Click for Google',
-					start: new Date(y, m, 28),
-					end: new Date(y, m, 29),
-					url: 'http://google.com/'
-				}
-			],
-			dayClick: function(date, allDay, jsEvent, view) {
-				console.log('date:'+date.getMonth(),date.getDay(),date.getHours());
-                if (allDay) {
-                    console.log('Clicked on the entire day: ' + date);
-                }else{
-                    console.log('Clicked on the slot: ' + date);
-                }
 
-                console.log(jsEvent);
-
-                console.log(view);
-
-                // change the day's background color just for fun
-                $(this).css('background-color', 'red');
-                console.log(jsEvent);
-                var pos = {'x':jsEvent.clientX,'y':jsEvent.clientY};
-        		showStaffEventAddDialog(pos);
-
-    		},
-    		eventClick: function(calEvent, jsEvent, view) {
-
-        		console.log(calEvent);
-        		console.log(jsEvent);
-        		console.log('View: ' + view.name);
-				
-        		// change the border color just for fun
-        		$(this).css('border-color', 'red');
-        		
-
-    		},
-    		eventDragStop:function(event, jsEvent, ui, view ){
-    			console.log(event, jsEvent, ui, view);
-    			console.log('eve:',event.start.getMonth(),event.end);
-    		},
-    		eventDrop: function(event,dayDelta,minuteDelta,allDay,revertFunc) {
-
-        		console.log(
-            		event.title + " was moved " +
-            		dayDelta + " days and " +
-           			minuteDelta + " minutes."
-        		);
-
-        		if (allDay) {
-            		console.log("Event is now all-day");
-        		}else{
-            		console.log("Event has a time-of-day");
-        		}
-
-        		if (!confirm("Are you sure about this change?")) {
-            		revertFunc();
-        		}
-    		}
-		});
-	});
-
-	
-
-</script>
 <style>
-
-	body {
-		margin-top:40px;
-		font-family: "Lucida Grande",Helvetica,Arial,Verdana,sans-serif;
-		}
 	
 	.btn-group {
 		position: relative;
@@ -176,8 +35,6 @@
 	
 	.right-panel{
 		width:900px;
-		display:inline;
-		float:right;
 	}
 	
 	.search-results{
@@ -232,7 +89,7 @@
 	}
 	
 	#calendar {
-		width: 900px;
+		width:900px;
 	}
 	
 	.add_staff_event{
@@ -273,7 +130,7 @@
 	}
 	
 	.event-datetime{
-		width:60px;
+		width:138px;
 	}
 	
 	#event-content {
@@ -285,15 +142,13 @@
 	}
 	
 </style>
-</head>
-<body>
-	<div class="container">
+		<!--  
 		<div class="left-nav">
 			<div class="left-nav-search">
 				<div class="input-append">
 				  <input class="span2" id="appendedDropdownButton" type="text" placeholder="输入事件描述">
 				  <div class="btn-group">
-				    <button class="btn dropdown-toggle" data-toggle="dropdown">
+				    <button id="master_btn" class="btn dropdown-toggle" data-toggle="dropdown">
 				     {{ object.curuser.username }}
 				      <span class="caret"></span>
 				    </button>
@@ -363,48 +218,149 @@
 				</div>
 			</div>
 		</div>
+		-->
 		<div class="right-panel">
 			<div id='calendar'></div>
-			<div id="add_staff_event" class="add_staff_event draggable ui-widget-content" >
+			<div id="add_staff_event" class="add_staff_event draggable " >
 				<div class="staff-head">
 					<h4 style="color:white;padding:2px;">填写事件信息</h4>
 				</div>
 				<div class="staff-body">
 					<div class="control-group">
-						<input id="executors" name="executors" type="text" value="abc,def,ghi" />
+						<input id="executors" name="executors" type="text" value="{{ object.curuser.username }},"  />
 					</div>
 					<div class="control-group">
-						<input id="start-date" class="event-datetime" type='text' placeholder="最早执行" />-<input id="start-time" class="event-datetime" type="text" placeholder="日期时间">
+						<input id="start-datetime" class="event-datetime" type='text' placeholder="最早执行时间" />
 						<lable class="label">to</lable>
-						<input id="end-date" class="event-datetime" type='text' placeholder="最晚完成" />-<input id="end-time" class="event-datetime" type="text" placeholder="日期时间">
+						<input id="end-datetime" class="event-datetime" type='text' placeholder="最晚完成时间" />
 					</div>
 					<div class="control-group">
 						<div class="controls"><textarea id="event-content" rows="3" cols="50" placeholder="描述规范：开头用14字以内写任务标题，然后再写任务内容" ></textarea></div>
 					</div>
 					<div class="control-group event-bottom">
-						<button class="btn btn-small btn-inverse">提交</button>
-						<button class="btn btn-small btn-inverse">取消</button>
+						<button id="btn-submit" class="btn btn-small btn-inverse">提交</button>
+						<button id="btn-cancle" class="btn btn-small btn-inverse">取消</button>
 					</div>
 				</div>
 			</div>
 		</div>
 	</div>
 	<script type="text/javascript">
-		//使输入的执行标记化
-		$('#executors').tagsInput({
-			'autocomplete_url': url_to_autocomplete_api,
-   			'autocomplete': { selectFirst:true,width:'100px',autoFill:true},
-			'height':'100px',
-   			'width':'260px',
-   			'interactive':true,
-   			'defaultText':'选择执行人',
-   			'placeholderColor' : '#999999',
-   			'removeWithBackspace' : true,
-		    'minChars' : 0,
-		    'maxChars' : 0,
+		
+	//初始化日历事件对象
+	var initial_calendar_events = function(calendar){
+	
+		var now = new Date();
+		now.setMonth(now.getMonth()-1);
+		var url = "/app/calendar/events/";
+		var params = {'df':$.datepicker.formatDate('yy-mm-dd 00:00:01',now)};
+		
+		var callback = function(data){
+
+			if (data.code==1){
+				alert('数据初始化失败');
+				return;
+			}
+			$.each(data.response_content, function(index, e) {
+		         var event = {
+		         	'id':e.id,
+		         	'title':e.title,
+		         	'start':e.start,
+		         	'end':e.end,
+		         	'allDay':true,
+		         };
+		         calendar.fullCalendar( 'renderEvent', event , true);
+		    });
+		};
+		
+		$.ajax({ 
+		    type: 'GET', 
+		    url: url, 
+		    data: params , 
+		    dataType: 'json',
+		    success: callback,
 		});
-		//设置填写事件对话框可拖动
-		$( "#add_staff_event" ).draggable({ containment: "parent" });
+	};
+		
+	$(document).ready(function() {
+	
+		var date = new Date();
+		var d = date.getDate();
+		var m = date.getMonth();
+		var y = date.getFullYear();
+		var latestClickDiv = null;
+		
+		var calendar = $('#calendar');
+		calendar.fullCalendar({
+			header: {
+				left: 'prev,next today',
+				center: 'title',
+				right: 'month,agendaWeek,agendaDay'
+			},
+			editable: false,
+			monthNames: ['一月','二月','三月','四月','五月','六月','七月','八月','九月','十月','十一月','十二月'],
+			monthNamesShort: ['1.','2.','3.','4.','5.','6.','7.','8.','9.','10.','11.','12.'],
+			dayNames: ['星期日','星期一','星期二','星期三','星期四','星期五','星期六'],
+			dayNamesShort: ['日','一','二','三','四','五','六'],
+			buttonText: {
+				prev: "<span class='fc-text-arrow'>&lsaquo;</span>",
+				next: "<span class='fc-text-arrow'>&rsaquo;</span>",
+				prevYear: "<span class='fc-text-arrow'>&laquo;</span>",
+				nextYear: "<span class='fc-text-arrow'>&raquo;</span>",
+				today: '今天',
+				month: '月',
+				week: '周',
+				day: '天',
+			},
+			
+			dayClick: function(date, allDay, jsEvent, view) {
+				
+				if (latestClickDiv){
+					latestClickDiv.css('background-color', 'white');
+				}
+				
+                $(this).css('background-color', 'pink');
+				$("#start-datetime").datetimepicker('setDate', (date))
+				var pos = {'x':jsEvent.clientX,'y':jsEvent.clientY}
+        		showStaffEventAddDialog(pos);
+				
+				latestClickDiv = $(this);
+    		},
+    		eventClick: function(calEvent, jsEvent, view) {
+        		$(this).css('border-color', 'red');
+    		},
+    		viewDisplay: function(view){
+    			$('#add_staff_event').hide();
+    		},
+    		
+		});
+		initial_calendar_events(calendar);
+		
+	});
+	//使输入的执行标记化
+	$('#executors').tagsInput({
+		'autocomplete_url': '/users/username/',
+  		'autocomplete': {selectFirst:true, width:'100px',autoFill:true},
+		'height':'100px',
+		'width':'260px',
+		'interactive':true,
+		'defaultText':'事件分配给',
+		'placeholderColor' : '#999999',
+		'removeWithBackspace' : true,
+	    'minChars' : 1,
+	    'maxChars' : 10,
+	});
+	//设置填写事件对话框可拖动
+	$( "#add_staff_event" ).draggable({ containment: "parent" });
+	
+	$("#start-datetime").datetimepicker({
+                timeFormat: "HH:mm:ss",
+                dateFormat: "yy-mm-dd"
+            });
+	$("#end-datetime").datetimepicker({
+                timeFormat: "HH:mm:ss",
+                dateFormat: "yy-mm-dd"
+            });
+    //初始化添加事件对话框
+	initStaffEventAddDialog();
 	</script>
-</body>
-</html>
