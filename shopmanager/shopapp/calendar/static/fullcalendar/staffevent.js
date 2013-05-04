@@ -33,6 +33,8 @@ var addStaffEvent = function(e){
 	         };
 	         calendar.fullCalendar( 'renderEvent', event , true);
 	    });
+	    $('#executors').val('');
+	    $('#event-content').val('');
 	    $('#add_staff_event').hide();
 	    
 	};
@@ -56,7 +58,6 @@ var initStaffEventAddDialog = function(){
 
 var showStaffEventAddDialog = function(pos){
 	var staffEventDialogDiv     = $('#add_staff_event');
-	console.log('abc',staffEventDialogDiv,pos);
 	staffEventDialogDiv.show();
 	staffEventDialogDiv.offset({'top': pos.y,'left':pos.x}); 
 	

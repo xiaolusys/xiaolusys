@@ -15,7 +15,7 @@ def get_usernames_by_segstr(request):
         ret = {'code':1,'error_response':u'查询内容不能为空'}
         return HttpResponse(json.dumps(ret),mimetype="application/json")
     
-    valuelist = DjangoUser.objects.filter(username__contains=q).values_list('username')
+    valuelist = DjangoUser.objects.filter(username__istartswith=q).values_list('username')
     usernames = [{'id':'everyone','label':'everyone','value':'everyone'}]
     if valuelist:
         for vl in valuelist[0]:
