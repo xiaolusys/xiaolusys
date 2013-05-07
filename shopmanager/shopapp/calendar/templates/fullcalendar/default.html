@@ -150,7 +150,94 @@
 	.event-bottom{
 		text-align:center;
 	}
-
+	
+	
+	
+	.prompt-tip{
+		width:400px;
+    	z-index: 1001; 
+    	visibility: visible;
+    	background: none repeat scroll 0 0 #FFFFFF;
+	    border: 1px solid #CCCCCC;
+	    box-shadow: 0 6px 4px rgba(0, 0, 0, 0.2);
+	    position:absolute;
+	    margin-bottom: 9px;
+	    padding: 8px 14px;
+	    display:none;
+	}
+	
+	.tip-main{
+	}
+	
+	.prong-dk,.prong-lt{
+		border-bottom-width: 0;
+	}
+	
+	#tip-close{
+		float:right;
+		cursor: pointer;
+	    height: 13px;
+	    right: 16px;
+	    top: 16px;
+	    width: 13px;
+	}
+	
+	.tip-content{
+		overflow: hidden;
+		width:384px;
+	}
+	
+	.tc-header{
+		
+	}
+	
+	.tc-footer{
+		border-top: 1px solid #DDDDDD;
+	    margin-top: 2em;
+	    padding-top: 1em;
+	    color: #1587BD;
+	}
+	
+	#tc-event-text{
+		margin-bottom:5px;
+	}
+	
+	.tip-bottom {
+		height: 9px;
+	    overflow: hidden;
+	    width: 18px;
+	    position: absolute;
+	    left: 200px;
+	    bottom:-9px;
+	}
+	
+	.prong-dk{
+		-moz-border-bottom-colors: none;
+	    -moz-border-image: none;
+	    -moz-border-left-colors: none;
+	    -moz-border-right-colors: none;
+	    -moz-border-top-colors: none;
+	    border-color: #FFFFFF transparent transparent transparent;
+	    border-style: solid;
+	    border-width: 8px;
+	    left:1px;
+	}
+	
+	#event-creator{
+		display:inline;
+	}
+	
+	.actions-right{
+		float: right;
+	    margin: 0 1px;
+	    white-space: nowrap;
+	}
+	
+	.actions-left{
+		float: left;
+	    margin: 0 1px;
+	    white-space: nowrap;
+	}
 	
 </style>
 	<div class="right-panel">
@@ -177,6 +264,35 @@
 				</div>
 			</div>
 		</div>
+		<div id="prompt-tip" class="prompt-tip">
+			<tip class="tip-main">
+				<div id="tip-close" class="icon-remove"></div>
+				<div id="tip-content" class="tip-content" >
+					<div class="tc-header">
+						<div id="tc-event-text" >正文内容</div>
+						<div id="tc-event-track">
+							<div class="actions-left">
+								<label class="label">创建:</label>
+								<div id="event-creator"></div>
+							</div>
+							<div class="actions-right">
+								<div id="event-duration"></div>
+							</div>
+						</div>
+					</div>
+					<div class="tc-footer">
+						<div class="actions-right">编辑事件</div>
+						<div class="actions-left">
+							<a id="event-delete" eventid="" href="javascript:void(0);">删除</a>
+						</div>
+					</div>
+				</div>
+				<div class="tip-bottom" id="prong:e" >
+					<div class="prong-dk"></div>
+				</div>
+			</div>
+			
+		</div>
 	</div>
 </div>
 <script type="text/javascript">
@@ -202,6 +318,8 @@
 		         	'start':e.start,
 		         	'end':e.end,
 		         	'allDay':true,
+		         	'creator':e.creator,
+		         	'executor':e.executor,
 		         };
 		         calendar.fullCalendar( 'renderEvent', event , true);
 		    });
@@ -258,14 +376,20 @@
 	       		showStaffEventAddDialog(pos);
 				
 				latestClickDiv = $(this);
+				//隐藏提示框
+				$('#prompt-tip').hide();
 	   		},
 	   		eventClick: function(calEvent, jsEvent, view) {
 	       		$('#add_staff_event').hide();
 	       		$(this).css('border-color', 'red');
-	       		
+	       		var pos = {'x':jsEvent.clientX,'y':jsEvent.clientY}
+	       		showStaffEventTipDialog(calEvent,pos);
 	   		},
 	   		viewDisplay: function(view){
+	   			//隐藏员工事件添加对话框
 	   			$('#add_staff_event').hide();
+	   			//隐藏提示框
+				$('#prompt-tip').hide();
 	   		},
 	   		
 		});
@@ -296,6 +420,8 @@
 	               timeFormat: "HH:mm:ss",
 	               dateFormat: "yy-mm-dd"
 	           });
-	   //初始化添加事件对话框
+	//初始化添加事件对话框
 	initStaffEventAddDialog();
+	//初始员工事件添加对话框
+	initStaffEventTipDialog();
 </script>
