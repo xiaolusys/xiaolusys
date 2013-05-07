@@ -1,5 +1,6 @@
 #-*- coding:utf8 -*-
 import datetime
+import json
 from django.http import HttpResponse,HttpResponseNotFound
 from django.db.models import Q,Sum
 from shopback.base import log_action,User as DjangoUser, ADDITION, CHANGE
@@ -26,7 +27,24 @@ def get_users_by_string(executor_strng):
         exectors.append(django_user)
         
     return exectors
-            
+    
+        
+def delete_staff_event(request,id):
+    
+    eff_row = StaffEvent.objects.filter(id=id).update(status='cancel')        
+    
+    ret = {}
+    if eff_row == 1:
+        ret = {'code':0,'response_content':'success'}
+        
+        event = StaffEvent.objects.get(id=id)
+        
+        log_action(request.user.id,event,CHANGE,u'取消事件')
+    else:
+        ret = {'code':1,'response_error':'fail'}
+        
+    return HttpResponse(json.dumps(ret),mimetype="application/json")
+    
     
 class MainEventPageView(ModelView):
     """ docstring for class MainEventPageView """

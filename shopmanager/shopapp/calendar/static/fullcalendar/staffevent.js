@@ -30,11 +30,14 @@ var addStaffEvent = function(e){
 	         	'start':e.start,
 	         	'end':e.end,
 	         	'allDay':true,
+	         	'creator':e.creator,
+		        'executor':e.executor,
 	         };
 	         calendar.fullCalendar( 'renderEvent', event , true);
 	    });
 	    $('#executors').val('');
 	    $('#event-content').val('');
+	    $('#end-datetime').val('');
 	    $('#add_staff_event').hide();
 	    
 	};
@@ -48,18 +51,86 @@ var addStaffEvent = function(e){
 	});
 }
 
-//员工事件添加对话框
+//删除员工事件
+var deleteStaffEvent = function(eventid){
+	var url = "/app/calendar/delete/"+eventid+"/";
+	
+	var callback = function(data){
+		if (data.code==1){
+			alert('删除失败！');
+			return;
+		}
+		//在日历上取消该事件
+	    $('#calendar').fullCalendar('removeEvents',eventid);
+	    $('#prompt-tip').hide();
+	};
+	
+	$.ajax({ 
+	    type: 'POST', 
+	    url: url, 
+	    data: {} , 
+	    dataType: 'json',
+	    success: callback,
+	});
+}
+
+//初始员工事件添加对话框
 var initStaffEventAddDialog = function(){
 	$('#btn-submit').click(addStaffEvent);
 	$('#btn-cancle').click(function(e){
+		$('#executors').val('');
+		$('#end-datetime').val('');
+	    $('#event-content').val('');
 		$('#add_staff_event').hide();
 	});
 };
 
+//显示添加事件对话框
 var showStaffEventAddDialog = function(pos){
 	var staffEventDialogDiv     = $('#add_staff_event');
 	staffEventDialogDiv.show();
 	staffEventDialogDiv.offset({'top': pos.y,'left':pos.x}); 
-	
 };
 
+var getDurationDateString = function(df,dt){
+	var weekday = ['日','一','二','三','四','五','六'];
+	if (!dt){
+		return (df.getMonth()+1)+'月'+df.getDate()+'日 (周'+weekday[df.getDay()]+')';
+	}
+	if (dt-df>24*3600*1000){
+		return df.getFullYear()+'年'+(df.getMonth()+1)+'月'+df.getDate()+'日 (周'+weekday[df.getDay()]+')-'
+			+dt.getFullYear()+'年'+(df.getMonth()+1)+'月'+dt.getDate()+'日 (周'+weekday[dt.getDay()]+')';
+	}else{
+		return (df.getMonth()+1)+'月'+df.getDate()+'日 (周'+weekday[df.getDay()]+'),'
+			+(df.getHours()<12?'上午'+df.getHours()+'时':'下午'+(df.getHours()-12)+'时')+'-'
+			+(dt.getHours()<12?'上午'+dt.getHours()+'时':'下午'+(dt.getHours()-12)+'时');
+	}
+};
+
+//初始员工事件添加对话框
+var initStaffEventTipDialog = function(){
+	$('#tip-close').click(function(e){
+		$('#prompt-tip').hide();
+		return false;
+	});
+	$('#event-delete').click(function(e){
+		var eventid = $(this).attr('eventid');
+		deleteStaffEvent(eventid);
+	});
+};
+
+//显示事件提示框
+var showStaffEventTipDialog = function(event,pos){
+
+	$('#tc-event-text').html(event.title);
+	$('#event-creator').html(event.creator.username);
+	$('#event-duration').html(getDurationDateString(event.start,event.end));
+	$('#event-delete').attr('eventid',event.id.toString());
+	
+	var staffEventTipDiv     = $('#prompt-tip');
+	staffEventTipDiv.show();
+	var elHeight = staffEventTipDiv.height();
+	var elwidth  = staffEventTipDiv.width();
+
+	staffEventTipDiv.offset({'top': pos.y-elHeight-35,'left':pos.x-elwidth/2-10}); 
+};

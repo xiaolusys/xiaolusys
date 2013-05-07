@@ -11,5 +11,5 @@ class MainStaffEventResource(ModelResource):
 class StaffEventResource(ModelResource):
     """ docstring for StaffEventResource """
 
-    fields = ('id','executor','start','end','interval_day','title','type','created','modified','is_finished')
+    fields = ('id','creator','executor','start','end','interval_day','title','type','created','modified','is_finished')
     exclude = ('url',) 
