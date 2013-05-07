@@ -101,7 +101,7 @@ class StaffEventView(ModelView):
         end     = content.get('end')
 
         start   = parse_datetime(start)   
-        end     = end and parse_datetime(start) or datetime.datetime(start.year,start.month,start.day)
+        end     = end and parse_datetime(end) or datetime.datetime(start.year,start.month,start.day)
         
         interval_day = content.get('interval_day','0')
         title   = content.get('title')
