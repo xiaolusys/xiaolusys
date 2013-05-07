@@ -25,6 +25,9 @@ class PinPaiTuan(models.Model):
 def order_match_juhuasuan_pinpaituan(sender, trade_id, *args, **kwargs):
     
     mergetrade = MergeTrade.objects.get(id=trade_id)
+    if PinPaiTuan.objects.all().count()==0:
+        return
+    
     full_match = False
     real_pay_orders = mergetrade.merge_trade_orders.filter(gift_type=pcfg.REAL_ORDER_GIT_TYPE)
 
