@@ -31,7 +31,8 @@ def sendTaobaoTradeTask(request_user_id,trade_id):
     
     try:
         trade = MergeTrade.objects.get(id=trade_id)
-        if trade.sys_status != pcfg.WAIT_PREPARE_SEND_STATUS:
+        if trade.sys_status not in (pcfg.WAIT_PREPARE_SEND_STATUS,
+                        pcfg.WAIT_CHECK_BARCODE_STATUS,pcfg.WAIT_SCAN_WEIGHT_STATUS):
             return
         if trade.type in (pcfg.DIRECT_TYPE,pcfg.EXCHANGE_TYPE):
             trade.sys_status=pcfg.WAIT_CHECK_BARCODE_STATUS

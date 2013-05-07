@@ -132,7 +132,8 @@ INSTALLED_APPS = (
     'shopapp.modifyfee',
     'shopapp.calendar',
     'shopapp.babylist',
-    #'test.celery',
+    'shopapp.juhuasuan',
+
 )
 
 
@@ -323,6 +324,11 @@ LOGGING = {
             'propagate': True,
         },
         'logaction.handler':{
+            'handlers': ['sentry'],
+            'level': 'WARN',
+            'propagate': True,
+        },
+        'juhuasuan.handler':{
             'handlers': ['sentry'],
             'level': 'WARN',
             'propagate': True,

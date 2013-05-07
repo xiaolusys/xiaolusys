@@ -162,6 +162,7 @@ class ComposeItem(models.Model):
     
 def rule_match_product(sender, trade_id, *args, **kwargs):
     #匹配规则
+    
     is_rule_match = False
     try:
         trade = MergeTrade.objects.get(id=trade_id)

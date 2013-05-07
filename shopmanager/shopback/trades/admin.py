@@ -388,6 +388,8 @@ class MergeTradeAdmin(admin.ModelAdmin):
         pull_fail_ids    = []
         for trade in queryset:
             #如果有合单，则取消合并
+            if trade.sys_status != pcfg.WAIT_AUDIT_STATUS:
+                continue
             if trade.has_merge:
                 merge_order_remover(trade.tid)
             seller_id  = trade.user.visitor_id

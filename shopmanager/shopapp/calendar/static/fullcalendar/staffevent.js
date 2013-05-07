@@ -29,7 +29,7 @@ var addStaffEvent = function(e){
 	         	'title':e.executor.username+':'+e.title,
 	         	'start':e.start,
 	         	'end':e.end,
-	         	'allDay':true,
+	         	'allDay':false,
 	         	'creator':e.creator,
 		        'executor':e.executor,
 	         };

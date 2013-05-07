@@ -165,7 +165,29 @@ class ProductAdmin(admin.ModelAdmin):
         
     cancle_items_out_stock.short_description = u"取消商品订单缺货"
     
-    actions = ['sync_items_stock','update_items_sku','cancle_items_out_stock']
+    #聚划算入仓商品
+    def juhuasuan_instock_product(self,request,queryset):
+        
+        from shopapp.juhuasuan.models import PinPaiTuan
+        sync_items = []
+        for prod in queryset:
+            pull_dict = {'outer_id':prod.outer_id,'name':prod.name}
+            try:
+                for sku in prod.prod_skus.all():
+                    PinPaiTuan.objects.get_or_create(outer_id=prod.outer_id,outer_sku_id=sku.outer_id)
+            except Exception,exc:
+                pull_dict['success']=False
+                pull_dict['errmsg']=exc.message or '%s'%exc  
+            else:
+                pull_dict['success']=True
+            sync_items.append(pull_dict)
+       
+        return render_to_response('items/product_action.html',{'prods':sync_items,'action_name':u'聚划算入仓商品'},
+                                  context_instance=RequestContext(request),mimetype="text/html")
+        
+    juhuasuan_instock_product.short_description = u"加聚划算入仓商品"
+    
+    actions = ['sync_items_stock','update_items_sku','cancle_items_out_stock','juhuasuan_instock_product']
 
 admin.site.register(Product, ProductAdmin)
 

@@ -273,10 +273,10 @@ def calculate_product_stock_num(sender, instance, *args, **kwargs):
     product = instance.product
     if product:
         product_skus = product.pskus
-        collect_num = product_skus.aggregate(total_nums=Sum('quantity')).get('total_nums')
-        warn_num = product_skus.aggregate(total_nums=Sum('warn_num')).get('total_nums')
-        remain_num = product_skus.aggregate(total_nums=Sum('remain_num')).get('total_nums')
-        wait_post_num = product_skus.aggregate(total_nums=Sum('wait_post_num')).get('total_nums')
+        collect_num  = product_skus.aggregate(total_nums=Sum('quantity')).get('total_nums')
+        warn_num     = product_skus.aggregate(total_nums=Sum('warn_num')).get('total_nums')
+        remain_num   = product_skus.aggregate(total_nums=Sum('remain_num')).get('total_nums')
+        wait_post_num  = product_skus.aggregate(total_nums=Sum('wait_post_num')).get('total_nums')
             
         product.is_split    = product_skus.filter(is_split=True)>0    
         product.is_match    = product_skus.filter(is_match=True)>0 

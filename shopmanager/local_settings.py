@@ -37,7 +37,7 @@ RAVEN_CONFIG = {
     'register_signals': True,
 }
 
-#SITE_URL = "http://autolist.huyi.so/" 
+#SITE_URL = "http://192.168.1.133/" 
 
 SITE_URL = 'http://qiyue.f3322.org/' 
 

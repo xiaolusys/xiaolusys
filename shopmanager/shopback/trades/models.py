@@ -918,7 +918,7 @@ def trade_download_controller(merge_trade,trade,trade_from,first_pay_load):
             
             #设置订单是否有缺货属性    
             merge_trade.has_out_stock = out_stock
-            
+
             #规则匹配
             is_rule_match  =  MergeTrade.judge_rule_match(merge_trade.id)    
      
