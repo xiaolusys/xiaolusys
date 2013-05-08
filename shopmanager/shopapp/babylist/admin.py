@@ -4,12 +4,11 @@ from shopapp.babylist.models import BabyPhone
 
 
 class BabyPhoneAdmin(admin.ModelAdmin):
-    list_display = ('id','sex','father','address','born','code','hospital',)
+    list_display = ('id','ma_mobile','mather','fa_mobile','father','state','address','sex','born','code','hospital',)
     list_display_links = ('id',)
     #list_editable = ('update_time','task_type' ,'is_success','status')
     
-    list_filter = ('hospital',)
-    search_fields = ['father','id','address']
+    search_fields = ['father','mather','id','ma_mobile','fa_mobile']
     
 
 admin.site.register(BabyPhone, BabyPhoneAdmin)

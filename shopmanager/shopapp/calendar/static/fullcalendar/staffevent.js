@@ -15,9 +15,11 @@ var addStaffEvent = function(e){
 		alert('事件内容不能为空');
 		return;
 	};
-	
+	$('#btn-submit').attr('disabled',false); 
 	var params = {'executor':executors,'start':start,'end':end,'title':title};
 	var callback = function(data){
+		
+		$('#btn-submit').removeAttr('disabled');
 		if (data.code==1){
 			alert('事件添加失败');
 			return;
@@ -26,7 +28,7 @@ var addStaffEvent = function(e){
 		$.each(data.response_content, function(index, e) {
 	         var event = {
 	         	'id':e.id,
-	         	'title':e.executor.username+':'+e.title,
+	         	'title':e.executor+':'+e.title,
 	         	'start':e.start,
 	         	'end':e.end,
 	         	'allDay':false,
@@ -39,7 +41,7 @@ var addStaffEvent = function(e){
 	    $('#event-content').val('');
 	    $('#end-datetime').val('');
 	    $('#add_staff_event').hide();
-	    
+	  
 	};
 	
 	$.ajax({ 
@@ -123,7 +125,7 @@ var initStaffEventTipDialog = function(){
 var showStaffEventTipDialog = function(event,pos){
 
 	$('#tc-event-text').html(event.title);
-	$('#event-creator').html(event.creator.username);
+	$('#event-creator').html(event.creator);
 	$('#event-duration').html(getDurationDateString(event.start,event.end));
 	$('#event-delete').attr('eventid',event.id.toString());
 	
@@ -134,3 +136,4 @@ var showStaffEventTipDialog = function(event,pos){
 
 	staffEventTipDiv.offset({'top': pos.y-elHeight-35,'left':pos.x-elwidth/2-10}); 
 };
+

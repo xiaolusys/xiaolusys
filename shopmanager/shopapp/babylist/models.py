@@ -5,13 +5,17 @@ from shopback.base.fields import BigIntegerAutoField,BigIntegerForeignKey
 
 class BabyPhone(models.Model):
     
-    id         = BigIntegerAutoField(primary_key=True,verbose_name='手机号')
+    fa_mobile  = models.BigIntegerField(null=True,db_index=True,verbose_name='父亲号码')
     
-    father     = models.CharField(max_length=64,blank=True,db_index=True,verbose_name='亲属名')
+    ma_mobile  = models.BigIntegerField(null=True,db_index=True,verbose_name='母亲号码')
+    
+    name       = models.CharField(max_length=64,blank=True,verbose_name='宝宝名')
+    
+    father     = models.CharField(max_length=64,blank=True,db_index=True,verbose_name='父亲名')
+    
+    mather     = models.CharField(max_length=64,blank=True,db_index=True,verbose_name='母亲名')
     
     state      = models.CharField(max_length=32,blank=True,verbose_name='省')
-    
-    city       = models.CharField(max_length=32,blank=True,verbose_name='市')
     
     address    = models.CharField(max_length=256,blank=True,verbose_name='地址')
     sex        = models.CharField(max_length=3,blank=True,verbose_name='性别')
@@ -27,4 +31,7 @@ class BabyPhone(models.Model):
         verbose_name_plural = u'新生儿童信息列表'
 
     def __unicode__(self):
-        return '<%d,%s,%s>'%(self.id,self.father,self.hospital)
+        return '<(%s,%s),(%s,%s)>'%(self.fa_mobile and str(self.fa_mobile) or '',
+                        self.father,self.ma_mobile and str(self.ma_mobile) or '',self.mather)
+    
+    

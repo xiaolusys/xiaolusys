@@ -109,7 +109,23 @@ class StaffEventView(ModelView):
         if order_by:
             staff_events = staff_events.order_by(order_by)
         
-        return staff_events
+        staff_list = []
+        for event in staff_events:
+            staff_dict = {
+                          'id':event.id,
+                          'creator':event.creator.username,
+                          'executor':event.executor.username,
+                          'start':event.start,
+                          'end':event.end,
+                          'interval_day':event.interval_day,
+                          'title':event.title,
+                          'type':event.type,
+                          'created':event.created,
+                          'modified':event.modified,
+                          'is_finished':event.is_finished,
+                          }
+            staff_list.append(staff_dict)
+        return staff_list
         
     def post(self, request, *args, **kwargs):
         creator    = request.user
@@ -143,7 +159,23 @@ class StaffEventView(ModelView):
                                                     )
             staff_events.append(staff_event)
             
-        return staff_events
+        staff_list = []
+        for event in staff_events:
+            staff_dict = {
+                          'id':event.id,
+                          'creator':event.creator.username,
+                          'executor':event.executor.username,
+                          'start':event.start,
+                          'end':event.end,
+                          'interval_day':event.interval_day,
+                          'title':event.title,
+                          'type':event.type,
+                          'created':event.created,
+                          'modified':event.modified,
+                          'is_finished':event.is_finished,
+                          }
+            staff_list.append(staff_dict)
+        return staff_list
         
 
     
