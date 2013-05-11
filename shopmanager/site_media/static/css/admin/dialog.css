@@ -87,6 +87,9 @@
   border-radius: 4px;
 }
 
+#trade_tag,#trade-regular{
+	display:inline;
+}
 .icon-tags, .icon-time {
   font-family: FontAwesome;
   font-weight: normal;

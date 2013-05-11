@@ -57,10 +57,9 @@ tradetag.Manager.prototype.showDialog = function(e) {
 tradetag.Manager.prototype.regularTrade = function(e) {
 	var that     = this;
     var target   = e.target.parentElement;
-    var row      = target.parentElement;
+    var row      = target.parentElement.parentElement;
 	var rowIndex = row.rowIndex;
-	console.log(row,rowIndex);
-	var table    = row.parentElement.parentElement.parentElement;
+	var table    = row.parentElement.parentElement;
     this.tag_tid = target.getAttribute('trade_id');
     var callback = function(e){
     	var xhr = e.target;
