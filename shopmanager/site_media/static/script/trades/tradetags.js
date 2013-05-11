@@ -59,7 +59,8 @@ tradetag.Manager.prototype.regularTrade = function(e) {
     var target   = e.target.parentElement;
     var row      = target.parentElement;
 	var rowIndex = row.rowIndex;
-	var table    = row.parentElement.parentElement;
+	console.log(row,rowIndex);
+	var table    = row.parentElement.parentElement.parentElement;
     this.tag_tid = target.getAttribute('trade_id');
     var callback = function(e){
     	var xhr = e.target;
