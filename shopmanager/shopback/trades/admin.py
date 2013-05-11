@@ -99,7 +99,7 @@ class MergeTradeAdmin(admin.ModelAdmin):
     
     def trade_id_link(self, obj):
         return ('<a href="%d/">%d</a><a href="javascript:void(0);" class="trade_tag" trade_id="%d">'
-                +'<img src="/static/img/tags.png" class="icon-tags" alt="系统备注"/></a>'
+                +'<img src="/static/img/tags.png" class="icon-tag" alt="系统备注"/></a>'
                 +'<a href="javascript:void(0);" class="trade-regular" trade_id="%d">'
                 +'<img src="/static/img/regular.jpg" class="icon-time" alt="定时提醒明天"/></a>')%(obj.id,obj.id,obj.id,obj.id)
     trade_id_link.allow_tags = True
