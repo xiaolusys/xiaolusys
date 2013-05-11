@@ -87,7 +87,7 @@
   border-radius: 4px;
 }
 
-.icon-tags  {
+.icon-tags, .icon-time {
   font-family: FontAwesome;
   font-weight: normal;
   font-style: normal;
