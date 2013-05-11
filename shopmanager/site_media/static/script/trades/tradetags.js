@@ -21,6 +21,11 @@ tradetag.Manager = function () {
     for(var i =0;i<tags.length;i++){
     	goog.events.listen(tags[i], goog.events.EventType.CLICK,this.showDialog,false,this);
     }
+    
+    var regulars = goog.dom.getElementsByClass("trade-regular");
+    for(var i =0;i<regulars.length;i++){
+    	goog.events.listen(regulars[i], goog.events.EventType.CLICK,this.regularTrade,false,this);
+    }
 }
 
 tradetag.Manager.prototype.showDialog = function(e) {
@@ -47,6 +52,31 @@ tradetag.Manager.prototype.showDialog = function(e) {
     };
 	goog.net.XhrIo.send('/trades/trade/'+this.tag_tid+'/?format=json',callback,'GET'); 
 }
+
+
+tradetag.Manager.prototype.regularTrade = function(e) {
+	var that     = this;
+    var target   = e.target.parentElement;
+    var row      = target.parentElement;
+	var rowIndex = row.rowIndex;
+	var table    = row.parentElement.parentElement;
+    this.tag_tid = target.getAttribute('trade_id');
+    var callback = function(e){
+    	var xhr = e.target;
+        try {
+        	var res = xhr.getResponseJson();
+        	if (res.code==0){
+        		table.deleteRow(rowIndex);	
+        	}else{
+        		alert('定时错误:'+res.response_error);
+        	}
+        } catch (err) {
+            console.log('Error: (ajax callback) - ', err);
+        } 
+    };
+	goog.net.XhrIo.send('/trades/regular/'+this.tag_tid+'/?format=json',callback,'GET'); 
+}
+
 
 tradetag.Manager.prototype.show = function(data) {
     this.dialog.setVisible(true);

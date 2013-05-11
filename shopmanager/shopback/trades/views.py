@@ -755,6 +755,23 @@ def update_sys_memo(request):
         return HttpResponse(json.dumps({'code':0,'response_content':{'success':True}}),mimetype="application/json")
 
 
+        
+def regular_trade(request,id):
+        
+    user_id  = request.user.id
+    try:
+        merge_trade = MergeTrade.objects.get(id=id,sys_status=pcfg.WAIT_AUDIT_STATUS)
+    except:
+        return HttpResponse(json.dumps({'code':1,'response_error':u'订单不在问题单'}),mimetype="application/json")
+    else:
+        dt = datetime.datetime.now()+datetime.timedelta(1,0,0)
+        merge_trade.sys_status   = pcfg.REGULAR_REMAIN_STATUS
+        merge_trade.remind_time  = dt
+        merge_trade.save()
+        log_action(user_id,merge_trade,CHANGE,u'定时提醒:%s'%dt.strftime('%Y-%m-%d %H:%M'))
+        return HttpResponse(json.dumps({'code':0,'response_content':{'success':True}}),mimetype="application/json")
+
+
 class TradeSearchView(ModelView):   
     """ docstring for class ExchangeOrderView """
          
