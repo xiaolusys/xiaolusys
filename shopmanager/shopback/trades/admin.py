@@ -161,8 +161,10 @@ class MergeTradeAdmin(admin.ModelAdmin):
     
     def get_readonly_fields(self, request, obj=None):
         if not request.user.has_perm('trades.can_trade_modify'):
-            return self.readonly_fields + ('tid','reason_code','has_rule_match','has_merge','has_memo','payment','post_fee','tid','user','type'
+            self.readonly_fields += ('tid','reason_code','has_rule_match','has_merge','has_memo','payment','post_fee','tid','user','type'
                                            'is_locked','operator','can_review','is_picking_print','is_express_print','sys_status','status')
+            if obj.sys_status==pcfg.WAIT_PREPARE_SEND_STATUS:
+                self.readonly_fields +=('priority',)
         return self.readonly_fields
     
     def get_actions(self, request):
