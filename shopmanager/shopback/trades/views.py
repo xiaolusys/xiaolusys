@@ -240,7 +240,8 @@ class CheckOrderView(ModelView):
         elif shipping_type != pcfg.EXTRACT_SHIPPING_TYPE:
             #如果没有选择物流也非自提订单，则提示
             return u'请选择物流公司'
-
+        
+        is_logistic_change = trade.logistics_company != logistics_company
         trade.logistics_company = logistics_company
         trade.priority = priority
         trade.shipping_type = shipping_type
@@ -329,6 +330,8 @@ class CheckOrderView(ModelView):
         elif action_code == 'review':
             if trade.sys_status not in (pcfg.WAIT_CHECK_BARCODE_STATUS,pcfg.WAIT_SCAN_WEIGHT_STATUS):
                 return u'订单不在待扫描状态'
+            if is_logistic_change:
+                trade.append_reason_code(pcfg.ADDR_CHANGE_CODE)
             MergeTrade.objects.filter(id=id,sys_status = pcfg.WAIT_CHECK_BARCODE_STATUS)\
                 .update(can_review=True)
             log_action(user_id,trade,CHANGE,u'订单复审')

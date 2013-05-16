@@ -110,6 +110,7 @@ def sendTaobaoTradeTask(request_user_id,trade_id):
     except Exception,exc:
         logger.error('post trade error====='+exc.message,exc_info=True)
         #sendTaobaoTradeTask.retry(countdown=5, exc=exc)
+
        
 @task()
 def regularRemainOrderTask():
