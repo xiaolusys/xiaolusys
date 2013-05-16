@@ -25,7 +25,7 @@ class SubTradePostException(Exception):
         return self.msg
        
        
-@task(max_retry=3)
+@task()
 def sendTaobaoTradeTask(request_user_id,trade_id):
     """ 淘宝发货任务 """
     
@@ -108,7 +108,8 @@ def sendTaobaoTradeTask(request_user_id,trade_id):
             log_action(request_user_id,trade,CHANGE,u'订单发货失败')
             merge_order_remover(trade.tid)   
     except Exception,exc:
-        sendTaobaoTradeTask.retry(countdown=5, exc=exc)
+        logger.error('post trade error====='+exc.message,exc_info=True)
+        #sendTaobaoTradeTask.retry(countdown=5, exc=exc)
        
 @task()
 def regularRemainOrderTask():
