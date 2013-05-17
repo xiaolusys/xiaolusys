@@ -150,7 +150,7 @@ class MergeTrade(models.Model):
     receiver_state   =  models.CharField(max_length=16,blank=True,verbose_name='省')
     receiver_city    =  models.CharField(max_length=16,blank=True,verbose_name='市')
     receiver_district  =  models.CharField(max_length=16,blank=True,verbose_name='区')
-
+    
     receiver_address   =  models.CharField(max_length=128,blank=True,verbose_name='详细地址')
     receiver_zip       =  models.CharField(max_length=10,blank=True,verbose_name='邮编')
     receiver_mobile    =  models.CharField(max_length=20,db_index=True,blank=True,verbose_name='手机')
@@ -175,6 +175,7 @@ class MergeTrade(models.Model):
     priority       =  models.IntegerField(db_index=True,default=0,choices=PRIORITY_TYPE,verbose_name='优先级')
     operator       =  models.CharField(max_length=32,blank=True,verbose_name='发货员')
     is_locked      =  models.BooleanField(default=False,verbose_name='锁定')
+    is_charged     =  models.BooleanField(default=False,verbose_name='揽件')
     sys_status     =  models.CharField(max_length=32,db_index=True,choices=SYS_TRADE_STATUS,blank=True,default='',verbose_name='系统状态')
     
     class Meta:

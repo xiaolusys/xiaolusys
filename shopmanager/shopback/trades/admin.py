@@ -122,7 +122,7 @@ class MergeTradeAdmin(admin.ModelAdmin):
     inlines = [MergeOrderInline]
     
     list_filter   = (TradeStatusFilter,'status','user','type','has_out_stock','has_refund','has_rule_match','has_sys_err',
-                     'has_merge','has_memo','is_picking_print','is_express_print','can_review','is_locked')
+                     'has_merge','has_memo','is_picking_print','is_express_print','can_review','is_locked','is_charged')
 
     search_fields = ['id','buyer_nick','tid','operator','out_sid','receiver_name','receiver_mobile','receiver_phone']
     
@@ -150,7 +150,7 @@ class MergeTradeAdmin(admin.ModelAdmin):
                     'fields': (('has_sys_err','has_memo','has_refund','has_out_stock','has_rule_match','has_merge'
                                 ,'is_send_sms','is_picking_print','is_express_print','can_review')
                                ,('priority','remind_time','reason_code','refund_num')
-                               ,('is_locked','post_cost','operator','weight','sys_status',))
+                               ,('is_locked','is_charged','post_cost','operator','weight','sys_status',))
                 }))
 
     #--------定制控件属性----------------
@@ -162,7 +162,7 @@ class MergeTradeAdmin(admin.ModelAdmin):
     def get_readonly_fields(self, request, obj=None):
         if not request.user.has_perm('trades.can_trade_modify'):
             self.readonly_fields += ('tid','reason_code','has_rule_match','has_merge','has_memo','payment','post_fee','tid','user','type'
-                                           'is_locked','operator','can_review','is_picking_print','is_express_print','sys_status','status')
+                                    'is_locked','is_charged','operator','can_review','is_picking_print','is_express_print','sys_status','status')
             if obj.sys_status==pcfg.WAIT_PREPARE_SEND_STATUS:
                 self.readonly_fields +=('priority',)
         return self.readonly_fields
