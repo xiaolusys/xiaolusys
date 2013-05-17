@@ -100,8 +100,8 @@ var getDurationDateString = function(df,dt){
 		return (df.getMonth()+1)+'月'+df.getDate()+'日 (周'+weekday[df.getDay()]+')';
 	}
 	if (dt-df>24*3600*1000){
-		return df.getFullYear()+'年'+(df.getMonth()+1)+'月'+df.getDate()+'日 (周'+weekday[df.getDay()]+')-'
-			+dt.getFullYear()+'年'+(df.getMonth()+1)+'月'+dt.getDate()+'日 (周'+weekday[dt.getDay()]+')';
+		return (df.getFullYear()%100)+'年'+(df.getMonth()+1)+'月'+df.getDate()+'日 (周'+weekday[df.getDay()]+')-'
+			+(dt.getFullYear()%100)+'年'+(df.getMonth()+1)+'月'+dt.getDate()+'日 (周'+weekday[dt.getDay()]+')';
 	}else{
 		return (df.getMonth()+1)+'月'+df.getDate()+'日 (周'+weekday[df.getDay()]+'),'
 			+(df.getHours()<12?'上午'+df.getHours()+'时':'下午'+(df.getHours()-12)+'时')+'-'
@@ -129,7 +129,7 @@ var showStaffEventTipDialog = function(event,pos){
 	$('#event-duration').html(getDurationDateString(event.start,event.end));
 	$('#event-delete').attr('eventid',event.id.toString());
 	
-	var staffEventTipDiv     = $('#prompt-tip');
+	var staffEventTipDiv = $('#prompt-tip');
 	staffEventTipDiv.show();
 	var elHeight = staffEventTipDiv.height();
 	var elwidth  = staffEventTipDiv.width();
