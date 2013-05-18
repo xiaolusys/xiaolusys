@@ -143,6 +143,7 @@ class MergeTrade(models.Model):
     modified   = models.DateTimeField(db_index=True,null=True,blank=True,verbose_name='修改日期') 
     consign_time = models.DateTimeField(db_index=True,null=True,blank=True,verbose_name='发货日期')
     weight_time  = models.DateTimeField(db_index=True,null=True,blank=True,verbose_name='称重日期')
+    charge_time  = models.DateTimeField(db_index=True,null=True,blank=True,verbose_name='揽件日期')
     
     out_sid    = models.CharField(max_length=64,db_index=True,blank=True,verbose_name='物流编号')
     logistics_company  = models.ForeignKey(LogisticsCompany,null=True,blank=True,verbose_name='物流公司')
@@ -255,7 +256,7 @@ class MergeTrade(models.Model):
             if retry_times<=0:
                 logger.error(exc.message or u'订单发货出错',exc_info=True)
                 raise exc
-            time.sleep(5)
+            time.sleep(1)
             self.send_trade_to_taobao(company_code,out_sid,retry_times=retry_times)
              
         return True

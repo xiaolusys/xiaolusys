@@ -86,7 +86,7 @@ class TradeStatusFilter(SimpleListFilter):
 class MergeTradeAdmin(admin.ModelAdmin):
     list_display = ('trade_id_link','popup_tid_link','user','buyer_nick_link','type','payment','pay_time','consign_time'
                     ,'status','sys_status','logistics_company','reason_code','is_picking_print','is_express_print'
-                    ,'can_review','operator','created','weight_time')
+                    ,'can_review','operator','weight_time','charge_time')
     #list_display_links = ('trade_id_link','popup_tid_link')
     #list_editable = ('update_time','task_type' ,'is_success','status')
     
@@ -136,7 +136,7 @@ class MergeTradeAdmin(admin.ModelAdmin):
                     'fields': (('tid','user','type','status','seller_id'),('buyer_nick','seller_nick','pay_time','total_num')
                                ,('total_fee','payment','discount_fee','adjust_fee','post_fee')
                                ,('seller_cod_fee','buyer_cod_fee','cod_fee','cod_status','alipay_no')
-                               ,('modified','consign_time','created','weight_time')
+                               ,('modified','consign_time','created')
                                ,('buyer_message','seller_memo','sys_memo'))
                 }),
                 ('收货人及物流信息:', {
@@ -149,7 +149,7 @@ class MergeTradeAdmin(admin.ModelAdmin):
                     'classes': ('collapse',),
                     'fields': (('has_sys_err','has_memo','has_refund','has_out_stock','has_rule_match','has_merge'
                                 ,'is_send_sms','is_picking_print','is_express_print','can_review')
-                               ,('priority','remind_time','reason_code','refund_num')
+                               ,('priority','remind_time','reason_code','refund_num','weight_time','charge_time')
                                ,('is_locked','is_charged','post_cost','operator','weight','sys_status',))
                 }))
 
@@ -160,12 +160,13 @@ class MergeTradeAdmin(admin.ModelAdmin):
     }
     
     def get_readonly_fields(self, request, obj=None):
+        readonly_fields = self.readonly_fields
         if not request.user.has_perm('trades.can_trade_modify'):
-            self.readonly_fields += ('tid','reason_code','has_rule_match','has_merge','has_memo','payment','post_fee','tid','user','type'
+            readonly_fields = readonly_fields+('tid','reason_code','has_rule_match','has_merge','has_memo','payment','post_fee','tid','user','type'
                                     'is_locked','is_charged','operator','can_review','is_picking_print','is_express_print','sys_status','status')
             if obj.sys_status==pcfg.WAIT_PREPARE_SEND_STATUS:
-                self.readonly_fields +=('priority',)
-        return self.readonly_fields
+                readonly_fields = readonly_fields+('priority',)
+        return readonly_fields
     
     def get_actions(self, request):
         

@@ -11,7 +11,6 @@ from shopback.orders.resources import ChartJsonResource,TimeOrderStatResource
 
 urlpatterns = patterns('shopback.orders.views',
 
-
     (r'^ordernum/pivotchart/$',TimerOrderStatisticsView.as_view(
         resource=TimeOrderStatResource,
         renderers=(ChartJSONRenderer,TimerOrderStatChartRenderer,),

@@ -74,20 +74,18 @@ def sendTaobaoTradeTask(request_user_id,trade_id):
                 else:
                     sub_trade.append_reason_code(pcfg.POST_SUB_TRADE_ERROR_CODE)
                     sub_trade.sys_status=pcfg.WAIT_AUDIT_STATUS
-                    sub_trade.sys_memo=error_msg
                     sub_trade.is_picking_print=False
                     sub_trade.is_express_print=False
                     sub_trade.save()
-                    log_action(request_user_id,sub_trade,CHANGE,u'订单发货失败')
+                    log_action(request_user_id,sub_trade,CHANGE,u'订单发货失败：%s'%error_msg)
                     raise SubTradePostException(error_msg)
         
             trade.send_trade_to_taobao()
         except SubTradePostException,exc:
             trade.append_reason_code(pcfg.POST_SUB_TRADE_ERROR_CODE)
             trade.sys_status=pcfg.WAIT_AUDIT_STATUS
-            trade.sys_memo=exc.message
             trade.save()
-            log_action(request_user_id,trade,CHANGE,u'子订单(%d)发货失败'%sub_trade.id)
+            log_action(request_user_id,trade,CHANGE,u'子订单(%d)发货失败:%s'%(sub_trade.id,exc.message))
         except Exception,exc:
             error_msg = exc.message
         else:
@@ -101,11 +99,10 @@ def sendTaobaoTradeTask(request_user_id,trade_id):
         else:
             trade.append_reason_code(pcfg.POST_MODIFY_CODE)
             trade.sys_status=pcfg.WAIT_AUDIT_STATUS
-            trade.sys_memo=error_msg
             trade.is_picking_print=False
             trade.is_express_print=False
             trade.save()                                                                                       
-            log_action(request_user_id,trade,CHANGE,u'订单发货失败')
+            log_action(request_user_id,trade,CHANGE,u'订单发货失败:%s'%error_msg)
             merge_order_remover(trade.tid)   
     except Exception,exc:
         logger.error('post trade error====='+exc.message,exc_info=True)
