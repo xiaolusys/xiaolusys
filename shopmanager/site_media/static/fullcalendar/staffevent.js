@@ -34,7 +34,6 @@ var addStaffEvent = function(e){
 	         	'allDay':false,
 	         	'creator':e.creator,
 		        'executor':e.executor,
-		        'allday':true,
 	         };
 	         calendar.fullCalendar( 'renderEvent', event , true);
 	    });
@@ -130,11 +129,11 @@ var showStaffEventTipDialog = function(event,pos){
 	$('#event-duration').html(getDurationDateString(event.start,event.end));
 	$('#event-delete').attr('eventid',event.id.toString());
 	
-	var staffEventTipDiv     = $('#prompt-tip');
+	var staffEventTipDiv = $('#prompt-tip');
 	staffEventTipDiv.show();
 	var elHeight = staffEventTipDiv.height();
 	var elwidth  = staffEventTipDiv.width();
-
-	staffEventTipDiv.offset({'top': pos.y-elHeight-35,'left':pos.x-elwidth/2-10}); 
+	var scrollHeight = $(document).scrollTop();
+	staffEventTipDiv.offset({'top': scrollHeight+pos.y-elHeight-35,'left':pos.x-elwidth/2-10}); 
 };
 

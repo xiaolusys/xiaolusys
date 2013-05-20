@@ -392,7 +392,7 @@
 	   		eventClick: function(calEvent, jsEvent, view) {
 	       		$('#add_staff_event').hide();
 	       		$(this).css('border-color', 'red');
-	       		var pos = {'x':jsEvent.clientX,'y':jsEvent.clientY}
+	       		var pos = {'x':jsEvent.clientX,'y':jsEvent.clientY};
 	       		showStaffEventTipDialog(calEvent,pos);
 	   		},
 	   		viewDisplay: function(view){

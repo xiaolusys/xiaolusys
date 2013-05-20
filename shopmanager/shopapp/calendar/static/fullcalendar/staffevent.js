@@ -133,7 +133,7 @@ var showStaffEventTipDialog = function(event,pos){
 	staffEventTipDiv.show();
 	var elHeight = staffEventTipDiv.height();
 	var elwidth  = staffEventTipDiv.width();
-
-	staffEventTipDiv.offset({'top': pos.y-elHeight-35,'left':pos.x-elwidth/2-10}); 
+	var scrollHeight = $(document).scrollTop();
+	staffEventTipDiv.offset({'top': scrollHeight+pos.y-elHeight-35,'left':pos.x-elwidth/2-10}); 
 };
 
