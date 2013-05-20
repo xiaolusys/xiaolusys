@@ -26,8 +26,8 @@ class RefundAdmin(admin.ModelAdmin):
                 }),
                 ('参考信息:', {
                     'classes': ('collapse',),
-                    'fields': (('oid','title','seller_id','seller_nick','num_iid','total_fee','refund_fee','payment'
-                                ,'company_name','sid','is_reissue','reason','cs_status'))
+                    'fields': (('oid','title','seller_id','seller_nick','num_iid','total_fee','refund_fee','payment')
+                                ,('company_name','sid','is_reissue','reason','cs_status','order_status'))
                 }))
 
      #--------定制控件属性----------------
