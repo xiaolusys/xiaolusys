@@ -20,9 +20,9 @@ class Command(DaemonCommand):
                 has_sku_char   = '1' if prod_skus.count()>0 else '0'
                 
                 if prod_skus.count() == 0 :
-                    print >> f,has_sku_char,',',prod.outer_id,',',prod.name.encode(encoding),',','-',',','-'
+                    print >> f,has_sku_char,',',prod.outer_id,',',prod.name.encode(encoding),',','-',',','-',',',prod.std_purchase_price
                 else:
                     for sku in prod_skus:
-                        print >> f,has_sku_char,',',prod.outer_id,',',prod.name.encode(encoding),',',sku.outer_id,',',sku.properties_name.encode(encoding)
+                        print >> f,has_sku_char,',',prod.outer_id,',',prod.name.encode(encoding),',',sku.outer_id,',',sku.properties_name.encode(encoding),',',sku.std_purchase_price
                         
                 print >> f, '\n'
