@@ -1,6 +1,6 @@
 import csv
 from shopback.items.models import Product,ProductSku
-with open('/home/meixqhi/Desktop/product_cost.csv', 'rb') as csvfile:
+with open('/home/user1/deploy/taobao/taobao-v2.7-76-g67ed328/shopmanager/site_media/static/product_cost.csv', 'rb') as csvfile:
     spamreader = csv.reader(csvfile, delimiter=',', quotechar='"')
     for row in spamreader:
         try:
