@@ -30,7 +30,7 @@
 	}
 	
 	.right-panel{
-		width:900px;
+		max-width:900px;
 	}
 	
 	.search-results{
@@ -225,18 +225,28 @@
 	
 	#event-creator{
 		display:inline;
+		overflow: hidden;
+		width:50px;
+	}
+	
+	#event-duration{
+		display:inline;
+		overflow: hidden;
+		width:300px;
 	}
 	
 	.actions-right{
 		float: right;
 	    margin: 0 1px;
 	    white-space: nowrap;
+	    display:inline;
 	}
 	
 	.actions-left{
 		float: left;
 	    margin: 0 1px;
 	    white-space: nowrap;
+	    display:inline;
 	}
 	
 </style>
@@ -382,7 +392,7 @@
 	   		eventClick: function(calEvent, jsEvent, view) {
 	       		$('#add_staff_event').hide();
 	       		$(this).css('border-color', 'red');
-	       		var pos = {'x':jsEvent.clientX,'y':jsEvent.clientY}
+	       		var pos = {'x':jsEvent.clientX,'y':jsEvent.clientY};
 	       		showStaffEventTipDialog(calEvent,pos);
 	   		},
 	   		viewDisplay: function(view){

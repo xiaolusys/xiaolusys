@@ -114,6 +114,8 @@ class DaemonCommand(BaseCommand):
             help='input file for the program.'),
         make_option('--queues', action='store', dest='queues',
             help='task queue list.'),
+        make_option('--encoding', action='store', dest='encoding',
+            help='file content encode type.'),
     )
     help = 'Create a daemon'
     
@@ -130,6 +132,7 @@ class DaemonCommand(BaseCommand):
     gid = None
     scheduler_cls = None
     file_path = None
+    encoding = None
     queues = None
     
     def get_option_value(self, options, name, expected=None):
@@ -182,7 +185,11 @@ class DaemonCommand(BaseCommand):
         gid = self.get_option_value(options, 'gid')
         if gid is not None:
             context.gid = uid
-
+            
+        encoding = self.get_option_value(options, 'encoding')
+        if encoding is not None:
+            context.encoding = encoding
+            
         scheduler_cls = self.get_option_value(options, 'scheduler_cls')
         if scheduler_cls is not None:
             context.scheduler_cls = scheduler_cls

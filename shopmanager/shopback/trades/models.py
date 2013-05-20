@@ -143,6 +143,7 @@ class MergeTrade(models.Model):
     modified   = models.DateTimeField(db_index=True,null=True,blank=True,verbose_name='修改日期') 
     consign_time = models.DateTimeField(db_index=True,null=True,blank=True,verbose_name='发货日期')
     weight_time  = models.DateTimeField(db_index=True,null=True,blank=True,verbose_name='称重日期')
+    charge_time  = models.DateTimeField(db_index=True,null=True,blank=True,verbose_name='揽件日期')
     
     out_sid    = models.CharField(max_length=64,db_index=True,blank=True,verbose_name='物流编号')
     logistics_company  = models.ForeignKey(LogisticsCompany,null=True,blank=True,verbose_name='物流公司')
@@ -150,7 +151,7 @@ class MergeTrade(models.Model):
     receiver_state   =  models.CharField(max_length=16,blank=True,verbose_name='省')
     receiver_city    =  models.CharField(max_length=16,blank=True,verbose_name='市')
     receiver_district  =  models.CharField(max_length=16,blank=True,verbose_name='区')
-
+    
     receiver_address   =  models.CharField(max_length=128,blank=True,verbose_name='详细地址')
     receiver_zip       =  models.CharField(max_length=10,blank=True,verbose_name='邮编')
     receiver_mobile    =  models.CharField(max_length=20,db_index=True,blank=True,verbose_name='手机')
@@ -175,6 +176,7 @@ class MergeTrade(models.Model):
     priority       =  models.IntegerField(db_index=True,default=0,choices=PRIORITY_TYPE,verbose_name='优先级')
     operator       =  models.CharField(max_length=32,blank=True,verbose_name='发货员')
     is_locked      =  models.BooleanField(default=False,verbose_name='锁定')
+    is_charged     =  models.BooleanField(default=False,verbose_name='揽件')
     sys_status     =  models.CharField(max_length=32,db_index=True,choices=SYS_TRADE_STATUS,blank=True,default='',verbose_name='系统状态')
     
     class Meta:
@@ -254,7 +256,7 @@ class MergeTrade(models.Model):
             if retry_times<=0:
                 logger.error(exc.message or u'订单发货出错',exc_info=True)
                 raise exc
-            time.sleep(5)
+            time.sleep(1)
             self.send_trade_to_taobao(company_code,out_sid,retry_times=retry_times)
              
         return True

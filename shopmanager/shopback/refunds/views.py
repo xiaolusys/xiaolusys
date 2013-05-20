@@ -314,7 +314,7 @@ def relate_refund_product(request):
     content      = request.REQUEST
     refund_tid   = content.get('refund_tid')
     rpid         = content.get('rpid')
-    print refund_tid,rpid
+
     try:
         trade  = MergeTrade.objects.get(tid=refund_tid)
     except:

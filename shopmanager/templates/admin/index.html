@@ -11,7 +11,7 @@
 
 {% block content %}
 
-<div id="content-main" style="float:left;display:inline;width:500px;">
+<div id="content-main" style="float:left;display:inline;width:30%;">
 
 {% if app_list %}
     {% for app in app_list %}
@@ -49,7 +49,7 @@
 {% endblock %}
 
 {% block sidebar %}
-<div class="content-calendar" style="float:left;margin-left:10px;display:inline;">
+<div class="content-calendar" style="float:left;margin-left:10px;display:inline;width:56%;">
 	{% include "fullcalendar/default.html" %}
 </div>
 {% endblock %}

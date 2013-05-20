@@ -1,3 +1,8 @@
+######### 2013-5-17 ###########
+alter table shop_trades_mergetrade add column charge_time datetime DEFAULT NULL;
+create index index_mergetrade_charge_time on shop_trades_mergetrade(charge_time);
+######### 2013-5-08 ###########
+alter table shop_trades_mergetrade add column is_charged tinyint(1) NOT NULL;
 ######### 2013-4-22 ###########
 alter table shop_monitor_systemconfig add column normal_print_limit tinyint(1) NOT NULL;
 ######### 2013-4-10  ##########

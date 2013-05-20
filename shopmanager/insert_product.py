@@ -1,12 +1,25 @@
 import csv
 from shopback.items.models import Product,ProductSku
-with open('/home/user1/meixqhi/product_sku.csv', 'rb') as csvfile:
+with open('/home/user1/deploy/taobao/taobao-v2.7-76-g67ed328/shopmanager/site_media/static/product_cost.csv', 'rb') as csvfile:
     spamreader = csv.reader(csvfile, delimiter=',', quotechar='"')
     for row in spamreader:
-        row = [r.decode('gb2312') for r in row]
-        prod,state = Product.objects.get_or_create(outer_id=row[0])
-        prod.name  = row[1] if row[2]=='null' else row[2] 
-        prod.save()
-        sku,state = ProductSku.objects.get_or_create(outer_id=row[3],product=prod)
-        sku.properties_alias=row[4]
-        sku.save()
+        try:
+            row = [r.decode('gbk') for r in row]
+            try:
+                prod = Product.objects.get(outer_id=row[0])
+    #        prod.name  = row[1] if row[2]=='null' else row[2] 
+    #        prod.std_purchase_price = row[]
+    #        prod.save()
+            except:
+                pass
+            else:
+                try:
+                    sku= ProductSku.objects.get(outer_id=row[2],product=prod)
+                except:
+                    pass
+                else:
+            #        sku.properties_alias=row[4]
+                    sku.std_purchase_price = row[4]
+                    sku.save()
+        except Exception,exc:
+            print exc.message

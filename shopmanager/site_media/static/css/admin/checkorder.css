@@ -3,6 +3,8 @@
     font-size: 13px;
     line-height: 18px;
     color: #333;
+    max-width:1000px;
+    min-width:800px;
 }
 
 .table-bordered {
