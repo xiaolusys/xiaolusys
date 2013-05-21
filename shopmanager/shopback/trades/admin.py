@@ -241,7 +241,12 @@ class MergeTradeAdmin(admin.ModelAdmin):
                 return HttpResponseRedirect("../%s/" % pk_value)
         elif request.POST.has_key("_uninvalid"):
             if obj.sys_status==pcfg.INVALID_STATUS:
-                obj.sys_status=pcfg.WAIT_AUDIT_STATUS
+                if obj.status == pcfg.WAIT_BUYER_CONFIRM_GOODS:
+                    obj.sys_status==pcfg.WAIT_CHECK_BARCODE_STATUS
+                elif obj.status == pcfg.TRADE_FINISHED:
+                    obj.sys_status==pcfg.FINISHED_STATUS
+                else :
+                    obj.sys_status==pcfg.WAIT_AUDIT_STATUS
                 obj.save()
                 msg = u"订单已入问题单"
                 self.message_user(request, msg)
@@ -310,7 +315,8 @@ class MergeTradeAdmin(admin.ModelAdmin):
         is_merge_success = False
         queryset  = queryset.filter(type__in=(pcfg.FENXIAO_TYPE,pcfg.TAOBAO_TYPE))
         myset = queryset.exclude(sys_status__in=(pcfg.WAIT_AUDIT_STATUS,pcfg.ON_THE_FLY_STATUS,
-                                pcfg.WAIT_CHECK_BARCODE_STATUS,pcfg.WAIT_SCAN_WEIGHT_STATUS))
+                                pcfg.WAIT_CHECK_BARCODE_STATUS,pcfg.WAIT_SCAN_WEIGHT_STATUS))\
+                .exclude(is_express_print=False,sys_status=pcfg.FINISHED_STATUS)
         postset = queryset.filter(sys_status__in=(pcfg.WAIT_CHECK_BARCODE_STATUS,pcfg.WAIT_SCAN_WEIGHT_STATUS))
         if queryset.count()<2 or myset.count()>0 or postset.count()>1:
             trades = queryset
@@ -322,11 +328,15 @@ class MergeTradeAdmin(admin.ModelAdmin):
             #如果有订单在待扫描，则将子订单与主订单合并，发货，完成
             if postset.count()==1:
                 main_trade  = postset[0]
-                sub_trades  = queryset.filter(sys_status=pcfg.WAIT_AUDIT_STATUS)
+                main_full_addr = main_trade.buyer_full_address #主订单收货人地址
+                sub_trades  = queryset.filter(sys_status__in=(pcfg.WAIT_AUDIT_STATUS,pcfg.ON_THE_FLY_STATUS,pcfg.FINISHED_STATUS))
+                
                 for trade in sub_trades:
-                    is_merge_success = False 
+                    if trade.buyer_full_address != main_full_addr:
+                        is_merge_success = False
+                        fail_reason      = u'订单地址不同'
+                        break
                     is_merge_success = merge_order_maker(trade.tid,main_trade.tid)
-
                     if is_merge_success:
                         merge_trade_ids.append(str(trade.tid))
                         trade.out_sid    = main_trade.out_sid
@@ -337,10 +347,11 @@ class MergeTradeAdmin(admin.ModelAdmin):
                         trade.save()
                         
                         log_action(request.user.id,trade,CHANGE,u'订单并入主订单（%d），并发货完成'%main_trade.tid)
-                        try:
-                            trade.send_trade_to_taobao(pcfg.SUB_TRADE_COMPANEY_CODE,trade.out_sid)
-                        except:
-                            log_action(request.user.id,trade,CHANGE,u'订单合并发货失败')
+                        if trade.status == pcfg.WAIT_SELLER_SEND_GOODS:
+                            try:
+                                trade.send_trade_to_taobao(pcfg.SUB_TRADE_COMPANEY_CODE,trade.out_sid)
+                            except:
+                                log_action(request.user.id,trade,CHANGE,u'订单合并发货失败')
                                         
                 if len(merge_trade_ids)<sub_trades.count():
                     fail_reason = u'部分订单未合并成功'
@@ -351,26 +362,27 @@ class MergeTradeAdmin(admin.ModelAdmin):
                     is_merge_success = True
                 log_action(request.user.id,main_trade,CHANGE,u'合并订单(%s)'%','.join(merge_trade_ids))
             else:
-                queryset = queryset.filter(sys_status=pcfg.WAIT_AUDIT_STATUS).order_by('pay_time')	
-                merge_trades = queryset.filter(has_merge=True)
-                if merge_trades.count()>0:
-                    main_trade = merge_trades[0]
-                else:
-                    main_trade = queryset[0] #主订单
-                
-                queryset = queryset.exclude(tid=main_trade.tid)		
-                main_full_addr = main_trade.buyer_full_address #主订单收货人地址
-                
-                for trade in queryset:
-                    if trade.buyer_full_address != main_full_addr:
-                        is_merge_success = False
-                        fail_reason      = u'订单地址不同'
-                        break
-                    is_merge_success = merge_order_maker(trade.tid,main_trade.tid)
-                    if not is_merge_success:
-                        fail_reason      = u'订单合并错误'
-                        break
-                    merge_trade_ids.append(trade.tid)
+                audit_trades = queryset.filter(sys_status=pcfg.WAIT_AUDIT_STATUS).order_by('pay_time')	
+                if audit_trades.count()>0:
+                    merge_trades = audit_trades.filter(has_merge=True)
+                    if merge_trades.count()>0:
+                        main_trade = merge_trades[0]
+                    else:
+                        main_trade = audit_trades[0] #主订单
+
+                    queryset = queryset.exclude(tid=main_trade.tid)		
+                    main_full_addr = main_trade.buyer_full_address #主订单收货人地址
+                    
+                    for trade in queryset:
+                        if trade.buyer_full_address != main_full_addr:
+                            is_merge_success = False
+                            fail_reason      = u'订单地址不同'
+                            break
+                        is_merge_success = merge_order_maker(trade.tid,main_trade.tid)
+                        if not is_merge_success:
+                            fail_reason      = u'订单合并错误'
+                            break
+                        merge_trade_ids.append(trade.tid)
                 
                 if is_merge_success:
                     MergeTrade.objects.filter(tid__in=merge_trade_ids).update(sys_status=pcfg.ON_THE_FLY_STATUS)
@@ -393,7 +405,7 @@ class MergeTradeAdmin(admin.ModelAdmin):
         pull_fail_ids    = []
         for trade in queryset:
             #如果有合单，则取消合并
-            if trade.sys_status != pcfg.WAIT_AUDIT_STATUS:
+            if trade.sys_status not in (pcfg.WAIT_AUDIT_STATUS,''):
                 continue
             if trade.has_merge:
                 merge_order_remover(trade.tid)

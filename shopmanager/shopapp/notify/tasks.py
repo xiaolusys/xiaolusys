@@ -252,7 +252,8 @@ def process_refund_notify_task(id):
                             .update(modified=notify.modified,sys_status=pcfg.WAIT_AUDIT_STATUS,refund_num=F('refund_num')+1)
                     elif merge_type == 1:
                         main_tid = MergeBuyerTrade.objects.get(sub_tid=notify.tid).main_tid
-                        MergeTrade.objects.get(tid=main_tid).append_reason_code(pcfg.WAITING_REFUND_CODE)
+                        main_trade = MergeTrade.objects.get(tid=main_tid)
+                        main_trade.append_reason_code(pcfg.WAITING_REFUND_CODE)
                         try:
                             merge_order = MergeOrder.objects.get(tid=main_tid,oid=notify.oid)
                         except MergeOrder.DoesNotExist:
@@ -262,10 +263,17 @@ def process_refund_notify_task(id):
                             merge_order.refund_status=pcfg.REFUND_WAIT_SELLER_AGREE
                             merge_order.sys_status = order_sys_status
                             merge_order.save()
+                            
+                        if main_trade.status == pcfg.WAIT_SELLER_SEND_GOODS:   
+                            merge_order_remover(main_tid)
                         
                         MergeTrade.objects.filter(tid=main_tid,sys_status=pcfg.WAIT_PREPARE_SEND_STATUS,out_sid='')\
                             .update(sys_status=pcfg.WAIT_AUDIT_STATUS)
                     else:
+                        #拆单
+                        if merge_trade.status == pcfg.WAIT_SELLER_SEND_GOODS:   
+                            merge_order_remover(notify.tid)
+                            
                         MergeTrade.objects.filter(tid=notify.tid,sys_status=pcfg.WAIT_PREPARE_SEND_STATUS,out_sid='')\
                             .update(sys_status=pcfg.WAIT_AUDIT_STATUS)
     

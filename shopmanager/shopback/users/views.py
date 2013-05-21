@@ -18,8 +18,8 @@ def get_usernames_by_segstr(request):
     valuelist = DjangoUser.objects.filter(username__icontains=q).values_list('username')
     usernames = [{'id':'everyone','label':'everyone','value':'everyone'}]
     if valuelist:
-        for vl in valuelist[0]:
-            usernames.append({'id':vl,'label':vl,'value':vl})
+        for vl in valuelist:
+            usernames.append({'id':vl[0],'label':vl[0],'value':vl[0]})
     return HttpResponse(json.dumps(usernames),mimetype="application/json")
     
     

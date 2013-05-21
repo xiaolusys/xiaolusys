@@ -19,6 +19,7 @@ from shopback import paramconfig as pcfg
 from shopback.monitor.models import SystemConfig,Reason
 from shopback.signals import merge_trade_signal,rule_signal
 from auth import apis
+from utils import update_model_feilds
 import logging
 
 logger = logging.getLogger('trades.handler')
@@ -311,7 +312,12 @@ class MergeTrade(models.Model):
                     pcfg.PAYMENT_RULE_ERROR_CODE,pcfg.MERGE_TRADE_ERROR_CODE,
                     pcfg.OUTER_ID_NOT_MAP_CODE):
             self.has_sys_err = True
-        MergeTrade.objects.filter(id=self.id).update(reason_code=self.reason_code,has_sys_err=self.has_sys_err)    
+    
+        update_model_feilds(self,update_fields=['reason_code','has_sys_err'])
+        
+        MergeTrade.objects.filter(id=self.id,sys_status=pcfg.WAIT_PREPARE_SEND_STATUS)\
+            .update(sys_status=pcfg.WAIT_AUDIT_STATUS)
+        
         return old_len<new_len
          
         
@@ -323,7 +329,8 @@ class MergeTrade(models.Model):
             return False
         else:
             self.reason_code = ','.join(list(reason_set))
-            MergeTrade.objects.filter(id=self.id).update(reason_code=self.reason_code)
+            
+            update_model_feilds(self,update_fields=['reason_code',])
         return True
     
     def has_reason_code(self,code):
@@ -418,6 +425,7 @@ class MergeTrade(models.Model):
                         product_sku = ProductSku.objects.get(product__outer_id=order.outer_id,outer_id=order.outer_sku_id)    
                     except:
                         trade.append_reason_code(pcfg.OUTER_ID_NOT_MAP_CODE)
+                        order.is_rule_match=True
                     else:
                         is_order_out  |= product_sku.is_out_stock
                         #更新待发数
@@ -427,6 +435,7 @@ class MergeTrade(models.Model):
                         product = Product.objects.get(outer_id=order.outer_id)
                     except:
                         trade.append_reason_code(pcfg.OUTER_ID_NOT_MAP_CODE)
+                        order.is_rule_match=True
                     else:
                         is_order_out |= product.is_out_stock
                         #更新待发数
@@ -453,6 +462,7 @@ class MergeTrade(models.Model):
             trade.append_reason_code(pcfg.OUT_GOOD_CODE)
             
         return is_out_stock
+
     
     @classmethod
     def judge_full_refund(cls,trade_id):
@@ -647,15 +657,15 @@ def refresh_trade_status(sender,instance,*args,**kwargs):
         instance.buyer_nick  = merge_trade.buyer_nick
         instance.created     = merge_trade.created
         instance.pay_time    = merge_trade.pay_time
-        instance.save()
-        return 
+        
+        update_model_feilds(instance,update_fields=['seller_nick','buyer_nick','created','pay_time'])
     
     total_num     = merge_trade.merge_trade_orders.filter(status__in=(pcfg.WAIT_SELLER_SEND_GOODS
                   ,pcfg.WAIT_BUYER_CONFIRM_GOODS,pcfg.TRADE_FINISHED),sys_status=pcfg.IN_EFFECT).count()
     merge_trade.total_num = total_num
     if merge_trade.status in(pcfg.WAIT_SELLER_SEND_GOODS,pcfg.WAIT_BUYER_CONFIRM_GOODS):
-        has_refunding = merge_trade.has_trade_refunding()
-        out_stock     = merge_trade.merge_trade_orders.filter(out_stock=True,sys_status=pcfg.IN_EFFECT).count()>0
+        has_refunding  = merge_trade.has_trade_refunding()
+        out_stock      = merge_trade.merge_trade_orders.filter(out_stock=True,sys_status=pcfg.IN_EFFECT).count()>0
         has_rule_match = merge_trade.merge_trade_orders.filter(is_rule_match=True,sys_status=pcfg.IN_EFFECT).count()>0
         
         merge_trade.has_refund = has_refunding
@@ -665,14 +675,16 @@ def refresh_trade_status(sender,instance,*args,**kwargs):
         if not out_stock:
             merge_trade.remove_reason_code(pcfg.OUT_GOOD_CODE)    
         
-    has_merge     = merge_trade.merge_trade_orders.filter(is_merge=True,status=pcfg.WAIT_SELLER_SEND_GOODS).count()>0
+    has_merge     = merge_trade.merge_trade_orders.filter(is_merge=True,
+                    status__in=(pcfg.WAIT_SELLER_SEND_GOODS,pcfg.WAIT_BUYER_CONFIRM_GOODS)).count()>0
     merge_trade.has_merge = has_merge
     
     if not merge_trade.reason_code and merge_trade.status==pcfg.WAIT_SELLER_SEND_GOODS and merge_trade.logistics_company\
          and merge_trade.sys_status==pcfg.WAIT_AUDIT_STATUS and merge_trade.type not in (pcfg.DIRECT_TYPE,pcfg.EXCHANGE_TYPE):
         merge_trade.sys_status = pcfg.WAIT_PREPARE_SEND_STATUS
         
-    merge_trade.save()
+    update_model_feilds(merge_trade,update_fields=['total_num','has_refund','has_out_stock',
+                            'has_rule_match','has_merge','sys_status'])
         
 post_save.connect(refresh_trade_status, sender=MergeOrder)
 
@@ -719,7 +731,7 @@ def merge_order_maker(sub_tid,main_tid):
     total_fee    = 0
     discount_fee = 0
     post_fee     = float(sub_trade.post_fee or 0 ) + float(main_merge_trade.post_fee or 0)
-    is_reverse_order = True if main_merge_trade.sys_status in (pcfg.WAIT_CHECK_BARCODE_STATUS,pcfg.WAIT_SCAN_WEIGHT_STATUS) else False
+    is_reverse_order = main_merge_trade.sys_status in (pcfg.WAIT_CHECK_BARCODE_STATUS,pcfg.WAIT_SCAN_WEIGHT_STATUS)
     for order in sub_trade.merge_trade_orders.all():
         try:
             if order.oid:
@@ -739,6 +751,7 @@ def merge_order_maker(sub_tid,main_tid):
         merge_order.sys_status  = order.sys_status
         merge_order.is_reverse_order = is_reverse_order
         merge_order.save()
+        
         if order.sys_status == pcfg.IN_EFFECT:
             payment   += float(order.payment or 0)
             total_fee += float(order.total_fee or 0)
@@ -800,7 +813,9 @@ def merge_order_remover(main_tid):
         sub_merge_trade = MergeTrade.objects.get(tid=sub_tid)
         sub_merge_trade.remove_reason_code(pcfg.NEW_MERGE_TRADE_CODE)
         sub_merge_trade.append_reason_code(pcfg.MULTIPLE_ORDERS_CODE)
-        MergeTrade.objects.filter(tid=sub_merge_trade.tid,sys_status=pcfg.ON_THE_FLY_STATUS)\
+        main_trade.remove_buyer_message(sub_tid)
+        main_trade.remove_seller_memo(sub_tid)
+        MergeTrade.objects.filter(tid=sub_tid,sys_status=pcfg.ON_THE_FLY_STATUS)\
             .update(sys_status=pcfg.WAIT_AUDIT_STATUS)
         
     MergeBuyerTrade.objects.filter(main_tid=main_tid).delete()
@@ -887,7 +902,6 @@ def drive_merge_trade_action(trade_id):
 
 def trade_download_controller(merge_trade,trade,trade_from,first_pay_load):
 
-    merge_trade = MergeTrade.objects.get(id=merge_trade.id)
     shipping_type = merge_trade.shipping_type
     seller_memo   = trade.memo  if hasattr(trade,'memo') else trade.seller_memo
     buyer_message = trade.buyer_message if hasattr(trade,'buyer_message') else trade.supplier_memo   
@@ -1008,11 +1022,11 @@ def trade_download_controller(merge_trade,trade,trade_from,first_pay_load):
     )
     
      
-def save_orders_trade_to_mergetrade(sender, tid, *args, **kwargs):
+def save_orders_trade_to_mergetrade(sender, trade, *args, **kwargs):
     
     try:
-        trade = Trade.objects.get(id=tid)
-        merge_trade,state = MergeTrade.objects.get_or_create(tid=trade.id)
+        tid  = trade.id
+        merge_trade,state = MergeTrade.objects.get_or_create(tid=tid)
         
         first_pay_load = not merge_trade.sys_status 
         if first_pay_load or not merge_trade.receiver_name:
@@ -1025,16 +1039,27 @@ def save_orders_trade_to_mergetrade(sender, tid, *args, **kwargs):
             merge_trade.receiver_zip  = trade.receiver_zip 
             merge_trade.receiver_mobile  = trade.receiver_mobile 
             merge_trade.receiver_phone = trade.receiver_phone 
-            merge_trade.save()
+            
+            update_model_feilds(merge_trade,update_fields= ['receiver_name',
+                                                            'receiver_state',
+                                                            'receiver_city',
+                                                            'receiver_district',
+                                                            'receiver_address',
+                                                            'receiver_zip',
+                                                            'receiver_mobile',
+                                                            'receiver_phone'])
+
       
         #保存商城或C店订单到抽象全局抽象订单表
         for order in trade.trade_orders.all():
             merge_order,state = MergeOrder.objects.get_or_create(oid=order.oid,tid=tid,merge_trade = merge_trade)
+            state = state or not merge_order.sys_status
             if state and order.refund_status in (pcfg.REFUND_WAIT_SELLER_AGREE,pcfg.REFUND_SUCCESS)\
                     or order.status in (pcfg.TRADE_CLOSED,pcfg.TRADE_CLOSED_BY_TAOBAO):
                 sys_status = pcfg.INVALID_STATUS
             else:
                 sys_status = merge_order.sys_status or pcfg.IN_EFFECT
+            
             if state:
                 merge_order.num_iid = order.num_iid
                 merge_order.title  = order.title
@@ -1067,45 +1092,32 @@ def save_orders_trade_to_mergetrade(sender, tid, *args, **kwargs):
         #保存基本订单信息
         trade_from    = pcfg.FENXIAO_TYPE if trade.type==pcfg.FENXIAO_TYPE else pcfg.TAOBAO_TYPE
         if first_pay_load:
-            payment   = trade.payment
-            total_fee = trade.total_fee
-            discount_fee = trade.discount_fee
-            adjust_fee   = trade.adjust_fee
-            post_fee     = trade.post_fee
+            merge_trade.payment   = trade.payment
+            merge_trade.total_fee = trade.total_fee
+            merge_trade.discount_fee = trade.discount_fee
+            merge_trade.adjust_fee   = trade.adjust_fee
+            merge_trade.post_fee     = trade.post_fee
         else:
-            payment   = merge_trade.payment or trade.payment
-            total_fee   = merge_trade.total_fee or trade.total_fee
-            discount_fee   = merge_trade.discount_fee or trade.discount_fee
-            adjust_fee   = merge_trade.adjust_fee or trade.adjust_fee
-            post_fee   = merge_trade.post_fee or trade.post_fee
-            
-        MergeTrade.objects.filter(tid=trade.id).update(
-            user = trade.user,
-            seller_id = trade.seller_id,
-            seller_nick = trade.seller_nick,
-            buyer_nick = trade.buyer_nick,
-            type = trade.type,
-            shipping_type = merge_trade.shipping_type or 
-                pcfg.SHIPPING_TYPE_MAP.get(trade.shipping_type,pcfg.EXPRESS_SHIPPING_TYPE),
-            payment = payment,
-            total_fee = total_fee,
-            discount_fee = discount_fee,
-            adjust_fee   = adjust_fee,
-            post_fee = post_fee,
-            alipay_no  = trade.buyer_alipay_no,
-            seller_cod_fee = trade.seller_cod_fee,
-            buyer_cod_fee  = trade.buyer_cod_fee,
-            cod_fee    = trade.cod_fee,
-            cod_status = trade.cod_status,
-            buyer_message = trade.buyer_message,
-            seller_memo   = trade.seller_memo,
-            seller_flag   = trade.seller_flag,
-            created = trade.created,
-            pay_time = trade.pay_time,
-            modified = trade.modified,
-            consign_time = trade.consign_time,
-            status = trade.status,
-        )
+            merge_trade.payment   = merge_trade.payment or trade.payment
+            merge_trade.total_fee   = merge_trade.total_fee or trade.total_fee
+            merge_trade.discount_fee   = merge_trade.discount_fee or trade.discount_fee
+            merge_trade.adjust_fee   = merge_trade.adjust_fee or trade.adjust_fee
+            merge_trade.post_fee   = merge_trade.post_fee or trade.post_fee
+        
+        update_fields = ['user','seller_id','seller_nick','buyer_nick','type',
+                         'seller_cod_fee','buyer_cod_fee','cod_fee','cod_status','buyer_message',
+                         'seller_memo','seller_flag','created','pay_time','modified','consign_time','status']
+        
+        for k in update_fields:
+            setattr(merge_trade,k,getattr(trade,k))
+        
+        merge_trade.alipay_no     = trade.buyer_alipay_no
+        merge_trade.shipping_type = merge_trade.shipping_type or \
+                pcfg.SHIPPING_TYPE_MAP.get(trade.shipping_type,pcfg.EXPRESS_SHIPPING_TYPE)
+        
+        update_model_feilds(merge_trade,update_fields=update_fields
+                            +['shipping_type','payment','total_fee','discount_fee','adjust_fee','post_fee','alipay_no'])
+
         #设置系统内部状态信息
         trade_download_controller(merge_trade,trade,trade_from,first_pay_load) 
   
@@ -1115,11 +1127,9 @@ def save_orders_trade_to_mergetrade(sender, tid, *args, **kwargs):
 merge_trade_signal.connect(save_orders_trade_to_mergetrade,sender=Trade,dispatch_uid='merge_trade')        
 
 
-def save_fenxiao_orders_to_mergetrade(sender, tid, *args, **kwargs):
+def save_fenxiao_orders_to_mergetrade(sender, trade, *args, **kwargs):
     try:
-        if not tid:
-            return 
-        trade = PurchaseOrder.objects.get(id=tid)
+        tid = trade.id
         merge_trade,state = MergeTrade.objects.get_or_create(tid=tid)
         
         first_pay_load = not merge_trade.sys_status 
@@ -1129,19 +1139,29 @@ def save_fenxiao_orders_to_mergetrade(sender, tid, *args, **kwargs):
             location = json.loads(logistics.location or 'null')
             
             merge_trade.receiver_name = logistics.receiver_name 
-            merge_trade.receiver_zip  = (location.get('zip','') if location else '') 
+            merge_trade.receiver_zip  = location.get('zip','') if location else '' 
             merge_trade.receiver_mobile = logistics.receiver_mobile 
             merge_trade.receiver_phone = logistics.receiver_phone 
 
-            merge_trade.receiver_state = (location.get('state','') if location else '') 
-            merge_trade.receiver_city  = (location.get('city','') if location else '') 
-            merge_trade.receiver_district = (location.get('district','') if location else '') 
-            merge_trade.receiver_address  = (location.get('address','') if location else '') 
-            merge_trade.save()
+            merge_trade.receiver_state = location.get('state','') if location else '' 
+            merge_trade.receiver_city  = location.get('city','') if location else ''
+            merge_trade.receiver_district = location.get('district','') if location else '' 
+            merge_trade.receiver_address  = location.get('address','') if location else '' 
+            
+            update_model_feilds(merge_trade,update_fields= ['receiver_name',
+                                                            'receiver_state',
+                                                            'receiver_city',
+                                                            'receiver_district',
+                                                            'receiver_address',
+                                                            'receiver_zip',
+                                                            'receiver_mobile',
+                                                            'receiver_phone'])
 
         #保存分销订单到抽象全局抽象订单表
         for order in trade.sub_purchase_orders.all():
             merge_order,state = MergeOrder.objects.get_or_create(oid=order.fenxiao_id,tid=tid,merge_trade = merge_trade)
+            state = state or not merge_order.sys_status
+            
             fenxiao_product = FenxiaoProduct.get_or_create(trade.user.visitor_id,order.item_id)
             if order.status == pcfg.TRADE_REFUNDING:
                 refund_status = pcfg.REFUND_WAIT_SELLER_AGREE
@@ -1183,35 +1203,36 @@ def save_fenxiao_orders_to_mergetrade(sender, tid, *args, **kwargs):
         
         trade_from = pcfg.FENXIAO_TYPE
         if first_pay_load:
-            payment   = trade.distributor_payment
-            total_fee = trade.total_fee
-            post_fee  = trade.post_fee
+            merge_trade.payment   = trade.distributor_payment
+            merge_trade.total_fee = trade.total_fee
+            merge_trade.post_fee  = trade.post_fee
         else:
-            payment   = merge_trade.payment or trade.distributor_payment
-            total_fee   = merge_trade.total_fee or trade.total_fee
-            post_fee   = merge_trade.post_fee or trade.post_fee
-            
-        MergeTrade.objects.filter(tid=trade.id).update(
-            user = trade.user,
-            seller_id = trade.seller_id,
-            seller_nick = trade.supplier_username,
-            buyer_nick = trade.distributor_username,
-            type = pcfg.FENXIAO_TYPE,
-            shipping_type = merge_trade.shipping_type or 
-                pcfg.SHIPPING_TYPE_MAP.get(trade.shipping,pcfg.EXPRESS_SHIPPING_TYPE),
-            payment = payment,
-            total_fee = total_fee,
-            post_fee = post_fee,
-            buyer_message = trade.memo,
-            seller_memo = trade.supplier_memo,
-            created = trade.created,
-            pay_time = trade.created,
-            modified = trade.modified,
-            consign_time = trade.consign_time,
-            seller_flag  = trade.supplier_flag,
-            status = trade.status,
-            priority = -1,
-        )
+            merge_trade.payment   = merge_trade.payment or trade.distributor_payment
+            merge_trade.total_fee = merge_trade.total_fee or trade.total_fee
+            merge_trade.post_fee  = merge_trade.post_fee or trade.post_fee
+        
+        merge_trade.user = trade.user
+        merge_trade.seller_id = trade.seller_id
+        merge_trade.seller_nick = trade.supplier_username
+        merge_trade.buyer_nick = trade.distributor_username
+        merge_trade.type = pcfg.FENXIAO_TYPE
+        merge_trade.shipping_type = merge_trade.shipping_type or\
+                pcfg.SHIPPING_TYPE_MAP.get(trade.shipping,pcfg.EXPRESS_SHIPPING_TYPE)
+        merge_trade.buyer_message = trade.memo
+        merge_trade.seller_memo = trade.supplier_memo
+        merge_trade.created = trade.created
+        merge_trade.pay_time = trade.created
+        merge_trade.modified = trade.modified
+        merge_trade.consign_time = trade.consign_time
+        merge_trade.seller_flag  = trade.supplier_flag
+        merge_trade.priority = -1
+        merge_trade.status = trade.status
+        
+        update_fields = ['user','seller_id','seller_nick','buyer_nick','type','shipping_type','payment',
+                         'total_fee','post_fee','buyer_message','seller_memo','created',
+                         'pay_time','modified','consign_time','seller_flag','priority','status']
+        
+        update_model_feilds(merge_trade,update_fields=update_fields)
         #更新系统内部状态
         trade_download_controller(merge_trade,trade,trade_from,first_pay_load)
         

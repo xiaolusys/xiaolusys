@@ -165,7 +165,7 @@ class Trade(models.Model):
             order.consign_time   = trade.consign_time
             order.save()
             
-        merge_trade_signal.send(sender=Trade,tid=trade.id)
+        merge_trade_signal.send(sender=Trade,trade=trade)
         return trade
 
 
