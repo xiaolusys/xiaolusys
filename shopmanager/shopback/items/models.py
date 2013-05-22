@@ -58,7 +58,7 @@ class Product(models.Model):
     remain_num   = models.IntegerField(null=True,default=0,verbose_name='预留库位')    #预留库存
     wait_post_num   = models.IntegerField(null=True,default=0,verbose_name='待发数')    #待发数
     
-    cost        = models.FloatField(default=0,verbose_name='成本价')
+    cost         = models.FloatField(default=0,verbose_name='成本价')
     std_purchase_price = models.FloatField(default=0,verbose_name='标准进价')
     std_sale_price     = models.FloatField(default=0,verbose_name='标准售价')
     agent_price        = models.FloatField(default=0,verbose_name='代理售价')
@@ -70,7 +70,7 @@ class Product(models.Model):
     modified     = models.DateTimeField(null=True,blank=True,auto_now=True,verbose_name='修改时间')
     
     is_split   = models.BooleanField(default=False,verbose_name='需拆分')
-    is_match    = models.BooleanField(default=False,verbose_name='有匹配')
+    is_match   = models.BooleanField(default=False,verbose_name='有匹配')
     
     sync_stock   = models.BooleanField(default=True,verbose_name='库存同步')
     is_assign    = models.BooleanField(default=False,verbose_name='警告解除') #是否手动分配库存，当库存充足时，系统自动设为False，手动分配过后，确定后置为True

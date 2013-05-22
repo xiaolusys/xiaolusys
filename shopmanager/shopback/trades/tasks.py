@@ -57,7 +57,7 @@ def sendTaobaoTradeTask(request_user_id,trade_id):
                     sub_trade.out_sid      = trade.out_sid
                     sub_trade.logistics_company = trade.logistics_company
                     sub_trade.save()
-                    if sub_trade.statsu == pcfg.WAIT_SELLER_SEND_GOODS:
+                    if sub_trade.status == pcfg.WAIT_SELLER_SEND_GOODS:
                         company_code = sub_trade.logistics_company.code if sub_trade.type==pcfg.COD_TYPE\
                              else pcfg.SUB_TRADE_COMPANEY_CODE
                         sub_trade.send_trade_to_taobao(company_code=company_code)
