@@ -60,10 +60,11 @@
 		</div>
 		<div id="post-items" style="display:block;">
 		  <fieldset>
-		  	<legend>订单商品统计列表</legend>
+		  	<legend>订单商品统计列表(总成本:￥{{ object.total_cost }},总销售额:￥{{ object.total_sales }})</legend>
 			  <table class="table table-bordered table-striped table-condensed">
 			    <tr>
-			      <th>商品编码</th><th>商品名称</th><th>总数量</th><th>规格编码</th><th>商品规格</th><th>数量</th>
+			      <th>商品编码</th><th style="width:150px;">商品名称</th><th>总数量</th><th>成本</th><th>销售额</th>
+			      <th>规格编码</th><th style="width:200px;">商品规格</th><th>数量</th><th>成本</th><th>销售额</th>
 			    </tr>
 			    {% for trade in trade_items %}
 				    {% with trade.1.skus|length as sku_len %}
@@ -74,10 +75,14 @@
 					    	<td rowspan="{{ sku_len }}">{{ trade.0 }}</td>
 					    	<td rowspan="{{ sku_len }}">{{ trade.1.title }}</td>
 					    	<td rowspan="{{ sku_len }}">{{ trade.1.num }}</td>
+					    	<td rowspan="{{ sku_len }}">{{ trade.1.cost }}</td>
+					    	<td rowspan="{{ sku_len }}">{{ trade.1.sales }}</td>
 							{% endif %}
 							<td >{{ sku_id }}</td>
 							<td >{{ sku.sku_name }}</td>
 							<td >{{ sku.num }}</td>
+							<td >{{ sku.cost }}</td>
+							<td >{{ sku.sales }}</td>
 					    </tr>
 					    {% endfor %}
 				    {% else %}
@@ -85,7 +90,9 @@
 					    	<td >{{ trade.0 }}</td>
 					    	<td >{{ trade.1.title }}</td>
 					    	<td >{{ trade.1.num }}</td>
-							<td colspan="3">--</td>
+					    	<td >{{ trade.1.cost }}</td>
+							<td >{{ trade.1.sales }}</td>
+							<td colspan="5">--</td>
 						</tr>
 				    {% endif %}
 				    {% endwith %}

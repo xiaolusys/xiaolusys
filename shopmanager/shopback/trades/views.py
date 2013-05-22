@@ -120,52 +120,89 @@ class StatisticMergeOrderView(ModelView):
 
         if p_outer_id:
             effect_orders = effect_orders.filter(outer_id=p_outer_id)
-            
+
         trade_items  = {}
         for order in effect_orders:
             
             outer_id = order.outer_id or str(order.num_iid)
             outer_sku_id = order.outer_sku_id or str(order.sku_id)
+            payment  = float(order.payment or 0)
             
             if trade_items.has_key(outer_id):
                 trade_items[outer_id]['num'] += order.num
                 skus = trade_items[outer_id]['skus']
+                
                 if skus.has_key(outer_sku_id):
-                    skus[outer_sku_id]['num'] += order.num
+                    skus[outer_sku_id]['num']   += order.num
+                    skus[outer_sku_id]['cost']  += skus[outer_sku_id]['std_purchase_price']*order.num
+                    skus[outer_sku_id]['sales'] += payment
+                    #累加商品成本跟销售额
+                    trade_items[outer_id]['cost']  += skus[outer_sku_id]['std_purchase_price']*order.num 
+                    trade_items[outer_id]['sales'] += payment
                 else:
                     prod_sku = None
                     try:
                         prod_sku = ProductSku.objects.get(outer_id=outer_sku_id,product__outer_id=outer_id)
                     except:
-                        prod_sku = None
-                    prod_sku_name =prod_sku.properties_name if prod_sku else order.sku_properties_name
-                    skus[outer_sku_id] = {'sku_name':prod_sku_name,'num':order.num}
+                        pass
+                    prod_sku_name  = prod_sku.properties_name if prod_sku else order.sku_properties_name
+                    purchase_price = float(prod_sku.std_purchase_price) if prod_sku else payment/order.num
+                    cost  = prod_sku and float(prod_sku.std_purchase_price)*order.num or payment
+                    sales = payment
+                    #累加商品成本跟销售额
+                    trade_items[outer_id]['cost']  += cost 
+                    trade_items[outer_id]['sales'] += sales
+                    
+                    skus[outer_sku_id] = {
+                                          'sku_name':prod_sku_name,
+                                          'num':order.num,
+                                          'cost':cost,
+                                          'sales':sales,
+                                          'std_purchase_price':purchase_price}
             else:
                 prod = None
+                prod_sku = None
+                
                 try:
                     prod = Product.objects.get(outer_id=outer_id)
                 except:
-                    prod = None
-                    
-                prod_sku = None
-                try:
-                    prod_sku = ProductSku.objects.get(outer_id=outer_sku_id,product__outer_id=outer_id)
-                except:
-                    prod_sku = None
-                prod_sku_name =prod_sku.properties_name if prod_sku else order.sku_properties_name
-                    
+                    pass
+                else:
+                    try:
+                        prod_sku = ProductSku.objects.get(outer_id=outer_sku_id,product__outer_id=outer_id)
+                    except:
+                        pass
+                prod_sku_name  = prod_sku.properties_name if prod_sku else order.sku_properties_name
+                purchase_price = float(prod_sku.std_purchase_price) if prod_sku else payment/order.num    
+                cost  = prod_sku and float(prod_sku.std_purchase_price)*order.num or payment
+                sales = payment
+                
                 trade_items[outer_id]={
                                        'num':order.num,
                                        'title': prod.name if prod else order.title,
-                                       'skus':{outer_sku_id:{'sku_name':prod_sku_name,'num':order.num}}
+                                       'cost':cost,
+                                       'sales':sales,
+                                       'skus':{outer_sku_id:{
+                                            'sku_name':prod_sku_name,
+                                            'num':order.num,
+                                            'cost':cost,
+                                            'sales':sales,
+                                            'std_purchase_price':purchase_price}}
                                        }
             
         trade_list = sorted(trade_items.items(),key=lambda d:d[1]['num'],reverse=True)
+        
+        total_cost  = 0
+        total_sales = 0
+        
         for trade in trade_list:
             skus = trade[1]['skus']
+            total_cost  += trade[1]['cost']
+            total_sales += trade[1]['sales']
             trade[1]['skus'] = sorted(skus.items(),key=lambda d:d[1]['num'],reverse=True)
             
-        return {'df':format_date(start_dt),'dt':format_date(end_dt),'sc_by':statistic_by,'outer_id':p_outer_id, 'trade_items':trade_list }
+        return {'df':format_date(start_dt),'dt':format_date(end_dt),'sc_by':statistic_by,'outer_id':p_outer_id,
+                 'trade_items':trade_list, 'total_cost':total_cost, 'total_sales':total_sales }
         
     post = get    
 
