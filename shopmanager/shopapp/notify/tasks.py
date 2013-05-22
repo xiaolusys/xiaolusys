@@ -17,6 +17,7 @@ from shopback.users.models import User
 from shopback.signals import rule_signal
 from shopapp.signals import modify_fee_signal
 from auth import apis
+from utils import update_model_feilds
 import logging
 
 logger = logging.getLogger('notify.handler')
@@ -80,15 +81,15 @@ def process_trade_notify_task(id):
                         else:
                             main_trade = MergeTrade.objects.get(tid=main_tid)
                             main_trade.update_seller_memo(notify.tid,seller_memo)
-                            main_trade.append_reason_code(pcfg.NEW_MEMO_CODE)
                             main_trade.has_memo = True
-                            main_trade.save()
+                            update_model_feilds(main_trade,update_fields=['has_memo',])
+                            main_trade.append_reason_code(pcfg.NEW_MEMO_CODE)
                     
                     #如果是更新了卖家备注，则继续处理，更新旗帜则不处理
                     if seller_memo: 
-                        trade.append_reason_code(pcfg.NEW_MEMO_CODE)
                         trade.has_memo = True
-                        trade.save()
+                        update_model_feilds(trade,update_fields=['has_memo','seller_memo','seller_flag','modified'])
+                        trade.append_reason_code(pcfg.NEW_MEMO_CODE)
                                          
             #交易关闭
             elif notify.status == 'TradeClose':
