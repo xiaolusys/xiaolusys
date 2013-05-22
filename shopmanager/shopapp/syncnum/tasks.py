@@ -75,7 +75,7 @@ def updateItemNum(user_id,num_iid):
             else:
                 sync_num = 0
                 
-            #同步库存数不为0，或者没有分配库存，同步数量不等于线上库存，并且店铺，商品，规格同步状态正确
+            #同步库存数不为0，或者没有库存警告，同步数量不等于线上库存，并且店铺，商品，规格同步状态正确
             if not (sync_num == 0 and product_sku.is_assign) and sync_num != sku['quantity'] and user.sync_stock and product.sync_stock and product_sku.sync_stock:
                 sync_num = int(sync_num)
                 response = apis.taobao_item_quantity_update\
@@ -116,7 +116,7 @@ def updateItemNum(user_id,num_iid):
         else:
             sync_num = 0    
             
-        #同步库存数不为0，或者没有分配库存，同步数量不等于线上库存，并且店铺，商品同步状态正确
+        #同步库存数不为0，或者没有库存警告，同步数量不等于线上库存，并且店铺，商品同步状态正确
         if not (sync_num == 0 and product.is_assign) and sync_num != item.num and user.sync_stock and product.sync_stock: 
             sync_num = int(sync_num)   
             response = apis.taobao_item_update(num_iid=item.num_iid,num=sync_num,tb_user_id=user_id)

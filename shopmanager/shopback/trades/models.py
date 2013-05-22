@@ -315,7 +315,7 @@ class MergeTrade(models.Model):
     
         update_model_feilds(self,update_fields=['reason_code','has_sys_err'])
         
-        MergeTrade.objects.filter(id=self.id,sys_status=pcfg.WAIT_PREPARE_SEND_STATUS)\
+        MergeTrade.objects.filter(id=self.id,sys_status=pcfg.WAIT_PREPARE_SEND_STATUS,out_sid='')\
             .update(sys_status=pcfg.WAIT_AUDIT_STATUS)
         
         return old_len<new_len

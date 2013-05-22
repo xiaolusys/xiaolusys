@@ -89,15 +89,6 @@ def process_trade_notify_task(id):
                         trade.append_reason_code(pcfg.NEW_MEMO_CODE)
                         trade.has_memo = True
                         trade.save()
-                        if trade.status == pcfg.WAIT_SELLER_SEND_GOODS:
-                            if merge_type == 1:
-                                main_merge_tid = MergeBuyerTrade.objects.get(sub_tid=trade.tid).main_tid
-                                MergeTrade.objects.filter(tid=main_merge_tid,out_sid='',sys_status=pcfg.WAIT_PREPARE_SEND_STATUS)\
-                                    .update(sys_status=pcfg.WAIT_AUDIT_STATUS)
-                            else:
-                                #如果非合并主订单，或没有合单，且没有打单则入问题单
-                                MergeTrade.objects.filter(tid=notify.tid,out_sid='',sys_status=pcfg.WAIT_PREPARE_SEND_STATUS)\
-                                    .update(sys_status=pcfg.WAIT_AUDIT_STATUS)
                                          
             #交易关闭
             elif notify.status == 'TradeClose':
@@ -510,6 +501,9 @@ def process_discard_notify_task(begin,end,user_id=None):
         nick     = info['nick']
         start = datetime.datetime.fromtimestamp(info['start']/1000)
         end   = datetime.datetime.fromtimestamp(info['end']/1000)
+        if start.day != end.day:
+            end = datetime.datetime(start.year,start.month,start.day,23,59,59)
+            
         if info['type'] == 'trade':
             process_trade_interval_notify_task.s(user_id,update_from=start,update_to=end)()
             
