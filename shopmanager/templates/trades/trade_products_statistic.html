@@ -61,7 +61,7 @@
 		<div id="post-items" style="display:block;">
 		  <fieldset>
 		  	<legend>订单商品统计列表(总成本:￥{{ object.total_cost }},总销售额:￥{{ object.total_sales }})</legend>
-			  <table class="table table-bordered table-striped table-condensed">
+			  <table class="table table-bordered  table-condensed">
 			    <tr>
 			      <th>商品编码</th><th style="width:150px;">商品名称</th><th>总数量</th><th>成本</th><th>销售额</th>
 			      <th>规格编码</th><th style="width:200px;">商品规格</th><th>数量</th><th>成本</th><th>销售额</th>
@@ -70,7 +70,7 @@
 				    {% with trade.1.skus|length as sku_len %}
 				    {% if sku_len > 0 %}
 					    {% for sku_id,sku in trade.1.skus %}
-					    <tr>
+					    <tr class="{% if forloop.first and trade.1.cost >= trade.1.sales or sku.cost >= sku.sales %}label-warning{% endif %}">
 					    	{% if forloop.first %}
 					    	<td rowspan="{{ sku_len }}">{{ trade.0 }}</td>
 					    	<td rowspan="{{ sku_len }}">{{ trade.1.title }}</td>

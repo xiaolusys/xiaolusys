@@ -146,8 +146,8 @@ class StatisticMergeOrderView(ModelView):
                     except:
                         pass
                     prod_sku_name  = prod_sku.properties_name if prod_sku else order.sku_properties_name
-                    purchase_price = float(prod_sku.std_purchase_price) if prod_sku else payment/order.num
-                    cost  = prod_sku and float(prod_sku.std_purchase_price)*order.num or payment
+                    purchase_price = float(prod_sku.cost) if prod_sku else payment/order.num
+                    cost  = purchase_price*order.num
                     sales = payment
                     #累加商品成本跟销售额
                     trade_items[outer_id]['cost']  += cost 
@@ -173,8 +173,8 @@ class StatisticMergeOrderView(ModelView):
                     except:
                         pass
                 prod_sku_name  = prod_sku.properties_name if prod_sku else order.sku_properties_name
-                purchase_price = float(prod_sku.std_purchase_price) if prod_sku else payment/order.num    
-                cost  = prod_sku and float(prod_sku.std_purchase_price)*order.num or payment
+                purchase_price = float(prod_sku.cost) if prod_sku else payment/order.num    
+                cost  = purchase_price*order.num 
                 sales = payment
                 
                 trade_items[outer_id]={
