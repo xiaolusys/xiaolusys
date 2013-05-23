@@ -14,13 +14,13 @@ from django.contrib.contenttypes.models import ContentType
 from django.utils.encoding import force_unicode
 from django.contrib.admin import SimpleListFilter
 from django.conf import settings
-from celery import group
+from celery import chord
 from shopback.orders.models import Trade
 from shopback.items.models import Product,ProductSku
 from shopback.trades.models import MergeTrade,MergeOrder,MergeBuyerTrade,ReplayPostTrade,merge_order_maker,merge_order_remover,SYS_TRADE_STATUS
 from shopback import paramconfig as pcfg
 from shopback.fenxiao.models import PurchaseOrder
-from shopback.trades.tasks import sendTaobaoTradeTask
+from shopback.trades.tasks import sendTaobaoTradeTask,sendTradeCallBack
 from shopback.trades import permissions as perms
 from shopback.base import log_action,User, ADDITION, CHANGE
 from shopback.signals import rule_signal
@@ -465,60 +465,72 @@ class MergeTradeAdmin(admin.ModelAdmin):
 
     pull_order_action.short_description = "重新下单".decode('utf8')
     
-    def get_trade_pickle_list_data(self,post_trades):
-        """生成配货单数据列表"""
         
-        trade_items = {}
-        for trade in post_trades:
-            used_orders = trade.merge_trade_orders.filter(sys_status=pcfg.IN_EFFECT)\
-                .exclude(gift_type=pcfg.RETURN_GOODS_GIT_TYPE)
-            for order in used_orders:
-                outer_id = order.outer_id or str(order.num_iid)
-                outer_sku_id = order.outer_sku_id or str(order.sku_id)
-                
-                if trade_items.has_key(outer_id):
-                    trade_items[outer_id]['num'] += order.num
-                    skus = trade_items[outer_id]['skus']
-                    if skus.has_key(outer_sku_id):
-                        skus[outer_sku_id]['num'] += order.num
-                    else:
-                        prod_sku = None
-                        try:
-                            prod_sku = ProductSku.objects.get(outer_id=outer_sku_id,product__outer_id=outer_id)
-                        except:
-                            prod_sku = None
-                        prod_sku_name = (prod_sku.properties_alias or prod_sku.properties_name ) if prod_sku else order.sku_properties_name
-                        skus[outer_sku_id] = {'sku_name':prod_sku_name,'num':order.num}
-                else:
-                    prod = None
-                    try:
-                        prod = Product.objects.get(outer_id=outer_id)
-                    except:
-                        prod = None
-                        
-                    prod_sku = None
-                    try:
-                        prod_sku = ProductSku.objects.get(outer_id=outer_id,product__outer_id=outer_id)
-                    except:
-                        prod_sku = None
-                    prod_sku_name =prod_sku.properties_name if prod_sku else order.sku_properties_name
-                        
-                    trade_items[outer_id]={
-                                           'num':order.num,
-                                           'title': prod.name if prod else order.title,
-                                           'skus':{outer_sku_id:{'sku_name':prod_sku_name,'num':order.num}}
-                                           }
-                     
-        trade_list = sorted(trade_items.items(),key=lambda d:d[1]['num'],reverse=True)
-        for trade in trade_list:
-            skus = trade[1]['skus']
-            trade[1]['skus'] = sorted(skus.items(),key=lambda d:d[1]['num'],reverse=True)
-        
-        return trade_list
-        
+#    #淘宝后台同步发货
+#    def sync_trade_post_taobao(self, request, queryset):
+#        try:
+#            pingstatus = pinghost(settings.TAOBAO_API_HOSTNAME)
+#            if pingstatus:
+#                return HttpResponse('<body style="text-align:center;"><h1>当前网络不稳定，请稍后再试...</h1></body>')
+#            
+#            user_id   = request.user.id
+#            trade_ids = [t.id for t in queryset]
+#            
+#            prapare_trades = queryset.filter(is_picking_print=True,is_express_print=True,sys_status=pcfg.WAIT_PREPARE_SEND_STATUS
+#                                             ,reason_code='',status=pcfg.WAIT_SELLER_SEND_GOODS).exclude(out_sid='')#,operator=request.user.username
+#            
+#            if prapare_trades.count() > 0:
+#                try:                                     
+#                    send_tasks = group([ sendTaobaoTradeTask.s(user_id,trade.id) for trade in prapare_trades])()
+#                    send_tasks.get()
+#                except Exception,exc:
+#                    logger.error(exc.message,exc_info=True)
+#                    return HttpResponse('<body style="text-align:center;"><h1>发货任务执行出错:（%s）！</h1></body>'%exc.message) 
+#            queryset = MergeTrade.objects.filter(id__in=trade_ids)
+#            wait_prepare_trades = queryset.filter(sys_status=pcfg.WAIT_PREPARE_SEND_STATUS,is_picking_print=True
+#                                                  ,is_express_print=True).exclude(out_sid='')#,operator=request.user.username
+#            for prepare_trade in wait_prepare_trades:
+#                prepare_trade.is_picking_print=False
+#                prepare_trade.is_express_print=False
+#                prepare_trade.sys_status=pcfg.WAIT_AUDIT_STATUS
+#                prepare_trade.save()
+#                log_action(user_id,prepare_trade,CHANGE,u'订单未发货被拦截入问题单')
+#            
+#            post_trades = queryset.filter(sys_status=pcfg.WAIT_CHECK_BARCODE_STATUS)
+#            trade_list = self.get_trade_pickle_list_data(post_trades)
+#            
+#            trades = []
+#            for trade in queryset:
+#                trade_dict = {}
+#                trade_dict['id'] = trade.id
+#                trade_dict['tid'] = trade.tid
+#                trade_dict['seller_nick'] = trade.seller_nick
+#                trade_dict['buyer_nick'] = trade.buyer_nick
+#                trade_dict['company_name'] = trade.logistics_company.name 
+#                trade_dict['out_sid']    = trade.out_sid
+#                trade_dict['sys_status'] = trade.sys_status
+#                trades.append(trade_dict)
+#            
+#            response_dict = {'trades':trades,'trade_items':trade_list}
+#            
+#            try:
+#                ReplayPostTrade.objects.create(operator=request.user.username,
+#                                               order_num=len(trade_ids),post_data=json.dumps(response_dict))
+#            except Exception,exc:
+#                logger.error(exc.message,exc_info=True)
+#        except Exception,exc:
+#            logger.error(exc.message,exc_info=True)
+#            return HttpResponse('<body style="text-align:center;"><h1>发货请求执行出错:（%s）！</h1></body>'%exc.message) 
+#        
+#        return render_to_response('trades/tradepostsuccess.html',response_dict,
+#                                  context_instance=RequestContext(request),mimetype="text/html")
+                          
     #淘宝后台同步发货
     def sync_trade_post_taobao(self, request, queryset):
         try:
+            if queryset.count()==0:
+                return HttpResponse('<body style="text-align:center;"><h1>没有要发货的订单.</h1></body>')
+            
             pingstatus = pinghost(settings.TAOBAO_API_HOSTNAME)
             if pingstatus:
                 return HttpResponse('<body style="text-align:center;"><h1>当前网络不稳定，请稍后再试...</h1></body>')
@@ -526,55 +538,20 @@ class MergeTradeAdmin(admin.ModelAdmin):
             user_id   = request.user.id
             trade_ids = [t.id for t in queryset]
             
-            prapare_trades = queryset.filter(is_picking_print=True,is_express_print=True,sys_status=pcfg.WAIT_PREPARE_SEND_STATUS
-                                             ,reason_code='',status=pcfg.WAIT_SELLER_SEND_GOODS).exclude(out_sid='')#,operator=request.user.username
-            
-            if prapare_trades.count() > 0:
-                try:                                     
-                    send_tasks = group([ sendTaobaoTradeTask.s(user_id,trade.id) for trade in prapare_trades])()
-                    send_tasks.get()
-                except Exception,exc:
-                    logger.error(exc.message,exc_info=True)
-                    return HttpResponse('<body style="text-align:center;"><h1>发货任务执行出错:（%s）！</h1></body>'%exc.message) 
-            queryset = MergeTrade.objects.filter(id__in=trade_ids)
-            wait_prepare_trades = queryset.filter(sys_status=pcfg.WAIT_PREPARE_SEND_STATUS,is_picking_print=True
-                                                  ,is_express_print=True).exclude(out_sid='')#,operator=request.user.username
-            for prepare_trade in wait_prepare_trades:
-                prepare_trade.is_picking_print=False
-                prepare_trade.is_express_print=False
-                prepare_trade.sys_status=pcfg.WAIT_AUDIT_STATUS
-                prepare_trade.save()
-                log_action(user_id,prepare_trade,CHANGE,u'订单未发货被拦截入问题单')
-            
-            post_trades = queryset.filter(sys_status=pcfg.WAIT_CHECK_BARCODE_STATUS)
-            trade_list = self.get_trade_pickle_list_data(post_trades)
-            
-            trades = []
-            for trade in queryset:
-                trade_dict = {}
-                trade_dict['id'] = trade.id
-                trade_dict['tid'] = trade.tid
-                trade_dict['seller_nick'] = trade.seller_nick
-                trade_dict['buyer_nick'] = trade.buyer_nick
-                trade_dict['company_name'] = trade.logistics_company.name 
-                trade_dict['out_sid']    = trade.out_sid
-                trade_dict['sys_status'] = trade.sys_status
-                trades.append(trade_dict)
-            
-            response_dict = {'trades':trades,'trade_items':trade_list}
-            
-            try:
-                ReplayPostTrade.objects.create(operator=request.user.username,
-                                               order_num=len(trade_ids),post_data=json.dumps(response_dict))
-            except Exception,exc:
-                logger.error(exc.message,exc_info=True)
+            replay_trade = ReplayPostTrade.objects.create(operator=request.user.username,order_num=len(trade_ids),
+                                               trade_ids=','.join([str(i) for i in trade_ids]))
+              
+            send_tasks = chord([sendTaobaoTradeTask.s(user_id,trade.id) for trade in queryset])(sendTradeCallBack.s(replay_trade.id))
+
         except Exception,exc:
             logger.error(exc.message,exc_info=True)
-            return HttpResponse('<body style="text-align:center;"><h1>发货请求执行出错:（%s）！</h1></body>'%exc.message) 
+            return HttpResponse('<body style="text-align:center;"><h1>发货请求执行出错:（%s）</h1></body>'%exc.message) 
         
-        return render_to_response('trades/tradepostsuccess.html',response_dict,
-                                  context_instance=RequestContext(request),mimetype="text/html")
-                          
+        response_dict = {'task_id':send_tasks.task_id}
+        
+        return render_to_response('trades/send_trade_reponse.html',response_dict,
+                                  context_instance=RequestContext(request),mimetype="text/html")                 
+        
     sync_trade_post_taobao.short_description = "同步发货".decode('utf8')
     
     
@@ -594,9 +571,7 @@ class MergeTradeAdmin(admin.ModelAdmin):
         success_trades = MergeTrade.objects.filter(id__in=trade_ids,is_locked=False)
         
         fail_trades    = MergeTrade.objects.filter(id__in=trade_ids,is_locked=True)
-        
-        
-        
+
         return render_to_response('trades/unlock_trade_status_template.html',{'success_trades':success_trades,'fail_trades':fail_trades},
                                   context_instance=RequestContext(request),mimetype="text/html") 
 
@@ -638,7 +613,7 @@ admin.site.register(MergeBuyerTrade,MergeBuyerTradeAdmin)
 
 
 class ReplayPostTradeAdmin(admin.ModelAdmin):
-    list_display = ('id','operator','order_num','created')
+    list_display = ('id','operator','order_num','created','finished')
     #list_editable = ('update_time','task_type' ,'is_success','status')
 
     date_hierarchy = 'created'
@@ -648,7 +623,7 @@ class ReplayPostTradeAdmin(admin.ModelAdmin):
     def replay_post(self, request, queryset):
         object = queryset.order_by('-created')[0]
         replay_data = json.loads(object.post_data)
-        return render_to_response('trades/tradepostsuccess.html',replay_data,
+        return render_to_response('trades/send_trade_reponse.html',replay_data,
                                   context_instance=RequestContext(request),mimetype="text/html")
     
     replay_post.short_description = "重现发货清单".decode('utf8')

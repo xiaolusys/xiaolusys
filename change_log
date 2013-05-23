@@ -1,3 +1,6 @@
+######### 2013-5-23 ###########
+alter table shop_trades_replayposttrade add column trade_ids varchar(2000) NOT NULL;
+alter table shop_trades_replayposttrade add column finished datetime DEFAULT NULL;
 ######### 2013-5-17 ###########
 alter table shop_trades_mergetrade add column charge_time datetime DEFAULT NULL;
 create index index_mergetrade_charge_time on shop_trades_mergetrade(charge_time);

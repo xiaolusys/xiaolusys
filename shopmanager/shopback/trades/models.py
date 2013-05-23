@@ -315,8 +315,10 @@ class MergeTrade(models.Model):
     
         update_model_feilds(self,update_fields=['reason_code','has_sys_err'])
         
-        MergeTrade.objects.filter(id=self.id,sys_status=pcfg.WAIT_PREPARE_SEND_STATUS,out_sid='')\
+        rows = MergeTrade.objects.filter(id=self.id,sys_status=pcfg.WAIT_PREPARE_SEND_STATUS,out_sid='')\
             .update(sys_status=pcfg.WAIT_AUDIT_STATUS)
+        if rows >0:
+            self.sys_status = pcfg.WAIT_AUDIT_STATUS
         
         return old_len<new_len
          
@@ -513,9 +515,8 @@ class MergeTrade(models.Model):
         #是否需要合单 
         if not receiver_name:   
             return False  
-        trades = cls.objects.filter(Q(receiver_name=receiver_name)|Q(receiver_mobile=receiver_mobile),buyer_nick=buyer_nick
-                ,sys_status__in=(pcfg.WAIT_PREPARE_SEND_STATUS,pcfg.WAIT_AUDIT_STATUS,pcfg.WAIT_CHECK_BARCODE_STATUS
-                                 ,pcfg.WAIT_SCAN_WEIGHT_STATUS,pcfg.REGULAR_REMAIN_STATUS)).exclude(id=trade_id)
+        trades = cls.objects.filter(Q(receiver_name=receiver_name,buyer_nick=buyer_nick)
+                |Q(receiver_mobile=receiver_mobile)).exclude(id=trade_id).exclude(sys_status__in=('',pcfg.FINISHED_STATUS))
         is_need_merge = False
         
         if trades.count() > 0:
@@ -841,12 +842,20 @@ def drive_merge_trade_action(trade_id):
         if merge_trade.status != pcfg.WAIT_SELLER_SEND_GOODS:
             return is_merge_success,main_tid
         
-        full_address     = merge_trade.buyer_full_address      #详细地址
-        wait_refunding   = merge_trade.has_trade_refunding()   #待退款
+        buyer_nick      = merge_trade.buyer_nick               #买家昵称
+        receiver_mobile = merge_trade.receiver_mobile          #收货手机
         receiver_name    = merge_trade.receiver_name           #收货人
         receiver_address = merge_trade.receiver_address        #收货地址
+        full_address     = merge_trade.buyer_full_address      #详细地址
+        scan_merge_trades = MergeTrade.objects.filter(Q(receiver_name=receiver_name,buyer_nick=buyer_nick)
+                |Q(receiver_mobile=receiver_mobile),sys_status__in=(pcfg.WAIT_CHECK_BARCODE_STATUS,pcfg.WAIT_SCAN_WEIGHT_STATUS))
+        #如果有可能需合并的订单在待扫描区域，则主动合单程序不执行，手动合单
+        if scan_merge_trades.count()>0:
+            return is_merge_success,main_tid
         
-        trades = MergeTrade.objects.filter(buyer_nick=merge_trade.buyer_nick,receiver_name=receiver_name,receiver_address=receiver_address
+        wait_refunding   = merge_trade.has_trade_refunding()   #待退款
+
+        trades = MergeTrade.objects.filter(buyer_nick=buyer_nick,receiver_name=receiver_name,receiver_address=receiver_address
                                     ,sys_status__in=(pcfg.WAIT_AUDIT_STATUS,pcfg.WAIT_PREPARE_SEND_STATUS,pcfg.REGULAR_REMAIN_STATUS))\
                                     .order_by('pay_time')        
          
@@ -1245,9 +1254,14 @@ merge_trade_signal.connect(save_fenxiao_orders_to_mergetrade,sender=PurchaseOrde
 class ReplayPostTrade(models.Model):
     #重现发货表单
     operator   =  models.CharField(max_length=32,verbose_name='操作员')
+    
     post_data  =  models.TextField(blank=True,verbose_name='发货清单数据')
     order_num  =  models.BigIntegerField(default=0,verbose_name='订单数')
+    
+    trade_ids  =  models.CharField(max_length=2000,verbose_name='订单编号')
+    
     created    =  models.DateTimeField(null=True,auto_now=True,verbose_name='创建日期')
+    finished   =  models.DateTimeField(blank=True,null=True,verbose_name='完成日期')
     
     class Meta:
         db_table = 'shop_trades_replayposttrade'

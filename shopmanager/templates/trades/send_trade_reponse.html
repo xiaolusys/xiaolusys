@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>订单发货跳转界面</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+     <link href="{{ STATIC_URL }}bootstrap/css/bootstrap.min.css" rel="stylesheet" type="text/css" />
+    <link href="{{ STATIC_URL }}bootstrap/css/bootstrap-responsive.min.css" rel="stylesheet" type="text/css" />
+    <link href="{{ STATIC_URL }}css/base.less" rel="stylesheet/less" type="text/css" />
+	<script src="http://code.jquery.com/jquery-1.9.1.js"></script>
+    <style type="text/css">
+		*{ margin:0; padding:0;}
+		body{
+			text-align:center;
+		}
+		.container{
+			margin:300px auto;
+			width:250px;
+		}
+	</style>
+</head>
+<body>
+	<div class="container">
+		<button id="task-status" class="btn btn-large btn-success" src="/djcelery/{{ task_id }}/status/">
+			等待发货任务完成，倒计时<lable id="time-counter" class="lable">20</lable>秒
+		</button>
+	</div>
+	
+	<script type="text/javascript">
+	
+		$(document).ready(function(){
+			
+			var interval_id = null;
+			var task_status_url = $('#task-status').attr('src');
+			var max_timer = 20;
+			
+			var update_task_status = function(){
+			
+				var callback = function(data){
+					try{
+						if (data.task.status == 'SUCCESS'){
+						
+							var replay_id = data.task.result;
+							window.location = '/trades/replaysend/'+replay_id+'/';
+						}
+						else if(data.task.status == 'FAILURE'){
+						
+							$('#task-status').html('发货任务出错');
+							clearInterval(interval_id);
+						}
+						else{
+							if (max_timer>0){
+								max_timer = max_timer-1;
+								$('#time-counter').text(max_timer+'');
+							}
+							else{
+								$('#task-status').html('手动查看发货任务结果');
+								$('#task-status').removeAttr("disabled");
+								clearInterval(interval_id);
+							}
+						}
+					}catch (err) {
+			            console.log('Error: (ajax callback) - ', err);
+			        } 
+				};
+				$.ajax({ 
+				    type: 'GET', 
+				    url: task_status_url, 
+				    dataType: 'json',
+				    success: callback,
+				});
+			};
+			
+			$('#task-status').click(update_task_status);
+			$('#task-status').attr("disabled","disabled");
+			interval_id = setInterval(update_task_status,1000);
+		})
+	</script>
+</body>
+</html>

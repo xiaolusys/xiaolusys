@@ -19,7 +19,5 @@ urlpatterns = patterns('',
         renderers=(ChartJSONRenderer,),
         authentication=(UserLoggedInAuthentication,),
         permissions=(IsAuthenticated,)
-    )),
-    url(r'^djcelery/',include('djcelery.urls'),name="task_state"),
-                       
+    )),                  
 )

@@ -3,10 +3,12 @@ import re
 import datetime
 import json
 from django.http import HttpResponse,HttpResponseNotFound
+from django.shortcuts import render_to_response
+from django.template import RequestContext
 from django.db.models import Q,Sum
 from djangorestframework.views import ModelView
 from djangorestframework.response import ErrorResponse
-from shopback.trades.models import MergeTrade,MergeOrder,GIFT_TYPE\
+from shopback.trades.models import MergeTrade,MergeOrder,ReplayPostTrade,GIFT_TYPE\
     ,SYS_TRADE_STATUS,TAOBAO_TRADE_STATUS,SHIPPING_TYPE_CHOICE,TAOBAO_ORDER_STATUS
 from shopback.logistics.models import LogisticsCompany
 from shopback.items.models import Product,ProductSku
@@ -815,6 +817,24 @@ def regular_trade(request,id):
         merge_trade.save()
         log_action(user_id,merge_trade,CHANGE,u'定时提醒:%s'%dt.strftime('%Y-%m-%d %H:%M'))
         return HttpResponse(json.dumps({'code':0,'response_content':{'success':True}}),mimetype="application/json")
+
+
+def replay_trade_send_result(request,id):
+        
+    user_id  = request.user.id
+    try:
+        replay_trade = ReplayPostTrade.objects.get(id=id)
+    except:
+        return HttpResponse('<body style="text-align:center;"><h1>发货结果未找到</h1></body>')
+    else:
+        reponse_result = replay_trade.post_data 
+        if not reponse_result:
+            return HttpResponse('<body style="text-align:center;"><h1>没有发货记录</h1></body>')
+        else:
+            reponse_result = json.loads(reponse_result)
+        
+        return render_to_response('trades/trade_post_success.html',reponse_result,
+                                  context_instance=RequestContext(request),mimetype="text/html")
 
 
 class TradeSearchView(ModelView):   

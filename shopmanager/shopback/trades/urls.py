@@ -4,7 +4,7 @@ from django.contrib.admin.views.decorators import staff_member_required
 from djangorestframework.views import InstanceModelView
 from shopback.trades.views import StatisticMergeOrderView,CheckOrderView,OrderPlusView,ReviewOrderView,ExchangeOrderView,\
     OutStockOrderProductView,TradeSearchView,DirectOrderView,OrderListView,change_trade_addr,change_trade_order,\
-    delete_trade_order,change_logistic_and_outsid,review_order,update_sys_memo,change_order_stock_status,regular_trade
+    delete_trade_order,change_logistic_and_outsid,review_order,update_sys_memo,change_order_stock_status,regular_trade,replay_trade_send_result
 from shopback.base.renderers  import BaseJsonRenderer
 from shopback.trades.renderers import CheckOrderRenderer,ReviewOrderRenderer,ExchangeOrderRender,DirectOrderRender,\
     StatisticMergeOrderRender,StatisticOutStockRender,OrderListRender
@@ -76,6 +76,8 @@ urlpatterns = patterns('',
         #permissions=(IsAuthenticated,)
     )),
     (r'^order/outstock/(?P<id>\d{1,20})/$',csrf_exempt(login_required_ajax(change_order_stock_status))),
+    
+    (r'^replaysend/(?P<id>\d{1,20})/$',csrf_exempt(staff_member_required(replay_trade_send_result))),
     (r'^order/list/(?P<id>\d{1,20})/$',OrderListView.as_view(
         resource=OrderPlusResource,
         renderers=(BaseJsonRenderer,OrderListRender),

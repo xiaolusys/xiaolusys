@@ -2,12 +2,13 @@
 import time
 import datetime
 import calendar
+import json
 from celery.task import task
 from celery.task.sets import subtask
 from django.conf import settings
 from shopback import paramconfig as pcfg
 from shopback.orders.models import Trade,Order
-from shopback.trades.models import MergeTrade,MergeBuyerTrade,merge_order_remover
+from shopback.trades.models import MergeTrade,MergeBuyerTrade,ReplayPostTrade,merge_order_remover
 from shopback.base import log_action,User as DjangoUser, ADDITION, CHANGE
 from shopback.users.models import User
 from auth import apis
@@ -23,17 +24,113 @@ class SubTradePostException(Exception):
 
     def __str__(self):
         return self.msg
-       
+
+
+def get_trade_pickle_list_data(post_trades):
+    """生成配货单数据列表"""
+    
+    trade_items = {}
+    for trade in post_trades:
+        used_orders = trade.merge_trade_orders.filter(sys_status=pcfg.IN_EFFECT)\
+            .exclude(gift_type=pcfg.RETURN_GOODS_GIT_TYPE)
+        for order in used_orders:
+            outer_id = order.outer_id or str(order.num_iid)
+            outer_sku_id = order.outer_sku_id or str(order.sku_id)
+            
+            if trade_items.has_key(outer_id):
+                trade_items[outer_id]['num'] += order.num
+                skus = trade_items[outer_id]['skus']
+                if skus.has_key(outer_sku_id):
+                    skus[outer_sku_id]['num'] += order.num
+                else:
+                    prod_sku = None
+                    try:
+                        prod_sku = ProductSku.objects.get(outer_id=outer_sku_id,product__outer_id=outer_id)
+                    except:
+                        pass
+                    prod_sku_name = (prod_sku.properties_alias or prod_sku.properties_name ) if prod_sku else order.sku_properties_name
+                    skus[outer_sku_id] = {'sku_name':prod_sku_name,'num':order.num}
+            else:
+                prod = None
+                prod_sku = None
+                
+                try:
+                    prod = Product.objects.get(outer_id=outer_id)
+                except:
+                    pass
+                else:    
+                    try:
+                        prod_sku = ProductSku.objects.get(outer_id=outer_id,product__outer_id=outer_id)
+                    except:
+                        pass
+                prod_sku_name =prod_sku.properties_name if prod_sku else order.sku_properties_name
+                    
+                trade_items[outer_id]={
+                                       'num':order.num,
+                                       'title': prod.name if prod else order.title,
+                                       'skus':{outer_sku_id:{'sku_name':prod_sku_name,'num':order.num}}
+                                       }
+                 
+    trade_list = sorted(trade_items.items(),key=lambda d:d[1]['num'],reverse=True)
+    for trade in trade_list:
+        skus = trade[1]['skus']
+        trade[1]['skus'] = sorted(skus.items(),key=lambda d:d[1]['num'],reverse=True)
+    
+    return trade_list
+
+@task()
+def sendTradeCallBack(trade_ids,*args,**kwargs):
+    try:
+        replay_id    = args[0]
+        replay_trade = ReplayPostTrade.objects.get(id=replay_id)
+        
+        queryset = MergeTrade.objects.filter(id__in=trade_ids)
+        wait_prepare_trades = queryset.filter(sys_status=pcfg.WAIT_PREPARE_SEND_STATUS,is_picking_print=True
+                                              ,is_express_print=True).exclude(out_sid='')
+        for prepare_trade in wait_prepare_trades:
+            prepare_trade.is_picking_print=False
+            prepare_trade.is_express_print=False
+            prepare_trade.sys_status=pcfg.WAIT_AUDIT_STATUS
+            prepare_trade.save()
+            log_action(user_id,prepare_trade,CHANGE,u'订单未发货被拦截入问题单')
+        
+        post_trades = queryset.filter(sys_status=pcfg.WAIT_CHECK_BARCODE_STATUS)
+        trade_list = get_trade_pickle_list_data(post_trades)
+        
+        trades = []
+        for trade in queryset:
+            trade_dict = {}
+            trade_dict['id'] = trade.id
+            trade_dict['tid'] = trade.tid
+            trade_dict['seller_nick'] = trade.seller_nick
+            trade_dict['buyer_nick'] = trade.buyer_nick
+            trade_dict['company_name'] = trade.logistics_company.name 
+            trade_dict['out_sid']    = trade.out_sid
+            trade_dict['sys_status'] = trade.sys_status
+            trades.append(trade_dict)
+        
+        response_dict = {'trades':trades,'trade_items':trade_list}
+        
+        replay_trade.post_data = json.dumps(response_dict)
+        replay_trade.finished  = datetime.datetime.now()
+        replay_trade.save()
+
+    except Exception,exc:
+        logger.error('post trade callback:'+exc.message,exc_info=True)
+        
+    return replay_id
        
 @task()
 def sendTaobaoTradeTask(request_user_id,trade_id):
     """ 淘宝发货任务 """
-    
     try:
         trade = MergeTrade.objects.get(id=trade_id)
-        if trade.sys_status not in (pcfg.WAIT_PREPARE_SEND_STATUS,
-                        pcfg.WAIT_CHECK_BARCODE_STATUS,pcfg.WAIT_SCAN_WEIGHT_STATUS):
+        if  not trade.is_picking_print or not trade.is_express_print or not trade.out_sid or trade.reason_code:
             return
+        
+        if trade.sys_status != pcfg.WAIT_PREPARE_SEND_STATUS and trade.status != pcfg.WAIT_SELLER_SEND_GOODS:
+            return
+        
         if trade.type in (pcfg.DIRECT_TYPE,pcfg.EXCHANGE_TYPE):
             trade.sys_status=pcfg.WAIT_CHECK_BARCODE_STATUS
             trade.status=pcfg.WAIT_BUYER_CONFIRM_GOODS
@@ -107,8 +204,8 @@ def sendTaobaoTradeTask(request_user_id,trade_id):
             merge_order_remover(trade.tid)   
     except Exception,exc:
         logger.error('post trade error====='+exc.message,exc_info=True)
-        #sendTaobaoTradeTask.retry(countdown=5, exc=exc)
 
+    return trade_id
        
 @task()
 def regularRemainOrderTask():
