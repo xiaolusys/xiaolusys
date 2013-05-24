@@ -25,15 +25,73 @@ class SubTradePostException(Exception):
     def __str__(self):
         return self.msg
      
+def get_trade_pickle_list_data(post_trades):
+    """生成配货单数据列表"""
+    
+    trade_items = {}
+    for trade in post_trades:
+        used_orders = trade.merge_trade_orders.filter(sys_status=pcfg.IN_EFFECT)\
+            .exclude(gift_type=pcfg.RETURN_GOODS_GIT_TYPE)
+        for order in used_orders:
+            outer_id = order.outer_id or str(order.num_iid)
+            outer_sku_id = order.outer_sku_id or str(order.sku_id)
+            
+            if trade_items.has_key(outer_id):
+                trade_items[outer_id]['num'] += order.num
+                skus = trade_items[outer_id]['skus']
+                if skus.has_key(outer_sku_id):
+                    skus[outer_sku_id]['num'] += order.num
+                else:
+                    prod_sku = None
+                    try:
+                        prod_sku = ProductSku.objects.get(outer_id=outer_sku_id,product__outer_id=outer_id)
+                    except:
+                        pass
+                    prod_sku_name = (prod_sku.properties_alias or prod_sku.properties_name ) if prod_sku else order.sku_properties_name
+                    skus[outer_sku_id] = {'sku_name':prod_sku_name,'num':order.num}
+            else:
+                prod = None
+                prod_sku = None
+                
+                try:
+                    prod = Product.objects.get(outer_id=outer_id)
+                except:
+                    pass
+                else:    
+                    try:
+                        prod_sku = ProductSku.objects.get(outer_id=outer_id,product__outer_id=outer_id)
+                    except:
+                        pass
+                prod_sku_name =prod_sku.properties_name if prod_sku else order.sku_properties_name
+                    
+                trade_items[outer_id]={
+                                       'num':order.num,
+                                       'title': prod.name if prod else order.title,
+                                       'skus':{outer_sku_id:{'sku_name':prod_sku_name,'num':order.num}}
+                                       }
+                 
+    trade_list = sorted(trade_items.items(),key=lambda d:d[1]['num'],reverse=True)
+    for trade in trade_list:
+        skus = trade[1]['skus']
+        trade[1]['skus'] = sorted(skus.items(),key=lambda d:d[1]['num'],reverse=True)
+    
+    return trade_list
+     
 @task()
 def sendTaobaoTradeTask(request_user_id,trade_id):
     """ 淘宝发货任务 """
     try:
         trade = MergeTrade.objects.get(id=trade_id)
-        if  not trade.is_picking_print or not trade.is_express_print or not trade.out_sid or trade.reason_code:
+        if  not trade.is_picking_print or not trade.is_express_print or not trade.out_sid:
             return trade_id
         
-        if trade.sys_status != pcfg.WAIT_PREPARE_SEND_STATUS and trade.status != pcfg.WAIT_SELLER_SEND_GOODS:
+        if trade.reason_code != '' and trade.sys_status != pcfg.WAIT_PREPARE_SEND_STATUS \
+            and trade.status != pcfg.WAIT_SELLER_SEND_GOODS:
+            trade.sys_status = pcfg.WAIT_AUDIT_STATUS
+            trade.is_picking_print=False
+            trade.is_express_print=False
+            trade.save()
+            log_action(request_user_id,trade,CHANGE,u'订单不满足发货条件')
             return trade_id
         
         if trade.type in (pcfg.DIRECT_TYPE,pcfg.EXCHANGE_TYPE):

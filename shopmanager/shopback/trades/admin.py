@@ -243,12 +243,15 @@ class MergeTradeAdmin(admin.ModelAdmin):
             if obj.sys_status==pcfg.INVALID_STATUS:
                 if obj.status == pcfg.WAIT_BUYER_CONFIRM_GOODS:
                     obj.sys_status==pcfg.WAIT_CHECK_BARCODE_STATUS
+                    msg = u"订单反作废入待扫描状态"
                 elif obj.status == pcfg.TRADE_FINISHED:
                     obj.sys_status==pcfg.FINISHED_STATUS
+                    msg = u"订单反作废入已完成"
                 else :
                     obj.sys_status==pcfg.WAIT_AUDIT_STATUS
+                    msg = u"订单反作废入问题单"
                 obj.save()
-                msg = u"订单已入问题单"
+
                 self.message_user(request, msg)
                 log_action(request.user.id,obj,CHANGE,msg)
                 return HttpResponseRedirect("../%s/" % pk_value)
@@ -528,9 +531,6 @@ class MergeTradeAdmin(admin.ModelAdmin):
     #淘宝后台同步发货
     def sync_trade_post_taobao(self, request, queryset):
         try:
-            if queryset.count()==0:
-                return HttpResponse('<body style="text-align:center;"><h1>没有要发货的订单.</h1></body>')
-            
             pingstatus = pinghost(settings.TAOBAO_API_HOSTNAME)
             if pingstatus:
                 return HttpResponse('<body style="text-align:center;"><h1>当前网络不稳定，请稍后再试...</h1></body>')
@@ -547,7 +547,7 @@ class MergeTradeAdmin(admin.ModelAdmin):
             logger.error(exc.message,exc_info=True)
             return HttpResponse('<body style="text-align:center;"><h1>发货请求执行出错:（%s）</h1></body>'%exc.message) 
         
-        response_dict = {'task_id':send_tasks.task_id}
+        response_dict = {'task_id':send_tasks.task_id,'replay_id':replay_trade.id}
         
         return render_to_response('trades/send_trade_reponse.html',response_dict,
                                   context_instance=RequestContext(request),mimetype="text/html")                 

@@ -20,7 +20,9 @@
 </head>
 <body>
 	<div class="container">
-		<button id="task-status" class="btn btn-large btn-success" src="/djcelery/{{ task_id }}/status/">
+		<input id="task_id" type="hidden" value="{{ task_id }}" />
+		<input id="replay_id" type="hidden" value="{{ replay_id }}" />
+		<button id="task-status" class="btn btn-large btn-success">
 			等待发货任务完成，倒计时<lable id="time-counter" class="lable">20</lable>秒
 		</button>
 	</div>
@@ -28,7 +30,10 @@
 	<script type="text/javascript">
 	
 		var interval_id = null;
-		var task_status_url = $('#task-status').attr('src');
+		var task_id     = $('#task_id').val();
+		var replay_id   = $('#replay_id').val();
+		
+		var task_status_url = '/djcelery/'+task_id+'/status/';
 		var max_timer = 20;
 		
 		var update_task_status = function(e){
