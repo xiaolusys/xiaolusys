@@ -41,8 +41,6 @@
 			var callback = function(data){
 				//try{
 					if (data.task.status == 'SUCCESS'){
-					
-						var replay_id = data.task.result;
 						window.location = '/trades/replaysend/'+replay_id+'/';
 					}
 					else if(data.task.status == 'FAILURE'){
