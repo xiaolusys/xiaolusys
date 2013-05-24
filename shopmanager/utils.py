@@ -11,3 +11,5 @@ def update_model_feilds(obj,update_fields=[]):
     
     rows = obj.__class__.objects.filter(pk=obj.pk).update(**field_entry)
     return rows
+
+
