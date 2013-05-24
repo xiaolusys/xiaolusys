@@ -13,8 +13,8 @@
 			text-align:center;
 		}
 		.container{
-			margin:300px auto;
-			width:250px;
+			margin:200px auto;
+			width:300px;
 		}
 	</style>
 </head>
@@ -61,14 +61,9 @@
 					/**}catch (err) {
 			            alert('ajax error:'+err);
 			        } */
-				};
-				$.ajax({ 
-				    type: 'GET', 
-				    url: task_status_url, 
-				    dataType: 'json',
-				    success: callback
-				});
-			};
+				}
+				$.get(task_status_url,{},callback,'json');
+			}
 			
 			$('#task-status').click(update_task_status);
 			$('#task-status').attr("disabled","disabled");

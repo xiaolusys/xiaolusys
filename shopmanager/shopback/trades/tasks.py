@@ -126,17 +126,17 @@ def sendTaobaoTradeTask(request_user_id,trade_id):
     try:
         trade = MergeTrade.objects.get(id=trade_id)
         if  not trade.is_picking_print or not trade.is_express_print or not trade.out_sid or trade.reason_code:
-            return
+            return trade_id
         
         if trade.sys_status != pcfg.WAIT_PREPARE_SEND_STATUS and trade.status != pcfg.WAIT_SELLER_SEND_GOODS:
-            return
+            return trade_id
         
         if trade.type in (pcfg.DIRECT_TYPE,pcfg.EXCHANGE_TYPE):
             trade.sys_status=pcfg.WAIT_CHECK_BARCODE_STATUS
             trade.status=pcfg.WAIT_BUYER_CONFIRM_GOODS
             trade.consign_time=datetime.datetime.now()
             trade.save()
-            return 
+            return trade_id
         
         error_msg = ''
         main_post_success = False
