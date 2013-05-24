@@ -27,48 +27,46 @@
 	
 	<script type="text/javascript">
 	
-		$(document).ready(function(){
-			
-			var interval_id = null;
-			var task_status_url = $('#task-status').attr('src');
-			var max_timer = 20;
-			
-			var update_task_status = function(){
-			
-				var callback = function(data){
-					//try{
-						if (data.task.status == 'SUCCESS'){
-						
-							var replay_id = data.task.result;
-							window.location = '/trades/replaysend/'+replay_id+'/';
-						}
-						else if(data.task.status == 'FAILURE'){
-						
-							$('#task-status').html('发货任务出错');
-							clearInterval(interval_id);
+		var interval_id = null;
+		var task_status_url = $('#task-status').attr('src');
+		var max_timer = 20;
+		
+		var update_task_status = function(){
+		
+			var callback = function(data){
+				//try{
+					if (data.task.status == 'SUCCESS'){
+					
+						var replay_id = data.task.result;
+						window.location = '/trades/replaysend/'+replay_id+'/';
+					}
+					else if(data.task.status == 'FAILURE'){
+					
+						$('#task-status').html('发货任务出错');
+						clearInterval(interval_id);
+					}
+					else{
+						if (max_timer>0){
+							max_timer = max_timer-1;
+							$('#time-counter').text(max_timer+'');
 						}
 						else{
-							if (max_timer>0){
-								max_timer = max_timer-1;
-								$('#time-counter').text(max_timer+'');
-							}
-							else{
-								$('#task-status').html('手动查看发货任务结果');
-								$('#task-status').removeAttr("disabled");
-								clearInterval(interval_id);
-							}
+							$('#task-status').html('手动查看发货任务结果');
+							$('#task-status').removeAttr("disabled");
+							clearInterval(interval_id);
 						}
-					/**}catch (err) {
-			            alert('ajax error:'+err);
-			        } */
-				}
-				$.get(task_status_url,{},callback,'json');
+					}
+				/**}catch (err) {
+		            alert('ajax error:'+err);
+		        } */
 			}
-			
-			$('#task-status').click(update_task_status);
-			$('#task-status').attr("disabled","disabled");
-			interval_id = setInterval(update_task_status,1000);
-		})
+			$.get(task_status_url,{},callback,'json');
+		}
+		
+		$('#task-status').click(update_task_status);
+		$('#task-status').attr("disabled","disabled");
+		interval_id = setInterval(update_task_status,1000);
+
 	</script>
 </body>
 </html>
