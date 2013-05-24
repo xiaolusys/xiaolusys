@@ -17,10 +17,11 @@ from django.conf import settings
 from celery import group
 from shopback.orders.models import Trade
 from shopback.items.models import Product,ProductSku
-from shopback.trades.models import MergeTrade,MergeOrder,MergeBuyerTrade,ReplayPostTrade,merge_order_maker,merge_order_remover,SYS_TRADE_STATUS
+from shopback.trades.models import MergeTrade,MergeOrder,MergeBuyerTrade,\
+    ReplayPostTrade,merge_order_maker,merge_order_remover,SYS_TRADE_STATUS
 from shopback import paramconfig as pcfg
 from shopback.fenxiao.models import PurchaseOrder
-from shopback.trades.tasks import sendTaobaoTradeTask,sendTradeCallBack
+from shopback.trades.tasks import sendTaobaoTradeTask
 from shopback.trades import permissions as perms
 from shopback.base import log_action,User, ADDITION, CHANGE
 from shopback.signals import rule_signal
