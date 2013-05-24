@@ -36,7 +36,7 @@
 			var update_task_status = function(){
 			
 				var callback = function(data){
-					try{
+					//try{
 						if (data.task.status == 'SUCCESS'){
 						
 							var replay_id = data.task.result;
@@ -58,9 +58,9 @@
 								clearInterval(interval_id);
 							}
 						}
-					}catch (err) {
-			            console.log('Error: (ajax callback) - ', err);
-			        } 
+					/**}catch (err) {
+			            alert('ajax error:'+err);
+			        } */
 				};
 				$.ajax({ 
 				    type: 'GET', 
