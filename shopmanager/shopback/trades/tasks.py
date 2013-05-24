@@ -77,6 +77,18 @@ def get_trade_pickle_list_data(post_trades):
     
     return trade_list
      
+
+@task()  
+def sendTradeCallBack(trade_ids,*args,**kwargs):
+    try: 
+        replay_trade = ReplayPostTrade.objects.get(id=args[0])
+    except:
+        return None
+    else:
+        replay_trade.finished = datetime.datetime.now()
+        replay_trade.save()
+        
+        
 @task()
 def sendTaobaoTradeTask(request_user_id,trade_id):
     """ 淘宝发货任务 """

@@ -14,14 +14,14 @@ from django.contrib.contenttypes.models import ContentType
 from django.utils.encoding import force_unicode
 from django.contrib.admin import SimpleListFilter
 from django.conf import settings
-from celery import group
+from celery import chord
 from shopback.orders.models import Trade
 from shopback.items.models import Product,ProductSku
 from shopback.trades.models import MergeTrade,MergeOrder,MergeBuyerTrade,\
     ReplayPostTrade,merge_order_maker,merge_order_remover,SYS_TRADE_STATUS
 from shopback import paramconfig as pcfg
 from shopback.fenxiao.models import PurchaseOrder
-from shopback.trades.tasks import sendTaobaoTradeTask
+from shopback.trades.tasks import sendTaobaoTradeTask,sendTradeCallBack
 from shopback.trades import permissions as perms
 from shopback.base import log_action,User, ADDITION, CHANGE
 from shopback.signals import rule_signal
@@ -542,7 +542,7 @@ class MergeTradeAdmin(admin.ModelAdmin):
             replay_trade = ReplayPostTrade.objects.create(operator=request.user.username,order_num=len(trade_ids),
                                                trade_ids=','.join([str(i) for i in trade_ids]))
               
-            send_tasks = group([sendTaobaoTradeTask.s(user_id,trade.id) for trade in queryset])()
+            send_tasks = chord([sendTaobaoTradeTask.s(user_id,trade.id) for trade in queryset])(sendTradeCallBack.s(replay_trade.id))
 
         except Exception,exc:
             logger.error(exc.message,exc_info=True)
