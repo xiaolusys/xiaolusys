@@ -33,7 +33,7 @@
 		var task_id     = $('#task_id').val();
 		var replay_id   = $('#replay_id').val();
 		
-		var task_status_url = '/djcelery/'+task_id+'/status/';
+		var task_status_url = '/djcelery/'+task_id+'/status/?';
 		var max_timer = 20;
 		
 		var update_task_status = function(e){
@@ -54,6 +54,7 @@
 							$('#time-counter').text(max_timer+'');
 						}
 						else{
+							max_timer = max_timer-1;
 							$('#task-status').html('手动查看发货任务结果');
 							$('#task-status').removeAttr("disabled");
 							clearInterval(interval_id);
@@ -63,7 +64,7 @@
 		            alert('ajax error:'+err);
 		        } */
 			}
-			$.get(task_status_url,{},callback,'json');
+			$.get(task_status_url+max_timer,{},callback,'json');
 		}
 		
 		$('#task-status').click(update_task_status);
