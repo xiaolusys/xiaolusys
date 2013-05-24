@@ -623,7 +623,7 @@ class ReplayPostTradeAdmin(admin.ModelAdmin):
     def replay_post(self, request, queryset):
         object = queryset.order_by('-created')[0]
         replay_data = json.loads(object.post_data)
-        return render_to_response('trades/send_trade_reponse.html',replay_data,
+        return render_to_response('trades/trade_post_success.html',replay_data,
                                   context_instance=RequestContext(request),mimetype="text/html")
     
     replay_post.short_description = "重现发货清单".decode('utf8')

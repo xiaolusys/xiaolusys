@@ -49,7 +49,7 @@ var addStaffEvent = function(e){
 	    url: url, 
 	    data: params , 
 	    dataType: 'json',
-	    success: callback,
+	    success: callback
 	});
 }
 
