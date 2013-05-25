@@ -87,6 +87,7 @@ def sendTradeCallBack(trade_ids,*args,**kwargs):
     else:
         replay_trade.finished = datetime.datetime.now()
         replay_trade.save()
+        return None
         
         
 @task()

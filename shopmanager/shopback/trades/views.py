@@ -100,6 +100,8 @@ class StatisticMergeOrderView(ModelView):
         end_dt   = content.get('dt')
         p_outer_id = content.get('outer_id','')
         statistic_by = content.get('sc_by','pay')
+        wait_send = content.get('wait_send','')
+        
         if start_dt and end_dt:
             start_dt = parse_date(start_dt)
             end_dt   = parse_date(end_dt)
@@ -109,19 +111,25 @@ class StatisticMergeOrderView(ModelView):
             dt  = datetime.datetime.now()
             start_dt = datetime.datetime(dt.year,dt.month,dt.day,0,0,0)
             end_dt   = datetime.datetime(dt.year,dt.month,dt.day,23,59,59)
-    
+        
         if statistic_by == 'pay':
-            effect_orders = MergeOrder.objects.filter(merge_trade__pay_time__gte=start_dt,merge_trade__pay_time__lte=end_dt)
+            effect_trades = MergeTrade.objects.filter(pay_time__gte=start_dt,pay_time__lte=end_dt)
         elif statistic_by == 'weight':
-            effect_orders = MergeOrder.objects.filter(merge_trade__weight_time__gte=start_dt,merge_trade__weight_time__lte=end_dt)
+            effect_trades = MergeTrade.objects.filter(weight_time__gte=start_dt,weight_time__lte=end_dt)
         else:
-            effect_orders = MergeOrder.objects.filter(merge_trade__created__gte=start_dt,merge_trade__created__lte=end_dt)
-        effect_orders     = effect_orders.filter(merge_trade__status__in=pcfg.ORDER_SUCCESS_STATUS,sys_status=pcfg.IN_EFFECT,is_merge=False)\
+            effect_trades = MergeTrade.objects.filter(created__gte=start_dt,created__lte=end_dt)
+        
+        if wait_send:
+            effect_trades = effect_trades.filter(sys_status=pcfg.WAIT_PREPARE_SEND_STATUS)
+        else:
+            effect_trades = effect_trades.filter(status__in=pcfg.ORDER_SUCCESS_STATUS)
+            
+        effect_orders     = MergeOrder.objects.filter(merge_trade__in=effect_trades,sys_status=pcfg.IN_EFFECT,is_merge=False)\
             .exclude(gift_type=pcfg.RETURN_GOODS_GIT_TYPE)
 
         if p_outer_id:
             effect_orders = effect_orders.filter(outer_id=p_outer_id)
-
+        
         trade_items  = {}
         for order in effect_orders:
             
@@ -196,8 +204,10 @@ class StatisticMergeOrderView(ModelView):
             
         trade_list = sorted(trade_items.items(),key=lambda d:d[1]['num'],reverse=True)
         
-        total_cost  = 0
-        total_sales = 0
+        buyer_nums   = effect_trades.values_list('buyer_nick').distinct().count()
+        trade_nums   = effect_trades.count()
+        total_cost   = 0
+        total_sales  = 0
         
         for trade in trade_list:
             skus = trade[1]['skus']
@@ -206,7 +216,8 @@ class StatisticMergeOrderView(ModelView):
             trade[1]['skus'] = sorted(skus.items(),key=lambda d:d[1]['num'],reverse=True)
             
         return {'df':format_date(start_dt),'dt':format_date(end_dt),'sc_by':statistic_by,'outer_id':p_outer_id,
-                 'trade_items':trade_list, 'total_cost':total_cost, 'total_sales':total_sales }
+                 'trade_items':trade_list, 'total_cost':total_cost, 'total_sales':total_sales,
+                 'wait_send':wait_send, 'buyer_nums':buyer_nums, 'trade_nums':trade_nums }
         
     post = get    
 
@@ -854,7 +865,7 @@ def replay_trade_send_result(request,id):
             
             reponse_result = {'trades':trades,'trade_items':trade_list}
             replay_trade.post_data = json.dumps(reponse_result)
-            replay_trade.finished = datetime.datetime.now()
+            replay_trade.finished  = datetime.datetime.now()
             replay_trade.save()
         else:
             reponse_result = json.loads(reponse_result)

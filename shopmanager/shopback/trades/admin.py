@@ -629,6 +629,8 @@ class ReplayPostTradeAdmin(admin.ModelAdmin):
         replay_trade = queryset.order_by('-created')[0]
         
         if not replay_trade.post_data:
+            from shopback.trades.tasks import get_trade_pickle_list_data
+            
             trade_ids = replay_trade.trade_ids.split(',')
             queryset  = MergeTrade.objects.filter(id__in=trade_ids)
     

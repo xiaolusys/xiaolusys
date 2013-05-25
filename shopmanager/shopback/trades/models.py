@@ -1037,8 +1037,8 @@ def save_orders_trade_to_mergetrade(sender, trade, *args, **kwargs):
         tid  = trade.id
         merge_trade,state = MergeTrade.objects.get_or_create(tid=tid)
         
-        first_pay_load = not merge_trade.sys_status 
-        if not merge_trade.receiver_name:
+        first_pay_load = not merge_trade.sys_status
+        if not merge_trade.receiver_name and trade.status not in ('',pcfg.TRADE_NO_CREATE_PAY):
             #保存地址
             merge_trade.receiver_name = trade.receiver_name 
             merge_trade.receiver_state   = trade.receiver_state 
@@ -1143,7 +1143,7 @@ def save_fenxiao_orders_to_mergetrade(sender, trade, *args, **kwargs):
         
         first_pay_load = not merge_trade.sys_status 
         #如果交易是等待卖家发货，第一次入库，或者没有卖家收货信息，则更新其物流信息
-        if not merge_trade.receiver_name:
+        if not merge_trade.receiver_name and trade.status not in ('',pcfg.TRADE_NO_CREATE_PAY):
             logistics = Logistics.get_or_create(trade.user.visitor_id,tid)
             location = json.loads(logistics.location or 'null')
             
