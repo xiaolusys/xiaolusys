@@ -134,10 +134,10 @@ class MergeTradeAdmin(admin.ModelAdmin):
     #--------设置页面布局----------------
     fieldsets =(('订单基本信息:', {
                     'classes': ('collapse',),
-                    'fields': (('tid','user','type','status','seller_id'),('buyer_nick','seller_nick','pay_time','total_num')
+                    'fields': (('tid','user','type','status','seller_id'),('buyer_nick','seller_nick','total_num')
                                ,('total_fee','payment','discount_fee','adjust_fee','post_fee')
                                ,('seller_cod_fee','buyer_cod_fee','cod_fee','cod_status','alipay_no')
-                               ,('modified','consign_time','created')
+                               ,('created','modified','pay_time','consign_time')
                                ,('buyer_message','seller_memo','sys_memo'))
                 }),
                 ('收货人及物流信息:', {
@@ -150,8 +150,9 @@ class MergeTradeAdmin(admin.ModelAdmin):
                     'classes': ('collapse',),
                     'fields': (('has_sys_err','has_memo','has_refund','has_out_stock','has_rule_match','has_merge'
                                 ,'is_send_sms','is_picking_print','is_express_print','can_review')
-                               ,('priority','remind_time','reason_code','refund_num','weight_time','charge_time')
-                               ,('is_locked','is_charged','post_cost','operator','weight','sys_status',))
+                               ,('is_locked','is_charged','priority','reason_code','refund_num')
+                               ,('remind_time','weight_time','charge_time')
+                               ,('post_cost','operator','weight','sys_status',))
                 }))
 
     #--------定制控件属性----------------
@@ -538,7 +539,10 @@ class MergeTradeAdmin(admin.ModelAdmin):
             
             user_id   = request.user.id
             trade_ids = [t.id for t in queryset]
-            
+            if not trade_ids :
+                self.message_user(request, u'没有可发货的订单')
+                return 
+                
             replay_trade = ReplayPostTrade.objects.create(operator=request.user.username,order_num=len(trade_ids),
                                                trade_ids=','.join([str(i) for i in trade_ids]))
               
@@ -622,9 +626,34 @@ class ReplayPostTradeAdmin(admin.ModelAdmin):
     search_fields = ['operator','id']
     
     def replay_post(self, request, queryset):
-        object = queryset.order_by('-created')[0]
-        replay_data = json.loads(object.post_data)
-        return render_to_response('trades/trade_post_success.html',replay_data,
+        replay_trade = queryset.order_by('-created')[0]
+        
+        if not replay_trade.post_data:
+            trade_ids = replay_trade.trade_ids.split(',')
+            queryset  = MergeTrade.objects.filter(id__in=trade_ids)
+    
+            post_trades = queryset.filter(sys_status=pcfg.WAIT_CHECK_BARCODE_STATUS)
+            trade_list  = get_trade_pickle_list_data(post_trades)
+            
+            trades = []
+            for trade in queryset:
+                trade_dict = {}
+                trade_dict['id'] = trade.id
+                trade_dict['tid'] = trade.tid
+                trade_dict['seller_nick'] = trade.seller_nick
+                trade_dict['buyer_nick'] = trade.buyer_nick
+                trade_dict['company_name'] = trade.logistics_company.name 
+                trade_dict['out_sid']    = trade.out_sid
+                trade_dict['sys_status'] = trade.sys_status
+                trades.append(trade_dict)
+            
+            reponse_result = {'trades':trades,'trade_items':trade_list}
+            replay_trade.post_data = json.dumps(reponse_result)
+            replay_trade.finished  = datetime.datetime.now()
+            replay_trade.save()
+        else:
+            reponse_result = json.loads(object.post_data)
+        return render_to_response('trades/trade_post_success.html',reponse_result,
                                   context_instance=RequestContext(request),mimetype="text/html")
     
     replay_post.short_description = "重现发货清单".decode('utf8')
