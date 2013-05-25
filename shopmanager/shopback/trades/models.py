@@ -911,7 +911,7 @@ def drive_merge_trade_action(trade_id):
 
 def trade_download_controller(merge_trade,trade,trade_from,first_pay_load):
 
-    shipping_type = merge_trade.shipping_type
+    shipping_type = merge_trade.shipping_type or 'null'
     seller_memo   = trade.memo  if hasattr(trade,'memo') else trade.seller_memo
     buyer_message = trade.buyer_message if hasattr(trade,'buyer_message') else trade.supplier_memo   
  
@@ -961,12 +961,13 @@ def trade_download_controller(merge_trade,trade,trade_from,first_pay_load):
                     merge_trade.append_reason_code(pcfg.MULTIPLE_ORDERS_CODE)
                     #驱动合单程序
                     is_merge_success,main_tid = drive_merge_trade_action(merge_trade.id)
-                
+            
+            log_action(merge_trade.user.user.id,merge_trade,CHANGE,u'%s-%s'%(shipping_type or 'null',merge_trade.receiver_state))
             #更新物流公司信息    
             if is_need_merge and main_tid:
                 main_trade = MergeTrade.objects.get(tid=main_tid)
                 merge_trade.logistics_company = main_trade.logistics_company
-            elif shipping_type == pcfg.EXPRESS_SHIPPING_TYPE:
+            elif shipping_type.upper() == pcfg.EXPRESS_SHIPPING_TYPE.upper():
                 receiver_state = merge_trade.receiver_state
                 default_company = LogisticsCompany.get_recommend_express(receiver_state)
                 merge_trade.logistics_company = default_company
