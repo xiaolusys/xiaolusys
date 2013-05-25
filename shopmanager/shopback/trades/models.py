@@ -966,15 +966,19 @@ def trade_download_controller(merge_trade,trade,trade_from,first_pay_load):
             #更新物流公司信息    
             if is_need_merge and main_tid:
                 main_trade = MergeTrade.objects.get(tid=main_tid)
+                if not main_trade.logistics_company:
+                    main_trade.logistics_company = LogisticsCompany.get_recommend_express(main_trade.receiver_state)
+                    main_trade.save()
                 merge_trade.logistics_company = main_trade.logistics_company
-            elif shipping_type.upper() == pcfg.EXPRESS_SHIPPING_TYPE.upper():
+            elif shipping_type.lower() == pcfg.EXPRESS_SHIPPING_TYPE.lower():
                 receiver_state = merge_trade.receiver_state
                 default_company = LogisticsCompany.get_recommend_express(receiver_state)
                 merge_trade.logistics_company = default_company
             elif shipping_type in (pcfg.POST_SHIPPING_TYPE,pcfg.EMS_SHIPPING_TYPE):
                 post_company = LogisticsCompany.objects.get(code=shipping_type.upper())
                 merge_trade.logistics_company = post_company       
-            
+            else:
+                log_action(merge_trade.user.user.id,merge_trade,CHANGE,u'未选择送货方式')
             #进入待发货区域，需要进行商品金额规则匹配
             rule_signal.send(sender='payment_rule',trade_id=merge_trade.id)
             

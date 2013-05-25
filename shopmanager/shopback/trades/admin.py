@@ -244,13 +244,13 @@ class MergeTradeAdmin(admin.ModelAdmin):
         elif request.POST.has_key("_uninvalid"):
             if obj.sys_status==pcfg.INVALID_STATUS:
                 if obj.status == pcfg.WAIT_BUYER_CONFIRM_GOODS:
-                    obj.sys_status==pcfg.WAIT_CHECK_BARCODE_STATUS
+                    obj.sys_status=pcfg.WAIT_CHECK_BARCODE_STATUS
                     msg = u"订单反作废入待扫描状态"
                 elif obj.status == pcfg.TRADE_FINISHED:
-                    obj.sys_status==pcfg.FINISHED_STATUS
+                    obj.sys_status=pcfg.FINISHED_STATUS
                     msg = u"订单反作废入已完成"
                 else :
-                    obj.sys_status==pcfg.WAIT_AUDIT_STATUS
+                    obj.sys_status=pcfg.WAIT_AUDIT_STATUS
                     msg = u"订单反作废入问题单"
                 obj.save()
 
