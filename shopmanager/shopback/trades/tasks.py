@@ -116,8 +116,7 @@ def sendTaobaoTradeTask(request_user_id,trade_id):
             return trade_id
         
         error_msg = ''
-        main_post_success = False
-        logistics_company_code = trade.logistics_company.code     
+        main_post_success = False   
         try:
             merge_buyer_trades = []
             #判断是否有合单子订单
