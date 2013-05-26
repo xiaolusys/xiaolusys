@@ -81,8 +81,8 @@ class Command():
     
     def handle_body(self,buf):
         try:
-            print 'body:'+buf
-            if not buf:
+            print 'body:',buf
+            if not buf.strip() :
                 return 
             note  = json.loads(buf)
             code,msg = note['packet']['code'],note['packet'].get('msg',None)
@@ -100,7 +100,7 @@ class Command():
             elif code == 104:
                 self.fail_wait_time = 0
         except Exception,exc:
-            logger.error(exc.message,exc_info=True)
+            logger.error(exc.message.strip() or 'empty error',exc_info=True)
         
 
     def save_message(self,item):

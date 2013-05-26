@@ -64,8 +64,8 @@
 		</div>
 		<div id="post-items" style="display:block;">
 		  <fieldset>
-		  	<legend>订单商品统计列表(总成本:￥{{ object.total_cost }},总销售额:￥{{ object.total_sales }}
-		  	,付款单数:{{ object.trade_nums }},购买人数:{{ object.buyer_nums }})</legend>
+		  	<legend>订单商品统计列表(总成本:￥{{ object.total_cost }},销售额:￥{{ object.total_sales }},实付邮费:￥{{ object.post_fees }}
+		  	,退款:￥{{ object.refund_fees }},付款单数:{{ object.trade_nums }},购买人数:{{ object.buyer_nums }})</legend>
 			  <table class="table table-bordered  table-condensed">
 			    <tr>
 			      <th>商品编码</th><th style="width:150px;">商品名称</th><th>总数量</th><th>成本</th><th>销售额</th>

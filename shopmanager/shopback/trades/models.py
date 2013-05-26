@@ -910,7 +910,8 @@ def drive_merge_trade_action(trade_id):
 
 
 def trade_download_controller(merge_trade,trade,trade_from,first_pay_load):
-
+    
+    log_action(merge_trade.user.user.id,merge_trade,CHANGE,u'debug:%s-%s'%(merge_trade.sys_status,trade.status))
     shipping_type = merge_trade.shipping_type or 'null'
     seller_memo   = trade.memo  if hasattr(trade,'memo') else trade.seller_memo
     buyer_message = trade.buyer_message if hasattr(trade,'buyer_message') else trade.supplier_memo   
@@ -962,7 +963,7 @@ def trade_download_controller(merge_trade,trade,trade_from,first_pay_load):
                     #驱动合单程序
                     is_merge_success,main_tid = drive_merge_trade_action(merge_trade.id)
             
-            log_action(merge_trade.user.user.id,merge_trade,CHANGE,u'%s-%s'%(shipping_type or 'null',merge_trade.receiver_state))
+            log_action(merge_trade.user.user.id,merge_trade,CHANGE,u'debug:%s-%s'%(shipping_type or 'null',merge_trade.receiver_state))
             #更新物流公司信息    
             if is_need_merge and main_tid:
                 main_trade = MergeTrade.objects.get(tid=main_tid)
