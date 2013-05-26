@@ -911,7 +911,6 @@ def drive_merge_trade_action(trade_id):
 
 def trade_download_controller(merge_trade,trade,trade_from,first_pay_load):
     
-    log_action(merge_trade.user.user.id,merge_trade,CHANGE,u'debug:%s-%s'%(merge_trade.sys_status,trade.status))
     shipping_type = merge_trade.shipping_type or 'null'
     seller_memo   = trade.memo  if hasattr(trade,'memo') else trade.seller_memo
     buyer_message = trade.buyer_message if hasattr(trade,'buyer_message') else trade.supplier_memo   
@@ -921,6 +920,18 @@ def trade_download_controller(merge_trade,trade,trade_from,first_pay_load):
     merge_trade.seller_memo   = seller_memo
     
     if trade.status == pcfg.WAIT_SELLER_SEND_GOODS:
+        
+        #给订单分配快递
+        if not merge_trade.logistics_company:
+            
+            if shipping_type.lower() == pcfg.EXPRESS_SHIPPING_TYPE.lower():
+                receiver_state = merge_trade.receiver_state
+                default_company = LogisticsCompany.get_recommend_express(receiver_state)
+                merge_trade.logistics_company = default_company
+            elif shipping_type in (pcfg.POST_SHIPPING_TYPE,pcfg.EMS_SHIPPING_TYPE):
+                post_company = LogisticsCompany.objects.get(code=shipping_type.upper())
+                merge_trade.logistics_company = post_company 
+        
         #新留言
         if merge_trade.has_memo:
             merge_trade.append_reason_code(pcfg.NEW_MEMO_CODE)
@@ -963,23 +974,14 @@ def trade_download_controller(merge_trade,trade,trade_from,first_pay_load):
                     #驱动合单程序
                     is_merge_success,main_tid = drive_merge_trade_action(merge_trade.id)
             
-            log_action(merge_trade.user.user.id,merge_trade,CHANGE,u'debug:%s-%s'%(shipping_type or 'null',merge_trade.receiver_state))
-            #更新物流公司信息    
+            #更新子订单物流公司信息    
             if is_need_merge and main_tid:
                 main_trade = MergeTrade.objects.get(tid=main_tid)
                 if not main_trade.logistics_company:
                     main_trade.logistics_company = LogisticsCompany.get_recommend_express(main_trade.receiver_state)
                     main_trade.save()
                 merge_trade.logistics_company = main_trade.logistics_company
-            elif shipping_type.lower() == pcfg.EXPRESS_SHIPPING_TYPE.lower():
-                receiver_state = merge_trade.receiver_state
-                default_company = LogisticsCompany.get_recommend_express(receiver_state)
-                merge_trade.logistics_company = default_company
-            elif shipping_type in (pcfg.POST_SHIPPING_TYPE,pcfg.EMS_SHIPPING_TYPE):
-                post_company = LogisticsCompany.objects.get(code=shipping_type.upper())
-                merge_trade.logistics_company = post_company       
-            else:
-                log_action(merge_trade.user.user.id,merge_trade,CHANGE,u'未选择送货方式')
+
             #进入待发货区域，需要进行商品金额规则匹配
             rule_signal.send(sender='payment_rule',trade_id=merge_trade.id)
             
@@ -1044,7 +1046,7 @@ def save_orders_trade_to_mergetrade(sender, trade, *args, **kwargs):
         merge_trade,state = MergeTrade.objects.get_or_create(tid=tid)
         
         first_pay_load = not merge_trade.sys_status
-        if not merge_trade.receiver_name and trade.status not in ('',pcfg.TRADE_NO_CREATE_PAY):
+        if not merge_trade.receiver_name and trade.receiver_name:
             #保存地址
             merge_trade.receiver_name = trade.receiver_name 
             merge_trade.receiver_state   = trade.receiver_state 

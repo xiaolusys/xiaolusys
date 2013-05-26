@@ -95,11 +95,12 @@ def sendTaobaoTradeTask(request_user_id,trade_id):
     """ 淘宝发货任务 """
     try:
         trade = MergeTrade.objects.get(id=trade_id)
-        if  not trade.is_picking_print or not trade.is_express_print or not trade.out_sid:
+        if  not trade.is_picking_print or not trade.is_express_print or not trade.out_sid \
+            or trade.sys_status != pcfg.WAIT_PREPARE_SEND_STATUS\
+            or trade.status != pcfg.WAIT_SELLER_SEND_GOODS:
             return trade_id
         
-        if trade.reason_code != '' and trade.sys_status != pcfg.WAIT_PREPARE_SEND_STATUS \
-            and trade.status != pcfg.WAIT_SELLER_SEND_GOODS:
+        if trade.reason_code != '' :
             trade.sys_status = pcfg.WAIT_AUDIT_STATUS
             trade.is_picking_print=False
             trade.is_express_print=False
