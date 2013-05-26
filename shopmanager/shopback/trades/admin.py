@@ -654,7 +654,7 @@ class ReplayPostTradeAdmin(admin.ModelAdmin):
             replay_trade.finished  = datetime.datetime.now()
             replay_trade.save()
         else:
-            reponse_result = json.loads(object.post_data)
+            reponse_result = json.loads(replay_trade.post_data)
         return render_to_response('trades/trade_post_success.html',reponse_result,
                                   context_instance=RequestContext(request),mimetype="text/html")
     

@@ -13,7 +13,7 @@ from shopback.trades.models import MergeTrade,MergeOrder,ReplayPostTrade,GIFT_TY
 from shopback.logistics.models import LogisticsCompany
 from shopback.items.models import Product,ProductSku
 from shopback.base import log_action, ADDITION, CHANGE
-from shopback.refunds.models import REFUND_STATUS
+from shopback.refunds.models import REFUND_STATUS,Refund
 from shopback.signals import rule_signal
 from shopback.users.models import User
 from shopback import paramconfig as pcfg
@@ -206,6 +206,10 @@ class StatisticMergeOrderView(ModelView):
         
         buyer_nums   = effect_trades.values_list('buyer_nick').distinct().count()
         trade_nums   = effect_trades.count()
+        total_post_fee   = effect_trades.aggregate(total_post_fee=Sum('post_fee')).get('total_post_fee',0)
+        refund_fees  = Refund.objects.filter(tid__in=[t.tid for t in effect_trades],
+                        status__in=(pcfg.REFUND_WAIT_SELLER_AGREE,pcfg.REFUND_SUCCESS))\
+                        .aggregate(total_refund_fee=Sum('refund_fee')).get('total_refund_fee',0)
         total_cost   = 0
         total_sales  = 0
         
@@ -216,8 +220,8 @@ class StatisticMergeOrderView(ModelView):
             trade[1]['skus'] = sorted(skus.items(),key=lambda d:d[1]['num'],reverse=True)
             
         return {'df':format_date(start_dt),'dt':format_date(end_dt),'sc_by':statistic_by,'outer_id':p_outer_id,
-                 'trade_items':trade_list, 'total_cost':total_cost, 'total_sales':total_sales,
-                 'wait_send':wait_send, 'buyer_nums':buyer_nums, 'trade_nums':trade_nums }
+                 'trade_items':trade_list, 'total_cost':total_cost, 'total_sales':total_sales,'refund_fees':refund_fees,
+                 'wait_send':wait_send, 'buyer_nums':buyer_nums, 'trade_nums':trade_nums,'post_fees':total_post_fee }
         
     post = get    
 
