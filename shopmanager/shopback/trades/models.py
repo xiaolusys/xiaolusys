@@ -515,8 +515,11 @@ class MergeTrade(models.Model):
         #是否需要合单 
         if not receiver_name:   
             return False  
-        trades = cls.objects.filter(Q(receiver_name=receiver_name,buyer_nick=buyer_nick)
-                |Q(receiver_mobile=receiver_mobile)).exclude(id=trade_id).exclude(sys_status__in=('',pcfg.FINISHED_STATUS))
+        q = Q(receiver_name=receiver_name,buyer_nick=buyer_nick)
+        if receiver_mobile:
+            q = q|Q(receiver_mobile=receiver_mobile)|Q(receiver_phone=receiver_mobile)
+        trades = cls.objects.filter(q).exclude(id=trade_id).exclude(sys_status__in=
+                                                ('',pcfg.FINISHED_STATUS,pcfg.INVALID_STATUS))
         is_need_merge = False
         
         if trades.count() > 0:
@@ -968,7 +971,8 @@ def trade_download_controller(merge_trade,trade,trade_from,first_pay_load):
             main_tid = None  #主订单ID
             if not has_full_refund:
                 is_need_merge = MergeTrade.judge_need_merge(
-                    merge_trade.id,merge_trade.buyer_nick,merge_trade.receiver_name,merge_trade.receiver_mobile)
+                    merge_trade.id,merge_trade.buyer_nick,merge_trade.receiver_name,
+                    merge_trade.receiver_mobile or merge_trade.receiver_phone)
                 if is_need_merge :
                     merge_trade.append_reason_code(pcfg.MULTIPLE_ORDERS_CODE)
                     #驱动合单程序
