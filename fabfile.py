@@ -125,6 +125,18 @@ def restart_celeryd():
     with cd(env.version_dir):
         run('source ve/bin/activate;cd shopmanager;python manage.py celerydaemon --pidfile=/home/user1/deploy/taobao/celery.pid --stdout=/home/user1/deploy/taobao/celery.out --stderr=/home/user1/deploy/taobao/celery.err')
 
+def restart_notifyserver():
+    if exists('/home/user1/deploy/taobao/notify.pid'):
+        run('kill -QUIT `cat /home/user1/deploy/taobao/notify.pid`')
+        puts('Sleep 30 seconds before notify receiver fully shutdown')
+        sleep(30)
+        with settings(warn_only=True):
+            run("ps auxww | grep taobao/notify.err | awk '{ print $2 }' |xargs kill -KILL")
+        run('rm -rf /home/user1/deploy/taobao/notify.pid')
+    get_version()
+    with cd(env.version_dir):
+        run('source ve/bin/activate;cd shopmanager;python manage.py topnotifyreceiver --pidfile=/home/user1/deploy/taobao/notify.pid --stdout=/home/user1/deploy/taobao/notify.out --stderr=/home/user1/deploy/taobao/notify.err')
+
 
 def restart_celerybeat():
     if exists('/home/user1/deploy/taobao/celerybeat.pid'):
@@ -136,7 +148,7 @@ def restart_celerybeat():
         run('rm -rf /home/user1/deploy/taobao/celerybeat.pid')
     get_version()
     with cd(env.version_dir):
-        run('source ve/bin/activate;cd shopmanager;python manage.py celery_beat --scheduler_cls=djcelery.schedulers.DatabaseScheduler  --working_directory=/home/user1/deploy/taobao/ --stdout=/home/user1/deploy/taobao/celerybeat.out --stderr=/home/user1/deploy/taobao/celerybeat.err')
+        run('source ve/bin/activate;cd shopmanager;python manage.py celery_beat --working_directory=/home/user1/deploy/taobao/ --stdout=/home/user1/deploy/taobao/celerybeat.out --stderr=/home/user1/deploy/taobao/celerybeat.err')
 
 
 def restart_celerycam():

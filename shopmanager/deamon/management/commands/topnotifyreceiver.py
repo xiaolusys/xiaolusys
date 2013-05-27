@@ -81,7 +81,7 @@ class Command(DaemonCommand):
     
     def handle_body(self,buf):
         try:
-            print 'body:',buf
+            #print 'body:',buf
             if not buf.strip() :
                 return 
             note  = json.loads(buf)

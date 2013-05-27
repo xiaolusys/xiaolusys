@@ -116,6 +116,8 @@ class DaemonCommand(BaseCommand):
             help='task queue list.'),
         make_option('--encoding', action='store', dest='encoding',
             help='file content encode type.'),
+        make_option('--logfile', action='store', dest='logfile',
+            help='file log.'),
     )
     help = 'Create a daemon'
     
@@ -134,6 +136,7 @@ class DaemonCommand(BaseCommand):
     file_path = None
     encoding = None
     queues = None
+    logfile = None
     
     def get_option_value(self, options, name, expected=None):
         value = options.get(name)
@@ -172,7 +175,7 @@ class DaemonCommand(BaseCommand):
         stderr = self.get_option_value(options, 'stderr')
         if stderr is not None:
             context.stderr = open(stderr, "a+")  
-        
+
         #Make pid lock file
         pidfile = self.get_option_value(options, 'pidfile')
         if pidfile is not None:
@@ -197,6 +200,10 @@ class DaemonCommand(BaseCommand):
         queues = self.get_option_value(options, 'queues')
         if queues is not None:
             context.queues = queues
+            
+        logfile = self.get_option_value(options, 'logfile')
+        if queues is not None:
+            context.logfile = logfile
         
         context.open()        
         #raise Exception('handle daemon error! %s,%s'%(context.__dict__,self.scheduler))

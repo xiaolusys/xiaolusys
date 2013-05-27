@@ -320,7 +320,7 @@ class MergeTradeAdmin(admin.ModelAdmin):
         is_merge_success = False
         queryset  = queryset.filter(type__in=(pcfg.FENXIAO_TYPE,pcfg.TAOBAO_TYPE))
         myset = queryset.exclude(sys_status__in=(pcfg.WAIT_AUDIT_STATUS,pcfg.ON_THE_FLY_STATUS,
-                                pcfg.WAIT_CHECK_BARCODE_STATUS,pcfg.WAIT_SCAN_WEIGHT_STATUS))\
+                                pcfg.WAIT_CHECK_BARCODE_STATUS,pcfg.WAIT_SCAN_WEIGHT_STATUS,pcfg.FINISHED_STATUS))\
                 .exclude(is_express_print=False,sys_status=pcfg.FINISHED_STATUS)
         postset = queryset.filter(sys_status__in=(pcfg.WAIT_CHECK_BARCODE_STATUS,pcfg.WAIT_SCAN_WEIGHT_STATUS))
         if queryset.count()<2 or myset.count()>0 or postset.count()>1:
@@ -357,15 +357,17 @@ class MergeTradeAdmin(admin.ModelAdmin):
                                 trade.send_trade_to_taobao(pcfg.SUB_TRADE_COMPANEY_CODE,trade.out_sid)
                             except:
                                 log_action(request.user.id,trade,CHANGE,u'订单合并发货失败')
-                                        
-                if len(merge_trade_ids)<sub_trades.count():
+                       
+                if fail_reason and not is_merge_success:
+                    pass                   
+                elif len(merge_trade_ids)<sub_trades.count():
                     fail_reason = u'部分订单未合并成功'
                     is_merge_success = False 
                 else:
                     #合并后金额匹配
                     rule_signal.send(sender='payment_rule',trade_id=main_trade.id)
                     is_merge_success = True
-                log_action(request.user.id,main_trade,CHANGE,u'合并订单(%s)'%','.join(merge_trade_ids))
+                    log_action(request.user.id,main_trade,CHANGE,u'合并订单(%s)'%','.join(merge_trade_ids))
             else:
                 audit_trades = queryset.filter(sys_status=pcfg.WAIT_AUDIT_STATUS).order_by('pay_time')	
                 if audit_trades.count()>0:

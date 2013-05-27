@@ -5,6 +5,8 @@ djcelery.setup_loader()
 #CELERY_RESULT_BACKEND = 'database'
 #BROKER_BACKEND = "djkombu.transport.DatabaseTransport"
 
+CELERYBEAT_SCHEDULER = 'djcelery.schedulers.DatabaseScheduler'
+
 BROKER_URL = 'amqp://user1:passwd1@127.0.0.1:5672/vhost1'
 CELERY_RESULT_BACKEND = "amqp"
 CELERY_TASK_RESULT_EXPIRES = 18000  # 5 hours.
