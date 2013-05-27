@@ -7,4 +7,4 @@ class Command(DaemonCommand):
     
     def handle_daemon(self, *args, **options):
         options.pop('pidfile',None)
-        call_command('celeryd',*args,**options)
+        call_command('celery worker',*args,**options)
