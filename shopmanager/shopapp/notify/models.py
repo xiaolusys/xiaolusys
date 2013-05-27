@@ -46,8 +46,8 @@ class ItemNotify(models.Model):
                 hasattr(item_notify,k) and setattr(item_notify,k,v)
             item_notify.save()
             
-            from shopapp.notify import tasks
-            tasks.process_item_notify_task.s(item_notify.id)()
+            from shopapp.notify.tasks import process_item_notify_task
+            process_item_notify_task.s(item_notify.id)()
     
     
 class TradeNotify(models.Model):
@@ -92,8 +92,9 @@ class TradeNotify(models.Model):
                 hasattr(trade_notify,k) and setattr(trade_notify,k,v)
             trade_notify.save()  
              
-            from shopapp.notify import tasks
-            tasks.process_trade_notify_task.s(trade_notify.id)()
+            from shopapp.notify.tasks import process_trade_notify_task
+            process_trade_notify_task.s(trade_notify.id)()
+            
     
 class RefundNotify(models.Model):
     id      = BigIntegerAutoField(primary_key=True)
@@ -133,6 +134,6 @@ class RefundNotify(models.Model):
                 hasattr(refund_notify,k) and setattr(refund_notify,k,v)
             refund_notify.save()
             
-            from shopapp.notify import tasks
-            tasks.process_refund_notify_task.s(refund_notify.id)()
+            from shopapp.notify.tasks import process_refund_notify_task
+            process_refund_notify_task.s(refund_notify.id)()
     

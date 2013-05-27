@@ -919,6 +919,9 @@ def trade_download_controller(merge_trade,trade,trade_from,first_pay_load):
     buyer_message = trade.buyer_message if hasattr(trade,'buyer_message') else trade.supplier_memo   
  
     merge_trade.has_memo = seller_memo or buyer_message
+    has_new_buyer_message    = merge_trade.buyer_message != buyer_message 
+    has_new_seller_memo  = merge_trade.seller_memo  != seller_memo
+    
     merge_trade.buyer_message = buyer_message 
     merge_trade.seller_memo   = seller_memo
     
@@ -936,7 +939,7 @@ def trade_download_controller(merge_trade,trade,trade_from,first_pay_load):
                 merge_trade.logistics_company = post_company 
         
         #新留言
-        if merge_trade.has_memo:
+        if has_new_buyer_message or has_new_seller_memo:
             merge_trade.append_reason_code(pcfg.NEW_MEMO_CODE)
                
         #退款中
@@ -1017,10 +1020,6 @@ def trade_download_controller(merge_trade,trade,trade_from,first_pay_load):
                 else:
                     merge_order_remover(trade.id)
             
-            if merge_trade.sys_status == pcfg.WAIT_PREPARE_SEND_STATUS: 
-                merge_trade.remove_reason_code(pcfg.NEW_MEMO_CODE)
-            elif merge_trade.reason_code and merge_trade.out_sid == '' and merge_trade.sys_status == pcfg.WAIT_PREPARE_SEND_STATUS:
-                merge_trade.sys_status = pcfg.WAIT_AUDIT_STATUS
 
     elif trade.status==pcfg.WAIT_BUYER_CONFIRM_GOODS:
         if merge_trade.sys_status in pcfg.WAIT_DELIVERY_STATUS and not merge_trade.out_sid:
