@@ -21,7 +21,7 @@ CURL_CONNECT_TIMEOUT = 60
 
 
 class Command(DaemonCommand):
-    #class Command():
+#class Command():
     c = None
     fail_wait_time = 0
     
@@ -120,5 +120,8 @@ class Command(DaemonCommand):
             RefundNotify.save_and_post_notify(refund_dict)
     
         
-        
+#if __name__ == '__main__':
+    
+#    c = Command()
+#    c.handle_daemon()
         
