@@ -78,7 +78,7 @@ class TradeStatusFilter(SimpleListFilter):
             return queryset
         elif status_name == pcfg.WAIT_AUDIT_STATUS:
             return queryset.filter(sys_status__in=(pcfg.WAIT_AUDIT_STATUS,pcfg.WAIT_CHECK_BARCODE_STATUS
-                                ,pcfg.WAIT_SCAN_WEIGHT_STATUS)).exclude(reason_code='',is_express_print=True)
+                                ,pcfg.WAIT_SCAN_WEIGHT_STATUS),can_review=False).exclude(reason_code='',is_express_print=True)
         else:
             return queryset.filter(sys_status=status_name)
                 
