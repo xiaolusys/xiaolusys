@@ -11,7 +11,7 @@ from django.core.management import call_command
 from shopback.users.models import User
 from shopapp.notify.models import ItemNotify,TradeNotify,RefundNotify
 from auth.utils import getSignatureTaoBao
-from shopapp.notify import tasks
+from shopapp.notify.tasks import  process_discard_notify_task
 import logging
 
 logger = logging.getLogger('notifyserver.handler')
@@ -92,7 +92,7 @@ class Command():
                     return 
                 self.save_message(msg)
             elif code == 203:
-                tasks.process_discard_notify_task.s(msg['begin'],msg['end'])()
+                process_discard_notify_task.s(msg['begin'],msg['end'])()
             elif code in (101,102,103):
                 self.fail_wait_time = msg or 10
             elif code == 105:
