@@ -202,7 +202,7 @@ class MergeTrade(models.Model):
     @property
     def buyer_full_address(self):
         return '%s%s%s%s%s%s%s'%(self.receiver_name.strip(),self.receiver_mobile.strip() or self.receiver_phone.strip(),self.receiver_state.strip()
-                             ,self.receiver_city.strip(),self.receiver_district.strip(),self.receiver_address.strip())
+                             ,self.receiver_city.strip(),self.receiver_district.strip(),self.receiver_address.strip(),self.receiver_zip.strip())
     
     def is_post_success(self):
         #订单淘宝发货成功
