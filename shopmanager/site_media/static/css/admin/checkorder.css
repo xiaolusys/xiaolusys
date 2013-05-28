@@ -175,3 +175,7 @@ tr {
 	font-size: 11px;
 	line-height: 14px;
 }
+
+.field-box ul li{
+	display:inline;
+}

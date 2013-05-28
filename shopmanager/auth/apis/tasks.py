@@ -25,46 +25,90 @@ reject_regex = re.compile(r'^isv.\w+-service-rejection$')
 
 
 API_FIELDS = {
-    'taobao.user.seller.get':'user_id,uid,nick,sex,buyer_credit,seller_credit,location,created,last_visit,birthday,type,has_more_pic,item_img_num'
-         +',item_img_size,prop_img_num,prop_img_size,auto_repost,promoted_type,status,alipay_bind,consumer_protection,alipay_account,alipay_no',
-    'taobao.itemcats.authorize.get':'brand.vid, brand.name, item_cat.cid, item_cat.name, item_cat.status,item_cat.sort_order,item_cat.parent_cid,item_cat.is_parent'
-         +',xinpin_item_cat.cid, xinpin_item_cat.name, xinpin_item_cat.status, xinpin_item_cat.sort_order, xinpin_item_cat.parent_cid, xinpin_item_cat.is_parent',
+    'taobao.user.seller.get':'user_id,uid,nick,sex,buyer_credit,seller_credit,location,created,last_visit,'
+         +'birthday,type,has_more_pic,item_img_num,item_img_size,prop_img_num,prop_img_size,auto_repost,'
+         +'promoted_type,status,alipay_bind,consumer_protection,alipay_account,alipay_no',
+    
+    'taobao.itemcats.authorize.get':'brand.vid, brand.name, item_cat.cid, item_cat.name, item_cat.status,'
+         +'item_cat.sort_order,item_cat.parent_cid,item_cat.is_parent,xinpin_item_cat.cid, xinpin_item_cat.name,'
+         +'xinpin_item_cat.status, xinpin_item_cat.sort_order, xinpin_item_cat.parent_cid, xinpin_item_cat.is_parent',
+    
     'taobao.itemcats.get':'cid,parent_cid,name,is_parent,status,sort_order',
-    'taobao.itemcats.authorize.get':'brand.vid,brand.name,item_cat.cid,item_cat.name,item_cat.status,item_cat.sort_order,item_cat.parent_cid,item_cat.is_parent'
-         +',xinpin_item_cat.cid,xinpin_item_cat.name,xinpin_item_cat.status,xinpin_item_cat.sort_order,xinpin_item_cat.parent_cid,xinpin_item_cat.is_parent',
+    
+    'taobao.itemcats.authorize.get':'brand.vid,brand.name,item_cat.cid,item_cat.name,item_cat.status,'
+         +'item_cat.sort_order,item_cat.parent_cid,item_cat.is_parent,xinpin_item_cat.cid,xinpin_item_cat.name,'
+         +'xinpin_item_cat.status,xinpin_item_cat.sort_order,xinpin_item_cat.parent_cid,xinpin_item_cat.is_parent',
+    
     'taobao.itemprops.get':'pid, name, must, multi, prop_values',
+    
     'taobao.itempropvalues.get':'cid,pid,prop_name,vid,name,name_alias,status,sort_order',
-    'taobao.item.get':'has_showcase,detail_url,num_iid,title,outer_id,price,approve_status,delist_time,list_time,modified,num,props_name,property_alias'
-         +',nick,type,cid,pic_url,num,props,valid_thru,price,has_discount,has_invoice,has_warranty,postage_id,seller_cids',
+    
+    'taobao.item.get':'has_showcase,detail_url,num_iid,title,outer_id,price,approve_status,delist_time,list_time,'
+         +'modified,num,props_name,property_alias,nick,type,cid,pic_url,num,props,valid_thru,price,has_discount,'
+         +'has_invoice,has_warranty,postage_id,seller_cids',
+    
     'taobao.items.list.get':'item',
+    
     'taobao.products.get':'product_id,tsc,cat_name,name',
+    
     'taobao.items.get':'num_iid,title,nick,pic_url,cid,price,type,delist_time,post_fee,volume,score,location',
+    
     'taobao.items.search':'iid,num_iid,title,nick,pic_url,cid,price,type,delist_time,post_fee',
-    'taobao.item.skus.get':'sku_id,num_iid,created,modified,num_iid,outer_id,price,properties,quantity,sku_id,status,properties_name',
-    'taobao.products.get':'product_id,outer_id,name,inner_name,created,modified,cid,cat_name,tsc,props,props_str,binds,binds_str,sale_props'
-         +',sale_props_str,collect_num,price,desc,pic_url,product_imgs,product_prop_imgs,pic_path,vertical_market,customer_props,property_alias,level,status',
+    
+    'taobao.item.skus.get':'sku_id,num_iid,created,modified,num_iid,outer_id,price,properties,quantity,sku_id,'
+         +'status,properties_name',
+    
+    'taobao.products.get':'product_id,outer_id,name,inner_name,created,modified,cid,cat_name,tsc,props,'
+         +'props_str,binds,binds_str,sale_props,sale_props_str,collect_num,price,desc,pic_url,product_imgs,'
+         +'product_prop_imgs,pic_path,vertical_market,customer_props,property_alias,level,status',
+    
     'taobao.products.search':'product_id,name,pic_url,cid,props,price,tsc',
+    
     'taobao.items.inventory.get':'approve_status,num_iid,title,nick,type,cid,pic_url,num,props,valid_thru,list_time'
         +',price,has_discount,has_invoice,has_warranty,has_showcase, modified,delist_time,postage_id,seller_cids,outer_id',
+    
     'taobao.items.onsale.get':'num_iid,cid,outer_id,num,seller_cids,approve_status,type,valid_thru,price,postage_id,'
         + 'has_showcase,list_time,delist_time,has_discount,props,title,has_invoice,pic_url,detail_url',
-    'taobao.trades.sold.get':'seller_nick,buyer_nick,title,type,created,tid,status,modified,payment,discount_fee,adjust_fee,post_fee,total_fee,received_payment,commission_fee,buyer_obtain_point_fee'
-        +',point_fee,real_point_fee,pic_path,pay_time,end_time,consign_time,num_iid,num,price,shipping_type,receiver_name,receiver_state,receiver_city,receiver_district,receiver_address,receiver_zip'
-        +',receiver_mobile,receiver_phone,buyer_message,buyer_memo,seller_memo,seller_flag,orders',
-    'taobao.trade.get':'seller_nick,buyer_nick,title, type,created,tid,seller_rate,buyer_rate,status,payment,discount_fee,adjust_fee,post_fee,total_fee,pay_time,end_time,modified,consign_time,'
-        +'buyer_obtain_point_fee,point_fee,real_point_fee,received_payment,commission_fee,buyer_memo,seller_memo,alipay_no,buyer_message,pic_path,num_iid,num,price,cod_fee,cod_status,shipping_type,orders',
-    'taobao.trade.fullinfo.get':'seller_nick,buyer_nick,title,type,created,tid,status,modified,payment,discount_fee,adjust_fee,post_fee,total_fee,received_payment,commission_fee,buyer_obtain_point_fee'
-        +',point_fee,real_point_fee,pic_path,pay_time,end_time,consign_time,num_iid,num,price,shipping_type,receiver_name,receiver_state,receiver_city,receiver_district,receiver_address,receiver_zip'
-        +',receiver_mobile,receiver_phone,buyer_message,buyer_memo,seller_memo,seller_flag,orders,promotion_details',
-    'taobao.trade.amount.get':'tid,alipay_no,created,pay_time,end_time,total_fee,payment,post_fee,cod_fee,commission_fee,buyer_obtain_point_fee,order_amounts,promotion_details',
+    
+    'taobao.trades.sold.get':'seller_nick,buyer_nick,title,type,created,tid,status,modified,payment,discount_fee,'
+        +'adjust_fee,post_fee,total_fee,received_payment,commission_fee,buyer_obtain_point_fee,point_fee,real_point_fee,'
+        +'pic_path,pay_time,end_time,consign_time,num_iid,num,price,shipping_type,receiver_name,receiver_state,'
+        +'receiver_city,receiver_district,receiver_address,receiver_zip,receiver_mobile,receiver_phone,buyer_message,'
+        +'buyer_memo,seller_memo,seller_flag,orders',
+    
+    'taobao.trade.get':'seller_nick,buyer_nick,title, type,created,tid,seller_rate,buyer_rate,status,payment,discount_fee,'
+        +'adjust_fee,post_fee,total_fee,pay_time,end_time,modified,consign_time,buyer_obtain_point_fee,point_fee,'
+        +'real_point_fee,received_payment,commission_fee,buyer_memo,seller_memo,alipay_no,buyer_message,pic_path,'
+        +'num_iid,num,price,cod_fee,cod_status,shipping_type,orders',
+    
+    'taobao.trade.fullinfo.get':'seller_nick,buyer_nick,title,type,created,tid,status,modified,payment,discount_fee,'
+        +'adjust_fee,post_fee,total_fee,received_payment,commission_fee,buyer_obtain_point_fee,point_fee,real_point_fee,'
+        +'pic_path,pay_time,end_time,consign_time,num_iid,num,price,shipping_type,receiver_name,receiver_state,receiver_city,'
+        +'receiver_district,receiver_address,receiver_zip,receiver_mobile,receiver_phone,buyer_message,buyer_memo,'
+        +'seller_memo,seller_flag,orders,send_time,is_brand_sale,is_force_wlb,trade_from,is_lgtype,lg_aging,'
+        +'lg_aging_type,buyer_rate,seller_rate,seller_can_rate,is_part_consign,step_paid_fee,step_trade_status',#promotion_details,
+    
+    'taobao.trade.amount.get':'tid,alipay_no,created,pay_time,end_time,total_fee,payment,post_fee,cod_fee,commission_fee,'
+        +'buyer_obtain_point_fee,order_amounts,promotion_details',
+    
     'taobao.logistics.companies.get':'id,code,name,reg_mail_no',
-    'taobao.logistics.orders.detail.get':'tid,order_code,is_quick_cod_order,out_sid,company_name,seller_id,seller_nick,buyer_nick,item_title,delivery_start,delivery_end'
-        +',receiver_name,receiver_phone,receiver_mobile,type,created,modified,seller_confirm,company_name,is_success,freight_payer,status,receiver_location',
-    'taobao.logistics.orders.get':'tid,seller_nick,buyer_nick,delivery_start, delivery_end,out_sid,item_title,receiver_name, created,modified,status,type,freight_payer,seller_confirm,company_name',
-    'taobao.refunds.receive.get':'refund_id,tid,title,buyer_nick,num_iid,seller_nick,total_fee,status,created,refund_fee,oid,good_status,company_name,sid,payment,reason,desc,has_good_return,modified,order_status',
-    'taobao.refund.get':'refund_id,alipay_no,tid,oid,buyer_nick,seller_nick,total_fee,created,refund_fee,has_good_return,payment,reason,desc,num_iid,title'
-        +',price,num,good_return_time,company_name,sid,address,shipping_type,refund_remind_timeout,cs_status,status,good_status',
+    
+    'taobao.logistics.orders.detail.get':'tid,order_code,is_quick_cod_order,out_sid,company_name,seller_id,seller_nick,'
+        +'buyer_nick,item_title,delivery_start,delivery_end,receiver_name,receiver_phone,receiver_mobile,type,created,'
+        +'modified,seller_confirm,company_name,is_success,freight_payer,status,receiver_location',
+    
+    'taobao.logistics.orders.get':'tid,seller_nick,buyer_nick,delivery_start,delivery_end,out_sid,item_title,receiver_name,'
+        +'created,modified,status,type,freight_payer,seller_confirm,company_name',
+    
+    'taobao.refunds.receive.get':'refund_id,tid,title,buyer_nick,num_iid,seller_nick,total_fee,status,created,refund_fee,'
+        +'oid,good_status,company_name,sid,payment,reason,desc,has_good_return,modified,order_status',
+    
+    'taobao.refund.get':'refund_id,alipay_no,tid,oid,buyer_nick,seller_nick,total_fee,created,refund_fee,has_good_return,'
+        +'payment,reason,desc,num_iid,title,price,num,good_return_time,company_name,sid,address,shipping_type,'
+        +'refund_remind_timeout,cs_status,status,good_status',
+    
     'taobao.fenxiao.products.get':'skus,images',
+    
     'taobao.trade.close':'tid,close_reason',
 }
 

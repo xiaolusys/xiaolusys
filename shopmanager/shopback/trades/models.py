@@ -5,11 +5,12 @@ import datetime
 from django.db import models
 from django.db.models import Q
 from django.db.models.signals import post_save
+from bitfield import BitField
 from shopback.base.fields import BigIntegerAutoField,BigIntegerForeignKey
 from shopback.users.models import User
 from django.db.models import Sum
 from shopback.base import log_action, ADDITION, CHANGE
-from shopback.orders.models import Trade,Order
+from shopback.orders.models import Trade,Order,STEP_TRADE_STATUS
 from shopback.items.models import Item,Product,ProductSku
 from shopback.logistics.models import Logistics,LogisticsCompany
 from shopback.fenxiao.models import PurchaseOrder,SubPurchaseOrder,FenxiaoProduct
@@ -143,8 +144,27 @@ class MergeTrade(models.Model):
     pay_time   = models.DateTimeField(db_index=True,null=True,blank=True,verbose_name='付款日期')
     modified   = models.DateTimeField(db_index=True,null=True,blank=True,verbose_name='修改日期') 
     consign_time = models.DateTimeField(db_index=True,null=True,blank=True,verbose_name='发货日期')
+    send_time    = models.DateTimeField(null=True,blank=True,verbose_name='预售日期')
     weight_time  = models.DateTimeField(db_index=True,null=True,blank=True,verbose_name='称重日期')
     charge_time  = models.DateTimeField(db_index=True,null=True,blank=True,verbose_name='揽件日期')
+    
+    is_brand_sale  = models.BooleanField(default=False,verbose_name='品牌特卖') 
+    is_force_wlb   = models.BooleanField(default=False,verbose_name='物流宝') 
+    trade_from     = BitField(flags=(
+                                     pcfg.TF_WAP,
+                                     pcfg.TF_HITAO,
+                                     pcfg.TF_TOP,
+                                     pcfg.TF_TAOBAO,
+                                     pcfg.TF_JHS),verbose_name='交易来源')
+    
+    is_lgtype      = models.BooleanField(default=False,verbose_name='速递') 
+    lg_aging       = models.DateTimeField(null=True,blank=True,verbose_name='速递送达时间')
+    lg_aging_type  = models.CharField(max_length=20,blank=True,verbose_name='速递类型')
+    
+    buyer_rate     = models.BooleanField(default=False,verbose_name='卖家已评')  
+    seller_rate    = models.BooleanField(default=False,verbose_name='卖家已评')  
+    seller_can_rate = models.BooleanField(default=False,verbose_name='卖家可评') 
+    is_part_consign = models.BooleanField(default=False,verbose_name='分单发货')  
     
     out_sid    = models.CharField(max_length=64,db_index=True,blank=True,verbose_name='物流编号')
     logistics_company  = models.ForeignKey(LogisticsCompany,null=True,blank=True,verbose_name='物流公司')
@@ -157,6 +177,9 @@ class MergeTrade(models.Model):
     receiver_zip       =  models.CharField(max_length=10,blank=True,verbose_name='邮编')
     receiver_mobile    =  models.CharField(max_length=20,db_index=True,blank=True,verbose_name='手机')
     receiver_phone     =  models.CharField(max_length=20,db_index=True,blank=True,verbose_name='电话')
+    
+    step_paid_fee      = models.CharField(max_length=10,blank=True,verbose_name='分阶付款金额')
+    step_trade_status  = models.CharField(max_length=32,choices=STEP_TRADE_STATUS,blank=True,verbose_name='分阶付款状态')
     
     reason_code = models.CharField(max_length=100,blank=True,verbose_name='问题编号')  #1,2,3 问题单原因编码集合
     status  = models.CharField(max_length=32,db_index=True,choices=TAOBAO_TRADE_STATUS,blank=True,verbose_name='淘宝订单状态')
@@ -489,8 +512,10 @@ class MergeTrade(models.Model):
             .exclude(Q(is_merge=True)|Q(refund_status=pcfg.NO_REFUND)).count()
         
         if refund_orders_num >merge_trade.refund_num:
+            merge_trade.refund_num = refund_orders_num
+            update_model_feilds(merge_trade,update_fields=['refund_num'])
+            
             return True
-        
         return False
         
     @classmethod
@@ -1040,7 +1065,24 @@ def trade_download_controller(merge_trade,trade,trade_from,first_pay_load):
             has_rule_match = merge_trade.has_rule_match,
             sys_status = merge_trade.sys_status,
     )
+
+#平台名称与存储编码映射
+TF_CODE_MAP = {
+               pcfg.TF_WAP:MergeTrade.trade_from.WAP,
+               pcfg.TF_HITAO:MergeTrade.trade_from.HITAO,
+               pcfg.TF_TOP:MergeTrade.trade_from.TOP,
+               pcfg.TF_TAOBAO:MergeTrade.trade_from.TAOBAO,
+               pcfg.TF_JHS:MergeTrade.trade_from.JHS,
+               }
+
+def map_trade_from_to_code(trade_from):
     
+    from_code = 0
+    from_list = trade_from.split(',')
+    for f in from_list:
+        from_code |= TF_CODE_MAP.get(f.upper(),0)
+        
+    return from_code
      
 def save_orders_trade_to_mergetrade(sender, trade, *args, **kwargs):
     
@@ -1081,24 +1123,13 @@ def save_orders_trade_to_mergetrade(sender, trade, *args, **kwargs):
                 sys_status = merge_order.sys_status or pcfg.IN_EFFECT
             
             if state:
-                merge_order.num_iid = order.num_iid
-                merge_order.title  = order.title
-                merge_order.price  = order.price
-                merge_order.sku_id = order.sku_id
-                merge_order.num = order.num
-                merge_order.outer_id = order.outer_id
-                merge_order.outer_sku_id = order.outer_sku_id
-                merge_order.total_fee = order.total_fee
-                merge_order.payment = order.payment
+                order_fields = ['num_iid','title','price','sku_id','num','outer_id','outer_sku_id','total_fee','payment',
+                    'refund_status','pic_path','seller_nick','buyer_nick','created','pay_time','consign_time','status']
+                
+                for k in order_fields:
+                    setattr(merge_order,k,getattr(order,k))
+                
                 merge_order.sku_properties_name = order.properties_values
-                merge_order.refund_status = order.refund_status
-                merge_order.pic_path = order.pic_path
-                merge_order.seller_nick = order.seller_nick
-                merge_order.buyer_nick  = order.buyer_nick
-                merge_order.created  = order.created
-                merge_order.pay_time = order.pay_time
-                merge_order.consign_time = order.consign_time
-                merge_order.status   = order.status
                 merge_order.sys_status = sys_status
             else:
                 merge_order.refund_status = order.refund_status
@@ -1124,19 +1155,23 @@ def save_orders_trade_to_mergetrade(sender, trade, *args, **kwargs):
             merge_trade.adjust_fee   = merge_trade.adjust_fee or trade.adjust_fee
             merge_trade.post_fee   = merge_trade.post_fee or trade.post_fee
         
-        update_fields = ['user','seller_id','seller_nick','buyer_nick','type',
-                         'seller_cod_fee','buyer_cod_fee','cod_fee','cod_status','buyer_message',
-                         'seller_memo','seller_flag','created','pay_time','modified','consign_time','status']
+        update_fields = ['user','seller_id','seller_nick','buyer_nick','type','seller_cod_fee','buyer_cod_fee',
+                         'cod_fee','cod_status','seller_flag','created','pay_time',
+                         'modified','consign_time','send_time','status','is_brand_sale','is_force_wlb','is_lgtype',
+                         'lg_aging','lg_aging_type','buyer_rate','seller_rate','seller_can_rate','is_part_consign',
+                         'step_paid_fee','step_trade_status']
         
         for k in update_fields:
             setattr(merge_trade,k,getattr(trade,k))
         
+        merge_trade.trade_from    = map_trade_from_to_code(trade.trade_from)
         merge_trade.alipay_no     = trade.buyer_alipay_no
         merge_trade.shipping_type = merge_trade.shipping_type or \
                 pcfg.SHIPPING_TYPE_MAP.get(trade.shipping_type,pcfg.EXPRESS_SHIPPING_TYPE)
         
         update_model_feilds(merge_trade,update_fields=update_fields
-                            +['shipping_type','payment','total_fee','discount_fee','adjust_fee','post_fee','alipay_no'])
+                            +['shipping_type','payment','total_fee','discount_fee','adjust_fee',
+                              'post_fee','alipay_no','trade_from'])
 
         #设置系统内部状态信息
         trade_download_controller(merge_trade,trade,trade_from,first_pay_load) 
@@ -1238,18 +1273,17 @@ def save_fenxiao_orders_to_mergetrade(sender, trade, *args, **kwargs):
         merge_trade.type = pcfg.FENXIAO_TYPE
         merge_trade.shipping_type = merge_trade.shipping_type or\
                 pcfg.SHIPPING_TYPE_MAP.get(trade.shipping,pcfg.EXPRESS_SHIPPING_TYPE)
-        merge_trade.buyer_message = trade.memo
-        merge_trade.seller_memo = trade.supplier_memo
         merge_trade.created = trade.created
         merge_trade.pay_time = trade.created
         merge_trade.modified = trade.modified
         merge_trade.consign_time = trade.consign_time
         merge_trade.seller_flag  = trade.supplier_flag
         merge_trade.priority = -1
-        merge_trade.status = trade.status
+        merge_trade.status   = trade.status
+        merge_trade.trade_from  = TF_CODE_MAP[pcfg.TF_TAOBAO]
         
         update_fields = ['user','seller_id','seller_nick','buyer_nick','type','shipping_type','payment',
-                         'total_fee','post_fee','buyer_message','seller_memo','created',
+                         'total_fee','post_fee','created','trade_from',
                          'pay_time','modified','consign_time','seller_flag','priority','status']
         
         update_model_feilds(merge_trade,update_fields=update_fields)
@@ -1271,7 +1305,7 @@ class ReplayPostTrade(models.Model):
     
     trade_ids  =  models.CharField(max_length=2000,verbose_name='订单编号')
     
-    created    =  models.DateTimeField(null=True,auto_now=True,verbose_name='创建日期')
+    created    =  models.DateTimeField(null=True,auto_now_add=True,verbose_name='创建日期')
     finished   =  models.DateTimeField(blank=True,null=True,verbose_name='完成日期')
     
     class Meta:

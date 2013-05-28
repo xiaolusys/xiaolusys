@@ -844,35 +844,9 @@ def replay_trade_send_result(request,id):
     except:
         return HttpResponse('<body style="text-align:center;"><h1>发货结果未找到</h1></body>')
     else:
-        reponse_result = replay_trade.post_data 
-        if not reponse_result:
-            
-            from shopback.trades.tasks import get_trade_pickle_list_data
-            
-            trade_ids = replay_trade.trade_ids.split(',')
-            queryset = MergeTrade.objects.filter(id__in=trade_ids)
-
-            post_trades = queryset.filter(sys_status=pcfg.WAIT_CHECK_BARCODE_STATUS)
-            trade_list = get_trade_pickle_list_data(post_trades)
-            
-            trades = []
-            for trade in queryset:
-                trade_dict = {}
-                trade_dict['id'] = trade.id
-                trade_dict['tid'] = trade.tid
-                trade_dict['seller_nick'] = trade.seller_nick
-                trade_dict['buyer_nick'] = trade.buyer_nick
-                trade_dict['company_name'] = trade.logistics_company.name 
-                trade_dict['out_sid']    = trade.out_sid
-                trade_dict['sys_status'] = trade.sys_status
-                trades.append(trade_dict)
-            
-            reponse_result = {'trades':trades,'trade_items':trade_list}
-            replay_trade.post_data = json.dumps(reponse_result)
-            replay_trade.finished  = datetime.datetime.now()
-            replay_trade.save()
-        else:
-            reponse_result = json.loads(reponse_result)
+        from shopback.trades.tasks import get_replay_results
+        
+        reponse_result = get_replay_results(replay_trade)
         
         return render_to_response('trades/trade_post_success.html',reponse_result,
                                   context_instance=RequestContext(request),mimetype="text/html")

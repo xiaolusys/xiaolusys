@@ -150,8 +150,7 @@ def process_trade_notify_task(id):
                                                                 receiver_zip   = ship_dict['receiver_zip'],
                                                                 receiver_mobile   = ship_dict['receiver_mobile'],
                                                                 receiver_phone = ship_dict['receiver_phone'])
-                MergeTrade.objects.filter(tid=notify.tid,out_sid='',sys_statu__in=pcfg.WAIT_DELIVERY_STATUS)\
-                    .update(sys_status=pcfg.WAIT_AUDIT_STATUS,modified=notify.modified)
+
                 try:
                     main_tid = MergeBuyerTrade.objects.filter(sub_tid=trade.tid).main_tid
                 except:
@@ -159,8 +158,6 @@ def process_trade_notify_task(id):
                 else:
                     main_trade = MergeTrade.objects.get(tid=main_tid)
                     main_trade.append_reason_code(pcfg.ADDR_CHANGE_CODE)
-                    MergeTrade.objects.filter(tid=main_tid,out_sid='',sys_statu__in=pcfg.WAIT_DELIVERY_STATUS)\
-                        .update(sys_status=pcfg.WAIT_AUDIT_STATUS)
         
     except Exception,exc:
         logger.error(exc.message,exc_info=True)
@@ -259,15 +256,11 @@ def process_refund_notify_task(id):
                         if main_trade.status == pcfg.WAIT_SELLER_SEND_GOODS:   
                             merge_order_remover(main_tid)
                         
-                        MergeTrade.objects.filter(tid=main_tid,sys_status=pcfg.WAIT_PREPARE_SEND_STATUS,out_sid='')\
-                            .update(sys_status=pcfg.WAIT_AUDIT_STATUS)
                     else:
                         #拆单
                         if merge_trade.status == pcfg.WAIT_SELLER_SEND_GOODS:   
                             merge_order_remover(notify.tid)
                             
-                        MergeTrade.objects.filter(tid=notify.tid,sys_status=pcfg.WAIT_PREPARE_SEND_STATUS,out_sid='')\
-                            .update(sys_status=pcfg.WAIT_AUDIT_STATUS)
     
                 elif notify.status in('RefundClosed','RefundSuccess','RefundSellerAgreeAgreement','RefundSellerRefuseAgreement'):
                     refund = Refund.get_or_create(notify.user_id,notify.rid,force_update=True)

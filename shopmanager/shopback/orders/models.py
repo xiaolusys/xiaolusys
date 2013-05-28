@@ -36,6 +36,12 @@ TAOBAO_TRADE_STATUS = (
     (pcfg.TRADE_CLOSED_BY_TAOBAO,'付款以前，卖家或买家主动关闭交易'),
 )
 
+STEP_TRADE_STATUS = (
+    (pcfg.FRONT_NOPAID_FINAL_NOPAID,'定金未付尾款未付'),
+    (pcfg.FRONT_PAID_FINAL_NOPAID,'定金已付尾款未付'),
+    (pcfg.FRONT_PAID_FINAL_PAID,'定金和尾款都付'),
+)
+
 class Trade(models.Model):
 
     id           =  BigIntegerAutoField(primary_key=True)
@@ -55,8 +61,8 @@ class Trade(models.Model):
     payment      =  models.CharField(max_length=10,blank=True)
     discount_fee =  models.CharField(max_length=10,blank=True)
     adjust_fee   =  models.CharField(max_length=10,blank=True)
-    post_fee    =  models.CharField(max_length=10,blank=True)
-    total_fee   =  models.CharField(max_length=10,blank=True)
+    post_fee     =  models.CharField(max_length=10,blank=True)
+    total_fee    =  models.CharField(max_length=10,blank=True)
 
     buyer_obtain_point_fee  =  models.CharField(max_length=10,blank=True)
     point_fee        =  models.CharField(max_length=10,blank=True)
@@ -68,12 +74,26 @@ class Trade(models.Model):
     end_time      =  models.DateTimeField(db_index=True,null=True,blank=True)
     modified      =  models.DateTimeField(db_index=True,null=True,blank=True)
     consign_time  =  models.DateTimeField(db_index=True,null=True,blank=True)
-
+    send_time      = models.DateTimeField(null=True,blank=True)
+    
     buyer_message    =  models.TextField(max_length=1000,blank=True)
     buyer_memo       =  models.TextField(max_length=1000,blank=True)
     seller_memo      =  models.TextField(max_length=1000,blank=True)
     seller_flag      = models.IntegerField(null=True)
     
+    is_brand_sale  = models.BooleanField(default=False) 
+    is_force_wlb   = models.BooleanField(default=False) 
+    trade_from     = models.CharField(max_length=32,blank=True)
+    
+    is_lgtype      = models.BooleanField(default=False) 
+    lg_aging       = models.DateTimeField(null=True,blank=True)
+    lg_aging_type  = models.CharField(max_length=20,blank=True)
+    
+    buyer_rate     = models.BooleanField(default=False) 
+    seller_rate    = models.BooleanField(default=False) 
+    seller_can_rate = models.BooleanField(default=False) 
+    is_part_consign = models.BooleanField(default=False)
+  
     seller_cod_fee = models.CharField(max_length=10,blank=True)
     buyer_cod_fee  = models.CharField(max_length=10,blank=True)
     cod_fee        = models.CharField(max_length=10,blank=True)
@@ -90,7 +110,9 @@ class Trade(models.Model):
     receiver_zip       =  models.CharField(max_length=10,blank=True)
     receiver_mobile    =  models.CharField(max_length=20,blank=True)
     receiver_phone     =  models.CharField(max_length=20,blank=True)
-
+    
+    step_paid_fee      = models.CharField(max_length=32,blank=True)
+    step_trade_status  = models.CharField(max_length=32,choices=STEP_TRADE_STATUS,blank=True)
     status      =  models.CharField(max_length=32,choices=TAOBAO_TRADE_STATUS,blank=True)
 
     class Meta:
@@ -118,7 +140,6 @@ class Trade(models.Model):
         return trade
     
 
-
     @classmethod
     def save_trade_through_dict(cls,user_id,trade_dict):
         
@@ -145,6 +166,10 @@ class Trade(models.Model):
                            if trade_dict.get('modified',None) else None
         trade.consign_time = parse_datetime(trade_dict['consign_time']) \
                            if trade_dict.get('consign_time',None) else None
+        trade.send_time = parse_datetime(trade_dict['send_time']) \
+                           if trade_dict.get('send_time',None) else None
+        trade.lg_aging = parse_datetime(trade_dict['lg_aging']) \
+                           if trade_dict.get('lg_aging',None) else None
         trade.save()
 
         for o in trade_dict['orders']['order']:

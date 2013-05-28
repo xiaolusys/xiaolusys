@@ -13,6 +13,9 @@ from django.core import serializers
 from django.contrib.contenttypes.models import ContentType
 from django.utils.encoding import force_unicode
 from django.contrib.admin import SimpleListFilter
+from bitfield import BitField
+from bitfield.forms import BitFieldCheckboxSelectMultiple
+from bitfield.admin import BitFieldListFilter
 from django.conf import settings
 from celery import chord
 from shopback.orders.models import Trade
@@ -82,7 +85,7 @@ class TradeStatusFilter(SimpleListFilter):
         else:
             return queryset.filter(sys_status=status_name)
                 
-
+        
 
 class MergeTradeAdmin(admin.ModelAdmin):
     list_display = ('trade_id_link','popup_tid_link','user','buyer_nick_link','type','payment','pay_time','consign_time'
@@ -122,8 +125,9 @@ class MergeTradeAdmin(admin.ModelAdmin):
 
     inlines = [MergeOrderInline]
     
-    list_filter   = (TradeStatusFilter,'status','user','type','has_out_stock','has_refund','has_rule_match','has_sys_err',
-                     'has_merge','has_memo','is_picking_print','is_express_print','can_review','is_locked','is_charged')
+    list_filter   = (TradeStatusFilter,'status','user','type',('trade_from', BitFieldListFilter,),'has_out_stock','has_refund',
+                     'has_rule_match','has_sys_err','has_merge','has_memo','is_picking_print','is_express_print','can_review',
+                     'is_locked','is_charged','is_brand_sale','is_force_wlb')
 
     search_fields = ['id','buyer_nick','tid','operator','out_sid','receiver_name','receiver_mobile','receiver_phone']
     
@@ -134,9 +138,13 @@ class MergeTradeAdmin(admin.ModelAdmin):
     #--------设置页面布局----------------
     fieldsets =(('订单基本信息:', {
                     'classes': ('collapse',),
-                    'fields': (('tid','user','type','status','seller_id'),('buyer_nick','seller_nick','total_num')
+                    'fields': (('tid','user','type','status','seller_id')
+                               ,('buyer_nick','seller_nick','total_num','trade_from')
                                ,('total_fee','payment','discount_fee','adjust_fee','post_fee')
                                ,('seller_cod_fee','buyer_cod_fee','cod_fee','cod_status','alipay_no')
+                               ,('is_brand_sale','is_force_wlb','buyer_rate','seller_rate','seller_can_rate'
+                                 ,'is_part_consign','is_lgtype','lg_aging_type',)
+                               ,('send_time','lg_aging','step_paid_fee','step_trade_status')
                                ,('created','modified','pay_time','consign_time')
                                ,('buyer_message','seller_memo','sys_memo'))
                 }),
@@ -159,6 +167,7 @@ class MergeTradeAdmin(admin.ModelAdmin):
     formfield_overrides = {
         models.CharField: {'widget': TextInput(attrs={'size':'16'})},
         models.TextField: {'widget': Textarea(attrs={'rows':6, 'cols':35})},
+        BitField: {'widget': BitFieldCheckboxSelectMultiple},
     }
     
     def get_readonly_fields(self, request, obj=None):
@@ -628,35 +637,14 @@ class ReplayPostTradeAdmin(admin.ModelAdmin):
     search_fields = ['operator','id']
     
     def replay_post(self, request, queryset):
-        replay_trade = queryset.order_by('-created')[0]
-        
-        if not replay_trade.post_data:
-            from shopback.trades.tasks import get_trade_pickle_list_data
-            
-            trade_ids = replay_trade.trade_ids.split(',')
-            queryset  = MergeTrade.objects.filter(id__in=trade_ids)
-    
-            post_trades = queryset.filter(sys_status=pcfg.WAIT_CHECK_BARCODE_STATUS)
-            trade_list  = get_trade_pickle_list_data(post_trades)
-            
-            trades = []
-            for trade in queryset:
-                trade_dict = {}
-                trade_dict['id'] = trade.id
-                trade_dict['tid'] = trade.tid
-                trade_dict['seller_nick'] = trade.seller_nick
-                trade_dict['buyer_nick'] = trade.buyer_nick
-                trade_dict['company_name'] = trade.logistics_company.name 
-                trade_dict['out_sid']    = trade.out_sid
-                trade_dict['sys_status'] = trade.sys_status
-                trades.append(trade_dict)
-            
-            reponse_result = {'trades':trades,'trade_items':trade_list}
-            replay_trade.post_data = json.dumps(reponse_result)
-            replay_trade.finished  = datetime.datetime.now()
-            replay_trade.save()
+        try:
+            replay_trade = queryset.order_by('-created')[0]
+        except:
+            pass
         else:
-            reponse_result = json.loads(replay_trade.post_data)
+            from shopback.trades.tasks import get_replay_results
+            reponse_result = get_replay_results(replay_trade)
+            
         return render_to_response('trades/trade_post_success.html',reponse_result,
                                   context_instance=RequestContext(request),mimetype="text/html")
     

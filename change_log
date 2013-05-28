@@ -1,3 +1,32 @@
+######### 2013-5-28 ###########
+alter table shop_orders_trade add column send_time datetime DEFAULT NULL;
+alter table shop_orders_trade add column is_brand_sale tinyint(1) NOT NULL;
+alter table shop_orders_trade add column is_force_wlb tinyint(1) NOT NULL;
+alter table shop_orders_trade add column trade_from varchar(32) NOT NULL;
+alter table shop_orders_trade add column is_lgtype tinyint(1) NOT NULL;
+alter table shop_orders_trade add column lg_aging datetime DEFAULT NULL;
+alter table shop_orders_trade add column lg_aging_type varchar(64) NOT NULL;
+alter table shop_orders_trade add column buyer_rate tinyint(1) NOT NULL;
+alter table shop_orders_trade add column seller_rate tinyint(1) NOT NULL;
+alter table shop_orders_trade add column seller_can_rate tinyint(1) NOT NULL;
+alter table shop_orders_trade add column is_part_consign tinyint(1) NOT NULL;
+alter table shop_orders_trade add column step_paid_fee varchar(10) NOT NULL;
+alter table shop_orders_trade add column step_trade_status varchar(32) NOT NULL;
+
+alter table shop_trades_mergetrade add column send_time datetime DEFAULT NULL;
+alter table shop_trades_mergetrade add column is_brand_sale tinyint(1) NOT NULL;
+alter table shop_trades_mergetrade add column is_force_wlb tinyint(1) NOT NULL;
+alter table shop_trades_mergetrade add column trade_from int(20) NOT NULL;
+alter table shop_trades_mergetrade add column is_lgtype tinyint(1) NOT NULL;
+alter table shop_trades_mergetrade add column lg_aging datetime DEFAULT NULL;
+alter table shop_trades_mergetrade add column lg_aging_type varchar(64) NOT NULL;
+alter table shop_trades_mergetrade add column buyer_rate tinyint(1) NOT NULL;
+alter table shop_trades_mergetrade add column seller_rate tinyint(1) NOT NULL;
+alter table shop_trades_mergetrade add column seller_can_rate tinyint(1) NOT NULL;
+alter table shop_trades_mergetrade add column is_part_consign tinyint(1) NOT NULL;
+alter table shop_trades_mergetrade add column step_paid_fee varchar(10) NOT NULL;
+alter table shop_trades_mergetrade add column step_trade_status varchar(32) NOT NULL;
+
 ######### 2013-5-23 ###########
 alter table shop_trades_replayposttrade add column trade_ids varchar(2000) NOT NULL;
 alter table shop_trades_replayposttrade add column finished datetime DEFAULT NULL;
