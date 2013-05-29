@@ -324,8 +324,6 @@ direct.Manager.prototype.copyBuyerInfo = function(e){
     	goog.dom.getElement('id_receiver_city').value = trade_dict.receiver_city;
     	goog.dom.getElement('id_receiver_district').value = trade_dict.receiver_district;
     	goog.dom.getElement('id_receiver_address').value = trade_dict.receiver_address;
-    	goog.dom.getElement('id_payment').value = trade_dict.payment;
-    	goog.dom.getElement('id_post_fee').value = trade_dict.post_fee;
     }
 }
 
@@ -335,10 +333,20 @@ direct.Manager.prototype.saveBuyerInfo = function(e){
 	var that  = this;
 	var seller_id         = goog.dom.getElement('id_seller_id').value;
 	var buyer_nick        = goog.dom.getElement('id_buyer_nick').value;
-
+	
 	if (buyer_nick === ""||seller_id === ""){
 		alert('用户名和店铺不能为空');
 		return;
+	}
+	var trade_type = goog.dom.getElement('id_trade_type').value;
+	var payment    = goog.dom.getElement('id_payment').value;
+	var post_fee   = goog.dom.getElement('id_post_fee').value;
+	var re = /^[0-9]+.?[0-9]*$/;
+	if (trade_type == 'direct'){
+		if (!re.test(payment)||!re.test(post_fee)){
+			alert('请填写正确的金额跟邮费');
+			return;
+		}
 	}
 	
 	var receiver_mobile   = goog.dom.getElement('id_receiver_mobile').value;
@@ -348,9 +356,7 @@ direct.Manager.prototype.saveBuyerInfo = function(e){
 	var receiver_city     = goog.dom.getElement('id_receiver_city').value;
 	var receiver_district = goog.dom.getElement('id_receiver_district').value;
 	var receiver_address  = goog.dom.getElement('id_receiver_address').value;
-	var payment   = goog.dom.getElement('id_payment').value;
-	var post_fee  = goog.dom.getElement('id_post_fee').value;
-	
+
 	var params = {
 		'trade_id':that.tid,
 		'sellerId':seller_id,
@@ -364,7 +370,7 @@ direct.Manager.prototype.saveBuyerInfo = function(e){
 		'receiver_address':receiver_address,
 		'payment':payment,
 		'post_fee':post_fee,
-	}
+	};
 	var callback = function(e){
 		var xhr = e.target;
         try {

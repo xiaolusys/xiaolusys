@@ -77,6 +77,7 @@ TRADE_TYPE = (
     (pcfg.TAOBAO_TYPE,'一口价'),
     (pcfg.FENXIAO_TYPE,'分销'),
     (pcfg.DIRECT_TYPE,'内售'),
+    (pcfg.REISSUE_TYPE,'补发'),
     (pcfg.EXCHANGE_TYPE,'退换货'),
     (pcfg.COD_TYPE,'货到付款'),
     (pcfg.AUTO_DELIVERY_TYPE,'自动发货'),
@@ -257,7 +258,7 @@ class MergeTrade(models.Model):
         company_code = company_code or self.logistics_company.code
         out_sid    = out_sid or self.out_sid
         
-        if trade_type in (pcfg.EXCHANGE_TYPE,pcfg.DIRECT_TYPE):
+        if trade_type in (pcfg.EXCHANGE_TYPE,pcfg.DIRECT_TYPE,pcfg.REISSUE_TYPE):
             return False
         try:
             #如果货到付款
@@ -569,20 +570,20 @@ class MergeTrade(models.Model):
                 need_pull = True
         return need_pull
  
-    @classmethod
-    def judge_jhs_wlb(cls,trade):
-        """ 判断订单是聚划算物流包发货 """
-        need_pull = False
+   
+    def judge_jhs_wlb(self):
+        """ 判断订单是聚划算物流宝发货 """
+        need_wlb = False
         try:
-            rule_signal.send(sender='ju_hua_suan',trade_id=trade.id)
+            rule_signal.send(sender='ju_hua_suan',trade_id=self.id)
         except:
-            need_pull = False
+            self.append_reason_code(pcfg.TRADE_BY_JHS_CODE)
+            need_wlb = True
         else:
-            #设置订单满足聚划算入仓单条件
-            trade.append_reason_code(pcfg.TRADE_BY_JHS_CODE)
-            need_pull = True
+            need_wlb = False
             
-        return need_pull
+        return need_wlb
+
 
 class MergeOrder(models.Model):
     
@@ -724,7 +725,8 @@ def refresh_trade_status(sender,instance,*args,**kwargs):
     merge_trade.has_merge = has_merge
     
     if not merge_trade.reason_code and merge_trade.status==pcfg.WAIT_SELLER_SEND_GOODS and merge_trade.logistics_company\
-         and merge_trade.sys_status==pcfg.WAIT_AUDIT_STATUS and merge_trade.type not in (pcfg.DIRECT_TYPE,pcfg.EXCHANGE_TYPE):
+         and merge_trade.sys_status==pcfg.WAIT_AUDIT_STATUS and merge_trade.type \
+         not in (pcfg.DIRECT_TYPE,pcfg.REISSUE_TYPE,pcfg.EXCHANGE_TYPE):
         merge_trade.sys_status = pcfg.WAIT_PREPARE_SEND_STATUS
         
     update_model_feilds(merge_trade,update_fields=['total_num','has_refund','has_out_stock',
@@ -986,10 +988,10 @@ def trade_download_controller(merge_trade,trade,trade_from,first_pay_load):
             merge_trade.append_reason_code(pcfg.WAITING_REFUND_CODE)
         #设置订单待退款属性    
         merge_trade.has_refund = wait_refunding
-        
+
         has_full_refund = MergeTrade.judge_full_refund(merge_trade.id)
         has_new_refund  = MergeTrade.judge_new_refund(merge_trade.id)
-
+        
         #如果首次付款后入库
         if first_pay_load:  
             
@@ -1007,6 +1009,8 @@ def trade_download_controller(merge_trade,trade,trade_from,first_pay_load):
             #设置订单匹配属性   
             merge_trade.has_rule_match = is_rule_match
             
+            merge_trade.is_force_wlb = trade.is_force_wlb or (
+                merge_trade.trade_from&MergeTrade.trade_from.JHS and merge_trade.judge_jhs_wlb())
             #标记物流宝发货订单
             if merge_trade.is_force_wlb:
                 merge_trade.append_reason_code(pcfg.TRADE_BY_WLB_CODE)
@@ -1092,6 +1096,7 @@ def trade_download_controller(merge_trade,trade,trade_from,first_pay_load):
             has_out_stock = merge_trade.has_out_stock,
             has_rule_match = merge_trade.has_rule_match,
             sys_status = merge_trade.sys_status,
+            is_force_wlb = merge_trade.is_force_wlb,
     )
 
 #平台名称与存储编码映射

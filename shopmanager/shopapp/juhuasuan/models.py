@@ -40,8 +40,7 @@ def order_match_juhuasuan_pinpaituan(sender, trade_id, *args, **kwargs):
         else:
             full_match &= True
        
-    if full_match:
-        
+    if full_match:    
         raise Exception('订单满足需聚划算入仓')
 
     

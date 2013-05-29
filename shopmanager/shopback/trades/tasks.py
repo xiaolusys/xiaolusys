@@ -140,7 +140,7 @@ def sendTaobaoTradeTask(request_user_id,trade_id):
             log_action(request_user_id,trade,CHANGE,u'订单不满足发货条件')
             return trade_id
         
-        if trade.type in (pcfg.DIRECT_TYPE,pcfg.EXCHANGE_TYPE):
+        if trade.type in (pcfg.DIRECT_TYPE,pcfg.EXCHANGE_TYPE,pcfg.REISSUE_TYPE):
             trade.sys_status=pcfg.WAIT_CHECK_BARCODE_STATUS
             trade.status=pcfg.WAIT_BUYER_CONFIRM_GOODS
             trade.consign_time=datetime.datetime.now()

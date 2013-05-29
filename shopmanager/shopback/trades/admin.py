@@ -327,13 +327,16 @@ class MergeTradeAdmin(admin.ModelAdmin):
         
         trade_ids = [t.id for t in queryset]
         is_merge_success = False
+        wlbset    = queryset.filter(is_force_wlb=True)
         queryset  = queryset.filter(type__in=(pcfg.FENXIAO_TYPE,pcfg.TAOBAO_TYPE),is_force_wlb=False)
         myset = queryset.exclude(sys_status__in=(pcfg.WAIT_AUDIT_STATUS,pcfg.ON_THE_FLY_STATUS,
                                 pcfg.WAIT_CHECK_BARCODE_STATUS,pcfg.WAIT_SCAN_WEIGHT_STATUS,pcfg.FINISHED_STATUS))\
                 .exclude(is_express_print=False,sys_status=pcfg.FINISHED_STATUS)
         postset = queryset.filter(sys_status__in=(pcfg.WAIT_CHECK_BARCODE_STATUS,pcfg.WAIT_SCAN_WEIGHT_STATUS))
-        if queryset.count()<2 or myset.count()>0 or postset.count()>1:
-            trades = queryset
+        if wlbset.count()>0:
+            is_merge_success = False
+            fail_reason = u'有订单使用物流宝发货，若需在系统发货，请手动取消该订单物流宝状态'
+        elif queryset.count()<2 or myset.count()>0 or postset.count()>1:
             is_merge_success = False
             fail_reason = u'订单不符合合并条件（合并订单必须两单以上，订单类型为一口价，分销,订单状态在问题单或待扫描）'
         else:
@@ -409,7 +412,7 @@ class MergeTradeAdmin(admin.ModelAdmin):
                 elif merge_trade_ids:
                     merge_order_remover(main_trade.tid)
             
-            trades = MergeTrade.objects.filter(id__in=trade_ids)
+        trades = MergeTrade.objects.filter(id__in=trade_ids)
         return render_to_response('trades/mergesuccess.html',{'trades':trades,'merge_status':is_merge_success,'fail_reason':fail_reason},
                                   context_instance=RequestContext(request),mimetype="text/html") 	
 
