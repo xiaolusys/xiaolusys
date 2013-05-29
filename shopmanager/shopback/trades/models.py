@@ -544,7 +544,8 @@ class MergeTrade(models.Model):
         q = Q(receiver_name=receiver_name,buyer_nick=buyer_nick)
         if receiver_mobile:
             q = q|Q(receiver_mobile=receiver_mobile)|Q(receiver_phone=receiver_mobile)
-        trades = cls.objects.filter(q).exclude(id=trade_id).exclude(is_force_wlb=True,
+            
+        trades = cls.objects.filter(q).exclude(id=trade_id).exclude(
                     sys_status__in=('',pcfg.FINISHED_STATUS,pcfg.INVALID_STATUS))
         is_need_merge = False
         
@@ -993,8 +994,7 @@ def trade_download_controller(merge_trade,trade,trade_from,first_pay_load):
         if first_pay_load:  
             
             rule_signal.send(sender='combose_split_rule',trade_id=merge_trade.id)
-            
-            
+
             #缺货 
             out_stock      =  MergeTrade.judge_out_stock(merge_trade.id)
             
