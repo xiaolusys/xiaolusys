@@ -194,7 +194,8 @@ class ProductSku(models.Model):
     is_assign    = models.BooleanField(default=False,verbose_name='警告解除') 
     
     modified     = models.DateTimeField(null=True,blank=True,auto_now=True,verbose_name='修改时间')
-    status       = models.CharField(max_length=10,db_index=True,choices=ONLINE_PRODUCT_STATUS,default=pcfg.NORMAL,verbose_name='规格状态')  #normal,delete
+    status       = models.CharField(max_length=10,db_index=True,choices=ONLINE_PRODUCT_STATUS,
+                                    default=pcfg.NORMAL,verbose_name='规格状态')  #normal,delete
     
     memo         = models.TextField(max_length=1000,blank=True,verbose_name='备注')
     class Meta:
@@ -262,9 +263,9 @@ class ProductSku(models.Model):
         1，如果当前能同步的库存小昨日销量；
         """
         quantity = self.quantity >0 and self.quantity or 0
-        remain_num = self.remain_num >0 and self.remain_num or 0
-        wait_post_num = self.wait_post_num >0 and self.wait_post_num or 0
-        sync_num = quantity - remain_num - wait_post_num
+        remain_num = self.remain_num >0 and self.remain_num or 0    
+        wait_post_num = self.wait_post_num >0 and self.wait_post_num or 0   
+        sync_num = quantity - remain_num - wait_post_num                    
         return self.warn_num >0 and self.warn_num >= sync_num 
     
         

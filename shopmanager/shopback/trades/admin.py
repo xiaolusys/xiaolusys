@@ -327,7 +327,7 @@ class MergeTradeAdmin(admin.ModelAdmin):
         
         trade_ids = [t.id for t in queryset]
         is_merge_success = False
-        queryset  = queryset.filter(type__in=(pcfg.FENXIAO_TYPE,pcfg.TAOBAO_TYPE))
+        queryset  = queryset.filter(type__in=(pcfg.FENXIAO_TYPE,pcfg.TAOBAO_TYPE),is_force_wlb=False)
         myset = queryset.exclude(sys_status__in=(pcfg.WAIT_AUDIT_STATUS,pcfg.ON_THE_FLY_STATUS,
                                 pcfg.WAIT_CHECK_BARCODE_STATUS,pcfg.WAIT_SCAN_WEIGHT_STATUS,pcfg.FINISHED_STATUS))\
                 .exclude(is_express_print=False,sys_status=pcfg.FINISHED_STATUS)
@@ -343,7 +343,8 @@ class MergeTradeAdmin(admin.ModelAdmin):
             if postset.count()==1:
                 main_trade  = postset[0]
                 main_full_addr = main_trade.buyer_full_address #主订单收货人地址
-                sub_trades  = queryset.filter(sys_status__in=(pcfg.WAIT_AUDIT_STATUS,pcfg.ON_THE_FLY_STATUS,pcfg.FINISHED_STATUS))
+                sub_trades  = queryset.filter(sys_status__in=(pcfg.WAIT_AUDIT_STATUS,pcfg.ON_THE_FLY_STATUS,
+                                                              pcfg.FINISHED_STATUS))
                 
                 for trade in sub_trades:
                     if trade.buyer_full_address != main_full_addr:
