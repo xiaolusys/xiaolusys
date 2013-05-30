@@ -705,9 +705,9 @@ def refresh_trade_status(sender,instance,*args,**kwargs):
         
         update_model_feilds(instance,update_fields=['seller_nick','buyer_nick','created','pay_time'])
     
-    total_num     = merge_trade.merge_trade_orders.filter(status__in=(pcfg.WAIT_SELLER_SEND_GOODS
-                  ,pcfg.WAIT_BUYER_CONFIRM_GOODS,pcfg.TRADE_FINISHED),sys_status=pcfg.IN_EFFECT).count()
-    merge_trade.order_num = total_num
+    order_num     = merge_trade.merge_trade_orders.filter(status__in=(pcfg.WAIT_SELLER_SEND_GOODS
+                  ,pcfg.WAIT_BUYER_CONFIRM_GOODS,pcfg.TRADE_FINISHED),sys_status=pcfg.IN_EFFECT).count()#.values_list('outer_id').distinct()
+    merge_trade.order_num = order_num
     if merge_trade.status in(pcfg.WAIT_SELLER_SEND_GOODS,pcfg.WAIT_BUYER_CONFIRM_GOODS):
         has_refunding  = merge_trade.has_trade_refunding()
         out_stock      = merge_trade.merge_trade_orders.filter(out_stock=True,sys_status=pcfg.IN_EFFECT).count()>0

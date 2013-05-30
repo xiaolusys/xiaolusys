@@ -41,7 +41,6 @@ var addStaffEvent = function(e){
 	    $('#event-content').val('');
 	    $('#end-datetime').val('');
 	    $('#add_staff_event').hide();
-	  
 	};
 	
 	$.ajax({ 
