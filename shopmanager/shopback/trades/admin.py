@@ -139,7 +139,7 @@ class MergeTradeAdmin(admin.ModelAdmin):
     fieldsets =(('订单基本信息:', {
                     'classes': ('collapse',),
                     'fields': (('tid','user','type','status','seller_id')
-                               ,('buyer_nick','seller_nick','total_num','trade_from')
+                               ,('buyer_nick','seller_nick','order_num','trade_from')
                                ,('total_fee','payment','discount_fee','adjust_fee','post_fee')
                                ,('seller_cod_fee','buyer_cod_fee','cod_fee','cod_status','alipay_no')
                                ,('is_brand_sale','is_force_wlb','buyer_rate','seller_rate','seller_can_rate'
@@ -327,13 +327,16 @@ class MergeTradeAdmin(admin.ModelAdmin):
         
         trade_ids = [t.id for t in queryset]
         is_merge_success = False
-        queryset  = queryset.filter(type__in=(pcfg.FENXIAO_TYPE,pcfg.TAOBAO_TYPE))
+        wlbset    = queryset.filter(is_force_wlb=True)
+        queryset  = queryset.filter(type__in=(pcfg.FENXIAO_TYPE,pcfg.TAOBAO_TYPE),is_force_wlb=False)
         myset = queryset.exclude(sys_status__in=(pcfg.WAIT_AUDIT_STATUS,pcfg.ON_THE_FLY_STATUS,
                                 pcfg.WAIT_CHECK_BARCODE_STATUS,pcfg.WAIT_SCAN_WEIGHT_STATUS,pcfg.FINISHED_STATUS))\
                 .exclude(is_express_print=False,sys_status=pcfg.FINISHED_STATUS)
         postset = queryset.filter(sys_status__in=(pcfg.WAIT_CHECK_BARCODE_STATUS,pcfg.WAIT_SCAN_WEIGHT_STATUS))
-        if queryset.count()<2 or myset.count()>0 or postset.count()>1:
-            trades = queryset
+        if wlbset.count()>0:
+            is_merge_success = False
+            fail_reason = u'有订单使用物流宝发货，若需在系统发货，请手动取消该订单物流宝状态'
+        elif queryset.count()<2 or myset.count()>0 or postset.count()>1:
             is_merge_success = False
             fail_reason = u'订单不符合合并条件（合并订单必须两单以上，订单类型为一口价，分销,订单状态在问题单或待扫描）'
         else:
@@ -343,7 +346,8 @@ class MergeTradeAdmin(admin.ModelAdmin):
             if postset.count()==1:
                 main_trade  = postset[0]
                 main_full_addr = main_trade.buyer_full_address #主订单收货人地址
-                sub_trades  = queryset.filter(sys_status__in=(pcfg.WAIT_AUDIT_STATUS,pcfg.ON_THE_FLY_STATUS,pcfg.FINISHED_STATUS))
+                sub_trades  = queryset.filter(sys_status__in=(pcfg.WAIT_AUDIT_STATUS,pcfg.ON_THE_FLY_STATUS,
+                                                              pcfg.FINISHED_STATUS))
                 
                 for trade in sub_trades:
                     if trade.buyer_full_address != main_full_addr:
@@ -408,7 +412,7 @@ class MergeTradeAdmin(admin.ModelAdmin):
                 elif merge_trade_ids:
                     merge_order_remover(main_trade.tid)
             
-            trades = MergeTrade.objects.filter(id__in=trade_ids)
+        trades = MergeTrade.objects.filter(id__in=trade_ids)
         return render_to_response('trades/mergesuccess.html',{'trades':trades,'merge_status':is_merge_success,'fail_reason':fail_reason},
                                   context_instance=RequestContext(request),mimetype="text/html") 	
 

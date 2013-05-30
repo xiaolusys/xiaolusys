@@ -17,8 +17,9 @@ FENXIAO_TYPE = 'fenxiao'
 TAOBAO_TYPE  = 'fixed'
 DIRECT_TYPE  = 'direct'
 EXCHANGE_TYPE  = 'exchange'
+REISSUE_TYPE   = 'reissue'
 AUTO_DELIVERY_TYPE = 'auto_delivery'
-COD_TYPE       = 'cod'
+COD_TYPE        = 'cod'
 GUARANTEE_TYPE  = 'guarantee_trade'
 AUCTION_TYPE    = 'auction'
 
@@ -200,4 +201,6 @@ ORDER_ADD_REMOVE_CODE  = 15 #子订单增删编号
 LOGISTIC_ERROR_CODE  = 16 #系统无法选择快递或订单没有收货信息
 OUTER_ID_NOT_MAP_CODE = 17 #系统该商品编码不存在，或不正常
 PULL_ORDER_ERROR_CODE = 18 #手动下单失败
+TRADE_BY_WLB_CODE = 19 #订单由官方合作物流宝发货
+TRADE_BY_JHS_CODE = 20 #订单含聚划算入仓商品
 

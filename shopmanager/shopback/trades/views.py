@@ -310,6 +310,8 @@ class CheckOrderView(ModelView):
                 check_msg.append("有缺货".decode('utf8'))
             if trade.has_rule_match:
                 check_msg.append("信息不全".decode('utf8'))
+            if trade.is_force_wlb:
+                check_msg.append("订单由物流宝发货".decode('utf8'))
             if trade.sys_status != pcfg.WAIT_AUDIT_STATUS:
                 check_msg.append("订单不在问题单".decode('utf8'))
             if trade.has_reason_code(pcfg.MULTIPLE_ORDERS_CODE):
@@ -346,7 +348,7 @@ class CheckOrderView(ModelView):
                     trade.status     = pcfg.TRADE_FINISHED
                     trade.save()
                 
-            elif trade.type == pcfg.DIRECT_TYPE:   
+            elif trade.type in (pcfg.DIRECT_TYPE,pcfg.REISSUE_TYPE):   
                 #订单为自提
                 if shipping_type == pcfg.EXTRACT_SHIPPING_TYPE: 
                     trade.sys_status = pcfg.FINISHED_STATUS
@@ -736,12 +738,7 @@ class ExchangeOrderView(ModelView):
     
     def get(self, request, *args, **kwargs):
         
-        trades  = MergeTrade.objects.filter(type=pcfg.EXCHANGE_TYPE,sys_status='',user=None)
-        if trades.count()==0:
-            trade   = MergeTrade.objects.create(type=pcfg.EXCHANGE_TYPE,status=pcfg.WAIT_SELLER_SEND_GOODS)
-        else:
-            trade = trades[0]
-            trade.merge_trade_orders.all().delete()
+        trade   = MergeTrade.objects.create(type=pcfg.EXCHANGE_TYPE,status=pcfg.WAIT_SELLER_SEND_GOODS)
         sellers = User.objects.all()
         
         return {'trade':trade,'sellers':sellers}
@@ -751,7 +748,6 @@ class ExchangeOrderView(ModelView):
         content     = request.REQUEST
         trade_id    = content.get('trade_id')
         seller_id   = content.get('sellerId')
-
         try:
             merge_trade = MergeTrade.objects.get(id=trade_id)
         except MergeTrade.DoesNotExist:
@@ -788,12 +784,9 @@ class DirectOrderView(ModelView):
     
     def get(self, request, *args, **kwargs):
         
-        trades  = MergeTrade.objects.filter(type=pcfg.DIRECT_TYPE,sys_status='',user=None)
-        if trades.count()==0:
-            trade   = MergeTrade.objects.create(type=pcfg.DIRECT_TYPE,status=pcfg.WAIT_SELLER_SEND_GOODS)
-        else:
-            trade = trades[0]
-            trade.merge_trade_orders.all().delete()
+        content = request.REQUEST
+        type    = content.get('type','')
+        trade   = MergeTrade.objects.create(type=type,status=pcfg.WAIT_SELLER_SEND_GOODS)
         sellers = User.objects.all()
         
         return {'trade':trade,'sellers':sellers}
@@ -874,7 +867,7 @@ class TradeSearchView(ModelView):
             trade_dict['buyer_nick'] = trade.buyer_nick
             trade_dict['post_fee']   = trade.post_fee
             trade_dict['payment']    = trade.payment
-            trade_dict['total_num']  = trade.total_num
+            trade_dict['total_num']  = trade.order_num
             trade_dict['pay_time']   = trade.pay_time
             trade_dict['consign_time']   = trade.consign_time
             

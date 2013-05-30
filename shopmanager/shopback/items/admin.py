@@ -174,7 +174,8 @@ class ProductAdmin(admin.ModelAdmin):
             pull_dict = {'outer_id':prod.outer_id,'name':prod.name}
             try:
                 for sku in prod.prod_skus.all():
-                    PinPaiTuan.objects.get_or_create(outer_id=prod.outer_id,outer_sku_id=sku.outer_id)
+                    prod_sku_name = '%s--%s'%(prod.name,sku.properties_alias or sku.properties_name)
+                    PinPaiTuan.objects.get_or_create(outer_id=prod.outer_id,outer_sku_id=sku.outer_id,prod_sku_name=prod_sku_name)
             except Exception,exc:
                 pull_dict['success']=False
                 pull_dict['errmsg']=exc.message or '%s'%exc  

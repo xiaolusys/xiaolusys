@@ -100,7 +100,7 @@ class Command(DaemonCommand):
             elif code == 104:
                 self.fail_wait_time = 0
         except Exception,exc:
-            logger.error(exc.message.strip() or 'empty error',exc_info=True)
+            logger.warn(exc.message.strip() or 'empty error')
         
 
     def save_message(self,item):

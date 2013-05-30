@@ -59,7 +59,8 @@ def saveUserDuringOrdersTask(user_id,update_from=None,update_to=None,status=None
         raise saveUserDuringOrdersTask.retry(exc=exc,countdown=60)
     else: 
         wait_update_trades = MergeTrade.objects.filter(status=pcfg.WAIT_SELLER_SEND_GOODS)\
-            .exclude(tid__in=update_tids).exclude(type__in=(pcfg.DIRECT_TYPE,pcfg.EXCHANGE_TYPE,pcfg.FENXIAO_TYPE))
+            .exclude(tid__in=update_tids).exclude(type__in=(pcfg.DIRECT_TYPE,pcfg.REISSUE_TYPE,
+                                                    pcfg.EXCHANGE_TYPE,pcfg.FENXIAO_TYPE,''))
         for trade in wait_update_trades:
             user_id = trade.user.visitor_id
             try:

@@ -84,10 +84,13 @@
   <body>
 	<div class="content-main">
 		<fieldset>
-			<legend><h1 class="head-title" >内售订单</h1></legend>
+			<legend><h1 class="head-title" >{% if trade.type == "direct" %}内售{% elif trade.type == "reissue" %}补发{% endif %}订单</h1></legend>
 			
 			<div class="content-base-info">
-				<div><input type="hidden" id="id_direct_trade" value="{{ trade.id }}" /></div>
+				<div>
+					<input type="hidden" id="id_direct_trade" value="{{ trade.id }}" />
+					<input type="hidden" id="id_trade_type" value="{{ trade.type }}" />
+				</div>
 				<table class="table table-bordered table-striped table-condensed">
 					<tr>
 						<td>所属店铺:</td>
@@ -111,14 +114,18 @@
 					</tr>
 					<tr>
 						<td>详细地址:</td><td colspan="3"><input type="text" id="id_receiver_address" class="simple-text" style="width:400px;" /></td>
+						{% if trade.type == "direct" %}
 						<td>实付:</td><td><input type="text" id="id_payment" class="simple-text" /></td>
 						<td>邮费:</td><td><input type="text" id="id_post_fee" class="simple-text" /></td>
+						{% elif %}
+						<td colspan="4"></td>
+						{% endif %}
 					</tr>
 					<tr>
 						<td colspan="6"></td>
 						<td colspan="2">
 							<button id="id_save_trade" class="btn btn-small btn-success">保存 +</button>&nbsp;&nbsp;
-							<a href="/admin/trades/mergetrade/?q={{ trade.id }}&type__exact=direct" class="btn btn-small btn-success">审核 -></a>
+							<a href="/admin/trades/mergetrade/?q={{ trade.id }}&type__exact={{ trade.type }}" class="btn btn-small btn-success">审核 -></a>
 						</td>
 					</tr>
 				</table>
@@ -127,7 +134,7 @@
 			<div class="order-content">
 				<div class="up-orders-panel">
 					<h3 class="head-title" id="id-return-head">
-						<img src="{{ STATIC_URL }}img/tri_right.png" style="cursor:pointer;margin-right:5px;"></img>内售单列表</h3>
+						<img src="{{ STATIC_URL }}img/tri_right.png" style="cursor:pointer;margin-right:5px;"></img>订单列表</h3>
 					<div id="id-return-goods">
 						<table id="id-return-table" class="table table-bordered table-striped table-condensed">
 							<thead>
