@@ -114,8 +114,12 @@
 					</tr>
 					<tr>
 						<td>详细地址:</td><td colspan="3"><input type="text" id="id_receiver_address" class="simple-text" style="width:400px;" /></td>
+						{% if trade.type == "direct" %}
 						<td>实付:</td><td><input type="text" id="id_payment" class="simple-text" /></td>
 						<td>邮费:</td><td><input type="text" id="id_post_fee" class="simple-text" /></td>
+						{% elif %}
+						<td colspan="4"></td>
+						{% endif %}
 					</tr>
 					<tr>
 						<td colspan="6"></td>

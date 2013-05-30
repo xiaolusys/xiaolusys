@@ -271,7 +271,7 @@ def rule_match_payment(sender, trade_id, *args, **kwargs):
                         log_action(trade.user.user.id,trade,CHANGE,msg)
                     break
                 
-            MergeTrade.objects.filter(id=trade_id).update(total_num=orders.filter(sys_status=pcfg.IN_EFFECT).count(),payment=payment)
+            MergeTrade.objects.filter(id=trade_id).update(order_num=orders.filter(sys_status=pcfg.IN_EFFECT).count(),payment=payment)
         except Exception,exc:
             logger.error(exc.message or 'payment rule error',exc_info=True)
             trade.append_reason_code(pcfg.PAYMENT_RULE_ERROR_CODE)

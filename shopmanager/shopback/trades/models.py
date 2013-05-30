@@ -120,7 +120,7 @@ class MergeTrade(models.Model):
     type       = models.CharField(max_length=32,choices=TRADE_TYPE,blank=True,verbose_name='订单类型')
     shipping_type = models.CharField(max_length=12,blank=True,choices=SHIPPING_TYPE_CHOICE,verbose_name='物流方式')
     
-    total_num  =   models.IntegerField(null=True,default=0,verbose_name='单数')
+    order_num  =   models.IntegerField(default=0,verbose_name='单数')
     payment    =   models.CharField(max_length=10,blank=True,verbose_name='实付款')
     discount_fee = models.CharField(max_length=10,blank=True,verbose_name='折扣')
     adjust_fee =   models.CharField(max_length=10,blank=True,verbose_name='调整费用')
@@ -707,7 +707,7 @@ def refresh_trade_status(sender,instance,*args,**kwargs):
     
     total_num     = merge_trade.merge_trade_orders.filter(status__in=(pcfg.WAIT_SELLER_SEND_GOODS
                   ,pcfg.WAIT_BUYER_CONFIRM_GOODS,pcfg.TRADE_FINISHED),sys_status=pcfg.IN_EFFECT).count()
-    merge_trade.total_num = total_num
+    merge_trade.order_num = total_num
     if merge_trade.status in(pcfg.WAIT_SELLER_SEND_GOODS,pcfg.WAIT_BUYER_CONFIRM_GOODS):
         has_refunding  = merge_trade.has_trade_refunding()
         out_stock      = merge_trade.merge_trade_orders.filter(out_stock=True,sys_status=pcfg.IN_EFFECT).count()>0
@@ -729,7 +729,7 @@ def refresh_trade_status(sender,instance,*args,**kwargs):
          not in (pcfg.DIRECT_TYPE,pcfg.REISSUE_TYPE,pcfg.EXCHANGE_TYPE):
         merge_trade.sys_status = pcfg.WAIT_PREPARE_SEND_STATUS
         
-    update_model_feilds(merge_trade,update_fields=['total_num','has_refund','has_out_stock',
+    update_model_feilds(merge_trade,update_fields=['order_num','has_refund','has_out_stock',
                             'has_rule_match','has_merge','sys_status'])
         
 post_save.connect(refresh_trade_status, sender=MergeOrder)
@@ -1009,8 +1009,8 @@ def trade_download_controller(merge_trade,trade,trade_from,first_pay_load):
             #设置订单匹配属性   
             merge_trade.has_rule_match = is_rule_match
             
-            merge_trade.is_force_wlb = trade.is_force_wlb or (
-                merge_trade.trade_from&MergeTrade.trade_from.JHS and merge_trade.judge_jhs_wlb())
+            merge_trade.is_force_wlb = getattr(trade,'is_force_wlb',False) or \
+                (merge_trade.trade_from&MergeTrade.trade_from.JHS and merge_trade.judge_jhs_wlb())
             #标记物流宝发货订单
             if merge_trade.is_force_wlb:
                 merge_trade.append_reason_code(pcfg.TRADE_BY_WLB_CODE)

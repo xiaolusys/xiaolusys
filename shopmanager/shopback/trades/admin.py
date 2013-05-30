@@ -139,7 +139,7 @@ class MergeTradeAdmin(admin.ModelAdmin):
     fieldsets =(('订单基本信息:', {
                     'classes': ('collapse',),
                     'fields': (('tid','user','type','status','seller_id')
-                               ,('buyer_nick','seller_nick','total_num','trade_from')
+                               ,('buyer_nick','seller_nick','order_num','trade_from')
                                ,('total_fee','payment','discount_fee','adjust_fee','post_fee')
                                ,('seller_cod_fee','buyer_cod_fee','cod_fee','cod_status','alipay_no')
                                ,('is_brand_sale','is_force_wlb','buyer_rate','seller_rate','seller_can_rate'

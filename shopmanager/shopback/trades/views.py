@@ -867,7 +867,7 @@ class TradeSearchView(ModelView):
             trade_dict['buyer_nick'] = trade.buyer_nick
             trade_dict['post_fee']   = trade.post_fee
             trade_dict['payment']    = trade.payment
-            trade_dict['total_num']  = trade.total_num
+            trade_dict['total_num']  = trade.order_num
             trade_dict['pay_time']   = trade.pay_time
             trade_dict['consign_time']   = trade.consign_time
             
