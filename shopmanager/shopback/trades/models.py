@@ -121,6 +121,7 @@ class MergeTrade(models.Model):
     shipping_type = models.CharField(max_length=12,blank=True,choices=SHIPPING_TYPE_CHOICE,verbose_name='物流方式')
     
     order_num  =   models.IntegerField(default=0,verbose_name='单数')
+    prod_num   =   models.IntegerField(default=0,verbose_name='品类数')
     payment    =   models.CharField(max_length=10,blank=True,verbose_name='实付款')
     discount_fee = models.CharField(max_length=10,blank=True,verbose_name='折扣')
     adjust_fee =   models.CharField(max_length=10,blank=True,verbose_name='调整费用')
@@ -705,13 +706,17 @@ def refresh_trade_status(sender,instance,*args,**kwargs):
         
         update_model_feilds(instance,update_fields=['seller_nick','buyer_nick','created','pay_time'])
     
-    order_num     = merge_trade.merge_trade_orders.filter(status__in=(pcfg.WAIT_SELLER_SEND_GOODS
-                  ,pcfg.WAIT_BUYER_CONFIRM_GOODS,pcfg.TRADE_FINISHED),sys_status=pcfg.IN_EFFECT).count()#.values_list('outer_id').distinct()
+    effect_orders = merge_trade.merge_trade_orders.filter(sys_status=pcfg.IN_EFFECT)
+    order_num     = effect_orders.count()#
     merge_trade.order_num = order_num
+    
+    prod_num      = effect_orders.values_list('outer_id').distinct().count()
+    merge_trade.prod_num = prod_num
+    
     if merge_trade.status in(pcfg.WAIT_SELLER_SEND_GOODS,pcfg.WAIT_BUYER_CONFIRM_GOODS):
         has_refunding  = merge_trade.has_trade_refunding()
-        out_stock      = merge_trade.merge_trade_orders.filter(out_stock=True,sys_status=pcfg.IN_EFFECT).count()>0
-        has_rule_match = merge_trade.merge_trade_orders.filter(is_rule_match=True,sys_status=pcfg.IN_EFFECT).count()>0
+        out_stock      = effect_orders.filter(out_stock=True).count()>0
+        has_rule_match = effect_orders.filter(is_rule_match=True).count()>0
         
         merge_trade.has_refund = has_refunding
         merge_trade.has_out_stock = out_stock
@@ -720,8 +725,7 @@ def refresh_trade_status(sender,instance,*args,**kwargs):
         if not out_stock:
             merge_trade.remove_reason_code(pcfg.OUT_GOOD_CODE)    
         
-    has_merge     = merge_trade.merge_trade_orders.filter(is_merge=True,
-                    status__in=(pcfg.WAIT_SELLER_SEND_GOODS,pcfg.WAIT_BUYER_CONFIRM_GOODS)).count()>0
+    has_merge     = effect_orders.filter(is_merge=True).count()>0
     merge_trade.has_merge = has_merge
     
     if not merge_trade.reason_code and merge_trade.status==pcfg.WAIT_SELLER_SEND_GOODS and merge_trade.logistics_company\
