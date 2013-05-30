@@ -121,3 +121,6 @@ tradetag.Manager.prototype.getDialogContent = function() {
   		+'<div><textarea id="id_sys_memo" class="trade_memo"></textarea></div></div></div>';
 }
 
+//tradetag.Manager.prototype.getScheduleDialog
+
+
