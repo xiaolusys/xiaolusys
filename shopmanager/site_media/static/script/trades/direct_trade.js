@@ -339,10 +339,10 @@ direct.Manager.prototype.saveBuyerInfo = function(e){
 		return;
 	}
 	var trade_type = goog.dom.getElement('id_trade_type').value;
-	var payment    = goog.dom.getElement('id_payment').value;
-	var post_fee   = goog.dom.getElement('id_post_fee').value;
 	var re = /^[0-9]+.?[0-9]*$/;
 	if (trade_type == 'direct'){
+		var payment    = goog.dom.getElement('id_payment').value;
+		var post_fee   = goog.dom.getElement('id_post_fee').value;
 		if (!re.test(payment)||!re.test(post_fee)){
 			alert('请填写正确的金额跟邮费');
 			return;
