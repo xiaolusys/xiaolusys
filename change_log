@@ -1,5 +1,6 @@
 ######### 2013-5-30 ###########
-alter table shop_trades_mergetrade change column total_num order_num  int(11) DEFAULT 0;
+alter table shop_trades_mergetrade add column order_num  int(11) DEFAULT 0;
+alter table shop_trades_mergetrade add column prod_num   int(11) DEFAULT 0;
 ######### 2013-5-29 ###########
 alter table shop_juhuasuan_pinpaituan add column prod_sku_name varchar(128) NOT NULL;
 ######### 2013-5-28 ###########

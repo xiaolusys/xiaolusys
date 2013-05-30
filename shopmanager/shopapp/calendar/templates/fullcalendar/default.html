@@ -324,16 +324,7 @@
 				return;
 			}
 			$.each(data.response_content, function(index, e) {
-		         var event = {
-		         	'id':e.id,
-		         	'title':e.title+(e.is_finished?' √':''),
-		         	'start':e.start,
-		         	'end':e.end,
-		         	'allDay':false,
-		         	'creator':e.creator,
-		         	'executor':e.executor,
-		         };
-		         calendar.fullCalendar( 'renderEvent', event , true);
+				 customRenderEvent(calendar,e);
 		    });
 		};
 		

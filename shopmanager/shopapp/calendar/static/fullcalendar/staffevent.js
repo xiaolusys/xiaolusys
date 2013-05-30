@@ -1,3 +1,18 @@
+//自定义render事件展现
+var customRenderEvent = function(calendar,e){
+	 var color = e.is_finished?'#5BB75B':'#3a87ad';
+	 var event = {
+	 	'id':e.id,
+	 	'title':e.title,
+	 	'start':e.start,
+	 	'end':e.end,
+	 	'allDay':false,
+	 	'creator':e.creator,
+	    'executor':e.executor,
+	    'color':color
+	 };
+	 calendar.fullCalendar( 'renderEvent', event , true);
+}
 
 //添加员工事件
 var addStaffEvent = function(e){
@@ -26,16 +41,7 @@ var addStaffEvent = function(e){
 		}
 		var calendar = $('#calendar');
 		$.each(data.response_content, function(index, e) {
-	         var event = {
-	         	'id':e.id,
-	         	'title':e.executor+':'+e.title,
-	         	'start':e.start,
-	         	'end':e.end,
-	         	'allDay':false,
-	         	'creator':e.creator,
-		        'executor':e.executor,
-	         };
-	         calendar.fullCalendar( 'renderEvent', event , true);
+			 customRenderEvent(calendar,e);
 	    });
 	    $('#executors').val('');
 	    $('#event-content').val('');
@@ -63,6 +69,34 @@ var deleteStaffEvent = function(eventid){
 		}
 		//在日历上取消该事件
 	    $('#calendar').fullCalendar('removeEvents',eventid);
+	    $('#prompt-tip').hide();
+	};
+	
+	$.ajax({ 
+	    type: 'POST', 
+	    url: url, 
+	    data: {} , 
+	    dataType: 'json',
+	    success: callback,
+	});
+}
+
+//完成员工事件
+var completeStaffEvent = function(eventid){
+	var url = "/app/calendar/complete/"+eventid+"/";
+	
+	var callback = function(data){
+		if (data.code==1){
+			alert('删除失败！');
+			return;
+		}
+		
+		var calendar = $('#calendar');
+		//在日历上取消该事件
+	    $('#calendar').fullCalendar('removeEvents',eventid);
+		//重新render该事件
+	    customRenderEvent(calendar,data.response_content);
+	    
 	    $('#prompt-tip').hide();
 	};
 	
@@ -118,6 +152,10 @@ var initStaffEventTipDialog = function(){
 		var eventid = $(this).attr('eventid');
 		deleteStaffEvent(eventid);
 	});
+	$('#event-complete').click(function(e){
+		var eventid = $(this).attr('eventid');
+		completeStaffEvent(eventid);
+	});
 };
 
 //显示事件提示框
@@ -127,6 +165,7 @@ var showStaffEventTipDialog = function(event,pos){
 	$('#event-creator').html(event.creator);
 	$('#event-duration').html(getDurationDateString(event.start,event.end));
 	$('#event-delete').attr('eventid',event.id.toString());
+	$('#event-complete').attr('eventid',event.id.toString());
 	
 	var staffEventTipDiv = $('#prompt-tip');
 	staffEventTipDiv.show();

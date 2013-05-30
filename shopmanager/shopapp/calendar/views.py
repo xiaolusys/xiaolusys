@@ -7,7 +7,7 @@ from shopback.base import log_action,User as DjangoUser, ADDITION, CHANGE
 from djangorestframework.views import ModelView
 from djangorestframework.response import ErrorResponse
 from shopapp.calendar.models import StaffEvent
-from auth.utils import parse_datetime
+from auth.utils import parse_datetime,format_datetime
 
 
 def get_users_by_string(executor_strng):
@@ -42,6 +42,35 @@ def delete_staff_event(request,id):
         log_action(request.user.id,event,CHANGE,u'取消事件')
     else:
         ret = {'code':1,'response_error':'fail'}
+        
+    return HttpResponse(json.dumps(ret),mimetype="application/json")
+
+
+def complete_staff_event(request,id):
+    
+    try:
+        event = StaffEvent.objects.get(id=id)
+    except StaffEvent.DoesNotExist:
+        ret = {'code':1,'response_error':'未找到该事件'}
+    else:
+        event.is_finished=True
+        event.save()    
+    
+        ret = {'code':0,'response_content':{
+                          'id':event.id,
+                          'creator':event.creator.username,
+                          'executor':event.executor.username,
+                          'start':format_datetime(event.start),
+                          'end':format_datetime(event.end),
+                          'interval_day':event.interval_day,
+                          'title':event.title,
+                          'type':event.type,
+                          'created':format_datetime(event.created),
+                          'modified':format_datetime(event.modified),
+                          'is_finished':event.is_finished,
+                          }}
+        log_action(request.user.id,event,CHANGE,u'完成事件')
+
         
     return HttpResponse(json.dumps(ret),mimetype="application/json")
     
