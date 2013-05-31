@@ -85,6 +85,20 @@ TRADE_TYPE = (
     (pcfg.AUCTION_TYPE,'拍卖'),
 )
 
+COD_TYPE = (
+    (pcfg.COD_NEW_CREATED,'初始状态'),
+    (pcfg.COD_ACCEPTED_BY_COMPANY,'接单成功'),
+    (pcfg.COD_REJECTED_BY_COMPANY,'接单失败'),
+    (pcfg.COD_RECIEVE_TIMEOUT,'接单超时'),
+    (pcfg.COD_TAKEN_IN_SUCCESS,'揽收成功'),
+    (pcfg.COD_TAKEN_IN_FAILED,'揽收失败'),
+    (pcfg.COD_TAKEN_TIMEOUT,'揽收超时'),
+    (pcfg.COD_SIGN_IN,'签收成功'),
+    (pcfg.COD_REJECTED_BY_OTHER_SIDE,'签收失败'),
+    (pcfg.COD_WAITING_TO_BE_SENT,'订单等待发送给物流公司'),
+    (pcfg.COD_CANCELED,'用户取消物流订单'),
+)
+
 SHIPPING_TYPE_CHOICE = (
     (pcfg.EXPRESS_SHIPPING_TYPE,'快递'),
     (pcfg.POST_SHIPPING_TYPE,'平邮'),
@@ -132,7 +146,7 @@ class MergeTrade(models.Model):
     seller_cod_fee = models.CharField(max_length=10,blank=True,verbose_name='卖家货到付款费用')
     buyer_cod_fee  = models.CharField(max_length=10,blank=True,verbose_name='买家货到付款费用')
     cod_fee        = models.CharField(max_length=10,blank=True,verbose_name='货到付款费用')
-    cod_status     = models.CharField(max_length=32,blank=True,verbose_name='货到付款状态')
+    cod_status     = models.CharField(max_length=32,blank=True,choices=COD_TYPE,verbose_name='货到付款状态')
     
     weight        = models.CharField(max_length=10,blank=True,verbose_name='包裹重量')
     post_cost     = models.CharField(max_length=10,blank=True,verbose_name='物流成本')
@@ -163,7 +177,7 @@ class MergeTrade(models.Model):
     lg_aging       = models.DateTimeField(null=True,blank=True,verbose_name='速递送达时间')
     lg_aging_type  = models.CharField(max_length=20,blank=True,verbose_name='速递类型')
     
-    buyer_rate     = models.BooleanField(default=False,verbose_name='卖家已评')  
+    buyer_rate     = models.BooleanField(default=False,verbose_name='买家已评')  
     seller_rate    = models.BooleanField(default=False,verbose_name='卖家已评')  
     seller_can_rate = models.BooleanField(default=False,verbose_name='卖家可评') 
     is_part_consign = models.BooleanField(default=False,verbose_name='分单发货')  
@@ -733,7 +747,7 @@ def refresh_trade_status(sender,instance,*args,**kwargs):
          not in (pcfg.DIRECT_TYPE,pcfg.REISSUE_TYPE,pcfg.EXCHANGE_TYPE):
         merge_trade.sys_status = pcfg.WAIT_PREPARE_SEND_STATUS
         
-    update_model_feilds(merge_trade,update_fields=['order_num','has_refund','has_out_stock',
+    update_model_feilds(merge_trade,update_fields=['order_num','prod_num','has_refund','has_out_stock',
                             'has_rule_match','has_merge','sys_status'])
         
 post_save.connect(refresh_trade_status, sender=MergeOrder)

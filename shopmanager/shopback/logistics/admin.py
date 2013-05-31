@@ -1,8 +1,20 @@
 from django.contrib import admin
-from shopback.logistics.models import Logistics,LogisticsCompany
+from shopback.logistics.models import Logistics,LogisticsCompany,Area
 
 __author__ = 'meixqhi'
 
+
+class AreaAdmin(admin.ModelAdmin):
+    list_display = ('id','parent_id','type','name','zip')
+    list_display_links = ('id','name')
+
+    #date_hierarchy = 'created'
+    #ordering = ['created_at']
+
+    search_fields = ['id','parent_id','name','zip']
+
+
+admin.site.register(Area, AreaAdmin)
 
 
 class LogisticsCompanyAdmin(admin.ModelAdmin):

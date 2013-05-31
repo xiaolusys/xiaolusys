@@ -17,6 +17,30 @@ logger = logging.getLogger('logistics.handler')
 
 LOGISTICS_FINISH_STATUS = ['ACCEPTED_BY_RECEIVER']
 
+AREA_TYPE_CHOICES = (
+    (1,'country/国家'),
+    (2,'province/省/自治区/直辖市'),
+    (3,'city/地区'),
+    (4,'district/县/市/区'),
+)
+
+class Area(models.Model):
+    
+    id      = models.BigIntegerField(primary_key=True,verbose_name='地区编号')
+    parent_id = models.BigIntegerField(db_index=True,default=0,verbose_name='父级编号')
+    
+    type    = models.IntegerField(default=0,choices=AREA_TYPE_CHOICES,verbose_name='区域类型')
+    name    = models.CharField(max_length=64,blank=True,verbose_name='地域名称')
+    
+    zip     = models.CharField(max_length=10,blank=True,verbose_name='邮编')
+    
+    class Meta:
+        db_table = 'shop_logistics_area'
+        verbose_name=u'地理区域'
+
+    def __unicode__(self):
+        return '<%d,%d,%s,%s>'%(self.id,self.type,self.name,self.zip)
+
 
 class LogisticsCompany(models.Model):
     
@@ -31,7 +55,7 @@ class LogisticsCompany(models.Model):
     
     class Meta:
         db_table = 'shop_logistics_company'
-        verbose_name='物流公司'.decode('utf8')
+        verbose_name=u'物流公司'
 
     def __unicode__(self):
         return '<%s,%s>'%(self.code,self.name)
@@ -112,9 +136,10 @@ class Logistics(models.Model):
 
     class Meta:
         db_table = 'shop_logistics_logistic'
+        verbose_name=u'订单物流信息'
 
     def __unicode__(self):
-        return self.company_name
+        return '<%s,%s>'%(self.tid,self.company_name)
     
     @classmethod
     def get_or_create(cls,user_id,tid):
