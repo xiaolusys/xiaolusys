@@ -82,7 +82,7 @@ class User(models.Model):
         verbose_name_plural = u'店铺列表'
 
     def __unicode__(self):
-        return self.nick
+        return '<%s,%s>'%(self.visitor_id,self.nick)
 
     @property
     def stock_percent(self):
@@ -158,3 +158,33 @@ def add_taobao_user(sender, user,top_session,top_parameters, *args, **kwargs):
     
 taobao_logged_in.connect(add_taobao_user)
   
+class Customer(models.Model):
+    
+    user_id   = models.BigIntegerField(default=0,db_index=True,verbose_name='用户ID')
+    nick      = models.CharField(max_length=32,blank=True,verbose_name='昵称')
+    sex       = models.CharField(max_length=1,blank=True,verbose_name='性别')
+    
+    credit_level     = models.IntegerField(default=0,verbose_name='地区编号')
+    credit_score     = models.IntegerField(default=0,verbose_name='地区编号')
+    credit_total_num = models.IntegerField(default=0,verbose_name='地区编号')
+    credit_good_num  = models.IntegerField(default=0,verbose_name='地区编号')
+    
+    location_zip     = models.CharField(max_length=1,blank=True,verbose_name='邮编')
+    location_address = models.CharField(max_length=1,blank=True,verbose_name='邮编')
+    location_zip     = models.CharField(max_length=1,blank=True,verbose_name='邮编')
+    location_zip     = models.CharField(max_length=1,blank=True,verbose_name='邮编')
+    location_zip     = models.CharField(max_length=1,blank=True,verbose_name='邮编')
+    location_zip     = models.CharField(max_length=1,blank=True,verbose_name='邮编')
+    
+    created   =  models.DateTimeField(db_index=True,null=True,blank=True,verbose_name='创建日期')
+    
+    
+    class Meta:
+        db_table = 'shop_users_customer'
+        verbose_name= u'客户'
+        verbose_name_plural = u'客户列表'
+
+    def __unicode__(self):
+        return '<%s>'%(self.nick)
+    
+    
