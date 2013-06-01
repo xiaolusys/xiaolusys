@@ -351,7 +351,10 @@ class MergeTrade(models.Model):
                     pcfg.PAYMENT_RULE_ERROR_CODE,pcfg.MERGE_TRADE_ERROR_CODE,
                     pcfg.OUTER_ID_NOT_MAP_CODE):
             self.has_sys_err = True
-        update_model_feilds(self,update_fields=['reason_code','has_sys_err'])
+        if self.sys_status in (pcfg.WAIT_CHECK_BARCODE_STATUS or pcfg.WAIT_SCAN_WEIGHT_STATUS) and self.can_review:
+            self.can_review = False
+            log_action(self.user.user.id,self,CHANGE,u'订单有新问题(%s)，取消复审'%self.reason_code)
+        update_model_feilds(self,update_fields=['reason_code','has_sys_err','can_review'])
         
         rows = MergeTrade.objects.filter(id=self.id,sys_status=pcfg.WAIT_PREPARE_SEND_STATUS,out_sid='')\
             .update(sys_status=pcfg.WAIT_AUDIT_STATUS)
