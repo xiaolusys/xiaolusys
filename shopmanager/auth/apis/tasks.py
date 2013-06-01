@@ -28,7 +28,7 @@ API_FIELDS = {
     'taobao.user.seller.get':'user_id,uid,nick,sex,buyer_credit,seller_credit,location,created,last_visit,'
          +'birthday,type,has_more_pic,item_img_num,item_img_size,prop_img_num,prop_img_size,auto_repost,'
          +'promoted_type,status,alipay_bind,consumer_protection,alipay_account,alipay_no',
-    
+    'taobao.user.buyer.get':'user_id,nick,sex,buyer_credit,avatar,has_shop,vip_info',
     'taobao.itemcats.authorize.get':'brand.vid, brand.name, item_cat.cid, item_cat.name, item_cat.status,'
          +'item_cat.sort_order,item_cat.parent_cid,item_cat.is_parent,xinpin_item_cat.cid, xinpin_item_cat.name,'
          +'xinpin_item_cat.status, xinpin_item_cat.sort_order, xinpin_item_cat.parent_cid, xinpin_item_cat.is_parent',
@@ -267,6 +267,10 @@ def apis(api_method,method='GET',max_retry=3,limit_rate=0.5):
 ############# user apis ###################
 @apis('taobao.user.seller.get')
 def taobao_user_seller_get(fields=API_FIELDS['taobao.user.seller.get'],tb_user_id=None):
+    pass
+
+@apis('taobao.user.buyer.get')
+def taobao_user_buyer_get(nicks=None,fields=API_FIELDS['taobao.user.buyer.get'],tb_user_id=None):
     pass
 
 @apis('taobao.users.get')

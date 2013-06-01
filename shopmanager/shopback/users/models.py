@@ -158,26 +158,36 @@ def add_taobao_user(sender, user,top_session,top_parameters, *args, **kwargs):
     
 taobao_logged_in.connect(add_taobao_user)
   
+  
 class Customer(models.Model):
     
     user_id   = models.BigIntegerField(default=0,db_index=True,verbose_name='用户ID')
     nick      = models.CharField(max_length=32,blank=True,verbose_name='昵称')
     sex       = models.CharField(max_length=1,blank=True,verbose_name='性别')
+    avatar    = models.CharField(max_length=32,blank=True,verbose_name='头像')
     
     credit_level     = models.IntegerField(default=0,verbose_name='地区编号')
     credit_score     = models.IntegerField(default=0,verbose_name='地区编号')
     credit_total_num = models.IntegerField(default=0,verbose_name='地区编号')
     credit_good_num  = models.IntegerField(default=0,verbose_name='地区编号')
     
-    location_zip     = models.CharField(max_length=1,blank=True,verbose_name='邮编')
-    location_address = models.CharField(max_length=1,blank=True,verbose_name='邮编')
-    location_zip     = models.CharField(max_length=1,blank=True,verbose_name='邮编')
-    location_zip     = models.CharField(max_length=1,blank=True,verbose_name='邮编')
-    location_zip     = models.CharField(max_length=1,blank=True,verbose_name='邮编')
-    location_zip     = models.CharField(max_length=1,blank=True,verbose_name='邮编')
+    zip       = models.CharField(max_length=10,blank=True,verbose_name='邮编')
+    address   = models.CharField(max_length=128,blank=True,verbose_name='地址')
+    city      = models.CharField(max_length=16,blank=True,verbose_name='城市')
+    state     = models.CharField(max_length=16,blank=True,verbose_name='省')
+    country   = models.CharField(max_length=16,blank=True,verbose_name='国家')
+    district  = models.CharField(max_length=16,blank=True,verbose_name='地区')
     
-    created   =  models.DateTimeField(db_index=True,null=True,blank=True,verbose_name='创建日期')
+    phone     = models.CharField(max_length=20,blank=True,verbose_name='电话')
+    mobile    = models.CharField(max_length=20,blank=True,verbose_name='手机')
     
+    created   = models.DateTimeField(db_index=True,null=True,blank=True,verbose_name='创建日期')
+    birthday  = models.DateTimeField(db_index=True,null=True,blank=True,verbose_name='创建日期')
+    
+    vip_info  = models.CharField(max_length=3,blank=True,verbose_name='等级')
+    email     = models.CharField(max_length=32,blank=True,verbose_name='邮箱')
+    
+    status    = models.CharField(max_length=12,blank=True,choices=USER_STATUS_CHOICES,verbose_name='状态')
     
     class Meta:
         db_table = 'shop_users_customer'
