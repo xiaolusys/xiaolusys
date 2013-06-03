@@ -556,15 +556,24 @@ class MergeTrade(models.Model):
             return False
         
     @classmethod
+    def get_merge_queryset(cls,buyer_nick,receiver_name,receiver_mobile):
+        
+        q = Q(receiver_name=receiver_name,buyer_nick=buyer_nick)
+        if receiver_mobile:
+            q = q|Q(receiver_mobile=receiver_mobile)|Q(receiver_phone=receiver_mobile)
+        
+        trades = cls.objects.filter(q)
+        
+        return trades
+        
+    @classmethod
     def judge_need_merge(cls,trade_id,buyer_nick,receiver_name,receiver_mobile):
         #是否需要合单 
         if not receiver_name:   
             return False  
-        q = Q(receiver_name=receiver_name,buyer_nick=buyer_nick)
-        if receiver_mobile:
-            q = q|Q(receiver_mobile=receiver_mobile)|Q(receiver_phone=receiver_mobile)
             
-        trades = cls.objects.filter(q).exclude(id=trade_id).exclude(
+        queryset = cls.get_merge_queryset(buyer_nick,receiver_name,receiver_mobile)
+        trades = queryset.exclude(id=trade_id).exclude(
                     sys_status__in=('',pcfg.FINISHED_STATUS,pcfg.INVALID_STATUS))
         is_need_merge = False
         
@@ -574,7 +583,8 @@ class MergeTrade(models.Model):
             is_need_merge = True
 
         return is_need_merge
-
+    
+    
     @classmethod
     def judge_need_pull(cls,trade_id,modified):
         #judge is need to pull trade from taobao
@@ -836,7 +846,14 @@ def merge_order_maker(sub_tid,main_tid):
     MergeBuyerTrade.objects.get_or_create(sub_tid=sub_tid,main_tid=main_tid) 
     sub_trade.append_reason_code(pcfg.NEW_MERGE_TRADE_CODE)
     
-    main_merge_trade.remove_reason_code(pcfg.MULTIPLE_ORDERS_CODE)
+
+    #判断是否还有订单需要合并,如果没有，则去掉需合单问题编号
+    queryset = MergeTrade.get_merge_queryset(main_merge_trade.buyer_nick,main_merge_trade.receiver_name,
+                                main_merge_trade.receiver_mobile or main_merge_trade.receiver_phone)
+    if queryset.filter(sys_status__in=(pcfg.WAIT_AUDIT_STATUS,pcfg.REGULAR_REMAIN_STATUS))\
+        .exclude(id__in=(sub_trade.id,main_merge_trade.id)).count()==0:
+        main_merge_trade.remove_reason_code(pcfg.MULTIPLE_ORDERS_CODE)
+        
     sub_trade.remove_reason_code(pcfg.MULTIPLE_ORDERS_CODE)
     
     log_action(main_merge_trade.user.user.id,main_merge_trade,CHANGE,u'订单合并成功（%s,%s）'%(main_tid,sub_tid))
