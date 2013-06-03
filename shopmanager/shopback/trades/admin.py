@@ -318,6 +318,16 @@ class MergeTradeAdmin(admin.ModelAdmin):
                 msg = u"订单不在待扫描验货或待扫描称重，不能修改为已完成状态"
             self.message_user(request, msg)
             return HttpResponseRedirect("../%s/" % pk_value)
+        elif request.POST.has_key("_rescan"):
+            if obj.sys_status == pcfg.FINISHED_STATUS:
+                obj.sys_status = pcfg.WAIT_CHECK_BARCODE_STATUS
+                obj.save()
+                msg = u'%(name)s "%(obj)s" 订单进入重新扫描状态.'% {'name': force_unicode(verbose_name), 'obj': force_unicode(obj)} 
+                log_action(request.user.id,obj,CHANGE,msg)
+            else:
+                msg = u"订单不在已完成，不能修改为待扫描状态"
+            self.message_user(request, msg)
+            return HttpResponseRedirect("../%s/" % pk_value)
         
         return super(MergeTradeAdmin, self).response_change(request, obj, *args, **kwargs)
     

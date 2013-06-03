@@ -37,21 +37,13 @@ RAVEN_CONFIG = {
     'register_signals': True,
 }
 
-#SITE_URL = "http://192.168.1.133/" 
+SITE_URL = "http://192.168.1.133/" 
 
-SITE_URL = 'http://qiyue.f3322.org/' 
+#SITE_URL = 'http://qiyue.f3322.org/' 
 
-#APPKEY  = '21196642' #super erp test3,younishijie
-#APPSECRET = '027fd632d388f2391a06b40cf292519c'
 
-#APPKEY  = '12651489' #meixqhi,erp manager
-#APPSECRET = 'c31214c3060c888c35e410d5f71112d7'
-
-#APPKEY = '21165266'  #app name huyi ERP ,younishijie
-#APPSECRET  = 'ea5f5687a856ec58199d538cfa04496d'
-
-#APPKEY = '12686908'   #app name super ERP ,younishijie
-#APPSECRET = 'b3ddef5982a23c636739289949c01f59'
+#APPKEY = '21532915'   #app name super ERP test ,younixiaoxiao
+#APPSECRET = '7232a740a644ee9ad370b08a1db1cf2d'
 
 APPKEY = '12545735'   #app name guanyi erp ,younishijie
 APPSECRET = '2b966d4f5f05d201a48a75fe8b5251af'
