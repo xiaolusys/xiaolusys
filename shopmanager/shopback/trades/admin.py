@@ -139,7 +139,7 @@ class MergeTradeAdmin(admin.ModelAdmin):
     fieldsets =(('订单基本信息:', {
                     'classes': ('collapse',),
                     'fields': (('tid','user','type','status','seller_id')
-                               ,('buyer_nick','seller_nick','order_num','prod_num','trade_from')
+                               ,('buyer_nick','order_num','prod_num','trade_from')
                                ,('total_fee','payment','discount_fee','adjust_fee','post_fee')
                                ,('seller_cod_fee','buyer_cod_fee','cod_fee','cod_status','alipay_no')
                                ,('is_brand_sale','is_force_wlb','buyer_rate','seller_rate','seller_can_rate'
@@ -643,12 +643,14 @@ admin.site.register(MergeBuyerTrade,MergeBuyerTradeAdmin)
 
 
 class ReplayPostTradeAdmin(admin.ModelAdmin):
-    list_display = ('id','operator','order_num','created','finished')
+    list_display = ('id','operator','order_num','succ_num','receiver','created','finished','rece_date','check_date','status')
     #list_editable = ('update_time','task_type' ,'is_success','status')
 
     date_hierarchy = 'created'
     #ordering = ['created_at']
-    search_fields = ['operator','id']
+    
+    search_fields = ['id','operator','receiver','succ_ids']
+    list_filter = ('status',)
     
     def replay_post(self, request, queryset):
         try:
@@ -658,12 +660,35 @@ class ReplayPostTradeAdmin(admin.ModelAdmin):
         else:
             from shopback.trades.tasks import get_replay_results
             reponse_result = get_replay_results(replay_trade)
+            reponse_result['post_no'] = reponse_result.get('post_no',None) or replay_trade.id 
             
         return render_to_response('trades/trade_post_success.html',reponse_result,
                                   context_instance=RequestContext(request),mimetype="text/html")
     
     replay_post.short_description = "重现发货清单".decode('utf8')
     
-    actions = ['replay_post']
+    def check_post(self, request, queryset):
+        
+        if queryset.count() != 1:
+            return HttpResponse('<body style="text-align:center;"><h1>你只能对单条记录操作，请返回重新选择</h1></body>') 
+        replay_trade = queryset[0]
+        
+        trade_ids = replay_trade.succ_ids.split(',')
+        trade_ids = [ int(id) for id in trade_ids if id ]
+        wait_scan_trades  = MergeTrade.objects.filter(id__in=trade_ids,sys_status__in=
+                            (pcfg.WAIT_CHECK_BARCODE_STATUS,pcfg.WAIT_SCAN_WEIGHT_STATUS))
+        
+        is_success = wait_scan_trades.count()==0 
+        if is_success:
+            replay_trade.status     = pcfg.RP_ACCEPT_STATUS
+            replay_trade.check_date = datetime.datetime.now()
+            replay_trade.save()
+        
+        return render_to_response('trades/trade_accept_check.html',{'trades':wait_scan_trades,'is_success':is_success},
+                                  context_instance=RequestContext(request),mimetype="text/html")
+    
+    check_post.short_description = "验证是否完成".decode('utf8')
+    
+    actions = ['replay_post','check_post']
 
 admin.site.register(ReplayPostTrade,ReplayPostTradeAdmin)

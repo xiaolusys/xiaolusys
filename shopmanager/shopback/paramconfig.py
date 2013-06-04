@@ -35,6 +35,12 @@ TF_TOP    = 'TOP'    #商城
 TF_TAOBAO = 'TAOBAO' #普通淘宝
 TF_JHS    = 'JHS'    #聚划算
 
+#发货批次状态
+RP_INITIAL_STATUS     = 0
+RP_WAIT_ACCEPT_STATUS = 1
+RP_WAIT_CHECK_STATUS  = 2
+RP_ACCEPT_STATUS  = 3
+RP_CANCEL_STATUS  = 4
 
 #物流类型
 EXPRESS_SHIPPING_TYPE = 'express' #快递

@@ -100,8 +100,12 @@ def get_replay_results(replay_trade):
             trade_dict['sys_status'] = trade.sys_status
             trades.append(trade_dict)
         
-        reponse_result = {'trades':trades,'trade_items':trade_list}
+        reponse_result = {'trades':trades,'trade_items':trade_list,'post_no':replay_trade.id}
+        
+        replay_trade.succ_ids  = ','.join([str(t.id) for t in post_trades])
+        replay_trade.succ_num  = post_trades.count()
         replay_trade.post_data = json.dumps(reponse_result)
+        replay_trade.status    = pcfg.RP_WAIT_ACCEPT_STATUS
         replay_trade.finished  = datetime.datetime.now()
         replay_trade.save()
     else:
@@ -118,7 +122,7 @@ def sendTradeCallBack(trade_ids,*args,**kwargs):
         try:
             get_replay_results(replay_trade)
         except Exception,exc:
-            logger.error(exc.message or 'empty error',exc_info=True)
+            logger.error('trade post callback error:%s'%exc.message,exc_info=True)
         return None
         
         

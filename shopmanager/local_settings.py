@@ -37,9 +37,9 @@ RAVEN_CONFIG = {
     'register_signals': True,
 }
 
-SITE_URL = "http://192.168.1.133/" 
+#SITE_URL = "http://192.168.1.133/" 
 
-#SITE_URL = 'http://qiyue.f3322.org/' 
+SITE_URL = 'http://qiyue.f3322.org/' 
 
 
 #APPKEY = '21532915'   #app name super ERP test ,younixiaoxiao

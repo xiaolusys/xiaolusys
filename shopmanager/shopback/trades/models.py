@@ -1014,7 +1014,9 @@ def trade_download_controller(merge_trade,trade,trade_from,first_pay_load):
             
             if shipping_type.lower() == pcfg.EXPRESS_SHIPPING_TYPE.lower():
                 receiver_state = merge_trade.receiver_state
-                default_company = LogisticsCompany.get_recommend_express(receiver_state)
+                receiver_city  = merge_trade.receiver_city
+                receiver_district  = merge_trade.receiver_district
+                default_company = LogisticsCompany.get_recommend_express(receiver_state,receiver_city,receiver_district)
                 merge_trade.logistics_company = default_company
             elif shipping_type in (pcfg.POST_SHIPPING_TYPE,pcfg.EMS_SHIPPING_TYPE):
                 post_company = LogisticsCompany.objects.get(code=shipping_type.upper())
@@ -1070,7 +1072,8 @@ def trade_download_controller(merge_trade,trade,trade_from,first_pay_load):
             if is_need_merge and main_tid:
                 main_trade = MergeTrade.objects.get(tid=main_tid)
                 if not main_trade.logistics_company:
-                    main_trade.logistics_company = LogisticsCompany.get_recommend_express(main_trade.receiver_state)
+                    main_trade.logistics_company = LogisticsCompany.get_recommend_express(
+                            main_trade.receiver_state,main_trade.receiver_city,main_trade.receiver_district)
                     main_trade.save()
                 merge_trade.logistics_company = main_trade.logistics_company
 
@@ -1121,9 +1124,9 @@ def trade_download_controller(merge_trade,trade,trade_from,first_pay_load):
             merge_trade.sys_status = pcfg.INVALID_STATUS
     #如果淘宝订单状态已改变，而系统内部状态非最终状态，则将订单作废        
     elif merge_trade.sys_status:
-        if merge_trade.sys_status not in (pcfg.FINISHED_STATUS,pcfg.INVALID_STATUS):
-            merge_trade.sys_status = pcfg.INVALID_STATUS  
+        if merge_trade.sys_status not in (pcfg.FINISHED_STATUS,pcfg.INVALID_STATUS): 
             merge_trade.append_reason_code(pcfg.INVALID_END_CODE)
+            merge_trade.sys_status = pcfg.INVALID_STATUS
     #更新系统订单状态
     MergeTrade.objects.filter(tid=trade.id).update(
             buyer_message = merge_trade.buyer_message,
@@ -1368,22 +1371,41 @@ def save_fenxiao_orders_to_mergetrade(sender, trade, *args, **kwargs):
 merge_trade_signal.connect(save_fenxiao_orders_to_mergetrade,sender=PurchaseOrder,dispatch_uid='merge_purchaseorder')
 
 
+REPLAY_TRADE_STATUS = (
+    (pcfg.RP_INITIAL_STATUS,'初始状态'),
+    (pcfg.RP_WAIT_ACCEPT_STATUS,'待接单'),
+    (pcfg.RP_WAIT_CHECK_STATUS,'待验单'),
+    (pcfg.RP_ACCEPT_STATUS,'已验单'),
+    (pcfg.RP_CANCEL_STATUS,'已作废'),
+)
+
 class ReplayPostTrade(models.Model):
-    #重现发货表单
-    operator   =  models.CharField(max_length=32,verbose_name='操作员')
+    """ 重现发货表单 """
+    
+    operator   =  models.CharField(max_length=32,db_index=True,verbose_name='发货人')
     
     post_data  =  models.TextField(blank=True,verbose_name='发货清单数据')
-    order_num  =  models.BigIntegerField(default=0,verbose_name='订单数')
     
-    trade_ids  =  models.CharField(max_length=2000,verbose_name='订单编号')
+    order_num  =  models.BigIntegerField(default=0,verbose_name='发货单数')
+    trade_ids  =  models.CharField(blank=True,max_length=2000,verbose_name='订单编号')
     
-    created    =  models.DateTimeField(null=True,auto_now_add=True,verbose_name='创建日期')
-    finished   =  models.DateTimeField(blank=True,null=True,verbose_name='完成日期')
+    succ_num   =  models.BigIntegerField(default=0,verbose_name='成功单数')
+    succ_ids   =  models.CharField(blank=True,max_length=2000,verbose_name='成功订单数据')
+    
+    created    =  models.DateTimeField(null=True,db_index=True,auto_now_add=True,verbose_name='创建日期')
+    finished   =  models.DateTimeField(blank=True,db_index=True,null=True,verbose_name='发货完成日期')
+    
+    receiver   =  models.CharField(max_length=32,db_index=True,verbose_name='接单人')
+    rece_date  =  models.DateTimeField(blank=True,null=True,db_index=True,verbose_name='接单时间')
+    check_date =  models.DateTimeField(blank=True,null=True,db_index=True,verbose_name='验收时间')
+    
+    status     =  models.IntegerField(default=0,db_index=True,choices=REPLAY_TRADE_STATUS,verbose_name='状态')
     
     class Meta:
         db_table = 'shop_trades_replayposttrade'
         verbose_name = u'已发货清单'
         verbose_name_plural = u'发货清单列表'
 
-        
+    def __unicode__(self):
+        return '<%d,%s,%s,%s>'%(self.id,self.operator,self.receiver,dict(REPLAY_TRADE_STATUS).get(self.status,''))    
         

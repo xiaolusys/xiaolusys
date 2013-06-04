@@ -42,6 +42,51 @@ class Area(models.Model):
         return '<%d,%d,%s,%s>'%(self.id,self.type,self.name,self.zip)
 
 
+class DestCompany(models.Model):
+    """ 区域指定快递选择 """
+    state    = models.CharField(max_length=64,blank=True,verbose_name='省/自治区/直辖市')
+    city     = models.CharField(max_length=64,blank=True,verbose_name='地区')
+    district = models.CharField(max_length=64,blank=True,verbose_name='县/市/区')
+    
+    company = models.CharField(max_length=10,blank=True,verbose_name='快递编码')
+    
+    class Meta:
+        db_table = 'shop_logistics_destcompany'
+        verbose_name=u'区域快递'
+
+    def __unicode__(self):
+        return '<%s,%s,%s,%s>'%(self.state,self.city,self.district,self.company)
+    
+    @classmethod
+    def get_destcompany_by_addr(cls,state,city,district):
+        
+        companys = None
+        if district:
+            companys = cls.objects.filter(district=district)
+
+        if city:
+            if companys.count()>0:
+                companys = companys.filter(city=city)
+            else:
+                companys = cls.objects.filter(city=city,district='')
+       
+        if state:
+            if companys.count()>0:
+                companys = companys.filter(state=state)
+            else:
+                companys = cls.objects.filter(state=state,city='',district='')
+       
+        if companys and companys.count()>0:
+            cid = companys[0].company
+            try:
+                return LogisticsCompany.objects.get(code=cid.upper())
+            except:
+                return None
+        
+        return None
+                
+                
+
 class LogisticsCompany(models.Model):
     
     id      = models.BigIntegerField(primary_key=True,verbose_name='ID')
@@ -61,17 +106,21 @@ class LogisticsCompany(models.Model):
         return '<%s,%s>'%(self.code,self.name)
     
     @classmethod
-    def get_recommend_express(cls,receiver_state):
-        if not receiver_state:
+    def get_recommend_express(cls,state,city,district):
+        if not state:
             return None
-        
+        #获取指定地区快递
+        company = DestCompany.get_destcompany_by_addr(state,city,district)
+        if company:
+            return company
+        #根据系统规则选择快递
         logistics = cls.objects.filter(status=True).order_by('-priority')
         total_priority = logistics.aggregate(total_priority=Sum('priority')).get('total_priority')
         priority_ranges = []
         cur_range      = 0
         for logistic in logistics:
             districts = logistic.district.split(',')
-            if receiver_state in districts:
+            if state in districts:
                 return logistic
             
             start_range = total_priority-cur_range-logistic.priority

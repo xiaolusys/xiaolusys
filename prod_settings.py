@@ -6,13 +6,11 @@ DEBUG = False
 TEMPLATE_DEBUG = DEBUG
 
 PROJECT_ROOT = os.path.abspath(os.path.dirname(__file__))
-STATICFILES_DIRS = ()
-STATIC_ROOT = os.path.join(PROJECT_ROOT, "site_media","static")
 
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql', # Add 'postgresql_psycopg2', 'postgresql', 'mysql', 'sqlite3' or 'oracle'.
-        'NAME': 'tbshop',                      # Or path to database file if using sqlite3.
+        'NAME': 'shopmgr',                      # Or path to database file if using sqlite3.
         'USER': 'meixqhi',                      # Not used with sqlite3.
         'PASSWORD': '123123',                  # Not used with sqlite3.
         'HOST': '',                      # Set to empty string for localhost. Not used with sqlite3.
@@ -20,6 +18,12 @@ DATABASES = {
     }
 }
 
+if DEBUG:
+    STATICFILES_DIRS = (
+       os.path.join(PROJECT_ROOT,"site_media","static"),
+    )
+else :
+    STATIC_ROOT = os.path.join(PROJECT_ROOT,"site_media","static")
 
 CACHES = {
     'default': {
@@ -27,30 +31,28 @@ CACHES = {
         'LOCATION': '127.0.0.1:11211',
     }
 }
-
+    
 RAVEN_CONFIG = {
     'dsn': 'http://93556d02ae254080999d90448d8396ed:1d37106c125345588b89628dc953556d@sentry.huyi.so/2',
     'register_signals': True,
 }
 
-SITE_URL = "http://autolist.huyi.so/" 
-#SITE_URL = 'http://192.168.1.101/' 
 
+SITE_URL = 'http://qiyue.f3322.org/' 
 
-APPKEY = '21165266'  #app name huyi ERP ,younishijie
-APPSECRET  = 'ea5f5687a856ec58199d538cfa04496d'
+APPKEY = '12545735'   #app name guanyi erp ,younishijie
+APPSECRET = '2b966d4f5f05d201a48a75fe8b5251af'
 
-#APPKEY = '12686908'   #app name super ERP ,younishijie
-#APPSECRET = 'b3ddef5982a23c636739289949c01f59'
-
-AUTHRIZE_URL = 'https://oauth.taobao.com/authorize'
+TAOBAO_API_HOSTNAME = 'eco.taobao.com'
+AUTHRIZE_URL   = 'https://oauth.taobao.com/authorize'
 AUTHRIZE_TOKEN_URL = 'https://oauth.taobao.com/token'
 REDIRECT_URI = ''.join([SITE_URL,'accounts/login/auth/'])
-TAOBAO_API_ENDPOINT = 'https://eco.taobao.com/router/rest'
+TAOBAO_API_ENDPOINT = 'https://%s/router/rest'%TAOBAO_API_HOSTNAME
+TAOBAO_NOTIFY_URL   = 'http://stream.api.taobao.com/stream'
+
 
 SCOPE = 'item,promotion,usergrade'
 REFRESH_URL = 'https://oauth.taobao.com/token'
 
 FONT_PATH = '/usr/share/fonts/truetype/ttf-dejavu/DejaVuSerif-Bold.ttf'
 ASYNC_FILE_PATH = '/home/user1/deploy/taobao/site_media/asyncfile'
-
