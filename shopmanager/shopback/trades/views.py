@@ -843,8 +843,11 @@ def replay_trade_send_result(request,id):
         return HttpResponse('<body style="text-align:center;"><h1>发货结果未找到</h1></body>')
     else:
         from shopback.trades.tasks import get_replay_results
-        
-        reponse_result = get_replay_results(replay_trade)
+        try:
+            reponse_result = get_replay_results(replay_trade)
+        except Exception,exc:
+            logger.error( 'trade post callback error:%s'%exc.message,exc_info=True)
+        reponse_result['post_no'] = reponse_result.get('post_no',None) or replay_trade.id     
         
         return render_to_response('trades/trade_post_success.html',reponse_result,
                                   context_instance=RequestContext(request),mimetype="text/html")
