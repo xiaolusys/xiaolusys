@@ -11,7 +11,7 @@ BROKER_URL = 'amqp://user1:passwd1@127.0.0.1:5672/vhost1'
 CELERY_RESULT_BACKEND = "amqp"
 CELERY_TASK_RESULT_EXPIRES = 18000  # 5 hours.
 BROKER_POOL_LIMIT = 10 # 10 connections
-CELERYD_CONCURRENCY = 8 # 8 processes in parallel
+CELERYD_CONCURRENCY = 12 # 8 processes in parallel
 
 from kombu import Exchange, Queue
 CELERY_DEFAULT_QUEUE = 'peroid'
