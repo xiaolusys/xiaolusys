@@ -752,7 +752,7 @@ def refresh_trade_status(sender,instance,*args,**kwargs):
         if not out_stock:
             merge_trade.remove_reason_code(pcfg.OUT_GOOD_CODE)    
         
-    has_merge     = effect_orders.filter(is_merge=True).count()>0
+    has_merge     = merge_trade.merge_trade_orders.filter(is_merge=True).count()>0
     merge_trade.has_merge = has_merge
     
     if not merge_trade.reason_code and merge_trade.status==pcfg.WAIT_SELLER_SEND_GOODS and merge_trade.logistics_company\

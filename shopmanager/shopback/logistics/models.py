@@ -65,13 +65,13 @@ class DestCompany(models.Model):
             companys = cls.objects.filter(district=district)
 
         if city:
-            if companys.count()>0:
+            if companys and companys.count()>0:
                 companys = companys.filter(city=city)
             else:
                 companys = cls.objects.filter(city=city,district='')
        
         if state:
-            if companys.count()>0:
+            if companys and companys.count()>0:
                 companys = companys.filter(state=state)
             else:
                 companys = cls.objects.filter(state=state,city='',district='')
