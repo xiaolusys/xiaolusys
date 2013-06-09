@@ -1122,6 +1122,18 @@ def trade_download_controller(merge_trade,trade,trade_from,first_pay_load):
                 
         if merge_trade.sys_status in pcfg.WAIT_DELIVERY_STATUS and not merge_trade.out_sid:
             merge_trade.sys_status = pcfg.INVALID_STATUS
+            
+    elif trade.status==pcfg.TRADE_CLOSED:
+        has_new_refund  = MergeTrade.judge_new_refund(merge_trade.id)
+        if has_new_refund and not merge_trade.out_sid:
+            merge_trade.append_reason_code(pcfg.NEW_REFUND_CODE)
+            merge_type  = MergeBuyerTrade.get_merge_type(trade.id)
+            if merge_type == 2:    
+                merge_order_remover(trade.id)
+        if merge_trade.sys_status not in (pcfg.FINISHED_STATUS,pcfg.INVALID_STATUS): 
+            merge_trade.append_reason_code(pcfg.INVALID_END_CODE)
+            merge_trade.sys_status = pcfg.INVALID_STATUS
+            
     #如果淘宝订单状态已改变，而系统内部状态非最终状态，则将订单作废        
     elif merge_trade.sys_status:
         if merge_trade.sys_status not in (pcfg.FINISHED_STATUS,pcfg.INVALID_STATUS): 

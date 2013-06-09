@@ -142,16 +142,16 @@ SHOP_APP_SCHEDULE = {
 #        'schedule':crontab(minute="*/10"),
 #        'args':()
 #    },                    
-#    'runs-every-quarter-taobao-async-handle':{     #淘宝异步任务执行主任务
-#         'task':'shopapp.asynctask.tasks.taobaoAsyncHandleTask',
-#         'schedule':crontab(minute="*/30"),
-#         'args':()
-#    },           
-#    'runs-every-day-item-num':{     #更新库存
-#        'task':'shopapp.syncnum.tasks.updateAllUserItemNumTask',
-#        'schedule':crontab(minute="20",hour="3,13"),#
-#        'args':()
-#    },
+    'runs-every-quarter-taobao-async-handle':{     #淘宝异步任务执行主任务
+         'task':'shopapp.asynctask.tasks.taobaoAsyncHandleTask',
+         'schedule':crontab(minute="*/30"),
+         'args':()
+    },           
+    'runs-every-day-item-num':{     #更新库存
+        'task':'shopapp.syncnum.tasks.updateAllUserItemNumTask',
+        'schedule':crontab(minute="20",hour="3,13"),#
+        'args':()
+    },
     'runs-every-day-notify-packet-post':{     #更新库存
         'task':'shopapp.smsmgr.tasks.notifyPacketPostTask',
         'schedule':crontab(minute="30",hour="8,20"),#
