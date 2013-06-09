@@ -158,6 +158,16 @@ class ComposeItem(models.Model):
     def __unicode__(self):
         return str(self.id)
     
+    def get_item_cost(self):
+        """ 获取单项成本 """
+        cost = 0
+        if self.outer_sku_id:
+            prod_sku    = ProductSku.objects.get(outer_id=item.outer_sku_id,product__outer_id=item.outer_id)
+            cost = prod_sku.cost or 0
+        else:
+            prod = Product.objects.get(outer_id=item.outer_id)
+            cost = prod.cost or 0
+        return float(cost)
     
     
 def rule_match_product(sender, trade_id, *args, **kwargs):
@@ -300,6 +310,7 @@ def rule_match_combose_split(sender, trade_id, *args, **kwargs):
                 outer_id     = order.outer_id
                 outer_sku_id = order.outer_sku_id
                 order_num    = order.num
+                order_payment = order.payment
                 prod_sku = None
                 prod     = None
                 if outer_sku_id:
@@ -324,9 +335,17 @@ def rule_match_combose_split(sender, trade_id, *args, **kwargs):
                 except Exception,exc:
                     pass
                 else:
-                    for item in compose_rule.compose_items.all():
-                        MergeOrder.gen_new_order(trade.id,item.outer_id,item.outer_sku_id,
-                                                 item.num*order_num,gift_type=pcfg.COMBOSE_SPLIT_GIT_TYPE)
+                    items  = compose_rule.compose_items.all()
+                    
+                    total_cost = 0   #计算总成本
+                    for item in items:
+                        total_cost += item.get_item_cost()
+                        
+                    for item in items:
+                        cost    = item.get_item_cost()
+                        payment = str((cost/total_cost)*order_payment)
+                        MergeOrder.gen_new_order(trade.id,item.outer_id,item.outer_sku_id,item.num*order_num,
+                                                 gift_type=pcfg.COMBOSE_SPLIT_GIT_TYPE,payment=payment)
                     order.sys_status=pcfg.INVALID_STATUS
                     order.save()
                     msg = u'拆分订单商品(oid:%s)'%str(order.id)

@@ -77,6 +77,7 @@ class Product(models.Model):
     
     status       = models.CharField(max_length=16,db_index=True,choices=ONLINE_PRODUCT_STATUS,default=pcfg.NORMAL,verbose_name='商品状态')
     
+    buyer_prompt = models.CharField(max_length=40,blank=True,verbose_name='客户提示')
     memo         = models.TextField(max_length=1000,blank=True,verbose_name='备注')
     class Meta:
         db_table = 'shop_items_product'
@@ -176,7 +177,7 @@ class ProductSku(models.Model):
     remain_num   = models.IntegerField(null=True,default=0,verbose_name='预留库位')    #预留库存
     wait_post_num = models.IntegerField(null=True,default=0,verbose_name='待发数')    #待发数
     
-    cost        = models.FloatField(default=0,verbose_name='成本价')
+    cost         = models.FloatField(default=0,verbose_name='成本价')
     std_purchase_price = models.FloatField(default=0,verbose_name='标准进价')
     std_sale_price     = models.FloatField(default=0,verbose_name='标准售价')
     agent_price        = models.FloatField(default=0,verbose_name='代理售价')
@@ -197,6 +198,7 @@ class ProductSku(models.Model):
     status       = models.CharField(max_length=10,db_index=True,choices=ONLINE_PRODUCT_STATUS,
                                     default=pcfg.NORMAL,verbose_name='规格状态')  #normal,delete
     
+    buyer_prompt = models.CharField(max_length=40,blank=True,verbose_name='客户提示')
     memo         = models.TextField(max_length=1000,blank=True,verbose_name='备注')
     class Meta:
         db_table = 'shop_items_productsku'

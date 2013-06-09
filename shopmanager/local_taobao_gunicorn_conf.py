@@ -1,5 +1,5 @@
-#pidfile='/home/meixqhi/deploy/taobao/gunicorn.pid'
-#daemon=True
+pidfile='/home/meixqhi/deploy/taobao/gunicorn.pid'
+daemon=True
 workers=8
 bind="127.0.0.1:9000"
 

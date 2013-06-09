@@ -202,7 +202,7 @@ class MergeTrade(models.Model):
         
     is_picking_print = models.BooleanField(default=False,verbose_name='发货单')
     is_express_print = models.BooleanField(default=False,verbose_name='物流单')
-    is_send_sms      = models.BooleanField(default=False,verbose_name='短信提醒')
+    is_send_sms      = models.BooleanField(default=False,verbose_name='发货提醒')
     has_refund       = models.BooleanField(default=False,verbose_name='待退款')
     has_out_stock    = models.BooleanField(default=False,verbose_name='缺货')
     has_rule_match   = models.BooleanField(default=False,verbose_name='有匹配')
@@ -296,7 +296,7 @@ class MergeTrade(models.Model):
             if retry_times<=0:
                 logger.error(exc.message or u'订单发货出错',exc_info=True)
                 raise exc
-            time.sleep(1)
+            #time.sleep(0.1)
             self.send_trade_to_taobao(company_code,out_sid,retry_times=retry_times)
              
         return True
@@ -683,7 +683,7 @@ class MergeOrder(models.Model):
         
     @classmethod
     def gen_new_order(cls,trade_id,outer_id,outer_sku_id,num,gift_type=pcfg.REAL_ORDER_GIT_TYPE
-                      ,status=pcfg.WAIT_SELLER_SEND_GOODS,is_reverse=False):
+                      ,status=pcfg.WAIT_SELLER_SEND_GOODS,is_reverse=False,payment='0'):
         
         merge_trade,state = MergeTrade.objects.get_or_create(id=trade_id)
         product = Product.objects.get(outer_id=outer_id)
@@ -701,7 +701,7 @@ class MergeOrder(models.Model):
             merge_trade = merge_trade,
             outer_id = outer_id,
             price = product.std_sale_price,
-            payment = '0',
+            payment = payment,
             num = num,
             title = product.name,
             outer_sku_id = outer_sku_id,
