@@ -162,10 +162,10 @@ class ComposeItem(models.Model):
         """ 获取单项成本 """
         cost = 0
         if self.outer_sku_id:
-            prod_sku    = ProductSku.objects.get(outer_id=item.outer_sku_id,product__outer_id=item.outer_id)
+            prod_sku    = ProductSku.objects.get(outer_id=self.outer_sku_id,product__outer_id=self.outer_id)
             cost = prod_sku.cost or 0
         else:
-            prod = Product.objects.get(outer_id=item.outer_id)
+            prod = Product.objects.get(outer_id=self.outer_id)
             cost = prod.cost or 0
         return float(cost)
     
@@ -343,7 +343,7 @@ def rule_match_combose_split(sender, trade_id, *args, **kwargs):
                         
                     for item in items:
                         cost    = item.get_item_cost()
-                        payment = str((cost/total_cost)*order_payment)
+                        payment = total_cost and str((cost/total_cost)*float(order_payment)) or '0'
                         MergeOrder.gen_new_order(trade.id,item.outer_id,item.outer_sku_id,item.num*order_num,
                                                  gift_type=pcfg.COMBOSE_SPLIT_GIT_TYPE,payment=payment)
                     order.sys_status=pcfg.INVALID_STATUS
