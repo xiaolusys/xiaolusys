@@ -1,0 +1,16 @@
+[
+  {
+    "pk": 1,
+    "model": "smsmgr.smsplatform",
+    "fields": {
+      "account": "sh100445",
+      "code": "cshx",
+      "user_id": "603",
+      "name": "\u521b\u4e16\u534e\u4fe1",
+      "is_default": true,
+      "remainums": 0,
+      "password": "2013qyjj",
+      "sendnums": 3
+    }
+  }
+]
