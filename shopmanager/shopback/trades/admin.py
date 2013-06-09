@@ -689,6 +689,50 @@ class ReplayPostTradeAdmin(admin.ModelAdmin):
     
     check_post.short_description = "验证是否完成".decode('utf8')
     
-    actions = ['replay_post','check_post']
+    def merge_post_result(self, request, queryset):
+        
+        if queryset.count() < 2:
+            return HttpResponse('<body style="text-align:center;"><h1>请选择两条以上发货批次记录</h1></body>') 
+        replay_trade = queryset[0]
+        
+        trade_ids = replay_trade.succ_ids.split(',')
+        trade_ids = [ int(id) for id in trade_ids if id ]
+        wait_scan_trades  = MergeTrade.objects.filter(id__in=trade_ids,sys_status__in=
+                            (pcfg.WAIT_CHECK_BARCODE_STATUS,pcfg.WAIT_SCAN_WEIGHT_STATUS))
+        
+        is_success = wait_scan_trades.count()==0 
+        if is_success:
+            replay_trade.status     = pcfg.RP_ACCEPT_STATUS
+            replay_trade.check_date = datetime.datetime.now()
+            replay_trade.save()
+        
+        return render_to_response('trades/trade_accept_check.html',{'trades':wait_scan_trades,'is_success':is_success},
+                                  context_instance=RequestContext(request),mimetype="text/html")
+    
+    merge_post_result.short_description = "合并发货批次".decode('utf8')
+    
+    def split_post_result(self, request, queryset):
+        
+        if queryset.count() != 1:
+            return HttpResponse('<body style="text-align:center;"><h1>请选择一条已合并过的发货记录进行拆分</h1></body>') 
+        replay_trade = queryset[0]
+        
+        trade_ids = replay_trade.succ_ids.split(',')
+        trade_ids = [ int(id) for id in trade_ids if id ]
+        wait_scan_trades  = MergeTrade.objects.filter(id__in=trade_ids,sys_status__in=
+                            (pcfg.WAIT_CHECK_BARCODE_STATUS,pcfg.WAIT_SCAN_WEIGHT_STATUS))
+        
+        is_success = wait_scan_trades.count()==0 
+        if is_success:
+            replay_trade.status     = pcfg.RP_ACCEPT_STATUS
+            replay_trade.check_date = datetime.datetime.now()
+            replay_trade.save()
+        
+        return render_to_response('trades/trade_accept_check.html',{'trades':wait_scan_trades,'is_success':is_success},
+                                  context_instance=RequestContext(request),mimetype="text/html")
+    
+    split_post_result.short_description = "拆分发货批次".decode('utf8')
+    
+    actions = ['replay_post','check_post','merge_post_result','split_post_result']
 
 admin.site.register(ReplayPostTrade,ReplayPostTradeAdmin)

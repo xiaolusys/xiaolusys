@@ -1,0 +1,1 @@
+亲，您的订单已于{{ today_date|date:'n月j日G:i' }}由{{ trade.logistics_company.name }}[{{ trade.out_sid }}]发出，祝您购物愉快！{% if prompt_msg %}(温馨提示:{{ prompt_msg }}){% endif %}

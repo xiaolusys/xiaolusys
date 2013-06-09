@@ -202,7 +202,7 @@ class MergeTrade(models.Model):
         
     is_picking_print = models.BooleanField(default=False,verbose_name='发货单')
     is_express_print = models.BooleanField(default=False,verbose_name='物流单')
-    is_send_sms      = models.BooleanField(default=False,verbose_name='短信提醒')
+    is_send_sms      = models.BooleanField(default=False,verbose_name='发货提醒')
     has_refund       = models.BooleanField(default=False,verbose_name='待退款')
     has_out_stock    = models.BooleanField(default=False,verbose_name='缺货')
     has_rule_match   = models.BooleanField(default=False,verbose_name='有匹配')
@@ -296,7 +296,7 @@ class MergeTrade(models.Model):
             if retry_times<=0:
                 logger.error(exc.message or u'订单发货出错',exc_info=True)
                 raise exc
-            time.sleep(1)
+            #time.sleep(0.1)
             self.send_trade_to_taobao(company_code,out_sid,retry_times=retry_times)
              
         return True
@@ -683,7 +683,7 @@ class MergeOrder(models.Model):
         
     @classmethod
     def gen_new_order(cls,trade_id,outer_id,outer_sku_id,num,gift_type=pcfg.REAL_ORDER_GIT_TYPE
-                      ,status=pcfg.WAIT_SELLER_SEND_GOODS,is_reverse=False):
+                      ,status=pcfg.WAIT_SELLER_SEND_GOODS,is_reverse=False,payment='0'):
         
         merge_trade,state = MergeTrade.objects.get_or_create(id=trade_id)
         product = Product.objects.get(outer_id=outer_id)
@@ -701,7 +701,7 @@ class MergeOrder(models.Model):
             merge_trade = merge_trade,
             outer_id = outer_id,
             price = product.std_sale_price,
-            payment = '0',
+            payment = payment,
             num = num,
             title = product.name,
             outer_sku_id = outer_sku_id,
@@ -1122,6 +1122,18 @@ def trade_download_controller(merge_trade,trade,trade_from,first_pay_load):
                 
         if merge_trade.sys_status in pcfg.WAIT_DELIVERY_STATUS and not merge_trade.out_sid:
             merge_trade.sys_status = pcfg.INVALID_STATUS
+            
+    elif trade.status==pcfg.TRADE_CLOSED:
+        has_new_refund  = MergeTrade.judge_new_refund(merge_trade.id)
+        if has_new_refund and not merge_trade.out_sid:
+            merge_trade.append_reason_code(pcfg.NEW_REFUND_CODE)
+            merge_type  = MergeBuyerTrade.get_merge_type(trade.id)
+            if merge_type == 2:    
+                merge_order_remover(trade.id)
+        if merge_trade.sys_status not in (pcfg.FINISHED_STATUS,pcfg.INVALID_STATUS): 
+            merge_trade.append_reason_code(pcfg.INVALID_END_CODE)
+            merge_trade.sys_status = pcfg.INVALID_STATUS
+            
     #如果淘宝订单状态已改变，而系统内部状态非最终状态，则将订单作废        
     elif merge_trade.sys_status:
         if merge_trade.sys_status not in (pcfg.FINISHED_STATUS,pcfg.INVALID_STATUS): 

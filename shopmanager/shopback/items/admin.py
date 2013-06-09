@@ -18,7 +18,7 @@ class ProductSkuInline(admin.TabularInline):
     
     model = ProductSku
     fields = ('outer_id','properties_name','properties_alias','quantity','warn_num','remain_num','wait_post_num','cost','std_purchase_price','std_sale_price'
-                    ,'agent_price','staff_price','sync_stock','is_assign','is_split','is_match','status','memo')
+                    ,'agent_price','staff_price','sync_stock','is_assign','is_split','is_match','status','buyer_prompt')
     
     formfield_overrides = {
         models.CharField: {'widget': TextInput(attrs={'size':'10'})},
@@ -62,7 +62,7 @@ class ProductAdmin(admin.ModelAdmin):
                     'fields': (('outer_id','name','category','pic_path','status')
                                ,('collect_num','warn_num','remain_num','wait_post_num')
                                ,('cost','std_purchase_price','std_sale_price','agent_price','staff_price')
-                               ,('weight','sync_stock','is_assign','is_split','is_match','memo'))
+                               ,('weight','sync_stock','is_assign','is_split','is_match','memo','buyer_prompt'))
                 }),)
     
     formfield_overrides = {
