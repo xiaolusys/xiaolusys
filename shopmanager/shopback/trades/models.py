@@ -812,7 +812,7 @@ def merge_order_maker(sub_tid,main_tid):
     for order in sub_trade.merge_trade_orders.all():
         try:
             if order.oid:
-                merge_order = MergeOrder.objects.get(oid=order.oid,tid=main_tid,merge_trade=main_merge_trade)
+                merge_order,state = MergeOrder.objects.get_or_create(oid=order.oid,tid=main_tid,merge_trade=main_merge_trade)
             else:
                 merge_order = MergeOrder()
         except:
