@@ -160,7 +160,7 @@ taobao_logged_in.connect(add_taobao_user)
   
   
 class Customer(models.Model):
-    
+    """ 客户信息表 """
     user_id   = models.BigIntegerField(default=0,db_index=True,verbose_name='用户ID')
     nick      = models.CharField(max_length=32,blank=True,verbose_name='昵称')
     sex       = models.CharField(max_length=1,blank=True,verbose_name='性别')
