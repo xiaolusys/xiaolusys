@@ -18,7 +18,7 @@ from shopback.signals import rule_signal
 from shopback.users.models import User
 from shopback import paramconfig as pcfg
 from auth import apis
-from auth.utils import parse_date,format_date
+from auth.utils import parse_date,parse_datetime,format_date,format_datetime
 import logging
 
 logger = logging.getLogger('trades.handler')
@@ -96,17 +96,22 @@ class StatisticMergeOrderView(ModelView):
     def get(self, request, *args, **kwargs):
         
         content  = request.REQUEST
-        start_dt = content.get('df')
-        end_dt   = content.get('dt')
+        start_dt = content.get('df','').strip()
+        end_dt   = content.get('dt','').strip()
         p_outer_id = content.get('outer_id','')
         statistic_by = content.get('sc_by','pay')
         wait_send = content.get('wait_send','')
         
         if start_dt and end_dt:
-            start_dt = parse_date(start_dt)
-            end_dt   = parse_date(end_dt)
-            start_dt = datetime.datetime(start_dt.year,start_dt.month,start_dt.day,0,0,0)
-            end_dt   = datetime.datetime(end_dt.year,end_dt.month,end_dt.day,23,59,59)
+            if len(start_dt)>10:
+                start_dt = parse_datetime(start_dt)
+            else:
+                start_dt = parse_date(start_dt)
+                
+            if len(end_dt)>10:
+                end_dt = parse_datetime(end_dt)
+            else:
+                end_dt = parse_date(end_dt)    
         else:
             dt  = datetime.datetime.now()
             start_dt = datetime.datetime(dt.year,dt.month,dt.day,0,0,0)
@@ -219,7 +224,7 @@ class StatisticMergeOrderView(ModelView):
             total_sales += trade[1]['sales']
             trade[1]['skus'] = sorted(skus.items(),key=lambda d:d[1]['num'],reverse=True)
             
-        return {'df':format_date(start_dt),'dt':format_date(end_dt),'sc_by':statistic_by,'outer_id':p_outer_id,
+        return {'df':format_datetime(start_dt),'dt':format_datetime(end_dt),'sc_by':statistic_by,'outer_id':p_outer_id,
                  'trade_items':trade_list, 'total_cost':total_cost, 'total_sales':total_sales,'refund_fees':refund_fees,
                  'wait_send':wait_send, 'buyer_nums':buyer_nums, 'trade_nums':trade_nums,'post_fees':total_post_fee }
         
@@ -823,7 +828,7 @@ def regular_trade(request,id):
     else:
         dt = datetime.datetime.now()+datetime.timedelta(1,0,0)
         merge_trade.sys_status   = pcfg.REGULAR_REMAIN_STATUS
-        merge_trade.remind_time  = dt
+        merge_trade.remind_time  = dtS
         merge_trade.save()
         log_action(user_id,merge_trade,CHANGE,u'定时提醒:%s'%dt.strftime('%Y-%m-%d %H:%M'))
         return HttpResponse(json.dumps({'code':0,'response_content':{'success':True}}),mimetype="application/json")
@@ -838,8 +843,11 @@ def replay_trade_send_result(request,id):
         return HttpResponse('<body style="text-align:center;"><h1>发货结果未找到</h1></body>')
     else:
         from shopback.trades.tasks import get_replay_results
-        
-        reponse_result = get_replay_results(replay_trade)
+        try:
+            reponse_result = get_replay_results(replay_trade)
+        except Exception,exc:
+            logger.error( 'trade post callback error:%s'%exc.message,exc_info=True)
+        reponse_result['post_no'] = reponse_result.get('post_no',None) or replay_trade.id     
         
         return render_to_response('trades/trade_post_success.html',reponse_result,
                                   context_instance=RequestContext(request),mimetype="text/html")

@@ -5,9 +5,11 @@ import datetime
 import json
 import urllib
 import pycurl
-from django.conf import settings
-from daemonextension import DaemonCommand
-from django.core.management import call_command
+
+from django.core.management import setup_environ
+import settings
+setup_environ(settings)
+
 from shopback.users.models import User
 from shopapp.notify.models import ItemNotify,TradeNotify,RefundNotify
 from auth.utils import getSignatureTaoBao
@@ -20,8 +22,7 @@ CURL_READ_TIMEOUT    = 100
 CURL_CONNECT_TIMEOUT = 60
 
 
-class Command(DaemonCommand):
-#class Command():
+class Command():
     c = None
     fail_wait_time = 0
     
@@ -81,7 +82,7 @@ class Command(DaemonCommand):
     
     def handle_body(self,buf):
         try:
-            #print 'body:',buf
+            print 'body:',buf
             if not buf.strip() :
                 return 
             note  = json.loads(buf)
@@ -120,8 +121,8 @@ class Command(DaemonCommand):
             RefundNotify.save_and_post_notify(refund_dict)
     
         
-#if __name__ == '__main__':
+if __name__ == '__main__':
     
-#    c = Command()
-#    c.handle_daemon()
+    c = Command()
+    c.handle_daemon()
         

@@ -43,6 +43,7 @@ def trade_submit_row(context):
         'show_invalid':(is_wait_audit or is_can_review) and can_trade_audit,
         'show_uninvalid':sys_status == pcfg.INVALID_STATUS and can_trade_audit,
         'show_unregular':sys_status == pcfg.REGULAR_REMAIN_STATUS and can_trade_audit,
+        'show_rescan':sys_status == pcfg.FINISHED_STATUS and can_trade_audit,
         'show_save_and_regular':is_wait_audit and can_trade_audit,
         'show_save_and_aduit':False,
         'is_popup': is_popup,

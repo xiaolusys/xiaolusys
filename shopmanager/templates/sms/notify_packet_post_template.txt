@@ -1,0 +1,1 @@
+亲，您的订单于{{ today_date|date:'j日G:i' }}由{{ trade.logistics_company.name }}发出，祝您购物愉快！满意请全5分好评,可赢3元优惠券哦！{% if prompt_msg %}(温馨提示:{{ prompt_msg }}){% endif %}

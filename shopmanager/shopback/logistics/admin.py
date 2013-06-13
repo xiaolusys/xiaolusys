@@ -1,5 +1,5 @@
 from django.contrib import admin
-from shopback.logistics.models import Logistics,LogisticsCompany,Area
+from shopback.logistics.models import Logistics,LogisticsCompany,Area,DestCompany
 
 __author__ = 'meixqhi'
 
@@ -17,14 +17,26 @@ class AreaAdmin(admin.ModelAdmin):
 admin.site.register(Area, AreaAdmin)
 
 
+class DestCompanyAdmin(admin.ModelAdmin):
+    
+    list_display = ('id','state','city','district','company')
+    list_display_links = ('id','state')
+
+    list_filter = ('company',)
+    search_fields = ['id','state','city','district']
+
+admin.site.register(DestCompany, DestCompanyAdmin)
+
+
 class LogisticsCompanyAdmin(admin.ModelAdmin):
+    
     list_display = ('id','code','name','reg_mail_no','priority','district','status')
     list_display_links = ('id',)
     list_editable = ('priority',)
 
     #date_hierarchy = 'created'
     #ordering = ['created_at']
-
+    
     search_fields = ['code','name','district']
 
 

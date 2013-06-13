@@ -1,3 +1,11 @@
+######### 2013-6-7  ###########
+alter table shop_items_product add column buyer_prompt varchar(40) NOT NULL;
+alter table shop_items_productsku add column buyer_prompt varchar(40) NOT NULL;
+######### 2013-6-4  ###########
+rename table shop_trades_replayposttrade to trades_replayposttrade;
+python manage.py syncdb;
+insert into shop_trades_replayposttrade(operator,post_data,order_num,trade_ids,created,finished) 
+	select operator,post_data,order_num,trade_ids,created,finished from trades_replayposttrade;
 ######### 2013-5-30 ###########
 alter table shop_trades_mergetrade add column order_num  int(11) DEFAULT 0;
 alter table shop_trades_mergetrade add column prod_num   int(11) DEFAULT 0;

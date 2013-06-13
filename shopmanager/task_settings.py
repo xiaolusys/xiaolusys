@@ -11,7 +11,7 @@ BROKER_URL = 'amqp://user1:passwd1@127.0.0.1:5672/vhost1'
 CELERY_RESULT_BACKEND = "amqp"
 CELERY_TASK_RESULT_EXPIRES = 18000  # 5 hours.
 BROKER_POOL_LIMIT = 10 # 10 connections
-CELERYD_CONCURRENCY = 8 # 8 processes in parallel
+CELERYD_CONCURRENCY = 16 # 16 processes in parallel
 
 from kombu import Exchange, Queue
 CELERY_DEFAULT_QUEUE = 'peroid'
@@ -59,6 +59,10 @@ CELERY_ROUTES = {
         'shopback.items.tasks.updateProductWarnNumTask': {
             'queue': 'peroid',
             'routing_key': 'peroid.update_prod_warn_num_task',
+        },
+        'shopback.smsmgr.tasks.notifyPacketPostTask': {
+            'queue': 'peroid',
+            'routing_key': 'peroid.notify_packet_post_task',
         },
 }
 
@@ -148,6 +152,11 @@ SHOP_APP_SCHEDULE = {
         'schedule':crontab(minute="20",hour="3,13"),#
         'args':()
     },
+    'runs-every-day-notify-packet-post':{     #更新库存
+        'task':'shopapp.smsmgr.tasks.notifyPacketPostTask',
+        'schedule':crontab(minute="30",hour="8,20"),#
+        'args':(1,)
+    },
 #    'runs-every-day-product-trade':{
 #        'task':'shopapp.collector.tasks.updateProductTradeBySellerTask',
 #        'schedule':crontab(minute="0",hour="1"),
@@ -163,7 +172,7 @@ SHOP_APP_SCHEDULE = {
 
 CELERYBEAT_SCHEDULE = {}
 
-CELERYBEAT_SCHEDULE.update(SYNC_MODEL_SCHEDULE)
+#CELERYBEAT_SCHEDULE.update(SYNC_MODEL_SCHEDULE)
 
 CELERYBEAT_SCHEDULE.update(SHOP_APP_SCHEDULE)
 

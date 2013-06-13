@@ -20,12 +20,12 @@ urlpatterns = patterns('',
         authentication=(UserLoggedInAuthentication,),
         permissions=(IsAuthenticated,)
     )),                   
-    (r'^checkorder/(?P<id>\d{1,20})/$',CheckOrderView.as_view(
+    (r'^checkorder/(?P<id>\d{1,20})/$',csrf_exempt(CheckOrderView.as_view(
         resource=TradeResource,
         renderers=(BaseJsonRenderer,CheckOrderRenderer),
         authentication=(UserLoggedInAuthentication,),
         permissions=(IsAuthenticated,)
-    )),
+    ))),
     (r'^orderplus/$',OrderPlusView.as_view(
         resource=OrderPlusResource,
         renderers=(BaseJsonRenderer,),
