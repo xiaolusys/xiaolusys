@@ -20,7 +20,9 @@ POST_NOTIFY_TITLE = '订单发货客户提示'
 
 def get_smsg_from_trade(trade):
     """ 获取商品客户提示 """
+    
     prompt_msg = ''
+    ts = set()
     for o in trade.inuse_orders:
         
         outer_sku_id = o.outer_sku_id
@@ -33,8 +35,21 @@ def get_smsg_from_trade(trade):
             prod = Product.objects.get(outer_id=outer_id)
         except:
             pass
-        
-        prompt_msg += (prod_sku and prod_sku.buyer_prompt) or (prod and prod.buyer_prompt) or '' 
+        #同一规格提示只能出现一次
+        if prod_sku and prod_sku.buyer_prompt:
+            entry = (outer_id,outer_sku_id)
+            if entry in ts:
+                continue
+            prompt_msg += prod_sku.buyer_prompt
+            ts.add(entry)
+        #同一商品提示只能出现一次    
+        elif prod and prod.buyer_prompt:
+            entry = (outer_id,'')
+            if entry in ts:
+                continue
+            prompt_msg += prod_sku.buyer_prompt
+            ts.add(entry)
+
     dt  = datetime.datetime.now()
     sms_text   = render_to_string('sms/notify_packet_post_template.txt',
                                   {'trade':trade,'prompt_msg':prompt_msg,'today_date':dt})

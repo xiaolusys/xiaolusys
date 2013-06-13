@@ -343,7 +343,7 @@ def rule_match_combose_split(sender, trade_id, *args, **kwargs):
                         
                     for item in items:
                         cost    = item.get_item_cost()
-                        payment = total_cost and str((cost/total_cost)*float(order_payment)) or '0'
+                        payment = total_cost and str(round((cost/total_cost)*float(order_payment),2)) or '0'
                         MergeOrder.gen_new_order(trade.id,item.outer_id,item.outer_sku_id,item.num*order_num,
                                                  gift_type=pcfg.COMBOSE_SPLIT_GIT_TYPE,payment=payment)
                     order.sys_status=pcfg.INVALID_STATUS
