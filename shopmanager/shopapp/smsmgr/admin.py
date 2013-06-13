@@ -10,9 +10,9 @@ class SMSPlatformAdmin(admin.ModelAdmin):
     list_display_links = ('code','name',)
 
     search_fields = ['code','name','account']
-    def get_readonly_fields(self, request, obj=None):
-        readonly_fields = self.readonly_fields+('code',)
-        return readonly_fields
+#    def get_readonly_fields(self, request, obj=None):
+#        readonly_fields = self.readonly_fields+('code',)
+#        return readonly_fields
     
     
 admin.site.register(SMSPlatform,SMSPlatformAdmin)
