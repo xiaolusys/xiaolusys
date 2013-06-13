@@ -1,3 +1,5 @@
+######### 2013-6-13 ###########
+alter table shop_trades_replayposttrade add column fid  int(20) DEFAULT 0;
 ######### 2013-6-7  ###########
 alter table shop_items_product add column buyer_prompt varchar(40) NOT NULL;
 alter table shop_items_productsku add column buyer_prompt varchar(40) NOT NULL;

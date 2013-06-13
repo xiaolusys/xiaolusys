@@ -643,7 +643,7 @@ admin.site.register(MergeBuyerTrade,MergeBuyerTradeAdmin)
 
 
 class ReplayPostTradeAdmin(admin.ModelAdmin):
-    list_display = ('id','operator','order_num','succ_num','receiver','created','finished','rece_date','check_date','status')
+    list_display = ('id','operator','order_num','succ_num','receiver','fid','created','finished','rece_date','check_date','status')
     #list_editable = ('update_time','task_type' ,'is_success','status')
 
     date_hierarchy = 'created'
@@ -691,45 +691,33 @@ class ReplayPostTradeAdmin(admin.ModelAdmin):
     
     def merge_post_result(self, request, queryset):
         
-        if queryset.count() < 2:
-            return HttpResponse('<body style="text-align:center;"><h1>请选择两条以上发货批次记录</h1></body>') 
-        replay_trade = queryset[0]
+        if queryset.exclude(status=pcfg.RP_WAIT_ACCEPT_STATUS).count()>0 or queryset.count() < 2:
+            return HttpResponse('<body style="text-align:center;"><h1>有合并清单須在待接单状态,至少两个批次</h1></body>') 
+
+        username = request.user.username
+        replaypost = ReplayPostTrade.objects.create(operator=username,status=pcfg.SMS_CREATED)
+        replaypost.merge(queryset)
         
-        trade_ids = replay_trade.succ_ids.split(',')
-        trade_ids = [ int(id) for id in trade_ids if id ]
-        wait_scan_trades  = MergeTrade.objects.filter(id__in=trade_ids,sys_status__in=
-                            (pcfg.WAIT_CHECK_BARCODE_STATUS,pcfg.WAIT_SCAN_WEIGHT_STATUS))
-        
-        is_success = wait_scan_trades.count()==0 
-        if is_success:
-            replay_trade.status     = pcfg.RP_ACCEPT_STATUS
-            replay_trade.check_date = datetime.datetime.now()
-            replay_trade.save()
-        
-        return render_to_response('trades/trade_accept_check.html',{'trades':wait_scan_trades,'is_success':is_success},
+        from shopback.trades.tasks import get_replay_results
+        reponse_result  = get_replay_results(replaypost)
+        reponse_result['post_no'] = reponse_result.get('post_no',None) or replay_trade.id 
+            
+        return render_to_response('trades/trade_post_success.html',reponse_result,
                                   context_instance=RequestContext(request),mimetype="text/html")
+        
     
     merge_post_result.short_description = "合并发货批次".decode('utf8')
     
     def split_post_result(self, request, queryset):
-        
+        queryset = queryset.filter(fid=-1,status=pcfg.RP_WAIT_ACCEPT_STATUS)
         if queryset.count() != 1:
             return HttpResponse('<body style="text-align:center;"><h1>请选择一条已合并过的发货记录进行拆分</h1></body>') 
         replay_trade = queryset[0]
         
-        trade_ids = replay_trade.succ_ids.split(',')
-        trade_ids = [ int(id) for id in trade_ids if id ]
-        wait_scan_trades  = MergeTrade.objects.filter(id__in=trade_ids,sys_status__in=
-                            (pcfg.WAIT_CHECK_BARCODE_STATUS,pcfg.WAIT_SCAN_WEIGHT_STATUS))
+        replay_trade.split()
         
-        is_success = wait_scan_trades.count()==0 
-        if is_success:
-            replay_trade.status     = pcfg.RP_ACCEPT_STATUS
-            replay_trade.check_date = datetime.datetime.now()
-            replay_trade.save()
-        
-        return render_to_response('trades/trade_accept_check.html',{'trades':wait_scan_trades,'is_success':is_success},
-                                  context_instance=RequestContext(request),mimetype="text/html")
+        self.message_user(request, '批次:%d,拆分成功!'%replay_trade.id)
+        return 
     
     split_post_result.short_description = "拆分发货批次".decode('utf8')
     
