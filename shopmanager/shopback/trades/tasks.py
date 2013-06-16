@@ -8,6 +8,7 @@ from celery.task.sets import subtask
 from django.conf import settings
 from shopback import paramconfig as pcfg
 from shopback.orders.models import Trade,Order
+from shopback.items.models import Product,ProductSku
 from shopback.trades.models import MergeTrade,MergeBuyerTrade,ReplayPostTrade,merge_order_remover
 from shopback.base import log_action,User as DjangoUser, ADDITION, CHANGE
 from shopback.users.models import User
