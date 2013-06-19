@@ -24,6 +24,7 @@ class SMSManager():
                                              task_type=task_type,
                                              mobiles=mobiles,
                                              content=content,
+                                             countnums=len(mobiles.split(',')),
                                              status=pcfg.SMS_CREATED)
         return smsrecord
         

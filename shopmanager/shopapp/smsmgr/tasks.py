@@ -47,7 +47,7 @@ def get_smsg_from_trade(trade):
             entry = (outer_id,'')
             if entry in ts:
                 continue
-            prompt_msg += prod_sku.buyer_prompt
+            prompt_msg += prod.buyer_prompt
             ts.add(entry)
 
     dt  = datetime.datetime.now()

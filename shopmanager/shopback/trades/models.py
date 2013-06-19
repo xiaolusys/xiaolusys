@@ -1384,17 +1384,19 @@ merge_trade_signal.connect(save_fenxiao_orders_to_mergetrade,sender=PurchaseOrde
 
 
 REPLAY_TRADE_STATUS = (
-    (pcfg.RP_INITIAL_STATUS,'初始状态'),
-    (pcfg.RP_WAIT_ACCEPT_STATUS,'待接单'),
-    (pcfg.RP_WAIT_CHECK_STATUS,'待验单'),
-    (pcfg.RP_ACCEPT_STATUS,'已验单'),
-    (pcfg.RP_CANCEL_STATUS,'已作废'),
+    (pcfg.RP_INITIAL_STATUS,u'初始状态'),
+    (pcfg.RP_WAIT_ACCEPT_STATUS,u'待接单'),
+    (pcfg.RP_WAIT_CHECK_STATUS,u'待验单'),
+    (pcfg.RP_ACCEPT_STATUS,u'已验单'),
+    (pcfg.RP_CANCEL_STATUS,u'已作废'),
 )
 
 class ReplayPostTrade(models.Model):
     """ 重现发货表单 """
     
     operator   =  models.CharField(max_length=32,db_index=True,verbose_name='发货人')
+    
+    fid        =  models.BigIntegerField(default=0,verbose_name='父批次号') #正常0，合并-1，合并子单 父ID
     
     post_data  =  models.TextField(blank=True,verbose_name='发货清单数据')
     
@@ -1407,7 +1409,7 @@ class ReplayPostTrade(models.Model):
     created    =  models.DateTimeField(null=True,db_index=True,auto_now_add=True,verbose_name='创建日期')
     finished   =  models.DateTimeField(blank=True,db_index=True,null=True,verbose_name='发货完成日期')
     
-    receiver   =  models.CharField(max_length=32,db_index=True,verbose_name='接单人')
+    receiver   =  models.CharField(max_length=32,db_index=True,blank=True,verbose_name='接单人')
     rece_date  =  models.DateTimeField(blank=True,null=True,db_index=True,verbose_name='接单时间')
     check_date =  models.DateTimeField(blank=True,null=True,db_index=True,verbose_name='验收时间')
     
@@ -1421,3 +1423,44 @@ class ReplayPostTrade(models.Model):
     def __unicode__(self):
         return '<%d,%s,%s,%s>'%(self.id,self.operator,self.receiver,dict(REPLAY_TRADE_STATUS).get(self.status,''))    
         
+    def merge(self,post_trades):
+        """合并多批发货清单"""
+        
+        if post_trades.count()==0:
+            return False
+        
+        all_id_set = set()
+        for t in post_trades:
+            all_id_set.update(t.trade_ids.split(','))
+            
+        self.order_num = len(all_id_set)
+        self.trade_ids = ','.join(all_id_set)
+        self.fid       = -1
+        self.save()
+        #生成合并后的发货清单
+        from shopback.trades.tasks import get_replay_results
+        get_replay_results(self)
+        
+        for t in post_trades:
+            t.fid     = self.id
+            t.status  = pcfg.RP_CANCEL_STATUS
+            t.save()
+            
+        return True
+        
+    def split(self):
+        """拆分已合并的发货清单"""
+        if self.fid != -1 or self.status != pcfg.RP_WAIT_ACCEPT_STATUS:
+            raise Exception('不符合拆分条件')
+
+        replay_trades = ReplayPostTrade.objects.filter(fid=self.id,status=pcfg.RP_CANCEL_STATUS)    
+        for t in replay_trades:
+            t.status = pcfg.RP_WAIT_ACCEPT_STATUS
+            t.fid    = 0
+            t.save()
+        
+        self.status = pcfg.RP_CANCEL_STATUS
+        self.save()
+        return True
+    
+    
