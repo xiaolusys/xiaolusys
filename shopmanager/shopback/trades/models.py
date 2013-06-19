@@ -1462,3 +1462,5 @@ class ReplayPostTrade(models.Model):
         self.status = pcfg.RP_CANCEL_STATUS
         self.save()
         return True
+    
+    
