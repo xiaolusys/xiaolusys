@@ -2,7 +2,8 @@
 from django.contrib import admin
 from django.db import models
 from django.forms import TextInput, Textarea
-from shopback.purchases.models import PurchaseType,Purchase,PurchaseItem,PurchaseStorage,PurchaseStorageItem
+from shopback.purchases.models import PurchaseType,Purchase,PurchaseItem,\
+    PurchaseStorage,PurchaseStorageItem,PurchaseStorageRelate,PurchasePaymentItem
 
 import logging 
 
@@ -31,10 +32,11 @@ class PurchaseStorageItemInline(admin.TabularInline):
 
 
 class PurchaseAdmin(admin.ModelAdmin):
-    list_display = ('id','supplier','deposite','type','forecast_time','post_time','created','modified','status')
+    list_display = ('id','supplier','deposite','purchase_type','total_fee','payment','forecast_date',
+                    'post_date','service_date','status')
     #list_editable = ('update_time','task_type' ,'is_success','status')
 
-    list_filter = ('supplier','deposite','type','status')
+    list_filter = ('supplier','deposite','purchase_type','status')
     search_fields = ['id']
     
     inlines = [PurchaseItemInline]
@@ -50,15 +52,14 @@ class PurchaseItemAdmin(admin.ModelAdmin):
     list_filter = ('status',)
     search_fields = ['id']
 
-
 admin.site.register(PurchaseItem,PurchaseItemAdmin)
 
 
 class PurchaseStorageAdmin(admin.ModelAdmin):
-    list_display = ('id','supplier','deposite','type','forecast_time','post_time','created','modified','status')
+    list_display = ('id','supplier','deposite','purchase_type','forecast_date','post_date','created','modified','status')
     #list_editable = ('update_time','task_type' ,'is_success','status')
 
-    list_filter = ('supplier','deposite','type','status')
+    list_filter = ('supplier','deposite','purchase_type','status')
     search_fields = ['id']
     
     inlines = [PurchaseStorageItemInline]
@@ -74,7 +75,27 @@ class PurchaseStorageItemAdmin(admin.ModelAdmin):
     list_filter = ('status',)
     search_fields = ['id']
     
-
-
 admin.site.register(PurchaseStorageItem,PurchaseStorageItemAdmin)
+
+
+class PurchaseStorageRelateAdmin(admin.ModelAdmin):
+    list_display = ('id','purchase_item','storage_item','relate_num')
+    #list_editable = ('update_time','task_type' ,'is_success','status')
+
+    search_fields = ['id']
+    
+
+admin.site.register(PurchaseStorageRelate,PurchaseStorageRelateAdmin)
+
+
+class PurchasePaymentItemAdmin(admin.ModelAdmin):
+    list_display = ('id','pay_type','payment','purchase','storage','pay_time','status','extra_info')
+    #list_editable = ('update_time','task_type' ,'is_success','status')
+
+    list_filter = ('status',)
+    search_fields = ['id']
+    
+
+admin.site.register(PurchasePaymentItem,PurchasePaymentItemAdmin)
+
 

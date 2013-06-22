@@ -294,15 +294,19 @@ class MergeTradeAdmin(admin.ModelAdmin):
             if obj.sys_status==pcfg.WAIT_AUDIT_STATUS:
                 if obj.has_merge:
                     merge_order_remover(obj.tid)
+                    msg = u"订单已取消合并状态"
                 else:
                     obj.remove_reason_code(pcfg.MULTIPLE_ORDERS_CODE)
-                msg = u"订单已取消合并状态"
-                self.message_user(request, msg)
+                    msg = u"订单已取消待合并状态"
                 log_action(request.user.id,obj,CHANGE,msg)
-                return HttpResponseRedirect("../%s/" % pk_value)
+            elif obj.sys_status in (pcfg.WAIT_CHECK_BARCODE_STATUS,pcfg.WAIT_SCAN_WEIGHT_STATUS):
+                obj.remove_reason_code(pcfg.MULTIPLE_ORDERS_CODE)
+                msg = u"订单已取消待合并状态"
+                log_action(request.user.id,obj,CHANGE,msg)
             else:
-                self.message_user(request, u"该订单不是问题单,或没有合并子订单")
-                return HttpResponseRedirect("../%s/" % pk_value)
+                msg = u"该订单不在问题单，或待扫描状态,或没有合并子订单"
+            self.message_user(request, msg)
+            return HttpResponseRedirect("../%s/" % pk_value)
         elif request.POST.has_key("_save"):
             msg = u'%(name)s "%(obj)s" 保存成功.'% {'name': force_unicode(verbose_name), 'obj': force_unicode(obj)}
             self.message_user(request, msg)

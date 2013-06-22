@@ -49,11 +49,11 @@ admin.site.register(SupplierType,SupplierTypeAdmin)
 
 
 class SupplierAdmin(admin.ModelAdmin):
-    list_display = ('id','type','supplier_name','contact','phone','mobile','fax','zip_code','email'
-                    ,'address','account_bank','account_no','main_page','extra_info')
+    list_display = ('id','supply_type','supplier_name','contact','phone','mobile','fax','zip_code','email'
+                    ,'address','account_bank','account_no','main_page','in_use')
     #list_editable = ('update_time','task_type' ,'is_success','status')
     
-    list_filter = ('type',)
+    list_filter = ('supply_type','in_use',)
     search_fields = ['id','supplier_name']
 
 

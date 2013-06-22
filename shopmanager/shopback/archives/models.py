@@ -55,8 +55,8 @@ class SupplierType(models.Model):
     
 class Supplier(models.Model):
     
-    type           = models.ForeignKey(SupplierType,null=True,related_name='suppliers')
-    
+    supply_type           = models.ForeignKey(SupplierType,null=True,related_name='suppliers')
+
     supplier_name  = models.CharField(max_length=32,blank=True)
     contact        = models.CharField(max_length=32,blank=True)
     phone          = models.CharField(max_length=32,blank=True)
@@ -70,6 +70,7 @@ class Supplier(models.Model):
     account_no     = models.CharField(max_length=32,blank=True)
     main_page      = models.CharField(max_length=256,blank=True)
     
+    in_use      = models.BooleanField(default=True)
     extra_info     = models.TextField(blank=True)
     class Meta:
         db_table = 'shop_archives_supplier'

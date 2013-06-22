@@ -3,8 +3,9 @@ import datetime
 import json
 from django.core.serializers.json import DjangoJSONEncoder
 from django.http import HttpResponse,HttpResponseNotFound
-from  django.shortcuts import render_to_response
+from django.shortcuts import render_to_response
 from django.template import RequestContext
+from django.db.models import Q,Sum
 from django.views.decorators.csrf import csrf_exempt
 from django.template.loader import render_to_string
 from djangorestframework.serializer import Serializer
@@ -315,7 +316,23 @@ class ProductSkuInstanceView(ModelView):
         return 0
 
 
+class ProductSearchView(ModelView):
+    """ 根据商品编码，名称查询商品 """
+    
+    def get(self, request, *args, **kwargs):
+        
+        q  = request.GET.get('q')
+        if not q:
+            return '没有输入查询关键字'.decode('utf8')
+        products = Product.objects.filter(Q(outer_id=q)|Q(name__contains=q),status__in=(pcfg.NORMAL,pcfg.REMAIN))
+        
+        prod_list = [(prod.outer_id,prod.pic_path,prod.name,prod.cost,prod.collect_num,[(sku.outer_id,sku.properties_name) for sku in 
+                    prod.prod_skus.filter(status__in=(pcfg.NORMAL,pcfg.REMAIN))]) for prod in products]
+        
+        return prod_list
 
-
-
+    def post(self, request, *args, **kwargs):
+        #修改库存商品信息
+    
+        return 0
 

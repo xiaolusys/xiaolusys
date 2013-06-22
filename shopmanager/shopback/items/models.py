@@ -21,8 +21,6 @@ import logging
 
 logger  = logging.getLogger('items.handler')
 
-
-
 APPROVE_STATUS  = (
     (pcfg.ONSALE_STATUS,'出售中'),
     (pcfg.INSTOCK_STATUS,'库中'),
@@ -42,10 +40,7 @@ PRODUCT_STATUS = (
 
 
 class Product(models.Model):
-    """ 抽象商品（根据淘宝外部编码)，描述：
-        1,映射淘宝出售商品与采购商品桥梁；
-        2,淘宝线上库存管理的核心类；
-    """
+    """ 系统商品（根据淘宝外部编码) """
     
     outer_id     = models.CharField(max_length=64,unique=True,null=False,blank=True,verbose_name='外部编码')
     name         = models.CharField(max_length=64,blank=True,verbose_name='商品名称')
