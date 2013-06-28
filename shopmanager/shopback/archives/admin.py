@@ -55,7 +55,21 @@ class SupplierAdmin(admin.ModelAdmin):
     
     list_filter = ('supply_type','in_use',)
     search_fields = ['id','supplier_name']
-
+    
+     #--------设置页面布局----------------
+    fieldsets =(('供应商基本信息:', {
+                    'classes': ('expand',),
+                    'fields': (('supplier_name','supply_type')
+                               ,('contact','phone')
+                               ,('mobile','fax')
+                               ,('zip_code','email')
+                               ,('address')
+                               ,('account_bank','account_no')
+                               ,('main_page','in_use')
+                               ,'extra_info')
+                }),
+               )
+    
 
 admin.site.register(Supplier,SupplierAdmin)
 

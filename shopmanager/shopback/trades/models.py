@@ -3,12 +3,11 @@ import time
 import json
 import datetime
 from django.db import models
-from django.db.models import Q
+from django.db.models import Q,Sum
 from django.db.models.signals import post_save
 from bitfield import BitField
 from shopback.base.fields import BigIntegerAutoField,BigIntegerForeignKey
 from shopback.users.models import User
-from django.db.models import Sum
 from shopback.base import log_action, ADDITION, CHANGE
 from shopback.orders.models import Trade,Order,STEP_TRADE_STATUS
 from shopback.items.models import Item,Product,ProductSku

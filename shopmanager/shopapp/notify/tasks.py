@@ -84,9 +84,7 @@ def process_trade_notify_task(id):
                             main_trade.has_memo = True
                             update_model_feilds(main_trade,update_fields=['has_memo',])
                             main_trade.append_reason_code(pcfg.NEW_MEMO_CODE)
-                    
-                    #如果是更新了卖家备注，则继续处理，更新旗帜则不处理
-                    if seller_memo: 
+                    if trade.seller_memo:
                         trade.has_memo = True
                         update_model_feilds(trade,update_fields=['has_memo','seller_memo','seller_flag','modified'])
                         trade.append_reason_code(pcfg.NEW_MEMO_CODE)
@@ -284,7 +282,8 @@ def process_refund_notify_task(id):
                     order.status=order_status
                     order.save()
                     
-                    if notify.status == 'RefundSuccess' and merge_trade.status in (pcfg.WAIT_SELLER_SEND_GOODS,pcfg.WAIT_BUYER_CONFIRM_GOODS):
+                    if notify.status == 'RefundSuccess' and merge_trade.status in \
+                        (pcfg.WAIT_SELLER_SEND_GOODS,pcfg.WAIT_BUYER_CONFIRM_GOODS):
                         merge_type  = MergeBuyerTrade.get_merge_type(notify.tid)
                         if merge_type == 1:
                             main_tid = MergeBuyerTrade.objects.get(sub_tid=notify.tid).main_tid

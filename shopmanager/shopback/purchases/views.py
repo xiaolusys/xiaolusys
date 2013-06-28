@@ -1,9 +1,15 @@
 #-*- coding:utf8 -*-
+import os
 import datetime
 import json
+import csv
+import cStringIO as StringIO
 from django.core.serializers.json import DjangoJSONEncoder
-from django.http import HttpResponse
+from django.http import HttpResponse, Http404
+from django.core.servers.basehttp import FileWrapper
 from django.template.loader import render_to_string
+from django.conf import settings
+from django.views.decorators.csrf import csrf_exempt
 from djangorestframework.serializer import Serializer
 from djangorestframework.utils import as_tuple
 from djangorestframework import status
@@ -12,27 +18,17 @@ from djangorestframework.response import Response
 from djangorestframework.mixins import CreateModelMixin
 from djangorestframework.views import ModelView,ListOrCreateModelView,InstanceModelView
 from shopback.archives.models import Deposite,Supplier,PurchaseType
+from shopback.items.models import Product,ProductSku
+from shopback.purchases.models import Purchase,PurchaseItem
 from shopback import paramconfig as pcfg
+from shopback.base import log_action, ADDITION, CHANGE
+from utils import CSVUnicodeWriter
+from auth import staff_requried
 
-class PurchaseItemView(InstanceModelView):
-    """ docstring for PurchaseItemView """
-    queryset = None
-    
-    def get(self, request, *args, **kwargs):
-        #获取单库存商品信息
-        
-        
-        return item_dict
-    
-    def post(self, request, *args, **kwargs):
-        
-        pass
-    
-    def get_queryset(self):
-        return self.queryset
-    
-    
-class PurchaseInstanceView(ModelView):
+#################################### 采购单 #################################
+
+class PurchaseView(ModelView):
+    """ 采购单 """
     
     def get(self, request, *args, **kwargs):
         
@@ -45,6 +41,168 @@ class PurchaseInstanceView(ModelView):
     
     def post(self, request, *args, **kwargs):
         
+        content = request.REQUEST
+        purchase_id = content.get('purchase_id')
+        purchase    = None
+        if purchase_id:
+            try:
+                purchase = Purchase.objects.get(id=purchase_id)
+            except:
+                return u'输入采购编号未找到'
+        else:
+            purchase = Purchase()
+
+        for k,v in content.iteritems():
+            if not v :continue
+            hasattr(purchase,k) and setattr(purchase,k,v)
+        purchase.save()
+        
+        log_action(request.user.id,purchase,ADDITION,u'创建采购单')
+        
+        return {'id':purchase.id}
+
+class PurchaseInsView(ModelView):
+    """ 采购单修改界面 """
+    
+    def get(self, request, id, *args, **kwargs):
+        
+        try:
+            purchase = Purchase.objects.get(id=id)
+        except Exception,exc:
+            raise Http404
+        
+        purchase_items = []
+        for item in purchase.purchase_items.exclude(status=pcfg.PURCHASE_INVALID):
+            item_dict = {}
+            item_dict['id'] = item.id
+            item_dict['supplier_item_id'] = item.supplier_item_id
+            item_dict['outer_id']     = item.product.outer_id
+            item_dict['name']         = item.product and item.product.name or ''
+            item_dict['outer_sku_id'] = item.product_sku.outer_id
+            item_dict['properties_name'] = item.product_sku and item.product_sku.properties_name or item.product_sku.properties_alias
+            item_dict['total_fee']       = item.total_fee
+            item_dict['payment']         = item.payment
+            item_dict['purchase_num']    = item.purchase_num 
+            item_dict['price']           = item.price
+            purchase_items.append(item_dict)
+        
+        purchase_dict = {}
+        purchase_dict['id']      = purchase.id
+        purchase_dict['supplier_id']      = purchase.supplier.id
+        purchase_dict['deposite_id']      = purchase.deposite.id
+        purchase_dict['purchase_type_id'] = purchase.purchase_type.id
+        purchase_dict['forecast_date']    = purchase.forecast_date
+        purchase_dict['post_date']        = purchase.post_date
+        purchase_dict['service_date']     = purchase.service_date
+        purchase_dict['total_fee']        = purchase.total_fee
+        purchase_dict['payment']          = purchase.payment
+        purchase_dict['extra_name']       = purchase.extra_name
+        purchase_dict['extra_info']       = purchase.extra_info
+        purchase_dict['purchase_items']   = purchase_items
+            
+        params = {}
+        params['suppliers']      = Supplier.objects.filter(in_use=True)
+        params['deposites']      = Deposite.objects.filter(in_use=True)
+        params['purchase_types'] = PurchaseType.objects.filter(in_use=True)
+        params['purchase']       = purchase_dict
+        
+        return params
+    
+
+
+class PurchaseItemView(ModelView):
+    """ 采购单项 """
+    
+    def get(self, request, *args, **kwargs):
+        
         pass
+        
+    def post(self, request, *args, **kwargs):
+        
+        content = request.REQUEST
+        
+        purchase_id = content.get('purchase_id')
+        outer_id = content.get('outer_id')
+        sku_id   = content.get('sku_id')
+        price    = content.get('price')
+        num      = content.get('num')
+        
+        prod     = None
+        prod_sku = None
+        try:
+            prod = Product.objects.get(outer_id=outer_id)
+            if sku_id:
+                prod_sku = ProductSku.objects.get(outer_id=sku_id,product=prod)
+        except :
+            return u'未找到商品及规格' 
+        
+        try:
+            purchase = Purchase.objects.get(id=purchase_id)
+        except:
+            return u'未找到采购单'
+        
+        purchase_item,state = PurchaseItem.objects.get_or_create(
+                                purchase=purchase,product=prod,product_sku=prod_sku)
+        purchase_item.price = price
+        purchase_item.purchase_num = num
+        purchase_item.save()
+        
+        log_action(request.user.id,purchase,CHANGE,u'%s采购项（%s,%s）'%(state and u'添加' or u'修改',outer_id,sku_id))
+        
+        purchase_item_dict = {'id':purchase_item.id,
+                              'outer_id':purchase_item.product.outer_id,
+                              'name':purchase_item.product.name,
+                              'outer_sku_id':purchase_item.product_sku.outer_id,
+                              'properties_name':purchase_item.product_sku.properties_name,
+                              'price':purchase_item.price,
+                              'purchase_num':purchase_item.purchase_num,
+                              }
+        return purchase_item_dict
+
+@csrf_exempt        
+@staff_requried    
+def delete_purchase_item(request):
+    """ 删除采购项 """
+    content     = request.REQUEST
+    purchase_id = content.get('purchase_id')
+    purchase_item_id = content.get('purchase_item_id')
     
+    try:
+        purchase = Purchase.objects.get(id=purchase_id)
+    except:
+        raise http404
+        
+    rows = PurchaseItem.objects.filter(id=purchase_item_id,purchase=purchase).update(status=pcfg.PURCHASE_INVALID)
+  
+    if rows == 0:
+        return HttpResponse(json.dumps({'code':1,'response_error':'fail'}),mimetype='application/json')
     
+    log_action(request.user.id,purchase,CHANGE,u'采购项作废')
+    
+    return HttpResponse(json.dumps({'code':0,'response_content':'success'}),mimetype='application/json')
+    
+
+@staff_requried    
+def download_purchase_file(request,id):
+    """ 下载采购合同信息 """
+    try:
+        purchase = Purchase.objects.get(id=id)
+    except Purchase.DoesNotExist:
+        raise Http404
+    
+    file_name = u'purchase-contract(NO-%s).csv'%str(purchase.id)
+    myfile = StringIO.StringIO() 
+    pcsv = purchase.gen_csv_tuple()
+    writer = CSVUnicodeWriter(myfile)
+    writer.writerows(pcsv)
+        
+    response = HttpResponse(myfile.getvalue(), mimetype='application/octet-stream')
+    myfile.close()
+    response['Content-Disposition'] = 'attachment; filename=%s'%file_name
+    #response['Content-Length'] = str(os.stat(file_path).st_size)
+    return response
+
+
+#################################### 采购入库单 #################################
+
+

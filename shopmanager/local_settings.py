@@ -61,3 +61,4 @@ REFRESH_URL = 'https://oauth.taobao.com/token'
 
 FONT_PATH = '/usr/share/fonts/truetype/ttf-dejavu/DejaVuSerif-Bold.ttf'
 ASYNC_FILE_PATH = '/home/user1/deploy/taobao/site_media/asyncfile'
+

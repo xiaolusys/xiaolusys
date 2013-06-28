@@ -5,6 +5,7 @@ from shopback.items.views import ProductListView,ProductItemView,ProductModifyVi
 from shopback.items.resources import ProductListResource,ProductItemResource,ProductResource,ProductSkuResource
 from shopback.items.renderers import ProductListHtmlRenderer,JSONRenderer,ProductItemHtmlRenderer,\
     ProductUpdateHtmlRenderer,ProductSkuHtmlRenderer
+from shopback.base.renderers  import BaseJsonRenderer
 
 
 urlpatterns = patterns('shopback.items.views',
@@ -45,7 +46,7 @@ urlpatterns = patterns('shopback.items.views',
     )),
     (r'^query/$',ProductSearchView.as_view(
         resource=ProductResource,
-        renderers=(JSONRenderer,),
+        renderers=(BaseJsonRenderer,),
 #        authentication=(UserLoggedInAuthentication,),
 #        permissions=(IsAuthenticated,)
     )),

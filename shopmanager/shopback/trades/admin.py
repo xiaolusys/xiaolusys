@@ -452,8 +452,11 @@ class MergeTradeAdmin(admin.ModelAdmin):
             trade.has_rule_match=False
             trade.has_out_stock=False
             trade.has_refund=False
+            trade.is_force_wlb=False
+            trade.buyer_message=''
+            trade.seller_memo=''
             trade.save()
-            #减去商品的待发货数，订单重新入库时（判断是否缺货功能），会重新肩上
+            #减去商品的待发货数，订单重新入库时（判断是否缺货功能），会重新加上
             wait_post_orders = trade.merge_trade_orders.filter(sys_status=pcfg.IN_EFFECT
                             ,gift_type__in=(pcfg.REAL_ORDER_GIT_TYPE,pcfg.COMBOSE_SPLIT_GIT_TYPE))
             for order in wait_post_orders:
@@ -499,65 +502,6 @@ class MergeTradeAdmin(admin.ModelAdmin):
 
     pull_order_action.short_description = "重新下单".decode('utf8')
     
-        
-#    #淘宝后台同步发货
-#    def sync_trade_post_taobao(self, request, queryset):
-#        try:
-#            pingstatus = pinghost(settings.TAOBAO_API_HOSTNAME)
-#            if pingstatus:
-#                return HttpResponse('<body style="text-align:center;"><h1>当前网络不稳定，请稍后再试...</h1></body>')
-#            
-#            user_id   = request.user.id
-#            trade_ids = [t.id for t in queryset]
-#            
-#            prapare_trades = queryset.filter(is_picking_print=True,is_express_print=True,sys_status=pcfg.WAIT_PREPARE_SEND_STATUS
-#                                             ,reason_code='',status=pcfg.WAIT_SELLER_SEND_GOODS).exclude(out_sid='')#,operator=request.user.username
-#            
-#            if prapare_trades.count() > 0:
-#                try:                                     
-#                    send_tasks = group([ sendTaobaoTradeTask.s(user_id,trade.id) for trade in prapare_trades])()
-#                    send_tasks.get()
-#                except Exception,exc:
-#                    logger.error(exc.message,exc_info=True)
-#                    return HttpResponse('<body style="text-align:center;"><h1>发货任务执行出错:（%s）！</h1></body>'%exc.message) 
-#            queryset = MergeTrade.objects.filter(id__in=trade_ids)
-#            wait_prepare_trades = queryset.filter(sys_status=pcfg.WAIT_PREPARE_SEND_STATUS,is_picking_print=True
-#                                                  ,is_express_print=True).exclude(out_sid='')#,operator=request.user.username
-#            for prepare_trade in wait_prepare_trades:
-#                prepare_trade.is_picking_print=False
-#                prepare_trade.is_express_print=False
-#                prepare_trade.sys_status=pcfg.WAIT_AUDIT_STATUS
-#                prepare_trade.save()
-#                log_action(user_id,prepare_trade,CHANGE,u'订单未发货被拦截入问题单')
-#            
-#            post_trades = queryset.filter(sys_status=pcfg.WAIT_CHECK_BARCODE_STATUS)
-#            trade_list = self.get_trade_pickle_list_data(post_trades)
-#            
-#            trades = []
-#            for trade in queryset:
-#                trade_dict = {}
-#                trade_dict['id'] = trade.id
-#                trade_dict['tid'] = trade.tid
-#                trade_dict['seller_nick'] = trade.seller_nick
-#                trade_dict['buyer_nick'] = trade.buyer_nick
-#                trade_dict['company_name'] = trade.logistics_company.name 
-#                trade_dict['out_sid']    = trade.out_sid
-#                trade_dict['sys_status'] = trade.sys_status
-#                trades.append(trade_dict)
-#            
-#            response_dict = {'trades':trades,'trade_items':trade_list}
-#            
-#            try:
-#                ReplayPostTrade.objects.create(operator=request.user.username,
-#                                               order_num=len(trade_ids),post_data=json.dumps(response_dict))
-#            except Exception,exc:
-#                logger.error(exc.message,exc_info=True)
-#        except Exception,exc:
-#            logger.error(exc.message,exc_info=True)
-#            return HttpResponse('<body style="text-align:center;"><h1>发货请求执行出错:（%s）！</h1></body>'%exc.message) 
-#        
-#        return render_to_response('trades/tradepostsuccess.html',response_dict,
-#                                  context_instance=RequestContext(request),mimetype="text/html")
                           
     #淘宝后台同步发货
     def sync_trade_post_taobao(self, request, queryset):
