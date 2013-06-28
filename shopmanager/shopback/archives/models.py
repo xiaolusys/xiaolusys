@@ -40,8 +40,8 @@ class DepositeDistrict(models.Model):
     
 class SupplierType(models.Model):
     
-    type_name = models.CharField(max_length=32,blank=True)
-    extra_info = models.TextField(blank=True)
+    type_name = models.CharField(max_length=32,blank=True,verbose_name='类型名称')
+    extra_info = models.TextField(blank=True,verbose_name='备注')
     
     class Meta:
         db_table = 'shop_archives_suppliertype'
@@ -55,22 +55,23 @@ class SupplierType(models.Model):
     
 class Supplier(models.Model):
     
-    type           = models.ForeignKey(SupplierType,null=True,related_name='suppliers')
+    supply_type           = models.ForeignKey(SupplierType,null=True,related_name='suppliers',verbose_name='供应商类型')
+
+    supplier_name  = models.CharField(max_length=32,blank=True,verbose_name='供应商名称')
+    contact        = models.CharField(max_length=32,blank=True,verbose_name='联系方式')
+    phone          = models.CharField(max_length=32,blank=True,verbose_name='电话')
+    mobile         = models.CharField(max_length=16,blank=True,verbose_name='手机')
+    fax            = models.CharField(max_length=16,blank=True,verbose_name='传真')
+    zip_code       = models.CharField(max_length=16,blank=True,verbose_name='邮编')
+    email          = models.CharField(max_length=64,blank=True,verbose_name='邮箱')
     
-    supplier_name  = models.CharField(max_length=32,blank=True)
-    contact        = models.CharField(max_length=32,blank=True)
-    phone          = models.CharField(max_length=32,blank=True)
-    mobile         = models.CharField(max_length=16,blank=True)
-    fax            = models.CharField(max_length=16,blank=True)
-    zip_code       = models.CharField(max_length=16,blank=True)
-    email          = models.CharField(max_length=64,blank=True)
+    address        = models.CharField(max_length=64,blank=True,verbose_name='地址')
+    account_bank   = models.CharField(max_length=32,blank=True,verbose_name='汇款银行')
+    account_no     = models.CharField(max_length=32,blank=True,verbose_name='汇款帐号')
+    main_page      = models.CharField(max_length=256,blank=True,verbose_name='供应商主页')
     
-    address        = models.CharField(max_length=64,blank=True)
-    account_bank   = models.CharField(max_length=32,blank=True)
-    account_no     = models.CharField(max_length=32,blank=True)
-    main_page      = models.CharField(max_length=256,blank=True)
-    
-    extra_info     = models.TextField(blank=True)
+    in_use      = models.BooleanField(default=True,verbose_name='使用')
+    extra_info     = models.TextField(blank=True,verbose_name='备注')
     class Meta:
         db_table = 'shop_archives_supplier'
         verbose_name=u'供应商'

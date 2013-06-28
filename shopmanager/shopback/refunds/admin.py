@@ -21,13 +21,16 @@ class RefundAdmin(admin.ModelAdmin):
     #--------设置页面布局----------------
     fieldsets =(('重要信息', {
                     'classes': ('expand',),
-                    'fields': (('tid','user','buyer_nick','has_good_return'),
-                               ('good_status','status','desc'))
+                    'fields': (('tid','user','buyer_nick'),
+                               ('has_good_return','good_status','status'),
+                               'desc')
                 }),
                 ('参考信息:', {
                     'classes': ('collapse',),
-                    'fields': (('oid','title','seller_id','seller_nick','num_iid','total_fee','refund_fee','payment')
-                                ,('company_name','sid','is_reissue','reason','cs_status','order_status'))
+                    'fields': (('oid','title','seller_id','seller_nick'),
+                               ('num_iid','total_fee','refund_fee','payment')
+                                ,('company_name','sid','is_reissue')
+                                ,('cs_status','order_status','reason'))
                 }))
 
      #--------定制控件属性----------------

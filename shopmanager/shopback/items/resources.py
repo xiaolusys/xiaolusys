@@ -12,6 +12,7 @@ class ProductListResource(ModelResource):
                ,'is_stock_warn','is_warning','is_assign','is_split','is_match','status') 
     exclude = ('url',)
     
+    
 class ProductResource(ModelResource):
     """ docstring for Product ModelResource """
 
@@ -20,12 +21,14 @@ class ProductResource(ModelResource):
                ,'is_stock_warn','is_warning',('pskus','ProductSkuSerializer'),'status') 
     exclude = ('url',)
     
+    
 class ProductItemResource(ModelResource):
     """ docstring for ProductItem ModelResource """
 
     model = Item
-    fields = (('itemobjs','ItemSerializer'),'layer_table','updates_num') 
+    fields = ('id','outer_id','name','outer_sku_id','properties_name','price','num') 
     exclude = ('url',)
+    
     
 class ProductSkuResource(ModelResource):
     """ docstring for ProductSku ModelResource """

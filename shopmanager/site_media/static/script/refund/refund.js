@@ -197,7 +197,8 @@ refund.OrderListDialog.prototype.init = function(id){
 refund.OrderListDialog.prototype.show = function(){
 	var trade_search_dialog = goog.dom.getElement('id-trade-search-dialog');
 	var pos = goog.style.getPageOffset(trade_search_dialog);
-	goog.style.setPageOffset(this.promptDiv,pos);
+	var scrollTop = document.body.scrollTop;
+	goog.style.setPageOffset(this.promptDiv,pos.x,pos.y+scrollTop);
 	goog.style.setStyle(this.promptDiv, "display", "block");
 }
 
@@ -376,7 +377,8 @@ refund.Manager.prototype.addRefundOrder = function (e) {
 	var out_sid   = goog.dom.getElement('id_return_out_sid').value;
 
 	var order_dict   = {
-		'trade_id':tid,'outer_id':outer_id,'outer_sku_id':outer_sku_id,'title':title,'property':property,
+		'trade_id':tid,'outer_id':outer_id,'outer_sku_id':outer_sku_id,
+		'title':title,'property':property,
 		'memo':memo,'buyer_nick':buyer_nick,'buyer_mobile':buyer_mobile,
 		'buyer_phone':buyer_phone,'out_sid':out_sid,'company':company
 		};
