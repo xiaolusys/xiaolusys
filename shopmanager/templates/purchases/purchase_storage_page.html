@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html >
   <head>
-    <title>创建采购单</title>
+    <title>创建入库单</title>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
      <link href="{{ STATIC_URL }}bootstrap/css/bootstrap.min.css" rel="stylesheet" type="text/css" />
     <link href="{{ STATIC_URL }}bootstrap/css/bootstrap-responsive.min.css" rel="stylesheet" type="text/css" />
@@ -172,20 +172,20 @@
     </style>
   </head>
 
-{% with suppliers=object.suppliers deposites=object.deposites purchase_types=object.purchase_types purchase=object.purchase %}
+{% with suppliers=object.suppliers deposites=object.deposites purchase_types=object.purchase_types purchase_storage=object.purchase %}
  <body>
 	<div class="content-main">
 		<fieldset>
-			<legend><h2 class="head-title" >采购单(NO:<input type="text" id="id_purchase" value="{{ purchase.id }}" disabled="disabled"/>)</h2></legend>
+			<legend><h2 class="head-title" >入库单(NO:<input type="text" id="id_purchase" value="{{ purchase.id }}" disabled="disabled"/>)</h2></legend>
 			<div class="content-base-info">
 				<table class="table table-bordered table-striped table-condensed">
 					<tr>
 						<td>
-							<label for='supplier'>供&nbsp;&nbsp;应&nbsp;&nbsp;商</label>
+							<label for='supplier'>供&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;应&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;商</label>
 							<select id='supplier'>
 								<option value='' >----请选择----</option>
 								{% for supplier in  suppliers %}
-								<option value='{{ supplier.id }}' {% if purchase.supplier_id == supplier.id %}selected{% endif %}>{{ supplier.supplier_name }}</option>
+								<option value='{{ supplier.id }}' {% if purchase_storage.supplier_id == supplier.id %}selected{% endif %}>{{ supplier.supplier_name }}</option>
 								{% endfor %}
 							</select>
 							<a href="/admin/archives/supplier/add/" class="add-another" id="add_id_supplier" onclick="return showAddAnotherPopup(this);">
@@ -196,7 +196,7 @@
 							<select id='deposite'>
 								<option value='' >----请选择----</option>
 								{% for deposite in  deposites %}
-								<option value='{{ deposite.id }}' {% if purchase.deposite_id == deposite.id %}selected{% endif %}>{{ deposite.deposite_name}}</option>
+								<option value='{{ deposite.id }}' {% if purchase_storage.deposite_id == deposite.id %}selected{% endif %}>{{ deposite.deposite_name}}</option>
 								{% endfor %}
 							</select>
 							<a href="/admin/archives/deposite/add/" class="add-another" id="add_id_deposite" onclick="return showAddAnotherPopup(this);">
@@ -207,35 +207,33 @@
 							<select id='purchase_type'>
 								<option value='' >----请选择----</option>
 								{% for purchase_type in  purchase_types %}
-								<option value='{{ purchase_type.id }}' {% if purchase.purchase_type_id == purchase_type.id %}selected{% endif %}>{{ purchase_type.type_name }}</option>
+								<option value='{{ purchase_type.id }}' {% if purchase_storage.purchase_type_id == purchase_type.id %}selected{% endif %}>{{ purchase_type.type_name }}</option>
 								{% endfor %}
 							</select>
 							<a href="/admin/archives/purchasetype/add/" class="add-another" id="add_id_purchasetype" onclick="return showAddAnotherPopup(this);">
-							 <img src="{{ STATIC_URL }}admin/img/icon_addlink.gif" width="10" height="10" alt="创建"></a>
+							 <img src="{{ STATIC_URL }}admin/img/icon_addlink.gif" width="10" height="10" alt="创建">
+							</a>
 						</td>
 					</tr>
 					<tr>
 						<td>
-							<label for='service_date'>业务日期</label>
-							<input type="text" id="service_date" class="simple-text" value="{% if purchase.service_date %}{{ purchase.service_date }}{% endif %}"/>
-						</td>
-						<td>
 							<label for='forecast_date'>预计到货日期</label>
-							<input type="text" id="forecast_date" class="simple-text" value="{% if purchase.forecast_date %}{{ purchase.forecast_date }}{% endif %}"/>
+							<input type="text" id="forecast_date" class="simple-text" value="{% if purchase_storage.forecast_date %}{{ purchase_storage.forecast_date }}{% endif %}"/>
 						</td>
 						<td>
-							<label for='post_date'>发货日期</label>
-							<input type="text" id="post_date" class="simple-text" value="{% if purchase.post_date %}{{ purchase.post_date }}{% endif %}"/>
+							<label for='post_date'>时间到货日期</label>
+							<input type="text" id="post_date" class="simple-text" value="{% if purchase_storage.post_date %}{{ purchase_storage.post_date }}{% endif %}"/>
 						</td>
+						<td></td>
 					</tr>
 					<tr>
 						<td>
 							<label for='extra_name'>标题</label>
-							<textarea id="extra_name"  rows="2" cols="20" placeholder="130字以内...">{{ purchase.extra_name }}</textarea>
+							<textarea id="extra_name"  rows="2" cols="20" placeholder="130字以内...">{{ purchase_storage.extra_name }}</textarea>
 						</td>
 						<td>
 							<label for='extra_info'>备注</label>
-							<textarea id="extra_info"  rows="2" cols="120">{{ purchase.extra_info }}</textarea>
+							<textarea id="extra_info"  rows="2" cols="120">{{ purchase_storage.extra_info }}</textarea>
 						</td>
 						<td style="text-align:center;padding-top:20px;">
 							<button id="save_purchase" class="btn btn-primary">保存 +</button>
@@ -248,7 +246,7 @@
 				<div class="panel-content">
 					<div>
 						<h3 class="head-left" id="id-purchaseitem-head">
-							采购项目列表
+							采购入库项目列表
 						</h3>
 						<a id="export-csv-file" class="head-right" href="{% if purchase %}/purchases/csv/{{ purchase.id }}/{% else %}#{% endif %}">
 							<icon class="icon-folder-open" title="导出csv文件"></icon>
@@ -316,7 +314,7 @@
 	<!-- 采购项目选择对话框 -->
 	<div id="purchase-prompt" class="purchase-prompt">
 		<div id="purchase-prompt-head" class="purchase-prompt-head">
-			<h4 class="prompt-title">采购项目选择框</h4>
+			<h4 class="prompt-title">采购入库项目选择框</h4>
 			<a id="prompt-close" class="prompt-close"><i class="icon-remove-sign"></i></a>
 		</div>
 		<div id="purchase-prompt-body" class="purchase-prompt-body">
@@ -341,6 +339,5 @@
 <script src="{{ STATIC_URL }}script/purchase/purchase.js"></script>
 <script type="text/javascript">
 	new purchasestorage.Manager();
-	
 </script>
 </html>

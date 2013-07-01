@@ -3,8 +3,9 @@ from django.contrib import admin
 from django.db import models
 from django.forms import TextInput, Textarea
 from shopback import paramconfig as pcfg
+from shopback.items.models import Product,ProductSku
 from shopback.purchases.models import Purchase,PurchaseItem,\
-    PurchaseStorage,PurchaseStorageItem,PurchaseStorageRelate,PurchasePaymentItem
+    PurchaseStorage,PurchaseStorageItem,PurchasePaymentItem
 
 import logging 
 
@@ -22,6 +23,13 @@ class PurchaseItemInline(admin.TabularInline):
         models.FloatField: {'widget': TextInput(attrs={'size':'8'})}
     }
     
+    def formfield_for_foreignkey(self, db_field, request, **kwargs):
+        if db_field.name == "product":
+            kwargs["queryset"] = Product.objects.filter(status__in=(pcfg.NORMAL,pcfg.REMAIN))
+        elif db_field.name == "product_sku":
+            kwargs["queryset"] = ProductSku.objects.filter(status__in=(pcfg.NORMAL,pcfg.REMAIN))
+        return super(PurchaseItemInline, self).formfield_for_foreignkey(db_field, request, **kwargs)
+    
 
 class PurchaseStorageItemInline(admin.TabularInline):
     
@@ -35,12 +43,12 @@ class PurchaseStorageItemInline(admin.TabularInline):
 
 
 class PurchaseAdmin(admin.ModelAdmin):
-    list_display = ('id','purchase_title_link','supplier','deposite','purchase_type','total_fee','payment','forecast_date',
-                    'post_date','service_date','status')
+    list_display = ('id','purchase_title_link','origin_no','supplier','deposite','purchase_type','receiver_name','total_fee','payment','forecast_date',
+                    'post_date','service_date','arrival_status','status')
     #list_editable = ('update_time','task_type' ,'is_success','status')
 
-    list_filter = ('supplier','deposite','purchase_type','status')
-    search_fields = ['id','extra_name']
+    list_filter = ('status','arrival_status','supplier','deposite','purchase_type')
+    search_fields = ['id','origin_no','extra_name']
     
     def purchase_title_link(self, obj):
         symbol_link = obj.extra_name or u'【空标题】'
@@ -53,15 +61,14 @@ class PurchaseAdmin(admin.ModelAdmin):
     purchase_title_link.short_description = "标题"
     
     inlines = [PurchaseItemInline]
-    
-    
+
     #--------设置页面布局----------------
     fieldsets =(('采购单信息:', {
                     'classes': ('expand',),
                     'fields': (('supplier','deposite','purchase_type')
-                               ,('extra_name','total_fee','payment')
+                               ,('origin_no','extra_name','total_fee','payment')
                                ,('forecast_date','service_date','post_date')
-                               ,('status','extra_info'))
+                               ,('arrival_status','status','extra_info'))
                 }),)
     
     #--------定制控件属性----------------
@@ -70,14 +77,14 @@ class PurchaseAdmin(admin.ModelAdmin):
         models.FloatField: {'widget': TextInput(attrs={'size':'8'})},
         models.TextField: {'widget': Textarea(attrs={'rows':4, 'cols':40})},
     }
-
+    
 
 admin.site.register(Purchase,PurchaseAdmin)
 
 
 class PurchaseItemAdmin(admin.ModelAdmin):
-    list_display = ('id','purchase','product','product_sku','supplier_item_id','purchase_num','discount','price'
-                    ,'total_fee','payment','created','modified','status')
+    list_display = ('id','purchase','product','product_sku','supplier_item_id','purchase_num','std_price','price'
+                    ,'discount','total_fee','payment','created','modified','status')
     #list_editable = ('update_time','task_type' ,'is_success','status')
 
     list_filter = ('status',)
@@ -87,13 +94,31 @@ admin.site.register(PurchaseItem,PurchaseItemAdmin)
 
 
 class PurchaseStorageAdmin(admin.ModelAdmin):
-    list_display = ('id','supplier','deposite','purchase_type','forecast_date','post_date','created','modified','status')
+    list_display = ('id','origin_no','purchase_no','supplier','deposite','purchase_type',
+                    'forecast_date','post_date','created','modified','status')
     #list_editable = ('update_time','task_type' ,'is_success','status')
 
-    list_filter = ('supplier','deposite','purchase_type','status')
-    search_fields = ['id']
+    list_filter = ('status','supplier','deposite','purchase_type')
+    search_fields = ['id','out_sid','origin_no','purchase_no']
     
     inlines = [PurchaseStorageItemInline]
+    
+    #--------设置页面布局----------------
+    fieldsets =(('采购入库单信息:', {
+                    'classes': ('expand',),
+                    'fields': (('origin_no','purchase_no','purchase')
+                               ,('supplier','deposite','purchase_type')
+                               ,('extra_name','total_fee','payment')
+                               ,('forecast_date','service_date','post_date')
+                               ,('logistic_company','out_sid','status','extra_info'))
+                }),)
+    
+    #--------定制控件属性----------------
+    formfield_overrides = {
+        models.CharField: {'widget': TextInput(attrs={'size':'16'})},
+        models.FloatField: {'widget': TextInput(attrs={'size':'8'})},
+        models.TextField: {'widget': Textarea(attrs={'rows':4, 'cols':40})},
+    }
 
 admin.site.register(PurchaseStorage,PurchaseStorageAdmin)
 
@@ -108,15 +133,6 @@ class PurchaseStorageItemAdmin(admin.ModelAdmin):
     
 admin.site.register(PurchaseStorageItem,PurchaseStorageItemAdmin)
 
-
-class PurchaseStorageRelateAdmin(admin.ModelAdmin):
-    list_display = ('id','purchase_item','storage_item','relate_num')
-    #list_editable = ('update_time','task_type' ,'is_success','status')
-
-    search_fields = ['id']
-    
-
-admin.site.register(PurchaseStorageRelate,PurchaseStorageRelateAdmin)
 
 
 class PurchasePaymentItemAdmin(admin.ModelAdmin):

@@ -1,3 +1,5 @@
+######### 2013-6-29 ###########
+ALTER TABLE shop_purchases_purchase AUTO_INCREMENT=9999;
 ######### 2013-6-26 ###########
 alter table shop_trades_mergeorder drop index shop_trades_mergeorder_1e04cc3c,
 	drop index shop_trades_mergeorder_4db90882,add index(outer_id,outer_sku_id);

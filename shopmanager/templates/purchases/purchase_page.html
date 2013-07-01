@@ -113,7 +113,7 @@
 		margin-bottom:2px;
 	}
 	#purchaseitem-table input[type="text"]{
-		width:80px;
+		width:60px;
 		margin-bottom:2px;
 		height:14px;;
 	}
@@ -152,7 +152,7 @@
 	}
 	#purchase-select-table input {
 		margin-bottom:2px;
-		width:80px;
+		width:60px;
 	}
 	#purchase-select-table tr td:first-child{
 		text-align:center;
@@ -179,6 +179,20 @@
 			<legend><h2 class="head-title" >采购单(NO:<input type="text" id="id_purchase" value="{{ purchase.id }}" disabled="disabled"/>)</h2></legend>
 			<div class="content-base-info">
 				<table class="table table-bordered table-striped table-condensed">
+					<tr>
+						<td>
+							<label for='origin_no'>合&nbsp;&nbsp;同&nbsp;&nbsp;号</label>
+							<input type="text" id="origin_no" class="simple-text" value="{% if purchase.origin_no %}{{ purchase.origin_no }}{% endif %}"/>
+						</td>
+						<td>
+							<label for='extra_name'>标&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;题</label>
+							<input type="text" id="extra_name" class="simple-text" value="{% if purchase.extra_name %}{{ purchase.extra_name }}{% endif %}"/>
+						</td>
+						<td>
+							<label for='receiver_name'>收&nbsp;货&nbsp;人</label>
+							<input type="text" id="receiver_name" class="simple-text" value="{% if purchase.receiver_name %}{{ purchase.receiver_name }}{% endif %}"/>
+						</td>
+					</tr>
 					<tr>
 						<td>
 							<label for='supplier'>供&nbsp;&nbsp;应&nbsp;&nbsp;商</label>
@@ -223,19 +237,13 @@
 							<label for='forecast_date'>预计到货日期</label>
 							<input type="text" id="forecast_date" class="simple-text" value="{% if purchase.forecast_date %}{{ purchase.forecast_date }}{% endif %}"/>
 						</td>
-						<td>
-							<label for='post_date'>发货日期</label>
-							<input type="text" id="post_date" class="simple-text" value="{% if purchase.post_date %}{{ purchase.post_date }}{% endif %}"/>
-						</td>
+						<td></td>
 					</tr>
 					<tr>
-						<td>
-							<label for='extra_name'>标题</label>
-							<textarea id="extra_name"  rows="2" cols="20" placeholder="130字以内...">{{ purchase.extra_name }}</textarea>
-						</td>
-						<td>
+					
+						<td colspan="2">
 							<label for='extra_info'>备注</label>
-							<textarea id="extra_info"  rows="2" cols="120">{{ purchase.extra_info }}</textarea>
+							<textarea id="extra_info"  rows="2" cols="240">{{ purchase.extra_info }}</textarea>
 						</td>
 						<td style="text-align:center;padding-top:20px;">
 							<button id="save_purchase" class="btn btn-primary">保存 +</button>
@@ -263,8 +271,10 @@
 									<th>产品名</th>
 									<th>规格编码</th>
 									<th>规格名</th>
-									<th style="width:100px;">采购价</th>
-									<th style="width:100px;">采购数</th>
+									<th>供应商货号</th>
+									<th style="width:70px;">标准进价</th>
+									<th style="width:70px;">实际进价</th>
+									<th style="width:70px;">采购数</th>
 									<th>操作</th>
 							</thead>
 							<tbody>
@@ -275,6 +285,8 @@
 									<td>{{ item.name }}</td>
 									<td>{{ item.outer_sku_id }}</td>
 									<td>{{ item.properties_name }}</td>
+									<td>{{ item.supplier_item_id }}</td>
+									<td>{{ item.std_price }}</td>
 									<td>{{ item.price }}</td>
 									<td>{{ item.purchase_num }}</td>
 									<td>
@@ -327,7 +339,9 @@
 						<th>商品名</th>
 						<th>规格编码</th>
 						<th>规格名</th>
-						<th>采购价</th>
+						<th>供应商货号</th>
+						<th>标准进价</th>
+						<th>实际进价</th>
 						<th>采购数</th>
 						<th>操作</th>
 				</thead>

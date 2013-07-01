@@ -27,9 +27,17 @@ PURCHASE_ITEM_STATUS = (
     (pcfg.PURCHASE_REWORDOVER,'返修结束'),
 )
 
+PURCHASE_ARRIVAL_STATUS = (
+    (pcfg.PD_UNARRIVAL,'未到货'),
+    (pcfg.PD_PARTARRIVAL,'部分到货'),
+    (pcfg.PD_FULLARRIVAL,'全部到货'),
+)
+
 PURCHASE_STORAGE_STATUS = (
     (pcfg.PURCHASE_DRAFT,'草稿'),
-    (pcfg.PURCHASE_APPROVAL,'已审批')
+    (pcfg.PURCHASE_APPROVAL,'验收'),
+    (pcfg.PURCHASE_FINISH,'结算'),
+    (pcfg.PURCHASE_INVALID,'作废'),
 )
 
 PURCHASE_PAYMENT_TYPE = (
@@ -40,13 +48,15 @@ PURCHASE_PAYMENT_TYPE = (
 )
 
 PRODUCT_STATUS = (
-    (pcfg.NORMAL,'使用'),
+    (pcfg.NORMAL,'有效'),
     (pcfg.DELETE,'作废'),
 )
 
 
 class Purchase(models.Model):
     """ 采购合同 """
+    
+    origin_no  = models.CharField(max_length=32,db_index=True,blank=True,verbose_name='合同号')
     
     supplier     = models.ForeignKey(Supplier,null=True,blank=True,related_name='purchases',verbose_name='供应商')
     deposite     = models.ForeignKey(Deposite,null=True,blank=True,related_name='purchases',verbose_name='仓库')
@@ -62,19 +72,24 @@ class Purchase(models.Model):
     total_fee    = models.FloatField(default=0.0,verbose_name='总费用')
     payment      = models.FloatField(default=0.0,verbose_name='实付')
     
+    receiver_name = models.CharField(max_length=32,blank=True,verbose_name='收货人')
+    
     status       = models.CharField(max_length=32,db_index=True,choices=PURCHASE_STATUS,
-                                    default=pcfg.PURCHASE_DRAFT,verbose_name='采购状态')
+                                    default=pcfg.PURCHASE_DRAFT,verbose_name='订单状态')
+    
+    arrival_status    = models.CharField(max_length=20,db_index=True,choices=PURCHASE_ARRIVAL_STATUS,
+                                    default=pcfg.PD_UNARRIVAL,verbose_name='到货状态')
     
     extra_name   = models.CharField(max_length=256,blank=True,verbose_name='标题')
     extra_info   = models.TextField(blank=True,verbose_name='备注')
-    
+
     #attach_files 关联文件
     class Meta:
         db_table = 'shop_purchases_purchase'
         verbose_name=u'采购单'
 
     def __unicode__(self):
-        return '<%s,%s>'%(str(self.id),self.extra_name)
+        return '<%s,%s,%s>'%(str(self.id),self.origin_no,self.extra_name)
     
     def gen_csv_tuple(self):
         
@@ -99,7 +114,7 @@ class PurchaseItem(models.Model):
     """ 采购项目 """
     
     purchase     = models.ForeignKey(Purchase,related_name='purchase_items',verbose_name='采购单')
-    supplier_item_id = models.CharField(max_length=64,blank=True,verbose_name='供应商产品编码')
+    supplier_item_id = models.CharField(max_length=64,blank=True,verbose_name='供应商货号')
     
     product      = models.ForeignKey(Product,related_name='purchase_items',verbose_name='采购产品')
     product_sku  = models.ForeignKey(ProductSku,related_name='purchase_items',verbose_name='采购产品规格')
@@ -107,10 +122,11 @@ class PurchaseItem(models.Model):
     purchase_num = models.IntegerField(null=True,verbose_name='采购数量')
     discount     = models.FloatField(null=True,verbose_name='折扣')
     
-    price        = models.FloatField(null=True,verbose_name='进价')
-
-    total_fee    = models.FloatField(null=True,verbose_name='总费用')
-    payment      = models.FloatField(null=True,verbose_name='实付')
+    std_price    = models.FloatField(default=0.0,verbose_name='标准进价')
+    price        = models.FloatField(default=0.0,verbose_name='实际进价')
+    
+    total_fee    = models.FloatField(default=0.0,verbose_name='标准费用')
+    payment      = models.FloatField(default=0.0,verbose_name='实付')
     
     created      = models.DateTimeField(null=True,blank=True,auto_now=True,verbose_name='创建日期')
     modified     = models.DateTimeField(null=True,blank=True,auto_now_add=True,verbose_name='修改日期')
@@ -131,8 +147,9 @@ class PurchaseItem(models.Model):
 def update_purchase_info(sender,instance,*args,**kwargs):
     """ 更新采购单信息 """
     
-    instance.total_fee = int(instance.purchase_num or 0)*float(instance.price or 0)
-    update_model_feilds(instance,update_fields=['total_fee'])
+    instance.total_fee = int(instance.purchase_num or 0)*float(instance.std_price or 0)
+    instance.payment   = int(instance.purchase_num or 0)*float(instance.price or 0)
+    update_model_feilds(instance,update_fields=['total_fee','payment'])
     
     purchase = instance.purchase
     purchase_items = instance.purchase.purchase_items
@@ -147,8 +164,12 @@ post_save.connect(update_purchase_info, sender=PurchaseItem)
 class PurchaseStorage(models.Model):
     """ 采购入库单 """
     
-    supplier     = models.ForeignKey(Supplier,null=True,blank=True,related_name='purchase_storages',verbose_name='供应商')
-    deposite     = models.ForeignKey(Deposite,null=True,blank=True,related_name='purchases_storages',verbose_name='仓库')
+    purchase      = models.ForeignKey(Purchase,related_name='purchase_storages',verbose_name='采购单')
+    origin_no     = models.CharField(max_length=256,db_index=True,blank=True,verbose_name='原单据号')
+    purchase_no   = models.CharField(max_length=256,db_index=True,blank=True,verbose_name='采购单号')
+    
+    supplier      = models.ForeignKey(Supplier,null=True,blank=True,related_name='purchase_storages',verbose_name='供应商')
+    deposite      = models.ForeignKey(Deposite,null=True,blank=True,related_name='purchases_storages',verbose_name='仓库')
     purchase_type = models.ForeignKey(PurchaseType,null=True,blank=True,related_name='purchases_storages',verbose_name='采购类型')
     
     forecast_date = models.DateTimeField(null=True,blank=True,verbose_name='预计到货日期')
@@ -159,6 +180,9 @@ class PurchaseStorage(models.Model):
     
     status       = models.CharField(max_length=32,db_index=True,choices=PURCHASE_STORAGE_STATUS,
                                     default=pcfg.PURCHASE_DRAFT,verbose_name='状态')
+    
+    logistic_company = models.CharField(max_length=64,blank=True,verbose_name='物流公司')
+    out_sid          = models.CharField(max_length=64,db_index=True,blank=True,verbose_name='物流编号')
     
     extra_name  = models.CharField(max_length=256,blank=True,verbose_name='标题')
     extra_info  = models.TextField(blank=True,verbose_name='备注')
@@ -174,19 +198,19 @@ class PurchaseStorage(models.Model):
 class PurchaseStorageItem(models.Model):
     """ 采购入库项目 """
     
-    purchase_storage     = models.ForeignKey(PurchaseStorage,related_name='purchase_storage_items',verbose_name='关联入库单')
-    supplier_item_id     = models.CharField(max_length=64,blank=True,verbose_name='供应商商品编号')
+    purchase_storage     = models.ForeignKey(PurchaseStorage,related_name='purchase_storage_items',verbose_name='入库单')
+    supplier_item_id     = models.CharField(max_length=64,blank=True,verbose_name='供应商货号')
     
     product      = models.ForeignKey(Product,related_name='purchase_storage_items',verbose_name='采购商品')
     product_sku  = models.ForeignKey(ProductSku,related_name='purchase_storage_items',verbose_name='采购商品规格')
     
     storage_num  = models.IntegerField(null=True,verbose_name='入库数量')
-
+    
     created      = models.DateTimeField(null=True,blank=True,auto_now=True,verbose_name='创建日期')
     modified     = models.DateTimeField(null=True,blank=True,auto_now_add=True,verbose_name='修改日期')
     
-    status       = models.CharField(max_length=32,db_index=True,choices=PURCHASE_STORAGE_STATUS,
-                                    default=pcfg.PURCHASE_DRAFT,verbose_name='入库状态')
+    status       = models.CharField(max_length=32,db_index=True,choices=PRODUCT_STATUS,
+                                    default=pcfg.NORMAL,verbose_name='状态')
     
     extra_info   = models.TextField(blank=True,verbose_name='备注')
     
@@ -197,21 +221,6 @@ class PurchaseStorageItem(models.Model):
     def __unicode__(self):
         return 'RKZD%d'%self.id
     
-    
-class PurchaseStorageRelate(models.Model):
-    """ 采购入库项目关联 """
-    
-    purchase_item = models.ForeignKey(PurchaseItem,related_name='purchase_relates',verbose_name='采购项目')
-    
-    storage_item  = models.ForeignKey(PurchaseStorageItem,related_name='purchase_relates',verbose_name='入库项目')
-    
-    relate_num    = models.IntegerField(null=True,verbose_name='入库数量')
-    class Meta:
-        db_table = 'shop_purchases_storage_relate'
-        verbose_name='采购入库项目关联'
-    
-    def __unicode__(self):
-        return '<%s,%s,%d>'%(self.purchase_item.purchase,self.storage_item.purchase_storage,self.relate_num)
     
 
 class PurchasePaymentItem(models.Model):

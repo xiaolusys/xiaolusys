@@ -84,10 +84,12 @@ class PurchaseInsView(ModelView):
             item_dict['payment']         = item.payment
             item_dict['purchase_num']    = item.purchase_num 
             item_dict['price']           = item.price
+            item_dict['std_price']       = item.std_price
             purchase_items.append(item_dict)
         
         purchase_dict = {}
         purchase_dict['id']      = purchase.id
+        purchase_dict['origin_no'] = purchase.origin_no
         purchase_dict['supplier_id']      = purchase.supplier.id
         purchase_dict['deposite_id']      = purchase.deposite.id
         purchase_dict['purchase_type_id'] = purchase.purchase_type.id
@@ -126,6 +128,8 @@ class PurchaseItemView(ModelView):
         sku_id   = content.get('sku_id')
         price    = content.get('price')
         num      = content.get('num')
+        supplier_item_id = content.get('supplier_item_id')
+        std_price = content.get('std_price')
         
         prod     = None
         prod_sku = None
@@ -143,6 +147,8 @@ class PurchaseItemView(ModelView):
         
         purchase_item,state = PurchaseItem.objects.get_or_create(
                                 purchase=purchase,product=prod,product_sku=prod_sku)
+        purchase_item.supplier_item_id = supplier_item_id
+        purchase_item.std_price = std_price
         purchase_item.price = price
         purchase_item.purchase_num = num
         purchase_item.save()
@@ -150,10 +156,12 @@ class PurchaseItemView(ModelView):
         log_action(request.user.id,purchase,CHANGE,u'%s采购项（%s,%s）'%(state and u'添加' or u'修改',outer_id,sku_id))
         
         purchase_item_dict = {'id':purchase_item.id,
+                              'supplier_item_id':purchase_item.supplier_item_id,
                               'outer_id':purchase_item.product.outer_id,
                               'name':purchase_item.product.name,
                               'outer_sku_id':purchase_item.product_sku.outer_id,
                               'properties_name':purchase_item.product_sku.properties_name,
+                              'std_price':purchase_item.std_price,
                               'price':purchase_item.price,
                               'purchase_num':purchase_item.purchase_num,
                               }
