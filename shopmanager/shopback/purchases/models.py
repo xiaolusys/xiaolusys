@@ -57,7 +57,7 @@ PRODUCT_STATUS = (
 class Purchase(models.Model):
     """ 采购合同 """
     
-    origin_no  = models.CharField(max_length=32,db_index=True,blank=True,verbose_name='合同号')
+    origin_no  = models.CharField(max_length=32,db_index=True,blank=True,verbose_name='原合同号')
     
     supplier     = models.ForeignKey(Supplier,null=True,blank=True,related_name='purchases',verbose_name='供应商')
     deposite     = models.ForeignKey(Deposite,null=True,blank=True,related_name='purchases',verbose_name='仓库')
@@ -122,8 +122,8 @@ class PurchaseItem(models.Model):
     outer_sku_id     = models.CharField(max_length=32,null=False,blank=True,verbose_name='规格编码')
     properties_name  = models.CharField(max_length=64,null=False,blank=True,verbose_name='规格属性')
     
-    purchase_num = models.IntegerField(null=True,verbose_name='采购数量')
-    discount     = models.FloatField(null=True,verbose_name='折扣')
+    purchase_num = models.IntegerField(null=True,default=0,verbose_name='采购数量')
+    discount     = models.FloatField(null=True,default=0,verbose_name='折扣')
     
     std_price    = models.FloatField(default=0.0,verbose_name='标准进价')
     price        = models.FloatField(default=0.0,verbose_name='实际进价')
@@ -225,7 +225,7 @@ class PurchaseStorageItem(models.Model):
     outer_sku_id     = models.CharField(max_length=32,null=False,blank=True,verbose_name='规格编码')
     properties_name  = models.CharField(max_length=64,null=False,blank=True,verbose_name='规格属性')
     
-    storage_num  = models.IntegerField(null=True,verbose_name='入库数量')
+    storage_num  = models.IntegerField(null=True,default=0,verbose_name='入库数量')
     
     created      = models.DateTimeField(null=True,blank=True,auto_now=True,verbose_name='创建日期')
     modified     = models.DateTimeField(null=True,blank=True,auto_now_add=True,verbose_name='修改日期')

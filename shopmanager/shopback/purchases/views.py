@@ -200,10 +200,11 @@ def download_purchase_file(request,id):
     except Purchase.DoesNotExist:
         raise Http404
     
+    is_windows = request.META['HTTP_USER_AGENT'].lower().find('windows') >-1 
     file_name = u'purchase-contract(NO-%s).csv'%str(purchase.id)
     myfile = StringIO.StringIO() 
     pcsv = purchase.gen_csv_tuple()
-    writer = CSVUnicodeWriter(myfile)
+    writer = CSVUnicodeWriter(myfile,encoding= is_windows and "gbk" or 'utf8')
     writer.writerows(pcsv)
         
     response = HttpResponse(myfile.getvalue(), mimetype='application/octet-stream')
