@@ -189,7 +189,7 @@
 							<input type="text" id="extra_name" class="simple-text" value="{% if purchase.extra_name %}{{ purchase.extra_name }}{% endif %}"/>
 						</td>
 						<td>
-							<label for='receiver_name'>收&nbsp;货&nbsp;人</label>
+							<label for='receiver_name'>收&nbsp;&nbsp;货&nbsp;&nbsp;人</label>
 							<input type="text" id="receiver_name" class="simple-text" value="{% if purchase.receiver_name %}{{ purchase.receiver_name }}{% endif %}"/>
 						</td>
 					</tr>
@@ -242,8 +242,8 @@
 					<tr>
 					
 						<td colspan="2">
-							<label for='extra_info'>备注</label>
-							<textarea id="extra_info"  rows="2" cols="240">{{ purchase.extra_info }}</textarea>
+							<label for='extra_info'>备&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;注</label>
+							<textarea id="extra_info" style="width:400px;" rows="2" cols="240">{{ purchase.extra_info }}</textarea>
 						</td>
 						<td style="text-align:center;padding-top:20px;">
 							<button id="save_purchase" class="btn btn-primary">保存 +</button>
