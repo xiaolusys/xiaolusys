@@ -828,7 +828,7 @@ def regular_trade(request,id):
     else:
         dt = datetime.datetime.now()+datetime.timedelta(1,0,0)
         merge_trade.sys_status   = pcfg.REGULAR_REMAIN_STATUS
-        merge_trade.remind_time  = dtS
+        merge_trade.remind_time  = dt
         merge_trade.save()
         log_action(user_id,merge_trade,CHANGE,u'定时提醒:%s'%dt.strftime('%Y-%m-%d %H:%M'))
         return HttpResponse(json.dumps({'code':0,'response_content':{'success':True}}),mimetype="application/json")
