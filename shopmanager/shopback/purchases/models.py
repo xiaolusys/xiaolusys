@@ -144,7 +144,7 @@ class PurchaseItem(models.Model):
     
     class Meta:
         db_table = 'shop_purchases_item'
-        unique_together = ("outer_id", "outer_sku_id")
+        unique_together = ("purchase","outer_id", "outer_sku_id")
         verbose_name='采购项目'
     
     def __unicode__(self):
@@ -237,7 +237,7 @@ class PurchaseStorageItem(models.Model):
     
     class Meta:
         db_table = 'shop_purchases_storageitem'
-        unique_together = ("outer_id", "outer_sku_id")
+        unique_together = ("purchase_storage","outer_id", "outer_sku_id")
         verbose_name = '采购入库项目'
     
     def __unicode__(self):
