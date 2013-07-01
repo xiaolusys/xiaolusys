@@ -76,10 +76,10 @@ class PurchaseInsView(ModelView):
             item_dict = {}
             item_dict['id'] = item.id
             item_dict['supplier_item_id'] = item.supplier_item_id
-            item_dict['outer_id']     = item.product.outer_id
-            item_dict['name']         = item.product and item.product.name or ''
-            item_dict['outer_sku_id'] = item.product_sku.outer_id
-            item_dict['properties_name'] = item.product_sku and item.product_sku.properties_name or item.product_sku.properties_alias
+            item_dict['outer_id']     = item.outer_id
+            item_dict['name']         = item.name 
+            item_dict['outer_sku_id'] = item.outer_sku_id
+            item_dict['properties_name'] = item.properties_name
             item_dict['total_fee']       = item.total_fee
             item_dict['payment']         = item.payment
             item_dict['purchase_num']    = item.purchase_num 
@@ -88,7 +88,7 @@ class PurchaseInsView(ModelView):
             purchase_items.append(item_dict)
         
         purchase_dict = {}
-        purchase_dict['id']      = purchase.id
+        purchase_dict['id']        = purchase.id
         purchase_dict['origin_no'] = purchase.origin_no
         purchase_dict['supplier_id']      = purchase.supplier.id
         purchase_dict['deposite_id']      = purchase.deposite.id
@@ -146,7 +146,9 @@ class PurchaseItemView(ModelView):
             return u'未找到采购单'
         
         purchase_item,state = PurchaseItem.objects.get_or_create(
-                                purchase=purchase,product=prod,product_sku=prod_sku)
+                                purchase=purchase,outer_id=outer_id,outer_sku_id=sku_id)
+        purchase_item.name = prod.name
+        purchase_item.properties_name  = prod_sku and prod_sku.name or ''
         purchase_item.supplier_item_id = supplier_item_id
         purchase_item.std_price = std_price
         purchase_item.price = price
@@ -157,10 +159,10 @@ class PurchaseItemView(ModelView):
         
         purchase_item_dict = {'id':purchase_item.id,
                               'supplier_item_id':purchase_item.supplier_item_id,
-                              'outer_id':purchase_item.product.outer_id,
-                              'name':purchase_item.product.name,
-                              'outer_sku_id':purchase_item.product_sku.outer_id,
-                              'properties_name':purchase_item.product_sku.properties_name,
+                              'outer_id':purchase_item.outer_id,
+                              'name':purchase_item.name,
+                              'outer_sku_id':purchase_item.outer_sku_id,
+                              'properties_name':purchase_item.properties_name,
                               'std_price':purchase_item.std_price,
                               'price':purchase_item.price,
                               'purchase_num':purchase_item.purchase_num,

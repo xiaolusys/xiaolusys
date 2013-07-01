@@ -14,27 +14,21 @@ logger =  logging.getLogger('purchases.handler')
 class PurchaseItemInline(admin.TabularInline):
     
     model = PurchaseItem
-    fields = ('supplier_item_id','product','product_sku','purchase_num','discount'
-              ,'price','total_fee','payment','status')
+    fields = ('supplier_item_id','outer_id','name','outer_sku_id','properties_name','purchase_num','discount'
+              ,'price','total_fee','payment','status','extra_info')
     
     formfield_overrides = {
         models.CharField: {'widget': TextInput(attrs={'size':'10'})},
         models.TextField: {'widget': Textarea(attrs={'rows':4, 'cols':40})},
         models.FloatField: {'widget': TextInput(attrs={'size':'8'})}
     }
-    
-    def formfield_for_foreignkey(self, db_field, request, **kwargs):
-        if db_field.name == "product":
-            kwargs["queryset"] = Product.objects.filter(status__in=(pcfg.NORMAL,pcfg.REMAIN))
-        elif db_field.name == "product_sku":
-            kwargs["queryset"] = ProductSku.objects.filter(status__in=(pcfg.NORMAL,pcfg.REMAIN))
-        return super(PurchaseItemInline, self).formfield_for_foreignkey(db_field, request, **kwargs)
+
     
 
 class PurchaseStorageItemInline(admin.TabularInline):
     
     model = PurchaseStorageItem
-    fields = ('purchase_storage','supplier_item_id','product','product_sku','storage_num','status')
+    fields = ('purchase_storage','supplier_item_id','outer_id','name','outer_sku_id','properties_name','storage_num','status')
     
     formfield_overrides = {
         models.CharField: {'widget': TextInput(attrs={'size':'20'})},
@@ -83,7 +77,7 @@ admin.site.register(Purchase,PurchaseAdmin)
 
 
 class PurchaseItemAdmin(admin.ModelAdmin):
-    list_display = ('id','purchase','product','product_sku','supplier_item_id','purchase_num','std_price','price'
+    list_display = ('id','purchase','outer_id','name','outer_sku_id','properties_name','supplier_item_id','purchase_num','std_price','price'
                     ,'discount','total_fee','payment','created','modified','status')
     #list_editable = ('update_time','task_type' ,'is_success','status')
 
@@ -124,7 +118,7 @@ admin.site.register(PurchaseStorage,PurchaseStorageAdmin)
 
 
 class PurchaseStorageItemAdmin(admin.ModelAdmin):
-    list_display = ('id','purchase_storage','supplier_item_id','product','product_sku','storage_num'
+    list_display = ('id','purchase_storage','supplier_item_id','outer_id','name','outer_sku_id','properties_name','storage_num'
                     ,'created','modified','status')
     #list_editable = ('update_time','task_type' ,'is_success','status')
 

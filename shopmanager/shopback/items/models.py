@@ -205,6 +205,10 @@ class ProductSku(models.Model):
         return '<%s,%s>'%(self.outer_id,self.properties_alias or self.properties_name)
       
     @property
+    def name(self):
+        return self.properties_alias or self.properties_name
+    
+    @property
     def is_out_stock(self):
         if self.quantity<0 or self.wait_post_num <0 :
             self.quantity      = self.quantity >= 0 and self.quantity or 0
@@ -265,7 +269,7 @@ class ProductSku(models.Model):
         sync_num = quantity - remain_num - wait_post_num                    
         return self.warn_num >0 and self.warn_num >= sync_num 
     
-        
+    
 def calculate_product_stock_num(sender, instance, *args, **kwargs):
     """修改SKU库存后，更新库存商品的总库存 """
     product = instance.product

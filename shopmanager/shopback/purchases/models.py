@@ -11,15 +11,16 @@ from utils import update_model_feilds
 
 PURCHASE_STATUS = (
     (pcfg.PURCHASE_DRAFT,'草稿'),
-    (pcfg.PURCHASE_APPROVAL,'审批'),
+    (pcfg.PURCHASE_APPROVAL,'审核'),
     (pcfg.PURCHASE_FINISH,'完成'),
     (pcfg.PURCHASE_INVALID,'作废'),
+    (pcfg.PURCHASE_CLOSE,'关闭'),
 )
 
 PURCHASE_ITEM_STATUS = (
     (pcfg.PURCHASE_DRAFT,'草稿'),
-    (pcfg.PURCHASE_APPROVAL,'审批'),
-    (pcfg.PURCHASE_RETURN,'退货'),
+    (pcfg.PURCHASE_APPROVAL,'审核'),
+    (pcfg.PURCHASE_RETURN,'退货中'),
     (pcfg.PURCHASE_CLOSE,'退货关闭'),
     (pcfg.PURCHASE_FINISH,'完成'),
     (pcfg.PURCHASE_INVALID,'作废'),
@@ -100,11 +101,11 @@ class Purchase(models.Model):
         pcsv.append(('',''))
         
         pcsv.append((u'商品编码',u'商品名称',u'规格编码',u'规格名称',u'采购价',u'采购数量'))
-        for item in self.purchase_items.exclude(status__in=(pcfg.PURCHASE_CLOSE,pcfg.PURCHASE_INVALID)).order_by('product'):
-            pcsv.append((item.product.outer_id,
-                         item.product.name,
-                         item.product_sku.outer_id,
-                         item.product_sku.properties_alias or item.product_sku.properties_name,
+        for item in self.purchase_items.exclude(status__in=(pcfg.PURCHASE_CLOSE,pcfg.PURCHASE_INVALID)).order_by('outer_id'):
+            pcsv.append((item.outer_id,
+                         item.name,
+                         item.outer_sku_id,
+                         item.properties_name,
                          str(item.price),
                          str(item.purchase_num)))
             
@@ -116,8 +117,10 @@ class PurchaseItem(models.Model):
     purchase     = models.ForeignKey(Purchase,related_name='purchase_items',verbose_name='采购单')
     supplier_item_id = models.CharField(max_length=64,blank=True,verbose_name='供应商货号')
     
-    product      = models.ForeignKey(Product,related_name='purchase_items',verbose_name='采购产品')
-    product_sku  = models.ForeignKey(ProductSku,related_name='purchase_items',verbose_name='采购产品规格')
+    outer_id     = models.CharField(max_length=32,null=False,blank=True,verbose_name='商品编码')
+    name         = models.CharField(max_length=64,null=False,blank=True,verbose_name='商品名称')
+    outer_sku_id     = models.CharField(max_length=32,null=False,blank=True,verbose_name='规格编码')
+    properties_name  = models.CharField(max_length=64,null=False,blank=True,verbose_name='规格属性')
     
     purchase_num = models.IntegerField(null=True,verbose_name='采购数量')
     discount     = models.FloatField(null=True,verbose_name='折扣')
@@ -134,10 +137,14 @@ class PurchaseItem(models.Model):
     status       = models.CharField(max_length=32,db_index=True,choices=PURCHASE_ITEM_STATUS,
                                     default=pcfg.PURCHASE_DRAFT,verbose_name='状态')
     
-    extra_info   = models.TextField(blank=True,verbose_name='备注')
+    arrival_status    = models.CharField(max_length=20,db_index=True,choices=PURCHASE_ARRIVAL_STATUS,
+                                    default=pcfg.PD_UNARRIVAL,verbose_name='到货状态')
+    
+    extra_info   = models.CharField(max_length=1000,blank=True,verbose_name='备注')
     
     class Meta:
         db_table = 'shop_purchases_item'
+        unique_together = ("outer_id", "outer_sku_id")
         verbose_name='采购项目'
     
     def __unicode__(self):
@@ -152,11 +159,23 @@ def update_purchase_info(sender,instance,*args,**kwargs):
     update_model_feilds(instance,update_fields=['total_fee','payment'])
     
     purchase = instance.purchase
-    purchase_items = instance.purchase.purchase_items
-    purchase.total_fee = purchase_items.aggregate(total_fees=Sum('total_fee'))['total_fees'] or 0
-    purchase.payment   = purchase_items.aggregate(total_payment=Sum('payment'))['total_payment'] or 0
+    purchase_items = instance.purchase.purchase_items.exclude(status=pcfg.PURCHASE_INVALID)
+    if purchase.status in (pcfg.PURCHASE_DRAFT,pcfg.PURCHASE_APPROVAL):
+        purchase.total_fee = purchase_items.aggregate(total_fees=Sum('total_fee'))['total_fees'] or 0
+        purchase.payment   = purchase_items.aggregate(total_payment=Sum('payment'))['total_payment'] or 0
     
-    update_model_feilds(purchase,update_fields=['total_fee','payment'])
+    if purchase_items.count() >0:
+        if purchase_items.exclude(arrival_status=pcfg.PD_UNARRIVAL).count()==0:
+            purchase.arrival_status = pcfg.PD_UNARRIVAL
+        elif purchase_items.filter(arrival_status=pcfg.PD_PARTARRIVAL).count()>0:
+            purchase.arrival_status = pcfg.PD_PARTARRIVAL
+        elif purchase_items.exclude(arrival_status=pcfg.PD_FULLARRIVAL).count()==0:
+            purchase.arrival_status = pcfg.PD_FULLARRIVAL
+    
+        if purchase_items.exclude(status=pcfg.PURCHASE_CLOSE).count()==0:
+            purchase.status=pcfg.PURCHASE_CLOSE
+    
+    update_model_feilds(purchase,update_fields=['total_fee','payment','arrival_status','status'])
         
 post_save.connect(update_purchase_info, sender=PurchaseItem)
     
@@ -188,8 +207,8 @@ class PurchaseStorage(models.Model):
     extra_info  = models.TextField(blank=True,verbose_name='备注')
     
     class Meta:
-        db_table = 'shop_purchases_storage'
-        verbose_name='采购入库单'
+        db_table     = 'shop_purchases_storage'
+        verbose_name = '采购入库单'
 
     def __unicode__(self):
         return 'RKD%d'%self.id
@@ -201,8 +220,10 @@ class PurchaseStorageItem(models.Model):
     purchase_storage     = models.ForeignKey(PurchaseStorage,related_name='purchase_storage_items',verbose_name='入库单')
     supplier_item_id     = models.CharField(max_length=64,blank=True,verbose_name='供应商货号')
     
-    product      = models.ForeignKey(Product,related_name='purchase_storage_items',verbose_name='采购商品')
-    product_sku  = models.ForeignKey(ProductSku,related_name='purchase_storage_items',verbose_name='采购商品规格')
+    outer_id     = models.CharField(max_length=32,null=False,blank=True,verbose_name='商品编码')
+    name         = models.CharField(max_length=64,null=False,blank=True,verbose_name='商品名称')
+    outer_sku_id     = models.CharField(max_length=32,null=False,blank=True,verbose_name='规格编码')
+    properties_name  = models.CharField(max_length=64,null=False,blank=True,verbose_name='规格属性')
     
     storage_num  = models.IntegerField(null=True,verbose_name='入库数量')
     
@@ -212,10 +233,11 @@ class PurchaseStorageItem(models.Model):
     status       = models.CharField(max_length=32,db_index=True,choices=PRODUCT_STATUS,
                                     default=pcfg.NORMAL,verbose_name='状态')
     
-    extra_info   = models.TextField(blank=True,verbose_name='备注')
+    extra_info   = models.CharField(max_length=1000,blank=True,verbose_name='备注')
     
     class Meta:
         db_table = 'shop_purchases_storageitem'
+        unique_together = ("outer_id", "outer_sku_id")
         verbose_name = '采购入库项目'
     
     def __unicode__(self):

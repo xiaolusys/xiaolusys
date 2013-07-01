@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html >
   <head>
-    <title>创建入库单</title>
+    <title>创建采购入库单</title>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
      <link href="{{ STATIC_URL }}bootstrap/css/bootstrap.min.css" rel="stylesheet" type="text/css" />
     <link href="{{ STATIC_URL }}bootstrap/css/bootstrap-responsive.min.css" rel="stylesheet" type="text/css" />
@@ -176,9 +176,24 @@
  <body>
 	<div class="content-main">
 		<fieldset>
-			<legend><h2 class="head-title" >入库单(NO:<input type="text" id="id_purchase" value="{{ purchase.id }}" disabled="disabled"/>)</h2></legend>
+			<legend><h2 class="head-title" >采购入库单</h2></legend>
 			<div class="content-base-info">
 				<table class="table table-bordered table-striped table-condensed">
+					<tr>
+						<td>
+							<label for='purchase_no'>采购单号</label>
+							<input type="text" id="purchase_no" class="simple-text" disabled="disabled"
+								value="{% if purchase_storage.purchase_no %}{{ purchase_storage.purchase_no }}{% endif %}" />
+						</td>
+						<td>
+							<label for='origin_no'>原始单号</label>
+							<input type="text" id="origin_no" class="simple-text" value="{% if purchase_storage.origin_no %}{{ purchase_storage.origin_no }}{% endif %}"/>
+						</td>
+						<td>
+							<label for='extra_name'>标题</label>
+							<input type="text" id="extra_name" class="simple-text" value="{% if purchase_storage.extra_name %}{{ purchase_storage.extra_name }}{% endif %}"/>
+						</td>
+					</tr>
 					<tr>
 						<td>
 							<label for='supplier'>供&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;应&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;商</label>
@@ -221,15 +236,18 @@
 							<input type="text" id="forecast_date" class="simple-text" value="{% if purchase_storage.forecast_date %}{{ purchase_storage.forecast_date }}{% endif %}"/>
 						</td>
 						<td>
-							<label for='post_date'>时间到货日期</label>
+							<label for='post_date'>实际到货日期</label>
 							<input type="text" id="post_date" class="simple-text" value="{% if purchase_storage.post_date %}{{ purchase_storage.post_date }}{% endif %}"/>
 						</td>
-						<td></td>
+						<td>
+							<label for='logistic_company'>物流公司</label>
+							<input id="logistic_company"  value="{% if purchase_storage.logistic_company %}{{ purchase_storage.logistic_company }}{% endif %}"/>
+						</td>
 					</tr>
 					<tr>
 						<td>
-							<label for='extra_name'>标题</label>
-							<textarea id="extra_name"  rows="2" cols="20" placeholder="130字以内...">{{ purchase_storage.extra_name }}</textarea>
+							<label for='out_sid'>物流单号</label>
+							<input id="out_sid"  value="{% if purchase_storage.out_sid %}{{ purchase_storage.out_sid }}{% endif %}"/>
 						</td>
 						<td>
 							<label for='extra_info'>备注</label>
@@ -261,8 +279,8 @@
 									<th>产品名</th>
 									<th>规格编码</th>
 									<th>规格名</th>
-									<th style="width:100px;">采购价</th>
-									<th style="width:100px;">采购数</th>
+									<th style="width:60px;">供应商货号</th>
+									<th style="width:60px;">采购数</th>
 									<th>操作</th>
 							</thead>
 							<tbody>
@@ -273,7 +291,7 @@
 									<td>{{ item.name }}</td>
 									<td>{{ item.outer_sku_id }}</td>
 									<td>{{ item.properties_name }}</td>
-									<td>{{ item.price }}</td>
+									<td>{{ item.supplier_item_id }}</td>
 									<td>{{ item.purchase_num }}</td>
 									<td>
 										<a class="edit" href=""><icon class="icon-pencil"></icon></a>
