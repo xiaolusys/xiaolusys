@@ -119,7 +119,7 @@ ordercheck.Dialog.prototype.init = function (id) {
     dialog.setContent('');
     var callback = function(e){
         var xhr = e.target;
-       // try {
+        try {
         	var res = xhr.getResponse();
         	dialog.setContent(res);
         	var trade_status = goog.dom.getElement('id_trade_status').value;
@@ -133,9 +133,9 @@ ordercheck.Dialog.prototype.init = function (id) {
 			    goog.events.listen(dialog, goog.ui.Dialog.EventType.SELECT, that);
         	}
 		    that.setEvent();
-        /**} catch (err) {
+        } catch (err) {
             console.log('Error: (ajax callback) - ', err);
-        } */
+        } 
 	}
 	goog.net.XhrIo.send('/trades/checkorder/'+id+'/?format=html',callback,'GET');
 }
@@ -238,13 +238,14 @@ ordercheck.Dialog.prototype.changeAddr=function(e){
 
 //查询商品
 ordercheck.Dialog.prototype.searchProd=function(e){
-
+	var sch_table = goog.dom.getElement('id-search-table');
+	
+	goog.style.showElement(sch_table,true);
 	var q = goog.dom.getElement('id-search-q').value;
 	if (!q){
 		return;
 	}
-	
-	var sch_table = goog.dom.getElement('id-search-table');
+
 	var that = this;
 	for(var i=sch_table.rows.length;i>1;i--){
 		sch_table.deleteRow(i-1);

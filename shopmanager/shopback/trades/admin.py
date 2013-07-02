@@ -360,7 +360,7 @@ class MergeTradeAdmin(admin.ModelAdmin):
             if postset.count()==1:
                 main_trade  = postset[0]
                 main_full_addr = main_trade.buyer_full_address #主订单收货人地址
-                sub_trades  = queryset.filter(sys_status__in=(pcfg.WAIT_AUDIT_STATUS,pcfg.ON_THE_FLY_STATUS,
+                sub_trades    = queryset.filter(sys_status__in=(pcfg.WAIT_AUDIT_STATUS,pcfg.ON_THE_FLY_STATUS,
                                                               pcfg.FINISHED_STATUS))
                 
                 for trade in sub_trades:
@@ -368,6 +368,12 @@ class MergeTradeAdmin(admin.ModelAdmin):
                         is_merge_success = False
                         fail_reason      = u'订单地址不同'
                         break
+                    if trade.has_merge and trade.status==pcfg.WAIT_AUDIT_STATUS:
+                        sub_tids = MergeBuyerTrade.objects.filter(main_tid=trade.tid).values_list('sub_tid')
+                        merge_order_remover(trade.tid)
+                        for tid_tuple in sub_tids:
+                            merge_order_maker(tid_tuple[0],main_trade.tid)
+                        
                     is_merge_success = merge_order_maker(trade.tid,main_trade.tid)
                     if is_merge_success:
                         merge_trade_ids.append(str(trade.tid))
@@ -377,14 +383,14 @@ class MergeTradeAdmin(admin.ModelAdmin):
                         trade.operator   = main_trade.operator
                         trade.consign_time = main_trade.consign_time
                         trade.save()
-                        
+
                         log_action(request.user.id,trade,CHANGE,u'订单并入主订单（%d），并发货完成'%main_trade.tid)
                         if trade.status == pcfg.WAIT_SELLER_SEND_GOODS:
                             try:
                                 trade.send_trade_to_taobao(pcfg.SUB_TRADE_COMPANEY_CODE,trade.out_sid)
                             except:
                                 log_action(request.user.id,trade,CHANGE,u'订单合并发货失败')
-                       
+                        
                 if fail_reason and not is_merge_success:
                     pass                   
                 elif len(merge_trade_ids)<sub_trades.count():

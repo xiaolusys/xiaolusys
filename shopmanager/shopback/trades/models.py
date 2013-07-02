@@ -848,9 +848,9 @@ def merge_order_maker(sub_tid,main_tid):
                                                    post_fee = post_fee)
     
     MergeBuyerTrade.objects.get_or_create(sub_tid=sub_tid,main_tid=main_tid) 
+            
     sub_trade.append_reason_code(pcfg.NEW_MERGE_TRADE_CODE)
     
-
     #判断是否还有订单需要合并,如果没有，则去掉需合单问题编号
     queryset = MergeTrade.get_merge_queryset(main_merge_trade.buyer_nick,main_merge_trade.receiver_name,
                                 main_merge_trade.receiver_mobile or main_merge_trade.receiver_phone)

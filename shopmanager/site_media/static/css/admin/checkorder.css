@@ -39,7 +39,7 @@ tr {
     border-left: 1px solid #DDD;
 }
 .table th, .table td {
-    padding: 8px;
+    padding: 2px;
     line-height: 18px;
     text-align: left;
     vertical-align: top;
@@ -182,7 +182,6 @@ tr {
 
 #order-foot >tr >th{
 	height:10px;
-	padding-left:8px;
 }
 
 #order-foot input{
