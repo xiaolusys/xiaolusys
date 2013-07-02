@@ -334,8 +334,12 @@ purchase.Manager.prototype.onSavePurchaseInfo = function(e){
         	var res = xhr.getResponseJson();
         	if (res.code==0){
         		var purchaseins = res.response_content;
-     			$('#id_purchase').val(purchaseins.id);
-     			$('#export-csv-file').attr('href','/purchases/csv/'+purchaseins.id+'/');
+        		var purchase_id = $('#id_purchase').val();
+     			if (purchase_id==''||purchase_id=='undifine'){
+     				window.location='/purchases/'+purchaseins.id+'/';
+     			}else{
+     				alert('保存成功！');
+     			}
         	}else{
         		alert("错误:"+res.response_error);
         	}

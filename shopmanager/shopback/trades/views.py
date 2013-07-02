@@ -258,6 +258,7 @@ class CheckOrderView(ModelView):
             'shipping_type':trade.shipping_type,
             'priority':trade.priority,
             'type':trade.type,
+            'total_num':trade.total_num,
             'receiver_name':trade.receiver_name,
             'receiver_state':trade.receiver_state,
             'receiver_city':trade.receiver_city,

@@ -179,3 +179,15 @@ tr {
 .field-box ul li{
 	display:inline;
 }
+
+#order-foot >tr >th{
+	height:10px;
+	padding-left:8px;
+}
+
+#order-foot input{
+	margin: 2px 0;
+	padding: 2px 3px;
+	vertical-align: middle;
+	width:60px;
+}

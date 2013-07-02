@@ -235,6 +235,11 @@ class MergeTrade(models.Model):
         return '<%s,%s>'%(str(self.id),self.buyer_nick)
     
     @property
+    def total_num(self):
+        """ 订单商品总数 """
+        return self.inuse_orders.aggregate(total_num=Sum('num')).get('total_num') or 0
+        
+    @property
     def inuse_orders(self):
         return self.merge_trade_orders.filter(sys_status=pcfg.IN_EFFECT)       
     @property

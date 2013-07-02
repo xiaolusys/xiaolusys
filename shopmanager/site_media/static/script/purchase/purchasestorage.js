@@ -251,7 +251,7 @@ purchasestorage.Manager.prototype.savePurchaseItem = function(nRow){
 purchasestorage.Manager.prototype.delPurchaseItem = function(nRow){
 	
 	var purchase_item_id = nRow.cells[0].innerHTML;
-	if(!confirm("确定删除采购项目"+purchase_item_id+"吗？"))
+	if(!confirm("确定删除采购项目 "+purchase_item_id+" 吗？"))
 	{
 	    return;
 	}
