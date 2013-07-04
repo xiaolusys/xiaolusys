@@ -77,8 +77,8 @@ admin.site.register(Purchase,PurchaseAdmin)
 
 
 class PurchaseItemAdmin(admin.ModelAdmin):
-    list_display = ('id','purchase','outer_id','name','outer_sku_id','properties_name','supplier_item_id','purchase_num','std_price','price'
-                    ,'discount','total_fee','payment','created','modified','status')
+    list_display = ('id','purchase','outer_id','name','outer_sku_id','properties_name','purchase_num','price'
+                    ,'total_fee','payment','created','modified','status')
     #list_editable = ('update_time','task_type' ,'is_success','status')
 
     list_filter = ('status',)
@@ -88,20 +88,18 @@ admin.site.register(PurchaseItem,PurchaseItemAdmin)
 
 
 class PurchaseStorageAdmin(admin.ModelAdmin):
-    list_display = ('id','origin_no','purchase_no','supplier','deposite','purchase_type',
-                    'forecast_date','post_date','created','modified','status')
+    list_display = ('id','origin_no','supplier','deposite','forecast_date','post_date','created','modified','status')
     #list_editable = ('update_time','task_type' ,'is_success','status')
 
     list_filter = ('status','supplier','deposite','purchase_type')
-    search_fields = ['id','out_sid','origin_no','purchase_no']
+    search_fields = ['id','out_sid','origin_no']
     
     inlines = [PurchaseStorageItemInline]
     
     #--------设置页面布局----------------
     fieldsets =(('采购入库单信息:', {
                     'classes': ('expand',),
-                    'fields': (('origin_no','purchase_no','purchase')
-                               ,('supplier','deposite','purchase_type')
+                    'fields': (('origin_no','supplier','deposite')
                                ,('extra_name','total_fee','payment')
                                ,('forecast_date','service_date','post_date')
                                ,('logistic_company','out_sid','status','extra_info'))

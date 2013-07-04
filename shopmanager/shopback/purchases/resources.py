@@ -9,7 +9,8 @@ class PurchaseItemResource(ModelResource):
     """ docstring for PurchaseItem ModelResource """
 
     model = Product
-    fields = ('id','origin_no','supplier_item_id','outer_id','name','outer_sku_id','properties_name','std_price','price','purchase_num') 
+    fields = ('id','origin_no','supplier_item_id','outer_id','name','outer_sku_id',
+              'properties_name','std_price','price','purchase_num','total_fee') 
     exclude = ('url',)
     
     

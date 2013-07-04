@@ -70,8 +70,11 @@ class Purchase(models.Model):
     created      = models.DateTimeField(null=True,blank=True,auto_now=True,verbose_name='创建日期')
     modified     = models.DateTimeField(null=True,blank=True,auto_now_add=True,verbose_name='修改日期')
     
+    purchase_num = models.IntegerField(null=True,default=0,verbose_name='采购数量')
+    storage_num  = models.IntegerField(null=True,default=0,verbose_name='已入库数')
+    
     total_fee    = models.FloatField(default=0.0,verbose_name='总费用')
-    payment      = models.FloatField(default=0.0,verbose_name='实付')
+    payment      = models.FloatField(default=0.0,verbose_name='已付')
     
     receiver_name = models.CharField(max_length=32,blank=True,verbose_name='收货人')
     
@@ -87,7 +90,8 @@ class Purchase(models.Model):
     #attach_files 关联文件
     class Meta:
         db_table = 'shop_purchases_purchase'
-        verbose_name=u'采购单'
+        verbose_name = u'采购单'
+        verbose_name_plural = u'采购单列表'
 
     def __unicode__(self):
         return '<%s,%s,%s>'%(str(self.id),self.origin_no,self.extra_name)
@@ -123,14 +127,15 @@ class PurchaseItem(models.Model):
     properties_name  = models.CharField(max_length=64,null=False,blank=True,verbose_name='规格属性')
     
     purchase_num = models.IntegerField(null=True,default=0,verbose_name='采购数量')
-    discount     = models.FloatField(null=True,default=0,verbose_name='折扣')
+    storage_num  = models.IntegerField(null=True,default=0,verbose_name='已入库数')
     
+    discount     = models.FloatField(null=True,default=0,verbose_name='折扣')
     std_price    = models.FloatField(default=0.0,verbose_name='标准进价')
     price        = models.FloatField(default=0.0,verbose_name='实际进价')
     
-    total_fee    = models.FloatField(default=0.0,verbose_name='标准费用')
-    payment      = models.FloatField(default=0.0,verbose_name='实付')
-    
+    total_fee    = models.FloatField(default=0.0,verbose_name='总费用')
+    payment      = models.FloatField(default=0.0,verbose_name='已付')
+
     created      = models.DateTimeField(null=True,blank=True,auto_now=True,verbose_name='创建日期')
     modified     = models.DateTimeField(null=True,blank=True,auto_now_add=True,verbose_name='修改日期')
     
@@ -145,7 +150,8 @@ class PurchaseItem(models.Model):
     class Meta:
         db_table = 'shop_purchases_item'
         unique_together = ("purchase","outer_id", "outer_sku_id")
-        verbose_name='采购项目'
+        verbose_name = u'采购项目'
+        verbose_name_plural = u'采购项目列表'
     
     def __unicode__(self):
         return 'CGZD%d'%self.id
@@ -154,15 +160,13 @@ class PurchaseItem(models.Model):
 def update_purchase_info(sender,instance,*args,**kwargs):
     """ 更新采购单信息 """
     
-    instance.total_fee = int(instance.purchase_num or 0)*float(instance.std_price or 0)
-    instance.payment   = int(instance.purchase_num or 0)*float(instance.price or 0)
-    update_model_feilds(instance,update_fields=['total_fee','payment'])
-    
     purchase = instance.purchase
     purchase_items = instance.purchase.purchase_items.exclude(status=pcfg.PURCHASE_INVALID)
-    if purchase.status in (pcfg.PURCHASE_DRAFT,pcfg.PURCHASE_APPROVAL):
-        purchase.total_fee = purchase_items.aggregate(total_fees=Sum('total_fee'))['total_fees'] or 0
-        purchase.payment   = purchase_items.aggregate(total_payment=Sum('payment'))['total_payment'] or 0
+    
+    purchase.total_fee = purchase_items.aggregate(total_fees=Sum('total_fee'))['total_fees'] or 0
+    purchase.payment   = purchase_items.aggregate(total_payment=Sum('payment'))['total_payment'] or 0
+    purchase.purchase_num  = purchase_items.aggregate(total_purchase_num=Sum('purchase_num'))['total_purchase_num'] or 0
+    purchase.storage_num   = purchase_items.aggregate(total_storage_num=Sum('storage_num'))['total_storage_num'] or 0
     
     if purchase_items.count() >0:
         if purchase_items.exclude(arrival_status=pcfg.PD_UNARRIVAL).count()==0:
@@ -175,7 +179,7 @@ def update_purchase_info(sender,instance,*args,**kwargs):
         if purchase_items.exclude(status=pcfg.PURCHASE_CLOSE).count()==0:
             purchase.status=pcfg.PURCHASE_CLOSE
     
-    update_model_feilds(purchase,update_fields=['total_fee','payment','arrival_status','status'])
+    update_model_feilds(purchase,update_fields=['total_fee','payment','arrival_status','status','purchase_num','storage_num'])
         
 post_save.connect(update_purchase_info, sender=PurchaseItem)
     
@@ -183,16 +187,13 @@ post_save.connect(update_purchase_info, sender=PurchaseItem)
 class PurchaseStorage(models.Model):
     """ 采购入库单 """
     
-    purchase      = models.ForeignKey(Purchase,related_name='purchase_storages',verbose_name='采购单')
     origin_no     = models.CharField(max_length=256,db_index=True,blank=True,verbose_name='原单据号')
-    purchase_no   = models.CharField(max_length=256,db_index=True,blank=True,verbose_name='采购单号')
     
     supplier      = models.ForeignKey(Supplier,null=True,blank=True,related_name='purchase_storages',verbose_name='供应商')
     deposite      = models.ForeignKey(Deposite,null=True,blank=True,related_name='purchases_storages',verbose_name='仓库')
-    purchase_type = models.ForeignKey(PurchaseType,null=True,blank=True,related_name='purchases_storages',verbose_name='采购类型')
     
     forecast_date = models.DateTimeField(null=True,blank=True,verbose_name='预计到货日期')
-    post_date     = models.DateTimeField(null=True,blank=True,verbose_name='实际到货日期')
+    post_date     = models.DateTimeField(null=True,db_index=True,blank=True,verbose_name='实际到货日期')
 
     created      = models.DateTimeField(null=True,blank=True,auto_now=True,verbose_name='创建日期')
     modified     = models.DateTimeField(null=True,blank=True,auto_now_add=True,verbose_name='修改日期')
@@ -208,7 +209,8 @@ class PurchaseStorage(models.Model):
     
     class Meta:
         db_table     = 'shop_purchases_storage'
-        verbose_name = '采购入库单'
+        verbose_name = u'采购入库单'
+        verbose_name_plural = u'采购入库单列表'
 
     def __unicode__(self):
         return 'RKD%d'%self.id
@@ -238,11 +240,36 @@ class PurchaseStorageItem(models.Model):
     class Meta:
         db_table = 'shop_purchases_storageitem'
         unique_together = ("purchase_storage","outer_id", "outer_sku_id")
-        verbose_name = '采购入库项目'
+        verbose_name = u'采购入库项目'
+        verbose_name_plural = u'采购入库项目列表'
     
     def __unicode__(self):
         return 'RKZD%d'%self.id
     
+
+class PurchaseStorageRelationship(models.Model):
+    """ 采购与入库商品项目关联 """
+    
+    purchase_id       =  models.IntegerField(verbose_name='采购单ID')
+    purchase_item_id  =  models.IntegerField(verbose_name='采购项目ID')
+    storage_id        =  models.IntegerField(db_index=True,verbose_name='入库单ID')
+    storage_item_id   =  models.IntegerField(verbose_name='入库项目ID')
+    
+    outer_id          = models.CharField(max_length=32,verbose_name='商品编码')
+    outer_sku_id      = models.CharField(max_length=32,null=False,blank=True,verbose_name='规格编码')
+    
+    is_addon          = models.BooleanField(default=False,verbose_name='更新商品库存')
+    storage_num       = models.IntegerField(null=True,default=0,verbose_name='关联入库数量')
+    relate_fee        = models.FloatField(default=0.0,verbose_name='支付费用')
+    
+    class Meta:
+        db_table = 'shop_purchases_relationship'
+        unique_together = (("purchase_id","purchase_item_id","storage_id","storage_item_id"),)
+        verbose_name = u'采购入库项目'
+        verbose_name_plural = u'采购入库项目列表'
+    
+    def __unicode__(self):
+        return 'RKZD%d'%self.id
     
 
 class PurchasePaymentItem(models.Model):
@@ -269,7 +296,8 @@ class PurchasePaymentItem(models.Model):
     
     class Meta:
         db_table = 'shop_purchases_payment_item'
-        verbose_name='采购付款项目'
+        verbose_name=u'采购付款项目'
+        verbose_name_plural = u'采购付款项目列表'
     
     def __unicode__(self):
         return '<%s,%s,%s>'%(str(self.purchase),str(self.storage),str(self.payment))

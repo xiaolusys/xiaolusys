@@ -153,6 +153,7 @@ class PurchaseItemView(ModelView):
         purchase_item.std_price = std_price
         purchase_item.price = price
         purchase_item.purchase_num = num
+        purchase_item.total_fee = float(price or 0)*int(num or 0)
         purchase_item.save()
         
         log_action(request.user.id,purchase,CHANGE,u'%s采购项（%s,%s）'%(state and u'添加' or u'修改',outer_id,sku_id))
@@ -166,6 +167,7 @@ class PurchaseItemView(ModelView):
                               'std_price':purchase_item.std_price,
                               'price':purchase_item.price,
                               'purchase_num':purchase_item.purchase_num,
+                              'total_fee':purchase_item.total_fee,
                               }
         return purchase_item_dict
 

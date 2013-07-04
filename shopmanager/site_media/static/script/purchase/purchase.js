@@ -26,11 +26,9 @@ function editRow ( oTable, nRow )
 {
 	var aData = oTable.fnGetData(nRow);
 	var jqTds = $('>td', nRow);
-	jqTds[5].innerHTML = '<input type="text" class="edit-code" value="'+aData[5]+'">';
-	jqTds[6].innerHTML = '<input type="text" class="edit-price" value="'+aData[6]+'" >';
-	jqTds[7].innerHTML = '<input type="text" class="edit-price" value="'+aData[7]+'">';
-	jqTds[8].innerHTML = '<input type="text" class="edit-num" value="'+aData[8]+'" >';
-	jqTds[9].innerHTML = '<a class="save" href="#"><icon class="icon-ok"></icon></a>'
+	jqTds[5].innerHTML = '<input type="text" class="edit-price" value="'+aData[5]+'">';
+	jqTds[6].innerHTML = '<input type="text" class="edit-num" value="'+aData[6]+'" >';
+	jqTds[8].innerHTML = '<a class="save" href="#"><icon class="icon-ok"></icon></a>'
 		+'<a class="delete" href="#"><icon class="icon-remove"></icon></a>';
 }
 
@@ -40,10 +38,8 @@ function saveRow ( oTable, nRow )
 	var jqInputs = $('input', nRow);
 	oTable.fnUpdate( jqInputs[0].value, nRow, 5, false );
 	oTable.fnUpdate( jqInputs[1].value, nRow, 6, false );
-	oTable.fnUpdate( jqInputs[2].value, nRow, 7, false );
-	oTable.fnUpdate( jqInputs[3].value, nRow, 8, false );
 	oTable.fnUpdate( '<a class="edit" href="#"><icon class="icon-pencil"></a>'+
-		'<a class="delete" href="#"><icon class="icon-remove"></icon></a>', nRow, 9, false );
+		'<a class="delete" href="#"><icon class="icon-remove"></icon></a>', nRow, 8, false );
 	oTable.fnDraw();
 }
 
@@ -92,13 +88,7 @@ var addPurchaseItemRow  = function(tableID,prod,sku){
 	
 	var sku_id_cell   = createDTText(sku[0]);
 	var sku_name_cell = createDTText(sku[1]);
-	
-	var supplier_item_id_cell    = goog.dom.createElement('td');
-	supplier_item_id_cell.innerHTML = '<input type="text" class="edit-item-id" value="" />';
-	
-	var std_price_cell    = goog.dom.createElement('td');
-	std_price_cell.innerHTML = '<input type="text" class="edit-price" value="0.0" />';
-	
+
 	var price_cell    = goog.dom.createElement('td');
 	price_cell.innerHTML = '<input type="text" class="edit-price" value="0.0" />';
 	
@@ -112,9 +102,7 @@ var addPurchaseItemRow  = function(tableID,prod,sku){
 	row.appendChild(outer_id_cell); 
 	row.appendChild(title_cell);
 	row.appendChild(sku_id_cell); 	 
-	row.appendChild(sku_name_cell);	
-	row.appendChild(supplier_item_id_cell);
-	row.appendChild(std_price_cell);	 
+	row.appendChild(sku_name_cell);	 
 	row.appendChild(price_cell);	
 	row.appendChild(num_cell);	 
 	row.appendChild(addbtn_cell);	 
@@ -207,10 +195,8 @@ purchase.Manager.prototype.onCreatePurchaseItem = function(e){
 	var params = {  'purchase_id':$('#id_purchase').val(),
 					'outer_id':row.cells[1].innerHTML,
 					'sku_id':row.cells[3].innerHTML,
-					'supplier_item_id':row.cells[5].firstChild.value,
-					'std_price':row.cells[6].firstChild.value,
-					'price':row.cells[7].firstChild.value,
-					'num':row.cells[8].firstChild.value};
+					'price':row.cells[5].firstChild.value,
+					'num':row.cells[6].firstChild.value};
 	var that = this;
 	var callback = function(e){
 		var xhr = e.target;
@@ -223,14 +209,13 @@ purchase.Manager.prototype.onCreatePurchaseItem = function(e){
 									purchase_item.name, 
 									purchase_item.outer_sku_id, 
 									purchase_item.properties_name,
-									purchase_item.supplier_item_id,
-									purchase_item.std_price,
 									purchase_item.price,
 									purchase_item.purchase_num, 
+									purchase_item.total_fee,
 									'<a class="edit" href="#"><icon class="icon-pencil"></icon></a>'+
-									'<a class="delete" href="#"><icon class="icon-remove"></icon></a>']);
+									'<a class="delete" href="#"><icon class="icon-remove"></icon></a>'],true);
 				goog.style.setStyle(row,'background-color','#BFCEEC');
-				goog.style.showElement(row.cells[9].firstChild, false);
+				goog.style.showElement(row.cells[7].firstChild, false);
         	}else{
         		alert("错误:"+res.response_error);
         	}
@@ -248,10 +233,8 @@ purchase.Manager.prototype.savePurchaseItem = function(nRow){
 	var params = {  'purchase_id':$('#id_purchase').val(),
 					'outer_id':nRow.cells[1].innerHTML,
 					'sku_id':nRow.cells[3].innerHTML,
-					'supplier_item_id':nRow.cells[5].firstChild.value,
-					'std_price':nRow.cells[6].firstChild.value,
-					'price':nRow.cells[7].firstChild.value,
-					'num':nRow.cells[8].firstChild.value};
+					'price':nRow.cells[5].firstChild.value,
+					'num':nRow.cells[6].firstChild.value};
 	var that = this;
 	var callback = function(e){
 		var xhr = e.target;
@@ -259,12 +242,11 @@ purchase.Manager.prototype.savePurchaseItem = function(nRow){
         	var res = xhr.getResponseJson();
         	if (res.code==0){
         		var purchase_item = res.response_content;
-        		that.datatable.fnUpdate( purchase_item.supplier_item_id, nRow, 5, false );
-				that.datatable.fnUpdate( purchase_item.std_price, nRow, 6, false );
-				that.datatable.fnUpdate( purchase_item.price, nRow, 7, false );
-				that.datatable.fnUpdate( purchase_item.purchase_num, nRow, 8, false );
+				that.datatable.fnUpdate( purchase_item.price, nRow, 5, false );
+				that.datatable.fnUpdate( purchase_item.purchase_num, nRow, 6, false );
+				that.datatable.fnUpdate( purchase_item.total_fee, nRow, 7, false );
 				that.datatable.fnUpdate( '<a class="edit" href="#"><icon class="icon-pencil"></a>'+
-					'<a class="delete" href="#"><icon class="icon-remove"></icon></a>', nRow, 9, false );
+					'<a class="delete" href="#"><icon class="icon-remove"></icon></a>', nRow, 8, false );
 				that.datatable.fnDraw();
         	}else{
         		alert("错误:"+res.response_error);

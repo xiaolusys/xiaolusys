@@ -189,7 +189,7 @@ purchasestorage.Manager.prototype.onCreatePurchaseItem = function(e){
 	var that = this;
 	var callback = function(e){
 		var xhr = e.target;
-        //try {
+        try {
         	var res = xhr.getResponseJson();
         	if (res.code==0){
         		var purchase_item = res.response_content;
@@ -207,9 +207,9 @@ purchasestorage.Manager.prototype.onCreatePurchaseItem = function(e){
         	}else{
         		alert("错误:"+res.response_error);
         	}
-        /*} catch (err) {
+        } catch (err) {
             console.log('Error: (ajax callback) - ', err);
-        } */
+        }
 	};
 	var content = goog.uri.utils.buildQueryDataFromMap(params);
 	goog.net.XhrIo.send('/purchases/item/',callback,'POST',content);
