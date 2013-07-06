@@ -64,6 +64,10 @@ CELERY_ROUTES = {
             'queue': 'peroid',
             'routing_key': 'peroid.notify_packet_post_task',
         },
+        'shopback.trades.tasks.pushBuyerToCustomerTask': {
+            'queue': 'peroid',
+            'routing_key': 'peroid.push_buyer_to_customer_task',
+        },
 }
 
 
@@ -112,6 +116,11 @@ SYNC_MODEL_SCHEDULE = {
          'task':'shopback.trades.tasks.regularRemainOrderTask',
          'schedule':crontab(minute="0",hour='*/12'),
          'args':()
+     },
+    'runs-every-week-push-buyer-to-customer':{     #更新客户信息
+         'task':'shopback.trades.tasks.pushBuyerToCustomerTask',
+         'schedule':crontab(minute="0",hour='2',day_of_week='sun'),
+         'args':(21,)
      },
 }
 

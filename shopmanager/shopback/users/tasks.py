@@ -24,4 +24,13 @@ def initSystemDataFromAuthTask(visitor_id):
     saveUserDuringOrdersTask.delay(visitor_id,status=pcfg.WAIT_SELLER_SEND_GOODS)
     #更新待发货分销订单
     saveUserPurchaseOrderTask.delay(visitor_id,status=pcfg.WAIT_SELLER_SEND_GOODS)
+   
+   
+
+        
+   
+   
+   
+   
+   
     

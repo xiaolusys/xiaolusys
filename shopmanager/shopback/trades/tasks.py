@@ -245,4 +245,14 @@ def importTradeFromFileTask(fileName):
                 except:
                     pass
     
-    
+
+@task()
+def pushBuyerToCustomerTask(day):
+    """ 将订单买家信息保存为客户信息 """
+    dt = datetime.datetime.now()
+    all_trades = MergeTrade.objects.filter(created__gte=dt-datetime.timedelta(day,0,0)).order_by('-pay_time')
+    for trade in all_trades:
+        
+        trade.save_customer()
+
+   

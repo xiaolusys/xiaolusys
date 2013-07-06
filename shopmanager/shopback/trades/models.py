@@ -7,7 +7,7 @@ from django.db.models import Q,Sum
 from django.db.models.signals import post_save
 from bitfield import BitField
 from shopback.base.fields import BigIntegerAutoField,BigIntegerForeignKey
-from shopback.users.models import User
+from shopback.users.models import User,Customer
 from shopback.base import log_action, ADDITION, CHANGE
 from shopback.orders.models import Trade,Order,STEP_TRADE_STATUS
 from shopback.items.models import Item,Product,ProductSku
@@ -241,11 +241,14 @@ class MergeTrade(models.Model):
         
     @property
     def inuse_orders(self):
-        return self.merge_trade_orders.filter(sys_status=pcfg.IN_EFFECT)       
+        return self.merge_trade_orders.filter(sys_status=pcfg.IN_EFFECT)  
+    
+         
     @property
     def buyer_full_address(self):
         return '%s%s%s%s%s%s%s'%(self.receiver_name.strip(),self.receiver_mobile.strip() or self.receiver_phone.strip(),self.receiver_state.strip()
                              ,self.receiver_city.strip(),self.receiver_district.strip(),self.receiver_address.strip(),self.receiver_zip.strip())
+    
     
     def is_post_success(self):
         """ 判断订单淘宝发货成功 """
@@ -335,7 +338,32 @@ class MergeTrade(models.Model):
                     prod.update_waitpostnum_incremental(order_num)
             
         return True            
+       
+    def save_customer(self):
+        """ 保存客户信息 """
+        customer,state = Customer.objects.get_or_create(nick=self.buyer_nick)
+        customer.name  = self.receiver_name
+        customer.zip   = self.receiver_zip
+        customer.address   = self.receiver_address
+        customer.city      = self.receiver_city
+        customer.state     = self.receiver_state
+        customer.district  = self.receiver_district
+        customer.phone   = self.receiver_phone
+        customer.mobile  = self.receiver_mobile
+        customer.save()
         
+        trades        = MergeTrade.objects.filter(buyer_nick=self.buyer_nick,
+                                                  status__in=pcfg.ORDER_SUCCESS_STATUS).order_by('-pay_time')
+        if trades.count()>0:
+            total_nums    =  trades.count()
+            total_payment = trades.aggregate(total_payment=Sum('payment')).get('total_payment') or 0
+            
+            customer.last_buy_time = trades[0].pay_time
+            customer.buy_times     = trades.count()
+            customer.avg_payment   = float(round(float(total_payment)/total_nums,2))
+            customer.save()
+            
+            
     @classmethod
     def get_trades_wait_post_prod_num(cls,outer_id,outer_sku_id):
         """ 获取订单商品待发数"""

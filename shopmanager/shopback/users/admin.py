@@ -5,7 +5,7 @@ from django.http import HttpResponse,HttpResponseRedirect
 from django.shortcuts import render_to_response
 from django.core.urlresolvers import reverse
 from django.template import RequestContext
-from shopback.users.models import User
+from shopback.users.models import User,Customer
 from shopback import paramconfig as pcfg
 
 
@@ -136,3 +136,19 @@ class UserAdmin(admin.ModelAdmin):
                'sync_online_prodnum_to_offline','async_pull_lastest_trades']
 
 admin.site.register(User, UserAdmin)
+
+
+class CustomerAdmin(admin.ModelAdmin):
+    
+    list_display = ('id','nick','sex','name','city','state','district','mobile',
+                    'last_buy_time','buy_times','avg_payment','is_valid')
+    list_display_links = ('id', 'nick')
+
+    ordering = ['-last_buy_time']
+
+    list_filter = ('is_valid',)
+    search_fields = ['nick']
+    
+admin.site.register(Customer, CustomerAdmin)
+    
+    

@@ -161,8 +161,8 @@ taobao_logged_in.connect(add_taobao_user)
   
 class Customer(models.Model):
     """ 客户信息表 """
-    user_id   = models.BigIntegerField(default=0,db_index=True,verbose_name='用户ID')
-    nick      = models.CharField(max_length=32,blank=True,verbose_name='昵称')
+
+    nick      = models.CharField(max_length=32,unique=True,verbose_name='昵称')
     sex       = models.CharField(max_length=1,blank=True,verbose_name='性别')
     avatar    = models.CharField(max_length=32,blank=True,verbose_name='头像')
     
@@ -171,6 +171,7 @@ class Customer(models.Model):
     credit_total_num = models.IntegerField(default=0,verbose_name='总评价数')
     credit_good_num  = models.IntegerField(default=0,verbose_name='好评数')
     
+    name      = models.CharField(max_length=32,blank=True,verbose_name='收货人')
     zip       = models.CharField(max_length=10,blank=True,verbose_name='邮编')
     address   = models.CharField(max_length=128,blank=True,verbose_name='地址')
     city      = models.CharField(max_length=16,blank=True,verbose_name='城市')
@@ -182,13 +183,17 @@ class Customer(models.Model):
     mobile    = models.CharField(max_length=20,blank=True,verbose_name='手机')
     
     created   = models.DateTimeField(db_index=True,null=True,blank=True,verbose_name='创建日期')
-    birthday  = models.DateTimeField(db_index=True,null=True,blank=True,verbose_name='创建日期')
+    birthday  = models.DateTimeField(db_index=True,null=True,blank=True,verbose_name='生日')
     
-    vip_info  = models.CharField(max_length=3,blank=True,verbose_name='等级')
+    last_buy_time = models.DateTimeField(db_index=True,null=True,blank=True,verbose_name='最后购买日期')
+    buy_times     = models.IntegerField(default=0,verbose_name='购买次数')
+    avg_payment   = models.FloatField(default=0.0,verbose_name='均单金额')
+    
+    vip_info  = models.CharField(max_length=3,blank=True,verbose_name='VIP等级')
     email     = models.CharField(max_length=32,blank=True,verbose_name='邮箱')
     
     is_valid = models.BooleanField(default=True,verbose_name= u'有效')
-  
+    
     class Meta:
         db_table = 'shop_users_customer'
         verbose_name= u'客户'
