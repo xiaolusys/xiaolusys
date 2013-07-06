@@ -99,8 +99,9 @@ class Purchase(models.Model):
     def gen_csv_tuple(self):
         
         pcsv = []
-        pcsv.append((u'采购编号',str(self.id),u'采购标题',self.extra_name,u'供应商',self.supplier.supplier_name))
-        pcsv.append((u'采购日期',format_date(self.service_date),u'预测到货日期',format_date(self.forecast_date)))
+        pcsv.append((u'采购编号',str(self.id),u'采购标题',self.extra_name,u'供应商',self.supplier and self.supplier.supplier_name or ''))
+        pcsv.append((u'采购日期',self.service_date and format_date(self.service_date) or '',
+                     u'预测到货日期',self.forecast_date and format_date(self.forecast_date)) or '')
         pcsv.append((u'总费用',str(self.total_fee),u'实付',str(self.payment)))
         pcsv.append(('',''))
         
@@ -214,6 +215,24 @@ class PurchaseStorage(models.Model):
 
     def __unicode__(self):
         return 'RKD%d'%self.id
+    
+    def gen_csv_tuple(self):
+        
+        pcsv = []
+        pcsv.append((u'入库单号',str(self.id),u'入库标题',self.extra_name,u'供应商',self.supplier and self.supplier.supplier_name or ''))
+        pcsv.append((u'预测到货日期',self.forecast_date and format_date(self.forecast_date),
+                     u'实际到货日期',self.post_date and format_date(self.post_date)))
+        pcsv.append(('',''))
+        
+        pcsv.append((u'商品编码',u'商品名称',u'规格编码',u'规格名称',u'入库数量'))
+        for item in self.purchase_storage_items.exclude(status__in=(pcfg.PURCHASE_CLOSE,pcfg.PURCHASE_INVALID)).order_by('outer_id'):
+            pcsv.append((item.outer_id,
+                         item.name,
+                         item.outer_sku_id,
+                         item.properties_name,
+                         str(item.storage_num)))
+            
+        return pcsv 
      
 
 class PurchaseStorageItem(models.Model):

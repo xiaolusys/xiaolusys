@@ -409,29 +409,6 @@ purchase.Manager.prototype.hidePromptDialog = function(){
 	this.orderconfirm_dialog.hide();
 }
 
-//删除退货商品
-purchase.Manager.prototype.deleteOrder = function(e){
-	var target = e.target;
-	var row    = target.parentElement.parentElement;
-	var rowIndex = row.rowIndex;
-	var table    = row.parentElement.parentElement;
-	var rid = target.getAttribute('rid');
-	
-	var callback = function(e){
-		var xhr = e.target;
-        try {
-        	var res = xhr.getResponseJson();
-            if (res.code == 0){
-            	table.deleteRow(rowIndex);
-            }else{
-                alert("错误:"+res.response_error);
-            }
-        } catch (err) {
-            console.log('Error: (ajax callback) - ', err);
-        } 
-	};
-	goog.net.XhrIo.send('/refunds/product/del/'+rid+'/',callback,'GET');
-}
 
 //绑定事件
 purchase.Manager.prototype.bindEvent = function (){

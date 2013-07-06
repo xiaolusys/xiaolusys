@@ -16,8 +16,7 @@ function editRow ( oTable, nRow )
 	var aData = oTable.fnGetData(nRow);
 	var jqTds = $('>td', nRow);
 	jqTds[5].innerHTML = '<input type="text" class="edit-price" value="'+aData[5]+'">';
-	jqTds[6].innerHTML = '<input type="text" class="edit-num" value="'+aData[6]+'" >';
-	jqTds[7].innerHTML = '<a class="save" href="#"><icon class="icon-ok"></icon></a>'
+	jqTds[6].innerHTML = '<a class="save" href="#"><icon class="icon-ok"></icon></a>'
 		+'<a class="delete" href="#"><icon class="icon-remove"></icon></a>';
 }
 
@@ -26,22 +25,21 @@ function saveRow ( oTable, nRow )
 {
 	var jqInputs = $('input', nRow);
 	oTable.fnUpdate( jqInputs[0].value, nRow, 5, false );
-	oTable.fnUpdate( jqInputs[1].value, nRow, 6, false );
 	oTable.fnUpdate( '<a class="edit" href="#"><icon class="icon-pencil"></a>'+
-		'<a class="delete" href="#"><icon class="icon-remove"></icon></a>', nRow, 7, false );
+		'<a class="delete" href="#"><icon class="icon-remove"></icon></a>', nRow, 6, false );
 	oTable.fnDraw();
 }
 
 //添加商品搜索结果
 var addSearchProdRow  = function(tableID,prod){
 
-	var table = goog.dom.getElement(tableID);
+	var table    = goog.dom.getElement(tableID);
 	var rowCount = table.rows.length;
-    var row   = table.insertRow(rowCount);
-    var index = rowCount;
+    var row      = table.insertRow(rowCount);
+    var index    = rowCount;
     
-	var id_cell       = createDTText(index+'');
-	var img_cell      = goog.dom.createElement('td');
+	var id_cell        = createDTText(index+'');
+	var img_cell       = goog.dom.createElement('td');
 	img_cell.innerHTML = '<img width="40" height="60" margin="0" src="'+prod[1]+'"></img>';
 	
 	var outer_id_cell = createDTText(prod[0]);
@@ -49,12 +47,12 @@ var addSearchProdRow  = function(tableID,prod){
 	
 	var stock_cell    = createDTText(prod[4]);
 	var created_cell    = createDTText(prod[5]);
-
+	
 	var addbtn_cell   = goog.dom.createElement('td');
 	addbtn_cell.innerHTML = '<button class="select-purchase-items btn btn-mini btn-info" style="margin:1px 0;" prod_id="'+prod[0]+'">查看规格</button>';
 	
 	row.appendChild(id_cell);		
-	row.appendChild(img_cell); 
+	row.appendChild(img_cell); 		
 	row.appendChild(outer_id_cell); 
 	row.appendChild(title_cell);	 
 	row.appendChild(stock_cell);		 
@@ -78,8 +76,6 @@ var addPurchaseItemRow  = function(tableID,prod,sku){
 	var sku_id_cell   = createDTText(sku[0]);
 	var sku_name_cell = createDTText(sku[1]);
 	
-	var price_cell    = goog.dom.createElement('td');
-	price_cell.innerHTML = '<input type="text" class="edit-price" value="0.0" />';
 	
 	var num_cell       = goog.dom.createElement('td');
 	num_cell.innerHTML = '<input type="text" class="edit-num" value="0" />';
@@ -92,7 +88,6 @@ var addPurchaseItemRow  = function(tableID,prod,sku){
 	row.appendChild(title_cell);
 	row.appendChild(sku_id_cell); 	 
 	row.appendChild(sku_name_cell);		 
-	row.appendChild(price_cell);	
 	row.appendChild(num_cell);	 
 	row.appendChild(addbtn_cell);	 
 }
@@ -152,7 +147,7 @@ purchasestorage.Manager = function () {
 	this.saveBtn       = goog.dom.getElement('save_purchase');
 	this.checkBtn      = goog.dom.getElement('check_purchase');
 	
-	this.prompt_dialog = new purchase.PurchaseSelectDialog(this);
+	this.prompt_dialog = new purchasestorage.PurchaseSelectDialog(this);
 	this.datatable     = null;
 	this.nEditing      = null;//datatable当前选定行
 	this.bindEvent();
@@ -163,9 +158,9 @@ purchasestorage.Manager = function () {
 purchasestorage.Manager.prototype.onProdSearchKeyDown = function(e){
 	
 	var prod_qstr = this.prod_q.value;
-	var purchase_id = $('#id_purchase').val();
+	var purchase_storage_id = $('#id_purchase_storage').val();
 	if (e.keyCode==13){
-		if (purchase_id==null||purchase_id==''||purchase_id=='undifine'){
+		if (purchase_storage_id==null||purchase_storage_id==''||purchase_storage_id=='undifine'){
 			alert('请先保存采购单基本信息');
 			return;
 		}
@@ -181,11 +176,10 @@ purchasestorage.Manager.prototype.onCreatePurchaseItem = function(e){
 	var row       = target.parentElement.parentElement;
 	
 	$('#purchase-items').show();
-	var params = {  'purchase_id':$('#id_purchase').val(),
+	var params = {  'purchase_storage_id':$('#id_purchase_storage').val(),
 					'outer_id':row.cells[1].innerHTML,
 					'sku_id':row.cells[3].innerHTML,
-					'price':row.cells[5].firstChild.value,
-					'num':row.cells[6].firstChild.value};
+					'num':row.cells[5].firstChild.value};
 	var that = this;
 	var callback = function(e){
 		var xhr = e.target;
@@ -198,12 +192,11 @@ purchasestorage.Manager.prototype.onCreatePurchaseItem = function(e){
 									purchase_item.name, 
 									purchase_item.outer_sku_id, 
 									purchase_item.properties_name,
-									purchase_item.price,
-									purchase_item.purchase_num, 
+									purchase_item.storage_num, 
 									'<a class="edit" href="#"><icon class="icon-pencil"></icon></a>'+
 									'<a class="delete" href="#"><icon class="icon-remove"></icon></a>']);
 				goog.style.setStyle(row,'background-color','#BFCEEC');
-				goog.style.showElement(row.cells[7].firstChild, false);
+				goog.style.showElement(row.cells[6].firstChild, false);
         	}else{
         		alert("错误:"+res.response_error);
         	}
@@ -212,17 +205,16 @@ purchasestorage.Manager.prototype.onCreatePurchaseItem = function(e){
         }
 	};
 	var content = goog.uri.utils.buildQueryDataFromMap(params);
-	goog.net.XhrIo.send('/purchases/item/',callback,'POST',content);
+	goog.net.XhrIo.send('/purchases/storage/item/',callback,'POST',content);
 }
 
 //添加采购项
 purchasestorage.Manager.prototype.savePurchaseItem = function(nRow){
 	
-	var params = {  'purchase_id':$('#id_purchase').val(),
+	var params = {  'purchase_storage_id':$('#id_purchase_storage').val(),
 					'outer_id':nRow.cells[1].innerHTML,
 					'sku_id':nRow.cells[3].innerHTML,
-					'price':nRow.cells[5].firstChild.value,
-					'num':nRow.cells[6].firstChild.value};
+					'num':nRow.cells[5].firstChild.value};
 	var that = this;
 	var callback = function(e){
 		var xhr = e.target;
@@ -232,9 +224,8 @@ purchasestorage.Manager.prototype.savePurchaseItem = function(nRow){
         		var purchase_item = res.response_content;
         		var jqInputs = $('input', nRow);
 				that.datatable.fnUpdate( jqInputs[0].value, nRow, 5, false );
-				that.datatable.fnUpdate( jqInputs[1].value, nRow, 6, false );
 				that.datatable.fnUpdate( '<a class="edit" href="#"><icon class="icon-pencil"></a>'+
-					'<a class="delete" href="#"><icon class="icon-remove"></icon></a>', nRow, 7, false );
+					'<a class="delete" href="#"><icon class="icon-remove"></icon></a>', nRow, 6, false );
 				that.datatable.fnDraw();
         	}else{
         		alert("错误:"+res.response_error);
@@ -244,19 +235,19 @@ purchasestorage.Manager.prototype.savePurchaseItem = function(nRow){
         } 
 	};
 	var content = goog.uri.utils.buildQueryDataFromMap(params);
-	goog.net.XhrIo.send('/purchases/item/',callback,'POST',content);
+	goog.net.XhrIo.send('/purchases/storage/item/',callback,'POST',content);
 }
 
 //删除采购项
 purchasestorage.Manager.prototype.delPurchaseItem = function(nRow){
 	
 	var purchase_item_id = nRow.cells[0].innerHTML;
-	if(!confirm("确定删除采购项目 "+purchase_item_id+" 吗？"))
+	if(!confirm("确定删除入库项目 "+purchase_item_id+" 吗？"))
 	{
 	    return;
 	}
-	var params = {  'purchase_id':$('#id_purchase').val(),
-					'purchase_item_id':purchase_item_id};
+	var params = {  'purchase_storage_id':$('#id_purchase_storage').val(),
+					'purchase_storage_item_id':purchase_item_id};
 	var that = this;
 	var callback = function(e){
 		var xhr = e.target;
@@ -272,18 +263,16 @@ purchasestorage.Manager.prototype.delPurchaseItem = function(nRow){
         } 
 	};
 	var content = goog.uri.utils.buildQueryDataFromMap(params);
-	goog.net.XhrIo.send('/purchases/item/del/',callback,'POST',content);
+	goog.net.XhrIo.send('/purchases/storage/item/del/',callback,'POST',content);
 }
 
 //添加采购基本信息
 purchasestorage.Manager.prototype.onSavePurchaseInfo = function(e){
 	
 	var that = this;
-	var params = {  'purchase_id':$('#id_purchase').val(),
+	var params = {  'purchase_storage_id':$('#id_purchase_storage').val(),
 					'supplier_id':$('#supplier').val(),
 					'deposite_id':$('#deposite').val(),
-					'purchase_type_id':$('#purchase_type').val(),
-					'service_date':$('#service_date').val(),
 					'forecast_date':$('#forecast_date').val(),
 					'post_date':$('#post_date').val(),
 					'extra_name':$('#extra_name').val(),
@@ -295,9 +284,13 @@ purchasestorage.Manager.prototype.onSavePurchaseInfo = function(e){
         try {
         	var res = xhr.getResponseJson();
         	if (res.code==0){
-        		var purchaseins = res.response_content;
-     			$('#id_purchase').val(purchaseins.id);
-     			$('#export-csv-file').attr('href','/purchases/csv/'+purchaseins.id+'/');
+        		var purchasestorageins = res.response_content;
+        		var purchase_storage_id = $('#id_purchase_storage').val();
+     			if (purchase_storage_id==''||purchase_storage_id=='undifine'){
+     				window.location='/purchases/storage/'+purchasestorageins.id+'/';
+     			}else{
+     				alert('保存成功！');
+     			}
         	}else{
         		alert("错误:"+res.response_error);
         	}
@@ -306,19 +299,19 @@ purchasestorage.Manager.prototype.onSavePurchaseInfo = function(e){
         } 
 	};
 	var content = goog.uri.utils.buildQueryDataFromMap(params);
-	goog.net.XhrIo.send('/purchases/add/?format=json',callback,'POST',content);
+	goog.net.XhrIo.send('/purchases/storage/add/?format=json',callback,'POST',content);
 }
 
 //审核采购合同
 purchasestorage.Manager.prototype.onCheckPurchaseInfo = function(e){
 	
-	var purchase_id = $('#id_purchase').val();
+	var purchase_storage_id = $('#id_purchase_storage').val();
 	
-	if (purchase_id==''||purchase_id=='undifine'){
+	if (purchase_storage_id==''||purchase_storage_id=='undifine'){
 		alert('请先保存采购基本信息');
 		return;
 	}
-	window.location = "/admin/purchases/purchase/?status__exact=DRAFT&q="+purchase_id;
+	window.location = "/admin/purchases/purchasestorage/?status__exact=DRAFT&q="+purchase_storage_id;
 }
 
 //显示商品搜索记录
@@ -330,7 +323,7 @@ purchasestorage.Manager.prototype.showProduct = function (q) {
 
     var callback = function(e){
         var xhr = e.target;
-        try {
+        //try {
         	var res = xhr.getResponseJson();
         	if (res.code == 0){
         		clearTable(that.search_prod_table);
@@ -348,9 +341,9 @@ purchasestorage.Manager.prototype.showProduct = function (q) {
             }else{
                 alert("商品查询失败:"+res.response_error);
             }
-        } catch (err) {
+        /*} catch (err) {
             console.log('Error: (ajax callback) - ', err);
-        } 
+        } */
 	}
 	goog.net.XhrIo.send('/items/query/?q='+q,callback);
 }
@@ -383,30 +376,6 @@ purchasestorage.Manager.prototype.addRefundOrder = function (e) {
 purchasestorage.Manager.prototype.hidePromptDialog = function(){
 	this.orderlist_dialog.hide();
 	this.orderconfirm_dialog.hide();
-}
-
-//删除退货商品
-purchasestorage.Manager.prototype.deleteOrder = function(e){
-	var target = e.target;
-	var row    = target.parentElement.parentElement;
-	var rowIndex = row.rowIndex;
-	var table    = row.parentElement.parentElement;
-	var rid = target.getAttribute('rid');
-	
-	var callback = function(e){
-		var xhr = e.target;
-        try {
-        	var res = xhr.getResponseJson();
-            if (res.code == 0){
-            	table.deleteRow(rowIndex);
-            }else{
-                alert("错误:"+res.response_error);
-            }
-        } catch (err) {
-            console.log('Error: (ajax callback) - ', err);
-        } 
-	};
-	goog.net.XhrIo.send('/refunds/product/del/'+rid+'/',callback,'GET');
 }
 
 //绑定事件
@@ -519,7 +488,7 @@ purchasestorage.Manager.prototype.bindEvent = function (){
 		}
 	} );
 	//选择日期
-	$("#service_date").datepicker({ dateFormat: "yy-mm-dd" });
+
 	$("#forecast_date").datepicker({ dateFormat: "yy-mm-dd" });
 	$("#post_date").datepicker({ dateFormat: "yy-mm-dd" });
 }

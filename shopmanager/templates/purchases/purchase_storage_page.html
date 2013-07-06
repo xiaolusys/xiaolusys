@@ -112,11 +112,7 @@
 	textarea{
 		margin-bottom:2px;
 	}
-	#purchaseitem-table input[type="text"]{
-		width:80px;
-		margin-bottom:2px;
-		height:14px;;
-	}
+
 	.product-search input[type="text"]{
 		width:250px;
 		margin-bottom:18px;
@@ -145,19 +141,29 @@
 		height:20px;
 		background-color:#3A87AD;
 	}
+	
 	#purchase-select-table th,#purchase-select-table td {
 		max-height:20px;
 		padding:0px;
 		overflow:hidden;
 	}
+	
+	#purchaseitem-table input[type="text"]{
+		width:60px;
+		margin-bottom:2px;
+		height:14px;
+	}
+	
 	#purchase-select-table input {
 		margin-bottom:2px;
 		width:80px;
 	}
+	
 	#purchase-select-table tr td:first-child{
 		text-align:center;
 		background-color:#CCD1E6;
 	}
+	
 	.prompt-title{
 		display:inline
 	}
@@ -166,37 +172,34 @@
 		float:right;
 		display:inline;
 	}
+	
 	.clearboth{
 		clear:both;
 	}
     </style>
   </head>
 
-{% with suppliers=object.suppliers deposites=object.deposites purchase_types=object.purchase_types purchase_storage=object.purchase %}
+{% with suppliers=object.suppliers deposites=object.deposites purchase_storage=object.purchase_storage %}
  <body>
 	<div class="content-main">
 		<fieldset>
-			<legend><h2 class="head-title" >采购入库单</h2></legend>
+			<legend><h2 class="head-title" >采购入库单(NO:<input type="text" id="id_purchase_storage" value="{{ purchase_storage.id }}" disabled="disabled"/>)</h2></legend>
 			<div class="content-base-info">
 				<table class="table table-bordered table-striped table-condensed">
 					<tr>
 						<td>
-							<label for='purchase_no'>采购单号</label>
-							<input type="text" id="purchase_no" class="simple-text" disabled="disabled"
-								value="{% if purchase_storage.purchase_no %}{{ purchase_storage.purchase_no }}{% endif %}" />
-						</td>
-						<td>
-							<label for='origin_no'>原始单号</label>
+							<label for='origin_no'>原&nbsp;&nbsp;始&nbsp;&nbsp;单&nbsp;&nbsp;号</label>
 							<input type="text" id="origin_no" class="simple-text" value="{% if purchase_storage.origin_no %}{{ purchase_storage.origin_no }}{% endif %}"/>
 						</td>
-						<td>
-							<label for='extra_name'>标题</label>
+						<td colspan="2">
+							<label for='extra_name'>标&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;题</label>
 							<input type="text" id="extra_name" class="simple-text" value="{% if purchase_storage.extra_name %}{{ purchase_storage.extra_name }}{% endif %}"/>
 						</td>
+						
 					</tr>
 					<tr>
 						<td>
-							<label for='supplier'>供&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;应&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;商</label>
+							<label for='supplier'>供&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;应&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;商</label>
 							<select id='supplier'>
 								<option value='' >----请选择----</option>
 								{% for supplier in  suppliers %}
@@ -207,7 +210,7 @@
 							 <img src="{{ STATIC_URL }}admin/img/icon_addlink.gif" width="10" height="10" alt="创建"></a>
 						</td>
 						<td>
-							<label for='deposite'>仓&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;库</label>
+							<label for='deposite'>仓&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;库</label>
 							<select id='deposite'>
 								<option value='' >----请选择----</option>
 								{% for deposite in  deposites %}
@@ -218,40 +221,28 @@
 							 <img src="{{ STATIC_URL }}admin/img/icon_addlink.gif" width="10" height="10" alt="创建"></a>
 						</td>
 						<td>
-							<label for='purchase_type'>采购类型</label>
-							<select id='purchase_type'>
-								<option value='' >----请选择----</option>
-								{% for purchase_type in  purchase_types %}
-								<option value='{{ purchase_type.id }}' {% if purchase_storage.purchase_type_id == purchase_type.id %}selected{% endif %}>{{ purchase_type.type_name }}</option>
-								{% endfor %}
-							</select>
-							<a href="/admin/archives/purchasetype/add/" class="add-another" id="add_id_purchasetype" onclick="return showAddAnotherPopup(this);">
-							 <img src="{{ STATIC_URL }}admin/img/icon_addlink.gif" width="10" height="10" alt="创建">
-							</a>
-						</td>
-					</tr>
-					<tr>
-						<td>
 							<label for='forecast_date'>预计到货日期</label>
 							<input type="text" id="forecast_date" class="simple-text" value="{% if purchase_storage.forecast_date %}{{ purchase_storage.forecast_date }}{% endif %}"/>
 						</td>
+					</tr>
+					<tr>
 						<td>
 							<label for='post_date'>实际到货日期</label>
 							<input type="text" id="post_date" class="simple-text" value="{% if purchase_storage.post_date %}{{ purchase_storage.post_date }}{% endif %}"/>
 						</td>
 						<td>
 							<label for='logistic_company'>物流公司</label>
-							<input id="logistic_company"  value="{% if purchase_storage.logistic_company %}{{ purchase_storage.logistic_company }}{% endif %}"/>
+							<input type="text" id="logistic_company"  value="{% if purchase_storage.logistic_company %}{{ purchase_storage.logistic_company }}{% endif %}"/>
+						</td>
+						<td>
+							<label for='out_sid'>物&nbsp;&nbsp;流&nbsp;&nbsp;单&nbsp;&nbsp;号</label>
+							<input type="text" id="out_sid"  value="{% if purchase_storage.out_sid %}{{ purchase_storage.out_sid }}{% endif %}"/>
 						</td>
 					</tr>
 					<tr>
-						<td>
-							<label for='out_sid'>物流单号</label>
-							<input id="out_sid"  value="{% if purchase_storage.out_sid %}{{ purchase_storage.out_sid }}{% endif %}"/>
-						</td>
-						<td>
-							<label for='extra_info'>备注</label>
-							<textarea id="extra_info"  rows="2" cols="120">{{ purchase_storage.extra_info }}</textarea>
+						<td colspan="2">
+							<label for='extra_info'>备&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;注</label>
+							<textarea id="extra_info"  rows="2" cols="120" style="width:360px;">{{ purchase_storage.extra_info }}</textarea>
 						</td>
 						<td style="text-align:center;padding-top:20px;">
 							<button id="save_purchase" class="btn btn-primary">保存 +</button>
@@ -264,9 +255,9 @@
 				<div class="panel-content">
 					<div>
 						<h3 class="head-left" id="id-purchaseitem-head">
-							采购入库项目列表
+							入库项目列表
 						</h3>
-						<a id="export-csv-file" class="head-right" href="{% if purchase %}/purchases/csv/{{ purchase.id }}/{% else %}#{% endif %}">
+						<a id="export-csv-file" class="head-right" href="{% if purchase_storage %}/purchases/storage/csv/{{ purchase_storage.id }}/{% else %}#{% endif %}">
 							<icon class="icon-folder-open" title="导出csv文件"></icon>
 						</a>
 					</div>
@@ -279,20 +270,18 @@
 									<th>产品名</th>
 									<th>规格编码</th>
 									<th>规格名</th>
-									<th style="width:60px;">供应商货号</th>
-									<th style="width:60px;">采购数</th>
+									<th style="width:70px;">入库数</th>
 									<th>操作</th>
 							</thead>
 							<tbody>
-								{% for item in purchase.purchase_items %}
+								{% for item in purchase_storage.purchase_storage_items %}
 								<tr class="{% cycle 'odd' 'even' %}">
 									<td>{{ item.id }}</td>
 									<td>{{ item.outer_id }}</td>
 									<td>{{ item.name }}</td>
 									<td>{{ item.outer_sku_id }}</td>
 									<td>{{ item.properties_name }}</td>
-									<td>{{ item.supplier_item_id }}</td>
-									<td>{{ item.purchase_num }}</td>
+									<td>{{ item.storage_num }}</td>
 									<td>
 										<a class="edit" href=""><icon class="icon-pencil"></icon></a>
 										<a class="delete" href=""><icon class="icon-remove"></icon></a>
@@ -332,7 +321,7 @@
 	<!-- 采购项目选择对话框 -->
 	<div id="purchase-prompt" class="purchase-prompt">
 		<div id="purchase-prompt-head" class="purchase-prompt-head">
-			<h4 class="prompt-title">采购入库项目选择框</h4>
+			<h4 class="prompt-title">入库项目选择框</h4>
 			<a id="prompt-close" class="prompt-close"><i class="icon-remove-sign"></i></a>
 		</div>
 		<div id="purchase-prompt-body" class="purchase-prompt-body">
@@ -343,8 +332,7 @@
 						<th>商品名</th>
 						<th>规格编码</th>
 						<th>规格名</th>
-						<th>采购价</th>
-						<th>采购数</th>
+						<th>入库数</th>
 						<th>操作</th>
 				</thead>
 				<tbody>
@@ -354,7 +342,8 @@
 	</div>
 </body>
 {% endwith %}
-<script src="{{ STATIC_URL }}script/purchase/purchase.js"></script>
+<script src="{{ STATIC_URL }}script/base.js"></script>
+<script src="{{ STATIC_URL }}script/purchase/purchasestorage.js"></script>
 <script type="text/javascript">
 	new purchasestorage.Manager();
 </script>

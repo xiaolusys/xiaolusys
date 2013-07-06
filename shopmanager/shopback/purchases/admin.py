@@ -14,7 +14,7 @@ logger =  logging.getLogger('purchases.handler')
 class PurchaseItemInline(admin.TabularInline):
     
     model = PurchaseItem
-    fields = ('supplier_item_id','outer_id','name','outer_sku_id','properties_name','purchase_num','discount'
+    fields = ('outer_id','name','outer_sku_id','properties_name','purchase_num'
               ,'price','total_fee','payment','status','extra_info')
     
     formfield_overrides = {
@@ -28,7 +28,7 @@ class PurchaseItemInline(admin.TabularInline):
 class PurchaseStorageItemInline(admin.TabularInline):
     
     model = PurchaseStorageItem
-    fields = ('purchase_storage','supplier_item_id','outer_id','name','outer_sku_id','properties_name','storage_num','status')
+    fields = ('outer_id','name','outer_sku_id','properties_name','storage_num','status')
     
     formfield_overrides = {
         models.CharField: {'widget': TextInput(attrs={'size':'20'})},
@@ -88,11 +88,21 @@ admin.site.register(PurchaseItem,PurchaseItemAdmin)
 
 
 class PurchaseStorageAdmin(admin.ModelAdmin):
-    list_display = ('id','origin_no','supplier','deposite','forecast_date','post_date','created','modified','status')
+    list_display = ('id','storage_name_link','origin_no','supplier','deposite','forecast_date','post_date','created','modified','status')
     #list_editable = ('update_time','task_type' ,'is_success','status')
 
-    list_filter = ('status','supplier','deposite','purchase_type')
-    search_fields = ['id','out_sid','origin_no']
+    list_filter = ('status','supplier','deposite')
+    search_fields = ['id','out_sid','extra_name','origin_no']
+    
+    def storage_name_link(self, obj):
+        symbol_link = obj.extra_name or u'【空标题】'
+
+        if  obj.status == pcfg.PURCHASE_DRAFT:
+            symbol_link = '<a href="/purchases/storage/%d/" >%s</a>'%(obj.id,symbol_link) 
+        return symbol_link
+    
+    storage_name_link.allow_tags = True
+    storage_name_link.short_description = "标题"
     
     inlines = [PurchaseStorageItemInline]
     

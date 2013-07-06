@@ -336,6 +336,25 @@ class MergeTradeAdmin(admin.ModelAdmin):
         return super(MergeTradeAdmin, self).response_change(request, obj, *args, **kwargs)
     
     #--------定义action----------------
+    
+    def _handle_merge(self,user_id,sub_trade,main_trade):
+        is_merge_success = merge_order_maker(sub_trade.tid,main_trade.tid)
+        if is_merge_success:
+            sub_trade.out_sid           = main_trade.out_sid
+            sub_trade.logistics_company = main_trade.logistics_company
+            sub_trade.sys_status        = pcfg.FINISHED_STATUS
+            sub_trade.operator          = main_trade.operator
+            sub_trade.consign_time      = main_trade.consign_time
+            sub_trade.save()
+            
+            log_action(user_id,sub_trade,CHANGE,u'订单并入主订单（%d），并发货完成'%main_trade.tid)
+            if sub_trade.status == pcfg.WAIT_SELLER_SEND_GOODS:
+                try:
+                    sub_trade.send_trade_to_taobao(pcfg.SUB_TRADE_COMPANEY_CODE,sub_trade.out_sid)
+                except:
+                    log_action(user_id,sub_trade,CHANGE,u'订单合并发货失败')
+                    
+        return is_merge_success
     #合并订单
     def merge_order_action(self,request,queryset):
         
@@ -356,41 +375,35 @@ class MergeTradeAdmin(admin.ModelAdmin):
         else:
             merge_trade_ids  = []     #合单成的订单ID
             fail_reason      = ''
+            is_merge_success = False
             #如果有订单在待扫描，则将子订单与主订单合并，发货，完成
             if postset.count()==1:
                 main_trade  = postset[0]
                 main_full_addr = main_trade.buyer_full_address #主订单收货人地址
-                sub_trades    = queryset.filter(sys_status__in=(pcfg.WAIT_AUDIT_STATUS,pcfg.ON_THE_FLY_STATUS,
-                                                              pcfg.FINISHED_STATUS))
-                
+                sub_trades    = queryset.filter(sys_status__in=(pcfg.WAIT_AUDIT_STATUS,
+                                                              pcfg.FINISHED_STATUS),weight_time__isnull=True).order_by('-has_merge')
                 for trade in sub_trades:
+                    if trade.tid in merge_trade_ids:
+                        continue
+                    
                     if trade.buyer_full_address != main_full_addr:
                         is_merge_success = False
                         fail_reason      = u'订单地址不同'
                         break
-                    if trade.has_merge and trade.status==pcfg.WAIT_AUDIT_STATUS:
+                    if trade.has_merge and trade.sys_status==pcfg.WAIT_AUDIT_STATUS:
                         sub_tids = MergeBuyerTrade.objects.filter(main_tid=trade.tid).values_list('sub_tid')
                         merge_order_remover(trade.tid)
-                        for tid_tuple in sub_tids:
-                            merge_order_maker(tid_tuple[0],main_trade.tid)
-                        
-                    is_merge_success = merge_order_maker(trade.tid,main_trade.tid)
+                        for strade in MergeTrade.objects.filter(tid__in=[t[0] for t in sub_tids]):
+                            if strade.tid in merge_trade_ids:
+                                continue
+                            is_merge_success = self._handle_merge(request.user.id,strade,main_trade)
+                            if is_merge_success:
+                                merge_trade_ids.append(strade.tid)
+                            
+                    is_merge_success = self._handle_merge(request.user.id,trade,main_trade)
                     if is_merge_success:
-                        merge_trade_ids.append(str(trade.tid))
-                        trade.out_sid    = main_trade.out_sid
-                        trade.logistics_company = main_trade.logistics_company
-                        trade.sys_status = pcfg.FINISHED_STATUS
-                        trade.operator   = main_trade.operator
-                        trade.consign_time = main_trade.consign_time
-                        trade.save()
-
-                        log_action(request.user.id,trade,CHANGE,u'订单并入主订单（%d），并发货完成'%main_trade.tid)
-                        if trade.status == pcfg.WAIT_SELLER_SEND_GOODS:
-                            try:
-                                trade.send_trade_to_taobao(pcfg.SUB_TRADE_COMPANEY_CODE,trade.out_sid)
-                            except:
-                                log_action(request.user.id,trade,CHANGE,u'订单合并发货失败')
-                        
+                        merge_trade_ids.append(trade.tid)
+                                
                 if fail_reason and not is_merge_success:
                     pass                   
                 elif len(merge_trade_ids)<sub_trades.count():
@@ -423,9 +436,9 @@ class MergeTradeAdmin(admin.ModelAdmin):
                             fail_reason      = u'订单合并错误'
                             break
                         merge_trade_ids.append(trade.tid)
-                
+                        trade.sys_status = pcfg.ON_THE_FLY_STATUS
+                        trade.save()
                 if is_merge_success:
-                    MergeTrade.objects.filter(tid__in=merge_trade_ids).update(sys_status=pcfg.ON_THE_FLY_STATUS)
                     #合并后金额匹配
                     rule_signal.send(sender='payment_rule',trade_id=main_trade.id)
                     log_action(request.user.id,main_trade,CHANGE,u'合并订单,主订单:%d,子订单:%s'%(main_trade.id,','.join([str(id) for id in merge_trade_ids])))
