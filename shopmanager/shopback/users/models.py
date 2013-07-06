@@ -74,7 +74,7 @@ class User(models.Model):
     is_primary    = models.BooleanField(default=False,verbose_name= u'主店铺')
     
     created_at = models.DateTimeField(auto_now=True,null=True) 
-    status     = models.CharField(max_length=12,choices=USER_STATUS_CHOICES,blank=True) #normal,inactive,delete,reeze,supervise
+    status     = models.CharField(max_length=12,choices=USER_STATUS_CHOICES,blank=True) #normal(正常),inactive(未激活),delete(删除),reeze(冻结),supervise(监管)
     
     class Meta:
         db_table = 'shop_users_user'
@@ -166,10 +166,10 @@ class Customer(models.Model):
     sex       = models.CharField(max_length=1,blank=True,verbose_name='性别')
     avatar    = models.CharField(max_length=32,blank=True,verbose_name='头像')
     
-    credit_level     = models.IntegerField(default=0,verbose_name='地区编号')
-    credit_score     = models.IntegerField(default=0,verbose_name='地区编号')
-    credit_total_num = models.IntegerField(default=0,verbose_name='地区编号')
-    credit_good_num  = models.IntegerField(default=0,verbose_name='地区编号')
+    credit_level     = models.IntegerField(default=0,verbose_name='信用等级')
+    credit_score     = models.IntegerField(default=0,verbose_name='信用积分')
+    credit_total_num = models.IntegerField(default=0,verbose_name='总评价数')
+    credit_good_num  = models.IntegerField(default=0,verbose_name='好评数')
     
     zip       = models.CharField(max_length=10,blank=True,verbose_name='邮编')
     address   = models.CharField(max_length=128,blank=True,verbose_name='地址')
@@ -187,8 +187,8 @@ class Customer(models.Model):
     vip_info  = models.CharField(max_length=3,blank=True,verbose_name='等级')
     email     = models.CharField(max_length=32,blank=True,verbose_name='邮箱')
     
-    status    = models.CharField(max_length=12,blank=True,choices=USER_STATUS_CHOICES,verbose_name='状态')
-    
+    is_valid = models.BooleanField(default=True,verbose_name= u'有效')
+  
     class Meta:
         db_table = 'shop_users_customer'
         verbose_name= u'客户'
