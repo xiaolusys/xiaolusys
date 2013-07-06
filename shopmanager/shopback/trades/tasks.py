@@ -86,7 +86,7 @@ def get_replay_results(replay_trade):
         trade_ids = replay_trade.trade_ids.split(',')
         queryset = MergeTrade.objects.filter(id__in=trade_ids)
 
-        post_trades = queryset.filter(sys_status_in=(pcfg.WAIT_CHECK_BARCODE_STATUS,
+        post_trades = queryset.filter(sys_status__in=(pcfg.WAIT_CHECK_BARCODE_STATUS,
                                                      pcfg.WAIT_SCAN_WEIGHT_STATUS,pcfg.FINISHED_STATUS))
         trade_list = get_trade_pickle_list_data(post_trades)
         
