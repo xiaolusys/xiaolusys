@@ -1,8 +1,11 @@
 from django.conf.urls.defaults import patterns, url
 from djangorestframework.views import ListOrCreateModelView
-from shopback.items.views import ProductListView,ProductItemView,ProductModifyView,ProductUpdateView,ProductSkuCreateView,ProductSkuInstanceView
+from shopback.items.views import ProductListView,ProductItemView,ProductModifyView,ProductUpdateView,\
+    ProductSkuCreateView,ProductSkuInstanceView,ProductSearchView
 from shopback.items.resources import ProductListResource,ProductItemResource,ProductResource,ProductSkuResource
-from shopback.items.renderers import ProductListHtmlRenderer,JSONRenderer,ProductItemHtmlRenderer,ProductUpdateHtmlRenderer,ProductSkuHtmlRenderer
+from shopback.items.renderers import ProductListHtmlRenderer,JSONRenderer,ProductItemHtmlRenderer,\
+    ProductUpdateHtmlRenderer,ProductSkuHtmlRenderer
+from shopback.base.renderers  import BaseJsonRenderer
 
 
 urlpatterns = patterns('shopback.items.views',
@@ -41,6 +44,12 @@ urlpatterns = patterns('shopback.items.views',
 #        authentication=(UserLoggedInAuthentication,),
 #        permissions=(IsAuthenticated,)
     )),
-
+    (r'^query/$',ProductSearchView.as_view(
+        resource=ProductResource,
+        renderers=(BaseJsonRenderer,),
+#        authentication=(UserLoggedInAuthentication,),
+#        permissions=(IsAuthenticated,)
+    )),
+                       
     #(r'^product_lookup/$', 'shopback.items.views.json_lookup', product_lookup),
 )

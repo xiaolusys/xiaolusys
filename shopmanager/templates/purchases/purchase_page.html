@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html >
+  <head>
+    <title>创建采购单</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+     <link href="{{ STATIC_URL }}bootstrap/css/bootstrap.min.css" rel="stylesheet" type="text/css" />
+    <link href="{{ STATIC_URL }}bootstrap/css/bootstrap-responsive.min.css" rel="stylesheet" type="text/css" />
+    <link href="{{ STATIC_URL }}css/base.less" rel="stylesheet/less" type="text/css" />
+    <link href='{{ STATIC_URL }}jquery/jquery-ui-1.10.1.css' rel='stylesheet'  />
+    <script src="{{ STATIC_URL }}closure-library/closure/goog/base.js"></script>
+    <script src="{{ STATIC_URL }}jquery/jquery-1.8.13.min.js" type="text/javascript"></script>
+    <script src='{{ STATIC_URL }}jquery/jquery-ui-1.8.13.min.js'></script>
+    <script src="{{ STATIC_URL }}jquery-datatable-addon/jquery.dataTables.min.js" type="text/javascript"></script>
+    <script src="{{ STATIC_URL }}jquery-table2csv-addon/jquery.table2csv.0.1.1.min.js" type="text/javascript"></script>
+    <script src="{{ STATIC_URL }}jquery/addons/jquery.generateFile.js" type="text/javascript"></script>
+    <script src="{{ STATIC_URL }}admin/js/admin/RelatedObjectLookups.js" type="text/javascript"></script>
+    <style type="text/css" title="currentStyle">
+		@import "{{ STATIC_URL }}jquery-datatable-addon/css/demo_page.css";
+		@import "{{ STATIC_URL }}jquery-datatable-addon/css/demo_table.css";
+    </style>  
+    <style type="text/css">
+    body,div{
+    	margin:0px auto;
+    	padding:0px;
+    }
+    body{
+    	width:1000px;
+    }
+    .table-bordered {
+	    border: 1px solid #DDD;
+	    border-collapse: separate;
+	    border-left: 0;
+	    border-top:0;
+	    -webkit-border-radius: 4px;
+	    -moz-border-radius: 4px;
+	    border-radius: 4px;
+	}
+	.table {
+	    width: 100%;
+	    margin-bottom: 18px;
+	}
+	table {
+	    max-width: 100%;
+	    background-color: white;
+	    border-collapse: collapse;
+	    border-spacing: 0;
+	}
+	tr {
+	    display: table-row;
+	    vertical-align: inherit;
+	    border-color: inherit;
+	}
+	.table-bordered th, .table-bordered td {
+	    border-left: 1px solid #DDD;
+	}
+	.table tbody tr:hover td, .table tbody tr:hover th {
+	    background-color: whiteSmoke;
+	}
+    .simple-text {
+	    width:120px;
+	    height:16px;
+	    display:inline;
+	    margin:0px 0px;
+	}
+	.content-main{
+		margin-top:40px;
+		display:fixed;
+	}
+	.content-base-info {
+		display:fixed;
+	}
+	
+	label{
+		display:inline;
+		margin:0px 10px;
+	}
+	
+	select {
+		width:130px;
+		display:inline;
+		margin-bottom:2px;
+	}
+	.head-left {
+		display:inline;
+		float:left;
+	}
+	.head-right{
+		float:right;
+		margin-right:10px;
+		display:inline;
+		margin-bottom:20px;
+	}
+	.product-search{
+		margin:0px 10px;
+	}
+	.trade-search{
+		float:right;
+	}
+	.content-search {
+		width:100%;
+		height:20px;
+	}
+	.panel-body .table {
+		border-color: gray;
+		margin-bottom:0px;
+	}
+	input[type="text"]{
+		width:120px;
+		margin-bottom:2px;
+		height:14px;
+	}
+	textarea{
+		margin-bottom:2px;
+	}
+	#purchaseitem-table input[type="text"]{
+		width:60px;
+		margin-bottom:2px;
+		height:14px;;
+	}
+	.product-search input[type="text"]{
+		width:250px;
+		margin-bottom:18px;
+	}
+	.purchase-prompt{
+		display:none;
+		width:1000px;
+		position:absolute;
+	    z-index:99;
+	    background: #fff;
+	    border: 1px solid #999;
+	    -webkit-border-radius: 5px;
+    	-moz-border-radius: 5px;
+	}
+
+	.purchase-confirm-prompt{
+		display:none;
+		width:1000px;
+	    z-index:100;
+	    position:fixed;
+	    background-color:#ddd;
+	    border: 1px solid #999;
+	}
+	
+	.purchase-prompt-head{
+		height:20px;
+		background-color:#3A87AD;
+	}
+	#purchase-select-table th,#purchase-select-table td {
+		max-height:20px;
+		padding:0px;
+		overflow:hidden;
+	}
+	#purchase-select-table input {
+		margin-bottom:2px;
+		width:60px;
+	}
+	#purchase-select-table tr td:first-child{
+		text-align:center;
+		background-color:#CCD1E6;
+	}
+	.prompt-title{
+		display:inline
+	}
+	
+	.prompt-close{
+		float:right;
+		display:inline;
+	}
+	.clearboth{
+		clear:both;
+	}
+    </style>
+  </head>
+
+{% with suppliers=object.suppliers deposites=object.deposites purchase_types=object.purchase_types purchase=object.purchase %}
+ <body>
+	<div class="content-main">
+		<fieldset>
+			<legend><h2 class="head-title" >采购单(NO:<input type="text" id="id_purchase" value="{{ purchase.id }}" disabled="disabled"/>)</h2></legend>
+			<div class="content-base-info">
+				<table class="table table-bordered table-striped table-condensed">
+					<tr>
+						<td>
+							<label for='origin_no'>合&nbsp;&nbsp;同&nbsp;&nbsp;号</label>
+							<input type="text" id="origin_no" class="simple-text" value="{% if purchase.origin_no %}{{ purchase.origin_no }}{% endif %}"/>
+						</td>
+						<td>
+							<label for='extra_name'>标&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;题</label>
+							<input type="text" id="extra_name" class="simple-text" value="{% if purchase.extra_name %}{{ purchase.extra_name }}{% endif %}"/>
+						</td>
+						<td>
+							<label for='receiver_name'>收&nbsp;&nbsp;货&nbsp;&nbsp;人</label>
+							<input type="text" id="receiver_name" class="simple-text" value="{% if purchase.receiver_name %}{{ purchase.receiver_name }}{% endif %}"/>
+						</td>
+					</tr>
+					<tr>
+						<td>
+							<label for='supplier'>供&nbsp;&nbsp;应&nbsp;&nbsp;商</label>
+							<select id='supplier'>
+								<option value='' >----请选择----</option>
+								{% for supplier in  suppliers %}
+								<option value='{{ supplier.id }}' {% if purchase.supplier_id == supplier.id %}selected{% endif %}>{{ supplier.supplier_name }}</option>
+								{% endfor %}
+							</select>
+							<a href="/admin/archives/supplier/add/" class="add-another" id="add_id_supplier" onclick="return showAddAnotherPopup(this);">
+							 <img src="{{ STATIC_URL }}admin/img/icon_addlink.gif" width="10" height="10" alt="创建"></a>
+						</td>
+						<td>
+							<label for='deposite'>仓&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;库</label>
+							<select id='deposite'>
+								<option value='' >----请选择----</option>
+								{% for deposite in  deposites %}
+								<option value='{{ deposite.id }}' {% if purchase.deposite_id == deposite.id %}selected{% endif %}>{{ deposite.deposite_name}}</option>
+								{% endfor %}
+							</select>
+							<a href="/admin/archives/deposite/add/" class="add-another" id="add_id_deposite" onclick="return showAddAnotherPopup(this);">
+							 <img src="{{ STATIC_URL }}admin/img/icon_addlink.gif" width="10" height="10" alt="创建"></a>
+						</td>
+						<td>
+							<label for='purchase_type'>采购类型</label>
+							<select id='purchase_type'>
+								<option value='' >----请选择----</option>
+								{% for purchase_type in  purchase_types %}
+								<option value='{{ purchase_type.id }}' {% if purchase.purchase_type_id == purchase_type.id %}selected{% endif %}>{{ purchase_type.type_name }}</option>
+								{% endfor %}
+							</select>
+							<a href="/admin/archives/purchasetype/add/" class="add-another" id="add_id_purchasetype" onclick="return showAddAnotherPopup(this);">
+							 <img src="{{ STATIC_URL }}admin/img/icon_addlink.gif" width="10" height="10" alt="创建"></a>
+						</td>
+					</tr>
+					<tr>
+						<td>
+							<label for='service_date'>业务日期</label>
+							<input type="text" id="service_date" class="simple-text" value="{% if purchase.service_date %}{{ purchase.service_date }}{% endif %}"/>
+						</td>
+						<td>
+							<label for='forecast_date'>预计到货日期</label>
+							<input type="text" id="forecast_date" class="simple-text" value="{% if purchase.forecast_date %}{{ purchase.forecast_date }}{% endif %}"/>
+						</td>
+						<td></td>
+					</tr>
+					<tr>
+					
+						<td colspan="2">
+							<label for='extra_info'>备&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;注</label>
+							<textarea id="extra_info" style="width:400px;" rows="2" cols="240">{{ purchase.extra_info }}</textarea>
+						</td>
+						<td style="text-align:center;padding-top:20px;">
+							<button id="save_purchase" class="btn btn-primary">保存 +</button>
+							<button id="check_purchase" class="btn btn-primary">审核 -></button>
+						</td>
+					</tr>
+				</table>
+			</div>
+			<div class="panel-body">
+				<div class="panel-content">
+					<div>
+						<h3 class="head-left" id="id-purchaseitem-head">
+							采购项目列表
+						</h3>
+						<a id="export-csv-file" class="head-right" href="{% if purchase %}/purchases/csv/{{ purchase.id }}/{% else %}#{% endif %}">
+							<icon class="icon-folder-open" title="导出csv文件"></icon>
+						</a>
+					</div>
+					<div class="clearboth"></div>
+					<div id="purchase-items">
+						<table id="purchaseitem-table" class="table table-bordered table-condensed">
+							<thead>
+									<th>项目编号</th>
+									<th>商品编码</th>
+									<th>产品名</th>
+									<th>规格编码</th>
+									<th>规格名</th>
+									<th style="width:70px;">实际进价</th>
+									<th style="width:70px;">采购数</th>
+									<th style="width:70px;">总费用</th>
+									<th>操作</th>
+							</thead>
+							<tbody>
+								{% for item in purchase.purchase_items %}
+								<tr class="{% cycle 'odd' 'even' %}">
+									<td>{{ item.id }}</td>
+									<td>{{ item.outer_id }}</td>
+									<td>{{ item.name }}</td>
+									<td>{{ item.outer_sku_id }}</td>
+									<td>{{ item.properties_name }}</td>
+									<td>{{ item.price }}</td>
+									<td>{{ item.purchase_num }}</td>
+									<td>{{ item.total_fee }}</td>
+									<td>
+										<a class="edit" href=""><icon class="icon-pencil"></icon></a>
+										<a class="delete" href=""><icon class="icon-remove"></icon></a>
+									</td>
+								</tr>
+								{% endfor %}
+							</tbody>
+						</table>
+					</div>
+				</div>
+			</div>
+			<hr/>
+			<div class="clearboth"></div>
+			<div class="content-search">
+				<div class="navbar-search product-search">
+					<input type="text" id="id_prod_q" class="search-query"  placeholder="商品搜索" />
+				</div>
+			</div>
+			<hr/>
+			<div id="id-prod-search-dialog" style="">
+				<table id="id-prod-search-table" class="table table-bordered">
+					<thead>
+							<th>序号</th>
+							<th>图片</th>
+							<th>商家编码</th>
+							<th>商品简称</th>
+							<th>库存数</th>
+							<th>创建日期</th>
+							<th>操作</th>
+					</thead>
+					<tbody>
+					</tbody>
+				</table>
+			</div>
+		</fieldset>
+	</div>
+	<!-- 采购项目选择对话框 -->
+	<div id="purchase-prompt" class="purchase-prompt">
+		<div id="purchase-prompt-head" class="purchase-prompt-head">
+			<h4 class="prompt-title">采购项目选择框</h4>
+			<a id="prompt-close" class="prompt-close"><i class="icon-remove-sign"></i></a>
+		</div>
+		<div id="purchase-prompt-body" class="purchase-prompt-body">
+			<table id="purchase-select-table" class="table table-bordered">
+				<thead>
+						<th>序号</th>
+						<th>商家编码</th>
+						<th>商品名</th>
+						<th>规格编码</th>
+						<th>规格名</th>
+						<th>实际进价</th>
+						<th>采购数</th>
+						<th>操作</th>
+				</thead>
+				<tbody>
+				</tbody>
+			</table>
+		</div>
+	</div>
+</body>
+{% endwith %}
+<script src="{{ STATIC_URL }}script/base.js"></script>
+<script src="{{ STATIC_URL }}script/purchase/purchase.js"></script>
+<script type="text/javascript">
+	new purchase.Manager();
+</script>
+</html>

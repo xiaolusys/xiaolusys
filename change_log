@@ -1,4 +1,12 @@
-
+######### 2013-7-4  ###########
+alter table shop_purchases_purchase add column purchase_num int(11) default 0;
+alter table shop_purchases_purchase add column storage_num int(11) default 0;
+alter table shop_purchases_item add column storage_num int(11) default 0;
+######### 2013-6-29 ###########
+ALTER TABLE shop_purchases_purchase AUTO_INCREMENT=9999;
+######### 2013-6-26 ###########
+alter table shop_trades_mergeorder drop index shop_trades_mergeorder_1e04cc3c,
+	drop index shop_trades_mergeorder_4db90882,add index(outer_id,outer_sku_id);
 ######### 2013-6-13 ###########
 alter table shop_trades_replayposttrade add column fid  int(20) DEFAULT 0;
 ######### 2013-6-7  ###########

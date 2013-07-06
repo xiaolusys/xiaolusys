@@ -39,7 +39,7 @@ tr {
     border-left: 1px solid #DDD;
 }
 .table th, .table td {
-    padding: 8px;
+    padding: 2px;
     line-height: 18px;
     text-align: left;
     vertical-align: top;
@@ -178,4 +178,15 @@ tr {
 
 .field-box ul li{
 	display:inline;
+}
+
+#order-foot >tr >th{
+	height:10px;
+}
+
+#order-foot input{
+	margin: 2px 0;
+	padding: 2px 3px;
+	vertical-align: middle;
+	width:60px;
 }

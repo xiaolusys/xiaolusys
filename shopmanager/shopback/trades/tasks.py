@@ -86,7 +86,8 @@ def get_replay_results(replay_trade):
         trade_ids = replay_trade.trade_ids.split(',')
         queryset = MergeTrade.objects.filter(id__in=trade_ids)
 
-        post_trades = queryset.filter(sys_status=pcfg.WAIT_CHECK_BARCODE_STATUS)
+        post_trades = queryset.filter(sys_status_in=(pcfg.WAIT_CHECK_BARCODE_STATUS,
+                                                     pcfg.WAIT_SCAN_WEIGHT_STATUS,pcfg.FINISHED_STATUS))
         trade_list = get_trade_pickle_list_data(post_trades)
         
         trades = []
@@ -169,7 +170,7 @@ def sendTaobaoTradeTask(request_user_id,trade_id):
                     sub_trade.save()
                     if sub_trade.status == pcfg.WAIT_SELLER_SEND_GOODS:
                         company_code = sub_trade.logistics_company.code if sub_trade.type==pcfg.COD_TYPE\
-                             else pcfg.SUB_TRADE_COMPANEY_CODE
+                             else pcfg.SUB_TRADE_COMPANEY_CODE%sub_trade.logistics_company.name
                         sub_trade.send_trade_to_taobao(company_code=company_code)
                 except Exception,exc:
                     error_msg = exc.message

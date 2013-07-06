@@ -3,12 +3,11 @@ import time
 import json
 import datetime
 from django.db import models
-from django.db.models import Q
+from django.db.models import Q,Sum
 from django.db.models.signals import post_save
 from bitfield import BitField
 from shopback.base.fields import BigIntegerAutoField,BigIntegerForeignKey
 from shopback.users.models import User
-from django.db.models import Sum
 from shopback.base import log_action, ADDITION, CHANGE
 from shopback.orders.models import Trade,Order,STEP_TRADE_STATUS
 from shopback.items.models import Item,Product,ProductSku
@@ -235,6 +234,11 @@ class MergeTrade(models.Model):
     def __unicode__(self):
         return '<%s,%s>'%(str(self.id),self.buyer_nick)
     
+    @property
+    def total_num(self):
+        """ 订单商品总数 """
+        return self.inuse_orders.aggregate(total_num=Sum('num')).get('total_num') or 0
+        
     @property
     def inuse_orders(self):
         return self.merge_trade_orders.filter(sys_status=pcfg.IN_EFFECT)       
@@ -630,8 +634,8 @@ class MergeOrder(models.Model):
     sku_id = models.CharField(max_length=20,blank=True,verbose_name='属性编码')
     num = models.IntegerField(null=True,default=0,verbose_name='商品数量')
     
-    outer_id = models.CharField(max_length=64,db_index=True,blank=True,verbose_name='商品外部编码')
-    outer_sku_id = models.CharField(max_length=20,db_index=True,blank=True,verbose_name='规格外部编码')
+    outer_id = models.CharField(max_length=64,blank=True,verbose_name='商品外部编码')
+    outer_sku_id = models.CharField(max_length=20,blank=True,verbose_name='规格外部编码')
     
     total_fee = models.CharField(max_length=12,blank=True,verbose_name='总费用')
     payment = models.CharField(max_length=12,blank=True,verbose_name='实付款')
@@ -844,9 +848,9 @@ def merge_order_maker(sub_tid,main_tid):
                                                    post_fee = post_fee)
     
     MergeBuyerTrade.objects.get_or_create(sub_tid=sub_tid,main_tid=main_tid) 
+            
     sub_trade.append_reason_code(pcfg.NEW_MERGE_TRADE_CODE)
     
-
     #判断是否还有订单需要合并,如果没有，则去掉需合单问题编号
     queryset = MergeTrade.get_merge_queryset(main_merge_trade.buyer_nick,main_merge_trade.receiver_name,
                                 main_merge_trade.receiver_mobile or main_merge_trade.receiver_phone)

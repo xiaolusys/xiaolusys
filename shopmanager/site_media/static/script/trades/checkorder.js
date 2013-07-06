@@ -9,6 +9,17 @@ goog.require('goog.style');
 goog.require('goog.net.XhrIo');
 goog.require('goog.uri.utils');
 
+var updateTotalNum = function(){
+	var total_num = 0;
+	$.each($('.order_num'),function(n,obj){
+		var value = obj.value;
+		if(value!=''&&value!='undifine'){
+			total_num += parseInt(value);
+		}
+	});
+	$('#total_num').val(total_num+'');
+}
+
 var addSearchRow  = function(tableID,prod){
 
 	var table = goog.dom.getElement(tableID);
@@ -54,17 +65,21 @@ var addSearchRow  = function(tableID,prod){
 var addOrderRow  = function(tableID,order){
 
 	var table = goog.dom.getElement(tableID);
-	var rowCount = table.rows.length;
-    var row = table.insertRow(rowCount);
+	var tbody = table.tBodies;
+	if (!tbody){
+		return;
+	}
+	var row = goog.dom.createElement('tr');
     
 	var id_order_cell = createDTText(order.id+'');
 	var outer_id_cell = createDTText(order.outer_id);
 	var title_cell    = createDTText(order.title);
 	var sku_properties_name_cell = createDTText(order.sku_properties_name);
 
-	var num_cell = createDTText(order.num+'');
-	var price_cell = createDTText(order.price);
+	var num_cell = goog.dom.createElement('td');
+	num_cell.innerHTML = '<input class="order_num" type="text" value="'+order.num+'" size="8" />';
 	
+	var price_cell = createDTText(order.price);
 	var stock_status_cell   = goog.dom.createElement('td');
 	if (order.out_stock){
 		stock_status_cell.innerHTML = '<img src="/static/admin/img/icon-yes.gif" alt="True">';
@@ -86,6 +101,8 @@ var addOrderRow  = function(tableID,order){
 	row.appendChild(stock_status_cell);
 	row.appendChild(gift_type_cell);
 	row.appendChild(delete_btn_cell);
+	
+	tbody[0].appendChild(row);
 }
 
 /** @constructor */
@@ -132,12 +149,24 @@ ordercheck.Dialog.prototype.hide = function(data) {
     this.dialog.setVisible(false);
 }
 
+//商品搜索事件处理
+ordercheck.Dialog.prototype.onProdSearchKeyDown = function(e){
+	
+	if (e.keyCode==13){
+		this.searchProd();	
+	}
+	return;
+}
+
 ordercheck.Dialog.prototype.setEvent=function(){
 	var addrBtn = goog.dom.getElement("addr-from-submit");
 	goog.events.listen(addrBtn, goog.events.EventType.CLICK,this.changeAddr,false,this);
 	
-	var searchBtn = goog.dom.getElement("id-search-prod");
+	var searchBtn   = goog.dom.getElement("id-search-prod");
 	goog.events.listen(searchBtn, goog.events.EventType.CLICK,this.searchProd,false,this); 
+	
+	var searchInput = goog.dom.getElement("id-search-q");
+	goog.events.listen(searchInput, goog.events.EventType.KEYDOWN,this.searchProd,false,this);
 	
 	var changeOrderBtns = goog.dom.getElementsByClass("change-order");
 	for (var i=0;i<changeOrderBtns.length;i++){
@@ -150,7 +179,24 @@ ordercheck.Dialog.prototype.setEvent=function(){
 	} 
 	
 	var addr1  = new goog.ui.Zippy('collapseOne', 'addrContent');   
-	var order1 = new goog.ui.Zippy('collapseTwo', 'orderContent');                                                                                                                                                                                                                                      
+	var order1 = new goog.ui.Zippy('collapseTwo', 'orderContent');    
+	
+	$('input.order_num').live('keyup',function (e) {
+		e.preventDefault();
+		var target = e.target;
+		var num = target.value;
+		var r = /^[0-9]{1,10}$/;
+		var re = new RegExp(r);
+		console.log(num);
+		if (!re.test(num)){
+			target.value = '1';
+		}
+	});
+	$('button.change-order').live('click',function(e){
+		e.preventDefault();
+		updateTotalNum();
+	});
+                                                                                                                                                                                                                              
 }
 
 //修改地址
@@ -192,8 +238,14 @@ ordercheck.Dialog.prototype.changeAddr=function(e){
 
 //查询商品
 ordercheck.Dialog.prototype.searchProd=function(e){
-	var q = goog.dom.getElement('id-search-q').value;
 	var sch_table = goog.dom.getElement('id-search-table');
+	
+	goog.style.showElement(sch_table,true);
+	var q = goog.dom.getElement('id-search-q').value;
+	if (!q){
+		return;
+	}
+
 	var that = this;
 	for(var i=sch_table.rows.length;i>1;i--){
 		sch_table.deleteRow(i-1);
@@ -245,10 +297,13 @@ ordercheck.Dialog.prototype.addOrder=function(e){
 	var params     = {'trade_id':trade_id,'outer_id':outer_id,'outer_sku_id':sku_outer_id,'num':num,'type':order_type}
 	var callback = function(e){
 		var xhr = e.target;
-        try {
+        //try {
         	var res = xhr.getResponseJson();
             if (res.code == 0){
             	addOrderRow('id_trade_order',res.response_content);
+				
+				updateTotalNum();
+				
             	var deleteOrderBtns = goog.dom.getElementsByClass('delete-order');
             	for(var i =0;i<deleteOrderBtns.length;i++){
             		goog.events.removeAll(deleteOrderBtns[i]);
@@ -257,9 +312,9 @@ ordercheck.Dialog.prototype.addOrder=function(e){
             }else{
                 alert("添加失败:"+res.response_error);
             }
-        } catch (err) {
+        /*} catch (err) {
             console.log('Error: (ajax callback) - ', err);
-        } 
+        } */
 	};
 	var content = goog.uri.utils.buildQueryDataFromMap(params);
 	goog.net.XhrIo.send('/trades/orderplus/',callback,'POST',content);
@@ -283,7 +338,7 @@ ordercheck.Dialog.prototype.changeOrder=function(e){
             	cell.cells[1].innerText = order.outer_id;
             	cell.cells[2].innerText = order.title;
             	cell.cells[3].innerText = order.sku_properties_name;
-            	cell.cells[4].innerText = order.num;
+            	cell.cells[4].innerHTML = '<input class="order_num" type="text" value="'+order.num+'" size="8" disabled="disabled" />';
             	cell.cells[5].innerText = order.price;
             	if (order.out_stock){
             		cell.cells[6].innerHTML = '<img src="/static/admin/img/icon-yes.gif" alt="True">';
@@ -311,12 +366,20 @@ ordercheck.Dialog.prototype.deleteOrder=function(e){
 	var rowIndex = row.rowIndex;
 	var table    = row.parentElement.parentElement;
 	var order_id = target.getAttribute('oid');
+
+	if(!confirm("确定删除订单 "+order_id+" 吗？"))
+	{
+	    return;
+	}
+	
 	var callback = function(e){
 		var xhr  = e.target;
         try {
         	var res = xhr.getResponseJson();
             if (res.code == 0){
             	table.deleteRow(rowIndex);
+            	//重新计算数量
+            	updateTotalNum();
             }else{
                 alert("订单删除失败:"+res.response_error);
             }

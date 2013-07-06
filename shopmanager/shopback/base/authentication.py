@@ -1,5 +1,5 @@
 from djangorestframework.authentication import BaseAuthentication
-
+from django.http import HttpResponse,HttpResponseNotFound
 
 class UserLoggedInAuthentication(BaseAuthentication):
     """

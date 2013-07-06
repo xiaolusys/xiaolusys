@@ -154,7 +154,7 @@ SHOP_APP_SCHEDULE = {
     },
     'runs-every-day-notify-packet-post':{     #更新库存
         'task':'shopapp.smsmgr.tasks.notifyPacketPostTask',
-        'schedule':crontab(minute="10",hour="9,19"),#
+        'schedule':crontab(minute="30",hour="9,12,19"),#
         'args':(1,)
     },
 #    'runs-every-day-product-trade':{

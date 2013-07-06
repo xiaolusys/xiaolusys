@@ -93,39 +93,19 @@
 <div class="accordion-heading1" style="margin: 5px 0px">
 <a id="collapseTwo" class="goog-zippy-header goog-zippy-expanded" style="padding: 0px 15px">商品列表››</a></div>
 <div id="orderContent" class="accordion-inner1">
-<div class="well form-search">
-	<input type="text" id="id-search-q" class="input-medium search-query" >
-	<button id="id-search-prod" class="btn">商品搜索</button>
-	<div style="height: 10px"></div>
-	<table id="id-search-table" class="table table-bordered">
-		<thead>
-			<tr>
-				<td>编号</td>
-				<td>商家编码</td>
-				<td>商品简称</td>
-				<td>规格</td>
-				<td>数量</td>
-				<td>单价</td>
-				<td>操作</td>
-			</tr>
-		</thead>
-		<tbody>
-		</tbody>
-	</table>
-</div>
 <div>
 <table id="id_trade_order" class="table table-bordered">
 	<thead>
 		<tr>
-			<td>编号</td>
-			<td>商家编码</td>
-			<td>商品简称</td>
-			<td>规格</td>
-			<td>数量</td>
-			<td>单价</td>
-			<td>缺货</td>
-			<td>类型</td>
-			<td>操作</td>
+			<th>编号</th>
+			<th>商家编码</th>
+			<th>商品简称</th>
+			<th>规格</th>
+			<th>数量</th>
+			<th>单价</th>
+			<th>缺货</th>
+			<th>类型</th>
+			<th>操作</th>
 		</tr>
 	</thead>
 	<tbody>
@@ -142,7 +122,7 @@
 					{% endfor %}
 				</select> 
 			</td>
-			<td><input id="id-change-order-num-{{ forloop.counter }}" type="text" value="{{ order.num }}" size="2" /></td>
+			<td><input id="id-change-order-num-{{ forloop.counter }}" class="order_num" type="text" value="{{ order.num }}" size="8" /></td>
 			<td>{{ order.price }}</td>
 			<td>{% if order.out_stock %}
 				<img src="{{ STATIC_URL }}admin/img/icon-yes.gif" alt="yes">
@@ -159,7 +139,34 @@
 		</tr>
 		{% endfor %}
 	</tbody>
+	<tfoot id ="order-foot">
+		<tr>
+			<th colspan="4"></th>
+			<th><input type="text" id="total_num" value="{{ trade.total_num }}"/></th>
+			<th colspan="4"></th>
+		</tr>
+	</tfoot>
 </table>
+</div>
+<div class="well form-search">
+	<input type="text" id="id-search-q" class="input-medium search-query" >
+	<button id="id-search-prod" class="btn">商品搜索</button>
+	<div style="height: 10px"></div>
+	<table id="id-search-table" class="table table-bordered" style="display:none;">
+		<thead>
+			<tr>
+				<td>编号</td>
+				<td>商家编码</td>
+				<td>商品简称</td>
+				<td>规格</td>
+				<td>数量</td>
+				<td>单价</td>
+				<td>操作</td>
+			</tr>
+		</thead>
+		<tbody>
+		</tbody>
+	</table>
 </div>
 </div>
 </div>

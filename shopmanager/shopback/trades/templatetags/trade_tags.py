@@ -26,8 +26,10 @@ def trade_submit_row(context):
     if trade :
         sys_status = trade.sys_status
         is_wait_audit = sys_status == pcfg.WAIT_AUDIT_STATUS
+        is_wait_scan  = sys_status in (pcfg.WAIT_CHECK_BARCODE_STATUS,pcfg.WAIT_SCAN_WEIGHT_STATUS)
         is_can_review = (sys_status == pcfg.WAIT_CHECK_BARCODE_STATUS) or (sys_status == pcfg.WAIT_SCAN_WEIGHT_STATUS)
-        can_split_trade = trade.has_merge or trade.has_reason_code(pcfg.MULTIPLE_ORDERS_CODE)
+        can_split_trade = (is_wait_audit and trade.has_merge) or ((is_wait_audit or is_wait_scan)
+                                         and trade.has_reason_code(pcfg.MULTIPLE_ORDERS_CODE))
         can_trade_audit = perms.has_check_order_permission(context['perms'].user)
     return {
         'onclick_attrib': (opts.get_ordered_objects() and change
@@ -39,7 +41,7 @@ def trade_submit_row(context):
                             not is_popup and (not save_as or context['add']),
         'show_save_and_continue': context['has_change_permission'],
         'show_close':True ,
-        'show_split':can_split_trade and is_wait_audit and can_trade_audit,
+        'show_split':can_split_trade and can_trade_audit,
         'show_invalid':(is_wait_audit or is_can_review) and can_trade_audit,
         'show_uninvalid':sys_status == pcfg.INVALID_STATUS and can_trade_audit,
         'show_unregular':sys_status == pcfg.REGULAR_REMAIN_STATUS and can_trade_audit,

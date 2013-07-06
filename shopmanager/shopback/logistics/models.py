@@ -45,7 +45,7 @@ class Area(models.Model):
 class DestCompany(models.Model):
     """ 区域指定快递选择 """
     state    = models.CharField(max_length=64,blank=True,verbose_name='省/自治区/直辖市')
-    city     = models.CharField(max_length=64,blank=True,verbose_name='地区')
+    city     = models.CharField(max_length=64,blank=True,verbose_name='市')
     district = models.CharField(max_length=64,blank=True,verbose_name='县/市/区')
     
     company = models.CharField(max_length=10,blank=True,verbose_name='快递编码')
