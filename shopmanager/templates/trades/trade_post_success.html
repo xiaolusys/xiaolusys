@@ -19,7 +19,7 @@
 			    </tr>
 			    <tr><td colspan="7">发货失败的订单</td></tr>
 			    {% for trade in trades %}
-			    {% if trade.sys_status != "WAIT_CHECK_BARCODE" %}
+			    {% if not trade.is_success %}
 			    <tr>
 			    	<td>{{ trade.id }}</td>
 					<td>{{ trade.tid }}</td>
@@ -33,7 +33,7 @@
 			    {% endfor %}
 			    <tr><td colspan="7">发货成功的订单</td></tr>
 			    {% for trade in trades %}
-			    {% if trade.sys_status == "WAIT_CHECK_BARCODE" %}
+			    {% if trade.is_success %}
 			    <tr>
 			    	<td>{{ trade.id }}</td>
 					<td>{{ trade.tid }}</td>
