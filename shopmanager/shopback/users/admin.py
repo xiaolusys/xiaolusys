@@ -140,14 +140,14 @@ admin.site.register(User, UserAdmin)
 
 class CustomerAdmin(admin.ModelAdmin):
     
-    list_display = ('id','nick','sex','name','city','state','district','mobile',
+    list_display = ('id','nick','sex','name','city','state','district','phone','mobile',
                     'last_buy_time','buy_times','avg_payment','is_valid')
     list_display_links = ('id', 'nick')
 
     ordering = ['-last_buy_time']
 
     list_filter = ('is_valid',)
-    search_fields = ['nick']
+    search_fields = ['nick','name']
     
 admin.site.register(Customer, CustomerAdmin)
     

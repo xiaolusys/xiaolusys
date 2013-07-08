@@ -254,7 +254,8 @@ def pushBuyerToCustomerTask(day):
     dt = datetime.datetime.now()
     all_trades = MergeTrade.objects.filter(created__gte=dt-datetime.timedelta(day,0,0)).order_by('-pay_time')
     for trade in all_trades:
-        
-        trade.save_customer()
-
+        try:
+            trade.save_customer()
+        except:
+            pass
    

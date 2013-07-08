@@ -5,6 +5,9 @@ import os
 DEBUG = False
 TEMPLATE_DEBUG = DEBUG
 
+SESSION_EXPIRE_AT_BROWSER_CLOSE = False  
+SESSION_COOKIE_AGE = 12*60*60             
+
 PROJECT_ROOT = os.path.abspath(os.path.dirname(__file__))
 
 DATABASES = {

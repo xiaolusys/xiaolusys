@@ -82,7 +82,7 @@ class User(models.Model):
         verbose_name_plural = u'店铺列表'
 
     def __unicode__(self):
-        return '<%s,%s>'%(self.visitor_id,self.nick)
+        return '%s'%self.nick
 
     @property
     def stock_percent(self):
@@ -162,7 +162,7 @@ taobao_logged_in.connect(add_taobao_user)
 class Customer(models.Model):
     """ 客户信息表 """
 
-    nick      = models.CharField(max_length=32,unique=True,verbose_name='昵称')
+    nick      = models.CharField(max_length=32,verbose_name='昵称')
     sex       = models.CharField(max_length=1,blank=True,verbose_name='性别')
     avatar    = models.CharField(max_length=32,blank=True,verbose_name='头像')
     
@@ -171,7 +171,7 @@ class Customer(models.Model):
     credit_total_num = models.IntegerField(default=0,verbose_name='总评价数')
     credit_good_num  = models.IntegerField(default=0,verbose_name='好评数')
     
-    name      = models.CharField(max_length=32,blank=True,verbose_name='收货人')
+    name      = models.CharField(max_length=32,db_index=True,blank=True,verbose_name='收货人')
     zip       = models.CharField(max_length=10,blank=True,verbose_name='邮编')
     address   = models.CharField(max_length=128,blank=True,verbose_name='地址')
     city      = models.CharField(max_length=16,blank=True,verbose_name='城市')
@@ -179,8 +179,8 @@ class Customer(models.Model):
     country   = models.CharField(max_length=16,blank=True,verbose_name='国家')
     district  = models.CharField(max_length=16,blank=True,verbose_name='地区')
     
-    phone     = models.CharField(max_length=20,blank=True,verbose_name='电话')
-    mobile    = models.CharField(max_length=20,blank=True,verbose_name='手机')
+    phone     = models.CharField(max_length=16,null=True,blank=True,verbose_name='电话')
+    mobile    = models.CharField(max_length=12,null=True,blank=True,verbose_name='手机')
     
     created   = models.DateTimeField(db_index=True,null=True,blank=True,verbose_name='创建日期')
     birthday  = models.DateTimeField(db_index=True,null=True,blank=True,verbose_name='生日')
@@ -196,10 +196,11 @@ class Customer(models.Model):
     
     class Meta:
         db_table = 'shop_users_customer'
+        unique_together = ("nick","mobile","phone")
         verbose_name= u'客户'
         verbose_name_plural = u'客户列表'
 
     def __unicode__(self):
-        return '<%s>'%(self.nick)
+        return '%s'%self.nick
     
     

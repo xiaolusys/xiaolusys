@@ -1,4 +1,5 @@
 #-*- coding:utf8 -*-
+import re
 import time
 import json
 import datetime
@@ -23,7 +24,6 @@ from utils import update_model_feilds
 import logging
 
 logger = logging.getLogger('trades.handler')
-
 
 SYS_TRADE_STATUS = (
     (pcfg.WAIT_AUDIT_STATUS,'问题单'),
@@ -151,8 +151,8 @@ class MergeTrade(models.Model):
     post_cost     = models.CharField(max_length=10,blank=True,verbose_name='物流成本')
     
     buyer_message = models.TextField(max_length=1000,blank=True,verbose_name='买家留言')
-    seller_memo = models.TextField(max_length=1000,blank=True,verbose_name='卖家备注')
-    sys_memo    = models.TextField(max_length=1000,blank=True,verbose_name='系统备注')
+    seller_memo   = models.TextField(max_length=1000,blank=True,verbose_name='卖家备注')
+    sys_memo      = models.TextField(max_length=1000,blank=True,verbose_name='系统备注')
     seller_flag   = models.IntegerField(null=True,verbose_name='淘宝旗帜')
     
     created    = models.DateTimeField(db_index=True,null=True,blank=True,verbose_name='生成日期')
@@ -341,20 +341,24 @@ class MergeTrade(models.Model):
        
     def save_customer(self):
         """ 保存客户信息 """
-        customer,state = Customer.objects.get_or_create(nick=self.buyer_nick)
-        customer.name  = self.receiver_name
-        customer.zip   = self.receiver_zip
+        
+        if not (self.receiver_mobile or self.receiver_phone):
+            return 
+   
+        customer,state     = Customer.objects.get_or_create(nick=self.buyer_nick,mobile=self.receiver_mobile,phone=self.receiver_phone)
+        customer.name      = self.receiver_name
+        customer.zip       = self.receiver_zip
         customer.address   = self.receiver_address
         customer.city      = self.receiver_city
         customer.state     = self.receiver_state
         customer.district  = self.receiver_district
-        customer.phone   = self.receiver_phone
-        customer.mobile  = self.receiver_mobile
         customer.save()
         
-        trades        = MergeTrade.objects.filter(buyer_nick=self.buyer_nick,
-                                                  status__in=pcfg.ORDER_SUCCESS_STATUS).order_by('-pay_time')
-        if trades.count()>0:
+        trades        = MergeTrade.objects.filter(buyer_nick=self.buyer_nick,receiver_mobile=self.receiver_mobile,
+                        status__in=pcfg.ORDER_SUCCESS_STATUS).exclude(is_express_print=False,
+                        sys_status=pcfg.FINISHED_STATUS).order_by('-pay_time')
+        trade_num     = trades.count()
+        if trades.count()>0 and trade_num != customer.buy_times:
             total_nums    =  trades.count()
             total_payment = trades.aggregate(total_payment=Sum('payment')).get('total_payment') or 0
             
