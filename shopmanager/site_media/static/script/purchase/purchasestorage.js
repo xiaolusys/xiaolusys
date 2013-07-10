@@ -270,8 +270,13 @@ purchasestorage.Manager.prototype.delPurchaseItem = function(nRow){
 purchasestorage.Manager.prototype.onSavePurchaseInfo = function(e){
 	
 	var that = this;
+	var supplier = $('#supplier').val();
+	if (supplier==''||supplier=='undifine'){
+		alert('请输入供应商');
+		return;
+	}
 	var params = {  'purchase_storage_id':$('#id_purchase_storage').val(),
-					'supplier_id':$('#supplier').val(),
+					'supplier_id':supplier,
 					'deposite_id':$('#deposite').val(),
 					'forecast_date':$('#forecast_date').val(),
 					'post_date':$('#post_date').val(),
