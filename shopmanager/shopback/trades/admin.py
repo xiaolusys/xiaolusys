@@ -413,7 +413,7 @@ class MergeTradeAdmin(admin.ModelAdmin):
                     #合并后金额匹配
                     rule_signal.send(sender='payment_rule',trade_id=main_trade.id)
                     is_merge_success = True
-                    log_action(request.user.id,main_trade,CHANGE,u'合并订单(%s)'%','.join(merge_trade_ids))
+                    log_action(request.user.id,main_trade,CHANGE,u'合并订单(%s)'%','.join([str(id) for id in merge_trade_ids]))
             else:
                 audit_trades = queryset.filter(sys_status=pcfg.WAIT_AUDIT_STATUS).order_by('pay_time')	
                 if audit_trades.count()>0:

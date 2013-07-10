@@ -40,7 +40,7 @@ var addSearchRow  = function(tableID,prod){
 	sku_cell.innerHTML = sku_options;
 	
 	var num_cell = goog.dom.createElement('td');
-	num_cell.innerHTML = '<input id="id-order-num-'+index.toString()+'" type="text" value="1" size="2" />';
+	num_cell.innerHTML = '<input id="id-order-num-'+index.toString()+'" type="text" class="order_num" value="1" size="2" />';
 	
 	var price_cell = createDTText(prod[2]);
 	

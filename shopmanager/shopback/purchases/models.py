@@ -1,6 +1,6 @@
 #-*- coding:utf8 -*-
 from django.db import models
-from django.db.models.signals import post_save
+from django.db.models.signals import post_save,post_delete
 from django.db.models import Q,Sum
 from shopback import paramconfig as pcfg
 from shopback.archives.models import Supplier,PurchaseType,Deposite
@@ -96,6 +96,10 @@ class Purchase(models.Model):
     def __unicode__(self):
         return '<%s,%s,%s>'%(str(self.id),self.origin_no,self.extra_name)
     
+    @property
+    def effect_purchase_items(self):
+        return self.purchase_items.exclude(status=pcfg.PURCHASE_INVALID)
+        
     def gen_csv_tuple(self):
         
         pcsv = []
@@ -106,7 +110,7 @@ class Purchase(models.Model):
         pcsv.append(('',''))
         
         pcsv.append((u'商品编码',u'商品名称',u'规格编码',u'规格名称',u'采购价',u'采购数量'))
-        for item in self.purchase_items.exclude(status__in=(pcfg.PURCHASE_CLOSE,pcfg.PURCHASE_INVALID)).order_by('outer_id'):
+        for item in self.effect_purchase_items.order_by('outer_id'):
             pcsv.append((item.outer_id,
                          item.name,
                          item.outer_sku_id,
@@ -114,8 +118,37 @@ class Purchase(models.Model):
                          str(item.price),
                          str(item.purchase_num)))
             
-        return pcsv  
+        return pcsv
+      
+    @property
+    def json(self):
+        """ 获取采购单JSON信息 """
+        
+        purchase_items = []
+        for item in self.effect_purchase_items:
+            purchase_items.append(item.json)
+        
+        return {
+                'id':self.id,
+                'origin_no':self.origin_no,
+                'supplier_id':self.supplier and self.supplier.id or '',
+                'deposite_id':self.deposite and self.deposite.id or '',
+                'purchase_type_id':self.purchase_type and self.purchase_type.id or '',
+                'forecast_date':self.forecast_date,
+                'post_date':self.post_date,
+                'service_date':self.service_date,
+                'total_fee':self.total_fee,
+                'payment':self.payment,
+                'extra_name':self.extra_name,
+                'extra_info':self.extra_info,
+                'purchase_items':purchase_items
+                }
     
+    def get_ship_storages(self):
+        """ 获取关联入库信息 """
+        ###待实现
+        pass
+        
 class PurchaseItem(models.Model):
     """ 采购项目 """
     
@@ -156,6 +189,24 @@ class PurchaseItem(models.Model):
     
     def __unicode__(self):
         return 'CGZD%d'%self.id
+    
+    @property
+    def json(self):
+        """ 获取采购项JSON信息 """
+   
+        return {
+                'id':self.id,
+                'supplier_item_id':self.supplier_item_id,
+                'outer_id':self.outer_id,
+                'name':self.name,
+                'outer_sku_id':self.outer_sku_id,
+                'properties_name':self.properties_name,
+                'total_fee':self.total_fee,
+                'payment':self.payment,
+                'purchase_num':self.purchase_num,
+                'price':self.price,
+                'std_price':self.std_price,
+                }
  
  
 def update_purchase_info(sender,instance,*args,**kwargs):
@@ -216,6 +267,10 @@ class PurchaseStorage(models.Model):
     def __unicode__(self):
         return 'RKD%d'%self.id
     
+    @property
+    def normal_storage_items(self):
+        return self.purchase_storage_items.filter(status=pcfg.NORMAL)
+    
     def gen_csv_tuple(self):
         
         pcsv = []
@@ -233,8 +288,136 @@ class PurchaseStorage(models.Model):
                          str(item.storage_num)))
             
         return pcsv 
-     
+    
+    @property
+    def json(self):
+        """ 获取入库单JSON信息 """
+        
+        purchase_items = []
+        for item in self.normal_storage_items:
+            purchase_items.append(item.json)
+        
+        return {
+                'id':self.id,
+                'origin_no':self.origin_no,
+                'supplier_id':self.supplier and self.supplier.id or '',
+                'deposite_id':self.deposite and self.deposite.id or '',
+                'forecast_date':self.forecast_date,
+                'post_date':self.post_date,
+                'logistic_company':self.logistic_company,
+                'out_sid':self.out_sid,
+                'extra_name':self.extra_name,
+                'extra_info':self.extra_info,
+                'purchase_storage_items':purchase_items,
+                }
+        
+        
+    def distribute_storage_num(self):
+        """ 分配入库项数量到采购单,返回未分配的采购项 """
+        
+        unmatch_storage_items     = []
+        uncomplete_purchase = Purchase.objects.filter(supplier=self.supplier,
+                                                      status=pcfg.PURCHASE_APPROVAL).order_by('service_date')
+        
+        for storage_item in self.normal_storage_items:
+            storage_ships = PurchaseStorageRelationship.objects.filter(
+                            storage_id=self.id,storage_item_id=storage_item.id)
+            
+            undist_storage_num = storage_item.storage_num - (storage_ships.aggregate(
+                                        dist_storage_num=Sum('storage_num')).get('dist_storage_num') or 0) #未分配库存数
+            if undist_storage_num>0:
+                outer_id     = storage_item.outer_id
+                outer_sku_id = storage_item.outer_sku_id
+                purchase_item  = None
+                purchase_items = []
 
+                for purchase in uncomplete_purchase:
+                    try:
+                        purchase_item = PurchaseItem.objects.get(
+                                    purchase=purchase,outer_id=outer_id,outer_sku_id=outer_sku_id)
+                    except PurchaseItem.DoesNotExist:
+                        purchase_item = None
+                    else:
+                        purchase_items.append(purchase_item)
+                
+                for purchase_item in purchase_items:
+                    diff_num = purchase_item.purchase_num-purchase_item.storage_num #采购项剩余未到货数
+                    if diff_num >0:
+                        storage_ship,state    = PurchaseStorageRelationship.objects.get_or_create(
+                                                           purchase_id=purchase_item.purchase.id,
+                                                           purchase_item_id=purchase_item.id,
+                                                           storage_id=self.id,
+                                                           storage_item_id=storage_item.id)
+                        storage_ship.outer_id     = outer_id
+                        storage_ship.outer_sku_id = outer_sku_id
+                        
+                        diff_num  = min(diff_num,undist_storage_num)
+                        storage_ship.storage_num  = diff_num
+                        storage_ship.save()
+                    
+                    undist_storage_num = undist_storage_num - diff_num    
+                    #如果  未分配库存数 小于等于  采购项剩余未到货数,分配后退出循环
+                    if undist_storage_num<=0: 
+                        break
+                    
+                        
+                if undist_storage_num>0:
+                    storage_item_json = storage_item.json
+                    storage_item_json['undist_storage_num'] = undist_storage_num
+                    unmatch_storage_items.append(storage_item_json)
+        
+        return unmatch_storage_items
+        
+        
+    def get_ship_purchases(self):
+        """ 获取关联采购信息 """
+        purchase_map    = {}
+        relate_ship  = PurchaseStorageRelationship.objects.filter(storage_id=self.id)
+        for ship in relate_ship:
+            
+            purchase_id      = ship.purchase_id
+            purchase_item_id = ship.purchase_item_id
+            
+            purchase      = Purchase.objects.get(id=purchase_id)
+            purchase_item = PurchaseItem.objects.get(id=purchase_item_id)
+                
+            if purchase_map.has_key(purchase_id):
+                purchase_map[purchase_id]['purchase_items'].append({
+                                                               'id':purchase_item.id,
+                                                               'outer_id':purchase_item.outer_id,
+                                                               'name':purchase_item.name,
+                                                               'outer_sku_id':purchase_item.outer_sku_id,
+                                                               'properties_name':purchase_item.properties_name,
+                                                               'purchase_num':purchase_item.purchase_num,
+                                                               'storage_num':purchase_item.storage_num,
+                                                               'ship_num':ship.storage_num,
+                                                               'arrival_status':dict(PURCHASE_ARRIVAL_STATUS).get(purchase_item.arrival_status),
+                                                               'status':dict(PURCHASE_ITEM_STATUS).get(purchase_item.status)})
+                
+            else:
+                purchase_map[purchase_id] ={
+                                            'id':purchase.id,
+                                            'extra_name':purchase.extra_name,
+                                            'supplier_name':purchase.supplier and purchase.supplier.supplier_name or '未填写',
+                                            'service_date':purchase.service_date,
+                                            'purchase_num':purchase.purchase_num,
+                                            'storage_num':purchase.storage_num,
+                                            'arrival_status':dict(PURCHASE_ARRIVAL_STATUS).get(purchase.arrival_status),
+                                            'status':dict(PURCHASE_STATUS).get(purchase.status),
+                                            'purchase_items':[{'id':purchase_item.id,
+                                                               'outer_id':purchase_item.outer_id,
+                                                               'name':purchase_item.name,
+                                                               'outer_sku_id':purchase_item.outer_sku_id,
+                                                               'properties_name':purchase_item.properties_name,
+                                                               'purchase_num':purchase_item.purchase_num,
+                                                               'storage_num':purchase_item.storage_num,
+                                                               'ship_num':ship.storage_num,
+                                                               'arrival_status':dict(PURCHASE_ARRIVAL_STATUS).get(purchase_item.arrival_status),
+                                                               'status':dict(PURCHASE_ITEM_STATUS).get(purchase_item.status)}]
+                                            }
+        return [v for k,v in purchase_map.iteritems()]    
+            
+            
 class PurchaseStorageItem(models.Model):
     """ 采购入库项目 """
     
@@ -263,9 +446,22 @@ class PurchaseStorageItem(models.Model):
         verbose_name_plural = u'采购入库项目列表'
     
     def __unicode__(self):
-        return 'RKZD%d'%self.id
+        return '%s'(self.id and str(self.id) or 'empty')
     
-
+    @property
+    def json(self):
+        """ 获取入库项JSON信息 """
+        return {
+                'id':self.id,
+                'supplier_item_id':self.supplier_item_id,
+                'outer_id':self.outer_id,
+                'name':self.name,
+                'outer_sku_id':self.outer_sku_id,
+                'properties_name':self.properties_name,
+                'storage_num':self.storage_num,
+                }
+        
+    
 class PurchaseStorageRelationship(models.Model):
     """ 采购与入库商品项目关联 """
     
@@ -284,12 +480,36 @@ class PurchaseStorageRelationship(models.Model):
     class Meta:
         db_table = 'shop_purchases_relationship'
         unique_together = (("purchase_id","purchase_item_id","storage_id","storage_item_id"),)
-        verbose_name = u'采购入库项目'
-        verbose_name_plural = u'采购入库项目列表'
+        verbose_name = u'采购入库关联'
+        verbose_name_plural = u'采购入库关联'
     
     def __unicode__(self):
         return 'RKZD%d'%self.id
     
+    
+def update_purchaseitem_storage_and_fee(sender,instance,*args,**kwargs):
+    """ 更新采购单项目信息 """
+    
+    purchase_item = PurchaseItem.objects.get(id=instance.purchase_item_id)
+    
+    relation_dict = PurchaseStorageRelationship.objects.filter(
+        purchase_id=instance.purchase_id,purchase_item_id=instance.purchase_item_id)\
+        .aggregate(total_storage_num=Sum('storage_num'),total_relate_fee=Sum('relate_fee'))
+        
+    total_storage_num = relation_dict.get('total_storage_num') or 0
+    taotao_payment    = relation_dict.get('total_relate_fee') or 0
+    
+    purchase_item.arrival_status = total_storage_num<=0 and pcfg.PD_UNARRIVAL or \
+        (total_storage_num>=purchase_item.purchase_num and pcfg.PD_FULLARRIVAL or pcfg.PD_PARTARRIVAL)
+    purchase_item.storage_num = total_storage_num
+    purchase_item.payment     = taotao_payment
+    purchase_item.save()
+ 
+#修改，删除采购入库关联项时，应更新其对应的采购项信息       
+post_save.connect(update_purchaseitem_storage_and_fee, sender=PurchaseStorageRelationship)
+    
+post_delete.connect(update_purchaseitem_storage_and_fee, sender=PurchaseStorageRelationship)
+
 
 class PurchasePaymentItem(models.Model):
     """ 

@@ -19,7 +19,7 @@ from djangorestframework.mixins import CreateModelMixin
 from djangorestframework.views import ModelView,ListOrCreateModelView,InstanceModelView
 from shopback.archives.models import Deposite,Supplier,PurchaseType
 from shopback.items.models import Product,ProductSku
-from shopback.purchases.models import Purchase,PurchaseItem,PurchaseStorage,PurchaseStorageItem
+from shopback.purchases.models import Purchase,PurchaseItem,PurchaseStorage,PurchaseStorageItem,PurchaseStorageRelationship
 from shopback import paramconfig as pcfg
 from shopback.base import log_action, ADDITION, CHANGE
 from utils import CSVUnicodeWriter
@@ -70,43 +70,12 @@ class PurchaseInsView(ModelView):
             purchase = Purchase.objects.get(id=id)
         except Exception,exc:
             raise Http404
-        
-        purchase_items = []
-        for item in purchase.purchase_items.exclude(status=pcfg.PURCHASE_INVALID):
-            item_dict = {}
-            item_dict['id'] = item.id
-            item_dict['supplier_item_id'] = item.supplier_item_id
-            item_dict['outer_id']     = item.outer_id
-            item_dict['name']         = item.name 
-            item_dict['outer_sku_id'] = item.outer_sku_id
-            item_dict['properties_name'] = item.properties_name
-            item_dict['total_fee']       = item.total_fee
-            item_dict['payment']         = item.payment
-            item_dict['purchase_num']    = item.purchase_num 
-            item_dict['price']           = item.price
-            item_dict['std_price']       = item.std_price
-            purchase_items.append(item_dict)
-        
-        purchase_dict = {}
-        purchase_dict['id']        = purchase.id
-        purchase_dict['origin_no'] = purchase.origin_no
-        purchase_dict['supplier_id']      = purchase.supplier.id
-        purchase_dict['deposite_id']      = purchase.deposite.id
-        purchase_dict['purchase_type_id'] = purchase.purchase_type.id
-        purchase_dict['forecast_date']    = purchase.forecast_date
-        purchase_dict['post_date']        = purchase.post_date
-        purchase_dict['service_date']     = purchase.service_date
-        purchase_dict['total_fee']        = purchase.total_fee
-        purchase_dict['payment']          = purchase.payment
-        purchase_dict['extra_name']       = purchase.extra_name
-        purchase_dict['extra_info']       = purchase.extra_info
-        purchase_dict['purchase_items']   = purchase_items
             
         params = {}
         params['suppliers']      = Supplier.objects.filter(in_use=True)
         params['deposites']      = Deposite.objects.filter(in_use=True)
         params['purchase_types'] = PurchaseType.objects.filter(in_use=True)
-        params['purchase']       = purchase_dict
+        params['purchase']       = purchase.json
         
         return params
     
@@ -158,18 +127,7 @@ class PurchaseItemView(ModelView):
         
         log_action(request.user.id,purchase,CHANGE,u'%s采购项（%s,%s）'%(state and u'添加' or u'修改',outer_id,sku_id))
         
-        purchase_item_dict = {'id':purchase_item.id,
-                              'supplier_item_id':purchase_item.supplier_item_id,
-                              'outer_id':purchase_item.outer_id,
-                              'name':purchase_item.name,
-                              'outer_sku_id':purchase_item.outer_sku_id,
-                              'properties_name':purchase_item.properties_name,
-                              'std_price':purchase_item.std_price,
-                              'price':purchase_item.price,
-                              'purchase_num':purchase_item.purchase_num,
-                              'total_fee':purchase_item.total_fee,
-                              }
-        return purchase_item_dict
+        return purchase_item.json
 
 @csrf_exempt        
 @staff_requried    
@@ -251,6 +209,7 @@ class PurchaseStorageView(ModelView):
         
         return {'id':purchase.id}
 
+
 class PurchaseStorageInsView(ModelView):
     """ 采购单修改界面 """
     
@@ -260,39 +219,13 @@ class PurchaseStorageInsView(ModelView):
             purchase = PurchaseStorage.objects.get(id=id)
         except Exception,exc:
             raise Http404
-        
-        purchase_items = []
-        for item in purchase.purchase_storage_items.exclude(status=pcfg.PURCHASE_INVALID):
-            item_dict = {}
-            item_dict['id'] = item.id
-            item_dict['supplier_item_id'] = item.supplier_item_id
-            item_dict['outer_id']     = item.outer_id
-            item_dict['name']         = item.name 
-            item_dict['outer_sku_id'] = item.outer_sku_id
-            item_dict['properties_name'] = item.properties_name
-            item_dict['storage_num']    = item.storage_num 
-            purchase_items.append(item_dict)
-        
-        purchase_dict = {}
-        purchase_dict['id']        = purchase.id
-        purchase_dict['origin_no'] = purchase.origin_no
-        purchase_dict['supplier_id']      = purchase.supplier and purchase.supplier.id or ''
-        purchase_dict['deposite_id']      = purchase.deposite and purchase.deposite.id or ''
-        purchase_dict['forecast_date']    = purchase.forecast_date
-        purchase_dict['post_date']        = purchase.post_date
-        purchase_dict['logistic_company'] = purchase.logistic_company
-        purchase_dict['out_sid']          = purchase.out_sid
-        purchase_dict['extra_name']       = purchase.extra_name
-        purchase_dict['extra_info']       = purchase.extra_info
-        purchase_dict['purchase_storage_items']   = purchase_items
             
         params = {}
         params['suppliers']      = Supplier.objects.filter(in_use=True)
         params['deposites']      = Deposite.objects.filter(in_use=True)
-        params['purchase_storage'] = purchase_dict
+        params['purchase_storage'] = purchase.json
         
         return params
-    
 
 
 class PurchaseStorageItemView(ModelView):
@@ -329,21 +262,34 @@ class PurchaseStorageItemView(ModelView):
                                 purchase_storage=purchase,outer_id=outer_id,outer_sku_id=sku_id)
         purchase_item.name = prod.name
         purchase_item.properties_name  = prod_sku and prod_sku.name or ''
-        purchase_item.purchase_num = num
+        purchase_item.storage_num = num
+        purchase_item.status = pcfg.NORMAL
         purchase_item.save()
         
         log_action(request.user.id,purchase,CHANGE,u'%s采购项（%s,%s）'%(state and u'添加' or u'修改',outer_id,sku_id))
         
-        purchase_item_dict = {'id':purchase_item.id,
-                              'supplier_item_id':purchase_item.supplier_item_id,
-                              'outer_id':purchase_item.outer_id,
-                              'name':purchase_item.name,
-                              'outer_sku_id':purchase_item.outer_sku_id,
-                              'properties_name':purchase_item.properties_name,
-                              'storage_num':purchase_item.storage_num,
-                              }
-        return purchase_item_dict
+        return purchase_item.json
 
+
+class StorageDistributeView(ModelView):
+    """ 采购入库单匹配 """
+    
+    def get(self, request, id, *args, **kwargs):
+        try:
+            purchase_storage = PurchaseStorage.objects.get(id=id)
+        except:
+            return u'未找到入库单'
+        
+        #给关联采购单分配入库数量，并返回未分配的入库数
+        undist_storage_items = purchase_storage.distribute_storage_num()            
+        #获取关联采购单信息
+        ship_purchases       = purchase_storage.get_ship_purchases()
+        
+        return {'undist_storage_items':undist_storage_items,'ship_purchases':ship_purchases}
+    
+    
+    
+    
 @csrf_exempt        
 @staff_requried    
 def delete_purchasestorage_item(request):

@@ -1,8 +1,9 @@
 from django.conf.urls.defaults import patterns, url
 from shopback.purchases.views import PurchaseItemView,PurchaseView,PurchaseInsView,\
-    PurchaseStorageItemView,PurchaseStorageView,PurchaseStorageInsView
+    PurchaseStorageItemView,PurchaseStorageView,PurchaseStorageInsView,StorageDistributeView
 from shopback.purchases.resources import PurchaseItemResource,PurchaseResource,PurchaseStorageResource,PurchaseStorageItemResource
-from shopback.purchases.renderers import PurchaseItemHtmlRenderer,JSONRenderer,PurchaseHtmlRenderer,PurchaseStorageHtmlRenderer
+from shopback.purchases.renderers import PurchaseItemHtmlRenderer,JSONRenderer,PurchaseHtmlRenderer,\
+    PurchaseStorageHtmlRenderer,StorageDistributeRenderer
 from shopback.base.renderers  import BaseJsonRenderer
 from django.views.decorators.csrf import csrf_exempt
 
@@ -45,9 +46,16 @@ urlpatterns = patterns('shopback.purchases.views',
 #        authentication=(UserLoggedInAuthentication,),
 #        permissions=(IsAuthenticated,)
     ))),
+    (r'storage/distribute/(?P<id>\d{1,20})/',StorageDistributeView.as_view(
+        resource=PurchaseStorageResource,
+        renderers=(BaseJsonRenderer,StorageDistributeRenderer),
+#        authentication=(UserLoggedInAuthentication,),
+#        permissions=(IsAuthenticated,)
+    )),
     
     url(r'storage/csv/(?P<id>\d{1,20})/','download_purchasestorage_file',name='purchasestorage_to_csv'),
     url(r'storage/item/del/','delete_purchasestorage_item',name='del_purchasestorage_item'),
+   
     
     url(r'csv/(?P<id>\d{1,20})/','download_purchase_file',name='purchase_to_csv'),
     url(r'item/del/','delete_purchase_item',name='del_purchase_item'),

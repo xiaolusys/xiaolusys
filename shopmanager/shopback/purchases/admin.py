@@ -5,7 +5,7 @@ from django.forms import TextInput, Textarea
 from shopback import paramconfig as pcfg
 from shopback.items.models import Product,ProductSku
 from shopback.purchases.models import Purchase,PurchaseItem,\
-    PurchaseStorage,PurchaseStorageItem,PurchasePaymentItem
+    PurchaseStorage,PurchaseStorageItem,PurchasePaymentItem,PurchaseStorageRelationship
 
 import logging 
 
@@ -14,11 +14,11 @@ logger =  logging.getLogger('purchases.handler')
 class PurchaseItemInline(admin.TabularInline):
     
     model = PurchaseItem
-    fields = ('outer_id','name','outer_sku_id','properties_name','purchase_num'
-              ,'price','total_fee','payment','status','extra_info')
+    fields = ('outer_id','name','outer_sku_id','properties_name','purchase_num','storage_num'
+              ,'price','total_fee','payment','arrival_status','status','extra_info')
     
     formfield_overrides = {
-        models.CharField: {'widget': TextInput(attrs={'size':'10'})},
+        models.CharField: {'widget': TextInput(attrs={'size':'20'})},
         models.TextField: {'widget': Textarea(attrs={'rows':4, 'cols':40})},
         models.FloatField: {'widget': TextInput(attrs={'size':'8'})}
     }
@@ -110,9 +110,9 @@ class PurchaseStorageAdmin(admin.ModelAdmin):
     fieldsets =(('采购入库单信息:', {
                     'classes': ('expand',),
                     'fields': (('origin_no','supplier','deposite')
-                               ,('extra_name','total_fee','payment')
-                               ,('forecast_date','service_date','post_date')
-                               ,('logistic_company','out_sid','status','extra_info'))
+                               ,('extra_name','logistic_company','out_sid')
+                               ,('forecast_date','post_date')
+                               ,('status','extra_info'))
                 }),)
     
     #--------定制控件属性----------------
@@ -135,6 +135,17 @@ class PurchaseStorageItemAdmin(admin.ModelAdmin):
     
 admin.site.register(PurchaseStorageItem,PurchaseStorageItemAdmin)
 
+
+class PurchaseStorageRelationshipAdmin(admin.ModelAdmin):
+    list_display = ('id','purchase_id','purchase_item_id','storage_id','storage_item_id',
+                    'outer_id','outer_sku_id','is_addon','storage_num','relate_fee')
+    #list_editable = ('update_time','task_type' ,'is_success','status')
+
+    list_filter = ('is_addon',)
+    search_fields = ['purchase_id','purchase_item_id','storage_id','outer_id']
+    
+
+admin.site.register(PurchaseStorageRelationship,PurchaseStorageRelationshipAdmin)
 
 
 class PurchasePaymentItemAdmin(admin.ModelAdmin):

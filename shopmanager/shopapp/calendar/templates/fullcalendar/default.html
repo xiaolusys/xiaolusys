@@ -311,9 +311,9 @@
 	
 	//初始化日历事件对象
 	var initial_calendar_events = function(calendar){
-	
+		
 		var now = new Date();
-		now.setMonth(now.getMonth()-1);
+		now.setMonth(now.getMonth()-3);
 		var url = "/app/calendar/events/";
 		var params = {'df':$.datepicker.formatDate('yy-mm-dd 00:00:01',now)};
 		
@@ -367,7 +367,6 @@
 				week: '周',
 				day: '天',
 			},
-			
 			dayClick: function(date, allDay, jsEvent, view) {
 				
 				if (latestClickDiv){
@@ -394,7 +393,6 @@
 	   			//隐藏提示框
 				$('#prompt-tip').hide();
 	   		},
-	   		
 		});
 		initial_calendar_events(calendar);
 		
@@ -427,4 +425,5 @@
 	initStaffEventAddDialog();
 	//初始员工事件添加对话框
 	initStaffEventTipDialog();
+	
 </script>
