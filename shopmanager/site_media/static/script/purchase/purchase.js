@@ -161,6 +161,7 @@ purchase.Manager = function () {
     this.prod_q        = goog.dom.getElement('id_prod_q');
 	this.search_prod_table  = goog.dom.getElement('id-prod-search-table');
 	this.saveBtn       = goog.dom.getElement('save_purchase');
+	this.checkBtn      = goog.dom.getElement('check_purchase');
 	
 	this.prompt_dialog = new purchase.PurchaseSelectDialog(this);
 	this.datatable     = null;
@@ -341,7 +342,7 @@ purchase.Manager.prototype.onCheckPurchaseInfo = function(e){
 		alert('请先保存采购基本信息');
 		return;
 	}
-	window.location = "/admin/purchases/purchase/?status__exact=DRAFT&q="+purchase_id;
+	
 }
 
 //显示商品搜索记录
@@ -415,6 +416,8 @@ purchase.Manager.prototype.bindEvent = function (){
 	goog.events.listen(this.prod_q  , goog.events.EventType.KEYDOWN,this.onProdSearchKeyDown,false,this);
 	
 	goog.events.listen(this.saveBtn , goog.events.EventType.CLICK,this.onSavePurchaseInfo,false,this);
+	
+	goog.events.listen(this.checkBtn , goog.events.EventType.CLICK,this.onCheckPurchaseInfo,false,this);
 	
 	new goog.ui.Zippy('id-purchaseitem-head','purchase-items');
 	   

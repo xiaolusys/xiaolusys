@@ -17,16 +17,6 @@ PURCHASE_STATUS = (
     (pcfg.PURCHASE_CLOSE,'关闭'),
 )
 
-PURCHASE_ITEM_STATUS = (
-    (pcfg.PURCHASE_DRAFT,'草稿'),
-    (pcfg.PURCHASE_APPROVAL,'审核'),
-    (pcfg.PURCHASE_RETURN,'退货中'),
-    (pcfg.PURCHASE_CLOSE,'退货关闭'),
-    (pcfg.PURCHASE_FINISH,'完成'),
-    (pcfg.PURCHASE_INVALID,'作废'),
-    (pcfg.PURCHASE_REWORD,'返修'),
-    (pcfg.PURCHASE_REWORDOVER,'返修结束'),
-)
 
 PURCHASE_ARRIVAL_STATUS = (
     (pcfg.PD_UNARRIVAL,'未到货'),
@@ -97,7 +87,7 @@ class Purchase(models.Model):
     
     @property
     def effect_purchase_items(self):
-        return self.purchase_items.exclude(status=pcfg.PURCHASE_INVALID)
+        return self.purchase_items.filter(status=pcfg.NORMAL)
     
     @property
     def unfinish_purchase_items(self):
@@ -219,8 +209,8 @@ class PurchaseItem(models.Model):
     created      = models.DateTimeField(null=True,blank=True,auto_now=True,verbose_name='创建日期')
     modified     = models.DateTimeField(null=True,blank=True,auto_now_add=True,verbose_name='修改日期')
     
-    status       = models.CharField(max_length=32,db_index=True,choices=PURCHASE_ITEM_STATUS,
-                                    default=pcfg.PURCHASE_DRAFT,verbose_name='状态')
+    status       = models.CharField(max_length=32,db_index=True,choices=PRODUCT_STATUS,
+                                    default=pcfg.NORMAL,verbose_name='状态')
     
     arrival_status    = models.CharField(max_length=20,db_index=True,choices=PURCHASE_ARRIVAL_STATUS,
                                     default=pcfg.PD_UNARRIVAL,verbose_name='到货状态')
@@ -259,7 +249,7 @@ def update_purchase_info(sender,instance,*args,**kwargs):
     """ 更新采购单信息 """
     
     purchase = instance.purchase
-    purchase_items = instance.purchase.purchase_items.exclude(status=pcfg.PURCHASE_INVALID)
+    purchase_items = instance.purchase.effect_purchase_items
     
     purchase.total_fee = purchase_items.aggregate(total_fees=Sum('total_fee'))['total_fees'] or 0
     purchase.payment   = purchase_items.aggregate(total_payment=Sum('payment'))['total_payment'] or 0
@@ -405,8 +395,7 @@ class PurchaseStorage(models.Model):
                     #如果  未分配库存数 小于等于  采购项剩余未到货数,分配后退出循环
                     if undist_storage_num<=0: 
                         break
-                    
-                        
+        
                 if undist_storage_num>0:
                     storage_item_json = storage_item.json
                     storage_item_json['undist_storage_num'] = undist_storage_num
@@ -438,7 +427,7 @@ class PurchaseStorage(models.Model):
                                                                'storage_num':purchase_item.storage_num,
                                                                'ship_num':ship.storage_num,
                                                                'arrival_status':dict(PURCHASE_ARRIVAL_STATUS).get(purchase_item.arrival_status),
-                                                               'status':dict(PURCHASE_ITEM_STATUS).get(purchase_item.status)})
+                                                               'status':dict(PRODUCT_STATUS).get(purchase_item.status)})
                 
             else:
                 purchase_map[purchase_id] ={
@@ -460,7 +449,7 @@ class PurchaseStorage(models.Model):
                                                                'storage_num':purchase_item.storage_num,
                                                                'ship_num':ship.storage_num,
                                                                'arrival_status':dict(PURCHASE_ARRIVAL_STATUS).get(purchase_item.arrival_status),
-                                                               'status':dict(PURCHASE_ITEM_STATUS).get(purchase_item.status)}]
+                                                               'status':dict(PRODUCT_STATUS).get(purchase_item.status)}]
                                             }
         return [v for k,v in purchase_map.iteritems()]    
             

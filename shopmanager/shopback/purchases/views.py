@@ -61,6 +61,7 @@ class PurchaseView(ModelView):
         
         return {'id':purchase.id}
 
+
 class PurchaseInsView(ModelView):
     """ 采购单修改界面 """
     
@@ -69,7 +70,7 @@ class PurchaseInsView(ModelView):
         try:
             purchase = Purchase.objects.get(id=id)
         except Exception,exc:
-            raise Http404
+            return u'采购单不存在'
             
         params = {}
         params['suppliers']      = Supplier.objects.filter(in_use=True)
@@ -79,6 +80,20 @@ class PurchaseInsView(ModelView):
         
         return params
     
+    def post(self, request, id, *args, **kwargs):
+        
+        try:
+            purchase = Purchase.objects.get(id=id)
+        except Exception,exc:
+            raise Http404
+        
+        if purchase.status != pcfg.PURCHASE_DRAFT:
+            return u'采购单不能审核'
+        
+        purchase.status = pcfg.PURCHASE_APPROVAL
+        purchase.save()
+        
+        return {'id':purchase.id,'status':purchase.status}
 
 
 class PurchaseItemView(ModelView):
@@ -161,7 +176,7 @@ def delete_purchase_item(request):
         raise http404
         
     purchase_item = PurchaseItem.objects.get(id=purchase_item_id,purchase=purchase)
-    purchase_item.status = pcfg.PURCHASE_INVALID
+    purchase_item.status = pcfg.DELETE
     purchase_item.save()
     
     log_action(request.user.id,purchase,CHANGE,u'采购项作废')

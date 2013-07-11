@@ -47,9 +47,7 @@ class PurchaseAdmin(admin.ModelAdmin):
     def purchase_title_link(self, obj):
         symbol_link = obj.extra_name or u'【空标题】'
 
-        if  obj.status == pcfg.PURCHASE_DRAFT:
-            symbol_link = '<a href="/purchases/%d/" >%s</a>'%(obj.id,symbol_link) 
-        return symbol_link
+        return '<a href="/purchases/%d/" >%s</a>'%(obj.id,symbol_link) 
     
     purchase_title_link.allow_tags = True
     purchase_title_link.short_description = "标题"
@@ -97,9 +95,7 @@ class PurchaseStorageAdmin(admin.ModelAdmin):
     def storage_name_link(self, obj):
         symbol_link = obj.extra_name or u'【空标题】'
 
-        if  obj.status == pcfg.PURCHASE_DRAFT:
-            symbol_link = '<a href="/purchases/storage/%d/" >%s</a>'%(obj.id,symbol_link) 
-        return symbol_link
+        return '<a href="/purchases/storage/%d/" >%s</a>'%(obj.id,symbol_link) 
     
     storage_name_link.allow_tags = True
     storage_name_link.short_description = "标题"

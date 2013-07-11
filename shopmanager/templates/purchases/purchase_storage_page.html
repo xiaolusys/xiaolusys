@@ -246,7 +246,7 @@
 						</td>
 						<td style="text-align:center;padding-top:20px;">
 							<button id="save_purchase" class="btn btn-primary">保存 +</button>
-							<a class="btn btn-primary" href="{% if purchase_storage %}/purchases/storage/distribute/{{ purchase_storage.id }}/{% else %}#{% endif %}">审核 -></a>
+							<a href="{% if purchase_storage %}/purchases/storage/distribute/{{ purchase_storage.id }}/{% else %}#{% endif %}">关联采购单</a>
 						</td>
 					</tr>
 				</table>
