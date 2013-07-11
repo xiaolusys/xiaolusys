@@ -20,6 +20,17 @@ var updateTotalNum = function(){
 	$('#total_num').val(total_num+'');
 }
 
+var validInputNum = function(e){
+	e.preventDefault();
+	var target = e.target;
+	var num = target.value;
+	var r = /^[0-9]{1,10}$/;
+	var re = new RegExp(r);
+	if (!re.test(num)){
+		target.value = '1';
+	}
+}
+
 var addSearchRow  = function(tableID,prod){
 
 	var table = goog.dom.getElement(tableID);
@@ -40,7 +51,7 @@ var addSearchRow  = function(tableID,prod){
 	sku_cell.innerHTML = sku_options;
 	
 	var num_cell = goog.dom.createElement('td');
-	num_cell.innerHTML = '<input id="id-order-num-'+index.toString()+'" type="text" class="order_num" value="1" size="2" />';
+	num_cell.innerHTML = '<input id="id-order-num-'+index.toString()+'" type="text" class="prod_num" value="1" size="2" />';
 	
 	var price_cell = createDTText(prod[2]);
 	
@@ -181,22 +192,12 @@ ordercheck.Dialog.prototype.setEvent=function(){
 	var addr1  = new goog.ui.Zippy('collapseOne', 'addrContent');   
 	var order1 = new goog.ui.Zippy('collapseTwo', 'orderContent');    
 	
-	$('input.order_num').live('keyup',function (e) {
-		e.preventDefault();
-		var target = e.target;
-		var num = target.value;
-		var r = /^[0-9]{1,10}$/;
-		var re = new RegExp(r);
-		console.log(num);
-		if (!re.test(num)){
-			target.value = '1';
-		}
-	});
+	$('input.order_num').live('keyup',validInputNum);
+	$('input.prod_num').live('keyup',validInputNum);
 	$('button.change-order').live('click',function(e){
 		e.preventDefault();
 		updateTotalNum();
 	});
-                                                                                                                                                                                                                              
 }
 
 //修改地址
@@ -297,7 +298,7 @@ ordercheck.Dialog.prototype.addOrder=function(e){
 	var params     = {'trade_id':trade_id,'outer_id':outer_id,'outer_sku_id':sku_outer_id,'num':num,'type':order_type}
 	var callback = function(e){
 		var xhr = e.target;
-        //try {
+        try {
         	var res = xhr.getResponseJson();
             if (res.code == 0){
             	addOrderRow('id_trade_order',res.response_content);
@@ -312,9 +313,9 @@ ordercheck.Dialog.prototype.addOrder=function(e){
             }else{
                 alert("添加失败:"+res.response_error);
             }
-        /*} catch (err) {
+        } catch (err) {
             console.log('Error: (ajax callback) - ', err);
-        } */
+        } 
 	};
 	var content = goog.uri.utils.buildQueryDataFromMap(params);
 	goog.net.XhrIo.send('/trades/orderplus/',callback,'POST',content);
@@ -405,7 +406,6 @@ ordercheck.Dialog.prototype.handleEvent= function (e) {
    
     return false;
 }
-
 
 goog.provide("ordercheck.Manager");
 ordercheck.Manager = function () {

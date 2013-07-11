@@ -1,3 +1,8 @@
+######### 2013-7-10  ###########
+alter table shop_items_productsku add column created datetime DEFAULT NULL;
+update shop_items_productsku set created=modified;
+alter table shop_purchases_storage change post_date post_date date DEFAULT NULL;
+alter table shop_purchases_storage change forecast_date forecast_date date DEFAULT NULL;
 ######### 2013-7-4  ###########
 alter table shop_purchases_purchase add column purchase_num int(11) default 0;
 alter table shop_purchases_purchase add column storage_num int(11) default 0;

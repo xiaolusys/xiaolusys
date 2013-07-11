@@ -129,6 +129,24 @@ class PurchaseItemView(ModelView):
         
         return purchase_item.json
 
+
+class PurchaseShipStorageView(ModelView):
+    """ 采购单与入库单关联视图 """
+    
+    def get(self, request, id, *args, **kwargs):
+        try:
+            purchase = Purchase.objects.get(id=id)
+        except:
+            return u'未找到采购单'
+        
+        #给关联采购单分配入库数量，并返回未分配的入库数
+        unfinish_purchase_items = purchase.unfinish_purchase_items            
+        #获取关联采购单信息
+        ship_storages        = purchase.get_ship_storages()
+        
+        return {'unfinish_purchase_items':unfinish_purchase_items,'ship_storages':ship_storages}
+    
+
 @csrf_exempt        
 @staff_requried    
 def delete_purchase_item(request):
@@ -142,10 +160,9 @@ def delete_purchase_item(request):
     except:
         raise http404
         
-    rows = PurchaseItem.objects.filter(id=purchase_item_id,purchase=purchase).update(status=pcfg.PURCHASE_INVALID)
-  
-    if rows == 0:
-        return HttpResponse(json.dumps({'code':1,'response_error':'fail'}),mimetype='application/json')
+    purchase_item = PurchaseItem.objects.get(id=purchase_item_id,purchase=purchase)
+    purchase_item.status = pcfg.PURCHASE_INVALID
+    purchase_item.save()
     
     log_action(request.user.id,purchase,CHANGE,u'采购项作废')
     
@@ -288,8 +305,6 @@ class StorageDistributeView(ModelView):
         return {'undist_storage_items':undist_storage_items,'ship_purchases':ship_purchases}
     
     
-    
-    
 @csrf_exempt        
 @staff_requried    
 def delete_purchasestorage_item(request):
@@ -303,10 +318,9 @@ def delete_purchasestorage_item(request):
     except PurchaseStorage.DoesNotExist:
         raise http404
         
-    rows = PurchaseStorageItem.objects.filter(id=purchase_item_id,purchase_storage=purchase).update(status=pcfg.PURCHASE_INVALID)
-  
-    if rows == 0:
-        return HttpResponse(json.dumps({'code':1,'response_error':'fail'}),mimetype='application/json')
+    storage_item = PurchaseStorageItem.objects.get(id=purchase_item_id,purchase_storage=purchase)
+    storage_item.status = pcfg.DELETE
+    storage_item.save()
     
     log_action(request.user.id,purchase,CHANGE,u'采购项作废')
     

@@ -247,7 +247,7 @@
 						</td>
 						<td style="text-align:center;padding-top:20px;">
 							<button id="save_purchase" class="btn btn-primary">保存 +</button>
-							<button id="check_purchase" class="btn btn-primary">审核 -></button>
+							<a class="btn btn-primary" href="{% if purchase %}/purchases/ship/{{ purchase.id }}/{% else %}#{% endif %}">审核 -></a>
 						</td>
 					</tr>
 				</table>

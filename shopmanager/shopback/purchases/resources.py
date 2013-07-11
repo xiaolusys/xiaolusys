@@ -18,7 +18,7 @@ class PurchaseResource(ModelResource):
     """ docstring for PurchaseResource ModelResource """
 
     model = Purchase
-    fields = ('suppliers','deposites','purchase_types','id','purchase') 
+    fields = ('suppliers','deposites','purchase_types','id','purchase','unfinish_purchase_items','ship_storages') 
     exclude = ('url',)
     
     

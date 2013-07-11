@@ -390,8 +390,6 @@ purchasestorage.Manager.prototype.bindEvent = function (){
 	
 	goog.events.listen(this.saveBtn, goog.events.EventType.CLICK,this.onSavePurchaseInfo,false,this);
 	
-	goog.events.listen(this.checkBtn, goog.events.EventType.CLICK,this.onCheckPurchaseInfo,false,this);
-	
 	new goog.ui.Zippy('id-purchaseitem-head', 'purchase-items');
 	   
 	$("#purchase-prompt").draggable({handle: $('#purchase-prompt-head')});

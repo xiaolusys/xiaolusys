@@ -36,8 +36,7 @@ PURCHASE_ARRIVAL_STATUS = (
 
 PURCHASE_STORAGE_STATUS = (
     (pcfg.PURCHASE_DRAFT,'草稿'),
-    (pcfg.PURCHASE_APPROVAL,'验收'),
-    (pcfg.PURCHASE_FINISH,'结算'),
+    (pcfg.PURCHASE_APPROVAL,'审核'),
     (pcfg.PURCHASE_INVALID,'作废'),
 )
 
@@ -99,6 +98,10 @@ class Purchase(models.Model):
     @property
     def effect_purchase_items(self):
         return self.purchase_items.exclude(status=pcfg.PURCHASE_INVALID)
+    
+    @property
+    def unfinish_purchase_items(self):
+        return self.effect_purchase_items.filter(arrival_status__in=(pcfg.PD_UNARRIVAL,pcfg.PD_PARTARRIVAL))
         
     def gen_csv_tuple(self):
         
@@ -144,10 +147,53 @@ class Purchase(models.Model):
                 'purchase_items':purchase_items
                 }
     
+        
     def get_ship_storages(self):
         """ 获取关联入库信息 """
-        ###待实现
-        pass
+        storage_map    = {}
+        relate_ship  = PurchaseStorageRelationship.objects.filter(purchase_id=self.id)
+        for ship in relate_ship:
+            
+            storage_id      = ship.storage_id
+            storage_item_id = ship.storage_item_id
+            
+            storage      = PurchaseStorage.objects.get(id=storage_id)
+            storage_item = PurchaseStorageItem.objects.get(id=storage_item_id)
+                
+            if storage_map.has_key(storage_id):
+                storage_map[storage_id]['storage_items'].append({
+                                                               'id':storage_item.id,
+                                                               'outer_id':storage_item.outer_id,
+                                                               'name':storage_item.name,
+                                                               'outer_sku_id':storage_item.outer_sku_id,
+                                                               'properties_name':storage_item.properties_name,
+                                                               'storage_num':storage_item.storage_num,
+                                                               'payment':ship.relate_fee,
+                                                               'ship_num':ship.storage_num,
+                                                               'status':dict(PRODUCT_STATUS).get(storage_item.status)})
+                
+            else:
+                storage_map[storage_id] ={
+                                            'id':storage.id,
+                                            'origin_no':storage.origin_no,
+                                            'extra_name':storage.extra_name,
+                                            'supplier_name':storage.supplier and storage.supplier.supplier_name or '',
+                                            'logistic_company':storage.logistic_company,
+                                            'out_sid':storage.out_sid,
+                                            'status':dict(PURCHASE_STORAGE_STATUS).get(storage.status),
+                                            'storage_items':[{'id':storage_item.id,
+                                                               'outer_id':storage_item.outer_id,
+                                                               'name':storage_item.name,
+                                                               'outer_sku_id':storage_item.outer_sku_id,
+                                                               'properties_name':storage_item.properties_name,
+                                                               'storage_num':storage_item.storage_num,
+                                                               'payment':ship.relate_fee,
+                                                               'ship_num':ship.storage_num,
+                                                               'status':dict(PRODUCT_STATUS).get(storage_item.status)}]
+                                            }
+        return [v for k,v in storage_map.iteritems()]    
+        
+        
         
 class PurchaseItem(models.Model):
     """ 采购项目 """
@@ -244,8 +290,8 @@ class PurchaseStorage(models.Model):
     supplier      = models.ForeignKey(Supplier,null=True,blank=True,related_name='purchase_storages',verbose_name='供应商')
     deposite      = models.ForeignKey(Deposite,null=True,blank=True,related_name='purchases_storages',verbose_name='仓库')
     
-    forecast_date = models.DateTimeField(null=True,blank=True,verbose_name='预计到货日期')
-    post_date     = models.DateTimeField(null=True,db_index=True,blank=True,verbose_name='实际到货日期')
+    forecast_date = models.DateField(null=True,blank=True,verbose_name='预计到货日期')
+    post_date     = models.DateField(null=True,db_index=True,blank=True,verbose_name='实际到货日期')
 
     created      = models.DateTimeField(null=True,blank=True,auto_now=True,verbose_name='创建日期')
     modified     = models.DateTimeField(null=True,blank=True,auto_now_add=True,verbose_name='修改日期')
@@ -397,6 +443,7 @@ class PurchaseStorage(models.Model):
             else:
                 purchase_map[purchase_id] ={
                                             'id':purchase.id,
+                                            'origin_no':purchase.origin_no,
                                             'extra_name':purchase.extra_name,
                                             'supplier_name':purchase.supplier and purchase.supplier.supplier_name or '未填写',
                                             'service_date':purchase.service_date,

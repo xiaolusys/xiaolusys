@@ -4,7 +4,7 @@ from djangorestframework.renderers import TemplateRenderer,JSONRenderer
 
 class PurchaseItemHtmlRenderer(TemplateRenderer):
     """
-    Renderer which serializes to JSON
+    Renderer which serializes to HTML
     """
     
     media_type = 'text/html'
@@ -15,7 +15,7 @@ class PurchaseItemHtmlRenderer(TemplateRenderer):
     
 class PurchaseHtmlRenderer(TemplateRenderer):
     """
-    Renderer which serializes to JSON
+    Renderer which serializes to HTML
     """
     
     media_type = 'text/html'
@@ -25,7 +25,7 @@ class PurchaseHtmlRenderer(TemplateRenderer):
     
 class PurchaseStorageHtmlRenderer(TemplateRenderer):
     """
-    Renderer which serializes to JSON
+    Renderer which serializes to HTML
     """
     
     media_type = 'text/html'
@@ -35,11 +35,21 @@ class PurchaseStorageHtmlRenderer(TemplateRenderer):
 
 class StorageDistributeRenderer(TemplateRenderer):
     """
-    Renderer which serializes to JSON
+    Renderer which serializes to HTML
     """
     
     media_type = 'text/html'
     format = 'html'
     template = 'purchases/distribute_purchase_storage.html'
     
+
+class PurchaseShipStorageRenderer(TemplateRenderer):
+    """
+    Renderer which serializes to HTML
+    """
     
+    media_type = 'text/html'
+    format = 'html'
+    template = 'purchases/ship_storage_page.html'
+    
+        

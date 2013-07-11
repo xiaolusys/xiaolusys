@@ -161,7 +161,6 @@ purchase.Manager = function () {
     this.prod_q        = goog.dom.getElement('id_prod_q');
 	this.search_prod_table  = goog.dom.getElement('id-prod-search-table');
 	this.saveBtn       = goog.dom.getElement('save_purchase');
-	this.checkBtn      = goog.dom.getElement('check_purchase');
 	
 	this.prompt_dialog = new purchase.PurchaseSelectDialog(this);
 	this.datatable     = null;
@@ -200,7 +199,7 @@ purchase.Manager.prototype.onCreatePurchaseItem = function(e){
 	var that = this;
 	var callback = function(e){
 		var xhr = e.target;
-        //try {
+        try {
         	var res = xhr.getResponseJson();
         	if (res.code==0){
         		var purchase_item = res.response_content;
@@ -219,9 +218,9 @@ purchase.Manager.prototype.onCreatePurchaseItem = function(e){
         	}else{
         		alert("错误:"+res.response_error);
         	}
-        /*} catch (err) {
+        } catch (err) {
             console.log('Error: (ajax callback) - ', err);
-        } */
+        } 
 	};
 	var content = goog.uri.utils.buildQueryDataFromMap(params);
 	goog.net.XhrIo.send('/purchases/item/',callback,'POST',content);
@@ -416,8 +415,6 @@ purchase.Manager.prototype.bindEvent = function (){
 	goog.events.listen(this.prod_q  , goog.events.EventType.KEYDOWN,this.onProdSearchKeyDown,false,this);
 	
 	goog.events.listen(this.saveBtn , goog.events.EventType.CLICK,this.onSavePurchaseInfo,false,this);
-	
-	goog.events.listen(this.checkBtn, goog.events.EventType.CLICK,this.onCheckPurchaseInfo,false,this);
 	
 	new goog.ui.Zippy('id-purchaseitem-head','purchase-items');
 	   
