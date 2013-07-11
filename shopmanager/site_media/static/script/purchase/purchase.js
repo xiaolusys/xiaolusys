@@ -343,6 +343,21 @@ purchase.Manager.prototype.onCheckPurchaseInfo = function(e){
 		return;
 	}
 	
+	var callback = function(e){
+        var xhr = e.target;
+        try {
+        	var res = xhr.getResponseJson();
+        	if (res.code==0){
+        		alert('审核成功');
+        	}else{
+        		alert('审核失败:'+res.response_error);
+        	}
+        } catch (err) {
+            console.log('Error: (ajax callback) - ', err);
+        } 
+	}
+	goog.net.XhrIo.send('/purchases/'+purchase_id+'/?format=json',callback,'POST');
+	
 }
 
 //显示商品搜索记录

@@ -33,8 +33,7 @@ urlpatterns = patterns('shopback.purchases.views',
 #        authentication=(UserLoggedInAuthentication,),
 #        permissions=(IsAuthenticated,)
     )),
-                       
-                       
+                
     (r'^storage/add/$',csrf_exempt(PurchaseStorageView.as_view(
         resource=PurchaseStorageResource,
         renderers=(PurchaseStorageHtmlRenderer,BaseJsonRenderer),

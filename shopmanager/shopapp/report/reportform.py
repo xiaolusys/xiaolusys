@@ -141,7 +141,7 @@ class TradesToXLSFile(object):
 
     def gen_report_file(self,dt_from,dt_to,file_name):
 
-        consign_trades = Trade.objects.filter(consign_time__gte=dt_from,consign_time__lte=dt_to)
+        consign_trades = Trade.objects.filter(pay_time__gte=dt_from,pay_time__lte=dt_to)
         seller_list = User.objects.all()
         for seller in seller_list:
 
@@ -156,8 +156,8 @@ class TradesToXLSFile(object):
             self.write_trades_to_sheet(sheet,seller_id,seller_finish_trades,TITLE_FIELDS['TRADE_FINISH_MSG'])
 
             seller_purchase_trades = PurchaseOrder.objects.filter(
-                user__visitor_id=seller_id,consign_time__gte=dt_from
-                ,consign_time__lte=dt_to,status__in = pcfg.ORDER_SUCCESS_STATUS)
+                user__visitor_id=seller_id,pay_time__gte=dt_from
+                ,pay_time__lte=dt_to,status__in = pcfg.ORDER_SUCCESS_STATUS)
 
             self.write_purchase_to_sheet(sheet,seller_id,seller_purchase_trades)
 

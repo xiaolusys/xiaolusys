@@ -8,9 +8,6 @@
     <link href="{{ STATIC_URL }}css/base.less" rel="stylesheet/less" type="text/css" />
     <script src="{{ STATIC_URL }}closure-library/closure/goog/base.js"></script>
     <style type="text/css">
-    	.simple-text{
-    		
-    	}
     	.simple-text label{
     		display:inline;
     	}
@@ -21,7 +18,7 @@
   <body class="container">
   	{% if purchase_items %}
   	<div >
-  		<div><h2>未全部到货采购项目</h2></div>
+  		<div><h2>未到货采购项目</h2></div>
   		<div>
   			<table id="undist-storage-table" class="table table-bordered table-striped table-condensed">
   				<thead>

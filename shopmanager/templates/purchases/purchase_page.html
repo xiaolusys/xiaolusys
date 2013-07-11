@@ -172,7 +172,7 @@
     </style>
   </head>
 
-{% with suppliers=object.suppliers deposites=object.deposites purchase_types=object.purchase_types purchase=object.purchase %}
+{% with suppliers=object.suppliers deposites=object.deposites purchase_types=object.purchase_types purchase=object.purchase perms=object.perms %}
  <body>
 	<div class="content-main">
 		<fieldset>
@@ -247,8 +247,8 @@
 						</td>
 						<td style="text-align:center;padding-top:20px;">
 							<button id="save_purchase" class="btn btn-primary">保存 +</button>
-							<button id="check_purchase" class="btn btn-primary">审核</button>
-							<a href="{% if purchase %}/purchases/ship/{{ purchase.id }}/{% else %}#{% endif %}">入库详细</a>
+							<button id="check_purchase"  {% if perms.can_check_purchase %}class="btn btn-primary"{% else %}class="btn btn-inverse" disabled="disabled"{% endif %}>审核</button>
+							{% if perms.can_show_storage %}<a href="{% if purchase %}/purchases/ship/{{ purchase.id }}/{% else %}#{% endif %}">入库详细</a>{% endif %}
 						</td>
 					</tr>
 				</table>

@@ -21,6 +21,7 @@ from shopback.archives.models import Deposite,Supplier,PurchaseType
 from shopback.items.models import Product,ProductSku
 from shopback.purchases.models import Purchase,PurchaseItem,PurchaseStorage,PurchaseStorageItem,PurchaseStorageRelationship
 from shopback import paramconfig as pcfg
+from shopback.purchases import permissions as perm
 from shopback.base import log_action, ADDITION, CHANGE
 from utils import CSVUnicodeWriter
 from auth import staff_requried
@@ -70,14 +71,17 @@ class PurchaseInsView(ModelView):
         try:
             purchase = Purchase.objects.get(id=id)
         except Exception,exc:
-            return u'采购单不存在'
+            raise Http404
             
         params = {}
         params['suppliers']      = Supplier.objects.filter(in_use=True)
         params['deposites']      = Deposite.objects.filter(in_use=True)
         params['purchase_types'] = PurchaseType.objects.filter(in_use=True)
         params['purchase']       = purchase.json
-        
+        params['perms']          = {
+                                    'can_check_purchase':purchase.status == pcfg.PURCHASE_DRAFT \
+                                        and perm.has_check_purchase_permission(request.user),
+                                    'can_show_storage':purchase.status in (pcfg.PURCHASE_APPROVAL,pcfg.PURCHASE_FINISH)}
         return params
     
     def post(self, request, id, *args, **kwargs):
@@ -87,8 +91,11 @@ class PurchaseInsView(ModelView):
         except Exception,exc:
             raise Http404
         
-        if purchase.status != pcfg.PURCHASE_DRAFT:
-            return u'采购单不能审核'
+        if purchase.status != pcfg.PURCHASE_DRAFT :
+            return u'该采购无需审核'
+        
+        if not perm.has_check_purchase_permission(request.user):
+            return u'你没有权限审核'
         
         purchase.status = pcfg.PURCHASE_APPROVAL
         purchase.save()

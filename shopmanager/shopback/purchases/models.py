@@ -14,7 +14,6 @@ PURCHASE_STATUS = (
     (pcfg.PURCHASE_APPROVAL,'审核'),
     (pcfg.PURCHASE_FINISH,'完成'),
     (pcfg.PURCHASE_INVALID,'作废'),
-    (pcfg.PURCHASE_CLOSE,'关闭'),
 )
 
 
@@ -81,6 +80,10 @@ class Purchase(models.Model):
         db_table = 'shop_purchases_purchase'
         verbose_name = u'采购单'
         verbose_name_plural = u'采购单列表'
+        permissions = [
+                       ("can_purchase_check", u"审批采购合同"),
+                       ("can_purchase_confirm", u"确认采购完成"),
+                       ]
 
     def __unicode__(self):
         return '<%s,%s,%s>'%(str(self.id),self.origin_no,self.extra_name)
@@ -222,6 +225,9 @@ class PurchaseItem(models.Model):
         unique_together = ("purchase","outer_id", "outer_sku_id")
         verbose_name = u'采购项目'
         verbose_name_plural = u'采购项目列表'
+        permissions = [
+                       ("can_storage_confirm", u"确认入库数量"),
+                       ]
     
     def __unicode__(self):
         return 'CGZD%d'%self.id
