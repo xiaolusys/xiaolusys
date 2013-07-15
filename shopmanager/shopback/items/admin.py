@@ -10,6 +10,7 @@ from shopback.items.models import Item,Product,ProductSku
 from shopback.trades.models import MergeTrade,MergeOrder
 from shopback import paramconfig as pcfg
 from shopback.base import log_action,User, ADDITION, CHANGE
+from shopback.items import permissions as perms
 import logging 
 
 logger =  logging.getLogger('tradepost.handler')
@@ -25,6 +26,11 @@ class ProductSkuInline(admin.TabularInline):
         models.FloatField: {'widget': TextInput(attrs={'size':'8'})},
         models.TextField: {'widget': Textarea(attrs={'rows':2, 'cols':20})},
     }
+    
+    def get_readonly_fields(self, request, obj=None):
+        if not perms.has_change_product_skunum_permission(request.user):
+            return self.readonly_fields + ('quantity','warn_num','wait_post_num')
+        return self.readonly_fields
 
 
 class ItemAdmin(admin.ModelAdmin):

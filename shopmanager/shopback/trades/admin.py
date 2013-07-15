@@ -28,6 +28,7 @@ from shopback.trades.tasks import sendTaobaoTradeTask,sendTradeCallBack
 from shopback.trades import permissions as perms
 from shopback.base import log_action,User, ADDITION, CHANGE
 from shopback.signals import rule_signal
+from shopback.trades import permissions as perms
 from auth.utils import parse_datetime,pinghost
 from auth import apis
 import logging 
@@ -43,7 +44,7 @@ class MergeOrderInline(admin.TabularInline):
                     'is_merge','is_rule_match','is_reverse_order','gift_type','refund_id','refund_status','status','sys_status')
     
     def get_readonly_fields(self, request, obj=None):
-        if not request.user.has_perm('trades.can_trade_modify'):
+        if not perms.has_modify_trade_permission(request.user):
             return self.readonly_fields + ('oid','outer_id','outer_sku_id','is_merge',
                                            'is_reverse_order','operator','gift_type','status','refund_status')
         return self.readonly_fields

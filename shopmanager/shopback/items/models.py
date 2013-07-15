@@ -78,7 +78,10 @@ class Product(models.Model):
         db_table = 'shop_items_product'
         verbose_name = u'库存商品'
         verbose_name_plural = u'库存商品列表'
-
+        permissions = [
+                       ("change_product_skunum", u"修改库存信息"),
+                       ]
+    
     def __unicode__(self):
         return '<%s,%s>'%(self.outer_id,self.name)
     

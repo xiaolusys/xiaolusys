@@ -11,8 +11,10 @@ class SystemConfig(models.Model):
     normal_print_limit = models.BooleanField(default=True,verbose_name='单打模式连打')   #单打模式是否能连打
     per_request_num    = models.IntegerField(default=30,verbose_name='最大单次锁定单数')
     client_num         = models.IntegerField(default=1,verbose_name='客户端数量')
-    category_updated   = models.DateTimeField(null=True,blank=True,verbose_name='类目更新日期')  #类目更新日期
     
+    jhs_logistic_code  = models.CharField(blank=True,null=True,max_length=20,verbose_name='聚划算指定快递')
+    
+    category_updated   = models.DateTimeField(null=True,blank=True,verbose_name='类目更新日期')  #类目更新日期 
     mall_order_updated  = models.DateTimeField(null=True,blank=True,verbose_name='商城订单更新日期')  #商城订单更新日期  
     fenxiao_order_updated = models.DateTimeField(null=True,blank=True,verbose_name='分销订单更新日期')  #分销订单更新日期
     

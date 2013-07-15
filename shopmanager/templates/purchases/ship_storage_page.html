@@ -18,7 +18,7 @@
   <body class="container">
   	{% if purchase_items %}
   	<div >
-  		<div><h2>未到货采购项目</h2></div>
+  		<div><h2>未完成采购项目</h2></div>
   		<div>
   			<table id="undist-storage-table" class="table table-bordered table-striped table-condensed">
   				<thead>
@@ -29,7 +29,6 @@
   					<th>规格名</th>
   					<th>采购数</th>
   					<th>未到货数</th>
-  					<th>操作</th>
   				</thead>
   				<tbody>
   					{% for item in purchase_items %}
@@ -41,7 +40,6 @@
   						<td>{{ item.properties_name }}</td>
   						<td>{{ item.purchase_num }}</td>
   						<td>{{ item.purchase_num|subtract:item.storage_num }}</td>
-  						<td><a href="javascript:void(0);" class="ship-purchase">关联采购项</a></td>
   					</tr>
   					{% endfor %}
   				</tbody>
@@ -61,7 +59,6 @@
   					<th>规格编码</th>
   					<th>规格名</th>
   					<th>到货数</th>
-  					<th>操作</th>
   				</thead>
   				<tbody>
 			  		{% for storage in storages %}
@@ -84,7 +81,6 @@
 	  						<td>{{ item.outer_sku_id }}</td>
 	  						<td>{{ item.properties_name }}</td>
 	  						<td>{{ item.ship_num }}</td>
-	  						<td><a href="javascript:void(0);" class="ship-purchase">关联采购项</a></td>
 	  					</tr>
 	  					{% endfor %}
 	  					{% endwith %}

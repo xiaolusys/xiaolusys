@@ -348,7 +348,7 @@ purchase.Manager.prototype.onCheckPurchaseInfo = function(e){
         try {
         	var res = xhr.getResponseJson();
         	if (res.code==0){
-        		alert('审核成功');
+        		location.reload();
         	}else{
         		alert('审核失败:'+res.response_error);
         	}
@@ -433,8 +433,6 @@ purchase.Manager.prototype.bindEvent = function (){
 	goog.events.listen(this.saveBtn , goog.events.EventType.CLICK,this.onSavePurchaseInfo,false,this);
 	
 	goog.events.listen(this.checkBtn , goog.events.EventType.CLICK,this.onCheckPurchaseInfo,false,this);
-	
-	new goog.ui.Zippy('id-purchaseitem-head','purchase-items');
 	   
 	$("#purchase-prompt").draggable({handle: $('#purchase-prompt-head')});
 	

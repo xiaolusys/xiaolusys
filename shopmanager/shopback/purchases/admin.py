@@ -6,6 +6,7 @@ from shopback import paramconfig as pcfg
 from shopback.items.models import Product,ProductSku
 from shopback.purchases.models import Purchase,PurchaseItem,\
     PurchaseStorage,PurchaseStorageItem,PurchasePaymentItem,PurchaseStorageRelationship
+from shopback.purchases import permissions as perms
 
 import logging 
 
@@ -22,7 +23,11 @@ class PurchaseItemInline(admin.TabularInline):
         models.TextField: {'widget': Textarea(attrs={'rows':4, 'cols':40})},
         models.FloatField: {'widget': TextInput(attrs={'size':'8'})}
     }
-
+    
+    def get_readonly_fields(self, request, obj=None):
+        if not perms.has_check_purchase_permission(request.user):
+            return self.readonly_fields + self.fields[0:-1] 
+        return self.readonly_fields
     
 
 class PurchaseStorageItemInline(admin.TabularInline):
@@ -34,10 +39,17 @@ class PurchaseStorageItemInline(admin.TabularInline):
         models.CharField: {'widget': TextInput(attrs={'size':'20'})},
         models.TextField: {'widget': Textarea(attrs={'rows':4, 'cols':40})},
     }
+    
+    def get_readonly_fields(self, request, obj=None):
+        if not perms.has_confirm_storage_permission(request.user):
+            print self.fields
+            return self.fields
+        return self.readonly_fields
 
 
 class PurchaseAdmin(admin.ModelAdmin):
-    list_display = ('id','purchase_title_link','origin_no','supplier','deposite','purchase_type','receiver_name','total_fee','payment','forecast_date',
+    list_display = ('id','purchase_title_link','origin_no','supplier','deposite','purchase_type',
+                    'receiver_name','total_fee','payment','forecast_date',
                     'post_date','service_date','arrival_status','status')
     #list_editable = ('update_time','task_type' ,'is_success','status')
 
@@ -70,6 +82,10 @@ class PurchaseAdmin(admin.ModelAdmin):
         models.TextField: {'widget': Textarea(attrs={'rows':4, 'cols':40})},
     }
     
+    def get_readonly_fields(self, request, obj=None):
+        if not perms.has_check_purchase_permission(request.user):
+            return self.readonly_fields+('arrival_status','total_fee','payment','status',)
+        return self.readonly_fields
 
 admin.site.register(Purchase,PurchaseAdmin)
 
@@ -86,7 +102,7 @@ admin.site.register(PurchaseItem,PurchaseItemAdmin)
 
 
 class PurchaseStorageAdmin(admin.ModelAdmin):
-    list_display = ('id','storage_name_link','origin_no','supplier','deposite','forecast_date','post_date','created','modified','status')
+    list_display = ('id','storage_name_link','origin_no','supplier','deposite','storage_num','total_fee','payment','post_date','created','status')
     #list_editable = ('update_time','task_type' ,'is_success','status')
 
     list_filter = ('status','supplier','deposite')
@@ -106,9 +122,9 @@ class PurchaseStorageAdmin(admin.ModelAdmin):
     fieldsets =(('采购入库单信息:', {
                     'classes': ('expand',),
                     'fields': (('origin_no','supplier','deposite')
-                               ,('extra_name','logistic_company','out_sid')
-                               ,('forecast_date','post_date')
-                               ,('status','extra_info'))
+                               ,('forecast_date','post_date','logistic_company','out_sid')
+                               ,('storage_num','total_fee','payment')
+                               ,('extra_name','status','extra_info'))
                 }),)
     
     #--------定制控件属性----------------
@@ -117,13 +133,18 @@ class PurchaseStorageAdmin(admin.ModelAdmin):
         models.FloatField: {'widget': TextInput(attrs={'size':'8'})},
         models.TextField: {'widget': Textarea(attrs={'rows':4, 'cols':40})},
     }
+    
+    def get_readonly_fields(self, request, obj=None):
+        if not perms.has_confirm_storage_permission(request.user):
+            return self.readonly_fields+('arrival_status','storage_num','total_fee','payment','status',)
+        return self.readonly_fields
 
 admin.site.register(PurchaseStorage,PurchaseStorageAdmin)
 
 
 class PurchaseStorageItemAdmin(admin.ModelAdmin):
-    list_display = ('id','purchase_storage','supplier_item_id','outer_id','name','outer_sku_id','properties_name','storage_num'
-                    ,'created','modified','status')
+    list_display = ('id','purchase_storage','supplier_item_id','outer_id','name','outer_sku_id',
+                    'properties_name','storage_num','created','modified','status')
     #list_editable = ('update_time','task_type' ,'is_success','status')
 
     list_filter = ('status',)
@@ -134,7 +155,7 @@ admin.site.register(PurchaseStorageItem,PurchaseStorageItemAdmin)
 
 class PurchaseStorageRelationshipAdmin(admin.ModelAdmin):
     list_display = ('id','purchase_id','purchase_item_id','storage_id','storage_item_id',
-                    'outer_id','outer_sku_id','is_addon','storage_num','relate_fee')
+                    'outer_id','outer_sku_id','is_addon','storage_num','total_fee','payment')
     #list_editable = ('update_time','task_type' ,'is_success','status')
 
     list_filter = ('is_addon',)

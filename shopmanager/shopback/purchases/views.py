@@ -5,7 +5,7 @@ import json
 import csv
 import cStringIO as StringIO
 from django.core.serializers.json import DjangoJSONEncoder
-from django.http import HttpResponse, Http404
+from django.http import HttpResponse, HttpResponseRedirect, Http404
 from django.core.servers.basehttp import FileWrapper
 from django.template.loader import render_to_string
 from django.conf import settings
@@ -23,6 +23,7 @@ from shopback.purchases.models import Purchase,PurchaseItem,PurchaseStorage,Purc
 from shopback import paramconfig as pcfg
 from shopback.purchases import permissions as perm
 from shopback.base import log_action, ADDITION, CHANGE
+from shopback.purchases import permissions as perms
 from utils import CSVUnicodeWriter
 from auth import staff_requried
 
@@ -323,9 +324,48 @@ class StorageDistributeView(ModelView):
         undist_storage_items = purchase_storage.distribute_storage_num()            
         #获取关联采购单信息
         ship_purchases       = purchase_storage.get_ship_purchases()
-        
-        return {'undist_storage_items':undist_storage_items,'ship_purchases':ship_purchases}
+
+        permissions = {
+                 'refresh_storage_ship':purchase_storage.status==pcfg.PURCHASE_DRAFT,
+                 'confirm_storage_ship':not undist_storage_items and purchase_storage.status==pcfg.PURCHASE_DRAFT \
+                    and perms.has_confirm_storage_permission(request.user)
+                 }
+
+        return {'undist_storage_items':undist_storage_items,
+                'ship_purchases':ship_purchases,
+                'purchase_storage':purchase_storage,
+                'perms':permissions}
     
+    def post(self, request, id, *args, **kwargs):
+        
+        try:
+            purchase_storage = PurchaseStorage.objects.get(id=id,status=pcfg.PURCHASE_DRAFT)
+        except:
+            return u'未找到入库单'
+        
+        ship_storage_items = PurchaseStorageRelationship.objects.filter(storage_id=purchase_storage.id)
+        for item in ship_storage_items:
+            item.confirm_storage()
+        
+        purchase_storage.status = pcfg.PURCHASE_APPROVAL
+        purchase_storage.save()
+        
+        return {'id':purchase_storage.id,'status':purchase_storage.status}
+        
+@csrf_exempt        
+@staff_requried
+def refresh_purchasestorage_ship(request,id):
+    
+    try:
+        purchase_storage = PurchaseStorage.objects.get(id=id,status=pcfg.PURCHASE_DRAFT)
+    except:
+        return HttpResponse('<html><body style="text-align:center;"><h1>未找到该入库单</h1></body></html>')
+    
+    ship_storage_items = PurchaseStorageRelationship.objects.filter(storage_id=purchase_storage.id)
+    for item in ship_storage_items:
+        item.delete()
+    
+    return HttpResponseRedirect('/purchases/storage/distribute/%s/'%id)
     
 @csrf_exempt        
 @staff_requried    

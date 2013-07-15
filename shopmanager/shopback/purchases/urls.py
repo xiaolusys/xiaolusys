@@ -52,13 +52,14 @@ urlpatterns = patterns('shopback.purchases.views',
 #        authentication=(UserLoggedInAuthentication,),
 #        permissions=(IsAuthenticated,)
     ))),
-    (r'storage/distribute/(?P<id>\d{1,20})/',StorageDistributeView.as_view(
+    (r'storage/distribute/(?P<id>\d{1,20})/',csrf_exempt(StorageDistributeView.as_view(
         resource=PurchaseStorageResource,
         renderers=(BaseJsonRenderer,StorageDistributeRenderer),
 #        authentication=(UserLoggedInAuthentication,),
 #        permissions=(IsAuthenticated,)
-    )),
+    ))),
     
+    url(r'storage/refresh/(?P<id>\d{1,20})/','refresh_purchasestorage_ship',name='refresh_storage_ship'),
     
     url(r'storage/csv/(?P<id>\d{1,20})/','download_purchasestorage_file',name='purchasestorage_to_csv'),
     url(r'storage/item/del/','delete_purchasestorage_item',name='del_purchasestorage_item'),

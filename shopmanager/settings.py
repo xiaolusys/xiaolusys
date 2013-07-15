@@ -187,7 +187,7 @@ LOGGING = {
     'loggers': {
         'django.request': {
             'handlers': ['sentry'],
-            'level': 'ERROR',
+            'level': 'DEBUG',
             'propagate': True,
         },
         'autolist.handler': {
