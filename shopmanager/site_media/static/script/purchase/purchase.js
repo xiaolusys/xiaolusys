@@ -158,6 +158,7 @@ goog.provide('purchase.Manager');
 purchase.Manager = function () {
 
     this.proditems     = {};
+    this.purchaseid_label   = goog.dom.getElement('id_purchase');
     this.prod_q        = goog.dom.getElement('id_prod_q');
 	this.search_prod_table  = goog.dom.getElement('id-prod-search-table');
 	this.saveBtn       = goog.dom.getElement('save_purchase');
@@ -174,7 +175,7 @@ purchase.Manager = function () {
 purchase.Manager.prototype.onProdSearchKeyDown = function(e){
 	
 	var prod_qstr   = this.prod_q.value;
-	var purchase_id = $('#id_purchase').val();
+	var purchase_id = this.purchaseid_label.innerHTML;
 	if (e.keyCode==13){
 		if (purchase_id==null||purchase_id==''||purchase_id=='undifine'){
 			alert('请先保存采购单基本信息');
@@ -192,7 +193,7 @@ purchase.Manager.prototype.onCreatePurchaseItem = function(e){
 	var row       = target.parentElement.parentElement;
 	
 	$('#purchase-items').show();
-	var params = {  'purchase_id':$('#id_purchase').val(),
+	var params = {  'purchase_id':this.purchaseid_label.innerHTML,
 					'outer_id':row.cells[1].innerHTML,
 					'sku_id':row.cells[3].innerHTML,
 					'price':row.cells[5].firstChild.value,
@@ -230,7 +231,7 @@ purchase.Manager.prototype.onCreatePurchaseItem = function(e){
 //添加采购项
 purchase.Manager.prototype.savePurchaseItem = function(nRow){
 	
-	var params = {  'purchase_id':$('#id_purchase').val(),
+	var params = {  'purchase_id':this.purchaseid_label.innerHTML,
 					'outer_id':nRow.cells[1].innerHTML,
 					'sku_id':nRow.cells[3].innerHTML,
 					'price':nRow.cells[5].firstChild.value,
@@ -267,7 +268,7 @@ purchase.Manager.prototype.delPurchaseItem = function(nRow){
 	{
 	    return;
 	}
-	var params = {  'purchase_id':$('#id_purchase').val(),
+	var params = {  'purchase_id':this.purchaseid_label.innerHTML,
 					'purchase_item_id':purchase_item_id};
 	var that = this;
 	var callback = function(e){
@@ -298,7 +299,7 @@ purchase.Manager.prototype.onSavePurchaseInfo = function(e){
 		return;
 	}
 	
-	var params = {  'purchase_id':$('#id_purchase').val(),
+	var params = {  'purchase_id':this.purchaseid_label.innerHTML,
 					'origin_no':$('#origin_no').val(),
 					'supplier_id':supplier,
 					'deposite_id':$('#deposite').val(),
@@ -316,7 +317,7 @@ purchase.Manager.prototype.onSavePurchaseInfo = function(e){
         	var res = xhr.getResponseJson();
         	if (res.code==0){
         		var purchaseins = res.response_content;
-        		var purchase_id = $('#id_purchase').val();
+        		var purchase_id = that.purchaseid_label.innerHTML;
      			if (purchase_id==''||purchase_id=='undifine'){
      				window.location='/purchases/'+purchaseins.id+'/';
      			}else{
@@ -336,7 +337,7 @@ purchase.Manager.prototype.onSavePurchaseInfo = function(e){
 //审核采购合同
 purchase.Manager.prototype.onCheckPurchaseInfo = function(e){
 	
-	var purchase_id = $('#id_purchase').val();
+	var purchase_id = this.purchaseid_label.innerHTML;
 	
 	if (purchase_id==''||purchase_id=='undifine'){
 		alert('请先保存采购基本信息');

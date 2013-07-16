@@ -142,6 +142,7 @@ goog.provide('purchasestorage.Manager');
 purchasestorage.Manager = function () {
 
     this.proditems     = {};
+    this.purchasestorageid_label = goog.dom.getElement('id_purchase_storage');
     this.prod_q        = goog.dom.getElement('id_prod_q');
 	this.search_prod_table  = goog.dom.getElement('id-prod-search-table');
 	this.saveBtn       = goog.dom.getElement('save_purchase');
@@ -158,7 +159,7 @@ purchasestorage.Manager = function () {
 purchasestorage.Manager.prototype.onProdSearchKeyDown = function(e){
 	
 	var prod_qstr = this.prod_q.value;
-	var purchase_storage_id = $('#id_purchase_storage').val();
+	var purchase_storage_id = this.purchasestorageid_label.innerHTML;
 	if (e.keyCode==13){
 		if (purchase_storage_id==null||purchase_storage_id==''||purchase_storage_id=='undifine'){
 			alert('请先保存采购单基本信息');
@@ -176,7 +177,7 @@ purchasestorage.Manager.prototype.onCreatePurchaseItem = function(e){
 	var row       = target.parentElement.parentElement;
 	
 	$('#purchase-items').show();
-	var params = {  'purchase_storage_id':$('#id_purchase_storage').val(),
+	var params = {  'purchase_storage_id':this.purchasestorageid_label.innerHTML,
 					'outer_id':row.cells[1].innerHTML,
 					'sku_id':row.cells[3].innerHTML,
 					'num':row.cells[5].firstChild.value};
@@ -211,7 +212,7 @@ purchasestorage.Manager.prototype.onCreatePurchaseItem = function(e){
 //添加采购项
 purchasestorage.Manager.prototype.savePurchaseItem = function(nRow){
 	
-	var params = {  'purchase_storage_id':$('#id_purchase_storage').val(),
+	var params = {  'purchase_storage_id':this.purchasestorageid_label.innerHTML,
 					'outer_id':nRow.cells[1].innerHTML,
 					'sku_id':nRow.cells[3].innerHTML,
 					'num':nRow.cells[5].firstChild.value};
@@ -246,7 +247,7 @@ purchasestorage.Manager.prototype.delPurchaseItem = function(nRow){
 	{
 	    return;
 	}
-	var params = {  'purchase_storage_id':$('#id_purchase_storage').val(),
+	var params = {  'purchase_storage_id':this.purchasestorageid_label.innerHTML,
 					'purchase_storage_item_id':purchase_item_id};
 	var that = this;
 	var callback = function(e){
@@ -275,7 +276,7 @@ purchasestorage.Manager.prototype.onSavePurchaseInfo = function(e){
 		alert('请输入供应商');
 		return;
 	}
-	var params = {  'purchase_storage_id':$('#id_purchase_storage').val(),
+	var params = {  'purchase_storage_id':this.purchasestorageid_label.innerHTML,
 					'supplier_id':supplier,
 					'deposite_id':$('#deposite').val(),
 					'forecast_date':$('#forecast_date').val(),
@@ -290,7 +291,7 @@ purchasestorage.Manager.prototype.onSavePurchaseInfo = function(e){
         	var res = xhr.getResponseJson();
         	if (res.code==0){
         		var purchasestorageins = res.response_content;
-        		var purchase_storage_id = $('#id_purchase_storage').val();
+        		var purchase_storage_id = this.purchasestorageid_label.innerHTML;
      			if (purchase_storage_id==''||purchase_storage_id=='undifine'){
      				window.location='/purchases/storage/'+purchasestorageins.id+'/';
      			}else{
@@ -310,7 +311,7 @@ purchasestorage.Manager.prototype.onSavePurchaseInfo = function(e){
 //审核采购合同
 purchasestorage.Manager.prototype.onCheckPurchaseInfo = function(e){
 	
-	var purchase_storage_id = $('#id_purchase_storage').val();
+	var purchase_storage_id = this.purchasestorageid_label.innerHTML;
 	
 	if (purchase_storage_id==''||purchase_storage_id=='undifine'){
 		alert('请先保存采购基本信息');

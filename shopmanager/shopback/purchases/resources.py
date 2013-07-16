@@ -35,7 +35,7 @@ class PurchaseStorageResource(ModelResource):
     """ docstring for PurchaseStorageResource ModelResource """
 
     model = PurchaseStorage
-    fields = ('suppliers','deposites','id','status','purchase_storage','undist_storage_items','ship_purchases') 
+    fields = ('suppliers','deposites','id','status','perms','purchase_storage','undist_storage_items','ship_purchases') 
     exclude = ('url',)
     
     

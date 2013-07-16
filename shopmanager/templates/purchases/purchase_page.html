@@ -176,7 +176,7 @@
  <body>
 	<div class="content-main">
 		<fieldset>
-			<legend><h2 class="head-title" >采购单(NO:<input type="text" id="id_purchase" value="{{ purchase.id }}" disabled="disabled"/>)</h2></legend>
+			<legend><h2 class="head-title" >采购单(NO:<label id="id_purchase" class="label label-success">{% if purchase %}{{ purchase.id }}{% endif %}</label>)</h2></legend>
 			<div class="content-base-info">
 				<table class="table table-bordered table-striped table-condensed">
 					<tr>
