@@ -343,6 +343,10 @@ class StorageDistributeView(ModelView):
         except:
             return u'未找到入库单'
         
+        undist_storage_items = purchase_storage.distribute_storage_num()
+        if undist_storage_items:
+            return u'入库项未完全关联采购单'
+        
         ship_storage_items = PurchaseStorageRelationship.objects.filter(storage_id=purchase_storage.id)
         for item in ship_storage_items:
             item.confirm_storage()

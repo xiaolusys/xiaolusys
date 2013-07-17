@@ -96,18 +96,17 @@
 	}
 	
 	.staff-head {
-		background-color:#222;
-		height:25px;
+		text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.25);
+		white-space: nowrap;
+		vertical-align: baseline;
+		background-color: #777;
+		height:20px;
 		text-align:center;
-		-webkit-border-radius: 5px;
-    	-moz-border-radius: 5px;
 	}
 	
 	.staff-body{
 		padding:5px 2px;
 		border:2px solid #999999;
-		-webkit-border-radius: 5px;
-    	-moz-border-radius: 5px;
     	background-color:white;
 	}
 	
@@ -126,11 +125,11 @@
 	}
 	
 	.event-datetime{
-		width:138px;
+		width:41%;
 	}
 	
 	#event-content {
-		width:318px;
+		width:95%;
 	}
 	
 	div.tagsinput input{
@@ -150,9 +149,9 @@
 	.event-bottom{
 		text-align:center;
 	}
-	
-	
-	
+	.event-bottom a{
+		margin-right:20px;
+	}
 	.prompt-tip{
 		width:400px;
     	z-index: 1001; 
@@ -200,6 +199,7 @@
 	
 	#tc-event-text{
 		margin-bottom:5px;
+		line-height:20px;
 	}
 	
 	.tip-bottom {
@@ -248,13 +248,13 @@
 	    white-space: nowrap;
 	    display:inline;
 	}
-	
+
 </style>
 	<div class="right-panel">
 		<div id='calendar'></div>
 		<div id="add_staff_event" class="add_staff_event draggable " >
 			<div class="staff-head">
-				<h4 style="color:white;padding:2px;">填写事件信息</h4>
+				<label class="label">填写事件信息</label>
 			</div>
 			<div class="staff-body">
 				<div class="control-group executors">
@@ -269,8 +269,8 @@
 					<div class="controls"><textarea id="event-content" rows="3" cols="50" placeholder="描述规范：开头用14字以内写任务标题，然后再写任务内容" ></textarea></div>
 				</div>
 				<div class="control-group event-bottom">
-					<button id="btn-submit" class="btn btn-small btn-inverse">提交</button>
-					<button id="btn-cancle" class="btn btn-small btn-inverse">取消</button>
+					<a id="btn-submit" >提交</a>
+					<a id="btn-cancle" >取消</a>
 				</div>
 			</div>
 		</div>
