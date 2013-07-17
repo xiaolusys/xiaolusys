@@ -169,7 +169,7 @@ class PurchasePaymentItemAdmin(admin.ModelAdmin):
     list_display = ('id','pay_type','payment','purchase','storage','pay_time','status','extra_info')
     #list_editable = ('update_time','task_type' ,'is_success','status')
 
-    list_filter = ('status',)
+    list_filter = ('status','pay_type')
     search_fields = ['id']
     
 

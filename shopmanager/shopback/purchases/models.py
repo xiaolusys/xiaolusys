@@ -41,6 +41,11 @@ PRODUCT_STATUS = (
     (pcfg.DELETE,'作废'),
 )
 
+PAYMENT_STATUS = (
+    (pcfg.PP_WAIT_PAYMENT,'待付款'),
+    (pcfg.PP_HAS_PAYMENT,'已付款'),
+    (pcfg.PP_INVALID,'已作废'),
+)
 
 class Purchase(models.Model):
     """ 采购合同 """
@@ -556,12 +561,17 @@ class PurchaseStorageRelationship(models.Model):
     def confirm_storage(self):
         """ 确认关联入库 """
         prod = Product.objects.get(outer_id=self.outer_id)
+        purchase_item = PurchaseItem.objects.get(id=self.purchase_item_id)
         if self.outer_sku_id:
             prod_sku = ProductSku.objects.get(outer_id=self.outer_sku_id,product=prod)
             prod_sku.update_quantity_incremental(self.storage_num,reverse=True)
+            prod_sku.cost = purchase_item.price
+            prod_sku.save()
         else:
             prod.update_collect_num_incremental(self.storage_num,reverse=True)
-        
+            prod.cost = purchase_item.price
+            prod.save()
+            
         self.is_addon = True
         self.save()    
         
@@ -621,9 +631,13 @@ class PurchasePaymentItem(models.Model):
     
     pay_time     = models.DateTimeField(null=True,blank=True,verbose_name='付款日期')
     
-    payment   = models.FloatField(default=0,verbose_name='付款金额')
+    created      = models.DateTimeField(null=True,blank=True,auto_now=True,verbose_name='创建日期')
     
-    status       = models.CharField(max_length=32,db_index=True,verbose_name='状态')
+    modified     = models.DateTimeField(null=True,blank=True,auto_now_add=True,verbose_name='修改日期')
+    
+    payment      = models.FloatField(default=0,verbose_name='付款金额')
+    
+    status       = models.CharField(max_length=32,db_index=True,choices=PAYMENT_STATUS,verbose_name='状态')
     
     extra_info   = models.TextField(max_length=1000,blank=True,verbose_name='备注')
     
@@ -633,6 +647,6 @@ class PurchasePaymentItem(models.Model):
         verbose_name_plural = u'付款项目列表'
     
     def __unicode__(self):
-        return '<%s,%s,%s>'%(str(self.purchase),str(self.storage),str(self.payment))
+        return '<%s,%s,%s>'%(str(self.id or ''),self.pay_type,str(self.payment))
     
     

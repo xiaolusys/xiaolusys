@@ -354,6 +354,8 @@ class StorageDistributeView(ModelView):
         purchase_storage.status = pcfg.PURCHASE_APPROVAL
         purchase_storage.save()
         
+        log_action(request.user.id,purchase_storage,CHANGE,u'确认收货')
+        
         return {'id':purchase_storage.id,'status':purchase_storage.status}
         
 @csrf_exempt        
@@ -368,6 +370,8 @@ def refresh_purchasestorage_ship(request,id):
     ship_storage_items = PurchaseStorageRelationship.objects.filter(storage_id=purchase_storage.id)
     for item in ship_storage_items:
         item.delete()
+    
+    log_action(request.user.id,purchase_storage,CHANGE,u'重新关联')
     
     return HttpResponseRedirect('/purchases/storage/distribute/%s/'%id)
     
@@ -388,21 +392,21 @@ def delete_purchasestorage_item(request):
     storage_item.status = pcfg.DELETE
     storage_item.save()
     
-    log_action(request.user.id,purchase,CHANGE,u'采购项作废')
+    log_action(request.user.id,purchase,CHANGE,u'入库项作废')
     
     return HttpResponse(json.dumps({'code':0,'response_content':'success'}),mimetype='application/json')
     
 
 @staff_requried    
 def download_purchasestorage_file(request,id):
-    """ 下载采购合同信息 """
+    """ 下载入库单信息 """
     try:
         purchase = PurchaseStorage.objects.get(id=id)
     except PurchaseStorage.DoesNotExist:
         raise Http404
     
     is_windows = request.META['HTTP_USER_AGENT'].lower().find('windows') >-1 
-    file_name = u'purchase-contract(NO-%s).csv'%str(purchase.id)
+    file_name = u'storage-contract(NO-%s).csv'%str(purchase.id)
     myfile = StringIO.StringIO() 
     pcsv = purchase.gen_csv_tuple()
     writer = CSVUnicodeWriter(myfile,encoding= is_windows and "gbk" or 'utf8')
