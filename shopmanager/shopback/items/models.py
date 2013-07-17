@@ -278,36 +278,29 @@ def calculate_product_stock_num(sender, instance, *args, **kwargs):
     product = instance.product
     if product:
         product_skus = product.pskus
-        has_prod_sku = product_skus.count()>0
-        collect_num  = has_prod_sku and product_skus.aggregate(
-                           total_nums=Sum('quantity')).get('total_nums') or product.collect_num
-        warn_num     = has_prod_sku and product_skus.aggregate(
-                           total_nums=Sum('warn_num')).get('total_nums') or product.warn_num
-        remain_num   = has_prod_sku and product_skus.aggregate(
-                           total_nums=Sum('remain_num')).get('total_nums') or product.remain_num
-        wait_post_num  = has_prod_sku and product_skus.aggregate(
-                           total_nums=Sum('wait_post_num')).get('total_nums') or product.wait_post_num
+ 
+        if product_skus.count()>0:
             
-        cost               = has_prod_sku and product_skus.aggregate(
-                                cost_avg=Avg('cost')).get('cost_avg') or prod.cost
-        std_purchase_price = has_prod_sku and product_skus.aggregate(
-                                std_purchase_price_avg=Avg('std_purchase_price')).get('std_purchase_price_avg') or prod.std_purchase_price
-        agent_price        = has_prod_sku and product_skus.aggregate(
-                                agent_price_avg=Avg('agent_price')).get('agent_price_avg') or prod.agent_price
-        staff_price        = has_prod_sku and product_skus.aggregate(
-                                staff_price_avg=Avg('staff_price')).get('staff_price_avg') or prod.staff_price
-            
+            product.collect_num  =  product_skus.aggregate(
+                                                           total_nums=Sum('quantity')).get('total_nums') or 0
+            product.warn_num     =  product_skus.aggregate(
+                                                           total_nums=Sum('warn_num')).get('total_nums') or 0
+            product.remain_num   =  product_skus.aggregate(
+                                                           total_nums=Sum('remain_num')).get('total_nums') or 0
+            product.wait_post_num  =  product_skus.aggregate(
+                                                             total_nums=Sum('wait_post_num')).get('total_nums') or 0
+                
+            product.cost               = product_skus.aggregate(
+                                                                cost_avg=Avg('cost')).get('cost_avg') or 0.0
+            product.std_purchase_price = product_skus.aggregate(
+                                                                std_purchase_price_avg=Avg('std_purchase_price')).get('std_purchase_price_avg') or 0.0
+            product.agent_price        = product_skus.aggregate(
+                                                                agent_price_avg=Avg('agent_price')).get('agent_price_avg') or 0.0
+            product.staff_price        = product_skus.aggregate(
+                                                                staff_price_avg=Avg('staff_price')).get('staff_price_avg') or 0.0
+        
         product.is_split    = product_skus.filter(is_split=True)>0    
         product.is_match    = product_skus.filter(is_match=True)>0 
-        product.collect_num = collect_num or 0
-        product.warn_num    = warn_num or 0
-        product.remain_num  = remain_num or 0
-        product.wait_post_num = wait_post_num or 0
-        
-        product.cost                 = cost or 0.0
-        product.std_purchase_price   = std_purchase_price or 0.0
-        product.agent_price          = agent_price or 0.0
-        product.staff_price          = staff_price or 0.0
         
         product.save()
     
