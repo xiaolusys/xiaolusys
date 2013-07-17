@@ -558,9 +558,9 @@ class PurchaseStorageRelationship(models.Model):
         prod = Product.objects.get(outer_id=self.outer_id)
         if self.outer_sku_id:
             prod_sku = ProductSku.objects.get(outer_id=self.outer_sku_id,product=prod)
-            prod_sku.update_quantity_incremental(self.storage_num)
+            prod_sku.update_quantity_incremental(self.storage_num,reverse=True)
         else:
-            prod.update_collect_num_incremental(self.storage_num)
+            prod.update_collect_num_incremental(self.storage_num,reverse=True)
         
         self.is_addon = True
         self.save()    
