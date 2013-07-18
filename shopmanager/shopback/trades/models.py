@@ -12,7 +12,7 @@ from shopback.users.models import User,Customer
 from shopback.base import log_action, ADDITION, CHANGE
 from shopback.orders.models import Trade,Order,STEP_TRADE_STATUS
 from shopback.items.models import Item,Product,ProductSku
-from shopback.logistics.models import Logistics,LogisticsCompany
+from shopback.logistics.models import Logistics,LogisticsCompany,DestCompany
 from shopback.fenxiao.models import PurchaseOrder,SubPurchaseOrder,FenxiaoProduct
 from shopback.refunds.models import Refund,REFUND_STATUS
 from auth.utils import parse_datetime ,get_yesterday_interval_time
@@ -1047,19 +1047,22 @@ def trade_download_controller(merge_trade,trade,trade_from,first_pay_load):
         
         #给订单分配快递
         if not merge_trade.logistics_company:
-            
+            receiver_state = merge_trade.receiver_state
+            receiver_city  = merge_trade.receiver_city
+            receiver_district  = merge_trade.receiver_district
             if shipping_type.lower() == pcfg.EXPRESS_SHIPPING_TYPE.lower():
                 #如果聚划算订单，则判断是否有指定使用某快递
                 if merge_trade.trade_from&MergeTrade.trade_from.JHS:
-                    sys_config  = SystemConfig.getconfig()
-                    if sys_config.jhs_logistic_code:
-                        merge_trade.logistics_company = LogisticsCompany.objects.get(
+                    assign_logistic = DestCompany.get_destcompany_by_addr(receiver_state,receiver_city,receiver_district)
+                    if assign_logistic:
+                        merge_trade.logistics_company = assign_logistic
+                    else:
+                        sys_config  = SystemConfig.getconfig()
+                        if sys_config.jhs_logistic_code:
+                            merge_trade.logistics_company = LogisticsCompany.objects.get(
                                                             code=sys_config.jhs_logistic_code.upper())
                         
                 if not merge_trade.logistics_company:
-                    receiver_state = merge_trade.receiver_state
-                    receiver_city  = merge_trade.receiver_city
-                    receiver_district  = merge_trade.receiver_district
                     default_company = LogisticsCompany.get_recommend_express(receiver_state,receiver_city,receiver_district)
                     merge_trade.logistics_company = default_company
             elif shipping_type in (pcfg.POST_SHIPPING_TYPE,pcfg.EMS_SHIPPING_TYPE):
