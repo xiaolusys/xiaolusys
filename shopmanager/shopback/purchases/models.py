@@ -699,11 +699,11 @@ class PurchasePaymentItem(models.Model):
         3,付款提货
     """    
     
-    purchase  = models.ForeignKey(Purchase,null=True,related_name='purchase_payment',verbose_name='采购合同')
+    purchase  = models.ForeignKey(Purchase,null=True,blank=True,related_name='purchase_payment',verbose_name='采购合同')
     
-    storage   = models.ForeignKey(PurchaseStorage,null=True,related_name='purchase_payment',verbose_name='入库单')
+    storage   = models.ForeignKey(PurchaseStorage,null=True,blank=True,related_name='purchase_payment',verbose_name='入库单')
     
-    pay_type  = models.CharField(max_length=4,db_index=True,choices=PURCHASE_PAYMENT_TYPE,verbose_name='付款类型')
+    pay_type  = models.CharField(max_length=6,db_index=True,choices=PURCHASE_PAYMENT_TYPE,verbose_name='付款类型')
     
     pay_time     = models.DateTimeField(null=True,blank=True,verbose_name='付款日期')
     

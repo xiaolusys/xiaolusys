@@ -9,7 +9,7 @@ from shopback.items.models import Product,ProductSku
 from shopback.purchases.models import Purchase,PurchaseItem,\
     PurchaseStorage,PurchaseStorageItem,PurchasePaymentItem,PurchaseStorageRelationship
 from shopback.purchases import permissions as perms
-
+from shopback.base import log_action, ADDITION, CHANGE
 import logging 
 
 logger =  logging.getLogger('purchases.handler')
@@ -35,7 +35,7 @@ class PurchaseItemInline(admin.TabularInline):
 class PurchaseStorageItemInline(admin.TabularInline):
     
     model = PurchaseStorageItem
-    fields = ('outer_id','name','outer_sku_id','properties_name','storage_num','status')
+    fields = ('outer_id','name','outer_sku_id','properties_name','storage_num','is_addon','status')
     
     formfield_overrides = {
         models.CharField: {'widget': TextInput(attrs={'size':'20'})},
@@ -107,6 +107,8 @@ class PurchaseAdmin(admin.ModelAdmin):
                     prod.cost = purchase_item.price
                     prod.save()
         
+                log_action(request.user.id,purchase,CHANGE,u'更新库存商品价格')
+        
         return render_to_response('purchases/purchase_addon_template.html',
                         {'purchases':approval_purchases},
                         context_instance=RequestContext(request),mimetype="text/html") 
@@ -154,7 +156,7 @@ class PurchaseStorageAdmin(admin.ModelAdmin):
                     'fields': (('origin_no','supplier','deposite')
                                ,('forecast_date','post_date','logistic_company','out_sid')
                                ,('storage_num','total_fee','payment')
-                               ,('extra_name','status','extra_info'))
+                               ,('extra_name','status','is_addon','extra_info'))
                 }),)
     
     #--------定制控件属性----------------
@@ -185,10 +187,13 @@ class PurchaseStorageAdmin(admin.ModelAdmin):
                     prod.update_collect_num_incremental(storage_item.storage_num,reverse=True)
                 storage_item.is_addon = True
                 storage_item.save()
-            if storage.normal_storage_items.filter(is_addon=False)==0:
+                
+            if storage.normal_storage_items.filter(is_addon=False).count()==0:
                 storage.is_addon=True
                 storage.save()
-        
+                
+            log_action(request.user.id,storage,CHANGE,u'入库数更新到库存')
+            
         addon_storages = queryset.filter(is_addon=True)
         
         unaddon_storages = queryset.filter(is_addon=False)
@@ -197,7 +202,7 @@ class PurchaseStorageAdmin(admin.ModelAdmin):
                         {'addon_storages':addon_storages,'unaddon_storages':unaddon_storages},
                         context_instance=RequestContext(request),mimetype="text/html") 
 
-    addon_stock_action.short_description = u"入库更新库存"
+    addon_stock_action.short_description = u"入库数更新到库存"
     
     actions = ['addon_stock_action']
     
@@ -229,7 +234,7 @@ admin.site.register(PurchaseStorageRelationship,PurchaseStorageRelationshipAdmin
 
 
 class PurchasePaymentItemAdmin(admin.ModelAdmin):
-    list_display = ('id','pay_type','payment','purchase','storage','pay_time','extra_info')
+    list_display = ('id','pay_type','payment','purchase','storage','pay_time','created','modified','extra_info')
     #list_editable = ('update_time','task_type' ,'is_success','status')
 
     list_filter = ('pay_type',)
