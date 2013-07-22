@@ -53,3 +53,13 @@ class PurchaseShipStorageRenderer(TemplateRenderer):
     template = 'purchases/ship_storage_page.html'
     
         
+class PurchasePaymentRenderer(TemplateRenderer):
+    """
+    Renderer which serializes to HTML
+    """
+    
+    media_type = 'text/html'
+    format = 'html'
+    template = 'purchases/purchase_payment_page.html'
+    
+    

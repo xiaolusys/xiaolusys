@@ -78,10 +78,7 @@ class DestCompany(models.Model):
        
         if companys and companys.count()>0:
             cid = companys[0].company
-            try:
-                return LogisticsCompany.objects.get(code=cid.upper())
-            except:
-                return None
+            return LogisticsCompany.objects.get(code=cid.upper())
         
         return None
                 

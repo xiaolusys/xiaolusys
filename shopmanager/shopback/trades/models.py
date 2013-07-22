@@ -1050,24 +1050,27 @@ def trade_download_controller(merge_trade,trade,trade_from,first_pay_load):
             receiver_state = merge_trade.receiver_state
             receiver_city  = merge_trade.receiver_city
             receiver_district  = merge_trade.receiver_district
-            if shipping_type.lower() == pcfg.EXPRESS_SHIPPING_TYPE.lower():
-                #如果聚划算订单，则判断是否有指定使用某快递
-                if merge_trade.trade_from&MergeTrade.trade_from.JHS:
-                    assign_logistic = DestCompany.get_destcompany_by_addr(receiver_state,receiver_city,receiver_district)
-                    if assign_logistic:
-                        merge_trade.logistics_company = assign_logistic
-                    else:
-                        sys_config  = SystemConfig.getconfig()
-                        if sys_config.jhs_logistic_code:
-                            merge_trade.logistics_company = LogisticsCompany.objects.get(
-                                                            code=sys_config.jhs_logistic_code.upper())
-                        
-                if not merge_trade.logistics_company:
-                    default_company = LogisticsCompany.get_recommend_express(receiver_state,receiver_city,receiver_district)
-                    merge_trade.logistics_company = default_company
-            elif shipping_type in (pcfg.POST_SHIPPING_TYPE,pcfg.EMS_SHIPPING_TYPE):
-                post_company = LogisticsCompany.objects.get(code=shipping_type.upper())
-                merge_trade.logistics_company = post_company 
+            try:
+                if shipping_type.lower() == pcfg.EXPRESS_SHIPPING_TYPE.lower():
+                    #如果聚划算订单，则判断是否有指定使用某快递
+                    if merge_trade.trade_from&MergeTrade.trade_from.JHS:
+                        assign_logistic = DestCompany.get_destcompany_by_addr(receiver_state,receiver_city,receiver_district)
+                        if assign_logistic:
+                            merge_trade.logistics_company = assign_logistic
+                        else:
+                            sys_config  = SystemConfig.getconfig()
+                            if sys_config.jhs_logistic_code:
+                                merge_trade.logistics_company = LogisticsCompany.objects.get(
+                                                                code=sys_config.jhs_logistic_code.upper())
+                            
+                    if not merge_trade.logistics_company:
+                        default_company = LogisticsCompany.get_recommend_express(receiver_state,receiver_city,receiver_district)
+                        merge_trade.logistics_company = default_company
+                elif shipping_type in (pcfg.POST_SHIPPING_TYPE,pcfg.EMS_SHIPPING_TYPE):
+                    post_company = LogisticsCompany.objects.get(code=shipping_type.upper())
+                    merge_trade.logistics_company = post_company 
+            except:
+                merge_trade.append_reason_code(pcfg.DISTINCT_RULE_CODE)
      
         #退款中
         wait_refunding = merge_trade.has_trade_refunding()

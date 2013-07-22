@@ -1,11 +1,15 @@
 from django.conf.urls.defaults import patterns, url
-from shopback.purchases.views import PurchaseItemView,PurchaseView,PurchaseInsView,\
+from shopback.purchases.views import PurchaseItemView,PurchaseView,PurchaseInsView,PurchasePaymentView,\
     PurchaseStorageItemView,PurchaseStorageView,PurchaseStorageInsView,StorageDistributeView,PurchaseShipStorageView
-from shopback.purchases.resources import PurchaseItemResource,PurchaseResource,PurchaseStorageResource,PurchaseStorageItemResource
+from shopback.purchases.resources import PurchaseItemResource,PurchaseResource,PurchaseStorageResource,\
+    PurchaseStorageItemResource,PurchasePaymentResource
 from shopback.purchases.renderers import PurchaseItemHtmlRenderer,JSONRenderer,PurchaseHtmlRenderer,\
-    PurchaseStorageHtmlRenderer,StorageDistributeRenderer,PurchaseShipStorageRenderer
+    PurchaseStorageHtmlRenderer,StorageDistributeRenderer,PurchaseShipStorageRenderer,PurchasePaymentRenderer
 from shopback.base.renderers  import BaseJsonRenderer
 from django.views.decorators.csrf import csrf_exempt
+from shopback.base.permissions import IsAuthenticated
+from shopback.base.authentication import UserLoggedInAuthentication,login_required_ajax
+
 
 urlpatterns = patterns('shopback.purchases.views',
     
@@ -58,6 +62,12 @@ urlpatterns = patterns('shopback.purchases.views',
 #        authentication=(UserLoggedInAuthentication,),
 #        permissions=(IsAuthenticated,)
     ))),
+    url(r'payment/',csrf_exempt(PurchasePaymentView.as_view(
+        resource=PurchasePaymentResource,
+        renderers=(BaseJsonRenderer,PurchasePaymentRenderer),
+        authentication=(UserLoggedInAuthentication,),
+        permissions=(IsAuthenticated,)
+        )),name='purchase_payment'),
     
     url(r'storage/refresh/(?P<id>\d{1,20})/','refresh_purchasestorage_ship',name='refresh_storage_ship'),
     

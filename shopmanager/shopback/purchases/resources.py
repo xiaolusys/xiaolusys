@@ -38,4 +38,12 @@ class PurchaseStorageResource(ModelResource):
     fields = ('suppliers','deposites','id','status','perms','purchase_storage','undist_storage_items','ship_purchases') 
     exclude = ('url',)
     
+
+class PurchasePaymentResource(ModelResource):
+    """ docstring for PurchasePaymentResource ModelResource """
+
+    model = PurchaseStorage
+    fields = ('purchases','storages','error_msg') 
+    exclude = ('url',)
     
+        

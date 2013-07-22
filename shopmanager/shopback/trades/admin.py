@@ -111,7 +111,7 @@ class MergeTradeAdmin(admin.ModelAdmin):
     trade_id_link.short_description = "ID"
     
     def popup_tid_link(self, obj):
-        return u'<a href="%d/" onclick="return showTradePopup(this);">%s</a>' %(obj.id,obj.tid and str(obj.tid) or '' )
+        return u'<a href="%d/" onclick="return showTradePopup(this);">%s</a>' %(obj.id,obj.tid and str(obj.tid) or u'【无单号】' )
     popup_tid_link.allow_tags = True
     popup_tid_link.short_description = "淘宝单号" 
     

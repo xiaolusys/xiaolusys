@@ -291,7 +291,7 @@ purchasestorage.Manager.prototype.onSavePurchaseInfo = function(e){
         	var res = xhr.getResponseJson();
         	if (res.code==0){
         		var purchasestorageins = res.response_content;
-        		var purchase_storage_id = this.purchasestorageid_label.innerHTML;
+        		var purchase_storage_id = that.purchasestorageid_label.innerHTML;
      			if (purchase_storage_id==''||purchase_storage_id=='undifine'){
      				window.location='/purchases/storage/'+purchasestorageins.id+'/';
      			}else{

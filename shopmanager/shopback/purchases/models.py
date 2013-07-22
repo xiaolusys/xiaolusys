@@ -1,11 +1,12 @@
 #-*- coding:utf8 -*-
 from django.db import models
 from django.db.models.signals import post_save,post_delete
-from django.db.models import Q,Sum
+from django.db.models import Q,Sum,F
 from shopback import paramconfig as pcfg
 from shopback.archives.models import Supplier,PurchaseType,Deposite
 from shopback.categorys.models import ProductCategory
 from shopback.items.models import Product,ProductSku
+from shopback.monitor.models import SystemConfig
 from auth.utils import format_date
 from utils import update_model_feilds
 
@@ -41,11 +42,6 @@ PRODUCT_STATUS = (
     (pcfg.DELETE,'作废'),
 )
 
-PAYMENT_STATUS = (
-    (pcfg.PP_WAIT_PAYMENT,'待付款'),
-    (pcfg.PP_HAS_PAYMENT,'已付款'),
-    (pcfg.PP_INVALID,'已作废'),
-)
 
 class Purchase(models.Model):
     """ 采购合同 """
@@ -100,6 +96,13 @@ class Purchase(models.Model):
     @property
     def unfinish_purchase_items(self):
         return self.effect_purchase_items.filter(arrival_status__in=(pcfg.PD_UNARRIVAL,pcfg.PD_PARTARRIVAL))
+        
+    @property
+    def total_unpay_fee(self):
+        unpay_fee = 0
+        for item in self.effect_purchase_items:
+            unpay_fee = unpay_fee+item.unpay_fee
+        return unpay_fee
         
     def gen_csv_tuple(self):
         
@@ -191,7 +194,30 @@ class Purchase(models.Model):
                                             }
         return [v for k,v in storage_map.iteritems()]    
         
-        
+    def pay(self,payment,additional=False):
+        """ 采购合同付款 """
+
+        #如果追加额外成本
+        if additional:
+            per_cost_avg = round(payment/self.purchase_num,2)
+            for item in self.effect_purchase_items:
+                item.price   = F('price')+per_cost_avg
+                item.payment = F('payment')+per_cost_avg*item.purchase_num
+                item.save()
+        #正常付款
+        else:
+            total_unpay_fee = self.total_unpay_fee
+
+            if not total_unpay_fee:
+                raise Exception(u'没有待付款项')
+            
+            if payment>total_unpay_fee:
+                raise Exception(u'付款金额超过待付金额')
+            
+            for item in self.effect_purchase_items:
+                item.payment = item.payment+round((item.unpay_fee/total_unpay_fee)*payment,2)
+                item.save()
+                
         
 class PurchaseItem(models.Model):
     """ 采购项目 """
@@ -235,7 +261,11 @@ class PurchaseItem(models.Model):
                        ]
     
     def __unicode__(self):
-        return 'CGZD%d'%self.id
+        return 'CGZD%d'%(self.id or 0)
+    
+    @property
+    def unpay_fee(self):
+        return self.total_fee-self.payment
     
     @property
     def json(self):
@@ -302,11 +332,13 @@ class PurchaseStorage(models.Model):
     status       = models.CharField(max_length=32,db_index=True,choices=PURCHASE_STORAGE_STATUS,
                                     default=pcfg.PURCHASE_DRAFT,verbose_name='状态')
     
-    total_fee    = models.FloatField(default=0.0,verbose_name='应付费用')
-    payment      = models.FloatField(default=0.0,verbose_name='已付费用')
+    total_fee    = models.FloatField(default=0.0,verbose_name='总金额')
+    payment      = models.FloatField(default=0.0,verbose_name='实付款')
     
     logistic_company = models.CharField(max_length=64,blank=True,verbose_name='物流公司')
     out_sid          = models.CharField(max_length=64,db_index=True,blank=True,verbose_name='物流编号')
+    
+    is_addon         = models.BooleanField(default=False,verbose_name='加入库存')
     
     extra_name  = models.CharField(max_length=256,blank=True,verbose_name='标题')
     extra_info  = models.TextField(blank=True,verbose_name='备注')
@@ -317,7 +349,7 @@ class PurchaseStorage(models.Model):
         verbose_name_plural = u'入库单列表'
 
     def __unicode__(self):
-        return 'RKD%d'%self.id
+        return '<%d,%s,%s>'%(self.id or 0,self.origin_no,self.extra_name)
     
     @property
     def normal_storage_items(self):
@@ -366,17 +398,21 @@ class PurchaseStorage(models.Model):
         
     def distribute_storage_num(self):
         """ 分配入库项数量到采购单,返回未分配的采购项 """
+        #如果入库状态非草稿状态，直接返回空
+        if self.status != pcfg.PURCHASE_DRAFT:
+            return {}
         
         unmatch_storage_items     = []
-        uncomplete_purchase = Purchase.objects.filter(supplier=self.supplier,arrival_status__in=(pcfg.PD_UNARRIVAL,pcfg.PD_PARTARRIVAL),
-                                                      status=pcfg.PURCHASE_APPROVAL).order_by('service_date')
+        uncomplete_purchase = Purchase.objects.filter(supplier=self.supplier,
+                            arrival_status__in=(pcfg.PD_UNARRIVAL,pcfg.PD_PARTARRIVAL),
+                            status=pcfg.PURCHASE_APPROVAL).order_by('service_date')
         
         for storage_item in self.normal_storage_items:
             storage_ships = PurchaseStorageRelationship.objects.filter(
                             storage_id=self.id,storage_item_id=storage_item.id)
             
             undist_storage_num = storage_item.storage_num - (storage_ships.aggregate(
-                                        dist_storage_num=Sum('storage_num')).get('dist_storage_num') or 0) #未分配库存数
+                                dist_storage_num=Sum('storage_num')).get('dist_storage_num') or 0) #未分配库存数
             if undist_storage_num>0:
                 outer_id     = storage_item.outer_id
                 outer_sku_id = storage_item.outer_sku_id
@@ -405,7 +441,7 @@ class PurchaseStorage(models.Model):
                         
                         diff_num  = min(diff_num,undist_storage_num)
                         storage_ship.storage_num  = diff_num
-                        storage_ship.total_fee    = diff_num*purchase_item.price
+                        storage_ship.total_fee    = round(diff_num*purchase_item.price,2)
                         storage_ship.save()
                     
                     undist_storage_num = undist_storage_num - diff_num    
@@ -469,7 +505,44 @@ class PurchaseStorage(models.Model):
                                                                'status':dict(PRODUCT_STATUS).get(purchase_item.status)}]
                                             }
         return [v for k,v in purchase_map.iteritems()]    
+    
+    def pay(self,payment,additional=False):
+        """ 付款 """
+        relate_ships = PurchaseStorageRelationship.objects.filter(storage_id=self.id)
+        #是否跟采购项
+        if additional:
+            total_storage_num = relate_ships.aggregate(total_storage_num=Sum('storage_num')).get('total_storage_num') or 0
+            per_cost_avg = payment/total_storage_num
+            for ship in relate_ships:
+                ship.payment  = F('payment')+round(per_cost_avg*ship.storage_num,2)
+                ship.save()
+                #更新采购项价格跟实付款
+                purchase_item = PurchaseItem.objects.get(id=ship.purchase_item_id)
+                purchase_item.payment = F('payment')+round(per_cost_avg*ship.storage_num,2)
+                purchase_item.price   = F('price')+round((per_cost_avg*ship.storage_num)/purchase_item.purchase_num,2)
+                purchase_item.save()
+        else:
+            total_fee = 0
+            for ship in relate_ships:
+                total_fee = total_fee+ship.total_fee
             
+            if not total_fee:
+                raise Exception(u'没有待付款项')
+                
+            if payment>total_fee:
+                raise Exception(u'付款金额超过总金额')
+                
+            for ship in relate_ships:
+                #更新关联项付款金额
+                item_payment = round((ship.total_fee/total_fee)*payment,2)
+                ship.payment = F('payment')+item_payment
+                ship.save()
+                #更新采购项付款金额
+                purchase_item = PurchaseItem.objects.get(id=ship.purchase_item_id)
+                purchase_item.payment = F('payment')+item_payment
+                purchase_item.save()
+        
+                
             
 class PurchaseStorageItem(models.Model):
     """ 采购入库项目 """
@@ -487,11 +560,13 @@ class PurchaseStorageItem(models.Model):
     created      = models.DateTimeField(null=True,blank=True,auto_now=True,verbose_name='创建日期')
     modified     = models.DateTimeField(null=True,blank=True,auto_now_add=True,verbose_name='修改日期')
     
-    total_fee    = models.FloatField(default=0.0,verbose_name='应付费用')
-    payment      = models.FloatField(default=0.0,verbose_name='已付费用')
+    total_fee    = models.FloatField(default=0.0,verbose_name='总金额')
+    payment      = models.FloatField(default=0.0,verbose_name='已付款')
     
     status       = models.CharField(max_length=32,db_index=True,choices=PRODUCT_STATUS,
                                     default=pcfg.NORMAL,verbose_name='状态')
+    
+    is_addon         = models.BooleanField(default=False,verbose_name='加入库存')
     
     extra_info   = models.CharField(max_length=1000,blank=True,verbose_name='备注')
     
@@ -544,7 +619,7 @@ class PurchaseStorageRelationship(models.Model):
     outer_id          = models.CharField(max_length=32,verbose_name='商品编码')
     outer_sku_id      = models.CharField(max_length=32,null=False,blank=True,verbose_name='规格编码')
     
-    is_addon          = models.BooleanField(default=False,verbose_name='确认入库')
+    is_addon          = models.BooleanField(default=False,verbose_name='确认收货')
     storage_num       = models.IntegerField(null=True,default=0,verbose_name='关联入库数量')
     total_fee         = models.FloatField(default=0.0,verbose_name='应付费用')
     payment           = models.FloatField(default=0.0,verbose_name='支付费用')
@@ -558,24 +633,27 @@ class PurchaseStorageRelationship(models.Model):
     def __unicode__(self):
         return 'RKZD%d'%self.id
     
-    def confirm_storage(self):
+    
+    def confirm_storage(self,cost_addon=False):
         """ 确认关联入库 """
         prod = Product.objects.get(outer_id=self.outer_id)
         purchase_item = PurchaseItem.objects.get(id=self.purchase_item_id)
+        
         if self.outer_sku_id:
             prod_sku = ProductSku.objects.get(outer_id=self.outer_sku_id,product=prod)
-            prod_sku.update_quantity_incremental(self.storage_num,reverse=True)
-            prod_sku.cost = purchase_item.price
-            prod_sku.save()
+
+            if cost_addon:
+                prod_sku.cost = purchase_item.price
+                prod_sku.save()
         else:
-            prod.update_collect_num_incremental(self.storage_num,reverse=True)
-            prod.cost = purchase_item.price
-            prod.save()
+
+            if cost_addon:
+                prod.cost = purchase_item.price
+                prod.save()
             
         self.is_addon = True
         self.save()    
-        
-        
+ 
     
     
 def update_purchaseitem_storage_and_fee(sender,instance,*args,**kwargs):
@@ -595,18 +673,16 @@ def update_purchaseitem_storage_and_fee(sender,instance,*args,**kwargs):
         return
     
     purchase_item = PurchaseItem.objects.get(id=instance.purchase_item_id)
-
+    
     relation_dict = PurchaseStorageRelationship.objects.filter(
         purchase_id=instance.purchase_id,purchase_item_id=instance.purchase_item_id)\
-        .aggregate(total_storage_num=Sum('storage_num'),total_payment=Sum('payment'))
+        .aggregate(total_storage_num=Sum('storage_num'))
         
     total_storage_num = relation_dict.get('total_storage_num') or 0
-    taotao_payment    = relation_dict.get('total_payment') or 0
     
     purchase_item.arrival_status = total_storage_num<=0 and pcfg.PD_UNARRIVAL or \
         (total_storage_num>=purchase_item.purchase_num and pcfg.PD_FULLARRIVAL or pcfg.PD_PARTARRIVAL)
     purchase_item.storage_num = total_storage_num
-    purchase_item.payment     = taotao_payment
     purchase_item.save()
  
 #修改，删除采购入库关联项时，应更新其对应的采购项信息       
@@ -636,8 +712,6 @@ class PurchasePaymentItem(models.Model):
     modified     = models.DateTimeField(null=True,blank=True,auto_now_add=True,verbose_name='修改日期')
     
     payment      = models.FloatField(default=0,verbose_name='付款金额')
-    
-    status       = models.CharField(max_length=32,db_index=True,choices=PAYMENT_STATUS,verbose_name='状态')
     
     extra_info   = models.TextField(max_length=1000,blank=True,verbose_name='备注')
     

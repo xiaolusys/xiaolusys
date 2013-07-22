@@ -8,8 +8,11 @@ from django.core.serializers.json import DjangoJSONEncoder
 from django.http import HttpResponse, HttpResponseRedirect, Http404
 from django.core.servers.basehttp import FileWrapper
 from django.template.loader import render_to_string
+from django.core.urlresolvers import reverse
 from django.conf import settings
+from django.db.models import Q,Sum,F
 from django.views.decorators.csrf import csrf_exempt
+from django.db import IntegrityError, transaction
 from djangorestframework.serializer import Serializer
 from djangorestframework.utils import as_tuple
 from djangorestframework import status
@@ -19,14 +22,18 @@ from djangorestframework.mixins import CreateModelMixin
 from djangorestframework.views import ModelView,ListOrCreateModelView,InstanceModelView
 from shopback.archives.models import Deposite,Supplier,PurchaseType
 from shopback.items.models import Product,ProductSku
-from shopback.purchases.models import Purchase,PurchaseItem,PurchaseStorage,PurchaseStorageItem,PurchaseStorageRelationship
+from shopback.purchases.models import Purchase,PurchaseItem,PurchaseStorage,PurchaseStorageItem,\
+    PurchaseStorageRelationship,PurchasePaymentItem
 from shopback import paramconfig as pcfg
 from shopback.purchases import permissions as perm
 from shopback.base import log_action, ADDITION, CHANGE
 from shopback.purchases import permissions as perms
+from shopback.monitor.models import SystemConfig
 from utils import CSVUnicodeWriter
 from auth import staff_requried
+import logging
 
+logger = logging.getLogger('purchases.handler')
 #################################### 采购单 #################################
 
 class PurchaseView(ModelView):
@@ -57,6 +64,8 @@ class PurchaseView(ModelView):
         for k,v in content.iteritems():
             if not v :continue
             hasattr(purchase,k) and setattr(purchase,k,v)
+        if not purchase.service_date:
+            purchase.service_date = datetime.datetime.now()
         purchase.save()
         
         log_action(request.user.id,purchase,ADDITION,u'创建采购单')
@@ -137,6 +146,9 @@ class PurchaseItemView(ModelView):
         except:
             return u'未找到采购单'
         
+        if purchase.status!=pcfg.PURCHASE_DRAFT and not perms.has_check_purchase_permission(request.user):
+            return '你没有权限修改'
+        
         purchase_item,state = PurchaseItem.objects.get_or_create(
                                 purchase=purchase,outer_id=outer_id,outer_sku_id=sku_id)
         purchase_item.name = prod.name
@@ -182,7 +194,12 @@ def delete_purchase_item(request):
         purchase = Purchase.objects.get(id=purchase_id)
     except:
         raise http404
-        
+    
+    if purchase.status!=pcfg.PURCHASE_DRAFT and not perms.has_check_purchase_permission(request.user):
+        return HttpResponse(
+                            json.dumps({'code':1,'response_error':u'你没有权限删除'}),
+                            mimetype='application/json')
+    
     purchase_item = PurchaseItem.objects.get(id=purchase_item_id,purchase=purchase)
     purchase_item.status = pcfg.DELETE
     purchase_item.save()
@@ -231,6 +248,7 @@ class PurchaseStorageView(ModelView):
         
         content = request.REQUEST
         purchase_id = content.get('purchase_storage_id')
+        post_date   = content.get('post_date',None)  
         purchase    = None
         if purchase_id:
             try:
@@ -239,10 +257,12 @@ class PurchaseStorageView(ModelView):
                 return u'输入采购编号未找到'
         else:
             purchase = PurchaseStorage()
-
+        
         for k,v in content.iteritems():
             if not v :continue
             hasattr(purchase,k) and setattr(purchase,k,v)
+        if not purchase.post_date:
+            purchase.post_date = datetime.datetime.now()
         purchase.save()
         
         log_action(request.user.id,purchase,ADDITION,u'创建采购单')
@@ -298,6 +318,9 @@ class PurchaseStorageItemView(ModelView):
         except:
             return u'未找到入库单'
         
+        if purchase.status!=pcfg.PURCHASE_DRAFT and not perms.has_confirm_storage_permission(request.user):
+            return '你没有权限修改'
+        
         purchase_item,state = PurchaseStorageItem.objects.get_or_create(
                                 purchase_storage=purchase,outer_id=outer_id,outer_sku_id=sku_id)
         purchase_item.name = prod.name
@@ -347,10 +370,29 @@ class StorageDistributeView(ModelView):
         if undist_storage_items:
             return u'入库项未完全关联采购单'
         
-        ship_storage_items = PurchaseStorageRelationship.objects.filter(storage_id=purchase_storage.id)
-        for item in ship_storage_items:
-            item.confirm_storage()
+        config = SystemConfig.getconfig()
         
+        with transaction.commit_on_success():
+            ship_storage_items = PurchaseStorageRelationship.objects.filter(storage_id=purchase_storage.id)
+            for item in ship_storage_items:
+                item.confirm_storage(config.purchase_price_to_cost_auto)
+            
+            #如果确认收货，则库存自动入库
+            if config.storage_num_to_stock_auto:
+                for storage_item in purchase_storage.normal_storage_items.filter(is_addon=False):
+                    outer_id     = storage_item.outer_id
+                    outer_sku_id = storage_item.outer_sku_id
+                    prod = Product.objects.get(outer_id=outer_id)
+                    if outer_sku_id:
+                        prod_sku = ProductSku.objects.get(outer_id=outer_sku_id,product=prod)
+                        prod_sku.update_quantity_incremental(storage_item.storage_num,reverse=True)
+                    else:
+                        prod.update_collect_num_incremental(storage_item.storage_num,reverse=True)
+                    storage_item.is_addon = True
+                    storage_item.save()
+                    
+                purchase_storage.is_addon = True
+                        
         purchase_storage.status = pcfg.PURCHASE_APPROVAL
         purchase_storage.save()
         
@@ -388,6 +430,11 @@ def delete_purchasestorage_item(request):
     except PurchaseStorage.DoesNotExist:
         raise http404
         
+    if purchase.status!=pcfg.PURCHASE_DRAFT and not perms.has_confirm_storage_permission(request.user):
+        return HttpResponse(
+                            json.dumps({'code':1,'response_error':u'你没有权限删除'}),
+                            mimetype='application/json')
+        
     storage_item = PurchaseStorageItem.objects.get(id=purchase_item_id,purchase_storage=purchase)
     storage_item.status = pcfg.DELETE
     storage_item.save()
@@ -418,3 +465,91 @@ def download_purchasestorage_file(request,id):
     #response['Content-Length'] = str(os.stat(file_path).st_size)
     return response
 
+#################################### 采购付款项 #################################
+class PurchasePaymentView(ModelView):
+    """ 采购付款 """
+    
+    def get(self, request, *args, **kwargs):
+        
+        waitpay_purchases = Purchase.objects.filter(status=pcfg.PURCHASE_APPROVAL)
+        waitpay_storages  = PurchaseStorage.objects.filter(status=pcfg.PURCHASE_APPROVAL)
+        
+        return {'purchases':waitpay_purchases,'storages':waitpay_storages}
+        
+    def post(self, request, *args, **kwargs):
+        
+        content   = request.REQUEST
+        paytype   = content.get('paytype')
+        purchase_id  = content.get('purchase')
+        storage_id   = content.get('storage')
+        payment   = content.get('payment')
+        additional   = content.get('additional')
+        memo         = content.get('memo')
+        
+        waitpay_purchases = Purchase.objects.filter(status=pcfg.PURCHASE_APPROVAL)
+        waitpay_storages  = PurchaseStorage.objects.filter(status=pcfg.PURCHASE_APPROVAL)
+        
+        purchase  = None
+        storage   = None
+        payment_item = None
+        try:
+            with transaction.commit_on_success():
+                
+                payment   = float(payment or 0)
+                if not payment:
+                    raise Exception(u'付款金额不能为空')
+                elif paytype in (pcfg.PC_PREPAID_TYPE,pcfg.PC_POD_TYPE):
+                    if not purchase_id:
+                        raise Exception(u'请选择采购单')
+                    try:
+                        purchase = Purchase.objects.get(id=purchase_id,status=pcfg.PURCHASE_APPROVAL)
+                    except Purchase.DoesNotExist:
+                        raise Exception(u'请选择正确的采购单')
+                    else:
+                        purchase.pay(payment)
+                        
+                elif paytype==pcfg.PC_COD_TYPE:
+                    if not storage_id:
+                        raise Exception(u'请选择入库单')
+                    try:
+                        storage = PurchaseStorage.objects.get(id=storage_id,status=pcfg.PURCHASE_APPROVAL)
+                    except PurchaseStorage.DoesNotExist:
+                        raise Exception(u'请选择正确的入库单')
+                    else:
+                        storage.pay(payment)
+                        
+                elif paytype==pcfg.PC_OTHER_TYPE:
+                    if (purchase_id and storage_id) or (not purchase_id and not storage_id):
+                        raise Exception(u'请选择采购单或物流单之一')
+                    if purchase_id:
+                        try:
+                            purchase = Purchase.objects.get(id=purchase_id,status=pcfg.PURCHASE_APPROVAL)
+                        except Purchase.DoesNotExist:
+                            raise Exception(u'未找到采购单')
+                        else:  
+                            purchase.pay(payment,additional=additional)
+                    else:
+                        try:
+                            storage = PurchaseStorage.objects.get(id=storage_id)
+                        except PurchaseStorage.DoesNotExist:
+                            raise Exception(u'未找到入库单')     
+                        else:
+                            storage.pay(payment,additional=additional) 
+                else:
+                    raise Exception(u'请选择正确的付款类型') 
+                
+                payment_item = PurchasePaymentItem.objects.create(
+                                                                  pay_type=paytype,
+                                                                  storage_id=storage_id,
+                                                                  purchase_id=purchase_id,
+                                                                  pay_time=datetime.datetime.now(),
+                                                                  payment=payment,
+                                                                  extra_info=memo)
+        except Exception,exc:
+            logger.error(exc,exc_info=True)
+            return {'purchases':waitpay_purchases,'storages':waitpay_storages,'error_msg':exc.message}
+        else:
+            return HttpResponseRedirect("/admin/purchases/purchasepaymentitem/?q=%s"%payment_item.id)
+            
+            
+            

@@ -335,6 +335,11 @@ LOGGING = {
             'level': 'ERROR',
             'propagate': True,
         },
+        'purchases.handler':{
+            'handlers': ['sentry'],
+            'level': 'ERROR',
+            'propagate': True,
+        },
     }
 }
 

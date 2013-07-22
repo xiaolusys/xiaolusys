@@ -1,0 +1,44 @@
+{% extends "trades/base.html" %}
+
+{% block title%} 入库单更新库存 {% endblock %}
+
+{% block navbar %}<div style="margin-top:30px;"><a href="{{ request.META.HTTP_REFERER }}" class="btn btn-large btn-success" >返回上一页</a></div>{% endblock %}
+
+{% block container %}
+<div class='list_top'>
+	<div>
+		<div style="display:block;">
+		  <fieldset>
+		  	<legend>入库单更新库存</legend>
+			  <table class="table table-bordered table-striped table-condensed">
+			    <tr>
+			      <th>入库单号</th><th>入库标题</th><th>入库数量</th><th>入库时间</th><th>库存更新状态</th>
+			    </tr>
+			    <tr><td colspan="7">更新成功的入库单{{ addon_storages|length }}</td></tr>
+			    {% for storage in addon_storages %}
+			    <tr>
+			    	<td>{{ storage.id }}</td>
+					<td>{{ storage.title }}</td>
+					<td>{{ storage.storage_num }}</td>
+			    	<td>{{ storage.post_date }}</td>
+			    	<td><img src="{{ STATIC_URL }}admin/img/icon-yes.gif" alt="yes"></td>
+			    </tr>
+			    {% endfor %}
+			    <tr><td colspan="7">更新失败的入库单{{ unaddon_storages|length }}</td></tr>
+			    {% for storage in unaddon_storages %}
+			    <tr>
+			    	<td>{{ storage.id }}</td>
+					<td>{{ storage.title }}</td>
+					<td>{{ storage.storage_num }}</td>
+			    	<td>{{ storage.post_date }}</td>
+			    	<td><img src="{{ STATIC_URL }}admin/img/icon-no.gif" alt="no"></td>
+			    	
+			    </tr>
+			    {% endfor %}
+			  </table>
+		  </fieldset>
+		</div>
+	</div>
+</div>
+
+{% endblock %}
