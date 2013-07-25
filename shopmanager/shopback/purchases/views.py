@@ -480,11 +480,12 @@ class PurchasePaymentView(ModelView):
         
         content   = request.REQUEST
         paytype   = content.get('paytype')
-        purchase_id  = content.get('purchase')
-        storage_id   = content.get('storage')
-        payment   = content.get('payment')
-        additional   = content.get('additional')
-        memo         = content.get('memo')
+        purchase_id    = content.get('purchase')
+        storage_detail = content.getlist('storage_detail')
+        payment        = content.get('payment')
+        origin_no      = content.get('origin_no')
+        additional     = content.get('additional')
+        memo           = content.get('memo')
         
         waitpay_purchases = Purchase.objects.filter(status=pcfg.PURCHASE_APPROVAL)
         waitpay_storages  = PurchaseStorage.objects.filter(status=pcfg.PURCHASE_APPROVAL)
@@ -544,6 +545,7 @@ class PurchasePaymentView(ModelView):
                                                                   purchase_id=purchase_id,
                                                                   pay_time=datetime.datetime.now(),
                                                                   payment=payment,
+                                                                  origin_no=origin_no,
                                                                   extra_info=memo)
         except Exception,exc:
             logger.error(exc,exc_info=True)
@@ -552,4 +554,24 @@ class PurchasePaymentView(ModelView):
             return HttpResponseRedirect("/admin/purchases/purchasepaymentitem/?q=%s"%payment_item.id)
             
             
-            
+#class CODPaymentView(ModelView):
+#    """ 货到付款多入库单金额分配 """
+#    
+#    def get(self, request, *args, **kwargs):
+#        
+#        content     = request.REQUEST
+#        storageids  = content.getlist('storageids')
+#        
+#        for sid in storageids:
+#            try:
+#                storage = PurchaseStorage.objects.get(id=sid,status=pcfg.PURCHASE_APPROVAL)
+#            except PurchaseStorage.DoesNotExist:
+#                raise Http404
+#            else:
+#                relat_ships = PurchaseStorageRelationship.objects.filter(storage_id=sid)
+#                for ship 
+        
+        
+   
+        
+    

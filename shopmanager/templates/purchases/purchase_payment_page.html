@@ -80,7 +80,7 @@
 			      <select id="purchase" name="purchase">
 			      	<option value="">----请选择----</option>
 					{% for purchase in purchases %}
-					<option value="{{ purchase.id }}">{{ purchase.extra_name }}</option>
+					<option value="{{ purchase.id }}">{{ purchase.id }}|{{ purchase.service_date|date:"y-n-j" }}|{{ purchase.extra_name }}</option>
 					{% endfor %}
 			      </select>
 			    </div>
@@ -88,10 +88,9 @@
 			  <div class="control-group">
 			    <label class="control-label" for="storage">入库单</label>
 			    <div class="controls">
-			      <select id="storage" name="storage">
-			      	<option value="">----请选择----</option>
+			      <select id="storage" name="storage" multiple="multiple">
 			      	{% for storage in storages %}
-					<option value="{{ storage.id }}">{{ storage.extra_name }}</option>
+					<option value="{{ storage.id }}">{{ storage.id }}|{{ storage.post_date|date:"y-n-j" }}|{{ storage.extra_name }}</option>
 					{% endfor %}
 			      </select>
 			    </div>
@@ -103,10 +102,15 @@
 			    </div>
 			  </div>
 			  <div class="control-group">
+			    <label class="control-label" for="origin_no">单据编号</label>
 			    <div class="controls">
-			      <label class="checkbox">
-			      	<input type="checkbox" id="additional" name="additional">计入成本
-			      </label>
+			      <input type="text" id="origin_no" name="origin_no" >
+			    </div>
+			  </div>
+			  <div class="control-group">
+			  	<label class="control-label" >计入成本</label>
+			    <div class="controls">
+			      <input type="checkbox" id="additional" name="additional">
 			    </div>
 			  </div>
 			  <div class="control-group">

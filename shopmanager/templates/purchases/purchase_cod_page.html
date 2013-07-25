@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html >
+  <head>
+    <title>货到付款选项</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+     <link href="{{ STATIC_URL }}bootstrap/css/bootstrap.min.css" rel="stylesheet" type="text/css" />
+    <link href="{{ STATIC_URL }}bootstrap/css/bootstrap-responsive.min.css" rel="stylesheet" type="text/css" />
+    <style type="text/css">
+	   	body,div{
+		   	margin:0px auto;
+		   	padding:0px;
+	    }
+	    body{
+	    	width:1000px;
+	    }
+    </style>
+  </head>
+  <body>
+  	<h3>货到付款金额分配</h3>
+  	{% for storage in storages %}
+  	<div class="div-block">
+	  	<div class="block-head">
+		  	<h4>单号：1564665--十月入库(入库日期：2013-06-15)</h4>
+		  	<div><label class="label label-info">总采购价:</label><span>12000￥</span><label class="label label-important">,实付:</label><input type="text"  /></div>
+	  	</div>
+	  	<div class="block-body">
+	  		<ol>
+	  			<li>
+	  				<div class="well well-small">
+	  					abc
+	  				</div>
+	  			</li>
+	  			<li>
+	  				<div class="well well-small">
+	  				abc
+	  				</div>
+	  			</li>
+	  			<li>
+	  				<div class="well well-small">
+	  				abc
+	  				</div>
+	  			</li>
+	  		</ol>
+	  	</div>
+  	</div>
+  	{% endfor %}
+  </body>
+</html>

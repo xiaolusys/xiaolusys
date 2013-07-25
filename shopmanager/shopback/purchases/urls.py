@@ -1,4 +1,5 @@
 from django.conf.urls.defaults import patterns, url
+from django.views.generic import TemplateView
 from shopback.purchases.views import PurchaseItemView,PurchaseView,PurchaseInsView,PurchasePaymentView,\
     PurchaseStorageItemView,PurchaseStorageView,PurchaseStorageInsView,StorageDistributeView,PurchaseShipStorageView
 from shopback.purchases.resources import PurchaseItemResource,PurchaseResource,PurchaseStorageResource,\
@@ -31,7 +32,7 @@ urlpatterns = patterns('shopback.purchases.views',
 #        authentication=(UserLoggedInAuthentication,),
 #        permissions=(IsAuthenticated,)
     ))),
-    (r'ship/(?P<id>\d{1,20})/',PurchaseShipStorageView.as_view(
+    (r'ship/(?P<id>\d{1,20})/$',PurchaseShipStorageView.as_view(
         resource=PurchaseResource,
         renderers=(BaseJsonRenderer,PurchaseShipStorageRenderer),
 #        authentication=(UserLoggedInAuthentication,),
@@ -56,25 +57,27 @@ urlpatterns = patterns('shopback.purchases.views',
 #        authentication=(UserLoggedInAuthentication,),
 #        permissions=(IsAuthenticated,)
     ))),
-    (r'storage/distribute/(?P<id>\d{1,20})/',csrf_exempt(StorageDistributeView.as_view(
+    (r'storage/distribute/(?P<id>\d{1,20})/$',csrf_exempt(StorageDistributeView.as_view(
         resource=PurchaseStorageResource,
         renderers=(BaseJsonRenderer,StorageDistributeRenderer),
 #        authentication=(UserLoggedInAuthentication,),
 #        permissions=(IsAuthenticated,)
     ))),
-    url(r'payment/',csrf_exempt(PurchasePaymentView.as_view(
+    url(r'payment/$',csrf_exempt(PurchasePaymentView.as_view(
         resource=PurchasePaymentResource,
         renderers=(BaseJsonRenderer,PurchasePaymentRenderer),
         authentication=(UserLoggedInAuthentication,),
         permissions=(IsAuthenticated,)
         )),name='purchase_payment'),
     
-    url(r'storage/refresh/(?P<id>\d{1,20})/','refresh_purchasestorage_ship',name='refresh_storage_ship'),
+    url(r'storage/refresh/(?P<id>\d{1,20})/$','refresh_purchasestorage_ship',name='refresh_storage_ship'),
     
-    url(r'storage/csv/(?P<id>\d{1,20})/','download_purchasestorage_file',name='purchasestorage_to_csv'),
-    url(r'storage/item/del/','delete_purchasestorage_item',name='del_purchasestorage_item'),
+    url(r'storage/csv/(?P<id>\d{1,20})/$','download_purchasestorage_file',name='purchasestorage_to_csv'),
+    url(r'storage/item/del/$','delete_purchasestorage_item',name='del_purchasestorage_item'),
    
     
-    url(r'csv/(?P<id>\d{1,20})/','download_purchase_file',name='purchase_to_csv'),
-    url(r'item/del/','delete_purchase_item',name='del_purchase_item'),
+    url(r'csv/(?P<id>\d{1,20})/$','download_purchase_file',name='purchase_to_csv'),
+    url(r'item/del/$','delete_purchase_item',name='del_purchase_item'),
+    
+    (r'^pay/$',TemplateView.as_view(template_name="purchases/purchase_cod_page.html"))
 )

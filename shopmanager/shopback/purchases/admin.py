@@ -2,6 +2,7 @@
 from django.contrib import admin
 from django.db import models
 from django.shortcuts import render_to_response
+from django.http import HttpResponse,HttpResponseRedirect
 from django.template import RequestContext
 from django.forms import TextInput, Textarea
 from shopback import paramconfig as pcfg
@@ -44,7 +45,6 @@ class PurchaseStorageItemInline(admin.TabularInline):
     
     def get_readonly_fields(self, request, obj=None):
         if not perms.has_confirm_storage_permission(request.user):
-            print self.fields
             return self.fields
         return self.readonly_fields
 
@@ -115,7 +115,25 @@ class PurchaseAdmin(admin.ModelAdmin):
 
     addon_cost_action.short_description = u"进价更新至成本"
     
-    actions = ['addon_cost_action']
+    def invalid_action(self, request, queryset):
+        """ 更新商品成本 """
+        
+        purchase_names = []
+        draft_purchases = queryset.filter(status=pcfg.PURCHASE_DRAFT)
+        for purchase in draft_purchases:
+            purchase_names.append('%d|%s'%(purchase.id,purchase.title))
+            purchase.status = pcfg.PURCHASE_INVALID
+            purchase.save()
+            log_action(request.user.id,purchase,CHANGE,u'订单作废')
+        
+        msg = u'%s 作废成功.'%(','.join(purchase_names)) 
+
+        self.message_user(request, msg)
+        return HttpResponseRedirect('../')
+
+    invalid_action.short_description = u"作废采购单"
+    
+    actions = ['addon_cost_action','invalid_action']
     
 
 admin.site.register(Purchase,PurchaseAdmin)
@@ -204,7 +222,16 @@ class PurchaseStorageAdmin(admin.ModelAdmin):
 
     addon_stock_action.short_description = u"入库数更新到库存"
     
-    actions = ['addon_stock_action']
+    def invalid_action(self, request, queryset):
+        """ 更新商品成本 """
+        
+        
+        
+        return 
+
+    invalid_action.short_description = u"作废采购单"
+    
+    actions = ['addon_stock_action','invalid_action']
     
     
 admin.site.register(PurchaseStorage,PurchaseStorageAdmin)
@@ -234,10 +261,10 @@ admin.site.register(PurchaseStorageRelationship,PurchaseStorageRelationshipAdmin
 
 
 class PurchasePaymentItemAdmin(admin.ModelAdmin):
-    list_display = ('id','pay_type','payment','purchase','storage','pay_time','created','modified','extra_info')
+    list_display = ('id','pay_type','payment','purchase','storage','pay_time','created','modified','status','extra_info')
     #list_editable = ('update_time','task_type' ,'is_success','status')
 
-    list_filter = ('pay_type',)
+    list_filter = ('status','pay_type',)
     search_fields = ['id']
     
 

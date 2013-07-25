@@ -42,6 +42,7 @@ PRODUCT_STATUS = (
     (pcfg.DELETE,'作废'),
 )
 
+PAYMENT_STATUS = PURCHASE_STORAGE_STATUS
 
 class Purchase(models.Model):
     """ 采购合同 """
@@ -207,12 +208,6 @@ class Purchase(models.Model):
         #正常付款
         else:
             total_unpay_fee = self.total_unpay_fee
-
-            if not total_unpay_fee:
-                raise Exception(u'没有待付款项')
-            
-            if payment>total_unpay_fee:
-                raise Exception(u'付款金额超过待付金额')
             
             for item in self.effect_purchase_items:
                 item.payment = item.payment+round((item.unpay_fee/total_unpay_fee)*payment,2)
@@ -529,9 +524,6 @@ class PurchaseStorage(models.Model):
             if not total_fee:
                 raise Exception(u'没有待付款项')
                 
-            if payment>total_fee:
-                raise Exception(u'付款金额超过总金额')
-                
             for ship in relate_ships:
                 #更新关联项付款金额
                 item_payment = round((ship.total_fee/total_fee)*payment,2)
@@ -698,12 +690,13 @@ class PurchasePaymentItem(models.Model):
         2,预付款
         3,付款提货
     """    
+    origin_no     = models.CharField(max_length=256,db_index=True,blank=True,verbose_name='原单据号')
     
-    purchase  = models.ForeignKey(Purchase,null=True,blank=True,related_name='purchase_payment',verbose_name='采购合同')
+    purchase      = models.ForeignKey(Purchase,null=True,blank=True,related_name='purchase_payment',verbose_name='采购合同')
     
-    storage   = models.ForeignKey(PurchaseStorage,null=True,blank=True,related_name='purchase_payment',verbose_name='入库单')
+    storage       = models.ForeignKey(PurchaseStorage,null=True,blank=True,related_name='purchase_payment',verbose_name='入库单')
     
-    pay_type  = models.CharField(max_length=6,db_index=True,choices=PURCHASE_PAYMENT_TYPE,verbose_name='付款类型')
+    pay_type     = models.CharField(max_length=6,db_index=True,choices=PURCHASE_PAYMENT_TYPE,verbose_name='付款类型')
     
     pay_time     = models.DateTimeField(null=True,blank=True,verbose_name='付款日期')
     
@@ -712,6 +705,9 @@ class PurchasePaymentItem(models.Model):
     modified     = models.DateTimeField(null=True,blank=True,auto_now_add=True,verbose_name='修改日期')
     
     payment      = models.FloatField(default=0,verbose_name='付款金额')
+    
+    status       = models.CharField(max_length=32,db_index=True,choices=PAYMENT_STATUS,
+                                    default=pcfg.PURCHASE_DRAFT,verbose_name='状态')
     
     extra_info   = models.TextField(max_length=1000,blank=True,verbose_name='备注')
     
