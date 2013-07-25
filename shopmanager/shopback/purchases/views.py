@@ -554,22 +554,25 @@ class PurchasePaymentView(ModelView):
             return HttpResponseRedirect("/admin/purchases/purchasepaymentitem/?q=%s"%payment_item.id)
             
             
-#class CODPaymentView(ModelView):
-#    """ 货到付款多入库单金额分配 """
-#    
-#    def get(self, request, *args, **kwargs):
-#        
-#        content     = request.REQUEST
-#        storageids  = content.getlist('storageids')
-#        
-#        for sid in storageids:
-#            try:
-#                storage = PurchaseStorage.objects.get(id=sid,status=pcfg.PURCHASE_APPROVAL)
-#            except PurchaseStorage.DoesNotExist:
-#                raise Http404
-#            else:
-#                relat_ships = PurchaseStorageRelationship.objects.filter(storage_id=sid)
-#                for ship 
+class CODPaymentDistributeView(ModelView):
+    """ 货到付款多入库单金额分配 """
+    
+    def get(self, request, *args, **kwargs):
+        
+        content     = request.REQUEST
+        storageids  = content.getlist('storageids')
+        wait_payments = {}
+        
+        for sid in storageids:
+            try:
+                storage = PurchaseStorage.objects.get(id=sid,status=pcfg.PURCHASE_APPROVAL)
+            except PurchaseStorage.DoesNotExist:
+                raise Http404
+            else:
+                relat_ships = PurchaseStorageRelationship.objects.filter(storage_id=sid)
+                for ship in relat_ships:
+                    
+                    
         
         
    

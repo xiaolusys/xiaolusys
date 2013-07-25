@@ -42,7 +42,11 @@ PRODUCT_STATUS = (
     (pcfg.DELETE,'作废'),
 )
 
-PAYMENT_STATUS = PURCHASE_STORAGE_STATUS
+PAYMENT_STATUS = (
+    (pcfg.PP_WAIT_PAYMENT,'待付款'),
+    (pcfg.PP_HAS_PAYMENT,'已付款'),
+    (pcfg.PP_INVALID,'已作废'),
+)
 
 class Purchase(models.Model):
     """ 采购合同 """
@@ -64,7 +68,8 @@ class Purchase(models.Model):
     storage_num  = models.IntegerField(null=True,default=0,verbose_name='已入库数')
     
     total_fee    = models.FloatField(default=0.0,verbose_name='总费用')
-    payment      = models.FloatField(default=0.0,verbose_name='已付')
+    prepay       = models.FloatField(default=0.0,verbose_name='预付金')
+    payment      = models.FloatField(default=0.0,verbose_name='已付款')
     
     receiver_name = models.CharField(max_length=32,blank=True,verbose_name='收货人')
     
@@ -97,6 +102,15 @@ class Purchase(models.Model):
     @property
     def unfinish_purchase_items(self):
         return self.effect_purchase_items.filter(arrival_status__in=(pcfg.PD_UNARRIVAL,pcfg.PD_PARTARRIVAL))
+        
+    @property
+    def uncompletepay_item(self):
+        uncpay_items = []
+        for item in self.effect_purchase_items:
+            afford_payment = item.price*item.storage_num
+            if round(item.payment,1) < round(afford_payment,1):
+                uncpay_items.append(item)
+        return uncpay_items
         
     @property
     def total_unpay_fee(self):
@@ -195,7 +209,7 @@ class Purchase(models.Model):
                                             }
         return [v for k,v in storage_map.iteritems()]    
         
-    def pay(self,payment,additional=False):
+    def pay(self,payment,prepay=False,additional=False):
         """ 采购合同付款 """
 
         #如果追加额外成本
@@ -205,15 +219,18 @@ class Purchase(models.Model):
                 item.price   = F('price')+per_cost_avg
                 item.payment = F('payment')+per_cost_avg*item.purchase_num
                 item.save()
-        #正常付款
-        else:
-            total_unpay_fee = self.total_unpay_fee
-            
+        elif prepay:
             for item in self.effect_purchase_items:
-                item.payment = item.payment+round((item.unpay_fee/total_unpay_fee)*payment,2)
+                item.prepay  = F('prepay')+round((item.total_fee/self.total_fee)*payment,2)
+                item.payment = F('payment')+round((item.total_fee/self.total_fee)*payment,2)
                 item.save()
-                
-        
+        else:
+            for item in self.effect_purchase_items:
+                item.payment = item.payment+round((item.unpay_fee/self.total_unpay_fee)*payment,2)
+                item.save()
+    
+    
+    
 class PurchaseItem(models.Model):
     """ 采购项目 """
     
@@ -233,7 +250,8 @@ class PurchaseItem(models.Model):
     price        = models.FloatField(default=0.0,verbose_name='实际进价')
     
     total_fee    = models.FloatField(default=0.0,verbose_name='总费用')
-    payment      = models.FloatField(default=0.0,verbose_name='已付')
+    prepay       = models.FloatField(default=0.0,verbose_name='预付费用')
+    payment      = models.FloatField(default=0.0,verbose_name='已付款')
 
     created      = models.DateTimeField(null=True,blank=True,auto_now=True,verbose_name='创建日期')
     modified     = models.DateTimeField(null=True,blank=True,auto_now_add=True,verbose_name='修改日期')
@@ -328,6 +346,7 @@ class PurchaseStorage(models.Model):
                                     default=pcfg.PURCHASE_DRAFT,verbose_name='状态')
     
     total_fee    = models.FloatField(default=0.0,verbose_name='总金额')
+    prepay       = models.FloatField(default=0.0,verbose_name='预付额')
     payment      = models.FloatField(default=0.0,verbose_name='实付款')
     
     logistic_company = models.CharField(max_length=64,blank=True,verbose_name='物流公司')
@@ -707,7 +726,7 @@ class PurchasePaymentItem(models.Model):
     payment      = models.FloatField(default=0,verbose_name='付款金额')
     
     status       = models.CharField(max_length=32,db_index=True,choices=PAYMENT_STATUS,
-                                    default=pcfg.PURCHASE_DRAFT,verbose_name='状态')
+                                    default=pcfg.PP_WAIT_PAYMENT,verbose_name='状态')
     
     extra_info   = models.TextField(max_length=1000,blank=True,verbose_name='备注')
     
