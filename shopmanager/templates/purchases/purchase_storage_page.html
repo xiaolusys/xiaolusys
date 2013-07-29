@@ -200,7 +200,7 @@
 					<tr>
 						<td>
 							<label for='supplier'>供&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;应&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;商</label>
-							<select id='supplier'>
+							<select size="5" id='supplier'>
 								<option value='' >----请选择----</option>
 								{% for supplier in  suppliers %}
 								<option value='{{ supplier.id }}' {% if purchase_storage.supplier_id == supplier.id %}selected{% endif %}>{{ supplier.supplier_name }}</option>
@@ -211,7 +211,7 @@
 						</td>
 						<td>
 							<label for='deposite'>仓&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;库</label>
-							<select id='deposite'>
+							<select size="5" id='deposite'>
 								<option value='' >----请选择----</option>
 								{% for deposite in  deposites %}
 								<option value='{{ deposite.id }}' {% if purchase_storage.deposite_id == deposite.id %}selected{% endif %}>{{ deposite.deposite_name}}</option>
@@ -265,6 +265,7 @@
 					<div id="purchase-items">
 						<table id="purchaseitem-table" class="table table-bordered table-condensed">
 							<thead>
+								<tr>
 									<th>项目编号</th>
 									<th>商品编码</th>
 									<th>产品名</th>
@@ -272,6 +273,7 @@
 									<th>规格名</th>
 									<th style="width:70px;">入库数</th>
 									<th>操作</th>
+								</tr>
 							</thead>
 							<tbody>
 								{% for item in purchase_storage.purchase_storage_items %}
@@ -304,6 +306,7 @@
 			<div id="id-prod-search-dialog" style="">
 				<table id="id-prod-search-table" class="table table-bordered">
 					<thead>
+						<tr>
 							<th>序号</th>
 							<th>图片</th>
 							<th>商家编码</th>
@@ -311,6 +314,7 @@
 							<th>库存数</th>
 							<th>创建日期</th>
 							<th>操作</th>
+						</tr>
 					</thead>
 					<tbody>
 					</tbody>
@@ -327,6 +331,7 @@
 		<div id="purchase-prompt-body" class="purchase-prompt-body">
 			<table id="purchase-select-table" class="table table-bordered">
 				<thead>
+					<tr>
 						<th>序号</th>
 						<th>商家编码</th>
 						<th>商品名</th>
@@ -334,6 +339,7 @@
 						<th>规格名</th>
 						<th>入库数</th>
 						<th>操作</th>
+					</tr>
 				</thead>
 				<tbody>
 				</tbody>

@@ -259,7 +259,6 @@ def process_refund_notify_task(id):
                         if merge_trade.status == pcfg.WAIT_SELLER_SEND_GOODS:   
                             merge_order_remover(notify.tid)
                             
-    
                 elif notify.status in('RefundClosed','RefundSuccess','RefundSellerAgreeAgreement','RefundSellerRefuseAgreement'):
                     refund = Refund.get_or_create(notify.user_id,notify.rid,force_update=True)
                     

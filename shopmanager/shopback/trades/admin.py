@@ -46,7 +46,7 @@ class MergeOrderInline(admin.TabularInline):
     def get_readonly_fields(self, request, obj=None):
         if not perms.has_modify_trade_permission(request.user):
             return self.readonly_fields + ('oid','outer_id','outer_sku_id','is_merge',
-                                           'is_reverse_order','operator','gift_type','status','refund_status')
+                                           'is_reverse_order','operator','gift_type','status')
         return self.readonly_fields
     
     formfield_overrides = {
@@ -416,7 +416,7 @@ class MergeTradeAdmin(admin.ModelAdmin):
                     is_merge_success = True
                     log_action(request.user.id,main_trade,CHANGE,u'合并订单(%s)'%','.join([str(id) for id in merge_trade_ids]))
             else:
-                audit_trades = queryset.filter(sys_status=pcfg.WAIT_AUDIT_STATUS).order_by('pay_time')	
+                audit_trades = queryset.filter(sys_status__in=(pcfg.WAIT_AUDIT_STATUS,pcfg.ON_THE_FLY_STATUS)).order_by('pay_time')	
                 if audit_trades.count()>0:
                     merge_trades = audit_trades.filter(has_merge=True)
                     if merge_trades.count()>0:

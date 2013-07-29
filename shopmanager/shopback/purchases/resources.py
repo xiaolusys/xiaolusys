@@ -1,7 +1,7 @@
 __author__ = 'meixqhi'
 from djangorestframework.resources import ModelResource
 from shopback.items.models import Product,ProductSku
-from shopback.purchases.models import Purchase,PurchaseItem,PurchaseStorage,PurchaseStorageItem
+from shopback.purchases.models import Purchase,PurchaseItem,PurchaseStorage,PurchaseStorageItem,PurchasePayment
 from shopback.purchases.serializer import ProductSkuSerializer
 
 
@@ -42,8 +42,7 @@ class PurchaseStorageResource(ModelResource):
 class PurchasePaymentResource(ModelResource):
     """ docstring for PurchasePaymentResource ModelResource """
 
-    model = PurchaseStorage
-    fields = ('purchases','storages','error_msg') 
+    model = PurchasePayment
+    fields = ('purchases','storages','error_msg','purchase_payment') 
     exclude = ('url',)
     
-        

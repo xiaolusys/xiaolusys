@@ -62,4 +62,13 @@ class PurchasePaymentRenderer(TemplateRenderer):
     format = 'html'
     template = 'purchases/purchase_payment_page.html'
     
+class PaymentDistributeRenderer(TemplateRenderer):
+    """
+    Renderer which serializes to HTML
+    """
     
+    media_type = 'text/html'
+    format = 'html'
+    template = 'purchases/apply_payment_page.html'
+    
+        

@@ -7,8 +7,8 @@ from django.template import RequestContext
 from django.forms import TextInput, Textarea
 from shopback import paramconfig as pcfg
 from shopback.items.models import Product,ProductSku
-from shopback.purchases.models import Purchase,PurchaseItem,\
-    PurchaseStorage,PurchaseStorageItem,PurchasePaymentItem,PurchaseStorageRelationship
+from shopback.purchases.models import Purchase,PurchaseItem,PurchaseStorage,\
+    PurchaseStorageItem,PurchasePayment,PurchasePaymentItem,PurchaseStorageRelationship
 from shopback.purchases import permissions as perms
 from shopback.base import log_action, ADDITION, CHANGE
 import logging 
@@ -36,7 +36,7 @@ class PurchaseItemInline(admin.TabularInline):
 class PurchaseStorageItemInline(admin.TabularInline):
     
     model = PurchaseStorageItem
-    fields = ('outer_id','name','outer_sku_id','properties_name','storage_num','is_addon','status')
+    fields = ('outer_id','name','outer_sku_id','properties_name','storage_num','total_fee','prepay','payment','is_addon','status')
     
     formfield_overrides = {
         models.CharField: {'widget': TextInput(attrs={'size':'20'})},
@@ -49,13 +49,46 @@ class PurchaseStorageItemInline(admin.TabularInline):
         return self.readonly_fields
 
 
+class PurchaseItemInline(admin.TabularInline):
+    
+    model = PurchaseItem
+    fields = ('outer_id','name','outer_sku_id','properties_name','purchase_num','storage_num'
+              ,'price','total_fee','payment','arrival_status','status','extra_info')
+    
+    formfield_overrides = {
+        models.CharField: {'widget': TextInput(attrs={'size':'20'})},
+        models.TextField: {'widget': Textarea(attrs={'rows':4, 'cols':40})},
+        models.FloatField: {'widget': TextInput(attrs={'size':'8'})}
+    }
+    
+    def get_readonly_fields(self, request, obj=None):
+        if not perms.has_check_purchase_permission(request.user):
+            return self.readonly_fields + self.fields[0:-1] 
+        return self.readonly_fields
+
+class PurchasePaymentItemInline(admin.TabularInline):
+    
+    model = PurchasePaymentItem
+    fields = ('outer_id','name','outer_sku_id','properties_name','payment',
+              'purchase_id','purchase_item_id','storage_id','storage_item_id')
+    
+    formfield_overrides = {
+        models.CharField: {'widget': TextInput(attrs={'size':'20'})},
+        models.TextField: {'widget': Textarea(attrs={'rows':4, 'cols':40})},
+        models.FloatField: {'widget': TextInput(attrs={'size':'8'})}
+    }
+    
+    def get_readonly_fields(self, request, obj=None):
+        return self.fields
+
+
 class PurchaseAdmin(admin.ModelAdmin):
     list_display = ('id','purchase_title_link','origin_no','supplier','deposite','purchase_type',
                     'receiver_name','total_fee','payment','forecast_date',
                     'post_date','service_date','arrival_status','status')
     #list_editable = ('update_time','task_type' ,'is_success','status')
 
-    list_filter = ('status','arrival_status','supplier','deposite','purchase_type')
+    list_filter = ('status','arrival_status','deposite','purchase_type')
     search_fields = ['id','origin_no','extra_name']
     
     def purchase_title_link(self, obj):
@@ -154,7 +187,7 @@ class PurchaseStorageAdmin(admin.ModelAdmin):
     list_display = ('id','storage_name_link','origin_no','supplier','deposite','storage_num','total_fee','payment','post_date','created','is_addon','status')
     #list_editable = ('update_time','task_type' ,'is_success','status')
 
-    list_filter = ('status','supplier','deposite','is_addon')
+    list_filter = ('status','deposite','is_addon')
     search_fields = ['id','out_sid','extra_name','origin_no']
     
     def storage_name_link(self, obj):
@@ -225,8 +258,6 @@ class PurchaseStorageAdmin(admin.ModelAdmin):
     def invalid_action(self, request, queryset):
         """ 更新商品成本 """
         
-        
-        
         return 
 
     invalid_action.short_description = u"作废采购单"
@@ -260,14 +291,37 @@ class PurchaseStorageRelationshipAdmin(admin.ModelAdmin):
 admin.site.register(PurchaseStorageRelationship,PurchaseStorageRelationshipAdmin)
 
 
-class PurchasePaymentItemAdmin(admin.ModelAdmin):
-    list_display = ('id','pay_type','payment','purchase','storage','pay_time','created','modified','status','extra_info')
+class PurchasePaymentAdmin(admin.ModelAdmin):
+    list_display = ('id','pay_type','payment_link','applier','cashier','apply_time','pay_time','modified','add_cost','status')
     #list_editable = ('update_time','task_type' ,'is_success','status')
 
-    list_filter = ('status','pay_type',)
+    list_filter = ('status','pay_type','add_cost')
     search_fields = ['id']
     
-
-admin.site.register(PurchasePaymentItem,PurchasePaymentItemAdmin)
+    def payment_link(self, obj):
+        symbol_link = obj.payment
+        return '<a href="/purchases/payment/distribute/%d/">%s</a>'%(obj.id,symbol_link) 
+    
+    payment_link.allow_tags = True
+    payment_link.short_description = "付款金额"
+    
+    fieldsets =(('采购单信息:', {
+                    'classes': ('expand',),
+                    'fields': (('pay_type','payment','origin_no')
+                               ,('pay_time','apply_time','add_cost')
+                               ,('applier','cashier','status')
+                               ,'extra_info')
+                }),)
+    
+    inlines = [PurchasePaymentItemInline]
+    
+    #--------定制控件属性----------------
+    formfield_overrides = {
+        models.CharField: {'widget': TextInput(attrs={'size':'20'})},
+        models.FloatField: {'widget': TextInput(attrs={'size':'8'})},
+        models.TextField: {'widget': Textarea(attrs={'rows':4, 'cols':40})},
+    }
+    
+admin.site.register(PurchasePayment,PurchasePaymentAdmin)
 
 

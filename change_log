@@ -1,4 +1,11 @@
 ######### 2013-7-20  ###########
+alter table shop_purchases_purchase add column prepay double NOT NULL;
+alter table shop_purchases_item add column prepay double NOT NULL;
+alter table shop_purchases_storage add column prepay double NOT NULL;
+alter table shop_purchases_storageitem add column prepay double NOT NULL;
+alter table shop_purchases_relationship add column prepay double NOT NULL;
+
+######### 2013-7-20  ###########
 alter table shop_monitor_systemconfig add column storage_num_to_stock_auto tinyint(1) NOT NULL;
 alter table shop_monitor_systemconfig add column purchase_price_to_cost_auto tinyint(1) NOT NULL;
 

@@ -882,7 +882,11 @@ def merge_order_maker(sub_tid,main_tid):
     MergeBuyerTrade.objects.get_or_create(sub_tid=sub_tid,main_tid=main_tid) 
             
     sub_trade.append_reason_code(pcfg.NEW_MERGE_TRADE_CODE)
-    
+    if sub_trade.has_merge:
+        sub_sub_merge_trades = MergeBuyerTrade.objects.filter(main_tid=sub_trade.tid)
+        for ssmt in sub_sub_merge_trades:
+            MergeBuyerTrade.objects.get_or_create(sub_tid=ssmt.sub_tid,main_tid=main_tid)
+                                                  
     #判断是否还有订单需要合并,如果没有，则去掉需合单问题编号
     queryset = MergeTrade.get_merge_queryset(main_merge_trade.buyer_nick,main_merge_trade.receiver_name,
                                 main_merge_trade.receiver_mobile or main_merge_trade.receiver_phone)
@@ -924,7 +928,7 @@ def merge_order_remover(main_tid):
     main_trade.remove_reason_code(pcfg.NEW_MERGE_TRADE_CODE)
     main_trade.append_reason_code(pcfg.MULTIPLE_ORDERS_CODE) 
     main_trade.has_merge = False
-    main_trade.save()
+    update_model_feilds(main_trade,update_fields=['payment','total_fee','post_fee','adjust_fee','discount_fee','has_merge'])
     
     main_trade.merge_trade_orders.filter(Q(oid=None)|Q(is_merge=True)).delete()
     sub_merges = MergeBuyerTrade.objects.filter(main_tid=main_tid)
@@ -935,8 +939,7 @@ def merge_order_remover(main_tid):
         sub_merge_trade.append_reason_code(pcfg.MULTIPLE_ORDERS_CODE)
         main_trade.remove_buyer_message(sub_tid)
         main_trade.remove_seller_memo(sub_tid)
-        MergeTrade.objects.filter(tid=sub_tid,sys_status=pcfg.ON_THE_FLY_STATUS)\
-            .update(sys_status=pcfg.WAIT_AUDIT_STATUS)
+        MergeTrade.objects.filter(tid=sub_tid).update(sys_status=pcfg.WAIT_AUDIT_STATUS)
         
     MergeBuyerTrade.objects.filter(main_tid=main_tid).delete()
     
@@ -947,9 +950,7 @@ def merge_order_remover(main_tid):
     
 
 def drive_merge_trade_action(trade_id):
-    """ 合单驱动程序执行条件:
-        1，订单必须是等待卖家发货
-    """
+    """ 合单驱动程序 """
     is_merge_success = False
     main_tid   = None 
     merge_trade      = MergeTrade.objects.get(id=trade_id)
@@ -1022,7 +1023,6 @@ def drive_merge_trade_action(trade_id):
         for trade in trades:
             trade.append_reason_code(pcfg.MERGE_TRADE_ERROR_CODE)
        
-            
     return is_merge_success,main_tid
 
 
@@ -1158,6 +1158,11 @@ def trade_download_controller(merge_trade,trade,trade_from,first_pay_load):
                     merge_order_remover(main_tid)
                 else:
                     merge_order_remover(trade.id)
+                
+                #如果拆单后订单系统状态改变，则将订单状态置为问题单
+                tmp_trade = MergeTrade.objects.get(id=merge_trade.id)
+                if tmp_trade.sys_status == pcfg.WAIT_AUDIT_STATUS:
+                    merge_trade.sys_status = pcfg.WAIT_AUDIT_STATUS
             
     elif trade.status==pcfg.WAIT_BUYER_CONFIRM_GOODS:
         has_new_refund  = MergeTrade.judge_new_refund(merge_trade.id)

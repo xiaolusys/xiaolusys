@@ -1,4 +1,5 @@
 #-*- coding:utf8 -*-
+import re
 import os
 import datetime
 import json
@@ -10,6 +11,7 @@ from django.core.servers.basehttp import FileWrapper
 from django.template.loader import render_to_string
 from django.core.urlresolvers import reverse
 from django.conf import settings
+from django.contrib import messages
 from django.db.models import Q,Sum,F
 from django.views.decorators.csrf import csrf_exempt
 from django.db import IntegrityError, transaction
@@ -23,7 +25,7 @@ from djangorestframework.views import ModelView,ListOrCreateModelView,InstanceMo
 from shopback.archives.models import Deposite,Supplier,PurchaseType
 from shopback.items.models import Product,ProductSku
 from shopback.purchases.models import Purchase,PurchaseItem,PurchaseStorage,PurchaseStorageItem,\
-    PurchaseStorageRelationship,PurchasePaymentItem
+    PurchaseStorageRelationship,PurchasePayment,PurchasePaymentItem
 from shopback import paramconfig as pcfg
 from shopback.purchases import permissions as perm
 from shopback.base import log_action, ADDITION, CHANGE
@@ -146,7 +148,7 @@ class PurchaseItemView(ModelView):
         except:
             return u'未找到采购单'
         
-        if purchase.status!=pcfg.PURCHASE_DRAFT and not perms.has_check_purchase_permission(request.user):
+        if purchase.status==pcfg.PURCHASE_FINISH :
             return '你没有权限修改'
         
         purchase_item,state = PurchaseItem.objects.get_or_create(
@@ -158,9 +160,11 @@ class PurchaseItemView(ModelView):
         purchase_item.price = price
         purchase_item.purchase_num = num
         purchase_item.total_fee = float(price or 0)*int(num or 0)
+        purchase_item.status=pcfg.NORMAL
         purchase_item.save()
         
-        log_action(request.user.id,purchase,CHANGE,u'%s采购项（%s,%s）'%(state and u'添加' or u'修改',outer_id,sku_id))
+        log_action(request.user.id,purchase,CHANGE,u'%s采购项（%s,%s,%s,%s）'%
+                   (state and u'添加' or u'修改',outer_id,sku_id,num,price))
         
         return purchase_item.json
 
@@ -473,7 +477,7 @@ class PurchasePaymentView(ModelView):
         
         waitpay_purchases = Purchase.objects.filter(status=pcfg.PURCHASE_APPROVAL)
         waitpay_storages  = PurchaseStorage.objects.filter(status=pcfg.PURCHASE_APPROVAL)
-        
+
         return {'purchases':waitpay_purchases,'storages':waitpay_storages}
         
     def post(self, request, *args, **kwargs):
@@ -481,100 +485,225 @@ class PurchasePaymentView(ModelView):
         content   = request.REQUEST
         paytype   = content.get('paytype')
         purchase_id    = content.get('purchase')
-        storage_detail = content.getlist('storage_detail')
+        storageids = content.getlist('storage')
         payment        = content.get('payment')
         origin_no      = content.get('origin_no')
-        additional     = content.get('additional')
+        add_cost       = content.get('add_cost')
         memo           = content.get('memo')
         
         waitpay_purchases = Purchase.objects.filter(status=pcfg.PURCHASE_APPROVAL)
         waitpay_storages  = PurchaseStorage.objects.filter(status=pcfg.PURCHASE_APPROVAL)
         
-        purchase  = None
-        storage   = None
-        payment_item = None
+        purchase            = None
+        purchase_payment    = None
+        storages            = []
+        
         try:
-            with transaction.commit_on_success():
+            payment   = float(payment or 0)
+            if not payment:
+                raise Exception(u'付款金额不能为空')
+            
+            if paytype != pcfg.PC_OTHER_TYPE and not origin_no:
+                raise Exception(u'请输入付款单据号')
+            
+            if paytype==pcfg.PC_PREPAID_TYPE:
+                if not purchase_id:
+                    raise Exception(u'请选择采购单')
                 
-                payment   = float(payment or 0)
-                if not payment:
-                    raise Exception(u'付款金额不能为空')
-                elif paytype in (pcfg.PC_PREPAID_TYPE,pcfg.PC_POD_TYPE):
-                    if not purchase_id:
-                        raise Exception(u'请选择采购单')
-                    try:
-                        purchase = Purchase.objects.get(id=purchase_id,status=pcfg.PURCHASE_APPROVAL)
-                    except Purchase.DoesNotExist:
-                        raise Exception(u'请选择正确的采购单')
-                    else:
-                        purchase.pay(payment)
-                        
-                elif paytype==pcfg.PC_COD_TYPE:
-                    if not storage_id:
-                        raise Exception(u'请选择入库单')
-                    try:
-                        storage = PurchaseStorage.objects.get(id=storage_id,status=pcfg.PURCHASE_APPROVAL)
-                    except PurchaseStorage.DoesNotExist:
-                        raise Exception(u'请选择正确的入库单')
-                    else:
-                        storage.pay(payment)
-                        
-                elif paytype==pcfg.PC_OTHER_TYPE:
-                    if (purchase_id and storage_id) or (not purchase_id and not storage_id):
-                        raise Exception(u'请选择采购单或物流单之一')
-                    if purchase_id:
-                        try:
-                            purchase = Purchase.objects.get(id=purchase_id,status=pcfg.PURCHASE_APPROVAL)
-                        except Purchase.DoesNotExist:
-                            raise Exception(u'未找到采购单')
-                        else:  
-                            purchase.pay(payment,additional=additional)
-                    else:
-                        try:
-                            storage = PurchaseStorage.objects.get(id=storage_id)
-                        except PurchaseStorage.DoesNotExist:
-                            raise Exception(u'未找到入库单')     
-                        else:
-                            storage.pay(payment,additional=additional) 
+                purchase = Purchase.objects.get(id=purchase_id,status=pcfg.PURCHASE_APPROVAL)
+                add_cost = False
+                
+            elif paytype in (pcfg.PC_POD_TYPE,pcfg.PC_COD_TYPE):
+                for storage_id in storageids:
+                    storage =  PurchaseStorage.objects.get(id=storage_id,status__in=(pcfg.PURCHASE_DRAFT,pcfg.PURCHASE_APPROVAL))
+                    storages.append(storage)
+                    
+                if paytype == pcfg.PC_POD_TYPE and len(storages) != 1:
+                    raise Exception(u'请选择一个入库单')
+                add_cost = False
+                
+            elif paytype==pcfg.PC_OTHER_TYPE:
+                if (purchase_id and storage_id) or (not purchase_id and not storage_id):
+                    raise Exception(u'请选择采购单或物流单之一')
+                
+                if purchase_id:
+                    purchase = Purchase.objects.get(id=purchase_id,status=pcfg.PURCHASE_APPROVAL)
                 else:
-                    raise Exception(u'请选择正确的付款类型') 
+                    for storage_id in storageids:
+                        storage =  PurchaseStorage.objects.get(id=storage_id,status=pcfg.PURCHASE_APPROVAL)
+                        storages.append(storage)
+            else:
+                raise Exception(u'付款类型错误') 
+            
+            purchase_payment = PurchasePayment.objects.create(
+                                                          pay_type   = paytype,
+                                                          apply_time = datetime.datetime.now(),
+                                                          payment    = payment,
+                                                          origin_no  = origin_no,
+                                                          add_cost   = add_cost and True or False,
+                                                          applier    = request.user.username,
+                                                          status     = pcfg.PP_WAIT_APPLY,
+                                                          extra_info = memo)
+            
+            if paytype == pcfg.PC_PREPAID_TYPE:
+                purchase_payment.apply_for_prepay(purchase,payment)
+            elif paytype == pcfg.PC_POD_TYPE:
+                purchase_payment.apply_for_podpay(storages[0],payment)
+            elif paytype == pcfg.PC_COD_TYPE:
+                total_unpay_fee = 0
+                for storage in storages:
+                    total_unpay_fee += storage.total_unpay_fee 
                 
-                payment_item = PurchasePaymentItem.objects.create(
-                                                                  pay_type=paytype,
-                                                                  storage_id=storage_id,
-                                                                  purchase_id=purchase_id,
-                                                                  pay_time=datetime.datetime.now(),
-                                                                  payment=payment,
-                                                                  origin_no=origin_no,
-                                                                  extra_info=memo)
+                for storage in storages:
+                    purchase_payment.apply_for_codpay(storage,(storage.total_unpay_fee/total_unpay_fee)*payment)
+            else :
+                purchase_payment.apply_for_otherpay(purchase,storages,payment)
         except Exception,exc:
-            logger.error(exc,exc_info=True)
+            logger.error(exc.message,exc_info=True)
+            if purchase_payment:
+                purchase_payment.invalid()
             return {'purchases':waitpay_purchases,'storages':waitpay_storages,'error_msg':exc.message}
         else:
-            return HttpResponseRedirect("/admin/purchases/purchasepaymentitem/?q=%s"%payment_item.id)
+            return HttpResponseRedirect("/purchases/payment/distribute/%d/"%purchase_payment.id)
             
             
-class CODPaymentDistributeView(ModelView):
-    """ 货到付款多入库单金额分配 """
+class PaymentDistributeView(ModelView):
+    """ 付款单金额分配 """
     
-    def get(self, request, *args, **kwargs):
+    def get(self, request, id, *args, **kwargs):
         
-        content     = request.REQUEST
-        storageids  = content.getlist('storageids')
-        wait_payments = {}
+        try:
+            purchase_payment = PurchasePayment.objects.get(id=id)
+        except PruchasePayment.DoesNotExist:
+            return u'采购付款单未找到'
         
-        for sid in storageids:
-            try:
-                storage = PurchaseStorage.objects.get(id=sid,status=pcfg.PURCHASE_APPROVAL)
-            except PurchaseStorage.DoesNotExist:
-                raise Http404
-            else:
-                relat_ships = PurchaseStorageRelationship.objects.filter(storage_id=sid)
-                for ship in relat_ships:
+        return {'purchase_payment':purchase_payment.json}
+        
+        
+    def post(self, request, id, *args, **kwargs):
+        
+        print 'id',id
+        try:
+            purchase_payment = PurchasePayment.objects.get(id=id)
+        except PruchasePayment.DoesNotExist:
+            raise Http404
+        
+#        try:
+        content  = request.REQUEST.copy()
+        
+        pmt_dict = self.parse_params(content)
+        print 'params:',pmt_dict
+        self.valid_params(pmt_dict,purchase_payment.payment)
+        
+        self.fill_payment(pmt_dict) 
+#        except Exception,exc:
+#            print 'exc',exc.message
+#            return {'purchase_payment':purchase_payment.json,'error_msg':exc.message}
+#        
+        messages.add_message(request, messages.INFO, u'付款保存成功')
+        
+        print 'messages',messages
+        
+        return HttpResponseRedirect('/admin/purchases/purchasepayment/?q=%s'%id)
+        
+        
+    def parse_params(self,content):
+        
+#        try:
+        r  = re.compile('^(?P<name>\w+)-(?P<id>[0-9]+)(-(?P<item_id>[0-9]+))?$')
+        
+        pmt_dict = {"purchase":{},"storages":{}}
+        
+        for k,v in content.iteritems():
+            m = r.match(k)
+            if not m :
+                continue
+            
+            v = round(float(v),2)
+            d = m.groupdict()
+            if d['name'] == 'purchase':
+                handle      = pmt_dict['purchase'] 
+                id           = d['id']
+                item_id      = d['item_id']
+                
+                if not handle.has_key('payment_items'):
+                    handle['payment_items'] = []
+                
+                if item_id:
+                    handle['payment_items'].append((item_id,v))
+                else:
+                    handle['id'] = id
+                    handle['payment'] = v
                     
+            elif d['name'] == 'storage':
+                handle       = pmt_dict['storages'] 
+                id           = d['id']
+                item_id      = d['item_id']
+                
+                if handle.has_key(id):
+                    storage_dict = handle[id]
+                    storage_dict['payment_items'].append((item_id,v))
+                else:
+                    handle[id] = storage_dict = {'payment_items':[]}
                     
+                    if not item_id:
+                        storage_dict['id'] = id
+                        storage_dict['payment'] = v
+                        continue
+                    
+                    storage_dict['payment_items'].append((item_id,v))
+#        except:
+#            raise Exception(u'参数格式不对')
+        print 'pmt_dict'
+        return pmt_dict
+    
+    def valid_params(self,d,global_payment):
+        
+        total_payment = 0
+        if d['purchase']:
+            purchase = d['purchase']
+            payment  = purchase['payment']
+            item_payment = 0
+            for item in purchase['payment_items']:
+                item_payment += item[1]
+            
+            if payment != item_payment:
+                raise(u'采购项目总金额与实付不等')
+            
+            total_payment = payment
+        else:
+            storages = d['storages']
+            for k,storage in storages.iteritems():
+                item_payment = 0
+                payment  = storage['payment']
+                
+                for item in storage['payment_items']:
+                    item_payment += item[1]
+                
+                if payment != item_payment:
+                    raise(u'入库项目分配金额与总金额不等')
+                
+                total_payment += item_payment
+                
+        if global_payment != total_payment:
+            raise Exception(u'总付款金额与分配金额不等')
+        
+    def fill_payment(self,pmt_dict):
+        
+        if pmt_dict['purchase']:
+            for item in pmt_dict['purchase']['payment_items']:
+                payment_item = PurchasePaymentItem.objects.get(id=item[0])
+                payment_item.payment = item[1]
+                payment_item.save()
+        else:
+            for k,storage in pmt_dict['storages'].iteritems():
+                for item in storage['payment_items']:
+                    payment_item = PurchasePaymentItem.objects.get(id=item[0])
+                    payment_item.payment = item[1]
+                    payment_item.save()        
         
         
-   
-        
+            
+    
+    
     

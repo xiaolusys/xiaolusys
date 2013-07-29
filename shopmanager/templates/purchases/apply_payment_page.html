@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html >
+  <head>
+    <title>采购付款单金额分配</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+     <link href="{{ STATIC_URL }}bootstrap/css/bootstrap.min.css" rel="stylesheet" type="text/css" />
+    <link href="{{ STATIC_URL }}bootstrap/css/bootstrap-responsive.min.css" rel="stylesheet" type="text/css" />
+    <style type="text/css">
+	   	body,div{
+		   	margin:0px auto;
+		   	padding:0px;
+	    }
+	    body{
+	    	width:1000px;
+	    }
+
+	    input[class="payment"]{
+	    	width:80px;
+	    	margin-bottom:0px;
+	    }
+	    .head-budget label{
+	    	display:inline;
+	    	font-size:22px;
+	    	margin-right:4px;
+	    }
+	    .head-budget span{
+	    	display:inline;
+	    	font-size:18px;
+	    	margin-right:20px;
+	    	font-family:Arial;
+	    }
+	    .form-submit{
+	    	text-align:center;
+	    }
+	    .form-submit button{
+	    	margin-right:20px;
+	    }
+	    .form-submit a{
+	    	margin-right:20px;
+	    }
+    </style>
+  </head>
+  <body>
+  	<form action="./" method="POST">
+  	{% with purchase=object.purchase_payment.purchase storages=object.purchase_payment.storages payment=object.purchase_payment.payment applier=object.purchase_payment.applier %}
+  	{% csrf_token %}
+  	{% if purchase %}
+  	<div>
+  		<h3>采购单付款额分配(现付总金额：{{ payment }}&yen;,申请人:{{ applier }})</h3>
+  		<div>
+  			<div id="purchase-form-head" class="well well-small">
+  				<label class="label label-info">{{ purchase.id }}&nbsp;&nbsp;&nbsp;{{ purchase.title }}&nbsp;&nbsp;&nbsp;{{ purchase.service_date }}</label>
+	  			<div class="head-budget">
+	  				<label>总金额：</label><span>{{ purchase.total_fee }}&yen;</span>
+	  				<label>已付金额：</label><span>{{ purchase.payment }}&yen;</span>
+	  				<label>现付款：</label><span><input class="payment" type="text" name="purchase-{{ purchase.id }}" value="{{ purchase.dst_payment }}"/>&yen;</span>
+	  			</div>
+	  		</div>
+	  		<div id="purchase-form-body">
+	  			<table class="table table-bordered table-striped table-condensed">
+	  				<thead>
+	  					<tr>
+	  					<th>项目ID</th>
+	  					<th>商品编码</th>
+	  					<th>商品名称</th>
+	  					<th>规格编码</th>
+	  					<th>规格名称</th>
+	  					<th>总金额</th>
+	  					<th>已付金额</th>
+	  					<th>现付款</th>
+	  					</tr>
+	  				</thead>
+	  				<tbody>
+	  					{% for item in purchase.payment_items %}
+	  					<tr>
+	  						<td>{{ item.purchase_item_id }}</td>
+	  						<td>{{ item.outer_id }}</td>
+	  						<td>{{ item.name }}</td>
+	  						<td>{{ item.outer_sku_id }}</td>
+	  						<td>{{ item.properties_name }}</td>
+	  						<td>{{ item.total_fee }}</td>
+	  						<td>{{ item.payment }}</td>
+	  						<td><input class="payment" type="text" name="purchase-{{ purchase.id }}-{{ item.id }}" value="{{ item.dst_payment }}"/></td>
+	  					</tr>
+	  					{% endfor %}
+	  				</tbody>
+	  			</table>
+	  		</div>
+  		</div>
+  	</div>
+  	{% endif %}
+  	{% if storages %}
+  	<div class="div-block">
+	  	<div class="block-head">
+		  	<h3>入库单金额分配(现付总金额：{{ payment }}&yen;,申请人:{{ applier }})</h3>
+	  	</div>
+	  	<div class="block-body">
+	  		<ol>
+	  			{% for storage in storages %}
+	  			<li>
+	  				<div id="purchase-head-{{ storage.id }}" class="well well-small">
+			  			<label class="label label-info">{{ storage.id }}&nbsp;&nbsp;&nbsp;{{ storage.title }}&nbsp;&nbsp;&nbsp;{{ storage.post_date }}</label>
+			  			<div class="head-budget">
+			  				<label>总金额：</label><span>{{ storage.total_fee }}&yen;</span>
+			  				<label>已付金额：</label><span>{{ storage.payment }}&yen;</span>
+			  				<label>现付款：</label><span><input class="payment" type="text" name="storage-{{ storage.id }}" 
+			  					value="{{ storage.dst_payment }}"/>&yen;</span>
+			  			</div>
+			  		</div>
+			  		<div id="purchase-body-{{ storage.id }}">
+			  			<table class="table table-bordered table-striped table-condensed">
+			  				<thead>
+			  					<tr>
+			  					<th>项目ID</th>
+			  					<th>商品编码</th>
+			  					<th>商品名称</th>
+			  					<th>规格编码</th>
+			  					<th>规格名称</th>
+			  					<th>总金额</th>
+			  					<th>已付金额</th>
+			  					<th>现付款</th>
+			  					</tr>
+			  				</thead>
+			  				<tbody>
+			  					{% for item in storage.payment_items %}
+			  					<tr>
+			  						<td>{{ item.storage_item_id }}</td>
+			  						<td>{{ item.outer_id }}</td>
+			  						<td>{{ item.name }}</td>
+			  						<td>{{ item.outer_sku_id }}</td>
+			  						<td>{{ item.properties_name }}</td>
+			  						<td>{{ item.total_fee }}</td>
+			  						<td>{{ item.payment }}</td>
+			  						<td><input class="payment" type="text" name="storage-{{ storage.id }}-{{ item.id }}" 
+			  							value="{{ item.dst_payment }}"/></td>
+			  					</tr>
+			  					{% endfor %}
+			  				</tbody>
+			  			</table>
+			  		</div>
+	  			</li>
+	  			{% endfor %}
+	  		</ol>
+	  	</div>
+  	</div>
+  	{% endif %}
+  	{% endwith %}
+  	<div class="form-submit">
+  		<button id="submit" class="btn btn-primary" >申请付款</button>
+  		<a id="confirm_payment" class="btn btn-primary" href="javascript:void(0);">确认付款</a> 
+  		<label class="label badge-important">{{ object.error_msg }}</label>
+  	</div>
+  	</form>
+  </body>
+</html>
