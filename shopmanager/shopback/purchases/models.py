@@ -814,7 +814,6 @@ class PurchasePayment(models.Model):
             elif cal_by == 2:
                 item_payment = round((item.total_fee / total_fee)*payment,2)
             else:
-                print 'total unpay fee:',total_unpay_fee
                 if total_unpay_fee <= 0:
                     raise Exception(u'待付款金额不能为零')
                 item_payment = round((item.unpay_fee / total_unpay_fee)*payment,2)
@@ -846,7 +845,6 @@ class PurchasePayment(models.Model):
             elif cal_by == 2:
                 item_payment = round((item.total_fee / total_fee)*payment,2)
             else:
-                print 'storage unpay fee:',total_unpay_fee
                 if total_unpay_fee <= 0:
                     raise Exception(u'待付款金额不能为零')
                 item_payment = round((item.unpay_fee / total_unpay_fee)*payment,2)
