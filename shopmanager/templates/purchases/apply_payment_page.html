@@ -44,13 +44,16 @@
 	    	width:180px;
 	    }
 	    .skuname{
-	    	width:300px;
+	    	width:280px;
 	    }
 	    .payment-td{
 	    	width:90px;
 	    }
 	    .mywell{
 	    	margin-bottom:0px;
+	    }
+	    .wait-pay{
+	    	background-color:#F8C74F;
 	    }
     </style>
   </head>
@@ -67,11 +70,12 @@
 	  			<div class="head-budget">
 	  				<label>总金额：</label><span>{{ purchase.total_fee }}&yen;</span>
 	  				<label>已付金额：</label><span>{{ purchase.payment }}&yen;</span>
+	  				<label>待付金额：</label><span class="wait-pay">{{ purchase.unpay_fee }}&yen;</span>
 	  				<label>现付款：</label><span><input class="payment" type="text" name="purchase-{{ purchase.id }}" value="{{ purchase.dst_payment }}"/>&yen;</span>
 	  			</div>
 	  		</div>
 	  		<div id="purchase-form-body">
-	  			<table class="table table-bordered table-striped table-condensed">
+	  			<table class="table table-bordered  table-condensed">
 	  				<thead>
 	  					<tr>
 	  					<th>项目ID</th>
@@ -81,6 +85,7 @@
 	  					<th class="skuname">规格名称</th>
 	  					<th>总金额</th>
 	  					<th>已付金额</th>
+	  					<th>待付金额</th>
 	  					<th class="payment-td">现付款</th>
 	  					</tr>
 	  				</thead>
@@ -94,6 +99,7 @@
 	  						<td>{{ item.properties_name }}</td>
 	  						<td>{{ item.total_fee }}</td>
 	  						<td>{{ item.payment }}</td>
+	  						<td class="wait-pay">{{ item.unpay_fee }}</td>
 	  						<td><input class="payment" type="text" name="purchase-{{ purchase.id }}-{{ item.id }}" value="{{ item.dst_payment }}"/></td>
 	  					</tr>
 	  					{% endfor %}
@@ -117,12 +123,13 @@
 			  			<div class="head-budget">
 			  				<label>总金额：</label><span>{{ storage.total_fee }}&yen;</span>
 			  				<label>已付金额：</label><span>{{ storage.payment }}&yen;</span>
+			  				<label>待付金额：</label><span class="wait-pay">{{ storage.unpay_fee }}&yen;</span>
 			  				<label>现付款：</label><span><input class="payment" type="text" name="storage-{{ storage.id }}" 
 			  					value="{{ storage.dst_payment }}"/>&yen;</span>
 			  			</div>
 			  		</div>
 			  		<div id="purchase-body-{{ storage.id }}">
-			  			<table class="table table-bordered table-striped table-condensed">
+			  			<table class="table table-bordered  table-condensed">
 			  				<thead>
 			  					<tr>
 			  					<th>项目ID</th>
@@ -132,6 +139,7 @@
 			  					<th class="skuname">规格名称</th>
 			  					<th>总金额</th>
 			  					<th>已付金额</th>
+			  					<th>待付金额</th>
 			  					<th class="payment-td">现付款</th>
 			  					</tr>
 			  				</thead>
@@ -145,6 +153,7 @@
 			  						<td>{{ item.properties_name }}</td>
 			  						<td>{{ item.total_fee }}</td>
 			  						<td>{{ item.payment }}</td>
+			  						<td class="wait-pay">{{ item.unpay_fee }}</td>
 			  						<td><input class="payment" type="text" name="storage-{{ storage.id }}-{{ item.id }}" 
 			  							value="{{ item.dst_payment }}"/></td>
 			  					</tr>

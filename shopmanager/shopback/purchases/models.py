@@ -947,11 +947,11 @@ class PurchasePaymentItem(models.Model):
     
     purchase_payment  = models.ForeignKey(PurchasePayment,related_name='payment_items',verbose_name='付款单')
     
-    purchase_id       = models.IntegerField(null=True,verbose_name='采购单ID')
-    purchase_item_id  = models.IntegerField(null=True,verbose_name='采购项目ID')
+    purchase_id       = models.IntegerField(null=True,blank=True,verbose_name='采购单ID')
+    purchase_item_id  = models.IntegerField(null=True,blank=True,verbose_name='采购项目ID')
     
-    storage_id        = models.IntegerField(null=True,verbose_name='入库单ID')
-    storage_item_id   = models.IntegerField(null=True,verbose_name='入库项目ID')
+    storage_id        = models.IntegerField(null=True,blank=True,verbose_name='入库单ID')
+    storage_item_id   = models.IntegerField(null=True,blank=True,verbose_name='入库项目ID')
     
     outer_id          = models.CharField(max_length=32,verbose_name='商品编码')
     name              = models.CharField(max_length=64,null=False,blank=True,verbose_name='商品名称')

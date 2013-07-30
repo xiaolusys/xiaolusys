@@ -546,6 +546,8 @@ class PurchasePaymentView(ModelView):
                                                           status     = pcfg.PP_WAIT_APPLY,
                                                           extra_info = memo)
             
+            log_action(request.user.id,purchase_payment,CHANGE,u'创建采购付款单')
+            
             if paytype == pcfg.PC_PREPAID_TYPE:
                 purchase_payment.apply_for_prepay(purchase,payment)
                 
@@ -565,6 +567,7 @@ class PurchasePaymentView(ModelView):
             logger.error(exc.message,exc_info=True)
             if purchase_payment:
                 purchase_payment.invalid()
+                log_action(request.user.id,purchase_payment,CHANGE,u'创建采购付款单出错:%s'%exc.message)
                 
             return {'purchases':waitpay_purchases,'storages':waitpay_storages,'error_msg':exc.message}
         else:
@@ -583,7 +586,7 @@ class PaymentDistributeView(ModelView):
         
         perms = {'can_confirm_payment':perm.has_payment_confirm_permission(request.user) 
                  and purchase_payment.status==pcfg.PP_WAIT_PAYMENT,
-                'can_apply_payment':purchase_payment.status==pcfg.PP_WAIT_APPLY}
+                'can_apply_payment':purchase_payment.status in (pcfg.PP_WAIT_APPLY,pcfg.PP_WAIT_PAYMENT)}
         
         return {'purchase_payment':purchase_payment.json,'perms':perms}
         
@@ -591,7 +594,7 @@ class PaymentDistributeView(ModelView):
     def post(self, request, id, *args, **kwargs):
         
         try:
-            purchase_payment = PurchasePayment.objects.get(id=id)
+            purchase_payment = PurchasePayment.objects.get(id=id,status__in=(pcfg.PP_WAIT_APPLY,pcfg.PP_WAIT_PAYMENT))
         except PruchasePayment.DoesNotExist:
             raise Http404
         
@@ -606,13 +609,15 @@ class PaymentDistributeView(ModelView):
         except Exception,exc:
             perms = {'can_confirm_payment':perm.has_payment_confirm_permission(request.user) \
                      and purchase_payment.status==pcfg.PP_WAIT_PAYMENT,
-                     'can_apply_payment':purchase_payment.status==pcfg.PP_WAIT_APPLY}
+                     'can_apply_payment':purchase_payment.status in (pcfg.PP_WAIT_APPLY,pcfg.PP_WAIT_PAYMENT)}
             return {'purchase_payment':purchase_payment.json,'error_msg':exc.message,'perms':perms}
         
         purchase_payment.status = pcfg.PP_WAIT_PAYMENT
         purchase_payment.save()
         
-        messages.add_message(request, messages.INFO, u'付款保存成功')
+        log_action(request.user.id,purchase_payment,CHANGE,u'申请付款')
+        
+        messages.add_message(request, messages.INFO, u'付款保存成功,并已申请付款')
         
         return HttpResponseRedirect('/admin/purchases/purchasepayment/?q=%s'%id)
         
@@ -724,6 +729,7 @@ def confirm_payment_amount(request,id):
     purchase_payment.confirm_pay(request.user.username)
     
     messages.add_message(request, messages.INFO, u'成功确认付款')
+    log_action(request.user.id,purchase_payment,CHANGE,u'确认付款')
     
     return HttpResponseRedirect('/admin/purchases/purchasepayment/?q=%s'%id)
     
