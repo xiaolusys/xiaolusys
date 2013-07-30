@@ -79,7 +79,9 @@ class PurchasePaymentItemInline(admin.TabularInline):
     }
     
     def get_readonly_fields(self, request, obj=None):
-        return self.fields
+        if not perms.has_payment_confirm_permission(request.user):
+            return self.readonly_fields + self.fields
+        return self.readonly_fields
 
 
 class PurchaseAdmin(admin.ModelAdmin):
@@ -172,15 +174,15 @@ class PurchaseAdmin(admin.ModelAdmin):
 admin.site.register(Purchase,PurchaseAdmin)
 
 
-class PurchaseItemAdmin(admin.ModelAdmin):
-    list_display = ('id','purchase','outer_id','name','outer_sku_id','properties_name','purchase_num','price'
-                    ,'total_fee','payment','created','modified','status')
-    #list_editable = ('update_time','task_type' ,'is_success','status')
-
-    list_filter = ('status',)
-    search_fields = ['id']
-
-admin.site.register(PurchaseItem,PurchaseItemAdmin)
+#class PurchaseItemAdmin(admin.ModelAdmin):
+#    list_display = ('id','purchase','outer_id','name','outer_sku_id','properties_name','purchase_num','price'
+#                    ,'total_fee','payment','created','modified','status')
+#    #list_editable = ('update_time','task_type' ,'is_success','status')
+#
+#    list_filter = ('status',)
+#    search_fields = ['id']
+#
+#admin.site.register(PurchaseItem,PurchaseItemAdmin)
 
 
 class PurchaseStorageAdmin(admin.ModelAdmin):
@@ -268,15 +270,15 @@ class PurchaseStorageAdmin(admin.ModelAdmin):
 admin.site.register(PurchaseStorage,PurchaseStorageAdmin)
 
 
-class PurchaseStorageItemAdmin(admin.ModelAdmin):
-    list_display = ('id','purchase_storage','supplier_item_id','outer_id','name','outer_sku_id',
-                    'properties_name','storage_num','created','modified','status')
-    #list_editable = ('update_time','task_type' ,'is_success','status')
-
-    list_filter = ('status',)
-    search_fields = ['id']
-    
-admin.site.register(PurchaseStorageItem,PurchaseStorageItemAdmin)
+#class PurchaseStorageItemAdmin(admin.ModelAdmin):
+#    list_display = ('id','purchase_storage','supplier_item_id','outer_id','name','outer_sku_id',
+#                    'properties_name','storage_num','created','modified','status')
+#    #list_editable = ('update_time','task_type' ,'is_success','status')
+#
+#    list_filter = ('status',)
+#    search_fields = ['id']
+#    
+#admin.site.register(PurchaseStorageItem,PurchaseStorageItemAdmin)
 
 
 class PurchaseStorageRelationshipAdmin(admin.ModelAdmin):

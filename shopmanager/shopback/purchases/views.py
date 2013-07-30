@@ -515,7 +515,8 @@ class PurchasePaymentView(ModelView):
                 
             elif paytype in (pcfg.PC_POD_TYPE,pcfg.PC_COD_TYPE):
                 for storage_id in storageids:
-                    storage =  PurchaseStorage.objects.get(id=storage_id,status__in=(pcfg.PURCHASE_DRAFT,pcfg.PURCHASE_APPROVAL))
+                    storage =  PurchaseStorage.objects.get(id=storage_id,\
+                                                status__in=(pcfg.PURCHASE_DRAFT,pcfg.PURCHASE_APPROVAL))
                     storages.append(storage)
                     
                 if paytype == pcfg.PC_POD_TYPE and len(storages) != 1:
@@ -547,8 +548,10 @@ class PurchasePaymentView(ModelView):
             
             if paytype == pcfg.PC_PREPAID_TYPE:
                 purchase_payment.apply_for_prepay(purchase,payment)
+                
             elif paytype == pcfg.PC_POD_TYPE:
                 purchase_payment.apply_for_podpay(storages[0],payment)
+                
             elif paytype == pcfg.PC_COD_TYPE:
                 total_unpay_fee = 0
                 for storage in storages:
@@ -562,6 +565,7 @@ class PurchasePaymentView(ModelView):
             logger.error(exc.message,exc_info=True)
             if purchase_payment:
                 purchase_payment.invalid()
+                
             return {'purchases':waitpay_purchases,'storages':waitpay_storages,'error_msg':exc.message}
         else:
             return HttpResponseRedirect("/purchases/payment/distribute/%d/"%purchase_payment.id)
@@ -577,84 +581,88 @@ class PaymentDistributeView(ModelView):
         except PruchasePayment.DoesNotExist:
             return u'采购付款单未找到'
         
-        return {'purchase_payment':purchase_payment.json}
+        perms = {'can_confirm_payment':perm.has_payment_confirm_permission(request.user) 
+                 and purchase_payment.status==pcfg.PP_WAIT_PAYMENT,
+                'can_apply_payment':purchase_payment.status==pcfg.PP_WAIT_APPLY}
+        
+        return {'purchase_payment':purchase_payment.json,'perms':perms}
         
         
     def post(self, request, id, *args, **kwargs):
         
-        print 'id',id
         try:
             purchase_payment = PurchasePayment.objects.get(id=id)
         except PruchasePayment.DoesNotExist:
             raise Http404
         
-#        try:
-        content  = request.REQUEST.copy()
+        try:
+            content  = request.REQUEST.copy()
+            
+            pmt_dict = self.parse_params(content)
+            
+            self.valid_params(pmt_dict,purchase_payment.payment)
+            
+            self.fill_payment(pmt_dict) 
+        except Exception,exc:
+            perms = {'can_confirm_payment':perm.has_payment_confirm_permission(request.user) \
+                     and purchase_payment.status==pcfg.PP_WAIT_PAYMENT,
+                     'can_apply_payment':purchase_payment.status==pcfg.PP_WAIT_APPLY}
+            return {'purchase_payment':purchase_payment.json,'error_msg':exc.message,'perms':perms}
         
-        pmt_dict = self.parse_params(content)
-        print 'params:',pmt_dict
-        self.valid_params(pmt_dict,purchase_payment.payment)
+        purchase_payment.status = pcfg.PP_WAIT_PAYMENT
+        purchase_payment.save()
         
-        self.fill_payment(pmt_dict) 
-#        except Exception,exc:
-#            print 'exc',exc.message
-#            return {'purchase_payment':purchase_payment.json,'error_msg':exc.message}
-#        
         messages.add_message(request, messages.INFO, u'付款保存成功')
-        
-        print 'messages',messages
         
         return HttpResponseRedirect('/admin/purchases/purchasepayment/?q=%s'%id)
         
         
     def parse_params(self,content):
         
-#        try:
-        r  = re.compile('^(?P<name>\w+)-(?P<id>[0-9]+)(-(?P<item_id>[0-9]+))?$')
-        
-        pmt_dict = {"purchase":{},"storages":{}}
-        
-        for k,v in content.iteritems():
-            m = r.match(k)
-            if not m :
-                continue
+        try:
+            r  = re.compile('^(?P<name>\w+)-(?P<id>[0-9]+)(-(?P<item_id>[0-9]+))?$')
             
-            v = round(float(v),2)
-            d = m.groupdict()
-            if d['name'] == 'purchase':
-                handle      = pmt_dict['purchase'] 
-                id           = d['id']
-                item_id      = d['item_id']
+            pmt_dict = {"purchase":{},"storages":{}}
+            
+            for k,v in content.iteritems():
+                m = r.match(k)
+                if not m :
+                    continue
                 
-                if not handle.has_key('payment_items'):
-                    handle['payment_items'] = []
-                
-                if item_id:
-                    handle['payment_items'].append((item_id,v))
-                else:
-                    handle['id'] = id
-                    handle['payment'] = v
+                v = round(float(v),2)
+                d = m.groupdict()
+                if d['name'] == 'purchase':
+                    handle      = pmt_dict['purchase'] 
+                    id           = d['id']
+                    item_id      = d['item_id']
                     
-            elif d['name'] == 'storage':
-                handle       = pmt_dict['storages'] 
-                id           = d['id']
-                item_id      = d['item_id']
-                
-                if handle.has_key(id):
-                    storage_dict = handle[id]
-                    storage_dict['payment_items'].append((item_id,v))
-                else:
-                    handle[id] = storage_dict = {'payment_items':[]}
+                    if not handle.has_key('payment_items'):
+                        handle['payment_items'] = []
                     
+                    if item_id:
+                        handle['payment_items'].append((item_id,v))
+                    else:
+                        handle['id'] = id
+                        handle['payment'] = v
+                        
+                elif d['name'] == 'storage':
+                    handle       = pmt_dict['storages'] 
+                    id           = d['id']
+                    item_id      = d['item_id']
+                    
+                    if handle.has_key(id):
+                        storage_dict = handle[id]
+                    else:
+                        handle[id] = storage_dict = {'payment_items':[]}
+                        
                     if not item_id:
                         storage_dict['id'] = id
                         storage_dict['payment'] = v
                         continue
-                    
+                        
                     storage_dict['payment_items'].append((item_id,v))
-#        except:
-#            raise Exception(u'参数格式不对')
-        print 'pmt_dict'
+        except:
+            raise Exception(u'参数格式不对')
         return pmt_dict
     
     def valid_params(self,d,global_payment):
@@ -663,29 +671,29 @@ class PaymentDistributeView(ModelView):
         if d['purchase']:
             purchase = d['purchase']
             payment  = purchase['payment']
-            item_payment = 0
+            item_payment = 0.0
             for item in purchase['payment_items']:
                 item_payment += item[1]
             
-            if payment != item_payment:
-                raise(u'采购项目总金额与实付不等')
+            if round(payment,1) != round(item_payment,1):
+                raise(u'采购项目分配金额与采购单分配总金额不等')
             
             total_payment = payment
         else:
             storages = d['storages']
             for k,storage in storages.iteritems():
-                item_payment = 0
+                item_payment = 0.0
                 payment  = storage['payment']
                 
                 for item in storage['payment_items']:
                     item_payment += item[1]
-                
-                if payment != item_payment:
-                    raise(u'入库项目分配金额与总金额不等')
+                    
+                if round(payment,1) != round(item_payment,1):
+                    raise Exception(u'入库项目分配金额与入库单分配总金额不等')
                 
                 total_payment += item_payment
                 
-        if global_payment != total_payment:
+        if round(global_payment,1) != round(total_payment,1):
             raise Exception(u'总付款金额与分配金额不等')
         
     def fill_payment(self,pmt_dict):
@@ -703,7 +711,20 @@ class PaymentDistributeView(ModelView):
                     payment_item.save()        
         
         
-            
+def confirm_payment_amount(request,id):
     
+    try:
+        purchase_payment = PurchasePayment.objects.get(id=id,status=pcfg.PP_WAIT_PAYMENT)
+    except PruchasePayment.DoesNotExist:
+         raise Http404
+                  
+    if not perm.has_payment_confirm_permission(request.user):
+        raise Http404 
+        
+    purchase_payment.confirm_pay(request.user.username)
+    
+    messages.add_message(request, messages.INFO, u'成功确认付款')
+    
+    return HttpResponseRedirect('/admin/purchases/purchasepayment/?q=%s'%id)
     
     

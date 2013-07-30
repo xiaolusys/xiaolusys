@@ -8,3 +8,6 @@ def has_confirm_purchase_permission(user):
 
 def has_confirm_storage_permission(user):
     return user.has_perm('purchases.can_storage_confirm')
+
+def has_payment_confirm_permission(user):
+    return user.has_perm('purchases.can_payment_confirm')

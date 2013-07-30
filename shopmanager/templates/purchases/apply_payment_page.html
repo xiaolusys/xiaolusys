@@ -16,6 +16,8 @@
 
 	    input[class="payment"]{
 	    	width:80px;
+	    	height:16px;
+	    	padding:2px 2px;
 	    	margin-bottom:0px;
 	    }
 	    .head-budget label{
@@ -38,17 +40,29 @@
 	    .form-submit a{
 	    	margin-right:20px;
 	    }
+	    .title{
+	    	width:180px;
+	    }
+	    .skuname{
+	    	width:300px;
+	    }
+	    .payment-td{
+	    	width:90px;
+	    }
+	    .mywell{
+	    	margin-bottom:0px;
+	    }
     </style>
   </head>
   <body>
   	<form action="./" method="POST">
-  	{% with purchase=object.purchase_payment.purchase storages=object.purchase_payment.storages payment=object.purchase_payment.payment applier=object.purchase_payment.applier %}
+  	{% with purchase=object.purchase_payment.purchase storages=object.purchase_payment.storages perms=object.perms payment=object.purchase_payment.payment applier=object.purchase_payment.applier %}
   	{% csrf_token %}
   	{% if purchase %}
   	<div>
   		<h3>采购单付款额分配(现付总金额：{{ payment }}&yen;,申请人:{{ applier }})</h3>
   		<div>
-  			<div id="purchase-form-head" class="well well-small">
+  			<div id="purchase-form-head" class="well well-small mywell">
   				<label class="label label-info">{{ purchase.id }}&nbsp;&nbsp;&nbsp;{{ purchase.title }}&nbsp;&nbsp;&nbsp;{{ purchase.service_date }}</label>
 	  			<div class="head-budget">
 	  				<label>总金额：</label><span>{{ purchase.total_fee }}&yen;</span>
@@ -62,12 +76,12 @@
 	  					<tr>
 	  					<th>项目ID</th>
 	  					<th>商品编码</th>
-	  					<th>商品名称</th>
+	  					<th class="title">商品名称</th>
 	  					<th>规格编码</th>
-	  					<th>规格名称</th>
+	  					<th class="skuname">规格名称</th>
 	  					<th>总金额</th>
 	  					<th>已付金额</th>
-	  					<th>现付款</th>
+	  					<th class="payment-td">现付款</th>
 	  					</tr>
 	  				</thead>
 	  				<tbody>
@@ -98,7 +112,7 @@
 	  		<ol>
 	  			{% for storage in storages %}
 	  			<li>
-	  				<div id="purchase-head-{{ storage.id }}" class="well well-small">
+	  				<div id="purchase-head-{{ storage.id }}" class="well well-small mywell">
 			  			<label class="label label-info">{{ storage.id }}&nbsp;&nbsp;&nbsp;{{ storage.title }}&nbsp;&nbsp;&nbsp;{{ storage.post_date }}</label>
 			  			<div class="head-budget">
 			  				<label>总金额：</label><span>{{ storage.total_fee }}&yen;</span>
@@ -113,12 +127,12 @@
 			  					<tr>
 			  					<th>项目ID</th>
 			  					<th>商品编码</th>
-			  					<th>商品名称</th>
+			  					<th class="title">商品名称</th>
 			  					<th>规格编码</th>
-			  					<th>规格名称</th>
+			  					<th class="skuname">规格名称</th>
 			  					<th>总金额</th>
 			  					<th>已付金额</th>
-			  					<th>现付款</th>
+			  					<th class="payment-td">现付款</th>
 			  					</tr>
 			  				</thead>
 			  				<tbody>
@@ -144,12 +158,17 @@
 	  	</div>
   	</div>
   	{% endif %}
-  	{% endwith %}
+  	
   	<div class="form-submit">
-  		<button id="submit" class="btn btn-primary" >申请付款</button>
-  		<a id="confirm_payment" class="btn btn-primary" href="javascript:void(0);">确认付款</a> 
+  		<button id="submit" class="btn {% if perms.can_apply_payment %}btn-primary{% else %}btn-inverse{% endif %}" {% if not perms.can_apply_payment %}disabled="disabled"{% endif %}>保存并申请付款</button>
+  		{% if perms.can_confirm_payment %}
+  		<a class="btn btn-primary" href="/purchases/payment/confirm/{{ object.purchase_payment.id }}/">确认付款</a> 
+  		{% else %}
+  		<a class="btn btn-inverse" href="#" disabled="disabled">确认付款</a> 
+  		{% endif %}
   		<label class="label badge-important">{{ object.error_msg }}</label>
   	</div>
+  	{% endwith %}
   	</form>
   </body>
 </html>

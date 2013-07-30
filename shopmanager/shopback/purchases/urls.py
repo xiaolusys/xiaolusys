@@ -80,10 +80,11 @@ urlpatterns = patterns('shopback.purchases.views',
     url(r'csv/(?P<id>\d{1,20})/$','download_purchase_file',name='purchase_to_csv'),
     url(r'item/del/$','delete_purchase_item',name='del_purchase_item'),
     
-    (r'^payment/distribute/(?P<id>\d{1,20})/$',csrf_exempt(PaymentDistributeView.as_view(
+    (r'^payment/distribute/(?P<id>\d{1,20})/$',PaymentDistributeView.as_view(
         resource=PurchasePaymentResource,
         renderers=(BaseJsonRenderer,PaymentDistributeRenderer),
-#        authentication=(UserLoggedInAuthentication,),
-#        permissions=(IsAuthenticated,)
-    )))
+        authentication=(UserLoggedInAuthentication,),
+        permissions=(IsAuthenticated,)
+    )),
+    url(r'payment/confirm/(?P<id>\d{1,20})/$','confirm_payment_amount',name='payment_confirm')
 )

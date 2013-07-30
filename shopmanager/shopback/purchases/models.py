@@ -1,4 +1,5 @@
 #-*- coding:utf8 -*-
+import datetime
 from django.db import models
 from django.db.models.signals import post_save,post_delete
 from django.db.models import Q,Sum,F
@@ -378,6 +379,7 @@ class PurchaseStorage(models.Model):
     @property
     def total_unpay_fee(self):
         fee = self.total_fee - self.prepay - self.payment
+        print 'fee',fee,self.total_fee,self.prepay,self.payment
         if fee <0:
             return 0
         return fee
@@ -735,6 +737,10 @@ class PurchasePayment(models.Model):
         db_table = 'shop_purchases_payment'
         verbose_name=u'采购付款单'
         verbose_name_plural = u'采购付款单列表'
+        permissions = [
+                       ("can_payment_confirm", u"确认采购付款"),
+                       ]
+        
     
     def __unicode__(self):
         return '<%d,%s,%.2f>'%(self.id ,self.pay_type,self.payment)
@@ -787,7 +793,7 @@ class PurchasePayment(models.Model):
                                                  "dst_payment":item.payment,
                                                  "payment_items":[item.json]
                                                  }
-        return {'purchase':purchase_dict,'storages':storages_dict.values(),'payment':self.payment,'applier':self.applier}
+        return {'purchase':purchase_dict,'storages':storages_dict.values(),'id':self.id,'payment':self.payment,'applier':self.applier}
         
     def cal_purchase_payment(self,purchase,payment,cal_by=0):
         """ 生成采购合同付款项：
@@ -808,6 +814,7 @@ class PurchasePayment(models.Model):
             elif cal_by == 2:
                 item_payment = round((item.total_fee / total_fee)*payment,2)
             else:
+                print 'total unpay fee:',total_unpay_fee
                 if total_unpay_fee <= 0:
                     raise Exception(u'待付款金额不能为零')
                 item_payment = round((item.unpay_fee / total_unpay_fee)*payment,2)
@@ -839,6 +846,7 @@ class PurchasePayment(models.Model):
             elif cal_by == 2:
                 item_payment = round((item.total_fee / total_fee)*payment,2)
             else:
+                print 'storage unpay fee:',total_unpay_fee
                 if total_unpay_fee <= 0:
                     raise Exception(u'待付款金额不能为零')
                 item_payment = round((item.unpay_fee / total_unpay_fee)*payment,2)
@@ -877,7 +885,7 @@ class PurchasePayment(models.Model):
             self.cal_storage_payment(storage,round((storage.total_unpay_fee/total_unpay_fee)*payment,2),cal_by=1)   
         
         
-    def confirm_pay(self):
+    def confirm_pay(self,cashier):
         """ 确认付款 """
         if   self.pay_type == pcfg.PC_PREPAID_TYPE:
             for item in self.payment_items.all():
@@ -888,9 +896,9 @@ class PurchasePayment(models.Model):
                 
         elif self.pay_type in (pcfg.PC_COD_TYPE,pcfg.PC_POD_TYPE):
             for item in self.payment_items.all():
-                storage_item = StorageItem.objects.get(id=item.storage_item_id)
+                storage_item = PurchaseStorageItem.objects.get(id=item.storage_item_id)
                 relate_ships = PurchaseStorageRelationship.objects.filter(
-                                storage_id=storage_item.storage_id,storage_item_id=storage_item.storage_item_id)
+                                storage_id=storage_item.purchase_storage.id,storage_item_id=storage_item.id)
       
                 total_unpay_fee = storage_item.unpay_fee
                 for ship in relate_ships:
@@ -912,9 +920,9 @@ class PurchasePayment(models.Model):
                     purchase_item.save()
                 
                 if item.storage_id:
-                    storage_item = StorageItem.objects.get(id=item.storage_item_id)
+                    storage_item = PurchaseStorageItem.objects.get(id=item.storage_item_id)
                     relate_ships = PurchaseStorageRelationship.objects.filter(
-                                    storage_id=storage_item.storage_id,storage_item_id=storage_item.storage_item_id)
+                                    storage_id=storage_item.purchase_storage.id,storage_item_id=storage_item.id)
           
                     total_unpay_fee = storage_item.unpay_fee
                     for ship in relate_ships:
@@ -928,7 +936,11 @@ class PurchasePayment(models.Model):
                         if self.add_cost:
                             purchase_item.price   = F('price')  + round(ship_payment/purchase_item.purchase_num,2)
                         purchase_item.save() 
-    
+        
+        self.status = pcfg.PP_HAS_PAYMENT
+        self.cashier = cashier
+        self.pay_time = datetime.datetime.now()
+        self.save()
     
 class PurchasePaymentItem(models.Model):
     """ 采购付款单付款项 """
