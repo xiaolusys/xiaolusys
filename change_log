@@ -1,3 +1,8 @@
+######### 2013-7-31  ##########
+alter table shop_purchases_item change column status status varchar(12) NOT NULL;
+alter table shop_purchases_item change column arrival_status arrival_status varchar(12) NOT NULL;
+alter table shop_purchases_storage change column status status varchar(12) NOT NULL;
+alter table shop_purchases_storageitem change column status status varchar(12) NOT NULL;
 ######### 2013-7-20  ###########
 alter table shop_purchases_purchase add column prepay double NOT NULL;
 alter table shop_purchases_item add column prepay double NOT NULL;

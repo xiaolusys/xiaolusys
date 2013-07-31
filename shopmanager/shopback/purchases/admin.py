@@ -19,7 +19,7 @@ class PurchaseItemInline(admin.TabularInline):
     
     model = PurchaseItem
     fields = ('outer_id','name','outer_sku_id','properties_name','purchase_num','storage_num'
-              ,'price','total_fee','payment','arrival_status','status','extra_info')
+              ,'price','std_price','total_fee','payment','arrival_status','status','extra_info')
     
     formfield_overrides = {
         models.CharField: {'widget': TextInput(attrs={'size':'20'})},
@@ -49,22 +49,6 @@ class PurchaseStorageItemInline(admin.TabularInline):
         return self.readonly_fields
 
 
-class PurchaseItemInline(admin.TabularInline):
-    
-    model = PurchaseItem
-    fields = ('outer_id','name','outer_sku_id','properties_name','purchase_num','storage_num'
-              ,'price','total_fee','payment','arrival_status','status','extra_info')
-    
-    formfield_overrides = {
-        models.CharField: {'widget': TextInput(attrs={'size':'20'})},
-        models.TextField: {'widget': Textarea(attrs={'rows':4, 'cols':40})},
-        models.FloatField: {'widget': TextInput(attrs={'size':'8'})}
-    }
-    
-    def get_readonly_fields(self, request, obj=None):
-        if not perms.has_check_purchase_permission(request.user):
-            return self.readonly_fields + self.fields[0:-1] 
-        return self.readonly_fields
 
 class PurchasePaymentItemInline(admin.TabularInline):
     
@@ -136,10 +120,10 @@ class PurchaseAdmin(admin.ModelAdmin):
                 prod = Product.objects.get(outer_id=outer_id)
                 if outer_sku_id:
                     prod_sku = ProductSku.objects.get(outer_id=outer_sku_id,product=prod)
-                    prod_sku.cost = purchase_item.price
+                    prod_sku.cost = purchase_item.cost
                     prod_sku.save()
                 else:
-                    prod.cost = purchase_item.price
+                    prod.cost = purchase_item.cost
                     prod.save()
         
                 log_action(request.user.id,purchase,CHANGE,u'更新库存商品价格')
@@ -294,10 +278,10 @@ admin.site.register(PurchaseStorageRelationship,PurchaseStorageRelationshipAdmin
 
 
 class PurchasePaymentAdmin(admin.ModelAdmin):
-    list_display = ('id','pay_type','payment_link','applier','cashier','apply_time','pay_time','modified','add_cost','status')
+    list_display = ('id','pay_type','payment_link','applier','cashier','pay_bank','pay_no','apply_time','pay_time','modified','status')
     #list_editable = ('update_time','task_type' ,'is_success','status')
 
-    list_filter = ('status','pay_type','add_cost')
+    list_filter = ('status','pay_type')
     search_fields = ['id']
     
     def payment_link(self, obj):
@@ -309,10 +293,10 @@ class PurchasePaymentAdmin(admin.ModelAdmin):
     
     fieldsets =(('采购单信息:', {
                     'classes': ('expand',),
-                    'fields': (('pay_type','payment','origin_no')
-                               ,('pay_time','apply_time','add_cost')
-                               ,('applier','cashier','status')
-                               ,'extra_info')
+                    'fields': (('pay_type','payment','pay_no','pay_bank')
+                               ,('pay_time','apply_time','applier','cashier')
+                               ,('status','extra_info')
+                               )
                 }),)
     
     inlines = [PurchasePaymentItemInline]

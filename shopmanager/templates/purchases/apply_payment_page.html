@@ -3,8 +3,14 @@
   <head>
     <title>采购付款单金额分配</title>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-     <link href="{{ STATIC_URL }}bootstrap/css/bootstrap.min.css" rel="stylesheet" type="text/css" />
+    <link href="{{ STATIC_URL }}bootstrap/css/bootstrap.min.css" rel="stylesheet" type="text/css" />
     <link href="{{ STATIC_URL }}bootstrap/css/bootstrap-responsive.min.css" rel="stylesheet" type="text/css" />
+    <link href="{{ STATIC_URL }}css/base.less" rel="stylesheet/less" type="text/css" />
+    <link href="{{ STATIC_URL }}css/dialog.css" rel="stylesheet" type="text/css" />
+    <link href='{{ STATIC_URL }}jquery/jquery-ui-1.10.1.css' rel='stylesheet'  />
+    <script src="{{ STATIC_URL }}jquery/jquery-1.8.13.min.js" type="text/javascript"></script>
+    <script src='{{ STATIC_URL }}jquery/jquery-ui-1.8.13.min.js'></script>
+    <script src="{{ STATIC_URL }}closure-library/closure/goog/base.js"></script>
     <style type="text/css">
 	   	body,div{
 		   	margin:0px auto;
@@ -55,12 +61,16 @@
 	    .wait-pay{
 	    	background-color:#F8C74F;
 	    }
+	    .modal-dialog{
+	    	min-width:500px;
+	    }
     </style>
   </head>
   <body>
   	<form action="./" method="POST">
   	{% with purchase=object.purchase_payment.purchase storages=object.purchase_payment.storages perms=object.perms payment=object.purchase_payment.payment applier=object.purchase_payment.applier %}
   	{% csrf_token %}
+  	<div style="display:none"><input type="hidden" id="purchase_payment_id" value="{{ object.purchase_payment.id }}"></div>
   	{% if purchase %}
   	<div>
   		<h3>采购单付款额分配(现付总金额：{{ payment }}&yen;,申请人:{{ applier }})</h3>
@@ -71,11 +81,12 @@
 	  				<label>总金额：</label><span>{{ purchase.total_fee }}&yen;</span>
 	  				<label>已付金额：</label><span>{{ purchase.payment }}&yen;</span>
 	  				<label>待付金额：</label><span class="wait-pay">{{ purchase.unpay_fee }}&yen;</span>
-	  				<label>现付款：</label><span><input class="payment" type="text" name="purchase-{{ purchase.id }}" value="{{ purchase.dst_payment }}"/>&yen;</span>
+	  				<label>现付款：</label><span><input class="payment" type="text" id="purchase-{{ purchase.id }}" unpay_fee="{{ purchase.unpay_fee }}"
+	  				name="purchase-{{ purchase.id }}" value="{{ purchase.dst_payment }}"/>&yen;</span>
 	  			</div>
 	  		</div>
 	  		<div id="purchase-form-body">
-	  			<table class="table table-bordered  table-condensed">
+	  			<table class="table table-bordered table-condensed">
 	  				<thead>
 	  					<tr>
 	  					<th>项目ID</th>
@@ -100,7 +111,8 @@
 	  						<td>{{ item.total_fee }}</td>
 	  						<td>{{ item.payment }}</td>
 	  						<td class="wait-pay">{{ item.unpay_fee }}</td>
-	  						<td><input class="payment" type="text" name="purchase-{{ purchase.id }}-{{ item.id }}" value="{{ item.dst_payment }}"/></td>
+	  						<td><input class="payment" type="text" id="purchase-{{ purchase.id }}-{{ item.id }}" unpay_fee="{{ item.unpay_fee }}"
+	  						name="purchase-{{ purchase.id }}-{{ item.id }}" value="{{ item.dst_payment }}"/></td>
 	  					</tr>
 	  					{% endfor %}
 	  				</tbody>
@@ -123,13 +135,13 @@
 			  			<div class="head-budget">
 			  				<label>总金额：</label><span>{{ storage.total_fee }}&yen;</span>
 			  				<label>已付金额：</label><span>{{ storage.payment }}&yen;</span>
-			  				<label>待付金额：</label><span class="wait-pay">{{ storage.unpay_fee }}&yen;</span>
-			  				<label>现付款：</label><span><input class="payment" type="text" name="storage-{{ storage.id }}" 
-			  					value="{{ storage.dst_payment }}"/>&yen;</span>
+			  				<label>待付金额：</label><span class="wait-pay" >{{ storage.unpay_fee }}&yen;</span>
+			  				<label>现付款：</label><span><input class="payment" type="text" id="purchase-{{ storage.id }}" unpay_fee="{{ storage.unpay_fee }}"
+			  					 name="storage-{{ storage.id }}" value="{{ storage.dst_payment }}" />&yen;</span>
 			  			</div>
 			  		</div>
 			  		<div id="purchase-body-{{ storage.id }}">
-			  			<table class="table table-bordered  table-condensed">
+			  			<table class="table table-bordered table-condensed">
 			  				<thead>
 			  					<tr>
 			  					<th>项目ID</th>
@@ -137,6 +149,7 @@
 			  					<th class="title">商品名称</th>
 			  					<th>规格编码</th>
 			  					<th class="skuname">规格名称</th>
+			  					<th>入库数量</th>
 			  					<th>总金额</th>
 			  					<th>已付金额</th>
 			  					<th>待付金额</th>
@@ -151,11 +164,12 @@
 			  						<td>{{ item.name }}</td>
 			  						<td>{{ item.outer_sku_id }}</td>
 			  						<td>{{ item.properties_name }}</td>
+			  						<td>{{ item.storage_num }}</td>
 			  						<td>{{ item.total_fee }}</td>
 			  						<td>{{ item.payment }}</td>
 			  						<td class="wait-pay">{{ item.unpay_fee }}</td>
-			  						<td><input class="payment" type="text" name="storage-{{ storage.id }}-{{ item.id }}" 
-			  							value="{{ item.dst_payment }}"/></td>
+			  						<td><input class="payment" type="text" id="purchase-{{ storage.id }}-{{ item.id }}" unpay_fee="{{ item.unpay_fee }}"
+			  						name="storage-{{ storage.id }}-{{ item.id }}" value="{{ item.dst_payment }}"/></td>
 			  					</tr>
 			  					{% endfor %}
 			  				</tbody>
@@ -171,13 +185,18 @@
   	<div class="form-submit">
   		<button id="submit" class="btn {% if perms.can_apply_payment %}btn-primary{% else %}btn-inverse{% endif %}" {% if not perms.can_apply_payment %}disabled="disabled"{% endif %}>保存并申请付款</button>
   		{% if perms.can_confirm_payment %}
-  		<a class="btn btn-primary" href="/purchases/payment/confirm/{{ object.purchase_payment.id }}/">确认付款</a> 
+  		<a id="confirm-payment" class="btn btn-primary" href="javascript:void(0);">确认付款</a> 
   		{% else %}
-  		<a class="btn btn-inverse" href="#" disabled="disabled">确认付款</a> 
+  		<a id="confirm-payment" class="btn btn-inverse" href="javascript:void(0);" disabled="disabled">确认付款</a> 
   		{% endif %}
   		<label class="label badge-important">{{ object.error_msg }}</label>
   	</div>
   	{% endwith %}
   	</form>
   </body>
+  <script src="{{ STATIC_URL }}script/purchase/purchasepayment.js"></script>
+  <script type="text/javascript">
+	 new purchasepayment.Manager();
+	 
+  </script>
 </html>

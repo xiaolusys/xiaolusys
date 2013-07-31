@@ -86,5 +86,5 @@ urlpatterns = patterns('shopback.purchases.views',
         authentication=(UserLoggedInAuthentication,),
         permissions=(IsAuthenticated,)
     )),
-    url(r'payment/confirm/(?P<id>\d{1,20})/$','confirm_payment_amount',name='payment_confirm')
+    url(r'payment/confirm/$','confirm_payment_amount',name='payment_confirm')
 )

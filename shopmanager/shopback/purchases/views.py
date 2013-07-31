@@ -487,8 +487,6 @@ class PurchasePaymentView(ModelView):
         purchase_id    = content.get('purchase')
         storageids = content.getlist('storage')
         payment        = content.get('payment')
-        origin_no      = content.get('origin_no')
-        add_cost       = content.get('add_cost')
         memo           = content.get('memo')
         
         waitpay_purchases = Purchase.objects.filter(status=pcfg.PURCHASE_APPROVAL)
@@ -503,15 +501,11 @@ class PurchasePaymentView(ModelView):
             if not payment:
                 raise Exception(u'付款金额不能为空')
             
-            if paytype != pcfg.PC_OTHER_TYPE and not origin_no:
-                raise Exception(u'请输入付款单据号')
-            
             if paytype==pcfg.PC_PREPAID_TYPE:
                 if not purchase_id:
                     raise Exception(u'请选择采购单')
                 
                 purchase = Purchase.objects.get(id=purchase_id,status=pcfg.PURCHASE_APPROVAL)
-                add_cost = False
                 
             elif paytype in (pcfg.PC_POD_TYPE,pcfg.PC_COD_TYPE):
                 for storage_id in storageids:
@@ -521,7 +515,6 @@ class PurchasePaymentView(ModelView):
                     
                 if paytype == pcfg.PC_POD_TYPE and len(storages) != 1:
                     raise Exception(u'请选择一个入库单')
-                add_cost = False
                 
             elif paytype==pcfg.PC_OTHER_TYPE:
                 if (purchase_id and storage_id) or (not purchase_id and not storage_id):
@@ -540,8 +533,6 @@ class PurchasePaymentView(ModelView):
                                                           pay_type   = paytype,
                                                           apply_time = datetime.datetime.now(),
                                                           payment    = payment,
-                                                          origin_no  = origin_no,
-                                                          add_cost   = add_cost and True or False,
                                                           applier    = request.user.username,
                                                           status     = pcfg.PP_WAIT_APPLY,
                                                           extra_info = memo)
@@ -558,6 +549,9 @@ class PurchasePaymentView(ModelView):
                 total_unpay_fee = 0
                 for storage in storages:
                     total_unpay_fee += storage.total_unpay_fee 
+                
+                if total_unpay_fee <= 0:
+                    raise Exception(u'没有找到待付款项')
                 
                 for storage in storages:
                     purchase_payment.apply_for_codpay(storage,(storage.total_unpay_fee/total_unpay_fee)*payment)
@@ -607,6 +601,7 @@ class PaymentDistributeView(ModelView):
             
             self.fill_payment(pmt_dict) 
         except Exception,exc:
+            
             perms = {'can_confirm_payment':perm.has_payment_confirm_permission(request.user) \
                      and purchase_payment.status==pcfg.PP_WAIT_PAYMENT,
                      'can_apply_payment':purchase_payment.status in (pcfg.PP_WAIT_APPLY,pcfg.PP_WAIT_PAYMENT)}
@@ -681,7 +676,7 @@ class PaymentDistributeView(ModelView):
                 item_payment += item[1]
             
             if round(payment,1) != round(item_payment,1):
-                raise(u'采购项目分配金额与采购单分配总金额不等')
+                raise Exception(u'采购项目分配金额与采购单分配总金额不等')
             
             total_payment = payment
         else:
@@ -708,6 +703,7 @@ class PaymentDistributeView(ModelView):
                 payment_item = PurchasePaymentItem.objects.get(id=item[0])
                 payment_item.payment = item[1]
                 payment_item.save()
+                
         else:
             for k,storage in pmt_dict['storages'].iteritems():
                 for item in storage['payment_items']:
@@ -715,16 +711,25 @@ class PaymentDistributeView(ModelView):
                     payment_item.payment = item[1]
                     payment_item.save()        
         
-        
-def confirm_payment_amount(request,id):
+@csrf_exempt        
+def confirm_payment_amount(request):
     
+    content    = request.REQUEST
+    id       = content.get('id','none')
+    pay_bank = content.get('pay_bank')
+    pay_no   = content.get('pay_no')
+    pay_time = content.get('pay_time')  
     try:
         purchase_payment = PurchasePayment.objects.get(id=id,status=pcfg.PP_WAIT_PAYMENT)
     except PruchasePayment.DoesNotExist:
-         raise Http404
+        raise Http404
                   
     if not perm.has_payment_confirm_permission(request.user):
-        raise Http404 
+        raise Http404
+    
+    purchase_payment.pay_bank = pay_bank
+    purchase_payment.pay_no   = pay_no
+    purchase_payment.pay_time = pay_time
         
     purchase_payment.confirm_pay(request.user.username)
     

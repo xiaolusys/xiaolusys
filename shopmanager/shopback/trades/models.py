@@ -872,8 +872,12 @@ def merge_order_maker(sub_tid,main_tid):
     
     if sub_trade.buyer_message:
         main_merge_trade.update_buyer_message(sub_tid,sub_trade.buyer_message)
+        main_merge_trade.append_reason_code(pcfg.NEW_MEMO_CODE)
+        
     if sub_trade.seller_memo:
         main_merge_trade.update_seller_memo(sub_tid,sub_trade.seller_memo)
+        main_merge_trade.append_reason_code(pcfg.NEW_MEMO_CODE)
+        
     MergeTrade.objects.filter(tid=main_tid).update(payment = payment + float(main_merge_trade.payment ),
                                                    total_fee = total_fee + float(main_merge_trade.total_fee ),
                                                    discount_fee = discount_fee + float(main_merge_trade.discount_fee or 0),

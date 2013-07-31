@@ -53,6 +53,9 @@
 		margin-top:40px;
 		display:fixed;
 	}
+	.form-horizontal select,.form-horizontal input[type="text"],.form-horizontal textarea{
+		width:400px;
+	}
     </style>
   </head>
 {% with purchases=object.purchases storages=object.storages  %}
@@ -75,15 +78,9 @@
 			    </div>
 			  </div>
 			  <div class="control-group">
-			    <label class="control-label" for="origin_no">单据编号</label>
-			    <div class="controls">
-			      <input type="text" id="origin_no" name="origin_no" >
-			    </div>
-			  </div>
-			  <div class="control-group">
 			    <label class="control-label" for="purchase">采购单</label>
 			    <div class="controls">
-			      <select size="5" id="purchase" name="purchase">
+			      <select id="purchase" name="purchase">
 			      	<option value="">----请选择----</option>
 					{% for purchase in purchases %}
 					<option value="{{ purchase.id }}">{{ purchase.id }}|{{ purchase.service_date|date:"y-n-j" }}|{{ purchase.extra_name }}</option>
@@ -109,19 +106,12 @@
 			    </div>
 			  </div>
 			  <div class="control-group">
-			  	<label class="control-label" for="add_cost">计入成本</label>
-			    <div class="controls">
-			      <input type="checkbox" id="add_cost" name="add_cost">
-			    </div>
-			  </div>
-			  <div class="control-group">
 			    <label class="control-label" for="memo">备注</label>
 			    <div class="controls">
 			      <textarea id="memo" name="memo" rows="2"></textarea>
 			    </div>
 			  </div>
 			  <div class="control-group">
-			  	
 			  	<div class="controls">
 			  		<button type="submit" class="btn btn-primary">创建付款单</button>
 			  		<label class="label badge-important">{{ object.error_msg }}</label>
