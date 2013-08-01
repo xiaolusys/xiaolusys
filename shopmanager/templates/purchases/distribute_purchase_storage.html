@@ -23,6 +23,7 @@
   </head>  
   {% with purchases=object.ship_purchases storage_items=object.undist_storage_items purchase_storage=object.purchase_storage perms=object.perms %}
   <body class="container">
+  	<div style="text-align:center;"><a style="float:right;" href="/admin/purchases/purchase/">采购单列表</a></div>
   	{% if storage_items %}
   	<div class="head-area">
   		<div><h2>未关联入库项目</h2></div>

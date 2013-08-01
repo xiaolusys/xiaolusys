@@ -71,6 +71,7 @@
   	{% with purchase=object.purchase_payment.purchase storages=object.purchase_payment.storages perms=object.perms payment=object.purchase_payment.payment applier=object.purchase_payment.applier %}
   	{% csrf_token %}
   	<div style="display:none"><input type="hidden" id="purchase_payment_id" value="{{ object.purchase_payment.id }}"></div>
+  	<div style="text-align:center;"><a style="float:right;" href="/admin/purchases/purchasepayment/">付款单列表</a></div>
   	{% if purchase %}
   	<div>
   		<h3>采购单付款额分配(现付总金额：{{ payment }}&yen;,申请人:{{ applier }})</h3>

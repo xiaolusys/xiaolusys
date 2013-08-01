@@ -524,7 +524,7 @@ class PurchasePaymentView(ModelView):
                     purchase = Purchase.objects.get(id=purchase_id,status=pcfg.PURCHASE_APPROVAL)
                 else:
                     for storage_id in storageids:
-                        storage =  PurchaseStorage.objects.get(id=storage_id,status=pcfg.PURCHASE_APPROVAL)
+                        storage =  PurchaseStorage.objects.get(id=storage_id,status__in=(pcfg.PURCHASE_APPROVAL,pcfg.PURCHASE_DRAFT))
                         storages.append(storage)
             else:
                 raise Exception(u'付款类型错误') 

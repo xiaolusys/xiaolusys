@@ -16,6 +16,7 @@
   {% load purchase_tags %}  
   {% with storages=object.ship_storages purchase_items=object.unfinish_purchase_items %}
   <body class="container">
+  	<div style="text-align:center;"><a style="float:right;" href="/admin/purchases/purchasestorage/">入库单列表</a></div>
   	{% if purchase_items %}
   	<div >
   		<div><h2>未完成采购项目</h2></div>
