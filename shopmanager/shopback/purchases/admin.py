@@ -328,7 +328,7 @@ class PurchasePaymentAdmin(admin.ModelAdmin):
         msg = u'%s 已作废.'%(','.join(payment_ids)) 
 
         self.message_user(request, msg)
-        return HttpResponseRedirect('../')
+        return HttpResponseRedirect('./')
 
     invalid_action.short_description = u"作废付款单"
     

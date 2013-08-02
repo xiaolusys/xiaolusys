@@ -75,6 +75,9 @@
   	{% if purchase %}
   	<div>
   		<h3>采购单付款额分配(现付总金额：{{ payment }}&yen;,申请人:{{ applier }})</h3>
+  		{% if object.purchase_payment.extra_info %}
+  		<div><label>备注:</label><span>{{ object.purchase_payment.extra_info }}</span></div>
+  		{% endif %}
   		<div>
   			<div id="purchase-form-head" class="well well-small mywell">
   				<label class="label label-info">{{ purchase.origin_no }}&nbsp;&nbsp;&nbsp;{{ purchase.title }}&nbsp;&nbsp;&nbsp;{{ purchase.service_date }}</label>
@@ -127,6 +130,7 @@
 	  	<div class="block-head">
 		  	<h3>入库单金额分配(现付总金额：{{ payment }}&yen;,申请人:{{ applier }})</h3>
 	  	</div>
+  		<div class="well" style=""><label class="label" style="display:inline;">备注:</label>{{ object.purchase_payment.extra_info }}</div>
 	  	<div class="block-body">
 	  		<ol>
 	  			{% for storage in storages %}

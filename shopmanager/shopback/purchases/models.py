@@ -807,7 +807,12 @@ class PurchasePayment(models.Model):
                                                  "dst_payment":item.payment,
                                                  "payment_items":[item.json]
                                                  }
-        return {'purchase':purchase_dict,'storages':storages_dict.values(),'id':self.id,'payment':self.payment,'applier':self.applier}
+        return {'id':self.id,
+                'payment':self.payment,
+                'applier':self.applier,
+                'extra_info':self.extra_info,
+                'purchase':purchase_dict,
+                'storages':storages_dict.values()}
         
     def cal_purchase_payment(self,purchase,payment,cal_by=0):
         """ 生成采购合同付款项：

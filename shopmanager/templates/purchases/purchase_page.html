@@ -196,7 +196,7 @@
 					<tr>
 						<td>
 							<label for='supplier'>供&nbsp;&nbsp;应&nbsp;&nbsp;商</label>
-							<select size="5" id='supplier'>
+							<select id='supplier'>
 								<option value='' >----请选择----</option>
 								{% for supplier in  suppliers %}
 								<option value='{{ supplier.id }}' {% if purchase.supplier_id == supplier.id %}selected{% endif %}>{{ supplier.supplier_name }}</option>
@@ -207,7 +207,7 @@
 						</td>
 						<td>
 							<label for='deposite'>仓&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;库</label>
-							<select size="5" id='deposite'>
+							<select id='deposite'>
 								<option value='' >----请选择----</option>
 								{% for deposite in  deposites %}
 								<option value='{{ deposite.id }}' {% if purchase.deposite_id == deposite.id %}selected{% endif %}>{{ deposite.deposite_name}}</option>
@@ -218,7 +218,7 @@
 						</td>
 						<td>
 							<label for='purchase_type'>采购类型</label>
-							<select size="5" id='purchase_type'>
+							<select id='purchase_type'>
 								<option value='' >----请选择----</option>
 								{% for purchase_type in  purchase_types %}
 								<option value='{{ purchase_type.id }}' {% if purchase.purchase_type_id == purchase_type.id %}selected{% endif %}>{{ purchase_type.type_name }}</option>

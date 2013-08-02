@@ -43,6 +43,6 @@ class PurchasePaymentResource(ModelResource):
     """ docstring for PurchasePaymentResource ModelResource """
 
     model = PurchasePayment
-    fields = ('purchases','storages','error_msg','purchase_payment','perms') 
+    fields = ('purchases','storages','error_msg','purchase_payment','perms','extra_info') 
     exclude = ('url',)
     

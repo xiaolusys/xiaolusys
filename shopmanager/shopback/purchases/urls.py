@@ -75,7 +75,6 @@ urlpatterns = patterns('shopback.purchases.views',
     
     url(r'storage/csv/(?P<id>\d{1,20})/$','download_purchasestorage_file',name='purchasestorage_to_csv'),
     url(r'storage/item/del/$','delete_purchasestorage_item',name='del_purchasestorage_item'),
-   
     
     url(r'csv/(?P<id>\d{1,20})/$','download_purchase_file',name='purchase_to_csv'),
     url(r'item/del/$','delete_purchase_item',name='del_purchase_item'),
