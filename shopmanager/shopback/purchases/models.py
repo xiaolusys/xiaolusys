@@ -779,6 +779,7 @@ class PurchasePayment(models.Model):
                     purchase_dict = {
                                      "id":purchase.id,
                                      "title":purchase.extra_name,
+                                     'origin_no':purchase.origin_no,
                                      "service_date":purchase.service_date,
                                      "purchase_num":purchase.purchase_num,
                                      "storage_num":purchase.storage_num,
@@ -796,6 +797,7 @@ class PurchasePayment(models.Model):
                     storage = PurchaseStorage.objects.get(id=storage_id)
                     storages_dict[storage_id] = {
                                                  "id":storage.id,
+                                                 'origin_no':storage.origin_no,
                                                  "title":storage.extra_name,
                                                  "post_date":storage.post_date,
                                                  "storage_num":storage.storage_num,

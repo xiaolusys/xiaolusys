@@ -45,7 +45,7 @@ var addSearchRow  = function(tableID,prod){
 	var sku_options = '<select id="id-order-sku-'+index.toString()+'" >';
 	for(var i=0;i<prod[3].length;i++){
 		var sku = prod[3][i];
-		sku_options += '<option value="'+sku[0]+'">'+sku[1]+'</option>';
+		sku_options += '<option value="'+sku[0]+'">'+sku[1]+'&raquo;'+sku[2]+'</option>';
 	}
 	sku_options += '</select>';
 	sku_cell.innerHTML = sku_options;

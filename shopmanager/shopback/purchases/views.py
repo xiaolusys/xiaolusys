@@ -476,7 +476,7 @@ class PurchasePaymentView(ModelView):
     def get(self, request, *args, **kwargs):
         
         waitpay_purchases = Purchase.objects.filter(status=pcfg.PURCHASE_APPROVAL)
-        waitpay_storages  = PurchaseStorage.objects.filter(status=pcfg.PURCHASE_APPROVAL)
+        waitpay_storages  = PurchaseStorage.objects.filter(status__in=(pcfg.PURCHASE_APPROVAL,pcfg.PURCHASE_DRAFT))
 
         return {'purchases':waitpay_purchases,'storages':waitpay_storages}
         
@@ -490,7 +490,7 @@ class PurchasePaymentView(ModelView):
         memo           = content.get('memo')
         
         waitpay_purchases = Purchase.objects.filter(status=pcfg.PURCHASE_APPROVAL)
-        waitpay_storages  = PurchaseStorage.objects.filter(status=pcfg.PURCHASE_APPROVAL)
+        waitpay_storages  = PurchaseStorage.objects.filter(status__in=(pcfg.PURCHASE_APPROVAL,pcfg.PURCHASE_DRAFT))
         
         purchase            = None
         purchase_payment    = None
@@ -721,7 +721,7 @@ def confirm_payment_amount(request):
     pay_time = content.get('pay_time')  
     try:
         purchase_payment = PurchasePayment.objects.get(id=id,status=pcfg.PP_WAIT_PAYMENT)
-    except PruchasePayment.DoesNotExist:
+    except PurchasePayment.DoesNotExist:
         raise Http404
                   
     if not perm.has_payment_confirm_permission(request.user):

@@ -83,7 +83,7 @@
 			      <select id="purchase" name="purchase">
 			      	<option value="">----请选择----</option>
 					{% for purchase in purchases %}
-					<option value="{{ purchase.id }}">{{ purchase.id }}|{{ purchase.service_date|date:"y-n-j" }}|{{ purchase.extra_name }}</option>
+					<option value="{{ purchase.id }}">{{ purchase.origin_no }}|{{ purchase.service_date|date:"y-n-j" }}|{{ purchase.extra_name }}</option>
 					{% endfor %}
 			      </select>
 			    </div>
@@ -94,7 +94,7 @@
 			      <select size="8" id="storage" name="storage" multiple="multiple">
 			      	<option value="">----请选择----</option>
 			      	{% for storage in storages %}
-					<option value="{{ storage.id }}">{{ storage.id }}|{{ storage.post_date|date:"y-n-j" }}|{{ storage.extra_name }}</option>
+					<option value="{{ storage.id }}">{{ storage.origin_no }}|{{ storage.post_date|date:"y-n-j" }}|{{ storage.extra_name }}</option>
 					{% endfor %}
 			      </select>
 			    </div>

@@ -276,7 +276,8 @@ purchasestorage.Manager.prototype.onSavePurchaseInfo = function(e){
 		alert('请输入供应商');
 		return;
 	}
-	var params = {  'purchase_storage_id':this.purchasestorageid_label.innerHTML,
+	var params = {  'origin_no':$('#origin_no').val(),
+					'purchase_storage_id':this.purchasestorageid_label.innerHTML,
 					'supplier_id':supplier,
 					'deposite_id':$('#deposite').val(),
 					'forecast_date':$('#forecast_date').val(),

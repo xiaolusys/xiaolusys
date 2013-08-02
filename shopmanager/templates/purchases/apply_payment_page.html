@@ -77,7 +77,7 @@
   		<h3>采购单付款额分配(现付总金额：{{ payment }}&yen;,申请人:{{ applier }})</h3>
   		<div>
   			<div id="purchase-form-head" class="well well-small mywell">
-  				<label class="label label-info">{{ purchase.id }}&nbsp;&nbsp;&nbsp;{{ purchase.title }}&nbsp;&nbsp;&nbsp;{{ purchase.service_date }}</label>
+  				<label class="label label-info">{{ purchase.origin_no }}&nbsp;&nbsp;&nbsp;{{ purchase.title }}&nbsp;&nbsp;&nbsp;{{ purchase.service_date }}</label>
 	  			<div class="head-budget">
 	  				<label>总金额：</label><span>{{ purchase.total_fee }}&yen;</span>
 	  				<label>已付金额：</label><span>{{ purchase.payment }}&yen;</span>
@@ -132,7 +132,7 @@
 	  			{% for storage in storages %}
 	  			<li>
 	  				<div id="purchase-head-{{ storage.id }}" class="well well-small mywell">
-			  			<label class="label label-info">{{ storage.id }}&nbsp;&nbsp;&nbsp;{{ storage.title }}&nbsp;&nbsp;&nbsp;{{ storage.post_date }}</label>
+			  			<label class="label label-info">{{ storage.origin_no }}&nbsp;&nbsp;&nbsp;{{ storage.title }}&nbsp;&nbsp;&nbsp;{{ storage.post_date }}</label>
 			  			<div class="head-budget">
 			  				<label>总金额：</label><span>{{ storage.total_fee }}&yen;</span>
 			  				<label>已付金额：</label><span>{{ storage.payment }}&yen;</span>

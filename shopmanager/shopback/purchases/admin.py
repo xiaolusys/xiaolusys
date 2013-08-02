@@ -299,6 +299,12 @@ class PurchasePaymentAdmin(admin.ModelAdmin):
                                )
                 }),)
     
+    def get_readonly_fields(self, request, obj=None):
+        if not perms.has_payment_confirm_permission(request.user):
+            return self.readonly_fields+('pay_type','payment','pay_no','pay_bank','pay_time',
+                                         'apply_time','applier','cashier','status')
+        return self.readonly_fields
+    
     inlines = [PurchasePaymentItemInline]
     
     #--------定制控件属性----------------
@@ -307,6 +313,26 @@ class PurchasePaymentAdmin(admin.ModelAdmin):
         models.FloatField: {'widget': TextInput(attrs={'size':'8'})},
         models.TextField: {'widget': Textarea(attrs={'rows':4, 'cols':40})},
     }
+    
+    def invalid_action(self, request, queryset):
+        """ 更新商品成本 """
+        
+        payment_ids = []
+        wait_payments = queryset.filter(status=pcfg.PP_WAIT_APPLY)
+        for payment in wait_payments:
+            payment_ids.append('%d|%s'%(payment.id,payment.applier))
+            payment.status = pcfg.PP_INVALID
+            payment.save()
+            log_action(request.user.id,payment,CHANGE,u'付款单作废')
+        
+        msg = u'%s 已作废.'%(','.join(payment_ids)) 
+
+        self.message_user(request, msg)
+        return HttpResponseRedirect('../')
+
+    invalid_action.short_description = u"作废付款单"
+    
+    actions = ['invalid_action']
     
 admin.site.register(PurchasePayment,PurchasePaymentAdmin)
 

@@ -18,51 +18,51 @@ urlpatterns = patterns('shopback.purchases.views',
     (r'^add/$',csrf_exempt(PurchaseView.as_view(
         resource=PurchaseResource,
         renderers=(PurchaseHtmlRenderer,BaseJsonRenderer),
-#        authentication=(UserLoggedInAuthentication,),
-#        permissions=(IsAuthenticated,)
+        authentication=(UserLoggedInAuthentication,),
+        permissions=(IsAuthenticated,)
     ))),
     (r'^(?P<id>\d{1,20})/$',csrf_exempt(PurchaseInsView.as_view(
         resource=PurchaseResource,
         renderers=(PurchaseHtmlRenderer,BaseJsonRenderer),
-#        authentication=(UserLoggedInAuthentication,),
-#        permissions=(IsAuthenticated,)
+        authentication=(UserLoggedInAuthentication,),
+        permissions=(IsAuthenticated,)
     ))),
     (r'^item/$',csrf_exempt(PurchaseItemView.as_view(
         resource=PurchaseItemResource,
         renderers=(BaseJsonRenderer,),
-#        authentication=(UserLoggedInAuthentication,),
-#        permissions=(IsAuthenticated,)
+        authentication=(UserLoggedInAuthentication,),
+        permissions=(IsAuthenticated,)
     ))),
     (r'ship/(?P<id>\d{1,20})/$',PurchaseShipStorageView.as_view(
         resource=PurchaseResource,
         renderers=(BaseJsonRenderer,PurchaseShipStorageRenderer),
-#        authentication=(UserLoggedInAuthentication,),
-#        permissions=(IsAuthenticated,)
+        authentication=(UserLoggedInAuthentication,),
+        permissions=(IsAuthenticated,)
     )),
                 
     (r'^storage/add/$',csrf_exempt(PurchaseStorageView.as_view(
         resource=PurchaseStorageResource,
         renderers=(PurchaseStorageHtmlRenderer,BaseJsonRenderer),
-#        authentication=(UserLoggedInAuthentication,),
-#        permissions=(IsAuthenticated,)
+        authentication=(UserLoggedInAuthentication,),
+        permissions=(IsAuthenticated,)
     ))),
     (r'^storage/(?P<id>\d{1,20})/$',csrf_exempt(PurchaseStorageInsView.as_view(
         resource=PurchaseStorageResource,
         renderers=(PurchaseStorageHtmlRenderer,BaseJsonRenderer),
-#        authentication=(UserLoggedInAuthentication,),
-#        permissions=(IsAuthenticated,)
+        authentication=(UserLoggedInAuthentication,),
+        permissions=(IsAuthenticated,)
     ))),
     (r'^storage/item/$',csrf_exempt(PurchaseStorageItemView.as_view(
         resource=PurchaseStorageItemResource,
         renderers=(BaseJsonRenderer,),
-#        authentication=(UserLoggedInAuthentication,),
-#        permissions=(IsAuthenticated,)
+        authentication=(UserLoggedInAuthentication,),
+        permissions=(IsAuthenticated,)
     ))),
     (r'storage/distribute/(?P<id>\d{1,20})/$',csrf_exempt(StorageDistributeView.as_view(
         resource=PurchaseStorageResource,
         renderers=(BaseJsonRenderer,StorageDistributeRenderer),
-#        authentication=(UserLoggedInAuthentication,),
-#        permissions=(IsAuthenticated,)
+        authentication=(UserLoggedInAuthentication,),
+        permissions=(IsAuthenticated,)
     ))),
     url(r'payment/$',csrf_exempt(PurchasePaymentView.as_view(
         resource=PurchasePaymentResource,
