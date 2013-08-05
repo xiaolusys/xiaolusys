@@ -12,10 +12,8 @@ from django.template import RequestContext
 from django.core import serializers
 from django.contrib.contenttypes.models import ContentType
 from django.utils.encoding import force_unicode
-from django.contrib.admin import SimpleListFilter
 from bitfield import BitField
 from bitfield.forms import BitFieldCheckboxSelectMultiple
-from bitfield.admin import BitFieldListFilter
 from django.conf import settings
 from celery import chord
 from shopback.orders.models import Trade
@@ -26,6 +24,7 @@ from shopback import paramconfig as pcfg
 from shopback.fenxiao.models import PurchaseOrder
 from shopback.trades.tasks import sendTaobaoTradeTask,sendTradeCallBack
 from shopback.trades import permissions as perms
+from shopback.trades.options import DateFieldListFilter,BitFieldListFilter,TradeStatusFilter
 from shopback.base import log_action,User, ADDITION, CHANGE
 from shopback.signals import rule_signal
 from shopback.trades import permissions as perms
@@ -53,40 +52,6 @@ class MergeOrderInline(admin.TabularInline):
         models.CharField: {'widget': TextInput(attrs={'size':'12'})},
         models.TextField: {'widget': Textarea(attrs={'rows':2, 'cols':20})},
     }
-
-class TradeStatusFilter(SimpleListFilter):
-    # Human-readable title which will be displayed in the
-    title = u'系统状态'
-
-    # Parameter for the filter that will be used in the URL query.
-    parameter_name = 'sys_status'
-
-    def lookups(self, request, model_admin):
-        """
-        Returns a list of tuples. The first element in each
-        tuple is the coded value for the option that will
-        appear in the URL query. The second element is the
-        human-readable name for the option that will appear
-        in the right sidebar.
-        """
-        return SYS_TRADE_STATUS
-
-    def queryset(self, request, queryset):
-        """
-        Returns the filtered queryset based on the value
-        provided in the query string and retrievable via
-        `self.value()`.
-        """
-        status_name  = self.value()
-        if not status_name:
-            return queryset
-        elif status_name == pcfg.WAIT_AUDIT_STATUS:
-            return queryset.filter(sys_status__in=(pcfg.WAIT_AUDIT_STATUS,pcfg.WAIT_CHECK_BARCODE_STATUS
-                                ,pcfg.WAIT_SCAN_WEIGHT_STATUS),can_review=False).exclude(reason_code='',is_express_print=True)
-        else:
-            return queryset.filter(sys_status=status_name)
-                
-        
 
 class MergeTradeAdmin(admin.ModelAdmin):
     list_display = ('trade_id_link','popup_tid_link','user','buyer_nick_link','type','payment','pay_time','consign_time'
@@ -128,7 +93,7 @@ class MergeTradeAdmin(admin.ModelAdmin):
     
     list_filter   = (TradeStatusFilter,'status','user','type',('trade_from', BitFieldListFilter,),'has_out_stock','has_refund',
                      'has_rule_match','has_sys_err','has_merge','has_memo','is_picking_print','is_express_print','can_review',
-                     'is_locked','is_charged','is_brand_sale','is_force_wlb')
+                     'is_locked','is_charged','is_brand_sale','is_force_wlb',('pay_time',DateFieldListFilter),('weight_time',DateFieldListFilter))
 
     search_fields = ['id','buyer_nick','tid','operator','out_sid','receiver_name','receiver_mobile','receiver_phone']
     
@@ -317,6 +282,22 @@ class MergeTradeAdmin(admin.ModelAdmin):
                 obj.sys_status = pcfg.FINISHED_STATUS
                 obj.weight_time = datetime.datetime.now()
                 obj.save()
+                
+                for order in obj.inuse_orders.exclude(gift_type=pcfg.RETURN_GOODS_GIT_TYPE):
+                    outer_id     = order.outer_id
+                    outer_sku_id = order.outer_sku_id
+                    order_num    = order.num
+                    
+                    if outer_sku_id:
+                        psku = ProductSku.objects.get(product__outer_id=outer_id,outer_id=outer_sku_id)
+                        psku.update_quantity_incremental(order_num)
+                        psku.update_waitpostnum_incremental(order_num)
+                        
+                    else:
+                        prod = Product.objects.get(outer_id=outer_id)
+                        prod.update_collect_num_incremental(order_num)
+                        prod.update_waitpostnum_incremental(order_num)
+                
                 msg = u'%(name)s "%(obj)s" 订单手动修改已完成.'% {'name': force_unicode(verbose_name), 'obj': force_unicode(obj)} 
                 log_action(request.user.id,obj,CHANGE,msg)
             else:
@@ -327,6 +308,22 @@ class MergeTradeAdmin(admin.ModelAdmin):
             if obj.sys_status == pcfg.FINISHED_STATUS:
                 obj.sys_status = pcfg.WAIT_CHECK_BARCODE_STATUS
                 obj.save()
+                
+                for order in obj.inuse_orders.exclude(gift_type=pcfg.RETURN_GOODS_GIT_TYPE):
+                    outer_id     = order.outer_id
+                    outer_sku_id = order.outer_sku_id
+                    order_num    = order.num
+                    
+                    if outer_sku_id:
+                        psku = ProductSku.objects.get(product__outer_id=outer_id,outer_id=outer_sku_id)
+                        psku.update_quantity_incremental(order_num,reverse=True)
+                        psku.update_waitpostnum_incremental(order_num,reverse=True)
+                        
+                    else:
+                        prod = Product.objects.get(outer_id=outer_id)
+                        prod.update_collect_num_incremental(order_num,reverse=True)
+                        prod.update_waitpostnum_incremental(order_num,reverse=True)
+                        
                 msg = u'%(name)s "%(obj)s" 订单进入重新扫描状态.'% {'name': force_unicode(verbose_name), 'obj': force_unicode(obj)} 
                 log_action(request.user.id,obj,CHANGE,msg)
             else:
