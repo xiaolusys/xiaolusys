@@ -108,8 +108,8 @@ API_FIELDS = {
         +'refund_remind_timeout,cs_status,status,good_status',
     
     'taobao.fenxiao.products.get':'skus,images',
-    
     'taobao.trade.close':'tid,close_reason',
+    
 }
 
 
@@ -521,3 +521,7 @@ def taobao_increment_refunds_get(status=None,nick=None,start_modified=None,end_m
 def taobao_increment_trades_get(status=None,type=None,nick=None,start_modified=None,end_modified=None,page_no=None,page_size=None,tb_user_id=None):
     pass
 
+################## CRM ##################
+@apis('taobao.crm.members.search')
+def taobao_crm_members_search(buyer_nick=None,grade=None,province=None,city=None,page_size=None,current_page=None):
+    pass
