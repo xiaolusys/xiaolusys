@@ -64,6 +64,20 @@
 	    .modal-dialog{
 	    	min-width:500px;
 	    }
+	    .alert-message{
+	    	color: #B94A48;
+			background-color: #F2DEDE;
+			border-color: #EED3D7;
+	    	padding: 8px 35px 8px 14px;
+			margin-bottom: 8px;
+			text-shadow: 0 1px 0 rgba(255, 255, 255, 0.5);
+			border: 1px solid #FBEED5;
+			-webkit-border-radius: 4px;
+			-moz-border-radius: 4px;
+			border-radius: 4px;
+			border-image: initial;
+	    }
+	    .
     </style>
   </head>
   <body>
@@ -76,7 +90,7 @@
   	<div>
   		<h3>采购单付款额分配(现付总金额：{{ payment }}&yen;,申请人:{{ applier }})</h3>
   		{% if object.purchase_payment.extra_info %}
-  		<div><label>备注:</label><span>{{ object.purchase_payment.extra_info }}</span></div>
+  		<div class="alert-message"><strong >备注:</strong>{{ object.purchase_payment.extra_info }}</div>
   		{% endif %}
   		<div>
   			<div id="purchase-form-head" class="well well-small mywell">
@@ -130,7 +144,7 @@
 	  	<div class="block-head">
 		  	<h3>入库单金额分配(现付总金额：{{ payment }}&yen;,申请人:{{ applier }})</h3>
 	  	</div>
-  		<div class="well" style=""><label class="label" style="display:inline;">备注:</label>{{ object.purchase_payment.extra_info }}</div>
+  		<div class="alert-message" style=""><strong >备注:</strong>{{ object.purchase_payment.extra_info }}</div>
 	  	<div class="block-body">
 	  		<ol>
 	  			{% for storage in storages %}

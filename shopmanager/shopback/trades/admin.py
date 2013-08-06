@@ -572,7 +572,25 @@ class MergeTradeAdmin(admin.ModelAdmin):
 
     unlock_trade_action.short_description = "订单解锁".decode('utf8')
     
-    actions = ['sync_trade_post_taobao','merge_order_action','pull_order_action','unlock_trade_action']
+    
+    def export_logistic_action(self, request, queryset):
+        """ 导出订单快递信息 """
+        
+
+        return 
+
+    export_logistic_action.short_description = "导出快递信息".decode('utf8')
+    
+    def export_buyer_action(self, request, queryset):
+        """ 导出订单买家信息 """
+        
+
+        return 
+
+    export_buyer_action.short_description = "导出买家信息".decode('utf8')
+    
+    actions = ['sync_trade_post_taobao','merge_order_action','pull_order_action',
+               'unlock_trade_action','export_logistic_action','export_buyer_action']
    
 
 admin.site.register(MergeTrade,MergeTradeAdmin)

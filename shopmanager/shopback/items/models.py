@@ -72,6 +72,8 @@ class Product(models.Model):
     
     status       = models.CharField(max_length=16,db_index=True,choices=ONLINE_PRODUCT_STATUS,default=pcfg.NORMAL,verbose_name='商品状态')
     
+    district     = models.ForeignKey(DepositeDistrict,null=True,blank=True,related_name='products',verbose_name='库位')
+    
     buyer_prompt = models.CharField(max_length=40,blank=True,verbose_name='客户提示')
     memo         = models.TextField(max_length=1000,blank=True,verbose_name='备注')
     class Meta:
@@ -195,6 +197,8 @@ class ProductSku(models.Model):
     modified     = models.DateTimeField(null=True,blank=True,auto_now=True,verbose_name='修改时间')
     status       = models.CharField(max_length=10,db_index=True,choices=ONLINE_PRODUCT_STATUS,
                                     default=pcfg.NORMAL,verbose_name='规格状态')  #normal,delete
+    
+    district = models.ForeignKey(DepositeDistrict,null=True,blank=True,related_name='product_skus',verbose_name='库位')
     
     buyer_prompt = models.CharField(max_length=40,blank=True,verbose_name='客户提示')
     memo         = models.TextField(max_length=1000,blank=True,verbose_name='备注')
@@ -347,7 +351,7 @@ class Item(models.Model):
     
     desc = models.TextField(blank=True,verbose_name='商品描述')
     skus = models.TextField(blank=True,verbose_name='规格')
-
+    
     status = models.BooleanField(default=True,verbose_name='使用')
     class Meta:
         db_table = 'shop_items_item'

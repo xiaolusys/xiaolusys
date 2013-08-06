@@ -370,6 +370,9 @@ class StorageDistributeView(ModelView):
         except:
             return u'未找到入库单'
         
+        if purchase_storage.normal_storage_items.count()==0:
+            return u'空入库单'
+            
         undist_storage_items = purchase_storage.distribute_storage_num()
         if undist_storage_items:
             return u'入库项未完全关联采购单'
@@ -729,7 +732,7 @@ def confirm_payment_amount(request):
     
     purchase_payment.pay_bank = pay_bank
     purchase_payment.pay_no   = pay_no
-    purchase_payment.pay_time = pay_time
+    purchase_payment.pay_time = pay_time or datetime.datetime.now()
         
     purchase_payment.confirm_pay(request.user.username)
     

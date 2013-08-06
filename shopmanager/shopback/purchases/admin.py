@@ -1,6 +1,7 @@
 #-*- coding:utf8 -*-
 from django.contrib import admin
 from django.db import models
+from django.contrib import messages
 from django.shortcuts import render_to_response
 from django.http import HttpResponse,HttpResponseRedirect
 from django.template import RequestContext
@@ -132,27 +133,46 @@ class PurchaseAdmin(admin.ModelAdmin):
                         {'purchases':approval_purchases},
                         context_instance=RequestContext(request),mimetype="text/html") 
 
-    addon_cost_action.short_description = u"进价更新至成本"
+    addon_cost_action.short_description = u"更新成本价"
     
     def invalid_action(self, request, queryset):
-        """ 更新商品成本 """
+        """ 作废采购单 """
         
         purchase_names = []
         draft_purchases = queryset.filter(status=pcfg.PURCHASE_DRAFT)
         for purchase in draft_purchases:
-            purchase_names.append('%d|%s'%(purchase.id,purchase.title))
+            purchase_names.append('%d|%s'%(purchase.id,purchase.extra_name))
             purchase.status = pcfg.PURCHASE_INVALID
             purchase.save()
             log_action(request.user.id,purchase,CHANGE,u'订单作废')
         
-        msg = u'%s 作废成功.'%(','.join(purchase_names)) 
+        msg = purchase_names and u'%s 作废成功.'%(','.join(purchase_names)) or '作废失败，请确保订单在草稿状态'
 
-        self.message_user(request, msg)
-        return HttpResponseRedirect('../')
+        messages.add_message(request,purchase_names and messages.INFO or messages.ERROR,msg)
+            
+        return HttpResponseRedirect('./')
 
     invalid_action.short_description = u"作废采购单"
     
-    actions = ['addon_cost_action','invalid_action']
+    def complete_action(self, request, queryset):
+        """ 完成采购单 """
+        
+        complete_names = []
+        approval_purchases = queryset.filter(status=pcfg.PURCHASE_APPROVAL)
+        for purchase in approval_purchases:
+            complete_names.append('%d|%s'%(purchase.id,purchase.extra_name))
+            purchase.status = pcfg.PURCHASE_FINISH
+            purchase.save()
+            log_action(request.user.id,purchase,CHANGE,u'采购完成')
+        
+        msg = complete_names and u'%s 已完成.'%(','.join(complete_names)) or '作废失败，请确保订单在审核状态'
+        
+        messages.add_message(request,complete_names and messages.INFO or messages.ERROR,msg)
+        return HttpResponseRedirect('./')
+
+    complete_action.short_description = u"完成采购单"
+    
+    actions = ['addon_cost_action','invalid_action','complete_action']
     
 
 admin.site.register(Purchase,PurchaseAdmin)
@@ -211,7 +231,7 @@ class PurchaseStorageAdmin(admin.ModelAdmin):
     def addon_stock_action(self, request, queryset):
         """ 更新库存数 """
         
-        approval_storages = queryset.filter(status=pcfg.PURCHASE_APPROVAL)
+        approval_storages = queryset.filter(status__in=(pcfg.PURCHASE_APPROVAL,pcfg.PURCHASE_FINISH))
         for storage in approval_storages:
             for storage_item in storage.normal_storage_items.filter(is_addon=False):
                 outer_id     = storage_item.outer_id
@@ -239,16 +259,45 @@ class PurchaseStorageAdmin(admin.ModelAdmin):
                         {'addon_storages':addon_storages,'unaddon_storages':unaddon_storages},
                         context_instance=RequestContext(request),mimetype="text/html") 
 
-    addon_stock_action.short_description = u"入库数更新到库存"
+    addon_stock_action.short_description = u"更新库存数"
     
     def invalid_action(self, request, queryset):
-        """ 更新商品成本 """
+        """ 作废入库单 """
         
-        return 
-
+        storage_names = []
+        draft_storages = queryset.filter(status=pcfg.PURCHASE_DRAFT)
+        for storage in draft_storages:
+            storage_names.append('%d|%s'%(storage.id,storage.extra_name))
+            storage.status = pcfg.PURCHASE_INVALID
+            storage.save()
+            log_action(request.user.id,storage,CHANGE,u'订单作废')
+        
+        msg = storage_names and u'%s 已作废.'%(','.join(storage_names)) or '作废失败，请确保订单在草稿状态'
+        
+        messages.add_message(request,storage_names and messages.INFO or messages.ERROR ,msg)
+        return HttpResponseRedirect('./')
+    
     invalid_action.short_description = u"作废采购单"
     
-    actions = ['addon_stock_action','invalid_action']
+    def complete_action(self, request, queryset):
+        """ 完成入库单 """
+        
+        storage_names = []
+        approval_storages = queryset.filter(status=pcfg.PURCHASE_APPROVAL)
+        for storage in approval_storages:
+            storage_names.append('%d|%s'%(storage.id,storage.extra_name))
+            storage.status = pcfg.PURCHASE_FINISH
+            storage.save()
+            log_action(request.user.id,storage,CHANGE,u'入库单完成')
+        
+        msg = storage_names and u'%s 已完成.'%(','.join(storage_names)) or '作废失败，请确保订单在审核状态.' 
+        
+        messages.add_message(request,storage_names and messages.INFO or messages.ERROR ,msg)
+        return HttpResponseRedirect('./')
+
+    complete_action.short_description = u"完成采购单"
+
+    actions = ['addon_stock_action','invalid_action','complete_action']
     
     
 admin.site.register(PurchaseStorage,PurchaseStorageAdmin)
@@ -315,7 +364,7 @@ class PurchasePaymentAdmin(admin.ModelAdmin):
     }
     
     def invalid_action(self, request, queryset):
-        """ 更新商品成本 """
+        """ 作废付款单 """
         
         payment_ids = []
         wait_payments = queryset.filter(status=pcfg.PP_WAIT_APPLY)
@@ -325,9 +374,9 @@ class PurchasePaymentAdmin(admin.ModelAdmin):
             payment.save()
             log_action(request.user.id,payment,CHANGE,u'付款单作废')
         
-        msg = u'%s 已作废.'%(','.join(payment_ids)) 
-
-        self.message_user(request, msg)
+        msg = payment_ids and u'%s 已作废.'%(','.join(payment_ids)) or '作废失败，请确保订单在审核状态.'  
+        
+        messages.add_message(request,payment_ids and messages.INFO or messages.ERROR,msg)
         return HttpResponseRedirect('./')
 
     invalid_action.short_description = u"作废付款单"

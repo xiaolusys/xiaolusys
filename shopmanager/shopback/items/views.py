@@ -220,7 +220,7 @@ class ProductUpdateView(ModelView):
     
     def get(self, request, *args, **kwargs):
         
-        outer_id = kwargs.get('outer_id',None)
+        outer_id = kwargs.get('outer_id','None').strip()
         try:
             instance = Product.objects.get(outer_id=outer_id)
         except:

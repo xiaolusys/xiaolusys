@@ -18,8 +18,8 @@ logger =  logging.getLogger('tradepost.handler')
 class ProductSkuInline(admin.TabularInline):
     
     model = ProductSku
-    fields = ('outer_id','properties_name','properties_alias','quantity','warn_num','remain_num','wait_post_num','cost','std_purchase_price','std_sale_price'
-                    ,'agent_price','staff_price','sync_stock','is_assign','is_split','is_match','status','buyer_prompt')
+    fields = ('outer_id','properties_name','properties_alias','quantity','warn_num','remain_num','wait_post_num','cost'
+              ,'std_sale_price','sync_stock','is_assign','is_split','is_match','district','status','buyer_prompt')
     
     formfield_overrides = {
         models.CharField: {'widget': TextInput(attrs={'size':'10'})},
@@ -49,8 +49,8 @@ admin.site.register(Item, ItemAdmin)
 
 
 class ProductAdmin(admin.ModelAdmin):
-    list_display = ('id','outer_id','name','collect_num','category','warn_num','remain_num','wait_post_num','cost','std_purchase_price'
-                    ,'std_sale_price','agent_price','sync_stock','is_assign','is_split','is_match','modified','status')
+    list_display = ('id','outer_id','name','collect_num','category','warn_num','remain_num','wait_post_num','cost'
+                    ,'std_sale_price','agent_price','sync_stock','is_assign','is_split','is_match','district','status')
     list_display_links = ('id','outer_id',)
     list_editable = ('name',)
     
@@ -65,7 +65,7 @@ class ProductAdmin(admin.ModelAdmin):
     #--------设置页面布局----------------
     fieldsets =(('商品基本信息:', {
                     'classes': ('expand',),
-                    'fields': (('outer_id','name','category','pic_path','status')
+                    'fields': (('outer_id','name','category','pic_path','district','status')
                                ,('collect_num','warn_num','remain_num','wait_post_num')
                                ,('cost','std_purchase_price','std_sale_price','agent_price','staff_price')
                                ,('weight','sync_stock','is_assign','is_split','is_match','memo','buyer_prompt'))
@@ -200,17 +200,31 @@ admin.site.register(Product, ProductAdmin)
 
 
 class ProductSkuAdmin(admin.ModelAdmin):
-    list_display = ('id','outer_id','product','quantity','warn_num','remain_num','wait_post_num','cost','std_purchase_price','std_sale_price'
-                    ,'agent_price','staff_price','sync_stock','is_assign','is_split','is_match','properties_name','properties_alias','status')
+    list_display = ('id','outer_id','product','properties_name','properties_alias','quantity','warn_num','remain_num',
+                    'wait_post_num','cost','std_sale_price','sync_stock','is_assign','is_split','is_match','district','status')
     list_display_links = ('outer_id',)
     list_editable = ('quantity',)
 
     date_hierarchy = 'modified'
     #ordering = ['created_at']
-    
 
     list_filter = ('status','sync_stock','is_split','is_match','is_assign',)
-    search_fields = ['outer_id','product__outer_id','properties_name']
+    search_fields = ['outer_id','product__outer_id','properties_name','properties_alias']
+    
+    formfield_overrides = {
+        models.CharField: {'widget': TextInput(attrs={'size':'16'})},
+        models.FloatField: {'widget': TextInput(attrs={'size':'16'})},
+        models.TextField: {'widget': Textarea(attrs={'rows':2, 'cols':25})},
+    }
+    
+     #--------设置页面布局----------------
+    fieldsets =(('商品基本信息:', {
+                    'classes': ('expand',),
+                    'fields': (('outer_id','properties_name','properties_alias','district','status')
+                               ,('quantity','warn_num','remain_num','wait_post_num','weight')
+                               ,('cost','std_purchase_price','std_sale_price','agent_price','staff_price')
+                               ,('sync_stock','is_assign','is_split','is_match','memo','buyer_prompt'))
+                }),)
     
     #取消该商品缺货订单
     def cancle_items_out_stock(self,request,queryset):

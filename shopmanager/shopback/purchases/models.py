@@ -15,39 +15,40 @@ PURCHASE_STATUS = (
     (pcfg.PURCHASE_DRAFT,'草稿'),
     (pcfg.PURCHASE_APPROVAL,'审核'),
     (pcfg.PURCHASE_FINISH,'完成'),
-    (pcfg.PURCHASE_INVALID,'作废'),
+    (pcfg.PURCHASE_INVALID,'作废')
 )
 
 
 PURCHASE_ARRIVAL_STATUS = (
     (pcfg.PD_UNARRIVAL,'未到货'),
     (pcfg.PD_PARTARRIVAL,'部分到货'),
-    (pcfg.PD_FULLARRIVAL,'全部到货'),
+    (pcfg.PD_FULLARRIVAL,'全部到货')
 )
 
 PURCHASE_STORAGE_STATUS = (
     (pcfg.PURCHASE_DRAFT,'草稿'),
     (pcfg.PURCHASE_APPROVAL,'审核'),
-    (pcfg.PURCHASE_INVALID,'作废'),
+    (pcfg.PURCHASE_FINISH,'完成'),
+    (pcfg.PURCHASE_INVALID,'作废')
 )
 
 PURCHASE_PAYMENT_TYPE = (
     (pcfg.PC_COD_TYPE,'货到付款'),
     (pcfg.PC_PREPAID_TYPE,'预付款'),
     (pcfg.PC_POD_TYPE,'付款提货'),
-    (pcfg.PC_OTHER_TYPE,'其它'),
+    (pcfg.PC_OTHER_TYPE,'其它')
 )
 
 PRODUCT_STATUS = (
     (pcfg.NORMAL,'有效'),
-    (pcfg.DELETE,'作废'),
+    (pcfg.DELETE,'作废')
 )
 
 PAYMENT_STATUS = (
     (pcfg.PP_WAIT_APPLY,'未申请'),           
     (pcfg.PP_WAIT_PAYMENT,'待付款'),
     (pcfg.PP_HAS_PAYMENT,'已付款'),
-    (pcfg.PP_INVALID,'已作废'),
+    (pcfg.PP_INVALID,'已作废')
 )
 
 class Purchase(models.Model):
