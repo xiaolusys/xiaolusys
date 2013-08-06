@@ -71,7 +71,7 @@ def updateItemNum(user_id,num_iid):
                     item_count = Item.objects.filter(outer_id=outer_id,approve_status=pcfg.ONSALE_STATUS).count() or 1
                     sync_num = sync_num/item_count or sync_num
                 else:
-                    sync_num = 2
+                    sync_num = (real_num - wait_nums)>10 and 3 or 0 
             else:
                 sync_num = 0
                 
@@ -112,7 +112,7 @@ def updateItemNum(user_id,num_iid):
                 item_count = Item.objects.filter(outer_id=outer_id,approve_status=pcfg.ONSALE_STATUS).count() or 1
                 sync_num = sync_num/item_count or sync_num
             else:
-                sync_num = 2
+                sync_num = (real_num - wait_nums)>10 and 3 or 0
         else:
             sync_num = 0    
             

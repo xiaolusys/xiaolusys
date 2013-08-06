@@ -190,7 +190,7 @@ admin.site.register(Purchase,PurchaseAdmin)
 
 
 class PurchaseStorageAdmin(admin.ModelAdmin):
-    list_display = ('id','storage_name_link','origin_no','supplier','deposite','storage_num','total_fee','payment','post_date','created','is_addon','status')
+    list_display = ('id','storage_name_link','origin_no','supplier','deposite','storage_num','total_fee','prepay','payment','post_date','created','is_addon','status')
     #list_editable = ('update_time','task_type' ,'is_success','status')
 
     list_filter = ('status','deposite','is_addon')

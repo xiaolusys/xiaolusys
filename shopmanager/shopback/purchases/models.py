@@ -804,7 +804,7 @@ class PurchasePayment(models.Model):
                                                  "storage_num":storage.storage_num,
                                                  "total_fee":storage.total_fee,
                                                  "unpay_fee":storage.total_unpay_fee,
-                                                 "payment":storage.payment,
+                                                 "payment":round(storage.payment+storage.prepay,2),
                                                  "dst_payment":item.payment,
                                                  "payment_items":[item.json]
                                                  }
@@ -1023,7 +1023,7 @@ class PurchasePaymentItem(models.Model):
                     "properties_name":self.properties_name,
                     "storage_num":storage_item.storage_num,
                     "total_fee":storage_item.total_fee,
-                    "payment":storage_item.payment,
+                    "payment":round(storage_item.payment+storage_item.prepay,2),
                     "unpay_fee":storage_item.unpay_fee
                     }
         
