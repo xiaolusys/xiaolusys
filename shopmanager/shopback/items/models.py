@@ -497,8 +497,8 @@ class ItemNumTaskLog(models.Model):
     
     class Meta:
         db_table = 'shop_items_itemnumtasklog'
-        verbose_name=u'库存同步日志'
-        verbose_name_plural = u'库存同步日志'
+        verbose_name=u'淘宝库存同步日志'
+        verbose_name_plural = u'淘宝库存同步日志'
 
     def __unicode__(self):
         return '<%s,%s,%d>'%(self.outer_id,self.sku_outer_id,self.num)
