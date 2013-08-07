@@ -24,18 +24,24 @@ class DepositeDistrict(models.Model):
     """ 仓库库位 """
     
     deposite     = models.ForeignKey(Deposite,related_name='deposite_districts',verbose_name='所属仓库')
-    district_no  = models.CharField(max_length=32,unique=True,blank=True,verbose_name='库位号')
+    
+    district_no  = models.CharField(max_length=32,blank=True,verbose_name='库位号')
+    
+    parent_no    = models.CharField(max_length=32,blank=True,verbose_name='父库位号')
+    
     location     = models.CharField(max_length=32,blank=True,verbose_name='库位名')
     
     in_use       = models.BooleanField(default=True,verbose_name='使用')
+    
     extra_info   = models.TextField(blank=True,verbose_name='备注')
     class Meta:
         db_table = 'shop_archives_depositedistrict'
+        unique_together = ("parent_no","district_no")
         verbose_name=u'仓库区位'
         verbose_name_plural = u'仓库区位列表'
 
     def __unicode__(self):
-        return '<%s,%s>'%(self.district_no,self.location)
+        return '%s-%s'%(self.parent_no,self.district_no)
         
     
 class SupplierType(models.Model):

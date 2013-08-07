@@ -6,10 +6,11 @@ from celery.task import task
 from celery.task.sets import subtask
 from django.conf import settings
 from django.db.models import Sum
+from django.db import transaction
 from django.db.models.query import QuerySet
 from auth.utils import format_datetime,parse_datetime
 from shopback import paramconfig as pcfg
-from shopback.items.models import Item,Product, ProductSku
+from shopback.items.models import Item,Product, ProductSku,ItemNumTaskLog
 from shopback.orders.models import Order, Trade
 from shopback.trades.models import MergeOrder, MergeTrade
 from shopback.users.models import User
@@ -25,7 +26,7 @@ logger = logging.getLogger('items.handler')
 
 @task()
 def updateUserItemsTask(user_id):
-
+    """ 更新淘宝线上商品信息入库 """
     has_next = True
     cur_page = 1
     onsale_item_ids = []
@@ -90,6 +91,7 @@ def updateUserItemsTask(user_id):
 
 @task()
 def updateAllUserItemsTask():
+    """ 更新所有用户商品信息任务 """
     users = User.objects.all()
 
     for user in users:
@@ -99,7 +101,7 @@ def updateAllUserItemsTask():
 
 @task()
 def updateUserProductSkuTask(user_id=None,outer_ids=None,force_update_num=False):
-
+    """ 更新用户商品SKU规格信息任务 """
     if not outer_ids or not isinstance(outer_ids,(list,tuple)):
         user = User.objects.get(visitor_id=user_id)
         items = user.items.filter(status=pcfg.NORMAL)
@@ -166,7 +168,7 @@ def updateUserProductSkuTask(user_id=None,outer_ids=None,force_update_num=False)
 
 @task()
 def updateProductWaitPostNumTask():
-    
+    """ 更新商品待发数任务 """
     products = Product.objects.filter(status=pcfg.NORMAL)
     for prod in products:
         
@@ -188,7 +190,7 @@ def updateProductWaitPostNumTask():
 
 @task()
 def updateProductWarnNumTask():
-    
+    """ 更新商品警告数任务 """
     st_f,st_t = get_yesterday_interval_time()
     products = Product.objects.filter(status=pcfg.NORMAL)
     for prod in products:
@@ -213,7 +215,7 @@ def updateProductWarnNumTask():
 
 @task()
 def updateAllUserProductSkuTask():
-
+    """ 更新所有用户SKU信息任务 """
     users = User.objects.filter(is_primary=True)
     for user in users:
 
@@ -222,7 +224,7 @@ def updateAllUserProductSkuTask():
 
 @task()
 def updateUserItemsEntityTask(user_id):
-
+    """ 更新用户商品及SKU信息任务 """
     updateUserItemsTask(user_id)
 
     subtask(updateUserProductSkuTask).delay(user_id)
@@ -230,7 +232,7 @@ def updateUserItemsEntityTask(user_id):
 
 @task()
 def updateAllUserItemsEntityTask():
-
+    """ 更新所有用户商品及SKU信息任务 """
     users = User.objects.all()
     for user in users:
 
@@ -238,8 +240,147 @@ def updateAllUserItemsEntityTask():
 
 @task()
 def updateUserItemSkuFenxiaoProductTask(user_id):
+    """ 更新用户商品信息，SKU信息及分销商品信息任务 """
     updateUserItemsTask(user_id)
     updateUserProductSkuTask(user_id)
     saveUserFenxiaoProductTask(user_id)
 
+###########################################################  商品库存管理  ########################################################
+
+@transaction.commit_on_success
+def updateItemNum(user_id,num_iid):
+    """
+    taobao_item_quantity_update response:
+    {'iid': '21557036378',
+    'modified': '2012-12-26 12:51:16',
+    'num': 24,
+    'num_iid': 21557036378,
+    'skus': {'sku': ({'modified': <type 'str'>,
+                      'quantity': <type 'int'>,
+                      'sku_id': <type 'int'>},
+                     {'modified': <type 'str'>,
+                      'quantity': <type 'int'>,
+                      'sku_id': <type 'int'>})}}
+    """
+    item = Item.objects.get(num_iid=num_iid)
+    user = item.user
+    product = item.product
+    if not product:
+        return
+    
+    user_percent = user.stock_percent
+    outer_id = product.outer_id
+    skus = json.loads(item.skus) if item.skus else None
+    if skus:
+        for sku in skus.get('sku',[]):
+            
+            outer_sku_id = sku.get('outer_id','')
+            if sku['status'] != pcfg.NORMAL or not outer_sku_id:
+                continue
+            product_sku  = product.prod_skus.get(outer_id=outer_sku_id)
+            
+            order_nums  = 0
+            wait_nums   = product_sku.wait_post_num>0 and product_sku.wait_post_num or 0
+            remain_nums = product_sku.remain_num or 0
+            real_num    = product_sku.quantity
+            sync_num    = real_num - wait_nums - remain_nums
+            
+            #如果自动更新库存状态开启，并且计算后库存不等于在线库存，则更新
+            if sync_num>0 and user_percent>0:
+                sync_num = round(user_percet*sync_num)
+            elif sync_num > product_sku.warn_num:
+                product_sku.is_assign = False
+            elif sync_num >0 and sync_num <= product_sku.warn_num:
+                total_num,user_order_num = MergeOrder.get_yesterday_orders_totalnum(item.user.id,outer_id,outer_sku_id)
+                if total_num>0 and user_order_num>0:
+                    sync_num = round(float(user_order_num)/float(total_num)*sync_num)
+                elif total_num == 0:
+                    item_count = Item.objects.filter(outer_id=outer_id,approve_status=pcfg.ONSALE_STATUS).count() or 1
+                    sync_num = sync_num/item_count or sync_num
+                else:
+                    sync_num = (real_num - wait_nums)>10 and 3 or 0 
+            else:
+                sync_num = 0
+                
+            #同步库存数不为0，或者没有库存警告，同步数量不等于线上库存，并且店铺，商品，规格同步状态正确
+            if not (sync_num == 0 and product_sku.is_assign) and sync_num != sku['quantity'] and user.sync_stock and product.sync_stock and product_sku.sync_stock:
+                sync_num = int(sync_num)
+                response = apis.taobao_item_quantity_update\
+                        (num_iid=item.num_iid,quantity=sync_num,outer_id=outer_sku_id,tb_user_id=user_id)
+                item_dict = response['item_quantity_update_response']['item']
+                Item.objects.filter(num_iid=item_dict['num_iid']).update(modified=item_dict['modified'],num=sync_num)
+
+                product_sku.save()
+                ItemNumTaskLog.objects.get_or_create(user_id=user_id,
+                                             outer_id=product.outer_id,
+                                             sku_outer_id= outer_sku_id,
+                                             num=sync_num,
+                                             start_at= item.last_num_updated,
+                                             end_at=datetime.datetime.now())
+            
+    else:
+        order_nums    = 0
+        outer_sku_id  = ''
+        wait_nums  = product.wait_post_num >0 and product.wait_post_num or 0
+        remain_nums = product.remain_num or 0
+        real_num   = product.collect_num
+        sync_num   = real_num - wait_nums - remain_nums
+
+        #如果自动更新库存状态开启，并且计算后库存不等于在线库存，则更新
+        if sync_num>0 and user_percent>0:
+            sync_num = round(user_percet*sync_num)
+        elif sync_num > product.warn_num:
+            product.is_assign = False
+        elif sync_num >0 and sync_num <= product.warn_num:
+            total_num,user_order_num = MergeOrder.get_yesterday_orders_totalnum(item.user.id,outer_id,outer_sku_id)
+            if total_num>0 and user_order_num>0:
+                sync_num = round(float(user_order_num)/float(total_num)*sync_num)
+            elif total_num == 0:
+                item_count = Item.objects.filter(outer_id=outer_id,approve_status=pcfg.ONSALE_STATUS).count() or 1
+                sync_num = sync_num/item_count or sync_num
+            else:
+                sync_num = (real_num - wait_nums)>10 and 3 or 0
+        else:
+            sync_num = 0    
+            
+        #同步库存数不为0，或者没有库存警告，同步数量不等于线上库存，并且店铺，商品同步状态正确
+        if not (sync_num == 0 and product.is_assign) and sync_num != item.num and user.sync_stock and product.sync_stock: 
+            sync_num = int(sync_num)   
+            response = apis.taobao_item_update(num_iid=item.num_iid,num=sync_num,tb_user_id=user_id)
+            item_dict = response['item_update_response']['item']
+            Item.objects.filter(num_iid=item_dict['num_iid']).update(modified=item_dict['modified'],num=sync_num)
+
+            product.save()
+            
+            ItemNumTaskLog.objects.get_or_create(user_id=user_id,
+                                             outer_id=product.outer_id,
+                                             num=sync_num,
+                                             start_at= item.last_num_updated,
+                                             end_at=datetime.datetime.now())
   
+    
+    Item.objects.filter(num_iid=item.num_iid).update(last_num_updated=datetime.datetime.now())
+
+
+@task()
+def updateUserItemNumTask(user_id):
+    
+    updateUserItemsTask(user_id)
+    updateUserProductSkuTask(user_id)
+        
+    items = Item.objects.filter(user__visitor_id=user_id,approve_status=pcfg.ONSALE_STATUS)
+    for item in items:
+        try:
+            updateItemNum(user_id,item.num_iid)
+        except Exception,exc :
+            logger.error('%s'%exc,exc_info=True)
+        
+
+@task()
+def updateAllUserItemNumTask():
+    
+    updateProductWaitPostNumTask()
+
+    users = User.objects.all()
+    for user in users:
+        updateUserItemNumTask(user.visitor_id)  

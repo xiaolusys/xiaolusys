@@ -126,7 +126,6 @@ INSTALLED_APPS = (
     'shopapp.collector',
     'shopapp.memorule',
     'shopapp.report',
-    'shopapp.syncnum',
     'shopapp.asynctask',
     'shopapp.notify',
     'shopapp.modifyfee',
@@ -134,6 +133,7 @@ INSTALLED_APPS = (
     'shopapp.babylist',
     'shopapp.juhuasuan',
     'shopapp.smsmgr',
+    #'shopapp.syncnum',
     
     #'test.celery',
 )

@@ -157,7 +157,7 @@ SHOP_APP_SCHEDULE = {
          'args':()
     },           
     'runs-every-day-item-num':{     #更新库存
-        'task':'shopapp.syncnum.tasks.updateAllUserItemNumTask',
+        'task':'shopback.items.tasks.updateAllUserItemNumTask',
         'schedule':crontab(minute="20",hour="3,13"),#
         'args':()
     },

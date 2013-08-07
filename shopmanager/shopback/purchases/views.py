@@ -55,12 +55,15 @@ class PurchaseView(ModelView):
         content = request.REQUEST
         purchase_id = content.get('purchase_id')
         purchase    = None
+        state       = False
+        
         if purchase_id:
             try:
                 purchase = Purchase.objects.get(id=purchase_id)
             except:
                 return u'输入采购编号未找到'
         else:
+            state = True
             purchase = Purchase()
 
         for k,v in content.iteritems():
@@ -70,7 +73,7 @@ class PurchaseView(ModelView):
             purchase.service_date = datetime.datetime.now()
         purchase.save()
         
-        log_action(request.user.id,purchase,ADDITION,u'创建采购单')
+        log_action(request.user.id,purchase,state and ADDITION or CHANGE,u'%s采购单'%(state and u'新建' or u'修改'))
         
         return {'id':purchase.id}
 
@@ -111,6 +114,8 @@ class PurchaseInsView(ModelView):
         
         purchase.status = pcfg.PURCHASE_APPROVAL
         purchase.save()
+        
+        log_action(request.user.id,purchase,CHANGE,u'审核采购单')
         
         return {'id':purchase.id,'status':purchase.status}
 
@@ -238,7 +243,7 @@ def download_purchase_file(request,id):
 #################################### 采购入库单 #################################
 
 class PurchaseStorageView(ModelView):
-    """ 采购单 """
+    """ 入库单 """
     
     def get(self, request, *args, **kwargs):
         
@@ -254,12 +259,15 @@ class PurchaseStorageView(ModelView):
         purchase_id = content.get('purchase_storage_id')
         post_date   = content.get('post_date',None)  
         purchase    = None
+        state       = False
+        
         if purchase_id:
             try:
                 purchase = PurchaseStorage.objects.get(id=purchase_id)
             except:
                 return u'输入采购编号未找到'
         else:
+            state = True
             purchase = PurchaseStorage()
         
         for k,v in content.iteritems():
@@ -269,13 +277,13 @@ class PurchaseStorageView(ModelView):
             purchase.post_date = datetime.datetime.now()
         purchase.save()
         
-        log_action(request.user.id,purchase,ADDITION,u'创建采购单')
+        log_action(request.user.id,purchase,state and ADDITION or CHANGE,u'%s入库单'%(state and u'新建' or u'修改'))
         
         return {'id':purchase.id}
 
 
 class PurchaseStorageInsView(ModelView):
-    """ 采购单修改界面 """
+    """ 入库单修改界面 """
     
     def get(self, request, id, *args, **kwargs):
         
@@ -293,7 +301,7 @@ class PurchaseStorageInsView(ModelView):
 
 
 class PurchaseStorageItemView(ModelView):
-    """ 采购单项 """
+    """ 入库单项 """
     
     def get(self, request, *args, **kwargs):
         
@@ -518,6 +526,11 @@ class PurchasePaymentView(ModelView):
                     
                 if paytype == pcfg.PC_POD_TYPE and len(storages) != 1:
                     raise Exception(u'请选择一个入库单')
+                
+                if paytype == pcfg.PC_POD_TYPE:
+                    undist_storage_items = storages[0].distribute_storage_num()
+                    if undist_storage_items:
+                        raise Exception(u'入库项未完全关联采购单')
                 
             elif paytype==pcfg.PC_OTHER_TYPE:
                 if (purchase_id and storage_id) or (not purchase_id and not storage_id):

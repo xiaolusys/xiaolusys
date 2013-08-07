@@ -21,4 +21,4 @@ def get_sku_name(sku,outer_id):
     except:
         return u'商品规格未找到'
     else:
-        return psku.properties_name
+        return psku.name

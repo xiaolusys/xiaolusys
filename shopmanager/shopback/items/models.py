@@ -70,9 +70,8 @@ class Product(models.Model):
     sync_stock   = models.BooleanField(default=True,verbose_name='库存同步')
     is_assign    = models.BooleanField(default=False,verbose_name='警告解除') #是否手动分配库存，当库存充足时，系统自动设为False，手动分配过后，确定后置为True
     
-    status       = models.CharField(max_length=16,db_index=True,choices=ONLINE_PRODUCT_STATUS,default=pcfg.NORMAL,verbose_name='商品状态')
-    
-    district     = models.ForeignKey(DepositeDistrict,null=True,blank=True,related_name='products',verbose_name='库位')
+    status       = models.CharField(max_length=16,db_index=True,choices=ONLINE_PRODUCT_STATUS,
+                                    default=pcfg.NORMAL,verbose_name='商品状态')
     
     buyer_prompt = models.CharField(max_length=40,blank=True,verbose_name='客户提示')
     memo         = models.TextField(max_length=1000,blank=True,verbose_name='备注')
@@ -102,6 +101,26 @@ class Product(models.Model):
             self.wait_post_num = self.wait_post_num >0 and self.wait_post_num or 0 
             self.save()
         return self.collect_num-self.wait_post_num <= 0
+    
+    @property
+    def districts(self):
+        """ 商品库中区位 """
+        locations = ProductLocation.objects.filter(outer_id=self.outer_id)
+        sdict = {}
+        for d in locations:
+            
+            dno = d.district.district_no
+            pno = d.district.parent_no
+            if sdict.has_key(pno):
+                sdict[pno].append(dno)
+            else:
+                sdict[pno] = [dno]
+        
+        ds = []
+        for k,v in sdict.iterkeys():
+            ds.append('%s-(%s)'%(k,','.join(v)))
+        
+        return ','.join(ds)
     
     def update_collect_num_incremental(self,num,reverse=False):
         """
@@ -177,7 +196,7 @@ class ProductSku(models.Model):
     remain_num   = models.IntegerField(null=True,default=0,verbose_name='预留库位')    #预留库存
     wait_post_num = models.IntegerField(null=True,default=0,verbose_name='待发数')    #待发数
     
-    cost         = models.FloatField(default=0,verbose_name='成本价')
+    cost          = models.FloatField(default=0,verbose_name='成本价')
     std_purchase_price = models.FloatField(default=0,verbose_name='标准进价')
     std_sale_price     = models.FloatField(default=0,verbose_name='标准售价')
     agent_price        = models.FloatField(default=0,verbose_name='代理售价')
@@ -197,9 +216,7 @@ class ProductSku(models.Model):
     modified     = models.DateTimeField(null=True,blank=True,auto_now=True,verbose_name='修改时间')
     status       = models.CharField(max_length=10,db_index=True,choices=ONLINE_PRODUCT_STATUS,
                                     default=pcfg.NORMAL,verbose_name='规格状态')  #normal,delete
-    
-    district = models.ForeignKey(DepositeDistrict,null=True,blank=True,related_name='product_skus',verbose_name='库位')
-    
+
     buyer_prompt = models.CharField(max_length=40,blank=True,verbose_name='客户提示')
     memo         = models.TextField(max_length=1000,blank=True,verbose_name='备注')
     class Meta:
@@ -222,7 +239,27 @@ class ProductSku(models.Model):
             self.wait_post_num = self.wait_post_num >= 0 and self.wait_post_num or 0
             self.save()
         return self.quantity-self.wait_post_num <= 0
-
+    
+    @property
+    def districts(self):
+        """ 商品库中区位 """
+        locations = ProductLocation.objects.filter(outer_id=self.product.outer_id,outer_sku_id=self.outer_id)
+        sdict = {}
+        for d in locations:
+            
+            dno = d.district.district_no
+            pno = d.district.parent_no
+            if sdict.has_key(pno):
+                sdict[pno].append(dno)
+            else:
+                sdict[pno] = [dno]
+        
+        ds = []
+        for k,v in sdict.iterkeys():
+            ds.append('%s-(%s)'%(k,','.join(v)))
+        
+        return ','.join(ds)
+    
     def update_quantity_incremental(self,num,reverse=False):
         """
         参数:
@@ -427,5 +464,43 @@ class Item(models.Model):
         return item
 
 
+class ProductLocation(models.Model):
+    """ 库存商品库位信息 """
+    
+    outer_id     = models.CharField(max_length=32,null=False,blank=True,verbose_name='商品编码')
+    name         = models.CharField(max_length=64,null=False,blank=True,verbose_name='商品名称')
+    
+    outer_sku_id     = models.CharField(max_length=32,null=False,blank=True,verbose_name='规格编码')
+    properties_name  = models.CharField(max_length=64,null=False,blank=True,verbose_name='规格属性')
+    
+    district     = models.ForeignKey(DepositeDistrict,related_name='product_locations',verbose_name='关联库位')
+    
+    class Meta:
+        db_table = 'shop_items_productlocation'
+        unique_together = ("outer_id", "outer_sku_id", "district")
+        verbose_name = u'库存商品库位'
+        verbose_name_plural = u'库存商品库位列表'
 
 
+class ItemNumTaskLog(models.Model):
+
+    id = BigIntegerAutoField(primary_key=True)
+    
+    user_id  = models.CharField(max_length=64,blank=True)
+    outer_id = models.CharField(max_length=64,blank=True)
+    sku_outer_id = models.CharField(max_length=64,blank=True)
+
+    num = models.IntegerField()
+
+    start_at   = models.DateTimeField(null=True,blank=True)
+    end_at     = models.DateTimeField(null=True,blank=True)
+    
+    class Meta:
+        db_table = 'shop_items_itemnumtasklog'
+        verbose_name=u'库存同步日志'
+        verbose_name_plural = u'库存同步日志'
+
+    def __unicode__(self):
+        return '<%s,%s,%d>'%(self.outer_id,self.sku_outer_id,self.num)
+    
+    

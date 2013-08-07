@@ -17,8 +17,7 @@ from shopback import paramconfig as pcfg
 from shopback.base.views import ModelView,ListOrCreateModelView,ListModelView
 from shopback.items.models import Item,Product,ProductSku
 from shopback.users.models import User
-from shopback.items.tasks import updateUserItemsTask
-from shopapp.syncnum.tasks import updateItemNum
+from shopback.items.tasks import updateUserItemsTask,updateItemNum
 from auth import apis
 import logging
 
@@ -30,7 +29,6 @@ def update_user_items(request):
     user_id = content.get('user_id') or request.user.get_profile().visitor_id
 
     update_nums = updateUserItemsTask(user_id)
-
 
     response = {'update_nums':update_nums}
 
@@ -220,7 +218,7 @@ class ProductUpdateView(ModelView):
     
     def get(self, request, *args, **kwargs):
         
-        outer_id = kwargs.get('outer_id','None').strip()
+        outer_id = kwargs.get('outer_id','None')
         try:
             instance = Product.objects.get(outer_id=outer_id)
         except:

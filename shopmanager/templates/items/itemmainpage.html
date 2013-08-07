@@ -69,11 +69,11 @@
 	</td>
 	<td >
 		<div style="margin:5px;">
-			<a outer_id="{{ prod.outer_id }}" class="product_modify" target="_blank" style="display:inline;float:left;" title="修改"><i class="icon-edit"></i></a>
-			{% if prod.warn_num >= prod.collect_num and not prod.is_assign  %}<a  outer_id="{{ prod.outer_id }}" outer_sku_id="{{ sku.outer_id }}" class="stock_assign" style="display:inline;float:left;" title="库位警告，点击取消"><i class="icon-warning-sign"></i></a>{% endif %}
-			{% if prod.warn_num < prod.collect_num  %}<a outer_id="{{ prod.outer_id }}" class="sync-stock" style="display:inline;float:left;" title="同步在线库存"><i class="icon-refresh"></i></a>{% endif %}
+			<a outer_id="{{ prod.outer_id.strip }}" class="product_modify" target="_blank" style="display:inline;float:left;" title="修改"><i class="icon-edit"></i></a>
+			{% if prod.warn_num >= prod.collect_num and not prod.is_assign  %}<a  outer_id="{{ prod.outer_id.strip }}" outer_sku_id="{{ sku.outer_id.strip }}" class="stock_assign" style="display:inline;float:left;" title="库位警告，点击取消"><i class="icon-warning-sign"></i></a>{% endif %}
+			{% if prod.warn_num < prod.collect_num  %}<a outer_id="{{ prod.outer_id.strip }}" class="sync-stock" style="display:inline;float:left;" title="同步在线库存"><i class="icon-refresh"></i></a>{% endif %}
 			{% if prod.purchase_product  %}<a  purchase_id="{{ prod.purchase_product.id }}"  class="rel_purchase" style="display:inline;float:left;" title="查看关联采购商品"><i class="icon-info-sign"></i></a>{% endif %}
-			<a outer_id="{{ prod.outer_id }}" class="del_prod"  style="display:inline;float:right;" title="删除"><i class="icon-remove"></i></a>	
+			<a outer_id="{{ prod.outer_id.strip }}" class="del_prod"  style="display:inline;float:right;" title="删除"><i class="icon-remove"></i></a>	
 		</div>
 	</td>
 	</tr>

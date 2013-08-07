@@ -295,7 +295,7 @@ class PurchaseStorageAdmin(admin.ModelAdmin):
         messages.add_message(request,storage_names and messages.INFO or messages.ERROR ,msg)
         return HttpResponseRedirect('./')
 
-    complete_action.short_description = u"完成采购单"
+    complete_action.short_description = u"完成入库单"
 
     actions = ['addon_stock_action','invalid_action','complete_action']
     

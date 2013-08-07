@@ -7,6 +7,7 @@ from django.db import models
 from django.forms import TextInput, Textarea
 from django.utils.translation import ugettext as _
 from shopback.archives.models import SupplierType,Supplier,Deposite,PurchaseType,DepositeDistrict
+from shopback.items.models import ProductLocation
 
 class CostomAdmin(admin.ModelAdmin):
     """ 自定义Admin """
@@ -76,7 +77,7 @@ admin.site.register(Deposite,DepositeAdmin)
 
 
 class DepositeDistrictAdmin(admin.ModelAdmin):
-    list_display = ('id','deposite','district_no','location','in_use','extra_info')
+    list_display = ('id','deposite','parent_no','district_no','location','in_use','extra_info')
     #list_editable = ('update_time','task_type' ,'is_success','status')
     
     list_filter = ('in_use',)

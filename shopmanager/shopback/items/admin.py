@@ -6,7 +6,7 @@ from django.db import models
 from django.shortcuts import render_to_response
 from django.template import RequestContext
 from django.forms import TextInput, Textarea
-from shopback.items.models import Item,Product,ProductSku
+from shopback.items.models import Item,Product,ProductSku,ProductLocation,ItemNumTaskLog
 from shopback.trades.models import MergeTrade,MergeOrder
 from shopback import paramconfig as pcfg
 from shopback.base import log_action,User, ADDITION, CHANGE
@@ -19,7 +19,7 @@ class ProductSkuInline(admin.TabularInline):
     
     model = ProductSku
     fields = ('outer_id','properties_name','properties_alias','quantity','warn_num','remain_num','wait_post_num','cost'
-              ,'std_sale_price','sync_stock','is_assign','is_split','is_match','district','status','buyer_prompt')
+              ,'std_sale_price','sync_stock','is_assign','is_split','is_match','status','buyer_prompt')
     
     formfield_overrides = {
         models.CharField: {'widget': TextInput(attrs={'size':'10'})},
@@ -50,12 +50,17 @@ admin.site.register(Item, ItemAdmin)
 
 class ProductAdmin(admin.ModelAdmin):
     list_display = ('id','outer_id','name','collect_num','category','warn_num','remain_num','wait_post_num','cost'
-                    ,'std_sale_price','agent_price','sync_stock','is_assign','is_split','is_match','district','status')
+                    ,'std_sale_price','agent_price','sync_stock','is_assign','is_split','is_match','district_link','status')
     list_display_links = ('id','outer_id',)
     list_editable = ('name',)
     
     date_hierarchy = 'modified'
     #ordering = ['created_at']
+    
+    def district_link(self, obj):
+        return u'<a href="javascript:void(0);" class="product-district" item_id="%d">%s</a>' %(obj.id,obj.districts or u'【无库位】' )
+    district_link.allow_tags = True
+    district_link.short_description = "库位" 
     
     inlines = [ProductSkuInline]
     
@@ -65,7 +70,7 @@ class ProductAdmin(admin.ModelAdmin):
     #--------设置页面布局----------------
     fieldsets =(('商品基本信息:', {
                     'classes': ('expand',),
-                    'fields': (('outer_id','name','category','pic_path','district','status')
+                    'fields': (('outer_id','name','category','pic_path','status')
                                ,('collect_num','warn_num','remain_num','wait_post_num')
                                ,('cost','std_purchase_price','std_sale_price','agent_price','staff_price')
                                ,('weight','sync_stock','is_assign','is_split','is_match','memo','buyer_prompt'))
@@ -80,8 +85,7 @@ class ProductAdmin(admin.ModelAdmin):
     #更新用户线上商品入库
     def sync_items_stock(self,request,queryset):
         
-        from shopapp.syncnum.tasks import updateItemNum
-        from shopback.items.tasks import updateUserProductSkuTask
+        from shopback.items.tasks import updateUserProductSkuTask,updateItemNum
         
         dt   =   datetime.datetime.now()
         sync_items = []
@@ -201,7 +205,7 @@ admin.site.register(Product, ProductAdmin)
 
 class ProductSkuAdmin(admin.ModelAdmin):
     list_display = ('id','outer_id','product','properties_name','properties_alias','quantity','warn_num','remain_num',
-                    'wait_post_num','cost','std_sale_price','sync_stock','is_assign','is_split','is_match','district','status')
+                    'wait_post_num','cost','std_sale_price','sync_stock','is_assign','is_split','is_match','district_link','status')
     list_display_links = ('outer_id',)
     list_editable = ('quantity',)
 
@@ -210,6 +214,11 @@ class ProductSkuAdmin(admin.ModelAdmin):
 
     list_filter = ('status','sync_stock','is_split','is_match','is_assign',)
     search_fields = ['outer_id','product__outer_id','properties_name','properties_alias']
+    
+    def district_link(self, obj):
+        return u'<a href="%d/" onclick="return showTradePopup(this);">%s</a>' %(obj.id,obj.districts or u'【无库位】' )
+    district_link.allow_tags = True
+    district_link.short_description = "库位"
     
     formfield_overrides = {
         models.CharField: {'widget': TextInput(attrs={'size':'16'})},
@@ -220,7 +229,7 @@ class ProductSkuAdmin(admin.ModelAdmin):
      #--------设置页面布局----------------
     fieldsets =(('商品基本信息:', {
                     'classes': ('expand',),
-                    'fields': (('outer_id','properties_name','properties_alias','district','status')
+                    'fields': (('outer_id','properties_name','properties_alias','status')
                                ,('quantity','warn_num','remain_num','wait_post_num','weight')
                                ,('cost','std_purchase_price','std_sale_price','agent_price','staff_price')
                                ,('sync_stock','is_assign','is_split','is_match','memo','buyer_prompt'))
@@ -256,4 +265,26 @@ class ProductSkuAdmin(admin.ModelAdmin):
 admin.site.register(ProductSku, ProductSkuAdmin)
   
 
+class ProductLocationAdmin(admin.ModelAdmin):
+    list_display = ('outer_id','name','outer_sku_id','properties_name','district')
+    list_display_links = ('outer_id', 'outer_sku_id')
+    #list_editable = ('update_time','task_type' ,'is_success','status')
 
+    search_fields = ['outer_id', 'name','outer_sku_id','properties_name']
+
+
+admin.site.register(ProductLocation, ProductLocationAdmin)
+
+
+class ItemNumTaskLogAdmin(admin.ModelAdmin):
+    list_display = ('id','user_id','outer_id', 'sku_outer_id', 'num', 'start_at', 'end_at')
+    list_display_links = ('outer_id', 'sku_outer_id')
+    #list_editable = ('update_time','task_type' ,'is_success','status')
+
+    date_hierarchy = 'end_at'
+
+    list_filter = ('user_id',)
+    search_fields = ['id','outer_id','sku_outer_id']
+    
+
+admin.site.register(ItemNumTaskLog, ItemNumTaskLogAdmin)
