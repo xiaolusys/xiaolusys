@@ -103,25 +103,35 @@ class Product(models.Model):
         return self.collect_num-self.wait_post_num <= 0
     
     @property
-    def districts(self):
-        """ 商品库中区位 """
-        locations = ProductLocation.objects.filter(outer_id=self.outer_id)
-        sdict = {}
-        for d in locations:
-            
-            dno = d.district.district_no
-            pno = d.district.parent_no
-            if sdict.has_key(pno):
-                sdict[pno].append(dno)
-            else:
-                sdict[pno] = [dno]
+    def json(self):
         
-        ds = []
-        for k,v in sdict.iterkeys():
-            ds.append('%s-(%s)'%(k,','.join(v)))
+        skus_json = []
+        for sku in self.pskus:
+            skus_json.append(sku.json)
         
-        return ','.join(ds)
-    
+        return {
+                'id':self.id,
+                'outer_id':self.outer_id,
+                'name':self.name,
+                'collect_num':self.collect_num,
+                'remain_num':self.remain_num,
+                'warn_num':self.warn_num,
+                'wait_post_num':self.wait_post_num,
+                'cost':self.cost,
+                'weight':self.weight,
+                'sync_stock':self.sync_stock,
+                'is_split':self.is_split,
+                'is_match':self.is_match,
+                'is_assign':self.is_assign,
+                'is_stock_warn':self.is_stock_warn,
+                'is_warning':self.is_warning,
+                'status':self.status,
+                'buyer_prompt':self.buyer_prompt,
+                'memo':self.memo,
+                'districts':self.get_district_list(),
+                'skus':skus_json
+                }    
+        
     def update_collect_num_incremental(self,num,reverse=False):
         """
         参数:
@@ -181,7 +191,30 @@ class Product(models.Model):
         sync_num = collect_num - remain_num - wait_post_num
         return self.warn_num >0 and self.warn_num >= sync_num
     
+    def get_district_list(self):
+        locations = ProductLocation.objects.filter(outer_id=self.outer_id)
+        print 'locations:',len(locations)
+        return [(l.district.parent_no,l.district.district_no) for l in locations]
+    
+    def get_districts_code(self):
+        """ 商品库中区位 """
+        locations = self.get_district_list()
         
+        sdict = {}
+        for d in locations:
+            
+            dno = d[1]
+            pno = d[0]
+            if sdict.has_key(pno):
+                sdict[pno].append(dno)
+            else:
+                sdict[pno] = [dno]
+        ds = []
+        for k,v in sdict.iteritems():
+            ds.append('%s-(%s)'%(k,','.join(v)))
+        
+        return ','.join(ds)
+    
 class ProductSku(models.Model):
     """ 抽象商品规格（根据淘宝规格外部编码），描述：
         1,映射淘宝出售商品规格与采购商品规格桥梁；
@@ -241,25 +274,30 @@ class ProductSku(models.Model):
         return self.quantity-self.wait_post_num <= 0
     
     @property
-    def districts(self):
-        """ 商品库中区位 """
-        locations = ProductLocation.objects.filter(outer_id=self.product.outer_id,outer_sku_id=self.outer_id)
-        sdict = {}
-        for d in locations:
-            
-            dno = d.district.district_no
-            pno = d.district.parent_no
-            if sdict.has_key(pno):
-                sdict[pno].append(dno)
-            else:
-                sdict[pno] = [dno]
+    def json(self):
+        sku = self
+        return {'id':sku.id,
+                'outer_id':sku.outer_id,
+                'properties_name':sku.properties_name,
+                'properties_alias':sku.properties_alias,
+                'name':sku.name,
+                'cost':sku.cost,
+                'weight':sku.weight,
+                'quantity':sku.quantity,
+                'warn_num':sku.warn_num,
+                'remain_num':sku.remain_num,
+                'sync_stock':sku.sync_stock,
+                'is_split':sku.is_split,
+                'is_match':sku.is_match,
+                'status':sku.status,
+                'is_stock_warn':sku.is_stock_warn,
+                'is_assign':sku.is_assign,
+                'is_warning':sku.is_warning,
+                'status':sku.status,
+                'buyer_prompt':sku.buyer_prompt,
+                'memo':sku.memo,
+                'districts':sku.get_district_list()}
         
-        ds = []
-        for k,v in sdict.iterkeys():
-            ds.append('%s-(%s)'%(k,','.join(v)))
-        
-        return ','.join(ds)
-    
     def update_quantity_incremental(self,num,reverse=False):
         """
         参数:
@@ -313,6 +351,29 @@ class ProductSku(models.Model):
         sync_num = quantity - remain_num - wait_post_num                    
         return self.warn_num >0 and self.warn_num >= sync_num 
     
+    def get_district_list(self):
+        locations = ProductLocation.objects.filter(outer_id=self.product.outer_id,outer_sku_id=self.outer_id)
+        return [(l.district.parent_no,l.district.district_no) for l in locations]
+    
+    def get_districts_code(self):
+        """ 商品库中区位,ret_type :c,返回组合后的字符串；o,返回[父编号]-[子编号],... """
+        
+        locations = self.get_district_list()
+        sdict = {}
+        for d in locations:
+            
+            dno = d[1]
+            pno = d[0]
+            if sdict.has_key(pno):
+                sdict[pno].append(dno)
+            else:
+                sdict[pno] = [dno]
+        
+        ds = []
+        for k,v in sdict.iteritems():
+            ds.append('%s-(%s)'%(k,','.join(v)))
+        
+        return ','.join(ds)
     
 def calculate_product_stock_num(sender, instance, *args, **kwargs):
     """修改SKU库存后，更新库存商品的总库存 """

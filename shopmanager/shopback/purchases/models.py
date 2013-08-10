@@ -732,6 +732,8 @@ class PurchasePayment(models.Model):
     pay_time     = models.DateTimeField(null=True,blank=True,verbose_name='付款日期')
     payment      = models.FloatField(default=0,verbose_name='付款金额')
     
+    supplier     = models.ForeignKey(Supplier,null=True,blank=True,related_name='purchase_payments',verbose_name='收款方')
+    
     created      = models.DateTimeField(null=True,blank=True,auto_now=True,verbose_name='创建日期')
     modified     = models.DateTimeField(null=True,blank=True,auto_now_add=True,verbose_name='修改日期')
     
@@ -811,6 +813,7 @@ class PurchasePayment(models.Model):
         return {'id':self.id,
                 'payment':self.payment,
                 'applier':self.applier,
+                "suppiler":self.supplier and self.supplier.supplier_name or '',
                 'extra_info':self.extra_info,
                 'purchase':purchase_dict,
                 'storages':storages_dict.values()}

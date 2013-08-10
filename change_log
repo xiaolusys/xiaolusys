@@ -1,3 +1,5 @@
+######### 2013-8-10  ##########
+alter table shop_purchases_payment add column supplier_id int(11) ,add FOREIGN KEY(supplier_id) references shop_archives_supplier(id);
 ######### 2013-8-7  ##########
 alter table shop_items_product drop district_id;
 alter table shop_items_productsku drop district_id;

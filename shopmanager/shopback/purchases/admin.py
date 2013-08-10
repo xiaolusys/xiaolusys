@@ -327,7 +327,7 @@ admin.site.register(PurchaseStorageRelationship,PurchaseStorageRelationshipAdmin
 
 
 class PurchasePaymentAdmin(admin.ModelAdmin):
-    list_display = ('id','pay_type','payment_link','applier','cashier','pay_bank','pay_no','apply_time','pay_time','modified','status')
+    list_display = ('id','pay_type','payment_link','applier','cashier','supplier','pay_bank','pay_no','apply_time','pay_time','status')
     #list_editable = ('update_time','task_type' ,'is_success','status')
 
     list_filter = ('status','pay_type')

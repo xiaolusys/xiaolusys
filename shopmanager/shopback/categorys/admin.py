@@ -8,7 +8,7 @@ class CategoryAdmin(admin.ModelAdmin):
     #list_editable = ('update_time','task_type' ,'is_success','status')
 
     list_filter = ('status','is_parent')
-    search_fields = ['cid','name']
+    search_fields = ['cid','parent_cid','name']
 
 
 admin.site.register(Category,CategoryAdmin)

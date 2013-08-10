@@ -58,7 +58,7 @@
 		  	<legend>发货商品列表（批次编号：{{ post_no }}）</legend>
 			  <table class="table table-bordered table-striped table-condensed">
 			    <tr>
-			      <th>商品码</th><th style="width:200px;">商品名称</th><th>总数量</th><th>规格码</th><th>规格名</th><th>数量</th>
+			      <th>商品码</th><th style="width:200px;">商品名称</th><th>总数量</th><th>规格码</th><th>规格名</th><th>库位</th><th>数量</th>
 			    </tr>
 			    {% for trade in trade_items %}
 				    {% with trade.1.skus|length as sku_len %}
@@ -72,6 +72,7 @@
 							{% endif %}
 							<td >{{ sku_id }}</td>
 							<td >{{ sku.sku_name }}</td>
+							<td >{{ sku.location }}</td>
 							<td >{{ sku.num }}</td>
 					    </tr>
 					    {% endfor %}
@@ -80,7 +81,9 @@
 					    	<td >{{ trade.0 }}</td>
 					    	<td >{{ trade.1.title }}</td>
 					    	<td >{{ trade.1.num }}</td>
-							<td colspan="3">--</td>
+							<td >-</td>
+							<td >{{ trade.1.location }}</td>
+							<td >-</td>
 						</tr>
 				    {% endif %}
 				    {% endwith %}

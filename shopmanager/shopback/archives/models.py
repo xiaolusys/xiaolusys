@@ -23,13 +23,11 @@ class Deposite(models.Model):
 class DepositeDistrict(models.Model):
     """ 仓库库位 """
     
-    deposite     = models.ForeignKey(Deposite,related_name='deposite_districts',verbose_name='所属仓库')
-    
     district_no  = models.CharField(max_length=32,blank=True,verbose_name='库位号')
     
     parent_no    = models.CharField(max_length=32,blank=True,verbose_name='父库位号')
     
-    location     = models.CharField(max_length=32,blank=True,verbose_name='库位名')
+    location     = models.CharField(max_length=64,blank=True,verbose_name='库位名')
     
     in_use       = models.BooleanField(default=True,verbose_name='使用')
     

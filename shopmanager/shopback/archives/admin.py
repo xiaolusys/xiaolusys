@@ -52,22 +52,20 @@ class CostomAdmin(admin.ModelAdmin):
             return HttpResponseRedirect(post_url)
 
 
-class DepositeDistrictInline(admin.TabularInline):
+class ProductLocationInline(admin.TabularInline):
     
-    model = DepositeDistrict
-    fields = ('district_no','location','in_use','extra_info')
+    model = ProductLocation
+    fields = ('outer_id','name','outer_sku_id','properties_name')
     
     formfield_overrides = {
         models.CharField: {'widget': TextInput(attrs={'size':'20'})},
         models.TextField: {'widget': Textarea(attrs={'rows':4, 'cols':40})},
     }
-    
 
 class DepositeAdmin(CostomAdmin):
     list_display = ('id','deposite_name','location','in_use','extra_info')
     #list_editable = ('update_time','task_type' ,'is_success','status')
 
-    inlines = [DepositeDistrictInline]
 
     list_filter = ('in_use',)
     search_fields = ['id','deposite_name','location']
@@ -77,11 +75,13 @@ admin.site.register(Deposite,DepositeAdmin)
 
 
 class DepositeDistrictAdmin(admin.ModelAdmin):
-    list_display = ('id','deposite','parent_no','district_no','location','in_use','extra_info')
+    list_display = ('id','parent_no','district_no','location','in_use','extra_info')
     #list_editable = ('update_time','task_type' ,'is_success','status')
     
+    inlines = [ProductLocationInline]
+    
     list_filter = ('in_use',)
-    search_fields = ['id','deposite_name','location']
+    search_fields = ['id','parent_no','location']
 
 
 admin.site.register(DepositeDistrict,DepositeDistrictAdmin)

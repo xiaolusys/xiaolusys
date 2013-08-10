@@ -58,7 +58,7 @@ class ProductAdmin(admin.ModelAdmin):
     #ordering = ['created_at']
     
     def district_link(self, obj):
-        return u'<a href="javascript:void(0);" class="product-district" item_id="%d">%s</a>' %(obj.id,obj.districts or u'【无库位】' )
+        return u'<a href="/items/product/district/%d/" target="_blank">%s</a>' %(obj.id,obj.get_districts_code() or u'【无库位】' )
     district_link.allow_tags = True
     district_link.short_description = "库位" 
     

@@ -38,3 +38,10 @@ class ProductSkuResource(ModelResource):
               ,'is_stock_warn','is_warning','sync_stock','is_assign','is_split','is_match','status','layer_table') 
     exclude = ('url',)
     
+    
+class ProductDistrictResource(ModelResource):
+    """ docstring for ProductSku ModelResource """
+
+    model = Product
+    fields = ('product',) 
+    exclude = ('url',)

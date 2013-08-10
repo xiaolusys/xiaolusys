@@ -1,4 +1,5 @@
 #-*- coding:utf8 -*-
+import re
 import datetime
 import json
 from django.core.serializers.json import DjangoJSONEncoder
@@ -15,12 +16,15 @@ from djangorestframework.response import Response,ErrorResponse
 from djangorestframework.mixins import CreateModelMixin
 from shopback import paramconfig as pcfg
 from shopback.base.views import ModelView,ListOrCreateModelView,ListModelView
-from shopback.items.models import Item,Product,ProductSku
+from shopback.items.models import Item,Product,ProductSku,ProductLocation
+from shopback.archives.models import DepositeDistrict
 from shopback.users.models import User
 from shopback.items.tasks import updateUserItemsTask,updateItemNum
+from shopback.base.authentication import login_required_ajax
 from auth import apis
 import logging
 
+DISTRICT_REGEX = '^(?P<pno>[a-zA-Z0-9]+)-(?P<dno>[0-9]+)$'
 logger = logging.getLogger('items.handler')
 
 def update_user_items(request):
@@ -224,40 +228,7 @@ class ProductUpdateView(ModelView):
         except:
             return HttpResponseNotFound(u'商品未找到')
         
-        ins_dict = {
-                    'id':instance.id,
-                    'outer_id':instance.outer_id,
-                    'name':instance.name,
-                    'collect_num':instance.collect_num,
-                    'remain_num':instance.remain_num,
-                    'sync_stock':instance.sync_stock,
-                    'is_split':instance.is_split,
-                    'is_match':instance.is_match,
-                    'is_assign':instance.is_assign,
-                    'is_stock_warn':instance.is_stock_warn,
-                    'is_warning':instance.is_warning,
-                    }
-        
-        sku_list = []
-        ins_dict['pskus'] = sku_list
-        for sku in instance.pskus:
-            sku_dict = {
-                        'id':sku.id,
-                        'outer_id':sku.outer_id,
-                        'properties_name':sku.properties_name,
-                        'properties_alias':sku.properties_alias,
-                        'quantity':sku.quantity,
-                        'warn_num':sku.warn_num,
-                        'remain_num':sku.remain_num,
-                        'sync_stock':sku.sync_stock,
-                        'is_split':sku.is_split,
-                        'is_match':sku.is_match,
-                        'status':sku.status,
-                        'is_stock_warn':sku.is_stock_warn,
-                        'is_assign':sku.is_assign,
-                        'is_warning':sku.is_warning,
-                        }
-            sku_list.append(sku_dict)
+        ins_dict = instance.json
         
         return ins_dict
     
@@ -266,8 +237,6 @@ class ProductUpdateView(ModelView):
         #修改库存商品信息
         
         
-        
-            
         return 0
    
    
@@ -334,3 +303,90 @@ class ProductSearchView(ModelView):
     
         return 0
 
+############################################ 产品区位操作 #######################################
+class ProductDistrictView(ModelView):
+    """ 根据商品编码，名称查询商品 """
+    
+    def get(self, request, id,*args, **kwargs):
+        
+        content = request.REQUEST
+        try:
+            product = Product.objects.get(id=id)
+        except:
+            return u'商品未找到'
+        
+        return {'product':product.json}
+        
+    def post(self, request, id,*args, **kwargs):
+        
+        content   = request.REQUEST
+        outer_id  = content.get('outer_id') or None
+        outer_sku_id = content.get('outer_sku_id') or None
+        district  = content.get('district')
+        
+        r  = re.compile(DISTRICT_REGEX)
+        m  = r.match(district)
+        if not m:
+            return u'标签不合规则'
+        
+        tag_dict = m.groupdict()
+        pno = tag_dict.get('pno')
+        dno = tag_dict.get('dno')
+        district = DepositeDistrict.objects.get(parent_no=pno,district_no=dno)
+        
+        product   = Product.objects.get(outer_id=outer_id)
+        if outer_sku_id:
+            ProductSku.objects.get(outer_id=outer_sku_id,product=product)
+        
+        location,state = ProductLocation.objects.get_or_create(outer_id=outer_id,outer_sku_id=outer_sku_id,district=district)
+        return {'outer_id':location.outer_id,'outer_sku_id':location.outer_sku_id,'district':district}
+        
+        
+@csrf_exempt
+@login_required_ajax            
+def delete_product_district(request):
+    
+    content      = request.REQUEST
+    outer_id     = content.get('outer_id') or None
+    outer_sku_id = content.get('outer_sku_id') or None
+    district     = content.get('district')
+
+    r  = re.compile(DISTRICT_REGEX)
+    m  = r.match(district)
+    if not m:
+        ret = {'code':1,'error_response':u'标签不合规则'}
+        return HttpResponse(json.dumps(ret),mimetype="application/json")
+        
+    tag_dict = m.groupdict()
+    pno = tag_dict.get('pno')
+    dno = tag_dict.get('dno')
+    district = DepositeDistrict.objects.get(parent_no=pno,district_no=dno)
+    
+    try:
+        location = ProductLocation.objects.get(outer_id=outer_id,outer_sku_id=outer_sku_id,district=district)
+        location.delete()
+    except Exception,exc:
+        logger.error(exc.message,exc_info=True)
+        ret = {'code':1,'error_response':u'未找到删除项'}
+        return HttpResponse(json.dumps(ret),mimetype="application/json")
+    
+    ret = {'code':0,'response_content':'success'}
+    return HttpResponse(json.dumps(ret),mimetype="application/json")
+
+@csrf_exempt
+@login_required_ajax            
+def deposite_district_query(request):
+        
+    content = request.REQUEST
+    q       = content.get('term')
+    if not q:
+        ret = {'code':1,'error_response':u'查询内容不能为空'}
+        return HttpResponse(json.dumps(ret),mimetype="application/json")
+
+    districts = DepositeDistrict.objects.filter(parent_no__icontains=q)
+
+    ret = [{'id':str(d),'label':str(d),'value':str(d)} for d in districts]
+    
+    return HttpResponse(json.dumps(ret),mimetype="application/json")
+    
+    

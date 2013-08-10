@@ -506,6 +506,7 @@ class PurchasePaymentView(ModelView):
         purchase            = None
         purchase_payment    = None
         storages            = []
+        supplier            = None 
         
         try:
             payment   = float(payment or 0)
@@ -518,6 +519,7 @@ class PurchasePaymentView(ModelView):
                 
                 purchase = Purchase.objects.get(id=purchase_id,status=pcfg.PURCHASE_APPROVAL)
                 
+                supplier = purchase.supplier
             elif paytype in (pcfg.PC_POD_TYPE,pcfg.PC_COD_TYPE):
                 for storage_id in storageids:
                     storage =  PurchaseStorage.objects.get(id=storage_id,\
@@ -525,23 +527,30 @@ class PurchasePaymentView(ModelView):
                     storages.append(storage)
                     
                 if paytype == pcfg.PC_POD_TYPE and len(storages) != 1:
-                    raise Exception(u'请选择一个入库单')
+                    raise Exception(u'请只选择一个入库单')
+                
+                if len(storages) == 0:
+                    raise Exception(u'请至少选择一个入库单')
                 
                 if paytype == pcfg.PC_POD_TYPE:
                     undist_storage_items = storages[0].distribute_storage_num()
                     if undist_storage_items:
                         raise Exception(u'入库项未完全关联采购单')
                 
+                supplier = storages[0].supplier
             elif paytype==pcfg.PC_OTHER_TYPE:
-                if (purchase_id and storage_id) or (not purchase_id and not storage_id):
+                if (purchase_id and storageids) or (not purchase_id and not storageids):
                     raise Exception(u'请选择采购单或物流单之一')
                 
                 if purchase_id:
                     purchase = Purchase.objects.get(id=purchase_id,status=pcfg.PURCHASE_APPROVAL)
+                    supplier = purchase.supplier
                 else:
                     for storage_id in storageids:
                         storage =  PurchaseStorage.objects.get(id=storage_id,status__in=(pcfg.PURCHASE_APPROVAL,pcfg.PURCHASE_DRAFT))
                         storages.append(storage)
+                    
+                    supplier = storages[0].supplier
             else:
                 raise Exception(u'付款类型错误') 
             
@@ -549,6 +558,7 @@ class PurchasePaymentView(ModelView):
                                                           pay_type   = paytype,
                                                           apply_time = datetime.datetime.now(),
                                                           payment    = payment,
+                                                          supplier   = supplier,
                                                           applier    = request.user.username,
                                                           status     = pcfg.PP_WAIT_APPLY,
                                                           extra_info = memo)

@@ -37,38 +37,35 @@ def get_trade_pickle_list_data(post_trades):
             outer_id = order.outer_id or str(order.num_iid)
             outer_sku_id = order.outer_sku_id or str(order.sku_id)
             
+            prod = None
+            prod_sku = None
+            try:
+                prod = Product.objects.get(outer_id=outer_id)
+                prod_sku = ProductSku.objects.get(outer_id=outer_id,product=prod)
+            except:
+                pass
+            
             if trade_items.has_key(outer_id):
                 trade_items[outer_id]['num'] += order.num
                 skus = trade_items[outer_id]['skus']
                 if skus.has_key(outer_sku_id):
                     skus[outer_sku_id]['num'] += order.num
                 else:
-                    prod_sku = None
-                    try:
-                        prod_sku = ProductSku.objects.get(outer_id=outer_sku_id,product__outer_id=outer_id)
-                    except:
-                        pass
                     prod_sku_name = (prod_sku.properties_alias or prod_sku.properties_name ) if prod_sku else order.sku_properties_name
-                    skus[outer_sku_id] = {'sku_name':prod_sku_name,'num':order.num}
+                    skus[outer_sku_id] = {'sku_name':prod_sku_name,
+                                          'num':order.num,
+                                          'location':prod_sku and prod_sku.get_districts_code() or (prod and prod.get_districts_code() or '')}
             else:
-                prod = None
-                prod_sku = None
-                
-                try:
-                    prod = Product.objects.get(outer_id=outer_id)
-                except:
-                    pass
-                else:    
-                    try:
-                        prod_sku = ProductSku.objects.get(outer_id=outer_id,product__outer_id=outer_id)
-                    except:
-                        pass
                 prod_sku_name =prod_sku.properties_name if prod_sku else order.sku_properties_name
                     
                 trade_items[outer_id]={
                                        'num':order.num,
                                        'title': prod.name if prod else order.title,
-                                       'skus':{outer_sku_id:{'sku_name':prod_sku_name,'num':order.num}}
+                                       'location':prod and prod.get_districts_code() or '',
+                                       'skus':{outer_sku_id:{
+                                                             'sku_name':prod_sku_name,
+                                                             'num':order.num,
+                                                             'location':prod_sku and prod_sku.get_districts_code() or (prod and prod.get_districts_code() or '')}}
                                        }
                  
     trade_list = sorted(trade_items.items(),key=lambda d:d[1]['num'],reverse=True)

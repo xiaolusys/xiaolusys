@@ -44,5 +44,12 @@ class ProductSkuHtmlRenderer(TemplateRenderer):
     template = 'items/productskutable.html'
     
     
-
+class ProductDistrictHtmlRenderer(TemplateRenderer):
+    """
+    Renderer which serializes to JSON
+    """
+    
+    media_type = 'text/html'
+    format = 'html'
+    template = 'items/product_district_page.html'
     

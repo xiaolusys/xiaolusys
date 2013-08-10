@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html >
+  <head>
+    <title>商品库位分配</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+     <link href="{{ STATIC_URL }}bootstrap/css/bootstrap.min.css" rel="stylesheet" type="text/css" />
+    <link href="{{ STATIC_URL }}bootstrap/css/bootstrap-responsive.min.css" rel="stylesheet" type="text/css" />
+    <link href="{{ STATIC_URL }}css/base.less" rel="stylesheet/less" type="text/css" />
+    <link href='{{ STATIC_URL }}jquery/jquery-ui-1.10.1.css' rel='stylesheet'  />
+    <link href='{{ STATIC_URL }}fullcalendar/tags/jquery.tagsinput.css' rel='stylesheet'  />
+    <link href='{{ STATIC_URL }}fullcalendar/js/jquery-ui-1.8.13.css' rel='stylesheet'  />
+	<script src='{{ STATIC_URL }}fullcalendar/js/jquery-1.8.13.min.js'></script>
+	<script src='{{ STATIC_URL }}fullcalendar/js/jquery-ui-1.8.13.min.js'></script>
+    <script src='{{ STATIC_URL }}fullcalendar/tags/jquery.tagsinput.js'></script>
+  </head>
+  <style>
+	body,div{
+	   	margin:0px auto;
+    	padding:0px;
+    }
+    body{
+    	width:1000px;
+    }
+  	.content-main{
+		margin-top:40px;
+		display:fixed;
+	} 
+	div.control-group {
+	 	display: block;
+		margin-bottom: 5px;
+		clear: both;
+	 }
+	 div.tagsinput {
+	 	width:500px;
+	 }
+	 .ui-autocomplete{
+	 	height:400px;
+	 	overflow-y: scroll;
+	 }
+  </style>
+  <body>
+{% with product=object.product %}
+<div class="content-main">
+	<input id="product_id" type="hidden" value="{{ product.id }}"/>
+	<table class="table table-bordered table-condensed">
+		<thead>
+			<tr>
+				<th>商品编码</th>
+				<th>商品名称</th>
+				<th>规格编码</th>
+				<th>规格名称</th>
+				<th>库位信息</th>
+			</tr>
+		</thead>
+		<tbody>
+			{% for sku in product.skus %}
+			<tr>
+				<td>{{ product.outer_id }}</td>
+				<td>{{ product.name }}</td>
+				<td>{{ sku.outer_id }}</td>
+				<td>{{ sku.name }}</td>
+				<td>
+					<div class="control-group districts">
+						<input class="district-text" type="text" outer_id="{{ product.outer_id }}" outer_sku_id="{{ sku.outer_id }}" value="{% for d in sku.districts %}{{ d.0 }}-{{ d.1 }},{% endfor %}"  />
+					</div>
+				</td>
+			</tr>
+			{% empty %}
+			<tr>
+				<td>{{ product.outer_id }}</td>
+				<td>{{ product.name }}</td>
+				<td></td>
+				<td></td>
+				<td>
+					<div class="control-group districts">
+						<input class="district-text" type="text" outer_id="{{ product.outer_id }}" outer_sku_id="" value="{% for d in product.districts %}{{ d.0 }}-{{ d.1 }},{% endfor %}"  />
+					</div>
+				</td>
+			</tr>
+			{% endfor %}
+		</tbody>
+	</table>
+</div>
+{% endwith %}
+<script type="text/javascript">
+	//添加库位
+	function callback_add(tag){
+		var that = this;
+		$.ajax({ 
+		    type: 'POST', 
+		    url: '/items/product/district/'+$('#product_id').val()+'/', 
+		    data: {'outer_id':$(that).attr('outer_id'),'outer_sku_id':$(that).attr('outer_sku_id'),'district':tag} , 
+		    dataType: 'json',
+		    success: function(data){
+		    	if (data.code==1){
+		    		$(that).removeTag(tag);
+		    		alert('添加失败');
+					return;
+		    	}	
+		    }
+		});
+	};
+	
+	//移除库位
+	function callback_remove(tag){
+		var that = this;
+		$.ajax({ 
+		    type: 'POST', 
+		    url: '/items/product/district/delete/', 
+		    data: {'outer_id':$(that).attr('outer_id'),'outer_sku_id':$(that).attr('outer_sku_id'),'district':tag} , 
+		    dataType: 'json',
+		    success: function(data){
+		    	if (data.code==1){
+		    		alert('删除失败');
+					return;
+		    	}	
+		    }
+		});
+	};
+
+	$(".district-text").tagsInput({
+		'autocomplete_url': '/items/district/query/',
+	    'autocomplete': {selectFirst:true,autoFill:true},
+		'height':'40px',
+		'width':'400px',
+		'interactive':true,
+		'defaultText':'输入库位',
+		'placeholderColor' : '#999999',
+		'removeWithBackspace' : true,
+	    'minChars' : 1,
+	    'maxChars' : 20,
+	    'onAddTag':callback_add,
+   		'onRemoveTag':callback_remove,
+	});
+</script>
+</body>
+</html>
