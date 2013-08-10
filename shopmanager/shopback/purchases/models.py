@@ -123,7 +123,7 @@ class Purchase(models.Model):
             
         if unpay_fee<0:
             return 0
-        return unpay_fee
+        return round(unpay_fee,2)
         
     def gen_csv_tuple(self):
         
@@ -293,7 +293,7 @@ class PurchaseItem(models.Model):
         fee = self.total_fee-self.payment
         if fee<0:
             return 0
-        return fee
+        return round(fee,2)
     
     @property
     def json(self):
@@ -397,7 +397,7 @@ class PurchaseStorage(models.Model):
             
         if fee <0:
             return 0
-        return fee
+        return round(fee,2)
     
     def gen_csv_tuple(self):
         
@@ -594,7 +594,7 @@ class PurchaseStorageItem(models.Model):
         fee = self.total_fee - self.prepay - self.payment
         if fee <0:
             return 0
-        return fee
+        return round(fee,2)
         
     @property
     def json(self):

@@ -52,7 +52,7 @@
 <div class="right-field" >
 	<fieldset>
 		<legend>产品销售属性列表</legend>
-		{% if object.pskus %}
+		{% if object.skus %}
 		<table class="table table-bordered table-condensed">
 			<thead>
 		 	 	<th style="width:10px;"><input type="checkbox" /></th>
@@ -67,7 +67,7 @@
 		 	 	<th >状态</th>
 		 	 	<th>操作</th>
 			</thead>
-			{% for sku in object.pskus %}
+			{% for sku in object.skus %}
 			<tr class="{% if sku.is_stock_warn %}{% if sku.is_assign %}label-info{% else %}label-important{% endif %}{% elif sku.is_warning %}label-warning{% endif %}">
 			<td><input type="checkbox" pid="{{ sku.id }}" /></td>
 			<td>{{ sku.outer_id }}</td>
