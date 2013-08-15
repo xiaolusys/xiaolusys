@@ -19,7 +19,7 @@ class ProductSkuInline(admin.TabularInline):
     
     model = ProductSku
     fields = ('outer_id','properties_name','properties_alias','quantity','warn_num','remain_num','wait_post_num','cost'
-              ,'std_sale_price','sync_stock','is_assign','is_split','is_match','status','buyer_prompt')
+              ,'std_sale_price','sync_stock','is_assign','is_split','is_match','post_check','status','buyer_prompt')
     
     formfield_overrides = {
         models.CharField: {'widget': TextInput(attrs={'size':'10'})},
@@ -50,7 +50,7 @@ admin.site.register(Item, ItemAdmin)
 
 class ProductAdmin(admin.ModelAdmin):
     list_display = ('id','outer_id','name','collect_num','category','warn_num','remain_num','wait_post_num','cost'
-                    ,'std_sale_price','agent_price','sync_stock','is_assign','is_split','is_match','district_link','status')
+                    ,'std_sale_price','agent_price','sync_stock','is_assign','is_split','is_match','post_check','district_link','status')
     list_display_links = ('id','outer_id',)
     list_editable = ('name',)
     
@@ -58,13 +58,13 @@ class ProductAdmin(admin.ModelAdmin):
     #ordering = ['created_at']
     
     def district_link(self, obj):
-        return u'<a href="/items/product/district/%d/" target="_blank">%s</a>' %(obj.id,obj.get_districts_code() or u'【无库位】' )
+        return u'<a href="/items/product/district/%d/" target="_blank">%s</a>' %(obj.id,obj.get_districts_code() or u'--' )
     district_link.allow_tags = True
     district_link.short_description = "库位" 
     
     inlines = [ProductSkuInline]
     
-    list_filter = ('status','sync_stock','is_split','is_match','is_assign',)
+    list_filter = ('status','sync_stock','is_split','is_match','is_assign','post_check')
     search_fields = ['outer_id', 'name']
     
     #--------设置页面布局----------------
@@ -73,7 +73,7 @@ class ProductAdmin(admin.ModelAdmin):
                     'fields': (('outer_id','name','category','pic_path','status')
                                ,('collect_num','warn_num','remain_num','wait_post_num')
                                ,('cost','std_purchase_price','std_sale_price','agent_price','staff_price')
-                               ,('weight','sync_stock','is_assign','is_split','is_match','memo','buyer_prompt'))
+                               ,('weight','sync_stock','is_assign','is_split','is_match','post_check','memo','buyer_prompt'))
                 }),)
     
     formfield_overrides = {
@@ -205,18 +205,18 @@ admin.site.register(Product, ProductAdmin)
 
 class ProductSkuAdmin(admin.ModelAdmin):
     list_display = ('id','outer_id','product','properties_name','properties_alias','quantity','warn_num','remain_num',
-                    'wait_post_num','cost','std_sale_price','sync_stock','is_assign','is_split','is_match','district_link','status')
+                    'wait_post_num','cost','std_sale_price','sync_stock','is_assign','is_split','is_match','post_check','district_link','status')
     list_display_links = ('outer_id',)
     list_editable = ('quantity',)
 
     date_hierarchy = 'modified'
     #ordering = ['created_at']
 
-    list_filter = ('status','sync_stock','is_split','is_match','is_assign',)
+    list_filter = ('status','sync_stock','is_split','is_match','is_assign','post_check')
     search_fields = ['outer_id','product__outer_id','properties_name','properties_alias']
     
     def district_link(self, obj):
-        return u'<a href="%d/" onclick="return showTradePopup(this);">%s</a>' %(obj.id,obj.districts or u'【无库位】' )
+        return u'<a href="%d/" onclick="return showTradePopup(this);">%s</a>' %(obj.id,obj.districts or u'--' )
     district_link.allow_tags = True
     district_link.short_description = "库位"
     

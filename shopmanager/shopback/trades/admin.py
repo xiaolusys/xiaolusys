@@ -258,12 +258,14 @@ class MergeTradeAdmin(admin.ModelAdmin):
                 return HttpResponseRedirect("../%s/" % pk_value)
         elif request.POST.has_key("_split"):
             if obj.sys_status==pcfg.WAIT_AUDIT_STATUS:
-                if obj.has_merge:
+                if obj.has_reason_code(pcfg.MULTIPLE_ORDERS_CODE):
+                    obj.remove_reason_code(pcfg.MULTIPLE_ORDERS_CODE)
+                    msg = u"订单已取消需手动合并状态"
+                elif obj.has_merge:
                     merge_order_remover(obj.tid)
                     msg = u"订单已取消合并状态"
                 else:
-                    obj.remove_reason_code(pcfg.MULTIPLE_ORDERS_CODE)
-                    msg = u"订单已取消待合并状态"
+                    msg = u'订单不需要取消合并'
                 log_action(request.user.id,obj,CHANGE,msg)
             elif obj.sys_status in (pcfg.WAIT_CHECK_BARCODE_STATUS,pcfg.WAIT_SCAN_WEIGHT_STATUS):
                 obj.remove_reason_code(pcfg.MULTIPLE_ORDERS_CODE)

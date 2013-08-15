@@ -20,7 +20,7 @@ class PurchaseItemInline(admin.TabularInline):
     
     model = PurchaseItem
     fields = ('outer_id','name','outer_sku_id','properties_name','purchase_num','storage_num'
-              ,'price','std_price','total_fee','payment','arrival_status','status','extra_info')
+              ,'price','std_price','total_fee','prepay','payment','arrival_status','status','extra_info')
     
     formfield_overrides = {
         models.CharField: {'widget': TextInput(attrs={'size':'20'})},

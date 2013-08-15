@@ -88,7 +88,7 @@
   	<div style="text-align:center;"><a style="float:right;" href="/admin/purchases/purchasepayment/">付款单列表</a></div>
   	{% if purchase %}
   	<div>
-  		<h3>采购单付款额分配(现付总金额：{{ payment }}&yen;,申请人:{{ applier }},收款方:{{ object.supplier }})</h3>
+  		<h3>采购单付款额分配(现付总金额：{{ payment }}&yen;,申请人:{{ applier }},收款方:{{ object.purchase_payment.supplier }})</h3>
   		{% if object.purchase_payment.extra_info %}
   		<div class="alert-message"><strong >备注:</strong>{{ object.purchase_payment.extra_info }}</div>
   		{% endif %}
@@ -142,7 +142,7 @@
   	{% if storages %}
   	<div class="div-block">
 	  	<div class="block-head">
-		  	<h3>入库单金额分配(现付总金额：{{ payment }}&yen;,申请人:{{ applier }},收款方:{{ object.supplier }}&nbsp;&nbsp;&nbsp;)</h3>
+		  	<h3>入库单金额分配(现付总金额：{{ payment }}&yen;,申请人:{{ applier }},收款方:{{ object.purchase_payment.supplier }}&nbsp;&nbsp;&nbsp;)</h3>
 	  	</div>
   		<div class="alert-message" style=""><strong >备注:</strong>{{ object.purchase_payment.extra_info }}</div>
 	  	<div class="block-body">

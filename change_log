@@ -1,3 +1,8 @@
+######### 2013-8-12  ##########
+alter table shop_items_product add column post_check tinyint(1) NOT NULL;
+alter table shop_items_productsku add column post_check tinyint(1) NOT NULL;
+alter table shop_items_product add column barcode varchar(64) NOT NULL,add index (barcode);
+alter table shop_items_productsku add column barcode varchar(64) NOT NULL,add index (barcode);
 ######### 2013-8-10  ##########
 alter table shop_purchases_payment add column supplier_id int(11) ,add FOREIGN KEY(supplier_id) references shop_archives_supplier(id);
 ######### 2013-8-7  ##########

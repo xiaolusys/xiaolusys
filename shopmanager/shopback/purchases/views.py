@@ -154,7 +154,7 @@ class PurchaseItemView(ModelView):
             return u'未找到采购单'
         
         if purchase.status==pcfg.PURCHASE_FINISH :
-            return '你没有权限修改'
+            return u'你没有权限修改'
         
         purchase_item,state = PurchaseItem.objects.get_or_create(
                                 purchase=purchase,outer_id=outer_id,outer_sku_id=sku_id)
@@ -737,7 +737,8 @@ class PaymentDistributeView(ModelView):
                     payment_item.payment = item[1]
                     payment_item.save()        
         
-@csrf_exempt        
+@csrf_exempt  
+@staff_requried      
 def confirm_payment_amount(request):
     
     content    = request.REQUEST

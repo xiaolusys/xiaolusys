@@ -71,7 +71,7 @@ class Purchase(models.Model):
     storage_num  = models.IntegerField(null=True,default=0,verbose_name='已入库数')
     
     total_fee    = models.FloatField(default=0.0,verbose_name='总费用')
-    prepay       = models.FloatField(default=0.0,verbose_name='预付金')
+    prepay       = models.FloatField(default=0.0,verbose_name='预付款')
     payment      = models.FloatField(default=0.0,verbose_name='已付款')
     
     receiver_name = models.CharField(max_length=32,blank=True,verbose_name='收货人')
@@ -258,7 +258,7 @@ class PurchaseItem(models.Model):
     price        = models.FloatField(default=0.0,verbose_name='标准进价')
     
     total_fee    = models.FloatField(default=0.0,verbose_name='总费用')
-    prepay       = models.FloatField(default=0.0,verbose_name='预付费用')
+    prepay       = models.FloatField(default=0.0,verbose_name='预付款')
     payment      = models.FloatField(default=0.0,verbose_name='已付款')
 
     created      = models.DateTimeField(null=True,blank=True,auto_now=True,verbose_name='创建日期')
