@@ -53,3 +53,15 @@ class ProductDistrictHtmlRenderer(TemplateRenderer):
     format = 'html'
     template = 'items/product_district_page.html'
     
+
+class ProductBarcodeHtmlRenderer(TemplateRenderer):
+    """
+    Renderer which serializes to JSON
+    """
+    
+    media_type = 'text/html'
+    format = 'html'
+    template = 'items/product_barcode_page.html'
+
+
+    

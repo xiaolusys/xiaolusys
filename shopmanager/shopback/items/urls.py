@@ -1,11 +1,11 @@
 from django.conf.urls.defaults import patterns, url
 from djangorestframework.views import ListOrCreateModelView
 from shopback.items.views import ProductListView,ProductItemView,ProductModifyView,ProductUpdateView,\
-    ProductSkuCreateView,ProductSkuInstanceView,ProductSearchView,ProductDistrictView
+    ProductSkuCreateView,ProductSkuInstanceView,ProductSearchView,ProductDistrictView,ProductBarCodeView
 from shopback.items.resources import ProductListResource,ProductItemResource,ProductResource,\
     ProductSkuResource,ProductDistrictResource
 from shopback.items.renderers import ProductListHtmlRenderer,JSONRenderer,ProductItemHtmlRenderer,\
-    ProductUpdateHtmlRenderer,ProductSkuHtmlRenderer,ProductDistrictHtmlRenderer
+    ProductUpdateHtmlRenderer,ProductSkuHtmlRenderer,ProductDistrictHtmlRenderer,ProductBarcodeHtmlRenderer
 from shopback.base.renderers  import BaseJsonRenderer
 from shopback.base.permissions import IsAuthenticated
 from shopback.base.authentication import UserLoggedInAuthentication,login_required_ajax
@@ -51,6 +51,12 @@ urlpatterns = patterns('shopback.items.views',
     (r'^query/$',ProductSearchView.as_view(
         resource=ProductResource,
         renderers=(BaseJsonRenderer,),
+        authentication=(UserLoggedInAuthentication,),
+        permissions=(IsAuthenticated,)
+    )),
+    (r'^product/barcode/$',ProductBarCodeView.as_view(
+        resource=ProductResource,
+        renderers=(BaseJsonRenderer,ProductBarcodeHtmlRenderer),
         authentication=(UserLoggedInAuthentication,),
         permissions=(IsAuthenticated,)
     )),

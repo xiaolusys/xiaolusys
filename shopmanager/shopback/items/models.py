@@ -45,7 +45,7 @@ class Product(models.Model):
     outer_id     = models.CharField(max_length=64,unique=True,null=False,blank=True,verbose_name='外部编码')
     name         = models.CharField(max_length=64,blank=True,verbose_name='商品名称')
     
-    barcode      = models.CharField(max_length=64,null=True,blank=True,index=True,verboase_name='条码')
+    barcode      = models.CharField(max_length=64,blank=True,db_index=True,verbose_name='条码')
     category     = models.ForeignKey(ProductCategory,null=True,blank=True,related_name='products',verbose_name='内部分类')
     pic_path     = models.CharField(max_length=256,blank=True)
     
@@ -97,6 +97,10 @@ class Product(models.Model):
         return self.prod_skus.filter(status__in=(pcfg.NORMAL,pcfg.REMAIN))
     
     @property
+    def BARCODE(self):
+        return self.barcode.strip() or self.outer_id.strip()
+    
+    @property
     def is_out_stock(self):
         if self.collect_num<0 or self.wait_post_num <0 :
             self.collect_num = self.collect_num >0 and self.collect_num or 0 
@@ -131,6 +135,7 @@ class Product(models.Model):
                 'buyer_prompt':self.buyer_prompt,
                 'memo':self.memo,
                 'districts':self.get_district_list(),
+                'barcode':self.BARCODE,
                 'skus':skus_json
                 }    
         
@@ -195,7 +200,6 @@ class Product(models.Model):
     
     def get_district_list(self):
         locations = ProductLocation.objects.filter(outer_id=self.outer_id)
-        print 'locations:',len(locations)
         return [(l.district.parent_no,l.district.district_no) for l in locations]
     
     def get_districts_code(self):
@@ -222,9 +226,9 @@ class ProductSku(models.Model):
         1,映射淘宝出售商品规格与采购商品规格桥梁；
         2,库存管理的规格核心类；
     """
-    outer_id = models.CharField(max_length=64,null=True,blank=True,verbose_name='规格外部编码')
+    outer_id = models.CharField(max_length=64,blank=True,verbose_name='规格外部编码')
     
-    barcode  = models.CharField(max_length=64,null=True,blank=True,index=True,verboase_name='条码')
+    barcode  = models.CharField(max_length=64,blank=True,db_index=True,verbose_name='条码')
     product  = models.ForeignKey(Product,null=True,related_name='prod_skus',verbose_name='商品')
     
     quantity = models.IntegerField(default=0,verbose_name='库存数')
@@ -272,6 +276,10 @@ class ProductSku(models.Model):
         return self.properties_alias or self.properties_name
     
     @property
+    def BARCODE(self):
+        return self.barcode.strip() or self.product.barcode.strip() or '%s%s'%(self.product.outer_id.strip(),self.outer_id.strip())
+    
+    @property
     def is_out_stock(self):
         if self.quantity<0 or self.wait_post_num <0 :
             self.quantity      = self.quantity >= 0 and self.quantity or 0
@@ -302,7 +310,8 @@ class ProductSku(models.Model):
                 'status':sku.status,
                 'buyer_prompt':sku.buyer_prompt,
                 'memo':sku.memo,
-                'districts':sku.get_district_list()}
+                'districts':sku.get_district_list(),
+                'barcode':sku.BARCODE}
         
     def update_quantity_incremental(self,num,reverse=False):
         """

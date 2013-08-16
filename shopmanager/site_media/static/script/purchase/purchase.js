@@ -442,6 +442,8 @@ purchase.Manager.prototype.bindEvent = function (){
    		//"bJQueryUI": true,
 		"bAutoWidth": false, //自适应宽度
 		"aaSorting": [[1, "asc"]],
+		"iDisplayLength": 20,
+		"aLengthMenu": [[20, 50, 100, -1], [20, 50, 100, "All"]],
 		//"sPaginationType": "full_numbers",
 		//"sDom": '<"H"Tfr>t<"F"ip>',
 		"oLanguage": {

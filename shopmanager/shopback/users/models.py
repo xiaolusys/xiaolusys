@@ -160,7 +160,7 @@ taobao_logged_in.connect(add_taobao_user)
   
   
 class Customer(models.Model):
-    """ 客户信息表 """
+    """ 会员信息表 """
 
     nick      = models.CharField(max_length=32,verbose_name='昵称')
     sex       = models.CharField(max_length=1,blank=True,verbose_name='性别')
@@ -197,8 +197,8 @@ class Customer(models.Model):
     class Meta:
         db_table = 'shop_users_customer'
         unique_together = ("nick","mobile","phone")
-        verbose_name= u'客户'
-        verbose_name_plural = u'客户列表'
+        verbose_name= u'会员'
+        verbose_name_plural = u'会员列表'
 
     def __unicode__(self):
         return '%s'%self.nick

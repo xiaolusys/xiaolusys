@@ -302,6 +302,48 @@ class ProductSearchView(ModelView):
         #修改库存商品信息
     
         return 0
+    
+    
+class ProductBarCodeView(ModelView):
+    """ docstring for ProductBarCodeView """
+
+    
+    def get(self, request, *args, **kwargs):
+        #获取库存商品列表
+
+        queryset = Product.objects.filter(status__in=(pcfg.NORMAL,pcfg.REMAIN))
+        
+        return [p.json for p in queryset]
+ 
+    def post(self, request, *args, **kwargs):
+        
+        content       = request.REQUEST
+        outer_id      = content.get('outer_id') or None
+        outer_sku_id  = content.get('outer_sku_id')
+        barcode       = content.get('barcode') or ''
+        
+        product     = None
+        product_sku = None
+        try:
+            product   =  Product.objects.get(outer_id=outer_id)
+        except Product.DoesNotExist:
+            return u'未找到商品'
+            
+        if outer_sku_id :
+            try:
+                product_sku   =  ProductSku.objects.get(outer_id=outer_sku_id,product=product)
+            except ProductSku.DoesNotExist:
+                return u'未找到商品规格' 
+            
+            product_sku.barcode = barcode.strip()
+            product_sku.save()
+        else:
+            product.barcode  =  barcode.strip()
+            product.save()
+            
+        return {'status':'success'}   
+        
+          
 
 ############################################ 产品区位操作 #######################################
 class ProductDistrictView(ModelView):

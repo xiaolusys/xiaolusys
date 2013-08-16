@@ -19,7 +19,7 @@ class ProductSkuInline(admin.TabularInline):
     
     model = ProductSku
     fields = ('outer_id','properties_name','properties_alias','quantity','warn_num','remain_num','wait_post_num','cost'
-              ,'std_sale_price','sync_stock','is_assign','is_split','is_match','post_check','status','buyer_prompt')
+              ,'std_sale_price','sync_stock','is_assign','is_split','is_match','post_check','barcode','status','buyer_prompt')
     
     formfield_overrides = {
         models.CharField: {'widget': TextInput(attrs={'size':'10'})},
@@ -65,13 +65,13 @@ class ProductAdmin(admin.ModelAdmin):
     inlines = [ProductSkuInline]
     
     list_filter = ('status','sync_stock','is_split','is_match','is_assign','post_check')
-    search_fields = ['outer_id', 'name']
+    search_fields = ['outer_id', 'name' , 'barcode']
     
     #--------设置页面布局----------------
     fieldsets =(('商品基本信息:', {
                     'classes': ('expand',),
                     'fields': (('outer_id','name','category','pic_path','status')
-                               ,('collect_num','warn_num','remain_num','wait_post_num')
+                               ,('collect_num','warn_num','remain_num','wait_post_num','barcode')
                                ,('cost','std_purchase_price','std_sale_price','agent_price','staff_price')
                                ,('weight','sync_stock','is_assign','is_split','is_match','post_check','memo','buyer_prompt'))
                 }),)
