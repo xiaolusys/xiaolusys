@@ -813,7 +813,7 @@ class PurchasePayment(models.Model):
         return {'id':self.id,
                 'payment':self.payment,
                 'applier':self.applier,
-                "suppiler":self.supplier and self.supplier.supplier_name or '',
+                "supplier":self.supplier and self.supplier.supplier_name or '',
                 'extra_info':self.extra_info,
                 'purchase':purchase_dict,
                 'storages':storages_dict.values()}
