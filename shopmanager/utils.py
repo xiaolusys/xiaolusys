@@ -16,9 +16,17 @@ def update_model_feilds(obj,update_fields=[]):
 
 def gen_cvs_tuple(qs,fields=[],title=[]):
     """ 获取queryset tuple """
-    qs_tuple = []
+    qs_tuple = [title]
+    
     for q in qs:
-        pass
+        
+        ks = []
+        for k in fields:
+            ks.append(unicode(getattr(q,k,None)))
+        
+        qs_tuple.append(ks)
+        
+    return qs_tuple
 
 
 class CSVUnicodeWriter:

@@ -440,8 +440,11 @@ class OrderPlusView(ModelView):
             except ProductSku.DoesNotExist:
                 return '该商品规格不存在'.decode('utf8')
         
+        if merge_trade.can_change_order:
+            return HttpResponse(json.dumps({'code':1,"response_error":"订单不能修改！"}),mimetype="application/json")
+        
         is_reverse_order = False
-        if merge_trade.sys_status == pcfg.WAIT_CHECK_BARCODE_STATUS:
+        if merge_trade.can_reverse_order:
             merge_trade.append_reason_code(pcfg.ORDER_ADD_REMOVE_CODE)
             is_reverse_order = True    
         
@@ -513,8 +516,12 @@ def change_trade_order(request,id):
         return HttpResponse(json.dumps({'code':1,"response_error":"商品规格不存在！"}),mimetype="application/json")
     
     merge_trade = order.merge_trade
+
+    if merge_trade.can_change_order:
+        return HttpResponse(json.dumps({'code':1,"response_error":"商品规格不能修改！"}),mimetype="application/json")
+    
     is_reverse_order = False
-    if merge_trade.sys_status == pcfg.WAIT_CHECK_BARCODE_STATUS:
+    if merge_trade.can_reverse_order:
         merge_trade.append_reason_code(pcfg.ORDER_ADD_REMOVE_CODE)
         is_reverse_order = True
         

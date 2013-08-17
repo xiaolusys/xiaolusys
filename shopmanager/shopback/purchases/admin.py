@@ -116,7 +116,7 @@ class PurchaseAdmin(admin.ModelAdmin):
         """
         qs = self.model._default_manager.get_query_set()
         # TODO: this should be handled by some parameter to the ChangeList.
-        if not perms.has_check_purchase_permission(request.user):
+        if not request.user.is_superuser:
             qs = qs.exclude(status=pcfg.PURCHASE_INVALID)
         
         ordering = self.get_ordering(request)
@@ -248,7 +248,7 @@ class PurchaseStorageAdmin(admin.ModelAdmin):
         """
         qs = self.model._default_manager.get_query_set()
         # TODO: this should be handled by some parameter to the ChangeList.
-        if not perms.has_confirm_storage_permission(request.user):
+        if not request.user.is_superuser:
             qs = qs.exclude(status=pcfg.PURCHASE_INVALID)
         
         ordering = self.get_ordering(request)
@@ -398,7 +398,7 @@ class PurchasePaymentAdmin(admin.ModelAdmin):
         """
         qs = self.model._default_manager.get_query_set()
         # TODO: this should be handled by some parameter to the ChangeList.
-        if not perms.has_payment_confirm_permission(request.user):
+        if not request.user.is_superuser:
             qs = qs.exclude(status=pcfg.PP_INVALID)
             
         ordering = self.get_ordering(request)

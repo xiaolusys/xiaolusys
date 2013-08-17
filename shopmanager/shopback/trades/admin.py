@@ -2,6 +2,7 @@
 import json
 import time
 import datetime
+import cStringIO as StringIO
 from django.contrib import admin
 from django.db import models
 from django.views.decorators.csrf import csrf_protect
@@ -30,6 +31,7 @@ from shopback.signals import rule_signal
 from shopback.trades import permissions as perms
 from auth.utils import parse_datetime,pinghost
 from auth import apis
+from utils import gen_cvs_tuple,CSVUnicodeWriter
 import logging 
 
 logger =  logging.getLogger('tradepost.handler')
@@ -581,17 +583,45 @@ class MergeTradeAdmin(admin.ModelAdmin):
     
     def export_logistic_action(self, request, queryset):
         """ 导出订单快递信息 """
-        
+        dt  = datetime.datetime.now()
+        lg_tuple = gen_cvs_tuple(queryset,
+                                 fields=['weight_time','out_sid','receiver_state','receiver_city','receiver_district','weight','logistics_company'],
+                                 title=[u'称重日期',u'物流单号',u'省',u'市',u'区',u'重量',u'快递'])
 
-        return 
+        is_windows = request.META['HTTP_USER_AGENT'].lower().find('windows') >-1 
+        file_name = u'logistic-%s-%s.csv'%(dt.month,dt.day)
+        
+        myfile = StringIO.StringIO() 
+        
+        writer = CSVUnicodeWriter(myfile,encoding= is_windows and "gbk" or 'utf8')
+        writer.writerows(lg_tuple)
+
+        response = HttpResponse(myfile.getvalue(), mimetype='application/octet-stream')
+        myfile.close()
+        response['Content-Disposition'] = 'attachment; filename=%s'%file_name
+        return response
 
     export_logistic_action.short_description = "导出快递信息".decode('utf8')
     
     def export_buyer_action(self, request, queryset):
         """ 导出订单买家信息 """
+        dt  = datetime.datetime.now()
+        buyer_tuple = gen_cvs_tuple(queryset,
+                                 fields=['buyer_nick','receiver_state','receiver_phone','receiver_mobile','pay_time'],
+                                 title=[u'买家昵称',u'省',u'手机',u'固话',u'付款日期'])
         
-
-        return 
+        is_windows = request.META['HTTP_USER_AGENT'].lower().find('windows') >-1 
+        file_name = u'buyer-%s-%s.csv'%(dt.month,dt.day)
+        
+        myfile = StringIO.StringIO() 
+        
+        writer = CSVUnicodeWriter(myfile,encoding= is_windows and "gbk" or 'utf8')
+        writer.writerows(buyer_tuple)
+        
+        response = HttpResponse(myfile.getvalue(), mimetype='application/octet-stream')
+        myfile.close()
+        response['Content-Disposition'] = 'attachment; filename=%s'%file_name
+        return response
 
     export_buyer_action.short_description = "导出买家信息".decode('utf8')
     

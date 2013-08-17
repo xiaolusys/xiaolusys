@@ -244,13 +244,21 @@ class MergeTrade(models.Model):
     @property
     def inuse_orders(self):
         return self.merge_trade_orders.filter(sys_status=pcfg.IN_EFFECT)  
-    
          
     @property
     def buyer_full_address(self):
         return '%s%s%s%s%s%s%s'%(self.receiver_name.strip(),self.receiver_mobile.strip() or self.receiver_phone.strip(),self.receiver_state.strip()
                              ,self.receiver_city.strip(),self.receiver_district.strip(),self.receiver_address.strip(),self.receiver_zip.strip())
     
+    @property
+    def can_change_order(self):
+        return self.sys_status in (pcfg.WAIT_PREPARE_SEND_STATUS,
+                                   pcfg.WAIT_CHECK_BARCODE_STATUS,
+                                   pcfg.WAIT_SCAN_WEIGHT_STATUS)
+    
+    @property
+    def can_reverse_order(self):
+        return self.sys_status in (pcfg.WAIT_CHECK_BARCODE_STATUS,pcfg.WAIT_SCAN_WEIGHT_STATUS)
     
     def is_post_success(self):
         """ 判断订单淘宝发货成功 """
