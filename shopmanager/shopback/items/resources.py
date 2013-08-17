@@ -18,7 +18,7 @@ class ProductResource(ModelResource):
 
     model = Product
     fields = ('outer_id','name','category','collect_num','warn_num','price','modified','sync_stock','is_split','is_match','is_assign'
-               ,'is_stock_warn','is_warning','skus','status') 
+               ,'is_stock_warn','is_warning','skus','status','barcode') 
     exclude = ('url',)
     
     

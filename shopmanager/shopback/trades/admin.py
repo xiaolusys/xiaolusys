@@ -160,6 +160,10 @@ class MergeTradeAdmin(admin.ModelAdmin):
             del actions['pull_order_action']
         if not perms.has_unlock_trade_permission(user) and 'unlock_trade_action' in actions:
             del actions['unlock_trade_action']
+        if not perms.has_export_logistic_permission(user) and 'export_logistic_action' in actions:
+            del actions['export_logistic_action']
+        if not perms.has_export_buyer_permission(user) and 'export_buyer_action' in actions:
+            del actions['export_buyer_action']
         return actions
     
     def change_view(self, request, extra_context=None, **kwargs):

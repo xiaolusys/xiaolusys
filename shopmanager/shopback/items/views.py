@@ -340,8 +340,8 @@ class ProductBarCodeView(ModelView):
         else:
             product.barcode  =  barcode.strip()
             product.save()
-            
-        return {'status':'success'}   
+        
+        return {'barcode':product_sku and product_sku.BARCODE or product.BARCODE}   
         
           
 

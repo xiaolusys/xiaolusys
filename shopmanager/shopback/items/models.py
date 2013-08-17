@@ -69,9 +69,9 @@ class Product(models.Model):
     is_match   = models.BooleanField(default=False,verbose_name='有匹配')
     
     sync_stock   = models.BooleanField(default=True,verbose_name='库存同步')
-    is_assign    = models.BooleanField(default=False,verbose_name='警告解除') #是否手动分配库存，当库存充足时，系统自动设为False，手动分配过后，确定后置为True
+    is_assign    = models.BooleanField(default=False,verbose_name='取消警告') #是否手动分配库存，当库存充足时，系统自动设为False，手动分配过后，确定后置为True
     
-    post_check   = models.BooleanField(default=False,verbose_name='需扫描验货')
+    post_check   = models.BooleanField(default=False,verbose_name='需验货')
     status       = models.CharField(max_length=16,db_index=True,choices=ONLINE_PRODUCT_STATUS,
                                     default=pcfg.NORMAL,verbose_name='商品状态')
     
@@ -252,9 +252,9 @@ class ProductSku(models.Model):
     
     sync_stock   = models.BooleanField(default=True,verbose_name='库存同步') 
     #是否手动分配库存，当库存充足时，系统自动设为False，手动分配过后，确定后置为True
-    is_assign    = models.BooleanField(default=False,verbose_name='警告解除') 
+    is_assign    = models.BooleanField(default=False,verbose_name='取消警告') 
     
-    post_check   = models.BooleanField(default=False,verbose_name='需扫描验货')
+    post_check   = models.BooleanField(default=False,verbose_name='需验货')
     created      = models.DateTimeField(null=True,blank=True,auto_now_add=True,verbose_name='创建时间')
     modified     = models.DateTimeField(null=True,blank=True,auto_now=True,verbose_name='修改时间')
     status       = models.CharField(max_length=10,db_index=True,choices=ONLINE_PRODUCT_STATUS,

@@ -229,6 +229,8 @@ class MergeTrade(models.Model):
                        ("merge_order_action", u"合并订单权限"),
                        ("pull_order_action", u"重新下载订单权限"),
                        ("unlock_trade_action", u"订单解锁权限"),
+                       ("export_logistic_action",u"物流信息导出权限"),
+                       ("export_buyer_action",u"物流信息导出权限")
                        ]
 
     def __unicode__(self):
@@ -887,9 +889,7 @@ def merge_order_maker(sub_tid,main_tid):
             
     sub_trade.append_reason_code(pcfg.NEW_MERGE_TRADE_CODE)
     if sub_trade.has_merge:
-        sub_sub_merge_trades = MergeBuyerTrade.objects.filter(main_tid=sub_trade.tid)
-        for ssmt in sub_sub_merge_trades:
-            MergeBuyerTrade.objects.get_or_create(sub_tid=ssmt.sub_tid,main_tid=main_tid)
+        MergeBuyerTrade.objects.filter(main_tid=sub_trade.tid).update(maint_tid=main_tid)
                                                   
     #判断是否还有订单需要合并,如果没有，则去掉需合单问题编号
     queryset = MergeTrade.get_merge_queryset(main_merge_trade.buyer_nick,main_merge_trade.receiver_name,

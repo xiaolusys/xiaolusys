@@ -29,7 +29,7 @@ class ProductSkuInline(admin.TabularInline):
     
     def get_readonly_fields(self, request, obj=None):
         if not perms.has_change_product_skunum_permission(request.user):
-            return self.readonly_fields + ('quantity','warn_num','wait_post_num')
+            return self.readonly_fields + ('quantity','warn_num','wait_post_num','is_split')
         return self.readonly_fields
 
 

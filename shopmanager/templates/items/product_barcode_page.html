@@ -77,8 +77,8 @@
 								<th>商品名</th>
 								<th>规格编码</th>
 								<th>规格名</th>
-								<th style="width:150px;">商品条码</th>
-								<th>操作</th>
+								<th style="width:200px;">商品条码</th>
+								<th style="width:30px;">操作</th>
 						</thead>
 						<tbody>
 							{% for product in object %}
@@ -87,7 +87,7 @@
 								<td>{{ product.outer_id }}</td>
 								<td>{{ product.name }}</td>
 								<td>{{ item.outer_id }}</td>
-								<td>{{ item.properties_name }}</td>
+								<td>{{ item.name }}</td>
 								<td>{{ item.barcode }}</td>
 								<td>
 									<a class="edit" href=""><icon class="icon-pencil"></icon></a>
@@ -97,8 +97,8 @@
 							<tr class="{% cycle 'odd' 'even' %}">
 								<td>{{ product.outer_id }}</td>
 								<td>{{ product.name }}</td>
-								<td>--</td>
-								<td>--</td>
+								<td></td>
+								<td></td>
 								<td>{{ item.barcode }}</td>
 								<td>
 									<a class="edit" href=""><icon class="icon-pencil"></icon></a>
@@ -114,6 +114,18 @@
 	</div>
   </body>
 <script type="text/javascript">
+	function restoreRow ( oTable, nRow )
+	{
+		var aData = oTable.fnGetData(nRow);
+		var jqTds = $('>td', nRow);
+		
+		for ( var i=0, iLen=jqTds.length ; i<iLen ; i++ ) {
+			oTable.fnUpdate( aData[i], nRow, i, false );
+		}
+		
+		oTable.fnDraw();
+	}
+
 	/**修改一条datatable记录*/
 	function editRow ( oTable, nRow )
 	{
@@ -164,7 +176,6 @@
 	$('#purchaseitem-table a.save').live('click', function (e) {
 	
 		e.preventDefault();
-		
 		var nRow  = $(this).parents('tr')[0];
 		var outer_id = nRow.cells[0].innerHTML;
 		var outer_sku_id = nRow.cells[2].innerHTML;
@@ -173,6 +184,7 @@
 		var callback = function(data){
 			try{
 				if( data.code == 0 ){
+					$(jqInputs[0]).val(data.response_content.barcode);
 					saveRow(datatable,nRow);
 				}else{
 					alert('提交失败:'+data.response_error);

@@ -14,6 +14,13 @@ def update_model_feilds(obj,update_fields=[]):
     return rows
 
 
+def gen_cvs_tuple(qs,fields=[],title=[]):
+    """ 获取queryset tuple """
+    qs_tuple = []
+    for q in qs:
+        pass
+
+
 class CSVUnicodeWriter:
     """
     A CSV writer which will write rows to CSV file "f",

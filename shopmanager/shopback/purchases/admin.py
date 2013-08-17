@@ -109,6 +109,20 @@ class PurchaseAdmin(admin.ModelAdmin):
             return self.readonly_fields+('arrival_status','total_fee','payment','status',)
         return self.readonly_fields
     
+    def queryset(self, request):
+        """
+        Returns a QuerySet of all model instances that can be edited by the
+        admin site. This is used by changelist_view.
+        """
+        qs = self.model._default_manager.get_query_set()
+        # TODO: this should be handled by some parameter to the ChangeList.
+        if not perms.has_check_purchase_permission(request.user):
+            qs = qs.exclude(status=pcfg.PURCHASE_INVALID)
+        
+        ordering = self.get_ordering(request)
+        if ordering:
+            qs = qs.order_by(*ordering)
+        return qs
     
     def addon_cost_action(self, request, queryset):
         """ 更新商品成本 """
@@ -204,7 +218,6 @@ class PurchaseStorageAdmin(admin.ModelAdmin):
     storage_name_link.allow_tags = True
     storage_name_link.short_description = "标题"
     
-    
     inlines = [PurchaseStorageItemInline]
     
     #--------设置页面布局----------------
@@ -227,6 +240,21 @@ class PurchaseStorageAdmin(admin.ModelAdmin):
         if not perms.has_confirm_storage_permission(request.user):
             return self.readonly_fields+('arrival_status','storage_num','total_fee','payment','status',)
         return self.readonly_fields
+    
+    def queryset(self, request):
+        """
+        Returns a QuerySet of all model instances that can be edited by the
+        admin site. This is used by changelist_view.
+        """
+        qs = self.model._default_manager.get_query_set()
+        # TODO: this should be handled by some parameter to the ChangeList.
+        if not perms.has_confirm_storage_permission(request.user):
+            qs = qs.exclude(status=pcfg.PURCHASE_INVALID)
+        
+        ordering = self.get_ordering(request)
+        if ordering:
+            qs = qs.order_by(*ordering)
+        return qs
     
     def addon_stock_action(self, request, queryset):
         """ 更新库存数 """
@@ -362,6 +390,21 @@ class PurchasePaymentAdmin(admin.ModelAdmin):
         models.FloatField: {'widget': TextInput(attrs={'size':'8'})},
         models.TextField: {'widget': Textarea(attrs={'rows':4, 'cols':40})},
     }
+    
+    def queryset(self, request):
+        """
+        Returns a QuerySet of all model instances that can be edited by the
+        admin site. This is used by changelist_view.
+        """
+        qs = self.model._default_manager.get_query_set()
+        # TODO: this should be handled by some parameter to the ChangeList.
+        if not perms.has_payment_confirm_permission(request.user):
+            qs = qs.exclude(status=pcfg.PP_INVALID)
+            
+        ordering = self.get_ordering(request)
+        if ordering:
+            qs = qs.order_by(*ordering)
+        return qs
     
     def invalid_action(self, request, queryset):
         """ 作废付款单 """
