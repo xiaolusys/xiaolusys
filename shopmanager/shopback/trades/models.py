@@ -889,7 +889,7 @@ def merge_order_maker(sub_tid,main_tid):
             
     sub_trade.append_reason_code(pcfg.NEW_MERGE_TRADE_CODE)
     if sub_trade.has_merge:
-        MergeBuyerTrade.objects.filter(main_tid=sub_trade.tid).update(maint_tid=main_tid)
+        MergeBuyerTrade.objects.filter(main_tid=sub_trade.tid).update(main_tid=main_tid)
                                                   
     #判断是否还有订单需要合并,如果没有，则去掉需合单问题编号
     queryset = MergeTrade.get_merge_queryset(main_merge_trade.buyer_nick,main_merge_trade.receiver_name,
