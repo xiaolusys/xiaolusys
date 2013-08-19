@@ -28,7 +28,7 @@ from shopback.purchases.models import Purchase,PurchaseItem,PurchaseStorage,Purc
     PurchaseStorageRelationship,PurchasePayment,PurchasePaymentItem
 from shopback import paramconfig as pcfg
 from shopback.base import log_action, ADDITION, CHANGE
-from shopback.purchases import permissions as perms
+from shopback.purchases import permissions as perm
 from shopback.monitor.models import SystemConfig
 from utils import CSVUnicodeWriter
 from auth import staff_requried
@@ -94,7 +94,7 @@ class PurchaseInsView(ModelView):
         params['purchase']       = purchase.json
         params['perms']          = {
                                     'can_check_purchase':purchase.status == pcfg.PURCHASE_DRAFT \
-                                        and perms.has_check_purchase_permission(request.user),
+                                        and perm.has_check_purchase_permission(request.user),
                                     'can_show_storage':purchase.status in (pcfg.PURCHASE_APPROVAL,pcfg.PURCHASE_FINISH)}
         return params
     
@@ -108,7 +108,7 @@ class PurchaseInsView(ModelView):
         if purchase.status != pcfg.PURCHASE_DRAFT :
             return u'该采购无需审核'
         
-        if not perms.has_check_purchase_permission(request.user):
+        if not perm.has_check_purchase_permission(request.user):
             return u'你没有权限审核'
         
         purchase.status = pcfg.PURCHASE_APPROVAL
@@ -203,7 +203,7 @@ def delete_purchase_item(request):
     except:
         raise http404
     
-    if purchase.status!=pcfg.PURCHASE_DRAFT and not perms.has_check_purchase_permission(request.user):
+    if purchase.status!=pcfg.PURCHASE_DRAFT and not perm.has_check_purchase_permission(request.user):
         return HttpResponse(
                             json.dumps({'code':1,'response_error':u'你没有权限删除'}),
                             mimetype='application/json')
@@ -329,7 +329,7 @@ class PurchaseStorageItemView(ModelView):
         except:
             return u'未找到入库单'
         
-        if purchase.status!=pcfg.PURCHASE_DRAFT and not perms.has_confirm_storage_permission(request.user):
+        if purchase.status!=pcfg.PURCHASE_DRAFT and not perm.has_confirm_storage_permission(request.user):
             return '你没有权限修改'
         
         purchase_item,state = PurchaseStorageItem.objects.get_or_create(
@@ -362,7 +362,7 @@ class StorageDistributeView(ModelView):
         permissions = {
                  'refresh_storage_ship':purchase_storage.status==pcfg.PURCHASE_DRAFT,
                  'confirm_storage_ship':not undist_storage_items and purchase_storage.status==pcfg.PURCHASE_DRAFT \
-                    and perms.has_confirm_storage_permission(request.user)
+                    and perm.has_confirm_storage_permission(request.user)
                  }
 
         return {'undist_storage_items':undist_storage_items,
@@ -444,7 +444,7 @@ def delete_purchasestorage_item(request):
     except PurchaseStorage.DoesNotExist:
         raise http404
         
-    if purchase.status!=pcfg.PURCHASE_DRAFT and not perms.has_confirm_storage_permission(request.user):
+    if purchase.status!=pcfg.PURCHASE_DRAFT and not perm.has_confirm_storage_permission(request.user):
         return HttpResponse(
                             json.dumps({'code':1,'response_error':u'你没有权限删除'}),
                             mimetype='application/json')
@@ -603,7 +603,7 @@ class PaymentDistributeView(ModelView):
         except PruchasePayment.DoesNotExist:
             return u'采购付款单未找到'
         
-        perms = {'can_confirm_payment':perms.has_payment_confirm_permission(request.user) 
+        perms = {'can_confirm_payment':perm.has_payment_confirm_permission(request.user) 
                  and purchase_payment.status==pcfg.PP_WAIT_PAYMENT,
                 'can_apply_payment':purchase_payment.status in (pcfg.PP_WAIT_APPLY,pcfg.PP_WAIT_PAYMENT)}
         
@@ -627,7 +627,7 @@ class PaymentDistributeView(ModelView):
             self.fill_payment(pmt_dict) 
         except Exception,exc:
             
-            perms = {'can_confirm_payment':perms.has_payment_confirm_permission(request.user) \
+            perms = {'can_confirm_payment':perm.has_payment_confirm_permission(request.user) \
                      and purchase_payment.status==pcfg.PP_WAIT_PAYMENT,
                      'can_apply_payment':purchase_payment.status in (pcfg.PP_WAIT_APPLY,pcfg.PP_WAIT_PAYMENT)}
             return {'purchase_payment':purchase_payment.json,'error_msg':exc.message,'perms':perms}
@@ -750,7 +750,7 @@ def confirm_payment_amount(request):
     except PurchasePayment.DoesNotExist:
         raise Http404
                   
-    if not perms.has_payment_confirm_permission(request.user):
+    if not perm.has_payment_confirm_permission(request.user):
         raise Http404
     
     purchase_payment.pay_bank = pay_bank
