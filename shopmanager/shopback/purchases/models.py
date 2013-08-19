@@ -899,12 +899,12 @@ class PurchasePayment(models.Model):
         if purchase:
             self.cal_purchase_payment(purchase,payment,cal_by=1)
         
-        total_unpay_fee = 0
+        total_storage_num = 0
         for storage in storages:
-            total_unpay_fee += storage.total_unpay_fee 
+            total_storage_num += storage.storage_num 
             
         for storage in storages:
-            self.cal_storage_payment(storage,(storage.total_unpay_fee/total_unpay_fee)*payment,cal_by=1)   
+            self.cal_storage_payment(storage,(storage.storage_num/total_storage_num)*payment,cal_by=1)   
         
         
     def confirm_pay(self,cashier):
