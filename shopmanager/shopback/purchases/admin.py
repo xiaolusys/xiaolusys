@@ -298,6 +298,7 @@ class PurchaseStorageAdmin(admin.ModelAdmin):
             storage_names.append('%d|%s'%(storage.id,storage.extra_name))
             storage.status = pcfg.PURCHASE_INVALID
             storage.save()
+            PurchaseStorageRelationship.objects.filter(storage_id=storage.id).delete()
             log_action(request.user.id,storage,CHANGE,u'订单作废')
         
         msg = storage_names and u'%s 已作废.'%(','.join(storage_names)) or '作废失败，请确保订单在草稿状态'
