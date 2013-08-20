@@ -18,4 +18,4 @@ class ClassifyZone(models.Model):
    
 
     def __unicode__(self):
-        return '<%s,%s>'%(' '.join([self.state,self.city,self.district],'%s-%s'%(self.code,self.zone)),self.buyer_nick)
+        return '<%s,%s>'%(' '.join([self.state,self.city,self.district]),'%s-%s'%(self.code,self.zone))
