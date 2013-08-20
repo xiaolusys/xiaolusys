@@ -440,7 +440,7 @@ class OrderPlusView(ModelView):
             except ProductSku.DoesNotExist:
                 return '该商品规格不存在'.decode('utf8')
         
-        if merge_trade.can_change_order:
+        if not merge_trade.can_change_order:
             return HttpResponse(json.dumps({'code':1,"response_error":"订单不能修改！"}),mimetype="application/json")
         
         is_reverse_order = False
