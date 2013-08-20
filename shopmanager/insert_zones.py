@@ -5,7 +5,7 @@ def parse_address(f):
     
     addrs = []
     for line in f.readlines():
-        addrset.append(line.decode('gbk').split(','))
+        addrs.append(line.decode('gbk').split(','))
         
     return addrs
 
