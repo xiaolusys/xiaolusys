@@ -517,7 +517,7 @@ def change_trade_order(request,id):
     
     merge_trade = order.merge_trade
 
-    if merge_trade.can_change_order:
+    if not merge_trade.can_change_order:
         return HttpResponse(json.dumps({'code':1,"response_error":"商品规格不能修改！"}),mimetype="application/json")
     
     is_reverse_order = False
