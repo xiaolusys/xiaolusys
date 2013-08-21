@@ -546,17 +546,17 @@ class SkuProperty(models.Model):
     
     num_iid          = models.BigIntegerField(verbose_name='商品ID')
     sku_id           = models.BigIntegerField(verbose_name='规格ID')
-    outer_id         = models.CharField(max_length=32,null=False,blank=True,verbose_name='编码')
+    outer_id         = models.CharField(max_length=32,null=True,blank=True,verbose_name='编码')
     
-    properties_name  = models.CharField(max_length=512,null=False,blank=True,verbose_name='规格名称')
-    properties       = models.CharField(max_length=512,null=False,blank=True,verbose_name='规格')
-    created          = models.DateTimeField(null=False,blank=True,verbose_name='创建日期')
+    properties_name  = models.CharField(max_length=512,null=True,blank=True,verbose_name='规格名称')
+    properties       = models.CharField(max_length=512,null=True,blank=True,verbose_name='规格')
+    created          = models.DateTimeField(null=True,blank=True,verbose_name='创建日期')
     
-    modified         = models.DateTimeField(null=False,blank=True,verbose_name='修改日期')
-    price            = models.FloatField(verbose_name='价格')
+    modified         = models.DateTimeField(null=True,blank=True,verbose_name='修改日期')
+    price            = models.FloatField(default=0.0,verbose_name='价格')
     
-    quantity         = models.IntegerField(verbose_name='数量')    
-    status           = models.CharField(max_length=10,null=False,blank=True,verbose_name='状态')
+    quantity         = models.IntegerField(default=0,verbose_name='数量')    
+    status           = models.CharField(max_length=10,null=True,blank=True,verbose_name='状态')
     
     class Meta:
         db_table = 'shop_items_skuproperty'
