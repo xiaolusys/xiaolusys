@@ -58,10 +58,16 @@ def process_trade_notify_task(id):
                     trade = Trade.save_trade_through_dict(notify.user_id,trade_dict)
                 else:
                     #如果交易存在，并且等待卖家发货
-                    response    = apis.taobao_trade_fullinfo_get(tid=notify.tid,fields='tid,seller_memo,seller_flag',tb_user_id=notify.user_id)
+                    response    = apis.taobao_trade_fullinfo_get(tid=notify.tid,
+                                                    fields='tid,seller_memo,seller_flag',tb_user_id=notify.user_id)
                     trade_dict  = response['trade_fullinfo_get_response']['trade']
                     seller_memo  = trade_dict.get('seller_memo','')
                     seller_flag  = trade_dict.get('seller_flag',0)
+                    
+                    #如果消息没有抓取到，则重试
+                    if not seller_memo:
+                        raise process_trade_notify_task.retry(exc=exc,countdown=60)
+                    
                     Trade.objects.filter(id=notify.tid).update(modified=notify.modified,seller_memo=seller_memo,seller_flag=seller_flag)
                     merge_type = MergeBuyerTrade.get_merge_type(trade.tid)
                     trade.modified    = notify.modified
