@@ -10,7 +10,7 @@ from django.db import transaction
 from django.db.models.query import QuerySet
 from auth.utils import format_datetime,parse_datetime
 from shopback import paramconfig as pcfg
-from shopback.items.models import Item,Product, ProductSku,ItemNumTaskLog
+from shopback.items.models import Item,Product,ProductSku,SkuProperty,ItemNumTaskLog
 from shopback.orders.models import Order, Trade
 from shopback.trades.models import MergeOrder, MergeTrade
 from shopback.users.models import User
@@ -128,8 +128,10 @@ def updateUserProductSkuTask(user_id=None,outer_ids=None,force_update_num=False)
                         else:
                             sku_dict[sku['num_iid']] = [sku]
                             
-                        sku_outer_id = sku.get('outer_id', None)
                         item = Item.objects.get(num_iid=sku['num_iid'])
+                        
+                        sku_property = SkuProperty.save_or_update(sku)
+                        sku_outer_id = sku.get('outer_id', None) or sku_property.outer_id
                         
                         if not item.user.is_primary or not item.product or not sku_outer_id:
                             continue

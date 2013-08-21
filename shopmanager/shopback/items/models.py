@@ -539,6 +539,42 @@ class Item(models.Model):
 
         return item
 
+class SkuProperty(models.Model):
+    """ 
+        规格属性
+    """
+    
+    num_iid          = models.BigIntegerField(verbose_name='商品ID')
+    sku_id           = models.BigIntegerField(verbose_name='规格ID')
+    outer_id         = models.CharField(max_length=32,null=False,blank=True,verbose_name='编码')
+    
+    properties_name  = models.CharField(max_length=512,null=False,blank=True,verbose_name='规格名称')
+    properties       = models.CharField(max_length=512,null=False,blank=True,verbose_name='规格')
+    created          = models.DateTimeField(null=False,blank=True,verbose_name='创建日期')
+    
+    modified         = models.DateTimeField(null=False,blank=True,verbose_name='修改日期')
+    price            = models.FloatField(verbose_name='价格')
+    
+    quantity         = models.IntegerField(verbose_name='数量')    
+    status           = models.CharField(max_length=10,null=False,blank=True,verbose_name='状态')
+    
+    class Meta:
+        db_table = 'shop_items_skuproperty'
+        unique_together = ("num_iid", "sku_id")
+    
+    @classmethod    
+    def save_or_update(cls,sku_dict):
+        
+        sku,state = cls.objects.get_or_create(num_iid=sku_dict.pop('num_iid'),sku_id=sku_dict.pop('sku_id'))
+        
+        for k,v in sku_dict.iteritems():
+            if k == 'outer_id' and v == '':continue
+            hasattr(sku,k) and setattr(sku,k,v)
+            
+        sku.save()
+        
+        return sku
+        
 
 class ProductLocation(models.Model):
     """ 库存商品库位信息 """
