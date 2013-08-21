@@ -6,7 +6,7 @@ from django.db import models
 from django.shortcuts import render_to_response
 from django.template import RequestContext
 from django.forms import TextInput, Textarea
-from shopback.items.models import Item,Product,ProductSku,ProductLocation,ItemNumTaskLog
+from shopback.items.models import Item,Product,ProductSku,ProductLocation,ItemNumTaskLog,SkuProperty
 from shopback.trades.models import MergeTrade,MergeOrder
 from shopback import paramconfig as pcfg
 from shopback.base import log_action,User, ADDITION, CHANGE
@@ -264,6 +264,18 @@ class ProductSkuAdmin(admin.ModelAdmin):
 
 admin.site.register(ProductSku, ProductSkuAdmin)
   
+  
+class SkuPropertyAdmin(admin.ModelAdmin):
+    list_display = ('num_iid','sku_id','outer_id','price','quantity','properties_name','created','modified','status')
+    list_display_links = ('sku_id', 'outer_id')
+    #list_editable = ('update_time','task_type' ,'is_success','status')
+    
+    list_filter = ('status',)
+    search_fields = ['outer_id','sku_id','num_iid']
+
+
+admin.site.register(SkuProperty, SkuPropertyAdmin)
+
 
 class ProductLocationAdmin(admin.ModelAdmin):
     list_display = ('outer_id','name','outer_sku_id','properties_name','district')

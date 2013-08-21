@@ -561,6 +561,9 @@ class SkuProperty(models.Model):
     class Meta:
         db_table = 'shop_items_skuproperty'
         unique_together = ("num_iid", "sku_id")
+        verbose_name = u'规格'
+        verbose_name_plural = u'规格属性'
+        
     
     @classmethod    
     def save_or_update(cls,sku_dict):
