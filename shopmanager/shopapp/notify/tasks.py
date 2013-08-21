@@ -66,7 +66,7 @@ def process_trade_notify_task(id):
                     
                     #如果消息没有抓取到，则重试
                     if not seller_memo:
-                        raise process_trade_notify_task.retry(exc=exc,countdown=60)
+                        raise Exception('no seller memo')
                     
                     Trade.objects.filter(id=notify.tid).update(modified=notify.modified,seller_memo=seller_memo,seller_flag=seller_flag)
                     merge_type = MergeBuyerTrade.get_merge_type(trade.tid)
