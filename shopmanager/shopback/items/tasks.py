@@ -130,7 +130,7 @@ def updateUserProductSkuTask(user_id=None,outer_ids=None,force_update_num=False)
                             
                         item = Item.objects.get(num_iid=sku['num_iid'])
                         
-                        sku_property = SkuProperty.save_or_update(sku)
+                        sku_property = SkuProperty.save_or_update(sku.copy())
                         sku_outer_id = sku.get('outer_id', None) or sku_property.outer_id
                         
                         if not item.user.is_primary or not item.product or not sku_outer_id:
