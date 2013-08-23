@@ -203,7 +203,7 @@ def delete_purchase_item(request):
     except:
         raise http404
     
-    if purchase.status!=pcfg.PURCHASE_DRAFT and not perm.has_check_purchase_permission(request.user):
+    if purchase.status not in (pcfg.PURCHASE_DRAFT,pcfg.PURCHASE_APPROVAL) and not perm.has_check_purchase_permission(request.user):
         return HttpResponse(
                             json.dumps({'code':1,'response_error':u'你没有权限删除'}),
                             mimetype='application/json')
@@ -329,7 +329,7 @@ class PurchaseStorageItemView(ModelView):
         except:
             return u'未找到入库单'
         
-        if purchase.status!=pcfg.PURCHASE_DRAFT and not perm.has_confirm_storage_permission(request.user):
+        if purchase.status != pcfg.PURCHASE_DRAFT and not perm.has_confirm_storage_permission(request.user):
             return '你没有权限修改'
         
         purchase_item,state = PurchaseStorageItem.objects.get_or_create(

@@ -571,7 +571,7 @@ class SkuProperty(models.Model):
         sku,state = cls.objects.get_or_create(num_iid=sku_dict.pop('num_iid'),sku_id=sku_dict.pop('sku_id'))
         
         for k,v in sku_dict.iteritems():
-            if k == 'outer_id' and v == '':continue
+            if k == 'outer_id' and not v :continue
             hasattr(sku,k) and setattr(sku,k,v)
             
         sku.save()
