@@ -22,6 +22,14 @@ import logging
 
 logger = logging.getLogger('notify.handler')
 
+class EmptyMemo(Exception):
+    #for memo empty exception
+    def __init__(self,msg=''):
+        self.msg  = msg
+    
+    def __str__(self):
+        return self.msg
+    
 ############################ 订单主动消息处理  ###############################
 @task(max_retries=3)    
 def process_trade_notify_task(id):
@@ -66,7 +74,7 @@ def process_trade_notify_task(id):
                     
                     #如果消息没有抓取到，则重试
                     if not seller_memo:
-                        raise Exception('empty memo modified notify:%d'%notify.tid)
+                        raise EmptyMemo('empty memo modified notify:%d'%notify.tid)
                     
                     Trade.objects.filter(id=notify.tid).update(modified=notify.modified,
                                                                seller_memo=seller_memo,
@@ -164,9 +172,7 @@ def process_trade_notify_task(id):
                 else:
                     main_trade = MergeTrade.objects.get(tid=main_tid)
                     main_trade.append_reason_code(pcfg.ADDR_CHANGE_CODE)
-        
     except Exception,exc:
-        logger.error(exc.message,exc_info=True)
         raise process_trade_notify_task.retry(exc=exc,countdown=60)
     else:
         notify.is_exec = True
@@ -207,7 +213,6 @@ def process_item_notify_task(id):
             Item.get_or_create(notify.user_id,notify.num_iid,force_update=True)
 
     except Exception,exc:
-        logger.error(exc.message,exc_info=True)
         raise process_item_notify_task.retry(exc=exc,countdown=60)
     else:
         notify.is_exec = True
@@ -317,7 +322,6 @@ def process_refund_notify_task(id):
                         else:    
                             rule_signal.send(sender='payment_rule',trade_id=merge_trade.id)
     except Exception,exc:
-        logger.error(exc.message,exc_info=True)
         raise process_refund_notify_task.retry(exc=exc,countdown=60)
     else:
         notify.is_exec = True
@@ -359,7 +363,6 @@ def process_trade_interval_notify_task(user_id,update_from=None,update_to=None):
             has_next = cur_nums<total_nums
             cur_page += 1
     except Exception,exc:
-        logger.error(exc.message or '400',exc_info=True)
         raise process_trade_interval_notify_task.retry(exc=exc,countdown=60)
     else:
         if not update_handler:
@@ -402,7 +405,6 @@ def process_item_interval_notify_task(user_id,update_from=None,update_to=None):
             has_next = cur_nums<total_nums
             cur_page += 1
     except Exception,exc:
-        logger.error(exc.message or '400',exc_info=True)
         raise process_item_interval_notify_task.retry(exc=exc,countdown=60)
     else:
         if not update_handler:
@@ -446,7 +448,6 @@ def process_refund_interval_notify_task(user_id,update_from=None,update_to=None)
             has_next = cur_nums<total_nums
             cur_page += 1
     except Exception,exc:
-        logger.error(exc.message or '400',exc_info=True)
         raise process_refund_interval_notify_task.retry(exc=exc,countdown=60)
     else:
         if not update_handler:

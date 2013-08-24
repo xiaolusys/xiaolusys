@@ -73,8 +73,8 @@ def notifyBuyerPacketPostTask(trade_id,platform_code):
         params['password'] = platform.password
         params['mobile']   = trade.receiver_mobile
         params['taskName'] = POST_NOTIFY_TITLE
-        params['mobilenumber'] = 1
-        params['countnumber']  = 1
+        params['mobilenumber']    = 1
+        params['countnumber']     = 1
         params['telephonenumber'] = 0
         
         params['action'] = 'send'
