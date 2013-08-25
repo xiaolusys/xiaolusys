@@ -27,7 +27,7 @@ var addSearchProdRow  = function(tableID,prod){
 	sku_options += '<option value="">--------</option>';
 	for(var i=0;i<prod[3].length;i++){
 		var sku = prod[3][i];
-		sku_options += '<option value="'+sku[0]+'">'+sku[1]+'</option>';
+		sku_options += '<option value="'+sku[0]+'">'+sku[1]+'>>'+sku[2]+'</option>';
 	}
 	sku_options += '</select>';
 	sku_cell.innerHTML = sku_options;

@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html >
+  <head>
+    <title>查询订单物流信息</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <link href="{{ STATIC_URL }}bootstrap/css/bootstrap.min.css" rel="stylesheet" type="text/css" />
+    <link href="{{ STATIC_URL }}bootstrap/css/bootstrap-responsive.min.css" rel="stylesheet" type="text/css" />
+    <link href="{{ STATIC_URL }}css/base.less" rel="stylesheet/less" type="text/css" />
+    <script src="{{ STATIC_URL }}jquery/jquery-1.8.13.min.js" type="text/javascript"></script>
+    <style type="text/css">
+    body,div{
+    	margin:0px auto;
+    	padding:0px;
+    }
+    body{
+    	width:1000px;
+    }
+    .table-bordered {
+	    border: 1px solid #DDD;
+	    border-collapse: separate;
+	    border-left: 0;
+	    border-top:0;
+	    -webkit-border-radius: 4px;
+	    -moz-border-radius: 4px;
+	    border-radius: 4px;
+	}
+	.table {
+	    width: 100%;
+	    margin-bottom: 18px;
+	}
+	table {
+	    max-width: 100%;
+	    background-color: white;
+	    border-collapse: collapse;
+	    border-spacing: 0;
+	}
+	tr {
+	    display: table-row;
+	    vertical-align: inherit;
+	    border-color: inherit;
+	}
+	.table-bordered th, .table-bordered td {
+	    border-left: 1px solid #DDD;
+	}
+	.table tbody tr:hover td, .table tbody tr:hover th {
+	    background-color: whiteSmoke;
+	}
+	.content-search{
+		margin-bottom:100px;
+	}
+	.simple-text{
+		width:120px;
+	    height:16px;
+	    display:block;
+	    margin:0px 0px;
+	}
+	.clearboth{
+		clear:both;
+	}
+    </style>
+  </head>
+
+<body>
+	<div class="container">
+		<div class="content-search">
+			<form action="./" method="POST">
+				<div class="navbar-search product-search">
+					<input type="text" name="q" class="input-medium search-query"  placeholder="商品搜索" />
+					<button type="submit" class="btn">搜索</button>
+				</div>
+			</form>
+		</div>
+		<div id="id-prod-search-dialog" style="">
+			<table id="id-prod-search-table" class="table table-bordered">
+				<thead>
+				<tr>
+					<th>基本信息</th>
+					<th>快递</th>
+					<th>收货人</th>
+					<th>省</th>
+					<th>市</th>
+					<th>地址</th>
+					<th>手机</th>
+					<th>电话</th>
+					<th>重量</th>
+				</tr>
+				</thead>
+				<tbody>
+				{% for lg in object.logistics %}
+				<tr>
+					<td>
+						<div class="simple-text">{{ lg.out_sid }}</div>
+						<div class="simple-text">{{ lg.seller_nick }}</div>
+						<div class="simple-text">{{ lg.buyer_nick }}</div>
+						<div class="simple-text">{{ lg.tid }}</div>
+					</td>
+					<td>{{ lg.logistics_company }}</td>
+					<td>{{ lg.receiver_name }}</td>
+					<td>{{ lg.receiver_state }}</td>
+					<td>{{ lg.receiver_city }}</td>
+					<td>{{ lg.receiver_district }}&nbsp;{{ lg.receiver_address }}</td>
+					<td>{{ lg.receiver_mobile }}</td>
+					<td>{{ lg.receiver_phone }}</td>
+					<td>{{ lg.weight }}</td>
+				</tr>
+				{% endfor %}
+				</tbody>
+			</table>
+		</div>
+	</div>
+</body>
+
+<script type="text/javascript">
+	
+</script>
+</html>

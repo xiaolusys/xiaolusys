@@ -217,7 +217,7 @@ class Product(models.Model):
                 sdict[pno] = [dno]
         ds = []
         for k,v in sdict.iteritems():
-            ds.append('%s-(%s)'%(k,','.join(v)))
+            ds.append(len(v)>1 and '%s-[%s]'%(k,','.join(v)) or '%s-%s'%(k,v[0]))
         
         return ','.join(ds)
     

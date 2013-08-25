@@ -956,7 +956,7 @@ class TradeSearchView(ModelView):
         return order_list
 
 
-############################### 交易订单列表 #################################       
+############################### 交易订单商品列表 #################################       
 class OrderListView(ModelView):
     """ docstring for class OrderListView """
     
@@ -993,4 +993,39 @@ class OrderListView(ModelView):
         return {'order_list':order_list}
     
     
+############################### 订单物流信息列表 #################################     
+class TradeLogisticView(ModelView):
+    """ docstring for class TradeLogisticView """
+    
+    def get(self, request, *args, **kwargs):
+        
+        content  = request.REQUEST
+        q        = content.get('q')
+        trade_list = []
+        
+        if q:
+            mergetrades = MergeTrade.objects.filter(out_sid=q.strip('\' '),is_express_print=True)
+            for trade in mergetrades:
+                trade_dict = {"tid":trade.tid,
+                              "seller_nick":trade.seller_nick,
+                              "buyer_nick":trade.buyer_nick,
+                              "out_sid":trade.out_sid,
+                              "logistics_company":trade.logistics_company.name,
+                              "receiver_name":trade.receiver_name,
+                              "receiver_state":trade.receiver_state,
+                              "receiver_city":trade.receiver_city,
+                              "receiver_district":trade.receiver_district,
+                              "receiver_address":trade.receiver_address,
+                              "receiver_zip":trade.receiver_zip,
+                              "receiver_phone":trade.receiver_phone,
+                              "receiver_mobile":trade.receiver_mobile,
+                              "weight":trade.weight
+                              }
+                
+                trade_list.append(trade_dict)
+            
+            
+        return {'logistics':trade_list}   
+    
+    post = get 
     
