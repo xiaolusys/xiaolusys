@@ -19,7 +19,7 @@ def get_addr_zones(state,city,district):
         
     if city:
         czones = ClassifyZone.objects.filter(state__startswith=lstate,
-                                                  city__startswith=lcity,district=='')
+                                                  city__startswith=lcity,district='')
         if czones.count():
             return czone[0].zone
     
@@ -33,7 +33,11 @@ def cal_zones():
         state = trade.receiver_state
         city  = trade.receiver_city
         district = trade.receiver_district
-        zone = get_addr_zones(state,city,district)
+        zone = ''
+        try:
+            zone = get_addr_zones(state,city,district)
+        except Exception,exc:
+            print exc.message,state,city,district
         if zone:
             if zones_hash.has_key(zones_hash):
                 zones_hash[zone] += 1
