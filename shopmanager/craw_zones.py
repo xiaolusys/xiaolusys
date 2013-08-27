@@ -39,7 +39,7 @@ def cal_zones():
         except Exception,exc:
             print exc.message,state,city,district
         if zone:
-            if zones_hash.has_key(zones_hash):
+            if zones_hash.has_key(zone):
                 zones_hash[zone] += 1
             else:
                 zones_hash[zone] = 1
