@@ -166,6 +166,8 @@ class MergeTradeAdmin(admin.ModelAdmin):
             del actions['export_logistic_action']
         if not perms.has_export_buyer_permission(user) and 'export_buyer_action' in actions:
             del actions['export_buyer_action']
+        if not perms.has_export_yunda_permission(user) and 'export_yunda_action' in actions:
+            del actions['export_yunda_action']
         return actions
     
     def change_view(self, request, extra_context=None, **kwargs):
@@ -585,8 +587,8 @@ class MergeTradeAdmin(admin.ModelAdmin):
         """ 导出订单快递信息 """
         dt  = datetime.datetime.now()
         lg_tuple = gen_cvs_tuple(queryset,
-                                 fields=['out_sid','tid','receiver_name','receiver_mobile','receiver_state','receiver_city','receiver_district','receiver_address','weight','logistics_company','weight_time'],
-                                 title=[u'运单ID',u'淘宝单号',u'收货人',u'手机',u'省',u'市',u'区',u'地址',u'重量',u'快递',u'称重日期'])
+                                 fields=['out_sid','tid','receiver_name','receiver_state','receiver_city','weight','logistics_company','weight_time'],
+                                 title=[u'运单ID',u'淘宝单号',u'收货人',u'省',u'市',u'重量',u'快递',u'称重日期'])
 
         is_windows = request.META['HTTP_USER_AGENT'].lower().find('windows') >-1 
         file_name = u'logistic-%s-%s.csv'%(dt.month,dt.day)
@@ -625,8 +627,49 @@ class MergeTradeAdmin(admin.ModelAdmin):
 
     export_buyer_action.short_description = "导出买家信息".decode('utf8')
     
-    actions = ['sync_trade_post_taobao','merge_order_action','pull_order_action',
-               'unlock_trade_action','export_logistic_action','export_buyer_action']
+    def export_yunda_action(self, request, queryset):
+        """ 导出订单快递信息 """
+        dt  = datetime.datetime.now()
+        
+        yundaset = queryset.filter(logistics_company_id=102)
+        yunda_tuple = []
+        
+        for s in yundaset:
+            try:
+                sl = []
+                sl.append(s.out_sid)
+                sl.append(s.tid)
+                sl.append(s.receiver_state)
+                sl.append('%s%s%s'%(s.receiver_city,s.receiver_district,s.receiver_address))
+                sl.append(s.receiver_name)
+                sl.append(s.receiver_mobile or s.receiver_phone)
+                if '.' in s.weight:
+                    weight = s.weight
+                else:
+                    weight = '%.2f'%(float(s.weight)/1000)
+                sl.append(weight)
+                
+                yunda_tuple.append(sl)
+            except:
+                pass
+            
+        is_windows = request.META['HTTP_USER_AGENT'].lower().find('windows') >-1 
+        file_name = u'logistic-%s-%s.csv'%(dt.month,dt.day)
+        
+        myfile = StringIO.StringIO() 
+        
+        writer = CSVUnicodeWriter(myfile,encoding= is_windows and "gbk" or 'utf8')
+        writer.writerows(yunda_tuple)
+
+        response = HttpResponse(myfile.getvalue(), mimetype='application/octet-stream')
+        myfile.close()
+        response['Content-Disposition'] = 'attachment; filename=%s'%file_name
+        return response
+
+    export_yunda_action.short_description = "导出韵达订单信息".decode('utf8')
+    
+    actions = ['sync_trade_post_taobao','merge_order_action','pull_order_action','unlock_trade_action',
+               'export_logistic_action','export_buyer_action','export_yunda_action']
    
 
 admin.site.register(MergeTrade,MergeTradeAdmin)
