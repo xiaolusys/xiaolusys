@@ -7,8 +7,8 @@ def get_addr_zones(s,c,d):
     lcity  = len(c)>1  and c[0:2]  or ''
     ldistrict  = len(d)>1  and d[0:2]  or ''
     
-    if district:
-        czones = ClassifyZone.objects.filter(Q(city__startswith=lcity)|Q(district__startwith=ldistrict),state__startswith=lstate)
+    if d:
+        czones = ClassifyZone.objects.filter(Q(city__startswith=lcity)|Q(district__startswith=ldistrict),state__startswith=lstate)
         
         if czones.count() == 1:
             return czones[0].zone
@@ -17,7 +17,7 @@ def get_addr_zones(s,c,d):
             if czone.city == d or czone.district == d:
                 return czone.zone
         
-    if city:
+    if c:
         czones = ClassifyZone.objects.filter(state__startswith=lstate,
                                                   city__startswith=lcity,district='')
         if czones.count():

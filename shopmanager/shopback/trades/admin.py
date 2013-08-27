@@ -585,8 +585,8 @@ class MergeTradeAdmin(admin.ModelAdmin):
         """ 导出订单快递信息 """
         dt  = datetime.datetime.now()
         lg_tuple = gen_cvs_tuple(queryset,
-                                 fields=['out_sid','tid','receiver_name','receiver_mobile','receiver_state','receiver_city','receiver_district','weight','logistics_company','weight_time'],
-                                 title=[u'运单ID',u'淘宝单号',u'收货人',u'手机',u'省',u'市',u'区',u'重量',u'快递',u'称重日期'])
+                                 fields=['out_sid','tid','receiver_name','receiver_mobile','receiver_state','receiver_city','receiver_district','receiver_address','weight','logistics_company','weight_time'],
+                                 title=[u'运单ID',u'淘宝单号',u'收货人',u'手机',u'省',u'市',u'区',u'地址',u'重量',u'快递',u'称重日期'])
 
         is_windows = request.META['HTTP_USER_AGENT'].lower().find('windows') >-1 
         file_name = u'logistic-%s-%s.csv'%(dt.month,dt.day)
