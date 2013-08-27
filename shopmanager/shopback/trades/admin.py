@@ -638,7 +638,7 @@ class MergeTradeAdmin(admin.ModelAdmin):
             try:
                 sl = []
                 sl.append(s.out_sid)
-                sl.append(s.tid)
+                sl.append(s.tid and str(s.tid) or '')
                 sl.append(s.receiver_state)
                 sl.append('%s%s%s'%(s.receiver_city,s.receiver_district,s.receiver_address))
                 sl.append(s.receiver_name)
@@ -666,7 +666,7 @@ class MergeTradeAdmin(admin.ModelAdmin):
         response['Content-Disposition'] = 'attachment; filename=%s'%file_name
         return response
 
-    export_yunda_action.short_description = "导出韵达订单信息".decode('utf8')
+    export_yunda_action.short_description = "导出韵达信息".decode('utf8')
     
     actions = ['sync_trade_post_taobao','merge_order_action','pull_order_action','unlock_trade_action',
                'export_logistic_action','export_buyer_action','export_yunda_action']
