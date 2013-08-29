@@ -6,20 +6,27 @@ def cal_stage_old_customer(start,end,stage=5):
     
     trades = MergeTrade.objects.filter(pay_time__gt=start,pay_time__lt=end)
     buyer_cons = set()
-    
+    add_set = set()
+
     for trade in trades:
-        buyer_cons.add(trade.receiver_mobile or trade.receiver_phone)
-        
+        if trade.receiver_mobile:
+            buyer_cons.add(trade.receiver_mobile)
+    
+    print 'total:',len(buyer_cons)
+
     dt = start
     for i in range(0,stage):
-        df = dt - datetime.timedelta((i+1)*30)
-        vl = MergeTrade.objects.filter(Q(receiver_mobile__in=buyer_cons)|Q(receiver_phone__in=buyer_cons),pay_time__gt=df,pay_time__lt=dt)
+        df = dt - datetime.timedelta(30)
+        vl = MergeTrade.objects.filter(receiver_mobile__in=buyer_cons,pay_time__gt=df,pay_time__lt=dt)
         buyers = set()
         for t in vl:
-            buyers.add(t.receiver_mobile or t.receiver_phone)
+            buyers.add(t.receiver_mobile)
             
-        print 'stage:',i,len(buyers)
+        print 'stage:',i,len(buyers-add_set)
+        add_set.update(buyers)
         
         dt = df
+
+    print 'rebuy:',len(add_set)
         
         
