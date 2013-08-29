@@ -637,7 +637,7 @@ class MergeTradeAdmin(admin.ModelAdmin):
         for s in yundaset:
             try:
                 sl = []
-                sl.append("'"+s.out_sid)
+                sl.append(s.out_sid)
                 sl.append(s.tid and str(s.tid) or '')
                 sl.append(s.receiver_state)
                 sl.append('%s%s%s'%(s.receiver_city,s.receiver_district,s.receiver_address))
