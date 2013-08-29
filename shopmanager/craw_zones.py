@@ -1,3 +1,4 @@
+import datetime
 from django.db.models import Q
 from shopapp.shipclassify.models import ClassifyZone
 from shopback.trades.models import MergeTrade
@@ -6,10 +7,9 @@ def get_addr_zones(s,c,d):
     lstate = len(s)>1 and s[0:2] or ''
     lcity  = len(c)>1  and c[0:2]  or ''
     ldistrict  = len(d)>1  and d[0:2]  or ''
-    
+
     if d:
-        czones = ClassifyZone.objects.filter(Q(city__startswith=lcity)|Q(district__startswith=ldistrict),state__startswith=lstate)
-        
+        czones = ClassifyZone.objects.filter(Q(city__startswith=ldistrict)|Q(district__startswith=ldistrict),state__startswith=lstate)
         if czones.count() == 1:
             return czones[0].zone
         
