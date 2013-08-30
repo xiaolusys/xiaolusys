@@ -1,7 +1,23 @@
 import datetime
 from django.db.models import Q
-from shopapp.shipclassify.models import ClassifyZone
+from shopapp.shipclassify.models import ClassifyZone,BranchZone
 from shopback.trades.models import MergeTrade
+
+def classify_to_branch():
+    
+    zones = ClassifyZone.objects.all()
+    for zone in zones:
+        tl = zone.zone.split()
+        name = tl[0]
+        code = len(tl)>1 and tl[1] or ''
+        branch,state = BranchZone.objects.get_or_create(name=name)
+        if state:
+            branch.code = code or ''
+            branch.save()
+        
+        zone.branch = branch
+        zone.save()
+        
 
 def get_addr_zones(s,c,d):
     lstate = len(s)>1 and s[0:2] or ''
