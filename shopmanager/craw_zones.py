@@ -8,7 +8,7 @@ def classify_to_branch():
     zones = ClassifyZone.objects.all()
     for zone in zones:
         tl = zone.zone.split()
-        name = tl[0]
+        name = tl[0].strip()
         code = len(tl)>1 and tl[1] or ''
         branch,state = BranchZone.objects.get_or_create(name=name)
         if state:

@@ -3,7 +3,7 @@ from django.db import models
 
 class BranchZone(models.Model):
     
-    code     = models.CharField(max_length=10,unique=True,blank=True,verbose_name='网点编号') 
+    code     = models.CharField(max_length=10,db_index=True,blank=True,verbose_name='网点编号') 
     name     = models.CharField(max_length=64,blank=True,verbose_name='网点名称') 
     barcode  = models.CharField(max_length=32,blank=True,verbose_name='网点条码')
     
