@@ -99,12 +99,13 @@ class SMSActivity(models.Model):
     sms_type  = models.CharField(max_length=10,choices=SMS_NOITFY_TYPE,verbose_name='类型')
     text_tmpl = models.CharField(max_length=512,blank=True,null=True,verbose_name='内容')
     status    = models.BooleanField(default=True,verbose_name="状态")
+    
     class Meta:
         db_table = 'shop_smsmgr_activity'
-        verbose_name=u'短信服务商'
-        verbose_name_plural = u'短信服务商列表'
+        verbose_name=u'短信模板'
+        verbose_name_plural = u'短信模板列表'
         
     def __unicode__(self):
-        return u'<%s>'%(self.code)
+        return str(self.id)
     
     
