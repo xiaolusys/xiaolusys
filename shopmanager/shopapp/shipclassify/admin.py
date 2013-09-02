@@ -7,10 +7,7 @@ class ClassifyZoneInline(admin.TabularInline):
     model = ClassifyZone
     fields = ('state','city','district')
     
-    formfield_overrides = {
-        models.CharField: {'widget': TextInput(attrs={'size':'20'})},
-    }
-    
+
 
 class ClassifyZoneAdmin(admin.ModelAdmin):
     
