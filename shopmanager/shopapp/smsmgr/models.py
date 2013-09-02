@@ -8,8 +8,12 @@ import logging
 
 logger = logging.getLogger('smsmgr.handler')
 
-SMS_NOTIFY_POST = 'notify'         #发货告知
+SMS_NOTIFY_POST     = 'notify'     #发货告知
 SMS_NOTIFY_ACTIVITY = 'activity'   #活动宣传
+SMS_NOTIFY_PAYCALL  = 'paycall'    #付款提醒
+SMS_NOTIFY_TOCITY   = 'tocity'     #同城提醒
+SMS_NOTIFY_SIGN     = 'sign'       #签收提醒
+SMS_NOTIFY_BIRTH    = 'birth'      #生日祝福
 
 SMS_RECORD_STATUS = (
     (pcfg.SMS_CREATED,'初始创建'),
@@ -20,9 +24,14 @@ SMS_RECORD_STATUS = (
 )
 
 SMS_NOITFY_TYPE =(
-    (SMS_NOTIFY_POST,'发货通知'),    
-    (SMS_NOTIFY_ACTIVITY,'活动宣传'),                
+    (SMS_NOTIFY_PAYCALL ,u'付款提醒'), 
+    (SMS_NOTIFY_POST    ,u'发货通知'),
+    (SMS_NOTIFY_TOCITY  ,u'同城提醒'), 
+    (SMS_NOTIFY_SIGN    ,u'签收提醒'),    
+    (SMS_NOTIFY_BIRTH   ,u'生日祝福'), 
+    (SMS_NOTIFY_ACTIVITY,u'活动宣传'),                
 )
+
 
 class SMSPlatform(models.Model):
     """ 短信服务商 """
@@ -44,7 +53,7 @@ class SMSPlatform(models.Model):
         verbose_name_plural = u'短信服务商列表'
         
     def __unicode__(self):
-        return '<%s,%s>'%(self.code,self.name)
+        return u'<%s>'%(self.code)
     
 
 class SMSRecord(models.Model):
@@ -82,5 +91,20 @@ class SMSRecord(models.Model):
         
     def __unicode__(self):
         return '<%s,%s,%d,%d>'%(self.platform,self.task_name,self.countnums,self.succnums)
+    
+    
+class SMSActivity(models.Model):
+    """ 活动短信模板 """
+    
+    sms_type  = models.CharField(max_length=10,choices=SMS_NOITFY_TYPE,verbose_name='类型')
+    text_tmpl = models.CharField(max_length=512,blank=True,null=True,verbose_name='内容')
+    status    = models.BooleanField(default=True,verbose_name="状态")
+    class Meta:
+        db_table = 'shop_smsmgr_activity'
+        verbose_name=u'短信服务商'
+        verbose_name_plural = u'短信服务商列表'
+        
+    def __unicode__(self):
+        return u'<%s>'%(self.code)
     
     

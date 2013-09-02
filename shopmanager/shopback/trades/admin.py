@@ -587,8 +587,8 @@ class MergeTradeAdmin(admin.ModelAdmin):
         """ 导出订单快递信息 """
         dt  = datetime.datetime.now()
         lg_tuple = gen_cvs_tuple(queryset,
-                                 fields=['out_sid','tid','receiver_name','receiver_state','receiver_city','weight','logistics_company','weight_time'],
-                                 title=[u'运单ID',u'淘宝单号',u'收货人',u'省',u'市',u'重量',u'快递',u'称重日期'])
+                                 fields=['out_sid','tid','seller_nick','receiver_name','receiver_state','receiver_city','weight','logistics_company','post_fee','weight_time'],
+                                 title=[u'运单ID',u'淘宝单号',u'店铺',u'收货人',u'省',u'市',u'重量',u'快递',u'实付邮费',u'称重日期'])
 
         is_windows = request.META['HTTP_USER_AGENT'].lower().find('windows') >-1 
         file_name = u'logistic-%s-%s.csv'%(dt.month,dt.day)
@@ -609,8 +609,8 @@ class MergeTradeAdmin(admin.ModelAdmin):
         """ 导出订单买家信息 """
         dt  = datetime.datetime.now()
         buyer_tuple = gen_cvs_tuple(queryset,
-                                 fields=['buyer_nick','receiver_state','receiver_phone','receiver_mobile','pay_time'],
-                                 title=[u'买家昵称',u'省',u'手机',u'固话',u'付款日期'])
+                                 fields=['seller_nick','buyer_nick','receiver_state','receiver_phone','receiver_mobile','pay_time'],
+                                 title=[u'卖家',u'买家昵称',u'省',u'手机',u'固话',u'付款日期'])
         
         is_windows = request.META['HTTP_USER_AGENT'].lower().find('windows') >-1 
         file_name = u'buyer-%s-%s.csv'%(dt.month,dt.day)

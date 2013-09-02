@@ -4,10 +4,10 @@ from celery.task import task
 from celery.task.sets import subtask
 from django.conf import settings
 from django.db.models import Q,F
-from django.template.loader import render_to_string
+from django.template import Context, Template
 from shopback.items.models import Product,ProductSku
 from shopback.trades.models import MergeTrade
-from shopapp.smsmgr.models import SMSPlatform,SMSRecord,SMS_NOTIFY_POST
+from shopapp.smsmgr.models import SMSPlatform,SMSRecord,SMSActivity,SMS_NOTIFY_POST
 from shopapp.smsmgr.service import SMS_CODE_MANAGER_TUPLE
 from shopback import paramconfig as pcfg
 from utils import update_model_feilds
@@ -20,6 +20,10 @@ POST_NOTIFY_TITLE = '订单发货客户提示'
 
 def get_smsg_from_trade(trade):
     """ 获取商品客户提示 """
+    
+    sms_tmpl = SMSActivity.objects.filter(sms_type=SMS_NOTIFY_POST,status=True)
+    if sms_tmpl.count() == 0:
+        return ''
     
     prompt_msg = ''
     ts = set()
@@ -50,10 +54,12 @@ def get_smsg_from_trade(trade):
             prompt_msg += prod.buyer_prompt
             ts.add(entry)
 
-    dt  = datetime.datetime.now()
-    sms_text   = render_to_string('sms/notify_packet_post_template.txt',
-                                  {'trade':trade,'prompt_msg':prompt_msg,'today_date':dt})
-    return sms_text
+    dt   = datetime.datetime.now()
+    
+    tmpl = Template(sms_tmpl[0].text_tmpl)
+    c    = Context({'trade':trade,'prompt_msg':prompt_msg,'today_date':dt})
+    
+    return tmpl.render(c)
 
 
 @task
@@ -65,6 +71,9 @@ def notifyBuyerPacketPostTask(trade_id,platform_code):
             return
         
         platform  = SMSPlatform.objects.get(code=platform_code)
+        
+        if not get_smsg_from_trade(trade):
+            return 
         
         params = {}
         params['content'] = get_smsg_from_trade(trade)
