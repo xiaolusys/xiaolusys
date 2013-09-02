@@ -12,7 +12,7 @@ def cal_stage_old_customer(start,end,stage=5):
         
     dt = start
     for i in range(0,stage):
-        df = dt - datetime.timedelta((i+1)*30)
+        df = dt - datetime.timedelta(30)
         vl = MergeTrade.objects.filter(Q(receiver_mobile__in=buyer_cons)|Q(receiver_phone__in=buyer_cons),pay_time__gt=df,pay_time__lt=dt)
         buyers = set()
         for t in vl:
