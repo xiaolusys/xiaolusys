@@ -1,6 +1,6 @@
 #-*- coding:utf8 -*-
 from django.contrib import admin
-from shopapp.smsmgr.models import SMSPlatform,SMSRecord
+from shopapp.smsmgr.models import SMSPlatform,SMSRecord,SMSActivity
 
 
 class SMSPlatformAdmin(admin.ModelAdmin):
@@ -29,3 +29,14 @@ class SMSRecordAdmin(admin.ModelAdmin):
     
     
 admin.site.register(SMSRecord,SMSRecordAdmin)
+
+
+class SMSActivityAdmin(admin.ModelAdmin):
+    list_display = ('sms_type','text_tmpl','status')
+    #list_editable = ('update_time','task_type' ,'is_success','status')
+
+    list_filter = ('sms_type','status',)
+    search_fields = ['text_tmpl']
+    
+    
+admin.site.register(SMSActivity,SMSActivityAdmin)
