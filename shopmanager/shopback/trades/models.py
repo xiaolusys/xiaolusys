@@ -739,7 +739,7 @@ class MergeOrder(models.Model):
         if outer_sku_id:
             try:
                 productsku = ProductSku.objects.get(outer_id=outer_sku_id,product__outer_id=outer_id)
-                sku_properties_name = productsku.properties_name
+                sku_properties_name = productsku.name
             except Exception,exc:
                  logger.error(exc.message,exc_info=True)
                  merge_trade.append_reason_code(pcfg.OUTER_ID_NOT_MAP_CODE)

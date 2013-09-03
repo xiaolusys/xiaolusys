@@ -88,6 +88,7 @@ def prod_name(order):
         p_name = prod.name or order['title']
     return p_name
 
+
 @register.filter(name='sku_name')  
 def sku_name(order):
     
@@ -97,8 +98,9 @@ def sku_name(order):
     except:
         s_name = property_name
     else:
-        s_name = prod.properties_name or property_name
+        s_name = prod.name or property_name
     return s_name
+
 
 @register.filter(name='refund_sku')  
 def refund_sku(refund,field='name'):
@@ -119,5 +121,5 @@ def refund_sku(refund,field='name'):
     except:
         s_name = order.sku_properties_name
     else:
-        s_name = prod.properties_name or order.sku_properties_name
+        s_name = prod.name or order.sku_properties_name
     return s_name

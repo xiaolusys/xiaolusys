@@ -1,5 +1,7 @@
 #-*- coding:utf8 -*-
 from django.contrib import admin
+from django.db import models
+from django.forms import TextInput, Textarea
 from shopapp.smsmgr.models import SMSPlatform,SMSRecord,SMSActivity
 
 
@@ -37,6 +39,10 @@ class SMSActivityAdmin(admin.ModelAdmin):
 
     list_filter = ('sms_type','status',)
     search_fields = ['text_tmpl']
+    
+    formfield_overrides = {
+        models.CharField: {'widget': Textarea(attrs={'rows':4, 'cols':60})},
+    }
     
     
 admin.site.register(SMSActivity,SMSActivityAdmin)

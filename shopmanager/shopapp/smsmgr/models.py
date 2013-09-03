@@ -98,7 +98,7 @@ class SMSActivity(models.Model):
     
     sms_type  = models.CharField(max_length=10,choices=SMS_NOITFY_TYPE,verbose_name='类型')
     text_tmpl = models.CharField(max_length=512,blank=True,null=True,verbose_name='内容')
-    status    = models.BooleanField(default=True,verbose_name="状态")
+    status    = models.BooleanField(default=True,verbose_name="使用")
     
     class Meta:
         db_table = 'shop_smsmgr_activity'
