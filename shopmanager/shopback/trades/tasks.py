@@ -41,7 +41,7 @@ def get_trade_pickle_list_data(post_trades):
             prod_sku = None
             try:
                 prod = Product.objects.get(outer_id=outer_id)
-                prod_sku = ProductSku.objects.get(outer_id=outer_id,product=prod)
+                prod_sku = ProductSku.objects.get(outer_id=outer_sku_id,product=prod)
             except:
                 pass
             

@@ -3,6 +3,7 @@ import time
 import datetime
 import calendar
 import json
+from celery.exceptions import RetryTaskError
 from celery.task import task
 from celery.task.sets import subtask
 from django.conf import settings
@@ -22,13 +23,6 @@ import logging
 
 logger = logging.getLogger('notify.handler')
 
-class EmptyMemo(Exception):
-    #for memo empty exception
-    def __init__(self,msg=''):
-        self.msg  = msg
-    
-    def __str__(self):
-        return self.msg
     
 ############################ 订单主动消息处理  ###############################
 @task(max_retries=3)    
@@ -74,7 +68,7 @@ def process_trade_notify_task(id):
                     
                     #如果消息没有抓取到，则重试
                     if not seller_memo:
-                        raise EmptyMemo('empty memo modified notify:%d'%notify.tid)
+                        raise process_trade_notify_task.retry(exc=Exception('empty memo modified notify:%d'%notify.tid),countdown=60)
                     
                     Trade.objects.filter(id=notify.tid).update(modified=notify.modified,
                                                                seller_memo=seller_memo,
@@ -172,6 +166,8 @@ def process_trade_notify_task(id):
                 else:
                     main_trade = MergeTrade.objects.get(tid=main_tid)
                     main_trade.append_reason_code(pcfg.ADDR_CHANGE_CODE)
+    except RetryTaskError,err:
+        raise err
     except Exception,exc:
         raise process_trade_notify_task.retry(exc=exc,countdown=60)
     else:
