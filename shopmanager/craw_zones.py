@@ -27,22 +27,26 @@ def get_addr_zones(s,c,d):
     if d:
         czones = ClassifyZone.objects.filter(Q(city__startswith=ldistrict)|Q(district__startswith=ldistrict),state__startswith=lstate)
         if czones.count() == 1:
-            return czones[0].zone
+            return czones[0].branch.name
         
         for czone in czones:
             if czone.city == d or czone.district == d:
-                return czone.zone
+                return czone.branch.name
         
     if c:
         czones = ClassifyZone.objects.filter(state__startswith=lstate,
                                                   city__startswith=lcity,district='')
         if czones.count():
-            return czones[0].zone
+            return czones[0].branch.name
+
+        for czone in czones:
+            if czone.city == c:
+                return czone.branch.name
     
     return ''
 
 def cal_zones():
-    trades = MergeTrade.objects.all()
+    trades = MergeTrade.objects.filter(pay_time__gt=datetime.datetime(2013,7,1))
     zones_hash = {}
     
     for trade in trades:
