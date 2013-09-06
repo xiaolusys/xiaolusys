@@ -43,6 +43,16 @@ def get_addr_zones(s,c,d):
             if czone.city == c:
                 return czone.branch.name
     
+    if s:
+        czones = ClassifyZone.objects.filter(state__startswith=lstate,
+                                                  city='',district='')
+        if czones.count()==1:
+            return czones[0].branch.name
+
+        for czone in czones:
+            if czone.state == s:
+                return czone.branch.name
+    
     return ''
 
 def cal_zones():
