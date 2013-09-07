@@ -1,4 +1,5 @@
 #-*- coding:utf8 -*-
+import re
 import csv, codecs, cStringIO
 
 def update_model_feilds(obj,update_fields=[]):
@@ -57,4 +58,7 @@ class CSVUnicodeWriter:
     def writerows(self, rows):
         for row in rows:
             self.writerow(row)
-    
+
+def valid_mobile(m):
+    rg = re.compile('^(1(([35][0-9])|(47)|[8][0126789]))\d{8}$')
+    return rg.match(m)

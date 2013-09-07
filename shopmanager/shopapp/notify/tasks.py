@@ -69,13 +69,14 @@ def process_trade_notify_task(id):
                 else:
                     #如果交易存在，并且等待卖家发货
                     response    = apis.taobao_trade_fullinfo_get(tid=notify.tid,
-                                                    fields='tid,seller_memo,seller_flag',tb_user_id=notify.user_id)
+                                                    fields='tid,buyer_memo,seller_memo,seller_flag',tb_user_id=notify.user_id)
                     trade_dict  = response['trade_fullinfo_get_response']['trade']
+                    buyer_memo  = trade_dict.get('buyer_memo','')
                     seller_memo  = trade_dict.get('seller_memo','')
                     seller_flag  = trade_dict.get('seller_flag',0)
                     
                     #如果消息没有抓取到，则重试
-                    if not seller_memo:
+                    if trade.buyer_memo == buyer_memo and trade.seller_memo == seller_memo:
                         raise EmptyMemo('empty memo modified notify:%d'%notify.tid)
                     
                     Trade.objects.filter(id=notify.tid).update(modified=notify.modified,
