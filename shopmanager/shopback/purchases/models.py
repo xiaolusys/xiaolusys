@@ -85,7 +85,7 @@ class Purchase(models.Model):
     extra_name   = models.CharField(max_length=256,blank=True,verbose_name='标题')
     extra_info   = models.TextField(blank=True,verbose_name='备注')
 
-    #attach_files 关联文件
+    #attach_files = models.FileField(upload_to='documents/%Y/%m/%d')
     class Meta:
         db_table = 'shop_purchases_purchase'
         verbose_name = u'采购单'

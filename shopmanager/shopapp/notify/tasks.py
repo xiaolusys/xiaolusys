@@ -80,11 +80,14 @@ def process_trade_notify_task(id):
                         raise EmptyMemo('empty memo modified notify:%d'%notify.tid)
                     
                     Trade.objects.filter(id=notify.tid).update(modified=notify.modified,
+                                                               buyer_message=buyer_message,
                                                                seller_memo=seller_memo,
                                                                seller_flag=seller_flag)
                     merge_type = MergeBuyerTrade.get_merge_type(trade.tid)
                     trade.modified    = notify.modified
                     trade.seller_flag = seller_flag
+                    trade.buyer_message = buyer_message
+                    
                     if merge_type == 0:
                         trade.seller_memo = seller_memo
                         trade.save()

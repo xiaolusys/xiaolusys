@@ -125,7 +125,7 @@ def updateYundaOrderAddrTask():
                                        is_charged=False,
                                        ).exclude(out_sid='').exclude(receiver_name='')
     count    = trades.count()
-    for trade in trades:
+    for trade in trades[0:2]:
         
         state = len(trade.receiver_state)>=2 and trade.receiver_state[0:2] or ''
         state_code = STATE_CODE_MAP.get(state) 
@@ -137,6 +137,7 @@ def updateYundaOrderAddrTask():
         
         index = index + 1
         if index >= count or len(yj_list) >=100:        
+            print 'ids',yj_ids
             post_xml = get_combo_yjsm_xml(yj_list) 
             try:
                 success = post_yjsm_request(post_xml.encode('utf8'))
