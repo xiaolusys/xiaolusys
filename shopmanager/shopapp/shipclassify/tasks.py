@@ -3,6 +3,8 @@ import time
 import datetime
 import json
 import urllib2
+from lxml import etree
+from StringIO import StringIO
 from celery.task import task
 from celery.task.sets import subtask
 from shopback import paramconfig as pcfgs
@@ -100,15 +102,28 @@ def get_combo_yjsm_xml(objs):
     
     
 def post_yjsm_request(data):
-    res = '{}'
-    data = urllib.urlencode(data) 
+    """
+    <dta st="ok" res="0" op="op02putdan">
+    <h><ver>3.0</ver><time>2013-09-07 17:20:48</time></h>
+    </dta>
+    """
+    res = ''
+    #data = urllib.urlencode(data) 
     req  = urllib2.Request(YUNDA_ADDR_URL, data=data, headers={'Content-Type': 'text/xml; charset=UTF-8',
                                                               'Accept-Language': 'zh-cn',
                                                               'Connection': 'Keep-Alive'})
     r = urllib2.urlopen(req)
     res = r.read()
-    print 'yjsm response:',res
-
+    
+    parser = etree.XMLParser()
+    tree   = etree.parse(StringIO(res), parser)
+    
+    ds = tree.xpath('/dta')
+    
+    status = ds[0].attrib['st']
+    if status.lower() != 'ok':
+        raise Exception(res)
+    
     return res
     
     
@@ -125,7 +140,7 @@ def updateYundaOrderAddrTask():
                                        is_charged=False,
                                        ).exclude(out_sid='').exclude(receiver_name='')
     count    = trades.count()
-    for trade in trades[0:2]:
+    for trade in trades:
         
         state = len(trade.receiver_state)>=2 and trade.receiver_state[0:2] or ''
         state_code = STATE_CODE_MAP.get(state) 
@@ -137,10 +152,10 @@ def updateYundaOrderAddrTask():
         
         index = index + 1
         if index >= count or len(yj_list) >=100:        
-            print 'ids',yj_ids
+            
             post_xml = get_combo_yjsm_xml(yj_list) 
             try:
-                success = post_yjsm_request(post_xml.encode('utf8'))
+                response = post_yjsm_request(post_xml.encode('utf8'))
             except Exception,exc:
                 raise updateYundaOrderAddrTask.retry(exc=exc,countdown=60)
             
