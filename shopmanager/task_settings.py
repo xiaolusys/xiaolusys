@@ -170,11 +170,11 @@ SHOP_APP_SCHEDULE = {
         'schedule':crontab(minute="30",hour="9,12,19"),#
         'args':(1,)
     },
-#    'runs-every-day-sync-yunda-address':{
-#        'task':'shopapp.shipclassify.tasks.updateYundaOrderAddrTask',
-#        'schedule':crontab(minute="30",hour="20,8"),
-#        'args':()
-#    },
+    'runs-every-day-sync-yunda-address':{
+        'task':'shopapp.shipclassify.tasks.updateYundaOrderAddrTask',
+        'schedule':crontab(minute="30",hour="20,8"),
+        'args':()
+    },
 #    'runs-every-day-product-trade':{
 #        'task':'shopapp.collector.tasks.updateProductTradeBySellerTask',
 #        'schedule':crontab(minute="0",hour="1"),
