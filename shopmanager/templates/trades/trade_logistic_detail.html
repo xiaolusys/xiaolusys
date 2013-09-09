@@ -117,7 +117,7 @@
 			</table>
 		</div>
 		<fieldset>
-		<legend>韵达包裹重量统计</legend>
+		<legend>韵达包裹重量统计(共{{ object.yunda_count }}票)</legend>
 		<div>
 		    <form  class="form-inline" method="POST" action="./" >
 				<div>
@@ -140,7 +140,7 @@
 		<div>
 			<table class="table table-bordered">
 				<thead><tr><th>上海</th><th>江浙皖</th><th>其他外围</th></tr></thead>
-				<tbody><tr>{% for w in object.weights %}<td>{{ w }}</td>{% endfor %}</tr></tbody>
+				<tbody><tr>{% for w in object.weights %}<td>{{ w.0 }}&nbsp;&nbsp;&nbsp;&nbsp;({{ w.1 }}票)</td>{% endfor %}</tr></tbody>
 			</table>
 		</div>
 		</fieldset>

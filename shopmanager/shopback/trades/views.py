@@ -1005,6 +1005,7 @@ class TradeLogisticView(ModelView):
         dt       = content.get('dt')
         trade_list = []
         weight_list = []
+        TOTAL_count = 0
         
         if q:
             mergetrades = MergeTrade.objects.filter(out_sid=q.strip('\' '),is_express_print=True)
@@ -1035,15 +1036,20 @@ class TradeLogisticView(ModelView):
                 dt = parse_date(dt).date()
                 queryset = queryset.filter(weight_time__lt=dt)
             
-            SH_weight  = queryset.filter(receiver_state=u'上海').aggregate(wt=Sum('weight')).get('wt')
-            JZA_weight = queryset.filter(receiver_state__in=(u'江苏省',u'浙江省',u'安徽省')).aggregate(wt=Sum('weight')).get('wt')
-            OTHER_weight = queryset.exclude(receiver_state__in=(u'上海','江苏省',u'浙江省',u'安徽省')).aggregate(wt=Sum('weight')).get('wt')
+            TOTAL_count = queryset.count()
             
-            weight_list.append(SH_weight)
-            weight_list.append(JZA_weight)
-            weight_list.append(OTHER_weight)
+            SH_weight  = queryset.filter(receiver_state=u'上海').aggregate(wt=Sum('weight')).get('wt')
+            SH_count   = queryset.filter(receiver_state=u'上海').count()
+            JZA_weight = queryset.filter(receiver_state__in=(u'江苏省',u'浙江省',u'安徽省')).aggregate(wt=Sum('weight')).get('wt')
+            JZA_count  = queryset.filter(receiver_state__in=(u'江苏省',u'浙江省',u'安徽省')).count()
+            OTHER_weight = queryset.exclude(receiver_state__in=(u'上海','江苏省',u'浙江省',u'安徽省')).aggregate(wt=Sum('weight')).get('wt')
+            OTHER_count  = queryset.exclude(receiver_state__in=(u'上海','江苏省',u'浙江省',u'安徽省')).count()
+            
+            weight_list.append((SH_weight,SH_count))
+            weight_list.append((JZA_weight,JZA_count))
+            weight_list.append((OTHER_weight,OTHER_count))
 
-        return {'logistics':trade_list,'df':df,'dt':dt,'weights':weight_list}   
+        return {'logistics':trade_list,'df':df or '','dt':dt or '','yunda_count':TOTAL_count,'weights':weight_list}   
     
     post = get 
     
