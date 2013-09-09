@@ -172,7 +172,7 @@ SHOP_APP_SCHEDULE = {
     },
     'runs-every-day-sync-yunda-address':{
         'task':'shopapp.shipclassify.tasks.updateYundaOrderAddrTask',
-        'schedule':crontab(minute="30",hour="20,8"),
+        'schedule':crontab(minute="30",hour="20,6"),
         'args':()
     },
 #    'runs-every-day-product-trade':{

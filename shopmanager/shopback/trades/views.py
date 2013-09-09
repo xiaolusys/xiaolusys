@@ -1001,7 +1001,10 @@ class TradeLogisticView(ModelView):
         
         content  = request.REQUEST
         q        = content.get('q')
+        df       = content.get('df')
+        dt       = content.get('dt')
         trade_list = []
+        weight_list = []
         
         if q:
             mergetrades = MergeTrade.objects.filter(out_sid=q.strip('\' '),is_express_print=True)
@@ -1024,8 +1027,23 @@ class TradeLogisticView(ModelView):
                 
                 trade_list.append(trade_dict)
             
+        if df:
+            df = parse_date(df).date()
+            queryset = MergeTrade.objects.filter(sys_status=pcfg.FINISHED_STATUS,
+                                                 weight_time__gt=df,logistics_company__code="YUNDA")
+            if dt:
+                dt = parse_date(dt).date()
+                queryset = queryset.filter(weight_time__lt=dt)
             
-        return {'logistics':trade_list}   
+            SH_weight  = queryset.filter(receiver_state=u'上海').aggregate(wt=Sum('weight')).get('wt')
+            JZA_weight = queryset.filter(receiver_state__in=(u'江苏省',u'浙江省',u'安徽省')).aggregate(wt=Sum('weight')).get('wt')
+            OTHER_weight = queryset.exclude(receiver_state__in=(u'上海','江苏省',u'浙江省',u'安徽省')).aggregate(wt=Sum('weight')).get('wt')
+            
+            weight_list.append(SH_weight)
+            weight_list.append(JZA_weight)
+            weight_list.append(OTHER_weight)
+
+        return {'logistics':trade_list,'df':df,'dt':dt,'weights':weight_list}   
     
     post = get 
     

@@ -3,6 +3,7 @@ import time
 import datetime
 import json
 import urllib2
+import cgi
 from lxml import etree
 from StringIO import StringIO
 from celery.task import task
@@ -57,11 +58,11 @@ def get_yunda_yjsm_data(out_sid,receiver,state_code,addr,mobile):
             u'上海市松江区洞厍路398弄7号楼2楼',
             '02137698479',
             '201601',
-            receiver,
+            cgi.escape(receiver),
             state_code,
             '0',
             '0',
-            addr,
+            cgi.escape(addr),
             mobile,
             '001',
             '101342',
@@ -134,7 +135,7 @@ def updateYundaOrderAddrTask():
     yj_ids   = set()
     index    = 0
     dt      = datetime.datetime.now()
-    trades    = MergeTrade.objects.filter(logistics_company__code='YUNDA',
+    trades  = MergeTrade.objects.filter(logistics_company__code='YUNDA',
                                        sys_status=pcfgs.FINISHED_STATUS,
                                        is_express_print=True,
                                        is_charged=False,

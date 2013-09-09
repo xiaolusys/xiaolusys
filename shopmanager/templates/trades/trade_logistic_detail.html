@@ -6,7 +6,9 @@
     <link href="{{ STATIC_URL }}bootstrap/css/bootstrap.min.css" rel="stylesheet" type="text/css" />
     <link href="{{ STATIC_URL }}bootstrap/css/bootstrap-responsive.min.css" rel="stylesheet" type="text/css" />
     <link href="{{ STATIC_URL }}css/base.less" rel="stylesheet/less" type="text/css" />
+    <link rel="stylesheet" href="http://code.jquery.com/ui/1.10.1/themes/base/jquery-ui.css" /> 
     <script src="{{ STATIC_URL }}jquery/jquery-1.8.13.min.js" type="text/javascript"></script>
+    <script src="http://code.jquery.com/ui/1.10.1/jquery-ui.js"></script>
     <style type="text/css">
     body,div{
     	margin:0px auto;
@@ -15,6 +17,13 @@
     body{
     	width:1000px;
     }
+    ul li{ 
+		list-style:none; 
+		display:inline; 
+		 
+		margin-left:20px;  
+	}
+    
     .table-bordered {
 	    border: 1px solid #DDD;
 	    border-collapse: separate;
@@ -107,10 +116,41 @@
 				</tbody>
 			</table>
 		</div>
+		<fieldset>
+		<legend>韵达包裹重量统计</legend>
+		<div>
+		    <form  class="form-inline" method="POST" action="./" >
+				<div>
+					<ul>
+						<li>
+							<label class="control-label" for="df">称重日期始:</label>
+							<input type="text" id="f_datepicker" name="df" class="datepicker" value="{{ object.df }}"/>
+						</li>
+						<li>
+							<label class="control-label" for="dt">称重日期止:</label>
+							<input type="text" id="t_datepicker" name="dt" class="datepicker" value="{{ object.dt }}"/>
+						</li>
+						<li>
+							<input type="submit" value="查询" class="btn btn-small btn-primary"/>
+						</li>
+					</ul>
+				</div>
+			</form>
+		</div>
+		<div>
+			<table class="table table-bordered">
+				<thead><tr><th>上海</th><th>江浙皖</th><th>其他外围</th></tr></thead>
+				<tbody><tr>{% for w in object.weights %}<td>{{ w }}</td>{% endfor %}</tr></tbody>
+			</table>
+		</div>
+		</fieldset>
 	</div>
 </body>
 
 <script type="text/javascript">
-	
+	$(function() {
+		 $("#f_datepicker").datepicker({ dateFormat: "yy-mm-dd" });
+		 $("#t_datepicker").datepicker({ dateFormat: "yy-mm-dd" });
+	}); 
 </script>
 </html>
