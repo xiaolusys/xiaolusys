@@ -25,7 +25,7 @@ from djangorestframework.views import ModelView,ListOrCreateModelView,InstanceMo
 from shopback.archives.models import Deposite,Supplier,PurchaseType
 from shopback.items.models import Product,ProductSku
 from shopback.purchases.models import Purchase,PurchaseItem,PurchaseStorage,PurchaseStorageItem,\
-    PurchaseStorageRelationship,PurchasePayment,PurchasePaymentItem
+    PurchaseStorageRelationship,PurchasePayment,PurchasePaymentItem,FINANCIAL_FIXED
 from shopback import paramconfig as pcfg
 from shopback.base import log_action, ADDITION, CHANGE
 from shopback.purchases import permissions as perm
@@ -33,6 +33,9 @@ from shopback.monitor.models import SystemConfig
 from utils import CSVUnicodeWriter
 from auth import staff_requried
 import logging
+
+
+#财务精度
 
 logger = logging.getLogger('purchases.handler')
 #################################### 采购单 #################################
@@ -654,7 +657,7 @@ class PaymentDistributeView(ModelView):
                 if not m :
                     continue
                 
-                v = round(float(v),2)
+                v = round(float(v),FINANCIAL_FIXED)
                 d = m.groupdict()
                 if d['name'] == 'purchase':
                     handle      = pmt_dict['purchase'] 

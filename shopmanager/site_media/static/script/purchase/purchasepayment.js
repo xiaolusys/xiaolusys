@@ -9,7 +9,8 @@ goog.require('goog.ui.Component.EventType');
 goog.require('goog.net.XhrIo');
 goog.require('goog.uri.utils');
 
-
+//财务数据精度
+var MONEY_FIXED = 4;
 
 var CONFIRM_DIALOG_TEMPLATE = 
 	'<form class="form-horizontal" action="/purchases/payment/confirm/" method="POST">'
@@ -88,7 +89,7 @@ purchasepayment.Manager = function () {
 	     	var items = $('input[id^="'+regex_id+'"]');
 	     	
 	     	for (var i=0;i<items.length;i++){
-	     		items[i].value = ((parseFloat($(items[i]).attr('unpay_fee'))/unpay_fee)*payment).toFixed(2).toString();
+	     		items[i].value = ((parseFloat($(items[i]).attr('unpay_fee'))/unpay_fee)*payment).toFixed(MONEY_FIXED).toString();
 	     	}
 	     }else{
 	     	payment = 0;
@@ -97,9 +98,9 @@ purchasepayment.Manager = function () {
 	     	
 	     	for (var i=0;i<items.length;i++){
 	     		payment += parseFloat(items[i].value);
-	     		items[i].value = parseFloat(items[i].value).toFixed(2).toString();
+	     		items[i].value = parseFloat(items[i].value).toFixed(MONEY_FIXED).toString();
 	     	}
-	     	$('#'+pid).val(payment.toFixed(2).toString());
+	     	$('#'+pid).val(payment.toFixed(MONEY_FIXED).toString());
 	     }
 	   } 
 	 }

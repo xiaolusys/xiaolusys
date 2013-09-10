@@ -42,6 +42,7 @@ RP_WAIT_CHECK_STATUS  = 2
 RP_ACCEPT_STATUS  = 3
 RP_CANCEL_STATUS  = 4
 
+
 #物流类型
 EXPRESS_SHIPPING_TYPE = 'express' #快递
 POST_SHIPPING_TYPE    = 'post' #平邮
@@ -213,6 +214,7 @@ SMS_COMMIT   = 1
 SMS_COMPLETE = 2
 SMS_ERROR    = 3
 SMS_CANCLE   = 4
+
 
 #问题单问题编号
 NEW_MEMO_CODE = 1     #新留言

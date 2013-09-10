@@ -331,7 +331,7 @@ purchasestorage.Manager.prototype.showProduct = function (q) {
 
     var callback = function(e){
         var xhr = e.target;
-        //try {
+        try {
         	var res = xhr.getResponseJson();
         	if (res.code == 0){
         		clearTable(that.search_prod_table);
@@ -349,9 +349,9 @@ purchasestorage.Manager.prototype.showProduct = function (q) {
             }else{
                 alert("商品查询失败:"+res.response_error);
             }
-        /*} catch (err) {
+        } catch (err) {
             console.log('Error: (ajax callback) - ', err);
-        } */
+        } 
 	}
 	goog.net.XhrIo.send('/items/query/?q='+q,callback);
 }
@@ -505,41 +505,18 @@ purchasestorage.Manager.prototype.bindEvent = function (){
 			that.nEditing = nRow;
 		}
 	});
-	//绑定价格修改按键事件
-	$('input.edit-price').live('keyup', function (e) {
-		
-		e.preventDefault();
-		var target = e.target;
-		
-		var r = /^\d{0,8}\.{0,1}(\d{1,2})?$/;
-		var re = new RegExp(r);
-		var price = target.value;
-		
-		if (price.length>10){
-			price = price.slice(0,10);
-			target.value = price;
-		}
-		
-		if (price!=''&&!re.test(price)){
-			target.value = '0.0';
-		}
-	} );
+
 	//绑定数量修改按键事件
 	$('input.edit-num').live('keyup', function (e) {
 		
 		e.preventDefault();
 		var target = e.target;
 		
-		var r = /^[0-9]{1,10}$/;
-		var re = new RegExp(r);
 		var num = target.value;
 		
-		if (num.length>10){
-			num = num.slice(0,10);
-			target.value = num;
-		}
-		
-		if (num!=''&&!re.test(num)){
+		if (parseInt(num)){
+			target.value = parseInt(num).toString();
+		}else{
 			target.value = '0';
 		}
 	} );

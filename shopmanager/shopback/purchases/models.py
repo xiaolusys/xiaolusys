@@ -11,6 +11,8 @@ from shopback.monitor.models import SystemConfig
 from auth.utils import format_date
 from utils import update_model_feilds
 
+FINANCIAL_FIXED = 4
+
 PURCHASE_STATUS = (
     (pcfg.PURCHASE_DRAFT,'草稿'),
     (pcfg.PURCHASE_APPROVAL,'审核'),
@@ -123,7 +125,7 @@ class Purchase(models.Model):
             
         if unpay_fee<0:
             return 0
-        return round(unpay_fee,2)
+        return round(unpay_fee,FINANCIAL_FIXED)
         
     def gen_csv_tuple(self):
         
@@ -222,19 +224,19 @@ class Purchase(models.Model):
 
         #如果追加额外成本
         if additional:
-            per_cost_avg = round(payment/self.purchase_num,2)
+            per_cost_avg = round(payment/self.purchase_num,FINANCIAL_FIXED)
             for item in self.effect_purchase_items:
                 item.price   = F('price')+per_cost_avg
                 item.payment = F('payment')+per_cost_avg*item.purchase_num
                 item.save()
         elif prepay:
             for item in self.effect_purchase_items:
-                item.prepay  = F('prepay')+round((item.total_fee/self.total_fee)*payment,2)
-                item.payment = F('payment')+round((item.total_fee/self.total_fee)*payment,2)
+                item.prepay  = F('prepay')+round((item.total_fee/self.total_fee)*payment,FINANCIAL_FIXED)
+                item.payment = F('payment')+round((item.total_fee/self.total_fee)*payment,FINANCIAL_FIXED)
                 item.save()
         else:
             for item in self.effect_purchase_items:
-                item.payment = item.payment+round((item.unpay_fee/self.total_unpay_fee)*payment,2)
+                item.payment = item.payment+round((item.unpay_fee/self.total_unpay_fee)*payment,FINANCIAL_FIXED)
                 item.save()
     
     
@@ -293,7 +295,7 @@ class PurchaseItem(models.Model):
         fee = self.total_fee-self.payment
         if fee<0:
             return 0
-        return round(fee,2)
+        return round(fee,FINANCIAL_FIXED)
     
     @property
     def json(self):
@@ -319,7 +321,7 @@ def update_purchase_info(sender,instance,*args,**kwargs):
     
     if instance.storage_num:
         cost = instance.payment / instance.storage_num
-        instance.std_price = round(cost,2) or instance.price
+        instance.std_price = round(cost,FINANCIAL_FIXED) or instance.price
         update_model_feilds(instance,update_fields=['std_price'])
     
     purchase = instance.purchase
@@ -397,7 +399,7 @@ class PurchaseStorage(models.Model):
             
         if fee <0:
             return 0
-        return round(fee,2)
+        return round(fee,FINANCIAL_FIXED)
     
     def gen_csv_tuple(self):
         
@@ -485,8 +487,8 @@ class PurchaseStorage(models.Model):
                         
                         diff_num  = min(diff_num,undist_storage_num)
                         storage_ship.storage_num  = diff_num
-                        storage_ship.total_fee    = round(diff_num*purchase_item.price,2)
-                        storage_ship.prepay       = round(diff_num*(purchase_item.prepay/purchase_item.purchase_num),2)
+                        storage_ship.total_fee    = round(diff_num*purchase_item.price,FINANCIAL_FIXED)
+                        storage_ship.prepay       = round(diff_num*(purchase_item.prepay/purchase_item.purchase_num),FINANCIAL_FIXED)
                         storage_ship.save()
                     
                     undist_storage_num = undist_storage_num - diff_num    
@@ -594,7 +596,7 @@ class PurchaseStorageItem(models.Model):
         fee = self.total_fee - self.prepay - self.payment
         if fee <0:
             return 0
-        return round(fee,2)
+        return round(fee,FINANCIAL_FIXED)
         
     @property
     def json(self):
@@ -806,7 +808,7 @@ class PurchasePayment(models.Model):
                                                  "storage_num":storage.storage_num,
                                                  "total_fee":storage.total_fee,
                                                  "unpay_fee":storage.total_unpay_fee,
-                                                 "payment":round(storage.payment+storage.prepay,2),
+                                                 "payment":round(storage.payment+storage.prepay,FINANCIAL_FIXED),
                                                  "dst_payment":item.payment,
                                                  "payment_items":[item.json]
                                                  }
@@ -833,14 +835,14 @@ class PurchasePayment(models.Model):
             
             if cal_by == 1:
                 per_cost_avg = payment/total_purchase_num
-                item_payment = round(item.purchase_num * per_cost_avg,2)
+                item_payment = round(item.purchase_num * per_cost_avg,FINANCIAL_FIXED)
             elif cal_by == 2:
-                item_payment = round((item.total_fee / total_fee)*payment,2)
+                item_payment = round((item.total_fee / total_fee)*payment,FINANCIAL_FIXED)
             else:
                 if total_unpay_fee <= 0:
                     raise Exception(u'待付款金额不能为零')
                 
-                item_payment = round((item.unpay_fee / total_unpay_fee)*payment,2)
+                item_payment = round((item.unpay_fee / total_unpay_fee)*payment,FINANCIAL_FIXED)
             payment_item,state = PurchasePaymentItem.objects.get_or_create(
                                 purchase_payment=self,purchase_id=purchase.id,purchase_item_id=item.id)
             payment_item.outer_id     = item.outer_id
@@ -864,13 +866,13 @@ class PurchasePayment(models.Model):
         for item in storage.normal_storage_items:
             if cal_by == 1:
                 per_cost_avg = payment/total_storage_num
-                item_payment = round(item.storage_num * per_cost_avg,2)
+                item_payment = round(item.storage_num * per_cost_avg,FINANCIAL_FIXED)
             elif cal_by == 2:
-                item_payment = round((item.total_fee / total_fee)*payment,2)
+                item_payment = round((item.total_fee / total_fee)*payment,FINANCIAL_FIXED)
             else:
                 if total_unpay_fee <= 0:
                     raise Exception(u'待付款金额不能为零')
-                item_payment = round((item.unpay_fee / total_unpay_fee)*payment,2)
+                item_payment = round((item.unpay_fee / total_unpay_fee)*payment,FINANCIAL_FIXED)
             
             payment_item,state = PurchasePaymentItem.objects.get_or_create(
                                 purchase_payment=self,storage_id=storage.id,storage_item_id=item.id)
@@ -928,7 +930,7 @@ class PurchasePayment(models.Model):
                 
                 for ship in relate_ships:
                     
-                    ship_payment = round((ship.unpay_fee/total_unpay_fee)*item.payment,2)
+                    ship_payment = round((ship.unpay_fee/total_unpay_fee)*item.payment,FINANCIAL_FIXED)
                     ship.payment += ship_payment
                     ship.save()
                     
@@ -954,7 +956,7 @@ class PurchasePayment(models.Model):
                         raise Exception(u'待付款金额不能为零')
                     
                     for ship in relate_ships:
-                        ship_payment = round((ship.unpay_fee/total_unpay_fee)*item.payment,2)
+                        ship_payment = round((ship.unpay_fee/total_unpay_fee)*item.payment,FINANCIAL_FIXED)
                         ship.payment += ship_payment
                         ship.save()
                         
@@ -1026,7 +1028,7 @@ class PurchasePaymentItem(models.Model):
                     "properties_name":self.properties_name,
                     "storage_num":storage_item.storage_num,
                     "total_fee":storage_item.total_fee,
-                    "payment":round(storage_item.payment+storage_item.prepay,2),
+                    "payment":round(storage_item.payment+storage_item.prepay,FINANCIAL_FIXED),
                     "unpay_fee":storage_item.unpay_fee
                     }
         

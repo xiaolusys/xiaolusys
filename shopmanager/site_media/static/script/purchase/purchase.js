@@ -9,6 +9,8 @@ goog.require('goog.ui.Component.EventType');
 goog.require('goog.net.XhrIo');
 goog.require('goog.uri.utils');
 
+var MONEY_FIXED = 4;
+
 function restoreRow ( oTable, nRow )
 {
 	var aData = oTable.fnGetData(nRow);
@@ -196,7 +198,7 @@ purchase.Manager.prototype.onCreatePurchaseItem = function(e){
 	var params = {  'purchase_id':this.purchaseid_label.innerHTML,
 					'outer_id':row.cells[1].innerHTML,
 					'sku_id':row.cells[3].innerHTML,
-					'price':row.cells[5].firstChild.value,
+					'price':parseFloat(row.cells[5].firstChild.value),
 					'num':row.cells[6].firstChild.value};
 	var that = this;
 	var callback = function(e){
@@ -235,7 +237,7 @@ purchase.Manager.prototype.savePurchaseItem = function(nRow){
 	var params = {  'purchase_id':this.purchaseid_label.innerHTML,
 					'outer_id':nRow.cells[1].innerHTML,
 					'sku_id':nRow.cells[3].innerHTML,
-					'price':nRow.cells[5].firstChild.value,
+					'price':parseFloat(nRow.cells[5].firstChild.value),
 					'num':nRow.cells[6].firstChild.value};
 	var that = this;
 	var callback = function(e){
@@ -461,7 +463,7 @@ purchase.Manager.prototype.calPurchaseNumAndFee = function(){
 		}
 	}
 	$('#total_num').val(total_num.toString());
-	$('#total_fee').val(total_fee.toFixed(2).toString())
+	$('#total_fee').val(total_fee.toFixed(MONEY_FIXED).toString())
 }
 
 //绑定事件
@@ -563,7 +565,7 @@ purchase.Manager.prototype.bindEvent = function (){
 		var price = target.value;
 		
 		if (parseFloat(price)){
-			target.value = parseFloat(price).toString();
+			target.value = price;
 		}else{
 			target.value = '0.0';
 		}
