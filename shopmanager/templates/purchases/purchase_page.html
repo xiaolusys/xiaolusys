@@ -113,8 +113,9 @@
 		margin-bottom:2px;
 	}
 	#purchaseitem-table input[type="text"]{
-		width:60px;
-		margin-bottom:2px;
+		width:80px;
+		margin-bottom:0px;
+		margin-top:0px;
 		height:14px;;
 	}
 	.product-search input[type="text"]{
@@ -275,7 +276,7 @@
 									<th>规格名</th>
 									<th style="width:70px;">标准进价</th>
 									<th style="width:70px;">采购数</th>
-									<th style="width:70px;">总费用</th>
+									<th style="width:85px;">总费用</th>
 									<th>操作</th>
 								</tr>
 							</thead>
@@ -297,6 +298,13 @@
 								</tr>
 								{% endfor %}
 							</tbody>
+							<tfoot>
+								<tr><td colspan="6"></td>
+									<td><input id="total_num" type="text"  value="0" readonly/></td>
+									<td><input id="total_fee" type="text"  value="0.0" readonly/></td>
+									<td></td>
+								</tr>
+							</tfoot>
 						</table>
 					</div>
 				</div>

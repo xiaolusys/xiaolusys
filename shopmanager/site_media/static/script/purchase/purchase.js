@@ -217,6 +217,7 @@ purchase.Manager.prototype.onCreatePurchaseItem = function(e){
 									'<a class="delete" href="#"><icon class="icon-remove"></icon></a>'],true);
 				goog.style.setStyle(row,'background-color','#BFCEEC');
 				goog.style.showElement(row.cells[7].firstChild, false);
+				that.calPurchaseNumAndFee();
         	}else{
         		alert("错误:"+res.response_error);
         	}
@@ -425,6 +426,43 @@ purchase.Manager.prototype.hidePromptDialog = function(){
 	this.orderconfirm_dialog.hide();
 }
 
+//计算采购单数量及费用
+purchase.Manager.prototype.calPurchaseNumAndFee = function(){
+	var total_num = 0;
+	var total_fee = 0.0;
+	var cell_num  = 0;
+	var cell_fee  = 0.0;
+ 	var row = null;
+ 	
+	var rows = $("#purchaseitem-table > tbody > tr");
+	for(var i=0;i < rows.length;i++){
+		row = rows[i];
+		if (row.cells.length < 8){continue;}
+		
+		cell_num = row.cells[6].innerHTML;
+		cell_fee = row.cells[7].innerHTML;
+		
+		if(parseInt(cell_num)){
+			total_num += parseInt(cell_num);
+		}else{
+			cell_num = $('input',row.cells[6]).val();
+			if (parseInt(cell_num)){
+				total_num += parseInt(cell_num);
+			}
+		}
+		
+		if(parseFloat(cell_fee)){
+			total_fee += parseFloat(cell_fee);
+		}else{
+			cell_fee = $('input',row.cells[7]).val();
+			if (parseInt(cell_fee)){
+				total_fee += parseInt(cell_fee);
+			}
+		}
+	}
+	$('#total_num').val(total_num.toString());
+	$('#total_fee').val(total_fee.toFixed(2).toString())
+}
 
 //绑定事件
 purchase.Manager.prototype.bindEvent = function (){
@@ -463,13 +501,34 @@ purchase.Manager.prototype.bindEvent = function (){
 			"sProcessing": "<img src='/static/img/loading.gif' />"
 		}		
 	});
+	//数量，费用初始化
+	this.calPurchaseNumAndFee();
 	
 	var that = this;
+	//设置每页显示数量时，重新计算
+	$("select[name='purchaseitem-table_length']").change(function(e){
+		e.preventDefault();
+		that.calPurchaseNumAndFee();
+	});
+	
+	//搜索时，重新计算
+	$("#purchaseitem-table_filter input").keyup(function(e){
+		e.preventDefault();
+		that.calPurchaseNumAndFee();
+	});
+	
+	//分页时，重新计算
+	$("#purchaseitem-table_paginate a").click(function(e){
+		e.preventDefault();
+		that.calPurchaseNumAndFee();
+	});
+	
 	//绑定删除事件
 	$('#purchaseitem-table a.delete').live('click', function (e) {
 		e.preventDefault();
 		var nRow = $(this).parents('tr')[0];
 		that.delPurchaseItem(nRow);
+		that.calPurchaseNumAndFee();
 	} );
 	//绑定保存事件
 	$('#purchaseitem-table a.save').live('click', function (e) {
@@ -478,7 +537,7 @@ purchase.Manager.prototype.bindEvent = function (){
 		var nRow = $(this).parents('tr')[0];
 		that.savePurchaseItem(nRow);
 		that.nEditing = null;
-		
+		that.calPurchaseNumAndFee();
 	} );
 	//绑定编辑事件
 	$('#purchaseitem-table a.edit').live('click', function (e) {
@@ -501,35 +560,26 @@ purchase.Manager.prototype.bindEvent = function (){
 		e.preventDefault();
 		var target = e.target;
 		
-		var r = /^\d{0,8}\.{0,1}(\d{1,2})?$/;
-		var re = new RegExp(r);
 		var price = target.value;
 		
-		if (price.length>10){
-			price = price.slice(0,10);
-			target.value = price;
-		}
-		
-		if (price!=''&&!re.test(price)){
+		if (parseFloat(price)){
+			target.value = parseFloat(price).toString();
+		}else{
 			target.value = '0.0';
 		}
 	} );
+	
 	//绑定数量修改按键事件
 	$('input.edit-num').live('keyup', function (e) {
 		
 		e.preventDefault();
 		var target = e.target;
 		
-		var r = /^[0-9]{1,10}$/;
-		var re = new RegExp(r);
 		var num = target.value;
 		
-		if (num.length>10){
-			num = num.slice(0,10);
-			target.value = num;
-		}
-		
-		if (num!=''&&!re.test(num)){
+		if (parseInt(num)){
+			target.value = parseInt(num).toString();
+		}else{
 			target.value = '0';
 		}
 	} );

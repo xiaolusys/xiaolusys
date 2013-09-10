@@ -198,6 +198,7 @@ purchasestorage.Manager.prototype.onCreatePurchaseItem = function(e){
 									'<a class="delete" href="#"><icon class="icon-remove"></icon></a>']);
 				goog.style.setStyle(row,'background-color','#BFCEEC');
 				goog.style.showElement(row.cells[6].firstChild, false);
+				that.calPurchaseNumAndFee();
         	}else{
         		alert("错误:"+res.response_error);
         	}
@@ -385,6 +386,33 @@ purchasestorage.Manager.prototype.hidePromptDialog = function(){
 	this.orderconfirm_dialog.hide();
 }
 
+
+//计算采购单数量及费用
+purchasestorage.Manager.prototype.calPurchaseNumAndFee = function(){
+	var total_num = 0;
+	var cell_num  = 0;
+ 	var row = null;
+
+	var rows = $("#purchaseitem-table > tbody > tr");
+	for(var i=0;i < rows.length;i++){
+		row = rows[i];
+		if (row.cells.length < 7){continue;}
+		
+		cell_num = row.cells[5].innerHTML;
+	
+		if(parseInt(cell_num)){
+			total_num += parseInt(cell_num);
+		}else{
+			cell_num = $('input',row.cells[5]).val();
+			if (parseInt(cell_num)){
+				total_num += parseInt(cell_num);
+			}
+		}
+	}
+	$('#total_num').val(total_num.toString());
+}
+
+
 //绑定事件
 purchasestorage.Manager.prototype.bindEvent = function (){
 
@@ -420,13 +448,36 @@ purchasestorage.Manager.prototype.bindEvent = function (){
 			"sProcessing": "<img src='/static/img/loading.gif' />"
 		}		
 	});
+
+	//数量，费用初始化
+	this.calPurchaseNumAndFee();
 	
 	var that = this;
+	//设置每页显示数量时，重新计算
+	$("select[name='purchaseitem-table_length']").change(function(e){
+		e.preventDefault();
+		that.calPurchaseNumAndFee();
+	});
+	
+	//搜索时，重新计算
+	$("#purchaseitem-table_filter input").keyup(function(e){
+		e.preventDefault();
+		that.calPurchaseNumAndFee();
+	});
+	
+	//分页时，重新计算
+	$("#purchaseitem-table_paginate a").click(function(e){
+		e.preventDefault();
+		that.calPurchaseNumAndFee();
+	});
+	
 	//绑定删除事件
 	$('#purchaseitem-table a.delete').live('click', function (e) {
 		e.preventDefault();
+		
 		var nRow = $(this).parents('tr')[0];
 		that.delPurchaseItem(nRow);
+		that.calPurchaseNumAndFee();
 	} );
 	//绑定保存事件
 	$('#purchaseitem-table a.save').live('click', function (e) {
@@ -435,7 +486,7 @@ purchasestorage.Manager.prototype.bindEvent = function (){
 		var nRow = $(this).parents('tr')[0];
 		that.savePurchaseItem(nRow);
 		that.nEditing = null;
-		
+		that.calPurchaseNumAndFee();
 	} );
 	//绑定编辑事件
 	$('#purchaseitem-table a.edit').live('click', function (e) {

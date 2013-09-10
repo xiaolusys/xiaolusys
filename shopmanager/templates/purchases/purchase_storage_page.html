@@ -149,8 +149,9 @@
 	}
 	
 	#purchaseitem-table input[type="text"]{
-		width:60px;
-		margin-bottom:2px;
+		width:80px;
+		margin-bottom:0px;
+		margin-top:0px;
 		height:14px;
 	}
 	
@@ -271,7 +272,7 @@
 									<th>产品名</th>
 									<th>规格编码</th>
 									<th>规格名</th>
-									<th style="width:70px;">入库数</th>
+									<th style="width:80px;">入库数</th>
 									<th>操作</th>
 								</tr>
 							</thead>
@@ -291,6 +292,12 @@
 								</tr>
 								{% endfor %}
 							</tbody>
+							<tfoot>
+								<tr><td colspan="5"></td>
+									<td><input id="total_num" type="text"  value="0" readonly/></td>
+									<td></td>
+								</tr>
+							</tfoot>
 						</table>
 					</div>
 				</div>

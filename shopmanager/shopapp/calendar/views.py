@@ -107,7 +107,7 @@ class StaffEventView(ModelView):
         start   = parse_datetime(df) 
         end     = dt and parse_datetime(dt) or None
 
-        staff_events = StaffEvent.objects.filter(executor=django_user,status='normal')
+        staff_events = StaffEvent.objects.filter(Q(executor=django_user)|Q(creator=django_user),status='normal')
         if finished:
             staff_events = staff_events.filter(is_finished= finished.upper()=='Y')
           

@@ -641,7 +641,7 @@ class MergeTrade(models.Model):
         except:
             need_pull = True
         else:
-            if not obj.modified or obj.modified < modified or obj.sys_status == '':
+            if not obj.modified or obj.modified < modified or not obj.sys_status:
                 need_pull = True
         return need_pull
  

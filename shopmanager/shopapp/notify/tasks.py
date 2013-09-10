@@ -76,7 +76,8 @@ def process_trade_notify_task(id):
                     seller_flag  = trade_dict.get('seller_flag',0)
                     
                     #如果消息没有抓取到，则重试
-                    if trade.buyer_message == buyer_message and trade.seller_memo == seller_memo and not seller_memo:
+                    if trade.status in (pcfg.WAIT_BUYER_PAY,pcfg.WAIT_SELLER_SEND_GOODS,pcfg.WAIT_BUYER_CONFIRM_GOODS) \
+                        and trade.buyer_message == buyer_message and trade.seller_memo == seller_memo and not seller_memo:
                         raise EmptyMemo('empty memo modified notify:%d'%notify.tid)
                     
                     Trade.objects.filter(id=notify.tid).update(modified=notify.modified,

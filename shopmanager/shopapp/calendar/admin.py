@@ -11,7 +11,7 @@ class StaffEventAdmin(admin.ModelAdmin):
     date_hierarchy = 'created'
     
     list_filter = ('status','is_finished',)
-    search_fields = ['executor','id','title']
+    search_fields = ['executor__username','id','title']
     
 
 admin.site.register(StaffEvent, StaffEventAdmin)
