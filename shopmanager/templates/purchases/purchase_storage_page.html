@@ -256,7 +256,7 @@
 					</tr>
 					<tr>
 						<td colspan="2">
-							<label for='extra_info'>备&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;注</label>
+							<label for='extra_info'>备&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;注</label>
 							<textarea id="extra_info" name="extra_info" rows="2" cols="120" style="width:360px;">{{ purchase_storage.extra_info }}</textarea>
 						</td>
 						<td style="text-align:center;padding-top:20px;">
@@ -269,7 +269,7 @@
 				{% if purchase_storage %}
 				<div id="upload-area" >
 					<div class="upload_submit"><button id="attach_files" class="btn btn-small btn-info">上传文件</button></div>
-					<a id="attach_file_url" href="{% if purchase_storage.attach_files %}/download/purchase/{{ purchase_storage.attach_files }}{% else %}#{% endif %}">{{ purchase_storage.attach_files }}</a>
+					<a id="attach_file_url" href="{% if purchase_storage.attach_files %}/download/storage/{{ purchase_storage.attach_files }}{% else %}#{% endif %}">{{ purchase_storage.attach_files }}</a>
 				</div>
 				{% endif %}
 				<div class="clearboth"></div>

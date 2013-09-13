@@ -40,7 +40,7 @@ logger = logging.getLogger('purchases.handler')
 
 #保存上传文件
 def handle_uploaded_file(f,fname):
-    with open(os.path.join(settings.DOWNLOAD_ROOT,'purchase',fname), 'wb+') as dst:
+    with open(os.path.join(settings.DOWNLOAD_ROOT,fname), 'wb+') as dst:
         for chunk in f.chunks():
             dst.write(chunk)
             
@@ -268,7 +268,7 @@ def upload_purchase_file(request,id):
         dt = datetime.datetime.now()
         name = attach_files.name
         file_name = 'CGHT_%s(%s)%s'%(purchase.id,dt.strftime("%Y_%m_%d"),name[name.rfind('.'):])  
-        handle_uploaded_file(attach_files,file_name)
+        handle_uploaded_file(attach_files,'purchase/'+file_name)
         purchase.attach_files = file_name
         purchase.save()
         
@@ -554,7 +554,7 @@ def upload_purchase_storage_file(request,id):
         dt = datetime.datetime.now()
         name = attach_files.name
         file_name = 'CGRK_%s(%s)%s'%(purchase_storage.id,dt.strftime("%Y_%m_%d"),name[name.rfind('.'):])   
-        handle_uploaded_file(attach_files,file_name)
+        handle_uploaded_file(attach_files,'storage/'+file_name)
         purchase_storage.attach_files = file_name
         purchase_storage.save()
         
