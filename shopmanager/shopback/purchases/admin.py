@@ -91,10 +91,10 @@ class PurchaseAdmin(admin.ModelAdmin):
     #--------设置页面布局----------------
     fieldsets =(('采购单信息:', {
                     'classes': ('expand',),
-                    'fields': (('supplier','deposite','purchase_type')
-                               ,('origin_no','extra_name','total_fee','payment')
+                    'fields': (('supplier','deposite','purchase_type','origin_no','extra_name',)
+                               ,('total_fee','prepay','payment','prepay_cent')
                                ,('forecast_date','service_date','post_date')
-                               ,('arrival_status','status','extra_info'))
+                               ,('attach_files','arrival_status','status','extra_info'))
                 }),)
     
     #--------定制控件属性----------------
@@ -223,10 +223,10 @@ class PurchaseStorageAdmin(admin.ModelAdmin):
     #--------设置页面布局----------------
     fieldsets =(('采购入库单信息:', {
                     'classes': ('expand',),
-                    'fields': (('origin_no','supplier','deposite')
+                    'fields': (('origin_no','supplier','deposite','extra_name')
                                ,('forecast_date','post_date','logistic_company','out_sid')
-                               ,('storage_num','total_fee','payment')
-                               ,('extra_name','status','is_addon','extra_info'))
+                               ,('storage_num','total_fee','payment','is_pod')
+                               ,('attach_files','status','is_addon','extra_info'))
                 }),)
     
     #--------定制控件属性----------------
@@ -411,14 +411,14 @@ class PurchasePaymentAdmin(admin.ModelAdmin):
         """ 作废付款单 """
         
         payment_ids = []
-        wait_payments = queryset.filter(status=pcfg.PP_WAIT_APPLY)
+        wait_payments = queryset.filter(status__in=(pcfg.PP_WAIT_APPLY,pcfg.PP_WAIT_PAYMENT))
         for payment in wait_payments:
             payment_ids.append('%d|%s'%(payment.id,payment.applier))
             payment.status = pcfg.PP_INVALID
             payment.save()
             log_action(request.user.id,payment,CHANGE,u'付款单作废')
         
-        msg = payment_ids and u'%s 已作废.'%(','.join(payment_ids)) or '作废失败，请确保订单在审核状态.'  
+        msg = payment_ids and u'%s 已作废.'%(','.join(payment_ids)) or '作废失败.'  
         
         messages.add_message(request,payment_ids and messages.INFO or messages.ERROR,msg)
         return HttpResponseRedirect('./')

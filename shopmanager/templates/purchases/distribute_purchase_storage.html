@@ -5,7 +5,9 @@
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
     <link href="{{ STATIC_URL }}bootstrap/css/bootstrap.min.css" rel="stylesheet" type="text/css" />
     <link href="{{ STATIC_URL }}bootstrap/css/bootstrap-responsive.min.css" rel="stylesheet" type="text/css" />
+    <link href="{{ STATIC_URL }}jquery/jquery-ui-1.10.1.css" rel="stylesheet" type="text/css" />
     <script src="{{ STATIC_URL }}jquery/jquery-1.8.13.min.js" type="text/javascript"></script>
+    <script src="{{ STATIC_URL }}jquery/jquery-ui-1.8.13.min.js" type="text/javascript"></script>
     <style type="text/css">
     	.simple-text label{
     		display:inline;
@@ -16,9 +18,7 @@
     	.bottom-area button{
     		padding:4px;
     		margin-left:20px;
-    		
     	}
-    	
     </style>
   </head>  
   {% with purchases=object.ship_purchases storage_items=object.undist_storage_items purchase_storage=object.purchase_storage perms=object.perms %}
@@ -58,7 +58,7 @@
   	<div class="center-area">
   		<div><h2>关联采购单</h2></div>
   		<div>
-  			<table id="ship-purchase-table" class="table table-bordered table-striped table-condensed">
+  			<table id="ship-purchase-table" class="table table-bordered table-condensed">
   				<thead>
   					<th>采购单ID</th>
   					<th style="width:250px;">采购单信息</th>
@@ -74,9 +74,10 @@
 			  		{% for purchase in purchases %}
 			  			{% with item_len=purchase.purchase_items|length %}
 			  			{% for item in purchase.purchase_items %}
-				  		<tr style="{% cycle "odd" "even" %}">
+				  		<tr class="{% if not purchase.prepay_complete %}label-important{% else %} {% cycle "odd" "even" %}{% endif %}">
 				  			{% if forloop.first %}
-					    	<td rowspan="{{ item_len }}" class="center-text">{{ purchase.id }}</td>
+					    	<td rowspan="{{ item_len }}" class="center-text">{{ purchase.id }}<br/>
+					    		{% if not purchase.prepay_complete %}<label class="label label-warning">需预付款<icon class="icon-warning-sign"></icon></label>{% endif %}</td>
 					    	<td rowspan="{{ item_len }}" class="center-text">
 					    		<div class="simple-text"><label class="label-info">标题 :</label>&nbsp;{{ purchase.extra_name }}</div>
 					    		<div class="simple-text"><label class="label-info">原单号 :</label>&nbsp;{{ purchase.origin_no }}</div>
@@ -107,35 +108,36 @@
   		<a href="/purchases/storage/refresh/{{ purchase_storage.id }}/" {% if perms.refresh_storage_ship %}class="btn btn-info"
   			{% else %}class="btn btn-inverse" disabled="disabled"{% endif %}>重新关联</a>
   		<button id="confirm-purchase-ship"  {% if perms.confirm_storage_ship %}class="btn btn-primary"
-  			{% else %}class="btn btn-inverse" disabled="disabled"{% endif %}>确认收货</button>
+  			{% else %}class="btn btn-inverse" disabled="disabled"{% endif %}>{% if not perms.prepay_complate %}需完成预付款才能确认{% else %}确认收货{% endif %}</button>
   	<div>
+  	<div id="confirm-dialog" style="display:none;width:800px;height:250px">
+  		<form class="form-horizontal" action="/purchases/storage/confirm/" method="POST">
+			<input type="hidden" name="purchase_id" value="{{ purchase_storage.id }}" />
+			<div class="control-group">
+				<label class="control-label" for="company">送货物流公司</label>
+				<div class="controls">
+					<input type="text" name="company" />
+				</div>
+			</div>
+			<div class="control-group">
+				<label class="control-label" for="out_sid">运单编号</label>
+				<div class="controls">
+					<input type="text" name="out_sid" />
+				</div>
+			</div>
+			<div class="control-group">
+			<div class="controls">
+				<input type="submit" class="btn btn-primary" value="确认提交">
+			</div>
+			</div>
+		</form>
+  	</div>
   </body>
   {% endwith %}
   <script type="text/javascript">
-  	
-  	//确认关联采购单
-  	$('#confirm-purchase-ship').click(function(e){
-  		var url  = window.location.href;
-  		var callback = function(data){
-  			try{
-				if (data.code==0){
-					var res = data.response_content;
-					window.location='/admin/purchases/purchasestorage/?status__exact=APPROVAL&q='+res.id;
-				}else{
-					alert('提交失败:'+data.response_error);
-				}
-			}catch (err) {
-				console.log('Error: (ajax callback) - ', err);
-			}
-		};
-		
-		$.ajax({ 
-		    type: 'POST', 
-		    url: url, 
-		    data: {'ab':1} , 
-		    dataType: 'json',
-		    success: callback
-		});
-  	});
+  		$('#confirm-purchase-ship').click(function(){
+  			$('#confirm-dialog').show();
+  			$('#confirm-dialog').dialog({ height: 250, width:500 });
+  		});
   </script>
 </html>

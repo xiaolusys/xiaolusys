@@ -12,7 +12,7 @@ class ClassifyZoneInline(admin.TabularInline):
 class ClassifyZoneAdmin(admin.ModelAdmin):
     
     list_display = ('state','city','district','branch')
-    #list_editable = ('update_time','task_type' ,'is_success','status')
+    list_editable = ('state','city',)
 
     #date_hierarchy = 'created'
     #ordering = ['created_at']
@@ -26,7 +26,7 @@ admin.site.register(ClassifyZone,ClassifyZoneAdmin)
 class BranchZoneAdmin(admin.ModelAdmin):
     
     list_display = ('code','name','barcode')
-    #list_editable = ('update_time','task_type' ,'is_success','status')
+    list_editable = ('code','name',)
 
     #date_hierarchy = 'created'
     #ordering = ['created_at']

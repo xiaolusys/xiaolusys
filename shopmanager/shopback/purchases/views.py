@@ -6,7 +6,7 @@ import json
 import csv
 import cStringIO as StringIO
 from django.core.serializers.json import DjangoJSONEncoder
-from django.http import HttpResponse, HttpResponseRedirect, Http404
+from django.http import HttpResponse, HttpResponseRedirect, Http404,HttpResponseForbidden
 from django.core.servers.basehttp import FileWrapper
 from django.template.loader import render_to_string
 from django.core.urlresolvers import reverse
@@ -35,10 +35,15 @@ from auth import staff_requried
 import logging
 
 
-#财务精度
-
 logger = logging.getLogger('purchases.handler')
 #################################### 采购单 #################################
+
+#保存上传文件
+def handle_uploaded_file(f,fname):
+    with open(os.path.join(settings.DOWNLOAD_ROOT,'purchase',fname), 'wb+') as dst:
+        for chunk in f.chunks():
+            dst.write(chunk)
+            
 
 class PurchaseView(ModelView):
     """ 采购单 """
@@ -59,6 +64,7 @@ class PurchaseView(ModelView):
         purchase    = None
         state       = False
         
+        
         if purchase_id:
             try:
                 purchase = Purchase.objects.get(id=purchase_id)
@@ -67,17 +73,18 @@ class PurchaseView(ModelView):
         else:
             state = True
             purchase = Purchase()
-
+            
         for k,v in content.iteritems():
             if not v :continue
             hasattr(purchase,k) and setattr(purchase,k,v)
+        
         if not purchase.service_date:
             purchase.service_date = datetime.datetime.now()
         purchase.save()
         
         log_action(request.user.id,purchase,state and ADDITION or CHANGE,u'%s采购单'%(state and u'新建' or u'修改'))
         
-        return {'id':purchase.id}
+        return HttpResponseRedirect('/purchases/%d/'%purchase.id)
 
 
 class PurchaseInsView(ModelView):
@@ -109,7 +116,7 @@ class PurchaseInsView(ModelView):
             raise Http404
         
         if purchase.status != pcfg.PURCHASE_DRAFT :
-            return u'该采购无需审核'
+            return u'该采购不能审核'
         
         if not perm.has_check_purchase_permission(request.user):
             return u'你没有权限审核'
@@ -239,9 +246,37 @@ def download_purchase_file(request,id):
     myfile.close()
     response['Content-Disposition'] = 'attachment; filename=%s'%file_name
     #response['Content-Length'] = str(os.stat(file_path).st_size)
-    return response
+    return response   
 
 
+@csrf_exempt 
+@staff_requried
+def upload_purchase_file(request,id):
+    """上次采购合同"""
+    
+    try:
+        purchase = Purchase.objects.get(id=id)
+    except Purchase.DoesNotExist:
+        raise Http404
+    
+    if not perm.has_check_purchase_permission(request.user) and purchase.status != pcfg.PURCHASE_DRAFT:
+        return HttpResponseForbidden('权限不足') 
+    
+    attach_files = request.FILES.get('attach_files')
+    file_name = ''
+    if attach_files:
+        dt = datetime.datetime.now()
+        name = attach_files.name
+        file_name = 'CGHT_%s(%s)%s'%(purchase.id,dt.strftime("%Y_%m_%d"),name[name.rfind('.'):])  
+        handle_uploaded_file(attach_files,file_name)
+        purchase.attach_files = file_name
+        purchase.save()
+        
+    ret = {'code':0,'response_content':{'filename':file_name}} 
+        
+    return HttpResponse(json.dumps(ret),mimetype='application/json')
+    
+    
 #################################### 采购入库单 #################################
 
 class PurchaseStorageView(ModelView):
@@ -271,17 +306,18 @@ class PurchaseStorageView(ModelView):
         else:
             state = True
             purchase = PurchaseStorage()
-        
+
         for k,v in content.iteritems():
             if not v :continue
             hasattr(purchase,k) and setattr(purchase,k,v)
+
         if not purchase.post_date:
             purchase.post_date = datetime.datetime.now()
         purchase.save()
         
         log_action(request.user.id,purchase,state and ADDITION or CHANGE,u'%s入库单'%(state and u'新建' or u'修改'))
         
-        return {'id':purchase.id}
+        return HttpResponseRedirect('/purchases/storage/%d/'%purchase.id)
 
 
 class PurchaseStorageInsView(ModelView):
@@ -361,11 +397,16 @@ class StorageDistributeView(ModelView):
         undist_storage_items = purchase_storage.distribute_storage_num()            
         #获取关联采购单信息
         ship_purchases       = purchase_storage.get_ship_purchases()
-
+        
+        prepay_complate = True
+        for purchase in ship_purchases:
+            prepay_complate &= purchase['prepay_complete']
+        
         permissions = {
                  'refresh_storage_ship':purchase_storage.status==pcfg.PURCHASE_DRAFT,
                  'confirm_storage_ship':not undist_storage_items and purchase_storage.status==pcfg.PURCHASE_DRAFT \
-                    and perm.has_confirm_storage_permission(request.user)
+                    and perm.has_confirm_storage_permission(request.user) and prepay_complate,
+                 'prepay_complate':prepay_complate
                  }
 
         return {'undist_storage_items':undist_storage_items,
@@ -373,15 +414,23 @@ class StorageDistributeView(ModelView):
                 'purchase_storage':purchase_storage,
                 'perms':permissions}
     
-    def post(self, request, id, *args, **kwargs):
+    
+class ConfirmStorageView(ModelView):
+    """ 确认采购入库 """
         
+    def post(self, request, *args, **kwargs):
+        
+        content     = request.POST
+        purchase_id = content.get('purchase_id')
+        company     = content.get('company','')
+        out_sid     = content.get('out_sid','')
         try:
-            purchase_storage = PurchaseStorage.objects.get(id=id,status=pcfg.PURCHASE_DRAFT)
+            purchase_storage = PurchaseStorage.objects.get(id=purchase_id,status=pcfg.PURCHASE_DRAFT)
         except:
             return u'未找到入库单'
         
-        if purchase_storage.normal_storage_items.count()==0:
-            return u'空入库单'
+        if purchase_storage.normal_storage_items.count()==0 or not perm.has_confirm_storage_permission(request.user):
+            return u'无权限确认收货'
             
         undist_storage_items = purchase_storage.distribute_storage_num()
         if undist_storage_items:
@@ -409,13 +458,16 @@ class StorageDistributeView(ModelView):
                     storage_item.save()
                     
                 purchase_storage.is_addon = True
-                        
+        
+        purchase_storage.logistic_company = company
+        purchase_storage.out_sid = out_sid
         purchase_storage.status = pcfg.PURCHASE_APPROVAL
         purchase_storage.save()
         
         log_action(request.user.id,purchase_storage,CHANGE,u'确认收货')
         
-        return {'id':purchase_storage.id,'status':purchase_storage.status}
+        return HttpResponseRedirect("/admin/purchases/purchasestorage/?status__exact=APPROVAL&q="+str(purchase_storage.id))
+    
         
 @csrf_exempt        
 @staff_requried
@@ -482,6 +534,35 @@ def download_purchasestorage_file(request,id):
     #response['Content-Length'] = str(os.stat(file_path).st_size)
     return response
 
+
+@csrf_exempt 
+@staff_requried
+def upload_purchase_storage_file(request,id):
+    """上次采购合同"""
+   
+    try:
+        purchase_storage = PurchaseStorage.objects.get(id=id)
+    except PurchaseStorage.DoesNotExist:
+        raise Http404
+    
+    if not perm.has_confirm_storage_permission(request.user) and purchase_storage.status != pcfg.PURCHASE_DRAFT:
+        return HttpResponseForbidden('权限不足') 
+    
+    attach_files = request.FILES.get('attach_files')
+    file_name = ''
+    if attach_files:
+        dt = datetime.datetime.now()
+        name = attach_files.name
+        file_name = 'CGRK_%s(%s)%s'%(purchase_storage.id,dt.strftime("%Y_%m_%d"),name[name.rfind('.'):])   
+        handle_uploaded_file(attach_files,file_name)
+        purchase_storage.attach_files = file_name
+        purchase_storage.save()
+        
+    ret = {'code':0,'response_content':{'filename':file_name}} 
+        
+    return HttpResponse(json.dumps(ret),mimetype='application/json')
+
+
 #################################### 采购付款项 #################################
 class PurchasePaymentView(ModelView):
     """ 采购付款 """
@@ -489,7 +570,7 @@ class PurchasePaymentView(ModelView):
     def get(self, request, *args, **kwargs):
         
         waitpay_purchases = Purchase.objects.filter(status=pcfg.PURCHASE_APPROVAL)
-        waitpay_storages  = PurchaseStorage.objects.filter(status__in=(pcfg.PURCHASE_APPROVAL,pcfg.PURCHASE_DRAFT))
+        waitpay_storages  = PurchaseStorage.objects.filter(Q(status=pcfg.PURCHASE_APPROVAL)|Q(status=pcfg.PURCHASE_DRAFT,is_pod=True))
 
         return {'purchases':waitpay_purchases,'storages':waitpay_storages}
         

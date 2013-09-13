@@ -1,4 +1,10 @@
 ######### 2013-8-16  ##########
+alter table shop_purchases_purchase add column prepay_cent double NOT NULL;
+alter table shop_purchases_purchase add column attach_files varchar(100) NOT NULL;
+
+alter table shop_purchases_storage add column is_pod tinyint(1) NOT NULL;
+alter table shop_purchases_storage add column attach_files varchar(100) NOT NULL;
+######### 2013-8-16  ##########
 alter table shop_items_productsku change outer_id outer_id varchar(64) NOT NULL;
 ######### 2013-8-12  ##########
 alter table shop_items_product add column post_check tinyint(1) NOT NULL;

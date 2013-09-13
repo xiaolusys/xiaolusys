@@ -163,7 +163,6 @@ purchase.Manager = function () {
     this.purchaseid_label   = goog.dom.getElement('id_purchase');
     this.prod_q        = goog.dom.getElement('id_prod_q');
 	this.search_prod_table  = goog.dom.getElement('id-prod-search-table');
-	this.saveBtn       = goog.dom.getElement('save_purchase');
 	this.checkBtn      = goog.dom.getElement('check_purchase');
 	
 	this.prompt_dialog = new purchase.PurchaseSelectDialog(this);
@@ -291,51 +290,6 @@ purchase.Manager.prototype.delPurchaseItem = function(nRow){
 	goog.net.XhrIo.send('/purchases/item/del/',callback,'POST',content);
 }
 
-//添加采购基本信息
-purchase.Manager.prototype.onSavePurchaseInfo = function(e){
-	
-	var that = this;
-	var supplier = $('#supplier').val();
-	var purchase_type = $('#purchase_type').val();
-	if (supplier==''||supplier=='undifine'||purchase_type==''||purchase_type=='undifine'){
-		alert('请输入供应商，采购类型');
-		return;
-	}
-	
-	var params = {  'purchase_id':this.purchaseid_label.innerHTML,
-					'origin_no':$('#origin_no').val(),
-					'supplier_id':supplier,
-					'deposite_id':$('#deposite').val(),
-					'purchase_type_id':purchase_type,
-					'service_date':$('#service_date').val(),
-					'forecast_date':$('#forecast_date').val(),
-					'receiver_name':$('#receiver_name').val(),
-					'extra_name':$('#extra_name').val(),
-					'extra_info':$('#extra_info').val()
-			};
-					
-	var callback = function(e){
-		var xhr = e.target;
-        try {
-        	var res = xhr.getResponseJson();
-        	if (res.code==0){
-        		var purchaseins = res.response_content;
-        		var purchase_id = that.purchaseid_label.innerHTML;
-     			if (purchase_id==''||purchase_id=='undifine'){
-     				window.location='/purchases/'+purchaseins.id+'/';
-     			}else{
-     				alert('保存成功！');
-     			}
-        	}else{
-        		alert("错误:"+res.response_error);
-        	}
-        } catch (err) {
-            console.log('Error: (ajax callback) - ', err);
-        } 
-	};
-	var content = goog.uri.utils.buildQueryDataFromMap(params);
-	goog.net.XhrIo.send('/purchases/add/?format=json',callback,'POST',content);
-}
 
 //审核采购合同
 purchase.Manager.prototype.onCheckPurchaseInfo = function(e){
@@ -471,8 +425,6 @@ purchase.Manager.prototype.bindEvent = function (){
 
 	goog.events.listen(this.prod_q  , goog.events.EventType.KEYDOWN,this.onProdSearchKeyDown,false,this);
 	
-	goog.events.listen(this.saveBtn , goog.events.EventType.CLICK,this.onSavePurchaseInfo,false,this);
-	
 	goog.events.listen(this.checkBtn , goog.events.EventType.CLICK,this.onCheckPurchaseInfo,false,this);
 	   
 	$("#purchase-prompt").draggable({handle: $('#purchase-prompt-head')});
@@ -588,7 +540,6 @@ purchase.Manager.prototype.bindEvent = function (){
 	//选择日期插件
 	$("#service_date").datepicker({ dateFormat: "yy-mm-dd" });
 	$("#forecast_date").datepicker({ dateFormat: "yy-mm-dd" });
-	$("#post_date").datepicker({ dateFormat: "yy-mm-dd" });
 }
 
 

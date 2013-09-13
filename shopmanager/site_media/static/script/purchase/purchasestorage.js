@@ -145,8 +145,6 @@ purchasestorage.Manager = function () {
     this.purchasestorageid_label = goog.dom.getElement('id_purchase_storage');
     this.prod_q        = goog.dom.getElement('id_prod_q');
 	this.search_prod_table  = goog.dom.getElement('id-prod-search-table');
-	this.saveBtn       = goog.dom.getElement('save_purchase');
-	this.checkBtn      = goog.dom.getElement('check_purchase');
 	
 	this.prompt_dialog = new purchasestorage.PurchaseSelectDialog(this);
 	this.datatable     = null;
@@ -268,47 +266,6 @@ purchasestorage.Manager.prototype.delPurchaseItem = function(nRow){
 	goog.net.XhrIo.send('/purchases/storage/item/del/',callback,'POST',content);
 }
 
-//添加采购基本信息
-purchasestorage.Manager.prototype.onSavePurchaseInfo = function(e){
-	
-	var that = this;
-	var supplier = $('#supplier').val();
-	if (supplier==''||supplier=='undifine'){
-		alert('请输入供应商');
-		return;
-	}
-	var params = {  'origin_no':$('#origin_no').val(),
-					'purchase_storage_id':this.purchasestorageid_label.innerHTML,
-					'supplier_id':supplier,
-					'deposite_id':$('#deposite').val(),
-					'forecast_date':$('#forecast_date').val(),
-					'post_date':$('#post_date').val(),
-					'extra_name':$('#extra_name').val(),
-					'extra_info':$('#extra_info').val()
-			};
-					
-	var callback = function(e){
-		var xhr = e.target;
-        try {
-        	var res = xhr.getResponseJson();
-        	if (res.code==0){
-        		var purchasestorageins = res.response_content;
-        		var purchase_storage_id = that.purchasestorageid_label.innerHTML;
-     			if (purchase_storage_id==''||purchase_storage_id=='undifine'){
-     				window.location='/purchases/storage/'+purchasestorageins.id+'/';
-     			}else{
-     				alert('保存成功！');
-     			}
-        	}else{
-        		alert("错误:"+res.response_error);
-        	}
-        } catch (err) {
-            console.log('Error: (ajax callback) - ', err);
-        } 
-	};
-	var content = goog.uri.utils.buildQueryDataFromMap(params);
-	goog.net.XhrIo.send('/purchases/storage/add/?format=json',callback,'POST',content);
-}
 
 //审核采购合同
 purchasestorage.Manager.prototype.onCheckPurchaseInfo = function(e){
@@ -417,8 +374,6 @@ purchasestorage.Manager.prototype.calPurchaseNumAndFee = function(){
 purchasestorage.Manager.prototype.bindEvent = function (){
 
 	goog.events.listen(this.prod_q, goog.events.EventType.KEYDOWN,this.onProdSearchKeyDown,false,this);
-	
-	goog.events.listen(this.saveBtn, goog.events.EventType.CLICK,this.onSavePurchaseInfo,false,this);
 	   
 	$("#purchase-prompt").draggable({handle: $('#purchase-prompt-head')});
 	

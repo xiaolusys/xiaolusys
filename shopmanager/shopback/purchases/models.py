@@ -1,8 +1,10 @@
 #-*- coding:utf8 -*-
+import os
 import datetime
 from django.db import models
 from django.db.models.signals import post_save,post_delete
 from django.db.models import Q,Sum,F
+from django.conf import settings
 from shopback import paramconfig as pcfg
 from shopback.archives.models import Supplier,PurchaseType,Deposite
 from shopback.categorys.models import ProductCategory
@@ -86,8 +88,10 @@ class Purchase(models.Model):
     
     extra_name   = models.CharField(max_length=256,blank=True,verbose_name='标题')
     extra_info   = models.TextField(blank=True,verbose_name='备注')
-
-    #attach_files = models.FileField(upload_to='documents/%Y/%m/%d')
+    
+    prepay_cent  = models.FloatField(default=0.0,verbose_name='预付比例')
+    
+    attach_files = models.FileField(blank=True,upload_to=os.path.join(settings.DOWNLOAD_ROOT,'purchase'))
     class Meta:
         db_table = 'shop_purchases_purchase'
         verbose_name = u'采购单'
@@ -126,7 +130,11 @@ class Purchase(models.Model):
         if unpay_fee<0:
             return 0
         return round(unpay_fee,FINANCIAL_FIXED)
-        
+    
+    @property
+    def prepay_complete(self):
+        return round(self.prepay)>=round(self.total_fee*self.prepay_cent)
+    
     def gen_csv_tuple(self):
         
         pcsv = []
@@ -167,7 +175,11 @@ class Purchase(models.Model):
                 'total_fee':self.total_fee,
                 'payment':self.payment,
                 'extra_name':self.extra_name,
+                'receiver_name':self.receiver_name,
                 'extra_info':self.extra_info,
+                'prepay_cent':self.prepay_cent,
+                'attach_files':self.attach_files,
+                'status':dict(PURCHASE_STATUS).get(self.status,''),
                 'purchase_items':purchase_items
                 }
     
@@ -379,6 +391,9 @@ class PurchaseStorage(models.Model):
     extra_name  = models.CharField(max_length=256,blank=True,verbose_name='标题')
     extra_info  = models.TextField(blank=True,verbose_name='备注')
     
+    is_pod      = models.BooleanField(default=False,verbose_name='需付款提货')
+    
+    attach_files = models.FileField(blank=True,upload_to=os.path.join(settings.DOWNLOAD_ROOT,'storage'))
     class Meta:
         db_table     = 'shop_purchases_storage'
         verbose_name = u'入库单'
@@ -438,6 +453,9 @@ class PurchaseStorage(models.Model):
                 'out_sid':self.out_sid,
                 'extra_name':self.extra_name,
                 'extra_info':self.extra_info,
+                'is_pod':self.is_pod,
+                'attach_files':self.attach_files,
+                'status':dict(PURCHASE_STORAGE_STATUS).get(self.status,''),
                 'purchase_storage_items':purchase_items,
                 }
         
@@ -538,6 +556,7 @@ class PurchaseStorage(models.Model):
                                             'service_date':purchase.service_date,
                                             'purchase_num':purchase.purchase_num,
                                             'storage_num':purchase.storage_num,
+                                            'prepay_complete':purchase.prepay_complete,
                                             'arrival_status':dict(PURCHASE_ARRIVAL_STATUS).get(purchase.arrival_status),
                                             'status':dict(PURCHASE_STATUS).get(purchase.status),
                                             'purchase_items':[{'id':purchase_item.id,
@@ -581,7 +600,6 @@ class PurchaseStorageItem(models.Model):
     is_addon         = models.BooleanField(default=False,verbose_name='加入库存')
     
     extra_info   = models.CharField(max_length=1000,blank=True,verbose_name='备注')
-    
     class Meta:
         db_table = 'shop_purchases_storageitem'
         unique_together = ("purchase_storage","outer_id", "outer_sku_id")
