@@ -110,7 +110,7 @@
   		<button id="confirm-purchase-ship"  {% if perms.confirm_storage_ship %}class="btn btn-primary"
   			{% else %}class="btn btn-inverse" disabled="disabled"{% endif %}>{% if not perms.prepay_complate %}需完成预付款才能确认{% else %}确认收货{% endif %}</button>
   	<div>
-  	<div id="confirm-dialog" style="display:none;width:800px;height:250px">
+  	<div id="confirm-dialog" title="确认收货对话框" style="display:none;width:800px;height:250px">
   		<form class="form-horizontal" action="/purchases/storage/confirm/" method="POST">
 			<input type="hidden" name="purchase_id" value="{{ purchase_storage.id }}" />
 			<div class="control-group">

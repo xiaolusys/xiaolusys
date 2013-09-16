@@ -371,7 +371,7 @@ class PurchasePaymentAdmin(admin.ModelAdmin):
     
     fieldsets =(('采购单信息:', {
                     'classes': ('expand',),
-                    'fields': (('pay_type','payment','pay_no','pay_bank')
+                    'fields': (('pay_type','payment','pay_no','pay_bank','supplier')
                                ,('pay_time','apply_time','applier','cashier')
                                ,('status','extra_info')
                                )
