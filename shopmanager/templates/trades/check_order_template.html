@@ -115,7 +115,7 @@
 			<td>{{ order.outer_id }}</td>
 			<td>{{ order|prod_name }}</td>
 			<td>
-				<select id="id-select-ordersku-{{ forloop.counter }}" name="id_order_sku">
+				<select id="id-select-ordersku-{{ forloop.counter }}" name="id_order_sku" >
 					<option value="">---------</option>
 					{% for sku in order|prod_skus %}
 					<option value="{{ sku.outer_id }}" {% if order.outer_sku_id == sku.outer_id %}selected{% endif %}>{{ sku.name }}</option>

@@ -42,7 +42,7 @@ var addSearchRow  = function(tableID,prod){
 	var outer_id_cell = createDTText(prod[0]);
 	var title_cell    = createDTText(prod[1]);
 	var sku_cell = goog.dom.createElement('td');
-	var sku_options = '<select id="id-order-sku-'+index.toString()+'" >';
+	var sku_options = '<select id="id-order-sku-'+index.toString()+'" class="chosen-select" >';
 	for(var i=0;i<prod[3].length;i++){
 		var sku = prod[3][i];
 		sku_options += '<option value="'+sku[0]+'">'+sku[1]+'&raquo;'+sku[2]+'</option>';
@@ -403,7 +403,7 @@ ordercheck.Dialog.prototype.handleEvent= function (e) {
     var priorityDom  = goog.dom.getElement("id_priority");
     var shippingDom  = goog.dom.getElement("id_shipping_type");
     var retval    = this.orderManager.checkorder(tradeDom.value,logisticsDom.value,priorityDom.value,shippingDom.value,action_code);
-   
+   	
     return false;
 }
 
