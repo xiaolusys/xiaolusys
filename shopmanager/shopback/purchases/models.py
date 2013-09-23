@@ -358,7 +358,7 @@ def update_purchase_info(sender,instance,*args,**kwargs):
         if purchase_items.exclude(status=pcfg.PURCHASE_CLOSE).count()==0:
             purchase.status=pcfg.PURCHASE_CLOSE
     
-    update_model_feilds(purchase,update_fields=['total_fee','payment','arrival_status','status','purchase_num','storage_num'])
+    update_model_feilds(purchase,update_fields=['total_fee','payment','arrival_status','status','prepay','purchase_num','storage_num'])
         
 post_save.connect(update_purchase_info, sender=PurchaseItem)
     
