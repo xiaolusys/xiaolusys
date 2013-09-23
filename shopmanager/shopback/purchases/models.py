@@ -133,7 +133,7 @@ class Purchase(models.Model):
     
     @property
     def prepay_complete(self):
-        return round(self.prepay)>=round(self.total_fee*self.prepay_cent)
+        return round(self.prepay) >= round(self.total_fee*self.prepay_cent)
     
     def gen_csv_tuple(self):
         
@@ -339,10 +339,13 @@ def update_purchase_info(sender,instance,*args,**kwargs):
     purchase = instance.purchase
     purchase_items = instance.purchase.effect_purchase_items
     
-    purchase.total_fee = purchase_items.aggregate(total_fees=Sum('total_fee'))['total_fees'] or 0
-    purchase.payment   = purchase_items.aggregate(total_payment=Sum('payment'))['total_payment'] or 0
-    purchase.purchase_num  = purchase_items.aggregate(total_purchase_num=Sum('purchase_num'))['total_purchase_num'] or 0
-    purchase.storage_num   = purchase_items.aggregate(total_storage_num=Sum('storage_num'))['total_storage_num'] or 0
+    aggregate_dict = purchase_items.aggregate(total_fees=Sum('total_fee'),total_payment=Sum('payment'),
+                     total_purchase_num=Sum('purchase_num'),total_prepay=Sum('prepay'),total_storage_num=Sum('storage_num'))
+    purchase.total_fee = aggregate_dict['total_fees'] or 0
+    purchase.payment   = aggregate_dict['total_payment'] or 0
+    purchase.prepay    = aggregate_dict['total_prepay'] or 0
+    purchase.purchase_num  = aggregate_dict['total_purchase_num'] or 0
+    purchase.storage_num   = aggregate_dict['total_storage_num'] or 0
     
     if purchase_items.count() >0:
         if purchase_items.exclude(arrival_status=pcfg.PD_UNARRIVAL).count()==0:
