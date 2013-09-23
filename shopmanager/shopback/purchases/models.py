@@ -504,9 +504,9 @@ class PurchaseStorage(models.Model):
                         storage_ship.outer_sku_id = outer_sku_id
                         
                         diff_num  = min(diff_num,undist_storage_num)
-                        storage_ship.storage_num  = diff_num
-                        storage_ship.total_fee    = round(diff_num*purchase_item.price,FINANCIAL_FIXED)
-                        storage_ship.prepay       = round(diff_num*(purchase_item.prepay/purchase_item.purchase_num),FINANCIAL_FIXED)
+                        storage_ship.storage_num  = diff_num + storage_ship.storage_num
+                        storage_ship.total_fee    = round(storage_ship.storage_num*purchase_item.price,FINANCIAL_FIXED)
+                        storage_ship.prepay       = round(storage_ship.storage_num*(purchase_item.prepay/purchase_item.purchase_num),FINANCIAL_FIXED)
                         storage_ship.save()
                     
                     undist_storage_num = undist_storage_num - diff_num    
