@@ -13,7 +13,7 @@ def product_out(out_filename):
         prods = Product.objects.filter(status__in=(pcfg.NORMAL,pcfg.REMAIN))
         for prod in prods:
             
-            skus = prod.pskus.filter(is_split=True)
+            skus = prod.pskus.exclude(is_split=True)
             if skus.count() > 0:
                 for sku in skus:
                     print >>f,prod.outer_id,',',prod.name.encode('utf8'),',',sku.outer_id,',',sku.name.encode('utf8'),',',sku.quantity,',',sku.cost
