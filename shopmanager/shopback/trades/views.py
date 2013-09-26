@@ -804,6 +804,41 @@ class DirectOrderView(ModelView):
         sellers = User.objects.all()
         
         return {'trade':trade,'sellers':sellers}
+    
+    def post(self, request, *args, **kwargs):
+        
+        content     = request.REQUEST
+        trade_id    = content.get('trade_id')
+        seller_id   = content.get('sellerId')
+        try:
+            merge_trade = MergeTrade.objects.get(id=trade_id)
+        except MergeTrade.DoesNotExist:
+            return u'订单未找到'
+        
+        try:
+            user = User.objects.get(id=seller_id)
+        except User.DoesNotExist:
+            return u'卖家不存在'
+        
+        if merge_trade.sys_status not in('',pcfg.WAIT_AUDIT_STATUS):
+            return u'订单暂不能保存'
+        
+        dt = datetime.datetime.now()
+        for key,val in content.iteritems():
+            hasattr(merge_trade,key) and setattr(merge_trade,key,val)  
+        merge_trade.user = user 
+        merge_trade.seller_nick= user.nick
+        merge_trade.seller_id  = user.visitor_id
+        merge_trade.shipping_type = "express"
+        merge_trade.created    = dt
+        merge_trade.pay_time   = dt
+        merge_trade.modified   = dt
+        merge_trade.sys_status = pcfg.WAIT_AUDIT_STATUS
+        merge_trade.save()
+        
+        log_action(request.user.id,merge_trade,CHANGE,u'订单创建')
+        
+        return {'trade':merge_trade,'sellers':User.objects.all()}
         
         
 def update_sys_memo(request):

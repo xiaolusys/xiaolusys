@@ -386,19 +386,20 @@ exchange.Manager.prototype.saveBuyerInfo = function(e){
 	var that  = this;
 	var seller_id         = goog.dom.getElement('id_seller_id').value;
 	var buyer_nick        = goog.dom.getElement('id_buyer_nick').value;
-
-	if (buyer_nick === ""||seller_id === ""){
-		alert('用户名和店铺不能为空');
+	var receiver_state    = goog.dom.getElement('id_receiver_state').value;
+	var receiver_city     = goog.dom.getElement('id_receiver_city').value;
+	var receiver_address  = goog.dom.getElement('id_receiver_address').value;
+	
+	if (buyer_nick === ""||seller_id === ""||receiver_state == ""||receiver_city == ""||receiver_address=""){
+		alert('用户名,店铺和地址(省市)不能为空');
 		return;
 	}
 	
 	var receiver_mobile   = goog.dom.getElement('id_receiver_mobile').value;
 	var receiver_phone    = goog.dom.getElement('id_receiver_phone').value;
 	var receiver_name     = goog.dom.getElement('id_receiver_name').value;
-	var receiver_state    = goog.dom.getElement('id_receiver_state').value;
-	var receiver_city     = goog.dom.getElement('id_receiver_city').value;
 	var receiver_district = goog.dom.getElement('id_receiver_district').value;
-	var receiver_address  = goog.dom.getElement('id_receiver_address').value;
+	
 	
 	var params = {
 		'trade_id':that.tid,

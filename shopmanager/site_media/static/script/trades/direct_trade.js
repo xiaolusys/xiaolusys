@@ -328,66 +328,6 @@ direct.Manager.prototype.copyBuyerInfo = function(e){
 }
 
 
-//保存基本信息
-direct.Manager.prototype.saveBuyerInfo = function(e){
-	var that  = this;
-	var seller_id         = goog.dom.getElement('id_seller_id').value;
-	var buyer_nick        = goog.dom.getElement('id_buyer_nick').value;
-	
-	if (buyer_nick === ""||seller_id === ""){
-		alert('用户名和店铺不能为空');
-		return;
-	}
-	var trade_type = goog.dom.getElement('id_trade_type').value;
-	var re = /^[0-9]+.?[0-9]*$/;
-	if (trade_type == 'direct'){
-		var payment    = goog.dom.getElement('id_payment').value;
-		var post_fee   = goog.dom.getElement('id_post_fee').value;
-		if (!re.test(payment)||!re.test(post_fee)){
-			alert('请填写正确的金额跟邮费');
-			return;
-		}
-	}
-	
-	var receiver_mobile   = goog.dom.getElement('id_receiver_mobile').value;
-	var receiver_phone    = goog.dom.getElement('id_receiver_phone').value;
-	var receiver_name     = goog.dom.getElement('id_receiver_name').value;
-	var receiver_state    = goog.dom.getElement('id_receiver_state').value;
-	var receiver_city     = goog.dom.getElement('id_receiver_city').value;
-	var receiver_district = goog.dom.getElement('id_receiver_district').value;
-	var receiver_address  = goog.dom.getElement('id_receiver_address').value;
-
-	var params = {
-		'trade_id':that.tid,
-		'sellerId':seller_id,
-		'buyer_nick':buyer_nick,
-		'receiver_mobile':receiver_mobile,
-		'receiver_phone':receiver_phone,
-		'receiver_name':receiver_name,
-		'receiver_state':receiver_state,
-		'receiver_city':receiver_city,
-		'receiver_district':receiver_district,
-		'receiver_address':receiver_address,
-		'payment':payment,
-		'post_fee':post_fee,
-	};
-	var callback = function(e){
-		var xhr = e.target;
-        try {
-        	var res = xhr.getResponseJson();
-            if (res.code == 0){
-				alert('保存成功');
-            }else{
-                alert("保存失败:"+res.response_error);
-            }
-        } catch (err) {
-            console.log('Error: (ajax callback) - ', err);
-        } 
-	};
-	var content = goog.uri.utils.buildQueryDataFromMap(params);
-	goog.net.XhrIo.send('/trades/exchange/add/',callback,'POST',content);
-}
-
 //删除订单
 direct.Manager.prototype.deleteOrder = function(e){
 	var target = e.target;
@@ -421,7 +361,6 @@ direct.Manager.prototype.bindEvent = function () {
 	goog.events.listen(this.prod_q, goog.events.EventType.FOCUS,this.focus,false,this);
 	goog.events.listen(this.trade_q, goog.events.EventType.FOCUS,this.focus,false,this);
 
-	goog.events.listen(this.saveBtn, goog.events.EventType.CLICK,this.saveBuyerInfo,false,this);
 	
 	var returns_zippy  = new goog.ui.Zippy('id-return-head', 'id-return-goods');   
 }
