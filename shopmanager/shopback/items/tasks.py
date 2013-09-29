@@ -301,6 +301,9 @@ def updateItemNum(user_id,num_iid):
                     sync_num = sync_num/item_count or sync_num
                 else:
                     sync_num = (real_num - wait_nums)>10 and 3 or 0 
+                #针对小小派，测试线上库存低量促销效果
+                if product.outer_id == '3116BG7':
+                    sync_num = total_num > 0 and min(sync_num,total_num*2) or min(sync_num,10)
             else:
                 sync_num = 0
                 
