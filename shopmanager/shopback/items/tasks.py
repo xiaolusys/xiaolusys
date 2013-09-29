@@ -306,8 +306,7 @@ def updateItemNum(user_id,num_iid):
                 
             #针对小小派，测试线上库存低量促销效果
             if product.outer_id == '3116BG7':
-                total_num,user_order_num = MergeOrder.get_yesterday_orders_totalnum(item.user.id,outer_id,outer_sku_id)
-                sync_num = total_num > 0 and min(sync_num,total_num*2) or min(sync_num,10)
+                sync_num = total_num > 0 and min(sync_num,product.warn_num+10) or min(sync_num,15)
                 
             #同步库存数不为0，或者没有库存警告，同步数量不等于线上库存，并且店铺，商品，规格同步状态正确
             if not (sync_num == 0 and product_sku.is_assign) and sync_num != sku['quantity'] \
