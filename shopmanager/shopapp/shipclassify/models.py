@@ -31,4 +31,4 @@ class ClassifyZone(models.Model):
         verbose_name_plural = u'分拨地址'
    
     def __unicode__(self):
-        return '<%s,%s>'%(' '.join([self.state,self.city,self.district]),self.branch and self.branch.name or '')
+        return '<%s,%s>'%(' '.join([self.state,self.city,self.district]),self.branch or '')

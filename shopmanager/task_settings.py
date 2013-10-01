@@ -162,7 +162,7 @@ SHOP_APP_SCHEDULE = {
     },           
     'runs-every-day-item-num':{     #更新库存
         'task':'shopback.items.tasks.updateAllUserItemNumTask',
-        'schedule':crontab(minute="20",hour="3,13"),#
+        'schedule':crontab(minute="0",hour="*/2"),#
         'args':()
     },
     'runs-every-day-notify-packet-post':{     #更新库存
