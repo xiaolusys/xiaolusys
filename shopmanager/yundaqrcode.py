@@ -59,7 +59,7 @@ API_DICT = {
                RECEIVE:RECEIVE_API,
                MODIFY:RECEIVE_API,
                CANCEL:CANCEL_API,
-               ORDERINFO:RECEIVE_API,
+               ORDERINFO:ORDERINFO_API,
                TRANSITE:TRANSITE_API,
                VALID:CANCEL_API,
                REPRINT:PRINTFILE_API,
@@ -156,7 +156,7 @@ def handle_demon(action,xml_data,partner_id,secret):
     
     req = urllib2.urlopen(demon_url+API_DICT[action], urllib.urlencode(params), timeout=60)
     rep = req.read()       
-    
+    print 'rep',rep
     parser = etree.XMLParser()
     tree   = etree.parse(StringIO(rep), parser)
     
