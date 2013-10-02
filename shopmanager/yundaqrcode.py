@@ -222,7 +222,12 @@ def valid_order(id):
 
 def print_order(id):
     
-    order_xml = """<orders><order><order_serial_no>%s</order_serial_no></order></orders>"""%str(id)
+    ids = id.split(',')
+    order_xml = "<orders>"
+    for i in ids:
+        order_xml += "<order><order_serial_no>%s</order_serial_no></order>"%i
+        
+    order_xml += "</orders>"
     
     tree = handle_demon(REPRINT,order_xml,PARTNER_ID,SECRET)
     
