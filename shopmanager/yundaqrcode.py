@@ -8,15 +8,15 @@ import datetime
 import urllib
 import urllib2
 import cgi
-#from lxml import etree
+from lxml import etree
 from StringIO import StringIO
 
-#from django.core.management import setup_environ
-#import settings
-#setup_environ(settings)
-#
-#from shopapp.shipclassify.options import get_addr_zones
-#from shopback.trades.models import MergeTrade
+from django.core.management import setup_environ
+import settings
+setup_environ(settings)
+
+from shopapp.shipclassify.options import get_addr_zones
+from shopback.trades.models import MergeTrade
 
 #demon_url = 'http://orderdev.yundasys.com:10209/cus_order/order_interface/'
 demon_url = 'http://order.yundasys.com:10235/cus_order/order_interface/'
