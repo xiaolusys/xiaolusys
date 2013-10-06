@@ -202,6 +202,7 @@ class MergeTrade(models.Model):
     is_picking_print = models.BooleanField(default=False,verbose_name='发货单')
     is_express_print = models.BooleanField(default=False,verbose_name='物流单')
     is_send_sms      = models.BooleanField(default=False,verbose_name='发货提醒')
+    is_qrcode        = models.BooleanField(default=False,verbose_name='韵达二维码订单')
     has_refund       = models.BooleanField(default=False,verbose_name='待退款')
     has_out_stock    = models.BooleanField(default=False,verbose_name='缺货')
     has_rule_match   = models.BooleanField(default=False,verbose_name='有匹配')
