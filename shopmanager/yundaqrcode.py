@@ -156,25 +156,21 @@ def handle_demon(action,xml_data,partner_id,secret):
     
     req = urllib2.urlopen(demon_url+API_DICT[action], urllib.urlencode(params), timeout=60)
     rep = req.read()       
-    print 'rep',rep
+    
+    if action == TRANSITE:
+        return rep
+    
     parser = etree.XMLParser()
     tree   = etree.parse(StringIO(rep), parser)
-    
-    ds = tree.xpath('/responses/response/status')
-    status = ds[0].text
-    
-    print 'rep',rep.decode('utf8')
-    if status != '1':
-        raise Exception(rep)
     
     return tree
      
      
-def create_order(id):
+def create_order(ids):
     
-    trade = MergeTrade.objects.get(id=id)
+    trades = MergeTrade.objects.filter(id__in=ids)
  
-    objs  = get_objs_from_trade([trade])
+    objs  = get_objs_from_trade(trades)
     
     order_xml = gen_orders_xml(objs)
     
@@ -182,11 +178,11 @@ def create_order(id):
     
     return tree
 
-def modify_order(id):
+def modify_order(ids):
     
-    trade = MergeTrade.objects.get(id=id)
+    trades = MergeTrade.objects.filter(id__in=ids)
  
-    objs  = get_objs_from_trade([trade])
+    objs  = get_objs_from_trade(trades)
     
     order_xml = gen_orders_xml(objs)
     
@@ -194,36 +190,49 @@ def modify_order(id):
     
     return tree
     
-def cancel_order(id):
+def cancel_order(ids):
     
-    order_xml = "<orders><order><order_serial_no>%s</order_serial_no></order></orders>"%str(id)
+    order_xml = "<orders>"
+    for i in ids:
+        order_xml += "<order><order_serial_no>%s</order_serial_no></order>"%str(i)
+    order_xml += "</orders>"
     
     tree = handle_demon(CANCEL,order_xml,PARTNER_ID,SECRET)
     
     return tree
     
-def search_order(id):
+def search_order(ids):
     
-    order_xml = """<orders><order><order_serial_no>%s</order_serial_no></order></orders>"""%str(id)
+    order_xml = "<orders>"
+    
+    for i in ids:
+        order_xml += "<order><order_serial_no>%s</order_serial_no></order>"%str(i)
+        
+    order_xml = "</orders>"
     
     tree = handle_demon(ORDERINFO,order_xml,PARTNER_ID,SECRET)
     
     return tree
 
 
-def valid_order(id):
+def valid_order(ids):
     
-    order_xml = """<orders><order><order_serial_no>%s</order_serial_no></order></orders>"""%str(id)
+    order_xml = "<orders>"
+    
+    for i in ids:
+        order_xml += "<order><order_serial_no>%s</order_serial_no></order>"%str(i)
+    
+    order_xml += "</orders>"
     
     tree = handle_demon(VALID,order_xml,PARTNER_ID,SECRET)
     
     return tree
 
 
-def print_order(id):
+def print_order(ids):
     
-    ids = id.split(',')
     order_xml = "<orders>"
+    
     for i in ids:
         order_xml += "<order><order_serial_no>%s</order_serial_no></order>"%i
         
