@@ -1,5 +1,5 @@
 from django.db.models import Q
-from shopapp.shipclassify.models import ClassifyZone,BranchZone
+from shopapp.yunda.models import ClassifyZone,BranchZone
 
 
 def get_addr_zones(s,c,d):

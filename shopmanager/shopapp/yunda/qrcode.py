@@ -1,4 +1,7 @@
 #-*- coding:utf8 -*-
+""" 
+韵达二维码对接接口
+"""
 import sys
 import json
 import hashlib
@@ -15,7 +18,7 @@ from django.core.management import setup_environ
 import settings
 setup_environ(settings)
 
-from shopapp.shipclassify.options import get_addr_zones
+from shopapp.yunda.options import get_addr_zones
 from shopback.trades.models import MergeTrade
 
 #demon_url = 'http://orderdev.yundasys.com:10209/cus_order/order_interface/'

@@ -133,7 +133,7 @@ INSTALLED_APPS = (
     'shopapp.babylist',
     'shopapp.juhuasuan',
     'shopapp.smsmgr',
-    'shopapp.shipclassify',
+    'shopapp.yunda',
     #'shopapp.syncnum',
     
     #'test.celery',

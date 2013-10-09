@@ -1,6 +1,6 @@
 #-*- coding:utf8 -*-
 from django.contrib import admin
-from shopapp.shipclassify.models import ClassifyZone,BranchZone
+from shopapp.yunda.models import ClassifyZone,BranchZone
 
 class ClassifyZoneInline(admin.TabularInline):
     

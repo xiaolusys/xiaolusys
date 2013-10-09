@@ -8,7 +8,7 @@ class BranchZone(models.Model):
     barcode  = models.CharField(max_length=32,blank=True,verbose_name='网点条码')
     
     class Meta:
-        db_table = 'shop_shipclassify_branch'
+        db_table = 'shop_yunda_branch'
         verbose_name=u'分拨网点'
         verbose_name_plural = u'分拨网点'
    
@@ -26,9 +26,11 @@ class ClassifyZone(models.Model):
     zone     = models.CharField(max_length=64,blank=True,verbose_name='集包网点') 
     
     class Meta:
-        db_table = 'shop_shipclassify_zone'
+        db_table = 'shop_yunda_zone'
         verbose_name=u'分拨地址'
         verbose_name_plural = u'分拨地址'
    
     def __unicode__(self):
         return '<%s,%s>'%(' '.join([self.state,self.city,self.district]),self.branch or '')
+    
+    
