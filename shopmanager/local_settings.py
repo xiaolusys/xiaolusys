@@ -18,7 +18,7 @@ DATABASES = {
         'PASSWORD': '123123',                  # Not used with sqlite3.
         'HOST': '',                      # Set to empty string for localhost. Not used with sqlite3.
         'PORT': '',                      # Set to empty string for default. Not used with sqlite3.
-        'OPTIONS':  { 'init_command': 'SET table_type=MyISAM;', 'charset': 'utf8'},
+        'OPTIONS':  { 'init_command': 'SET storage_engine=MyISAM;', 'charset': 'utf8'}, #storage_engine need mysql>5.4,and table_type need mysql<5.4
     }
 }
 
