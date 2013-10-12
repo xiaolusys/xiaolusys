@@ -8,7 +8,7 @@ from lxml import etree
 from StringIO import StringIO
 from celery.task import task
 from celery.task.sets import subtask
-from shopback import paramconfig as pcfgs
+from shopback import paramconfig as pcfg
 from shopback.trades.models import MergeTrade
 from shopapp.yunda.qrcode import cancel_order
 from utils import valid_mobile
