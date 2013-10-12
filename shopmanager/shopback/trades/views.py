@@ -486,9 +486,9 @@ def change_trade_addr(request):
         logger.error(exc.message,exc_info=True)
         
     trade.append_reason_code(pcfg.ADDR_CHANGE_CODE)
-    print 'change one'
+    
     #通知其他APP，订单地址已修改
-    change_addr_signal.send(sender='change_order_addr',trade_id=trade.id)
+    change_addr_signal.send(sender=MergeTrade,trade_id=trade.id)
     
     log_action(user_id,trade,CHANGE,u'修改地址')
     
