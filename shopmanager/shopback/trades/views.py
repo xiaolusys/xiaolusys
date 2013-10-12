@@ -14,7 +14,7 @@ from shopback.logistics.models import LogisticsCompany
 from shopback.items.models import Product,ProductSku
 from shopback.base import log_action, ADDITION, CHANGE
 from shopback.refunds.models import REFUND_STATUS,Refund
-from shopback.signals import rule_signal
+from shopback.signals import rule_signal,change_addr_signal
 from shopback.users.models import User
 from shopback import paramconfig as pcfg
 from auth import apis
@@ -484,8 +484,11 @@ def change_trade_addr(request):
                                                             tb_user_id=trade.user.visitor_id)
     except Exception,exc:
         logger.error(exc.message,exc_info=True)
-
+        
     trade.append_reason_code(pcfg.ADDR_CHANGE_CODE)
+    print 'change one'
+    #通知其他APP，订单地址已修改
+    change_addr_signal.send(sender='change_order_addr',trade_id=trade.id)
     
     log_action(user_id,trade,CHANGE,u'修改地址')
     

@@ -54,8 +54,8 @@
 </div>
 <div id="content-related" style="margin-right:-1em;width: 15em;">
     <div class="module" id="recent-actions-module">
-        <h2>{% trans '最近操作记录' %}</h2>
-        <h3>{% trans '我的记录' %}</h3>
+        <h2>{% trans 'Recent Actions' %}</h2>
+        <h3>{% trans 'My Actions' %}</h3>
             {% load log %}
             {% get_admin_log 10 as admin_log for_user user %}
             {% if not admin_log %}

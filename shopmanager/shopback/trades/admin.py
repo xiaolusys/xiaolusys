@@ -114,7 +114,8 @@ class MergeTradeAdmin(admin.ModelAdmin):
                                  ,'is_part_consign','is_lgtype','lg_aging_type','is_qrcode')
                                ,('send_time','lg_aging','step_paid_fee','step_trade_status')
                                ,('created','modified','pay_time','consign_time')
-                               ,('buyer_message','seller_memo','sys_memo'))
+                               ,('buyer_message','seller_memo','sys_memo')
+                               )
                 }),
                 ('收货人及物流信息:', {
                     'classes': ('expand',),
@@ -128,7 +129,8 @@ class MergeTradeAdmin(admin.ModelAdmin):
                                 ,'is_send_sms','is_picking_print','is_express_print','can_review')
                                ,('is_locked','is_charged','priority','reason_code','refund_num')
                                ,('remind_time','weight_time','charge_time')
-                               ,('post_cost','operator','weight','sys_status',))
+                               ,('post_cost','operator','weight','sys_status',)
+                               ,('reserveo','reservet','reserveh'))
                 }))
 
     #--------定制控件属性----------------

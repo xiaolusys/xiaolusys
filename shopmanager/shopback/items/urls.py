@@ -1,5 +1,6 @@
 from django.conf.urls.defaults import patterns, url
 from djangorestframework.views import ListOrCreateModelView
+from django.views.generic import TemplateView
 from shopback.items.views import ProductListView,ProductItemView,ProductModifyView,ProductUpdateView,\
     ProductSkuCreateView,ProductSkuInstanceView,ProductSearchView,ProductDistrictView,ProductBarCodeView
 from shopback.items.resources import ProductListResource,ProductItemResource,ProductResource,\
@@ -17,6 +18,7 @@ urlpatterns = patterns('shopback.items.views',
     url('update/stock/$','update_product_stock',name='update_stock'),
     url('district/query/$','deposite_district_query',name='query_district'),
     url('product/district/delete/$','delete_product_district',name='delete_district'),
+    (r'^split/$',TemplateView.as_view(template_name="items/split_product_template.html")),
     
     (r'^product/$',ProductListView.as_view(
         resource=ProductListResource,

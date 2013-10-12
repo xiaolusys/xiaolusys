@@ -1,3 +1,19 @@
+######### 2013-10-12 ##########
+alter table shop_trades_mergetrade add column reserveo varchar(64) NOT NULL;
+alter table shop_trades_mergetrade add column reservet varchar(64) NOT NULL;
+alter table shop_trades_mergetrade add column reserveh varchar(64) NOT NULL;
+######### 2013-10-10 ##########
+alter table shop_users_user change top_session top_session varchar(128) NOT NULL;
+alter table shop_users_user change top_appkey top_appkey varchar(32) NOT NULL;
+alter table shop_users_user change top_parameters top_parameters varchar(2000) NOT NULL;
+
+alter table shop_users_user change visitor_id visitor_id varchar(64) NOT NULL;
+alter table shop_users_user change uid uid varchar(64) NOT NULL;
+alter table shop_users_user change nick nick varchar(64) NOT NULL;
+######### 2013-10-9  ##########
+alter table shop_trades_mergetrade add column is_qrcode tinyint(1) NOT NULL;
+rename table shop_shipclassify_branch to shop_yunda_branch;
+rename table shop_shipclassify_zone to shop_yunda_zone;
 ######### 2013-8-16  ##########
 alter table shop_purchases_purchase add column prepay_cent double NOT NULL;
 alter table shop_purchases_purchase add column attach_files varchar(100) NOT NULL;

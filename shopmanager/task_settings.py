@@ -68,9 +68,13 @@ CELERY_ROUTES = {
             'queue': 'peroid',
             'routing_key': 'peroid.push_buyer_to_customer_task',
         },
-        'shopapp.shipclassify.tasks.updateYundaOrderAddrTask': {
+        'shopapp.yunda.tasks.updateYundaOrderAddrTask': {
             'queue': 'peroid',
             'routing_key': 'peroid.update_yunda_order_address_task',
+        },
+        'shopapp.yunda.tasks.cancelUnusedYundaSid': {
+            'queue': 'peroid',
+            'routing_key': 'peroid.cancel_unused_yunda_sid',
         },
 }
 
@@ -171,8 +175,13 @@ SHOP_APP_SCHEDULE = {
         'args':(1,)
     },
     'runs-every-day-sync-yunda-address':{
-        'task':'shopapp.shipclassify.tasks.updateYundaOrderAddrTask',
+        'task':'shopapp.yunda.tasks.updateYundaOrderAddrTask',
         'schedule':crontab(minute="30",hour="20,6"),
+        'args':()
+    },
+    'runs-every-day-cancel-yunda-sid':{
+        'task':'shopapp.yunda.tasks.cancelUnusedYundaSid',
+        'schedule':crontab(minute="30",hour="22"),
         'args':()
     },
 #    'runs-every-day-product-trade':{

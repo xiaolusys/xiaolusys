@@ -1,5 +1,9 @@
 #-*- coding:utf8 -*-
 from django.db import models
+from shopback.signals import change_addr_signal
+import logging
+
+logger = logging.getLogger('yunda.handler')
 
 class BranchZone(models.Model):
     
@@ -34,3 +38,13 @@ class ClassifyZone(models.Model):
         return '<%s,%s>'%(' '.join([self.state,self.city,self.district]),self.branch or '')
     
     
+def change_order_yunda_addr(sender, trade_id, *args, **kwargs):
+    print 'change addr:',trade_id
+    from shopapp.yunda.qrcode import modify_order
+    try:
+        modify_order([trade_id])
+    except Exception,exc:
+        logger.error(exc.message,exc_info=True)
+        
+change_addr_signal.connect(change_order_yunda_addr,sender='change_order_addr',dispatch_uid='change_order_addr_id')        
+        

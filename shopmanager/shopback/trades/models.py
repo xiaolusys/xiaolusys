@@ -219,6 +219,10 @@ class MergeTrade(models.Model):
     is_charged     =  models.BooleanField(default=False,verbose_name='揽件')
     sys_status     =  models.CharField(max_length=32,db_index=True,choices=SYS_TRADE_STATUS,blank=True,default='',verbose_name='系统状态')
     
+    reserveo       =  models.CharField(max_length=64,blank=True,verbose_name='自定义1')       
+    reservet       =  models.CharField(max_length=64,blank=True,verbose_name='自定义2') 
+    reserveh       =  models.CharField(max_length=64,blank=True,verbose_name='自定义3') 
+    
     class Meta:
         db_table = 'shop_trades_mergetrade'
         verbose_name=u'订单'
@@ -1082,7 +1086,24 @@ def trade_download_controller(merge_trade,trade,trade_from,first_pay_load):
                         merge_trade.logistics_company = default_company
                 elif shipping_type in (pcfg.POST_SHIPPING_TYPE,pcfg.EMS_SHIPPING_TYPE):
                     post_company = LogisticsCompany.objects.get(code=shipping_type.upper())
-                    merge_trade.logistics_company = post_company 
+                    merge_trade.logistics_company = post_company
+                #如果订单选择使用韵达物流，则会请求韵达接口，查询订单是否到达，并做处理    
+                if  merge_trade.logistics_company and merge_trade.logistics_company.code == 'YUNDA':
+                    from shopapp.yunda.qrcode import select_order
+                    
+                    doc    = select_order([merge_trade.id])
+                    reach  = doc.xpath('/responses/response/reach')
+                    zonec  = doc.xpath('/responses/response/package_bm')
+                    zoned  = doc.xpath('/responses/response/package_mc')
+                    
+                    if reach == '0':
+                        merge_trade.append_reason_code(pcfg.NEW_MEMO_CODE)
+                        MergeTrade.objects.filter(id=merge_trade.id).update(sys_memo=u'韵达不到')
+                        merge_trade.logistics_company = None
+                    
+                    if reach == '1':
+                        MergeTrade.objects.filter(id=merge_trade.id).update(reserveo=zonec,reservet=zoned)
+                    
             except:
                 merge_trade.append_reason_code(pcfg.DISTINCT_RULE_CODE)
      

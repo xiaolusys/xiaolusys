@@ -10,9 +10,12 @@ from celery.task import task
 from celery.task.sets import subtask
 from shopback import paramconfig as pcfgs
 from shopback.trades.models import MergeTrade
+from shopapp.yunda.qrcode import cancel_order
 from utils import valid_mobile
+import logging
 
-
+logger = logging.getLogger('yunda.handler')
+######################## 韵达录单任务 ########################
 YUNDA_ADDR_URL = 'http://qz.yundasys.com:18080/ws/opws.jsp'
 
 STATE_CODE_MAP = {
@@ -158,17 +161,40 @@ def updateYundaOrderAddrTask():
             try:
                 response = post_yjsm_request(post_xml.encode('utf8'))
             except Exception,exc:
+                logger.error(exc.message,exc_info=True)
                 raise updateYundaOrderAddrTask.retry(exc=exc,countdown=60)
             
             MergeTrade.objects.filter(id__in=yj_ids).update(is_charged=True,charge_time=dt)
             
             yj_list = []
             yj_ids.clear() 
+    
         
-   
-        
-        
-        
-        
-                
+######################## 韵达二维码 ########################   
+@task(max_retries=3)
+def cancelUnusedYundaSid():
+    """ 取消系统内未使用的韵达二维码单号 """
+    
+    today    = datetime.datetime.now()
+    
+    last_day = today - datetime.timedelta(days=1)
+    
+    #查询系统内未完成订单，过滤条件is_qrcode=True（订单改快递更要取消）,订单状态在问题单，待发货（未打印），作废，定时提醒，飞行模式，
+    canceltrades = MergeTrade.objects.filter(pay_time__gt=last_day,pay_time__lt=today).exclude(is_qrcode=True,logistics_company__code="YUNDA",
+                    sys_satus__in=(pcfg.WAIT_CHECK_BARCODE_STATUS,pcfg.WAIT_SCAN_WEIGHT_STATUS,pcfg.FINISHED_STATUS))\
+                    .exclude(sys_status=pcfg.WAIT_PREPARE_SEND_STATUS,is_express_print=True)
+    
+    #获取订单编号，批量取消订单
+    cancelids = [t.id for t in canceltrades]            
+    try:
+        cancel_order(cancelids)
+    except Exception,exc:
+        logger.error(exc.message,exc_info=True)
+        raise cancelUnusedYundaSid.retry(exc=exc,countdown=30*60)
+    
+    
+    
+    
+    
+    
                 

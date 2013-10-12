@@ -14,13 +14,16 @@ import cgi
 from lxml import etree
 from StringIO import StringIO
 
+from django.core.management import setup_environ
+import settings
+setup_environ(settings)
+
 from shopapp.yunda.options import get_addr_zones
 from shopback.trades.models import MergeTrade
 
 #demon_url = 'http://orderdev.yundasys.com:10209/cus_order/order_interface/'
 demon_url = 'http://order.yundasys.com:10235/cus_order/order_interface/'
 
-SELECT    = 'select'
 RECEIVE   = 'receive'
 RECEIVE_MAILNO = 'receive_mailno'
 MODIFY    = 'modify'
@@ -38,7 +41,6 @@ VALID_ACTION = 'valid_order'
 ACCEPT_ACTION = 'accept_order'
 TRANSITE_ACTION = 'transite_info'
 
-SELECT_API    = 'interface_select_reach_package.php'
 RECEIVE_API   = 'interface_receive_order.php' 
 MODIFY_API    = 'interface_modify_order.php'
 CANCEL_API    = 'interface_cancel_order.php'
@@ -48,7 +50,6 @@ PRINTFILE_API = 'interface_print_file.php'
 RECEIVER_MAILNO_API = 'interface_receive_order__mailno.php'
 
 ACTION_DICT = {
-               SELECT:RECEIVE_ACTION,
                RECEIVE:RECEIVE_ACTION,
                MODIFY:RECEIVE_ACTION,
                CANCEL:CANCEL_ACTION,
@@ -60,7 +61,6 @@ ACTION_DICT = {
                }
 
 API_DICT = {
-               SELECT:SELECT_API,
                RECEIVE:RECEIVE_API,
                MODIFY:RECEIVE_API,
                CANCEL:CANCEL_API,
@@ -120,22 +120,6 @@ def gen_orders_xml(objs):
     _xml_list.append('</orders>')
     
     return ''.join(_xml_list).encode('utf8')
-
-
-def gen_select_xml(objs):
-    
-    _xml_list = ['<orders>']
-
-    for obj in objs:
-        _xml_list.append('<order>')
-        _xml_list.append('<id>%s</id>'%obj['id'])
-        _xml_list.append('<sender_address>%s</sender_address>'%','.join([trade.sender_city,trade.sender_address]))
-        _xml_list.append('<receiver_address>%s</receiver_address>'%','.join([ s.replace(',',' ') for s in [trade.receiver_state,trade.receiver_city,trade.receiver_district]]))
-        _xml_list.append('</order>')
-        
-    _xml_list.append('</orders>')
-    
-    return ''.join(_xml_list).encode('utf8')
     
     
 def get_objs_from_trade(trades):
@@ -180,8 +164,10 @@ def handle_demon(action,xml_data,partner_id,secret):
     
     req = urllib2.urlopen(demon_url+API_DICT[action], urllib.urlencode(params), timeout=60)
     rep = req.read()       
-    print action,rep
+    print 'rep',rep
     if action == REPRINT:
+        with open('/tmp/qrcode.pdf','w') as f:
+            f.write(rep)
         return rep
     
     parser = etree.XMLParser()
@@ -190,24 +176,7 @@ def handle_demon(action,xml_data,partner_id,secret):
     return tree
      
      
-def select_order(ids):
-    
-    assert isinstance(ids,(list,tuple))
-    
-    trades = MergeTrade.objects.filter(id__in=ids)
- 
-    objs  = get_objs_from_trade(trades)
-    
-    order_xml = gen_select_xml(objs)
-    
-    tree = handle_demon(SELECT,order_xml,PARTNER_ID,SECRET)
-    
-    return tree
-     
-     
 def create_order(ids):
-    
-    assert isinstance(ids,(list,tuple))
     
     trades = MergeTrade.objects.filter(id__in=ids)
  
@@ -222,8 +191,6 @@ def create_order(ids):
 
 def create_order_ret_mailno(ids):
     
-    assert isinstance(ids,(list,tuple))
-    
     trades = MergeTrade.objects.filter(id__in=ids)
  
     objs  = get_objs_from_trade(trades)
@@ -237,8 +204,6 @@ def create_order_ret_mailno(ids):
 
 def modify_order(ids):
     
-    assert isinstance(ids,(list,tuple))
-    
     trades = MergeTrade.objects.filter(id__in=ids)
  
     objs  = get_objs_from_trade(trades)
@@ -251,8 +216,6 @@ def modify_order(ids):
     
     
 def cancel_order(ids):
-    
-    assert isinstance(ids,(list,tuple))
     
     order_xml = "<orders>"
     
@@ -268,8 +231,6 @@ def cancel_order(ids):
     
 def search_order(ids):
     
-    assert isinstance(ids,(list,tuple))
-    
     order_xml = "<orders>"
     
     for i in ids:
@@ -284,8 +245,6 @@ def search_order(ids):
 
 def valid_order(ids):
     
-    assert isinstance(ids,(list,tuple))
-    
     order_xml = "<orders>"
     
     for i in ids:
@@ -299,8 +258,6 @@ def valid_order(ids):
 
 
 def print_order(ids):
-    
-    assert isinstance(ids,(list,tuple))
     
     order_xml = "<orders>"
     

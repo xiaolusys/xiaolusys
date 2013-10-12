@@ -17,7 +17,7 @@ django-bitfield==1.6.4
 #line_profiler
 #guppy
 
-git+ssh://git@192.168.1.101/django-chartit.git#egg=django-chartit
+git+ssh://git@qiyue.f3322.org/repo/django-chartit.git#egg=django-chartit
 #git+shh://user1@222.73.86.185/repo/django-rest-framework.git#egg=djangorestframework
 #git+git://github.com/dcramer/django-devserver#egg=django-devserver
 
