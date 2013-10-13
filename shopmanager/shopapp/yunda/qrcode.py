@@ -129,8 +129,8 @@ def gen_select_xml(objs):
     for obj in objs:
         _xml_list.append('<order>')
         _xml_list.append('<id>%s</id>'%obj['id'])
-        _xml_list.append('<sender_address>%s</sender_address>'%','.join([trade.sender_city,trade.sender_address]))
-        _xml_list.append('<receiver_address>%s</receiver_address>'%','.join([ s.replace(',',' ') for s in [trade.receiver_state,trade.receiver_city,trade.receiver_district]]))
+        _xml_list.append('<sender_address>%s</sender_address>'%','.join([obj['sender_city'],obj['sender_address']]))
+        _xml_list.append('<receiver_address>%s</receiver_address>'%obj['receiver_address'])
         _xml_list.append('</order>')
         
     _xml_list.append('</orders>')
@@ -156,7 +156,7 @@ def get_objs_from_trade(trades):
                      "receiver_name":trade.receiver_name,
                      "receiver_company":u'',
                      "receiver_city":','.join([trade.receiver_state,trade.receiver_city,trade.receiver_district]),
-                     "receiver_address":','.join([trade.receiver_state,trade.receiver_city,trade.receiver_district+trade.receiver_address]),
+                     "receiver_address":','.join([trade.receiver_state,trade.receiver_city,(trade.receiver_district+trade.receiver_address).replace(',',' ')]),
                      "receiver_postcode":trade.receiver_zip,
                      "receiver_phone":trade.receiver_phone,
                      "receiver_mobile":trade.receiver_mobile,

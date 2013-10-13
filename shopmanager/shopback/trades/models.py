@@ -1088,13 +1088,13 @@ def trade_download_controller(merge_trade,trade,trade_from,first_pay_load):
                     post_company = LogisticsCompany.objects.get(code=shipping_type.upper())
                     merge_trade.logistics_company = post_company
                 #如果订单选择使用韵达物流，则会请求韵达接口，查询订单是否到达，并做处理    
-                if  merge_trade.logistics_company and merge_trade.logistics_company.code == 'YUNDA':
+                if  False and merge_trade.logistics_company and merge_trade.logistics_company.code == 'YUNDA':
                     from shopapp.yunda.qrcode import select_order
                     
                     doc    = select_order([merge_trade.id])
-                    reach  = doc.xpath('/responses/response/reach')
-                    zonec  = doc.xpath('/responses/response/package_bm')
-                    zoned  = doc.xpath('/responses/response/package_mc')
+                    reach  = doc.xpath('/responses/response/reach')[0]
+                    zonec  = doc.xpath('/responses/response/package_bm')[0]
+                    zoned  = doc.xpath('/responses/response/package_mc')[0]
                     
                     if reach == '0':
                         merge_trade.append_reason_code(pcfg.NEW_MEMO_CODE)
@@ -1104,7 +1104,8 @@ def trade_download_controller(merge_trade,trade,trade_from,first_pay_load):
                     if reach == '1':
                         MergeTrade.objects.filter(id=merge_trade.id).update(reserveo=zonec,reservet=zoned)
                     
-            except:
+            except Exception,exc:
+                logger.error(exc.message,exc_info=True)
                 merge_trade.append_reason_code(pcfg.DISTINCT_RULE_CODE)
      
         #退款中
