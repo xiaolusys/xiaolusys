@@ -180,7 +180,7 @@ def handle_demon(action,xml_data,partner_id,secret):
     
     req = urllib2.urlopen(demon_url+API_DICT[action], urllib.urlencode(params), timeout=60)
     rep = req.read()       
-    print action,rep
+    
     if action == REPRINT:
         return rep
     

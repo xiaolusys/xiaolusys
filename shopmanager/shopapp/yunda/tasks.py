@@ -181,7 +181,7 @@ def cancelUnusedYundaSid():
     
     #查询系统内未完成订单，过滤条件is_qrcode=True（订单改快递更要取消）,订单状态在问题单，待发货（未打印），作废，定时提醒，飞行模式，
     canceltrades = MergeTrade.objects.filter(pay_time__gt=last_day,pay_time__lt=today).exclude(is_qrcode=True,logistics_company__code="YUNDA",
-                    sys_satus__in=(pcfg.WAIT_CHECK_BARCODE_STATUS,pcfg.WAIT_SCAN_WEIGHT_STATUS,pcfg.FINISHED_STATUS))\
+                    sys_status__in=(pcfg.WAIT_CHECK_BARCODE_STATUS,pcfg.WAIT_SCAN_WEIGHT_STATUS,pcfg.FINISHED_STATUS))\
                     .exclude(sys_status=pcfg.WAIT_PREPARE_SEND_STATUS,is_express_print=True)
     
     #获取订单编号，批量取消订单
