@@ -21,9 +21,10 @@ setup_environ(settings)
 from shopapp.yunda.options import get_addr_zones
 from shopback.trades.models import MergeTrade
 
-#demon_url = 'http://orderdev.yundasys.com:10209/cus_order/order_interface/'
+#test_url = 'http://orderdev.yundasys.com:10209/cus_order/order_interface/'
 demon_url = 'http://order.yundasys.com:10235/cus_order/order_interface/'
 
+SELECT    = 'select'
 RECEIVE   = 'receive'
 RECEIVE_MAILNO = 'receive_mailno'
 MODIFY    = 'modify'
@@ -41,6 +42,7 @@ VALID_ACTION = 'valid_order'
 ACCEPT_ACTION = 'accept_order'
 TRANSITE_ACTION = 'transite_info'
 
+SELECT_API    = 'interface_select_reach_package.php'
 RECEIVE_API   = 'interface_receive_order.php' 
 MODIFY_API    = 'interface_modify_order.php'
 CANCEL_API    = 'interface_cancel_order.php'
@@ -50,6 +52,7 @@ PRINTFILE_API = 'interface_print_file.php'
 RECEIVER_MAILNO_API = 'interface_receive_order__mailno.php'
 
 ACTION_DICT = {
+               SELECT:RECEIVE_ACTION,
                RECEIVE:RECEIVE_ACTION,
                MODIFY:RECEIVE_ACTION,
                CANCEL:CANCEL_ACTION,
@@ -61,6 +64,7 @@ ACTION_DICT = {
                }
 
 API_DICT = {
+               SELECT:SELECT_API,
                RECEIVE:RECEIVE_API,
                MODIFY:RECEIVE_API,
                CANCEL:CANCEL_API,
@@ -71,9 +75,10 @@ API_DICT = {
                RECEIVE_MAILNO:RECEIVER_MAILNO_API,
                }
 
-PARTNER_ID = "10134210001"
+#PARTNER_ID = "10134210001"
+#SECRET     = "123456"
+PARTNER_ID = "YUNDA"
 SECRET     = "123456"
-
 
 ################ 创建订单请求 ###############
 def gen_orders_xml(objs):
@@ -122,6 +127,22 @@ def gen_orders_xml(objs):
     return ''.join(_xml_list).encode('utf8')
     
     
+def gen_select_xml(objs):
+    
+    _xml_list = ['<orders>']
+
+    for obj in objs:
+        _xml_list.append('<order>')
+        _xml_list.append('<id>%s</id>'%obj['id'])
+        _xml_list.append('<sender_address>%s</sender_address>'%(','.join([obj['sender_city'],obj['sender_address']])))
+        _xml_list.append('<receiver_address>%s</receiver_address>'%obj['receiver_address'])
+        _xml_list.append('</order>')
+        
+    _xml_list.append('</orders>')
+    
+    return ''.join(_xml_list).encode('utf8')
+   
+    
 def get_objs_from_trade(trades):
     
     objs = []
@@ -164,10 +185,8 @@ def handle_demon(action,xml_data,partner_id,secret):
     
     req = urllib2.urlopen(demon_url+API_DICT[action], urllib.urlencode(params), timeout=60)
     rep = req.read()       
-    print 'rep',rep
+    
     if action == REPRINT:
-        with open('/tmp/qrcode.pdf','w') as f:
-            f.write(rep)
         return rep
     
     parser = etree.XMLParser()
@@ -175,7 +194,21 @@ def handle_demon(action,xml_data,partner_id,secret):
     
     return tree
      
-     
+
+def select_order(ids):
+    
+    assert isinstance(ids,(list,tuple))
+    
+    trades = MergeTrade.objects.filter(id__in=ids)
+ 
+    objs  = get_objs_from_trade(trades)
+    
+    order_xml = gen_select_xml(objs)
+    print order_xml
+    tree = handle_demon(SELECT,order_xml,PARTNER_ID,SECRET)
+    
+    return tree
+  
 def create_order(ids):
     
     trades = MergeTrade.objects.filter(id__in=ids)
@@ -297,6 +330,8 @@ if __name__ == '__main__':
     if option == '7':
         create_order_ret_mailno([id])
     
+    if option == '8':
+        select_order([id])
     #resave_order()
     #cancel_order()
     #request_print()   

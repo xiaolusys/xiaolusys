@@ -10,7 +10,7 @@ from celery.task import task
 from celery.task.sets import subtask
 from shopback import paramconfig as pcfg
 from shopback.trades.models import MergeTrade
-from shopapp.yunda.qrcode import cancel_order
+from shopapp.yunda.qrcode import cancel_order,search_order,parseTreeID2MailnoMap
 from utils import valid_mobile
 import logging
 
@@ -179,15 +179,37 @@ def cancelUnusedYundaSid():
     
     last_day = today - datetime.timedelta(days=1)
     
-    #查询系统内未完成订单，过滤条件is_qrcode=True（订单改快递更要取消）,订单状态在问题单，待发货（未打印），作废，定时提醒，飞行模式，
-    canceltrades = MergeTrade.objects.filter(pay_time__gt=last_day,pay_time__lt=today).exclude(is_qrcode=True,logistics_company__code="YUNDA",
-                    sys_satus__in=(pcfg.WAIT_CHECK_BARCODE_STATUS,pcfg.WAIT_SCAN_WEIGHT_STATUS,pcfg.FINISHED_STATUS))\
-                    .exclude(sys_status=pcfg.WAIT_PREPARE_SEND_STATUS,is_express_print=True)
+    #查询昨天到几天的所有订单
+    trades = MergeTrade.objects.filter(pay_time__gt=last_day,pay_time__lt=today)
     
     #获取订单编号，批量取消订单
-    cancelids = [t.id for t in canceltrades]            
+    tradeids = [t.id for t in trades] 
+    
+    if not tradeids:
+        return            
+    
     try:
-        cancel_order(cancelids)
+        doc   = search_order(tradeids)
+        
+        cancelids = []
+        orders = doc.xpath('/responses/response')
+        for order in orders:
+            status = order.xpath('status')[0].text
+            order_mail_no = order.xpath('mailno')
+            
+            if status != '1' and not order_mail_no:
+                continue
+        
+            order_serial_no = order.xpath('order_serial_no')[0].text
+            mailno   = order_mail_no[0].text
+            
+            trade = MergeTrade.objects.get(id=order_serial_no)
+            lgc   = trade.logistics_company
+            if trade.out_sid.strip() != mailno or (lgc and lgc.code != 'YUNDA'):
+                cancelids.append(mailno)
+        
+        if cancelids:
+            cancel_order(cancelids)
     except Exception,exc:
         logger.error(exc.message,exc_info=True)
         raise cancelUnusedYundaSid.retry(exc=exc,countdown=30*60)

@@ -61,7 +61,7 @@ class Supplier(models.Model):
     
     supply_type           = models.ForeignKey(SupplierType,null=True,related_name='suppliers',verbose_name='供应商类型')
 
-    supplier_name  = models.CharField(max_length=32,blank=True,verbose_name='供应商名称')
+    supplier_name  = models.CharField(max_length=32,blank=True,unique=True,verbose_name='供应商名称')
     contact        = models.CharField(max_length=32,blank=True,verbose_name='联系方式')
     phone          = models.CharField(max_length=32,blank=True,verbose_name='电话')
     mobile         = models.CharField(max_length=16,blank=True,verbose_name='手机')

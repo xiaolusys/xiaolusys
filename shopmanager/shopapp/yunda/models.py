@@ -43,7 +43,7 @@ def change_order_yunda_addr(sender, tid, *args, **kwargs):
    
     from shopapp.yunda.qrcode import modify_order
     try:
-        modify_order([trade_id])
+        modify_order([tid])
     except Exception,exc:
         logger.error(exc.message,exc_info=True)
         

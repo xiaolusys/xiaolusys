@@ -164,6 +164,25 @@ def get_objs_from_trade(trades):
                      })
         
     return objs
+
+
+def parseTreeID2MailnoMap(doc):
+    """ 订单查询结果转换成字典 """
+    im_map = {}
+    orders = doc.xpath('/responses/response')
+    for order in orders:
+        status = order.xpath('status')[0].text
+        order_mail_no = order.xpath('mailno')
+        
+        if status != '1' and not order_mail_no:
+            continue
+        
+        order_serial_no = order.xpath('order_serial_no')[0].text
+        mailno   = order_mail_no[0].text
+        
+        im_map[order_serial_no] = mailno
+        
+    return im_map
        
        
 def handle_demon(action,xml_data,partner_id,secret):
@@ -180,7 +199,7 @@ def handle_demon(action,xml_data,partner_id,secret):
     
     req = urllib2.urlopen(demon_url+API_DICT[action], urllib.urlencode(params), timeout=60)
     rep = req.read()       
-    print action,rep
+    
     if action == REPRINT:
         return rep
     
@@ -339,6 +358,9 @@ if __name__ == '__main__':
         
     if option == '7':
         create_order_ret_mailno([id])
+    
+    if option == '8':
+        select_order([id])
     
     #resave_order()
     #cancel_order()
