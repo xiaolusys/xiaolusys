@@ -75,10 +75,10 @@ API_DICT = {
                RECEIVE_MAILNO:RECEIVER_MAILNO_API,
                }
 
-#PARTNER_ID = "10134210001"
-#SECRET     = "123456"
-PARTNER_ID = "YUNDA"
+PARTNER_ID = "10134210001"
 SECRET     = "123456"
+#PARTNER_ID = "YUNDA"
+#SECRET     = "123456"
 
 ################ 创建订单请求 ###############
 def gen_orders_xml(objs):
@@ -204,7 +204,7 @@ def select_order(ids):
     objs  = get_objs_from_trade(trades)
     
     order_xml = gen_select_xml(objs)
-    print order_xml
+    
     tree = handle_demon(SELECT,order_xml,PARTNER_ID,SECRET)
     
     return tree

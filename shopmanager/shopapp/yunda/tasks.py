@@ -181,7 +181,7 @@ def cancelUnusedYundaSid():
     
     #查询昨天到几天的所有订单
     trades = MergeTrade.objects.filter(pay_time__gt=last_day,pay_time__lt=today)
-    
+
     #获取订单编号，批量取消订单
     tradeids = [t.id for t in trades] 
     
