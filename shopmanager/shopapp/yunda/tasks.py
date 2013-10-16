@@ -139,7 +139,7 @@ def updateYundaOrderAddrTask():
     index    = 0
     dt      = datetime.datetime.now()
     trades  = MergeTrade.objects.filter(logistics_company__code='YUNDA',
-                                       sys_status=pcfgs.FINISHED_STATUS,
+                                       sys_status=pcfg.FINISHED_STATUS,
                                        is_express_print=True,
                                        is_charged=False,
                                        ).exclude(out_sid='').exclude(receiver_name='')
@@ -176,7 +176,6 @@ def cancelUnusedYundaSid():
     """ 取消系统内未使用的韵达二维码单号 """
     
     today    = datetime.datetime.now()
-    
     last_day = today - datetime.timedelta(days=1)
     
     #查询昨天到几天的所有订单
@@ -184,7 +183,7 @@ def cancelUnusedYundaSid():
 
     #获取订单编号，批量取消订单
     tradeids = [t.id for t in trades] 
-    
+    print 'ids:',len(tradeids)
     if not tradeids:
         return            
     
@@ -195,21 +194,23 @@ def cancelUnusedYundaSid():
         orders = doc.xpath('/responses/response')
         for order in orders:
             status = order.xpath('status')[0].text
-            order_mail_no = order.xpath('mailno')
-            
-            if status != '1' and not order_mail_no:
-                continue
-        
+            mail_no = order.xpath('mailno')[0].text
             order_serial_no = order.xpath('order_serial_no')[0].text
-            mailno   = order_mail_no[0].text
-            
             trade = MergeTrade.objects.get(id=order_serial_no)
+
+            if status=='1':print status,order_serial_no,mail_no,trade.out_sid
+            
+            if status != '1' and not mail_no:
+                continue
+                               
+            
             lgc   = trade.logistics_company
-            if trade.out_sid.strip() != mailno or (lgc and lgc.code != 'YUNDA'):
-                cancelids.append(mailno)
-        
-        if cancelids:
-            cancel_order(cancelids)
+            
+            if trade.out_sid.strip() != mail_no or (lgc and lgc.code != 'YUNDA'):
+                cancelids.append(order_serial_no)
+        print 'debug cancelids:',len(cancelids)
+        #if cancelids:
+        #    cancel_order(cancelids)
     except Exception,exc:
         logger.error(exc.message,exc_info=True)
         raise cancelUnusedYundaSid.retry(exc=exc,countdown=30*60)

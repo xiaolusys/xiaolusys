@@ -111,7 +111,7 @@ class MergeTradeAdmin(admin.ModelAdmin):
                                ,('total_fee','payment','discount_fee','adjust_fee','post_fee')
                                ,('seller_cod_fee','buyer_cod_fee','cod_fee','cod_status','alipay_no')
                                ,('is_brand_sale','is_force_wlb','buyer_rate','seller_rate','seller_can_rate'
-                                 ,'is_part_consign','is_lgtype','lg_aging_type','is_qrcode')
+                                 ,'is_part_consign','is_lgtype','lg_aging_type')
                                ,('send_time','lg_aging','step_paid_fee','step_trade_status')
                                ,('created','modified','pay_time','consign_time')
                                ,('buyer_message','seller_memo','sys_memo')
@@ -126,7 +126,7 @@ class MergeTradeAdmin(admin.ModelAdmin):
                 ('系统内部信息:', {
                     'classes': ('collapse',),
                     'fields': (('has_sys_err','has_memo','has_refund','has_out_stock','has_rule_match','has_merge'
-                                ,'is_send_sms','is_picking_print','is_express_print','can_review')
+                                ,'is_send_sms','is_picking_print','is_express_print','can_review','is_qrcode')
                                ,('is_locked','is_charged','priority','reason_code','refund_num')
                                ,('remind_time','weight_time','charge_time')
                                ,('post_cost','operator','weight','sys_status',)
