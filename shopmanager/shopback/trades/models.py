@@ -1088,7 +1088,7 @@ def trade_download_controller(merge_trade,trade,trade_from,first_pay_load):
                     post_company = LogisticsCompany.objects.get(code=shipping_type.upper())
                     merge_trade.logistics_company = post_company
                 #如果订单选择使用韵达物流，则会请求韵达接口，查询订单是否到达，并做处理    
-                if  False and merge_trade.logistics_company and merge_trade.logistics_company.code == 'YUNDA':
+                if  merge_trade.logistics_company and merge_trade.logistics_company.code == 'YUNDA':
                     from shopapp.yunda.qrcode import select_order
                     
                     doc    = select_order([merge_trade.id])

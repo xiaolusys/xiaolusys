@@ -172,18 +172,19 @@ def updateYundaOrderAddrTask():
         
 ######################## 韵达二维码 ########################   
 @task(max_retries=3)
-def cancelUnusedYundaSid():
+def cancelUnusedYundaSid(cday=1):
     """ 取消系统内未使用的韵达二维码单号 """
     
     today    = datetime.datetime.now()
-    last_day = today - datetime.timedelta(days=1)
+    last_day = today - datetime.timedelta(days=cday)
     
     #查询昨天到几天的所有订单
     trades = MergeTrade.objects.filter(pay_time__gt=last_day,pay_time__lt=today)
+    #.filter(sys_status__in=(pcfg.WAIT_PREPARE_SEND_STATUS,pcfg.WAIT_AUDIT_STATUS))
 
     #获取订单编号，批量取消订单
     tradeids = [t.id for t in trades] 
-    print 'ids:',len(tradeids)
+    #print 'ids:',len(tradeids)
     if not tradeids:
         return            
     
@@ -198,19 +199,18 @@ def cancelUnusedYundaSid():
             order_serial_no = order.xpath('order_serial_no')[0].text
             trade = MergeTrade.objects.get(id=order_serial_no)
 
-            if status=='1':print status,order_serial_no,mail_no,trade.out_sid
+            #if status=='1':print status,order_serial_no,mail_no,trade.out_sid
             
             if status != '1' and not mail_no:
                 continue
                                
-            
             lgc   = trade.logistics_company
             
             if trade.out_sid.strip() != mail_no or (lgc and lgc.code != 'YUNDA'):
                 cancelids.append(order_serial_no)
-        print 'debug cancelids:',len(cancelids)
-        #if cancelids:
-        #    cancel_order(cancelids)
+        #print 'debug cancelids:',len(cancelids)
+        if cancelids:
+            cancel_order(cancelids)
     except Exception,exc:
         logger.error(exc.message,exc_info=True)
         raise cancelUnusedYundaSid.retry(exc=exc,countdown=30*60)
