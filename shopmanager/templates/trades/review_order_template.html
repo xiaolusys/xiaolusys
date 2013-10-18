@@ -227,7 +227,7 @@
 			</table>
 		</fieldset>
 		<div class="bottom-area" >
-			{% if trade.can_review and trade.sys_status == "WAIT_CHECK_BARCODE" %}
+			{% if trade.can_review and (trade.sys_status == "WAIT_CHECK_BARCODE" or trade.sys_status == "WAIT_SCAN_WEIGHT") %}
 				{% if trade.reason_code %}
 				<button id="id-review-order-btn" class="btn-large btn-primary">复审通过</button>
 				{% else %}

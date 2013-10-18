@@ -1087,16 +1087,17 @@ def trade_download_controller(merge_trade,trade,trade_from,first_pay_load):
                 elif shipping_type in (pcfg.POST_SHIPPING_TYPE,pcfg.EMS_SHIPPING_TYPE):
                     post_company = LogisticsCompany.objects.get(code=shipping_type.upper())
                     merge_trade.logistics_company = post_company
+                    
                 #如果订单选择使用韵达物流，则会请求韵达接口，查询订单是否到达，并做处理    
                 if  merge_trade.logistics_company and merge_trade.logistics_company.code == 'YUNDA':
                     from shopapp.yunda.qrcode import select_order
                     
                     doc    = select_order([merge_trade.id])
-                    reach  = doc.xpath('/responses/response/reach')[0]
-                    zonec  = doc.xpath('/responses/response/package_bm')[0]
-                    zoned  = doc.xpath('/responses/response/package_mc')[0]
+                    reach  = doc.xpath('/responses/response/reach')[0].text
+                    zonec  = doc.xpath('/responses/response/package_bm')[0].text
+                    zoned  = doc.xpath('/responses/response/package_mc')[0].text
                     
-                    if reach == '0':
+                    if reach == '0' or not reach:
                         merge_trade.append_reason_code(pcfg.NEW_MEMO_CODE)
                         MergeTrade.objects.filter(id=merge_trade.id).update(sys_memo=u'韵达不到')
                         merge_trade.logistics_company = None
