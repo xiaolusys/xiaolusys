@@ -227,13 +227,13 @@
 			</table>
 		</fieldset>
 		<div class="bottom-area" >
-			{% if trade.can_review and (trade.sys_status == "WAIT_CHECK_BARCODE" or trade.sys_status == "WAIT_SCAN_WEIGHT") %}
+			{% if trade.can_review and trade.can_review_status %}
 				{% if trade.reason_code %}
 				<button id="id-review-order-btn" class="btn-large btn-primary">复审通过</button>
 				{% else %}
 				<button id="id-review-order-btn" class="btn-large" disabled="disabled">订单已复审</button>
 				{% endif %}
-			{% elif not trade.can_review and trade.sys_status == "WAIT_CHECK_BARCODE" and trade.reason_code != '' %}
+			{% elif not trade.can_review and trade.can_review_status and trade.reason_code != '' %}
 			<button id="id-review-order-btn" class="btn-large" disabled="disabled">客服未处理，暂不能复审</button>
 			{% else%}
 			<button id="id-review-order-btn" class="btn-large" disabled="disabled">订单无须复审</button>

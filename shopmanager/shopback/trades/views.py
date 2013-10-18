@@ -618,6 +618,7 @@ class ReviewOrderView(ModelView):
             'receiver_phone':trade.receiver_phone,
             'reason_code':trade.reason_code,
             'can_review':trade.can_review,
+            'can_review_status':trade.status in (pcfg.WAIT_CHECK_BARCODE_STATUS,pcfg.WAIT_SCAN_WEIGHT_STATUS),
             'status':trade.status,
             'sys_status':trade.sys_status,
             'status_name':dict(TAOBAO_TRADE_STATUS).get(trade.status,u'未知'),
