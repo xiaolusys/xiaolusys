@@ -392,12 +392,13 @@ class CheckOrderView(ModelView):
             log_action(user_id,trade,CHANGE,u'审核成功')
             
         elif action_code == 'review':
-            if trade.sys_status not in (pcfg.WAIT_CHECK_BARCODE_STATUS,pcfg.WAIT_SCAN_WEIGHT_STATUS):
+            if trade.sys_status not in pcfg.WAIT_SCAN_CHECK_WEIGHT:
                 return u'订单不在待扫描状态'
+            
             if is_logistic_change:
                 trade.append_reason_code(pcfg.ADDR_CHANGE_CODE)
-            MergeTrade.objects.filter(id=id,sys_status = pcfg.WAIT_CHECK_BARCODE_STATUS)\
-                .update(can_review=True)
+            
+            MergeTrade.objects.filter(id=id).update(can_review=True)
             log_action(user_id,trade,CHANGE,u'订单复审')
             
         return {'success':True}    
@@ -618,7 +619,7 @@ class ReviewOrderView(ModelView):
             'receiver_phone':trade.receiver_phone,
             'reason_code':trade.reason_code,
             'can_review':trade.can_review,
-            'can_review_status':trade.sys_status in (pcfg.WAIT_CHECK_BARCODE_STATUS,pcfg.WAIT_SCAN_WEIGHT_STATUS),
+            'can_review_status':trade.sys_status in pcfg.WAIT_SCAN_CHECK_WEIGHT,
             'status':trade.status,
             'sys_status':trade.sys_status,
             'status_name':dict(TAOBAO_TRADE_STATUS).get(trade.status,u'未知'),
