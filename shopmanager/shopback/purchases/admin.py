@@ -141,7 +141,7 @@ class PurchaseAdmin(admin.ModelAdmin):
                     prod.cost = purchase_item.cost
                     prod.save()
         
-                log_action(request.user.id,purchase,CHANGE,u'更新库存商品价格')
+            log_action(request.user.id,purchase,CHANGE,u'更新库存商品价格')
         
         return render_to_response('purchases/purchase_addon_template.html',
                         {'purchases':approval_purchases},
