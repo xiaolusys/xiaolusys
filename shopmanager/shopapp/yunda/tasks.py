@@ -206,7 +206,7 @@ def cancelUnusedYundaSid(cday=1):
                                
             lgc   = trade.logistics_company
             
-            if trade.out_sid.strip() != mail_no or (lgc and lgc.code != 'YUNDA') or trade.sys_status in CANCEL_YUNDASID_STATUS:
+            if trade.out_sid.strip() != mail_no or (lgc and lgc.code != 'YUNDA') or trade.sys_status in pcfg.CANCEL_YUNDASID_STATUS:
                 cancelids.append(order_serial_no)
         #print 'debug cancelids:',len(cancelids)
         if cancelids:
