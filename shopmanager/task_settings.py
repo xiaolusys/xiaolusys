@@ -176,12 +176,12 @@ SHOP_APP_SCHEDULE = {
     },
     'runs-every-day-sync-yunda-address':{
         'task':'shopapp.yunda.tasks.updateYundaOrderAddrTask',
-        'schedule':crontab(minute="30",hour="20,6"),
+        'schedule':crontab(minute="30",hour="23,6"),
         'args':()
     },
     'runs-every-day-cancel-yunda-sid':{
         'task':'shopapp.yunda.tasks.cancelUnusedYundaSid',
-        'schedule':crontab(minute="30",hour="6,22"),
+        'schedule':crontab(minute="30",hour="5,22"),
         'args':(2,)
     },
 #    'runs-every-day-product-trade':{

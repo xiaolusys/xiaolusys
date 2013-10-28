@@ -1457,7 +1457,7 @@ def save_fenxiao_orders_to_mergetrade(sender, trade, *args, **kwargs):
         merge_trade.modified = trade.modified
         merge_trade.consign_time = trade.consign_time
         merge_trade.seller_flag  = trade.supplier_flag
-        merge_trade.priority = -1
+        merge_trade.priority = 0
         merge_trade.status   = trade.status
         merge_trade.trade_from  = TF_CODE_MAP[pcfg.TF_TAOBAO]
         

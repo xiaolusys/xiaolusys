@@ -147,7 +147,7 @@ class TradesToXLSFile(object):
 
             self.cur_row = 0
             seller_id = seller.visitor_id
-            seller_nick = consign_trades.filter(seller_id=seller_id)[0].seller_nick
+            seller_nick = seller.nick
             sheet = self.wb.add_sheet(seller_nick)
 
             seller_finish_trades = consign_trades.filter(
