@@ -84,12 +84,12 @@ class PurchaseAdmin(admin.ModelAdmin):
         return '<a href="/purchases/%d/" >%s</a>'%(obj.id,symbol_link) 
     
     purchase_title_link.allow_tags = True
-    purchase_title_link.short_description = "标题"
+    purchase_title_link.short_description = u"标题"
     
     inlines = [PurchaseItemInline]
 
     #--------设置页面布局----------------
-    fieldsets =(('采购单信息:', {
+    fieldsets =((u'采购单信息:', {
                     'classes': ('expand',),
                     'fields': (('supplier','deposite','purchase_type','origin_no','extra_name',)
                                ,('total_fee','prepay','payment','prepay_cent')

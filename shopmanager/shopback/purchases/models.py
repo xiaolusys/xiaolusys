@@ -726,7 +726,7 @@ def update_purchaseitem_storage_and_fee(sender,instance,*args,**kwargs):
     purchase_item = PurchaseItem.objects.get(id=instance.purchase_item_id)
     
     relation_dict = PurchaseStorageRelationship.objects.filter(
-        purchase_id=instance.purchase_id,purchase_item_id=instance.purchase_item_id)\
+        purchase_id=instance.purchase_id,purchase_item_id=instance.purchase_item_id,is_addon=True)\
         .aggregate(total_storage_num=Sum('storage_num'))
         
     total_storage_num = relation_dict.get('total_storage_num') or 0
