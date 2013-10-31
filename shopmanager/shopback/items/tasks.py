@@ -275,56 +275,58 @@ def updateItemNum(user_id,num_iid):
     skus = json.loads(item.skus) if item.skus else None
     if skus:
         for sku in skus.get('sku',[]):
-            
-            outer_sku_id = sku.get('outer_id','')
-            if sku['status'] != pcfg.NORMAL or not outer_sku_id:
-                continue
-            product_sku  = product.prod_skus.get(outer_id=outer_sku_id)
-            
-            order_nums  = 0
-            wait_nums   = product_sku.wait_post_num>0 and product_sku.wait_post_num or 0
-            remain_nums = product_sku.remain_num or 0
-            real_num    = product_sku.quantity
-            sync_num    = real_num - wait_nums - remain_nums
-            
-            #如果自动更新库存状态开启，并且计算后库存不等于在线库存，则更新
-            if sync_num>0 and user_percent>0:
-                sync_num = round(user_percet*sync_num)
-            elif sync_num > product_sku.warn_num:
-                product_sku.is_assign = False
-            elif sync_num >0 and sync_num <= product_sku.warn_num:
-                total_num,user_order_num = MergeOrder.get_yesterday_orders_totalnum(item.user.id,outer_id,outer_sku_id)
-                if total_num>0 and user_order_num>0:
-                    sync_num = round(float(user_order_num)/float(total_num)*sync_num)
-                elif total_num == 0:
-                    item_count = Item.objects.filter(outer_id=outer_id,approve_status=pcfg.ONSALE_STATUS).count() or 1
-                    sync_num = sync_num/item_count or sync_num
+            try:
+                outer_sku_id = sku.get('outer_id','')
+                if sku['status'] != pcfg.NORMAL or not outer_sku_id:
+                    continue
+                product_sku  = product.prod_skus.get(outer_id=outer_sku_id)
+                
+                order_nums  = 0
+                wait_nums   = product_sku.wait_post_num>0 and product_sku.wait_post_num or 0
+                remain_nums = product_sku.remain_num or 0
+                real_num    = product_sku.quantity
+                sync_num    = real_num - wait_nums - remain_nums
+                
+                #如果自动更新库存状态开启，并且计算后库存不等于在线库存，则更新
+                if sync_num>0 and user_percent>0:
+                    sync_num = round(user_percet*sync_num)
+                elif sync_num > product_sku.warn_num:
+                    product_sku.is_assign = False
+                elif sync_num >0 and sync_num <= product_sku.warn_num:
+                    total_num,user_order_num = MergeOrder.get_yesterday_orders_totalnum(item.user.id,outer_id,outer_sku_id)
+                    if total_num>0 and user_order_num>0:
+                        sync_num = round(float(user_order_num)/float(total_num)*sync_num)
+                    elif total_num == 0:
+                        item_count = Item.objects.filter(outer_id=outer_id,approve_status=pcfg.ONSALE_STATUS).count() or 1
+                        sync_num = sync_num/item_count or sync_num
+                    else:
+                        sync_num = (real_num - wait_nums)>10 and 3 or 0 
                 else:
-                    sync_num = (real_num - wait_nums)>10 and 3 or 0 
-            else:
-                sync_num = 0
+                    sync_num = 0
+                    
+                #针对小小派，测试线上库存低量促销效果
+                if product.outer_id == '3116BG7':
+                    sync_num = product_sku.warn_num > 0 and min(sync_num,product_sku.warn_num+10) or min(sync_num,15)
+                    
+                #同步库存数不为0，或者没有库存警告，同步数量不等于线上库存，并且店铺，商品，规格同步状态正确
+                if not (sync_num == 0 and product_sku.is_assign) and sync_num != sku['quantity'] \
+                    and user.sync_stock and product.sync_stock and product_sku.sync_stock:
+                    sync_num = int(sync_num)
+                    response = apis.taobao_item_quantity_update\
+                            (num_iid=item.num_iid,quantity=sync_num,outer_id=outer_sku_id,tb_user_id=user_id)
+                    item_dict = response['item_quantity_update_response']['item']
+                    Item.objects.filter(num_iid=item_dict['num_iid']).update(modified=item_dict['modified'],num=sync_num)
+    
+                    product_sku.save()
+                    ItemNumTaskLog.objects.get_or_create(user_id=user_id,
+                                                 outer_id=product.outer_id,
+                                                 sku_outer_id= outer_sku_id,
+                                                 num=sync_num,
+                                                 start_at= item.last_num_updated,
+                                                 end_at=datetime.datetime.now())
+            except Exception,exc:
+                logger.error('sync sku num error!', exc_info=True)
                 
-            #针对小小派，测试线上库存低量促销效果
-            if product.outer_id == '3116BG7':
-                sync_num = product_sku.warn_num > 0 and min(sync_num,product_sku.warn_num+10) or min(sync_num,15)
-                
-            #同步库存数不为0，或者没有库存警告，同步数量不等于线上库存，并且店铺，商品，规格同步状态正确
-            if not (sync_num == 0 and product_sku.is_assign) and sync_num != sku['quantity'] \
-                and user.sync_stock and product.sync_stock and product_sku.sync_stock:
-                sync_num = int(sync_num)
-                response = apis.taobao_item_quantity_update\
-                        (num_iid=item.num_iid,quantity=sync_num,outer_id=outer_sku_id,tb_user_id=user_id)
-                item_dict = response['item_quantity_update_response']['item']
-                Item.objects.filter(num_iid=item_dict['num_iid']).update(modified=item_dict['modified'],num=sync_num)
-
-                product_sku.save()
-                ItemNumTaskLog.objects.get_or_create(user_id=user_id,
-                                             outer_id=product.outer_id,
-                                             sku_outer_id= outer_sku_id,
-                                             num=sync_num,
-                                             start_at= item.last_num_updated,
-                                             end_at=datetime.datetime.now())
-            
     else:
         order_nums    = 0
         outer_sku_id  = ''

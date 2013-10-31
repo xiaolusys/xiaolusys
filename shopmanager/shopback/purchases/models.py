@@ -58,7 +58,7 @@ PAYMENT_STATUS = (
 class Purchase(models.Model):
     """ 采购合同 """
     
-    origin_no  = models.CharField(max_length=32,db_index=True,blank=True,verbose_name='原合同号')
+    origin_no    = models.CharField(max_length=32,db_index=True,blank=True,verbose_name='原合同号')
     
     supplier     = models.ForeignKey(Supplier,null=True,blank=True,related_name='purchases',verbose_name='供应商')
     deposite     = models.ForeignKey(Deposite,null=True,blank=True,related_name='purchases',verbose_name='仓库')
@@ -67,6 +67,8 @@ class Purchase(models.Model):
     forecast_date = models.DateField(null=True,blank=True,verbose_name='预测到货日期')
     post_date     = models.DateField(null=True,blank=True,verbose_name='发货日期')
     service_date  = models.DateField(null=True,blank=True,verbose_name='业务日期')
+    
+    creator      = models.CharField(max_length=64,null=True,blank=True,verbose_name='创建人')
     
     created      = models.DateTimeField(null=True,blank=True,auto_now=True,verbose_name='创建日期')
     modified     = models.DateTimeField(null=True,blank=True,auto_now_add=True,verbose_name='修改日期')
@@ -334,7 +336,9 @@ def update_purchase_info(sender,instance,*args,**kwargs):
     if instance.storage_num:
         cost = instance.payment / instance.storage_num
         instance.std_price = round(cost,FINANCIAL_FIXED) or instance.price
-        update_model_feilds(instance,update_fields=['std_price'])
+        instance.arrival_status = instance.storage_num<=0 and pcfg.PD_UNARRIVAL or \
+            (instance.storage_num>=instance.purchase_num and pcfg.PD_FULLARRIVAL or pcfg.PD_PARTARRIVAL)
+        update_model_feilds(instance,update_fields=['std_price','arrival_status'])
     
     purchase = instance.purchase
     purchase_items = instance.purchase.effect_purchase_items

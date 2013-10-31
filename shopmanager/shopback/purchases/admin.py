@@ -1,4 +1,6 @@
 #-*- coding:utf8 -*-
+import time
+import cStringIO as StringIO
 from django.contrib import admin
 from django.db import models
 from django.contrib import messages
@@ -11,6 +13,7 @@ from shopback.items.models import Product,ProductSku
 from shopback.purchases.models import Purchase,PurchaseItem,PurchaseStorage,\
     PurchaseStorageItem,PurchasePayment,PurchasePaymentItem,PurchaseStorageRelationship
 from shopback.purchases import permissions as perms
+from utils import gen_cvs_tuple,CSVUnicodeWriter
 from shopback.base import log_action, ADDITION, CHANGE
 import logging 
 
@@ -70,8 +73,8 @@ class PurchasePaymentItemInline(admin.TabularInline):
 
 
 class PurchaseAdmin(admin.ModelAdmin):
-    list_display = ('id','purchase_title_link','origin_no','supplier','deposite','purchase_type',
-                    'receiver_name','total_fee','payment','forecast_date',
+    list_display = ('id','purchase_title_link','origin_no','supplier','deposite','purchase_type'
+                    ,'creator','receiver_name','total_fee','prepay','payment','forecast_date',
                     'post_date','service_date','arrival_status','status')
     #list_editable = ('update_time','task_type' ,'is_success','status')
 
@@ -186,7 +189,28 @@ class PurchaseAdmin(admin.ModelAdmin):
 
     complete_action.short_description = u"完成采购单"
     
-    actions = ['addon_cost_action','invalid_action','complete_action']
+    
+    def export_action(self, request, queryset):
+        """ 导出采购单 """
+
+        is_windows = request.META['HTTP_USER_AGENT'].lower().find('windows') >-1 
+        
+        pcsv    = gen_cvs_tuple(queryset,fields=['id','origin_no','extra_name','purchase_num','storage_num','total_fee','prepay','payment','supplier','service_date','created','status'],
+                        title=[u'ID',u'原单号',u'标题',u'采购数',u'入库数',u'总费用',u'预付款',u'已付款',u'供应商',u'业务日期',u'创建日期',u'状态'])
+                
+        tmpfile = StringIO.StringIO()
+        writer  = CSVUnicodeWriter(tmpfile,encoding= is_windows and "gbk" or 'utf8')
+        writer.writerows(pcsv)
+            
+        response = HttpResponse(tmpfile.getvalue(), mimetype='application/octet-stream')
+        tmpfile.close()
+        response['Content-Disposition'] = 'attachment; filename=purchases-simple-%s.csv'%str(int(time.time()))
+        
+        return response
+
+    export_action.short_description = u"导出采购单"
+    
+    actions = ['addon_cost_action','invalid_action','complete_action','export_action']
     
 
 admin.site.register(Purchase,PurchaseAdmin)
@@ -325,8 +349,29 @@ class PurchaseStorageAdmin(admin.ModelAdmin):
         return HttpResponseRedirect('./')
 
     complete_action.short_description = u"完成入库单"
+    
+    def export_action(self, request, queryset):
+        """ 导出入库单 """
 
-    actions = ['addon_stock_action','invalid_action','complete_action']
+        is_windows = request.META['HTTP_USER_AGENT'].lower().find('windows') >-1 
+        
+        pcsv    = gen_cvs_tuple(queryset,fields=['id','origin_no','extra_name','storage_num',
+                                                 'total_fee','prepay','payment','supplier','is_addon','created','status'],
+                        title=[u'ID',u'原单号',u'标题',u'入库数',u'总费用',u'预付款',u'已付款',u'供应商',u'已入库存',u'创建日期',u'状态'])
+                
+        tmpfile = StringIO.StringIO()
+        writer  = CSVUnicodeWriter(tmpfile,encoding= is_windows and "gbk" or 'utf8')
+        writer.writerows(pcsv)
+            
+        response = HttpResponse(tmpfile.getvalue(), mimetype='application/octet-stream')
+        tmpfile.close()
+        response['Content-Disposition'] = 'attachment;filename=storages-simple-%s.csv'%str(int(time.time()))
+        
+        return response
+
+    export_action.short_description = u"导出入库单"
+    
+    actions = ['addon_stock_action','invalid_action','complete_action','export_action']
     
     
 admin.site.register(PurchaseStorage,PurchaseStorageAdmin)
@@ -356,7 +401,8 @@ admin.site.register(PurchaseStorageRelationship,PurchaseStorageRelationshipAdmin
 
 
 class PurchasePaymentAdmin(admin.ModelAdmin):
-    list_display = ('id','pay_type','payment_link','applier','cashier','supplier','pay_bank','pay_no','apply_time','pay_time','status')
+    list_display = ('id','pay_type','payment_link','applier','cashier','supplier',
+                    'pay_bank','pay_no','apply_time','pay_time','status')
     #list_editable = ('update_time','task_type' ,'is_success','status')
 
     list_filter = ('status','pay_type')
@@ -425,7 +471,28 @@ class PurchasePaymentAdmin(admin.ModelAdmin):
 
     invalid_action.short_description = u"作废付款单"
     
-    actions = ['invalid_action']
+    def export_action(self, request, queryset):
+        """ 导出付款单 """
+
+        is_windows = request.META['HTTP_USER_AGENT'].lower().find('windows') >-1 
+
+        pcsv    = gen_cvs_tuple(queryset,fields=['id','pay_type','apply_time','pay_time','payment','supplier','applier','cashier',
+                                                 'pay_no','pay_bank','status','extra_info'],
+                        title=[u'ID',u'付款类型',u'申请时间',u'付款时间',u'付款',u'收款方',u'申请人',u'付款人',u'流水号',u'支付银行',u'状态',u'备注'])
+                
+        tmpfile = StringIO.StringIO()
+        writer  = CSVUnicodeWriter(tmpfile,encoding= is_windows and "gbk" or 'utf8')
+        writer.writerows(pcsv)
+            
+        response = HttpResponse(tmpfile.getvalue(), mimetype='application/octet-stream')
+        tmpfile.close()
+        response['Content-Disposition'] = 'attachment; filename=payment-simple-%s.csv'%str(int(time.time()))
+        
+        return response
+    
+    export_action.short_description = u"导出付款单"
+    
+    actions = ['invalid_action','export_action']
     
 admin.site.register(PurchasePayment,PurchasePaymentAdmin)
 

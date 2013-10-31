@@ -83,7 +83,7 @@ class Refund(models.Model):
     desc      = models.TextField(max_length=1000,blank=True,verbose_name='描述')
     has_good_return = models.BooleanField(default=False,verbose_name='是否退货')
     
-    is_reissue = models.BooleanField(default=False,verbose_name='已处理')
+    is_reissue   = models.BooleanField(default=False,verbose_name='已处理')
     
     good_status  = models.CharField(max_length=32,blank=True,choices=GOOD_STATUS_CHOICES,verbose_name='退货商品状态')
     order_status = models.CharField(max_length=32,blank=True,choices=ORDER_STATUS_CHOICES,verbose_name='订单状态')

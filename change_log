@@ -1,3 +1,6 @@
+######### 2013-10-31 ##########
+alter table shop_purchases_purchase add column creator varchar(64) NOT NULL;
+
 ######### 2013-10-12 ##########
 alter table shop_trades_mergetrade add column reserveo varchar(64) NOT NULL;
 alter table shop_trades_mergetrade add column reservet varchar(64) NOT NULL;

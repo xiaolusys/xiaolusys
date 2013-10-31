@@ -23,7 +23,7 @@ def gen_cvs_tuple(qs,fields=[],title=[]):
         
         ks = []
         for k in fields:
-            ks.append(unicode(getattr(q,k,None)))
+            ks.append(unicode(getattr(q,k,None)).replace(',','*') or '-')
         
         qs_tuple.append(ks)
         

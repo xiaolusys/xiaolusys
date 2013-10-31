@@ -64,7 +64,6 @@ class PurchaseView(ModelView):
         purchase    = None
         state       = False
         
-        
         if purchase_id:
             try:
                 purchase = Purchase.objects.get(id=purchase_id)
@@ -73,6 +72,7 @@ class PurchaseView(ModelView):
         else:
             state = True
             purchase = Purchase()
+            purchase.creator = request.user.username
             
         for k,v in content.iteritems():
             if not v :continue

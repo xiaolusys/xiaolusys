@@ -390,7 +390,7 @@ exchange.Manager.prototype.saveBuyerInfo = function(e){
 	var receiver_city     = goog.dom.getElement('id_receiver_city').value;
 	var receiver_address  = goog.dom.getElement('id_receiver_address').value;
 	
-	if (buyer_nick === ""||seller_id === ""||receiver_state == ""||receiver_city == ""||receiver_address=""){
+	if (buyer_nick === ""||seller_id === ""||receiver_state == ""||receiver_city == ""||receiver_address==""){
 		alert('用户名,店铺和地址(省市)不能为空');
 		return;
 	}

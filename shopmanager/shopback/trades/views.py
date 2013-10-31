@@ -135,6 +135,7 @@ class StatisticMergeOrderView(ModelView):
         if p_outer_id:
             effect_orders = effect_orders.filter(outer_id=p_outer_id)
         
+        effect_oids  = [] 
         trade_items  = {}
         for order in effect_orders:
             
@@ -144,6 +145,7 @@ class StatisticMergeOrderView(ModelView):
             order_num = order.num  
             if not order_num:
                 continue
+            effect_oids.append(order.oid)
             
             if trade_items.has_key(outer_id):
                 trade_items[outer_id]['num'] += order_num
@@ -212,8 +214,8 @@ class StatisticMergeOrderView(ModelView):
         buyer_nums   = effect_trades.values_list('buyer_nick').distinct().count()
         trade_nums   = effect_trades.count()
         total_post_fee   = effect_trades.aggregate(total_post_fee=Sum('post_fee')).get('total_post_fee',0)
-        refund_fees  = Refund.objects.filter(created__gt=start_dt,created__gte=end_dt,
-                        status__in=(pcfg.REFUND_WAIT_SELLER_AGREE,pcfg.REFUND_SUCCESS))\
+        refund_fees  = Refund.objects.filter(oid__in=effect_oids,status__in=(pcfg.REFUND_WAIT_SELLER_AGREE,
+                        pcfg.REFUND_CONFIRM_GOODS,pcfg.REFUND_SUCCESS))\
                         .aggregate(total_refund_fee=Sum('refund_fee')).get('total_refund_fee',0)
         total_cost   = 0
         total_sales  = 0
