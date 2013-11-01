@@ -182,7 +182,7 @@ SHOP_APP_SCHEDULE = {
     'runs-every-day-cancel-yunda-sid':{
         'task':'shopapp.yunda.tasks.cancelUnusedYundaSid',
         'schedule':crontab(minute="30",hour="5,22"),
-        'args':(2,)
+        'args':(7,)
     },
 #    'runs-every-day-product-trade':{
 #        'task':'shopapp.collector.tasks.updateProductTradeBySellerTask',
