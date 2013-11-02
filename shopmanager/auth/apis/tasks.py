@@ -16,7 +16,7 @@ from celery.app.task import BaseTask
 from auth.utils import getSignatureTaoBao,format_datetime,format_date,refresh_session
 from auth.apis.exceptions import ContentNotRightException,RemoteConnectionException,APIConnectionTimeOutException,\
     ServiceRejectionException,UserFenxiaoUnuseException,AppCallLimitedException,InsufficientIsvPermissionsException,\
-    SessionExpiredException,LogisticServiceBO4Exception,TaobaoRequestException
+    SessionExpiredException,LogisticServiceBO4Exception,TaobaoRequestException,LogisticServiceB60Exception
 
 import logging
 logger = logging.getLogger('auth.apis')
@@ -172,6 +172,9 @@ def raise_except_or_ret_json(content):
         elif sub_code == u'isv.logistics-offline-service-error:B04':
             raise LogisticServiceBO4Exception(
                     code=code,msg=msg,sub_code=sub_code,sub_msg=sub_msg)
+        elif sub_code == u'isv.logistics-offline-service-error:B60':
+            raise LogisticServiceB60Exception(
+                    ode=code,msg=msg,sub_code=sub_code,sub_msg=sub_msg)
         else :
             raise TaobaoRequestException(
                     code=code,msg=msg,sub_code=sub_code,sub_msg=sub_msg)

@@ -34,14 +34,15 @@ class ProductSkuInline(admin.TabularInline):
 
 
 class ItemAdmin(admin.ModelAdmin):
-    list_display = ('num_iid','user','outer_id','type','category','title','price','has_showcase','list_time','last_num_updated','approve_status','status')
+    list_display = ('num_iid','user','outer_id','type','category','title','price','has_showcase','sync_stock',
+                    'list_time','last_num_updated','approve_status','status')
     list_display_links = ('num_iid', 'title')
     #list_editable = ('update_time','task_type' ,'is_success','status')
 
     date_hierarchy = 'last_num_updated'
     #ordering = ['created_at']
 
-    list_filter = ('user','approve_status')
+    list_filter = ('user','has_showcase','sync_stock','approve_status')
     search_fields = ['num_iid', 'outer_id', 'title']
 
 

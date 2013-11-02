@@ -136,6 +136,12 @@ def sendTaobaoTradeTask(request_user_id,trade_id):
             or trade.sys_status != pcfg.WAIT_PREPARE_SEND_STATUS:
             return trade_id
         
+        if trade.status == pcfg.WAIT_BUYER_CONFIRM_GOODS:
+            trade.sys_status = pcfg.WAIT_CHECK_BARCODE_STATUS
+            trade.consign_time = datetime.datetime.now()
+            trade.save()
+            return trade_id
+        
         if trade.status != pcfg.WAIT_SELLER_SEND_GOODS or trade.reason_code != '' :
             trade.sys_status = pcfg.WAIT_AUDIT_STATUS
             trade.is_picking_print=False

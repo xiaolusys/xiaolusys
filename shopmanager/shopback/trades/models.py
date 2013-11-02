@@ -314,6 +314,15 @@ class MergeTrade(models.Model):
                     raise Exception(u'订单(%d)淘宝发货失败'%trade.tid)
         except apis.LogisticServiceBO4Exception,exc:
             return self.is_post_success()
+        except apis.LogisticServiceB60Exception,exc:
+            #如果系统没有该单号成功发货的记录，则改变快递名称，重新发货
+            ts = MergeTrade.objects.filter(is_express_print=True,sys_status__in=(pcfg.WAIT_CHECK_BARCODE_STATUS,
+                                pcfg.WAIT_SCAN_WEIGHT_STATUS,pcfg.FINISHED_STATUS),out_sid=out_sid)
+            if ts.count() > 0:
+                raise exc
+                
+            self.send_trade_to_taobao(company_code=u'%s送'%self.logistics_company.name)
+            
         except Exception,exc:
             retry_times = retry_times - 1
             if retry_times<=0:

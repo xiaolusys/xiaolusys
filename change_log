@@ -1,3 +1,6 @@
+######### 2013-11-02 ##########
+alter table shop_items_item add column sync_stock tinyint(1) DEFAULT 1;
+
 ######### 2013-10-31 ##########
 alter table shop_purchases_purchase add column creator varchar(64) NOT NULL;
 

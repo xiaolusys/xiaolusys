@@ -267,7 +267,7 @@ def updateItemNum(user_id,num_iid):
     item = Item.objects.get(num_iid=num_iid)
     user = item.user
     product = item.product
-    if not product:
+    if not product or not item.sync_stock:
         return
     
     user_percent = user.stock_percent
