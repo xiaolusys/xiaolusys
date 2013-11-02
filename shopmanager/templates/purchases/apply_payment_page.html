@@ -94,7 +94,8 @@
   		{% endif %}
   		<div>
   			<div id="purchase-form-head" class="well well-small mywell">
-  				<label class="label label-info">{{ purchase.origin_no }}&nbsp;&nbsp;&nbsp;{{ purchase.suppiler }}&nbsp;&nbsp;&nbsp;{{ purchase.title }}&nbsp;&nbsp;&nbsp;{{ purchase.service_date }}</label>
+  				<label class="label label-info">{{ purchase.id }}&nbsp;&nbsp;&nbsp;{{ purchase.origin_no }}&nbsp;&nbsp;&nbsp;{{ purchase.suppiler }}
+  					&nbsp;&nbsp;&nbsp;{{ purchase.title }}&nbsp;&nbsp;&nbsp;{{ purchase.service_date }}</label>
 	  			<div class="head-budget">
 	  				<label>总金额：</label><span>{{ purchase.total_fee }}&yen;</span>
 	  				<label>已付金额：</label><span>{{ purchase.payment }}&yen;</span>

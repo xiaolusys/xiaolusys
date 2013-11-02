@@ -107,7 +107,7 @@ SYNC_MODEL_SCHEDULE = {
 #    },
     'runs-every-half-day-increment-orders':{
         'task':'shopback.orders.tasks.updateAllUserIncrementTradesTask',
-        'schedule':crontab(minute="0",hour="7,13,20"),
+        'schedule':crontab(minute="30",hour="7,12,16,23"),
         'args':()
     },
     'runs-every-day-warn-num-update':{     #将昨日的订单数更新为商品的警告库位

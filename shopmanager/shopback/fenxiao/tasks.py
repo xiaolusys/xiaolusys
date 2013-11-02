@@ -175,6 +175,7 @@ def updateAllUserIncrementPurchasesTask():
             else:
                 for user in users:
                     saveUserIncrementPurchaseOrderTask(user.visitor_id,update_from=updated,update_to=dt)
+                    saveUserPurchaseOrderTask(user.visitor_id,status=pcfg.WAIT_SELLER_SEND_GOODS)
         else:
             for user in users:
                 saveUserPurchaseOrderTask(user.visitor_id,status=pcfg.WAIT_SELLER_SEND_GOODS)

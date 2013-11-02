@@ -100,3 +100,5 @@ class LogisticServiceB60Exception(TaobaoRequestException):
      "sub_code":"isv.logistics-offline-service-error:B60",
      "sub_msg":u"运单号不符合规则或已经被使用"}
     """
+    
+    

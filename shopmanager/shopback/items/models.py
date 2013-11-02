@@ -145,9 +145,9 @@ class Product(models.Model):
             reverse:True表示加库存，False表示减相应的库存
         """
         if reverse:
-            self.collect_num = models.F('quantity')+num
+            self.collect_num = models.F('collect_num')+num
         else:
-            self.collect_num = models.F('quantity')-num
+            self.collect_num = models.F('collect_num')-num
         self.save()
         self.collect_num = Product.objects.get(id=self.id).collect_num
         
