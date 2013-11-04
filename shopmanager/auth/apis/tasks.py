@@ -144,7 +144,7 @@ def raise_except_or_ret_json(content):
     elif content.has_key('error_response'):
         content = content['error_response']
         code     = content.get('code',None)
-        sub_code = content.get('sub_code',None)
+        sub_code = str(content.get('sub_code',None))
         msg      = content.get('msg','400')
         sub_msg  = content.get('sub_msg','')
 
