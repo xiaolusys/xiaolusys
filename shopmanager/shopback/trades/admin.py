@@ -612,7 +612,7 @@ class MergeTradeAdmin(admin.ModelAdmin):
         dt  = datetime.datetime.now()
         buyer_tuple = gen_cvs_tuple(queryset,
                                  fields=['seller_nick','buyer_nick','receiver_state','receiver_phone','receiver_mobile','pay_time'],
-                                 title=[u'卖家',u'买家昵称',u'省',u'手机',u'固话',u'付款日期'])
+                                 title=[u'卖家',u'买家昵称',u'省',u'固话',u'手机',u'付款日期'])
         
         is_windows = request.META['HTTP_USER_AGENT'].lower().find('windows') >-1 
         file_name = u'buyer-%s-%s.csv'%(dt.month,dt.day)

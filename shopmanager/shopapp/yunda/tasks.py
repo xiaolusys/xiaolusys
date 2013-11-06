@@ -17,6 +17,7 @@ import logging
 logger = logging.getLogger('yunda.handler')
 ######################## 韵达录单任务 ########################
 YUNDA_ADDR_URL = 'http://qz.yundasys.com:18080/ws/opws.jsp'
+YUNDA_CODE     = ('YUNDA','YUNDA_QR')
 
 STATE_CODE_MAP = {
                 u"陕西":"610000",
@@ -138,7 +139,7 @@ def updateYundaOrderAddrTask():
     yj_ids   = set()
     index    = 0
     dt      = datetime.datetime.now()
-    trades  = MergeTrade.objects.filter(logistics_company__code='YUNDA',
+    trades  = MergeTrade.objects.filter(logistics_company__code__in=YUNDA_CODE,
                                        sys_status=pcfg.FINISHED_STATUS,
                                        is_express_print=True,
                                        is_charged=False,
@@ -206,7 +207,7 @@ def cancelUnusedYundaSid(cday=1):
                                
             lgc   = trade.logistics_company
             
-            if trade.out_sid.strip() != mail_no or (lgc and lgc.code != 'YUNDA') or trade.sys_status in pcfg.CANCEL_YUNDASID_STATUS:
+            if trade.out_sid.strip() != mail_no or (lgc and lgc.code not in YUNDA_CODE) or trade.sys_status in pcfg.CANCEL_YUNDASID_STATUS:
                 cancelids.append(order_serial_no)
         #print 'debug cancelids:',len(cancelids)
         if cancelids:

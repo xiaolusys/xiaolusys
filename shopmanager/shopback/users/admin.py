@@ -1,13 +1,15 @@
 #-*- coding:utf8 -*-
 import datetime
+import cStringIO as StringIO
 from django.contrib import admin
 from django.http import HttpResponse,HttpResponseRedirect
 from django.shortcuts import render_to_response
 from django.core.urlresolvers import reverse
 from django.template import RequestContext
 from shopback.users.models import User,Customer
+from shopback.base.options import DateFieldListFilter
 from shopback import paramconfig as pcfg
-
+from utils import gen_cvs_tuple,CSVUnicodeWriter
 
 
 class UserAdmin(admin.ModelAdmin):
@@ -146,8 +148,33 @@ class CustomerAdmin(admin.ModelAdmin):
 
     ordering = ['-last_buy_time']
 
-    list_filter = ('is_valid',)
+    list_filter = ('is_valid',('created',DateFieldListFilter))
     search_fields = ['nick','name']
+    
+    def export_distinct_mobile_action(self,request,queryset):
+        """ 导出唯一号码 """
+        dt  = datetime.datetime.now()
+        mobile_tuple = gen_cvs_tuple(queryset,
+                                 fields=['mobile',],
+                                 title=[u'手机'])
+        
+        is_windows = request.META['HTTP_USER_AGENT'].lower().find('windows') >-1 
+        file_name = u'mobile-%s-%s.csv'%(dt.month,dt.day)
+        
+        myfile = StringIO.StringIO() 
+        
+        writer = CSVUnicodeWriter(myfile,encoding= is_windows and "gbk" or 'utf8')
+        writer.writerows(mobile_tuple)
+        
+        response = HttpResponse(myfile.getvalue(), mimetype='application/octet-stream')
+        myfile.close()
+        response['Content-Disposition'] = 'attachment; filename=%s'%file_name
+       
+        return response
+
+    export_distinct_mobile_action.short_description = u"导出手机号码"
+    
+    actions = ['export_distinct_mobile_action']
     
 admin.site.register(Customer, CustomerAdmin)
     

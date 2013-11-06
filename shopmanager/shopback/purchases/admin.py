@@ -284,6 +284,7 @@ class PurchaseStorageAdmin(admin.ModelAdmin):
         """ 更新库存数 """
         
         approval_storages = queryset.filter(status__in=(pcfg.PURCHASE_APPROVAL,pcfg.PURCHASE_FINISH))
+        
         for storage in approval_storages:
             for storage_item in storage.normal_storage_items.filter(is_addon=False):
                 outer_id     = storage_item.outer_id
@@ -292,6 +293,7 @@ class PurchaseStorageAdmin(admin.ModelAdmin):
                 if outer_sku_id:
                     prod_sku = ProductSku.objects.get(outer_id=outer_sku_id,product=prod)
                     prod_sku.update_quantity_incremental(storage_item.storage_num,reverse=True)
+                    
                 else:
                     prod.update_collect_num_incremental(storage_item.storage_num,reverse=True)
                 storage_item.is_addon = True
@@ -300,7 +302,7 @@ class PurchaseStorageAdmin(admin.ModelAdmin):
             if storage.normal_storage_items.filter(is_addon=False).count()==0:
                 storage.is_addon=True
                 storage.save()
-                
+            
             log_action(request.user.id,storage,CHANGE,u'入库数更新到库存')
             
         addon_storages = queryset.filter(is_addon=True)

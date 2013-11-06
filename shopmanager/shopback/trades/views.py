@@ -626,7 +626,7 @@ class ReviewOrderView(ModelView):
             'sys_status':trade.sys_status,
             'status_name':dict(TAOBAO_TRADE_STATUS).get(trade.status,u'未知'),
             'sys_status_name':dict(SYS_TRADE_STATUS).get(trade.sys_status,u'未知'),
-            'used_orders':trade.inuse_orders,
+            'used_orders':trade.inuse_orders.exclude(gift_type=pcfg.RETURN_GOODS_GIT_TYPE),
             'order_nums':order_nums,
             'new_memo':trade.has_reason_code(pcfg.NEW_MEMO_CODE),
             'new_refund':trade.has_reason_code(pcfg.WAITING_REFUND_CODE) or trade.has_reason_code(pcfg.NEW_REFUND_CODE),
