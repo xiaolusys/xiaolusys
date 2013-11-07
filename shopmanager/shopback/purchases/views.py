@@ -143,8 +143,8 @@ class PurchaseItemView(ModelView):
         purchase_id = content.get('purchase_id')
         outer_id = content.get('outer_id')
         sku_id   = content.get('sku_id')
-        price    = content.get('price')
-        num      = content.get('num')
+        price    = float(content.get('price'))
+        num      = int(content.get('num'))
         supplier_item_id = content.get('supplier_item_id')
         std_price = content.get('std_price')
         
@@ -172,8 +172,8 @@ class PurchaseItemView(ModelView):
         purchase_item.supplier_item_id = supplier_item_id
         purchase_item.std_price = std_price
         purchase_item.price = price
-        purchase_item.purchase_num = num
-        purchase_item.total_fee = float(price or 0)*int(num or 0)
+        purchase_item.purchase_num = num 
+        purchase_item.total_fee = float(price or 0)*num 
         purchase_item.status=pcfg.NORMAL
         purchase_item.save()
         
@@ -352,7 +352,7 @@ class PurchaseStorageItemView(ModelView):
         purchase_id = content.get('purchase_storage_id')
         outer_id = content.get('outer_id')
         sku_id   = content.get('sku_id')
-        num      = content.get('num')
+        num      = int(content.get('num'))
         
         prod     = None
         prod_sku = None

@@ -182,7 +182,7 @@ class Customer(models.Model):
     phone     = models.CharField(max_length=16,null=True,blank=True,verbose_name='电话')
     mobile    = models.CharField(max_length=12,null=True,blank=True,verbose_name='手机')
     
-    created   = models.DateTimeField(db_index=True,null=True,blank=True,verbose_name='创建日期')
+    created   = models.DateTimeField(db_index=True,null=True,blank=True,auto_now=True,verbose_name='创建日期')
     birthday  = models.DateTimeField(db_index=True,null=True,blank=True,verbose_name='生日')
     
     last_buy_time = models.DateTimeField(db_index=True,null=True,blank=True,verbose_name='最后购买日期')

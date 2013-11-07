@@ -148,12 +148,14 @@ class CustomerAdmin(admin.ModelAdmin):
 
     ordering = ['-last_buy_time']
 
-    list_filter = ('is_valid',('created',DateFieldListFilter))
+    list_filter = ('is_valid',('last_buy_time',DateFieldListFilter))
     search_fields = ['nick','name']
     
     def export_distinct_mobile_action(self,request,queryset):
         """ 导出唯一号码 """
+        
         dt  = datetime.datetime.now()
+        queryset = queryset.filter(is_valid=True)
         mobile_tuple = gen_cvs_tuple(queryset,
                                  fields=['mobile',],
                                  title=[u'手机'])
