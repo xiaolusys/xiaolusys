@@ -333,7 +333,7 @@ class PurchaseItem(models.Model):
 def update_purchase_info(sender,instance,*args,**kwargs):
     """ 更新采购单信息 """
     
-    cost = instance.payment / instance.storage_num
+    cost = instance.storage_num and instance.payment / instance.storage_num or 0
     instance.std_price = round(cost,FINANCIAL_FIXED) or instance.price
     instance.arrival_status = instance.storage_num<=0 and pcfg.PD_UNARRIVAL or \
         (instance.storage_num>=instance.purchase_num and pcfg.PD_FULLARRIVAL or pcfg.PD_PARTARRIVAL)
