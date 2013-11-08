@@ -11,3 +11,4 @@ migrations
 .settings/
 change_log.txt
 test/
+local_settings.py

@@ -350,6 +350,10 @@ LOGGING = {
     }
 }
 
+try:
+    from prod_settings import *
+except Exception,exc:
+    pass
 
 try:
     from local_settings import *
