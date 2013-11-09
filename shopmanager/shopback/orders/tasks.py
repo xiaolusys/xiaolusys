@@ -102,8 +102,6 @@ def saveUserIncrementOrdersTask(user_id,update_from=None,update_to=None):
 
 
 
-
-
 @task()
 def updateAllUserIncrementOrdersTask(update_from=None,update_to=None):
     """ 使用淘宝增量交易接口更新订单信息 """

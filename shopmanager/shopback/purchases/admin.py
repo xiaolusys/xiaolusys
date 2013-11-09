@@ -10,6 +10,7 @@ from django.template import RequestContext
 from django.forms import TextInput, Textarea
 from shopback import paramconfig as pcfg
 from shopback.items.models import Product,ProductSku
+from shopback.base.options import DateFieldListFilter
 from shopback.purchases.models import Purchase,PurchaseItem,PurchaseStorage,\
     PurchaseStorageItem,PurchasePayment,PurchasePaymentItem,PurchaseStorageRelationship
 from shopback.purchases import permissions as perms
@@ -78,8 +79,8 @@ class PurchaseAdmin(admin.ModelAdmin):
                     'post_date','service_date','arrival_status','status')
     #list_editable = ('update_time','task_type' ,'is_success','status')
 
-    list_filter = ('status','arrival_status','deposite','purchase_type')
-    search_fields = ['id','origin_no','extra_name']
+    list_filter = ('status','arrival_status','deposite','purchase_type',('service_date',DateFieldListFilter))
+    search_fields = ['id','origin_no','extra_name','creator','supplier__supplier_name']
     
     def purchase_title_link(self, obj):
         symbol_link = obj.extra_name or u'【空标题】'
@@ -232,7 +233,7 @@ class PurchaseStorageAdmin(admin.ModelAdmin):
     #list_editable = ('update_time','task_type' ,'is_success','status')
 
     list_filter = ('status','deposite','is_addon')
-    search_fields = ['id','out_sid','extra_name','origin_no']
+    search_fields = ['id','out_sid','extra_name','origin_no','supplier__supplier_name']
     
     def storage_name_link(self, obj):
         symbol_link = obj.extra_name or u'【空标题】'
@@ -407,8 +408,8 @@ class PurchasePaymentAdmin(admin.ModelAdmin):
                     'pay_bank','pay_no','apply_time','pay_time','status')
     #list_editable = ('update_time','task_type' ,'is_success','status')
 
-    list_filter = ('status','pay_type')
-    search_fields = ['id']
+    list_filter = ('status','pay_type',('pay_time',DateFieldListFilter))
+    search_fields = ['id','cashier','applier','pay_bank','pay_no','supplier__supplier_name']
     
     def payment_link(self, obj):
         symbol_link = obj.payment
