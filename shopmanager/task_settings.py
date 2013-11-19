@@ -11,7 +11,7 @@ BROKER_URL = 'amqp://user1:passwd1@127.0.0.1:5672/vhost1'
 CELERY_RESULT_BACKEND = "amqp"
 CELERY_TASK_RESULT_EXPIRES = 18000  # 5 hours.
 BROKER_POOL_LIMIT = 10 # 10 connections
-CELERYD_CONCURRENCY = 16 # 16 processes in parallel
+CELERYD_CONCURRENCY = 40 # 16 processes in parallel
 
 from kombu import Exchange, Queue
 CELERY_DEFAULT_QUEUE = 'peroid'
@@ -76,6 +76,10 @@ CELERY_ROUTES = {
             'queue': 'peroid',
             'routing_key': 'peroid.cancel_unused_yunda_sid',
         },
+        'top_updatedb_task.pull_taobao_trade_task':{
+            'queue':'peroid',
+            'routing_key':'peroid.pull_taobao_trade_task',
+        },
 }
 
 
@@ -130,6 +134,11 @@ SYNC_MODEL_SCHEDULE = {
          'schedule':crontab(minute="0",hour='2',day_of_week='sun'),
          'args':(21,)
      },
+    'runs-every-half-hour-update-trade-task':{
+         'task':'top_updatedb_task.pull_taobao_trade_task',
+         'schedule':crontab(minute="0",hour='*/4'),
+         'args':()
+    }
 }
 
 

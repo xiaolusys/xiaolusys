@@ -95,7 +95,7 @@ class MergeTradeAdmin(admin.ModelAdmin):
     
     list_filter   = (TradeStatusFilter,'status','user','type',('trade_from', BitFieldListFilter,),'has_out_stock','has_refund',
                      'has_rule_match','has_sys_err','has_merge','has_memo','is_picking_print','is_express_print','can_review',
-                     'is_locked','is_charged','is_brand_sale','is_force_wlb','is_qrcode',('pay_time',DateFieldListFilter),('weight_time',DateFieldListFilter))
+                     'is_locked','is_charged','is_brand_sale','is_force_wlb','is_qrcode',('pay_time',DateFieldListFilter),('weight_time',DateFieldListFilter),('created',DateFieldListFilter))
 
     search_fields = ['id','buyer_nick','tid','operator','out_sid','receiver_name','receiver_mobile','receiver_phone']
     

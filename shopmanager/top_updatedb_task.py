@@ -51,15 +51,15 @@ class DBConnect:
 @task()
 def pull_taobao_trade_task():
     
-    dt = datetime.datetime.now()
+    dt = datetime.datetime(2013,11,11,6,30)
     sysconf = SystemConfig.getconfig()
-    df  = sysconf.mall_order_updated
+    df  = datetime.datetime(2013,11,11,0,30)#sysconf.mall_order_updated
     
     cells = ()
     with DBConnect() as conn:
         
         cur = conn.cursor()
-        cur.execute("SELECT tid,seller_nick,jdp_response from jdp_tb_trade where jdp_modified > %s and jdp_modified < %s",
+        cur.execute("SELECT tid,seller_nick,jdp_response from jdp_tb_trade where jdp_modified > %s and jdp_modified < %s order by jdp_modified desc limit 5000,14999",
                     (format_datetime(df),
                      format_datetime(dt)))
         cells = cur.fetchall()
@@ -70,7 +70,7 @@ def pull_taobao_trade_task():
             tid = cell[0]
             seller_nick = cell[1]
             trade_dict  = json.loads(cell[2])
-            
+            print tid
             seller_id   = User.objects.get(nick=seller_nick).visitor_id
             
             Trade.save_trade_through_dict(seller_id,trade_dict['trade_fullinfo_get_response']['trade'])

@@ -417,7 +417,7 @@ class OrderPlusView(ModelView):
         products = Product.objects.filter(Q(outer_id=q)|Q(name__contains=q),status__in=(pcfg.NORMAL,pcfg.REMAIN))
         
         prod_list = [(prod.outer_id,prod.name,prod.std_sale_price,[(sku.outer_id,sku.name,sku.quantity) 
-                                                                   for sku in prod.pskus]) for prod in products]
+                                                                   for sku in prod.pskus.filter(is_split=False)]) for prod in products]
         return prod_list
         
     def post(self, request, *args, **kwargs):
