@@ -1234,10 +1234,14 @@ def trade_download_controller(merge_trade,trade,trade_from,first_pay_load):
         if merge_trade.sys_status not in (pcfg.FINISHED_STATUS,pcfg.INVALID_STATUS): 
             merge_trade.append_reason_code(pcfg.INVALID_END_CODE)
             merge_trade.sys_status = pcfg.INVALID_STATUS
-            
+    
+    #是否对系统内部的订单进行，合单拦截？
+    elif trade.status in (pcfg.TRADE_NO_CREATE_PAY,pcfg.WAIT_BUYER_PAY):
+        pass
+    
     #如果淘宝订单状态已改变，而系统内部状态非最终状态，则将订单作废        
     elif merge_trade.sys_status:
-        if merge_trade.sys_status not in (pcfg.FINISHED_STATUS,pcfg.INVALID_STATUS): 
+        if merge_trade.sys_status not in (pcfg.FINISHED_STATUS,pcfg.INVALID_STATUS) and not merge_trade.out_sid: 
             merge_trade.append_reason_code(pcfg.INVALID_END_CODE)
             merge_trade.sys_status = pcfg.INVALID_STATUS
     #更新系统订单状态

@@ -144,7 +144,7 @@ class MergeTradeAdmin(admin.ModelAdmin):
         readonly_fields = self.readonly_fields
         if not request.user.has_perm('trades.can_trade_modify'):
             readonly_fields = readonly_fields+('tid','reason_code','has_rule_match','has_merge','has_memo','payment','post_fee','tid','user','type'
-                                    'is_locked','is_charged','operator','can_review','is_picking_print','is_express_print','sys_status','status')
+                                    ,'trade_from','is_locked','is_charged','operator','can_review','is_picking_print','is_express_print','sys_status','status')
             if obj.sys_status==pcfg.WAIT_PREPARE_SEND_STATUS:
                 readonly_fields = readonly_fields+('priority',)
         return readonly_fields

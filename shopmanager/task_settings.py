@@ -134,11 +134,11 @@ SYNC_MODEL_SCHEDULE = {
          'schedule':crontab(minute="0",hour='2',day_of_week='sun'),
          'args':(21,)
      },
-    'runs-every-half-hour-update-trade-task':{
-         'task':'top_updatedb_task.pull_taobao_trade_task',
-         'schedule':crontab(minute="0",hour='*/4'),
-         'args':()
-    }
+#    'runs-every-day-update-jushita-trade-task':{
+#         'task':'top_updatedb_task.pull_taobao_trade_task',
+#         'schedule':crontab(minute="0",hour='*/4'),
+#         'args':()
+#    }
 }
 
 
@@ -185,12 +185,12 @@ SHOP_APP_SCHEDULE = {
     },
     'runs-every-day-sync-yunda-address':{
         'task':'shopapp.yunda.tasks.updateYundaOrderAddrTask',
-        'schedule':crontab(minute="30",hour="23,6"),
+        'schedule':crontab(minute="30",hour="4"),
         'args':()
     },
     'runs-every-day-cancel-yunda-sid':{
         'task':'shopapp.yunda.tasks.cancelUnusedYundaSid',
-        'schedule':crontab(minute="30",hour="5,22"),
+        'schedule':crontab(minute="0",hour="4"),
         'args':(7,)
     },
 #    'runs-every-day-product-trade':{

@@ -135,7 +135,8 @@ class Purchase(models.Model):
     
     @property
     def prepay_complete(self):
-        return round(self.prepay) >= round(self.total_fee*self.prepay_cent)
+        """ 如果预付款超过设定预付比例的50%，则认为预付已完成 """
+        return round(self.prepay) >= round(self.total_fee*self.prepay_cent)*0.5
     
     def gen_csv_tuple(self):
         
@@ -975,10 +976,6 @@ class PurchasePayment(models.Model):
                     relate_ships = PurchaseStorageRelationship.objects.filter(
                                     storage_id=storage_item.purchase_storage.id,storage_item_id=storage_item.id)
           
-                    total_unpay_fee = storage_item.unpay_fee
-                    if total_unpay_fee <= 0:
-                        raise Exception(u'待付款金额不能为零')
-                    
                     for ship in relate_ships:
                         ship_payment = round((ship.unpay_fee/total_unpay_fee)*item.payment,FINANCIAL_FIXED)
                         ship.payment += ship_payment
