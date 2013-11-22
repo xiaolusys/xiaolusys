@@ -516,10 +516,8 @@ purchase.Manager.prototype.bindEvent = function (){
 		
 		var price = target.value;
 		
-		if (parseFloat(price)){
-			target.value = price;
-		}else{
-			target.value = '0.0';
+		if (!parseFloat(price)&&!parseInt(price)&&price!=''){
+			target.value = '0';
 		}
 	} );
 	
@@ -531,9 +529,7 @@ purchase.Manager.prototype.bindEvent = function (){
 		
 		var num = target.value;
 		
-		if (parseInt(num)){
-			target.value = parseInt(num).toString();
-		}else{
+		if (!parseInt(num)&&num!=''){
 			target.value = '0';
 		}
 	} );

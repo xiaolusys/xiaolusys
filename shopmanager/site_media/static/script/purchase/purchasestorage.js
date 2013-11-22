@@ -469,9 +469,7 @@ purchasestorage.Manager.prototype.bindEvent = function (){
 		
 		var num = target.value;
 		
-		if (parseInt(num)){
-			target.value = parseInt(num).toString();
-		}else{
+		if (!parseInt(num)&&num!=''){
 			target.value = '0';
 		}
 	} );
