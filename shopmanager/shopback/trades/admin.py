@@ -633,7 +633,7 @@ class MergeTradeAdmin(admin.ModelAdmin):
         """ 导出订单快递信息 """
         dt  = datetime.datetime.now()
         
-        yundaset = queryset.filter(logistics_company_id=102)
+        yundaset = queryset.filter(logistics_company__code__in=('YUNDA','YUNDA_QR'))
         yunda_tuple = []
         
         for s in yundaset:

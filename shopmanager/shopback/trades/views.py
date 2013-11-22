@@ -1073,7 +1073,7 @@ class TradeLogisticView(ModelView):
         if df:
             df = parse_date(df).date()
             queryset = MergeTrade.objects.filter(sys_status=pcfg.FINISHED_STATUS,
-                                                 weight_time__gt=df,logistics_company__code="YUNDA")
+                                                 weight_time__gt=df,logistics_company__code__in=("YUNDA","YUNDA_QR"))
             if dt:
                 dt = parse_date(dt).date()
                 queryset = queryset.filter(weight_time__lt=dt)
