@@ -293,7 +293,7 @@ class MergeTrade(models.Model):
         trade_id   = self.tid
         trade_type = self.type
         seller_id  = self.seller_id
-        company_code = company_code or self.logistics_company.code
+        company_code = company_code or self.logistics_company.code.split('_')[0]
         out_sid    = out_sid or self.out_sid
         
         if trade_type in (pcfg.EXCHANGE_TYPE,pcfg.DIRECT_TYPE,pcfg.REISSUE_TYPE):
@@ -1506,10 +1506,10 @@ class ReplayPostTrade(models.Model):
     post_data  =  models.TextField(blank=True,verbose_name='发货清单数据')
     
     order_num  =  models.BigIntegerField(default=0,verbose_name='发货单数')
-    trade_ids  =  models.CharField(blank=True,max_length=2000,verbose_name='订单编号')
+    trade_ids  =  models.TextField(blank=True,verbose_name='订单编号')
     
     succ_num   =  models.BigIntegerField(default=0,verbose_name='成功单数')
-    succ_ids   =  models.CharField(blank=True,max_length=2000,verbose_name='成功订单数据')
+    succ_ids   =  models.TextField(blank=True,verbose_name='成功订单数据')
     
     created    =  models.DateTimeField(null=True,db_index=True,auto_now_add=True,verbose_name='创建日期')
     finished   =  models.DateTimeField(blank=True,db_index=True,null=True,verbose_name='发货完成日期')

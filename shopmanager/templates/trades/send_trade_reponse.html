@@ -57,6 +57,7 @@
 					}
 
 					if (data.task.status == 'SUCCESS'){
+						clearInterval(interval_id);
 						window.location = '/trades/replaysend/'+replay_id+'/';
 					}
 					else if(data.task.status == 'FAILURE'){
@@ -66,7 +67,7 @@
 					}
 					else{
 						if (max_timer>0){
-							max_timer = max_timer-1;
+							max_timer = max_timer-2;
 							$('#task_counter_id').text(max_timer+'');
 						}
 						else{
@@ -77,6 +78,7 @@
 						}
 					}
 				}catch (err) {
+					clearInterval(interval_id);
 		            alert('ajax error:'+err);
 		        } 
 			}

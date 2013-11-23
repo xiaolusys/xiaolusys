@@ -283,7 +283,7 @@ class ProductLocationAdmin(admin.ModelAdmin):
     list_display_links = ('outer_id', 'outer_sku_id')
     #list_editable = ('update_time','task_type' ,'is_success','status')
 
-    search_fields = ['outer_id', 'name','outer_sku_id','properties_name']
+    search_fields = ['outer_id', 'name','outer_sku_id','properties_name','district']
 
 
 admin.site.register(ProductLocation, ProductLocationAdmin)

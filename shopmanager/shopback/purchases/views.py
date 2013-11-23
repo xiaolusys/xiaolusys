@@ -443,8 +443,9 @@ class ConfirmStorageView(ModelView):
             for item in ship_storage_items:
                 item.confirm_storage(config.purchase_price_to_cost_auto)
             
-            #如果确认收货，则库存自动入库
+            #如果确认收货，而且库存自动入库
             if config.storage_num_to_stock_auto:
+                chg_prod_sku_map = {}
                 for storage_item in purchase_storage.normal_storage_items.filter(is_addon=False):
                     outer_id     = storage_item.outer_id
                     outer_sku_id = storage_item.outer_sku_id
@@ -457,8 +458,17 @@ class ConfirmStorageView(ModelView):
                     storage_item.is_addon = True
                     storage_item.save()
                     
+                    if chg_prod_sku_map.has_key(outer_id):
+                        chg_prod_sku_map[outer_id].append(outer_sku_id)
+                    else:
+                        chg_prod_sku_map[outer_id] = [outer_sku_id]
+                    
                 purchase_storage.is_addon = True
-        
+                
+                for k,v in chg_prod_sku_map.iteritems():
+                    prod = Product.objects.get(outer_id=k)
+                    log_action(request.user.id,prod,CHANGE,u'入库单(%s),更新规格(%s)库存'%(purchase_id,','.join(v)))
+                
         purchase_storage.logistic_company = company
         purchase_storage.out_sid = out_sid
         purchase_storage.status = pcfg.PURCHASE_APPROVAL
