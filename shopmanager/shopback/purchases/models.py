@@ -950,8 +950,12 @@ class PurchasePayment(models.Model):
                                 storage_id=storage_item.purchase_storage.id,storage_item_id=storage_item.id)
       
                 total_unpay_fee = storage_item.unpay_fee
+                
+                if total_unpay_fee <= 0 and item.payment >0:
+                    raise Exception('付款项有异常，待付费用为:0,实际付款费用为:%2f'%item.payment)
+                
                 if total_unpay_fee <= 0:
-                    raise Exception(u'待付款金额不能为零')
+                    continue
                 
                 for ship in relate_ships:
                     
@@ -975,9 +979,11 @@ class PurchasePayment(models.Model):
                     storage_item = PurchaseStorageItem.objects.get(id=item.storage_item_id)
                     relate_ships = PurchaseStorageRelationship.objects.filter(
                                     storage_id=storage_item.purchase_storage.id,storage_item_id=storage_item.id)
-          
+                    
+                    total_num = storage_item.storage_num
+                    
                     for ship in relate_ships:
-                        ship_payment = round((ship.unpay_fee/total_unpay_fee)*item.payment,FINANCIAL_FIXED)
+                        ship_payment = round((ship.storage_num/total_num)*item.payment,FINANCIAL_FIXED)
                         ship.payment += ship_payment
                         ship.save()
                         

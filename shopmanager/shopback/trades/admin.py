@@ -214,7 +214,7 @@ class MergeTradeAdmin(admin.ModelAdmin):
                 self.message_user(request, u"审核未通过（请确保订单状态为问题单，无退款，无问题编码，无匹配，无缺货, 是否手动合单，已选择快递）")
                 return HttpResponseRedirect("../%s/" % pk_value)
         elif request.POST.has_key("_invalid"):
-            if obj.sys_status in (pcfg.WAIT_AUDIT_STATUS,pcfg.WAIT_CHECK_BARCODE_STATUS):
+            if obj.sys_status in (pcfg.WAIT_AUDIT_STATUS,pcfg.WAIT_CHECK_BARCODE_STATUS,pcfg.WAIT_SCAN_WEIGHT_STATUS):
                 obj.sys_status=pcfg.INVALID_STATUS
                 obj.save()
                 msg = u"订单已作废"
