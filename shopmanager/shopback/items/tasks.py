@@ -102,25 +102,26 @@ def updateAllUserItemsTask():
 @task()
 def updateUserProductSkuTask(user_id=None,outer_ids=None,force_update_num=False):
     """ 更新用户商品SKU规格信息任务 """
-    if not outer_ids or not isinstance(outer_ids,(list,tuple)):
-        user = User.objects.get(visitor_id=user_id)
-        items = user.items.filter(status=pcfg.NORMAL)
-    else:
-        items =  Item.objects.filter(outer_id__in=outer_ids)
-        
+    
+    user = User.objects.get(visitor_id=user_id)
+    items = user.items.filter(status=pcfg.NORMAL)
+    if outer_ids:
+        items = items.filter(outer_id__in=outer_ids)
+    
     num_iids = []
     prop_dict = {}
     for index, item in enumerate(items):
         num_iids.append(item.num_iid)
         prop_dict[int(item.num_iid)] = item.property_alias_dict
+        
         if len(num_iids) >= 40 or index + 1 == len(items):
             sku_dict = {}
             try:
                 num_iids_str = ','.join(num_iids)
-                response = apis.taobao_item_skus_get(num_iids=num_iids_str, tb_user_id=item.user.visitor_id)
+                response = apis.taobao_item_skus_get(num_iids=num_iids_str, tb_user_id=user_id)
                 if response['item_skus_get_response'].has_key('skus'):
                     skus = response['item_skus_get_response']['skus']
-    
+                    
                     for sku in skus.get('sku'):
                         
                         if sku_dict.has_key(sku['num_iid']):

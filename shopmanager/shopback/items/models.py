@@ -398,23 +398,24 @@ def calculate_product_stock_num(sender, instance, *args, **kwargs):
  
         if product_skus.count()>0:
             
-            product.collect_num  =  product_skus.aggregate(
-                                                           total_nums=Sum('quantity')).get('total_nums') or 0
-            product.warn_num     =  product_skus.aggregate(
-                                                           total_nums=Sum('warn_num')).get('total_nums') or 0
-            product.remain_num   =  product_skus.aggregate(
-                                                           total_nums=Sum('remain_num')).get('total_nums') or 0
-            product.wait_post_num  =  product_skus.aggregate(
-                                                             total_nums=Sum('wait_post_num')).get('total_nums') or 0
+            product_dict  = product_skus.aggregate(total_collect_num=Sum('quantity'),
+                                                   total_warn_num=Sum('warn_num'),
+                                                   total_remain_num=Sum('remain_num'),
+                                                   total_post_num=Sum('wait_post_num'),
+                                                   avg_cost=Avg('cost'),
+                                                   avg_purchase_price=Avg('std_purchase_price'),
+                                                   avg_agent_price=Avg('agent_price'),
+                                                   avg_staff_price=Avg('staff_price'))
+
+            product.collect_num  =  product_dict.get('total_collect_num') or 0
+            product.warn_num     =  product_dict.get('total_warn_num') or 0
+            product.remain_num   =  product_dict.get('total_remain_num') or 0
+            product.wait_post_num  =  product_dict.get('total_post_num') or 0
                 
-            product.cost               = product_skus.aggregate(
-                                                                cost_avg=Avg('cost')).get('cost_avg') or 0.0
-            product.std_purchase_price = product_skus.aggregate(
-                                                                std_purchase_price_avg=Avg('std_purchase_price')).get('std_purchase_price_avg') or 0.0
-            product.agent_price        = product_skus.aggregate(
-                                                                agent_price_avg=Avg('agent_price')).get('agent_price_avg') or 0.0
-            product.staff_price        = product_skus.aggregate(
-                                                                staff_price_avg=Avg('staff_price')).get('staff_price_avg') or 0.0
+            product.cost               = "{0:.2f}".format(product_dict.get('avg_cost') or 0)
+            product.std_purchase_price = "{0:.2f}".format(product_dict.get('avg_purchase_price') or 0)
+            product.agent_price        = "{0:.2f}".format(product_dict.get('avg_agent_price') or 0)
+            product.staff_price        = "{0:.2f}".format(product_dict.get('avg_staff_price') or 0)
         
         product.is_split    = product_skus.filter(is_split=True)>0    
         product.is_match    = product_skus.filter(is_match=True)>0 
@@ -474,7 +475,7 @@ class Item(models.Model):
 
 
     def __unicode__(self):
-        return '<%s,%s>'%(self.outer_id or str(self.num_iid),self.title)
+        return '<%s,%s,%s>'%(self.num_iid,self.outer_id,self.title)
     
     @property
     def sku_list(self):

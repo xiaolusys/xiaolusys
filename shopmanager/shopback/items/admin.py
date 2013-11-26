@@ -8,8 +8,9 @@ from django.template import RequestContext
 from django.forms import TextInput, Textarea
 from shopback.items.models import Item,Product,ProductSku,ProductLocation,ItemNumTaskLog,SkuProperty
 from shopback.trades.models import MergeTrade,MergeOrder
+from shopback.users.models import User
 from shopback import paramconfig as pcfg
-from shopback.base import log_action,User, ADDITION, CHANGE
+from shopback.base import log_action, ADDITION, CHANGE
 from shopback.items import permissions as perms
 import logging 
 
@@ -87,7 +88,7 @@ class ProductAdmin(admin.ModelAdmin):
     def sync_items_stock(self,request,queryset):
         
         from shopback.items.tasks import updateUserProductSkuTask,updateItemNum
-        
+        users = User.objects.filter(status=pcfg.NORMAL)
         dt   =   datetime.datetime.now()
         sync_items = []
         for prod in queryset:
@@ -101,8 +102,10 @@ class ProductAdmin(admin.ModelAdmin):
                 items = items.filter(approve_status=pcfg.ONSALE_STATUS)
                 if items.count() < 1:
                     raise Exception(u'请确保商品在售')
-                #更新商品线上SKU状态
-                updateUserProductSkuTask(outer_ids=[i.outer_id for i in items if i.outer_id ])
+                
+                for u in users:
+                    #更新商品线上SKU状态
+                    updateUserProductSkuTask(user_id=u.visitor_id,outer_ids=[i.outer_id for i in items if i.outer_id ])
                 #更新商品及SKU库存
                 for item in items:
                     updateItemNum(item.user.visitor_id,item.num_iid)
