@@ -51,7 +51,8 @@ API_FIELDS = {
     
     'taobao.products.get':'product_id,tsc,cat_name,name',
     
-    'taobao.items.get':'num_iid,title,nick,pic_url,cid,price,type,delist_time,post_fee,volume,score,location',
+    'taobao.items.get':'num_iid,title,nick,pic_url,cid,price,type,delist_time,post_fee,volume,score,location'
+        +',with_hold_quantity,delivery_time',
     
     'taobao.items.search':'iid,num_iid,title,nick,pic_url,cid,price,type,delist_time,post_fee',
     
