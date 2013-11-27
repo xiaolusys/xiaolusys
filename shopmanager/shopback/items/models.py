@@ -442,7 +442,10 @@ class Item(models.Model):
     approve_status = models.CharField(max_length=20,choices=APPROVE_STATUS,blank=True,verbose_name='在售状态')  # onsale,instock
     type       = models.CharField(max_length=12,blank=True,verbose_name='商品类型')
     valid_thru = models.IntegerField(null=True,verbose_name='有效期')
-
+    
+    with_hold_quantity = models.IntegerField(default=0,verbose_name='拍下未付款数')
+    delivery_time  = models.DateTimeField(null=True,blank=True,verbose_name='发货时间')
+    
     price      = models.CharField(max_length=12,blank=True,verbose_name='价格')
     postage_id = models.BigIntegerField(null=True,verbose_name='运费模板ID')
 
@@ -553,6 +556,9 @@ class SkuProperty(models.Model):
     properties_name  = models.CharField(max_length=512,null=True,blank=True,verbose_name='规格名称')
     properties       = models.CharField(max_length=512,null=True,blank=True,verbose_name='规格')
     created          = models.DateTimeField(null=True,blank=True,verbose_name='创建日期')
+    
+    with_hold_quantity = models.IntegerField(default=0,verbose_name='拍下未付款数')
+    sku_delivery_time  = models.DateTimeField(null=True,blank=True,verbose_name='发货时间')
     
     modified         = models.DateTimeField(null=True,blank=True,verbose_name='修改日期')
     price            = models.FloatField(default=0.0,verbose_name='价格')

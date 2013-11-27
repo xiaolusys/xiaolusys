@@ -1,3 +1,9 @@
+######### 2013-11-27 ##########
+alter table shop_items_item add column with_hold_quantity int(11) NOT NULL;
+alter table shop_items_item add column delivery_time datetime NOT NULL;
+
+alter table shop_items_skuproperty add column with_hold_quantity int(11) NOT NULL;
+alter table shop_items_skuproperty add column sku_delivery_time datetime NOT NULL;
 ######### 2013-11-23 ##########
 alter table shop_trades_replayposttrade change column trade_ids trade_ids longtext NOT NULL;
 alter table shop_trades_replayposttrade change column succ_ids succ_ids longtext NOT NULL;

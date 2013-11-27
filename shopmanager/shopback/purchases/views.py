@@ -835,7 +835,7 @@ class PaymentDistributeView(ModelView):
 def confirm_payment_amount(request):
     
     content    = request.REQUEST
-    id       = content.get('id','none')
+    id       = content.get('id','-1')
     pay_bank = content.get('pay_bank')
     pay_no   = content.get('pay_no')
     pay_time = content.get('pay_time')  

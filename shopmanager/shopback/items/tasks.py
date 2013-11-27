@@ -304,7 +304,8 @@ def updateItemNum(user_id,num_iid):
                         sync_num = (real_num - wait_nums)>10 and 3 or 0 
                 else:
                     sync_num = 0
-                    
+                #当前同步库存值，与线上拍下未付款商品数，哪个大取哪个 
+                sync_num = max(sync_num,sku.get('with_hold_quantity',0))   
 #                #针对小小派，测试线上库存低量促销效果
 #                if product.outer_id == '3116BG7':
 #                    sync_num = product_sku.warn_num > 0 and min(sync_num,product_sku.warn_num+10) or min(sync_num,15)
@@ -353,6 +354,8 @@ def updateItemNum(user_id,num_iid):
         else:
             sync_num = 0    
             
+        #当前同步库存值，与线上拍下未付款商品数，哪个大取哪个 
+        sync_num = max(sync_num,item.with_hold_quantity)
         #同步库存数不为0，或者没有库存警告，同步数量不等于线上库存，并且店铺，商品同步状态正确
         if not (sync_num == 0 and product.is_assign) and sync_num != item.num and user.sync_stock and product.sync_stock: 
             sync_num = int(sync_num)   

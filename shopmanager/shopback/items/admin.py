@@ -36,7 +36,7 @@ class ProductSkuInline(admin.TabularInline):
 
 class ItemAdmin(admin.ModelAdmin):
     list_display = ('num_iid','user','outer_id','type','category','title','price','has_showcase','sync_stock',
-                    'list_time','last_num_updated','approve_status','status')
+                    'with_hold_quantity','delivery_time','list_time','last_num_updated','approve_status','status')
     list_display_links = ('num_iid', 'title')
     #list_editable = ('update_time','task_type' ,'is_success','status')
 
@@ -270,12 +270,12 @@ admin.site.register(ProductSku, ProductSkuAdmin)
   
   
 class SkuPropertyAdmin(admin.ModelAdmin):
-    list_display = ('num_iid','sku_id','outer_id','price','quantity','properties_name','created','modified','status')
+    list_display = ('num_iid','sku_id','outer_id','properties_name','price','quantity','with_hold_quantity','sku_delivery_time','created','modified','status')
     list_display_links = ('sku_id', 'outer_id')
     #list_editable = ('update_time','task_type' ,'is_success','status')
     
     list_filter = ('status',)
-    search_fields = ['outer_id','sku_id','num_iid']
+    search_fields = ['outer_id','sku_id','num_iid','properties_name']
 
 
 admin.site.register(SkuProperty, SkuPropertyAdmin)
