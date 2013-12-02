@@ -707,14 +707,15 @@ def change_logistic_and_outsid(request):
         logistic_regex = re.compile(logistic.reg_mail_no)
         if not logistic_regex.match(out_sid):
             raise Exception(u'快递单号不合规则')
-         
+        
+        real_logistic_code = logistic_code.split('_')[0]
         dt = datetime.datetime.now()
         if merge_trade.sys_status in (pcfg.WAIT_CHECK_BARCODE_STATUS,pcfg.WAIT_SCAN_WEIGHT_STATUS):
             
             try:
                 if (dt-merge_trade.consign_time).days<1:
                     response = apis.taobao_logistics_consign_resend(tid=merge_trade.tid,out_sid=out_sid
-                                                     ,company_code=logistic_code,tb_user_id=merge_trade.user.visitor_id)
+                                                     ,company_code=real_logistic_code,tb_user_id=merge_trade.user.visitor_id)
                     if not response['logistics_consign_resend_response']['shipping']['is_success']:
                         raise Exception(u'重发失败')
             except Exception,exc:
@@ -731,7 +732,7 @@ def change_logistic_and_outsid(request):
             try:
                 if (dt-merge_trade.consign_time).days<1:
                     apis.taobao_logistics_consign_resend(tid=merge_trade.tid,out_sid=out_sid
-                                                 ,company_code=logistic_code,tb_user_id=merge_trade.user.visitor_id)
+                                                 ,company_code=real_logistic_code,tb_user_id=merge_trade.user.visitor_id)
             except:
                 pass
             dt  = datetime.datetime.now()

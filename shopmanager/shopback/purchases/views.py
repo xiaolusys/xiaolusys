@@ -76,7 +76,7 @@ class PurchaseView(ModelView):
             
         for k,v in content.iteritems():
             if not v :continue
-            hasattr(purchase,k) and setattr(purchase,k,v)
+            hasattr(purchase,k) and setattr(purchase,k,v.strip())
         
         if not purchase.service_date:
             purchase.service_date = datetime.datetime.now()
@@ -309,7 +309,7 @@ class PurchaseStorageView(ModelView):
 
         for k,v in content.iteritems():
             if not v :continue
-            hasattr(purchase,k) and setattr(purchase,k,v)
+            hasattr(purchase,k) and setattr(purchase,k,v.strip())
 
         if not purchase.post_date:
             purchase.post_date = datetime.datetime.now()

@@ -62,7 +62,7 @@ class ProductAdmin(admin.ModelAdmin):
     def district_link(self, obj):
         return u'<a href="/items/product/district/%d/" target="_blank">%s</a>' %(obj.id,obj.get_districts_code() or u'--' )
     district_link.allow_tags = True
-    district_link.short_description = "库位" 
+    district_link.short_description = "货位" 
     
     inlines = [ProductSkuInline]
     
