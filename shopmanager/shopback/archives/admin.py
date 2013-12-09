@@ -9,7 +9,7 @@ from django.utils.translation import ugettext as _
 from shopback.archives.models import SupplierType,Supplier,Deposite,PurchaseType,DepositeDistrict
 from shopback.items.models import ProductLocation
 
-class CostomAdmin(admin.ModelAdmin):
+class CustomAdmin(admin.ModelAdmin):
     """ 自定义Admin """
     def response_add(self, request, obj, post_url_continue='../%s/'):
         """
@@ -62,7 +62,7 @@ class ProductLocationInline(admin.TabularInline):
         models.TextField: {'widget': Textarea(attrs={'rows':4, 'cols':40})},
     }
 
-class DepositeAdmin(CostomAdmin):
+class DepositeAdmin(CustomAdmin):
     list_display = ('id','deposite_name','location','in_use','extra_info')
     #list_editable = ('update_time','task_type' ,'is_success','status')
 
@@ -87,7 +87,7 @@ class DepositeDistrictAdmin(admin.ModelAdmin):
 admin.site.register(DepositeDistrict,DepositeDistrictAdmin)
 
 
-class SupplierTypeAdmin(CostomAdmin):
+class SupplierTypeAdmin(CustomAdmin):
     list_display = ('id','type_name','extra_info')
     #list_editable = ('update_time','task_type' ,'is_success','status')
 
@@ -97,7 +97,7 @@ class SupplierTypeAdmin(CostomAdmin):
 admin.site.register(SupplierType,SupplierTypeAdmin)
 
 
-class SupplierAdmin(CostomAdmin):
+class SupplierAdmin(CustomAdmin):
     list_display = ('id','supply_type','supplier_name','contact','phone','mobile','fax','zip_code','email'
                     ,'address','account_bank','account_no','main_page','in_use')
     #list_editable = ('update_time','task_type' ,'is_success','status')
@@ -124,7 +124,7 @@ class SupplierAdmin(CostomAdmin):
 admin.site.register(Supplier,SupplierAdmin)
 
 
-class PurchaseTypeAdmin(CostomAdmin):
+class PurchaseTypeAdmin(CustomAdmin):
     list_display = ('id','type_name','in_use','extra_info')
     #list_editable = ('update_time','task_type' ,'is_success','status')
 

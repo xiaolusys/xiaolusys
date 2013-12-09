@@ -62,6 +62,16 @@ class ProductBarcodeHtmlRenderer(TemplateRenderer):
     media_type = 'text/html'
     format = 'html'
     template = 'items/product_barcode_page.html'
+    
+    
+class ProductWarnHtmlRenderer(TemplateRenderer):
+    """
+    Renderer which serializes to JSON
+    """
+    
+    media_type = 'text/html'
+    format = 'html'
+    template = 'items/product_stock_warn.html'
 
 
     

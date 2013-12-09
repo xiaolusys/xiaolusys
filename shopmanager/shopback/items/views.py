@@ -431,4 +431,18 @@ def deposite_district_query(request):
     
     return HttpResponse(json.dumps(ret),mimetype="application/json")
     
+##################################### 警告库存商品规格管理 ##################################
+class ProductWarnMgrView(ModelView):
+    """ 库存警告商品管理 """
     
+    def get(self, request, *args, **kwargs):
+        
+        pskus = ProductSku.objects.filter(product__status=pcfg.NORMAL,status=pcfg.NORMAL)\
+            .extra(where=["quantity<=shop_items_productsku.remain_num+shop_items_productsku.wait_post_num"])
+        print 'debug:',pskus 
+        return {'warn_skus':pskus}
+        
+    def post(self, request, id,*args, **kwargs):
+        
+        pass
+        

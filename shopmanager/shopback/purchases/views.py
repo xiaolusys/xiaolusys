@@ -222,7 +222,8 @@ def delete_purchase_item(request):
     purchase_item.status = pcfg.DELETE
     purchase_item.save()
     
-    log_action(request.user.id,purchase,CHANGE,u'采购项作废')
+    log_action(request.user.id,purchase,CHANGE,u'采购项作废(%d,%s,%s)'%
+               (purchase_item.id,purchase_item.outer_id,purchase_item.outer_sku_id))
     
     return HttpResponse(json.dumps({'code':0,'response_content':'success'}),mimetype='application/json')
     

@@ -34,8 +34,8 @@ class ProductSkuResource(ModelResource):
     """ docstring for ProductSku ModelResource """
 
     model = ProductSku
-    fields = ('outer_id','product','wait_post_num','quantity','warn_num','remain_num','properties_name'
-              ,'is_stock_warn','is_warning','sync_stock','is_assign','is_split','is_match','status','layer_table') 
+    fields = ('outer_id','product','wait_post_num','quantity','warn_num','remain_num','properties_name','is_stock_warn'
+              ,'is_warning','sync_stock','is_assign','is_split','is_match','status','layer_table','warn_skus') 
     exclude = ('url',)
     
     

@@ -23,11 +23,11 @@ class Deposite(models.Model):
 class DepositeDistrict(models.Model):
     """ 仓库库位 """
     
-    district_no  = models.CharField(max_length=32,blank=True,verbose_name='库位号')
+    district_no  = models.CharField(max_length=32,blank=True,verbose_name='货位号')
     
-    parent_no    = models.CharField(max_length=32,blank=True,verbose_name='父库位号')
+    parent_no    = models.CharField(max_length=32,blank=True,verbose_name='父货位号')
     
-    location     = models.CharField(max_length=64,blank=True,verbose_name='库位名')
+    location     = models.CharField(max_length=64,blank=True,verbose_name='货位名')
     
     in_use       = models.BooleanField(default=True,verbose_name='使用')
     
@@ -35,8 +35,8 @@ class DepositeDistrict(models.Model):
     class Meta:
         db_table = 'shop_archives_depositedistrict'
         unique_together = ("parent_no","district_no")
-        verbose_name=u'仓库区位'
-        verbose_name_plural = u'仓库区位列表'
+        verbose_name=u'仓库货位'
+        verbose_name_plural = u'仓库货位列表'
 
     def __unicode__(self):
         return '%s-%s'%(self.parent_no,self.district_no)

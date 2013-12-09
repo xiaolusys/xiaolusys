@@ -2,11 +2,11 @@ from django.conf.urls.defaults import patterns, url
 from djangorestframework.views import ListOrCreateModelView
 from django.views.generic import TemplateView
 from shopback.items.views import ProductListView,ProductItemView,ProductModifyView,ProductUpdateView,\
-    ProductSkuCreateView,ProductSkuInstanceView,ProductSearchView,ProductDistrictView,ProductBarCodeView
+    ProductSkuCreateView,ProductSkuInstanceView,ProductSearchView,ProductDistrictView,ProductBarCodeView,ProductWarnMgrView
 from shopback.items.resources import ProductListResource,ProductItemResource,ProductResource,\
     ProductSkuResource,ProductDistrictResource
 from shopback.items.renderers import ProductListHtmlRenderer,JSONRenderer,ProductItemHtmlRenderer,\
-    ProductUpdateHtmlRenderer,ProductSkuHtmlRenderer,ProductDistrictHtmlRenderer,ProductBarcodeHtmlRenderer
+    ProductUpdateHtmlRenderer,ProductSkuHtmlRenderer,ProductDistrictHtmlRenderer,ProductBarcodeHtmlRenderer,ProductWarnHtmlRenderer
 from shopback.base.renderers  import BaseJsonRenderer
 from shopback.base.permissions import IsAuthenticated
 from shopback.base.authentication import UserLoggedInAuthentication,login_required_ajax
@@ -67,6 +67,12 @@ urlpatterns = patterns('shopback.items.views',
         renderers=(BaseJsonRenderer,ProductDistrictHtmlRenderer),
         authentication=(UserLoggedInAuthentication,),
         permissions=(IsAuthenticated,)
-    )),              
+    )),     
+    (r'^product/warn/$',ProductWarnMgrView.as_view(
+        resource=ProductSkuResource,
+        renderers=(BaseJsonRenderer,ProductWarnHtmlRenderer),
+        authentication=(UserLoggedInAuthentication,),
+        permissions=(IsAuthenticated,)
+    )),      
     #(r'^product_lookup/$', 'shopback.items.views.json_lookup', product_lookup),
 )

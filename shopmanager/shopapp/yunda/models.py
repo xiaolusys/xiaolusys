@@ -42,6 +42,7 @@ class ClassifyZone(models.Model):
 def change_order_yunda_addr(sender, tid, *args, **kwargs):
    
     from shopapp.yunda.qrcode import modify_order
+    print 'change order yunda addr',tid
     try:
         modify_order([tid])
     except Exception,exc:
