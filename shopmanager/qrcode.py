@@ -182,7 +182,7 @@ def handle_demon(action,xml_data,partner_id,secret):
           'xmldata':xml_data,
           'validation':validate
           }
-    print '---------api-------------:',API_DICT[action]
+    
     req = urllib2.urlopen(demon_url+API_DICT[action], urllib.urlencode(params), timeout=60)
     rep = req.read()       
     print 'rep:',rep

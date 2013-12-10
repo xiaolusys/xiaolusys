@@ -291,7 +291,7 @@ def updateItemNum(user_id,num_iid):
                 #如果自动更新库存状态开启，并且计算后库存不等于在线库存，则更新
                 if sync_num>0 and user_percent>0:
                     sync_num = round(user_percet*sync_num)
-                elif sync_num > product_sku.warn_num:
+                elif sync_num > product_sku.remain_num:
                     product_sku.is_assign = False
                 elif sync_num >0 and sync_num <= product_sku.warn_num:
                     total_num,user_order_num = MergeOrder.get_yesterday_orders_totalnum(item.user.id,outer_id,outer_sku_id)
@@ -340,7 +340,7 @@ def updateItemNum(user_id,num_iid):
         #如果自动更新库存状态开启，并且计算后库存不等于在线库存，则更新
         if sync_num>0 and user_percent>0:
             sync_num = round(user_percet*sync_num)
-        elif sync_num > product.warn_num:
+        elif sync_num > product.remain_num:
             product.is_assign = False
         elif sync_num >0 and sync_num <= product.warn_num:
             total_num,user_order_num = MergeOrder.get_yesterday_orders_totalnum(item.user.id,outer_id,outer_sku_id)

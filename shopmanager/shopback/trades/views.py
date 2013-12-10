@@ -487,10 +487,10 @@ def change_trade_addr(request):
     except Exception,exc:
         logger.error(exc.message,exc_info=True)
         
-    trade.append_reason_code(pcfg.ADDR_CHANGE_CODE)
-    
     #通知其他APP，订单地址已修改
     change_addr_signal.send(sender=MergeTrade,tid=trade.id)
+        
+    trade.append_reason_code(pcfg.ADDR_CHANGE_CODE)
     
     log_action(user_id,trade,CHANGE,u'修改地址,修改前（%s）'%trade.buyer_full_address)
     

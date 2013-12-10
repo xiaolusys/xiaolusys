@@ -421,6 +421,7 @@ def calculate_product_stock_num(sender, instance, *args, **kwargs):
         product.is_match    = product_skus.filter(is_match=True)>0 
         
         product.save()
+        
     
 post_save.connect(calculate_product_stock_num, sender=ProductSku, dispatch_uid='calculate_product_num')
 
