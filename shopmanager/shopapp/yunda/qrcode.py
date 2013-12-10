@@ -62,7 +62,7 @@ ACTION_DICT = {
 API_DICT = {
                SELECT:SELECT_API,
                RECEIVE:RECEIVE_API,
-               MODIFY:RECEIVE_API,
+               MODIFY:MODIFY_API,
                CANCEL:CANCEL_API,
                ORDERINFO:ORDERINFO_API,
                TRANSITE:TRANSITE_API,

@@ -327,8 +327,7 @@ class CheckOrderView(ModelView):
                 check_msg.append("需手动合单".decode('utf8'))
             if trade.has_sys_err:
                 check_msg.append("该订单需管理员审核".decode('utf8'))
-            orders = trade.merge_trade_orders.filter(status__in=(pcfg.WAIT_SELLER_SEND_GOODS,pcfg.WAIT_BUYER_CONFIRM_GOODS))\
-                        .exclude(refund_status__in=pcfg.REFUND_APPROVAL_STATUS) 
+            orders = trade.inuse_orders.exclude(refund_status__in=pcfg.REFUND_APPROVAL_STATUS) 
             if orders.count()==0:
                 check_msg.append("没有可操作订单".decode('utf8'))   
             if check_msg:
@@ -641,7 +640,7 @@ class ReviewOrderView(ModelView):
         
               
 def review_order(request,id):
-        
+    #仓库订单复审     
     user_id  = request.user.id
     try:
         merge_trade = MergeTrade.objects.get(id=id)
