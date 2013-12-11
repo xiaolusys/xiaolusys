@@ -9,7 +9,7 @@ from django.template import RequestContext
 from shopback.users.models import User,Customer
 from shopback.base.options import DateFieldListFilter
 from shopback import paramconfig as pcfg
-from utils import gen_cvs_tuple,CSVUnicodeWriter
+from common.utils import gen_cvs_tuple,CSVUnicodeWriter
 
 
 class UserAdmin(admin.ModelAdmin):

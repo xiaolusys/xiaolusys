@@ -7,7 +7,7 @@ from shopback.base import log_action,User as DjangoUser, ADDITION, CHANGE
 from djangorestframework.views import ModelView
 from djangorestframework.response import ErrorResponse
 from shopapp.calendar.models import StaffEvent
-from auth.utils import parse_datetime,format_datetime
+from common.utils import parse_datetime,format_datetime
 
 
 def get_users_by_string(executor_strng):

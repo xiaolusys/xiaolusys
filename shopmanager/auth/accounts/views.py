@@ -7,7 +7,7 @@ from django.contrib.auth import authenticate, login, SESSION_KEY
 from django.contrib.auth.decorators import login_required
 from shopback.signals import taobao_logged_in
 from shopback.orders.models import Trade
-from auth.utils import parse_urlparams,parse_datetime
+from common.utils import parse_urlparams,parse_datetime
 from auth import apis
 
 import logging

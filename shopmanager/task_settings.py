@@ -135,7 +135,7 @@ SYNC_MODEL_SCHEDULE = {
          'args':(21,)
      },
 #    'runs-every-day-update-jushita-trade-task':{
-#         'task':'top_updatedb_task.pull_taobao_trade_task',
+#         'task':'tools.top_updatedb_task.pull_taobao_trade_task',
 #         'schedule':crontab(minute="0",hour='*/4'),
 #         'args':()
 #    }

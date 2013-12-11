@@ -10,7 +10,7 @@ from djangorestframework.views import ModelView
 from chartit import DataPool, Chart
 from chartit import PivotDataPool, PivotChart
 from auth import staff_requried,apis
-from auth.utils import parse_datetime,parse_date,format_date,format_time,map_int2str,format_datetime
+from common.utils import parse_datetime,parse_date,format_date,format_time,map_int2str,format_datetime
 from shopback.items.models import Item,Product,ProductSku
 from shopback.orders.models import Order,Trade
 from shopback import paramconfig as pcfg

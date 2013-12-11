@@ -5,7 +5,7 @@ from django.http import HttpResponse
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from auth import staff_requried
-from auth.utils import parse_datetime,parse_date,format_time,map_int2str
+from common.utils import parse_datetime,parse_date,format_time,map_int2str
 from shopapp.report.tasks import updateMonthTradeXlsFileTask
 
 

@@ -11,8 +11,8 @@ from shopapp.memorule.models import RuleMemo,TradeRule
 from shopback.logistics.models import LogisticsCompany
 from shopback.monitor.models import SystemConfig
 from shopback.signals import rule_signal
-from auth.utils import parse_datetime
-from auth.apis import single_instance_task,taobao_trade_memo_update
+from common.utils import parse_datetime,single_instance_task
+from auth.apis import taobao_trade_memo_update
 import logging
 
 logger = logging.getLogger('memorule.handler')

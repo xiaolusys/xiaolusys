@@ -7,7 +7,7 @@ from django.conf import settings
 from shopback.users.models import User
 from shopback.items.models import Item
 from shopapp.autolist.models import Logs,ItemListTask,SUCCESS,EXECERROR,UNEXECUTE
-from auth.utils import getSignatureTaoBao,format_time
+from common.utils import getSignatureTaoBao,format_time,single_instance_task
 from auth import apis
 import logging
 
@@ -115,7 +115,7 @@ def updateItemListTask(num_iid):
     task.save()
 
 
-@apis.single_instance_task(30*60,prefix='shopapp.autolist.tasks.')
+@single_instance_task(30*60,prefix='shopapp.autolist.tasks.')
 def updateAllItemListTask():
     currentdate = datetime.datetime.now()
     currenttime = time.mktime(currentdate.timetuple())

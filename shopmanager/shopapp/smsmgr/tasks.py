@@ -10,8 +10,7 @@ from shopback.trades.models import MergeTrade
 from shopapp.smsmgr.models import SMSPlatform,SMSRecord,SMSActivity,SMS_NOTIFY_POST
 from shopapp.smsmgr.service import SMS_CODE_MANAGER_TUPLE
 from shopback import paramconfig as pcfg
-from utils import update_model_feilds
-from auth import apis
+from common.utils import update_model_fields,single_instance_task
 import logging
 
 logger = logging.getLogger('smsmgr.handler')
@@ -115,12 +114,12 @@ def notifyBuyerPacketPostTask(trade_id,platform_code):
         if success:
             SMSPlatform.objects.filter(code=platform_code).update(sendnums=F('sendnums')+int(succnums))
             trade.is_send_sms = True
-            update_model_feilds(trade,update_fields=['is_send_sms'])
+            update_model_fields(trade,update_fields=['is_send_sms'])
     except Exception,exc:
         logger.error(exc.message or 'empty error',exc_info=True)
     
 
-@apis.single_instance_task(60*60,prefix='shopapp.smsmgr.tasks.')
+@single_instance_task(60*60,prefix='shopapp.smsmgr.tasks.')
 def notifyPacketPostTask(days):
     
     #选择默认短信平台商，如果没有，任务退出

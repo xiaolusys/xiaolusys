@@ -1,7 +1,6 @@
 #-*- coding:utf8 -*-
 import json
 import time
-from auth.utils import parse_datetime
 from django.db import models
 from shopback.base.models import BaseModel
 from shopback.base.fields import BigIntegerAutoField,BigIntegerForeignKey
@@ -9,6 +8,7 @@ from shopback.users.models import User
 from shopback.items.models import Item
 from shopback import paramconfig as pcfg
 from shopback.signals import merge_trade_signal
+from common.utils import parse_datetime
 from auth import apis
 import logging
 

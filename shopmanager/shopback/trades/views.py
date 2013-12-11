@@ -18,7 +18,7 @@ from shopback.signals import rule_signal,change_addr_signal
 from shopback.users.models import User
 from shopback import paramconfig as pcfg
 from auth import apis
-from auth.utils import parse_date,parse_datetime,format_date,format_datetime
+from common.utils import parse_date,parse_datetime,format_date,format_datetime
 import logging
 
 logger = logging.getLogger('trades.handler')
@@ -164,7 +164,7 @@ class StatisticMergeOrderView(ModelView):
                         prod_sku = ProductSku.objects.get(outer_id=outer_sku_id,product__outer_id=outer_id)
                     except:
                         pass
-                    prod_sku_name  = prod_sku.properties_name if prod_sku else order.sku_properties_name
+                    prod_sku_name  = prod_sku.name if prod_sku else order.sku_properties_name
                     purchase_price = float(prod_sku.cost) if prod_sku else payment/order_num
                     cost  = purchase_price*order_num
                     sales = payment
@@ -191,7 +191,7 @@ class StatisticMergeOrderView(ModelView):
                         prod_sku = ProductSku.objects.get(outer_id=outer_sku_id,product__outer_id=outer_id)
                     except:
                         pass
-                prod_sku_name  = prod_sku.properties_name if prod_sku else order.sku_properties_name
+                prod_sku_name  = prod_sku.name if prod_sku else order.sku_properties_name
                 purchase_price = float(prod_sku.cost) if prod_sku else payment/order_num    
                 cost  = purchase_price*order_num 
                 sales = payment

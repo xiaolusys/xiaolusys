@@ -86,7 +86,7 @@ def list_all_items(request):
         
     items = profile.items.filter(approve_status=pcfg.ONSALE_STATUS).order_by('list_time')
 
-    from auth.utils import get_closest_time_slot
+    from common.utils import get_closest_time_slot
 
     for x in items:
         relist_time, status = get_closest_time_slot(x.list_time)
@@ -119,7 +119,7 @@ def show_timetable_cats(request):
     except Exception:
         profile = request.user.get_profile()
         
-    from auth.utils import get_closest_time_slot, get_all_time_slots
+    from common.utils import get_closest_time_slot, get_all_time_slots
     catname = request.GET.get('catname', None)
 
     try:
@@ -251,7 +251,7 @@ def show_time_table_summary(request):
 def show_time_table(request):
     items = Item.objects.all().order_by('category', 'outer_id')
 
-    from auth.utils import get_closest_time_slot, get_all_time_slots
+    from common.utils import get_closest_time_slot, get_all_time_slots
 
     slots = get_all_time_slots()
     timekeys = slots.keys()

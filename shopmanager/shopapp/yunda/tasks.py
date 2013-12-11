@@ -11,7 +11,7 @@ from celery.task.sets import subtask
 from shopback import paramconfig as pcfg
 from shopback.trades.models import MergeTrade
 from shopapp.yunda.qrcode import cancel_order,search_order,parseTreeID2MailnoMap
-from utils import valid_mobile
+from common.utils import valid_mobile
 import logging
 
 logger = logging.getLogger('yunda.handler')

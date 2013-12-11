@@ -4,7 +4,7 @@ import json
 from django.http import HttpResponse
 from django.conf import settings
 from auth import staff_requried,apis
-from auth.utils import parse_datetime,parse_date,format_time,map_int2str
+from common.utils import parse_datetime,parse_date,format_time,map_int2str
 from shopback.amounts.tasks import updateAllUserOrdersAmountTask
 
 

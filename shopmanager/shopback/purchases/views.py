@@ -30,7 +30,7 @@ from shopback import paramconfig as pcfg
 from shopback.base import log_action, ADDITION, CHANGE
 from shopback.purchases import permissions as perm
 from shopback.monitor.models import SystemConfig
-from utils import CSVUnicodeWriter
+from common.utils import CSVUnicodeWriter
 from auth import staff_requried
 import logging
 

@@ -4,13 +4,13 @@ import calendar
 from celery.task import task
 from celery.task.sets import subtask
 from django.conf import settings
-from auth.utils import format_time,format_datetime,format_year_month,parse_datetime
 from shopback import paramconfig as pcfg
 from shopback.logistics.models import Logistics
 from shopback.orders.models import Trade
 from shopback.fenxiao.models import PurchaseOrder
 from shopback.monitor.models import TradeExtraInfo
 from shopback.users.models import User
+from common.utils import format_time,format_datetime,format_year_month,parse_datetime
 from auth import apis
 import logging
 __author__ = 'meixqhi'

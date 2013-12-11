@@ -3,7 +3,7 @@ from django.http import HttpResponse
 from django.contrib.auth.decorators import login_required
 from django.conf import settings
 from auth import staff_requried
-from auth.utils import parse_datetime,parse_date,format_time,map_int2str
+from common.utils import parse_datetime,parse_date,format_time,map_int2str
 from shopback.logistics.tasks import updateAllUserOrdersLogisticsTask
 from shopback.logistics.models import Logistics,LogisticsCompany
 from auth import apis

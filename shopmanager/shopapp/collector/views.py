@@ -9,7 +9,7 @@ from shopback.items.models import Item
 from shopapp.collector.models import ProductPageRank,ProductTrade
 from shopapp.collector.gencharts import genProductPeriodChart,genItemKeywordsChart,genPageRankPivotChart,genItemAvgRankPivotChart
 from shopapp.collector.crawurldata import getTaoBaoPageRank, getCustomShopsPageRank
-from auth.utils import map_int2str
+from common.utils import map_int2str
 
 __author__ = 'meixqhi'
 

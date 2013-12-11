@@ -5,13 +5,13 @@ import calendar
 from celery.task import task
 from celery.task.sets import subtask
 from django.conf import settings
-from auth.utils import format_time,format_datetime,format_year_month,parse_datetime
 from shopback.fenxiao.models import PurchaseOrder,FenxiaoProduct,SubPurchaseOrder
 from auth.apis.exceptions import UserFenxiaoUnuseException,TaobaoRequestException
 from shopback.monitor.models import TradeExtraInfo,SystemConfig,DayMonitorStatus
 from shopback.trades.models import MergeTrade
 from shopback import paramconfig as pcfg
 from shopback.users.models import User
+from common.utils import format_time,format_datetime,format_year_month,parse_datetime,single_instance_task
 from auth import apis
 import logging
 __author__ = 'meixqhi'
@@ -158,7 +158,7 @@ def updateAllUserIncrementPurchaseOrderTask(update_from=None,update_to=None):
 
    
   
-@apis.single_instance_task(60*60,prefix='shopback.fenxiao.tasks.')
+@single_instance_task(60*60,prefix='shopback.fenxiao.tasks.')
 def updateAllUserIncrementPurchasesTask():
     """ 增量更新分销平台订单信息 """
     

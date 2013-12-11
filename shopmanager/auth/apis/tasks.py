@@ -1,7 +1,6 @@
 #-*- coding:utf8 -*-
 __author__ = 'meixqhi'
 import re
-import types
 import inspect
 import copy
 import time
@@ -10,10 +9,9 @@ import json
 import urllib
 import urllib2
 from django.conf import settings
-from django.core.cache import cache
 from celery.task import task
 from celery.app.task import BaseTask
-from auth.utils import getSignatureTaoBao,format_datetime,format_date,refresh_session
+from common.utils import getSignatureTaoBao,format_datetime,format_date,refresh_session
 from auth.apis.exceptions import ContentNotRightException,RemoteConnectionException,APIConnectionTimeOutException,\
     ServiceRejectionException,UserFenxiaoUnuseException,AppCallLimitedException,InsufficientIsvPermissionsException,\
     SessionExpiredException,LogisticServiceBO4Exception,TaobaoRequestException,LogisticServiceB60Exception
@@ -113,28 +111,6 @@ API_FIELDS = {
     
 }
 
-
-def single_instance_task(timeout,prefix=''):
-    def task_exc(func):
-        def delay(self, *args, **kwargs):
-            return self.apply(args, kwargs)
-
-        def decorate(*args, **kwargs):
-            lock_id = "celery-single-instance-" + func.__name__
-            acquire_lock = lambda: cache.add(lock_id, "true", timeout)
-            release_lock = lambda: cache.delete(lock_id)
-            if acquire_lock() :
-                try:
-                    return func(*args, **kwargs)
-                finally:
-                    release_lock()
-            else :
-                logger.error('the task %s is executing.'%func.__name__)
-        result = task(name='%s%s' % (prefix,func.__name__))(decorate)
-        if settings.DEBUG:
-            result.delay = types.MethodType(delay, result)
-        return result
-    return task_exc
 
 
 def raise_except_or_ret_json(content):

@@ -3,13 +3,13 @@ __author__ = 'meixqhi'
 import json
 import time
 import random
-from auth.utils import parse_datetime
 from django.db import models
 from django.db.models import Sum
 from shopback.base.models import BaseModel
 from shopback.base.fields import BigIntegerAutoField,BigIntegerForeignKey
 from shopback.users.models import User
 from shopback.monitor.models import TradeExtraInfo
+from common.utils import parse_datetime
 from auth import apis
 import logging
 

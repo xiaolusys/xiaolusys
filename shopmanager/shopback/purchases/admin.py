@@ -14,7 +14,7 @@ from shopback.base.options import DateFieldListFilter
 from shopback.purchases.models import Purchase,PurchaseItem,PurchaseStorage,\
     PurchaseStorageItem,PurchasePayment,PurchasePaymentItem,PurchaseStorageRelationship
 from shopback.purchases import permissions as perms
-from utils import gen_cvs_tuple,CSVUnicodeWriter
+from common.utils import gen_cvs_tuple,CSVUnicodeWriter
 from shopback.base import log_action, ADDITION, CHANGE
 import logging 
 

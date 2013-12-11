@@ -8,7 +8,6 @@ from django.conf import settings
 from django.db.models import Sum
 from django.db import transaction
 from django.db.models.query import QuerySet
-from auth.utils import format_datetime,parse_datetime
 from shopback import paramconfig as pcfg
 from shopback.items.models import Item,Product,ProductSku,SkuProperty,ItemNumTaskLog
 from shopback.orders.models import Order, Trade
@@ -17,7 +16,7 @@ from shopback.users.models import User
 from shopback.fenxiao.tasks import saveUserFenxiaoProductTask
 from shopback import paramconfig as pcfg
 from auth import apis
-from auth.utils import get_yesterday_interval_time
+from common.utils import format_datetime,parse_datetime,get_yesterday_interval_time
 import logging
 
 logger = logging.getLogger('items.handler')
@@ -301,7 +300,7 @@ def updateItemNum(user_id,num_iid):
                         item_count = Item.objects.filter(outer_id=outer_id,approve_status=pcfg.ONSALE_STATUS).count() or 1
                         sync_num = sync_num/item_count or sync_num
                     else:
-                        sync_num = (real_num - wait_nums)>10 and 3 or 0 
+                        sync_num = (real_num - wait_nums)>10 and 2 or 0 
                 else:
                     sync_num = 0
                 #当前同步库存值，与线上拍下未付款商品数，哪个大取哪个 
@@ -350,7 +349,7 @@ def updateItemNum(user_id,num_iid):
                 item_count = Item.objects.filter(outer_id=outer_id,approve_status=pcfg.ONSALE_STATUS).count() or 1
                 sync_num = sync_num/item_count or sync_num
             else:
-                sync_num = (real_num - wait_nums)>10 and 3 or 0
+                sync_num = (real_num - wait_nums)>10 and 2 or 0
         else:
             sync_num = 0    
             

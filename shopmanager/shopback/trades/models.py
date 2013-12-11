@@ -15,12 +15,11 @@ from shopback.items.models import Item,Product,ProductSku
 from shopback.logistics.models import Logistics,LogisticsCompany,DestCompany
 from shopback.fenxiao.models import PurchaseOrder,SubPurchaseOrder,FenxiaoProduct
 from shopback.refunds.models import Refund,REFUND_STATUS
-from auth.utils import parse_datetime ,get_yesterday_interval_time
 from shopback import paramconfig as pcfg
 from shopback.monitor.models import SystemConfig,Reason
 from shopback.signals import merge_trade_signal,rule_signal
 from auth import apis
-from utils import update_model_feilds
+from common.utils import parse_datetime ,get_yesterday_interval_time, update_model_fields
 import logging
 
 logger = logging.getLogger('trades.handler')
@@ -415,7 +414,7 @@ class MergeTrade(models.Model):
         if self.sys_status in (pcfg.WAIT_CHECK_BARCODE_STATUS or pcfg.WAIT_SCAN_WEIGHT_STATUS) and self.can_review:
             self.can_review = False
             log_action(self.user.user.id,self,CHANGE,u'订单有新问题(%s)，取消复审'%self.reason_code)
-        update_model_feilds(self,update_fields=['reason_code','has_sys_err','can_review'])
+        update_model_fields(self,update_fields=['reason_code','has_sys_err','can_review'])
         
         rows = MergeTrade.objects.filter(id=self.id,sys_status=pcfg.WAIT_PREPARE_SEND_STATUS,out_sid='')\
             .update(sys_status=pcfg.WAIT_AUDIT_STATUS)
@@ -434,7 +433,7 @@ class MergeTrade(models.Model):
         else:
             self.reason_code = ','.join(list(reason_set))
             
-            update_model_feilds(self,update_fields=['reason_code',])
+            update_model_fields(self,update_fields=['reason_code',])
         return True
     
     def has_reason_code(self,code):
@@ -594,7 +593,7 @@ class MergeTrade(models.Model):
         
         if refund_orders_num >merge_trade.refund_num:
             merge_trade.refund_num = refund_orders_num
-            update_model_feilds(merge_trade,update_fields=['refund_num'])
+            update_model_fields(merge_trade,update_fields=['refund_num'])
             
             return True
         return False
@@ -792,7 +791,7 @@ def refresh_trade_status(sender,instance,*args,**kwargs):
         instance.created     = merge_trade.created
         instance.pay_time    = merge_trade.pay_time
         
-        update_model_feilds(instance,update_fields=['seller_nick','buyer_nick','created','pay_time'])
+        update_model_fields(instance,update_fields=['seller_nick','buyer_nick','created','pay_time'])
     
     effect_orders = merge_trade.merge_trade_orders.filter(sys_status=pcfg.IN_EFFECT)
     order_num     = effect_orders.count()#
@@ -821,7 +820,7 @@ def refresh_trade_status(sender,instance,*args,**kwargs):
          not in (pcfg.DIRECT_TYPE,pcfg.REISSUE_TYPE,pcfg.EXCHANGE_TYPE):
         merge_trade.sys_status = pcfg.WAIT_PREPARE_SEND_STATUS
         
-    update_model_feilds(merge_trade,update_fields=['order_num','prod_num','has_refund','has_out_stock',
+    update_model_fields(merge_trade,update_fields=['order_num','prod_num','has_refund','has_out_stock',
                             'has_rule_match','has_merge','sys_status'])
         
 post_save.connect(refresh_trade_status, sender=MergeOrder)
@@ -955,7 +954,7 @@ def merge_order_remover(main_tid):
     main_trade.remove_reason_code(pcfg.NEW_MERGE_TRADE_CODE)
     main_trade.append_reason_code(pcfg.MULTIPLE_ORDERS_CODE) 
     main_trade.has_merge = False
-    update_model_feilds(main_trade,update_fields=['payment','total_fee','post_fee','adjust_fee','discount_fee','has_merge'])
+    update_model_fields(main_trade,update_fields=['payment','total_fee','post_fee','adjust_fee','discount_fee','has_merge'])
     
     main_trade.merge_trade_orders.filter(Q(oid=None)|Q(is_merge=True)).delete()
     sub_merges = MergeBuyerTrade.objects.filter(main_tid=main_tid)
@@ -1293,7 +1292,7 @@ def save_orders_trade_to_mergetrade(sender, trade, *args, **kwargs):
             merge_trade.receiver_mobile  = trade.receiver_mobile 
             merge_trade.receiver_phone = trade.receiver_phone 
             
-            update_model_feilds(merge_trade,update_fields= ['receiver_name',
+            update_model_fields(merge_trade,update_fields= ['receiver_name',
                                                             'receiver_state',
                                                             'receiver_city',
                                                             'receiver_district',
@@ -1360,7 +1359,7 @@ def save_orders_trade_to_mergetrade(sender, trade, *args, **kwargs):
         merge_trade.shipping_type = merge_trade.shipping_type or \
                 pcfg.SHIPPING_TYPE_MAP.get(trade.shipping_type,pcfg.EXPRESS_SHIPPING_TYPE)
         
-        update_model_feilds(merge_trade,update_fields=update_fields
+        update_model_fields(merge_trade,update_fields=update_fields
                             +['shipping_type','payment','total_fee','discount_fee','adjust_fee',
                               'post_fee','alipay_no','trade_from'])
 
@@ -1395,7 +1394,7 @@ def save_fenxiao_orders_to_mergetrade(sender, trade, *args, **kwargs):
             merge_trade.receiver_district = location.get('district','') if location else '' 
             merge_trade.receiver_address  = location.get('address','') if location else '' 
             
-            update_model_feilds(merge_trade,update_fields= ['receiver_name',
+            update_model_fields(merge_trade,update_fields= ['receiver_name',
                                                             'receiver_state',
                                                             'receiver_city',
                                                             'receiver_district',
@@ -1478,7 +1477,7 @@ def save_fenxiao_orders_to_mergetrade(sender, trade, *args, **kwargs):
                          'total_fee','post_fee','created','trade_from',
                          'pay_time','modified','consign_time','seller_flag','priority','status']
         
-        update_model_feilds(merge_trade,update_fields=update_fields)
+        update_model_fields(merge_trade,update_fields=update_fields)
         #更新系统内部状态
         trade_download_controller(merge_trade,trade,trade_from,first_pay_load)
         

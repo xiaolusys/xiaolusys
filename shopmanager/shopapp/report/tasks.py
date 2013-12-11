@@ -15,9 +15,9 @@ from shopapp.report.models import MonthTradeReportStatus
 from shopapp.asynctask.models import TaobaoAsyncTask
 from shopback.monitor.models import DayMonitorStatus
 from shopapp.report.reportform import TradesToXLSFile
-from auth.utils import format_time,parse_datetime,format_datetime,format_date,format_year_month
+from common.utils import format_time,parse_datetime,format_datetime,format_date,format_year_month
 from shopback.users.models import User
-from auth.apis import single_instance_task
+from common.utils import single_instance_task
 import logging
 
 logger = logging.getLogger('report.handler')

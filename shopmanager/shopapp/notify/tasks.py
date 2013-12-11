@@ -18,7 +18,7 @@ from shopback.users.models import User
 from shopback.signals import rule_signal
 from shopapp.signals import modify_fee_signal
 from auth import apis
-from utils import update_model_feilds
+from common.utils import update_model_fields
 import logging
 
 logger = logging.getLogger('notify.handler')
@@ -105,11 +105,11 @@ def process_trade_notify_task(id):
                             main_trade = MergeTrade.objects.get(tid=main_tid)
                             main_trade.update_seller_memo(notify.tid,seller_memo)
                             main_trade.has_memo = True
-                            update_model_feilds(main_trade,update_fields=['has_memo',])
+                            update_model_fields(main_trade,update_fields=['has_memo',])
                             main_trade.append_reason_code(pcfg.NEW_MEMO_CODE)
                     if trade.seller_memo:
                         trade.has_memo = True
-                        update_model_feilds(trade,update_fields=['has_memo','seller_memo','seller_flag','modified'])
+                        update_model_fields(trade,update_fields=['has_memo','seller_memo','seller_flag','modified'])
                         trade.append_reason_code(pcfg.NEW_MEMO_CODE)
                                          
             #交易关闭

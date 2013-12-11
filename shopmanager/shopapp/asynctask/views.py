@@ -5,7 +5,7 @@ from djangorestframework.views import ModelView
 from djangorestframework.response import ErrorResponse
 from djangorestframework import status
 from shopapp.asynctask.tasks import AsyncCategoryTask,AsyncOrderTask
-from auth.utils import parse_date
+from common.utils import parse_date
 
 
 class AsyncCategoryView(ModelView):

@@ -9,7 +9,7 @@ from shopback.trades.models import MergeTrade
 from shopback.items.models import Item
 from shopback.users.models import User
 from shopapp.memorule.models import TradeRule,ProductRuleField,RuleMemo
-from auth.utils import parse_datetime
+from common.utils import parse_datetime
 from auth import apis
 import logging
 

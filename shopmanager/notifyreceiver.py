@@ -12,7 +12,7 @@ setup_environ(settings)
 
 from shopback.users.models import User
 from shopapp.notify.models import ItemNotify,TradeNotify,RefundNotify
-from auth.utils import getSignatureTaoBao
+from common.utils import getSignatureTaoBao
 from shopapp.notify.tasks import  process_discard_notify_task
 import logging
 

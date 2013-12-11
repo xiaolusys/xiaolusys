@@ -8,7 +8,6 @@ SubPurchaseOrder:分销平台子订单，
 __author__ = 'meixqhi'
 import json
 import time
-from auth.utils import parse_datetime
 from django.db import models
 from shopback.base.models import BaseModel
 from shopback.users.models import User
@@ -17,6 +16,7 @@ from shopback.logistics.models import Logistics
 from shopback import paramconfig as pcfg
 from shopback.signals import merge_trade_signal
 from auth import apis
+from common.utils import parse_datetime
 import logging
 
 logger = logging.getLogger('fenxiao.handler')

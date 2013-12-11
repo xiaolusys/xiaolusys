@@ -8,10 +8,10 @@ from django.conf import settings
 from shopback.orders.models import Order,Trade
 from shopback.users.models import User
 from shopback.monitor.models import TradeExtraInfo,SystemConfig,DayMonitorStatus
-from auth.utils import format_time,format_datetime,format_year_month,parse_datetime
 from auth.apis.exceptions import RemoteConnectionException,AppCallLimitedException,UserFenxiaoUnuseException,\
     APIConnectionTimeOutException,ServiceRejectionException
 from shopback import paramconfig as pcfg
+from common.utils import format_time,format_datetime,format_year_month,parse_datetime,single_instance_task
 from auth import apis
 
 import logging
@@ -138,7 +138,7 @@ def updateAllUserIncrementOrdersTask(update_from=None,update_to=None):
 
 
 
-@apis.single_instance_task(60*60,prefix='shopback.orders.tasks.')
+@single_instance_task(60*60,prefix='shopback.orders.tasks.')
 def updateAllUserIncrementTradesTask():
     """ 增量更新订单信息 """
     

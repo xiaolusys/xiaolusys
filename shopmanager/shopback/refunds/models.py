@@ -2,7 +2,7 @@
 __author__ = 'meixqhi'
 import json
 import time
-from auth.utils import parse_datetime
+from common.utils import parse_datetime
 from django.db import models
 from shopback.base.models import BaseModel
 from shopback.base.fields import BigIntegerAutoField,BigIntegerForeignKey

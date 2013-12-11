@@ -5,7 +5,7 @@ from celery.task import task
 from shopapp.collector.crawurldata import getTaoBaoPageRank ,getTaoBaoPageRank
 from shopapp.collector.models import ProductTrade ,ProductPageRank
 from shopback.users.models import User
-from auth.utils import format_time,parse_datetime,format_datetime,format_date
+from common.utils import format_time,parse_datetime,format_datetime,format_date
 import logging
 
 logger = logging.getLogger('collector.handler')

@@ -2,7 +2,7 @@
 import datetime
 from django.db import models
 from shopback.base.fields import BigIntegerAutoField
-from auth.utils import parse_datetime
+from common.utils import parse_datetime
 
 
 class ItemNotify(models.Model):

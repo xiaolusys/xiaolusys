@@ -6,7 +6,7 @@ import httplib2
 import urlparse
 from lxml import etree
 from StringIO import StringIO
-from auth.utils import format_datetime
+from common.utils import format_datetime
 
 import logging
 

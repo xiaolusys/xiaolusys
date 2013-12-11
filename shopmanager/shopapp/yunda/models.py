@@ -42,7 +42,11 @@ class ClassifyZone(models.Model):
 def change_order_yunda_addr(sender, tid, *args, **kwargs):
    
     from shopapp.yunda.qrcode import modify_order
-    
+    mtrade = MergeTrade.objects.get(tid=tid)
+    #如果订单非二维码订单，则退出
+    if not mtrade.is_qrcode:
+        return 
+        
     try:
         modify_order([tid])
     except Exception,exc:

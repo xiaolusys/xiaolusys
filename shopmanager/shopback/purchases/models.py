@@ -10,8 +10,7 @@ from shopback.archives.models import Supplier,PurchaseType,Deposite
 from shopback.categorys.models import ProductCategory
 from shopback.items.models import Product,ProductSku
 from shopback.monitor.models import SystemConfig
-from auth.utils import format_date
-from utils import update_model_feilds
+from common.utils import format_date,update_model_fields
 
 FINANCIAL_FIXED = 4
 
@@ -338,7 +337,7 @@ def update_purchase_info(sender,instance,*args,**kwargs):
     instance.std_price = round(cost,FINANCIAL_FIXED) or instance.price
     instance.arrival_status = instance.storage_num<=0 and pcfg.PD_UNARRIVAL or \
         (instance.storage_num>=instance.purchase_num and pcfg.PD_FULLARRIVAL or pcfg.PD_PARTARRIVAL)
-    update_model_feilds(instance,update_fields=['std_price','arrival_status'])
+    update_model_fields(instance,update_fields=['std_price','arrival_status'])
         
     purchase = instance.purchase
     purchase_items = instance.purchase.effect_purchase_items
@@ -362,7 +361,7 @@ def update_purchase_info(sender,instance,*args,**kwargs):
         if purchase_items.exclude(status=pcfg.PURCHASE_CLOSE).count()==0:
             purchase.status=pcfg.PURCHASE_CLOSE
     
-    update_model_feilds(purchase,update_fields=['total_fee','payment','arrival_status','status','prepay','purchase_num','storage_num'])
+    update_model_fields(purchase,update_fields=['total_fee','payment','arrival_status','status','prepay','purchase_num','storage_num'])
         
 post_save.connect(update_purchase_info, sender=PurchaseItem)
     
@@ -651,7 +650,7 @@ def update_storage_info(sender,instance,*args,**kwargs):
     storage.payment   = storage_dict['total_payment'] or 0
     storage.storage_num  = storage_dict['total_storage_num'] or 0
     
-    update_model_feilds(storage,update_fields=['total_fee','prepay','payment','storage_num'])
+    update_model_fields(storage,update_fields=['total_fee','prepay','payment','storage_num'])
         
 post_save.connect(update_storage_info, sender=PurchaseStorageItem)
 

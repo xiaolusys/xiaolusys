@@ -1,7 +1,7 @@
 #-*- coding:utf8 -*-
 import json
 import time
-from auth.utils import parse_datetime
+from common.utils import parse_datetime
 from django.db import models
 from shopback.users.models import User
 from shopback.items.models import Item
