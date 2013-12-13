@@ -103,7 +103,7 @@ class Purchase(models.Model):
                        ]
 
     def __unicode__(self):
-        return '<%s,%s,%s>'%(str(self.id),self.origin_no,self.extra_name)
+        return '<%s,%s,%s>'%(str(self.id or ''),self.origin_no,self.extra_name)
     
     @property
     def effect_purchase_items(self):
@@ -298,7 +298,7 @@ class PurchaseItem(models.Model):
                        ]
     
     def __unicode__(self):
-        return 'CGZD%d'%(self.id or 0)
+        return '<%s,%s,%s>'%(str(self.id or ''),self.outer_id,self.outer_sku_id)
     
     @property
     def cost(self):
@@ -406,7 +406,7 @@ class PurchaseStorage(models.Model):
         verbose_name_plural = u'入库单列表'
 
     def __unicode__(self):
-        return '<%d,%s,%s>'%(self.id or 0,self.origin_no,self.extra_name)
+        return '<%s,%s,%s>'%(str(self.id or ''),self.origin_no,self.extra_name)
     
     @property
     def normal_storage_items(self):
@@ -752,6 +752,7 @@ class PurchasePayment(models.Model):
         2,预付款
         3,付款提货
     """    
+    origin_nos   = models.TextField(blank=True,verbose_name='原单据号')
     
     pay_type     = models.CharField(max_length=6,db_index=True,choices=PURCHASE_PAYMENT_TYPE,verbose_name='付款类型')
     apply_time   = models.DateTimeField(null=True,blank=True,verbose_name='申请日期')
@@ -784,11 +785,27 @@ class PurchasePayment(models.Model):
         
     
     def __unicode__(self):
-        return '<%d,%s,%.2f>'%(self.id ,self.pay_type,self.payment)
+        return '<%s,%s,%.2f>'%(str(self.id or '') ,self.pay_type,self.payment)
     
     def invalid(self):
         self.status = pcfg.PURCHASE_INVALID
         self.save()
+    
+    def append_origins_no(self,origin_no):
+        """ 将原始单号加入付款信息 """
+        ono_set = set(self.origin_nos.split(','))
+        if origin_no not in ono_set:
+            ono_set.add(origin_no)
+            self.origin_nos = ','.join(ono_set)
+            self.save()
+            
+    def unappend_origins_no(self,origin_no):
+        """ 将原始单号移除付款信息 """
+        ono_set = set(self.origin_nos.split(','))
+        if origin_no in ono_set:
+            ono_set.remove(origin_no)
+            self.origin_nos = ','.join(ono_set)
+            self.save()
         
     @property
     def json(self):
@@ -909,14 +926,17 @@ class PurchasePayment(models.Model):
         
     def apply_for_prepay(self,purchase,payment):
         """ 生成预付款项 """
+        self.append_origins_no(purchase.origin_no)
         self.cal_purchase_payment(purchase,payment,cal_by=0)
         
     def apply_for_podpay(self,storage,payment):
         """ 生成付款提货付款项 """
+        self.append_origins_no(storage.origin_no)
         self.cal_storage_payment(storage,payment,cal_by=0)
     
     def apply_for_codpay(self,storage,payment):
         """ 生成货到付款项 """
+        self.append_origins_no(storage.origin_no)
         self.cal_storage_payment(storage,payment,cal_by=0)
             
     def apply_for_otherpay(self,purchase,storages,payment):
@@ -1019,7 +1039,7 @@ class PurchasePaymentItem(models.Model):
         verbose_name_plural = u'付款项目列表'
     
     def __unicode__(self):
-        return '<id,%d>'%(self.id)
+        return '<%s,%.2f>'%(str(self.id or ''),self.payment)
     
     @property
     def json(self):

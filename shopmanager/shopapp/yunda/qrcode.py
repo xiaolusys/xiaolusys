@@ -13,6 +13,7 @@ import urllib2
 import cgi
 from lxml import etree
 from StringIO import StringIO
+from common.utils import valid_xml_string
 
 from shopapp.yunda.options import get_addr_zones
 from shopback.trades.models import MergeTrade
@@ -153,13 +154,13 @@ def get_objs_from_trade(trades):
                      "sender_postcode":u"",
                      "sender_phone":u"021-37698479",
                      "sender_mobile":u"",
-                     "receiver_name":trade.receiver_name,
+                     "receiver_name":valid_xml_string(trade.receiver_name),
                      "receiver_company":u'',
-                     "receiver_city":','.join([trade.receiver_state,trade.receiver_city,trade.receiver_district]),
-                     "receiver_address":','.join([trade.receiver_state,trade.receiver_city,(trade.receiver_district+trade.receiver_address).replace(',',' ')]),
-                     "receiver_postcode":trade.receiver_zip,
-                     "receiver_phone":trade.receiver_phone,
-                     "receiver_mobile":trade.receiver_mobile,
+                     "receiver_city":valid_xml_string(','.join([trade.receiver_state,trade.receiver_city,trade.receiver_district])),
+                     "receiver_address":valid_xml_string(','.join([trade.receiver_state,trade.receiver_city,(trade.receiver_district+trade.receiver_address)])),
+                     "receiver_postcode":valid_xml_string(trade.receiver_zip),
+                     "receiver_phone":valid_xml_string(trade.receiver_phone),
+                     "receiver_mobile":valid_xml_string(trade.receiver_mobile),
                      "zone":zone and zone.code or ''
                      })
         

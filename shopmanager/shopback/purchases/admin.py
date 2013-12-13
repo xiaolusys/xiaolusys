@@ -409,7 +409,7 @@ class PurchasePaymentAdmin(admin.ModelAdmin):
     #list_editable = ('update_time','task_type' ,'is_success','status')
 
     list_filter = ('status','pay_type',('pay_time',DateFieldListFilter))
-    search_fields = ['id','cashier','applier','pay_bank','pay_no','supplier__supplier_name']
+    search_fields = ['id','cashier','applier','pay_bank','pay_no','supplier__supplier_name','origin_nos']
     
     def payment_link(self, obj):
         symbol_link = obj.payment
@@ -422,21 +422,21 @@ class PurchasePaymentAdmin(admin.ModelAdmin):
                     'classes': ('expand',),
                     'fields': (('pay_type','payment','pay_no','pay_bank','supplier')
                                ,('pay_time','apply_time','applier','cashier')
-                               ,('status','extra_info')
+                               ,('origin_nos','status','extra_info')
                                )
                 }),)
     
     def get_readonly_fields(self, request, obj=None):
         if not perms.has_payment_confirm_permission(request.user):
             return self.readonly_fields+('pay_type','payment','pay_no','pay_bank','pay_time',
-                                         'apply_time','applier','cashier','status')
+                                         'apply_time','applier','cashier','origin_nos','status')
         return self.readonly_fields
     
     inlines = [PurchasePaymentItemInline]
     
     #--------定制控件属性----------------
     formfield_overrides = {
-        models.CharField: {'widget': TextInput(attrs={'size':'20'})},
+        models.CharField: {'widget': TextInput(attrs={'size':'30'})},
         models.FloatField: {'widget': TextInput(attrs={'size':'8'})},
         models.TextField: {'widget': Textarea(attrs={'rows':4, 'cols':40})},
     }

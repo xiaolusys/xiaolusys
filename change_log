@@ -1,4 +1,6 @@
 ######### 2013-11-27 ##########
+alter table shop_purchases_payment add column origin_nos longtext NOT NULL;
+######### 2013-11-27 ##########
 alter table shop_items_item add column with_hold_quantity int(11) NOT NULL;
 alter table shop_items_item add column delivery_time datetime DEFAULT NULL;
 

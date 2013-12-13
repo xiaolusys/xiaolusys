@@ -601,7 +601,6 @@ class PurchasePaymentView(ModelView):
         purchase_payment    = None
         storages            = []
         supplier            = None 
-        
         try:
             payment   = float(payment or 0)
             if not payment:
