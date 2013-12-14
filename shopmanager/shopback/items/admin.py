@@ -126,6 +126,7 @@ class ProductAdmin(admin.ModelAdmin):
     def update_items_sku(self,request,queryset):
         
         from shopback.items.tasks import updateUserProductSkuTask
+        users = User.objects.filter(status=pcfg.NORMAL,is_primary=True)
         sync_items = []
         for prod in queryset:
             pull_dict = {'outer_id':prod.outer_id,'name':prod.name}
@@ -134,7 +135,9 @@ class ProductAdmin(admin.ModelAdmin):
                 for item in items:
                     Item.get_or_create(item.user.visitor_id,item.num_iid,force_update=True)    
                 
-                updateUserProductSkuTask(outer_ids=[prod.outer_id])
+                for u in users:
+                    updateUserProductSkuTask(user_id=u.visitor_id,outer_ids=[prod.outer_id])
+                    
                 item_sku_outer_ids = set()
                 items = Item.objects.filter(outer_id=prod.outer_id)
                 for item in items:
