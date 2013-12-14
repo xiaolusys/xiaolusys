@@ -54,13 +54,13 @@ class ProductAdmin(admin.ModelAdmin):
     list_display = ('id','outer_id','name','collect_num','category','warn_num','remain_num','wait_post_num','cost'
                     ,'std_sale_price','agent_price','sync_stock','is_assign','is_split','is_match','post_check','district_link','status')
     list_display_links = ('id','outer_id',)
-    list_editable = ('name',)
+    #list_editable = ('name',)
     
     date_hierarchy = 'modified'
     #ordering = ['created_at']
     
     def district_link(self, obj):
-        return u'<a href="/items/product/district/%d/" target="_blank">%s</a>' %(obj.id,obj.get_districts_code() or u'--' )
+        return u'<a href="/items/product/district/%d/" target="_blank" style="display: block;width:200px;">%s</a>' %(obj.id,obj.get_districts_code() or u'--' )
     district_link.allow_tags = True
     district_link.short_description = "货位" 
     

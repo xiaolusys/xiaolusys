@@ -22,7 +22,7 @@
     	width:1000px;
     }
   	.content-main{
-		margin-top:40px;
+		margin-top:20px;
 		display:fixed;
 	} 
 	div.control-group {
@@ -41,6 +41,7 @@
   <body>
 {% with product=object.product %}
 <div class="content-main">
+	<div><h3>商品库位分配</h3></div>
 	<input id="product_id" type="hidden" value="{{ product.id }}"/>
 	<table class="table table-bordered table-condensed">
 		<thead>

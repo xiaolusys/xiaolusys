@@ -1106,9 +1106,8 @@ def trade_download_controller(merge_trade,trade,trade_from,first_pay_load):
                     zoned  = doc.xpath('/responses/response/package_mc')[0].text
                     
                     if reach == '0' or not reach:
-                        merge_trade.append_reason_code(pcfg.NEW_MEMO_CODE)
-                        MergeTrade.objects.filter(id=merge_trade.id).update(sys_memo=u'韵达不到')
-                        merge_trade.logistics_company = None
+                        MergeTrade.objects.filter(id=merge_trade.id).update(sys_memo=u'韵达二维码不到')
+                        merge_trade.logistics_company = LogisticsCompany.objects.get(code='YUNDA_QR')
                     
                     if reach == '1':
                         MergeTrade.objects.filter(id=merge_trade.id).update(reserveo=zonec,reservet=zoned)
