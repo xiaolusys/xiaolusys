@@ -534,7 +534,7 @@ class MergeTrade(models.Model):
                     else:
                         is_order_out  |= product_sku.is_out_stock
                         #更新待发数
-                        product_sku.update_waitpostnum_incremental(order.num,reverse=True)
+                        product_sku.update_wait_post_num(order.num)
                 elif order.outer_id:
                     try:
                         product = Product.objects.get(outer_id=order.outer_id)
@@ -544,7 +544,7 @@ class MergeTrade(models.Model):
                     else:
                         is_order_out |= product.is_out_stock
                         #更新待发数
-                        product.update_waitpostnum_incremental(order.num,reverse=True)
+                        product.update_wait_post_num(order.num)
                 
                 if not is_order_out:
                     #预售关键字匹配        
