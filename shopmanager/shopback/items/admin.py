@@ -205,7 +205,37 @@ class ProductAdmin(admin.ModelAdmin):
         
     juhuasuan_instock_product.short_description = u"加聚划算入仓商品"
     
-    actions = ['sync_items_stock','update_items_sku','cancle_items_out_stock','juhuasuan_instock_product']
+    #导出商品规格信息
+    def export_prodsku_info_action(self,request,queryset):
+        """ 导出商品及规格信息 """
+
+        is_windows = request.META['HTTP_USER_AGENT'].lower().find('windows') >-1 
+        pcsv =[]
+        pcsv.append((u'商品编码',u'商品名',u'规格编码',u'规格名',u'库存数',u'昨日销量',u'预留库位',u'待发数',u'成本',u'标准售价',u'条码'))
+        for prod in queryset:
+            skus = prod.pskus.exclude(is_split=True)
+            if skus.count() > 0:
+                for sku in skus:
+                    pcsv.append((prod.outer_id,prod.name,sku.outer_id,sku.name,sku.quantity,sku.warn_num,\
+                                 sku.remain_num,sku.wait_post_num,sku.cost,sku.std_sale_price,sku.barcode))
+            else:
+                pcsv.append((prod.outer_id,prod.name,'','',prod.collect_num,prod.warn_num,\
+                                 prod.remain_num,prod.wait_post_num,prod.cost,prod.std_sale_price,prod.barcode))
+            pcsv.append(['','','','','','','','','','',''])
+        
+        tmpfile = StringIO.StringIO()
+        writer  = CSVUnicodeWriter(tmpfile,encoding= is_windows and "gbk" or 'utf8')
+        writer.writerows(pcsv)
+            
+        response = HttpResponse(tmpfile.getvalue(), mimetype='application/octet-stream')
+        tmpfile.close()
+        response['Content-Disposition'] = 'attachment; filename=product-sku-info-%s.csv'%str(int(time.time()))
+        
+        return response
+        
+    export_prodsku_info_action.short_description = u"导出商品及规格信息"
+    
+    actions = ['sync_items_stock','update_items_sku','cancle_items_out_stock','juhuasuan_instock_product','export_prodsku_info_action']
 
 admin.site.register(Product, ProductAdmin)
 

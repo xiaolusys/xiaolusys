@@ -483,7 +483,7 @@ purchase.Manager.prototype.bindEvent = function (){
 		var nRow = $(this).parents('tr')[0];
 		that.delPurchaseItem(nRow);
 		that.calPurchaseNumAndFee();
-	} );
+	});
 	//绑定保存事件
 	$('#purchaseitem-table a.save').live('click', function (e) {
 		e.preventDefault();

@@ -1,0 +1,42 @@
+<div id="dialog-content">
+<form id="assign-form" method="POST" action="/items/product/assign/">
+<div id="dialog-head " class="well well-small">
+	<div class="label-block"><label class="label label-info">商品编码：</label><input type="text" name="assign_outer_id" value="{{ object.outer_id }}" readonly/></div>
+	<div class="label-block"><label class="label label-info">规格编码：</label><input type="text" name="assign_outer_sku_id" value="{{ object.outer_sku_id }}" readonly/></div>
+	<div class="label-block"><label class="label label-info">实际库存：</label><input type="text" name="assign_real_num" value="{{ object.real_num }}" readonly/></div>
+	<div class="label-block"><label class="label label-info">昨日销量：</label><input type="text" name="assign_lday_num" value="{{ object.lday_num }}" readonly/></div>
+</div>
+<div id="dialog-center">
+<table class="table table-bordered table-striped table-condensed">
+	<thead>
+		<tr>
+			<th>所属店铺</th>
+			<th>商品ID</th>
+			<th style="width:150px;">商品标题</th>
+			<th>规格ID</th>
+			<th>规格属性</th>
+			<th style="width:80px;">待付款数</th>
+			<th style="width:80px;">线上库存</th>
+		</tr>
+	</thead>
+	<tbody>
+	{% for item in object.items_list %}
+	<tr>
+		<td>{{ item.seller_nick }}</td>
+		<td>{{ item.num_iid }}</td>
+		<td>{{ item.title }}</td>
+		<td>{{ item.sku.sku_id }}</td>
+		<td>{{ item.sku.properties_name }}</td>
+		<td>{% if item.sku %}{{ item.sku.with_hold_quantity }}{% else %}{{ item.with_hold_quantity }}{% endif %}</td>
+		<td><input name="{{ item.num_iid }}-{% if item.sku_id %}{{ item.sku_id }}{% endif %}" type="text" 
+			value="{% if item.sku %}{{ item.sku.quantity }}{% else %}{{ item.num }}{% endif %}" ></td>
+	</tr>
+	{% endfor %}
+	</tbody>
+</table>
+</div>
+<div id="dialog-footer">
+	<button id="submit" class="btn btn-large btn-primary">提交</button>
+</div>
+</form>
+</div>

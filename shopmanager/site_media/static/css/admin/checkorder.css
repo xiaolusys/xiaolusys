@@ -132,6 +132,11 @@ tr {
     border-color: #EED3D7;
 }
 
+.system {
+    color: #4330DE;
+    background-color: #C6E4DE;
+}
+
 .simple-label {
     color:#999;
     display:inline;

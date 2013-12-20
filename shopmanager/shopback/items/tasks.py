@@ -370,7 +370,6 @@ def updateItemNum(user_id,num_iid):
                                              start_at= item.last_num_updated,
                                              end_at=datetime.datetime.now())
   
-    
     Item.objects.filter(num_iid=item.num_iid).update(last_num_updated=datetime.datetime.now())
 
 

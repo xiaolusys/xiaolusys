@@ -301,13 +301,13 @@ class MergeTradeAdmin(admin.ModelAdmin):
                     
                     if outer_sku_id:
                         psku = ProductSku.objects.get(product__outer_id=outer_id,outer_id=outer_sku_id)
-                        psku.update_quantity_incremental(order_num)
-                        psku.update_waitpostnum_incremental(order_num)
+                        psku.update_quantity(order_num,dec_update=True)
+                        psku.update_wait_post_num(order_num,dec_update=True)
                         
                     else:
                         prod = Product.objects.get(outer_id=outer_id)
-                        prod.update_collect_num_incremental(order_num)
-                        prod.update_waitpostnum_incremental(order_num)
+                        prod.update_collect_num(order_num,dec_update=True)
+                        prod.update_wait_post_num(order_num,dec_update=True)
                 
                 msg = u'%(name)s "%(obj)s" 订单手动修改已完成.'% {'name': force_unicode(verbose_name), 'obj': force_unicode(obj)} 
                 log_action(request.user.id,obj,CHANGE,msg)
@@ -327,13 +327,13 @@ class MergeTradeAdmin(admin.ModelAdmin):
                     
                     if outer_sku_id:
                         psku = ProductSku.objects.get(product__outer_id=outer_id,outer_id=outer_sku_id)
-                        psku.update_quantity_incremental(order_num,reverse=True)
-                        psku.update_waitpostnum_incremental(order_num,reverse=True)
+                        psku.update_quantity(order_num)
+                        psku.update_wait_post_num(order_num)
                         
                     else:
                         prod = Product.objects.get(outer_id=outer_id)
-                        prod.update_collect_num_incremental(order_num,reverse=True)
-                        prod.update_waitpostnum_incremental(order_num,reverse=True)
+                        prod.update_collect_num(order_num)
+                        prod.update_wait_post_num(order_num)
                         
                 msg = u'%(name)s "%(obj)s" 订单进入重新扫描状态.'% {'name': force_unicode(verbose_name), 'obj': force_unicode(obj)} 
                 log_action(request.user.id,obj,CHANGE,msg)

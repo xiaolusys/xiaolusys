@@ -346,20 +346,20 @@ class MergeTrade(models.Model):
             outer_sku_id = order.outer_sku_id
             outer_id  = order.outer_id
             order_num = order.num
-            is_reverse = True if order.gift_type == pcfg.RETURN_GOODS_GIT_TYPE else False
+            is_reverse = False if order.gift_type == pcfg.RETURN_GOODS_GIT_TYPE else True
             if outer_sku_id and outer_id:
                 prod_sku = ProductSku.objects.get(outer_id=outer_sku_id,product__outer_id=outer_id)
-                prod_sku.update_quantity_incremental(order_num,reverse=is_reverse)
+                prod_sku.update_quantity(order_num,dec_update=is_reverse)
             elif outer_id:
                 prod  = Product.objects.get(outer_id=outer_id)
-                prod.update_collect_num_incremental(order_num,reverse=is_reverse)
+                prod.update_collect_num(order_num,dec_update=is_reverse)
             else:
                 raise Exception('订单商品没有商家编码')
             if order.gift_type in (pcfg.REAL_ORDER_GIT_TYPE,pcfg.COMBOSE_SPLIT_GIT_TYPE):
                 if prod_sku:
-                    prod_sku.update_waitpostnum_incremental(order_num)
+                    prod_sku.update_wait_post_num(order_num,dec_update=True)
                 else:
-                    prod.update_waitpostnum_incremental(order_num)
+                    prod.update_wait_post_num(order_num,dec_udpate=True)
             
         return True            
        

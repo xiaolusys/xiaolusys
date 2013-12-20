@@ -8,7 +8,7 @@ Item:淘宝平台商品，
 import json
 import datetime
 from django.db import models
-from django.db.models import Sum,Avg
+from django.db.models import Sum,Avg,F
 from shopback.base.models import BaseModel
 from shopback.base.fields import BigIntegerAutoField
 from shopback.categorys.models import Category,ProductCategory
@@ -17,6 +17,7 @@ from shopback import paramconfig as pcfg
 from django.db.models.signals import post_save
 from shopback.users.models import User
 from auth import apis
+from common.utils import update_model_fields
 import logging
 
 logger  = logging.getLogger('items.handler')
@@ -101,6 +102,10 @@ class Product(models.Model):
         return self.barcode.strip() or self.outer_id.strip()
     
     @property
+    def realnum(self):
+        return self.collect_num - self.remain_num - self.wait_post_num
+    
+    @property
     def is_out_stock(self):
         if self.collect_num<0 or self.wait_post_num <0 :
             self.collect_num = self.collect_num >0 and self.collect_num or 0 
@@ -139,33 +144,42 @@ class Product(models.Model):
                 'skus':skus_json
                 }    
         
-    def update_collect_num_incremental(self,num,reverse=False):
+    def update_collect_num(self,num,full_update=False,dec_update=False):
         """
-        参数:
-            reverse:True表示加库存，False表示减相应的库存
+            更新商品库存:
+                full_update:是否全量更新
+                dec_update:是否减库存
         """
-        if reverse:
-            self.collect_num = models.F('collect_num')+num
+        if full_update:
+            self.collect_num = num
+        elif dec_update:
+            self.collect_num = F('collect_num') - num
         else:
-            self.collect_num = models.F('collect_num')-num
-        self.save()
+            self.collect_num = F('collect_num') + num
+        update_model_fields(self,update_fields=['collect_num'])
+        
         self.collect_num = Product.objects.get(id=self.id).collect_num
         
-    def update_waitpostnum_incremental(self,num,reverse=False):
-        """
-        参数:
-            reverse:True表示加库存，False表示减相应的库存
-        """
-        if reverse:
-            self.wait_post_num = models.F('wait_post_num')+num
-        else:
-            self.wait_post_num = models.F('wait_post_num')-num
-        self.save()
         
+    def update_wait_post_num(self,num,full_update=False,dec_update=False):
+        """
+            更新商品待发数:
+                full_update:是否全量更新
+                dec_update:是否减库存
+        """
+        if full_update:
+            self.wait_post_num = num
+        elif dec_update:
+            self.wait_post_num = F('wait_post_num') - num
+        else:
+            self.wait_post_num = F('wait_post_num') + num
+        update_model_fields(self,update_fields=['wait_post_num'])
+        
+        self.wait_post_num = Product.objects.get(id=self.id).wait_post_num
         if self.wait_post_num <0:
             self.wait_post_num = 0
-            self.save()
-        self.wait_post_num = Product.objects.get(id=self.id).wait_post_num
+            update_model_fields(self,update_fields=['wait_post_num'])
+        
         
     @property
     def is_stock_warn(self):
@@ -280,6 +294,10 @@ class ProductSku(models.Model):
         return self.barcode.strip() or self.product.barcode.strip() or '%s%s'%(self.product.outer_id.strip(),self.outer_id.strip())
     
     @property
+    def realnum(self):
+        return self.quantity - self.remain_num - self.wait_post_num
+    
+    @property
     def is_out_stock(self):
         if self.quantity<0 or self.wait_post_num <0 :
             self.quantity      = self.quantity >= 0 and self.quantity or 0
@@ -313,33 +331,46 @@ class ProductSku(models.Model):
                 'districts':sku.get_district_list(),
                 'barcode':sku.BARCODE}
         
-    def update_quantity_incremental(self,num,reverse=False):
+    def update_quantity(self,num,full_update=False,dec_update=False):
         """
-        参数:
-            reverse:True表示加库存，False表示减相应的库存
+        更新规格库存
         """
-        if reverse:
-            self.quantity = models.F('quantity')+num
+        if full_update:
+            self.quantity = num
+        elif dec_update:
+            self.quantity = F('quantity') - num
         else:
-            self.quantity = models.F('quantity')-num
-        self.save()
-        self.quantity = ProductSku.objects.get(id=self.id).quantity
+            self.quantity = F('quantity') + num
+        update_model_fields(self,update_fields=['quantity'])
         
-    def update_waitpostnum_incremental(self,num,reverse=False):
+        psku = ProductSku.objects.get(id=self.id)
+        self.quantity = psku.quantity
+        
+        post_save.send(sender=self.__class__,instance=self)
+        
+        
+    def update_wait_post_num(self,num,full_update=False,dec_update=False):
         """
-        参数:
-            reverse:True表示加库存，False表示减相应的库存
+        更新规格待发数:
+            full_update:是否全量更新
+            dec_update:是否减库存
         """
-        if reverse:
-            self.wait_post_num = models.F('wait_post_num')+num
+        if full_update:
+            self.wait_post_num = num
+        elif dec_update:
+            self.wait_post_num = models.F('wait_post_num') - num
         else:
-            self.wait_post_num = models.F('wait_post_num')-num
-        self.save()
+            self.wait_post_num = models.F('wait_post_num') + num
+        update_model_fields(self,update_fields=['wait_post_num'])
         
+        psku = ProductSku.objects.get(id=self.id)
+        self.wait_post_num = psku.wait_post_num 
         if self.wait_post_num <0:
             self.wait_post_num = 0
-            self.save()
-        self.wait_post_num = ProductSku.objects.get(id=self.id).wait_post_num  
+            update_model_fields(self,update_fields=['wait_post_num'])
+            
+        post_save.send(sender=self.__class__,instance=self)
+         
           
     @property
     def is_stock_warn(self):
@@ -505,7 +536,8 @@ class Item(models.Model):
             try:
                 response  = apis.taobao_item_get(num_iid=num_iid,tb_user_id=user_id)
                 item_dict = response['item_get_response']['item']
-                item = Item.save_item_through_dict(user_id,item_dict)
+                item      = Item.save_item_through_dict(user_id,item_dict)
+                
             except Exception,exc:
                 logger.error('商品更新出错(num_iid:%s)'%str(num_iid),exc_info=True)
         return item
@@ -517,7 +549,7 @@ class Item(models.Model):
         category = Category.get_or_create(user_id,item_dict['cid'])
         if item_dict.has_key('outer_id') and item_dict['outer_id']:
             product,state = Product.objects.get_or_create(outer_id=item_dict['outer_id'])
-            if not product.name:
+            if state or not product.name:
                 product.collect_num  = item_dict['num']
                 product.std_sale_price  = item_dict['price']
                 product.agent_price  = item_dict['price']

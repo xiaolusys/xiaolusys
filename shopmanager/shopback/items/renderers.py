@@ -73,5 +73,13 @@ class ProductWarnHtmlRenderer(TemplateRenderer):
     format = 'html'
     template = 'items/product_stock_warn.html'
 
-
     
+class ProductAssignHtmlRenderer(TemplateRenderer):
+    """
+    Renderer which serializes to JSON
+    """
+    
+    media_type = 'text/html'
+    format = 'html'
+    template = 'items/product_assign_warn.html'
+

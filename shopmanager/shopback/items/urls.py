@@ -2,11 +2,13 @@ from django.conf.urls.defaults import patterns, url
 from djangorestframework.views import ListOrCreateModelView
 from django.views.generic import TemplateView
 from shopback.items.views import ProductListView,ProductItemView,ProductModifyView,ProductUpdateView,\
-    ProductSkuCreateView,ProductSkuInstanceView,ProductSearchView,ProductDistrictView,ProductBarCodeView,ProductWarnMgrView
+    ProductSkuCreateView,ProductSkuInstanceView,ProductSearchView,ProductDistrictView,ProductBarCodeView,\
+    ProductWarnMgrView,ProductNumAssignView,ProductOrSkuStatusMdView
 from shopback.items.resources import ProductListResource,ProductItemResource,ProductResource,\
     ProductSkuResource,ProductDistrictResource
 from shopback.items.renderers import ProductListHtmlRenderer,JSONRenderer,ProductItemHtmlRenderer,\
-    ProductUpdateHtmlRenderer,ProductSkuHtmlRenderer,ProductDistrictHtmlRenderer,ProductBarcodeHtmlRenderer,ProductWarnHtmlRenderer
+    ProductUpdateHtmlRenderer,ProductSkuHtmlRenderer,ProductDistrictHtmlRenderer,\
+    ProductBarcodeHtmlRenderer,ProductWarnHtmlRenderer,ProductAssignHtmlRenderer
 from shopback.base.renderers  import BaseJsonRenderer
 from shopback.base.permissions import IsAuthenticated
 from shopback.base.authentication import UserLoggedInAuthentication,login_required_ajax
@@ -67,10 +69,22 @@ urlpatterns = patterns('shopback.items.views',
         renderers=(BaseJsonRenderer,ProductDistrictHtmlRenderer),
         authentication=(UserLoggedInAuthentication,),
         permissions=(IsAuthenticated,)
-    )),     
+    )),
+    (r'^podorsku/status/$',ProductOrSkuStatusMdView.as_view(
+        resource=ProductResource,
+        renderers=(BaseJsonRenderer,),
+        authentication=(UserLoggedInAuthentication,),
+        permissions=(IsAuthenticated,)
+    )),                
     (r'^product/warn/$',ProductWarnMgrView.as_view(
-        resource=ProductSkuResource,
+        resource=ProductResource,
         renderers=(BaseJsonRenderer,ProductWarnHtmlRenderer),
+        authentication=(UserLoggedInAuthentication,),
+        permissions=(IsAuthenticated,)
+    )),   
+    (r'^product/assign/$',ProductNumAssignView.as_view(
+        resource=ProductResource,
+        renderers=(BaseJsonRenderer,ProductAssignHtmlRenderer),
         authentication=(UserLoggedInAuthentication,),
         permissions=(IsAuthenticated,)
     )),      
