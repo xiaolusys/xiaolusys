@@ -505,8 +505,8 @@ class Item(models.Model):
     status = models.BooleanField(default=True,verbose_name='使用')
     class Meta:
         db_table = 'shop_items_item'
-        verbose_name = u'淘宝线上商品'
-        verbose_name_plural = u'淘宝线上商品列表'
+        verbose_name = u'线上商品'
+        verbose_name_plural = u'线上商品列表'
 
 
     def __unicode__(self):
@@ -602,8 +602,8 @@ class SkuProperty(models.Model):
     class Meta:
         db_table = 'shop_items_skuproperty'
         unique_together = ("num_iid", "sku_id")
-        verbose_name = u'规格'
-        verbose_name_plural = u'规格属性'
+        verbose_name = u'商品规格'
+        verbose_name_plural = u'商品规格列表'
         
     
     @classmethod    
@@ -634,8 +634,8 @@ class ProductLocation(models.Model):
     class Meta:
         db_table = 'shop_items_productlocation'
         unique_together = ("outer_id", "outer_sku_id", "district")
-        verbose_name = u'库存商品库位'
-        verbose_name_plural = u'库存商品库位列表'
+        verbose_name = u'商品库位'
+        verbose_name_plural = u'商品库位列表'
 
 
 class ItemNumTaskLog(models.Model):
@@ -653,8 +653,8 @@ class ItemNumTaskLog(models.Model):
     
     class Meta:
         db_table = 'shop_items_itemnumtasklog'
-        verbose_name=u'淘宝库存同步日志'
-        verbose_name_plural = u'淘宝库存同步日志'
+        verbose_name=u'库存同步日志'
+        verbose_name_plural = u'库存同步日志'
 
     def __unicode__(self):
         return '<%s,%s,%d>'%(self.outer_id,self.sku_outer_id,self.num)

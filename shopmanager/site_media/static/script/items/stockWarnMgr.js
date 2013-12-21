@@ -120,7 +120,7 @@ function assignProductNum(nRow)
 	var that = this;
 	var callback = function(result){
     		$('#assgin-dialog').html(result);
-    		var dlg = $('#assgin-dialog').dialog({title: "库存警告分配对话框",width:'800'});
+    		var dlg = $('#assgin-dialog').dialog({title: "库存警告分配对话框",width:'900'});
 			$('#assign-form').ajaxForm(function(result) { 
 				if(result.code==1){
 					alert('错误:'+result.response_error);

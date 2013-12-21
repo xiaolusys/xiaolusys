@@ -12,9 +12,9 @@
 		<tr>
 			<th>所属店铺</th>
 			<th>商品ID</th>
-			<th style="width:150px;">商品标题</th>
+			<th style="width:230px;">商品标题</th>
 			<th>规格ID</th>
-			<th>规格属性</th>
+			<th style="width:100px;">规格属性</th>
 			<th style="width:80px;">待付款数</th>
 			<th style="width:80px;">线上库存</th>
 		</tr>
@@ -28,7 +28,7 @@
 		<td>{{ item.sku.sku_id }}</td>
 		<td>{{ item.sku.properties_name }}</td>
 		<td>{% if item.sku %}{{ item.sku.with_hold_quantity }}{% else %}{{ item.with_hold_quantity }}{% endif %}</td>
-		<td><input name="{{ item.num_iid }}-{% if item.sku_id %}{{ item.sku_id }}{% endif %}" type="text" 
+		<td><input name="{{ item.num_iid }}-{{ item.sku.sku_id }}" type="text" 
 			value="{% if item.sku %}{{ item.sku.quantity }}{% else %}{{ item.num }}{% endif %}" ></td>
 	</tr>
 	{% endfor %}

@@ -534,7 +534,7 @@ class ProductNumAssignView(ModelView):
             else:
                 sku_dict['sku_id']     = spty.sku_id
                 sku_dict['outer_id']   = spty.outer_id
-                sku_dict['properties_name']    = spty.properties_name
+                sku_dict['properties_name']    = ''.join(t.split(':')[3] for t in spty.properties_name.split(';') if len(t.split(':'))==4)
                 sku_dict['with_hold_quantity'] = spty.with_hold_quantity
                 sku_dict['quantity']   = spty.quantity
             item_dict['sku']  = sku_dict
