@@ -1,7 +1,9 @@
 #-*- coding:utf8 -*-
 import json
-import datetime
+import datetime,time
+import cStringIO as StringIO
 from django.contrib import admin
+from django.http import HttpResponse
 from django.db import models
 from django.shortcuts import render_to_response
 from django.template import RequestContext
@@ -12,6 +14,7 @@ from shopback.users.models import User
 from shopback import paramconfig as pcfg
 from shopback.base import log_action, ADDITION, CHANGE
 from shopback.items import permissions as perms
+from common.utils import gen_cvs_tuple,CSVUnicodeWriter
 import logging 
 
 logger =  logging.getLogger('tradepost.handler')
@@ -216,11 +219,11 @@ class ProductAdmin(admin.ModelAdmin):
             skus = prod.pskus.exclude(is_split=True)
             if skus.count() > 0:
                 for sku in skus:
-                    pcsv.append((prod.outer_id,prod.name,sku.outer_id,sku.name,sku.quantity,sku.warn_num,\
-                                 sku.remain_num,sku.wait_post_num,sku.cost,sku.std_sale_price,sku.barcode))
+                    pcsv.append((prod.outer_id,prod.name,sku.outer_id,sku.name,str(sku.quantity),str(sku.warn_num),\
+                                 str(sku.remain_num),str(sku.wait_post_num),str(sku.cost),str(sku.std_sale_price),sku.barcode))
             else:
-                pcsv.append((prod.outer_id,prod.name,'','',prod.collect_num,prod.warn_num,\
-                                 prod.remain_num,prod.wait_post_num,prod.cost,prod.std_sale_price,prod.barcode))
+                pcsv.append((prod.outer_id,prod.name,'','',str(prod.collect_num),str(prod.warn_num),\
+                                 str(prod.remain_num),str(prod.wait_post_num),str(prod.cost),str(prod.std_sale_price),prod.barcode))
             pcsv.append(['','','','','','','','','','',''])
         
         tmpfile = StringIO.StringIO()
