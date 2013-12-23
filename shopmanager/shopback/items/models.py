@@ -602,8 +602,8 @@ class SkuProperty(models.Model):
     class Meta:
         db_table = 'shop_items_skuproperty'
         unique_together = ("num_iid", "sku_id")
-        verbose_name = u'商品规格'
-        verbose_name_plural = u'商品规格列表'
+        verbose_name = u'线上商品规格'
+        verbose_name_plural = u'线上商品规格列表'
         
     
     @classmethod    

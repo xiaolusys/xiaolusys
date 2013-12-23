@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html >
   <head>
-    <title>商品详情页</title>
+    <title>创建采购单</title>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
     <link href="{{ STATIC_URL }}css/base.less" rel="stylesheet/less" type="text/css" />
     <script src="{{ STATIC_URL }}closure-library/closure/goog/base.js"></script>
@@ -200,12 +200,12 @@
     </style>
   </head>
 
-{% with  %}
+{% with suppliers=object.suppliers deposites=object.deposites purchase_types=object.purchase_types purchase=object.purchase perms=object.perms %}
  <body>
 	<div class="content-main">
 		<fieldset>
 			<legend>
-			<h2 class="head-title" >库存商品
+			<h2 class="head-title" >采购单
 					{% if purchase %}(ID:<label id="id_purchase" class="label label-success">{{ purchase.id }}</label>,
 					状态:<label class="label label-success">{{ purchase.status }}</label>){% endif %}</h2>
 			</legend>

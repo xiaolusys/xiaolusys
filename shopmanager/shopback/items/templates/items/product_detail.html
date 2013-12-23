@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html >
   <head>
-    <title>创建采购单</title>
+    <title>库存商品</title>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
     <link href="{{ STATIC_URL }}css/base.less" rel="stylesheet/less" type="text/css" />
     <script src="{{ STATIC_URL }}closure-library/closure/goog/base.js"></script>
@@ -200,32 +200,32 @@
     </style>
   </head>
 
-{% with suppliers=object.suppliers deposites=object.deposites purchase_types=object.purchase_types purchase=object.purchase perms=object.perms %}
+{% with  %}
  <body>
 	<div class="content-main">
 		<fieldset>
 			<legend>
-			<h2 class="head-title" >采购单
-					{% if purchase %}(ID:<label id="id_purchase" class="label label-success">{{ purchase.id }}</label>,
-					状态:<label class="label label-success">{{ purchase.status }}</label>){% endif %}</h2>
+			<h2 class="head-title" >商品信息
+					{% if product %}(ID:<label id="product_id" class="label label-success">{{ product.id }}</label>,
+					状态:<label class="label label-success">{{ product.status }}</label>){% endif %}</h2>
 			</legend>
 			<div class="content-base-info">
-				<form id="purchase-form" method="POST" action="/purchases/add/">
+				<form id="product-form" method="POST" action="/product/modify/">
 				{% csrf_token %}
-				<input type="hidden" id="purchase_id" name="purchase_id" value="{{ purchase.id }}" />
+				<input type="hidden" id="id" name="id" value="{{ product.id }}" />
 				<table class="table table-bordered table-striped table-condensed">
 					<tr>
 						<td>
-							<label for='origin_no'>合&nbsp;&nbsp;同&nbsp;&nbsp;号</label>
-							<input type="text" id="origin_no" name="origin_no" class="simple-text" value="{{ purchase.origin_no }}"/>
+							<label for='outer_id'>商品编码</label>
+							<input type="text" id="outer_id" name="outer_id" class="simple-text" value="{{ product.outer_id }}"/>
 						</td>
 						<td>
-							<label for='extra_name'>标&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;题</label>
-							<input type="text" id="extra_name" name="extra_name" class="simple-text" value="{{ purchase.extra_name }}"/>
+							<label for='barcode'>扫描条码</label>
+							<input type="text" id="barcode" name="barcode" class="simple-text" value="{{ product.barcode }}"/>
 						</td>
 						<td>
-							<label for='receiver_name'>收&nbsp;&nbsp;货&nbsp;&nbsp;人</label>
-							<input type="text" id="receiver_name" name="receiver_name" class="simple-text" value="{{ purchase.receiver_name }}"/>
+							<label for='name'>标&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;题</label>
+							<input type="text" id="name" name="name" class="simple-text" value="{{ product.name }}"/>
 						</td>
 					</tr>
 					<tr>
