@@ -113,85 +113,23 @@
 		border-color: gray;
 		margin-bottom:0px;
 	}
-	input[type="text"]{
-		width:200px;
-		margin-bottom:2px;
-		height:16px;
-	}
-	textarea{
-		margin-bottom:2px;
-	}
-	#purchaseitem-table input[type="text"]{
-		width:80px;
+	
+	#product-table input[type="text"]{
+		width:90px;
 		margin-bottom:0px;
 		margin-top:0px;
-		height:14px;;
-	}
-	.product-search input[type="text"]{
-		width:250px;
-		margin-bottom:18px;
-	}
-	.purchase-prompt{
-		display:none;
-		width:1000px;
-		position:absolute;
-	    z-index:99;
-	    background: #fff;
-	    border: 1px solid #999;
-	    -webkit-border-radius: 5px;
-    	-moz-border-radius: 5px;
-	}
-
-	.purchase-confirm-prompt{
-		display:none;
-		width:1000px;
-	    z-index:100;
-	    position:fixed;
-	    background-color:#ddd;
-	    border: 1px solid #999;
+		height:14px;
 	}
 	
-	.purchase-prompt-head{
-		height:20px;
-		background-color:#3A87AD;
-	}
-	#purchase-select-table th,#purchase-select-table td {
-		max-height:20px;
-		padding:0px;
-		overflow:hidden;
-	}
-	#purchase-select-table input {
-		margin-bottom:2px;
+	#productsku-table input[type="text"]{
 		width:60px;
-	}
-	#purchase-select-table tr td:first-child{
-		text-align:center;
-		background-color:#CCD1E6;
-	}
-	.prompt-title{
-		display:inline
+		margin-bottom:0px;
+		margin-top:0px;
+		height:14px;
 	}
 	
-	.prompt-close{
-		float:right;
-		display:inline;
-	}
-	.clearboth{
-		clear:both;
-	}
-	#upload-area {
-		color: #B94A48;
-		background-color: #F2DEDE;
-		border-color: #EED3D7;
-    	height:26px;
-	}
-	.upload_submit{
-		float:left;
-		dispaly:inline;
-	}
-	#upload-area a{
-		float:right;
-		dispaly:inline;
+	textarea{
+		margin-bottom:2px;
 	}
 	label.error {
 	    color: red;
@@ -200,53 +138,62 @@
     </style>
   </head>
 
-{% with  %}
+{% with product=object %}
  <body>
 	<div class="content-main">
 		<fieldset>
 			<legend>
-			<h2 class="head-title" >商品信息
+				<h2 class="head-title" >商品信息
 					(ID:<label id="product_id" class="label label-success">{{ product.id }}</label>,
-					状态:<label class="label label-success">{{ product.status }}</label>)</h2>
+					状态:<label class="label label-success">{{ product.status }}</label>)
+				</h2>
 			</legend>
 			<div class="content-base-info">
 				<form id="product-form" method="POST" action="/product/update/">
 				{% csrf_token %}
 				<input type="hidden" id="id" name="id" value="{{ product.id }}" />
-				<table class="table table-bordered table-striped table-condensed">
+				<table id="product-table" class="table table-bordered table-striped table-condensed">
 					<tr>
 						<td>
 							<label for='outer_id'>商品编码</label>
 							<input type="text" id="outer_id" name="outer_id" class="simple-text" value="{{ product.outer_id }}"/>
 						</td>
-						<td>
+						<td colspan="2">
 							<label for='barcode'>扫描条码</label>
-							<input type="text" id="barcode" name="barcode" class="simple-text" value="{{ product.barcode }}"/>
+							<input type="text" id="barcode" name="barcode" class="simple-text" style="width:200px;" value="{{ product.barcode }}"/>
 						</td>
-						<td>
-							<label for='name'>标&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;题</label>
-							<input type="text" id="name" name="name" class="simple-text" value="{{ product.name }}"/>
+						<td colspan="2">
+							<label for='name'>标&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;题</label>
+							<input type="text" id="name" name="name" class="simple-text" style="width:250px;" value="{{ product.name }}"/>
 						</td>
 					</tr>
 					<tr>
 						<td>
-							<label for='collect_num'>库&nbsp;&nbsp;存&nbsp;&nbsp;数</label>
+							<label for='collect_num'>库&nbsp;存&nbsp;&nbsp;数</label>
 							<input type="text" id="collect_num" name="collect_num" class="simple-text" value="{{ product.collect_num }}"/>
 						</td>
 						<td>
-							<label for='remain_num'>保留库位</label>
+							<label for='remain_num'>保&nbsp;留&nbsp;&nbsp;数</label>
 							<input type="text" id="remain_num" name="remain_num" class="simple-text" value="{{ product.remain_num }}"/>
 						</td>
 						<td>
-							<label for='weight'>重量</label>
-							<input type="text" id="weight" name="weight" class="simple-text" value="{{ product.weight }}"/>
+							<label for='warn_num'>警&nbsp;戒&nbsp;&nbsp;数</label>
+							<input type="text" id="warn_num" name="warn_num" class="simple-text" value="{{ product.warn_num }}"/>
 						</td>
 						<td>
-							<label for='cost'>成本</label>
-							<input type="text" id="cost" name="cost" class="simple-text" value="{{ product.cost }}"/>
+							<label for='wait_post_num'>待&nbsp;发&nbsp;&nbsp;数</label>
+							<input type="text" id="wait_post_num" name="wait_post_num" class="simple-text" value="{{ product.wait_post_num }}"/>
+						</td>
+						<td>
+							<label for='weight'>重&nbsp;&nbsp;&nbsp;量</label>
+							<input type="text" id="weight" name="weight" class="simple-text" value="{{ product.weight }}"/>
 						</td>
 					</tr>
 					<tr>
+						<td>
+							<label for='cost'>成&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;本</label>
+							<input type="text" id="cost" name="cost" class="simple-text" value="{{ product.cost }}"/>
+						</td>
 						<td>
 							<label for='std_purchase_price'>标准进价</label>
 							<input type="text" id="std_purchase_price" name="std_purchase_price" class="simple-text" value="{{ product.std_purchase_price }}"/>
@@ -267,28 +214,28 @@
 					<tr>
 						<td>
 							<label for='is_split'>需拆分</label>
-							<input type="text" id="is_split" name="is_split" class="simple-text" value="{{ product.is_split }}"/>
+							<input type="checkbox" id="is_split" name="is_split" class="simple-text" value="{{ product.is_split }}"/>
 						</td>
 						<td>
 							<label for='is_match'>有匹配</label>
-							<input type="text" id="is_match" name="is_match" class="simple-text" value="{{ product.is_match }}"/>
+							<input type="checkbox" id="is_match" name="is_match" class="simple-text" value="{{ product.is_match }}"/>
 						</td>
 						<td>
 							<label for='sync_stock'>库存同步</label>
-							<input type="text" id="sync_stock" name="sync_stock" class="simple-text required" value="{{ product.sync_stock}}"/>
+							<input type="checkbox" id="sync_stock" name="sync_stock" class="simple-text required" value="{{ product.sync_stock}}"/>
 						</td>
-						<td>
+						<td colspan="2">
 							<label for='post_check'>需扫描</label>
-							<input type="text" id="post_check" name="post_check" class="simple-text required" value="{{ product.post_check }}"/>
+							<input type="checkbox" id="post_check" name="post_check" class="simple-text required" value="{{ product.post_check }}"/>
 						</td>
 					</tr>
 					<tr>
-						<td colspan="1">
+						<td colspan="2">
 							<label for='buyer_prompt'>客户提示</label>
-							<textarea id="buyer_prompt" style="width:100px;" name="buyer_prompt" rows="2" cols="100">{{ product.buyer_prompt }}</textarea>
+							<textarea id="buyer_prompt" style="width:200px;" name="buyer_prompt" rows="2" cols="100">{{ product.buyer_prompt }}</textarea>
 						</td>
 						<td colspan="2">
-							<label for='memo'>备注</label>
+							<label for='memo'>备&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;注</label>
 							<textarea id="memo" style="width:200px;" name="memo" rows="2" cols="200">{{ product.memo }}</textarea>
 						</td>
 						<td style="text-align:center;padding-top:20px;">
@@ -313,9 +260,9 @@
 									<th>线上属性</th>
 									<th>系统属性</th>
 									<th>库存数</th>
-									<th>警戒数</th>
-									<th>预留数</th>
 									<th>待发数</th>
+									<th>预留数</th>
+									<th>警戒数</th>
 									<th>成本价</th>
 									<th>标售价</th>
 									<th>代理价</th>
@@ -330,55 +277,35 @@
 									<td>{{ sku.properties_name }}</td>
 									<td>{{ sku.properties_alias }}</td>
 									<td>{{ sku.quantity }}</td>
-									<td>{{ sku.warn_num }}</td>
+									<td>{{ sku.wait_post_num }}</td>
 									<td>{{ sku.remain_num }}</td>
+									<td>{{ sku.warn_num }}</td>
 									<td>{{ sku.cost }}</td>
 									<td>{{ sku.std_sale_price }}</td>
 									<td>{{ sku.agent_price }}</td>
 									<td>{{ sku.staff_price }}</td>
-									<td>{{ sku.wait_post_num }}</td>
-									<td>
-										<a class="edit" href="javascript:void(0);"><icon class="icon-pencil"></icon></a>
-										<a class="delete" href="javascript:void(0);"><icon class="icon-remove"></icon></a>
+									<td>{{ sku. }}</td>
+									<td><a class="edit" href="#" title="修改"><icon
+										class="icon-edit"></icon></a><a class="setup" href="#" title="设置"><icon
+										class="icon-asterisk"></icon></a><a class="remain" href="#" title="待用"><icon
+										class="icon-pause"></icon></a><a class="delete" href="#" title="作废"><icon
+										class="icon-remove"></icon></a>
 									</td>
 								</tr>
 								{% endfor %}
 							</tbody>
 							<tfoot>
-								<tr><td colspan="6"></td>
+								<tr><td colspan="3"></td>
 									<td><input id="total_num" type="text"  value="0" readonly/></td>
-									<td><input id="total_fee" type="text"  value="0.0" readonly/></td>
+									<td><input id="total_wait_num" type="text"  value="0.0" readonly/></td>
 									<td></td>
+									<td >总成本：</td>
+									<td><input id="total_cost" type="text"  value="0.0" readonly/></td>
 								</tr>
 							</tfoot>
 						</table>
 					</div>
 				</div>
-			</div>
-			<hr/>
-			<div class="clearboth"></div>
-			<div class="content-search">
-				<div class="navbar-search product-search">
-					<input type="text" id="id_prod_q" class="search-query"  placeholder="商品搜索" />
-				</div>
-			</div>
-			<hr/>
-			<div id="id-prod-search-dialog" style="">
-				<table id="id-prod-search-table" class="table table-bordered">
-					<thead>
-						<tr>
-							<th>序号</th>
-							<th>图片</th>
-							<th>商家编码</th>
-							<th>商品简称</th>
-							<th>库存数</th>
-							<th>创建日期</th>
-							<th>操作</th>
-						</tr>
-					</thead>
-					<tbody>
-					</tbody>
-				</table>
 			</div>
 		</fieldset>
 	</div>
@@ -408,32 +335,7 @@
 </body>
 {% endwith %}
 <script src="{{ STATIC_URL }}script/base.js"></script>
-<script src="{{ STATIC_URL }}script/purchase/purchase.js"></script>
 <script type="text/javascript">
-	new purchase.Manager();
-	$(document).ready(function(){
-		if ($("#purchase_id").val()){
-			$("#attach_files").upload({
-		        name: 'attach_files',
-		        action: '/purchases/upload/'+$('#purchase_id').val()+'/',
-		        enctype: 'multipart/form-data',
-		        //params: {},
-		        autoSubmit: true,
-		        //onSubmit: function() {},
-		        onComplete: function(e) {
-		        	var res = $.parseJSON(e);
-		        	if ( res.code == 0 ){
-		        		var filename = res.response_content.filename;
-		        		$('#attach_file_url').attr('href','/download/purchase/'+filename);
-		        		$('#attach_file_url').html(filename);
-		        	}else{
-		        		alert('上传失败!');
-		        	}
-		        },
-		        //onSelect: function() {}
-			});
-		}
-	});
 	$("#purchase-form").validate({rules: {
 			extra_name: 'required',
 			receiver_name: 'required',

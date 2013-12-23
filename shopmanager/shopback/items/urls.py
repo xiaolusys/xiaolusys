@@ -3,11 +3,11 @@ from djangorestframework.views import ListOrCreateModelView
 from django.views.generic import TemplateView
 from shopback.items.views import ProductListView,ProductItemView,ProductModifyView,ProductUpdateView,\
     ProductSkuCreateView,ProductSkuInstanceView,ProductSearchView,ProductDistrictView,ProductBarCodeView,\
-    ProductWarnMgrView,ProductNumAssignView,ProductOrSkuStatusMdView
+    ProductWarnMgrView,ProductNumAssignView,ProductOrSkuStatusMdView,ProductView
 from shopback.items.resources import ProductListResource,ProductItemResource,ProductResource,\
     ProductSkuResource,ProductDistrictResource
 from shopback.items.renderers import ProductListHtmlRenderer,JSONRenderer,ProductItemHtmlRenderer,\
-    ProductUpdateHtmlRenderer,ProductSkuHtmlRenderer,ProductDistrictHtmlRenderer,\
+    ProductUpdateHtmlRenderer,ProductSkuHtmlRenderer,ProductDistrictHtmlRenderer,ProductHtmlRenderer,\
     ProductBarcodeHtmlRenderer,ProductWarnHtmlRenderer,ProductAssignHtmlRenderer
 from shopback.base.renderers  import BaseJsonRenderer
 from shopback.base.permissions import IsAuthenticated
@@ -21,6 +21,12 @@ urlpatterns = patterns('shopback.items.views',
     url('district/query/$','deposite_district_query',name='query_district'),
     url('product/district/delete/$','delete_product_district',name='delete_district'),
     (r'^split/$',TemplateView.as_view(template_name="items/split_product_template.html")),
+    (r'^product/(?P<id>[0-9]+)/$',ProductView.as_view(
+        resource=ProductResource,
+        renderers=(ProductHtmlRenderer,BaseJsonRenderer,),
+        authentication=(UserLoggedInAuthentication,),
+        permissions=(IsAuthenticated,)
+    )),
     
     (r'^product/$',ProductListView.as_view(
         resource=ProductListResource,

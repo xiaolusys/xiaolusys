@@ -298,6 +298,19 @@ class ProductSkuInstanceView(ModelView):
     
         return 0
 
+############################ 库存商品操作 ###############################
+
+class ProductView(ModelView):
+    
+    def get(self, request, id, *args, **kwargs):
+        
+        product = Product.objects.get(id=id)
+        
+        return product.json
+
+    def post(self, request, id, *args, **kwargs):
+        pass
+
 
 class ProductSearchView(ModelView):
     """ 根据商品编码，名称查询商品 """
@@ -618,17 +631,24 @@ class ProductNumAssignView(ModelView):
             
             im = Item.objects.get(num_iid=item[0])
             hold_num = im.with_hold_quantity
+            
+            sku = None
             if item[1]:
-                hold_num = SkuProperty.objects.get(num_iid=item[0],sku_id=item[1]).with_hold_quantity
+                sku = SkuProperty.objects.get(num_iid=item[0],sku_id=item[1])
+                hold_num = sku.with_hold_quantity
             
             if item[2] < hold_num:    
                 raise Exception(u'分配库存小于线上拍下待付款数')
             
             apis.taobao_item_quantity_update\
                         (num_iid=item[0],quantity=item[2],sku_id=item[1],tb_user_id=im.user.visitor_id)   
-                        
-            im.num = item[2]
-            im.save()  
+            
+            if sku:  
+                sku.quantity = item[2]
+                sku.save()
+            else:    
+                im.num = item[2]
+                im.save()  
                             
                
             

@@ -136,7 +136,7 @@ class Product(models.Model):
                 'is_assign':self.is_assign,
                 'is_stock_warn':self.is_stock_warn,
                 'is_warning':self.is_warning,
-                'status':self.status,
+                'status':dict(ONLINE_PRODUCT_STATUS).get(self.status,''),
                 'buyer_prompt':self.buyer_prompt,
                 'memo':self.memo,
                 'districts':self.get_district_list(),
