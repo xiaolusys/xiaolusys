@@ -206,8 +206,8 @@
 		<fieldset>
 			<legend>
 			<h2 class="head-title" >商品信息
-					{% if product %}(ID:<label id="product_id" class="label label-success">{{ product.id }}</label>,
-					状态:<label class="label label-success">{{ product.status }}</label>){% endif %}</h2>
+					(ID:<label id="product_id" class="label label-success">{{ product.id }}</label>,
+					状态:<label class="label label-success">{{ product.status }}</label>)</h2>
 			</legend>
 			<div class="content-base-info">
 				<form id="product-form" method="POST" action="/product/update/">

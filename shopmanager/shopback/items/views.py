@@ -624,8 +624,11 @@ class ProductNumAssignView(ModelView):
             if item[2] < hold_num:    
                 raise Exception(u'分配库存小于线上拍下待付款数')
             
-            response = apis.taobao_item_quantity_update\
+            apis.taobao_item_quantity_update\
                         (num_iid=item[0],quantity=item[2],sku_id=item[1],tb_user_id=im.user.visitor_id)   
+                        
+            im.num = item[2]
+            im.save()  
                             
                
             

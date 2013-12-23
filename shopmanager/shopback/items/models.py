@@ -23,7 +23,7 @@ import logging
 logger  = logging.getLogger('items.handler')
 
 APPROVE_STATUS  = (
-    (pcfg.ONSALE_STATUS,'出售中'),
+    (pcfg.ONSALE_STATUS,'在售'),
     (pcfg.INSTOCK_STATUS,'库中'),
 )
 

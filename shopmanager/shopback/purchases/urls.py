@@ -1,5 +1,4 @@
 from django.conf.urls.defaults import patterns, url
-from django.views.generic import TemplateView
 from shopback.purchases.views import PurchaseItemView,PurchaseView,PurchaseInsView,PurchasePaymentView,\
     PurchaseStorageItemView,PurchaseStorageView,PurchaseStorageInsView,StorageDistributeView,\
     ConfirmStorageView,PurchaseShipStorageView,PaymentDistributeView
