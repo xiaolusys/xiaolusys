@@ -16,7 +16,7 @@ from djangorestframework.response import Response,ErrorResponse
 from djangorestframework.mixins import CreateModelMixin
 from shopback import paramconfig as pcfg
 from shopback.base.views import ModelView,ListOrCreateModelView,ListModelView
-from shopback.items.models import Item,SkuProperty,Product,ProductSku,ProductLocation
+from shopback.items.models import Item,SkuProperty,Product,ProductSku,ProductLocation,APPROVE_STATUS
 from shopback.archives.models import DepositeDistrict
 from shopback.users.models import User
 from shopback.items.tasks import updateUserItemsTask,updateItemNum
@@ -87,7 +87,7 @@ def update_product_stock(request):
             prod.remain_num = remain_num
             update_model_fields(prod,update_fields=['remain_num'])
                 
-    log_action(request.user.id,prod,CHANGE,u'更新商品库存及预留库存：%s-%s,%d,%d'%(outer_id,sku_id or outer_sku_id,num,remain_num))
+    log_action(request.user.id,prod,CHANGE,u'更新商品库存及预留库存：%s-%s,%d,%d'%(outer_id,prod_sku and prod_sku.outer_id or sku_id,num,remain_num))
     
     response = {
                 'outer_id':prod.outer_id,
@@ -516,28 +516,31 @@ class ProductNumAssignView(ModelView):
             #item = Item.get_or_create(item.user.visitor_id,item.num_iid,force_update=True)
             item_dict  = {}
             sku_dict   = {}
+            if outer_sku_id:
+                try:
+                    spty = SkuProperty.objects.get(num_iid=item.num_iid,outer_id=outer_sku_id,status='normal')
+                except:
+                    continue
+                else:
+                    sku_dict['sku_id']     = spty.sku_id
+                    sku_dict['outer_id']   = spty.outer_id
+                    sku_dict['properties_name']    = ''.join(t.split(':')[3] for t in spty.properties_name.split(';') if len(t.split(':'))==4)
+                    sku_dict['with_hold_quantity'] = spty.with_hold_quantity
+                    sku_dict['quantity']   = spty.quantity
+            
+            item_dict['sku']  = sku_dict
+            
             item_dict['num_iid']    = item.num_iid
             item_dict['outer_id']   = item.outer_id
             item_dict['seller_nick']   = item.user.nick
             item_dict['sync_stock']    = item.sync_stock and 1 or 0
-            item_dict['approve_status']     = item.approve_status
+            item_dict['approve_status']     = dict(APPROVE_STATUS).get(item.approve_status,'')
             item_dict['with_hold_quantity'] = item.with_hold_quantity
             item_dict['has_showcase']       = item.has_showcase and 1 or 0
             item_dict['num']        = item.num
             item_dict['title']      = item.title
             item_dict['pic_url']    = item.pic_url
             item_dict['detail_url'] = item.detail_url
-            try:
-                spty = SkuProperty.objects.get(num_iid=item.num_iid,outer_id=outer_sku_id,status='normal')
-            except:
-                pass
-            else:
-                sku_dict['sku_id']     = spty.sku_id
-                sku_dict['outer_id']   = spty.outer_id
-                sku_dict['properties_name']    = ''.join(t.split(':')[3] for t in spty.properties_name.split(';') if len(t.split(':'))==4)
-                sku_dict['with_hold_quantity'] = spty.with_hold_quantity
-                sku_dict['quantity']   = spty.quantity
-            item_dict['sku']  = sku_dict
                 
             items_dict_list.append(item_dict)
             

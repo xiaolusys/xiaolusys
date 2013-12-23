@@ -15,6 +15,7 @@
 			<th style="width:230px;">商品标题</th>
 			<th>规格ID</th>
 			<th style="width:100px;">规格属性</th>
+			<th style="width:40px;">状态</th>
 			<th style="width:80px;">待付款数</th>
 			<th style="width:80px;">线上库存</th>
 		</tr>
@@ -27,6 +28,7 @@
 		<td>{{ item.title }}</td>
 		<td>{{ item.sku.sku_id }}</td>
 		<td>{{ item.sku.properties_name }}</td>
+		<td>{{ item.approve_status }}</td>
 		<td>{% if item.sku %}{{ item.sku.with_hold_quantity }}{% else %}{{ item.with_hold_quantity }}{% endif %}</td>
 		<td><input name="{{ item.num_iid }}-{{ item.sku.sku_id }}" type="text" 
 			value="{% if item.sku %}{{ item.sku.quantity }}{% else %}{{ item.num }}{% endif %}" ></td>
@@ -36,7 +38,7 @@
 </table>
 </div>
 <div id="dialog-footer">
-	<button id="submit" class="btn btn-large btn-primary">提交</button>
+	<button id="submit" class="btn btn-large btn-primary">确认分配线上库存</button>
 </div>
 </form>
 </div>

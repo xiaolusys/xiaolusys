@@ -213,7 +213,8 @@ def delete_purchase_item(request):
     except:
         raise http404
     
-    if purchase.status not in (pcfg.PURCHASE_DRAFT,pcfg.PURCHASE_APPROVAL) and not perm.has_check_purchase_permission(request.user):
+    if purchase.status not in (pcfg.PURCHASE_DRAFT,pcfg.PURCHASE_APPROVAL) \
+        and not perm.has_check_purchase_permission(request.user):
         return HttpResponse(
                             json.dumps({'code':1,'response_error':u'你没有权限删除'}),
                             mimetype='application/json')
@@ -260,7 +261,8 @@ def upload_purchase_file(request,id):
     except Purchase.DoesNotExist:
         raise Http404
     
-    if not perm.has_check_purchase_permission(request.user) and purchase.status != pcfg.PURCHASE_DRAFT:
+    if not perm.has_check_purchase_permission(request.user) and \
+        (purchase.status != pcfg.PURCHASE_DRAFT or not purchase.attach_files):
         return HttpResponseForbidden('权限不足') 
     
     attach_files = request.FILES.get('attach_files')
@@ -556,7 +558,8 @@ def upload_purchase_storage_file(request,id):
     except PurchaseStorage.DoesNotExist:
         raise Http404
     
-    if not perm.has_confirm_storage_permission(request.user) and purchase_storage.status != pcfg.PURCHASE_DRAFT:
+    if not perm.has_confirm_storage_permission(request.user) and \
+        (purchase_storage.status != pcfg.PURCHASE_DRAFT or not purchase_storage.attach_files):
         return HttpResponseForbidden('权限不足') 
     
     attach_files = request.FILES.get('attach_files')

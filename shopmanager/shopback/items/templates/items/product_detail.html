@@ -210,7 +210,7 @@
 					状态:<label class="label label-success">{{ product.status }}</label>){% endif %}</h2>
 			</legend>
 			<div class="content-base-info">
-				<form id="product-form" method="POST" action="/product/modify/">
+				<form id="product-form" method="POST" action="/product/update/">
 				{% csrf_token %}
 				<input type="hidden" id="id" name="id" value="{{ product.id }}" />
 				<table class="table table-bordered table-striped table-condensed">
@@ -230,111 +230,113 @@
 					</tr>
 					<tr>
 						<td>
-							<label for='supplier_id'>供&nbsp;&nbsp;应&nbsp;&nbsp;商</label>
-							<select id="supplier_id" name='supplier_id' class="chosen-select">
-								<option value='' >----请选择----</option>
-								{% for supplier in  suppliers %}
-								<option value='{{ supplier.id }}' {% if purchase.supplier_id == supplier.id %}selected{% endif %}>{{ supplier.supplier_name }}</option>
-								{% endfor %}
-							</select>
-							<a href="/admin/archives/supplier/add/" class="add-another" id="add_id_supplier" onclick="return showAddAnotherPopup(this);">
-							 <img src="{{ STATIC_URL }}admin/img/icon_addlink.gif" width="10" height="10" alt="创建"></a>
+							<label for='collect_num'>库&nbsp;&nbsp;存&nbsp;&nbsp;数</label>
+							<input type="text" id="collect_num" name="collect_num" class="simple-text" value="{{ product.collect_num }}"/>
 						</td>
 						<td>
-							<label for='deposite_id'>仓&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;库</label>
-							<select id="deposite_id" name='deposite_id' class="chosen-select">
-								<option value='' >----请选择----</option>
-								{% for deposite in  deposites %}
-								<option value='{{ deposite.id }}' {% if purchase.deposite_id == deposite.id %}selected{% endif %}>{{ deposite.deposite_name}}</option>
-								{% endfor %}
-							</select>
-							<a href="/admin/archives/deposite/add/" class="add-another" id="add_id_deposite" onclick="return showAddAnotherPopup(this);">
-							 <img src="{{ STATIC_URL }}admin/img/icon_addlink.gif" width="10" height="10" alt="创建"></a>
+							<label for='remain_num'>保留库位</label>
+							<input type="text" id="remain_num" name="remain_num" class="simple-text" value="{{ product.remain_num }}"/>
 						</td>
 						<td>
-							<label for='purchase_type_id'>采购类型</label>
-							<select id="purchase_type_id" name='purchase_type_id' class="chosen-select">
-								<option value='' >----请选择----</option>
-								{% for purchase_type in  purchase_types %}
-								<option value='{{ purchase_type.id }}' {% if purchase.purchase_type_id == purchase_type.id %}selected{% endif %}>{{ purchase_type.type_name }}</option>
-								{% endfor %}
-							</select>
-							<a href="/admin/archives/purchasetype/add/" class="add-another" id="add_id_purchasetype" onclick="return showAddAnotherPopup(this);">
-							 <img src="{{ STATIC_URL }}admin/img/icon_addlink.gif" width="10" height="10" alt="创建"></a>
+							<label for='weight'>重量</label>
+							<input type="text" id="weight" name="weight" class="simple-text" value="{{ product.weight }}"/>
+						</td>
+						<td>
+							<label for='cost'>成本</label>
+							<input type="text" id="cost" name="cost" class="simple-text" value="{{ product.cost }}"/>
 						</td>
 					</tr>
 					<tr>
 						<td>
-							<label for='service_date'>业务日期</label>
-							<input type="text" id="service_date" name="service_date" class="simple-text" value="{% if purchase.service_date %}{{ purchase.service_date }}{% endif %}"/>
+							<label for='std_purchase_price'>标准进价</label>
+							<input type="text" id="std_purchase_price" name="std_purchase_price" class="simple-text" value="{{ product.std_purchase_price }}"/>
 						</td>
 						<td>
-							<label for='forecast_date'>预计到货日期</label>
-							<input type="text" id="forecast_date" name="forecast_date" class="simple-text" value="{% if purchase.forecast_date %}{{ purchase.forecast_date }}{% endif %}"/>
+							<label for='std_sale_price'>标准售价</label>
+							<input type="text" id="std_sale_price" name="std_sale_price" class="simple-text" value="{{ product.std_sale_price }}"/>
 						</td>
 						<td>
-							<label for='prepay_cent'>预付比例</label>
-							<input type="text" id="prepay_cent" name="prepay_cent" class="simple-text required" value="{{ purchase.prepay_cent }}"/>
+							<label for='agent_price'>代理售价</label>
+							<input type="text" id="agent_price" name="agent_price" class="simple-text" value="{{ product.agent_price }}"/>
+						</td>
+						<td>
+							<label for='staff_price'>员工价</label>
+							<input type="text" id="staff_price" name="staff_price" class="simple-text" value="{{ product.staff_price }}"/>
 						</td>
 					</tr>
 					<tr>
+						<td>
+							<label for='is_split'>需拆分</label>
+							<input type="text" id="is_split" name="is_split" class="simple-text" value="{{ product.is_split }}"/>
+						</td>
+						<td>
+							<label for='is_match'>有匹配</label>
+							<input type="text" id="is_match" name="is_match" class="simple-text" value="{{ product.is_match }}"/>
+						</td>
+						<td>
+							<label for='sync_stock'>库存同步</label>
+							<input type="text" id="sync_stock" name="sync_stock" class="simple-text required" value="{{ product.sync_stock}}"/>
+						</td>
+						<td>
+							<label for='post_check'>需扫描</label>
+							<input type="text" id="post_check" name="post_check" class="simple-text required" value="{{ product.post_check }}"/>
+						</td>
+					</tr>
+					<tr>
+						<td colspan="1">
+							<label for='buyer_prompt'>客户提示</label>
+							<textarea id="buyer_prompt" style="width:100px;" name="buyer_prompt" rows="2" cols="100">{{ product.buyer_prompt }}</textarea>
+						</td>
 						<td colspan="2">
-							<label for='extra_info'>备注</label>
-							<textarea id="extra_info" style="width:400px;" name="extra_info" rows="2" cols="200">{{ purchase.extra_info }}</textarea>
+							<label for='memo'>备注</label>
+							<textarea id="memo" style="width:200px;" name="memo" rows="2" cols="200">{{ product.memo }}</textarea>
 						</td>
 						<td style="text-align:center;padding-top:20px;">
 							<input type="submit" class="btn btn-primary" value="保存 +"/>
-							<button id="check_purchase"  {% if perms.can_check_purchase %}class="btn btn-primary"{% else %}class="btn btn-inverse" disabled="disabled"{% endif %}>审核</button>
-							{% if perms.can_show_storage %}<a href="{% if purchase %}/purchases/ship/{{ purchase.id }}/{% else %}#{% endif %}">入库详细</a>{% endif %}
 						</td>
 					</tr>
 				</table>
 				</form>
-				{% if purchase %}
-				<div id="upload-area" >
-					<div class="upload_submit"><button id="attach_files" class="btn btn-small btn-info">上传文件</button></div>
-					<a id="attach_file_url" href="{% if purchase.attach_files %}/download/purchase/{{ purchase.attach_files }}{% else %}#{% endif %}">{{ purchase.attach_files }}</a>
-				</div>
-				{% endif %}
-				<div class="clearboth"></div>
 			</div>
 			<div class="panel-body">
 				<div class="panel-content">
 					<div>
-						<h3 class="head-left" id="id-purchaseitem-head">
-							采购项目列表
+						<h3>
+							商品规格列表
 						</h3>
-						<a id="export-csv-file" class="head-right" href="{% if purchase %}/purchases/csv/{{ purchase.id }}/{% else %}#{% endif %}">
-							<icon class="icon-folder-open" title="导出csv文件"></icon>
-						</a>
 					</div>
-					<div class="clearboth"></div>
-					<div id="purchase-items">
-						<table id="purchaseitem-table" class="table table-bordered table-condensed">
+					<div id="product-skus">
+						<table id="productsku-table" class="table table-bordered table-condensed">
 							<thead>
 								<tr>
-									<th>项目编号</th>
-									<th>商品编码</th>
-									<th>产品名</th>
 									<th>规格编码</th>
-									<th>规格名</th>
-									<th style="width:70px;">标准进价</th>
-									<th style="width:70px;">采购数</th>
-									<th style="width:85px;">总费用</th>
+									<th>线上属性</th>
+									<th>系统属性</th>
+									<th>库存数</th>
+									<th>警戒数</th>
+									<th>预留数</th>
+									<th>待发数</th>
+									<th>成本价</th>
+									<th>标售价</th>
+									<th>代理价</th>
+									<th>员工价</th>
 									<th>操作</th>
 								</tr>
 							</thead>
 							<tbody>
-								{% for item in purchase.purchase_items %}
+								{% for sku in product.skus %}
 								<tr class="{% cycle 'odd' 'even' %}">
-									<td>{{ item.id }}</td>
-									<td>{{ item.outer_id }}</td>
-									<td>{{ item.name }}</td>
-									<td>{{ item.outer_sku_id }}</td>
-									<td>{{ item.properties_name }}</td>
-									<td>{{ item.price }}</td>
-									<td>{{ item.purchase_num }}</td>
-									<td>{{ item.total_fee }}</td>
+									<td>{{ sku.outer_id }}</td>
+									<td>{{ sku.properties_name }}</td>
+									<td>{{ sku.properties_alias }}</td>
+									<td>{{ sku.quantity }}</td>
+									<td>{{ sku.warn_num }}</td>
+									<td>{{ sku.remain_num }}</td>
+									<td>{{ sku.cost }}</td>
+									<td>{{ sku.std_sale_price }}</td>
+									<td>{{ sku.agent_price }}</td>
+									<td>{{ sku.staff_price }}</td>
+									<td>{{ sku.wait_post_num }}</td>
 									<td>
 										<a class="edit" href="javascript:void(0);"><icon class="icon-pencil"></icon></a>
 										<a class="delete" href="javascript:void(0);"><icon class="icon-remove"></icon></a>

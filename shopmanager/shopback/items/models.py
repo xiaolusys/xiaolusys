@@ -76,7 +76,7 @@ class Product(models.Model):
     status       = models.CharField(max_length=16,db_index=True,choices=ONLINE_PRODUCT_STATUS,
                                     default=pcfg.NORMAL,verbose_name='商品状态')
     
-    buyer_prompt = models.CharField(max_length=40,blank=True,verbose_name='客户提示')
+    buyer_prompt = models.CharField(max_length=60,blank=True,verbose_name='客户提示')
     memo         = models.TextField(max_length=1000,blank=True,verbose_name='备注')
     class Meta:
         db_table = 'shop_items_product'
@@ -274,7 +274,7 @@ class ProductSku(models.Model):
     status       = models.CharField(max_length=10,db_index=True,choices=ONLINE_PRODUCT_STATUS,
                                     default=pcfg.NORMAL,verbose_name='规格状态')  #normal,delete
 
-    buyer_prompt = models.CharField(max_length=40,blank=True,verbose_name='客户提示')
+    buyer_prompt = models.CharField(max_length=60,blank=True,verbose_name='客户提示')
     memo         = models.TextField(max_length=1000,blank=True,verbose_name='备注')
     class Meta:
         db_table = 'shop_items_productsku'
