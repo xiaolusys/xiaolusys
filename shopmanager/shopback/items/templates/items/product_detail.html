@@ -149,7 +149,7 @@
 				</h2>
 			</legend>
 			<div class="content-base-info">
-				<form id="product-form" method="POST" action="/product/update/">
+				<form id="product-form" method="POST" action="/product/{{ product.id }}/">
 				{% csrf_token %}
 				<input type="hidden" id="id" name="id" value="{{ product.id }}" />
 				<table id="product-table" class="table table-bordered table-striped table-condensed">
@@ -170,7 +170,7 @@
 					<tr>
 						<td>
 							<label for='collect_num'>库&nbsp;存&nbsp;&nbsp;数</label>
-							<input type="text" id="collect_num" name="collect_num" class="simple-text" value="{{ product.collect_num }}"/>
+							<input type="text" id="collect_num"  class="product-num simple-text" value="{{ product.collect_num }}"/>
 						</td>
 						<td>
 							<label for='remain_num'>保&nbsp;留&nbsp;&nbsp;数</label>

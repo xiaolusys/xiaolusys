@@ -35,8 +35,10 @@ function saveRow ( oTable, nRow )
 	var jqInputs = $('input', nRow);
 	oTable.fnUpdate( jqInputs[0].value, nRow, 6, false );
 	oTable.fnUpdate( jqInputs[1].value, nRow, 8, false );
-	oTable.fnUpdate( '<a class="edit" href="#"><icon class="icon-pencil"></a>'+
-		'<a class="delete" href="#"><icon class="icon-remove"></icon></a>', nRow, 8, false );
+	oTable.fnUpdate( '<a class="edit"   href="#" title="修改"><icon class="icon-edit"></icon></a>'+
+					'<a class="assign" href="#" title="分配"><icon class="icon-asterisk"></icon></icon></a>'+
+					'<a class="remain" href="#" title="待用"><icon class="icon-pause"></icon></icon></a>'+
+					'<a class="delete" href="#" title="作废"><icon class="icon-remove"></icon></icon></a>', nRow, 9, false );
 	oTable.fnDraw();
 }
 
@@ -50,9 +52,7 @@ function saveProductAction(nRow)
 		'remain_num':nRow.cells[8].firstChild.value,
 		'mode':1
 	};
-	console.log('params',params);
 	var callback = function(res){
-		console.log('res',res);
         try {
         	if (res.code==0){
         		var product  = res.response_content;
@@ -79,8 +79,7 @@ function saveProductAction(nRow)
             console.log('Error: (ajax callback) - ', err);
         } 
 	};
-	console.log('params',params);
-	$.post("/items/update/stock/",params,callback);
+ 	$.post("/items/update/stock/",params,callback);
 }
 
 /**将商品或规格改为待用或者作废状态*/
@@ -95,7 +94,6 @@ function delOrRemProductOrSku(nRow,status)
 	var that = this;
 	var callback = function(res){
         try {
-        	console.log('res',res);
         	if (res.code==0){
         		dtable.fnDeleteRow( nRow );
         	}else{

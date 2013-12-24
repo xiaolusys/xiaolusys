@@ -472,12 +472,12 @@ class ProductOrSkuStatusMdView(ModelView):
         content      = request.REQUEST
         outer_id     = content.get('outer_id')
         outer_sku_id = content.get('outer_sku_id')
-        is_delete    = content.get('is_delete') == 'yes'
-        is_remain    = content.get('is_remain') == 'yes'
+        is_delete    = content.get('is_delete') == 'true'
+        is_remain    = content.get('is_remain') == 'true'
         
         status       = (is_delete and pcfg.DELETE) or (is_remain and pcfg.REMAIN) or pcfg.NORMAL
         if outer_sku_id:
-            row = ProductSku.objects.filter(product=outer_id,outer_id=outer_sku_id).update(status=status)
+            row = ProductSku.objects.filter(product__outer_id=outer_id,outer_id=outer_sku_id).update(status=status)
         else:
             row = Product.objects.filter(outer_id=outer_id).update(status=status)
         
@@ -602,7 +602,7 @@ class ProductNumAssignView(ModelView):
                 items_list.append((d['num_iid'],d['sku_id'],int(v)))
                     
         except:
-            raise Exception(u'参数格式不对')
+            raise Exception('参数格式不对'.decode('utf8'))
         return items_list
     
     def valid_params(self,item_list,outer_id,outer_sku_id):
@@ -618,11 +618,11 @@ class ProductNumAssignView(ModelView):
         assign_num   = 0
         for item in item_list:
             if item[2] != 0 and item[1] and not product_sku:
-                raise Exception(u'该商品有系统规格跟线上规格不符')
+                raise Exception('该商品有系统规格跟线上规格不符'.decode('utf8'))
             assign_num += item[2]
         
         if assign_num > real_num:
-            raise Exception(u'库存分配超出实际库存')
+            raise Exception('库存分配超出实际库存'.decode('utf8'))
         
         
     def assign_num_action(self,item_list):
@@ -638,7 +638,7 @@ class ProductNumAssignView(ModelView):
                 hold_num = sku.with_hold_quantity
             
             if item[2] < hold_num:    
-                raise Exception(u'分配库存小于线上拍下待付款数')
+                raise Exception('分配库存小于线上拍下待付款数'.decode('utf8'))
             
             apis.taobao_item_quantity_update\
                         (num_iid=item[0],quantity=item[2],sku_id=item[1],tb_user_id=im.user.visitor_id)   

@@ -103,7 +103,7 @@ class Product(models.Model):
     
     @property
     def realnum(self):
-        return self.collect_num - self.remain_num - self.wait_post_num
+        return self.collect_num - self.wait_post_num
     
     @property
     def is_out_stock(self):
@@ -240,7 +240,7 @@ class ProductSku(models.Model):
         1,映射淘宝出售商品规格与采购商品规格桥梁；
         2,库存管理的规格核心类；
     """
-    outer_id = models.CharField(max_length=64,blank=True,verbose_name='规格外部编码')
+    outer_id = models.CharField(max_length=64,blank=False,verbose_name='规格外部编码')
     
     barcode  = models.CharField(max_length=64,blank=True,db_index=True,verbose_name='条码')
     product  = models.ForeignKey(Product,null=True,related_name='prod_skus',verbose_name='商品')
@@ -278,7 +278,7 @@ class ProductSku(models.Model):
     memo         = models.TextField(max_length=1000,blank=True,verbose_name='备注')
     class Meta:
         db_table = 'shop_items_productsku'
-        unique_together = ("outer_id", "product",)
+        unique_together = ("outer_id", "product")
         verbose_name=u'库存商品规格'
         verbose_name_plural = u'库存商品规格列表'
 
@@ -295,7 +295,7 @@ class ProductSku(models.Model):
     
     @property
     def realnum(self):
-        return self.quantity - self.remain_num - self.wait_post_num
+        return self.quantity - self.wait_post_num
     
     @property
     def is_out_stock(self):
