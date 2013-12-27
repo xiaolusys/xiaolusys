@@ -473,7 +473,8 @@ def change_trade_addr(request):
     trade.save()
     
     try:
-        if trade.type in (pcfg.TAOBAO_TYPE,pcfg.FENXIAO_TYPE,pcfg.GUARANTEE_TYPE) and trade.sys_status==pcfg.WAIT_AUDIT_STATUS:
+        if trade.type in (pcfg.TAOBAO_TYPE,pcfg.FENXIAO_TYPE,pcfg.GUARANTEE_TYPE) \
+            and trade.sys_status in (pcfg.WAIT_AUDIT_STATUS,pcfg.WAIT_CHECK_BARCODE_STATUS,pcfg.WAIT_SCAN_WEIGHT_STATUS):
             response = apis.taobao_trade_shippingaddress_update(tid=trade.tid,
                                                             receiver_name=trade.receiver_name,
                                                             receiver_phone=trade.receiver_phone,

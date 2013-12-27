@@ -113,22 +113,33 @@ function assignProductNum(nRow)
 	var params = {
 		"outer_id":nRow.cells[1].innerHTML,
 		"outer_sku_id":nRow.cells[3].innerHTML,
-		"format":"html"
+		"format":"json"
 	};
 	var that = this;
-	var callback = function(result){
-    		$('#assgin-dialog').html(result);
-    		var dlg = $('#assgin-dialog').dialog({title: "库存警告分配对话框",width:'900'});
-			$('#assign-form').ajaxForm(function(result) { 
-				if(result.code==1){
-					alert('错误:'+result.response_error);
-				}else{
-					dlg.dialog('destroy');
-				} 
-			})
+	var callback = function(res){
+		try{
+			if (res.code == 0){
+	    		$('#assgin-dialog').html(res.response_content.assign_template);
+	    		var dlg = $('#assgin-dialog').dialog({title: "库存警告分配对话框",width:'900'});
+				$('#assign-form').ajaxForm(function(result) { 
+					if(result.code==1){
+						alert('错误:'+result.response_error);
+					}else{
+						$('#assign-form input[type="submit"]').attr('disabled',true); 
+						$('#assign-form .label-toast').css('display', 'inline-block');
+						$('#assign-form .label-toast').fadeOut( 2000 ,function(){
+							$('#assign-form input[type="submit"]').removeAttr("disabled"); 
+						});
+					} 
+				})
+			}else{
+				alert('错误：'+res.response_error);
+			}
+		}catch(err){
+			console.log('Error: (ajax callback) - ', err);
+		}
 	};
-	console.log('params',params);
-	$.get("/items/product/assign/",params,callback);
+	$.getJSON("/items/product/assign/",params,callback);
 }
 
 $(document).ready(function(){

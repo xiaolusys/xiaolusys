@@ -322,11 +322,11 @@ class PurchaseItem(models.Model):
                 'name':self.name,
                 'outer_sku_id':self.outer_sku_id,
                 'properties_name':self.properties_name,
-                'total_fee':self.total_fee,
-                'payment':self.payment,
+                'total_fee':round(self.total_fee,FINANCIAL_FIXED),
+                'payment':round(self.payment,FINANCIAL_FIXED),
                 'purchase_num':self.purchase_num,
-                'price':self.price,
-                'std_price':self.std_price,
+                'price':round(self.price,FINANCIAL_FIXED),
+                'std_price':round(self.std_price,FINANCIAL_FIXED),
                 }
  
  

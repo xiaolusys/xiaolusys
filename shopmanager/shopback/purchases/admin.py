@@ -293,10 +293,9 @@ class PurchaseStorageAdmin(admin.ModelAdmin):
                 prod = Product.objects.get(outer_id=outer_id)
                 if outer_sku_id:
                     prod_sku = ProductSku.objects.get(outer_id=outer_sku_id,product=prod)
-                    prod_sku.update_quantity(storage_item.storage_num)
-                    
+                    prod_sku.update_quantity_by_storage_num(storage_item.storage_num)
                 else:
-                    prod.update_collect_num(storage_item.storage_num)
+                    prod.update_quantity_by_storage_num(storage_item.storage_num)
                 storage_item.is_addon = True
                 storage_item.save()
                 

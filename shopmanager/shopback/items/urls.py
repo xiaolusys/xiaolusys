@@ -3,12 +3,12 @@ from djangorestframework.views import ListOrCreateModelView
 from django.views.generic import TemplateView
 from shopback.items.views import ProductListView,ProductItemView,ProductModifyView,ProductUpdateView,\
     ProductSkuCreateView,ProductSkuInstanceView,ProductSearchView,ProductDistrictView,ProductBarCodeView,\
-    ProductWarnMgrView,ProductNumAssignView,ProductOrSkuStatusMdView,ProductView
+    ProductWarnMgrView,ProductNumAssignView,ProductOrSkuStatusMdView,ProductView,ProductSkuView
 from shopback.items.resources import ProductListResource,ProductItemResource,ProductResource,\
     ProductSkuResource,ProductDistrictResource
 from shopback.items.renderers import ProductListHtmlRenderer,JSONRenderer,ProductItemHtmlRenderer,\
     ProductUpdateHtmlRenderer,ProductSkuHtmlRenderer,ProductDistrictHtmlRenderer,ProductHtmlRenderer,\
-    ProductBarcodeHtmlRenderer,ProductWarnHtmlRenderer,ProductAssignHtmlRenderer
+    ProductBarcodeHtmlRenderer,ProductWarnHtmlRenderer
 from shopback.base.renderers  import BaseJsonRenderer
 from shopback.base.permissions import IsAuthenticated
 from shopback.base.authentication import UserLoggedInAuthentication,login_required_ajax
@@ -27,7 +27,13 @@ urlpatterns = patterns('shopback.items.views',
         authentication=(UserLoggedInAuthentication,),
         permissions=(IsAuthenticated,)
     )),
-    
+    (r'^product/(?P<pid>[0-9]+)/(?P<sku_id>[0-9]+)/$',ProductSkuView.as_view(
+        resource=ProductSkuResource,
+        renderers=(BaseJsonRenderer,),
+        authentication=(UserLoggedInAuthentication,),
+        permissions=(IsAuthenticated,)
+    )),
+                       
     (r'^product/$',ProductListView.as_view(
         resource=ProductListResource,
         renderers=(ProductListHtmlRenderer,JSONRenderer),
@@ -90,7 +96,7 @@ urlpatterns = patterns('shopback.items.views',
     )),   
     (r'^product/assign/$',ProductNumAssignView.as_view(
         resource=ProductResource,
-        renderers=(BaseJsonRenderer,ProductAssignHtmlRenderer),
+        renderers=(BaseJsonRenderer,),
         authentication=(UserLoggedInAuthentication,),
         permissions=(IsAuthenticated,)
     )),      

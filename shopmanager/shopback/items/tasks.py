@@ -165,6 +165,12 @@ def updateUserProductSkuTask(user_id=None,outer_ids=None,force_update_num=False)
                     item = Item.objects.get(num_iid=num_iid)
                     item.skus = sku_list and json.dumps({'sku':sku_list}) or item.skus
                     item.save()
+                    
+                    sku_ids = [sku['sku_id'] for sku in sku_list if sku]
+                    if sku_ids:
+                        SkuProperty.objects.filter(num_iid=num_iid)\
+                            .exclude(sku_id__in=sku_ids).update(status=pcfg.DELETE)
+                    
                 num_iids = []
                 prop_dict = {}
     
