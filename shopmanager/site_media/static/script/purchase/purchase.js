@@ -514,7 +514,6 @@ purchase.Manager.prototype.bindEvent = function (){
 		
 		e.preventDefault();
 		var target = e.target;
-		
 		var num = target.value;
 		
 		if (!parseInt(num)&&num!=''){

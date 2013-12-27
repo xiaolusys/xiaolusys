@@ -1,6 +1,7 @@
 /**全局变量*/
 var dtable      = null; //datatable对象
 var nEditing    = null; //当前编辑行
+var MONEY_FIXED = 4;    //成本计算精度
 var product_id  = null; //商品编码
 
 /**恢复一条datatable记录，*/
@@ -13,6 +14,37 @@ function restoreRow ( oTable, nRow )
 		oTable.fnUpdate( aData[i], nRow, i, false );
 	}
 	oTable.fnDraw();
+}
+
+//计算商品库存及总成本
+function calProductNumAndCost(){
+	var total_num = 0;
+	var total_fee = 0.0;
+	var cell_num  = 0;
+	var cell_fee  = 0.0;
+ 	var row = null;
+ 	var fee_cell  = null;
+ 	
+	var rows = $("#productsku-table > tbody > tr");
+	for(var i=0;i < rows.length;i++){
+		row = rows[i];
+		if (row.cells.length < 13){continue;}
+		
+		fee_cell = $('input',row.cells[8]);
+		
+		cell_num = parseInt($('input',row.cells[4]).val());
+
+		total_num += cell_num;
+		if(fee_cell.length>0){
+			cell_fee = parseFloat(fee_cell.val());
+		}else{
+			cell_fee = parseFloat(row.cells[8].innerHTML);
+		}
+		
+		total_fee += cell_num*cell_fee;
+	}
+	$('#total_num').val(total_num.toString());
+	$('#total_cost').val(total_fee.toFixed(MONEY_FIXED).toString())
 }
 
 /**修改一条datatable记录*/
@@ -84,6 +116,8 @@ function saveProductAction(nRow)
 						'<a class="remain" href="#" title="待用"><icon class="icon-pause"></icon></icon></a>'+
 						'<a class="delete" href="#" title="作废"><icon class="icon-remove"></icon></icon></a>', nRow, 12, false );
 				dtable.fnDraw();
+				
+				calProductNumAndCost();
         	}else{
         		alert("错误:"+res.response_error);
         	}
@@ -109,6 +143,7 @@ function delOrRemProductOrSku(nRow,status)
         		if (status=='delete'){
         			dtable.fnDeleteRow( nRow );
         		}
+        		calProductNumAndCost();
         	}else{
         		alert("错误:"+res.response_error);
         	}
@@ -189,8 +224,8 @@ $(document).ready(function(){
    		//"bJQueryUI": true,
 		"bAutoWidth": false, //自适应宽度
 		"aaSorting": [[1, "asc"]],
-		"iDisplayLength": 100,
-		"aLengthMenu": [[100, 200, 500,-1], [100, 200, 500,"All"]],
+		"iDisplayLength": 30,
+		"aLengthMenu": [[30,60,100,-1], [30,60,100,"All"]],
 		//"sPaginationType": "full_numbers",
 		//"sDom": '<"H"Tfr>t<"F"ip>',
 		"oLanguage": {
@@ -210,7 +245,8 @@ $(document).ready(function(){
 			"sProcessing": "<img src='/static/img/loading.gif' />"
 		}		
 	});
-	
+	//初始化总库存数及总成本
+	calProductNumAndCost();
 	/**修改事件*/
 	$('#productsku-table a.edit').live('click',function(e){
 		e.preventDefault();
@@ -260,6 +296,24 @@ $(document).ready(function(){
 		}
 	});
 	
+	//设置每页显示数量时，重新计算
+	$("select[name='productsku-table_length']").change(function(e){
+		e.preventDefault();
+		calProductNumAndCost();
+	});
+	
+	//搜索时，重新计算
+	$("#productsku-table_filter input").keyup(function(e){
+		e.preventDefault();
+		calProductNumAndCost();
+	});
+	
+	//分页时，重新计算
+	$("#productsku-table_paginate a").click(function(e){
+		e.preventDefault();
+		calProductNumAndCost();
+	});
+	
 	/**商品及规格库存修改获取*/
 	$('.quantity').live('focus',function(e){
 		var offset = $(this).offset();
@@ -273,7 +327,6 @@ $(document).ready(function(){
 		}
 		
 		quantityDialog.offset(offset).css('display','block');
-		console.log('offset',offset,quantityDialog.offset());
 		$('#product-quantity-dialog input[name="num"]').focus();
 	});
 	
@@ -309,6 +362,8 @@ $(document).ready(function(){
 				$('#quantity-'+product.id).val(product.collect_num);
 			}
 			$('#product-quantity-dialog').offset({left:0,top:0}).css('display','none');;
+			
+			calProductNumAndCost();
 		}
 	});
 	$('#reduce-num').click(function(){
