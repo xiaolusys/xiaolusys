@@ -441,6 +441,20 @@ class PurchaseStorage(models.Model):
         return pcsv 
     
     @property
+    def items_dict(self):
+        
+        prod_dict = {}
+        for item in self.normal_storage_items:
+            outer_id     = item.outer_id
+            outer_sku_id = item.outer_sku_id
+            if prod_dict.has_key(outer_id):
+                prod_dict[outer_id].append((outer_sku_id,item.storage_num))
+            else:
+                prod_dict[outer_id]=[(outer_sku_id,item.storage_num)]
+        return prod_dict
+            
+        
+    @property
     def json(self):
         """ 获取入库单JSON信息 """
         
