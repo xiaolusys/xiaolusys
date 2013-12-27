@@ -73,7 +73,7 @@ class Product(models.Model):
     sync_stock   = models.BooleanField(default=True,verbose_name='库存同步')
     is_assign    = models.BooleanField(default=False,verbose_name='取消警告') #是否手动分配库存，当库存充足时，系统自动设为False，手动分配过后，确定后置为True
     
-    post_check   = models.BooleanField(default=False,verbose_name='需验货')
+    post_check   = models.BooleanField(default=False,verbose_name='需扫描')
     status       = models.CharField(max_length=16,db_index=True,choices=ONLINE_PRODUCT_STATUS,
                                     default=pcfg.NORMAL,verbose_name='商品状态')
     

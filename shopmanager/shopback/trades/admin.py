@@ -494,14 +494,14 @@ class MergeTradeAdmin(admin.ModelAdmin):
                     except:
                         pass
                     else:
-                        product_sku.update_waitpostnum_incremental(order.num)
+                        product_sku.update_wait_post_num(order.num)
                 elif order.outer_id:
                     try:
                         product = Product.objects.get(outer_id=order.outer_id)
                     except:
                         pass
                     else:
-                        product.update_waitpostnum_incremental(order.num) 
+                        product.update_wait_post_num(order.num) 
                         
             try:
                 trade.merge_trade_orders.all().delete()

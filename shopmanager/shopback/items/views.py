@@ -16,7 +16,7 @@ from djangorestframework.response import Response,ErrorResponse
 from djangorestframework.mixins import CreateModelMixin
 from shopback import paramconfig as pcfg
 from shopback.base.views import ModelView,ListOrCreateModelView,ListModelView
-from shopback.items.models import Item,SkuProperty,Product,ProductSku,ProductLocation,APPROVE_STATUS
+from shopback.items.models import Item,SkuProperty,Product,ProductSku,ProductLocation,APPROVE_STATUS,ONLINE_PRODUCT_STATUS
 from shopback.archives.models import DepositeDistrict
 from shopback.users.models import User
 from shopback.items.tasks import updateUserItemsTask,updateItemNum
@@ -389,7 +389,7 @@ class ProductSkuView(ModelView):
         except Exception,exc:
             return u'填写信息不规则'
         
-        log_action(request.user.id,product_sku,CHANGE,u'更新商品规格信息')
+        log_action(request.user.id,product_sku.product,CHANGE,u'更新商品规格信息')
         
         return product_sku.json
     
@@ -438,7 +438,6 @@ class ProductBarCodeView(ModelView):
         product_sku = None
         try:
             product   =  Product.objects.get(outer_id=outer_id)
-            
             if outer_sku_id :
                 product_sku   =  ProductSku.objects.get(outer_id=outer_sku_id,product=product)
                 
@@ -583,8 +582,10 @@ class ProductOrSkuStatusMdView(ModelView):
         if outer_sku_id:
             queryset = queryset.filter(outer_id=outer_sku_id)
             
-            
         row = queryset.update(status=status)
+        
+        log_action(request.user.id,queryset[0].product,CHANGE,
+                   u'更改规格库存状态:%s,%s'%(outer_sku_id or sku_id,dict(ONLINE_PRODUCT_STATUS).get(status)))
         
         return {'updates_num':row}
 
@@ -702,10 +703,14 @@ class ProductNumAssignView(ModelView):
             logger.error(exc.message,exc_info=True)
             return exc.message
         
+        product = Product.objects.get(outer_id=outer_id)
+        
         if outer_sku_id :
             row = ProductSku.objects.filter(outer_id=outer_sku_id,product__outer_id=outer_id).update(is_assign=True)
         else:
             row = Product.objects.filter(outer_id=outer_id).update(is_assign=True)
+        
+        log_action(request.user.id,product,CHANGE,u'手动分配商品线上库存')
             
         return {'success':row}
     
