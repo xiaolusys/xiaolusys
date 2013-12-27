@@ -82,7 +82,7 @@ def updateUserItemsTask(user_id):
         logger.error('update user inventory items task error', exc_info=True)
    
     Item.objects.filter(user__visitor_id=user_id).exclude(num_iid__in=onsale_item_ids)\
-        .update(approve_status=pcfg.INSTOCK_STATUS)
+        .update(approve_status=pcfg.INSTOCK_STATUS,status=False)
     
     return len(onsale_item_ids)
 
