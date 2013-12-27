@@ -51,9 +51,10 @@ class Product(models.Model):
     pic_path     = models.CharField(max_length=256,blank=True)
     
     collect_num  = models.IntegerField(default=0,verbose_name='库存数')  #库存数
-    warn_num     = models.IntegerField(null=True,default=0,verbose_name='警告库位')    #警戒库位
-    remain_num   = models.IntegerField(null=True,default=0,verbose_name='预留库位')    #预留库存
-    wait_post_num   = models.IntegerField(null=True,default=0,verbose_name='待发数')    #待发数
+    warn_num     = models.IntegerField(null=True,default=0,verbose_name='警告数')    #警戒库位
+    remain_num   = models.IntegerField(null=True,default=0,verbose_name='预留数')    #预留库存
+    wait_post_num   = models.IntegerField(null=True,default=0,verbose_name='待发数') #待发数
+    reduce_num   = models.IntegerField(null=True,default=0,verbose_name='预减数')    #下次入库减掉这部分库存
     
     cost         = models.FloatField(default=0,verbose_name='成本价')
     std_purchase_price = models.FloatField(default=0,verbose_name='标准进价')
@@ -76,6 +77,7 @@ class Product(models.Model):
     status       = models.CharField(max_length=16,db_index=True,choices=ONLINE_PRODUCT_STATUS,
                                     default=pcfg.NORMAL,verbose_name='商品状态')
     
+    match_reason = models.CharField(max_length=80,blank=True,verbose_name='匹配原因')
     buyer_prompt = models.CharField(max_length=60,blank=True,verbose_name='客户提示')
     memo         = models.TextField(max_length=1000,blank=True,verbose_name='备注')
     class Meta:
@@ -129,6 +131,10 @@ class Product(models.Model):
                 'warn_num':self.warn_num,
                 'wait_post_num':self.wait_post_num,
                 'cost':self.cost,
+                'std_purchase_price':self.std_purchase_price,
+                'std_sale_price':self.std_sale_price,
+                'agent_price':self.agent_price,
+                'staff_price':self.staff_price,
                 'weight':self.weight,
                 'sync_stock':self.sync_stock,
                 'is_split':self.is_split,
@@ -158,7 +164,7 @@ class Product(models.Model):
             self.collect_num = F('collect_num') + num
         update_model_fields(self,update_fields=['collect_num'])
         
-        self.collect_num = Product.objects.get(id=self.id).collect_num
+        self.collect_num = self.__class__.objects.get(id=self.id).collect_num
         
         
     def update_wait_post_num(self,num,full_update=False,dec_update=False):
@@ -175,12 +181,44 @@ class Product(models.Model):
             self.wait_post_num = F('wait_post_num') + num
         update_model_fields(self,update_fields=['wait_post_num'])
         
-        self.wait_post_num = Product.objects.get(id=self.id).wait_post_num
+        self.wait_post_num = self.__class__.objects.get(id=self.id).wait_post_num
         if self.wait_post_num <0:
             self.wait_post_num = 0
             update_model_fields(self,update_fields=['wait_post_num'])
         
+    
+    def update_reduce_num(self,num,full_update=False,dec_update=False):
+        """
+            更新商品库存:
+                full_update:是否全量更新
+                dec_update:是否减库存
+        """
+        if full_update:
+            self.reduce_num = num
+        elif dec_update:
+            self.reduce_num = F('reduce_num') - num
+        else:
+            self.reduce_num = F('reduce_num') + num
+        update_model_fields(self,update_fields=['reduce_num'])
         
+        self.reduce_num = self.__class__.objects.get(id=self.id).reduce_num
+        
+    
+    def update_quantity_by_storage_num(self,num):
+        
+        if num < 0 :
+            raise Exception(u'入库更新商品库存数不能小于0')
+        
+        if num > self.reduce_num:
+            real_update_num = num - self.reduce_num
+            real_reduct_num = 0
+        else:
+            real_update_num = 0
+            real_reduct_num = self.reduce_num - num
+            
+        self.update_collect_num(real_update_num)
+        self.update_reduce_num(real_reduct_num,full_update=True)
+    
     @property
     def is_stock_warn(self):
         """
@@ -246,9 +284,10 @@ class ProductSku(models.Model):
     product  = models.ForeignKey(Product,null=True,related_name='prod_skus',verbose_name='商品')
     
     quantity = models.IntegerField(default=0,verbose_name='库存数')
-    warn_num     = models.IntegerField(null=True,default=0,verbose_name='警戒库位')    #警戒库位
-    remain_num   = models.IntegerField(null=True,default=0,verbose_name='预留库位')    #预留库存
+    warn_num     = models.IntegerField(null=True,default=0,verbose_name='警戒数')    #警戒库位
+    remain_num   = models.IntegerField(null=True,default=0,verbose_name='预留数')    #预留库存
     wait_post_num = models.IntegerField(null=True,default=0,verbose_name='待发数')    #待发数
+    reduce_num   = models.IntegerField(null=True,default=0,verbose_name='预减数')    #下次入库减掉这部分库存
     
     cost          = models.FloatField(default=0,verbose_name='成本价')
     std_purchase_price = models.FloatField(default=0,verbose_name='标准进价')
@@ -268,12 +307,13 @@ class ProductSku(models.Model):
     #是否手动分配库存，当库存充足时，系统自动设为False，手动分配过后，确定后置为True
     is_assign    = models.BooleanField(default=False,verbose_name='取消警告') 
     
-    post_check   = models.BooleanField(default=False,verbose_name='需验货')
+    post_check   = models.BooleanField(default=False,verbose_name='需扫描')
     created      = models.DateTimeField(null=True,blank=True,auto_now_add=True,verbose_name='创建时间')
     modified     = models.DateTimeField(null=True,blank=True,auto_now=True,verbose_name='修改时间')
     status       = models.CharField(max_length=10,db_index=True,choices=ONLINE_PRODUCT_STATUS,
                                     default=pcfg.NORMAL,verbose_name='规格状态')  #normal,delete
-
+    
+    match_reason = models.CharField(max_length=80,blank=True,verbose_name='匹配原因')
     buyer_prompt = models.CharField(max_length=60,blank=True,verbose_name='客户提示')
     memo         = models.TextField(max_length=1000,blank=True,verbose_name='备注')
     class Meta:
@@ -314,9 +354,14 @@ class ProductSku(models.Model):
                 'properties_alias':sku.properties_alias,
                 'name':sku.name,
                 'cost':sku.cost,
+                'std_purchase_price':sku.std_purchase_price,
+                'std_sale_price':sku.std_sale_price,
+                'agent_price':sku.agent_price,
+                'staff_price':sku.staff_price,
                 'weight':sku.weight,
                 'quantity':sku.quantity,
                 'warn_num':sku.warn_num,
+                'wait_post_num':sku.wait_post_num,
                 'remain_num':sku.remain_num,
                 'sync_stock':sku.sync_stock,
                 'is_split':sku.is_split,
@@ -328,6 +373,7 @@ class ProductSku(models.Model):
                 'status':sku.status,
                 'buyer_prompt':sku.buyer_prompt,
                 'memo':sku.memo,
+                'match_reason':sku.match_reason,
                 'districts':sku.get_district_list(),
                 'barcode':sku.BARCODE}
         
@@ -343,7 +389,7 @@ class ProductSku(models.Model):
             self.quantity = F('quantity') + num
         update_model_fields(self,update_fields=['quantity'])
         
-        psku = ProductSku.objects.get(id=self.id)
+        psku = self.__class__.objects.get(id=self.id)
         self.quantity = psku.quantity
         
         post_save.send(sender=self.__class__,instance=self)
@@ -363,7 +409,7 @@ class ProductSku(models.Model):
             self.wait_post_num = models.F('wait_post_num') + num
         update_model_fields(self,update_fields=['wait_post_num'])
         
-        psku = ProductSku.objects.get(id=self.id)
+        psku = self.__class__.objects.get(id=self.id)
         self.wait_post_num = psku.wait_post_num 
         if self.wait_post_num <0:
             self.wait_post_num = 0
@@ -371,6 +417,40 @@ class ProductSku(models.Model):
             
         post_save.send(sender=self.__class__,instance=self)
          
+          
+    def update_reduce_num(self,num,full_update=False,dec_update=False):
+        """
+            更新商品库存:
+                full_update:是否全量更新
+                dec_update:是否减库存
+        """
+        if full_update:
+            self.reduce_num = num
+        elif dec_update:
+            self.reduce_num = F('reduce_num') - num
+        else:
+            self.reduce_num = F('reduce_num') + num
+        update_model_fields(self,update_fields=['reduce_num'])
+        
+        self.reduce_num = self.__class__.objects.get(id=self.id).reduce_num
+        post_save.send(sender=self.__class__,instance=self)
+          
+    
+    def update_quantity_by_storage_num(self,num):
+        
+        if num < 0 :
+            raise Exception(u'入库更新商品库存数不能小于0')
+        
+        if num > self.reduce_num:
+            real_update_num = num - self.reduce_num
+            real_reduct_num = 0
+        else:
+            real_update_num = 0
+            real_reduct_num = self.reduce_num - num
+            
+        self.update_quantity(real_update_num)
+        self.update_reduce_num(real_reduct_num,full_update=True)
+    
           
     @property
     def is_stock_warn(self):
@@ -433,6 +513,7 @@ def calculate_product_stock_num(sender, instance, *args, **kwargs):
                                                    total_warn_num=Sum('warn_num'),
                                                    total_remain_num=Sum('remain_num'),
                                                    total_post_num=Sum('wait_post_num'),
+                                                   total_reduce_num=Sum('reduce_num'),
                                                    avg_cost=Avg('cost'),
                                                    avg_purchase_price=Avg('std_purchase_price'),
                                                    avg_agent_price=Avg('agent_price'),
@@ -442,6 +523,7 @@ def calculate_product_stock_num(sender, instance, *args, **kwargs):
             product.warn_num     =  product_dict.get('total_warn_num') or 0
             product.remain_num   =  product_dict.get('total_remain_num') or 0
             product.wait_post_num  =  product_dict.get('total_post_num') or 0
+            product.reduce_num   =  product_dict.get('reduce_num') or 0
                 
             product.cost               = "{0:.2f}".format(product_dict.get('avg_cost') or 0)
             product.std_purchase_price = "{0:.2f}".format(product_dict.get('avg_purchase_price') or 0)
@@ -597,7 +679,7 @@ class SkuProperty(models.Model):
     price            = models.FloatField(default=0.0,verbose_name='价格')
     
     quantity         = models.IntegerField(default=0,verbose_name='数量')    
-    status           = models.CharField(max_length=10,null=True,blank=True,verbose_name='状态')
+    status           = models.CharField(max_length=10,blank=True,choices=PRODUCT_STATUS,verbose_name='状态')
     
     class Meta:
         db_table = 'shop_items_skuproperty'

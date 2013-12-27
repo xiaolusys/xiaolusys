@@ -22,7 +22,7 @@ logger =  logging.getLogger('tradepost.handler')
 class ProductSkuInline(admin.TabularInline):
     
     model = ProductSku
-    fields = ('outer_id','properties_name','properties_alias','quantity','warn_num','remain_num','wait_post_num','cost'
+    fields = ('outer_id','properties_name','properties_alias','quantity','warn_num','remain_num','wait_post_num','reduce_num','cost'
               ,'std_sale_price','sync_stock','is_assign','is_split','is_match','post_check','barcode','status','buyer_prompt')
     
     formfield_overrides = {
@@ -54,13 +54,18 @@ admin.site.register(Item, ItemAdmin)
 
 
 class ProductAdmin(admin.ModelAdmin):
-    list_display = ('id','outer_id','name','collect_num','category','warn_num','remain_num','wait_post_num','cost'
+    list_display = ('id','outer_id','name_link','collect_num','category','warn_num','remain_num','wait_post_num','cost'
                     ,'std_sale_price','agent_price','sync_stock','is_assign','is_split','is_match','post_check','district_link','status')
-    list_display_links = ('id','outer_id',)
+    list_display_links = ('id',)
     #list_editable = ('name',)
     
     date_hierarchy = 'modified'
     #ordering = ['created_at']
+    
+    def name_link(self, obj):
+        return u'<a href="/items/product/%d/" style="display:block;width:200px;">%s</a>' %(obj.id,obj.name or u'--' )
+    name_link.allow_tags = True
+    name_link.short_description = "商品名称" 
     
     def district_link(self, obj):
         return u'<a href="/items/product/district/%d/" target="_blank" style="display: block;width:200px;">%s</a>' %(obj.id,obj.get_districts_code() or u'--' )
@@ -70,15 +75,16 @@ class ProductAdmin(admin.ModelAdmin):
     inlines = [ProductSkuInline]
     
     list_filter = ('status','sync_stock','is_split','is_match','is_assign','post_check')
-    search_fields = ['outer_id', 'name' , 'barcode']
+    search_fields = ['id','outer_id', 'name' , 'barcode']
     
     #--------设置页面布局----------------
     fieldsets =(('商品基本信息:', {
                     'classes': ('expand',),
                     'fields': (('outer_id','name','category','pic_path','status')
-                               ,('collect_num','warn_num','remain_num','wait_post_num','barcode')
+                               ,('collect_num','warn_num','remain_num','wait_post_num','reduce_num')
                                ,('cost','std_purchase_price','std_sale_price','agent_price','staff_price')
-                               ,('weight','sync_stock','is_assign','is_split','is_match','post_check','memo','buyer_prompt'))
+                               ,('weight','sync_stock','is_assign','is_split','is_match','post_check')
+                               ,('barcode','match_reason','memo','buyer_prompt'))
                 }),)
     
     formfield_overrides = {

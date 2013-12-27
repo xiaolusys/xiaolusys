@@ -1,4 +1,5 @@
 #-*- coding:utf8 -*-
+import json
 import time
 import cStringIO as StringIO
 from django.contrib import admin
@@ -287,16 +288,19 @@ class PurchaseStorageAdmin(admin.ModelAdmin):
         approval_storages = queryset.filter(status__in=(pcfg.PURCHASE_APPROVAL,pcfg.PURCHASE_FINISH))
         
         for storage in approval_storages:
-            for storage_item in storage.normal_storage_items.filter(is_addon=False):
+            not_addon_items = storage.normal_storage_items.filter(is_addon=False)
+            if not_addon_items.count() == 0:
+                continue 
+            
+            for storage_item in not_addon_items:
                 outer_id     = storage_item.outer_id
                 outer_sku_id = storage_item.outer_sku_id
                 prod = Product.objects.get(outer_id=outer_id)
                 if outer_sku_id:
                     prod_sku = ProductSku.objects.get(outer_id=outer_sku_id,product=prod)
-                    prod_sku.update_quantity(storage_item.storage_num)
-                    
+                    prod_sku.update_quantity_by_storage_num(storage_item.storage_num)
                 else:
-                    prod.update_collect_num(storage_item.storage_num)
+                    prod.update_quantity_by_storage_num(storage_item.storage_num)
                 storage_item.is_addon = True
                 storage_item.save()
                 
@@ -304,8 +308,12 @@ class PurchaseStorageAdmin(admin.ModelAdmin):
                 storage.is_addon=True
                 storage.save()
             
-            log_action(request.user.id,storage,CHANGE,u'入库数更新到库存')
+            log_action(request.user.id,storage,CHANGE,u'入库单更新到库存')
             
+            for outer_id,skus in storage.items_dict.iteritems():
+                prod = Product.objects.get(outer_id=outer_id)
+                log_action(request.user.id,prod,CHANGE,u'入库单(id:%d)更新库存:%s'%(storage.id,json.dumps(skus)))
+                
         addon_storages = queryset.filter(is_addon=True)
         
         unaddon_storages = queryset.filter(is_addon=False)

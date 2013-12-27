@@ -508,18 +508,6 @@ purchase.Manager.prototype.bindEvent = function (){
 			that.nEditing = nRow;
 		}
 	});
-	//绑定价格修改按键事件
-	$('input.edit-price').live('keyup', function (e) {
-		
-		e.preventDefault();
-		var target = e.target;
-		
-		var price = target.value;
-		
-		if (!parseFloat(price)&&!parseInt(price)&&price!=''){
-			target.value = '0';
-		}
-	} );
 	
 	//绑定数量修改按键事件
 	$('input.edit-num').live('keyup', function (e) {

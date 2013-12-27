@@ -48,48 +48,62 @@ def update_product_stock(request):
 
     content  = request.REQUEST
     outer_id = content.get('outer_id')
+    product_id = content.get('product_id')
     sku_id   = content.get('sku_id')
     outer_sku_id   = content.get('outer_sku_id')
     num      = content.get('num')
-    remain_num = content.get('remain_num',0)
+    remain_num = content.get('remain_num','')
+    reduce_num = content.get('reduce_num',0)
     mode     = content.get('mode',0) #0增量，1全量
+    
+    if not num or not product_id:
+        return HttpResponse(json.dumps({'code':1,'response_error':u'库存数量不能为空'})
+                            ,mimetype='application/json')
     
     prod     = None
     prod_sku = None
-    num ,mode ,remain_num = int(num),int(mode),int(remain_num)
-    if sku_id or outer_sku_id:
+    num ,mode ,reduce_num = int(num),int(mode),int(reduce_num)
+    try:
         try:
+            prod = Product.objects.get(id=product_id)
+        except:
+            prod = Product.objects.get(outer_id=outer_id)
+        
+        if sku_id or outer_sku_id:
             if sku_id:
                 prod_sku = ProductSku.objects.get(id=sku_id)
             else:
                 prod_sku = ProductSku.objects.get(product__outer_id=outer_id,outer_id=outer_sku_id)
-        except:
-            response = {'code':1,'response_error':u'商品规格未找到'}
-            return HttpResponse(json.dumps(response),mimetype='application/json')
-        else:
+            
             prod_sku.update_quantity(num,full_update=mode,dec_update=False)
-            
-            prod_sku.remain_num = remain_num
-            update_model_fields(prod_sku,update_fields=['remain_num'])
-            
+            prod_sku.update_reduce_num(reduce_num,full_update=mode,dec_update=False)
             prod = prod_sku.product
-        
-    else:       
-        try:
-            prod = Product.objects.get(outer_id=outer_id)
-        except:
-            response = {'code':1,'response_error':u'商品未找到'}
-            return HttpResponse(json.dumps(response),mimetype='application/json')
-        else:
             
+        else:       
             prod.update_collect_num(num,full_update=mode)
-            
-            prod.remain_num = remain_num
-            update_model_fields(prod,update_fields=['remain_num'])
+            prod.update_reduce_num(reduce_num,full_update=mode,dec_update=False)
+        
+        if remain_num :  
+            if prod_sku:
+                prod_sku.remain_num = int(remain_num)
+            else:
+                prod.remain_num     = int(remain_num)
+            update_model_fields(prod_sku or prod,update_fields=['remain_num'])
+    except Product.DoesNotExist:
+        response = {'code':1,'response_error':u'商品未找到'}
+        return HttpResponse(json.dumps(response),mimetype='application/json')
+    except ProductSku.DoesNotExist:
+        response = {'code':1,'response_error':u'商品规格未找到'}
+        return HttpResponse(json.dumps(response),mimetype='application/json')
+    except Exception,exc:
+        response = {'code':1,'response_error':exc.message}
+        return HttpResponse(json.dumps(response),mimetype='application/json')
                 
-    log_action(request.user.id,prod,CHANGE,u'更新商品库存及预留库存：%s-%s,%d,%d'%(outer_id,prod_sku and prod_sku.outer_id or sku_id,num,remain_num))
+    log_action(request.user.id,prod,CHANGE,u'更新商品库存,%s，编码%s-%s,库存数%d,预留数%s,预减数%d'%
+               (mode and u'全量' or u'增量',prod.outer_id,prod_sku and prod_sku.outer_id or sku_id,num,remain_num or '-',reduce_num))
     
     response = {
+                'id':prod.id,
                 'outer_id':prod.outer_id,
                 'collect_num':prod.collect_num,
                 'remain_num':prod.remain_num,
@@ -301,6 +315,7 @@ class ProductSkuInstanceView(ModelView):
 ############################ 库存商品操作 ###############################
 
 class ProductView(ModelView):
+    """ docstring for ProductView """
     
     def get(self, request, id, *args, **kwargs):
         
@@ -308,10 +323,78 @@ class ProductView(ModelView):
         
         return product.json
 
+
     def post(self, request, id, *args, **kwargs):
-        pass
+        
+        try:
+            product = Product.objects.get(id=id)
+        
+            content =  request.REQUEST
+            
+            fields = ['outer_id','barcode','name','remain_num','weight','cost','std_purchase_price','std_sale_price'
+                      ,'agent_price','staff_price','is_split','sync_stock','post_check','is_match','match_reason'
+                      ,'buyer_prompt','memo']
+            
+            for k,v in content.iteritems():
+                if k not in fields:continue
+                if k in ('wait_post_num','remain_num'):
+                    v = int(v)
+                setattr(product,k,v)
+                
+            product.save()
+        except Product.DoesNotExist:
+            return u'商品未找到'
+        except Exception,exc:
+            return u'填写信息不规则'
+        log_action(request.user.id,product,CHANGE,u'更新商品基本信息')
+        
+        return product.json
+        
+class ProductSkuView(ModelView):
+    """ docstring for ProductSkuView """
+    
+    def get(self, request, pid, sku_id, *args, **kwargs):
 
-
+        try:
+            instance = ProductSku.objects.get(id=sku_id)
+        except:
+            raise ErrorResponse(status.HTTP_404_NOT_FOUND)
+        
+        product_sku = self._resource.filter_response(instance)
+        product_sku['layer_table'] = render_to_string('items/productskutable.html', { 'object':instance}) 
+        
+        return product_sku
+    
+    
+    def post(self, request,pid, sku_id, *args, **kwargs):
+        #修改库存商品信息
+        try:
+            product_sku = ProductSku.objects.get(product=pid,id=sku_id)
+        
+            content = request.REQUEST
+            fields = ['properties_alias','wait_post_num','remain_num','warn_num','cost'
+                      ,'std_sale_price','agent_price','staff_price','sync_stock'
+                      ,'is_match','match_reason','post_check','barcode','buyer_prompt','memo']
+            for k,v in content.iteritems():
+                if k not in fields:
+                    continue
+                if k in ('wait_post_num','remain_num','warn_num'):
+                    v = int(v)
+                setattr(product_sku,k,v) 
+                
+            product_sku.save()
+        
+        except ProductSku.DoesNotExist:
+            return '未找到商品属性'
+        except Exception,exc:
+            return u'填写信息不规则'
+        
+        log_action(request.user.id,product_sku,CHANGE,u'更新商品规格信息')
+        
+        return product_sku.json
+    
+    
+        
 class ProductSearchView(ModelView):
     """ 根据商品编码，名称查询商品 """
     
@@ -355,20 +438,24 @@ class ProductBarCodeView(ModelView):
         product_sku = None
         try:
             product   =  Product.objects.get(outer_id=outer_id)
+            
+            if outer_sku_id :
+                product_sku   =  ProductSku.objects.get(outer_id=outer_sku_id,product=product)
+                
+                product_sku.barcode = barcode.strip()
+                product_sku.save()
+            else:
+                product.barcode  =  barcode.strip()
+                product.save()
+        
         except Product.DoesNotExist:
             return u'未找到商品'
-            
-        if outer_sku_id :
-            try:
-                product_sku   =  ProductSku.objects.get(outer_id=outer_sku_id,product=product)
-            except ProductSku.DoesNotExist:
-                return u'未找到商品规格' 
-            
-            product_sku.barcode = barcode.strip()
-            product_sku.save()
-        else:
-            product.barcode  =  barcode.strip()
-            product.save()
+        except ProductSku.DoesNotExist:
+            return u'未找到商品规格' 
+        except Exception,exc:
+            return exc.message
+        
+        log_action(request.user.id,product,CHANGE,u'更新商品条码:(%s-%s,%s)'%(outer_id or '',outer_sku_id or '',barcode))
         
         return {'barcode':product_sku and product_sku.BARCODE or product.BARCODE}   
         
@@ -410,6 +497,9 @@ class ProductDistrictView(ModelView):
             ProductSku.objects.get(outer_id=outer_sku_id,product=product)
         
         location,state = ProductLocation.objects.get_or_create(outer_id=outer_id,outer_sku_id=outer_sku_id,district=district)
+        
+        log_action(request.user.id,product,CHANGE,u'更新商品库位:(%s-%s,%s)'%(outer_id or '',outer_sku_id or '',district))
+        
         return {'outer_id':location.outer_id,'outer_sku_id':location.outer_sku_id,'district':district}
         
         
@@ -440,6 +530,8 @@ def delete_product_district(request):
         logger.error(exc.message,exc_info=True)
         ret = {'code':1,'error_response':u'未找到删除项'}
         return HttpResponse(json.dumps(ret),mimetype="application/json")
+    
+    log_action(request.user.id,product,CHANGE,u'删除商品库位:(%s-%s,%s)'%(outer_id or '',outer_sku_id or '',district))
     
     ret = {'code':0,'response_content':'success'}
     return HttpResponse(json.dumps(ret),mimetype="application/json")
@@ -472,14 +564,27 @@ class ProductOrSkuStatusMdView(ModelView):
         content      = request.REQUEST
         outer_id     = content.get('outer_id')
         outer_sku_id = content.get('outer_sku_id')
+        product_id   = content.get('product_id')
+        sku_id       = content.get('sku_id')
         is_delete    = content.get('is_delete') == 'true'
         is_remain    = content.get('is_remain') == 'true'
         
         status       = (is_delete and pcfg.DELETE) or (is_remain and pcfg.REMAIN) or pcfg.NORMAL
+        
+        queryset     = ProductSku.objects.all()
+        if product_id:
+            queryset = queryset.filter(product__id=product_id)
+        else :
+            queryset = queryset.filter(product__outer_id=outer_id)
+            
+        if sku_id: 
+            queryset = queryset.filter(id=sku_id)
+            
         if outer_sku_id:
-            row = ProductSku.objects.filter(product__outer_id=outer_id,outer_id=outer_sku_id).update(status=status)
-        else:
-            row = Product.objects.filter(outer_id=outer_id).update(status=status)
+            queryset = queryset.filter(outer_id=outer_sku_id)
+            
+            
+        row = queryset.update(status=status)
         
         return {'updates_num':row}
 
@@ -489,7 +594,8 @@ class ProductWarnMgrView(ModelView):
     def get(self, request, *args, **kwargs):
         
         pskus = ProductSku.objects.filter(product__status=pcfg.NORMAL,status=pcfg.NORMAL,is_assign=False)\
-            .extra(where=["quantity<=shop_items_productsku.remain_num+shop_items_productsku.wait_post_num"])
+            .extra(where=["quantity<=shop_items_productsku.remain_num+shop_items_productsku.wait_post_num "+
+            "OR quantity<=shop_items_productsku.remain_num"])
         
         return {'warn_skus':pskus}
         
@@ -510,6 +616,7 @@ class ProductNumAssignView(ModelView):
         real_num  = 0
         lday_num  = 0
         product = Product.objects.get(outer_id=outer_id)
+        product_sku = None
         if outer_sku_id:
             try:
                 product_sku = ProductSku.objects.get(product__outer_id=outer_id,outer_id=outer_sku_id)
@@ -531,13 +638,13 @@ class ProductNumAssignView(ModelView):
             sku_dict   = {}
             if outer_sku_id:
                 try:
-                    spty = SkuProperty.objects.get(num_iid=item.num_iid,outer_id=outer_sku_id,status='normal')
+                    spty = SkuProperty.objects.get(num_iid=item.num_iid,outer_id=outer_sku_id,status=pcfg.NORMAL)
                 except:
                     continue
                 else:
                     sku_dict['sku_id']     = spty.sku_id
                     sku_dict['outer_id']   = spty.outer_id
-                    sku_dict['properties_name']    = ''.join(t.split(':')[3] for t in spty.properties_name.split(';') if len(t.split(':'))==4)
+                    sku_dict['properties_name']    = product_sku.properties_name
                     sku_dict['with_hold_quantity'] = spty.with_hold_quantity
                     sku_dict['quantity']   = spty.quantity
             
@@ -556,12 +663,27 @@ class ProductNumAssignView(ModelView):
             item_dict['detail_url'] = item.detail_url
                 
             items_dict_list.append(item_dict)
-            
-        return {'items_list':items_dict_list,
-                'outer_id':outer_id,
-                'outer_sku_id':outer_sku_id,
-                'real_num':real_num,
-                'lday_num':lday_num}
+        
+        assign_tpl_string = render_to_string('items/product_assign_warn.html',{'items_list':items_dict_list,
+                                            'outer_id':outer_id,
+                                            'outer_sku_id':outer_sku_id,
+                                            'real_num':real_num,
+                                            'lday_num':lday_num})
+        
+        return {'id':product.id,
+               'outer_id':outer_id,
+               'name':product.name,
+               'barcode':product.barcode,
+               'is_match':product.is_match,
+               'sync_stock':product.sync_stock,
+               'is_assign':product.is_assign,
+               'post_check':product.post_check,
+               'buyer_prompt':product.buyer_prompt,
+               'memo':product.memo,
+               'match_reason':product.match_reason,
+               'sku':product_sku and product_sku.json or {},
+               'assign_template':assign_tpl_string
+               }
     
     def post(self, request, *args, **kwargs):
         #删除product或productsku

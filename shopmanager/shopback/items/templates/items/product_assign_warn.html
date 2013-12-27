@@ -1,10 +1,10 @@
 <div id="dialog-content">
 <form id="assign-form" method="POST" action="/items/product/assign/">
 <div id="dialog-head " class="well well-small">
-	<div class="label-block"><label class="label label-info">商品编码：</label><input type="text" name="assign_outer_id" value="{{ object.outer_id }}" readonly/></div>
-	<div class="label-block"><label class="label label-info">规格编码：</label><input type="text" name="assign_outer_sku_id" value="{{ object.outer_sku_id }}" readonly/></div>
-	<div class="label-block"><label class="label label-info">实际库存：</label><input type="text" name="assign_real_num" value="{{ object.real_num }}" readonly/></div>
-	<div class="label-block"><label class="label label-info">昨日销量：</label><input type="text" name="assign_lday_num" value="{{ object.lday_num }}" readonly/></div>
+	<div class="label-block"><label class="label label-info">商品编码：</label><input type="text" name="assign_outer_id" value="{{ outer_id }}" readonly/></div>
+	<div class="label-block"><label class="label label-info">规格编码：</label><input type="text" name="assign_outer_sku_id" value="{{ outer_sku_id }}" readonly/></div>
+	<div class="label-block"><label class="label label-info">实际库存：</label><input type="text" name="assign_real_num" value="{{ real_num }}" readonly/></div>
+	<div class="label-block"><label class="label label-info">昨日销量：</label><input type="text" name="assign_lday_num" value="{{ lday_num }}" readonly/></div>
 </div>
 <div id="dialog-center">
 <table class="table table-bordered table-striped table-condensed">
@@ -21,7 +21,7 @@
 		</tr>
 	</thead>
 	<tbody>
-	{% for item in object.items_list %}
+	{% for item in items_list %}
 	<tr>
 		<td>{{ item.seller_nick }}</td>
 		<td>{{ item.num_iid }}</td>
@@ -38,7 +38,8 @@
 </table>
 </div>
 <div id="dialog-footer">
-	<button id="submit" class="btn btn-large btn-primary">确认分配线上库存</button>
+	<input type="submit" class="btn btn-large btn-primary" value="确认分配线上库存" /> 
+	<div class="label-toast"><label class="label label-success" >保存成功！</label></div>
 </div>
 </form>
 </div>
