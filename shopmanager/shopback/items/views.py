@@ -372,7 +372,7 @@ class ProductSkuView(ModelView):
             product_sku = ProductSku.objects.get(product=pid,id=sku_id)
         
             content = request.REQUEST
-            fields = ['properties_alias','wait_post_num','remain_num','warn_num','cost'
+            fields = ['outer_id','properties_alias','wait_post_num','remain_num','warn_num','cost'
                       ,'std_sale_price','agent_price','staff_price','sync_stock'
                       ,'is_match','match_reason','post_check','barcode','buyer_prompt','memo']
             for k,v in content.iteritems():
