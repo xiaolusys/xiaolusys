@@ -187,6 +187,12 @@
 		margin-left:50px;
 		display:none;
 	}
+	.badge{
+		padding:0px 0px;
+		font-size:8px;
+		webkit-border-radius:0px;
+		border-radius:0px;
+	}
     </style>
   </head>
 
@@ -333,7 +339,11 @@
 							<tbody>
 								{% for sku in product.skus %}
 								<tr class="{% cycle 'odd' 'even' %}">
-									<td>{{ sku.id }}</td>
+									<td>{{ sku.id }}
+										{% if sku.is_split %}<span class="badge badge-info">拆
+										</span>{% endif  %}{% if sku.is_match %}<span class="badge badge-important">匹
+										</span>{% endif  %}{% if sku.sync_stock %}<span class="badge badge-success">同
+										</span>{% endif  %}{% if sku.post_check %}<span class="badge badge-warning">扫</span></td>{% endif  %}
 									<td>{{ sku.outer_id }}</td>
 									<td>{{ sku.properties_name }}</td>
 									<td class="property-td">{{ sku.properties_alias }}</td>

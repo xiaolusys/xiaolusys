@@ -224,6 +224,13 @@ $(document).ready(function(){
 	
 	product_id = $('#id').val();
 	
+	
+	$.fn.dataTableExt.afnSortData['dom-input'] = function  ( oSettings, iColumn )
+	{
+		return $.map( oSettings.oApi._fnGetTrNodes(oSettings), function (tr, i) {
+			return $('td:eq('+iColumn+') input', tr).val();
+		} );
+	};
 	//对jquery的datatable表格进行初始化
 	dtable = $('#productsku-table').dataTable({
    		//"bJQueryUI": true,
@@ -248,8 +255,27 @@ $(document).ready(function(){
 			},
 			"sZeroRecords": "没有检索到数据",
 			"sProcessing": "<img src='/static/img/loading.gif' />"
-		}		
+		},
+		"aoColumns": [
+			null,
+			null,
+			null,
+			null,
+			{ "sSortDataType": "dom-input","sType": 'numeric' },
+			null,
+			null,
+			null,
+			null,
+			null,
+			null,
+			null,
+			null,
+		],		
 	});
+	
+	
+	
+	
 	//初始化总库存数及总成本
 	calProductNumAndCost();
 	/**修改事件*/

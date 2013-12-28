@@ -366,6 +366,7 @@ class ProductSku(models.Model):
                 'sync_stock':sku.sync_stock,
                 'is_split':sku.is_split,
                 'is_match':sku.is_match,
+                'post_check':sku.post_check,
                 'status':sku.status,
                 'is_stock_warn':sku.is_stock_warn,
                 'is_assign':sku.is_assign,
