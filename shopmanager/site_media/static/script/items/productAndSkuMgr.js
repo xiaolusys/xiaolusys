@@ -90,7 +90,8 @@ function saveRow ( oTable, nRow )
 
 /** 保存修改商品信息 */
 function saveProductAction(nRow)
-{
+{	
+	var sku_id = $(nRow.cells[0]).contents().get(0).nodeValue;
 	var params = {
 		'outer_id':nRow.cells[1].firstChild.value,
 		'properties_alias':nRow.cells[3].firstChild.value,
@@ -129,7 +130,7 @@ function saveProductAction(nRow)
             console.log('Error: (ajax callback) - ', err);
         } 
 	};
-	$.post("/items/product/"+product_id+"/"+nRow.cells[0].innerHTML+"/",params,callback);
+	$.post("/items/product/"+product_id+"/"+sku_id+"/",params,callback);
 }
 
 /**将商品或规格改为待用或者作废状态*/
@@ -137,7 +138,7 @@ function delOrRemProductOrSku(nRow,status)
 {
 	var params = {
 		'product_id':product_id,
-		'sku_id':nRow.cells[0].innerHTML,
+		'sku_id':$(nRow.cells[0]).contents().get(0).nodeValue,
 		'is_delete':status=='delete',
 		'is_remain':status=='remain'
 	};
@@ -354,8 +355,9 @@ $(document).ready(function(){
 		if (is_sku){
 			$('#product-quantity-dialog input[name="num"]').val('');
 			$('#product-quantity-dialog input[name="sku_id"]')
-				.val($(this).parents('tr')[0].cells[0].innerHTML);
+				.val($($(this).parents('tr')[0].cells[0]).contents().get(0).nodeValue);
 		}
+
 		quantityDialog.offset({top:0,left:0}).css('display','block').offset(offset).css('display','block');
 		$('#product-quantity-dialog input[name="num"]').focus();
 	});
