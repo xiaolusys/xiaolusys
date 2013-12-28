@@ -93,6 +93,21 @@ class ProductAdmin(admin.ModelAdmin):
         models.TextField: {'widget': Textarea(attrs={'rows':4, 'cols':40})},
     }
     
+    def queryset(self, request):
+        """
+        Returns a QuerySet of all model instances that can be edited by the
+        admin site. This is used by changelist_view.
+        """
+        qs = self.model._default_manager.get_query_set()
+        # TODO: this should be handled by some parameter to the ChangeList.
+        if not request.user.is_superuser:
+            qs = qs.exclude(status=pcfg.DELETE)
+        
+        ordering = self.get_ordering(request)
+        if ordering:
+            qs = qs.order_by(*ordering)
+        return qs
+    
     #更新用户线上商品入库
     def sync_items_stock(self,request,queryset):
         

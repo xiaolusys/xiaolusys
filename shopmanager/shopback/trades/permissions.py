@@ -27,5 +27,8 @@ def has_export_logistic_permission(user):
 def has_export_buyer_permission(user):
     return user.has_perm('trades.export_buyer_action')
 
+def has_export_finance_permission(user):
+    return user.has_perm('trades.export_finance_action')
+
 def has_export_yunda_permission(user):
     return user.has_perm('trades.export_yunda_action')

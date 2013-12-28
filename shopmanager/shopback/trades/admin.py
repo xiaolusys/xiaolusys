@@ -165,6 +165,8 @@ class MergeTradeAdmin(admin.ModelAdmin):
             del actions['unlock_trade_action']
         if not perms.has_export_logistic_permission(user) and 'export_logistic_action' in actions:
             del actions['export_logistic_action']
+        if not perms.has_export_finance_permission(user) and 'export_finance_action' in actions:
+            del actions['export_finance_action']
         if not perms.has_export_buyer_permission(user) and 'export_buyer_action' in actions:
             del actions['export_buyer_action']
         if not perms.has_export_yunda_permission(user) and 'export_yunda_action' in actions:
