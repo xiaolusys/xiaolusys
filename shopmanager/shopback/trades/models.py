@@ -234,7 +234,7 @@ class MergeTrade(models.Model):
                        ("pull_order_action", u"重新下载订单权限"),
                        ("unlock_trade_action", u"订单解锁权限"),
                        ("export_logistic_action",u"物流信息导出权限"),
-                       ("export_buyer_action",u"物流信息导出权限"),
+                       ("export_buyer_action",u"订单导出权限"),
                        ("export_yunda_action",u"韵达信息导出权限")
                        ]
 

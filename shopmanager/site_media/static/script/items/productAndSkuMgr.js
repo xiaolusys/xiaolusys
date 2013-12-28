@@ -52,6 +52,7 @@ function editRow ( oTable, nRow )
 {
 	var aData = oTable.fnGetData(nRow);
 	var jqTds = $('>td', nRow);
+	jqTds[1].innerHTML = '<input type="text" value="'+aData[1]+'">';
 	jqTds[3].innerHTML = '<input type="text" style="width:130px;" value="'+aData[3]+'">';
 	jqTds[5].innerHTML = '<input type="text" value="'+aData[5]+'">';
 	jqTds[6].innerHTML = '<input type="text" value="'+aData[6]+'">';
@@ -71,14 +72,15 @@ function editRow ( oTable, nRow )
 function saveRow ( oTable, nRow )
 {
 	var jqInputs = $('input', nRow);
-	oTable.fnUpdate( jqInputs[0].value, nRow, 3, false );
-	oTable.fnUpdate( jqInputs[1].value, nRow, 5, false );
-	oTable.fnUpdate( jqInputs[2].value, nRow, 6, false );
-	oTable.fnUpdate( jqInputs[3].value, nRow, 7, false );
-	oTable.fnUpdate( jqInputs[4].value, nRow, 8, false );
-	oTable.fnUpdate( jqInputs[5].value, nRow, 9, false );
-	oTable.fnUpdate( jqInputs[6].value, nRow, 10, false );
-	oTable.fnUpdate( jqInputs[7].value, nRow, 11, false );
+	oTable.fnUpdate( jqInputs[0].value, nRow, 1, false );
+	oTable.fnUpdate( jqInputs[1].value, nRow, 3, false );
+	oTable.fnUpdate( jqInputs[2].value, nRow, 5, false );
+	oTable.fnUpdate( jqInputs[3].value, nRow, 6, false );
+	oTable.fnUpdate( jqInputs[4].value, nRow, 7, false );
+	oTable.fnUpdate( jqInputs[5].value, nRow, 8, false );
+	oTable.fnUpdate( jqInputs[6].value, nRow, 9, false );
+	oTable.fnUpdate( jqInputs[7].value, nRow, 10, false );
+	oTable.fnUpdate( jqInputs[8].value, nRow, 11, false );
 	oTable.fnUpdate( '<a class="edit"   href="#" title="修改"><icon class="icon-edit"></icon></a>'+
 					'<a class="setup" href="#" title="设置"><icon class="icon-asterisk"></icon></icon></a>'+
 					'<a class="remain" href="#" title="待用"><icon class="icon-pause"></icon></icon></a>'+
@@ -90,6 +92,7 @@ function saveRow ( oTable, nRow )
 function saveProductAction(nRow)
 {
 	var params = {
+		'outer_id':nRow.cells[1].firstChild.value,
 		'properties_alias':nRow.cells[3].firstChild.value,
 		'wait_post_num':nRow.cells[5].firstChild.value,
 		'remain_num':nRow.cells[6].firstChild.value,
@@ -103,6 +106,7 @@ function saveProductAction(nRow)
         try {
         	if (res.code==0){
         		var sku  = res.response_content;
+        		dtable.fnUpdate( sku.outer_id, nRow, 1, false );
 				dtable.fnUpdate( sku.properties_alias, nRow, 3, false );
 				dtable.fnUpdate( sku.wait_post_num, nRow, 5, false );
 				dtable.fnUpdate( sku.remain_num, nRow, 6, false );
@@ -169,12 +173,13 @@ function makeSkuBaseInfo(product)
 /**分配商品或规格线上库存（含多店铺）*/
 function setupProductInfo(nRow)
 {
-	var params = {
+	var outer_id  = nRow.cells[1];
+	var params    = {
 		"outer_id":$('#outer_id').val(),
-		"outer_sku_id":nRow.cells[1].innerHTML,
+		"outer_sku_id":$('input',outer_id).length>0?$('input',outer_id).val():outer_id.innerHTML,
 	};
 	var callback = function(res){
-		//try{
+		try{
 			if (res.code == 0){
 				var product = res.response_content;
 				$('#assign').html(product.assign_template);
@@ -208,9 +213,9 @@ function setupProductInfo(nRow)
 			}else{
 				alert('错误：'+res.response_error);
 			}
-		/**}catch(err){
+		}catch(err){
 			console.log('Error: (ajax callback) - ', err);
-		}*/
+		}
 	};
 	$.getJSON("/items/product/assign/",params,callback);
 }
@@ -325,8 +330,7 @@ $(document).ready(function(){
 			$('#product-quantity-dialog input[name="sku_id"]')
 				.val($(this).parents('tr')[0].cells[0].innerHTML);
 		}
-		
-		quantityDialog.offset(offset).css('display','block');
+		quantityDialog.offset({top:0,left:0}).css('display','block').offset(offset).css('display','block');
 		$('#product-quantity-dialog input[name="num"]').focus();
 	});
 	
@@ -339,8 +343,14 @@ $(document).ready(function(){
 		}
 		var quantityDialog = $('#product-quantity-dialog');
 		if (quantityDialog.css('display') != 'none'){
-			quantityDialog.offset({left:0,top:0}).css('display','none');
+			quantityDialog.hide();
 		}
+	});
+	
+	//设置编辑商品编码
+	$("#product-form .code-edit").click(function(e){
+		e.preventDefault();
+		$('#product-form #outer_id').removeAttr('readonly');
 	});
 	
 	$('#product-form').ajaxForm(function(result) {
@@ -361,17 +371,17 @@ $(document).ready(function(){
 			}else{
 				$('#quantity-'+product.id).val(product.collect_num);
 			}
-			$('#product-quantity-dialog').offset({left:0,top:0}).css('display','none');;
-			
+			$('#product-quantity-dialog').hide();
 			calProductNumAndCost();
 		}
 	});
 	$('#reduce-num').click(function(){
+		var reduce_input = $('#product-quantity-dialog input[name="reduce_num"]');
 		if (this.checked){
-			var reduce_input = $('#product-quantity-dialog input[name="reduce_num"]');
 			reduce_input.show();
 			reduce_input.val($('#product-quantity-dialog input[name="num"]').val());
 		}else{
+			reduce_input.val(0);
 			$('#product-quantity-dialog input[name="reduce_num"]').hide();
 		}
 	});

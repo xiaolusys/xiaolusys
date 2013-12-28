@@ -583,6 +583,28 @@ class MergeTradeAdmin(admin.ModelAdmin):
 
     unlock_trade_action.short_description = "订单解锁".decode('utf8')
     
+    def export_finance_action(self, request, queryset):
+        """ 导出订单金额信息 """
+        dt  = datetime.datetime.now()
+        lg_tuple = gen_cvs_tuple(queryset,
+                                 fields=['tid','seller_nick','buyer_nick','payment','post_fee','pay_time'],
+                                 title=[u'淘宝单号',u'店铺ID',u'买家ID',u'实付款',u'实付邮费',u'付款日期'])
+
+        is_windows = request.META['HTTP_USER_AGENT'].lower().find('windows') >-1 
+        file_name = u'finance-%s-%s.csv'%(dt.month,dt.day)
+        
+        myfile = StringIO.StringIO() 
+        
+        writer = CSVUnicodeWriter(myfile,encoding= is_windows and "gbk" or 'utf8')
+        writer.writerows(lg_tuple)
+
+        response = HttpResponse(myfile.getvalue(), mimetype='application/octet-stream')
+        myfile.close()
+        response['Content-Disposition'] = 'attachment; filename=%s'%file_name
+        return response
+
+    export_finance_action.short_description = "导出金额信息".decode('utf8')
+    
     
     def export_logistic_action(self, request, queryset):
         """ 导出订单快递信息 """
@@ -670,7 +692,7 @@ class MergeTradeAdmin(admin.ModelAdmin):
     export_yunda_action.short_description = "导出韵达信息".decode('utf8')
     
     actions = ['sync_trade_post_taobao','merge_order_action','pull_order_action','unlock_trade_action',
-               'export_logistic_action','export_buyer_action','export_yunda_action']
+               'export_logistic_action','export_buyer_action','export_finance_action','export_yunda_action']
    
 
 admin.site.register(MergeTrade,MergeTradeAdmin)
