@@ -595,8 +595,8 @@ class ProductWarnMgrView(ModelView):
     def get(self, request, *args, **kwargs):
         
         pskus = ProductSku.objects.filter(product__status=pcfg.NORMAL,status=pcfg.NORMAL,is_assign=False)\
-            .extra(where=["quantity<=shop_items_productsku.remain_num+shop_items_productsku.wait_post_num "+
-            "OR quantity<=shop_items_productsku.remain_num"])
+            .extra(where=["(quantity<=shop_items_productsku.remain_num+shop_items_productsku.wait_post_num "+
+            "OR quantity<=shop_items_productsku.remain_num)"])
         
         return {'warn_skus':pskus}
         
