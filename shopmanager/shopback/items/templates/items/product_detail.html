@@ -339,12 +339,13 @@
 							</thead>
 							<tbody>
 								{% for sku in product.skus %}
-								<tr class="{% cycle 'odd' 'even' %}">
+								<tr>
 									<td>{{ sku.id }}
 										{% if sku.is_split %}<span class="badge badge-info">拆
 										</span>{% endif  %}{% if sku.is_match %}<span class="badge badge-important">匹
 										</span>{% endif  %}{% if sku.sync_stock %}<span class="badge badge-success">同
-										</span>{% endif  %}{% if sku.post_check %}<span class="badge badge-warning">扫</span></td>{% endif  %}
+										</span>{% endif  %}{% if sku.post_check %}<span class="badge badge-warning">扫</span>{% endif  %}
+									</td>
 									<td>{{ sku.outer_id }}</td>
 									<td>{{ sku.properties_name }}</td>
 									<td class="property-td">{{ sku.properties_alias }}</td>

@@ -311,7 +311,6 @@ class PurchaseStorageView(ModelView):
             purchase = PurchaseStorage()
 
         for k,v in content.iteritems():
-            if not v :continue
             hasattr(purchase,k) and setattr(purchase,k,v.strip())
 
         if not purchase.post_date:
