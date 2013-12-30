@@ -22,7 +22,7 @@
 	</thead>
 	<tbody>
 	{% for item in items_list %}
-	<tr>
+	<tr class="{% cycle 'odd' 'even' %}">
 		<td>{{ item.seller_nick }}</td>
 		<td>{{ item.num_iid }}</td>
 		<td>{{ item.title }}</td>

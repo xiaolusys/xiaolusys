@@ -148,7 +148,7 @@ $(document).ready(function(){
 	dtable = $('#warn-items-table').dataTable({
    		//"bJQueryUI": true,
 		"bAutoWidth": false, //自适应宽度
-		"aaSorting": [[1, "asc"]],
+		"aaSorting": [[6, "desc"]],
 		"iDisplayLength": 100,
 		"aLengthMenu": [[100, 200, 500,-1], [100, 200, 500,"All"]],
 		//"sPaginationType": "full_numbers",

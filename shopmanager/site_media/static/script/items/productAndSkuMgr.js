@@ -236,7 +236,7 @@ $(document).ready(function(){
 	dtable = $('#productsku-table').dataTable({
    		//"bJQueryUI": true,
 		"bAutoWidth": false, //自适应宽度
-		"aaSorting": [[1, "asc"]],
+		"aaSorting": [[4, "desc"]],
 		"iDisplayLength": 30,
 		"aLengthMenu": [[30,60,100,-1], [30,60,100,"All"]],
 		//"sPaginationType": "full_numbers",
