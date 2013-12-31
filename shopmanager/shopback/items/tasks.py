@@ -51,10 +51,7 @@ def updateUserItemsTask(user_id):
             has_next = cur_nums < total_nums
             cur_page += 1
             
-    except:
-        logger.error('update user onsale items task error', exc_info=True)
-    #更新库存中的商品
-    try:
+        #更新库存中的商品
         has_next = True
         cur_page = 1    
         while has_next:
@@ -80,9 +77,9 @@ def updateUserItemsTask(user_id):
             cur_page += 1
     except:
         logger.error('update user inventory items task error', exc_info=True)
-   
-    Item.objects.filter(user__visitor_id=user_id).exclude(num_iid__in=onsale_item_ids)\
-        .update(approve_status=pcfg.INSTOCK_STATUS,status=False)
+    else:
+        Item.objects.filter(user__visitor_id=user_id).exclude(num_iid__in=onsale_item_ids)\
+            .update(approve_status=pcfg.INSTOCK_STATUS,status=False)
     
     return len(onsale_item_ids)
 

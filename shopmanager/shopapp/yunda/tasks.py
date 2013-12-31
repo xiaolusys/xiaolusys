@@ -162,7 +162,6 @@ def updateYundaOrderAddrTask():
             try:
                 response = post_yjsm_request(post_xml.encode('utf8'))
             except Exception,exc:
-                logger.error(exc.message,exc_info=True)
                 raise updateYundaOrderAddrTask.retry(exc=exc,countdown=60)
             
             MergeTrade.objects.filter(id__in=yj_ids).update(is_charged=True,charge_time=dt)

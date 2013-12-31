@@ -335,12 +335,19 @@ class ProductView(ModelView):
                       ,'agent_price','staff_price','is_split','sync_stock','post_check','is_match','match_reason'
                       ,'buyer_prompt','memo']
             
+            check_fields = set(['is_split','sync_stock','post_check','is_match'])
+            
             for k,v in content.iteritems():
                 if k not in fields:continue
+                if k in check_fields:
+                    check_fields.remove(k)
                 if k in ('wait_post_num','remain_num'):
                     v = int(v)
                 setattr(product,k,v)
-                
+            
+            for k in check_fields:
+                setattr(product,k,False)
+            
             product.save()
         except Product.DoesNotExist:
             return u'商品未找到'
@@ -375,13 +382,21 @@ class ProductSkuView(ModelView):
             fields = ['outer_id','properties_alias','wait_post_num','remain_num','warn_num','cost'
                       ,'std_sale_price','agent_price','staff_price','sync_stock'
                       ,'is_match','match_reason','post_check','barcode','buyer_prompt','memo']
+            
+            check_fields = set(['sync_stock','post_check','is_match'])
+            
             for k,v in content.iteritems():
                 if k not in fields:
                     continue
+                if k in check_fields:
+                    check_fields.remove(k)
                 if k in ('wait_post_num','remain_num','warn_num'):
                     v = int(v)
                 setattr(product_sku,k,v) 
-                
+            
+            for k in check_fields:
+                setattr(product_sku,k,False)    
+            
             product_sku.save()
         
         except ProductSku.DoesNotExist:

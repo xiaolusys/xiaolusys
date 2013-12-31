@@ -657,8 +657,8 @@ class Item(models.Model):
         item.user     = User.objects.get(visitor_id=user_id)
         item.product  = product
         item.category = category
+        item.status   = True
         item.save()
-
         return item
 
 class SkuProperty(models.Model):
