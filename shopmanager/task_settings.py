@@ -185,7 +185,7 @@ SHOP_APP_SCHEDULE = {
     },
     'runs-every-day-sync-yunda-address':{
         'task':'shopapp.yunda.tasks.updateYundaOrderAddrTask',
-        'schedule':crontab(minute="30",hour="4"),
+        'schedule':crontab(minute="30",hour="6"),
         'args':()
     },
     'runs-every-day-cancel-yunda-sid':{

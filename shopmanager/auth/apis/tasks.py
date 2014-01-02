@@ -151,7 +151,7 @@ def raise_except_or_ret_json(content):
                     code=code,msg=msg,sub_code=sub_code,sub_msg=sub_msg)
         elif sub_code == u'isv.logistics-offline-service-error:B60':
             raise LogisticServiceB60Exception(
-                    ode=code,msg=msg,sub_code=sub_code,sub_msg=sub_msg)
+                    code=code,msg=msg,sub_code=sub_code,sub_msg=sub_msg)
         else :
             raise TaobaoRequestException(
                     code=code,msg=msg,sub_code=sub_code,sub_msg=sub_msg)

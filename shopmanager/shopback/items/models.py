@@ -23,63 +23,63 @@ import logging
 logger  = logging.getLogger('items.handler')
 
 APPROVE_STATUS  = (
-    (pcfg.ONSALE_STATUS,'在售'),
-    (pcfg.INSTOCK_STATUS,'库中'),
+    (pcfg.ONSALE_STATUS,u'在售'),
+    (pcfg.INSTOCK_STATUS,u'库中'),
 )
 
 
 ONLINE_PRODUCT_STATUS = (
-    (pcfg.NORMAL,'使用'),
-    (pcfg.REMAIN,'待用'),
-    (pcfg.DELETE,'作废'),
+    (pcfg.NORMAL,u'使用'),
+    (pcfg.REMAIN,u'待用'),
+    (pcfg.DELETE,u'作废'),
 )
 
 PRODUCT_STATUS = (
-    (pcfg.NORMAL,'使用'),
-    (pcfg.DELETE,'作废'),
+    (pcfg.NORMAL,u'使用'),
+    (pcfg.DELETE,u'作废'),
 )
 
 
 class Product(models.Model):
     """ 系统商品（根据淘宝外部编码) """
     
-    outer_id     = models.CharField(max_length=64,unique=True,null=False,blank=True,verbose_name='外部编码')
-    name         = models.CharField(max_length=64,blank=True,verbose_name='商品名称')
+    outer_id     = models.CharField(max_length=64,unique=True,null=False,blank=True,verbose_name=u'外部编码')
+    name         = models.CharField(max_length=64,blank=True,verbose_name=u'商品名称')
     
-    barcode      = models.CharField(max_length=64,blank=True,db_index=True,verbose_name='条码')
-    category     = models.ForeignKey(ProductCategory,null=True,blank=True,related_name='products',verbose_name='内部分类')
+    barcode      = models.CharField(max_length=64,blank=True,db_index=True,verbose_name=u'条码')
+    category     = models.ForeignKey(ProductCategory,null=True,blank=True,related_name='products',verbose_name=u'内部分类')
     pic_path     = models.CharField(max_length=256,blank=True)
     
-    collect_num  = models.IntegerField(default=0,verbose_name='库存数')  #库存数
-    warn_num     = models.IntegerField(null=True,default=0,verbose_name='警告数')    #警戒库位
-    remain_num   = models.IntegerField(null=True,default=0,verbose_name='预留数')    #预留库存
-    wait_post_num   = models.IntegerField(null=True,default=0,verbose_name='待发数') #待发数
-    reduce_num   = models.IntegerField(null=True,default=0,verbose_name='预减数')    #下次入库减掉这部分库存
+    collect_num  = models.IntegerField(default=0,verbose_name=u'库存数')  #库存数
+    warn_num     = models.IntegerField(null=True,default=0,verbose_name=u'警告数')    #警戒库位
+    remain_num   = models.IntegerField(null=True,default=0,verbose_name=u'预留数')    #预留库存
+    wait_post_num   = models.IntegerField(null=True,default=0,verbose_name=u'待发数') #待发数
+    reduce_num   = models.IntegerField(null=True,default=0,verbose_name=u'预减数')    #下次入库减掉这部分库存
     
-    cost         = models.FloatField(default=0,verbose_name='成本价')
-    std_purchase_price = models.FloatField(default=0,verbose_name='标准进价')
-    std_sale_price     = models.FloatField(default=0,verbose_name='标准售价')
-    agent_price        = models.FloatField(default=0,verbose_name='代理售价')
-    staff_price        = models.FloatField(default=0,verbose_name='员工价')
+    cost         = models.FloatField(default=0,verbose_name=u'成本价')
+    std_purchase_price = models.FloatField(default=0,verbose_name=u'标准进价')
+    std_sale_price     = models.FloatField(default=0,verbose_name=u'标准售价')
+    agent_price        = models.FloatField(default=0,verbose_name=u'代理售价')
+    staff_price        = models.FloatField(default=0,verbose_name=u'员工价')
     
-    weight       = models.CharField(max_length=10,blank=True,verbose_name='重量(g)')
+    weight       = models.CharField(max_length=10,blank=True,verbose_name=u'重量(g)')
     
-    created      = models.DateTimeField(null=True,blank=True,auto_now_add=True,verbose_name='创建时间')
-    modified     = models.DateTimeField(null=True,blank=True,auto_now=True,verbose_name='修改时间')
+    created      = models.DateTimeField(null=True,blank=True,auto_now_add=True,verbose_name=u'创建时间')
+    modified     = models.DateTimeField(null=True,blank=True,auto_now=True,verbose_name=u'修改时间')
     
-    is_split   = models.BooleanField(default=False,verbose_name='需拆分')
-    is_match   = models.BooleanField(default=False,verbose_name='有匹配')
+    is_split   = models.BooleanField(default=False,verbose_name=u'需拆分')
+    is_match   = models.BooleanField(default=False,verbose_name=u'有匹配')
     
-    sync_stock   = models.BooleanField(default=True,verbose_name='库存同步')
-    is_assign    = models.BooleanField(default=False,verbose_name='取消警告') #是否手动分配库存，当库存充足时，系统自动设为False，手动分配过后，确定后置为True
+    sync_stock   = models.BooleanField(default=True,verbose_name=u'库存同步')
+    is_assign    = models.BooleanField(default=False,verbose_name=u'取消警告') #是否手动分配库存，当库存充足时，系统自动设为False，手动分配过后，确定后置为True
     
-    post_check   = models.BooleanField(default=False,verbose_name='需扫描')
+    post_check   = models.BooleanField(default=False,verbose_name=u'需扫描')
     status       = models.CharField(max_length=16,db_index=True,choices=ONLINE_PRODUCT_STATUS,
-                                    default=pcfg.NORMAL,verbose_name='商品状态')
+                                    default=pcfg.NORMAL,verbose_name=u'商品状态')
     
-    match_reason = models.CharField(max_length=80,blank=True,verbose_name='匹配原因')
-    buyer_prompt = models.CharField(max_length=60,blank=True,verbose_name='客户提示')
-    memo         = models.TextField(max_length=1000,blank=True,verbose_name='备注')
+    match_reason = models.CharField(max_length=80,blank=True,verbose_name=u'匹配原因')
+    buyer_prompt = models.CharField(max_length=60,blank=True,verbose_name=u'客户提示')
+    memo         = models.TextField(max_length=1000,blank=True,verbose_name=u'备注')
     class Meta:
         db_table = 'shop_items_product'
         verbose_name = u'库存商品'

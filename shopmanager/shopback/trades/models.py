@@ -1555,7 +1555,7 @@ class ReplayPostTrade(models.Model):
     def split(self):
         """拆分已合并的发货清单"""
         if self.fid != -1 or self.status != pcfg.RP_WAIT_ACCEPT_STATUS:
-            raise Exception('不符合拆分条件')
+            raise Exception(u'不符合拆分条件')
 
         replay_trades = ReplayPostTrade.objects.filter(fid=self.id,status=pcfg.RP_CANCEL_STATUS)    
         for t in replay_trades:
