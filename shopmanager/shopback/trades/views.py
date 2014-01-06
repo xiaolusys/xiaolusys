@@ -214,8 +214,8 @@ class StatisticMergeOrderView(ModelView):
         buyer_nums   = effect_trades.values_list('buyer_nick').distinct().count()
         trade_nums   = effect_trades.count()
         total_post_fee   = effect_trades.aggregate(total_post_fee=Sum('post_fee')).get('total_post_fee',0)
-        refund_fees  = Refund.objects.filter(oid__in=effect_oids,status__in=(pcfg.REFUND_WAIT_SELLER_AGREE,
-                        pcfg.REFUND_CONFIRM_GOODS,pcfg.REFUND_SUCCESS))\
+        refund_fees  = Refund.objects.filter(oid__in=effect_oids,status__in=(
+                        pcfg.REFUND_WAIT_SELLER_AGREE,pcfg.REFUND_CONFIRM_GOODS,pcfg.REFUND_SUCCESS))\
                         .aggregate(total_refund_fee=Sum('refund_fee')).get('total_refund_fee',0)
         total_cost   = 0
         total_sales  = 0
@@ -915,9 +915,11 @@ class TradeSearchView(ModelView):
             return u'请输入查询字符串'
         
         if q.isdigit():
-            trades = MergeTrade.objects.filter(Q(id=q)|Q(tid=q)|Q(buyer_nick=q)|Q(receiver_name=q)|Q(receiver_mobile=q))
+            trades = MergeTrade.objects.filter(Q(id=q)|Q(tid=q)|
+                    Q(buyer_nick=q)|Q(receiver_name=q)|Q(receiver_mobile=q))
         else:
-            trades = MergeTrade.objects.filter(Q(buyer_nick=q)|Q(receiver_name=q)|Q(receiver_phone=q))
+            trades = MergeTrade.objects.filter(Q(buyer_nick=q)|
+                                    Q(receiver_name=q)|Q(receiver_phone=q))
         trade_list = []
         for trade in trades:
             trade_dict       = {}
@@ -970,7 +972,8 @@ class TradeSearchView(ModelView):
         can_post_orders = cp_trade.merge_trade_orders.all()
         for order in can_post_orders:
             try:
-                MergeOrder.gen_new_order(pt_trade.id,order.outer_id,order.outer_sku_id,order.num,gift_type=type)
+                MergeOrder.gen_new_order(pt_trade.id,order.outer_id,
+                                         order.outer_sku_id,order.num,gift_type=type)
             except Exception,exc:
                 logger.error(exc.message,exc_info=True)
                    
@@ -982,7 +985,8 @@ class TradeSearchView(ModelView):
             except Exception,exc:
                 prod = None
             try:
-                prod_sku = ProductSku.objects.get(outer_id=order.outer_sku_id,product__outer_id=order.outer_id)
+                prod_sku = ProductSku.objects.get(outer_id=order.outer_sku_id,
+                                                  product__outer_id=order.outer_id)
             except:
                 prod_sku = None
             order_dict = {

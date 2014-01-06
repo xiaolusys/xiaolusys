@@ -115,8 +115,10 @@ def post_yjsm_request(data):
     res = ''
     #data = urllib.urlencode(data) 
     req  = urllib2.Request(YUNDA_ADDR_URL, data=data, headers={'Content-Type': 'text/xml; charset=UTF-8',
+                                                               'Accept': '*/*',
                                                               'Accept-Language': 'zh-cn',
-                                                              'Connection': 'Keep-Alive'})
+                                                              'Connection': 'Keep-Alive',
+                                                              'Cache-Control': 'no-cache'})
     r = urllib2.urlopen(req)
     res = r.read()
     

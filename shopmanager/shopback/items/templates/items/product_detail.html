@@ -235,15 +235,18 @@
 						</td>
 						<td>
 							<label for='remain_num'>预&nbsp;留&nbsp;&nbsp;数</label>
-							<input type="text" id="remain_num" name="remain_num" class="simple-text" value="{{ product.remain_num }}"/>
+							<input type="text" id="remain_num"  class="simple-text" value="{{ product.remain_num }}"
+							{% if product.skus %}disabled{% else %}name="remain_num"{% endif %}/>
 						</td>
 						<td>
 							<label for='warn_num'>警&nbsp;戒&nbsp;&nbsp;数</label>
-							<input type="text" id="warn_num" name="warn_num" class="simple-text" value="{{ product.warn_num }}"/>
+							<input type="text" id="warn_num"  class="simple-text" value="{{ product.warn_num }}"
+							{% if product.skus %}disabled{% else %}name="warn_num"{% endif %}/>
 						</td>
 						<td>
 							<label for='wait_post_num'>待&nbsp;发&nbsp;&nbsp;数</label>
-							<input type="text" id="wait_post_num" name="wait_post_num" class="simple-text" value="{{ product.wait_post_num }}"/>
+							<input type="text" id="wait_post_num"  class="simple-text" value="{{ product.wait_post_num }}"
+							{% if product.skus %}disabled{% else %}name="wait_post_num"{% endif %}/>
 						</td>
 						<td>
 							<label for='weight'>重&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;量</label>
@@ -407,6 +410,7 @@
 			<div id="main" class="tab-pane active" >
 				<form id="main-form" method="POST" action="#" class="form-horizontal">
 				  <fieldset>
+				  <input type="hidden" name="update_check" value="yes"/>
 				  <div class="control-group">
 				    <div class="controls">
 				      <label class="checkbox">

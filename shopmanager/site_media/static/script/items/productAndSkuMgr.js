@@ -159,6 +159,31 @@ function delOrRemProductOrSku(nRow,status)
 	$.post("/items/podorsku/status/",params,callback);
 }
 
+function makeProductInfo(product)
+{	
+	$('#outer_id').val(product.outer_id);
+	$('#barcode').val(product.barcode);
+	$('#name').val(product.name);
+	$('#remain_num').val(product.remain_num);
+	$('#warn_num').val(product.warn_num);
+	$('#wait_post_num').val(product.wait_post_num);
+	$('#weight').val(product.weight);
+	$('#cost').val(product.cost);
+	$('#std_purchase_price').val(product.std_purchase_price);
+	$('#std_sale_price').val(product.std_sale_price);
+	$('#agent_price').val(product.agent_price);
+	$('#staff_price').val(product.staff_price);
+	
+	$('#is_split').prop('checked',product.is_split);
+	$('#sync_stock').prop('checked',product.sync_stock);
+	$('#post_check').prop('checked',product.post_check);
+	$('#is_match').prop('checked',product.is_match);
+	$('#match_reason').val(product.match_reason);
+	
+	$('#buyer_prompt').val(product.buyer_prompt);
+	$('#memo').val(product.memo);
+}
+
 function makeSkuBaseInfo(product)
 {	
 	$('#main-form').prop('action','/items/product/'+product.id+'/'+product.sku.id+'/');
@@ -381,13 +406,16 @@ $(document).ready(function(){
 		$('#product-form #outer_id').removeAttr('readonly');
 	});
 	
-	$('#product-form').ajaxForm(function(result) {
-		if(result.code==1){
-			alert('错误:'+result.response_error);
-		}else{
-			alert('保存成功！');
-		}
-	});
+	$('#product-form').ajaxForm({'dataType':'json',
+		'success':function(result) {
+			console.log(result);
+			if(result.code == 1){
+				alert('错误:'+result.response_error);
+			}else{
+				makeProductInfo(result.response_content);
+				alert('保存成功！');
+			}
+	}}).submit(function(){return false;});
 	
 	$('#quantity-form').ajaxForm(function(result) { 
 		if(result.code==1){

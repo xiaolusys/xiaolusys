@@ -356,6 +356,7 @@ class ProductView(ModelView):
         log_action(request.user.id,product,CHANGE,u'更新商品基本信息')
         
         return product.json
+    
         
 class ProductSkuView(ModelView):
     """ docstring for ProductSkuView """
@@ -379,12 +380,15 @@ class ProductSkuView(ModelView):
             product_sku = ProductSku.objects.get(product=pid,id=sku_id)
         
             content = request.REQUEST
-            fields = ['outer_id','properties_alias','wait_post_num','remain_num','warn_num','cost'
-                      ,'std_sale_price','agent_price','staff_price','sync_stock'
-                      ,'is_match','match_reason','post_check','barcode','buyer_prompt','memo']
+            update_check = content.get('update_check') 
+            fields = ['outer_id','properties_alias','wait_post_num','remain_num','warn_num'
+                      ,'cost','std_sale_price','agent_price','staff_price','match_reason'
+                      ,'barcode','buyer_prompt','memo']
             
             check_fields = set(['sync_stock','post_check','is_match'])
-            
+            if update_check:
+                fields.extend(list(check_fields))
+                
             for k,v in content.iteritems():
                 if k not in fields:
                     continue
@@ -394,8 +398,9 @@ class ProductSkuView(ModelView):
                     v = int(v)
                 setattr(product_sku,k,v) 
             
-            for k in check_fields:
-                setattr(product_sku,k,False)    
+            if update_check:
+                for k in check_fields:
+                    setattr(product_sku,k,False)    
             
             product_sku.save()
         
