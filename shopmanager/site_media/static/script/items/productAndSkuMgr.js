@@ -9,8 +9,9 @@ function restoreRow ( oTable, nRow )
 {
 	var aData = oTable.fnGetData(nRow);
 	var jqTds = $('>td', nRow);
-	
 	for ( var i=0, iLen=jqTds.length ; i<iLen ; i++ ) {
+		if (jqTds[i].children.length > 0 && $(jqTds[i].children[0]).is("input") 
+			&& $(jqTds[i].children[0]).hasClass("quantity")){ continue; }
 		oTable.fnUpdate( aData[i], nRow, i, false );
 	}
 	oTable.fnDraw();

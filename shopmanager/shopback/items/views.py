@@ -56,7 +56,7 @@ def update_product_stock(request):
     reduce_num = content.get('reduce_num',0)
     mode     = content.get('mode',0) #0增量，1全量
     
-    if not num or not product_id:
+    if not num :
         return HttpResponse(json.dumps({'code':1,'response_error':u'库存数量不能为空'})
                             ,mimetype='application/json')
     

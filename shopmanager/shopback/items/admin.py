@@ -235,7 +235,7 @@ class ProductAdmin(admin.ModelAdmin):
 
         is_windows = request.META['HTTP_USER_AGENT'].lower().find('windows') >-1 
         pcsv =[]
-        pcsv.append((u'商品编码',u'商品名',u'规格编码',u'规格名',u'库存数',u'昨日销量',u'预留库位',u'待发数',u'成本',u'标准售价',u'条码'))
+        pcsv.append((u'商品编码',u'商品名',u'规格编码',u'规格名',u'库存数',u'昨日销量',u'预留库位',u'待发数',u'成本',u'吊牌价',u'条码'))
         for prod in queryset:
             skus = prod.pskus.exclude(is_split=True)
             if skus.count() > 0:
