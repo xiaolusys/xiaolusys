@@ -149,6 +149,7 @@
 	.purchase-prompt-head{
 		height:20px;
 		background-color:#3A87AD;
+		margin:0px 0px 16px 0px;
 	}
 	
 	#purchase-select-table th,#purchase-select-table td {
@@ -167,11 +168,6 @@
 	#purchase-select-table input {
 		margin-bottom:2px;
 		width:80px;
-	}
-	
-	#purchase-select-table tr td:first-child{
-		text-align:center;
-		background-color:#CCD1E6;
 	}
 	
 	.prompt-title{
@@ -306,7 +302,7 @@
 							</thead>
 							<tbody>
 								{% for item in purchase_storage.purchase_storage_items %}
-								<tr class="{% cycle 'odd' 'even' %}">
+								<tr pid="{% if item.product_id %}{{ item.product_id }}{% endif %}" sid="{% if item.sku_id %}{{ item.sku_id }}{% endif %}">
 									<td>{{ item.id }}</td>
 									<td>{{ item.outer_id }}</td>
 									<td>{{ item.name }}</td>
@@ -314,8 +310,8 @@
 									<td>{{ item.properties_name }}</td>
 									<td>{{ item.storage_num }}</td>
 									<td>
-										<a class="edit" href=""><icon class="icon-pencil"></icon></a>
-										<a class="delete" href=""><icon class="icon-remove"></icon></a>
+										<a class="edit" href=""><icon class="icon-edit">
+										</icon></a><a class="delete" href=""><icon class="icon-remove"></icon></a>
 									</td>
 								</tr>
 								{% endfor %}
@@ -367,7 +363,6 @@
 			<table id="purchase-select-table" class="table table-bordered">
 				<thead>
 					<tr>
-						<th>序号</th>
 						<th>商家编码</th>
 						<th>商品名</th>
 						<th>规格编码</th>

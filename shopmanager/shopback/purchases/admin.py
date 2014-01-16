@@ -24,8 +24,9 @@ logger =  logging.getLogger('purchases.handler')
 class PurchaseItemInline(admin.TabularInline):
     
     model = PurchaseItem
-    fields = ('outer_id','name','outer_sku_id','properties_name','purchase_num','storage_num'
-              ,'price','std_price','total_fee','prepay','payment','arrival_status','status','extra_info')
+    fields = ('product_id','sku_id','outer_id','name','outer_sku_id','properties_name','purchase_num',
+              'storage_num','price','std_price','total_fee','prepay','payment',
+              'arrival_status','status','extra_info')
     
     formfield_overrides = {
         models.CharField: {'widget': TextInput(attrs={'size':'20'})},
@@ -42,7 +43,8 @@ class PurchaseItemInline(admin.TabularInline):
 class PurchaseStorageItemInline(admin.TabularInline):
     
     model = PurchaseStorageItem
-    fields = ('outer_id','name','outer_sku_id','properties_name','storage_num','total_fee','prepay','payment','is_addon','status')
+    fields = ('product_id','sku_id','outer_id','name','outer_sku_id','properties_name','storage_num','total_fee',
+              'prepay','payment','is_addon','status')
     
     formfield_overrides = {
         models.CharField: {'widget': TextInput(attrs={'size':'20'})},
@@ -59,7 +61,7 @@ class PurchaseStorageItemInline(admin.TabularInline):
 class PurchasePaymentItemInline(admin.TabularInline):
     
     model = PurchasePaymentItem
-    fields = ('outer_id','name','outer_sku_id','properties_name','payment',
+    fields = ('product_id','sku_id','outer_id','name','outer_sku_id','properties_name','payment',
               'purchase_id','purchase_item_id','storage_id','storage_item_id')
     
     formfield_overrides = {
@@ -135,11 +137,11 @@ class PurchaseAdmin(admin.ModelAdmin):
         approval_purchases = queryset.filter(status=pcfg.PURCHASE_APPROVAL)
         for purchase in approval_purchases:
             for purchase_item in purchase.effect_purchase_items:
-                outer_id     = purchase_item.outer_id
-                outer_sku_id = purchase_item.outer_sku_id
+                product_id   = purchase_item.product_id
+                sku_id       = purchase_item.sku_id
                 prod = Product.objects.get(outer_id=outer_id)
-                if outer_sku_id:
-                    prod_sku = ProductSku.objects.get(outer_id=outer_sku_id,product=prod)
+                if sku_id:
+                    prod_sku = ProductSku.objects.get(id=sku_id,product=prod)
                     prod_sku.cost = purchase_item.cost
                     prod_sku.save()
                 else:
@@ -197,7 +199,8 @@ class PurchaseAdmin(admin.ModelAdmin):
 
         is_windows = request.META['HTTP_USER_AGENT'].lower().find('windows') >-1 
         
-        pcsv    = gen_cvs_tuple(queryset,fields=['id','origin_no','extra_name','purchase_num','storage_num','total_fee','prepay','payment','supplier','service_date','created','status'],
+        pcsv    = gen_cvs_tuple(queryset,fields=['id','origin_no','extra_name','purchase_num','storage_num',
+                                        'total_fee','prepay','payment','supplier','service_date','created','status'],
                         title=[u'ID',u'原单号',u'标题',u'采购数',u'入库数',u'总费用',u'预付款',u'已付款',u'供应商',u'业务日期',u'创建日期',u'状态'])
                 
         tmpfile = StringIO.StringIO()
@@ -280,6 +283,7 @@ class PurchaseStorageAdmin(admin.ModelAdmin):
         ordering = self.get_ordering(request)
         if ordering:
             qs = qs.order_by(*ordering)
+            
         return qs
     
     def addon_stock_action(self, request, queryset):
@@ -293,11 +297,11 @@ class PurchaseStorageAdmin(admin.ModelAdmin):
                 continue 
             
             for storage_item in not_addon_items:
-                outer_id     = storage_item.outer_id
-                outer_sku_id = storage_item.outer_sku_id
-                prod = Product.objects.get(outer_id=outer_id)
-                if outer_sku_id:
-                    prod_sku = ProductSku.objects.get(outer_id=outer_sku_id,product=prod)
+                product_id   = storage_item.product_id
+                sku_id       = storage_item.sku_id
+                prod = Product.objects.get(id=product_id)
+                if sku_id:
+                    prod_sku = ProductSku.objects.get(id=sku_id,product=prod)
                     prod_sku.update_quantity_by_storage_num(storage_item.storage_num)
                 else:
                     prod.update_quantity_by_storage_num(storage_item.storage_num)
@@ -310,8 +314,8 @@ class PurchaseStorageAdmin(admin.ModelAdmin):
             
             log_action(request.user.id,storage,CHANGE,u'入库单更新到库存')
             
-            for outer_id,skus in storage.items_dict.iteritems():
-                prod = Product.objects.get(outer_id=outer_id)
+            for product_id,skus in storage.items_dict.iteritems():
+                prod = Product.objects.get(id=product_id)
                 log_action(request.user.id,prod,CHANGE,u'入库单(id:%d)更新库存:%s'%(storage.id,json.dumps(skus)))
                 
         addon_storages = queryset.filter(is_addon=True)
@@ -400,8 +404,8 @@ admin.site.register(PurchaseStorage,PurchaseStorageAdmin)
 
 
 class PurchaseStorageRelationshipAdmin(admin.ModelAdmin):
-    list_display = ('id','purchase_id','purchase_item_id','storage_id','storage_item_id',
-                    'outer_id','outer_sku_id','is_addon','storage_num','total_fee','payment')
+    list_display = ('id','purchase_id','purchase_item_id','storage_id','storage_item_id','product_id',
+                    'sku_id','outer_id','outer_sku_id','is_addon','storage_num','total_fee','payment')
     #list_editable = ('update_time','task_type' ,'is_success','status')
 
     list_filter = ('is_addon',)

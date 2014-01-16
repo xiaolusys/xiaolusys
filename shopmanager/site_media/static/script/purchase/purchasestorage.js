@@ -25,7 +25,7 @@ function saveRow ( oTable, nRow )
 {
 	var jqInputs = $('input', nRow);
 	oTable.fnUpdate( jqInputs[0].value, nRow, 5, false );
-	oTable.fnUpdate( '<a class="edit" href="#"><icon class="icon-pencil"></a>'+
+	oTable.fnUpdate( '<a class="edit" href="#"><icon class="icon-edit"></a>'+
 		'<a class="delete" href="#"><icon class="icon-remove"></icon></a>', nRow, 6, false );
 	oTable.fnDraw();
 }
@@ -61,35 +61,16 @@ var addSearchProdRow  = function(tableID,prod){
 }
 
 //添加商品规格条目
-var addPurchaseItemRow  = function(tableID,prod,sku){
+var addPurchaseItemRow  = function(datatable,prod,sku){
 
-	var table = goog.dom.getElement(tableID);
-	var rowCount = table.rows.length;
-    var row   = table.insertRow(rowCount);
-    var index = rowCount;
+    datatable.fnAddData( [  prod[0],
+							prod[2], 
+							sku[0], 
+							sku[1], 
+							'<input type="text" class="edit-num" value="0" />',
+							'<button class="add-purchase-item btn btn-mini btn-info" style="margin:1px 0;" >添加</button>' 
+							],true);
     
-	var id_cell       = createDTText(index+'');
-	
-	var outer_id_cell = createDTText(prod[0]);
-	var title_cell    = createDTText(prod[2]);
-	
-	var sku_id_cell   = createDTText(sku[0]);
-	var sku_name_cell = createDTText(sku[1]);
-	
-	
-	var num_cell       = goog.dom.createElement('td');
-	num_cell.innerHTML = '<input type="text" class="edit-num" value="0" />';
-	
-	var addbtn_cell   = goog.dom.createElement('td');
-	addbtn_cell.innerHTML = '<button class="add-purchase-item btn btn-mini btn-info" style="margin:1px 0;" >添加</button>';
-	
-	row.appendChild(id_cell);		
-	row.appendChild(outer_id_cell); 
-	row.appendChild(title_cell);
-	row.appendChild(sku_id_cell); 	 
-	row.appendChild(sku_name_cell);		 
-	row.appendChild(num_cell);	 
-	row.appendChild(addbtn_cell);	 
 }
 
 
@@ -98,11 +79,36 @@ purchasestorage.PurchaseSelectDialog = function(manager){
 	this.manager       = manager;
 	this.promptDiv     = goog.dom.getElement('purchase-prompt');
 	this.promptBody    = goog.dom.getElement('purchase-prompt-body');
-	this.purchase_select_table = goog.dom.getElement('purchase-select-table'); 
 	this.prod      = null;
 	
 	var closeBtn  = goog.dom.getElement('prompt-close');
 	goog.events.listen(closeBtn, goog.events.EventType.CLICK,this.hide,false,this);
+	
+	this.select_table = $('#purchase-select-table').dataTable({
+   		//"bJQueryUI": true,
+		"bAutoWidth": false, //自适应宽度
+		"aaSorting": [[1, "asc"]],
+		"iDisplayLength": 20,
+		"aLengthMenu": [[20, 50, 100, -1], [20, 50, 100, "All"]],
+		//"sPaginationType": "full_numbers",
+		//"sDom": '<"H"Tfr>t<"F"ip>',
+		"oLanguage": {
+			"sLengthMenu": "每页 _MENU_ 条",
+			"sZeroRecords": "抱歉， 没有找到",
+			"sInfo": "从 _START_ 到 _END_ /共 _TOTAL_ 条",
+			"sInfoEmpty": "没有数据",
+			"sSearch": "搜索",
+			"sInfoFiltered": "(从 _MAX_ 条数据中检索)",
+			"oPaginate": {
+				"sFirst": "首页",
+				"sPrevious": "前一页",
+				"sNext": "后一页",
+				"sLast": "尾页"
+			},
+			"sZeroRecords": "没有检索到数据",
+			"sProcessing": "<img src='/static/img/loading.gif' />"
+		}		
+	});
 }
 
 
@@ -110,10 +116,10 @@ purchasestorage.PurchaseSelectDialog.prototype.init = function(prod){
 	
 	this.prod = prod;
 	var prod_sku  = prod[6];
-	clearTable(this.purchase_select_table);
+	this.select_table.fnClearTable();
 	
 	for(var i=0;i<prod_sku.length;i++){
-		addPurchaseItemRow('purchase-select-table',prod,prod_sku[i]);
+		addPurchaseItemRow(this.select_table,prod,prod_sku[i]);
 	}
 	
 	var add_pch_item_btns =  goog.dom.getElementsByClass('add-purchase-item');
@@ -176,9 +182,9 @@ purchasestorage.Manager.prototype.onCreatePurchaseItem = function(e){
 	
 	$('#purchase-items').show();
 	var params = {  'purchase_storage_id':this.purchasestorageid_label.innerHTML,
-					'outer_id':row.cells[1].innerHTML,
-					'sku_id':row.cells[3].innerHTML,
-					'num':row.cells[5].firstChild.value};
+					'outer_id':row.cells[0].innerHTML,
+					'outer_sku_id':row.cells[2].innerHTML,
+					'num':row.cells[4].firstChild.value};
 	var that = this;
 	var callback = function(e){
 		var xhr = e.target;
@@ -192,10 +198,10 @@ purchasestorage.Manager.prototype.onCreatePurchaseItem = function(e){
 									purchase_item.outer_sku_id, 
 									purchase_item.properties_name,
 									purchase_item.storage_num, 
-									'<a class="edit" href="#"><icon class="icon-pencil"></icon></a>'+
+									'<a class="edit" href="#"><icon class="icon-edit"></icon></a>'+
 									'<a class="delete" href="#"><icon class="icon-remove"></icon></a>']);
 				goog.style.setStyle(row,'background-color','#BFCEEC');
-				goog.style.showElement(row.cells[6].firstChild, false);
+				goog.style.showElement(row.cells[5].firstChild, false);
 				that.calPurchaseNumAndFee();
         	}else{
         		alert("错误:"+res.response_error);
@@ -212,8 +218,10 @@ purchasestorage.Manager.prototype.onCreatePurchaseItem = function(e){
 purchasestorage.Manager.prototype.savePurchaseItem = function(nRow){
 	
 	var params = {  'purchase_storage_id':this.purchasestorageid_label.innerHTML,
+					'product_id':nRow.getAttribute('pid')?nRow.getAttribute('pid'):'',
+					'sku_id':nRow.getAttribute('sid')?nRow.getAttribute('sid'):'',
 					'outer_id':nRow.cells[1].innerHTML,
-					'sku_id':nRow.cells[3].innerHTML,
+					'outer_sku_id':nRow.cells[3].innerHTML,
 					'num':nRow.cells[5].firstChild.value};
 	var that = this;
 	var callback = function(e){
@@ -224,7 +232,7 @@ purchasestorage.Manager.prototype.savePurchaseItem = function(nRow){
         		var purchase_item = res.response_content;
         		var jqInputs = $('input', nRow);
 				that.datatable.fnUpdate( jqInputs[0].value, nRow, 5, false );
-				that.datatable.fnUpdate( '<a class="edit" href="#"><icon class="icon-pencil"></a>'+
+				that.datatable.fnUpdate( '<a class="edit" href="#"><icon class="icon-edit"></a>'+
 					'<a class="delete" href="#"><icon class="icon-remove"></icon></a>', nRow, 6, false );
 				that.datatable.fnDraw();
         	}else{

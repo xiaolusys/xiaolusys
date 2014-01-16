@@ -474,7 +474,8 @@ class ProductBarCodeView(ModelView):
         except Exception,exc:
             return exc.message
         
-        log_action(request.user.id,product,CHANGE,u'更新商品条码:(%s-%s,%s)'%(outer_id or '',outer_sku_id or '',barcode))
+        log_action(request.user.id,product,CHANGE,u'更新商品条码:(%s-%s,%s)'
+                   %(outer_id or '',outer_sku_id or '',barcode))
         
         return {'barcode':product_sku and product_sku.BARCODE or product.BARCODE}   
         
@@ -550,7 +551,8 @@ def delete_product_district(request):
         ret = {'code':1,'error_response':u'未找到删除项'}
         return HttpResponse(json.dumps(ret),mimetype="application/json")
     
-    log_action(request.user.id,product,CHANGE,u'删除商品库位:(%s-%s,%s)'%(outer_id or '',outer_sku_id or '',district))
+    log_action(request.user.id,Product.objects.get(outer_id=outer_id),CHANGE,
+               u'删除商品库位:(%s-%s,%s)'%(outer_id or '',outer_sku_id or '',district))
     
     ret = {'code':0,'response_content':'success'}
     return HttpResponse(json.dumps(ret),mimetype="application/json")

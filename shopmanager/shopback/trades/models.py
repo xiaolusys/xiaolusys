@@ -18,6 +18,7 @@ from shopback.refunds.models import Refund,REFUND_STATUS
 from shopback import paramconfig as pcfg
 from shopback.monitor.models import SystemConfig,Reason
 from shopback.signals import merge_trade_signal,rule_signal
+from django.db import IntegrityError, transaction
 from auth import apis
 from common.utils import parse_datetime ,get_yesterday_interval_time, update_model_fields
 import logging
@@ -154,9 +155,9 @@ class MergeTrade(models.Model):
     sys_memo      = models.TextField(max_length=1000,blank=True,verbose_name='系统备注')
     seller_flag   = models.IntegerField(null=True,verbose_name='淘宝旗帜')
     
-    created    = models.DateTimeField(db_index=True,null=True,blank=True,verbose_name='生成日期')
-    pay_time   = models.DateTimeField(db_index=True,null=True,blank=True,verbose_name='付款日期')
-    modified   = models.DateTimeField(db_index=True,null=True,blank=True,verbose_name='修改日期') 
+    created      = models.DateTimeField(db_index=True,null=True,blank=True,verbose_name='生成日期')
+    pay_time     = models.DateTimeField(db_index=True,null=True,blank=True,verbose_name='付款日期')
+    modified     = models.DateTimeField(db_index=True,null=True,blank=True,verbose_name='修改日期') 
     consign_time = models.DateTimeField(db_index=True,null=True,blank=True,verbose_name='发货日期')
     send_time    = models.DateTimeField(null=True,blank=True,verbose_name='预售日期')
     weight_time  = models.DateTimeField(db_index=True,null=True,blank=True,verbose_name='称重日期')
@@ -743,6 +744,7 @@ class MergeOrder(models.Model):
         return total_num,user_order_num
         
     @classmethod
+    @transaction.commit_on_success
     def gen_new_order(cls,trade_id,outer_id,outer_sku_id,num,gift_type=pcfg.REAL_ORDER_GIT_TYPE
                       ,status=pcfg.WAIT_SELLER_SEND_GOODS,is_reverse=False,payment='0'):
         
@@ -856,6 +858,7 @@ class MergeBuyerTrade(models.Model):
             return 0
         return 1
 
+@transaction.commit_on_success
 def merge_order_maker(sub_tid,main_tid):
     #合单操作
     
@@ -932,7 +935,7 @@ def merge_order_maker(sub_tid,main_tid):
         main_merge_trade.append_reason_code(pcfg.NEW_MERGE_TRADE_CODE)
     return True
 
-
+@transaction.commit_on_success
 def merge_order_remover(main_tid):
     #拆单操作
     main_trade = MergeTrade.objects.get(tid=main_tid)
@@ -975,7 +978,7 @@ def merge_order_remover(main_tid):
     rule_signal.send(sender='combose_split_rule',trade_id=main_trade.id)
     rule_signal.send(sender='payment_rule',trade_id=main_trade.id) 
     
-
+@transaction.commit_on_success
 def drive_merge_trade_action(trade_id):
     """ 合单驱动程序 """
     is_merge_success = False

@@ -37,7 +37,6 @@ class TaoBaoBackend:
         content = request.REQUEST
         code    = content.get('code')
         state   = content.get('state')
-        
         if not code:
             return None
 
@@ -47,16 +46,17 @@ class TaoBaoBackend:
             'grant_type':'authorization_code',
             'code':code,
             'redirect_uri':settings.REDIRECT_URI,
-            'scope':settings.SCOPE,
             'state':state,
             'view':'web'
         }
+        
         try:
             req    = urllib2.urlopen(settings.AUTHRIZE_TOKEN_URL,urllib.urlencode(params))
             top_parameters = json.loads(req.read())
         except Exception,exc:
             logger.error(exc.message+'400',exc_info=True)
             return None
+        
         request.session['top_session']    = top_parameters['access_token']
         request.session['top_parameters'] = top_parameters
         top_parameters['ts']  = time.time()

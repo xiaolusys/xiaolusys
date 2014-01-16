@@ -145,7 +145,7 @@ def updateUserProductSkuTask(user_id=None,outer_ids=None,force_update_num=False)
                                 wait_post_num = psku.wait_post_num >= 0 and psku.wait_post_num or 0
                                 psku.quantity = sku['quantity'] + wait_post_num
                                 
-                        psku.std_sale_price =  float(sku['price'])
+                        #psku.std_sale_price =  float(sku['price'])
                         properties = ''
                         props = sku['properties'].split(';')
                         for prop in props:

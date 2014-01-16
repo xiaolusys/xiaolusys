@@ -503,5 +503,21 @@ def taobao_increment_trades_get(status=None,type=None,nick=None,start_modified=N
 
 ################## CRM ##################
 @apis('taobao.crm.members.search')
-def taobao_crm_members_search(buyer_nick=None,grade=None,province=None,city=None,page_size=None,current_page=None):
+def taobao_crm_members_search(buyer_nick=None,grade=None,province=None,city=None,page_size=None,current_page=None,tb_user_id=None):
     pass
+
+
+
+################## Message Service ##################
+@apis('taobao.tmc.user.permit')
+def taobao_tmc_user_permit(topics=None,tb_user_id=None):
+    pass
+
+@apis('taobao.tmc.messages.consume')
+def taobao_tmc_messages_consume(group_name=None,quantity=None,tb_user_id=None):
+    pass
+
+@apis('taobao.tmc.messages.confirm')
+def taobao_tmc_messages_confirm(group_name=None,s_message_ids=None,f_message_ids=None,tb_user_id=None):
+    pass
+

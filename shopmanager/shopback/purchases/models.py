@@ -5,6 +5,7 @@ from django.db import models
 from django.db.models.signals import post_save,post_delete
 from django.db.models import Q,Sum,F
 from django.conf import settings
+from django.db import IntegrityError, transaction
 from shopback import paramconfig as pcfg
 from shopback.archives.models import Supplier,PurchaseType,Deposite
 from shopback.categorys.models import ProductCategory
@@ -261,6 +262,9 @@ class PurchaseItem(models.Model):
     purchase     = models.ForeignKey(Purchase,related_name='purchase_items',verbose_name='采购单')
     supplier_item_id = models.CharField(max_length=64,blank=True,verbose_name='供应商货号')
     
+    product_id   = models.IntegerField(null=True,verbose_name='商品ID')
+    sku_id       = models.IntegerField(null=True,verbose_name='规格ID')
+    
     outer_id     = models.CharField(max_length=32,null=False,blank=True,verbose_name='商品编码')
     name         = models.CharField(max_length=64,null=False,blank=True,verbose_name='商品名称')
     outer_sku_id     = models.CharField(max_length=32,null=False,blank=True,verbose_name='规格编码')
@@ -290,7 +294,7 @@ class PurchaseItem(models.Model):
     
     class Meta:
         db_table = 'shop_purchases_item'
-        unique_together = ("purchase","outer_id", "outer_sku_id")
+        unique_together = ("purchase","product_id", "sku_id")
         verbose_name = u'采购项目'
         verbose_name_plural = u'采购项目列表'
         permissions = [
@@ -319,6 +323,8 @@ class PurchaseItem(models.Model):
                 'id':self.id,
                 'supplier_item_id':self.supplier_item_id,
                 'outer_id':self.outer_id,
+                'product_id':self.product_id,
+                'sku_id':self.sku_id,
                 'name':self.name,
                 'outer_sku_id':self.outer_sku_id,
                 'properties_name':self.properties_name,
@@ -445,12 +451,12 @@ class PurchaseStorage(models.Model):
         
         prod_dict = {}
         for item in self.normal_storage_items:
-            outer_id     = item.outer_id
-            outer_sku_id = item.outer_sku_id
-            if prod_dict.has_key(outer_id):
-                prod_dict[outer_id].append((outer_sku_id,item.storage_num))
+            product_id  = item.product_id
+            sku_id      = item.sku_id
+            if prod_dict.has_key(product_id):
+                prod_dict[product_id].append((sku_id,item.storage_num))
             else:
-                prod_dict[outer_id]=[(outer_sku_id,item.storage_num)]
+                prod_dict[product_id]=[(sku_id,item.storage_num)]
         return prod_dict
             
         
@@ -461,7 +467,7 @@ class PurchaseStorage(models.Model):
         purchase_items = []
         for item in self.normal_storage_items:
             purchase_items.append(item.json)
-        
+            
         return {
                 'id':self.id,
                 'origin_no':self.origin_no,
@@ -498,30 +504,32 @@ class PurchaseStorage(models.Model):
             undist_storage_num = storage_item.storage_num - (storage_ships.aggregate(
                                 dist_storage_num=Sum('storage_num')).get('dist_storage_num') or 0) #未分配库存数
             if undist_storage_num>0:
-                outer_id     = storage_item.outer_id
-                outer_sku_id = storage_item.outer_sku_id
+                product_id = storage_item.product_id
+                sku_id     = storage_item.sku_id
                 purchase_item  = None
                 purchase_items = []
 
                 for purchase in uncomplete_purchase:
                     try:
                         purchase_item = PurchaseItem.objects.get(
-                                    purchase=purchase,outer_id=outer_id,outer_sku_id=outer_sku_id)
+                                    purchase=purchase,product_id=product_id,sku_id=sku_id)
                     except PurchaseItem.DoesNotExist:
                         purchase_item = None
                     else:
                         purchase_items.append(purchase_item)
                 
                 for purchase_item in purchase_items:
-                    diff_num = purchase_item.purchase_num-purchase_item.storage_num #采购项剩余未到货数
+                    diff_num = purchase_item.purchase_num - purchase_item.storage_num #采购项剩余未到货数
                     if diff_num >0:
                         storage_ship,state    = PurchaseStorageRelationship.objects.get_or_create(
                                                            purchase_id=purchase_item.purchase.id,
                                                            purchase_item_id=purchase_item.id,
                                                            storage_id=self.id,
                                                            storage_item_id=storage_item.id)
-                        storage_ship.outer_id     = outer_id
-                        storage_ship.outer_sku_id = outer_sku_id
+                        storage_ship.product_id   = product_id
+                        storage_ship.sku_id       = sku_id
+                        storage_ship.outer_id     = storage_item.outer_id
+                        storage_ship.outer_sku_id = storage_item.outer_sku_id
                         
                         diff_num  = min(diff_num,undist_storage_num)
                         storage_ship.storage_num  = diff_num + storage_ship.storage_num
@@ -557,6 +565,8 @@ class PurchaseStorage(models.Model):
             if purchase_map.has_key(purchase_id):
                 purchase_map[purchase_id]['purchase_items'].append({
                                                                'id':purchase_item.id,
+                                                               'product_id':purchase_item.product_id,
+                                                               'sku_id':purchase_item.sku_id,
                                                                'outer_id':purchase_item.outer_id,
                                                                'name':purchase_item.name,
                                                                'outer_sku_id':purchase_item.outer_sku_id,
@@ -580,6 +590,8 @@ class PurchaseStorage(models.Model):
                                             'arrival_status':dict(PURCHASE_ARRIVAL_STATUS).get(purchase.arrival_status),
                                             'status':dict(PURCHASE_STATUS).get(purchase.status),
                                             'purchase_items':[{'id':purchase_item.id,
+                                                               'product_id':purchase_item.product_id,
+                                                               'sku_id':purchase_item.sku_id,
                                                                'outer_id':purchase_item.outer_id,
                                                                'name':purchase_item.name,
                                                                'outer_sku_id':purchase_item.outer_sku_id,
@@ -599,6 +611,9 @@ class PurchaseStorageItem(models.Model):
     
     purchase_storage     = models.ForeignKey(PurchaseStorage,related_name='purchase_storage_items',verbose_name='入库单')
     supplier_item_id     = models.CharField(max_length=64,blank=True,verbose_name='供应商货号')
+    
+    product_id   = models.IntegerField(null=True,verbose_name='商品ID')
+    sku_id       = models.IntegerField(null=True,verbose_name='规格ID')
     
     outer_id     = models.CharField(max_length=32,null=False,blank=True,verbose_name='商品编码')
     name         = models.CharField(max_length=64,null=False,blank=True,verbose_name='商品名称')
@@ -622,7 +637,7 @@ class PurchaseStorageItem(models.Model):
     extra_info   = models.CharField(max_length=1000,blank=True,verbose_name='备注')
     class Meta:
         db_table = 'shop_purchases_storageitem'
-        unique_together = ("purchase_storage","outer_id", "outer_sku_id")
+        unique_together = ("purchase_storage","product_id", "sku_id")
         verbose_name = u'入库项目'
         verbose_name_plural = u'入库项目列表'
     
@@ -642,6 +657,8 @@ class PurchaseStorageItem(models.Model):
         return {
                 'id':self.id,
                 'supplier_item_id':self.supplier_item_id,
+                'product_id':self.product_id,
+                'sku_id':self.sku_id,
                 'outer_id':self.outer_id,
                 'name':self.name,
                 'outer_sku_id':self.outer_sku_id,
@@ -677,6 +694,9 @@ class PurchaseStorageRelationship(models.Model):
     storage_id        =  models.IntegerField(db_index=True,verbose_name='入库单ID')
     storage_item_id   =  models.IntegerField(verbose_name='入库项目ID')
     
+    product_id   = models.IntegerField(null=True,verbose_name='商品ID')
+    sku_id       = models.IntegerField(null=True,verbose_name='规格ID')
+    
     outer_id          = models.CharField(max_length=32,verbose_name='商品编码')
     outer_sku_id      = models.CharField(max_length=32,null=False,blank=True,verbose_name='规格编码')
     
@@ -704,11 +724,11 @@ class PurchaseStorageRelationship(models.Model):
     
     def confirm_storage(self,cost_addon=False):
         """ 确认关联入库 """
-        prod = Product.objects.get(outer_id=self.outer_id)
+        prod = Product.objects.get(id=self.product_id)
         purchase_item = PurchaseItem.objects.get(id=self.purchase_item_id)
         
-        if self.outer_sku_id:
-            prod_sku = ProductSku.objects.get(outer_id=self.outer_sku_id,product=prod)
+        if self.sku_id:
+            prod_sku = ProductSku.objects.get(id=self.sku_id,product=prod)
 
             if cost_addon:
                 prod_sku.cost = purchase_item.price
@@ -900,6 +920,8 @@ class PurchasePayment(models.Model):
                 item_payment = round((item.unpay_fee / total_unpay_fee)*payment,FINANCIAL_FIXED)
             payment_item,state = PurchasePaymentItem.objects.get_or_create(
                                 purchase_payment=self,purchase_id=purchase.id,purchase_item_id=item.id)
+            payment_item.product_id   = item.product_id
+            payment_item.sku_id       = item.sku_id
             payment_item.outer_id     = item.outer_id
             payment_item.outer_sku_id = item.outer_sku_id
             payment_item.name            = item.name
@@ -931,6 +953,8 @@ class PurchasePayment(models.Model):
             
             payment_item,state = PurchasePaymentItem.objects.get_or_create(
                                 purchase_payment=self,storage_id=storage.id,storage_item_id=item.id)
+            payment_item.product_id   = item.product_id
+            payment_item.sku_id       = item.sku_id
             payment_item.outer_id     = item.outer_id
             payment_item.outer_sku_id = item.outer_sku_id
             payment_item.name            = item.name
@@ -966,10 +990,10 @@ class PurchasePayment(models.Model):
         for storage in storages:
             self.cal_storage_payment(storage,(storage.storage_num/total_storage_num)*payment,cal_by=1)   
         
-        
+      
     def confirm_pay(self,cashier):
         """ 确认付款 """
-        if   self.pay_type == pcfg.PC_PREPAID_TYPE:
+        if  self.pay_type == pcfg.PC_PREPAID_TYPE:
             for item in self.payment_items.all():
                 purchase_item = PurchaseItem.objects.get(id=item.purchase_item_id)
                 purchase_item.payment += item.payment
@@ -1040,6 +1064,9 @@ class PurchasePaymentItem(models.Model):
     storage_id        = models.IntegerField(null=True,blank=True,verbose_name='入库单ID')
     storage_item_id   = models.IntegerField(null=True,blank=True,verbose_name='入库项目ID')
     
+    product_id        = models.IntegerField(null=True,verbose_name='商品ID')
+    sku_id            = models.IntegerField(null=True,verbose_name='规格ID')
+    
     outer_id          = models.CharField(max_length=32,verbose_name='商品编码')
     name              = models.CharField(max_length=64,null=False,blank=True,verbose_name='商品名称')
     outer_sku_id      = models.CharField(max_length=32,null=False,blank=True,verbose_name='规格编码')
@@ -1064,6 +1091,8 @@ class PurchasePaymentItem(models.Model):
                     "purchase_id":self.purchase_id,
                     "purchase_item_id":self.purchase_item_id,
                     "dst_payment":self.payment,
+                    "product_id":self.product_id,
+                    "sku_id":self.sku_id,
                     "outer_id":self.outer_id,
                     "name":self.name,
                     "outer_sku_id":self.outer_sku_id,
@@ -1082,6 +1111,8 @@ class PurchasePaymentItem(models.Model):
                     "storage_id":self.storage_id,
                     "storage_item_id":self.storage_item_id,
                     "dst_payment":self.payment,
+                    "product_id":self.product_id,
+                    "sku_id":self.sku_id,
                     "outer_id":self.outer_id,
                     "name":self.name,
                     "outer_sku_id":self.outer_sku_id,

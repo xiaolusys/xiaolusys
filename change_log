@@ -1,3 +1,17 @@
+######### 2013-1-10 ##########
+drop index purchase_id on shop_purchases_item;
+alter table  shop_purchases_item add UNIQUE(purchase_id,product_id,sku_id);
+drop index purchase_storage_id on shop_purchases_storageitem;
+alter table shop_purchases_storageitem add UNIQUE(purchase_storage_id,product_id,sku_id);
+######### 2013-1-2 ##########
+alter table shop_purchases_item add column product_id int(11) default null;
+alter table shop_purchases_item add column sku_id int(11) default null;
+alter table shop_purchases_storageitem add column product_id int(11) default null;
+alter table shop_purchases_storageitem add column sku_id int(11) default null;
+alter table shop_purchases_relationship add column product_id int(11) default null;
+alter table shop_purchases_relationship add column sku_id int(11) default null;
+alter table shop_purchases_paymentitem add column product_id int(11) default null;
+alter table shop_purchases_paymentitem add column sku_id int(11) default null;
 ######### 2013-12-25 ##########
 alter table shop_items_product add column reduce_num int(11) NOT NULL;
 alter table shop_items_productsku add column reduce_num int(11) NOT NULL;

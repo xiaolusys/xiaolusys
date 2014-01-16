@@ -16,8 +16,8 @@ logger = logging.getLogger('taobao.auth')
 
 def request_taobo(request):
 
-    redirect_url = '%s?response_type=code&client_id=%s&redirect_uri=%s&view=web&scope=%s&state=autolist'%\
-                   (settings.AUTHRIZE_URL,settings.APPKEY,settings.REDIRECT_URI,settings.SCOPE)
+    redirect_url = '%s?response_type=code&client_id=%s&redirect_uri=%s&view=web&state=autolist'%\
+                   (settings.AUTHRIZE_URL,settings.APPKEY,settings.REDIRECT_URI)
 
     return HttpResponseRedirect(redirect_url)
 

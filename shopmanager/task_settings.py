@@ -134,6 +134,11 @@ SYNC_MODEL_SCHEDULE = {
          'schedule':crontab(minute="0",hour='2',day_of_week='sun'),
          'args':(21,)
      },
+     'runs-every-day-item-num':{     #更新库存
+        'task':'shopback.items.tasks.updateAllUserItemNumTask',
+        'schedule':crontab(minute="0",hour="*/7"),#
+        'args':()
+    },
 #    'runs-every-day-update-jushita-trade-task':{
 #         'task':'tools.top_updatedb_task.pull_taobao_trade_task',
 #         'schedule':crontab(minute="0",hour='*/4'),
@@ -173,11 +178,6 @@ SHOP_APP_SCHEDULE = {
          'schedule':crontab(minute="*/30"),
          'args':()
     },           
-    'runs-every-day-item-num':{     #更新库存
-        'task':'shopback.items.tasks.updateAllUserItemNumTask',
-        'schedule':crontab(minute="0",hour="*/7"),#
-        'args':()
-    },
     'runs-every-day-notify-packet-post':{     #更新库存
         'task':'shopapp.smsmgr.tasks.notifyPacketPostTask',
         'schedule':crontab(minute="30",hour="9,12,19"),#

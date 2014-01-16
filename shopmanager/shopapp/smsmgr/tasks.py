@@ -7,7 +7,7 @@ from django.db.models import Q,F
 from django.template import Context, Template
 from shopback.items.models import Product,ProductSku
 from shopback.trades.models import MergeTrade
-from shopapp.smsmgr.models import SMSPlatform,SMSRecord,SMSActivity,SMS_NOTIFY_POST
+from shopapp.smsmgr.models import SMSPlatform,SMSRecord,SMSActivity,SMS_NOTIFY_POST,SMS_NOTIFY_BIRTH
 from shopapp.smsmgr.service import SMS_CODE_MANAGER_TUPLE
 from shopback import paramconfig as pcfg
 from common.utils import update_model_fields,single_instance_task
@@ -138,5 +138,38 @@ def notifyPacketPostTask(days):
         
         subtask(notifyBuyerPacketPostTask).delay(trade.id,platform.code)
 
+@task
+def getupMorningLockTask():    
+    
+    #选择默认短信平台商，如果没有，任务退出
+    try:
+        platform = SMSPlatform.objects.get(is_default=True)
+    except:
+        return 
+    
+    sms_manager  = dict(SMS_CODE_MANAGER_TUPLE).get(platform.code,None)
+    sms_tmpl     = SMSActivity.objects.filter(sms_type=SMS_NOTIFY_BIRTH,status=True)
+    sms_ins      = sms_tmpl[0]
+    
+    status  = sms_ins.text_tmpl[0]
+    
+    params = {}
+    params['content'] = sms_ins.text_tmpl[1:-1]
+    params['userid']  = platform.user_id
+    params['account'] = platform.account
+    params['password'] = platform.password
+    params['mobile']   = '15941103294'#13917170476
+    params['taskName'] = '起床了'
+    params['mobilenumber']    = 1
+    params['countnumber']     = 1
+    params['telephonenumber'] = 0
+    
+    params['action'] = 'send'
+    params['checkcontent'] = '0'
+    
+    manager = sms_manager()
+    
+    manager.batch_send(**params)
+    
     
     
