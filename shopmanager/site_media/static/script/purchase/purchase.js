@@ -301,6 +301,11 @@ purchase.Manager.prototype.onCheckPurchaseInfo = function(e){
 		return;
 	}
 	
+	if(!confirm("请校对采购商品编码，规格，数量，金额无误后再确认？"))
+	{
+	    return;
+	};
+	
 	var callback = function(e){
         var xhr = e.target;
         try {
