@@ -1,10 +1,14 @@
 import types
 from django.conf import settings
-from celery.task import task
 from django.core.cache import cache
+import logging
+
 
 def single_instance_task(timeout,prefix=''):
     def task_exc(func):
+        
+        from celery.task import task
+        
         def delay(self, *args, **kwargs):
             return self.apply(args, kwargs)
 
@@ -18,6 +22,7 @@ def single_instance_task(timeout,prefix=''):
                 finally:
                     release_lock()
             else :
+                logger = logging.getLogger('celery.handler')
                 logger.error('the task %s is executing.'%func.__name__)
         result = task(name='%s%s' % (prefix,func.__name__))(decorate)
         if settings.DEBUG:

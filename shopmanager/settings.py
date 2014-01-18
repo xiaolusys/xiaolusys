@@ -197,17 +197,17 @@ LOGGING = {
             'level': 'ERROR',
             'propagate': True,
         },
-        'syncnum.handler': {
-            'handlers': ['sentry','mail_admins'],
-            'level': 'ERROR',
-            'propagate': True,
-        },
         'sentry.errors': {
             'handlers': ['sentry'],
             'level': 'ERROR',
             'propagate': True,
         },
         'taobao.auth': {
+            'handlers': ['sentry'],
+            'level': 'ERROR',
+            'propagate': True,
+        },
+        'celery.handler': {
             'handlers': ['sentry'],
             'level': 'ERROR',
             'propagate': True,
