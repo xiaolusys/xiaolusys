@@ -122,10 +122,6 @@ purchasestorage.PurchaseSelectDialog.prototype.init = function(prod){
 		addPurchaseItemRow(this.select_table,prod,prod_sku[i]);
 	}
 	
-	var add_pch_item_btns =  goog.dom.getElementsByClass('add-purchase-item');
-	for(var i=0;i<add_pch_item_btns.length;i++){
-		goog.events.listen(add_pch_item_btns[i], goog.events.EventType.CLICK,this.manager.onCreatePurchaseItem,false,this.manager);
-	}
 }
 
 
@@ -176,9 +172,7 @@ purchasestorage.Manager.prototype.onProdSearchKeyDown = function(e){
 
 
 //添加采购项
-purchasestorage.Manager.prototype.onCreatePurchaseItem = function(e){
-	var target    = e.target;
-	var row       = target.parentElement.parentElement;
+purchasestorage.Manager.prototype.onCreatePurchaseItem = function(row){
 	
 	$('#purchase-items').show();
 	var params = {  'purchase_storage_id':this.purchasestorageid_label.innerHTML,
@@ -468,7 +462,16 @@ purchasestorage.Manager.prototype.bindEvent = function (){
 			that.nEditing = nRow;
 		}
 	});
-
+	
+	//添加入库项
+	$('#purchase-select-table .add-purchase-item').live('click',function (e){
+		e.preventDefault();
+		
+		var row = e.target.parentElement.parentElement;
+		that.onCreatePurchaseItem(row);
+		
+	});
+	
 	//绑定数量修改按键事件
 	$('input.edit-num').live('keyup', function (e) {
 		

@@ -138,10 +138,6 @@ purchase.PurchaseSelectDialog.prototype.init = function(prod){
 		addPurchaseItemRow(this.select_table,prod,prod_sku[i]);
 	}
 	
-	var add_pch_item_btns =  goog.dom.getElementsByClass('add-purchase-item');
-	for(var i=0;i<add_pch_item_btns.length;i++){
-		goog.events.listen(add_pch_item_btns[i], goog.events.EventType.CLICK,this.manager.onCreatePurchaseItem,false,this.manager);
-	}
 }
 
 
@@ -193,9 +189,7 @@ purchase.Manager.prototype.onProdSearchKeyDown = function(e){
 
 
 //添加采购项
-purchase.Manager.prototype.onCreatePurchaseItem = function(e){
-	var target    = e.target;
-	var row       = target.parentElement.parentElement;
+purchase.Manager.prototype.onCreatePurchaseItem = function(row){
 	
 	$('#purchase-items').show();
 	var params = {  'purchase_id':this.purchaseid_label.innerHTML,
@@ -236,7 +230,7 @@ purchase.Manager.prototype.onCreatePurchaseItem = function(e){
 
 //添加采购项
 purchase.Manager.prototype.savePurchaseItem = function(nRow){
-	console.log('pid:',nRow.getAttribute('pid'));
+	
 	var params = {  'purchase_id':this.purchaseid_label.innerHTML,
 					'product_id':nRow.getAttribute('pid')?nRow.getAttribute('pid'):'',
 					'sku_id':nRow.getAttribute('sid')?nRow.getAttribute('sid'):'',
@@ -514,6 +508,15 @@ purchase.Manager.prototype.bindEvent = function (){
 			editRow( that.datatable, nRow );
 			that.nEditing = nRow;
 		}
+	});
+	
+	//添加采购项
+	$('#purchase-select-table .add-purchase-item').live('click',function (e){
+		e.preventDefault();
+		
+		var row = e.target.parentElement.parentElement;
+		that.onCreatePurchaseItem(row);
+		
 	});
 	
 	//绑定数量修改按键事件
