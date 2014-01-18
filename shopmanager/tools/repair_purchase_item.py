@@ -6,7 +6,7 @@ from shopback.items.models import Product,ProductSku
 @transaction.commit_on_success
 def repair_purchase_item():
     
-    items = PurchaseItem.objects.filter(purchase_id=10120)
+    items = PurchaseItem.objects.all()
     for item in items:
         
         product     = None
