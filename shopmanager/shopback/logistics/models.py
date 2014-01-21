@@ -79,11 +79,9 @@ class DestCompany(models.Model):
         if companys and companys.count()>0:
             cid = companys[0].company
             
-            logistics = LogisticsCompany.objects.filter(code=cid.upper())
-            if logistics.count() == 0:
-                return None
+            logistic = LogisticsCompany.objects.get(code=cid.upper())
             
-            return logistics[0]
+            return logistic
             
         return None
                 

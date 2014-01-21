@@ -1117,7 +1117,6 @@ def trade_download_controller(merge_trade,trade,trade_from,first_pay_load):
                         MergeTrade.objects.filter(id=merge_trade.id).update(reserveo=zonec,reservet=zoned)
                     
             except Exception,exc:
-                logger.error(exc.message,exc_info=True)
                 merge_trade.append_reason_code(pcfg.DISTINCT_RULE_CODE)
      
         #退款中
