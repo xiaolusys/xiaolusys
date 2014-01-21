@@ -39,8 +39,10 @@ def migrate(from_id,to_id,reg='[\w]*O$'):
         sku.barcode   = to_sku.barcode
         
         sku.save()
-        
-        copy_location(to_id,to_sku.outer_id,from_id,sku.outer_id)
+        try:
+            copy_location(to_id,to_sku.outer_id,from_id,sku.outer_id)
+        except Exception,exc:
+            print 'cp product location',exc.message
         
         
         
