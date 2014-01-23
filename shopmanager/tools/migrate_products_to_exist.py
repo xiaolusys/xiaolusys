@@ -45,6 +45,36 @@ def reverse_migrate(from_id,to_id,reg='[\w]*O$'):
         except Exception,exc:
             print 'reverse product location',exc.message
             
+
+def map_migrate(from_id,to_id,SKU_MAP={}):
+    #根据已合并的商品规格编码将原商品的规格条码，库位，库存等信息覆盖更新
+    fskus = Product.objects.get(outer_id=from_id).pskus
+    tskus = Product.objects.get(outer_id=to_id).pskus
+    
+    for sku in fskus:
+        if not SKU_MAP.has_key(sku.outer_id):continue
+        
+        to_sku_id = SKU_MAP.get(sku.outer_id)
+        
+        to_sku = ProductSku.objects.get(product__outer_id=to_id,outer_id=to_sku_id)
+        
+        sku.quantity       = to_sku.quantity
+        sku.warn_num       = to_sku.warn_num
+        sku.remain_num     = to_sku.remain_num
+        sku.wait_post_num  = to_sku.wait_post_num
+        
+        sku.cost = to_sku.cost
+        sku.std_sale_price   = to_sku.std_sale_price
+        
+        sku.post_check = to_sku.post_check
+        sku.barcode   = to_sku.barcode
+        
+        sku.save()
+        try:
+            copy_location(to_id,to_sku.outer_id,from_id,sku.outer_id)
+        except Exception,exc:
+            print 'reverse product location',exc.message
+            
             
 def copy_migrate(from_id,to_id,suffix='O'):
     #将原编码的商品规格编码，及库存，库位等信息更新至新编码
