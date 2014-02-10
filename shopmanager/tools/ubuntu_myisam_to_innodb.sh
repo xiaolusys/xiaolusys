@@ -1,7 +1,7 @@
 #!/bin/bash
-MyUSER="root"
-MyPass="qwertyuiop"
-MyHOST="localhost"
+MyUSER="meixqhi"
+MyPass="123123"
+MyHOST="192.168.0.28"
 
 
 MYSQL="$(which mysql)"
@@ -21,7 +21,7 @@ DTS=""
 #忽略的表列表
 IGGY="*_tmp"
 #包含的表列表
-INGY="shop_trades_* shop_purchases_*"
+INGY="shop_purchases_*"
 
 DTS="$($MYSQL -u $MyUSER -h $MyHOST $DBS -Bse 'show tables')"
 
@@ -51,21 +51,22 @@ do
 	
 	if [ "$skipdb" == "-1" ] && [ "$incldb" == "-1" ];
 	then
-		#MyOPTBS=$($MYSQL -u $MyUSER -h $MyHOST  $DBS -Bse "SHOW TABLES LIKE '${dt}_tmp'")
+		MyOPTBS=$($MYSQL -u $MyUSER -h $MyHOST  $DBS -Bse "SHOW TABLES LIKE '${dt}_tp'")
 		#如果没有查到带_tmp后缀的表名，则执行下去
-		#if [ -z $MyOPTBS ];
-		#then
+		if [ -z $MyOPTBS ];
+		then
 			#将表重命名为[name]_tmp
-			#$MYSQL -u $MyUSER -h $MyHOST  $DBS -Bse "RENAME TABLE $dt TO ${dt}_tmp" 
+			$MYSQL -u $MyUSER -h $MyHOST  $DBS -Bse "RENAME TABLE $dt TO ${dt}_tp" 
 			#创建新表，并将数据导入
-			#$MYSQL -u $MyUSER -h $MyHOST  $DBS -Bse "CREATE TABLE $dt SELECT * FROM ${dt}_tmp" 
+			$MYSQL -u $MyUSER -h $MyHOST  $DBS -Bse "CREATE TABLE $dt like ${dt}_tmp" 
 			#将表的engine改为INNODB
 			$MYSQL -u $MyUSER -h $MyHOST  $DBS -Bse "ALTER TABLE $dt ENGINE=INNODB" 
-			
+			#
+			$MYSQL -u $MyUSER -h $MyHOST  $DBS -Bse "INSERT INTO  $dt SELECT * FROM ${dt}_tp" 
 			echo "======= $NOW $dt changed to innodb success  ======" >> $LOGFILE
-		#else
-		#	echo "======= $NOW $dt is already exist  ======" >> $LOGFILE
-		#fi
+		else
+			echo "======= $NOW $dt is already exist  ======" >> $LOGFILE
+		fi
 	fi
 done
 		
