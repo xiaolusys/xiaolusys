@@ -231,8 +231,9 @@ class StatisticMergeOrderView(ModelView):
             total_sales += trade[1]['sales']
             trade[1]['skus'] = sorted(skus.items(),key=lambda d:d[1]['num'],reverse=True)
             
-        return {'df':format_datetime(start_dt),'dt':format_datetime(end_dt),'sc_by':statistic_by,'outer_id':p_outer_id,
-                 'shops':User.objects.filter(status=pcfg.USER_NORMAL),'trade_items':trade_list, 'total_cost':total_cost and round(total_cost,2) or 0 ,
+        return {'df':format_datetime(start_dt),'dt':format_datetime(end_dt),'sc_by':statistic_by,
+                'outer_id':p_outer_id,'shops':User.objects.filter(status=pcfg.USER_NORMAL),'trade_items':trade_list, 
+                 'shop_id':shop_id,'total_cost':total_cost and round(total_cost,2) or 0 ,
                  'total_sales':total_sales and round(total_sales,2) or 0,'refund_fees':refund_fees and round(refund_fees,2) or 0,
                  'wait_send':wait_send, 'buyer_nums':buyer_nums, 'trade_nums':trade_nums,'post_fees':total_post_fee }
         

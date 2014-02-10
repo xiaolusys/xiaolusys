@@ -53,7 +53,7 @@
 					<select name="shop_id" class="selector">
 						<option value="" >全部</option>
 					    {% for shop in object.shops %}
-						<option value="{{ shop.id }}" >{{ shop.nick }}</option>
+						<option value="{{ shop.id }}" {% if object.shop_id == shop.id %}selected{% endif %}>{{ shop.nick }}</option>
 						{% endfor %}
 					</select>
 				</li>
