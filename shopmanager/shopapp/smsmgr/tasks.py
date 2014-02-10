@@ -39,18 +39,18 @@ def get_smsg_from_trade(trade):
         except:
             pass
         #同一规格提示只能出现一次
-        if prod_sku and prod_sku.buyer_prompt:
+        if prod_sku and prod_sku.buyer_prompt.strip():
             entry = (outer_id,outer_sku_id)
             if entry in ts:
                 continue
-            prompt_msg += prod_sku.buyer_prompt
+            prompt_msg += prod_sku.buyer_prompt.strip()
             ts.add(entry)
         #同一商品提示只能出现一次    
-        elif prod and prod.buyer_prompt:
+        elif prod and prod.buyer_prompt.strip():
             entry = (outer_id,'')
             if entry in ts:
                 continue
-            prompt_msg += prod.buyer_prompt
+            prompt_msg += prod.buyer_prompt.strip()
             ts.add(entry)
 
     dt   = datetime.datetime.now()
