@@ -1,3 +1,4 @@
+#-*- coding:utf8 -*-
 import re
 from shopback.items.models import Product,ProductSku,ProductLocation as PL
 
