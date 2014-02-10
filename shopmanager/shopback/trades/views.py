@@ -98,6 +98,7 @@ class StatisticMergeOrderView(ModelView):
         content  = request.REQUEST
         start_dt = content.get('df','').strip()
         end_dt   = content.get('dt','').strip()
+        shop_id  = content.get('shop_id')
         p_outer_id = content.get('outer_id','')
         statistic_by = content.get('sc_by','pay')
         wait_send = content.get('wait_send','')
@@ -117,12 +118,16 @@ class StatisticMergeOrderView(ModelView):
             start_dt = datetime.datetime(dt.year,dt.month,dt.day,0,0,0)
             end_dt   = datetime.datetime(dt.year,dt.month,dt.day,23,59,59)
         
+        effect_trades  = MergeTrade.objects.all()
+        if shop_id:
+            effect_trades = effect_trades.filter(user=shop_id)
+        
         if statistic_by == 'pay':
-            effect_trades = MergeTrade.objects.filter(pay_time__gte=start_dt,pay_time__lte=end_dt)
+            effect_trades = effect_trades.filter(pay_time__gte=start_dt,pay_time__lte=end_dt)
         elif statistic_by == 'weight':
-            effect_trades = MergeTrade.objects.filter(weight_time__gte=start_dt,weight_time__lte=end_dt)
+            effect_trades = effect_trades.filter(weight_time__gte=start_dt,weight_time__lte=end_dt)
         else:
-            effect_trades = MergeTrade.objects.filter(created__gte=start_dt,created__lte=end_dt)
+            effect_trades = effect_trades.filter(created__gte=start_dt,created__lte=end_dt)
         
         if wait_send:
             effect_trades = effect_trades.filter(sys_status=pcfg.WAIT_PREPARE_SEND_STATUS)
@@ -227,7 +232,7 @@ class StatisticMergeOrderView(ModelView):
             trade[1]['skus'] = sorted(skus.items(),key=lambda d:d[1]['num'],reverse=True)
             
         return {'df':format_datetime(start_dt),'dt':format_datetime(end_dt),'sc_by':statistic_by,'outer_id':p_outer_id,
-                 'trade_items':trade_list, 'total_cost':total_cost and round(total_cost,2) or 0 ,
+                 'shops':User.objects.filter(status=pcfg.USER_NORMAL),'trade_items':trade_list, 'total_cost':total_cost and round(total_cost,2) or 0 ,
                  'total_sales':total_sales and round(total_sales,2) or 0,'refund_fees':refund_fees and round(refund_fees,2) or 0,
                  'wait_send':wait_send, 'buyer_nums':buyer_nums, 'trade_nums':trade_nums,'post_fees':total_post_fee }
         

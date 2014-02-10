@@ -18,9 +18,13 @@
 		ul li{ 
 			list-style:none; 
 			display:inline; 
-			float:left; 
-			margin-left:20px;  
 			margin-top:30px;
+			margin-left:20px;
+			float:left;
+		}
+		ul{
+			width:900px;
+			display:block; 
 		}
 		input{
 			width:140px;
@@ -33,7 +37,7 @@
 <body>
 	{% with object.trade_items as trade_items %}
 	<div class="container">
-		<div style="height:80px;">
+		<div >
 			<form  class="form-inline" method="POST" action="/trades/order/statistic/" >
 			<ul>
 				<li>
@@ -42,6 +46,15 @@
 						<option value="pay" {% if object.sc_by == "pay" %}selected{% endif %}>付款日期</option>
 						<option value="weight" {% if object.sc_by == "weight" %}selected{% endif %}>称重日期</option>
 						<option value="create" {% if object.sc_by == "create" %}selected{% endif %}>生成日期</option>
+					</select>
+				</li>
+				<li>
+					<label class="control-label" for="shop_id">选择店铺:</label>
+					<select name="shop_id" class="selector">
+						<option value="" >全部</option>
+					    {% for shop in object.shops %}
+						<option value="{{ shop.id }}" >{{ shop.nick }}</option>
+						{% endfor %}
 					</select>
 				</li>
 				<li>
@@ -66,7 +79,7 @@
 			</ul>
 			</form>
 		</div>
-		<div id="post-items" style="display:block;">
+		<div id="post-items" style="display:block;clear:both;">
 		  <fieldset>
 		  	<legend>订单商品统计列表(成本:{{ object.total_cost }},销售额:{{ object.total_sales }},实付邮费:{{ object.post_fees }}
 		  	,退款:{{ object.refund_fees }},付款单数:{{ object.trade_nums }},购买人数:{{ object.buyer_nums }})</legend>
