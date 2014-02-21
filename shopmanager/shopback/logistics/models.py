@@ -13,7 +13,7 @@ from common.utils import parse_datetime
 from auth import apis
 import logging
 
-logger = logging.getLogger('logistics.handler')
+logger = logging.getLogger('django.request')
 
 LOGISTICS_FINISH_STATUS = ['ACCEPTED_BY_RECEIVER']
 

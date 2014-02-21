@@ -12,7 +12,7 @@ from common.utils import format_datetime,single_instance_task
 import MySQLdb
 import logging
 
-logger = logging.getLogger('trades.handler')
+logger = logging.getLogger('django.request')
 
 DB_HOST  = 'hzw01.rds.aliyuncs.com'
 DB_USER  = 'jusrmn8bk5mn'

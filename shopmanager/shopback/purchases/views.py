@@ -35,7 +35,7 @@ from auth import staff_requried
 import logging
 
 
-logger = logging.getLogger('purchases.handler')
+logger = logging.getLogger('django.request')
 #################################### 采购单 #################################
 
 #保存上传文件

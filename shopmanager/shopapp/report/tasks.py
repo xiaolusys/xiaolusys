@@ -20,7 +20,7 @@ from shopback.users.models import User
 from common.utils import single_instance_task
 import logging
 
-logger = logging.getLogger('report.handler')
+logger = logging.getLogger('django.request')
 
 BLANK_CHAR = ''
 MONTH_TRADE_FILE_TEMPLATE = 'trade-month-%s.xls'

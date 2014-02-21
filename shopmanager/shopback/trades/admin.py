@@ -33,7 +33,7 @@ from common.utils import gen_cvs_tuple,CSVUnicodeWriter,parse_datetime,pinghost
 from auth import apis
 import logging 
 
-logger =  logging.getLogger('tradepost.handler')
+logger =  logging.getLogger('django.request')
 
 __author__ = 'meixqhi'
 

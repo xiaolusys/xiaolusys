@@ -16,7 +16,7 @@ from auth import apis
 import logging
 __author__ = 'meixqhi'
 
-logger = logging.getLogger('fenxiao.handler')
+logger = logging.getLogger('django.reqeust')
 
 
 

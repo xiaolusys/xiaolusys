@@ -1,7 +1,7 @@
 from djangorestframework.permissions import BasePermission,  IsAuthenticated, PerUserThrottling, PerViewThrottling, PerResourceThrottling, _403_FORBIDDEN_RESPONSE
 
 import logging
-logger = logging.getLogger('permission')
+logger = logging.getLogger('django.request')
 
 class OwnsObjPermission(BasePermission):
     """docstring for OwnsObjPermission"""

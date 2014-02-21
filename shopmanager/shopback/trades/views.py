@@ -21,7 +21,7 @@ from auth import apis
 from common.utils import parse_date,parse_datetime,format_date,format_datetime
 import logging
 
-logger = logging.getLogger('trades.handler')
+logger = logging.getLogger('django.request')
 
     
 ############################### 缺货订单商品列表 #################################       

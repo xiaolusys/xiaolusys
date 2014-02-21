@@ -13,7 +13,7 @@ from common.utils import parse_datetime
 from auth import apis
 import logging
 
-logger = logging.getLogger('memorule.handler')
+logger = logging.getLogger('django.request')
 
 
 

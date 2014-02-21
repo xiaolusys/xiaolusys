@@ -23,7 +23,7 @@ from auth import apis
 from common.utils import parse_datetime ,get_yesterday_interval_time, update_model_fields
 import logging
 
-logger = logging.getLogger('trades.handler')
+logger = logging.getLogger('django.request')
 
 SYS_TRADE_STATUS = (
     (pcfg.WAIT_AUDIT_STATUS,'问题单'),

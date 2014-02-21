@@ -20,7 +20,7 @@ from auth import apis
 from common.utils import update_model_fields
 import logging
 
-logger  = logging.getLogger('items.handler')
+logger  = logging.getLogger('django.request')
 
 APPROVE_STATUS  = (
     (pcfg.ONSALE_STATUS,u'在售'),

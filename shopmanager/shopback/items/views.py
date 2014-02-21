@@ -28,7 +28,7 @@ import logging
 
 DISTRICT_REGEX = '^(?P<pno>[a-zA-Z0-9]+)-(?P<dno>[0-9]+)$'
 ASSRIGN_PARAMS_REGEX = '^(?P<num_iid>[0-9]+)-(?P<sku_id>[0-9]+)?$'
-logger = logging.getLogger('items.handler')
+logger = logging.getLogger('django.request')
 
 def update_user_items(request):
 
@@ -409,7 +409,7 @@ class ProductSkuView(ModelView):
         except Exception,exc:
             return u'填写信息不规则'
         
-        log_action(request.user.id,product_sku.product,CHANGE,u'更新商品规格信息')
+        log_action(request.user.id,product_sku.product,CHANGE,u'更新商品规格信息:%s'%str(product_sku))
         
         return product_sku.json
     

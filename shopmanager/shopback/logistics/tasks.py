@@ -15,8 +15,7 @@ from auth import apis
 import logging
 __author__ = 'meixqhi'
 
-logger = logging.getLogger('logistics.handler')
-
+logger = logging.getLogger('django.request')
 
 
 @task(max_retry=3)

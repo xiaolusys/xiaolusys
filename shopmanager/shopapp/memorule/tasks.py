@@ -15,7 +15,7 @@ from common.utils import parse_datetime,single_instance_task
 from auth.apis import taobao_trade_memo_update
 import logging
 
-logger = logging.getLogger('memorule.handler')
+logger = logging.getLogger('django.request')
 
 @single_instance_task(30*60,prefix='shopapp.memorule.tasks.')
 def updateTradeAndOrderByRuleMemo():

@@ -10,7 +10,7 @@ from django.conf import settings
 from auth import apis
 
 import logging
-logger = logging.getLogger('taobao.auth')
+logger = logging.getLogger('django.request')
 
 """
 token {

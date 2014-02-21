@@ -15,7 +15,7 @@ from auth import apis
 
 import logging
 
-logger = logging.getLogger('orders.handler')
+logger = logging.getLogger('django.request')
 
 
 @task()

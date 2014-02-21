@@ -10,7 +10,7 @@ from common.utils import format_datetime
 
 import logging
 
-logger = logging.getLogger('taobao.urlcraw')
+logger = logging.getLogger('django.request')
 
 baseurl = 'http://s.taobao.com/search'
 trade_url = 'http://tbskip.taobao.com/json/show_buyer_list.htm' #page_size=15&item_id=7402446227&seller_num_id=129712885&bidPage=1&ends=1331277827000&starts=1330673027000

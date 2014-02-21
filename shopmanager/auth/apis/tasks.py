@@ -17,7 +17,7 @@ from auth.apis.exceptions import ContentNotRightException,RemoteConnectionExcept
     SessionExpiredException,LogisticServiceBO4Exception,TaobaoRequestException,LogisticServiceB60Exception
 
 import logging
-logger = logging.getLogger('auth.apis')
+logger = logging.getLogger('django.request')
 
 reject_regex = re.compile(r'^isv.\w+-service-rejection$')
 
@@ -106,6 +106,7 @@ API_FIELDS = {
         +'payment,reason,desc,num_iid,title,price,num,good_return_time,company_name,sid,address,shipping_type,'
         +'refund_remind_timeout,cs_status,status,good_status',
     
+    'taobao.traderates.get':'num_iid,tid,oid,role,nick,result,created,rated_nick,item_title,item_price,content,reply',
     'taobao.fenxiao.products.get':'skus,images',
     'taobao.trade.close':'tid,close_reason',
     
@@ -221,6 +222,8 @@ def apis(api_method,method='GET',max_retry=3,limit_rate=0.5):
             for k,v in params_copy.iteritems():
                 if v == None:
                     params.pop(k)
+                elif type(v) == bool:
+                    params[k] = v and 'true' or 'false'
                 elif type(v) == unicode:
                     params[k] = v.encode('utf8')
                 elif type(v) == datetime.datetime:
@@ -466,6 +469,13 @@ def taobao_topats_result_get(task_id=None,tb_user_id=None):
 
 @apis('tmall.product.specs.get')
 def tmall_product_specs_get(product_id=None,properties=None,cat_id=None,tb_user_id=None):
+    pass
+
+################  traderate api ###########
+
+@apis('taobao.traderates.get')
+def taobao_traderates_get(rate_type='get',role='buyer',tid=None,num_iid=None,result=None,page_no=None,page_size=None,start_date=None
+                          ,end_date=None,use_has_next=False,fields=API_FIELDS['taobao.traderates.get'],tb_user_id=None):
     pass
 
 ################## 主动通知接口 ####################

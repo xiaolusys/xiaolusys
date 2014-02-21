@@ -15,7 +15,7 @@ from shopback.users.models import User
 from auth import apis
 import logging
 
-logger = logging.getLogger('trades.handler')
+logger = logging.getLogger('django.request')
 
 
 class SubTradePostException(Exception):

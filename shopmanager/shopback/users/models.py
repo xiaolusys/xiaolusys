@@ -11,7 +11,7 @@ from shopback import paramconfig as pcfg
 from auth import apis
 import logging
 
-logger = logging.getLogger('user.handler')
+logger = logging.getLogger('django.request')
 
 USER_STATUS_CHOICES = (
     (pcfg.USER_NORMAL,u'正常'),

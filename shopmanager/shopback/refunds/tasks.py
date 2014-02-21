@@ -11,7 +11,7 @@ from auth import apis
 import logging
 __author__ = 'meixqhi'
 
-logger = logging.getLogger('refunds.handler')
+logger = logging.getLogger('django.request')
 
 
 

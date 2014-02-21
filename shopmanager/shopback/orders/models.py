@@ -12,7 +12,7 @@ from common.utils import parse_datetime
 from auth import apis
 import logging
 
-logger = logging.getLogger('orders.handler')
+logger = logging.getLogger('django.request')
 
 
 REFUND_STATUS = (

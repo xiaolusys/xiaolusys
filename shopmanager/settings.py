@@ -135,7 +135,7 @@ INSTALLED_APPS = (
     'shopapp.juhuasuan',
     'shopapp.smsmgr',
     'shopapp.yunda',
-    #'shopapp.syncnum',
+    'shopapp.comments',
     
     #'test.celery',
 )
@@ -192,17 +192,7 @@ LOGGING = {
             'level': 'ERROR',
             'propagate': True,
         },
-        'autolist.handler': {
-            'handlers': ['sentry'],
-            'level': 'ERROR',
-            'propagate': True,
-        },
         'sentry.errors': {
-            'handlers': ['sentry'],
-            'level': 'ERROR',
-            'propagate': True,
-        },
-        'taobao.auth': {
             'handlers': ['sentry'],
             'level': 'ERROR',
             'propagate': True,
@@ -212,133 +202,8 @@ LOGGING = {
             'level': 'ERROR',
             'propagate': True,
         },
-        'auth.apis': {
-            'handlers': ['sentry'],
-            'level': 'ERROR',
-            'propagate': True,
-        },
-        'permission': {
-            'handlers': ['sentry'],
-            'level': 'ERROR',
-            'propagate': True,
-        },
-        'exception.middleware': {
-            'handlers': ['sentry'],
-            'level': 'ERROR',
-            'propagate': True,
-        },
-        'pagerank.handler': {
-            'handlers': ['sentry'],
-            'level': 'ERROR',
-            'propagate': True,
-        },
-        'traderank.handler': {
-            'handlers': ['sentry'],
-            'level': 'ERROR',
-            'propagate': True,
-        },
-        'report.handler': {
-            'handlers': ['sentry'],
-            'level': 'ERROR',
-            'propagate': True,
-        },
-        'taobao.urlcraw': {
-            'handlers': ['sentry'],
-            'level': 'ERROR',
-            'propagate': True,
-        },
-        'orders.handler':{
-            'handlers': ['sentry'],
-            'level': 'ERROR',
-            'propagate': True,
-        },
-        'token.refresh':{
-            'handlers': ['sentry','mail_admins'],
-            'level': 'ERROR',
-            'propagate': True,
-        },
-        'recurupdate.categorey':{
-            'handlers': ['sentry'],
-            'level': 'ERROR',
-            'propagate': True,
-        },
-        'refunds.handler':{
-            'handlers': ['sentry'],
-            'level': 'ERROR',
-            'propagate': True,
-        },
-        'fenxiao.handler':{
-            'handlers': ['sentry'],
-            'level': 'ERROR',
-            'propagate': True,
-        },
-        'categoreys.handler':{
-            'handlers': ['sentry'],
-            'level': 'ERROR',
-            'propagate': True,
-        },
-        'memorule.handler':{
-            'handlers': ['sentry'],
-            'level': 'ERROR',
-            'propagate': True,
-        },
-        'items.handler':{
-            'handlers': ['sentry'],
-            'level': 'ERROR',
-            'propagate': True,
-        },
-        'logistics.handler':{
-            'handlers': ['sentry'],
-            'level': 'ERROR',
-            'propagate': True,
-        },
-        'trades.handler':{
-            'handlers': ['sentry','mail_admins'],
-            'level': 'ERROR',
-            'propagate': True,
-        },
-        'asynctask.handler':{
-            'handlers': ['sentry'],
-            'level': 'ERROR',
-            'propagate': True,
-        },
-        'tradepost.handler':{
-            'handlers': ['sentry'],
-            'level': 'ERROR',
-            'propagate': True,
-        },
         'notifyserver.handler':{
             'handlers': ['sentry','console'],
-            'level': 'ERROR',
-            'propagate': True,
-        },
-        'notify.handler':{
-            'handlers': ['sentry'],
-            'level': 'ERROR',
-            'propagate': True,
-        },
-        'user.handler':{
-            'handlers': ['sentry'],
-            'level': 'ERROR',
-            'propagate': True,
-        },
-        'modifyfee.handler':{
-            'handlers': ['sentry'],
-            'level': 'ERROR',
-            'propagate': True,
-        },
-        'logaction.handler':{
-            'handlers': ['sentry'],
-            'level': 'ERROR',
-            'propagate': True,
-        },
-        'juhuasuan.handler':{
-            'handlers': ['sentry'],
-            'level': 'ERROR',
-            'propagate': True,
-        },
-        'purchases.handler':{
-            'handlers': ['sentry'],
             'level': 'ERROR',
             'propagate': True,
         },

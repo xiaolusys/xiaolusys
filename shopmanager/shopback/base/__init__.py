@@ -3,7 +3,7 @@ from django.contrib.admin.models import LogEntry,User, ADDITION, CHANGE
 from django.contrib.contenttypes.models import ContentType
 import logging 
 
-logger =  logging.getLogger('logaction.handler')
+logger =  logging.getLogger('django.request')
 
 def log_action(user_id,obj,action,msg):
     try:

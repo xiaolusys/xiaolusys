@@ -17,7 +17,7 @@ from shopback.items import permissions as perms
 from common.utils import gen_cvs_tuple,CSVUnicodeWriter
 import logging 
 
-logger =  logging.getLogger('tradepost.handler')
+logger =  logging.getLogger('django.request')
 
 class ProductSkuInline(admin.TabularInline):
     

@@ -19,7 +19,7 @@ from auth import apis
 from common.utils import parse_datetime
 import logging
 
-logger = logging.getLogger('fenxiao.handler')
+logger = logging.getLogger('django.request')
 
 
 

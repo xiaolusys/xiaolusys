@@ -26,7 +26,7 @@ from shopback.orders.models import Trade
 from auth import apis
 import logging
 
-logger = logging.getLogger('asynctask.handler')
+logger = logging.getLogger('django.request')
 
 TASK_STATUS ={
     'new':TASK_ASYNCOK,          

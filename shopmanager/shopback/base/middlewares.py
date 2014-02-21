@@ -1,5 +1,5 @@
 import logging
-logger = logging.getLogger('exception.middleware')
+logger = logging.getLogger('django.request')
 
 class RecordExceptionMiddleware(object):
 

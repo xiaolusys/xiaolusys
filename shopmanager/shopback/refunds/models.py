@@ -12,7 +12,7 @@ from django.db.models.signals import post_save
 from auth import apis
 import logging
 
-logger = logging.getLogger('refunds.handler')
+logger = logging.getLogger('django.request')
 
 REFUND_STATUS = (
     (pcfg.NO_REFUND,'没有退款'),

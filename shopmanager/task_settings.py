@@ -76,6 +76,10 @@ CELERY_ROUTES = {
             'queue': 'peroid',
             'routing_key': 'peroid.cancel_unused_yunda_sid',
         },
+        'shopapp.comments.tasks.crawAllUserOnsaleItemComment':{
+            'queue':'peroid',
+            'routing_key':'peroid.craw_onsale_item_comment',
+        },
         'top_updatedb_task.pull_taobao_trade_task':{
             'queue':'peroid',
             'routing_key':'peroid.pull_taobao_trade_task',
@@ -148,6 +152,11 @@ SYNC_MODEL_SCHEDULE = {
 
 
 SHOP_APP_SCHEDULE = {
+    'runs-every-day-craw-onsale-item-comment':{
+        'task':'shopapp.comments.tasks.crawAllUserOnsaleItemComment',
+        'schedule':crontab(minute="0",hour="23,12"),
+        'args':()
+    },
     'runs-every-5-minutes-item-list':{  #定时上架任务
         'task':'shopapp.autolist.tasks.updateAllItemListTask',
         'schedule':crontab(minute='*/10',hour=','.join([str(i) for i in range(7,24)])),

@@ -14,7 +14,7 @@ from shopback.base import log_action,User, ADDITION, CHANGE
 from shopback.signals import rule_signal
 import logging
 
-logger = logging.getLogger('memorule.handler')
+logger = logging.getLogger('django.request')
 
 
 RULE_STATUS = (

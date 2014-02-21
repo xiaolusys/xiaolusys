@@ -5,7 +5,7 @@ from shopback import paramconfig as pcfg
 from shopback.signals import rule_signal
 import logging
 
-logger = logging.getLogger('juhuasuan.handler')
+logger = logging.getLogger('django.request')
 
 
 class PinPaiTuan(models.Model):

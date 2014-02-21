@@ -21,7 +21,7 @@ from auth import apis
 from common.utils import update_model_fields
 import logging
 
-logger = logging.getLogger('notify.handler')
+logger = logging.getLogger('django.request')
 
 class EmptyMemo(Exception):
     #for memo empty exception

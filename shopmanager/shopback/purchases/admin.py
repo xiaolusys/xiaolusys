@@ -19,7 +19,7 @@ from common.utils import gen_cvs_tuple,CSVUnicodeWriter
 from shopback.base import log_action, ADDITION, CHANGE
 import logging 
 
-logger =  logging.getLogger('purchases.handler')
+logger =  logging.getLogger('django.request')
 
 class PurchaseItemInline(admin.TabularInline):
     

@@ -19,7 +19,7 @@ from auth import apis
 from common.utils import format_datetime,parse_datetime,get_yesterday_interval_time
 import logging
 
-logger = logging.getLogger('items.handler')
+logger = logging.getLogger('django.request')
 
 
 

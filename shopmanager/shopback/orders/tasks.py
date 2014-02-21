@@ -16,7 +16,7 @@ from auth import apis
 
 import logging
 
-logger = logging.getLogger('orders.handler')
+logger = logging.getLogger('django.request')
 BLANK_CHAR = ''
 
 TASK_SUCCESS = 'SUCCESS'

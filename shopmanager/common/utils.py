@@ -64,7 +64,7 @@ def refresh_session(user,appkey,appsecret,refresh_url):
     if expire_time < time.time():
         import logging
         from django.conf import settings
-        logger = logging.getLogger("token.refresh")
+        logger = logging.getLogger("django.request")
         try:
             params = {
                 'client_id':appkey,

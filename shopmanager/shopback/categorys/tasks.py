@@ -9,7 +9,7 @@ from auth import apis
 
 import logging
 
-logger = logging.getLogger('categoreys.handler')
+logger = logging.getLogger('django.request')
 
 @task(max_retry=3)
 def RecurUpdateCategoreyTask(user_id,cid):

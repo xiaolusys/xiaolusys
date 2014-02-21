@@ -13,7 +13,7 @@ import logging
 
 
 
-logger = logging.getLogger('autolist.handler')
+logger = logging.getLogger('django.request')
 
 START_TIME = '00:00'
 END_TIME = '23:59'
