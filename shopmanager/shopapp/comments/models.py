@@ -59,7 +59,7 @@ class CommentItem(models.Model):
     pic_url = models.URLField(verify_exists=False,blank=True,verbose_name=u'商品图片')
     
     updated  = models.DateTimeField(blank=True,null=True,verbose_name=u'更新日期')
-    is_active = models.BooleanField(default=True,verbose_name=u'是否')
+    is_active = models.BooleanField(default=True,verbose_name=u'有效')
     
     class Meta:
         db_table = 'shop_comments_commentitem'

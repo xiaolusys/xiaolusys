@@ -16,7 +16,7 @@ class CommentAdmin(admin.ModelAdmin):
     ordering = ['-created']
     
     list_filter = ('is_reply','ignored','role','result','is_reply','valid_score')
-    search_fields = ['num_iid','tid', 'oid']
+    search_fields = ['num_iid','tid', 'oid', 'content']
     
     formfield_overrides = {
         models.CharField: {'widget': TextInput(attrs={'size':'16'})},

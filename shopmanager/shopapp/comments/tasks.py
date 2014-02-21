@@ -35,6 +35,8 @@ class CrawItemCommentTask(Task):
     def handle_response(self,response):
         
         for rate in self.get_trade_rates(response):
+            if len(rate.get('content','')) < 4:
+                continue
             
             comment,state = Comment.objects.get_or_create(
                                                     num_iid=rate['num_iid'],
