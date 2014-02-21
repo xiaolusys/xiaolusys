@@ -13,7 +13,7 @@ class CommentAdmin(admin.ModelAdmin):
     
     list_display = ('num_iid','content','result','nick','rated_nick','is_reply','created')
     
-    date_hierarchy = '-created'
+    ordering = ['-created']
     
     list_filter = ('is_reply','ignored','role','result','is_reply','valid_score')
     search_fields = ['num_iid','tid', 'oid']
@@ -31,7 +31,7 @@ class CommentItemAdmin(admin.ModelAdmin):
     
     list_display = ('num_iid','title','updated','is_active')
     
-    date_hierarchy = '-updated'
+    ordering = ['-updated']
     
     list_filter = ('is_active',)
     search_fields = ['num_iid','title']
