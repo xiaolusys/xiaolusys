@@ -32,7 +32,7 @@ class CommentItemAdmin(admin.ModelAdmin):
     fields = ('num_iid','title','updated','is_active')
     
     list_filter = ('is_active',)
-    search_fields = ['num_iid']
+    search_fields = ['num_iid','title']
     
     formfield_overrides = {
         models.CharField: {'widget': TextInput(attrs={'size':'16'})},

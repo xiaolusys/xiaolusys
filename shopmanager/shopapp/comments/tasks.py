@@ -10,6 +10,8 @@ from shopback import paramconfig as pcfg
 from celery.task import task
 from celery.task.sets import subtask
 from celery import Task
+from shopapp.comments.models import Comment,CommentItem
+
 import logging
 
 CRAW_LAST_DAYS = 14
@@ -20,15 +22,15 @@ class CrawItemCommentTask(Task):
     """ 抓取所有在售商品评论 """
             
     def get_total_results(self,response):    
-        return response['traderates_get_response'].get('total_results',0)
+        return response.get('total_results',None)
     
     def get_trade_rates(self,response):
-        if self.get_total_results(response)>0:
-            return response['traderates_get_response']['trade_rates']['trade_rate']
-        return []
+        if not response.has_key('trade_rates'):   
+            return []
+        return response['trade_rates']['trade_rate']
         
     def get_has_next(self,response):
-        return response['traderates_get_response'].get('has_next',False)   
+        return response.get('has_next',None)   
     
     def handle_response(self,response):
         
@@ -55,7 +57,6 @@ class CrawItemCommentTask(Task):
         try:
             from auth import apis
             from shopback.items.models import Item
-            from shopapp.comments.models import Comment,CommentItem
             
             item  = Item.objects.get(num_iid=num_iid)
             comment_item,state = CommentItem.objects.get_or_create(num_iid=num_iid)
@@ -80,10 +81,12 @@ class CrawItemCommentTask(Task):
                                                       use_has_next=True,
                                                       tb_user_id=item.user.visitor_id)
                 
+                response = response['traderates_get_response']
                 self.handle_response(response)
                 has_next  = self.get_has_next(response)
                 page_no   += 1
             
+            comment_item.updated = dt
             comment_item.title   = item.title
             comment_item.pic_url = item.pic_url
             comment_item.save()

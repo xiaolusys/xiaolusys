@@ -25,9 +25,9 @@ class Comment(models.Model):
     tid     = models.BigIntegerField(null=False,db_index=True,verbose_name=u'交易ID')
     oid     = models.BigIntegerField(null=False,db_index=True,verbose_name=u'订单ID')
     
-    item_title  = models.CharField(max_length=148,verbose_name=u'商品标题')
+    item_title  = models.CharField(max_length=148,blank=True,verbose_name=u'商品标题')
     item_pic_url = models.URLField(verify_exists=False,blank=True,verbose_name=u'商品图片')
-    item_price  = models.DecimalField(max_digits=10,decimal_places=2,verbose_name=u'商品价格')
+    item_price  = models.DecimalField(max_digits=10,null=True,decimal_places=2,verbose_name=u'商品价格')
     
     valid_score = models.BooleanField(default=True,verbose_name=u'是否记分')
     role    = models.CharField(max_length=8,choices=ROLE_CHOICES,verbose_name=u'角色')
@@ -53,13 +53,13 @@ class Comment(models.Model):
         
 class CommentItem(models.Model):
     
-    num_iid  = models.BigIntegerField(primary_key=True,verbose_name='商品ID')
+    num_iid  = models.BigIntegerField(primary_key=True,verbose_name=u'商品ID')
     
-    title    = models.CharField(max_length=64,verbose_name='标题')
+    title    = models.CharField(max_length=64,blank=True,verbose_name=u'标题')
     pic_url = models.URLField(verify_exists=False,blank=True,verbose_name=u'商品图片')
     
-    updated  = models.DateTimeField(blank=True,null=True,verbose_name='更新日期')
-    is_active = models.BooleanField(default=True,verbose_name='是否有效')
+    updated  = models.DateTimeField(blank=True,null=True,verbose_name=u'更新日期')
+    is_active = models.BooleanField(default=True,verbose_name=u'优尼时间')
     
     class Meta:
         db_table = 'shop_comments_commentitem'
