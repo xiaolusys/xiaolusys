@@ -42,7 +42,7 @@ class Comment(models.Model):
     is_reply = models.BooleanField(default=False,verbose_name=u'已回复')
     ignored  = models.BooleanField(default=False,verbose_name=u'已忽略')
     
-    created = models.DateTimeField(blank=True,verbose_name=u'创建日期')
+    created = models.DateTimeField(blank=True,null=True,verbose_name=u'创建日期')
     
     class Meta:
         db_table = 'shop_comments_comment'
@@ -59,7 +59,7 @@ class CommentItem(models.Model):
     pic_url = models.URLField(verify_exists=False,blank=True,verbose_name=u'商品图片')
     
     updated  = models.DateTimeField(blank=True,null=True,verbose_name=u'更新日期')
-    is_active = models.BooleanField(default=True,verbose_name=u'优尼时间')
+    is_active = models.BooleanField(default=True,verbose_name=u'是否')
     
     class Meta:
         db_table = 'shop_comments_commentitem'

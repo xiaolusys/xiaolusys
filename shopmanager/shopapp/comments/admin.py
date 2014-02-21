@@ -11,8 +11,9 @@ from shopapp.comments.models import Comment,CommentItem
 
 class CommentAdmin(admin.ModelAdmin):
     
-    model = Comment
-    fields = ('num_iid','tid','oid','role','result','nick','rated_nick','is_reply','created')
+    list_display = ('num_iid','content','result','nick','rated_nick','is_reply','created')
+    
+    date_hierarchy = '-created'
     
     list_filter = ('is_reply','ignored','role','result','is_reply','valid_score')
     search_fields = ['num_iid','tid', 'oid']
@@ -28,8 +29,9 @@ admin.site.register(Comment, CommentAdmin)
 
 class CommentItemAdmin(admin.ModelAdmin):
     
-    model = CommentItem
-    fields = ('num_iid','title','updated','is_active')
+    list_display = ('num_iid','title','updated','is_active')
+    
+    date_hierarchy = '-updated'
     
     list_filter = ('is_active',)
     search_fields = ['num_iid','title']
