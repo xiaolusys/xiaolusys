@@ -11,7 +11,7 @@ from shopapp.comments.models import Comment,CommentItem
 
 class CommentAdmin(admin.ModelAdmin):
     
-    list_display = ('num_iid','content_link','result','nick','rated_nick','created','explain_link')
+    list_display = ('id','item_image_link','content_link','result','nick','rated_nick','created','explain_link')
     
     ordering = ['-created']
     
@@ -24,7 +24,13 @@ class CommentAdmin(admin.ModelAdmin):
                 '</div><div class="well well-large">%s</div>'%(obj.content))
     
     content_link.allow_tags = True
-    content_link.short_description = "评价内容"
+    content_link.short_description = "商品图片"
+    
+    def item_image_link(self, obj):
+        return (u'<img src="%s"  alt="%s" width="80px" height="60px"/>'%(obj.item_pic_url,obj.item_title))
+    
+    item_image_link.allow_tags = True
+    item_image_link.short_description = "评价内容"
     
     def explain_link(self, obj):
         return (u'<a href="javascript:void(0);" class="btn %s" cid="%d" nick="%s">%s</a>'%
