@@ -100,7 +100,8 @@ class MergeTradeAdmin(admin.ModelAdmin):
     
     class Media:
         css = {"all": ("admin/css/forms.css","css/admin/dialog.css","css/admin/checkorder.css")}
-        js = ("script/admin/adminpopup.js",)
+        js = ("closure-library/closure/goog/base.js","script/admin/adminpopup.js","script/base.js",
+              "script/trades/checkorder.js","script/trades/tradetags.js")
         
     #--------设置页面布局----------------
     fieldsets =(('订单基本信息:', {

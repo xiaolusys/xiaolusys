@@ -6,15 +6,16 @@
 from datetime import datetime,timedelta
 import time
 import json
-from shopback import paramconfig as pcfg
 from celery.task import task
 from celery.task.sets import subtask
 from celery import Task
 from shopapp.comments.models import Comment,CommentItem
+from common.utils import single_instance_task
 
 import logging
 
-CRAW_LAST_DAYS = 14
+CRAW_LAST_DAYS  = 14  #初次抓取评论的天数
+COMMENT_MIN_LEN = 5   #评论最少字数
 logger = logging.getLogger('celery.handler')
 
 
@@ -39,7 +40,7 @@ class CrawItemCommentTask(Task):
         
         from shopback.orders.models import Order
         for rate in self.get_trade_rates(response):
-            if len(rate.get('content','')) < 4:
+            if len(rate.get('content','')) < COMMENT_MIN_LEN:
                 continue
             
             comment,state = Comment.objects.get_or_create(
@@ -111,11 +112,12 @@ class CrawItemCommentTask(Task):
         
     
     
-@task
+@single_instance_task(2*60*60,prefix='shopapp.comments.tasks.')
 def crawAllUserOnsaleItemComment():
     
     from shopback.users.models import User
     from shopback.items.models import Item
+    from shopback import paramconfig as pcfg
     
     users  = User.objects.filter(status=pcfg.NORMAL)
     

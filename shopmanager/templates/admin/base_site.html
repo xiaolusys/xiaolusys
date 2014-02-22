@@ -12,7 +12,6 @@
 a.section:link, a.section:visited { color: #666666; }
 </style>
 <script src="{{ STATIC_URL }}jquery/jquery-1.8.13.min.js"></script>
-<script src="{{ STATIC_URL }}closure-library/closure/goog/base.js"></script>
 {% endblock %}
 
 {% block branding %}
@@ -22,12 +21,5 @@ a.section:link, a.section:visited { color: #666666; }
 {% block nav-global %}{% endblock %}
 
 {% block footer %}
-  <script src="{{ STATIC_URL }}script/base.js" type="text/javascript"></script>
-  <script src="{{ STATIC_URL }}script/trades/checkorder.js" type="text/javascript"></script>
-  <script src="{{ STATIC_URL }}script/trades/tradetags.js" type="text/javascript"></script>
-  <script type="text/javascript">
-  	new ordercheck.Manager();
-  	new tradetag.Manager();
-  </script>
 <div id="footer"></div>
 {% endblock %}
