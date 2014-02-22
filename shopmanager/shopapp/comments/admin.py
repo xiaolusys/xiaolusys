@@ -15,7 +15,7 @@ class CommentAdmin(admin.ModelAdmin):
     
     ordering = ['-created']
     
-    list_filter = ('is_reply','ignored','role','result','is_reply','valid_score')
+    list_filter = ('is_reply','ignored','role','result','valid_score')
     search_fields = ['num_iid','tid', 'oid', 'content']
     
     def content_link(self, obj):

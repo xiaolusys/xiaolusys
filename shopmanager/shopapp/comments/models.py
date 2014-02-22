@@ -58,7 +58,7 @@ class Comment(models.Model):
         rel_item = Item.objects.get(num_iid=self.num_iid)
         
         res = apis.taobao_traderate_explain_add(oid=self.oid,
-                                                reply=self.reply,
+                                                reply=content,
                                                 tb_user_id=rel_item.user.visitor_id)
         if not res['traderate_explain_add_response']['is_success']:
             raise Exception('解释失败！')
