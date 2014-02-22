@@ -27,7 +27,7 @@ class CommentAdmin(admin.ModelAdmin):
     content_link.short_description = "评价内容"
     
     def item_image_link(self, obj):
-        return (u'<a href="%s"><img src="%s"  alt="%s" width="80px" height="60px"/></a>'%(obj.detail_url,obj.item_pic_url,obj.item_title))
+        return (u'<a href="%s" target="_blank"><img src="%s"  alt="%s" width="80px" height="60px"/></a>'%(obj.detail_url,obj.item_pic_url,obj.item_title))
     
     item_image_link.allow_tags = True
     item_image_link.short_description = "商品图片"
