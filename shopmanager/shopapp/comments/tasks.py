@@ -57,7 +57,7 @@ class CrawItemCommentTask(Task):
             
             orders = Order.objects.filter(oid=rate['oid'])
             if orders.count():
-                comment.item_title   = comment.item_title+'【%s】'%orders[0].sku_properties_name
+                comment.item_title   = comment.item_title+u'\u3010%s\u3011'%orders[0].sku_properties_name
             comment.item_pic_url = self.item.pic_url
             comment.detail_url   = self.item.detail_url
             comment.ignored = False
