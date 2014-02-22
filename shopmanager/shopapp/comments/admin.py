@@ -11,18 +11,37 @@ from shopapp.comments.models import Comment,CommentItem
 
 class CommentAdmin(admin.ModelAdmin):
     
-    list_display = ('num_iid','content','result','nick','rated_nick','is_reply','created')
+    list_display = ('num_iid','content_link','result','nick','rated_nick','created','explain_link')
     
     ordering = ['-created']
     
     list_filter = ('is_reply','ignored','role','result','is_reply','valid_score')
     search_fields = ['num_iid','tid', 'oid', 'content']
     
+    def content_link(self, obj):
+        return (u'<div style="display:inline-block;"><a href="javascript:void(0);" class="btn btn-small %s" cid="%d">%s</a>'
+                %(('','btn-info')[0 if obj.ignored else 1],obj.id,(u'忽略',u'已忽略')[1 if obj.ignored else 0])+
+                '</div><div class="well well-large">%s</div>'%(obj.content))
+    
+    content_link.allow_tags = True
+    content_link.short_description = "评价内容"
+    
+    def explain_link(self, obj):
+        return (u'<a href="javascript:void(0);" class="btn %s" cid="%d" nick="%s">%s</a>'%
+                (('','btn-success')[0 if obj.is_reply else 1],obj.id,obj.nick,(u'解释',u'已回复')[1 if obj.is_reply else 0]))
+    
+    explain_link.allow_tags = True
+    explain_link.short_description = "解释评价"
+    
     formfield_overrides = {
         models.CharField: {'widget': TextInput(attrs={'size':'16'})},
         models.FloatField: {'widget': TextInput(attrs={'size':'16'})},
         models.TextField: {'widget': Textarea(attrs={'rows':4, 'cols':40})},
     }
+    
+    class Media:
+        css = {"all": ("admin/css/forms.css","css/admin/dialog.css","css/admin/common.css","jquery/jquery-ui-1.10.1.css")}
+        js = ("jquery/jquery-ui-1.8.13.min.js","jquery/addons/jquery.form.js","script/admin/adminpopup.js","comments/js/comment.js")
 
 admin.site.register(Comment, CommentAdmin)  
 

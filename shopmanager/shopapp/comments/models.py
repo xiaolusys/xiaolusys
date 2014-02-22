@@ -50,6 +50,23 @@ class Comment(models.Model):
         verbose_name = u'交易评论'
         verbose_name_plural = u'交易评论列表'
         
+    def reply_order_comment(self,content):
+    
+        from auth import apis
+        from shopback.items.models import Item
+        
+        rel_item = Item.objects.get(num_iid=self.num_iid)
+        
+        res = apis.taobao_traderate_explain_add(oid=self.oid,
+                                                reply=self.reply,
+                                                tb_user_id=rel_item.user.visitor_id)
+        if not res['traderate_explain_add_response']['is_success']:
+            raise Exception('解释失败！')
+        
+        self.reply = content
+        self.is_reply = True
+        self.save()
+        
         
 class CommentItem(models.Model):
     

@@ -478,6 +478,10 @@ def taobao_traderates_get(rate_type='get',role='buyer',tid=None,num_iid=None,res
                           ,end_date=None,use_has_next=False,fields=API_FIELDS['taobao.traderates.get'],tb_user_id=None):
     pass
 
+@apis('taobao.traderate.explain.add')
+def taobao_traderate_explain_add(oid=None,reply=None,tb_user_id=None):
+    pass
+
 ################## 主动通知接口 ####################
 @apis('taobao.increment.authorize.message.get')
 def taobao_increment_authorize_message_get(topic=None,status=None,nick=None,start_modified=None,end_modified=None,page_no=None,page_size=None,tb_user_id=None):
