@@ -37,6 +37,7 @@ class CrawItemCommentTask(Task):
     
     def handle_response(self,response):
         
+        from shopback.orders.models import Order
         for rate in self.get_trade_rates(response):
             if len(rate.get('content','')) < 4:
                 continue
@@ -53,6 +54,10 @@ class CrawItemCommentTask(Task):
             if comment.reply:
                 comment.is_reply = True
             
+            
+            orders = Order.objects.filter(oid=rate['oid'])
+            if orders.count():
+                comment.item_title   = comment.item_title+'【%s】'%orders[0].sku_properties_name
             comment.item_pic_url = self.item.pic_url
             comment.detail_url   = self.item.detail_url
             comment.ignored = False
@@ -94,7 +99,7 @@ class CrawItemCommentTask(Task):
                 page_no   += 1
             
             comment_item.updated = dt
-            comment_item.title   = item.title
+            comment_item.title   = self.item.title
             comment_item.pic_url = self.item.pic_url
             comment_item.detail_url = self.item.detail_url
             comment_item.save()
