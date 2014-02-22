@@ -27,6 +27,7 @@ class Comment(models.Model):
     
     item_title  = models.CharField(max_length=148,blank=True,verbose_name=u'商品标题')
     item_pic_url = models.URLField(verify_exists=False,blank=True,verbose_name=u'商品图片')
+    detail_url   = models.URLField(verify_exists=False,blank=True,verbose_name=u'详情链接')
     item_price  = models.DecimalField(max_digits=10,null=True,decimal_places=2,verbose_name=u'商品价格')
     
     valid_score = models.BooleanField(default=True,verbose_name=u'是否记分')
@@ -74,6 +75,7 @@ class CommentItem(models.Model):
     
     title    = models.CharField(max_length=64,blank=True,verbose_name=u'标题')
     pic_url = models.URLField(verify_exists=False,blank=True,verbose_name=u'商品图片')
+    detail_url   = models.URLField(verify_exists=False,blank=True,verbose_name=u'详情链接')
     
     updated  = models.DateTimeField(blank=True,null=True,verbose_name=u'更新日期')
     is_active = models.BooleanField(default=True,verbose_name=u'有效')

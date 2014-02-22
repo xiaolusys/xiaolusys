@@ -20,7 +20,10 @@ logger = logging.getLogger('celery.handler')
 
 class CrawItemCommentTask(Task):
     """ 抓取所有在售商品评论 """
-            
+    
+    def __init__(self):
+        self.item = None
+    
     def get_total_results(self,response):    
         return response.get('total_results',None)
     
@@ -50,6 +53,8 @@ class CrawItemCommentTask(Task):
             if comment.reply:
                 comment.is_reply = True
             
+            comment.item_pic_url = self.item.pic_url
+            comment.detail_url   = self.item.detail_url
             comment.ignored = False
             comment.save()
                 
@@ -60,7 +65,7 @@ class CrawItemCommentTask(Task):
             from auth import apis
             from shopback.items.models import Item
             
-            item  = Item.objects.get(num_iid=num_iid)
+            self.item  = Item.objects.get(num_iid=num_iid)
             comment_item,state = CommentItem.objects.get_or_create(num_iid=num_iid)
             
             dt = datetime.now()
@@ -81,7 +86,7 @@ class CrawItemCommentTask(Task):
                                                       start_date=comment_item.updated,
                                                       end_date=dt,
                                                       use_has_next=True,
-                                                      tb_user_id=item.user.visitor_id)
+                                                      tb_user_id=self.item.user.visitor_id)
                 
                 response = response['traderates_get_response']
                 self.handle_response(response)
@@ -90,7 +95,8 @@ class CrawItemCommentTask(Task):
             
             comment_item.updated = dt
             comment_item.title   = item.title
-            comment_item.pic_url = item.pic_url
+            comment_item.pic_url = self.item.pic_url
+            comment_item.detail_url = self.item.detail_url
             comment_item.save()
             
         except Exception,exc:
