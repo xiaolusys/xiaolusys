@@ -112,7 +112,7 @@ class CrawItemCommentTask(Task):
         
     
     
-@single_instance_task(2*60*60,prefix='shopapp.comments.tasks.')
+@single_instance_task(3*60*60,prefix='shopapp.comments.tasks.')
 def crawAllUserOnsaleItemComment():
     
     from shopback.users.models import User

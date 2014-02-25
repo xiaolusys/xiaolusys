@@ -409,7 +409,7 @@ class ProductSkuView(ModelView):
         except Exception,exc:
             return u'填写信息不规则'
         
-        log_action(request.user.id,product_sku.product,CHANGE,u'更新商品规格信息:%s'%str(product_sku))
+        log_action(request.user.id,product_sku.product,CHANGE,u'更新商品规格信息:%s'%unicode(product_sku))
         
         return product_sku.json
     
