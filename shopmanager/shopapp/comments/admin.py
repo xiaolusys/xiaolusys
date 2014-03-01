@@ -1,8 +1,4 @@
 #-*- coding:utf8 -*-
-"""
-@author: meixqhi
-@since: 2014-02-18 
-"""
 from django.contrib import admin
 from django.db import models
 from django.forms import TextInput, Textarea

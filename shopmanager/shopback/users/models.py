@@ -95,8 +95,8 @@ class User(models.Model):
     def getSellerByVisitorId(cls,visitor_id):
     
         try:
-            return Seller.objects.get(visitor_id=visitor_id)
-        except Seller.DoesNotExist:
+            return cls.objects.get(visitor_id=visitor_id)
+        except cls.DoesNotExist:
             return None
 
     @property
