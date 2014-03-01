@@ -394,6 +394,6 @@ def updateAllUserItemNumTask():
     
     updateProductWaitPostNumTask()
 
-    users = User.effect_users.all()
+    users = Seller.effect_users.all()
     for user in users:
         updateUserItemNumTask(user.visitor_id)  
