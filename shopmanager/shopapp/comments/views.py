@@ -30,9 +30,14 @@ def explain_for_comment(request):
     try:
         comment = Comment.objects.get(id=cid)
     
-        comment.reply_order_comment(reply)
+        comment.reply_order_comment(reply,request.user)
     except Exception,exc:
         logger.error(exc.message or str(exc),exc_info=True)
         return HttpResponse(json.dumps({'code':1,'error_response':exc.message}),mimetype="application/json")
     
     return  HttpResponse(json.dumps({'code':0,'response_content':'success'}),mimetype="application/json")
+
+
+
+
+

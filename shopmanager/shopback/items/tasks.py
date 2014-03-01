@@ -12,7 +12,7 @@ from shopback import paramconfig as pcfg
 from shopback.items.models import Item,Product,ProductSku,SkuProperty,ItemNumTaskLog
 from shopback.orders.models import Order, Trade
 from shopback.trades.models import MergeOrder, MergeTrade
-from shopback.users.models import User
+from shopback.users import Seller
 from shopback.fenxiao.tasks import saveUserFenxiaoProductTask
 from shopback import paramconfig as pcfg
 from auth import apis
@@ -88,7 +88,7 @@ def updateUserItemsTask(user_id):
 @task()
 def updateAllUserItemsTask():
     """ 更新所有用户商品信息任务 """
-    users = User.objects.all()
+    users = Seller.effect_users.all()
 
     for user in users:
         subtask(updateUserItemsTask).delay(user.visitor_id)
@@ -99,7 +99,7 @@ def updateAllUserItemsTask():
 def updateUserProductSkuTask(user_id=None,outer_ids=None,force_update_num=False):
     """ 更新用户商品SKU规格信息任务 """
     
-    user = User.objects.get(visitor_id=user_id)
+    user = Seller.getSellerByVisitorId(user_id)
     items = user.items.filter(status=pcfg.NORMAL)
     if outer_ids:
         items = items.filter(outer_id__in=outer_ids)
@@ -222,7 +222,7 @@ def updateProductWarnNumTask():
 @task()
 def updateAllUserProductSkuTask():
     """ 更新所有用户SKU信息任务 """
-    users = User.objects.filter(is_primary=True)
+    users = Seller.effect_users.filter(is_primary=True)
     for user in users:
 
         subtask(updateUserProductSkuTask).delay(user.visitor_id)
@@ -239,7 +239,7 @@ def updateUserItemsEntityTask(user_id):
 @task()
 def updateAllUserItemsEntityTask():
     """ 更新所有用户商品及SKU信息任务 """
-    users = User.objects.all()
+    users = Seller.effect_users.all()
     for user in users:
 
         subtask(updateUserItemsEntityTask).delay(user.visitor_id)
@@ -394,6 +394,6 @@ def updateAllUserItemNumTask():
     
     updateProductWaitPostNumTask()
 
-    users = User.objects.all()
+    users = User.effect_users.all()
     for user in users:
         updateUserItemNumTask(user.visitor_id)  

@@ -166,35 +166,8 @@ def apis(api_method,method='GET',max_retry=3,limit_rate=0.5):
         
         def retry_func(fn):
             def wrap(*args,**kwargs):
-                #acquire_lock = lambda: cache.add(api_method, "true", limit_rate)
-                #try_times = 0
-                #for i in xrange(0,max_retry):
-                #if not acquire_lock():
-                #    time.sleep(limit_rate)
-                #try:
                 return fn(*args,**kwargs)
-                #except RemoteConnectionException,e:
-                #    try_times += 1
-                #    if try_times >= max_retry:
-                #        logger.error('remote connect error：%s ,retry：%d'%
-                #                     (response_list,try_times))
-                #        raise e    
-                #except APIConnectionTimeOutException,e:
-                #    try_times += 1
-                #    if try_times >= max_retry:
-                #        logger.error('connect error：%s ,retry：%d'%
-                #                     (response_list,try_times))
-                #        raise e
-                #    time.sleep(settings.API_TIME_OUT_SLEEP)
-                #except ServiceRejectionException,e:
-                #    try_times += 1
-                #    if try_times >= max_retry:
-                #        logger.error('request over limit times per minute：%s ,retry：%d'%
-                #                     (response_list,try_times))
-                #        raise e
-                #    time.sleep(settings.API_OVER_LIMIT_SLEEP)
             return wrap
-                    
         
         func_args = copy.copy(inspect.getargspec(func).args)
         func_defaults = copy.copy(inspect.getargspec(func).defaults)

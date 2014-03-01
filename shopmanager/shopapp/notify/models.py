@@ -22,7 +22,7 @@ class ItemNotify(models.Model):
     
     changed_fields = models.CharField(max_length=256,blank=True)
     price   = models.CharField(max_length=10,blank=True)
-    modified = models.DateTimeField(db_index=True,null=True,blank=True,verbose_name='修改时间') 
+    modified = models.DateTimeField(db_index=True,null=True,blank=True,verbose_name=u'修改时间') 
        
     is_exec  = models.BooleanField(default=False)
     class Meta:
@@ -68,7 +68,7 @@ class TradeNotify(models.Model):
     
     trade_mark = models.CharField(max_length=256,blank=True)
    
-    modified = models.DateTimeField(db_index=True,null=True,blank=True,verbose_name='修改时间')
+    modified = models.DateTimeField(db_index=True,null=True,blank=True,verbose_name=u'修改时间')
     
     is_exec  = models.BooleanField(default=False)
     class Meta:
@@ -110,7 +110,7 @@ class RefundNotify(models.Model):
     refund_fee   = models.CharField(max_length=10,blank=True)
     status  = models.CharField(max_length=32,blank=True)
     
-    modified = models.DateTimeField(db_index=True,null=True,blank=True,verbose_name='修改时间')
+    modified = models.DateTimeField(db_index=True,null=True,blank=True,verbose_name=u'修改时间')
     is_exec  = models.BooleanField(default=False)
     class Meta:
         db_table = 'shop_notify_refund'

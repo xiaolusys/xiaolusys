@@ -119,7 +119,7 @@ def crawAllUserOnsaleItemComment():
     from shopback.items.models import Item
     from shopback import paramconfig as pcfg
     
-    users  = User.objects.filter(status=pcfg.NORMAL)
+    users  = User.effect_users.all()
     
     onsale_items = Item.objects.filter(user__in=users,approve_status=pcfg.ONSALE_STATUS)
         

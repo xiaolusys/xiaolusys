@@ -10,7 +10,7 @@ from auth.apis.exceptions import UserFenxiaoUnuseException,TaobaoRequestExceptio
 from shopback.monitor.models import TradeExtraInfo,SystemConfig,DayMonitorStatus
 from shopback.trades.models import MergeTrade
 from shopback import paramconfig as pcfg
-from shopback.users import Seller,getUserBySellerId,getNormalSeller
+from shopback.users import Seller
 from common.utils import format_time,format_datetime,format_year_month,parse_datetime,single_instance_task
 from auth import apis
 import logging
@@ -23,7 +23,7 @@ logger = logging.getLogger('django.reqeust')
 @task()
 def saveUserFenxiaoProductTask(seller_id):
     
-    seller = getUserBySellerId(seller_id)
+    seller = Seller.getSellerByVisitorId(seller_id)
     if not seller.has_fenxiao:
         return 
     try:
@@ -52,7 +52,8 @@ def saveUserFenxiaoProductTask(seller_id):
  
 @task(max_retries=3)
 def saveUserPurchaseOrderTask(seller_id,update_from=None,update_to=None,status=None):
-    seller = getUserBySellerId(seller_id)
+    
+    seller = Seller.getSellerByVisitorId(seller_id)
     if not seller.has_fenxiao:
         return 
     
@@ -96,7 +97,8 @@ def saveUserPurchaseOrderTask(seller_id,update_from=None,update_to=None,status=N
   
 @task()
 def saveUserIncrementPurchaseOrderTask(seller_id,update_from=None,update_to=None):
-    seller = getUserBySellerId(seller_id)
+    
+    seller = Seller.getSellerByVisitorId(seller_id)
     if not seller.has_fenxiao:
         return 
          
@@ -139,7 +141,7 @@ def updateAllUserIncrementPurchaseOrderTask(update_from=None,update_to=None):
         update_to   = datetime.datetime(dt.year,dt.month,dt.day,0,0,0)
         update_days = 1
         
-    sellers = getNormalSeller()
+    sellers = Seller.effect_users.all()
     
     for user in sellers:
         for i in xrange(0,update_days):
@@ -173,8 +175,9 @@ def updateAllUserIncrementPurchasesTask():
     
     dt = datetime.datetime.now()
     sysconf = SystemConfig.getconfig()
-    sellers = getNormalSeller()
+    sellers = Seller.effect_users.all()
     updated = sysconf.fenxiao_order_updated 
+    
     try:
         if updated:
             bt_dt = dt-updated

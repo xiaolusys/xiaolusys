@@ -21,6 +21,10 @@ USER_STATUS_CHOICES = (
     (pcfg.USER_SUPERVISE,u'监管'),
 )
 
+class EffectUserManager(models.Manager):
+    def get_queryset(self):
+        return super(EffectUserManager, self).get_queryset().filter(status=pcfg.USER_NORMAL)
+
 class User(models.Model):
 
     id = BigIntegerAutoField(primary_key=True)
@@ -76,6 +80,7 @@ class User(models.Model):
     created_at = models.DateTimeField(auto_now=True,null=True) 
     status     = models.CharField(max_length=12,choices=USER_STATUS_CHOICES,blank=True) #normal(正常),inactive(未激活),delete(删除),reeze(冻结),supervise(监管)
     
+    effect_users = EffectUserManager()
     class Meta:
         db_table = 'shop_users_user'
         verbose_name= u'店铺'
@@ -83,6 +88,14 @@ class User(models.Model):
 
     def __unicode__(self):
         return '%s'%self.nick
+    
+    @classmethod
+    def getSellerByVisitorId(cls,visitor_id):
+    
+        try:
+            return Seller.objects.get(visitor_id=visitor_id)
+        except Seller.DoesNotExist:
+            return None
 
     @property
     def stock_percent(self):

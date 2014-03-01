@@ -8,6 +8,7 @@ from django.db import models
 from django.forms import TextInput, Textarea
 from django.http import HttpResponse
 from shopapp.comments.models import Comment,CommentItem
+from shopback.base.options import DateFieldListFilter
 
 class CommentAdmin(admin.ModelAdmin):
     
@@ -15,8 +16,8 @@ class CommentAdmin(admin.ModelAdmin):
     
     ordering = ['-created']
     
-    list_filter = ('is_reply','ignored','role','result','valid_score')
-    search_fields = ['num_iid','tid', 'oid', 'content']
+    list_filter = ('is_reply','ignored','result','valid_score',('replay_at',DateFieldListFilter))
+    search_fields = ['num_iid','tid', 'oid', 'content','replayer__username']
     
     def content_link(self, obj):
         return (u'<div style="display:inline-block;"><a href="javascript:void(0);" class="btn btn-small %s" cid="%d">%s</a>'

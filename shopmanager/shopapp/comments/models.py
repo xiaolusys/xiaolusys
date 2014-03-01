@@ -1,9 +1,6 @@
 #-*- coding:utf-8 -*-
-"""
-@author: meixqhi
-@since: 2014-02-18 
-"""
 from django.db import models
+from django.contrib.auth.models import User
 from shopback.base.fields import BigIntegerAutoField
 
 ROLE_CHOICES = (
@@ -40,9 +37,12 @@ class Comment(models.Model):
     content = models.CharField(max_length=1500,blank=True,verbose_name=u'评价内容')
     reply   = models.CharField(max_length=1500,blank=True,verbose_name=u'评价解释')
     
-    is_reply = models.BooleanField(default=False,verbose_name=u'已回复')
+    is_reply = models.BooleanField(default=False,verbose_name=u'已解释')
     ignored  = models.BooleanField(default=False,verbose_name=u'已忽略')
+
+    replayer  = models.ForeignKey(User,null=True,default=None,verbose_name=u'评价人')
     
+    replay_at = models.DateTimeField(db_index=True,blank=True,null=True,verbose_name=u'解释日期')
     created = models.DateTimeField(blank=True,null=True,verbose_name=u'创建日期')
     
     class Meta:
@@ -51,8 +51,9 @@ class Comment(models.Model):
         verbose_name = u'交易评论'
         verbose_name_plural = u'交易评论列表'
         
-    def reply_order_comment(self,content):
-    
+    def reply_order_comment(self,content,replayer):
+        
+        import datetime        
         from auth import apis
         from shopback.items.models import Item
         
@@ -64,8 +65,10 @@ class Comment(models.Model):
         if not res['traderate_explain_add_response']['is_success']:
             raise Exception('解释失败！')
         
-        self.reply = content
-        self.is_reply = True
+        self.reply     = content
+        self.replayer  = replayer
+        self.replay_at = datetime.datetime.now()
+        self.is_reply  = True
         self.save()
         
         
