@@ -80,7 +80,9 @@ class User(models.Model):
     created_at = models.DateTimeField(auto_now=True,null=True) 
     status     = models.CharField(max_length=12,choices=USER_STATUS_CHOICES,blank=True) #normal(正常),inactive(未激活),delete(删除),reeze(冻结),supervise(监管)
     
+    objects    = models.Manager()
     effect_users = EffectUserManager()
+    
     class Meta:
         db_table = 'shop_users_user'
         verbose_name= u'店铺'
