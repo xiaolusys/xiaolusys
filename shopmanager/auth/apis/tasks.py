@@ -211,7 +211,8 @@ def apis(api_method,method='GET',max_retry=3,limit_rate=0.5):
                 req = urllib2.urlopen(uri)
                 content = req.read()
             else:
-                req = urllib2.urlopne(url,body=urllib.urlencode(params))
+                rst = urllib2.Request(absolute_url)
+                req = urllib2.urlopen(rst,urllib.urlencode(params))
                 content = req.read()
 
             return raise_except_or_ret_json(content)

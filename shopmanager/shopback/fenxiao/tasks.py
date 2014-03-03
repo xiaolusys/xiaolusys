@@ -179,23 +179,23 @@ def updateAllUserIncrementPurchasesTask():
     updated = sysconf.fenxiao_order_updated 
     
     try:
-        if updated:
-            bt_dt = dt-updated
-            if bt_dt.days>=1:
-                for user in sellers:
-                    saveUserPurchaseOrderTask(user.visitor_id,
-                                              status=pcfg.WAIT_SELLER_SEND_GOODS)
-            else:
-                for user in sellers:
-                    saveUserIncrementPurchaseOrderTask(user.visitor_id,
-                                                       update_from=updated,
-                                                       update_to=dt)
-                    saveUserPurchaseOrderTask(user.visitor_id,
-                                              status=pcfg.WAIT_SELLER_SEND_GOODS)
-        else:
-            for user in sellers:
+        for user in sellers:
+            if not  updated:
                 saveUserPurchaseOrderTask(user.visitor_id,
                                           status=pcfg.WAIT_SELLER_SEND_GOODS)
+                continue
+            
+            bt_dt = dt-updated
+            if bt_dt.days>=1:
+                saveUserPurchaseOrderTask(user.visitor_id,
+                                              status=pcfg.WAIT_SELLER_SEND_GOODS)
+            else:
+                saveUserIncrementPurchaseOrderTask(user.visitor_id,
+                                                   update_from=updated,
+                                                   update_to=dt)
+                saveUserPurchaseOrderTask(user.visitor_id,
+                                          status=pcfg.WAIT_SELLER_SEND_GOODS)
+                
     except Exception,exc:
         logger.error('%s'%exc,exc_info=True)
     else:

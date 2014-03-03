@@ -22,8 +22,8 @@ USER_STATUS_CHOICES = (
 )
 
 class EffectUserManager(models.Manager):
-    def get_queryset(self):
-        return super(EffectUserManager, self).get_queryset().filter(status=pcfg.USER_NORMAL)
+    def get_query_set(self):
+        return super(EffectUserManager, self).get_query_set().filter(status=pcfg.USER_NORMAL)
 
 class User(models.Model):
 
