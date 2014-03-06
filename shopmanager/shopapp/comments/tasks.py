@@ -20,7 +20,7 @@ logger = logging.getLogger('celery.handler')
 
 
 class CrawItemCommentTask(Task):
-    """ 抓取所有在售商品评论 """
+    """ 抓取在售商品评论 """
     
     def __init__(self):
         self.item = None

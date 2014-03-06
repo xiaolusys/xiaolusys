@@ -8,7 +8,7 @@ from shopback.base.options import DateFieldListFilter
 
 class CommentAdmin(admin.ModelAdmin):
     
-    list_display = ('id','item_image_link','content_link','result','tid','nick','rated_nick','created','explain_link')
+    list_display = ('id','item_image_link','content_link','reply_link','result','tid','nick','rated_nick','created','explain_link')
     
     ordering = ['-created']
     
@@ -18,7 +18,7 @@ class CommentAdmin(admin.ModelAdmin):
     def content_link(self, obj):
         return (u'<div style="display:inline-block;"><a href="javascript:void(0);" class="btn btn-small %s" cid="%d">%s</a>'
                 %(('','btn-info')[0 if obj.ignored else 1],obj.id,(u'忽略',u'已忽略')[1 if obj.ignored else 0])+
-                '</div><div class="well well-large">%s</div>'%(obj.content))
+                '</div><div class="well well-content">%s</div>'%(obj.content))
     
     content_link.allow_tags = True
     content_link.short_description = "评价内容"
@@ -29,6 +29,13 @@ class CommentAdmin(admin.ModelAdmin):
     item_image_link.allow_tags = True
     item_image_link.short_description = "商品图片"
     
+    def reply_link(self, obj):
+        return (u'</div><div class="well well-content">%s%s</div>'%(obj.reply,
+                                    obj.is_reply and ('[%s@%s]'%(obj.replayer,obj.replay_at.strftime("%Y-%m-%d %H:%M:%S"))) or ''))
+    
+    reply_link.allow_tags = True
+    reply_link.short_description = "解释内容"
+    
     def explain_link(self, obj):
         return (u'<a href="javascript:void(0);" class="btn %s" cid="%d" nick="%s">%s</a>'%
                 (('','btn-success')[0 if obj.is_reply else 1],obj.id,obj.nick,(u'解释',u'已回复')[1 if obj.is_reply else 0]))
@@ -37,7 +44,7 @@ class CommentAdmin(admin.ModelAdmin):
     explain_link.short_description = "解释评价"
     
     formfield_overrides = {
-        models.CharField: {'widget': TextInput(attrs={'size':'16'})},
+        models.CharField: {'widget': Textarea(attrs={'rows':2, 'cols':40})},
         models.FloatField: {'widget': TextInput(attrs={'size':'16'})},
         models.TextField: {'widget': Textarea(attrs={'rows':4, 'cols':40})},
     }

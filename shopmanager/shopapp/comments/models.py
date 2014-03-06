@@ -31,8 +31,8 @@ class Comment(models.Model):
     role    = models.CharField(max_length=8,choices=ROLE_CHOICES,verbose_name=u'角色')
     result  = models.CharField(max_length=8,blank=True,choices=RESULT_CHOICES,verbose_name=u'评价结果')
     
-    nick    = models.CharField(max_length=32,blank=True,verbose_name=u'评价者昵称')
-    rated_nick = models.CharField(max_length=32,blank=True,verbose_name=u'被评价者昵称')
+    nick    = models.CharField(max_length=32,blank=True,verbose_name=u'评价者')
+    rated_nick = models.CharField(max_length=32,blank=True,verbose_name=u'被评价者')
     
     content = models.CharField(max_length=1500,blank=True,verbose_name=u'评价内容')
     reply   = models.CharField(max_length=1500,blank=True,verbose_name=u'评价解释')

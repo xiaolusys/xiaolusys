@@ -62,6 +62,11 @@ TAOBAO_NOTIFY_URL   = 'http://stream.api.taobao.com/stream'
 SCOPE = 'item,promotion,usergrade'
 REFRESH_URL = 'https://oauth.taobao.com/token'
 
-FONT_PATH = '/usr/share/fonts/truetype/ttf-dejavu/DejaVuSerif-Bold.ttf'
-ASYNC_FILE_PATH = '/home/user1/deploy/taobao/site_media/asyncfile'
 
+FONT_PATH = '/usr/share/fonts/truetype/ttf-dejavu/DejaVuSerif-Bold.ttf'
+ASYNC_FILE_PATH = os.path.join(PROJECT_ROOT,"site_media","asyncfile")
+
+################### WEI XIN ##################
+
+WEIXIN_API_HOST  = "https://api.weixin.qq.com"
+WEIXIN_FILE_HOST = "http://file.api.weixin.qq.com"
