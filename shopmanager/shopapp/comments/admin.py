@@ -30,7 +30,7 @@ class CommentAdmin(admin.ModelAdmin):
     item_image_link.short_description = "商品图片"
     
     def reply_link(self, obj):
-        return (u'</div><div class="well well-content">%s%s</div>'%(obj.reply,
+        return (u'<div class="well well-content">%s%s</div>'%(obj.reply,
                                     obj.is_reply and ('[%s@%s]'%(obj.replayer,obj.replay_at.strftime("%Y-%m-%d %H:%M:%S"))) or ''))
     
     reply_link.allow_tags = True

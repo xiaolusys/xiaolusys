@@ -1,5 +1,5 @@
 .btn {
-  *display: inline;
+  display: inline-block;
   padding: 6px 10px;
   *margin-left: .3em;
   font-size: 14px;
