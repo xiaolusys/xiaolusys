@@ -1,3 +1,7 @@
+######### 2013-3-1 ##########
+alter table shop_comments_comment add replayer_id int(11) DEFAULT NULL;
+alter table shop_comments_comment add column replay_at datetime DEFAULT NULL;
+alter table shop_comments_comment ADD FOREIGN KEY (replayer_id) REFERENCES auth_user(id);
 ######### 2013-1-10 ##########
 drop index purchase_id on shop_purchases_item;
 alter table  shop_purchases_item add UNIQUE(purchase_id,product_id,sku_id);

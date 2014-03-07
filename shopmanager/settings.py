@@ -136,6 +136,7 @@ INSTALLED_APPS = (
     'shopapp.smsmgr',
     'shopapp.yunda',
     'shopapp.comments',
+    'shopapp.weixin',
     
     #'test.celery',
 )
