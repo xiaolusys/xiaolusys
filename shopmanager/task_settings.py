@@ -68,13 +68,17 @@ CELERY_ROUTES = {
             'queue': 'peroid',
             'routing_key': 'peroid.push_buyer_to_customer_task',
         },
-        'shopapp.yunda.tasks.updateYundaOrderAddrTask': {
+        'shopapp.yunda.tasks.UpdateYundaOrderAddrTask': {
             'queue': 'peroid',
             'routing_key': 'peroid.update_yunda_order_address_task',
         },
-        'shopapp.yunda.tasks.cancelUnusedYundaSid': {
+        'shopapp.yunda.tasks.CancelUnsedYundaSidTask': {
             'queue': 'peroid',
             'routing_key': 'peroid.cancel_unused_yunda_sid',
+        },
+        'shopapp.yunda.tasks.SyncYundaScanWeightTask': {
+            'queue': 'peroid',
+            'routing_key': 'peroid.sync_yunda_scan_weight',
         },
         'shopapp.comments.tasks.crawAllUserOnsaleItemComment':{
             'queue':'peroid',
@@ -154,7 +158,7 @@ SYNC_MODEL_SCHEDULE = {
 SHOP_APP_SCHEDULE = {
     'runs-every-day-craw-onsale-item-comment':{
         'task':'shopapp.comments.tasks.crawAllUserOnsaleItemComment',
-        'schedule':crontab(minute="0",hour="*/2"),
+        'schedule':crontab(minute="0",hour="*/4"),
         'args':()
     },
     'runs-every-5-minutes-item-list':{  #定时上架任务
@@ -193,12 +197,17 @@ SHOP_APP_SCHEDULE = {
         'args':(1,)
     },
     'runs-every-day-sync-yunda-address':{
-        'task':'shopapp.yunda.tasks.updateYundaOrderAddrTask',
-        'schedule':crontab(minute="30",hour="6"),
+        'task':'shopapp.yunda.tasks.UpdateYundaOrderAddrTask',
+        'schedule':crontab(minute="0",hour="8,12"),
+        'args':()
+    },
+    'runs-every-day-send-yunda-weight':{
+        'task':'shopapp.yunda.tasks.SyncYundaScanWeightTask',
+        'schedule':crontab(minute="0",hour="*/1"),
         'args':()
     },
     'runs-every-day-cancel-yunda-sid':{
-        'task':'shopapp.yunda.tasks.cancelUnusedYundaSid',
+        'task':'shopapp.yunda.tasks.CancelUnsedYundaSidTask',
         'schedule':crontab(minute="0",hour="4"),
         'args':(7,)
     },

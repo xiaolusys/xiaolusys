@@ -241,13 +241,15 @@ def importTradeFromFileTask(fileName):
     """根据导入文件获取淘宝订单"""
     with open(fileName,'r') as f:
         for line in f:
-            if line:
-                try:
-                    seller_nick,tid = line.split(',')
-                    if tid:
-                        subtask(saveTradeByTidTask).delay(tid,seller_nick.decode('gbk'))
-                except:
-                    pass
+            if not line:
+                continue
+            
+            try:
+                seller_nick,tid = line.split(',')
+                if tid:
+                    subtask(saveTradeByTidTask).delay(tid,seller_nick.decode('gbk'))
+            except:
+                pass
     
 
 @task()

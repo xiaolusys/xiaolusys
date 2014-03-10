@@ -31,6 +31,12 @@ class WeiXinAPI(object):
     _get_user_group_uri = "cgi-bin/groups/getid"
     _update_group_uri   = "/cgi-bin/groups/update"
     _update_group_member_uri  = "/cgi-bin/groups/members/update"
+    _get_user_info_uri  = "/cgi-bin/user/info"
+    _get_followers_uri  = "/cgi-bin/user/get"
+    _create_menu_uri    = "/cgi-bin/menu/create"
+    _get_menu_uri       = "/cgi-bin/menu/get"
+    _detele_menu_uri    = "/cgi-bin/menu/delete"
+    _create_qrcode_uri  = "/cgi-bin/qrcode/create"
     
     
     def __init__(self):
@@ -56,7 +62,7 @@ class WeiXinAPI(object):
         
         content = json.loads(resp)
         
-        if content.has_key('errcode'):
+        if content.has_key('errcode') and content['errcode'] != 0:
             raise WeiXinRequestException(content['errcode'],content['errmsg'])
         
         return content
@@ -100,5 +106,31 @@ class WeiXinAPI(object):
         return self.handleRequest(self._update_group_member_uri, {'openid':openid,
                                                       'to_groupid':to_groupid}, 
                                   method='POST')   
+    
+    def getUserInfo(self,openid):
+        return self.handleRequest(self._get_user_info_uri, {'openid':openid},method='GET') 
+        
+    def getFollowersID(self,next_openid=''):
+        return self.handleRequest(self._get_followers_uri, {'next_openid':next_openid}, 
+                                  method='GET') 
+        
+    def createMenu(self,params):
+        assert type(params) == dict
+        return self.handleRequest(self._create_menu_uri, params, method='POST')
+        
+    def getMenu(self):
+        return self.handleRequest(self._get_menu_uri, {},method='GET')
+    
+    def deleteMenu(self):
+        return self.handleRequest(self._detele_menu_uri, {},method='GET')
+    
+    def createQrcode(self,action_name,action_info,scene_id,expire_seconds=0):
+        
+        params = {"action_name":action_name ,"action_info": {"scene": {"scene_id": 123}}}
+        if action_name=='QR_SCENE':
+            params.update(expire_seconds=expire_seconds)
+            
+        return self.handleRequest(self._create_qrcode_uri, params,method='POST')
+    
     
     

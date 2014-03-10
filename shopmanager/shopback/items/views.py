@@ -767,7 +767,7 @@ class ProductNumAssignView(ModelView):
         assign_num   = 0
         for item in item_list:
             if item[2] != 0 and item[1] and not product_sku:
-                raise Exception('该商品有系统规格跟线上规格不符'.decode('utf8'))
+                raise Exception('线上规格不在系统规格中'.decode('utf8'))
             assign_num += item[2]
         
         if assign_num > real_num:
