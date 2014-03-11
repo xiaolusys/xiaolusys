@@ -6,7 +6,7 @@ from django.db import models
 from shopback import paramconfig as pcfg
 import logging
 
-logger = logging.getLogger('smsmgr.handler')
+logger = logging.getLogger('django.request')
 
 SMS_NOTIFY_POST     = 'notify'     #发货告知
 SMS_NOTIFY_ACTIVITY = 'activity'   #活动宣传

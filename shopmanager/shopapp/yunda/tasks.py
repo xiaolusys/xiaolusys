@@ -62,57 +62,7 @@ STATE_CODE_MAP = {
                 u"青海":"630000"
                 }
 
-def get_yunda_yjsm_data(obj,state_code):
-    return [obj.out_sid,
-            u'互一网络',
-            '31000',
-            '0',
-            '0',
-            u'上海市松江区洞厍路398弄7号楼2楼',
-            '02137698479',
-            '201601',
-            cgi.escape(obj.receiver_name),
-            state_code,
-            '0',
-            '0',
-            cgi.escape(obj.receiver_city+obj.receiver_district+obj.receiver_address),
-            obj.receiver_mobile,
-            '001',
-            '101342',
-            '0',
-            '0',
-            '0',
-            u'淘宝']
-    
-def get_combo_yjsm_xml(objs):
-    
-    content = []
-    header = """<req op="op02putdan">
-                <h>
-                    <ver>3.0</ver>
-                    <company>101342</company>
-                    <user>001</user>
-                    <pass>202cb962ac59075b964b07152d234b70</pass>
-                    <dev1>excel20110330</dev1>
-                    <dev2>1001</dev2>
-                </h><data>"""
-    footer = "</data></req>"
-    
-    content.append(header)
-    
-    for obj in objs:
-        o = ["<o>"]
-        
-        for im in obj:
-            o.append('<d>%s</d>'%im)
-        o.append("</o>")
-        
-        content.append("".join(o))
-        
-    content.append(footer)
-    
-    return "".join(content)
-    
+
     
 def post_yunda_service(req_url,data='',headers=None):
     """
@@ -141,90 +91,7 @@ def post_yunda_service(req_url,data='',headers=None):
         raise Exception(res)
     
     return res
-    
-    
-@task(max_retries=3)  
-def updateYundaOrderAddrTask():
-    
-    yj_list  = []
-    yj_ids   = set()
-    index    = 0
-    dt      = datetime.datetime.now()
-    trades  = MergeTrade.objects.filter(logistics_company__code__in=YUNDA_CODE,
-                                       sys_status=pcfg.FINISHED_STATUS,
-                                       is_express_print=True,
-                                       is_charged=False,
-                                       ).exclude(out_sid='').exclude(receiver_name='')
-    count    = trades.count()
-    for trade in trades:
-        
-        state = len(trade.receiver_state)>=2 and trade.receiver_state[0:2] or ''
-        state_code = STATE_CODE_MAP.get(state) 
-        
-        if state_code and trade.receiver_mobile and valid_mobile(trade.receiver_mobile):
-            yj_list.append(get_yunda_yjsm_data(obj,state_code,addr))
-            yj_ids.add(trade.id)
-        
-        index = index + 1
-        if index >= count or len(yj_list) >=ADDR_UPLOAD_LIMIT:        
-            
-            post_xml = get_combo_yjsm_xml(yj_list) 
-            try:
-                response = post_yunda_service(YUNDA_ADDR_URL,data=post_xml.encode('utf8'))
-            except Exception,exc:
-                raise updateYundaOrderAddrTask.retry(exc=exc,countdown=60)
-            
-            MergeTrade.objects.filter(id__in=yj_ids).update(is_charged=True,charge_time=dt)
-            
-            yj_list = []
-            yj_ids.clear() 
-    
-        
-######################## 韵达二维码 ########################   
-@task(max_retries=3)
-def cancelUnusedYundaSid(cday=1):
-    """ 取消系统内未使用的韵达二维码单号 """
-    
-    today    = datetime.datetime.now()
-    last_day = today - datetime.timedelta(days=cday)
-    
-    #查询昨天到几天的所有订单
-    trades = MergeTrade.objects.filter(pay_time__gt=last_day,pay_time__lt=today)
-    #.filter(sys_status__in=(pcfg.WAIT_PREPARE_SEND_STATUS,pcfg.WAIT_AUDIT_STATUS))
 
-    #获取订单编号，批量取消订单
-    tradeids = [t.id for t in trades] 
-    #print 'ids:',len(tradeids)
-    if not tradeids:
-        return            
-    
-    try:
-        doc   = search_order(tradeids)
-        
-        cancelids = []
-        orders = doc.xpath('/responses/response')
-        for order in orders:
-            status = order.xpath('status')[0].text
-            mail_no = order.xpath('mailno')[0].text
-            order_serial_no = order.xpath('order_serial_no')[0].text
-            trade = MergeTrade.objects.get(id=order_serial_no)
-
-            #if status=='1':print status,order_serial_no,mail_no,trade.out_sid
-            
-            if status != '1' and not mail_no:
-                continue
-                               
-            lgc   = trade.logistics_company
-            
-            if trade.out_sid.strip() != mail_no or (lgc and lgc.code not in YUNDA_CODE) or trade.sys_status in pcfg.CANCEL_YUNDASID_STATUS:
-                cancelids.append(order_serial_no)
-        #print 'debug cancelids:',len(cancelids)
-        if cancelids:
-            cancel_order(cancelids)
-    except Exception,exc:
-        logger.error(exc.message,exc_info=True)
-        raise cancelUnusedYundaSid.retry(exc=exc,countdown=30*60)
-    
 
 class CancelUnsedYundaSidTask(Task):
     
@@ -301,24 +168,33 @@ class UpdateYundaOrderAddrTask(Task):
     def getYundaYJSMData(self,obj):
         return [obj.out_sid,
                 u'互一网络',
-                '31000',
+                '310000',
+                None,
+                None,
                 '0',
                 '0',
                 u'上海市松江区洞厍路398弄7号楼2楼',
                 '02137698479',
-                '201601',
+                '200135',
                 cgi.escape(obj.receiver_name),
                 self.getStateCode(obj),
+                None,
+                None,
                 '0',
                 '0',
                 cgi.escape(obj.receiver_city+obj.receiver_district+obj.receiver_address),
                 obj.receiver_mobile,
+                None,
                 '001',
                 '101342',
+                None,
                 '0',
                 '0',
+                None,
                 '0',
-                u'淘宝']
+                'taobao',
+                None,
+                None]
         
     def getYJSMXmlData(self,objs):
     
@@ -342,7 +218,7 @@ class UpdateYundaOrderAddrTask(Task):
             
             o = ["<o>"]
             for im in kvs:
-                o.append('<d>%s</d>'%im)
+                o.append(im==None and '<d></d>'or '<d>%s</d>'%im)
             o.append("</o>")
             
             content.append("".join(o))

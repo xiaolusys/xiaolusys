@@ -42,18 +42,18 @@ class WeiXinAPI(object):
     def __init__(self):
         self._wx_account = WeiXinAccount.getAccountInstance()
         
-    def getAbsoluteUrl(self,url):
-        return settings.WEIXIN_API_HOST+url
+    def getAbsoluteUrl(self,uri):
+        return settings.WEIXIN_API_HOST+uri
         
-    def handleRequest(self,url,params={},method="GET",token=True):    
+    def handleRequest(self,uri,params={},method="GET",token=True):    
         
-        absolute_url = self.getAbsoluteUrl(url)
+        absolute_url = self.getAbsoluteUrl(uri)
         if token :
             params.update(access_token=self.getAccessToken())
         
         if method.upper() == 'GET':
-            uri = '%s?%s'%(absolute_url,urllib.urlencode(params))
-            req = urllib2.urlopen(uri)
+            url = '%s?%s'%(absolute_url,urllib.urlencode(params))
+            req = urllib2.urlopen(url)
             resp = req.read()
         else:
             rst =  urllib2.Request(absolute_url)
@@ -124,13 +124,16 @@ class WeiXinAPI(object):
     def deleteMenu(self):
         return self.handleRequest(self._detele_menu_uri, {},method='GET')
     
-    def createQrcode(self,action_name,action_info,scene_id,expire_seconds=0):
+    def createQRcode(self,action_name,action_info,scene_id,expire_seconds=0):
         
         params = {"action_name":action_name ,"action_info": {"scene": {"scene_id": 123}}}
         if action_name=='QR_SCENE':
             params.update(expire_seconds=expire_seconds)
             
         return self.handleRequest(self._create_qrcode_uri, params,method='POST')
+    
+    
+    
     
     
     

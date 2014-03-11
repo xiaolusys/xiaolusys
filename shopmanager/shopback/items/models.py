@@ -332,7 +332,8 @@ class ProductSku(models.Model):
     
     @property
     def BARCODE(self):
-        return self.barcode.strip() or self.product.barcode.strip() or '%s%s'%(self.product.outer_id.strip(),self.outer_id.strip())
+        return self.barcode.strip() or self.product.barcode.strip() or \
+                '%s%s'%(self.product.outer_id.strip(),self.outer_id.strip())
     
     @property
     def realnum(self):
@@ -473,10 +474,10 @@ class ProductSku(models.Model):
         库存预警:
         1，如果当前能同步的库存小昨日销量；
         """
-        quantity = self.quantity >0 and self.quantity or 0
-        remain_num = self.remain_num >0 and self.remain_num or 0    
+        quantity      = self.quantity >0 and self.quantity or 0
+        remain_num    = self.remain_num >0 and self.remain_num or 0    
         wait_post_num = self.wait_post_num >0 and self.wait_post_num or 0   
-        sync_num = quantity - remain_num - wait_post_num                    
+        sync_num      = quantity - remain_num - wait_post_num                    
         return self.warn_num >0 and self.warn_num >= sync_num 
     
     def get_district_list(self):

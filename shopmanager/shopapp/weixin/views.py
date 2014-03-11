@@ -1,6 +1,7 @@
 #-*- encoding:utf8 -*-
 import json
 import datetime
+import urllib,urllib2
 from django.http import HttpResponse
 from django.conf import settings
 from django.views.generic import View
@@ -8,6 +9,8 @@ from shopapp.weixin.models import WeiXinAccount
 import logging
 
 logger = logging.getLogger('django.request')
+
+_mp_show_qrcode_url = "https://mp.weixin.qq.com/cgi-bin/showqrcode"
 
 class WeixinAcceptView(View):
     """ 微信接收消息接口 """
@@ -62,9 +65,6 @@ class WeixinAcceptView(View):
 #            }
 #        }),mimetype='application/json')
 #        
-        
-        
-        
         
         
         

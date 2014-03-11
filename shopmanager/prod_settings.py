@@ -68,5 +68,6 @@ ASYNC_FILE_PATH = os.path.join(PROJECT_ROOT,"site_media","asyncfile")
 
 ################### WEI XIN ##################
 
-WEIXIN_API_HOST  = "https://api.weixin.qq.com"
-WEIXIN_FILE_HOST = "http://file.api.weixin.qq.com"
+WEIXIN_API_HOST    = "https://api.weixin.qq.com"
+WEIXIN_MEDIA_HOST  = "http://file.api.weixin.qq.com"
+WEIXIN_QRCODE_HOST = "https://mp.weixin.qq.com"
