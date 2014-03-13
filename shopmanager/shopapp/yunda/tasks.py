@@ -243,12 +243,11 @@ class UpdateYundaOrderAddrTask(Task):
     def uploadAddr(self,orders):
         
         try:
+            
             post_xml = self.getYJSMXmlData(orders)
             post_yunda_service(YUNDA_ADDR_URL,data=post_xml.encode('utf8'))
-        
-            for order in orders:
-                order.is_charged = True
-                order.save()
+                      
+            return [o.id for o in orders]
         except Exception,exc:
             raise self.retry(exc=exc, countdown=RETRY_INTERVAL)
     
@@ -257,9 +256,12 @@ class UpdateYundaOrderAddrTask(Task):
         if self.pg.count == 0:
             return 
         
-        for i in range(1,self.pg.num_pages+1):
-            self.uploadAddr(self.getValidOrders(self.pg.page(i).object_list))
-                
+        try:
+            update_oids = []
+            for i in range(1,self.pg.num_pages+1):
+                update_oids.extend(self.uploadAddr(self.getValidOrders(self.pg.page(i).object_list)))
+        finally:
+            LogisticOrder.objects.filter(id__in=update_oids).update(sync_addr=True)
 
 class SyncYundaScanWeightTask(Task):
     
@@ -283,7 +285,7 @@ class SyncYundaScanWeightTask(Task):
                 obj.out_sid,
                 None,
                 '20',
-                obj.weight,
+                self.parseTradeWeight(obj.weight),
                 '0',
                 '101342',
                 None,
@@ -353,6 +355,7 @@ class SyncYundaScanWeightTask(Task):
         
         order.weight            = self.parseTradeWeight(trade.weight)
         order.dc_code           = trade.reserveo
+        order.valid_code        = trade.reserveh
         order.save()
         
         return order
@@ -375,19 +378,22 @@ class SyncYundaScanWeightTask(Task):
             post_yunda_service(YUNDA_SCAN_URL,data=post_xml.encode('utf8'))
             
             LogisticOrder.objects.filter(cus_oid__in=cus_oids).update(is_charged=True)
-            MergeTrade.objects.filter(id__in=cus_oids).update(
-                                    is_charged=True,charge_time=datetime.datetime.now())
+            
+            return cus_oids
         except Exception,exc:
             raise self.retry(exc=exc, countdown=RETRY_INTERVAL)
-            
+        
                 
     def run(self):
         if self.pg.count == 0:
             return 
         
-        for i in range(1,self.pg.num_pages+1):
-            
-            self.uploadWeight(self.pg.page(i).object_list)
-                
-                
+        update_oids = []
+        try:
+            for i in range(1,self.pg.num_pages+1):
+                update_oids.extend(self.uploadWeight(self.pg.page(i).object_list))
+        
+        finally:
+            MergeTrade.objects.filter(id__in=update_oids).update(
+                    is_charged=True,charge_time=datetime.datetime.now())
                 
