@@ -335,7 +335,7 @@ class SyncYundaScanWeightTask(Task):
             return '0.5'
         
         if weight.rfind('.') < 0:
-            return str(round(int(weight)/1000.0,2))
+            return str(round(int(weight)*0.94/1000.0,2))
         
         return weight
     
