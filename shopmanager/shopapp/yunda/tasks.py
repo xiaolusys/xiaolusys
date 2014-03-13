@@ -272,6 +272,7 @@ class SyncYundaScanWeightTask(Task):
         self.pg = Paginator(self.getSourceData(), WEIGHT_UPLOAD_LIMIT)
     
     def getSourceData(self):
+        
         return MergeTrade.objects.filter(
                        logistics_company__code__in=YUNDA_CODE,
                        sys_status=pcfg.FINISHED_STATUS,
@@ -281,7 +282,7 @@ class SyncYundaScanWeightTask(Task):
     
     
     def getYundaYJSWData(self,obj):
-        return [obj.reserveh,
+        return [obj.valid_code,
                 obj.out_sid,
                 None,
                 '20',
@@ -331,8 +332,13 @@ class SyncYundaScanWeightTask(Task):
     
     def parseTradeWeight(self,weight):
         
-        if weight == '' or int(weight) == 0 or weight.rfind('.') == 0:
-            return '0.5'
+        try:
+            float(weight)
+        except:
+            return '0.2'
+        
+        if weight == '' or float(weight) == 0 or weight.rfind('.') == 0:
+            return '0.2'
         
         if weight.rfind('.') < 0:
             return str(round(int(weight)*0.94/1000.0,2))
@@ -363,18 +369,19 @@ class SyncYundaScanWeightTask(Task):
     
     def saveYundaOrder(self,orders):
         
+        order_ids = [o.id for o in orders]
         for order in orders:
             self.createYundaOrder(order)
-        
+        return LogisticOrder.objects.filter(cus_oid__in=order_ids)
         
     def uploadWeight(self,orders):
         
         try:
             cus_oids  = [o.id for o in orders]
             
-            self.saveYundaOrder(orders)
+            cus_orders = self.saveYundaOrder(orders)
             
-            post_xml  = self.getYJSWXmlData(orders)
+            post_xml  = self.getYJSWXmlData(cus_orders)
             post_yunda_service(YUNDA_SCAN_URL,data=post_xml.encode('utf8'))
             
             LogisticOrder.objects.filter(cus_oid__in=cus_oids).update(is_charged=True)
