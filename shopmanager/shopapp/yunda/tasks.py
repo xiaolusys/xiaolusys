@@ -256,8 +256,8 @@ class UpdateYundaOrderAddrTask(Task):
         if self.pg.count == 0:
             return 
         
+        update_oids = []
         try:
-            update_oids = []
             for i in range(1,self.pg.num_pages+1):
                 update_oids.extend(self.uploadAddr(self.getValidOrders(self.pg.page(i).object_list)))
         finally:
@@ -341,7 +341,7 @@ class SyncYundaScanWeightTask(Task):
             return '0.2'
         
         if weight.rfind('.') < 0:
-            return str(round(int(weight)*0.94/1000.0,2))
+            return str(round(int(weight)*0.9/1000.0,2))
         
         return weight
     

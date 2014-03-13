@@ -118,7 +118,7 @@ class ComposeRule(models.Model):
     outer_id = models.CharField(max_length=64,db_index=True,blank=True,verbose_name=u'商品外部编码')
     outer_sku_id = models.CharField(max_length=64,db_index=True,blank=True,verbose_name=u'商品规格编码')
     
-    payment  = models.IntegerField(null=True,blank=True,verbose_name=u'大于金额')
+    payment  = models.IntegerField(null=True,verbose_name=u'大于金额')
     type     = models.CharField(max_length=10,choices=RULE_TYPE_CHOICE,verbose_name=u'规则类型')
     
     extra_info = models.TextField(blank=True,verbose_name=u'信息')
