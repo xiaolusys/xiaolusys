@@ -1,5 +1,9 @@
 #-*- coding:utf8 -*-
 __author__ = 'meixqhi'
+import sys
+reload(sys)
+sys.setdefaultencoding('utf-8')
+
 import re
 import inspect
 import copy
@@ -42,22 +46,21 @@ class WeiXinAPI(object):
     def __init__(self):
         self._wx_account = WeiXinAccount.getAccountInstance()
         
-    def getAbsoluteUrl(self,uri):
-        return settings.WEIXIN_API_HOST+uri
+    def getAbsoluteUrl(self,uri,token):
+        url = settings.WEIXIN_API_HOST+uri
+        return token and '%s?access_token=%s'%(url,self.getAccessToken()) or url+'?'
         
     def handleRequest(self,uri,params={},method="GET",token=True):    
         
-        absolute_url = self.getAbsoluteUrl(uri)
-        if token :
-            params.update(access_token=self.getAccessToken())
+        absolute_url = self.getAbsoluteUrl(uri,token)
         
         if method.upper() == 'GET':
-            url = '%s?%s'%(absolute_url,urllib.urlencode(params))
+            url = '%s&%s'%(absolute_url,type(params)==str and params or urllib.urlencode(params))
             req = urllib2.urlopen(url)
             resp = req.read()
         else:
             rst =  urllib2.Request(absolute_url)
-            req = urllib2.urlopen(rst,urllib.urlencode(params))
+            req = urllib2.urlopen(rst,type(params)==str and params or urllib.urlencode(params))
             resp = req.read()
         
         content = json.loads(resp)
@@ -90,6 +93,7 @@ class WeiXinAPI(object):
     
     
     def createGroups(self,name):
+        name = type(name)==unicode and name.encode('utf8') and name
         return self.handleRequest(self._create_groups_uri, {'name':name}, method='POST')
     
     
@@ -100,6 +104,7 @@ class WeiXinAPI(object):
         return self.handleRequest(self._get_user_group_uri, {'openid':openid}, method='POST')
         
     def updateGroupName(self,id,name):
+        name = type(name)==unicode and name.encode('utf8') and name
         return self.handleRequest(self._update_group_uri, {'id':id,'name':name}, method='POST')    
         
     def updateGroupName(self,openid,to_groupid):
@@ -116,7 +121,7 @@ class WeiXinAPI(object):
         
     def createMenu(self,params):
         assert type(params) == dict
-        return self.handleRequest(self._create_menu_uri, params, method='POST')
+        return self.handleRequest(self._create_menu_uri, json.dumps(params,ensure_ascii=False), method='POST')
         
     def getMenu(self):
         return self.handleRequest(self._get_menu_uri, {},method='GET')
@@ -126,6 +131,7 @@ class WeiXinAPI(object):
     
     def createQRcode(self,action_name,action_info,scene_id,expire_seconds=0):
         
+        action_name = type(action_name)==unicode and action_name.encode('utf8') and action_name
         params = {"action_name":action_name ,"action_info": {"scene": {"scene_id": 123}}}
         if action_name=='QR_SCENE':
             params.update(expire_seconds=expire_seconds)
