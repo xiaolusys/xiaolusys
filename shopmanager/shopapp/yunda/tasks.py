@@ -234,7 +234,7 @@ class UpdateYundaOrderAddrTask(Task):
     
     def isOrderValid(self,order):
         return self.getStateCode(order) != None and order.receiver_mobile \
-                and valid_mobile(order.receiver_mobile)
+                and valid_mobile(order.receiver_mobile.strip())
     
     def getValidOrders(self,orders):
         
@@ -358,7 +358,7 @@ class SyncYundaScanWeightTask(Task):
         order.receiver_district = trade.receiver_district
         order.receiver_address  = trade.receiver_address
         order.receiver_zip      = trade.receiver_zip
-        order.receiver_mobile   = trade.receiver_mobile
+        order.receiver_mobile   = trade.receiver_mobile.strip()
         order.receiver_phone    = trade.receiver_phone
         
         order.weight            = self.parseTradeWeight(trade.weight)
