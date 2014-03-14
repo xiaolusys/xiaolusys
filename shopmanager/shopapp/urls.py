@@ -11,6 +11,6 @@ urlpatterns = patterns('',
     (r'^async/',include('shopapp.asynctask.urls')),
     (r'^calendar/',include('shopapp.calendar.urls')),
     (r'^comment/',include('shopapp.comments.urls')),
-    #(r'^weixin/',include('shopapp.weixin.urls')),
+    (r'^weixin/',include('shopapp.weixin.urls')),
 )
 
