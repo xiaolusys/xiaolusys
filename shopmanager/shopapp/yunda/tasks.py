@@ -241,7 +241,9 @@ class UpdateYundaOrderAddrTask(Task):
         return [order for order in orders if self.isOrderValid(order)]
     
     def uploadAddr(self,orders):
-        
+
+        if not orders:
+            return []
         try:
             
             post_xml = self.getYJSMXmlData(orders)

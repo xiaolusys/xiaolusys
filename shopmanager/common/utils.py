@@ -189,5 +189,5 @@ def pinghost(hostid):
     return ret
 
 def valid_mobile(m):
-    rg = re.compile('^(1(([35][0-9])|(47)|[8][0126789]))\d{8}$')
+    rg = re.compile('^1[358][0-9]{9}$')
     return rg.match(m)
