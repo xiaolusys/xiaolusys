@@ -234,21 +234,22 @@ class UpdateYundaOrderAddrTask(Task):
     
     def isOrderValid(self,order):
         return self.getStateCode(order) != None and order.receiver_mobile \
-                and valid_mobile(order.receiver_mobile)
+                and valid_mobile(order.receiver_mobile.strip())
     
     def getValidOrders(self,orders):
         
         return [order for order in orders if self.isOrderValid(order)]
     
     def uploadAddr(self,orders):
-        
+
+        if not orders:
+            return []
         try:
+            
             post_xml = self.getYJSMXmlData(orders)
             post_yunda_service(YUNDA_ADDR_URL,data=post_xml.encode('utf8'))
-        
-            for order in orders:
-                order.is_charged = True
-                order.save()
+                      
+            return [o.id for o in orders]
         except Exception,exc:
             raise self.retry(exc=exc, countdown=RETRY_INTERVAL)
     
@@ -257,9 +258,12 @@ class UpdateYundaOrderAddrTask(Task):
         if self.pg.count == 0:
             return 
         
-        for i in range(1,self.pg.num_pages+1):
-            self.uploadAddr(self.getValidOrders(self.pg.page(i).object_list))
-                
+        update_oids = []
+        try:
+            for i in range(1,self.pg.num_pages+1):
+                update_oids.extend(self.uploadAddr(self.getValidOrders(self.pg.page(i).object_list)))
+        finally:
+            LogisticOrder.objects.filter(id__in=update_oids).update(sync_addr=True)
 
 class SyncYundaScanWeightTask(Task):
     
@@ -270,6 +274,7 @@ class SyncYundaScanWeightTask(Task):
         self.pg = Paginator(self.getSourceData(), WEIGHT_UPLOAD_LIMIT)
     
     def getSourceData(self):
+        
         return MergeTrade.objects.filter(
                        logistics_company__code__in=YUNDA_CODE,
                        sys_status=pcfg.FINISHED_STATUS,
@@ -279,11 +284,11 @@ class SyncYundaScanWeightTask(Task):
     
     
     def getYundaYJSWData(self,obj):
-        return [obj.reserveh,
+        return [obj.valid_code,
                 obj.out_sid,
                 None,
                 '20',
-                obj.weight,
+                self.parseTradeWeight(obj.weight),
                 '0',
                 '101342',
                 None,
@@ -329,11 +334,16 @@ class SyncYundaScanWeightTask(Task):
     
     def parseTradeWeight(self,weight):
         
-        if weight == '' or int(weight) == 0 or weight.rfind('.') == 0:
-            return '0.5'
+        try:
+            float(weight)
+        except:
+            return '0.2'
+        
+        if weight == '' or float(weight) == 0 or weight.rfind('.') == 0:
+            return '0.2'
         
         if weight.rfind('.') < 0:
-            return str(round(int(weight)/1000.0,2))
+            return str(round(int(weight)*0.9/1000.0,2))
         
         return weight
     
@@ -348,11 +358,12 @@ class SyncYundaScanWeightTask(Task):
         order.receiver_district = trade.receiver_district
         order.receiver_address  = trade.receiver_address
         order.receiver_zip      = trade.receiver_zip
-        order.receiver_mobile   = trade.receiver_mobile
+        order.receiver_mobile   = trade.receiver_mobile.strip()
         order.receiver_phone    = trade.receiver_phone
         
         order.weight            = self.parseTradeWeight(trade.weight)
         order.dc_code           = trade.reserveo
+        order.valid_code        = trade.reserveh
         order.save()
         
         return order
@@ -360,34 +371,38 @@ class SyncYundaScanWeightTask(Task):
     
     def saveYundaOrder(self,orders):
         
+        order_ids = [o.id for o in orders]
         for order in orders:
             self.createYundaOrder(order)
-        
+        return LogisticOrder.objects.filter(cus_oid__in=order_ids)
         
     def uploadWeight(self,orders):
         
         try:
             cus_oids  = [o.id for o in orders]
             
-            self.saveYundaOrder(orders)
+            cus_orders = self.saveYundaOrder(orders)
             
-            post_xml  = self.getYJSWXmlData(orders)
+            post_xml  = self.getYJSWXmlData(cus_orders)
             post_yunda_service(YUNDA_SCAN_URL,data=post_xml.encode('utf8'))
             
             LogisticOrder.objects.filter(cus_oid__in=cus_oids).update(is_charged=True)
-            MergeTrade.objects.filter(id__in=cus_oids).update(
-                                    is_charged=True,charge_time=datetime.datetime.now())
+            
+            return cus_oids
         except Exception,exc:
             raise self.retry(exc=exc, countdown=RETRY_INTERVAL)
-            
+        
                 
     def run(self):
         if self.pg.count == 0:
             return 
         
-        for i in range(1,self.pg.num_pages+1):
-            
-            self.uploadWeight(self.pg.page(i).object_list)
-                
-                
+        update_oids = []
+        try:
+            for i in range(1,self.pg.num_pages+1):
+                update_oids.extend(self.uploadWeight(self.pg.page(i).object_list))
+        
+        finally:
+            MergeTrade.objects.filter(id__in=update_oids).update(
+                    is_charged=True,charge_time=datetime.datetime.now())
                 

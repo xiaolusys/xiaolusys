@@ -1,7 +1,7 @@
 .btn {
-  *display: inline-block;
+  display: inline-block;
   padding: 6px 10px;
-  *margin-left: .3em;
+  margin-left: .3em;
   font-size: 14px;
   line-height: 20px;
   color: #333333;
