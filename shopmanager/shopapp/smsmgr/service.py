@@ -170,7 +170,7 @@ class DXTSMSManager(SMSManager):
         else:
             task_id  = tree.xpath('/returnsms/taskID')[0].text
             succnums = tree.xpath('/returnsms/successCounts')[0].text
-        print  success,task_id,succnums,res_content 
+        
         return success,task_id,succnums,res_content
     
     def check_content(self,*args,**kwargs):

@@ -71,11 +71,12 @@ def notifyBuyerPacketPostTask(trade_id,platform_code):
         
         platform  = SMSPlatform.objects.get(code=platform_code)
         
-        if not get_smsg_from_trade(trade):
+        content = get_smsg_from_trade(trade)
+        if not  content:
             return 
         
         params = {}
-        params['content'] = get_smsg_from_trade(trade)
+        params['content'] = content
         params['userid']  = platform.user_id
         params['account'] = platform.account
         params['password'] = platform.password
