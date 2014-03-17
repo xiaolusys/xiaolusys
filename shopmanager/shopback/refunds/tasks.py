@@ -54,7 +54,7 @@ def updateAllUserRefundOrderTask(days=0,update_from=None,update_to=None):
         update_from = datetime.datetime(dt.year,dt.month,dt.day,0,0,0)-datetime.timedelta(days,0,0)
         update_to   = dt
 
-    users = User.objects.all()
+    users = User.effect_users.all()
     for user in users:
         saveUserRefundOrderTask(user.visitor_id,update_from=update_from,update_to=update_to)
 

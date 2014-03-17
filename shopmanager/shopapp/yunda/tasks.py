@@ -265,6 +265,7 @@ class UpdateYundaOrderAddrTask(Task):
         finally:
             LogisticOrder.objects.filter(id__in=update_oids).update(sync_addr=True)
 
+
 class SyncYundaScanWeightTask(Task):
     
     max_retries = 3
@@ -353,13 +354,13 @@ class SyncYundaScanWeightTask(Task):
         order.out_sid           = trade.out_sid
         
         order.receiver_name     = trade.receiver_name
-        order.receiver_state    = trade.receiver_state
-        order.receiver_city     = trade.receiver_city
-        order.receiver_district = trade.receiver_district
+        order.receiver_state    = trade.receiver_state.strip()
+        order.receiver_city     = trade.receiver_city.strip()
+        order.receiver_district = trade.receiver_district.strip()
         order.receiver_address  = trade.receiver_address
         order.receiver_zip      = trade.receiver_zip
         order.receiver_mobile   = trade.receiver_mobile.strip()
-        order.receiver_phone    = trade.receiver_phone
+        order.receiver_phone    = trade.receiver_phone.strip()
         
         order.weight            = self.parseTradeWeight(trade.weight)
         order.dc_code           = trade.reserveo

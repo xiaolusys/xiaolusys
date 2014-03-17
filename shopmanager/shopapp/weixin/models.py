@@ -65,5 +65,33 @@ class AnonymousWeixinAccount():
         return True
 
     
+class WeiXinUser(models.Model): 
+    
+    openid     = models.CharField(max_length=64,unique=True,verbose_name=u"用户ID")
+    nickname   = models.CharField(max_length=64,unique=True,verbose_name=u"昵称")
+    
+    sex        = models.IntegerField(default=0,verbose_name=u"性别")
+    language   = models.CharField(max_length=10,verbose_name=u"语言")
+    
+    headimgurl = models.URLField(verify_exists=False,blank=True,verbose_name=u"头像")
+    country    = models.CharField(max_length=24,verbose_name=u"国家")
+    province   = models.CharField(max_length=24,verbose_name=u"省份")
+    city       = models.CharField(max_length=24,verbose_name=u"城市")
+    
+    subscribe  = models.BooleanField(verbose_name=u"订阅该号")
+    subscribe_time = models.DateTimeField(verbose_name=u"订阅时间")
+    
+    class Meta:
+        db_table = 'shop_weixin_user'
+        verbose_name=u'微信用户'
+        verbose_name_plural = u'微信用户列表'
+    
+       
+class WeiXinAutoResponse(models.Model):
+    
+    pass
     
     
+    
+    
+        

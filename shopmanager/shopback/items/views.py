@@ -785,11 +785,12 @@ class ProductNumAssignView(ModelView):
             if item[1]:
                 sku = SkuProperty.objects.get(num_iid=item[0],sku_id=item[1])
                 hold_num = sku.with_hold_quantity
-            
+                
             if item[2] < hold_num:    
                 raise Exception('分配库存小于线上拍下待付款数'.decode('utf8'))
             
-            apis.taobao_item_quantity_update\
+            if im.user.isValid():
+                apis.taobao_item_quantity_update\
                         (num_iid=item[0],quantity=item[2],sku_id=item[1],tb_user_id=im.user.visitor_id)   
             
             if sku:  

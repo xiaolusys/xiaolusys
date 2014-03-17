@@ -87,7 +87,10 @@ class User(models.Model):
         db_table = 'shop_users_user'
         verbose_name= u'店铺'
         verbose_name_plural = u'店铺列表'
-
+    
+    def isValid(self):
+        return self.status == pcfg.USER_NORMAL
+    
     def __unicode__(self):
         return '%s'%self.nick
     
