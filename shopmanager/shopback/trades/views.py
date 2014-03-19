@@ -93,64 +93,92 @@ class OutStockOrderProductView(ModelView):
 class StatisticMergeOrderView(ModelView):
     """ docstring for class StatisticsMergeOrderView """
     
-    def get(self, request, *args, **kwargs):
+    def parseStartDt(self,start_dt):
         
-        content  = request.REQUEST
-        start_dt = content.get('df','').strip()
-        end_dt   = content.get('dt','').strip()
-        shop_id  = content.get('shop_id')
-        p_outer_id = content.get('outer_id','')
-        statistic_by = content.get('sc_by','pay')
-        wait_send = content.get('wait_send','')
-        
-        if start_dt and end_dt:
-            if len(start_dt)>10:
-                start_dt = parse_datetime(start_dt)
-            else:
-                start_dt = parse_date(start_dt)
-                
-            if len(end_dt)>10:
-                end_dt = parse_datetime(end_dt)
-            else:
-                end_dt = parse_date(end_dt)    
-        else:
+        if not start_dt:
             dt  = datetime.datetime.now()
-            start_dt = datetime.datetime(dt.year,dt.month,dt.day,0,0,0)
-            end_dt   = datetime.datetime(dt.year,dt.month,dt.day,23,59,59)
+            return datetime.datetime(dt.year,dt.month,dt.day,0,0,0)
         
-        effect_trades  = MergeTrade.objects.all()
+        if len(start_dt)>10:
+            return parse_datetime(start_dt)
+        
+        return parse_date(start_dt)
+    
+    def parseEndDt(self,end_dt):
+        
+        if not end_dt:
+            dt  = datetime.datetime.now()
+            return datetime.datetime(dt.year,dt.month,dt.day,23,59,59)
+        
+        if len(end_dt)>10:
+            return parse_datetime(end_dt)
+        
+        return parse_date(end_dt)
+    
+    def getSourceTrades(self,shop_id,statistic_by,wait_send,p_outer_id,start_dt,end_dt):
+        
+        trade_qs  = MergeTrade.objects.all()
         if shop_id:
-            effect_trades = effect_trades.filter(user=shop_id)
+            trade_qs = trade_qs.filter(user=shop_id)
         
         if statistic_by == 'pay':
-            effect_trades = effect_trades.filter(pay_time__gte=start_dt,pay_time__lte=end_dt)
+            trade_qs = trade_qs.filter(pay_time__gte=start_dt,pay_time__lte=end_dt)
         elif statistic_by == 'weight':
-            effect_trades = effect_trades.filter(weight_time__gte=start_dt,weight_time__lte=end_dt)
+            trade_qs = trade_qs.filter(weight_time__gte=start_dt,weight_time__lte=end_dt)
         else:
-            effect_trades = effect_trades.filter(created__gte=start_dt,created__lte=end_dt)
+            trade_qs = trade_qs.filter(created__gte=start_dt,created__lte=end_dt)
         
         if wait_send:
-            effect_trades = effect_trades.filter(sys_status=pcfg.WAIT_PREPARE_SEND_STATUS)
+            trade_qs = trade_qs.filter(sys_status=pcfg.WAIT_PREPARE_SEND_STATUS)
         else:
-            effect_trades = effect_trades.filter(status__in=pcfg.ORDER_SUCCESS_STATUS)
+            trade_qs = trade_qs.filter(status__in=pcfg.ORDER_SUCCESS_STATUS)
             
-        effect_orders     = MergeOrder.objects.filter(merge_trade__in=effect_trades,sys_status=pcfg.IN_EFFECT,is_merge=False)\
-            .exclude(gift_type=pcfg.RETURN_GOODS_GIT_TYPE)
+        if p_outer_id:
+            order_qs = self.getSourceOrders(trade_qs,p_outer_id=p_outer_id)
+            trade_qs = MergeTrade.objects.filter(id__in=set([o.merge_trade.id for o in order_qs]))
+            
+        return trade_qs
+        
+    def getSourceOrders(self,trade_qs,p_outer_id=None):
+        
+        order_qs  = MergeOrder.objects.filter(merge_trade__in=trade_qs,
+                            sys_status=pcfg.IN_EFFECT,is_merge=False)\
+                            .exclude(gift_type=pcfg.RETURN_GOODS_GIT_TYPE)
 
         if p_outer_id:
-            effect_orders = effect_orders.filter(outer_id=p_outer_id)
+            order_qs = order_qs.filter(outer_id=p_outer_id)
+    
+        return order_qs
+    
+    def getEffectOrdersId(self,order_qs):
         
-        effect_oids  = [] 
+        return [o.oid for o in order_qs if o.num]
+        
+    def getProductByOuterId(self,outer_id):
+        
+        try:
+            return Product.objects.get(outer_id=outer_id)
+        except:
+            return None
+        
+    def getProductSkuByOuterId(self,outer_id,outer_sku_id):
+        
+        try:
+            return ProductSku.objects.get(outer_id=outer_sku_id,product__outer_id=outer_id)
+        except:
+            return None
+        
+    def getTradeSortedItems(self,order_qs):
+        
         trade_items  = {}
-        for order in effect_orders:
+        for order in order_qs:
             
             outer_id = order.outer_id or str(order.num_iid)
             outer_sku_id = order.outer_sku_id or str(order.sku_id)
-            payment  = float(order.payment or 0)
-            order_num = order.num  
-            if not order_num:
-                continue
-            effect_oids.append(order.oid)
+            payment   = float(order.payment or 0)
+            order_num = order.num  or 0
+            prod     = self.getProductByOuterId(outer_id)
+            prod_sku = self.getProductSkuByOuterId(outer_id,outer_sku_id)
             
             if trade_items.has_key(outer_id):
                 trade_items[outer_id]['num'] += order_num
@@ -164,78 +192,89 @@ class StatisticMergeOrderView(ModelView):
                     trade_items[outer_id]['cost']  += skus[outer_sku_id]['std_purchase_price']*order_num 
                     trade_items[outer_id]['sales'] += payment
                 else:
-                    prod_sku = None
-                    try:
-                        prod_sku = ProductSku.objects.get(outer_id=outer_sku_id,product__outer_id=outer_id)
-                    except:
-                        pass
                     prod_sku_name  = prod_sku.name if prod_sku else order.sku_properties_name
-                    purchase_price = float(prod_sku.cost) if prod_sku else payment/order_num
-                    cost  = purchase_price*order_num
-                    sales = payment
+                    purchase_price = float(prod_sku.cost) if prod_sku else 0
                     #累加商品成本跟销售额
-                    trade_items[outer_id]['cost']  += cost 
-                    trade_items[outer_id]['sales'] += sales
+                    trade_items[outer_id]['cost']  += purchase_price*order_num 
+                    trade_items[outer_id]['sales'] += payment
                     
                     skus[outer_sku_id] = {
                                           'sku_name':prod_sku_name,
                                           'num':order_num,
-                                          'cost':cost,
-                                          'sales':sales,
+                                          'cost':purchase_price*order_num,
+                                          'sales':payment,
                                           'std_purchase_price':purchase_price}
             else:
-                prod = None
-                prod_sku = None
-                
-                try:
-                    prod = Product.objects.get(outer_id=outer_id)
-                except:
-                    pass
-                else:
-                    try:
-                        prod_sku = ProductSku.objects.get(outer_id=outer_sku_id,product__outer_id=outer_id)
-                    except:
-                        pass
                 prod_sku_name  = prod_sku.name if prod_sku else order.sku_properties_name
                 purchase_price = float(prod_sku.cost) if prod_sku else payment/order_num    
-                cost  = purchase_price*order_num 
-                sales = payment
-                
                 trade_items[outer_id]={
                                        'num':order_num,
                                        'title': prod.name if prod else order.title,
-                                       'cost':cost,
-                                       'sales':sales,
+                                       'cost':purchase_price*order_num ,
+                                       'sales':payment,
                                        'skus':{outer_sku_id:{
                                             'sku_name':prod_sku_name,
                                             'num':order_num,
-                                            'cost':cost,
-                                            'sales':sales,
+                                            'cost':purchase_price*order_num ,
+                                            'sales':payment,
                                             'std_purchase_price':purchase_price}}
                                        }
             
-        trade_list = sorted(trade_items.items(),key=lambda d:d[1]['num'],reverse=True)
+        return sorted(trade_items.items(),key=lambda d:d[1]['num'],reverse=True)
+    
+    def getTotalRefundFee(self,order_qs):
         
-        buyer_nums   = effect_trades.values_list('buyer_nick').distinct().count()
-        trade_nums   = effect_trades.count()
-        total_post_fee   = effect_trades.aggregate(total_post_fee=Sum('post_fee')).get('total_post_fee',0)
-        refund_fees  = Refund.objects.filter(oid__in=effect_oids,status__in=(
-                        pcfg.REFUND_WAIT_SELLER_AGREE,pcfg.REFUND_CONFIRM_GOODS,pcfg.REFUND_SUCCESS))\
-                        .aggregate(total_refund_fee=Sum('refund_fee')).get('total_refund_fee',0)
+        effect_oids = self.getEffectOrdersId(order_qs)
+        
+        return Refund.objects.filter(oid__in=effect_oids,status__in=(
+                    pcfg.REFUND_WAIT_SELLER_AGREE,pcfg.REFUND_CONFIRM_GOODS,pcfg.REFUND_SUCCESS))\
+                    .aggregate(total_refund_fee=Sum('refund_fee')).get('total_refund_fee',0)
+        
+    def get(self, request, *args, **kwargs):
+        
+        content   = request.REQUEST
+        start_dt  = content.get('df','').strip()
+        end_dt    = content.get('dt','').strip()
+        shop_id   = content.get('shop_id')
+        p_outer_id   = content.get('outer_id','')
+        statistic_by = content.get('sc_by','pay')
+        wait_send = content.get('wait_send','')
+        
+        start_dt  = self.parseStartDt(start_dt)
+        end_dt    = self.parseEndDt(end_dt)
+        
+        trade_qs  = self.getSourceTrades(shop_id, statistic_by, wait_send, p_outer_id, start_dt, end_dt)
+        order_qs  = self.getSourceOrders(trade_qs,p_outer_id = p_outer_id)
+        
+        buyer_nums   = trade_qs.values_list('buyer_nick').distinct().count()
+        trade_nums   = trade_qs.count()
+        total_post_fee = trade_qs.aggregate(total_post_fee=Sum('post_fee')).get('total_post_fee',0)
+        refund_fees  = self.getTotalRefundFee(order_qs)
+        
+        trade_list   = self.getTradeSortedItems(order_qs)
         total_cost   = 0
         total_sales  = 0
         
         for trade in trade_list:
-            skus = trade[1]['skus']
             total_cost  += trade[1]['cost']
             total_sales += trade[1]['sales']
-            trade[1]['skus'] = sorted(skus.items(),key=lambda d:d[1]['num'],reverse=True)
+            trade[1]['skus'] = sorted(trade[1]['skus'].items(),key=lambda d:d[1]['num'],reverse=True)
+        
             
-        return {'df':format_datetime(start_dt),'dt':format_datetime(end_dt),'sc_by':statistic_by,
-                'outer_id':p_outer_id,'shops':User.objects.filter(status=pcfg.USER_NORMAL),'trade_items':trade_list, 
-                 'shop_id':shop_id and int(shop_id) or '','total_cost':total_cost and round(total_cost,2) or 0 ,
-                 'total_sales':total_sales and round(total_sales,2) or 0,'refund_fees':refund_fees and round(refund_fees,2) or 0,
-                 'wait_send':wait_send, 'buyer_nums':buyer_nums, 'trade_nums':trade_nums,'post_fees':total_post_fee }
+        return {'df':format_datetime(start_dt),
+                'dt':format_datetime(end_dt),
+                'sc_by':statistic_by,
+                'outer_id':p_outer_id,
+                'shops':User.effect_users.all(),
+                'trade_items':trade_list, 
+                'shop_id':shop_id and int(shop_id) or '',
+                'total_cost':total_cost and round(total_cost,2) or 0 ,
+                'total_sales':total_sales and round(total_sales,2) or 0,
+                'refund_fees':refund_fees and round(refund_fees,2) or 0,
+                'wait_send':wait_send, 
+                'buyer_nums':buyer_nums, 
+                'trade_nums':trade_nums,
+                'post_fees':total_post_fee }
         
     post = get    
 

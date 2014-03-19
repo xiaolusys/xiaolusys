@@ -152,6 +152,7 @@ class DXTSMSManager(SMSManager):
         success  = False
         task_id  = None
         succnums = 0
+        res_content = ''
         try:
             for k,v in params.items():
                 if isinstance(v,unicode):
