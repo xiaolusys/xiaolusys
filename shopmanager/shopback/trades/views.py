@@ -265,14 +265,14 @@ class StatisticMergeOrderView(ModelView):
                 'dt':format_datetime(end_dt),
                 'sc_by':statistic_by,
                 'outer_id':p_outer_id,
+                'wait_send':wait_send,
                 'shops':User.effect_users.all(),
                 'trade_items':trade_list, 
                 'shop_id':shop_id and int(shop_id) or '',
                 'total_cost':total_cost and round(total_cost,2) or 0 ,
                 'total_sales':total_sales and round(total_sales,2) or 0,
                 'refund_fees':refund_fees and round(refund_fees,2) or 0,
-                'wait_send':wait_send, 
-                'buyer_nums':buyer_nums, 
+                'buyer_nums':buyer_nums,
                 'trade_nums':trade_nums,
                 'post_fees':total_post_fee }
         

@@ -276,11 +276,15 @@ class SyncYundaScanWeightTask(Task):
     
     def getSourceData(self):
         
+        dt   = datetime.datetime.now()
+        f_dt = dt - datetime.timedelta(days=2)
         return MergeTrade.objects.filter(
                        logistics_company__code__in=YUNDA_CODE,
                        sys_status=pcfg.FINISHED_STATUS,
                        is_express_print=True,
                        is_charged=False,
+                       weight_time__gte=f_dt,
+                       weight_time__lte=dt,
                        ).exclude(out_sid='').exclude(receiver_name='')
     
     
@@ -340,7 +344,7 @@ class SyncYundaScanWeightTask(Task):
         except:
             return '0.2'
         
-        if weight == '' or float(weight) == 0 or weight.rfind('.') == 0:
+        if weight == '' or float(weight) < 0.2 or weight.rfind('.') == 0:
             return '0.2'
         
         if weight.rfind('.') < 0:
@@ -370,21 +374,24 @@ class SyncYundaScanWeightTask(Task):
         return order
     
     
-    def saveYundaOrder(self,orders):
+    def getValidOrders(self,orders):
         
-        order_ids = [o.id for o in orders]
+        cus_orders = []
         for order in orders:
-            self.createYundaOrder(order)
-        return LogisticOrder.objects.filter(cus_oid__in=order_ids)
+            o = self.createYundaOrder(order)
+            if not o.is_charged:
+                cus_orders.append(o)
+            
+        return cus_orders
         
     def uploadWeight(self,orders):
         
         try:
             cus_oids  = [o.id for o in orders]
             
-            cus_orders = self.saveYundaOrder(orders)
+            valid_orders = self.getValidOrders(orders)
             
-            post_xml  = self.getYJSWXmlData(cus_orders)
+            post_xml  = self.getYJSWXmlData(valid_orders)
             post_yunda_service(YUNDA_SCAN_URL,data=post_xml.encode('utf8'))
             
             LogisticOrder.objects.filter(cus_oid__in=cus_oids).update(is_charged=True)
