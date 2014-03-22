@@ -109,7 +109,7 @@ API_FIELDS = {
     'taobao.traderates.get':'num_iid,tid,oid,role,nick,result,created,rated_nick,item_title,item_price,content,reply',
     'taobao.fenxiao.products.get':'skus,images',
     'taobao.trade.close':'tid,close_reason',
-    
+    'taobao.tmc.user.get':'user_nick,topics,user_id,is_valid,created,modified'
 }
 
 
@@ -509,3 +509,10 @@ def taobao_tmc_messages_consume(group_name=None,quantity=None,tb_user_id=None):
 def taobao_tmc_messages_confirm(group_name=None,s_message_ids=None,f_message_ids=None,tb_user_id=None):
     pass
 
+@apis('taobao.tmc.user.cancel')
+def taobao_tmc_user_cancel(nick=None,tb_user_id=None):
+    pass
+
+@apis('taobao.tmc.user.get')
+def taobao_tmc_user_get(nick=None,fields=API_FIELDS['taobao.tmc.user.get'],tb_user_id=None):
+    pass

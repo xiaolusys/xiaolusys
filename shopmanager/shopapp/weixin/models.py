@@ -2,6 +2,28 @@
 import datetime
 from django.db import models
 from shopback.base.fields import BigIntegerAutoField
+from jsonfield import JSONCharField
+
+WX_TEXT  = 'text'
+WX_IMAGE = 'image'
+WX_VOICE = 'voice'
+WX_VIDEO = 'video'
+WX_THUMB = 'thumb'
+WX_MUSIC = 'music'
+WX_NEWS  = 'news'
+WX_LOCATION = 'location'
+WX_LINK  = 'link'  
+WX_DEFAULT = 'DEFAULT'
+
+WX_TYPE  = (
+            (WX_TEXT ,u'文本'),
+            (WX_IMAGE,u'图片'),
+            (WX_VOICE,u'语音'),
+            (WX_VIDEO,u'视频'),
+            (WX_THUMB,u'缩略图'),
+            (WX_MUSIC,u'音乐'),
+            (WX_NEWS ,u'图文'),
+            )
 
 class WeiXinAccount(models.Model):
     
@@ -35,15 +57,18 @@ class WeiXinAccount(models.Model):
         return False
     
     def isExpired(self):
-        return datetime.datetime.now() > self.expired + datetime.timedelta(seconds=self.expires_in)
+        return datetime.datetime.now() > self.expired \
+            + datetime.timedelta(seconds=self.expires_in)
     
     def checkSignature(self,signature,timestamp,nonce):
         
+        import time
         import hashlib
         
-        sign_array = [self.token,
-                      timestamp,
-                      nonce]
+        if time.time() - int(timestamp) > 300:
+            return False
+        
+        sign_array = [self.token,timestamp,nonce]
         sign_array.sort()
         
         sha1_value = hashlib.sha1(''.join(sign_array))
@@ -51,8 +76,6 @@ class WeiXinAccount(models.Model):
         return sha1_value.hexdigest() == signature
     
 
-            
-    
 class AnonymousWeixinAccount():
     
     def isNone(self):
@@ -77,6 +100,11 @@ class WeiXinUser(models.Model):
     country    = models.CharField(max_length=24,verbose_name=u"国家")
     province   = models.CharField(max_length=24,verbose_name=u"省份")
     city       = models.CharField(max_length=24,verbose_name=u"城市")
+    address    = models.CharField(max_length=256,blank=True,verbose_name=u"地址")
+    mobile     = models.CharField(max_length=24,blank=True,verbose_name=u"手机")
+    
+    isvalid    = models.BooleanField(default=False,verbose_name=u"已验证")
+    validcode  = models.CharField(max_length=6,blank=True,verbose_name=u"验证码")
     
     subscribe  = models.BooleanField(verbose_name=u"订阅该号")
     subscribe_time = models.DateTimeField(verbose_name=u"订阅时间")
@@ -89,9 +117,84 @@ class WeiXinUser(models.Model):
        
 class WeiXinAutoResponse(models.Model):
     
-    pass
+    message   = models.CharField(max_length=64,unique=True,verbose_name=u"消息")
     
+    rtype     = models.CharField(max_length=8,choices=WX_TYPE,default=WX_TEXT,verbose_name=u"类型")
     
+    media_id  = models.CharField(max_length=1024,blank=True,verbose_name=u'媒体ID')
     
+    title     = models.CharField(max_length=512,blank=True,verbose_name=u'标题')
+    content   = models.CharField(max_length=1024,blank=True,verbose_name=u'回复信息')
     
+    music_url = models.CharField(max_length=512,blank=True,verbose_name=u'音乐链接')
+    hq_music_url = models.CharField(max_length=512,blank=True,verbose_name=u'高品质音乐链接')
+    
+    news_json = JSONCharField(max_length=1024,blank=True,default='{}',verbose_name=u'图文信息')
+    
+    class Meta:
+        db_table = 'shop_weixin_response'
+        verbose_name=u'微信回复'
+        verbose_name_plural = u'微信回复列表'
+    
+    @classmethod
+    def respDefault(cls):
+        resp,state = cls.objects.get_or_create(message=WX_DEFAULT,rtype=WX_TEXT)
+        return resp
+    
+    def respText(self):
         
+        return {'MsgType':self.rtype,
+                'Content':self.content}
+    
+    def respImage(self):
+        
+        return {'MsgType':self.rtype,
+                'Image':{'MediaId':self.media_id
+                         }}
+        
+    def respVoice(self):
+        
+        return {'MsgType':self.rtype,
+                'Voice':{'MediaId':self.media_id
+                         }}
+        
+    def respVideo(self):
+        
+        return {'MsgType':self.rtype,
+                'Video':{'MediaId':self.media_id,
+                         'Title':self.title,
+                         'Description':self.content
+                         }}
+    
+    def respMusic(self):
+        
+        return {'MsgType':self.rtype,
+                'Music':{'Title':self.title,
+                         'Description':self.content,
+                         'ThumbMediaId':self.media_id,
+                         'MusicURL':self.music_url,
+                         'HQMusicUrl':self.hq_music_url
+                         }}
+        
+    def respNews(self):
+        news  = self.news_json
+        return {'MsgType':self.rtype,
+                'ArticleCount':len(news),
+                'Articles':{'item':news}}
+        
+    def autoParams(self):
+        
+        if   self.rtype == WX_TEXT:
+            return self.respText()
+        elif self.rtype == WX_IMAGE:
+            return self.respImage()
+        elif self.rtype == WX_VOICE:
+            return self.respVoice()
+        elif self.rtype == WX_VIDEO:
+            return self.respVideo()
+        elif self.rtype == WX_MUSIC:
+            return self.respMusic()
+        else:
+            return self.respNews()
+        
+            
