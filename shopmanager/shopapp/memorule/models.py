@@ -282,7 +282,7 @@ def rule_match_payment(sender, trade_id, *args, **kwargs):
                         msg = u'交易金额匹配（实付:%s）'%str(real_payment)
                         log_action(trade.user.user.id,trade,CHANGE,msg)
                         
-                    ComposeRule.objects.filter(id=rule.id).update(gif_count=F(gif_count)-1)
+                    ComposeRule.objects.filter(id=rule.id).update(gif_count=F('gif_count')-1)
                     break
                 
             MergeTrade.objects.filter(id=trade_id).update(order_num=orders.filter(sys_status=pcfg.IN_EFFECT).count(),payment=payment)
