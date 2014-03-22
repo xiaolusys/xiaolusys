@@ -1,6 +1,7 @@
 #-*- coding:utf8 -*-
 from django.contrib import admin
 from shopapp.yunda.models import ClassifyZone,BranchZone,LogisticOrder
+from shopback.base.options import DateFieldListFilter
 
 class ClassifyZoneInline(admin.TabularInline):
     
@@ -48,7 +49,7 @@ class LogisticOrderAdmin(admin.ModelAdmin):
     #date_hierarchy = 'created'
     #ordering = ['created_at']
     
-    list_filter = ('status','is_charged','sync_addr')
+    list_filter = ('status','is_charged','sync_addr',('created',DateFieldListFilter))
     search_fields = ['cus_oid','out_sid','receiver_name','receiver_mobile','receiver_phone']
 
 

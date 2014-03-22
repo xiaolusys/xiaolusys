@@ -24,8 +24,8 @@ class BranchZone(models.Model):
     
     class Meta:
         db_table = 'shop_yunda_branch'
-        verbose_name=u'分拨网点'
-        verbose_name_plural = u'分拨网点'
+        verbose_name=u'韵达分拨网点'
+        verbose_name_plural = u'韵达分拨网点'
    
     def __unicode__(self):
         return '<%s,%s,%s>'%(self.code,self.barcode,self.name)
@@ -42,8 +42,8 @@ class ClassifyZone(models.Model):
     
     class Meta:
         db_table = 'shop_yunda_zone'
-        verbose_name=u'分拨地址'
-        verbose_name_plural = u'分拨地址'
+        verbose_name=u'韵达分拨地址'
+        verbose_name_plural = u'韵达分拨地址'
    
     def __unicode__(self):
         return '<%s,%s>'%(' '.join([self.state,self.city,self.district]),self.branch or '')

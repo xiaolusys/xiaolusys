@@ -142,7 +142,7 @@ class TradesToXLSFile(object):
     def gen_report_file(self,dt_from,dt_to,file_name):
 
         consign_trades = Trade.objects.filter(pay_time__gte=dt_from,pay_time__lte=dt_to)
-        seller_list = User.objects.all()
+        seller_list = User.effect_users.all()
         for seller in seller_list:
 
             self.cur_row = 0

@@ -9,6 +9,8 @@ django-kombu==0.9.4
 python-memcached==1.45
 djangorestframework==0.3.0
 django-bitfield==1.6.4
+six==1.6.1
+jsonfield==0.9.20
 
 
 #geraldo
