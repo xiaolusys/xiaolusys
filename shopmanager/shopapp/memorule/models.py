@@ -4,7 +4,7 @@ import os.path
 import json
 from django.db import models
 from django.conf import settings
-from django.db.models import Sum
+from django.db.models import Sum,F
 from shopback import paramconfig as pcfg
 from shopback.items.models import Item,Product,ProductSku
 from shopback.orders.models import Trade
@@ -119,8 +119,9 @@ class ComposeRule(models.Model):
     outer_sku_id = models.CharField(max_length=64,db_index=True,blank=True,verbose_name=u'商品规格编码')
     
     payment  = models.IntegerField(null=True,verbose_name=u'大于金额')
-    type     = models.CharField(max_length=10,choices=RULE_TYPE_CHOICE,verbose_name=u'规则类型')
+    type         = models.CharField(max_length=10,choices=RULE_TYPE_CHOICE,verbose_name=u'规则类型')
     
+    gif_count   = models.IntegerField(default=0,verbose_name=u'赠送名额')
     extra_info = models.TextField(blank=True,verbose_name=u'信息')
     
     created  = models.DateTimeField(null=True,blank=True,auto_now_add=True)
@@ -274,11 +275,14 @@ def rule_match_payment(sender, trade_id, *args, **kwargs):
             self_rule = None
             payment_rules = ComposeRule.objects.filter(type='payment').order_by('-payment')
             for rule in payment_rules:
-                if real_payment >= rule.payment:
+                if real_payment >= rule.payment and rule.gif_count > 0:
                     for item in rule.compose_items.all():
+                        
                         MergeOrder.gen_new_order(trade.id,item.outer_id,item.outer_sku_id,item.num,gift_type=pcfg.OVER_PAYMENT_GIT_TYPE)
                         msg = u'交易金额匹配（实付:%s）'%str(real_payment)
                         log_action(trade.user.user.id,trade,CHANGE,msg)
+                        
+                    ComposeRule.objects.filter(id=rule.id).update(gif_count=F(gif_count)-1)
                     break
                 
             MergeTrade.objects.filter(id=trade_id).update(order_num=orders.filter(sys_status=pcfg.IN_EFFECT).count(),payment=payment)
