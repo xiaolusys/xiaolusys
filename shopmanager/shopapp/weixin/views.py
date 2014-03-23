@@ -9,7 +9,7 @@ from StringIO import StringIO
 from django.http import HttpResponse
 from django.conf import settings
 from django.views.generic import View
-from shopapp.weixin.models import WeiXinAccount,WeiXinAutoResponse,\
+from shopapp.weixin.models import WeiXinAccount,WeiXinAutoResponse,WeiXinUser,\
     WX_TEXT,WX_IMAGE,WX_VOICE,WX_VIDEO,WX_LOCATION,WX_LINK
 from common.xmlutils import makeEasyTag
 import logging
@@ -100,7 +100,6 @@ class WeixinAcceptView(View):
             pdom.appendChild(doc.createTextNode(str(djson)))
             return
         
-        print 'dom 2 xml:', doc.toxml()
         
     
     def formatParam2XML(self,params):  
@@ -153,8 +152,8 @@ class WeixinAcceptView(View):
             matchMsg = '链接'.decode('utf8')
         
         resp = self.getResponseByBestMatch(matchMsg.strip())
-        
         ret_params.update(resp.autoParams())
+        
         return ret_params
         
     def post(self,request):
@@ -168,7 +167,7 @@ class WeixinAcceptView(View):
             return HttpResponse('INVALID MESSAGE')
         
         content  = request.body
-        print 'content:',content
+        
         params   = self.parseXML2Param(content)
         
         ret_params = self.handleRequest(params)
@@ -178,8 +177,15 @@ class WeixinAcceptView(View):
         return HttpResponse(response,mimetype="text/xml")
 
         
+class WeixinMobileValidView(View):
+    
+    def get(self,request):
         
+        pass
         
+    def post(self,request):
+    
+        pass
         
         
         
