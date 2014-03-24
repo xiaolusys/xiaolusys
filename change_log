@@ -1,5 +1,8 @@
+######### 2014-3-24 ##########
+alter table shop_yunda_order add column weighted datetime NOT NULL;
+update shop_yunda_order set weighted=created;
 ######### 2014-3-22 ##########
-alter table shop_memorule_composerule add column git_count int(11) NOT NULL;
+alter table shop_memorule_composerule add column gif_count int(11) NOT NULL;
 ######### 2014-3-1 ##########
 alter table shop_comments_comment add replayer_id int(11) DEFAULT NULL;
 alter table shop_comments_comment add column replay_at datetime DEFAULT NULL;

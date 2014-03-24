@@ -94,7 +94,9 @@ class LogisticOrder(models.Model):
     receiver_phone     =  models.CharField(max_length=20,db_index=True,blank=True,verbose_name=u'电话')
     
     weight     = models.CharField(max_length=10,blank=True,verbose_name=u'称重')
-    created    = models.DateTimeField(auto_now_add=True,verbose_name=u'称重日期')
+    
+    weighted   = models.DateTimeField(default=datetime.datetime.now,verbose_name=u'创建日期') 
+    created    = models.DateTimeField(auto_now_add=True,verbose_name=u'创建日期')
     modified   = models.DateTimeField(auto_now=True,verbose_name=u'修改日期')
     
     valid_code = models.CharField(max_length=4,blank=True,verbose_name=u'校验码')
