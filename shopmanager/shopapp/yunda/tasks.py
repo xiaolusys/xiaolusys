@@ -176,7 +176,7 @@ class UpdateYundaOrderAddrTask(Task):
                 u'上海市松江区洞厍路398弄7号楼2楼',
                 '02137698479',
                 '200135',
-                cgi.escape(obj.receiver_name),
+                cgi.escape(obj.receiver_name or  'NONE'),
                 self.getStateCode(obj),
                 None,
                 None,
@@ -285,7 +285,7 @@ class SyncYundaScanWeightTask(Task):
                        is_charged=False,
                        weight_time__gte=f_dt,
                        weight_time__lte=dt,
-                       ).exclude(out_sid='').exclude(receiver_name='')
+                       ).exclude(out_sid='')
     
     
     def getYundaYJSWData(self,obj):
@@ -348,7 +348,7 @@ class SyncYundaScanWeightTask(Task):
             return '0.2'
         
         if weight.rfind('.') < 0:
-            return str(round(int(weight)*0.9/1000.0,2))
+            return str(round(int(weight)*0.94/1000.0,2))
         
         return weight
     

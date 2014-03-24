@@ -158,7 +158,7 @@ SYNC_MODEL_SCHEDULE = {
 SHOP_APP_SCHEDULE = {
     'runs-every-day-craw-onsale-item-comment':{
         'task':'shopapp.comments.tasks.crawAllUserOnsaleItemComment',
-        'schedule':crontab(minute="0",hour="*/4"),
+        'schedule':crontab(minute="0",hour="8,10,12,14,16,18,20,22"),
         'args':()
     },
     'runs-every-5-minutes-item-list':{  #定时上架任务
