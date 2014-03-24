@@ -95,7 +95,7 @@ class LogisticOrder(models.Model):
     
     weight     = models.CharField(max_length=10,blank=True,verbose_name=u'称重')
     
-    weighted   = models.DateTimeField(default=datetime.datetime.now,verbose_name=u'创建日期') 
+    weighted   = models.DateTimeField(default=datetime.datetime.now,verbose_name=u'称重日期') 
     created    = models.DateTimeField(auto_now_add=True,verbose_name=u'创建日期')
     modified   = models.DateTimeField(auto_now=True,verbose_name=u'修改日期')
     
