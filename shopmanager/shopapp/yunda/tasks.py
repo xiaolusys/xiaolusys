@@ -295,17 +295,17 @@ class SyncYundaScanWeightTask(Task):
                 '20',
                 self.parseTradeWeight(obj.weight),
                 '0',
-                '101342',
+                '199886',
                 None,
-                '101342',
+                '199886',
                 None,
                 None,
                 200000,
                 None,
-                '101342',
+                '199886',
                 '0',
                 '14',
-                format_datetime(obj.created)]     
+                format_datetime(obj.weighted)]     
            
     def getYJSWXmlData(self,objs):
     
@@ -313,11 +313,11 @@ class SyncYundaScanWeightTask(Task):
         header = """<req op="op04chz">
                     <h>
                         <ver>1.0</ver>
-                        <company>101342</company>
-                        <user>101342</user>
-                        <pass>3334822cbf5f6c33637f5eaa54e8c4c4</pass>
-                        <dev1>53201409003566</dev1>
-                        <dev2>14782083740</dev2>
+                        <company>199886</company>
+                        <user>199886</user>
+                        <pass>37c7a1dd2ce069cf370dd30daf881850</pass>
+                        <dev1>53201233834363</dev1>
+                        <dev2>14781926904</dev2>
                     </h><data>"""
         footer = "</data></req>"
         
@@ -367,6 +367,7 @@ class SyncYundaScanWeightTask(Task):
         order.receiver_phone    = trade.receiver_phone.strip()
         
         order.weight            = self.parseTradeWeight(trade.weight)
+        order.weighted          = trade.weight_time
         order.dc_code           = trade.reserveo
         order.valid_code        = trade.reserveh
         order.save()

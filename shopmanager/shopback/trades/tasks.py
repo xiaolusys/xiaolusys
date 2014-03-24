@@ -45,29 +45,30 @@ def get_trade_pickle_list_data(post_trades):
             except:
                 pass
             
+            location = prod_sku and prod_sku.get_districts_code() or (prod and prod.get_districts_code() or '')
             if trade_items.has_key(outer_id):
                 trade_items[outer_id]['num'] += order.num
                 skus = trade_items[outer_id]['skus']
                 if skus.has_key(outer_sku_id):
                     skus[outer_sku_id]['num'] += order.num
                 else:
-                    prod_sku_name = (prod_sku.properties_alias or prod_sku.properties_name ) if prod_sku else order.sku_properties_name
+                    prod_sku_name = prod_sku.name if prod_sku else order.sku_properties_name
                     skus[outer_sku_id] = {'sku_name':prod_sku_name,
                                           'num':order.num,
-                                          'location':prod_sku and prod_sku.get_districts_code() or (prod and prod.get_districts_code() or '')}
+                                          'location':location}
             else:
                 prod_sku_name =prod_sku.properties_name if prod_sku else order.sku_properties_name
                     
                 trade_items[outer_id]={
-                                       'num':order.num,
-                                       'title': prod.name if prod else order.title,
-                                       'location':prod and prod.get_districts_code() or '',
-                                       'skus':{outer_sku_id:{
-                                                             'sku_name':prod_sku_name,
-                                                             'num':order.num,
-                                                             'location':prod_sku and prod_sku.get_districts_code() or (prod and prod.get_districts_code() or '')}}
-                                       }
-                 
+                   'num':order.num,
+                   'title': prod.name if prod else order.title,
+                   'location':prod and prod.get_districts_code() or '',
+                   'skus':{outer_sku_id:{
+                        'sku_name':prod_sku_name,
+                        'num':order.num,
+                        'location':location}}
+                }
+
     trade_list = sorted(trade_items.items(),key=lambda d:d[1]['num'],reverse=True)
     for trade in trade_list:
         skus = trade[1]['skus']
@@ -262,4 +263,10 @@ def pushBuyerToCustomerTask(day):
             trade.save_customer()
         except:
             pass
+        
+        
+
+
+
+
    

@@ -13,7 +13,6 @@ six==1.6.1
 jsonfield==0.9.20
 
 
-
 #geraldo
 #reportlab==2.5
 #wsgiref==0.1.2
