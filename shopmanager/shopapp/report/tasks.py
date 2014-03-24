@@ -57,7 +57,7 @@ def updateMonthTradeXlsFileTask(year=None,month=None):
     start_date   = last_month_first_days - datetime.timedelta(7,0,0)
     
     interval_date = dt - start_date
-    users = User.objects.all()
+    users = User.effect_users.all()
     for user in users:
         report_status,state = MonthTradeReportStatus.objects.get_or_create\
                 (seller_id=user.visitor_id,year=year,month=month)

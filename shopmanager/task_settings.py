@@ -119,7 +119,7 @@ SYNC_MODEL_SCHEDULE = {
 #    },
     'runs-every-half-day-increment-orders':{
         'task':'shopback.orders.tasks.updateAllUserIncrementTradesTask',
-        'schedule':crontab(minute="30/*"),
+        'schedule':crontab(minute="*/30"),
         'args':()
     },
     'runs-every-day-warn-num-update':{     #将昨日的订单数更新为商品的警告库位
@@ -203,7 +203,7 @@ SHOP_APP_SCHEDULE = {
     },
     'runs-every-day-send-yunda-weight':{
         'task':'shopapp.yunda.tasks.SyncYundaScanWeightTask',
-        'schedule':crontab(minute="0",hour="20"),
+        'schedule':crontab(minute="0",hour="20,22"),
         'args':()
     },
     'runs-every-day-cancel-yunda-sid':{
