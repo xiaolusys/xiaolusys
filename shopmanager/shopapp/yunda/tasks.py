@@ -95,12 +95,9 @@ def post_yunda_service(req_url,data='',headers=None):
 
 class CancelUnsedYundaSidTask(Task):
     
-    max_retries = 3
-    
-    def __init__(self,interval_days=7):
-        
-        self.interval_days = interval_days
-        
+    max_retries   = 3
+    interval_days  = 10 
+
     def getSourceIDList(self):
         
         dt  = datetime.datetime.now()
@@ -156,10 +153,10 @@ class CancelUnsedYundaSidTask(Task):
 
 class UpdateYundaOrderAddrTask(Task):
     
-    max_retries = 3
+    max_retries  = 3
+    pg                  = []
     
-    def __init__(self):
-        
+    def initial_data(self):
         self.pg = Paginator(self.getSourceData(), ADDR_UPLOAD_LIMIT)
     
     def getSourceData(self):
@@ -255,6 +252,8 @@ class UpdateYundaOrderAddrTask(Task):
     
     def run(self):
         
+        self.initial_data()
+            
         if self.pg.count == 0:
             return 
         
@@ -268,10 +267,10 @@ class UpdateYundaOrderAddrTask(Task):
 
 class SyncYundaScanWeightTask(Task):
     
-    max_retries = 3
+    max_retries  = 3
+    pg                  =  []    
     
-    def __init__(self):
-        
+    def initial_data(self):
         self.pg = Paginator(self.getSourceData(), WEIGHT_UPLOAD_LIMIT)
     
     def getSourceData(self):
@@ -403,6 +402,9 @@ class SyncYundaScanWeightTask(Task):
         
                 
     def run(self):
+                
+        self.initial_data()
+        
         if self.pg.count == 0:
             return 
         

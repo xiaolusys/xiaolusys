@@ -203,7 +203,7 @@ SHOP_APP_SCHEDULE = {
     },
     'runs-every-day-send-yunda-weight':{
         'task':'shopapp.yunda.tasks.SyncYundaScanWeightTask',
-        'schedule':crontab(minute="0",hour="20,22"),
+        'schedule':crontab(minute="0",hour="20,22,0"),
         'args':()
     },
     'runs-every-day-cancel-yunda-sid':{
