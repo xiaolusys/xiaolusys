@@ -5,13 +5,11 @@ from celery import Task
 from django.conf import settings
 
 
-class TMCMessageTask(Task):
-    """ 获取TMC消息 """
+class ProcessMessageTask(Task):
+    """ 处理消息 """
     
-    def __init__(self):
-        self.item = None
-        
-    def run(self,num_iid):
+    
+    def run(self,message):
         
         try:
             pass
@@ -19,6 +17,14 @@ class TMCMessageTask(Task):
             pass
     
     
+class ProcessMessageCallBack(Task):
+    """ 处理消息回调"""
     
+    def run(self,message_status):
+        
+        try:
+            pass
+        except:
+            pass    
         
     

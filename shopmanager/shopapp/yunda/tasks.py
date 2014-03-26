@@ -13,7 +13,7 @@ from django.core.paginator import Paginator
 from shopback import paramconfig as pcfg
 from shopback.trades.models import MergeTrade
 from shopapp.yunda.qrcode import cancel_order,search_order,parseTreeID2MailnoMap
-from shopapp.yunda.models import LogisticOrder,NORMAL,DELETE
+from shopapp.yunda.models import LogisticOrder,YUNDA_CODE,NORMAL,DELETE
 from common.utils import valid_mobile,format_datetime
 import logging
 
@@ -21,7 +21,7 @@ logger = logging.getLogger('celery.handler')
 ######################## 韵达录单任务 ########################
 YUNDA_ADDR_URL = 'http://qz.yundasys.com:18080/ws/opws.jsp'
 YUNDA_SCAN_URL = 'http://qz.yundasys.com:9900/ws/ws.jsp'
-YUNDA_CODE     = ('YUNDA','YUNDA_QR')
+
 SID_CANCEL_LIMIT    = 500
 ADDR_UPLOAD_LIMIT   = 100
 WEIGHT_UPLOAD_LIMIT = 30

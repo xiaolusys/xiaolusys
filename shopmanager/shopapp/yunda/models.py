@@ -10,6 +10,9 @@ logger = logging.getLogger('yunda.handler')
 
 NORMAL = 'normal'
 DELETE = 'delete'
+YUNDA  = 'YUNDA'
+YUNDA_QR = 'YUNDA_QR'
+YUNDA_CODE     = (YUNDA,YUNDA_QR)
 
 ORDER_STATUS_CHOICES = (
                         (NORMAL,U'正常'),

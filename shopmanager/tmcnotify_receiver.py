@@ -10,7 +10,7 @@ from django.core.management import setup_environ
 import settings
 setup_environ(settings)
 
-from shopapp.tmcnotify.models import TmcMessage,TmcUser
+from shopapp.tmcnotify.models import TmcMessage,TmcUser,DEFAULT_GROUP_NAME
 from auth import apis
 import logging
 
@@ -26,62 +26,69 @@ class EmptyMessage(Exception):
     def __str__(self):
         return self.msg
 
-class Command():
-    c = None
-    fail_wait_time = 0
+class NotifyCommand():
+    c    = None
+    group_name = None
+    user = None
+    
+    def __init__(self,group_name=DEFAULT_GROUP_NAME):
+        
+        self.group_name = group_name
+        self.user       = self.getPrimaryUser(group_name)
     
     def handle_daemon(self, *args, **options):
         
-        users = TmcUser.valid_users.all()
-        if users.count()==0:
+        if not self.user:
             return 
         
         while 1:
-            self.fail_wait_time = 1
+
             try:
-                self.consume_message(user=user)
+                self.consume_message(user=self.user)
+            except EmptyMessage:
+                #没有可用消息是休眠1分钟
+                time.sleep(60) 
             except Exception,exc:
-                #服务暂时不可用，休眠一分钟
-                if hasattr(exc,'args') and exc.args[0] == 28:
-                    time.sleep(1)
-                else:
-                    logger.error(exc.message or str(exc.args),exc_info=True)
-                    time.sleep(60) 
-            else:
-                #服务端断开连接，则选择服务端返回的时间来休眠
-                time.sleep(self.fail_wait_time or 5)
+                logger.error(exc.message,exc_info=True)
+                #休眠5分钟
+                time.sleep(60*5)
     
+    def getPrimaryUser(self,group_name):
+        
+        users = TmcUser.valid_users.filter(group_name=group_name)
+        if users.count() == 0:
+            return None
+        
+        try:
+            return users.get(is_primary=True)
+        except:
+            return users[0]
+        
+        
+    def getTotalResults(self,reponse):
+        
+        return response['tmc_messages_consume_response'].get('total_results')
+        
     def getMessageFromResp(self,response):
         
-        if response.get('total_results') == 0:
-            raise EmptyMessage(u'暂没有可消费的消息')
+        if not response['tmc_messages_consume_response'].get('messages'):
+            raise EmptyMessage(u'暂没有的消息可消费')
         return response['tmc_messages_consume_response']['messages']['tmc_message']     
         
-    def consume_message(self,user=None):
+    def consume_message(self):
         
         response = apis.taobao_tmc_messages_consume(
-                                                    group_name=None,
+                                                    group_name=self.group_name,
                                                     quantity=CONSUME_MAX_RECODES,
-                                                    tb_user_id=user.user_id)
+                                                    tb_user_id=self.user.user_id)
         
-        
+        message  = self.getMessageFromResp(response)
+        self.handle_message(messages)
         
         
     def handle_message(self,messages):
-        #交易消息处理
-        if item.has_key('notify_trade'):
-            trade_dict = item['notify_trade']
-            TradeNotify.save_and_post_notify(trade_dict)
-            
-        #商品消息处理
-        if item.has_key('notify_item'):
-            item_dict = item['notify_item']
-            ItemNotify.save_and_post_notify(item_dict)
-
-        #退款消息处理
-        if item.has_key('notify_refund'):
-            refund_dict = item['notify_refund']
-            RefundNotify.save_and_post_notify(refund_dict)
+        
+        chord([ProcessMessageTask.s(m) for m in messages])(ProcessMessageCallBack.s())
     
         
 if __name__ == '__main__':

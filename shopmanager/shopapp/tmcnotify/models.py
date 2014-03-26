@@ -3,6 +3,8 @@ import datetime
 from django.db import models
 from shopback.base.fields import BigIntegerAutoField
 
+DEFAULT_GROUP_NAME ='default'
+
 class ValidUserManager(models.Manager):
     def get_query_set(self):
         return super(ValidUserManager, self).get_query_set().filter(is_valid=True)
@@ -39,9 +41,11 @@ class TmcUser(models.Model):
     created  = models.DateTimeField(null=True,blank=True,verbose_name=u'创建时间')
        
     topics   = models.TextField(max_length=2500,blank=True,verbose_name=u'消息内容')
-    group_name = models.CharField(max_length=64,blank=True,verbose_name=u'消息群组')
+    group_name = models.CharField(max_length=64,blank=True,default=DEFAULT_GROUP_NAME,verbose_name=u'消息群组')
     
     is_valid   = models.BooleanField(default=False,verbose_name=u'授权是否有效') 
+    
+    is_primary = models.BooleanField(default=False,verbose_name=u'授权是否有效')
     
     valid_users = ValidUserManager()
     class Meta:
