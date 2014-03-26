@@ -2,6 +2,7 @@
 from .handler import TradeHandler
 from shopback.trades.models import MergeTrade
 from shopback import paramconfig as pcfg
+from common.modelutils import  update_model_fields
 
 class LogisticsHandler(TradeHandler):
     
@@ -17,7 +18,6 @@ class LogisticsHandler(TradeHandler):
         city           = self.merge_trade.receiver_city
         district       = self.merge_trade.receiver_district
         shipping_type  = self.merge_trade.shipping_type.upper()
-        
         
         from shopback.logistics.models import Logistics,LogisticsCompany,DestCompany
         
@@ -53,9 +53,10 @@ class LogisticsHandler(TradeHandler):
                 if reach == '1':
                     self.merge_trade.reserveo = zonec
                     self.merge_trade.reservet = zoned
-                    
-            MergeTrade.objects.filter(id=self.merge_trade.id).update(
-                logistics_company = logistics_company,)
+            
+            update_model_fields(self.merge_trade,update_fields=
+                                                        ['logistics_company','reserveo','reservet','sys_memo'])
+            
         except Exception,exc:
             merge_trade.append_reason_code(pcfg.DISTINCT_RULE_CODE)
         
