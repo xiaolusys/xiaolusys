@@ -55,7 +55,7 @@ class LogisticsHandler(TradeHandler):
                     self.merge_trade.reservet = zoned
             
             update_model_fields(self.merge_trade,update_fields=
-                                                        ['logistics_company','reserveo','reservet','sys_memo'])
+                                ['logistics_company','reserveo','reservet','sys_memo'])
             
         except Exception,exc:
             merge_trade.append_reason_code(pcfg.DISTINCT_RULE_CODE)

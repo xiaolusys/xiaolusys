@@ -1,3 +1,5 @@
+######### 2014-3-27 ##########
+alter table shop_weixin_account add column jmenu varchar(1024) NOT NULL;
 ######### 2014-3-24 ##########
 alter table shop_yunda_order add column weighted datetime NOT NULL;
 update shop_yunda_order set weighted=created;

@@ -37,7 +37,7 @@ class WeiXinAccount(models.Model):
     expires_in = models.BigIntegerField(default=0,verbose_name="使用期限(s)")
     expired    = models.DateTimeField(default=datetime.datetime.now(),verbose_name="上次过期时间")
     
-    jmenu     =  JSONCharField(max_length=1024,blank=True,load_kwargs={},verbose_name=u'图文信息') 
+    jmenu     =  JSONCharField(max_length=1024,blank=True,load_kwargs={},verbose_name=u'菜单代码') 
     
     in_voice   = models.BooleanField(default=False,verbose_name=u'开启语音')
     is_active  = models.BooleanField(default=False,verbose_name=u'激活')
@@ -133,7 +133,7 @@ class WeiXinAutoResponse(models.Model):
     music_url = models.CharField(max_length=512,blank=True,verbose_name=u'音乐链接')
     hq_music_url = models.CharField(max_length=512,blank=True,verbose_name=u'高品质音乐链接')
     
-    news_json = JSONCharField(max_length=1024,blank=True,load_kwargs='{}',verbose_name=u'图文信息')
+    news_json = JSONCharField(max_length=1024,blank=True,load_kwargs={},verbose_name=u'图文信息')
     
     class Meta:
         db_table = 'shop_weixin_response'

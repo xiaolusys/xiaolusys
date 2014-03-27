@@ -1,21 +1,37 @@
 <html>
     <head>
-         <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=2.0, minimum-scale=2.0, maximum-scale=2.0, user-scalable=no" />
         <title>验证微信手机号码</title>
         <script type="text/javascript">
             var timeout = 60;           
              function getValidCode(){
                             
-            }
+             }
         </script>
+        <style type="text/css">
+        	body {
+　　　　			font: normal 100% Helvetica, Arial, sans-serif;
+　　			}
+        	li button,li input{
+        		display:inline;
+        	}
+        	.main {
+　　　　         float: right;
+　　　　         width: 70%; 
+　　			}
+			.row{
+				display:block;
+			}
+        </style>
     </head>
-    <body  style="text-align:center;">
-            <form style="margin-top:40px;">
-                <li style="list-style: none;">
-                    <ol><div><input type="text" size="20" placeholder="请输入手机号" /></div></ol>
-                    <ol><div><button>获取验证码</button><input type="text" size="9"  placeholder="验证码"/></div></ol>
-                    <ol><input type="submit" value="提交"></ol>
-                </li>            
+    <body  >
+            <form class="main" >
+                <div>
+                    <div class="row"><input type="text" size="20" placeholder="请输入手机号"  /></div>
+                    <div class="row"><button >获取验证码</button><input type="text" size="6" placeholder="验证码"/></div>
+                    <div class="row"><input type="submit" value="提交"></div>
+                </div>      
             </form>
     </body>
     

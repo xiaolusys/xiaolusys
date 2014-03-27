@@ -1,86 +1,94 @@
 # -*- coding: utf-8 -*-
+
+from shopback.trades.mixins import TaobaoTradeSercie,TaobaoSendTradeMixin
+from shopback.users import Seller
+from shopback.orders.models import Trade,Order
 from shopback import paramconfig as pcfg
+from common.utils import parse_datetime
 from auth import apis
-import logging
 
-logger = logging.getLogger('django.request')
-
-
-class OrderService(object):
+class OrderService(TaobaoTradeSercie,TaobaoSendTradeMixin):
     
-    trade = None        
+    trade = None
         
-    def setTrade(self,trade):
-        self.trade = trade
+    def __init__(self,t):
+        assert t not in ('',None)
+        
+        if isinstance(t,Trade):
+            self.trade = t
+        else:
+            self.trade = Trade.objects.get(id=t)
+    
+    @classmethod
+    def getTradeFullInfo(cls,user_id,tid):
+        
+        response    = apis.taobao_trade_fullinfo_get(tid=tid,tb_user_id=user_id)
+        return response['trade_fullinfo_get_response']['trade']
+    
+    @classmethod
+    def getTradeInfo(cls,user_id,tid):
+        
+        response    = apis.taobao_trade_get (tid=tid,tb_user_id=user_id)
+        return response['trade_get_response']['trade']
+    
+    @classmethod
+    def saveOrderByDict(cls,order_dict):
+        
+        order,state = Order.objects.get_or_create(pk=o['oid'])
+        order.trade = trade
+        
+        for k,v in o.iteritems():
+            hasattr(order,k) and setattr(order,k,v)
+        
+        order.outer_id  = o.get('outer_iid','')
+        order.save()
+        
+        return order
+    
+    @classmethod
+    def saveTradeByDict(cls,user_id,trade_dict):
+        
+        if not trade_dict.get('tid'):
+            return 
+        
+        trade,state = Trade.objects.get_or_create(pk=trade_dict['tid'])
+        trade.user  = Seller.objects.get(visitor_id=user_id)
+        trade.seller_id   = user_id
+        
+        for k,v in trade_dict.iteritems():
+            hasattr(trade,k) and setattr(trade,k,v)
+        
+        trade.save()
 
-    def createTrade(self,id,trade_type):
-        pass 
+        for o in trade_dict['orders']['order']:
+            cls.saveOrderByDict(o)
+            
+        return trade
+    
+    @classmethod
+    def createTrade(cls,user_id,tid):
+        
+        trade_dict = cls.getTradeInfo(user_id, tid)
+        
+        return cls.saveTradeByDict(user_id, trade_dict)
     
     def payTrade(self):
-        pass
+        
+        trade_dict = self.getTradeFullInfo(self.get_seller_id(),self.get_trade_id())
+        return self.saveTradeByDict(self.get_seller_id(), trade_dict)
     
-    def is_post_success(self,out_sid):
-        """ 判断淘宝订单是否发货成功 """
+    def finishTrade(self,finish_time):
         
-        user_id = self.seller_id
-        response = apis.taobao_logistics_orders_get(tid=self.trade.id,tb_user_id=user_id,fields='out_sid,tid')
-        trade_dicts = response['logistics_orders_get_response']['shippings']['shipping']
+        self.trade.end_time = finish_time
+        self.trade.status   = pcfg.TRADE_FINISHED
+        self.save()
         
-        if len(trade_dicts)>0:
-            taobao_sid = trade_dicts[0].get('out_sid','') 
-            if taobao_sid and taobao_sid == out_sid:
-                return True
-            elif taobao_sid and taobao_sid  != out_sid: 
-                raise Exception(u'系统快递单号与线上发货快递单号不一致')
-            else:
-                raise Exception(u'订单未发货')    
-        else:       
-            raise Exception(u'订单物流信息未查到')
-        
-    
-    def send_trade(self,company_code=None,out_sid=None,retry_times=3):
-        """ 订单在淘宝后台发货 """
-        
-        trade_id   = self.trade.id
-        trade_type = self.trade.type
-        seller_id  = self.trade.seller_id
-        company_code = company_code.split('_')[0]
-        
-        try:
-            #如果货到付款
-            if trade_type == pcfg.COD_TYPE:
-                response = apis.taobao_logistics_online_send(tid=trade_id,out_sid=out_sid
-                                              ,company_code=company_code,tb_user_id=seller_id)  
-                #response = {'logistics_online_send_response': {'shipping': {'is_success': True}}}
-                if not response['logistics_online_send_response']['shipping']['is_success']:
-                    raise Exception(u'订单(%d)淘宝发货失败'%self.trade.tid)
-            else: 
-                response = apis.taobao_logistics_offline_send(tid=trade_id,out_sid=out_sid
-                                              ,company_code=company_code,tb_user_id=seller_id)  
-                #response = {'logistics_offline_send_response': {'shipping': {'is_success': True}}}
-                if not response['logistics_offline_send_response']['shipping']['is_success']:
-                    raise Exception(u'订单(%d)淘宝发货失败'%trade_id)
-        except apis.LogisticServiceBO4Exception,exc:
-            return self.is_post_success(out_sid)
+        self.trade.trade_orders.filter(status=pcfg.WAIT_BUYER_CONFIRM_GOODS)\
+                                .update(status=pcfg.TRADE_FINISHED)
             
-        except apis.LogisticServiceB60Exception,exc:
-            self.send_trade(company_code=u'%s送'%self.logistics_company.name,out_sid=out_sid)
-            
-        except Exception,exc:
-            retry_times = retry_times - 1
-            if retry_times<=0:
-                logger.error(exc.message or u'订单发货出错',exc_info=True)
-                raise exc
-            
-            self.send_trade(company_code=company_code,out_sid=out_sid,retry_times=retry_times)
-             
-        return True
-    
-    def finishTrade(self):
-        pass
-    
     def closeTrade(self):
         pass
+    
     
     def modifyTrade(self):
         pass
