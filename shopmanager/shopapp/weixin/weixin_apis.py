@@ -13,7 +13,7 @@ import json
 import urllib
 import urllib2
 from django.conf import settings
-from shopapp.weixin.models import WeiXinAccount
+from shopapp.weixin.models import WeiXinAccount,WX_TEXT
 
 class WeiXinRequestException(Exception):
     
@@ -22,7 +22,7 @@ class WeiXinRequestException(Exception):
         self.msg  = msg
   
     def __str__(self):
-        return u'微信API调用错误:(%s,%s)'%(str(self.code),self.msg)
+        return u'微信API错误:(%s,%s)'%(str(self.code),self.msg)
 
 
 
@@ -137,8 +137,15 @@ class WeiXinAPI(object):
             params.update(expire_seconds=expire_seconds)
             
         return self.handleRequest(self._create_qrcode_uri, params,method='POST')
-    
-    
+        
+    def genTextRespJson(self,text):
+        return  { 'MsgType':WX_TEXT,
+                      'Content':text}
+        
+    def sendValidCode(self,mobile,validCode,title=u'微信手机验证'):
+        from shopapp.smsmgr import sendMessage
+        
+        return sendMessage(mobile,title,validCode)
     
     
     

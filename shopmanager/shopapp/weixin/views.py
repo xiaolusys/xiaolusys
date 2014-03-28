@@ -1,25 +1,27 @@
 #-*- encoding:utf8 -*-
-import json
+import re
+import random
 import time
 import datetime
-import urllib,urllib2
 from lxml import etree
 from xml.dom import minidom 
-from StringIO import StringIO
 from django.http import HttpResponse
 from django.conf import settings
 from django.views.generic import View
 from shopapp.weixin.models import WeiXinAccount,WeiXinAutoResponse,WeiXinUser,\
     WX_TEXT,WX_IMAGE,WX_VOICE,WX_VIDEO,WX_LOCATION,WX_LINK
-from common.xmlutils import makeEasyTag
+from .weixin_apis import WeiXinAPI
+from common.utils import parse_datetime
 import logging
 
 logger = logging.getLogger('django.request')
-
+VALID_PHONE_REGEX = '^vm:(?P<mobile>1[3458][0-9]{9})$'
+VALID_CODE_REGEX    = '^vc:(?P<code>[0-9]{6})$'
 
 class WeixinAcceptView(View):
     """ 微信接收消息接口 """
-    
+
+    _wx_api = WeiXinAPI()
     
     def get(self, request):
         
@@ -122,14 +124,78 @@ class WeixinAcceptView(View):
         
         return WeiXinAutoResponse.objects.extra(select={'length':'Length(message)'}).order_by('-length')
     
-    def getResponseByBestMatch(self,message):
+    def reValidMobile(self,msg):
         
+        m = re.complile(VALID_PHONE_REGEX).match(msg)
+        return m.groupdict().get('mobile')
+        
+    def reValidCode(self,msg):
+         
+        m = re.complile(VALID_CODE_REGEX).match(msg)
+        return m.groupdict().get('code')
+    
+    def getOrCreateUser(self,openId):
+        
+        wx_user,state =  WeiXinUser.objects.get_or_create(openid=openId)       
+        if not wx_user.nickname:
+            userinfo = self. _wx_api.getUserInfo(openId)
+           
+            for k,v in userinfo.iteritems():
+                setattr(wx_user,k,v)
+                
+            wx_user.subscribe_time = parse_datetime(userinfo.get('subscribe_time'))
+            wx_user.save()
+        return wx_user
+        
+    def genValidCode(self):
+        return str( random.randint(100000,999999))
+        
+    def getValidCode(self,mobile,openId):
+        
+        wx_user   = self.getOrCreateUser(openId)
+        
+        if not  wx_user.is_code_time_safe():      
+            raise Exception(u'请%d秒后重新发送'%(wx_user.get_wait_time()))
+        
+        validCode = self.genValidCode()
+        self._wx_api.sendValidCode(mobile,validCode)        
+        
+        wx_user.mobile = mobile
+        wx_user.isvalid  = False
+        wx_user.validcode = validCode
+        wx_user.valid_count += 1
+        wx_user.code_time = datetime.datetime.now()
+        wx_user.save()
+        return validCode
+    
+    def checkValidCode(self,validCode,openId):
+        
+         wx_user   = self.getOrCreateUser(openId)
+         if wx_user.isvalid:
+            return True
+             
+         if not wx_user.validcode or wx_user.validcode != validCode:
+             raise Exception(u'验证码不对，请重新输入，或者重新输发送')
+             
+         wx_user.isvalid = True
+         wx_user.save()
+         return True
+    
+    def getResponseByBestMatch(self,message,*args,**kwargs):
+        
+        mobile = self.reValidMobile(message)
+        if mobile and self.getValidCode(mobile):
+            return WeiXinAutoResponse.objects.get_or_create(message=u'校验码提醒')
+        
+        validCode = self.reValidCode(message)
+        if validCode and self.checkValidCode(validCode):
+            return WeiXinAutoResponse.objects.get_or_create(message=u'校验成功提示')            
+            
         for resp in self.getResponseList():
             if message.rfind(resp.message.strip()) > -1:
                 return resp
         return WeiXinAutoResponse.respDefault()
-            
-
+    
     def handleRequest(self,params):
         
         ret_params = {'ToUserName':params['FromUserName'],
@@ -150,10 +216,12 @@ class WeixinAcceptView(View):
             matchMsg = '位置'.decode('utf8')
         else:
             matchMsg = '链接'.decode('utf8')
-        
-        resp = self.getResponseByBestMatch(matchMsg.strip())
-        ret_params.update(resp.autoParams())
-        
+        try:
+            resp = self.getResponseByBestMatch(matchMsg.strip(),params)
+            ret_params.update(resp.autoParams())
+        except Exception,exc:
+            ret_params.update(self._wx_api.genTextRespJson(exc.message))
+            
         return ret_params
         
     def post(self,request):
@@ -177,15 +245,7 @@ class WeixinAcceptView(View):
         return HttpResponse(response,mimetype="text/xml")
 
         
-class WeixinMobileValidView(View):
-    
-    def get(self,request):
-        
-        pass
-        
-    def post(self,request):
-    
-        pass
+
         
         
         
