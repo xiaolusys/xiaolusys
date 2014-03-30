@@ -91,9 +91,12 @@ class PurchaseAdmin(admin.ModelAdmin):
 
         return '<a href="/purchases/%d/" >%s</a>'%(obj.id,symbol_link) 
         
+    purchase_title_link.allow_tags = True
+    purchase_title_link.short_description = u"标题"
+
     def forecast_date_link(self, obj):
-        if  ( obj. forecast_date - datetime.datetime.now() ).days < 10 and not obj.storage_num :      
-            return u'<div style="color:red;" title="到货日期十日內提示">%s</div>'%format_date(obj.forecast_date) 
+        if (obj.forecast_date - datetime.datetime.now().date()).days < 10 and not obj.storage_num :      
+            return u'<div style="color:blue;background-color:red;" title="到货日期十日內提示">%s</div>'%format_date(obj.forecast_date) 
         return format_date(obj.forecast_date) 
         
     forecast_date_link.allow_tags = True

@@ -12,7 +12,9 @@ def getProductWaitReceiveNum(pId,skuId=None):
     if skuId:
         purchaseItems = purchaseItems.filter(sku_id=skuId)
                                 
-    wait_receive_num = purchaseItems.extra(select={'remain_num': "purchase_num-storage_num"})\
-        .aggregate(total_remain_num=Sum('remain_num')).get('total_remain_num')
-        
-    return wait_receive_num
+    purchase_dict = purchaseItems.aggregate(total_purchase_num=Sum('purchase_num'),
+                                           total_storage_num=Sum('storage_num'))\
+                                           
+    if not (purchase_dict['total_purchase_num'] and purchase_dict['total_storage_num']):
+        return 0
+    return purchase_dict['total_purchase_num']-purchase_dict['total_storage_num']
