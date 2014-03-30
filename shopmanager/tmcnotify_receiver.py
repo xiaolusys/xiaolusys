@@ -11,6 +11,7 @@ import settings
 setup_environ(settings)
 
 from shopapp.tmcnotify.models import TmcMessage,TmcUser,DEFAULT_GROUP_NAME
+from shopapp.tmcnotify.tasks import ProcessMessageTask,ProcessMessageCallBack
 from auth import apis
 import logging
 
@@ -30,6 +31,8 @@ class NotifyCommand():
     c    = None
     group_name = None
     user = None
+    messageProcessor = ProcessMessageTask()
+    messageCallBack  = ProcessMessageCallBack()
     
     def __init__(self,group_name=DEFAULT_GROUP_NAME):
         
@@ -88,11 +91,19 @@ class NotifyCommand():
         
     def handle_message(self,messages):
         
-        chord([ProcessMessageTask.s(m) for m in messages])(ProcessMessageCallBack.s())
+        if settings.DEBUG:
+            for m in messages:
+                print self.messageProcessor(m)
+        else:
+            chord([self.messageProcessor.s(m) for m in messages])(self.messageCallBack.s())
     
         
 if __name__ == '__main__':
     
-    c = Command()
-    c.handle_daemon()
+    
+    ms = [{u'content': u'{"buyer_nick":"\u6211\u7684\u6dd8\u6211\u7684\u5b9d22","payment":"30.36","oid":586070597376760,"tid":586070597376760,"type":"guarantee_trade","seller_nick":"\u4f18\u5c3c\u4e16\u754c\u65d7\u8230\u5e97"}', u'pub_time': u'2014-03-26 10:41:41', u'user_id': 174265168, u'pub_app_key': u'12497914', u'user_nick': u'\u4f18\u5c3c\u4e16\u754c\u65d7\u8230\u5e97', u'topic': u'taobao_trade_TradeBuyerPay', u'id': 6142200092063758446L}, 
+          {u'content': u'{"buyer_nick":"damingfly","payment":"48.90","oid":585608839663430,"tid":585608839663430,"type":"guarantee_trade","seller_nick":"\u4f18\u5c3c\u4e16\u754c\u65d7\u8230\u5e97"}', u'pub_time': u'2014-03-25 21:59:21', u'user_id': 174265168, u'pub_app_key': u'12497914', u'user_nick': u'\u4f18\u5c3c\u4e16\u754c\u65d7\u8230\u5e97', u'topic': u'taobao_trade_TradeBuyerPay', u'id': 6142200092063758447L}, 
+          {u'content': u'{"buyer_nick":"shanweida","payment":"111.46","oid":586004403606066,"tid":586004403606066,"type":"guarantee_trade","seller_nick":"\u4f18\u5c3c\u4e16\u754c\u65d7\u8230\u5e97"}', u'pub_time': u'2014-03-25 22:01:58', u'user_id': 174265168, u'pub_app_key': u'12497914', u'user_nick': u'\u4f18\u5c3c\u4e16\u754c\u65d7\u8230\u5e97', u'topic': u'taobao_trade_TradeBuyerPay', u'id': 6142200092063758448L}]
+    c = NotifyCommand()
+    c.handle_message(ms)
         

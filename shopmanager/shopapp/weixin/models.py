@@ -15,6 +15,17 @@ WX_NEWS  = 'news'
 WX_LOCATION = 'location'
 WX_LINK  = 'link'  
 WX_DEFAULT = 'DEFAULT'
+WX_EVENT   = 'event'
+
+WX_EVENT_SUBSCRIBE   = 'subscribe'
+WX_EVENT_UNSUBSCRIBE = 'unsubscribe'
+WX_EVENT_SCAN        = 'SCAN'
+WX_EVENT_LOCATION    = 'LOCATION'
+WX_EVENT_CLICK       = 'CLICK'
+WX_EVENT_VIEW        = 'VIEW'
+
+MEN      = 'm'
+FERMALE  = 'f'
 
 WX_TYPE  = (
             (WX_TEXT ,u'文本'),
@@ -26,9 +37,25 @@ WX_TYPE  = (
             (WX_NEWS ,u'图文'),
             )
 
+BABY_SEX_TYPE = (
+                 (MEN,u'男'),
+                 (FERMALE,u'女')
+                 )
+
+class AnonymousWeixinAccount():
+    
+    def isNone(self):
+        return True
+    
+    def checkSignature(self,signature,timestamp,nonce):
+        return False
+    
+    def isExpired(self):
+        return True
+
 class WeiXinAccount(models.Model):
     
-    openid    = models.CharField(max_length=64,verbose_name=u'帐号ID')
+    #openid    = models.CharField(max_length=64,verbose_name=u'帐号ID')
     
     token      = models.CharField(max_length=32,verbose_name=u'TOKEN')    
     
@@ -65,33 +92,24 @@ class WeiXinAccount(models.Model):
         return datetime.datetime.now() > self.expired \
             + datetime.timedelta(seconds=self.expires_in)
     
-    def checkSignature(self,signature,timestamp,nonce):
+    def activeAccount(self):
+        self.is_active = True
+        self.save()
         
-        import time
-        import hashlib
         
-        if time.time() - int(timestamp) > 300:
-            return False
-        
-        sign_array = [self.token,timestamp,nonce]
-        sign_array.sort()
-        
-        sha1_value = hashlib.sha1(''.join(sign_array))
-
-        return sha1_value.hexdigest() == signature
-    
-
-class AnonymousWeixinAccount():
+class AnonymousWeixinUser():
     
     def isNone(self):
         return True
     
-    def checkSignature(self,signature,timestamp,nonce):
+    def isValid(self):
         return False
     
-    def isExpired(self):
-        return True
-
+    def get_wait_time(self):
+        return SAFE_CODE_SECONDS
+    
+    def is_code_time_safe(self):
+        return False
     
 class WeiXinUser(models.Model): 
     
@@ -108,10 +126,15 @@ class WeiXinUser(models.Model):
     address    = models.CharField(max_length=256,blank=True,verbose_name=u"地址")
     mobile     = models.CharField(max_length=24,blank=True,verbose_name=u"手机")
     
+    baby_nick   = models.CharField(max_length=64,blank=True,verbose_name=u"宝宝昵称")
+    baby_birth  = models.DateTimeField(blank=True,null=True,verbose_name=u"宝宝生日")
+    baby_sex    = models.CharField(max_length=1,blank=True,choices=BABY_SEX_TYPE,verbose_name=u"宝宝性别")
+    baby_topic  = models.CharField(max_length=256,blank=True,verbose_name=u"宝宝签名")
+    
     isvalid    = models.BooleanField(default=False,verbose_name=u"已验证")
     validcode     = models.CharField(max_length=6,blank=True,verbose_name=u"验证码")
     
-    valid_count  = models.IntegerField(null=False,verbose_name=u'验证次数')
+    valid_count  = models.IntegerField(default=0,verbose_name=u'验证次数')
     code_time    = models.DateTimeField(blank=True,null=True,verbose_name=u'短信发送时间')    
     
     subscribe   = models.BooleanField(default=False,verbose_name=u"订阅该号")
@@ -122,14 +145,30 @@ class WeiXinUser(models.Model):
         verbose_name=u'微信用户'
         verbose_name_plural = u'微信用户列表'
     
+    @classmethod
+    def getAnonymousWeixinUser(cls):
+        return AnonymousWeixinUser()
+    
+    def isNone(self):
+        return False
+    
+    def isValid(self):
+        return self.isvalid
+    
     def get_wait_time(self):
-        delta_seconds =int( (datetime.datetime.now() - self.code_time).total_seconds)
-        return delta_seconds < 60 and  60 - delta_seconds or 0
+        
+        delta_seconds =int((datetime.datetime.now() - self.code_time).total_seconds())
+        
+        return delta_seconds < 60 and  (60 - delta_seconds) or 0
     
     def is_code_time_safe(self):
-        if not self.code_time:return True
-        return (datetime.datetime.now() - self.code_time).total_seconds < SAFE_CODE_SECONDS
-       
+        
+        if not self.code_time:
+            return True
+        
+        return (datetime.datetime.now() - self.code_time).total_seconds() > SAFE_CODE_SECONDS
+
+
 class WeiXinAutoResponse(models.Model):
     
     message   = models.CharField(max_length=64,unique=True,verbose_name=u"消息")
@@ -150,6 +189,7 @@ class WeiXinAutoResponse(models.Model):
         db_table = 'shop_weixin_response'
         verbose_name=u'微信回复'
         verbose_name_plural = u'微信回复列表'
+        
     
     @classmethod
     def respDefault(cls):
@@ -157,7 +197,6 @@ class WeiXinAutoResponse(models.Model):
         return resp
     
     def respText(self):
-        
         return {'MsgType':self.rtype,
                 'Content':self.content}
     

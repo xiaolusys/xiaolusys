@@ -33,6 +33,8 @@ class WeiXinAutoResponseAdmin(admin.ModelAdmin):
     list_filter = ('rtype',)
     search_fields = ['message','title','content']
     
+    ordering = ('message',)
+    
     formfield_overrides = {
         models.CharField: {'widget': Textarea(attrs={'rows':5, 'cols':40})},
         models.FloatField: {'widget': TextInput(attrs={'size':'16'})},

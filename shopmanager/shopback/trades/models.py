@@ -742,7 +742,7 @@ class MergeOrder(models.Model):
         user_order_num = orders.filter(merge_trade__user__id=shop_user_id).count()
         
         return total_num,user_order_num
-        
+    
     @classmethod
     @transaction.commit_on_success
     def gen_new_order(cls,trade_id,outer_id,outer_sku_id,num,gift_type=pcfg.REAL_ORDER_GIT_TYPE
@@ -784,7 +784,19 @@ class MergeOrder(models.Model):
         post_save.send(sender=cls, instance=merge_order) #通知消息更新主订单
         return merge_order
 
-
+    def getSimpleName(self):
+        
+        try:
+            prod = Product.objects.get(outer_id=self.outer_id)
+            prodSku = None
+            if self.outer_sku_id:
+                prodSku = ProductSku.objects.get(outer_id=self.outer_sku_id,
+                                                 product=prod)
+            return prod.name + (prodSku and prodSku.name or '') + ' x ' +str(self.num)
+        except:
+            return self.title +' x '+str(self.num)
+            
+    
 def refresh_trade_status(sender,instance,*args,**kwargs):
     #更新主订单的状态
     merge_trade   = instance.merge_trade

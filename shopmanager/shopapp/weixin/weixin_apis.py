@@ -1,5 +1,4 @@
 #-*- coding:utf8 -*-
-__author__ = 'meixqhi'
 import sys
 reload(sys)
 sys.setdefaultencoding('utf-8')
@@ -13,7 +12,7 @@ import json
 import urllib
 import urllib2
 from django.conf import settings
-from shopapp.weixin.models import WeiXinAccount,WX_TEXT
+from shopapp.weixin.models import WeiXinAccount
 
 class WeiXinRequestException(Exception):
     
@@ -138,14 +137,22 @@ class WeiXinAPI(object):
             
         return self.handleRequest(self._create_qrcode_uri, params,method='POST')
         
-    def genTextRespJson(self,text):
-        return  { 'MsgType':WX_TEXT,
-                      'Content':text}
+    def checkSignature(self,signature,timestamp,nonce):
         
-    def sendValidCode(self,mobile,validCode,title=u'微信手机验证'):
-        from shopapp.smsmgr import sendMessage
+        import time
+        import hashlib
         
-        return sendMessage(mobile,title,validCode)
+        if time.time() - int(timestamp) > 300:
+            return False
+        
+        sign_array = [self._wx_account.token,timestamp,nonce]
+        sign_array.sort()
+        
+        sha1_value = hashlib.sha1(''.join(sign_array))
+
+        return sha1_value.hexdigest() == signature
+    
+    
     
     
     
