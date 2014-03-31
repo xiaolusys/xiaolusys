@@ -58,7 +58,7 @@ PAYMENT_STATUS = (
 class Purchase(models.Model):
     """ 采购合同 """
     
-    origin_no    = models.CharField(max_length=32,db_index=True,blank=True,verbose_name='原合同号')
+    origin_no    = models.CharField(max_length=32,unique=True,verbose_name='原合同号')
     
     supplier     = models.ForeignKey(Supplier,null=True,blank=True,related_name='purchases',verbose_name='供应商')
     deposite     = models.ForeignKey(Deposite,null=True,blank=True,related_name='purchases',verbose_name='仓库')
@@ -357,15 +357,15 @@ def update_purchase_info(sender,instance,*args,**kwargs):
     purchase.storage_num   = aggregate_dict['total_storage_num'] or 0
     
     if purchase_items.count() >0:
-        if purchase_items.exclude(arrival_status=pcfg.PD_UNARRIVAL).count()==0:
+        if purchase.storage_num == 0:
             purchase.arrival_status = pcfg.PD_UNARRIVAL
-        elif purchase_items.filter(arrival_status=pcfg.PD_PARTARRIVAL).count()>0:
+        elif purchase.purchase_num > purchase.storage_num:
             purchase.arrival_status = pcfg.PD_PARTARRIVAL
-        elif purchase_items.exclude(arrival_status=pcfg.PD_FULLARRIVAL).count()==0:
+        elif purchase.purchase_num == purchase.storage_num:
             purchase.arrival_status = pcfg.PD_FULLARRIVAL
     
         if purchase_items.exclude(status=pcfg.PURCHASE_CLOSE).count()==0:
-            purchase.status=pcfg.PURCHASE_CLOSE
+            purchase.status = pcfg.PURCHASE_CLOSE
     
     update_model_fields(purchase,update_fields=['total_fee','payment','arrival_status','status','prepay','purchase_num','storage_num'])
         
