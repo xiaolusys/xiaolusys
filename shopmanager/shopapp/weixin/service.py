@@ -243,10 +243,10 @@ class WeixinUserService():
                 continue
             jsonStrArray.extend([a[0],'\n'])
             for l in a[1]:
-                if type(l) == str:
+                if type(l) not in (tuple,list):
                     jsonStrArray.extend(['\t',l,'\n'])
                     continue
-                jsonStrArray.extend([l[0],'\n',l[1],'\n'])
+                jsonStrArray.extend([l[0],'\n\t',l[1],'\n'])
         return ''.join(jsonStrArray)
             
     
@@ -272,7 +272,7 @@ class WeixinUserService():
         orders = []
         for order in trade.merge_trade_orders.filter(sys_status=pcfg.IN_EFFECT):
             orders.append(order.getSimpleName())
-        trade_array.append(('商品详细', orders))
+        trade_array.append(('订单详细', orders))
         
         return self.genTextRespJson(self.formatJsonToPrettyString(trade_array))
         
