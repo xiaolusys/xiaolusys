@@ -1,6 +1,7 @@
 #-*- coding:utf8 -*-
 import json
 import time
+import datetime
 import cStringIO as StringIO
 from django.contrib import admin
 from django.db import models
@@ -15,7 +16,7 @@ from shopback.base.options import DateFieldListFilter
 from shopback.purchases.models import Purchase,PurchaseItem,PurchaseStorage,\
     PurchaseStorageItem,PurchasePayment,PurchasePaymentItem,PurchaseStorageRelationship
 from shopback.purchases import permissions as perms
-from common.utils import gen_cvs_tuple,CSVUnicodeWriter
+from common.utils import gen_cvs_tuple,CSVUnicodeWriter,format_date
 from shopback.base import log_action, ADDITION, CHANGE
 import logging 
 
@@ -78,7 +79,7 @@ class PurchasePaymentItemInline(admin.TabularInline):
 
 class PurchaseAdmin(admin.ModelAdmin):
     list_display = ('id','purchase_title_link','origin_no','supplier','deposite','purchase_type'
-                    ,'creator','receiver_name','total_fee','prepay','payment','forecast_date',
+                    ,'creator','receiver_name','total_fee','prepay','payment','forecast_date_link',
                     'post_date','service_date','arrival_status','status')
     #list_editable = ('update_time','task_type' ,'is_success','status')
 
@@ -89,9 +90,17 @@ class PurchaseAdmin(admin.ModelAdmin):
         symbol_link = obj.extra_name or u'【空标题】'
 
         return '<a href="/purchases/%d/" >%s</a>'%(obj.id,symbol_link) 
-    
+        
     purchase_title_link.allow_tags = True
     purchase_title_link.short_description = u"标题"
+
+    def forecast_date_link(self, obj):
+        if (obj.forecast_date - datetime.datetime.now().date()).days < 10 and not obj.storage_num :      
+            return u'<div style="color:blue;background-color:red;" title="到货日期十日內提示">%s</div>'%format_date(obj.forecast_date) 
+        return format_date(obj.forecast_date) 
+        
+    forecast_date_link.allow_tags = True
+    forecast_date_link.short_description = u"预测发货日期"
     
     inlines = [PurchaseItemInline]
 
