@@ -92,11 +92,11 @@ class MergeTradeAdmin(admin.ModelAdmin):
 
     inlines = [MergeOrderInline]
     
-    list_filter   = (TradeStatusFilter,'status','user','type',('trade_from', BitFieldListFilter,),'has_out_stock','has_refund',
-                     'has_rule_match','has_sys_err','has_merge','has_memo','is_picking_print','is_express_print','can_review',
-                     'is_locked','is_charged','is_brand_sale','is_force_wlb','is_qrcode',('pay_time',DateFieldListFilter),('weight_time',DateFieldListFilter),('created',DateFieldListFilter))
+    list_filter   = (TradeStatusFilter,'type','status','user',('trade_from', BitFieldListFilter,),'has_out_stock',
+                     'has_rule_match','has_sys_err','has_memo','is_picking_print','is_express_print', 'is_locked',
+                    'is_charged','is_qrcode',('pay_time',DateFieldListFilter),('weight_time',DateFieldListFilter))
 
-    search_fields = ['id','buyer_nick','tid','operator','out_sid','receiver_name','receiver_mobile','receiver_phone']
+    search_fields = ['id','buyer_nick','tid','operator','out_sid','receiver_mobile']
     
     class Media:
         css = {"all": ("admin/css/forms.css","css/admin/dialog.css","css/admin/checkorder.css")}
