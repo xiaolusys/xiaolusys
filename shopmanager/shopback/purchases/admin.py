@@ -174,9 +174,8 @@ class PurchaseAdmin(admin.ModelAdmin):
         purchase_names = []
         draft_purchases = queryset.filter(status=pcfg.PURCHASE_DRAFT)
         for purchase in draft_purchases:
+            purchase.setInvalid()
             purchase_names.append('%d|%s'%(purchase.id,purchase.extra_name))
-            purchase.status = pcfg.PURCHASE_INVALID
-            purchase.save()
             log_action(request.user.id,purchase,CHANGE,u'订单作废')
         
         msg = purchase_names and u'%s 作废成功.'%(','.join(purchase_names)) or '作废失败，请确保订单在草稿状态'

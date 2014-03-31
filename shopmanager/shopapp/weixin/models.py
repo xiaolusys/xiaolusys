@@ -28,7 +28,6 @@ WX_TYPE  = (
 
 class WeiXinAccount(models.Model):
     
-    openid    = models.CharField(max_length=64,verbose_name=u'帐号ID')
     
     token      = models.CharField(max_length=32,verbose_name=u'TOKEN')    
     

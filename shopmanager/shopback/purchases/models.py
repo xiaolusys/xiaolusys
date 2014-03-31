@@ -138,6 +138,12 @@ class Purchase(models.Model):
         """ 如果预付款超过设定预付比例的50%，则认为预付已完成 """
         return round(self.prepay) >= round(self.total_fee*self.prepay_cent)*0.5
     
+    def setInvalid(self):
+        
+        self.origin_no = '%s_DELETE'%self.origin_no
+        self.status = pcfg.PURCHASE_INVALID
+        self.save()
+        
     def gen_csv_tuple(self):
         
         pcsv = []
