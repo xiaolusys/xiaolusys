@@ -1,6 +1,7 @@
 #-*- coding:utf8 -*-
 import re
 import os
+import time
 import datetime
 import json
 import csv
@@ -78,6 +79,9 @@ class PurchaseView(ModelView):
             if not v :continue
             hasattr(purchase,k) and setattr(purchase,k,v.strip())
         
+        if not purchase.origin_no:
+            purchase.origin_no = str(time.time())
+            
         if not purchase.service_date:
             purchase.service_date = datetime.datetime.now()
         purchase.save()

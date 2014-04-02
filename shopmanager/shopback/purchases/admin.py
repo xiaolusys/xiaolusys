@@ -95,8 +95,11 @@ class PurchaseAdmin(admin.ModelAdmin):
     purchase_title_link.short_description = u"标题"
 
     def forecast_date_link(self, obj):
-        if (obj.forecast_date - datetime.datetime.now().date()).days < 10 and not obj.storage_num :      
-            return u'<div style="color:blue;background-color:red;" title="到货日期十日內提示">%s</div>'%format_date(obj.forecast_date) 
+        if obj.status==pcfg.PURCHASE_APPROVAL and \
+            (obj.forecast_date - datetime.datetime.now().date()).days < 10 and \
+            not obj.storage_num :      
+            return u'<div style="color:blue;background-color:red;" title="到货日期十日內提示">%s</div>'\
+                %format_date(obj.forecast_date) 
         return format_date(obj.forecast_date) 
         
     forecast_date_link.allow_tags = True
@@ -171,9 +174,8 @@ class PurchaseAdmin(admin.ModelAdmin):
         purchase_names = []
         draft_purchases = queryset.filter(status=pcfg.PURCHASE_DRAFT)
         for purchase in draft_purchases:
+            purchase.setInvalid()
             purchase_names.append('%d|%s'%(purchase.id,purchase.extra_name))
-            purchase.status = pcfg.PURCHASE_INVALID
-            purchase.save()
             log_action(request.user.id,purchase,CHANGE,u'订单作废')
         
         msg = purchase_names and u'%s 作废成功.'%(','.join(purchase_names)) or '作废失败，请确保订单在草稿状态'

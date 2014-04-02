@@ -50,10 +50,14 @@ class AnonymousWeixinAccount():
     def checkSignature(self,signature,timestamp,nonce):
         return False
     
+
     def isExpired(self):
         return True
+    
+    
 
 class WeiXinAccount(models.Model):
+
     
     token      = models.CharField(max_length=32,verbose_name=u'TOKEN')    
     

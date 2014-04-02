@@ -75,7 +75,11 @@ class ProductAdmin(admin.ModelAdmin):
     district_link.short_description = u"货位" 
     
     def wait_receive_num(self, obj):
-        return str(getProductWaitReceiveNum(obj.id))
+        wrNum = getProductWaitReceiveNum(obj.id)
+        if not wrNum:
+            return '0'
+        return u'<div style="color:blue;background-color:red;">%d</div>'%wrNum
+    
     wait_receive_num.allow_tags = True
     wait_receive_num.short_description = u"在途数" 
     
