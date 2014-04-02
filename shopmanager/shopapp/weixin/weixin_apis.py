@@ -54,12 +54,12 @@ class WeiXinAPI(object):
         absolute_url = self.getAbsoluteUrl(uri,token)
         
         if method.upper() == 'GET':
-            url = '%s&%s'%(absolute_url,type(params)==str and params or urllib.urlencode(params))
+            url = '%s&%s'%(absolute_url,urllib.urlencode(params))
             req = urllib2.urlopen(url)
             resp = req.read()
         else:
-            rst =  urllib2.Request(absolute_url)
-            req = urllib2.urlopen(rst,type(params)==str and params or urllib.urlencode(params))
+            rst = urllib2.Request(absolute_url)
+            req = urllib2.urlopen(rst,type(params)==dict and urllib.urlencode(params) or params)
             resp = req.read()
         
         content = json.loads(resp)
@@ -120,7 +120,8 @@ class WeiXinAPI(object):
         
     def createMenu(self,params):
         assert type(params) == dict
-        return self.handleRequest(self._create_menu_uri, json.dumps(params,ensure_ascii=False), method='POST')
+        jmenu = json.dumps(params,ensure_ascii=False)
+        return self.handleRequest(self._create_menu_uri, str(jmenu), method='POST')
         
     def getMenu(self):
         return self.handleRequest(self._get_menu_uri, {},method='GET')
@@ -131,7 +132,7 @@ class WeiXinAPI(object):
     def createQRcode(self,action_name,action_info,scene_id,expire_seconds=0):
         
         action_name = type(action_name)==unicode and action_name.encode('utf8') and action_name
-        params = {"action_name":action_name ,"action_info": {"scene": {"scene_id": 123}}}
+        params = {"action_name":action_name ,"action_info": {"scene": {"scene_id": scene_id}}}
         if action_name=='QR_SCENE':
             params.update(expire_seconds=expire_seconds)
             

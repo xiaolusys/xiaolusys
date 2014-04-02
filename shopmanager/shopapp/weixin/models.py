@@ -55,8 +55,6 @@ class AnonymousWeixinAccount():
 
 class WeiXinAccount(models.Model):
     
-    #openid    = models.CharField(max_length=64,verbose_name=u'帐号ID')
-    
     token      = models.CharField(max_length=32,verbose_name=u'TOKEN')    
     
     app_id     = models.CharField(max_length=64,verbose_name=u'应用ID')
@@ -137,6 +135,8 @@ class WeiXinUser(models.Model):
     valid_count  = models.IntegerField(default=0,verbose_name=u'验证次数')
     code_time    = models.DateTimeField(blank=True,null=True,verbose_name=u'短信发送时间')    
     
+    sceneid    = models.CharField(max_length=32,blank=True,verbose_name=u'场景ID')
+    
     subscribe   = models.BooleanField(default=False,verbose_name=u"订阅该号")
     subscribe_time = models.DateTimeField(blank=True,null=True,verbose_name=u"订阅时间")
     
@@ -167,6 +167,16 @@ class WeiXinUser(models.Model):
             return True
         
         return (datetime.datetime.now() - self.code_time).total_seconds() > SAFE_CODE_SECONDS
+
+    def doSubscribe(self,sceneid):
+        self.sceneid   = sceneid
+        self.subscribe = True
+        self.subscribe_time = datetime.datetime.now()
+        self.save()
+        
+    def unSubscribe(self):
+        self.subscribe = False
+        self.save()
 
 
 class WeiXinAutoResponse(models.Model):

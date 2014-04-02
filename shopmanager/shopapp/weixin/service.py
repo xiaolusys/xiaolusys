@@ -71,27 +71,31 @@ class WeixinUserService():
     def activeAccount(self):
         self._wx_api._wx_account.activeAccount()
     
+    def mergeMessageKey(self,doc,xmld,key):
+        
+        xmlCnt = doc.xpath('/xml/%s'%key)
+        if xmlCnt:
+            xmld.update({key:xmlCnt[0].text})
+    
     def parseXML2Param(self,xmlc):
         
         doc     = etree.fromstring(xmlc)
         createtime_stamp = int(doc.xpath('/xml/CreateTime')[0].text)
         msgtype = doc.xpath('/xml/MsgType')[0].text
         
-        xmld   = {  'FromUserName':doc.xpath('/xml/FromUserName')[0].text,
-                    'ToUserName':doc.xpath('/xml/ToUserName')[0].text,
+        xmld   = {  
                     'CreateTime':datetime.datetime.fromtimestamp(createtime_stamp),
                     'MsgType':msgtype,
-                    'MsgId':doc.xpath('/xml/MsgId')[0].text
                  }
-        if msgtype ==  WX_TEXT: 
-            xmld.update(Content=doc.xpath('/xml/Content')[0].text)
-        elif msgtype == WX_IMAGE:
-            xmld.update(MediaId=doc.xpath('/xml/MediaId')[0].text)
-        elif msgtype == WX_VOICE:
-            xmld.update(MediaId=doc.xpath('/xml/MediaId')[0].text)
-        elif msgtype == WX_VIDEO:
-            xmld.update(MediaId=doc.xpath('/xml/MediaId')[0].text)
-            
+        merge_fields = ['FromUserName','ToUserName','CreateTime','MsgType','Content',
+                        'MsgId','PicUrl','MediaId','Format','MediaId','ThumbMediaId',
+                        'Location_X','Location_Y','Scale','Label','Title','Description',
+                        'Url','EventKey','Event','Ticket','Latitude','Longitude',
+                        'Precision']
+        
+        for field in merge_fields:
+            self.mergeMessageKey(doc, xmld, field)
+        
         return xmld
     
     def buildDomByJson(self,parentDom,djson,arrayTag='',rootTag=''):
@@ -289,24 +293,30 @@ class WeixinUserService():
         
     def handleEvent(self,eventKey,openId,eventType=WX_EVENT_CLICK):
         
-        print 'params:',eventKey,eventType,openId
         if self._wx_user.isNone():
             raise MessageException(u'没有该用户信息')
         
-        if eventKey in ('q','w','e') and not self._wx_user.isValid():
+        if eventKey in ('Q','W','E','R') and not self._wx_user.isValid():
             raise MessageException(u'你还没有绑定手机哦!\n请输入手机号:')
         
-        if    eventKey == "q":
-            pass
+        if    eventKey in ("Q","R"):
+            raise MessageException(u'功能还没有准备好哦')
             
-        elif  eventKey == "w":
+        elif  eventKey == "W":
             return self.getTradeMessageByMobile(self._wx_user.mobile)
             
-        elif  eventKey == "e":
+        elif  eventKey == "E":
             return self.getLogisticMessageByMobile(self._wx_user.mobile)
         
-        return WeiXinAutoResponse.respDefault()
+        if eventType == WX_EVENT_SUBSCRIBE :
+            self._wx_user.doSubscribe(eventKey.rfind('_') > -1 and eventKey.split('_')[1] or '')
+            return WeiXinAutoResponse.respDefault().autoParams()
         
+        if eventType == WX_EVENT_UNSUBSCRIBE:
+            self._wx_user.unSubscribe()
+            
+        return self.getResponseByBestMatch(eventKey,openId).autoParams()
+            
         
     def handleRequest(self,params):
         
@@ -320,7 +330,8 @@ class WeixinUserService():
         
         try:
             if msgtype == WX_EVENT:
-                ret_params.update(self.handleEvent(params['EventKey'], openId,eventType=params['Event']))
+                ret_params.update(self.handleEvent(params['EventKey'].upper(), 
+                                                   openId,eventType=params['Event']))
                 return ret_params
                 
             matchMsg = ''
