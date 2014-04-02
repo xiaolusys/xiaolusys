@@ -197,7 +197,7 @@ class WeixinUserService():
     def getResponseByBestMatch(self,message,openId,*args,**kwargs):
         
         if event_re.match(message):
-            return self.handleEvent(message.lower(), openId)
+            return self.handleEvent(message.upper(), openId)
         
         if mobile_re.match(message) and self.getValidCode(message,openId):
             return WeiXinAutoResponse.objects.get_or_create(message=u'校验码提醒')[0]
@@ -310,12 +310,11 @@ class WeixinUserService():
         
         if eventType == WX_EVENT_SUBSCRIBE :
             self._wx_user.doSubscribe(eventKey.rfind('_') > -1 and eventKey.split('_')[1] or '')
-            return WeiXinAutoResponse.respDefault().autoParams()
-        
+            
         if eventType == WX_EVENT_UNSUBSCRIBE:
             self._wx_user.unSubscribe()
             
-        return self.getResponseByBestMatch(eventKey,openId).autoParams()
+        return WeiXinAutoResponse.respDefault().autoParams()
             
         
     def handleRequest(self,params):
