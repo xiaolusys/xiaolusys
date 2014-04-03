@@ -353,7 +353,7 @@ class WeixinUserService():
             ret_params.update(self.genTextRespJson(exc.message))
         except Exception,exc:
             logger.error(exc.message or 'weixin response error',exc_info=True)
-            ret_params.update(self.genTextRespJson(u'恭喜你，你已成功踩到系统漏洞！'))
+            ret_params.update(self.genTextRespJson(u'不好了，小优尼闹情绪不想干活了！'))
             
         return ret_params
     
