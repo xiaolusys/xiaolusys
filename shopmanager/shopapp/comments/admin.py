@@ -8,7 +8,7 @@ from shopback.base.options import DateFieldListFilter
 
 class CommentAdmin(admin.ModelAdmin):
     
-    list_display = ('id','item_image_link','content_link','reply_link','result','tid','nick','rated_nick','created','explain_link')
+    list_display = ('id','item_image_link','content_link','explain_link','reply_link','result','nick','rated_nick','created')
     
     ordering = ['-created']
     
