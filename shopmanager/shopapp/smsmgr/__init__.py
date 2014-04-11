@@ -1,4 +1,5 @@
 #-*- coding:utf8 -*-
+from django.db.models import F
 from .models import SMSPlatform,SMS_NOTIFY_ACTIVITY
 from .service import SMS_CODE_MANAGER_TUPLE
 from shopback import paramconfig as pcfg

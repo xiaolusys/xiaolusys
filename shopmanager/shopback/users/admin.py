@@ -9,11 +9,13 @@ from django.template import RequestContext
 from shopback.users.models import User,Customer
 from shopback.base.options import DateFieldListFilter
 from shopback import paramconfig as pcfg
+from shopback.users import permissions as perms 
 from common.utils import gen_cvs_tuple,CSVUnicodeWriter
 
 
 class UserAdmin(admin.ModelAdmin):
-    list_display = ('id','top_session','has_fenxiao','visitor_id','uid','nick','is_primary','sync_stock','percentage','status')
+    list_display = ('id','top_session','has_fenxiao','visitor_id','uid',
+                    'nick','is_primary','sync_stock','percentage','status')
     list_display_links = ('id', 'nick')
     #list_editable = ('update_time','task_type' ,'is_success','status')
 
@@ -22,6 +24,25 @@ class UserAdmin(admin.ModelAdmin):
 
     list_filter = ('status',)
     search_fields = ['nick','craw_keywords','craw_trade_seller_nicks']
+    
+    def get_actions(self, request):
+        
+        user = request.user
+        actions = super(UserAdmin, self).get_actions(request)
+
+        if not perms.has_delete_user_permission(user) and 'delete_selected' in actions:
+            del actions['delete_selected']
+        if not perms.has_download_orderinfo_permission(user) and 'pull_user_unpost_trades' in actions:
+            del actions['pull_user_unpost_trades']
+        if not perms.has_download_iteminfo_permission(user) and 'pull_user_items' in actions:
+            del actions['pull_user_items']
+        if not perms.has_manage_itemlist_permission(user) and 'autolist_user_items' in actions:
+            del actions['autolist_user_items']
+        if not perms.has_recover_instock_permission(user) and 'sync_online_prodnum_to_offline' in actions:
+            del actions['sync_online_prodnum_to_offline']
+        if not perms.has_async_threemtrade_permission(user) and 'async_pull_lastest_trades' in actions:
+            del actions['async_pull_lastest_trades']
+        return actions
     
     #更新用户待发货订单
     def pull_user_unpost_trades(self,request,queryset):
@@ -72,7 +93,7 @@ class UserAdmin(admin.ModelAdmin):
         return render_to_response('users/pull_online_items.html',{'users':pull_users},
                                   context_instance=RequestContext(request),mimetype="text/html")
 
-    pull_user_items.short_description = "下载线上商品".decode('utf8')
+    pull_user_items.short_description = "下载线上商品信息".decode('utf8')
     
     
     #商品上下架
@@ -85,7 +106,7 @@ class UserAdmin(admin.ModelAdmin):
        
         return HttpResponseRedirect(reverse('pull_from_taobao')+'?user_id='+str(user.user.id))
 
-    autolist_user_items.short_description = "商品自动上架".decode('utf8')
+    autolist_user_items.short_description = "管理商品上架时间".decode('utf8')
     
     #线上库存覆盖系统库存
     def sync_online_prodnum_to_offline(self,request,queryset):

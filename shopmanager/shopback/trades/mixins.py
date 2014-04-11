@@ -5,7 +5,7 @@ import logging
 
 logger = logging.getLogger('django.request')
 
-class TaobaoTradeSercie(objects):
+class TaobaoTradeService(object):
     
     def get_trade_id(self):
         return self.trade.id

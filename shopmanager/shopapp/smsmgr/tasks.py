@@ -24,8 +24,7 @@ def get_smsg_from_trade(trade):
     if sms_tmpl.count() == 0:
         return ''
     
-    prompt_msg = ''
-    ts = set()
+    ms  = set()
     for o in trade.inuse_orders:
         
         outer_sku_id = o.outer_sku_id
@@ -33,30 +32,22 @@ def get_smsg_from_trade(trade):
         prod_sku = None
         prod     = None
         try:
-            if outer_sku_id:
-                prod_sku = ProductSku.objects.get(outer_id=outer_sku_id,product__outer_id=outer_id)
             prod = Product.objects.get(outer_id=outer_id)
+            if outer_sku_id:
+                prod_sku = ProductSku.objects.get(outer_id=outer_sku_id,product=prod)
         except:
             pass
         #同一规格提示只能出现一次
         if prod_sku and prod_sku.buyer_prompt.strip():
-            entry = (outer_id,outer_sku_id)
-            if entry in ts:
-                continue
-            prompt_msg += prod_sku.buyer_prompt.strip()
-            ts.add(entry)
+            ms.add(prod_sku.buyer_prompt.strip())
         #同一商品提示只能出现一次    
         elif prod and prod.buyer_prompt.strip():
-            entry = (outer_id,'')
-            if entry in ts:
-                continue
-            prompt_msg += prod.buyer_prompt.strip()
-            ts.add(entry)
+            ms.add(prod.buyer_prompt.strip())
 
     dt   = datetime.datetime.now()
     
     tmpl = Template(sms_tmpl[0].text_tmpl)
-    c    = Context({'trade':trade,'prompt_msg':prompt_msg,'today_date':dt})
+    c    = Context({'trade':trade,'prompt_msg':','.join(ms),'today_date':dt})
     
     return tmpl.render(c)
 

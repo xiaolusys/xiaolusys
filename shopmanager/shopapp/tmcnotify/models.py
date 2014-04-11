@@ -40,7 +40,7 @@ class TmcUser(models.Model):
     modified = models.DateTimeField(null=True,blank=True,verbose_name=u'修改时间') 
     created  = models.DateTimeField(null=True,blank=True,verbose_name=u'创建时间')
        
-    topics   = models.TextField(max_length=2500,blank=True,verbose_name=u'消息内容')
+    topics   = models.TextField(max_length=2500,blank=True,verbose_name=u'消息主题')
     group_name = models.CharField(max_length=64,blank=True,default=DEFAULT_GROUP_NAME,verbose_name=u'消息群组')
     
     is_valid   = models.BooleanField(default=False,verbose_name=u'授权是否有效') 

@@ -87,6 +87,13 @@ class User(models.Model):
         db_table = 'shop_users_user'
         verbose_name= u'店铺'
         verbose_name_plural = u'店铺列表'
+        permissions = [
+                       ("can_download_orderinfo", u"下载待发货订单"),
+                       ("can_download_iteminfo", u"下载线上商品信息"),
+                       ("can_manage_itemlist", u"管理商品上架时间"),
+                       ("can_recover_instock", u"线上库存覆盖系统库存"),
+                       ("can_async_threemtrade", u"异步下载近三月订单"),
+                       ]
     
     def isValid(self):
         return self.status == pcfg.USER_NORMAL

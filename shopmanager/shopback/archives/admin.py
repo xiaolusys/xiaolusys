@@ -55,7 +55,7 @@ class CustomAdmin(admin.ModelAdmin):
 class ProductLocationInline(admin.TabularInline):
     
     model = ProductLocation
-    fields = ('outer_id','name','outer_sku_id','properties_name')
+    fields = ('product_id','sku_id','outer_id','name','outer_sku_id','properties_name')
     
     formfield_overrides = {
         models.CharField: {'widget': TextInput(attrs={'size':'20'})},

@@ -1,5 +1,4 @@
 #-*- coding:utf8 -*-
-__author__ = 'meixqhi'
 import sys
 reload(sys)
 sys.setdefaultencoding('utf-8')
@@ -13,7 +12,7 @@ import json
 import urllib
 import urllib2
 from django.conf import settings
-from shopapp.weixin.models import WeiXinAccount,WX_TEXT
+from shopapp.weixin.models import WeiXinAccount
 
 class WeiXinRequestException(Exception):
     
@@ -55,12 +54,12 @@ class WeiXinAPI(object):
         absolute_url = self.getAbsoluteUrl(uri,token)
         
         if method.upper() == 'GET':
-            url = '%s&%s'%(absolute_url,type(params)==str and params or urllib.urlencode(params))
+            url = '%s&%s'%(absolute_url,urllib.urlencode(params))
             req = urllib2.urlopen(url)
             resp = req.read()
         else:
-            rst =  urllib2.Request(absolute_url)
-            req = urllib2.urlopen(rst,type(params)==str and params or urllib.urlencode(params))
+            rst = urllib2.Request(absolute_url)
+            req = urllib2.urlopen(rst,type(params)==dict and urllib.urlencode(params) or params)
             resp = req.read()
         
         content = json.loads(resp)
@@ -121,7 +120,8 @@ class WeiXinAPI(object):
         
     def createMenu(self,params):
         assert type(params) == dict
-        return self.handleRequest(self._create_menu_uri, json.dumps(params,ensure_ascii=False), method='POST')
+        jmenu = json.dumps(params,ensure_ascii=False)
+        return self.handleRequest(self._create_menu_uri, str(jmenu), method='POST')
         
     def getMenu(self):
         return self.handleRequest(self._get_menu_uri, {},method='GET')
@@ -132,20 +132,28 @@ class WeiXinAPI(object):
     def createQRcode(self,action_name,action_info,scene_id,expire_seconds=0):
         
         action_name = type(action_name)==unicode and action_name.encode('utf8') and action_name
-        params = {"action_name":action_name ,"action_info": {"scene": {"scene_id": 123}}}
+        params = {"action_name":action_name ,"action_info": {"scene": {"scene_id": scene_id}}}
         if action_name=='QR_SCENE':
             params.update(expire_seconds=expire_seconds)
             
         return self.handleRequest(self._create_qrcode_uri, params,method='POST')
         
-    def genTextRespJson(self,text):
-        return  { 'MsgType':WX_TEXT,
-                      'Content':text}
+    def checkSignature(self,signature,timestamp,nonce):
         
-    def sendValidCode(self,mobile,validCode,title=u'微信手机验证'):
-        from shopapp.smsmgr import sendMessage
+        import time
+        import hashlib
         
-        return sendMessage(mobile,title,validCode)
+        if time.time() - int(timestamp) > 300:
+            return False
+        
+        sign_array = [self._wx_account.token,timestamp,nonce]
+        sign_array.sort()
+        
+        sha1_value = hashlib.sha1(''.join(sign_array))
+
+        return sha1_value.hexdigest() == signature
+    
+    
     
     
     
