@@ -145,7 +145,8 @@ class MergeTrade(models.Model):
     seller_cod_fee = models.CharField(max_length=10,blank=True,verbose_name=u'卖家货到付款费用')
     buyer_cod_fee  = models.CharField(max_length=10,blank=True,verbose_name=u'买家货到付款费用')
     cod_fee        = models.CharField(max_length=10,blank=True,verbose_name=u'货到付款费用')
-    cod_status     = models.CharField(max_length=32,blank=True,choices=COD_TYPE,verbose_name=u'货到付款状态')
+    cod_status     = models.CharField(max_length=32,blank=True,
+                                      choices=COD_TYPE,verbose_name=u'货到付款状态')
     
     weight        = models.CharField(max_length=10,blank=True,verbose_name=u'包裹重量')
     post_cost     = models.CharField(max_length=10,blank=True,verbose_name=u'物流成本')
@@ -194,10 +195,12 @@ class MergeTrade(models.Model):
     receiver_phone     =  models.CharField(max_length=20,db_index=True,blank=True,verbose_name=u'电话')
     
     step_paid_fee      = models.CharField(max_length=10,blank=True,verbose_name=u'分阶付款金额')
-    step_trade_status  = models.CharField(max_length=32,choices=STEP_TRADE_STATUS,blank=True,verbose_name=u'分阶付款状态')
+    step_trade_status  = models.CharField(max_length=32,choices=STEP_TRADE_STATUS,
+                                          blank=True,verbose_name=u'分阶付款状态')
     
     reason_code = models.CharField(max_length=100,blank=True,verbose_name=u'问题编号')  #1,2,3 问题单原因编码集合
-    status  = models.CharField(max_length=32,db_index=True,choices=TAOBAO_TRADE_STATUS,blank=True,verbose_name=u'淘宝订单状态')
+    status  = models.CharField(max_length=32,db_index=True,choices=TAOBAO_TRADE_STATUS,
+                                        blank=True,verbose_name=u'淘宝订单状态')
         
     is_picking_print = models.BooleanField(default=False,verbose_name=u'发货单')
     is_express_print = models.BooleanField(default=False,verbose_name=u'物流单')
@@ -213,11 +216,13 @@ class MergeTrade(models.Model):
     refund_num       = models.IntegerField(null=True,default=0,verbose_name=u'退款单数')  #退款单数
     
     can_review       = models.BooleanField(default=False,verbose_name=u'复审') 
-    priority       =  models.IntegerField(db_index=True,default=0,choices=PRIORITY_TYPE,verbose_name=u'优先级')
+    priority       =  models.IntegerField(db_index=True,default=0,
+                                          choices=PRIORITY_TYPE,verbose_name=u'优先级')
     operator       =  models.CharField(max_length=32,blank=True,verbose_name=u'发货员')
     is_locked      =  models.BooleanField(default=False,verbose_name=u'锁定')
     is_charged     =  models.BooleanField(default=False,verbose_name=u'揽件')
-    sys_status     =  models.CharField(max_length=32,db_index=True,choices=SYS_TRADE_STATUS,blank=True,default='',verbose_name=u'系统状态')
+    sys_status     =  models.CharField(max_length=32,db_index=True,
+                    choices=SYS_TRADE_STATUS,blank=True,default='',verbose_name=u'系统状态')
     
     reserveo       =  models.CharField(max_length=64,blank=True,verbose_name=u'自定义1')       
     reservet       =  models.CharField(max_length=64,blank=True,verbose_name=u'自定义2') 
@@ -254,8 +259,13 @@ class MergeTrade(models.Model):
          
     @property
     def buyer_full_address(self):
-        return '%s%s%s%s%s%s%s'%(self.receiver_name.strip(),self.receiver_mobile.strip() or self.receiver_phone.strip(),self.receiver_state.strip()
-                             ,self.receiver_city.strip(),self.receiver_district.strip(),self.receiver_address.strip(),self.receiver_zip.strip())
+        return '%s%s%s%s%s%s%s'%(self.receiver_name.strip(),
+                                 self.receiver_mobile.strip() or self.receiver_phone.strip(),
+                                 self.receiver_state.strip(),
+                                 self.receiver_city.strip(),
+                                 self.receiver_district.strip(),
+                                 self.receiver_address.strip(),
+                                 self.receiver_zip.strip())
     
     @property
     def can_change_order(self):
@@ -265,7 +275,8 @@ class MergeTrade(models.Model):
     
     @property
     def can_reverse_order(self):
-        return self.sys_status in (pcfg.WAIT_CHECK_BARCODE_STATUS,pcfg.WAIT_SCAN_WEIGHT_STATUS)
+        return self.sys_status in (pcfg.WAIT_CHECK_BARCODE_STATUS,
+                                   pcfg.WAIT_SCAN_WEIGHT_STATUS)
     
     def is_post_success(self):
         """ 判断订单淘宝发货成功 """

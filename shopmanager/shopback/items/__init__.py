@@ -11,7 +11,7 @@ def genLocationXList(xNum):
         return xarray[:xNum]
     
     for i,x in enumerate(xarray[:-1]):
-        for y in xarray[i-1:]:
+        for y in xarray[i+1:]:
             exarray.append(x+y)
             if len(exarray) >= xNum:
                 return exarray

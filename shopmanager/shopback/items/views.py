@@ -513,14 +513,19 @@ class ProductDistrictView(ModelView):
         district = DepositeDistrict.objects.get(parent_no=pno,district_no=dno)
         
         product   = Product.objects.get(outer_id=outer_id)
+        prod_sku  = None
         if outer_sku_id:
-            ProductSku.objects.get(outer_id=outer_sku_id,product=product)
+            prod_sku = ProductSku.objects.get(outer_id=outer_sku_id,product=product)
         
-        location,state = ProductLocation.objects.get_or_create(outer_id=outer_id,outer_sku_id=outer_sku_id,district=district)
+        location,state = ProductLocation.objects.get_or_create(
+                            product_id=product.id,sku_id=prod_sku and prod_sku.id,district=district)
         
-        log_action(request.user.id,product,CHANGE,u'更新商品库位:(%s-%s,%s)'%(outer_id or '',outer_sku_id or '',district))
+        log_action(request.user.id,product,CHANGE,u'更新商品库位:(%s-%s,%s)'
+                   %(outer_id or '',outer_sku_id or '',district))
         
-        return {'outer_id':location.outer_id,'outer_sku_id':location.outer_sku_id,'district':district}
+        return {'outer_id':location.outer_id,
+                'outer_sku_id':location.outer_sku_id,
+                'district':district}
         
         
 @csrf_exempt
@@ -544,7 +549,13 @@ def delete_product_district(request):
     district = DepositeDistrict.objects.get(parent_no=pno,district_no=dno)
     
     try:
-        location = ProductLocation.objects.get(outer_id=outer_id,outer_sku_id=outer_sku_id,district=district)
+        product   = Product.objects.get(outer_id=outer_id)
+        prod_sku  = None
+        if outer_sku_id:
+            prod_sku = ProductSku.objects.get(outer_id=outer_sku_id,product=product)
+            
+        location = ProductLocation.objects.get(
+                         product_id=product.id,sku_id=prod_sku and prod_sku.id,district=district)
         location.delete()
     except Exception,exc:
         logger.error(exc.message,exc_info=True)

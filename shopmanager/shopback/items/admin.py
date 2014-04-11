@@ -15,6 +15,7 @@ from shopback.purchases import getProductWaitReceiveNum
 from shopback import paramconfig as pcfg
 from shopback.base import log_action, ADDITION, CHANGE
 from shopback.items import permissions as perms
+from shopback.base.options import DateFieldListFilter
 from common.utils import gen_cvs_tuple,CSVUnicodeWriter
 import logging 
 
@@ -350,11 +351,11 @@ admin.site.register(SkuProperty, SkuPropertyAdmin)
 
 
 class ProductLocationAdmin(admin.ModelAdmin):
-    list_display = ('outer_id','name','outer_sku_id','properties_name','district')
+    list_display = ('product_id','sku_id','outer_id','name','outer_sku_id','properties_name','district')
     list_display_links = ('outer_id', 'outer_sku_id')
     #list_editable = ('update_time','task_type' ,'is_success','status')
 
-    search_fields = ['outer_id', 'name','outer_sku_id','properties_name','district__parent_no']
+    search_fields = ['product_id','sku_id','outer_id','outer_sku_id','district__parent_no']
 
 
 admin.site.register(ProductLocation, ProductLocationAdmin)
@@ -367,7 +368,7 @@ class ItemNumTaskLogAdmin(admin.ModelAdmin):
 
     date_hierarchy = 'end_at'
 
-    list_filter = ('user_id',)
+    list_filter = ('user_id',('end_at',DateFieldListFilter))
     search_fields = ['id','outer_id','sku_outer_id']
     
 

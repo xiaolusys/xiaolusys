@@ -252,7 +252,7 @@ class Product(models.Model):
         return self.warn_num >0 and self.warn_num >= sync_num
     
     def get_district_list(self):
-        locations = ProductLocation.objects.filter(outer_id=self.outer_id)
+        locations = ProductLocation.objects.filter(product_id=self.id)
         return [(l.district.parent_no,l.district.district_no) for l in locations]
     
     def get_districts_code(self):
@@ -481,7 +481,7 @@ class ProductSku(models.Model):
         return self.warn_num >0 and self.warn_num >= sync_num 
     
     def get_district_list(self):
-        locations = ProductLocation.objects.filter(outer_id=self.product.outer_id,outer_sku_id=self.outer_id)
+        locations = ProductLocation.objects.filter(product_id=self.product.id,sku_id=self.id)
         return [(l.district.parent_no,l.district.district_no) for l in locations]
     
     def get_districts_code(self):
@@ -708,6 +708,9 @@ class SkuProperty(models.Model):
 class ProductLocation(models.Model):
     """ 库存商品库位信息 """
     
+    product_id   = models.IntegerField(db_index=True,verbose_name='商品ID')
+    sku_id       = models.IntegerField(db_index=True,null=True,verbose_name='规格ID')
+    
     outer_id     = models.CharField(max_length=32,null=False,blank=True,verbose_name='商品编码')
     name         = models.CharField(max_length=64,null=False,blank=True,verbose_name='商品名称')
     
@@ -718,7 +721,7 @@ class ProductLocation(models.Model):
     
     class Meta:
         db_table = 'shop_items_productlocation'
-        unique_together = ("outer_id", "outer_sku_id", "district")
+        unique_together = ("product_id", "sku_id", "district")
         verbose_name = u'商品库位'
         verbose_name_plural = u'商品库位列表'
 
@@ -727,14 +730,14 @@ class ItemNumTaskLog(models.Model):
 
     id = BigIntegerAutoField(primary_key=True)
     
-    user_id  = models.CharField(max_length=64,blank=True)
-    outer_id = models.CharField(max_length=64,blank=True)
-    sku_outer_id = models.CharField(max_length=64,blank=True)
+    user_id  = models.CharField(max_length=64,blank=True,verbose_name='店铺ID')
+    outer_id = models.CharField(max_length=64,blank=True,verbose_name='商品编码')
+    sku_outer_id = models.CharField(max_length=64,blank=True,verbose_name='规格编码')
 
-    num = models.IntegerField()
+    num = models.IntegerField(verbose_name='同步数量')
 
-    start_at   = models.DateTimeField(null=True,blank=True)
-    end_at     = models.DateTimeField(null=True,blank=True)
+    start_at   = models.DateTimeField(null=True,blank=True,verbose_name='同步期始')
+    end_at     = models.DateTimeField(null=True,blank=True,verbose_name='同步期末')
     
     class Meta:
         db_table = 'shop_items_itemnumtasklog'
