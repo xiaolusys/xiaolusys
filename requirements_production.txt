@@ -8,9 +8,9 @@ django-celery==3.0.17
 django-kombu==0.9.4
 python-memcached==1.45
 djangorestframework==0.3.0
-django-bitfield==1.6.4
+#django-bitfield==1.6.4
 six==1.6.1
-jsonfield==0.9.20
+#jsonfield==0.9.20
 
 
 #geraldo
@@ -28,7 +28,7 @@ git+ssh://user1@qiyue.f3322.org/home/user1/repo/django-chartit.git#egg=django-ch
 ##########extra package(not install in the virtualenv)##########
 #sudo apt-get install python-mysqldb
 #virtualenv==1.8.2
-lxml==2.3
+#lxml==2.3
 PIL==1.1.7
 #raven==2.0.6
 #sentry==4.8.1
