@@ -25,6 +25,8 @@ class ProductCategoryAdmin(admin.ModelAdmin):
     full_name.allow_tags = True
     full_name.short_description = u"全名"
     
+    ordering = ['parent_cid','sort_order',]
+    
     list_filter = ('status','is_parent')
     search_fields = ['cid','parent_cid','name']
 
