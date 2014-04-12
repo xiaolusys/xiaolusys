@@ -1,12 +1,13 @@
 #-*- coding:utf8 -*-
 from django.db import models
+from shopback import paramconfig as pcfg
 from auth import apis
 import logging
 
 logger = logging.getLogger('categorys.handler')
 CAT_STATUS = (
-    ('normal','正常'),
-    ('delete','删除'),
+    (pcfg.NORMAL,u'正常'),
+    (pcfg.DELETE,u'删除'),
 ) 
 
 class Category(models.Model):
@@ -16,11 +17,13 @@ class Category(models.Model):
 
     name       = models.CharField(max_length=32)
     is_parent  = models.BooleanField(default=True)
-    status     = models.CharField(max_length=7,choices=CAT_STATUS,default='normal')
+    status     = models.CharField(max_length=7,choices=CAT_STATUS,default=pcfg.NORMAL)
     sort_order = models.IntegerField(null=True)
 
     class Meta:
         db_table = 'shop_categorys_category'
+        verbose_name = u'淘宝类目'
+        verbose_name_plural = u'淘宝类目列表'
 
     def __unicode__(self):
         return self.name
@@ -44,19 +47,31 @@ class Category(models.Model):
     
 class ProductCategory(models.Model):
     
-    cid     = models.IntegerField(primary_key=True)
-    name    = models.CharField(max_length=32,blank=True)
-    parent_cid = models.CharField(max_length=32,blank=True)
+    cid     = models.IntegerField(primary_key=True,verbose_name=u'类目ID')
+    parent_cid = models.IntegerField(null=False,verbose_name=u'父类目ID')
+    name    = models.CharField(max_length=32,blank=True,verbose_name=u'类目名')
     
-    is_parent  = models.BooleanField(default=True)
-    status  = models.CharField(max_length=7,choices=CAT_STATUS,default='normal')
-    sort_order = models.IntegerField(null=True)
+    is_parent  = models.BooleanField(default=True,verbose_name=u'有子类目')
+    status  = models.CharField(max_length=7,choices=CAT_STATUS,default=pcfg.NORMAL,verbose_name=u'状态')
+    sort_order = models.IntegerField(null=True,verbose_name=u'优先级')
     
     class Meta:
         db_table = 'shop_categorys_productcategory' 
+        verbose_name = u'产品类目'
+        verbose_name_plural = u'产品类目列表'
         
     def __unicode__(self):
-        return self.name
+        
+        if not self.parent_cid:
+            return self.name
+        try:
+            p_cat = self.__class__.objects.get(cid=self.parent_cid)
+        except:
+            p_cat = u'【已删除】'
+        return '%s / %s'%(p_cat,self.name)
+        
+    
+    
        
        
        
