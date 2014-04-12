@@ -47,13 +47,13 @@ class Category(models.Model):
     
 class ProductCategory(models.Model):
     
-    cid     = models.IntegerField(primary_key=True,verbose_name=u'类目ID')
+    cid     = models.AutoField(primary_key=True,verbose_name=u'类目ID')
     parent_cid = models.IntegerField(null=False,verbose_name=u'父类目ID')
     name    = models.CharField(max_length=32,blank=True,verbose_name=u'类目名')
     
     is_parent  = models.BooleanField(default=True,verbose_name=u'有子类目')
     status  = models.CharField(max_length=7,choices=CAT_STATUS,default=pcfg.NORMAL,verbose_name=u'状态')
-    sort_order = models.IntegerField(null=True,verbose_name=u'优先级')
+    sort_order = models.IntegerField(default=0,verbose_name=u'优先级')
     
     class Meta:
         db_table = 'shop_categorys_productcategory' 
@@ -67,7 +67,7 @@ class ProductCategory(models.Model):
         try:
             p_cat = self.__class__.objects.get(cid=self.parent_cid)
         except:
-            p_cat = u'【已删除】'
+            p_cat = u'【不存在】'
         return '%s / %s'%(p_cat,self.name)
         
     
