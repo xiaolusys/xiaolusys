@@ -57,7 +57,7 @@
     "pk": 7,
     "model": "yunda.branchzone",
     "fields": {
-      "code": "A1-5",
+      "code": "",
       "name": "\u5949\u8d24\u5206\u62e8",
       "barcode": "201418"
     }
@@ -75,9 +75,9 @@
     "pk": 9,
     "model": "yunda.branchzone",
     "fields": {
-      "code": "A2-2",
-      "name": "\u95f5\u5f90",
-      "barcode": "202520"
+      "code": "A1-9",
+      "name": "\u95f5\u5f90\u5206\u62e8",
+      "barcode": "200000"
     }
   },
   {
@@ -310,7 +310,7 @@
     "model": "yunda.branchzone",
     "fields": {
       "code": "B5-2",
-      "name": "\u82cf\u5dde",
+      "name": "\u82cf\u5dde\u5206\u62e8",
       "barcode": "215120"
     }
   },
@@ -426,7 +426,7 @@
     "pk": 48,
     "model": "yunda.branchzone",
     "fields": {
-      "code": "B4-3",
+      "code": "",
       "name": "\u65e0\u9521\u5206\u62e8",
       "barcode": "214000"
     }
@@ -525,7 +525,7 @@
     "pk": 60,
     "model": "yunda.branchzone",
     "fields": {
-      "code": "C2-4",
+      "code": "",
       "name": "\u6c55\u5934\u5206\u62e8",
       "barcode": "515210"
     }
@@ -561,7 +561,7 @@
     "pk": 64,
     "model": "yunda.branchzone",
     "fields": {
-      "code": "C1-2",
+      "code": "",
       "name": "\u6df1\u5733\u5206\u62e8",
       "barcode": "518002"
     }
@@ -588,7 +588,7 @@
     "pk": 67,
     "model": "yunda.branchzone",
     "fields": {
-      "code": "C3-7",
+      "code": "",
       "name": "\u9633\u6c5f\u5206\u62e8",
       "barcode": "789590"
     }
@@ -624,7 +624,7 @@
     "pk": 71,
     "model": "yunda.branchzone",
     "fields": {
-      "code": "D1-3",
+      "code": "",
       "name": "\u5185\u6c5f\u5206\u62e8",
       "barcode": "641088"
     }
@@ -759,7 +759,7 @@
     "pk": 86,
     "model": "yunda.branchzone",
     "fields": {
-      "code": "C2-7",
+      "code": "",
       "name": "\u90b5\u9633\u5206\u62e8",
       "barcode": "422008"
     }
@@ -1074,7 +1074,7 @@
     "pk": 121,
     "model": "yunda.branchzone",
     "fields": {
-      "code": "B2-7",
+      "code": "",
       "name": "\u8862\u5dde\u5206\u62e8",
       "barcode": "324050"
     }
@@ -1083,7 +1083,7 @@
     "pk": 122,
     "model": "yunda.branchzone",
     "fields": {
-      "code": "D1-8",
+      "code": "",
       "name": "\u5609\u5584\u53bf",
       "barcode": "314100"
     }
@@ -1092,7 +1092,7 @@
     "pk": 123,
     "model": "yunda.branchzone",
     "fields": {
-      "code": "C3-5",
+      "code": "",
       "name": "\u4e5d\u6c5f\u5206\u62e8",
       "barcode": "332080"
     }
@@ -1101,7 +1101,7 @@
     "pk": 124,
     "model": "yunda.branchzone",
     "fields": {
-      "code": "D5-1",
+      "code": "D5-3",
       "name": "\u547c\u548c\u6d69\u7279\u5206\u62e8",
       "barcode": "910100"
     }
@@ -1110,7 +1110,7 @@
     "pk": 125,
     "model": "yunda.branchzone",
     "fields": {
-      "code": "D5-2",
+      "code": "D5-4",
       "name": "\u5b89\u5e86\u5206\u62e8",
       "barcode": "246010"
     }
@@ -1119,9 +1119,207 @@
     "pk": 126,
     "model": "yunda.branchzone",
     "fields": {
-      "code": "D5-3",
+      "code": "D5-7",
       "name": "\u73e0\u6d77",
       "barcode": "519000"
+    }
+  },
+  {
+    "pk": 127,
+    "model": "yunda.branchzone",
+    "fields": {
+      "code": "D5-5",
+      "name": "\u6606\u660e\u5206\u62e8",
+      "barcode": "650108"
+    }
+  },
+  {
+    "pk": 128,
+    "model": "yunda.branchzone",
+    "fields": {
+      "code": "D5-6",
+      "name": "\u8944\u9633\u5206\u62e8",
+      "barcode": "441028"
+    }
+  },
+  {
+    "pk": 129,
+    "model": "yunda.branchzone",
+    "fields": {
+      "code": "D5-2",
+      "name": "\u745e\u5b89\u5206\u62e8",
+      "barcode": "325280"
+    }
+  },
+  {
+    "pk": 130,
+    "model": "yunda.branchzone",
+    "fields": {
+      "code": "",
+      "name": "\u4f5b\u5c71\u5206\u62e8",
+      "barcode": "528810"
+    }
+  },
+  {
+    "pk": 131,
+    "model": "yunda.branchzone",
+    "fields": {
+      "code": "D6-2",
+      "name": "\u897f\u5b81",
+      "barcode": "810000"
+    }
+  },
+  {
+    "pk": 132,
+    "model": "yunda.branchzone",
+    "fields": {
+      "code": "",
+      "name": "\u5b9d\u5c71\u5206\u62e8",
+      "barcode": "202540"
+    }
+  },
+  {
+    "pk": 133,
+    "model": "yunda.branchzone",
+    "fields": {
+      "code": "B2-7",
+      "name": "\u5434\u6c5f",
+      "barcode": "215200"
+    }
+  },
+  {
+    "pk": 134,
+    "model": "yunda.branchzone",
+    "fields": {
+      "code": "",
+      "name": "\u9ec4\u77f3\u5206\u62e8",
+      "barcode": "436108"
+    }
+  },
+  {
+    "pk": 135,
+    "model": "yunda.branchzone",
+    "fields": {
+      "code": "C3-5",
+      "name": "\u6842\u6797\u5206\u62e8",
+      "barcode": "541088"
+    }
+  },
+  {
+    "pk": 145,
+    "model": "yunda.branchzone",
+    "fields": {
+      "code": "C2-4",
+      "name": "\u63ed\u9633\u5206\u62e8",
+      "barcode": "515201"
+    }
+  },
+  {
+    "pk": 136,
+    "model": "yunda.branchzone",
+    "fields": {
+      "code": "C3-7",
+      "name": "\u8861\u9633\u5206\u62e8",
+      "barcode": "421088"
+    }
+  },
+  {
+    "pk": 137,
+    "model": "yunda.branchzone",
+    "fields": {
+      "code": "D1-3",
+      "name": "\u5eca\u574a",
+      "barcode": "965000"
+    }
+  },
+  {
+    "pk": 138,
+    "model": "yunda.branchzone",
+    "fields": {
+      "code": "A2-2",
+      "name": "\u79e6\u7687\u5c9b",
+      "barcode": "966000"
+    }
+  },
+  {
+    "pk": 139,
+    "model": "yunda.branchzone",
+    "fields": {
+      "code": "D1-8",
+      "name": "\u6000\u5316\u5206\u62e8",
+      "barcode": "418001"
+    }
+  },
+  {
+    "pk": 140,
+    "model": "yunda.branchzone",
+    "fields": {
+      "code": "C1-2",
+      "name": "\u6df1\u5733",
+      "barcode": "518000"
+    }
+  },
+  {
+    "pk": 141,
+    "model": "yunda.branchzone",
+    "fields": {
+      "code": "A4-3",
+      "name": "\u4f5b\u5c71",
+      "barcode": "528000"
+    }
+  },
+  {
+    "pk": 142,
+    "model": "yunda.branchzone",
+    "fields": {
+      "code": "A1-5",
+      "name": "\u9ad8\u660e",
+      "barcode": "528500"
+    }
+  },
+  {
+    "pk": 143,
+    "model": "yunda.branchzone",
+    "fields": {
+      "code": "D5-1",
+      "name": "\u987a\u5fb7",
+      "barcode": "528300"
+    }
+  },
+  {
+    "pk": 144,
+    "model": "yunda.branchzone",
+    "fields": {
+      "code": "C2-7",
+      "name": "\u756a\u79ba",
+      "barcode": "511400"
+    }
+  },
+  {
+    "pk": 146,
+    "model": "yunda.branchzone",
+    "fields": {
+      "code": "B4-3",
+      "name": "\u5b9c\u5174",
+      "barcode": "214200"
+    }
+  },
+  {
+    "pk": 147,
+    "model": "yunda.branchzone",
+    "fields": {
+      "code": "B4-9",
+      "name": "\u9756\u6c5f",
+      "barcode": "214500"
+    }
+  },
+  {
+    "pk": 148,
+    "model": "yunda.branchzone",
+    "fields": {
+      "code": "B3-9",
+      "name": "\u8fde\u4e91\u6e2f",
+      "barcode": "222001"
     }
   }
 ]
