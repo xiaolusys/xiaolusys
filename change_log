@@ -1,3 +1,5 @@
+######### 2014-4-12 ##########
+alter table shop_categorys_productcategory change parent_cid parent_cid int(11) NOT NULL;
 ######### 2014-4-11 ##########
 alter table shop_items_productlocation add column product_id int(11) NOT NULL;
 alter table shop_items_productlocation add column sku_id int(11);

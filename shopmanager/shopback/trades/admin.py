@@ -64,7 +64,6 @@ class MergeTradeAdmin(admin.ModelAdmin):
     change_list_template  = "admin/trades/change_list.html"
     change_form_template  = "admin/trades/change_trade_form.html"
     
-    date_hierarchy = 'pay_time'
     ordering = ['-sys_status','-priority','pay_time',]
     list_per_page = 100
     
