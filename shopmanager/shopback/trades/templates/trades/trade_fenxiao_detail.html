@@ -1,0 +1,26 @@
+
+<div>
+<form id="form1" action="/trades/fenxiao/count/" method="post">
+<input type="text" name="fromDate">
+<input type="text" name="endDate">
+<input type="submit" value="submit" onclick="submit()">
+</form>
+</div>
+
+<div>
+<table>
+<thead>
+<tr>
+<th>fenxiao_user</td>
+<th>interval_cast</td>
+</tr>
+</thead>
+<tbody>
+{% for key,value in data.items %}
+<tr>
+<td>{{ key }}</td><td>{{ value }}</td>
+</tr>
+{% endfor %}
+</tbody>
+</table>
+</div>

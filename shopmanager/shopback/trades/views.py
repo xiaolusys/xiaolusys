@@ -1145,3 +1145,32 @@ class TradeLogisticView(ModelView):
     
     post = get 
     
+def calFenxiaoInterval(fdt,tdt):
+    fenxiao_dict = {}
+    fenxiao = MergeTrade.objects.filter(pay_time__gte=fdt,pay_time__lte=tdt,type=pcfg.FENXIAO_TYPE,sys_status=pcfg.FINISHED_STATUS)
+    #buyer_nick 
+    for f in fenxiao:
+        
+        buyer_nick=f.buyer_nick
+        if fenxiao_dict.has_key(buyer_nick):
+            fenxiao_dict[buyer_nick] = fenxiao_dict[buyer_nick]+float(f.payment or 0)
+        else:
+            fenxiao_dict[buyer_nick] = float(f.payment or 0)
+    return fenxiao_dict
+    
+def countFenxiaoDetail(request):
+    
+    content  = request.POST
+    fromDate = content.get('fromDate')
+    toDate   = content.get('endDate')
+    
+    toDate   = toDate and datetime.datetime.strptime(toDate, '%Y%m%d').date() or datetime.datetime.now().date()
+        
+    fromDate = fromDate and datetime.datetime.strptime(fromDate, '%Y%m%d').date() or toDate - datetime.timedelta(days=1) 
+    
+    
+    fenxiaoDict = calFenxiaoInterval(fromDate,toDate)
+    
+    
+    return render_to_response('trades/trade_fenxiao_detail.html', {'data': fenxiaoDict},  context_instance=RequestContext(request))
+    
