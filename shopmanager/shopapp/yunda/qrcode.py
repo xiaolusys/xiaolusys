@@ -73,7 +73,7 @@ API_DICT = {
                }
 
 PARTNER_ID = "10134210001"
-SECRET     = "123456"
+SECRET     = "rsOwTCQ7GbpgXuiHKHGW5RdgR1epwU"
 
 
 ################ 创建订单请求 ###############
