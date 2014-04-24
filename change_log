@@ -2,7 +2,11 @@
 alter table shop_yunda_order add column parent_package_id varchar(64) NOT NULL;
 create index shop_yunda_order_parent_package_id on shop_yunda_order(parent_package_id);
 alter table shop_yunda_order add column upload_weight varchar(10) NOT NULL;
-alter table shop_yunda_order add column uploaded datetime NOT NULL;
+alter table shop_yunda_order add column uploaded datetime DEFAULT NULL;
+alter table shop_yunda_order add column weighted datetime DEFAULT NULL;
+
+alter table shop_yunda_order drop index cus_oid;
+alter table shop_yunda_order add unique key (out_sid);
 ######### 2014-4-12 ##########
 alter table shop_categorys_productcategory change parent_cid parent_cid int(11) NOT NULL;
 ######### 2014-4-11 ##########
