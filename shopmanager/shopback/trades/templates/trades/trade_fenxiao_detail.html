@@ -1,14 +1,26 @@
+<html>
+ <head>
+    {% block title %} {% endblock %}
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Bootstrap -->
+    <link rel="stylesheet" href="{{ STATIC_URL }}bootstrap/css/bootstrap.min.css">
 
-<div>
+    {% block head_script %} {% endblock %}
+  </head> 
+ 
+<body>
+<div style="width:800px; padding:5px;">
 <form id="form1" action="/trades/fenxiao/count/" method="post">
+startDate
 <input type="text" name="fromDate">
+endDate
 <input type="text" name="endDate">
 <input type="submit" value="submit" onclick="submit()">
 </form>
 </div>
 
-<div>
-<table>
+<div style="width:800px; padding:5px;">
+<table class="table table-striped table-bordered table-condensed">
 <thead>
 <tr>
 <th>fenxiao_user</td>
@@ -16,11 +28,16 @@
 </tr>
 </thead>
 <tbody>
-{% for key,value in data.items %}
+{% for key in data %}
 <tr>
-<td>{{ key }}</td><td>{{ value }}</td>
+<td>{{ key.0 }}</td><td>{{ key.1 }}</td>
 </tr>
 {% endfor %}
+<tr>
+
+</tr>
 </tbody>
 </table>
 </div>
+</body>
+</html>

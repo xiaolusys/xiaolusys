@@ -1146,7 +1146,9 @@ class TradeLogisticView(ModelView):
     post = get 
     
 def calFenxiaoInterval(fdt,tdt):
+    fenxiao_array= []
     fenxiao_dict = {}
+    fenxiao_sum  =0
     fenxiao = MergeTrade.objects.filter(pay_time__gte=fdt,pay_time__lte=tdt,type=pcfg.FENXIAO_TYPE,sys_status=pcfg.FINISHED_STATUS)
     #buyer_nick 
     for f in fenxiao:
@@ -1156,7 +1158,15 @@ def calFenxiaoInterval(fdt,tdt):
             fenxiao_dict[buyer_nick] = fenxiao_dict[buyer_nick]+float(f.payment or 0)
         else:
             fenxiao_dict[buyer_nick] = float(f.payment or 0)
-    return fenxiao_dict
+    fenxiao_array = fenxiao_dict.items()
+    print fenxiao_array
+    fenxiao_array.sort(lambda x,y:cmp(x[1],y[1]))
+    for key in fenxiao_array:
+        fenxiao_sum=fenxiao_sum+key[1]
+    fenxiao_array.append(["sum",fenxiao_sum])
+    print fenxiao_sum
+
+    return fenxiao_array
     
 def countFenxiaoDetail(request):
     
@@ -1168,9 +1178,9 @@ def countFenxiaoDetail(request):
         
     fromDate = fromDate and datetime.datetime.strptime(fromDate, '%Y%m%d').date() or toDate - datetime.timedelta(days=1) 
     
-    
+    #fenxiao_sum = calFenxiaoInterval(fromDate,toDate)).fenxiao_sum
     fenxiaoDict = calFenxiaoInterval(fromDate,toDate)
     
     
-    return render_to_response('trades/trade_fenxiao_detail.html', {'data': fenxiaoDict},  context_instance=RequestContext(request))
+    return render_to_response('trades/trade_fenxiao_detail.html', {'data': fenxiaoDict,},  context_instance=RequestContext(request))
     
