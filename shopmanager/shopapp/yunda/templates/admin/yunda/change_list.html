@@ -55,13 +55,13 @@
       {% if has_add_permission %}
         <ul class="object-tools">
           {% block object-tools-items %}
-            <li>
-              <a href="/package/uplaod/" class="addlink" target="_blank">导入文件
+          	<li>
+              <a href="javascript:void(0);" class="addlink upload-csvfile" target="_blank">集包文件导入
               </a>
             </li>
             <li>
               <a href="{% url cl.opts|admin_urlname:'add' %}{% if is_popup %}?_popup=1{% endif %}" class="addlink">
-                {% blocktrans with cl.opts.verbose_name as name %}新{{ name }}{% endblocktrans %}
+                {% blocktrans with cl.opts.verbose_name as name %}Add {{ name }}{% endblocktrans %}
               </a>
             </li>
           {% endblock %}

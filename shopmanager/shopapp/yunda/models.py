@@ -82,6 +82,11 @@ class LogisticCustomer(models.Model):
     mobile    =  models.CharField(max_length=20,db_index=True,blank=True,verbose_name=u'手机')
     phone     =  models.CharField(max_length=20,db_index=True,blank=True,verbose_name=u'电话')  
     
+    on_qrcode  =  models.BooleanField(default=False,verbose_name=u'开启二维码')
+    on_lanjian =  models.BooleanField(default=False,verbose_name=u'开启揽件上传')
+    on_ludan   =  models.BooleanField(default=False,verbose_name=u'开启录单')
+    on_bpkg    =  models.BooleanField(default=False,verbose_name=u'开启集包上传')
+    
     created    = models.DateTimeField(auto_now_add=True,verbose_name=u'创建日期')
     modified   = models.DateTimeField(auto_now=True,verbose_name=u'修改日期')
     
@@ -101,11 +106,10 @@ class LogisticCustomer(models.Model):
 class LogisticOrder(models.Model):
     
     id         = BigIntegerAutoField(primary_key=True,verbose_name=u'ID')
-    cus_oid    = models.CharField(max_length=64,unique=True,verbose_name=u'客户订单编号')
-    customer   = models.ForeignKey(LogisticCustomer, verbose_name=u'所属客户')
+    cus_oid    = models.CharField(max_length=64,db_index=True,verbose_name=u'客户订单编号')
+    #customer   = models.ForeignKey(LogisticCustomer, verbose_name=u'所属客户')
     
-    out_sid    = models.CharField(max_length=64,db_index=True,blank=True,verbose_name=u'物流单号')
-    
+    out_sid    = models.CharField(max_length=64,unique=True,blank=True,verbose_name=u'物流单号')
     parent_package_id = models.CharField(max_length=64,db_index=True,blank=True,verbose_name=u'大包编号')
     
     receiver_name    =  models.CharField(max_length=64,db_index=True,blank=True,verbose_name=u'收货人姓名')
@@ -118,8 +122,8 @@ class LogisticOrder(models.Model):
     receiver_mobile    =  models.CharField(max_length=20,db_index=True,blank=True,verbose_name=u'手机')
     receiver_phone     =  models.CharField(max_length=20,db_index=True,blank=True,verbose_name=u'电话')
     
-    weight     = models.CharField(max_length=10,blank=True,verbose_name=u'称重') 
-    upload_weight     = models.CharField(max_length=10,blank=True,verbose_name=u'计重')
+    weight             = models.CharField(max_length=10,blank=True,verbose_name=u'称重') 
+    upload_weight      = models.CharField(max_length=10,blank=True,verbose_name=u'计重')
    
     weighted   = models.DateTimeField(null=True,blank=True,verbose_name=u'称重日期')
     uploaded   = models.DateTimeField(default=datetime.datetime.now,verbose_name=u'上传日期') 
@@ -137,12 +141,12 @@ class LogisticOrder(models.Model):
     
     class Meta:
         db_table = 'shop_yunda_order'
-        unique_together = ("customer","cus_oid")
+        #unique_together = ("customer","cus_oid")
         verbose_name=u'韵达订单'
         verbose_name_plural = u'韵达订单列表'
    
     def __unicode__(self):
-        return u'<客户订单编号:%s,快递单号:%s>'%(self.cus_oid,self.out_sid)
+        return u'<%s,%s>'%(self.cus_oid,self.out_sid)
 
 
 def change_order_yunda_addr(sender, tid, *args, **kwargs):
@@ -172,7 +176,7 @@ class ParentPackageWeight(models.Model):
     uploaded   = models.DateTimeField(default=datetime.datetime.now,verbose_name=u'上传日期') 
     
     destinate          = models.CharField(max_length=24,blank=True,verbose_name=u'集包地')
-    destinate          = models.CharField(max_length=24,blank=True,verbose_name=u'集包地条码')
+    dest_code          = models.CharField(max_length=24,blank=True,verbose_name=u'集包地条码')
     
     is_jzhw           = models.BooleanField(default=False,verbose_name=u'江浙沪皖')
     is_charged = models.BooleanField(default=False,verbose_name=u'揽件')   
