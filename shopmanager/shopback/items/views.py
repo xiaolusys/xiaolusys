@@ -26,7 +26,7 @@ from common.utils  import update_model_fields
 from shopback.base import log_action, ADDITION, CHANGE
 import logging
 
-DISTRICT_REGEX = '^(?P<pno>[a-zA-Z0-9]+)-(?P<dno>[0-9]+)$'
+DISTRICT_REGEX = '^(?P<pno>[a-zA-Z0-9]+)-(?P<dno>[0-9]+)?$'
 ASSRIGN_PARAMS_REGEX = '^(?P<num_iid>[0-9]+)-(?P<sku_id>[0-9]+)?$'
 logger = logging.getLogger('django.request')
 
@@ -510,7 +510,7 @@ class ProductDistrictView(ModelView):
         tag_dict = m.groupdict()
         pno = tag_dict.get('pno')
         dno = tag_dict.get('dno')
-        district = DepositeDistrict.objects.get(parent_no=pno,district_no=dno)
+        district = DepositeDistrict.objects.get(parent_no=pno or '',district_no=dno or '')
         
         product   = Product.objects.get(outer_id=outer_id)
         prod_sku  = None
@@ -546,7 +546,7 @@ def delete_product_district(request):
     tag_dict = m.groupdict()
     pno = tag_dict.get('pno')
     dno = tag_dict.get('dno')
-    district = DepositeDistrict.objects.get(parent_no=pno,district_no=dno)
+    district = DepositeDistrict.objects.get(parent_no=pno or '',district_no=dno or '')
     
     try:
         product   = Product.objects.get(outer_id=outer_id)
