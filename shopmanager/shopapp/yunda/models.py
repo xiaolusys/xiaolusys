@@ -125,8 +125,8 @@ class LogisticOrder(models.Model):
     weight             = models.CharField(max_length=10,blank=True,verbose_name=u'称重') 
     upload_weight      = models.CharField(max_length=10,blank=True,verbose_name=u'计重')
    
-    weighted   = models.DateTimeField(null=True,blank=True,verbose_name=u'称重日期')
-    uploaded   = models.DateTimeField(default=datetime.datetime.now,verbose_name=u'上传日期') 
+    weighted   = models.DateTimeField(default=datetime.datetime.now,verbose_name=u'称重日期')
+    uploaded   = models.DateTimeField(null=True,blank=True,verbose_name=u'上传日期') 
     created    = models.DateTimeField(auto_now_add=True,verbose_name=u'创建日期')
     modified   = models.DateTimeField(auto_now=True,verbose_name=u'修改日期')
     
@@ -176,7 +176,6 @@ class ParentPackageWeight(models.Model):
     uploaded   = models.DateTimeField(default=datetime.datetime.now,verbose_name=u'上传日期') 
     
     destinate          = models.CharField(max_length=24,blank=True,verbose_name=u'集包地')
-    dest_code          = models.CharField(max_length=24,blank=True,verbose_name=u'集包地条码')
     
     is_jzhw           = models.BooleanField(default=False,verbose_name=u'江浙沪皖')
     is_charged = models.BooleanField(default=False,verbose_name=u'揽件')   

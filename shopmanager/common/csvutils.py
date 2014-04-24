@@ -1,5 +1,17 @@
 #-*- coding:utf8 -*-
+import os
 import csv, codecs, cStringIO
+from django.conf import settings
+
+
+def handle_uploaded_file(f,fname):
+    
+    filename = os.path.join(settings.DOWNLOAD_ROOT,fname)
+    with open(filename, 'wb+') as dst:
+        for chunk in f.chunks():
+            dst.write(chunk)
+    return filename
+
 
 def gen_cvs_tuple(qs,fields=[],title=[]):
     """ 获取queryset tuple """

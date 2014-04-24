@@ -3,6 +3,7 @@ import re
 import datetime
 import json
 from django.views.decorators.csrf import csrf_exempt
+from django.contrib import messages
 from djangorestframework import status
 from djangorestframework.response import Response,ErrorResponse
 from shopback import paramconfig as pcfg
@@ -51,7 +52,7 @@ class PackageByCsvFileView(ModelView):
         sid  = self.getSid(row)
         psid = self.getParentSid(row)
         
-        lo,sate = LogisticOrder.objects.get_or_create(sid=sid)
+        lo,sate = LogisticOrder.objects.get_or_create(out_sid=sid)
         lo.parent_package_id = psid
         lo.save()
         
@@ -96,11 +97,11 @@ class PackageByCsvFileView(ModelView):
             spamreader = csv.reader(csvfile, delimiter=',', quotechar='|')
             spamreader.next()
             for row in spamreader:
-                try:
-                    row = [r.strip().decode(encoding) for r in row]
-                    self.createTodayPackageWeight(row)
-                except Exception,exc:
-                    messages.info(request, u'商品编码(%s)，名称(%s),保存出错信息:%s'%
-                                  (self.getOuterid(row),self.getProductName(row),exc.message))
+                #try:
+                row = [r.strip().decode(encoding) for r in row]
+                self.createTodayPackageWeight(row)
+                #except Exception,exc:
+                #    messages.info(request, u'小包号(%s)，大包号(%s),出错信息:%s'%
+                #                  (self.getSid(row),self.getParentSid(row),exc.message))
                 
-        return {'success':True,'redirect_url':'/admin/items/product/'}     
+        return {'success':True,'redirect_url':'/admin/yunda/todayparentpackageweight/'}     

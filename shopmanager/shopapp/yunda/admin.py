@@ -60,14 +60,14 @@ admin.site.register(LogisticCustomer,LogisticCustomerAdmin)
 class ParentPackageWeightAdmin(admin.ModelAdmin):
     
     list_display = ('parent_package_id','weight','upload_weight','weighted','uploaded'
-                    ,'destinate','dest_code','is_jzhw','is_charged')
+                    ,'destinate','is_jzhw','is_charged')
     list_display_links = ('parent_package_id',)
 
     #date_hierarchy = 'created'
     #ordering = ['created_at']
     
     list_filter = ('is_jzhw','is_charged')
-    search_fields = ['parent_package_id','destinate','dest_code']
+    search_fields = ['parent_package_id','destinate']
     
 
 
