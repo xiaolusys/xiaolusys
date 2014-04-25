@@ -353,8 +353,8 @@ class SyncYundaScanWeightTask(Task):
     
     def createYundaOrder(self,trade):
         
-        order,state             = LogisticOrder.objects.get_or_create(cus_oid=trade.id)
-        order.out_sid           = trade.out_sid
+        order,state             = LogisticOrder.objects.get_or_create(out_sid=trade.out_sid)
+        order.cus_oid           = trade.id
         
         order.receiver_name     = trade.receiver_name
         order.receiver_state    = trade.receiver_state.strip()

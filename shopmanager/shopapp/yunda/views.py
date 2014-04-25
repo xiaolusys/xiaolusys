@@ -88,8 +88,8 @@ class PackageByCsvFileView(ModelView):
         
         dt = datetime.datetime.now()
         encoding  = self.getPostFileEncoding(request)
-        file_name = 'UPSP_%s.csv'%dt.strftime("%Y%m%d%H%M%S")   
-        fullfile_path = handle_uploaded_file(attach_files,'tradeUpload/'+file_name)
+        file_name = 'package_%s.csv'%dt.strftime("%Y%m%d%H%M%S")   
+        fullfile_path = handle_uploaded_file(attach_files,'yunda/'+file_name)
         
         cur_category = None
         
@@ -97,11 +97,11 @@ class PackageByCsvFileView(ModelView):
             spamreader = csv.reader(csvfile, delimiter=',', quotechar='|')
             spamreader.next()
             for row in spamreader:
-                #try:
-                row = [r.strip().decode(encoding) for r in row]
-                self.createTodayPackageWeight(row)
-                #except Exception,exc:
-                #    messages.info(request, u'小包号(%s)，大包号(%s),出错信息:%s'%
-                #                  (self.getSid(row),self.getParentSid(row),exc.message))
+                try:
+                    row = [r.strip().decode(encoding) for r in row]
+                    self.createTodayPackageWeight(row)
+                except Exception,exc:
+                    messages.info(request, u'小包号(%s)，大包号(%s),出错信息:%s'%
+                                  (self.getSid(row),self.getParentSid(row),exc.message))
                 
         return {'success':True,'redirect_url':'/admin/yunda/todayparentpackageweight/'}     
