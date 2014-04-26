@@ -4,6 +4,7 @@ from shopapp.yunda.models import ClassifyZone,BranchZone,LogisticOrder,YundaCust
     ParentPackageWeight,TodaySmallPackageWeight,TodayParentPackageWeight
 from shopback.base.options import DateFieldListFilter
 from django.contrib import messages
+from common.utils import group_list
 from .service import YundaService,WEIGHT_UPLOAD_LIMIT
 
 class ClassifyZoneInline(admin.TabularInline):
@@ -78,14 +79,23 @@ admin.site.register(ParentPackageWeight,ParentPackageWeightAdmin)
 
 class TodaySmallPackageWeightAdmin(admin.ModelAdmin):
     
-    list_display = ('package_id','parent_package_id','weight','upload_weight','weighted','is_jzhw')
-    list_display_links = ('package_id','parent_package_id',)
+    list_display = ('package_id_link','parent_package_id','weight','upload_weight','weighted','is_jzhw')
+    list_display_links = ('parent_package_id',)
 
     #date_hierarchy = 'created'
     #ordering = ['created_at']
     
     list_filter = ('is_jzhw',)
     search_fields = ['package_id','parent_package_id']
+    
+    def package_id_link(self, obj):
+        if obj.weight and float(obj.weight) > 3:
+            return u'<a href="%s/" style="color:blue;background-color:red;">%s</a>'%\
+                (obj.package_id,obj.package_id)
+        return u'<a href="%s/">%s</a>'%(obj.package_id,obj.package_id)
+    
+    package_id_link.allow_tags = True
+    package_id_link.short_description = u"运单编号" 
     
     class Media:
         css = {"all": ("admin/css/forms.css","css/admin/dialog.css", "jquery/jquery-ui-1.10.1.css")}
@@ -252,7 +262,6 @@ class TodayParentPackageWeightAdmin(admin.ModelAdmin):
             messages.info(request, u'上传成功！')
                         
     uploadPackageWeightAction.short_description = u"上传大包重量"   
-    
     
     actions = ['calcPackageWeightAction','uploadPackageWeightAction']  
     

@@ -15,7 +15,7 @@ from shopback.trades.models import MergeTrade
 from shopapp.yunda.qrcode import cancel_order,search_order,parseTreeID2MailnoMap
 from shopapp.yunda.models import YundaCustomer,LogisticOrder,ParentPackageWeight,\
     TodaySmallPackageWeight,TodayParentPackageWeight,AnonymousYundaCustomer,YUNDA_CODE,NORMAL,DELETE
-from common.utils import valid_mobile,format_datetime,group_list
+from common.utils import valid_mobile,format_datetime
 import logging
 
 logger = logging.getLogger('django.request')
@@ -76,7 +76,7 @@ class YundaService(object):
                 obj['package_id'],
                 None,
                 '20',
-                obj['weight'],
+                obj['upload_weight'],
                 '0',
                 self.yd_account.cus_id,
                 None,
@@ -161,7 +161,7 @@ class YundaService(object):
     def validWeight(self,package_list):
         
         for package in package_list:
-            if not obj['weight'] or float(obj['weight']) == 0:
+            if not package['upload_weight'] or float(package['upload_weight']) == 0:
                 raise Exception(u'上传包裹(%s)重量不能小于0!'%package['package_id'])
             
         return True
