@@ -1,0 +1,36 @@
+[
+  {
+    "pk": 1,
+    "model": "yunda.yundacustomer",
+    "fields": {
+      "code": "QIYUE",
+      "qr_code": "",
+      "contacter": "",
+      "sn_code": "53201233834363",
+      "city": "",
+      "district": "",
+      "cus_id": "199886",
+      "ludan_id": "",
+      "ludan_code": "",
+      "on_qrcode": false,
+      "state": "",
+      "company_name": "\u9f50\u60a6\u5bb6\u5c45\u7528\u54c1\u6709\u9650\u516c\u53f8",
+      "qr_id": "",
+      "lanjian_id": "199886",
+      "on_ludan": false,
+      "status": "normal",
+      "device_code": "14781926904",
+      "zip": "",
+      "memo": "",
+      "on_bpkg": false,
+      "phone": "",
+      "address": "",
+      "on_lanjian": true,
+      "name": "\u4f18\u5c3c\u4e16\u754c",
+      "lanjian_code": "37c7a1dd2ce069cf370dd30daf881850",
+      "mobile": "",
+      "created": "2014-04-25T18:38:43",
+      "modified": "2014-04-25T18:38:43"
+    }
+  }
+]
