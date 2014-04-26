@@ -1,3 +1,5 @@
+######### 2014-4-25 ##########
+alter table shop_yunda_order add column is_jzhw tinyint(1) NOT NULL;
 ######### 2014-4-24 ##########
 alter table shop_yunda_order add column parent_package_id varchar(64) NOT NULL;
 create index shop_yunda_order_parent_package_id on shop_yunda_order(parent_package_id);

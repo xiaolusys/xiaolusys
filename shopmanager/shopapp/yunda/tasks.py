@@ -13,7 +13,7 @@ from django.core.paginator import Paginator
 from shopback import paramconfig as pcfg
 from shopback.trades.models import MergeTrade
 from shopapp.yunda.qrcode import cancel_order,search_order,parseTreeID2MailnoMap
-from shopapp.yunda.models import LogisticOrder,YUNDA_CODE,NORMAL,DELETE
+from shopapp.yunda.models import LogisticOrder,TodaySmallPackageWeight,YUNDA_CODE,NORMAL,DELETE
 from common.utils import valid_mobile,format_datetime
 import logging
 
@@ -260,7 +260,8 @@ class UpdateYundaOrderAddrTask(Task):
         update_oids = []
         try:
             for i in range(1,self.pg.num_pages+1):
-                update_oids.extend(self.uploadAddr(self.getValidOrders(self.pg.page(i).object_list)))
+                update_oids.extend(self.uploadAddr(
+                                   self.getValidOrders(self.pg.page(i).object_list)))
         finally:
             LogisticOrder.objects.filter(id__in=update_oids).update(sync_addr=True)
 
@@ -347,7 +348,7 @@ class SyncYundaScanWeightTask(Task):
             return '0.2'
         
         if weight.rfind('.') < 0:
-            return str(round(int(weight)*0.94/1000.0,2))
+            return str(round(int(weight)*0.90/1000.0,2))
         
         return weight
     
@@ -417,3 +418,80 @@ class SyncYundaScanWeightTask(Task):
             MergeTrade.objects.filter(id__in=update_oids).update(
                     is_charged=True,charge_time=datetime.datetime.now())
                 
+                
+class PushYundaPackageWeightTask(Task):
+    
+    max_retries  = 3
+    
+    def getSourceData(self):
+        
+        dt   = datetime.datetime.now()
+        f_dt = dt - datetime.timedelta(days=2)
+        return MergeTrade.objects.filter(
+                       logistics_company__code__in=YUNDA_CODE,
+                       sys_status=pcfg.FINISHED_STATUS,
+                       is_express_print=True,
+                       is_charged=False,
+                       weight_time__gte=f_dt,
+                       weight_time__lte=dt,
+                       ).exclude(out_sid='')
+    
+    
+    def parseTradeWeight(self,weight):
+        
+        try:
+            float(weight)
+        except:
+            return '0.2'
+        
+        if weight == '' or float(weight) < 0.2 or weight.rfind('.') == 0:
+            return '0.2'
+        
+        if weight.rfind('.') < 0:
+            return str(round(int(weight)*0.90/1000.0,2))
+        
+        return weight
+    
+    def createYundaOrder(self,trade):
+        
+        order,state             = LogisticOrder.objects.get_or_create(out_sid=trade.out_sid)
+        order.cus_oid           = trade.id
+        
+        order.receiver_name     = trade.receiver_name
+        order.receiver_state    = trade.receiver_state.strip()
+        order.receiver_city     = trade.receiver_city.strip()
+        order.receiver_district = trade.receiver_district.strip()
+        order.receiver_address  = trade.receiver_address
+        order.receiver_zip      = trade.receiver_zip
+        order.receiver_mobile   = trade.receiver_mobile.strip()
+        order.receiver_phone    = trade.receiver_phone.strip()
+        
+        order.weight            = self.parseTradeWeight(trade.weight)
+        order.weighted          = trade.weight_time
+        order.dc_code           = trade.reserveo
+        order.valid_code        = trade.reserveh
+        order.save()
+        
+        return order
+    
+    def createSmallPackage(self,order):
+        
+        tspw,state = TodaySmallPackageWeight.objects.get_or_create(
+                            package_id=order.out_sid)
+        tspw.is_jzhw = order.is_JZHW()
+        tspw.weight  = order.weight
+        tspw.save()
+        
+    def run(self):
+                
+        source_list = self.getSourceData()        
+        for trade in list(source_list):
+            
+            yd_order = self.createYundaOrder(trade)
+
+            if not yd_order.is_charged:
+                self.createSmallPackage(yd_order)
+            
+            trade.is_charged = True
+            trade.save()
+            

@@ -1,8 +1,10 @@
 #-*- coding:utf8 -*-
 from django.contrib import admin
-from shopapp.yunda.models import ClassifyZone,BranchZone,LogisticOrder,LogisticCustomer,\
+from shopapp.yunda.models import ClassifyZone,BranchZone,LogisticOrder,YundaCustomer,\
     ParentPackageWeight,TodaySmallPackageWeight,TodayParentPackageWeight
 from shopback.base.options import DateFieldListFilter
+from django.contrib import messages
+from .service import YundaService,WEIGHT_UPLOAD_LIMIT
 
 class ClassifyZoneInline(admin.TabularInline):
     
@@ -41,10 +43,10 @@ class BranchZoneAdmin(admin.ModelAdmin):
 admin.site.register(BranchZone,BranchZoneAdmin)
 
 
-class LogisticCustomerAdmin(admin.ModelAdmin):
+class YundaCustomerAdmin(admin.ModelAdmin):
     
-    list_display = ('cus_id','name','code','company_name','qr_id','lanjian_id','ludan_id','sn_code',
-                    'device_code','contacter','mobile','status','memo')
+    list_display = ('cus_id','name','code','company_name','qr_id','lanjian_id','ludan_id','sn_code','device_code',
+                    'contacter','mobile','on_qrcode','on_lanjian','on_ludan','on_bpkg','status','memo')
     list_display_links = ('name','company_name',)
 
     #date_hierarchy = 'created'
@@ -54,7 +56,7 @@ class LogisticCustomerAdmin(admin.ModelAdmin):
     search_fields = ['cus_id','name','code','sync_addr','company_name','contacter']
 
 
-admin.site.register(LogisticCustomer,LogisticCustomerAdmin)
+admin.site.register(YundaCustomer,YundaCustomerAdmin)
 
 
 class ParentPackageWeightAdmin(admin.ModelAdmin):
@@ -89,7 +91,87 @@ class TodaySmallPackageWeightAdmin(admin.ModelAdmin):
         css = {"all": ("admin/css/forms.css","css/admin/dialog.css", "jquery/jquery-ui-1.10.1.css")}
         js = ("script/admin/adminpopup.js","jquery/jquery-ui-1.8.13.min.js",
               "jquery/addons/jquery.upload.js","yunda/js/package.csvfile.upload.js")
+    
+    
+    def calJZHWeightRule(self,weight):
+        
+        return weight < 0.5 and weight or weight*0.9
+            
+        
+    def calExternalWeightRule(self,weight):
+        
+        if weight < 0.5:
+            return weight
+        if weight < 1.0:
+            return weight / 2
+        if weight < 4.0:
+            return weight / 2
+        return weight - 2
+            
+    
+    def calcSmallPackageWeight(self,package_id):
+        
+        try:
+            spw = LogisticOrder.objects.get(out_sid=package_id)
+        except Exception,exc:
+            raise Exception(u'小包号:%s,运单信息未入库!'%(package_id))
 
+        if not spw.weight or float(spw.weight) <= 0:
+            raise Exception(u'小包号:%s,重量为空!'%package_id)
+                
+        if spw.is_jzhw:
+            return spw.weight,self.calJZHWeightRule(float(spw.weight))
+            
+        return spw.weight,self.calExternalWeightRule(float(spw.weight))
+        
+     
+    def calcPackageWeightAction(self,request,queryset):
+        
+        for tspw in queryset:
+            try:
+                weight_tuple = self.calcSmallPackageWeight(tspw.package_id)
+            except Exception,exc:
+                messages.warning(request, exc.message)
+            else:
+                tspw.weight = weight_tuple[0]
+                tspw.upload_weight = weight_tuple[1]
+                tspw.save()
+        
+    calcPackageWeightAction.short_description = u"计算小包重量" 
+    
+    def _getPackageWeightDict(self,queryset):
+        
+        ydo_list = []
+        for package in queryset:
+            
+            ydo_list.append({'valid_code':'',
+                             'package_id':package.package_id,
+                             'weight':package.weight,
+                             'upload_weight':package.upload_weight,
+                             'weighted':package.weighted,
+                             'is_parent':False})
+        return ydo_list
+    
+    def uploadPackageWeightAction(self,request,queryset):
+        
+        try:
+            yd_service = YundaService(cus_code='QIYUE')
+            
+            for yd_list in group_list(self._getPackageWeightDict(queryset),WEIGHT_UPLOAD_LIMIT):
+                
+                yd_service.uploadWeight(yd_list)
+                yd_service.flushPackageWeight(yd_list)
+                 
+        except Exception,exc:
+            messages.warning(request, exc.message)
+        else:
+            messages.info(request, u'上传成功！')    
+        
+            
+    uploadPackageWeightAction.short_description = u"上传小包重量"   
+    
+    actions = ['calcPackageWeightAction','uploadPackageWeightAction']  
+    
 
 admin.site.register(TodaySmallPackageWeight,TodaySmallPackageWeightAdmin)
 
@@ -109,6 +191,71 @@ class TodayParentPackageWeightAdmin(admin.ModelAdmin):
         css = {"all": ("admin/css/forms.css","css/admin/dialog.css", "jquery/jquery-ui-1.10.1.css")}
         js = ("script/admin/adminpopup.js","jquery/jquery-ui-1.8.13.min.js",
               "jquery/addons/jquery.upload.js","yunda/js/package.csvfile.upload.js")
+        
+    def calcSmallPackageWeight(self,parent_package_id):
+        
+        tspws = TodaySmallPackageWeight.objects.filter(
+                                parent_package_id=parent_package_id)
+        bpkw_weight = 0
+        bpkw_upload_weight = 0
+        for tspw in tspws:
+            if not tspw.weight or not tspw.upload_weight or float(tspw.weight) <= 0:
+                raise Exception(u'大包号:%s,小包号:%s,没有重量,请核对!'%
+                                (tspw.parent_package_id,tspw.package_id))
+                
+            bpkw_weight += float(tspw.weight)
+            bpkw_upload_weight += float(tspw.upload_weight)
+            
+        return bpkw_weight,bpkw_upload_weight
+        
+     #取消该商品缺货订单
+    def calcPackageWeightAction(self,request,queryset):
+        
+        for bpkw in queryset:
+            try:
+                weight_tuple = self.calcSmallPackageWeight(bpkw.parent_package_id)
+            except Exception,exc:
+                messages.warning(request, exc.message)
+            else:
+                bpkw.weight = weight_tuple[0]
+                bpkw.upload_weight = weight_tuple[1]
+                bpkw.save()
+        
+    calcPackageWeightAction.short_description = u"计算大包重量"  
+    
+    def _getPackageWeightDict(self,queryset):
+        
+        ydo_list = []
+        for package in queryset:
+             
+            ydo_list.append({'valid_code':'',
+                             'package_id':package.parent_package_id,
+                             'weight':package.weight,
+                             'upload_weight':package.upload_weight,
+                             'weighted':package.weighted,
+                             'is_parent':True})
+        return ydo_list
+    
+    def uploadPackageWeightAction(self,request,queryset):
+        
+        try:
+            yd_service = YundaService(cus_code='QIYUE')
+            
+            for yd_list in group_list(self._getPackageWeightDict(queryset),WEIGHT_UPLOAD_LIMIT):
+                
+                yd_service.uploadWeight(yd_list)
+                yd_service.flushPackageWeight(yd_list)
+                
+        except Exception,exc:
+            messages.warning(request, exc.message)
+        else:
+            messages.info(request, u'上传成功！')
+                        
+    uploadPackageWeightAction.short_description = u"上传大包重量"   
+    
+    
+    actions = ['calcPackageWeightAction','uploadPackageWeightAction']  
+    
 
 
 admin.site.register(TodayParentPackageWeight,TodayParentPackageWeightAdmin)

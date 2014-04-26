@@ -191,3 +191,7 @@ def pinghost(hostid):
 def valid_mobile(m):
     rg = re.compile('^1[3458][0-9]{9}$')
     return rg.match(m)
+
+def group_list(l,block):
+    size = len(l)
+    return [l[i:i+block] for i in range(0,size,block)]
