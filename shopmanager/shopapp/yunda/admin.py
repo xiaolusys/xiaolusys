@@ -280,7 +280,7 @@ class LogisticOrderAdmin(admin.ModelAdmin):
     #ordering = ['created_at']
     
     list_filter = ('status','is_charged','sync_addr',('weighted',DateFieldListFilter),('created',DateFieldListFilter))
-    search_fields = ['cus_oid','out_sid','receiver_name','receiver_mobile','receiver_phone']
+    search_fields = ['cus_oid','out_sid','parent_package_id','receiver_mobile']
     
     
 
