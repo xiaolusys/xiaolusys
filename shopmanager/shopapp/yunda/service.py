@@ -161,8 +161,9 @@ class YundaService(object):
     def validWeight(self,package_list):
         
         for package in package_list:
-            if not package['upload_weight'] or float(package['upload_weight']) == 0:
-                raise Exception(u'上传包裹(%s)重量不能小于0!'%package['package_id'])
+            if not package['upload_weight'] or float(package['upload_weight']) == 0 \
+                or float(package['upload_weight']) > 50:
+                raise Exception(u'上传包裹(%s)重量(%skg)异常!'%package['package_id'])
             
         return True
         
