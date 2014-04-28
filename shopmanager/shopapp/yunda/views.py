@@ -1,16 +1,16 @@
 #-*- coding:utf8 -*-
-import re
 import datetime
 import json
 from django.views.decorators.csrf import csrf_exempt
+from django.contrib import messages
+from django.db.models import Sum,Count
 from djangorestframework import status
 from djangorestframework.response import Response,ErrorResponse
 from shopback import paramconfig as pcfg
 from shopback.base.views import ModelView,ListOrCreateModelView,ListModelView
 from .models import LogisticOrder,ParentPackageWeight,\
-    TodaySmallPackageWeight,TodayParentPackageWeight
+    TodaySmallPackageWeight,TodayParentPackageWeight,JZHW_REGEX
 
-reg = re.compile('^(上海|江苏|浙江|安徽)'.decode('utf8'))
 
 class PackageByCsvFileView(ModelView):
     
@@ -27,7 +27,7 @@ class PackageByCsvFileView(ModelView):
         return row[7]
     
     def isJZHW(self,row):
-        return reg.match(row[7]) and True or False
+        return JZHW_REGEX.match(row[7]) and True or False
     
     def createParentPackage(self,row):
         
@@ -37,7 +37,7 @@ class PackageByCsvFileView(ModelView):
         
         ppw,state  = ParentPackageWeight.objects.get_or_create(
                         parent_package_id = psid)
-        ppw.is_jzhw = self.isJZHW(row),
+        ppw.is_jzhw = self.isJZHW(row)
         ppw.destinate = self.getPackDestinate(row)
         ppw.save()
             
@@ -51,8 +51,9 @@ class PackageByCsvFileView(ModelView):
         sid  = self.getSid(row)
         psid = self.getParentSid(row)
         
-        lo,sate = LogisticOrder.objects.get_or_create(sid=sid)
+        lo,sate = LogisticOrder.objects.get_or_create(out_sid=sid)
         lo.parent_package_id = psid
+        lo.is_jzhw = self.isJZHW(row)
         lo.save()
         
         tspw,state = TodaySmallPackageWeight.objects.\
@@ -87,8 +88,8 @@ class PackageByCsvFileView(ModelView):
         
         dt = datetime.datetime.now()
         encoding  = self.getPostFileEncoding(request)
-        file_name = 'UPSP_%s.csv'%dt.strftime("%Y%m%d%H%M%S")   
-        fullfile_path = handle_uploaded_file(attach_files,'tradeUpload/'+file_name)
+        file_name = 'package_%s.csv'%dt.strftime("%Y%m%d%H%M%S")   
+        fullfile_path = handle_uploaded_file(attach_files,'yunda/'+file_name)
         
         cur_category = None
         
@@ -100,7 +101,41 @@ class PackageByCsvFileView(ModelView):
                     row = [r.strip().decode(encoding) for r in row]
                     self.createTodayPackageWeight(row)
                 except Exception,exc:
-                    messages.info(request, u'商品编码(%s)，名称(%s),保存出错信息:%s'%
-                                  (self.getOuterid(row),self.getProductName(row),exc.message))
+                    messages.info(request, u'小包号(%s)，大包号(%s),出错信息:%s'%
+                                  (self.getSid(row),self.getParentSid(row),exc.message))
                 
-        return {'success':True,'redirect_url':'/admin/items/product/'}     
+        return {'success':True,'redirect_url':'/admin/yunda/todayparentpackageweight/'}     
+
+class DiffPackageDataView(ModelView):
+    
+    def calcWeight(self,sqs,pqs):
+        
+        tspw_dict = sqs.aggregate(
+                                    total_num=Count('package_id'),
+                                    total_weight=Sum('weight'),
+                                    total_upload_weight=Sum('upload_weight'))
+        
+        jb_tspw_dict = sqs.exclude(parent_package_id='').aggregate(
+                                        total_num=Count('package_id'),
+                                        total_weight=Sum('weight'),
+                                        total_upload_weight=Sum('upload_weight'))
+        
+        tppw_dict = pqs.aggregate(
+                                        total_num=Count('parent_package_id'),
+                                        total_weight=Sum('weight'),
+                                        total_upload_weight=Sum('upload_weight'))
+        return {'A':tspw_dict,'B':jb_tspw_dict,'C':tppw_dict}
+    
+    def get(self, request, *args, **kwargs):
+        
+        small_queryset  = TodaySmallPackageWeight.objects.all()
+        parent_queryset = TodayParentPackageWeight.objects.all()
+        
+        return {'all':self.calcWeight(small_queryset,parent_queryset),
+                'jzhw':self.calcWeight(small_queryset.filter(is_jzhw=True),
+                                       parent_queryset.filter(is_jzhw=True)),
+                'other':self.calcWeight(small_queryset.filter(is_jzhw=False),
+                                       parent_queryset.filter(is_jzhw=False))
+                }
+    
+    
