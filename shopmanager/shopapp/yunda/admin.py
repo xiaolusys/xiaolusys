@@ -79,8 +79,8 @@ admin.site.register(ParentPackageWeight,ParentPackageWeightAdmin)
 
 class TodaySmallPackageWeightAdmin(admin.ModelAdmin):
     
-    list_display = ('package_id_link','parent_package_id','weight','upload_weight','weighted','is_jzhw')
-    list_display_links = ('parent_package_id',)
+    list_display = ('package_id','parent_package_id','weight','upload_weight','weighted','is_jzhw')
+    list_display_links = ('package_id','parent_package_id',)
 
     #date_hierarchy = 'created'
     #ordering = ['created_at']
@@ -89,7 +89,7 @@ class TodaySmallPackageWeightAdmin(admin.ModelAdmin):
     search_fields = ['package_id','parent_package_id']
     
     def package_id_link(self, obj):
-        if obj.weight and float(obj.weight) > 3:
+        if  obj.weight and float(obj.weight) > 3:
             return u'<a href="%s/" style="color:blue;background-color:red;">%s</a>'%\
                 (obj.package_id,obj.package_id)
         return u'<a href="%s/">%s</a>'%(obj.package_id,obj.package_id)
@@ -105,7 +105,7 @@ class TodaySmallPackageWeightAdmin(admin.ModelAdmin):
     
     def calJZHWeightRule(self,weight):
         
-        return weight < 0.5 and weight or weight*0.9
+        return weight < 0.5 and weight or weight*0.94
             
         
     def calExternalWeightRule(self,weight):
@@ -115,8 +115,8 @@ class TodaySmallPackageWeightAdmin(admin.ModelAdmin):
         if weight < 1.0:
             return weight / 2
         if weight < 4.0:
-            return weight / 2
-        return weight - 2
+            return weight / 2 + 0.3
+        return weight - 1.5
             
     
     def calcSmallPackageWeight(self,package_id):
@@ -128,11 +128,11 @@ class TodaySmallPackageWeightAdmin(admin.ModelAdmin):
 
         if not spw.weight or float(spw.weight) <= 0:
             raise Exception(u'小包号:%s,重量为空!'%package_id)
-                
+        
         if spw.is_jzhw:
-            return spw.weight,self.calJZHWeightRule(float(spw.weight))
+            return round(spw.weight,2),round(self.calJZHWeightRule(float(spw.weight)),2)
             
-        return spw.weight,self.calExternalWeightRule(float(spw.weight))
+        return round(spw.weight,2),round(self.calExternalWeightRule(float(spw.weight)),2)
         
      
     def calcPackageWeightAction(self,request,queryset):
@@ -143,6 +143,9 @@ class TodaySmallPackageWeightAdmin(admin.ModelAdmin):
             except Exception,exc:
                 messages.warning(request, exc.message)
             else:
+                if weight_tuple[0] > 10:
+                    message.warning(rquest,u'小包（%s）重量超过10公斤,请核实！'%tspw.package_id)
+                    
                 tspw.weight = weight_tuple[0]
                 tspw.upload_weight = weight_tuple[1]
                 tspw.save()
@@ -227,6 +230,10 @@ class TodayParentPackageWeightAdmin(admin.ModelAdmin):
             except Exception,exc:
                 messages.warning(request, exc.message)
             else:
+                if weight_tuple[0] > 50:
+                    messages.error(request, u'集包号(%s)重量异常(%s)，请核实。'%
+                                   (bpkw.parent_package_id,weight_tuple[0]))
+                    continue
                 bpkw.weight = weight_tuple[0]
                 bpkw.upload_weight = weight_tuple[1]
                 bpkw.save()
