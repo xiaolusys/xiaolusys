@@ -1,4 +1,5 @@
 #-*- coding:utf8 -*-
+import os
 import datetime
 import json
 from django.views.decorators.csrf import csrf_exempt
@@ -12,7 +13,59 @@ from .models import LogisticOrder,ParentPackageWeight,\
     TodaySmallPackageWeight,TodayParentPackageWeight,JZHW_REGEX
 
 
+class YundaFileUploadView(ModelView):
+    
+    file_path     = ''
+    filename_save = ''
+    
+    def get(self, request, *args, **kwargs):
+        pass
+    
+    def getFileEncoding(self,request):
+        return request.META['HTTP_USER_AGENT'].lower().find('windows') >-1 and 'gbk' or 'utf8'
+    
+    def parseFileName(self):
+        dt = datetime.datetime.now()
+        return os.path.join(self.file_path,self.filename_save)%dt.strftime("%Y%m%d%H%M%S")
+        
+    def post(self, request, *args, **kwargs):
+        
+        from common.csvutils import handle_uploaded_file
+        import csv
+        
+        attach_files = request.FILES.get('attach_files')
+        if not attach_files:
+            return u'文件上传错误'
+        
+        attach_filename = attach_files.name
+        
+        if attach_filename[attach_filename.rfind('.'):] != '.csv':
+            return u'只接受csv文件格式'
+        
+        file_name = self.parseFileName()   
+        fullfile_path = handle_uploaded_file(attach_files,file_name)
+        
+        try:
+            with open(fullfile_path, 'rb') as csvfile:
+                spamreader = csv.reader(csvfile, delimiter=',', quotechar='|')
+                
+            response = self.handle_post(request, spamreader)
+        except Exception,exc:
+            messages.info(request, u'出错信息:%s'%exc.message)
+            return {'success':False,'redirect_url':'./'}
+        
+        return response
+    
+    def handle_post(self,request,csv_iter):
+        
+        raise Exception(u'请实现该方法')
+        
+
 class PackageByCsvFileView(ModelView):
+    
+    
+    file_path     = 'yunda'
+    filename_save = 'package_%s.csv'
     
     def get(self, request, *args, **kwargs):
         pass
@@ -61,51 +114,26 @@ class PackageByCsvFileView(ModelView):
         tspw.parent_package_id = psid
         tspw.is_jzhw = self.isJZHW(row)
         tspw.save()
-        
-    
+
     def createTodayPackageWeight(self,row):
         
         self.createSmallPackage(row)
             
         self.createParentPackage(row)
     
-    def getPostFileEncoding(self,request):
-        return request.META['HTTP_USER_AGENT'].lower().find('windows') >-1 and 'gbk' or 'utf8'
-
-    def post(self, request, *args, **kwargs):
+    def handle_post(self,request,csv_iter):
         
-        from common.csvutils import handle_uploaded_file
-        import csv
+        encoding = self.getFileEncoding(request)
+        for row in csv_iter:
         
-        attach_files = request.FILES.get('attach_files')
-        if not attach_files:
-            return u'文件上传错误'
-        
-        filename = attach_files.name
-        
-        if filename[filename.rfind('.'):] != '.csv':
-            return '只接受csv文件格式'
-        
-        dt = datetime.datetime.now()
-        encoding  = self.getPostFileEncoding(request)
-        file_name = 'package_%s.csv'%dt.strftime("%Y%m%d%H%M%S")   
-        fullfile_path = handle_uploaded_file(attach_files,'yunda/'+file_name)
-        
-        cur_category = None
-        
-        with open(fullfile_path, 'rb') as csvfile:
-            spamreader = csv.reader(csvfile, delimiter=',', quotechar='|')
-            spamreader.next()
-            for row in spamreader:
-                try:
-                    row = [r.strip().decode(encoding) for r in row]
-                    self.createTodayPackageWeight(row)
-                except Exception,exc:
-                    messages.info(request, u'小包号(%s)，大包号(%s),出错信息:%s'%
-                                  (self.getSid(row),self.getParentSid(row),exc.message))
+            row = [r.strip().decode(encoding) for r in row]
+            self.createTodayPackageWeight(row)
                 
-        return {'success':True,'redirect_url':'/admin/yunda/todayparentpackageweight/'}     
-
+        return {'success':True,'redirect_url':'/admin/yunda/todayparentpackageweight/'}
+    
+   
+    
+    
 class DiffPackageDataView(ModelView):
     
     def calcWeight(self,sqs,pqs):

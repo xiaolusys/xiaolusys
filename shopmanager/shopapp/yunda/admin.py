@@ -55,6 +55,28 @@ class YundaCustomerAdmin(admin.ModelAdmin):
     
     list_filter = ('status',)
     search_fields = ['cus_id','name','code','sync_addr','company_name','contacter']
+    
+    #--------设置页面布局----------------
+    fieldsets =((u'客户基本信息:', {
+                    'classes': ('expand',),
+                    'fields': (('name','code','company_name','cus_id',)
+                               ,('contacter','state','city','district','address','zip',)
+                               ,('mobile','phone','status','memo')
+                               )
+                }),
+                (u'二维码设置:', {
+                    'classes': ('collapse',),
+                    'fields': (('qr_id','qr_code','on_qrcode'))
+                }),
+                 (u'揽件设置:', {
+                    'classes': ('collapse',),
+                    'fields': (('lanjian_id','lanjian_code','sn_code','device_code','on_lanjian','on_bpkg'))
+                }),
+                 (u'录单设置:', {
+                    'classes': ('collapse',),
+                    'fields': (('ludan_id','ludan_code','on_ludan'))
+                })
+                )
 
 
 admin.site.register(YundaCustomer,YundaCustomerAdmin)
@@ -115,15 +137,15 @@ class TodaySmallPackageWeightAdmin(admin.ModelAdmin):
         if weight < 1.0:
             return weight / 2
         if weight < 4.0:
-            return weight / 2 + 0.3
-        return weight - 1.5
+            return weight / 2
+        return weight - 2
             
     
     def calcSmallPackageWeight(self,package_id):
         
         try:
             spw = LogisticOrder.objects.get(out_sid=package_id)
-        except Exception,exc:
+        except LogisticOrder.DoesNotExist:
             raise Exception(u'小包号:%s,运单信息未入库!'%(package_id))
 
         if not spw.weight or float(spw.weight) <= 0:
@@ -144,7 +166,7 @@ class TodaySmallPackageWeightAdmin(admin.ModelAdmin):
                 messages.warning(request, exc.message)
             else:
                 if weight_tuple[0] > 10:
-                    message.warning(rquest,u'小包（%s）重量超过10公斤,请核实！'%tspw.package_id)
+                    messages.warning(request,u'小包（%s）重量超过10公斤,请核实！'%tspw.package_id)
                     
                 tspw.weight = weight_tuple[0]
                 tspw.upload_weight = weight_tuple[1]
