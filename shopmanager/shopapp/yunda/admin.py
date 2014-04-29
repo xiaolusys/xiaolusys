@@ -137,15 +137,15 @@ class TodaySmallPackageWeightAdmin(admin.ModelAdmin):
         if weight < 1.0:
             return weight / 2
         if weight < 4.0:
-            return weight / 2 + 0.3
-        return weight - 1.5
+            return weight / 2
+        return weight - 2
             
     
     def calcSmallPackageWeight(self,package_id):
         
         try:
             spw = LogisticOrder.objects.get(out_sid=package_id)
-        except Exception,exc:
+        except LogisticOrder.DoesNotExist:
             raise Exception(u'小包号:%s,运单信息未入库!'%(package_id))
 
         if not spw.weight or float(spw.weight) <= 0:
@@ -166,7 +166,7 @@ class TodaySmallPackageWeightAdmin(admin.ModelAdmin):
                 messages.warning(request, exc.message)
             else:
                 if weight_tuple[0] > 10:
-                    message.warning(rquest,u'小包（%s）重量超过10公斤,请核实！'%tspw.package_id)
+                    messages.warning(request,u'小包（%s）重量超过10公斤,请核实！'%tspw.package_id)
                     
                 tspw.weight = weight_tuple[0]
                 tspw.upload_weight = weight_tuple[1]
