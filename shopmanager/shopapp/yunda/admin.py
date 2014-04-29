@@ -55,6 +55,28 @@ class YundaCustomerAdmin(admin.ModelAdmin):
     
     list_filter = ('status',)
     search_fields = ['cus_id','name','code','sync_addr','company_name','contacter']
+    
+    #--------设置页面布局----------------
+    fieldsets =((u'客户基本信息:', {
+                    'classes': ('expand',),
+                    'fields': (('name','code','company_name','cus_id',)
+                               ,('contacter','state','city','district','address','zip',)
+                               ,('mobile','phone','status','memo')
+                               )
+                }),
+                (u'二维码设置:', {
+                    'classes': ('collapse',),
+                    'fields': (('qr_id','qr_code','on_qrcode'))
+                }),
+                 (u'揽件设置:', {
+                    'classes': ('collapse',),
+                    'fields': (('lanjian_id','lanjian_code','sn_code','device_code','on_lanjian','on_bpkg'))
+                }),
+                 (u'录单设置:', {
+                    'classes': ('collapse',),
+                    'fields': (('ludan_id','ludan_code','on_ludan'))
+                })
+                )
 
 
 admin.site.register(YundaCustomer,YundaCustomerAdmin)
