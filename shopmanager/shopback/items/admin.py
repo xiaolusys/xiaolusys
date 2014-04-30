@@ -8,7 +8,8 @@ from django.db import models
 from django.shortcuts import render_to_response
 from django.template import RequestContext
 from django.forms import TextInput, Textarea
-from shopback.items.models import Item,Product,ProductSku,ProductLocation,ItemNumTaskLog,SkuProperty
+from shopback.items.models import Item,Product,ProductSku,ProductLocation,\
+    ItemNumTaskLog,SkuProperty,ProductDaySale
 from shopback.trades.models import MergeTrade,MergeOrder
 from shopback.users.models import User
 from shopback.purchases import getProductWaitReceiveNum
@@ -373,3 +374,17 @@ class ItemNumTaskLogAdmin(admin.ModelAdmin):
     
 
 admin.site.register(ItemNumTaskLog, ItemNumTaskLogAdmin)
+
+
+class ProductDaySaleAdmin(admin.ModelAdmin):
+    list_display = ('day_date','user_id','product_id', 'sku_id', 'sale_num', 'sale_payment', 'sale_refund')
+    list_display_links = ('day_date', 'user_id','product_id')
+    #list_editable = ('update_time','task_type' ,'is_success','status')
+
+    #date_hierarchy = 'day_date'
+
+    list_filter = ('user_id',('day_date',DateFieldListFilter))
+    search_fields = ['user_id','product_id','sku_id']
+    
+
+admin.site.register(ProductDaySale, ProductDaySaleAdmin)
