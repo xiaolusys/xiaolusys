@@ -745,6 +745,36 @@ class ItemNumTaskLog(models.Model):
         verbose_name_plural = u'库存同步日志'
 
     def __unicode__(self):
-        return '<%s,%s,%d>'%(self.outer_id,self.sku_outer_id,self.num)
+        return '<%s,%s,%d>'%(self.outer_id,
+                             self.sku_outer_id,
+                             self.num)
+    
+    
+class ProductDaySale(models.Model):
+
+    id       = BigIntegerAutoField(primary_key=True)
+    
+    day_date = models.DateField(verbose_name=u'销售日期')
+    
+    user_id  = models.BigIntegerField(null=False,verbose_name=u'店铺用户ID')
+    product_id  = models.IntegerField(null=False,verbose_name='商品ID')
+    sku_id      = models.IntegerField(null=True,verbose_name='规格ID')
+
+    sale_num     = models.IntegerField(verbose_name='销售数量')
+    sale_payment = models.FloatField(verbose_name='销售金额')
+    sale_refund  = models.FloatField(verbose_name='退款金额')
+    
+    class Meta:
+        db_table = 'shop_items_daysale'
+        unique_together = ("day_date","user_id","product_id","sku_id")
+        verbose_name=u'产品销量统计'
+        verbose_name_plural = u'产品销量统计'
+
+    def __unicode__(self):
+        return '<%s,%d,%s,%s,%d>'%(self.day_date,
+                                   self.user_id,
+                                   self.outer_id,
+                                   self.sku_outer_id,
+                                   self.sale_num)
     
     

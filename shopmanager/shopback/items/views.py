@@ -16,7 +16,8 @@ from djangorestframework.response import Response,ErrorResponse
 from djangorestframework.mixins import CreateModelMixin
 from shopback import paramconfig as pcfg
 from shopback.base.views import ModelView,ListOrCreateModelView,ListModelView
-from shopback.items.models import Item,SkuProperty,Product,ProductSku,ProductLocation,APPROVE_STATUS,ONLINE_PRODUCT_STATUS
+from shopback.items.models import Item,SkuProperty,Product,ProductSku,ProductLocation,\
+    APPROVE_STATUS,ONLINE_PRODUCT_STATUS
 from shopback.archives.models import DepositeDistrict
 from shopback.users.models import User
 from shopback.items.tasks import updateUserItemsTask,updateItemNum

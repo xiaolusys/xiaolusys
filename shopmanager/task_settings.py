@@ -39,55 +39,7 @@ CELERY_ROUTES = {
         'shopapp.notify.tasks.process_refund_notify_task': {
             'queue': 'refund_notify',
             'routing_key': 'refund.process_refund_notify',
-        },
-#        'shopapp.notify.tasks.process_discard_notify_task': {
-#            'queue': 'peroid',
-#            'routing_key': 'peroid.process_discard_notify',
-#        },
-#        'shopapp.notify.tasks.delete_success_notify_record_task': {
-#            'queue': 'peroid',
-#            'routing_key': 'peroid.delete_success_notify_record',
-#        },
-#        'shopback.fenxiao.tasks.saveUserPurchaseOrderTask': {
-#            'queue': 'peroid',
-#            'routing_key': 'peroid.save_purchase_order_task',
-#        },
-#        'shopback.orders.tasks.saveUserDuringOrdersTask': {
-#            'queue': 'peroid',
-#            'routing_key': 'peroid.save_user_during_orders_task',
-#        },
-#        'shopback.items.tasks.updateProductWarnNumTask': {
-#            'queue': 'peroid',
-#            'routing_key': 'peroid.update_prod_warn_num_task',
-#        },
-#        'shopback.smsmgr.tasks.notifyPacketPostTask': {
-#            'queue': 'peroid',
-#            'routing_key': 'peroid.notify_packet_post_task',
-#        },
-#        'shopback.trades.tasks.pushBuyerToCustomerTask': {
-#            'queue': 'peroid',
-#            'routing_key': 'peroid.push_buyer_to_customer_task',
-#        },
-#        'shopapp.yunda.tasks.UpdateYundaOrderAddrTask': {
-#            'queue': 'peroid',
-#            'routing_key': 'peroid.update_yunda_order_address_task',
-#        },
-#        'shopapp.yunda.tasks.CancelUnsedYundaSidTask': {
-#            'queue': 'peroid',
-#            'routing_key': 'peroid.cancel_unused_yunda_sid',
-#        },
-#        'shopapp.yunda.tasks.SyncYundaScanWeightTask': {
-#            'queue': 'peroid',
-#            'routing_key': 'peroid.sync_yunda_scan_weight',
-#        },
-#        'shopapp.comments.tasks.crawAllUserOnsaleItemComment':{
-#            'queue':'peroid',
-#            'routing_key':'peroid.craw_onsale_item_comment',
-#        },
-#        'top_updatedb_task.pull_taobao_trade_task':{
-#            'queue':'peroid',
-#            'routing_key':'peroid.pull_taobao_trade_task',
-#        },
+        }
 }
 
 
@@ -123,7 +75,7 @@ SYNC_MODEL_SCHEDULE = {
         'args':()
     },
     'runs-every-day-warn-num-update':{     #将昨日的订单数更新为商品的警告库位
-         'task':'shopback.items.tasks.updateProductWarnNumTask',
+         'task':'shopback.items.tasks.CalcProductSaleTask',
          'schedule':crontab(minute="30",hour='1'),
          'args':()
      },

@@ -11,7 +11,7 @@ from djangorestframework.response import ErrorResponse
 from shopback.trades.models import MergeTrade,MergeOrder,ReplayPostTrade,GIFT_TYPE\
     ,SYS_TRADE_STATUS,TAOBAO_TRADE_STATUS,SHIPPING_TYPE_CHOICE,TAOBAO_ORDER_STATUS
 from shopback.logistics.models import LogisticsCompany
-from shopback.items.models import Product,ProductSku
+from shopback.items.models import Product,ProductSku,ProductDaySale
 from shopback.base import log_action, ADDITION, CHANGE
 from shopback.refunds.models import REFUND_STATUS,Refund
 from shopback.signals import rule_signal,change_addr_signal
@@ -260,7 +260,6 @@ class StatisticMergeOrderView(ModelView):
             total_sales += trade[1]['sales']
             trade[1]['skus'] = sorted(trade[1]['skus'].items(),key=lambda d:d[1]['num'],reverse=True)
         
-            
         return {'df':format_datetime(start_dt),
                 'dt':format_datetime(end_dt),
                 'sc_by':statistic_by,

@@ -12,4 +12,4 @@ migrations
 change_log.txt
 test/
 local_settings.py
-download/*/*.csv
+download/
