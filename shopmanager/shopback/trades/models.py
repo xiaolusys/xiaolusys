@@ -1092,7 +1092,8 @@ def trade_download_controller(merge_trade,trade,trade_from,first_pay_load):
     #新留言
     if has_new_buyer_message or has_new_seller_memo:
         merge_trade.append_reason_code(pcfg.NEW_MEMO_CODE)
-        if merge_trade.get_merge_type == 1:
+        merge_type = MergeBuyerTrade.get_merge_type(trade.id)
+        if merge_type == 1:
             mbt = MergeBuyerTrade.objects.get(sub_tid=merge_trade.tid)
             MergeTrade.objects.get(tid=mbt.main_tid).append_reason_code(pcfg.NEW_MEMO_CODE)
             
@@ -1252,7 +1253,8 @@ def trade_download_controller(merge_trade,trade,trade_from,first_pay_load):
         has_new_refund  = MergeTrade.judge_new_refund(merge_trade.id)
         if has_new_refund :
             merge_trade.append_reason_code(pcfg.NEW_REFUND_CODE)
-            if merge_trade.get_merge_type == 1:
+            merge_type = MergeBuyerTrade.get_merge_type(trade.id)
+            if merge_type == 1:
                 mbt = MergeBuyerTrade.objects.get(sub_tid=merge_trade.tid)
                 MergeTrade.objects.get(tid=mbt.main_tid).append_reason_code(pcfg.NEW_REFUND_CODE)
                 
