@@ -9,7 +9,7 @@ class PackageListResource(ModelResource):
 
     model = TodayParentPackageWeight
     fields = ('package_id','parent_package_id','weight','upload_weight','weighted',
-              'is_jzhw','success','redirect_url','all','jzhw','other') 
+              'is_jzhw','success','redirect_url','errorMsg','all','jzhw','other') 
     exclude = ('url',)
     
     

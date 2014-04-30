@@ -1,16 +1,16 @@
 #-*- coding:utf8 -*-
-import os
+import os,re,json
 import datetime
-import json
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib import messages
 from django.db.models import Sum,Count
 from djangorestframework import status
 from djangorestframework.response import Response,ErrorResponse
 from shopback import paramconfig as pcfg
+from shopback.logistics.models import LogisticsCompany
 from shopback.base.views import ModelView,ListOrCreateModelView,ListModelView
 from .models import LogisticOrder,ParentPackageWeight,\
-    TodaySmallPackageWeight,TodayParentPackageWeight,JZHW_REGEX
+    TodaySmallPackageWeight,TodayParentPackageWeight,JZHW_REGEX,YUNDA
 
 
 class YundaFileUploadView(ModelView):
@@ -48,20 +48,20 @@ class YundaFileUploadView(ModelView):
         try:
             with open(fullfile_path, 'rb') as csvfile:
                 spamreader = csv.reader(csvfile, delimiter=',', quotechar='|')
+                response = self.handle_post(request, spamreader)
                 
-            response = self.handle_post(request, spamreader)
         except Exception,exc:
-            messages.info(request, u'出错信息:%s'%exc.message)
-            return {'success':False,'redirect_url':'./'}
+            return {'success':False,'errorMsg':exc.message}
         
         return response
     
     def handle_post(self,request,csv_iter):
         
         raise Exception(u'请实现该方法')
+    
         
 
-class PackageByCsvFileView(ModelView):
+class PackageByCsvFileView(YundaFileUploadView):
     
     
     file_path     = 'yunda'
@@ -82,10 +82,14 @@ class PackageByCsvFileView(ModelView):
     def isJZHW(self,row):
         return JZHW_REGEX.match(row[7]) and True or False
     
+    def getYundaPackageRegex(self):
+        yunda_company = LogisticsCompany.objects.get(code=YUNDA)
+        return re.compile(yunda_company.reg_mail_no)
+    
     def createParentPackage(self,row):
         
-        psid = self.getParentSid(row)
-        if not psid:
+        psid  = self.getParentSid(row)
+        if len(psid) < 13 or not psid.startswith('9'):
             return 
         
         ppw,state  = ParentPackageWeight.objects.get_or_create(
@@ -114,7 +118,8 @@ class PackageByCsvFileView(ModelView):
         tspw.parent_package_id = psid
         tspw.is_jzhw = self.isJZHW(row)
         tspw.save()
-
+    
+    
     def createTodayPackageWeight(self,row):
         
         self.createSmallPackage(row)
@@ -123,11 +128,13 @@ class PackageByCsvFileView(ModelView):
     
     def handle_post(self,request,csv_iter):
         
+        package_regex = self.getYundaPackageRegex()
         encoding = self.getFileEncoding(request)
-        for row in csv_iter:
         
-            row = [r.strip().decode(encoding) for r in row]
-            self.createTodayPackageWeight(row)
+        for row in csv_iter:
+            if package_regex.match(row[0]) and not row[0].startswith('9'):
+                row = [r.strip().decode(encoding) for r in row]
+                self.createTodayPackageWeight(row)
                 
         return {'success':True,'redirect_url':'/admin/yunda/todayparentpackageweight/'}
     
