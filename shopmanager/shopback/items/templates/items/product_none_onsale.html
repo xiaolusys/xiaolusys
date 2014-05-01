@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>滞销商品查询界面</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<link href="{{ STATIC_URL }}css/base.less" rel="stylesheet/less" type="text/css" />
+<script src="{{ STATIC_URL }}jquery/jquery-1.8.13.min.js" type="text/javascript"></script>
+<script src='{{ STATIC_URL }}jquery/jquery-ui-1.8.13.min.js'></script>
+<script src='{{ STATIC_URL }}jquery/addons/jquery.form.js'></script>
+<script src="{{ STATIC_URL }}jquery-datatable-addon/jquery.dataTables.min.js" type="text/javascript"></script>
+<style type="text/css" title="currentStyle">
+	@import "{{ STATIC_URL }}bootstrap/css/bootstrap-responsive.min.css";
+	@import "{{ STATIC_URL }}bootstrap/css/bootstrap.min.css";
+	@import "{{ STATIC_URL }}jquery/jquery-ui-1.10.1.css";
+	@import "{{ STATIC_URL }}jquery-datatable-addon/css/demo_page.css";
+	@import "{{ STATIC_URL }}jquery-datatable-addon/css/demo_table.css";
+</style>
+<style type="text/css">
+body,div {
+	margin: 0px auto;
+	padding: 0px;
+}
+
+body {
+	width: 1200px;
+}
+
+.container {
+	width: 1200px;
+}
+
+.table-bordered {
+	border: 1px solid #DDD;
+	border-collapse: separate;
+	border-left: 0;
+	border-top: 0;
+	-webkit-border-radius: 4px;
+	-moz-border-radius: 4px;
+	border-radius: 4px;
+}
+
+.table {
+	width: 100%;
+	margin-bottom: 4px;
+}
+
+form {
+	margin-bottom: 4px;
+}
+
+table {
+	max-width: 100%;
+	background-color: white;
+	border-collapse: collapse;
+	border-spacing: 0;
+}
+
+tr {
+	display: table-row;
+	vertical-align: inherit;
+	border-color: inherit;
+}
+</style>
+</head>
+<body>
+<div class="container">
+<div id="head-page">
+<h3>警戒库存商品列表<label class="label label-important">判断条件：实际库存数（等于库存数-待发数) <= 预留数</label></h3>
+</div>
+<div id="center-page">
+<table id="warn-items-table"
+	class="table table-bordered table-condensed">
+	<thead>
+		<tr>
+			<th>序号</th>
+			<th>商品编码</th>
+			<th style="width: 170px;">商品名称</th>
+			<th>规格编码</th>
+			<th style="width: 200px;">线上属性</th>
+			<th>系统属性</th>
+			<th style="width: 80px;">库存数</th>
+			<th>待发数</th>
+			<th style="width: 90px;">预留数</th>
+			<th style="width: 70px;">操作</th>
+		</tr>
+	</thead>
+	<tbody>
+		{% for item in object.warn_skus %}
+		<tr >
+			<td>{{ forloop.counter }}</td>
+			<td>{{ item.product.outer_id }}</td>
+			<td>{{ item.product.name }}</td>
+			<td>{{ item.outer_id }}</td>
+			<td>{{ item.properties_name }}</td>
+			<td>{{ item.properties_alias }}</td>
+			<td>{{ item.quantity }}</td>
+			<td>{{ item.wait_post_num }}</td>
+			<td>{{ item.remain_num }}</td>
+			<td><a class="edit" href="#" title="修改"><icon
+				class="icon-edit"></icon></a><a class="assign" href="#" title="分配"><icon
+				class="icon-asterisk"></icon> </a><a class="remain" href="#" title="待用"><icon
+				class="icon-pause"></icon> </a><a class="delete" href="#" title="作废"><icon
+				class="icon-remove"></icon></a></td>
+		</tr>
+		{% endfor %}
+	</tbody>
+	<tfoot>
+	</tfoot>
+</table>
+</div>
+</div>
+<div id="assgin-dialog">
+</div>
+</body>
+<script src="{{ STATIC_URL }}script/items/stockWarnMgr.js"></script>
+</html>
