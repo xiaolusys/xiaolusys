@@ -225,15 +225,15 @@ class CalcProductSaleTask(Task):
                                     outer_sku_id=sku and sku.outer_id or '')\
                     .aggregate(sale_num=Sum('num'),
                                sale_payment=Sum('payment'))
-        
-        pds,state = ProductDaySale.objects.get_or_create(
+        if sale_dict['sale_num']:
+            ProductDaySale.objects.get_or_create(
                                              day_date=yest_date,
                                              user_id=user.id,
                                              product_id=product.id,
-                                             sku_id=sku and sku.id or '',
+                                             sku_id=sku and sku.id,
                                              sale_num=sale_dict['sale_num'] or 0,
                                              sale_payment=sale_dict['sale_payment'] or 0)
-        return pds
+        return sale_dict['sale_num'] or 0,sale_dict['sale_payment'] or 0
         
     def run(self,*args,**kwargs):
         
@@ -251,22 +251,22 @@ class CalcProductSaleTask(Task):
         
         for prod in products:
             
-            for sku in prod.prod_skus:
+            for sku in prod.prod_skus.all():
                 
                 total_sale   = 0
                 for user in sellers:
                     pds = self.calcSaleByUserAndProduct(queryset,user,prod,sku,yest_date)
-                    total_sale   += pds.sale_num
+                    total_sale   += pds[0]
                 
                 sku.warn_num = total_sale
                 sku.save()
                 
-            else:
+            if prod.prod_skus.count() == 0:
                 
                 total_sale   = 0
                 for user in sellers:
                     pds = self.calcSaleByUserAndProduct(queryset,user,prod,None,yest_date)
-                    total_sale   += pds.sale_num
+                    total_sale   += pds[0]
                     
                 prod.warn_num = total_sale
                 prod.save()

@@ -151,10 +151,12 @@ class TodaySmallPackageWeightAdmin(admin.ModelAdmin):
         if not spw.weight or float(spw.weight) <= 0:
             raise Exception(u'小包号:%s,重量为空!'%package_id)
         
+        package_weight = float(spw.weight)
+
         if spw.is_jzhw:
-            return round(spw.weight,2),round(self.calJZHWeightRule(float(spw.weight)),2)
+            return round(package_weight,2),round(self.calJZHWeightRule(package_weight),2)
             
-        return round(spw.weight,2),round(self.calExternalWeightRule(float(spw.weight)),2)
+        return round(package_weight,2),round(self.calExternalWeightRule(package_weight),2)
         
      
     def calcPackageWeightAction(self,request,queryset):
