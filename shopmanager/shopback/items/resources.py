@@ -1,7 +1,7 @@
 #-*- coding:utf8 -*-
 __author__ = 'meixqhi'
 from djangorestframework.resources import ModelResource
-from shopback.items.models import Product,ProductSku,Item
+from shopback.items.models import Product,ProductSku,Item,ProductDaySale
 from shopback.items.serializer import ProductSerializer,ItemSerializer
 
 class ProductListResource(ModelResource):
@@ -47,4 +47,12 @@ class ProductDistrictResource(ModelResource):
 
     model = Product
     fields = ('product',) 
+    exclude = ('url',)
+    
+class ProductDaySaleResource(ModelResource):
+    """ docstring for ProductSku ModelResource """
+
+    model = ProductDaySale
+    fields = ('day_date','user_id','product_id','sku_id','sale_num','sale_payment','sale_refund',
+              'sale_stats') 
     exclude = ('url',)

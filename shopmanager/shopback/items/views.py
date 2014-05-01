@@ -17,13 +17,13 @@ from djangorestframework.mixins import CreateModelMixin
 from shopback import paramconfig as pcfg
 from shopback.base.views import ModelView,ListOrCreateModelView,ListModelView
 from shopback.items.models import Item,SkuProperty,Product,ProductSku,ProductLocation,\
-    APPROVE_STATUS,ONLINE_PRODUCT_STATUS
+    ProductDaySale,APPROVE_STATUS,ONLINE_PRODUCT_STATUS
 from shopback.archives.models import DepositeDistrict
 from shopback.users.models import User
 from shopback.items.tasks import updateUserItemsTask,updateItemNum
 from shopback.base.authentication import login_required_ajax
 from auth import apis
-from common.utils  import update_model_fields
+from common.utils  import update_model_fields,parse_date,format_datetime
 from shopback.base import log_action, ADDITION, CHANGE
 import logging
 
@@ -813,6 +813,122 @@ class ProductNumAssignView(ModelView):
                 im.save()  
                             
                
+class StatProductSaleView(ModelView):
+    """ docstring for class StatisticsMergeOrderView """
+    
+    def parseDate(self,start_dt):
+        
+        if not start_dt:
+            return datetime.datetime.now().date()
+        
+        return parse_date(start_dt)
+        
+        
+    def getProductByOuterId(self,outer_id):
+        
+        try:
+            return Product.objects.get(outer_id=outer_id)
+        except:
+            return None
+        
+    def getSaleSortedItems(self,queryset):
+        
+        sale_items  = {}
+        for sale in queryset:
+            product_id = sale.product_id
+            sku_id         = sale.sku_id 
             
+            if sale_items.has_key(product_id):
+                sale_items[product_id]['sale_num']        += sale.sale_num
+                sale_items[product_id]['sale_payment'] += sale.sale_payment
+                sale_items[product_id]['sale_refund']     += sale.sale_refund
+                skus = sale_items[product_id]['skus']
+                
+                if skus.has_key(sku_id):
+                    skus[sku_id]['sale_num']        += sale.sale_num
+                    skus[sku_id]['sale_payment'] += sale.sale_payment
+                    skus[sku_id]['sale_refund']     += sale.sale_refund
+                else:
+                    skus[sku_id] = {
+                                          'sale_num':sale.sale_num,
+                                          'sale_payment':sale.sale_payment,
+                                          'sale_refund':sale.sale_refund}
+            else:
+                sale_items[product_id]={
+                                       'sale_num':sale.sale_num,
+                                       'sale_payment':sale.sale_payment,
+                                       'sale_refund':sale.sale_refund ,
+                                       'skus':{}}
+                if sku_id:
+                    sale_items[product_id]['skus'][sku_id] = {
+                                            'sale_num':sale.sale_num,
+                                            'sale_payment':sale.sale_payment,
+                                            'sale_refund':sale.sale_refund  
+                                       }
+            
+        return sorted(sale_items.items(),key=lambda d:d[1]['sale_payment'],reverse=True)
+
+        
+    def get(self, request, *args, **kwargs):
+        
+        content   = request.REQUEST
+        start_dt  = content.get('df','').strip()
+        end_dt    = content.get('dt','').strip()
+        shop_id   = content.get('shop_id')
+        p_outer_id   = content.get('outer_id','')
+        
+        params = {'day_date__gte':self.parseDate(start_dt),
+                          'day_date__lte':self.parseDate(end_dt)}
+        if shop_id:
+            params.update(user_id=shop_id)
+         
+        if p_outer_id:
+             product = self.getProductByOuterId(p_outer_id)
+             if product:
+                 params.update(product_id=product.id)
+            
+        sale_qs  = ProductDaySale.objects.filter(**params)
+        sale_stat_list   = self.getSaleSortedItems(sale_qs)
+        total_sale_cost   = 0
+        total_sale_num  = 0
+        total_sale_payment = 0
+        total_sale_refund     = 0
+        
+        for product_id,sale_stat in sale_stat_list:
+            
+            product = Product.objects.get(id=product_id)          
+            sale_stat['name']     = product.name
+            sale_stat['outer_id'] = product.outer_id
+            product_cost = (product.cost * sale_stat['sale_num'],0)[sale_stat['skus'] and 1 or 0 ] 
+           
+            for sku_id,sku_stat in sale_stat['skus'].iteritems():
+                
+                sku = ProductSku.objects.get(id=sku_id)
+                sku_stat['name']     = sku.name 
+                sku_stat['outer_id'] = sku.outer_id
+                sku_stat['sale_cost'] =  sku.cost * sku_stat['sale_num']           
+                product_cost += sku_stat['sale_cost'] 
+            
+            sale_stat['sale_cost'] = product_cost
+            sale_stat['skus'] = sorted(sale_stat['skus'].items(),key=lambda d:d[1]['sale_payment'],reverse=True)
+            
+            total_sale_cost = sale_stat['sale_cost']
+            total_sale_num = sale_stat['sale_num']
+            total_sale_payment = sale_stat['sale_payment']
+            total_sale_refund = sale_stat['sale_refund']
+            
+        return{'sale_stats': {'df':format_datetime(self.parseDate(start_dt)),
+                'dt':format_datetime(self.parseDate(end_dt)),
+                'outer_id':p_outer_id,
+                'shops':User.effect_users.all(),
+                'sale_items':sale_stat_list, 
+                'shop_id':shop_id and int(shop_id) or '',
+                'total_sale_cost':total_sale_cost ,
+                'total_sale_num':total_sale_num,
+                'total_sale_refund':total_sale_refund,
+                'total_sale_payment':total_sale_payment
+                }}
+        
+    post = get                
             
                         
