@@ -760,9 +760,9 @@ class ProductDaySale(models.Model):
     product_id  = models.IntegerField(null=False,verbose_name='商品ID')
     sku_id      = models.IntegerField(null=True,verbose_name='规格ID')
 
-    sale_num     = models.IntegerField(verbose_name='销售数量')
-    sale_payment = models.FloatField(verbose_name='销售金额')
-    sale_refund  = models.FloatField(verbose_name='退款金额')
+    sale_num     = models.IntegerField(default=0.0,verbose_name='销售数量')
+    sale_payment = models.FloatField(default=0.0,verbose_name='销售金额')
+    sale_refund  = models.FloatField(default=0.0,verbose_name='退款金额')
     
     class Meta:
         db_table = 'shop_items_daysale'
@@ -771,10 +771,10 @@ class ProductDaySale(models.Model):
         verbose_name_plural = u'商品销量统计'
 
     def __unicode__(self):
-        return '<%s,%d,%s,%s,%d>'%(self.day_date,
+        return '<%s,%d,%d,%s,%d>'%(self.day_date,
                                    self.user_id,
-                                   self.outer_id,
-                                   self.sku_outer_id,
+                                   self.product_id,
+                                   str(self.sku_id),
                                    self.sale_num)
     
     
