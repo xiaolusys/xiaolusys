@@ -4,7 +4,6 @@
    <title>商品销量统计</title>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
     <link href="{{ STATIC_URL }}bootstrap/css/bootstrap.min.css" rel="stylesheet" type="text/css" />
-    <link href="{{ STATIC_URL }}bootstrap/css/bootstrap-responsive.min.css" rel="stylesheet" type="text/css" />
     <link href="{{ STATIC_URL }}css/base.less" rel="stylesheet/less" type="text/css" />
     <link rel="stylesheet" href="http://code.jquery.com/ui/1.10.1/themes/base/jquery-ui.css" />
     <script src="http://code.jquery.com/jquery-1.9.1.js"></script>
@@ -53,6 +52,9 @@
         }
         .inner-filter-three{
            color:#5bb75b;     
+        }
+        .list-table-head table{
+            margin-bottom:0px;
         }
     </style>
 </head>
@@ -134,7 +136,7 @@
                     <tr>
 		<td >{{ sku.outer_id }}</td>
 		<td >{{ sku.name }}</td>
-		<td >{{ sku.num }}</td>
+		<td >{{ sku.sale_num }}</td>
 		<td >{{ sku.sale_cost }}</td>
 		<td >{{ sku.sale_payment }}</td>
                           <td >{{ sku.sale_refund }}</td>
