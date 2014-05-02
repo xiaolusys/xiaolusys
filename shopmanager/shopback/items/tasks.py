@@ -225,7 +225,7 @@ class CalcProductSaleTask(Task):
                                     outer_sku_id=sku and sku.outer_id or '')\
                     .aggregate(sale_num=Sum('num'),
                                sale_payment=Sum('payment'))
-        if sale_dict['sale_num']:
+        if sale_dict['sale_num'] or product.collect_num > 0 or sku.quantity > 0:
             ProductDaySale.objects.get_or_create(
                                              day_date=yest_date,
                                              user_id=user.id,
