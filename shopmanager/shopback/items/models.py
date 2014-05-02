@@ -767,8 +767,8 @@ class ProductDaySale(models.Model):
     class Meta:
         db_table = 'shop_items_daysale'
         unique_together = ("day_date","user_id","product_id","sku_id")
-        verbose_name=u'产品销量统计'
-        verbose_name_plural = u'产品销量统计'
+        verbose_name=u'商品销量统计'
+        verbose_name_plural = u'商品销量统计'
 
     def __unicode__(self):
         return '<%s,%d,%d,%s,%d>'%(self.day_date,

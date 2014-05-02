@@ -36,7 +36,8 @@ class Area(models.Model):
     
     class Meta:
         db_table = 'shop_logistics_area'
-        verbose_name=u'地理区域'
+        verbose_name=u'地理区划'
+        verbose_name_plural = u'地理区划列表'
 
     def __unicode__(self):
         return '<%d,%d,%s,%s>'%(self.id,self.type,self.name,self.zip)
@@ -52,7 +53,8 @@ class DestCompany(models.Model):
     
     class Meta:
         db_table = 'shop_logistics_destcompany'
-        verbose_name=u'区域快递'
+        verbose_name=u'区域快递分配'
+        verbose_name_plural = u'区域快递分配'
 
     def __unicode__(self):
         return '<%s,%s,%s,%s>'%(self.state,self.city,self.district,self.company)
@@ -62,19 +64,19 @@ class DestCompany(models.Model):
         
         companys = None
         if district:
-            companys = cls.objects.filter(district=district)
+            companys = cls.objects.filter(district__startswith=district)
 
         if city:
             if companys and companys.count()>0:
-                companys = companys.filter(city=city)
+                companys = companys.filter(city__startswith=city)
             else:
-                companys = cls.objects.filter(city=city,district='')
+                companys = cls.objects.filter(city__startswith=city,district='')
        
         if state:
             if companys and companys.count()>0:
-                companys = companys.filter(state=state)
+                companys = companys.filter(__startswithstate=state)
             else:
-                companys = cls.objects.filter(state=state,city='',district='')
+                companys = cls.objects.filter(state__startswith=state,city='',district='')
        
         if companys and companys.count()>0:
             cid = companys[0].company
@@ -101,26 +103,28 @@ class LogisticsCompany(models.Model):
     class Meta:
         db_table = 'shop_logistics_company'
         verbose_name=u'物流公司'
+        verbose_name_plural = u'物流公司列表'
 
     def __unicode__(self):
         return '<%s,%s>'%(self.code,self.name)
     
     @classmethod
     def get_recommend_express(cls,state,city,district):
+        
         if not state:
             return None
         #获取指定地区快递
-        company = DestCompany.get_destcompany_by_addr(state,city,district)
+        company   = DestCompany.get_destcompany_by_addr(state,city,district)
         if company:
             return company
         #根据系统规则选择快递
         logistics = cls.objects.filter(status=True).order_by('-priority')
-        total_priority = logistics.aggregate(total_priority=Sum('priority')).get('total_priority')
+        total_priority  = logistics.aggregate(total_priority=Sum('priority')).get('total_priority')
         priority_ranges = []
-        cur_range      = 0
+        cur_range       = 0
         for logistic in logistics:
-            districts = logistic.district.split(',')
-            if state in districts:
+            districts   = set([lg.strip()[0:2] for lg in logistic.district.split(',') if len(lg)>1])
+            if state[0:2] in districts:
                 return logistic
             
             start_range = total_priority-cur_range-logistic.priority
@@ -185,7 +189,8 @@ class Logistics(models.Model):
 
     class Meta:
         db_table = 'shop_logistics_logistic'
-        verbose_name=u'订单物流信息'
+        verbose_name=u'订单物流'
+        verbose_name_plural = u'订单物流列表'
 
     def __unicode__(self):
         return '<%s,%s>'%(self.tid,self.company_name)
