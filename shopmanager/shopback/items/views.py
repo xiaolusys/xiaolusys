@@ -912,10 +912,10 @@ class StatProductSaleView(ModelView):
             sale_stat['sale_cost'] = product_cost
             sale_stat['skus'] = sorted(sale_stat['skus'].items(),key=lambda d:d[1]['sale_payment'],reverse=True)
             
-            total_sale_cost = sale_stat['sale_cost']
-            total_sale_num = sale_stat['sale_num']
-            total_sale_payment = sale_stat['sale_payment']
-            total_sale_refund = sale_stat['sale_refund']
+            total_sale_cost          += sale_stat['sale_cost']
+            total_sale_num         += sale_stat['sale_num']
+            total_sale_payment  += sale_stat['sale_payment']
+            total_sale_refund     += sale_stat['sale_refund']
             
         return{'sale_stats': {'df':format_date(self.parseDate(start_dt)),
                 'dt':format_date(self.parseDate(end_dt)),

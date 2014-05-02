@@ -37,7 +37,7 @@
         }
         .inner-filter{
             margin10px;     
-            float:left;  
+            float:right;  
         }
         .inner-filter input{
             width:25px;        
@@ -119,7 +119,7 @@
     <div class="list-table-head">
       <table class="table table-bordered  table-condensed">
         <tr>
-            <td>{{ product_id }}</td>
+            <td>{{ product.outer_id }}</td>
             <td style="width:150px;">{{ product.name }}</td>
             <td>{{ product.sale_num }}</td>
             <td>{{ product.sale_cost }}</td>
@@ -131,12 +131,14 @@
     <div class="list-table-content">
 	<table class="table table-bordered  table-condensed">
 	    {% for sku_id,sku in product.skus %}
-		<td >{{ sku_id }}</td>
+                    <tr>
+		<td >{{ sku.outer_id }}</td>
 		<td >{{ sku.name }}</td>
 		<td >{{ sku.num }}</td>
 		<td >{{ sku.sale_cost }}</td>
 		<td >{{ sku.sale_payment }}</td>
                           <td >{{ sku.sale_refund }}</td>
+                    </tr>
 	    {% endfor %}
 	</table>
     </div>
