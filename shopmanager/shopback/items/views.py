@@ -23,7 +23,7 @@ from shopback.users.models import User
 from shopback.items.tasks import updateUserItemsTask,updateItemNum
 from shopback.base.authentication import login_required_ajax
 from auth import apis
-from common.utils  import update_model_fields,parse_date,format_datetime
+from common.utils  import update_model_fields,parse_date,format_date
 from shopback.base import log_action, ADDITION, CHANGE
 import logging
 
@@ -917,8 +917,8 @@ class StatProductSaleView(ModelView):
             total_sale_payment = sale_stat['sale_payment']
             total_sale_refund = sale_stat['sale_refund']
             
-        return{'sale_stats': {'df':format_datetime(self.parseDate(start_dt)),
-                'dt':format_datetime(self.parseDate(end_dt)),
+        return{'sale_stats': {'df':format_date(self.parseDate(start_dt)),
+                'dt':format_date(self.parseDate(end_dt)),
                 'outer_id':p_outer_id,
                 'shops':User.effect_users.all(),
                 'sale_items':sale_stat_list, 
