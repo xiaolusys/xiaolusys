@@ -842,8 +842,9 @@ class StatProductSaleView(ModelView):
                 sale_items[product_id]['sale_num']        += sale.sale_num
                 sale_items[product_id]['sale_payment'] += sale.sale_payment
                 sale_items[product_id]['sale_refund']     += sale.sale_refund
-                skus = sale_items[product_id]['skus']
                 
+                if not sku_id :continue                
+                skus = sale_items[product_id]['skus']
                 if skus.has_key(sku_id):
                     skus[sku_id]['sale_num']        += sale.sale_num
                     skus[sku_id]['sale_payment'] += sale.sale_payment
