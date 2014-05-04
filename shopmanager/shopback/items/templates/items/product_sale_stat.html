@@ -56,7 +56,7 @@
         }
         .list-table-head table{
             margin-bottom:0px;
-            background-color:gray;
+            background-color:#F1F1F1;
         }
     </style>
 </head>
@@ -163,11 +163,10 @@
     });
     $(document).ready(function(){
         $(".list-table-content").hide(); 
-        $(".list-table-head").live("click",function(event){
-                var evt = event.srcElement || event.target;  
-                $(evt).next().toggle();   
+        $(".list-table-head").on("click",function(event){
+                $(this).next().toggle();   
         })
-    }
+    });
     
 </script>
 </html>
