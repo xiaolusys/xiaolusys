@@ -925,10 +925,13 @@ class StatProductSaleView(ModelView):
         for product in product_list:
             product_id = product.id
             
+            if product.collect_num <= 0:
+                continue
+            
             for sku in product.pskus:
                 sku_id = sku.id
                 
-                if (product_id,sku_id) in ps_tuple:
+                if (product_id,sku_id) in ps_tuple or sku.quantity <= 0:
                     continue
                 
                 if not sale_items.has_key(product_id):
