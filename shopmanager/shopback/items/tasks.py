@@ -24,7 +24,6 @@ import logging
 logger = logging.getLogger('django.request')
 
 
-
 @task()
 def updateUserItemsTask(user_id):
     """ 更新淘宝线上商品信息入库 """
@@ -200,7 +199,6 @@ def updateProductWaitPostNumTask():
 class CalcProductSaleTask(Task):
     """ 更新商品销售数量任务 """
     
-   
     def getYesterdayDate(self):
         dt = datetime.datetime.now() - datetime.timedelta(days=1)
         return dt.date()
@@ -210,7 +208,6 @@ class CalcProductSaleTask(Task):
     
     def getYesterdayEndtime(self,day_date):
         return datetime.datetime(day_date.year,day_date.month,day_date.day,23,59,59)
-    
     
     def getSourceList(self):
         return Product.objects.filter(status=pcfg.NORMAL)
@@ -225,7 +222,7 @@ class CalcProductSaleTask(Task):
                                     outer_sku_id=sku and sku.outer_id or '')\
                     .aggregate(sale_num=Sum('num'),
                                sale_payment=Sum('payment'))
-        if sale_dict['sale_num'] or product.collect_num > 0 or sku.quantity > 0:
+        if sale_dict['sale_num'] :
             ProductDaySale.objects.get_or_create(
                                              day_date=yest_date,
                                              user_id=user.id,
@@ -396,11 +393,13 @@ def updateItemNum(user_id,num_iid):
         if sync_num>0 and user_percent>0:
             sync_num = round(user_percet*sync_num)
         elif sync_num >0 and sync_num <= product.warn_num:
-            total_num,user_order_num = MergeOrder.get_yesterday_orders_totalnum(item.user.id,outer_id,outer_sku_id)
+            total_num,user_order_num = MergeOrder.get_yesterday_orders_totalnum(
+                                            item.user.id,outer_id,outer_sku_id)
             if total_num>0 and user_order_num>0:
                 sync_num = round(float(user_order_num)/float(total_num)*sync_num)
             elif total_num == 0:
-                item_count = Item.objects.filter(outer_id=outer_id,approve_status=pcfg.ONSALE_STATUS).count() or 1
+                item_count = Item.objects.filter(outer_id=outer_id,
+                                approve_status=pcfg.ONSALE_STATUS).count() or 1
                 sync_num = int(sync_num/item_count) or sync_num
             else:
                 sync_num = (real_num - wait_nums)>10 and 2 or 0
@@ -412,10 +411,12 @@ def updateItemNum(user_id,num_iid):
         #当前同步库存值，与线上拍下未付款商品数，哪个大取哪个 
         sync_num = max(sync_num,item.with_hold_quantity)
         #同步库存数不为0，或者没有库存警告，同步数量不等于线上库存，并且店铺，商品同步状态正确
-        if not (sync_num == 0 and product.is_assign) and sync_num != item.num and user.sync_stock and product.sync_stock: 
+        if not (sync_num == 0 and product.is_assign) and sync_num != item.num \
+            and user.sync_stock and product.sync_stock: 
             response = apis.taobao_item_update(num_iid=item.num_iid,num=sync_num,tb_user_id=user_id)
             item_dict = response['item_update_response']['item']
-            Item.objects.filter(num_iid=item_dict['num_iid']).update(modified=item_dict['modified'],num=sync_num)
+            Item.objects.filter(num_iid=item_dict['num_iid']).update(
+                                        modified=item_dict['modified'],num=sync_num)
 
             product.save()
             

@@ -83,7 +83,10 @@
          <label class="control-label" for="outer_id">商家编码:</label>
          <input type="text" name="outer_id" value="{{ sale_stats.outer_id }}"/>
        </div>
-        <div class="div-inline"><input type="submit" value="查询" class="btn btn-primary"/>  </div>
+        <div class="div-inline">
+        	<input type="submit" value="热售商品" class="btn btn-primary" name="_saleable"/>
+        	<input type="submit" value="滞销商品" class="btn btn-inverse" name="_unsaleable"/>
+        </div>
 </form>
 </div>
 <div id="content" style="display:block;clear:both;">
@@ -107,15 +110,18 @@
   </div>
   <table class="table table-bordered  table-condensed">
     <tr>
-      <th>商品/规格编码</th><th style="width:150px;">商品/规格名称</th><th>销售数量</th><th>成本</th><th>销售额</th><th>退款</th>
+      <th>序号</th><th>商品/规格编码</th><th style="width:150px;">商品/规格名称</th>
+      <th>销售数量</th><th>销售成本</th><th>销售额</th><th>退款</th><th>剩余库存</th>
     </tr>
    <tr>
+   		<td>-</td>
         <td>-</td>
         <td style="width:150px;">共计</td>
         <td>{{ sale_stats.total_sale_num }}</td>
         <td>{{ sale_stats.total_sale_cost }}</td>
         <td>{{ sale_stats.total_sale_payment }}</td>
         <td>{{ sale_stats.total_sale_refunds }}</td>
+        <td>{{ sale_stats.total_stock_num }}</td>
     </tr>
   </table>
   {% for product_id ,product in sale_stats.sale_items %}
@@ -123,26 +129,30 @@
     <div class="list-table-head">
       <table class="table table-bordered  table-condensed">
         <tr>
+        	<td>{{ forloop.counter }}</td>
             <td>{{ product.outer_id }}</td>
             <td style="width:150px;">{{ product.name }}</td>
             <td>{{ product.sale_num }}</td>
             <td>{{ product.sale_cost }}</td>
             <td>{{ product.sale_payment }}</td>
             <td>{{ product.sale_refunds }}</td>
+            <td>{{ product.collect_num }}</td>
         </tr>
     </table>
     </div>
     <div class="list-table-content">
 	<table class="table table-bordered  table-condensed">
 	    {% for sku_id,sku in product.skus %}
-                    <tr>
+        <tr>
+        <td>{{ forloop.counter }}&nbsp;&gt;</td>
 		<td >{{ sku.outer_id }}</td>
 		<td >{{ sku.name }}</td>
 		<td >{{ sku.sale_num }}</td>
 		<td >{{ sku.sale_cost }}</td>
 		<td >{{ sku.sale_payment }}</td>
-                          <td >{{ sku.sale_refund }}</td>
-                    </tr>
+        <td >{{ sku.sale_refund }}</td>
+        <td >{{ sku.quantity }}</td>
+        </tr>
 	    {% endfor %}
 	</table>
     </div>

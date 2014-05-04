@@ -851,9 +851,9 @@ class StatProductSaleView(ModelView):
                     skus[sku_id]['sale_refund']     += sale.sale_refund
                 else:
                     skus[sku_id] = {
-                                          'sale_num':sale.sale_num,
-                                          'sale_payment':sale.sale_payment,
-                                          'sale_refund':sale.sale_refund}
+                                  'sale_num':sale.sale_num,
+                                  'sale_payment':sale.sale_payment,
+                                  'sale_refund':sale.sale_refund}
             else:
                 sale_items[product_id]={
                                        'sale_num':sale.sale_num,
@@ -862,14 +862,129 @@ class StatProductSaleView(ModelView):
                                        'skus':{}}
                 if sku_id:
                     sale_items[product_id]['skus'][sku_id] = {
-                                            'sale_num':sale.sale_num,
-                                            'sale_payment':sale.sale_payment,
-                                            'sale_refund':sale.sale_refund  
+                                        'sale_num':sale.sale_num,
+                                        'sale_payment':sale.sale_payment,
+                                        'sale_refund':sale.sale_refund  
                                        }
             
         return sorted(sale_items.items(),key=lambda d:d[1]['sale_payment'],reverse=True)
-
+    
+    def calcSaleSortedItems(self,queryset):
         
+        total_stock_num   = 0
+        total_sale_cost   = 0
+        total_sale_num  = 0
+        total_sale_payment = 0
+        total_sale_refund     = 0
+        sale_stat_list = self.getSaleSortedItems(queryset)
+        
+        for product_id,sale_stat in sale_stat_list:
+            
+            product = Product.objects.get(id=product_id) 
+            sale_stat['name']     = product.name
+            sale_stat['outer_id'] = product.outer_id
+            sale_stat['collect_num'] = product.collect_num
+            product_cost = (product.cost * sale_stat['sale_num'],0)[sale_stat['skus'] and 1 or 0 ] 
+           
+            for sku_id,sku_stat in sale_stat['skus'].iteritems():
+                
+                sku = ProductSku.objects.get(id=sku_id)
+                sku_stat['name']      = sku.name 
+                sku_stat['outer_id']  = sku.outer_id
+                sku_stat['quantity']  = sku.quantity
+                sku_stat['sale_cost'] =  sku.cost * sku_stat['sale_num']           
+                product_cost += sku_stat['sale_cost'] 
+            
+            sale_stat['sale_cost'] = product_cost
+            sale_stat['skus'] = sorted(sale_stat['skus'].items(),
+                                       key=lambda d:d[1]['sale_payment'],
+                                       reverse=True)
+            
+            total_stock_num        += sale_stat['collect_num']
+            total_sale_cost        += sale_stat['sale_cost']
+            total_sale_num         += sale_stat['sale_num']
+            total_sale_payment     += sale_stat['sale_payment']
+            total_sale_refund      += sale_stat['sale_refund']
+        
+        return {'sale_items':sale_stat_list, 
+                'total_sale_cost':total_sale_cost ,
+                'total_sale_num':total_sale_num,
+                'total_sale_refund':total_sale_refund,
+                'total_sale_payment':total_sale_payment,
+                'total_stock_num':total_stock_num}
+    
+    def calcUnSaleSortedItems(self,queryset,p_outer_id=None):
+        
+        total_stock_num   = 0
+        product_list = Product.objects.filter(status=pcfg.NORMAL)
+        if p_outer_id:
+            product_list = product_list.filter(outer_id=p_outer_id)
+            
+        ps_tuple     = queryset.values_list('product_id','sku_id').distinct()
+        sale_items   = {}
+        for product in product_list:
+            product_id = product.id
+            
+            for sku in product.pskus:
+                sku_id = sku.id
+                
+                if (product_id,sku_id) in ps_tuple:
+                    continue
+                
+                if not sale_items.has_key(product_id):
+                    sale_items[product_id]={
+                                           'sale_num':0,
+                                           'sale_payment':0,
+                                           'sale_refund':0 ,
+                                           'name':product.name,
+                                           'outer_id':product.outer_id,
+                                           'collect_num':product.collect_num,
+                                           'sale_cost':0,
+                                           'skus':{}}
+                
+                sale_items[product_id]['skus'][sku_id] = {
+                                        'name':sku.name,
+                                        'outer_id':sku.outer_id,
+                                        'quantity':sku.quantity,
+                                        'sale_cost':0,
+                                        'sale_num':0,
+                                        'sale_payment':0,
+                                        'sale_refund':0  
+                                   }
+            if (product_id,None) not in ps_tuple and not sale_items.has_key(product_id):
+                sale_items[product_id]={
+                                       'sale_num':0,
+                                       'sale_payment':0,
+                                       'sale_refund':0 ,
+                                       'name':product.name,
+                                       'outer_id':product.outer_id,
+                                       'collect_num':product.collect_num,
+                                       'sale_cost':0,
+                                       'skus':{}}
+            
+            if sale_items.has_key(product_id):       
+                sale_items[product_id]['skus'] = sorted(sale_items[product_id]['skus'].items(),
+                                                    key=lambda d:d[1]['quantity'],
+                                                    reverse=True)
+            
+                total_stock_num += product.collect_num
+            
+        return {'sale_items':sorted(sale_items.items(),
+                                    key=lambda d:d[1]['collect_num'],
+                                    reverse=True),
+                'total_sale_cost':0 ,
+                'total_sale_num':0,
+                'total_sale_refund':0,
+                'total_sale_payment':0,
+                'total_stock_num':total_stock_num}
+    
+    def calcSaleItems(self,queryset,p_outer_id=None,show_sale=True):
+        
+        if show_sale:
+            return self.calcSaleSortedItems(queryset)
+        
+        return self.calcUnSaleSortedItems(queryset,p_outer_id=p_outer_id)
+    
     def get(self, request, *args, **kwargs):
         
         content   = request.REQUEST
@@ -877,6 +992,7 @@ class StatProductSaleView(ModelView):
         end_dt    = content.get('dt','').strip()
         shop_id   = content.get('shop_id')
         p_outer_id   = content.get('outer_id','')
+        show_sale    = content.has_key('_saleable') 
         
         params = {'day_date__gte':self.parseDate(start_dt),
                           'day_date__lte':self.parseDate(end_dt)}
@@ -887,48 +1003,18 @@ class StatProductSaleView(ModelView):
              product = self.getProductByOuterId(p_outer_id)
              if product:
                  params.update(product_id=product.id)
-            
-        sale_qs  = ProductDaySale.objects.filter(**params)
-        sale_stat_list   = self.getSaleSortedItems(sale_qs)
-        total_sale_cost   = 0
-        total_sale_num  = 0
-        total_sale_payment = 0
-        total_sale_refund     = 0
         
-        for product_id,sale_stat in sale_stat_list:
-            
-            product = Product.objects.get(id=product_id)          
-            sale_stat['name']     = product.name
-            sale_stat['outer_id'] = product.outer_id
-            product_cost = (product.cost * sale_stat['sale_num'],0)[sale_stat['skus'] and 1 or 0 ] 
-           
-            for sku_id,sku_stat in sale_stat['skus'].iteritems():
-                
-                sku = ProductSku.objects.get(id=sku_id)
-                sku_stat['name']     = sku.name 
-                sku_stat['outer_id'] = sku.outer_id
-                sku_stat['sale_cost'] =  sku.cost * sku_stat['sale_num']           
-                product_cost += sku_stat['sale_cost'] 
-            
-            sale_stat['sale_cost'] = product_cost
-            sale_stat['skus'] = sorted(sale_stat['skus'].items(),key=lambda d:d[1]['sale_payment'],reverse=True)
-            
-            total_sale_cost          += sale_stat['sale_cost']
-            total_sale_num         += sale_stat['sale_num']
-            total_sale_payment  += sale_stat['sale_payment']
-            total_sale_refund     += sale_stat['sale_refund']
-            
-        return{'sale_stats': {'df':format_date(self.parseDate(start_dt)),
+        sale_qs  = ProductDaySale.objects.filter(**params)
+        sale_items   = self.calcSaleItems(sale_qs,p_outer_id=p_outer_id,show_sale=show_sale)
+        sale_items.update({
+                'df':format_date(self.parseDate(start_dt)),
                 'dt':format_date(self.parseDate(end_dt)),
                 'outer_id':p_outer_id,
                 'shops':User.effect_users.all(),
-                'sale_items':sale_stat_list, 
                 'shop_id':shop_id and int(shop_id) or '',
-                'total_sale_cost':total_sale_cost ,
-                'total_sale_num':total_sale_num,
-                'total_sale_refund':total_sale_refund,
-                'total_sale_payment':total_sale_payment
-                }}
+                })
+        
+        return{'sale_stats':sale_items}
         
     post = get                
             

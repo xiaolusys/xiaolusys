@@ -27,7 +27,6 @@ APPROVE_STATUS  = (
     (pcfg.INSTOCK_STATUS,u'库中'),
 )
 
-
 ONLINE_PRODUCT_STATUS = (
     (pcfg.NORMAL,u'使用'),
     (pcfg.REMAIN,u'待用'),
@@ -767,7 +766,7 @@ class ProductDaySale(models.Model):
     class Meta:
         db_table = 'shop_items_daysale'
         unique_together = ("day_date","user_id","product_id","sku_id")
-        verbose_name=u'商品销量统计'
+        verbose_name    = u'商品销量统计'
         verbose_name_plural = u'商品销量统计'
 
     def __unicode__(self):

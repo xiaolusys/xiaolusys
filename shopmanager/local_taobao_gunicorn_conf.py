@@ -1,6 +1,6 @@
 pidfile='/home/meixqhi/deploy/taobao/gunicorn.pid'
 daemon=True
-workers=8
+workers=6
 bind="127.0.0.1:9000"
 
 accesslog='/home/meixqhi/deploy/taobao/gunicorn.out'

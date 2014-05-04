@@ -1140,7 +1140,8 @@ def trade_download_controller(merge_trade,trade,trade_from,first_pay_load):
                     if reach == '1':
                         MergeTrade.objects.filter(id=merge_trade.id).update(reserveo=zonec,reservet=zoned)
                     
-            except Exception:
+            except Exception,exc:
+                logger.error(exc.message or 'distribute logistic error',exc_info=True)
                 merge_trade.append_reason_code(pcfg.DISTINCT_RULE_CODE)
      
         #退款中
