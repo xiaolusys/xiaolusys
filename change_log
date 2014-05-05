@@ -1,3 +1,6 @@
+######### 2014-5-5 ##########
+alter table shop_yunda_order add yd_customer_id int(11);
+ALTER TABLE shop_yunda_order ADD FOREIGN KEY (`yd_customer_id`) REFERENCES shop_yunda_customer(`id`);
 ######### 2014-4-25 ##########
 alter table shop_yunda_order add column is_jzhw tinyint(1) NOT NULL;
 ######### 2014-4-24 ##########

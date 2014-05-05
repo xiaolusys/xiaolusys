@@ -91,7 +91,8 @@ class ParentPackageWeightAdmin(admin.ModelAdmin):
     #date_hierarchy = 'created'
     #ordering = ['created_at']
     
-    list_filter = ('is_jzhw','is_charged')
+    list_filter = ('is_jzhw','is_charged',('weighted',DateFieldListFilter),
+                   ('upload_weight',DateFieldListFilter))
     search_fields = ['parent_package_id','destinate']
     
 
@@ -312,6 +313,21 @@ class LogisticOrderAdmin(admin.ModelAdmin):
     
     list_filter = ('status','is_charged','sync_addr',('weighted',DateFieldListFilter),('created',DateFieldListFilter))
     search_fields = ['cus_oid','out_sid','parent_package_id','receiver_mobile']
+    
+    #--------设置页面布局----------------
+    fieldsets =((u'系统信息:', {
+                    'classes': ('expand',),
+                    'fields': (('cus_oid','yd_customer','out_sid','parent_package_id',)
+                               ,('weight','upload_weight','weighted','uploaded')
+                               ,('valid_code','dc_code','is_charged','sync_addr','status')
+                               )
+                }),
+                (u'包裹地址信息:', {
+                    'classes': ('expand',),
+                    'fields': (('receiver_name','receiver_state','receiver_city','receiver_district'),
+                               ('receiver_address','receiver_zip','receiver_mobile','receiver_phone','is_jzhw'))
+                }),
+                )
     
     
 

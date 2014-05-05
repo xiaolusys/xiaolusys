@@ -867,7 +867,7 @@ class StatProductSaleView(ModelView):
                                         'sale_refund':sale.sale_refund  
                                        }
             
-        return sorted(sale_items.items(),key=lambda d:d[1]['sale_payment'],reverse=True)
+        return sorted(sale_items.items(),key=lambda d:d[1]['sale_num'],reverse=True)
     
     def calcSaleSortedItems(self,queryset):
         
@@ -899,7 +899,7 @@ class StatProductSaleView(ModelView):
             sale_stat['collect_num'] = p_collect_num
             sale_stat['sale_cost'] = product_cost
             sale_stat['skus'] = sorted(sale_stat['skus'].items(),
-                                       key=lambda d:d[1]['sale_payment'],
+                                       key=lambda d:d[1]['sale_num'],
                                        reverse=True)
             
             total_stock_num        += sale_stat['collect_num']

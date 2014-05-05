@@ -58,7 +58,6 @@ REDIRECT_URI = ''.join([SITE_URL,'accounts/login/auth/'])
 TAOBAO_API_ENDPOINT = 'https://%s/router/rest'%TAOBAO_API_HOSTNAME
 TAOBAO_NOTIFY_URL   = 'http://stream.api.taobao.com/stream'
 
-
 SCOPE = 'item,promotion,usergrade'
 REFRESH_URL = 'https://oauth.taobao.com/token'
 
