@@ -38,7 +38,7 @@ function submit() {
 <tbody>
 {% for key,value in data.items %}
 <tr>
- <td> {{ key }} </td> {% for v in value %}<td> {{ v }}</td>  {% endfor %}
+ <td> <a target="_blank" href= '/app/comment/replyer_detail/?replyer={{ key }}'>{{ key }} </a></td> {% for v in value %}<td> {{ v }}</td>  {% endfor %}
 </tr>
 {% endfor %}
 

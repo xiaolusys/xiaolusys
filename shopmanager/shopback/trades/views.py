@@ -1147,7 +1147,7 @@ class TradeLogisticView(ModelView):
 def calFenxiaoInterval(fdt,tdt):
     fenxiao_array= []
     fenxiao_dict = {}
-    fenxiao_sum  =0
+    fenxiao_sum  = 0
     fenxiao = MergeTrade.objects.filter(pay_time__gte=fdt,pay_time__lte=tdt,type=pcfg.FENXIAO_TYPE,sys_status=pcfg.FINISHED_STATUS)
     #buyer_nick 
     for f in fenxiao:
