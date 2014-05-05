@@ -223,20 +223,22 @@ class CalcProductSaleTask(Task):
                     .aggregate(sale_num=Sum('num'),
                                sale_payment=Sum('payment'))
         if sale_dict['sale_num'] :
-            ProductDaySale.objects.get_or_create(
+            pds,state = ProductDaySale.objects.get_or_create(
                                              day_date=yest_date,
                                              user_id=user.id,
                                              product_id=product.id,
-                                             sku_id=sku and sku.id,
-                                             sale_num=sale_dict['sale_num'] or 0,
-                                             sale_payment=sale_dict['sale_payment'] or 0)
+                                             sku_id=sku and sku.id)
+                                             
+            pds.sale_num = sale_dict['sale_num'] or 0
+            pds.sale_payment=sale_dict['sale_payment'] or 0
+            pds.save()
         return sale_dict['sale_num'] or 0,sale_dict['sale_payment'] or 0
         
-    def run(self,*args,**kwargs):
+    def run(self,yest_date=None,*args,**kwargs):
         
         products = self.getSourceList()
         
-        yest_date  = self.getYesterdayDate()
+        yest_date  = yest_date or self.getYesterdayDate()
         yest_start = self.getYesterdayStarttime(yest_date)
         yest_end   = self.getYesterdayEndtime(yest_date)
         

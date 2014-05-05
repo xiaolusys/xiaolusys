@@ -74,7 +74,7 @@ class DestCompany(models.Model):
        
         if state:
             if companys and companys.count()>0:
-                companys = companys.filter(__startswithstate=state)
+                companys = companys.filter(state__startswith=state)
             else:
                 companys = cls.objects.filter(state__startswith=state,city='',district='')
        
