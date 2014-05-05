@@ -883,9 +883,9 @@ class StatProductSaleView(ModelView):
             product = Product.objects.get(id=product_id) 
             sale_stat['name']     = product.name
             sale_stat['outer_id'] = product.outer_id
-            sale_stat['collect_num'] = product.collect_num
             product_cost = (product.cost * sale_stat['sale_num'],0)[sale_stat['skus'] and 1 or 0 ] 
-           
+            p_collect_num = 0
+            
             for sku_id,sku_stat in sale_stat['skus'].iteritems():
                 
                 sku = ProductSku.objects.get(id=sku_id)
@@ -894,7 +894,9 @@ class StatProductSaleView(ModelView):
                 sku_stat['quantity']  = sku.quantity
                 sku_stat['sale_cost'] =  sku.cost * sku_stat['sale_num']           
                 product_cost += sku_stat['sale_cost'] 
-            
+                p_collect_num += sku.quantity
+                
+            sale_stat['collect_num'] = p_collect_num
             sale_stat['sale_cost'] = product_cost
             sale_stat['skus'] = sorted(sale_stat['skus'].items(),
                                        key=lambda d:d[1]['sale_payment'],
@@ -924,6 +926,7 @@ class StatProductSaleView(ModelView):
         sale_items   = {}
         for product in product_list:
             product_id = product.id
+            p_collect_num = 0
             
             if product.collect_num <= 0:
                 continue
@@ -941,7 +944,6 @@ class StatProductSaleView(ModelView):
                                            'sale_refund':0 ,
                                            'name':product.name,
                                            'outer_id':product.outer_id,
-                                           'collect_num':product.collect_num,
                                            'sale_cost':0,
                                            'skus':{}}
                 
@@ -954,23 +956,26 @@ class StatProductSaleView(ModelView):
                                         'sale_payment':0,
                                         'sale_refund':0  
                                    }
+                p_collect_num += sku.quantity
+                
             if (product_id,None) not in ps_tuple and not sale_items.has_key(product_id):
+                p_collect_num = product.collect_num
                 sale_items[product_id]={
                                        'sale_num':0,
                                        'sale_payment':0,
                                        'sale_refund':0 ,
                                        'name':product.name,
                                        'outer_id':product.outer_id,
-                                       'collect_num':product.collect_num,
                                        'sale_cost':0,
                                        'skus':{}}
             
-            if sale_items.has_key(product_id):       
+            if sale_items.has_key(product_id): 
+                sale_items[product_id]['collect_num'] = p_collect_num     
                 sale_items[product_id]['skus'] = sorted(sale_items[product_id]['skus'].items(),
                                                     key=lambda d:d[1]['quantity'],
                                                     reverse=True)
             
-                total_stock_num += product.collect_num
+                total_stock_num += p_collect_num
             
         return {'sale_items':sorted(sale_items.items(),
                                     key=lambda d:d[1]['collect_num'],
@@ -995,7 +1000,7 @@ class StatProductSaleView(ModelView):
         end_dt    = content.get('dt','').strip()
         shop_id   = content.get('shop_id')
         p_outer_id   = content.get('outer_id','')
-        show_sale    = content.has_key('_saleable') 
+        show_sale    = not content.has_key('_unsaleable') 
         
         params = {'day_date__gte':self.parseDate(start_dt),
                           'day_date__lte':self.parseDate(end_dt)}

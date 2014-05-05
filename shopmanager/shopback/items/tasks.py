@@ -246,7 +246,9 @@ class CalcProductSaleTask(Task):
         
         queryset = MergeOrder.objects.filter(merge_trade__pay_time__gte=yest_start,
                                              merge_trade__pay_time__lte=yest_end,
-                                             sys_status=pcfg.IN_EFFECT)
+                                             is_merge=False,
+                                             sys_status=pcfg.IN_EFFECT)\
+                                             .exclude(merge_trade__type=pcfg.EXCHANGE_TYPE)
         
         for prod in products:
             
