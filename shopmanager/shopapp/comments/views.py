@@ -113,17 +113,21 @@ def count(request):
     for name ,vl in resultDict.iteritems():
         vl.append(sum(vl))
     
-    return render_to_response('comments/comment_counts.html', {'data': resultDict, 'dates':date_array},  context_instance=RequestContext(request))
+    return render_to_response('comments/comment_counts.html', {'data': resultDict, 'dates':date_array,'toDate':toDate,'fromDate':fromDate},  context_instance=RequestContext(request))
 
 
 
-def filter_replyer(name):
+def filter_replyer(name,fdt,tdt):
     try:
 
         replyer_comment = {}
         replyer = User.objects.get(username = name )        
         comments = Comment.objects.filter(
-        replayer=replyer)        
+        replayer=replyer
+        ,replay_at__gte=fdt,replay_at__lte=tdt,is_reply=True
+        )
+        print '9999999999'
+        print comments        
     
         for r in comments:
         
@@ -140,11 +144,20 @@ def filter_replyer(name):
 def replyer_detail(request):
     content = request.GET
     name = content.get('replyer')
-    replyerDetail = filter_replyer(name)
+    fromDate  = content.get('fdt')
+    toDate  = content.get('tdt')
+    if toDate=="":
+        toDate=datetime.date.today().strftime('%Y-%m-%d')
+    else:
+        toDate  = content.get('tdt')
     
-    #oo = show_replyer(request)
-    #print oo
-    #print 'ooooooooooooooooooooo'
+    
+    toDate   = toDate and datetime.datetime.strptime(toDate, '%Y-%m-%d').date() or datetime.datetime.now().date()
+    fromDate = fromDate and datetime.datetime.strptime(fromDate, '%Y-%m-%d').date() or toDate - datetime.timedelta(days=1)
+    
+    replyerDetail = filter_replyer(name,fromDate,toDate)
+    
+    
     return render_to_response('comments/comment_detail.html',{'replyerDetail':replyerDetail,'replyer':name},context_instance=RequestContext(request))
     
 def show_replyer(request):
