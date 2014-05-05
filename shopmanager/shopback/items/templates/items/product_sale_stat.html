@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html>
+<head>
+   <title>商品销量统计</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <link href="{{ STATIC_URL }}bootstrap/css/bootstrap.min.css" rel="stylesheet" type="text/css" />
+    <link href="{{ STATIC_URL }}css/base.less" rel="stylesheet/less" type="text/css" />
+    <link rel="stylesheet" href="http://code.jquery.com/ui/1.10.1/themes/base/jquery-ui.css" />
+    <script src="http://code.jquery.com/jquery-1.9.1.js"></script>
+    <script src="http://code.jquery.com/ui/1.10.1/jquery-ui.js"></script>
+	<!-- <script src="{{ STATIC_URL }}jquery-timepicker-addon/js/jquery.ui.datepicker-zh-CN.js.js" type="text/javascript" charset="gb2312"></script> -->
+    <style type="text/css">
+        *{ margin:0; padding:0;}
+        ul li{ 
+            list-style:none; 
+            display:inline; 
+            margin-top:30px;
+            margin-left:20px;
+            float:left;
+        }
+        ul{
+            width:900px;
+            display:block; 
+        }
+        input{
+            width:80px;
+        }
+        select{
+            width:120px;
+        }
+        .div-inline{
+            display:inline;        
+        }
+        .outer-filter{
+            margin:20px auto 10px;   
+            text-align:center;     
+        }
+        .inner-filter{
+            margin10px;     
+            float:right;  
+        }
+        .inner-filter input{
+            width:25px;        
+        }
+        .inner-filter label{
+            display:inline;        
+        }
+        .inner-filter-one{
+           color:#f89406;
+        }
+        .inner-filter-two{
+           color:#3a87ad;
+        }
+        .inner-filter-three{
+           color:#5bb75b;     
+        }
+        .list-table-head table{
+            margin-bottom:0px;
+            background-color:#F1F1F1;
+        }
+    </style>
+</head>
+<body>
+{% with object.sale_stats as sale_stats %}
+<div class="container">
+<div class="outer-filter">
+<form  class="form-inline" method="POST" action="/items/product/sale/" >
+       <div class="div-inline">
+         <label class="control-label" for="shop_id">选择店铺:</label>
+         <select name="shop_id" class="selector">
+           <option value="" >全部</option>
+	{% for shop in sale_stats.shops %}
+	<option value="{{ shop.id }}" {% if sale_stats.shop_id == shop.id %}selected{% endif %}>{{ shop.nick }}</option>
+	{% endfor %}
+         </select>
+      </div>
+      <div class="div-inline">
+        <label class="control-label" for="df">选择日期:</label>
+        <input type="text" id="f_datepicker" name="df" class="datepicker" value="{{ sale_stats.df }}"
+         />-<input type="text" id="t_datepicker" name="dt" class="datepicker" value="{{ sale_stats.dt }}" />
+      </div>
+       <div class="div-inline">
+         <label class="control-label" for="outer_id">商家编码:</label>
+         <input type="text" name="outer_id" value="{{ sale_stats.outer_id }}"/>
+       </div>
+        <div class="div-inline">
+        	<input type="submit" value="热售商品" class="btn btn-primary" name="_saleable"/>
+        	<input type="submit" value="滞销商品" class="btn btn-inverse" name="_unsaleable"/>
+        </div>
+</form>
+</div>
+<div id="content" style="display:block;clear:both;">
+  <div class="inner-filter">
+    <div class="div-inline inner-filter-one">
+	<label class="control-label"  for="sale_gte" >销量区间:</label>
+	<input type="text" name="sale_gte" class="sale_num" value="" size="4"
+	/>-<input type="text" name="sale_lte" class="sale_num" value="" size="4"/>
+    </div>
+   <div class="div-inline  inner-filter-two">
+	<label class="control-label"  for="sale_payment_gte">售额区间:</label>
+	<input type="text" name="sale_payment_gte" class="sale_payment" value="" size="4"
+	/>-<input type="text" name="sale_payment_lte" class="sale_payment"  value="" size="4"/>
+    </div>
+    <div class="div-inline  inner-filter-three">
+	<label class="control-label"  for="sale_payment_gte"  >售额/成本 比:</label>
+	<input type="text" name="sale_paycost_gte" class="sale_paycost" value="" size="4"
+	/>-<input type="text" name="sale_paycost_lte" class="sale_paycost" value="" size="4"/>
+    </div>
+    <button class="div-inline">过滤</button>
+  </div>
+  <table class="table table-bordered  table-condensed">
+    <tr>
+      <th>序号</th><th>商品/规格编码</th><th style="width:150px;">商品/规格名称</th>
+      <th>销售数量</th><th>销售成本</th><th>销售额</th><th>退款</th><th>剩余库存</th>
+    </tr>
+   <tr>
+   		<td>-</td>
+        <td>-</td>
+        <td style="width:150px;">共计</td>
+        <td>{{ sale_stats.total_sale_num }}</td>
+        <td>{{ sale_stats.total_sale_cost }}</td>
+        <td>{{ sale_stats.total_sale_payment }}</td>
+        <td>{{ sale_stats.total_sale_refunds }}</td>
+        <td>{{ sale_stats.total_stock_num }}</td>
+    </tr>
+  </table>
+  {% for product_id ,product in sale_stats.sale_items %}
+  <div class="list-tables">
+    <div class="list-table-head">
+      <table class="table table-bordered  table-condensed">
+        <tr>
+        	<td>{{ forloop.counter }}</td>
+            <td>{{ product.outer_id }}</td>
+            <td style="width:150px;">{{ product.name }}</td>
+            <td>{{ product.sale_num }}</td>
+            <td>{{ product.sale_cost }}</td>
+            <td>{{ product.sale_payment }}</td>
+            <td>{{ product.sale_refunds }}</td>
+            <td>{{ product.collect_num }}</td>
+        </tr>
+    </table>
+    </div>
+    <div class="list-table-content">
+	<table class="table table-bordered  table-condensed">
+	    {% for sku_id,sku in product.skus %}
+        <tr>
+        <td>{{ forloop.counter }}&nbsp;&gt;</td>
+		<td >{{ sku.outer_id }}</td>
+		<td >{{ sku.name }}</td>
+		<td >{{ sku.sale_num }}</td>
+		<td >{{ sku.sale_cost }}</td>
+		<td >{{ sku.sale_payment }}</td>
+        <td >{{ sku.sale_refund }}</td>
+        <td >{{ sku.quantity }}</td>
+        </tr>
+	    {% endfor %}
+	</table>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+</div>	
+{% endwith %}
+</body>
+<script type="text/javascript">
+    $(function() {
+         $("#f_datepicker").datepicker({
+                dateFormat: "yy-mm-dd"
+         });
+        $("#t_datepicker").datepicker({
+                dateFormat: "yy-mm-dd"
+        });
+    });
+    $(document).ready(function(){
+        $(".list-table-content").hide(); 
+        $(".list-table-head").on("click",function(event){
+                $(this).next().toggle();   
+        })
+    });
+    
+</script>
+</html>

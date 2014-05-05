@@ -1,15 +1,12 @@
 #-*- coding:utf8 -*-
-import re
-import time
 import json
-import datetime
 from django.db import models
 from django.db.models import Q,Sum
 from django.db.models.signals import post_save
 from bitfield import BitField
 from shopback.base.fields import BigIntegerAutoField,BigIntegerForeignKey
 from shopback.users.models import User,Customer
-from shopback.base import log_action, ADDITION, CHANGE
+from shopback.base import log_action, CHANGE
 from shopback.orders.models import Trade,Order,STEP_TRADE_STATUS
 from shopback.items.models import Item,Product,ProductSku
 from shopback.logistics.models import Logistics,LogisticsCompany,DestCompany
@@ -317,13 +314,13 @@ class MergeTrade(models.Model):
                                               ,company_code=company_code,tb_user_id=seller_id)  
                 #response = {'logistics_online_send_response': {'shipping': {'is_success': True}}}
                 if not response['logistics_online_send_response']['shipping']['is_success']:
-                    raise Exception(u'订单(%d)淘宝发货失败'%trade.tid)
+                    raise Exception(u'订单(%d)淘宝发货失败'%trade_id)
             else: 
                 response = apis.taobao_logistics_offline_send(tid=trade_id,out_sid=out_sid
                                               ,company_code=company_code,tb_user_id=seller_id)  
                 #response = {'logistics_offline_send_response': {'shipping': {'is_success': True}}}
                 if not response['logistics_offline_send_response']['shipping']['is_success']:
-                    raise Exception(u'订单(%d)淘宝发货失败'%trade.tid)
+                    raise Exception(u'订单(%d)淘宝发货失败'%trade_id)
         except apis.LogisticServiceBO4Exception,exc:
             return self.is_post_success()
         except apis.LogisticServiceB60Exception,exc:
@@ -1095,7 +1092,11 @@ def trade_download_controller(merge_trade,trade,trade_from,first_pay_load):
     #新留言
     if has_new_buyer_message or has_new_seller_memo:
         merge_trade.append_reason_code(pcfg.NEW_MEMO_CODE)
-    
+        merge_type = MergeBuyerTrade.get_merge_type(trade.id)
+        if merge_type == 1:
+            mbt = MergeBuyerTrade.objects.get(sub_tid=merge_trade.tid)
+            MergeTrade.objects.get(tid=mbt.main_tid).append_reason_code(pcfg.NEW_MEMO_CODE)
+            
     if trade.status == pcfg.WAIT_SELLER_SEND_GOODS:
         
         #给订单分配快递
@@ -1140,6 +1141,7 @@ def trade_download_controller(merge_trade,trade,trade_from,first_pay_load):
                         MergeTrade.objects.filter(id=merge_trade.id).update(reserveo=zonec,reservet=zoned)
                     
             except Exception,exc:
+                logger.error(exc.message or 'distribute logistic error',exc_info=True)
                 merge_trade.append_reason_code(pcfg.DISTINCT_RULE_CODE)
      
         #退款中
@@ -1227,7 +1229,7 @@ def trade_download_controller(merge_trade,trade,trade_from,first_pay_load):
                     main_tid = MergeBuyerTrade.objects.get(sub_tid=trade.id).main_tid
                     merge_order_remover(main_tid)
                 else:
-                    merge_order_remover(trade.id)
+                    merge_order_remover(merge_trade.tid)
                 
                 #如果拆单后订单系统状态改变，则将订单状态置为问题单
                 tmp_trade = MergeTrade.objects.get(id=merge_trade.id)
@@ -1250,11 +1252,20 @@ def trade_download_controller(merge_trade,trade,trade_from,first_pay_load):
             
     elif trade.status==pcfg.TRADE_CLOSED:
         has_new_refund  = MergeTrade.judge_new_refund(merge_trade.id)
-        if has_new_refund and not merge_trade.out_sid:
+        if has_new_refund :
             merge_trade.append_reason_code(pcfg.NEW_REFUND_CODE)
+            merge_type = MergeBuyerTrade.get_merge_type(trade.id)
+            if merge_type == 1:
+                mbt = MergeBuyerTrade.objects.get(sub_tid=merge_trade.tid)
+                MergeTrade.objects.get(tid=mbt.main_tid).append_reason_code(pcfg.NEW_REFUND_CODE)
+                
+        if merge_trade.sys_status not in (pcfg.WAIT_CHECK_BARCODE_STATUS,
+                                                                 pcfg.WAIT_SCAN_WEIGHT_STATUS,
+                                                                 pcfg.FINISHED_STATUS): 
             merge_type  = MergeBuyerTrade.get_merge_type(trade.id)
             if merge_type == 2:    
-                merge_order_remover(trade.id)
+                merge_order_remover(merge_trade.tid)
+        
         if merge_trade.sys_status not in (pcfg.FINISHED_STATUS,pcfg.INVALID_STATUS): 
             merge_trade.append_reason_code(pcfg.INVALID_END_CODE)
             merge_trade.sys_status = pcfg.INVALID_STATUS
@@ -1521,7 +1532,7 @@ REPLAY_TRADE_STATUS = (
 )
 
 class ReplayPostTrade(models.Model):
-    """ 重现发货表单 """
+    """ 已发货清单 """
     
     operator   =  models.CharField(max_length=32,db_index=True,verbose_name=u'发货人')
     

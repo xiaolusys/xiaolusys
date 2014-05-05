@@ -14,7 +14,7 @@ from common.utils import gen_cvs_tuple,CSVUnicodeWriter
 
 
 class UserAdmin(admin.ModelAdmin):
-    list_display = ('id','top_session','has_fenxiao','visitor_id','uid',
+    list_display = ('id','has_fenxiao','visitor_id','uid',
                     'nick','is_primary','sync_stock','percentage','status')
     list_display_links = ('id', 'nick')
     #list_editable = ('update_time','task_type' ,'is_success','status')

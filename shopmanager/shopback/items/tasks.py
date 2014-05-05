@@ -2,25 +2,26 @@
 import datetime
 import time
 import json
+from celery import Task
 from celery.task import task
 from celery.task.sets import subtask
 from django.conf import settings
 from django.db.models import Sum
-from django.db import transaction
+from django.db   import transaction
 from django.db.models.query import QuerySet
-from shopback import paramconfig as pcfg
-from shopback.items.models import Item,Product,ProductSku,SkuProperty,ItemNumTaskLog
+from shopback    import paramconfig as pcfg
+from shopback.items.models import Item,Product,ProductSku,SkuProperty,\
+    ItemNumTaskLog,ProductDaySale
 from shopback.orders.models import Order, Trade
 from shopback.trades.models import MergeOrder, MergeTrade
 from shopback.users import Seller
 from shopback.fenxiao.tasks import saveUserFenxiaoProductTask
 from shopback import paramconfig as pcfg
-from auth import apis
+from auth     import apis
 from common.utils import format_datetime,parse_datetime,get_yesterday_interval_time
 import logging
 
 logger = logging.getLogger('django.request')
-
 
 
 @task()
@@ -194,30 +195,81 @@ def updateProductWaitPostNumTask():
             prod.save()
 
 
-@task()
-def updateProductWarnNumTask():
-    """ 更新商品警告数任务 """
-    st_f,st_t = get_yesterday_interval_time()
-    products = Product.objects.filter(status=pcfg.NORMAL)
-    for prod in products:
+
+class CalcProductSaleTask(Task):
+    """ 更新商品销售数量任务 """
+    
+    def getYesterdayDate(self):
+        dt = datetime.datetime.now() - datetime.timedelta(days=1)
+        return dt.date()
+    
+    def getYesterdayStarttime(self,day_date):
+        return datetime.datetime(day_date.year,day_date.month,day_date.day,0,0,0)
+    
+    def getYesterdayEndtime(self,day_date):
+        return datetime.datetime(day_date.year,day_date.month,day_date.day,23,59,59)
+    
+    def getSourceList(self):
+        return Product.objects.filter(status=pcfg.NORMAL)
         
-        outer_id  = prod.outer_id 
-        prod_skus = prod.pskus
-        if prod_skus.count()>0:
-            for sku in prod_skus:
-                outer_sku_id = sku.outer_id
-                lastday_pay_num = MergeOrder.objects.filter(outer_id=outer_id,outer_sku_id=outer_sku_id
-                    ,merge_trade__pay_time__gte=st_f,merge_trade__pay_time__lte=st_t,sys_status=pcfg.IN_EFFECT)\
-                    .aggregate(sale_nums=Sum('num')).get('sale_nums')
-                sku.warn_num = lastday_pay_num or 0
+    def getValidUser(self):
+        return Seller.effect_users.all()
+    
+    def calcSaleByUserAndProduct(self,queryset,user,product,sku,yest_date):
+        
+        sale_dict = queryset.filter(merge_trade__user=user,
+                                    outer_id=product.outer_id,
+                                    outer_sku_id=sku and sku.outer_id or '')\
+                    .aggregate(sale_num=Sum('num'),
+                               sale_payment=Sum('payment'))
+        if sale_dict['sale_num'] :
+            pds,state = ProductDaySale.objects.get_or_create(
+                                             day_date=yest_date,
+                                             user_id=user.id,
+                                             product_id=product.id,
+                                             sku_id=sku and sku.id)
+                                             
+            pds.sale_num = sale_dict['sale_num'] or 0
+            pds.sale_payment=sale_dict['sale_payment'] or 0
+            pds.save()
+        return sale_dict['sale_num'] or 0,sale_dict['sale_payment'] or 0
+        
+    def run(self,yest_date=None,*args,**kwargs):
+        
+        products = self.getSourceList()
+        
+        yest_date  = yest_date or self.getYesterdayDate()
+        yest_start = self.getYesterdayStarttime(yest_date)
+        yest_end   = self.getYesterdayEndtime(yest_date)
+        
+        sellers = self.getValidUser()
+        
+        queryset = MergeOrder.objects.filter(merge_trade__pay_time__gte=yest_start,
+                                             merge_trade__pay_time__lte=yest_end,
+                                             sys_status=pcfg.IN_EFFECT)
+        
+        for prod in products:
+            
+            for sku in prod.prod_skus.all():
+                
+                total_sale   = 0
+                for user in sellers:
+                    pds = self.calcSaleByUserAndProduct(queryset,user,prod,sku,yest_date)
+                    total_sale   += pds[0]
+                
+                sku.warn_num = total_sale
                 sku.save()
-        else:
-            outer_sku_id = ''
-            lastday_pay_num = MergeOrder.objects.filter(outer_id=outer_id,outer_sku_id=outer_sku_id
-                ,merge_trade__pay_time__gte=st_f,merge_trade__pay_time__lte=st_t,sys_status=pcfg.IN_EFFECT)\
-                .aggregate(sale_nums=Sum('num')).get('sale_nums')
-            sku.warn_num = lastday_pay_num or 0
-            sku.save()
+                
+            if prod.prod_skus.count() == 0:
+                
+                total_sale   = 0
+                for user in sellers:
+                    pds = self.calcSaleByUserAndProduct(queryset,user,prod,None,yest_date)
+                    total_sale   += pds[0]
+                    
+                prod.warn_num = total_sale
+                prod.save()
+                
 
 @task()
 def updateAllUserProductSkuTask():
@@ -343,11 +395,13 @@ def updateItemNum(user_id,num_iid):
         if sync_num>0 and user_percent>0:
             sync_num = round(user_percet*sync_num)
         elif sync_num >0 and sync_num <= product.warn_num:
-            total_num,user_order_num = MergeOrder.get_yesterday_orders_totalnum(item.user.id,outer_id,outer_sku_id)
+            total_num,user_order_num = MergeOrder.get_yesterday_orders_totalnum(
+                                            item.user.id,outer_id,outer_sku_id)
             if total_num>0 and user_order_num>0:
                 sync_num = round(float(user_order_num)/float(total_num)*sync_num)
             elif total_num == 0:
-                item_count = Item.objects.filter(outer_id=outer_id,approve_status=pcfg.ONSALE_STATUS).count() or 1
+                item_count = Item.objects.filter(outer_id=outer_id,
+                                approve_status=pcfg.ONSALE_STATUS).count() or 1
                 sync_num = int(sync_num/item_count) or sync_num
             else:
                 sync_num = (real_num - wait_nums)>10 and 2 or 0
@@ -359,10 +413,12 @@ def updateItemNum(user_id,num_iid):
         #当前同步库存值，与线上拍下未付款商品数，哪个大取哪个 
         sync_num = max(sync_num,item.with_hold_quantity)
         #同步库存数不为0，或者没有库存警告，同步数量不等于线上库存，并且店铺，商品同步状态正确
-        if not (sync_num == 0 and product.is_assign) and sync_num != item.num and user.sync_stock and product.sync_stock: 
+        if not (sync_num == 0 and product.is_assign) and sync_num != item.num \
+            and user.sync_stock and product.sync_stock: 
             response = apis.taobao_item_update(num_iid=item.num_iid,num=sync_num,tb_user_id=user_id)
             item_dict = response['item_update_response']['item']
-            Item.objects.filter(num_iid=item_dict['num_iid']).update(modified=item_dict['modified'],num=sync_num)
+            Item.objects.filter(num_iid=item_dict['num_iid']).update(
+                                        modified=item_dict['modified'],num=sync_num)
 
             product.save()
             

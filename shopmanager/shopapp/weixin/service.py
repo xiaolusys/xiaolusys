@@ -196,9 +196,6 @@ class WeixinUserService():
     
     def getResponseByBestMatch(self,message,openId,*args,**kwargs):
         
-        if event_re.match(message):
-            return self.handleEvent(message.upper(), openId)
-        
         if mobile_re.match(message) and self.getValidCode(message,openId):
             return WeiXinAutoResponse.objects.get_or_create(message=u'校验码提醒')[0]
         
@@ -299,7 +296,7 @@ class WeixinUserService():
         if eventKey in ('Q','W','E','R') and not self._wx_user.isValid():
             raise MessageException(u'你还没有绑定手机哦!\n请输入手机号:')
         
-        if    eventKey in ("Q","R"):
+        if eventKey in ("Q","R"):
             raise MessageException(u'功能还没有准备好哦')
             
         elif  eventKey == "W":
@@ -314,7 +311,7 @@ class WeixinUserService():
         if eventType == WX_EVENT_UNSUBSCRIBE:
             self._wx_user.unSubscribe()
             
-        return WeiXinAutoResponse.respDefault().autoParams()
+        return self.getResponseByBestMatch(eventKey,openId).autoParams()
             
         
     def handleRequest(self,params):
@@ -348,7 +345,7 @@ class WeixinUserService():
                 matchMsg = '链接'.decode('utf8')
             
             resp = self.getResponseByBestMatch(matchMsg.strip(),openId)
-            ret_params.update(hasattr(resp,'autoParams')and resp.autoParams() or resp)
+            ret_params.update(resp.autoParams())
         except MessageException,exc:
             ret_params.update(self.genTextRespJson(exc.message))
         except Exception,exc:

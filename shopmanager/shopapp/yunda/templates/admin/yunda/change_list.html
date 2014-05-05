@@ -55,21 +55,17 @@
       {% if has_add_permission %}
         <ul class="object-tools">
           {% block object-tools-items %}
-            <li>
-              <a href="/items/product/sale/" class="addlink" target="_blank">销量分析
+          	<li>
+              <a href="javascript:void(0);" class="addlink upload-csvfile" target="_blank">集包文件导入
               </a>
             </li>
             <li>
-              <a href="/items/product/barcode/" class="addlink" target="_blank">条码管理
-              </a>
-            </li>
-            <li>
-              <a href="/items/product/warn/" class="addlink" target="_blank">库存警告
+              <a href="/app/yunda/today/diff/" class="addlink " target="_blank">今日集包统计
               </a>
             </li>
             <li>
               <a href="{% url cl.opts|admin_urlname:'add' %}{% if is_popup %}?_popup=1{% endif %}" class="addlink">
-                {% blocktrans with cl.opts.verbose_name as name %}新{{ name }}{% endblocktrans %}
+                {% blocktrans with cl.opts.verbose_name as name %}Add {{ name }}{% endblocktrans %}
               </a>
             </li>
           {% endblock %}

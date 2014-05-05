@@ -356,7 +356,7 @@ class PurchaseStorageAdmin(admin.ModelAdmin):
         messages.add_message(request,storage_names and messages.INFO or messages.ERROR ,msg)
         return HttpResponseRedirect('./')
     
-    invalid_action.short_description = u"作废采购单"
+    invalid_action.short_description = u"作废入库单"
     
     def complete_action(self, request, queryset):
         """ 完成入库单 """
