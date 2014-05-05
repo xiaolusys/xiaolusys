@@ -922,7 +922,8 @@ class StatProductSaleView(ModelView):
         if p_outer_id:
             product_list = product_list.filter(outer_id=p_outer_id)
             
-        ps_tuple     = queryset.values_list('product_id','sku_id').distinct()
+        ps_tuple     = set(queryset.values_list('product_id','sku_id').distinct())
+        productid_set      = set(s[0] for s in ps_tuple)
         sale_items   = {}
         for product in product_list:
             product_id = product.id
@@ -958,7 +959,7 @@ class StatProductSaleView(ModelView):
                                    }
                 p_collect_num += sku.quantity
                 
-            if (product_id,None) not in ps_tuple and not sale_items.has_key(product_id):
+            if product_id not in productid_set and not sale_items.has_key(product_id):
                 p_collect_num = product.collect_num
                 sale_items[product_id]={
                                        'sale_num':0,
