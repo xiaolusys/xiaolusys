@@ -10,6 +10,7 @@ from shopback.base.authentication import login_required_ajax
 from shopapp.comments.models import Comment
 from django.template import RequestContext 
 import logging
+from django.contrib.auth.models import User,Group
 
 
 logger = logging.getLogger('django.request')
@@ -116,3 +117,51 @@ def count(request):
 
 
 
+def filter_replyer(name):
+    try:
+
+        replyer_comment = {}
+        replyer = User.objects.get(username = name )        
+        comments = Comment.objects.filter(
+        replayer=replyer)        
+    
+        for r in comments:
+        
+            replyer = r.replayer
+            if replyer_comment.has_key(replyer):
+                replyer_comment[replyer].append(r.reply)
+            else:
+                    replyer_comment[replyer] = [r.reply]        
+    except:
+        pass
+    return replyer_comment
+    
+@csrf_exempt
+def replyer_detail(request):
+    content = request.GET
+    name = content.get('replyer')
+    replyerDetail = filter_replyer(name)
+    
+    #oo = show_replyer(request)
+    #print oo
+    #print 'ooooooooooooooooooooo'
+    return render_to_response('comments/comment_detail.html',{'replyerDetail':replyerDetail,'replyer':name},context_instance=RequestContext(request))
+    
+def show_replyer(request):
+    comment_array = []
+    comments = User.objects.filter(groups=u'kefu')
+    #comments = User.objects.all()
+    
+    print 'ooccccccccccccc'
+    #print 
+    print comments
+    
+    print 'ccccccccccccccccccccc'
+    for c in comments:
+        try:
+            replyer = c.username
+            comment_array.append(replyer)
+        except:
+            continue
+    
+    return comment_array   

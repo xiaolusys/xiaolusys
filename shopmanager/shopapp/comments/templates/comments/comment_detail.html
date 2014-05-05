@@ -1,0 +1,46 @@
+{% extends "comments/comment_base.html" %}
+
+{% block title %} 
+<title>客服评论展示</title>
+{% endblock %} 
+
+
+{% block head_script %}
+<script type="text/javascript">
+function submit() {
+    document.getElementById("form2").submit();
+}
+</script>
+{% endblock %}
+
+{% block replyer_detail %}
+<div style="width:800px; padding:5px;">
+<form id="form2" action="/app/comment/replyer_detail/" method="get">
+<!--
+<input type="text" name={{ replyer_user }}>
+<input type="text" name="replyer">
+<input type="submit" value="submit" name="refresh">
+-->
+</form>
+</div>
+
+<div style="width:800px; padding:5px;">
+<table class="table table-striped table-bordered table-condensed">
+<thead>
+
+<th>{{ replyer }}</th>
+</thead>
+<tbody>
+{% for k,v in replyerDetail.items %}
+{% for c in v %}
+<tr>
+<td>{{ c }}</td>
+
+</tr>
+{% endfor %}
+
+{% endfor %}
+<tbody>
+</table>
+</div>
+{% endblock %}
