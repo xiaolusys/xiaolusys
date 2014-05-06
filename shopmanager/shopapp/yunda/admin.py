@@ -136,7 +136,7 @@ class TodaySmallPackageWeightAdmin(admin.ModelAdmin):
         if weight < 0.5:
             return weight
         if weight < 1.0:
-            return weight / 2
+            return weight * 0.8
         if weight < 4.0:
             return weight / 2
         return weight - 2
@@ -170,7 +170,7 @@ class TodaySmallPackageWeightAdmin(admin.ModelAdmin):
             else:
                 if weight_tuple[0] > 10:
                     messages.warning(request,u'小包（%s）重量超过10公斤,请核实！'%tspw.package_id)
-                    
+                
                 tspw.weight = weight_tuple[0]
                 tspw.upload_weight = weight_tuple[1]
                 tspw.save()
@@ -229,8 +229,16 @@ class TodayParentPackageWeightAdmin(admin.ModelAdmin):
         css = {"all": ("admin/css/forms.css","css/admin/dialog.css", "jquery/jquery-ui-1.10.1.css")}
         js = ("script/admin/adminpopup.js","jquery/jquery-ui-1.8.13.min.js",
               "jquery/addons/jquery.upload.js","yunda/js/package.csvfile.upload.js")
+    
+    def reCalcWeightRule(self,weight):
         
-    def calcSmallPackageWeight(self,parent_package_id):
+        if weight < 0.5:
+            return weight
+        if weight < 4.0:
+            return weight * 0.8
+        return weight - 1
+        
+    def calcParentPackageWeight(self,parent_package_id):
         
         tspws = TodaySmallPackageWeight.objects.filter(
                                 parent_package_id=parent_package_id)
@@ -243,15 +251,23 @@ class TodayParentPackageWeightAdmin(admin.ModelAdmin):
                 
             bpkw_weight += float(tspw.weight)
             bpkw_upload_weight += float(tspw.upload_weight)
+        
+        if bpkw_weight - bpkw_upload_weight < 5:
+            bpkw_upload_weight = 0
             
-        return bpkw_weight,bpkw_upload_weight
+            for tspw in tspws:
+                tspw.upload_weight = self.reCalcWeightRule(float(tspw.weight))
+                tspw.save()
+                bpkw_upload_weight += tspw.upload_weight
+                
+        return bpkw_weight,bpkw_upload_weight+0.02
         
      #取消该商品缺货订单
     def calcPackageWeightAction(self,request,queryset):
         
         for bpkw in queryset:
             try:
-                weight_tuple = self.calcSmallPackageWeight(bpkw.parent_package_id)
+                weight_tuple = self.calcParentPackageWeight(bpkw.parent_package_id)
             except Exception,exc:
                 messages.warning(request, exc.message)
             else:
@@ -259,6 +275,7 @@ class TodayParentPackageWeightAdmin(admin.ModelAdmin):
                     messages.error(request, u'集包号(%s)重量异常(%s)，请核实。'%
                                    (bpkw.parent_package_id,weight_tuple[0]))
                     continue
+                    
                 bpkw.weight = weight_tuple[0]
                 bpkw.upload_weight = weight_tuple[1]
                 bpkw.save()

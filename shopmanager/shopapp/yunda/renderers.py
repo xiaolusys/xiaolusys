@@ -13,7 +13,14 @@ class PackageDiffHtmlRenderer(TemplateRenderer):
     
     
 
-
+class PackageWeightHtmlRenderer(TemplateRenderer):
+    """
+    Renderer which serializes to JSON
+    """
+    
+    media_type = 'text/html'
+    format = 'html'
+    template = 'yunda/weight_small_package.html' 
     
 
 

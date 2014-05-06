@@ -56,12 +56,13 @@
         <ul class="object-tools">
           {% block object-tools-items %}
           	<li>
-              <a href="javascript:void(0);" class="addlink upload-csvfile" target="_blank">集包文件导入
-              </a>
+              <a href="/app/yunda/package/weight/" class="addlink " target="_blank">揽件称重</a>
+            </li>
+          	<li>
+              <a href="javascript:void(0);" class="addlink upload-csvfile" target="_blank">集包文件导入</a>
             </li>
             <li>
-              <a href="/app/yunda/today/diff/" class="addlink " target="_blank">今日集包统计
-              </a>
+              <a href="/app/yunda/today/diff/" class="addlink " target="_blank">今日集包统计</a>
             </li>
             <li>
               <a href="{% url cl.opts|admin_urlname:'add' %}{% if is_popup %}?_popup=1{% endif %}" class="addlink">

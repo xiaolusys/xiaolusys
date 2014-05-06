@@ -94,6 +94,5 @@ class ProductSaleHtmlRenderer(TemplateRenderer):
     template = 'items/product_sale_stat.html'
 
 
-    
 
 
