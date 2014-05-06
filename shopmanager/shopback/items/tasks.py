@@ -247,9 +247,11 @@ class CalcProductSaleTask(Task):
         queryset = MergeOrder.objects.filter(merge_trade__pay_time__gte=yest_start,
                                              merge_trade__pay_time__lte=yest_end,
                                              is_merge=False,
+                                             gift_type__in=(pcfg.OVER_PAYMENT_GIT_TYPE,
+                                                            pcfg.REAL_ORDER_GIT_TYPE,
+                                                            pcfg.COMBOSE_SPLIT_GIT_TYPE),
                                              sys_status=pcfg.IN_EFFECT)\
-                                             .exclude(merge_trade__type=pcfg.EXCHANGE_TYPE)
-        
+                                             .exclude(merge_trade__sys_status='')
         for prod in products:
             
             for sku in prod.prod_skus.all():
