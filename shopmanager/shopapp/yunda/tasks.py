@@ -13,7 +13,8 @@ from django.core.paginator import Paginator
 from shopback import paramconfig as pcfg
 from shopback.trades.models import MergeTrade
 from shopapp.yunda.qrcode import cancel_order,search_order,parseTreeID2MailnoMap
-from shopapp.yunda.models import LogisticOrder,TodaySmallPackageWeight,YUNDA_CODE,NORMAL,DELETE
+from shopapp.yunda.models import LogisticOrder,YundaCustomer,TodaySmallPackageWeight,\
+    YUNDA_CODE,NORMAL,DELETE
 from common.utils import valid_mobile,format_datetime
 import logging
 
