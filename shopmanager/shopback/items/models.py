@@ -57,7 +57,7 @@ class Product(models.Model):
     
     cost         = models.FloatField(default=0,verbose_name=u'成本价')
     std_purchase_price = models.FloatField(default=0,verbose_name=u'标准进价')
-    std_sale_price     = models.FloatField(default=0,verbose_name=u'标准售价')
+    std_sale_price     = models.FloatField(default=0,verbose_name=u'吊牌价')
     agent_price        = models.FloatField(default=0,verbose_name=u'代理售价')
     staff_price        = models.FloatField(default=0,verbose_name=u'员工价')
     

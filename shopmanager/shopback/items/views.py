@@ -875,7 +875,8 @@ class StatProductSaleView(ModelView):
         total_sale_cost   = 0
         total_sale_num  = 0
         total_sale_payment = 0
-        total_sale_refund     = 0
+        total_sale_refund  = 0
+        total_stock_cost   = 0
         sale_stat_list = self.getSaleSortedItems(queryset)
         
         for product_id,sale_stat in sale_stat_list:
@@ -883,21 +884,22 @@ class StatProductSaleView(ModelView):
             product = Product.objects.get(id=product_id) 
             sale_stat['name']     = product.name
             sale_stat['outer_id'] = product.outer_id
-            product_cost = (product.cost * sale_stat['sale_num'],0)[sale_stat['skus'] and 1 or 0 ] 
-            p_collect_num = 0
-            
+            sale_stat['sale_cost'] = (product.cost * sale_stat['sale_num'],0)[sale_stat['skus'] and 1 or 0 ] 
+            sale_stat['collect_num'] = 0
+            sale_stat['stock_cost']  = 0
+
             for sku_id,sku_stat in sale_stat['skus'].iteritems():
                 
                 sku = ProductSku.objects.get(id=sku_id)
                 sku_stat['name']      = sku.name 
                 sku_stat['outer_id']  = sku.outer_id
                 sku_stat['quantity']  = sku.quantity
-                sku_stat['sale_cost'] =  sku.cost * sku_stat['sale_num']           
-                product_cost += sku_stat['sale_cost'] 
-                p_collect_num += sku.quantity
-                
-            sale_stat['collect_num'] = p_collect_num
-            sale_stat['sale_cost'] = product_cost
+                sku_stat['sale_cost'] =  sku.cost * sku_stat['sale_num']
+                sku_stat['stock_cost'] = sku.cost * sku.quantity
+                sale_stat['sale_cost'] += sku_stat['sale_cost'] 
+                sale_stat['collect_num'] += sku.quantity
+                sale_stat['stock_cost']  += sku_stat['stock_cost']
+
             sale_stat['skus'] = sorted(sale_stat['skus'].items(),
                                        key=lambda d:d[1]['sale_num'],
                                        reverse=True)
@@ -907,17 +909,20 @@ class StatProductSaleView(ModelView):
             total_sale_num         += sale_stat['sale_num']
             total_sale_payment     += sale_stat['sale_payment']
             total_sale_refund      += sale_stat['sale_refund']
-        
+            total_stock_cost       += sale_stat['stock_cost']
+
         return {'sale_items':sale_stat_list, 
                 'total_sale_cost':total_sale_cost ,
                 'total_sale_num':total_sale_num,
                 'total_sale_refund':total_sale_refund,
                 'total_sale_payment':total_sale_payment,
-                'total_stock_num':total_stock_num}
+                'total_stock_num':total_stock_num,
+                'total_stock_cost':total_stock_cost}
     
     def calcUnSaleSortedItems(self,queryset,p_outer_id=None):
         
         total_stock_num   = 0
+        total_stock_cost  = 0
         product_list = Product.objects.filter(status=pcfg.NORMAL)
         if p_outer_id:
             product_list = product_list.filter(outer_id=p_outer_id)
@@ -946,6 +951,8 @@ class StatProductSaleView(ModelView):
                                            'name':product.name,
                                            'outer_id':product.outer_id,
                                            'sale_cost':0,
+                                           'stock_cost':0,
+                                           'collect_num':0,
                                            'skus':{}}
                 
                 sale_items[product_id]['skus'][sku_id] = {
@@ -955,28 +962,33 @@ class StatProductSaleView(ModelView):
                                         'sale_cost':0,
                                         'sale_num':0,
                                         'sale_payment':0,
-                                        'sale_refund':0  
+                                        'sale_refund':0,
+                                        'stock_cost':sku.quantity * sku.cost
                                    }
-                p_collect_num += sku.quantity
+                sale_items[product_id]['collect_num'] += sku.quantity
+                sale_items[product_id]['stock_cost']  += sku.quantity * sku.cost
                 
             if product_id not in productid_set and not sale_items.has_key(product_id):
-                p_collect_num = product.collect_num
+                
                 sale_items[product_id]={
                                        'sale_num':0,
                                        'sale_payment':0,
                                        'sale_refund':0 ,
                                        'name':product.name,
                                        'outer_id':product.outer_id,
+                                       'collect_num':product.collect_num,
                                        'sale_cost':0,
+                                       'stock_cost':product.collect_num * product.cost,
                                        'skus':{}}
             
             if sale_items.has_key(product_id): 
-                sale_items[product_id]['collect_num'] = p_collect_num     
+
                 sale_items[product_id]['skus'] = sorted(sale_items[product_id]['skus'].items(),
                                                     key=lambda d:d[1]['quantity'],
                                                     reverse=True)
             
-                total_stock_num += p_collect_num
+                total_stock_num  += sale_items[product_id]['collect_num']
+                total_stock_cost += sale_items[product_id]['stock_cost']
             
         return {'sale_items':sorted(sale_items.items(),
                                     key=lambda d:d[1]['collect_num'],
@@ -985,7 +997,8 @@ class StatProductSaleView(ModelView):
                 'total_sale_num':0,
                 'total_sale_refund':0,
                 'total_sale_payment':0,
-                'total_stock_num':total_stock_num}
+                'total_stock_num':total_stock_num,
+                'total_stock_cost':total_stock_cost}
     
     def calcSaleItems(self,queryset,p_outer_id=None,show_sale=True):
         
