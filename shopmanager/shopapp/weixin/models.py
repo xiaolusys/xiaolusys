@@ -116,7 +116,7 @@ class AnonymousWeixinUser():
 class WeiXinUser(models.Model): 
     
     openid     = models.CharField(max_length=64,unique=True,verbose_name=u"用户ID")
-    nickname   = models.CharField(max_length=64,blank=True,unique=True,verbose_name=u"昵称")
+    nickname   = models.CharField(max_length=64,blank=True,verbose_name=u"昵称")
     
     sex        = models.IntegerField(default=0,verbose_name=u"性别")
     language   = models.CharField(max_length=10,blank=True,verbose_name=u"语言")

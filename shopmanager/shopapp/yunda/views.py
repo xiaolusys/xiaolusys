@@ -140,7 +140,6 @@ class PackageByCsvFileView(YundaFileUploadView):
     
    
     
-    
 class DiffPackageDataView(ModelView):
     
     def calcWeight(self,sqs,pqs):
@@ -172,5 +171,20 @@ class DiffPackageDataView(ModelView):
                 'other':self.calcWeight(small_queryset.filter(is_jzhw=False),
                                        parent_queryset.filter(is_jzhw=False))
                 }
+    
+  
+class PackageWeightView(ModelView):
+    """ 包裹称重视图 """
+    
+    def get(self, request, *args, **kwargs):
+        
+        
+        return {}
+        
+    def post(self, request,*args, **kwargs):
+        
+        pass  
+    
+    
     
     

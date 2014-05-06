@@ -662,6 +662,8 @@ class MergeTradeAdmin(admin.ModelAdmin):
         for s in yundaset:
             try:
                 sl = []
+                sl.append(s.weight_time and s.weight_time.strftime('%Y-%m-%d'))
+                sl.append('%s'%s.logistics_company)
                 sl.append(s.out_sid)
                 sl.append(s.tid and str(s.tid) or '')
                 sl.append(s.receiver_state)
@@ -701,16 +703,17 @@ admin.site.register(MergeTrade,MergeTradeAdmin)
 
 
 class MergeOrderAdmin(admin.ModelAdmin):
-    list_display = ('id','tid','oid','outer_id','outer_sku_id','seller_nick','buyer_nick','price','num','sku_properties_name',
-                    'out_stock','is_rule_match','payment','refund_id','refund_status','cid','status')
-    list_display_links = ('oid','tid')
+    list_display = ('id','merge_trade','oid','outer_id','outer_sku_id','sku_properties_name','price','num',
+                    'payment','out_stock','is_rule_match','gift_type','refund_status','status','sys_status')
+    list_display_links = ('oid','id')
     #list_editable = ('update_time','task_type' ,'is_success','status')
 
-    date_hierarchy = 'created'
+    #date_hierarchy = 'created'
     #ordering = ['created_at']
 
-    list_filter = ('seller_nick','status','gift_type','refund_status','out_stock','is_rule_match')
-    search_fields = ['oid','tid','buyer_nick','outer_id','outer_sku_id']
+    list_filter = ('sys_status','merge_trade__sys_status','refund_status','out_stock',
+                   'is_rule_match','is_merge','gift_type',('pay_time',DateFieldListFilter))
+    search_fields = ['oid','tid','outer_id','outer_sku_id']
 
 
 admin.site.register(MergeOrder,MergeOrderAdmin)

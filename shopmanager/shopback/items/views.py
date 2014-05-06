@@ -819,7 +819,8 @@ class StatProductSaleView(ModelView):
     def parseDate(self,start_dt):
         
         if not start_dt:
-            return datetime.datetime.now().date()
+            dt = datetime.datetime.now()
+            return (dt-datetime.timedelta(days=1)).date()
         
         return parse_date(start_dt)
         
