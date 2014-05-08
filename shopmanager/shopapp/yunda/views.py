@@ -9,8 +9,9 @@ from djangorestframework.response import Response,ErrorResponse
 from shopback import paramconfig as pcfg
 from shopback.logistics.models import LogisticsCompany
 from shopback.base.views import ModelView,ListOrCreateModelView,ListModelView
-from .models import LogisticOrder,ParentPackageWeight,\
-    TodaySmallPackageWeight,TodayParentPackageWeight,JZHW_REGEX,YUNDA
+from .models import BranchZone,LogisticOrder,ParentPackageWeight,TodaySmallPackageWeight\
+    ,TodayParentPackageWeight,JZHW_REGEX,YUNDA,NORMAL,DELETE
+from .options import get_addr_zones
 
 
 class YundaFileUploadView(ModelView):
@@ -176,15 +177,97 @@ class DiffPackageDataView(ModelView):
 class PackageWeightView(ModelView):
     """ 包裹称重视图 """
     
+    def isValidYundaId(self,package_no):
+        if len(package_no) < 13:
+            return False
+        
+        yunda_company = LogisticsCompany.objects.get(code=YUNDA)
+        return re.compile(yunda_company.reg_mail_no).match(package_no[0:13])
+        
+    def parseYundaId(self,package_no):
+        
+        if len(package_no) < 24: 
+            return package_no[0:13],'',''
+        return package_no[0:13],package_no[13:17],package_no[17:23]   
+    
+    def getYundaZone(self,lg_order,dc_code=None):
+        
+        if dc_code:
+            bzones = BranchZone.objects.filter(barcode=dc_code)
+            if  bzones.count() > 0:
+                return bzones[0]
+            
+        return get_addr_zones(lg_order.receiver_state,
+                              lg_order.receiver_city,
+                              lg_order.receiver_district,
+                              address=lg_order.receiver_address)
+        
     def get(self, request, *args, **kwargs):
         
+        content    = request.REQUEST
+        package_no = content.get('package_no')
         
-        return {}
+        if not self.isValidYundaId(package_no):
+            return u'非法的运单号'
+        
+        package_id,valid_code,dc_code = self.parseYundaId(package_no)
+        
+        try:
+            lo = LogisticOrder.objects.get(out_sid=package_id)
+        except LogisticOrder.DoesNotExist:
+            if not dc_code:
+                return u'运单号未录入系统'
+            lo,state = LogisticOrder.objects.get_or_create(out_sid=package_id)
+            lo.dc_code = dc_code
+            lo.valid_code = valid_code
+            lo.save()
+            
+        try:
+            yd_customer = lo.yd_customer and lo.yd_customer.name or ''
+        except:
+            yd_customer = ''
+            
+        return {'package_id':package_id,
+                'cus_oid':lo.cus_oid,
+                'yd_customer':yd_customer,
+                'receiver_name':lo.receiver_name,
+                'receiver_state':lo.receiver_state,
+                'receiver_city':lo.receiver_city,
+                'receiver_district':lo.receiver_district,
+                'receiver_address':lo.receiver_address,
+                'created':lo.created,
+                'zone':self.getYundaZone(lo, dc_code)
+                }
+    
         
     def post(self, request,*args, **kwargs):
         
-        pass  
-    
-    
+        content    = request.REQUEST
+        package_no = content.get('package_no')
+        package_weight = content.get('package_weight')
+        
+        if not self.isValidYundaId(package_no):
+            return u'非法的运单号'
+        
+        package_id,valid_code,dc_code = self.parseYundaId(package_no)
+        try:
+            lo = LogisticOrder.objects.get(out_sid=package_no)
+        except LogisticOrder.DoesNotExist:
+            return u'运单号未录入系统'
+        try:
+            float(package_weight)
+        except:
+            return u'重量异常:%s'%package_weight
+        lo.weight  = package_weight
+        lo.valid_code = valid_code
+        lo.dc_code = dc_code
+        lo.save()
+        
+        tspw,state = TodaySmallPackageWeight.objects.get_or_create(
+                                            package_id=package_no)
+        tspw.weight = package_weight
+        tspw.save()
+        
+        return {'isSuccess':True}
     
     

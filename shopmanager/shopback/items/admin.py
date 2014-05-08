@@ -274,14 +274,19 @@ class ProductAdmin(admin.ModelAdmin):
         
     export_prodsku_info_action.short_description = u"导出商品及规格信息"
     
-    actions = ['sync_items_stock','update_items_sku','cancle_items_out_stock','juhuasuan_instock_product','export_prodsku_info_action']
+    actions = ['sync_items_stock',
+               'update_items_sku',
+               'cancle_items_out_stock',
+               'juhuasuan_instock_product',
+               'export_prodsku_info_action']
 
 admin.site.register(Product, ProductAdmin)
 
 
 class ProductSkuAdmin(admin.ModelAdmin):
-    list_display = ('id','outer_id','product','properties_name','properties_alias','quantity','warn_num','remain_num',
-                    'wait_post_num','cost','std_sale_price','sync_stock','is_assign','is_split','is_match','post_check','district_link','status')
+    list_display = ('id','outer_id','product','properties_name','properties_alias','quantity','warn_num',
+                    'remain_num','wait_post_num','cost','std_sale_price','sync_stock','is_assign',
+                    'is_split','is_match','post_check','district_link','status')
     list_display_links = ('outer_id',)
     list_editable = ('quantity',)
 
@@ -330,7 +335,8 @@ class ProductSkuAdmin(admin.ModelAdmin):
                 pull_dict['success']=True
             sync_items.append(pull_dict)
        
-        return render_to_response('items/product_action.html',{'prods':sync_items,'action_name':u'取消规格对应订单缺货状态'},
+        return render_to_response('items/product_action.html',{'prods':sync_items,
+                                                               'action_name':u'取消规格对应订单缺货状态'},
                                   context_instance=RequestContext(request),mimetype="text/html")
         
     cancle_items_out_stock.short_description = u"取消规格订单缺货"
@@ -342,7 +348,8 @@ admin.site.register(ProductSku, ProductSkuAdmin)
   
   
 class SkuPropertyAdmin(admin.ModelAdmin):
-    list_display = ('num_iid','sku_id','outer_id','properties_name','price','quantity','with_hold_quantity','sku_delivery_time','created','modified','status')
+    list_display = ('num_iid','sku_id','outer_id','properties_name','price','quantity',
+                    'with_hold_quantity','sku_delivery_time','created','modified','status')
     list_display_links = ('sku_id', 'outer_id')
     #list_editable = ('update_time','task_type' ,'is_success','status')
     
