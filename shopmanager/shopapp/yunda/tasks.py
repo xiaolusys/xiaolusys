@@ -445,12 +445,6 @@ class PushYundaPackageWeightTask(Task):
         except:
             return '0.2'
         
-        if weight == '' or float(weight) < 0.2 or weight.rfind('.') == 0:
-            return '0.2'
-        
-        if weight.rfind('.') < 0:
-            return str(round(int(weight)*0.90/1000.0,2))
-        
         return weight
     
     def createYundaOrder(self,trade):
@@ -480,8 +474,8 @@ class PushYundaPackageWeightTask(Task):
         
         tspw,state = TodaySmallPackageWeight.objects.get_or_create(
                             package_id=order.out_sid)
-        tspw.is_jzhw = order.is_JZHW()
-        tspw.weight  = order.weight
+        tspw.is_jzhw = order.isJZHW()
+        tspw.weight  = 0
         tspw.save()
         
     def run(self):

@@ -654,7 +654,8 @@ class ProductNumAssignView(ModelView):
         product_sku = None
         if outer_sku_id:
             try:
-                product_sku = ProductSku.objects.get(product__outer_id=outer_id,outer_id=outer_sku_id)
+                product_sku = ProductSku.objects.get(product__outer_id=outer_id,
+                                                     outer_id=outer_sku_id)
             except:
                 pass
             else:

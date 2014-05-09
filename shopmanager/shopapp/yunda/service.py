@@ -15,7 +15,7 @@ from shopback.trades.models import MergeTrade
 from shopapp.yunda.qrcode import cancel_order,search_order,parseTreeID2MailnoMap
 from shopapp.yunda.models import YundaCustomer,LogisticOrder,ParentPackageWeight,\
     TodaySmallPackageWeight,TodayParentPackageWeight,AnonymousYundaCustomer,YUNDA_CODE,NORMAL,DELETE
-from common.utils import valid_mobile,format_datetime
+from common.utils import valid_mobile,format_datetime,group_list
 import logging
 
 logger = logging.getLogger('django.request')
@@ -26,6 +26,8 @@ YUNDA_SCAN_URL = 'http://qz.yundasys.com:9900/ws/ws.jsp'
 ADDR_UPLOAD_LIMIT   = 100
 WEIGHT_UPLOAD_LIMIT = 30
 RETRY_INTERVAL      = 60
+DEFUALT_CUSTOMER_CODE = 'QIYUE'
+PACKAGE_BAG_WEIGHT  = 0.05
 
 def post_yunda_service(req_url,data='',headers=None):
     """
@@ -76,7 +78,7 @@ class YundaService(object):
                 obj['package_id'],
                 None,
                 '20',
-                obj['upload_weight'],
+                '%.2f'%obj['upload_weight'],
                 '0',
                 self.yd_account.cus_id,
                 None,
@@ -176,4 +178,116 @@ class YundaService(object):
         post_yunda_service(YUNDA_SCAN_URL,data=post_xml.encode('utf8'))
             
         
+class YundaPackageService(object):
     
+    def _calJZHWeightRule(self,weight):
+        
+        return weight < 0.5 and weight or weight*0.94
+        
+    def _calExternalWeightRule(self,weight):
+        
+        if weight < 0.5:
+            return weight
+        if weight < 1.0:
+            return weight * 0.8
+        if weight < 4.0:
+            return weight / 2
+        return weight - 2
+            
+    def _reCalcWeightRule(self,weight):
+        
+        if weight < 0.5:
+            return weight
+        if weight < 4.0:
+            return weight * 0.8
+        return weight - 1
+    
+    def calcSmallPackageWeight(self,tspw):
+        
+        try:
+            spw = LogisticOrder.objects.get(out_sid=tspw.package_id)
+        except LogisticOrder.DoesNotExist:
+            raise Exception(u'小包号:%s,运单信息未入库!'%(tspw.package_id))
+
+        if not spw.weight or float(spw.weight) <= 0:
+            raise Exception(u'小包号:%s,重量为空!'%tspw.package_id)
+        
+        package_weight = float(spw.weight)
+
+        if spw.is_jzhw:
+            return round(package_weight,2),round(self._calJZHWeightRule(package_weight),2)
+            
+        return round(package_weight,2),round(self._calExternalWeightRule(package_weight),2)
+        
+     
+    def _getSmallPackageWeightDict(self,queryset):
+        
+        ydo_list = []
+        for package in queryset:
+            
+            ydo_list.append({'valid_code':'',
+                             'package_id':package.package_id,
+                             'weight':package.weight,
+                             'upload_weight':package.upload_weight,
+                             'weighted':package.weighted,
+                             'is_parent':False})
+        return ydo_list
+    
+    
+    def calcParentPackageWeight(self,bpkw):
+        
+        tspws = TodaySmallPackageWeight.objects.filter(
+                                parent_package_id=bpkw.parent_package_id)
+        bpkw_weight = 0
+        bpkw_upload_weight = 0
+        for tspw in tspws:
+            if not tspw.weight or not tspw.upload_weight or float(tspw.weight) <= 0:
+                raise Exception(u'大包号:%s,小包号:%s,没有重量,请核对!'%
+                                (tspw.parent_package_id,tspw.package_id))
+                
+            bpkw_weight += float(tspw.weight)
+            bpkw_upload_weight += float(tspw.upload_weight)
+        
+        if bpkw_weight - bpkw_upload_weight < 5 and not bpkw.is_jzhw:
+            bpkw_upload_weight = 0
+            
+            for tspw in tspws:
+                tspw.upload_weight = self._reCalcWeightRule(float(tspw.weight))
+                tspw.save()
+                bpkw_upload_weight += tspw.upload_weight
+                
+        return bpkw_weight,bpkw_upload_weight + PACKAGE_BAG_WEIGHT
+        
+    def _getParentPackageWeightDict(self,queryset):
+        
+        ydo_list = []
+        for package in queryset:
+             
+            ydo_list.append({'valid_code':'',
+                             'package_id':package.parent_package_id,
+                             'weight':package.weight,
+                             'upload_weight':package.upload_weight,
+                             'weighted':package.weighted,
+                             'is_parent':True})
+        return ydo_list
+    
+    def uploadSmallPackageWeight(self,queryset):
+        
+        yd_service = YundaService(cus_code=DEFUALT_CUSTOMER_CODE)
+        
+        for yd_list in group_list(self._getSmallPackageWeightDict(queryset),WEIGHT_UPLOAD_LIMIT):
+            
+            yd_service.uploadWeight(yd_list)
+            yd_service.flushPackageWeight(yd_list)
+    
+    
+    def uploadParentPackageWeight(self,queryset):
+        
+        yd_service = YundaService(cus_code=DEFUALT_CUSTOMER_CODE)
+        
+        for yd_list in group_list(self._getParentPackageWeightDict(queryset),WEIGHT_UPLOAD_LIMIT):
+            
+            yd_service.uploadWeight(yd_list)
+            yd_service.flushPackageWeight(yd_list)
+            
+

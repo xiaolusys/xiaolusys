@@ -1,16 +1,22 @@
 #-*- coding:utf8 -*-
 import os,re,json
 import datetime
+from django.http import HttpResponseRedirect
 from django.views.decorators.csrf import csrf_exempt
+from django.conf import settings
+from django.core.urlresolvers import reverse
 from django.contrib import messages
-from django.db.models import Sum,Count
+from django.db.models import Sum,Count,Max
 from djangorestframework import status
 from djangorestframework.response import Response,ErrorResponse
 from shopback import paramconfig as pcfg
 from shopback.logistics.models import LogisticsCompany
 from shopback.base.views import ModelView,ListOrCreateModelView,ListModelView
-from .models import BranchZone,LogisticOrder,ParentPackageWeight,TodaySmallPackageWeight\
-    ,TodayParentPackageWeight,JZHW_REGEX,YUNDA,NORMAL,DELETE
+from shopback.base import log_action, ADDITION, CHANGE
+from .service import YundaPackageService,DEFUALT_CUSTOMER_CODE
+from .models import BranchZone,YundaCustomer,LogisticOrder,ParentPackageWeight,\
+    TodaySmallPackageWeight,TodayParentPackageWeight,JZHW_REGEX,YUNDA,NORMAL,\
+    DELETE
 from .options import get_addr_zones
 
 
@@ -48,10 +54,12 @@ class YundaFileUploadView(ModelView):
         
         try:
             with open(fullfile_path, 'rb') as csvfile:
-                spamreader = csv.reader(csvfile, delimiter=',', quotechar='|')
+                spamreader = csv.reader(csvfile, delimiter=',', quotechar='"')
                 response = self.handle_post(request, spamreader)
                 
         except Exception,exc:
+            if settings.DEBUG:
+                raise exc
             return {'success':False,'errorMsg':exc.message}
         
         return response
@@ -139,6 +147,97 @@ class PackageByCsvFileView(YundaFileUploadView):
                 
         return {'success':True,'redirect_url':'/admin/yunda/todayparentpackageweight/'}
     
+
+class CustomerPackageImportView(YundaFileUploadView):
+    
+    
+    file_path     = 'yunda'
+    filename_save = 'cr_package_%s.csv'
+    
+    def get(self, request, *args, **kwargs):
+        pass
+    
+    def getCustomer(self,code):
+        try:
+            return YundaCustomer.objects.get(code=code)
+        except:
+            raise Exception(u'未找到代码(%s)对应的客户信息'%code)
+        
+    def getSid(self,row):
+        return row[2]
+    
+    def getCusOid(self,row):
+        return row[0]
+    
+    def getPackageCompany(self,row):
+        return row[1]
+    
+    def getPackageReceiver(self,row):
+        return row[3]
+    
+    def getPackageState(self,row):
+        return row[4]
+    
+    def getPackageCity(self,row):
+        return row[5]
+    
+    def getPackageDistrict(self,row):
+        return row[6]
+    
+    def getPackageAddress(self,row):
+        return row[7]
+    
+    def getPackageMobile(self,row):
+        return row[8]
+    
+    def getPackagePhone(self,row):
+        return row[9]
+    
+    def isValidPackage(self,row):
+        
+        yunda_company = LogisticsCompany.objects.get(code=YUNDA)
+        return re.compile(yunda_company.reg_mail_no).match(self.getSid(row))
+    
+    def createPackageOrder(self,customer,row,ware_no):
+        
+        sid  = self.getSid(row)
+        
+        lo,sate = LogisticOrder.objects.get_or_create(out_sid=sid)
+        if lo.cus_oid and lo.cus_oid != self.getCusOid(row):
+            raise Exception(u'运单单号:%s,新(%s)旧(%s)客户单号不一致，请核实！'%
+                            (sid,lo.cus_oid,self.getCusOid(row)))
+            
+        lo.yd_customer = customer
+        lo.cus_oid     = self.getCusOid(row)
+        lo.receiver_name      = self.getPackageReceiver(row)
+        lo.receiver_state     = self.getPackageState(row)
+        lo.receiver_city      = self.getPackageCity(row)
+        lo.receiver_district  = self.getPackageDistrict(row)
+        lo.receiver_address   = self.getPackageAddress(row)
+        lo.receiver_mobile    = self.getPackageMobile(row)
+        lo.receiver_phone     = self.getPackagePhone(row)
+        lo.wave_no            = ware_no
+        lo.save()
+        
+        tspw,state = TodaySmallPackageWeight.objects.\
+            get_or_create(package_id=sid)
+        tspw.is_jzhw = lo.isJZHW()
+        tspw.save()
+    
+    
+    def handle_post(self,request,csv_iter):
+        
+        wave_no  = datetime.datetime.now().strftime('%Y%m%dT%H%M%S')
+        encoding = self.getFileEncoding(request)
+        cus_code = csv_iter.next()[0].split('-')[0]
+        customer = self.getCustomer(cus_code.upper())
+        
+        for row in csv_iter:
+            row = [r.strip().decode(encoding) for r in row]
+            if self.isValidPackage(row):
+                self.createPackageOrder(customer,row,wave_no)
+                
+        return {'success':True,'redirect_url':'/admin/yunda/logisticorder/?q='+wave_no}
    
     
 class DiffPackageDataView(ModelView):
@@ -146,34 +245,103 @@ class DiffPackageDataView(ModelView):
     def calcWeight(self,sqs,pqs):
         
         tspw_dict = sqs.aggregate(
+                                total_num=Count('package_id'),
+                                total_weight=Sum('weight'),
+                                total_upload_weight=Sum('upload_weight'))
+        
+        jb_tspw_dict = sqs.exclude(parent_package_id='').aggregate(
                                     total_num=Count('package_id'),
                                     total_weight=Sum('weight'),
                                     total_upload_weight=Sum('upload_weight'))
         
-        jb_tspw_dict = sqs.exclude(parent_package_id='').aggregate(
-                                        total_num=Count('package_id'),
-                                        total_weight=Sum('weight'),
-                                        total_upload_weight=Sum('upload_weight'))
-        
         tppw_dict = pqs.aggregate(
-                                        total_num=Count('parent_package_id'),
-                                        total_weight=Sum('weight'),
-                                        total_upload_weight=Sum('upload_weight'))
+                                total_num=Count('parent_package_id'),
+                                total_weight=Sum('weight'),
+                                total_upload_weight=Sum('upload_weight'))
+        
+        
         return {'A':tspw_dict,'B':jb_tspw_dict,'C':tppw_dict}
+    
+    def calcPackageData(self):
+        
+        small_queryset  = TodaySmallPackageWeight.objects.all()
+        parent_queryset = TodayParentPackageWeight.objects.all()
+        print 'weight:',small_queryset.aggregate(max_weight=Max('weight'))
+        return {'all':self.calcWeight(small_queryset,parent_queryset),
+                'jzhw':self.calcWeight(small_queryset.filter(is_jzhw=True),
+                                       parent_queryset.filter(is_jzhw=True)),
+                'other':self.calcWeight(small_queryset.filter(is_jzhw=False),
+                                       parent_queryset.filter(is_jzhw=False)),
+                'max_sweight':small_queryset.aggregate(max_weight=Max('weight')).get('max_weight'),
+                'max_pweight':parent_queryset.aggregate(max_weight=Max('weight')).get('max_weight')
+                }
+    
+    def isValidLanjianUser(self,lanjian_id):
+        
+        yc = YundaCustomer.objects.get(code=DEFUALT_CUSTOMER_CODE)
+        return yc.lanjian_id == lanjian_id
     
     def get(self, request, *args, **kwargs):
         
         small_queryset  = TodaySmallPackageWeight.objects.all()
         parent_queryset = TodayParentPackageWeight.objects.all()
         
-        return {'all':self.calcWeight(small_queryset,parent_queryset),
-                'jzhw':self.calcWeight(small_queryset.filter(is_jzhw=True),
-                                       parent_queryset.filter(is_jzhw=True)),
-                'other':self.calcWeight(small_queryset.filter(is_jzhw=False),
-                                       parent_queryset.filter(is_jzhw=False))
-                }
+        error_packages = []
+        
+        yunda_service = YundaPackageService()
+        
+        for tspw  in small_queryset:
+            try:
+                weight_tuple = yunda_service.calcSmallPackageWeight(tspw)
+                tspw.weight = weight_tuple[0]
+                tspw.upload_weight = weight_tuple[1]
+                tspw.save()
+            except Exception,exc:
+                error_packages.append((tspw.package_id,tspw.weight,exc.message))
+                
+        if not error_packages:
+            for tppw  in parent_queryset:
+                try:
+                    weight_tuple = yunda_service.calcParentPackageWeight(tppw)
+                    tppw.weight = weight_tuple[0]
+                    tppw.upload_weight = weight_tuple[1]
+                    tppw.save()
+                except Exception,exc:
+                    error_packages.append((tppw.parent_package_id,tppw.weight,exc.message))
+        
+        if error_packages:
+            return {'error_packages':error_packages}
+        
+        response = self.calcPackageData()
+        
+        return response
     
-  
+    def post(self, request, *args, **kwargs):
+        
+        lanjian_id = request.POST.get('lanjian_id','').strip()
+        
+        try:
+            if not self.isValidLanjianUser(lanjian_id):
+                raise Exception(u'揽件ID不正确，重新再试！')
+            
+            small_queryset  = TodaySmallPackageWeight.objects.all()
+            parent_queryset = TodayParentPackageWeight.objects.all()
+            
+            ydpkg_service = YundaPackageService()
+            ydpkg_service.uploadSmallPackageWeight(small_queryset)
+            ydpkg_service.uploadParentPackageWeight(parent_queryset)
+            
+        except Exception,exc:
+            messages.error(request, u'XXXXXXXXXXXXXXXXXXXXX 包裹重量上传异常:%s XXXXXXXXXXXXXXXXXXXXX'%exc.message)
+        else:
+            messages.info(request,u'================ 包裹重量上传成功 ===================')
+            
+        from django.contrib.contenttypes.models import ContentType
+        ct = ContentType.objects.get_for_model(TodaySmallPackageWeight)
+        
+        return HttpResponseRedirect(reverse('admin:%s_%s_changelist'%(ct.app_label, ct.model)))
+    
+    
 class PackageWeightView(ModelView):
     """ 包裹称重视图 """
     
@@ -221,7 +389,7 @@ class PackageWeightView(ModelView):
             lo.dc_code = dc_code
             lo.valid_code = valid_code
             lo.save()
-            
+            log_action(request.user.id,lo,ADDITION,u'扫描录单')
         try:
             yd_customer = lo.yd_customer and lo.yd_customer.name or ''
         except:
@@ -267,6 +435,7 @@ class PackageWeightView(ModelView):
                                             package_id=package_no)
         tspw.weight = package_weight
         tspw.save()
+        log_action(request.user.id,lo,CHANGE,u'扫描称重')
         
         return {'isSuccess':True}
     

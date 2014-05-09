@@ -689,6 +689,9 @@ class SkuProperty(models.Model):
         verbose_name = u'线上商品规格'
         verbose_name_plural = u'线上商品规格列表'
         
+    @property
+    def properties_alias(self):
+        return ''.join([p.split(':')[3] for p in self.properties_name.split(';') if p])
     
     @classmethod    
     def save_or_update(cls,sku_dict):
@@ -702,6 +705,7 @@ class SkuProperty(models.Model):
         sku.save()
         
         return sku
+    
         
 
 class ProductLocation(models.Model):
