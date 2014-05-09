@@ -92,7 +92,7 @@ class ParentPackageWeightAdmin(admin.ModelAdmin):
     #ordering = ['created_at']
     
     list_filter = ('is_jzhw','is_charged',('weighted',DateFieldListFilter),
-                   ('upload_weight',DateFieldListFilter))
+                   ('uploaded',DateFieldListFilter))
     search_fields = ['parent_package_id','destinate']
     
 
