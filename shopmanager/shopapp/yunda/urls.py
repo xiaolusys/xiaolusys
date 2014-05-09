@@ -3,7 +3,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.conf import settings
 from django.contrib.admin.views.decorators import staff_member_required
 from django.views.generic import TemplateView
-from .views import PackageByCsvFileView,DiffPackageDataView,PackageWeightView
+from .views import PackageByCsvFileView,DiffPackageDataView,PackageWeightView,CustomerPackageImportView
 from .resources import PackageListResource,LogisticOrderResource
 from .renderers import BaseJsonRenderer,PackageDiffHtmlRenderer
 from shopback.base.permissions import IsAuthenticated
@@ -18,7 +18,7 @@ urlpatterns = patterns('shopapp.yunda.views',
         permissions=(IsAuthenticated,)
     )),  
                        
-    (r'^today/diff/$',DiffPackageDataView.as_view(
+    (r'^today/push/$',DiffPackageDataView.as_view(
         resource=PackageListResource,
         renderers=(BaseJsonRenderer,PackageDiffHtmlRenderer),
         authentication=(UserLoggedInAuthentication,),
@@ -33,5 +33,12 @@ urlpatterns = patterns('shopapp.yunda.views',
         renderers=(BaseJsonRenderer,),
         authentication=(UserLoggedInAuthentication,),
         permissions=(IsAuthenticated,)
-    )),   
+    )), 
+                       
+    (r'^order/upload/$',CustomerPackageImportView.as_view(
+        resource=PackageListResource,
+        renderers=(BaseJsonRenderer,),
+        authentication=(UserLoggedInAuthentication,),
+        permissions=(IsAuthenticated,)
+    )),  
 )

@@ -158,6 +158,7 @@ class LogisticOrder(models.Model):
     status     = models.CharField(max_length=10,default=NORMAL,
                                   choices=ORDER_STATUS_CHOICES,verbose_name=u'状态')
     
+    wave_no    =  models.CharField(max_length=32,db_index=True,blank=True,verbose_name=u'批次')
     class Meta:
         db_table = 'shop_yunda_order'
         verbose_name=u'韵达订单'
@@ -166,7 +167,7 @@ class LogisticOrder(models.Model):
     def __unicode__(self):
         return u'<%s,%s>'%(self.cus_oid,self.out_sid)
     
-    def is_JZHW(self):
+    def isJZHW(self):
         return JZHW_REGEX.match(self.receiver_state) and True or False
 
 def change_order_yunda_addr(sender, tid, *args, **kwargs):
@@ -189,8 +190,8 @@ change_addr_signal.connect(change_order_yunda_addr,sender=MergeTrade,dispatch_ui
 class ParentPackageWeight(models.Model):
     
     parent_package_id = models.CharField(primary_key=True,max_length=64,verbose_name=u'大包编号') 
-    weight            = models.CharField(max_length=10,blank=True,verbose_name=u'称重(kg)') 
-    upload_weight     = models.CharField(max_length=10,blank=True,verbose_name=u'计重(kg)')
+    weight            = models.FloatField(default=0.0,verbose_name=u'称重(kg)') 
+    upload_weight     = models.FloatField(default=0.0,verbose_name=u'计重(kg)')
     
     weighted          = models.DateTimeField(default=datetime.datetime.now,verbose_name=u'称重日期')
     uploaded          = models.DateTimeField(default=datetime.datetime.now,verbose_name=u'上传日期') 
@@ -213,8 +214,8 @@ class TodaySmallPackageWeight(models.Model):
     
     package_id        = models.CharField(primary_key=True,max_length=64,verbose_name=u'运单编号')
     parent_package_id = models.CharField(max_length=64,db_index=True,blank=True,verbose_name=u'大包编号') 
-    weight            = models.CharField(max_length=10,blank=True,verbose_name=u'称重(kg)') 
-    upload_weight     = models.CharField(max_length=10,blank=True,verbose_name=u'计重(kg)')
+    weight            = models.FloatField(default=0.0,verbose_name=u'称重(kg)') 
+    upload_weight     = models.FloatField(default=0.0,verbose_name=u'计重(kg)')
     weighted          = models.DateTimeField(default=datetime.datetime.now,verbose_name=u'称重日期')
     is_jzhw           = models.BooleanField(default=False,verbose_name=u'江浙沪皖')
 
@@ -230,8 +231,8 @@ class TodaySmallPackageWeight(models.Model):
 class TodayParentPackageWeight(models.Model):
     
     parent_package_id = models.CharField(primary_key=True,max_length=64,verbose_name=u'大包编号') 
-    weight            = models.CharField(max_length=10,blank=True,verbose_name=u'称重(kg)') 
-    upload_weight     = models.CharField(max_length=10,blank=True,verbose_name=u'计重(kg)')
+    weight            = models.FloatField(default=0.0,verbose_name=u'称重(kg)') 
+    upload_weight     = models.FloatField(default=0.0,verbose_name=u'计重(kg)')
     weighted          = models.DateTimeField(default=datetime.datetime.now,verbose_name=u'称重日期')
     is_jzhw           = models.BooleanField(default=False,verbose_name=u'江浙沪皖')
 

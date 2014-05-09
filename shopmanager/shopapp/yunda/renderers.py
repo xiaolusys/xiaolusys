@@ -9,7 +9,7 @@ class PackageDiffHtmlRenderer(TemplateRenderer):
     
     media_type = 'text/html'
     format = 'html'
-    template = 'yunda/diff_small_parent_package.html'
+    template = 'yunda/upload_yunda_package.html'
     
     
 
