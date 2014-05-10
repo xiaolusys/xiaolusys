@@ -28,6 +28,6 @@ $(document).ready(function(){
                                $('.import_status').css('display','none');                      
                        }
                });
-               $('#upload_csvfile').dialog({title: "CSV文件导入韵达集包",width:'700',height:'200'});
+               $('#upload_csvfile').dialog({title: "CSV文件导入韵达集包数据",width:'700',height:'200'});
        });
 });
