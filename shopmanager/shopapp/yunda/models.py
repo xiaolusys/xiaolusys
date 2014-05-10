@@ -15,7 +15,7 @@ YUNDA  = 'YUNDA'
 YUNDA_QR = 'YUNDA_QR'
 YUNDA_CODE     = (YUNDA,YUNDA_QR)
 
-JZHW_REGEX = re.compile('^(上海|江苏|浙江|安徽)'.decode('utf8'))
+JZHW_REGEX = re.compile(u'^(上海|江苏|浙江|安徽)'.decode('utf8'))
 
 ORDER_STATUS_CHOICES = (
                         (NORMAL,U'正常'),
