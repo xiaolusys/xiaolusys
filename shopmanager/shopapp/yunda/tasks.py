@@ -445,6 +445,12 @@ class PushYundaPackageWeightTask(Task):
         except:
             return '0.2'
         
+        if weight == '' or float(weight) < 0.1 or weight.rfind('.') == 0:
+            return '0.1'
+        
+        if weight.rfind('.') < 0:
+            return '%.2f'%(int(weight)/1000.0)
+
         return weight
     
     def createYundaOrder(self,trade):
