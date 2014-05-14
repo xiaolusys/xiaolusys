@@ -202,7 +202,6 @@ class MergeTrade(models.Model):
     is_picking_print = models.BooleanField(default=False,verbose_name=u'发货单')
     is_express_print = models.BooleanField(default=False,verbose_name=u'物流单')
     is_send_sms      = models.BooleanField(default=False,verbose_name=u'发货通知')
-    is_qrcode        = models.BooleanField(default=False,verbose_name=u'韵达二维码')
     has_refund       = models.BooleanField(default=False,verbose_name=u'待退款')
     has_out_stock    = models.BooleanField(default=False,verbose_name=u'缺货')
     has_rule_match   = models.BooleanField(default=False,verbose_name=u'有匹配')
@@ -211,6 +210,9 @@ class MergeTrade(models.Model):
     has_sys_err      = models.BooleanField(default=False,verbose_name=u'系统错误')
     remind_time      = models.DateTimeField(null=True,blank=True,verbose_name=u'提醒日期')
     refund_num       = models.IntegerField(null=True,default=0,verbose_name=u'退款单数')  #退款单数
+    
+    is_qrcode        = models.BooleanField(default=False,verbose_name=u'热敏订单')
+    qrcode_msg       = models.CharField(max_length=32,blank=True,verbose_name=u'条码错误')
     
     can_review       = models.BooleanField(default=False,verbose_name=u'复审') 
     priority       =  models.IntegerField(db_index=True,default=0,

@@ -1,3 +1,5 @@
+######### 2014-5-12 ##########
+alter table shop_trades_mergetrade add column qrcode_msg varchar(32) NOT NULL;
 ######### 2014-5-10 ##########
 alter table shop_users_user add column user_code varchar(16) NOT NULL;
 ######### 2014-5-9 ##########

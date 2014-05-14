@@ -170,22 +170,6 @@ class LogisticOrder(models.Model):
     def isJZHW(self):
         return JZHW_REGEX.match(self.receiver_state) and True or False
 
-def change_order_yunda_addr(sender, tid, *args, **kwargs):
-   
-    from shopapp.yunda.qrcode import modify_order
-    
-    mtrade = MergeTrade.objects.get(id=tid)
-    #如果订单非二维码订单，则退出
-    if not mtrade.is_qrcode:
-        return 
-        
-    try:
-        modify_order([tid])
-    except Exception,exc:
-        logger.error(exc.message,exc_info=True)
-        
-change_addr_signal.connect(change_order_yunda_addr,sender=MergeTrade,dispatch_uid='change_order_addr_uniqueid')        
-        
         
 class ParentPackageWeight(models.Model):
     
