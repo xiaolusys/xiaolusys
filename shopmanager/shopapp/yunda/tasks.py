@@ -12,8 +12,10 @@ from celery import Task
 from django.core.paginator import Paginator
 from shopback import paramconfig as pcfg
 from shopback.trades.models import MergeTrade
+from shopback.users import Seller
 from shopapp.yunda.qrcode import cancel_order,search_order,parseTreeID2MailnoMap
-from shopapp.yunda.models import LogisticOrder,TodaySmallPackageWeight,YUNDA_CODE,NORMAL,DELETE
+from shopapp.yunda.models import LogisticOrder,YundaCustomer,TodaySmallPackageWeight,\
+    YUNDA_CODE,NORMAL,DELETE
 from common.utils import valid_mobile,format_datetime
 import logging
 
@@ -97,58 +99,75 @@ class CancelUnsedYundaSidTask(Task):
     
     max_retries   = 3
     interval_days  = 10 
-
-    def getSourceIDList(self):
+    
+    def getCustomerBySeller(self,seller):
+        return YundaCustomer.objects.get(code=seller.user_code)
+        
+    def getSourceIDList(self,seller):
         
         dt  = datetime.datetime.now()
         df  = dt - datetime.timedelta(days=self.interval_days)
         
-        trades = MergeTrade.objects.filter(is_qrcode=True,
-                                           is_charged=False,
+        trades = MergeTrade.objects.filter(user=seller,
+                                           is_qrcode=True,
                                            pay_time__gte=df,
                                            pay_time__lte=dt)
         
-        
         return [t.id for t in trades]
     
-    def getCancelIDList(self):
+    def isCancelable(self,order_serial_no,mail_no,status):
         
-        source_ids = self.getSourceIDList()
+        if  status != '1' and not mail_no :
+            return False
+        
+        trade = MergeTrade.objects.get(id=order_serial_no)
+        if trade.out_sid.strip() != mail_no or \
+            not trade.is_qrcode or \
+            trade.sys_status in pcfg.CANCEL_YUNDASID_STATUS:
+            return True
+        
+        return False
+        
+    def getCancelIDList(self,seller):
+        
+        source_ids = self.getSourceIDList(seller)
         if not source_ids:
             return []
-            
-        cancel_ids = []
         
-        doc   = search_order(source_ids)
+        yd_customer = self.getCustomerBySeller(seller)
+        
+        cancel_ids = []
+        doc   = search_order(source_ids,
+                             partner_id=yd_customer.qr_id,
+                             secret=yd_customer.qr_code)
+        
         orders = doc.xpath('/responses/response')
         for order in orders:
             status = order.xpath('status')[0].text
             mail_no = order.xpath('mailno')[0].text
             order_serial_no = order.xpath('order_serial_no')[0].text
             
-            trade = MergeTrade.objects.get(id=order_serial_no)
-            lgc   = trade.logistics_company
-            
-            if  status != '1' and not mail_no :
-                continue
-            
-            if  trade.out_sid.strip() != mail_no or \
-                (lgc and lgc.code not in YUNDA_CODE) or \
-                trade.sys_status in pcfg.CANCEL_YUNDASID_STATUS:
+            if self.isCancelable(order_serial_no, mail_no, status):
                 cancel_ids.append(order_serial_no)
-                
+
         return cancel_ids
     
     def run(self):
         
+        sellers = Seller.objects.all()
         try:
-            cancel_ids = self.getCancelIDList()
-            cancel_order(cancel_ids)
+            for seller in sellers:
             
-            LogisticOrder.objects.filter(cus_oid__in=cancel_ids).update(status=DELETE)
+                cancel_ids  = self.getCancelIDList(seller)
+                
+                yd_customer = self.getCustomerBySeller(seller)
+                cancel_order(cancel_ids,
+                             partner_id=yd_customer.qr_id,
+                             secret=yd_customer.qr_code)
+                
         except Exception,exc:
             raise self.retry(exc=exc, countdown=RETRY_INTERVAL)
-        
+    
     
 
 class UpdateYundaOrderAddrTask(Task):
@@ -444,19 +463,20 @@ class PushYundaPackageWeightTask(Task):
         except:
             return '0.2'
         
-        if weight == '' or float(weight) < 0.2 or weight.rfind('.') == 0:
-            return '0.2'
+        if weight == '' or float(weight) < 0.1 or weight.rfind('.') == 0:
+            return '0.1'
         
         if weight.rfind('.') < 0:
-            return str(round(int(weight)*0.90/1000.0,2))
-        
+            return '%.2f'%(int(weight)/1000.0)
+
         return weight
     
     def createYundaOrder(self,trade):
         
         order,state             = LogisticOrder.objects.get_or_create(out_sid=trade.out_sid)
-        order.cus_oid           = trade.id
         
+        order.cus_oid           = trade.id
+        order.yd_customer       = YundaCustomer.objects.get(code="QIYUE")
         order.receiver_name     = trade.receiver_name
         order.receiver_state    = trade.receiver_state.strip()
         order.receiver_city     = trade.receiver_city.strip()
@@ -478,8 +498,8 @@ class PushYundaPackageWeightTask(Task):
         
         tspw,state = TodaySmallPackageWeight.objects.get_or_create(
                             package_id=order.out_sid)
-        tspw.is_jzhw = order.is_JZHW()
-        tspw.weight  = order.weight
+        tspw.is_jzhw = order.isJZHW()
+        tspw.weight  = 0
         tspw.save()
         
     def run(self):

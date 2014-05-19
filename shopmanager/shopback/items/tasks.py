@@ -131,7 +131,9 @@ def updateUserProductSkuTask(user_id=None,outer_ids=None,force_update_num=False)
                         sku_property = SkuProperty.save_or_update(sku.copy())
                         sku_outer_id = sku.get('outer_id', '').strip() or sku_property.outer_id
                         
-                        if not item.user.is_primary or not item.product or not sku_outer_id:
+                        if not item.user.is_primary or not item.product \
+                            or item.approve_status != pcfg.ONSALE_STATUS or\
+                             not sku_outer_id or sku['status'] != pcfg.NORMAL:
                             continue
                         sku_prop_dict = dict([('%s:%s' % (p.split(':')[0], p.split(':')[1]), p.split(':')[3]) 
                                               for p in sku['properties_name'].split(';') if p])
@@ -246,8 +248,12 @@ class CalcProductSaleTask(Task):
         
         queryset = MergeOrder.objects.filter(merge_trade__pay_time__gte=yest_start,
                                              merge_trade__pay_time__lte=yest_end,
-                                             sys_status=pcfg.IN_EFFECT)
-        
+                                             is_merge=False,
+                                             gift_type__in=(pcfg.OVER_PAYMENT_GIT_TYPE,
+                                                            pcfg.REAL_ORDER_GIT_TYPE,
+                                                            pcfg.COMBOSE_SPLIT_GIT_TYPE),
+                                             sys_status=pcfg.IN_EFFECT)\
+                                             .exclude(merge_trade__sys_status='')
         for prod in products:
             
             for sku in prod.prod_skus.all():

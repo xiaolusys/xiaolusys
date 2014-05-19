@@ -72,8 +72,8 @@ API_DICT = {
                RECEIVE_MAILNO:RECEIVER_MAILNO_API,
                }
 
-PARTNER_ID = "10134210001"
-SECRET     = "rsOwTCQ7GbpgXuiHKHGW5RdgR1epwU"
+PARTNER_ID = "YUNDA"
+SECRET     = "123456"
 
 
 ################ 创建订单请求 ###############
@@ -199,7 +199,7 @@ def handle_demon(action,xml_data,partner_id,secret):
           }
     
     req = urllib2.urlopen(demon_url+API_DICT[action], urllib.urlencode(params), timeout=60)
-    rep = req.read()       
+    rep = req.read()   
     
     if action == REPRINT:
         return rep
@@ -255,7 +255,7 @@ def create_order_ret_mailno(ids):
     return tree
 
 
-def modify_order(ids):
+def modify_order(ids,partner_id=PARTNER_ID,secret=SECRET):
     
     assert isinstance(ids,(list,tuple))
     
@@ -263,14 +263,14 @@ def modify_order(ids):
  
     objs  = get_objs_from_trade(trades)
     
-    order_xml = gen_orders_xml(objs)
+    order_xml = gen_orders_xml(objs,partner_id,secret)
     
     tree = handle_demon(MODIFY,order_xml,PARTNER_ID,SECRET)
     
     return tree
     
     
-def cancel_order(ids):
+def cancel_order(ids,partner_id=PARTNER_ID,secret=SECRET):
     
     assert isinstance(ids,(list,tuple))
     
@@ -281,12 +281,12 @@ def cancel_order(ids):
     
     order_xml += "</orders>"
     
-    tree = handle_demon(CANCEL,order_xml,PARTNER_ID,SECRET)
+    tree = handle_demon(CANCEL,order_xml,partner_id,secret)
     
     return tree
     
     
-def search_order(ids):
+def search_order(ids,partner_id=PARTNER_ID,secret=SECRET):
     
     assert isinstance(ids,(list,tuple))
     
@@ -297,7 +297,7 @@ def search_order(ids):
         
     order_xml += "</orders>"
     
-    tree = handle_demon(ORDERINFO,order_xml,PARTNER_ID,SECRET)
+    tree = handle_demon(ORDERINFO,order_xml,partner_id,secret)
     
     return tree
 

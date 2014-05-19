@@ -3,7 +3,7 @@ $(document).ready(function(){
        $('#upload_csvfile').append('<div class="upload_submit" ></div>');
        $('.upload_submit').append('<div style="height:80px;width:600px;"></div>')
        $('.upload_submit').append('<button id="attach_files" style="background:#999;color:white;width:200px;'+
-               'height:40px;display:inline;">导入集包数据CSV文件</button>')
+               'height:40px;display:inline;">导入客户数据CSV文件</button>')
        $('.upload_submit').append('<span class="import_status" style="display:none;color:red;">文件导入失败，请检查文件格式！</span>')
 
        $('.upload-csvfile').click(function(e){
@@ -11,7 +11,7 @@ $(document).ready(function(){
                
                $("#attach_files").upload({
                        name: 'attach_files',
-                       action: '/app/yunda/impackage/',
+                       action: '/app/yunda/order/upload/',
                        enctype: 'multipart/form-data',
                        //params: {},
                        autoSubmit: true,
@@ -28,6 +28,6 @@ $(document).ready(function(){
                                $('.import_status').css('display','none');                      
                        }
                });
-               $('#upload_csvfile').dialog({title: "CSV文件导入韵达集包数据",width:'700',height:'200'});
+               $('#upload_csvfile').dialog({title: "CSV文件导入客户订单",width:'700',height:'200'});
        });
 });

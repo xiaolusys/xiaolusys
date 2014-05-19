@@ -102,7 +102,7 @@ class YundaCustomer(models.Model):
     created    = models.DateTimeField(auto_now_add=True,verbose_name=u'创建日期')
     modified   = models.DateTimeField(auto_now=True,verbose_name=u'修改日期')
     
-    memo      =  models.CharField(max_length=20,blank=True,verbose_name=u'备注')  
+    memo      =  models.CharField(max_length=100,blank=True,verbose_name=u'备注')  
     
     status     = models.CharField(max_length=10,default=NORMAL,
                                   choices=ORDER_STATUS_CHOICES,verbose_name=u'状态')
@@ -125,7 +125,7 @@ class LogisticOrder(models.Model):
     
     id         = BigIntegerAutoField(primary_key=True,verbose_name=u'ID')
     cus_oid    = models.CharField(max_length=64,blank=True,db_index=True,verbose_name=u'客户订单编号')
-    #customer   = models.ForeignKey(YundaCustomer, verbose_name=u'所属客户')
+    yd_customer   = models.ForeignKey(YundaCustomer, verbose_name=u'所属客户')
     
     out_sid    = models.CharField(max_length=64,unique=True,blank=True,verbose_name=u'物流单号')
     parent_package_id = models.CharField(max_length=64,db_index=True,blank=True,verbose_name=u'大包编号')
@@ -158,6 +158,7 @@ class LogisticOrder(models.Model):
     status     = models.CharField(max_length=10,default=NORMAL,
                                   choices=ORDER_STATUS_CHOICES,verbose_name=u'状态')
     
+    wave_no    =  models.CharField(max_length=32,db_index=True,blank=True,verbose_name=u'批次')
     class Meta:
         db_table = 'shop_yunda_order'
         verbose_name=u'韵达订单'
@@ -166,31 +167,15 @@ class LogisticOrder(models.Model):
     def __unicode__(self):
         return u'<%s,%s>'%(self.cus_oid,self.out_sid)
     
-    def is_JZHW(self):
+    def isJZHW(self):
         return JZHW_REGEX.match(self.receiver_state) and True or False
 
-def change_order_yunda_addr(sender, tid, *args, **kwargs):
-   
-    from shopapp.yunda.qrcode import modify_order
-    
-    mtrade = MergeTrade.objects.get(id=tid)
-    #如果订单非二维码订单，则退出
-    if not mtrade.is_qrcode:
-        return 
-        
-    try:
-        modify_order([tid])
-    except Exception,exc:
-        logger.error(exc.message,exc_info=True)
-        
-change_addr_signal.connect(change_order_yunda_addr,sender=MergeTrade,dispatch_uid='change_order_addr_uniqueid')        
-        
         
 class ParentPackageWeight(models.Model):
     
     parent_package_id = models.CharField(primary_key=True,max_length=64,verbose_name=u'大包编号') 
-    weight            = models.CharField(max_length=10,blank=True,verbose_name=u'称重(kg)') 
-    upload_weight     = models.CharField(max_length=10,blank=True,verbose_name=u'计重(kg)')
+    weight            = models.FloatField(default=0.0,verbose_name=u'称重(kg)') 
+    upload_weight     = models.FloatField(default=0.0,verbose_name=u'计重(kg)')
     
     weighted          = models.DateTimeField(default=datetime.datetime.now,verbose_name=u'称重日期')
     uploaded          = models.DateTimeField(default=datetime.datetime.now,verbose_name=u'上传日期') 
@@ -213,8 +198,8 @@ class TodaySmallPackageWeight(models.Model):
     
     package_id        = models.CharField(primary_key=True,max_length=64,verbose_name=u'运单编号')
     parent_package_id = models.CharField(max_length=64,db_index=True,blank=True,verbose_name=u'大包编号') 
-    weight            = models.CharField(max_length=10,blank=True,verbose_name=u'称重(kg)') 
-    upload_weight     = models.CharField(max_length=10,blank=True,verbose_name=u'计重(kg)')
+    weight            = models.FloatField(default=0.0,verbose_name=u'称重(kg)') 
+    upload_weight     = models.FloatField(default=0.0,verbose_name=u'计重(kg)')
     weighted          = models.DateTimeField(default=datetime.datetime.now,verbose_name=u'称重日期')
     is_jzhw           = models.BooleanField(default=False,verbose_name=u'江浙沪皖')
 
@@ -230,8 +215,8 @@ class TodaySmallPackageWeight(models.Model):
 class TodayParentPackageWeight(models.Model):
     
     parent_package_id = models.CharField(primary_key=True,max_length=64,verbose_name=u'大包编号') 
-    weight            = models.CharField(max_length=10,blank=True,verbose_name=u'称重(kg)') 
-    upload_weight     = models.CharField(max_length=10,blank=True,verbose_name=u'计重(kg)')
+    weight            = models.FloatField(default=0.0,verbose_name=u'称重(kg)') 
+    upload_weight     = models.FloatField(default=0.0,verbose_name=u'计重(kg)')
     weighted          = models.DateTimeField(default=datetime.datetime.now,verbose_name=u'称重日期')
     is_jzhw           = models.BooleanField(default=False,verbose_name=u'江浙沪皖')
 

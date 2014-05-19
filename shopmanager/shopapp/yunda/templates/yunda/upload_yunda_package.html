@@ -17,14 +17,33 @@
     .well {
     	margin-bottom:0px;
     }
+    .form-inline input,.form-inline label{
+    	margin-left:10px;
+    }
     </style>
   </head>
   <body>
   	<div class="container">
-  		<h2>韵达今日包裹重量数据统计</h2>
+  		{% if object.error_packages %}
+  		<div class="fail">
+  			<h2 style="color:red;">包裹重量计算异常</h2>
+  			<table class="table table-bordered table-striped table-condensed">
+  				<tr><th>包裹编号</th><th>包裹重量</th><th>异常信息</th></tr>
+  				{% for er in object.error_packages %}
+  				<tr><td>{{ er.0 }}</td><td>{{ er.1 }}</td><td>{{ er.2 }}</td></tr>
+  				{% endfor %}
+  			</table>
+  		</div>
+  		{% else %}
+  		<div class="success">
+  		<h2>韵达今日包裹重量数据统计(单位:kg)</h2>
+  		<table class="table table-bordered table-striped table-condensed">
+  			<tr><td>小包最重重量：</td><td>{{ object.max_sweight }}</td>
+  			<td>大包最重重量:</td><td>{{ object.max_pweight }}</td></tr>
+  		</table>
   		<div class="well well-large badge-important">全国数据</div>
   		<table class="table table-bordered table-striped table-condensed">
-  			<tr><th>统计项</th><th>包裹数</th><th>称重(kg)</th><th>计重(kg)</th></tr>
+  			<tr><th>统计项</th><th>包裹数</th><th>称重</th><th>计重</th></tr>
   			<tr>
   				<td>所有小包</td>
   				<td>{{ object.all.A.total_num }}</td>
@@ -46,7 +65,7 @@
   		</table>
   		<div class="well well-small badge-success">江浙沪皖数据</div>
   		<table class="table table-bordered table-striped table-condensed">
-  			<tr><th>统计项</th><th>包裹数</th><th>称重(kg)</th><th>计重(kg)</th></tr>
+  			<tr><th>统计项</th><th>包裹数</th><th>称重</th><th>计重</th></tr>
   			<tr>
   				<td>所有小包</td>
   				<td>{{ object.jzhw.A.total_num }}</td>
@@ -68,7 +87,7 @@
   		</table>
   		<div class="well well-small badge-warning">外围数据</div>
   		<table class="table table-bordered table-striped table-condensed">
-  			<tr><th>统计项</th><th>包裹数</th><th>称重(kg)</th><th>计重(kg)</th></tr>
+  			<tr><th>统计项</th><th>包裹数</th><th>称重</th><th>计重</th></tr>
   			<tr>
   				<td>所有小包</td>
   				<td>{{ object.other.A.total_num }}</td>
@@ -88,6 +107,12 @@
   				<td>{{ object.other.C.total_upload_weight }}</td>
   			</tr>
   		</table>
-  	</div>
+  		
+  		<form class="form-inline" action="./" method="POST">
+  			<label>输入揽件用户编号：</label><input name="lanjian_id"/><input type="submit" class="btn btn-primary" value="确认上传揽件重量">
+  		</form>
+  		</div>
+  		<div>
+  		{% endif %}
   </body>
 </html>

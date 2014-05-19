@@ -654,7 +654,8 @@ class ProductNumAssignView(ModelView):
         product_sku = None
         if outer_sku_id:
             try:
-                product_sku = ProductSku.objects.get(product__outer_id=outer_id,outer_id=outer_sku_id)
+                product_sku = ProductSku.objects.get(product__outer_id=outer_id,
+                                                     outer_id=outer_sku_id)
             except:
                 pass
             else:
@@ -819,7 +820,8 @@ class StatProductSaleView(ModelView):
     def parseDate(self,start_dt):
         
         if not start_dt:
-            return datetime.datetime.now().date()
+            dt = datetime.datetime.now()
+            return (dt-datetime.timedelta(days=1)).date()
         
         return parse_date(start_dt)
         
@@ -867,7 +869,7 @@ class StatProductSaleView(ModelView):
                                         'sale_refund':sale.sale_refund  
                                        }
             
-        return sorted(sale_items.items(),key=lambda d:d[1]['sale_payment'],reverse=True)
+        return sorted(sale_items.items(),key=lambda d:d[1]['sale_num'],reverse=True)
     
     def calcSaleSortedItems(self,queryset):
         
@@ -875,7 +877,8 @@ class StatProductSaleView(ModelView):
         total_sale_cost   = 0
         total_sale_num  = 0
         total_sale_payment = 0
-        total_sale_refund     = 0
+        total_sale_refund  = 0
+        total_stock_cost   = 0
         sale_stat_list = self.getSaleSortedItems(queryset)
         
         for product_id,sale_stat in sale_stat_list:
@@ -883,21 +886,24 @@ class StatProductSaleView(ModelView):
             product = Product.objects.get(id=product_id) 
             sale_stat['name']     = product.name
             sale_stat['outer_id'] = product.outer_id
-            sale_stat['collect_num'] = product.collect_num
-            product_cost = (product.cost * sale_stat['sale_num'],0)[sale_stat['skus'] and 1 or 0 ] 
-           
+            sale_stat['sale_cost'] = (product.cost * sale_stat['sale_num'],0)[sale_stat['skus'] and 1 or 0 ] 
+            sale_stat['collect_num'] = 0
+            sale_stat['stock_cost']  = 0
+
             for sku_id,sku_stat in sale_stat['skus'].iteritems():
                 
                 sku = ProductSku.objects.get(id=sku_id)
                 sku_stat['name']      = sku.name 
                 sku_stat['outer_id']  = sku.outer_id
                 sku_stat['quantity']  = sku.quantity
-                sku_stat['sale_cost'] =  sku.cost * sku_stat['sale_num']           
-                product_cost += sku_stat['sale_cost'] 
-            
-            sale_stat['sale_cost'] = product_cost
+                sku_stat['sale_cost'] =  sku.cost * sku_stat['sale_num']
+                sku_stat['stock_cost'] = sku.cost * sku.quantity
+                sale_stat['sale_cost'] += sku_stat['sale_cost'] 
+                sale_stat['collect_num'] += sku.quantity
+                sale_stat['stock_cost']  += sku_stat['stock_cost']
+
             sale_stat['skus'] = sorted(sale_stat['skus'].items(),
-                                       key=lambda d:d[1]['sale_payment'],
+                                       key=lambda d:d[1]['sale_num'],
                                        reverse=True)
             
             total_stock_num        += sale_stat['collect_num']
@@ -905,25 +911,30 @@ class StatProductSaleView(ModelView):
             total_sale_num         += sale_stat['sale_num']
             total_sale_payment     += sale_stat['sale_payment']
             total_sale_refund      += sale_stat['sale_refund']
-        
+            total_stock_cost       += sale_stat['stock_cost']
+
         return {'sale_items':sale_stat_list, 
                 'total_sale_cost':total_sale_cost ,
                 'total_sale_num':total_sale_num,
                 'total_sale_refund':total_sale_refund,
                 'total_sale_payment':total_sale_payment,
-                'total_stock_num':total_stock_num}
+                'total_stock_num':total_stock_num,
+                'total_stock_cost':total_stock_cost}
     
     def calcUnSaleSortedItems(self,queryset,p_outer_id=None):
         
         total_stock_num   = 0
+        total_stock_cost  = 0
         product_list = Product.objects.filter(status=pcfg.NORMAL)
         if p_outer_id:
             product_list = product_list.filter(outer_id=p_outer_id)
             
-        ps_tuple     = queryset.values_list('product_id','sku_id').distinct()
+        ps_tuple     = set(queryset.values_list('product_id','sku_id').distinct())
+        productid_set      = set(s[0] for s in ps_tuple)
         sale_items   = {}
         for product in product_list:
             product_id = product.id
+            p_collect_num = 0
             
             if product.collect_num <= 0:
                 continue
@@ -941,8 +952,9 @@ class StatProductSaleView(ModelView):
                                            'sale_refund':0 ,
                                            'name':product.name,
                                            'outer_id':product.outer_id,
-                                           'collect_num':product.collect_num,
                                            'sale_cost':0,
+                                           'stock_cost':0,
+                                           'collect_num':0,
                                            'skus':{}}
                 
                 sale_items[product_id]['skus'][sku_id] = {
@@ -952,9 +964,14 @@ class StatProductSaleView(ModelView):
                                         'sale_cost':0,
                                         'sale_num':0,
                                         'sale_payment':0,
-                                        'sale_refund':0  
+                                        'sale_refund':0,
+                                        'stock_cost':sku.quantity * sku.cost
                                    }
-            if (product_id,None) not in ps_tuple and not sale_items.has_key(product_id):
+                sale_items[product_id]['collect_num'] += sku.quantity
+                sale_items[product_id]['stock_cost']  += sku.quantity * sku.cost
+                
+            if product_id not in productid_set and not sale_items.has_key(product_id):
+                
                 sale_items[product_id]={
                                        'sale_num':0,
                                        'sale_payment':0,
@@ -963,14 +980,17 @@ class StatProductSaleView(ModelView):
                                        'outer_id':product.outer_id,
                                        'collect_num':product.collect_num,
                                        'sale_cost':0,
+                                       'stock_cost':product.collect_num * product.cost,
                                        'skus':{}}
             
-            if sale_items.has_key(product_id):       
+            if sale_items.has_key(product_id): 
+
                 sale_items[product_id]['skus'] = sorted(sale_items[product_id]['skus'].items(),
                                                     key=lambda d:d[1]['quantity'],
                                                     reverse=True)
             
-                total_stock_num += product.collect_num
+                total_stock_num  += sale_items[product_id]['collect_num']
+                total_stock_cost += sale_items[product_id]['stock_cost']
             
         return {'sale_items':sorted(sale_items.items(),
                                     key=lambda d:d[1]['collect_num'],
@@ -979,7 +999,8 @@ class StatProductSaleView(ModelView):
                 'total_sale_num':0,
                 'total_sale_refund':0,
                 'total_sale_payment':0,
-                'total_stock_num':total_stock_num}
+                'total_stock_num':total_stock_num,
+                'total_stock_cost':total_stock_cost}
     
     def calcSaleItems(self,queryset,p_outer_id=None,show_sale=True):
         
@@ -995,7 +1016,7 @@ class StatProductSaleView(ModelView):
         end_dt    = content.get('dt','').strip()
         shop_id   = content.get('shop_id')
         p_outer_id   = content.get('outer_id','')
-        show_sale    = content.has_key('_saleable') 
+        show_sale    = not content.has_key('_unsaleable') 
         
         params = {'day_date__gte':self.parseDate(start_dt),
                           'day_date__lte':self.parseDate(end_dt)}

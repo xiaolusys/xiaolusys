@@ -202,7 +202,6 @@ class MergeTrade(models.Model):
     is_picking_print = models.BooleanField(default=False,verbose_name=u'发货单')
     is_express_print = models.BooleanField(default=False,verbose_name=u'物流单')
     is_send_sms      = models.BooleanField(default=False,verbose_name=u'发货通知')
-    is_qrcode        = models.BooleanField(default=False,verbose_name=u'韵达二维码')
     has_refund       = models.BooleanField(default=False,verbose_name=u'待退款')
     has_out_stock    = models.BooleanField(default=False,verbose_name=u'缺货')
     has_rule_match   = models.BooleanField(default=False,verbose_name=u'有匹配')
@@ -211,6 +210,9 @@ class MergeTrade(models.Model):
     has_sys_err      = models.BooleanField(default=False,verbose_name=u'系统错误')
     remind_time      = models.DateTimeField(null=True,blank=True,verbose_name=u'提醒日期')
     refund_num       = models.IntegerField(null=True,default=0,verbose_name=u'退款单数')  #退款单数
+    
+    is_qrcode        = models.BooleanField(default=False,verbose_name=u'热敏订单')
+    qrcode_msg       = models.CharField(max_length=32,blank=True,verbose_name=u'条码错误')
     
     can_review       = models.BooleanField(default=False,verbose_name=u'复审') 
     priority       =  models.IntegerField(db_index=True,default=0,
@@ -1124,21 +1126,21 @@ def trade_download_controller(merge_trade,trade,trade_from,first_pay_load):
                     post_company = LogisticsCompany.objects.get(code=shipping_type.upper())
                     merge_trade.logistics_company = post_company
                     
-                #如果订单选择使用韵达物流，则会请求韵达接口，查询订单是否到达，并做处理    
-                if  merge_trade.logistics_company and merge_trade.logistics_company.code == 'YUNDA':
-                    from shopapp.yunda.qrcode import select_order
-                    
-                    doc    = select_order([merge_trade.id])
-                    reach  = doc.xpath('/responses/response/reach')[0].text
-                    zonec  = doc.xpath('/responses/response/package_bm')[0].text
-                    zoned  = doc.xpath('/responses/response/package_mc')[0].text
-                    
-                    if reach == '0' or not reach:
-                        MergeTrade.objects.filter(id=merge_trade.id).update(sys_memo=u'韵达二维码不到')
-                        merge_trade.logistics_company = LogisticsCompany.objects.get(code='YUNDA_QR')
-                    
-                    if reach == '1':
-                        MergeTrade.objects.filter(id=merge_trade.id).update(reserveo=zonec,reservet=zoned)
+#                #如果订单选择使用韵达物流，则会请求韵达接口，查询订单是否到达，并做处理    
+#                if  merge_trade.logistics_company and merge_trade.logistics_company.code.startswith('YUNDA_QR'):
+#                    from shopapp.yunda.qrcode import select_order
+#                    
+#                    doc    = select_order([merge_trade.id])
+#                    reach  = doc.xpath('/responses/response/reach')[0].text
+#                    zonec  = doc.xpath('/responses/response/package_bm')[0].text
+#                    zoned  = doc.xpath('/responses/response/package_mc')[0].text
+#                    
+#                    if reach == '0' or not reach:
+#                        MergeTrade.objects.filter(id=merge_trade.id).update(sys_memo=u'韵达二维码不到')
+#                        merge_trade.logistics_company = LogisticsCompany.objects.get(code='YUNDA_QR')
+#                    
+#                    if reach == '1':
+#                        MergeTrade.objects.filter(id=merge_trade.id).update(reserveo=zonec,reservet=zoned)
                     
             except Exception,exc:
                 logger.error(exc.message or 'distribute logistic error',exc_info=True)

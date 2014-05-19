@@ -1,3 +1,17 @@
+######### 2014-5-12 ##########
+alter table shop_trades_mergetrade add column qrcode_msg varchar(32) NOT NULL;
+######### 2014-5-10 ##########
+alter table shop_users_user add column user_code varchar(16) NOT NULL;
+######### 2014-5-9 ##########
+alter table shop_yunda_ppw change weight weight double NOT NULL;
+alter table shop_yunda_ppw change upload_weight upload_weight double NOT NULL;
+alter table shop_yunda_tspw change weight weight double NOT NULL;
+alter table shop_yunda_tspw change upload_weight upload_weight double NOT NULL;
+alter table shop_yunda_tppw change weight weight double NOT NULL;
+alter table shop_yunda_tppw change upload_weight upload_weight double NOT NULL;
+######### 2014-5-5 ##########
+alter table shop_yunda_order add yd_customer_id int(11);
+ALTER TABLE shop_yunda_order ADD FOREIGN KEY (`yd_customer_id`) REFERENCES shop_yunda_customer(`id`);
 ######### 2014-4-25 ##########
 alter table shop_yunda_order add column is_jzhw tinyint(1) NOT NULL;
 ######### 2014-4-24 ##########

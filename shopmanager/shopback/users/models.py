@@ -35,8 +35,10 @@ class User(models.Model):
     top_parameters = models.TextField(max_length=2000,blank=True)
 
     visitor_id = models.CharField(max_length=64,blank=True,verbose_name=u'店铺ID')
-    uid = models.CharField(max_length=64,blank=True,verbose_name=u'用户ID')
+    uid  = models.CharField(max_length=64,blank=True,verbose_name=u'用户ID')
     nick = models.CharField(max_length=64,blank=True,verbose_name=u'店铺名')
+    user_code = models.CharField(max_length=16,blank=True,verbose_name=u'内部编码')
+    
     sex = models.CharField(max_length=1,blank=True)
     contacter = models.CharField(max_length=32,blank=True,verbose_name= u'联络人')
     phone     = models.CharField(max_length=20,blank=True,verbose_name= u'电话')
@@ -46,18 +48,18 @@ class User(models.Model):
     buyer_credit = models.CharField(max_length=80,blank=True)
     seller_credit = models.CharField(max_length=80,blank=True)
     
-    has_fenxiao = models.BooleanField(default=False)
+    has_fenxiao = models.BooleanField(default=False,verbose_name= u'管理分销')
     
     location = models.CharField(max_length=256,blank=True,verbose_name= u'店铺地址')
     created = models.CharField(max_length=19,blank=True)
     birthday = models.CharField(max_length=19,blank=True)
 
     type = models.CharField(max_length=2,blank=True,verbose_name= u'店铺类型')
-    item_img_num = models.IntegerField(null=True)
-    item_img_size = models.IntegerField(null=True)
+    item_img_num = models.IntegerField(default=0)
+    item_img_size = models.IntegerField(default=0)
 
-    prop_img_num = models.IntegerField(null=True)
-    prop_img_size = models.IntegerField(null=True)
+    prop_img_num = models.IntegerField(default=0)
+    prop_img_size = models.IntegerField(default=0)
     auto_repost = models.CharField(max_length=16,blank=True)
     promoted_type = models.CharField(max_length=32,blank=True)
 

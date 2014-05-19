@@ -57,7 +57,7 @@ class Product(models.Model):
     
     cost         = models.FloatField(default=0,verbose_name=u'成本价')
     std_purchase_price = models.FloatField(default=0,verbose_name=u'标准进价')
-    std_sale_price     = models.FloatField(default=0,verbose_name=u'标准售价')
+    std_sale_price     = models.FloatField(default=0,verbose_name=u'吊牌价')
     agent_price        = models.FloatField(default=0,verbose_name=u'代理售价')
     staff_price        = models.FloatField(default=0,verbose_name=u'员工价')
     
@@ -689,6 +689,9 @@ class SkuProperty(models.Model):
         verbose_name = u'线上商品规格'
         verbose_name_plural = u'线上商品规格列表'
         
+    @property
+    def properties_alias(self):
+        return ''.join([p.split(':')[3] for p in self.properties_name.split(';') if p])
     
     @classmethod    
     def save_or_update(cls,sku_dict):
@@ -702,6 +705,7 @@ class SkuProperty(models.Model):
         sku.save()
         
         return sku
+    
         
 
 class ProductLocation(models.Model):
