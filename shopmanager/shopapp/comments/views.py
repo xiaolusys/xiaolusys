@@ -61,7 +61,7 @@ def calcCommentCountJson(fdt,tdt):
             comment_dict[replayer][day_date] = comment_dict[replayer].get(day_date,0)+1
         else:
             comment_dict[replayer] = {day_date:1}
-    
+            
     return comment_dict   
 
 """ 
@@ -89,13 +89,38 @@ def count(request):
     toDate   = content.get('endDate')
     
     toDate   = toDate and datetime.datetime.strptime(toDate, '%Y%m%d').date() or datetime.datetime.now().date()
-        
-    fromDate = fromDate and datetime.datetime.strptime(fromDate, '%Y%m%d').date() or toDate - datetime.timedelta(days=1)  
+    oneday = datetime.timedelta(days=1)
+    toDate = toDate+oneday
+    fromDate = (fromDate and 
+                datetime.datetime.strptime(fromDate, '%Y%m%d').date() or
+                toDate - datetime.timedelta(days=1))  
           
     
     commentDict = calcCommentCountJson(fromDate,toDate)
-    #print 'commentDict',commentDict
     date_array  = []
+    
+    commentArray = []
+    commentArray = commentDict.values()
+#    for k,v in commentDict:
+#        print v.keys()
+    
+#for dict ot array
+#    commentValues = {}
+#    commentValues=commentDict.items()
+#        
+#    print 'commentValues'
+#    print commentValues
+#    
+#    date_count_dict  = {}
+#    print 'commentDict.items()'
+#    print commentDict
+#    for k in commentDict:
+#        print k
+#        date_count_dict.get(k)
+#    print 'date_count_dict'
+#    print date_count_dict
+#
+
     resultDict  = {}
     for d in range(0,(toDate-fromDate).days):
         
@@ -112,6 +137,17 @@ def count(request):
             
     for name ,vl in resultDict.iteritems():
         vl.append(sum(vl))
+
+    d = None
+    c = []
+    for user_key,count_list in resultDict.iteritems():
+        d = []
+        for index,val in enumerate(date_array):
+            c=[count_list[index],val]
+            d.append(c)
+        d.append(count_list[index+1])
+        resultDict[user_key] = d
+#    print 'replyer_comment_detail',replyer_comment_detail
     
     return render_to_response('comments/comment_counts.html', {'data': resultDict, 'dates':date_array,'toDate':toDate,'fromDate':fromDate},  context_instance=RequestContext(request))
 
@@ -126,8 +162,7 @@ def filter_replyer(name,fdt,tdt):
         replayer=replyer
         ,replay_at__gte=fdt,replay_at__lte=tdt,is_reply=True
         )
-        print '9999999999'
-        print comments        
+        
     
         for r in comments:
         
@@ -144,37 +179,23 @@ def filter_replyer(name,fdt,tdt):
 def replyer_detail(request):
     content = request.GET
     name = content.get('replyer')
-    fromDate  = content.get('fdt')
+    fromDate  = content.get('fdt').replace('-','')
+    oneday = datetime.timedelta(days=1)
     toDate  = content.get('tdt')
+#    print 'todate',toDate,type(toDate)
+#    print 'oneday',oneday,type(oneday)
     if toDate=="":
-        toDate=datetime.date.today().strftime('%Y-%m-%d')
+        toDate=datetime.date.today().strftime('%Y%m%d')
     else:
         toDate  = content.get('tdt')
-    
-    
-    toDate   = toDate and datetime.datetime.strptime(toDate, '%Y-%m-%d').date() or datetime.datetime.now().date()
-    fromDate = fromDate and datetime.datetime.strptime(fromDate, '%Y-%m-%d').date() or toDate - datetime.timedelta(days=1)
+    #print fromDate.
+    #print toDate
+    toDate   = toDate and datetime.datetime.strptime(toDate, '%Y%m%d').date() or datetime.datetime.now().date()
+    toDate = toDate+oneday
+    fromDate = fromDate and datetime.datetime.strptime(fromDate, '%Y%m%d').date() or toDate - datetime.timedelta(days=1)
     
     replyerDetail = filter_replyer(name,fromDate,toDate)
     
     
     return render_to_response('comments/comment_detail.html',{'replyerDetail':replyerDetail,'replyer':name},context_instance=RequestContext(request))
     
-def show_replyer(request):
-    comment_array = []
-    comments = User.objects.filter(groups=u'kefu')
-    #comments = User.objects.all()
-    
-    print 'ooccccccccccccc'
-    #print 
-    print comments
-    
-    print 'ccccccccccccccccccccc'
-    for c in comments:
-        try:
-            replyer = c.username
-            comment_array.append(replyer)
-        except:
-            continue
-    
-    return comment_array   
