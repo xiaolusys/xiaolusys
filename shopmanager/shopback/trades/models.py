@@ -33,7 +33,7 @@ SYS_TRADE_STATUS = (
     (pcfg.REGULAR_REMAIN_STATUS,u'定时提醒')
 )
 
-OUT_STOCK_KEYWORD = [u'到',u'到货',u'预售']
+OUT_STOCK_KEYWORD = [u'到',u'预售']
 
 SYS_ORDER_STATUS = (
     (pcfg.IN_EFFECT ,u'有效'),
@@ -119,8 +119,18 @@ GIFT_TYPE = (
 
 class MergeTrade(models.Model):
     
+    WAIT_AUDIT_STATUS = pcfg.WAIT_AUDIT_STATUS
+    WAIT_PREPARE_SEND_STATUS  = pcfg.WAIT_PREPARE_SEND_STATUS
+    WAIT_CHECK_BARCODE_STATUS = pcfg.WAIT_CHECK_BARCODE_STATUS
+    WAIT_SCAN_WEIGHT_STATUS = pcfg.WAIT_SCAN_WEIGHT_STATUS
+    FINISHED_STATUS = pcfg.FINISHED_STATUS
+    INVALID_STATUS  = pcfg.INVALID_STATUS
+    ON_THE_FLY_STATUS = pcfg.ON_THE_FLY_STATUS
+    REGULAR_REMAIN_STATUS = pcfg.REGULAR_REMAIN_STATUS
+     
+    
     id    = BigIntegerAutoField(primary_key=True)
-    tid   = models.BigIntegerField(unique=True,null=True,blank=True,default=None,verbose_name=u'淘宝订单编号')
+    tid   = models.BigIntegerField(unique=True,null=True,blank=True,default=None,verbose_name=u'订单编码')
     
     user       = models.ForeignKey(User,null=True,default=None,related_name='merge_trades',verbose_name=u'所属店铺')
     seller_id  = models.CharField(max_length=64,blank=True,verbose_name=u'店铺ID')
@@ -163,8 +173,7 @@ class MergeTrade(models.Model):
     
     is_brand_sale  = models.BooleanField(default=False,verbose_name=u'品牌特卖') 
     is_force_wlb   = models.BooleanField(default=False,verbose_name=u'物流宝') 
-    trade_from     = BitField(flags=(
-                                     pcfg.TF_WAP,
+    trade_from     = BitField(flags=(pcfg.TF_WAP,
                                      pcfg.TF_HITAO,
                                      pcfg.TF_TOP,
                                      pcfg.TF_TAOBAO,
@@ -358,7 +367,10 @@ class MergeTrade(models.Model):
             outer_sku_id = order.outer_sku_id
             outer_id  = order.outer_id
             order_num = order.num
-            is_reverse = False if order.gift_type == pcfg.RETURN_GOODS_GIT_TYPE else True
+            prod     = None
+            prod_sku = None
+            is_reverse = (False if order.gift_type == pcfg.RETURN_GOODS_GIT_TYPE else True)
+            
             if outer_sku_id and outer_id:
                 prod_sku = ProductSku.objects.get(outer_id=outer_sku_id,product__outer_id=outer_id)
                 prod_sku.update_quantity(order_num,dec_update=is_reverse)
@@ -371,7 +383,7 @@ class MergeTrade(models.Model):
                 if prod_sku:
                     prod_sku.update_wait_post_num(order_num,dec_update=True)
                 else:
-                    prod.update_wait_post_num(order_num,dec_udpate=True)
+                    prod.update_wait_post_num(order_num,dec_update=True)
             
         return True            
        
@@ -381,7 +393,9 @@ class MergeTrade(models.Model):
         if not (self.receiver_mobile or self.receiver_phone):
             return 
    
-        customer,state     = Customer.objects.get_or_create(nick=self.buyer_nick,mobile=self.receiver_mobile,phone=self.receiver_phone)
+        customer,state     = Customer.objects.get_or_create(nick=self.buyer_nick,
+                                                            mobile=self.receiver_mobile,
+                                                            phone=self.receiver_phone)
         customer.name      = self.receiver_name
         customer.zip       = self.receiver_zip
         customer.address   = self.receiver_address
@@ -523,153 +537,6 @@ class MergeTrade(models.Model):
         if orders.count()>0:
             return True
         return False
-   
-    
-    @classmethod
-    def judge_out_stock(cls,trade_id):
-        #判断是否有缺货
-        is_out_stock = False
-        try:
-            trade = MergeTrade.objects.get(id=trade_id)
-        except Trade.DoesNotExist:
-            logger.error('trade(id:%d) does not exist'%trade_id)
-        else:
-            orders = trade.merge_trade_orders.filter(sys_status=pcfg.IN_EFFECT)
-            for order in orders:
-                is_order_out = False
-                if order.outer_sku_id:
-                    try:
-                        product_sku = ProductSku.objects.get(product__outer_id=order.outer_id,outer_id=order.outer_sku_id)    
-                    except:
-                        trade.append_reason_code(pcfg.OUTER_ID_NOT_MAP_CODE)
-                        order.is_rule_match=True
-                    else:
-                        is_order_out  |= product_sku.is_out_stock
-                        #更新待发数
-                        product_sku.update_wait_post_num(order.num)
-                elif order.outer_id:
-                    try:
-                        product = Product.objects.get(outer_id=order.outer_id)
-                    except:
-                        trade.append_reason_code(pcfg.OUTER_ID_NOT_MAP_CODE)
-                        order.is_rule_match=True
-                    else:
-                        is_order_out |= product.is_out_stock
-                        #更新待发数
-                        product.update_wait_post_num(order.num)
-                
-                if not is_order_out:
-                    #预售关键字匹配        
-                    for kw in OUT_STOCK_KEYWORD:
-                        try:
-                            order.sku_properties_name.index(kw)
-                        except:
-                            pass
-                        else:
-                            is_order_out = True
-                            break
-                if is_order_out:
-                    order.out_stock=True
-                    order.save()
-                is_out_stock |= is_order_out
-                
-        if not is_out_stock:
-            trade.remove_reason_code(pcfg.OUT_GOOD_CODE)
-        else:
-            trade.append_reason_code(pcfg.OUT_GOOD_CODE)
-            
-        return is_out_stock
-
-    
-    @classmethod
-    def judge_full_refund(cls,trade_id):
-        #更新订单实际商品和退款商品数量，返回退款状态
-
-        merge_trade = cls.objects.get(id=trade_id)  
-
-        refund_approval_num = merge_trade.merge_trade_orders.filter(refund_status__in=pcfg.REFUND_APPROVAL_STATUS
-                            ,gift_type=pcfg.REAL_ORDER_GIT_TYPE).exclude(is_merge=True).count()
-        total_orders_num  = merge_trade.merge_trade_orders.filter(gift_type=pcfg.REAL_ORDER_GIT_TYPE).exclude(is_merge=True).count()
-
-        if refund_approval_num==total_orders_num:
-            return True
-        
-        return False
-
-    @classmethod
-    def judge_new_refund(cls,trade_id):
-        #判断是否有新退款
-        merge_trade = cls.objects.get(id=trade_id)
-        refund_orders_num   = merge_trade.merge_trade_orders.filter(gift_type=pcfg.REAL_ORDER_GIT_TYPE)\
-            .exclude(Q(is_merge=True)|Q(refund_status=pcfg.NO_REFUND)).count()
-        
-        if refund_orders_num >merge_trade.refund_num:
-            merge_trade.refund_num = refund_orders_num
-            update_model_fields(merge_trade,update_fields=['refund_num'])
-            
-            return True
-        return False
-        
-    @classmethod
-    def judge_rule_match(cls,trade_id):
-        
-        #系统设置是否进行规则匹配
-        config  = SystemConfig.getconfig()
-        if not config.is_rule_auto:
-            return False
-        
-        merge_trade = cls.objects.get(id=trade_id)
-        try:
-            rule_signal.send(sender='product_rule',trade_id=trade_id)
-        except:
-            merge_trade.append_reason_code(pcfg.RULE_MATCH_CODE)
-            return True
-        else:
-            return False
-        
-    @classmethod
-    def get_merge_queryset(cls,buyer_nick,receiver_name,receiver_mobile):
-        
-        q = Q(receiver_name=receiver_name,buyer_nick=buyer_nick)
-        if receiver_mobile:
-            q = q|Q(receiver_mobile=receiver_mobile)|Q(receiver_phone=receiver_mobile)
-        
-        trades = cls.objects.filter(q)
-        
-        return trades
-        
-    @classmethod
-    def judge_need_merge(cls,trade_id,buyer_nick,receiver_name,receiver_mobile):
-        #是否需要合单 
-        if not receiver_name:   
-            return False  
-            
-        queryset = cls.get_merge_queryset(buyer_nick,receiver_name,receiver_mobile)
-        trades = queryset.exclude(id=trade_id).exclude(
-                    sys_status__in=('',pcfg.FINISHED_STATUS,pcfg.INVALID_STATUS))
-        is_need_merge = False
-        
-        if trades.count() > 0:
-            for trade in trades:
-                trade.append_reason_code(pcfg.MULTIPLE_ORDERS_CODE)
-            is_need_merge = True
-
-        return is_need_merge
-    
-    
-    @classmethod
-    def judge_need_pull(cls,trade_id,modified):
-        #judge is need to pull trade from taobao
-        need_pull = False
-        try:
-            obj = cls.objects.get(tid=trade_id)
-        except:
-            need_pull = True
-        else:
-            if not obj.modified or obj.modified < modified or not obj.sys_status:
-                need_pull = True
-        return need_pull
- 
    
     def judge_jhs_wlb(self):
         """ 判断订单是聚划算物流宝发货 """

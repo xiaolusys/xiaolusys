@@ -378,12 +378,15 @@ class CheckOrderView(ModelView):
                 return ','.join(check_msg)
             
             if trade.type == pcfg.EXCHANGE_TYPE:
-                change_orders = trade.merge_trade_orders.filter(gift_type=pcfg.CHANGE_GOODS_GIT_TYPE,sys_status=pcfg.IN_EFFECT)
+                change_orders = trade.merge_trade_orders.filter(
+                    gift_type=pcfg.CHANGE_GOODS_GIT_TYPE,
+                    sys_status=pcfg.IN_EFFECT)
                 if change_orders.count()>0:
                     #订单为自提
                     if shipping_type == pcfg.EXTRACT_SHIPPING_TYPE:
                         trade.sys_status = pcfg.FINISHED_STATUS
                         trade.status     = pcfg.TRADE_FINISHED
+                        trade.consign_time = datetime.datetime.now()
                         #更新退换货库存
                         trade.update_inventory()
                     #订单需物流
@@ -405,6 +408,7 @@ class CheckOrderView(ModelView):
                 if shipping_type == pcfg.EXTRACT_SHIPPING_TYPE: 
                     trade.sys_status = pcfg.FINISHED_STATUS
                     trade.status     = pcfg.TRADE_FINISHED
+                    trade.consign_time = datetime.datetime.now()
                     #更新库存
                     trade.update_inventory()
                 #订单需物流
@@ -744,7 +748,7 @@ def change_logistic_and_outsid(request):
         ret_params = {'code':1,'response_error':u'未找到该订单'}
         return HttpResponse(json.dumps(ret_params),mimetype="application/json")
     
-    origin_logistic_code = merge_trade.logistics_company.code
+    origin_logistic_code = merge_trade.logistics_company and merge_trade.logistics_company.code
     origin_out_sid       = merge_trade.out_sid  
     try:
         logistic   = LogisticsCompany.objects.get(code=logistic_code)

@@ -138,7 +138,8 @@ def updateUserProductSkuTask(user_id=None,outer_ids=None,force_update_num=False)
                         sku_prop_dict = dict([('%s:%s' % (p.split(':')[0], p.split(':')[1]), p.split(':')[3]) 
                                               for p in sku['properties_name'].split(';') if p])
                         
-                        psku, state = ProductSku.objects.get_or_create(outer_id=sku_outer_id, product=item.product)
+                        psku, state = ProductSku.objects.get_or_create(outer_id=sku_outer_id, 
+                                                                       product=item.product)
                         if state:
                             for key, value in sku.iteritems():
                                 hasattr(psku, key) and setattr(psku, key, value)

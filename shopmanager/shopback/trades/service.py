@@ -69,7 +69,6 @@ class TradeService(object):
         return LocalService
     
     
-    
     @classmethod
     def createTrade(cls,user_id,tid,trade_type,*args,**kwargs):
         
@@ -82,7 +81,6 @@ class TradeService(object):
     def payTrade(self,*args,**kwargs):
         
         self.merge_trade = self.bservice.payTrade()
-        
         
     
     def sendTrade(self,*args,**kwargs):

@@ -182,10 +182,6 @@ class Product(models.Model):
         update_model_fields(self,update_fields=['wait_post_num'])
         
         self.wait_post_num = self.__class__.objects.get(id=self.id).wait_post_num
-        if self.wait_post_num <0:
-            self.wait_post_num = 0
-            update_model_fields(self,update_fields=['wait_post_num'])
-        
     
     def update_reduce_num(self,num,full_update=False,dec_update=False):
         """
@@ -413,9 +409,6 @@ class ProductSku(models.Model):
         
         psku = self.__class__.objects.get(id=self.id)
         self.wait_post_num = psku.wait_post_num 
-        if self.wait_post_num <0:
-            self.wait_post_num = 0
-            update_model_fields(self,update_fields=['wait_post_num'])
             
         post_save.send(sender=self.__class__,instance=self)
          
@@ -510,7 +503,6 @@ def calculate_product_stock_num(sender, instance, *args, **kwargs):
         product_skus = product.pskus
  
         if product_skus.count()>0:
-            
             product_dict  = product_skus.aggregate(total_collect_num=Sum('quantity'),
                                                    total_warn_num=Sum('warn_num'),
                                                    total_remain_num=Sum('remain_num'),

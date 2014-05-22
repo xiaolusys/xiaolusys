@@ -172,7 +172,7 @@ class OrderService(TaobaoTradeService,TaobaoSendTradeMixin):
         trade_dict = self.getTradeFullInfo(self.get_seller_id(),self.get_trade_id())
         trade = self.saveTradeByDict(self.get_seller_id(), trade_dict)
         
-        return self.__class__.createMergeTrade(trade)
+        return self.createMergeTrade(trade)
     
     def finishTrade(self,finish_time,*args,**kwargs):
         
