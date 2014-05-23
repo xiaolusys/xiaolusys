@@ -129,16 +129,18 @@ def updateUserProductSkuTask(user_id=None,outer_ids=None,force_update_num=False)
                         item = Item.objects.get(num_iid=sku['num_iid'])
                         
                         sku_property = SkuProperty.save_or_update(sku.copy())
-                        sku_outer_id = sku.get('outer_id', '').strip() or sku_property.outer_id
+                        sku_outer_id = sku.get('outer_id', '').strip() 
                         
-                        if not item.user.is_primary or not item.product \
-                            or item.approve_status != pcfg.ONSALE_STATUS or\
-                             not sku_outer_id or sku['status'] != pcfg.NORMAL:
+                        if (not item.user.is_primary or not item.product 
+                            or item.approve_status != pcfg.ONSALE_STATUS or
+                            not sku_outer_id or sku['status'] != pcfg.NORMAL):
                             continue
-                        sku_prop_dict = dict([('%s:%s' % (p.split(':')[0], p.split(':')[1]), p.split(':')[3]) 
+                        sku_prop_dict = dict([('%s:%s' % (p.split(':')[0], p.split(':')[1]), 
+                                               p.split(':')[3]) 
                                               for p in sku['properties_name'].split(';') if p])
                         
-                        psku, state = ProductSku.objects.get_or_create(outer_id=sku_outer_id, product=item.product)
+                        psku, state = ProductSku.objects.get_or_create(outer_id=sku_outer_id, 
+                                                                       product=item.product)
                         if state:
                             for key, value in sku.iteritems():
                                 hasattr(psku, key) and setattr(psku, key, value)
@@ -153,7 +155,8 @@ def updateUserProductSkuTask(user_id=None,outer_ids=None,force_update_num=False)
                         props = sku['properties'].split(';')
                         for prop in props:
                             if prop :
-                                properties += prop_dict[sku['num_iid']].get(prop, '') or sku_prop_dict.get(prop,'') 
+                                properties += (prop_dict[sku['num_iid']].get(prop, '') 
+                                               or sku_prop_dict.get(prop,'')) 
                                 psku.properties_name = properties
                         psku.status = pcfg.NORMAL
                         psku.save()
