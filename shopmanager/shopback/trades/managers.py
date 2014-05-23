@@ -1,5 +1,5 @@
 from django.db import models
-from shopback.orders.models import Trade
+from shopback.orders.models import MergeTrade
 
 class MergeTradeManager(models.Manager):
     
@@ -7,49 +7,45 @@ class MergeTradeManager(models.Manager):
     def judge_out_stock(self,trade_id):
         #判断是否有缺货
         is_out_stock = False
-        try:
-            trade = Trade.objects.get(id=trade_id)
-        except Trade.DoesNotExist:
-            logger.error('trade(id:%d) does not exist'%trade_id)
-        else:
-            orders = trade.merge_trade_orders.filter(sys_status=pcfg.IN_EFFECT)
-            for order in orders:
-                is_order_out = False
-                if order.outer_sku_id:
+        trade = Trade.objects.get(id=trade_id)
+        orders = trade.merge_trade_orders.filter(sys_status=pcfg.IN_EFFECT)
+        for order in orders:
+            is_order_out = False
+            if order.outer_sku_id:
+                try:
+                    product_sku = ProductSku.objects.get(product__outer_id=order.outer_id,outer_id=order.outer_sku_id)    
+                except:
+                    trade.append_reason_code(pcfg.OUTER_ID_NOT_MAP_CODE)
+                    order.is_rule_match=True
+                else:
+                    is_order_out  |= product_sku.is_out_stock
+                    #更新待发数
+                    product_sku.update_wait_post_num(order.num)
+            elif order.outer_id:
+                try:
+                    product = Product.objects.get(outer_id=order.outer_id)
+                except:
+                    trade.append_reason_code(pcfg.OUTER_ID_NOT_MAP_CODE)
+                    order.is_rule_match=True
+                else:
+                    is_order_out |= product.is_out_stock
+                    #更新待发数
+                    product.update_wait_post_num(order.num)
+            
+            if not is_order_out:
+                #预售关键字匹配        
+                for kw in OUT_STOCK_KEYWORD:
                     try:
-                        product_sku = ProductSku.objects.get(product__outer_id=order.outer_id,outer_id=order.outer_sku_id)    
+                        order.sku_properties_name.index(kw)
                     except:
-                        trade.append_reason_code(pcfg.OUTER_ID_NOT_MAP_CODE)
-                        order.is_rule_match=True
+                        pass
                     else:
-                        is_order_out  |= product_sku.is_out_stock
-                        #更新待发数
-                        product_sku.update_wait_post_num(order.num)
-                elif order.outer_id:
-                    try:
-                        product = Product.objects.get(outer_id=order.outer_id)
-                    except:
-                        trade.append_reason_code(pcfg.OUTER_ID_NOT_MAP_CODE)
-                        order.is_rule_match=True
-                    else:
-                        is_order_out |= product.is_out_stock
-                        #更新待发数
-                        product.update_wait_post_num(order.num)
-                
-                if not is_order_out:
-                    #预售关键字匹配        
-                    for kw in OUT_STOCK_KEYWORD:
-                        try:
-                            order.sku_properties_name.index(kw)
-                        except:
-                            pass
-                        else:
-                            is_order_out = True
-                            break
-                if is_order_out:
-                    order.out_stock=True
-                    order.save()
-                is_out_stock |= is_order_out
+                        is_order_out = True
+                        break
+            if is_order_out:
+                order.out_stock=True
+                order.save()
+            is_out_stock |= is_order_out
                 
         if not is_out_stock:
             trade.remove_reason_code(pcfg.OUT_GOOD_CODE)

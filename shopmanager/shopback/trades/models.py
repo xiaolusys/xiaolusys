@@ -127,7 +127,29 @@ class MergeTrade(models.Model):
     INVALID_STATUS  = pcfg.INVALID_STATUS
     ON_THE_FLY_STATUS = pcfg.ON_THE_FLY_STATUS
     REGULAR_REMAIN_STATUS = pcfg.REGULAR_REMAIN_STATUS
+    
+    TRADE_NO_CREATE_PAY = pcfg.TRADE_NO_CREATE_PAY
+    WAIT_BUYER_PAY = pcfg.WAIT_BUYER_PAY
+    WAIT_SELLER_SEND_GOODS = pcfg.WAIT_SELLER_SEND_GOODS
+    WAIT_BUYER_CONFIRM_GOODS = pcfg.WAIT_BUYER_CONFIRM_GOODS
+    TRADE_BUYER_SIGNED = pcfg.TRADE_BUYER_SIGNED
+    TRADE_FINISHED = pcfg.TRADE_FINISHED
+    TRADE_CLOSED = pcfg.TRADE_CLOSED
+    TRADE_CLOSED_BY_TAOBAO = pcfg.TRADE_CLOSED_BY_TAOBAO
      
+    TAOBAO_TYPE = pcfg.TAOBAO_TYPE
+    FENXIAO_TYPE = pcfg.FENXIAO_TYPE
+    DIRECT_TYPE = pcfg.DIRECT_TYPE
+    REISSUE_TYPE = pcfg.REISSUE_TYPE
+    EXCHANGE_TYPE = pcfg.EXCHANGE_TYPE
+    COD_TYPE = pcfg.COD_TYPE
+    AUTO_DELIVERY_TYPE = pcfg.AUTO_DELIVERY_TYPE
+    GUARANTEE_TYPE = pcfg.GUARANTEE_TYPE
+    AUCTION_TYPE   = pcfg.AUCTION_TYPE
+     
+    Sys_status = SYS_TRADE_STATUS
+    Status     = TAOBAO_TRADE_STATUS
+    Type       = TRADE_TYPE
     
     id    = BigIntegerAutoField(primary_key=True)
     tid   = models.BigIntegerField(unique=True,null=True,blank=True,default=None,verbose_name=u'订单编码')
