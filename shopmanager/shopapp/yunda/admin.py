@@ -58,22 +58,25 @@ class YundaCustomerAdmin(admin.ModelAdmin):
     #--------设置页面布局----------------
     fieldsets =((u'客户基本信息:', {
                     'classes': ('expand',),
-                    'fields': (('name','code','company_name','cus_id',)
-                               ,('contacter','state','city','district','address','zip',)
-                               ,('mobile','phone','status','memo')
+                    'fields': (('name','code','company_name')
+                               ,('company_trade','cus_id','contacter',)
+                               ,('state','city','district')
+                               ,('address','zip','mobile',)
+                               ,('phone','status','memo')
                                )
                 }),
                 (u'二维码设置:', {
                     'classes': ('collapse',),
-                    'fields': (('qr_id','qr_code','on_qrcode'))
+                    'fields': (('qr_id','qr_code','on_qrcode'),)
                 }),
                  (u'揽件设置:', {
                     'classes': ('collapse',),
-                    'fields': (('lanjian_id','lanjian_code','sn_code','device_code','on_lanjian','on_bpkg'))
+                    'fields': (('lanjian_id','lanjian_code','sn_code')
+                               ,('device_code','on_lanjian','on_bpkg'))
                 }),
                  (u'录单设置:', {
                     'classes': ('collapse',),
-                    'fields': (('ludan_id','ludan_code','on_ludan'))
+                    'fields': (('ludan_id','ludan_code','on_ludan'),)
                 })
                 )
 
