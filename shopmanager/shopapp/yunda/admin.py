@@ -261,7 +261,19 @@ class LogisticOrderAdmin(admin.ModelAdmin):
                 }),
                 )
     
+     #取消该商品缺货订单                                                                                                                                
+    def pushPackageWeightAction(self,request,queryset):
+        try:
+            for package in queryset.filter(is_charged=False):
+                tspw,state = TodaySmallPackageWeight.objects.get_or_create(package_id=package.out_sid)
+                tspw.is_jzhw = package.isJZHW()
+                tspw.save()
+        except Exception,exc:
+            messages.error(request,'出错信息:%s'%exc.message)
+
+    pushPackageWeightAction.short_description = u"添加到今日小包上传列表"
     
+    actions = ['pushPackageWeightAction',]
 
 admin.site.register(LogisticOrder,LogisticOrderAdmin)
 

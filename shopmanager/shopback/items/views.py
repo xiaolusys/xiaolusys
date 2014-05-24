@@ -883,12 +883,13 @@ class StatProductSaleView(ModelView):
         
         for product_id,sale_stat in sale_stat_list:
             
-            product = Product.objects.get(id=product_id) 
+            product = Product.objects.get(id=product_id)
+            has_sku = sale_stat['skus'] and True or False
             sale_stat['name']     = product.name
             sale_stat['outer_id'] = product.outer_id
-            sale_stat['sale_cost'] = (product.cost * sale_stat['sale_num'],0)[sale_stat['skus'] and 1 or 0 ] 
-            sale_stat['collect_num'] = 0
-            sale_stat['stock_cost']  = 0
+            sale_stat['sale_cost'] = not has_sku and product.cost * sale_stat['sale_num'] or 0 
+            sale_stat['collect_num'] = not has_sku and product.collect_num or 0 
+            sale_stat['stock_cost']  = not has_sku and product.cost * product.collect_num or 0 
 
             for sku_id,sku_stat in sale_stat['skus'].iteritems():
                 
