@@ -16,6 +16,7 @@ class ExchangeTradeForm(forms.Form):
     
     receiver_mobile   = forms.CharField(max_length=20,required=False)
     receiver_phone    = forms.CharField(max_length=20,required=False)
+    type =  forms.CharField(max_length=10,required=False)
     
     
 class StatisticMergeOrderForm(forms.Form):

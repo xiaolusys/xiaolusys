@@ -86,39 +86,44 @@
 		<fieldset>
 			<legend><h1 class="head-title" >退换货单</h1></legend>
 			<div class="content-base-info">
-				<div><input type="hidden" id="id_exchange_trade" value="{{ trade.id }}" /></div>
+                                                <form action="./" method="POST">
 				<table class="table table-bordered table-striped table-condensed">
 					<tr>
 						<td>所属店铺:</td>
 						<td>
-							<select id="id_seller_id" class="selection" style="width:130px;">
+							<select name="user.id" class="selection" style="width:130px;">
 								<option value='' >-------请选择-------</option>
 								{% for seller in sellers %}
-								<option value='{{ seller.id }}' >{{ seller.nick }}</option>
+								<option value='{{ seller.id }}' {% if trade.user_id == seller.id %}selected{%%} >{{ seller.nick }}</option>
 								{% endfor %}
 							</select>
 						</td>
-						<td>会员昵称:</td><td><input type="text" id="id_buyer_nick" class="simple-text" /></td>
-						<td>手机:</td><td><input type="text" id="id_receiver_mobile" class="simple-text" /></td>
-						<td>固话:</td><td><input type="text" id="id_receiver_phone" class="simple-text" /></td>
+                                                                            <td>原单ID: </td><td><input type="text" class="simple-text" name="tid"
+                                                                                 value="{% if trade %}{{ trade.tid }}{% else %}{{ origin_no }}{% endif %}" disabled="disabled"/></td>
+						<td>会员昵称:</td><td><input type="text" name="buyer_nick" class="simple-text" /></td>
+						<td>手机:</td><td><input type="text" name="receiver_mobile" class="simple-text" /></td>
 					</tr>
 					<tr>
-						<td>收货人:</td><td><input type="text" id="id_receiver_name" class="simple-text" /></td>
-						<td>省:</td><td><input type="text" id="id_receiver_state" class="simple-text" /></td>
-						<td>市:</td><td><input type="text" id="id_receiver_city" class="simple-text" /></td>
-						<td>区:</td><td><input type="text" id="id_receiver_district" class="simple-text" /></td>
+                                                                             <td>固话:</td><td><input type="text" name="receiver_phone" class="simple-text" /></td>
+						<td>收货人:</td><td><input type="text" name="receiver_name" class="simple-text" /></td>
+						<td>省:</td><td><input type="text" name="receiver_state" class="simple-text" /></td>
+						<td>市:</td><td><input type="text" name="receiver_city" class="simple-text" /></td>
 					</tr>
 					<tr>
-						<td>详细地址:</td><td colspan="3"><input type="text" id="id_receiver_address" class="simple-text" style="width:400px;" /></td>
+                                                                            <td>区:</td><td><input type="text" name="receiver_district" class="simple-text" /></td>
+						<td>详细地址:</td><td colspan="5">
+                                                                                    <input type="text" name="receiver_address" class="simple-text" style="width:400px;" /></td>
 					</tr>
 					<tr>
 						<td colspan="6"></td>
 						<td colspan="2">
-							<button id="id_save_trade" class="btn btn-small btn-success">保存 +</button>&nbsp;&nbsp;
-							<a href="/admin/trades/mergetrade/?q={{ trade.id }}&type__exact=exchange" class="btn btn-small btn-success">审核 -></a>
+							<input type="submit" class="btn btn-small btn-success" value="保存 +" />&nbsp;&nbsp;
+							{% if trade %}<a href="/admin/trades/mergetrade/?q={{ trade.id }}&type__exact=exchange" 
+                                                                                          class="btn btn-small btn-success">审核 -></a>{% endif %}
 						</td>
 					</tr>
 				</table>
+                                              </form>
 			</div>
 			<hr/>
 			<div class="order-content">

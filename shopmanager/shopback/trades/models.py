@@ -781,7 +781,6 @@ class MergeOrder(models.Model):
                  logger.error(exc.message,exc_info=True)
                  merge_trade.append_reason_code(pcfg.OUTER_ID_NOT_MAP_CODE)
         merge_order = MergeOrder.objects.create(
-            tid = merge_trade.tid,
             merge_trade = merge_trade,
             outer_id = outer_id,
             price = product.std_sale_price,
@@ -798,7 +797,7 @@ class MergeOrder(models.Model):
             consign_time = merge_trade.consign_time,
             gift_type = gift_type,
             is_reverse_order = is_reverse,
-            out_stock = productsku.is_out_stock if productsku else product.is_out_stock,
+            out_stock = (productsku.is_out_stock if productsku else product.is_out_stock),
             status = status,
             sys_status = pcfg.IN_EFFECT,
         )
@@ -857,7 +856,8 @@ def refresh_trade_status(sender,instance,*args,**kwargs):
          not in (pcfg.DIRECT_TYPE,pcfg.REISSUE_TYPE,pcfg.EXCHANGE_TYPE):
         merge_trade.sys_status = pcfg.WAIT_PREPARE_SEND_STATUS
         
-    update_model_fields(merge_trade,update_fields=['order_num','prod_num','has_refund','has_out_stock',
+    update_model_fields(merge_trade,update_fields=[
+                           'order_num','prod_num','has_refund','has_out_stock',
                             'has_rule_match','has_merge','sys_status'])
         
 post_save.connect(refresh_trade_status, sender=MergeOrder)
