@@ -105,7 +105,7 @@ class MergeTradeAdmin(admin.ModelAdmin):
     #--------设置页面布局----------------
     fieldsets =(('订单基本信息:', {
                     'classes': ('collapse',),
-                    'fields': (('tid','user','type','status','seller_id')
+                    'fields': (('tid','user','type','status')
                                ,('buyer_nick','order_num','prod_num','trade_from')
                                ,('total_fee','payment','discount_fee','adjust_fee','post_fee')
                                ,('seller_cod_fee','buyer_cod_fee','cod_fee','cod_status','alipay_no')
@@ -487,7 +487,7 @@ class MergeTradeAdmin(admin.ModelAdmin):
             trade.seller_memo=''
             trade.save()
             #减去商品的待发货数，订单重新入库时（判断是否缺货功能），会重新加上
-            wait_post_orders = trade.merge_trade_orders.filter(sys_status=pcfg.IN_EFFECT
+            wait_post_orders = trade.merge_orders.filter(sys_status=pcfg.IN_EFFECT
                             ,gift_type__in=(pcfg.REAL_ORDER_GIT_TYPE,pcfg.COMBOSE_SPLIT_GIT_TYPE))
             for order in wait_post_orders:
                 if order.outer_sku_id:
@@ -506,7 +506,7 @@ class MergeTradeAdmin(admin.ModelAdmin):
                         product.update_wait_post_num(order.num) 
                         
             try:
-                trade.merge_trade_orders.all().delete()
+                trade.merge_orders.all().delete()
                 if trade.type == pcfg.TAOBAO_TYPE:
                     response = apis.taobao_trade_fullinfo_get(tid=trade.tid,tb_user_id=seller_id)
                     trade_dict = response['trade_fullinfo_get_response']['trade']
@@ -589,7 +589,7 @@ class MergeTradeAdmin(admin.ModelAdmin):
         """ 导出订单金额信息 """
         dt  = datetime.datetime.now()
         lg_tuple = gen_cvs_tuple(queryset,
-                                 fields=['tid','seller_nick','buyer_nick','payment','post_fee','pay_time'],
+                                 fields=['tid','user__nick','buyer_nick','payment','post_fee','pay_time'],
                                  title=[u'淘宝单号',u'店铺ID',u'买家ID',u'实付款',u'实付邮费',u'付款日期'])
 
         is_windows = request.META['HTTP_USER_AGENT'].lower().find('windows') >-1 
@@ -612,7 +612,7 @@ class MergeTradeAdmin(admin.ModelAdmin):
         """ 导出订单快递信息 """
         dt  = datetime.datetime.now()
         lg_tuple = gen_cvs_tuple(queryset,
-                                 fields=['out_sid','tid','seller_nick','receiver_name','receiver_state','receiver_city','weight','logistics_company','post_fee','weight_time'],
+                                 fields=['out_sid','tid','user__nick','receiver_name','receiver_state','receiver_city','weight','logistics_company','post_fee','weight_time'],
                                  title=[u'运单ID',u'淘宝单号',u'店铺',u'收货人',u'省',u'市',u'重量',u'快递',u'实付邮费',u'称重日期'])
 
         is_windows = request.META['HTTP_USER_AGENT'].lower().find('windows') >-1 
@@ -634,7 +634,7 @@ class MergeTradeAdmin(admin.ModelAdmin):
         """ 导出订单买家信息 """
         dt  = datetime.datetime.now()
         buyer_tuple = gen_cvs_tuple(queryset,
-                                 fields=['seller_nick','buyer_nick','receiver_state','receiver_phone','receiver_mobile','pay_time'],
+                                 fields=['user__nick','buyer_nick','receiver_state','receiver_phone','receiver_mobile','pay_time'],
                                  title=[u'卖家',u'买家昵称',u'省',u'固话',u'手机',u'付款日期'])
         
         is_windows = request.META['HTTP_USER_AGENT'].lower().find('windows') >-1 
@@ -681,7 +681,7 @@ class MergeTradeAdmin(admin.ModelAdmin):
                 pass
             
         is_windows = request.META['HTTP_USER_AGENT'].lower().find('windows') >-1 
-        file_name = u'logistic-%s-%s.csv'%(dt.month,dt.day)
+        file_name = u'yunda-%s-%s.csv'%(dt.month,dt.day)
         
         myfile = StringIO.StringIO() 
         
@@ -713,7 +713,7 @@ class MergeOrderAdmin(admin.ModelAdmin):
 
     list_filter = ('sys_status','merge_trade__sys_status','refund_status','out_stock',
                    'is_rule_match','is_merge','gift_type',('pay_time',DateFieldListFilter))
-    search_fields = ['oid','tid','outer_id','outer_sku_id']
+    search_fields = ['oid','merge_trade__id','outer_id','outer_sku_id']
 
 
 admin.site.register(MergeOrder,MergeOrderAdmin)
@@ -733,7 +733,8 @@ admin.site.register(MergeBuyerTrade,MergeBuyerTradeAdmin)
 
 
 class ReplayPostTradeAdmin(admin.ModelAdmin):
-    list_display = ('id','operator','order_num','succ_num','receiver','fid','created','finished','rece_date','check_date','status')
+    list_display = ('id','operator','order_num','succ_num','receiver','fid',
+                    'created','finished','rece_date','check_date','status')
     #list_editable = ('update_time','task_type' ,'is_success','status')
 
     date_hierarchy = 'created'
@@ -774,7 +775,8 @@ class ReplayPostTradeAdmin(admin.ModelAdmin):
             replay_trade.check_date = datetime.datetime.now()
             replay_trade.save()
         
-        return render_to_response('trades/trade_accept_check.html',{'trades':wait_scan_trades,'is_success':is_success},
+        return render_to_response('trades/trade_accept_check.html',
+                                  {'trades':wait_scan_trades,'is_success':is_success},
                                   context_instance=RequestContext(request),mimetype="text/html")
     
     check_post.short_description = "验证是否完成".decode('utf8')

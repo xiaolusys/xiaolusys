@@ -294,7 +294,7 @@ class CheckOrderView(ModelView):
             'id':trade.id,
             'tid':trade.tid,
             'buyer_nick':trade.buyer_nick,
-            'seller_nick':trade.seller_nick,
+            'seller_nick':trade.user.nick,
             'pay_time':trade.pay_time,
             'payment':trade.payment,
             'post_fee':trade.post_fee,
@@ -378,7 +378,7 @@ class CheckOrderView(ModelView):
                 return ','.join(check_msg)
             
             if trade.type == pcfg.EXCHANGE_TYPE:
-                change_orders = trade.merge_trade_orders.filter(gift_type=pcfg.CHANGE_GOODS_GIT_TYPE,sys_status=pcfg.IN_EFFECT)
+                change_orders = trade.merge_orders.filter(gift_type=pcfg.CHANGE_GOODS_GIT_TYPE,sys_status=pcfg.IN_EFFECT)
                 if change_orders.count()>0:
                     #订单为自提
                     if shipping_type == pcfg.EXTRACT_SHIPPING_TYPE:
@@ -416,8 +416,10 @@ class CheckOrderView(ModelView):
             else:
                 if shipping_type == pcfg.EXTRACT_SHIPPING_TYPE: 
                     try:
-                        response = apis.taobao_logistics_offline_send(tid=trade.tid,out_sid=1111111111
-                                                  ,company_code=pcfg.EXTRACT_COMPANEY_CODE,tb_user_id=trade.seller_id)
+                        response = apis.taobao_logistics_offline_send(
+                                                  tid=trade.tid,out_sid=1111111111
+                                                  ,company_code=pcfg.EXTRACT_COMPANEY_CODE,
+                                                  tb_user_id=trade.user.visitor_id)
                     except Exception,exc:
                         trade.append_reason_code(pcfg.POST_MODIFY_CODE)
                         trade.sys_status=pcfg.WAIT_AUDIT_STATUS
@@ -645,7 +647,7 @@ class ReviewOrderView(ModelView):
             'id':trade.id,
             'tid':trade.tid,
             'buyer_nick':trade.buyer_nick,
-            'seller_nick':trade.seller_nick,
+            'seller_nick':trade.user.nick,
             'pay_time':trade.pay_time,
             'payment':trade.payment,
             'post_fee':trade.post_fee,
@@ -1013,7 +1015,7 @@ class TradeSearchView(ModelView):
         except MergeTrade.DoesNotExist:
             return u'订单未找到'
         
-        can_post_orders = cp_trade.merge_trade_orders.all()
+        can_post_orders = cp_trade.merge_orders.all()
         for order in can_post_orders:
             try:
                 MergeOrder.gen_new_order(pt_trade.id,order.outer_id,
@@ -1021,7 +1023,7 @@ class TradeSearchView(ModelView):
             except Exception,exc:
                 logger.error(exc.message,exc_info=True)
                    
-        orders = pt_trade.merge_trade_orders.filter(sys_status=pcfg.IN_EFFECT)
+        orders = pt_trade.merge_orders.filter(sys_status=pcfg.IN_EFFECT)
         order_list = []
         for order in orders:
             try:
@@ -1058,7 +1060,7 @@ class OrderListView(ModelView):
             trade  = MergeTrade.objects.get(id=id)
         except:
             return HttpResponseNotFound('<h1>订单未找到</h1>')
-        for order in trade.merge_trade_orders.all():
+        for order in trade.merge_orders.all():
             try:
                 prod = Product.objects.get(outer_id=order.outer_id)
             except:
@@ -1102,7 +1104,7 @@ class TradeLogisticView(ModelView):
             mergetrades = MergeTrade.objects.filter(out_sid=q.strip('\' '),is_express_print=True)
             for trade in mergetrades:
                 trade_dict = {"tid":trade.tid,
-                              "seller_nick":trade.seller_nick,
+                              "seller_nick":trade.user.nick,
                               "buyer_nick":trade.buyer_nick,
                               "out_sid":trade.out_sid,
                               "logistics_company":trade.logistics_company.name,

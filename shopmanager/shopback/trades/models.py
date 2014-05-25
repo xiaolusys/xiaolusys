@@ -1,4 +1,5 @@
 #-*- coding:utf8 -*-
+import time
 import json
 from django.db import models
 from django.db.models import Q,Sum
@@ -119,16 +120,20 @@ GIFT_TYPE = (
 
 class MergeTrade(models.Model):
     
-    id    = BigIntegerAutoField(primary_key=True)
-    tid   = models.BigIntegerField(unique=True,null=True,blank=True,default=None,verbose_name=u'淘宝订单编号')
+    id    = BigIntegerAutoField(primary_key=True,verbose_name=u'订单ID')
     
-    user       = models.ForeignKey(User,null=True,default=None,related_name='merge_trades',verbose_name=u'所属店铺')
-    seller_id  = models.CharField(max_length=64,blank=True,verbose_name=u'店铺ID')
-    seller_nick = models.CharField(max_length=64,blank=True,verbose_name=u'店铺名称')
+    tid   = models.CharField(max_length=32,
+                             #default=lambda:'HYD%d'%int(time.time()*10**5),
+                             verbose_name=u'原单ID')  
+    user       = models.ForeignKey(User,related_name='merge_trades',verbose_name=u'所属店铺')
+#    seller_id  = models.CharField(max_length=64,blank=True,verbose_name=u'店铺ID')
+#    seller_nick = models.CharField(max_length=64,blank=True,verbose_name=u'店铺名称')
     buyer_nick  = models.CharField(max_length=64,db_index=True,blank=True,verbose_name=u'买家昵称')
     
-    type       = models.CharField(max_length=32,choices=TRADE_TYPE,blank=True,verbose_name=u'订单类型')
-    shipping_type = models.CharField(max_length=12,blank=True,choices=SHIPPING_TYPE_CHOICE,verbose_name=u'物流方式')
+    type        = models.CharField(max_length=32,choices=TRADE_TYPE,
+                                  blank=True,verbose_name=u'订单类型')
+    shipping_type = models.CharField(max_length=12,blank=True,
+                                     choices=SHIPPING_TYPE_CHOICE,verbose_name=u'物流方式')
     
     order_num  =   models.IntegerField(default=0,verbose_name=u'单数')
     prod_num   =   models.IntegerField(default=0,verbose_name=u'品类数')
@@ -229,6 +234,7 @@ class MergeTrade(models.Model):
     
     class Meta:
         db_table = 'shop_trades_mergetrade'
+        unique_together = ("user","tid")
         verbose_name=u'订单'
         verbose_name_plural = u'订单列表'
         permissions = [
@@ -254,7 +260,7 @@ class MergeTrade(models.Model):
         
     @property
     def inuse_orders(self):
-        return self.merge_trade_orders.filter(sys_status=pcfg.IN_EFFECT)  
+        return self.merge_orders.filter(sys_status=pcfg.IN_EFFECT)  
          
     @property
     def buyer_full_address(self):
@@ -303,7 +309,7 @@ class MergeTrade(models.Model):
         
         trade_id   = self.tid
         trade_type = self.type
-        seller_id  = self.seller_id
+        seller_id  = self.user.visitor_id
         company_code = company_code or self.logistics_company.code.split('_')[0]
         out_sid    = out_sid or self.out_sid
         
@@ -381,7 +387,9 @@ class MergeTrade(models.Model):
         if not (self.receiver_mobile or self.receiver_phone):
             return 
    
-        customer,state     = Customer.objects.get_or_create(nick=self.buyer_nick,mobile=self.receiver_mobile,phone=self.receiver_phone)
+        customer,state     = Customer.objects.get_or_create(nick=self.buyer_nick,
+                                                            mobile=self.receiver_mobile,
+                                                            phone=self.receiver_phone)
         customer.name      = self.receiver_name
         customer.zip       = self.receiver_zip
         customer.address   = self.receiver_address
@@ -390,7 +398,8 @@ class MergeTrade(models.Model):
         customer.district  = self.receiver_district
         customer.save()
         
-        trades        = MergeTrade.objects.filter(buyer_nick=self.buyer_nick,receiver_mobile=self.receiver_mobile,
+        trades        = MergeTrade.objects.filter(buyer_nick=self.buyer_nick,
+                        receiver_mobile=self.receiver_mobile,
                         status__in=pcfg.ORDER_SUCCESS_STATUS).exclude(is_express_print=False,
                         sys_status=pcfg.FINISHED_STATUS).order_by('-pay_time')
         trade_num     = trades.count()
@@ -519,7 +528,7 @@ class MergeTrade(models.Model):
         
     def has_trade_refunding(self):
         #判断是否有等待退款的订单
-        orders = self.merge_trade_orders.filter(refund_status=pcfg.REFUND_WAIT_SELLER_AGREE)
+        orders = self.merge_orders.filter(refund_status=pcfg.REFUND_WAIT_SELLER_AGREE)
         if orders.count()>0:
             return True
         return False
@@ -534,7 +543,7 @@ class MergeTrade(models.Model):
         except Trade.DoesNotExist:
             logger.error('trade(id:%d) does not exist'%trade_id)
         else:
-            orders = trade.merge_trade_orders.filter(sys_status=pcfg.IN_EFFECT)
+            orders = trade.merge_orders.filter(sys_status=pcfg.IN_EFFECT)
             for order in orders:
                 is_order_out = False
                 if order.outer_sku_id:
@@ -587,9 +596,9 @@ class MergeTrade(models.Model):
 
         merge_trade = cls.objects.get(id=trade_id)  
 
-        refund_approval_num = merge_trade.merge_trade_orders.filter(refund_status__in=pcfg.REFUND_APPROVAL_STATUS
+        refund_approval_num = merge_trade.merge_orders.filter(refund_status__in=pcfg.REFUND_APPROVAL_STATUS
                             ,gift_type=pcfg.REAL_ORDER_GIT_TYPE).exclude(is_merge=True).count()
-        total_orders_num  = merge_trade.merge_trade_orders.filter(gift_type=pcfg.REAL_ORDER_GIT_TYPE).exclude(is_merge=True).count()
+        total_orders_num  = merge_trade.merge_orders.filter(gift_type=pcfg.REAL_ORDER_GIT_TYPE).exclude(is_merge=True).count()
 
         if refund_approval_num==total_orders_num:
             return True
@@ -600,7 +609,7 @@ class MergeTrade(models.Model):
     def judge_new_refund(cls,trade_id):
         #判断是否有新退款
         merge_trade = cls.objects.get(id=trade_id)
-        refund_orders_num   = merge_trade.merge_trade_orders.filter(gift_type=pcfg.REAL_ORDER_GIT_TYPE)\
+        refund_orders_num   = merge_trade.merge_orders.filter(gift_type=pcfg.REAL_ORDER_GIT_TYPE)\
             .exclude(Q(is_merge=True)|Q(refund_status=pcfg.NO_REFUND)).count()
         
         if refund_orders_num >merge_trade.refund_num:
@@ -689,12 +698,14 @@ class MergeOrder(models.Model):
     
     id    = BigIntegerAutoField(primary_key=True)
     
-    oid   = models.BigIntegerField(db_index=True,null=True,blank=True,default=None,verbose_name=u'子订单编号')
-    tid   = models.BigIntegerField(db_index=True,null=True,blank=True,default=None,verbose_name=u'订单编号')
+    oid   = models.CharField(max_length=32,
+                             #default=lambda:'HYO%d'%int(time.time()*10**5),
+                             verbose_name=u'子订单编号')
+    merge_trade = BigIntegerForeignKey(MergeTrade,
+                                       related_name='merge_orders',
+                                       verbose_name=u'所属订单')
     
     cid    = models.BigIntegerField(db_index=True,null=True,verbose_name=u'商品分类')
-    merge_trade = BigIntegerForeignKey(MergeTrade,null=True,related_name='merge_trade_orders',verbose_name=u'所属订单')
-
     num_iid  = models.CharField(max_length=64,blank=True,verbose_name=u'线上商品编号')
     title  =  models.CharField(max_length=128,verbose_name=u'商品标题')
     price  = models.CharField(max_length=12,blank=True,verbose_name=u'单价')
@@ -735,7 +746,7 @@ class MergeOrder(models.Model):
     
     class Meta:
         db_table = 'shop_trades_mergeorder'
-        unique_together = ("oid","tid")
+        unique_together = ("merge_trade","oid")
         verbose_name=u'订单商品'
         verbose_name_plural = u'订单商品列表'
         
@@ -758,7 +769,7 @@ class MergeOrder(models.Model):
     def gen_new_order(cls,trade_id,outer_id,outer_sku_id,num,gift_type=pcfg.REAL_ORDER_GIT_TYPE
                       ,status=pcfg.WAIT_SELLER_SEND_GOODS,is_reverse=False,payment='0'):
         
-        merge_trade,state = MergeTrade.objects.get_or_create(id=trade_id)
+        merge_trade = MergeTrade.objects.get(id=trade_id)
         product = Product.objects.get(outer_id=outer_id)
         sku_properties_name = ''
         productsku = None
@@ -780,7 +791,7 @@ class MergeOrder(models.Model):
             outer_sku_id = outer_sku_id,
             sku_properties_name = sku_properties_name,
             refund_status = pcfg.NO_REFUND,
-            seller_nick = merge_trade.seller_nick,
+            seller_nick = merge_trade.user.seller_nick,
             buyer_nick = merge_trade.buyer_nick,
             created = merge_trade.created,
             pay_time = merge_trade.pay_time,
@@ -810,15 +821,16 @@ class MergeOrder(models.Model):
 def refresh_trade_status(sender,instance,*args,**kwargs):
     #更新主订单的状态
     merge_trade   = instance.merge_trade
-    if merge_trade.seller_nick and merge_trade.buyer_nick and (not instance.seller_nick or not instance.buyer_nick):
-        instance.seller_nick = merge_trade.seller_nick
+    if (merge_trade.buyer_nick and 
+        (not instance.seller_nick or not instance.buyer_nick)):
+        instance.seller_nick = merge_trade.user.nick
         instance.buyer_nick  = merge_trade.buyer_nick
         instance.created     = merge_trade.created
         instance.pay_time    = merge_trade.pay_time
         
         update_model_fields(instance,update_fields=['seller_nick','buyer_nick','created','pay_time'])
     
-    effect_orders = merge_trade.merge_trade_orders.filter(sys_status=pcfg.IN_EFFECT)
+    effect_orders = merge_trade.merge_orders.filter(sys_status=pcfg.IN_EFFECT)
     order_num     = effect_orders.count()#
     merge_trade.order_num = order_num
     
@@ -837,7 +849,7 @@ def refresh_trade_status(sender,instance,*args,**kwargs):
         if not out_stock:
             merge_trade.remove_reason_code(pcfg.OUT_GOOD_CODE)    
         
-    has_merge     = merge_trade.merge_trade_orders.filter(is_merge=True).count()>0
+    has_merge     = merge_trade.merge_orders.filter(is_merge=True).count()>0
     merge_trade.has_merge = has_merge
     
     if not merge_trade.reason_code and merge_trade.status==pcfg.WAIT_SELLER_SEND_GOODS and merge_trade.logistics_company\
@@ -895,10 +907,10 @@ def merge_order_maker(sub_tid,main_tid):
     discount_fee = 0
     post_fee     = float(sub_trade.post_fee or 0 ) + float(main_merge_trade.post_fee or 0)
     is_reverse_order = main_merge_trade.sys_status in (pcfg.WAIT_CHECK_BARCODE_STATUS,pcfg.WAIT_SCAN_WEIGHT_STATUS)
-    for order in sub_trade.merge_trade_orders.all():
+    for order in sub_trade.merge_orders.all():
         try:
             if order.oid:
-                merge_order,state = MergeOrder.objects.get_or_create(oid=order.oid,tid=main_tid,merge_trade=main_merge_trade)
+                merge_order,state = MergeOrder.objects.get_or_create(oid=order.oid,merge_trade=main_merge_trade)
             else:
                 merge_order = MergeOrder()
         except:
@@ -908,7 +920,6 @@ def merge_order_maker(sub_tid,main_tid):
             if field.name not in ('id','tid','merge_trade'):
                 setattr(merge_order,field.name,getattr(order,field.name))
         
-        merge_order.tid         = main_tid
         merge_order.merge_trade = main_merge_trade
         merge_order.is_merge    = True
         merge_order.sys_status  = order.sys_status
@@ -982,7 +993,7 @@ def merge_order_remover(main_tid):
     main_trade.has_merge = False
     update_model_fields(main_trade,update_fields=['payment','total_fee','post_fee','adjust_fee','discount_fee','has_merge'])
     
-    main_trade.merge_trade_orders.filter(Q(oid=None)|Q(is_merge=True)).delete()
+    main_trade.merge_orders.filter(Q(oid=None)|Q(is_merge=True)).delete()
     sub_merges = MergeBuyerTrade.objects.filter(main_tid=main_tid)
     for sub_merge in sub_merges:    
         sub_tid  = sub_merge.sub_tid
@@ -1125,22 +1136,6 @@ def trade_download_controller(merge_trade,trade,trade_from,first_pay_load):
                 elif shipping_type in (pcfg.POST_SHIPPING_TYPE,pcfg.EMS_SHIPPING_TYPE):
                     post_company = LogisticsCompany.objects.get(code=shipping_type.upper())
                     merge_trade.logistics_company = post_company
-                    
-#                #如果订单选择使用韵达物流，则会请求韵达接口，查询订单是否到达，并做处理    
-#                if  merge_trade.logistics_company and merge_trade.logistics_company.code.startswith('YUNDA_QR'):
-#                    from shopapp.yunda.qrcode import select_order
-#                    
-#                    doc    = select_order([merge_trade.id])
-#                    reach  = doc.xpath('/responses/response/reach')[0].text
-#                    zonec  = doc.xpath('/responses/response/package_bm')[0].text
-#                    zoned  = doc.xpath('/responses/response/package_mc')[0].text
-#                    
-#                    if reach == '0' or not reach:
-#                        MergeTrade.objects.filter(id=merge_trade.id).update(sys_memo=u'韵达二维码不到')
-#                        merge_trade.logistics_company = LogisticsCompany.objects.get(code='YUNDA_QR')
-#                    
-#                    if reach == '1':
-#                        MergeTrade.objects.filter(id=merge_trade.id).update(reserveo=zonec,reservet=zoned)
                     
             except Exception,exc:
                 logger.error(exc.message or 'distribute logistic error',exc_info=True)
@@ -1316,7 +1311,7 @@ def save_orders_trade_to_mergetrade(sender, trade, *args, **kwargs):
     
     try:
         tid  = trade.id
-        merge_trade,state = MergeTrade.objects.get_or_create(tid=tid)
+        merge_trade,state = MergeTrade.objects.get_or_create(user=trade.user,tid=tid)
         
         first_pay_load = not merge_trade.sys_status
         if not merge_trade.receiver_name and trade.receiver_name:
@@ -1338,21 +1333,24 @@ def save_orders_trade_to_mergetrade(sender, trade, *args, **kwargs):
                                                             'receiver_zip',
                                                             'receiver_mobile',
                                                             'receiver_phone'])
-
       
         #保存商城或C店订单到抽象全局抽象订单表
         for order in trade.trade_orders.all():
-            merge_order,state = MergeOrder.objects.get_or_create(oid=order.oid,tid=tid,merge_trade = merge_trade)
+            merge_order,state = MergeOrder.objects.get_or_create(
+                                oid=order.oid,merge_trade = merge_trade)
             state = state or not merge_order.sys_status
-            if state and order.refund_status in (pcfg.REFUND_WAIT_SELLER_AGREE,pcfg.REFUND_SUCCESS)\
-                    or order.status in (pcfg.TRADE_CLOSED,pcfg.TRADE_CLOSED_BY_TAOBAO):
+            if (state and order.refund_status in 
+                (pcfg.REFUND_WAIT_SELLER_AGREE,pcfg.REFUND_SUCCESS)
+                or order.status in (pcfg.TRADE_CLOSED,pcfg.TRADE_CLOSED_BY_TAOBAO)):
                 sys_status = pcfg.INVALID_STATUS
             else:
                 sys_status = merge_order.sys_status or pcfg.IN_EFFECT
             
             if state:
-                order_fields = ['num_iid','title','price','sku_id','num','outer_id','outer_sku_id','total_fee','payment',
-                    'refund_status','pic_path','seller_nick','buyer_nick','created','pay_time','consign_time','status']
+                order_fields = ['num_iid','title','price','sku_id','num',
+                                'outer_id','outer_sku_id','total_fee','payment',
+                                'refund_status','pic_path','seller_nick','buyer_nick',
+                                'created','pay_time','consign_time','status']
                 
                 for k in order_fields:
                     setattr(merge_order,k,getattr(order,k))
@@ -1383,11 +1381,11 @@ def save_orders_trade_to_mergetrade(sender, trade, *args, **kwargs):
             merge_trade.adjust_fee   = merge_trade.adjust_fee or trade.adjust_fee
             merge_trade.post_fee   = merge_trade.post_fee or trade.post_fee
         
-        update_fields = ['user','seller_id','seller_nick','buyer_nick','type','seller_cod_fee','buyer_cod_fee',
+        update_fields = ['buyer_nick','type','seller_cod_fee','buyer_cod_fee',
                          'cod_fee','cod_status','seller_flag','created','pay_time',
                          'modified','consign_time','send_time','status','is_brand_sale','is_lgtype',
-                         'lg_aging','lg_aging_type','buyer_rate','seller_rate','seller_can_rate','is_part_consign',
-                         'step_paid_fee','step_trade_status']
+                         'lg_aging','lg_aging_type','buyer_rate','seller_rate','seller_can_rate',
+                         'is_part_consign','step_paid_fee','step_trade_status']
         
         for k in update_fields:
             setattr(merge_trade,k,getattr(trade,k))
@@ -1413,7 +1411,7 @@ merge_trade_signal.connect(save_orders_trade_to_mergetrade,sender=Trade,dispatch
 def save_fenxiao_orders_to_mergetrade(sender, trade, *args, **kwargs):
     try:
         tid = trade.id
-        merge_trade,state = MergeTrade.objects.get_or_create(tid=tid)
+        merge_trade,state = MergeTrade.objects.get_or_create(user=trade.user,tid=tid)
         
         first_pay_load = not merge_trade.sys_status 
         #如果交易是等待卖家发货，第一次入库，或者没有卖家收货信息，则更新其物流信息
@@ -1443,7 +1441,8 @@ def save_fenxiao_orders_to_mergetrade(sender, trade, *args, **kwargs):
 
         #保存分销订单到抽象全局抽象订单表
         for order in trade.sub_purchase_orders.all():
-            merge_order,state = MergeOrder.objects.get_or_create(oid=order.fenxiao_id,tid=tid,merge_trade = merge_trade)
+            merge_order,state = MergeOrder.objects.get_or_create(oid=order.fenxiao_id,
+                                                                 merge_trade = merge_trade)
             state = state or not merge_order.sys_status
             
             fenxiao_product = FenxiaoProduct.get_or_create(trade.user.visitor_id,order.item_id)
@@ -1453,7 +1452,9 @@ def save_fenxiao_orders_to_mergetrade(sender, trade, *args, **kwargs):
                 refund_status = pcfg.REFUND_SUCCESS
             else:
                 refund_status = pcfg.NO_REFUND
-            if state and order.status in (pcfg.TRADE_REFUNDING,pcfg.TRADE_CLOSED,pcfg.TRADE_REFUNDED):
+            if state and order.status in (pcfg.TRADE_REFUNDING,
+                                          pcfg.TRADE_CLOSED,
+                                          pcfg.TRADE_REFUNDED):
                 sys_status = pcfg.INVALID_STATUS
             else:
                 sys_status = merge_order.sys_status or pcfg.IN_EFFECT     
@@ -1470,7 +1471,7 @@ def save_fenxiao_orders_to_mergetrade(sender, trade, *args, **kwargs):
                 merge_order.sku_properties_name = order.properties_values
                 merge_order.refund_status = refund_status
                 merge_order.pic_path = fenxiao_product.pictures and fenxiao_product.pictures.split(',')[0] or ''
-                merge_order.seller_nick = merge_trade.seller_nick
+                merge_order.seller_nick = merge_trade.user.nick
                 merge_order.buyer_nick  = merge_trade.buyer_nick
                 merge_order.created  = order.created
                 merge_order.pay_time = merge_trade.created
@@ -1495,9 +1496,6 @@ def save_fenxiao_orders_to_mergetrade(sender, trade, *args, **kwargs):
             merge_trade.total_fee = merge_trade.total_fee or trade.total_fee
             merge_trade.post_fee  = merge_trade.post_fee or trade.post_fee
         
-        merge_trade.user = trade.user
-        merge_trade.seller_id = trade.seller_id
-        merge_trade.seller_nick = trade.supplier_username
         merge_trade.buyer_nick = trade.distributor_username
         merge_trade.type = pcfg.FENXIAO_TYPE
         merge_trade.shipping_type = merge_trade.shipping_type or\
@@ -1511,9 +1509,10 @@ def save_fenxiao_orders_to_mergetrade(sender, trade, *args, **kwargs):
         merge_trade.status   = trade.status
         merge_trade.trade_from  = TF_CODE_MAP[pcfg.TF_TAOBAO]
         
-        update_fields = ['user','seller_id','seller_nick','buyer_nick','type','shipping_type','payment',
+        update_fields = ['buyer_nick','type','shipping_type','payment',
                          'total_fee','post_fee','created','trade_from',
-                         'pay_time','modified','consign_time','seller_flag','priority','status']
+                         'pay_time','modified','consign_time',
+                         'seller_flag','priority','status']
         
         update_model_fields(merge_trade,update_fields=update_fields)
         #更新系统内部状态

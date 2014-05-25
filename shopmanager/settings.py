@@ -221,10 +221,10 @@ try:
 except Exception,exc:
     pass
 
-try:
-    from local_settings import *
-except Exception,exc:
-    pass
+#try:
+from local_settings import *
+#except Exception,exc:
+#    pass
 
 try:
     from task_settings import *

@@ -31,7 +31,7 @@ def get_trade_pickle_list_data(post_trades):
     
     trade_items = {}
     for trade in post_trades:
-        used_orders = trade.merge_trade_orders.filter(sys_status=pcfg.IN_EFFECT)\
+        used_orders = trade.merge_orders.filter(sys_status=pcfg.IN_EFFECT)\
             .exclude(gift_type=pcfg.RETURN_GOODS_GIT_TYPE)
         for order in used_orders:
             outer_id = order.outer_id or str(order.num_iid)
@@ -93,7 +93,7 @@ def get_replay_results(replay_trade):
             trade_dict = {}
             trade_dict['id'] = trade.id
             trade_dict['tid'] = trade.tid
-            trade_dict['seller_nick'] = trade.seller_nick
+            trade_dict['seller_nick'] = trade.user.seller_nick
             trade_dict['buyer_nick'] = trade.buyer_nick
             trade_dict['company_name'] = trade.logistics_company.name 
             trade_dict['out_sid']    = trade.out_sid

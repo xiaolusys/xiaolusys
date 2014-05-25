@@ -180,7 +180,7 @@ def rule_match_product(sender, trade_id, *args, **kwargs):
     except Trade.DoesNotExist:
         pass
     else: 
-        orders  = trade.merge_trade_orders.filter(sys_status=pcfg.IN_EFFECT)
+        orders  = trade.merge_orders.filter(sys_status=pcfg.IN_EFFECT)
         for order in orders:
             outer_id     = order.outer_id
             outer_sku_id = order.outer_sku_id
@@ -228,7 +228,7 @@ def rule_match_trade(sender, trade_id, *args, **kwargs):
         for order in orders:
             payment = float(order.payment)  
             trade_payment += payment
-            item = Item.get_or_create(trade.seller_id,order.num_iid)
+            item = Item.get_or_create(trade.user.visitor_id,order.num_iid)
             order_rules = item.rules.filter(scope='product',status='US')
             for rule in order_rules:
                 try:
@@ -262,9 +262,9 @@ def rule_match_payment(sender, trade_id, *args, **kwargs):
     except MergeTrade.DoesNotExist:
         pass
     else:
-        trade.merge_trade_orders.filter(gift_type=pcfg.OVER_PAYMENT_GIT_TYPE).delete()
+        trade.merge_orders.filter(gift_type=pcfg.OVER_PAYMENT_GIT_TYPE).delete()
         try:
-            orders = trade.merge_trade_orders.filter(gift_type=pcfg.REAL_ORDER_GIT_TYPE
+            orders = trade.merge_orders.filter(gift_type=pcfg.REAL_ORDER_GIT_TYPE
                             ,status__in=(pcfg.WAIT_SELLER_SEND_GOODS,pcfg.WAIT_BUYER_CONFIRM_GOODS)
                             ).exclude(refund_status=pcfg.REFUND_SUCCESS)
             
@@ -305,9 +305,9 @@ def rule_match_combose_split(sender, trade_id, *args, **kwargs):
     except MergeTrade.DoesNotExist:
         pass
     else:
-        trade.merge_trade_orders.filter(gift_type=pcfg.COMBOSE_SPLIT_GIT_TYPE).delete()
+        trade.merge_orders.filter(gift_type=pcfg.COMBOSE_SPLIT_GIT_TYPE).delete()
         try:
-            orders = trade.merge_trade_orders.filter(gift_type=pcfg.REAL_ORDER_GIT_TYPE
+            orders = trade.merge_orders.filter(gift_type=pcfg.REAL_ORDER_GIT_TYPE
                             ,status__in=(pcfg.WAIT_SELLER_SEND_GOODS,pcfg.WAIT_BUYER_CONFIRM_GOODS)
                             ).exclude(refund_status=pcfg.REFUND_SUCCESS)
             for order in orders:

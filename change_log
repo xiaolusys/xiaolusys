@@ -1,3 +1,19 @@
+create index shop_trades_mergeorder_oid on shop_trades_mergeorder(oid);
+create index shop_trades_mergetrade_tid on shop_trades_mergetrade(tid);
+######### 2014-5-24 ##########
+alter table shop_trades_mergetrade drop index tid;
+alter table shop_trades_mergetrade change column tid  tid varchar(32) NOT NULL;
+alter table shop_trades_mergetrade add unique key (user_id,tid);
+ALTER TABLE shop_trades_mergetrade ADD FOREIGN KEY (`user_id`) REFERENCES shop_users_user(`id`);
+
+delete from shop_trades_mergetrade where tid='' and user_id is NULL;
+
+alter table shop_trades_mergeorder drop index oid;
+alter table shop_trades_mergeorder change column oid  oid varchar(32) NOT NULL;
+alter table shop_trades_mergeorder add unique key (merge_trade_id,oid);
+alter table shop_trades_mergeorder drop column tid;
+
+
 ######### 2014-5-22 ##########
 alter table shop_yunda_customer add column company_trade varchar(32) NOT NULL;
 alter table shop_yunda_customer add column reserveo varchar(64) NOT NULL;

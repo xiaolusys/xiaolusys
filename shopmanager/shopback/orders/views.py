@@ -41,8 +41,10 @@ class TimerOrderStatisticsView(ModelView):
             start_dt = datetime.datetime(dt.year,dt.month,dt.day,0,0,0)
             end_dt   = datetime.datetime(dt.year,dt.month,dt.day,23,59,59)
 
-        queryset = Trade.objects.filter(seller_nick__in = nicks_list,status__in=pcfg.ORDER_SUCCESS_STATUS)
-        queryset = queryset.filter(pay_time__gte=start_dt,pay_time__lte=end_dt)
+        queryset = Trade.objects.filter(seller_nick__in = nicks_list,
+                                        status__in=pcfg.ORDER_SUCCESS_STATUS)
+        queryset = queryset.filter(pay_time__gte=start_dt,
+                                   pay_time__lte=end_dt)
         
         if logistic_company:
             queryset = queryset.filter(logistics_company=logistic_company)
