@@ -2,12 +2,15 @@
 import re
 import datetime
 import json
-from django.http import HttpResponse,HttpResponseNotFound
+from django.core.urlresolvers import reverse
+from django.http import HttpResponse,HttpResponseNotFound,HttpResponseRedirect
 from django.shortcuts import render_to_response
 from django.template import RequestContext
 from django.db.models import Q,Sum
+
 from djangorestframework.views import ModelView
 from djangorestframework.response import ErrorResponse
+
 from shopback.trades.models import MergeTrade,MergeOrder,ReplayPostTrade,GIFT_TYPE\
     ,SYS_TRADE_STATUS,TAOBAO_TRADE_STATUS,SHIPPING_TYPE_CHOICE,TAOBAO_ORDER_STATUS
 from shopback.logistics.models import LogisticsCompany
@@ -806,10 +809,10 @@ class ExchangeOrderView(ModelView):
     
     def get(self, request, *args, **kwargs):
         
-        trade   = MergeTrade.objects.create(type=pcfg.EXCHANGE_TYPE,status=pcfg.WAIT_SELLER_SEND_GOODS)
+        origin_no   = MergeTrade.__meta__.get_field_by_name('tid')[0].get_default()
         sellers = User.objects.all()
         
-        return {'trade':trade,'sellers':sellers}
+        return {'origin_no':origin_no,'sellers':sellers}
     
     def post(self, request, *args, **kwargs):
         
@@ -817,34 +820,63 @@ class ExchangeOrderView(ModelView):
         trade_id    = content.get('trade_id')
         seller_id   = content.get('sellerId')
         try:
-            merge_trade = MergeTrade.objects.get(id=trade_id)
-        except MergeTrade.DoesNotExist:
-            return u'订单未找到'
-        
-        try:
-            user = User.objects.get(id=seller_id)
-        except User.DoesNotExist:
-            return u'卖家不存在'
+            merge_trade = MergeTrade.objects.get_or_create(user_id=seller_id,tid=trade_id)
+        except Exception,exc:
+            return u'退换货单创建异常:%s'%exc.message
         
         if merge_trade.sys_status not in('',pcfg.WAIT_AUDIT_STATUS):
-            return u'订单暂不能保存'
+            return u'订单状态已改变'
         
         dt = datetime.datetime.now()
         for key,val in content.iteritems():
             hasattr(merge_trade,key) and setattr(merge_trade,key,val)  
-        merge_trade.user = user 
-        merge_trade.seller_nick= user.nick
-        merge_trade.seller_id  = user.visitor_id
-        merge_trade.shipping_type = "express"
+        
+        merge_trade.type = pcfg.EXCHANGE_TYPE
+        merge_trade.shipping_type = pcfg.EXPRESS_SHIPPING_TYPE
+        merge_trade.sys_status =  merge_trade.sys_status or pcfg.WAIT_AUDIT_STATUS
         merge_trade.created    = dt
         merge_trade.pay_time   = dt
         merge_trade.modified   = dt
-        merge_trade.sys_status = pcfg.WAIT_AUDIT_STATUS
         merge_trade.save()
         
         log_action(request.user.id,merge_trade,CHANGE,u'订单创建')
         
-        return {'success':True}
+        return HttpResponseRedirect(reverse('exchange_order_instance', kwargs={'id':merge_trade.id}))
+
+class ExchangeOrderInstanceView(ModelView):
+    """ docstring for class ExchangeOrderView """
+    
+    def get(self, request,id, *args, **kwargs):
+        
+        merge_trade =MergeTrade.objects.get(id=id)
+        
+        return {'trade':merge_trade,
+                    'sellers':User.objects.all()}
+    
+    def post(self, request,id, *args, **kwargs):
+        
+        content     = request.REQUEST
+        try:
+            merge_trade = MergeTrade.objects.get(id=id)
+        except MergeTrade.DoesNotExist:
+            return u'退换货单创建异常'
+        
+        if merge_trade.sys_status not in('',pcfg.WAIT_AUDIT_STATUS):
+            return u'订单状态已改变'
+
+        for key,val in content.iteritems():
+            hasattr(merge_trade,key) and setattr(merge_trade,key,val)  
+        
+        merge_trade.type = pcfg.EXCHANGE_TYPE
+        merge_trade.user_id =  content.get('sellerId')
+        merge_trade.sys_status =  merge_trade.sys_status or pcfg.WAIT_AUDIT_STATUS
+        merge_trade.save()
+        
+        log_action(request.user.id,merge_trade,CHANGE,u'订单修改')
+        
+        return {'trade':merge_trade,
+                    'type':merge_trade.type,  
+                    'sellers':User.objects.all()}
         
 ############################### 内售订单 #################################       
 class DirectOrderView(ModelView):
@@ -854,45 +886,83 @@ class DirectOrderView(ModelView):
         
         content = request.REQUEST
         type    = content.get('type','')
-        trade   = MergeTrade.objects.create(type=type,status=pcfg.WAIT_SELLER_SEND_GOODS)
+        origin_no   = MergeTrade.__meta__.get_field_by_name('tid')[0].get_default()
         sellers = User.objects.all()
         
-        return {'trade':trade,'sellers':sellers}
+        return {'origin_no':origin_no,
+                    'trade_type':type,                    
+                    'sellers':sellers}
     
     def post(self, request, *args, **kwargs):
         
         content     = request.REQUEST
         trade_id    = content.get('trade_id')
-        seller_id   = content.get('sellerId')
-        try:
-            merge_trade = MergeTrade.objects.get(id=trade_id)
-        except MergeTrade.DoesNotExist:
-            return u'订单未找到'
+        seller_id    = content.get('sellerId')
+        type           = content.get('type')
         
+        if type not in (pcfg.DIRECT_TYPE,pcfg.REISSUE_TYPE):
+            return u'订单类型异常'
         try:
-            user = User.objects.get(id=seller_id)
-        except User.DoesNotExist:
-            return u'卖家不存在'
+            merge_trade =  MergeTrade.objects.get_or_create(user_id=seller_id,tid=trade_id)
+        except Exception,exc:
+            return u'退换货单创建异常:%s'%exc.message
         
         if merge_trade.sys_status not in('',pcfg.WAIT_AUDIT_STATUS):
-            return u'订单暂不能保存'
+            return u'订单状态已改变'
         
         dt = datetime.datetime.now()
         for key,val in content.iteritems():
             hasattr(merge_trade,key) and setattr(merge_trade,key,val)  
-        merge_trade.user = user 
-        merge_trade.seller_nick= user.nick
-        merge_trade.seller_id  = user.visitor_id
-        merge_trade.shipping_type = "express"
+        
+        merge_trade.shipping_type = pcfg.EXPRESS_SHIPPING_TYPE
+        merge_trade.sys_status = merge_trade.sys_status or pcfg.WAIT_AUDIT_STATUS
         merge_trade.created    = dt
         merge_trade.pay_time   = dt
         merge_trade.modified   = dt
-        merge_trade.sys_status = pcfg.WAIT_AUDIT_STATUS
         merge_trade.save()
         
         log_action(request.user.id,merge_trade,CHANGE,u'订单创建')
         
-        return {'trade':merge_trade,'sellers':User.objects.all()}
+        return  HttpResponseRedirect(reverse('direct_order_instance', kwargs={'id':merge_trade.id}))
+                   
+class DirectOrderInstanceView(ModelView):
+    """ docstring for class DirectOrderView """
+    
+    def get(self, request, id,*args, **kwargs):
+        
+        merge_trade = MergeTrade.objects.get(id=id)
+        sellers = User.objects.all()
+        
+        return {'trade':merge_trade,   
+                   'trade_type':merge_trade.type,
+                    'sellers':sellers}
+    
+    def post(self, request, id, *args , **kwargs):
+        
+        content     = request.REQUEST
+
+        if type not in (pcfg.DIRECT_TYPE,pcfg.REISSUE_TYPE):
+            return u'订单类型异常'
+        try:
+            merge_trade =  MergeTrade.objects.get(id=id)
+        except MergeTrade.DoesNotExist:
+            return u'退换货单创建异常'
+        
+        if merge_trade.sys_status not in('',pcfg.WAIT_AUDIT_STATUS):
+            return u'订单状态已改变'
+        
+        for key,val in content.iteritems():
+            hasattr(merge_trade,key) and setattr(merge_trade,key,val)  
+        
+        merge_trade.user_id =  content.get('sellerId')
+        merge_trade.sys_status = merge_trade.sys_status or pcfg.WAIT_AUDIT_STATUS
+        merge_trade.save()
+        
+        log_action(request.user.id,merge_trade,CHANGE,u'订单修改')
+        
+        return {'trade':merge_trade,
+                   'trade_type':merge_trade.type,
+                   'sellers':User.objects.all()}
         
         
 def update_sys_memo(request):
@@ -934,7 +1004,6 @@ def regular_trade(request,id):
 
 def replay_trade_send_result(request,id):
         
-    user_id  = request.user.id
     try:
         replay_trade = ReplayPostTrade.objects.get(id=id)
     except:
