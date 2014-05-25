@@ -123,11 +123,11 @@ class MergeTrade(models.Model):
     id    = BigIntegerAutoField(primary_key=True,verbose_name=u'订单ID')
     
     tid   = models.CharField(max_length=32,
-                             #default=lambda:'HYD%d'%int(time.time()*10**5),
+                             default=lambda:'HYD%d'%int(time.time()*10**5),
                              verbose_name=u'原单ID')  
     user       = models.ForeignKey(User,related_name='merge_trades',verbose_name=u'所属店铺')
-#    seller_id  = models.CharField(max_length=64,blank=True,verbose_name=u'店铺ID')
-#    seller_nick = models.CharField(max_length=64,blank=True,verbose_name=u'店铺名称')
+    seller_id  = models.CharField(max_length=64,blank=True,verbose_name=u'店铺ID')
+    seller_nick = models.CharField(max_length=64,blank=True,verbose_name=u'店铺名称')
     buyer_nick  = models.CharField(max_length=64,db_index=True,blank=True,verbose_name=u'买家昵称')
     
     type        = models.CharField(max_length=32,choices=TRADE_TYPE,
@@ -699,8 +699,8 @@ class MergeOrder(models.Model):
     id    = BigIntegerAutoField(primary_key=True)
     
     oid   = models.CharField(max_length=32,
-                             #default=lambda:'HYO%d'%int(time.time()*10**5),
-                             verbose_name=u'子订单编号')
+                             default=lambda:'HYO%d'%int(time.time()*10**5),
+                             verbose_name=u'原单ID')
     merge_trade = BigIntegerForeignKey(MergeTrade,
                                        related_name='merge_orders',
                                        verbose_name=u'所属订单')
