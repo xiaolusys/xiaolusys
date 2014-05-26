@@ -1167,7 +1167,7 @@ def calFenxiaoInterval(fdt,tdt):
 
     return fenxiao_array
     
-def countFenxiaoDetail(request):
+def countFenxiaoAcount(request):
     
     content  = request.POST
     fromDate = content.get('fromDate')
@@ -1177,9 +1177,55 @@ def countFenxiaoDetail(request):
         
     fromDate = fromDate and datetime.datetime.strptime(fromDate, '%Y%m%d').date() or toDate - datetime.timedelta(days=1) 
     
-    #fenxiao_sum = calFenxiaoInterval(fromDate,toDate)).fenxiao_sum
     fenxiaoDict = calFenxiaoInterval(fromDate,toDate)
     
     
-    return render_to_response('trades/trade_fenxiao_detail.html', {'data': fenxiaoDict,},  context_instance=RequestContext(request))
+    return render_to_response('trades/trade_fenxiao_count.html', {'data': fenxiaoDict,},  context_instance=RequestContext(request))
+
+def showFenxiaoDateilFilter(fenxiao,fdt,tdt):
+    fenxiao = MergeTrade.objects.filter(buyer_nick=fenxiao,pay_time__gte=fdt,pay_time__lte=tdt,type=pcfg.FENXIAO_TYPE,sys_status=pcfg.FINISHED_STATUS)
+    print "fenxiao",fenxiao[2].tid 
+    return fenxiao
+def showFenxiaoDetail(request):
+#    fdt=''
+#    tdt=''
+
+#    fenxiao=''
+    iid = []
+    tid = []
+    created    = []
+    buyer_nick = []
+    receiver_name   = []
+    receiver_mobile = []
+    receiver_state  = []
+    receiver_city   = []
+    receiver_district = []
+    receiver_address  = []
     
+    print type(created),created
+
+    FenxiaoDateil=showFenxiaoDateilFilter('阳光small_x','2014-01-07','2014-01-08')
+    for c in FenxiaoDateil:
+        tid.append(c.tid)
+        iid.append(c.id)
+        created.append(c.created)
+        buyer_nick.append(c.buyer_nick)
+        receiver_name.append(c.receiver_name)
+        receiver_mobile.append(c.receiver_mobile)
+        receiver_state.append(c.receiver_state)
+        receiver_city.append(c.receiver_city)
+        receiver_district.append(c.receiver_district)
+        receiver_address.append(c.receiver_address)
+    print 'created',created,type(created)
+    print 'tid',tid
+    print 'iid',iid
+    print 'buyer_nick',buyer_nick
+    print 'receiver_name',receiver_name
+    print 'receiver_mobile',receiver_mobile
+    print 'receiver_state[1][1]',receiver_state
+    print 'receiver_city',receiver_city
+    print 'receiver_district',receiver_district
+    print 'receiver_address',receiver_address
+#    print '',
+#    FenxiaoDateil=''
+    return render_to_response('trades/trade_fenxiao_detail.html',{'FenxiaoDateil':FenxiaoDateil},context_instance=RequestContext(request))
