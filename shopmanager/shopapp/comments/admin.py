@@ -13,7 +13,7 @@ class CommentAdmin(admin.ModelAdmin):
     ordering = ['-created']
     
     list_filter = ('is_reply','ignored','result','valid_score',('replay_at',DateFieldListFilter))
-    search_fields = ['num_iid','tid', 'oid','replayer__username','nick']
+    search_fields = ['num_iid','tid', 'oid','replayer__username','nick','content']
     
     def content_link(self, obj):
         return (u'<div style="display:inline-block;"><a href="javascript:void(0);" class="btn btn-small %s" cid="%d">%s</a>'
