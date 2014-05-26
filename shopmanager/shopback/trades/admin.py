@@ -473,7 +473,7 @@ class MergeTradeAdmin(admin.ModelAdmin):
                 continue
             if trade.has_merge:
                 merge_order_remover(trade.tid)
-            seller_id  = trade.user.visitor_id
+            
             trade.sys_status = ''
             trade.reason_code=''
             trade.has_sys_err=False

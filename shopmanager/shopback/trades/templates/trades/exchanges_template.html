@@ -80,50 +80,50 @@
     </style>
   </head>
 {% load trade_tags %} 
-{% with trade=object.trade sellers=object.sellers %}
+{% with trade=object.trade sellers=object.sellers origin_no=object.origin_no%}
   <body>
 	<div class="content-main">
 		<fieldset>
 			<legend><h1 class="head-title" >退换货单</h1></legend>
 			<div class="content-base-info">
-                                                <form action="./" method="POST">
+              <form action="./" id="trade-form" method="POST">
 				<table class="table table-bordered table-striped table-condensed">
 					<tr>
 						<td>所属店铺:</td>
 						<td>
-							<select name="user.id" class="selection" style="width:130px;">
+							<select name="sellerId" class="selection" style="width:130px;">
 								<option value='' >-------请选择-------</option>
 								{% for seller in sellers %}
-								<option value='{{ seller.id }}' {% if trade.user_id == seller.id %}selected{%%} >{{ seller.nick }}</option>
+								<option value='{{ seller.id }}' {% if trade.user_id == seller.id %}selected{% endif %} >{{ seller.nick }}</option>
 								{% endfor %}
 							</select>
 						</td>
-                                                                            <td>原单ID: </td><td><input type="text" class="simple-text" name="tid"
-                                                                                 value="{% if trade %}{{ trade.tid }}{% else %}{{ origin_no }}{% endif %}" disabled="disabled"/></td>
+                        <td>原单ID: </td><td><input type="text" class="simple-text" name="tid"
+                             value="{% if trade %}{{ trade.tid }}{% else %}{{ origin_no }}{% endif %}" disabled="disabled"/></td>
 						<td>会员昵称:</td><td><input type="text" name="buyer_nick" class="simple-text" /></td>
 						<td>手机:</td><td><input type="text" name="receiver_mobile" class="simple-text" /></td>
 					</tr>
 					<tr>
-                                                                             <td>固话:</td><td><input type="text" name="receiver_phone" class="simple-text" /></td>
+                        <td>固话:</td><td><input type="text" name="receiver_phone" class="simple-text" /></td>
 						<td>收货人:</td><td><input type="text" name="receiver_name" class="simple-text" /></td>
 						<td>省:</td><td><input type="text" name="receiver_state" class="simple-text" /></td>
 						<td>市:</td><td><input type="text" name="receiver_city" class="simple-text" /></td>
 					</tr>
 					<tr>
-                                                                            <td>区:</td><td><input type="text" name="receiver_district" class="simple-text" /></td>
+                        <td>区:</td><td><input type="text" name="receiver_district" class="simple-text" /></td>
 						<td>详细地址:</td><td colspan="5">
-                                                                                    <input type="text" name="receiver_address" class="simple-text" style="width:400px;" /></td>
+                        <input type="text" name="receiver_address" class="simple-text" style="width:400px;" /></td>
 					</tr>
 					<tr>
 						<td colspan="6"></td>
 						<td colspan="2">
 							<input type="submit" class="btn btn-small btn-success" value="保存 +" />&nbsp;&nbsp;
 							{% if trade %}<a href="/admin/trades/mergetrade/?q={{ trade.id }}&type__exact=exchange" 
-                                                                                          class="btn btn-small btn-success">审核 -></a>{% endif %}
+                            class="btn btn-small btn-success">审核 -></a>{% endif %}
 						</td>
 					</tr>
 				</table>
-                                              </form>
+              </form>
 			</div>
 			<hr/>
 			<div class="order-content">
@@ -224,5 +224,14 @@
 <script src="{{ STATIC_URL }}script/trades/exchange.js"></script>
 <script type="text/javascript">
 	 new exchange.Manager();
+	 $("#trade-form").validate({rules: {
+			trade_id: {required:true,number:true},
+			sellerId: {required:true,number:true},
+			buyer_nick: {required:true},
+			receiver_name: {required:true},
+			receiver_state: {required:true},
+			receiver_city: {required:true},
+			receiver_address: {required:true},
+     },});
 </script>
 </html>

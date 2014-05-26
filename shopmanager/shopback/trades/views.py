@@ -809,7 +809,7 @@ class ExchangeOrderView(ModelView):
     
     def get(self, request, *args, **kwargs):
         
-        origin_no   = MergeTrade.__meta__.get_field_by_name('tid')[0].get_default()
+        origin_no   = MergeTrade._meta.get_field_by_name('tid')[0].get_default()
         sellers = User.objects.all()
         
         return {'origin_no':origin_no,'sellers':sellers}
@@ -886,7 +886,7 @@ class DirectOrderView(ModelView):
         
         content = request.REQUEST
         type    = content.get('type','')
-        origin_no   = MergeTrade.__meta__.get_field_by_name('tid')[0].get_default()
+        origin_no   = MergeTrade._meta.get_field_by_name('tid')[0].get_default()
         sellers = User.objects.all()
         
         return {'origin_no':origin_no,

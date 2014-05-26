@@ -87,15 +87,14 @@
     </style>
   </head>
 {% load trade_tags %} 
-{% with trade=object.trade sellers=object.sellers trade_type=object.trade_type  %}
+{% with trade=object.trade sellers=object.sellers trade_type=object.trade_type origin_no=object.origin_no %}
   <body>
 	<div class="content-main">
 		<fieldset>
 			<legend><h1 class="head-title" >{% if trade_type == "direct" %}内售{% elif trade_type == "reissue" %}补发{% endif %}订单</h1></legend>
 			<div class="content-base-info">
-				<form method="POST" id="trade-form" action="/trades/direct/add/">
+				<form method="POST" id="trade-form" action="./">
 				<div>
-					<input type="hidden" id="id_direct_trade" name="trade_id" value="{{ trade.id }}" />
 					<input type="hidden" id="id_trade_type" name="type" value="{{ trade.type }}" />
 				</div>
 				<table class="table table-bordered table-striped table-condensed">
@@ -109,19 +108,19 @@
 								{% endfor %}
 							</select>
 						</td>
-                                                                              <td>原单ID: </td><td><input type="text" class="simple-text" name="tid" 
-                                                                                   value="{% if trade %}{{ trade.tid }}{% else %}{{ origin_no }}{% endif %}" {% if trade_type == "reissue" %} disabled="disabled"{% endif %}/></td>
+                        <td>原单ID: </td><td><input type="text" class="simple-text" name="tid" 
+                           value="{% if trade %}{{ trade.tid }}{% else %}{{ origin_no }}{% endif %}" {% if trade_type == "reissue" %} disabled="disabled"{% endif %}/></td>
 						<td>会员昵称:</td><td><input type="text" id="id_buyer_nick"   name="buyer_nick" class="simple-text" value="{{ trade.buyer_nick }}" /></td>
 						<td>手机:</td><td><input type="text" id="id_receiver_mobile" name="receiver_mobile" class="simple-text" value="{{ trade.receiver_mobile }}" /></td>
 					</tr>
 					<tr>
-                                                                             <td>固话:</td><td><input type="text" id="id_receiver_phone"  name="receiver_phone" class="simple-text" value="{{ trade.receiver_phone }}" /></td>
+                        <td>固话:</td><td><input type="text" id="id_receiver_phone"  name="receiver_phone" class="simple-text" value="{{ trade.receiver_phone }}" /></td>
 						<td>收货人:</td><td><input type="text" id="id_receiver_name"  name="receiver_name" class="simple-text" value="{{ trade.receiver_name }}" /></td>
 						<td>省:</td><td><input type="text" id="id_receiver_state" name="receiver_state" class="simple-text" value="{{ trade.receiver_state }}" /></td>
 						<td>市:</td><td><input type="text" id="id_receiver_city" name="receiver_city" class="simple-text" value="{{ trade.receiver_city }}" /></td>
 					</tr>
 					<tr>
-                                                                             <td>区:</td><td><input type="text" id="id_receiver_district" name="receiver_district" class="simple-text" value="{{ trade.receiver_district }}" /></td>
+                        <td>区:</td><td><input type="text" id="id_receiver_district" name="receiver_district" class="simple-text" value="{{ trade.receiver_district }}" /></td>
 						<td>详细地址:</td><td colspan="5">
 						<input type="text" id="id_receiver_address" name="receiver_address" class="simple-text" style="width:400px;" value="{{ trade.receiver_address }}" />
 						</td>
@@ -130,7 +129,7 @@
 						{% if trade_type == "direct" %}
 						<td>实付:</td><td><input type="text" id="id_payment" name="payment" class="simple-text" value="{{ trade.payment }}" /></td>
 						<td>邮费:</td><td><input type="text" id="id_post_fee" name="post_fee" class="simple-text" value="{{ trade.post_fee }}" /></td>
-                                                                             <td colspan="2"></td>
+                        <td colspan="2"></td>
 						{% else %}
 						<td colspan="6"></td>
 						{% endif %}
