@@ -6,7 +6,7 @@
      <link href="{{ STATIC_URL }}bootstrap/css/bootstrap.min.css" rel="stylesheet" type="text/css" />
     <link href="{{ STATIC_URL }}bootstrap/css/bootstrap-responsive.min.css" rel="stylesheet" type="text/css" />
     <link href="{{ STATIC_URL }}css/base.less" rel="stylesheet/less" type="text/css" />
-    <script src="{{ STATIC_URL }}script/jquery-1.7.1.min.js" type="text/javascript"></script>
+    <script src="{{ STATIC_URL }}jquery/jquery-1.8.13.min.js" type="text/javascript"></script>
     <script src="{{ STATIC_URL }}jquery/addons/jquery.validate.min.js" type="text/javascript"></script>
     <script src="{{ STATIC_URL }}jquery/addons/cn_message.js" type="text/javascript"></script>
     <script src="{{ STATIC_URL }}closure-library/closure/goog/base.js"></script>
@@ -65,21 +65,17 @@
 		margin:0px 10px;
 		display:inline;
 	}
-	
 	.product-search{
 		float:left;
 	}
-	
 	.trade-search{
 		float:right;
 	}
-	
 	.content-search {
 		width:60%;
 		height:20px;
 		display:fixed;
 	}
-	
 	label.error {
 	    color: red;
 	    font-weight: bold;
@@ -91,11 +87,13 @@
   <body>
 	<div class="content-main">
 		<fieldset>
-			<legend><h1 class="head-title" >{% if trade_type == "direct" %}内售{% elif trade_type == "reissue" %}补发{% endif %}订单</h1></legend>
+			<legend><h1 class="head-title" >{% if trade %}修改{% else %}新增{% endif %}&nbsp;
+				{% if trade_type == "direct" %}内售{% elif trade_type == "reissue" %}补发{% endif %}订单</h1></legend>
 			<div class="content-base-info">
 				<form method="POST" id="trade-form" action="./">
 				<div>
-					<input type="hidden" id="id_trade_type" name="type" value="{{ trade.type }}" />
+					<input type="hidden" id="id_direct_trade" value="{{ trade.id }}" />
+					<input type="hidden" id="id_trade_type" name="trade_type" value="{{ trade_type }}" />
 				</div>
 				<table class="table table-bordered table-striped table-condensed">
 					<tr>
@@ -109,7 +107,7 @@
 							</select>
 						</td>
                         <td>原单ID: </td><td><input type="text" class="simple-text" name="tid" 
-                           value="{% if trade %}{{ trade.tid }}{% else %}{{ origin_no }}{% endif %}" {% if trade_type == "reissue" %} disabled="disabled"{% endif %}/></td>
+                           value="{% if trade %}{{ trade.tid }}{% else %}{{ origin_no }}{% endif %}" {% if trade_type == "reissue" %}readonly{% endif %}/></td>
 						<td>会员昵称:</td><td><input type="text" id="id_buyer_nick"   name="buyer_nick" class="simple-text" value="{{ trade.buyer_nick }}" /></td>
 						<td>手机:</td><td><input type="text" id="id_receiver_mobile" name="receiver_mobile" class="simple-text" value="{{ trade.receiver_mobile }}" /></td>
 					</tr>
@@ -170,10 +168,10 @@
 			<hr/>
 			<div class="content-search">
 				<div class="navbar-search product-search">
-					<input type="text" id="id_prod_q" class="search-query"  placeholder="商品搜索" />
+					<input type="text" id="id_prod_q" class="search-query"  placeholder="商品搜索" {% if not trade%} disabled="disabled"{% endif %}/>
 				</div>
 				<div class="navbar-search trade-search">
-					<input type="text" id="id_trade_q" class="search-query"  placeholder="订单搜索" />
+					<input type="text" id="id_trade_q" class="search-query"  placeholder="订单搜索" {% if not trade%} disabled="disabled"{% endif %}/>
 				</div>
 			</div>
 			<hr/>
@@ -224,8 +222,8 @@
 <script type="text/javascript">
 	 new direct.Manager();
 	 $("#trade-form").validate({rules: {
-			trade_id: {required:true,number:true},
-			sellerId: {required:true,number:true},
+			tid: {required:true},
+			sellerId: {required:true},
 			buyer_nick: {required:true},
 			receiver_name: {required:true},
 			receiver_state: {required:true},
@@ -233,6 +231,9 @@
 			receiver_address: {required:true},
 			payment: {required:true,number:true},
 			post_fee: {required:true,number:true},
-     },});
+     },
+     submitHandler: function(form) {
+    	form.submit();
+  	 }});
 </script>
 </html>

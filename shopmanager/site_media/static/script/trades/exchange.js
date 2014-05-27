@@ -255,7 +255,11 @@ exchange.Manager.prototype.addChangeOrder = function (e) {
             console.log('Error: (ajax callback) - ', err);
         } 
 	}
-	var params     = {'trade_id':that.tid,'outer_id':outer_id,'outer_sku_id':sku_outer_id,'num':num,'type':CHANGE_GOODS_TYPE}
+	var params     = {'trade_id':that.tid,
+					  'outer_id':outer_id,
+					  'outer_sku_id':sku_outer_id,
+					  'num':num,
+					  'type':CHANGE_GOODS_TYPE}
 	var content = goog.uri.utils.buildQueryDataFromMap(params);
 	goog.net.XhrIo.send('/trades/orderplus/?',callback,'POST',content);
 }
@@ -380,56 +384,6 @@ exchange.Manager.prototype.copyBuyerInfo = function(e){
     }
 }
 
-
-//保存基本信息
-exchange.Manager.prototype.saveBuyerInfo = function(e){
-	var that  = this;
-	var seller_id         = goog.dom.getElement('id_seller_id').value;
-	var buyer_nick        = goog.dom.getElement('id_buyer_nick').value;
-	var receiver_state    = goog.dom.getElement('id_receiver_state').value;
-	var receiver_city     = goog.dom.getElement('id_receiver_city').value;
-	var receiver_address  = goog.dom.getElement('id_receiver_address').value;
-	
-	if (buyer_nick === ""||seller_id === ""||receiver_state == ""||receiver_city == ""||receiver_address==""){
-		alert('用户名,店铺和地址(省市)不能为空');
-		return;
-	}
-	
-	var receiver_mobile   = goog.dom.getElement('id_receiver_mobile').value;
-	var receiver_phone    = goog.dom.getElement('id_receiver_phone').value;
-	var receiver_name     = goog.dom.getElement('id_receiver_name').value;
-	var receiver_district = goog.dom.getElement('id_receiver_district').value;
-	
-	
-	var params = {
-		'trade_id':that.tid,
-		'sellerId':seller_id,
-		'buyer_nick':buyer_nick,
-		'receiver_mobile':receiver_mobile,
-		'receiver_phone':receiver_phone,
-		'receiver_name':receiver_name,
-		'receiver_state':receiver_state,
-		'receiver_city':receiver_city,
-		'receiver_district':receiver_district,
-		'receiver_address':receiver_address,
-	}
-	var callback = function(e){
-		var xhr = e.target;
-        try {
-        	var res = xhr.getResponseJson();
-            if (res.code == 0){
-				alert('保存成功');
-            }else{
-                alert("保存失败:"+res.response_error);
-            }
-        } catch (err) {
-            console.log('Error: (ajax callback) - ', err);
-        } 
-	};
-	var content = goog.uri.utils.buildQueryDataFromMap(params);
-	goog.net.XhrIo.send('/trades/exchange/add/',callback,'POST',content);
-}
-
 //删除订单
 exchange.Manager.prototype.deleteOrder = function(e){
 	var target = e.target;
@@ -463,8 +417,6 @@ exchange.Manager.prototype.bindEvent = function () {
 	goog.events.listen(this.prod_q, goog.events.EventType.FOCUS,this.focus,false,this);
 	goog.events.listen(this.trade_q, goog.events.EventType.FOCUS,this.focus,false,this);
 
-	goog.events.listen(this.saveBtn, goog.events.EventType.CLICK,this.saveBuyerInfo,false,this);
-	
 	var returns_zippy  = new goog.ui.Zippy('id-return-head', 'id-return-goods');   
 	var changes_zippy  = new goog.ui.Zippy('id-change-head', 'id-change-goods');
 }

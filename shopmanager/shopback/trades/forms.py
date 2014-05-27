@@ -5,8 +5,11 @@ from django import forms
 class ExchangeTradeForm(forms.Form):
 
     trade_id  = forms.IntegerField(min_value=0,max_value=sys.float_info.max,required=True)
-    sellerId = forms.IntegerField(min_value=0,max_value=sys.float_info.max,required=True)
-
+    sellerId  = forms.IntegerField(min_value=0,max_value=sys.float_info.max,required=True)
+    
+    tid       = forms.CharField(max_length=32,required=True)
+    trade_type         =  forms.CharField(max_length=10,required=False)
+    
     buyer_nick         = forms.CharField(max_length=64,required=True)
     receiver_name      = forms.CharField(max_length=64,required=True)
     receiver_state     = forms.CharField(max_length=16,required=True)
@@ -16,7 +19,7 @@ class ExchangeTradeForm(forms.Form):
     
     receiver_mobile   = forms.CharField(max_length=20,required=False)
     receiver_phone    = forms.CharField(max_length=20,required=False)
-    type =  forms.CharField(max_length=10,required=False)
+    
     
     
 class StatisticMergeOrderForm(forms.Form):

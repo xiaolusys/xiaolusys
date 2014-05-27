@@ -6,7 +6,9 @@
      <link href="{{ STATIC_URL }}bootstrap/css/bootstrap.min.css" rel="stylesheet" type="text/css" />
     <link href="{{ STATIC_URL }}bootstrap/css/bootstrap-responsive.min.css" rel="stylesheet" type="text/css" />
     <link href="{{ STATIC_URL }}css/base.less" rel="stylesheet/less" type="text/css" />
-    <script src="{{ STATIC_URL }}script/jquery-1.7.1.min.js" type="text/javascript"></script>
+    <script src="{{ STATIC_URL }}jquery/jquery-1.8.13.min.js" type="text/javascript"></script>
+    <script src="{{ STATIC_URL }}jquery/addons/jquery.validate.min.js" type="text/javascript"></script>
+    <script src="{{ STATIC_URL }}jquery/addons/cn_message.js" type="text/javascript"></script>
     <script src="{{ STATIC_URL }}closure-library/closure/goog/base.js"></script>
     <style type="text/css">
     body,div{
@@ -63,19 +65,20 @@
 		margin:0px 10px;
 		display:inline;
 	}
-	
 	.product-search{
 		float:left;
 	}
-	
 	.trade-search{
 		float:right;
 	}
-	
 	.content-search {
 		width:60%;
 		height:20px;
 		display:fixed;
+	}
+	label.error {
+	    color: red;
+	    font-weight: bold;
 	}
     </style>
   </head>
@@ -84,9 +87,10 @@
   <body>
 	<div class="content-main">
 		<fieldset>
-			<legend><h1 class="head-title" >退换货单</h1></legend>
+			<legend><h1 class="head-title" >{% if trade %}修改{% else %}新增{% endif %}&nbsp;退换货单</h1></legend>
 			<div class="content-base-info">
               <form action="./" id="trade-form" method="POST">
+              	<input type="hidden" id="id_exchange_trade" value="{{ trade.id }}" />
 				<table class="table table-bordered table-striped table-condensed">
 					<tr>
 						<td>所属店铺:</td>
@@ -94,25 +98,25 @@
 							<select name="sellerId" class="selection" style="width:130px;">
 								<option value='' >-------请选择-------</option>
 								{% for seller in sellers %}
-								<option value='{{ seller.id }}' {% if trade.user_id == seller.id %}selected{% endif %} >{{ seller.nick }}</option>
+								<option value='{{ seller.id }}' {% if trade.user.id == seller.id %}selected{% endif %}>{{ seller.nick }}</option>
 								{% endfor %}
 							</select>
 						</td>
-                        <td>原单ID: </td><td><input type="text" class="simple-text" name="tid"
-                             value="{% if trade %}{{ trade.tid }}{% else %}{{ origin_no }}{% endif %}" disabled="disabled"/></td>
-						<td>会员昵称:</td><td><input type="text" name="buyer_nick" class="simple-text" /></td>
-						<td>手机:</td><td><input type="text" name="receiver_mobile" class="simple-text" /></td>
+                        <td>原单ID: </td><td><input type="text" class="simple-text" name="tid" 
+                             value="{% if trade %}{{ trade.tid }}{% else %}{{ origin_no }}{% endif %}" readonly/></td>
+						<td>会员昵称:</td><td><input type="text" name="buyer_nick" class="simple-text" value="{{ trade.buyer_nick }}"/></td>
+						<td>手机:</td><td><input type="text" name="receiver_mobile" class="simple-text" value="{{ trade.receiver_mobile }}"/></td>
 					</tr>
 					<tr>
-                        <td>固话:</td><td><input type="text" name="receiver_phone" class="simple-text" /></td>
-						<td>收货人:</td><td><input type="text" name="receiver_name" class="simple-text" /></td>
-						<td>省:</td><td><input type="text" name="receiver_state" class="simple-text" /></td>
-						<td>市:</td><td><input type="text" name="receiver_city" class="simple-text" /></td>
+                        <td>固话:</td><td><input type="text" name="receiver_phone" class="simple-text" value="{{ trade.receiver_phone }}"/></td>
+						<td>收货人:</td><td><input type="text" name="receiver_name" class="simple-text" value="{{ trade.receiver_name }}"/></td>
+						<td>省:</td><td><input type="text" name="receiver_state" class="simple-text" value="{{ trade.receiver_state }}"/></td>
+						<td>市:</td><td><input type="text" name="receiver_city" class="simple-text" value="{{ trade.receiver_city }}"/></td>
 					</tr>
 					<tr>
-                        <td>区:</td><td><input type="text" name="receiver_district" class="simple-text" /></td>
+                        <td>区:</td><td><input type="text" name="receiver_district" class="simple-text" value="{{ trade.receiver_district }}"/></td>
 						<td>详细地址:</td><td colspan="5">
-                        <input type="text" name="receiver_address" class="simple-text" style="width:400px;" /></td>
+                        <input type="text" name="receiver_address" class="simple-text" style="width:400px;" value="{{ trade.receiver_address }}"/></td>
 					</tr>
 					<tr>
 						<td colspan="6"></td>
@@ -174,10 +178,10 @@
 			<hr/>
 			<div class="content-search">
 				<div class="navbar-search product-search">
-					<input type="text" id="id_prod_q" class="search-query"  placeholder="商品搜索" />
+					<input type="text" id="id_prod_q" class="search-query"  placeholder="商品搜索" {% if not trade%} disabled="disabled"{% endif %}/>
 				</div>
 				<div class="navbar-search trade-search">
-					<input type="text" id="id_trade_q" class="search-query"  placeholder="订单搜索" />
+					<input type="text" id="id_trade_q" class="search-query"  placeholder="订单搜索" {% if not trade%} disabled="disabled"{% endif %}/>
 				</div>
 			</div>
 			<hr/>
@@ -224,14 +228,18 @@
 <script src="{{ STATIC_URL }}script/trades/exchange.js"></script>
 <script type="text/javascript">
 	 new exchange.Manager();
-	 $("#trade-form").validate({rules: {
-			trade_id: {required:true,number:true},
-			sellerId: {required:true,number:true},
+	 $("#trade-form").validate({
+	 rules: {
+			tid: {required:true},
+			sellerId: {required:true},
 			buyer_nick: {required:true},
 			receiver_name: {required:true},
 			receiver_state: {required:true},
 			receiver_city: {required:true},
 			receiver_address: {required:true},
-     },});
+     },
+     submitHandler: function(form) {
+    	form.submit();
+  	 }});
 </script>
 </html>

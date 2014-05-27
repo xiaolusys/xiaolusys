@@ -258,7 +258,6 @@ direct.Manager.prototype.showTrade = function(q){
             	for(var i=0;i<addToReturnBtns.length;i++){
             		goog.events.listen(addToReturnBtns[i], goog.events.EventType.CLICK,that.addTradeOrder,false,that);
             	}
-            	
 
             }else{
                 alert("订单查询失败:"+res.response_error);
@@ -293,7 +292,8 @@ direct.Manager.prototype.addTradeOrder = function(e){
         		var deleteOrderBtns = goog.dom.getElementsByClass('delete-order');
             	for(var i =0;i<deleteOrderBtns.length;i++){
             		goog.events.removeAll(deleteOrderBtns[i]);
-            		goog.events.listen(deleteOrderBtns[i], goog.events.EventType.CLICK,that.deleteOrder,false,that);
+            		goog.events.listen(deleteOrderBtns[i], 
+            			goog.events.EventType.CLICK,that.deleteOrder,false,that);
             	}
             	showElement(that.return_table.parentElement);
         	}else{
@@ -306,7 +306,6 @@ direct.Manager.prototype.addTradeOrder = function(e){
     var params = {'pt_tid':that.tid,'cp_tid':cp_tid,'type':HANDSEL_TYPE};
     var content = goog.uri.utils.buildQueryDataFromMap(params);
 	goog.net.XhrIo.send('/trades/tradeplus/?',callback,'POST',content);
-    
 }
 
 //复制订单用户信息
@@ -361,7 +360,6 @@ direct.Manager.prototype.bindEvent = function () {
 	goog.events.listen(this.prod_q, goog.events.EventType.FOCUS,this.focus,false,this);
 	goog.events.listen(this.trade_q, goog.events.EventType.FOCUS,this.focus,false,this);
 
-	
 	var returns_zippy  = new goog.ui.Zippy('id-return-head', 'id-return-goods');   
 }
 

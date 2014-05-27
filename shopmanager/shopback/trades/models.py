@@ -790,7 +790,7 @@ class MergeOrder(models.Model):
             outer_sku_id = outer_sku_id,
             sku_properties_name = sku_properties_name,
             refund_status = pcfg.NO_REFUND,
-            seller_nick = merge_trade.user.seller_nick,
+            seller_nick = merge_trade.user.nick,
             buyer_nick = merge_trade.buyer_nick,
             created = merge_trade.created,
             pay_time = merge_trade.pay_time,

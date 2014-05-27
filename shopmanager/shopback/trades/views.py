@@ -5,6 +5,7 @@ import json
 from django.core.urlresolvers import reverse
 from django.http import HttpResponse,HttpResponseNotFound,HttpResponseRedirect
 from django.shortcuts import render_to_response
+from django.views.generic import FormView
 from django.template import RequestContext
 from django.db.models import Q,Sum
 
@@ -13,6 +14,7 @@ from djangorestframework.response import ErrorResponse
 
 from shopback.trades.models import MergeTrade,MergeOrder,ReplayPostTrade,GIFT_TYPE\
     ,SYS_TRADE_STATUS,TAOBAO_TRADE_STATUS,SHIPPING_TYPE_CHOICE,TAOBAO_ORDER_STATUS
+from shopback.trades.forms import ExchangeTradeForm
 from shopback.logistics.models import LogisticsCompany
 from shopback.items.models import Product,ProductSku,ProductDaySale
 from shopback.base import log_action, ADDITION, CHANGE
@@ -803,7 +805,7 @@ def change_logistic_and_outsid(request):
     return HttpResponse(json.dumps(ret_params),mimetype="application/json")
 
 
-############################### 退换货订单 #################################       
+############################### 退换货订单 #################################    
 class ExchangeOrderView(ModelView):
     """ docstring for class ExchangeOrderView """
     
@@ -817,10 +819,11 @@ class ExchangeOrderView(ModelView):
     def post(self, request, *args, **kwargs):
         
         content     = request.REQUEST
-        trade_id    = content.get('trade_id')
+        trade_id    = content.get('tid')
         seller_id   = content.get('sellerId')
+
         try:
-            merge_trade = MergeTrade.objects.get_or_create(user_id=seller_id,tid=trade_id)
+            merge_trade,state = MergeTrade.objects.get_or_create(user_id=seller_id,tid=trade_id)
         except Exception,exc:
             return u'退换货单创建异常:%s'%exc.message
         
@@ -840,8 +843,9 @@ class ExchangeOrderView(ModelView):
         merge_trade.save()
         
         log_action(request.user.id,merge_trade,CHANGE,u'订单创建')
-        
-        return HttpResponseRedirect(reverse('exchange_order_instance', kwargs={'id':merge_trade.id}))
+
+        return HttpResponseRedirect(reverse('exchange_order_instance', 
+                                            kwargs={'id':merge_trade.id}))
 
 class ExchangeOrderInstanceView(ModelView):
     """ docstring for class ExchangeOrderView """
@@ -851,7 +855,7 @@ class ExchangeOrderInstanceView(ModelView):
         merge_trade =MergeTrade.objects.get(id=id)
         
         return {'trade':merge_trade,
-                    'sellers':User.objects.all()}
+                'sellers':User.objects.all()}
     
     def post(self, request,id, *args, **kwargs):
         
@@ -863,7 +867,7 @@ class ExchangeOrderInstanceView(ModelView):
         
         if merge_trade.sys_status not in('',pcfg.WAIT_AUDIT_STATUS):
             return u'订单状态已改变'
-
+        
         for key,val in content.iteritems():
             hasattr(merge_trade,key) and setattr(merge_trade,key,val)  
         
@@ -875,8 +879,8 @@ class ExchangeOrderInstanceView(ModelView):
         log_action(request.user.id,merge_trade,CHANGE,u'订单修改')
         
         return {'trade':merge_trade,
-                    'type':merge_trade.type,  
-                    'sellers':User.objects.all()}
+                'type':merge_trade.type,  
+                'sellers':User.objects.all()}
         
 ############################### 内售订单 #################################       
 class DirectOrderView(ModelView):
@@ -890,20 +894,20 @@ class DirectOrderView(ModelView):
         sellers = User.objects.all()
         
         return {'origin_no':origin_no,
-                    'trade_type':type,                    
-                    'sellers':sellers}
+                'trade_type':type,                    
+                'sellers':sellers}
     
     def post(self, request, *args, **kwargs):
         
         content     = request.REQUEST
-        trade_id    = content.get('trade_id')
+        trade_id    = content.get('tid')
         seller_id    = content.get('sellerId')
-        type           = content.get('type')
+        trade_type   = content.get('trade_type')
         
-        if type not in (pcfg.DIRECT_TYPE,pcfg.REISSUE_TYPE):
+        if trade_type not in (pcfg.DIRECT_TYPE,pcfg.REISSUE_TYPE):
             return u'订单类型异常'
         try:
-            merge_trade =  MergeTrade.objects.get_or_create(user_id=seller_id,tid=trade_id)
+            merge_trade,state =  MergeTrade.objects.get_or_create(user_id=seller_id,tid=trade_id)
         except Exception,exc:
             return u'退换货单创建异常:%s'%exc.message
         
@@ -914,6 +918,7 @@ class DirectOrderView(ModelView):
         for key,val in content.iteritems():
             hasattr(merge_trade,key) and setattr(merge_trade,key,val)  
         
+        merge_trade.type = trade_type
         merge_trade.shipping_type = pcfg.EXPRESS_SHIPPING_TYPE
         merge_trade.sys_status = merge_trade.sys_status or pcfg.WAIT_AUDIT_STATUS
         merge_trade.created    = dt
@@ -923,7 +928,8 @@ class DirectOrderView(ModelView):
         
         log_action(request.user.id,merge_trade,CHANGE,u'订单创建')
         
-        return  HttpResponseRedirect(reverse('direct_order_instance', kwargs={'id':merge_trade.id}))
+        return  HttpResponseRedirect(reverse('direct_order_instance', 
+                                             kwargs={'id':merge_trade.id}))
                    
 class DirectOrderInstanceView(ModelView):
     """ docstring for class DirectOrderView """
@@ -934,8 +940,8 @@ class DirectOrderInstanceView(ModelView):
         sellers = User.objects.all()
         
         return {'trade':merge_trade,   
-                   'trade_type':merge_trade.type,
-                    'sellers':sellers}
+                'trade_type':merge_trade.type,
+                'sellers':sellers}
     
     def post(self, request, id, *args , **kwargs):
         
@@ -961,8 +967,8 @@ class DirectOrderInstanceView(ModelView):
         log_action(request.user.id,merge_trade,CHANGE,u'订单修改')
         
         return {'trade':merge_trade,
-                   'trade_type':merge_trade.type,
-                   'sellers':User.objects.all()}
+                'trade_type':merge_trade.type,
+                'sellers':User.objects.all()}
         
         
 def update_sys_memo(request):

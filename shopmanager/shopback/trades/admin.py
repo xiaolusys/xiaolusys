@@ -76,9 +76,9 @@ class MergeTradeAdmin(admin.ModelAdmin):
     trade_id_link.short_description = "ID"
     
     def popup_tid_link(self, obj):
-        return u'<a href="%d/" onclick="return showTradePopup(this);">%s</a>' %(obj.id,obj.tid and str(obj.tid) or u'【无单号】' )
+        return u'<a href="%d/" onclick="return showTradePopup(this);">%s</a>' %(obj.id,obj.tid and str(obj.tid) or '--' )
     popup_tid_link.allow_tags = True
-    popup_tid_link.short_description = "淘宝单号" 
+    popup_tid_link.short_description = "原单ID" 
     
     def buyer_nick_link(self, obj):
         symbol_link = obj.buyer_nick
@@ -713,7 +713,7 @@ class MergeOrderAdmin(admin.ModelAdmin):
 
     list_filter = ('sys_status','merge_trade__sys_status','refund_status','out_stock',
                    'is_rule_match','is_merge','gift_type',('pay_time',DateFieldListFilter))
-    search_fields = ['oid','merge_trade__id','outer_id','outer_sku_id']
+    search_fields = ['id','oid','merge_trade__id','outer_id','outer_sku_id']
 
 
 admin.site.register(MergeOrder,MergeOrderAdmin)
