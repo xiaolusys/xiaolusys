@@ -30,7 +30,8 @@ SYS_TRADE_STATUS = (
     (pcfg.FINISHED_STATUS,u'已完成'),
     (pcfg.INVALID_STATUS,u'已作废'),
     (pcfg.ON_THE_FLY_STATUS,u'飞行模式'),
-    (pcfg.REGULAR_REMAIN_STATUS,u'定时提醒')
+    (pcfg.REGULAR_REMAIN_STATUS,u'定时提醒'),
+    (pcfg.EMPTY_STATUS,u'空状态'),
 )
 
 OUT_STOCK_KEYWORD = [u'到',u'预售']
@@ -119,6 +120,7 @@ GIFT_TYPE = (
 
 class MergeTrade(models.Model):
     
+    EMPTY_STATUS = pcfg.EMPTY_STATUS
     WAIT_AUDIT_STATUS = pcfg.WAIT_AUDIT_STATUS
     WAIT_PREPARE_SEND_STATUS  = pcfg.WAIT_PREPARE_SEND_STATUS
     WAIT_CHECK_BARCODE_STATUS = pcfg.WAIT_CHECK_BARCODE_STATUS
@@ -155,8 +157,8 @@ class MergeTrade(models.Model):
     tid   = models.BigIntegerField(unique=True,null=True,blank=True,default=None,verbose_name=u'订单编码')
     
     user       = models.ForeignKey(User,null=True,default=None,related_name='merge_trades',verbose_name=u'所属店铺')
-    seller_id  = models.CharField(max_length=64,blank=True,verbose_name=u'店铺ID')
-    seller_nick = models.CharField(max_length=64,blank=True,verbose_name=u'店铺名称')
+    #seller_id  = models.CharField(max_length=64,blank=True,verbose_name=u'店铺ID')
+    #seller_nick = models.CharField(max_length=64,blank=True,verbose_name=u'店铺名称')
     buyer_nick  = models.CharField(max_length=64,db_index=True,blank=True,verbose_name=u'买家昵称')
     
     type       = models.CharField(max_length=32,choices=TRADE_TYPE,blank=True,verbose_name=u'订单类型')

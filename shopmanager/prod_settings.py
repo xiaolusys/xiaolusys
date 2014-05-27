@@ -45,8 +45,10 @@ RAVEN_CONFIG = {
 SITE_URL = 'http://qiyue.f3322.org/' 
 
 ####################### TRADE HANDLERS CONFIG ########################
-CONFIG_TRADE_HANDLERS_PATH = ('shopback.trades.handlers.LogisticsHandler',
-                         )
+TRADE_HANDLERS_PATH = (
+                       'shopback.trades.handlers.LogisticsHandler',
+                       'shopback.trades.handlers.FinalHandler',
+                     )
 
 
 ############################# TAOBAO #################################

@@ -1,6 +1,6 @@
 #-*- coding:utf8 -*-
 from django.conf import settings
-from .handler import BaseHandler
+from .handler import BaseHandler,FinalHandler
 from .logistic import LogisticsHandler
 
 class NotBaseHandlerError(Exception):
@@ -9,7 +9,7 @@ class NotBaseHandlerError(Exception):
 class AlreadyRegistered(Exception):
     pass
 
-class TradeHandler(objects):
+class TradeHandler(object):
     
     def __init__(self, name='handlers', app_name='trades'):
         
@@ -18,8 +18,8 @@ class TradeHandler(objects):
         
     def register(self,handler_class):
         
-        if not handler or not issubclass(handler_class,BaseHandler):
-            raise NotBaseHandlerError('Need Trade BaseHandler subclass.')
+        if not handler_class or not issubclass(handler_class,BaseHandler):
+            raise NotBaseHandlerError('Need Trade BaseHandler Subclass.')
         
         handler = handler_class()
         
@@ -37,8 +37,10 @@ class TradeHandler(objects):
         
 def getTradeHandler(config_handlers_path=[]):
     
+    from django.utils.importlib import import_module
+    
     trade_handler =  TradeHandler()
-    config_handlers_path = config_handlers_path or getattr(settings,'CONFIG_TRADE_HANDLERS_PATH',[])
+    config_handlers_path = config_handlers_path or getattr(settings,'TRADE_HANDLERS_PATH',[])
     for handler_path in config_handlers_path:
         try:
             hl_module, hl_classname = handler_path.rsplit('.', 1)
