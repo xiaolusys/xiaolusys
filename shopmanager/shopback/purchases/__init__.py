@@ -15,6 +15,7 @@ def getProductWaitReceiveNum(pId,skuId=None):
     purchase_dict = purchaseItems.aggregate(total_purchase_num=Sum('purchase_num'),
                                            total_storage_num=Sum('storage_num'))\
                                            
-    if not (purchase_dict['total_purchase_num'] and purchase_dict['total_storage_num']):
+    if (purchase_dict['total_purchase_num'] is None or
+        purchase_dict['total_storage_num'] is None):
         return 0
     return purchase_dict['total_purchase_num']-purchase_dict['total_storage_num']

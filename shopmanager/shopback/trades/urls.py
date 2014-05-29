@@ -6,6 +6,7 @@ from shopback.trades.views import StatisticMergeOrderView,CheckOrderView,OrderPl
     OutStockOrderProductView,TradeSearchView,DirectOrderView,OrderListView,TradeLogisticView,change_trade_addr,change_trade_order,\
     delete_trade_order,change_logistic_and_outsid,review_order,update_sys_memo,change_order_stock_status,regular_trade,\
     ExchangeOrderInstanceView,DirectOrderInstanceView,replay_trade_send_result,countFenxiaoDetail
+
 from shopback.base.renderers  import BaseJsonRenderer
 from shopback.trades.renderers import CheckOrderRenderer,ReviewOrderRenderer,ExchangeOrderRender,DirectOrderRender,\
     StatisticMergeOrderRender,StatisticOutStockRender,OrderListRender,TradeLogisticRender
@@ -107,6 +108,8 @@ urlpatterns = patterns('shopback.trades.views',
         permissions=(IsAuthenticated,)
     )),               
     
-    (r'fenxiao/count/$',csrf_exempt(countFenxiaoDetail)),
+    (r'fenxiao/count/$',csrf_exempt(countFenxiaoAcount)),
+
+    (r'fenxiao/count/detail/$','showFenxiaoDetail'),
     
 )

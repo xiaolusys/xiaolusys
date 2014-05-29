@@ -24,18 +24,19 @@ function submit() {
 </form>
 </div>
 
-<div style="width:800px; padding:5px;">
-<table class="table table-striped table-bordered table-condensed">
+<div style="width:800px; padding:5px;" >
+<table class="table table-striped table-bordered table-condensed" >
 <thead>
 
 <th>{{ replyer }}</th>
 </thead>
-<tbody>
+<tbody >
 {% for k,v in replyerDetail.items %}
 {% for c in v %}
 <tr>
-<td>{{ c }}</td>
-
+<td ><a href="{{ c.1 }}" target="_blank" ><img src="{{ c.0 }}_sum.jpg" alt=""></a></td>
+<td>{{ c.2 }}</td>
+<td>{{ c.3 }}</td>
 </tr>
 {% endfor %}
 
