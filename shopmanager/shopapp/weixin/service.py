@@ -271,7 +271,7 @@ class WeixinUserService():
         trade_array.append(('成交时间', trade.pay_time and format_datetime(trade.pay_time)))
         trade_array.append(('订单状态', self.getTrade2BuyerStatus(trade.status,trade.sys_status)))
         orders = []
-        for order in trade.merge_trade_orders.filter(sys_status=pcfg.IN_EFFECT):
+        for order in trade.merge_orders.filter(sys_status=pcfg.IN_EFFECT):
             orders.append(order.getSimpleName())
         trade_array.append(('订单详细', orders))
         

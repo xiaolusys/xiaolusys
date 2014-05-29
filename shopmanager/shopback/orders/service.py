@@ -124,9 +124,9 @@ class OrderService(TaobaoTradeService,TaobaoSendTradeMixin):
     def createMergeTrade(cls,trade,*args,**kwargs):
         
         tid  = trade.id
-        merge_trade,state = MergeTrade.objects.get_or_create(tid=tid)
+        merge_trade,state = MergeTrade.objects.get_or_create(user=trade.user,tid=tid)
         
-        update_fields = ['user','seller_id','seller_nick','buyer_nick','type'
+        update_fields = ['user','buyer_nick','type'
                          ,'seller_cod_fee','buyer_cod_fee','cod_fee','cod_status'
                          ,'seller_flag','created','pay_time','modified','consign_time'
                          ,'send_time','status','is_brand_sale','is_lgtype','lg_aging'

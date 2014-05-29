@@ -247,8 +247,8 @@ def create_refund_exchange_trade(request,tid):
     dt = datetime.datetime.now()
     merge_trade = MergeTrade.objects.create(
                                             user = origin_trade.user,
-                                            seller_id = origin_trade.seller_id,
-                                            seller_nick = origin_trade.seller_nick,
+                                            seller_id = origin_trade.user.visitor_id,
+                                            seller_nick = origin_trade.user.nick,
                                             buyer_nick = origin_trade.buyer_nick,
                                             type = pcfg.EXCHANGE_TYPE,
                                             shipping_type = origin_trade.shipping_type,
@@ -275,7 +275,7 @@ def create_refund_exchange_trade(request,tid):
         merge_order.outer_id       = prod.outer_id
         merge_order.outer_sku_id   = prod.outer_sku_id
         merge_order.num            = prod.num
-        merge_order.seller_nick    = origin_trade.seller_nick
+        merge_order.seller_nick    = origin_trade.user.nick
         merge_order.buyer_nick     = origin_trade.buyer_nick
         merge_order.gift_type      = pcfg.RETURN_GOODS_GIT_TYPE
         merge_order.sys_status     = pcfg.IN_EFFECT
@@ -288,7 +288,8 @@ def create_refund_exchange_trade(request,tid):
     
     log_action(request.user.id,merge_trade,ADDITION,u'创建退换货单')
     
-    return HttpResponseRedirect('/admin/trades/mergetrade/?type__exact=exchange&sys_status=WAIT_AUDIT&q=%s'%str(merge_trade.id))  
+    return HttpResponseRedirect('/admin/trades/mergetrade/?type__exact=exchange'
+                                '&sys_status=WAIT_AUDIT&q=%s'%str(merge_trade.id))  
    
 
 @csrf_exempt
@@ -299,7 +300,8 @@ def delete_trade_order(request,id):
     try:
         refund_prod  = RefundProduct.objects.get(id=id)
     except:
-        HttpResponse(json.dumps({'code':1,'response_error':u'订单不存在'}),mimetype="application/json")
+        HttpResponse(json.dumps({'code':1,'response_error':u'订单不存在'}),
+                     mimetype="application/json")
     
     refund_prod.delete()    
     ret_params = {'code':0,'response_content':{'success':True}}
@@ -318,12 +320,14 @@ def relate_refund_product(request):
     try:
         trade  = MergeTrade.objects.get(tid=refund_tid)
     except:
-        return HttpResponse(json.dumps({'code':1,'response_error':u'订单不存在'}),mimetype="application/json")
+        return HttpResponse(json.dumps({'code':1,'response_error':u'订单不存在'}),
+                            mimetype="application/json")
         
     try:
         refund_prod  = RefundProduct.objects.get(id=rpid)
     except:
-        return HttpResponse(json.dumps({'code':1,'response_error':u'退回商品不存在'}),mimetype="application/json")
+        return HttpResponse(json.dumps({'code':1,'response_error':u'退回商品不存在'}),
+                            mimetype="application/json")
     
     refund_prod.trade_id   = trade.tid   
     refund_prod.buyer_nick = trade.buyer_nick 

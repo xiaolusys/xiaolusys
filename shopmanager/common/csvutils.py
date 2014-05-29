@@ -1,5 +1,6 @@
 #-*- coding:utf8 -*-
 import os
+import re
 import csv, codecs, cStringIO
 from django.conf import settings
 
@@ -21,7 +22,11 @@ def gen_cvs_tuple(qs,fields=[],title=[]):
         
         ks = []
         for k in fields:
-            ks.append(unicode(getattr(q,k,None)).replace(',','*') or '-')
+            if k.find('.')|k.find('__') == -1:
+                pk,sk = re.split('\.|__',k)
+                ks.append('"%s"'%(unicode(getattr(getattr(q,pk,None),sk,None)) or '-'))
+                continue
+            ks.append('"%s"'%(unicode(getattr(q,k,None)) or '-'))
         
         qs_tuple.append(ks)
         

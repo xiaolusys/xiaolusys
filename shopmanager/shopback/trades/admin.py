@@ -4,6 +4,7 @@ import time
 import datetime
 import cStringIO as StringIO
 from django.contrib import admin
+from django.contrib.admin.views.main import ChangeList
 from django.db import models
 from django.views.decorators.csrf import csrf_protect
 from django.forms import TextInput, Textarea
@@ -16,6 +17,7 @@ from django.utils.encoding import force_unicode
 from bitfield import BitField
 from bitfield.forms import BitFieldCheckboxSelectMultiple
 from django.conf import settings
+
 from celery import chord
 from shopback.orders.models import Trade
 from shopback.items.models import Product,ProductSku
@@ -54,17 +56,30 @@ class MergeOrderInline(admin.TabularInline):
         models.TextField: {'widget': Textarea(attrs={'rows':2, 'cols':20})},
     }
 
+class MergeTradeChangeList(ChangeList):
+
+    def get_query_set(self, request):
+        """
+        Replace a global select_related() directive added by Django in 
+        ChangeList.get_query_set() with a more limited one.
+        """
+        qs = super(MergeTradeChangeList, self).get_query_set(request)
+        qs = qs.select_related('logistics_company')  # Don't join on dealer or category
+        return qs
+
 class MergeTradeAdmin(admin.ModelAdmin):
     list_display = ('trade_id_link','popup_tid_link','user','buyer_nick_link','type','payment','pay_time','consign_time'
-                    ,'status','sys_status','logistics_company','reason_code','is_picking_print','is_express_print'
+                    ,'sys_status','logistics_company','reason_code','is_picking_print','is_express_print'#
                     ,'can_review','operator','weight_time','charge_time')
     #list_display_links = ('trade_id_link','popup_tid_link')
     #list_editable = ('update_time','task_type' ,'is_success','status')
     
+    list_select_related = True
+    
     change_list_template  = "admin/trades/change_list.html"
     change_form_template  = "admin/trades/change_trade_form.html"
     
-    ordering = ['-sys_status','-priority','pay_time',]
+    ordering = ['-sys_status',]
     list_per_page = 100
     
     def trade_id_link(self, obj):
@@ -76,9 +91,9 @@ class MergeTradeAdmin(admin.ModelAdmin):
     trade_id_link.short_description = "ID"
     
     def popup_tid_link(self, obj):
-        return u'<a href="%d/" onclick="return showTradePopup(this);">%s</a>' %(obj.id,obj.tid and str(obj.tid) or u'【无单号】' )
+        return u'<a href="%d/" onclick="return showTradePopup(this);">%s</a>' %(obj.id,obj.tid and str(obj.tid) or '--' )
     popup_tid_link.allow_tags = True
-    popup_tid_link.short_description = "淘宝单号" 
+    popup_tid_link.short_description = "原单ID" 
     
     def buyer_nick_link(self, obj):
         symbol_link = obj.buyer_nick
@@ -142,8 +157,10 @@ class MergeTradeAdmin(admin.ModelAdmin):
     def get_readonly_fields(self, request, obj=None):
         readonly_fields = self.readonly_fields
         if not request.user.has_perm('trades.can_trade_modify'):
-            readonly_fields = readonly_fields+('tid','reason_code','has_rule_match','has_merge','has_memo','payment','post_fee','tid','user','type'
-                                    ,'trade_from','is_locked','is_charged','operator','can_review','is_picking_print','is_express_print','sys_status','status')
+            readonly_fields = readonly_fields+('tid','reason_code','has_rule_match','has_merge','has_memo',
+                                               'payment','post_fee','user','type','trade_from','is_locked',
+                                               'is_charged','operator','can_review','is_picking_print',
+                                               'is_express_print','sys_status','status')
             if obj.sys_status==pcfg.WAIT_PREPARE_SEND_STATUS:
                 readonly_fields = readonly_fields+('priority',)
         return readonly_fields
@@ -176,7 +193,10 @@ class MergeTradeAdmin(admin.ModelAdmin):
     def change_view(self, request, extra_context=None, **kwargs):
 
         return super(MergeTradeAdmin, self).change_view(request, extra_context)  
-        
+    
+    def get_changelist(self, request, **kwargs):
+        return MergeTradeChangeList
+
     #重写订单视图
     def changelist_view(self, request, extra_context=None, **kwargs):
 
@@ -415,7 +435,7 @@ class MergeTradeAdmin(admin.ModelAdmin):
                     if is_merge_success:
                         merge_trade_ids.append(trade.tid)
                                 
-                if fail_reason and not is_merge_success:
+                if not is_merge_success:
                     pass                   
                 elif len(merge_trade_ids)<sub_trades.count():
                     fail_reason = u'部分订单未合并成功'
@@ -473,7 +493,7 @@ class MergeTradeAdmin(admin.ModelAdmin):
                 continue
             if trade.has_merge:
                 merge_order_remover(trade.tid)
-            seller_id  = trade.user.visitor_id
+            
             trade.sys_status = ''
             trade.reason_code=''
             trade.has_sys_err=False
@@ -487,7 +507,7 @@ class MergeTradeAdmin(admin.ModelAdmin):
             trade.seller_memo=''
             trade.save()
             #减去商品的待发货数，订单重新入库时（判断是否缺货功能），会重新加上
-            wait_post_orders = trade.merge_trade_orders.filter(sys_status=pcfg.IN_EFFECT
+            wait_post_orders = trade.merge_orders.filter(sys_status=pcfg.IN_EFFECT
                             ,gift_type__in=(pcfg.REAL_ORDER_GIT_TYPE,pcfg.COMBOSE_SPLIT_GIT_TYPE))
             for order in wait_post_orders:
                 if order.outer_sku_id:
@@ -506,7 +526,7 @@ class MergeTradeAdmin(admin.ModelAdmin):
                         product.update_wait_post_num(order.num) 
                         
             try:
-                trade.merge_trade_orders.all().delete()
+                trade.merge_orders.all().delete()
                 if trade.type == pcfg.TAOBAO_TYPE:
                     response = apis.taobao_trade_fullinfo_get(tid=trade.tid,tb_user_id=seller_id)
                     trade_dict = response['trade_fullinfo_get_response']['trade']
@@ -589,7 +609,7 @@ class MergeTradeAdmin(admin.ModelAdmin):
         """ 导出订单金额信息 """
         dt  = datetime.datetime.now()
         lg_tuple = gen_cvs_tuple(queryset,
-                                 fields=['tid','seller_nick','buyer_nick','payment','post_fee','pay_time'],
+                                 fields=['tid','user__nick','buyer_nick','payment','post_fee','pay_time'],
                                  title=[u'淘宝单号',u'店铺ID',u'买家ID',u'实付款',u'实付邮费',u'付款日期'])
 
         is_windows = request.META['HTTP_USER_AGENT'].lower().find('windows') >-1 
@@ -612,7 +632,7 @@ class MergeTradeAdmin(admin.ModelAdmin):
         """ 导出订单快递信息 """
         dt  = datetime.datetime.now()
         lg_tuple = gen_cvs_tuple(queryset,
-                                 fields=['out_sid','tid','seller_nick','receiver_name','receiver_state','receiver_city','weight','logistics_company','post_fee','weight_time'],
+                                 fields=['out_sid','tid','user__nick','receiver_name','receiver_state','receiver_city','weight','logistics_company','post_fee','weight_time'],
                                  title=[u'运单ID',u'淘宝单号',u'店铺',u'收货人',u'省',u'市',u'重量',u'快递',u'实付邮费',u'称重日期'])
 
         is_windows = request.META['HTTP_USER_AGENT'].lower().find('windows') >-1 
@@ -634,7 +654,7 @@ class MergeTradeAdmin(admin.ModelAdmin):
         """ 导出订单买家信息 """
         dt  = datetime.datetime.now()
         buyer_tuple = gen_cvs_tuple(queryset,
-                                 fields=['seller_nick','buyer_nick','receiver_state','receiver_phone','receiver_mobile','pay_time'],
+                                 fields=['user__nick','buyer_nick','receiver_state','receiver_phone','receiver_mobile','pay_time'],
                                  title=[u'卖家',u'买家昵称',u'省',u'固话',u'手机',u'付款日期'])
         
         is_windows = request.META['HTTP_USER_AGENT'].lower().find('windows') >-1 
@@ -681,7 +701,7 @@ class MergeTradeAdmin(admin.ModelAdmin):
                 pass
             
         is_windows = request.META['HTTP_USER_AGENT'].lower().find('windows') >-1 
-        file_name = u'logistic-%s-%s.csv'%(dt.month,dt.day)
+        file_name = u'yunda-%s-%s.csv'%(dt.month,dt.day)
         
         myfile = StringIO.StringIO() 
         
@@ -701,9 +721,9 @@ class MergeTradeAdmin(admin.ModelAdmin):
 
 admin.site.register(MergeTrade,MergeTradeAdmin)
 
-
+    
 class MergeOrderAdmin(admin.ModelAdmin):
-    list_display = ('id','merge_trade','oid','outer_id','outer_sku_id','sku_properties_name','price','num',
+    list_display = ('id','oid','outer_id','outer_sku_id','sku_properties_name','price','num',
                     'payment','out_stock','is_rule_match','gift_type','refund_status','status','sys_status')
     list_display_links = ('oid','id')
     #list_editable = ('update_time','task_type' ,'is_success','status')
@@ -713,8 +733,8 @@ class MergeOrderAdmin(admin.ModelAdmin):
 
     list_filter = ('sys_status','merge_trade__sys_status','refund_status','out_stock',
                    'is_rule_match','is_merge','gift_type',('pay_time',DateFieldListFilter))
-    search_fields = ['oid','tid','outer_id','outer_sku_id']
-
+    search_fields = ['id','oid','merge_trade__id','outer_id','outer_sku_id']
+    
 
 admin.site.register(MergeOrder,MergeOrderAdmin)
 
@@ -733,7 +753,8 @@ admin.site.register(MergeBuyerTrade,MergeBuyerTradeAdmin)
 
 
 class ReplayPostTradeAdmin(admin.ModelAdmin):
-    list_display = ('id','operator','order_num','succ_num','receiver','fid','created','finished','rece_date','check_date','status')
+    list_display = ('id','operator','order_num','succ_num','receiver','fid',
+                    'created','finished','rece_date','check_date','status')
     #list_editable = ('update_time','task_type' ,'is_success','status')
 
     date_hierarchy = 'created'
@@ -774,7 +795,8 @@ class ReplayPostTradeAdmin(admin.ModelAdmin):
             replay_trade.check_date = datetime.datetime.now()
             replay_trade.save()
         
-        return render_to_response('trades/trade_accept_check.html',{'trades':wait_scan_trades,'is_success':is_success},
+        return render_to_response('trades/trade_accept_check.html',
+                                  {'trades':wait_scan_trades,'is_success':is_success},
                                   context_instance=RequestContext(request),mimetype="text/html")
     
     check_post.short_description = "验证是否完成".decode('utf8')

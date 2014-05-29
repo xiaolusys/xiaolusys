@@ -30,7 +30,7 @@ def order_match_juhuasuan_pinpaituan(sender, trade_id, *args, **kwargs):
         return
     
     full_match = False
-    real_pay_orders = mergetrade.merge_trade_orders.filter(gift_type=pcfg.REAL_ORDER_GIT_TYPE)
+    real_pay_orders = mergetrade.merge_orders.filter(gift_type=pcfg.REAL_ORDER_GIT_TYPE)
     
     for order in real_pay_orders:
         try:

@@ -18,11 +18,7 @@ oindex = 10001
 for m in mts:
     m.tid = 'HYD%d'%index
     m.save()
-    for o in m.merge_orders.all():
-        o.oid = 'HYO%d'%oindex
-        o.save()
     index = index+1
-    oindex = oindex+1
     
 mos = MergeOrder.objects.filter(oid='')
 for o in mos:

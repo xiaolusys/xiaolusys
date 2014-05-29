@@ -4,7 +4,7 @@ from shopback.trades.models import MergeTrade
 from shopback import paramconfig as pcfg
 from common.modelutils import  update_model_fields
 
-class LogisticsHandler(BaseHandler):
+class MergeHandler(BaseHandler):
     
     def handleable(self,merge_trade,*args,**kwargs):
         return kwargs.get('first_pay_load',None) 

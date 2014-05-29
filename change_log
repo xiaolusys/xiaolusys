@@ -1,3 +1,13 @@
+######### 2014-5-24 ##########
+alter table shop_trades_mergetrade drop index tid;
+alter table shop_trades_mergetrade change column tid  tid varchar(32) NOT NULL;
+alter table shop_trades_mergetrade add unique key (tid,user_id);
+
+alter table shop_trades_mergeorder drop index oid;
+alter table shop_trades_mergeorder change column oid  oid varchar(32) NOT NULL;
+alter table shop_trades_mergeorder add unique key (oid,merge_trade_id);
+alter table shop_trades_mergeorder drop column tid;
+
 ######### 2014-5-22 ##########
 alter table shop_yunda_customer add column company_trade varchar(32) NOT NULL;
 alter table shop_yunda_customer add column reserveo varchar(64) NOT NULL;

@@ -322,11 +322,11 @@ def process_refund_notify_task(id):
                                 merge_order.save()
                             rule_signal.send(sender='payment_rule',trade_id=main_trade.id)
                             
-                        real_order_num = merge_trade.merge_trade_orders.filter(gift_type=pcfg.REAL_ORDER_GIT_TYPE)\
+                        real_order_num = merge_trade.merge_orders.filter(gift_type=pcfg.REAL_ORDER_GIT_TYPE)\
                             .exclude(refund_status__in=pcfg.REFUND_APPROVAL_STATUS).count()
 
                         if real_order_num == 0:
-                            merge_trade.merge_trade_orders.exclude(gift_type=pcfg.REAL_ORDER_GIT_TYPE).delete()
+                            merge_trade.merge_orders.exclude(gift_type=pcfg.REAL_ORDER_GIT_TYPE).delete()
                         else:    
                             rule_signal.send(sender='payment_rule',trade_id=merge_trade.id)
     except Exception,exc:

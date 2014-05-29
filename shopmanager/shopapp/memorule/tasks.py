@@ -59,8 +59,10 @@ def updateTradeAndOrderByRuleMemo():
                     order.sku_properties_name += sku_properties
                     order.save()
                     
-                merge_trade.sys_status = ((pcfg.WAIT_AUDIT_STATUS if has_memo else pcfg.WAIT_PREPARE_SEND_STATUS) if not has_refunding else pcfg.WAIT_AUDIT_STATUS)\
-                    if not is_merge_trade else pcfg.ON_THE_FLY_STATUS
+                merge_trade.sys_status = (((pcfg.WAIT_AUDIT_STATUS if has_memo 
+                                           else pcfg.WAIT_PREPARE_SEND_STATUS) 
+                                          if not has_refunding else pcfg.WAIT_AUDIT_STATUS)
+                                          if not is_merge_trade else pcfg.ON_THE_FLY_STATUS)
                 MergeTrade.objects.filter(tid=merge_trade.tid).update(
                      logistics_company_name=merge_trade.logistics_company_name,
                      logistics_company_code=merge_trade.logistics_company_code,
@@ -82,19 +84,26 @@ def updateTradeSellerFlagTask():
         dt  = datetime.datetime.now()
         start_date = datetime.datetime(dt.year,dt.month,dt.day,0,0,0)
         trades = MergeTrade.objects.filter(sys_status__in = 
-                    (pcfg.WAIT_PREPARE_SEND_STATUS,pcfg.WAIT_SCAN_WEIGHT_STATUS,pcfg.WAIT_CONFIRM_SEND_STATUS,pcfg.WAIT_AUDIT_STATUS))\
-                    .include(modified__gt=modified,sys_status=pcfg.INVALID_STATUS)
+                    (pcfg.WAIT_PREPARE_SEND_STATUS,
+                     pcfg.WAIT_SCAN_WEIGHT_STATUS,
+                     pcfg.WAIT_CONFIRM_SEND_STATUS,
+                     pcfg.WAIT_AUDIT_STATUS))\
+                    .include(modified__gt=modified,
+                             sys_status=pcfg.INVALID_STATUS)
                      
         for trade in trades:
             rule_memo,state  = RuleMemo.objects.get_or_create(tid=trade.tid)
             seller_flag = SYS_STATUS_MATCH_FLAGS.get(trade.sys_status,None)
             if seller_flag and seller_flag != rule_memo.seller_flag:
                 try:
-                    response = taobao_trade_memo_update(tid=trade.tid,flag=seller_flag,tb_user_id=trade.seller_id)
+                    response = taobao_trade_memo_update(tid=trade.tid,
+                                                        flag=seller_flag,
+                                                        tb_user_id=trade.user.visitor_id)
                     trade_rep = response['trade_memo_update_response']['trade']
                     if trade_rep: 
                         RuleMemo.objects.filter(tid=trade.tid).update(seller_flag=seller_flag)
-                        MergeTrade.objects.filter(tid=trade_rep['tid']).update(modified=parse_datetime(trade_rep['modified']))
+                        MergeTrade.objects.filter(tid=trade_rep['tid']).update(
+                                    modified=parse_datetime(trade_rep['modified']))
                 except:
                     logger.error('update taobao trade flag error',exc_info=True) 
                     

@@ -5,7 +5,8 @@ from djangorestframework.views import InstanceModelView
 from shopback.trades.views import StatisticMergeOrderView,CheckOrderView,OrderPlusView,ReviewOrderView,ExchangeOrderView,\
     OutStockOrderProductView,TradeSearchView,DirectOrderView,OrderListView,TradeLogisticView,change_trade_addr,change_trade_order,\
     delete_trade_order,change_logistic_and_outsid,review_order,update_sys_memo,change_order_stock_status,regular_trade,\
-    replay_trade_send_result,countFenxiaoAcount
+    ExchangeOrderInstanceView,DirectOrderInstanceView,replay_trade_send_result,countFenxiaoAcount
+
 from shopback.base.renderers  import BaseJsonRenderer
 from shopback.trades.renderers import CheckOrderRenderer,ReviewOrderRenderer,ExchangeOrderRender,DirectOrderRender,\
     StatisticMergeOrderRender,StatisticOutStockRender,OrderListRender,TradeLogisticRender
@@ -50,19 +51,30 @@ urlpatterns = patterns('shopback.trades.views',
         authentication=(UserLoggedInAuthentication,),
         permissions=(IsAuthenticated,)
     ))),
-    
-    (r'^exchange/add/$',staff_member_required(ExchangeOrderView.as_view(
+    (r'^exchange/$',staff_member_required(ExchangeOrderView.as_view(
         resource=ExchangeOrderResource,
         renderers=(BaseJsonRenderer,ExchangeOrderRender),
         authentication=(UserLoggedInAuthentication,),
         permissions=(IsAuthenticated,)
     ))),
-    (r'^direct/add/$',staff_member_required(DirectOrderView.as_view(
+    url(r'^exchange/(?P<id>\d{1,20})/$',staff_member_required(ExchangeOrderInstanceView.as_view(
+        resource=ExchangeOrderResource,
+        renderers=(BaseJsonRenderer,ExchangeOrderRender),
+        authentication=(UserLoggedInAuthentication,),
+        permissions=(IsAuthenticated,)
+    )),name="exchange_order_instance"),
+    (r'^direct/$',staff_member_required(DirectOrderView.as_view(
         resource=ExchangeOrderResource,
         renderers=(BaseJsonRenderer,DirectOrderRender),
         authentication=(UserLoggedInAuthentication,),
         permissions=(IsAuthenticated,)
     ))),
+   url (r'^direct/(?P<id>\d{1,20})/$',staff_member_required(DirectOrderInstanceView.as_view(
+        resource=ExchangeOrderResource,
+        renderers=(BaseJsonRenderer,DirectOrderRender),
+        authentication=(UserLoggedInAuthentication,),
+        permissions=(IsAuthenticated,)
+    )),name="direct_order_instance"),
     (r'^tradeplus/$',TradeSearchView.as_view(
         resource=OrderPlusResource,
         renderers=(BaseJsonRenderer,),
@@ -72,28 +84,28 @@ urlpatterns = patterns('shopback.trades.views',
     (r'^order/statistic/$',StatisticMergeOrderView.as_view(
         resource=StatisticMergeOrderResource,
         renderers=(BaseJsonRenderer,StatisticMergeOrderRender),
-        #authentication=(UserLoggedInAuthentication,),
-        #permissions=(IsAuthenticated,)
+        authentication=(UserLoggedInAuthentication,),
+        permissions=(IsAuthenticated,)
     )),
     (r'^order/outstock/$',OutStockOrderProductView.as_view(
         resource=StatisticMergeOrderResource,
         renderers=(BaseJsonRenderer,StatisticOutStockRender),
-        #authentication=(UserLoggedInAuthentication,),
-        #permissions=(IsAuthenticated,)
+        authentication=(UserLoggedInAuthentication,),
+        permissions=(IsAuthenticated,)
     )),
     
     (r'^order/list/(?P<id>\d{1,20})/$',OrderListView.as_view(
         resource=OrderPlusResource,
         renderers=(BaseJsonRenderer,OrderListRender),
-        #authentication=(UserLoggedInAuthentication,),
-        #permissions=(IsAuthenticated,)
+        authentication=(UserLoggedInAuthentication,),
+        permissions=(IsAuthenticated,)
     )),
         
     (r'^logistic/query/$',TradeLogisticView.as_view(
         resource=MergeTradeResource,
         renderers=(BaseJsonRenderer,TradeLogisticRender),
-        #authentication=(UserLoggedInAuthentication,),
-        #permissions=(IsAuthenticated,)
+        authentication=(UserLoggedInAuthentication,),
+        permissions=(IsAuthenticated,)
     )),               
     
     (r'fenxiao/count/$',csrf_exempt(countFenxiaoAcount)),

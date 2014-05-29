@@ -27,7 +27,7 @@ from common.utils  import update_model_fields,parse_date,format_date
 from shopback.base import log_action, ADDITION, CHANGE
 import logging
 
-DISTRICT_REGEX = '^(?P<pno>[a-zA-Z0-9]+)-(?P<dno>[0-9]+)?$'
+DISTRICT_REGEX = '^(?P<pno>[a-zA-Z0-9]+)-(?P<dno>[a-zA-Z0-9]+)?$'
 ASSRIGN_PARAMS_REGEX = '^(?P<num_iid>[0-9]+)-(?P<sku_id>[0-9]+)?$'
 logger = logging.getLogger('django.request')
 

@@ -104,7 +104,7 @@ class PurchaseOrderService(TaobaoTradeService,TaobaoSendTradeMixin):
             merge_order.sku_properties_name = order.properties_values
             merge_order.refund_status = refund_status
             merge_order.pic_path = fenxiao_product.pictures and fenxiao_product.pictures.split(',')[0] or ''
-            merge_order.seller_nick = merge_trade.seller_nick
+            merge_order.seller_nick = merge_trade.user.nick
             merge_order.buyer_nick  = merge_trade.buyer_nick
             merge_order.created  = order.created
             merge_order.pay_time = merge_trade.created
@@ -125,10 +125,10 @@ class PurchaseOrderService(TaobaoTradeService,TaobaoSendTradeMixin):
     def createMergeTrade(cls,trade,*args,**kwargs):
         
         tid = trade.id
-        merge_trade,state = MergeTrade.objects.get_or_create(tid=tid)
+        merge_trade,state = MergeTrade.objects.get_or_create(user=trade.user,tid=tid)
         
-        update_fields = ['user','seller_id','seller_nick','buyer_nick','type','shipping_type','payment',
-                         'total_fee','post_fee','created','trade_from',
+        update_fields = ['user','buyer_nick','type','payment',
+                         'shipping_type','total_fee','post_fee','created','trade_from',
                          'pay_time','modified','consign_time','seller_flag','priority','status']
         
         if not merge_trade.receiver_name and \
@@ -161,9 +161,6 @@ class PurchaseOrderService(TaobaoTradeService,TaobaoSendTradeMixin):
         merge_trade.total_fee = merge_trade.total_fee or trade.total_fee
         merge_trade.post_fee  = merge_trade.post_fee or trade.post_fee
         
-        merge_trade.user = trade.user
-        merge_trade.seller_id = trade.seller_id
-        merge_trade.seller_nick = trade.supplier_username
         merge_trade.buyer_nick = trade.distributor_username
         merge_trade.type = pcfg.FENXIAO_TYPE
         merge_trade.shipping_type = merge_trade.shipping_type or\

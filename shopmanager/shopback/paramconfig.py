@@ -25,6 +25,10 @@ COD_TYPE        = 'cod'
 GUARANTEE_TYPE  = 'guarantee_trade'
 AUCTION_TYPE    = 'auction'
 
+PRIORITY_HIG  = -1
+PRIORITY_MID  = 0
+PRIORITY_LOW  = 1
+
 TAOBAO_TRADE_TYPE = (FENXIAO_TYPE,
                      TAOBAO_TYPE,
                      AUTO_DELIVERY_TYPE,
