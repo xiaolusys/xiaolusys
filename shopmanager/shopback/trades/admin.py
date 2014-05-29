@@ -4,6 +4,7 @@ import time
 import datetime
 import cStringIO as StringIO
 from django.contrib import admin
+from django.contrib.admin.views.main import ChangeList
 from django.db import models
 from django.views.decorators.csrf import csrf_protect
 from django.forms import TextInput, Textarea
@@ -16,6 +17,7 @@ from django.utils.encoding import force_unicode
 from bitfield import BitField
 from bitfield.forms import BitFieldCheckboxSelectMultiple
 from django.conf import settings
+
 from celery import chord
 from shopback.orders.models import Trade
 from shopback.items.models import Product,ProductSku
@@ -54,17 +56,30 @@ class MergeOrderInline(admin.TabularInline):
         models.TextField: {'widget': Textarea(attrs={'rows':2, 'cols':20})},
     }
 
+class MergeTradeChangeList(ChangeList):
+
+    def get_query_set(self, request):
+        """
+        Replace a global select_related() directive added by Django in 
+        ChangeList.get_query_set() with a more limited one.
+        """
+        qs = super(MergeTradeChangeList, self).get_query_set(request)
+        qs = qs.select_related('logistics_company')  # Don't join on dealer or category
+        return qs
+
 class MergeTradeAdmin(admin.ModelAdmin):
     list_display = ('trade_id_link','popup_tid_link','user','buyer_nick_link','type','payment','pay_time','consign_time'
-                    ,'status','sys_status','logistics_company','reason_code','is_picking_print','is_express_print'
+                    ,'sys_status','logistics_company','reason_code','is_picking_print','is_express_print'#
                     ,'can_review','operator','weight_time','charge_time')
     #list_display_links = ('trade_id_link','popup_tid_link')
     #list_editable = ('update_time','task_type' ,'is_success','status')
     
+    list_select_related = True
+    
     change_list_template  = "admin/trades/change_list.html"
     change_form_template  = "admin/trades/change_trade_form.html"
     
-    ordering = ['-sys_status','-priority','pay_time',]
+    ordering = ['-sys_status',]
     list_per_page = 100
     
     def trade_id_link(self, obj):
@@ -142,8 +157,10 @@ class MergeTradeAdmin(admin.ModelAdmin):
     def get_readonly_fields(self, request, obj=None):
         readonly_fields = self.readonly_fields
         if not request.user.has_perm('trades.can_trade_modify'):
-            readonly_fields = readonly_fields+('tid','reason_code','has_rule_match','has_merge','has_memo','payment','post_fee','tid','user','type'
-                                    ,'trade_from','is_locked','is_charged','operator','can_review','is_picking_print','is_express_print','sys_status','status')
+            readonly_fields = readonly_fields+('tid','reason_code','has_rule_match','has_merge','has_memo',
+                                               'payment','post_fee','user','type','trade_from','is_locked',
+                                               'is_charged','operator','can_review','is_picking_print',
+                                               'is_express_print','sys_status','status')
             if obj.sys_status==pcfg.WAIT_PREPARE_SEND_STATUS:
                 readonly_fields = readonly_fields+('priority',)
         return readonly_fields
@@ -176,7 +193,10 @@ class MergeTradeAdmin(admin.ModelAdmin):
     def change_view(self, request, extra_context=None, **kwargs):
 
         return super(MergeTradeAdmin, self).change_view(request, extra_context)  
-        
+    
+    def get_changelist(self, request, **kwargs):
+        return MergeTradeChangeList
+
     #重写订单视图
     def changelist_view(self, request, extra_context=None, **kwargs):
 
@@ -701,9 +721,9 @@ class MergeTradeAdmin(admin.ModelAdmin):
 
 admin.site.register(MergeTrade,MergeTradeAdmin)
 
-
+    
 class MergeOrderAdmin(admin.ModelAdmin):
-    list_display = ('id','merge_trade','oid','outer_id','outer_sku_id','sku_properties_name','price','num',
+    list_display = ('id','oid','outer_id','outer_sku_id','sku_properties_name','price','num',
                     'payment','out_stock','is_rule_match','gift_type','refund_status','status','sys_status')
     list_display_links = ('oid','id')
     #list_editable = ('update_time','task_type' ,'is_success','status')
@@ -714,7 +734,7 @@ class MergeOrderAdmin(admin.ModelAdmin):
     list_filter = ('sys_status','merge_trade__sys_status','refund_status','out_stock',
                    'is_rule_match','is_merge','gift_type',('pay_time',DateFieldListFilter))
     search_fields = ['id','oid','merge_trade__id','outer_id','outer_sku_id']
-
+    
 
 admin.site.register(MergeOrder,MergeOrderAdmin)
 

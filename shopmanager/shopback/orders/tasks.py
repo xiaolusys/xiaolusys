@@ -79,16 +79,18 @@ def saveUserIncrementOrdersTask(user_id,update_from=None,update_to=None):
 
     has_next = True
     cur_page = 1
-    
+
     from shopback.trades.models import MergeTrade
     while has_next:
         response_list = apis.taobao_trades_sold_increment_get(tb_user_id=user_id,page_no=cur_page,fields='tid,modified'
             ,page_size=settings.TAOBAO_PAGE_SIZE,use_has_next='true',start_modified=s_dt_f,end_modified=s_dt_t)
         trade_list = response_list['trades_sold_increment_get_response']
+
         if trade_list.has_key('trades'):
             for trade in trade_list['trades']['trade']:
                 modified = parse_datetime(trade['modified']) if trade.get('modified',None) else None
                 need_pull = MergeTrade.judge_need_pull(trade['tid'],modified)
+
                 if need_pull:
                     try:
                         response = apis.taobao_trade_fullinfo_get(tid=trade['tid'],tb_user_id=user_id)
@@ -99,7 +101,7 @@ def saveUserIncrementOrdersTask(user_id,update_from=None,update_to=None):
 
         has_next = trade_list['has_next']
         cur_page += 1
-
+    
 
 
 @task()

@@ -120,7 +120,7 @@ GIFT_TYPE = (
 
 class MergeTrade(models.Model):
     
-    id    = BigIntegerAutoField(primary_key=True,verbose_name=u'订单ID')
+    id    = BigIntegerAutoField(primary_key=True,db_index=True,verbose_name=u'订单ID')
     
     tid   = models.CharField(max_length=32,
                              default=lambda:'HYD%d'%int(time.time()*10**5),

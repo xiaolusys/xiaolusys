@@ -83,6 +83,8 @@ MIDDLEWARE_CLASSES = (
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
 )
+if DEBUG:
+    MIDDLEWARE_CLASSES = ('middleware.middleware.QueryCountDebugMiddleware',) + MIDDLEWARE_CLASSES
 
 ROOT_URLCONF = 'shopmanager.urls'
 
@@ -221,10 +223,10 @@ try:
 except Exception,exc:
     pass
 
-#try:
-from local_settings import *
-#except Exception,exc:
-#    pass
+try:
+    from local_settings import *
+except Exception,exc:
+    pass
 
 try:
     from task_settings import *

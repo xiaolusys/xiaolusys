@@ -95,10 +95,12 @@ def get_replay_results(replay_trade):
             trade_dict['tid'] = trade.tid
             trade_dict['seller_nick'] = trade.user.seller_nick
             trade_dict['buyer_nick'] = trade.buyer_nick
-            trade_dict['company_name'] = trade.logistics_company.name 
+            trade_dict['company_name'] = (trade.logistics_company and 
+                                          trade.logistics_company.name or '--')
             trade_dict['out_sid']    = trade.out_sid
             trade_dict['is_success'] = trade.sys_status in (pcfg.WAIT_CHECK_BARCODE_STATUS,
-                                                            pcfg.WAIT_SCAN_WEIGHT_STATUS,pcfg.FINISHED_STATUS)
+                                                            pcfg.WAIT_SCAN_WEIGHT_STATUS,
+                                                            pcfg.FINISHED_STATUS)
             trade_dict['sys_status'] = trade.sys_status
             trades.append(trade_dict)
         

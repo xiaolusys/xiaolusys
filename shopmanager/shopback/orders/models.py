@@ -189,7 +189,7 @@ class Trade(models.Model):
             order.pay_time  = trade.pay_time
             order.consign_time   = trade.consign_time
             order.save()
-            
+        
         merge_trade_signal.send(sender=Trade,trade=trade)
         return trade
 
