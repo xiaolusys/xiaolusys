@@ -162,6 +162,8 @@ def sendTaobaoTradeTask(request_user_id,trade_id):
         
         error_msg = ''
         main_post_success = False   
+        company_name = trade.logistics_company.name
+        out_sid   = trade.out_sid
         try:
             merge_buyer_trades = []
             #判断是否有合单子订单
@@ -189,7 +191,7 @@ def sendTaobaoTradeTask(request_user_id,trade_id):
                     sub_trade.sys_status=pcfg.FINISHED_STATUS
                     sub_trade.consign_time=datetime.datetime.now()
                     sub_trade.save()
-                    log_action(request_user_id,sub_trade,CHANGE,u'订单发货成功')
+                    log_action(request_user_id,sub_trade,CHANGE,u'订单发货成功[%s:%s]'%(company_name,out_sid))
                 else:
                     sub_trade.append_reason_code(pcfg.POST_SUB_TRADE_ERROR_CODE)
                     sub_trade.sys_status=pcfg.WAIT_AUDIT_STATUS
@@ -214,7 +216,7 @@ def sendTaobaoTradeTask(request_user_id,trade_id):
             trade.sys_status=pcfg.WAIT_CHECK_BARCODE_STATUS
             trade.consign_time=datetime.datetime.now()
             trade.save()
-            log_action(request_user_id,trade,CHANGE,u'订单发货成功')
+            log_action(request_user_id,trade,CHANGE,u'订单发货成功[%s:%s]'%(company_name,out_sid))
         else:
             trade.append_reason_code(pcfg.POST_MODIFY_CODE)
             trade.sys_status=pcfg.WAIT_AUDIT_STATUS
