@@ -10,7 +10,7 @@ from shopback.base.authentication import login_required_ajax
 from shopapp.comments.models import Comment
 from django.template import RequestContext 
 import logging
-from django.contrib.auth.models import User,Group
+from django.contrib.auth.models import User
 
 
 logger = logging.getLogger('django.request')
@@ -61,7 +61,7 @@ def calcCommentCountJson(fdt,tdt):
             comment_dict[replayer][day_date] = comment_dict[replayer].get(day_date,0)+1
         else:
             comment_dict[replayer] = {day_date:1}
-    
+            
     return comment_dict   
 
 """ 
@@ -89,13 +89,18 @@ def count(request):
     toDate   = content.get('endDate')
     
     toDate   = toDate and datetime.datetime.strptime(toDate, '%Y%m%d').date() or datetime.datetime.now().date()
-        
-    fromDate = fromDate and datetime.datetime.strptime(fromDate, '%Y%m%d').date() or toDate - datetime.timedelta(days=1)  
+#for search,toDate+1    
+    oneday = datetime.timedelta(days=1)
+    toDate = toDate+oneday
+    
+    fromDate = (fromDate and 
+                datetime.datetime.strptime(fromDate, '%Y%m%d').date() or
+                toDate - datetime.timedelta(days=1))  
           
     
     commentDict = calcCommentCountJson(fromDate,toDate)
-    #print 'commentDict',commentDict
     date_array  = []
+    
     resultDict  = {}
     for d in range(0,(toDate-fromDate).days):
         
@@ -111,57 +116,73 @@ def count(request):
                 resultDict[name] = [day_count]
             
     for name ,vl in resultDict.iteritems():
-        vl.append(sum(vl))
+#        just for append in values at form
+        a=[sum(vl),0]
+        vl.append(a)
+        
+    d = None
+    c = []
+    for user_key,count_list in resultDict.iteritems():
+        d = []
+        for index,val in enumerate(date_array):
+            c=[count_list[index],val]
+            d.append(c)
+        d.append(count_list[index+1])
+        resultDict[user_key] = d
+    print 'resultDict',resultDict
     
-    return render_to_response('comments/comment_counts.html', {'data': resultDict, 'dates':date_array},  context_instance=RequestContext(request))
+    return render_to_response('comments/comment_counts.html', {'data': resultDict, 'dates':date_array,'toDate':toDate,'fromDate':fromDate},  context_instance=RequestContext(request))
 
 
 
-def filter_replyer(name):
+def filter_replyer(name,fdt,tdt):
     try:
 
         replyer_comment = {}
         replyer = User.objects.get(username = name )        
         comments = Comment.objects.filter(
-        replayer=replyer)        
+            replayer=replyer
+            ,replay_at__gte=fdt,
+            replay_at__lte=tdt,
+            is_reply=True
+            )
     
         for r in comments:
         
             replyer = r.replayer
+            item_pic_url=r.item_pic_url
+#            print 'item_pic_url',item_pic_url
+            content=r.content
+            detail_url=r.detail_url
             if replyer_comment.has_key(replyer):
-                replyer_comment[replyer].append(r.reply)
+                replyer_comment[replyer].append((r.item_pic_url,r.detail_url,r.content,r.reply))
             else:
-                    replyer_comment[replyer] = [r.reply]        
+                replyer_comment[replyer] = [(r.item_pic_url,r.detail_url,r.content,r.reply)]  
+
     except:
         pass
+    print type(replyer_comment),'replyer_comment',replyer_comment.items()[0]
     return replyer_comment
     
 @csrf_exempt
 def replyer_detail(request):
     content = request.GET
     name = content.get('replyer')
-    replyerDetail = filter_replyer(name)
+    fromDate  = content.get('fdt').replace('-','')
+    oneday = datetime.timedelta(days=1)
+    toDate  = content.get('tdt')
+
+    if toDate=="":
+        toDate=datetime.date.today().strftime('%Y%m%d')
+    else:
+        toDate  = content.get('tdt')
+
+    toDate   = toDate and datetime.datetime.strptime(toDate, '%Y%m%d').date() or datetime.datetime.now().date()
+    toDate = toDate+oneday
+    fromDate = fromDate and datetime.datetime.strptime(fromDate, '%Y%m%d').date() or toDate - datetime.timedelta(days=1)
     
-    #oo = show_replyer(request)
-    #print oo
-    #print 'ooooooooooooooooooooo'
+    replyerDetail = filter_replyer(name,fromDate,toDate)
+    
+
     return render_to_response('comments/comment_detail.html',{'replyerDetail':replyerDetail,'replyer':name},context_instance=RequestContext(request))
     
-def show_replyer(request):
-    comment_array = []
-    comments = User.objects.filter(groups=u'kefu')
-    #comments = User.objects.all()
-    
-    print 'ooccccccccccccc'
-    #print 
-    print comments
-    
-    print 'ccccccccccccccccccccc'
-    for c in comments:
-        try:
-            replyer = c.username
-            comment_array.append(replyer)
-        except:
-            continue
-    
-    return comment_array   

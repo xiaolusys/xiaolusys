@@ -69,8 +69,9 @@ class YundaCustomer(models.Model):
     name    = models.CharField(max_length=64,blank=True,verbose_name=u'客户名')
     code    = models.CharField(max_length=16,unique=True,verbose_name=u'客户代码')
     
+    cus_id  = models.CharField(max_length=32,blank=True,verbose_name=u'网点ID') 
     company_name = models.CharField(max_length=32,blank=True,verbose_name=u'客户公司名')   
-    cus_id  = models.CharField(max_length=32,blank=True,verbose_name=u'客户ID')   
+    company_trade = models.CharField(max_length=32,blank=True,verbose_name=u'客户经营范围') 
     
     qr_id   = models.CharField(max_length=32,blank=True,verbose_name=u'二维码接口ID')   
     qr_code  = models.CharField(max_length=32,blank=True,verbose_name=u'二维码接口码')   
@@ -103,7 +104,9 @@ class YundaCustomer(models.Model):
     modified   = models.DateTimeField(auto_now=True,verbose_name=u'修改日期')
     
     memo      =  models.CharField(max_length=100,blank=True,verbose_name=u'备注')  
-    
+    reserveo  =  models.CharField(max_length=64,blank=True,verbose_name=u'自定义1')       
+    reservet  =  models.CharField(max_length=64,blank=True,verbose_name=u'自定义2') 
+
     status     = models.CharField(max_length=10,default=NORMAL,
                                   choices=ORDER_STATUS_CHOICES,verbose_name=u'状态')
     class Meta:

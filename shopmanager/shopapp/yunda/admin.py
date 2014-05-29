@@ -58,22 +58,25 @@ class YundaCustomerAdmin(admin.ModelAdmin):
     #--------设置页面布局----------------
     fieldsets =((u'客户基本信息:', {
                     'classes': ('expand',),
-                    'fields': (('name','code','company_name','cus_id',)
-                               ,('contacter','state','city','district','address','zip',)
-                               ,('mobile','phone','status','memo')
+                    'fields': (('name','code','company_name')
+                               ,('company_trade','cus_id','contacter',)
+                               ,('state','city','district')
+                               ,('address','zip','mobile',)
+                               ,('phone','status','memo')
                                )
                 }),
                 (u'二维码设置:', {
                     'classes': ('collapse',),
-                    'fields': (('qr_id','qr_code','on_qrcode'))
+                    'fields': (('qr_id','qr_code','on_qrcode'),)
                 }),
                  (u'揽件设置:', {
                     'classes': ('collapse',),
-                    'fields': (('lanjian_id','lanjian_code','sn_code','device_code','on_lanjian','on_bpkg'))
+                    'fields': (('lanjian_id','lanjian_code','sn_code')
+                               ,('device_code','on_lanjian','on_bpkg'))
                 }),
                  (u'录单设置:', {
                     'classes': ('collapse',),
-                    'fields': (('ludan_id','ludan_code','on_ludan'))
+                    'fields': (('ludan_id','ludan_code','on_ludan'),)
                 })
                 )
 
@@ -258,7 +261,19 @@ class LogisticOrderAdmin(admin.ModelAdmin):
                 }),
                 )
     
+     #取消该商品缺货订单                                                                                                                                
+    def pushPackageWeightAction(self,request,queryset):
+        try:
+            for package in queryset.filter(is_charged=False):
+                tspw,state = TodaySmallPackageWeight.objects.get_or_create(package_id=package.out_sid)
+                tspw.is_jzhw = package.isJZHW()
+                tspw.save()
+        except Exception,exc:
+            messages.error(request,'出错信息:%s'%exc.message)
+
+    pushPackageWeightAction.short_description = u"添加到今日小包上传列表"
     
+    actions = ['pushPackageWeightAction',]
 
 admin.site.register(LogisticOrder,LogisticOrderAdmin)
 

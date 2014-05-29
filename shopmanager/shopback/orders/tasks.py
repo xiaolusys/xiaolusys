@@ -116,7 +116,7 @@ def updateAllUserIncrementOrdersTask(update_from=None,update_to=None):
         update_to   = datetime.datetime(dt.year,dt.month,dt.day,0,0,0)
         update_days = 1
     
-    users = User.effect_users.all()
+    users = User.effect_users.filter(type__in=('B','C'))
     for user in users:
         
         for i in xrange(0,update_days):
@@ -144,7 +144,7 @@ def updateAllUserIncrementTradesTask():
     
     dt = datetime.datetime.now()
     sysconf = SystemConfig.getconfig()
-    users   = User.effect_users.all()
+    users   = User.effect_users.filter(type__in=('B','C'))
     updated = sysconf.mall_order_updated
     try:
         if updated:

@@ -163,13 +163,13 @@ admin.site.register(User, UserAdmin)
 
 class CustomerAdmin(admin.ModelAdmin):
     
-    list_display = ('id','nick','sex','name','city','state','district','phone','mobile',
-                    'last_buy_time','buy_times','avg_payment','is_valid')
+    list_display = ('id','nick','name','buy_times','avg_payment','last_buy_time',
+                    'city','state','district','phone','mobile','is_valid')
     list_display_links = ('id', 'nick')
 
     ordering = ['-last_buy_time']
 
-    list_filter = ('is_valid',('last_buy_time',DateFieldListFilter))
+    list_filter = ('is_valid','sex',('last_buy_time',DateFieldListFilter))
     search_fields = ['nick','name']
     
     def export_distinct_mobile_action(self,request,queryset):
