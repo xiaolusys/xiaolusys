@@ -190,15 +190,19 @@ class PurchaseAdmin(admin.ModelAdmin):
         """ 完成采购单 """
         
         complete_names = []
+        fail_names = []
         approval_purchases = queryset.filter(status=pcfg.PURCHASE_APPROVAL)
         for purchase in approval_purchases:
+            if purchase.purchase_num != purchase.storage_num:
+                fail_names.append('%d|%s'%(purchase.id,purchase.extra_name))
+                continue
             complete_names.append('%d|%s'%(purchase.id,purchase.extra_name))
             purchase.status = pcfg.PURCHASE_FINISH
             purchase.save()
             log_action(request.user.id,purchase,CHANGE,u'采购完成')
         
-        msg = complete_names and u'%s 已完成.'%(','.join(complete_names)) or '作废失败，请确保订单在审核状态'
-        
+        msg = complete_names and u'%s 已完成.'%(','.join(complete_names)) or ''
+        msg = '%s%s'%(msg,fail_names and u'%s 未全部到货'%(','.join(fail_names)) or '') or u'采购单需在已审核状态!'
         messages.add_message(request,complete_names and messages.INFO or messages.ERROR,msg)
         return HttpResponseRedirect('./')
 
