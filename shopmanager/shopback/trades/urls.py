@@ -5,7 +5,7 @@ from djangorestframework.views import InstanceModelView
 from shopback.trades.views import StatisticMergeOrderView,CheckOrderView,OrderPlusView,ReviewOrderView,ExchangeOrderView,\
     OutStockOrderProductView,TradeSearchView,DirectOrderView,OrderListView,TradeLogisticView,change_trade_addr,change_trade_order,\
     delete_trade_order,change_logistic_and_outsid,review_order,update_sys_memo,change_order_stock_status,regular_trade,\
-    ExchangeOrderInstanceView,DirectOrderInstanceView,replay_trade_send_result,countFenxiaoDetail
+    ExchangeOrderInstanceView,DirectOrderInstanceView,replay_trade_send_result,countFenxiaoAcount
 
 from shopback.base.renderers  import BaseJsonRenderer
 from shopback.trades.renderers import CheckOrderRenderer,ReviewOrderRenderer,ExchangeOrderRender,DirectOrderRender,\
