@@ -13,3 +13,4 @@ change_log.txt
 test/
 local_settings.py
 download/
+shopmanager/site_media/static/closure-library/
