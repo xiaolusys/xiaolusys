@@ -93,7 +93,7 @@ def get_replay_results(replay_trade):
             trade_dict = {}
             trade_dict['id'] = trade.id
             trade_dict['tid'] = trade.tid
-            trade_dict['seller_nick'] = trade.user.seller_nick
+            trade_dict['seller_nick'] = trade.user.nick
             trade_dict['buyer_nick'] = trade.buyer_nick
             trade_dict['company_name'] = (trade.logistics_company and 
                                           trade.logistics_company.name or '--')
