@@ -117,7 +117,7 @@ class FenxiaoProduct(models.Model):
         return str(self.pid)
     
     @classmethod
-    def get_or_create(cls,user_id,pid):
+    def get_or_create(cls,user_id,pid,force_update=True):
         fenxiao_product,state = cls.objects.get_or_create(pid=pid)
         if state:
             try:

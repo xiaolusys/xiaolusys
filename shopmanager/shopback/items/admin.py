@@ -159,6 +159,40 @@ class ProductAdmin(admin.ModelAdmin):
     
     sync_items_stock.short_description = u"同步淘宝线上库存"
     
+    #更新用户线上商品入库
+    def sync_purchase_items_stock(self,request,queryset):
+        
+        from shopback.items.tasks import updatePurchaseItemNum
+        from shopback.fenxiao.models import FenxiaoProduct
+        
+        sync_items = []
+        for prod in queryset:
+            pull_dict = {'outer_id':prod.outer_id,'name':prod.name}
+            try:
+                items = FenxiaoProduct.objects.filter(outer_id=prod.outer_id,
+                                                         status=pcfg.UP_STATUS)
+                
+                if items.count() < 1:
+                    raise Exception(u'请确保商品在售')
+                
+                #更新商品及SKU库存
+                for item in items:
+                    FenxiaoProduct.get_or_create(item.user.visitor_id,item.pid,force_update=True)
+                    
+                    updatePurchaseItemNum(item.user.visitor_id,item.pid)
+            except Exception,exc:
+                logger.error(exc.message,exc_info=True)
+                pull_dict['success']=False
+                pull_dict['errmsg']=exc.message or '%s'%exc  
+            else:
+                pull_dict['success']=True
+            sync_items.append(pull_dict)
+       
+        return render_to_response('items/product_action.html',{'prods':sync_items,'action_name':u'更新分销线上库存'},
+                                  context_instance=RequestContext(request),mimetype="text/html")
+    
+    sync_purchase_items_stock.short_description = u"同步分销商品库存"
+    
     #根据线上商品SKU 更新系统商品SKU
     def update_items_sku(self,request,queryset):
         
@@ -275,6 +309,7 @@ class ProductAdmin(admin.ModelAdmin):
     export_prodsku_info_action.short_description = u"导出商品及规格信息"
     
     actions = ['sync_items_stock',
+               'sync_purchase_items_stock',
                'update_items_sku',
                'cancle_items_out_stock',
                'juhuasuan_instock_product',
