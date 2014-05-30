@@ -34,6 +34,10 @@ TAOBAO_TRADE_TYPE = (FENXIAO_TYPE,
 #商品状态
 ONSALE_STATUS  = 'onsale'
 INSTOCK_STATUS = 'instock'
+#分销商品状态
+UP_STATUS      = 'up'
+DOWN_STATUS    = 'down'
+
 
 #订单来源
 TF_WAP    = 'WAP'    #手机
