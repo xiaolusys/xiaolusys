@@ -15,7 +15,7 @@ from shopback.fenxiao.models import PurchaseOrder,SubPurchaseOrder,FenxiaoProduc
 from shopback.refunds.models import Refund,REFUND_STATUS
 from shopback import paramconfig as pcfg
 from shopback.monitor.models import SystemConfig,Reason
-from shopback.signals import merge_trade_signal,rule_signal
+from shopback.signals import merge_trade_signal,rule_signal,recalc_fee_signal
 from django.db import IntegrityError, transaction
 from auth import apis
 from common.utils import parse_datetime ,get_yesterday_interval_time, update_model_fields
@@ -165,9 +165,6 @@ class MergeTrade(models.Model):
                              default=lambda:'HYD%d'%int(time.time()*10**5),
                              verbose_name=u'原单ID')  
     user       = models.ForeignKey(User,related_name='merge_trades',verbose_name=u'所属店铺')
-#    seller_id  = models.CharField(max_length=64,blank=True,verbose_name=u'店铺ID')
-#    seller_nick = models.CharField(max_length=64,blank=True,verbose_name=u'店铺名称')
-
     buyer_nick  = models.CharField(max_length=64,db_index=True,blank=True,verbose_name=u'买家昵称')
     
     type        = models.CharField(max_length=32,choices=Type,
@@ -223,7 +220,7 @@ class MergeTrade(models.Model):
     seller_can_rate = models.BooleanField(default=False,verbose_name=u'卖家可评') 
     is_part_consign = models.BooleanField(default=False,verbose_name=u'分单发货')  
     
-    out_sid    = models.CharField(max_length=64,db_index=True,blank=True,verbose_name=u'物流编号')
+    out_sid         = models.CharField(max_length=64,db_index=True,blank=True,verbose_name=u'物流编号')
     logistics_company  = models.ForeignKey(LogisticsCompany,null=True,blank=True,verbose_name=u'物流公司')
     receiver_name    =  models.CharField(max_length=64,db_index=True,blank=True,verbose_name=u'收货人姓名')
     receiver_state   =  models.CharField(max_length=16,blank=True,verbose_name=u'省')
@@ -240,7 +237,7 @@ class MergeTrade(models.Model):
                                           blank=True,verbose_name=u'分阶付款状态')
     
     reason_code = models.CharField(max_length=100,blank=True,verbose_name=u'问题编号')  #1,2,3 问题单原因编码集合
-    status  = models.CharField(max_length=32,db_index=True,choices=Status,
+    status      = models.CharField(max_length=32,db_index=True,choices=Status,
                                         blank=True,verbose_name=u'淘宝订单状态')
         
     is_picking_print = models.BooleanField(default=False,verbose_name=u'发货单')
@@ -321,6 +318,10 @@ class MergeTrade(models.Model):
     def can_reverse_order(self):
         return self.sys_status in (pcfg.WAIT_CHECK_BARCODE_STATUS,
                                    pcfg.WAIT_SCAN_WEIGHT_STATUS)
+    
+    def isPostScan(self):
+        return self.status in (self.WAIT_CHECK_BARCODE_STATUS,
+                               self.WAIT_SCAN_WEIGHT_STATUS)
     
     def is_post_success(self):
         """ 判断订单淘宝发货成功 """
@@ -503,9 +504,10 @@ class MergeTrade(models.Model):
         reason_set = set(self.reason_code.split(','))
         return str(code) in reason_set
     
-    def update_buyer_message(self,tid,msg):
-        tid = str(tid)
-        msg = msg.replace('|','，'.decode('utf8')).replace(':','：'.decode('utf8'))
+    def update_buyer_message(self,trade_id,msg):
+
+        msg = msg.replace('|','，'.decode('utf8'))\
+                 .replace(':','：'.decode('utf8'))
         buyer_msg = self.buyer_message.split('|')
         msg_dict = {}
         for m in buyer_msg:
@@ -513,15 +515,19 @@ class MergeTrade(models.Model):
             if len(m)==2:
                 msg_dict[m[0]] = m[1]
             else:
-                msg_dict[str(self.tid)] = self.buyer_message.replace('|','，'.decode('utf8')).replace(':','：'.decode('utf8'))
-        msg_dict[tid]=msg
+                msg_dict[str(self.id)] = self.buyer_message.replace(
+                        '|','，'.decode('utf8')).replace(':','：'.decode('utf8'))
+        msg_dict[str(id)]=msg
         self.buyer_message = '|'.join(['%s:%s'%(k,v) for k,v in msg_dict.items()])
-        MergeTrade.objects.filter(id=self.id).update(buyer_message=self.buyer_message)
-        MergeTrade.objects.get(id=self.id).append_reason_code(pcfg.NEW_MEMO_CODE)
+        
+        update_model_fields(self,update_fields=['buyer_message'])
+        
+        self.append_reason_code(pcfg.NEW_MEMO_CODE)
+        
         return self.buyer_message
     
-    def remove_buyer_message(self,tid):
-        tid = str(tid)
+    def remove_buyer_message(self,trade_id):
+        
         buyer_msg = self.buyer_message.split('|')
         msg_dict = {}
         for m in buyer_msg:
@@ -529,32 +535,38 @@ class MergeTrade(models.Model):
             if len(m)==2:
                 msg_dict[m[0]] = m[1]
         if msg_dict:
-            msg_dict.pop(tid,None)
+            msg_dict.pop(int(trade_id),None)
             self.buyer_message = '|'.join(['%s:%s'%(k,v) for k,v in msg_dict.items()])
-            MergeTrade.objects.filter(id=self.id).update(buyer_message=self.buyer_message)
+            
+            update_model_fields(self,update_fields=['buyer_message'])
+            
         return self.buyer_message
         
         
-    def update_seller_memo(self,tid,msg):
-        tid = str(tid)
+    def update_seller_memo(self,trade_id,msg):
+        
         msg = msg.replace('|','，'.decode('utf8')).replace(':','：'.decode('utf8'))
         seller_msg = self.seller_memo.split('|')
         msg_dict = {}
         for m in seller_msg:
             m  = m.split(':')
-            if len(m)==2:
+            if len(m) == 2:
                 msg_dict[m[0]] = m[1]
             else:
-                msg_dict[str(self.tid)] = self.seller_memo.replace('|','，'.decode('utf8')).replace(':','：'.decode('utf8'))
-        msg_dict[tid]=msg
+                msg_dict[str(self.id)] = self.seller_memo.replace('|','，'.decode('utf8'))\
+                    .replace(':','：'.decode('utf8'))
+        msg_dict[str(trade_id)] = msg
         self.seller_memo = '|'.join(['%s:%s'%(k,v) for k,v in msg_dict.items()])
-        MergeTrade.objects.filter(id=self.id).update(seller_memo=self.seller_memo)
-        MergeTrade.objects.get(id=self.id).append_reason_code(pcfg.NEW_MEMO_CODE)
+        
+        update_model_fields(self,update_fields=['seller_memo'])
+        
+        self.append_reason_code(pcfg.NEW_MEMO_CODE)
+        
         return self.seller_memo
         
         
-    def remove_seller_memo(self,tid):
-        tid = str(tid)
+    def remove_seller_memo(self,trade_id):
+        
         seller_msg = self.seller_memo.split('|')
         msg_dict = {}
         for m in seller_msg:
@@ -562,13 +574,15 @@ class MergeTrade(models.Model):
             if len(m)==2:
                 msg_dict[m[0]] = m[1]
         if msg_dict:
-            msg_dict.pop(tid,None)
+            msg_dict.pop(str(trade_id),None)
             self.seller_memo = '|'.join(['%s:%s'%(k,v) for k,v in msg_dict.items()])
-            MergeTrade.objects.filter(id=self.id).update(buyer_message=self.seller_memo)
+            
+            update_model_fields(self,update_fields=['seller_memo'])
+            
         return self.seller_memo
     
         
-    def has_trade_refunding(self):
+    def has_order_refunding(self):
         #判断是否有等待退款的订单
         orders = self.merge_orders.filter(refund_status=pcfg.REFUND_WAIT_SELLER_AGREE)
         if orders.count()>0:
@@ -721,6 +735,7 @@ class MergeTrade(models.Model):
                 need_pull = True
         return need_pull
 
+
     def judge_jhs_wlb(self):
         """ 判断订单是聚划算物流宝发货 """
         need_wlb = False
@@ -734,6 +749,28 @@ class MergeTrade(models.Model):
             
         return need_wlb
 
+
+def recalc_trade_fee(sender,trade_id,*args,**kwargs):
+    
+    trade = MergeTrade.objects.get(id=trade_id)
+    
+    fee_dict   = trade.merge_orders.aggregate(total_total_fee=Sum('total_fee'),
+                                      total_payment=Sum('payment'),
+                                      total_discount_fee=Sum('discount_fee'),
+                                      total_adjust_fee=Sum('adjust_fee'))
+    
+    trade.total_fee = fee_dict.total_total_fee 
+    trade.payment = fee_dict.total_payment 
+    trade.discount_fee = fee_dict.total_discount_fee 
+    trade.adjust_fee = fee_dict.total_adjust_fee 
+    
+    update_model_fields(trade,update_fields=['total_fee',
+                                             'payment',
+                                             'discount_fee',
+                                             'adjust_fee'])
+    
+
+recalc_fee_signal.connect(recalc_trade_fee, sender=MergeTrade)
 
 class MergeOrder(models.Model):
     
@@ -794,6 +831,12 @@ class MergeOrder(models.Model):
     def __unicode__(self):
         return '<%s,%s>'%(str(self.id),self.outer_id)
         
+    def isEffect(self):    
+        return self.sys_status == pcfg.IN_EFFECT
+    
+    def isInvalid(self):    
+        return self.sys_status == pcfg.INVALID_STATUS
+            
     @classmethod
     def get_yesterday_orders_totalnum(cls,shop_user_id,outer_id,outer_sku_id):
         """ 获取某店铺昨日某商品销售量，与总销量 """
@@ -888,18 +931,20 @@ def refresh_trade_status(sender,instance,*args,**kwargs):
     
         if not out_stock:
             merge_trade.remove_reason_code(pcfg.OUT_GOOD_CODE)    
-        
-    has_merge     = merge_trade.merge_orders.filter(is_merge=True).count()>0
-    merge_trade.has_merge = has_merge
     
-    if not merge_trade.reason_code and merge_trade.status==pcfg.WAIT_SELLER_SEND_GOODS and merge_trade.logistics_company\
-         and merge_trade.sys_status==pcfg.WAIT_AUDIT_STATUS and merge_trade.type \
-         not in (pcfg.DIRECT_TYPE,pcfg.REISSUE_TYPE,pcfg.EXCHANGE_TYPE):
+    if (not merge_trade.reason_code and 
+        merge_trade.status == pcfg.WAIT_SELLER_SEND_GOODS and 
+        merge_trade.logistics_company and 
+        merge_trade.sys_status==pcfg.WAIT_AUDIT_STATUS and 
+        merge_trade.type not in (pcfg.DIRECT_TYPE,pcfg.REISSUE_TYPE,pcfg.EXCHANGE_TYPE)):
         merge_trade.sys_status = pcfg.WAIT_PREPARE_SEND_STATUS
         
-    update_model_fields(merge_trade,update_fields=[
-                           'order_num','prod_num','has_refund','has_out_stock',
-                            'has_rule_match','has_merge','sys_status'])
+    update_model_fields(merge_trade,update_fields=['order_num',
+                                                   'prod_num',
+                                                   'has_refund',
+                                                   'has_out_stock',
+                                                   'has_rule_match',
+                                                   'sys_status'])
         
 post_save.connect(refresh_trade_status, sender=MergeOrder)
 
