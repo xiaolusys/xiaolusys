@@ -390,6 +390,18 @@ class MergeTrade(models.Model):
              
         return True
     
+    def isOrderMatch(self):
+        try:
+            post_orders = self.inuse_orders     
+            for order in post_orders: 
+                Product.objects.get(outer_id=order.outer_id)
+                if order.outer_sku_id:
+                    ProductSku.objects.get(outer_id=order.outer_sku_id,
+                                           product__outer_id=order.outer_id)
+            return True
+        except:
+            return False
+    
     def update_inventory(self,update_returns=True,update_changes=True):
         #自提直接更新订单库存信息
         

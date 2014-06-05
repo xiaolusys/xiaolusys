@@ -366,8 +366,8 @@ class CheckOrderView(ModelView):
                 check_msg.append("有待退款".decode('utf8'))
             if trade.has_out_stock:
                 check_msg.append("有缺货".decode('utf8'))
-            if trade.has_rule_match:
-                check_msg.append("信息不全".decode('utf8'))
+            if trade.has_rule_match or not trade.isOrderMatch():
+                check_msg.append("订单商品编码与库存商品编码不一致".decode('utf8'))
             if trade.is_force_wlb:
                 check_msg.append("订单由物流宝发货".decode('utf8'))
             if trade.sys_status != pcfg.WAIT_AUDIT_STATUS:

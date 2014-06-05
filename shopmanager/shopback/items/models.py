@@ -256,7 +256,6 @@ class Product(models.Model):
         
         sdict = {}
         for d in locations:
-            
             dno = d[1]
             pno = d[0]
             if sdict.has_key(pno):

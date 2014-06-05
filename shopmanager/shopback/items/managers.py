@@ -1,0 +1,49 @@
+from django.db import models
+from shopback.items.models import Product,ProductSku
+from common.utils import update_model_fields
+
+class ProductDefectException(Exception):
+    pass
+
+class ProductManager(models.Manager):
+    
+    def getProductByOuterid(self,outer_id):
+        
+        try:
+            return self.get(outer_id=outer_id)
+        except Product.DoesNotExist:
+            None
+        
+    def getProductSkuByOuterid(self,outer_id,outer_sku_id):
+        
+        try:
+            return ProductSku.objects.get(outer_id=outer_sku_id,product__outer_id=outer_id)
+        except ProductSku.DoesNotExist:
+            None
+            
+    def isProductOutOfStock(self,outer_id,outer_sku_id):
+        
+        try:
+            product = self.get(outer_id=outer_id)
+            if outer_sku_id:
+                product_sku = ProductSku.objects.get(outer_id=outer_sku_id,
+                                                     product__outer_id=outer_id)
+        except (Product.DoesNotExist,ProductSku.DoesNotExsit):
+            raise ProductDefectException(u'(%s,%s)编码组合未匹配到商品')
+        
+        return (product.is_out_stock,product_sku.is_out_stock)[product_sku and 1 or 0]
+    
+    def isProductRuelMatch(self,outer_id,outer_sku_id):
+        
+        try:
+            product = self.get(outer_id=outer_id)
+            if outer_sku_id:
+                product_sku = ProductSku.objects.get(outer_id=outer_sku_id,
+                                                     product__outer_id=outer_id)
+        except (Product.DoesNotExist,ProductSku.DoesNotExsit):
+            raise ProductDefectException(u'(%s,%s)编码组合未匹配到商品')
+        
+        return (product.is_match,product_sku.is_match)[product_sku and 1 or 0]
+    
+    
+    
