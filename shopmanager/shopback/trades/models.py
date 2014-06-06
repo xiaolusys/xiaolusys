@@ -9,6 +9,7 @@ from shopback.base.fields import BigIntegerAutoField,BigIntegerForeignKey
 from shopback.users.models import User,Customer
 from shopback.base import log_action, CHANGE
 from shopback.orders.models import Trade,Order,STEP_TRADE_STATUS
+from shopback.trades.managers import MergeTradeManager
 from shopback.items.models import Item,Product,ProductSku
 from shopback.logistics.models import Logistics,LogisticsCompany,DestCompany
 from shopback.fenxiao.models import PurchaseOrder,SubPurchaseOrder,FenxiaoProduct
@@ -268,6 +269,8 @@ class MergeTrade(models.Model):
     reservet       =  models.CharField(max_length=64,blank=True,verbose_name=u'自定义2') 
     reserveh       =  models.CharField(max_length=64,blank=True,verbose_name=u'自定义3') 
     
+    objects   = MergeTradeManager()
+    
     class Meta:
         db_table = 'shop_trades_mergetrade'
         unique_together = ("user","tid")
@@ -344,6 +347,7 @@ class MergeTrade(models.Model):
         else:       
             raise Exception(u'订单物流信息未查到')
     
+    
     def send_trade_to_taobao(self,company_code=None,out_sid=None,retry_times=3):
         """ 订单在淘宝后台发货 """
         
@@ -373,8 +377,11 @@ class MergeTrade(models.Model):
             return self.is_post_success()
         except apis.LogisticServiceB60Exception,exc:
             #如果系统没有该单号成功发货的记录，则改变快递名称，重新发货
-            ts = MergeTrade.objects.filter(is_express_print=True,sys_status__in=(pcfg.WAIT_CHECK_BARCODE_STATUS,
-                                pcfg.WAIT_SCAN_WEIGHT_STATUS,pcfg.FINISHED_STATUS),out_sid=out_sid)
+            ts = MergeTrade.objects.filter(is_express_print=True,
+                                           sys_status__in=(pcfg.WAIT_CHECK_BARCODE_STATUS,
+                                                           pcfg.WAIT_SCAN_WEIGHT_STATUS,
+                                                           pcfg.FINISHED_STATUS),
+                                           out_sid=out_sid)
             if ts.count() > 0:
                 raise exc
                 
@@ -400,7 +407,7 @@ class MergeTrade(models.Model):
                                            product__outer_id=order.outer_id)
             return True
         except:
-            return False
+            return True
     
     def update_inventory(self,update_returns=True,update_changes=True):
         #自提直接更新订单库存信息
