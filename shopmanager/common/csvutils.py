@@ -18,15 +18,14 @@ def gen_cvs_tuple(qs,fields=[],title=[]):
     """ 获取queryset tuple """
     qs_tuple = [title]
     
-    for q in qs:
-        
+    for q in qs:        
         ks = []
         for k in fields:
-            if k.find('.')|k.find('__') == -1:
+            if k.find('.')&k.find('__') != -1:
                 pk,sk = re.split('\.|__',k)
-                ks.append('"%s"'%(unicode(getattr(getattr(q,pk,None),sk,None)) or '-'))
+                ks.append('%s'%(unicode(getattr(getattr(q,pk,None),sk,None)) or '-'))
                 continue
-            ks.append('"%s"'%(unicode(getattr(q,k,None)) or '-'))
+            ks.append('%s'%(unicode(getattr(q,k,None)) or '-'))
         
         qs_tuple.append(ks)
         
@@ -42,15 +41,17 @@ class CSVUnicodeWriter:
     def __init__(self, f, dialect=csv.excel, encoding="utf-8", **kwds):
         # Redirect output to a queue
         self.queue = cStringIO.StringIO()
-        self.writer = csv.writer(self.queue, dialect=dialect, **kwds)
+        self.writer = csv.writer(self.queue,delimiter=',',
+                            quotechar='"', dialect=dialect, **kwds)
         self.stream = f
+        self.encoding = encoding
         self.encoder = codecs.getincrementalencoder(encoding)()
 
     def writerow(self, row):
-        self.writer.writerow([s.encode("utf-8") for s in row])
+        self.writer.writerow([s.encode(self.encoding) for s in row])
         # Fetch UTF-8 output from the queue ...
         data = self.queue.getvalue()
-        data = data.decode("utf-8")
+        data = data.decode(self.encoding)
         # ... and reencode it into the target encoding
         data = self.encoder.encode(data)
         # write to the target stream

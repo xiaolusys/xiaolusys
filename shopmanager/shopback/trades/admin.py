@@ -46,6 +46,7 @@ class MergeOrderInline(admin.TabularInline):
                     'is_merge','is_rule_match','is_reverse_order','gift_type','refund_id','refund_status','status','sys_status')
     
     def get_readonly_fields(self, request, obj=None):
+        self.readonly_fields = self.readonly_fields + ('tid',)
         if not perms.has_modify_trade_permission(request.user):
             return self.readonly_fields + ('oid','outer_id','outer_sku_id','is_merge',
                                            'is_reverse_order','operator','gift_type','status')
@@ -527,6 +528,7 @@ class MergeTradeAdmin(admin.ModelAdmin):
                         
             try:
                 trade.merge_orders.all().delete()
+                seller_id = trade.user.visitor_id
                 if trade.type == pcfg.TAOBAO_TYPE:
                     response = apis.taobao_trade_fullinfo_get(tid=trade.tid,tb_user_id=seller_id)
                     trade_dict = response['trade_fullinfo_get_response']['trade']
