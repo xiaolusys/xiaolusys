@@ -9,9 +9,11 @@ from django.conf import settings
 from django.db.models import Sum
 from django.db   import transaction
 from django.db.models.query import QuerySet
+
 from shopback    import paramconfig as pcfg
 from shopback.items.models import Item,Product,ProductSku,SkuProperty,\
     ItemNumTaskLog,ProductDaySale
+from shopback.fenxiao.models import FenxiaoProduct
 from shopback.orders.models import Order, Trade
 from shopback.trades.models import MergeOrder, MergeTrade
 from shopback.users import Seller
@@ -23,6 +25,8 @@ import logging
 
 logger = logging.getLogger('django.request')
 
+
+PURCHASE_STOCK_PERCENT = 0.5
 
 @task()
 def updateUserItemsTask(user_id):
@@ -440,6 +444,117 @@ def updateItemNum(user_id,num_iid):
     Item.objects.filter(num_iid=item.num_iid).update(last_num_updated=datetime.datetime.now())
 
 
+def getPurchaseSkuNum(product,product_sku):
+    
+    order_nums  = 0
+    wait_nums   = product_sku.wait_post_num>0 and product_sku.wait_post_num or 0
+    remain_nums = product_sku.remain_num or 0
+    real_num    = product_sku.quantity
+    sync_num    = real_num - wait_nums - remain_nums
+    
+    if sync_num >0 and sync_num <= product_sku.warn_num:
+        sync_num = int(sync_num * PURCHASE_STOCK_PERCENT / 2)
+        
+    elif sync_num > 0:
+        sync_num = PURCHASE_STOCK_PERCENT * sync_num
+        
+    else:
+        sync_num = 0
+        
+    return sync_num
+
+
+@transaction.commit_on_success
+def updatePurchaseItemNum(user_id,pid):
+    """
+    {"fenxiao_sku": [{"outer_id": "10410", 
+                      "name": "**", 
+                      "quota_quantity": 0, 
+                      "standard_price": "39.90", 
+                      "reserved_quantity": 0, 
+                      "dealer_cost_price": "78.32", 
+                      "id": 2259034511371, 
+                      "cost_price": "35.11", 
+                      "properties": "**", 
+                      "quantity": 110}]}
+    """
+    item    = FenxiaoProduct.objects.get(pid=pid)
+    user    = item.user
+    
+    try:
+        product = Product.objects.get(outer_id=item.outer_id)
+    except Product.DoesNotExist:
+        product = None
+        
+    if not product or not product.sync_stock:
+        return
+    
+    outer_id     = product.outer_id
+    skus         = json.loads(item.skus) if item.skus else None
+    if skus:
+        
+        sku_tuple       = []
+        for sku in skus.get('fenxiao_sku',[]):
+            outer_sku_id = sku.get('outer_id','')
+            try:
+                product_sku = product.prod_skus.get(outer_id=outer_sku_id)
+            except:
+                continue
+            
+            sync_num = getPurchaseSkuNum(product,product_sku)   
+            sku_tuple.append(('%d'%sku['id'],'%d'%sync_num,outer_sku_id))
+        
+        #同步库存数不为0，或者没有库存警告，同步数量不等于线上库存，并且店铺，商品，规格同步状态正确
+        if ( sku_tuple and user.sync_stock and product.sync_stock):
+            response = apis.taobao_fenxiao_product_update(pid=pid,
+                                                          sku_ids=','.join([s[0] for s in sku_tuple]),
+                                                          sku_quantitys=','.join([s[1] for s in sku_tuple]),
+                                                          tb_user_id=user_id)
+            
+            item_dict = response['fenxiao_product_update_response']
+            FenxiaoProduct.objects.filter(pid=item_dict['pid']
+                                          ).update(modified=item_dict['modified'])
+            
+            for index,sku in enumerate(sku_tuple):
+                ItemNumTaskLog.objects.get_or_create(user_id=user_id,
+                                         outer_id=outer_id,
+                                         sku_outer_id= 'fx%s'%sku[2],
+                                         num=sku[1],
+                                         start_at=item_dict['modified'],
+                                         end_at=item_dict['modified'])
+                
+    else:
+        order_nums    = 0
+        wait_nums  = product.wait_post_num >0 and product.wait_post_num or 0
+        remain_nums = product.remain_num or 0
+        real_num   = product.collect_num
+        sync_num   = real_num - wait_nums - remain_nums
+
+        #如果自动更新库存状态开启，并且计算后库存不等于在线库存，则更新
+        if sync_num >0 and sync_num <= product.warn_num:
+            sync_num = int(sync_num * PURCHASE_STOCK_PERCENT / 2)
+        elif sync_num > 0:
+            sync_num = PURCHASE_STOCK_PERCENT * sync_num
+        else:
+            sync_num = 0    
+            
+        if (not (sync_num == 0 and product.is_assign) 
+            and user.sync_stock and product.sync_stock):
+             
+            response = apis.taobao_fenxiao_product_update(pid=pid,
+                                                          quantity=sync_num,
+                                                          tb_user_id=user_id)
+            item_dict = response['fenxiao_product_update_response']
+            FenxiaoProduct.objects.filter(pid=item_dict['pid']).update(
+                                        modified=item_dict['modified'])
+            
+            ItemNumTaskLog.objects.get_or_create(user_id=user_id,
+                                             outer_id='',
+                                             num=sync_num,
+                                             start_at=item_dict['modified'],
+                                             end_at=item_dict['modified'])
+
+
 @task()
 def updateUserItemNumTask(user_id):
     
@@ -452,6 +567,20 @@ def updateUserItemNumTask(user_id):
             updateItemNum(user_id,item.num_iid)
         except Exception,exc :
             logger.error('%s'%exc,exc_info=True)
+
+
+@task()
+def updateUserPurchaseItemNumTask(user_id):
+    
+    saveUserFenxiaoProductTask(user_id)
+    
+    purchase_items = FenxiaoProduct.objects.filter(user__visitor_id=user_id,
+                                         status=pcfg.UP_STATUS)
+    for item in purchase_items:
+        try:
+            updateItemNum(user_id,item.pid)
+        except Exception,exc :
+            logger.error('%s'%exc,exc_info=True)
         
 
 @task()
@@ -459,6 +588,15 @@ def updateAllUserItemNumTask():
     
     updateProductWaitPostNumTask()
 
-    users = Seller.effect_users.all()
+    users = Seller.effect_users.fiter(type__in=('B','C'))
     for user in users:
         updateUserItemNumTask(user.visitor_id)  
+        
+@task()
+def updateAllUserPurchaseItemNumTask():
+    
+    updateProductWaitPostNumTask()
+
+    users = Seller.effect_users.fiter(type__in=('B','C'),has_fenxiao=True)
+    for user in users:
+        updateUserPurchaseItemNumTask(user.visitor_id)  

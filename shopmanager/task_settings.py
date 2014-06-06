@@ -99,6 +99,11 @@ SYNC_MODEL_SCHEDULE = {
         'schedule':crontab(minute="0",hour="*/7"),#
         'args':()
     },
+    'runs-every-day-purchase-item-num':{     #更新库存
+        'task':'shopback.items.tasks.updateAllUserPurchaseItemNumTask',
+        'schedule':crontab(minute="0",hour="*/7"),#
+        'args':()
+    },
 #    'runs-every-day-update-jushita-trade-task':{
 #         'task':'tools.top_updatedb_task.pull_taobao_trade_task',
 #         'schedule':crontab(minute="0",hour='*/4'),

@@ -247,8 +247,6 @@ def create_refund_exchange_trade(request,tid):
     dt = datetime.datetime.now()
     merge_trade = MergeTrade.objects.create(
                                             user = origin_trade.user,
-                                            seller_id = origin_trade.user.visitor_id,
-                                            seller_nick = origin_trade.user.nick,
                                             buyer_nick = origin_trade.buyer_nick,
                                             type = pcfg.EXCHANGE_TYPE,
                                             shipping_type = origin_trade.shipping_type,

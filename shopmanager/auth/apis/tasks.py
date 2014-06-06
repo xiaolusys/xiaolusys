@@ -425,6 +425,12 @@ def taobao_fenxiao_products_get(outer_id=None,productcat_id=None,status=None,pid
 @apis('taobao.fenxiao.login.user.get')
 def taobao_fenxiao_login_user_get(tb_user_id=None):
     pass
+
+@apis('taobao.fenxiao.product.update')
+def taobao_fenxiao_product_update(pid=None,outer_id=None,quantity=None,
+                                  sku_ids=None,sku_quantitys=None,tb_user_id=None):
+    pass
+
 ################  refund apis  ##################
 @apis('taobao.refunds.receive.get',max_retry=20,limit_rate=20)
 def taobao_refunds_receive_get(status=None,start_modified=None,end_modified=None,type='guarantee_trade,auto_delivery,fenxiao',
