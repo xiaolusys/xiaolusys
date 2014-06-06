@@ -578,7 +578,7 @@ def updateUserPurchaseItemNumTask(user_id):
                                          status=pcfg.UP_STATUS)
     for item in purchase_items:
         try:
-            updateItemNum(user_id,item.pid)
+            updatePurchaseItemNum(user_id,item.pid)
         except Exception,exc :
             logger.error('%s'%exc,exc_info=True)
         
@@ -588,7 +588,7 @@ def updateAllUserItemNumTask():
     
     updateProductWaitPostNumTask()
 
-    users = Seller.effect_users.fiter(type__in=('B','C'))
+    users = Seller.effect_users.filter(type__in=('B','C'))
     for user in users:
         updateUserItemNumTask(user.visitor_id)  
         
@@ -597,6 +597,6 @@ def updateAllUserPurchaseItemNumTask():
     
     updateProductWaitPostNumTask()
 
-    users = Seller.effect_users.fiter(type__in=('B','C'),has_fenxiao=True)
+    users = Seller.effect_users.filter(type__in=('B','C'),has_fenxiao=True)
     for user in users:
         updateUserPurchaseItemNumTask(user.visitor_id)  

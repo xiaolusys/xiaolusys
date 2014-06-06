@@ -234,7 +234,7 @@ class MergeTrade(models.Model):
     
     class Meta:
         db_table = 'shop_trades_mergetrade'
-        unique_together = ("user","tid")
+        unique_together = ("tid","user")
         verbose_name=u'订单'
         verbose_name_plural = u'订单列表'
         permissions = [
@@ -707,7 +707,7 @@ class MergeOrder(models.Model):
     
     cid    = models.BigIntegerField(db_index=True,null=True,verbose_name=u'商品分类')
     num_iid  = models.CharField(max_length=64,blank=True,verbose_name=u'线上商品编号')
-    title  =  models.CharField(max_length=128,verbose_name=u'商品标题')
+    title  =  models.CharField(max_length=128,blank=True,verbose_name=u'商品标题')
     price  = models.CharField(max_length=12,blank=True,verbose_name=u'单价')
 
     sku_id = models.CharField(max_length=20,blank=True,verbose_name=u'属性编码')
@@ -746,7 +746,7 @@ class MergeOrder(models.Model):
     
     class Meta:
         db_table = 'shop_trades_mergeorder'
-        unique_together = ("merge_trade","oid")
+        unique_together = ("oid","merge_trade")
         verbose_name=u'订单商品'
         verbose_name_plural = u'订单商品列表'
         
@@ -1339,8 +1339,8 @@ def save_orders_trade_to_mergetrade(sender, trade, *args, **kwargs):
             merge_order,state = MergeOrder.objects.get_or_create(
                                 oid=order.oid,merge_trade = merge_trade)
             state = state or not merge_order.sys_status
-            if (state and order.refund_status in 
-                (pcfg.REFUND_WAIT_SELLER_AGREE,pcfg.REFUND_SUCCESS)
+            if (merge_order.refund_status != order.refund_status 
+                and order.refund_status in (pcfg.REFUND_WAIT_SELLER_AGREE,pcfg.REFUND_SUCCESS)
                 or order.status in (pcfg.TRADE_CLOSED,pcfg.TRADE_CLOSED_BY_TAOBAO)):
                 sys_status = pcfg.INVALID_STATUS
             else:
@@ -1452,9 +1452,10 @@ def save_fenxiao_orders_to_mergetrade(sender, trade, *args, **kwargs):
                 refund_status = pcfg.REFUND_SUCCESS
             else:
                 refund_status = pcfg.NO_REFUND
-            if state and order.status in (pcfg.TRADE_REFUNDING,
-                                          pcfg.TRADE_CLOSED,
-                                          pcfg.TRADE_REFUNDED):
+            if (merge_order.status != order.status 
+                and order.status in (pcfg.TRADE_REFUNDING,
+                                     pcfg.TRADE_CLOSED,
+                                     pcfg.TRADE_REFUNDED)):
                 sys_status = pcfg.INVALID_STATUS
             else:
                 sys_status = merge_order.sys_status or pcfg.IN_EFFECT     
