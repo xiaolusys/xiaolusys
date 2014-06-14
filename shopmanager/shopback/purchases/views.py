@@ -107,8 +107,7 @@ class PurchaseInsView(ModelView):
         params['deposites']      = Deposite.objects.filter(in_use=True)
         params['purchase_types'] = PurchaseType.objects.filter(in_use=True)
         params['purchase']       = purchase.json
-        params['perms']          = {
-                                    'can_check_purchase':purchase.status == pcfg.PURCHASE_DRAFT \
+        params['perms']          = {'can_check_purchase':purchase.status == pcfg.PURCHASE_DRAFT \
                                         and perm.has_check_purchase_permission(request.user),
                                     'can_show_storage':purchase.status in 
                                     (pcfg.PURCHASE_APPROVAL,pcfg.PURCHASE_FINISH)}
@@ -122,7 +121,7 @@ class PurchaseInsView(ModelView):
             raise Http404
         
         if purchase.status != pcfg.PURCHASE_DRAFT :
-            return u'该采购不能审核'
+            return u'该采购单不在草稿状态'
         
         if not perm.has_check_purchase_permission(request.user):
             return u'你没有权限审核'
@@ -679,7 +678,9 @@ class PurchasePaymentView(ModelView):
                     supplier = purchase.supplier
                 else:
                     for storage_id in storageids:
-                        storage =  PurchaseStorage.objects.get(id=storage_id,status__in=(pcfg.PURCHASE_APPROVAL,pcfg.PURCHASE_DRAFT))
+                        storage =  PurchaseStorage.objects.get(id=storage_id,
+                                                               status__in=(pcfg.PURCHASE_APPROVAL,
+                                                                           pcfg.PURCHASE_DRAFT))
                         storages.append(storage)
                     
                     supplier = storages[0].supplier

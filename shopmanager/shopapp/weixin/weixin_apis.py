@@ -41,6 +41,14 @@ class WeiXinAPI(object):
     _detele_menu_uri    = "/cgi-bin/menu/delete"
     _create_qrcode_uri  = "/cgi-bin/qrcode/create"
     
+    #微信小店接口
+    _merchant_get_uri   = "/merchant/get"
+    _merchant_getbystatus_uri   = "/merchant/getbystatus"
+    _merchant_stock_add_uri   = "/merchant/stock/add"
+    _merchant_stock_reduce_uri   = "/merchant/stock/reduce"
+    _merchant_order_getbyid_uri   = "/merchant/order/getbyid"
+    _merchant_order_getbyfilter_uri   = "/merchant/order/getbyfilter"
+    _merchant_order_setdelivery_uri   = "/merchant/order/setdelivery"
     
     def __init__(self):
         self._wx_account = WeiXinAccount.getAccountInstance()
@@ -59,7 +67,8 @@ class WeiXinAPI(object):
             resp = req.read()
         else:
             rst = urllib2.Request(absolute_url)
-            req = urllib2.urlopen(rst,type(params)==dict and urllib.urlencode(params) or params)
+            req = urllib2.urlopen(rst,type(params)==dict and 
+                                  urllib.urlencode(params) or params)
             resp = req.read()
         
         content = json.loads(resp)
@@ -153,6 +162,50 @@ class WeiXinAPI(object):
 
         return sha1_value.hexdigest() == signature
     
+    
+    def getMerchant(self,product_id):
+        return self.handleRequest(self._merchant_get_uri, 
+                                  {'product_id':product_id},
+                                  method='GET')
+        
+    def getMerchantByStatus(self,status):
+        return self.handleRequest(self._merchant_getbystatus_uri, 
+                                  {'status':status},
+                                  method='POST')
+        
+    def addMerchantStock(self,product_id,quantity,sku_info=''):
+        return self.handleRequest(self._merchant_stock_add_uri, 
+                                  {'product_id':product_id,
+                                   'quantity':quantity,
+                                   'sku_info':sku_info},
+                                  method='POST')
+        
+    def reduceMerchantStock(self,product_id,quantity,sku_info=''):
+        return self.handleRequest(self._merchant_stock_reduce_uri, 
+                                  {'product_id':product_id,
+                                   'quantity':quantity,
+                                   'sku_info':sku_info},
+                                  method='POST')
+        
+    def getOrderById(self,order_id):
+        return self.handleRequest(self._merchant_order_getbyid_uri, 
+                                  {'order_id':order_id},
+                                  method='POST')
+        
+    def getOrderByFilter(self,status,begintime,endtime):
+        return self.handleRequest(self._merchant_order_getbyfilter_uri, 
+                                  {'status':status,
+                                   'begintime':begintime,
+                                   'endtime':endtime},
+                                  method='POST')
+        
+    def deliveryOrder(self,order_id,delivery_company,delivery_track_no):
+        return self.handleRequest(self._merchant_order_setdelivery_uri, 
+                                  {'order_id':order_id,
+                                   'delivery_company':delivery_company,
+                                   'delivery_track_no':delivery_track_no},
+                                  method='POST')
+        
     
     
     

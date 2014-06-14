@@ -22,7 +22,7 @@ class TaobaoTradeService(object):
 class TaobaoSendTradeMixin(object):
     
     
-    def is_post_success(self,out_sid):
+    def isTradePostOK(self,out_sid):
         """ 判断淘宝订单是否发货成功 """
         
         response = apis.taobao_logistics_orders_get(tid=self.trade.id,
@@ -43,7 +43,7 @@ class TaobaoSendTradeMixin(object):
         return True
         
     
-    def send_trade(self,company_code=None,out_sid=None,retry_times=3):
+    def sendTrade(self,company_code=None,out_sid=None,retry_times=3):
         """ 订单在淘宝后台发货 """
         
         trade_id   = self.get_trade_id()
@@ -68,10 +68,10 @@ class TaobaoSendTradeMixin(object):
                     raise Exception(u'订单(%d)淘宝发货失败'%trade_id)
                 
         except apis.LogisticServiceBO4Exception,exc:
-            return self.is_post_success(out_sid)
+            return self.isTradePostOK(out_sid)
             
         except apis.LogisticServiceB60Exception,exc:
-            self.send_trade(company_code=u'%s送'%self.logistics_company.name,out_sid=out_sid)
+            self.sendTrade(company_code=u'%s送'%self.logistics_company.name,out_sid=out_sid)
             
         except Exception,exc:
             retry_times = retry_times - 1
@@ -79,7 +79,7 @@ class TaobaoSendTradeMixin(object):
                 logger.error(exc.message or u'订单发货出错',exc_info=True)
                 raise exc
             
-            self.send_trade(company_code=company_code,out_sid=out_sid,retry_times=retry_times)
+            self.sendTrade(company_code=company_code,out_sid=out_sid,retry_times=retry_times)
              
         return True
 

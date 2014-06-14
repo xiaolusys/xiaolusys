@@ -15,8 +15,7 @@ urlpatterns = patterns('',
         proxy_format='%s/%%s' % settings.WEIXIN_MEDIA_HOST)), 
         name='weixin_media_updown'),
                        
-    url(r'^validmobile/$', TemplateView.as_view(
-        template_name="weixin/valid_mobile.html"), 
-        name='weixin_valid_mobile')                   
-    
+    url(r'^baby/archive/$', TemplateView.as_view(
+        template_name="weixin/baby_archives.html"), 
+        name='weixin_baby_archive')                   
 )

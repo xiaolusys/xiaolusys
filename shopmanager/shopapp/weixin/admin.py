@@ -6,7 +6,8 @@ from shopapp.weixin.models import WeiXinAccount,WeiXinUser,WeiXinAutoResponse
 
 class WeiXinAccountAdmin(admin.ModelAdmin):
     
-    list_display = ('token','app_id','expires_in','expired','in_voice','is_active')
+    list_display = ('id','account_id','token','app_id','expires_in',
+                    'expired','in_voice','is_active')
     
     list_filter = ('is_active','in_voice')
     search_fields = ['app_id','token']
@@ -53,16 +54,14 @@ class WeiXinAccountAdmin(admin.ModelAdmin):
                 self.message_user(request, u"微信菜单创建失败：%s"%(exc.message or u'请求错误'))
             
         return super(WeiXinAccountAdmin, self).response_change(request, obj, *args, **kwargs)
-            
-                    
-    
 
 admin.site.register(WeiXinAccount, WeiXinAccountAdmin)  
 
 
 class WeiXinUserAdmin(admin.ModelAdmin):
     
-    list_display = ('openid','nickname','sex','province','city','subscribe_time','subscribe')
+    list_display = ('openid','nickname','sex','province',
+                    'city','subscribe_time','subscribe')
     
     list_filter = ('subscribe','sex')
     search_fields = ['openid','nickname']

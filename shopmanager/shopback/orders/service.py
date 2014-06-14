@@ -3,12 +3,14 @@
 from shopback.trades.mixins import TaobaoTradeService,TaobaoSendTradeMixin
 from shopback.users import Seller
 from shopback.orders.models import Trade,Order
-from shopback.trades.models import MergeTrade,MergeOrder,map_trade_from_to_code
+from shopback.trades.models import MergeTrade,MergeOrder
+from shopback.base.service import LocalService
 from shopback import paramconfig as pcfg
+from shopback.trades.handlers import trade_handler 
 from common.utils import parse_datetime
 from auth import apis
 
-class OrderService(TaobaoTradeService,TaobaoSendTradeMixin):
+class OrderService(TaobaoSendTradeMixin,TaobaoTradeService,LocalService):
     
     trade = None
         
@@ -23,22 +25,30 @@ class OrderService(TaobaoTradeService,TaobaoSendTradeMixin):
     @classmethod
     def getTradeFullInfo(cls,user_id,tid,*args,**kwargs):
         
-        update_fields = 'seller_nick,buyer_nick,title,type,created,tid,status,modified,payment,discount_fee,'\
-                    +'adjust_fee,post_fee,total_fee,point_fee,pay_time,end_time,consign_time,price,shipping_type,'\
-                    +'receiver_name,receiver_state,receiver_city,receiver_district,receiver_address,receiver_zip'\
-                    +',receiver_mobile,receiver_phone,buyer_message,buyer_memo,seller_memo,seller_flag,'\
-                    +'send_time,is_brand_sale,is_force_wlb,trade_from,is_lgtype,lg_aging,orders,'
+        update_fields = 'seller_nick,buyer_nick,title,type,'\
+                    +'created,tid,status,modified,payment,'\
+                    +'discount_fee,adjust_fee,post_fee,total_fee,'\
+                    +'point_fee,pay_time,end_time,consign_time,price,'\
+                    +'shipping_type,receiver_name,receiver_state,'\
+                    +'receiver_city,receiver_district,receiver_address,'\
+                    +'receiver_zip,receiver_mobile,receiver_phone,'\
+                    +'buyer_message,buyer_memo,seller_memo,seller_flag,'\
+                    +'send_time,is_brand_sale,is_force_wlb,trade_from,'\
+                    +'is_lgtype,lg_aging,orders,'
                     
-        response    = apis.taobao_trade_fullinfo_get(tid=tid,fields=update_fields,tb_user_id=user_id)
+        response    = apis.taobao_trade_fullinfo_get(
+                        tid=tid,
+                        fields=update_fields,tb_user_id=user_id)
         return response['trade_fullinfo_get_response']['trade']
     
     @classmethod
     def getTradeInfo(cls,user_id,tid,*args,**kwargs):
         
-        update_fields = 'seller_nick,buyer_nick,title, type,created,tid,seller_rate,buyer_rate,status'\
-                    +',payment,discount_fee,adjust_fee,post_fee,total_fee,pay_time,end_time,modified'\
-                    +',consign_time,buyer_memo,seller_memo,alipay_no,buyer_message,'\
-                    +'cod_fee,cod_status,shipping_type,orders',
+        update_fields = 'seller_nick,buyer_nick,title, type,created,tid,'\
+                    +'seller_rate,buyer_rate,status,payment,discount_fee,'\
+                    +'adjust_fee,post_fee,total_fee,pay_time,end_time,modified'\
+                    +',consign_time,buyer_memo,seller_memo,alipay_no,'\
+                    +'buyer_message,cod_fee,cod_status,shipping_type,orders',
                     
         response    = apis.taobao_trade_get (tid=tid,fields=update_fields,tb_user_id=user_id)
         return response['trade_get_response']['trade']
@@ -126,7 +136,7 @@ class OrderService(TaobaoTradeService,TaobaoSendTradeMixin):
         tid  = trade.id
         merge_trade,state = MergeTrade.objects.get_or_create(user=trade.user,tid=tid)
         
-        update_fields = ['user','buyer_nick','type'
+        update_fields = ['user','buyer_nick','type','is_force_wlb'
                          ,'seller_cod_fee','buyer_cod_fee','cod_fee','cod_status'
                          ,'seller_flag','created','pay_time','modified','consign_time'
                          ,'send_time','status','is_brand_sale','is_lgtype','lg_aging'
@@ -145,13 +155,13 @@ class OrderService(TaobaoTradeService,TaobaoSendTradeMixin):
         for k in update_fields:
             setattr(merge_trade,k,getattr(trade,k))
             
-        merge_trade.payment   = merge_trade.payment or trade.payment
-        merge_trade.total_fee   = merge_trade.total_fee or trade.total_fee
-        merge_trade.discount_fee   = merge_trade.discount_fee or trade.discount_fee
+        merge_trade.payment      = merge_trade.payment or trade.payment
+        merge_trade.total_fee    = merge_trade.total_fee or trade.total_fee
+        merge_trade.discount_fee = merge_trade.discount_fee or trade.discount_fee
         merge_trade.adjust_fee   = merge_trade.adjust_fee or trade.adjust_fee
-        merge_trade.post_fee   = merge_trade.post_fee or trade.post_fee
+        merge_trade.post_fee     = merge_trade.post_fee or trade.post_fee
         
-        merge_trade.trade_from    = map_trade_from_to_code(trade.trade_from)
+        merge_trade.trade_from    = MergeTrade.objects.mapTradeFromToCode(trade.trade_from)
         merge_trade.alipay_no     = trade.buyer_alipay_no
         merge_trade.shipping_type = merge_trade.shipping_type or \
                 pcfg.SHIPPING_TYPE_MAP.get(trade.shipping_type,pcfg.EXPRESS_SHIPPING_TYPE)
@@ -163,7 +173,13 @@ class OrderService(TaobaoTradeService,TaobaoSendTradeMixin):
         
         for order in trade.trade_orders.all():
             cls.createMergeOrder(merge_trade,order)
-            
+        
+        trade_handler.proccess(merge_trade,
+                               **{'origin_trade':trade,
+                                  'first_pay_load':(
+                                    merge_trade.sys_status == pcfg.EMPTY_STATUS
+                                    and merge_trade.status == pcfg.WAIT_SELLER_SEND_GOODS)})
+        
         return merge_trade
     
     
@@ -182,6 +198,7 @@ class OrderService(TaobaoTradeService,TaobaoSendTradeMixin):
         
         self.trade.trade_orders.filter(status=pcfg.WAIT_BUYER_CONFIRM_GOODS)\
                                 .update(status=pcfg.TRADE_FINISHED)
+    
             
     def closeTrade(self,*args,**kwargs):
         pass

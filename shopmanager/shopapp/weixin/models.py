@@ -5,42 +5,6 @@ from shopback.base.fields import BigIntegerAutoField
 from jsonfield import JSONCharField
 
 SAFE_CODE_SECONDS = 60
-WX_TEXT  = 'text'
-WX_IMAGE = 'image'
-WX_VOICE = 'voice'
-WX_VIDEO = 'video'
-WX_THUMB = 'thumb'
-WX_MUSIC = 'music'
-WX_NEWS  = 'news'
-WX_LOCATION = 'location'
-WX_LINK  = 'link'  
-WX_DEFAULT = 'DEFAULT'
-WX_EVENT   = 'event'
-
-WX_EVENT_SUBSCRIBE   = 'subscribe'
-WX_EVENT_UNSUBSCRIBE = 'unsubscribe'
-WX_EVENT_SCAN        = 'SCAN'
-WX_EVENT_LOCATION    = 'LOCATION'
-WX_EVENT_CLICK       = 'CLICK'
-WX_EVENT_VIEW        = 'VIEW'
-
-MEN      = 'm'
-FERMALE  = 'f'
-
-WX_TYPE  = (
-            (WX_TEXT ,u'文本'),
-            (WX_IMAGE,u'图片'),
-            (WX_VOICE,u'语音'),
-            (WX_VIDEO,u'视频'),
-            (WX_THUMB,u'缩略图'),
-            (WX_MUSIC,u'音乐'),
-            (WX_NEWS ,u'图文'),
-            )
-
-BABY_SEX_TYPE = (
-                 (MEN,u'男'),
-                 (FERMALE,u'女')
-                 )
 
 class AnonymousWeixinAccount():
     
@@ -49,31 +13,33 @@ class AnonymousWeixinAccount():
     
     def checkSignature(self,signature,timestamp,nonce):
         return False
-    
 
     def isExpired(self):
         return True
-    
-    
+
 
 class WeiXinAccount(models.Model):
-
+    
+    account_id = models.CharField(max_length=32,unique=True,
+                                  verbose_name=u'原始ID')
     
     token      = models.CharField(max_length=32,verbose_name=u'TOKEN')    
     
     app_id     = models.CharField(max_length=64,verbose_name=u'应用ID')
     app_secret = models.CharField(max_length=128,verbose_name=u'应用SECRET')
     
-    access_token = models.CharField(max_length=256,blank=True,verbose_name=u'ACCESS TOKEN')
+    access_token = models.CharField(max_length=256,blank=True,
+                                    verbose_name=u'ACCESS TOKEN')
     
     expires_in = models.BigIntegerField(default=0,verbose_name="使用期限(s)")
-    expired    = models.DateTimeField(default=datetime.datetime.now(),verbose_name="上次过期时间")
+    expired    = models.DateTimeField(default=datetime.datetime.now(),
+                                      verbose_name="上次过期时间")
     
-    jmenu     =  JSONCharField(max_length=1024,blank=True,load_kwargs={},verbose_name=u'菜单代码') 
+    jmenu     =  JSONCharField(max_length=1024,blank=True,load_kwargs={},
+                               verbose_name=u'菜单代码') 
     
     in_voice   = models.BooleanField(default=False,verbose_name=u'开启语音')
     is_active  = models.BooleanField(default=False,verbose_name=u'激活')
-    
     
     class Meta:
         db_table = 'shop_weixin_account'
@@ -113,7 +79,16 @@ class AnonymousWeixinUser():
     def is_code_time_safe(self):
         return False
     
+    
 class WeiXinUser(models.Model): 
+    
+    MEN      = 'm'
+    FERMALE  = 'f'
+    
+    BABY_SEX_TYPE = (
+        (MEN,u'男'),
+        (FERMALE,u'女')
+    )
     
     openid     = models.CharField(max_length=64,unique=True,verbose_name=u"用户ID")
     nickname   = models.CharField(max_length=64,blank=True,verbose_name=u"昵称")
@@ -130,7 +105,10 @@ class WeiXinUser(models.Model):
     
     baby_nick   = models.CharField(max_length=64,blank=True,verbose_name=u"宝宝昵称")
     baby_birth  = models.DateTimeField(blank=True,null=True,verbose_name=u"宝宝生日")
-    baby_sex    = models.CharField(max_length=1,blank=True,choices=BABY_SEX_TYPE,verbose_name=u"宝宝性别")
+    baby_sex    = models.CharField(max_length=1,
+                                   blank=True,
+                                   choices=BABY_SEX_TYPE,
+                                   verbose_name=u"宝宝性别")
     baby_topic  = models.CharField(max_length=256,blank=True,verbose_name=u"宝宝签名")
     
     isvalid    = models.BooleanField(default=False,verbose_name=u"已验证")
@@ -184,6 +162,35 @@ class WeiXinUser(models.Model):
 
 
 class WeiXinAutoResponse(models.Model):
+    
+    WX_TEXT  = 'text'
+    WX_IMAGE = 'image'
+    WX_VOICE = 'voice'
+    WX_VIDEO = 'video'
+    WX_THUMB = 'thumb'
+    WX_MUSIC = 'music'
+    WX_NEWS  = 'news'
+    WX_LOCATION = 'location'
+    WX_LINK     = 'link'  
+    WX_DEFAULT  = 'DEFAULT'
+    WX_EVENT    = 'event'
+    
+    WX_EVENT_SUBSCRIBE   = 'subscribe'
+    WX_EVENT_UNSUBSCRIBE = 'unsubscribe'
+    WX_EVENT_SCAN        = 'SCAN'
+    WX_EVENT_LOCATION    = 'LOCATION'
+    WX_EVENT_CLICK       = 'CLICK'
+    WX_EVENT_VIEW        = 'VIEW'
+    
+    WX_TYPE  = (
+        (WX_TEXT ,u'文本'),
+        (WX_IMAGE,u'图片'),
+        (WX_VOICE,u'语音'),
+        (WX_VIDEO,u'视频'),
+        (WX_THUMB,u'缩略图'),
+        (WX_MUSIC,u'音乐'),
+        (WX_NEWS ,u'图文'),
+    )
     
     message   = models.CharField(max_length=64,unique=True,verbose_name=u"消息")
     
@@ -265,4 +272,82 @@ class WeiXinAutoResponse(models.Model):
         else:
             return self.respNews()
         
-            
+
+class WXProduct(models.Model):
+    
+    UP_SHELF   = 0
+    DOWN_SHELF = 1
+    
+    PRODUCT_STATUS = (
+        (UP_SHELF,u'下架'),
+        (DOWN_SHELF,u'上架')
+    )
+    
+    product_id   = models.CharField(max_length=32,
+                                    primary_key=True,
+                                    verbose_name=u'商品ID')
+    
+    product_name = models.CharField(max_length=32,verbose_name=u'商品标题')
+    product_img  = models.CharField(max_length=256,verbose_name=u'商品图片')
+    
+    product_base = JSONCharField(max_length=3000,blank=True,
+                                 load_kwargs={},verbose_name=u'图文信息')
+    
+    sku_list     = JSONCharField(max_length=3000,blank=True,
+                                 load_kwargs={},verbose_name=u'规格信息') 
+    
+    attrext      = JSONCharField(max_length=1000,blank=True,
+                                 load_kwargs={},verbose_name=u'附加信息') 
+    
+    delivery_info   = JSONCharField(max_length=200,blank=True,
+                                    load_kwargs={},verbose_name=u'发货信息') 
+    
+    status       = models.IntegerField(null=False,default=0,
+                                       choices=PRODUCT_STATUS,
+                                       verbose_name=u'是否上架')
+    
+    class Meta:
+        db_table = 'shop_weixin_product'
+        verbose_name=u'微信商品'
+        verbose_name_plural = u'微信商品列表'
+
+
+       
+class WXOrder(models.Model):
+    
+    trans_id  = models.BigIntegerField(verbose_name=u'交易ID')
+    order_id  = BigIntegerAutoField(primary_key=True,verbose_name=u'订单ID')
+    
+    buyer_openid = models.CharField(max_length=64,verbose_name=u'买家OPENID')
+    buyer_nick   = models.CharField(max_length=32,verbose_name=u'买家昵称')
+    
+    order_total_price   = models.FloatField(verbose_name=u'订单总价')
+    order_express_price = models.FloatField(verbose_name=u'订单运费')
+    order_create_time   = models.DateTimeField(blank=True,null=True,
+                                               verbose_name=u'创建时间')
+    order_status = models.CharField(max_length=10,blank=True,verbose_name=u'订单状态')
+    
+    receiver_name     = models.CharField(max_length=64,verbose_name=u'收货人')
+    receiver_province = models.CharField(max_length=16,verbose_name=u'省')
+    receiver_city     = models.CharField(max_length=16,verbose_name=u'市')
+    receiver_address  = models.CharField(max_length=128,verbose_name=u'地址')
+    receiver_mobile   = models.CharField(max_length=20,verbose_name=u'手机')
+    receiver_phone    = models.CharField(max_length=20,verbose_name=u'电话')
+    
+    product_id     = models.CharField(max_length=64,verbose_name=u'商品ID')
+    product_name   = models.CharField(max_length=16,verbose_name=u'商品名')
+    product_price  = models.CharField(max_length=16,verbose_name=u'商品价格')
+    product_sku    = models.CharField(max_length=128,verbose_name=u'商品SKU')
+    product_count  = models.CharField(max_length=20,verbose_name=u'商品个数')
+    product_img    = models.CharField(max_length=20,verbose_name=u'商品图片')
+    
+    delivery_id    = models.CharField(max_length=32,verbose_name=u'运单ID')
+    delivery_company  = models.CharField(max_length=16,verbose_name=u'物流公司编码')
+    
+    class Meta:
+        db_table = 'shop_weixin_order'
+        verbose_name=u'微信订单'
+        verbose_name_plural = u'微信订单列表'
+        
+        
+

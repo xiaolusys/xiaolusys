@@ -11,7 +11,7 @@ from django.db.models import Q,F
 from shopback import paramconfig as pcfg
 from shopapp.notify.models import TradeNotify,ItemNotify,RefundNotify
 from shopback.orders.models import Trade,Order
-from shopback.trades.models import MergeTrade,MergeOrder,MergeBuyerTrade,merge_order_remover
+from shopback.trades.models import MergeTrade,MergeOrder,MergeBuyerTrade
 from shopback.items.models import Product,ProductSku,Item
 from shopback.refunds.models import Refund
 from shopback.users.models import User

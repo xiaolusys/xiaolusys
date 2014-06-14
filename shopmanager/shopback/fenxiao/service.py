@@ -1,12 +1,14 @@
 # -*- coding: utf-8 -*-
 from shopback.users import Seller
+from shopback.base.service import LocalService
 from shopback.trades.mixins import TaobaoTradeService,TaobaoSendTradeMixin
-from shopback.trades.models import MergeTrade,MergeOrder,map_trade_from_to_code
+from shopback.trades.models import MergeTrade,MergeOrder
 from shopback.fenxiao.models import FenxiaoProduct,PurchaseOrder,SubPurchaseOrder
+from shopback.trades.handlers import trade_handler 
 from shopback import paramconfig as pcfg
 
 
-class PurchaseOrderService(TaobaoTradeService,TaobaoSendTradeMixin):
+class PurchaseOrderService(TaobaoSendTradeMixin,TaobaoTradeService,LocalService):
     
     trade = None        
         
@@ -172,13 +174,21 @@ class PurchaseOrderService(TaobaoTradeService,TaobaoSendTradeMixin):
         merge_trade.seller_flag  = trade.supplier_flag
         merge_trade.priority = 0
         merge_trade.status   =  trade.status
-        merge_trade.trade_from  = map_trade_from_to_code(pcfg.TF_TAOBAO)
+        merge_trade.trade_from  = MergeTrade.objects.mapTradeFromToCode(pcfg.TF_TAOBAO)
         
         update_model_fields(merge_trade,update_fields=update_fields)
         
         #保存分销订单到抽象全局抽象订单表
         for order in trade.sub_purchase_orders.all():
             cls.createMergeOrder(merge_trade, order)
+        
+        trade_handler.proccess(merge_trade,
+                               **{'origin_trade':trade,
+                                  'first_pay_load':(
+                                    merge_trade.sys_status == pcfg.EMPTY_STATUS
+                                    and merge_trade.status == pcfg.WAIT_SELLER_SEND_GOODS)})
+        
+        return merge_trade
         
     def payTrade(self,*args,**kwargs):
         if self.get_trade_id():

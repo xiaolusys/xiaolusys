@@ -1,7 +1,20 @@
 #-*- coding:utf8 -*-
 from django.conf import settings
-from .handler import BaseHandler,FinalHandler
+from shopback import paramconfig as pcfg
+from .handler import (BaseHandler,
+                      InitHandler,
+                      FinalHandler,
+                      StockOutHandler,
+                      DefectHandler,
+                      RuleMatchHandler)
+from .split    import SplitHandler
+from .memo     import MemoHandler
+from .merge    import MergeHandler
+from .refund   import RefundHandler
 from .logistic import LogisticsHandler
+
+import logging
+logger = logging.getLogger('celery.handler')
 
 class NotBaseHandlerError(Exception):
     pass
@@ -31,9 +44,16 @@ class TradeHandler(object):
         
     def proccess(self,merge_trade,*args,**kwargs):
         
-        for registed_handler in self._handlers:
-            if registed_handler.handleable(merge_trade,*args,**kwargs):
-                registed_handler.process(merge_trade,*args,**kwargs)
+        try:
+            for registed_handler in self._handlers:
+                if registed_handler.handleable(merge_trade,*args,**kwargs):
+                    registed_handler.process(merge_trade,*args,**kwargs)
+        except Exception,exc:
+            merge_trade.append_reason_code(pcfg.SYSTEM_ERROR_CODE)
+            
+            logger.error(u'订单处理错误:%s'%exc.message,exc_info=True)
+            
+        
         
 def getTradeHandler(config_handlers_path=[]):
     
@@ -46,14 +66,17 @@ def getTradeHandler(config_handlers_path=[]):
             hl_module, hl_classname = handler_path.rsplit('.', 1)
         except ValueError:
             raise exceptions.ImproperlyConfigured('%s isn\'t a middleware module' % handler_path)
+        
         try:
             mod = import_module(hl_module)
         except ImportError, e:
             raise exceptions.ImproperlyConfigured('Error importing middleware %s: "%s"' % (hl_module, e))
+        
         try:
             hl_class = getattr(mod, hl_classname)
         except AttributeError:
-            raise exceptions.ImproperlyConfigured('Middleware module "%s" does not define a "%s" class' % (mw_module, mw_classname))
+            raise exceptions.ImproperlyConfigured('Middleware module "%s" does not define a "%s" class' 
+                                                  % (mw_module, mw_classname))
         
         trade_handler.register(hl_class)
         

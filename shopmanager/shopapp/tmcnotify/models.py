@@ -15,7 +15,7 @@ class TmcMessage(models.Model):
     id       = BigIntegerAutoField(primary_key=True)
     user_id  = models.BigIntegerField(db_index=True,verbose_name=u'店铺ID')
     
-    topic    = models.CharField(max_length=128,blank=True,verbose_name=u'消息猪蹄')
+    topic    = models.CharField(max_length=128,blank=True,verbose_name=u'消息主题')
     pub_app_key   = models.CharField(max_length=64,blank=True,verbose_name=u'发布者APPKEY')
     
     pub_time = models.DateTimeField(db_index=True,null=True,blank=True,verbose_name=u'发布时间') 
@@ -43,9 +43,9 @@ class TmcUser(models.Model):
     topics   = models.TextField(max_length=2500,blank=True,verbose_name=u'消息主题')
     group_name = models.CharField(max_length=64,blank=True,default=DEFAULT_GROUP_NAME,verbose_name=u'消息群组')
     
-    is_valid   = models.BooleanField(default=False,verbose_name=u'授权是否有效') 
+    is_valid   = models.BooleanField(default=False,verbose_name=u'是否有效') 
     
-    is_primary = models.BooleanField(default=False,verbose_name=u'授权是否有效')
+    is_primary = models.BooleanField(default=False,verbose_name=u'主用户')
     
     valid_users = ValidUserManager()
     class Meta:

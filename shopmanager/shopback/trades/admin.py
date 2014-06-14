@@ -21,17 +21,24 @@ from django.conf import settings
 from celery import chord
 from shopback.orders.models import Trade
 from shopback.items.models import Product,ProductSku
-from shopback.trades.models import MergeTrade,MergeOrder,MergeBuyerTrade,\
-    ReplayPostTrade,merge_order_maker,merge_order_remover,SYS_TRADE_STATUS
+from shopback.trades.models import (MergeTrade,
+                                    MergeOrder,
+                                    MergeBuyerTrade,
+                                    ReplayPostTrade)
 from shopback import paramconfig as pcfg
 from shopback.fenxiao.models import PurchaseOrder
 from shopback.trades.tasks import sendTaobaoTradeTask,sendTradeCallBack
 from shopback.trades import permissions as perms
-from shopback.trades.options import DateFieldListFilter,BitFieldListFilter,TradeStatusFilter
+from shopback.trades.filters import (DateFieldListFilter,
+                                     BitFieldListFilter,
+                                     TradeStatusFilter)
 from shopback.base import log_action,User, ADDITION, CHANGE
 from shopback.signals import rule_signal
 from shopback.trades import permissions as perms
-from common.utils import gen_cvs_tuple,CSVUnicodeWriter,parse_datetime,pinghost
+from common.utils import (gen_cvs_tuple,
+                          CSVUnicodeWriter,
+                          parse_datetime,
+                          pinghost)
 from auth import apis
 import logging 
 
@@ -124,9 +131,9 @@ class MergeTradeAdmin(admin.ModelAdmin):
                     'fields': (('tid','user','type','status')
                                ,('buyer_nick','order_num','prod_num','trade_from')
                                ,('total_fee','payment','discount_fee','adjust_fee','post_fee')
-                               ,('seller_cod_fee','buyer_cod_fee','cod_fee','cod_status','alipay_no')
+                               ,('is_cod','seller_cod_fee','buyer_cod_fee','cod_fee','cod_status')
                                ,('is_brand_sale','is_force_wlb','buyer_rate','seller_rate','seller_can_rate'
-                                 ,'is_part_consign','is_lgtype','lg_aging_type')
+                                 ,'is_part_consign','is_lgtype','lg_aging_type','alipay_no')
                                ,('send_time','lg_aging','step_paid_fee','step_trade_status')
                                ,('created','modified','pay_time','consign_time')
                                ,('buyer_message','seller_memo','sys_memo')

@@ -16,6 +16,7 @@ from shopback.archives.models import Deposite,DepositeDistrict
 from shopback import paramconfig as pcfg
 from django.db.models.signals import post_save
 from shopback.users.models import User
+from .managers import ProductManager
 from auth import apis
 from common.utils import update_model_fields
 import logging
@@ -42,11 +43,13 @@ PRODUCT_STATUS = (
 class Product(models.Model):
     """ 系统商品（根据淘宝外部编码) """
     
-    outer_id     = models.CharField(max_length=64,unique=True,null=False,blank=True,verbose_name=u'外部编码')
+    outer_id     = models.CharField(max_length=64,unique=True,null=False,
+                                    blank=True,verbose_name=u'外部编码')
     name         = models.CharField(max_length=64,blank=True,verbose_name=u'商品名称')
     
     barcode      = models.CharField(max_length=64,blank=True,db_index=True,verbose_name=u'条码')
-    category     = models.ForeignKey(ProductCategory,null=True,blank=True,related_name='products',verbose_name=u'内部分类')
+    category     = models.ForeignKey(ProductCategory,null=True,blank=True,
+                                     related_name='products',verbose_name=u'内部分类')
     pic_path     = models.CharField(max_length=256,blank=True)
     
     collect_num  = models.IntegerField(default=0,verbose_name=u'库存数')  #库存数
@@ -63,8 +66,10 @@ class Product(models.Model):
     
     weight       = models.CharField(max_length=10,blank=True,verbose_name=u'重量(g)')
     
-    created      = models.DateTimeField(null=True,blank=True,auto_now_add=True,verbose_name=u'创建时间')
-    modified     = models.DateTimeField(null=True,blank=True,auto_now=True,verbose_name=u'修改时间')
+    created      = models.DateTimeField(null=True,blank=True,
+                                        auto_now_add=True,verbose_name=u'创建时间')
+    modified     = models.DateTimeField(null=True,blank=True,
+                                        auto_now=True,verbose_name=u'修改时间')
     
     is_split   = models.BooleanField(default=False,verbose_name=u'需拆分')
     is_match   = models.BooleanField(default=False,verbose_name=u'有匹配')
@@ -79,6 +84,9 @@ class Product(models.Model):
     match_reason = models.CharField(max_length=80,blank=True,verbose_name=u'匹配原因')
     buyer_prompt = models.CharField(max_length=60,blank=True,verbose_name=u'客户提示')
     memo         = models.TextField(max_length=1000,blank=True,verbose_name=u'备注')
+    
+    objects = ProductManager()
+    
     class Meta:
         db_table = 'shop_items_product'
         verbose_name = u'库存商品'
@@ -147,6 +155,7 @@ class Product(models.Model):
                 'memo':self.memo,
                 'districts':self.get_district_list(),
                 'barcode':self.BARCODE,
+                'match_reason':self.match_reason,
                 'skus':skus_json
                 }    
         
@@ -687,7 +696,8 @@ class SkuProperty(models.Model):
     @classmethod    
     def save_or_update(cls,sku_dict):
         
-        sku,state = cls.objects.get_or_create(num_iid=sku_dict.pop('num_iid'),sku_id=sku_dict.pop('sku_id'))
+        sku,state = cls.objects.get_or_create(num_iid=sku_dict.pop('num_iid'),
+                                              sku_id=sku_dict.pop('sku_id'))
         
         for k,v in sku_dict.iteritems():
             if k == 'outer_id' and not v :continue
@@ -711,7 +721,9 @@ class ProductLocation(models.Model):
     outer_sku_id     = models.CharField(max_length=32,null=False,blank=True,verbose_name='规格编码')
     properties_name  = models.CharField(max_length=64,null=False,blank=True,verbose_name='规格属性')
     
-    district     = models.ForeignKey(DepositeDistrict,related_name='product_locations',verbose_name='关联库位')
+    district     = models.ForeignKey(DepositeDistrict,
+                                     related_name='product_locations',
+                                     verbose_name='关联库位')
     
     class Meta:
         db_table = 'shop_items_productlocation'

@@ -9,9 +9,9 @@ from django.conf import settings
 from shopback import paramconfig as pcfg
 from shopback.orders.models import Trade,Order
 from shopback.items.models import Product,ProductSku
-from shopback.trades.models import MergeTrade,MergeBuyerTrade,ReplayPostTrade,merge_order_remover
+from shopback.trades.models import MergeTrade,MergeBuyerTrade,ReplayPostTrade
 from shopback.base import log_action,User as DjangoUser, ADDITION, CHANGE
-from shopback.users.models import User
+from shopback.users.models import User,Customer
 from auth import apis
 import logging
 
@@ -224,7 +224,7 @@ def sendTaobaoTradeTask(request_user_id,trade_id):
             trade.is_express_print=False
             trade.save()                                                                                       
             log_action(request_user_id,trade,CHANGE,u'订单发货失败:%s'%error_msg)
-            merge_order_remover(trade.tid)   
+            MergeTrade.objects.mergeRemover(trade.id)   
     except Exception,exc:
         logger.error('post trade error====='+exc.message,exc_info=True)
 
@@ -234,7 +234,9 @@ def sendTaobaoTradeTask(request_user_id,trade_id):
 def regularRemainOrderTask():
     """更新定时提醒订单"""
     dt = datetime.datetime.now()
-    MergeTrade.objects.filter(sys_status=pcfg.REGULAR_REMAIN_STATUS,remind_time__lte=dt).update(sys_status=pcfg.WAIT_AUDIT_STATUS)
+    MergeTrade.objects.filter(sys_status=pcfg.REGULAR_REMAIN_STATUS,
+                              remind_time__lte=dt).update(
+                                sys_status=pcfg.WAIT_AUDIT_STATUS)
 
 @task
 def saveTradeByTidTask(tid,seller_nick):
@@ -260,11 +262,44 @@ def importTradeFromFileTask(fileName):
 @task()
 def pushBuyerToCustomerTask(day):
     """ 将订单买家信息保存为客户信息 """
+    
     dt = datetime.datetime.now()
-    all_trades = MergeTrade.objects.filter(created__gte=dt-datetime.timedelta(day,0,0)).order_by('-pay_time')
+    all_trades = MergeTrade.objects.filter(
+                    created__gte=dt-datetime.timedelta(day,0,0)).order_by('-pay_time')
+                
     for trade in all_trades:
         try:
-            trade.save_customer()
+            if not (trade.receiver_mobile or trade.receiver_phone):
+                return 
+       
+            customer,state     = Customer.objects.get_or_create(
+                                    nick=trade.buyer_nick,
+                                    mobile=trade.receiver_mobile,
+                                    phone=trade.receiver_phone)
+            
+            customer.name      = trade.receiver_name
+            customer.zip       = trade.receiver_zip
+            customer.address   = trade.receiver_address
+            customer.city      = trade.receiver_city
+            customer.state     = trade.receiver_state
+            customer.district  = trade.receiver_district
+            customer.save()
+            
+            trades        = MergeTrade.objects.filter(buyer_nick=self.buyer_nick,
+                            receiver_mobile=trade.receiver_mobile,
+                            status__in=pcfg.ORDER_SUCCESS_STATUS)\
+                            .exclude(is_express_print=False,
+                            sys_status=pcfg.FINISHED_STATUS).order_by('-pay_time')
+            trade_num     = trades.count()
+            
+            if trades.count()>0 and trade_num != customer.buy_times:
+                total_nums    =  trades.count()
+                total_payment = trades.aggregate(total_payment=Sum('payment')).get('total_payment') or 0
+                
+                customer.last_buy_time = trades[0].pay_time
+                customer.buy_times     = trades.count()
+                customer.avg_payment   = float(round(float(total_payment)/total_nums,2))
+                customer.save()
         except:
             pass
         

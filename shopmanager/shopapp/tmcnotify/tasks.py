@@ -4,9 +4,11 @@ import json
 from celery.task import task
 from celery.task.sets import subtask
 from celery import Task
+from shopapp.tmcnotify.models import TmcUser
 from shopback.users import Seller
 from shopback.trades.service import TradeService
 from django.conf import settings
+from auth import apis
 from common.utils import parse_datetime
 
 
@@ -31,32 +33,31 @@ class ProcessMessageTask(Task):
         tradeType  = content.get('type')
         tradeId    = content.get('tid')
         
-        if not TradeService.isTradeExist(tradeId):
+        if (not TradeService.isTradeExist(tradeId) or 
+            msgCode == 'TradeAlipayCreate'):
+            
             TradeService.createTrade(UserId,tradeId,tradeType)
         
         if not TradeService.isValidPubTime(tradeId,msgTime):
             return
         
-        if msgCode   == 'TradeCloseAndModifyDetailOrder':
-            pass
-        elif msgCode == 'TradeClose':    
-            pass
+        t_service = TradeService(tradeId)
+        if msgCode in ('TradeClose' 'TradeCloseAndModifyDetailOrder'):    
+            t_service.closeTrade()
         elif msgCode == 'TradeBuyerPay':  
-            TradeService(tradeId).payTrade()
+            t_service.payTrade()
         elif msgCode == 'TradeSellerShip':  
-            pass
+            t_service.shipTrade()
         elif msgCode == 'TradePartlyRefund':  
-            pass
+            t_service.sendTrade()
         elif msgCode == 'TradeSuccess':  
-            pass
+            t_service.finishTrade()
         elif msgCode == 'TradeTimeoutRemind':  
-            pass
+            t_service.remindTrade()
         elif msgCode == 'TradeMemoModified':
-            pass
+            t_service.memoTrade()
         elif msgCode == 'TradeChanged': 
-            pass
-        elif msgCode == 'TradeAlipayCreate':    
-            pass
+            t_service.changeTrade()
                
     
     def handleRefundMessage(self,userId,msgCode,content,msgTime):
@@ -83,43 +84,56 @@ class ProcessMessageTask(Task):
         
         reg = re.compile('^taobao_item_(?P<msgCode>\w+)$')
         m   = reg.match(msgType)
+        
         return m and m.groupdict().get('msgCode')
         
+    def getUserGroupName(self,user_id):
+            
+        return TmcUser.objects.get(user_id=user_id).group_name
+    
+    def successConsumeMessage(self,message):
+        
+        group_name = self.getUserGroupName(message['user_id'])
+        apis.taobao_tmc_messages_confirm(group_name=group_name,
+                                         s_message_ids='%d'%message.id,
+                                         f_message_ids=None,
+                                         tb_user_id=message['user_id'])
+        
+    def failConsumeMessage(self,message):
+        
+        group_name = self.getUserGroupName(message['user_id'])
+        apis.taobao_tmc_messages_confirm(group_name=group_name,
+                                         s_message_ids=None,
+                                         f_message_ids='%d'%message.id,
+                                         tb_user_id=message['user_id'])
+    
     def run(self,message):
         
-#        try:
+        try:
+            msgType = self.getMessageType(message)
+            content = self.getMessageBody(message)
+            msgTime = self.getMessageTime(message)
+            
+            msgCode = self.getTradeMessageCode(msgType)
+            if msgCode:
+                self.handleTradeMessage( userId, msgCode, content, msgTime)
+                
+            msgCode = self.getRefundMessageCode(msgType)    
+            if msgCode:
+                self.handleRefundMessage( userId, msgCode, content, msgTime)
+                
+            msgCode = self.getItemMessageCode(msgType)    
+            if msgCode:
+                self.handleItemMessage( userId, msgCode, content, msgTime)
+            
+        except Exception,exc:
+            logger.error(exc.message,exc_info=True)
+            self.failConsumeMessage(message)
 
-        msgType = self.getMessageType(message)
-        content = self.getMessageBody(message)
-        msgTime = self.getMessageTime(message)
-        
-        msgCode = self.getTradeMessageCode(msgType)
-        if msgCode:
-            self.handleTradeMessage( userId, msgCode, content, msgTime)
-            
-        msgCode = self.getRefundMessageCode(msgType)    
-        if msgCode:
-            self.handleRefundMessage( userId, msgCode, content, msgTime)
-            
-        msgCode = self.getItemMessageCode(msgType)    
-        if msgCode:
-            self.handleItemMessage( userId, msgCode, content, msgTime)
-            
-        return (self.getMessageId(message),True)
-    
-#        except Exception,exc:
-#            logger.error(exc.message,exc_info=True)
-#            return (self.getMessageId(message),False)
+        else:
+            self.successConsumeMessage(message)
                 
     
-class ProcessMessageCallBack(Task):
-    """ 处理消息回调"""
-    
-    def run(self,message_status):
-        
-        try:
-            pass
-        except:
-            pass    
+ 
         
     

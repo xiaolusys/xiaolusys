@@ -6,7 +6,7 @@ from shopapp.smsmgr.models import SMSPlatform,SMSRecord,SMSActivity
 
 
 class SMSPlatformAdmin(admin.ModelAdmin):
-    list_display = ('code','name','user_id','account','password','remainums','sendnums','is_default')
+    list_display = ('code','name','user_id','account','remainums','sendnums','is_default')
     #list_editable = ('update_time','task_type' ,'is_success','status')
     
     list_display_links = ('code','name',)

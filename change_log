@@ -1,3 +1,16 @@
+######### 2014-6-14 ##########
+alter table shop_trades_mergetrade add column is_cod tinyint(1) NOT NULL;
+######### 2014-6-13 ##########
+alter table shop_weixin_account add column account_id varchar(32) not NULL;
+alter table shop_weixin_account add UNIQUE unique_account_id on shop_weixin_account(account_id);
+
+alter table shop_users_user drop column craw_keywords;
+alter table shop_users_user drop column craw_trade_seller_nicks;
+alter table shop_users_user drop column item_notify_updated;
+alter table shop_users_user drop column refund_notify_updated;
+alter table shop_users_user drop column trade_notify_updated;
+alter table shop_users_user drop column alipay_account;
+alter table shop_users_user drop column promoted_type;
 ######### 2014-5-24 ##########
 alter table shop_trades_mergetrade drop index tid;
 alter table shop_trades_mergetrade change column tid  tid varchar(32) NOT NULL;
@@ -7,7 +20,6 @@ alter table shop_trades_mergeorder drop index oid;
 alter table shop_trades_mergeorder change column oid  oid varchar(32) NOT NULL;
 alter table shop_trades_mergeorder add unique key (oid,merge_trade_id);
 alter table shop_trades_mergeorder drop column tid;
-
 ######### 2014-5-22 ##########
 alter table shop_yunda_customer add column company_trade varchar(32) NOT NULL;
 alter table shop_yunda_customer add column reserveo varchar(64) NOT NULL;

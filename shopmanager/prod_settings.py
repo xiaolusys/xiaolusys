@@ -46,9 +46,17 @@ SITE_URL = 'http://qiyue.f3322.org/'
 
 ####################### TRADE HANDLERS CONFIG ########################
 TRADE_HANDLERS_PATH = (
-                       'shopback.trades.handlers.LogisticsHandler',
-                       'shopback.trades.handlers.FinalHandler',
-                     )
+   'shopback.trades.handlers.InitHandler',
+   'shopback.trades.handlers.SplitHandler',
+   'shopback.trades.handlers.MemoHandler',
+   'shopback.trades.handlers.DefectHandler',
+   'shopback.trades.handlers.RuleMatchHandler',
+   'shopback.trades.handlers.StockOutHandler',
+   'shopback.trades.handlers.MergeHandler',
+   'shopback.trades.handlers.RefundHandler',
+   'shopback.trades.handlers.LogisticsHandler',
+   'shopback.trades.handlers.FinalHandler',
+)
 
 
 ############################# TAOBAO #################################

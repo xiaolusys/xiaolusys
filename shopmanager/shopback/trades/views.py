@@ -12,8 +12,14 @@ from django.db.models import Q,Sum
 from djangorestframework.views import ModelView
 from djangorestframework.response import ErrorResponse
 
-from shopback.trades.models import MergeTrade,MergeOrder,ReplayPostTrade,GIFT_TYPE\
-    ,SYS_TRADE_STATUS,TAOBAO_TRADE_STATUS,SHIPPING_TYPE_CHOICE,TAOBAO_ORDER_STATUS
+from shopback.trades.models import (MergeTrade,
+                                    MergeOrder,
+                                    ReplayPostTrade,
+                                    GIFT_TYPE,
+                                    SYS_TRADE_STATUS,
+                                    TAOBAO_TRADE_STATUS,
+                                    SHIPPING_TYPE_CHOICE,
+                                    TAOBAO_ORDER_STATUS)
 from shopback.trades.forms import ExchangeTradeForm
 from shopback.logistics.models import LogisticsCompany
 from shopback.items.models import Product,ProductSku,ProductDaySale
@@ -366,7 +372,8 @@ class CheckOrderView(ModelView):
                 check_msg.append("有待退款".decode('utf8'))
             if trade.has_out_stock:
                 check_msg.append("有缺货".decode('utf8'))
-            if trade.has_rule_match or not trade.isOrderMatch():
+            if (trade.has_rule_match or 
+                MergeTrade.objects.isTradeRuleMatch(trade)):
                 check_msg.append("订单商品编码与库存商品编码不一致".decode('utf8'))
             if trade.is_force_wlb:
                 check_msg.append("订单由物流宝发货".decode('utf8'))
@@ -617,23 +624,30 @@ def delete_trade_order(request,id):
     user_id      = request.user.id
     try:
         merge_order  = MergeOrder.objects.get(id=id)
-    except:
-        HttpResponse(json.dumps({'code':1,'response_error':u'订单不存在'}),mimetype="application/json")
     
-    merge_trade = merge_order.merge_trade
-    is_reverse_order = False
-    if merge_trade.sys_status == pcfg.WAIT_CHECK_BARCODE_STATUS:
-        merge_trade.append_reason_code(pcfg.ORDER_ADD_REMOVE_CODE)
-        is_reverse_order = True
+        merge_trade = merge_order.merge_trade
+        is_reverse_order = False
+        if merge_trade.sys_status in (pcfg.WAIT_CHECK_BARCODE_STATUS,
+                                      pcfg.WAIT_SCAN_WEIGHT_STATUS):
+            
+            merge_trade.append_reason_code(pcfg.ORDER_ADD_REMOVE_CODE)
+            is_reverse_order = True
+            
+        merge_order.sys_status = pcfg.INVALID_STATUS
+        merge_order.is_reverse_order = is_reverse_order
+        merge_order.save()
         
-    num = MergeOrder.objects.filter(id=id,status__in=(pcfg.WAIT_SELLER_SEND_GOODS,pcfg.WAIT_BUYER_CONFIRM_GOODS))\
-        .update(sys_status=pcfg.INVALID_STATUS,is_reverse_order=is_reverse_order)
-    if num == 1:
-        log_action(user_id,merge_trade,CHANGE,u'设子订单无效(%d)'%merge_order.id)
+        log_action(user_id,merge_trade,CHANGE,u'子订单作废(%d)'%merge_order.id)
+            
+    except MergeOrder.DoesNotExist:
+        ret_params = {'code':1,'response_error':u'订单不存在'}
         
-        ret_params = {'code':0,'response_content':{'success':True}}
+    except Exception,exc:
+         ret_params = {'code':1,'response_error':u'系统操作失败'}
+         logger.error(u'子订单(%s)删除失败:%s'%(id,exc.message),exc_info=True)
+         
     else:
-        ret_params = {'code':1,'response_error':u'系统操作失败'}
+        ret_params = {'code':0,'response_content':{'success':True}}
         
     return HttpResponse(json.dumps(ret_params),mimetype="application/json")
 
