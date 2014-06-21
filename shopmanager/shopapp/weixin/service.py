@@ -7,8 +7,14 @@ from lxml import etree
 from xml.dom import minidom 
 from django.conf import settings
 from django.views.generic import View
-from shopapp.weixin.models import WeiXinAccount,WeiXinAutoResponse,WeiXinUser
+from shopapp.weixin.models import (WeiXinAccount,
+                                   WeiXinAutoResponse,
+                                   WeiXinUser,
+                                   WXProduct,
+                                   WXOrder,
+                                   WXLogistic)
 from .weixin_apis import WeiXinAPI
+from shopback.base.service import LocalService
 from shopback.logistics import getLogisticTrace
 from shopback import paramconfig as pcfg
 from common.utils import parse_datetime,format_datetime
@@ -18,6 +24,7 @@ logger = logging.getLogger('django.request')
 VALID_MOBILE_REGEX = '^1[3458][0-9]{9}'
 VALID_CODE_REGEX   = '^[0-9]{6}$'
 VALID_EVENT_CODE   = '^[qwertyuiopQWERTYUIOP]$'
+CODE_SPLIT_CHAR    = '.'
 
 mobile_re = re.compile(VALID_MOBILE_REGEX)
 code_re   = re.compile(VALID_CODE_REGEX)
@@ -308,11 +315,21 @@ class WeixinUserService():
         if eventType == WeiXinAutoResponse.WX_EVENT_SUBSCRIBE :
             self._wx_user.doSubscribe(eventKey.rfind('_') > -1 and eventKey.split('_')[1] or '')
             
-        if eventType == WeiXinAutoResponse.WX_EVENT_UNSUBSCRIBE:
+        elif eventType == WeiXinAutoResponse.WX_EVENT_UNSUBSCRIBE:
             self._wx_user.unSubscribe()
             
         return self.getResponseByBestMatch(eventKey,openId).autoParams()
-            
+    
+    def handleMerchantOrder(self,user_id,order_id,order_status=2,product_id='',sku_info=''):   
+        
+        from shopback.trades.service import TradeService
+        
+        TradeService.createTrade(user_id,None,pcfg.WX_TYPE,order_id=order_id)
+        
+        return self.genTextRespJson(u'您的订单(%s)优尼世界已收到，商品信息:(%s,%s)'%(
+                                                                order_id,
+                                                                product_id,
+                                                                sku_info))
         
     def handleRequest(self,params):
         
@@ -326,8 +343,18 @@ class WeixinUserService():
         
         try:
             if msgtype == WeiXinAutoResponse.WX_EVENT:
-                ret_params.update(self.handleEvent(params['EventKey'].upper(), 
-                                                   openId,eventType=params['Event']))
+                
+                eventType=params['Event']
+                if eventType == WeiXinAutoResponse.WX_EVENT_ORDER:
+                    ret_params.update(self._wx_user.handleMerchantOrder(params['ToUserName'],
+                                                                        params['OrderId'],
+                                                                        params['OrderStatus'],
+                                                                        params['ProductId'],
+                                                                        params['SkuInfo']))
+                    
+                else:    
+                    ret_params.update(self.handleEvent(params['EventKey'].upper(), 
+                                                       openId,eventType=params['Event']))
                 return ret_params
                 
             matchMsg = ''
@@ -354,4 +381,158 @@ class WeixinUserService():
             
         return ret_params
     
+
+class WxShopService(LocalService):
     
+    order  = None
+    wx_api = None
+    
+    def __init__(self,t):
+        assert t not in ('',None)
+        
+        if isinstance(t,WXOrder):
+            self.order = t
+        else:
+            self.order   = WXOrder.objects.get(order_id=t)
+            
+        self.wx_api = WxShopService.getWXApiInstance()
+        
+    @classmethod
+    def getWXApiInstance(cls):
+        
+        return WeiXinAPI()
+    
+    @classmethod
+    def createTrade(cls,user_id,tid,*args,**kwargs):
+        
+        order_id    = tid
+        wx_api      = cls.getWXApiInstance()
+        
+        order_dict  = wx_api.getOrderById(order_id)
+        
+        order,state = WXOrder.objects.get_or_create(order_id=order_id,
+                                                    seller_id=user_id)
+        
+        for k,v in order_dict.iteritems():
+            hasattr(order,k) and setattr(order,k,v)
+        
+        order.save()
+        
+        return order
+    
+    @classmethod
+    def createMergeOrder(cls,merge_trade,order,*args,**kwargs):
+        
+        merge_order,state = MergeOrder.objects.get_or_create(oid=order.order_id,
+                                                             merge_trade = merge_trade)
+        state = state or not merge_order.sys_status
+        
+        if order.status == pcfg.WX_FEEDBACK:
+            refund_status = pcfg.REFUND_WAIT_SELLER_AGREE
+        else:
+            refund_status = pcfg.NO_REFUND
+        
+        if (merge_order.refund_status != refund_status and
+             order.status == WXOrder.WX_FEEDBACK ):
+            sys_status = pcfg.INVALID_STATUS
+        else:
+            sys_status = merge_order.sys_status or pcfg.IN_EFFECT
+        
+        if state:
+            wx_product = WXProduct.objects.get(product_id=order.product_id)
+            sku_list = wx_product.sku_list
+            
+            outer_id,outer_sku_id = '',''
+            if len(sku_list) == 1 and not sku_list[0].sku_id:
+                outer_id,outer_sku_id = sku_list[0].product_code.split(CODE_SPLIT_CHAR)
+            else:
+                for sku in sku_list:
+                    if sku.sku_id == order.product_sku:
+                        outer_id,outer_sku_id = sku.product_code.split(CODE_SPLIT_CHAR)
+            merge_order.payment = order.order_total_price
+            merge_order.created = order.order_create_time
+            merge_order.num     = order.product_count
+            merge_order.title   = order.product_name
+            merge_order.pic_path = order.product_img
+            merge_order.outer_id = outer_id
+            merge_order.outer_sku_id = outer_sku_id
+       
+        merge_order.refund_status = refund_status
+        merge_order.status = WXOrder.mapOrderStatus(order.status)
+        merge_order.sys_status = sys_status
+        
+        merge_order.save()
+        
+        return merge_order
+    
+    
+    @classmethod
+    def createMergeTrade(cls,trade,*args,**kwargs):
+        
+        user = User.objects.get(visitor_id=trade.seller_id)
+        merge_trade,state = MergeTrade.objects.get_or_create(user=user,
+                                                             tid=trade.order_id)
+        
+        update_fields = ['created','pay_time','modified','status']
+        
+        merge_trade.created  = trade.order_create_time
+        merge_trade.modified = trade.order_create_time
+        merge_trade.pay_time = trade.order_create_time
+        merge_trade.status   = WXOrder.mapTradeStatus(trade.status) 
+        
+        if not merge_trade.receiver_name and trade.receiver_name:
+            
+            merge_trade.receiver_name  = trade.receiver_name
+            merge_trade.receiver_state = trade.receiver_province
+            merge_trade.receiver_city  = trade.receiver_city
+            merge_trade.receiver_address  = trade.receiver_address
+            merge_trade.receiver_mobile   = trade.receiver_mobile
+            merge_trade.receiver_phone    = trade.receiver_phone 
+            
+            address_fields = ['receiver_name','receiver_state',
+                             'receiver_city','receiver_address',
+                             'receiver_mobile','receiver_phone']
+            
+            update_fields.extend(address_fields)
+            
+        merge_trade.payment      = merge_trade.payment or trade.order_total_price
+        merge_trade.total_fee    = merge_trade.total_fee or trade.product_price
+        merge_trade.post_fee     = merge_trade.post_fee or trade.order_express_price
+        
+        merge_trade.trade_from    = MergeTrade.trade_from.WAP
+        merge_trade.shipping_type = pcfg.EXPRESS_SHIPPING_TYPE
+        
+        update_model_fields(merge_trade,update_fields=update_fields
+                            +['shipping_type','payment','total_fee',
+                              'post_fee','trade_from'])
+        
+        cls.createMergeOrder(merge_trade,trade)
+        
+        trade_handler.proccess(merge_trade,
+                               **{'origin_trade':trade,
+                                  'first_pay_load':(
+                                    merge_trade.sys_status == pcfg.EMPTY_STATUS and 
+                                    merge_trade.status == pcfg.WAIT_SELLER_SEND_GOODS)})
+        
+        return merge_trade
+    
+    def payTrade(self,*args,**kwargs):
+        
+        trade = WxShopService.createTrade(self.order.seller_id,
+                                          self.order.order_id)
+        
+        return WxShopService.createMergeTrade(trade)
+    
+    def sendTrade(self,company_code=None,out_sid=None,retry_times=3,*args,**kwargs):
+        
+        try:
+            wx_logistic = WXLogistic.objects.get(origin_code__icontains=company_code.split('_')[0])
+            
+            response = self.wx_api.deliveryOrder(self.order.order_id,
+                                                 wx_logistic.company_code,
+                                                 out_sid)
+        except Exception,exc:
+            logger.error(u'微信发货失败:%s'%exc.message,exc_info=True)
+            raise exc
+
+

@@ -53,12 +53,12 @@ class TaobaoSendTradeMixin(object):
         
         try:
             #如果货到付款
-            if trade_type == pcfg.COD_TYPE:
+            if self.trade.is_cod:
                 response = apis.taobao_logistics_online_send(tid=trade_id,out_sid=out_sid
                                               ,company_code=company_code,tb_user_id=seller_id)  
                 #response = {'logistics_online_send_response': {'shipping': {'is_success': True}}}
                 if not response['logistics_online_send_response']['shipping']['is_success']:
-                    raise Exception(u'订单(%d)淘宝发货失败'%self.trade.tid)
+                    raise Exception(u'订单(%d)淘宝发货失败'%trade_id)
                 
             else: 
                 response = apis.taobao_logistics_offline_send(tid=trade_id,out_sid=out_sid
@@ -71,11 +71,14 @@ class TaobaoSendTradeMixin(object):
             return self.isTradePostOK(out_sid)
             
         except apis.LogisticServiceB60Exception,exc:
-            self.sendTrade(company_code=u'%s送'%self.logistics_company.name,out_sid=out_sid)
+            
+            from shopback.logistics.models import LogisticsCompany
+            company  = LogisticsCompany.objects.get(code=company_code)
+            self.sendTrade(company_code=u'%s'%company.name,out_sid=out_sid)
             
         except Exception,exc:
             retry_times = retry_times - 1
-            if retry_times<=0:
+            if retry_times <= 0:
                 logger.error(exc.message or u'订单发货出错',exc_info=True)
                 raise exc
             

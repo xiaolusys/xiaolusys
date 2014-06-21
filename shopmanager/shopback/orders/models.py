@@ -58,16 +58,16 @@ class Trade(models.Model):
     day   = models.IntegerField(null=True,db_index=True)
     hour  = models.CharField(max_length=5,blank=True,db_index=True)
 
-    payment      =  models.CharField(max_length=10,blank=True)
-    discount_fee =  models.CharField(max_length=10,blank=True)
-    adjust_fee   =  models.CharField(max_length=10,blank=True)
-    post_fee     =  models.CharField(max_length=10,blank=True)
-    total_fee    =  models.CharField(max_length=10,blank=True)
+    payment      =  models.FloatField(default=0.0)
+    discount_fee =  models.FloatField(default=0.0)
+    adjust_fee   =  models.FloatField(default=0.0)
+    post_fee     =  models.FloatField(default=0.0)
+    total_fee    =  models.FloatField(default=0.0)
 
-    buyer_obtain_point_fee  =  models.CharField(max_length=10,blank=True)
-    point_fee        =  models.CharField(max_length=10,blank=True)
-    real_point_fee   =  models.CharField(max_length=10,blank=True)
-    commission_fee   =  models.CharField(max_length=10,blank=True)
+    buyer_obtain_point_fee  =  models.FloatField(default=0.0)
+    point_fee        =  models.FloatField(default=0.0)
+    real_point_fee   =  models.FloatField(default=0.0)
+    commission_fee   =  models.FloatField(default=0.0)
 
     created       =  models.DateTimeField(db_index=True,null=True,blank=True)
     pay_time      =  models.DateTimeField(null=True,blank=True)
@@ -94,9 +94,9 @@ class Trade(models.Model):
     seller_can_rate = models.BooleanField(default=False) 
     is_part_consign = models.BooleanField(default=False)
   
-    seller_cod_fee = models.CharField(max_length=10,blank=True)
-    buyer_cod_fee  = models.CharField(max_length=10,blank=True)
-    cod_fee        = models.CharField(max_length=10,blank=True)
+    seller_cod_fee = models.FloatField(default=0.0)
+    buyer_cod_fee  = models.FloatField(default=0.0)
+    cod_fee        = models.FloatField(default=0.0)
     cod_status     = models.CharField(max_length=32,blank=True)
     
     shipping_type    =  models.CharField(max_length=12,blank=True)
@@ -108,10 +108,10 @@ class Trade(models.Model):
 
     receiver_address   =  models.CharField(max_length=128,blank=True)
     receiver_zip       =  models.CharField(max_length=10,blank=True)
-    receiver_mobile    =  models.CharField(max_length=20,blank=True)
+    receiver_mobile    =  models.CharField(max_length=24,blank=True)
     receiver_phone     =  models.CharField(max_length=20,blank=True)
     
-    step_paid_fee      = models.CharField(max_length=32,blank=True)
+    step_paid_fee      = models.FloatField(default=0.0)
     step_trade_status  = models.CharField(max_length=32,choices=STEP_TRADE_STATUS,blank=True)
     status      =  models.CharField(max_length=32,choices=TAOBAO_TRADE_STATUS,blank=True)
 
@@ -205,18 +205,18 @@ class Order(models.Model):
 
     num_iid  = models.CharField(max_length=64,blank=True)
     title =  models.CharField(max_length=128)
-    price = models.CharField(max_length=12,blank=True)
+    price = models.FloatField(default=0.0)
 
     item_meal_id = models.IntegerField(null=True)
     sku_id = models.CharField(max_length=20,blank=True)
     num = models.IntegerField(null=True,default=0)
 
     outer_sku_id = models.CharField(max_length=20,blank=True)
-    total_fee = models.CharField(max_length=12,blank=True)
+    total_fee = models.FloatField(default=0.0)
 
-    payment = models.CharField(max_length=12,blank=True)
-    discount_fee = models.CharField(max_length=12,blank=True)
-    adjust_fee = models.CharField(max_length=12,blank=True)
+    payment = models.FloatField(default=0.0)
+    discount_fee = models.FloatField(default=0.0)
+    adjust_fee = models.FloatField(default=0.0)
 
     sku_properties_name = models.TextField(max_length=256,blank=True)
     refund_id = models.BigIntegerField(null=True)

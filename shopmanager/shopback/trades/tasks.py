@@ -8,6 +8,7 @@ from celery.task.sets import subtask
 from django.conf import settings
 from shopback import paramconfig as pcfg
 from shopback.orders.models import Trade,Order
+from shopback.trades.service import TradeService
 from shopback.items.models import Product,ProductSku
 from shopback.trades.models import MergeTrade,MergeBuyerTrade,ReplayPostTrade
 from shopback.base import log_action,User as DjangoUser, ADDITION, CHANGE
@@ -135,8 +136,9 @@ def sendTaobaoTradeTask(request_user_id,trade_id):
     """ 淘宝发货任务 """
     try:
         trade = MergeTrade.objects.get(id=trade_id)
-        if  not trade.is_picking_print or not trade.is_express_print or not trade.out_sid \
-            or trade.sys_status != pcfg.WAIT_PREPARE_SEND_STATUS:
+        if  (not trade.is_picking_print or 
+            not trade.is_express_print or not trade.out_sid 
+            or trade.sys_status != pcfg.WAIT_PREPARE_SEND_STATUS):
             return trade_id
         
         if trade.status == pcfg.WAIT_BUYER_CONFIRM_GOODS:
@@ -145,7 +147,7 @@ def sendTaobaoTradeTask(request_user_id,trade_id):
             trade.save()
             return trade_id
         
-        if trade.status != pcfg.WAIT_SELLER_SEND_GOODS or trade.reason_code != '' :
+        if trade.status != pcfg.WAIT_SELLER_SEND_GOODS or trade.reason_code  :
             trade.sys_status = pcfg.WAIT_AUDIT_STATUS
             trade.is_picking_print=False
             trade.is_express_print=False
@@ -161,72 +163,71 @@ def sendTaobaoTradeTask(request_user_id,trade_id):
             return trade_id
         
         error_msg = ''
-        main_post_success = False   
         company_name = trade.logistics_company.name
         out_sid   = trade.out_sid
+        
         try:
             merge_buyer_trades = []
             #判断是否有合单子订单
             if trade.has_merge:
-                merge_buyer_trades = MergeBuyerTrade.objects.filter(main_tid=trade.tid)
+                merge_buyer_trades = MergeBuyerTrade.objects.filter(main_tid=trade.id)
                 
             for sub_buyer_trade in merge_buyer_trades:
-                sub_post_success = False
+                
                 try:
                     sub_trade = MergeTrade.objects.get(tid=sub_buyer_trade.sub_tid)
-                    sub_trade.out_sid      = trade.out_sid
+                    sub_trade.out_sid           = trade.out_sid
                     sub_trade.logistics_company = trade.logistics_company
                     sub_trade.save()
                     if sub_trade.status == pcfg.WAIT_SELLER_SEND_GOODS:
-                        company_code = sub_trade.logistics_company.code if sub_trade.type==pcfg.COD_TYPE\
-                             else pcfg.SUB_TRADE_COMPANEY_CODE%sub_trade.logistics_company.name
-                        sub_trade.send_trade_to_taobao(company_code=company_code)
-                except Exception,exc:
-                    error_msg = exc.message
-                else:
-                    sub_post_success = True
+                        TradeService(sub_trade.user.visitor_id,sub_trade).sendTrade()
                         
-                if sub_post_success:
-                    sub_trade.operator=trade.operator
-                    sub_trade.sys_status=pcfg.FINISHED_STATUS
-                    sub_trade.consign_time=datetime.datetime.now()
-                    sub_trade.save()
-                    log_action(request_user_id,sub_trade,CHANGE,u'订单发货成功[%s:%s]'%(company_name,out_sid))
-                else:
+                except Exception,exc:
+                    
                     sub_trade.append_reason_code(pcfg.POST_SUB_TRADE_ERROR_CODE)
                     sub_trade.sys_status=pcfg.WAIT_AUDIT_STATUS
                     sub_trade.is_picking_print=False
                     sub_trade.is_express_print=False
                     sub_trade.save()
-                    log_action(request_user_id,sub_trade,CHANGE,u'订单发货失败：%s'%error_msg)
-                    raise SubTradePostException(error_msg)
-        
-            trade.send_trade_to_taobao()
+                    log_action(request_user_id,sub_trade,CHANGE,
+                               u'订单发货失败：%s'%exc.message)
+                    raise SubTradePostException(exc.message)
+                else:
+                    
+                    sub_trade.operator=trade.operator
+                    sub_trade.sys_status=pcfg.FINISHED_STATUS
+                    sub_trade.consign_time=datetime.datetime.now()
+                    sub_trade.save()
+                    log_action(request_user_id,sub_trade,CHANGE,
+                               u'订单发货成功[%s:%s]'%(company_name,out_sid))
+                        
+            TradeService(trade.user.visitor_id,trade).sendTrade()
         except SubTradePostException,exc:
             trade.append_reason_code(pcfg.POST_SUB_TRADE_ERROR_CODE)
             trade.sys_status=pcfg.WAIT_AUDIT_STATUS
             trade.save()
-            log_action(request_user_id,trade,CHANGE,u'子订单(%d)发货失败:%s'%(sub_trade.id,exc.message))
+            log_action(request_user_id,trade,CHANGE,
+                       u'子订单(%d)发货失败:%s'%(sub_trade.id,exc.message))
+            
         except Exception,exc:
-            error_msg = exc.message
-        else:
-            main_post_success = True
-                
-        if main_post_success:
-            trade.sys_status=pcfg.WAIT_CHECK_BARCODE_STATUS
-            trade.consign_time=datetime.datetime.now()
-            trade.save()
-            log_action(request_user_id,trade,CHANGE,u'订单发货成功[%s:%s]'%(company_name,out_sid))
-        else:
             trade.append_reason_code(pcfg.POST_MODIFY_CODE)
             trade.sys_status=pcfg.WAIT_AUDIT_STATUS
             trade.is_picking_print=False
             trade.is_express_print=False
             trade.save()                                                                                       
-            log_action(request_user_id,trade,CHANGE,u'订单发货失败:%s'%error_msg)
-            MergeTrade.objects.mergeRemover(trade.id)   
+            log_action(request_user_id,trade,CHANGE,
+                       u'订单发货失败:%s'%error_msg)
+            MergeTrade.objects.mergeRemover(trade) 
+            
+        else:
+            trade.sys_status=pcfg.WAIT_CHECK_BARCODE_STATUS
+            trade.consign_time=datetime.datetime.now()
+            trade.save()
+            log_action(request_user_id,trade,CHANGE,
+                       u'订单发货成功[%s:%s]'%(company_name,out_sid))
+                
     except Exception,exc:
-        logger.error('post trade error====='+exc.message,exc_info=True)
+        logger.error(u'发货异常:%s'%exc.message,exc_info=True)
 
     return trade_id
        
@@ -254,7 +255,8 @@ def importTradeFromFileTask(fileName):
             try:
                 seller_nick,tid = line.split(',')
                 if tid:
-                    subtask(saveTradeByTidTask).delay(tid,seller_nick.decode('gbk'))
+                    subtask(saveTradeByTidTask).delay(tid,
+                                                      seller_nick.decode('gbk'))
             except:
                 pass
     

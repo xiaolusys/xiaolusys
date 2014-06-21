@@ -53,37 +53,6 @@ def ruleMatchPayment(trade):
         logger.error(u'满就送规则错误:%s'%exc.message ,exc_info=True)
         
   
-def ruleMatchCode(trade):
-    """
-    编码映射
-    """
-    try:
-        for order in trade.merge_orders:
-            
-            try:
-                code_rule = ComposeRule.objects.get(outer_id=order.outer_id,
-                                                   outer_sku_id=order.outer_sku_id,
-                                                   type=pcfg.RULE_CODE_TYPE)
-                code_item = code_rule.compose_items[0]
-            except ComposeRule.DoesNotExist:
-                continue
-            else:
-                order.outer_id     = code_item.outer_id
-                order.outer_sku_id = code_item.outer_sku_id
-                
-                update_model_fields(order,update_fields=['outer_id','outer_sku_id'])
-                
-                log_action(trade.user.user.id,trade,CHANGE,
-                           u'编码映射:(%s,%s)->(%s,%s)'%(code_rule.outer_id,
-                                                        code_rule.outer_sku_id,
-                                                        order.outer_id,
-                                                        order.outer_sku_id))
-                    
-    except Exception,exc:
-        trade.append_reason_code(pcfg.CODE_RULE_ERROR_CODE)
-        logger.error(u'编码映射失败:%s'%exc.message ,exc_info=True)
-        
-  
   
 def ruleMatchSplit(trade): 
      

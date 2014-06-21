@@ -27,7 +27,7 @@ class RefundHandler(BaseHandler):
             
     def atTRADE_CLOSED(self,merge_trade):
         
-        merge_type = MergeBuyerTrade.get_merge_type(merge_trade.id)
+        merge_type = MergeBuyerTrade.getMergeType(merge_trade.id)
         if merge_type == pcfg.SUB_MERGE_TYPE:
             mbt = MergeBuyerTrade.objects.get(sub_tid=merge_trade.tid)
             MergeTrade.objects.get(tid=mbt.main_tid).append_reason_code(pcfg.NEW_REFUND_CODE)

@@ -18,8 +18,6 @@ import logging
 
 logger = logging.getLogger('notifyserver.handler')
 
-CONSUME_MAX_RECODES = 200
-
 class EmptyMessage(Exception):
     #for memo empty exception
     def __init__(self,msg=''):
@@ -80,10 +78,10 @@ class NotifyCommand():
         
         response = apis.taobao_tmc_messages_consume(
                                                     group_name=self.group_name,
-                                                    quantity=CONSUME_MAX_RECODES,
+                                                    quantity=self.user.quantity,
                                                     tb_user_id=self.user.user_id)
         
-        message  = self.getMessageFromResp(response)
+        messages  = self.getMessageFromResp(response)
         self.handle_message(messages)
         
         
@@ -91,9 +89,10 @@ class NotifyCommand():
         
         if settings.DEBUG:
             for m in messages:
-                print self.messageProcessor(m)
+                print 'debug message:',m
+                self.messageProcessor(m)
         else:
-            group([self.messageProcessor.s(m) for m in messages])
+            group([self.messageProcessor.s(m) for m in messages]).apply_async()
     
         
 if __name__ == '__main__':
@@ -107,6 +106,6 @@ if __name__ == '__main__':
         print >> sys.stderr, "usage: python *.py <group_name>"
     
     c = NotifyCommand(group_name=sys.argv[1])
-    #c.handle_daemon()
-    c.handle_message(ms)
+    c.handle_daemon()
+    #c.handle_message(ms)
         

@@ -140,8 +140,12 @@ class WeiXinAPI(object):
     
     def createQRcode(self,action_name,action_info,scene_id,expire_seconds=0):
         
-        action_name = type(action_name)==unicode and action_name.encode('utf8') and action_name
-        params = {"action_name":action_name ,"action_info": {"scene": {"scene_id": scene_id}}}
+        action_name = (type(action_name)==unicode and 
+                       action_name.encode('utf8') and 
+                       action_name)
+        
+        params = {"action_name":action_name ,
+                  "action_info": {"scene": {"scene_id": scene_id}}}
         if action_name=='QR_SCENE':
             params.update(expire_seconds=expire_seconds)
             
@@ -188,16 +192,20 @@ class WeiXinAPI(object):
                                   method='POST')
         
     def getOrderById(self,order_id):
-        return self.handleRequest(self._merchant_order_getbyid_uri, 
+        
+        response = self.handleRequest(self._merchant_order_getbyid_uri, 
                                   {'order_id':order_id},
                                   method='POST')
+        return response['order']
         
     def getOrderByFilter(self,status,begintime,endtime):
-        return self.handleRequest(self._merchant_order_getbyfilter_uri, 
+        
+        response = self.handleRequest(self._merchant_order_getbyfilter_uri, 
                                   {'status':status,
                                    'begintime':begintime,
                                    'endtime':endtime},
                                   method='POST')
+        return response['order_list']
         
     def deliveryOrder(self,order_id,delivery_company,delivery_track_no):
         return self.handleRequest(self._merchant_order_setdelivery_uri, 

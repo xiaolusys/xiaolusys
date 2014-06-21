@@ -2,7 +2,7 @@
 from django.conf import settings
 from .handler import BaseHandler
 from shopback.trades.models import MergeTrade
-from shopapp.memorule import ruleMatchPayment,ruleMatchCode,ruleMatchSplit
+from shopapp.memorule import ruleMatchPayment,ruleMatchSplit
 from shopback import paramconfig as pcfg
 from common.modelutils import  update_model_fields
 
@@ -18,10 +18,9 @@ class SplitHandler(BaseHandler):
         if settings.DEBUG:
             print 'DEBUG COMPOSE:',merge_trade
             
-        #编码映射
-        #ruleMatchCode(merge_trade)
         #组合拆分
         ruleMatchSplit(merge_trade)
+        
         #金额匹配
         ruleMatchPayment(merge_trade)
         

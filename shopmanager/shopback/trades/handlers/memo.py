@@ -36,7 +36,7 @@ class MemoHandler(BaseHandler):
         new_memo = (merge_trade.buyer_message != buyer_message 
                     or merge_trade.seller_memo  != seller_memo)
         
-        return new_memo or (kwargs.get('first_pay_load',None) or has_memo)
+        return new_memo or (kwargs.get('first_pay_load',None) and has_memo)
                 
             
     def process(self,merge_trade,*args,**kwargs):

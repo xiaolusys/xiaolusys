@@ -105,4 +105,29 @@ class ProductManager(models.Manager):
         except (Product.DoesNotExist,ProductSku.DoesNotExsit):
             raise ProductDefectException(u'(%s,%s)编码组合未匹配到商品')
         
+    def reduceWaitPostNumByCode(self,outer_id,outer_sku_id,order_num):
+        
+        from .models import ProductSku
+        try:
+            if outer_sku_id:
+                product_sku = ProductSku.objects.get(outer_id=outer_sku_id,
+                                                     product__outer_id=outer_id)
+                product_sku.update_wait_post_num(order_num,dec_update=True)
+                
+            else:
+                product = self.get(outer_id=outer_id)
+                product.update_wait_post_num(order_num,dec_update=True)
+                
+        except (Product.DoesNotExist,ProductSku.DoesNotExsit):
+            raise ProductDefectException(u'(%s,%s)编码组合未匹配到商品')
+        
+    def trancecode(self,outer_id,outer_sku_id):
+        
+        if outer_sku_id :
+            index  = outer_sku_id.rfind(self.model.PRODUCT_CODE_DELIMITER)
+            if index > 0:
+                return outer_sku_id[0:index],outer_sku_id[index:]
+        
+        return outer_id,outer_sku_id
+    
     

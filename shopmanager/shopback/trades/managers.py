@@ -100,13 +100,19 @@ class MergeTradeManager(models.Manager):
     
     def updateWaitPostNum(self,trade):
         
-        if outer_sku_id :
-            ProductSku.objects.get(outer_id=outer_sku_id,
-                                    product__outer_id=outer_id)
-        else:
-            Product.objects.get(outer_id=outer_id)
-            product.update_wait_post_num(order.num)
+        for order in trade.inuse_orders:
+            Product.objects.updateWaitPostNumByCode(order.outer_id,
+                                                    order.outer_sku_id,
+                                                    order.num)
+            
     
+    def reduceWaitPostNum(self,trade):
+        
+        for order in trade.inuse_orders:
+            Product.objects.reduceWaitPostNumByCode(order.outer_id,
+                                                    order.outer_sku_id,
+                                                    order.num)
+        
     def isOrderDefect(self,outer_id,outer_sku_id):
         
         try:
@@ -210,10 +216,10 @@ class MergeTradeManager(models.Manager):
         return trades.count() > 0
             
     
-    def isValidPubTime(cls,trade,modified):
+    def isValidPubTime(self,userId,trade,modified):
         
         if not isinstance(trade,self.model):
-            trade = self.get(tid=trade) 
+            trade = self.get(user__visitor_id=userId,tid=trade) 
 
         if (not trade.modified or 
             trade.modified < modified or 
@@ -221,9 +227,20 @@ class MergeTradeManager(models.Manager):
             
                 return True
         return False
+    
+    def updatePubTime(self,userId,trade,modified):
+        
+        if not isinstance(trade,self.model):
+            trade = self.get(user__visitor_id=userId,tid=trade) 
 
+        trade.modified = modified
+        
+        update_model_fields(trade,update_fields=['modified'])
+        
 
     def mapTradeFromToCode(self,trade_from):
+        
+        from .models import TF_CODE_MAP
         
         from_code = 0
         from_list = trade_from.split(',')
@@ -231,6 +248,8 @@ class MergeTradeManager(models.Manager):
             from_code |= TF_CODE_MAP.get(f.upper(),0)
             
         return from_code
+    
+    
     
     
  

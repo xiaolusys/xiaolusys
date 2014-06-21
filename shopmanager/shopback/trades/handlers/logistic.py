@@ -9,7 +9,7 @@ class LogisticsHandler(BaseHandler):
     
     def handleable(self,merge_trade,*args,**kwargs):
         return (kwargs.get('first_pay_load',None) 
-                and not merge_trade.logistics_company)
+                or not merge_trade.logistics_company)
             
             
     def getLogisticCompany(self,merge_trade):
@@ -28,11 +28,9 @@ class LogisticsHandler(BaseHandler):
         
         if shipping_type == pcfg.EXPRESS_SHIPPING_TYPE.upper():
                         
-            return LogisticsCompany.get_recommend_express(
-                                         receiver_state,
-                                         receiver_city,
-                                         receiver_district)
-          
+            return LogisticsCompany.get_recommend_express(state,
+                                                          city,
+                                                          district)
                 
         elif shipping_type in (pcfg.POST_SHIPPING_TYPE.upper(),
                                pcfg.EMS_SHIPPING_TYPE.upper()):
@@ -45,16 +43,16 @@ class LogisticsHandler(BaseHandler):
         if settings.DEBUG:
             print 'DEBUG LOGISTIC:',merge_trade
         
-        try:
-            if merge_trade.is_force_wlb:
-                merge_trade.append_reason_code(pcfg.TRADE_BY_WLB_CODE)
-            
-            merge_trade.logistics_company = self.getLogisticCompany(merge_trade)
-            
-            update_model_fields(merge_trade,update_fields=['logistics_company'])
+#        try:
+        if merge_trade.is_force_wlb:
+            merge_trade.append_reason_code(pcfg.TRADE_BY_WLB_CODE)
         
-        except Exception,exc:
-            merge_trade.append_reason_code(pcfg.DISTINCT_RULE_CODE)
+        merge_trade.logistics_company = self.getLogisticCompany(merge_trade)
+        
+        update_model_fields(merge_trade,update_fields=['logistics_company'])
+        
+#        except Exception,exc:
+#            merge_trade.append_reason_code(pcfg.DISTINCT_RULE_CODE)
         
 
 

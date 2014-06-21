@@ -159,7 +159,7 @@ class PurchaseOrder(models.Model):
 
     distributor_from   = models.CharField(max_length=20,blank=True)
     distributor_username    = models.CharField(max_length=32,blank=True)
-    distributor_payment     = models.CharField(max_length=10,blank=True)
+    distributor_payment     = models.FloatField(default=0.0)
 
     logistics_id       = models.CharField(db_index=True,max_length=64,blank=True)
     logistics_company_name  = models.CharField(max_length=64,blank=True)
@@ -168,8 +168,8 @@ class PurchaseOrder(models.Model):
     pay_time   = models.DateTimeField(db_index=True,null=True,blank=True)
     pay_type   = models.CharField(max_length=32,choices=PAY_TYPE_CHOICES,blank=True)
 
-    post_fee   = models.CharField(max_length=10,blank=True)
-    total_fee  = models.CharField(max_length=10,blank=True)
+    post_fee   = models.FloatField(default=0.0)
+    total_fee  = models.FloatField(default=0.0)
 
     shipping   = models.CharField(max_length=10,blank=True)
     trade_type = models.CharField(max_length=10,blank=True)
@@ -231,24 +231,26 @@ class SubPurchaseOrder(models.Model):
     fenxiao_id       = models.CharField(max_length=64,primary_key=True)
     id               = models.CharField(max_length=64,blank=True)
     
-    purchase_order   = models.ForeignKey(PurchaseOrder,null=True,related_name='sub_purchase_orders')
+    purchase_order   = models.ForeignKey(PurchaseOrder,null=True,
+                                         related_name='sub_purchase_orders')
     
     sku_id           = models.CharField(max_length=64,blank=True)
     tc_order_id      = models.CharField(max_length=64,blank=True)
     
-    fenxiao_product  = models.ForeignKey(FenxiaoProduct,null=True,related_name='sub_purchase_orders')
+    fenxiao_product  = models.ForeignKey(FenxiaoProduct,null=True,
+                                         related_name='sub_purchase_orders')
     item_id          = models.CharField(max_length=64,blank=True)
     title            = models.CharField(max_length=64,blank=True)
     
     num              = models.IntegerField(null=True)
-    price            = models.CharField(max_length=10,blank=True)
+    price            = models.FloatField(default=0.0)
     
-    total_fee        = models.CharField(max_length=10,blank=True)
-    distributor_payment  = models.CharField(max_length=10,blank=True)
-    buyer_payment    = models.CharField(max_length=10,blank=True)
+    total_fee        = models.FloatField(default=0.0)
+    distributor_payment  = models.FloatField(default=0.0)
+    buyer_payment    = models.FloatField(default=0.0)
     
     order_200_status = models.CharField(max_length=32,blank=True)
-    auction_price    = models.CharField(max_length=10,blank=True)
+    auction_price    = models.FloatField(default=0.0)
     
     old_sku_properties  = models.TextField(max_length=1000,blank=True)
     
@@ -259,8 +261,9 @@ class SubPurchaseOrder(models.Model):
     snapshot_url     = models.CharField(max_length=256,blank=True)
     created          = models.DateTimeField(null=True)
     
-    refund_fee       = models.CharField(max_length=10,blank=True)
-    status           = models.CharField(max_length=32,choices=SUB_PURCHASE_ORDER_STATUS,blank=True)
+    refund_fee       = models.FloatField(default=0.0)
+    status           = models.CharField(max_length=32,
+                                choices=SUB_PURCHASE_ORDER_STATUS,blank=True)
     
     class Meta:
         db_table = 'shop_fenxiao_subpurchaseorder'

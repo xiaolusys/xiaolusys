@@ -138,6 +138,16 @@ def updateAllUserIncrementOrdersTask(update_from=None,update_to=None):
                 monitor_status.update_trade_increment = True
                 monitor_status.save()
 
+@single_instance_task(12*60*60,prefix='shopback.orders.tasks.')
+def updateAllUserWaitPostOrderTask():
+    
+    try:
+        users   = User.effect_users.filter(type__in=('B','C'))
+        for user in users:
+            saveUserDuringOrdersTask(user.visitor_id,
+                                     status=pcfg.WAIT_SELLER_SEND_GOODS)
+    except Exception,exc:
+        logger.error('%s'%exc,exc_info=True)
 
 
 @single_instance_task(60*60,prefix='shopback.orders.tasks.')

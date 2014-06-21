@@ -397,7 +397,7 @@ class ProductSkuView(ModelView):
                     check_fields.remove(k)
                 if k in ('wait_post_num','remain_num','warn_num'):
                     v = int(v)
-                setattr(product_sku,k,v) 
+                setattr(product_sku,k,v)
             
             if update_check:
                 for k in check_fields:
@@ -410,7 +410,8 @@ class ProductSkuView(ModelView):
         except Exception,exc:
             return u'填写信息不规则'
         
-        log_action(request.user.id,product_sku.product,CHANGE,u'更新商品规格信息:%s'%unicode(product_sku))
+        log_action(request.user.id,product_sku.product,CHANGE,
+                   u'更新商品规格信息:%s'%unicode(product_sku))
         
         return product_sku.json
     
@@ -426,8 +427,15 @@ class ProductSearchView(ModelView):
             return '没有输入查询关键字'.decode('utf8')
         products = Product.objects.filter(Q(outer_id=q)|Q(name__contains=q),status__in=(pcfg.NORMAL,pcfg.REMAIN))
         
-        prod_list = [(prod.outer_id,prod.pic_path,prod.name,prod.cost,prod.collect_num,prod.created,[(sku.outer_id,sku.name,sku.quantity) for sku in 
-                    prod.pskus.order_by('-created')]) for prod in products]
+        prod_list = [(prod.outer_id,
+                      prod.pic_path,
+                      prod.name,
+                      prod.cost,
+                      prod.collect_num,
+                      prod.created,
+                      [(sku.outer_id,sku.name,sku.quantity) 
+                       for sku in prod.pskus.order_by('-created')]) 
+                       for prod in products]
         
         return prod_list
 
@@ -619,7 +627,8 @@ class ProductOrSkuStatusMdView(ModelView):
         row = queryset.update(status=status)
         
         log_action(request.user.id,queryset[0].product,CHANGE,
-                   u'更改规格库存状态:%s,%s'%(outer_sku_id or sku_id,dict(ONLINE_PRODUCT_STATUS).get(status)))
+                   u'更改规格库存状态:%s,%s'%(outer_sku_id or sku_id,
+                    dict(ONLINE_PRODUCT_STATUS).get(status)))
         
         return {'updates_num':row}
 

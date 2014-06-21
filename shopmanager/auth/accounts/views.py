@@ -41,7 +41,9 @@ def login_taobo(request):
     top_session = request.session.get('top_session',None)
     top_parameters = request.session.get('top_parameters',None)
 
-    taobao_logged_in.send(sender='web',user=user,top_session=top_session,top_parameters=top_parameters)
+    taobao_logged_in.send(sender='web',user=user,
+                          top_session=top_session,
+                          top_parameters=top_parameters)
 
     logger.info('user %s logged in.' % user.username)
 

@@ -43,6 +43,8 @@ PRODUCT_STATUS = (
 class Product(models.Model):
     """ 系统商品（根据淘宝外部编码) """
     
+    PRODUCT_CODE_DELIMITER = '.'
+    
     outer_id     = models.CharField(max_length=64,unique=True,null=False,
                                     blank=True,verbose_name=u'外部编码')
     name         = models.CharField(max_length=64,blank=True,verbose_name=u'商品名称')
@@ -75,10 +77,11 @@ class Product(models.Model):
     is_match   = models.BooleanField(default=False,verbose_name=u'有匹配')
     
     sync_stock   = models.BooleanField(default=True,verbose_name=u'库存同步')
-    is_assign    = models.BooleanField(default=False,verbose_name=u'取消警告') #是否手动分配库存，当库存充足时，系统自动设为False，手动分配过后，确定后置为True
+    is_assign    = models.BooleanField(default=False,verbose_name=u'取消警告') 
     
     post_check   = models.BooleanField(default=False,verbose_name=u'需扫描')
-    status       = models.CharField(max_length=16,db_index=True,choices=ONLINE_PRODUCT_STATUS,
+    status       = models.CharField(max_length=16,db_index=True,
+                                    choices=ONLINE_PRODUCT_STATUS,
                                     default=pcfg.NORMAL,verbose_name=u'商品状态')
     
     match_reason = models.CharField(max_length=80,blank=True,verbose_name=u'匹配原因')
@@ -507,35 +510,37 @@ class ProductSku(models.Model):
 def calculate_product_stock_num(sender, instance, *args, **kwargs):
     """修改SKU库存后，更新库存商品的总库存 """
     product = instance.product
-    if product:
-        product_skus = product.pskus
- 
-        if product_skus.count()>0:
-            product_dict  = product_skus.aggregate(total_collect_num=Sum('quantity'),
-                                                   total_warn_num=Sum('warn_num'),
-                                                   total_remain_num=Sum('remain_num'),
-                                                   total_post_num=Sum('wait_post_num'),
-                                                   total_reduce_num=Sum('reduce_num'),
-                                                   avg_cost=Avg('cost'),
-                                                   avg_purchase_price=Avg('std_purchase_price'),
-                                                   avg_agent_price=Avg('agent_price'),
-                                                   avg_staff_price=Avg('staff_price'))
-
-            product.collect_num  =  product_dict.get('total_collect_num') or 0
-            product.warn_num     =  product_dict.get('total_warn_num') or 0
-            product.remain_num   =  product_dict.get('total_remain_num') or 0
-            product.wait_post_num  =  product_dict.get('total_post_num') or 0
-            product.reduce_num   =  product_dict.get('reduce_num') or 0
-                
-            product.cost               = "{0:.2f}".format(product_dict.get('avg_cost') or 0)
-            product.std_purchase_price = "{0:.2f}".format(product_dict.get('avg_purchase_price') or 0)
-            product.agent_price        = "{0:.2f}".format(product_dict.get('avg_agent_price') or 0)
-            product.staff_price        = "{0:.2f}".format(product_dict.get('avg_staff_price') or 0)
+    if not product:
+        return
+    
+    product_skus = product.pskus
+    
+    if product_skus.count()>0:
+        product_dict  = product_skus.aggregate(total_collect_num=Sum('quantity'),
+                                               total_warn_num=Sum('warn_num'),
+                                               total_remain_num=Sum('remain_num'),
+                                               total_post_num=Sum('wait_post_num'),
+                                               total_reduce_num=Sum('reduce_num'),
+                                               avg_cost=Avg('cost'),
+                                               avg_purchase_price=Avg('std_purchase_price'),
+                                               avg_agent_price=Avg('agent_price'),
+                                               avg_staff_price=Avg('staff_price'))
+    
+        product.collect_num  =  product_dict.get('total_collect_num') or 0
+        product.warn_num     =  product_dict.get('total_warn_num') or 0
+        product.remain_num   =  product_dict.get('total_remain_num') or 0
+        product.wait_post_num  =  product_dict.get('total_post_num') or 0
+        product.reduce_num   =  product_dict.get('reduce_num') or 0
+            
+        product.cost               = "{0:.2f}".format(product_dict.get('avg_cost') or 0)
+        product.std_purchase_price = "{0:.2f}".format(product_dict.get('avg_purchase_price') or 0)
+        product.agent_price        = "{0:.2f}".format(product_dict.get('avg_agent_price') or 0)
+        product.staff_price        = "{0:.2f}".format(product_dict.get('avg_staff_price') or 0)
         
-        product.is_split    = product_skus.filter(is_split=True)>0    
-        product.is_match    = product_skus.filter(is_match=True)>0 
-        
-        product.save()
+    product.is_split    = product_skus.filter(is_split=True).count() > 0    
+    product.is_match    = product_skus.filter(is_match=True).count() > 0 
+    
+    product.save()
         
     
 post_save.connect(calculate_product_stock_num, sender=ProductSku, dispatch_uid='calculate_product_num')

@@ -36,7 +36,6 @@ SYS_TRADE_STATUS = (
     (pcfg.INVALID_STATUS,u'已作废'),
     (pcfg.ON_THE_FLY_STATUS,u'飞行模式'),
     (pcfg.REGULAR_REMAIN_STATUS,u'定时提醒'),
-    (pcfg.EMPTY_STATUS,u'空状态'),
 )
 
 SYS_ORDER_STATUS = (
@@ -45,14 +44,14 @@ SYS_ORDER_STATUS = (
 )
 
 TAOBAO_TRADE_STATUS = (
-    (pcfg.TRADE_NO_CREATE_PAY,u'没有创建支付宝交易'),
-    (pcfg.WAIT_BUYER_PAY,u'等待买家付款'),
-    (pcfg.WAIT_SELLER_SEND_GOODS,u'等待卖家发货'),
-    (pcfg.WAIT_BUYER_CONFIRM_GOODS,u'等待买家确认收货'),
-    (pcfg.TRADE_BUYER_SIGNED,u'已签收,货到付款专用'),
+    (pcfg.TRADE_NO_CREATE_PAY,u'订单创建'),
+    (pcfg.WAIT_BUYER_PAY,u'待付款'),
+    (pcfg.WAIT_SELLER_SEND_GOODS,u'待发货'),
+    (pcfg.WAIT_BUYER_CONFIRM_GOODS,u'待确认收货'),
+    (pcfg.TRADE_BUYER_SIGNED,u'货到付款签收'),
     (pcfg.TRADE_FINISHED,u'交易成功'),
-    (pcfg.TRADE_CLOSED,u'退款成功交易自动关闭'),
-    (pcfg.TRADE_CLOSED_BY_TAOBAO,u'付款前关闭交易'),
+    (pcfg.TRADE_CLOSED,u'退款交易关闭'),
+    (pcfg.TRADE_CLOSED_BY_TAOBAO,u'未付款关闭'),
 )
 
 TAOBAO_ORDER_STATUS = (
@@ -74,7 +73,7 @@ TAOBAO_ORDER_STATUS = (
 )
 
 TRADE_TYPE = (
-    (pcfg.TAOBAO_TYPE,u'淘宝'),
+    (pcfg.TAOBAO_TYPE,u'淘宝商城'),
     (pcfg.FENXIAO_TYPE,u'淘宝分销'),
     (pcfg.JD_TYPE,u'京东'),
     (pcfg.YHD_TYPE,u'一号店'),
@@ -108,9 +107,9 @@ SHIPPING_TYPE_CHOICE = (
 )
 
 PRIORITY_TYPE = (
-    (pcfg.PRIORITY_HIG,u'低'),
+    (pcfg.PRIORITY_HIG,u'高'),
     (pcfg.PRIORITY_MID,u'中'),
-    (pcfg.PRIORITY_LOW,u'高'),
+    (pcfg.PRIORITY_LOW,u'低'),
 )
 
 GIFT_TYPE = (
@@ -131,7 +130,6 @@ class MergeTrade(models.Model):
     SHIPPING_TYPE_CHOICE = SHIPPING_TYPE_CHOICE
     PRIORITY_TYPE    = PRIORITY_TYPE
     
-    
     id    = BigIntegerAutoField(primary_key=True,db_index=True,verbose_name=u'订单ID')
     
     tid   = models.CharField(max_length=32,
@@ -147,22 +145,21 @@ class MergeTrade(models.Model):
     
     order_num  =   models.IntegerField(default=0,verbose_name=u'单数')
     prod_num   =   models.IntegerField(default=0,verbose_name=u'品类数')
-    payment    =   models.CharField(max_length=10,blank=True,verbose_name=u'实付款')
-    discount_fee = models.CharField(max_length=10,blank=True,verbose_name=u'折扣')
-    adjust_fee =   models.CharField(max_length=10,blank=True,verbose_name=u'调整费用')
-    post_fee   =   models.CharField(max_length=10,blank=True,verbose_name=u'物流费用')
-    total_fee  =   models.CharField(max_length=10,blank=True,verbose_name=u'总费用')
-    alipay_no  =   models.CharField(max_length=128,blank=True,verbose_name=u'用户支付宝帐号')
+    payment    =   models.FloatField(default=0.0,verbose_name=u'实付款')
+    discount_fee = models.FloatField(default=0.0,verbose_name=u'折扣')
+    adjust_fee =   models.FloatField(default=0.0,verbose_name=u'调整费用')
+    post_fee   =   models.FloatField(default=0.0,verbose_name=u'物流费用')
+    total_fee  =   models.FloatField(default=0.0,verbose_name=u'总费用')
     
     is_cod         =   models.BooleanField(default=False,verbose_name=u'货到付款')
-    seller_cod_fee = models.CharField(max_length=10,blank=True,verbose_name=u'卖家货到付款费用')
-    buyer_cod_fee  = models.CharField(max_length=10,blank=True,verbose_name=u'买家货到付款费用')
-    cod_fee        = models.CharField(max_length=10,blank=True,verbose_name=u'货到付款费用')
+    seller_cod_fee = models.FloatField(default=0.0,verbose_name=u'COD卖家费用')
+    buyer_cod_fee  = models.FloatField(default=0.0,verbose_name=u'COD买家费用')
+    cod_fee        = models.FloatField(default=0.0,verbose_name=u'COD费用')
     cod_status     = models.CharField(max_length=32,blank=True,
-                                      choices=COD_STATUS,verbose_name=u'货到付款状态')
+                                      choices=COD_STATUS,verbose_name=u'COD状态')
     
     weight        = models.CharField(max_length=10,blank=True,verbose_name=u'包裹重量')
-    post_cost     = models.CharField(max_length=10,blank=True,verbose_name=u'物流成本')
+    post_cost     = models.FloatField(default=0.0,verbose_name=u'物流成本')
     
     buyer_message = models.TextField(max_length=1000,blank=True,verbose_name=u'买家留言')
     seller_memo   = models.TextField(max_length=1000,blank=True,verbose_name=u'卖家备注')
@@ -194,17 +191,22 @@ class MergeTrade(models.Model):
     seller_can_rate = models.BooleanField(default=False,verbose_name=u'卖家可评') 
     is_part_consign = models.BooleanField(default=False,verbose_name=u'分单发货')  
     
-    out_sid         = models.CharField(max_length=64,db_index=True,blank=True,verbose_name=u'物流编号')
-    logistics_company  = models.ForeignKey(LogisticsCompany,null=True,blank=True,verbose_name=u'物流公司')
-    receiver_name    =  models.CharField(max_length=64,db_index=True,blank=True,verbose_name=u'收货人姓名')
+    out_sid         = models.CharField(max_length=64,db_index=True,
+                                       blank=True,verbose_name=u'物流编号')
+    logistics_company  = models.ForeignKey(LogisticsCompany,null=True,
+                                           blank=True,verbose_name=u'物流公司')
+    receiver_name    =  models.CharField(max_length=25,db_index=True,
+                                         blank=True,verbose_name=u'收货人姓名')
     receiver_state   =  models.CharField(max_length=16,blank=True,verbose_name=u'省')
     receiver_city    =  models.CharField(max_length=16,blank=True,verbose_name=u'市')
     receiver_district  =  models.CharField(max_length=16,blank=True,verbose_name=u'区')
     
     receiver_address   =  models.CharField(max_length=128,blank=True,verbose_name=u'详细地址')
     receiver_zip       =  models.CharField(max_length=10,blank=True,verbose_name=u'邮编')
-    receiver_mobile    =  models.CharField(max_length=20,db_index=True,blank=True,verbose_name=u'手机')
-    receiver_phone     =  models.CharField(max_length=20,db_index=True,blank=True,verbose_name=u'电话')
+    receiver_mobile    =  models.CharField(max_length=24,db_index=True,
+                                           blank=True,verbose_name=u'手机')
+    receiver_phone     =  models.CharField(max_length=20,db_index=True,
+                                           blank=True,verbose_name=u'电话')
     
     step_paid_fee      = models.CharField(max_length=10,blank=True,verbose_name=u'分阶付款金额')
     step_trade_status  = models.CharField(max_length=32,choices=STEP_TRADE_STATUS,
@@ -212,7 +214,7 @@ class MergeTrade(models.Model):
     
     reason_code = models.CharField(max_length=100,blank=True,verbose_name=u'问题编号')  #1,2,3 问题单原因编码集合
     status      = models.CharField(max_length=32,db_index=True,choices=TAOBAO_TRADE_STATUS,
-                                        blank=True,verbose_name=u'淘宝订单状态')
+                                        blank=True,verbose_name=u'订单状态')
         
     is_picking_print = models.BooleanField(default=False,verbose_name=u'发货单')
     is_express_print = models.BooleanField(default=False,verbose_name=u'物流单')
@@ -227,7 +229,7 @@ class MergeTrade(models.Model):
     refund_num       = models.IntegerField(null=True,default=0,verbose_name=u'退款单数')  #退款单数
     
     is_qrcode        = models.BooleanField(default=False,verbose_name=u'热敏订单')
-    qrcode_msg       = models.CharField(max_length=32,blank=True,verbose_name=u'条码错误')
+    qrcode_msg       = models.CharField(max_length=32,blank=True,verbose_name=u'打印信息')
     
     can_review       = models.BooleanField(default=False,verbose_name=u'复审') 
     priority       =  models.IntegerField(db_index=True,default=0,
@@ -297,8 +299,8 @@ class MergeTrade(models.Model):
                                    pcfg.WAIT_SCAN_WEIGHT_STATUS)
     
     def isPostScan(self):
-        return self.status in (self.WAIT_CHECK_BARCODE_STATUS,
-                               self.WAIT_SCAN_WEIGHT_STATUS)
+        return self.status in (pcfg.WAIT_CHECK_BARCODE_STATUS,
+                               pcfg.WAIT_SCAN_WEIGHT_STATUS)
     
     
     
@@ -318,7 +320,7 @@ class MergeTrade(models.Model):
             order_num = order.num
             prod     = None
             prod_sku = None
-            is_reverse = (False if order.gift_type == pcfg.RETURN_GOODS_GIT_TYPE else True)
+            is_reverse = order.gift_type != pcfg.RETURN_GOODS_GIT_TYPE 
             
             if outer_sku_id and outer_id:
                 prod_sku = ProductSku.objects.get(outer_id=outer_sku_id,product__outer_id=outer_id)
@@ -410,7 +412,6 @@ class MergeTrade(models.Model):
         self.buyer_message = '|'.join(['%s:%s'%(k,v) for k,v in msg_dict.items()])
         
         update_model_fields(self,update_fields=['buyer_message'])
-        
         self.append_reason_code(pcfg.NEW_MEMO_CODE)
         
         return self.buyer_message
@@ -518,7 +519,7 @@ class MergeOrder(models.Model):
     cid    = models.BigIntegerField(db_index=True,null=True,verbose_name=u'商品分类')
     num_iid  = models.CharField(max_length=64,blank=True,verbose_name=u'线上商品编号')
     title  =  models.CharField(max_length=128,blank=True,verbose_name=u'商品标题')
-    price  = models.CharField(max_length=12,blank=True,verbose_name=u'单价')
+    price  = models.FloatField(default=0.0,verbose_name=u'单价')
 
     sku_id = models.CharField(max_length=20,blank=True,verbose_name=u'属性编码')
     num = models.IntegerField(null=True,default=0,verbose_name=u'商品数量')
@@ -526,10 +527,10 @@ class MergeOrder(models.Model):
     outer_id = models.CharField(max_length=64,blank=True,verbose_name=u'商品外部编码')
     outer_sku_id = models.CharField(max_length=20,blank=True,verbose_name=u'规格外部编码')
     
-    total_fee = models.CharField(max_length=12,blank=True,verbose_name=u'总费用')
-    payment = models.CharField(max_length=12,blank=True,verbose_name=u'实付款')
-    discount_fee = models.CharField(max_length=12,blank=True,verbose_name=u'折扣')
-    adjust_fee = models.CharField(max_length=12,blank=True,verbose_name=u'调整费用')
+    total_fee    = models.FloatField(default=0.0,verbose_name=u'总费用')
+    payment      = models.FloatField(default=0.0,verbose_name=u'实付款')
+    discount_fee = models.FloatField(default=0.0,verbose_name=u'折扣')
+    adjust_fee   = models.FloatField(default=0.0,verbose_name=u'调整费用')
 
     sku_properties_name = models.CharField(max_length=256,blank=True,
                                            verbose_name=u'购买商品规格')
@@ -554,12 +555,12 @@ class MergeOrder(models.Model):
     gift_type   = models.IntegerField(choices=GIFT_TYPE,default=0,verbose_name=u'类型')
     
     status = models.CharField(max_length=32,choices=TAOBAO_ORDER_STATUS,
-                              blank=True,verbose_name=u'淘宝订单状态')
+                              blank=True,verbose_name=u'订单状态')
     sys_status = models.CharField(max_length=32,
                                   choices=SYS_ORDER_STATUS,
                                   blank=True,
                                   default='',
-                                  verbose_name=u'系统订单状态')
+                                  verbose_name=u'系统状态')
     
     class Meta:
         db_table = 'shop_trades_mergeorder'
@@ -743,16 +744,16 @@ class ReplayPostTrade(models.Model):
     
     fid        =  models.BigIntegerField(default=0,verbose_name=u'父批次号') #正常0，合并-1，合并子单 父ID
     
-    post_data  =  models.TextField(blank=True,verbose_name=u'发货清单数据')
+    post_data  =  models.TextField(blank=True,verbose_name=u'清单数据')
     
     order_num  =  models.BigIntegerField(default=0,verbose_name=u'发货单数')
     trade_ids  =  models.TextField(blank=True,verbose_name=u'订单编号')
     
     succ_num   =  models.BigIntegerField(default=0,verbose_name=u'成功单数')
-    succ_ids   =  models.TextField(blank=True,verbose_name=u'成功订单数据')
+    succ_ids   =  models.TextField(blank=True,verbose_name=u'成功订单ID')
     
     created    =  models.DateTimeField(null=True,db_index=True,auto_now_add=True,verbose_name=u'创建日期')
-    finished   =  models.DateTimeField(blank=True,db_index=True,null=True,verbose_name=u'发货完成日期')
+    finished   =  models.DateTimeField(blank=True,db_index=True,null=True,verbose_name=u'完成日期')
     
     receiver   =  models.CharField(max_length=32,db_index=True,blank=True,verbose_name=u'接单人')
     rece_date  =  models.DateTimeField(blank=True,null=True,db_index=True,verbose_name=u'接单时间')
@@ -766,7 +767,9 @@ class ReplayPostTrade(models.Model):
         verbose_name_plural = u'发货清单列表'
 
     def __unicode__(self):
-        return '<%d,%s,%s,%s>'%(self.id,self.operator,self.receiver,dict(REPLAY_TRADE_STATUS).get(self.status,''))    
+        return '<%d,%s,%s,%s>'%(self.id,self.operator,
+                                self.receiver,
+                                dict(REPLAY_TRADE_STATUS).get(self.status,''))    
         
     def merge(self,post_trades):
         """合并多批发货清单"""
@@ -798,7 +801,9 @@ class ReplayPostTrade(models.Model):
         if self.fid != -1 or self.status != pcfg.RP_WAIT_ACCEPT_STATUS:
             raise Exception(u'不符合拆分条件')
 
-        replay_trades = ReplayPostTrade.objects.filter(fid=self.id,status=pcfg.RP_CANCEL_STATUS)    
+        replay_trades = ReplayPostTrade.objects.filter(
+                           fid=self.id,
+                           status=pcfg.RP_CANCEL_STATUS)    
         for t in replay_trades:
             t.status = pcfg.RP_WAIT_ACCEPT_STATUS
             t.fid    = 0

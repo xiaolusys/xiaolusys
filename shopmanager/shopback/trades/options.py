@@ -1,9 +1,16 @@
 #-*- coding:utf8 -*-
 import datetime
-from shopback.trades.models import MergeTrade,MergeOrder
+from django.db import IntegrityError, transaction
+from shopback.trades.models import (MergeTrade,
+                                    MergeOrder,
+                                    MergeBuyerTrade)
 from shopback import paramconfig as pcfg
+from shopback.base import log_action, ADDITION, CHANGE
+from shopback.signals import recalc_fee_signal
 from common.utils import update_model_fields
+import logging
 
+logger = logging.getLogger('django.request')
 
 class MergeException(Exception):
     pass 
@@ -14,7 +21,7 @@ def _createAndCalcOrderFee(trade,sub_trade):
     total_fee    = 0
     discount_fee = 0
     adjust_fee   = 0
-    for order in sub_trade.merge_orders:
+    for order in sub_trade.merge_orders.all():
         
         merge_order,state = MergeOrder.objects.get_or_create(
                                 oid=order.oid,
@@ -30,17 +37,16 @@ def _createAndCalcOrderFee(trade,sub_trade):
         merge_order.save()
         
         if order.isEffect():
-            payment   += float(order.payment or 0)
-            total_fee += float(order.total_fee or 0)
-            discount_fee += float(order.discount_fee or 0)
-            adjust_fee   += float(order.adjust_fee or 0)
+            payment   += order.payment
+            total_fee += order.total_fee
+            discount_fee += order.discount_fee
+            adjust_fee   += order.adjust_fee
             
     trade.payment      += payment
     trade.total_fee    += total_fee
     trade.discount_fee += discount_fee
     trade.adjust_fee   += adjust_fee
-    trade.post_fee     = (float(sub_trade.post_fee or 0 ) + 
-                          float(trade.post_fee or 0))
+    trade.post_fee     = sub_trade.post_fee + trade.post_fee
 
     update_model_fields(trade,update_fields=[ 'payment',
                                               'total_fee',
@@ -111,10 +117,12 @@ def mergeMaker(trade,sub_trade):
 @transaction.commit_on_success    
 def mergeRemover(trade):
     
+    from shopapp.memorule import ruleMatchPayment,ruleMatchSplit
+    
     if not isinstance(trade,MergeTrade):
         trade = MergeTrade.objects.get(id=trade)
         
-    trade_id = self.trade.id
+    trade_id = trade.id
     if not trade.has_merge:
         return False
     
@@ -127,12 +135,12 @@ def mergeRemover(trade):
     
     for sub_merge in sub_merges:
         
-        sub_trade = MergeTrade.objects.get(tid=sub_merge.sub_tid)
+        sub_trade = MergeTrade.objects.get(id=sub_merge.sub_tid)
         sub_trade.remove_reason_code(pcfg.NEW_MERGE_TRADE_CODE)
-        sub_merge_trade.append_reason_code(pcfg.MULTIPLE_ORDERS_CODE)
+        sub_trade.append_reason_code(pcfg.MULTIPLE_ORDERS_CODE)
         
-        trade.remove_buyer_message(sub_merge.id)
-        trade.remove_seller_memo(sub_merge.id)
+        trade.remove_buyer_message(sub_merge.sub_tid)
+        trade.remove_seller_memo(sub_merge.sub_tid)
         
         sub_trade.sys_status=pcfg.WAIT_AUDIT_STATUS
         update_model_fields(sub_trade,update_fields=['sys_status'])
@@ -145,11 +153,11 @@ def mergeRemover(trade):
     
     log_action(trade.user.user.id,trade,CHANGE,u'订单取消合并')
     
-    rule_signal.send(sender='combose_split_rule',trade_id=trade_id)
+    ruleMatchSplit(trade)
     
     recalc_fee_signal.send(sender=MergeTrade,trade_id=trade_id)
     
-    rule_signal.send(sender='payment_rule',trade_id=trade_id)
+    ruleMatchPayment(trade)
     
     return True
 
@@ -188,15 +196,16 @@ def driveMergeTrade(trade):
         if scan_merge_trades.count()>0:
             return
         
-        trades = MergeTrade.objects.filter(buyer_nick=buyer_nick,
-                                           receiver_name=receiver_name,
-                                           receiver_address=receiver_address
-                                           ,sys_status__in=(
-                                                pcfg.WAIT_AUDIT_STATUS,
-                                                pcfg.WAIT_PREPARE_SEND_STATUS,
-                                                pcfg.REGULAR_REMAIN_STATUS)
-                                           ,is_force_wlb=False)\
-                                           .exclude(id=trade_id).order_by('pay_time')        
+        trades = MergeTrade.objects.filter(
+                   buyer_nick=buyer_nick,
+                   receiver_name=receiver_name,
+                   receiver_address=receiver_address
+                   ,sys_status__in=(
+                        pcfg.WAIT_AUDIT_STATUS,
+                        pcfg.WAIT_PREPARE_SEND_STATUS,
+                        pcfg.REGULAR_REMAIN_STATUS)
+                   ,is_force_wlb=False)\
+                   .exclude(id=trade_id).order_by('pay_time')        
          
         #如果有已有合并记录，则将现有主订单作为合并主订单                           
         has_merge_trades = trades.filter(has_merge=True)                  
@@ -218,8 +227,8 @@ def driveMergeTrade(trade):
                         main_trade = None
                         break
                         
-            if main_trade:  
-                is_merge_success = mergeMaker(main_trade,trade)
+            if main_trade and mergeMaker(main_trade,trade):  
+                return main_trade
             
         else:
             raise MergeException(u'（ID:%d）没有订单可合并'%trade.id)
@@ -229,8 +238,7 @@ def driveMergeTrade(trade):
         
         trade.append_reason_code(pcfg.MERGE_TRADE_ERROR_CODE)   
 
-       
-    return is_merge_success and main_trade or None
+     
 
 
                 

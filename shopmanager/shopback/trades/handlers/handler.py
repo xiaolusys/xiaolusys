@@ -2,6 +2,7 @@
 from django.conf import settings
 from django.db.models.signals import post_save
 
+from shopback.base import log_action,User, ADDITION, CHANGE
 from shopback.trades.models import MergeTrade,MergeOrder
 from shopback.items.models import Product
 from shopback import paramconfig as pcfg
@@ -28,16 +29,20 @@ class InitHandler(BaseHandler):
         if settings.DEBUG:
             print 'DEBUG INIT:',merge_trade
             
-        if not merge_trade.sys_status: 
+        log_action(merge_trade.user.user.id,
+                   merge_trade,ADDITION,
+                   u'订单入库,备注:[%s:%s]'%(
+                       merge_trade.buyer_message,
+                       merge_trade.seller_memo))
             
-            merge_trade.sys_status = pcfg.REGULAR_REMAIN_STATUS
-            update_model_fields(merge_trade,update_fields=['sys_status'])
+        merge_trade.sys_status = pcfg.REGULAR_REMAIN_STATUS
+        update_model_fields(merge_trade,update_fields=['sys_status'])
 
 
 class StockOutHandler(BaseHandler):   
      
     def handleable(self,merge_trade,*args,**kwargs):
-        return (merge_trade.status == pcfg.WAIT_SELLER_SEND_GOODS and 
+        return (kwargs.get('first_pay_load',None) and 
                 MergeTrade.objects.isTradeOutStock(merge_trade))
     
     def isOutStockByTitle(self,order):
@@ -134,6 +139,10 @@ class FinalHandler(BaseHandler):
         if (merge_trade.sys_status != pcfg.EMPTY_STATUS and 
             not merge_trade.logistics_company):
             merge_trade.append_reason_code(pcfg.LOGISTIC_ERROR_CODE)
+        
+        if (merge_trade.logistics_company and 
+            merge_trade.has_reason_code(pcfg.LOGISTIC_ERROR_CODE)):
+            merge_trade.remove_reason_code(pcfg.LOGISTIC_ERROR_CODE)
         
         if ((merge_trade.reason_code and 
             not merge_trade.is_locked and 

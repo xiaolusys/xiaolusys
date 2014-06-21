@@ -35,7 +35,8 @@ class WeiXinAccount(models.Model):
     expired    = models.DateTimeField(default=datetime.datetime.now(),
                                       verbose_name="上次过期时间")
     
-    jmenu     =  JSONCharField(max_length=1024,blank=True,load_kwargs={},
+    jmenu     =  JSONCharField(max_length=1024,blank=True,
+                               load_kwargs={},default='{}',
                                verbose_name=u'菜单代码') 
     
     in_voice   = models.BooleanField(default=False,verbose_name=u'开启语音')
@@ -43,9 +44,14 @@ class WeiXinAccount(models.Model):
     
     class Meta:
         db_table = 'shop_weixin_account'
-        verbose_name=u'微信帐号'
-        verbose_name_plural = u'微信帐号列表'
+        verbose_name=u'微信服务帐号'
+        verbose_name_plural = u'微信服务帐号列表'
         
+    
+    def __unicode__(self):
+        return u'<WeiXinAccount:%s,%s>'%(self.account_id,self.app_id)
+        
+    
     @classmethod
     def getAccountInstance(cls):
         try:
@@ -131,6 +137,9 @@ class WeiXinUser(models.Model):
     def getAnonymousWeixinUser(cls):
         return AnonymousWeixinUser()
     
+    def __unicode__(self):
+        return u'<WeiXinUser:%s,%s>'%(self.openid,self.nickname)
+    
     def isNone(self):
         return False
     
@@ -181,6 +190,7 @@ class WeiXinAutoResponse(models.Model):
     WX_EVENT_LOCATION    = 'LOCATION'
     WX_EVENT_CLICK       = 'CLICK'
     WX_EVENT_VIEW        = 'VIEW'
+    WX_EVENT_ORDER       = 'merchant_order'
     
     WX_TYPE  = (
         (WX_TEXT ,u'文本'),
@@ -204,18 +214,22 @@ class WeiXinAutoResponse(models.Model):
     music_url = models.CharField(max_length=512,blank=True,verbose_name=u'音乐链接')
     hq_music_url = models.CharField(max_length=512,blank=True,verbose_name=u'高品质音乐链接')
     
-    news_json = JSONCharField(max_length=1024,blank=True,load_kwargs={},verbose_name=u'图文信息')
+    news_json = JSONCharField(max_length=1024,blank=True,
+                              load_kwargs={},default='{}',
+                              verbose_name=u'图文信息')
     
     class Meta:
         db_table = 'shop_weixin_response'
         verbose_name=u'微信回复'
         verbose_name_plural = u'微信回复列表'
         
-    
     @classmethod
     def respDefault(cls):
         resp,state = cls.objects.get_or_create(message=WX_DEFAULT,rtype=WX_TEXT)
         return resp
+    
+    def __unicode__(self):
+        return u'<WeiXinAutoResponse:%d,%s>'%(self.id,self.get_rtype_display())
     
     def respText(self):
         return {'MsgType':self.rtype,
@@ -291,16 +305,20 @@ class WXProduct(models.Model):
     product_img  = models.CharField(max_length=256,verbose_name=u'商品图片')
     
     product_base = JSONCharField(max_length=3000,blank=True,
-                                 load_kwargs={},verbose_name=u'图文信息')
+                                 load_kwargs={},default='{}'
+                                 ,verbose_name=u'图文信息')
     
     sku_list     = JSONCharField(max_length=3000,blank=True,
-                                 load_kwargs={},verbose_name=u'规格信息') 
+                                 load_kwargs={},default='{}'
+                                 ,verbose_name=u'规格信息') 
     
     attrext      = JSONCharField(max_length=1000,blank=True,
-                                 load_kwargs={},verbose_name=u'附加信息') 
+                                 load_kwargs={},default='{}'
+                                 ,verbose_name=u'附加信息') 
     
     delivery_info   = JSONCharField(max_length=200,blank=True,
-                                    load_kwargs={},verbose_name=u'发货信息') 
+                                    load_kwargs={},default='{}'
+                                    ,verbose_name=u'发货信息') 
     
     status       = models.IntegerField(null=False,default=0,
                                        choices=PRODUCT_STATUS,
@@ -308,15 +326,32 @@ class WXProduct(models.Model):
     
     class Meta:
         db_table = 'shop_weixin_product'
-        verbose_name=u'微信商品'
-        verbose_name_plural = u'微信商品列表'
+        verbose_name=u'微信小店商品'
+        verbose_name_plural = u'微信小店商品列表'
 
-
+    def __unicode__(self):
+        return u'<WXProduct:%s>'%(self.product_id)
        
 class WXOrder(models.Model):
     
+    WX_WAIT_SEND = 2
+    WX_WAIT_CONFIRM = 3
+    WX_FINISHED  = 5
+    WX_CLOSE     = 6
+    WX_FEEDBACK  = 8
+    
+    WXORDER_STATUS = (
+        (WX_WAIT_SEND,u'待发货'),
+        (WX_WAIT_CONFIRM,u'待确认收货'),
+        (WX_FINISHED,u'已完成'),
+        (WX_CLOSE,u'已关闭'),
+        (WX_FEEDBACK,u'维权中')
+    )
+    
+    order_id  = models.BigIntegerField(primary_key=True,verbose_name=u'订单ID')
+    
     trans_id  = models.BigIntegerField(verbose_name=u'交易ID')
-    order_id  = BigIntegerAutoField(primary_key=True,verbose_name=u'订单ID')
+    seller_id = models.CharField(max_length=32,db_index=True,verbose_name=u'商家ID')
     
     buyer_openid = models.CharField(max_length=64,verbose_name=u'买家OPENID')
     buyer_nick   = models.CharField(max_length=32,verbose_name=u'买家昵称')
@@ -325,7 +360,9 @@ class WXOrder(models.Model):
     order_express_price = models.FloatField(verbose_name=u'订单运费')
     order_create_time   = models.DateTimeField(blank=True,null=True,
                                                verbose_name=u'创建时间')
-    order_status = models.CharField(max_length=10,blank=True,verbose_name=u'订单状态')
+    order_status = models.CharField(max_length=10,blank=True,
+                                    choices=WXORDER_STATUS,
+                                    verbose_name=u'订单状态')
     
     receiver_name     = models.CharField(max_length=64,verbose_name=u'收货人')
     receiver_province = models.CharField(max_length=16,verbose_name=u'省')
@@ -346,8 +383,65 @@ class WXOrder(models.Model):
     
     class Meta:
         db_table = 'shop_weixin_order'
-        verbose_name=u'微信订单'
-        verbose_name_plural = u'微信订单列表'
+        verbose_name=u'微信小店订单'
+        verbose_name_plural = u'微信小店订单列表'
+    
+    def __unicode__(self):
+        return u'<WXOrder:%s,%s>'%(self.order_id,self.buyer_nick)
+    
+    @classmethod
+    def mapTradeStatus(cls,wx_order_status):
         
+        from shopback import paramconfig as pcfg
+        if wx_order_status == WX_WAIT_SEND:
+            return pcfg.WAIT_SELLER_SEND_GOODS
         
+        elif wx_order_status == WX_WAIT_CONFIRM:
+            return pcfg.WAIT_BUYER_CONFIRM_GOODS
+        
+        elif wx_order_status == WX_FINISHED:
+            return pcfg.TRADE_FINISHED
+        
+        elif wx_order_status == WX_CLOSE:
+            return pcfg.TRADE_CLOSED
+        
+        elif wx_order_status == WX_FEEDBACK:
+            return pcfg.WAIT_BUYER_CONFIRM_GOODS
 
+        return pcfg.WAIT_BUYER_PAY
+    
+    @classmethod
+    def mapOrderStatus(cls,wx_order_status):
+        
+        from shopback import paramconfig as pcfg
+        if wx_order_status == WX_WAIT_SEND:
+            return pcfg.WAIT_SELLER_SEND_GOODS
+        
+        elif wx_order_status == WX_WAIT_CONFIRM:
+            return pcfg.WAIT_BUYER_CONFIRM_GOODS
+        
+        elif wx_order_status == WX_FINISHED:
+            return pcfg.TRADE_FINISHED
+        
+        elif wx_order_status == WX_CLOSE:
+            return pcfg.TRADE_CLOSED
+        
+        elif wx_order_status == WX_FEEDBACK:
+            return pcfg.TRADE_REFUNDING
+
+        return pcfg.WAIT_BUYER_PAY
+    
+
+class WXLogistic(models.Model):
+    
+    company_name = models.CharField(max_length=16,blank=True,verbose_name=u'快递名称')
+    origin_code  = models.CharField(max_length=16,blank=True,verbose_name=u'原始编码')      
+    company_code = models.CharField(max_length=16,blank=True,verbose_name=u'快递编码')    
+    
+    class Meta:
+        db_table = 'shop_weixin_logistic'
+        verbose_name=u'微信小店快递'
+        verbose_name_plural = u'微信小店快递列表'   
+    
+    
+    

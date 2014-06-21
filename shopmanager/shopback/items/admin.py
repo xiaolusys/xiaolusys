@@ -58,7 +58,7 @@ admin.site.register(Item, ItemAdmin)
 
 class ProductAdmin(admin.ModelAdmin):
     list_display = ('id','outer_id','name_link','collect_num','category','warn_num','remain_num','wait_post_num','wait_receive_num'
-                   ,'cost' ,'std_sale_price','agent_price','sync_stock','is_match','post_check','district_link','status')
+                   ,'cost' ,'std_sale_price','sync_stock','is_match','post_check','is_split','district_link','status')
     list_display_links = ('id',)
     #list_editable = ('name',)
     
