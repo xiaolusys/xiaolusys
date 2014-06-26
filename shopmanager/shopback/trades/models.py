@@ -318,6 +318,7 @@ class MergeTrade(models.Model):
             outer_sku_id = order.outer_sku_id
             outer_id  = order.outer_id
             order_num = order.num
+
             prod     = None
             prod_sku = None
             is_reverse = order.gift_type != pcfg.RETURN_GOODS_GIT_TYPE 
@@ -729,7 +730,6 @@ class MergeBuyerTrade(models.Model):
                 return pcfg.MAIN_MERGE_TYPE
             return pcfg.NO_MERGE_TYPE
         return pcfg.SUB_MERGE_TYPE
-
 
 
 REPLAY_TRADE_STATUS = (
