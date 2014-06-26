@@ -12,14 +12,14 @@
 <div style="width:800px; padding:5px;">
 <form id="form1" action="/trades/fenxiao/count/" method="post">
 startDate
-<input type="text" name="fromDate">
+<input type="text" name="fromDate" value="{{ fromDateShow }}">
 endDate
-<input type="text" name="endDate">
+<input type="text" name="endDate" value='{{ toDateShow }}'>
 <input type="submit" value="submit" onclick="submit()">
 </form>
 </div>
 
-<div style="width:800px; padding:5px;">
+<div style="width:800px; padding:5px;margin:0px auto; text-align:center;">
 <table class="table table-striped table-bordered table-condensed">
 <thead>
 <tr>
@@ -30,7 +30,9 @@ endDate
 <tbody>
 {% for key in data %}
 <tr>
-<td><a >{{ key.0 }}</a></td><td>{{ key.1 }}</td>
+<td><a target="_blank" href= '/trades/fenxiao/count/detail/?fenxiao=
+{{ key.0 }}&fdt={{ fromDateShow }}&tdt={{ toDateShow }} '>{{ key.0 }}</a></td>
+<td>{{ key.1 }}</td>
 </tr>
 {% endfor %}
 <tr>

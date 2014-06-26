@@ -1,0 +1,70 @@
+{% extends "comments/comment_base.html" %}
+
+{% block title %} 
+<title>客服评论展示</title>
+{% endblock %} 
+
+
+{% block head_script %}
+<script src="/static/jquery/jquery-1.8.13.min.js"></script>
+
+
+<script type="text/javascript">
+function writegrade(grade,oid) {
+    $.ajax({
+            url:'/app/comment/writegrade/',
+            data:{grade:grade,oid:oid},
+            success:function() {  console.log('ok'); }
+            });
+};
+
+</script>
+{% endblock %}
+
+{% block replyer_detail %}
+<div style="width:800px; padding:5px;">
+<form id="form2" action="/app/comment/replyer_detail/" method="get">
+<!--
+<input type="text" name={{ replyer_user }}>
+<input type="text" name="replyer">
+<input type="submit" value="submit" name="refresh">
+-->
+</form>
+</div>
+
+<div style="width:800px; padding:5px; margin:0px auto; text-align:center;" >
+<table class="table table-striped table-bordered table-condensed" >
+<thead>
+
+<th>{{ replyer }}</th>
+</thead>
+<tbody>
+<tr>
+<td>图片</td>
+<td>客人评价</td>
+<td>客服回复</td>
+<td>打分</td>
+<td>oid</td>
+</tr>
+{% for k,v in replyerDetail.items %}
+{% for c in v %}
+<tr>
+<td ><a href="{{ c.1 }}" target="_blank" ><img src="{{ c.0 }}_sum.jpg" alt=""></a></td>
+<td style="font-size:11px">{{ c.2 }}</td>
+<td style="font-size:11px;color:green">{{ c.3 }}</td>
+<td  width="80">
+<form name="form1" > 
+<input type="radio" name="{{ c.4 }}" id="{{ c.4 }}1" value="good" onclick="writegrade('good','{{ c.4 }}');"> 好  <br><br>
+<input type="radio" name="{{ c.4 }}" id="{{ c.4 }}2" value="bad" onclick="writegrade('bad','{{ c.4 }}');"> 不好
+
+<br> 
+</td>
+<td>{{ c.4 }}</td>
+</tr>
+{% endfor %}
+
+{% endfor %}
+<tbody>
+</table>
+</div>
+{% endblock %}
