@@ -1235,12 +1235,12 @@ def calFenxiaoInterval(fdt,tdt):
         else:
             fenxiao_dict[buyer_nick] = float(f.payment or 0)
     fenxiao_array = fenxiao_dict.items()
-    print fenxiao_array
+    print 'fenxiao_array',fenxiao_array
     fenxiao_array.sort(lambda x,y:cmp(x[1],y[1]))
     for key in fenxiao_array:
         fenxiao_sum=fenxiao_sum+key[1]
     fenxiao_array.append(["sum",fenxiao_sum])
-    print fenxiao_sum
+    print 'fenxiao_sum',fenxiao_sum
 
     return fenxiao_array
     
@@ -1253,21 +1253,37 @@ def countFenxiaoAcount(request):
     toDate   = toDate and datetime.datetime.strptime(toDate, '%Y%m%d').date() or datetime.datetime.now().date()
         
     fromDate = fromDate and datetime.datetime.strptime(fromDate, '%Y%m%d').date() or toDate - datetime.timedelta(days=1) 
-    
+    fromDateShow = fromDate.strftime('%Y%m%d')
+    toDateShow   = toDate.strftime('%Y%m%d')
     fenxiaoDict = calFenxiaoInterval(fromDate,toDate)
+    print 'fromDateShow',fromDateShow
     
-    
-    return render_to_response('trades/trade_fenxiao_count.html', {'data': fenxiaoDict,},  context_instance=RequestContext(request))
+    return render_to_response('trades/trade_fenxiao_count.html', {'data': fenxiaoDict,'fromDateShow':fromDateShow,'toDateShow':toDateShow,},  context_instance=RequestContext(request))
 
 def showFenxiaoDateilFilter(fenxiao,fdt,tdt):
     fenxiao = MergeTrade.objects.filter(buyer_nick=fenxiao,pay_time__gte=fdt,pay_time__lte=tdt,type=pcfg.FENXIAO_TYPE,sys_status=pcfg.FINISHED_STATUS)
-    print "fenxiao",fenxiao[2].tid 
+#    print "fenxiao",fenxiao[2].tid 
     return fenxiao
+    
 def showFenxiaoDetail(request):
-#    fdt=''
-#    tdt=''
+    
+#for date to form
+    content = request.GET
+    fenxiao = content.get('fenxiao')
+    print 'fenxiao',fenxiao
+    fromDate  = content.get('fdt').replace('-','')
+    oneday = datetime.timedelta(days=1)
+    toDate  = content.get('tdt')
+    
+    if toDate:
+        toDate=datetime.date.today().strftime('%Y%m%d')
+    else:
+        toDate  =toDate.replace('-','')
 
-#    fenxiao=''
+    toDate   = toDate and datetime.datetime.strptime(toDate, '%Y%m%d').date() or datetime.datetime.now().date()
+    toDate = toDate+oneday
+    fromDate = fromDate and datetime.datetime.strptime(fromDate, '%Y%m%d').date() or toDate - datetime.timedelta(days=1)
+# date  over
     iid = []
     tid = []
     created    = []
@@ -1278,10 +1294,15 @@ def showFenxiaoDetail(request):
     receiver_city   = []
     receiver_district = []
     receiver_address  = []
+    payment = []
+# render data
+    fenxiao_render_data = []    
+    
     
     print type(created),created
 
-    FenxiaoDateil=showFenxiaoDateilFilter('阳光small_x','2014-01-07','2014-01-08')
+    FenxiaoDateil=showFenxiaoDateilFilter(fenxiao,fromDate,toDate)
+#    FenxiaoDateil=showFenxiaoDateilFilter('爱生活791115','20140526','20140527')
     for c in FenxiaoDateil:
         tid.append(c.tid)
         iid.append(c.id)
@@ -1293,16 +1314,17 @@ def showFenxiaoDetail(request):
         receiver_city.append(c.receiver_city)
         receiver_district.append(c.receiver_district)
         receiver_address.append(c.receiver_address)
-    print 'created',created,type(created)
-    print 'tid',tid
-    print 'iid',iid
-    print 'buyer_nick',buyer_nick
-    print 'receiver_name',receiver_name
-    print 'receiver_mobile',receiver_mobile
-    print 'receiver_state[1][1]',receiver_state
-    print 'receiver_city',receiver_city
-    print 'receiver_district',receiver_district
-    print 'receiver_address',receiver_address
-#    print '',
-#    FenxiaoDateil=''
-    return render_to_response('trades/trade_fenxiao_detail.html',{'FenxiaoDateil':FenxiaoDateil},context_instance=RequestContext(request))
+        payment.append(c.payment)
+        
+    for i,v in enumerate(tid):
+        print i
+        fenxiao_render_data.append((buyer_nick[i],tid[i],receiver_name[i],receiver_mobile[i],receiver_state[i],receiver_city[i],receiver_district[i],receiver_address[i],payment[i],iid[i]))
+     
+    print 'fenxiao_render_data.....len',len(fenxiao_render_data[0][8])
+    print "fenxiao_render_data",fenxiao_render_data[0][8]
+    print 'FenxiaoDateil',FenxiaoDateil
+    print 'type',type(FenxiaoDateil)
+    
+    return render_to_response('trades/trade_fenxiao_detail.html',{'FenxiaoDateil':FenxiaoDateil,
+                                                                  'fenxiao_render_data':fenxiao_render_data,},  context_instance=RequestContext(request))
+                                                                  

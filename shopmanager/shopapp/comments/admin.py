@@ -3,7 +3,7 @@ from django.contrib import admin
 from django.db import models
 from django.forms import TextInput, Textarea
 from django.http import HttpResponse
-from shopapp.comments.models import Comment,CommentItem
+from shopapp.comments.models import Comment,CommentItem,CommentGrade
 from shopback.base.options import DateFieldListFilter
 
 class CommentAdmin(admin.ModelAdmin):
@@ -61,7 +61,6 @@ class CommentItemAdmin(admin.ModelAdmin):
     list_display = ('num_iid','title','updated','is_active')
     
     ordering = ['-updated']
-    
     list_filter = ('is_active',)
     search_fields = ['num_iid','title']
     
@@ -72,5 +71,13 @@ class CommentItemAdmin(admin.ModelAdmin):
     }
 
 admin.site.register(CommentItem, CommentItemAdmin)      
+
+
+
+class CommentGradeAdmin(admin.ModelAdmin):
+    
+    list_display = ('oid','reply','replayer','grade','grader','created')
+
+admin.site.register(CommentGrade, CommentGradeAdmin) 
 
 
