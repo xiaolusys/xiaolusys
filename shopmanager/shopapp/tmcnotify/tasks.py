@@ -51,6 +51,9 @@ class ProcessMessageTask(Task):
             
             TradeService.createTrade(userId,tradeId,tradeType)
             
+            if tradeType == pcfg.FENXIAO_TYPE:
+                return 
+            
             TradeService.updatePublicTime(userId,tradeId,msgTime)
             return 
         

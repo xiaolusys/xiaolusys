@@ -117,6 +117,8 @@ class Trade(models.Model):
 
     class Meta:
         db_table = 'shop_orders_trade'
+        verbose_name=u'淘宝订单'
+        verbose_name_plural = u'淘宝订单列表'
 
     def __unicode__(self):
         return str(self.id)
@@ -247,7 +249,9 @@ class Order(models.Model):
 
     class Meta:
         db_table = 'shop_orders_order'
-
+        verbose_name=u'淘宝订单商品'
+        verbose_name_plural = u'淘宝订单商品列表'
+        
     def __unicode__(self):
         return str(self.oid)
     

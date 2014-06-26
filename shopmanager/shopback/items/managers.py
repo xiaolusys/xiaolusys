@@ -43,32 +43,31 @@ class ProductManager(models.Manager):
         from .models import ProductSku
         try:
             product = self.get(outer_id=outer_id)
-            product_sku = None
             if outer_sku_id:
                 product_sku = ProductSku.objects.get(outer_id=outer_sku_id,
                                                      product__outer_id=outer_id)
+                return product_sku.is_match
+            
+            return product.is_match
         except (Product.DoesNotExist,ProductSku.DoesNotExsit):
             raise ProductDefectException(u'(%s,%s)编码组合未匹配到商品')
         
-        return product.is_match or (product_sku and product_sku.is_match)
-    
     
     def getProductMatchReason(self,outer_id,outer_sku_id):
         
         from .models import ProductSku
         try:
             product = self.get(outer_id=outer_id)
-            if product.is_match:
-                return product.match_reason
-   
+            
             if outer_sku_id:
                 product_sku = ProductSku.objects.get(outer_id=outer_sku_id,
                                                      product__outer_id=outer_id)
-                if product_sku.is_match:
-                    return product_sku.match_reason
+                return (product_sku.match_reason 
+                        or product.match_reason 
+                        or u'匹配原因不明')
             
-            return ''
-        
+            return product.match_reason or u'匹配原因不明'
+   
         except (Product.DoesNotExist,ProductSku.DoesNotExsit):
             raise ProductDefectException(u'(%s,%s)编码组合未匹配到商品')
         

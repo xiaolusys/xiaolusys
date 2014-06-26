@@ -101,12 +101,20 @@ def mergeMaker(trade,sub_trade):
         trade.remove_reason_code(pcfg.MULTIPLE_ORDERS_CODE)
         
     log_action(trade.user.user.id,trade,CHANGE,
-               u'订单合并成功（%s,%s）'%(trade.id,sub_trade.id))
+               u'合并订单（%s）'%(sub_trade.id))
     
-    if not trade.reason_code and not trade.is_locked:
+    if (not trade.reason_code and 
+        not trade.is_locked and 
+        trade.sys_status == pcfg.WAIT_AUDIT_STATUS):
         trade.sys_status = pcfg.WAIT_PREPARE_SEND_STATUS
     else:
         trade.append_reason_code(pcfg.NEW_MERGE_TRADE_CODE)
+        
+    log_action(sub_trade.user.user.id,sub_trade,CHANGE,
+               u'并入订单（%s）'%(trade.id))
+    
+    sub_trade.sys_status = pcfg.ON_THE_FLY_STATUS
+    update_model_fields(sub_trade,update_fields=['sys_status'])
     
     trade.has_merge = True
     update_model_fields(trade,update_fields=['has_merge','sys_status'])
@@ -184,21 +192,24 @@ def driveMergeTrade(trade):
         receiver_name    = trade.receiver_name           #收货人
         receiver_address = trade.receiver_address        #收货地址
         full_address     = trade.buyer_full_address      #详细地址
-        scan_merge_trades = MergeTrade.objects.getMergeQueryset( 
-                                buyer_nick, 
-                                receiver_name, 
-                                receiver_mobile, 
-                                receiver_phone)\
-                                .filter(sys_status__in=(
+        
+        merge_queryset = MergeTrade.objects.getMergeQueryset( 
+                            buyer_nick, 
+                            receiver_name, 
+                            receiver_mobile, 
+                            receiver_phone)
+        
+        for mtrade in merge_queryset:
+            mtrade.append_reason_code(pcfg.MULTIPLE_ORDERS_CODE)
+            
+        scan_merge_trades = merge_queryset.filter(sys_status__in=(
                                     pcfg.WAIT_CHECK_BARCODE_STATUS,
                                     pcfg.WAIT_SCAN_WEIGHT_STATUS))
-
+        
         if scan_merge_trades.count()>0:
             return
         
-        trades = MergeTrade.objects.filter(
-                   buyer_nick=buyer_nick,
-                   receiver_name=receiver_name,
+        trades = merge_queryset.filter(
                    receiver_address=receiver_address
                    ,sys_status__in=(
                         pcfg.WAIT_AUDIT_STATUS,
@@ -229,9 +240,6 @@ def driveMergeTrade(trade):
                         
             if main_trade and mergeMaker(main_trade,trade):  
                 return main_trade
-            
-        else:
-            raise MergeException(u'（ID:%d）没有订单可合并'%trade.id)
         
     except Exception,exc:        
         logger.error('Merge Trade Error:%s'%exc.message,exc_info=True)

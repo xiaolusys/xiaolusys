@@ -50,12 +50,31 @@ class WeiXinAPI(object):
     _merchant_order_getbyfilter_uri   = "/merchant/order/getbyfilter"
     _merchant_order_setdelivery_uri   = "/merchant/order/setdelivery"
     
+    #微信支付，维权，告警接口
+    _merchant_order_setdelivery_uri   = "/merchant/order/setdelivery"
+    _merchant_order_setdelivery_uri   = "/merchant/order/setdelivery"
+    
     def __init__(self):
         self._wx_account = WeiXinAccount.getAccountInstance()
         
     def getAbsoluteUrl(self,uri,token):
         url = settings.WEIXIN_API_HOST+uri
         return token and '%s?access_token=%s'%(url,self.getAccessToken()) or url+'?'
+        
+    def checkSignature(self,signature,timestamp,nonce):
+        
+        import time
+        import hashlib
+        
+        if time.time() - int(timestamp) > 300:
+            return False
+        
+        sign_array = [self._wx_account.token,timestamp,nonce]
+        sign_array.sort()
+        
+        sha1_value = hashlib.sha1(''.join(sign_array))
+
+        return sha1_value.hexdigest() == signature
         
     def handleRequest(self,uri,params={},method="GET",token=True):    
         
@@ -151,21 +170,6 @@ class WeiXinAPI(object):
             
         return self.handleRequest(self._create_qrcode_uri, params,method='POST')
         
-    def checkSignature(self,signature,timestamp,nonce):
-        
-        import time
-        import hashlib
-        
-        if time.time() - int(timestamp) > 300:
-            return False
-        
-        sign_array = [self._wx_account.token,timestamp,nonce]
-        sign_array.sort()
-        
-        sha1_value = hashlib.sha1(''.join(sign_array))
-
-        return sha1_value.hexdigest() == signature
-    
     
     def getMerchant(self,product_id):
         return self.handleRequest(self._merchant_get_uri, 

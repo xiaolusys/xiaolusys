@@ -112,6 +112,8 @@ class FenxiaoProduct(models.Model):
     status            = models.CharField(max_length=10,blank=True)
     class Meta:
         db_table = 'shop_fenxiao_product'
+        verbose_name=u'分销商品'
+        verbose_name_plural = u'分销商品列表'
 
     def __unicode__(self):
         return str(self.pid)
@@ -185,6 +187,8 @@ class PurchaseOrder(models.Model):
 
     class Meta:
         db_table = 'shop_fenxiao_purchaseorder'
+        verbose_name=u'分销订单'
+        verbose_name_plural = u'分销订单列表'
 
     def __unicode__(self):
         return '<%s,%s>'%(self.fenxiao_id,self.supplier_username)
@@ -267,7 +271,9 @@ class SubPurchaseOrder(models.Model):
     
     class Meta:
         db_table = 'shop_fenxiao_subpurchaseorder'
-
+        verbose_name=u'分销订单商品'
+        verbose_name_plural = u'分销订单商品列表'
+        
     def __unicode__(self):
         return str(self.fenxiao_id)  
     

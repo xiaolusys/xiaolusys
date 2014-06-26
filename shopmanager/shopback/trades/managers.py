@@ -214,8 +214,40 @@ class MergeTradeManager(models.Manager):
         trades = queryset.exclude(id=trade.id)
         
         return trades.count() > 0
-            
     
+    def diffTradeAddress(self,trade,sub_trade):
+        
+        diff_string = []
+        if trade.receiver_name != sub_trade.receiver_name:
+            diff_string.append('%s|%s'%(trade.receiver_name,
+                                        sub_trade.receiver_name))
+        
+        if trade.receiver_mobile != sub_trade.receiver_mobile:
+            diff_string.append('%s|%s'%(trade.receiver_mobile,
+                                        sub_trade.receiver_mobile))
+        
+        if trade.receiver_phone != sub_trade.receiver_phone:
+            diff_string.append('%s|%s'%(trade.receiver_phone,
+                                        sub_trade.receiver_phone))
+            
+        if trade.receiver_state != sub_trade.receiver_state:
+            diff_string.append('%s|%s'%(trade.receiver_state,
+                                        sub_trade.receiver_state))
+            
+        if trade.receiver_city != sub_trade.receiver_city:
+            diff_string.append('%s|%s'%(trade.receiver_city,
+                                        sub_trade.receiver_city))
+            
+        if trade.receiver_district != sub_trade.receiver_district:
+            diff_string.append('%s|%s'%(trade.receiver_district,
+                                        sub_trade.receiver_district))
+            
+        if trade.receiver_address != sub_trade.receiver_address:
+            diff_string.append('%s|%s'%(trade.receiver_address,
+                                        sub_trade.receiver_address))
+        return ','.join(diff_string)
+            
+            
     def isValidPubTime(self,userId,trade,modified):
         
         if not isinstance(trade,self.model):

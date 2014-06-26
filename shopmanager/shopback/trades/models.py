@@ -280,12 +280,12 @@ class MergeTrade(models.Model):
     @property
     def buyer_full_address(self):
         return '%s%s%s%s%s%s%s'%(self.receiver_name.strip(),
-                                 self.receiver_mobile.strip() or self.receiver_phone.strip(),
+                                 self.receiver_mobile.strip(),
+                                 self.receiver_phone.strip(),
                                  self.receiver_state.strip(),
                                  self.receiver_city.strip(),
                                  self.receiver_district.strip(),
-                                 self.receiver_address.strip(),
-                                 self.receiver_zip.strip())
+                                 self.receiver_address.strip())
     
     @property
     def can_change_order(self):
@@ -400,15 +400,17 @@ class MergeTrade(models.Model):
         msg = msg.replace('|','，'.decode('utf8'))\
                  .replace(':','：'.decode('utf8'))
         buyer_msg = self.buyer_message.split('|')
+        
         msg_dict = {}
         for m in buyer_msg:
             m  = m.split(':')
-            if len(m)==2:
+            if len(m) == 2:
                 msg_dict[m[0]] = m[1]
             else:
-                msg_dict[str(self.id)] = self.buyer_message.replace(
-                        '|','，'.decode('utf8')).replace(':','：'.decode('utf8'))
-        msg_dict[str(id)]=msg
+                msg_dict[str(self.id)] = (self.buyer_message
+                                        .replace('|','，'.decode('utf8'))
+                                        .replace(':','：'.decode('utf8')))
+        msg_dict[str(trade_id)] = msg
         self.buyer_message = '|'.join(['%s:%s'%(k,v) for k,v in msg_dict.items()])
         
         update_model_fields(self,update_fields=['buyer_message'])
@@ -422,8 +424,9 @@ class MergeTrade(models.Model):
         msg_dict = {}
         for m in buyer_msg:
             m  = m.split(':')
-            if len(m)==2:
+            if len(m) == 2:
                 msg_dict[m[0]] = m[1]
+                
         if msg_dict:
             msg_dict.pop(int(trade_id),None)
             self.buyer_message = '|'.join(['%s:%s'%(k,v) for k,v in msg_dict.items()])
@@ -489,10 +492,10 @@ def recalc_trade_fee(sender,trade_id,*args,**kwargs):
                                       total_discount_fee=Sum('discount_fee'),
                                       total_adjust_fee=Sum('adjust_fee'))
     
-    trade.total_fee = fee_dict.total_total_fee 
-    trade.payment = fee_dict.total_payment 
-    trade.discount_fee = fee_dict.total_discount_fee 
-    trade.adjust_fee = fee_dict.total_adjust_fee 
+    trade.total_fee = fee_dict.get('total_total_fee') 
+    trade.payment = fee_dict.get('total_payment') 
+    trade.discount_fee = fee_dict.get('total_discount_fee') 
+    trade.adjust_fee = fee_dictget('.total_adjust_fee') 
     
     update_model_fields(trade,update_fields=['total_fee',
                                              'payment',

@@ -85,11 +85,12 @@ urlpatterns = patterns('shopback.trades.views',
         authentication=(UserLoggedInAuthentication,),
         permissions=(IsAuthenticated,)
     ))),
-    url(r'^exchange/(?P<id>\d{1,20})/$',staff_member_required(ExchangeOrderInstanceView.as_view(
-        resource=ExchangeOrderResource,
-        renderers=(BaseJsonRenderer,ExchangeOrderRender),
-        authentication=(UserLoggedInAuthentication,),
-        permissions=(IsAuthenticated,)
+    url(r'^exchange/(?P<id>\d{1,20})/$',
+        staff_member_required(ExchangeOrderInstanceView.as_view(
+            resource=ExchangeOrderResource,
+            renderers=(BaseJsonRenderer,ExchangeOrderRender),
+            authentication=(UserLoggedInAuthentication,),
+            permissions=(IsAuthenticated,)
     )),name="exchange_order_instance"),
     (r'^direct/$',staff_member_required(DirectOrderView.as_view(
         resource=ExchangeOrderResource,
@@ -97,12 +98,14 @@ urlpatterns = patterns('shopback.trades.views',
         authentication=(UserLoggedInAuthentication,),
         permissions=(IsAuthenticated,)
     ))),
-   url (r'^direct/(?P<id>\d{1,20})/$',staff_member_required(DirectOrderInstanceView.as_view(
-        resource=ExchangeOrderResource,
-        renderers=(BaseJsonRenderer,DirectOrderRender),
-        authentication=(UserLoggedInAuthentication,),
-        permissions=(IsAuthenticated,)
+   url(r'^direct/(?P<id>\d{1,20})/$',
+        staff_member_required(DirectOrderInstanceView.as_view(
+            resource=ExchangeOrderResource,
+            renderers=(BaseJsonRenderer,DirectOrderRender),
+            authentication=(UserLoggedInAuthentication,),
+            permissions=(IsAuthenticated,)
     )),name="direct_order_instance"),
+                       
     (r'^tradeplus/$',TradeSearchView.as_view(
         resource=OrderPlusResource,
         renderers=(BaseJsonRenderer,),

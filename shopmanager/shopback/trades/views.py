@@ -965,13 +965,14 @@ class DirectOrderInstanceView(ModelView):
     def post(self, request, id, *args , **kwargs):
         
         content     = request.REQUEST
-
+        type = content.get('trade_type')
+        
         if type not in (pcfg.DIRECT_TYPE,pcfg.REISSUE_TYPE):
             return u'订单类型异常'
         try:
             merge_trade =  MergeTrade.objects.get(id=id)
         except MergeTrade.DoesNotExist:
-            return u'退换货单创建异常'
+            return u'内售单创建异常'
         
         if merge_trade.sys_status not in('',pcfg.WAIT_AUDIT_STATUS):
             return u'订单状态已改变'

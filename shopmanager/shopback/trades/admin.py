@@ -416,14 +416,14 @@ class MergeTradeAdmin(admin.ModelAdmin):
             sub_trade.consign_time      = main_trade.consign_time
             sub_trade.save()
             
-            log_action(user_id,sub_trade,CHANGE,u'合并入主订单（%d），并发货完成'%main_trade.id)
             if sub_trade.status == pcfg.WAIT_SELLER_SEND_GOODS:
                 
                 from shopback.trades.service import TradeService
                 try:
                     TradeService(user_id,sub_trade).sendTrade()
-                except:
-                    log_action(user_id,sub_trade,CHANGE,u'订单合并发货失败')
+                except Exception,exc:
+                    logger.error(u'订单发货失败:%s'%exc.message,exc_info=True)
+                    log_action(user_id,sub_trade,CHANGE,u'订单发货失败:%s'%exc.message)
                     
         return merge_success
     
@@ -436,6 +436,7 @@ class MergeTradeAdmin(admin.ModelAdmin):
         queryset  = queryset.filter(is_force_wlb=False)
         myset     = queryset.exclude(sys_status__in=(pcfg.WAIT_AUDIT_STATUS,
                                                      pcfg.ON_THE_FLY_STATUS,
+                                                     pcfg.WAIT_PREPARE_SEND_STATUS,
                                                      pcfg.WAIT_CHECK_BARCODE_STATUS,
                                                      pcfg.WAIT_SCAN_WEIGHT_STATUS,
                                                      pcfg.FINISHED_STATUS))
@@ -456,7 +457,7 @@ class MergeTradeAdmin(admin.ModelAdmin):
             fail_reason      = ''
             is_merge_success = False
             
-            if postset.count()==1:
+            if postset.count() == 1:
                 main_trade     = postset[0]
                 main_full_addr = main_trade.buyer_full_address #主订单收货人地址
                 sub_trades     = queryset.filter(sys_status=pcfg.WAIT_AUDIT_STATUS,
@@ -467,7 +468,8 @@ class MergeTradeAdmin(admin.ModelAdmin):
                     
                     if trade.buyer_full_address != main_full_addr:
                         is_merge_success = False
-                        fail_reason      = u'订单地址不同'
+                        fail_reason      = (u'订单地址不同:%s'%MergeTrade.
+                                            objects.diffTradeAddress(trade,main_trade))
                         break
                     
                     if trade.has_merge and trade.sys_status == pcfg.WAIT_AUDIT_STATUS:
@@ -502,6 +504,7 @@ class MergeTradeAdmin(admin.ModelAdmin):
                                u'合并订单(%s)'%','.join([str(id) for id in merge_trade_ids]))
             else:
                 audit_trades = queryset.filter(sys_status__in=(pcfg.WAIT_AUDIT_STATUS,
+                                                               pcfg.WAIT_PREPARE_SEND_STATUS,
                                                                pcfg.ON_THE_FLY_STATUS,
                                                                pcfg.REGULAR_REMAIN_STATUS)
                                                ).order_by('pay_time')	
@@ -513,13 +516,14 @@ class MergeTradeAdmin(admin.ModelAdmin):
                     else:
                         main_trade = audit_trades[0] #主订单
 
-                    queryset = queryset.exclude(tid=main_trade.tid)		
+                    queryset = queryset.exclude(id=main_trade.id)		
                     main_full_addr = main_trade.buyer_full_address #主订单收货人地址
                     
                     for trade in queryset:
                         if trade.buyer_full_address != main_full_addr:
                             is_merge_success = False
-                            fail_reason      = u'订单地址不同'
+                            fail_reason      = (u'订单地址不同:%s'%MergeTrade.
+                                            objects.diffTradeAddress(trade,main_trade))
                             break
                         
                         is_merge_success = MergeTrade.objects.mergeMaker(main_trade,trade)
@@ -528,8 +532,6 @@ class MergeTradeAdmin(admin.ModelAdmin):
                             break
                         
                         merge_trade_ids.append(trade.id)
-                        trade.sys_status = pcfg.ON_THE_FLY_STATUS
-                        trade.save()
                 if is_merge_success:
                     ruleMatchPayment(main_trade)
                     log_action(request.user.id,main_trade,CHANGE,

@@ -93,11 +93,17 @@ class ProductAdmin(admin.ModelAdmin):
     #--------设置页面布局----------------
     fieldsets =(('商品基本信息:', {
                     'classes': ('expand',),
-                    'fields': (('outer_id','name','category','pic_path','status')
-                               ,('collect_num','warn_num','remain_num','wait_post_num','reduce_num')
-                               ,('cost','std_purchase_price','std_sale_price','agent_price','staff_price')
-                               ,('weight','sync_stock','is_assign','is_split','is_match','post_check')
-                               ,('barcode','match_reason','memo','buyer_prompt'))
+                    'fields': (('outer_id','name','category')
+                               ,('collect_num','warn_num','remain_num','wait_post_num')
+                               ,('reduce_num','cost','std_sale_price')
+                               ,('std_purchase_price','agent_price','staff_price')
+                               ,('pic_path','status'))
+                }),
+                ('商品系统设置:', {
+                    'classes': ('collapse',),
+                    'fields': (('weight','sync_stock','is_assign','is_split','is_match','post_check')
+                               ,('barcode','match_reason','buyer_prompt')
+                               ,'memo')
                 }),)
     
     formfield_overrides = {
