@@ -365,6 +365,9 @@ class MergeTrade(models.Model):
             outer_id  = order.outer_id
             order_num = order.num
             is_reverse = False if order.gift_type == pcfg.RETURN_GOODS_GIT_TYPE else True
+            prod = None
+            prod_sku = None
+
             if outer_sku_id and outer_id:
                 prod_sku = ProductSku.objects.get(outer_id=outer_sku_id,product__outer_id=outer_id)
                 prod_sku.update_quantity(order_num,dec_update=is_reverse)
@@ -1265,7 +1268,8 @@ def trade_download_controller(merge_trade,trade,trade_from,first_pay_load):
         
         if merge_trade.sys_status not in (pcfg.FINISHED_STATUS,pcfg.INVALID_STATUS): 
             merge_trade.append_reason_code(pcfg.INVALID_END_CODE)
-            merge_trade.sys_status = pcfg.INVALID_STATUS
+            if not merge_trade.is_locked:
+                merge_trade.sys_status = pcfg.INVALID_STATUS
     
     #是否对系统内部的订单进行，合单拦截？
     elif trade.status in (pcfg.TRADE_NO_CREATE_PAY,pcfg.WAIT_BUYER_PAY):

@@ -333,6 +333,9 @@ class WeixinUserService():
             matchMsg = ''
             if msgtype   == WX_TEXT: 
                 matchMsg = params['Content']
+                if event_re.match(matchMsg):
+                    ret_params.update(self.handleEvent(matchMsg.upper(),openId))
+                    return ret_params
             elif msgtype == WX_IMAGE:
                 matchMsg = '图片'.decode('utf8')
             elif msgtype == WX_VOICE:

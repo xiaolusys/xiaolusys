@@ -379,7 +379,7 @@ class MergeTradeAdmin(admin.ModelAdmin):
             sub_trade.consign_time      = main_trade.consign_time
             sub_trade.save()
             
-            log_action(user_id,sub_trade,CHANGE,u'订单并入主订单（%d），并发货完成'%main_trade.tid)
+            log_action(user_id,sub_trade,CHANGE,u'订单并入主订单（%d），并发货完成'%main_trade.id)
             if sub_trade.status == pcfg.WAIT_SELLER_SEND_GOODS:
                 try:
                     sub_trade.send_trade_to_taobao(pcfg.SUB_TRADE_COMPANEY_CODE,sub_trade.out_sid)

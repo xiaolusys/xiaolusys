@@ -10,6 +10,19 @@ import logging
 
 logger = logging.getLogger('django.request')
 
+def wxpay(request):
+    return HttpResponse('OK')
+
+def napay(request):
+    return HttpResponse('OK')
+
+def maintian(request):
+    return HttpResponse('OK')
+
+def warn(request):
+    print 'WEIXIN WARN:',request.REQUEST
+    return HttpResponse('OK')
+
 
 class WeixinAcceptView(View):
     """ 微信接收消息接口 """
