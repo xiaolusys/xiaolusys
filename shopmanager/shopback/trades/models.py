@@ -73,7 +73,7 @@ TAOBAO_ORDER_STATUS = (
 )
 
 TRADE_TYPE = (
-    (pcfg.TAOBAO_TYPE,u'淘宝商城'),
+    (pcfg.TAOBAO_TYPE,u'淘宝&商城'),
     (pcfg.FENXIAO_TYPE,u'淘宝分销'),
     (pcfg.JD_TYPE,u'京东'),
     (pcfg.YHD_TYPE,u'一号店'),

@@ -150,6 +150,7 @@ class OrderService(TaobaoSendTradeMixin,TaobaoTradeService,LocalService):
     def createMergeTrade(cls,trade,*args,**kwargs):
         
         tid  = trade.id
+        update_address = False
         merge_trade,state = MergeTrade.objects.get_or_create(user=trade.user,
                                                              tid=tid,
                                                              type=pcfg.TAOBAO_TYPE)
@@ -162,8 +163,8 @@ class OrderService(TaobaoSendTradeMixin,TaobaoTradeService,LocalService):
                          ,'is_part_consign','step_paid_fee','step_trade_status']
         
         if not merge_trade.receiver_name and trade.receiver_name:
-            
-            address_fields = ['receiver_name','receiver_state',
+            update_address  = True
+            address_fields  = ['receiver_name','receiver_state',
                              'receiver_city','receiver_district',
                              'receiver_address','receiver_zip',
                              'receiver_mobile','receiver_phone']
@@ -194,6 +195,7 @@ class OrderService(TaobaoSendTradeMixin,TaobaoTradeService,LocalService):
         trade_handler.proccess(
            merge_trade,
            **{'origin_trade':trade,
+              'update_address':update_address,
               'first_pay_load':(merge_trade.sys_status == pcfg.EMPTY_STATUS
                                 and merge_trade.status == pcfg.WAIT_SELLER_SEND_GOODS)})
         
