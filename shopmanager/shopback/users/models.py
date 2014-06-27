@@ -37,22 +37,22 @@ class EffectUserManager(models.Manager):
     def get_query_set(self):
         return super(EffectUserManager, self).get_query_set().filter(status=pcfg.USER_NORMAL)
     
-    def TB(self):
+    def TAOBAO(self):
         self.get_query_set().filter(type__in=(pcfg.SHOP_TYPE_B,pcfg.SHOP_TYPE_C))
         
-    def JD(self):
+    def JINGDONG(self):
         self.get_query_set().filter(type=pcfg.SHOP_TYPE_JD)
         
-    def YHD(self):
+    def YIHAODIAN(self):
         self.get_query_set().filter(type=pcfg.SHOP_TYPE_YHD)
         
-    def DD(self):
+    def DANGDANG(self):
         self.get_query_set().filter(type=pcfg.SHOP_TYPE_DD)
         
-    def WX(self):
+    def WEIXIN(self):
         self.get_query_set().filter(type=pcfg.SHOP_TYPE_WX)
         
-    def AMZ(self):
+    def AMAZON(self):
         self.get_query_set().filter(type=pcfg.SHOP_TYPE_AMZ)
         
 

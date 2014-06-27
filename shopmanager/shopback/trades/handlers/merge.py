@@ -9,7 +9,8 @@ from common.modelutils import  update_model_fields
 class MergeHandler(BaseHandler):
     
     def handleable(self,merge_trade,*args,**kwargs):
-        return (kwargs.get('first_pay_load',None) and 
+        return ((kwargs.get('first_pay_load',None) or 
+                 kwargs.get('update_address',None)) and 
                 MergeTrade.objects.isTradeMergeable(merge_trade))
         
     def process(self,merge_trade,*args,**kwargs):

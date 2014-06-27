@@ -251,8 +251,11 @@ class MergeTradeManager(models.Manager):
     def isValidPubTime(self,userId,trade,modified):
         
         if not isinstance(trade,self.model):
-            trade = self.get(user__visitor_id=userId,tid=trade) 
-
+            try:
+                trade = self.get(user__visitor_id=userId,tid=trade) 
+            except:
+                return True
+            
         if (not trade.modified or 
             trade.modified < modified or 
             not trade.sys_status):

@@ -13,6 +13,8 @@ import urllib
 import urllib2
 from django.conf import settings
 from shopapp.weixin.models import WeiXinAccount
+from common.utils import randomString,getSignatureWeixin
+
 
 class WeiXinRequestException(Exception):
     
@@ -22,7 +24,6 @@ class WeiXinRequestException(Exception):
   
     def __str__(self):
         return u'微信API错误:(%s,%s)'%(str(self.code),self.msg)
-
 
 
 class WeiXinAPI(object):
@@ -50,9 +51,9 @@ class WeiXinAPI(object):
     _merchant_order_getbyfilter_uri   = "/merchant/order/getbyfilter"
     _merchant_order_setdelivery_uri   = "/merchant/order/setdelivery"
     
-    #微信支付，维权，告警接口
-    _merchant_order_setdelivery_uri   = "/merchant/order/setdelivery"
-    _merchant_order_setdelivery_uri   = "/merchant/order/setdelivery"
+    #微信原生支付URL
+    _native_url   = "weixin://wxpay/bizpayurl"
+    
     
     def __init__(self):
         self._wx_account = WeiXinAccount.getAccountInstance()
@@ -218,8 +219,33 @@ class WeiXinAPI(object):
                                    'delivery_track_no':delivery_track_no},
                                   method='POST')
         
+    def genNativeSignParams(self,product_id):
+        
+        signString = {'appid':self._wx_account.app_id,
+                      'timestamp':str(int(time.time())),
+                      'noncestr':randomString(),
+                      'productid':str(product_id),
+                      'appkey':self._wx_account.app_secret
+                      }
+        signString.update(sign, getSignatureWeixin(signString))
+        signString.pop('appkey')
+        
+        return signString
     
+    def genPaySignParams(self,package):
+        
+        signString = {'appid':self._wx_account.app_id,
+                      'timestamp':str(int(time.time())),
+                      'noncestr':randomString(),
+                      'package':package,
+                      'appkey':self._wx_account.pay_sign_key
+                      }
+        signString.update(sign, getSignatureWeixin(signString))
+        signString.pop('appkey')
+        
+        return signString
     
-    
-    
-    
+    def genPackageSignParams(self,package):
+        
+        
+        return 

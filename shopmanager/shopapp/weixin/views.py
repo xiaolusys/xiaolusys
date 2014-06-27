@@ -11,17 +11,20 @@ import logging
 logger = logging.getLogger('django.request')
 
 def wxpay(request):
-    return HttpResponse('OK')
+    logger.warn('WEIXIN WEIXIN_PAY_URL:%s'%str(request.REQUEST))
+    return HttpResponse('success')
 
 def napay(request):
-    return HttpResponse('OK')
+    logger.warn('WEIXIN NATIVE_CALLBACK_URL:%s'%str(request.REQUEST))
+    return HttpResponse('success')
 
 def maintian(request):
-    return HttpResponse('OK')
+    logger.warn('WEIXIN FEEDBACK_URL:%s'%str(request.REQUEST))
+    return HttpResponse('success')
 
 def warn(request):
-    print 'WEIXIN WARN:',request.REQUEST
-    return HttpResponse('OK')
+    logger.warn('WEIXIN WARN_URL:%s'%str(request.REQUEST))
+    return HttpResponse('success')
 
 
 class WeixinAcceptView(View):
@@ -51,8 +54,8 @@ class WeixinAcceptView(View):
         
         wx_service = self.get_wx_service()
         if not wx_service.checkSignature(content.get('signature',''),
-                                     content.get('timestamp',''),
-                                     content.get('nonce','')):
+                                         content.get('timestamp',''),
+                                         content.get('nonce','')):
             return HttpResponse('INVALID MESSAGE')
         
         content  = request.body

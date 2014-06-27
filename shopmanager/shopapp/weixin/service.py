@@ -54,18 +54,22 @@ class WeixinUserService():
     def getOrCreateUser(self,openId,force_update=False):
         
         wx_user,state =  WeiXinUser.objects.get_or_create(openid=openId) 
-        if state or force_update:     
-            userinfo = self. _wx_api.getUserInfo(openId)
-           
-            for k,v in userinfo.iteritems():
-                setattr(wx_user,k,v)
-            
-            subscribe_time = userinfo.get('subscribe_time',None)
-            if subscribe_time:
-                wx_user.subscribe_time = datetime.datetime\
-                    .fromtimestamp(subscribe_time)
-                    
-            wx_user.save()
+        if state or force_update:
+            try:     
+                userinfo = self. _wx_api.getUserInfo(openId)
+               
+                for k,v in userinfo.iteritems():
+                    setattr(wx_user,k,v)
+                
+                subscribe_time = userinfo.get('subscribe_time',None)
+                if subscribe_time:
+                    wx_user.subscribe_time = datetime.datetime\
+                        .fromtimestamp(subscribe_time)
+                        
+                wx_user.save()
+            except Exception,exc:
+                logger.error(u'获取微信用户信息错误:%s'%exc.message,exc_info=True)
+                
         return wx_user
     
     def setOpenId(self,openId):
@@ -380,7 +384,7 @@ class WeixinUserService():
         except MessageException,exc:
             ret_params.update(self.genTextRespJson(exc.message))
         except Exception,exc:
-            logger.error(exc.message or 'weixin response error',exc_info=True)
+            logger.error(u'微信请求异常:%s'%exc.message ,exc_info=True)
             ret_params.update(self.genTextRespJson(u'不好了，小优尼闹情绪不想干活了！'))
             
         return ret_params

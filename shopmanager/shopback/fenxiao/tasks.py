@@ -11,7 +11,11 @@ from shopback.monitor.models import TradeExtraInfo,SystemConfig,DayMonitorStatus
 from shopback.trades.models import MergeTrade
 from shopback import paramconfig as pcfg
 from shopback.users import Seller
-from common.utils import format_time,format_datetime,format_year_month,parse_datetime,single_instance_task
+from common.utils import (format_time,
+                          format_datetime,
+                          format_year_month,
+                          parse_datetime,
+                          single_instance_task)
 from auth import apis
 import logging
 __author__ = 'meixqhi'
@@ -26,15 +30,18 @@ def saveUserFenxiaoProductTask(seller_id):
     seller = Seller.getSellerByVisitorId(seller_id)
     if not seller.has_fenxiao:
         return 
+    
     try:
         has_next    = True
         cur_page    = 1
         
         while has_next:
             response_list = apis.taobao_fenxiao_products_get(page_no=cur_page,
-                        page_size=settings.TAOBAO_PAGE_SIZE/2,tb_user_id=seller_id)
+                                                             page_size=settings.TAOBAO_PAGE_SIZE/2,
+                                                             tb_user_id=seller_id)
+            
             products = response_list['fenxiao_products_get_response']
-            if products['total_results']>0:
+            if products['total_results'] > 0:
                 fenxiao_product_list = products['products']['fenxiao_product']
                 for fenxiao_product in fenxiao_product_list:
                     FenxiaoProduct.save_fenxiao_product_dict(seller_id,fenxiao_product)
@@ -45,9 +52,10 @@ def saveUserFenxiaoProductTask(seller_id):
             cur_page += 1
     
     except UserFenxiaoUnuseException,exc:
-        logger.warn('the current user(id:%s)is not fenxiao platform user,error:%s'%(str(seller_id),exc))
+        logger.warn(u'该用户非分销平台用户:%s,%s'%(str(seller_id),exc.message))
+        
     except TaobaoRequestException,exc:
-        logger.error('%s'%exc,exc_info=True)
+        logger.error(u'分销商品更新异常：%s'%exc.message,exc_info=True)
 
  
 @task(max_retries=3)
@@ -56,6 +64,8 @@ def saveUserPurchaseOrderTask(seller_id,update_from=None,update_to=None,status=N
     seller = Seller.getSellerByVisitorId(seller_id)
     if not seller.has_fenxiao:
         return 
+    
+    from shopback.trades.service import TradeService,PurchaseOrderService
     
     try: 
         if not (update_from and update_to):
@@ -73,15 +83,22 @@ def saveUserPurchaseOrderTask(seller_id,update_from=None,update_to=None,status=N
             while has_next:
         
                 response_list = apis.taobao_fenxiao_orders_get(tb_user_id=seller_id,
-                    page_no=cur_page,time_type='trade_time_type',page_size=settings.TAOBAO_PAGE_SIZE/2
-                    ,start_created=dt_f,end_created=dt_t,status=status)
+                                                               page_no=cur_page,
+                                                               time_type='trade_time_type',
+                                                               page_size=settings.TAOBAO_PAGE_SIZE/2,
+                                                               start_created=dt_f,
+                                                               end_created=dt_t,
+                                                               status=status)
         
                 orders_list = response_list['fenxiao_orders_get_response']
                 if orders_list['total_results']>0:
                     for o in orders_list['purchase_orders']['purchase_order']:
-                        if MergeTrade.judge_need_pull(o['id'],datetime.datetime.strptime(o['modified'],
-                                                                                         '%Y-%m-%d %H:%M:%S')):
-                            PurchaseOrder.save_order_through_dict(seller_id,o)
+                        
+                        modified = datetime.datetime.strptime(o['modified'],'%Y-%m-%d %H:%M:%S')
+                        
+                        if TradeService.isValidPubTime(seller_id,o['id'],modified):
+                            purchase_order = PurchaseOrderService.savePurchaseOrderByDict(seller_id,o)
+                            PurchaseOrderService.createMergeTrade(purchase_order)                                             
         
                 total_nums = orders_list['total_results']
                 cur_nums = cur_page*settings.TAOBAO_PAGE_SIZE
@@ -89,7 +106,8 @@ def saveUserPurchaseOrderTask(seller_id,update_from=None,update_to=None,status=N
                 cur_page += 1
                 
     except Exception,exc:
-        logger.error(exc.message,exc_info=True)
+        logger.error(u'分销订单下载失败:%s'%exc.message,exc_info=True)
+        
         raise saveUserPurchaseOrderTask.retry(exc=exc,countdown=60)
 
         
@@ -104,21 +122,29 @@ def saveUserIncrementPurchaseOrderTask(seller_id,update_from=None,update_to=None
          
     update_from = format_datetime(update_from)
     update_to   = format_datetime(update_to)
-
+    
+    from shopback.trades.service import TradeService,PurchaseOrderService
+    
     has_next = True
     cur_page = 1
     
     while has_next:
         response_list = apis.taobao_fenxiao_orders_get(tb_user_id=seller_id,
-            page_no=cur_page,time_type='update_time_type',page_size=settings.TAOBAO_PAGE_SIZE/2,
-            start_created=update_from,end_created=update_to)
+                                                       page_no=cur_page,
+                                                       time_type='update_time_type',
+                                                       page_size=settings.TAOBAO_PAGE_SIZE/2,
+                                                       start_created=update_from,
+                                                       end_created=update_to)
 
         orders_list = response_list['fenxiao_orders_get_response']
         if orders_list['total_results']>0:
             for o in orders_list['purchase_orders']['purchase_order']:
-                if MergeTrade.judge_need_pull(o['id'],datetime.datetime.strptime(o['modified'],
-                                                                                 '%Y-%m-%d %H:%M:%S')):
-                    PurchaseOrder.save_order_through_dict(seller_id,o)
+                
+                modified = datetime.datetime.strptime(o['modified'],'%Y-%m-%d %H:%M:%S')
+                
+                if TradeService.isValidPubTime(seller_id,o['id'],modified):
+                    purchase_order = PurchaseOrderService.savePurchaseOrderByDict(seller_id,o)
+                    PurchaseOrderService.createMergeTrade(purchase_order)
 
         total_nums = orders_list['total_results']
         cur_nums = cur_page*settings.TAOBAO_PAGE_SIZE
@@ -141,7 +167,7 @@ def updateAllUserIncrementPurchaseOrderTask(update_from=None,update_to=None):
         update_to   = datetime.datetime(dt.year,dt.month,dt.day,0,0,0)
         update_days = 1
         
-    sellers = Seller.effect_users.all()
+    sellers = Seller.effect_users.TAOBAO
     
     for user in sellers:
         for i in xrange(0,update_days):
@@ -174,7 +200,7 @@ def updateAllUserIncrementPurchasesTask():
     
     dt = datetime.datetime.now()
     sysconf = SystemConfig.getconfig()
-    sellers = Seller.effect_users.all()
+    sellers = Seller.effect_users.TAOBAO
     updated = sysconf.fenxiao_order_updated 
     
     try:

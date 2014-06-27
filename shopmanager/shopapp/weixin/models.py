@@ -21,12 +21,16 @@ class AnonymousWeixinAccount():
 class WeiXinAccount(models.Model):
     
     account_id = models.CharField(max_length=32,unique=True,
-                                  verbose_name=u'原始ID')
+                                  verbose_name=u'OPEN ID')
     
     token      = models.CharField(max_length=32,verbose_name=u'TOKEN')    
     
     app_id     = models.CharField(max_length=64,verbose_name=u'应用ID')
     app_secret = models.CharField(max_length=128,verbose_name=u'应用SECRET')
+    
+    #pay_sign_key = models.CharField(max_length=128,verbose_name=u'支付密钥')
+    #partner_id   = models.CharField(max_length=128,verbose_name=u'商户ID')
+    #partner_key  = models.CharField(max_length=128,verbose_name=u'商户KEY')
     
     access_token = models.CharField(max_length=256,blank=True,
                                     verbose_name=u'ACCESS TOKEN')
@@ -148,7 +152,8 @@ class WeiXinUser(models.Model):
     
     def get_wait_time(self):
         
-        delta_seconds =int((datetime.datetime.now() - self.code_time).total_seconds())
+        delta_seconds =int((datetime.datetime.now() -
+                             self.code_time).total_seconds())
         
         return delta_seconds < 60 and  (60 - delta_seconds) or 0
     
@@ -157,7 +162,9 @@ class WeiXinUser(models.Model):
         if not self.code_time:
             return True
         
-        return (datetime.datetime.now() - self.code_time).total_seconds() > SAFE_CODE_SECONDS
+        return ((datetime.datetime.now() - 
+                 self.code_time).total_seconds() 
+                > SAFE_CODE_SECONDS)
 
     def doSubscribe(self,sceneid):
         self.sceneid   = sceneid
@@ -199,7 +206,7 @@ class WeiXinAutoResponse(models.Model):
         (WX_VIDEO,u'视频'),
         (WX_THUMB,u'缩略图'),
         (WX_MUSIC,u'音乐'),
-        (WX_NEWS ,u'图文'),
+        (WX_NEWS ,u'新闻'),
     )
     
     message   = models.CharField(max_length=64,unique=True,verbose_name=u"消息")
@@ -225,15 +232,17 @@ class WeiXinAutoResponse(models.Model):
         
     @classmethod
     def respDefault(cls):
-        resp,state = cls.objects.get_or_create(message=WX_DEFAULT,rtype=WX_TEXT)
+        resp,state = cls.objects.get_or_create(message=cls.WX_DEFAULT,
+                                               rtype=cls.WX_TEXT)
         return resp
     
     def __unicode__(self):
-        return u'<WeiXinAutoResponse:%d,%s>'%(self.id,self.get_rtype_display())
+        return u'<WeiXinAutoResponse:%d,%s>'%(self.id,
+                                              self.get_rtype_display())
     
     def respText(self):
         return {'MsgType':self.rtype,
-                'Content':self.content}
+                'Content':self.content.replace('\r','')}
     
     def respImage(self):
         
@@ -252,14 +261,14 @@ class WeiXinAutoResponse(models.Model):
         return {'MsgType':self.rtype,
                 'Video':{'MediaId':self.media_id,
                          'Title':self.title,
-                         'Description':self.content
+                         'Description':self.content.replace('\r','')
                          }}
     
     def respMusic(self):
         
         return {'MsgType':self.rtype,
                 'Music':{'Title':self.title,
-                         'Description':self.content,
+                         'Description':self.content.replace('\r',''),
                          'ThumbMediaId':self.media_id,
                          'MusicURL':self.music_url,
                          'HQMusicUrl':self.hq_music_url
@@ -273,15 +282,15 @@ class WeiXinAutoResponse(models.Model):
         
     def autoParams(self):
         
-        if   self.rtype == WX_TEXT:
+        if   self.rtype == self.WX_TEXT:
             return self.respText()
-        elif self.rtype == WX_IMAGE:
+        elif self.rtype == self.WX_IMAGE:
             return self.respImage()
-        elif self.rtype == WX_VOICE:
+        elif self.rtype == self.WX_VOICE:
             return self.respVoice()
-        elif self.rtype == WX_VIDEO:
+        elif self.rtype == self.WX_VIDEO:
             return self.respVideo()
-        elif self.rtype == WX_MUSIC:
+        elif self.rtype == self.WX_MUSIC:
             return self.respMusic()
         else:
             return self.respNews()
@@ -393,19 +402,19 @@ class WXOrder(models.Model):
     def mapTradeStatus(cls,wx_order_status):
         
         from shopback import paramconfig as pcfg
-        if wx_order_status == WX_WAIT_SEND:
+        if wx_order_status == cls.WX_WAIT_SEND:
             return pcfg.WAIT_SELLER_SEND_GOODS
         
-        elif wx_order_status == WX_WAIT_CONFIRM:
+        elif wx_order_status == cls.WX_WAIT_CONFIRM:
             return pcfg.WAIT_BUYER_CONFIRM_GOODS
         
-        elif wx_order_status == WX_FINISHED:
+        elif wx_order_status == cls.WX_FINISHED:
             return pcfg.TRADE_FINISHED
         
-        elif wx_order_status == WX_CLOSE:
+        elif wx_order_status == cls.WX_CLOSE:
             return pcfg.TRADE_CLOSED
         
-        elif wx_order_status == WX_FEEDBACK:
+        elif wx_order_status == cls.WX_FEEDBACK:
             return pcfg.WAIT_BUYER_CONFIRM_GOODS
 
         return pcfg.WAIT_BUYER_PAY
@@ -414,19 +423,19 @@ class WXOrder(models.Model):
     def mapOrderStatus(cls,wx_order_status):
         
         from shopback import paramconfig as pcfg
-        if wx_order_status == WX_WAIT_SEND:
+        if wx_order_status == cls.WX_WAIT_SEND:
             return pcfg.WAIT_SELLER_SEND_GOODS
         
-        elif wx_order_status == WX_WAIT_CONFIRM:
+        elif wx_order_status == cls.WX_WAIT_CONFIRM:
             return pcfg.WAIT_BUYER_CONFIRM_GOODS
         
-        elif wx_order_status == WX_FINISHED:
+        elif wx_order_status == cls.WX_FINISHED:
             return pcfg.TRADE_FINISHED
         
-        elif wx_order_status == WX_CLOSE:
+        elif wx_order_status == cls.WX_CLOSE:
             return pcfg.TRADE_CLOSED
         
-        elif wx_order_status == WX_FEEDBACK:
+        elif wx_order_status == cls.WX_FEEDBACK:
             return pcfg.TRADE_REFUNDING
 
         return pcfg.WAIT_BUYER_PAY
