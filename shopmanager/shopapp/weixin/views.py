@@ -50,9 +50,9 @@ class WeixinAcceptView(View):
         content    = request.GET
         
         wx_service = self.get_wx_service()
-        if not wx_service.checkSignature(content['signature'],
-                                     content['timestamp'],
-                                     content['nonce']):
+        if not wx_service.checkSignature(content.get('signature',''),
+                                     content.get('timestamp',''),
+                                     content.get('nonce','')):
             return HttpResponse('INVALID MESSAGE')
         
         content  = request.body

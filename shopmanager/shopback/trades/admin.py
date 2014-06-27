@@ -21,17 +21,25 @@ from django.conf import settings
 from celery import chord
 from shopback.orders.models import Trade
 from shopback.items.models import Product,ProductSku
-from shopback.trades.models import MergeTrade,MergeOrder,MergeBuyerTrade,\
-    ReplayPostTrade,merge_order_maker,merge_order_remover,SYS_TRADE_STATUS
+from shopback.trades.models import (MergeTrade,
+                                    MergeOrder,
+                                    MergeBuyerTrade,
+                                    ReplayPostTrade)
 from shopback import paramconfig as pcfg
 from shopback.fenxiao.models import PurchaseOrder
 from shopback.trades.tasks import sendTaobaoTradeTask,sendTradeCallBack
 from shopback.trades import permissions as perms
-from shopback.trades.options import DateFieldListFilter,BitFieldListFilter,TradeStatusFilter
+from shopback.trades.filters import (DateFieldListFilter,
+                                     BitFieldListFilter,
+                                     TradeStatusFilter)
+from shopback.trades.service import TradeService
 from shopback.base import log_action,User, ADDITION, CHANGE
-from shopback.signals import rule_signal
 from shopback.trades import permissions as perms
-from common.utils import gen_cvs_tuple,CSVUnicodeWriter,parse_datetime,pinghost
+from common.utils import (gen_cvs_tuple,
+                          update_model_fields,
+                          CSVUnicodeWriter,
+                          parse_datetime,
+                          pinghost)
 from auth import apis
 import logging 
 
@@ -70,7 +78,7 @@ class MergeTradeChangeList(ChangeList):
 
 class MergeTradeAdmin(admin.ModelAdmin):
     list_display = ('trade_id_link','popup_tid_link','user','buyer_nick_link','type','payment','pay_time','consign_time'
-                    ,'sys_status','logistics_company','reason_code','is_picking_print','is_express_print'#
+                    ,'status','sys_status','logistics_company','reason_code','is_picking_print','is_express_print'#
                     ,'can_review','operator','weight_time','charge_time')
     #list_display_links = ('trade_id_link','popup_tid_link')
     #list_editable = ('update_time','task_type' ,'is_success','status')
@@ -108,7 +116,7 @@ class MergeTradeAdmin(admin.ModelAdmin):
     inlines = [MergeOrderInline]
     
     list_filter   = (TradeStatusFilter,'type','status','user',('trade_from', BitFieldListFilter,),'has_out_stock',
-                     'has_rule_match','has_sys_err','has_memo','is_picking_print','is_express_print', 'is_locked',
+                     'has_rule_match','has_merge','has_sys_err','has_memo','is_picking_print','is_express_print', 'is_locked',
                     'is_charged','is_qrcode',('pay_time',DateFieldListFilter),('weight_time',DateFieldListFilter))
 
     search_fields = ['id','buyer_nick','tid','operator','out_sid','receiver_mobile']
@@ -124,7 +132,7 @@ class MergeTradeAdmin(admin.ModelAdmin):
                     'fields': (('tid','user','type','status')
                                ,('buyer_nick','order_num','prod_num','trade_from')
                                ,('total_fee','payment','discount_fee','adjust_fee','post_fee')
-                               ,('seller_cod_fee','buyer_cod_fee','cod_fee','cod_status','alipay_no')
+                               ,('is_cod','seller_cod_fee','buyer_cod_fee','cod_fee','cod_status')
                                ,('is_brand_sale','is_force_wlb','buyer_rate','seller_rate','seller_can_rate'
                                  ,'is_part_consign','is_lgtype','lg_aging_type')
                                ,('send_time','lg_aging','step_paid_fee','step_trade_status')
@@ -215,10 +223,16 @@ class MergeTradeAdmin(admin.ModelAdmin):
         pk_value = obj._get_pk_val()
         operate_success = False
         if request.POST.has_key("_save_audit"):
-            if obj.sys_status==pcfg.WAIT_AUDIT_STATUS and not obj.reason_code and not obj.has_rule_match and not obj.has_refund\
-                 and not obj.has_out_stock and obj.logistics_company and not obj.has_reason_code(pcfg.MULTIPLE_ORDERS_CODE):
+            if (obj.sys_status==pcfg.WAIT_AUDIT_STATUS 
+                and not obj.reason_code 
+                and not obj.has_rule_match 
+                and not obj.has_refund
+                and not obj.has_out_stock 
+                and obj.logistics_company 
+                and not obj.has_reason_code(pcfg.MULTIPLE_ORDERS_CODE)):
                 try:
-                    MergeTrade.objects.filter(id=obj.id,reason_code='').update(sys_status=pcfg.WAIT_PREPARE_SEND_STATUS)
+                    MergeTrade.objects.filter(id=obj.id,reason_code=''
+                                              ).update(sys_status=pcfg.WAIT_PREPARE_SEND_STATUS)
                 except Exception,exc:
                     logger.error(exc.message,exc_info=True)
                     operate_success = False
@@ -226,17 +240,24 @@ class MergeTradeAdmin(admin.ModelAdmin):
                     operate_success = True
                     
             if operate_success:
-                rule_signal.send(sender='payment_rule',trade_id=obj.id) 
+                from shopapp.memorule import ruleMatchPayment
+                
+                ruleMatchPayment(obj)
+                 
                 msg = u"审核通过"
                 self.message_user(request, msg)
                 log_action(request.user.id,obj,CHANGE,msg)
                 
                 return HttpResponseRedirect("../%s/" % pk_value)
             else:
-                self.message_user(request, u"审核未通过（请确保订单状态为问题单，无退款，无问题编码，无匹配，无缺货, 是否手动合单，已选择快递）")
+                self.message_user(request, u"审核未通过（请确保订单状态为问题单，无退款，无问题编码"
+                                  u"，无匹配，无缺货, 未合单，已选择快递）")
                 return HttpResponseRedirect("../%s/" % pk_value)
+            
         elif request.POST.has_key("_invalid"):
-            if obj.sys_status in (pcfg.WAIT_AUDIT_STATUS,pcfg.WAIT_CHECK_BARCODE_STATUS,pcfg.WAIT_SCAN_WEIGHT_STATUS):
+            if obj.sys_status in (pcfg.WAIT_AUDIT_STATUS,
+                                  pcfg.WAIT_CHECK_BARCODE_STATUS,
+                                  pcfg.WAIT_SCAN_WEIGHT_STATUS):
                 obj.sys_status=pcfg.INVALID_STATUS
                 obj.save()
                 msg = u"订单已作废"
@@ -248,6 +269,7 @@ class MergeTradeAdmin(admin.ModelAdmin):
             else:
                 self.message_user(request, u"作废未成功（请确保订单状态为问题单）")
                 return HttpResponseRedirect("../%s/" % pk_value)
+            
         elif request.POST.has_key("_uninvalid"):
             if obj.sys_status==pcfg.INVALID_STATUS:
                 if obj.status == pcfg.WAIT_BUYER_CONFIRM_GOODS:
@@ -267,6 +289,7 @@ class MergeTradeAdmin(admin.ModelAdmin):
             else:
                 self.message_user(request, u"订单非作废状态,不需反作废")
                 return HttpResponseRedirect("../%s/" % pk_value)
+            
         elif request.POST.has_key("_regular"):
             if obj.sys_status==pcfg.WAIT_AUDIT_STATUS and obj.remind_time:
                 obj.sys_status=pcfg.REGULAR_REMAIN_STATUS
@@ -278,9 +301,11 @@ class MergeTradeAdmin(admin.ModelAdmin):
             else:
                 self.message_user(request, u"订单不是问题单或没有设定提醒时间")
                 return HttpResponseRedirect("../%s/" % pk_value)
+            
         elif request.POST.has_key("_unregular"):
             if obj.sys_status==pcfg.REGULAR_REMAIN_STATUS:
-                MergeTrade.objects.filter(id=obj.id).update(sys_status=pcfg.WAIT_AUDIT_STATUS,remind_time=None)
+                MergeTrade.objects.filter(id=obj.id).update(sys_status=pcfg.WAIT_AUDIT_STATUS,
+                                                            remind_time=None)
                 msg = u"订单定时已取消"
                 self.message_user(request, msg)
                 log_action(request.user.id,obj,CHANGE,msg)
@@ -288,18 +313,20 @@ class MergeTradeAdmin(admin.ModelAdmin):
             else:
                 self.message_user(request, u"订单不在定时提醒区，不需要取消定时")
                 return HttpResponseRedirect("../%s/" % pk_value)
+            
         elif request.POST.has_key("_split"):
             if obj.sys_status==pcfg.WAIT_AUDIT_STATUS:
                 if obj.has_reason_code(pcfg.MULTIPLE_ORDERS_CODE):
                     obj.remove_reason_code(pcfg.MULTIPLE_ORDERS_CODE)
                     msg = u"订单已取消需手动合并状态"
                 elif obj.has_merge:
-                    merge_order_remover(obj.tid)
+                    MergeTrade.objects.mergeRemover(obj)
                     msg = u"订单已取消合并状态"
                 else:
                     msg = u'订单不需要取消合并'
                 log_action(request.user.id,obj,CHANGE,msg)
-            elif obj.sys_status in (pcfg.WAIT_CHECK_BARCODE_STATUS,pcfg.WAIT_SCAN_WEIGHT_STATUS):
+            elif obj.sys_status in (pcfg.WAIT_CHECK_BARCODE_STATUS,
+                                    pcfg.WAIT_SCAN_WEIGHT_STATUS):
                 obj.remove_reason_code(pcfg.MULTIPLE_ORDERS_CODE)
                 msg = u"订单已取消待合并状态"
                 log_action(request.user.id,obj,CHANGE,msg)
@@ -307,12 +334,16 @@ class MergeTradeAdmin(admin.ModelAdmin):
                 msg = u"该订单不在问题单，或待扫描状态,或没有合并子订单"
             self.message_user(request, msg)
             return HttpResponseRedirect("../%s/" % pk_value)
+        
         elif request.POST.has_key("_save"):
-            msg = u'%(name)s "%(obj)s" 保存成功.'% {'name': force_unicode(verbose_name), 'obj': force_unicode(obj)}
+            msg = u'%(name)s "%(obj)s" 保存成功.'% {'name': force_unicode(verbose_name),
+                                                   'obj': force_unicode(obj)}
             self.message_user(request, msg)
             return HttpResponseRedirect("../%s/" % pk_value)
+        
         elif request.POST.has_key("_finish"):
-            if obj.sys_status in (pcfg.WAIT_CHECK_BARCODE_STATUS,pcfg.WAIT_SCAN_WEIGHT_STATUS):
+            if obj.sys_status in (pcfg.WAIT_CHECK_BARCODE_STATUS,
+                                  pcfg.WAIT_SCAN_WEIGHT_STATUS):
                 obj.sys_status = pcfg.FINISHED_STATUS
                 obj.weight_time = datetime.datetime.now()
                 obj.save()
@@ -323,7 +354,8 @@ class MergeTradeAdmin(admin.ModelAdmin):
                     order_num    = order.num
                     
                     if outer_sku_id:
-                        psku = ProductSku.objects.get(product__outer_id=outer_id,outer_id=outer_sku_id)
+                        psku = ProductSku.objects.get(product__outer_id=outer_id,
+                                                      outer_id=outer_sku_id)
                         psku.update_quantity(order_num,dec_update=True)
                         psku.update_wait_post_num(order_num,dec_update=True)
                         
@@ -332,12 +364,14 @@ class MergeTradeAdmin(admin.ModelAdmin):
                         prod.update_collect_num(order_num,dec_update=True)
                         prod.update_wait_post_num(order_num,dec_update=True)
                 
-                msg = u'%(name)s "%(obj)s" 订单手动修改已完成.'% {'name': force_unicode(verbose_name), 'obj': force_unicode(obj)} 
+                msg = u'%(name)s "%(obj)s" 订单手动修改已完成.'% { 'name': force_unicode(verbose_name), 
+                                                                'obj': force_unicode(obj)} 
                 log_action(request.user.id,obj,CHANGE,msg)
             else:
                 msg = u"订单不在待扫描验货或待扫描称重，不能修改为已完成状态"
             self.message_user(request, msg)
             return HttpResponseRedirect("../%s/" % pk_value)
+        
         elif request.POST.has_key("_rescan"):
             if obj.sys_status == pcfg.FINISHED_STATUS:
                 obj.sys_status = pcfg.WAIT_CHECK_BARCODE_STATUS
@@ -349,7 +383,8 @@ class MergeTradeAdmin(admin.ModelAdmin):
                     order_num    = order.num
                     
                     if outer_sku_id:
-                        psku = ProductSku.objects.get(product__outer_id=outer_id,outer_id=outer_sku_id)
+                        psku = ProductSku.objects.get(product__outer_id=outer_id,
+                                                      outer_id=outer_sku_id)
                         psku.update_quantity(order_num)
                         psku.update_wait_post_num(order_num)
                         
@@ -358,7 +393,8 @@ class MergeTradeAdmin(admin.ModelAdmin):
                         prod.update_collect_num(order_num)
                         prod.update_wait_post_num(order_num)
                         
-                msg = u'%(name)s "%(obj)s" 订单进入重新扫描状态.'% {'name': force_unicode(verbose_name), 'obj': force_unicode(obj)} 
+                msg = u'%(name)s "%(obj)s" 订单进入重新扫描状态.'% {'name': force_unicode(verbose_name), 
+                                                                'obj': force_unicode(obj)} 
                 log_action(request.user.id,obj,CHANGE,msg)
             else:
                 msg = u"订单不在已完成，不能修改为待扫描状态"
@@ -370,8 +406,9 @@ class MergeTradeAdmin(admin.ModelAdmin):
     #--------定义action----------------
     
     def _handle_merge(self,user_id,sub_trade,main_trade):
-        is_merge_success = merge_order_maker(sub_trade.tid,main_trade.tid)
-        if is_merge_success:
+        
+        merge_success = MergeTrade.objects.mergeMaker(main_trade,sub_trade)
+        if merge_success:
             sub_trade.out_sid           = main_trade.out_sid
             sub_trade.logistics_company = main_trade.logistics_company
             sub_trade.sys_status        = pcfg.FINISHED_STATUS
@@ -379,184 +416,204 @@ class MergeTradeAdmin(admin.ModelAdmin):
             sub_trade.consign_time      = main_trade.consign_time
             sub_trade.save()
             
-            log_action(user_id,sub_trade,CHANGE,u'订单并入主订单（%d），并发货完成'%main_trade.id)
             if sub_trade.status == pcfg.WAIT_SELLER_SEND_GOODS:
+                
+                from shopback.trades.service import TradeService
                 try:
-                    sub_trade.send_trade_to_taobao(pcfg.SUB_TRADE_COMPANEY_CODE,sub_trade.out_sid)
-                except:
-                    log_action(user_id,sub_trade,CHANGE,u'订单合并发货失败')
+                    TradeService(user_id,sub_trade).sendTrade()
+                except Exception,exc:
+                    logger.error(u'订单发货失败:%s'%exc.message,exc_info=True)
+                    log_action(user_id,sub_trade,CHANGE,u'订单发货失败:%s'%exc.message)
                     
-        return is_merge_success
+        return merge_success
+    
     #合并订单
     def merge_order_action(self,request,queryset):
         
         trade_ids = [t.id for t in queryset]
         is_merge_success = False
         wlbset    = queryset.filter(is_force_wlb=True)
-        queryset  = queryset.filter(type__in=(pcfg.FENXIAO_TYPE,pcfg.TAOBAO_TYPE),is_force_wlb=False)
-        myset = queryset.exclude(sys_status__in=(pcfg.WAIT_AUDIT_STATUS,pcfg.ON_THE_FLY_STATUS,
-                                pcfg.WAIT_CHECK_BARCODE_STATUS,pcfg.WAIT_SCAN_WEIGHT_STATUS,pcfg.FINISHED_STATUS))\
-                .exclude(is_express_print=False,sys_status=pcfg.FINISHED_STATUS)
-        postset = queryset.filter(sys_status__in=(pcfg.WAIT_CHECK_BARCODE_STATUS,pcfg.WAIT_SCAN_WEIGHT_STATUS))
+        queryset  = queryset.filter(is_force_wlb=False)
+        myset     = queryset.exclude(sys_status__in=(pcfg.WAIT_AUDIT_STATUS,
+                                                     pcfg.ON_THE_FLY_STATUS,
+                                                     pcfg.WAIT_PREPARE_SEND_STATUS,
+                                                     pcfg.WAIT_CHECK_BARCODE_STATUS,
+                                                     pcfg.WAIT_SCAN_WEIGHT_STATUS,
+                                                     pcfg.FINISHED_STATUS))
+        postset = queryset.filter(sys_status__in=(pcfg.WAIT_CHECK_BARCODE_STATUS,
+                                                  pcfg.WAIT_SCAN_WEIGHT_STATUS))
         if wlbset.count()>0:
             is_merge_success = False
             fail_reason = u'有订单使用物流宝发货，若需在系统发货，请手动取消该订单物流宝状态'
+            
         elif queryset.count()<2 or myset.count()>0 or postset.count()>1:
             is_merge_success = False
-            fail_reason = u'订单不符合合并条件（合并订单必须两单以上，订单类型为一口价，分销,订单状态在问题单或待扫描）'
+            fail_reason = u'订单不符合合并条件（合并订单必须两单以上，订单状态在问题单或待扫描）'
+            
         else:
+            from shopapp.memorule import ruleMatchPayment
+            
             merge_trade_ids  = []     #合单成的订单ID
             fail_reason      = ''
             is_merge_success = False
-            #如果有订单在待扫描，则将子订单与主订单合并，发货，完成
-            if postset.count()==1:
-                main_trade  = postset[0]
+            
+            if postset.count() == 1:
+                main_trade     = postset[0]
                 main_full_addr = main_trade.buyer_full_address #主订单收货人地址
-                sub_trades    = queryset.filter(sys_status__in=(pcfg.WAIT_AUDIT_STATUS,
-                                                              pcfg.FINISHED_STATUS),weight_time__isnull=True).order_by('-has_merge')
+                sub_trades     = queryset.filter(sys_status=pcfg.WAIT_AUDIT_STATUS,
+                                                ).order_by('-has_merge')
                 for trade in sub_trades:
-                    if trade.tid in merge_trade_ids:
+                    if trade.id in merge_trade_ids:
                         continue
                     
                     if trade.buyer_full_address != main_full_addr:
                         is_merge_success = False
-                        fail_reason      = u'订单地址不同'
+                        fail_reason      = (u'订单地址不同:%s'%MergeTrade.
+                                            objects.diffTradeAddress(trade,main_trade))
                         break
-                    if trade.has_merge and trade.sys_status==pcfg.WAIT_AUDIT_STATUS:
-                        sub_tids = MergeBuyerTrade.objects.filter(main_tid=trade.tid).values_list('sub_tid')
-                        merge_order_remover(trade.tid)
-                        for strade in MergeTrade.objects.filter(tid__in=[t[0] for t in sub_tids]):
-                            if strade.tid in merge_trade_ids:
+                    
+                    if trade.has_merge and trade.sys_status == pcfg.WAIT_AUDIT_STATUS:
+                        
+                        sub_tids = MergeBuyerTrade.objects.filter(
+                                        main_tid=trade.id).values_list('sub_tid')
+                        MergeTrade.objects.mergeRemover(trade)
+                        
+                        for strade in MergeTrade.objects.filter(id__in=[t[0] for t in sub_tids]):
+                            
+                            if strade.id in merge_trade_ids:
                                 continue
+                            
                             is_merge_success = self._handle_merge(request.user.id,strade,main_trade)
                             if is_merge_success:
-                                merge_trade_ids.append(strade.tid)
+                                merge_trade_ids.append(strade.id)
                             
                     is_merge_success = self._handle_merge(request.user.id,trade,main_trade)
                     if is_merge_success:
-                        merge_trade_ids.append(trade.tid)
+                        merge_trade_ids.append(trade.id)
                                 
-                if fail_reason and not is_merge_success:
-                    pass                   
-                elif len(merge_trade_ids)<sub_trades.count():
+                if is_merge_success and len(merge_trade_ids)<sub_trades.count():
                     fail_reason = u'部分订单未合并成功'
                     is_merge_success = False 
-                else:
+                    
+                elif is_merge_success:
                     #合并后金额匹配
-                    rule_signal.send(sender='payment_rule',trade_id=main_trade.id)
+                    ruleMatchPayment(main_trade)
+                    
                     is_merge_success = True
-                    log_action(request.user.id,main_trade,CHANGE,u'合并订单(%s)'%','.join([str(id) for id in merge_trade_ids]))
+                    log_action(request.user.id,main_trade,CHANGE,
+                               u'合并订单(%s)'%','.join([str(id) for id in merge_trade_ids]))
             else:
-                audit_trades = queryset.filter(sys_status__in=(pcfg.WAIT_AUDIT_STATUS,pcfg.ON_THE_FLY_STATUS)).order_by('pay_time')	
+                audit_trades = queryset.filter(sys_status__in=(pcfg.WAIT_AUDIT_STATUS,
+                                                               pcfg.WAIT_PREPARE_SEND_STATUS,
+                                                               pcfg.ON_THE_FLY_STATUS,
+                                                               pcfg.REGULAR_REMAIN_STATUS)
+                                               ).order_by('pay_time')	
                 if audit_trades.count()>0:
+                    
                     merge_trades = audit_trades.filter(has_merge=True)
                     if merge_trades.count()>0:
                         main_trade = merge_trades[0]
                     else:
                         main_trade = audit_trades[0] #主订单
 
-                    queryset = queryset.exclude(tid=main_trade.tid)		
+                    queryset = queryset.exclude(id=main_trade.id)		
                     main_full_addr = main_trade.buyer_full_address #主订单收货人地址
                     
                     for trade in queryset:
                         if trade.buyer_full_address != main_full_addr:
                             is_merge_success = False
-                            fail_reason      = u'订单地址不同'
+                            fail_reason      = (u'订单地址不同:%s'%MergeTrade.
+                                            objects.diffTradeAddress(trade,main_trade))
                             break
-                        is_merge_success = merge_order_maker(trade.tid,main_trade.tid)
+                        
+                        is_merge_success = MergeTrade.objects.mergeMaker(main_trade,trade)
                         if not is_merge_success:
                             fail_reason      = u'订单合并错误'
                             break
-                        merge_trade_ids.append(trade.tid)
-                        trade.sys_status = pcfg.ON_THE_FLY_STATUS
-                        trade.save()
+                        
+                        merge_trade_ids.append(trade.id)
                 if is_merge_success:
-                    #合并后金额匹配
-                    rule_signal.send(sender='payment_rule',trade_id=main_trade.id)
-                    log_action(request.user.id,main_trade,CHANGE,u'合并订单,主订单:%d,子订单:%s'%(main_trade.id,','.join([str(id) for id in merge_trade_ids])))
+                    ruleMatchPayment(main_trade)
+                    log_action(request.user.id,main_trade,CHANGE,
+                               u'合并订单,主订单:%d,子订单:%s'%(main_trade.id,
+                                ','.join([str(id) for id in merge_trade_ids])))
+                    
                 elif merge_trade_ids:
-                    merge_order_remover(main_trade.tid)
+                    MergeTrade.objects.mergeRemover(main_trade)
             
         trades = MergeTrade.objects.filter(id__in=trade_ids)
-        return render_to_response('trades/mergesuccess.html',{'trades':trades,'merge_status':is_merge_success,'fail_reason':fail_reason},
-                                  context_instance=RequestContext(request),mimetype="text/html") 	
+        return render_to_response('trades/mergesuccess.html',
+                                  {'trades':trades,
+                                   'merge_status':is_merge_success,
+                                   'fail_reason':fail_reason},
+                                  context_instance=RequestContext(request),
+                                  mimetype="text/html") 	
 
     merge_order_action.short_description = "合并订单".decode('utf8')
 
     #更新下载订单
     def pull_order_action(self, request, queryset):
-        queryset = queryset.filter(sys_status__in=(pcfg.WAIT_AUDIT_STATUS,''))
+        
+        queryset = queryset.filter(sys_status__in=(
+                                    pcfg.WAIT_AUDIT_STATUS,
+                                    pcfg.EMPTY_STATUS))
         pull_success_ids = []
         pull_fail_ids    = []
+        
         for trade in queryset:
             #如果有合单，则取消合并
-            if trade.sys_status not in (pcfg.WAIT_AUDIT_STATUS,''):
+            if trade.sys_status not in (pcfg.WAIT_AUDIT_STATUS,
+                                        pcfg.EMPTY_STATUS):
                 continue
-            if trade.has_merge:
-                merge_order_remover(trade.tid)
             
-            trade.sys_status = ''
-            trade.reason_code=''
-            trade.has_sys_err=False
-            trade.has_merge=False
-            trade.has_memo=False
-            trade.has_rule_match=False
-            trade.has_out_stock=False
-            trade.has_refund=False
-            trade.is_force_wlb=False
-            trade.buyer_message=''
-            trade.seller_memo=''
+            if trade.has_merge:
+                MergeTrade.objects.mergeRemover(trade)
+            
+            trade.sys_status  = pcfg.EMPTY_STATUS
+            trade.reason_code = ''
+            trade.has_sys_err = False
+            trade.has_merge   = False
+            trade.has_memo    = False
+            trade.has_rule_match = False
+            trade.has_out_stock  = False
+            trade.has_refund     = False
+            trade.is_force_wlb   = False
+            trade.buyer_message  = ''
+            trade.seller_memo    = ''
             trade.save()
-            #减去商品的待发货数，订单重新入库时（判断是否缺货功能），会重新加上
-            wait_post_orders = trade.merge_orders.filter(sys_status=pcfg.IN_EFFECT
-                            ,gift_type__in=(pcfg.REAL_ORDER_GIT_TYPE,pcfg.COMBOSE_SPLIT_GIT_TYPE))
-            for order in wait_post_orders:
-                if order.outer_sku_id:
-                    try:
-                        product_sku = ProductSku.objects.get(product__outer_id=order.outer_id,outer_id=order.outer_sku_id)
-                    except:
-                        pass
-                    else:
-                        product_sku.update_wait_post_num(order.num)
-                elif order.outer_id:
-                    try:
-                        product = Product.objects.get(outer_id=order.outer_id)
-                    except:
-                        pass
-                    else:
-                        product.update_wait_post_num(order.num) 
-                        
+            
             try:
+                MergeTrade.objects.reduceWaitPostNum(trade)
+                
                 trade.merge_orders.all().delete()
                 seller_id = trade.user.visitor_id
-                if trade.type == pcfg.TAOBAO_TYPE:
-                    response = apis.taobao_trade_fullinfo_get(tid=trade.tid,tb_user_id=seller_id)
-                    trade_dict = response['trade_fullinfo_get_response']['trade']
-                    Trade.save_trade_through_dict(seller_id,trade_dict)
-                elif trade.type == pcfg.FENXIAO_TYPE:
-                    purchase = PurchaseOrder.objects.get(id=trade.tid)
-                    response_list = apis.taobao_fenxiao_orders_get(purchase_order_id=purchase.fenxiao_id,tb_user_id=seller_id)
-                    orders_list = response_list['fenxiao_orders_get_response']
-                    if orders_list['total_results']>0:
-                        o = orders_list['purchase_orders']['purchase_order'][0]
-                        PurchaseOrder.save_order_through_dict(seller_id,o)    
+                
+                TradeService(seller_id,trade.tid).payTrade()
+                  
             except Exception,exc:
-                logger.error('pull error '+exc.message,exc_info=True)
+                logger.error(u'重新下单错误:%s'%exc.message,exc_info=True)
                 trade.append_reason_code(pcfg.PULL_ORDER_ERROR_CODE)
-                pull_fail_ids.append(trade.tid)
+                pull_fail_ids.append(trade.id)
+                
             else:
-                pull_success_ids.append(trade.tid)
+                pull_success_ids.append(trade.id)
                 log_action(request.user.id,trade,CHANGE,u'重新下载订单')
-        success_trades = MergeTrade.objects.filter(tid__in=pull_success_ids)
-        fail_trades    = MergeTrade.objects.filter(tid__in=pull_fail_ids)
-        return render_to_response('trades/repullsuccess.html',{'success_trades':success_trades,'fail_trades':fail_trades},
-                                  context_instance=RequestContext(request),mimetype="text/html") 
+                
+        success_trades = MergeTrade.objects.filter(id__in=pull_success_ids)
+        fail_trades    = MergeTrade.objects.filter(id__in=pull_fail_ids)
+        
+        return render_to_response('trades/repullsuccess.html',
+                                  {'success_trades':success_trades,
+                                   'fail_trades':fail_trades},
+                                  context_instance=RequestContext(request),
+                                  mimetype="text/html") 
 
     pull_order_action.short_description = "重新下单".decode('utf8')
     
                           
     #淘宝后台同步发货
     def sync_trade_post_taobao(self, request, queryset):
+        
         try:
             pingstatus = pinghost(settings.TAOBAO_API_HOSTNAME)
             if pingstatus:
@@ -568,10 +625,12 @@ class MergeTradeAdmin(admin.ModelAdmin):
                 self.message_user(request, u'没有可发货的订单')
                 return 
                 
-            replay_trade = ReplayPostTrade.objects.create(operator=request.user.username,order_num=len(trade_ids),
-                                               trade_ids=','.join([str(i) for i in trade_ids]))
+            replay_trade = ReplayPostTrade.objects.create(operator=request.user.username,
+                                                          order_num=len(trade_ids),
+                                                          trade_ids=','.join([str(i) for i in trade_ids]))
               
-            send_tasks = chord([sendTaobaoTradeTask.s(user_id,trade.id) for trade in queryset])(sendTradeCallBack.s(replay_trade.id))
+            send_tasks = chord([sendTaobaoTradeTask.s(user_id,trade.id) 
+                                for trade in queryset])(sendTradeCallBack.s(replay_trade.id))
 
         except Exception,exc:
             logger.error(exc.message,exc_info=True)
@@ -579,8 +638,10 @@ class MergeTradeAdmin(admin.ModelAdmin):
         
         response_dict = {'task_id':send_tasks.task_id,'replay_id':replay_trade.id}
         
-        return render_to_response('trades/send_trade_reponse.html',response_dict,
-                                  context_instance=RequestContext(request),mimetype="text/html")                 
+        return render_to_response('trades/send_trade_reponse.html',
+                                  response_dict,
+                                  context_instance=RequestContext(request),
+                                  mimetype="text/html")                 
         
     sync_trade_post_taobao.short_description = "同步发货".decode('utf8')
     
@@ -588,7 +649,9 @@ class MergeTradeAdmin(admin.ModelAdmin):
     def unlock_trade_action(self, request, queryset):
         """ 解除订单锁定 """
         trade_ids = [t.id for t in queryset]
-        unlockable_trades = queryset.filter(sys_status__in=(pcfg.WAIT_AUDIT_STATUS,pcfg.WAIT_PREPARE_SEND_STATUS),
+        unlockable_trades = queryset.filter(
+                        sys_status__in=(pcfg.WAIT_AUDIT_STATUS,
+                                        pcfg.WAIT_PREPARE_SEND_STATUS),
                         is_locked=True)
         
         for trade in unlockable_trades:
@@ -596,14 +659,19 @@ class MergeTradeAdmin(admin.ModelAdmin):
             trade.is_locked = False
             trade.operator  = ''
             trade.save()
-            log_action(request.user.id,trade,CHANGE,u'解除订单锁定(前锁定人:%s)'%operator)
+            
+            log_action(request.user.id,trade,CHANGE,
+                       u'解除订单锁定(前锁定人:%s)'%operator)
                         
         success_trades = MergeTrade.objects.filter(id__in=trade_ids,is_locked=False)
         
         fail_trades    = MergeTrade.objects.filter(id__in=trade_ids,is_locked=True)
 
-        return render_to_response('trades/unlock_trade_status_template.html',{'success_trades':success_trades,'fail_trades':fail_trades},
-                                  context_instance=RequestContext(request),mimetype="text/html") 
+        return render_to_response('trades/unlock_trade_status_template.html',
+                                  {'success_trades':success_trades,
+                                   'fail_trades':fail_trades},
+                                   context_instance=RequestContext(request),
+                                   mimetype="text/html") 
 
     unlock_trade_action.short_description = "订单解锁".decode('utf8')
     
@@ -634,8 +702,11 @@ class MergeTradeAdmin(admin.ModelAdmin):
         """ 导出订单快递信息 """
         dt  = datetime.datetime.now()
         lg_tuple = gen_cvs_tuple(queryset,
-                                 fields=['out_sid','tid','user__nick','receiver_name','receiver_state','receiver_city','weight','logistics_company','post_fee','weight_time'],
-                                 title=[u'运单ID',u'淘宝单号',u'店铺',u'收货人',u'省',u'市',u'重量',u'快递',u'实付邮费',u'称重日期'])
+                                 fields=['out_sid','tid','user__nick','receiver_name',
+                                         'receiver_state','receiver_city','weight',
+                                         'logistics_company','post_fee','weight_time'],
+                                 title=[u'运单ID',u'淘宝单号',u'店铺',u'收货人',u'省',u'市',
+                                        u'重量',u'快递',u'实付邮费',u'称重日期'])
 
         is_windows = request.META['HTTP_USER_AGENT'].lower().find('windows') >-1 
         file_name = u'logistic-%s-%s.csv'%(dt.month,dt.day)
@@ -648,6 +719,7 @@ class MergeTradeAdmin(admin.ModelAdmin):
         response = HttpResponse(myfile.getvalue(), mimetype='application/octet-stream')
         myfile.close()
         response['Content-Disposition'] = 'attachment; filename=%s'%file_name
+        
         return response
 
     export_logistic_action.short_description = "导出快递信息".decode('utf8')
@@ -656,7 +728,8 @@ class MergeTradeAdmin(admin.ModelAdmin):
         """ 导出订单买家信息 """
         dt  = datetime.datetime.now()
         buyer_tuple = gen_cvs_tuple(queryset,
-                                 fields=['user__nick','buyer_nick','receiver_state','receiver_phone','receiver_mobile','pay_time'],
+                                 fields=['user__nick','buyer_nick','receiver_state',
+                                         'receiver_phone','receiver_mobile','pay_time'],
                                  title=[u'卖家',u'买家昵称',u'省',u'固话',u'手机',u'付款日期'])
         
         is_windows = request.META['HTTP_USER_AGENT'].lower().find('windows') >-1 

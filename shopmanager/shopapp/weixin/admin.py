@@ -2,11 +2,17 @@
 from django.contrib import admin
 from django.db import models
 from django.forms import TextInput, Textarea
-from shopapp.weixin.models import WeiXinAccount,WeiXinUser,WeiXinAutoResponse
+from shopapp.weixin.models import (WeiXinAccount,
+                                   WeiXinUser,
+                                   WeiXinAutoResponse,
+                                   WXProduct,
+                                   WXOrder,
+                                   WXLogistic)
 
 class WeiXinAccountAdmin(admin.ModelAdmin):
     
-    list_display = ('token','app_id','expires_in','expired','in_voice','is_active')
+    list_display = ('id','account_id','token','app_id','expires_in',
+                    'expired','in_voice','is_active')
     
     list_filter = ('is_active','in_voice')
     search_fields = ['app_id','token']
@@ -53,16 +59,14 @@ class WeiXinAccountAdmin(admin.ModelAdmin):
                 self.message_user(request, u"微信菜单创建失败：%s"%(exc.message or u'请求错误'))
             
         return super(WeiXinAccountAdmin, self).response_change(request, obj, *args, **kwargs)
-            
-                    
-    
 
 admin.site.register(WeiXinAccount, WeiXinAccountAdmin)  
 
 
 class WeiXinUserAdmin(admin.ModelAdmin):
     
-    list_display = ('openid','nickname','sex','province','city','subscribe_time','subscribe')
+    list_display = ('openid','nickname','sex','province',
+                    'city','subscribe_time','subscribe')
     
     list_filter = ('subscribe','sex')
     search_fields = ['openid','nickname']
@@ -86,5 +90,72 @@ class WeiXinAutoResponseAdmin(admin.ModelAdmin):
         models.TextField: {'widget': Textarea(attrs={'rows':4, 'cols':40})},
     }
     
-
 admin.site.register(WeiXinAutoResponse, WeiXinAutoResponseAdmin) 
+
+
+class WXProductAdmin(admin.ModelAdmin):
+    
+    list_display = ('product_id','product_name','product_img','status')
+    
+     #--------设置页面布局----------------
+    fieldsets =((u'商品信息:', {
+                    'classes': ('expand',),
+                    'fields': (('product_id','product_name','product_img')
+                               ,('product_base',)
+                               ,('sku_list',)
+                               ,('attrext',)
+                               ,('delivery_info',)
+                               ,('status',)
+                               )
+                }),
+                )
+    
+    list_filter = ('status',)
+    search_fields = ['product_id','product_name']
+    
+admin.site.register(WXProduct, WXProductAdmin) 
+
+
+class WXOrderAdmin(admin.ModelAdmin):
+    
+    list_display = ('order_id','buyer_nick','order_total_price','order_create_time',
+                    'delivery_id','delivery_company','order_status')
+    
+    list_filter = ('order_status',)
+    search_fields = ['order_id','trans_id','buyer_nick','delivery_id']
+    
+     #--------设置页面布局----------------
+    fieldsets =((u'订单信息:', {
+                    'classes': ('expand',),
+                    'fields': (('order_id','seller_id','trans_id')
+                               ,('order_total_price','order_express_price','order_create_time')
+                               ,('buyer_openid','buyer_nick','order_status')
+                               )
+                }),
+                (u'商品信息:', {
+                    'classes': ('collapse',),
+                    'fields': (('product_id','product_name','product_price')
+                               ,('product_sku','product_count','product_img')
+                               )
+                }),
+                (u'收货信息:', {
+                    'classes': ('expand',),
+                    'fields': (('receiver_name','receiver_province','receiver_city')
+                               ,('receiver_address','receiver_mobile','receiver_phone')
+                               ,('delivery_id','delivery_company')
+                               )
+                }),
+                )
+    
+
+admin.site.register(WXOrder, WXOrderAdmin) 
+
+
+class WXLogisticAdmin(admin.ModelAdmin):
+    
+    list_display = ('company_name','origin_code','company_code')
+    
+    search_fields = ['company_name','origin_code','company_code']
+    
+
+admin.site.register(WXLogistic, WXLogisticAdmin) 

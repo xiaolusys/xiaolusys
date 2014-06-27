@@ -7,8 +7,8 @@ from shopback.orders.models import Order,Trade
 class OrderInline(admin.TabularInline):
     
     model = Order
-    fields = ('outer_id','outer_sku_id','title','buyer_nick','price','payment','num','sku_properties_name',
-                    'refund_id','refund_status','status')
+    fields = ('outer_id','outer_sku_id','title','buyer_nick','price','payment','num',
+                    'sku_properties_name','refund_id','refund_status','status')
     
     formfield_overrides = {
         models.CharField: {'widget': TextInput(attrs={'size':'12'})},
@@ -41,8 +41,9 @@ admin.site.register(Trade, TradeAdmin)
 
 
 class OrderAdmin(admin.ModelAdmin):
-    list_display = ('oid','seller_nick','buyer_nick','trade','price','num_iid','sku_id','num','outer_sku_id','sku_properties_name',
-                    'payment','refund_id','is_oversold','refund_status','outer_id','cid','status')
+    list_display = ('oid','seller_nick','buyer_nick','trade','price','num_iid'
+                    ,'sku_id','num','outer_sku_id','sku_properties_name','payment'
+                    ,'refund_id','is_oversold','refund_status','outer_id','cid','status')
     list_display_links = ('oid','trade','refund_id','status')
     #list_editable = ('update_time','task_type' ,'is_success','status')
 

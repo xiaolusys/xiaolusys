@@ -2,15 +2,43 @@ from django.conf.urls.defaults import patterns, include, url
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib.admin.views.decorators import staff_member_required
 from djangorestframework.views import InstanceModelView
-from shopback.trades.views import StatisticMergeOrderView,CheckOrderView,OrderPlusView,ReviewOrderView,ExchangeOrderView,\
-    OutStockOrderProductView,TradeSearchView,DirectOrderView,OrderListView,TradeLogisticView,change_trade_addr,change_trade_order,\
-    delete_trade_order,change_logistic_and_outsid,review_order,update_sys_memo,change_order_stock_status,regular_trade,\
-    ExchangeOrderInstanceView,DirectOrderInstanceView,replay_trade_send_result,countFenxiaoAcount
+from shopback.trades.views    import (StatisticMergeOrderView,
+                                      CheckOrderView,
+                                      OrderPlusView,
+                                      ReviewOrderView,
+                                      ExchangeOrderView,
+                                      OutStockOrderProductView,
+                                      TradeSearchView,
+                                      DirectOrderView,
+                                      OrderListView,
+                                      TradeLogisticView,
+                                      change_trade_addr,
+                                      change_trade_order,
+                                      delete_trade_order,
+                                      change_logistic_and_outsid,
+                                      review_order,
+                                      update_sys_memo,
+                                      change_order_stock_status,
+                                      regular_trade,
+                                      ExchangeOrderInstanceView,
+                                      DirectOrderInstanceView,
+                                      replay_trade_send_result,
+                                      countFenxiaoAcount)
 
 from shopback.base.renderers  import BaseJsonRenderer
-from shopback.trades.renderers import CheckOrderRenderer,ReviewOrderRenderer,ExchangeOrderRender,DirectOrderRender,\
-    StatisticMergeOrderRender,StatisticOutStockRender,OrderListRender,TradeLogisticRender
-from shopback.trades.resources import TradeResource,OrderPlusResource,ExchangeOrderResource,MergeTradeResource,StatisticMergeOrderResource
+from shopback.trades.renderers import (CheckOrderRenderer,
+                                       ReviewOrderRenderer,
+                                       ExchangeOrderRender,
+                                       DirectOrderRender,
+                                       StatisticMergeOrderRender,
+                                       StatisticOutStockRender,
+                                       OrderListRender,
+                                       TradeLogisticRender)
+from shopback.trades.resources import (TradeResource,
+                                       OrderPlusResource,
+                                       ExchangeOrderResource,
+                                       MergeTradeResource,
+                                       StatisticMergeOrderResource)
 from shopback.base.permissions import IsAuthenticated
 from shopback.base.authentication import UserLoggedInAuthentication,login_required_ajax
 
@@ -57,11 +85,12 @@ urlpatterns = patterns('shopback.trades.views',
         authentication=(UserLoggedInAuthentication,),
         permissions=(IsAuthenticated,)
     ))),
-    url(r'^exchange/(?P<id>\d{1,20})/$',staff_member_required(ExchangeOrderInstanceView.as_view(
-        resource=ExchangeOrderResource,
-        renderers=(BaseJsonRenderer,ExchangeOrderRender),
-        authentication=(UserLoggedInAuthentication,),
-        permissions=(IsAuthenticated,)
+    url(r'^exchange/(?P<id>\d{1,20})/$',
+        staff_member_required(ExchangeOrderInstanceView.as_view(
+            resource=ExchangeOrderResource,
+            renderers=(BaseJsonRenderer,ExchangeOrderRender),
+            authentication=(UserLoggedInAuthentication,),
+            permissions=(IsAuthenticated,)
     )),name="exchange_order_instance"),
     (r'^direct/$',staff_member_required(DirectOrderView.as_view(
         resource=ExchangeOrderResource,
@@ -69,12 +98,14 @@ urlpatterns = patterns('shopback.trades.views',
         authentication=(UserLoggedInAuthentication,),
         permissions=(IsAuthenticated,)
     ))),
-   url (r'^direct/(?P<id>\d{1,20})/$',staff_member_required(DirectOrderInstanceView.as_view(
-        resource=ExchangeOrderResource,
-        renderers=(BaseJsonRenderer,DirectOrderRender),
-        authentication=(UserLoggedInAuthentication,),
-        permissions=(IsAuthenticated,)
+   url(r'^direct/(?P<id>\d{1,20})/$',
+        staff_member_required(DirectOrderInstanceView.as_view(
+            resource=ExchangeOrderResource,
+            renderers=(BaseJsonRenderer,DirectOrderRender),
+            authentication=(UserLoggedInAuthentication,),
+            permissions=(IsAuthenticated,)
     )),name="direct_order_instance"),
+                       
     (r'^tradeplus/$',TradeSearchView.as_view(
         resource=OrderPlusResource,
         renderers=(BaseJsonRenderer,),

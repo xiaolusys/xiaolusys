@@ -41,6 +41,18 @@ class WeiXinAPI(object):
     _detele_menu_uri    = "/cgi-bin/menu/delete"
     _create_qrcode_uri  = "/cgi-bin/qrcode/create"
     
+    #微信小店接口
+    _merchant_get_uri   = "/merchant/get"
+    _merchant_getbystatus_uri   = "/merchant/getbystatus"
+    _merchant_stock_add_uri   = "/merchant/stock/add"
+    _merchant_stock_reduce_uri   = "/merchant/stock/reduce"
+    _merchant_order_getbyid_uri   = "/merchant/order/getbyid"
+    _merchant_order_getbyfilter_uri   = "/merchant/order/getbyfilter"
+    _merchant_order_setdelivery_uri   = "/merchant/order/setdelivery"
+    
+    #微信支付，维权，告警接口
+    _merchant_order_setdelivery_uri   = "/merchant/order/setdelivery"
+    _merchant_order_setdelivery_uri   = "/merchant/order/setdelivery"
     
     def __init__(self):
         self._wx_account = WeiXinAccount.getAccountInstance()
@@ -48,6 +60,21 @@ class WeiXinAPI(object):
     def getAbsoluteUrl(self,uri,token):
         url = settings.WEIXIN_API_HOST+uri
         return token and '%s?access_token=%s'%(url,self.getAccessToken()) or url+'?'
+        
+    def checkSignature(self,signature,timestamp,nonce):
+        
+        import time
+        import hashlib
+        
+        if time.time() - int(timestamp) > 300:
+            return False
+        
+        sign_array = [self._wx_account.token,timestamp,nonce]
+        sign_array.sort()
+        
+        sha1_value = hashlib.sha1(''.join(sign_array))
+
+        return sha1_value.hexdigest() == signature
         
     def handleRequest(self,uri,params={},method="GET",token=True):    
         
@@ -59,7 +86,8 @@ class WeiXinAPI(object):
             resp = req.read()
         else:
             rst = urllib2.Request(absolute_url)
-            req = urllib2.urlopen(rst,type(params)==dict and urllib.urlencode(params) or params)
+            req = urllib2.urlopen(rst,type(params)==dict and 
+                                  urllib.urlencode(params) or params)
             resp = req.read()
         
         content = json.loads(resp)
@@ -131,28 +159,65 @@ class WeiXinAPI(object):
     
     def createQRcode(self,action_name,action_info,scene_id,expire_seconds=0):
         
-        action_name = type(action_name)==unicode and action_name.encode('utf8') and action_name
-        params = {"action_name":action_name ,"action_info": {"scene": {"scene_id": scene_id}}}
+        action_name = (type(action_name)==unicode and 
+                       action_name.encode('utf8') and 
+                       action_name)
+        
+        params = {"action_name":action_name ,
+                  "action_info": {"scene": {"scene_id": scene_id}}}
         if action_name=='QR_SCENE':
             params.update(expire_seconds=expire_seconds)
             
         return self.handleRequest(self._create_qrcode_uri, params,method='POST')
         
-    def checkSignature(self,signature,timestamp,nonce):
-        
-        import time
-        import hashlib
-        
-        if time.time() - int(timestamp) > 300:
-            return False
-        
-        sign_array = [self._wx_account.token,timestamp,nonce]
-        sign_array.sort()
-        
-        sha1_value = hashlib.sha1(''.join(sign_array))
-
-        return sha1_value.hexdigest() == signature
     
+    def getMerchant(self,product_id):
+        return self.handleRequest(self._merchant_get_uri, 
+                                  {'product_id':product_id},
+                                  method='GET')
+        
+    def getMerchantByStatus(self,status):
+        return self.handleRequest(self._merchant_getbystatus_uri, 
+                                  {'status':status},
+                                  method='POST')
+        
+    def addMerchantStock(self,product_id,quantity,sku_info=''):
+        return self.handleRequest(self._merchant_stock_add_uri, 
+                                  {'product_id':product_id,
+                                   'quantity':quantity,
+                                   'sku_info':sku_info},
+                                  method='POST')
+        
+    def reduceMerchantStock(self,product_id,quantity,sku_info=''):
+        return self.handleRequest(self._merchant_stock_reduce_uri, 
+                                  {'product_id':product_id,
+                                   'quantity':quantity,
+                                   'sku_info':sku_info},
+                                  method='POST')
+        
+    def getOrderById(self,order_id):
+        
+        response = self.handleRequest(self._merchant_order_getbyid_uri, 
+                                  {'order_id':order_id},
+                                  method='POST')
+        return response['order']
+        
+    def getOrderByFilter(self,status,begintime,endtime):
+        
+        response = self.handleRequest(self._merchant_order_getbyfilter_uri, 
+                                  {'status':status,
+                                   'begintime':begintime,
+                                   'endtime':endtime},
+                                  method='POST')
+        return response['order_list']
+        
+    def deliveryOrder(self,order_id,delivery_company,delivery_track_no):
+        return self.handleRequest(self._merchant_order_setdelivery_uri, 
+                                  {'order_id':order_id,
+                                   'delivery_company':delivery_company,
+                                   'delivery_track_no':delivery_track_no},
+                                  method='POST')
+        
     
     
     

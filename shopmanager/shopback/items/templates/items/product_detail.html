@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>库存商品</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <link href="{{ STATIC_URL }}css/base.less" rel="stylesheet/less" type="text/css" />
+    <script src="{{ STATIC_URL }}jquery/jquery-1.8.13.min.js" type="text/javascript"></script>
+    <script src='{{ STATIC_URL }}jquery/jquery-ui-1.8.13.min.js'></script>
+    <script src='{{ STATIC_URL }}jquery/addons/jquery.form.js'></script>
+    <script src="{{ STATIC_URL }}jquery-datatable-addon/jquery.dataTables.min.js" type="text/javascript"></script>
+    <script src="{{ STATIC_URL }}bootstrap/js/bootstrap.js" type="text/javascript"></script>
+    <style type="text/css" title="currentStyle">
+    	@import "{{ STATIC_URL }}bootstrap/css/bootstrap-responsive.min.css";
+    	@import "{{ STATIC_URL }}bootstrap/css/bootstrap.min.css";
+    	@import "{{ STATIC_URL }}jquery/jquery-ui-1.10.1.css";
+		@import "{{ STATIC_URL }}jquery-datatable-addon/css/demo_page.css";
+		@import "{{ STATIC_URL }}jquery-datatable-addon/css/demo_table.css";
+		@import "{{ STATIC_URL }}jquery/addons/chosen_v1.0.0/chosen.min.css";
+    </style>  
+    <style type="text/css">
+    body,div{
+    	margin:0px auto;
+    	padding:0px;
+    }
+    body{
+    	width:1200px;
+    }
+    .table-bordered {
+	    border: 1px solid #DDD;
+	    border-collapse: separate;
+	    border-left: 0;
+	    border-top:0;
+	    -webkit-border-radius: 4px;
+	    -moz-border-radius: 4px;
+	    border-radius: 4px;
+	}
+	.table {
+	    width: 100%;
+	    margin-bottom: 4px;
+	}
+	table {
+	    max-width: 100%;
+	    background-color: white;
+	    border-collapse: collapse;
+	    border-spacing: 0;
+	}
+	tr {
+	    display: table-row;
+	    vertical-align: inherit;
+	    border-color: inherit;
+	}
+	.table-bordered th, .table-bordered td {
+	    border-left: 1px solid #DDD;
+	}
+	.table tbody tr:hover td, .table tbody tr:hover th {
+	    background-color: whiteSmoke;
+	}
+	.container{
+		margin-top:40px;
+		width:1200px;
+	}
+    .simple-text {
+	    width:120px;
+	    height:16px;
+	    display:inline;
+	    margin:0px 0px;
+	}
+	.head-title label{
+		font-size:24px;
+		line-height:24px;
+	}
+	.content-base-info {
+		display:fixed;
+	}
+	.container label{
+		display:inline;
+		margin:0px 10px;
+	}
+	select {
+		width:200px;
+		display:inline;
+		margin-bottom:2px;
+	}
+	.head-left {
+		display:inline;
+		float:left;
+	}
+	.head-right{
+		float:right;
+		margin-right:10px;
+		display:inline;
+		margin-bottom:20px;
+	}
+	.product-search{
+		margin:0px 10px;
+	}
+	.trade-search{
+		float:right;
+	}
+	.content-search {
+		width:100%;
+		height:20px;
+	}
+	.panel-body{
+		margin-bottom:40px;
+	}
+	.panel-body .table {
+		border-color: gray;
+		margin-bottom:0px;
+	}
+
+	#product-table input[type="text"]{
+		width:90px;
+		margin-bottom:0px;
+		margin-top:0px;
+		height:14px;
+	}
+	
+	#productsku-table input[type="text"]{
+		width:50px;
+		margin-bottom:0px;
+		margin-top:0px;
+		height:14px;
+	}
+	
+	#product-quantity-dialog{
+		display:none;
+		position:absolute;
+		z-index:99;
+		background: #fff;
+		border: 1px solid #999;
+		font-size:14px;
+	}
+	
+	#product-quantity-dialog input[type="text"],
+	#product-quantity-dialog input[type="submit"]{
+		display:inline-block;
+		margin:1px 2px;
+		padding:1px 2px;
+	}
+	#product-quantity-dialog input[type="radio"],
+	#product-quantity-dialog input[type="checkbox"]{
+		display:inline-block;
+		margin:1px 2px 5px 2px;
+		padding:1px 2px;
+	}
+	
+	textarea{
+		margin-bottom:2px;
+	}
+	label.error {
+	    color: red;
+	    font-weight: bold;
+	}
+	#assign .label-block{
+		margin: 0px; 
+		display: inline-block; 
+		width: 24%;
+	}
+	
+	#assign .label-block input{
+		width:80px;
+		height:16px;
+		margin-bottom:0px;
+		margin-left:4px;
+	}
+	
+	#assign #dialog-center input{
+		width:60px;
+	}
+	
+	#assign #dialog-head label{
+		height:16px;
+		margin-right:4px;
+	}
+	
+	#assign #dialog-footer{
+		text-align:center;
+	}
+	.tab-pane{
+		min-height:350px;
+		max-height:500px;
+		overflow:auto;
+	}
+	.control-group .prepend-input{
+		font-size: 16px;
+	}
+	.label-toast {
+		margin-left:50px;
+		display:none;
+	}
+	.badge{
+		padding:1px 1px;
+		font-size:8px;
+		webkit-border-radius:0px;
+		border-radius:0px;
+		line-height:10px;
+	}
+    </style>
+  </head>
+
+{% with product=object %}
+ <body>
+	<div class="container">
+		<fieldset>
+			<legend>
+				<h2 class="head-title" >商品信息
+					(ID:<label id="product_id" class="label label-success">{{ product.id }}</label>,
+					状态:<label class="label label-success">{{ product.status }}</label>)
+				</h2>
+			</legend>
+			<div class="content-base-info">
+				<form id="product-form" method="POST" action="/items/product/{{ product.id }}/">
+				{% csrf_token %}
+				<input type="hidden" id="id" name="id" value="{{ product.id }}" />
+				<table id="product-table" class="table table-bordered table-striped table-condensed">
+					<tr>
+						<td>
+							<label for='outer_id'>商品编码</label>
+							<input type="text" id="outer_id" name="outer_id" class="simple-text" value="{{ product.outer_id }}" readonly/>
+							<a class="code-edit"><icon class="icon-pencil"></icon></a>
+						</td>
+						<td colspan="2">
+							<label for='barcode'>扫描条码</label>
+							<input type="text" id="barcode" name="barcode" class="simple-text" style="width:200px;" value="{{ product.barcode }}"/>
+						</td>
+						<td colspan="2">
+							<label for='name'>标&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;题</label>
+							<input type="text" id="name" name="name" class="simple-text" style="width:250px;" value="{{ product.name }}"/>
+						</td>
+					</tr>
+					<tr>
+						<td>
+							<label for='collect_num'>库&nbsp;存&nbsp;&nbsp;数</label>
+							<input type="text" id="quantity-{{ product.id }}" sp='p' class="quantity" class="product-num simple-text" 
+							value="{{ product.collect_num }}" {% if product.skus %}disabled{% endif %}/>
+						</td>
+						<td>
+							<label for='remain_num'>预&nbsp;留&nbsp;&nbsp;数</label>
+							<input type="text" id="remain_num"  class="simple-text" value="{{ product.remain_num }}"
+							{% if product.skus %}disabled{% else %}name="remain_num"{% endif %}/>
+						</td>
+						<td>
+							<label for='warn_num'>警&nbsp;戒&nbsp;&nbsp;数</label>
+							<input type="text" id="warn_num"  class="simple-text" value="{{ product.warn_num }}"
+							{% if product.skus %}disabled{% else %}name="warn_num"{% endif %}/>
+						</td>
+						<td>
+							<label for='wait_post_num'>待&nbsp;发&nbsp;&nbsp;数</label>
+							<input type="text" id="wait_post_num"  class="simple-text" value="{{ product.wait_post_num }}"
+							{% if product.skus %}disabled{% else %}name="wait_post_num"{% endif %}/>
+						</td>
+						<td>
+							<label for='weight'>重&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;量</label>
+							<input type="text" id="weight" name="weight" class="simple-text" value="{{ product.weight }}"/>
+						</td>
+					</tr>
+					<tr>
+						<td>
+							<label for='cost'>成&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;本</label>
+							<input type="text" id="cost" name="cost" class="simple-text" value="{{ product.cost }}"/>
+						</td>
+						<td>
+							<label for='std_purchase_price'>标准进价</label>
+							<input type="text" id="std_purchase_price" name="std_purchase_price" class="simple-text" value="{{ product.std_purchase_price }}"/>
+						</td>
+						<td>
+							<label for='std_sale_price'>标准售价</label>
+							<input type="text" id="std_sale_price" name="std_sale_price" class="simple-text" value="{{ product.std_sale_price }}"/>
+						</td>
+						<td>
+							<label for='agent_price'>代理售价</label>
+							<input type="text" id="agent_price" name="agent_price" class="simple-text" value="{{ product.agent_price }}"/>
+						</td>
+						<td>
+							<label for='staff_price'>员&nbsp;工&nbsp;&nbsp;价</label>
+							<input type="text" id="staff_price" name="staff_price" class="simple-text" value="{{ product.staff_price }}"/>
+						</td>
+					</tr>
+					<tr>
+						<td>
+							<label for='sync_stock'>库存同步</label>
+							<input type="checkbox" id="sync_stock" name="sync_stock" class="simple-text required" 
+								{% if product.sync_stock %}checked{% endif %}/>
+						</td>
+						<td >
+							<label for='post_check'>需&nbsp;扫&nbsp;&nbsp;描</label>
+							<input type="checkbox" id="post_check" name="post_check" class="simple-text required" 
+								{% if product.post_check %}checked{% endif %}/>
+						</td>
+						<td>
+							<label for='is_split'>需&nbsp;拆&nbsp;&nbsp;分</label>
+							<input type="checkbox" id="is_split" name="is_split" class="simple-text " 
+								{% if product.is_split %}checked{% endif %} {% if product.skus %}disabled{% endif %}/>
+						</td>
+						<td colspan="2">
+				            <label class="" for="is_match">规格匹配</label>
+			                <input type="checkbox" id="is_match" name="is_match" class="required" 
+			                  		{% if product.is_match %}checked{% endif %} {% if product.skus %}disabled{% endif %}/>
+			                <input type="text" id="match_reason" name="match_reason" placeholder="规格匹配原因,会备注问问题单上" 
+			              	  style="width:200px;" value="{{ product.match_reason }}"/>
+						</td>
+					</tr>
+					<tr>
+						<td colspan="2">
+							<label for='buyer_prompt'>客户提示</label>
+							<textarea id="buyer_prompt" style="width:200px;" name="buyer_prompt" rows="2" cols="100" >
+							{{ product.buyer_prompt }}</textarea>
+						</td>
+						<td colspan="2">
+							<label for='memo'>备&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;注</label>
+							<textarea id="memo" style="width:200px;" name="memo" rows="2" cols="200">{{ product.memo }}</textarea>
+						</td>
+						<td style="text-align:center;padding-top:20px;">
+							<input type="submit" class="btn btn-primary" value="保存 +"/>
+						</td>
+					</tr>
+				</table>
+				</form>
+			</div>
+			<div class="panel-body">
+				<div class="panel-content">
+					<div>
+						<h3>
+							商品规格列表
+						</h3>
+					</div>
+					<div id="product-skus">
+						<table id="productsku-table" class="table table-bordered table-condensed">
+							<thead>
+								<tr>
+									<th>规格ID</th>
+									<th style="width:70px;">规格编码</th>
+									<th style="width:150px;">线上属性</th>
+									<th style="width:150px;">系统属性</th>
+									<th style="width:65px;">库存数</th>
+									<th style="width:65px;">待发数</th>
+									<th style="width:65px;">预留数</th>
+									<th style="width:65px;">警戒数</th>
+									<th style="width:65px;">成本价</th>
+									<th style="width:65px;">吊牌价</th>
+									<th style="width:65px;">代理价</th>
+									<th style="width:65px;">员工价</th>
+									<th style="width:60px;">操作</th>
+								</tr>
+							</thead>
+							<tbody>
+								{% for sku in product.skus %}
+								<tr>
+									<td>{{ sku.id }}
+										{% if sku.is_split %}<span class="badge badge-info">拆
+										</span>{% endif  %}{% if sku.is_match %}<span class="badge badge-important">匹
+										</span>{% endif  %}{% if sku.sync_stock %}<span class="badge badge-success">同
+										</span>{% endif  %}{% if sku.post_check or product.post_check %}<span class="badge badge-warning">扫</span>{% endif  %}
+									</td>
+									<td>{{ sku.outer_id }}</td>
+									<td>{{ sku.properties_name }}</td>
+									<td class="property-td">{{ sku.properties_alias }}</td>
+									<td><input type="text" id="quantity-{{ product.id }}-{{ sku.id }}" sp='s' class="quantity" value="{{ sku.quantity }}"/></td>
+									<td>{{ sku.wait_post_num }}</td>
+									<td>{{ sku.remain_num }}</td>
+									<td>{{ sku.warn_num }}</td>
+									<td>{{ sku.cost }}</td>
+									<td>{{ sku.std_sale_price }}</td>
+									<td>{{ sku.agent_price }}</td>
+									<td>{{ sku.staff_price }}</td>
+									<td><a class="edit" href="#" title="修改"><icon
+										class="icon-edit"></icon></a><a class="setup" href="#" title="设置"><icon
+										class="icon-asterisk"></icon></a><a class="remain" href="#" title="待用"><icon
+										class="icon-pause"></icon></a><a class="delete" href="#" title="作废"><icon
+										class="icon-remove"></icon></a>
+									</td>
+								</tr>
+								{% endfor %}
+							</tbody>
+							<tfoot>
+								<tr><td colspan="4"></td>
+									<td><input id="total_num" type="text"  value="0" readonly/></td>
+									<td colspan="2"></td>
+									<td >总成本：</td>
+									<td><input id="total_cost" type="text"  value="0.0" readonly/></td>
+									<td colspan="4"></td>
+								</tr>
+							</tfoot>
+						</table>
+					</div>
+				</div>
+			</div>
+		</fieldset>
+	</div>
+	<!-- 商品规格库存修改对话框 -->
+	<div id="product-quantity-dialog"  >
+		<form id="quantity-form" method="POST" action="/items/update/stock/" style="margin-bottom:0px;">
+			<input type="hidden" name="product_id" value="{{ product.id }}"/>
+			<input type="hidden" name="sku_id" value=""/>
+			<input type="text" name="num" style="width:80px;" 
+			/><input type="radio" class="radio-mode" name="mode" value="1" checked
+			/>全量<input type="radio" class="radio-mode" name="mode" value="0" 
+			/>增量<input type="checkbox"  id="reduce-num" 
+			/>入库减<input type="text"  name="reduce_num" value="0" style="display:none;width:40px;"
+			/><input type="submit" class="btn btn-mini btn-primary" value="确定" /> 
+		</form>
+	</div>
+	<!-- 商品规格设置对话框 -->
+	<div id="product-setup-dialog" style="display:none;">
+		<div id="dialog-head">
+			<ul id="tabs" class="nav nav-tabs" data-tabs="tabs">
+			  <li class="active"><a href="#main" data-toggle="tab">基本设置</a></li>
+			  <li ><a href="#assign" data-toggle="tab">分配库存</a></li>
+			  <li ><a href="#spliter" data-toggle="tab">拆分商品</a></li>
+			</ul>
+		</div>
+		<div id="dialog-body" class="tab-content">
+			<div id="main" class="tab-pane active" >
+				<form id="main-form" method="POST" action="#" class="form-horizontal">
+				  <fieldset>
+				  <input type="hidden" name="update_check" value="yes"/>
+				  <div class="control-group">
+				    <div class="controls">
+				      <label class="checkbox">
+				        <input type="checkbox" id="sku_sync_stock" name="sync_stock"> 同步库存
+				      </label>
+				    </div>
+				  </div>
+				  <div class="control-group">
+			          <label class="control-label" for="sku_is_match">规格匹配</label>
+			          <div class="controls">
+			          	<div class="input-prepend">
+			              <span class="add-on">
+			                <label class="checkbox">
+			                  <input type="checkbox" id="sku_is_match" name="is_match" class="">
+			                </label>
+			              </span>
+			              <input type="text" id="sku_match_reason" name="match_reason" placeholder="规格匹配原因" class="prepend-input">
+			             </div>
+			          </div>
+			      </div>
+			      <div class="control-group">
+			         <label class="control-label" for="sku_post_check">需扫描</label>
+			         <div class="controls">
+			            <div class="input-prepend">
+			              <span class="add-on">
+			                <label class="checkbox">
+			                  <input type="checkbox" id="sku_post_check" name="post_check" class="">
+			                </label>
+			              </span>
+			              <input type="text" id="sku_barcode" name="barcode" placeholder="规格扫描条码"  class="prepend-input" >
+			            </div>
+			          </div>
+			        </div>
+				  <div class="control-group">
+				    <label class="control-label" for="sku_buyer_prompt">客户提示</label>
+				    <div class="controls">
+				      <input type="text" id="sku_buyer_prompt" name="buyer_prompt" style="width:300px;" placeholder="提示信息（会通过发货单，短信告知客户）">
+				    </div>
+				  </div>
+				  <div class="control-group">
+			          <label class="control-label" for="sku_memo">备注</label>
+			          <div class="controls">
+			            <div class="textarea">
+			              <textarea id="sku_memo" name="memo" class=""> </textarea>
+			            </div>
+			          </div>
+			      </div>
+				  <div class="control-group">
+			          <div class="controls">
+				  		<input type="submit" class="btn btn-large btn-primary" value="保存" /> 
+				  		<div class="label-toast"><label class="label label-success" >保存成功！</label></div>
+				  	  </div>
+				  </div>
+				   </fieldset>
+				</form>
+			</div>
+			<div id="assign" class="tab-pane">
+			</div>
+			<div id="spliter" class="tab-pane">
+				拆分商品待续...
+			</div>
+		</div>
+	</div>
+</body>
+{% endwith %}
+<script src="{{ STATIC_URL }}script/items/productAndSkuMgr.js" type="text/javascript"></script>
+</html>

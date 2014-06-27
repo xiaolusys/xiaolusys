@@ -2,6 +2,7 @@
 import datetime
 from django.db import models
 from shopback.base.fields import BigIntegerAutoField
+from shopback.signals import taobao_logged_in
 
 DEFAULT_GROUP_NAME ='default'
 
@@ -15,7 +16,7 @@ class TmcMessage(models.Model):
     id       = BigIntegerAutoField(primary_key=True)
     user_id  = models.BigIntegerField(db_index=True,verbose_name=u'店铺ID')
     
-    topic    = models.CharField(max_length=128,blank=True,verbose_name=u'消息猪蹄')
+    topic    = models.CharField(max_length=128,blank=True,verbose_name=u'消息主题')
     pub_app_key   = models.CharField(max_length=64,blank=True,verbose_name=u'发布者APPKEY')
     
     pub_time = models.DateTimeField(db_index=True,null=True,blank=True,verbose_name=u'发布时间') 
@@ -26,9 +27,11 @@ class TmcMessage(models.Model):
     is_exec   = models.BooleanField(default=False,verbose_name=u'执行') 
     class Meta:
         db_table = 'shop_tmcnotify_message'
+        verbose_name=u'服务消息'
+        verbose_name_plural = u'服务消息列表'
 
     def __unicode__(self):
-        return '<%d,%s>'%(self.user_id,self.topic)
+        return '<%d,%s>'%(self.id,self.topic)
     
     
 class TmcUser(models.Model):
@@ -42,14 +45,18 @@ class TmcUser(models.Model):
        
     topics   = models.TextField(max_length=2500,blank=True,verbose_name=u'消息主题')
     group_name = models.CharField(max_length=64,blank=True,default=DEFAULT_GROUP_NAME,verbose_name=u'消息群组')
+    quantity   = models.IntegerField(default=100,verbose_name=u'消息数量')
     
-    is_valid   = models.BooleanField(default=False,verbose_name=u'授权是否有效') 
+    is_valid   = models.BooleanField(default=False,verbose_name=u'是否有效') 
     
-    is_primary = models.BooleanField(default=False,verbose_name=u'授权是否有效')
+    is_primary = models.BooleanField(default=False,verbose_name=u'主用户')
     
     valid_users = ValidUserManager()
+    
     class Meta:
         db_table = 'shop_tmcnotify_user'
+        verbose_name=u'消息服务用户'
+        verbose_name_plural = u'消息服务用户列表'
 
     def __unicode__(self):
         return '<%d,%s>'%(self.user_id,self.user_nick)
@@ -59,6 +66,15 @@ class TmcUser(models.Model):
         
         return set([s.strip() for s in self.topics.split(',')])
     
+
+def createTmcUser(sender,user,*args,**kwargs):
+    
+    profile = user.get_profile()
+    tmc_user,state = TmcUser.objects.get_or_create(
+                       user_id=profile.visitor_id)
+    tmc_user.user_nick = profile.nick
+    tmc_user.save()
     
     
+taobao_logged_in.connect(createTmcUser)
     

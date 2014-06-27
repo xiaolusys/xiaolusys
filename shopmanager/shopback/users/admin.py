@@ -14,16 +14,32 @@ from common.utils import gen_cvs_tuple,CSVUnicodeWriter
 
 
 class UserAdmin(admin.ModelAdmin):
-    list_display = ('id','has_fenxiao','visitor_id','uid',
-                    'nick','is_primary','sync_stock','percentage','status')
+    list_display = ('id','has_fenxiao','visitor_id','uid','nick','user_code'
+                    ,'sync_stock','percentage','is_primary','created_at','status')
     list_display_links = ('id', 'nick')
-    #list_editable = ('update_time','task_type' ,'is_success','status')
-
-    #date_hierarchy = 'modified'
-    #ordering = ['created_at']
 
     list_filter = ('status',)
-    search_fields = ['nick','craw_keywords','craw_trade_seller_nicks']
+    search_fields = ['id','nick']
+    
+    #--------设置页面布局----------------
+    fieldsets =(('用户基本信息:', {
+                    'classes': ('expand',),
+                    'fields': (('user','visitor_id','uid')
+                               ,('type','nick')
+                               ,('user_code','contacter','phone')
+                               ,('mobile','area_code','location'))
+                }),
+                ('淘宝用户设置:', {
+                    'classes': ('collapse',),
+                    'fields': (('buyer_credit','seller_credit')
+                            ,('has_fenxiao','auto_repost')
+                            ,('item_img_num','item_img_size','prop_img_num','prop_img_size')
+                            ,('alipay_bind','alipay_no'))
+                }),
+                ('高级设置:', {
+                    'classes': ('expand',),
+                    'fields': (('sync_stock','percentage','is_primary','status'),)
+                }))
     
     def get_actions(self, request):
         

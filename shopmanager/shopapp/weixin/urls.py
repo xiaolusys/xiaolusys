@@ -15,6 +15,10 @@ urlpatterns = patterns('shopapp.weixin.views',
         proxy_format='%s/%%s' % settings.WEIXIN_MEDIA_HOST)), 
         name='weixin_media_updown'),
                        
+    url(r'^baby/archive/$', TemplateView.as_view(
+        template_name="weixin/baby_archives.html"), 
+        name='weixin_baby_archive') ,                  
+
     url(r'^validmobile/$', TemplateView.as_view(
         template_name="weixin/valid_mobile.html"), 
         name='weixin_valid_mobile'),
@@ -23,5 +27,5 @@ urlpatterns = patterns('shopapp.weixin.views',
     url(r'^maintian/$','maintian',name='weixin_maintian'),
     url(r'^napay/$','napay',name='weixin_napay'),
     url(r'^wxpay/$','wxpay',name='weixin_wxpay'),
-                
+
 )

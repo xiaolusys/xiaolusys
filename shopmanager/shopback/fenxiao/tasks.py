@@ -167,8 +167,7 @@ def updateAllUserIncrementPurchaseOrderTask(update_from=None,update_to=None):
                 monitor_status.update_purchase_increment = True
                 monitor_status.save()
 
-   
-  
+
 @single_instance_task(60*60,prefix='shopback.fenxiao.tasks.')
 def updateAllUserIncrementPurchasesTask():
     """ 增量更新分销平台订单信息 """

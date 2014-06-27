@@ -1,64 +1,58 @@
 #-*- coding:utf8 -*-
-from .handler import TradeHandler
+from django.conf import settings
+from .handler import BaseHandler
 from shopback.trades.models import MergeTrade
 from shopback import paramconfig as pcfg
 from common.modelutils import  update_model_fields
 
-class LogisticsHandler(TradeHandler):
+class LogisticsHandler(BaseHandler):
     
-    def handleable(self):
-        return self.first_pay_load or not self.merge_trade.logistics_company
+    def handleable(self,merge_trade,*args,**kwargs):
+        return (kwargs.get('first_pay_load',None) 
+                or not merge_trade.logistics_company)
             
-    def process(self,*args,**kwargs):
+            
+    def getLogisticCompany(self,merge_trade):
         
-        if not self.handleable():
-            return 
+        from shopback.logistics.models import (Logistics,
+                                               LogisticsCompany,
+                                               DestCompany)
+        if merge_trade.is_force_wlb:
+            return LogisticCompany.objects.get_or_create(
+                                    code=pcfg.WLB_LOGISTIC_CODE)
+                    
+        state          = merge_trade.receiver_state
+        city           = merge_trade.receiver_city
+        district       = merge_trade.receiver_district
+        shipping_type  = merge_trade.shipping_type.upper()
         
-        state          = self.merge_trade.receiver_state
-        city           = self.merge_trade.receiver_city
-        district       = self.merge_trade.receiver_district
-        shipping_type  = self.merge_trade.shipping_type.upper()
-        
-        from shopback.logistics.models import Logistics,LogisticsCompany,DestCompany
-        
-        try:
-            if shipping_type == pcfg.EXPRESS_SHIPPING_TYPE.upper():
+        if shipping_type == pcfg.EXPRESS_SHIPPING_TYPE.upper():
                         
-                default_company = LogisticsCompany.get_recommend_express(
-                                                                         receiver_state,
-                                                                         receiver_city,
-                                                                         receiver_district)
-                self.merge_trade.logistics_company = default_company
+            return LogisticsCompany.get_recommend_express(state,
+                                                          city,
+                                                          district)
                 
-            elif shipping_type in (pcfg.POST_SHIPPING_TYPE.upper(),
-                                           pcfg.EMS_SHIPPING_TYPE.upper()):
-                post_company = LogisticsCompany.objects.get(code=shipping_type)
-                self.merge_trade.logistics_company = post_company
-                
-            #如果订单选择使用韵达物流，则会请求韵达接口，查询订单是否到达，并做处理    
-            if  self.merge_trade.logistics_company and \
-                self.merge_trade.logistics_company.code == 'YUNDA':
-                
-                from shopapp.yunda.qrcode import select_order
-                
-                doc    = select_order([merge_trade.id])
-                reach  = doc.xpath('/responses/response/reach')[0].text
-                zonec  = doc.xpath('/responses/response/package_bm')[0].text
-                zoned  = doc.xpath('/responses/response/package_mc')[0].text
-                
-                if reach == '0' or not reach:
-                    self.merge_trade.sys_memo = u'韵达二维码不到'
-                    self.merge_trade.logistics_company = LogisticsCompany.objects.get(code='YUNDA_QR')
-                
-                if reach == '1':
-                    self.merge_trade.reserveo = zonec
-                    self.merge_trade.reservet = zoned
+        elif shipping_type in (pcfg.POST_SHIPPING_TYPE.upper(),
+                               pcfg.EMS_SHIPPING_TYPE.upper()):
+            return LogisticsCompany.objects.get_or_create(
+                                        code=shipping_type)
+        
             
-            update_model_fields(self.merge_trade,update_fields=
-                                ['logistics_company','reserveo','reservet','sys_memo'])
-            
-        except Exception,exc:
-            merge_trade.append_reason_code(pcfg.DISTINCT_RULE_CODE)
+    def process(self,merge_trade,*args,**kwargs):
+        
+        if settings.DEBUG:
+            print 'DEBUG LOGISTIC:',merge_trade
+        
+#        try:
+        if merge_trade.is_force_wlb:
+            merge_trade.append_reason_code(pcfg.TRADE_BY_WLB_CODE)
+        
+        merge_trade.logistics_company = self.getLogisticCompany(merge_trade)
+        
+        update_model_fields(merge_trade,update_fields=['logistics_company'])
+        
+#        except Exception,exc:
+#            merge_trade.append_reason_code(pcfg.DISTINCT_RULE_CODE)
         
 
 

@@ -21,20 +21,52 @@ USER_STATUS_CHOICES = (
     (pcfg.USER_SUPERVISE,u'监管'),
 )
 
+SHOP_TYPE = (
+    (pcfg.SHOP_TYPE_B,u'淘宝商城'),
+    (pcfg.SHOP_TYPE_C,u'淘宝C店'),
+    (pcfg.SHOP_TYPE_JD,u'京东'),
+    (pcfg.SHOP_TYPE_YHD,u'一号店'),
+    (pcfg.SHOP_TYPE_DD,u'当当'),
+    (pcfg.SHOP_TYPE_WX,u'微信小店'),
+    (pcfg.SHOP_TYPE_AMZ,u'亚马逊'),
+)
+
+
 class EffectUserManager(models.Manager):
+    
     def get_query_set(self):
         return super(EffectUserManager, self).get_query_set().filter(status=pcfg.USER_NORMAL)
+    
+    def TB(self):
+        self.get_query_set().filter(type__in=(pcfg.SHOP_TYPE_B,pcfg.SHOP_TYPE_C))
+        
+    def JD(self):
+        self.get_query_set().filter(type=pcfg.SHOP_TYPE_JD)
+        
+    def YHD(self):
+        self.get_query_set().filter(type=pcfg.SHOP_TYPE_YHD)
+        
+    def DD(self):
+        self.get_query_set().filter(type=pcfg.SHOP_TYPE_DD)
+        
+    def WX(self):
+        self.get_query_set().filter(type=pcfg.SHOP_TYPE_WX)
+        
+    def AMZ(self):
+        self.get_query_set().filter(type=pcfg.SHOP_TYPE_AMZ)
+        
 
 class User(models.Model):
 
     id = BigIntegerAutoField(primary_key=True)
-    user = models.ForeignKey(DjangoUser, null=True)
+    user = models.ForeignKey(DjangoUser, null=True,verbose_name= u'关联用户')
     
-    top_session = models.CharField(max_length=128,blank=True)
-    top_appkey = models.CharField(max_length=32,blank=True)
-    top_parameters = models.TextField(max_length=2000,blank=True)
+    top_session = models.CharField(max_length=128,blank=True,verbose_name= u'SessionID')
+    top_appkey = models.CharField(max_length=32,blank=True,verbose_name= u'AppKey')
+    top_parameters = models.TextField(max_length=2000,blank=True,verbose_name= u'访问参数')
 
-    visitor_id = models.CharField(max_length=64,blank=True,verbose_name=u'店铺ID')
+    visitor_id = models.CharField(max_length=64,db_index=True
+                                  ,blank=True,verbose_name=u'店铺ID')
     uid  = models.CharField(max_length=64,blank=True,verbose_name=u'用户ID')
     nick = models.CharField(max_length=64,blank=True,verbose_name=u'店铺名')
     user_code = models.CharField(max_length=16,blank=True,verbose_name=u'内部编码')
@@ -45,8 +77,8 @@ class User(models.Model):
     mobile    = models.CharField(max_length=20,blank=True,verbose_name= u'手机')
     area_code = models.CharField(max_length=10,blank=True,verbose_name= u'区号')
     
-    buyer_credit = models.CharField(max_length=80,blank=True)
-    seller_credit = models.CharField(max_length=80,blank=True)
+    buyer_credit = models.CharField(max_length=80,blank=True,verbose_name= u'买家信用')
+    seller_credit = models.CharField(max_length=80,blank=True,verbose_name= u'卖家信用')
     
     has_fenxiao = models.BooleanField(default=False,verbose_name= u'管理分销')
     
@@ -54,33 +86,28 @@ class User(models.Model):
     created = models.CharField(max_length=19,blank=True)
     birthday = models.CharField(max_length=19,blank=True)
 
-    type = models.CharField(max_length=2,blank=True,verbose_name= u'店铺类型')
-    item_img_num = models.IntegerField(default=0)
-    item_img_size = models.IntegerField(default=0)
-
-    prop_img_num = models.IntegerField(default=0)
-    prop_img_size = models.IntegerField(default=0)
-    auto_repost = models.CharField(max_length=16,blank=True)
-    promoted_type = models.CharField(max_length=32,blank=True)
-
-    alipay_bind = models.CharField(max_length=10,blank=True)
-
-    alipay_account = models.CharField(max_length=48,blank=True)
-    alipay_no   = models.CharField(max_length=20,blank=True)
-
-    item_notify_updated   = models.DateTimeField(null=True,blank=True)
-    refund_notify_updated = models.DateTimeField(null=True,blank=True)
-    trade_notify_updated  = models.DateTimeField(null=True,blank=True)
+    type = models.CharField(max_length=2,blank=True,
+                            choices=SHOP_TYPE,
+                            verbose_name= u'店铺类型')
     
-    craw_keywords = models.TextField(blank=True)
-    craw_trade_seller_nicks = models.TextField(blank=True)
-    
+    item_img_num = models.IntegerField(default=0,verbose_name= u'商品图片数量')
+    item_img_size = models.IntegerField(default=0,verbose_name= u'商品图片尺寸')
+
+    prop_img_num = models.IntegerField(default=0,verbose_name= u'可上传属性图片数量')
+    prop_img_size = models.IntegerField(default=0,verbose_name= u'可上传属性图片尺寸')
+    auto_repost = models.CharField(max_length=16,blank=True,verbose_name= u'是否受限')
+
+    alipay_bind = models.CharField(max_length=10,blank=True,verbose_name= u'支付宝绑定')
+
+    alipay_no   = models.CharField(max_length=20,blank=True,verbose_name= u'支付宝帐号')
+
     sync_stock    = models.BooleanField(default=True,verbose_name= u'同步库存')
     percentage    = models.IntegerField(default=0,verbose_name= u'库存同步比例')
     is_primary    = models.BooleanField(default=False,verbose_name= u'主店铺')
     
-    created_at = models.DateTimeField(auto_now=True,null=True) 
-    status     = models.CharField(max_length=12,choices=USER_STATUS_CHOICES,blank=True) #normal(正常),inactive(未激活),delete(删除),reeze(冻结),supervise(监管)
+    created_at = models.DateTimeField(auto_now=True,null=True,verbose_name= u'创建日期') 
+    status     = models.CharField(max_length=12,choices=USER_STATUS_CHOICES,
+                                  blank=True,verbose_name= u'状态') 
     
     objects    = models.Manager()
     effect_users = EffectUserManager()

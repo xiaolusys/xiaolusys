@@ -44,7 +44,22 @@ RAVEN_CONFIG = {
 
 SITE_URL = 'http://qiyue.f3322.org/' 
 
+####################### TRADE HANDLERS CONFIG ########################
+TRADE_HANDLERS_PATH = (
+   'shopback.trades.handlers.InitHandler',
+   'shopback.trades.handlers.SplitHandler',
+   'shopback.trades.handlers.MemoHandler',
+   'shopback.trades.handlers.DefectHandler',
+   'shopback.trades.handlers.RuleMatchHandler',
+   'shopback.trades.handlers.StockOutHandler',
+   'shopback.trades.handlers.MergeHandler',
+   'shopback.trades.handlers.RefundHandler',
+   'shopback.trades.handlers.LogisticsHandler',
+   'shopback.trades.handlers.FinalHandler',
+)
 
+
+############################# TAOBAO #################################
 #APPKEY = '21532915'   #app name super ERP test ,younixiaoxiao
 #APPSECRET = '7232a740a644ee9ad370b08a1db1cf2d'
 

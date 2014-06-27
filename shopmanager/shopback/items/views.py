@@ -212,7 +212,8 @@ class ProductItemView(ListModelView):
         item_dict = {}
         items = queryset.filter(**kwargs)
         item_dict['itemobjs'] =  Serializer().serialize(items)
-        item_dict['layer_table'] = render_to_string('items/itemstable.html', { 'object':item_dict['itemobjs']})    
+        item_dict['layer_table'] = render_to_string('items/itemstable.html', 
+                                                    { 'object':item_dict['itemobjs']})    
         
         return item_dict
     
@@ -222,7 +223,8 @@ class ProductItemView(ListModelView):
         outer_sku_id = request.REQUEST.get('outer_sku_id',None)
         
         if outer_sku_id:
-            row = ProductSku.objects.filter(product=outer_id,outer_id=outer_sku_id).update(status=pcfg.DELETE)
+            row = ProductSku.objects.filter(product=outer_id,
+                                            outer_id=outer_sku_id).update(status=pcfg.DELETE)
         else:
             row = Product.objects.filter(outer_id=outer_id).update(status=pcfg.DELETE)
         
@@ -240,7 +242,8 @@ class ProductModifyView(ListModelView):
         outer_id = kwargs.get('outer_id')
         outer_sku_id = request.REQUEST.get('outer_sku_id',None)
         if outer_sku_id :
-            row = ProductSku.objects.filter(product=outer_id,outer_id=outer_sku_id).update(is_assign=True)
+            row = ProductSku.objects.filter(product=outer_id,
+                                            outer_id=outer_sku_id).update(is_assign=True)
         else:
             row = Product.objects.filter(outer_id=outer_id).update(is_assign=True)
             
@@ -303,7 +306,8 @@ class ProductSkuInstanceView(ModelView):
             raise ErrorResponse(status.HTTP_404_NOT_FOUND)
         
         product_sku = self._resource.filter_response(instance)
-        product_sku['layer_table'] = render_to_string('items/productskutable.html', { 'object':instance}) 
+        product_sku['layer_table'] = render_to_string('items/productskutable.html', 
+                                                      { 'object':instance}) 
         
         return product_sku
     
@@ -336,12 +340,16 @@ class ProductView(ModelView):
                       ,'agent_price','staff_price','is_split','sync_stock','post_check','is_match','match_reason'
                       ,'buyer_prompt','memo']
             
-            check_fields = set(['is_split','sync_stock','post_check','is_match'])
-            
+            check_fields = set(['is_split','sync_stock'])
+            if not product.prod_skus.count() > 0:
+                check_fields.update(['post_check','is_match'])
+                
             for k,v in content.iteritems():
                 if k not in fields:continue
+                
                 if k in check_fields:
                     check_fields.remove(k)
+                    
                 if k in ('wait_post_num','remain_num'):
                     v = int(v)
                 setattr(product,k,v)
@@ -397,7 +405,7 @@ class ProductSkuView(ModelView):
                     check_fields.remove(k)
                 if k in ('wait_post_num','remain_num','warn_num'):
                     v = int(v)
-                setattr(product_sku,k,v) 
+                setattr(product_sku,k,v)
             
             if update_check:
                 for k in check_fields:
@@ -410,7 +418,8 @@ class ProductSkuView(ModelView):
         except Exception,exc:
             return u'填写信息不规则'
         
-        log_action(request.user.id,product_sku.product,CHANGE,u'更新商品规格信息:%s'%unicode(product_sku))
+        log_action(request.user.id,product_sku.product,CHANGE,
+                   u'更新商品规格信息:%s'%unicode(product_sku))
         
         return product_sku.json
     
@@ -426,8 +435,15 @@ class ProductSearchView(ModelView):
             return '没有输入查询关键字'.decode('utf8')
         products = Product.objects.filter(Q(outer_id=q)|Q(name__contains=q),status__in=(pcfg.NORMAL,pcfg.REMAIN))
         
-        prod_list = [(prod.outer_id,prod.pic_path,prod.name,prod.cost,prod.collect_num,prod.created,[(sku.outer_id,sku.name,sku.quantity) for sku in 
-                    prod.pskus.order_by('-created')]) for prod in products]
+        prod_list = [(prod.outer_id,
+                      prod.pic_path,
+                      prod.name,
+                      prod.cost,
+                      prod.collect_num,
+                      prod.created,
+                      [(sku.outer_id,sku.name,sku.quantity) 
+                       for sku in prod.pskus.order_by('-created')]) 
+                       for prod in products]
         
         return prod_list
 
@@ -619,7 +635,8 @@ class ProductOrSkuStatusMdView(ModelView):
         row = queryset.update(status=status)
         
         log_action(request.user.id,queryset[0].product,CHANGE,
-                   u'更改规格库存状态:%s,%s'%(outer_sku_id or sku_id,dict(ONLINE_PRODUCT_STATUS).get(status)))
+                   u'更改规格库存状态:%s,%s'%(outer_sku_id or sku_id,
+                    dict(ONLINE_PRODUCT_STATUS).get(status)))
         
         return {'updates_num':row}
 

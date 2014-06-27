@@ -16,6 +16,7 @@ from shopback.archives.models import Deposite,DepositeDistrict
 from shopback import paramconfig as pcfg
 from django.db.models.signals import post_save
 from shopback.users.models import User
+from .managers import ProductManager
 from auth import apis
 from common.utils import update_model_fields
 import logging
@@ -42,11 +43,15 @@ PRODUCT_STATUS = (
 class Product(models.Model):
     """ 系统商品（根据淘宝外部编码) """
     
-    outer_id     = models.CharField(max_length=64,unique=True,null=False,blank=True,verbose_name=u'外部编码')
+    PRODUCT_CODE_DELIMITER = '.'
+    
+    outer_id     = models.CharField(max_length=64,unique=True,null=False,
+                                    blank=True,verbose_name=u'外部编码')
     name         = models.CharField(max_length=64,blank=True,verbose_name=u'商品名称')
     
     barcode      = models.CharField(max_length=64,blank=True,db_index=True,verbose_name=u'条码')
-    category     = models.ForeignKey(ProductCategory,null=True,blank=True,related_name='products',verbose_name=u'内部分类')
+    category     = models.ForeignKey(ProductCategory,null=True,blank=True,
+                                     related_name='products',verbose_name=u'内部分类')
     pic_path     = models.CharField(max_length=256,blank=True)
     
     collect_num  = models.IntegerField(default=0,verbose_name=u'库存数')  #库存数
@@ -63,22 +68,28 @@ class Product(models.Model):
     
     weight       = models.CharField(max_length=10,blank=True,verbose_name=u'重量(g)')
     
-    created      = models.DateTimeField(null=True,blank=True,auto_now_add=True,verbose_name=u'创建时间')
-    modified     = models.DateTimeField(null=True,blank=True,auto_now=True,verbose_name=u'修改时间')
+    created      = models.DateTimeField(null=True,blank=True,
+                                        auto_now_add=True,verbose_name=u'创建时间')
+    modified     = models.DateTimeField(null=True,blank=True,
+                                        auto_now=True,verbose_name=u'修改时间')
     
     is_split   = models.BooleanField(default=False,verbose_name=u'需拆分')
     is_match   = models.BooleanField(default=False,verbose_name=u'有匹配')
     
     sync_stock   = models.BooleanField(default=True,verbose_name=u'库存同步')
-    is_assign    = models.BooleanField(default=False,verbose_name=u'取消警告') #是否手动分配库存，当库存充足时，系统自动设为False，手动分配过后，确定后置为True
+    is_assign    = models.BooleanField(default=False,verbose_name=u'取消警告') 
     
     post_check   = models.BooleanField(default=False,verbose_name=u'需扫描')
-    status       = models.CharField(max_length=16,db_index=True,choices=ONLINE_PRODUCT_STATUS,
+    status       = models.CharField(max_length=16,db_index=True,
+                                    choices=ONLINE_PRODUCT_STATUS,
                                     default=pcfg.NORMAL,verbose_name=u'商品状态')
     
     match_reason = models.CharField(max_length=80,blank=True,verbose_name=u'匹配原因')
     buyer_prompt = models.CharField(max_length=60,blank=True,verbose_name=u'客户提示')
     memo         = models.TextField(max_length=1000,blank=True,verbose_name=u'备注')
+    
+    objects = ProductManager()
+    
     class Meta:
         db_table = 'shop_items_product'
         verbose_name = u'库存商品'
@@ -147,6 +158,7 @@ class Product(models.Model):
                 'memo':self.memo,
                 'districts':self.get_district_list(),
                 'barcode':self.BARCODE,
+                'match_reason':self.match_reason,
                 'skus':skus_json
                 }    
         
@@ -182,10 +194,6 @@ class Product(models.Model):
         update_model_fields(self,update_fields=['wait_post_num'])
         
         self.wait_post_num = self.__class__.objects.get(id=self.id).wait_post_num
-        if self.wait_post_num <0:
-            self.wait_post_num = 0
-            update_model_fields(self,update_fields=['wait_post_num'])
-        
     
     def update_reduce_num(self,num,full_update=False,dec_update=False):
         """
@@ -260,7 +268,6 @@ class Product(models.Model):
         
         sdict = {}
         for d in locations:
-            
             dno = d[1]
             pno = d[0]
             if sdict.has_key(pno):
@@ -413,9 +420,6 @@ class ProductSku(models.Model):
         
         psku = self.__class__.objects.get(id=self.id)
         self.wait_post_num = psku.wait_post_num 
-        if self.wait_post_num <0:
-            self.wait_post_num = 0
-            update_model_fields(self,update_fields=['wait_post_num'])
             
         post_save.send(sender=self.__class__,instance=self)
          
@@ -506,36 +510,37 @@ class ProductSku(models.Model):
 def calculate_product_stock_num(sender, instance, *args, **kwargs):
     """修改SKU库存后，更新库存商品的总库存 """
     product = instance.product
-    if product:
-        product_skus = product.pskus
- 
-        if product_skus.count()>0:
+    if not product:
+        return
+    
+    product_skus = product.pskus
+    
+    if product_skus.count()>0:
+        product_dict  = product_skus.aggregate(total_collect_num=Sum('quantity'),
+                                               total_warn_num=Sum('warn_num'),
+                                               total_remain_num=Sum('remain_num'),
+                                               total_post_num=Sum('wait_post_num'),
+                                               total_reduce_num=Sum('reduce_num'),
+                                               avg_cost=Avg('cost'),
+                                               avg_purchase_price=Avg('std_purchase_price'),
+                                               avg_agent_price=Avg('agent_price'),
+                                               avg_staff_price=Avg('staff_price'))
+    
+        product.collect_num  =  product_dict.get('total_collect_num') or 0
+        product.warn_num     =  product_dict.get('total_warn_num') or 0
+        product.remain_num   =  product_dict.get('total_remain_num') or 0
+        product.wait_post_num  =  product_dict.get('total_post_num') or 0
+        product.reduce_num   =  product_dict.get('reduce_num') or 0
             
-            product_dict  = product_skus.aggregate(total_collect_num=Sum('quantity'),
-                                                   total_warn_num=Sum('warn_num'),
-                                                   total_remain_num=Sum('remain_num'),
-                                                   total_post_num=Sum('wait_post_num'),
-                                                   total_reduce_num=Sum('reduce_num'),
-                                                   avg_cost=Avg('cost'),
-                                                   avg_purchase_price=Avg('std_purchase_price'),
-                                                   avg_agent_price=Avg('agent_price'),
-                                                   avg_staff_price=Avg('staff_price'))
-
-            product.collect_num  =  product_dict.get('total_collect_num') or 0
-            product.warn_num     =  product_dict.get('total_warn_num') or 0
-            product.remain_num   =  product_dict.get('total_remain_num') or 0
-            product.wait_post_num  =  product_dict.get('total_post_num') or 0
-            product.reduce_num   =  product_dict.get('reduce_num') or 0
-                
-            product.cost               = "{0:.2f}".format(product_dict.get('avg_cost') or 0)
-            product.std_purchase_price = "{0:.2f}".format(product_dict.get('avg_purchase_price') or 0)
-            product.agent_price        = "{0:.2f}".format(product_dict.get('avg_agent_price') or 0)
-            product.staff_price        = "{0:.2f}".format(product_dict.get('avg_staff_price') or 0)
+        product.cost               = "{0:.2f}".format(product_dict.get('avg_cost') or 0)
+        product.std_purchase_price = "{0:.2f}".format(product_dict.get('avg_purchase_price') or 0)
+        product.agent_price        = "{0:.2f}".format(product_dict.get('avg_agent_price') or 0)
+        product.staff_price        = "{0:.2f}".format(product_dict.get('avg_staff_price') or 0)
         
-        product.is_split    = product_skus.filter(is_split=True)>0    
-        product.is_match    = product_skus.filter(is_match=True)>0 
-        
-        product.save()
+    product.is_split    = product_skus.filter(is_split=True).count() > 0    
+    product.is_match    = product_skus.filter(is_match=True).count() > 0 
+    
+    product.save()
         
     
 post_save.connect(calculate_product_stock_num, sender=ProductSku, dispatch_uid='calculate_product_num')
@@ -696,7 +701,8 @@ class SkuProperty(models.Model):
     @classmethod    
     def save_or_update(cls,sku_dict):
         
-        sku,state = cls.objects.get_or_create(num_iid=sku_dict.pop('num_iid'),sku_id=sku_dict.pop('sku_id'))
+        sku,state = cls.objects.get_or_create(num_iid=sku_dict.pop('num_iid'),
+                                              sku_id=sku_dict.pop('sku_id'))
         
         for k,v in sku_dict.iteritems():
             if k == 'outer_id' and not v :continue
@@ -720,7 +726,9 @@ class ProductLocation(models.Model):
     outer_sku_id     = models.CharField(max_length=32,null=False,blank=True,verbose_name='规格编码')
     properties_name  = models.CharField(max_length=64,null=False,blank=True,verbose_name='规格属性')
     
-    district     = models.ForeignKey(DepositeDistrict,related_name='product_locations',verbose_name='关联库位')
+    district     = models.ForeignKey(DepositeDistrict,
+                                     related_name='product_locations',
+                                     verbose_name='关联库位')
     
     class Meta:
         db_table = 'shop_items_productlocation'

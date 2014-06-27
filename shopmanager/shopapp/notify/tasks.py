@@ -11,7 +11,7 @@ from django.db.models import Q,F
 from shopback import paramconfig as pcfg
 from shopapp.notify.models import TradeNotify,ItemNotify,RefundNotify
 from shopback.orders.models import Trade,Order
-from shopback.trades.models import MergeTrade,MergeOrder,MergeBuyerTrade,merge_order_remover
+from shopback.trades.models import MergeTrade,MergeOrder,MergeBuyerTrade
 from shopback.items.models import Product,ProductSku,Item
 from shopback.refunds.models import Refund
 from shopback.users.models import User
@@ -43,7 +43,8 @@ def process_trade_notify_task(id):
             
             #订单创建，修改，关闭，则重新下载该订单，并对订单价格进行修改
             if notify.status in ('TradeCreate','TradeCloseAndModifyDetailOrder'):
-                if notify.type != pcfg.COD_TYPE and MergeTrade.judge_need_pull(notify.tid,notify.modified):
+                if  (notify.type != pcfg.COD_TYPE and 
+                    MergeTrade.judge_need_pull(notify.tid,notify.modified)):
                     response    = apis.taobao_trade_get(tid=notify.tid,tb_user_id=notify.user_id)
                     trade_dict  = response['trade_get_response']['trade']
                     trade_modify = datetime.datetime.strptime(trade_dict['modified'],'%Y-%m-%d %H:%M:%S')

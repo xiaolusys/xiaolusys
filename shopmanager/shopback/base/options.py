@@ -79,3 +79,6 @@ class DateFieldListFilter(FieldListFilter):
 
 FieldListFilter.register(
     lambda f: isinstance(f, models.DateField), DateFieldListFilter)
+
+    
+    

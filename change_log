@@ -1,3 +1,63 @@
+alter table shop_fenxiao_purchaseorder change distributor_payment distributor_payment double NOT NULL;
+alter table shop_fenxiao_purchaseorder change post_fee post_fee double NOT NULL;
+alter table shop_fenxiao_purchaseorder change total_fee total_fee double NOT NULL;
+alter table shop_fenxiao_subpurchaseorder change total_fee total_fee double NOT NULL;
+alter table shop_fenxiao_subpurchaseorder change distributor_payment distributor_payment double NOT NULL;
+alter table shop_fenxiao_subpurchaseorder change buyer_payment buyer_payment double NOT NULL;
+alter table shop_fenxiao_subpurchaseorder change refund_fee refund_fee double NOT NULL;
+alter table shop_fenxiao_subpurchaseorder change auction_price auction_price double NOT NULL;
+alter table shop_fenxiao_subpurchaseorder change price price double NOT NULL;
+######### 2014-6-21 ##########
+alter table shop_trades_mergetrade change payment payment double NOT NULL;
+alter table shop_trades_mergetrade change discount_fee discount_fee double NOT NULL;
+alter table shop_trades_mergetrade change adjust_fee adjust_fee double NOT NULL;
+alter table shop_trades_mergetrade change post_fee post_fee double NOT NULL;
+alter table shop_trades_mergetrade change total_fee total_fee double NOT NULL;
+alter table shop_trades_mergetrade change seller_cod_fee seller_cod_fee double NOT NULL;
+alter table shop_trades_mergetrade change buyer_cod_fee seller_cod_fee double NOT NULL;
+alter table shop_trades_mergetrade change buyer_cod_fee buyer_cod_fee double NOT NULL;
+alter table shop_trades_mergetrade change cod_fee cod_fee double NOT NULL;
+alter table shop_trades_mergetrade change post_cost post_cost double NOT NULL;
+
+alter table shop_trades_mergeorder change total_fee total_fee double NOT NULL;
+alter table shop_trades_mergeorder change discount_fee discount_fee double NOT NULL;
+alter table shop_trades_mergeorder change adjust_fee adjust_fee double NOT NULL;
+alter table shop_trades_mergeorder change payment payment double NOT NULL;
+alter table shop_trades_mergeorder change price price double NOT NULL;
+
+alter table shop_orders_trade change buyer_obtain_point_fee buyer_obtain_point_fee double NOT NULL;
+alter table shop_orders_trade change payment payment double NOT NULL;
+alter table shop_orders_trade change discount_fee discount_fee double NOT NULL;
+alter table shop_orders_trade change adjust_fee adjust_fee double NOT NULL;
+alter table shop_orders_trade change post_fee post_fee double NOT NULL;
+alter table shop_orders_trade change total_fee total_fee double NOT NULL;
+alter table shop_orders_trade change point_fee point_fee double NOT NULL;
+alter table shop_orders_trade change real_point_fee real_point_fee double NOT NULL;
+alter table shop_orders_trade change commission_fee commission_fee double NOT NULL;
+alter table shop_orders_trade change seller_cod_fee seller_cod_fee double NOT NULL;
+alter table shop_orders_trade change buyer_cod_fee buyer_cod_fee double NOT NULL;
+alter table shop_orders_trade change cod_fee cod_fee double NOT NULL;
+alter table shop_orders_trade change step_paid_fee step_paid_fee double NOT NULL;
+######### 2014-6-19 ##########
+alter table shop_orders_trade change receiver_mobile receiver_mobile varchar(24) NOT NULL;
+alter table shop_trades_mergetrade change receiver_mobile receiver_mobile varchar(24) NOT NULL;
+alter table shop_trades_mergetrade drop column alipay_no;
+######### 2014-6-18 ##########
+alter table shop_tmcnotify_user add quantity int(11) NOT NULL;
+alter table shop_yunda_customer change memo memo varchar(100) NOT NULL;
+######### 2014-6-14 ##########
+alter table shop_trades_mergetrade add column is_cod tinyint(1) NOT NULL;
+######### 2014-6-13 ##########
+alter table shop_weixin_account add column account_id varchar(32) not NULL;
+alter table shop_weixin_account add UNIQUE unique_account_id on shop_weixin_account(account_id);
+
+alter table shop_users_user drop column craw_keywords;
+alter table shop_users_user drop column craw_trade_seller_nicks;
+alter table shop_users_user drop column item_notify_updated;
+alter table shop_users_user drop column refund_notify_updated;
+alter table shop_users_user drop column trade_notify_updated;
+alter table shop_users_user drop column alipay_account;
+alter table shop_users_user drop column promoted_type;
 ######### 2014-5-24 ##########
 alter table shop_trades_mergetrade drop index tid;
 alter table shop_trades_mergetrade change column tid  tid varchar(32) NOT NULL;
@@ -7,7 +67,6 @@ alter table shop_trades_mergeorder drop index oid;
 alter table shop_trades_mergeorder change column oid  oid varchar(32) NOT NULL;
 alter table shop_trades_mergeorder add unique key (oid,merge_trade_id);
 alter table shop_trades_mergeorder drop column tid;
-
 ######### 2014-5-22 ##########
 alter table shop_yunda_customer add column company_trade varchar(32) NOT NULL;
 alter table shop_yunda_customer add column reserveo varchar(64) NOT NULL;

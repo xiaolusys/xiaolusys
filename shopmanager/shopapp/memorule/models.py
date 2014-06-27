@@ -26,8 +26,8 @@ SCOPE_CHOICE = (
     ('product','商品域'),
 )
 RULE_TYPE_CHOICE = (
-    ('payment','金额规则'),
-    ('product','商品规则'),
+    (pcfg.RULE_PAYMENT_TYPE,'满就送'),
+    (pcfg.RULE_SPLIT_TYPE,'组合拆分'),
 )
 
 class TradeRule(models.Model):
@@ -40,7 +40,9 @@ class TradeRule(models.Model):
     scope       = models.CharField(max_length=10,choices=SCOPE_CHOICE,)
     status      = models.CharField(max_length=2,choices=RULE_STATUS,)
 
-    items       = models.ManyToManyField(Item,related_name='rules',symmetrical=False,db_table='shop_memorule_itemrulemap')
+    items       = models.ManyToManyField(Item,related_name='rules',
+                                         symmetrical=False,
+                                         db_table='shop_memorule_itemrulemap')
     class Meta:
         db_table = 'shop_memorule_traderule'
         
@@ -115,11 +117,15 @@ class RuleMemo(models.Model):
     
 class ComposeRule(models.Model):
     #匹配规则
-    outer_id = models.CharField(max_length=64,db_index=True,blank=True,verbose_name=u'商品外部编码')
-    outer_sku_id = models.CharField(max_length=64,db_index=True,blank=True,verbose_name=u'商品规格编码')
+    outer_id = models.CharField(max_length=64,db_index=True,
+                                blank=True,verbose_name=u'商品外部编码')
+    outer_sku_id = models.CharField(max_length=64,db_index=True,
+                                blank=True,verbose_name=u'商品规格编码')
     
-    payment  = models.IntegerField(null=True,verbose_name=u'大于金额')
-    type         = models.CharField(max_length=10,choices=RULE_TYPE_CHOICE,verbose_name=u'规则类型')
+    payment  = models.IntegerField(null=True,verbose_name=u'金额')
+    type     = models.CharField(max_length=10,
+                                choices=RULE_TYPE_CHOICE,
+                                verbose_name=u'规则类型')
     
     gif_count   = models.IntegerField(default=0,verbose_name=u'赠送名额')
     extra_info = models.TextField(blank=True,verbose_name=u'信息')
@@ -139,14 +145,19 @@ class ComposeRule(models.Model):
     
     
 class ComposeItem(models.Model):
-    #匹配后的拆分商品
+    #匹配后拆分商品
     
-    compose_rule = models.ForeignKey(ComposeRule,related_name="compose_items",verbose_name=u'商品规则')
+    compose_rule = models.ForeignKey(ComposeRule,
+                                     related_name="compose_items",
+                                     verbose_name=u'商品规则')
     
-    outer_id     = models.CharField(max_length=64,db_index=True,blank=True,verbose_name=u'组合商品外部编码')
-    outer_sku_id = models.CharField(max_length=64,db_index=True,blank=True,verbose_name=u'组合商品规格编码')
+    outer_id     = models.CharField(max_length=64,db_index=True,
+                                    blank=True,verbose_name=u'组合商品外部编码')
+    
+    outer_sku_id = models.CharField(max_length=64,db_index=True,
+                                    blank=True,verbose_name=u'组合商品规格编码')
+    
     num = models.IntegerField(default=1,verbose_name=u'商品数量')
-    
     extra_info = models.TextField(blank=True,verbose_name=u'信息')
     
     created  = models.DateTimeField(null=True,blank=True,auto_now_add=True)
@@ -163,7 +174,8 @@ class ComposeItem(models.Model):
         """ 获取单项成本 """
         cost = 0
         if self.outer_sku_id:
-            prod_sku    = ProductSku.objects.get(outer_id=self.outer_sku_id,product__outer_id=self.outer_id)
+            prod_sku    = ProductSku.objects.get(outer_id=self.outer_sku_id,
+                                                 product__outer_id=self.outer_id)
             cost = prod_sku.cost or 0
         else:
             prod = Product.objects.get(outer_id=self.outer_id)
