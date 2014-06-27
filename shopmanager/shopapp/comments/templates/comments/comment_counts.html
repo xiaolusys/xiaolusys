@@ -15,7 +15,7 @@ function submit() {
 {% endblock %}
 
 {% block comment_count %}
-<div style="width:800px; padding:5px;">
+<div style="width:900px; padding:5px;">
 <form id="form1" action="/app/comment/count/" method="post">
 开始日期:
 <input type="text" name="fromDate" value="{{ fromDateShow }}">
@@ -47,6 +47,8 @@ function submit() {
 <td>{{ value.1.0 }}</td>
 </tr>
 {% endfor %}
+<td>好评回复案例</td>
+<td>有待提高回复案例</td>
 </tbody>
 </table>
 <div>

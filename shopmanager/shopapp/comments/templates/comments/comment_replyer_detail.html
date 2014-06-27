@@ -40,15 +40,16 @@ function writegrade(grade,oid) {
 </thead>
 <tbody>
 <tr>
+<td>排序</td>
 <td>图片</td>
 <td>客人评价</td>
 <td>客服回复</td>
 <td>打分</td>
-<td>oid</td>
 </tr>
 {% for k,v in replyerDetail.items %}
 {% for c in v %}
 <tr>
+<td>{{ forloop.counter }}</td>
 <td ><a href="{{ c.1 }}" target="_blank" ><img src="{{ c.0 }}_sum.jpg" alt=""></a></td>
 <td style="font-size:11px">{{ c.2 }}</td>
 <td style="font-size:11px;color:green">{{ c.3 }}</td>
@@ -59,11 +60,14 @@ function writegrade(grade,oid) {
 
 <br> 
 </td>
-<td>{{ c.4 }}</td>
+
 </tr>
 {% endfor %}
 
 {% endfor %}
+<tr>
+
+</tr>
 <tbody>
 </table>
 </div>
