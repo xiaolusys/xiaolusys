@@ -61,17 +61,12 @@ SYNC_MODEL_SCHEDULE = {
     },
     u'定时淘宝商城订单增量下载任务':{
         'task':'shopback.orders.tasks.updateAllUserIncrementTradesTask',
-        'schedule':crontab(minute="*/15"),
+        'schedule':crontab(minute="0",hour="*/3"),
         'args':()
     },
     u'定时淘宝商城待发货订单下载任务':{
         'task':'shopback.orders.tasks.updateAllUserWaitPostOrderTask',
-        'schedule':crontab(minute="0",hour="12"),
-        'args':()
-    },
-    u'定时淘宝商城订单增量更新下载任务':{
-        'task':'shopback.orders.tasks.updateAllUserIncrementTradesTask',
-        'schedule':crontab(minute="*/15"),
+        'schedule':crontab(minute="0",hour="*/12"),
         'args':()
     },
     u'更新昨日销量为商品警告数':{     #将昨日的订单数更新为商品的警告库位
