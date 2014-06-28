@@ -36,7 +36,7 @@ class RefundHandler(BaseHandler):
             if merge_type in (pcfg.WAIT_CHECK_BARCODE_STATUS,
                              pcfg.WAIT_SCAN_WEIGHT_STATUS,
                              pcfg.FINISHED_STATUS):
-                MergeBuyerTrade.objects.mergeRemover(merge_trade.id)
+                MergeTrade.objects.mergeRemover(merge_trade.id)
                 
     
     def atWAIT_SELLER_SEND_GOODS(self,merge_trade):
@@ -51,10 +51,10 @@ class RefundHandler(BaseHandler):
         elif merge_type == pcfg.SUB_MERGE_TYPE:
             main_tid = MergeBuyerTrade.objects.get(
                                     sub_tid=trade.id).main_tid
-            MergeBuyerTrade.objects.mergeRemover(main_tid)
+            MergeTrade.objects.mergeRemover(main_tid)
             
         else:
-            MergeBuyerTrade.objects.mergeRemover(merge_trade.id)
+            MergeTrade.objects.mergeRemover(merge_trade.id)
             
         
     def process(self,merge_trade,*args,**kwargs):

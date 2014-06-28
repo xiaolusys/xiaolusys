@@ -195,7 +195,8 @@ class OrderService(TaobaoSendTradeMixin,TaobaoTradeService,LocalService):
         trade_handler.proccess(
            merge_trade,
            **{'origin_trade':trade,
-              'update_address':update_address,
+              'update_address':(update_address and 
+                                merge_trade.status == pcfg.WAIT_SELLER_SEND_GOODS),
               'first_pay_load':(merge_trade.sys_status == pcfg.EMPTY_STATUS
                                 and merge_trade.status == pcfg.WAIT_SELLER_SEND_GOODS)})
         

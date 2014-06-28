@@ -50,8 +50,9 @@ __author__ = 'meixqhi'
 class MergeOrderInline(admin.TabularInline):
     
     model = MergeOrder
-    fields = ('oid','outer_id','outer_sku_id','title','price','payment','num','sku_properties_name','out_stock',
-                    'is_merge','is_rule_match','is_reverse_order','gift_type','refund_id','refund_status','status','sys_status')
+    fields = ('oid','outer_id','outer_sku_id','title','price','payment','num',
+              'sku_properties_name','out_stock','is_merge','is_rule_match',
+              'is_reverse_order','gift_type','refund_id','refund_status','status','sys_status')
     
     def get_readonly_fields(self, request, obj=None):
         self.readonly_fields = self.readonly_fields + ('tid',)
@@ -115,9 +116,10 @@ class MergeTradeAdmin(admin.ModelAdmin):
 
     inlines = [MergeOrderInline]
     
-    list_filter   = (TradeStatusFilter,'type','status','user',('trade_from', BitFieldListFilter,),'has_out_stock',
-                     'has_rule_match','has_merge','has_sys_err','has_memo','is_picking_print','is_express_print', 'is_locked',
-                    'is_charged','is_qrcode',('pay_time',DateFieldListFilter),('weight_time',DateFieldListFilter))
+    list_filter   = (TradeStatusFilter,'type','status','user',('pay_time',DateFieldListFilter),
+                     ('weight_time',DateFieldListFilter),('trade_from', BitFieldListFilter,),
+                     'has_out_stock','has_rule_match','has_merge','has_sys_err','has_memo',
+                    'is_picking_print','is_express_print', 'is_locked','is_charged','is_qrcode')
 
     search_fields = ['id','buyer_nick','tid','operator','out_sid','receiver_mobile']
     
