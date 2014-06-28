@@ -5,6 +5,7 @@ from django.db import models
 from django.conf import settings
 from django.db.models import Sum,F
 from shopback import paramconfig as pcfg
+from shopback.items.models import Product
 from shopback.trades.models import MergeTrade,MergeOrder
 from shopapp.memorule.models import ComposeRule,ComposeItem
 from shopback.base import log_action,User, ADDITION, CHANGE
@@ -61,9 +62,13 @@ def ruleMatchSplit(trade):
         
         for order in trade.inuse_orders:
             
+            if not Product.objects.isProductRuleSplit(order.outer_id,
+                                                      order.outer_sku_id):
+                continue
+            
             try:
-                compose_rule = ComposeRule.objects.get(outer_id=outer_id,
-                                                       outer_sku_id=outer_sku_id,
+                compose_rule = ComposeRule.objects.get(outer_id=order.outer_id,
+                                                       outer_sku_id=order.outer_sku_id,
                                                        type=pcfg.RULE_SPLIT_TYPE)
             except Exception,exc:
                 continue

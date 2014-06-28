@@ -16,7 +16,7 @@ class SplitHandler(BaseHandler):
     def process(self,merge_trade,*args,**kwargs):
         
         if settings.DEBUG:
-            print 'DEBUG COMPOSE:',merge_trade
+            print 'DEBUG SPLIT:',merge_trade
             
         #组合拆分
         ruleMatchSplit(merge_trade)

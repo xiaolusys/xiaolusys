@@ -52,6 +52,21 @@ class ProductManager(models.Manager):
         except (Product.DoesNotExist,ProductSku.DoesNotExsit):
             raise ProductDefectException(u'(%s,%s)编码组合未匹配到商品')
         
+    def isProductRuleSplit(self,outer_id,outer_sku_id):
+        
+        from .models import ProductSku
+        try:
+            product = self.get(outer_id=outer_id)
+            product_sku = None
+            if outer_sku_id:
+                product_sku = ProductSku.objects.get(outer_id=outer_sku_id,
+                                                     product__outer_id=outer_id)
+                return product_sku.is_split
+            return product.is_split
+            
+        except (Product.DoesNotExist,ProductSku.DoesNotExsit):
+            raise ProductDefectException(u'(%s,%s)编码组合未匹配到商品')
+        
     
     def getProductMatchReason(self,outer_id,outer_sku_id):
         
@@ -128,5 +143,7 @@ class ProductManager(models.Manager):
                 return outer_sku_id[0:index],outer_sku_id[index:]
         
         return outer_id,outer_sku_id
+    
+    
     
     

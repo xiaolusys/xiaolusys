@@ -1,5 +1,6 @@
 ######### 2014-6-27 ##########
 alter table shop_weixin_account add column pay_sign_key ;
+alter table shop_users_user change column type type varchar(8) NOT NULL;
 ######### 2014-6-22 ##########
 alter table shop_fenxiao_purchaseorder change distributor_payment distributor_payment double NOT NULL;
 alter table shop_fenxiao_purchaseorder change post_fee post_fee double NOT NULL;

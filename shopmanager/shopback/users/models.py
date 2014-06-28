@@ -86,7 +86,7 @@ class User(models.Model):
     created = models.CharField(max_length=19,blank=True)
     birthday = models.CharField(max_length=19,blank=True)
 
-    type = models.CharField(max_length=2,blank=True,
+    type = models.CharField(max_length=8,blank=True,
                             choices=SHOP_TYPE,
                             verbose_name= u'店铺类型')
     

@@ -591,7 +591,7 @@ class MergeTradeAdmin(admin.ModelAdmin):
                 seller_id = trade.user.visitor_id
                 
                 TradeService(seller_id,trade.tid).payTrade()
-                  
+                
             except Exception,exc:
                 logger.error(u'重新下单错误:%s'%exc.message,exc_info=True)
                 trade.append_reason_code(pcfg.PULL_ORDER_ERROR_CODE)
