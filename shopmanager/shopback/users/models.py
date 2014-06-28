@@ -37,23 +37,29 @@ class EffectUserManager(models.Manager):
     def get_query_set(self):
         return super(EffectUserManager, self).get_query_set().filter(status=pcfg.USER_NORMAL)
     
+    @property
     def TAOBAO(self):
-        self.get_query_set().filter(type__in=(pcfg.SHOP_TYPE_B,pcfg.SHOP_TYPE_C))
+        return self.get_query_set().filter(type__in=(pcfg.SHOP_TYPE_B,pcfg.SHOP_TYPE_C))
         
+    @property
     def JINGDONG(self):
-        self.get_query_set().filter(type=pcfg.SHOP_TYPE_JD)
+        return self.get_query_set().filter(type=pcfg.SHOP_TYPE_JD)
         
+    @property
     def YIHAODIAN(self):
-        self.get_query_set().filter(type=pcfg.SHOP_TYPE_YHD)
+        return self.get_query_set().filter(type=pcfg.SHOP_TYPE_YHD)
         
+    @property
     def DANGDANG(self):
-        self.get_query_set().filter(type=pcfg.SHOP_TYPE_DD)
+        return self.get_query_set().filter(type=pcfg.SHOP_TYPE_DD)
         
+    @property
     def WEIXIN(self):
-        self.get_query_set().filter(type=pcfg.SHOP_TYPE_WX)
+        return self.get_query_set().filter(type=pcfg.SHOP_TYPE_WX)
         
+    @property
     def AMAZON(self):
-        self.get_query_set().filter(type=pcfg.SHOP_TYPE_AMZ)
+        return self.get_query_set().filter(type=pcfg.SHOP_TYPE_AMZ)
         
 
 class User(models.Model):
