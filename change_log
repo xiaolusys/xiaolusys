@@ -17,7 +17,6 @@ alter table shop_trades_mergetrade change adjust_fee adjust_fee double NOT NULL;
 alter table shop_trades_mergetrade change post_fee post_fee double NOT NULL;
 alter table shop_trades_mergetrade change total_fee total_fee double NOT NULL;
 alter table shop_trades_mergetrade change seller_cod_fee seller_cod_fee double NOT NULL;
-alter table shop_trades_mergetrade change buyer_cod_fee seller_cod_fee double NOT NULL;
 alter table shop_trades_mergetrade change buyer_cod_fee buyer_cod_fee double NOT NULL;
 alter table shop_trades_mergetrade change cod_fee cod_fee double NOT NULL;
 alter table shop_trades_mergetrade change post_cost post_cost double NOT NULL;
@@ -41,6 +40,12 @@ alter table shop_orders_trade change seller_cod_fee seller_cod_fee double NOT NU
 alter table shop_orders_trade change buyer_cod_fee buyer_cod_fee double NOT NULL;
 alter table shop_orders_trade change cod_fee cod_fee double NOT NULL;
 alter table shop_orders_trade change step_paid_fee step_paid_fee double NOT NULL;
+
+alter table shop_orders_order change price price double NOT NULL;
+alter table shop_orders_order change total_fee total_fee double NOT NULL;
+alter table shop_orders_order change payment payment double NOT NULL;
+alter table shop_orders_order change discount_fee discount_fee double NOT NULL;
+alter table shop_orders_order change adjust_fee adjust_fee double NOT NULL;
 ######### 2014-6-19 ##########
 alter table shop_orders_trade change receiver_mobile receiver_mobile varchar(24) NOT NULL;
 alter table shop_trades_mergetrade change receiver_mobile receiver_mobile varchar(24) NOT NULL;
@@ -52,7 +57,7 @@ alter table shop_yunda_customer change memo memo varchar(100) NOT NULL;
 alter table shop_trades_mergetrade add column is_cod tinyint(1) NOT NULL;
 ######### 2014-6-13 ##########
 alter table shop_weixin_account add column account_id varchar(32) not NULL;
-alter table shop_weixin_account add UNIQUE unique_account_id on shop_weixin_account(account_id);
+create unique index unique_account_id on shop_weixin_account(account_id);
 
 alter table shop_users_user drop column craw_keywords;
 alter table shop_users_user drop column craw_trade_seller_nicks;
@@ -61,6 +66,8 @@ alter table shop_users_user drop column refund_notify_updated;
 alter table shop_users_user drop column trade_notify_updated;
 alter table shop_users_user drop column alipay_account;
 alter table shop_users_user drop column promoted_type;
+alter table shop_trades_mergetrade drop column seller_id;
+alter table shop_trades_mergetrade drop column seller_nick;
 ######### 2014-5-24 ##########
 alter table shop_trades_mergetrade drop index tid;
 alter table shop_trades_mergetrade change column tid  tid varchar(32) NOT NULL;
