@@ -16,8 +16,8 @@ class RefundHandler(BaseHandler):
         merge_type  = MergeBuyerTrade.getMergeType(merge_trade.id)
         #如果有合并的父订单，则设置父订单退款编号
         if merge_type == pcfg.SUB_MERGE_TYPE:    
-            main_tid = MergeBuyerTrade.objects.get(sub_tid=trade.id).main_tid
-            MergeTrade.objects.get(tid=main_tid).append_reason_code(pcfg.NEW_REFUND_CODE)
+            main_tid = MergeBuyerTrade.objects.get(sub_tid=merge_trade.id).main_tid
+            MergeTrade.objects.get(id=main_tid).append_reason_code(pcfg.NEW_REFUND_CODE)
             
         if (merge_trade.sys_status in pcfg.WAIT_DELIVERY_STATUS and 
             not merge_trade.is_locked):
@@ -29,8 +29,8 @@ class RefundHandler(BaseHandler):
         
         merge_type = MergeBuyerTrade.getMergeType(merge_trade.id)
         if merge_type == pcfg.SUB_MERGE_TYPE:
-            mbt = MergeBuyerTrade.objects.get(sub_tid=merge_trade.tid)
-            MergeTrade.objects.get(tid=mbt.main_tid).append_reason_code(pcfg.NEW_REFUND_CODE)
+            mbt = MergeBuyerTrade.objects.get(sub_tid=merge_trade.id)
+            MergeTrade.objects.get(id=mbt.main_tid).append_reason_code(pcfg.NEW_REFUND_CODE)
         
         elif merge_type == pcfg.MAIN_MERGE_TYPE:
             if merge_type in (pcfg.WAIT_CHECK_BARCODE_STATUS,
@@ -50,7 +50,7 @@ class RefundHandler(BaseHandler):
              
         elif merge_type == pcfg.SUB_MERGE_TYPE:
             main_tid = MergeBuyerTrade.objects.get(
-                                    sub_tid=trade.id).main_tid
+                                    sub_tid=merge_trade.id).main_tid
             MergeTrade.objects.mergeRemover(main_tid)
             
         else:

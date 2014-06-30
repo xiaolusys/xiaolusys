@@ -90,7 +90,7 @@ class WeiXinAPI(object):
             req = urllib2.urlopen(rst,type(params)==dict and 
                                   urllib.urlencode(params) or params)
             resp = req.read()
-        
+
         content = json.loads(resp)
         
         if content.has_key('errcode') and content['errcode'] != 0:
@@ -173,50 +173,68 @@ class WeiXinAPI(object):
         
     
     def getMerchant(self,product_id):
+        
+        params = json.dumps({'product_id':product_id},
+                            ensure_ascii=False)
         return self.handleRequest(self._merchant_get_uri, 
-                                  {'product_id':product_id},
+                                  str(params),
                                   method='GET')
         
     def getMerchantByStatus(self,status):
+
+        params = json.dumps({'product_id':product_id},
+                            ensure_ascii=False)
         return self.handleRequest(self._merchant_getbystatus_uri, 
-                                  {'status':status},
+                                  str(params),
                                   method='POST')
         
     def addMerchantStock(self,product_id,quantity,sku_info=''):
+        
+        params = json.dumps({'product_id':product_id,                                            
+                             'quantity':quantity,                                               
+                             'sku_info':sku_info},                                              
+                            ensure_ascii=False)
         return self.handleRequest(self._merchant_stock_add_uri, 
-                                  {'product_id':product_id,
-                                   'quantity':quantity,
-                                   'sku_info':sku_info},
+                                  str(params),
                                   method='POST')
         
     def reduceMerchantStock(self,product_id,quantity,sku_info=''):
+        
+        params = json.dumps({'product_id':product_id,                                                 
+                             'quantity':quantity,                                                     
+                             'sku_info':sku_info},                                                    
+                            ensure_ascii=False)
         return self.handleRequest(self._merchant_stock_reduce_uri, 
-                                  {'product_id':product_id,
-                                   'quantity':quantity,
-                                   'sku_info':sku_info},
+                                  str(params),
                                   method='POST')
         
     def getOrderById(self,order_id):
         
+        params = json.dumps({'order_id':str(order_id)},ensure_ascii=False)
         response = self.handleRequest(self._merchant_order_getbyid_uri, 
-                                  {'order_id':order_id},
+                                  str(params),
                                   method='POST')
         return response['order']
         
     def getOrderByFilter(self,status,begintime,endtime):
         
+        params = json.dumps({'status':status,
+                             'begintime':begintime,
+                             'endtime':endtime},
+                            ensure_ascii=False)
         response = self.handleRequest(self._merchant_order_getbyfilter_uri, 
-                                  {'status':status,
-                                   'begintime':begintime,
-                                   'endtime':endtime},
-                                  method='POST')
+                                      str(params),
+                                      method='POST')
         return response['order_list']
         
     def deliveryOrder(self,order_id,delivery_company,delivery_track_no):
+
+        params = json.dumps({'order_id':order_id,
+                             'delivery_company':delivery_company,
+                             'delivery_track_no':delivery_track_no},
+                            ensure_ascii=False)
         return self.handleRequest(self._merchant_order_setdelivery_uri, 
-                                  {'order_id':order_id,
-                                   'delivery_company':delivery_company,
-                                   'delivery_track_no':delivery_track_no},
+                                  str(params),
                                   method='POST')
         
     def genNativeSignParams(self,product_id):

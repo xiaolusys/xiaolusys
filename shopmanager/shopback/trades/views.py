@@ -390,7 +390,7 @@ class CheckOrderView(ModelView):
                 return ','.join(check_msg)
             
             if trade.type == pcfg.EXCHANGE_TYPE:
-                change_orders = trade.merge_trade_orders.filter(
+                change_orders = trade.merge_orders.filter(
                     gift_type=pcfg.CHANGE_GOODS_GIT_TYPE,
                     sys_status=pcfg.IN_EFFECT)
 

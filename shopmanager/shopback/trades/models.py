@@ -496,7 +496,7 @@ def recalc_trade_fee(sender,trade_id,*args,**kwargs):
     trade.total_fee = fee_dict.get('total_total_fee') 
     trade.payment = fee_dict.get('total_payment') 
     trade.discount_fee = fee_dict.get('total_discount_fee') 
-    trade.adjust_fee = fee_dictget('.total_adjust_fee') 
+    trade.adjust_fee = fee_dict.get('total_adjust_fee') 
     
     update_model_fields(trade,update_fields=['total_fee',
                                              'payment',
