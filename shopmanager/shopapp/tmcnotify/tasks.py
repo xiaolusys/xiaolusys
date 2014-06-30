@@ -90,7 +90,56 @@ class ProcessMessageTask(Task):
     
     def handleRefundMessage(self,userId,msgCode,content,msgTime):
         
-        pass
+        tradeType  = content.get('type')
+        tradeId    = content.get('tid')
+        oid        = content.get('oid',None)
+        
+        if tradeType not in (pcfg.TAOBAO_TYPE,
+                             pcfg.FENXIAO_TYPE,
+                             pcfg.GUARANTEE_TYPE,
+                             pcfg.COD_TYPE):
+            raise Exception(u'系统不支持该淘宝订单类型:%s'%tradeType)
+        
+        if (not TradeService.isTradeExist(userId,tradeId) or 
+            msgCode == 'TradeAlipayCreate'):
+            
+            TradeService.createTrade(userId,tradeId,tradeType)
+            
+            if tradeType == pcfg.FENXIAO_TYPE:
+                return 
+            
+            TradeService.updatePublicTime(userId,tradeId,msgTime)
+            return 
+        
+        if not TradeService.isValidPubTime(userId,tradeId,msgTime):
+            return
+        
+        t_service = TradeService(userId,tradeId)
+        if msgCode in ('TradeClose' 'TradeCloseAndModifyDetailOrder'):    
+            t_service.closeTrade(oid)
+        
+        elif msgCode == 'TradeBuyerPay':
+            t_service.payTrade()
+            
+        elif msgCode == 'TradeSellerShip':
+            t_service.shipTrade(oid)
+            
+        elif msgCode == 'TradePartlyRefund':
+            pass
+        
+        elif msgCode == 'TradeSuccess':
+            t_service.finishTrade(oid)
+            
+        elif msgCode == 'TradeTimeoutRemind':
+            t_service.remindTrade()
+            
+        elif msgCode == 'TradeMemoModified':
+            t_service.memoTrade()
+            
+        elif msgCode == 'TradeChanged':
+            t_service.changeTrade()
+        
+        TradeService.updatePublicTime(userId,tradeId,msgTime) 
     
     def handleItemMessage(self,userId,msgCode,content,msgTime):
         

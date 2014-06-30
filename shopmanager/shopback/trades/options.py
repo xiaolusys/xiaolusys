@@ -178,8 +178,8 @@ def driveMergeTrade(trade):
     
     if (trade.has_merge or 
         trade.sys_status not in (pcfg.WAIT_AUDIT_STATUS,
-                                 pcfg.REGULAR_REMAIN_STATUS) or 
-        MergeTrade.objects.isTradeRefunding(trade)):
+                                 pcfg.REGULAR_REMAIN_STATUS)
+        or MergeTrade.objects.isTradeRefunding(trade)):
         raise MergeException(u'不满足（非主订单、无待退款、问题单或定时提醒状态）的合单条件')
     
     trade_id    = trade.id    
@@ -199,9 +199,6 @@ def driveMergeTrade(trade):
                             receiver_mobile, 
                             receiver_phone)
         
-        for mtrade in merge_queryset:
-            mtrade.append_reason_code(pcfg.MULTIPLE_ORDERS_CODE)
-            
         scan_merge_trades = merge_queryset.filter(sys_status__in=(
                                     pcfg.WAIT_CHECK_BARCODE_STATUS,
                                     pcfg.WAIT_SCAN_WEIGHT_STATUS))

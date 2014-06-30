@@ -90,7 +90,7 @@ class WeiXinAPI(object):
             req = urllib2.urlopen(rst,type(params)==dict and 
                                   urllib.urlencode(params) or params)
             resp = req.read()
-        
+        print 'debug resp:',method,absolute_url,urllib.urlencode(params),resp
         content = json.loads(resp)
         
         if content.has_key('errcode') and content['errcode'] != 0:
@@ -204,7 +204,34 @@ class WeiXinAPI(object):
         return response['order']
         
     def getOrderByFilter(self,status,begintime,endtime):
-        
+        """[
+                {
+                    "buyer_nick": "\u90a3\ud83d\udc63",
+                    "buyer_openid": "oMt59uL4uJRBujpSvuGCK4pipszA",
+                    "delivery_company": "",
+                    "delivery_id": "",
+                    "order_create_time": 1403937645,
+                    "order_express_price": 0,
+                    "order_id": "13294025981597714502",
+                    "order_status": 2,
+                    "order_total_price": 1,
+                    "product_count": 1,
+                    "product_id": "pMt59uPJs7wTyZ662XAIoIPg67Ds",
+                    "product_img": "http://mmbiz.qpic.cn/mmbiz/yMhOQPTKhLsmuqaZmC9Q4icuPicXVkKY5jl1fx0LYjFoA65AxZ5eH4d85u8dl2X11uLXbEV0YcibgmjCia41icZWfuw/0",
+                    "product_name": "\u5c3f\u7247\u5341\u7247\u88c5\uff0c\u6d4b\u8bd5\u5546\u54c1\uff0c\u8bf7\u52ff\u62cd\u4e0b",
+                    "product_price": 1,
+                    "product_sku": "",
+                    "receiver_address": "\u91d1\u6d77\u5927\u90531\u53f7",
+                    "receiver_city": "\u821f\u5c71\u5e02",
+                    "receiver_mobile": "15800908106",
+                    "receiver_name": "Lisa",
+                    "receiver_phone": "15800908106",
+                    "receiver_province": "\u6d59\u6c5f\u7701",
+                    "receiver_zone": "",
+                    "trans_id": "1219468801201406283198129857"
+                }
+            ]
+        """
         response = self.handleRequest(self._merchant_order_getbyfilter_uri, 
                                   {'status':status,
                                    'begintime':begintime,

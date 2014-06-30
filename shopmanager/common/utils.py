@@ -81,3 +81,9 @@ def group_list(l,block):
 
 def randomString():
     return ''.join(random.sample(list(BASE_STRING),10))
+
+def replace_utf8mb4(v):
+    """Replace 4-byte unicode characters by REPLACEMENT CHARACTER"""
+    import re
+    INVALID_UTF8_RE = re.compile(u'[^\u0000-\uD7FF\uE000-\uFFFF]', re.UNICODE)
+    return INVALID_UTF8_RE.sub(u'\uFFFD', v)
