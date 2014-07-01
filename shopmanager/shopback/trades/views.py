@@ -536,8 +536,12 @@ def change_trade_addr(request):
     trade.save()
     
     try:
-        if trade.type in (pcfg.TAOBAO_TYPE,pcfg.FENXIAO_TYPE,pcfg.GUARANTEE_TYPE) \
-            and trade.sys_status in (pcfg.WAIT_AUDIT_STATUS,pcfg.WAIT_CHECK_BARCODE_STATUS,pcfg.WAIT_SCAN_WEIGHT_STATUS):
+        if trade.type in (pcfg.TAOBAO_TYPE,
+                          pcfg.FENXIAO_TYPE,
+                          pcfg.GUARANTEE_TYPE) \
+            and trade.sys_status in (pcfg.WAIT_AUDIT_STATUS,
+                                     pcfg.WAIT_CHECK_BARCODE_STATUS,
+                                     pcfg.WAIT_SCAN_WEIGHT_STATUS):
             response = apis.taobao_trade_shippingaddress_update(tid=trade.tid,
                                                             receiver_name=trade.receiver_name,
                                                             receiver_phone=trade.receiver_phone,
@@ -759,8 +763,10 @@ def change_logistic_and_outsid(request):
     trade_id   = CONTENT.get('trade_id')
     out_sid    = CONTENT.get('out_sid')
     logistic_code = CONTENT.get('logistic_code','').upper()
+    is_qrcode  = logistic_code.endswith('QR')
     
-    if not trade_id or not out_sid or not logistic_code:
+    if not trade_id or (not is_qrcode 
+                        and (not out_sid or not logistic_code)):
         ret_params = {'code':1,'response_error':u'请填写快递名称及单号'}
         return HttpResponse(json.dumps(ret_params),mimetype="application/json")
     
@@ -775,7 +781,7 @@ def change_logistic_and_outsid(request):
     try:
         logistic   = LogisticsCompany.objects.get(code=logistic_code)
         logistic_regex = re.compile(logistic.reg_mail_no)
-        if not logistic_regex.match(out_sid):
+        if not is_qrcode and not logistic_regex.match(out_sid):
             raise Exception(u'快递单号不合规则')
         
         real_logistic_code = logistic_code.split('_')[0]
@@ -783,7 +789,7 @@ def change_logistic_and_outsid(request):
         if merge_trade.sys_status in (pcfg.WAIT_CHECK_BARCODE_STATUS,pcfg.WAIT_SCAN_WEIGHT_STATUS):
             
             try:
-                if (dt-merge_trade.consign_time).days<1:
+                if not is_qrcode and (dt-merge_trade.consign_time).days<1:
                     response = apis.taobao_logistics_consign_resend(tid=merge_trade.tid,out_sid=out_sid
                                                      ,company_code=real_logistic_code,tb_user_id=merge_trade.user.visitor_id)
                     if not response['logistics_consign_resend_response']['shipping']['is_success']:
@@ -800,7 +806,7 @@ def change_logistic_and_outsid(request):
             log_action(user_id,merge_trade,CHANGE,u'修改快递及单号(修改前:%s,%s)'%(origin_logistic_code,origin_out_sid))
         elif merge_trade.sys_status == pcfg.FINISHED_STATUS:
             try:
-                if (dt-merge_trade.consign_time).days<1:
+                if not is_qrcode and (dt-merge_trade.consign_time).days<1:
                     apis.taobao_logistics_consign_resend(tid=merge_trade.tid,out_sid=out_sid
                                                  ,company_code=real_logistic_code,tb_user_id=merge_trade.user.visitor_id)
             except:

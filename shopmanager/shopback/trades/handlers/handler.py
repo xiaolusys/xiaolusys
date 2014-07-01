@@ -180,6 +180,7 @@ class FinalHandler(BaseHandler):
             if not merge_trade.is_locked:
                 merge_trade.sys_status = pcfg.INVALID_STATUS
                 
+                update_model_fields(merge_trade,update_fields=['sys_status'])
             
             
         

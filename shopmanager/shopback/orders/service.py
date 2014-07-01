@@ -182,8 +182,9 @@ class OrderService(TaobaoSendTradeMixin,TaobaoTradeService,LocalService):
         merge_trade.post_fee     = merge_trade.post_fee or trade.post_fee
         
         merge_trade.trade_from    = MergeTrade.objects.mapTradeFromToCode(trade.trade_from)
-        merge_trade.shipping_type = merge_trade.shipping_type or \
-                pcfg.SHIPPING_TYPE_MAP.get(trade.shipping_type,pcfg.EXPRESS_SHIPPING_TYPE)
+        merge_trade.shipping_type = (merge_trade.shipping_type or 
+                                     pcfg.SHIPPING_TYPE_MAP.get(trade.shipping_type,
+                                                                pcfg.EXPRESS_SHIPPING_TYPE))
         
         update_model_fields(merge_trade,update_fields=update_fields
                             +['is_cod','shipping_type','payment','total_fee',

@@ -17,7 +17,7 @@ from .weixin_apis import WeiXinAPI
 from shopback.base.service import LocalService
 from shopback.logistics import getLogisticTrace
 from shopback import paramconfig as pcfg
-from common.utils import parse_datetime,format_datetime
+from common.utils import parse_datetime,format_datetime,replace_utf8mb4
 import logging
 
 logger = logging.getLogger('django.request')
@@ -61,6 +61,7 @@ class WeixinUserService():
                 for k,v in userinfo.iteritems():
                     setattr(wx_user,k,v)
                 
+                wx_user.nickname = replace_utf8mb4(wx_user.nickname.decode('utf8'))
                 subscribe_time = userinfo.get('subscribe_time',None)
                 if subscribe_time:
                     wx_user.subscribe_time = datetime.datetime\
@@ -350,15 +351,20 @@ class WeixinUserService():
                 
                 eventType=params['Event']
                 if eventType == WeiXinAutoResponse.WX_EVENT_ORDER:
-                    ret_params.update(self._wx_user.handleMerchantOrder(params['ToUserName'],
-                                                                        params['OrderId'],
-                                                                        params['OrderStatus'],
-                                                                        params['ProductId'],
-                                                                        params['SkuInfo']))
+                    ret_params.update(self.handleMerchantOrder(params['ToUserName'],
+                                                                params['OrderId'],
+                                                                params['OrderStatus'],
+                                                                params['ProductId'],
+                                                                params['SkuInfo']))
                     
-                else:    
+                elif eventType == WeiXinAutoResponse.WX_EVENT_LOCATION:    
+                    ret_params.update(self.genTextRespJson(
+                                    u'不好意思啦，你的地理位置（%s,%s）我还无法解析的啦...'%
+                                    (params['Latitude'],params['Longitude'])))
+                else:
                     ret_params.update(self.handleEvent(params['EventKey'].upper(), 
                                                        openId,eventType=params['Event']))
+                    
                 return ret_params
                 
             matchMsg = ''

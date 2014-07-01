@@ -20,6 +20,15 @@ class MergeHandler(BaseHandler):
             
         merge_trade.append_reason_code(pcfg.MULTIPLE_ORDERS_CODE)
         
+        merge_queryset = MergeTrade.objects.getMergeQueryset( 
+                            merge_trade.buyer_nick , 
+                            merge_trade.receiver_name, 
+                            merge_trade.receiver_mobile, 
+                            merge_trade.receiver_phone)
+        
+        for mtrade in merge_queryset:
+            mtrade.append_reason_code(pcfg.MULTIPLE_ORDERS_CODE)
+        
         main_trade = MergeTrade.objects.driveMergeTrade(merge_trade)
         if main_trade:
             ruleMatchPayment(main_trade)
