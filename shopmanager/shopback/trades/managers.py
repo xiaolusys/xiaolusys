@@ -172,6 +172,7 @@ class MergeTradeManager(models.Manager):
                                     gift_type=pcfg.REAL_ORDER_GIT_TYPE,
                                     is_merge=False)\
                               .exclude(refund_status__in=(pcfg.NO_REFUND,
+                                                          pcfg.REFUND_CLOSED,
                                                           pcfg.EMPTY_STATUS)).count()
         
         if refund_orders_num > trade.refund_num:
