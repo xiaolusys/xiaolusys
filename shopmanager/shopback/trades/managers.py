@@ -171,9 +171,10 @@ class MergeTradeManager(models.Manager):
         refund_orders_num   = trade.merge_orders.filter(
                                     gift_type=pcfg.REAL_ORDER_GIT_TYPE,
                                     is_merge=False)\
-                              .exclude(refund_status=pcfg.NO_REFUND).count()
+                              .exclude(refund_status__in=(pcfg.NO_REFUND,
+                                                          pcfg.EMPTY_STATUS)).count()
         
-        if refund_orders_num >trade.refund_num:
+        if refund_orders_num > trade.refund_num:
             
             trade.refund_num = refund_orders_num
             update_model_fields(trade,update_fields=['refund_num'])

@@ -222,6 +222,7 @@ def sendTaobaoTradeTask(request_user_id,trade_id):
             
         else:
             trade.sys_status=pcfg.WAIT_CHECK_BARCODE_STATUS
+            trade.status=pcfg.WAIT_BUYER_CONFIRM_GOODS
             trade.consign_time=datetime.datetime.now()
             trade.save()
             log_action(request_user_id,trade,CHANGE,
