@@ -151,7 +151,7 @@ class FinalHandler(BaseHandler):
              not merge_trade.remind_time)):
             
             merge_trade.sys_status = pcfg.WAIT_AUDIT_STATUS
-            update_model_fields(merge_trade,update_fields=['sys_status'])
+
         
         if (not merge_trade.reason_code and
             merge_trade.sys_status in (pcfg.WAIT_AUDIT_STATUS,
@@ -161,7 +161,6 @@ class FinalHandler(BaseHandler):
                                          pcfg.REISSUE_TYPE)):
             
             merge_trade.sys_status = pcfg.WAIT_PREPARE_SEND_STATUS
-            update_model_fields(merge_trade,update_fields=['sys_status'])
             
         if kwargs.get('first_pay_load',None):
             for order in merge_trade.inuse_orders:
@@ -180,7 +179,7 @@ class FinalHandler(BaseHandler):
             if not merge_trade.is_locked:
                 merge_trade.sys_status = pcfg.INVALID_STATUS
                 
-                update_model_fields(merge_trade,update_fields=['sys_status'])
+        update_model_fields(merge_trade,update_fields=['sys_status'])
             
             
         

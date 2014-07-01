@@ -11,19 +11,19 @@ import logging
 logger = logging.getLogger('django.request')
 
 def wxpay(request):
-    logger.warn('WEIXIN WEIXIN_PAY_URL:%s'%str(request.REQUEST))
+    logger.error('WEIXIN WEIXIN_PAY_URL:%s'%str(request.REQUEST))
     return HttpResponse('success')
 
 def napay(request):
-    logger.warn('WEIXIN NATIVE_CALLBACK_URL:%s'%str(request.REQUEST))
+    logger.error('WEIXIN NATIVE_CALLBACK_URL:%s'%str(request.REQUEST))
     return HttpResponse('success')
 
 def maintian(request):
-    logger.warn('WEIXIN FEEDBACK_URL:%s'%str(request.REQUEST))
+    logger.error('WEIXIN FEEDBACK_URL:%s'%str(request.REQUEST))
     return HttpResponse('success')
 
 def warn(request):
-    logger.warn('WEIXIN WARN_URL:%s'%str(request.REQUEST))
+    logger.error('WEIXIN WARN_URL:%s'%str(request.REQUEST))
     return HttpResponse('success')
 
 

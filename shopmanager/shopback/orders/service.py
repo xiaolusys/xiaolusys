@@ -109,11 +109,8 @@ class OrderService(TaobaoSendTradeMixin,TaobaoTradeService,LocalService):
                                                              merge_trade = merge_trade)
         state = state or not merge_order.sys_status
         
-        if ((merge_order.refund_status != order.refund_status and 
-            order.refund_status in (pcfg.REFUND_WAIT_SELLER_AGREE,
-                                    pcfg.REFUND_SUCCESS))
-            or order.status in (pcfg.TRADE_CLOSED,
-                                pcfg.TRADE_CLOSED_BY_TAOBAO)):
+        if (order.status in (pcfg.TRADE_CLOSED,
+                             pcfg.TRADE_CLOSED_BY_TAOBAO)):
             sys_status = pcfg.INVALID_STATUS
         else:
             sys_status = merge_order.sys_status or pcfg.IN_EFFECT
