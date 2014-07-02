@@ -53,6 +53,7 @@ class WeiXinAPI(object):
     
     #微信原生支付URL
     _native_url   = "weixin://wxpay/bizpayurl"
+    _deliver_notify_url = "/pay/delivernotify"
     
     
     def __init__(self):
@@ -266,6 +267,29 @@ class WeiXinAPI(object):
         return self.handleRequest(self._merchant_order_setdelivery_uri, 
                                   str(params),
                                   method='POST')
+        
+    def deliverNotify(self,open_id,trans_id,out_trade_no,
+                      deliver_status=1,deliver_msg="ok"):
+        
+        params = {"appid":self._wx_account.app_id,
+                  "appkey":self._wx_account.pay_sign_key,
+                  "openid":open_id,
+                  "transid":trans_id,
+                  "out_trade_no":out_trade_no,
+                  "deliver_timestamp":"%.0f"%time.time(),
+                  "deliver_status":deliver_status,
+                  "deliver_msg":deliver_msg}
+        
+        params['app_signature'] = getSignatureWeixin(params)
+        params['sign_method'] = 'sha1'
+        
+        params.pop(appkey)
+        
+        return self.handleRequest(self._deliver_notify_url, 
+                           str(json.dumps(params)), 
+                           method='POST')
+        
+        
         
     def genNativeSignParams(self,product_id):
         

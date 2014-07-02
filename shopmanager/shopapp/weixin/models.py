@@ -11,9 +11,6 @@ class AnonymousWeixinAccount():
     def isNone(self):
         return True
     
-    def checkSignature(self,signature,timestamp,nonce):
-        return False
-
     def isExpired(self):
         return True
 
@@ -28,9 +25,9 @@ class WeiXinAccount(models.Model):
     app_id     = models.CharField(max_length=64,verbose_name=u'应用ID')
     app_secret = models.CharField(max_length=128,verbose_name=u'应用SECRET')
     
-    #pay_sign_key = models.CharField(max_length=128,verbose_name=u'支付密钥')
-    #partner_id   = models.CharField(max_length=128,verbose_name=u'商户ID')
-    #partner_key  = models.CharField(max_length=128,verbose_name=u'商户KEY')
+    pay_sign_key = models.CharField(max_length=128,verbose_name=u'支付密钥')
+    partner_id   = models.CharField(max_length=32,verbose_name=u'商户ID')
+    partner_key  = models.CharField(max_length=128,verbose_name=u'商户KEY')
     
     access_token = models.CharField(max_length=256,blank=True,
                                     verbose_name=u'ACCESS TOKEN')

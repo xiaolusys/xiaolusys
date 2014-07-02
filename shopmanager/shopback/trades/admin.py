@@ -440,8 +440,7 @@ class MergeTradeAdmin(admin.ModelAdmin):
                                                      pcfg.ON_THE_FLY_STATUS,
                                                      pcfg.WAIT_PREPARE_SEND_STATUS,
                                                      pcfg.WAIT_CHECK_BARCODE_STATUS,
-                                                     pcfg.WAIT_SCAN_WEIGHT_STATUS,
-                                                     pcfg.FINISHED_STATUS))
+                                                     pcfg.WAIT_SCAN_WEIGHT_STATUS))
         postset = queryset.filter(sys_status__in=(pcfg.WAIT_CHECK_BARCODE_STATUS,
                                                   pcfg.WAIT_SCAN_WEIGHT_STATUS))
         if wlbset.count()>0:
@@ -507,8 +506,7 @@ class MergeTradeAdmin(admin.ModelAdmin):
             else:
                 audit_trades = queryset.filter(sys_status__in=(pcfg.WAIT_AUDIT_STATUS,
                                                                pcfg.WAIT_PREPARE_SEND_STATUS,
-                                                               pcfg.ON_THE_FLY_STATUS,
-                                                               pcfg.REGULAR_REMAIN_STATUS)
+                                                               )
                                                ).order_by('pay_time')	
                 if audit_trades.count()>0:
                     
@@ -516,7 +514,7 @@ class MergeTradeAdmin(admin.ModelAdmin):
                     if merge_trades.count()>0:
                         main_trade = merge_trades[0]
                     else:
-                        main_trade = audit_trades[0] #主订单
+                        main_trade = audit_trades[0]#主订单
 
                     queryset = queryset.exclude(id=main_trade.id)		
                     main_full_addr = main_trade.buyer_full_address #主订单收货人地址

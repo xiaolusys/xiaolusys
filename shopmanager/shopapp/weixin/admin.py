@@ -14,8 +14,10 @@ class WeiXinAccountAdmin(admin.ModelAdmin):
     list_display = ('id','account_id','token','app_id','expires_in',
                     'expired','in_voice','is_active')
     
+    list_display_links = ('id','account_id')
+    
     list_filter = ('is_active','in_voice')
-    search_fields = ['app_id','token']
+    search_fields = ['app_id','token','partner_id']
     
     def urlencode(self,value):
         ds = {'s':value}

@@ -83,7 +83,8 @@ class PurchaseAdmin(admin.ModelAdmin):
                     'post_date','service_date','arrival_status','status')
     #list_editable = ('update_time','task_type' ,'is_success','status')
 
-    list_filter = ('status','arrival_status','deposite','purchase_type',('service_date',DateFieldListFilter))
+    list_filter = ('status','arrival_status','deposite','purchase_type',
+                   ('service_date',DateFieldListFilter))
     search_fields = ['id','origin_no','extra_name','creator','supplier__supplier_name']
     
     def purchase_title_link(self, obj):
@@ -248,10 +249,14 @@ admin.site.register(Purchase,PurchaseAdmin)
 
 
 class PurchaseStorageAdmin(admin.ModelAdmin):
-    list_display = ('id','storage_name_link','origin_no','supplier','deposite','storage_num','total_fee','prepay','payment','post_date','created','is_addon','status')
+    list_display = ('id','storage_name_link','origin_no','supplier','deposite',
+                    'storage_num','total_fee','prepay','payment',
+                    'post_date','created','is_addon','status')
     #list_editable = ('update_time','task_type' ,'is_success','status')
 
-    list_filter = ('status','deposite','is_addon')
+    list_filter = ('status','deposite','is_addon',
+                   ('post_date',DateFieldListFilter),
+                   ('created',DateFieldListFilter))
     search_fields = ['id','out_sid','extra_name','origin_no','supplier__supplier_name']
     
     def storage_name_link(self, obj):
@@ -435,8 +440,11 @@ class PurchasePaymentAdmin(admin.ModelAdmin):
                     'pay_bank','pay_no','apply_time','pay_time','status')
     #list_editable = ('update_time','task_type' ,'is_success','status')
 
-    list_filter = ('status','pay_type',('pay_time',DateFieldListFilter))
-    search_fields = ['id','cashier','applier','pay_bank','pay_no','supplier__supplier_name','origin_nos']
+    list_filter = ('status','pay_type',
+                   ('pay_time',DateFieldListFilter),
+                   ('apply_time',DateFieldListFilter))
+    search_fields = ['id','cashier','applier','pay_bank','pay_no',
+                     'supplier__supplier_name','origin_nos']
     
     def payment_link(self, obj):
         symbol_link = obj.payment
@@ -506,9 +514,11 @@ class PurchasePaymentAdmin(admin.ModelAdmin):
 
         is_windows = request.META['HTTP_USER_AGENT'].lower().find('windows') >-1 
 
-        pcsv    = gen_cvs_tuple(queryset,fields=['id','pay_type','apply_time','pay_time','payment','supplier','applier','cashier',
+        pcsv    = gen_cvs_tuple(queryset,fields=['id','pay_type','apply_time','pay_time',
+                                                 'payment','supplier','applier','cashier',
                                                  'pay_no','pay_bank','status','extra_info'],
-                        title=[u'ID',u'付款类型',u'申请时间',u'付款时间',u'付款',u'收款方',u'申请人',u'付款人',u'流水号',u'支付银行',u'状态',u'备注'])
+                        title=[u'ID',u'付款类型',u'申请时间',u'付款时间',u'付款',u'收款方',
+                               u'申请人',u'付款人',u'流水号',u'支付银行',u'状态',u'备注'])
                 
         tmpfile = StringIO.StringIO()
         writer  = CSVUnicodeWriter(tmpfile,encoding= is_windows and "gbk" or 'utf8')

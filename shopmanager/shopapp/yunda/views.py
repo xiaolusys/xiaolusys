@@ -145,7 +145,8 @@ class PackageByCsvFileView(YundaFileUploadView):
                 row = [r.strip().decode(encoding) for r in row]
                 self.createTodayPackageWeight(row)
                 
-        return {'success':True,'redirect_url':'/admin/yunda/todayparentpackageweight/'}
+        return {'success':True,
+                'redirect_url':reverse('admin:yunda_todaysmallpackageweight_changelist')}
     
 
 class CustomerPackageImportView(YundaFileUploadView):
