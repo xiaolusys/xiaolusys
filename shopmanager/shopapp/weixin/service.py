@@ -102,7 +102,8 @@ class WeixinUserService():
                         'MsgId','PicUrl','MediaId','Format','MediaId','ThumbMediaId',
                         'Location_X','Location_Y','Scale','Label','Title','Description',
                         'Url','EventKey','Event','Ticket','Latitude','Longitude',
-                        'Precision']
+                        'Precision','OpenId','AppId','IsSubscribe','ProductId',
+                        'TimeStamp','NonceStr','AppSignature','SignMethod']
         
         for field in merge_fields:
             self.mergeMessageKey(doc, xmld, field)

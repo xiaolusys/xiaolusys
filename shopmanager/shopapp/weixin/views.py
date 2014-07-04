@@ -38,14 +38,14 @@ class WeixinAcceptView(View):
         content    = request.REQUEST
         
         wx_service = self.get_wx_service()
-        if wx_service.checkSignature(content['signature'],
-                                     content['timestamp'],
-                                     content['nonce']):
+        if wx_service.checkSignature(content.get('signature',''),
+                                     content.get('timestamp',0),
+                                     content.get('nonce','')):
             wx_service.activeAccount()
             
             return HttpResponse(content['echostr'])
         
-        return HttpResponse('fails')
+        return HttpResponse(u'微信接口验证失败')
     
     
     def post(self,request):
@@ -54,9 +54,9 @@ class WeixinAcceptView(View):
         
         wx_service = self.get_wx_service()
         if not wx_service.checkSignature(content.get('signature',''),
-                                         content.get('timestamp',''),
+                                         content.get('timestamp',0),
                                          content.get('nonce','')):
-            return HttpResponse('INVALID MESSAGE')
+            return HttpResponse(u'非法请求')
         
         content  = request.body
         

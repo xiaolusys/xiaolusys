@@ -1140,7 +1140,8 @@ class TradeSearchView(ModelView):
             'id':order.id,
             'outer_id':order.outer_id,
             'title':prod.name if prod else order.title,
-            'sku_properties_name':prod_sku.properties_name if prod_sku else order.sku_properties_name,
+            'sku_properties_name':(prod_sku.properties_name if prod_sku 
+                                   else order.sku_properties_name),
             'num':order.num,
             'out_stock':order.out_stock,
             'price':order.price,

@@ -24,7 +24,7 @@ urlpatterns = patterns('shopapp.weixin.views',
         name='weixin_valid_mobile'),
     
     url(r'^warn/$','warn',name='weixin_warn'),
-    url(r'^maintian/$','maintian',name='weixin_feedback'),
+    url(r'^rights/$','maintian',name='weixin_feedback'),
     url(r'^napay/$','napay',name='weixin_napay'),
     url(r'^wxpay/$','wxpay',name='weixin_wxpay'),
 
