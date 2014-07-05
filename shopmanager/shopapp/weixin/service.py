@@ -16,6 +16,7 @@ from shopapp.weixin.models import (WeiXinAccount,
 from .weixin_apis import WeiXinAPI
 from shopback.base.service import LocalService
 from shopback.logistics import getLogisticTrace
+from shopback.items.models import Product
 from shopback import paramconfig as pcfg
 from common.utils import parse_datetime,format_datetime,replace_utf8mb4
 import logging
@@ -24,7 +25,7 @@ logger = logging.getLogger('django.request')
 VALID_MOBILE_REGEX = '^1[3458][0-9]{9}'
 VALID_CODE_REGEX   = '^[0-9]{6}$'
 VALID_EVENT_CODE   = '^[qwertyuiopQWERTYUIOP]$'
-CODE_SPLIT_CHAR    = '.'
+
 
 mobile_re = re.compile(VALID_MOBILE_REGEX)
 code_re   = re.compile(VALID_CODE_REGEX)
@@ -82,31 +83,22 @@ class WeixinUserService():
     def activeAccount(self):
         self._wx_api._wx_account.activeAccount()
     
-    def mergeMessageKey(self,doc,xmld,key):
+    def mergeElement(self,sub_elem):
         
-        xmlCnt = doc.xpath('/xml/%s'%key)
-        if xmlCnt:
-            xmld.update({key:xmlCnt[0].text})
+        if sub_elem.tag == 'CreateTime':
+            return {sub_elem.tag:datetime.datetime.
+                    fromtimestamp(int(sub_elem.text))}
+            
+        return {sub_elem.tag:sub_elem.text}
     
     def parseXML2Param(self,xmlc):
         
         doc     = etree.fromstring(xmlc)
-        createtime_stamp = int(doc.xpath('/xml/CreateTime')[0].text)
-        msgtype = doc.xpath('/xml/MsgType')[0].text
+        root_elem = doc.xpath('/xml')[0]
+        xmld   = {}
         
-        xmld   = {  
-                    'CreateTime':datetime.datetime.fromtimestamp(createtime_stamp),
-                    'MsgType':msgtype,
-                 }
-        merge_fields = ['FromUserName','ToUserName','CreateTime','MsgType','Content',
-                        'MsgId','PicUrl','MediaId','Format','MediaId','ThumbMediaId',
-                        'Location_X','Location_Y','Scale','Label','Title','Description',
-                        'Url','EventKey','Event','Ticket','Latitude','Longitude',
-                        'Precision','OpenId','AppId','IsSubscribe','ProductId',
-                        'TimeStamp','NonceStr','AppSignature','SignMethod']
-        
-        for field in merge_fields:
-            self.mergeMessageKey(doc, xmld, field)
+        for sub_elem in root_elem.iterchildren():
+            xmld.update(self.mergeElement(sub_elem))
         
         return xmld
     
@@ -293,9 +285,10 @@ class WeixinUserService():
         
         trade = self.getLatestTradeByMobile(mobile)
         if not trade.out_sid or not trade.logistics_company:
-            raise MessageException(u'客官稍安勿燥，宝贝正在准备中...')
+            raise MessageException(u'客官稍安勿燥，宝贝正在准备出库中...')
              
-        trade_traces = getLogisticTrace(trade.out_sid,trade.logistics_company.code.split('_')[0])
+        trade_traces = getLogisticTrace(trade.out_sid,
+                                        trade.logistics_company.code.split('_')[0])
         
         return self.genTextRespJson(self.formatJsonToPrettyString(trade_traces))
         
@@ -330,9 +323,9 @@ class WeixinUserService():
         
         from shopback.trades.service import TradeService
         
-        TradeService.createTrade(user_id,None,pcfg.WX_TYPE,order_id=order_id)
+        TradeService.createTrade(user_id,order_id,pcfg.WX_TYPE)
         
-        return self.genTextRespJson(u'您的订单(%s)优尼世界已收到，商品信息:(%s,%s)'%(
+        return self.genTextRespJson(u'您的订单(%s)优尼世界已收到,我们会尽快将宝贝寄给您。'%(
                                                                 order_id,
                                                                 product_id,
                                                                 sku_info))
@@ -390,6 +383,7 @@ class WeixinUserService():
             ret_params.update(resp.autoParams())
         except MessageException,exc:
             ret_params.update(self.genTextRespJson(exc.message))
+            
         except Exception,exc:
             logger.error(u'微信请求异常:%s'%exc.message ,exc_info=True)
             ret_params.update(self.genTextRespJson(u'不好了，小优尼闹情绪不想干活了！'))
@@ -442,13 +436,12 @@ class WxShopService(LocalService):
                                                              merge_trade = merge_trade)
         state = state or not merge_order.sys_status
         
-        if order.status == pcfg.WX_FEEDBACK:
+        if order.status == WXOrder.WX_FEEDBACK:
             refund_status = pcfg.REFUND_WAIT_SELLER_AGREE
         else:
             refund_status = pcfg.NO_REFUND
         
-        if (merge_order.refund_status != refund_status and
-             order.status == WXOrder.WX_FEEDBACK ):
+        if (order.status == WXOrder.WX_CLOSE):
             sys_status = pcfg.INVALID_STATUS
         else:
             sys_status = merge_order.sys_status or pcfg.IN_EFFECT
@@ -457,13 +450,17 @@ class WxShopService(LocalService):
             wx_product = WXProduct.objects.get(product_id=order.product_id)
             sku_list = wx_product.sku_list
             
-            outer_id,outer_sku_id = '',''
+            product_code = ''
             if len(sku_list) == 1 and not sku_list[0].sku_id:
-                outer_id,outer_sku_id = sku_list[0].product_code.split(CODE_SPLIT_CHAR)
+                product_code = sku_list[0].product_code
             else:
                 for sku in sku_list:
                     if sku.sku_id == order.product_sku:
-                        outer_id,outer_sku_id = sku.product_code.split(CODE_SPLIT_CHAR)
+                        product_code = sku.product_code
+                        break
+            
+            outer_id,outer_sku_id = Product.objects.trancecode(product_code)
+              
             merge_order.payment = order.order_total_price
             merge_order.created = order.order_create_time
             merge_order.num     = order.product_count
@@ -495,8 +492,10 @@ class WxShopService(LocalService):
         merge_trade.pay_time = trade.order_create_time
         merge_trade.status   = WXOrder.mapTradeStatus(trade.status) 
         
+        update_address = False
         if not merge_trade.receiver_name and trade.receiver_name:
             
+            update_address  = True
             merge_trade.receiver_name  = trade.receiver_name
             merge_trade.receiver_state = trade.receiver_province
             merge_trade.receiver_city  = trade.receiver_city
@@ -525,6 +524,8 @@ class WxShopService(LocalService):
         
         trade_handler.proccess(merge_trade,
                                **{'origin_trade':trade,
+                                  'update_address':(update_address and 
+                                                    merge_trade.status == pcfg.WAIT_SELLER_SEND_GOODS),
                                   'first_pay_load':(
                                     merge_trade.sys_status == pcfg.EMPTY_STATUS and 
                                     merge_trade.status == pcfg.WAIT_SELLER_SEND_GOODS)})
@@ -541,7 +542,8 @@ class WxShopService(LocalService):
     def sendTrade(self,company_code=None,out_sid=None,retry_times=3,*args,**kwargs):
         
         try:
-            wx_logistic = WXLogistic.objects.get(origin_code__icontains=company_code.split('_')[0])
+            wx_logistic = WXLogistic.objects.get(origin_code__icontains
+                                                 =company_code.split('_')[0])
             
             response = self.wx_api.deliveryOrder(self.order.order_id,
                                                  wx_logistic.company_code,

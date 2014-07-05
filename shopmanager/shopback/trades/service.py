@@ -3,6 +3,7 @@ from .models import MergeTrade,MergeOrder
 from shopback.base.service import LocalService
 from shopback.orders.service import OrderService
 from shopback.fenxiao.service import PurchaseOrderService
+from shopapp.weixin.service import WxShopService
 from shopback import paramconfig as pcfg
 from common.utils import update_model_fields
 
@@ -14,7 +15,7 @@ TRADE_TYPE_SERVICE_MAP = {
     pcfg.JD_TYPE:LocalService,
     pcfg.YHD_TYPE:LocalService,
     pcfg.DD_TYPE:LocalService,
-    pcfg.WX_TYPE:LocalService,
+    pcfg.WX_TYPE:WxShopService,
     pcfg.AMZ_TYPE:LocalService,
     pcfg.DIRECT_TYPE:LocalService,
     pcfg.EXCHANGE_TYPE:LocalService,

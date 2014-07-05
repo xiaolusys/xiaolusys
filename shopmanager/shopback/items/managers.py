@@ -137,11 +137,12 @@ class ProductManager(models.Manager):
         
     def trancecode(self,outer_id,outer_sku_id):
         
-        if outer_sku_id :
-            index  = outer_sku_id.rfind(self.model.PRODUCT_CODE_DELIMITER)
-            if index > 0:
-                return outer_sku_id[0:index],outer_sku_id[index:]
+        conncate_code = outer_sku_id or outer_id
         
+        index  = conncate_code.rfind(self.model.PRODUCT_CODE_DELIMITER)
+        if index > 0:
+            return conncate_code[0:index],conncate_code[index:]
+            
         return outer_id,outer_sku_id
     
     
