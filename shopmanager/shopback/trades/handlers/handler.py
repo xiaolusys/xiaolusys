@@ -3,7 +3,7 @@ from django.conf import settings
 from django.db.models.signals import post_save
 
 from shopback.base import log_action,User, ADDITION, CHANGE
-from shopback.trades.models import MergeTrade,MergeOrder
+from shopback.trades.models import MergeTrade,MergeOrder,MergeBuyerTrade
 from shopback.items.models import Product
 from shopback import paramconfig as pcfg
 from common.utils import update_model_fields

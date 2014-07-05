@@ -55,9 +55,9 @@ class MergeOrderInline(admin.TabularInline):
               'is_reverse_order','gift_type','refund_id','refund_status','status','sys_status')
     
     def get_readonly_fields(self, request, obj=None):
-        self.readonly_fields = self.readonly_fields + ('tid',)
+        self.readonly_fields = self.readonly_fields + ('tid','oid')
         if not perms.has_modify_trade_permission(request.user):
-            return self.readonly_fields + ('oid','outer_id','outer_sku_id','is_merge',
+            return self.readonly_fields + ('outer_id','outer_sku_id','is_merge',
                                            'is_reverse_order','operator','gift_type','status')
         return self.readonly_fields
     

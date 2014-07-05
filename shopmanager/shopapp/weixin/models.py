@@ -354,9 +354,9 @@ class WXOrder(models.Model):
         (WX_FEEDBACK,u'维权中')
     )
     
-    order_id  = models.CharField(max_lenght=32,primary_key=True,verbose_name=u'订单ID')
+    order_id  = models.CharField(max_length=32,primary_key=True,verbose_name=u'订单ID')
     
-    trans_id  = models.CharField(max_lenght=32,blank=True,verbose_name=u'交易ID')
+    trans_id  = models.CharField(max_length=32,blank=True,verbose_name=u'交易ID')
     seller_id = models.CharField(max_length=32,db_index=True,verbose_name=u'商家ID')
     
     buyer_openid = models.CharField(max_length=64,blank=True,verbose_name=u'买家OPENID')

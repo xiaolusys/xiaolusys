@@ -248,13 +248,13 @@ class WeiXinAPI(object):
             ]
         """
 
-        params = json.dumps({'status':status,
+        params = {'status':status,
                              'begintime':begintime,
-                             'endtime':endtime},
-                            ensure_ascii=False)
+                             'endtime':endtime}
+        #                    ensure_ascii=False)
 
         response = self.handleRequest(self._merchant_order_getbyfilter_uri, 
-                                      str(params),
+                                      params,
                                       method='POST')
         return response['order_list']
         
@@ -283,7 +283,7 @@ class WeiXinAPI(object):
         params['app_signature'] = getSignatureWeixin(params)
         params['sign_method'] = 'sha1'
         
-        params.pop(appkey)
+        params.pop('appkey')
         
         return self.handleRequest(self._deliver_notify_url, 
                            str(json.dumps(params)), 
