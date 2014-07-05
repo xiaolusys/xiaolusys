@@ -356,7 +356,7 @@ class WXOrder(models.Model):
     
     order_id  = models.BigIntegerField(primary_key=True,verbose_name=u'订单ID')
     
-    trans_id  = models.BigIntegerField(verbose_name=u'交易ID')
+    trans_id  = models.BigIntegerField(null=True,verbose_name=u'交易ID')
     seller_id = models.CharField(max_length=32,db_index=True,verbose_name=u'商家ID')
     
     buyer_openid = models.CharField(max_length=64,verbose_name=u'买家OPENID')
