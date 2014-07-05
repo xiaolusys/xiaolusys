@@ -21,6 +21,8 @@ class WeixinProductManager(models.Manager):
         if not state and product.status:
             return product
         
+        from .weixin_apis import WeiXinAPI
+
         _wx_api = WeiXinAPI()
         product_dict = _wx_api.getMerchant(product_id)
         
@@ -36,8 +38,8 @@ class WeixinProductManager(models.Manager):
         for k,v in product_dict.iteritems():
             hasattr(product,k) and setattr(product,k,v)
             
-        product.product_name = product.product_base.name
-        product.product_img  = product.product_base.img
+        product.product_name = product.product_base.get('name','')
+        product.product_img  = product.product_base.get('img','')
          
         product.save()
         

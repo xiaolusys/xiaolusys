@@ -177,11 +177,11 @@ class WeiXinAPI(object):
     
     def getMerchant(self,product_id):
         
-        params   = json.dumps({'product_id':product_id},
-                            ensure_ascii=False)
+        params   = json.dumps({'product_id':product_id})
+                    
         response = self.handleRequest(self._merchant_get_uri, 
                                       str(params),
-                                      method='GET')
+                                      method='POST')
         return response['product_info']
     
         

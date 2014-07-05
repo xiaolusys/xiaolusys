@@ -321,8 +321,8 @@ class WXProduct(models.Model):
                                     primary_key=True,
                                     verbose_name=u'商品ID')
     
-    product_name = models.CharField(max_length=32,verbose_name=u'商品标题')
-    product_img  = models.CharField(max_length=256,verbose_name=u'商品图片')
+    product_name = models.CharField(max_length=64,verbose_name=u'商品标题')
+    product_img  = models.CharField(max_length=512,verbose_name=u'商品图片')
     
     product_base = JSONCharField(max_length=3000,blank=True,
                                  load_kwargs={},default='{}'
@@ -398,7 +398,7 @@ class WXOrder(models.Model):
     product_price  = models.FloatField(default=0,verbose_name=u'商品价格')
     product_sku    = models.CharField(max_length=128,blank=True,verbose_name=u'商品SKU')
     product_count  = models.IntegerField(default=0,verbose_name=u'商品个数')
-    product_img    = models.CharField(max_length=256,blank=True,verbose_name=u'商品图片')
+    product_img    = models.CharField(max_length=512,blank=True,verbose_name=u'商品图片')
     
     delivery_id    = models.CharField(max_length=32,blank=True,verbose_name=u'运单ID')
     delivery_company  = models.CharField(max_length=16,blank=True,verbose_name=u'物流公司编码')

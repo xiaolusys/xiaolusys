@@ -18,6 +18,7 @@ from shopback.base.service import LocalService
 from shopback.logistics import getLogisticTrace
 from shopback.items.models import Product
 from shopback.users.models import User
+from shopback.trades.handlers import trade_handler
 from shopback.trades.models import MergeTrade,MergeOrder
 from shopback import paramconfig as pcfg
 from common.utils import parse_datetime,format_datetime,replace_utf8mb4,update_model_fields
@@ -462,15 +463,15 @@ class WxShopService(LocalService):
             sku_list = wx_product.sku_list
             
             product_code = ''
-            if len(sku_list) == 1 and not sku_list[0].sku_id:
-                product_code = sku_list[0].product_code
+            if len(sku_list) == 1 and not sku_list[0]['sku_id']:
+                product_code = sku_list[0]['product_code']
             else:
                 for sku in sku_list:
-                    if sku.sku_id == order.product_sku:
-                        product_code = sku.product_code
+                    if sku['sku_id'] == order.product_sku:
+                        product_code = sku['product_code']
                         break
             
-            outer_id,outer_sku_id = Product.objects.trancecode(product_code)
+            outer_id,outer_sku_id = Product.objects.trancecode(product_code,'')
               
             merge_order.payment = order.order_total_price
             merge_order.created = order.order_create_time
@@ -526,7 +527,8 @@ class WxShopService(LocalService):
         
         merge_trade.trade_from    = MergeTrade.trade_from.WAP
         merge_trade.shipping_type = pcfg.EXPRESS_SHIPPING_TYPE
-        
+        merge_trade.type          = pcfg.SHOP_TYPE_WX
+
         update_model_fields(merge_trade,update_fields=update_fields
                             +['shipping_type','payment','total_fee',
                               'post_fee','trade_from'])
