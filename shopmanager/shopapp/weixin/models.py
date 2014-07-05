@@ -359,33 +359,33 @@ class WXOrder(models.Model):
     trans_id  = models.BigIntegerField(null=True,verbose_name=u'交易ID')
     seller_id = models.CharField(max_length=32,db_index=True,verbose_name=u'商家ID')
     
-    buyer_openid = models.CharField(max_length=64,verbose_name=u'买家OPENID')
-    buyer_nick   = models.CharField(max_length=32,verbose_name=u'买家昵称')
+    buyer_openid = models.CharField(max_length=64,blank=True,verbose_name=u'买家OPENID')
+    buyer_nick   = models.CharField(max_length=32,blank=True,verbose_name=u'买家昵称')
     
-    order_total_price   = models.FloatField(verbose_name=u'订单总价')
-    order_express_price = models.FloatField(verbose_name=u'订单运费')
+    order_total_price   = models.FloatField(default=0,verbose_name=u'订单总价')
+    order_express_price = models.FloatField(default=0,verbose_name=u'订单运费')
     order_create_time   = models.DateTimeField(blank=True,null=True,
                                                verbose_name=u'创建时间')
     order_status = models.CharField(max_length=10,blank=True,
                                     choices=WXORDER_STATUS,
                                     verbose_name=u'订单状态')
     
-    receiver_name     = models.CharField(max_length=64,verbose_name=u'收货人')
-    receiver_province = models.CharField(max_length=16,verbose_name=u'省')
-    receiver_city     = models.CharField(max_length=16,verbose_name=u'市')
-    receiver_address  = models.CharField(max_length=128,verbose_name=u'地址')
-    receiver_mobile   = models.CharField(max_length=20,verbose_name=u'手机')
-    receiver_phone    = models.CharField(max_length=20,verbose_name=u'电话')
+    receiver_name     = models.CharField(max_length=64,blank=True,verbose_name=u'收货人')
+    receiver_province = models.CharField(max_length=16,blank=True,verbose_name=u'省')
+    receiver_city     = models.CharField(max_length=16,blank=True,verbose_name=u'市')
+    receiver_address  = models.CharField(max_length=128,blank=True,verbose_name=u'地址')
+    receiver_mobile   = models.CharField(max_length=20,blank=True,verbose_name=u'手机')
+    receiver_phone    = models.CharField(max_length=20,blank=True,verbose_name=u'电话')
     
-    product_id     = models.CharField(max_length=64,verbose_name=u'商品ID')
-    product_name   = models.CharField(max_length=16,verbose_name=u'商品名')
-    product_price  = models.CharField(max_length=16,verbose_name=u'商品价格')
-    product_sku    = models.CharField(max_length=128,verbose_name=u'商品SKU')
-    product_count  = models.CharField(max_length=20,verbose_name=u'商品个数')
-    product_img    = models.CharField(max_length=20,verbose_name=u'商品图片')
+    product_id     = models.CharField(max_length=64,blank=True,verbose_name=u'商品ID')
+    product_name   = models.CharField(max_length=16,blank=True,verbose_name=u'商品名')
+    product_price  = models.CharField(max_length=16,blank=True,verbose_name=u'商品价格')
+    product_sku    = models.CharField(max_length=128,blank=True,verbose_name=u'商品SKU')
+    product_count  = models.CharField(max_length=20,blank=True,verbose_name=u'商品个数')
+    product_img    = models.CharField(max_length=20,blank=True,verbose_name=u'商品图片')
     
-    delivery_id    = models.CharField(max_length=32,verbose_name=u'运单ID')
-    delivery_company  = models.CharField(max_length=16,verbose_name=u'物流公司编码')
+    delivery_id    = models.CharField(max_length=32,blank=True,verbose_name=u'运单ID')
+    delivery_company  = models.CharField(max_length=16,blank=True,verbose_name=u'物流公司编码')
     
     class Meta:
         db_table = 'shop_weixin_order'
