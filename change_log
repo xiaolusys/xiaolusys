@@ -1,5 +1,5 @@
-alter table shop_weixin_order add column order_updated datetime DEFAULT NULL;
-alter table shop_weixin_order add column refund_updated datetime DEFAULT NULL;
+alter table shop_weixin_account add column order_updated datetime DEFAULT NULL;
+alter table shop_weixin_account add column refund_updated datetime DEFAULT NULL;
 ######### 2014-7-1 ##########
 alter table shop_weixin_account add column pay_sign_key pay_sign_key varchar(128) NOT NULL;
 alter table shop_weixin_account add column partner_id varchar(32) NOT NULL;
