@@ -17,8 +17,10 @@ from .weixin_apis import WeiXinAPI
 from shopback.base.service import LocalService
 from shopback.logistics import getLogisticTrace
 from shopback.items.models import Product
+from shopback.users.models import User
+from shopback.trades.models import MergeTrade,MergeOrder
 from shopback import paramconfig as pcfg
-from common.utils import parse_datetime,format_datetime,replace_utf8mb4
+from common.utils import parse_datetime,format_datetime,replace_utf8mb4,update_model_fields
 import logging
 
 logger = logging.getLogger('django.request')
@@ -438,12 +440,12 @@ class WxShopService(LocalService):
                                                              merge_trade = merge_trade)
         state = state or not merge_order.sys_status
         
-        if order.status == WXOrder.WX_FEEDBACK:
+        if order.order_status == WXOrder.WX_FEEDBACK:
             refund_status = pcfg.REFUND_WAIT_SELLER_AGREE
         else:
             refund_status = pcfg.NO_REFUND
         
-        if (order.status == WXOrder.WX_CLOSE):
+        if (order.order_status == WXOrder.WX_CLOSE):
             sys_status = pcfg.INVALID_STATUS
         else:
             sys_status = merge_order.sys_status or pcfg.IN_EFFECT
@@ -472,7 +474,7 @@ class WxShopService(LocalService):
             merge_order.outer_sku_id = outer_sku_id
        
         merge_order.refund_status = refund_status
-        merge_order.status = WXOrder.mapOrderStatus(order.status)
+        merge_order.status = WXOrder.mapOrderStatus(order.order_status)
         merge_order.sys_status = sys_status
         
         merge_order.save()
@@ -492,7 +494,7 @@ class WxShopService(LocalService):
         merge_trade.created  = trade.order_create_time
         merge_trade.modified = trade.order_create_time
         merge_trade.pay_time = trade.order_create_time
-        merge_trade.status   = WXOrder.mapTradeStatus(trade.status) 
+        merge_trade.status   = WXOrder.mapTradeStatus(trade.order_status) 
         
         update_address = False
         if not merge_trade.receiver_name and trade.receiver_name:

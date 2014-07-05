@@ -183,7 +183,7 @@ class WeiXinAPI(object):
         
     def getMerchantByStatus(self,status):
 
-        params = json.dumps({'product_id':product_id},
+        params = json.dumps({'status':status},
                             ensure_ascii=False)
         return self.handleRequest(self._merchant_getbystatus_uri, 
                                   str(params),
@@ -248,13 +248,13 @@ class WeiXinAPI(object):
             ]
         """
 
-        params = {'status':status,
+        params = json.dumps({'status':status,
                              'begintime':begintime,
-                             'endtime':endtime}
-        #                    ensure_ascii=False)
+                             'endtime':endtime},
+                            ensure_ascii=False)
 
         response = self.handleRequest(self._merchant_order_getbyfilter_uri, 
-                                      params,
+                                      str(params),
                                       method='POST')
         return response['order_list']
         
