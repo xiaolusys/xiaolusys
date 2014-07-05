@@ -414,14 +414,9 @@ class WxShopService(LocalService):
         return WeiXinAPI()
     
     @classmethod
-    def createTrade(cls,user_id,tid,*args,**kwargs):
+    def createTradeByDict(cls,user_id,order_dict):
         
-        order_id    = tid
-        wx_api      = cls.getWXApiInstance()
-        
-        order_dict  = wx_api.getOrderById(order_id)
-        
-        order,state = WXOrder.objects.get_or_create(order_id=order_id,
+        order,state = WXOrder.objects.get_or_create(order_id=order_dict['order_id'],
                                                     seller_id=user_id)
         
         for k,v in order_dict.iteritems():
@@ -430,6 +425,18 @@ class WxShopService(LocalService):
         order.order_create_time = datetime.datetime.fromtimestamp(
             int(order_dict['order_create_time']))
         order.save()
+        
+        return order
+    
+    @classmethod
+    def createTrade(cls,user_id,tid,*args,**kwargs):
+        
+        order_id    = tid
+        wx_api      = cls.getWXApiInstance()
+        
+        order_dict  = wx_api.getOrderById(order_id)
+        
+        order = cls.createTradeByDict(user_id, order_dict)
         
         return order
     
@@ -451,7 +458,7 @@ class WxShopService(LocalService):
             sys_status = merge_order.sys_status or pcfg.IN_EFFECT
         
         if state:
-            wx_product = WXProduct.objects.get(product_id=order.product_id)
+            wx_product = WXProduct.objects.getOrCreate(order.product_id)
             sku_list = wx_product.sku_list
             
             product_code = ''

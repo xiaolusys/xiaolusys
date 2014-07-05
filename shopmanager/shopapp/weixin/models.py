@@ -3,6 +3,7 @@ import datetime
 from django.db import models
 from shopback.base.fields import BigIntegerAutoField
 from jsonfield import JSONCharField
+from .managers import WeixinProductManager
 
 SAFE_CODE_SECONDS = 60
 
@@ -43,6 +44,11 @@ class WeiXinAccount(models.Model):
     in_voice   = models.BooleanField(default=False,verbose_name=u'开启语音')
     is_active  = models.BooleanField(default=False,verbose_name=u'激活')
     
+    order_updated  = models.DateTimeField(blank=True,null=True,
+                                          verbose_name="订单更新时间")
+    refund_updated = models.DateTimeField(blank=True,null=True,
+                                          verbose_name="维权更新时间")
+    
     class Meta:
         db_table = 'shop_weixin_account'
         verbose_name=u'微信服务帐号'
@@ -69,6 +75,14 @@ class WeiXinAccount(models.Model):
     
     def activeAccount(self):
         self.is_active = True
+        self.save()
+        
+    def changeOrderUpdated(self,updated):
+        self.order_updated = updated
+        self.save()
+        
+    def changeRefundUpdated(self,updated):
+        self.refund_updated = updated
         self.save()
         
         
@@ -295,8 +309,8 @@ class WeiXinAutoResponse(models.Model):
 
 class WXProduct(models.Model):
     
-    UP_SHELF   = 0
-    DOWN_SHELF = 1
+    UP_SHELF   = 1
+    DOWN_SHELF = 2
     
     PRODUCT_STATUS = (
         (UP_SHELF,u'下架'),
@@ -329,6 +343,8 @@ class WXProduct(models.Model):
     status       = models.IntegerField(null=False,default=0,
                                        choices=PRODUCT_STATUS,
                                        verbose_name=u'是否上架')
+    
+    objects = WeixinProductManager()
     
     class Meta:
         db_table = 'shop_weixin_product'

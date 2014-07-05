@@ -167,27 +167,33 @@ class WeiXinAPI(object):
         
         params = {"action_name":action_name ,
                   "action_info": {"scene": {"scene_id": scene_id}}}
+        
         if action_name=='QR_SCENE':
             params.update(expire_seconds=expire_seconds)
             
-        return self.handleRequest(self._create_qrcode_uri, params,method='POST')
+        return self.handleRequest(self._create_qrcode_uri, 
+                                  params,method='POST')
         
     
     def getMerchant(self,product_id):
         
-        params = json.dumps({'product_id':product_id},
+        params   = json.dumps({'product_id':product_id},
                             ensure_ascii=False)
-        return self.handleRequest(self._merchant_get_uri, 
-                                  str(params),
-                                  method='GET')
+        response = self.handleRequest(self._merchant_get_uri, 
+                                      str(params),
+                                      method='GET')
+        return response['product_info']
+    
         
     def getMerchantByStatus(self,status):
 
         params = json.dumps({'status':status},
                             ensure_ascii=False)
-        return self.handleRequest(self._merchant_getbystatus_uri, 
+        response = self.handleRequest(self._merchant_getbystatus_uri, 
                                   str(params),
                                   method='POST')
+        return response['products_info']
+    
         
     def addMerchantStock(self,product_id,quantity,sku_info=''):
         
@@ -217,44 +223,24 @@ class WeiXinAPI(object):
                                   method='POST')
         return response['order']
         
-    def getOrderByFilter(self,status,begintime,endtime):
-
-        """[
-                {
-                    "buyer_nick": "\u90a3\ud83d\udc63",
-                    "buyer_openid": "oMt59uL4uJRBujpSvuGCK4pipszA",
-                    "delivery_company": "",
-                    "delivery_id": "",
-                    "order_create_time": 1403937645,
-                    "order_express_price": 0,
-                    "order_id": "13294025981597714502",
-                    "order_status": 2,
-                    "order_total_price": 1,
-                    "product_count": 1,
-                    "product_id": "pMt59uPJs7wTyZ662XAIoIPg67Ds",
-                    "product_img": "http://mmbiz.qpic.cn/",
-                    "product_name": "\u5c3f\u7247\u5341\u7247",
-                    "product_price": 1,
-                    "product_sku": "",
-                    "receiver_address": "\u91d1\u6d77\u5927\u90531\u53f7",
-                    "receiver_city": "\u821f\u5c71\u5e02",
-                    "receiver_mobile": "15800908106",
-                    "receiver_name": "Lisa",
-                    "receiver_phone": "15800908106",
-                    "receiver_province": "\u6d59\u6c5f\u7701",
-                    "receiver_zone": "",
-                    "trans_id": "1219468801201406283198129857"
-                }
-            ]
-        """
-
-        params = json.dumps({'status':status,
-                             'begintime':begintime,
-                             'endtime':endtime},
+    def getOrderByFilter(self,status=None,begintime=None,endtime=None):
+        
+        params = {}
+        
+        if status:
+            params.update(status=status)
+            
+            if begintime:
+                params.update(begintime=begintime)
+                
+            if endtime:
+                params.update(endtime=endtime)
+                
+        params_str = json.dumps(params,
                             ensure_ascii=False)
 
         response = self.handleRequest(self._merchant_order_getbyfilter_uri, 
-                                      str(params),
+                                      str(params_str),
                                       method='POST')
         return response['order_list']
         
