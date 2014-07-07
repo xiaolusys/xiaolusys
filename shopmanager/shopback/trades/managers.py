@@ -104,7 +104,7 @@ class MergeTradeManager(models.Manager):
             Product.objects.updateWaitPostNumByCode(order.outer_id,
                                                     order.outer_sku_id,
                                                     order.num)
-            
+    
     
     def reduceWaitPostNum(self,trade):
         
@@ -125,6 +125,7 @@ class MergeTradeManager(models.Manager):
             return True
         return False
             
+        
     def isTradeDefect(self,trade):
         
         for order in trade.inuse_orders:
@@ -192,17 +193,20 @@ class MergeTradeManager(models.Manager):
         return False
         
     def isOrderRuleMatch(self,order):
-        
-        return Product.objects.isProductRuelMatch(order.outer_id,
+        try:
+            return Product.objects.isProductRuelMatch(order.outer_id,
                                                   order.outer_sku_id)
+        except Product.ProductCodeDefect:
+            return False
         
     def isTradeRuleMatch(self,trade):
         
         for order in trade.inuse_orders:
             if self.isOrderRuleMatch(order):
                 return True
+            
         return False
-
+    
         
     def isTradeMergeable(self,trade):
         

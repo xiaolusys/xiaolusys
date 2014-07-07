@@ -328,7 +328,11 @@ class CheckOrderView(ModelView):
             'has_memo':trade.has_memo,
             'has_refund':trade.has_refund,
             'has_out_stock':trade.has_out_stock,
-            'has_rule_match':trade.has_rule_match,
+            'out_of_logistic':trade.has_reason_code(pcfg.LOGISTIC_ERROR_CODE),
+            'has_rule_match':(trade.has_rule_match and 
+                              trade.has_reason_code(pcfg.RULE_MATCH_CODE)),
+            'is_product_defect':(trade.has_rule_match and 
+                                 trade.has_reason_code(pcfg.TRADE_DEFECT_CODE)),
             'has_merge':trade.has_merge,
             'has_sys_err':trade.has_sys_err,
             'need_manual_merge':trade.has_reason_code(pcfg.MULTIPLE_ORDERS_CODE),

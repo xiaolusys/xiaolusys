@@ -328,10 +328,8 @@ class WeixinUserService():
         
         TradeService.createTrade(user_id,order_id,pcfg.WX_TYPE)
         
-        return self.genTextRespJson(u'您的订单(%s)优尼世界已收到,我们会尽快将宝贝寄给您。'%(
-                                                                order_id,
-                                                                product_id,
-                                                                sku_info))
+        return self.genTextRespJson(u'您的订单(%s)优尼世界已收到,我们会尽快将宝贝寄给您。'%
+                                                                order_id)
         
     def handleRequest(self,params):
         
@@ -473,7 +471,7 @@ class WxShopService(LocalService):
             
             outer_id,outer_sku_id = Product.objects.trancecode(product_code,'')
               
-            merge_order.payment = order.order_total_price
+            merge_order.payment = order.order_total_price/100.0
             merge_order.created = order.order_create_time
             merge_order.num     = order.product_count
             merge_order.title   = order.product_name
@@ -497,8 +495,9 @@ class WxShopService(LocalService):
         merge_trade,state = MergeTrade.objects.get_or_create(user=user,
                                                              tid=trade.order_id)
         
-        update_fields = ['created','pay_time','modified','status']
+        update_fields = ['buyer_nick','created','pay_time','modified','status']
         
+        merge_trade.buyer_nick = trade.buyer_nick
         merge_trade.created  = trade.order_create_time
         merge_trade.modified = trade.order_create_time
         merge_trade.pay_time = trade.order_create_time
@@ -521,9 +520,9 @@ class WxShopService(LocalService):
             
             update_fields.extend(address_fields)
             
-        merge_trade.payment      = merge_trade.payment or trade.order_total_price
-        merge_trade.total_fee    = merge_trade.total_fee or trade.product_price
-        merge_trade.post_fee     = merge_trade.post_fee or trade.order_express_price
+        merge_trade.payment      = merge_trade.payment or round(trade.order_total_price/100.0,2)
+        merge_trade.total_fee    = merge_trade.total_fee or round(trade.product_price/100.0,2)
+        merge_trade.post_fee     = merge_trade.post_fee or round(trade.order_express_price)
         
         merge_trade.trade_from    = MergeTrade.trade_from.WAP
         merge_trade.shipping_type = pcfg.EXPRESS_SHIPPING_TYPE
