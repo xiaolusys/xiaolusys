@@ -529,7 +529,7 @@ class WxShopService(LocalService):
         merge_trade.type          = pcfg.SHOP_TYPE_WX
 
         update_model_fields(merge_trade,update_fields=update_fields
-                            +['shipping_type','payment','total_fee',
+                            +['shipping_type','type','payment','total_fee',
                               'post_fee','trade_from'])
         
         cls.createMergeOrder(merge_trade,trade)

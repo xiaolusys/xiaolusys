@@ -132,15 +132,20 @@ class MergeTradeManager(models.Manager):
             if self.isOrderDefect(order.outer_id,
                                   order.outer_sku_id):
                 return True
+            
         return False
         
             
     def isTradeOutStock(self,trade):
         
         for order in trade.inuse_orders:
-            if Product.objects.isProductOutOfStock(order.outer_id,
-                                                   order.outer_sku_id):
-                return True
+            try:
+                if Product.objects.isProductOutOfStock(order.outer_id,
+                                                       order.outer_sku_id):
+                    return True
+            except Product.ProductCodeDefect:
+                continue
+            
         return False
 
     
