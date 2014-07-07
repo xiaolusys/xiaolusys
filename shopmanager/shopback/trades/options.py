@@ -180,7 +180,7 @@ def driveMergeTrade(trade):
         trade.sys_status not in (pcfg.WAIT_AUDIT_STATUS,
                                  pcfg.REGULAR_REMAIN_STATUS)
         or MergeTrade.objects.isTradeRefunding(trade)):
-        raise MergeException(u'不满足（非主订单、无待退款、问题单或定时提醒状态）的合单条件')
+        return
     
     trade_id    = trade.id    
     main_trade  = None 
@@ -221,7 +221,6 @@ def driveMergeTrade(trade):
             main_trade   = has_merge_trades[0]
 
         if trades.count() > 0:
-            
             if not main_trade:
                 for t in trades:
                     

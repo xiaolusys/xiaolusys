@@ -1,3 +1,4 @@
+######### 2014-7-4 ##########
 alter table shop_weixin_account add column order_updated datetime DEFAULT NULL;
 alter table shop_weixin_account add column refund_updated datetime DEFAULT NULL;
 ######### 2014-7-1 ##########
@@ -440,8 +441,6 @@ alter table shop_trades_mergeorder add column is_rule_match tinyint(1) NOT NULL;
 alter table shop_trades_mergeorder add column sys_status varchar(32) NOT NULL;
 alter table shop_items_product add column is_assign tinyint(1) NOT NULL;
 alter table shop_items_productsku add column is_assign tinyint(1) NOT NULL;
-########  2012-10-07  #########
-insert into shop_trades_mergetrade(tid,user_id,seller_id,seller_nick,buyer_nick,type,shipping_type,total_num,payment,discount_fee,adjust_fee,post_fee,total_fee,alipay_no,seller_cod_fee,buyer_cod_fee,cod_fee,cod_status,weight,post_cost,buyer_message,seller_memo,sys_memo,created,pay_time,modified,consign_time,out_sid,logistics_company_name,receiver_name,receiver_state,receiver_city,receiver_district,receiver_address,receiver_zip,receiver_mobile,receiver_phone,year,month,week,day,hour,reverse_audit_reason,status,is_picking_print,is_express_print,is_send_sms,has_refund,out_goods,has_memo,remind_time,refund_num,sys_status) select tid,user_id,seller_id,seller_nick,buyer_nick,type,shipping_type,total_num,payment,discount_fee,adjust_fee,post_fee,total_fee,alipay_no,seller_cod_fee,buyer_cod_fee,cod_fee,cod_status,weight,post_cost,buyer_message,seller_memo,sys_memo,created,pay_time,modified,consign_time,out_sid,logistics_company_name,receiver_name,receiver_state,receiver_city,receiver_district,receiver_address,receiver_zip,receiver_mobile,receiver_phone,year,month,week,day,hour,reverse_audit_reason,status,is_picking_print,is_express_print,is_send_sms,has_refund,out_goods,has_memo,remind_time,refund_num,sys_status from shop_trades_mergetrade_tmp;
 ########  2012-09-29  #########
 shop_items_product :
 purchase_product

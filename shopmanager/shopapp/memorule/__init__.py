@@ -62,11 +62,11 @@ def ruleMatchSplit(trade):
         
         for order in trade.inuse_orders:
 
-            if not Product.objects.isProductRuleSplit(order.outer_id,
-                                                      order.outer_sku_id):
-                continue
-            
             try:
+                if not Product.objects.isProductRuleSplit(order.outer_id,
+                                                          order.outer_sku_id):
+                    continue
+            
                 compose_rule = ComposeRule.objects.get(outer_id=order.outer_id,
                                                        outer_sku_id=order.outer_sku_id,
                                                        type=pcfg.RULE_SPLIT_TYPE)

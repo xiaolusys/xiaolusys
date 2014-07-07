@@ -39,10 +39,13 @@ PRODUCT_STATUS = (
     (pcfg.DELETE,u'作废'),
 )
 
+class ProductDefectException(Exception):
+    pass
 
 class Product(models.Model):
     """ 系统商品（根据淘宝外部编码) """
     
+    ProductCodeDefect = ProductDefectException
     PRODUCT_CODE_DELIMITER = '.'
     
     outer_id     = models.CharField(max_length=64,unique=True,null=False,

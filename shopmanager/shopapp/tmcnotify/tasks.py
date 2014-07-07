@@ -8,7 +8,7 @@ from celery import Task
 
 from shopapp.tmcnotify.models import TmcUser,TmcMessage
 from shopback.users import Seller
-from shopback.trades.service import TradeService
+from shopback.trades.service import TradeService,OrderService
 from shopback import paramconfig as pcfg
 from auth import apis
 from common.utils import parse_datetime
@@ -49,7 +49,15 @@ class ProcessMessageTask(Task):
         if (not TradeService.isTradeExist(userId,tradeId) or 
             msgCode == 'TradeAlipayCreate'):
             
-            TradeService.createTrade(userId,tradeId,tradeType)
+            if msgCode == 'TradeBuyerPay' and tradeType != pcfg.FENXIAO_TYPE:
+                
+                trade_dict = OrderService.getTradeFullInfo(userId,tradeId)
+                trade = OrderService.saveTradeByDict(userId,trade_dict)
+        
+                OrderService.createMergeTrade(trade)
+                
+            else:
+                TradeService.createTrade(userId,tradeId,tradeType)
             
             if tradeType == pcfg.FENXIAO_TYPE:
                 return 
@@ -57,7 +65,8 @@ class ProcessMessageTask(Task):
             TradeService.updatePublicTime(userId,tradeId,msgTime)
             return 
         
-        if not TradeService.isValidPubTime(userId,tradeId,msgTime):
+        if (msgCode != 'TradeBuyerPay' and
+            not TradeService.isValidPubTime(userId,tradeId,msgTime)):
             return
         
         t_service = TradeService(userId,tradeId)
