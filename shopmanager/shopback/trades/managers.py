@@ -101,6 +101,11 @@ class MergeTradeManager(models.Manager):
     def updateWaitPostNum(self,trade):
         
         for order in trade.inuse_orders:
+            
+            if self.isOrderDefect(order.outer_id,
+                                  order.outer_sku_id):
+                continue
+            
             Product.objects.updateWaitPostNumByCode(order.outer_id,
                                                     order.outer_sku_id,
                                                     order.num)
@@ -109,6 +114,11 @@ class MergeTradeManager(models.Manager):
     def reduceWaitPostNum(self,trade):
         
         for order in trade.inuse_orders:
+            
+            if self.isOrderDefect(order.outer_id,
+                                  order.outer_sku_id):
+                continue
+                
             Product.objects.reduceWaitPostNumByCode(order.outer_id,
                                                     order.outer_sku_id,
                                                     order.num)

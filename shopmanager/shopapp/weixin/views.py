@@ -4,24 +4,29 @@ import time
 import datetime
 from django.http import HttpResponse
 from django.conf import settings
+from django.views.decorators.csrf import csrf_exempt
 from django.views.generic import View
 from shopapp.weixin.service import WeixinUserService
 import logging
 
 logger = logging.getLogger('django.request')
 
+@csrf_exempt
 def wxpay(request):
     logger.error('WEIXIN WEIXIN_PAY_URL:%s'%str(request.REQUEST))
     return HttpResponse('success')
 
+@csrf_exempt
 def napay(request):
     logger.error('WEIXIN NATIVE_CALLBACK_URL:%s'%str(request.REQUEST))
     return HttpResponse('success')
 
-def maintian(request):
+@csrf_exempt
+def rights(request):
     logger.error('WEIXIN FEEDBACK_URL:%s'%str(request.REQUEST))
     return HttpResponse('success')
 
+@csrf_exempt
 def warn(request):
     logger.error('WEIXIN WARN_URL:%s'%str(request.REQUEST))
     return HttpResponse('success')
