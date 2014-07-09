@@ -435,7 +435,9 @@ class MergeTradeAdmin(admin.ModelAdmin):
         trade_ids = [t.id for t in queryset]
         is_merge_success = False
         wlbset    = queryset.filter(is_force_wlb=True)
-        queryset  = queryset.filter(is_force_wlb=False)
+        queryset  = (queryset.filter(is_force_wlb=False)
+                     .exclude(status__in=(pcfg.TRADE_CLOSED,
+                                          pcfg.TRADE_CLOSED_BY_TAOBAO)))
         myset     = queryset.exclude(sys_status__in=(pcfg.WAIT_AUDIT_STATUS,
                                                      pcfg.ON_THE_FLY_STATUS,
                                                      pcfg.WAIT_PREPARE_SEND_STATUS,
@@ -449,7 +451,7 @@ class MergeTradeAdmin(admin.ModelAdmin):
             
         elif queryset.count()<2 or myset.count()>0 or postset.count()>1:
             is_merge_success = False
-            fail_reason = u'订单不符合合并条件（合并订单必须两单以上，订单状态在问题单或待扫描）'
+            fail_reason = u'不符合合并条件（合并订单必须两单以上，订单状态在问题单或待扫描,未关闭状态）'
             
         else:
             from shopapp.memorule import ruleMatchPayment

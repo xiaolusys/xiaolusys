@@ -179,6 +179,12 @@ class ProcessMessageTask(Task):
     
     def successConsumeMessage(self,message):
         
+        if settings.DEBUG:
+            tmc_msg,state   = TmcMessage.objects.get_or_create(
+                                id=self.getMessageId(message))
+            tmc_msg.is_exec = True
+            tmc_msg.save()
+            
         group_name = self.getUserGroupName(message['user_id'])
         apis.taobao_tmc_messages_confirm(group_name=group_name,
                                          s_message_ids='%d'%self.getMessageId(message),

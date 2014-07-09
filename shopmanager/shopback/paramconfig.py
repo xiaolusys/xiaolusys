@@ -29,7 +29,7 @@ AUTO_DELIVERY_TYPE = 'auto_delivery'
 COD_TYPE        = 'cod'
 GUARANTEE_TYPE  = 'guarantee_trade'
 AUCTION_TYPE    = 'auction'
-
+#店铺类型
 SHOP_TYPE_B   = 'B'
 SHOP_TYPE_C   = 'C'
 SHOP_TYPE_JD  = 'JD'

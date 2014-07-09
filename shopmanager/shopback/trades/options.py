@@ -63,6 +63,12 @@ def mergeMaker(trade,sub_trade):
     if not isinstance(sub_trade,MergeTrade):
         sub_trade = MergeTrade.objects.get(id=sub_trade)
     
+    if (MergeTrade.objects.get(id=sub_trade.id).has_merge or 
+        MergeTrade.objects.get(id=trade.id).sys_status == pcfg.ON_THE_FLY_STATUS):
+        return False
+    
+    trade.append_reason_code(pcfg.MULTIPLE_ORDERS_CODE)
+    
     if (not trade.is_locked and 
         trade.sys_status == pcfg.WAIT_PREPARE_SEND_STATUS):
         
