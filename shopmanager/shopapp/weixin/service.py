@@ -273,13 +273,13 @@ class WeixinUserService():
         
         trade = self.getLatestTradeByMobile(mobile)
         
-        trade_array.append(('旺旺ID', trade.buyer_nick))
-        trade_array.append(('成交时间', trade.pay_time and format_datetime(trade.pay_time)))
-        trade_array.append(('订单状态', self.getTrade2BuyerStatus(trade.status,trade.sys_status)))
+        trade_array.append((u'昵称', trade.buyer_nick))
+        trade_array.append((u'成交时间', trade.pay_time and format_datetime(trade.pay_time)))
+        trade_array.append((u'订单状态', self.getTrade2BuyerStatus(trade.status,trade.sys_status)))
         orders = []
         for order in trade.merge_orders.filter(sys_status=pcfg.IN_EFFECT):
             orders.append(order.getSimpleName())
-        trade_array.append(('订单详细', orders))
+        trade_array.append((u'订单详细', orders))
         
         return self.genTextRespJson(self.formatJsonToPrettyString(trade_array))
         
@@ -288,7 +288,7 @@ class WeixinUserService():
         
         trade = self.getLatestTradeByMobile(mobile)
         if not trade.out_sid or not trade.logistics_company:
-            raise MessageException(u'客官稍安勿燥，宝贝正在准备出库中...')
+            raise MessageException(u'亲请稍安勿燥，宝贝正在准备出库中...')
              
         trade_traces = getLogisticTrace(trade.out_sid,
                                         trade.logistics_company.code.split('_')[0])
@@ -298,7 +298,7 @@ class WeixinUserService():
     def handleEvent(self,eventKey,openId,eventType=WeiXinAutoResponse.WX_EVENT_CLICK):
         
         if self._wx_user.isNone():
-            raise MessageException(u'没有该用户信息')
+            raise MessageException(u'用户信息获取异常')
         
         eventKey = eventKey.upper()
         
@@ -526,11 +526,11 @@ class WxShopService(LocalService):
         
         merge_trade.trade_from    = MergeTrade.trade_from.WAP
         merge_trade.shipping_type = pcfg.EXPRESS_SHIPPING_TYPE
-        merge_trade.type          = pcfg.SHOP_TYPE_WX
+        merge_trade.type          = pcfg.WX_TYPE
 
         update_model_fields(merge_trade,update_fields=update_fields
-                            +['shipping_type','type','payment','total_fee',
-                              'post_fee','trade_from'])
+                            +['shipping_type','type','payment',
+                              'total_fee','post_fee','trade_from'])
         
         cls.createMergeOrder(merge_trade,trade)
         

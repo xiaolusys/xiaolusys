@@ -97,7 +97,7 @@ admin.site.register(WeiXinAutoResponse, WeiXinAutoResponseAdmin)
 
 class WXProductAdmin(admin.ModelAdmin):
     
-    list_display = ('product_id','product_name','product_img','status')
+    list_display = ('product_id','product_name','status')
     
      #--------设置页面布局----------------
     fieldsets =((u'商品信息:', {
