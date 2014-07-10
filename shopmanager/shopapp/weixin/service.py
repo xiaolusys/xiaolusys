@@ -469,7 +469,8 @@ class WxShopService(LocalService):
                         product_code = sku['product_code']
                         break
             
-            outer_id,outer_sku_id = Product.objects.trancecode(product_code,'')
+            outer_id,outer_sku_id = Product.objects.trancecode(product_code,'',
+                                                               sku_code_prior=True)
               
             merge_order.payment = order.order_total_price/100.0
             merge_order.created = order.order_create_time

@@ -80,11 +80,11 @@ def mergeMaker(trade,sub_trade):
     
     _createAndCalcOrderFee(trade,sub_trade)
     
-    if sub_trade.buyer_message or sub_trade.seller_memo:
+    if sub_trade.buyer_message or sub_trade.seller_memo or sub_trade.sys_memo:
         trade.update_buyer_message(sub_trade.id,
                                    sub_trade.buyer_message)
         trade.update_seller_memo(sub_trade.id,
-                                sub_trade.seller_memo)
+                                sub_trade.seller_memo+sub_trade.sys_memo)
         trade.append_reason_code(pcfg.NEW_MEMO_CODE)
     
     for scode in sub_trade.reason_code.split(','):

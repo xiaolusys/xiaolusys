@@ -59,7 +59,7 @@ TRADE_HANDLERS_PATH = (
 )
 
 
-############################# TAOBAO #################################
+#################### TAOBAO SETTINGS ###################
 #APPKEY = '21532915'   #app name super ERP test ,younixiaoxiao
 #APPSECRET = '7232a740a644ee9ad370b08a1db1cf2d'
 
@@ -80,8 +80,17 @@ REFRESH_URL = 'https://oauth.taobao.com/token'
 FONT_PATH = '/usr/share/fonts/truetype/ttf-dejavu/DejaVuSerif-Bold.ttf'
 ASYNC_FILE_PATH = os.path.join(PROJECT_ROOT,"site_media","asyncfile")
 
-################### WEI XIN ##################
+################### WEIXIN SETTINGS ##################
 
 WEIXIN_API_HOST    = "https://api.weixin.qq.com"
 WEIXIN_MEDIA_HOST  = "http://file.api.weixin.qq.com"
 WEIXIN_QRCODE_HOST = "https://mp.weixin.qq.com"
+
+################### JINGDONG SETTINGS #################
+
+JD_APP_KEY    = 'FD41E99D04BF7EB6DECDA7043A4D57E1'
+JD_APP_SECRET = 'e33d1f1b4abb4036b742787211624fe1'
+
+JD_API_HOSTNAME = 'gw.api.360buy.com'
+JD_AUTHRIZE_URL = 'https://auth.360buy.com/oauth/authorize'
+REDIRECT_URI    = ''.join([SITE_URL,'app/jd/login/auth/'])

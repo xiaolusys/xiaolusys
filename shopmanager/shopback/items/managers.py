@@ -133,11 +133,14 @@ class ProductManager(models.Manager):
         except (self.model.DoesNotExist,ProductSku.DoesNotExist):
             raise self.model.ProductCodeDefect(u'(%s,%s)编码组合未匹配到商品')
         
-    def trancecode(self,outer_id,outer_sku_id):
+    def trancecode(self,outer_id,outer_sku_id,sku_code_prior=False):
         
         conncate_code = outer_sku_id or outer_id
         
         index  = conncate_code.rfind(self.model.PRODUCT_CODE_DELIMITER)
+        if sku_code_prior and index > 0:
+            return conncate_code[index+1:],conncate_code[0:index]
+        
         if index > 0:
             return conncate_code[0:index],conncate_code[index+1:]
             
