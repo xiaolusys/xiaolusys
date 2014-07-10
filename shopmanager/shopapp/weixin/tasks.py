@@ -18,7 +18,6 @@ def pullWXProductTask():
         WXProduct.objects.createByDict(product)
     
     
-    
 @task
 def pullWaitPostWXOrderTask(status,begintime,endtime):
     
@@ -33,7 +32,6 @@ def pullWaitPostWXOrderTask(status,begintime,endtime):
     
     orders = _wx_api.getOrderByFilter(status,begintime,endtime)
     
-    
     for order_dict in orders:
         
         order = WxShopService.createTradeByDict(_wx_api._wx_account.account_id,
@@ -47,11 +45,6 @@ def pullWaitPostWXOrderTask(status,begintime,endtime):
 def pullFeedBackWXOrderTask(begintime,endtime):
     
     _wx_api = WeiXinAPI()
-    
-    if not begintime and _wx_api._wx_account.order_updated:
-        begintime = time.mktime(_wx_api._wx_account.refund_updated.timetuple())
-        
-    endtime   = endtime and endtime or int(time.time())
     
     orders = _wx_api.getOrderByFilter(WXOrder.WX_FEEDBACK,begintime,endtime)
     

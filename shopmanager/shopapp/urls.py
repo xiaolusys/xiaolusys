@@ -3,7 +3,8 @@ from django.conf.urls.defaults import patterns, include, url
 
 
 urlpatterns = patterns('',
-
+    
+    (r'^jd/',include('shopapp.jingdong.urls')),
     (r'^memo/',include('shopapp.memorule.urls')),
     (r'^search/',include('shopapp.collector.urls')),
     (r'^report/',include('shopapp.report.urls')),

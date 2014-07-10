@@ -32,14 +32,6 @@ CELERY_ROUTES = {
             'queue': 'trade_notify',
             'routing_key': 'trade.process_trade_notify',
         },
-        'shopapp.notify.tasks.process_item_notify_task': {
-            'queue': 'item_notify',
-            'routing_key': 'item.process_item_notify',
-        },
-        'shopapp.notify.tasks.process_refund_notify_task': {
-            'queue': 'refund_notify',
-            'routing_key': 'refund.process_refund_notify',
-        }
 }
 
 
@@ -171,7 +163,7 @@ SHOP_APP_SCHEDULE = {
     },
     u'定时下载微信商品信息':{
         'task':'shopapp.weixin.tasks.pullWXProductTask',
-        'schedule':crontab(minute="0",hour="1"),
+        'schedule':crontab(minute="0",hour="1,12"),
         'args':()
     },
 #    'runs-every-10-minutes-update-seller-flag':{
