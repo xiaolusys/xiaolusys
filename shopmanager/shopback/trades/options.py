@@ -63,9 +63,12 @@ def mergeMaker(trade,sub_trade):
     if not isinstance(sub_trade,MergeTrade):
         sub_trade = MergeTrade.objects.get(id=sub_trade)
     
-    if (MergeTrade.objects.get(id=sub_trade.id).has_merge or 
-        MergeTrade.objects.get(id=trade.id).sys_status == pcfg.ON_THE_FLY_STATUS):
+    if (MergeTrade.objects.get(id=sub_trade.id).has_merge and
+        MergeBuyerTrade.objects.filter(sub_tid=trade.id).count() > 0):
         return False
+    
+    MergeBuyerTrade.objects.get_or_create(sub_tid=sub_trade.id,
+                                          main_tid=trade.id) 
     
     trade.append_reason_code(pcfg.MULTIPLE_ORDERS_CODE)
     
@@ -74,9 +77,6 @@ def mergeMaker(trade,sub_trade):
         
         trade.sys_status = pcfg.WAIT_AUDIT_STATUS
         update_model_fields(trade,update_fields=[ 'sys_status' ])
-    
-    MergeBuyerTrade.objects.get_or_create(sub_tid=sub_trade.id,
-                                          main_tid=trade.id) 
     
     _createAndCalcOrderFee(trade,sub_trade)
     
@@ -91,9 +91,6 @@ def mergeMaker(trade,sub_trade):
         trade.append_reason_code(scode)
     
     sub_trade.append_reason_code(pcfg.NEW_MERGE_TRADE_CODE)
-    if sub_trade.has_merge:
-        MergeBuyerTrade.objects.filter(main_tid=sub_trade.id)\
-            .update(main_tid=trade.id)
     
     #判断是否还有订单需要合并,如果没有，则去掉需合单问题编号
     queryset = MergeTrade.objects.getMergeQueryset(trade.buyer_nick,
