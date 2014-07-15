@@ -1,0 +1,92 @@
+[
+  {
+    "pk": 1,
+    "model": "weixin.wxlogistic",
+    "fields": {
+      "origin_code": "EMS",
+      "company_code": "Fsearch_code",
+      "company_name": "\u90ae\u653fEMS"
+    }
+  },
+  {
+    "pk": 2,
+    "model": "weixin.wxlogistic",
+    "fields": {
+      "origin_code": "STO",
+      "company_code": "002shentong",
+      "company_name": "\u7533\u901a\u5feb\u9012"
+    }
+  },
+  {
+    "pk": 3,
+    "model": "weixin.wxlogistic",
+    "fields": {
+      "origin_code": "ZTO",
+      "company_code": "066zhongtong",
+      "company_name": "\u4e2d\u901a\u5feb\u9012"
+    }
+  },
+  {
+    "pk": 4,
+    "model": "weixin.wxlogistic",
+    "fields": {
+      "origin_code": "YTO",
+      "company_code": "056yuantong",
+      "company_name": "\u5706\u901a\u5feb\u9012"
+    }
+  },
+  {
+    "pk": 5,
+    "model": "weixin.wxlogistic",
+    "fields": {
+      "origin_code": "TTKDEX",
+      "company_code": "042tiantian",
+      "company_name": "\u5929\u5929\u5feb\u9012"
+    }
+  },
+  {
+    "pk": 6,
+    "model": "weixin.wxlogistic",
+    "fields": {
+      "origin_code": "SF",
+      "company_code": "003shunfeng",
+      "company_name": "\u987a\u4e30\u901f\u8fd0"
+    }
+  },
+  {
+    "pk": 7,
+    "model": "weixin.wxlogistic",
+    "fields": {
+      "origin_code": "YUNDA",
+      "company_code": "059Yunda",
+      "company_name": "\u97f5\u8fbe\u5feb\u9012"
+    }
+  },
+  {
+    "pk": 8,
+    "model": "weixin.wxlogistic",
+    "fields": {
+      "origin_code": "ZJS",
+      "company_code": "064zhaijisong",
+      "company_name": "\u5b85\u6025\u9001"
+    }
+  },
+  {
+    "pk": 9,
+    "model": "weixin.wxlogistic",
+    "fields": {
+      "origin_code": "HTKY",
+      "company_code": "020huitong",
+      "company_name": "\u6c47\u901a\u5feb\u9012"
+    }
+  },
+  {
+    "pk": 10,
+    "model": "weixin.wxlogistic",
+    "fields": {
+      "origin_code": "",
+      "company_code": "zj001yixun",
+      "company_name": "\u6613\u8fc5\u5feb\u9012"
+    }
+  }
+]
