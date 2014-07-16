@@ -5,7 +5,7 @@ import datetime
 from django.db import models
 from shopback.base.models import BaseModel
 from django.contrib.auth.models import User as DjangoUser
-from shopback.signals import taobao_logged_in
+from shopback.signals import user_logged_in
 from shopback.base.fields import BigIntegerAutoField
 from shopback import paramconfig as pcfg
 from auth import apis
@@ -13,56 +13,72 @@ import logging
 
 logger = logging.getLogger('django.request')
 
-USER_STATUS_CHOICES = (
-    (pcfg.USER_NORMAL,u'正常'),
-    (pcfg.USER_INACTIVE,u'未激活'),
-    (pcfg.USER_DELETE,u'删除'),
-    (pcfg.USER_FREEZE,u'冻结'),
-    (pcfg.USER_SUPERVISE,u'监管'),
-)
-
-SHOP_TYPE = (
-    (pcfg.SHOP_TYPE_B,u'淘宝商城'),
-    (pcfg.SHOP_TYPE_C,u'淘宝C店'),
-    (pcfg.SHOP_TYPE_JD,u'京东'),
-    (pcfg.SHOP_TYPE_YHD,u'一号店'),
-    (pcfg.SHOP_TYPE_DD,u'当当'),
-    (pcfg.SHOP_TYPE_WX,u'微信小店'),
-    (pcfg.SHOP_TYPE_AMZ,u'亚马逊'),
-)
-
 
 class EffectUserManager(models.Manager):
     
     def get_query_set(self):
-        return super(EffectUserManager, self).get_query_set().filter(status=pcfg.USER_NORMAL)
+        return (super(EffectUserManager, self).
+                get_query_set().filter(status=self.model.NORMAL))
     
     @property
     def TAOBAO(self):
-        return self.get_query_set().filter(type__in=(pcfg.SHOP_TYPE_B,pcfg.SHOP_TYPE_C))
+        return self.get_query_set().filter(type__in=(self.model.SHOP_TYPE_B,
+                                                     self.model.SHOP_TYPE_C))
         
     @property
     def JINGDONG(self):
-        return self.get_query_set().filter(type=pcfg.SHOP_TYPE_JD)
+        return self.get_query_set().filter(type=self.model.SHOP_TYPE_JD)
         
     @property
     def YIHAODIAN(self):
-        return self.get_query_set().filter(type=pcfg.SHOP_TYPE_YHD)
+        return self.get_query_set().filter(type=self.model.SHOP_TYPE_YHD)
         
     @property
     def DANGDANG(self):
-        return self.get_query_set().filter(type=pcfg.SHOP_TYPE_DD)
+        return self.get_query_set().filter(type=self.model.SHOP_TYPE_DD)
         
     @property
     def WEIXIN(self):
-        return self.get_query_set().filter(type=pcfg.SHOP_TYPE_WX)
+        return self.get_query_set().filter(type=self.model.SHOP_TYPE_WX)
         
     @property
     def AMAZON(self):
-        return self.get_query_set().filter(type=pcfg.SHOP_TYPE_AMZ)
+        return self.get_query_set().filter(type=self.model.SHOP_TYPE_AMZ)
         
 
 class User(models.Model):
+    
+    NORMAL = "normal"     #正常
+    INACTIVE = "inactive" #待用
+    DELETE = "delete"     #删除
+    FREEZE = "freeze"     #冻结
+    SUPERVISE = "supervise" #监管
+    
+    USER_STATUS_CHOICES = (
+        (NORMAL,u'正常'),
+        (INACTIVE,u'未激活'),
+        (DELETE,u'删除'),
+        (FREEZE,u'冻结'),
+        (SUPERVISE,u'监管'),
+    )
+    
+    SHOP_TYPE_B   = 'B'
+    SHOP_TYPE_C   = 'C'
+    SHOP_TYPE_JD  = 'JD'
+    SHOP_TYPE_YHD = 'YHD'
+    SHOP_TYPE_DD  = 'DD'
+    SHOP_TYPE_WX  = 'WX'
+    SHOP_TYPE_AMZ = 'AMZ'
+    
+    SHOP_TYPE = (
+        (SHOP_TYPE_B,u'淘宝商城'),
+        (SHOP_TYPE_C,u'淘宝C店'),
+        (SHOP_TYPE_JD,u'京东'),
+        (SHOP_TYPE_YHD,u'一号店'),
+        (SHOP_TYPE_DD,u'当当'),
+        (SHOP_TYPE_WX,u'微信小店'),
+        (SHOP_TYPE_AMZ,u'亚马逊'),
+    )   
 
     id = BigIntegerAutoField(primary_key=True)
     user = models.ForeignKey(DjangoUser, null=True,verbose_name= u'关联用户')
@@ -190,8 +206,10 @@ class User(models.Model):
     def authorize_increment_notify(self):
         #对用户的主动通知授权
         try:
-            response = apis.taobao_increment_customer_permit(type='get,syn,notify',topics='trade;refund;item',
-                                                status='all;all;ItemAdd,ItemUpdate',tb_user_id=self.visitor_id)
+            response = apis.taobao_increment_customer_permit(type='get,syn,notify',
+                                                             topics='trade;refund;item',
+                                                             status='all;all;ItemAdd,ItemUpdate',
+                                                             tb_user_id=self.visitor_id)
         except Exception,exc:
             logger.error('主动消息服务授权失败'.decode('utf8'),exc_info=True)
         else:                
@@ -204,19 +222,23 @@ class User(models.Model):
             
 def add_taobao_user(sender, user,top_session,top_parameters, *args, **kwargs):
     """docstring for user_logged_in"""
+    
+    logger.debug('debug add_taobao_user receiver:%s'%sender)
     profile = user.get_profile()
     profile.populate_user_info(top_session,top_parameters)
     
     profile.verify_fenxiao_user()
     #对用户的主动通知进行授权
-    profile.authorize_increment_notify()
+    #profile.authorize_increment_notify()
     #初始化系统数据
     from shopback.users.tasks import initSystemDataFromAuthTask
     
     initSystemDataFromAuthTask.delay(profile.visitor_id)
     
     
-taobao_logged_in.connect(add_taobao_user)
+user_logged_in.connect(add_taobao_user,
+                       sender='taobao',
+                       dispatch_uid='taobao_logged_in')
   
   
 class Customer(models.Model):

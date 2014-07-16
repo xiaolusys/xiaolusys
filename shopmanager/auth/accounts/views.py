@@ -5,7 +5,7 @@ from django.core.urlresolvers import reverse
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth import authenticate, login, SESSION_KEY
 from django.contrib.auth.decorators import login_required
-from shopback.signals import taobao_logged_in
+from shopback.signals import user_logged_in
 from shopback.orders.models import Trade
 from common.utils import parse_urlparams,parse_datetime
 from auth import apis
@@ -15,12 +15,15 @@ logger = logging.getLogger('taobao.auth')
 
 
 def request_taobo(request):
-
-    redirect_url = '%s?response_type=code&client_id=%s&redirect_uri=%s&view=web&state=autolist'%\
-                   (settings.AUTHRIZE_URL,settings.APPKEY,settings.REDIRECT_URI)
-
-    return HttpResponseRedirect(redirect_url)
-
+    
+    return HttpResponseRedirect('&'.join(
+                                 ['%s?'%settings.AUTHRIZE_URL,
+                                 'response_type=code',
+                                 'client_id=%s'%settings.APPKEY,
+                                 'redirect_uri=%s'%urlparse.urljoin(settings.SITE_URL,
+                                                      settings.REDIRECT_URI),
+                                 'view=web',
+                                 'state=taobao']))
 
 
 @csrf_exempt
@@ -41,7 +44,7 @@ def login_taobo(request):
     top_session = request.session.get('top_session',None)
     top_parameters = request.session.get('top_parameters',None)
 
-    taobao_logged_in.send(sender='web',user=user,
+    user_logged_in.send(sender='taobao',user=user,
                           top_session=top_session,
                           top_parameters=top_parameters)
 
@@ -88,7 +91,7 @@ def home(request):
 #        trade_info = apis.taobao_trade_amount_get(tid=t['tid'],session=profile.top_session)
 #        print trade_info
 #    return HttpResponse('ok')
-    return HttpResponseRedirect('/app/autolist/')
+    return HttpResponseRedirect('/admin/')
 
 
 def print_iterables(item):

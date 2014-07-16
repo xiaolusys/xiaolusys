@@ -13,30 +13,32 @@ from auth import apis
 import logging
 logger = logging.getLogger('django.request')
 
+JINGDONG_PREFFIX = 'jd'
+
 """
 token {
     "w2_expires_in": 0,
     "taobao_user_id": "121741189",
-    "taobao_user_nick": "%E4%BC%98%E5%B0%BC%E5%B0%8F%E5%B0%8F%E4%B8%96%E7%95%8C",
+    "taobao_user_nick": "**",
     "w1_expires_in": 1800,
     "re_expires_in": 2592000,
     "r2_expires_in": 0,
     "hra_expires_in": "1800",
     "expires_in": 86400,
     "token_type": "Bearer",
-    "refresh_token": "6201a02d59ZZ5a04911942af136db8a901de3efa62ff63c121741189",
-    "access_token": "6202b025cfhj953ffb3b2bdba4aedac383f01cf6ed27e48121741189",
+    "refresh_token": "**",
+    "access_token": "**",
     "r1_expires_in": 1800
 }
 """
-class TaoBaoBackend:
+class JingDongBackend:
     supports_anonymous_user = False
     supports_object_permissions = False
 
     def authenticate(self, request, user=None):
         """{u'state': [u''], u'code': [u'sVT2F1nZtnkVLaEnhKiy5gS832237']}"""
         
-        if not request.path.endswith(settings.REDIRECT_URI):
+        if not request.path.endswith(settings.JD_REDIRECT_URI):
             return None
         
         content = request.REQUEST
@@ -44,47 +46,51 @@ class TaoBaoBackend:
         state   = content.get('state')
         
         params = {
-            'client_id':settings.APPKEY,
-            'client_secret':settings.APPSECRET,
+            'client_id':settings.JD_APP_KEY,
+            'client_secret':settings.JD_APP_SECRET,
             'grant_type':'authorization_code',
             'code':code,
             'redirect_uri':urlparse.urljoin(settings.SITE_URL,
-                                            settings.REDIRECT_URI),
+                                            settings.JD_REDIRECT_URI),
             'state':state,
-            'view':'web'
+            'scope':'read'
         }
         
         try:
-            req    = urllib2.urlopen(settings.AUTHRIZE_TOKEN_URL,urllib.urlencode(params))
-            top_parameters = json.loads(req.read())
+            req    = urllib2.urlopen(settings.JD_AUTHRIZE_TOKEN_URL,
+                                     urllib.urlencode(params))
+            resp   = req.read()
+            logger.debug(resp)
+            top_parameters = json.loads(resp.decode('gbk'))
         except Exception,exc:
-            logger.error(exc.message+'400',exc_info=True)
+            logger.error('jingdong autherize token error:%s'%exc.message,exc_info=True)
             return None
         
         request.session['top_session']    = top_parameters['access_token']
         request.session['top_parameters'] = top_parameters
-        top_parameters['ts']  = time.time()
+        top_parameters['time']  = int(time.time()*1000)
         
         try:
             app_label, model_name = settings.AUTH_PROFILE_MODULE.split('.')
         except ValueError:
             raise SiteProfileNotAvailable('app_label and model_name should'
-                                          ' be separated by a dot in the AUTH_PROFILE_MODULE set'
-                                          'ting')
+                                          ' be separated by a dot in the AUTH_PROFILE_MODULE '
+                                          'setting')
 
         try:
             model = models.get_model(app_label, model_name)
             if model is None:
                 raise SiteProfileNotAvailable('Unable to load the profile '
-                                              'model, check AUTH_PROFILE_MODULE in your project sett'
-                                              'ings')
+                                              'model, check AUTH_PROFILE_MODULE in your'
+                                              ' project settings')
         except (ImportError,ImproperlyConfigured):
             raise SiteProfileNotAvailable('ImportError, ImproperlyConfigured error')
 
-        user_id  =  top_parameters['taobao_user_id']
+        user_id  =  '%s%s'%(JINGDONG_PREFFIX,top_parameters['uid'])
 
         try:
-            profile = model.objects.get(visitor_id=user_id)
+            profile = model.objects.get(uid=top_parameters['uid'],
+                                        type=model.SHOP_TYPE_JD)
             profile.top_session    = top_parameters['access_token']
             profile.top_parameters = json.dumps(top_parameters)
             profile.save()
@@ -100,8 +106,10 @@ class TaoBaoBackend:
                 profile.save()
                 return user
         except model.DoesNotExist:
-            user,state = User.objects.get_or_create(username=user_id,is_active=True)
-            profile,state = model.objects.get_or_create(user=user,visitor_id=user_id)
+            user,state    = User.objects.get_or_create(username=user_id,is_active=True)
+            profile,state = model.objects.get_or_create(user=user,
+                                                        uid=top_parameters['uid'],
+                                                        type=model.SHOP_TYPE_JD)
             profile.top_session    = top_parameters['access_token']
             profile.top_parameters = json.dumps(top_parameters)
             profile.save()

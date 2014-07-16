@@ -2,8 +2,10 @@
 import datetime
 from django.db import models
 from shopback.base.fields import BigIntegerAutoField
-from shopback.signals import taobao_logged_in
+from shopback.signals import user_logged_in
+import logging
 
+logger = logging.getLogger('django.request')
 DEFAULT_GROUP_NAME ='default'
 
 class ValidUserManager(models.Manager):
@@ -69,6 +71,8 @@ class TmcUser(models.Model):
 
 def createTmcUser(sender,user,*args,**kwargs):
     
+    logger.debug('debug createTmcUser receiver:%s'%sender)
+    
     profile = user.get_profile()
     tmc_user,state = TmcUser.objects.get_or_create(
                        user_id=profile.visitor_id)
@@ -76,5 +80,7 @@ def createTmcUser(sender,user,*args,**kwargs):
     tmc_user.save()
     
     
-taobao_logged_in.connect(createTmcUser)
+user_logged_in.connect(createTmcUser,
+                       sender='taobao',
+                       dispatch_uid='create_tmc_user')
     
