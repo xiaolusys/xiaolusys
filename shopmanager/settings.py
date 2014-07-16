@@ -130,7 +130,6 @@ INSTALLED_APPS = (
     'shopapp.memorule',
     'shopapp.report',
     'shopapp.asynctask',
-    'shopapp.notify',
     'shopapp.modifyfee',
     'shopapp.calendar',
     'shopapp.babylist',
@@ -140,7 +139,9 @@ INSTALLED_APPS = (
     'shopapp.comments',
     'shopapp.weixin',
     'shopapp.tmcnotify',
+
     #'test.celery',
+    #'shopapp.notify',
 )
 
 

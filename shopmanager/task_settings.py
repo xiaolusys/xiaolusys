@@ -32,14 +32,6 @@ CELERY_ROUTES = {
             'queue': 'trade_notify',
             'routing_key': 'trade.process_trade_notify',
         },
-        'shopapp.notify.tasks.process_item_notify_task': {
-            'queue': 'item_notify',
-            'routing_key': 'item.process_item_notify',
-        },
-        'shopapp.notify.tasks.process_refund_notify_task': {
-            'queue': 'refund_notify',
-            'routing_key': 'refund.process_refund_notify',
-        }
 }
 
 
@@ -61,17 +53,12 @@ SYNC_MODEL_SCHEDULE = {
     },
     u'定时淘宝商城订单增量下载任务':{
         'task':'shopback.orders.tasks.updateAllUserIncrementTradesTask',
-        'schedule':crontab(minute="*/15"),
+        'schedule':crontab(minute="0",hour="*/12"),
         'args':()
     },
     u'定时淘宝商城待发货订单下载任务':{
         'task':'shopback.orders.tasks.updateAllUserWaitPostOrderTask',
-        'schedule':crontab(minute="0",hour="12"),
-        'args':()
-    },
-    u'定时淘宝商城订单增量更新下载任务':{
-        'task':'shopback.orders.tasks.updateAllUserIncrementTradesTask',
-        'schedule':crontab(minute="*/15"),
+        'schedule':crontab(minute="30",hour="23"),
         'args':()
     },
     u'更新昨日销量为商品警告数':{     #将昨日的订单数更新为商品的警告库位
@@ -104,6 +91,7 @@ SYNC_MODEL_SCHEDULE = {
         'schedule':crontab(minute="0",hour="*/7"),#
         'args':()
     },
+    
 #    'runs-every-weeks-order-amount':{   #更新用户商城订单结算，按周
 #        'task':'shopback.amounts.tasks.updateAllUserOrdersAmountTask',
 #        'schedule':crontab(minute="0",hour="2"), #
@@ -161,6 +149,21 @@ SHOP_APP_SCHEDULE = {
     u'定时系统订单重量更新至韵达对接系统':{
         'task':'shopapp.yunda.tasks.PushYundaPackageWeightTask',
         'schedule':crontab(minute="*/15",hour="17,18,19,20,21,22,23"),
+        'args':()
+    },
+    u'定时增量下载更新微信订单':{
+        'task':'shopapp.weixin.tasks.pullWaitPostWXOrderTask',
+        'schedule':crontab(minute="0",hour="*/12"),
+        'args':(2,None,None)
+    },
+    u'定时增量更新微信维权订单':{
+        'task':'shopapp.weixin.tasks.pullFeedBackWXOrderTask',
+        'schedule':crontab(minute="*/30",hour="9,10,11,12,13,14,15,16,17,18"),
+        'args':(None,None)
+    },
+    u'定时下载微信商品信息':{
+        'task':'shopapp.weixin.tasks.pullWXProductTask',
+        'schedule':crontab(minute="0",hour="1,12"),
         'args':()
     },
 #    'runs-every-10-minutes-update-seller-flag':{

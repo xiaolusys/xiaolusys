@@ -101,14 +101,24 @@ class MergeTradeManager(models.Manager):
     def updateWaitPostNum(self,trade):
         
         for order in trade.inuse_orders:
+            
+            if self.isOrderDefect(order.outer_id,
+                                  order.outer_sku_id):
+                continue
+            
             Product.objects.updateWaitPostNumByCode(order.outer_id,
                                                     order.outer_sku_id,
                                                     order.num)
-            
+    
     
     def reduceWaitPostNum(self,trade):
         
         for order in trade.inuse_orders:
+            
+            if self.isOrderDefect(order.outer_id,
+                                  order.outer_sku_id):
+                continue
+                
             Product.objects.reduceWaitPostNumByCode(order.outer_id,
                                                     order.outer_sku_id,
                                                     order.num)
@@ -125,21 +135,27 @@ class MergeTradeManager(models.Manager):
             return True
         return False
             
+        
     def isTradeDefect(self,trade):
         
         for order in trade.inuse_orders:
             if self.isOrderDefect(order.outer_id,
                                   order.outer_sku_id):
                 return True
+            
         return False
         
             
     def isTradeOutStock(self,trade):
         
         for order in trade.inuse_orders:
-            if Product.objects.isProductOutOfStock(order.outer_id,
-                                                   order.outer_sku_id):
-                return True
+            try:
+                if Product.objects.isProductOutOfStock(order.outer_id,
+                                                       order.outer_sku_id):
+                    return True
+            except Product.ProductCodeDefect:
+                continue
+            
         return False
 
     
@@ -171,9 +187,11 @@ class MergeTradeManager(models.Manager):
         refund_orders_num   = trade.merge_orders.filter(
                                     gift_type=pcfg.REAL_ORDER_GIT_TYPE,
                                     is_merge=False)\
-                              .exclude(refund_status=pcfg.NO_REFUND).count()
+                              .exclude(refund_status__in=(pcfg.NO_REFUND,
+                                                          pcfg.REFUND_CLOSED,
+                                                          pcfg.EMPTY_STATUS)).count()
         
-        if refund_orders_num >trade.refund_num:
+        if refund_orders_num > trade.refund_num:
             
             trade.refund_num = refund_orders_num
             update_model_fields(trade,update_fields=['refund_num'])
@@ -190,17 +208,20 @@ class MergeTradeManager(models.Manager):
         return False
         
     def isOrderRuleMatch(self,order):
-        
-        return Product.objects.isProductRuelMatch(order.outer_id,
+        try:
+            return Product.objects.isProductRuelMatch(order.outer_id,
                                                   order.outer_sku_id)
+        except Product.ProductCodeDefect:
+            return False
         
     def isTradeRuleMatch(self,trade):
         
         for order in trade.inuse_orders:
             if self.isOrderRuleMatch(order):
                 return True
+            
         return False
-
+    
         
     def isTradeMergeable(self,trade):
         
@@ -214,13 +235,48 @@ class MergeTradeManager(models.Manager):
         trades = queryset.exclude(id=trade.id)
         
         return trades.count() > 0
-            
     
+    def diffTradeAddress(self,trade,sub_trade):
+        
+        diff_string = []
+        if trade.receiver_name != sub_trade.receiver_name:
+            diff_string.append('%s|%s'%(trade.receiver_name,
+                                        sub_trade.receiver_name))
+        
+        if trade.receiver_mobile != sub_trade.receiver_mobile:
+            diff_string.append('%s|%s'%(trade.receiver_mobile,
+                                        sub_trade.receiver_mobile))
+        
+        if trade.receiver_phone != sub_trade.receiver_phone:
+            diff_string.append('%s|%s'%(trade.receiver_phone,
+                                        sub_trade.receiver_phone))
+            
+        if trade.receiver_state != sub_trade.receiver_state:
+            diff_string.append('%s|%s'%(trade.receiver_state,
+                                        sub_trade.receiver_state))
+            
+        if trade.receiver_city != sub_trade.receiver_city:
+            diff_string.append('%s|%s'%(trade.receiver_city,
+                                        sub_trade.receiver_city))
+            
+        if trade.receiver_district != sub_trade.receiver_district:
+            diff_string.append('%s|%s'%(trade.receiver_district,
+                                        sub_trade.receiver_district))
+            
+        if trade.receiver_address != sub_trade.receiver_address:
+            diff_string.append('%s|%s'%(trade.receiver_address,
+                                        sub_trade.receiver_address))
+        return ','.join(diff_string)
+            
+            
     def isValidPubTime(self,userId,trade,modified):
         
         if not isinstance(trade,self.model):
-            trade = self.get(user__visitor_id=userId,tid=trade) 
-
+            try:
+                trade = self.get(user__visitor_id=userId,tid=trade) 
+            except:
+                return True
+            
         if (not trade.modified or 
             trade.modified < modified or 
             not trade.sys_status):

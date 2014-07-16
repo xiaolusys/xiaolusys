@@ -7,7 +7,7 @@ from django.db.models import Sum,Count
 from django.shortcuts import render_to_response
 from django.views.decorators.csrf import csrf_exempt
 from shopback.base.authentication import login_required_ajax
-from shopapp.comments.models import Comment
+from shopapp.comments.models import Comment,CommentGrade
 from django.template import RequestContext 
 import logging
 from django.contrib.auth.models import User
@@ -43,7 +43,8 @@ def explain_for_comment(request):
     return  HttpResponse(json.dumps({'code':0,'response_content':'success'}),mimetype="application/json")
     
     
-def calcCommentCountJson(fdt,tdt):
+def filter_calcCommentCountJson(fdt,tdt):
+#这里是构造数据字典格式
     """
         {'vikey':{'20140304':2}}    
     """
@@ -79,30 +80,35 @@ def calcCommentCountJson(fdt,tdt):
         data = {'vicky':vicky,'spring':spring}
         dates = [20140403,20140404,20140405,20140406,20140407,20140408,20140409]
     """     
-        
+
+#   统计展示每个人的日输出数字        
 @csrf_exempt
 def count(request):
-   
-    
+
+#   得到页面信息    
     content  =  request.POST
     fromDate = content.get('fromDate')
-    toDate   = content.get('endDate')
-    
+    toDate   = content.get('toDate')
+   
     toDate   = toDate and datetime.datetime.strptime(toDate, '%Y%m%d').date() or datetime.datetime.now().date()
-#for search,toDate+1    
     oneday = datetime.timedelta(days=1)
-    toDate = toDate+oneday
-    
+#防止每次submint页面日期自动自加,
+    toDate_cheak = toDate+oneday
+#   搜索日期截至日为方便查询，自动加一天，因为截至是每天零点，
     fromDate = (fromDate and 
                 datetime.datetime.strptime(fromDate, '%Y%m%d').date() or
-                toDate - datetime.timedelta(days=1))  
+                toDate_cheak - datetime.timedelta(days=1))  
+#   input 保留查询日期
+    fromDateShow = fromDate.strftime('%Y%m%d')
+    toDateShow   = toDate.strftime('%Y%m%d')
+#    print 'fromDateShow',fromDateShow
           
-    
-    commentDict = calcCommentCountJson(fromDate,toDate)
+    commentDict = filter_calcCommentCountJson(fromDate,toDate_cheak)
     date_array  = []
     
+#   时间条
     resultDict  = {}
-    for d in range(0,(toDate-fromDate).days):
+    for d in range(0,(toDate_cheak-fromDate).days):
         
         day_str = (fromDate+datetime.timedelta(days=d)).strftime('%Y%m%d')
         date_array.append(day_str)
@@ -119,27 +125,33 @@ def count(request):
 #        just for append in values at form
         a=[sum(vl),0]
         vl.append(a)
-        
+      
+#构造‘key，[val+sum]’的字典
     d = None
     c = []
+
     for user_key,count_list in resultDict.iteritems():
         d = []
         for index,val in enumerate(date_array):
             c=[count_list[index],val]
             d.append(c)
-        d.append(count_list[index+1])
-        resultDict[user_key] = d
-    print 'resultDict',resultDict
+#下面是加上没有参与添加日期的“总和”
+#重新构造‘key，[val]，[sum]’的字典
+        
+        resultDict[user_key] = [d,(count_list[index+1])]
     
-    return render_to_response('comments/comment_counts.html', {'data': resultDict, 'dates':date_array,'toDate':toDate,'fromDate':fromDate},  context_instance=RequestContext(request))
-
-
+    return render_to_response('comments/comment_counts.html', 
+                              {'data': resultDict, 'dates':date_array,
+                               'toDate':toDate,'fromDate':fromDate,
+                               'fromDateShow':fromDateShow,
+                               'toDateShow':toDateShow,},  context_instance=RequestContext(request))
 
 def filter_replyer(name,fdt,tdt):
+#def filter_replyer(oid):
     try:
-
         replyer_comment = {}
-        replyer = User.objects.get(username = name )        
+        replyer = User.objects.get(username = name )
+#评论人过滤器        
         comments = Comment.objects.filter(
             replayer=replyer
             ,replay_at__gte=fdt,
@@ -150,18 +162,19 @@ def filter_replyer(name,fdt,tdt):
         for r in comments:
         
             replyer = r.replayer
-            item_pic_url=r.item_pic_url
-#            print 'item_pic_url',item_pic_url
-            content=r.content
-            detail_url=r.detail_url
+            oid     = r.oid
+            item_pic_url = r.item_pic_url
+            content      = r.content
+            detail_url   = r.detail_url
+            reply        = r.reply 
+            replayer        = r.replayer 
             if replyer_comment.has_key(replyer):
-                replyer_comment[replyer].append((r.item_pic_url,r.detail_url,r.content,r.reply))
+                replyer_comment[replyer].append((item_pic_url,detail_url,content,reply,oid,replayer))
             else:
-                replyer_comment[replyer] = [(r.item_pic_url,r.detail_url,r.content,r.reply)]  
+                replyer_comment[replyer] = [(item_pic_url,detail_url,content,reply,oid,replayer)]  
 
     except:
         pass
-    print type(replyer_comment),'replyer_comment',replyer_comment.items()[0]
     return replyer_comment
     
 @csrf_exempt
@@ -170,6 +183,7 @@ def replyer_detail(request):
     name = content.get('replyer')
     fromDate  = content.get('fdt').replace('-','')
     oneday = datetime.timedelta(days=1)
+    
     toDate  = content.get('tdt')
 
     if toDate=="":
@@ -182,7 +196,45 @@ def replyer_detail(request):
     fromDate = fromDate and datetime.datetime.strptime(fromDate, '%Y%m%d').date() or toDate - datetime.timedelta(days=1)
     
     replyerDetail = filter_replyer(name,fromDate,toDate)
-    
 
-    return render_to_response('comments/comment_detail.html',{'replyerDetail':replyerDetail,'replyer':name},context_instance=RequestContext(request))
+    return render_to_response('comments/comment_replyer_detail.html',{'replyerDetail':replyerDetail,'replyer':name},context_instance=RequestContext(request))
+
+ 
+@csrf_exempt   
+def write_grade(request):
+    
+    content=request.GET
+    oid = content.get('oid')
+    grade = content.get('grade')
+    
+    
+    grader = request.user
+
+    comment = Comment.objects.get(oid=oid)
+    num_iid = comment.num_iid
+    tid     = comment.tid
+    oid     = comment.oid
+    reply   = comment.reply
+    replayer  = comment.replayer
+    
+    print reply
+    print oid, grade, grader
+    
+    c_grade,state = CommentGrade.objects.get_or_create(num_iid=num_iid,tid=tid,oid=oid)
+    c_grade.replayer = replayer
+    c_grade.grader   = request.user
+    c_grade.reply    = reply
+ 
+    if (grade == 'good'):
+        c_grade.grade = CommentGrade.GRADE_GOOD
+    
+    else:
+        c_grade.grade = CommentGrade.GRADE_BAD
+
+    c_grade.save()
+
+    
+    return  HttpResponse(json.dumps({'response_content':'success'}),mimetype="application/json")
+
+    
     

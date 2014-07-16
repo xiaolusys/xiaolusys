@@ -14,8 +14,10 @@ class WeiXinAccountAdmin(admin.ModelAdmin):
     list_display = ('id','account_id','token','app_id','expires_in',
                     'expired','in_voice','is_active')
     
+    list_display_links = ('id','account_id')
+    
     list_filter = ('is_active','in_voice')
-    search_fields = ['app_id','token']
+    search_fields = ['app_id','token','partner_id']
     
     def urlencode(self,value):
         ds = {'s':value}
@@ -66,9 +68,9 @@ admin.site.register(WeiXinAccount, WeiXinAccountAdmin)
 class WeiXinUserAdmin(admin.ModelAdmin):
     
     list_display = ('openid','nickname','sex','province',
-                    'city','subscribe_time','subscribe')
+                    'city','subscribe','subscribe_time','isvalid')
     
-    list_filter = ('subscribe','sex')
+    list_filter = ('subscribe','isvalid','sex')
     search_fields = ['openid','nickname']
     
 
@@ -95,7 +97,7 @@ admin.site.register(WeiXinAutoResponse, WeiXinAutoResponseAdmin)
 
 class WXProductAdmin(admin.ModelAdmin):
     
-    list_display = ('product_id','product_name','product_img','status')
+    list_display = ('product_id','product_name','status')
     
      #--------设置页面布局----------------
     fieldsets =((u'商品信息:', {

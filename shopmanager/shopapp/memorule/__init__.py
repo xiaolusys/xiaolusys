@@ -5,6 +5,7 @@ from django.db import models
 from django.conf import settings
 from django.db.models import Sum,F
 from shopback import paramconfig as pcfg
+from shopback.items.models import Product
 from shopback.trades.models import MergeTrade,MergeOrder
 from shopapp.memorule.models import ComposeRule,ComposeItem
 from shopback.base import log_action,User, ADDITION, CHANGE
@@ -60,10 +61,14 @@ def ruleMatchSplit(trade):
         trade.merge_orders.filter(gift_type=pcfg.COMBOSE_SPLIT_GIT_TYPE).delete()
         
         for order in trade.inuse_orders:
-            
+
             try:
-                compose_rule = ComposeRule.objects.get(outer_id=outer_id,
-                                                       outer_sku_id=outer_sku_id,
+                if not Product.objects.isProductRuleSplit(order.outer_id,
+                                                          order.outer_sku_id):
+                    continue
+            
+                compose_rule = ComposeRule.objects.get(outer_id=order.outer_id,
+                                                       outer_sku_id=order.outer_sku_id,
                                                        type=pcfg.RULE_SPLIT_TYPE)
             except Exception,exc:
                 continue
@@ -79,12 +84,12 @@ def ruleMatchSplit(trade):
                     cost    = Product.objects.getPrudocutCostByCode(item.outer_id,
                                                                     item.outer_sku_id)
                     
-                    payment = total_cost and '%.2f'%((cost/total_cost)*float(order_payment)) or '0'
+                    payment = total_cost and '%.2f'%(float(cost/total_cost)*float(order.payment)) or 0
                     
                     MergeOrder.gen_new_order(trade.id,
                                              item.outer_id,
                                              item.outer_sku_id,
-                                             item.num*order_num,
+                                             item.num*order.num,
                                              gift_type=pcfg.COMBOSE_SPLIT_GIT_TYPE,
                                              payment=payment)
                     

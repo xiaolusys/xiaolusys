@@ -88,5 +88,35 @@ class CommentItem(models.Model):
         verbose_name = u'评价商品'
         verbose_name_plural = u'评价商品列表'
         
+
+class CommentGrade(models.Model):
+    
+    GRADE_GOOD = 1
+    GRADE_BAD  = 0
+    GRADE_CHOICE = (
+                (GRADE_GOOD,u'好'),
+                (GRADE_BAD,u'差'),
+                )
+
+    id = BigIntegerAutoField(primary_key=True)    
+    
+    num_iid = models.BigIntegerField(null=False,db_index=True,verbose_name=u'商品ID')
+    tid     = models.BigIntegerField(null=False,db_index=True,verbose_name=u'交易ID')
+    oid     = models.BigIntegerField(null=False,db_index=True,verbose_name=u'订单ID')
+
+    reply   = models.TextField(max_length=1500,blank=True,verbose_name=u'评价解释')
+    created = models.DateTimeField(blank=True,null=True,auto_now=True,verbose_name=u'创建日期')
+    
+    replayer  = models.ForeignKey(User,null=True,default=None,related_name='grade_replyers',verbose_name=u'评价人')
+    grader = models.ForeignKey(User,null=True,default=None,related_name='grade_maker',verbose_name=u'打分人')
+    grade   = models.IntegerField(default=GRADE_BAD,choices=GRADE_CHOICE,verbose_name=u'评价打分')
+    
+    class Meta:
+        db_table = 'shop_comments_grade'
+        unique_together = ('num_iid', 'tid', 'oid')
+        verbose_name = u'评论打分'
+        verbose_name_plural = u'评论打分列表'
+        
+        
         
         

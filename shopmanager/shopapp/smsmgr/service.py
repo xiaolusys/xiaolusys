@@ -45,8 +45,8 @@ class SMSManager():
 class CSHXSMSManager(SMSManager):
     """ 创世华信短信发送接口实现 """
     _platform = 'cshx'
-    _sms_url  = 'http://121.101.221.34:8888/sms.aspx'
-    _status_url = 'http://121.101.221.34:8888/statusApi.aspx'
+    _sms_url  = 'http://121.52.220.246:8888/sms.aspx'
+    _status_url = 'http://121.52.220.246:8888/statusApi.aspx'
     
     def batch_send(self,*args,**kwargs):
         """ 批量发送短信接口实现 
@@ -74,6 +74,7 @@ class CSHXSMSManager(SMSManager):
         success  = False
         task_id  = None
         succnums = 0
+        res_content = ''
         try:
             for k,v in params.items():
                 if isinstance(v,unicode):

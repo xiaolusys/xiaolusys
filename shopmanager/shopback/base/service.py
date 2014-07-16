@@ -3,7 +3,7 @@
 class LocalService():
     
     def __init__(self,t):
-        raise Exception(u'方法未实现')
+        pass
     
     @classmethod
     def createTrade(cls,user_id,tid,*args,**kwargs):
@@ -39,3 +39,16 @@ class LocalService():
     
     def remindTrade(self,*args,**kwargs):
         raise Exception(u'方法未实现')
+    
+    
+class LocalProductService():
+    
+    def __init__(self,t):
+        pass
+    
+    @classmethod
+    def createProduct(cls,user_id,tid,*args,**kwargs): 
+        
+        raise Exception(u'方法未实现')
+        
+           

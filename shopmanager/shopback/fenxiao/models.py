@@ -112,6 +112,8 @@ class FenxiaoProduct(models.Model):
     status            = models.CharField(max_length=10,blank=True)
     class Meta:
         db_table = 'shop_fenxiao_product'
+        verbose_name=u'分销商品'
+        verbose_name_plural = u'分销商品列表'
 
     def __unicode__(self):
         return str(self.pid)
@@ -123,10 +125,11 @@ class FenxiaoProduct(models.Model):
             try:
                 response = apis.taobao_fenxiao_products_get(pids=pid,tb_user_id=user_id)
                 if response['fenxiao_products_get_response']['total_results']>0:
-                    fenxiao_product_dict = response['fenxiao_products_get_response']['products']['fenxiao_product'][0]
+                    fenxiao_product_dict = (response['fenxiao_products_get_response']
+                                                    ['products']['fenxiao_product'][0])
                     fenxiao_product = cls.save_fenxiao_product_dict(user_id,fenxiao_product_dict)
             except Exception,exc:
-                logger.error('backend update fenxiao trade(pid:%s)error'%str(pid),exc_info=True)
+                logger.error(u'分小商品更新异常：%d'%pid,exc_info=True)
         return fenxiao_product
     
     @classmethod
@@ -185,6 +188,8 @@ class PurchaseOrder(models.Model):
 
     class Meta:
         db_table = 'shop_fenxiao_purchaseorder'
+        verbose_name=u'分销订单'
+        verbose_name_plural = u'分销订单列表'
 
     def __unicode__(self):
         return '<%s,%s>'%(self.fenxiao_id,self.supplier_username)
@@ -222,7 +227,6 @@ class PurchaseOrder(models.Model):
                 if sub_order.get('created',None) else None
             sub_purchase_order.save()
            
-        merge_trade_signal.send(sender=PurchaseOrder,trade=purchase_order)
         return purchase_order
             
         
@@ -267,7 +271,9 @@ class SubPurchaseOrder(models.Model):
     
     class Meta:
         db_table = 'shop_fenxiao_subpurchaseorder'
-
+        verbose_name=u'分销订单商品'
+        verbose_name_plural = u'分销订单商品列表'
+        
     def __unicode__(self):
         return str(self.fenxiao_id)  
     

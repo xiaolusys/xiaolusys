@@ -5,7 +5,7 @@ from django.views.generic import TemplateView
 from shopback.base.proxy  import ProxyView
 from shopapp.weixin.views import WeixinAcceptView,WeixinAddReferalView,ReferalView
 
-urlpatterns = patterns('',
+urlpatterns = patterns('shopapp.weixin.views',
 
     url('^$',csrf_exempt(WeixinAcceptView.as_view())),
     url(r'^qr/(?P<url>.*)$', csrf_exempt(ProxyView.as_view(
@@ -19,13 +19,17 @@ urlpatterns = patterns('',
         template_name="weixin/baby_archives.html"), 
         name='weixin_baby_archive'),
 
-#    url(r'^referal/$', TemplateView.as_view(
-#        template_name="weixin/referal.html"), 
-#        name='weixin_referal'),
-
     url(r'^referal/$', ReferalView.as_view()),
-    
     url(r'^addreferal/$', WeixinAddReferalView.as_view()),
     
+    url(r'^validmobile/$', TemplateView.as_view(
+        template_name="weixin/valid_mobile.html"), 
+        name='weixin_valid_mobile'),
+    
+    url(r'^warn/$','warn',name='weixin_warn'),
+    url(r'^rights/$','rights',name='weixin_feedback'),
+    url(r'^napay/$','napay',name='weixin_napay'),
+    url(r'^wxpay/$','wxpay',name='weixin_wxpay'),
+
 
 )

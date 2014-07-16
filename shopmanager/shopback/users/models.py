@@ -37,23 +37,29 @@ class EffectUserManager(models.Manager):
     def get_query_set(self):
         return super(EffectUserManager, self).get_query_set().filter(status=pcfg.USER_NORMAL)
     
-    def TB(self):
-        self.get_query_set().filter(type__in=(pcfg.SHOP_TYPE_B,pcfg.SHOP_TYPE_C))
+    @property
+    def TAOBAO(self):
+        return self.get_query_set().filter(type__in=(pcfg.SHOP_TYPE_B,pcfg.SHOP_TYPE_C))
         
-    def JD(self):
-        self.get_query_set().filter(type=pcfg.SHOP_TYPE_JD)
+    @property
+    def JINGDONG(self):
+        return self.get_query_set().filter(type=pcfg.SHOP_TYPE_JD)
         
-    def YHD(self):
-        self.get_query_set().filter(type=pcfg.SHOP_TYPE_YHD)
+    @property
+    def YIHAODIAN(self):
+        return self.get_query_set().filter(type=pcfg.SHOP_TYPE_YHD)
         
-    def DD(self):
-        self.get_query_set().filter(type=pcfg.SHOP_TYPE_DD)
+    @property
+    def DANGDANG(self):
+        return self.get_query_set().filter(type=pcfg.SHOP_TYPE_DD)
         
-    def WX(self):
-        self.get_query_set().filter(type=pcfg.SHOP_TYPE_WX)
+    @property
+    def WEIXIN(self):
+        return self.get_query_set().filter(type=pcfg.SHOP_TYPE_WX)
         
-    def AMZ(self):
-        self.get_query_set().filter(type=pcfg.SHOP_TYPE_AMZ)
+    @property
+    def AMAZON(self):
+        return self.get_query_set().filter(type=pcfg.SHOP_TYPE_AMZ)
         
 
 class User(models.Model):
@@ -86,7 +92,7 @@ class User(models.Model):
     created = models.CharField(max_length=19,blank=True)
     birthday = models.CharField(max_length=19,blank=True)
 
-    type = models.CharField(max_length=2,blank=True,
+    type = models.CharField(max_length=8,blank=True,
                             choices=SHOP_TYPE,
                             verbose_name= u'店铺类型')
     

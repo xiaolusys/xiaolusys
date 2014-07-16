@@ -1,3 +1,14 @@
+######### 2014-7-4 ##########
+alter table shop_weixin_account add column order_updated datetime DEFAULT NULL;
+alter table shop_weixin_account add column refund_updated datetime DEFAULT NULL;
+######### 2014-7-1 ##########
+alter table shop_weixin_account add column pay_sign_key pay_sign_key varchar(128) NOT NULL;
+alter table shop_weixin_account add column partner_id varchar(32) NOT NULL;
+alter table shop_weixin_account add column partner_key varchar(128) NOT NULL;
+######### 2014-6-27 ##########
+alter table shop_weixin_account add column pay_sign_key ;
+alter table shop_users_user change column type type varchar(8) NOT NULL;
+######### 2014-6-22 ##########
 alter table shop_fenxiao_purchaseorder change distributor_payment distributor_payment double NOT NULL;
 alter table shop_fenxiao_purchaseorder change post_fee post_fee double NOT NULL;
 alter table shop_fenxiao_purchaseorder change total_fee total_fee double NOT NULL;
@@ -14,7 +25,6 @@ alter table shop_trades_mergetrade change adjust_fee adjust_fee double NOT NULL;
 alter table shop_trades_mergetrade change post_fee post_fee double NOT NULL;
 alter table shop_trades_mergetrade change total_fee total_fee double NOT NULL;
 alter table shop_trades_mergetrade change seller_cod_fee seller_cod_fee double NOT NULL;
-alter table shop_trades_mergetrade change buyer_cod_fee seller_cod_fee double NOT NULL;
 alter table shop_trades_mergetrade change buyer_cod_fee buyer_cod_fee double NOT NULL;
 alter table shop_trades_mergetrade change cod_fee cod_fee double NOT NULL;
 alter table shop_trades_mergetrade change post_cost post_cost double NOT NULL;
@@ -38,6 +48,12 @@ alter table shop_orders_trade change seller_cod_fee seller_cod_fee double NOT NU
 alter table shop_orders_trade change buyer_cod_fee buyer_cod_fee double NOT NULL;
 alter table shop_orders_trade change cod_fee cod_fee double NOT NULL;
 alter table shop_orders_trade change step_paid_fee step_paid_fee double NOT NULL;
+
+alter table shop_orders_order change price price double NOT NULL;
+alter table shop_orders_order change total_fee total_fee double NOT NULL;
+alter table shop_orders_order change payment payment double NOT NULL;
+alter table shop_orders_order change discount_fee discount_fee double NOT NULL;
+alter table shop_orders_order change adjust_fee adjust_fee double NOT NULL;
 ######### 2014-6-19 ##########
 alter table shop_orders_trade change receiver_mobile receiver_mobile varchar(24) NOT NULL;
 alter table shop_trades_mergetrade change receiver_mobile receiver_mobile varchar(24) NOT NULL;
@@ -49,7 +65,7 @@ alter table shop_yunda_customer change memo memo varchar(100) NOT NULL;
 alter table shop_trades_mergetrade add column is_cod tinyint(1) NOT NULL;
 ######### 2014-6-13 ##########
 alter table shop_weixin_account add column account_id varchar(32) not NULL;
-alter table shop_weixin_account add UNIQUE unique_account_id on shop_weixin_account(account_id);
+create unique index unique_account_id on shop_weixin_account(account_id);
 
 alter table shop_users_user drop column craw_keywords;
 alter table shop_users_user drop column craw_trade_seller_nicks;
@@ -58,6 +74,8 @@ alter table shop_users_user drop column refund_notify_updated;
 alter table shop_users_user drop column trade_notify_updated;
 alter table shop_users_user drop column alipay_account;
 alter table shop_users_user drop column promoted_type;
+alter table shop_trades_mergetrade drop column seller_id;
+alter table shop_trades_mergetrade drop column seller_nick;
 ######### 2014-5-24 ##########
 alter table shop_trades_mergetrade drop index tid;
 alter table shop_trades_mergetrade change column tid  tid varchar(32) NOT NULL;
@@ -423,8 +441,6 @@ alter table shop_trades_mergeorder add column is_rule_match tinyint(1) NOT NULL;
 alter table shop_trades_mergeorder add column sys_status varchar(32) NOT NULL;
 alter table shop_items_product add column is_assign tinyint(1) NOT NULL;
 alter table shop_items_productsku add column is_assign tinyint(1) NOT NULL;
-########  2012-10-07  #########
-insert into shop_trades_mergetrade(tid,user_id,seller_id,seller_nick,buyer_nick,type,shipping_type,total_num,payment,discount_fee,adjust_fee,post_fee,total_fee,alipay_no,seller_cod_fee,buyer_cod_fee,cod_fee,cod_status,weight,post_cost,buyer_message,seller_memo,sys_memo,created,pay_time,modified,consign_time,out_sid,logistics_company_name,receiver_name,receiver_state,receiver_city,receiver_district,receiver_address,receiver_zip,receiver_mobile,receiver_phone,year,month,week,day,hour,reverse_audit_reason,status,is_picking_print,is_express_print,is_send_sms,has_refund,out_goods,has_memo,remind_time,refund_num,sys_status) select tid,user_id,seller_id,seller_nick,buyer_nick,type,shipping_type,total_num,payment,discount_fee,adjust_fee,post_fee,total_fee,alipay_no,seller_cod_fee,buyer_cod_fee,cod_fee,cod_status,weight,post_cost,buyer_message,seller_memo,sys_memo,created,pay_time,modified,consign_time,out_sid,logistics_company_name,receiver_name,receiver_state,receiver_city,receiver_district,receiver_address,receiver_zip,receiver_mobile,receiver_phone,year,month,week,day,hour,reverse_audit_reason,status,is_picking_print,is_express_print,is_send_sms,has_refund,out_goods,has_memo,remind_time,refund_num,sys_status from shop_trades_mergetrade_tmp;
 ########  2012-09-29  #########
 shop_items_product :
 purchase_product

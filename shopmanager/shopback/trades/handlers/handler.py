@@ -3,7 +3,7 @@ from django.conf import settings
 from django.db.models.signals import post_save
 
 from shopback.base import log_action,User, ADDITION, CHANGE
-from shopback.trades.models import MergeTrade,MergeOrder
+from shopback.trades.models import MergeTrade,MergeOrder,MergeBuyerTrade
 from shopback.items.models import Product
 from shopback import paramconfig as pcfg
 from common.utils import update_model_fields
@@ -151,7 +151,7 @@ class FinalHandler(BaseHandler):
              not merge_trade.remind_time)):
             
             merge_trade.sys_status = pcfg.WAIT_AUDIT_STATUS
-            update_model_fields(merge_trade,update_fields=['sys_status'])
+
         
         if (not merge_trade.reason_code and
             merge_trade.sys_status in (pcfg.WAIT_AUDIT_STATUS,
@@ -161,7 +161,6 @@ class FinalHandler(BaseHandler):
                                          pcfg.REISSUE_TYPE)):
             
             merge_trade.sys_status = pcfg.WAIT_PREPARE_SEND_STATUS
-            update_model_fields(merge_trade,update_fields=['sys_status'])
             
         if kwargs.get('first_pay_load',None):
             for order in merge_trade.inuse_orders:
@@ -178,8 +177,27 @@ class FinalHandler(BaseHandler):
             merge_trade.append_reason_code(pcfg.INVALID_END_CODE)
             
             if not merge_trade.is_locked:
-                merge_trade.sys_status = pcfg.INVALID_STATUS
                 
+                merge_type  = MergeBuyerTrade.getMergeType(merge_trade.id)
+                     
+                if merge_type == pcfg.SUB_MERGE_TYPE:
+                    main_tid = MergeBuyerTrade.objects.get(
+                                            sub_tid=merge_trade.id).main_tid
+                                            
+                    main_trade = MergeTrade.objects.get(id=main_tid)
+                    main_trade.append_reason_code(pcfg.INVALID_END_CODE)
+                    
+                    sub_oids = [o[0] for o in merge_trade.merge_orders.values_list('oid')]
+                    main_trade.merge_orders.filter(oid__in=sub_oids)\
+                        .update(sys_status=pcfg.INVALID_STATUS)
+                    
+                elif merge_type == pcfg.MAIN_MERGE_TYPE:
+                    MergeTrade.objects.mergeRemover(merge_trade.id)
+                    
+                merge_trade.sys_status = pcfg.INVALID_STATUS
+            
+                
+        update_model_fields(merge_trade,update_fields=['sys_status'])
             
             
         

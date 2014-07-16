@@ -132,12 +132,14 @@
 		font-size:14px;
 	}
 	
-	#product-quantity-dialog input[type="text"],#product-quantity-dialog input[type="submit"]{
+	#product-quantity-dialog input[type="text"],
+	#product-quantity-dialog input[type="submit"]{
 		display:inline-block;
 		margin:1px 2px;
 		padding:1px 2px;
 	}
-	#product-quantity-dialog input[type="radio"],#product-quantity-dialog input[type="checkbox"]{
+	#product-quantity-dialog input[type="radio"],
+	#product-quantity-dialog input[type="checkbox"]{
 		display:inline-block;
 		margin:1px 2px 5px 2px;
 		padding:1px 2px;
@@ -277,24 +279,26 @@
 					</tr>
 					<tr>
 						<td>
-							<label for='is_split'>需&nbsp;拆&nbsp;&nbsp;分</label>
-							<input type="checkbox" id="is_split" name="is_split" class="simple-text" {% if product.is_split %}checked{% endif %}/>
-						</td>
-						<td>
 							<label for='sync_stock'>库存同步</label>
-							<input type="checkbox" id="sync_stock" name="sync_stock" class="simple-text required" {% if product.sync_stock %}checked{% endif %}/>
+							<input type="checkbox" id="sync_stock" name="sync_stock" class="simple-text required" 
+								{% if product.sync_stock %}checked{% endif %}/>
 						</td>
 						<td >
 							<label for='post_check'>需&nbsp;扫&nbsp;&nbsp;描</label>
-							<input type="checkbox" id="post_check" name="post_check" class="simple-text required" {% if product.post_check %}checked{% endif %}/>
-						</td>
-						<td >
-							<label for='is_match'>需&nbsp;匹&nbsp;&nbsp;配</label>
-							<input type="checkbox" id="is_match" name="is_match" class="simple-text required" {% if product.is_match %}checked{% endif %}/>
+							<input type="checkbox" id="post_check" name="post_check" class="simple-text required" 
+								{% if product.post_check %}checked{% endif %}/>
 						</td>
 						<td>
-							<label for='match_reason'>匹配原因</label>
-							<input type="text" id="match_reason" name="match_reason" class="simple-text " value="{{ product.match_reason }}"/>
+							<label for='is_split'>需&nbsp;拆&nbsp;&nbsp;分</label>
+							<input type="checkbox" id="is_split" name="is_split" class="simple-text " 
+								{% if product.is_split %}checked{% endif %} {% if product.skus %}disabled{% endif %}/>
+						</td>
+						<td colspan="2">
+				            <label class="" for="is_match">规格匹配</label>
+			                <input type="checkbox" id="is_match" name="is_match" class="required" 
+			                  		{% if product.is_match %}checked{% endif %} {% if product.skus %}disabled{% endif %}/>
+			                <input type="text" id="match_reason" name="match_reason" placeholder="规格匹配原因,会备注问问题单上" 
+			              	  style="width:200px;" value="{{ product.match_reason }}"/>
 						</td>
 					</tr>
 					<tr>

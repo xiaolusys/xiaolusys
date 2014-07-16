@@ -328,7 +328,11 @@ class CheckOrderView(ModelView):
             'has_memo':trade.has_memo,
             'has_refund':trade.has_refund,
             'has_out_stock':trade.has_out_stock,
-            'has_rule_match':trade.has_rule_match,
+            'out_of_logistic':trade.has_reason_code(pcfg.LOGISTIC_ERROR_CODE),
+            'has_rule_match':(trade.has_rule_match and 
+                              trade.has_reason_code(pcfg.RULE_MATCH_CODE)),
+            'is_product_defect':(trade.has_rule_match and 
+                                 trade.has_reason_code(pcfg.TRADE_DEFECT_CODE)),
             'has_merge':trade.has_merge,
             'has_sys_err':trade.has_sys_err,
             'need_manual_merge':trade.has_reason_code(pcfg.MULTIPLE_ORDERS_CODE),
@@ -390,7 +394,7 @@ class CheckOrderView(ModelView):
                 return ','.join(check_msg)
             
             if trade.type == pcfg.EXCHANGE_TYPE:
-                change_orders = trade.merge_trade_orders.filter(
+                change_orders = trade.merge_orders.filter(
                     gift_type=pcfg.CHANGE_GOODS_GIT_TYPE,
                     sys_status=pcfg.IN_EFFECT)
 
@@ -536,8 +540,12 @@ def change_trade_addr(request):
     trade.save()
     
     try:
-        if trade.type in (pcfg.TAOBAO_TYPE,pcfg.FENXIAO_TYPE,pcfg.GUARANTEE_TYPE) \
-            and trade.sys_status in (pcfg.WAIT_AUDIT_STATUS,pcfg.WAIT_CHECK_BARCODE_STATUS,pcfg.WAIT_SCAN_WEIGHT_STATUS):
+        if trade.type in (pcfg.TAOBAO_TYPE,
+                          pcfg.FENXIAO_TYPE,
+                          pcfg.GUARANTEE_TYPE) \
+            and trade.sys_status in (pcfg.WAIT_AUDIT_STATUS,
+                                     pcfg.WAIT_CHECK_BARCODE_STATUS,
+                                     pcfg.WAIT_SCAN_WEIGHT_STATUS):
             response = apis.taobao_trade_shippingaddress_update(tid=trade.tid,
                                                             receiver_name=trade.receiver_name,
                                                             receiver_phone=trade.receiver_phone,
@@ -759,8 +767,10 @@ def change_logistic_and_outsid(request):
     trade_id   = CONTENT.get('trade_id')
     out_sid    = CONTENT.get('out_sid')
     logistic_code = CONTENT.get('logistic_code','').upper()
+    is_qrcode  = logistic_code.endswith('QR')
     
-    if not trade_id or not out_sid or not logistic_code:
+    if not trade_id or (not is_qrcode 
+                        and (not out_sid or not logistic_code)):
         ret_params = {'code':1,'response_error':u'请填写快递名称及单号'}
         return HttpResponse(json.dumps(ret_params),mimetype="application/json")
     
@@ -775,7 +785,7 @@ def change_logistic_and_outsid(request):
     try:
         logistic   = LogisticsCompany.objects.get(code=logistic_code)
         logistic_regex = re.compile(logistic.reg_mail_no)
-        if not logistic_regex.match(out_sid):
+        if not is_qrcode and not logistic_regex.match(out_sid):
             raise Exception(u'快递单号不合规则')
         
         real_logistic_code = logistic_code.split('_')[0]
@@ -783,7 +793,7 @@ def change_logistic_and_outsid(request):
         if merge_trade.sys_status in (pcfg.WAIT_CHECK_BARCODE_STATUS,pcfg.WAIT_SCAN_WEIGHT_STATUS):
             
             try:
-                if (dt-merge_trade.consign_time).days<1:
+                if not is_qrcode and (dt-merge_trade.consign_time).days<1:
                     response = apis.taobao_logistics_consign_resend(tid=merge_trade.tid,out_sid=out_sid
                                                      ,company_code=real_logistic_code,tb_user_id=merge_trade.user.visitor_id)
                     if not response['logistics_consign_resend_response']['shipping']['is_success']:
@@ -800,7 +810,7 @@ def change_logistic_and_outsid(request):
             log_action(user_id,merge_trade,CHANGE,u'修改快递及单号(修改前:%s,%s)'%(origin_logistic_code,origin_out_sid))
         elif merge_trade.sys_status == pcfg.FINISHED_STATUS:
             try:
-                if (dt-merge_trade.consign_time).days<1:
+                if not is_qrcode and (dt-merge_trade.consign_time).days<1:
                     apis.taobao_logistics_consign_resend(tid=merge_trade.tid,out_sid=out_sid
                                                  ,company_code=real_logistic_code,tb_user_id=merge_trade.user.visitor_id)
             except:
@@ -965,13 +975,14 @@ class DirectOrderInstanceView(ModelView):
     def post(self, request, id, *args , **kwargs):
         
         content     = request.REQUEST
-
+        type = content.get('trade_type')
+        
         if type not in (pcfg.DIRECT_TYPE,pcfg.REISSUE_TYPE):
             return u'订单类型异常'
         try:
             merge_trade =  MergeTrade.objects.get(id=id)
         except MergeTrade.DoesNotExist:
-            return u'退换货单创建异常'
+            return u'内售单创建异常'
         
         if merge_trade.sys_status not in('',pcfg.WAIT_AUDIT_STATUS):
             return u'订单状态已改变'
@@ -1133,7 +1144,8 @@ class TradeSearchView(ModelView):
             'id':order.id,
             'outer_id':order.outer_id,
             'title':prod.name if prod else order.title,
-            'sku_properties_name':prod_sku.properties_name if prod_sku else order.sku_properties_name,
+            'sku_properties_name':(prod_sku.properties_name if prod_sku 
+                                   else order.sku_properties_name),
             'num':order.num,
             'out_stock':order.out_stock,
             'price':order.price,
@@ -1254,12 +1266,12 @@ def calFenxiaoInterval(fdt,tdt):
         else:
             fenxiao_dict[buyer_nick] = float(f.payment or 0)
     fenxiao_array = fenxiao_dict.items()
-    print fenxiao_array
+    print 'fenxiao_array',fenxiao_array
     fenxiao_array.sort(lambda x,y:cmp(x[1],y[1]))
     for key in fenxiao_array:
         fenxiao_sum=fenxiao_sum+key[1]
     fenxiao_array.append(["sum",fenxiao_sum])
-    print fenxiao_sum
+    print 'fenxiao_sum',fenxiao_sum
 
     return fenxiao_array
     
@@ -1272,21 +1284,37 @@ def countFenxiaoAcount(request):
     toDate   = toDate and datetime.datetime.strptime(toDate, '%Y%m%d').date() or datetime.datetime.now().date()
         
     fromDate = fromDate and datetime.datetime.strptime(fromDate, '%Y%m%d').date() or toDate - datetime.timedelta(days=1) 
-    
+    fromDateShow = fromDate.strftime('%Y%m%d')
+    toDateShow   = toDate.strftime('%Y%m%d')
     fenxiaoDict = calFenxiaoInterval(fromDate,toDate)
+    print 'fromDateShow',fromDateShow
     
-    
-    return render_to_response('trades/trade_fenxiao_count.html', {'data': fenxiaoDict,},  context_instance=RequestContext(request))
+    return render_to_response('trades/trade_fenxiao_count.html', {'data': fenxiaoDict,'fromDateShow':fromDateShow,'toDateShow':toDateShow,},  context_instance=RequestContext(request))
 
 def showFenxiaoDateilFilter(fenxiao,fdt,tdt):
     fenxiao = MergeTrade.objects.filter(buyer_nick=fenxiao,pay_time__gte=fdt,pay_time__lte=tdt,type=pcfg.FENXIAO_TYPE,sys_status=pcfg.FINISHED_STATUS)
-    print "fenxiao",fenxiao[2].tid 
+#    print "fenxiao",fenxiao[2].tid 
     return fenxiao
+    
 def showFenxiaoDetail(request):
-#    fdt=''
-#    tdt=''
+    
+#for date to form
+    content = request.GET
+    fenxiao = content.get('fenxiao')
+    print 'fenxiao',fenxiao
+    fromDate  = content.get('fdt').replace('-','')
+    oneday = datetime.timedelta(days=1)
+    toDate  = content.get('tdt')
+    
+    if toDate:
+        toDate=datetime.date.today().strftime('%Y%m%d')
+    else:
+        toDate  =toDate.replace('-','')
 
-#    fenxiao=''
+    toDate   = toDate and datetime.datetime.strptime(toDate, '%Y%m%d').date() or datetime.datetime.now().date()
+    toDate = toDate+oneday
+    fromDate = fromDate and datetime.datetime.strptime(fromDate, '%Y%m%d').date() or toDate - datetime.timedelta(days=1)
+# date  over
     iid = []
     tid = []
     created    = []
@@ -1297,10 +1325,15 @@ def showFenxiaoDetail(request):
     receiver_city   = []
     receiver_district = []
     receiver_address  = []
+    payment = []
+# render data
+    fenxiao_render_data = []    
+    
     
     print type(created),created
 
-    FenxiaoDateil=showFenxiaoDateilFilter('阳光small_x','2014-01-07','2014-01-08')
+    FenxiaoDateil=showFenxiaoDateilFilter(fenxiao,fromDate,toDate)
+#    FenxiaoDateil=showFenxiaoDateilFilter('爱生活791115','20140526','20140527')
     for c in FenxiaoDateil:
         tid.append(c.tid)
         iid.append(c.id)
@@ -1312,16 +1345,17 @@ def showFenxiaoDetail(request):
         receiver_city.append(c.receiver_city)
         receiver_district.append(c.receiver_district)
         receiver_address.append(c.receiver_address)
-    print 'created',created,type(created)
-    print 'tid',tid
-    print 'iid',iid
-    print 'buyer_nick',buyer_nick
-    print 'receiver_name',receiver_name
-    print 'receiver_mobile',receiver_mobile
-    print 'receiver_state[1][1]',receiver_state
-    print 'receiver_city',receiver_city
-    print 'receiver_district',receiver_district
-    print 'receiver_address',receiver_address
-#    print '',
-#    FenxiaoDateil=''
-    return render_to_response('trades/trade_fenxiao_detail.html',{'FenxiaoDateil':FenxiaoDateil},context_instance=RequestContext(request))
+        payment.append(c.payment)
+        
+    for i,v in enumerate(tid):
+        print i
+        fenxiao_render_data.append((buyer_nick[i],tid[i],receiver_name[i],receiver_mobile[i],receiver_state[i],receiver_city[i],receiver_district[i],receiver_address[i],payment[i],iid[i]))
+     
+#    print 'fenxiao_render_data.....len',len(fenxiao_render_data[0][8])
+#    print "fenxiao_render_data",fenxiao_render_data[0][8]
+#    print 'FenxiaoDateil',FenxiaoDateil
+#    print 'type',type(FenxiaoDateil)
+    
+    return render_to_response('trades/trade_fenxiao_detail.html',{'FenxiaoDateil':FenxiaoDateil,
+                                                                  'fenxiao_render_data':fenxiao_render_data,},  context_instance=RequestContext(request))
+                                                                  

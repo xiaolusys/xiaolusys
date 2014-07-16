@@ -47,7 +47,7 @@ class PurchaseOrderAdmin(admin.ModelAdmin):
     inlines = [SubPurchaseOrderInline]
     
     list_filter = ('shipping','pay_type','trade_type','status',)
-    search_fields = ['fenxiao_id','id','supplier_username','distributor_username']
+    search_fields = ['fenxiao_id','id','supplier_username','distributor_username','tc_order_id']
 
 
 admin.site.register(PurchaseOrder, PurchaseOrderAdmin)

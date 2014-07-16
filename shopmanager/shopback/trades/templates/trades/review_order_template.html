@@ -245,7 +245,8 @@
 			var trade_id      = $('#id_review_trade').val();
 			var logistic_code = $('#id_logistics').val();
 			var out_sid       = $('#id_express_no').val();
-			if (logistic_code == '' || out_sid == ''){
+			if (logistic_code.indexOf('QR', logistic_code.length - 'QR'.length) == -1
+				&&(logistic_code == '' || out_sid == '')){
 				alert('物流单号不能为空');
 			}else{
 				$.post('/trades/logistic/',

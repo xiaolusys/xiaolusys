@@ -81,13 +81,14 @@
 <div style="padding: 9px 15px">
 <ul class="thumbnails1">
 	{% if trade.has_memo %}<li><span class="badge1 badge-warning1">有留言</span></li>{% endif %} 
-	{% if trade.has_refund %}<li><span class="badge1 badge-warning1">待退款</span></li>{% endif %} 
 	{% if trade.has_out_stock %}<li><span class="badge1 badge-warning1">缺货</span></li>{% endif %} 
-	{% if trade.has_rule_match %}<li><span class="badge1 badge-warning1">信息不全</span></li>{% endif %} 
-	{% if trade.has_merge %}<li><span class="badge1 badge-warning1">订单合并</span></li>{% endif %} 
+	{% if trade.has_refund %}<li><span class="badge1 badge-warning1">待退款</span></li>{% endif %} 
+	{% if trade.out_of_logistic %}<li><span class="badge1 badge-warning1">没有选择快递</span></li>{% endif %} 
+	{% if trade.has_rule_match %}<li><span class="badge1 badge-warning1">商品匹配</span></li>{% endif %} 
+	{% if trade.is_product_defect %}<li><span class="badge1 badge-warning1">商品编码错误</span></li>{% endif %} 
 	{% if trade.need_manual_merge %}<li><span class="badge1 badge-warning1">需手动合单</span></li>{% endif %}
 	{% if trade.has_sys_err %}<li><span class="badge1 badge-warning1">系统错误</span></li>{% endif %}
-	{% if trade.is_force_wlb %}<li><span class="badge1 badge-warning1">物流宝</span></li>{% endif %}
+	{% if trade.is_force_wlb %}<li><span class="badge1 badge-warning1">发物流宝</span></li>{% endif %}
 </ul>
 </div>
 <div class="accordion-group1">
