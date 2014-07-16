@@ -1,4 +1,4 @@
-#-*- coding:utf8 -*-
+#-*- coding:utf-8 -*-
 from django.contrib import admin
 from django.db import models
 from django.forms import TextInput, Textarea
@@ -7,7 +7,10 @@ from shopapp.weixin.models import (WeiXinAccount,
                                    WeiXinAutoResponse,
                                    WXProduct,
                                    WXOrder,
-                                   WXLogistic)
+                                   WXLogistic,
+                                   ReferalRelationship,
+                                   ReferalSummary,
+                                   )
 
 class WeiXinAccountAdmin(admin.ModelAdmin):
     
@@ -161,3 +164,15 @@ class WXLogisticAdmin(admin.ModelAdmin):
     
 
 admin.site.register(WXLogistic, WXLogisticAdmin) 
+
+
+class ReferalRelationshipAdmin(admin.ModelAdmin):
+    list_display = ('referal_from_openid', 'referal_to_mobile', 'time_created')
+
+admin.site.register(ReferalRelationship, ReferalRelationshipAdmin) 
+
+
+class ReferalSummaryAdmin(admin.ModelAdmin):
+    list_display = ('user_openid', 'direct_referal_count', 'indirect_referal_count')
+
+admin.site.register(ReferalSummary, ReferalSummaryAdmin) 

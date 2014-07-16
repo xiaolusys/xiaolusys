@@ -245,12 +245,8 @@ class WeiXinAutoResponse(models.Model):
         
     @classmethod
     def respDefault(cls):
-<<<<<<< HEAD
-        resp,state = cls.objects.get_or_create(message=cls.WX_DEFAULT,rtype=cls.WX_TEXT)
-=======
         resp,state = cls.objects.get_or_create(message=cls.WX_DEFAULT,
                                                rtype=cls.WX_TEXT)
->>>>>>> 99bd92dd57da8d3a039d137ff91ccb5bac3d0008
         return resp
     
     def __unicode__(self):
@@ -502,22 +498,16 @@ class BonusCashoutRecord(models.Model):
         db_table = 'shop_weixin_bonus_cashout_record'
 
 
-class BonusSummary(models.Model):
-    user_openid = models.CharField(max_length=64,db_index=True,verbose_name=u"ID")
-    total_confirmed_value = models.IntegerField()
-    cashed_value = models.IntegerField()
-    #uncashed_value = total_confirmed_value - cashed_value
-    uncomfirmed_value = models.IntegerField()
-    canceled_value = models.IntegerField()
-
-    class Meta:
-        db_table = 'shop_weixin_bonus_summary'
-
-
 class ReferalSummary(models.Model):
-    user_openid = models.CharField(max_length=64,db_index=True,verbose_name=u"ID")
-    direct_referal_count = models.IntegerField()
-    indirect_referal_count = models.IntegerField()
+    user_openid = models.CharField(max_length=64,db_index=True,unique=True,verbose_name=u"ID")
+    total_confirmed_value = models.IntegerField(default=0)
+    cashed_value = models.IntegerField(default=0)
+    #uncashed_value = total_confirmed_value - cashed_value
+    uncomfirmed_value = models.IntegerField(default=0)
+    canceled_value = models.IntegerField(default=0)
+
+    direct_referal_count = models.IntegerField(default=0)
+    indirect_referal_count = models.IntegerField(default=0)
 
     class Meta:
         db_table = 'shop_weixin_referal_summary'

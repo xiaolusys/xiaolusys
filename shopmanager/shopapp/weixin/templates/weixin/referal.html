@@ -36,7 +36,7 @@
         }
 
         var openid = document.getElementById("openid").value;
-        var url = "/app/weixin/addreferal/";
+        var url = "/weixin/addreferal/";
         var data = {"mobile":mobile, "openid":openid};
         
         var callback = function (res) {
@@ -44,6 +44,8 @@
           if (res["code"] == "ok") {
             mobile_input.value = "";
             mobile_input.placeholder = "推荐成功，请继续推荐";
+          } else if (res["code"] == "dup") {
+            feedback.innerHTML = "号码已存在，请重新推荐";
           }
         };
         $.ajax({url:url, data:data, success: callback});
@@ -71,8 +73,8 @@
 <div class="panel panel-default" style="margin-top:15px">
   <div class="panel-heading" style="color:orange">我的返利</div>
   <div class="panel-body">
-    <p>今日获得返利: ￥123.00 </p>
-    <p>今日新增推荐: 20人</p>
+    <p>返利数额: ￥{{ referal_bonus }} </p>
+    <p>推荐人数: {{ referal_count }}人</p>
     <p style="color:green">查看详情 >></p>
   </div>
 </div>

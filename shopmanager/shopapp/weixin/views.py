@@ -7,6 +7,8 @@ from django.conf import settings
 from django.views.decorators.csrf import csrf_exempt
 from django.views.generic import View
 from shopapp.weixin.service import WeixinUserService
+from models import WeiXinUser,ReferalRelationship,ReferalSummary
+
 import logging
 import json
 
@@ -75,6 +77,8 @@ class WeixinAcceptView(View):
         return HttpResponse(response,mimetype="text/xml")
 
 
+from django.db.models import F
+
 class WeixinAddReferalView(View):
     "add a referal"
     
@@ -85,7 +89,7 @@ class WeixinAddReferalView(View):
         referal_from_openid = content.get("openid")
 
         ## check whether referal_to_mobile exists
-        if WeiXinUser.objects.filter(mobile=referal_to_mobile).count() > 0 or \\
+        if WeiXinUser.objects.filter(mobile=referal_to_mobile).count() > 0 or \
                 ReferalRelationship.objects.filter(referal_to_mobile=referal_to_mobile).count() > 0:
             response = {"code":"dup", "message":"referal already exists"}
             return HttpResponse(json.dumps(response),mimetype='application/json')
@@ -94,20 +98,16 @@ class WeixinAddReferalView(View):
         ReferalRelationship.objects.create(referal_from_openid=referal_from_openid,referal_to_mobile=referal_to_mobile)
         
         ## update referal summary
-        rs = ReferalSummary.objects.filter(user_openid=referal_from_openid)
-        if rs.count() == 0:
-            ReferalSummary.objects.create(user_openid=referal_from_openid,direct_referal_count=1,indirect_referal_count=0)
-        else:
-            rs.direct_referal_count += 1
-            ## should also update indirect referal summary
-            referal_from_user = WeiXinUser.objects.get(openid=referal_from_openid)
-            parent_openid = referal_from_user.referal_from_openid
-            if parent_openid != "":
-                parent = ReferalSummary.objects.get(user_openid=parent_openid)
-                parent.indirect_referal_count += 1
-        else:
-            ReferalSummary.objects.create(user=referal_from_user, direct_referal_count=1, indirect_referal_count=0)
-            
+        obj, created = ReferalSummary.objects.get_or_create(user_openid=referal_from_openid)
+        obj.direct_referal_count += 1
+        obj.save()
+
+        ## should also update indirect referal summary
+        referal_from_user = WeiXinUser.objects.get(openid=referal_from_openid)
+        parent_openid = referal_from_user.referal_from_openid
+        if parent_openid != "":
+            ReferalSummary.objects.filter(user_openid=parent_openid).update(indirect_referal_count=F('indirect_referal_count')+1)
+
         response = {"code":"ok", "message":"referal added successfully"}
         return HttpResponse(json.dumps(response),mimetype='application/json')
 
@@ -137,6 +137,16 @@ class ReferalView(View):
         SECRET = 'eb3bfe8e9a36a61176fa5cafe341c81f'
         
         user_openid = self.get_user_openid(code, APPID, SECRET)
+
+        direct_referal_count = 0
+        referal_bonus = 0.00
+        
+        rs = ReferalSummary.objects.filter(user_openid=user_openid)
+        if rs.count() > 0:
+            direct_referal_count = rs[0].direct_referal_count
+            referal_bonus = rs[0].total_confirmed_value * 0.01
         
         
-        return render_to_response('weixin/referal.html', {'openid':user_openid}, context_instance=RequestContext(request))
+        return render_to_response('weixin/referal.html', 
+                                  {'openid':user_openid, 'referal_count':direct_referal_count, 'referal_bonus':referal_bonus}, 
+                                  context_instance=RequestContext(request))
