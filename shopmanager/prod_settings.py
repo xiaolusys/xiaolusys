@@ -69,8 +69,8 @@ APPSECRET = '2b966d4f5f05d201a48a75fe8b5251af'
 
 TAOBAO_API_HOSTNAME = 'eco.taobao.com'
 AUTHRIZE_URL   = 'https://oauth.taobao.com/authorize'
-AUTHRIZE_TOKEN_URL = 'https://oauth.taobao.com/token'
-REDIRECT_URI = ''.join([SITE_URL,'accounts/login/auth/'])
+AUTHRIZE_TOKEN_URL  = 'https://oauth.taobao.com/token'
+REDIRECT_URI        = '/accounts/login/auth/'
 TAOBAO_API_ENDPOINT = 'https://%s/router/rest'%TAOBAO_API_HOSTNAME
 TAOBAO_NOTIFY_URL   = 'http://stream.api.taobao.com/stream'
 
@@ -94,4 +94,6 @@ JD_APP_SECRET = 'e33d1f1b4abb4036b742787211624fe1'
 
 JD_API_HOSTNAME = 'gw.api.360buy.com'
 JD_AUTHRIZE_URL = 'https://auth.360buy.com/oauth/authorize'
-REDIRECT_URI    = ''.join([SITE_URL,'app/jd/login/auth/'])
+JD_AUTHRIZE_TOKEN_URL = 'https://auth.360buy.com/oauth/token'
+JD_REDIRECT_URI    = '/app/jd/login/auth/'
+JD_API_ENDPOINT = 'http://%s/routerjson'%JD_API_HOSTNAME

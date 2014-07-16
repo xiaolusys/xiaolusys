@@ -68,7 +68,7 @@ def mergeMaker(trade,sub_trade):
         return False
     
     MergeBuyerTrade.objects.get_or_create(sub_tid=sub_trade.id,
-                                          main_tid=trade.id) 
+                                          main_tid=trade.id)
     
     trade.append_reason_code(pcfg.MULTIPLE_ORDERS_CODE)
     
