@@ -1,4 +1,4 @@
-#-*- encoding:utf8 -*-
+#-*- encoding:utf-8 -*-
 import re
 import time
 import datetime
@@ -7,6 +7,7 @@ from django.conf import settings
 from django.views.generic import View
 from shopapp.weixin.service import WeixinUserService
 import logging
+import json
 
 logger = logging.getLogger('django.request')
 
@@ -20,7 +21,7 @@ class WeixinAcceptView(View):
     def get(self, request):
         
         content    = request.REQUEST
-        
+
         wx_service = self.get_wx_service()
         if wx_service.checkSignature(content['signature'],
                                      content['timestamp'],
@@ -34,8 +35,8 @@ class WeixinAcceptView(View):
     
     def post(self,request):
         
-        content    = request.GET
-        
+        content    = request.REQUEST
+
         wx_service = self.get_wx_service()
         if not wx_service.checkSignature(content.get('signature',''),
                                      content.get('timestamp',''),
@@ -52,8 +53,69 @@ class WeixinAcceptView(View):
         
         return HttpResponse(response,mimetype="text/xml")
 
+
+class WeixinAddReferalView(View):
+    "add a referal"
+    
+    def post(self, request):
+        content = request.REQUEST
+        
+        referal_to_mobile = content.get("mobile")
+        referal_from_openid = content.get("openid")
+
+        ## check whether referal_to_mobile exists
+        if WeiXinUser.objects.filter(mobile=referal_to_mobile).count() > 0 or \\
+                ReferalRelationship.objects.filter(referal_to_mobile=referal_to_mobile).count() > 0:
+            response = {"code":"dup", "message":"referal already exists"}
+            return HttpResponse(json.dumps(response),mimetype='application/json')
+            
+        ## add to referal relationship database
+        ReferalRelationship.objects.create(referal_from_openid=referal_from_openid,referal_to_mobile=referal_to_mobile)
+        
+        ## update referal summary
+        rs = ReferalSummary.objects.filter(user_openid=referal_from_openid)
+        if rs.count() == 0:
+            ReferalSummary.objects.create(user_openid=referal_from_openid,direct_referal_count=1,indirect_referal_count=0)
+        else:
+            rs.direct_referal_count += 1
+            ## should also update indirect referal summary
+            referal_from_user = WeiXinUser.objects.get(openid=referal_from_openid)
+            parent_openid = referal_from_user.referal_from_openid
+            if parent_openid != "":
+                parent = ReferalSummary.objects.get(user_openid=parent_openid)
+                parent.indirect_referal_count += 1
+        else:
+            ReferalSummary.objects.create(user=referal_from_user, direct_referal_count=1, indirect_referal_count=0)
+            
+        response = {"code":"ok", "message":"referal added successfully"}
+        return HttpResponse(json.dumps(response),mimetype='application/json')
+
+    def get(self, request):
+        return self.post(request)
+        
+        
+from django.shortcuts import render_to_response
+from django.template import RequestContext
+from urllib import urlopen
+
+class ReferalView(View):
+    
+    def get_user_openid(self, code, appid, secret):
+        url = 'https://api.weixin.qq.com/sns/oauth2/access_token?appid=%s&secret=%s&code=%s&grant_type=authorization_code' % (appid, secret, code)
+        r = urlopen(url).read()
+        r = json.loads(r)
+        return r.get('openid')
         
 
+    def get(self, request):
+        content = request.REQUEST
+
+        code = content.get('code')
+
+        APPID = 'wxc2848fa1e1aa94b5'
+        SECRET = 'eb3bfe8e9a36a61176fa5cafe341c81f'
+        
+        user_openid = self.get_user_openid(code, APPID, SECRET)
         
         
-        
+        return render_to_response('weixin/referal.html', {'openid':user_openid}, context_instance=RequestContext(request))

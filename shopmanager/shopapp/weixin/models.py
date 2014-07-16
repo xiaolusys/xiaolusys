@@ -2,7 +2,7 @@
 import datetime
 from django.db import models
 from shopback.base.fields import BigIntegerAutoField
-from jsonfield import JSONCharField
+from shopback.base.models import JSONCharMyField
 
 SAFE_CODE_SECONDS = 60
 
@@ -35,7 +35,7 @@ class WeiXinAccount(models.Model):
     expired    = models.DateTimeField(default=datetime.datetime.now(),
                                       verbose_name="上次过期时间")
     
-    jmenu     =  JSONCharField(max_length=1024,blank=True,
+    jmenu     =  JSONCharMyField(max_length=1024,blank=True,
                                load_kwargs={},default='{}',
                                verbose_name=u'菜单代码') 
     
@@ -108,6 +108,7 @@ class WeiXinUser(models.Model):
     city       = models.CharField(max_length=24,blank=True,verbose_name=u"城市")
     address    = models.CharField(max_length=256,blank=True,verbose_name=u"地址")
     mobile     = models.CharField(max_length=24,blank=True,verbose_name=u"手机")
+    referal_from_openid = models.CharField(max_length=64,blank=True,verbose_name=u"推荐人ID")
     
     baby_nick   = models.CharField(max_length=64,blank=True,verbose_name=u"宝宝昵称")
     baby_birth  = models.DateTimeField(blank=True,null=True,verbose_name=u"宝宝生日")
@@ -214,7 +215,7 @@ class WeiXinAutoResponse(models.Model):
     music_url = models.CharField(max_length=512,blank=True,verbose_name=u'音乐链接')
     hq_music_url = models.CharField(max_length=512,blank=True,verbose_name=u'高品质音乐链接')
     
-    news_json = JSONCharField(max_length=1024,blank=True,
+    news_json = JSONCharMyField(max_length=1024,blank=True,
                               load_kwargs={},default='{}',
                               verbose_name=u'图文信息')
     
@@ -225,13 +226,14 @@ class WeiXinAutoResponse(models.Model):
         
     @classmethod
     def respDefault(cls):
-        resp,state = cls.objects.get_or_create(message=WX_DEFAULT,rtype=WX_TEXT)
+        resp,state = cls.objects.get_or_create(message=cls.WX_DEFAULT,rtype=cls.WX_TEXT)
         return resp
     
     def __unicode__(self):
         return u'<WeiXinAutoResponse:%d,%s>'%(self.id,self.get_rtype_display())
     
     def respText(self):
+        self.content = self.content.replace('\r','')
         return {'MsgType':self.rtype,
                 'Content':self.content}
     
@@ -273,15 +275,15 @@ class WeiXinAutoResponse(models.Model):
         
     def autoParams(self):
         
-        if   self.rtype == WX_TEXT:
+        if   self.rtype == self.WX_TEXT:
             return self.respText()
-        elif self.rtype == WX_IMAGE:
+        elif self.rtype == self.WX_IMAGE:
             return self.respImage()
-        elif self.rtype == WX_VOICE:
+        elif self.rtype == self.WX_VOICE:
             return self.respVoice()
-        elif self.rtype == WX_VIDEO:
+        elif self.rtype == self.WX_VIDEO:
             return self.respVideo()
-        elif self.rtype == WX_MUSIC:
+        elif self.rtype == self.WX_MUSIC:
             return self.respMusic()
         else:
             return self.respNews()
@@ -304,19 +306,19 @@ class WXProduct(models.Model):
     product_name = models.CharField(max_length=32,verbose_name=u'商品标题')
     product_img  = models.CharField(max_length=256,verbose_name=u'商品图片')
     
-    product_base = JSONCharField(max_length=3000,blank=True,
+    product_base = JSONCharMyField(max_length=3000,blank=True,
                                  load_kwargs={},default='{}'
                                  ,verbose_name=u'图文信息')
     
-    sku_list     = JSONCharField(max_length=3000,blank=True,
+    sku_list     = JSONCharMyField(max_length=3000,blank=True,
                                  load_kwargs={},default='{}'
                                  ,verbose_name=u'规格信息') 
     
-    attrext      = JSONCharField(max_length=1000,blank=True,
+    attrext      = JSONCharMyField(max_length=1000,blank=True,
                                  load_kwargs={},default='{}'
                                  ,verbose_name=u'附加信息') 
     
-    delivery_info   = JSONCharField(max_length=200,blank=True,
+    delivery_info   = JSONCharMyField(max_length=200,blank=True,
                                     load_kwargs={},default='{}'
                                     ,verbose_name=u'发货信息') 
     
@@ -445,3 +447,53 @@ class WXLogistic(models.Model):
     
     
     
+class ReferalRelationship(models.Model):
+    """ 保存待确定的推荐关系 """
+    referal_from_openid = models.CharField(max_length=64,db_index=True,verbose_name=u"推荐人ID")
+    referal_to_mobile   = models.CharField(max_length=12,db_index=True,verbose_name=u"被推荐人手机")
+    time_created = models.DateTimeField(default=datetime.datetime.now(), verbose_name="time created")
+
+    class Meta:
+        db_table = 'shop_weixin_referal_relationship'
+
+
+class ReferalBonusRecord(models.Model):
+    user_openid = models.CharField(max_length=64,db_index=True,verbose_name=u"ID")
+    from_referal_user = models.IntegerField() # IntegerField?
+    order_id = models.CharField(max_length=32)
+    bonus_value = models.IntegerField() # cent
+    confirmed_status = models.IntegerField() # 0 unconfirmed, 1 confirmed, 2 cancelled
+    
+    class Meta:
+        db_table = 'shop_wexin_referal_bonus_record'
+
+
+class BonusCashoutRecord(models.Model):
+    user_openid = models.CharField(max_length=64,db_index=True,verbose_name=u"ID")
+    cashout_value = models.IntegerField()
+    cashout_time = models.DateTimeField(default=datetime.datetime.now(), verbose_name="cashout time")
+
+    class Meta:
+        db_table = 'shop_weixin_bonus_cashout_record'
+
+
+class BonusSummary(models.Model):
+    user_openid = models.CharField(max_length=64,db_index=True,verbose_name=u"ID")
+    total_confirmed_value = models.IntegerField()
+    cashed_value = models.IntegerField()
+    #uncashed_value = total_confirmed_value - cashed_value
+    uncomfirmed_value = models.IntegerField()
+    canceled_value = models.IntegerField()
+
+    class Meta:
+        db_table = 'shop_weixin_bonus_summary'
+
+
+class ReferalSummary(models.Model):
+    user_openid = models.CharField(max_length=64,db_index=True,verbose_name=u"ID")
+    direct_referal_count = models.IntegerField()
+    indirect_referal_count = models.IntegerField()
+
+    class Meta:
+        db_table = 'shop_weixin_referal_summary'
+

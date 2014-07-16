@@ -156,8 +156,9 @@ class WeixinUserService():
         initStr = dom.toxml()
         
         self.buildDomByJson(dom, params ,rootTag='xml')
-        
-        return dom.toxml()[len(initStr):]
+        x = dom.toxml()
+        return x[len(initStr):]
+        #return dom.toxml()[len(initStr):]
     
     def getResponseList(self):
         
@@ -292,7 +293,28 @@ class WeixinUserService():
         trade_traces = getLogisticTrace(trade.out_sid,trade.logistics_company.code.split('_')[0])
         
         return self.genTextRespJson(self.formatJsonToPrettyString(trade_traces))
+
+    def getReferalProgramWelcomeMessage(self, mobile):
+        msg = "把优尼世界推荐给您的朋友，你们双方都将有机会获得额外的返利。\n\n请输入您朋友的姓氏和她的手机号,用#号连接：\n(例如：李#13801235666)"
+        return self.genTextRespJson(msg)
+
+    def addReferal(self, referal_from_mobile, refral_to_mobile, referal_to_lastname):
+        user_exits_num = Customer.objects.filter(mobile=referal_to_mobile).count()
         
+        if user_exists_num > 0:
+            return False
+        
+        Customer.objects.create(mobile=referal_to_mobile)
+
+        ReferalRelationship.objects.create(
+            referal_from_mobile=referal_from_mobile, 
+            referal_to_mobile=referal_to_mobile, 
+            referal_to_lastname=referal_to_lastname
+            )
+        
+        return True
+    
+    
     def handleEvent(self,eventKey,openId,eventType=WeiXinAutoResponse.WX_EVENT_CLICK):
         
         if self._wx_user.isNone():
@@ -300,7 +322,7 @@ class WeixinUserService():
         
         eventKey = eventKey.upper()
         
-        if eventKey in ('Q','W','E','R') and not self._wx_user.isValid():
+        if eventKey in ('Q','W','E','R', 'Z') and not self._wx_user.isValid():
             raise MessageException(u'你还没有绑定手机哦!\n请输入手机号:')
         
         if eventKey in ("Q","R"):
@@ -312,6 +334,9 @@ class WeixinUserService():
         elif  eventKey == "E":
             return self.getLogisticMessageByMobile(self._wx_user.mobile)
         
+        elif eventKey == "Z":
+            return self.getReferalProgramWelcomeMessage(self._wx_user.mobile)
+
         if eventType == WeiXinAutoResponse.WX_EVENT_SUBSCRIBE :
             self._wx_user.doSubscribe(eventKey.rfind('_') > -1 and eventKey.split('_')[1] or '')
             
@@ -534,5 +559,6 @@ class WxShopService(LocalService):
         except Exception,exc:
             logger.error(u'微信发货失败:%s'%exc.message,exc_info=True)
             raise exc
+
 
 

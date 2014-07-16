@@ -3,7 +3,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.conf import settings
 from django.views.generic import TemplateView
 from shopback.base.proxy  import ProxyView
-from shopapp.weixin.views import WeixinAcceptView
+from shopapp.weixin.views import WeixinAcceptView,WeixinAddReferalView,ReferalView
 
 urlpatterns = patterns('',
 
@@ -17,5 +17,15 @@ urlpatterns = patterns('',
                        
     url(r'^baby/archive/$', TemplateView.as_view(
         template_name="weixin/baby_archives.html"), 
-        name='weixin_baby_archive')                   
+        name='weixin_baby_archive'),
+
+#    url(r'^referal/$', TemplateView.as_view(
+#        template_name="weixin/referal.html"), 
+#        name='weixin_referal'),
+
+    url(r'^referal/$', ReferalView.as_view()),
+    
+    url(r'^addreferal/$', WeixinAddReferalView.as_view()),
+    
+
 )

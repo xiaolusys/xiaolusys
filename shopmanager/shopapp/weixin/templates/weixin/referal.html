@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+    <title>推荐有礼</title>
+
+    <!-- Bootstrap -->
+    <link href="{{STATIC_URL}}bootstrap/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+      <script src="http://cdn.bootcss.com/html5shiv/3.7.2/html5shiv.min.js"></script>
+      <script src="http://cdn.bootcss.com/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+    <script type="text/javascript">
+      function validateMobile(s) {
+        var validateReg = /^((\+?86)|(\(\+86\)))?1\d{10}$/;
+        return validateReg.test(s);
+      };
+
+      function referalSubmit() {
+        var mobile_input = document.getElementById("mobile_input");
+        var mobile = mobile_input.value;
+        mobile_input.placeholder = "好友手机号";
+      
+        if (mobile == "") return false;
+
+        var feedback = document.getElementById("feedback");
+        feedback.innerHTML = "";
+        if (validateMobile(mobile) == false) {
+          feedback.innerHTML = "号码有误，请重新输入";
+          return false;
+        }
+
+        var openid = document.getElementById("openid").value;
+        var url = "/app/weixin/addreferal/";
+        var data = {"mobile":mobile, "openid":openid};
+        
+        var callback = function (res) {
+          console.log(res);
+          if (res["code"] == "ok") {
+            mobile_input.value = "";
+            mobile_input.placeholder = "推荐成功，请继续推荐";
+          }
+        };
+        $.ajax({url:url, data:data, success: callback});
+      };
+    </script>
+  </head>
+  <body>
+
+<div class="container-fluid">
+
+<div class="panel panel-default" style="margin-top:5px">
+  <div class="panel-heading">推荐有礼</div>
+  <div class="panel-body">
+      <p>把优尼世界推荐给好友，只需输入她的手机号即可。</p>
+      <p>好友得优惠，您赢取返利，一举多得！</p>
+      <div class="form-group">
+	<label>输入好友手机:</label><span style="float:right;color:red" id="feedback"></span>
+	<input type="text" class="form-control" placeholder="好友手机号" id="mobile_input">
+	<input type="hidden" id="openid" value="{{ openid }}">
+      </div>
+      <button type="button" class="btn btn-primary" onclick="referalSubmit();">提交推荐</button>
+  </div>
+</div>
+
+<div class="panel panel-default" style="margin-top:15px">
+  <div class="panel-heading" style="color:orange">我的返利</div>
+  <div class="panel-body">
+    <p>今日获得返利: ￥123.00 </p>
+    <p>今日新增推荐: 20人</p>
+    <p style="color:green">查看详情 >></p>
+  </div>
+</div>
+
+
+  <div class="row">
+    <div class="col-xs-12">
+      <h5 style="color:#3071a9">好友优惠</h5>
+      <p>因为您的推荐，您的好友在第一次购买时会得到额外的<font style="color:red">立减10元</font>优惠。</p>
+    </div>
+    <div class="col-xs-12">
+      <h5 style="color:#3071a9">推荐返利</h5>
+      <p>好友每成功购买一次，系统将自动返利到您的账户。返利可微信红包提现哦!</p>
+    </div>
+    <div class="col-xs-12">
+      <h5 style="color:#3071a9">返利规则</h5>
+      <p style="color:green">了解详细的返利规则，请点击查看 >></p>
+    </div>
+  </div>
+  
+  <div class="footer">
+    <p>© Uni Littles 2014</p>
+  </div>
+  
+</div>
+
+    <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
+    <script src="http://cdn.bootcss.com/jquery/1.11.1/jquery.min.js"></script>
+    <!-- Include all compiled plugins (below), or include individual files as needed -->
+    <script src="{{STATIC_URL}}bootstrap/js/bootstrap.min.js"></script>
+  </body>
+</html>
