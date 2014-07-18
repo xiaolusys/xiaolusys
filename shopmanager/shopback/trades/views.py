@@ -1325,10 +1325,6 @@ def showFenxiaoDetail(request):
 #    return render_to_response('trades/trade_fenxiao_detail.html',{'FenxiaoDateil':FenxiaoDateil,
 #                                                                  'fenxiao_render_data':fenxiao_render_data,},  context_instance=RequestContext(request))
                                                                   
-    print 'fenxiao_render_data.....len',len(fenxiao_render_data[0][8])
-    print "fenxiao_render_data",fenxiao_render_data[0][8]
-    print 'FenxiaoDateil',FenxiaoDateil
-    print 'type',type(FenxiaoDateil)
     
     return render_to_response('trades/trade_fenxiao_detail.html',{'FenxiaoDateil':FenxiaoDateil,
                                                                   'fenxiao_render_data':fenxiao_render_data,},  context_instance=RequestContext(request))

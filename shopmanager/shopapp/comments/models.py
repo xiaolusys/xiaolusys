@@ -92,10 +92,12 @@ class CommentItem(models.Model):
 class CommentGrade(models.Model):
     
     GRADE_GOOD = 1
+    GRADE_NORMAL    = 2
     GRADE_BAD  = 0
     GRADE_CHOICE = (
-                (GRADE_GOOD,u'好'),
-                (GRADE_BAD,u'差'),
+                (GRADE_GOOD,u'优秀'),
+                (GRADE_NORMAL,u'合格'),
+                (GRADE_BAD,u'不合格'),
                 )
 
     id = BigIntegerAutoField(primary_key=True)    
@@ -103,14 +105,18 @@ class CommentGrade(models.Model):
     num_iid = models.BigIntegerField(null=False,db_index=True,verbose_name=u'商品ID')
     tid     = models.BigIntegerField(null=False,db_index=True,verbose_name=u'交易ID')
     oid     = models.BigIntegerField(null=False,db_index=True,verbose_name=u'订单ID')
-
     reply   = models.TextField(max_length=1500,blank=True,verbose_name=u'评价解释')
     created = models.DateTimeField(blank=True,null=True,auto_now=True,verbose_name=u'创建日期')
-    
+    replay_at = models.DateTimeField(db_index=True,blank=True,null=True,verbose_name=u'解释日期')
     replayer  = models.ForeignKey(User,null=True,default=None,related_name='grade_replyers',verbose_name=u'评价人')
     grader = models.ForeignKey(User,null=True,default=None,related_name='grade_maker',verbose_name=u'打分人')
     grade   = models.IntegerField(default=GRADE_BAD,choices=GRADE_CHOICE,verbose_name=u'评价打分')
     
+    
+#    item_pic_url = models.URLField(verify_exists=False,blank=True,verbose_name=u'商品图片')
+#    detail_url   = models.URLField(verify_exists=False,blank=True,verbose_name=u'详情链接')
+#    content = models.CharField(max_length=1500,blank=True,verbose_name=u'评价内容')
+
     class Meta:
         db_table = 'shop_comments_grade'
         unique_together = ('num_iid', 'tid', 'oid')
