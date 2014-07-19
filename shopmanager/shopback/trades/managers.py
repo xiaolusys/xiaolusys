@@ -130,7 +130,9 @@ class MergeTradeManager(models.Manager):
                 ProductSku.objects.get(outer_id=outer_sku_id,
                                        product__outer_id=outer_id)
             else:
-                Product.objects.get(outer_id=outer_id)
+                product = Product.objects.get(outer_id=outer_id)
+                if product.prod_skus.count() > 0:
+                    return True        
         except (Product.DoesNotExist,ProductSku.DoesNotExist):
             return True
         return False

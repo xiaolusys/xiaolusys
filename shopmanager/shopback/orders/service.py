@@ -83,7 +83,8 @@ class OrderService(TaobaoSendTradeMixin,TaobaoTradeService,LocalService):
         if not trade_dict.get('tid'):
             return 
         
-        trade,state = Trade.objects.get_or_create(pk=trade_dict['tid'],seller_id=user_id)
+        trade,state = Trade.objects.get_or_create(pk=trade_dict['tid'],
+                                                  seller_id=user_id)
         trade.user  = Seller.objects.get(visitor_id=user_id)
         trade.seller_id   = user_id
         

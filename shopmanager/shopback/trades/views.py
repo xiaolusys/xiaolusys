@@ -557,7 +557,7 @@ def change_trade_addr(request):
                                                             receiver_zip=trade.receiver_zip,
                                                             tb_user_id=trade.user.visitor_id)
     except Exception,exc:
-        logger.error(exc.message,exc_info=True)
+        logger.debug(u'订单地址更新失败：%s'%exc.message)
         
     #通知其他APP，订单地址已修改
     change_addr_signal.send(sender=MergeTrade,tid=trade.id)

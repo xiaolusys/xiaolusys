@@ -633,7 +633,7 @@ class MergeTradeAdmin(admin.ModelAdmin):
             replay_trade = ReplayPostTrade.objects.create(operator=request.user.username,
                                                           order_num=len(trade_ids),
                                                           trade_ids=','.join([str(i) for i in trade_ids]))
-              
+            
             send_tasks = chord([sendTaobaoTradeTask.s(user_id,trade.id) 
                                 for trade in queryset])(sendTradeCallBack.s(replay_trade.id))
 

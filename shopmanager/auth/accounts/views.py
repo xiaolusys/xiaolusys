@@ -1,4 +1,5 @@
 #-*- coding:utf8 -*-
+import urlparse
 from django.http import HttpResponse,HttpResponseRedirect,HttpResponseBadRequest
 from django.conf import settings
 from django.core.urlresolvers import reverse
@@ -14,7 +15,7 @@ import logging
 logger = logging.getLogger('taobao.auth')
 
 
-def request_taobo(request):
+def request_taobao(request):
     
     return HttpResponseRedirect('&'.join(
                                  ['%s?'%settings.AUTHRIZE_URL,
@@ -27,7 +28,7 @@ def request_taobo(request):
 
 
 @csrf_exempt
-def login_taobo(request):
+def login_taobao(request):
     
     user = authenticate(request=request)
  
