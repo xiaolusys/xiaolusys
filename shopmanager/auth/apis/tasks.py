@@ -204,7 +204,7 @@ def apis(api_method,method='GET',max_retry=3,limit_rate=0.5):
                 req = urllib2.urlopen(uri)
                 content = req.read()
             else:
-                rst = urllib2.Request(absolute_url)
+                rst = urllib2.Request(url)
                 req = urllib2.urlopen(rst,urllib.urlencode(params))
                 content = req.read()
 

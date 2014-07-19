@@ -13,6 +13,8 @@ class MemoHandler(BaseHandler):
             return origin_trade.memo  
         elif hasattr(origin_trade,'seller_memo') :
             return origin_trade.seller_memo
+        elif hasattr(origin_trade,'vender_remark'):
+            return origin_trade.vender_remark
         else:
             return merge_trade.seller_memo
         
@@ -22,6 +24,8 @@ class MemoHandler(BaseHandler):
             return origin_trade.buyer_message  
         elif hasattr(origin_trade,'supplier_memo'):
             return origin_trade.supplier_memo
+        elif hasattr(origin_trade,'order_remark'):
+            return origin_trade.order_remark
         else:
             return merge_trade.buyer_message
     
@@ -46,13 +50,14 @@ class MemoHandler(BaseHandler):
         
         origin_trade = kwargs.get('origin_trade',None)
         
+        merge_trade.append_reason_code(pcfg.NEW_MEMO_CODE)
+        
         merge_trade.seller_memo    = self.getOriginMemo(merge_trade,origin_trade)
         merge_trade.buyer_message  = self.getOriginBuyerMessage(merge_trade,origin_trade)
         
         update_model_fields(merge_trade,update_fields=['seller_memo',
                                                        'buyer_message'])
         
-        merge_trade.append_reason_code(pcfg.NEW_MEMO_CODE)
         merge_type = MergeBuyerTrade.getMergeType(merge_trade.id)
         
         if merge_type == pcfg.SUB_MERGE_TYPE:

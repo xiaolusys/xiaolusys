@@ -37,10 +37,14 @@ def explain_for_comment(request):
     
         comment.reply_order_comment(reply,request.user)
     except Exception,exc:
-        logger.error(exc.message or str(exc),exc_info=True)
-        return HttpResponse(json.dumps({'code':1,'error_response':exc.message}),mimetype="application/json")
+        logger.debug(u'评价异常:%s'%exc.message)
+        return HttpResponse(json.dumps({'code':1,
+                                        'error_response':exc.message}),
+                            mimetype="application/json")
     
-    return  HttpResponse(json.dumps({'code':0,'response_content':'success'}),mimetype="application/json")
+    return  HttpResponse(json.dumps({'code':0,
+                                     'response_content':'success'}),
+                         mimetype="application/json")
     
     
 def filter_calcCommentCountJson(fdt,tdt):

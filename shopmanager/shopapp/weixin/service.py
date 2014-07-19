@@ -547,7 +547,7 @@ class WxShopService(LocalService):
     
     def payTrade(self,*args,**kwargs):
         
-        trade = WxShopService.createTrade(self.order.seller_id,
+        trade = self.__class__.createTrade(self.order.seller_id,
                                           self.order.order_id)
         
         return WxShopService.createMergeTrade(trade)
