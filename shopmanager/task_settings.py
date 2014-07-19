@@ -166,6 +166,11 @@ SHOP_APP_SCHEDULE = {
         'schedule':crontab(minute="0",hour="1,12"),
         'args':()
     },
+    u'定时增量下载京东订单信息':{
+        'task':'shopapp.jingdong.tasks.pullAllJDShopOrderByModifiedTask',
+        'schedule':crontab(minute="*/30",hour="9,10,11,12,13,14,15,16,17,18"),
+        'args':()
+    },
 #    'runs-every-10-minutes-update-seller-flag':{
 #        'task':'shopapp.memorule.tasks.updateTradeSellerFlagTask',
 #        'schedule':crontab(minute="*/10"),

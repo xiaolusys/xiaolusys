@@ -129,7 +129,7 @@ class User(models.Model):
     
     created_at = models.DateTimeField(auto_now=True,null=True,verbose_name= u'创建日期') 
     status     = models.CharField(max_length=12,choices=USER_STATUS_CHOICES,
-                                  blank=True,verbose_name= u'状态') 
+                                  default=NORMAL,verbose_name= u'状态') 
     
     objects    = models.Manager()
     effect_users = EffectUserManager()

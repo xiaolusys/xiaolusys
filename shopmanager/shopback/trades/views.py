@@ -557,7 +557,7 @@ def change_trade_addr(request):
                                                             receiver_zip=trade.receiver_zip,
                                                             tb_user_id=trade.user.visitor_id)
     except Exception,exc:
-        logger.error(exc.message,exc_info=True)
+        logger.debug(u'订单地址更新失败：%s'%exc.message)
         
     #通知其他APP，订单地址已修改
     change_addr_signal.send(sender=MergeTrade,tid=trade.id)
@@ -1351,11 +1351,13 @@ def showFenxiaoDetail(request):
         print i
         fenxiao_render_data.append((buyer_nick[i],tid[i],receiver_name[i],receiver_mobile[i],receiver_state[i],receiver_city[i],receiver_district[i],receiver_address[i],payment[i],iid[i]))
      
-#    print 'fenxiao_render_data.....len',len(fenxiao_render_data[0][8])
-#    print "fenxiao_render_data",fenxiao_render_data[0][8]
-#    print 'FenxiaoDateil',FenxiaoDateil
-#    print 'type',type(FenxiaoDateil)
+
+    
+#    return render_to_response('trades/trade_fenxiao_detail.html',{'FenxiaoDateil':FenxiaoDateil,
+#                                                                  'fenxiao_render_data':fenxiao_render_data,},  context_instance=RequestContext(request))
+                                                                  
     
     return render_to_response('trades/trade_fenxiao_detail.html',{'FenxiaoDateil':FenxiaoDateil,
                                                                   'fenxiao_render_data':fenxiao_render_data,},  context_instance=RequestContext(request))
                                                                   
+

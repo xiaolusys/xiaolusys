@@ -76,7 +76,7 @@ admin.site.register(CommentItem, CommentItemAdmin)
 
 class CommentGradeAdmin(admin.ModelAdmin):
     
-    list_display = ('oid','reply','replayer','grade','grader','created')
+    list_display = ('oid','reply','replayer','grade','grader','created','replay_at')
 
 admin.site.register(CommentGrade, CommentGradeAdmin) 
 

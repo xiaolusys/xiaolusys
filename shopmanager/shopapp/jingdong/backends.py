@@ -15,22 +15,6 @@ logger = logging.getLogger('django.request')
 
 JINGDONG_PREFFIX = 'jd'
 
-"""
-token {
-    "w2_expires_in": 0,
-    "taobao_user_id": "121741189",
-    "taobao_user_nick": "**",
-    "w1_expires_in": 1800,
-    "re_expires_in": 2592000,
-    "r2_expires_in": 0,
-    "hra_expires_in": "1800",
-    "expires_in": 86400,
-    "token_type": "Bearer",
-    "refresh_token": "**",
-    "access_token": "**",
-    "r1_expires_in": 1800
-}
-"""
 class JingDongBackend:
     supports_anonymous_user = False
     supports_object_permissions = False
@@ -60,8 +44,9 @@ class JingDongBackend:
             req    = urllib2.urlopen(settings.JD_AUTHRIZE_TOKEN_URL,
                                      urllib.urlencode(params))
             resp   = req.read()
-            logger.debug(resp)
             top_parameters = json.loads(resp.decode('gbk'))
+            if top_parameters.get('code',None):
+                return None
         except Exception,exc:
             logger.error('jingdong autherize token error:%s'%exc.message,exc_info=True)
             return None
@@ -87,34 +72,27 @@ class JingDongBackend:
             raise SiteProfileNotAvailable('ImportError, ImproperlyConfigured error')
 
         user_id  =  '%s%s'%(JINGDONG_PREFFIX,top_parameters['uid'])
-
+        user,state    = User.objects.get_or_create(username=user_id,is_active=True)
+        
         try:
-            profile = model.objects.get(uid=top_parameters['uid'],
+            profile = model.objects.get(user=user,
                                         type=model.SHOP_TYPE_JD)
             profile.top_session    = top_parameters['access_token']
             profile.top_parameters = json.dumps(top_parameters)
             profile.save()
 
-            if profile.user:
-                if not profile.user.is_active:
-                    profile.user.is_active = True
-                    profile.user.save()
-                return profile.user
-            else:
-                user,state = User.objects.get_or_create(username=user_id,is_active=True)
-                profile.user = user
-                profile.save()
-                return user
+            if not profile.user.is_active:
+                profile.user.is_active = True
+                profile.user.save()
+            return profile.user
+        
         except model.DoesNotExist:
-            user,state    = User.objects.get_or_create(username=user_id,is_active=True)
             profile,state = model.objects.get_or_create(user=user,
-                                                        uid=top_parameters['uid'],
                                                         type=model.SHOP_TYPE_JD)
             profile.top_session    = top_parameters['access_token']
             profile.top_parameters = json.dumps(top_parameters)
             profile.save()
             return user
-
 
     def get_user(self, user_id):
         try:
