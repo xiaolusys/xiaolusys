@@ -203,16 +203,16 @@ class WeixinUserService():
     def getResponseByBestMatch(self,message,openId,*args,**kwargs):
         
         if mobile_re.match(message) and self.getValidCode(message,openId):
-            return WeiXinAutoResponse.objects.get_or_create(message=u'校验码提醒')[0]
+            return WeiXinAutoResponse.objects.get_or_create(message=u'校验码提醒')[0].autoParams()
         
         if code_re.match(message) and self.checkValidCode(message,openId):
-            return WeiXinAutoResponse.objects.get_or_create(message=u'校验成功提示')[0]            
+            return WeiXinAutoResponse.objects.get_or_create(message=u'校验成功提示')[0].autoParams()            
             
         for resp in self.getResponseList():
             if message.rfind(resp.message.strip()) > -1:
-                return resp
+                return resp.autoParams()
             
-        return WeiXinAutoResponse.respDefault()
+        return WeiXinAutoResponse.respDKF()
         
     def getTrade2BuyerStatus(self,status,sys_status):
         
@@ -316,11 +316,12 @@ class WeixinUserService():
         
         if eventType == WeiXinAutoResponse.WX_EVENT_SUBSCRIBE :
             self._wx_user.doSubscribe(eventKey.rfind('_') > -1 and eventKey.split('_')[1] or '')
+            return WeiXinAutoResponse.respDefault()
             
         elif eventType == WeiXinAutoResponse.WX_EVENT_UNSUBSCRIBE:
             self._wx_user.unSubscribe()
             
-        return self.getResponseByBestMatch(eventKey,openId).autoParams()
+        return self.getResponseByBestMatch(eventKey,openId)
     
     def handleMerchantOrder(self,user_id,order_id,order_status=2,product_id='',sku_info=''):   
         
@@ -381,7 +382,7 @@ class WeixinUserService():
                 matchMsg = '链接'.decode('utf8')
             
             resp = self.getResponseByBestMatch(matchMsg.strip(),openId)
-            ret_params.update(resp.autoParams())
+            ret_params.update(resp)
         except MessageException,exc:
             ret_params.update(self.genTextRespJson(exc.message))
             

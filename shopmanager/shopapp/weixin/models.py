@@ -241,15 +241,20 @@ class WeiXinAutoResponse(models.Model):
         verbose_name=u'微信回复'
         verbose_name_plural = u'微信回复列表'
         
+    def __unicode__(self):
+        return u'<WeiXinAutoResponse:%d,%s>'%(self.id,
+                                              self.get_rtype_display())
+        
     @classmethod
     def respDefault(cls):
         resp,state = cls.objects.get_or_create(message=cls.WX_DEFAULT,
                                                rtype=cls.WX_TEXT)
         return resp
     
-    def __unicode__(self):
-        return u'<WeiXinAutoResponse:%d,%s>'%(self.id,
-                                              self.get_rtype_display())
+    @classmethod
+    def respDKF(self):
+        return {'MsgType':'transfer_customer_service'}
+    
     
     def respText(self):
         return {'MsgType':self.rtype,
@@ -290,7 +295,7 @@ class WeiXinAutoResponse(models.Model):
         return {'MsgType':self.rtype,
                 'ArticleCount':len(news),
                 'Articles':{'item':news}}
-        
+    
     def autoParams(self):
         
         if   self.rtype == self.WX_TEXT:
