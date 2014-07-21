@@ -588,7 +588,7 @@ class MergeTradeAdmin(admin.ModelAdmin):
                 MergeTrade.objects.reduceWaitPostNum(trade)
             except:
                 pass
-            
+
             try:
                 trade.merge_orders.all().delete()
                 seller_id = trade.user.visitor_id

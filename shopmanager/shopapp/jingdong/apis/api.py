@@ -19,11 +19,11 @@ API_FIELDS = {
     '360buy.order.search':'order_id,vender_id,pay_type,order_total_price,order_payment,order_seller_price'
         +',order_state,delivery_type,invoice_info,order_remark,order_start_time,item_info_list,seller_discount'
         +',modified,freight_price,pin,return_order,vender_remark,pin,balance_used,payment_confirm_time'
-        +',logistics_id,waybill,vat_invoice_info,parent_order_id,order_type',
+        +',logistics_id,waybill,vat_invoice_info,parent_order_id,order_type,consignee_info',
     '360buy.order.get':'order_id,vender_id,pay_type,order_total_price,order_payment,order_seller_price'
         +',order_state,delivery_type,invoice_info,order_remark,order_start_time,item_info_list,seller_discount'
         +',modified,freight_price,pin,return_order,vender_remark,pin,balance_used,payment_confirm_time'
-        +',logistics_id,waybill,vat_invoice_info,parent_order_id,order_type'
+        +',logistics_id,waybill,vat_invoice_info,parent_order_id,order_type,consignee_info'
 }
 
 def raise_except_or_ret_json(content):
