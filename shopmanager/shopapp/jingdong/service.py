@@ -10,7 +10,7 @@ class JDShopService(LocalService):
     
     trade = None    
         
-    def __init__(self,user_id,t):
+    def __init__(self,t):
         
         assert t not in ('',None)
         if isinstance(t,JDOrder):
@@ -41,7 +41,7 @@ class JDShopService(LocalService):
     def createTrade(cls,user_id,tid,*args,**kwargs):
         
         response = api.jd_order_get(order_id=tid,jd_user_id=user_id)
-        order_dict = response['order']['orderInfo']
+        order_dict = response['orderInfo']
         
         return cls.createTradeByDict(user_id,order_dict)
         
@@ -152,7 +152,7 @@ class JDShopService(LocalService):
     
     def payTrade(self,*args,**kwargs):
         
-        trade = self.__class__.createTrade(self.trade.vender_id,
+        trade = self.__class__.createTrade(self.trade.shop.vender_id,
                                            self.trade.order_id)
         
         return self.__class__.createMergeTrade(trade)
