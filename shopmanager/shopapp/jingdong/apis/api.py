@@ -13,7 +13,7 @@ from celery.task import task
 from celery.app.task import BaseTask
 from common.utils import format_datetime,format_date
 from shopapp.jingdong.utils import getJDSignature
-from .exceptions import JDRequestException
+from .exceptions import JDRequestException,JDAuthTokenException
 
 API_FIELDS = {
     '360buy.order.search':'order_id,vender_id,pay_type,order_total_price,order_payment,order_seller_price'
@@ -50,6 +50,38 @@ def raise_except_or_ret_json(content):
     return response_body.items()[0][1]
 
 
+def refreshAccessToken(jd_user):
+    
+    top_params = json.loads(jd_user.top_parameters)
+    if (int(top_params['time'])+int(top_params['expires_in']))/1000 > time.time() + 600:
+        return top_params['access_token']
+    
+    params = {
+        'client_id':settings.JD_APP_KEY,
+        'client_secret':settings.JD_APP_SECRET,
+        'grant_type':'refresh_token',
+        'refresh_token':top_params['refresh_token'],
+        'state':'jingdong',
+        'scope':'read'
+    }
+    
+    req    = urllib2.urlopen(settings.JD_AUTHRIZE_TOKEN_URL,
+                             urllib.urlencode(params))
+    resp   = req.read()
+    
+    top_parameters = json.loads(resp.decode('gbk'))
+    
+    if top_parameters.get('code',None):
+        raise JDAuthTokenException(code=top_parameters['code'],
+                                   msg=top_parameters['error_description'])
+    
+    jd_user.top_session = top_parameters['access_token']
+    jd_user.top_parameters = json.dumps(top_parameters)
+    jd_user.save()
+    
+    return jd_user.top_session
+        
+
 def apis(api_method,method='GET',max_retry=3,limit_rate=0.5):
     """ docstring for tengxun apis """
     def decorator(func):
@@ -78,7 +110,7 @@ def apis(api_method,method='GET',max_retry=3,limit_rate=0.5):
             if not app_params.has_key('access_token'):
                 jd_user_id = app_params.pop('jd_user_id')
                 user       = User.objects.get(visitor_id=jd_user_id)
-                access_token = user.top_session
+                access_token = refreshAccessToken(user)
             else:
                 access_token = app_params.pop('access_token')
             #remove the field with value None

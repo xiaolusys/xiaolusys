@@ -20,3 +20,7 @@ def getJDSignature(params,secret,both_side=True):
 
     md5_value = hashlib.md5(''.join(key_pairs))
     return md5_value.hexdigest().upper()
+
+    
+    
+    

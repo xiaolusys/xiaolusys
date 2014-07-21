@@ -355,7 +355,7 @@ class WeixinUserService():
                     
                 elif eventType == WeiXinAutoResponse.WX_EVENT_LOCATION:    
                     ret_params.update(self.genTextRespJson(
-                                    u'不好意思啦，你的地理位置（%s,%s）我还无法解析的啦...'%
+                                    u'你的地理位置（%s,%s）.'%
                                     (params['Latitude'],params['Longitude'])))
                 else:
                     ret_params.update(self.handleEvent(params['EventKey'].upper(), 
