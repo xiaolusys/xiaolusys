@@ -147,7 +147,7 @@ class User(models.Model):
                        ]
     
     def isValid(self):
-        return self.status == pcfg.USER_NORMAL
+        return self.status == self.NORMAL
     
     def __unicode__(self):
         return '%s'%self.nick

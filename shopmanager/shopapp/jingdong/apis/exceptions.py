@@ -11,6 +11,10 @@ class JDRequestException(Exception):
 
     def __str__(self):
         return '(%s,%s,%s,%s)'%(str(self.code),self.message,self.sub_code,self.sub_msg)
+    
+class JDAuthTokenException(JDRequestException):
+
+    pass
 
 
 
