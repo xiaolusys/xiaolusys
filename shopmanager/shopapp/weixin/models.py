@@ -249,10 +249,10 @@ class WeiXinAutoResponse(models.Model):
     def respDefault(cls):
         resp,state = cls.objects.get_or_create(message=cls.WX_DEFAULT,
                                                rtype=cls.WX_TEXT)
-        return resp
+        return resp.autoParams()
     
     @classmethod
-    def respDKF(self):
+    def respDKF(cls):
         return {'MsgType':'transfer_customer_service'}
     
     

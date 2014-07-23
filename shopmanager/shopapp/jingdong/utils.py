@@ -3,6 +3,11 @@ import re
 import hashlib
 import base64
 import datetime
+from common.utils import update_model_fields
+
+def group_list(l,block):
+    size = len(l)
+    return [l[i:i+block] for i in range(0,size,block)]
 
 def getJDSignature(params,secret,both_side=True):
     

@@ -373,23 +373,24 @@ class CheckOrderView(ModelView):
         if action_code == 'check':
             check_msg = []
             if trade.has_refund:
-                check_msg.append("有待退款".decode('utf8'))
+                check_msg.append(u"有待退款")
             if trade.has_out_stock:
-                check_msg.append("有缺货".decode('utf8'))
+                check_msg.append(u"有缺货")
             if (trade.has_rule_match or 
-                MergeTrade.objects.isTradeRuleMatch(trade)):
-                check_msg.append("订单商品编码与库存商品编码不一致".decode('utf8'))
+                MergeTrade.objects.isTradeDefect(trade)):
+                check_msg.append(u"订单商品编码与库存商品编码不一致")
             if trade.is_force_wlb:
-                check_msg.append("订单由物流宝发货".decode('utf8'))
+                check_msg.append(u"订单由物流宝发货")
             if trade.sys_status != pcfg.WAIT_AUDIT_STATUS:
-                check_msg.append("订单不在问题单".decode('utf8'))
+                check_msg.append(u"订单不在问题单")
             if trade.has_reason_code(pcfg.MULTIPLE_ORDERS_CODE):
-                check_msg.append("需手动合单".decode('utf8'))
+                check_msg.append(u"需手动合单")
             if trade.has_sys_err:
-                check_msg.append("该订单需管理员审核".decode('utf8'))
-            orders = trade.inuse_orders.exclude(refund_status__in=pcfg.REFUND_APPROVAL_STATUS) 
+                check_msg.append(u"订单需管理员审核")
+            orders = trade.inuse_orders.exclude(refund_status__in=
+                                                pcfg.REFUND_APPROVAL_STATUS) 
             if orders.count()==0:
-                check_msg.append("没有可操作订单".decode('utf8'))   
+                check_msg.append(u"订单没有商品信息")   
             if check_msg:
                 return ','.join(check_msg)
             
