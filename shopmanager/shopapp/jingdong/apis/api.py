@@ -53,7 +53,7 @@ def raise_except_or_ret_json(content):
 def refreshAccessToken(jd_user):
     
     top_params = json.loads(jd_user.top_parameters)
-    if (int(top_params['time'])+int(top_params['expires_in']))/1000 > time.time() + 600:
+    if (int(top_params['time'])/1000+top_params['expires_in']) > time.time() + 600:
         return top_params['access_token']
     
     params = {
