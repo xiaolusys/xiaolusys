@@ -583,7 +583,7 @@ def updateUserItemNumTask(user_id):
         try:
             updateItemNum(user_id,item.num_iid)
         except Exception,exc :
-            logger.error('%s'%exc,exc_info=True)
+            logger.error(u'更新淘宝库存异常:%s'%exc,exc_info=True)
 
 
 @task()
@@ -597,7 +597,7 @@ def updateUserPurchaseItemNumTask(user_id):
         try:
             updatePurchaseItemNum(user_id,item.pid)
         except Exception,exc :
-            logger.error('%s'%exc,exc_info=True)
+            logger.error(u'更新分销库存异常:%s'%exc.message,exc_info=True)
         
 
 @task()
@@ -605,15 +605,16 @@ def updateAllUserItemNumTask():
     
     updateProductWaitPostNumTask()
 
-    users = Seller.effect_users.filter(type__in=('B','C'))
-    for user in users:
+    for user in Seller.effect_users.TAOBAO:
         updateUserItemNumTask(user.visitor_id)  
+        
         
 @task()
 def updateAllUserPurchaseItemNumTask():
     
     updateProductWaitPostNumTask()
 
-    users = Seller.effect_users.filter(type__in=('B','C'),has_fenxiao=True)
+    users = Seller.effect_users.TAOBAO.filter(has_fenxiao=True)
+    
     for user in users:
         updateUserPurchaseItemNumTask(user.visitor_id)  

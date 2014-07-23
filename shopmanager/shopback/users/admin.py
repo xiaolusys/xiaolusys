@@ -65,25 +65,42 @@ class UserAdmin(admin.ModelAdmin):
         
         from shopback.orders.tasks import saveUserDuringOrdersTask
         from shopback.fenxiao.tasks import saveUserPurchaseOrderTask
+        from shopback.jingdong.tasks import pullJDOrderByVenderIdTask
+        from shopback.weixin.tasks import pullWaitPostWXOrderTask,WXOrder
         
         pull_users = []
         for user in queryset:
+            
             pull_dict = {'uid':user.visitor_id,'nick':user.nick}
             try:
-                #更新等待发货商城订单
-                saveUserDuringOrdersTask.delay(user.visitor_id,status=pcfg.WAIT_SELLER_SEND_GOODS)
-            
-                #更新待发货分销订单
-                saveUserPurchaseOrderTask.delay(user.visitor_id,status=pcfg.WAIT_SELLER_SEND_GOODS)
+                if user.type in (User.SHOP_TYPE_B,User.SHOP_TYPE_C):
+                    #更新等待发货商城订单
+                    saveUserDuringOrdersTask.delay(user.visitor_id,
+                                                   status=pcfg.WAIT_SELLER_SEND_GOODS)
+                
+                    #更新待发货分销订单
+                    saveUserPurchaseOrderTask.delay(user.visitor_id,
+                                                    status=pcfg.WAIT_SELLER_SEND_GOODS)
+                elif user.type == User.SHOP_TYPE_JD:
+                    
+                    pullJDOrderByVenderIdTask.delay(user.visitor_id)
+                    
+                elif user.type == User.SHOP_TYPE_WX:
+                    
+                    pullWaitPostWXOrderTask.delay(WXOrder.WX_WAIT_SEND,None,None)
+                    
             except Exception,exc:
                 pull_dict['success']=False
                 pull_dict['errmsg']=exc.message or '%s'%exc
+                
             else:
                 pull_dict['success']=True
             pull_users.append(pull_dict)
        
-        return render_to_response('users/pull_wait_post_trade.html',{'users':pull_users},
-                                  context_instance=RequestContext(request),mimetype="text/html")     
+        return render_to_response('users/pull_wait_post_trade.html',
+                                  {'users':pull_users},
+                                  context_instance=RequestContext(request),
+                                  mimetype="text/html")     
         
     pull_user_unpost_trades.short_description = "下载待发货订单".decode('utf8')
     

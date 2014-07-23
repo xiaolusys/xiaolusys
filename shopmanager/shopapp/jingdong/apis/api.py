@@ -20,10 +20,10 @@ API_FIELDS = {
         +',order_state,delivery_type,invoice_info,order_remark,order_start_time,item_info_list,seller_discount'
         +',modified,freight_price,pin,return_order,vender_remark,pin,balance_used,payment_confirm_time'
         +',logistics_id,waybill,vat_invoice_info,parent_order_id,order_type,consignee_info',
-    '360buy.order.get':'order_id,vender_id,pay_type,order_total_price,order_payment,order_seller_price'
-        +',order_state,delivery_type,invoice_info,order_remark,order_start_time,item_info_list,seller_discount'
-        +',modified,freight_price,pin,return_order,vender_remark,pin,balance_used,payment_confirm_time'
-        +',logistics_id,waybill,vat_invoice_info,parent_order_id,order_type,consignee_info'
+    '360buy.ware.get':'ware_id,skus,spu_id,cid,vender_id,shop_id,ware_status,title,item_num,upc_code,transport_id'
+        +',online_time,offline_time,attributes,cost_price,market_price,jd_price,stock_num,logo,creator'
+        +',status,weight,created,modified,outer_id,is_pay_first,is_can_vat,shop_categorys'
+        +',ware_big_small_model,ware_pack_type'
 }
 
 def raise_except_or_ret_json(content):
@@ -174,7 +174,7 @@ def jd_order_search(start_date=None,end_date=None,dateType=None,
 
 @apis('360buy.order.get',method='POST')
 def jd_order_get(order_id=None,order_state=None,
-                     optional_fields=API_FIELDS['360buy.order.get'],jd_user_id=None):
+                     optional_fields=API_FIELDS['360buy.order.search'],jd_user_id=None):
     pass
 
 @apis('360buy.order.sop.outstorage',method='POST')
@@ -189,11 +189,11 @@ def jd_order_sop_waybill_update(order_id=None,logistics_id=None,waybill=None,
 
 ###################### 商品管理 ###################
 @apis('360buy.ware.get',method='POST')
-def jd_ware_get(ware_id=None,fields=None,jd_user_id=None):
+def jd_ware_get(ware_id=None,fields=API_FIELDS['360buy.ware.get'],jd_user_id=None):
     pass
 
 @apis('360buy.wares.list.get',method='POST')
-def jd_wares_list_get(ware_ids=None,fields=None,jd_user_id=None):
+def jd_wares_list_get(ware_ids=None,fields=API_FIELDS['360buy.ware.get'],jd_user_id=None):
     pass
 
 @apis('360buy.wares.search',method='POST')

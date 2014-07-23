@@ -252,7 +252,7 @@ class WeiXinAutoResponse(models.Model):
         return resp.autoParams()
     
     @classmethod
-    def respDKF(self):
+    def respDKF(cls):
         return {'MsgType':'transfer_customer_service'}
     
     

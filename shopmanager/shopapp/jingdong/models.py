@@ -246,8 +246,10 @@ class JDProduct(models.Model):
     ware_pack_type  = models.IntegerField(null=True,verbose_name=u'商品包装')
     ad_content  = models.CharField(max_length=256,blank=True,verbose_name=u'广告语')
     
+    sync_stock  = models.BooleanField(default=True,verbose_name=u'同步库存')
+    
     shop_categorys  = models.CharField(max_length=128,blank=True,verbose_name=u'店内分类')
-    status  = models.CharField(max_length=8,blank=True
+    status      = models.CharField(max_length=8,blank=True
                                ,choices=STATUS,verbose_name=u'状态')
     ware_status = models.CharField(max_length=16,blank=True
                                    ,choices=WARE_STATUS,verbose_name=u'商品状态')
