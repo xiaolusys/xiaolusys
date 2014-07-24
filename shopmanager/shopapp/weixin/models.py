@@ -38,7 +38,7 @@ class WeiXinAccount(models.Model):
     expired    = models.DateTimeField(default=datetime.datetime.now(),
                                       verbose_name="上次过期时间")
     
-    jmenu     =  JSONCharField(max_length=4096,blank=True,
+    jmenu     =  JSONCharMyField(max_length=4096,blank=True,
                                load_kwargs={},default='{}',
                                verbose_name=u'菜单代码') 
     
