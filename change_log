@@ -1,8 +1,13 @@
+
+
 ######### 2014-7-24 ###### zifei ####
 alter table shop_weixin_user change baby_nick receiver_name varchar(64) NOT NULL;
 alter table shop_weixin_user drop column baby_birth;
 alter table shop_weixin_user add column birth_year int(11) DEFAULT 0;
 alter table shop_weixin_user add column birth_month int(11) DEFAULT 0;
+######### 2014-7-23 ########
+alter table shop_trades_mergebuyertrade ENGINE=InnoDB;
+alter table shop_jingdong_product add column sync_stock tinyint(1) NOT NULL;
 ######### 2014-7-4 ##########
 alter table shop_weixin_account add column order_updated datetime DEFAULT NULL;
 alter table shop_weixin_account add column refund_updated datetime DEFAULT NULL;

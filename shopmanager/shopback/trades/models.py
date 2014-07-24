@@ -767,14 +767,21 @@ class ReplayPostTrade(models.Model):
     succ_num   =  models.BigIntegerField(default=0,verbose_name=u'成功单数')
     succ_ids   =  models.TextField(blank=True,verbose_name=u'成功订单ID')
     
-    created    =  models.DateTimeField(null=True,db_index=True,auto_now_add=True,verbose_name=u'创建日期')
-    finished   =  models.DateTimeField(blank=True,db_index=True,null=True,verbose_name=u'完成日期')
+    created    =  models.DateTimeField(null=True,db_index=True,
+                                       auto_now_add=True,verbose_name=u'创建日期')
+    finished   =  models.DateTimeField(blank=True,db_index=True,
+                                       null=True,verbose_name=u'完成日期')
     
-    receiver   =  models.CharField(max_length=32,db_index=True,blank=True,verbose_name=u'接单人')
-    rece_date  =  models.DateTimeField(blank=True,null=True,db_index=True,verbose_name=u'接单时间')
-    check_date =  models.DateTimeField(blank=True,null=True,db_index=True,verbose_name=u'验收时间')
+    receiver   =  models.CharField(max_length=32,db_index=True,
+                                   blank=True,verbose_name=u'接单人')
+    rece_date  =  models.DateTimeField(blank=True,null=True,
+                                       db_index=True,verbose_name=u'接单时间')
+    check_date =  models.DateTimeField(blank=True,null=True,
+                                       db_index=True,verbose_name=u'验收时间')
     
-    status     =  models.IntegerField(default=0,db_index=True,choices=REPLAY_TRADE_STATUS,verbose_name=u'状态')
+    status     =  models.IntegerField(default=0,db_index=True,
+                                      choices=REPLAY_TRADE_STATUS,
+                                      verbose_name=u'状态')
     
     class Meta:
         db_table = 'shop_trades_replayposttrade'

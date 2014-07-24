@@ -69,7 +69,7 @@ SYNC_MODEL_SCHEDULE = {
     u'定时淘宝退款订单下载任务':{     #更新昨日退货退款单
          'task':'shopback.refunds.tasks.updateAllUserRefundOrderTask',
          'schedule':crontab(minute="0",hour='2'),
-         'args':(1,None,None)
+         'args':(1,None,None,)
      },
     u'定时更新设置提醒的订单入问题单':{     #更新定时提醒订单
          'task':'shopback.trades.tasks.regularRemainOrderTask',
@@ -153,17 +153,27 @@ SHOP_APP_SCHEDULE = {
     },
     u'定时增量下载更新微信订单':{
         'task':'shopapp.weixin.tasks.pullWaitPostWXOrderTask',
-        'schedule':crontab(minute="0",hour="*/12"),
-        'args':(2,None,None)
+        'schedule':crontab(minute="0",hour="*/6"),
+        'args':(2,None,None,)
     },
     u'定时增量更新微信维权订单':{
         'task':'shopapp.weixin.tasks.pullFeedBackWXOrderTask',
-        'schedule':crontab(minute="*/30",hour="9,10,11,12,13,14,15,16,17,18"),
-        'args':(None,None)
+        'schedule':crontab(minute="*/30",hour=','.join([str(i) for i in range(9,23)])),
+        'args':(None,None,)
     },
     u'定时下载微信商品信息':{
         'task':'shopapp.weixin.tasks.pullWXProductTask',
         'schedule':crontab(minute="0",hour="1,12"),
+        'args':()
+    },
+    u'定时增量下载京东订单信息':{
+        'task':'shopapp.jingdong.tasks.pullAllJDShopOrderByModifiedTask',
+        'schedule':crontab(minute="*/15",hour=','.join([str(i) for i in range(9,23)])),
+        'args':()
+    },
+    u'定时同步京东商品库存':{
+        'task':'shopapp.jingdong.tasks.syncAllJDUserWareNumTask',
+        'schedule':crontab(minute="20",hour='*/6'),
         'args':()
     },
 #    'runs-every-10-minutes-update-seller-flag':{

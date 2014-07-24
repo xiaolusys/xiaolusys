@@ -47,9 +47,14 @@ function submit() {
 <td>{{ value.1.0 }}</td>
 </tr>
 {% endfor %}
-<td>好评回复案例</td>
-<td>有待提高回复案例</td>
 </tbody>
+</table>
+<table width="900px" class="table table-striped table-bordered table-condensed">
+<tr>
+<td><a target="blank" style="color:red" href='/app/comment/replyer_grade/?grade=1&from={{ fromDateShow }}&to={{ toDateShow }}'>好评回复案例 :{{ good_num }}</a></td>
+<td><a target="blank" style="color:green" href='/app/comment/replyer_grade/?grade=2&from={{ fromDateShow }}&to={{ toDateShow }}'>一般回复案例 :{{ normal_num }}</a></td>
+<td><a target="blank" style="color:black" href='/app/comment/replyer_grade/?grade=0&from={{ fromDateShow }}&to={{ toDateShow }}'>有待提高回复案例 :{{ bad_num }}</a></td>
+</tr>
 </table>
 <div>
 {% endblock %}

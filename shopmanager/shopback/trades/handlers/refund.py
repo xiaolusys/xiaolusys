@@ -23,7 +23,7 @@ class RefundHandler(BaseHandler):
             
             main_trade = MergeTrade.objects.get(id=main_tid)
             main_order = None
-            for order in trade.merge_orders.all():
+            for order in merge_trade.merge_orders.all():
                 
                 main_order = main_trade.merge_orders.get(oid=order.oid)
                 main_order.status = order.status
@@ -54,9 +54,9 @@ class RefundHandler(BaseHandler):
             MergeTrade.objects.get(id=mbt.main_tid).append_reason_code(pcfg.NEW_REFUND_CODE)
         
         elif merge_type == pcfg.MAIN_MERGE_TYPE:
-            if merge_type in (pcfg.WAIT_CHECK_BARCODE_STATUS,
-                             pcfg.WAIT_SCAN_WEIGHT_STATUS,
-                             pcfg.FINISHED_STATUS):
+            if merge_type not in (pcfg.WAIT_CHECK_BARCODE_STATUS,
+                                 pcfg.WAIT_SCAN_WEIGHT_STATUS,
+                                 pcfg.FINISHED_STATUS):
                 MergeTrade.objects.mergeRemover(merge_trade.id)
                 
     
@@ -95,7 +95,7 @@ class RefundHandler(BaseHandler):
             self.atWAIT_SELLER_SEND_GOODS(merge_trade)
             
         elif merge_trade.status == pcfg.WAIT_BUYER_CONFIRM_GOODS:
-            self.atWAIT_SELLER_SEND_GOODS(merge_trade)
+            self.atWAIT_BUYER_CONFIRM_GOODS(merge_trade)
             
         elif merge_trade.status == pcfg.TRADE_CLOSED:
             self.atTRADE_CLOSED(merge_trade)

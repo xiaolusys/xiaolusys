@@ -43,7 +43,7 @@ class TaobaoSendTradeMixin(object):
         return True
         
     
-    def sendTrade(self,company_code=None,out_sid=None,is_cod=False,retry_times=3):
+    def sendTrade(self,company_code=None,out_sid=None,is_cod=False,retry_times=3,*args,**kwargs):
         """ 订单在淘宝后台发货 """
         
         trade_id   = self.get_trade_id()

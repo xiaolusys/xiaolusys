@@ -37,12 +37,13 @@ tradetag.Manager.prototype.showDialog = function(e) {
     	var xhr = e.target;
         try {
         	var res = xhr.getResponseJson();
-        	if (res.id!=''||res.id!='undifine'){
-        		goog.dom.getElement('id_buyer_nick').innerHTML    = res.buyer_nick;
-        		goog.dom.getElement('id_receiver_name').innerHTML = res.receiver_name;
-        		goog.dom.getElement('id_buyer_message').innerHTML = res.buyer_message;
-        		goog.dom.getElement('id_seller_message').innerHTML= res.seller_memo;
-        		goog.dom.getElement('id_sys_memo').value          = res.sys_memo;		
+        	
+        	if (res.code == 0){
+        		goog.dom.getElement('id_buyer_nick').innerHTML    = res.response_content.buyer_nick;
+        		goog.dom.getElement('id_receiver_name').innerHTML = res.response_content.receiver_name;
+        		goog.dom.getElement('id_buyer_message').innerHTML = res.response_content.buyer_message;
+        		goog.dom.getElement('id_seller_message').innerHTML= res.response_content.seller_memo;
+        		goog.dom.getElement('id_sys_memo').value          = res.response_content.sys_memo;		
         	}else{
         		alert('订单获取失败！');
         	}

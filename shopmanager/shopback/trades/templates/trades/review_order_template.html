@@ -241,6 +241,7 @@
 		</div>
 	</div>
 	<script type="text/javascript">
+	
 		var change_logistic = function(evt){
 			var trade_id      = $('#id_review_trade').val();
 			var logistic_code = $('#id_logistics').val();
@@ -303,6 +304,17 @@
 		$('#id-chg-express-no-btn').click(change_logistic);
 		$('#id-review-order-btn').click(review_order);
 		$('.order_stock_status').click(check_outstock);
+		
+		$('#id_logistics').change(function(e){
+			var company_code  = $(this,"option:selected").val();
+			
+			if (company_code.indexOf('QR', 
+				company_code.length - 'QR'.length) == -1){
+				$('#id_express_no').prop('disabled', false);
+			}else{
+				$('#id_express_no').prop('disabled', true);
+			}
+		});
 	</script>
 </body>
 {% endwith %}

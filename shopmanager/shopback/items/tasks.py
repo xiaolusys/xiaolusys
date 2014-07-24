@@ -358,13 +358,16 @@ def updateItemNum(user_id,num_iid):
                 
                 #如果自动更新库存状态开启，并且计算后库存不等于在线库存，则更新
                 if sync_num>0 and user_percent>0:
-                    sync_num = round(user_percet*sync_num)
+                    sync_num = int(user_percet*sync_num)
                 elif sync_num >0 and sync_num <= product_sku.warn_num:
-                    total_num,user_order_num = MergeOrder.get_yesterday_orders_totalnum(item.user.id,outer_id,outer_sku_id)
+                    total_num,user_order_num = MergeOrder.get_yesterday_orders_totalnum(item.user.id,
+                                                                                        outer_id,
+                                                                                        outer_sku_id)
                     if total_num>0 and user_order_num>0:
-                        sync_num = round(float(user_order_num)/float(total_num)*sync_num)
+                        sync_num = int(float(user_order_num)/float(total_num)*sync_num)
                     elif total_num == 0:
-                        item_count = Item.objects.filter(outer_id=outer_id,approve_status=pcfg.ONSALE_STATUS).count() or 1
+                        item_count = Item.objects.filter(outer_id=outer_id,
+                                                         approve_status=pcfg.ONSALE_STATUS).count() or 1
                         sync_num = int(sync_num/item_count) or sync_num
                     else:
                         sync_num = (real_num - wait_nums)>10 and 2 or 0 
@@ -379,12 +382,18 @@ def updateItemNum(user_id,num_iid):
 #                    sync_num = product_sku.warn_num > 0 and min(sync_num,product_sku.warn_num+10) or min(sync_num,15)
                     
                 #同步库存数不为0，或者没有库存警告，同步数量不等于线上库存，并且店铺，商品，规格同步状态正确
-                if not (sync_num == 0 and product_sku.is_assign) and sync_num != sku['quantity'] \
-                    and user.sync_stock and product.sync_stock and product_sku.sync_stock:
-                    response = apis.taobao_item_quantity_update\
-                            (num_iid=item.num_iid,quantity=sync_num,outer_id=outer_sku_id,tb_user_id=user_id)
+                if (not (sync_num == 0 and product_sku.is_assign) 
+                    and sync_num != sku['quantity'] 
+                    and user.sync_stock 
+                    and product.sync_stock 
+                    and product_sku.sync_stock):
+                    response = apis.taobao_item_quantity_update(num_iid=item.num_iid,
+                                                                quantity=sync_num,
+                                                                outer_id=outer_sku_id,
+                                                                tb_user_id=user_id)
                     item_dict = response['item_quantity_update_response']['item']
-                    Item.objects.filter(num_iid=item_dict['num_iid']).update(modified=item_dict['modified'],num=sync_num)
+                    Item.objects.filter(num_iid=item_dict['num_iid']).update(modified=item_dict['modified'],
+                                                                             num=sync_num)
     
                     product_sku.save()
                     ItemNumTaskLog.objects.get_or_create(user_id=user_id,
@@ -406,12 +415,14 @@ def updateItemNum(user_id,num_iid):
 
         #如果自动更新库存状态开启，并且计算后库存不等于在线库存，则更新
         if sync_num>0 and user_percent>0:
-            sync_num = round(user_percet*sync_num)
+            sync_num = int(user_percet*sync_num)
         elif sync_num >0 and sync_num <= product.warn_num:
             total_num,user_order_num = MergeOrder.get_yesterday_orders_totalnum(
-                                            item.user.id,outer_id,outer_sku_id)
+                                            item.user.id,
+                                            outer_id,
+                                            outer_sku_id)
             if total_num>0 and user_order_num>0:
-                sync_num = round(float(user_order_num)/float(total_num)*sync_num)
+                sync_num = int(float(user_order_num)/float(total_num)*sync_num)
             elif total_num == 0:
                 item_count = Item.objects.filter(outer_id=outer_id,
                                 approve_status=pcfg.ONSALE_STATUS).count() or 1
@@ -426,12 +437,18 @@ def updateItemNum(user_id,num_iid):
         #当前同步库存值，与线上拍下未付款商品数，哪个大取哪个 
         sync_num = max(sync_num,item.with_hold_quantity)
         #同步库存数不为0，或者没有库存警告，同步数量不等于线上库存，并且店铺，商品同步状态正确
-        if not (sync_num == 0 and product.is_assign) and sync_num != item.num \
-            and user.sync_stock and product.sync_stock: 
-            response = apis.taobao_item_update(num_iid=item.num_iid,num=sync_num,tb_user_id=user_id)
+        if (not (sync_num == 0 and product.is_assign) 
+            and sync_num != item.num 
+            and user.sync_stock 
+            and product.sync_stock): 
+            response = apis.taobao_item_update(num_iid=item.num_iid,
+                                               num=sync_num,
+                                               tb_user_id=user_id)
+            
             item_dict = response['item_update_response']['item']
             Item.objects.filter(num_iid=item_dict['num_iid']).update(
-                                        modified=item_dict['modified'],num=sync_num)
+                                        modified=item_dict['modified'],
+                                        num=sync_num)
 
             product.save()
             
@@ -566,7 +583,7 @@ def updateUserItemNumTask(user_id):
         try:
             updateItemNum(user_id,item.num_iid)
         except Exception,exc :
-            logger.error('%s'%exc,exc_info=True)
+            logger.error(u'更新淘宝库存异常:%s'%exc,exc_info=True)
 
 
 @task()
@@ -580,7 +597,7 @@ def updateUserPurchaseItemNumTask(user_id):
         try:
             updatePurchaseItemNum(user_id,item.pid)
         except Exception,exc :
-            logger.error('%s'%exc,exc_info=True)
+            logger.error(u'更新分销库存异常:%s'%exc.message,exc_info=True)
         
 
 @task()
@@ -588,15 +605,16 @@ def updateAllUserItemNumTask():
     
     updateProductWaitPostNumTask()
 
-    users = Seller.effect_users.filter(type__in=('B','C'))
-    for user in users:
+    for user in Seller.effect_users.TAOBAO:
         updateUserItemNumTask(user.visitor_id)  
+        
         
 @task()
 def updateAllUserPurchaseItemNumTask():
     
     updateProductWaitPostNumTask()
 
-    users = Seller.effect_users.filter(type__in=('B','C'),has_fenxiao=True)
+    users = Seller.effect_users.TAOBAO.filter(has_fenxiao=True)
+    
     for user in users:
         updateUserPurchaseItemNumTask(user.visitor_id)  

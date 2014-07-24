@@ -1,9 +1,4 @@
 #-*- coding:utf8 -*-
-USER_NORMAL = "normal"     #正常
-USER_INACTIVE = "inactive" #待用
-USER_DELETE = "delete"     #删除
-USER_FREEZE = "freeze"     #冻结
-USER_SUPERVISE = "supervise" #监管
 
 #任务状态
 UNEXECUTE = 'unexecute'
@@ -30,13 +25,7 @@ COD_TYPE        = 'cod'
 GUARANTEE_TYPE  = 'guarantee_trade'
 AUCTION_TYPE    = 'auction'
 #店铺类型
-SHOP_TYPE_B   = 'B'
-SHOP_TYPE_C   = 'C'
-SHOP_TYPE_JD  = 'JD'
-SHOP_TYPE_YHD = 'YHD'
-SHOP_TYPE_DD  = 'DD'
-SHOP_TYPE_WX  = 'WX'
-SHOP_TYPE_AMZ = 'AMZ'
+
 
 PRIORITY_HIG  = -1
 PRIORITY_MID  = 0

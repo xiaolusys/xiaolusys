@@ -7,10 +7,13 @@
     <!-- Bootstrap -->
     <link rel="stylesheet" href="{{ STATIC_URL }}bootstrap/css/bootstrap.min.css">
 
-    {% block head_script %} {% endblock %}
+    {% block head_script %} 
+
+    {% endblock %}
   </head>
-  <body>
+  <body >
     {% block comment_count %} {% endblock %}
     {% block replyer_detail %} {% endblock %}
+    {% block replyer_grade %} {% endblock %}
   </body>
 </html>

@@ -139,6 +139,7 @@ INSTALLED_APPS = (
     'shopapp.comments',
     'shopapp.weixin',
     'shopapp.tmcnotify',
+    'shopapp.jingdong',
 
     #'test.celery',
     #'shopapp.notify',
@@ -154,6 +155,7 @@ AUTH_PROFILE_MODULE = 'users.user'
 
 AUTHENTICATION_BACKENDS = (
     'auth.accounts.backends.TaoBaoBackend',
+    'shopapp.jingdong.backends.JingDongBackend',
     'django.contrib.auth.backends.ModelBackend')
 
 LOGIN_REDIRECT_URL = '/home/'
@@ -176,7 +178,7 @@ LOGGING = {
     },
     'handlers': {
         'sentry': {
-            'level': 'DEBUG',
+            'level': 'ERROR',
             'class': 'raven.contrib.django.handlers.SentryHandler'
         },
         'console':{
@@ -192,8 +194,8 @@ LOGGING = {
     },
     'loggers': {
         'django.request': {
-            'handlers': ['sentry'],
-            'level': 'ERROR',
+            'handlers': ['console','sentry'],
+            'level': 'DEBUG',
             'propagate': True,
         },
         'sentry.errors': {
@@ -202,7 +204,7 @@ LOGGING = {
             'propagate': True,
         },
         'celery.handler': {
-            'handlers': ['sentry'],
+            'handlers': ['sentry','console'],
             'level': 'ERROR',
             'propagate': True,
         },

@@ -68,6 +68,10 @@ class OrderService(TaobaoSendTradeMixin,TaobaoTradeService,LocalService):
                 v = float(v or 0.0) 
             hasattr(order,k) and setattr(order,k,v)
         
+        divide_order_fee = order_dict.get('divide_order_fee',None)
+        if divide_order_fee:
+            order.payment   = float(divide_order_fee)
+            
         order.outer_id  = order_dict.get('outer_iid','')
         order.save()
         
@@ -79,7 +83,8 @@ class OrderService(TaobaoSendTradeMixin,TaobaoTradeService,LocalService):
         if not trade_dict.get('tid'):
             return 
         
-        trade,state = Trade.objects.get_or_create(pk=trade_dict['tid'],seller_id=user_id)
+        trade,state = Trade.objects.get_or_create(pk=trade_dict['tid'],
+                                                  seller_id=user_id)
         trade.user  = Seller.objects.get(visitor_id=user_id)
         trade.seller_id   = user_id
         

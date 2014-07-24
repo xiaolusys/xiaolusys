@@ -31,7 +31,7 @@ class ProductManager(models.Manager):
                 product_sku = ProductSku.objects.get(outer_id=outer_sku_id,
                                                      product__outer_id=outer_id)
         except (self.model.DoesNotExist,ProductSku.DoesNotExist):
-            raise self.model.ProductCodeDefect(u'(%s,%s)编码组合未匹配到商品')
+            raise self.model.ProductCodeDefect(u'(%s,%s)编码组合未匹配到商品'%(outer_id,outer_sku_id))
         
         return (product.is_out_stock,
                 product_sku and product_sku.is_out_stock)[product_sku and 1 or 0]
@@ -48,7 +48,7 @@ class ProductManager(models.Manager):
             
             return product.is_match
         except (self.model.DoesNotExist,ProductSku.DoesNotExist):
-            raise self.model.ProductCodeDefect(u'(%s,%s)编码组合未匹配到商品')
+            raise self.model.ProductCodeDefect(u'(%s,%s)编码组合未匹配到商品'%(outer_id,outer_sku_id))
         
     def isProductRuleSplit(self,outer_id,outer_sku_id):
         
@@ -63,7 +63,7 @@ class ProductManager(models.Manager):
             return product.is_split
             
         except (self.model.DoesNotExist,ProductSku.DoesNotExist):
-            raise self.model.ProductCodeDefect(u'(%s,%s)编码组合未匹配到商品')
+            raise self.model.ProductCodeDefect(u'(%s,%s)编码组合未匹配到商品'%(outer_id,outer_sku_id))
         
     
     def getProductMatchReason(self,outer_id,outer_sku_id):
@@ -82,7 +82,7 @@ class ProductManager(models.Manager):
             return product.match_reason or u'匹配原因不明'
    
         except (self.model.DoesNotExist,ProductSku.DoesNotExist):
-            raise self.model.ProductCodeDefect(u'(%s,%s)编码组合未匹配到商品')
+            raise self.model.ProductCodeDefect(u'(%s,%s)编码组合未匹配到商品'%(outer_id,outer_sku_id))
         
         
     def getPrudocutCostByCode(self,outer_id,outer_sku_id):
@@ -95,7 +95,7 @@ class ProductManager(models.Manager):
                 product_sku = ProductSku.objects.get(outer_id=outer_sku_id,
                                                      product__outer_id=outer_id)
         except (self.model.DoesNotExist,ProductSku.DoesNotExist):
-            raise self.model.ProductCodeDefect(u'(%s,%s)编码组合未匹配到商品')
+            raise self.model.ProductCodeDefect(u'(%s,%s)编码组合未匹配到商品'%(outer_id,outer_sku_id))
         
         return (product.cost,
                 product_sku and product_sku.cost)[product_sku and 1 or 0]
@@ -115,7 +115,7 @@ class ProductManager(models.Manager):
                 product.update_wait_post_num(order_num)
                 
         except (self.model.DoesNotExist,ProductSku.DoesNotExist):
-            raise self.model.ProductCodeDefect(u'(%s,%s)编码组合未匹配到商品')
+            raise self.model.ProductCodeDefect(u'(%s,%s)编码组合未匹配到商品'%(outer_id,outer_sku_id))
         
     def reduceWaitPostNumByCode(self,outer_id,outer_sku_id,order_num):
         
@@ -131,7 +131,7 @@ class ProductManager(models.Manager):
                 product.update_wait_post_num(order_num,dec_update=True)
                 
         except (self.model.DoesNotExist,ProductSku.DoesNotExist):
-            raise self.model.ProductCodeDefect(u'(%s,%s)编码组合未匹配到商品')
+            raise self.model.ProductCodeDefect(u'(%s,%s)编码组合未匹配到商品'%(outer_id,outer_sku_id))
         
     def trancecode(self,outer_id,outer_sku_id,sku_code_prior=False):
         

@@ -61,9 +61,9 @@ class WeixinUserService():
         if state or force_update:
             try:     
                 userinfo = self. _wx_api.getUserInfo(openId)
-               
+                
                 for k,v in userinfo.iteritems():
-                    setattr(wx_user,k,v)
+                    setattr(wx_user,k,v or getattr(wx_user,k))
                 
                 wx_user.nickname = replace_utf8mb4(wx_user.nickname.decode('utf8'))
                 subscribe_time = userinfo.get('subscribe_time',None)
@@ -204,16 +204,16 @@ class WeixinUserService():
     def getResponseByBestMatch(self,message,openId,*args,**kwargs):
         
         if mobile_re.match(message) and self.getValidCode(message,openId):
-            return WeiXinAutoResponse.objects.get_or_create(message=u'校验码提醒')[0]
+            return WeiXinAutoResponse.objects.get_or_create(message=u'校验码提醒')[0].autoParams()
         
         if code_re.match(message) and self.checkValidCode(message,openId):
-            return WeiXinAutoResponse.objects.get_or_create(message=u'校验成功提示')[0]            
+            return WeiXinAutoResponse.objects.get_or_create(message=u'校验成功提示')[0].autoParams()            
             
         for resp in self.getResponseList():
             if message.rfind(resp.message.strip()) > -1:
-                return resp
+                return resp.autoParams()
             
-        return WeiXinAutoResponse.respDefault()
+        return WeiXinAutoResponse.respDKF()
         
     def getTrade2BuyerStatus(self,status,sys_status):
         
@@ -237,8 +237,9 @@ class WeixinUserService():
         
         from shopapp.smsmgr import sendMessage
         
-        msgTemplate = u"验证码:%s,优尼世界提醒您，绑定手机后，可以查询最近一次订单，"+\
-            u"及物流信息，还可以填写宝宝档案，填写后您的宝宝可能会收到幸运礼物哦!【优尼世界】"
+        wx_resp = WeiXinAutoResponse.objects.get_or_create(message=u'验证码')[0]
+        msgTemplate = wx_resp.content
+        
         return sendMessage(mobile,title,msgTemplate%validCode)
     
     def formatJsonToPrettyString(self,jsonContent):
@@ -344,11 +345,12 @@ class WeixinUserService():
 
         if eventType == WeiXinAutoResponse.WX_EVENT_SUBSCRIBE :
             self._wx_user.doSubscribe(eventKey.rfind('_') > -1 and eventKey.split('_')[1] or '')
+            return WeiXinAutoResponse.respDefault()
             
         elif eventType == WeiXinAutoResponse.WX_EVENT_UNSUBSCRIBE:
             self._wx_user.unSubscribe()
             
-        return self.getResponseByBestMatch(eventKey,openId).autoParams()
+        return self.getResponseByBestMatch(eventKey,openId)
     
     def handleMerchantOrder(self,user_id,order_id,order_status=2,product_id='',sku_info=''):   
         
@@ -382,7 +384,7 @@ class WeixinUserService():
                     
                 elif eventType == WeiXinAutoResponse.WX_EVENT_LOCATION:    
                     ret_params.update(self.genTextRespJson(
-                                    u'不好意思啦，你的地理位置（%s,%s）我还无法解析的啦...'%
+                                    u'你的地理位置（%s,%s）.'%
                                     (params['Latitude'],params['Longitude'])))
                 else:
                     ret_params.update(self.handleEvent(params['EventKey'].upper(), 
@@ -398,18 +400,18 @@ class WeixinUserService():
                     return ret_params
                 
             elif msgtype == WeiXinAutoResponse.WX_IMAGE:
-                matchMsg = '图片'.decode('utf8')
+                matchMsg = u'图片'
             elif msgtype == WeiXinAutoResponse.WX_VOICE:
-                matchMsg = '语音'.decode('utf8')
+                matchMsg = u'语音'
             elif msgtype == WeiXinAutoResponse.WX_VIDEO:
-                matchMsg = '视频'.decode('utf8')
+                matchMsg = u'视频'
             elif msgtype == WeiXinAutoResponse.WX_LOCATION:
-                matchMsg = '位置'.decode('utf8')
+                matchMsg = u'位置'
             else:
-                matchMsg = '链接'.decode('utf8')
+                matchMsg = u'链接'
             
             resp = self.getResponseByBestMatch(matchMsg.strip(),openId)
-            ret_params.update(resp.autoParams())
+            ret_params.update(resp)
         except MessageException,exc:
             ret_params.update(self.genTextRespJson(exc.message))
             
@@ -575,7 +577,7 @@ class WxShopService(LocalService):
     
     def payTrade(self,*args,**kwargs):
         
-        trade = WxShopService.createTrade(self.order.seller_id,
+        trade = self.__class__.createTrade(self.order.seller_id,
                                           self.order.order_id)
         
         return WxShopService.createMergeTrade(trade)

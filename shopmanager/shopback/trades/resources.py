@@ -16,7 +16,7 @@ class MergeTradeResource(ModelResource):
     model   = MergeTrade
     fields = ('id','tid','seller_id','seller_nick','buyer_nick','type','shipping_type',
               'buyer_message','seller_memo','sys_memo','pay_time','modified'
-              ,'created','consign_time','out_sid','status','sys_status'
+              ,'created','consign_time','out_sid','status','sys_status',
               'receiver_name','logistics','weights','df','dt','yunda_count')
     exclude = ('url',) 
 

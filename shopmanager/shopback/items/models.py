@@ -284,10 +284,13 @@ class Product(models.Model):
         return ','.join(ds)
     
 class ProductSku(models.Model):
-    """ 抽象商品规格（根据淘宝规格外部编码），描述：
+    
+    """ 
+        抽象商品规格（根据淘宝规格外部编码），描述：
         1,映射淘宝出售商品规格与采购商品规格桥梁；
         2,库存管理的规格核心类；
     """
+    
     outer_id = models.CharField(max_length=64,blank=False,verbose_name='规格外部编码')
     
     barcode  = models.CharField(max_length=64,blank=True,db_index=True,verbose_name='条码')

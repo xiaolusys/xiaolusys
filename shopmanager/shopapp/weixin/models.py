@@ -38,7 +38,7 @@ class WeiXinAccount(models.Model):
     expired    = models.DateTimeField(default=datetime.datetime.now(),
                                       verbose_name="上次过期时间")
     
-    jmenu     =  JSONCharMyField(max_length=1024,blank=True,
+    jmenu     =  JSONCharField(max_length=4096,blank=True,
                                load_kwargs={},default='{}',
                                verbose_name=u'菜单代码') 
     
@@ -244,15 +244,20 @@ class WeiXinAutoResponse(models.Model):
         verbose_name=u'微信回复'
         verbose_name_plural = u'微信回复列表'
         
+    def __unicode__(self):
+        return u'<WeiXinAutoResponse:%d,%s>'%(self.id,
+                                              self.get_rtype_display())
+        
     @classmethod
     def respDefault(cls):
         resp,state = cls.objects.get_or_create(message=cls.WX_DEFAULT,
                                                rtype=cls.WX_TEXT)
-        return resp
+        return resp.autoParams()
     
-    def __unicode__(self):
-        return u'<WeiXinAutoResponse:%d,%s>'%(self.id,
-                                              self.get_rtype_display())
+    @classmethod
+    def respDKF(cls):
+        return {'MsgType':'transfer_customer_service'}
+    
     
     def respText(self):
         self.content = self.content.replace('\r','')
@@ -294,7 +299,7 @@ class WeiXinAutoResponse(models.Model):
         return {'MsgType':self.rtype,
                 'ArticleCount':len(news),
                 'Articles':{'item':news}}
-        
+    
     def autoParams(self):
         
         if   self.rtype == self.WX_TEXT:

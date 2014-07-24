@@ -12,9 +12,7 @@ from django.conf import settings
 from celery.task import task
 from celery.app.task import BaseTask
 from common.utils import getSignatureTaoBao,format_datetime,format_date,refresh_session
-from auth.apis.exceptions import ContentNotRightException,RemoteConnectionException,APIConnectionTimeOutException,\
-    ServiceRejectionException,UserFenxiaoUnuseException,AppCallLimitedException,InsufficientIsvPermissionsException,\
-    SessionExpiredException,LogisticServiceBO4Exception,TaobaoRequestException,LogisticServiceB60Exception
+from auth.apis.exceptions import *
 
 import logging
 logger = logging.getLogger('django.request')
@@ -164,11 +162,6 @@ def apis(api_method,method='GET',max_retry=3,limit_rate=0.5):
     def decorator(func):
         """ docstring for decorator """
         
-        def retry_func(fn):
-            def wrap(*args,**kwargs):
-                return fn(*args,**kwargs)
-            return wrap
-        
         func_args = copy.copy(inspect.getargspec(func).args)
         func_defaults = copy.copy(inspect.getargspec(func).defaults)
         def decorate(*args,**kwargs):
@@ -211,13 +204,13 @@ def apis(api_method,method='GET',max_retry=3,limit_rate=0.5):
                 req = urllib2.urlopen(uri)
                 content = req.read()
             else:
-                rst = urllib2.Request(absolute_url)
+                rst = urllib2.Request(url)
                 req = urllib2.urlopen(rst,urllib.urlencode(params))
                 content = req.read()
 
             return raise_except_or_ret_json(content)
         
-        return retry_func(decorate)
+        return decorate
 
     return decorator
 

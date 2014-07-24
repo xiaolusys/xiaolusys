@@ -4,6 +4,7 @@ from shopback.base.service import LocalService
 from shopback.orders.service import OrderService
 from shopback.fenxiao.service import PurchaseOrderService
 from shopapp.weixin.service import WxShopService
+from shopapp.jingdong.service import JDShopService
 from shopback import paramconfig as pcfg
 from common.utils import update_model_fields
 
@@ -12,7 +13,7 @@ TRADE_TYPE_SERVICE_MAP = {
     pcfg.TAOBAO_TYPE:OrderService,
     pcfg.GUARANTEE_TYPE:OrderService,
     pcfg.COD_TYPE:OrderService,
-    pcfg.JD_TYPE:LocalService,
+    pcfg.JD_TYPE:JDShopService,
     pcfg.YHD_TYPE:LocalService,
     pcfg.DD_TYPE:LocalService,
     pcfg.WX_TYPE:WxShopService,
@@ -88,7 +89,8 @@ class TradeService(LocalService):
 
         return self.bservice.sendTrade(company_code=self.trade.logistics_company.code,
                                        out_sid=self.trade.out_sid,
-                                       is_cod=self.trade.is_cod)
+                                       is_cod=self.trade.is_cod,
+                                       serial_no=self.trade.id)
         
     def ShipTrade(self,oid,*args,**kwargs):
         
