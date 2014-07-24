@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+    <title>免费试用</title>
+
+    <!-- Bootstrap -->
+    <link href="{{ STATIC_URL }}bootstrap/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+      <script src="http://cdn.bootcss.com/html5shiv/3.7.2/html5shiv.min.js"></script>
+      <script src="http://cdn.bootcss.com/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+    <script type="javascript">
+      var submit1 = document.getElementById("submit-1");
+      
+    </script>
+    
+  </head>
+  <body>
+    <div class="container-fluid">
+      <div class="panel panel-default" style="margin-top:5px">
+	<div class="panel-heading" style="color:orange">零元试用：婴幼儿羊绒衫</div>
+	<div class="panel-body">
+	  
+	  <div class="row">
+	    <div class="col-xs-6" style="text-align:center">
+	      <a href="http://mp.weixin.qq.com/bizmall/malldetail?id=&pid=pMt59uKs0WyvJ5yJxrNVkviMcuAo&biz=MzA5NTI1NjYyNg==&scene=&action=show_detail&showwxpaytitle=1#wechat_redirect" class="thumbnail">
+		<img src="https://mmbiz.qlogo.cn/mmbiz/yMhOQPTKhLva0m9xtkbjiax34zDlMwN6yHlMcguFcH9QsfhBqpzRC9EJRAS96kvVvegOILPzlFrhibLXuvns9CeA/0" alt="...">
+	      </a>
+	      <a href="http://mp.weixin.qq.com/bizmall/malldetail?id=&pid=pMt59uKs0WyvJ5yJxrNVkviMcuAo&biz=MzA5NTI1NjYyNg==&scene=&action=show_detail&showwxpaytitle=1#wechat_redirect">查看商品详情</a>
+	    </div>
+	    <div class="col-xs-6">
+	      <p>款式选择：
+		<select class="form-control input-sm">
+		  <option value="volv">红色</option>
+		  <option value="saab">黄色</option>
+		  <option value="opel">蓝色</option>
+		</select>
+	      </p>
+	      <p>尺寸选择：
+		<select class="form-control input-sm">
+		  <option value="volv">70cm</option>
+		  <option value="saab">80cm</option>
+		  <option value="opel">90cm</option>
+		</select>
+	      </p>
+	    </div>
+	  </div>
+
+	  <div class="row">
+	    <div class="col-xs-6" style="text-align:center">
+	      <p><font style="color:red; font-size:20px">500</font> 人已申请</p>
+	    </div>
+
+	    <div class="col-xs-6" style="text-align:center">
+	      <form class="form-group" method="get" action="/weixin/sampleapply/">{% csrf_token %}
+	      <button class="btn btn-warning" id="submit-1">提交试用申请</button>
+	      </form>
+	    </div>
+	  </div>
+	</div>
+      </div>
+
+      <div class="panel panel-default" style="margin-top:5px">
+	<div class="panel-heading" style="color:orange">付邮试用：纯棉高腰托腹孕妇内裤</div>
+	<div class="panel-body">
+	  
+	  <div class="row">
+	    <div class="col-xs-6" style="text-align:center">
+	      <a href="http://mp.weixin.qq.com/bizmall/malldetail?id=&pid=pMt59uKs0WyvJ5yJxrNVkviMcuAo&biz=MzA5NTI1NjYyNg==&scene=&action=show_detail&showwxpaytitle=1#wechat_redirect" class="thumbnail">
+		<img src="https://mmbiz.qlogo.cn/mmbiz/yMhOQPTKhLtMTpiclRQJZ7aBpwKS3xsvUC54ngpGAHZsrD46EtC7E5T2ibAUfsZc2OoOicoHT9TqHEkVCNZ1GCx0Q/0" alt="...">
+	      </a>
+	      <a  href="http://mp.weixin.qq.com/bizmall/malldetail?id=&pid=pMt59uKs0WyvJ5yJxrNVkviMcuAo&biz=MzA5NTI1NjYyNg==&scene=&action=show_detail&showwxpaytitle=1#wechat_redirect">查看商品详情</a>
+	    </div>
+	    <div class="col-xs-6">
+	      <p>款式选择：
+		<select class="form-control input-sm">
+		  <option value="volv">裸色</option>
+		  <option value="saab">白色</option>
+		  <option value="opel">小花苞</option>
+		</select>
+	      </p>
+	      <p>尺寸选择：
+		<select class="form-control input-sm">
+		  <option value="volv">70cm</option>
+		  <option value="saab">80cm</option>
+		  <option value="opel">90cm</option>
+		</select>
+	      </p>
+	    </div>
+	  </div>
+	  
+	  <div class="row">
+	    <div class="col-xs-6" style="text-align:center">
+	      <p><font style="color:red; font-size:20px">676</font> 人已申请</p>
+	    </div>
+
+	    <div class="col-xs-6" style="text-align:center">
+
+	      <button class="btn btn-warning">提交试用申请</button>
+	      
+	    </div>
+	  </div>
+
+	</div>
+      </div>
+
+      <div class="row">
+	<div class="col-xs-12">
+	  <h5 style="color:#3071a9">申请须知</h5>
+	  <p>申请试用前，请先完善宝宝档案中的信息，以便我们审核申请和邮寄产品给宝宝。</p>
+	</div>
+	<div class="col-xs-12">
+	  <h5 style="color:#3071a9">申请规则</h5>
+	  <p>一次只能申请一款产品，系统不支持申请多款产品试用。</p>
+	  <p>若您有过购买记录、晒单记录、好评记录、或邀请好友记录，系统会优先审核您的申请。</p>
+	</div>
+	<div class="col-xs-12">
+	  <h5 style="color:#3071a9">状态查询</h5>
+	  <p>选择【订单查询】菜单，可以查看试用申请状态。申请提交之后，状态为待审核。审核通过后，状态会改为审核通过。</p>
+	</div>
+      </div>
+
+      <div class="footer">
+	<p>© Uni Littles 2014</p>
+      </div>
+
+    </div>
+    
+    
+    <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
+    <script src="http://cdn.bootcss.com/jquery/1.11.1/jquery.min.js"></script>
+    <!-- Include all compiled plugins (below), or include individual files as needed -->
+    <script src="{{ STATIC_URL }}bootstrap/js/bootstrap.min.js"></script>
+  </body>
+</html>

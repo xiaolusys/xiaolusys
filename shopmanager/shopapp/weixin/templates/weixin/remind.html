@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+    <title>宝宝档案</title>
+
+    <!-- Bootstrap -->
+    <link href="{{ STATIC_URL }}bootstrap/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+      <script src="http://cdn.bootcss.com/html5shiv/3.7.2/html5shiv.min.js"></script>
+      <script src="http://cdn.bootcss.com/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+
+    <script type="text/javascript">
+      
+      function requestcode() {
+        if ($("#"+"id_mobile_input").attr("status") == "1") {
+          return;
+        }
+        var mobile = $("#"+"id_mobile_input").val();
+        var url = "/weixin/requestcode/"+mobile+"/";
+
+        var callback = function (res) {
+          var btn = document.getElementById("id_requestcode_button");
+          btn.innerHTML="已发送";
+        };
+        $.ajax({url:url, success:callback});
+      };
+      function verifycode() {
+        var code = $("#"+"id_code_input").val();
+        var url = "/weixin/verifycode/"+code+"/";
+        var callback = function (res) {
+          $("#"+"id_verifycode_group")[0].innerHTML = '';
+          $("#"+"id_requestcode_button").removeClass("btn-primary").addClass("btn-success")[0].innerHTML="已验证";
+          $("#"+"id_mobile_input").attr("disabled","disabled");
+          $("#"+"id_requestcode_button").attr("status", "1");
+        };
+        $.ajax({url:url, success:callback});
+      };
+      
+      
+      
+    </script>
+    
+  </head>
+  <body>
+    <div >
+
+      <div class="panel panel-default" style="margin-top:5px">
+	<div class="panel-heading" style="color:orange">
+	  <h4 class="panel-title">手机绑定</h4>
+	</div>
+	<div class="panel-body">
+	  <div class="row">
+	    <div class="col-xs-12">
+	      <h5 style="color:#3071a9">查询订单请先验证手机号</h5>
+
+	      <div class="input-group">
+		<span class="input-group-addon">手机号</span>
+		<input id="id_mobile_input" type="text" class="form-control">
+		<span class="input-group-btn">
+		  <button id="id_requestcode_button" class="btn btn-primary" type="button" onclick="requestcode();" status="0">获验证码</button>
+		</span>
+
+	      </div>
+	      <div id="id_verifycode_group" class="input-group">
+		<span class="input-group-addon">验证码</span>
+		<input id="id_code_input" type="text" class="form-control">
+		<span class="input-group-btn">
+		  <button id="id_verifycode_button" class="btn btn-warning" type="button" onclick="verifycode();">立即验证</button>
+		</span>
+	      </div>
+
+	    </div>
+	  </div>
+
+	  
+	</div>
+      </div>
+
+      <div class="footer">
+	<p>© Uni Littles 2014</p>
+      </div>
+
+    </div>
+    
+    
+    <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
+    <script src="http://cdn.bootcss.com/jquery/1.11.1/jquery.min.js"></script>
+    <!-- Include all compiled plugins (below), or include individual files as needed -->
+    <script src="{{ STATIC_URL }}bootstrap/js/bootstrap.min.js"></script>
+  </body>
+</html>

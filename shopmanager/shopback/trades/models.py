@@ -1,4 +1,4 @@
-#-*- coding:utf8 -*-
+#-*- coding:utf-8 -*-
 import time
 import json
 from django.db import models
@@ -635,6 +635,18 @@ class MergeOrder(models.Model):
         post_save.send(sender=cls, instance=merge_order) #通知消息更新主订单
         return merge_order
 
+    def getImgAndSimpleName(self):
+        try:
+            prod = Product.objects.get(outer_id=self.outer_id)
+            prodSku = None
+            if self.outer_sku_id:
+                prodSku = ProductSku.objects.get(outer_id=self.outer_sku_id,
+                                                 product=prod)
+            simplename = ' '.join([prod.name, (prodSku and prodSku.name or ''), 'x' +str(self.num)])
+            return [prod.pic_path, simplename]
+        except:
+            return ["", self.title +' x'+str(self.num)]
+
     def getSimpleName(self):
         
         try:
@@ -643,9 +655,9 @@ class MergeOrder(models.Model):
             if self.outer_sku_id:
                 prodSku = ProductSku.objects.get(outer_id=self.outer_sku_id,
                                                  product=prod)
-            return prod.name + (prodSku and prodSku.name or '') + ' x ' +str(self.num)
+            return ' '.join([prod.name, (prodSku and prodSku.name or ''), 'x' +str(self.num)])
         except:
-            return self.title +' x '+str(self.num)
+            return self.title +' x'+str(self.num)
             
     
 def refresh_trade_status(sender,instance,*args,**kwargs):

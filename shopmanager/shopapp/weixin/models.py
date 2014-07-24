@@ -126,8 +126,9 @@ class WeiXinUser(models.Model):
     mobile     = models.CharField(max_length=24,blank=True,verbose_name=u"手机")
     referal_from_openid = models.CharField(max_length=64,blank=True,verbose_name=u"推荐人ID")
     
-    baby_nick   = models.CharField(max_length=64,blank=True,verbose_name=u"宝宝昵称")
-    baby_birth  = models.DateTimeField(blank=True,null=True,verbose_name=u"宝宝生日")
+    receiver_name   = models.CharField(max_length=64,blank=True,verbose_name=u"收货人")
+    birth_year  = models.IntegerField(default=0,verbose_name=u"出生年")
+    birth_month  = models.IntegerField(default=0,verbose_name=u"出生月")
     baby_sex    = models.CharField(max_length=1,
                                    blank=True,
                                    choices=BABY_SEX_TYPE,
@@ -503,9 +504,7 @@ class ReferalSummary(models.Model):
     total_confirmed_value = models.IntegerField(default=0)
     cashed_value = models.IntegerField(default=0)
     #uncashed_value = total_confirmed_value - cashed_value
-    uncomfirmed_value = models.IntegerField(default=0)
-    canceled_value = models.IntegerField(default=0)
-
+    
     direct_referal_count = models.IntegerField(default=0)
     indirect_referal_count = models.IntegerField(default=0)
 

@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+    <title>返利规则</title>
+
+    <!-- Bootstrap -->
+    <link href="{{ STATIC_URL }}bootstrap/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+      <script src="http://cdn.bootcss.com/html5shiv/3.7.2/html5shiv.min.js"></script>
+      <script src="http://cdn.bootcss.com/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+  </head>
+  <body>
+
+<div class="container-fluid">
+
+<div class="panel panel-default" style="margin-top:5px">
+  <div class="panel-heading" style="color:orange">返利规则</div>
+  <div class="panel-body">
+      <p>一、好友购买后晒单到朋友圈，好友获得晒单返利5元，同时您获得返利2元奖励。</p>
+      <p>二、好友获得返利累计10元时，您再获得返利3元奖励。</p>
+      <p>三、好友获得返利累计30元时，您再获得返利5元奖励。</p>
+  </div>
+</div>
+
+<div class="panel panel-default" style="margin-top:15px">
+  <div class="panel-heading" style="color:orange">简单举例</div>
+  <div class="panel-body">
+    <p>您推荐的好友A购买两次，每次都晒单到朋友圈。</p>
+    <p>A获得返利累计10元，您获得返利累计5元。</p>
+  </div>
+</div>
+
+<div class="panel panel-default" style="margin-top:15px">
+  <div class="panel-heading" style="color:orange">复杂举例</div>
+  <div class="panel-body">
+    <p>您推荐了好友A，A又推荐了好友B。</p>
+    <p>B购买了两次，晒单到朋友圈。B获得了返利累计10元，A获得返利5元，您获得返利2元。</p>
+    <p>A自己也购买了一次，晒单到朋友圈。A获得晒单返利5元。</p>
+    <p>至此，A累计获得返利10元，您累计获得返利5元!</p>
+  </div>
+</div>
+
+<div class="footer">
+    <p>© Uni Littles 2014</p>
+  </div>
+  
+</div>
+
+    <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
+    <script src="http://cdn.bootcss.com/jquery/1.11.1/jquery.min.js"></script>
+    <!-- Include all compiled plugins (below), or include individual files as needed -->
+    <script src="{{ STATIC_URL }}bootstrap/js/bootstrap.min.js"></script>
+  </body>
+</html>

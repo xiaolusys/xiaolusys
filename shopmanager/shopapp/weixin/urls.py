@@ -3,7 +3,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.conf import settings
 from django.views.generic import TemplateView
 from shopback.base.proxy  import ProxyView
-from shopapp.weixin.views import WeixinAcceptView,WeixinAddReferalView,ReferalView
+from shopapp.weixin.views import WeixinAcceptView,WeixinAddReferalView,ReferalView,OrderInfoView,BabyInfoView,RequestCodeView,VerifyCodeView
 
 urlpatterns = patterns('shopapp.weixin.views',
 
@@ -20,7 +20,18 @@ urlpatterns = patterns('shopapp.weixin.views',
         name='weixin_baby_archive'),
 
     url(r'^referal/$', ReferalView.as_view()),
+    url(r'^referalrules/$', TemplateView.as_view(
+            template_name="weixin/referal_rules.html")),
+    url(r'^freesamples/$', TemplateView.as_view(
+            template_name="weixin/freesamples.html")),
+    url(r'^sampleapply/$', TemplateView.as_view(
+            template_name="weixin/sampleapply.html")),
+
+    url(r'^babyinfo/$', BabyInfoView.as_view()),
+    url(r'^orderinfo/$', OrderInfoView.as_view()),
     url(r'^addreferal/$', WeixinAddReferalView.as_view()),
+    url(r'^requestcode/(?P<mobile>\d+)/$', RequestCodeView.as_view()),
+    url(r'^verifycode/(?P<code>\d+)/$', VerifyCodeView.as_view()),
     
     url(r'^validmobile/$', TemplateView.as_view(
         template_name="weixin/valid_mobile.html"), 
@@ -30,6 +41,5 @@ urlpatterns = patterns('shopapp.weixin.views',
     url(r'^rights/$','rights',name='weixin_feedback'),
     url(r'^napay/$','napay',name='weixin_napay'),
     url(r'^wxpay/$','wxpay',name='weixin_wxpay'),
-
 
 )

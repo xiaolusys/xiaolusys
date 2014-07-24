@@ -52,7 +52,7 @@ class WeixinUserService():
         
         self._wx_api = WeiXinAPI()
         if openId:
-            self._wx_user = getOrCreateUser(openId)
+            self._wx_user = self.getOrCreateUser(openId)
         self._wx_user = self._wx_user or WeiXinUser.getAnonymousWeixinUser()
         
     def getOrCreateUser(self,openId,force_update=False):
@@ -324,8 +324,11 @@ class WeixinUserService():
         
         eventKey = eventKey.upper()
         
-        if eventKey in ('Q','W','E','R', 'Z') and not self._wx_user.isValid():
+        if eventKey in ('Q','W','E','R', 'Z', 'T') and not self._wx_user.isValid():
             raise MessageException(u'你还没有绑定手机哦!\n请输入手机号:')
+
+        if eventKey in ('T'):
+            raise MessageException(u'晒单返利，请直接发送朋友圈晒单截图过来哦!')
         
         if eventKey in ("Q","R"):
             raise MessageException(u'功能还没有准备好哦')
