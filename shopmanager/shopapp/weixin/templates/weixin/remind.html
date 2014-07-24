@@ -16,36 +16,6 @@
       <script src="http://cdn.bootcss.com/respond.js/1.4.2/respond.min.js"></script>
     <![endif]-->
 
-    <script type="text/javascript">
-      
-      function requestcode() {
-        if ($("#"+"id_mobile_input").attr("status") == "1") {
-          return;
-        }
-        var mobile = $("#"+"id_mobile_input").val();
-        var url = "/weixin/requestcode/"+mobile+"/";
-
-        var callback = function (res) {
-          var btn = document.getElementById("id_requestcode_button");
-          btn.innerHTML="已发送";
-        };
-        $.ajax({url:url, success:callback});
-      };
-      function verifycode() {
-        var code = $("#"+"id_code_input").val();
-        var url = "/weixin/verifycode/"+code+"/";
-        var callback = function (res) {
-          $("#"+"id_verifycode_group")[0].innerHTML = '';
-          $("#"+"id_requestcode_button").removeClass("btn-primary").addClass("btn-success")[0].innerHTML="已验证";
-          $("#"+"id_mobile_input").attr("disabled","disabled");
-          $("#"+"id_requestcode_button").attr("status", "1");
-        };
-        $.ajax({url:url, success:callback});
-      };
-      
-      
-      
-    </script>
     
   </head>
   <body>
@@ -94,5 +64,38 @@
     <script src="http://cdn.bootcss.com/jquery/1.11.1/jquery.min.js"></script>
     <!-- Include all compiled plugins (below), or include individual files as needed -->
     <script src="{{ STATIC_URL }}bootstrap/js/bootstrap.min.js"></script>
+    <script type="text/javascript">
+      function requestcode() {
+        var btn = $("#id_requestcode_button");
+        if (btn.attr("status") == "1") {
+          return;
+        }
+        console.log(btn);
+        var mobile = $("#id_mobile_input").val();
+        var url = "/weixin/requestcode/"+mobile+"/";
+
+        var callback = function (res) {
+          btn.attr("status","1")[0].innerHTML = "已发送";
+        };
+        $.ajax({url:url, success:callback});
+      };
+      function verifycode() {
+        var code = $("#id_code_input").val();
+        var url = "/weixin/verifycode/"+code+"/";
+        var callback = function (res) {
+          console.log(res);
+          if (res["code"] == "bad") {
+            $("#id_verifycode_button")[0].innerHTML = "验证失败，刷新再试";
+            return;
+          }
+          $("#id_verifycode_group")[0].innerHTML = '';
+          $("#id_requestcode_button").removeClass("btn-primary").addClass("btn-success")[0].innerHTML="已验证";
+          $("#id_mobile_input").attr("disabled","disabled");
+        };
+        $.ajax({url:url, success:callback});
+      };
+      
+    </script>
+
   </body>
 </html>

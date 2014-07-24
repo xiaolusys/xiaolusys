@@ -69,7 +69,7 @@ class WeixinUserService():
                 subscribe_time = userinfo.get('subscribe_time',None)
                 if subscribe_time:
                     wx_user.subscribe_time = datetime.datetime\
-                        .fromtimestamp(subscribe_time)
+                        .fromtimestamp(int(subscribe_time))
                         
                 wx_user.save()
             except Exception,exc:

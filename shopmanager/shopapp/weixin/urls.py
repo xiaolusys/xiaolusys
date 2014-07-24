@@ -31,7 +31,7 @@ urlpatterns = patterns('shopapp.weixin.views',
     url(r'^orderinfo/$', OrderInfoView.as_view()),
     url(r'^addreferal/$', WeixinAddReferalView.as_view()),
     url(r'^requestcode/(?P<mobile>\d+)/$', RequestCodeView.as_view()),
-    url(r'^verifycode/(?P<code>\d+)/$', VerifyCodeView.as_view()),
+    url(r'^verifycode/(?P<verifycode>\d+)/$', VerifyCodeView.as_view()),
     
     url(r'^validmobile/$', TemplateView.as_view(
         template_name="weixin/valid_mobile.html"), 

@@ -99,6 +99,7 @@ class RequestCodeView(View):
         mobile = kwargs.get('mobile',0)
         if len(mobile) != 11:
             response = {"code":"bad", "message":"wrong phone number"}
+            return HttpResponse(json.dumps(response),mimetype='application/json')
 
         content = request.REQUEST
 
@@ -133,9 +134,10 @@ class RequestCodeView(View):
 
 class VerifyCodeView(View):
     def get(self, request, *args, **kwargs):
-        code = kwargs.get('code',0)
-        if len(code) != 6:
+        verifycode = kwargs.get('verifycode',0)
+        if len(verifycode) != 6:
             response = {"code":"bad", "message":"wrong verification code"}
+            return HttpResponse(json.dumps(response),mimetype='application/json')
 
         ## if user refresh page, we can get user_openid from cookie
         user_openid = request.COOKIES.get('openid')
@@ -147,7 +149,7 @@ class VerifyCodeView(View):
 
         wx_user_service = WeixinUserService(openId=user_openid)
         wx_user = wx_user_service._wx_user
-        if not wx_user.validcode or wx_user.validcode != code:
+        if not wx_user.validcode or wx_user.validcode != verifycode:
             response = {"code":"bad", "message":"invalid code"}
         else:    
             wx_user.isvalid = True
