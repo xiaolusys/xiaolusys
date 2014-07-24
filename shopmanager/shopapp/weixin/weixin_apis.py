@@ -86,6 +86,7 @@ class WeiXinAPI(object):
             url = '%s&%s'%(absolute_url,urllib.urlencode(params))
             req = urllib2.urlopen(url)
             resp = req.read()
+            
         else:
             rst = urllib2.Request(absolute_url)
             req = urllib2.urlopen(rst,type(params)==dict and 
@@ -165,7 +166,7 @@ class WeiXinAPI(object):
                        action_name.encode('utf8') and 
                        action_name)
         
-        params = {"action_name":action_name ,
+        params = {"action_name": action_name ,
                   "action_info": {"scene": {"scene_id": scene_id}}}
         
         if action_name=='QR_SCENE':

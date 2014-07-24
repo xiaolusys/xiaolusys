@@ -52,7 +52,7 @@ class WeixinUserService():
         
         self._wx_api = WeiXinAPI()
         if openId:
-            self._wx_user = getOrCreateUser(openId)
+            self._wx_user = self.getOrCreateUser(openId)
         self._wx_user = self._wx_user or WeiXinUser.getAnonymousWeixinUser()
         
     def getOrCreateUser(self,openId,force_update=False):
@@ -61,9 +61,9 @@ class WeixinUserService():
         if state or force_update:
             try:     
                 userinfo = self. _wx_api.getUserInfo(openId)
-               
+                
                 for k,v in userinfo.iteritems():
-                    setattr(wx_user,k,v)
+                    setattr(wx_user,k,v or getattr(wx_user,k))
                 
                 wx_user.nickname = replace_utf8mb4(wx_user.nickname.decode('utf8'))
                 subscribe_time = userinfo.get('subscribe_time',None)
@@ -236,8 +236,9 @@ class WeixinUserService():
         
         from shopapp.smsmgr import sendMessage
         
-        msgTemplate = u"验证码:%s,优尼世界提醒您，绑定手机后，可以查询最近一次订单，"+\
-            u"及物流信息，还可以填写宝宝档案，填写后您的宝宝可能会收到幸运礼物哦!【优尼世界】"
+        wx_resp = WeiXinAutoResponse.objects.get_or_create(message=u'验证码')[0]
+        msgTemplate = wx_resp.content
+        
         return sendMessage(mobile,title,msgTemplate%validCode)
     
     def formatJsonToPrettyString(self,jsonContent):
@@ -371,15 +372,15 @@ class WeixinUserService():
                     return ret_params
                 
             elif msgtype == WeiXinAutoResponse.WX_IMAGE:
-                matchMsg = '图片'.decode('utf8')
+                matchMsg = u'图片'
             elif msgtype == WeiXinAutoResponse.WX_VOICE:
-                matchMsg = '语音'.decode('utf8')
+                matchMsg = u'语音'
             elif msgtype == WeiXinAutoResponse.WX_VIDEO:
-                matchMsg = '视频'.decode('utf8')
+                matchMsg = u'视频'
             elif msgtype == WeiXinAutoResponse.WX_LOCATION:
-                matchMsg = '位置'.decode('utf8')
+                matchMsg = u'位置'
             else:
-                matchMsg = '链接'.decode('utf8')
+                matchMsg = u'链接'
             
             resp = self.getResponseByBestMatch(matchMsg.strip(),openId)
             ret_params.update(resp)

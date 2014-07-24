@@ -56,7 +56,7 @@ urlpatterns = patterns('shopback.trades.views',
     
     (r'^trade/(?P<id>\d{1,20})/$',InstanceModelView.as_view(
         resource=MergeTradeResource,
-        #renderers=(BaseJsonRenderer,CheckOrderRenderer),
+        renderers=(BaseJsonRenderer,CheckOrderRenderer),
         authentication=(UserLoggedInAuthentication,),
         permissions=(IsAuthenticated,)
     )),                   

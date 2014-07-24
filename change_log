@@ -1,3 +1,4 @@
+alter table shop_trades_mergebuyertrade ENGINE=InnoDB;
 alter table shop_jingdong_product add column sync_stock tinyint(1) NOT NULL;
 ######### 2014-7-4 ##########
 alter table shop_weixin_account add column order_updated datetime DEFAULT NULL;
