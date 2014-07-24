@@ -567,7 +567,7 @@ class MergeOrder(models.Model):
                                   verbose_name=u'系统状态')
     
     class Meta:
-        db_table = 'shop_trades_mergeorder_c'
+        db_table = 'shop_trades_mergeorder'
         unique_together = ("oid","merge_trade")
         verbose_name=u'订单商品'
         verbose_name_plural = u'订单商品列表'
@@ -708,7 +708,7 @@ class MergeBuyerTrade(models.Model):
     created    =  models.DateTimeField(null=True,auto_now=True)
     
     class Meta:
-        db_table = 'shop_trades_mergebuyertrade_c'
+        db_table = 'shop_trades_mergebuyertrade'
         verbose_name = u'合单记录'
         verbose_name_plural = u'合单列表'
         

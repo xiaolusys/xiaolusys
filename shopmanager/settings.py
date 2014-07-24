@@ -204,7 +204,7 @@ LOGGING = {
             'propagate': True,
         },
         'celery.handler': {
-            'handlers': ['sentry'],
+            'handlers': ['sentry','console'],
             'level': 'ERROR',
             'propagate': True,
         },

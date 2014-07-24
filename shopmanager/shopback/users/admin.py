@@ -65,8 +65,8 @@ class UserAdmin(admin.ModelAdmin):
         
         from shopback.orders.tasks import saveUserDuringOrdersTask
         from shopback.fenxiao.tasks import saveUserPurchaseOrderTask
-        from shopback.jingdong.tasks import pullJDOrderByVenderIdTask
-        from shopback.weixin.tasks import pullWaitPostWXOrderTask,WXOrder
+        from shopapp.jingdong.tasks import pullJDOrderByVenderIdTask
+        from shopapp.weixin.tasks import pullWaitPostWXOrderTask,WXOrder
         
         pull_users = []
         for user in queryset:

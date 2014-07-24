@@ -171,6 +171,11 @@ SHOP_APP_SCHEDULE = {
         'schedule':crontab(minute="*/15",hour=','.join([str(i) for i in range(9,23)])),
         'args':()
     },
+    u'定时同步京东商品库存':{
+        'task':'shopapp.jingdong.tasks.syncAllJDUserWareNumTask',
+        'schedule':crontab(minute="20",hour='*/6'),
+        'args':()
+    },
 #    'runs-every-10-minutes-update-seller-flag':{
 #        'task':'shopapp.memorule.tasks.updateTradeSellerFlagTask',
 #        'schedule':crontab(minute="*/10"),

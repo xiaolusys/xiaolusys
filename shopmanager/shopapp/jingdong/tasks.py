@@ -49,7 +49,7 @@ def pullJDProductByVenderidTask(vender_id,ware_status=1):
             
         for wave_id_list in group_list(iwave_ids,10):
             
-            wave_list = api.jd_wares_list_get(ware_ids=','.join(wave_id_list)
+            wave_list = api.jd_wares_list_get(ware_ids=','.join([str(w) for w in wave_id_list])
                                               ,fields='ware_id,skus'
                                               ,jd_user_id=vender_id)
             
@@ -139,7 +139,7 @@ def pullAllJDShopOrderByModifiedTask(status_list=[JDOrder.ORDER_STATE_WSTO,
     
     for user in User.effect_users.JINGDONG:
         
-        pullJDOrderByVenderId(user.visitor_id)
+        pullJDOrderByVenderIdTask(user.visitor_id)
         
 
 
@@ -214,28 +214,16 @@ def syncWareStockByJDShopTask(jd_ware):
         if (not (sync_num == 0 and product_sku.is_assign) 
             and sync_num != sku['stock_num']):
             
-            sku_stock_list.append((sku['outer_id'],sync_num))
-    
-    logger.debug(u'京东库存上传列表:%s'%sku_stock_list) 
-    
-    if not sku_stock_list:
-        return
-    try:    
-        api.jd_ware_update(ware_id=jd_ware.ware_id,
-                          outer_id='|'.join([t[0] for t in sku_stock_list]),
-                          sku_stocks='|'.join([str(t[1]) for t in sku_stock_list]),
-                          jd_user_id=jd_user.visitor_id)
-        
-        for outer_id,sys_num in sku_stock_list:
-            
-            outer_id,outer_sku_id = Product.objects.trancecode('',outer_id)
+            api.jd_sku_stock_update(outer_id=sku['outer_id'],
+                                    quantity=sync_num,
+                                    jd_user_id=jd_user.visitor_id)
+
             ItemNumTaskLog.objects.get_or_create(user_id=jd_user.user.id,
-                                                 outer_id='jd%s'%outer_id,
-                                                 sku_outer_id= outer_sku_id,
+                                                 outer_id=outer_id,
+                                                 sku_outer_id='jd%s'%outer_sku_id,
                                                  num=sync_num,
                                                  end_at=datetime.datetime.now())
-    except Exception,exc:
-            logger.error(u'京东库存同步异常:%s'%exc.message, exc_info=True)
+    
 
 
 @task
@@ -255,6 +243,7 @@ def syncAllJDUserWareNumTask():
     
     for jd_user in User.effect_users.JINGDONG:
         
+        pullJDProductByVenderidTask(jd_user.visitor_id)
         syncJDUserWareNumTask(jd_user)
     
     

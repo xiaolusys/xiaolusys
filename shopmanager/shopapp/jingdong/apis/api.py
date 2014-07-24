@@ -208,6 +208,10 @@ def jd_ware_update(ware_id=None,upc_code=None,item_num=None,outer_id=None,stock_
                    ,sku_properties=None,sku_stocks=None,jd_user_id=None):
     pass
 
+@apis('360buy.sku.stock.update')
+def jd_sku_stock_update(sku_id=None,outer_id=None,quantity=None,jd_user_id=None):
+    pass
+
 ###################### 售后管理 ###################
 @apis('jingdong.afsservice.waitfetch.get',method='POST')
 def jd_afsservice_waitfetch_get(afsServiceId=None,pageNumber=None,pageSize=None,customerPin=None
