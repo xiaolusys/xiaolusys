@@ -177,7 +177,7 @@ class OrderInfoView(View):
         weixin_user_service = WeixinUserService(user_openid)
         wx_user = weixin_user_service._wx_user
         
-        if wx_user.isvalid == False:
+        if wx_user.isValid() == False:
             response = render_to_response('weixin/remind.html', context_instance=RequestContext(request))
             response.set_cookie("openid",user_openid)
             return response
@@ -211,9 +211,11 @@ class OrderInfoView(View):
         data["address"] = ','.join([trade.receiver_state, trade.receiver_city, trade.receiver_district, trade.receiver_address])
         
         from shopback.logistics import getLogisticTrace
-        shipping_traces = getLogisticTrace(trade.out_sid, trade.logistics_company.code.split('_')[0])
-        
-        
+        shipping_traces = []
+        try:
+            shipping_traces = getLogisticTrace(trade.out_sid, trade.logistics_company.code.split('_')[0])
+        except:
+            shipping_traces = [("快递系统故障，暂时无法查询到快递信息", "请尝试其他途径查询")]
 
         response = render_to_response('weixin/orderinfo.html', 
                                       {'tradedata':data, "traces":shipping_traces},
