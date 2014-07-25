@@ -7,7 +7,7 @@ from django.conf import settings
 from django.views.decorators.csrf import csrf_exempt
 from django.views.generic import View
 from shopapp.weixin.service import WeixinUserService
-from models import WeiXinUser,ReferalRelationship,ReferalSummary
+from models import WeiXinUser,ReferalRelationship,ReferalSummary,WXOrder
 
 import logging
 import json
@@ -188,11 +188,16 @@ class OrderInfoView(View):
         latest_trades = MergeTrade.objects.filter(receiver_mobile=wx_user.mobile).order_by('-pay_time')
         
         if latest_trades.count() == 0:
-            response = render_to_response('weixin/noorderinfo.html', 
+            wx_trades = WXOrder.objects.filter(buyer_openid=user_openid).order_by('-order_create_time') 
+            if wx_trades.count() == 0:
+                response = render_to_response('weixin/noorderinfo.html', 
                                       context_instance=RequestContext(request))
-            response.set_cookie("openid",user_openid)
-            return response
-
+                response.set_cookie("openid",user_openid)
+                return response
+            
+            order_id = wx_trades.order_id
+            latest_trades = MergeTrade.objects.filter(tid=order_id).order_by('-pay_time')
+            
         from shopback import paramconfig as pcfg
         
         trade = latest_trades[0]
@@ -202,9 +207,9 @@ class OrderInfoView(View):
         data["paytime"] = trade.pay_time
         orders = []
         for order in trade.merge_orders.filter(sys_status=pcfg.IN_EFFECT):
-            tmp = order.getImgAndSimpleName()
-            tmp.append(order.price)
-            orders.append(tmp)
+            s = order.getImgSimpleNameAndPrice()
+            print 's',s
+            orders.append(s)
         data["orders"] = orders
         data["ordernum"] = trade.order_num
         data["payment"] = trade.payment
