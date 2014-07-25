@@ -398,6 +398,7 @@ class WXOrder(models.Model):
     receiver_name     = models.CharField(max_length=64,blank=True,verbose_name=u'收货人')
     receiver_province = models.CharField(max_length=24,blank=True,verbose_name=u'省')
     receiver_city     = models.CharField(max_length=24,blank=True,verbose_name=u'市')
+    receiver_zone     = models.CharField(max_length=24,blank=True,verbose_name=u'区')
     receiver_address  = models.CharField(max_length=128,blank=True,verbose_name=u'地址')
     receiver_mobile   = models.CharField(max_length=24,blank=True,verbose_name=u'手机')
     receiver_phone    = models.CharField(max_length=24,blank=True,verbose_name=u'电话')

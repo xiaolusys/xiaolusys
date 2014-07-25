@@ -145,7 +145,7 @@ class WXOrderAdmin(admin.ModelAdmin):
                 }),
                 (u'收货信息:', {
                     'classes': ('expand',),
-                    'fields': (('receiver_name','receiver_province','receiver_city')
+                    'fields': (('receiver_name','receiver_province','receiver_city','receiver_zone')
                                ,('receiver_address','receiver_mobile','receiver_phone')
                                ,('delivery_id','delivery_company')
                                )

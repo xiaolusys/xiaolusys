@@ -541,6 +541,7 @@ class WxShopService(LocalService):
             merge_trade.receiver_name  = trade.receiver_name
             merge_trade.receiver_state = trade.receiver_province
             merge_trade.receiver_city  = trade.receiver_city
+            merge_trade.receiver_district  = trade.receiver_zone
             merge_trade.receiver_address  = trade.receiver_address
             merge_trade.receiver_mobile   = trade.receiver_mobile
             merge_trade.receiver_phone    = trade.receiver_phone 
