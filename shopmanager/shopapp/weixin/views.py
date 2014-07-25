@@ -195,7 +195,7 @@ class OrderInfoView(View):
                 response.set_cookie("openid",user_openid)
                 return response
             
-            order_id = wx_trades.order_id
+            order_id = wx_trades[0].order_id
             latest_trades = MergeTrade.objects.filter(tid=order_id).order_by('-pay_time')
             
         from shopback import paramconfig as pcfg
