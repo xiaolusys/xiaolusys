@@ -543,7 +543,7 @@ class MergeOrder(models.Model):
     refund_status = models.CharField(max_length=40,choices=REFUND_STATUS,
                                      blank=True,verbose_name=u'退款状态')
     
-    pic_path = models.CharField(max_length=128,blank=True,verbose_name=u'商品图片')
+    pic_path = models.CharField(max_length=512,blank=True,verbose_name=u'商品图片')
     
     seller_nick = models.CharField(max_length=32,blank=True,db_index=True,verbose_name=u'卖家昵称')
     buyer_nick  = models.CharField(max_length=32,db_index=True,blank=True,verbose_name=u'买家昵称')
@@ -645,7 +645,7 @@ class MergeOrder(models.Model):
             simplename = ' '.join([prod.name, (prodSku and prodSku.name or ''), 'x' +str(self.num)])
             return [prod.pic_path, simplename]
         except:
-            return ["", self.title +' x'+str(self.num)]
+            return [self.pic_path, self.title +' x'+str(self.num)]
 
     def getSimpleName(self):
         

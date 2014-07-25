@@ -63,7 +63,7 @@ class WeixinUserService():
                 userinfo = self. _wx_api.getUserInfo(openId)
                 
                 for k,v in userinfo.iteritems():
-                    setattr(wx_user,k,v or getattr(wx_user,k))
+                    hasattr(wx_user,k) and setattr(wx_user,k,v or getattr(wx_user,k))
                 
                 wx_user.nickname = replace_utf8mb4(wx_user.nickname.decode('utf8'))
                 subscribe_time = userinfo.get('subscribe_time',None)
