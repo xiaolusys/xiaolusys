@@ -1,5 +1,5 @@
-
-
+######### 2014-7-25 ##########
+alter table shop_weixin_order add column receiver_zone varchar(24) NOT NULL;
 ######### 2014-7-24 ###### zifei ####
 alter table shop_weixin_user change baby_nick receiver_name varchar(64) NOT NULL;
 alter table shop_weixin_user drop column baby_birth;

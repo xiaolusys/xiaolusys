@@ -63,7 +63,7 @@ class WeixinUserService():
                 userinfo = self. _wx_api.getUserInfo(openId)
                 
                 for k,v in userinfo.iteritems():
-                    setattr(wx_user,k,v or getattr(wx_user,k))
+                    hasattr(wx_user,k) and setattr(wx_user,k,v or getattr(wx_user,k))
                 
                 wx_user.nickname = replace_utf8mb4(wx_user.nickname.decode('utf8'))
                 subscribe_time = userinfo.get('subscribe_time',None)
@@ -541,6 +541,7 @@ class WxShopService(LocalService):
             merge_trade.receiver_name  = trade.receiver_name
             merge_trade.receiver_state = trade.receiver_province
             merge_trade.receiver_city  = trade.receiver_city
+            merge_trade.receiver_district  = trade.receiver_zone
             merge_trade.receiver_address  = trade.receiver_address
             merge_trade.receiver_mobile   = trade.receiver_mobile
             merge_trade.receiver_phone    = trade.receiver_phone 
