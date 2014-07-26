@@ -451,6 +451,7 @@ class WxShopService(LocalService):
         for k,v in order_dict.iteritems():
             hasattr(order,k) and setattr(order,k,v)
         
+        order.buyer_nick = replace_utf8mb4(order_dict['nickname'])
         order.order_create_time = datetime.datetime.fromtimestamp(
             int(order_dict['order_create_time']))
         order.save()
@@ -553,8 +554,8 @@ class WxShopService(LocalService):
             update_fields.extend(address_fields)
             
         merge_trade.payment      = merge_trade.payment or round(trade.order_total_price/100.0,2)
-        merge_trade.total_fee    = merge_trade.total_fee or round(trade.product_price/100.0,2)
-        merge_trade.post_fee     = merge_trade.post_fee or round(trade.order_express_price)
+        merge_trade.total_fee    = merge_trade.total_fee or round(trade.product_price/100.0,2)*trade.product_count
+        merge_trade.post_fee     = merge_trade.post_fee or round(trade.order_express_price/100.0,2)
         
         merge_trade.trade_from    = MergeTrade.trade_from.WAP
         merge_trade.shipping_type = pcfg.EXPRESS_SHIPPING_TYPE
