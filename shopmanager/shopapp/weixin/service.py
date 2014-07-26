@@ -546,7 +546,7 @@ class WxShopService(LocalService):
             merge_trade.receiver_mobile   = trade.receiver_mobile
             merge_trade.receiver_phone    = trade.receiver_phone 
             
-            address_fields = ['receiver_name','receiver_state',
+            address_fields = ['receiver_name','receiver_state','receiver_district',
                              'receiver_city','receiver_address',
                              'receiver_mobile','receiver_phone']
             
