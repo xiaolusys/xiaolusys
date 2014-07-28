@@ -306,5 +306,4 @@ class WeiXinAPI(object):
     
     def genPackageSignParams(self,package):
         
-        
         return 
