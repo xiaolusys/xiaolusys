@@ -54,8 +54,10 @@ CS_STATUS_CHOICES = (
 class Refund(models.Model):
     
     id           = BigIntegerAutoField(primary_key=True,verbose_name='ID')
-    refund_id    = models.BigIntegerField(unique=True,null=True,blank=True,default=None,verbose_name='退款单ID')
-    tid          = models.BigIntegerField(null=True,db_index=True,verbose_name='交易ID')
+    refund_id    = models.CharField(max_length=32,
+                                    default=lambda:'HYRF%d'%int(time.time()*10**2),
+                                    verbose_name='退款单ID')
+    tid          = models.CharField(max_length=32,blank=True,verbose_name='交易ID')
 
     title        = models.CharField(max_length=64,blank=True,verbose_name='出售标题')
     num_iid      = models.BigIntegerField(null=True,default=0,verbose_name='商品ID')
@@ -75,7 +77,7 @@ class Refund(models.Model):
     created   = models.DateTimeField(db_index=True,null=True,auto_now_add=True,verbose_name='创建日期')
     modified  = models.DateTimeField(db_index=True,null=True,auto_now=True,verbose_name='修改日期')
 
-    oid       = models.CharField(db_index=True,max_length=64,blank=True,verbose_name='订单ID')
+    oid       = models.CharField(db_index=True,max_length=32,blank=True,verbose_name='订单ID')
     company_name = models.CharField(max_length=64,blank=True,verbose_name='快递公司')
     sid       = models.CharField(max_length=64,db_index=True,blank=True,verbose_name='快递单号')
 
@@ -85,13 +87,18 @@ class Refund(models.Model):
     
     is_reissue   = models.BooleanField(default=False,verbose_name='已处理')
     
-    good_status  = models.CharField(max_length=32,blank=True,choices=GOOD_STATUS_CHOICES,verbose_name='退货商品状态')
-    order_status = models.CharField(max_length=32,blank=True,choices=ORDER_STATUS_CHOICES,verbose_name='订单状态')
-    cs_status    = models.IntegerField(default=1,choices=CS_STATUS_CHOICES,verbose_name='天猫客服介入状态')
-    status       = models.CharField(max_length=32,blank=True,choices=REFUND_STATUS,verbose_name='退款状态')
+    good_status  = models.CharField(max_length=32,blank=True,
+                                    choices=GOOD_STATUS_CHOICES,verbose_name='退货商品状态')
+    order_status = models.CharField(max_length=32,blank=True,
+                                    choices=ORDER_STATUS_CHOICES,verbose_name='订单状态')
+    cs_status    = models.IntegerField(default=1,
+                                       choices=CS_STATUS_CHOICES,verbose_name='客服介入状态')
+    status       = models.CharField(max_length=32,blank=True,
+                                    choices=REFUND_STATUS,verbose_name='退款状态')
 
     class Meta:
         db_table = 'shop_refunds_refund'
+        unique_together = ("refund_id","tid")
         verbose_name = u'退货款单'
         verbose_name_plural = u'退货款单列表'
 
@@ -149,18 +156,18 @@ class RefundProduct(models.Model):
     buyer_nick   = models.CharField(max_length=64,db_index=True,blank=True,verbose_name='买家昵称')
     buyer_mobile = models.CharField(max_length=22,db_index=True,blank=True,verbose_name='手机')
     buyer_phone  = models.CharField(max_length=22,db_index=True,blank=True,verbose_name='固话')
-    trade_id     = models.CharField(max_length=64,db_index=True,blank=True,default='',verbose_name='淘宝订单编号')
+    trade_id     = models.CharField(max_length=64,db_index=True,blank=True,default='',verbose_name='原单ID')
     out_sid      = models.CharField(max_length=64,db_index=True,blank=True,verbose_name='物流单号')
     company      = models.CharField(max_length=64,db_index=True,blank=True,verbose_name='物流名称')
     
-    oid          = models.CharField(max_length=64,db_index=True,blank=True,default='',verbose_name='子订单编号')
+    oid          = models.CharField(max_length=64,db_index=True,blank=True,default='',verbose_name='子订单ID')
     outer_id     = models.CharField(max_length=64,db_index=True,blank=True,verbose_name='商品编码')
     outer_sku_id = models.CharField(max_length=64,db_index=True,blank=True,verbose_name='规格编码')
     num          = models.IntegerField(default=0,verbose_name='数量')
     title        = models.CharField(max_length=64,blank=True,verbose_name='商品名称')
     property     = models.CharField(max_length=64,blank=True,verbose_name='规格名称')
     
-    can_reuse    = models.BooleanField(default=False,verbose_name='能否二次销售')
+    can_reuse    = models.BooleanField(default=False,verbose_name='二次销售')
     is_finish    = models.BooleanField(default=False,verbose_name='处理完成')
     
     created      = models.DateTimeField(null=True,blank=True,auto_now_add=True,verbose_name='创建时间')
@@ -174,6 +181,7 @@ class RefundProduct(models.Model):
         verbose_name_plural = u'退货商品列表'
 
     def __unicode__(self):
+        
         info_list = [self.buyer_nick,self.buyer_mobile,self.buyer_phone,str(self.trade_id),self.out_sid,self.company]
         info_string = '-'.join([ s for s in info_list if s])    
         return '<%s,%s,%s>'%(info_string,self.outer_id,self.outer_sku_id)

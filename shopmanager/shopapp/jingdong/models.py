@@ -273,7 +273,7 @@ def add_jingdong_user(sender, user,top_session,
                     access_token=top_parameters['access_token'])
     
     profile.visitor_id = user_dict['vender_id']
-    profile.nick       = user_dict['shop_name']
+    profile.nick       = profile.nick or user_dict['shop_name']
 
     profile.save()
     

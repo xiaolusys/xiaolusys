@@ -5,6 +5,7 @@ from shopback.trades.models import (MergeTrade,
                                     MergeOrder,
                                     MergeBuyerTrade)
 from shopback import paramconfig as pcfg
+from django.db import transaction
 from shopback.base import log_action, ADDITION, CHANGE
 from shopback.signals import recalc_fee_signal
 from common.utils import update_model_fields
@@ -54,7 +55,7 @@ def _createAndCalcOrderFee(trade,sub_trade):
                                               'adjust_fee',
                                               'post_fee'])
         
-@transaction.commit_on_success
+
 def mergeMaker(trade,sub_trade):
     
     if not isinstance(trade,MergeTrade):
@@ -63,11 +64,13 @@ def mergeMaker(trade,sub_trade):
     if not isinstance(sub_trade,MergeTrade):
         sub_trade = MergeTrade.objects.get(id=sub_trade)
     
-    if (MergeTrade.objects.get(id=sub_trade.id).has_merge and
+    
+    if (MergeTrade.objects.get(id=sub_trade.id).has_merge or
         MergeBuyerTrade.objects.filter(sub_tid=trade.id).count() > 0):
         return False
     
-    MergeBuyerTrade.objects.get_or_create(sub_tid=sub_trade.id,
+    with transaction.commit_on_success():
+        MergeBuyerTrade.objects.get_or_create(sub_tid=sub_trade.id,
                                           main_tid=trade.id)
     
     trade.append_reason_code(pcfg.MULTIPLE_ORDERS_CODE)
@@ -125,7 +128,6 @@ def mergeMaker(trade,sub_trade):
     return True
     
     
-@transaction.commit_on_success    
 def mergeRemover(trade):
     
     from shopapp.memorule import ruleMatchPayment,ruleMatchSplit
@@ -172,7 +174,7 @@ def mergeRemover(trade):
     
     return True
 
-@transaction.commit_on_success
+
 def driveMergeTrade(trade):
     """ 驱动合单程序 """
     

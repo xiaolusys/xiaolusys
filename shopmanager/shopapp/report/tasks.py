@@ -23,7 +23,7 @@ import logging
 logger = logging.getLogger('django.request')
 
 BLANK_CHAR = ''
-MONTH_TRADE_FILE_TEMPLATE = 'trade-month-%s.xls'
+MONTH_TRADE_FILE_TEMPLATE = 'D%s.xls'
 
 
 
@@ -47,7 +47,12 @@ def updateMonthTradeXlsFileTask(year=None,month=None):
     last_month_last_days = datetime.datetime(year,month,month_range[1],23,59,59)
 
     time_delta = dt - last_month_last_days
-    file_name  = settings.DOWNLOAD_ROOT+'/'+MONTH_TRADE_FILE_TEMPLATE%year_month
+    root_path  = os.path.join(settings.DOWNLOAD_ROOT,'TD',str(year))
+    
+    if not os.path.exists(root_path):
+        os.makedirs(root_path)
+        
+    file_name  = os.path.join(root_path,MONTH_TRADE_FILE_TEMPLATE%year_month)
 
     if os.path.isfile(file_name) or (not update_year_month and time_delta.days<settings.GEN_AMOUNT_FILE_MIN_DAYS):
         return {'error':'%s is already exist or must be %d days from last month at lest!'
@@ -57,8 +62,7 @@ def updateMonthTradeXlsFileTask(year=None,month=None):
     start_date   = last_month_first_days - datetime.timedelta(7,0,0)
     
     interval_date = dt - start_date
-    users = User.effect_users.all()
-    for user in users:
+    for user in User.effect_users.TAOBAO:
         report_status,state = MonthTradeReportStatus.objects.get_or_create\
                 (seller_id=user.visitor_id,year=year,month=month)
         try:
@@ -66,10 +70,15 @@ def updateMonthTradeXlsFileTask(year=None,month=None):
                 for i in xrange(0,time_delta.days):
                     update_start = start_date - datetime.timedelta(i+1,0,0)
                     update_end   = start_date - datetime.timedelta(i,0,0)
-                    monitor_status,state = DayMonitorStatus.objects.get_or_create(user_id=user.visitor_id,
-                                                year=update_start.year,month=update_start.month,day=update_start.day)
+                    monitor_status,state = DayMonitorStatus.objects.get_or_create(
+                                                user_id=user.visitor_id,
+                                                year=update_start.year,
+                                                month=update_start.month,
+                                                day=update_start.day)
                     if not monitor_status.update_trade_increment: 
-                       saveUserIncrementOrdersTask(user.visitor_id,update_from=update_start,update_to=update_end)
+                       saveUserIncrementOrdersTask(user.visitor_id,
+                                                   update_from=update_start,
+                                                   update_to=update_end)
                     monitor_status.update_trade_increment = True
                     monitor_status.save()
                 report_status.update_order = True
@@ -110,8 +119,12 @@ def updateMonthTradeXlsFileTask(year=None,month=None):
         report_status.save()
     
     try:
-        if report_status.update_order and report_status.update_purchase and report_status.update_amount \
-            and report_status.update_purchase_amount and report_status.update_logistics and report_status.update_refund:
+        if (report_status.update_order and 
+            report_status.update_purchase and 
+            report_status.update_amount and 
+            report_status.update_purchase_amount and 
+            report_status.update_logistics and 
+            report_status.update_refund):
             trade_file_builder = TradesToXLSFile()
             trade_file_builder.gen_report_file(last_month_first_days,last_month_last_days,file_name)
     except Exception,exc:
