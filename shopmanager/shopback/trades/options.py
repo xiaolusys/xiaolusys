@@ -1,5 +1,6 @@
 #-*- coding:utf8 -*-
 import datetime
+from django.core.cache import cache
 from django.db import IntegrityError, transaction
 from shopback.trades.models import (MergeTrade,
                                     MergeOrder,
@@ -12,6 +13,8 @@ from common.utils import update_model_fields
 import logging
 
 logger = logging.getLogger('django.request')
+MERGE_LOCK_KEY = 'MERGE_LOCK_%d'
+MERGE_LOCK_SECONDS = 5
 
 class MergeException(Exception):
     pass 
@@ -64,13 +67,13 @@ def mergeMaker(trade,sub_trade):
     if not isinstance(sub_trade,MergeTrade):
         sub_trade = MergeTrade.objects.get(id=sub_trade)
     
-    
-    if (MergeTrade.objects.get(id=sub_trade.id).has_merge or
+    if (cache.get(MERGE_LOCK_KEY%sub_trade.id) or
         MergeBuyerTrade.objects.filter(sub_tid=trade.id).count() > 0):
         return False
     
-    with transaction.commit_on_success():
-        MergeBuyerTrade.objects.get_or_create(sub_tid=sub_trade.id,
+    cache.set(MERGE_LOCK_KEY%trade.id,1,MERGE_LOCK_SECONDS)
+    
+    MergeBuyerTrade.objects.get_or_create(sub_tid=sub_trade.id,
                                           main_tid=trade.id)
     
     trade.append_reason_code(pcfg.MULTIPLE_ORDERS_CODE)

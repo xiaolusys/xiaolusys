@@ -58,7 +58,7 @@ def get_trade_pickle_list_data(post_trades):
                                           'num':order.num,
                                           'location':location}
             else:
-                prod_sku_name =prod_sku.properties_name if prod_sku else order.sku_properties_name
+                prod_sku_name = prod_sku.properties_name if prod_sku else order.sku_properties_name
                     
                 trade_items[outer_id]={
                    'num':order.num,
@@ -209,7 +209,7 @@ def sendTaobaoTradeTask(request_user_id,trade_id):
             trade.save()
             log_action(request_user_id,trade,CHANGE,
                        u'子订单(%d)发货失败:%s'%(sub_trade.id,exc.message))
-            
+            MergeTrade.objects.mergeRemover(trade)
         except Exception,exc:
             trade.append_reason_code(pcfg.POST_MODIFY_CODE)
             trade.sys_status=pcfg.WAIT_AUDIT_STATUS

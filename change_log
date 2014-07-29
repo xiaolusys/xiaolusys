@@ -1,4 +1,7 @@
 ######### 2014-7-28 ##########
+alter table shop_trades_mergetrade add column scanner varchar(64) NOT NULL;
+alter table shop_trades_mergetrade add column weighter varchar(64) NOT NULL;
+######### 2014-7-28 ##########
 alter table shop_refunds_refund drop index refund_id;
 alter table shop_refunds_refund change refund_id refund_id varchar(32) NOT NULL;
 alter table shop_refunds_refund change tid tid varchar(32) NOT NULL;

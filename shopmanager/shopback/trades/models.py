@@ -234,7 +234,9 @@ class MergeTrade(models.Model):
     can_review       = models.BooleanField(default=False,verbose_name=u'复审') 
     priority       =  models.IntegerField(db_index=True,default=0,
                                           choices=PRIORITY_TYPE,verbose_name=u'优先级')
-    operator       =  models.CharField(max_length=32,blank=True,verbose_name=u'发货员')
+    operator       =  models.CharField(max_length=32,blank=True,verbose_name=u'打单员')
+    scanner        =  models.CharField(max_length=64,blank=True,verbose_name=u'扫描员')
+    weighter       =  models.CharField(max_length=64,blank=True,verbose_name=u'称重员')
     is_locked      =  models.BooleanField(default=False,verbose_name=u'锁定')
     is_charged     =  models.BooleanField(default=False,verbose_name=u'揽件')
     sys_status     =  models.CharField(max_length=32,db_index=True,

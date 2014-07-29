@@ -59,7 +59,7 @@ class RefundManagerView(ModelView):
                 has_refund_prod = RefundProduct.objects.filter(trade_id=refund_tid).count()>0
                 refund_dict[refund_tid] = {'tid':refund_tid,
                                            'buyer_nick':refund.buyer_nick,
-                                           'seller_nick':refund.seller_nick,
+                                           'seller_nick':refund.user.nick,
                                            'receiver_name':receiver_name,
                                            'order_num':1,
                                            'created':refund.created.strftime('%Y.%m.%d'),

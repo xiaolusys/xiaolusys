@@ -78,8 +78,9 @@ class MergeTradeChangeList(ChangeList):
         return qs
 
 class MergeTradeAdmin(admin.ModelAdmin):
-    list_display = ('trade_id_link','popup_tid_link','user','buyer_nick_link','type','payment','pay_time','consign_time'
-                    ,'status','sys_status','logistics_company','reason_code','is_picking_print','is_express_print'#
+    list_display = ('trade_id_link','popup_tid_link','user','buyer_nick_link','type',
+                    'payment','pay_time','consign_time','status','sys_status',
+                    'logistics_company','reason_code','is_picking_print','is_express_print'#
                     ,'can_review','operator','weight_time','charge_time')
     #list_display_links = ('trade_id_link','popup_tid_link')
     #list_editable = ('update_time','task_type' ,'is_success','status')
@@ -154,8 +155,8 @@ class MergeTradeAdmin(admin.ModelAdmin):
                                 ,'is_send_sms','is_picking_print','is_express_print','can_review','is_qrcode')
                                ,('is_locked','is_charged','priority','reason_code','refund_num')
                                ,('remind_time','weight_time','charge_time')
-                               ,('post_cost','operator','weight','sys_status',)
-                               ,('reserveo','reservet','reserveh'))
+                               ,('operator','scanner','weighter','weight')
+                               ,('reserveo','reservet','reserveh','sys_status'))
                 }))
 
     #--------定制控件属性----------------
