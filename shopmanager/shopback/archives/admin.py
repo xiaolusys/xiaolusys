@@ -81,7 +81,7 @@ class DepositeDistrictAdmin(admin.ModelAdmin):
     inlines = [ProductLocationInline]
     
     list_filter = ('in_use',)
-    search_fields = ['id','parent_no','location']
+    search_fields = ['id','parent_no','district_no','location']
 
 
 admin.site.register(DepositeDistrict,DepositeDistrictAdmin)

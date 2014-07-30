@@ -43,6 +43,76 @@ class MessageException(Exception):
         return self.message
     
 
+def parseXMLElement(sub_elem):
+        
+    if sub_elem.tag == 'CreateTime':
+        return {sub_elem.tag:datetime.datetime.
+                fromtimestamp(int(sub_elem.text))}
+        
+    return {sub_elem.tag:sub_elem.text}
+    
+def parseXML2Param(xmlc):
+    
+    doc     = etree.fromstring(xmlc)
+    root_elem = doc.xpath('/xml')[0]
+    xmld   = {}
+    
+    for sub_elem in root_elem.iterchildren():
+        xmld.update(parseXMLElement(sub_elem))
+    
+    return xmld
+
+def buildDomByJson(parentDom,djson,arrayTag='',rootTag=''):
+    
+    pdom = parentDom
+    doc  = parentDom.ownerDocument or parentDom
+    if rootTag:
+        pdom = doc.createElement(rootTag)
+        parentDom.appendChild(pdom)
+        
+    json_type = type(djson)
+    if json_type == dict:
+        
+        for k,v in djson.iteritems():
+            if type(v) in (list,tuple):
+                buildDomByJson(pdom,v,arrayTag=k)
+            else:
+                dict_dom = doc.createElement(k)
+                pdom.appendChild(dict_dom)
+                buildDomByJson(dict_dom,v)                
+        return
+        
+    if json_type in (list,tuple):
+        
+        if not arrayTag:
+            raise Exception(u'数组类型需要指定父标签')
+        
+        for ajson in djson:
+            buildDomByJson(pdom,ajson,rootTag=arrayTag)
+        return 
+    
+    if json_type in (str,unicode):
+        
+        pdom.appendChild(doc.createCDATASection(djson))
+        return 
+    
+    if json_type in (int,float):
+        
+        pdom.appendChild(doc.createTextNode(str(djson)))
+        return
+    
+
+def formatParam2XML(params):  
+    """ 
+    """      
+    dom = minidom.Document()
+    initStr = dom.toxml()
+    
+    buildDomByJson(dom, params ,rootTag='xml')
+    x = dom.toxml()
+    return x[len(initStr):]
+
+
 class WeixinUserService():
     
     _wx_api = None
@@ -85,81 +155,6 @@ class WeixinUserService():
     
     def activeAccount(self):
         self._wx_api._wx_account.activeAccount()
-    
-    def mergeElement(self,sub_elem):
-        
-        if sub_elem.tag == 'CreateTime':
-            return {sub_elem.tag:datetime.datetime.
-                    fromtimestamp(int(sub_elem.text))}
-            
-        return {sub_elem.tag:sub_elem.text}
-    
-    def parseXML2Param(self,xmlc):
-        
-        doc     = etree.fromstring(xmlc)
-        root_elem = doc.xpath('/xml')[0]
-        xmld   = {}
-        
-        for sub_elem in root_elem.iterchildren():
-            xmld.update(self.mergeElement(sub_elem))
-        
-        return xmld
-    
-    def buildDomByJson(self,parentDom,djson,arrayTag='',rootTag=''):
-        
-        pdom = parentDom
-        doc  = parentDom.ownerDocument or parentDom
-        if rootTag:
-            pdom = doc.createElement(rootTag)
-            parentDom.appendChild(pdom)
-            
-        json_type = type(djson)
-        if json_type == dict:
-            
-            for k,v in djson.iteritems():
-                if type(v) in (list,tuple):
-                    self.buildDomByJson(pdom,v,arrayTag=k)
-                else:
-                    dict_dom = doc.createElement(k)
-                    pdom.appendChild(dict_dom)
-                    self.buildDomByJson(dict_dom,v)                
-            return
-            
-        if json_type in (list,tuple):
-            
-            if not arrayTag:
-                raise Exception(u'数组类型需要指定父标签')
-            
-            for ajson in djson:
-                self.buildDomByJson(pdom,ajson,rootTag=arrayTag)
-            return 
-        
-        if json_type in (str,unicode):
-            
-            pdom.appendChild(doc.createCDATASection(djson))
-            return 
-        
-        if json_type in (int,float):
-            
-            pdom.appendChild(doc.createTextNode(str(djson)))
-            return
-    
-    def formatParam2XML(self,params):  
-        """ <xml>
-            <ToUserName><![CDATA[oMt59uJJBoNRC7Fdv1b5XiOAngdU]]></ToUserName>
-            <FromUserName><![CDATA[gh_4f2563ee6e9b]]></FromUserName>
-            <CreateTime>1393562180</CreateTime>
-            <MsgType><![CDATA[text]]></MsgType>
-            <Content><![CDATA[宝贝好可爱！]]></Content>
-            </xml>
-        """      
-        dom = minidom.Document()
-        initStr = dom.toxml()
-        
-        self.buildDomByJson(dom, params ,rootTag='xml')
-        x = dom.toxml()
-        return x[len(initStr):]
-        #return dom.toxml()[len(initStr):]
     
     def getResponseList(self):
         

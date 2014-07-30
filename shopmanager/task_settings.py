@@ -154,16 +154,18 @@ SHOP_APP_SCHEDULE = {
     u'定时增量下载更新微信订单':{
         'task':'shopapp.weixin.tasks.pullWaitPostWXOrderTask',
         'schedule':crontab(minute="0",hour="*/6"),
-        'args':(2,None,None,)
+        'args':(None,None,)
     },
+    
     u'定时增量更新微信维权订单':{
         'task':'shopapp.weixin.tasks.pullFeedBackWXOrderTask',
         'schedule':crontab(minute="*/30",hour=','.join([str(i) for i in range(9,23)])),
         'args':(None,None,)
     },
-    u'定时下载微信商品信息':{
-        'task':'shopapp.weixin.tasks.pullWXProductTask',
-        'schedule':crontab(minute="0",hour="1,12"),
+                     
+    u'定时同步微信商品库存':{
+        'task':'shopapp.weixin.tasks.syncWXProductNumTask',
+        'schedule':crontab(minute="10",hour='1,12'),
         'args':()
     },
     u'定时增量下载京东订单信息':{
