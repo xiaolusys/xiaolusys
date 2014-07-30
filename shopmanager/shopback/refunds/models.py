@@ -104,6 +104,10 @@ class Refund(models.Model):
 
     def __unicode__(self):
         return '<%s,%s,%s>'%(self.tid,self.buyer_nick,self.refund_fee)
+    
+    def clean(self):
+        if self.tid:
+            self.tid = self.tid.strip()
 
     @classmethod
     def get_or_create(cls,user_id,refund_id,force_update=False):
