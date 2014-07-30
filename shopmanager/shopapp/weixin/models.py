@@ -322,8 +322,8 @@ class WXProduct(models.Model):
     DOWN_SHELF = 2
     
     PRODUCT_STATUS = (
-        (UP_SHELF,u'下架'),
-        (DOWN_SHELF,u'上架')
+        (UP_SHELF,u'上架'),
+        (DOWN_SHELF,u'下架')
     )
     
     product_id   = models.CharField(max_length=32,
@@ -348,6 +348,9 @@ class WXProduct(models.Model):
     delivery_info   = JSONCharMyField(max_length=200,blank=True,
                                     load_kwargs={},default='{}'
                                     ,verbose_name=u'发货信息') 
+    
+    sync_stock   = models.BooleanField(default=True,
+                                       verbose_name=u'同步库存')
     
     status       = models.IntegerField(null=False,default=0,
                                        choices=PRODUCT_STATUS,

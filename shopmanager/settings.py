@@ -187,7 +187,7 @@ LOGGING = {
             'formatter': 'simple'
         },
         'mail_admins': {
-            'level': 'ERROR',
+            'level': 'INFO',
             'class': 'django.utils.log.AdminEmailHandler',
             'include_html': True,
         }
@@ -216,6 +216,11 @@ LOGGING = {
         'yunda.handler':{
             'handlers': ['sentry'],
             'level': 'ERROR',
+            'propagate': True,
+        },
+        'mail.handler':{
+            'handlers': ['mail_admins','sentry'],
+            'level': 'INFO',
             'propagate': True,
         },
     }
