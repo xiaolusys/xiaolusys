@@ -1,16 +1,20 @@
 #-*- coding:utf8 -*-
 import datetime
+from django.core.cache import cache
 from django.db import IntegrityError, transaction
 from shopback.trades.models import (MergeTrade,
                                     MergeOrder,
                                     MergeBuyerTrade)
 from shopback import paramconfig as pcfg
+from django.db import transaction
 from shopback.base import log_action, ADDITION, CHANGE
 from shopback.signals import recalc_fee_signal
 from common.utils import update_model_fields
 import logging
 
 logger = logging.getLogger('django.request')
+MERGE_LOCK_KEY = 'MERGE_LOCK_%d'
+MERGE_LOCK_SECONDS = 5
 
 class MergeException(Exception):
     pass 
@@ -54,7 +58,7 @@ def _createAndCalcOrderFee(trade,sub_trade):
                                               'adjust_fee',
                                               'post_fee'])
         
-@transaction.commit_on_success
+
 def mergeMaker(trade,sub_trade):
     
     if not isinstance(trade,MergeTrade):
@@ -63,9 +67,11 @@ def mergeMaker(trade,sub_trade):
     if not isinstance(sub_trade,MergeTrade):
         sub_trade = MergeTrade.objects.get(id=sub_trade)
     
-    if (MergeTrade.objects.get(id=sub_trade.id).has_merge and
+    if (cache.get(MERGE_LOCK_KEY%sub_trade.id) or
         MergeBuyerTrade.objects.filter(sub_tid=trade.id).count() > 0):
         return False
+    
+    cache.set(MERGE_LOCK_KEY%trade.id,1,MERGE_LOCK_SECONDS)
     
     MergeBuyerTrade.objects.get_or_create(sub_tid=sub_trade.id,
                                           main_tid=trade.id)
@@ -125,7 +131,6 @@ def mergeMaker(trade,sub_trade):
     return True
     
     
-@transaction.commit_on_success    
 def mergeRemover(trade):
     
     from shopapp.memorule import ruleMatchPayment,ruleMatchSplit
@@ -172,7 +177,7 @@ def mergeRemover(trade):
     
     return True
 
-@transaction.commit_on_success
+
 def driveMergeTrade(trade):
     """ 驱动合单程序 """
     

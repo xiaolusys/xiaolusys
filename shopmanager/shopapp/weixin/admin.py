@@ -101,7 +101,7 @@ admin.site.register(WeiXinAutoResponse, WeiXinAutoResponseAdmin)
 
 class WXProductAdmin(admin.ModelAdmin):
     
-    list_display = ('product_id','product_name','status')
+    list_display = ('product_id','product_name','sync_stock','status')
     
      #--------设置页面布局----------------
     fieldsets =((u'商品信息:', {
@@ -111,7 +111,7 @@ class WXProductAdmin(admin.ModelAdmin):
                                ,('sku_list',)
                                ,('attrext',)
                                ,('delivery_info',)
-                               ,('status',)
+                               ,('sync_stock','status',)
                                )
                 }),
                 )

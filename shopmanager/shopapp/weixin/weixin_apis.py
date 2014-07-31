@@ -59,6 +59,13 @@ class WeiXinAPI(object):
     def __init__(self):
         self._wx_account = WeiXinAccount.getAccountInstance()
         
+    def getAccountId(self):
+        
+        if self._wx_account.isNone():
+            return None
+        
+        return self._wx_account.account_id
+        
     def getAbsoluteUrl(self,uri,token):
         url = settings.WEIXIN_API_HOST+uri
         return token and '%s?access_token=%s'%(url,self.getAccessToken()) or url+'?'
@@ -305,6 +312,5 @@ class WeiXinAPI(object):
         return signString
     
     def genPackageSignParams(self,package):
-        
         
         return 

@@ -6,7 +6,7 @@ from django.http import HttpResponse
 from django.conf import settings
 from django.views.decorators.csrf import csrf_exempt
 from django.views.generic import View
-from shopapp.weixin.service import WeixinUserService
+from shopapp.weixin.service import *
 from models import WeiXinUser,ReferalRelationship,ReferalSummary,WXOrder,Refund
 
 from shopback.trades.models import MergeTrade
@@ -28,12 +28,45 @@ def napay(request):
 
 @csrf_exempt
 def rights(request):
+    """ 
+    <xml>
+    <OpenId><![CDATA[oMt59uE55lLOV2KS6vYZ_d0dOl5c]]></OpenId>
+    <AppId><![CDATA[wxc2848fa1e1aa94b5]]></AppId>
+    <TimeStamp>1406598314</TimeStamp>
+    <MsgType><![CDATA[request]]></MsgType>
+    <FeedBackId>13294025981597859672</FeedBackId>
+    <TransId><![CDATA[1219468801201407253242545244]]></TransId>
+    <Reason><![CDATA[\u9000]]></Reason>
+    <Solution><![CDATA[\u9000\u6b3e\uff0c\u5e76\u4e0d\u9000\u8d27]]></Solution>
+    <ExtInfo><![CDATA[ ]]></ExtInfo>
+    <AppSignature><![CDATA[88518237d2e188a367880784ee209d278190a02d]]></AppSignature>
+    <SignMethod><![CDATA[sha1]]></SignMethod>
+    </xml>
+    """
+    params = parseXML2Param(request.body)
+    
     logger.error('WEIXIN FEEDBACK_URL:%s'%str(request.REQUEST))
     return HttpResponse('success')
 
 @csrf_exempt
 def warn(request):
-    logger.error('WEIXIN WARN_URL:%s'%str(request.REQUEST))
+    """
+    <xml>
+        <AppId><![CDATA[wxf8b4f85f3a794e77]]></AppId>
+        <ErrorType>1001</ErrorType>
+        <Description><![CDATA[错误描述]]></Description>
+        <AlarmContent><![CDATA[错误详情]]></AlarmContent>
+        <TimeStamp>1393860740</TimeStamp>
+        <AppSignature><![CDATA[11111]]></AppSignature>
+        <SignMethod><![CDATA[sha1]]></SignMethod>
+    </xml>
+    """
+    params = parseXML2Param(request.body)
+    
+    mail_logger = logging.getLogger('mail.handler')
+    mail_logger.info(u'微店警告:(%s,%s,%s)'%(params['ErrorType'],
+                                      params['Description'],
+                                      params['AlarmContent']))
     return HttpResponse('success')
 
 
@@ -82,11 +115,11 @@ class WeixinAcceptView(View):
         
         content  = request.body
         
-        params   = wx_service.parseXML2Param(content)
+        params   = parseXML2Param(content)
         
         ret_params = wx_service.handleRequest(params)
        
-        response = wx_service.formatParam2XML(ret_params)
+        response = formatParam2XML(ret_params)
         
         return HttpResponse(response,mimetype="text/xml")
 

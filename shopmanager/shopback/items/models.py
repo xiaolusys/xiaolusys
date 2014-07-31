@@ -724,7 +724,7 @@ class ProductLocation(models.Model):
     """ 库存商品库位信息 """
     
     product_id   = models.IntegerField(db_index=True,verbose_name='商品ID')
-    sku_id       = models.IntegerField(db_index=True,null=True,verbose_name='规格ID')
+    sku_id       = models.IntegerField(db_index=True,blank=True,null=True,verbose_name='规格ID')
     
     outer_id     = models.CharField(max_length=32,null=False,blank=True,verbose_name='商品编码')
     name         = models.CharField(max_length=64,null=False,blank=True,verbose_name='商品名称')
