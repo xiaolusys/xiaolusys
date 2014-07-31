@@ -10,6 +10,7 @@ from shopapp.weixin.service import *
 from models import WeiXinUser,ReferalRelationship,ReferalSummary,WXOrder,Refund
 
 from shopback.trades.models import MergeTrade
+from shopback import paramconfig as pcfg
 
 import logging
 import json
@@ -219,8 +220,8 @@ class OrderInfoView(View):
             response.set_cookie("openid",user_openid)
             return response
             
-
-        latest_trades = MergeTrade.objects.filter(receiver_mobile=wx_user.mobile).order_by('-pay_time')
+        status = [pcfg.WAIT_SELLER_SEND_GOODS,pcfg.WAIT_BUYER_CONFIRM_GOODS, pcfg.TRADE_FINISHED]
+        latest_trades = MergeTrade.objects.filter(receiver_mobile=wx_user.mobile).filter(status__in=status).order_by('-pay_time')
         
         if latest_trades.count() == 0:
             wx_trades = WXOrder.objects.filter(buyer_openid=user_openid).order_by('-order_create_time') 
@@ -233,7 +234,7 @@ class OrderInfoView(View):
             order_id = wx_trades[0].order_id
             latest_trades = MergeTrade.objects.filter(tid=order_id).order_by('-pay_time')
             
-        from shopback import paramconfig as pcfg
+
         
         trade = latest_trades[0]
         
