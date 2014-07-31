@@ -1,0 +1,94 @@
+{% load custom_filter %}
+
+<!DOCTYPE html>
+<html lang="zh-cn">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+    <title>返利申请</title>
+
+    <!-- Bootstrap -->
+    <link href="{{ STATIC_URL }}bootstrap/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+      <script src="http://cdn.bootcss.com/html5shiv/3.7.2/html5shiv.min.js"></script>
+      <script src="http://cdn.bootcss.com/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+  </head>
+  <body>
+
+<div class="container">
+
+<div class="panel panel-default" style="margin-top:5px">
+  <div class="panel-heading">返利放款</div>
+  <div class="panel-body">
+    <p>请核对客人订单是否交易完成，是否有<font style="color:green">退款申请</font>或<font style="color:green">维权状态</font>。</p>
+    <div class="row">
+      <div class="col-xs-12"  id="id_refund_body">
+	{% include "weixin/refundreviewblock.html" %}
+      </div>
+    </div>
+    <div class="row">
+      <div class="col-xs-12" style="text-align:center">
+	<button type="button" class="btn btn-primary" id="id_button" onclick="review();">确定, 下一条</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="panel panel-default" style="margin-top:5px">
+  <div class="panel-heading">返利申请</div>
+  <div class="panel-body">
+
+    <table class="table table-bordered">
+      <thead>
+	<th>编号</th><th>内部单号</th><th>返利类型</th><th>VIP邀请码</th><th>返利状态</th><th>申请时间</th>
+      </thead>
+      <tbody>
+	{% if first_refund %}	
+	{% for refund in refundlist %} 
+	<tr id="id_{{ refund.pk }}">
+	  <td>{{ refund.pk }}</td><td>{{ refund.trade_id }}</td><td>{{ refund|displayName:'refund_type' }}</td><td>{{ refund.vip_code }}</td><td>{{ refund|displayName:'refund_status' }}</td><td>{{ refund.created }}</td>
+	</tr>
+	{% endfor %}
+	{% endif %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+
+</div>
+
+    <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
+    <script src="{{ STATIC_URL }}jquery/jquery.js"></script>
+    <!-- Include all compiled plugins (below), or include individual files as needed -->
+    <script src="{{ STATIC_URL }}bootstrap/js/bootstrap.min.js"></script>
+    <script type="text/javascript">
+      function review() {
+        var action = $("#id_action").val();
+        if (action == "10") return;
+
+        var refund_id = $("#id_refund_pk").val();
+        var pay_type = $("#id_pay_type").val();
+        var pay_amount = $("#id_refund_amount").val();
+        var note = $("#id_note").val();
+        var csrf_token = document.getElementsByName("csrfmiddlewaretoken")[0].value;
+
+        var data = {"refund_id":refund_id, "pay_type":pay_type, "pay_amount":pay_amount, "note":note, "action":action, "csrfmiddlewaretoken":csrf_token};
+        var url = "/weixin/refundreview/";
+        var callback = function (res) {
+          $("#id_refund_body")[0].innerHTML = res;
+
+          $("#id_"+refund_id).css("display","none");
+        };
+
+        $.ajax({url:url, data:data, type:"post", success:callback});
+        
+      }
+    </script>
+  </body>
+</html>

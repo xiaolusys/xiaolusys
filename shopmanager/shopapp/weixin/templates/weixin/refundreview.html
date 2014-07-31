@@ -1,0 +1,98 @@
+{% extends "weixin/weixin_base.html" %}
+
+{% load custom_filter %}
+
+{% block title %} 返利申请 {% endblock %}
+
+{% block container %}
+
+<div class="container">
+
+  <div class="panel panel-default" style="margin-top:5px">
+    <div class="panel-heading">返利审核</div>
+    <div class="panel-body">
+      <p>1) 核对客人提交的材料是否齐全，比如：是否有符合标准的清晰晒单截图。</p>
+      <p>2) 核对客人订单付款时间是否在有效时间范围内。</p>
+      <p>3) 核对客人订单是否交易完成，是否有<font style="color:green">退款申请</font>或<font style="color:green">维权状态</font>。</p>
+      <div class="row">
+	<div class="col-xs-12"  id="id_refund_body">
+	  {% if refund_status == 0%}
+	  {% include "weixin/refundreviewblock.html" %}
+	  {% else %}
+	  {% include "weixin/finalizeblock.html" %}
+	  {% endif %}
+	</div>
+      </div>
+      <div class="row">
+	<div class="col-xs-12" style="text-align:center">
+	  <button type="button" class="btn btn-primary" id="id_button" onclick="review();">确定, 下一条</button>
+	</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="panel panel-default" style="margin-top:5px">
+    <div class="panel-heading">返利申请</div>
+    <div class="panel-body">
+
+      <table class="table table-bordered">
+	<thead>
+	  <th>编号</th><th>内部单号</th><th>返利类型</th><th>VIP邀请码</th><th>返利状态</th><th>申请时间</th>
+	</thead>
+	<tbody>
+	  {% if first_refund %}	
+	  {% for refund in refundlist %} 
+	  <tr id="id_{{ refund.pk }}">
+	    <td>{{ refund.pk }}</td><td>{{ refund.trade_id }}</td><td>{{ refund|displayName:'refund_type' }}</td><td>{{ refund.vip_code }}</td><td>{{ refund|displayName:'refund_status' }}</td><td>{{ refund.created }}</td>
+	  </tr>
+	  {% endfor %}
+	  {% endif %}
+	</tbody>
+      </table>
+    </div>
+  </div>
+
+
+</div>
+{% endblock %}
+
+{% block tail_script %}
+<script type="text/javascript">
+  function review() {
+    var action = $("#id_action").val();
+    if (action == "10") return;
+  
+    var refund_id = $("#id_refund_pk").val();
+    var pay_type = $("#id_pay_type").val();
+    var pay_amount = $("#id_refund_amount").val();
+
+    {% if refund_status == 0 %}
+    var review_note = $("#id_review_note").val();
+    {% endif %}
+
+    {% if refund_status == 1 %}
+    var pay_note = $("#id_pay_note").val();
+    {% endif %} 
+
+    var csrf_token = document.getElementsByName("csrfmiddlewaretoken")[0].value;
+
+    var data = {"refund_status":{{ refund_status }}, "refund_id":refund_id, 
+    "pay_type":pay_type, "pay_amount":pay_amount, 
+    {% if refund_status == 0 %}   
+      "review_note":review_note, 
+    {% endif %}
+    {% if refund_status == 1 %}   
+      "pay_note":pay_note, 
+    {% endif %}
+    "action":action, "csrfmiddlewaretoken":csrf_token};
+    var url = "/weixin/refundreview/";
+    var callback = function (res) {
+      $("#id_refund_body")[0].innerHTML = res;
+      $("#id_"+refund_id).css("display","none");
+    };
+
+    $.ajax({url:url, data:data, type:"post", success:callback});
+  }
+</script>
+{% endblock %}
+

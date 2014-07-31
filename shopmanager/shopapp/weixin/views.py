@@ -7,7 +7,9 @@ from django.conf import settings
 from django.views.decorators.csrf import csrf_exempt
 from django.views.generic import View
 from shopapp.weixin.service import WeixinUserService
-from models import WeiXinUser,ReferalRelationship,ReferalSummary,WXOrder
+from models import WeiXinUser,ReferalRelationship,ReferalSummary,WXOrder,Refund
+
+from shopback.trades.models import MergeTrade
 
 import logging
 import json
@@ -184,7 +186,7 @@ class OrderInfoView(View):
             response.set_cookie("openid",user_openid)
             return response
             
-        from shopback.trades.models import MergeTrade
+
         latest_trades = MergeTrade.objects.filter(receiver_mobile=wx_user.mobile).order_by('-pay_time')
         
         if latest_trades.count() == 0:
@@ -203,6 +205,7 @@ class OrderInfoView(View):
         trade = latest_trades[0]
         
         data = {}
+        data["tradeid"] = trade.id
         data["platform"] = trade.user
         data["paytime"] = trade.pay_time
         orders = []
@@ -222,10 +225,15 @@ class OrderInfoView(View):
         try:
             shipping_traces = getLogisticTrace(trade.out_sid, trade.logistics_company.code.split('_')[0])
         except:
-            shipping_traces = [("快递系统故障，暂时无法查询到快递信息", "请尝试其他途径查询")]
+            shipping_traces = [("Sorry, 暂时无法查询到快递信息", "请尝试其他途径查询")]
 
+        
+        refund = None
+        refund_list = Refund.objects.filter(trade_id=trade.id)
+        if refund_list.count() > 0:
+            refund = refund_list[0]
         response = render_to_response('weixin/orderinfo.html', 
-                                      {'tradedata':data, "traces":shipping_traces},
+                                      {'tradedata':data, "traces":shipping_traces, "refund": refund},
                                       context_instance=RequestContext(request))
         response.set_cookie("openid",user_openid)
         return response
@@ -375,3 +383,102 @@ class ReferalView(View):
                                   context_instance=RequestContext(request))
         response.set_cookie("openid",user_openid)
         return response
+
+
+class RefundSubmitView(View):
+    def post(self, request):
+        content = request.REQUEST
+        tradeid = content.get("tradeid")
+        refundtype = content.get("refund_type")
+        vipcode = content.get("vipcode")
+        
+        obj = Refund.objects.filter(trade_id=tradeid)
+        if obj.count() < 1:
+            if refundtype == "0":
+                obj = Refund.objects.create(trade_id=int(tradeid),refund_type=int(refundtype))
+            else:
+                obj = Refund.objects.create(trade_id=int(tradeid),refund_type=int(refundtype),vip_code=vipcode)
+        else:
+            obj = obj[0]
+        response = render_to_response('weixin/refundresponse.html', {"refund":obj},
+                                      context_instance=RequestContext(request))
+        return response
+
+        
+
+class RefundReviewView(View):
+    def get(self, request):
+        
+        content = request.REQUEST
+        refund_status = int(content.get("status", "0"))
+        
+        refundlist = Refund.objects.filter(refund_status=refund_status).order_by('created')
+        
+        first_refund, first_trade = None,None
+        if refundlist.count() > 0:
+            first_refund = refundlist[0]
+            first_refund.pay_amount = first_refund.pay_amount * 0.01
+            trade_id = first_refund.trade_id
+            mergetrades = MergeTrade.objects.filter(id=int(trade_id))
+            if mergetrades.count() > 0:
+                first_trade = mergetrades[0]
+                
+        
+        response = render_to_response('weixin/refundreview.html', 
+                                      {"refundlist":refundlist, "first_refund":first_refund, "first_trade": first_trade, "refund_status":refund_status},
+                                      context_instance=RequestContext(request))
+        return response
+
+    def post(self, request):
+        content = request.REQUEST
+
+        refund_status = int(content.get("refund_status"))
+        refund_id = int(content.get("refund_id"))
+
+        if refund_status == 1:
+            pay_note = content.get("pay_note")            
+            action = int(content.get("action"))            
+
+            if not action in (2,3):
+                response = {"code":"bad", "message":"wrong action"}
+                return HttpResponse(json.dumps(response),mimetype='application/json')
+
+            Refund.objects.filter(pk=refund_id).update(pay_note=pay_note,refund_status=action)
+
+        if refund_status == 0:
+            pay_type = int(content.get("pay_type"))
+            pay_amount = int(content.get("pay_amount"))
+            review_note = content.get("review_note",)
+            action = int(content.get("action"))
+
+            if not action in (1,2):
+                response = {"code":"bad", "message":"wrong action"}
+                return HttpResponse(json.dumps(response),mimetype='application/json')
+
+            Refund.objects.filter(pk=refund_id).update(pay_type=pay_type,pay_amount=pay_amount,review_note=review_note,refund_status=action)
+        
+        refunds = Refund.objects.filter(pk__gt=refund_id).filter(refund_status=refund_status).order_by('pk')[0:1]
+        next_trade,next_refund = None,None
+        if refunds.count() > 0:
+            next_refund = refunds[0]
+            next_refund.pay_amount = next_refund.pay_amount * 0.01
+            mergetrades = MergeTrade.objects.filter(id=next_refund.trade_id)
+            if mergetrades.count() > 0:
+                next_trade = mergetrades[0]
+            
+        html = 'weixin/refundreviewblock.html'
+        if refund_status == 1:
+            html = 'weixin/finalizeblock.html'
+        response = render_to_response(html, {"first_refund":next_refund, "first_trade": next_trade},
+                                      context_instance=RequestContext(request))
+        return response
+    
+
+        
+
+class TestView(View):
+    def get(self, request):
+        response = render_to_response('weixin/orderinfo.html', 
+                                      context_instance=RequestContext(request))
+        return response
+        

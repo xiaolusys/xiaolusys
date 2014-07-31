@@ -1,0 +1,52 @@
+{% load custom_filter %}
+<table class="table table-bordered">
+  <thead>
+    <th>编号</th><th>手机号码</th><th>交易平台</th><th>用户昵称</th><th>交易金额</th><th>订单状态</th><th>付款时间</th><th>返利类型</th><th>VIP邀请码</th>
+  </thead>
+  <tbody>
+    <tr>
+      {% if first_refund %}
+      <td>{{ first_refund.pk }}</td>
+      <td>{{ first_trade.receiver_mobile }}</td>
+      <td>{{ first_trade.user }}</td>
+      <td>{{ first_trade.buyer_nick }}</td>
+      <td>￥{{ first_trade.payment }}</td>
+      <td>{{ first_trade|displayName:'status' }}</td>
+      <td>{{ first_trade.pay_time }}</td>
+      <td>{{ first_refund|displayName:'refund_type' }}</td>
+      <td>{{ first_refund.vip_code }}</td>
+      {% endif %}
+    </tr>
+  </tbody>
+</table>
+<table class="table table-bordered">
+  <thead>
+    <th>返利状态</th><th>申请时间</th><th>返利方式</th><th>返利金额</th><th>审核备注</th><th>返现备注</th><th>审核</th>
+  </thead>
+  <tbody>
+    <tr>
+      {% if first_refund %}
+      <td>{{ first_refund|displayName:'refund_status' }}</td>
+      <td>{{ first_refund.created }}</td>
+      <td>{{ first_refund|displayName:'pay_type' }}</td>
+      <td>￥{{ first_refund.pay_amount }}</td>
+      <td>{{ first_refund.review_note }}</td>
+      <td>
+	<input type="text" class="form-control" id="id_pay_note"/>
+	<input type="hidden" id="id_refund_pk" value="{{ first_refund.pk }}"/>{% csrf_token %}
+      </td>
+      <td>
+	<select class="form-control" id="id_action">
+	  <option value="10">请选择</option>
+	  <option value="2">拒绝</option>
+	  <option value="3">完成</option>
+	</select>
+      </td>
+      {% endif %}
+    </tr>
+  </tbody>
+  
+</table>
+
+
+

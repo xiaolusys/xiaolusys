@@ -4,7 +4,7 @@ from django.db import models
 from shopback.base.fields import BigIntegerAutoField
 from shopback.base.models import JSONCharMyField
 from .managers import WeixinProductManager
-
+from shopback.trades.models import MergeTrade
 
 SAFE_CODE_SECONDS = 60
 
@@ -518,4 +518,35 @@ class ReferalSummary(models.Model):
         db_table = 'shop_weixin_referal_summary'
 
 
+class Refund(models.Model):
+    REFUND_TYPES = ((0,u'晒单返现'), (1,u'VIP邀请'))
+    REFUND_STATUSES = ((0,u'等待审核'), (1,u'审核通过'), (2,u'审核不通过'),(3,u'完成'))
+    PAY_TYPES = ((0,u'申请退款'), (1,u'退邮费'), (2,u'支付宝转账'))
 
+    ### note: trade_id in mergetrade is biginteger.
+    trade_id = models.IntegerField(default=0, db_index=True,verbose_name=u'订单ID')
+    
+    ### 晒单返现 VIP邀请
+    refund_type = models.IntegerField(default=0, choices=REFUND_TYPES, verbose_name=u'返利类型')
+
+    ### 支付宝转账 退邮费 申请退款
+    pay_type = models.IntegerField(default=0, choices=PAY_TYPES, verbose_name=u'支付方式') 
+
+    vip_code = models.CharField(max_length=10,blank=True,verbose_name=u'VIP邀请码')
+    
+    ### 以分为单位
+    pay_amount = models.IntegerField(default=0, verbose_name=u'金额')
+
+    ### 0 等待审核, 1 审核通过, 2 审核不通过, 3 完成
+    refund_status = models.IntegerField(default=0, choices=REFUND_STATUSES, verbose_name=u'状态')
+    
+    ### 备注支付宝帐号，财付通帐号等
+    review_note = models.CharField(max_length=256, blank=True, verbose_name=u'审核备注')
+
+    pay_note = models.CharField(max_length=256, blank=True, verbose_name=u'返现备注')
+
+    created = models.DateTimeField(null=True,db_index=True,auto_now_add=True,verbose_name=u'申请日期')
+
+
+    class Meta:
+        db_table = 'shop_weixin_refund'
