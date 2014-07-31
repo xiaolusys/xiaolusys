@@ -553,3 +553,10 @@ class Refund(models.Model):
 
     class Meta:
         db_table = 'shop_weixin_refund'
+        verbose_name=u'返现订单'
+        verbose_name_plural = u'返现订单列表'
+        permissions = [
+                       ("can_refund_agree", u"返现订单审核权限"),
+                       ("can_refund_confirm", u"返现订单支付确认权限"),
+                       ]
+        
