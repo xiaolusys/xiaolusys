@@ -1,12 +1,16 @@
 #-*- coding:utf8 -*-
 import time
 import datetime
+import json
 from celery.task import task
 from celery.task.sets import subtask
 from django.conf import settings
+
+from common.utils import update_model_fields
 from .models import WXOrder,WXProduct,WXLogistic
 from .service import WxShopService
 from .weixin_apis import WeiXinAPI
+
 
 @task
 def pullWXProductTask():
@@ -83,13 +87,15 @@ def syncStockByWxShopTask(wx_product):
     wx_user = User.objects.get(visitor_id=wx_openid)
     
     user_percent = wx_user.stock_percent
-    skus  =  wx_product.sku_list and json.loads(wx_product.sku_list) or []
+    
+    skus  =  wx_product.sku_list or []
     sku_stock_list = []
     
     for sku in skus:
         
         if not sku.get('product_code',None):
             continue
+        
         try:
             outer_id,outer_sku_id = Product.objects.trancecode('',
                                                                sku['product_code'],
@@ -101,7 +107,7 @@ def syncStockByWxShopTask(wx_product):
         except:
             continue
         
-        if not (jd_user.sync_stock and product.sync_stock and product_sku.sync_stock):
+        if not (wx_user.sync_stock and product.sync_stock and product_sku.sync_stock):
             continue
         
         order_nums  = 0
@@ -160,7 +166,7 @@ def syncStockByWxShopTask(wx_product):
 @task
 def syncWXProductNumTask():
     
-    pullWXProductTask()
+    #pullWXProductTask()
     
     wx_products = WXProduct.objects.filter(status=WXProduct.UP_SHELF)
     
