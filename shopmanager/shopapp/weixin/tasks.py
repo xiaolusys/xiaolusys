@@ -18,7 +18,7 @@ def pullWXProductTask():
     for product in products:
         
         WXProduct.objects.createByDict(product)
-        up_shelf_ids.append(product.product_id)
+        up_shelf_ids.append(product['product_id'])
         
     WXProduct.objects.exclude(product_id__in=up_shelf_ids)\
         .update(status=WXProduct.DOWN_SHELF)
