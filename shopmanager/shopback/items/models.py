@@ -318,7 +318,7 @@ class ProductSku(models.Model):
     
     sync_stock   = models.BooleanField(default=True,verbose_name='库存同步') 
     #是否手动分配库存，当库存充足时，系统自动设为False，手动分配过后，确定后置为True
-    is_assign    = models.BooleanField(default=False,verbose_name='取消警告') 
+    is_assign    = models.BooleanField(default=False,verbose_name='手动分配') 
     
     post_check   = models.BooleanField(default=False,verbose_name='需扫描')
     created      = models.DateTimeField(null=True,blank=True,auto_now_add=True,verbose_name='创建时间')

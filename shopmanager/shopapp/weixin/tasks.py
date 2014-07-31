@@ -166,7 +166,7 @@ def syncStockByWxShopTask(wx_product):
 @task
 def syncWXProductNumTask():
     
-    #pullWXProductTask()
+    pullWXProductTask()
     
     wx_products = WXProduct.objects.filter(status=WXProduct.UP_SHELF)
     
