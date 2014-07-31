@@ -1,0 +1,28 @@
+<div class="row">
+  <div class="col-xs-4">
+    <p style="float:right">返利理由: </p>
+  </div>
+  <div class="col-xs-8">
+    <select id="id_refund" class="form-control input-sm" onchange="refundSelection(this);">
+      <option value="10">请选择</option>
+      <option value="0">朋友圈晒单</option>
+      <option value="1">VIP 邀请</option>
+    </select>
+  </div>
+</div>
+
+<div id="id_vip_code" class="row" style="margin-top:5px;display:none">
+  <div class="col-xs-4">
+    <p style="float:right">VIP邀请码: </p>
+  </div>
+  <div class="col-xs-8">
+    <input id="id_trade_id" type="hidden" value="{{ tradedata.tradeid }}"/>
+    <input id="id_code" class="form-control" type="text" placeholder="请输入邀请码"/>{% csrf_token %}
+  </div>
+</div>
+
+<div class="row" style="margin-top:8px">
+  <div class="col-xs-12" style="text-align:center">
+    <button id="id_submit" type="button" class="btn btn-warning" onclick="refundSubmit();">提交申请</button><span id="id_msg"></span>
+  </div>
+</div>

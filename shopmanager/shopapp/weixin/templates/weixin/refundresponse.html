@@ -1,0 +1,14 @@
+{% load custom_filter %}
+
+<table class="table table-bordered">
+  <thead>
+    <th>单号</th><th>返利类型</th><th>返利状态</th><th>申请时间</th>
+  </thead>
+  <tbody>
+    <tr>
+      <td>{{ refund.trade_id }}</td><td>{{ refund|displayName:'refund_type' }}</td><td>{{ refund|displayName:'refund_status' }}</td><td>{{ refund.created }}</td>
+    </tr>
+  </tbody>
+</table>
+
+

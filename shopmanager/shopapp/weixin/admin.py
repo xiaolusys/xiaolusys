@@ -10,6 +10,7 @@ from shopapp.weixin.models import (WeiXinAccount,
                                    WXLogistic,
                                    ReferalRelationship,
                                    ReferalSummary,
+                                   Refund,
                                    )
 
 class WeiXinAccountAdmin(admin.ModelAdmin):
@@ -176,3 +177,10 @@ class ReferalSummaryAdmin(admin.ModelAdmin):
     list_display = ('user_openid', 'direct_referal_count', 'indirect_referal_count')
 
 admin.site.register(ReferalSummary, ReferalSummaryAdmin) 
+
+
+class RefundAdmin(admin.ModelAdmin):
+    list_display = ('trade_id', 'refund_type')
+
+admin.site.register(Refund, RefundAdmin) 
+

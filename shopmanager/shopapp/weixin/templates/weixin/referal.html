@@ -1,20 +1,59 @@
-<!DOCTYPE html>
-<html lang="zh-cn">
-  <head>
-    <meta charset="utf-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-    <title>推荐有礼</title>
+{% extends "weixin/weixin_base.html" %}
 
-    <!-- Bootstrap -->
-    <link href="{{STATIC_URL}}bootstrap/css/bootstrap.min.css" rel="stylesheet">
+{% block title %} 推荐有礼 {% endblock %}
 
-    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
-    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
-    <!--[if lt IE 9]>
-      <script src="http://cdn.bootcss.com/html5shiv/3.7.2/html5shiv.min.js"></script>
-      <script src="http://cdn.bootcss.com/respond.js/1.4.2/respond.min.js"></script>
-    <![endif]-->
+{% block container %}
+
+<div class="container-fluid">
+
+  <div class="panel panel-default" style="margin-top:5px">
+    <div class="panel-heading">推荐有礼</div>
+    <div class="panel-body">
+      <p>把优尼世界推荐给好友，只需输入她的手机号即可。</p>
+      <p>好友得优惠，您赢取返利，一举多得！</p>
+      <div class="form-group">
+	<label>输入好友手机:</label><span style="float:right;color:red" id="feedback"></span>
+	<input type="text" class="form-control" placeholder="好友手机号" id="mobile_input">
+	<input type="hidden" id="openid" value="{{ openid }}">
+      </div>
+      <button type="button" class="btn btn-primary" onclick="referalSubmit();">提交推荐</button>
+    </div>
+  </div>
+
+  <div class="panel panel-default" style="margin-top:15px">
+    <div class="panel-heading" style="color:orange">我的返利</div>
+    <div class="panel-body">
+      <p style="color:orange">账户余额: ￥<span style="font-size:26px">{{ referal_bonus }}</span> <button class="btn btn-warning" style="float:right;">提现</button></p>
+      <p>一级好友: {{ direct_referal_count }}人</p>
+      <p>二级好友: {{ indirect_referal_count }}人</p>
+    </div>
+  </div>
+
+
+  <div class="row">
+    <div class="col-xs-12">
+      <h5 style="color:#3071a9">晒单返利</h5>
+      <p>购买后晒单到朋友圈，可得到额外的<font style="color:red">返利5元</font>奖励。</p>
+    </div>
+    <div class="col-xs-12">
+      <h5 style="color:#3071a9">推荐返利</h5>
+      <p>成功邀请一个好友，最高可获10元奖励。邀请得多，奖励更多哟！</p>
+    </div>
+    <div class="col-xs-12">
+      <h5 style="color:#3071a9">返利规则</h5>
+      <p>详细的返利规则，请<a href="/weixin/referalrules/" style="color:green">点击查看 >></a></p>
+    </div>
+  </div>
+  
+  <div class="footer">
+    <p>© Uni Littles 2014</p>
+  </div>
+  
+</div>
+{% endblock %}
+
+{% block tail_script %}
+
     <script type="text/javascript">
       function validateMobile(s) {
         var validateReg = /^((\+?86)|(\(\+86\)))?1\d{10}$/;
@@ -51,59 +90,4 @@
         $.ajax({url:url, data:data, success: callback});
       };
     </script>
-  </head>
-  <body>
-
-<div class="container-fluid">
-
-<div class="panel panel-default" style="margin-top:5px">
-  <div class="panel-heading">推荐有礼</div>
-  <div class="panel-body">
-      <p>把优尼世界推荐给好友，只需输入她的手机号即可。</p>
-      <p>好友得优惠，您赢取返利，一举多得！</p>
-      <div class="form-group">
-	<label>输入好友手机:</label><span style="float:right;color:red" id="feedback"></span>
-	<input type="text" class="form-control" placeholder="好友手机号" id="mobile_input">
-	<input type="hidden" id="openid" value="{{ openid }}">
-      </div>
-      <button type="button" class="btn btn-primary" onclick="referalSubmit();">提交推荐</button>
-  </div>
-</div>
-
-<div class="panel panel-default" style="margin-top:15px">
-  <div class="panel-heading" style="color:orange">我的返利</div>
-  <div class="panel-body">
-    <p style="color:orange">账户余额: ￥<span style="font-size:26px">{{ referal_bonus }}</span> <button class="btn btn-warning" style="float:right;">提现</button></p>
-    <p>一级好友: {{ direct_referal_count }}人</p>
-    <p>二级好友: {{ indirect_referal_count }}人</p>
-  </div>
-</div>
-
-
-  <div class="row">
-    <div class="col-xs-12">
-      <h5 style="color:#3071a9">晒单返利</h5>
-      <p>购买后晒单到朋友圈，可得到额外的<font style="color:red">返利5元</font>奖励。</p>
-    </div>
-    <div class="col-xs-12">
-      <h5 style="color:#3071a9">推荐返利</h5>
-      <p>成功邀请一个好友，最高可获10元奖励。邀请得多，奖励更多哟！</p>
-    </div>
-    <div class="col-xs-12">
-      <h5 style="color:#3071a9">返利规则</h5>
-      <p>详细的返利规则，请<a href="/weixin/referalrules/" style="color:green">点击查看 >></a></p>
-    </div>
-  </div>
-  
-  <div class="footer">
-    <p>© Uni Littles 2014</p>
-  </div>
-  
-</div>
-
-    <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
-    <script src="http://cdn.bootcss.com/jquery/1.11.1/jquery.min.js"></script>
-    <!-- Include all compiled plugins (below), or include individual files as needed -->
-    <script src="{{STATIC_URL}}bootstrap/js/bootstrap.min.js"></script>
-  </body>
-</html>
+{% endblock %}

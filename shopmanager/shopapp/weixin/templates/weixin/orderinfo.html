@@ -1,109 +1,154 @@
-<!DOCTYPE html>
-<html lang="zh-cn">
-  <head>
-    <meta charset="utf-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-    <title>订单信息</title>
+{% extends "weixin/weixin_base.html" %}
 
-    <!-- Bootstrap -->
-    <link href="{{ STATIC_URL }}bootstrap/css/bootstrap.min.css" rel="stylesheet">
+{% block title %} 订单信息 {% endblock %}
 
-    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
-    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
-    <!--[if lt IE 9]>
-      <script src="http://cdn.bootcss.com/html5shiv/3.7.2/html5shiv.min.js"></script>
-      <script src="http://cdn.bootcss.com/respond.js/1.4.2/respond.min.js"></script>
-    <![endif]-->
-  </head>
-  <body>
-    <div>
+{% block container %}
+<div class="container-fluid">
 
-      <div class="panel panel-default" >
-	<div class="panel-heading" style="color:orange">
-	  <span>我的订单</span>
+  <div class="panel panel-default" >
+    <div class="panel-heading" style="color:orange">
+      <span>我的订单</span>
+    </div>
+    <div class="panel-body">
+      <div class="row">
+	<div class="col-xs-4">
+	  <p style="color:#3071a9">{{ tradedata.platform }}</p>
 	</div>
-	<div class="panel-body">
-	  <div class="row">
-	    <div class="col-xs-4">
-	      <p style="color:#3071a9">{{ tradedata.platform }}</p>
-	    </div>
-	    <div class="col-xs-8">
-	      <p style="color:#3071a9">时间: {{ tradedata.paytime }}</p>
-	    </div>
-	  </div>
-	  {% for data in tradedata.orders %}
-	  <div class="row">
-	    <div class="col-xs-4">
-	      <a href="#" class="thumbnail"><img src="{{ data.0 }}" alt="..."></a>
-	    </div>
-	    <div class="col-xs-4">
-	      <p>{{ data.1 }}</p>
-	    </div>
-	    <div class="col-xs-4">
-	      <p>原价: ￥{{ data.2}}</p>
-	    </div>
-	  </div>
-	  {% endfor %}
-
-	  <div class="row">
-	    <div class="col-xs-6">
-	      <p style="color:#3071a9">商品数: {{ tradedata.ordernum }}</p>
-	    </div>
-	    <div class="col-xs-6">
-	      <p style="color:#3071a9">实付: ￥{{ tradedata.payment }}</p>
-	    </div>
-	  </div>
-	  
-	  <div class="row">
-	    <div class="col-xs-12">
-	      <p>收货人: {{ tradedata.receiver_name }} ({{ tradedata.receiver_mobile }})</p>
-	      <span>{{ tradedata.address }}</span>
-	    </div>
-	  </div>
+	<div class="col-xs-8">
+	  <p style="color:#3071a9">时间: {{ tradedata.paytime }}</p>
 	</div>
       </div>
-
-      <div class="panel panel-default" style="margin-top:5px">
-	<div class="panel-heading" style="color:orange">
-	  <span>物流信息</span>
+      {% for data in tradedata.orders %}
+      <div class="row">
+	<div class="col-xs-4">
+	  <a href="#" class="thumbnail"><img src="{{ data.0 }}" alt="..."></a>
 	</div>
-	<div class="panel-body">
-	  {% for trace in traces %}
-	  {% if forloop.counter <= 2 %}
-	  <p>{{ trace.0 }}: {{ trace.1 }}</p>
-	  {% else %}
-	  <p>{{ trace.0 }}:</p>
-	  {% for t in trace.1 %}
-	  <p>{{ t.0 }}: {{ t.1 }}</p>
-	  {% endfor %}
-	  {% endif %}
-	  {% endfor %}
+	<div class="col-xs-4">
+	  <p>{{ data.1 }}</p>
+	</div>
+	<div class="col-xs-4">
+	  <p>原价: ￥{{ data.2}}</p>
 	</div>
       </div>
+      {% endfor %}
 
-      <div class="panel panel-default" style="margin-top:5px">
-	<div class="panel-body">
-	  
-	  <div class="row">
-	    <div class="col-xs-12">
-	      <h5 style="color:#3071a9">温馨提示</h5>
-	      <p>若您发现商品信息错误，或者收货信息错误，请及时联系微信客服更改。</p>
-	    </div>
-	  </div>
+      <div class="row">
+	<div class="col-xs-6">
+	  <p style="color:#3071a9">商品数: {{ tradedata.ordernum }}</p>
 	</div>
-      </div>
-      
-      <div class="footer">
-	<p>© Uni Littles 2014</p>
+	<div class="col-xs-6">
+	  <p style="color:#3071a9">实付: ￥{{ tradedata.payment }}</p>
+	</div>
       </div>
 
     </div>
+  </div>
+
+  <div class="panel panel-default">
+    <div class="panel-heading" style="color:orange">
+      <span>申请返利</span>
+    </div>
+    <div class="panel-body" id="id_refund_body">
+      {% if refund %}
+      {% include "weixin/refundresponse.html" %}
+      {% else %}
+      {% include "weixin/refundapply.html" %}
+      {% endif %}
+    </div>
+  </div>
+  
+  <div class="panel panel-default">
+    <div class="panel-heading" style="color:orange">
+      <span>物流信息</span>
+    </div>
+    <div class="panel-body">
+      <div class="row">
+	<div class="col-xs-12">
+	  <p>收货人: {{ tradedata.receiver_name }} ({{ tradedata.receiver_mobile }})</p>
+	  <p style="color:orange">{{ tradedata.address }}</p>
+	</div>
+      </div>
+      {% for trace in traces %}
+      {% if forloop.counter <= 2 %}
+			       <p>{{ trace.0 }}: {{ trace.1 }}</p>
+			       {% else %}
+      <p>{{ trace.0 }}:</p>
+      {% for t in trace.1 %}
+      <p>{{ t.0 }}: {{ t.1 }}</p>
+      {% endfor %}
+      {% endif %}
+      {% endfor %}
+    </div>
+  </div>
+
+  <div class="panel panel-default" style="margin-top:5px">
+    <div class="panel-body">
+      
+      <div class="row">
+	<div class="col-xs-12">
+	  <h5 style="color:#3071a9">温馨提示</h5>
+	  <p>若您发现商品信息错误，或者收货信息错误，请及时联系微信客服更改。</p>
+	</div>
+      </div>
+    </div>
+  </div>
+  
+  <div class="footer">
+    <p>© Uni Littles 2014</p>
+  </div>
+
+</div>
+{% endblock %}    
     
-    
-    <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
-    <script src="http://cdn.bootcss.com/jquery/1.11.1/jquery.min.js"></script>
-    <!-- Include all compiled plugins (below), or include individual files as needed -->
-    <script src="{{ STATIC_URL }}bootstrap/js/bootstrap.min.js"></script>
-  </body>
-</html>
+{% block tail_script %}
+
+<script type="text/javascript">
+  function refundSelection(obj) {
+    if (obj.value == "1") {
+    var vipcode = $("#id_vip_code");
+            if (vipcode.css("display") == "none") {
+              vipcode.css("display","block");
+            }
+         } 
+         if (obj.value == "0") {
+            var vipcode = $("#id_vip_code");
+            if (vipcode.css("display") != "none") {
+              $("#id_code").val("");
+              vipcode.css("display","none");
+            }
+         }
+      };
+
+      function checkVipCode(code) {
+        var reg = /^\d{6}$/;
+        return reg.test(code);
+      };
+      
+      function refundSubmit() {
+        var refund_type = $("#id_refund").val();
+        var vipcode = $("#id_code").val();
+        
+        if (refund_type == "10") {
+          return;
+        }
+      
+        if (refund_type == "1") {
+          if (checkVipCode(vipcode) == false) {
+            $("#id_msg")[0].innerHTML = "vip code wrong. try again."
+            return;
+          } 
+        }
+
+        var tradeid = $("#id_trade_id").val();
+        var csrf_token = document.getElementsByName("csrfmiddlewaretoken")[0].value;
+        var data = {"refund_type":refund_type, "vipcode":vipcode, "tradeid":tradeid, "csrfmiddlewaretoken":csrf_token};
+        var url = "/weixin/refundsubmit/";
+        var callback = function (res) {
+          $("#id_refund_body")[0].innerHTML = res;
+        };
+      
+        $.ajax({url:url, data:data, type:"post", success:callback});
+      }
+
+</script>
+{% endblock %}
