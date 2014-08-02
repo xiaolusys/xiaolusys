@@ -636,6 +636,14 @@ class SampleConfirmView(View):
         max_usage = 10000
         
         new_code = str(random.randint(100000,999999))
+        cnt = 0
+        while True:
+            cnt += 1
+            objs = VipCode.objects.filter(code=new_code)
+            if objs.count() < 0 or cnt > 20:
+                break
+        new_code = str(random.randint(100000,999999))
+        
         user[0].vipcodes.create(code=new_code, expiry=expiry,code_type=code_type,code_rule=code_rule,max_usage=max_usage)
 
         return redirect(redirect_url)
