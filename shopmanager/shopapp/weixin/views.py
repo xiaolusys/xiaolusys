@@ -559,6 +559,9 @@ class VipCodeVerifyView(View):
         
 
 class SampleApplyView(View):
+    def get(self, request):
+        return redirect("/weixin/sampleads/0/")
+
     def post(self, request):
 
         content = request.REQUEST
