@@ -560,3 +560,71 @@ class Refund(models.Model):
                        ("can_refund_confirm", u"返现订单支付确认权限"),
                        ]
         
+
+class FreeSample(models.Model):
+    outer_id = models.CharField(max_length=32,unique=True,null=False,blank=True,verbose_name=u'外部编码')
+    name = models.CharField(max_length=64,blank=True,verbose_name=u'商品名称')
+    expiry = models.DateTimeField(null=False,blank=False,verbose_name=u'过期时间')
+    stock = models.IntegerField(default=0,verbose_name=u'库存')
+
+    pic_url = models.URLField(verify_exists=False,blank=True,verbose_name='商品图片')
+    sale_url = models.URLField(verify_exists=False,blank=True,verbose_name='销售链接')
+
+    class Meta:
+        db_table = 'shop_weixin_free_sample'
+        verbose_name = u'试用商品'
+        verbose_name_plural = u'试用商品列表'
+
+    def __unicode__(self):
+        return self.name
+
+class SampleSku(models.Model):
+    sample_product = models.ForeignKey(FreeSample, verbose_name=u'试用商品')
+    sku_code = models.CharField(max_length=32,null=False,blank=True,verbose_name=u'SKU编码')
+    sku_name = models.CharField(max_length=64,blank=True,verbose_name=u'款式尺寸')
+
+    class Meta:
+        db_table = 'shop_weixin_sample_sku'
+        verbose_name = u'试用商品SKU'
+        verbose_name_plural = u'试用商品SKU列表'
+
+    def __unicode__(self):
+        return '-'.join([str(self.sample_product), self.sku_name])
+
+
+class SampleOrder(models.Model):
+    sample_product = models.ForeignKey(FreeSample, related_name="sample_orders", verbose_name=u'试用商品')
+    sku_code = models.CharField(max_length=32,null=False,blank=True,verbose_name=u'SKU编码')
+    user_openid = models.CharField(max_length=64,db_index=True,verbose_name=u"微信ID")
+    vipcode = models.CharField(max_length=16,null=False,blank=False,verbose_name=u'VIP邀请码')
+    problem_score = models.IntegerField(default=0, verbose_name=u"答题分数")
+    status = models.IntegerField(default=0, verbose_name=u"状态")
+    class Meta:
+        db_table = 'shop_weixin_sample_order'
+        verbose_name = u'试用申请'
+        verbose_name_plural = u'试用申请列表'
+
+
+class VipCode(models.Model):
+    CODE_TYPES = ((0,u'试用'), (1,u'购买'))
+    
+    owner_openid = models.ForeignKey(WeiXinUser, related_name="vipcodes", verbose_name=u"微信ID")
+    code = models.CharField(max_length=16,db_index=True,null=False,blank=False,verbose_name=u'VIP邀请码')
+    expiry = models.DateTimeField(null=False,blank=False,verbose_name=u'过期时间')
+
+    ### 1. for getting samples; 2. for purchase discount
+    code_type = models.IntegerField(default=0, choices=CODE_TYPES, verbose_name=u'支付方式')
+
+    ### get $10 for $50 purchase; get $25 for $100 purchase;
+    code_rule = models.CharField(max_length=256,null=False,blank=True,verbose_name=u'使用规则')
+
+    ### once or multiple times
+    max_usage = models.IntegerField(default=0,verbose_name=u'可用次数')
+
+    ### total number of usage
+    usage_count = models.IntegerField(default=0,verbose_name=u'已使用')
+    
+    class Meta:
+        db_table = 'shop_weixin_vipcode'
+        verbose_name = u'VIP邀请码'
+        verbose_name_plural = u'VIP邀请码列表'

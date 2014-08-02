@@ -1,96 +1,117 @@
-<!DOCTYPE html>
-<html lang="zh-cn">
-  <head>
-    <meta charset="utf-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-    <title>试用申请</title>
+{% extends "weixin/weixin_base.html" %}
 
-    <!-- Bootstrap -->
-    <link href="{{ STATIC_URL }}bootstrap/css/bootstrap.min.css" rel="stylesheet">
+{% block title %} 申请确认 {% endblock %}
 
-    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
-    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
-    <!--[if lt IE 9]>
-      <script src="http://cdn.bootcss.com/html5shiv/3.7.2/html5shiv.min.js"></script>
-      <script src="http://cdn.bootcss.com/respond.js/1.4.2/respond.min.js"></script>
-    <![endif]-->
-  </head>
-  <body>
-    <div class="container-fluid">
-      <div class="panel panel-default" style="margin-top:5px">
-	<div class="panel-heading" style="color:orange">试用申请</div>
-	<div class="panel-body">
-	  
-	  <div class="row">
-	    <div class="col-xs-3" style="text-align:center">
-	      <div class="thumbnail">
-		<img src="https://mmbiz.qlogo.cn/mmbiz/yMhOQPTKhLva0m9xtkbjiax34zDlMwN6yHlMcguFcH9QsfhBqpzRC9EJRAS96kvVvegOILPzlFrhibLXuvns9CeA/0" alt="...">
-	      </div>
-	    </div>
-	    <div class="col-xs-3">
-	      <p>款式: 红色</p>
-	    </div>
-	    <div class="col-xs-3">
-	      <p>尺寸: 70cm</p>
-	    </div>
-	    <div class="col-xs-3">
-	      <p>数量: 1 件</p>
+
+{% block container %}
+
+<div class="container-fluid">
+  <div class="panel panel-default" style="margin-top:5px">
+    <!--<div class="panel-heading" style="color:orange">申请确认</div>-->
+    <div class="panel-body">
+      
+      <form method="post" action="/weixin/sampleconfirm/" onsubmit="return check()">{% csrf_token %}
+	<input type="hidden" name="sample_pk" value="{{ sample.pk }}"/>
+	<input type="hidden" name="sku_code" value="{{ sku.sku_code }}"/>
+	<input type="hidden" name="vipcode" value="{{ vipcode }}"/>
+	<div class="row">
+	  <div class="col-xs-4" style="text-align:center">
+	    <div class="thumbnail">
+	      <img src="{{ sample.pic_url }}" alt="...">
 	    </div>
 	  </div>
-
-	  <div class="row">
-	    <div class="col-xs-12">
-	      <h5 style="color:#3071a9">收货信息</h5>
-	      <p>收货人: 艾优尼</p>
-	      <p>地&nbsp;&nbsp;&nbsp;址: 江苏省，常熟市，风景区，不知名街道988弄3号321室</p>
-	      <p>手机号: 13587562356</p>
-	    </div>
+	  <div class="col-xs-8">
+	    <p>{{ sample.name }}</p>
+	    <p>{{ sku.sku_name }}</p>
 	  </div>
-
-	  <div class="row">
-	    <div class="col-xs-12">
-	      <h5 style="color:#3071a9">试用问答</h5>
-	      <p>请回答以下问题，以帮助我们评价审核您的申请:</p>
-	      <div>
-		<p>1. 如果你对收到的试用产品不满意，您最可能做出下面哪种选择？</p>
-		<p style="color:red"><input type="radio"/ name="p1" checked="true"> 反正没花钱，无所谓</p>
-		<p><input type="radio"/ name="p1"> 把意见反馈，帮助卖家改进</p>
-		<p><input type="radio"/ name="p1"> 体谅下，创新设计，难免有瑕疵</p>
-		<p>2. 如果你收到的试用产品感觉不错，您最可能做出下面哪种选择？</p>
-		<p style="color:red"><input type="radio"/ name="p2" checked="true"> 很开心，赚到啦，下次再抢试用 </p>
-		<p><input type="radio"/ name="p2"> 推荐给朋友，发到朋友圈</p>
-		<p><input type="radio"/ name="p2"> 推荐给周围的人，用推荐有礼，还可赚返利</p>
-	      </div>
-	    </div>
-	  </div>
-
-	  <div class="row">
-	    <div class="col-xs-12" style="text-align:center">
-	      <button class="btn btn-warning">确认提交</button>
-	    </div>
-	  </div>
-	  
 	</div>
-      </div>
 
-      <div class="row">
-	<div class="col-xs-12">
-	  <h5 style="color:#3071a9">温馨提示</h5>
-	  <p>若收货信息有误，请到宝宝档案里更改地址或联系信息后，重新提交试用申请。</p>
+	<div class="row">
+	  <div class="col-xs-12">
+	    <p>收货人: {{ wx_user.receiver_name }}, 地址: {{ wx_user.province }}，{{ wx_user.city }}，{{ wx_user.address }}, {{ wx_user.mobile }}</p>
+	  </div>
 	</div>
-      </div>
+	<div class="row">
+	  <div class="col-xs-12">
+	    <h5 style="color:#3071a9">试用问答</h5>
+	    <div>
+	      <p style="color:#3071a9">1. 如果你收到产品不满意，你会:</p>
+	      <p id="id_p11"><input type="radio" name="p1" value="0" id="id_input11"> 反正没花钱，无所谓。</p>
+	      <p id="id_p12"><input type="radio" name="p1" value="1" id="id_input12"> 把意见反馈，帮助卖家改进。</p>
+	      <p style="color:#3071a9">2. 如果你收到的产品很不错，你会:</p>
+	      <p id="id_p21"><input type="radio" name="p2" value="0" id="id_input21"> 很开心，赚到啦，下次再抢试用。 </p>
+	      <p id="id_p22"><input type="radio" name="p2" value="1" id="id_input22"> 推荐给朋友，分享到朋友圈。</p>
+	    </div>
+	  </div>
+	</div>
 
-      <div class="footer">
-	<p>© Uni Littles 2014</p>
-      </div>
-
+	<div class="row">
+	  <p id="id_msg" style="text-align:center;color:red"></p>
+	  <div class="col-xs-12" style="text-align:center">
+	    <input type="submit" class="btn btn-warning" value="确认提交"/>
+	  </div>
+	</div>
+      </form>
     </div>
+  </div>
+
+  <div class="row">
+    <div class="col-xs-12">
+      <h5 style="color:#3071a9">温馨提示</h5>
+      <p>若收货信息有误，请到宝宝档案里更改地址或联系信息后，重新提交试用申请。</p>
+    </div>
+  </div>
+
+  <div class="footer">
+    <p>© Uni Littles 2014</p>
+  </div>
+
+</div>
+{% endblock %}    
     
-    
-    <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
-    <script src="http://cdn.bootcss.com/jquery/1.11.1/jquery.min.js"></script>
-    <!-- Include all compiled plugins (below), or include individual files as needed -->
-    <script src="{{ STATIC_URL }}bootstrap/js/bootstrap.min.js"></script>
-  </body>
-</html>
+
+{% block tail_script %}
+<script type="text/javascript">
+  $("#id_p11").on("click", function () {
+  $("#id_input11").attr("checked",true);
+  $("#id_input12").attr("checked",false);
+  $("#id_p11").css("color","red");
+  $("#id_p12").css("color","");  
+  });
+
+  $("#id_p12").on("click", function () {
+  $("#id_input12").attr("checked",true);
+  $("#id_input11").attr("checked",false);
+  $("#id_p12").css("color","red");
+  $("#id_p11").css("color","");  
+  });
+
+  $("#id_p21").on("click", function () {
+  $("#id_input21").attr("checked",true);
+  $("#id_input22").attr("checked",false);
+  $("#id_p21").css("color","red");
+  $("#id_p22").css("color","");  
+  });
+
+  $("#id_p22").on("click", function () {
+  $("#id_input22").attr("checked",true);
+  $("#id_input21").attr("checked",false);
+  $("#id_p22").css("color","red");
+  $("#id_p21").css("color","");  
+  });
+
+  function check() {
+  if ((!$("#id_input11").is(':checked')) && (!$("#id_input12").is(':checked'))) {
+    $("#id_msg")[0].innerHTML = "亲，麻烦选择下答案再提交哦。";
+    return false;
+  }
+  if ((!$("#id_input21").is(':checked')) && (!$("#id_input22").is(':checked'))) {
+    $("#id_msg")[0].innerHTML = "亲，麻烦选择下答案再提交哦。";
+    return false;
+  }
+
+  return true;
+  }
+</script>
+{% endblock %}
+

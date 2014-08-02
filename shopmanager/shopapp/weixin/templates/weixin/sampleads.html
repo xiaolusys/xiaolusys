@@ -1,0 +1,81 @@
+{% extends "weixin/weixin_base.html" %}
+
+{% block title %} 
+{% if identical %}
+我刚在优尼世界申请了宝宝睡袋，礼盒包装免费寄到家哦！你也快去给宝宝领一件吧～～ 
+{% else %}
+优尼世界8月送大礼！
+{% endif %}
+{% endblock %}
+
+
+{% block container %}
+
+<div class="container-fluid">
+  <div class="panel panel-default" style="margin-top:5px">
+    <div class="panel-heading" style="color:orange">关注优尼世界微信 精美睡袋免费送!!</div>
+    <div class="panel-body">
+
+      {% if identical %}
+      <div class="row">
+	<div class="col-xs-12">
+	  <p style="color:blue">亲，您的申请已经成功提交！</p>
+	  <p style="color:blue">你获得了专属VIP邀请码：{{ vipcode }}，快分享到你朋友圈吧!</p>
+	  <p style="color:blue">只要有10个好友使用您的邀请码，您的申请就一定通过啦！</p>
+	  <p style="color:blue;font-size:20px">分享朋友圈后蓝色文字将自动消失！</p>
+	</div>
+      </div>
+      {% endif %}
+      
+      <div class="row">
+	<div class="col-xs-12" style="text-align:center">
+	  <div class="thumbnail">
+	    <img src="https://mmbiz.qlogo.cn/mmbiz/yMhOQPTKhLs3fFxcBMRZsmProgXkuSPF4esicxuYzMibQhriaicJFXdntMnicPf5cfQjNNibWUF8BJRn1RLURwOUmLKw/0" alt="...">
+	  </div>
+	</div>
+      </div>
+
+      <div class="row">
+	<div class="col-xs-12">
+	  <p>&nbsp;&nbsp;&nbsp;&nbsp;亲，您没看错！是的，优尼世界的这款天猫、京东已经售出30000多件，好评如潮的睡袋，现在免费啦！快抢啊，一定要为宝宝抢一件哦！</p>
+	  <p style="font-size:20px; color:red; text-align:center">VIP邀请码: {{ vipcode }}</p>
+
+	  <div class="thumbnail">
+	    <img src="https://mmbiz.qlogo.cn/mmbiz/yMhOQPTKhLs3fFxcBMRZsmProgXkuSPFV9JhdzzlaOcZKicHQbE6rtWG2QSFXZGht6qCiaTTjQE50awgP1txAHzQ/0" alt="...">
+	  </div>
+	</div>
+      </div>
+
+      <div class="row">
+	<div class="col-xs-12">
+	  <p>&nbsp;&nbsp;&nbsp;&nbsp;哦，对了！这款睡袋还带下面的礼盒包装，直接免费寄到您手中，您是不是一下子觉得世界美好了很多呢～～～</p>
+	  <div class="thumbnail">
+	    <img src="https://mmbiz.qlogo.cn/mmbiz/yMhOQPTKhLs3fFxcBMRZsmProgXkuSPFY79thGSwP9mNQ2LIUlADy0WkPFicz21qU159JvHap9VGIlgPVNAdnjw/0" alt="...">
+	  </div>
+	</div>
+      </div>
+
+
+      <div class="row">
+	<div class="col-xs-12">
+	  <p>&nbsp;&nbsp;&nbsp;&nbsp;亲，具体申请很简单：关注微信，申请就搞定啦！</p>
+	  <p>&nbsp;&nbsp;&nbsp;&nbsp;还有，悄悄告诉您：<font style="color:red">一定要分享到朋友圈，会提高中奖几率！！！(朋友申请到了会感激您！只要有10个人用你的VIP邀请码来申请，你就一定会被选中！)</font></p>
+	  <div class="thumbnail">
+	    <img src="https://mmbiz.qlogo.cn/mmbiz/yMhOQPTKhLs3fFxcBMRZsmProgXkuSPFeuNDSQ8Mt2socAhafdNqaR1wIwHxvt8Lxbvzddr3h7s8qhXl0dt7eQ/0" alt="...">
+	  </div>
+	</div>
+      </div>
+
+      
+    </div>
+  </div>
+
+  <div class="footer">
+    <p>© Uni Littles 2014</p>
+  </div>
+
+</div>
+{% endblock %}    
+    
+
+

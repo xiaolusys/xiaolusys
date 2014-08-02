@@ -11,6 +11,10 @@ from shopapp.weixin.models import (WeiXinAccount,
                                    ReferalRelationship,
                                    ReferalSummary,
                                    Refund,
+                                   FreeSample,
+                                   SampleOrder,
+                                   VipCode,
+                                   SampleSku
                                    )
 
 class WeiXinAccountAdmin(admin.ModelAdmin):
@@ -188,3 +192,23 @@ class RefundAdmin(admin.ModelAdmin):
     
 admin.site.register(Refund, RefundAdmin) 
 
+
+class FreeSampleAdmin(admin.ModelAdmin):
+    list_display = ('outer_id','name','expiry','stock')
+admin.site.register(FreeSample, FreeSampleAdmin) 
+
+
+class SampleOrderAdmin(admin.ModelAdmin):
+    list_display = ('sample_product','sku_code','user_openid','vipcode')
+admin.site.register(SampleOrder, SampleOrderAdmin) 
+
+
+class VipCodeAdmin(admin.ModelAdmin):
+    list_display = ('owner_openid','code','expiry','code_type','code_rule', 'max_usage', 'usage_count')
+admin.site.register(VipCode, VipCodeAdmin) 
+
+
+class SampleSkuAdmin(admin.ModelAdmin):
+    list_display = ('sample_product','sku_code','sku_name')
+
+admin.site.register(SampleSku, SampleSkuAdmin) 

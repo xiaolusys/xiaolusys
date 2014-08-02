@@ -7,7 +7,7 @@ from django.conf import settings
 from django.views.decorators.csrf import csrf_exempt
 from django.views.generic import View
 from shopapp.weixin.service import *
-from models import WeiXinUser,ReferalRelationship,ReferalSummary,WXOrder,Refund
+from models import WeiXinUser,ReferalRelationship,ReferalSummary,WXOrder,Refund,FreeSample, SampleSku, SampleOrder,VipCode
 
 from shopback.trades.models import MergeTrade
 from shopback import paramconfig as pcfg
@@ -508,11 +508,165 @@ class RefundReviewView(View):
         return response
     
 
+class FreeSampleView(View):
+    def get(self, request):
+
+        content = request.REQUEST
+
+        code = content.get('code')
+
+        APPID = 'wxc2848fa1e1aa94b5'
+        SECRET = 'eb3bfe8e9a36a61176fa5cafe341c81f'
+
+        ## if user refresh page, we can get user_openid from cookie
+        user_openid = request.COOKIES.get('openid')
+
+        if user_openid == 'None' or user_openid == None:
+            user_openid = get_user_openid(code, APPID, SECRET)
+
+        wx_user_service = WeixinUserService(openId=user_openid)
+        wx_user = wx_user_service._wx_user
+            
+        user_isvalid = wx_user.isValid()
+        
+        samples = FreeSample.objects.filter(expiry__gt=datetime.datetime.now())
+
+        order_exists = False
+        orders = SampleOrder.objects.filter(user_openid=user_openid)
+        if orders.count() > 0:
+            order_exists = True
+        response = render_to_response('weixin/freesamples.html', 
+                                      {"samples":samples, "user_isvalid":user_isvalid, "order_exists":order_exists, "pk":wx_user.pk},
+                                      context_instance=RequestContext(request))
+        response.set_cookie("openid",user_openid)
+        return response
+
+
+from django.shortcuts import redirect
+
+class VipCodeVerifyView(View):
+    def get(self, request):
+        content = request.REQUEST
+        vipcode = content.get("vipcode")
+        
+        response = {"code":"bad"}
+        vipcodes = VipCode.objects.filter(code=vipcode)
+        if vipcodes.count() > 0:
+            response = {"code":"good"}
+        
+        return HttpResponse(json.dumps(response),mimetype='application/json')
+
+        
+
+class SampleApplyView(View):
+    def post(self, request):
+
+        content = request.REQUEST
+        sample_pk = content.get("sample_pk")
+        color = content.get("color")
+        size = content.get("size")
+        weight = content.get("weight")
+        vipcode = content.get("vipcode")
+        
+        vipcodes = VipCode.objects.filter(code=vipcode)
+        if vipcodes.count() <= 0:
+            return redirect("/weixin/sampleads/0/")
+            
+        sku_code = ''.join([color, size, weight])
+        
+        sample = FreeSample.objects.get(pk=int(sample_pk))
+
+        skus = SampleSku.objects.filter(sku_code=sku_code)
+        sku = skus[0]
+
+
+        content = request.REQUEST
+
+        code = content.get('code')
+
+        APPID = 'wxc2848fa1e1aa94b5'
+        SECRET = 'eb3bfe8e9a36a61176fa5cafe341c81f'
+
+        ## if user refresh page, we can get user_openid from cookie
+        user_openid = request.COOKIES.get('openid')
+
+        if user_openid == 'None' or user_openid == None:
+            user_openid = get_user_openid(code, APPID, SECRET)
+
+        wx_user_service = WeixinUserService(openId=user_openid)
+        wx_user = wx_user_service._wx_user
+
+        response = render_to_response('weixin/sampleapply.html',
+                                      {"sample":sample, "sku":sku, "wx_user": wx_user, "vipcode":vipcode},
+                                      context_instance=RequestContext(request))
+        response.set_cookie("openid",user_openid)
+        return response
+    
+class SampleConfirmView(View):
+    def post(self, request):
+        content = request.REQUEST
+        sample_pk = int(content.get("sample_pk","0"))
+        sku_code = content.get("sku_code","0")
+        p1 = content.get("p1","0")
+        p2 = content.get("p2","0")
+        vipcode = content.get("vipcode","0")
+        score = int(p1) + int(p2)
+        
+        user_openid = request.COOKIES.get('openid')
+
+        user = WeiXinUser.objects.filter(openid=user_openid)        
+        redirect_url = '/weixin/sampleads/%d/' % user[0].pk
+
+        order = SampleOrder.objects.filter(user_openid=user_openid)
+        if order.count() > 0:
+            return redirect(redirect_url)
+
+        sample = FreeSample.objects.get(pk=sample_pk)
+        sample.sample_orders.create(sku_code=sku_code,user_openid=user_openid,vipcode=vipcode,problem_score=score)
+        
+        VipCode.objects.filter(code=vipcode).update(usage_count=F('usage_count')+1)
+
+
+        expiry = datetime.datetime(2014,8,11,0,0,0)
+        code_type = 0
+        code_rule = u'免费试用'
+        max_usage = 10000
+        
+        new_code = str(random.randint(100000,999999))
+        user[0].vipcodes.create(code=new_code, expiry=expiry,code_type=code_type,code_rule=code_rule,max_usage=max_usage)
+
+        return redirect(redirect_url)
+
+        
+class SampleAdsView(View):
+    def get(self, request, *args, **kwargs):
+        wx_user_pk = kwargs.get('pk',0)
+        users = WeiXinUser.objects.filter(pk=wx_user_pk)
+        
+        openid = request.COOKIES.get('openid')
+        
+        identical = False
+        if users.count() > 0:
+            if users[0].vipcodes.count() > 0:
+                vipcode = users[0].vipcodes.all()[0].code
+                if users[0].openid == openid:
+                    identical = True
+                response = render_to_response('weixin/sampleads.html', 
+                                              {"identical":identical,"vipcode":vipcode}, 
+                                              context_instance=RequestContext(request))
+                return response
+
+        vipcode = '898786' ## 'other' case
+        response = render_to_response('weixin/sampleads.html',         
+                                      {"identical":identical,"vipcode":vipcode}, 
+                                      context_instance=RequestContext(request))
+        return response
+        
         
 
 class TestView(View):
-    def get(self, request):
-        response = render_to_response('weixin/orderinfo.html', 
+    def get(self, request, *args, **kwargs):
+        response = render_to_response('weixin/freesamples.html',         
                                       context_instance=RequestContext(request))
         return response
         
