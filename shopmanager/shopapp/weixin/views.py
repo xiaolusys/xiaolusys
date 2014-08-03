@@ -175,6 +175,8 @@ class VerifyCodeView(View):
             response = {"code":"bad", "message":"wrong verification code"}
             return HttpResponse(json.dumps(response),mimetype='application/json')
 
+        code = content.get('code')
+
         ## if user refresh page, we can get user_openid from cookie
         user_openid = request.COOKIES.get('openid')
 
