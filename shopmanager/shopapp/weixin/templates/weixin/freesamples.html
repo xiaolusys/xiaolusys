@@ -15,9 +15,9 @@
       <input type="hidden" value="{{ sample.pk }}" name="sample_pk"/>
       <div class="row">
 	<div class="col-xs-12">
-	  <p style="color:red">公告：亲，这次活动由于小编的预估不足，原本只准备了200个睡袋，准备每天派发20件。但是，由于申请的妈妈们远远超出了我们的预计的数量，现特作以下调整（妈妈们看准了再行动哦）：</p>
-	  <p style="color:red"> 1）8月3日早上7:15以后提交的申请，将按照VIP邀请码使用次数、购买记录、晒单记录、实际需求等因素综合审核。每天限额50件！申请试用名单会在往后一周内公布！</p>
-	  <p style="color:red"> 2）8月3日早上7:15之前提交成功的申请，总共4461份，只要邀请码成功邀请10位好友申请试用就能通过，申请通过名单会在一周内公布。未通过者，将归到7:15之后的申请一起审核。</p>
+	  <p style="color:red">公告：亲，免费试用活动还在进行中，只要您满足我们的试用要求，宝宝们就可成为我们的VIP试用对象：</p>
+	  <p style="color:red"> 1）8月3日早上7:15以后提交的申请，将按照VIP邀请码使用次数、购买记录、晒单记录、实际需求等因素综合审核。申请试用名单会在往后一周内公布。</p>
+	  <p style="color:red"> 2）8月3日早上7:15之前提交成功的申请，总共4461份，只要邀请码成功邀请10位好友申请试用就能通过，申请通过名单会在一周内公布。</p>
 	  <p style="color:blue">3）活动期间在优尼微信商城购物，享受更多优惠！</p>
 	</div>
       </div>
@@ -45,14 +45,14 @@
 	      <option value="0">选择</option>
 	      <option value="1">90cm</option>
 	      <option value="2">120cm</option>
-	      <option value="3">140cm</option>
+	      <!--<option value="3">140cm</option>-->
 	    </select>
 	  </p>
 	  <p>厚度：
 	    <select class="form-control input-sm" name="weight" id="id_weight">
 	      <option value="0">选择</option>
 	      <option value="1">春秋薄款</option>
-	      <option value="2">春秋中厚款</option>
+	      <!--<option value="2">春秋中厚款</option>-->
 	      <option value="3">春秋加厚款</option>
 	    </select>
 	  </p>
@@ -109,7 +109,7 @@
 {% block tail_script %}
 <script type="text/javascript">
   function validateVipCode(s) {
-  var validateReg = /^\d{6}$/;
+  var validateReg = /^\d{6,7}$/;
   return validateReg.test(s);
   };
 
@@ -126,7 +126,7 @@
     }
 
     if (validateVipCode(vipcode) == false) {
-      msg[0].innerHTML = "请检查您的VIP邀请码(6位数字)!";
+      msg[0].innerHTML = "请检查您的VIP邀请码(6-7位数字)!";
       return false;
     }
 

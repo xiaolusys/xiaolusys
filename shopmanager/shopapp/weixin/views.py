@@ -175,11 +175,11 @@ class RequestCodeView(View):
 class VerifyCodeView(View):
     def get(self, request, *args, **kwargs):
         verifycode = kwargs.get('verifycode',0)
-        if len(verifycode) != 6:
+        if len(verifycode) not in (6, 7):
             response = {"code":"bad", "message":"wrong verification code"}
             return HttpResponse(json.dumps(response),mimetype='application/json')
 
-        code = content.get('code')
+        #code = content.get('code')
 
         ## if user refresh page, we can get user_openid from cookie
         user_openid = request.COOKIES.get('openid')
@@ -617,6 +617,29 @@ class SampleApplyView(View):
         response.set_cookie("openid",user_openid)
         return response
     
+def genVIPCODE(wx_user):
+    
+    expiry = datetime.datetime(2014,8,11,0,0,0)
+    code_type = 0
+    code_rule = u'免费试用'
+    max_usage = 10000
+
+    new_code = str(random.randint(1000000,9999999))
+    cnt = 0
+    while True:
+        cnt += 1
+        objs = VipCode.objects.filter(code=new_code)
+        if objs.count() < 0 or cnt > 20:
+            break
+
+    wx_user.vipcodes.create(code=new_code, 
+                             expiry=expiry,
+                             code_type=code_type,
+                             code_rule=code_rule,
+                             max_usage=max_usage)
+
+    return new_code
+
 class SampleConfirmView(View):
     def post(self, request):
         content = request.REQUEST
@@ -641,23 +664,8 @@ class SampleConfirmView(View):
         
         VipCode.objects.filter(code=vipcode).update(usage_count=F('usage_count')+1)
 
-
-        expiry = datetime.datetime(2014,8,11,0,0,0)
-        code_type = 0
-        code_rule = u'免费试用'
-        max_usage = 10000
+        genVIPCODE(user[0])
         
-        new_code = str(random.randint(100000,999999))
-        cnt = 0
-        while True:
-            cnt += 1
-            objs = VipCode.objects.filter(code=new_code)
-            if objs.count() < 0 or cnt > 20:
-                break
-        new_code = str(random.randint(1000000,9999999))
-        
-        user[0].vipcodes.create(code=new_code, expiry=expiry,code_type=code_type,code_rule=code_rule,max_usage=max_usage)
-
         return redirect(redirect_url)
 
         
@@ -672,12 +680,16 @@ class SampleAdsView(View):
         if users.count() > 0:
             if users[0].vipcodes.count() > 0:
                 vipcode = users[0].vipcodes.all()[0].code
-                if users[0].openid == openid:
-                    identical = True
-                response = render_to_response('weixin/sampleads.html', 
-                                              {"identical":identical,"vipcode":vipcode}, 
-                                              context_instance=RequestContext(request))
-                return response
+            else:
+                vipcode = genVIPCODE(user[0])
+
+            if users[0].openid == openid:
+                identical = True
+
+            response = render_to_response('weixin/sampleads.html', 
+                                          {"identical":identical,"vipcode":vipcode}, 
+                                          context_instance=RequestContext(request))
+            return response
 
         vipcode = '898786' ## 'other' case
         response = render_to_response('weixin/sampleads.html',         
