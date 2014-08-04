@@ -754,7 +754,7 @@ class FinalListView(View):
         num_per_page = 25 # Show 25 contacts per page
         paginator = Paginator(order_list, num_per_page) 
 
-        page = kwargs.get('page',0)
+        page = int(kwargs.get('page',0))
 
         try:
             items = paginator.page(page)
