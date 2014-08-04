@@ -12,9 +12,13 @@ import json
 import urllib
 import urllib2
 from django.conf import settings
+from django.core.cache import cache
+
 from shopapp.weixin.models import WeiXinAccount
 from common.utils import randomString,getSignatureWeixin
 
+
+REFRESH_WX_TOKEN_CACHE_KEY = 'REFRESH_WX_TOKEN_KEY'
 
 class WeiXinRequestException(Exception):
     
@@ -116,6 +120,10 @@ class WeiXinAPI(object):
                   'appid':self._wx_account.app_id,
                   'secret':self._wx_account.app_secret}
         
+        if cache.get(REFRESH_WX_TOKEN_CACHE_KEY):
+            return self._wx_account.access_token
+        
+        cache.set(REFRESH_WX_TOKEN_CACHE_KEY,True,60)
         content = self.handleRequest(self._token_uri, params,token=False)
         
         self._wx_account.access_token = content['access_token']

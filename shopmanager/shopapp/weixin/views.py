@@ -152,8 +152,12 @@ class RequestCodeView(View):
 
 
         wx_user_service = WeixinUserService(openId=user_openid)
-        code = wx_user_service.genValidCode()
+        if wx_user_service._wx_user.isNone():
+            response = {"code":"bad", "message":"anonymous user"}
+            return HttpResponse(json.dumps(response),mimetype='application/json')
 
+        code = wx_user_service.genValidCode()
+        
         # we have to write code into user's profile
         wx_user_service.sendValidCode(mobile, code)
         wx_user = wx_user_service._wx_user
@@ -181,7 +185,10 @@ class VerifyCodeView(View):
         if user_openid == 'None' or user_openid == None:
             APPID = 'wxc2848fa1e1aa94b5'
             SECRET = 'eb3bfe8e9a36a61176fa5cafe341c81f'
-            user_openid = get_user_openid(code, APPID, SECRET)
+            #user_openid = get_user_openid(code, APPID, SECRET)
+            response = {"code":"bad", "message":"invalid request"}
+
+            return HttpResponse(json.dumps(response),mimetype='application/json')
 
         wx_user_service = WeixinUserService(openId=user_openid)
         wx_user = wx_user_service._wx_user
@@ -533,10 +540,13 @@ class FreeSampleView(View):
 
         order_exists = False
         orders = SampleOrder.objects.filter(user_openid=user_openid)
-        if orders.count() > 0:
+        if orders.count() > 0 and not wx_user.isNone():
             order_exists = True
         response = render_to_response('weixin/freesamples.html', 
-                                      {"samples":samples, "user_isvalid":user_isvalid, "order_exists":order_exists, "pk":wx_user.pk},
+                                      {"samples":samples, 
+                                       "user_isvalid":user_isvalid, 
+                                       "order_exists":order_exists, 
+                                       "pk":wx_user.isNone() or wx_user.pk},
                                       context_instance=RequestContext(request))
         response.set_cookie("openid",user_openid)
         return response
@@ -642,7 +652,7 @@ class SampleConfirmView(View):
             objs = VipCode.objects.filter(code=new_code)
             if objs.count() < 0 or cnt > 20:
                 break
-        new_code = str(random.randint(100000,999999))
+        new_code = str(random.randint(1000000,9999999))
         
         user[0].vipcodes.create(code=new_code, expiry=expiry,code_type=code_type,code_rule=code_rule,max_usage=max_usage)
 

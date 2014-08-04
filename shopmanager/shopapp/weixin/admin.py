@@ -172,13 +172,18 @@ admin.site.register(WXLogistic, WXLogisticAdmin)
 
 
 class ReferalRelationshipAdmin(admin.ModelAdmin):
+    
     list_display = ('referal_from_openid', 'referal_to_mobile', 'time_created')
+    
+    search_fields = ['referal_from_openid','referal_to_mobile']
 
 admin.site.register(ReferalRelationship, ReferalRelationshipAdmin) 
 
 
 class ReferalSummaryAdmin(admin.ModelAdmin):
     list_display = ('user_openid', 'direct_referal_count', 'indirect_referal_count')
+
+    search_fields = ['user_openid']
 
 admin.site.register(ReferalSummary, ReferalSummaryAdmin) 
 
@@ -194,21 +199,37 @@ admin.site.register(Refund, RefundAdmin)
 
 
 class FreeSampleAdmin(admin.ModelAdmin):
+
     list_display = ('outer_id','name','expiry','stock')
+
+    search_fields = ['outer_id','name']
+
 admin.site.register(FreeSample, FreeSampleAdmin) 
 
 
 class SampleOrderAdmin(admin.ModelAdmin):
-    list_display = ('sample_product','sku_code','user_openid','vipcode')
+
+    list_display = ('sample_product','sku_code','user_openid','vipcode','created')
+
+    search_fields = ['user_openid','vipcode']
+
 admin.site.register(SampleOrder, SampleOrderAdmin) 
 
 
 class VipCodeAdmin(admin.ModelAdmin):
-    list_display = ('owner_openid','code','expiry','code_type','code_rule', 'max_usage', 'usage_count')
+
+    list_display = ('owner_openid','code','expiry','code_type',
+                    'code_rule', 'max_usage', 'usage_count')
+
+    search_fields = ['owner_openid__openid','code']
+
 admin.site.register(VipCode, VipCodeAdmin) 
 
 
 class SampleSkuAdmin(admin.ModelAdmin):
+
     list_display = ('sample_product','sku_code','sku_name')
+    
+    search_fields = ['sku_code','sku_name']
 
 admin.site.register(SampleSku, SampleSkuAdmin) 

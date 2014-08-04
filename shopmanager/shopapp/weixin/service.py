@@ -123,7 +123,9 @@ class WeixinUserService():
         self._wx_api = WeiXinAPI()
         if openId:
             self._wx_user = self.getOrCreateUser(openId)
-        self._wx_user = self._wx_user or WeiXinUser.getAnonymousWeixinUser()
+        
+        if not self._wx_user:
+            self._wx_user = WeiXinUser.getAnonymousWeixinUser()
         
     def getOrCreateUser(self,openId,force_update=False):
         
@@ -203,7 +205,10 @@ class WeixinUserService():
         
         if code_re.match(message) and self.checkValidCode(message,openId):
             return WeiXinAutoResponse.objects.get_or_create(message=u'校验成功提示')[0].autoParams()            
-            
+        
+        if message == '0' and self._wx_user.isValid():
+            return self.genTextRespJson(u'您已经成功绑定手机，修改绑定请重新输入手机号：')
+
         for resp in self.getResponseList():
             if message.rfind(resp.message.strip()) > -1:
                 return resp.autoParams()
