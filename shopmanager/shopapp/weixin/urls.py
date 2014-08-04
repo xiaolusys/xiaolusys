@@ -3,7 +3,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.conf import settings
 from django.views.generic import TemplateView
 from shopback.base.proxy  import ProxyView
-from shopapp.weixin.views import WeixinAcceptView,WeixinAddReferalView,ReferalView,OrderInfoView,BabyInfoView,RequestCodeView,VerifyCodeView,RefundSubmitView,RefundReviewView,FreeSampleView,SampleApplyView,SampleAdsView,SampleConfirmView,VipCodeVerifyView,TestView
+from shopapp.weixin.views import WeixinAcceptView,WeixinAddReferalView,ReferalView,OrderInfoView,BabyInfoView,RequestCodeView,VerifyCodeView,RefundSubmitView,RefundReviewView,FreeSampleView,SampleApplyView,SampleAdsView,SampleConfirmView,VipCodeVerifyView,ResultView,FinalListView,TestView
 
 urlpatterns = patterns('shopapp.weixin.views',
 
@@ -27,6 +27,8 @@ urlpatterns = patterns('shopapp.weixin.views',
     url(r'^sampleconfirm/$', SampleConfirmView.as_view()),
     url(r'^vipcodeverify/$', VipCodeVerifyView.as_view()),                       
     url(r'^sampleads/(?P<pk>\d+)/$', SampleAdsView.as_view()),
+    url(r'^inviteresult/$', ResultView.as_view()),
+    url(r'^finallist/$', FinalListView.as_view()),
 
     url(r'^babyinfo/$', BabyInfoView.as_view()),
     url(r'^orderinfo/$', OrderInfoView.as_view()),
