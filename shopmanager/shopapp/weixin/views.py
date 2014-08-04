@@ -697,11 +697,90 @@ class SampleAdsView(View):
                                       context_instance=RequestContext(request))
         return response
         
+
+class ResultView(View):
+    def get(self, request):
+        content = request.REQUEST
+
+        code = content.get('code')
+
+        APPID = 'wxc2848fa1e1aa94b5'
+        SECRET = 'eb3bfe8e9a36a61176fa5cafe341c81f'
+
+        ## if user refresh page, we can get user_openid from cookie
+        user_openid = request.COOKIES.get('openid')
+
+        if user_openid == 'None' or user_openid == None:
+            user_openid = get_user_openid(code, APPID, SECRET)
+
+        end = datetime.datetime(2014,8,11)
+        now = datetime.datetime.now()
+        diff = end - now
+        days_left = diff.days
+        hours_left = diff.seconds / 3600
+        slots_left = (days_left + 1) * 50
+
+        order = SampleOrder.objects.filter(user_openid=user_openid)
+        has_order, passed = False, False
+        if order.count() > 0:
+            has_order = True
+            if order[0].status > 0:
+                passed = True
+            
+        first_batch = SampleOrder.objects.filter(status=1).count()
         
+        usage_count = 0
+        users = WeiXinUser.objects.filter(openid=user_openid)
+        if users.count() > 0:
+            if users[0].vipcodes.count() > 0:
+                usage_count = users[0].vipcodes.all()[0].usage_count
+
+        response = render_to_response('weixin/invite_result.html',
+                                      {'days_left':days_left, 'hours_left':hours_left,
+                                       'slots_left':slots_left, 'has_order':has_order,
+                                       'passed':passed, 'usage_count':usage_count, 
+                                       'first_batch':first_batch},
+                                      context_instance=RequestContext(request))
+        return response
+
+
+from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
+class FinalListView(View):
+    def get(self, request, *args, **kwargs):
+
+        order_list = SampleOrder.objects.filter(status__gt=0)
+        num_per_page = 25 # Show 25 contacts per page
+        paginator = Paginator(order_list, num_per_page) 
+
+        page = kwargs.get('page',0)
+
+        try:
+            items = paginator.page(page)
+        except PageNotAnInteger:
+            # If page is not an integer, deliver first page.
+            items = paginator.page(1)
+        except EmptyPage:
+            # If page is out of range (e.g. 9999), deliver last page of results.
+            items = paginator.page(paginator.num_pages)
+
+
+
+        total = order_list.count()
+        num_pages = paginator.num_pages
+        next_page = min(page + 1, num_pages)
+        prev_page = max(page - 1, 0)
+        response = render_to_response('weixin/final_list.html', 
+                                      {"items":items, 'num_pages':num_pages, 
+                                       'total':total, 'num_per_page':num_per_page,
+                                       'prev_page':prev_page, 'next_page':next_page,
+                                       'page':page},
+                                      context_instance=RequestContext(request))
+        return response
+    
 
 class TestView(View):
     def get(self, request, *args, **kwargs):
-        response = render_to_response('weixin/freesamples.html',         
+        response = render_to_response('weixin/invite_result.html',         
                                       context_instance=RequestContext(request))
         return response
         
