@@ -719,7 +719,9 @@ class ResultView(View):
         
         usage_count = 0
         users = WeiXinUser.objects.filter(openid=user_openid)
+        pk = 1
         if users.count() > 0:
+            pk = users[0].pk
             if users[0].vipcodes.count() > 0:
                 usage_count = users[0].vipcodes.all()[0].usage_count
 
@@ -727,7 +729,7 @@ class ResultView(View):
                                       {'days_left':days_left, 'hours_left':hours_left,
                                        'slots_left':slots_left, 'has_order':has_order,
                                        'passed':passed, 'usage_count':usage_count, 
-                                       'first_batch':first_batch},
+                                       'first_batch':first_batch, 'pk':pk},
                                       context_instance=RequestContext(request))
         return response
 
