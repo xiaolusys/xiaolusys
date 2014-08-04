@@ -7,7 +7,7 @@
 <div class="container-fluid">
 
   <div class="panel panel-default" style="margin-top:5px">
-    <div class="panel-heading">公告</div>
+    <div class="panel-heading" style="color:orange">公告</div>
     <div class="panel-body">
       <p>距离试用申请结束还有 <font style="color:red;font-size:20px">{{ days_left }}天{{ hours_left }}小时</font>，还有 <font style="color:red;font-size:20px">{{ slots_left }}份</font>名额哦！</p>
       {% if has_order %}
@@ -19,14 +19,25 @@
   </div>
 
   <div class="panel panel-default" style="margin-top:5px">
-    <div class="panel-heading">审核状态</div>
+    <div class="panel-heading" style="color:orange">申请攻略</div>
+    <div class="panel-body">
+      <p>截至8月4日16:00，所有专属VIP邀请码被使用超过10次的妈妈们均获申请通过（亲，我们信守承诺的哦！）</p>
+      <p>所以，首要任务是让专属VIP邀请码被使用10次以上。如果被使用20次以上，亲，您已具有决定性的竞争力啦！</p>
+    </div>
+  </div>
+
+  <div class="panel panel-default" style="margin-top:5px">
+    <div class="panel-heading" style="color:orange">审核状态</div>
     <div class="panel-body">
       {% if has_order %}
       {% if passed %}
       <p>亲，恭喜您，你的试用申请已审核通过啦！</p>
-      <p>您在8月3日7:15之前邀请了{{ usage_count }}位好友，优尼世界感谢您的努力！</p>
-      <p>请加入微信群“优尼世界大使群{{ group_number }}”，有专门的客服为您服务，指导您接下来的操作流程。</p>
-      <p>pls do 1, 2, 3, to join </p>
+      <p>您邀请了{{ usage_count }}位好友，优尼世界感谢您的努力！</p>
+      <p>请用下面二维码加入微信群“优尼世界服务群”，有专门的客服为您服务，指导您接下来的操作流程。</p>
+      <a href="#" class="thumbnail">
+	<img src="https://mmbiz.qlogo.cn/mmbiz/yMhOQPTKhLsOnuG1BRGdia4a88XRuslyNqOUibibfW1e6SZmpSlia2X1Rl9cJdaeRGlGaUvMeYsUK0WgeTicHuCphfA/0" alt="...">
+      </a>
+      <p style="color:red">把上面二维码图片保存到手机，微信扫一扫，选择右上角“相册”。</p>
       {% else %}
       <p>亲，请耐心等待，您的申请正在审核中。</p>
       <p>还有<font style="color:red;font-size:20px">{{ slots_left }}</font>份名额可以领取，机会多多。邀请朋友使用您的专属VIP邀请码，越多人使用，您中奖的几率就越大哦！</p>
