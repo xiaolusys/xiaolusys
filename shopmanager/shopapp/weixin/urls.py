@@ -28,7 +28,7 @@ urlpatterns = patterns('shopapp.weixin.views',
     url(r'^vipcodeverify/$', VipCodeVerifyView.as_view()),                       
     url(r'^sampleads/(?P<pk>\d+)/$', SampleAdsView.as_view()),
     url(r'^inviteresult/$', ResultView.as_view()),
-    url(r'^finallist/$', FinalListView.as_view()),
+    url(r'^finallist/(?P<page>\d+)/$', FinalListView.as_view()),
 
     url(r'^babyinfo/$', BabyInfoView.as_view()),
     url(r'^orderinfo/$', OrderInfoView.as_view()),
