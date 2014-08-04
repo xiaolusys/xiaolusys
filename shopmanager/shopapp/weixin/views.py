@@ -537,6 +537,13 @@ class FreeSampleView(View):
         wx_user = wx_user_service._wx_user
             
         user_isvalid = wx_user.isValid()
+
+        end = datetime.datetime(2014,8,11)
+        now = datetime.datetime.now()
+        diff = end - now
+        days_left = diff.days
+        hours_left = diff.seconds / 3600
+        slots_left = (days_left + 1) * 50
         
         samples = FreeSample.objects.filter(expiry__gt=datetime.datetime.now())
 
@@ -544,10 +551,19 @@ class FreeSampleView(View):
         orders = SampleOrder.objects.filter(user_openid=user_openid)
         if orders.count() > 0 and not wx_user.isNone():
             order_exists = True
+
+        today = datetime.date.today()
+        start_time = datetime.datetime(today.year, today.month, today.day)
+        today_orders = SampleOrder.objects.filter(created__gt=start_time).count()
+        
         response = render_to_response('weixin/freesamples.html', 
                                       {"samples":samples, 
+                                       "today_orders":today_orders,
                                        "user_isvalid":user_isvalid, 
                                        "order_exists":order_exists, 
+                                       "days_left":days_left,
+                                       "hours_left":hours_left,
+                                       "slots_left":slots_left,
                                        "pk":wx_user.isNone() or wx_user.pk},
                                       context_instance=RequestContext(request))
         response.set_cookie("openid",user_openid)

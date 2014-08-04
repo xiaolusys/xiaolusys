@@ -15,10 +15,9 @@
       <input type="hidden" value="{{ sample.pk }}" name="sample_pk"/>
       <div class="row">
 	<div class="col-xs-12">
-	  <p style="color:red">公告：亲，免费试用活动还在进行中，只要您满足我们的试用要求，宝宝们就可成为我们的VIP试用对象：</p>
-	  <p style="color:red"> 1）8月3日早上7:15以后提交的申请，将按照VIP邀请码使用次数、购买记录、晒单记录、实际需求等因素综合审核。申请试用名单会在往后一周内公布。</p>
-	  <p style="color:red"> 2）8月3日早上7:15之前提交成功的申请，总共4461份，只要邀请码成功邀请10位好友申请试用就能通过，申请通过名单会在一周内公布。</p>
-	  <p style="color:blue">3）活动期间在优尼微信商城购物，享受更多优惠！</p>
+	  <p>距离试用申请结束还有 <font style="color:red;font-size:20px">{{ days_left }}天{{ hours_left }}小时</font>，还有 <font style="color:red;font-size:20px">{{ slots_left }}份</font>名额哦！</p>
+	  <p style="color:red"> 1）第一批审核名单已经公布，截至8月4日16:00，所有VIP邀请码被使用10次以上的妈妈均获通过！</p>
+	  <p style="color:red"> 2) 我们将陆续公布后续通过名单！请大家及时 <a href="/weixin/inviteresult/">到这里查看 >></a></p>
 	</div>
       </div>
       <div class="row">
@@ -28,7 +27,7 @@
 	    <img src="{{ sample.pic_url }}" alt="...">
 	  </a>
 
-	  <p><font style="color:red; font-size:20px">{{ sample.sample_orders.count }}</font> 人已申请</p>
+	  <p><font style="color:red; font-size:20px">{{ today_orders }}</font> 人已申请</p>
 	</div>
 
 	<div class="col-xs-6">
