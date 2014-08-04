@@ -754,7 +754,7 @@ class FinalListView(View):
         num_per_page = 25 # Show 25 contacts per page
         paginator = Paginator(order_list, num_per_page) 
 
-        page = int(kwargs.get('page',0))
+        page = int(kwargs.get('page',1))
 
         try:
             items = paginator.page(page)
@@ -765,12 +765,18 @@ class FinalListView(View):
             # If page is out of range (e.g. 9999), deliver last page of results.
             items = paginator.page(paginator.num_pages)
 
-
+        
+        openids = [item.user_openid for item in items]
+        wx_users = WeiXinUser.objects.filter(openid__in=openids)
+        items = []
+        for user in wx_users:
+            mobile = ''.join([user.mobile[0:3], "****", user.mobile[7:11]])
+            items.append([mobile, user.vipcodes.all()[0].max_usage])
 
         total = order_list.count()
         num_pages = paginator.num_pages
         next_page = min(page + 1, num_pages)
-        prev_page = max(page - 1, 0)
+        prev_page = max(page - 1, 1)
         response = render_to_response('weixin/final_list.html', 
                                       {"items":items, 'num_pages':num_pages, 
                                        'total':total, 'num_per_page':num_per_page,
