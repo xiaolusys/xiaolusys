@@ -10,9 +10,11 @@
     <div class="panel-heading">公告</div>
     <div class="panel-body">
       <p>距离试用申请结束还有 <font style="color:red;font-size:20px">{{ days_left }}天{{ hours_left }}小时</font>，还有 <font style="color:red;font-size:20px">{{ slots_left }}份</font>名额哦！</p>
+      {% if has_order %}
       <p style="color:red;">分享<a href="/weixin/sampleads/{{ pk }}/">您的专属VIP邀请码</a>，越多人使用，您中奖的几率就越大！</p>
+      {% endif %}
       
-      <p style="color:#3071a9">第一批中奖名单已公布，共{{ first_batch }}名（他们的VIP专属码均已被使用<font style="color:red;">超过10次</font>），祝贺她们！ <a href="/weixin/finallist/0/">查看详细名单 >></a></p>
+      <p style="color:#3071a9">第一批中奖名单已公布，共{{ first_batch }}名（他们的VIP专属码均已被使用<font style="color:red;">超过10次</font>），祝贺她们！ <a href="/weixin/finallist/1/">查看详细名单 >></a></p>
     </div>
   </div>
 

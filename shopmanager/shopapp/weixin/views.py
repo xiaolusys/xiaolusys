@@ -739,7 +739,7 @@ class FinalListView(View):
     def get(self, request, *args, **kwargs):
 
         order_list = SampleOrder.objects.filter(status__gt=0)
-        num_per_page = 25 # Show 25 contacts per page
+        num_per_page = 20 # Show 20 contacts per page
         paginator = Paginator(order_list, num_per_page) 
 
         page = int(kwargs.get('page',1))
@@ -759,7 +759,7 @@ class FinalListView(View):
         items = []
         for user in wx_users:
             mobile = ''.join([user.mobile[0:3], "****", user.mobile[7:11]])
-            items.append([mobile, user.vipcodes.all()[0].max_usage])
+            items.append([mobile, user.vipcodes.all()[0].usage_count])
 
         total = order_list.count()
         num_pages = paginator.num_pages
