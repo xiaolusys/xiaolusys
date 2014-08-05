@@ -1,6 +1,8 @@
 from django.conf.urls.defaults    import patterns, include, url
 from django.views.decorators.csrf import csrf_exempt
 from django.conf import settings
+from django.views.decorators.cache import cache_page
+
 from django.views.generic import TemplateView
 from shopback.base.proxy  import ProxyView
 from shopapp.weixin.views import WeixinAcceptView,WeixinAddReferalView,ReferalView,OrderInfoView,BabyInfoView,RequestCodeView,VerifyCodeView,RefundSubmitView,RefundReviewView,FreeSampleView,SampleApplyView,SampleAdsView,SampleConfirmView,VipCodeVerifyView,ResultView,FinalListView,TestView
@@ -28,7 +30,7 @@ urlpatterns = patterns('shopapp.weixin.views',
     url(r'^vipcodeverify/$', VipCodeVerifyView.as_view()),                       
     url(r'^sampleads/(?P<pk>\d+)/$', SampleAdsView.as_view()),
     url(r'^inviteresult/$', ResultView.as_view()),
-    url(r'^finallist/(?P<page>\d+)/$', FinalListView.as_view()),
+    url(r'^finallist/(?P<page>\d+)/$', cache_page(FinalListView.as_view(),24*60*60)),
 
     url(r'^babyinfo/$', BabyInfoView.as_view()),
     url(r'^orderinfo/$', OrderInfoView.as_view()),
