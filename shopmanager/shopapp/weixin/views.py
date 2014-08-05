@@ -771,11 +771,12 @@ from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 class FinalListView(View):
     def get(self, request, *args, **kwargs):
 
-        order_list = SampleOrder.objects.filter(status__gt=0)
+        page = int(kwargs.get('page',1))
+        batch = int(kwargs.get('batch',1))
+
+        order_list = SampleOrder.objects.filter(status=batch)
         num_per_page = 20 # Show 20 contacts per page
         paginator = Paginator(order_list, num_per_page) 
-
-        page = int(kwargs.get('page',1))
 
         try:
             items = paginator.page(page)
@@ -802,7 +803,7 @@ class FinalListView(View):
                                       {"items":items, 'num_pages':num_pages, 
                                        'total':total, 'num_per_page':num_per_page,
                                        'prev_page':prev_page, 'next_page':next_page,
-                                       'page':page},
+                                       'page':page, 'batch':batch},
                                       context_instance=RequestContext(request))
         return response
     

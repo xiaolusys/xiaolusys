@@ -13,13 +13,13 @@
 	<p>总共{{ total }}条记录，{{ num_pages }}页（每页{{ num_per_page }}条）。名单包含中奖妈妈的手机号，以及VIP邀请码被使用次数。</p>
 	
 	<div class="col-xs-4">
-	  <a href="/weixin/finallist/{{ prev_page }}/"><< 上一页</a>
+	  <a href="/weixin/finallist/{{ batch }}/{{ prev_page }}/"><< 上一页</a>
 							  </div>
 	<div class="col-xs-4">
 	  <p>第{{ page }}页</p>
 	</div>
 	<div class="col-xs-4">
-	  <a href="/weixin/finallist/{{ next_page }}/">下一页 >></a>
+	  <a href="/weixin/finallist/{{ batch }}/{{ next_page }}/">下一页 >></a>
 	</div>
 
       </div>
