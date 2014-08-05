@@ -438,3 +438,4 @@ class ProductDaySaleAdmin(admin.ModelAdmin):
     
 
 admin.site.register(ProductDaySale, ProductDaySaleAdmin)
+

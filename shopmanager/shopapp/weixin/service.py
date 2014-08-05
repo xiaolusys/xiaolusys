@@ -168,6 +168,11 @@ class WeixinUserService():
         
     def getValidCode(self,mobile,openId):
         
+        wx_users = WeiXinUser.objects.filter(mobile=mobile,
+                                             isvalid=True).exclude(openid=openId)
+        if wx_users.count() > 0:
+            raise MessageException(u'该手机已被其他用户绑定.'%(wx_user.get_wait_time()))
+        
         wx_user   = self.getOrCreateUser(openId,force_update=True)
         
         if not  wx_user.is_code_time_safe():      

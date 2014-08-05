@@ -149,8 +149,13 @@ class RequestCodeView(View):
 
         if user_openid == 'None' or user_openid == None:
             user_openid = get_user_openid(code, APPID, SECRET)
-
-
+        
+        wx_users = WeiXinUser.objects.filter(mobile=mobile,
+                                             isvalid=True).exclude(openid=user_openid)
+        if wx_users.count() > 0:
+            response = {"code":"bad", "message":"duplication phone"}
+            return HttpResponse(json.dumps(response),mimetype='application/json')
+        
         wx_user_service = WeixinUserService(openId=user_openid)
         if wx_user_service._wx_user.isNone():
             response = {"code":"bad", "message":"anonymous user"}

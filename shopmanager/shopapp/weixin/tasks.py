@@ -56,6 +56,12 @@ def pullFeedBackWXOrderTask(begintime,endtime):
     
     _wx_api = WeiXinAPI()
     
+    if not begintime and _wx_api._wx_account.refund_updated:
+        begintime = int(time.mktime(_wx_api._wx_account.refund_updated.timetuple()))
+    
+    dt        = datetime.datetime.now()
+    endtime   = endtime and endtime or int(time.mktime(dt.timetuple()))
+    
     orders = _wx_api.getOrderByFilter(WXOrder.WX_FEEDBACK,begintime,endtime)
     
     for order_dict in orders:
