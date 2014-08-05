@@ -749,6 +749,7 @@ class ResultView(View):
                 passed = True
             
         first_batch = SampleOrder.objects.filter(status=1).count()
+        second_batch = SampleOrder.objects.filter(status=2).count()
         
         usage_count = 0
         users = WeiXinUser.objects.filter(openid=user_openid)
@@ -762,7 +763,8 @@ class ResultView(View):
                                       {'days_left':days_left, 'hours_left':hours_left,
                                        'slots_left':slots_left, 'has_order':has_order,
                                        'passed':passed, 'usage_count':usage_count, 
-                                       'first_batch':first_batch, 'pk':pk},
+                                       'first_batch':first_batch, 'second_batch':second_batch,
+                                       'pk':pk},
                                       context_instance=RequestContext(request))
         return response
 
