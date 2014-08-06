@@ -439,13 +439,18 @@ class RefundSubmitView(View):
         tradeid = content.get("tradeid")
         refundtype = content.get("refund_type")
         vipcode = content.get("vipcode")
+        bank_account = content.get("bank_account")
+        account_owner = content.get("account_owner")
+        bank_address = content.address("bank_address")
+       
+        review_note = '|'.join([bank_account, account_owner, bank_address])
         
         obj = Refund.objects.filter(trade_id=tradeid)
         if obj.count() < 1:
             if refundtype == "0":
                 obj = Refund.objects.create(trade_id=int(tradeid),refund_type=int(refundtype))
             else:
-                obj = Refund.objects.create(trade_id=int(tradeid),refund_type=int(refundtype),vip_code=vipcode)
+                obj = Refund.objects.create(trade_id=int(tradeid),refund_type=int(refundtype),vip_code=vipcode,review_note=review_note)
         else:
             obj = obj[0]
         response = render_to_response('weixin/refundresponse.html', {"refund":obj},
