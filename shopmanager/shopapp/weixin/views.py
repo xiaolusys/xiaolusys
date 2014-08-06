@@ -462,7 +462,7 @@ class RefundReviewView(View):
         
         refundlist = Refund.objects.filter(refund_status=refund_status).order_by('created')
         
-        first_refund, first_trade = None,None
+        first_refund, first_trade, sample_order = None,None,None
         if refundlist.count() > 0:
             first_refund = refundlist[0]
             first_refund.pay_amount = first_refund.pay_amount * 0.01
@@ -470,10 +470,18 @@ class RefundReviewView(View):
             mergetrades = MergeTrade.objects.filter(id=int(trade_id))
             if mergetrades.count() > 0:
                 first_trade = mergetrades[0]
-                
-        
+                mobile = first_trade.receiver_mobile
+                wx_users = WeiXinUser.objects.filter(mobile=mobile)
+                if wx_users.count() > 0:
+                    openid = wx_users[0].openid
+                    orders = SampleOrder.objects.filter(user_openid=openid).filter(status__gt=0)
+                    if orders.count() > 0:
+                        sample_order = orders[0]
+                    
         response = render_to_response('weixin/refundreview.html', 
-                                      {"refundlist":refundlist, "first_refund":first_refund, "first_trade": first_trade, "refund_status":refund_status},
+                                      {"refundlist":refundlist, "first_refund":first_refund, 
+                                       "first_trade": first_trade, "refund_status":refund_status,
+                                       "sample_order": sample_order},
                                       context_instance=RequestContext(request))
         return response
 
