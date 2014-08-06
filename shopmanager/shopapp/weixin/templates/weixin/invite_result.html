@@ -14,15 +14,9 @@
       <p style="color:red;">分享<a href="/weixin/sampleads/{{ pk }}/">您的专属VIP邀请码</a>，越多人使用，您中奖的几率就越大！</p>
       {% endif %}
       
-      <p style="color:#3071a9">第一批中奖名单已公布，共{{ first_batch }}名（他们的VIP专属码均已被使用<font style="color:red;">超过10次</font>），祝贺她们！ <a href="/weixin/finallist/1/">查看详细名单 >></a></p>
-    </div>
-  </div>
+      <p style="color:#3071a9">第一批中奖共{{ first_batch }}名（VIP专属码使用<font style="color:red;">超过10次</font>），祝贺她们！ <a href="/weixin/finallist/1/1/">查看详细名单 >></a></p>
+      <p style="color:#3071a9">第二批中奖共{{ second_batch }}名（VIP专属码使用<font style="color:red;">超过12次</font>），祝贺她们！ <a href="/weixin/finallist/2/1/">查看详细名单 >></a></p>
 
-  <div class="panel panel-default" style="margin-top:5px">
-    <div class="panel-heading" style="color:orange">申请攻略</div>
-    <div class="panel-body">
-      <p>1) 首要任务是让专属VIP邀请码被使用10次以上。</p>
-      <p style="color:red">2) 如果被使用20次以上，您将具有决定性的竞争力！</p>
     </div>
   </div>
 
@@ -35,9 +29,10 @@
       <p>您邀请了<font style="color:red;">{{ usage_count }}位</font>好友，优尼世界感谢您的努力！</p>
       <p>请用下面二维码加入微信群“优尼世界服务群”，有专门的客服为您服务，指导您接下来的操作流程。</p>
       <a href="#" class="thumbnail">
-	<img src="https://mmbiz.qlogo.cn/mmbiz/yMhOQPTKhLvxy2LNzVj0ibrZBohfZoj47Djr3XH3GNFpxXE1JtH3RiaibacINUBJic0DDgSjVJGCZwBM3GU5D03khQ/0" alt="...">
+	<img src="https://mmbiz.qlogo.cn/mmbiz/yMhOQPTKhLvxy2LNzVj0ibrZBohfZoj47vaUqGEt2LPo9Jz8dGB5HmseXXIyFEKeRw98Yh7t18OeUeOAWaUNAyA/0" alt="...">
       </a>
       <p style="color:red">把上面二维码图片保存到手机，微信扫一扫，选择右上角“相册”。</p>
+      <p style="color:red">注意：群内禁止发广告！否则取消资格并拉黑！</p>
       {% else %}
       <p>亲，请耐心等待，您的申请正在审核中。</p>
       <p>您的专属VIP邀请码<font style="color:red">已被使用{{ usage_count }}次</font>，请继续加油!</p>
@@ -49,6 +44,16 @@
       {% endif %}
     </div>
   </div>
+
+  <div class="panel panel-default" style="margin-top:5px">
+    <div class="panel-heading" style="color:orange">申请攻略</div>
+    <div class="panel-body">
+      <p>1) 首要任务是让专属VIP邀请码被使用12次以上。</p>
+      <p style="color:red">2) 如果被使用20次以上，您将具有决定性的竞争力！</p>
+      <p>3) 作弊者取消资格。我们技术很强大的哦！</p>
+    </div>
+  </div>
+
   
   <div class="footer">
     <p>© Uni Littles 2014</p>

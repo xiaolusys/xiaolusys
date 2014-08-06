@@ -294,8 +294,8 @@ class DiffPackageDataView(ModelView):
         for tspw  in small_queryset:
             try:
                 weight_tuple = yunda_service.calcSmallPackageWeight(tspw)
-                tspw.weight = weight_tuple[0]
-                tspw.upload_weight = weight_tuple[1]
+                tspw.weight = weight_tuple[0] or tspw.weight
+                tspw.upload_weight = weight_tuple[1] or tspw.upload_weight
                 tspw.save()
             except Exception,exc:
                 error_packages.append((tspw.package_id,tspw.weight,exc.message))
@@ -304,8 +304,8 @@ class DiffPackageDataView(ModelView):
             for tppw  in parent_queryset:
                 try:
                     weight_tuple = yunda_service.calcParentPackageWeight(tppw)
-                    tppw.weight = weight_tuple[0]
-                    tppw.upload_weight = weight_tuple[1]
+                    tppw.weight = weight_tuple[0] or tppw.weight
+                    tppw.upload_weight = weight_tuple[1] or tppw.upload_weight
                     tppw.save()
                 except Exception,exc:
                     error_packages.append((tppw.parent_package_id,tppw.weight,exc.message))

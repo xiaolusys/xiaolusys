@@ -749,6 +749,7 @@ class ResultView(View):
                 passed = True
             
         first_batch = SampleOrder.objects.filter(status=1).count()
+        second_batch = SampleOrder.objects.filter(status=2).count()
         
         usage_count = 0
         users = WeiXinUser.objects.filter(openid=user_openid)
@@ -762,7 +763,8 @@ class ResultView(View):
                                       {'days_left':days_left, 'hours_left':hours_left,
                                        'slots_left':slots_left, 'has_order':has_order,
                                        'passed':passed, 'usage_count':usage_count, 
-                                       'first_batch':first_batch, 'pk':pk},
+                                       'first_batch':first_batch, 'second_batch':second_batch,
+                                       'pk':pk},
                                       context_instance=RequestContext(request))
         return response
 
@@ -771,11 +773,12 @@ from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 class FinalListView(View):
     def get(self, request, *args, **kwargs):
 
-        order_list = SampleOrder.objects.filter(status__gt=0)
+        page = int(kwargs.get('page',1))
+        batch = int(kwargs.get('batch',1))
+
+        order_list = SampleOrder.objects.filter(status=batch)
         num_per_page = 20 # Show 20 contacts per page
         paginator = Paginator(order_list, num_per_page) 
-
-        page = int(kwargs.get('page',1))
 
         try:
             items = paginator.page(page)
@@ -802,7 +805,7 @@ class FinalListView(View):
                                       {"items":items, 'num_pages':num_pages, 
                                        'total':total, 'num_per_page':num_per_page,
                                        'prev_page':prev_page, 'next_page':next_page,
-                                       'page':page},
+                                       'page':page, 'batch':batch},
                                       context_instance=RequestContext(request))
         return response
     
