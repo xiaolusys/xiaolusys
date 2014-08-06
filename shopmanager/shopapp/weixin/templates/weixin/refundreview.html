@@ -35,7 +35,7 @@
     <div class="panel-heading">返利申请</div>
     <div class="panel-body">
 
-      <table class="table table-bordered">
+    <table id="refund_table" class="table table-bordered">
 	<thead>
 	  <th>编号</th><th>内部单号</th><th>返利类型</th><th>VIP邀请码</th><th>返利状态</th><th>申请时间</th>
 	</thead>
@@ -93,6 +93,32 @@
 
     $.ajax({url:url, data:data, type:"post", success:callback});
   }
+  
+  $('#refund_table').dataTable({
+   		//"bJQueryUI": true,
+		"bAutoWidth": false, //自适应宽度
+		"aaSorting": [[1, "asc"]],
+		"iDisplayLength": 20,
+		"aLengthMenu": [[20, 50, 100, -1], [20, 50, 100, "All"]],
+		//"sPaginationType": "full_numbers",
+		//"sDom": '<"H"Tfr>t<"F"ip>',
+		"oLanguage": {
+			"sLengthMenu": "每页 _MENU_ 条",
+			"sZeroRecords": "抱歉， 没有找到",
+			"sInfo": "从 _START_ 到 _END_ /共 _TOTAL_ 条",
+			"sInfoEmpty": "没有数据",
+			"sSearch": "搜索",
+			"sInfoFiltered": "(从 _MAX_ 条数据中检索)",
+			"oPaginate": {
+				"sFirst": "首页",
+				"sPrevious": "前一页",
+				"sNext": "后一页",
+				"sLast": "尾页"
+			},
+			"sZeroRecords": "没有检索到数据",
+			"sProcessing": "<img src='/static/img/loading.gif' />"
+		}		
+	});
 </script>
 {% endblock %}
 
