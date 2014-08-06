@@ -37,13 +37,18 @@
 
     <table id="refund_table" class="table table-bordered">
 	<thead>
-	  <th>编号</th><th>内部单号</th><th>返利类型</th><th>VIP邀请码</th><th>返利状态</th><th>申请时间</th>
+	  <th>编号</th><th>内部单号</th><th>返利类型</th><th>VIP邀请码</th><th>返利状态</th><th>申请时间</th><th>试用通过</th>
 	</thead>
 	<tbody>
 	  {% if first_refund %}	
 	  {% for refund in refundlist %} 
 	  <tr id="id_{{ refund.pk }}">
 	    <td>{{ refund.pk }}</td><td>{{ refund.trade_id }}</td><td>{{ refund|displayName:'refund_type' }}</td><td>{{ refund.vip_code }}</td><td>{{ refund|displayName:'refund_status' }}</td><td>{{ refund.created }}</td>
+	    {% if sample_order %}
+	    <td>yes</td>
+	    {% else %}
+	    <td>no</td>
+	    {% endif %}
 	  </tr>
 	  {% endfor %}
 	  {% endif %}
