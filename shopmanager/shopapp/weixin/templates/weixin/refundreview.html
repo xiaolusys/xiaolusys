@@ -44,7 +44,6 @@
 	  {% for refund in refundlist %} 
 	  <tr id="id_{{ refund.pk }}">
 	    <td>{{ refund.pk }}</td><td>{{ refund.trade_id }}</td><td>{{ refund|displayName:'refund_type' }}</td><td>{{ refund.vip_code }}</td><td>{{ refund|displayName:'refund_status' }}</td><td>{{ refund.created }}</td>
-	    {% endif %}
 	  </tr>
 	  {% endfor %}
 	  {% endif %}
