@@ -99,7 +99,7 @@
     var callback = function (res) {
       $("#id_refund_body")[0].innerHTML = res;
     };
-    var data = {"refund_id":refund_id};
+    var data = {"refund_status":{{ refund_status }}, "refund_id":refund_id};
     $.ajax({url:url, data:data, success:callback});
   };
 
