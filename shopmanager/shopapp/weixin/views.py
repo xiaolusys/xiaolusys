@@ -566,6 +566,8 @@ class RefundRecordView(View):
                     sample_order = orders[0]
 
         html = 'weixin/refundreviewblock.html'
+        if refund_status == 1:
+            html = 'weixin/finalizeblock.html'    
         response = render_to_response(html, {"first_refund":refund, "first_trade": trade,
                                              "sample_order":sample_order},
                                       context_instance=RequestContext(request))
