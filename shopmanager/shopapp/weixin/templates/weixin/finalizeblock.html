@@ -19,6 +19,26 @@
     </tr>
   </tbody>
 </table>
+{% if sample_order %}
+<table class="table table-bordered">
+  <thead>
+    <th>试用商品</th><th>微信ID</th><th>答题分数</th><th>审核状态</th>
+  </thead>
+  <tbody>
+    <tr>
+      <td>{{ sample_order.sample_product }}</td>
+      <td>{{ sample_order.user_openid }}</td>
+      <td>{{ sample_order.problem_score }}</td>
+      {% if sample_order.status > 0 %}
+      <td><p style="color:green">第{{ sample_order.status }}批审核通过</p></td>
+      {% else %}
+      <td><p style="color:red">审核未通过</p></td>
+      {% endif %}
+    </tr>
+  </tbody>
+</table>
+{% endif %}
+
 <table class="table table-bordered">
   <thead>
     <th>返利状态</th><th>申请时间</th><th>返利方式</th><th>返利金额</th><th>审核备注</th><th>返现备注</th><th>审核</th>

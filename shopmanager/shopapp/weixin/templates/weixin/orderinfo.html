@@ -120,7 +120,7 @@
       };
 
       function checkVipCode(code) {
-        var reg = /^\d{6}$/;
+        var reg = /^\d{6,7}$/;
         return reg.test(code);
       };
       
@@ -128,20 +128,32 @@
         var refund_type = $("#id_refund").val();
         var vipcode = $("#id_code").val();
         
+
+
         if (refund_type == "10") {
           return;
         }
       
         if (refund_type == "1") {
           if (checkVipCode(vipcode) == false) {
-            $("#id_msg")[0].innerHTML = "vip code wrong. try again."
+            $("#id_msg")[0].innerHTML = "请检查您的VIP邀请码(6-7位数字)!"
             return;
           } 
         }
+       var bank_account = $("#id_bank_account").val();
+       var account_owner = $("#id_account_owner").val();
+       var bank_address = $("#id_bank_address").val();
+
+       if (bank_account.length < 14 || account_owner.length < 2 || bank_address < 8) {
+         return;
+       }
 
         var tradeid = $("#id_trade_id").val();
         var csrf_token = document.getElementsByName("csrfmiddlewaretoken")[0].value;
-        var data = {"refund_type":refund_type, "vipcode":vipcode, "tradeid":tradeid, "csrfmiddlewaretoken":csrf_token};
+        var data = {"refund_type":refund_type, "vipcode":vipcode, 
+                    "tradeid":tradeid, "csrfmiddlewaretoken":csrf_token,
+                    "bank_account":bank_account, "account_owner":account_owner,
+                    "bank_address":bank_address};
         var url = "/weixin/refundsubmit/";
         var callback = function (res) {
           $("#id_refund_body")[0].innerHTML = res;

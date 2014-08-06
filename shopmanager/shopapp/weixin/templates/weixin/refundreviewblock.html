@@ -19,9 +19,30 @@
     </tr>
   </tbody>
 </table>
+
+{% if sample_order %}
 <table class="table table-bordered">
   <thead>
-    <th>返利状态</th><th>申请时间</th><th>返利方式</th><th>返利金额</th><th>审核备注</th><th>审核</th>
+    <th>试用商品</th><th>微信ID</th><th>答题分数</th><th>审核状态</th>
+  </thead>
+  <tbody>
+    <tr>
+      <td>{{ sample_order.sample_product }}</td>
+      <td>{{ sample_order.user_openid }}</td>
+      <td>{{ sample_order.problem_score }}</td>
+      {% if sample_order.status > 0 %}
+      <td><p style="color:green">第{{ sample_order.status }}批审核通过</p></td>
+      {% else %}
+      <td><p style="color:red">审核未通过</p></td>
+      {% endif %}
+    </tr>
+  </tbody>
+</table>
+{% endif %}
+
+<table class="table table-bordered">
+  <thead>
+    <th>返利状态</th><th>申请时间</th><th>返利方式</th><th>返利金额</th><th>审核备注</th><th>返现备注</th><th>审核</th>
   </thead>
   <tbody>
     <tr>
@@ -33,10 +54,13 @@
 	  <option value="0" >申请退款</option>
 	  <option value="1" >申请退邮费</option>
 	  <option value="2" >支付宝转账</option>
+	  <option value="3" >银行转账</option>
 	</select>
       </td>
       <td>
 	<select class="form-control" id="id_refund_amount">
+	  <option value="0" >客服协商</option>
+	  <option value="1" >订单全额</option>
 	  <option value="200" >￥2.00</option>
 	  <option value="300" >￥3.00</option>
 	  <option value="400" >￥4.00</option>
@@ -44,7 +68,10 @@
 	</select>
       </td>
       <td>
-	<input type="text" class="form-control" id="id_review_note" value="{{ first_refund.note }}"/>
+	<input type="text" class="form-control" id="id_review_note" value="{{ first_refund.review_note }}"/>
+      </td>
+      <td>
+	<input type="text" class="form-control" id="id_pay_note" value="{{ first_refund.pay_note }}"/>
 	<input type="hidden" id="id_refund_pk" value="{{ first_refund.pk }}"/>{% csrf_token %}
       </td>
       <td><select class="form-control" id="id_action">

@@ -37,13 +37,13 @@
 
     <table id="refund_table" class="table table-bordered">
 	<thead>
-	  <th>编号</th><th>内部单号</th><th>返利类型</th><th>VIP邀请码</th><th>返利状态</th><th>申请时间</th>
+	  <th>编号</th><th>内部单号</th><th>返利类型</th><th>VIP邀请码</th><th>备注</th><th>返利状态</th><th>申请时间</th>
 	</thead>
 	<tbody>
 	  {% if first_refund %}	
 	  {% for refund in refundlist %} 
 	  <tr id="id_{{ refund.pk }}">
-	    <td>{{ refund.pk }}</td><td>{{ refund.trade_id }}</td><td>{{ refund|displayName:'refund_type' }}</td><td>{{ refund.vip_code }}</td><td>{{ refund|displayName:'refund_status' }}</td><td>{{ refund.created }}</td>
+	    <td>{{ refund.pk }}</td><td>{{ refund.trade_id }}</td><td>{{ refund|displayName:'refund_type' }}</td><td>{{ refund.vip_code }}</td><td>{{ refund.review_note }}</td><td>{{ refund|displayName:'refund_status' }}</td><td>{{ refund.created }}</td>
 	  </tr>
 	  {% endfor %}
 	  {% endif %}
@@ -92,7 +92,22 @@
     };
 
     $.ajax({url:url, data:data, type:"post", success:callback});
-  }
+  };
+
+  function refundRecord(refund_id) {
+    var url = "/weixin/refundrecord/";
+    var callback = function (res) {
+      $("#id_refund_body")[0].innerHTML = res;
+    };
+    var data = {"refund_status":{{ refund_status }}, "refund_id":refund_id};
+    $.ajax({url:url, data:data, success:callback});
+  };
+
+  {% if first_refund %}	
+  {% for refund in refundlist %} 
+  $("#id_{{ refund.pk }}").on("click", function() { refundRecord({{ refund.pk }}); });
+  {% endfor %}
+  {% endif %}
   
   $('#refund_table').dataTable({
    		//"bJQueryUI": true,
@@ -119,6 +134,9 @@
 			"sProcessing": "<img src='/static/img/loading.gif' />"
 		}		
 	});
+
+
+
 </script>
 {% endblock %}
 
