@@ -79,7 +79,7 @@ class WeiXinUserAdmin(admin.ModelAdmin):
                     'city','subscribe','subscribe_time','isvalid')
     
     list_filter = ('subscribe','isvalid','sex')
-    search_fields = ['openid','nickname']
+    search_fields = ['openid','nickname','mobile']
     
 
 admin.site.register(WeiXinUser, WeiXinUserAdmin) 
