@@ -190,7 +190,7 @@ admin.site.register(ReferalSummary, ReferalSummaryAdmin)
 
 class RefundAdmin(admin.ModelAdmin):
     
-    list_display = ('trade_id', 'refund_type','pay_amount','vip_code','created','refund_status')
+    list_display = ('trade_id', 'refund_type','pay_amount','vip_code','review_note', 'created','refund_status')
     
     list_filter = ('refund_type','refund_status','pay_type')
     search_fields = ['trade_id','vip_code']
