@@ -42,7 +42,7 @@
 
 <table class="table table-bordered">
   <thead>
-    <th>返利状态</th><th>申请时间</th><th>返利方式</th><th>返利金额</th><th>审核备注</th><th>审核</th>
+    <th>返利状态</th><th>申请时间</th><th>返利方式</th><th>返利金额</th><th>审核备注</th><th>返现备注</th><th>审核</th>
   </thead>
   <tbody>
     <tr>
@@ -69,6 +69,9 @@
       </td>
       <td>
 	<input type="text" class="form-control" id="id_review_note" value="{{ first_refund.review_note }}"/>
+      </td>
+      <td>
+	<input type="text" class="form-control" id="id_pay_note" value="{{ first_refund.pay_note }}"/>
 	<input type="hidden" id="id_refund_pk" value="{{ first_refund.pk }}"/>{% csrf_token %}
       </td>
       <td><select class="form-control" id="id_action">
