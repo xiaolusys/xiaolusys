@@ -516,7 +516,10 @@ class RefundReviewView(View):
                 response = {"code":"bad", "message":"wrong action"}
                 return HttpResponse(json.dumps(response),mimetype='application/json')
 
-            Refund.objects.filter(pk=refund_id).update(pay_type=pay_type,pay_amount=pay_amount,review_note=review_note,refund_status=action)
+            refunds = Refund.objects.filter(pk=refund_id)
+            refunds.update(pay_type=pay_type,pay_amount=pay_amount,review_note=review_note,refund_status=action)
+            
+            mergetrades = MergeTrade.objects.filter(id=refunds[0].trade_id)
         
         refunds = Refund.objects.filter(pk__gt=refund_id).filter(refund_status=refund_status).order_by('pk')[0:1]
         next_trade,next_refund,sample_order = None,None,None
