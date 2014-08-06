@@ -514,14 +514,21 @@ class RefundReviewView(View):
             Refund.objects.filter(pk=refund_id).update(pay_type=pay_type,pay_amount=pay_amount,review_note=review_note,refund_status=action)
         
         refunds = Refund.objects.filter(pk__gt=refund_id).filter(refund_status=refund_status).order_by('pk')[0:1]
-        next_trade,next_refund = None,None
+        next_trade,next_refund,sample_order = None,None,None
         if refunds.count() > 0:
             next_refund = refunds[0]
             next_refund.pay_amount = next_refund.pay_amount * 0.01
             mergetrades = MergeTrade.objects.filter(id=next_refund.trade_id)
             if mergetrades.count() > 0:
                 next_trade = mergetrades[0]
-            
+                mobile = next_trade.receiver_mobile
+                wx_users = WeiXinUser.objects.filter(mobile=mobile)
+                if wx_users.count() > 0:
+                    openid = wx_users[0].openid
+                    orders = SampleOrder.objects.filter(user_openid=openid).filter(status__gt=0)
+                    if orders.count() > 0:
+                        sample_order = orders[0]
+
         html = 'weixin/refundreviewblock.html'
         if refund_status == 1:
             html = 'weixin/finalizeblock.html'
