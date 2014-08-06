@@ -549,6 +549,7 @@ class RefundRecordView(View):
     def get(self, request):
         content = request.REQUEST
         refund_id = int(content.get("refund_id"))
+        refund_status = int(content.get("refund_status"))
         
         refund = Refund.objects.get(pk=refund_id)
         trade,sample_order = None,None
