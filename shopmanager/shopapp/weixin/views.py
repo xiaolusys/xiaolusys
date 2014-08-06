@@ -441,7 +441,7 @@ class RefundSubmitView(View):
         vipcode = content.get("vipcode")
         bank_account = content.get("bank_account")
         account_owner = content.get("account_owner")
-        bank_address = content.address("bank_address")
+        bank_address = content.get("bank_address")
        
         review_note = '|'.join([bank_account, account_owner, bank_address])
         
