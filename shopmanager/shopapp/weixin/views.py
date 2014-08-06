@@ -537,6 +537,34 @@ class RefundReviewView(View):
         return response
     
 
+class RefundRecordView(View):
+    def get(self, request):
+        content = request.REQUEST
+        refund_id = int(content.get("refund_id"))
+        
+        refund = Refund.objects.get(pk=refund_id)
+        trade,sample_order = None,None
+        
+        refund.pay_amount = refund.pay_amount * 0.01
+        mergetrades = MergeTrade.objects.filter(id=refund.trade_id)
+        if mergetrades.count() > 0:
+            trade = mergetrades[0]
+            mobile = trade.receiver_mobile
+            wx_users = WeiXinUser.objects.filter(mobile=mobile)
+            if wx_users.count() > 0:
+                openid = wx_users[0].openid
+                orders = SampleOrder.objects.filter(user_openid=openid).filter(status__gt=0)
+                if orders.count() > 0:
+                    sample_order = orders[0]
+
+        html = 'weixin/refundreviewblock.html'
+        response = render_to_response(html, {"first_refund":refund, "first_trade": trade,
+                                             "sample_order":sample_order},
+                                      context_instance=RequestContext(request))
+        return response
+        
+
+        
 class FreeSampleView(View):
     def get(self, request):
 
