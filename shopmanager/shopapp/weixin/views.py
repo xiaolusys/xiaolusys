@@ -280,8 +280,14 @@ class OrderInfoView(View):
         refund_list = Refund.objects.filter(trade_id=trade.id)
         if refund_list.count() > 0:
             refund = refund_list[0]
+        
+        passed = False
+        sample_orders = SampleOrder.objects.filter(user_openid=user_openid).filter(status__gt=0)
+        if sample_orders.count() > 0:
+            passed = True
+        
         response = render_to_response('weixin/orderinfo.html', 
-                                      {'tradedata':data, "traces":shipping_traces, "refund": refund},
+                                      {'tradedata':data, "traces":shipping_traces, "refund": refund, "passed":passed},
                                       context_instance=RequestContext(request))
         response.set_cookie("openid",user_openid)
         return response
