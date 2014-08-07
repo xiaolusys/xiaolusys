@@ -25,7 +25,7 @@ from common.utils import parse_datetime,format_datetime,replace_utf8mb4,update_m
 import logging
 
 logger = logging.getLogger('django.request')
-VALID_MOBILE_REGEX = '^1[3458][0-9]{9}'
+VALID_MOBILE_REGEX = '^1[34578][0-9]{9}'
 VALID_CODE_REGEX   = '^[0-9]{6}$'
 VALID_EVENT_CODE   = '^[qwertyuiopQWERTYUIOP]$'
 
@@ -184,7 +184,7 @@ class WeixinUserService():
         valid_code = self.genValidCode()
         self.sendValidCode(mobile,valid_code)        
         
-        wx_user.mobile    = mobile
+        wx_user.vmobile    = mobile
         wx_user.isvalid   = False
         wx_user.validcode = valid_code
         wx_user.valid_count += 1
@@ -201,7 +201,8 @@ class WeixinUserService():
              
          if not wx_user.validcode or wx_user.validcode != validCode:
              raise MessageException(u'验证码不对，请重新输入:')
-             
+         
+         wx_user.mobile  = wx_user.vmobile
          wx_user.isvalid = True
          wx_user.save()
          return True
@@ -216,7 +217,7 @@ class WeixinUserService():
         
         if message == '0' and self._wx_user.isValid():
             return self.genTextRespJson(u'您已经成功绑定手机，修改绑定请重新输入手机号：')
-
+        
         for resp in self.getResponseList():
             if message.rfind(resp.message.strip()) > -1:
                 return resp.autoParams()
@@ -245,7 +246,7 @@ class WeixinUserService():
         
         from shopapp.smsmgr import sendMessage
         
-        wx_resp = WeiXinAutoResponse.objects.get_or_create(message=u'验证码')[0]
+        wx_resp = WeiXinAutoResponse.objects.get_or_create(message='SJYZM')[0]
         msgTemplate = wx_resp.content
         
         return sendMessage(mobile,title,msgTemplate%validCode)

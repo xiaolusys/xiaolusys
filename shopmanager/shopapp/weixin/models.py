@@ -134,6 +134,7 @@ class WeiXinUser(models.Model):
                                    verbose_name=u"宝宝性别")
     baby_topic  = models.CharField(max_length=256,blank=True,verbose_name=u"宝宝签名")
     
+    vmobile    = models.CharField(max_length=24,blank=True,verbose_name=u"待验证手机")
     isvalid    = models.BooleanField(default=False,verbose_name=u"已验证")
     validcode     = models.CharField(max_length=6,blank=True,verbose_name=u"验证码")
     
