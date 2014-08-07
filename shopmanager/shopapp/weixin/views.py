@@ -871,7 +871,7 @@ class FinalListView(View):
 
 class TestView(View):
     def get(self, request, *args, **kwargs):
-        response = render_to_response('weixin/invite_result.html',         
+        response = render_to_response('weixin/pai_guide.html',         
                                       context_instance=RequestContext(request))
         return response
         
