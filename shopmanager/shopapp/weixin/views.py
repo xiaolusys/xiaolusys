@@ -793,7 +793,7 @@ class ResultView(View):
         diff = end - now
         days_left = diff.days
         hours_left = diff.seconds / 3600
-        slots_left = (days_left + 1) * 50
+
 
         order = SampleOrder.objects.filter(user_openid=user_openid)
         has_order, passed = False, False
@@ -805,6 +805,8 @@ class ResultView(View):
         first_batch = SampleOrder.objects.filter(status=1).count()
         second_batch = SampleOrder.objects.filter(status=2).count()
         third_batch = SampleOrder.objects.filter(status=3).count()
+
+        slots_left = 850 - (first_batch + second_batch + third_batch)
         
         usage_count = 0
         users = WeiXinUser.objects.filter(openid=user_openid)
