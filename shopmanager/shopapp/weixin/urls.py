@@ -5,7 +5,7 @@ from django.views.decorators.cache import cache_page
 
 from django.views.generic import TemplateView
 from shopback.base.proxy  import ProxyView
-from shopapp.weixin.views import WeixinAcceptView,WeixinAddReferalView,ReferalView,OrderInfoView,BabyInfoView,RequestCodeView,VerifyCodeView,RefundSubmitView,RefundReviewView,RefundRecordView,FreeSampleView,SampleApplyView,SampleAdsView,SampleConfirmView,VipCodeVerifyView,ResultView,FinalListView,TestView
+from shopapp.weixin.views import WeixinAcceptView,WeixinAddReferalView,ReferalView,OrderInfoView,BabyInfoView,RequestCodeView,VerifyCodeView,RefundSubmitView,RefundReviewView,RefundRecordView,FreeSampleView,SampleApplyView,SampleAdsView,SampleConfirmView,VipCodeVerifyView,ResultView,FinalListView,PayGuideView,TestView
 
 urlpatterns = patterns('shopapp.weixin.views',
 
@@ -40,6 +40,7 @@ urlpatterns = patterns('shopapp.weixin.views',
     url(r'^refundsubmit/$', RefundSubmitView.as_view()),                       
     url(r'^refundreview/$', RefundReviewView.as_view()),
     url(r'^refundrecord/$', RefundRecordView.as_view()),
+    url(r'^payguide/$', PayGuideView.as_view()),
     url(r'^test/$', TestView.as_view()),    
                      
     url(r'^validmobile/$', TemplateView.as_view(

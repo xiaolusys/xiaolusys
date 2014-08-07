@@ -9,6 +9,7 @@
   <div class="panel panel-default" style="margin-top:5px">
     <div class="panel-heading" style="color:orange">公告</div>
     <div class="panel-body">
+      {% if passed %}
       <p style="color:red">亲，恭喜您的申请获得通过！</p>
       <h3>拍睡袋的流程如下：</h3>
       <ul class="list-group">
@@ -33,6 +34,9 @@
       <p><font style="color:#3071a9">7. 天猫上睡袋那么多，为什么要选择优尼世界的？</font><br>&nbsp;&nbsp;&nbsp;亲，把优尼世界的睡袋和其他睡袋放到你3岁的宝宝跟前，宝宝一定会选择优尼世界！宝宝们喜欢活泼多彩的动物元素，优尼世界的留美海归团队有能力设计出最时尚活泼的睡袋！</p>
       <p>图一、收货后分享朋友圈案例：<a href="#" class="thumbnail"><img src="https://mmbiz.qlogo.cn/mmbiz/yMhOQPTKhLuzohN5DJPX5psSXEXWiaZ04hdVSpda5IYwEibd3SSsTHxRCzoicHeBUdkuQs1SiaExh6pvdEou4iaQ5xg/0"/></a></p>
       <p>图二、全额返现提交入口：<a href="#" class="thumbnail"><img src="https://mmbiz.qlogo.cn/mmbiz/yMhOQPTKhLuzohN5DJPX5psSXEXWiaZ04GP8Igjy4uFFwIfKVP1ia80syIuq6Actljw42GAnDagPIHcdwf079ibhg/0"></a></p>
+      {% else %}
+      <p>对不起，您暂时无权查看该页!</p>
+      {% endif %}
     </div>
   </div>
   

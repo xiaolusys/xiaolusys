@@ -825,6 +825,7 @@ class ResultView(View):
                                        'first_batch':first_batch, 'second_batch':second_batch,
                                        'third_batch':third_batch, 'pk':pk},
                                       context_instance=RequestContext(request))
+        response.set_cookie("openid",user_openid)        
         return response
 
 
@@ -867,7 +868,25 @@ class FinalListView(View):
                                        'page':page, 'batch':batch},
                                       context_instance=RequestContext(request))
         return response
-    
+
+class PayGuideView(View):
+    def get(self, request):
+        user_openid = request.COOKIES.get('openid')
+        
+        user_valid = True
+        if user_openid == 'None' or user_openid == None:
+            user_valid = False
+            
+        passed = False
+        if user_valid == True:
+            orders = SampleOrder.objects.filter(user_openid=user_openid).filter(status__gt=0)
+            if orders.count() > 0:
+                passed = True
+            
+        response = render_to_response('weixin/pai_guide.html', {"passed":passed},
+                                      context_instance=RequestContext(request))
+        return response
+
 
 class TestView(View):
     def get(self, request, *args, **kwargs):
