@@ -830,7 +830,8 @@ class ResultView(View):
                                        'slots_left':slots_left, 'has_order':has_order,
                                        'passed':passed, 'usage_count':usage_count, 
                                        'first_batch':first_batch, 'second_batch':second_batch,
-                                       'third_batch':third_batch, 'pk':pk},
+                                       'third_batch':third_batch, 'fourth_batch':fourth_batch,
+                                       'pk':pk},
                                       context_instance=RequestContext(request))
         response.set_cookie("openid",user_openid)        
         return response
