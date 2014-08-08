@@ -526,6 +526,10 @@ class Refund(models.Model):
     REFUND_STATUSES = ((0,u'等待审核'), (1,u'审核通过'), (2,u'审核不通过'),(3,u'完成'))
     PAY_TYPES = ((0,u'申请退款'), (1,u'退邮费'), (2,u'支付宝转账'), (3, u'银行转账'))
 
+    user_openid = models.CharField(max_length=64,db_index=True,verbose_name=u"微信ID")
+
+    mobile     = models.CharField(max_length=24,blank=True,verbose_name=u"手机")
+
     ### note: trade_id in mergetrade is biginteger.
     trade_id = models.IntegerField(default=0, db_index=True,verbose_name=u'订单ID')
     

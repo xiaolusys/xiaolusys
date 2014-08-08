@@ -448,15 +448,19 @@ class RefundSubmitView(View):
         bank_account = content.get("bank_account")
         account_owner = content.get("account_owner")
         bank_address = content.get("bank_address")
-       
+
+        user_openid = request.COOKIES.get('openid')
+        mergetrades = MergeTrade.objects.filter(id=int(trade_id))
+        mobile = mergetrades[0].receiver_mobile
+
         review_note = '|'.join([bank_account, account_owner, bank_address])
         
         obj = Refund.objects.filter(trade_id=tradeid)
         if obj.count() < 1:
             if refundtype == "0":
-                obj = Refund.objects.create(trade_id=int(tradeid),refund_type=int(refundtype))
+                obj = Refund.objects.create(trade_id=int(tradeid),refund_type=int(refundtype),user_openid=user_openid,mobile=mobile)
             else:
-                obj = Refund.objects.create(trade_id=int(tradeid),refund_type=int(refundtype),vip_code=vipcode,review_note=review_note)
+                obj = Refund.objects.create(trade_id=int(tradeid),refund_type=int(refundtype),vip_code=vipcode,review_note=review_note,user_openid=user_openid,mobile=mobile)
         else:
             obj = obj[0]
         response = render_to_response('weixin/refundresponse.html', {"refund":obj},
@@ -472,27 +476,11 @@ class RefundReviewView(View):
         refund_status = int(content.get("status", "0"))
         
         refundlist = Refund.objects.filter(refund_status=refund_status).order_by('created')
+        for refund in refundlist:
+            refund.pay_amount = refund.pay_amount * 0.01
         
-        first_refund, first_trade, sample_order = None,None,None
-        if refundlist.count() > 0:
-            first_refund = refundlist[0]
-            first_refund.pay_amount = first_refund.pay_amount * 0.01
-            trade_id = first_refund.trade_id
-            mergetrades = MergeTrade.objects.filter(id=int(trade_id))
-            if mergetrades.count() > 0:
-                first_trade = mergetrades[0]
-                mobile = first_trade.receiver_mobile
-                wx_users = WeiXinUser.objects.filter(mobile=mobile)
-                if wx_users.count() > 0:
-                    openid = wx_users[0].openid
-                    orders = SampleOrder.objects.filter(user_openid=openid).filter(status__gt=0)
-                    if orders.count() > 0:
-                        sample_order = orders[0]
-                    
         response = render_to_response('weixin/refundreview.html', 
-                                      {"refundlist":refundlist, "first_refund":first_refund, 
-                                       "first_trade": first_trade, "refund_status":refund_status,
-                                       "sample_order": sample_order},
+                                      {"refundlist":refundlist, "refund_status":refund_status},
                                       context_instance=RequestContext(request))
         return response
 
