@@ -101,11 +101,9 @@
     $.ajax({url:url, data:data, success:callback});
   };
 
-  {% if first_refund %}	
   {% for refund in refundlist %} 
   $("#id_{{ refund.pk }}").on("click", function() { refundRecord({{ refund.pk }}); });
   {% endfor %}
-  {% endif %}
   
   $('#refund_table').dataTable({
    		//"bJQueryUI": true,
