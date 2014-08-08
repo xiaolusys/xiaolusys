@@ -450,7 +450,7 @@ class RefundSubmitView(View):
         bank_address = content.get("bank_address")
 
         user_openid = request.COOKIES.get('openid')
-        mergetrades = MergeTrade.objects.filter(id=int(trade_id))
+        mergetrades = MergeTrade.objects.filter(id=int(tradeid))
         mobile = mergetrades[0].receiver_mobile
 
         review_note = '|'.join([bank_account, account_owner, bank_address])
