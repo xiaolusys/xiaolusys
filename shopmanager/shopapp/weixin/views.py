@@ -610,7 +610,7 @@ class FreeSampleView(View):
         hours_left = diff.seconds / 3600
 
         consumed = SampleOrder.objects.filter(status__gt=0).count()
-        slots_left = 850 - consumed
+        slots_left = 1000 - consumed
         
         samples = FreeSample.objects.filter(expiry__gt=datetime.datetime.now())
 
@@ -815,7 +815,7 @@ class ResultView(View):
         third_batch = SampleOrder.objects.filter(status=3).count()
         fourth_batch = SampleOrder.objects.filter(status=4).count()
 
-        slots_left = 850 - (first_batch + second_batch + third_batch + fourth_batch)
+        slots_left = 1000 - (first_batch + second_batch + third_batch + fourth_batch)
         
         usage_count = 0
         users = WeiXinUser.objects.filter(openid=user_openid)
