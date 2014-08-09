@@ -791,11 +791,11 @@ class ResultView(View):
 
 
         order = SampleOrder.objects.filter(user_openid=user_openid)
-        has_order, passed = False, False
+        has_order = False
+        order_status = 0
         if order.count() > 0:
             has_order = True
-            if order[0].status > 0:
-                passed = True
+            order_status = order[0].status
             
         first_batch = SampleOrder.objects.filter(status=1).count()
         second_batch = SampleOrder.objects.filter(status=2).count()
@@ -816,7 +816,7 @@ class ResultView(View):
         response = render_to_response('weixin/invite_result.html',
                                       {'days_left':days_left, 'hours_left':hours_left,
                                        'slots_left':slots_left, 'has_order':has_order,
-                                       'passed':passed, 'usage_count':usage_count, 
+                                       'order_status':order_status, 'usage_count':usage_count, 
                                        'first_batch':first_batch, 'second_batch':second_batch,
                                        'third_batch':third_batch, 'fourth_batch':fourth_batch,
                                        'fifth_batch':fifth_batch,'pk':pk},
