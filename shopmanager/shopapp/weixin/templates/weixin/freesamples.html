@@ -27,7 +27,7 @@
 	    <img src="{{ sample.pic_url }}" alt="...">
 	  </a>
 
-	  {% if today_orders < 1000 %}
+	  {% if today_orders > 1000 %}
 	  <p>超过<font style="color:red; font-size:20px">1000</font>人已申请</p>
 	  {% else %}
 	  <p>今日<font style="color:red; font-size:20px">{{ today_orders }}</font>人已申请</p>
