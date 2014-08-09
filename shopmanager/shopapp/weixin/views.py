@@ -447,13 +447,12 @@ class RefundSubmitView(View):
         vipcode = content.get("vipcode")
         bank_account = content.get("bank_account")
         account_owner = content.get("account_owner")
-        bank_address = content.get("bank_address")
 
         user_openid = request.COOKIES.get('openid')
         mergetrades = MergeTrade.objects.filter(id=int(tradeid))
         mobile = mergetrades[0].receiver_mobile
 
-        review_note = '|'.join([bank_account, account_owner, bank_address])
+        review_note = '|'.join([bank_account, account_owner])
         
         obj = Refund.objects.filter(trade_id=tradeid)
         if obj.count() < 1:
@@ -887,7 +886,7 @@ class PayGuideView(View):
 
 class TestView(View):
     def get(self, request, *args, **kwargs):
-        response = render_to_response('weixin/pai_guide.html',         
+        response = render_to_response('weixin/test.html',         
                                       context_instance=RequestContext(request))
         return response
         
