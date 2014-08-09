@@ -144,9 +144,8 @@
         }
        var bank_account = $("#id_bank_account").val();
        var account_owner = $("#id_account_owner").val();
-       var bank_address = $("#id_bank_address").val();
 
-       if (bank_account.length < 6 || account_owner.length < 2 || bank_address < 6) {
+       if (bank_account.length < 6 || account_owner.length < 2) {
          return;
        }
 
@@ -154,8 +153,7 @@
         var csrf_token = document.getElementsByName("csrfmiddlewaretoken")[0].value;
         var data = {"refund_type":refund_type, "vipcode":vipcode, 
                     "tradeid":tradeid, "csrfmiddlewaretoken":csrf_token,
-                    "bank_account":bank_account, "account_owner":account_owner,
-                    "bank_address":bank_address};
+                    "bank_account":bank_account, "account_owner":account_owner};
         var url = "/weixin/refundsubmit/";
         var callback = function (res) {
           $("#id_refund_body")[0].innerHTML = res;
