@@ -886,7 +886,16 @@ class PayGuideView(View):
 
 class TestView(View):
     def get(self, request, *args, **kwargs):
-        response = render_to_response('weixin/test.html',         
-                                      context_instance=RequestContext(request))
-        return response
+        #response = render_to_response('weixin/test.html',         
+        #context_instance=RequestContext(request))
+        #return response
+        content = request.REQUEST
+        value = content.get("value")
+        value = int(value)
+        if value == 50:
+            return redirect("http://shop.m.taobao.com/shop/coupon.htm?sellerId=174265168&activityId=139012922")
+        if value == 30:
+            return redirect("http://shop.m.taobao.com/shop/coupon.htm?sellerId=174265168&activityId=138988945")
+        return redirect("http://shop.m.taobao.com/shop/coupon.htm?sellerId=174265168&activityId=139096871")
+
         
