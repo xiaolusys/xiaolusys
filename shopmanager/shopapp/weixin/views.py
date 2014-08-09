@@ -802,8 +802,9 @@ class ResultView(View):
         second_batch = SampleOrder.objects.filter(status=2).count()
         third_batch = SampleOrder.objects.filter(status=3).count()
         fourth_batch = SampleOrder.objects.filter(status=4).count()
+        fifth_batch  = SampleOrder.objects.filter(status=5).count()
 
-        slots_left = 1000 - (first_batch + second_batch + third_batch + fourth_batch)
+        slots_left = 1000 - (first_batch + second_batch + third_batch + fourth_batch + fifth_batch)
         
         usage_count = 0
         users = WeiXinUser.objects.filter(openid=user_openid)
@@ -819,7 +820,7 @@ class ResultView(View):
                                        'passed':passed, 'usage_count':usage_count, 
                                        'first_batch':first_batch, 'second_batch':second_batch,
                                        'third_batch':third_batch, 'fourth_batch':fourth_batch,
-                                       'pk':pk},
+                                       'fifth_batch':fifth_batch,'pk':pk},
                                       context_instance=RequestContext(request))
         response.set_cookie("openid",user_openid)        
         return response

@@ -531,7 +531,7 @@ class Refund(models.Model):
     mobile     = models.CharField(max_length=24,blank=True,verbose_name=u"手机")
 
     ### note: trade_id in mergetrade is biginteger.
-    trade_id = models.IntegerField(default=0, db_index=True,verbose_name=u'订单ID')
+    trade_id = models.IntegerField(default=0, unique=True,verbose_name=u'订单ID')
     
     ### 晒单返现 VIP邀请
     refund_type = models.IntegerField(default=0, choices=REFUND_TYPES, verbose_name=u'返利类型')
