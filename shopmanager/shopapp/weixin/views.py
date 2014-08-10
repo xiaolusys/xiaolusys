@@ -802,13 +802,9 @@ class ResultView(View):
             has_order = True
             order_status = order[0].status
             
-        first_batch = SampleOrder.objects.filter(status=1).count()
-        second_batch = SampleOrder.objects.filter(status=2).count()
-        third_batch = SampleOrder.objects.filter(status=3).count()
-        fourth_batch = SampleOrder.objects.filter(status=4).count()
-        fifth_batch  = SampleOrder.objects.filter(status=5).count()
+        five_batch = SampleOrder.objects.filter(status__gt=0).filter(status__lt=6).count()
 
-        slots_left = 1000 - (first_batch + second_batch + third_batch + fourth_batch + fifth_batch)
+        slots_left = 1000 - five_batch
         
         usage_count = 0
         users = WeiXinUser.objects.filter(openid=user_openid)
@@ -822,9 +818,7 @@ class ResultView(View):
                                       {'days_left':days_left, 'hours_left':hours_left,
                                        'slots_left':slots_left, 'has_order':has_order,
                                        'order_status':order_status, 'usage_count':usage_count, 
-                                       'first_batch':first_batch, 'second_batch':second_batch,
-                                       'third_batch':third_batch, 'fourth_batch':fourth_batch,
-                                       'fifth_batch':fifth_batch,'pk':pk},
+                                       'five_batch':five_batch, 'pk':pk},
                                       context_instance=RequestContext(request))
         response.set_cookie("openid",user_openid)        
         return response
@@ -836,8 +830,11 @@ class FinalListView(View):
 
         page = int(kwargs.get('page',1))
         batch = int(kwargs.get('batch',1))
-
-        order_list = SampleOrder.objects.filter(status=batch)
+        order_list = None
+        if batch == 1:
+            order_list = SampleOrder.objects.filter(status__gt=0).filter(status__lt=6)
+        if batch == 6:
+            order_list = SampleOrder.objects.filter(status=batch)
         num_per_page = 20 # Show 20 contacts per page
         paginator = Paginator(order_list, num_per_page) 
 
