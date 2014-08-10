@@ -601,6 +601,10 @@ class FreeSampleView(View):
         days_left = diff.days
         hours_left = diff.seconds / 3600
 
+        ended = False
+        if now > end:
+            ended = True
+
         consumed = SampleOrder.objects.filter(status__gt=0).filter(status__lt=6).count()
         slots_left = 1000 - consumed
         
@@ -623,6 +627,7 @@ class FreeSampleView(View):
                                        "days_left":days_left,
                                        "hours_left":hours_left,
                                        "slots_left":slots_left,
+                                       "ended":ended,
                                        "pk":wx_user.isNone() or wx_user.pk},
                                       context_instance=RequestContext(request))
         response.set_cookie("openid",user_openid)
