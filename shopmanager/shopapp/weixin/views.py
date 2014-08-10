@@ -901,7 +901,7 @@ class CouponView(View):
         coupon = Coupon.objects.get(pk=coupon_pk)
         wx_user = WeiXinUser.objects.get(pk=wx_user_pk)
 
-        if wx_user.couponclicks.count() < 0:
+        if wx_user.couponclicks.count() < 1:
             CouponClick.objects.create(coupon=coupon,wx_user=wx_user,vipcode=vipcode)
         
         coupon_url = coupon.coupon_url
