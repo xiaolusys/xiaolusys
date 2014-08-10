@@ -38,32 +38,34 @@
       <p style="color:red">注意：群内禁止发广告！否则取消资格并拉黑！</p>
         {% else %}
       <p style="color:orange">亲，“优尼世界8月大礼，睡袋免费送宝宝”活动已经圆满结束！</p>
-      <p>您总共邀请了<font style="color:red;">{{ usage_count }}</font>位好友，优尼世界感谢您的努力！</p>
+      <p>您的VIP邀请码被使用了<font style="color:red;">{{ usage_count }}</font>次，优尼世界感谢您的努力！</p>
+      <p>天气渐凉，宝宝们都需要一款时尚可爱的保暖睡袋。</p>
         {% if order_status == 7 %}
-      <p>您获得了<font style="color:red;">限量</font>50元优惠券。到天猫【优尼世界旗舰店】拍下睡袋，付款<font style="color:red;">立减50元！</font>绝对不可多得哦！</p>
+      <p>邀请超过15位好友的妈妈们，奖励<font style="color:red;">限量50元</font>优惠券。到天猫【优尼世界旗舰店】拍下睡袋，付款<font style="color:red;font-size:20px">立减50元！</font>绝对不可多得哦！</p>
       <p>点击下图领取：</p>
-      <a href="http://shop.m.taobao.com/shop/coupon.htm?sellerId=174265168&activityId=139012922" class="thumbnail">
+      <a href="/weixin/coupon/{{ pk }}/1/" class="thumbnail">
 	<img src="https://mmbiz.qlogo.cn/mmbiz/yMhOQPTKhLtWOB0jWbjY8ib2Q4ZVIhGQTpts0BGaZIDymKW0sKj1bH5g3c7JhL6ZQue7UKRZZ4oayDopcge9ibRA/0" alt="...">
       </a>
         {% endif %}
         {% if order_status == 8 %}
-      <p>我们赠您<font style="color:red;">限量</font>30元优惠券。到天猫【优尼世界旗舰店】拍下睡袋，付款<font style="color:red;">立减30元！</font>绝对不可多得哦！</p>
+      <p>邀请超过12位好友的妈妈们，奖励<font style="color:red;">限量30元</font>优惠券。到天猫【优尼世界旗舰店】拍下睡袋，付款<font style="color:red;font-size:20px">立减30元！</font>绝对不可多得哦！</p>
       <p>点击下图领取：</p>
-      <a href="http://shop.m.taobao.com/shop/coupon.htm?sellerId=174265168&activityId=138988945" class="thumbnail">
+      <a href="/weixin/coupon/{{ pk }}/2/" class="thumbnail">
 	<img src="https://mmbiz.qlogo.cn/mmbiz/yMhOQPTKhLtWOB0jWbjY8ib2Q4ZVIhGQTBzJmiayiatyE7qfQTDOUHHK9ncyYo4OTFNk2c7QiagDqBTnEeTC4IttEA/0" alt="...">
       </a>
         {% endif %}
         {% if order_status == 9 %}
-      <p>我们赠您<font style="color:red;">限量</font>20元优惠券。到天猫【优尼世界旗舰店】购买，满99<font style="color:red;">立减20元！</font>绝对不可多得哦！</p>
+      <p>邀请超过10位好友的妈妈们，奖励<font style="color:red;">限量20元</font>优惠券。到天猫【优尼世界旗舰店】购买任意产品，<font style="color:red;font-size:20px">立减20元！</font>绝对不可多得哦！</p>
       <p>点击下图领取：</p>
-      <a href="http://shop.m.taobao.com/shop/coupon.htm?sellerId=174265168&activityId=139096871" class="thumbnail">
+      <a href="/weixin/coupon/{{ pk }}/3/" class="thumbnail">
 	<img src="https://mmbiz.qlogo.cn/mmbiz/yMhOQPTKhLtWOB0jWbjY8ib2Q4ZVIhGQTh9Zp1rzWo3AV73iaotHUxChVx3SibJ78ZGTRosWKATnMXum7ia3wYdliaA/0" alt="...">
       </a>
         {% endif %}
-      <p style="color:red">二维码直达睡袋购买页面（把二维码图片保存到手机，微信扫一扫，选择右上角“相册”）：</p>
+      <p>二维码<font style="color:red">直达睡袋购买页面</font>（把二维码图片保存到手机，微信扫一扫，选择右上角“相册”）：</p>
       <a href="#" class="thumbnail">
 	<img src="https://mmbiz.qlogo.cn/mmbiz/yMhOQPTKhLuzohN5DJPX5psSXEXWiaZ04bHByUWvExH8kmIyiaQkKic86zBd23bLTTjsPZopSP2ug9Uv60xLtGBpQ/0" alt="...">
       </a>
+      <p></p>
       {% endif %}
       {% else %}
       <p>亲，请耐心等待，您的申请正在审核中。</p>

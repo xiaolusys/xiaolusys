@@ -635,3 +635,28 @@ class VipCode(models.Model):
         db_table = 'shop_weixin_vipcode'
         verbose_name = u'VIP邀请码'
         verbose_name_plural = u'VIP邀请码列表'
+
+
+class Coupon(models.Model):
+    description = models.CharField(max_length=256,null=False,blank=True,verbose_name=u'描述')
+    coupon_url = models.URLField(verify_exists=False,blank=True,verbose_name='领取链接')    
+    face_value = models.IntegerField(default=0,verbose_name=u'面值')
+    expiry = models.DateTimeField(null=False,blank=False,verbose_name=u'过期时间')
+    created = models.DateTimeField(auto_now_add=True,null=True,verbose_name=u'创建时间')
+
+    class Meta:
+        db_table = 'shop_weixin_coupon'
+        verbose_name = u'优惠券'
+        verbose_name_plural = u'优惠券列表'
+
+
+class CouponClick(models.Model):
+    coupon = models.ForeignKey(Coupon, related_name='clicks', verbose_name=u'优惠券')
+    wx_user = models.ForeignKey(WeiXinUser, related_name="couponclicks", verbose_name=u"微信ID")
+    created = models.DateTimeField(auto_now_add=True,null=True,verbose_name=u'创建时间')
+    vipcode = models.CharField(max_length=16,null=False,blank=False,verbose_name=u'VIP邀请码')
+    
+    class Meta:
+        db_table = 'shop_weixin_coupon_click'
+        verbose_name = u'优惠券点击'
+        verbose_name_plural = u'优惠券点击列表'

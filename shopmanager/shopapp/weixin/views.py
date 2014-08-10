@@ -7,7 +7,7 @@ from django.conf import settings
 from django.views.decorators.csrf import csrf_exempt
 from django.views.generic import View
 from shopapp.weixin.service import *
-from models import WeiXinUser,ReferalRelationship,ReferalSummary,WXOrder,Refund,FreeSample, SampleSku, SampleOrder,VipCode
+from models import WeiXinUser,ReferalRelationship,ReferalSummary,WXOrder,Refund,FreeSample, SampleSku, SampleOrder,VipCode,Coupon,CouponClick
 
 from shopback.trades.models import MergeTrade
 from shopback import paramconfig as pcfg
@@ -417,23 +417,26 @@ class ReferalView(View):
         if user_openid == 'None' or user_openid == None:
             user_openid = get_user_openid(code, APPID, SECRET)
             
-        direct_referal_count = 0
-        indirect_referal_count = 0
         referal_bonus = 0.00
+        referal_count = 0
+        vipcode = ""
+        users = WeiXinUser.objects.filter(openid=user_openid)
+        if users.count() > 0:
+            referal_count = users[0].vipcodes.all()[0].usage_count
+            vipcode = users[0].vipcodes.all()[0].code
         
         rs = ReferalSummary.objects.filter(user_openid=user_openid)
 
         if rs.count() > 0:
-            direct_referal_count = rs[0].direct_referal_count
-            indirect_referal_count = rs[0].indirect_referal_count
             referal_bonus = rs[0].total_confirmed_value * 0.01
         
+        coupon = Coupon.objects.get(pk=3)
         
-        response = render_to_response('weixin/referal.html', 
+        response = render_to_response('weixin/ambass.html', 
                                   {'openid':user_openid, 
-                                   'direct_referal_count':direct_referal_count, 
-                                   'indirect_referal_count':indirect_referal_count, 
-                                   'referal_bonus':referal_bonus}, 
+                                   'referal_count':referal_count, 
+                                   'referal_bonus':referal_bonus,
+                                   'vipcode':vipcode, 'coupon':coupon}, 
                                   context_instance=RequestContext(request))
         response.set_cookie("openid",user_openid)
         return response
@@ -865,6 +868,7 @@ class FinalListView(View):
                                       context_instance=RequestContext(request))
         return response
 
+
 class PayGuideView(View):
     def get(self, request):
         user_openid = request.COOKIES.get('openid')
@@ -884,18 +888,31 @@ class PayGuideView(View):
         return response
 
 
+class CouponView(View):
+    def get(self, request, *args, **kwargs):
+        wx_user_pk = int(kwargs.get("user_pk"))
+        coupon_pk = int(kwargs.get("coupon_pk"))
+
+        content = request.REQUEST
+        vipcode = content.get("vipcode","0")
+        
+        coupon = Coupon.objects.get(pk=coupon_pk)
+        wx_user = WeiXinUser.objects.get(pk=wx_user_pk)
+
+        if wx_user.couponclicks.count() < 0:
+            CouponClick.objects.create(coupon=coupon,wx_user=wx_user,vipcode=vipcode)
+        
+        coupon_url = coupon.coupon_url
+        
+        return redirect(coupon_url)
+
+        
+
 class TestView(View):
     def get(self, request, *args, **kwargs):
-        #response = render_to_response('weixin/test.html',         
-        #context_instance=RequestContext(request))
-        #return response
-        content = request.REQUEST
-        value = content.get("value")
-        value = int(value)
-        if value == 50:
-            return redirect("http://shop.m.taobao.com/shop/coupon.htm?sellerId=174265168&activityId=139012922")
-        if value == 30:
-            return redirect("http://shop.m.taobao.com/shop/coupon.htm?sellerId=174265168&activityId=138988945")
-        return redirect("http://shop.m.taobao.com/shop/coupon.htm?sellerId=174265168&activityId=139096871")
+
+        response = render_to_response('weixin/ambass-intention.html', 
+                                      context_instance=RequestContext(request))
+        return response
 
         

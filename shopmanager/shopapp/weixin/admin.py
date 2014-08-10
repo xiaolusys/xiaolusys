@@ -14,7 +14,9 @@ from shopapp.weixin.models import (WeiXinAccount,
                                    FreeSample,
                                    SampleOrder,
                                    VipCode,
-                                   SampleSku
+                                   SampleSku,
+                                   Coupon,
+                                   CouponClick
                                    )
 
 class WeiXinAccountAdmin(admin.ModelAdmin):
@@ -235,3 +237,15 @@ class SampleSkuAdmin(admin.ModelAdmin):
     search_fields = ['sku_code','sku_name']
 
 admin.site.register(SampleSku, SampleSkuAdmin) 
+
+
+class CouponAdmin(admin.ModelAdmin):
+    list_display = ('description','coupon_url','face_value','expiry','created')
+
+admin.site.register(Coupon, CouponAdmin) 
+
+
+class CouponClickAdmin(admin.ModelAdmin):
+    list_display = ('coupon','wx_user','vipcode','created')
+
+admin.site.register(CouponClick, CouponClickAdmin) 
