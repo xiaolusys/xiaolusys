@@ -601,7 +601,7 @@ class FreeSampleView(View):
         days_left = diff.days
         hours_left = diff.seconds / 3600
 
-        consumed = SampleOrder.objects.filter(status__gt=0).count()
+        consumed = SampleOrder.objects.filter(status__gt=0).filter(status__lt=6).count()
         slots_left = 1000 - consumed
         
         samples = FreeSample.objects.filter(expiry__gt=datetime.datetime.now())
