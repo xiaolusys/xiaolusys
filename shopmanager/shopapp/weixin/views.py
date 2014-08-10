@@ -577,6 +577,7 @@ class RefundRecordView(View):
 class FreeSampleView(View):
     def get(self, request):
 
+        
         content = request.REQUEST
 
         code = content.get('code')
@@ -808,7 +809,7 @@ class ResultView(View):
             order_status = order[0].status
             
         five_batch = SampleOrder.objects.filter(status__gt=0).filter(status__lt=6).count()
-
+        six_batch = SampleOrder.objects.filter(status=6).count()
         slots_left = 1000 - five_batch
         
         usage_count = 0
@@ -823,7 +824,7 @@ class ResultView(View):
                                       {'days_left':days_left, 'hours_left':hours_left,
                                        'slots_left':slots_left, 'has_order':has_order,
                                        'order_status':order_status, 'usage_count':usage_count, 
-                                       'five_batch':five_batch, 'pk':pk},
+                                       'five_batch':five_batch, 'six_batch':six_batch, 'pk':pk},
                                       context_instance=RequestContext(request))
         response.set_cookie("openid",user_openid)        
         return response
