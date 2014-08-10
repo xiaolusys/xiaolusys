@@ -4,6 +4,7 @@
 
 {% block container %}
 
+{% if referal_count > 9 %}
 <div class="container-fluid">
   <ul class="list-group">
     <li class="list-group-item list-group-item-success">我的返利</li>
@@ -38,7 +39,11 @@
     <li class="list-group-item list-group-item-success">什么是优尼大使项目？</li>
     <li class="list-group-item"><a href="/weixin/ambassintention/">查看详情 >></a></li>
   </ul>
-
+{% else %}
+  <ul class="list-group">
+    <li class="list-group-item">亲，要加入优尼大使计划，请咨询微信客服哦！</li>
+  </ul>  
+{% endif %}
 
   <div class="footer">
     <p>© Uni Littles 2014</p>
