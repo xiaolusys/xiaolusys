@@ -12,8 +12,8 @@
       <p>请输入您好友的VIP邀请码，点击查看并领取VIP优惠券！</p>
       <div class="row">
 	<div class="col-xs-12">
+	  <p style="color:red" id="id_msg"></p>
 	  <div class="input-group">
-	    <p style="color:red" id="id_msg"></p>
 	    <input id="id_vipcode" type="text" class="form-control" placeholder="VIP邀请码">
 	    <input id="id_openid" type="hidden" value="{{ openid }}"/>
 	    <input id="id_coupon_pk" type="hidden" value="{{ coupon_pk }}"/>
@@ -63,6 +63,7 @@
   
     if (validateVipCode(vipcode) == false) {
       $("#id_msg")[0].innerHTML="VIP邀请码错误！请重新输入6-7位数字，前后没有空格哦！";
+      return;
     }
   
     var url = "/weixin/requestcoupon/";
@@ -72,7 +73,7 @@
       if (res["code"] == "ok") {
         $("#id_coupon").css("display","block");
       } else {
-        $("#id_msg")[0].innerHTML="系统错误，请保证您是在手机微信上操作！";
+        $("#id_msg")[0].innerHTML="系统错误，请保证VIP码正确并且您是在手机微信上操作！";
       }
     };
     

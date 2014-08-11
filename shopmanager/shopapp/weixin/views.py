@@ -937,8 +937,8 @@ class VipCouponView(View):
             response = render_to_response('weixin/remind.html', {"title":title},context_instance=RequestContext(request))
             response.set_cookie("openid",user_openid)
             return response
-
-        response = render_to_response('weixin/vipcoupon.html', {"openid":user_openid},
+        
+        response = render_to_response('weixin/vipcoupon.html', {"openid":user_openid, "coupon_pk":"1"},
                                       context_instance=RequestContext(request))
         response.set_cookie("openid",user_openid)        
         return response
