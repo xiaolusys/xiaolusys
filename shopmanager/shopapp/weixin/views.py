@@ -229,8 +229,9 @@ class OrderInfoView(View):
         weixin_user_service = WeixinUserService(user_openid)
         wx_user = weixin_user_service._wx_user
         
+        title = u'订单查询'
         if wx_user.isValid() == False:
-            response = render_to_response('weixin/remind.html', context_instance=RequestContext(request))
+            response = render_to_response('weixin/remind.html', {"title":title}, context_instance=RequestContext(request))
             response.set_cookie("openid",user_openid)
             return response
             
@@ -911,8 +912,61 @@ class CouponView(View):
         
         return redirect(coupon_url)
 
-        
 
+class VipCouponView(View):
+    def get(self, request):
+        content = request.REQUEST
+
+        code = content.get('code')
+
+        APPID = 'wxc2848fa1e1aa94b5'
+        SECRET = 'eb3bfe8e9a36a61176fa5cafe341c81f'
+
+        ## if user refresh page, we can get user_openid from cookie
+        user_openid = request.COOKIES.get('openid')
+
+        if user_openid == 'None' or user_openid == None:
+            user_openid = get_user_openid(code, APPID, SECRET)
+
+        
+        weixin_user_service = WeixinUserService(user_openid)
+        wx_user = weixin_user_service._wx_user
+        
+        title = u'VIP优惠券'
+        if wx_user.isValid() == False:
+            response = render_to_response('weixin/remind.html', {"title":title},context_instance=RequestContext(request))
+            response.set_cookie("openid",user_openid)
+            return response
+
+        response = render_to_response('weixin/vipcoupon.html', {"openid":user_openid},
+                                      context_instance=RequestContext(request))
+        response.set_cookie("openid",user_openid)        
+        return response
+
+
+class RequestCouponView(View):
+    def get(self, request):
+        content = request.REQUEST
+        vipcode = content.get("vipcode")
+        openid = content.get("openid")
+        coupon_pk = int(content.get("coupon_pk","0"))
+        
+        coupon = Coupon.objects.get(pk=coupon_pk)
+        
+        users = WeiXinUser.objects.filter(openid=openid)
+        wx_user = users[0]
+
+        vipcodes = VipCode.objects.filter(code=vipcode)
+        if vipcodes.count() > 0:
+            vipcode_obj = vipcodes[0]
+            if vipcode_obj.usage_count > 9:
+                CouponClick.objects.create(coupon=coupon,wx_user=wx_user,vipcode=vipcode_obj.code)
+                response = {"code":"ok"}
+                return HttpResponse(json.dumps(response),mimetype='application/json')
+
+        response = {"code":"bad"}
+        return HttpResponse(json.dumps(response),mimetype='application/json')
+    
 class TestView(View):
     def get(self, request, *args, **kwargs):
 
