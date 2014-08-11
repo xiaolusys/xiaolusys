@@ -1,0 +1,93 @@
+{% extends "weixin/weixin_base.html" %}
+
+{% block title %} 优尼大使 {% endblock %}
+
+{% block container %}
+
+{% if referal_count > 9 %}
+<div class="container-fluid">
+  <ul class="list-group">
+    <li class="list-group-item list-group-item-success">我的返利</li>
+    <li class="list-group-item"><p style="color:orange">账户余额: ￥<span style="font-size:26px">{{ referal_bonus }}</span> <button class="btn btn-warning" style="float:right;">提现</button></p></li>
+    <li class="list-group-item"><font style="color:orange">推荐好友: {{ referal_count }}人</font></li>
+    <li class="list-group-item"><font style="color:orange">VIP优惠券(发给朋友): {{ coupon.description }}</font></li>
+    <li class="list-group-item"><font style="color:orange">VIP邀请码: {{ vipcode }}</font></li>
+  </ul>
+
+  <ul class="list-group">
+    <li class="list-group-item list-group-item-success">我的权利</li>
+    <li class="list-group-item">优尼大使有权向其好友或其他客户派发优尼世界<font style="color:orange">VIP优惠券</font>。</li>
+    <li class="list-group-item">VIP优惠券凭大使的专属<font style="color:orange">VIP邀请码</font>领取（【活动中心】->【VIP优惠券】）。</li>
+    <li class="list-group-item">VIP优惠券的优惠力度<font style="color:red">全网最高</font>，大大高于天猫店铺优惠券。</li>
+  </ul>
+
+  <ul class="list-group">
+    <li class="list-group-item list-group-item-success">返利规则</li>	
+    <li class="list-group-item">微信系统自动<font style="color:orange">记录并累加</font>优尼大使在每次活动中推荐的好友及数量。</li>
+    <li class="list-group-item">优尼大使的推荐好友在优尼世界的天猫、京东、一号店等平台达成交易，系统<font style="color:red">返利5%</font>给优尼大使。</li>
+    <li class="list-group-item">使用VIP优惠券的客人，自动成为其对应优尼大使的推荐好友，其交易按<font style="color:red">5%返利</font>给优尼大使。</li>
+  </ul>
+
+  <ul class="list-group">
+    <li class="list-group-item list-group-item-success">我的义务</li>
+    <li class="list-group-item">积极分享和传播优尼世界的微信文章及活动公告。</li>
+    <li class="list-group-item">积极响应优尼世界活动号召，第一时间邀请、推荐、分享。</li>
+    <li class="list-group-item">高度认同优尼世界的<font style="color:orange">设计及养育理念</font>，正面宣传优尼世界品牌，让优尼世界服务更多的宝宝及妈妈！</li>
+  </ul>
+
+  <ul class="list-group">
+    <li class="list-group-item list-group-item-success">什么是优尼大使项目？</li>
+    <li class="list-group-item"><a href="/weixin/ambassintention/">查看详情 >></a></li>
+  </ul>
+{% else %}
+  <ul class="list-group">
+    <li class="list-group-item">亲，要加入优尼大使计划，请咨询微信客服哦！</li>
+  </ul>  
+{% endif %}
+
+  <div class="footer">
+    <p>© Uni Littles 2014</p>
+  </div>
+  
+</div>
+{% endblock %}
+
+{% block tail_script %}
+
+    <script type="text/javascript">
+      function validateMobile(s) {
+        var validateReg = /^((\+?86)|(\(\+86\)))?1\d{10}$/;
+        return validateReg.test(s);
+      };
+
+      function referalSubmit() {
+        var mobile_input = document.getElementById("mobile_input");
+        var mobile = mobile_input.value;
+        mobile_input.placeholder = "好友手机号";
+      
+        if (mobile == "") return false;
+
+        var feedback = document.getElementById("feedback");
+        feedback.innerHTML = "";
+        if (validateMobile(mobile) == false) {
+          feedback.innerHTML = "号码有误，请重新输入";
+          return false;
+        }
+
+        var openid = document.getElementById("openid").value;
+        var url = "/weixin/addreferal/";
+        var data = {"mobile":mobile, "openid":openid};
+        
+        var callback = function (res) {
+          console.log(res);
+          if (res["code"] == "ok") {
+            mobile_input.value = "";
+            mobile_input.placeholder = "推荐成功，请继续推荐";
+          } else if (res["code"] == "dup") {
+            feedback.innerHTML = "号码已存在，请重新推荐";
+          }
+        };
+        $.ajax({url:url, data:data, success: callback});
+      };
+    </script>
+{% endblock %}

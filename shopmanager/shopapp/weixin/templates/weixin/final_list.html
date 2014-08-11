@@ -6,7 +6,12 @@
 
 <div class="container-fluid">
   <div class="panel panel-default" style="margin-top:5px">
+    {% if batch == 1 %}
+    <div class="panel-heading">详细名单 (前五批)</div>
+    {% endif %}
+    {% if batch == 6 %}
     <div class="panel-heading">详细名单 (第{{ batch }}批)</div>
+    {% endif %}
     <div class="panel-body">
 
       <div class="row">

@@ -6,83 +6,66 @@
 
 <div class="container-fluid">
 
-  <div class="panel panel-default" style="margin-top:5px">
-    <div class="panel-heading" style="color:orange">公告</div>
-    <div class="panel-body">
-      <p>距离试用申请结束还有 <font style="color:red;font-size:20px">{{ days_left }}天{{ hours_left }}小时</font>，还有 <font style="color:red;font-size:20px">{{ slots_left }}份</font>名额哦！</p>
-      {% if has_order %}
-      <p style="color:red;">分享<a href="/weixin/sampleads/{{ pk }}/">您的专属VIP邀请码</a>，越多人使用，您中奖的几率就越大！</p>
-      {% endif %}
-      
-      <p style="color:#3071a9">第一批中奖{{ first_batch }}名（VIP专属码使用<font style="color:red;">超过10次</font>），祝贺她们！ <a href="/weixin/finallist/1/1/">详细名单 >></a></p>
-      <p style="color:#3071a9">第二批中奖{{ second_batch }}名（VIP专属码使用<font style="color:red;">超过12次</font>），祝贺她们！ <a href="/weixin/finallist/2/1/">详细名单 >></a></p>
-      <p style="color:#3071a9">第三批中奖{{ third_batch }}名（VIP专属码使用<font style="color:red;">超过15次</font>），祝贺她们！ <a href="/weixin/finallist/3/1/">详细名单 >></a></p>
-      <p style="color:#3071a9">第四批中奖{{ fourth_batch }}名（VIP专属码使用<font style="color:red;">超过19次</font>），祝贺她们！ <a href="/weixin/finallist/4/1/">详细名单 >></a></p>
-      <p style="color:#3071a9">第五批中奖{{ fifth_batch }}名（VIP专属码使用<font style="color:red;">超过23次</font>），祝贺她们！ <a href="/weixin/finallist/5/1/">详细名单 >></a></p>
-    </div>
-  </div>
 
   <div class="panel panel-default" style="margin-top:5px">
     <div class="panel-heading" style="color:orange">审核状态</div>
     <div class="panel-body">
-      {% if has_order %}
       {% if order_status > 0  %}
         {% if order_status < 7 %}
-      <p>亲，恭喜您，你的试用申请已<font style="color:red">审核通过</font>啦！</p>
+      <p>亲，恭喜您，你的试用申请已<font style="color:red">审核通过</font>啦，您有资格免费领取睡袋！所有中奖的妈妈，都请加入<a href="/weixin/referal/">优尼大使计划>></a></p>
       <p>您邀请了<font style="color:red;">{{ usage_count }}位</font>好友，优尼世界感谢您的努力！</p>
       <p>请用下面二维码加入微信群“优尼世界服务群”，有专门的客服为您服务，指导您接下来的操作流程。</p>
       <a href="#" class="thumbnail">
-	<img src="https://mmbiz.qlogo.cn/mmbiz/yMhOQPTKhLtmWPcf8VyuRgL4tYeyjkHHYFJv2PNBnCUCf5dCj7ygTOobt4LliaX5EFOn7qdLcicicg88RiaDftbDQA/0" alt="...">
+	<img src="https://mmbiz.qlogo.cn/mmbiz/yMhOQPTKhLukPK89qsiaksXpl6OPTeFn5Z0U50R5lLUITdia3OqdX6WEwXawGnslxWsUcjTgagJfzWjzeUn8VSEQ/0" alt="...">
       </a>
       <p style="color:red">把上面二维码图片保存到手机，微信扫一扫，选择右上角“相册”。</p>
       <p style="color:red">注意：群内禁止发广告！否则取消资格并拉黑！</p>
         {% else %}
       <p style="color:orange">亲，“优尼世界8月大礼，睡袋免费送宝宝”活动已经圆满结束！</p>
-      <p>您总共邀请了<font style="color:red;">{{ usage_count }}</font>位好友，优尼世界感谢您的努力！</p>
         {% if order_status == 7 %}
-      <p>您获得了<font style="color:red;">限量</font>50元优惠券。到天猫【优尼世界旗舰店】拍下睡袋，付款<font style="color:red;">立减50元！</font>绝对不可多得哦！</p>
-      <p>点击下图领取：</p>
-      <a href="http://shop.m.taobao.com/shop/coupon.htm?sellerId=174265168&activityId=139012922" class="thumbnail">
-	<img src="https://mmbiz.qlogo.cn/mmbiz/yMhOQPTKhLtWOB0jWbjY8ib2Q4ZVIhGQTpts0BGaZIDymKW0sKj1bH5g3c7JhL6ZQue7UKRZZ4oayDopcge9ibRA/0" alt="...">
+      <p>您的VIP邀请码被使用了<font style="color:red;">{{ usage_count }}</font>次，奖励<font style="color:red;">限量50元</font>优惠券。到天猫【优尼世界旗舰店】拍下小小派睡袋，付款<font style="color:red;font-size:20px">立减50元！</font></p>
+      <p>微信扫一扫下面二维码领取（把二维码图片保存到手机，微信扫一扫，选择右上角“相册”）：</p>
+      <a href="#" class="thumbnail">
+	<img src="https://mmbiz.qlogo.cn/mmbiz/yMhOQPTKhLukPK89qsiaksXpl6OPTeFn5pK2nCYvuNaqgg2EXKMdAhwrUvMe1sE6RicUDWHqYicpdBturVBJXyN6A/0" alt="...">
       </a>
         {% endif %}
         {% if order_status == 8 %}
-      <p>我们赠您<font style="color:red;">限量</font>30元优惠券。到天猫【优尼世界旗舰店】拍下睡袋，付款<font style="color:red;">立减30元！</font>绝对不可多得哦！</p>
-      <p>点击下图领取：</p>
-      <a href="http://shop.m.taobao.com/shop/coupon.htm?sellerId=174265168&activityId=138988945" class="thumbnail">
-	<img src="https://mmbiz.qlogo.cn/mmbiz/yMhOQPTKhLtWOB0jWbjY8ib2Q4ZVIhGQTBzJmiayiatyE7qfQTDOUHHK9ncyYo4OTFNk2c7QiagDqBTnEeTC4IttEA/0" alt="...">
+      <p>您的VIP邀请码被使用了<font style="color:red;">{{ usage_count }}</font>次，奖励<font style="color:red;">限量30元</font>优惠券。到天猫【优尼世界旗舰店】拍下小小派睡袋，付款<font style="color:red;font-size:20px">立减30元！</font></p>
+      <p>微信扫一扫下面二维码领取（把二维码图片保存到手机，微信扫一扫，选择右上角“相册”）：</p>
+      <a href="#" class="thumbnail">
+	<img src="https://mmbiz.qlogo.cn/mmbiz/yMhOQPTKhLukPK89qsiaksXpl6OPTeFn5wZdhkicnQ6JSgezfcTibBdgfAmhewn5aSL9zyRVgjGosibu9gTv8Zgu6Q/0" alt="...">
       </a>
         {% endif %}
         {% if order_status == 9 %}
-      <p>我们赠您<font style="color:red;">限量</font>20元优惠券。到天猫【优尼世界旗舰店】购买，满99<font style="color:red;">立减20元！</font>绝对不可多得哦！</p>
-      <p>点击下图领取：</p>
-      <a href="http://shop.m.taobao.com/shop/coupon.htm?sellerId=174265168&activityId=139096871" class="thumbnail">
-	<img src="https://mmbiz.qlogo.cn/mmbiz/yMhOQPTKhLtWOB0jWbjY8ib2Q4ZVIhGQTh9Zp1rzWo3AV73iaotHUxChVx3SibJ78ZGTRosWKATnMXum7ia3wYdliaA/0" alt="...">
+      <p>您的VIP邀请码被使用了<font style="color:red;">{{ usage_count }}</font>次，奖励<font style="color:red;">限量20元</font>优惠券。到天猫【优尼世界旗舰店】购买任意产品，<font style="color:red;font-size:20px">立减20元！</font></p>
+      <p>微信扫一扫下面二维码领取（把二维码图片保存到手机，微信扫一扫，选择右上角“相册”）：</p>
+      <a href="#" class="thumbnail">
+	<img src="https://mmbiz.qlogo.cn/mmbiz/yMhOQPTKhLukPK89qsiaksXpl6OPTeFn5k3Uwf6cCMqLiaMvJHYZlvNzyGbI9XfRqY2vdFayDiciax5YTL2tqakCGA/0" alt="...">
       </a>
         {% endif %}
-      <p style="color:red">二维码直达睡袋购买页面（把二维码图片保存到手机，微信扫一扫，选择右上角“相册”）：</p>
+      <p style="color:red">关于优惠券使用事宜，您也可以咨询我们的天猫客服、微信客服。</p>
+      <p>二维码<font style="color:red">直达睡袋购买页面</font>（把二维码图片保存到手机，微信扫一扫，选择右上角“相册”）：</p>
       <a href="#" class="thumbnail">
 	<img src="https://mmbiz.qlogo.cn/mmbiz/yMhOQPTKhLuzohN5DJPX5psSXEXWiaZ04bHByUWvExH8kmIyiaQkKic86zBd23bLTTjsPZopSP2ug9Uv60xLtGBpQ/0" alt="...">
       </a>
+      <p></p>
       {% endif %}
       {% else %}
-      <p>亲，请耐心等待，您的申请正在审核中。</p>
-      <p>您的专属VIP邀请码<font style="color:red">已被使用{{ usage_count }}次</font>，请继续加油!</p>
-      <p>还有<font style="color:red;font-size:20px">{{ slots_left }}</font>份名额可以领取，机会多多。邀请朋友使用您的专属VIP邀请码，越多人使用，您中奖的几率就越大哦！</p>
-      <a href="/weixin/sampleads/{{ pk }}/">您的专属邀请码页面 >></a>
-      {% endif %}
-      {% else %}
-      <p>亲，您还没有提交申请呢！</p>
+      <p style="color:orange">亲，“优尼世界8月大礼，睡袋免费送宝宝”活动已经圆满结束！</p>
+      <p>您的VIP邀请码被使用了<font style="color:red;">{{ usage_count }}</font>次！<font style="color:red;">下次一定要让朋友多使用您的VIP邀请吗哦！</font></p>
+      <p style="color:orange">我们尽最大的努力，让更多的妈妈可以领到睡袋：原本计划的200个睡袋名额，增加到了850个，最后增加到了1004个。</p>
+      <p>感谢您的参与，请继续关注优尼世界，传播从<font style="color:red">宝宝角度出发的设计和养育理念！</font></p>
+      <p>只要您持续关注我们，后续第一时间参加活动，下次中奖的就一定是您！优尼世界风暴会很快回来滴～～</p>
       {% endif %}
     </div>
   </div>
 
   <div class="panel panel-default" style="margin-top:5px">
-    <div class="panel-heading" style="color:orange">申请攻略</div>
+    <div class="panel-heading" style="color:orange">公告</div>
     <div class="panel-body">
-      <p>1) 首要任务是让专属VIP邀请码被使用20次以上。</p>
-      <p style="color:red">2) 如果被使用30次以上，您将具有决定性的竞争力！</p>
-      <p>3) 作弊者取消资格。我们技术很强大的哦！</p>
+      <p style="color:orange">亲，“优尼世界8月大礼，睡袋免费送宝宝”活动已经圆满结束！</p>
+      <p style="color:#3071a9">前五批中奖{{ five_batch }}名，祝贺她们！ <a href="/weixin/finallist/1/1/">详细名单 >></a></p>
+      <p style="color:#3071a9">第六批中奖{{ six_batch }}名，邀请码使用超过<font style="color:red">22次</font>，祝贺她们！ <a href="/weixin/finallist/6/1/">详细名单 >></a></p>
     </div>
   </div>
 

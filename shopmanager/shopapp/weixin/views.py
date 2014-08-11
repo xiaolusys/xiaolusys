@@ -7,7 +7,7 @@ from django.conf import settings
 from django.views.decorators.csrf import csrf_exempt
 from django.views.generic import View
 from shopapp.weixin.service import *
-from models import WeiXinUser,ReferalRelationship,ReferalSummary,WXOrder,Refund,FreeSample, SampleSku, SampleOrder,VipCode
+from models import WeiXinUser,ReferalRelationship,ReferalSummary,WXOrder,Refund,FreeSample, SampleSku, SampleOrder,VipCode,Coupon,CouponClick
 
 from shopback.trades.models import MergeTrade
 from shopback import paramconfig as pcfg
@@ -417,23 +417,28 @@ class ReferalView(View):
         if user_openid == 'None' or user_openid == None:
             user_openid = get_user_openid(code, APPID, SECRET)
             
-        direct_referal_count = 0
-        indirect_referal_count = 0
         referal_bonus = 0.00
+        referal_count = 0
+        vipcode = ""
+        users = WeiXinUser.objects.filter(openid=user_openid)
+        if users.count() > 0:
+            vipcodes = users[0].vipcodes.all()
+            if vipcodes.count() > 0:
+                referal_count = vipcodes[0].usage_count
+                vipcode = vipcodes[0].code
         
         rs = ReferalSummary.objects.filter(user_openid=user_openid)
 
         if rs.count() > 0:
-            direct_referal_count = rs[0].direct_referal_count
-            indirect_referal_count = rs[0].indirect_referal_count
             referal_bonus = rs[0].total_confirmed_value * 0.01
         
+        coupon = Coupon.objects.get(pk=1)
         
-        response = render_to_response('weixin/referal.html', 
+        response = render_to_response('weixin/ambass.html', 
                                   {'openid':user_openid, 
-                                   'direct_referal_count':direct_referal_count, 
-                                   'indirect_referal_count':indirect_referal_count, 
-                                   'referal_bonus':referal_bonus}, 
+                                   'referal_count':referal_count, 
+                                   'referal_bonus':referal_bonus,
+                                   'vipcode':vipcode, 'coupon':coupon}, 
                                   context_instance=RequestContext(request))
         response.set_cookie("openid",user_openid)
         return response
@@ -572,6 +577,7 @@ class RefundRecordView(View):
 class FreeSampleView(View):
     def get(self, request):
 
+        
         content = request.REQUEST
 
         code = content.get('code')
@@ -596,7 +602,11 @@ class FreeSampleView(View):
         days_left = diff.days
         hours_left = diff.seconds / 3600
 
-        consumed = SampleOrder.objects.filter(status__gt=0).count()
+        ended = False
+        if now > end:
+            ended = True
+
+        consumed = SampleOrder.objects.filter(status__gt=0).filter(status__lt=6).count()
         slots_left = 1000 - consumed
         
         samples = FreeSample.objects.filter(expiry__gt=datetime.datetime.now())
@@ -618,6 +628,7 @@ class FreeSampleView(View):
                                        "days_left":days_left,
                                        "hours_left":hours_left,
                                        "slots_left":slots_left,
+                                       "ended":ended,
                                        "pk":wx_user.isNone() or wx_user.pk},
                                       context_instance=RequestContext(request))
         response.set_cookie("openid",user_openid)
@@ -797,13 +808,9 @@ class ResultView(View):
             has_order = True
             order_status = order[0].status
             
-        first_batch = SampleOrder.objects.filter(status=1).count()
-        second_batch = SampleOrder.objects.filter(status=2).count()
-        third_batch = SampleOrder.objects.filter(status=3).count()
-        fourth_batch = SampleOrder.objects.filter(status=4).count()
-        fifth_batch  = SampleOrder.objects.filter(status=5).count()
-
-        slots_left = 1000 - (first_batch + second_batch + third_batch + fourth_batch + fifth_batch)
+        five_batch = SampleOrder.objects.filter(status__gt=0).filter(status__lt=6).count()
+        six_batch = SampleOrder.objects.filter(status=6).count()
+        slots_left = 1000 - five_batch
         
         usage_count = 0
         users = WeiXinUser.objects.filter(openid=user_openid)
@@ -817,9 +824,7 @@ class ResultView(View):
                                       {'days_left':days_left, 'hours_left':hours_left,
                                        'slots_left':slots_left, 'has_order':has_order,
                                        'order_status':order_status, 'usage_count':usage_count, 
-                                       'first_batch':first_batch, 'second_batch':second_batch,
-                                       'third_batch':third_batch, 'fourth_batch':fourth_batch,
-                                       'fifth_batch':fifth_batch,'pk':pk},
+                                       'five_batch':five_batch, 'six_batch':six_batch, 'pk':pk},
                                       context_instance=RequestContext(request))
         response.set_cookie("openid",user_openid)        
         return response
@@ -831,8 +836,11 @@ class FinalListView(View):
 
         page = int(kwargs.get('page',1))
         batch = int(kwargs.get('batch',1))
-
-        order_list = SampleOrder.objects.filter(status=batch)
+        order_list = None
+        if batch == 1:
+            order_list = SampleOrder.objects.filter(status__gt=0).filter(status__lt=6)
+        if batch == 6:
+            order_list = SampleOrder.objects.filter(status=batch)
         num_per_page = 20 # Show 20 contacts per page
         paginator = Paginator(order_list, num_per_page) 
 
@@ -865,6 +873,7 @@ class FinalListView(View):
                                       context_instance=RequestContext(request))
         return response
 
+
 class PayGuideView(View):
     def get(self, request):
         user_openid = request.COOKIES.get('openid')
@@ -884,18 +893,31 @@ class PayGuideView(View):
         return response
 
 
+class CouponView(View):
+    def get(self, request, *args, **kwargs):
+        wx_user_pk = int(kwargs.get("user_pk"))
+        coupon_pk = int(kwargs.get("coupon_pk"))
+
+        content = request.REQUEST
+        vipcode = content.get("vipcode","0")
+        
+        coupon = Coupon.objects.get(pk=coupon_pk)
+        wx_user = WeiXinUser.objects.get(pk=wx_user_pk)
+
+        if wx_user.couponclicks.count() < 1:
+            CouponClick.objects.create(coupon=coupon,wx_user=wx_user,vipcode=vipcode)
+        
+        coupon_url = coupon.coupon_url
+        
+        return redirect(coupon_url)
+
+        
+
 class TestView(View):
     def get(self, request, *args, **kwargs):
-        #response = render_to_response('weixin/test.html',         
-        #context_instance=RequestContext(request))
-        #return response
-        content = request.REQUEST
-        value = content.get("value")
-        value = int(value)
-        if value == 50:
-            return redirect("http://shop.m.taobao.com/shop/coupon.htm?sellerId=174265168&activityId=139012922")
-        if value == 30:
-            return redirect("http://shop.m.taobao.com/shop/coupon.htm?sellerId=174265168&activityId=138988945")
-        return redirect("http://shop.m.taobao.com/shop/coupon.htm?sellerId=174265168&activityId=139096871")
+
+        response = render_to_response('weixin/ambass-intention.html', 
+                                      context_instance=RequestContext(request))
+        return response
 
         
