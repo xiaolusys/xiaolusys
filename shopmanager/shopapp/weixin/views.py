@@ -422,9 +422,9 @@ class ReferalView(View):
         vipcode = ""
         users = WeiXinUser.objects.filter(openid=user_openid)
         if users.count() > 0:
-            referal_count = users[0].vipcodes.all()[0].usage_count
             vipcodes = users[0].vipcodes.all()
             if vipcodes.count() > 0:
+                referal_count = vipcodes[0].usage_count
                 vipcode = vipcodes[0].code
         
         rs = ReferalSummary.objects.filter(user_openid=user_openid)
