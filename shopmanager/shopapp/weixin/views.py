@@ -436,7 +436,7 @@ class ReferalView(View):
         coupon = Coupon.objects.get(pk=1)
         
         couponclicks = CouponClick.objects.filter(vipcode=vipcode)
-        coupon_click = couponclicks.count()
+        coupon_click_count = couponclicks.count()
         
         referal_mobiles = set()
         sampleorders = SampleOrder.objects.filter(vipcode=vipcode)
@@ -463,7 +463,7 @@ class ReferalView(View):
                                    'referal_bonus':referal_bonus,
                                    'vipcode':vipcode, 'coupon':coupon,
                                    'payment':payment, 'num_orders':num_orders,
-                                   'coupon_click':coupon_click}, 
+                                   'coupon_click_count':coupon_click_count}, 
                                   context_instance=RequestContext(request))
         response.set_cookie("openid",user_openid)
         return response
