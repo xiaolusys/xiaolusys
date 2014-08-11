@@ -435,11 +435,15 @@ class ReferalView(View):
         
         coupon = Coupon.objects.get(pk=1)
         
+        couponclicks = CouponClick.objects.filter(vipcode=vipcode)
+        coupon_click = couponclicks.count()
+        
         response = render_to_response('weixin/ambass.html', 
                                   {'openid':user_openid, 
                                    'referal_count':referal_count, 
                                    'referal_bonus':referal_bonus,
-                                   'vipcode':vipcode, 'coupon':coupon}, 
+                                   'vipcode':vipcode, 'coupon':coupon,
+                                   'coupon_click':coupon_click}, 
                                   context_instance=RequestContext(request))
         response.set_cookie("openid",user_openid)
         return response
