@@ -432,7 +432,7 @@ class ReferalView(View):
         if rs.count() > 0:
             referal_bonus = rs[0].total_confirmed_value * 0.01
         
-        coupon = Coupon.objects.get(pk=3)
+        coupon = Coupon.objects.get(pk=1)
         
         response = render_to_response('weixin/ambass.html', 
                                   {'openid':user_openid, 
