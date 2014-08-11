@@ -439,7 +439,7 @@ class ReferalView(View):
         coupon_click = couponclicks.count()
         
         referal_mobiles = set()
-        sampleoders = SampleOrder.objects.filter(vipcode=vipcode)
+        sampleorders = SampleOrder.objects.filter(vipcode=vipcode)
         for sample_order in sampleorders:
             wx_users = WeiXinUser.objects.filter(openid=sample_order.user_openid)
             if wx_users.count() > 0:
