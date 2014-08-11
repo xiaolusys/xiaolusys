@@ -967,7 +967,9 @@ class RequestCouponView(View):
         if vipcodes.count() > 0:
             vipcode_obj = vipcodes[0]
             if vipcode_obj.usage_count > 9:
-                CouponClick.objects.create(coupon=coupon,wx_user=wx_user,vipcode=vipcode_obj.code)
+                cc = CouponClick.objects.filter(coupon=coupon).filter(wx_user=wx_user).filter(vipcode=vipcode_obj.code)
+                if cc.count() < 1:
+                    CouponClick.objects.create(coupon=coupon,wx_user=wx_user,vipcode=vipcode_obj.code)
                 response = {"code":"ok"}
                 return HttpResponse(json.dumps(response),mimetype='application/json')
 
