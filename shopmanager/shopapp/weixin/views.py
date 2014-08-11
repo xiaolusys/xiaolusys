@@ -449,12 +449,15 @@ class ReferalView(View):
             referal_mobiles.add(coupon_click.wx_user.mobile)
 
         num_orders,payment = 0,0
+        
+        effect_mobiles = set()
         order_status = [pcfg.WAIT_SELLER_SEND_GOODS,pcfg.WAIT_BUYER_CONFIRM_GOODS]
         for mobile in referal_mobiles:
             trades = MergeTrade.objects.filter(receiver_mobile=mobile).filter(status__in=order_status)
             for trade in trades:
                 payment += trade.payment
                 num_orders += 1
+                effect_mobiles.add(mobile)
 
 
         response = render_to_response('weixin/ambass.html', 
@@ -463,6 +466,7 @@ class ReferalView(View):
                                    'referal_bonus':referal_bonus,
                                    'vipcode':vipcode, 'coupon':coupon,
                                    'payment':payment, 'num_orders':num_orders,
+                                   'effect_mobiles':effect_mobiles,
                                    'coupon_click_count':coupon_click_count}, 
                                   context_instance=RequestContext(request))
         response.set_cookie("openid",user_openid)
