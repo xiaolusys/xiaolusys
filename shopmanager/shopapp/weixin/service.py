@@ -176,7 +176,7 @@ class WeixinUserService():
         wx_user   = self.getOrCreateUser(openId,force_update=True)
         
         if wx_user.mobile.strip() == mobile.strip() and wx_user.isValid():
-            raise MessageException(u'您的手机号无需重新绑定.')
+            raise MessageException(u'您的手机号无需重新绑定，如有问题请点击【我的】->【联系客服】.')
         
         if not  wx_user.is_code_time_safe():      
             raise MessageException(u'请%d秒后重新发送'%(wx_user.get_wait_time()))
