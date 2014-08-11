@@ -452,8 +452,9 @@ class ReferalView(View):
         
         effect_mobiles = set()
         order_status = [pcfg.WAIT_SELLER_SEND_GOODS,pcfg.WAIT_BUYER_CONFIRM_GOODS]
+        effect_date = datetime.datetime(2014,8,3)
         for mobile in referal_mobiles:
-            trades = MergeTrade.objects.filter(receiver_mobile=mobile).filter(status__in=order_status)
+            trades = MergeTrade.objects.filter(receiver_mobile=mobile).filter(status__in=order_status).filter(created__gt=effect_date)
             for trade in trades:
                 payment += trade.payment
                 num_orders += 1
