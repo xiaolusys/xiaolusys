@@ -944,6 +944,13 @@ class VipCouponView(View):
         return response
 
 
+class CouponFaqView(View):
+    def get(self, request):
+        response = render_to_response('weixin/coupon_faq.html', 
+                                      context_instance=RequestContext(request))
+        return response
+        
+
 class RequestCouponView(View):
     def get(self, request):
         content = request.REQUEST
