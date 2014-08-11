@@ -438,11 +438,31 @@ class ReferalView(View):
         couponclicks = CouponClick.objects.filter(vipcode=vipcode)
         coupon_click = couponclicks.count()
         
+        referal_mobiles = set()
+        sampleoders = SampleOrder.objects.filter(vipcode=vipcode)
+        for sample_order in sampleorders:
+            wx_users = WeiXinUser.objects.filter(openid=sample_order.user_openid)
+            if wx_users.count() > 0:
+                referal_mobiles.add(wx_users[0].mobile)
+
+        for coupon_click in couponclicks:
+            referal_mobiles.add(coupon_click.wx_user.mobile)
+
+        num_orders,payment = 0,0
+        order_status = [pcfg.WAIT_SELLER_SEND_GOODS,pcfg.WAIT_BUYER_CONFIRM_GOODS]
+        for moible in referal_mobiles:
+            trades = MergeTrade.objects.filter(receiver_mobile=mobile).filter(status__in=status)
+            for trade in trades:
+                payment += trade.payment
+                num_orders += 1
+
+
         response = render_to_response('weixin/ambass.html', 
                                   {'openid':user_openid, 
                                    'referal_count':referal_count, 
                                    'referal_bonus':referal_bonus,
                                    'vipcode':vipcode, 'coupon':coupon,
+                                   'payment':payment, 'num_orders':num_orders,
                                    'coupon_click':coupon_click}, 
                                   context_instance=RequestContext(request))
         response.set_cookie("openid",user_openid)

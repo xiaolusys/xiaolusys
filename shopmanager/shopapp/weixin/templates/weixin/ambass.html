@@ -11,6 +11,7 @@
     <li class="list-group-item"><p style="color:orange">账户余额: ￥<span style="font-size:26px">{{ referal_bonus }}</span> <button class="btn btn-warning" style="float:right;">提现</button></p></li>
     <li class="list-group-item"><font style="color:orange">推荐好友: {{ referal_count }}人</font></li>
     <li class="list-group-item"><font style="color:orange">VIP优惠券(<a href="/weixin/couponfaq/">发给朋友</a>): {{ coupon.description }}</font>（<font style="color:red">{{ coupon_click }}人已领取</font>）</li>
+    <li class="list-group-item"><font style="color:orange">等待结算：￥{{ payment }}元（{{ num_orders }}个订单）</font></li>
     <li class="list-group-item"><font style="color:orange">VIP邀请码: {{ vipcode }}</font></li>
   </ul>
 
