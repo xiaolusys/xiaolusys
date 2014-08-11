@@ -451,7 +451,7 @@ class ReferalView(View):
         num_orders,payment = 0,0
         order_status = [pcfg.WAIT_SELLER_SEND_GOODS,pcfg.WAIT_BUYER_CONFIRM_GOODS]
         for mobile in referal_mobiles:
-            trades = MergeTrade.objects.filter(receiver_mobile=mobile).filter(status__in=status)
+            trades = MergeTrade.objects.filter(receiver_mobile=mobile).filter(status__in=order_status)
             for trade in trades:
                 payment += trade.payment
                 num_orders += 1
