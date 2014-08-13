@@ -252,7 +252,7 @@ class CouponClickAdmin(admin.ModelAdmin):
 admin.site.register(CouponClick, CouponClickAdmin) 
 
 class SurveyAdmin(admin.ModelAdmin):
-    list_display = ('selection', 'wx_user')
+    list_display = ('selection', 'wx_user', 'created')
     list_filter = ('selection',)
 
 admin.site.register(Survey, SurveyAdmin) 
