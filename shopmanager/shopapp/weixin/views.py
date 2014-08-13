@@ -7,7 +7,7 @@ from django.conf import settings
 from django.views.decorators.csrf import csrf_exempt
 from django.views.generic import View
 from shopapp.weixin.service import *
-from models import WeiXinUser,ReferalRelationship,ReferalSummary,WXOrder,Refund,FreeSample, SampleSku, SampleOrder,VipCode,Coupon,CouponClick
+from models import WeiXinUser,ReferalRelationship,ReferalSummary,WXOrder,Refund,FreeSample, SampleSku, SampleOrder,VipCode,Coupon,CouponClick,Survey
 
 from shopback.trades.models import MergeTrade
 from shopback import paramconfig as pcfg
@@ -1002,11 +1002,45 @@ class RequestCouponView(View):
 
         response = {"code":"bad"}
         return HttpResponse(json.dumps(response),mimetype='application/json')
+
+
+class SurveyView(View):
+    def get(self, request):
+        user_openid = request.COOKIES.get('openid')
+        
+        exist = False
+        wx_users = WeiXinUser.objects.filter(openid=user_openid)
+        if wx_users.count() > 0:
+            wx_user = wx_users[0]
+            if wx_user.surveys.all().count() > 0:
+                exist = True
+                
+        response = render_to_response('weixin/survey.html', {"exist":exist},
+                                      context_instance=RequestContext(request))
+        response.set_cookie("openid",user_openid)
+        return response
+
+    def post(self, request):
+        content = request.REQUEST
+        selection = int(content.get("selection","0"))
+        user_openid = request.COOKIES.get('openid')
+        
+        wx_users = WeiXinUser.objects.filter(openid=user_openid)
+        if wx_users.count() > 0:
+            wx_user = wx_users[0]
+            if wx_user.surveys.all().count() < 1:
+                Survey.objects.create(selection=selection,wx_user=wx_user)
+                response = {"code":"ok"}
+                return HttpResponse(json.dumps(response),mimetype='application/json')
+
+        response = {"code":"bad"}
+        return HttpResponse(json.dumps(response),mimetype='application/json')
+
     
 class TestView(View):
     def get(self, request, *args, **kwargs):
 
-        response = render_to_response('weixin/ambass-intention.html', 
+        response = render_to_response('weixin/survey.html', 
                                       context_instance=RequestContext(request))
         return response
 

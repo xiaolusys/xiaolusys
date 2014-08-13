@@ -660,3 +660,14 @@ class CouponClick(models.Model):
         db_table = 'shop_weixin_coupon_click'
         verbose_name = u'优惠券点击'
         verbose_name_plural = u'优惠券点击列表'
+
+
+class Survey(models.Model):
+    selection = models.IntegerField(default=0,verbose_name=u'选择')
+    wx_user = models.ForeignKey(WeiXinUser, related_name="surveys", verbose_name=u"微信ID")
+    created = models.DateTimeField(auto_now_add=True,null=True,verbose_name=u'创建时间')
+
+    class Meta:
+        db_table = 'shop_weixin_survey'
+        verbose_name = u'用户调研'
+        verbose_name_plural = u'用户调研列表'
