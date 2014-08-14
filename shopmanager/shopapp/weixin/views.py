@@ -843,16 +843,20 @@ class ResultView(View):
         usage_count = 0
         users = WeiXinUser.objects.filter(openid=user_openid)
         pk = 1
+        vipcode = 0
         if users.count() > 0:
             pk = users[0].pk
             if users[0].vipcodes.count() > 0:
-                usage_count = users[0].vipcodes.all()[0].usage_count
+                code_obj = users[0].vipcodes.all()[0]
+                usage_count = code_obj.usage_count
+                vipcode = code_obj.code
 
         response = render_to_response('weixin/invite_result.html',
                                       {'days_left':days_left, 'hours_left':hours_left,
                                        'slots_left':slots_left, 'has_order':has_order,
-                                       'order_status':order_status, 'usage_count':usage_count, 
-                                       'five_batch':five_batch, 'six_batch':six_batch, 'pk':pk},
+                                       'order_status':order_status, 'vipcode':vipcode, 
+                                       'usage_count':usage_count, 'five_batch':five_batch, 
+                                       'six_batch':six_batch, 'pk':pk},
                                       context_instance=RequestContext(request))
         response.set_cookie("openid",user_openid)        
         return response
@@ -1014,8 +1018,9 @@ class SurveyView(View):
             wx_user = wx_users[0]
             if wx_user.surveys.all().count() > 0:
                 exist = True
-                
-        response = render_to_response('weixin/survey.html', {"exist":exist},
+            
+        total = Survey.objects.all().count()
+        response = render_to_response('weixin/survey.html', {"exist":exist, "total":total},
                                       context_instance=RequestContext(request))
         response.set_cookie("openid",user_openid)
         return response
