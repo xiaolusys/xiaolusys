@@ -3,6 +3,7 @@ from django.conf import settings
 from .handler import BaseHandler
 from shopback.trades.models import MergeTrade,MergeBuyerTrade
 from shopback import paramconfig as pcfg
+from shopback.base import log_action,User, ADDITION, CHANGE
 from common.modelutils import  update_model_fields
 
 class MemoHandler(BaseHandler):
