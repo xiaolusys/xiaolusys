@@ -1,0 +1,129 @@
+{% extends "weixin/weixin_base.html" %}
+
+{% block title %} 免费试用 {% endblock %}
+
+
+{% block container %}
+
+<div class="container-fluid">
+
+  <div class="panel panel-default" style="margin-top:5px">
+    <div class="panel-heading" style="color:#e8792a">9月免费试用投票</div>
+    <div class="panel-body">
+      <p style="color:#029fd6">亲，优尼世界9月大礼，您想赢走哪款宝贝呢？快来投票吧！</p>
+
+      <div class="row">
+	<div class="col-xs-12">
+	  <h5 style="color:#e8792a">选择一：婴幼儿时尚斗篷/披风</h5>
+	</div>
+      </div>
+      <div class="row">
+	<div class="col-xs-6" style="text-align:center">
+	  <a href="http://mp.weixin.qq.com/bizmall/malldetail?id=&pid=pMt59uO9ALgEo18Zz7dcDyEqiUbQ&biz=MzA5NTI1NjYyNg==&scene=&action=show_detail&showwxpaytitle=1#wechat_redirect" class="thumbnail">
+	    <img src="https://mmbiz.qlogo.cn/mmbiz/yMhOQPTKhLtMTpiclRQJZ7aBpwKS3xsvUXAqTHAHJBxx0s4CewutslnXYicWiaZtX34jtECwgv5IkV7gibxczqAo7A/0" alt="...">
+	  </a>
+	</div>
+	<div class="col-xs-6" style="text-align:center">
+	  <p style="color:#e8792a">多款式，均码</p>
+	  <p><a href="http://mp.weixin.qq.com/bizmall/malldetail?id=&pid=pMt59uO9ALgEo18Zz7dcDyEqiUbQ&biz=MzA5NTI1NjYyNg==&scene=&action=show_detail&showwxpaytitle=1#wechat_redirect">商品详情 >></a></p>
+	  <p id="id_p1" style="color:#029fd6"><input type="radio" name="p1" value="1" id="id_input1"> 我选择时尚的斗篷/披风</p>{% csrf_token %}
+	</div>
+      </div>
+
+      <div class="row">
+	<div class="col-xs-12">
+	  <h5 style="color:#e8792a">选择二：婴幼儿时尚分腿睡袋</h5>
+	</div>
+      </div>
+
+      <div class="row">
+	<div class="col-xs-6" style="text-align:center">
+	  <a href="http://mp.weixin.qq.com/bizmall/malldetail?id=&pid=pMt59uLzyCZkBcdK1rU9-bjKOkco&biz=MzA5NTI1NjYyNg==&scene=&action=show_detail&showwxpaytitle=1#wechat_redirect" class="thumbnail">
+	    <img src="https://mmbiz.qlogo.cn/mmbiz/yMhOQPTKhLvuSp8nx80CxFU6BqRvnNq17rGeyo6boPyITfGMbJvImH5Ckx0DtHzW0ictUWaqV5qeGIbUqS3yZxQ/0" alt="...">
+	  </a>
+	</div>
+	<div class="col-xs-6" style="text-align:center">
+	  <p style="color:#e8792a">多款式，多尺寸</p>
+	  <p><a href="http://mp.weixin.qq.com/bizmall/malldetail?id=&pid=pMt59uLzyCZkBcdK1rU9-bjKOkco&biz=MzA5NTI1NjYyNg==&scene=&action=show_detail&showwxpaytitle=1#wechat_redirect">商品详情 >></a></p>
+	  <p id="id_p2" style="color:#029fd6"><input type="radio" name="p1" value="2" id="id_input2"> 我选择时尚的分腿睡袋</p>
+	</div>
+      </div>
+      <div class="row">
+	<div class="col-xs-12" style="text-align:center" id="id_msg">
+	  <p>已有<font style="color:red">{{ total }}</font>人投票</p>
+	</div>
+      </div>
+      <div class="row">
+	<div class="col-xs-12" style="text-align:center" id="id_msg">
+	  {% if exist %}
+	  <p style='color:#029fd6'>亲，您的选择已经提交！快告诉朋友，让他们也来投票吧！</p>
+	  {% else %}
+	  <button type="button" class="btn btn-warning" id="id_submit" onclick="submit();">提交</button>
+	  {% endif %}
+	</div>
+      </div>
+      <div class="row">
+	<div class="col-xs-12" style="text-align:center">
+	  <p style="color:red">温馨提示：参加9月活动的亲，请提前到【我的】->【宝宝档案】<font style="font-size:20px">绑定手机和填写宝宝档案</font>，活动一开始直接提交申请即可！</p>
+	</div>
+      </div>
+      
+
+    </div>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block tail_script %}
+<script type="text/javascript">
+  $("#id_p1").on("click", function () {
+  $("#id_input1").attr("checked",true);
+  $("#id_input2").attr("checked",false);
+  $("#id_p1").css("color","#ed5377");
+  $("#id_p2").css("color","");  
+  });
+
+  $("#id_p2").on("click", function () {
+  $("#id_input2").attr("checked",true);
+  $("#id_input1").attr("checked",false);
+  $("#id_p2").css("color","#ed5377");
+  $("#id_p1").css("color","");  
+  });
+
+  function checkSelection() {
+    if ((!$("#id_input1").is(':checked')) && (!$("#id_input2").is(':checked'))) {
+      $("#id_msg")[0].innerHTML = "<p style='color:red'>亲，麻烦选择下答案再提交哦。</p>";
+      return false;
+    }
+    return true;
+  }
+
+  function submit() {
+    if (checkSelection() == false) {
+      return;
+    }
+  
+    var selection = 0;
+    if ($("#id_input1").is(':checked')) {
+      selection = 1;
+    }
+    if ($("#id_input2").is(':checked')) {
+      selection = 2;
+    }
+
+    var url = "/weixin/survey/";
+    var csrf_token = document.getElementsByName("csrfmiddlewaretoken")[0].value;
+    
+    var data = {"selection": selection, "csrfmiddlewaretoken":csrf_token};
+    var callback = function (res) {
+      console.log(res);
+    if (res["code"] == "ok") {
+      $("#id_msg")[0].innerHTML = "<p style='color:red'>亲，您的选择已经提交！感谢！</p>";
+    }
+    };
+    $.ajax({url:url, data:data, type:"post", success:callback});
+  }
+</script>
+
+{% endblock %}

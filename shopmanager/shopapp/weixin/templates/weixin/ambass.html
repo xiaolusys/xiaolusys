@@ -6,18 +6,20 @@
 
 {% if referal_count > 9 %}
 <div class="container-fluid">
+  <p style="font-size:20px"><a href="/weixin/survey/">9月免费试用投票啦 >></a></p>
   <ul class="list-group">
     <li class="list-group-item list-group-item-success">我的返利</li>
     <li class="list-group-item"><p style="color:orange">账户余额: ￥<span style="font-size:26px">{{ referal_bonus }}</span> <button class="btn btn-warning" style="float:right;">提现</button></p></li>
     <li class="list-group-item"><font style="color:orange">推荐好友: {{ referal_count }}人</font></li>
-    <li class="list-group-item"><font style="color:orange">VIP优惠券(发给朋友): {{ coupon.description }}</font></li>
+    <li class="list-group-item"><font style="color:orange">VIP优惠券(<a href="/weixin/couponfaq/">发给朋友</a>): {{ coupon.description }}</font>（<font style="color:red">{{ coupon_click_count }}人已领取</font>）</li>
+    <li class="list-group-item"><font style="color:orange">等待结算：￥{{ payment }}元（{{ num_orders }}个订单）</font></li>
     <li class="list-group-item"><font style="color:orange">VIP邀请码: {{ vipcode }}</font></li>
   </ul>
 
   <ul class="list-group">
     <li class="list-group-item list-group-item-success">我的权利</li>
     <li class="list-group-item">优尼大使有权向其好友或其他客户派发优尼世界<font style="color:orange">VIP优惠券</font>。</li>
-    <li class="list-group-item">VIP优惠券凭大使的专属<font style="color:orange">VIP邀请码</font>领取（【活动中心】->【VIP优惠券】）。</li>
+    <li class="list-group-item">VIP优惠券凭大使的专属<font style="color:orange">VIP邀请码</font>领取（【微信购物】->【VIP优惠券】）。</li>
     <li class="list-group-item">VIP优惠券的优惠力度<font style="color:red">全网最高</font>，大大高于天猫店铺优惠券。</li>
   </ul>
 

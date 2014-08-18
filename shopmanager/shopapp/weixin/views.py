@@ -7,7 +7,7 @@ from django.conf import settings
 from django.views.decorators.csrf import csrf_exempt
 from django.views.generic import View
 from shopapp.weixin.service import *
-from models import WeiXinUser,ReferalRelationship,ReferalSummary,WXOrder,Refund,FreeSample, SampleSku, SampleOrder,VipCode,Coupon,CouponClick
+from models import WeiXinUser,ReferalRelationship,ReferalSummary,WXOrder,Refund,FreeSample, SampleSku, SampleOrder,VipCode,Coupon,CouponClick,Survey
 
 from shopback.trades.models import MergeTrade
 from shopback import paramconfig as pcfg
@@ -229,8 +229,9 @@ class OrderInfoView(View):
         weixin_user_service = WeixinUserService(user_openid)
         wx_user = weixin_user_service._wx_user
         
+        title = u'订单查询'
         if wx_user.isValid() == False:
-            response = render_to_response('weixin/remind.html', context_instance=RequestContext(request))
+            response = render_to_response('weixin/remind.html', {"title":title}, context_instance=RequestContext(request))
             response.set_cookie("openid",user_openid)
             return response
             
@@ -434,11 +435,38 @@ class ReferalView(View):
         
         coupon = Coupon.objects.get(pk=1)
         
+        couponclicks = CouponClick.objects.filter(vipcode=vipcode)
+        coupon_click_count = couponclicks.count()
+        
+        referal_mobiles = set()
+        sampleorders = SampleOrder.objects.filter(vipcode=vipcode)
+        for sample_order in sampleorders:
+            wx_users = WeiXinUser.objects.filter(openid=sample_order.user_openid)
+            if wx_users.count() > 0:
+                referal_mobiles.add(wx_users[0].mobile)
+
+        for coupon_click in couponclicks:
+            referal_mobiles.add(coupon_click.wx_user.mobile)
+
+        payment = 0
+        
+        effect_mobiles = set()
+        order_status = [pcfg.WAIT_SELLER_SEND_GOODS,pcfg.WAIT_BUYER_CONFIRM_GOODS]
+        effect_date = datetime.datetime(2014,8,3)
+        for mobile in referal_mobiles:
+            trades = MergeTrade.objects.filter(receiver_mobile=mobile).filter(status__in=order_status).filter(created__gt=effect_date)
+            for trade in trades:
+                payment += trade.payment
+                effect_mobiles.add(mobile)
+
+
         response = render_to_response('weixin/ambass.html', 
                                   {'openid':user_openid, 
                                    'referal_count':referal_count, 
                                    'referal_bonus':referal_bonus,
-                                   'vipcode':vipcode, 'coupon':coupon}, 
+                                   'vipcode':vipcode, 'coupon':coupon,
+                                   'payment':payment, 'num_orders':len(effect_mobiles),
+                                   'coupon_click_count':coupon_click_count}, 
                                   context_instance=RequestContext(request))
         response.set_cookie("openid",user_openid)
         return response
@@ -531,7 +559,7 @@ class RefundReviewView(View):
                 wx_users = WeiXinUser.objects.filter(mobile=mobile)
                 if wx_users.count() > 0:
                     openid = wx_users[0].openid
-                    orders = SampleOrder.objects.filter(user_openid=openid).filter(status__gt=0)
+                    orders = SampleOrder.objects.filter(user_openid=openid).filter(status__gt=0).filter(status__lt=7)
                     if orders.count() > 0:
                         sample_order = orders[0]
 
@@ -815,16 +843,20 @@ class ResultView(View):
         usage_count = 0
         users = WeiXinUser.objects.filter(openid=user_openid)
         pk = 1
+        vipcode = 0
         if users.count() > 0:
             pk = users[0].pk
             if users[0].vipcodes.count() > 0:
-                usage_count = users[0].vipcodes.all()[0].usage_count
+                code_obj = users[0].vipcodes.all()[0]
+                usage_count = code_obj.usage_count
+                vipcode = code_obj.code
 
         response = render_to_response('weixin/invite_result.html',
                                       {'days_left':days_left, 'hours_left':hours_left,
                                        'slots_left':slots_left, 'has_order':has_order,
-                                       'order_status':order_status, 'usage_count':usage_count, 
-                                       'five_batch':five_batch, 'six_batch':six_batch, 'pk':pk},
+                                       'order_status':order_status, 'vipcode':vipcode, 
+                                       'usage_count':usage_count, 'five_batch':five_batch, 
+                                       'six_batch':six_batch, 'pk':pk},
                                       context_instance=RequestContext(request))
         response.set_cookie("openid",user_openid)        
         return response
@@ -911,12 +943,109 @@ class CouponView(View):
         
         return redirect(coupon_url)
 
+
+class VipCouponView(View):
+    def get(self, request):
+        content = request.REQUEST
+
+        code = content.get('code')
+
+        APPID = 'wxc2848fa1e1aa94b5'
+        SECRET = 'eb3bfe8e9a36a61176fa5cafe341c81f'
+
+        ## if user refresh page, we can get user_openid from cookie
+        user_openid = request.COOKIES.get('openid')
+
+        if user_openid == 'None' or user_openid == None:
+            user_openid = get_user_openid(code, APPID, SECRET)
+
+        
+        weixin_user_service = WeixinUserService(user_openid)
+        wx_user = weixin_user_service._wx_user
+        
+        title = u'VIP优惠券'
+        if wx_user.isValid() == False:
+            response = render_to_response('weixin/remind.html', {"title":title},context_instance=RequestContext(request))
+            response.set_cookie("openid",user_openid)
+            return response
+        
+        response = render_to_response('weixin/vipcoupon.html', {"openid":user_openid, "coupon_pk":"1"},
+                                      context_instance=RequestContext(request))
+        response.set_cookie("openid",user_openid)        
+        return response
+
+
+class CouponFaqView(View):
+    def get(self, request):
+        response = render_to_response('weixin/coupon_faq.html', 
+                                      context_instance=RequestContext(request))
+        return response
         
 
+class RequestCouponView(View):
+    def get(self, request):
+        content = request.REQUEST
+        vipcode = content.get("vipcode")
+        openid = content.get("openid")
+        coupon_pk = int(content.get("coupon_pk","0"))
+        
+        coupon = Coupon.objects.get(pk=coupon_pk)
+        
+        users = WeiXinUser.objects.filter(openid=openid)
+        wx_user = users[0]
+
+        vipcodes = VipCode.objects.filter(code=vipcode)
+        if vipcodes.count() > 0:
+            vipcode_obj = vipcodes[0]
+            if vipcode_obj.usage_count > 9:
+                cc = CouponClick.objects.filter(coupon=coupon).filter(wx_user=wx_user).filter(vipcode=vipcode_obj.code)
+                if cc.count() < 1:
+                    CouponClick.objects.create(coupon=coupon,wx_user=wx_user,vipcode=vipcode_obj.code)
+                response = {"code":"ok"}
+                return HttpResponse(json.dumps(response),mimetype='application/json')
+
+        response = {"code":"bad"}
+        return HttpResponse(json.dumps(response),mimetype='application/json')
+
+
+class SurveyView(View):
+    def get(self, request):
+        user_openid = request.COOKIES.get('openid')
+        
+        exist = False
+        wx_users = WeiXinUser.objects.filter(openid=user_openid)
+        if wx_users.count() > 0:
+            wx_user = wx_users[0]
+            if wx_user.surveys.all().count() > 0:
+                exist = True
+            
+        total = Survey.objects.all().count()
+        response = render_to_response('weixin/survey.html', {"exist":exist, "total":total},
+                                      context_instance=RequestContext(request))
+        response.set_cookie("openid",user_openid)
+        return response
+
+    def post(self, request):
+        content = request.REQUEST
+        selection = int(content.get("selection","0"))
+        user_openid = request.COOKIES.get('openid')
+        
+        wx_users = WeiXinUser.objects.filter(openid=user_openid)
+        if wx_users.count() > 0:
+            wx_user = wx_users[0]
+            if wx_user.surveys.all().count() < 1:
+                Survey.objects.create(selection=selection,wx_user=wx_user)
+                response = {"code":"ok"}
+                return HttpResponse(json.dumps(response),mimetype='application/json')
+
+        response = {"code":"bad"}
+        return HttpResponse(json.dumps(response),mimetype='application/json')
+
+    
 class TestView(View):
     def get(self, request, *args, **kwargs):
 
-        response = render_to_response('weixin/ambass-intention.html', 
+        response = render_to_response('weixin/survey.html', 
                                       context_instance=RequestContext(request))
         return response
 
