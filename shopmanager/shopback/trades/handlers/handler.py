@@ -31,9 +31,7 @@ class InitHandler(BaseHandler):
             
         log_action(merge_trade.user.user.id,
                    merge_trade,ADDITION,
-                   u'订单入库,备注:[%s:%s]'%(
-                       merge_trade.buyer_message,
-                       merge_trade.seller_memo))
+                   u'订单入库')
             
         merge_trade.sys_status = pcfg.REGULAR_REMAIN_STATUS
         update_model_fields(merge_trade,update_fields=['sys_status'])

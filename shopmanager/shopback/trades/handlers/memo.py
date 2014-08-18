@@ -58,6 +58,11 @@ class MemoHandler(BaseHandler):
         update_model_fields(merge_trade,update_fields=['seller_memo',
                                                        'buyer_message'])
         
+        log_action(merge_trade.user.user.id,
+                   merge_trade,ADDITION,
+                   u'订单备注:[%s:%s]'%(merge_trade.buyer_message,
+                       merge_trade.seller_memo))
+        
         merge_type = MergeBuyerTrade.getMergeType(merge_trade.id)
         
         if merge_type == pcfg.SUB_MERGE_TYPE:
