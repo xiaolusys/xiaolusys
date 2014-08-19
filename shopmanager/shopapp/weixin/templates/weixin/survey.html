@@ -50,7 +50,11 @@
       </div>
       <div class="row">
 	<div class="col-xs-12" style="text-align:center" id="id_msg">
+	  {% if total > 1000 %}
+	  <p>已有超过<font style="color:red">1000</font>人投票</p>
+	  {% else %}
 	  <p>已有<font style="color:red">{{ total }}</font>人投票</p>
+	  {% endif %}
 	</div>
       </div>
       <div class="row">
