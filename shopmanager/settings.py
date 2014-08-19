@@ -139,7 +139,10 @@ INSTALLED_APPS = (
     'shopapp.comments',
     'shopapp.weixin',
     'shopapp.tmcnotify',
+
     'shopapp.jingdong',
+    'shopapp.examination',
+
 
     #'test.celery',
     #'shopapp.notify',
