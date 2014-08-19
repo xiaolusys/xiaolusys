@@ -22,8 +22,7 @@ class BaseHandler(object):
 class ConfirmHandler(BaseHandler):
     
     def handleable(self,merge_trade,*args,**kwargs):
-        origin_trade = kwargs.get('origin_trade',None)
-        return origin_trade.status == pcfg.TRADE_FINISHED
+        return merge_trade.status == pcfg.TRADE_FINISHED
         
     def process(self,merge_trade,*args,**kwargs):
         
