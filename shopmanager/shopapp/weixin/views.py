@@ -7,7 +7,7 @@ from django.conf import settings
 from django.views.decorators.csrf import csrf_exempt
 from django.views.generic import View
 from shopapp.weixin.service import *
-from models import WeiXinUser,ReferalRelationship,ReferalSummary,WXOrder,Refund,FreeSample, SampleSku, SampleOrder,VipCode,Coupon,CouponClick,Survey
+from models import WeiXinUser,ReferalRelationship,ReferalSummary,ReferalBonusRecord,WXOrder,Refund,FreeSample, SampleSku, SampleOrder,VipCode,Coupon,CouponClick,Survey
 
 from shopback.trades.models import MergeTrade
 from shopback import paramconfig as pcfg
