@@ -181,10 +181,17 @@ class WeixinUserService():
         if not  wx_user.is_code_time_safe():      
             raise MessageException(u'请%d秒后重新发送'%(wx_user.get_wait_time()))
         
+        if wx_user.mobile == mobile:
+            
+            wx_user.vmobile   = mobile
+            wx_user.isvalid   = True
+            wx_user.save()
+            raise MessageException(WeiXinAutoResponse.objects.get(message=u'校验成功提示').content)  
+        
         valid_code = self.genValidCode()
         self.sendValidCode(mobile,valid_code)        
         
-        wx_user.vmobile    = mobile
+        wx_user.vmobile   = mobile
         wx_user.isvalid   = False
         wx_user.validcode = valid_code
         wx_user.valid_count += 1
@@ -216,7 +223,7 @@ class WeixinUserService():
             return WeiXinAutoResponse.objects.get_or_create(message=u'校验成功提示')[0].autoParams()            
         
         if message == '0' and self._wx_user.isValid():
-            return self.genTextRespJson(u'您已经成功绑定手机，修改绑定请重新输入手机号：')
+            return self.genTextRespJson(u'您已经成功绑定手机，取消绑定请输入[q]\n修改绑定请重新输入手机号：')
         
         for resp in self.getResponseList():
             if message.rfind(resp.message.strip()) > -1:
@@ -337,8 +344,11 @@ class WeixinUserService():
         if eventKey in ('Q','W','E','R', 'Z') and not self._wx_user.isValid():
             raise MessageException(u'你还没有绑定手机哦!\n请输入手机号:')
         
-        if eventKey in ("Q","R"):
-            raise MessageException(u'功能还没有准备好哦')
+        if eventKey == "Q":
+            
+            self._wx_user.isvalid = False
+            self._wx_user.save()
+            raise MessageException(u'您的手机已取消绑定，重新绑定请输入[0]。')
             
         elif  eventKey == "W":
             return self.getTradeMessageByMobile(self._wx_user.mobile)
