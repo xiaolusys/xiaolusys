@@ -11,6 +11,7 @@ from shopapp.comments.models import Comment,CommentGrade
 from django.template import RequestContext 
 import logging
 from django.contrib.auth.models import User
+from django.contrib.admin.views.decorators import staff_member_required 
 
 
 logger = logging.getLogger('django.request')
@@ -74,13 +75,6 @@ def filter_calcCommentCountJson(fdt,tdt):
     good_show=len(CommentGrade.objects.filter(
     grade = 1,replay_at__gte=fdt,replay_at__lte=tdt
     ))
-#测试啊 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!    
-#    for k in CommentGrade.objects.filter(
-#    grade = 1,replay_at__gte=fdt,replay_at__lte=tdt
-#    ) :
-#        print '测试'
-#        print 'good_show.oid',k.oid
-#测试啊 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!   
     bad_show =len(CommentGrade.objects.filter(
     grade = 0,replay_at__gte=fdt,replay_at__lte=tdt
     ))
@@ -92,7 +86,6 @@ def filter_calcCommentCountJson(fdt,tdt):
     array_comment_and_grade.append(bad_show)
     array_comment_and_grade.append(normal_show)
 
-#    print 'array_comment_and_grade',array_comment_and_grade[3]
     return array_comment_and_grade   
 
 """ 
@@ -109,7 +102,7 @@ def filter_calcCommentCountJson(fdt,tdt):
     
         data = {'vicky':vicky,'spring':spring}
         dates = [20140403,20140404,20140405,20140406,20140407,20140408,20140409]
-    """     
+"""     
 
 #   统计展示每个人的日输出数字        
 @csrf_exempt
@@ -196,7 +189,6 @@ def filter_replyer(name,fdt,tdt):
             detail_url   = r.detail_url
             reply        = r.reply 
             replayer        = r.replayer 
-#            print "oid",oid
             try:
 #if 做try注销后的测试，if (comment_grade==[]):
 #            if (1==1):
@@ -204,13 +196,9 @@ def filter_replyer(name,fdt,tdt):
                 comment_grade = CommentGrade.objects.filter(
                 oid = oid
                 )
-                print '到这离了'
 #if (comment_grade==[]): 是错的，但是可以通过try 语句正常 走完
                 if (comment_grade==[]):
                     grade = 3
-#                    print "grade",grade
-#                    print '空'
-#                    print comment_grade
                 else:
                     grade = comment_grade[0].grade
 #查询结果 直接可以改变背景颜色
@@ -221,14 +209,10 @@ def filter_replyer(name,fdt,tdt):
                     else:
                         color = '#FFE4B5'
             except:
-                print "pass"
-                print comment_grade
                 pass
             if replyer_comment.has_key(replyer):
-                print "1"
                 replyer_comment[replyer].append((item_pic_url,detail_url,content,reply,oid,replayer,grade,color))
             else:
-                print "2"
                 replyer_comment[replyer] = [(item_pic_url,detail_url,content,reply,oid,replayer,grade,color)]  
     except:
         pass
@@ -273,6 +257,7 @@ def write_grade(request):
     
     c_grade,state = CommentGrade.objects.get_or_create(num_iid=num_iid,tid=tid,oid=oid)
     c_grade.replayer = replayer
+    
     c_grade.grader   = request.user
     c_grade.reply    = reply
     c_grade.replay_at = replay_at
@@ -288,73 +273,6 @@ def write_grade(request):
     
     return  HttpResponse(json.dumps({'response_content':'success'}),mimetype="application/json")
     
-    
-#def replyer_grade(request):
-#    content = request.GET
-#    
-#    replay_at__gte = content.get('from').replace('-','')
-#    replay_at__lte = content.get('to').replace('-','')
-#    grade = content.get('grade')
-#    
-#    grade_show = '' 
-#    if (grade==1):
-#        grade_show = '优秀'
-#    elif(grade==0):
-#        grade_show = '不合格'
-#    else:
-#        grade_show = '合格'
-#    comment_grade_dict = {} 
-##    
-#    print 'replay_at__gte',replay_at__gte
-#    print 'replay_at__lte',replay_at__lte
-#    print 'grade',grade
-#    
-#    replay_at__lte   = replay_at__lte and datetime.datetime.strptime(replay_at__lte, '%Y%m%d').date() or datetime.datetime.now().date()
-#    oneday = datetime.timedelta(days=1)
-##防止每次submint页面日期自动自加,toDate_cheak和toDate差一天,
-#    toDate_cheak = replay_at__lte+oneday
-##   搜索日期截至日为方便查询，自动加一天，因为截至是每天零点，
-#    replay_at__gte = (replay_at__gte and 
-#                datetime.datetime.strptime(replay_at__gte, '%Y%m%d').date() or
-#                toDate_cheak - datetime.timedelta(days=1))  
-##   input 保留查询日期
-#    fromDateShow = replay_at__gte.strftime('%Y%m%d')
-#    toDateShow   = replay_at__lte.strftime('%Y%m%d')
-#    
-##测试
-#    print '测试'
-#    print 'replay_at__gte',replay_at__gte
-#    print 'replay_at__lte',replay_at__lte
-#    print 'grade',grade
-#    
-#    grade_filter = CommentGrade.objects.filter(replay_at__gte=replay_at__gte,replay_at__lte=toDate_cheak,grade=grade)
-##    为什么上面的就好用
-#
-#    print 'type(grade_filter)',type(grade_filter)
-#    print 'grade_filter',grade_filter
-#    
-#    
-#    
-#    for g in grade_filter:
-#        try:
-#            oid = g.oid
-#        except:
-#            continue
-#        comment_grade_dict[oid]=[g.oid,g.reply,g.replayer,grade_show,g.grader,g.created,g.replay_at]
-##    for k in comment_grade_dict.items():
-##        print "lllllllllll",k[1][3]
-##    
-##    print 'grade_filter',grade_filter
-##    
-##    for k in grade_filter:
-##        print k.oid
-#
-#    return render_to_response('comments/comment_replyer_grade.html',{'replay_at__gte':replay_at__gte,
-#                                                                     'replay_at__lte':replay_at__lte,
-#                                                                     'fromDateShow':fromDateShow,
-#                                                                     'toDateShow':toDateShow,
-#                                                                     'toDate_cheak':toDate_cheak,
-#                                                                     'comment_grade_dict':comment_grade_dict,},context_instance=RequestContext(request))
 
 
 def grade_show_filter(grade,replay_at__gte,toDate_cheak):
@@ -366,7 +284,6 @@ def grade_show_filter(grade,replay_at__gte,toDate_cheak):
     
     grade_filter = CommentGrade.objects.filter(grade=grade,replay_at__gte=replay_at__gte,replay_at__lte=toDate_cheak)
     
-#    print 'grade_filter',grade_filter
     for o in grade_filter:
         comment_filter_grade_show = Comment.objects.filter(oid=o.oid)
         dic_grade_show[o.oid] =[comment_filter_grade_show[0].item_pic_url,
@@ -378,7 +295,8 @@ def grade_show_filter(grade,replay_at__gte,toDate_cheak):
                             comment_filter_grade_show[0].oid]
     return dic_grade_show
     
-@csrf_exempt       
+@csrf_exempt   
+@staff_member_required
 def replyer_grade(request):
 #    如要返回：图片  item_pic_url，图片链接地址    detail_url，客人评价    content，客服评价    reply，打分    grade
 #   得到页面信息
@@ -412,4 +330,3 @@ def replyer_grade(request):
         color = '#B8860B'
                         
     return render_to_response('comments/comment_replyer_grade.html',{'reply_grade_arrays':reply_grade_arrays,'grade_show':grade_show,'color':color,},context_instance=RequestContext(request))
-    

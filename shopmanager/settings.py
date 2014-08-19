@@ -140,6 +140,11 @@ INSTALLED_APPS = (
     'shopapp.comments',
     'shopapp.weixin',
     'shopapp.tmcnotify',
+<<<<<<< Updated upstream
+=======
+    'shopapp.jingdong',
+    'shopapp.examination',
+>>>>>>> Stashed changes
 
     #'test.celery',
 )

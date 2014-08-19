@@ -8,6 +8,6 @@ urlpatterns = patterns('shopapp.comments.views',
     url('explain/$','explain_for_comment',name='comment_explain'),
     url(r'^count/$','count'),
     url(r'^replyer_detail/$','replyer_detail'),
-    url(r'^writegrade/$','write_grade'),
+    url(r'^write_grade/$','write_grade'),
     url(r'^replyer_grade/$','replyer_grade')
 )

@@ -13,5 +13,6 @@ urlpatterns = patterns('',
     (r'^comment/',include('shopapp.comments.urls')),
     (r'^weixin/',include('shopapp.weixin.urls')),
     (r'^yunda/',include('shopapp.yunda.urls')),
+    (r'^examination/',include('shopapp.examination.urls')),
 )
 
