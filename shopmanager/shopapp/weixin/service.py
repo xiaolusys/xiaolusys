@@ -186,7 +186,9 @@ class WeixinUserService():
             wx_user.vmobile   = mobile
             wx_user.isvalid   = True
             wx_user.save()
-            raise MessageException(WeiXinAutoResponse.objects.get(message=u'校验成功提示').content)  
+            raise MessageException(
+                    WeiXinAutoResponse.objects.get(
+                        message=u'校验成功提示').content.replace('\r',''))  
         
         valid_code = self.genValidCode()
         self.sendValidCode(mobile,valid_code)        
@@ -223,7 +225,7 @@ class WeixinUserService():
             return WeiXinAutoResponse.objects.get_or_create(message=u'校验成功提示')[0].autoParams()            
         
         if message == '0' and self._wx_user.isValid():
-            return self.genTextRespJson(u'您已经成功绑定手机，取消绑定请输入[q]\n修改绑定请重新输入手机号：')
+            return self.genTextRespJson(u'您已经成功绑定手机，回复：\n[q] 取消绑定 \n[0] 重新绑定 \n(取消绑定后部分功能失效！)')
         
         for resp in self.getResponseList():
             if message.rfind(resp.message.strip()) > -1:

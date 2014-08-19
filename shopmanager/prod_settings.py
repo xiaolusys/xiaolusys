@@ -48,6 +48,7 @@ SITE_URL = 'http://qiyue.f3322.org/'
 ####################### TRADE HANDLERS CONFIG ########################
 TRADE_HANDLERS_PATH = (
    'shopback.trades.handlers.InitHandler',
+   'shopback.trades.handlers.ConfirmHandler',
    'shopback.trades.handlers.SplitHandler',
    'shopback.trades.handlers.MemoHandler',
    'shopback.trades.handlers.DefectHandler',

@@ -3,6 +3,7 @@ from django.conf import settings
 from shopback import paramconfig as pcfg
 from .handler import (BaseHandler,
                       InitHandler,
+                      ConfirmHandler,
                       FinalHandler,
                       StockOutHandler,
                       DefectHandler,

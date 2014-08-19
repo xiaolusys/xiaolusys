@@ -5,6 +5,7 @@ from django.db.models.signals import post_save
 from shopback.base import log_action,User, ADDITION, CHANGE
 from shopback.trades.models import MergeTrade,MergeOrder,MergeBuyerTrade
 from shopback.items.models import Product
+from shopback.signals import confirm_trade_signal
 from shopback import paramconfig as pcfg
 from common.utils import update_model_fields
 
@@ -17,7 +18,20 @@ class BaseHandler(object):
         
     def process(self,*args,**kwargs):
         raise Exception('Not Implement.')
+
+class ConfirmHandler(BaseHandler):
     
+    def handleable(self,merge_trade,*args,**kwargs):
+        origin_trade = kwargs.get('origin_trade',None)
+        return origin_trade.status == pcfg.TRADE_FINISHED
+        
+    def process(self,merge_trade,*args,**kwargs):
+        
+        try:
+            confirm_trade_signal.send(sender=MergeTrade,
+                                      trade_id=merge_trade.id)
+        except:
+            pass
 
 class InitHandler(BaseHandler):
     

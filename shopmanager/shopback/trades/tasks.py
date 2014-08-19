@@ -6,6 +6,7 @@ import json
 from celery.task import task
 from celery.task.sets import subtask
 from django.conf import settings
+from django.db.models import Q
 from shopback import paramconfig as pcfg
 from shopback.orders.models import Trade,Order
 from shopback.trades.service import TradeService
@@ -237,9 +238,9 @@ def sendTaobaoTradeTask(request_user_id,trade_id):
 def regularRemainOrderTask():
     """更新定时提醒订单"""
     dt = datetime.datetime.now()
-    MergeTrade.objects.filter(sys_status=pcfg.REGULAR_REMAIN_STATUS,
-                              remind_time__lte=dt).update(
-                                sys_status=pcfg.WAIT_AUDIT_STATUS)
+    MergeTrade.objects.filter(Q(remind_time__lte=dt)|Q(remind_time=None),
+                              sys_status=pcfg.REGULAR_REMAIN_STATUS)\
+                      .update(sys_status=pcfg.WAIT_AUDIT_STATUS)
 
 @task
 def saveTradeByTidTask(tid,seller_nick):
