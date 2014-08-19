@@ -283,7 +283,7 @@ class OrderInfoView(View):
             refund = refund_list[0]
         
         passed = False
-        sample_orders = SampleOrder.objects.filter(user_openid=user_openid).filter(status__gt=0)
+        sample_orders = SampleOrder.objects.filter(user_openid=user_openid).filter(status__gt=0).filter(status__lt=7)
         if sample_orders.count() > 0:
             passed = True
         
