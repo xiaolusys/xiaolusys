@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>客服考试系统首页</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Bootstrap -->
+    <link rel="stylesheet" href="{{ STATIC_URL }}bootstrap/css/bootstrap.min.css">
+    <script src="/static/jquery/jquery-1.8.13.min.js"></script>
+    <script>
+    function exam_index(paper_id,problem_count){
+    $.ajax({
+            url:'/app/examination/examination_user/',
+            data:{paper_id:paper_id,problem_count:problem_count},
+            success:function() {  console.log('ok'); }
+            });
+    };
+
+    function isNaNf()
+    {
+    var x=document.getElementById('problem_count').value;
+    if (x==''||isNaN(x))
+        {
+        alert('输入数字,最多只能{{ problem_len }}道题');return false
+        }
+    else if(x>{{ problem_len }})
+        {
+        alert("最多只能{{ problem_len }}道题")
+        }
+    else{
+        exam_index('{{ paper_id }}',x);
+    }
+    };
+    </script>
+  </head>
+<body background-color="#66FFFF">
+<div style="width:80%; padding:1%; margin:1% auto; text-align:center;" >
+<h1 style=" text-align:center;color:#FF0066;">妈妈微信答题</h1>
+
+<table class="table table-striped table-bordered table-condensed" >
+<thead>
+<!--用来测试的，在页面显示题号等信息
+<tr>
+<th style=" text-align:center;">用户ID</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style=" text-align:center;">{{ user }}</td>
+</tr>
+</tbody>
+<thead>
+<tr>
+<th style=" text-align:center;">考卷号</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style=" text-align:center;">{{ paper_id }}</td>
+</tr>
+</tbody>
+-->
+<thead>
+<tr>
+<th style=" text-align:center;color:#3366FF;"><b>为你准备的考试题数</b></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style=" text-align:center;">
+<!--另一种上传数据的办法
+<form name="form3" action="/app/examination/examination_user/" method="get">
+<input type="text" id="problem_count" style="width:10%" name="problem_count" value="{{ problem_count }}">
+<input type="hidden" name="paper_id" value="{{ paper_id }}" />
+<input type="submit"  onclick="isNaNf()" value="更新考题数">{{ text }}
+</form>
+另一种上传数据的办法 over-->
+
+<!--scriptsubmint-->
+<form name="form_b">
+<input type="hidden" name="problem_count" value="{{ problem_count }}">
+<input type="hidden" name="paper_id" value="{{ paper_id }}" />
+<input type="text" id="problem_count" style="width:10%;color:red" name="problem_count" value="{{ problem_count }}">
+<input type="submit" style="color:white;background:#3366FF;border:solid 0px" onclick="isNaNf()" value="更新一下">
+</form>
+<!--scriptsubmint over-->
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div>
+<form name="form2" action="/app/examination/start_exam/" method="get"> 
+<input type="hidden" name="paper_id" value="{{ paper_id }}" />
+<input type="hidden" name="user" value="{{ user }}">
+<input type="hidden" name="p_id" value="{{ p_id }}">
+<input type="hidden" name="problem_count" value="{{ problem_count }}">
+
+<div style="margin-top:20%; text-align:center; margin-bottom:10%;">
+<input type="submit"  value="答题" style="color:white;background:#FF9900;border:solid 0px">
+</div>
+</from>
+</div>
+
+</body>
+</html>
+

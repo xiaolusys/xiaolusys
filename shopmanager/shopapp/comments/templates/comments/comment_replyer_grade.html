@@ -4,18 +4,6 @@
 <title>客服评分统计</title>
 {% endblock %} 
 
-{% block head_script %}
-<script src="/static/jquery/jquery-1.8.13.min.js"></script>
-<script type="text/javascript">
-function writegrade(grade,oid) {
-    $.ajax({
-            url:'/app/comment/writegrade/',
-            data:{grade:grade,oid:oid},
-            success:function() {  console.log('ok'); }
-            });
-};
-</script>
-{% endblock %}
 
 {% block replyer_grade %}
 <div style="width:900px; padding:5px; margin:0px auto; text-align:center;" >
@@ -38,10 +26,11 @@ function writegrade(grade,oid) {
 <tr>
 <td  style="">{{ forloop.counter }}</td>
 <td ><a href="{{ v.1 }}" target="_blank" ><img src="{{ v.0 }}_sum.jpg" alt=""></a></td>
-<td style="font-size:11px">{{ v.2 }}</td>
-<td style="font-size:11px;color:green">{{v.3}}</td>
-<td style="font-size:11px;">{{v.4}}</td>
-<td style="font-size:11px;">{{v.5}}</td>
+
+<td style="font-size:11px;">{{ v.2 }}</td>
+<td style="font-size:11px;color:green;">{{v.3}}</td>
+<td style="font-size:11px;text-align: center">{{v.4}}</td>
+<td style="font-size:11px;text-align: center">{{v.5}}</td>
 </tr>
 {% endfor %}
 </tbody>
