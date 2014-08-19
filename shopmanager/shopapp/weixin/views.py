@@ -428,10 +428,6 @@ class ReferalView(View):
                 referal_count = vipcodes[0].usage_count
                 vipcode = vipcodes[0].code
         
-        rs = ReferalSummary.objects.filter(user_openid=user_openid)
-
-        if rs.count() > 0:
-            referal_bonus = rs[0].total_confirmed_value * 0.01
         
         coupon = Coupon.objects.get(pk=1)
         
@@ -439,14 +435,17 @@ class ReferalView(View):
         coupon_click_count = couponclicks.count()
         
         referal_mobiles = set()
+        mobile2openid = {}
         sampleorders = SampleOrder.objects.filter(vipcode=vipcode)
         for sample_order in sampleorders:
             wx_users = WeiXinUser.objects.filter(openid=sample_order.user_openid)
             if wx_users.count() > 0:
                 referal_mobiles.add(wx_users[0].mobile)
+                mobile2openid[str(wx_users[0].mobile)] = wx_users[0].openid
 
         for coupon_click in couponclicks:
             referal_mobiles.add(coupon_click.wx_user.mobile)
+            mobile2openid[str(coupon_click.wx_user.mobile)]=coupon_click.wx_user.openid
 
         payment = 0
         
@@ -459,6 +458,21 @@ class ReferalView(View):
                 payment += trade.payment
                 effect_mobiles.add(mobile)
 
+            confirmed_trades = MergeTrade.objects.filter(receiver_mobile=mobile).filter(status=pcfg.TRADE_FINISHED).filter(created__gt=effect_date)
+            for trade in confirmed_trades:
+                records = ReferalBonusRecord.objects.filter(trade_id=trade.id)
+                if records.count() < 0:
+                    ReferalBonusRecord.objects.create(user_openid=user_openid,
+                                                      referal_user_openid=mobile2openid[str(mobile)],
+                                                      trade_id=trade.id,
+                                                      bonus_value = int(trade.payment * 5),
+                                                      confirmed_status=1)
+                    
+
+        rs = ReferalBonusRecord.objects.filter(user_openid=user_openid)
+        for r in rs:
+            referal_bonus += r.bonus_value * 0.01
+                    
 
         response = render_to_response('weixin/ambass.html', 
                                   {'openid':user_openid, 

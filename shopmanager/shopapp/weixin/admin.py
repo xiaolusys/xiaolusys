@@ -10,6 +10,7 @@ from shopapp.weixin.models import (WeiXinAccount,
                                    WXLogistic,
                                    ReferalRelationship,
                                    ReferalSummary,
+                                   ReferalBonusRecord,
                                    Refund,
                                    FreeSample,
                                    SampleOrder,
@@ -190,6 +191,14 @@ class ReferalSummaryAdmin(admin.ModelAdmin):
 
 admin.site.register(ReferalSummary, ReferalSummaryAdmin) 
 
+
+class ReferalBonusRecordAdmin(admin.ModelAdmin):
+    list_display = ('user_openid', 'referal_user_openid', 'trade_id', 'bonus_value', 'confirmed_status', 'created')
+
+    search_fields = ['user_openid', 'referal_user_openid', 'trade_id']
+
+admin.site.register(ReferalBonusRecord, ReferalBonusRecordAdmin) 
+    
 
 class RefundAdmin(admin.ModelAdmin):
     

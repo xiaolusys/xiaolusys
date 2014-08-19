@@ -489,14 +489,18 @@ class ReferalRelationship(models.Model):
 
 
 class ReferalBonusRecord(models.Model):
-    user_openid = models.CharField(max_length=64,db_index=True,verbose_name=u"ID")
-    from_referal_user = models.IntegerField() # IntegerField?
-    order_id = models.CharField(max_length=32)
-    bonus_value = models.IntegerField() # cent
-    confirmed_status = models.IntegerField() # 0 unconfirmed, 1 confirmed, 2 cancelled
+    REFERAL_BONUS_STATUS = ((0,u'未知'),(1,u'确定'),(2,u'取消'))
+    user_openid = models.CharField(max_length=64,db_index=True,verbose_name=u"微信ID")
+    referal_user_openid = models.CharField(max_length=64,db_index=True,verbose_name=u"被推荐人微信ID")
+    trade_id = models.IntegerField(default=0,db_index=True,unique=True,verbose_name=u"订单号") 
+    bonus_value = models.IntegerField(default=0,verbose_name=u"金额（分）") # cent
+    confirmed_status = models.IntegerField(default=0, choices=REFERAL_BONUS_STATUS, verbose_name=u'状态') # 0 unconfirmed, 1 confirmed, 2 cancelled
+    created = models.DateTimeField(default=datetime.datetime.now(), verbose_name=u"创建时间")
     
     class Meta:
-        db_table = 'shop_wexin_referal_bonus_record'
+        db_table = 'shop_weixin_referal_bonus_record'
+        verbose_name = u'大使返利'
+        verbose_name_plural = u'大使返利列表'
 
 
 class BonusCashoutRecord(models.Model):
