@@ -480,6 +480,7 @@ class ReferalView(View):
                                    'referal_bonus':referal_bonus,
                                    'vipcode':vipcode, 'coupon':coupon,
                                    'payment':payment, 'num_orders':len(effect_mobiles),
+                                   'effect_mobiles':effect_mobiles,
                                    'coupon_click_count':coupon_click_count}, 
                                   context_instance=RequestContext(request))
         response.set_cookie("openid",user_openid)

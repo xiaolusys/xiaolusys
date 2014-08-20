@@ -14,6 +14,7 @@
     <li class="list-group-item"><font style="color:orange">VIP优惠券(<a href="/weixin/couponfaq/">发给朋友</a>): {{ coupon.description }}</font>（<font style="color:red">{{ coupon_click_count }}人已领取</font>）</li>
     <li class="list-group-item"><font style="color:orange">等待结算：￥{{ payment }}元（{{ num_orders }}个订单）</font></li>
     <li class="list-group-item"><font style="color:orange">VIP邀请码: {{ vipcode }}</font></li>
+    <li class="list-group-item"><font style="color:orange">订单详情: {% for mobile in effect_mobiles %} {{ mobile }}, {% endfor %}</font></li>
   </ul>
 
   <ul class="list-group">
