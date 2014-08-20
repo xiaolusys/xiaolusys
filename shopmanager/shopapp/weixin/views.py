@@ -1061,9 +1061,28 @@ class SurveyView(View):
     
 class TestView(View):
     def get(self, request, *args, **kwargs):
-
-        response = render_to_response('weixin/survey.html', 
-                                      context_instance=RequestContext(request))
-        return response
+        sample_orders = SampleOrder.objects.all()
+        referal_map = {}
+        for order in sample_orders:
+            openid = order.user_openid
+            vipcode = order.vipcode
+            codes = VipCode.objects.filter(code=vipcode)
+            if codes.count() > 0:
+                referal_map[openid] = codes[0].owner_openid.openid
+        
+        cnt = 0
+        for k,v in referal_map.iteritems():
+            wx_users = WeiXinUser.objects.filter(openid=k)
+            if wx_users.count() > 0:
+                user = wx_users[0]
+                user.referal_from_openid = v
+                user.save()
+                cnt += 1
+                
+        #response = render_to_response('weixin/survey.html', 
+        #                              context_instance=RequestContext(request))
+        #return response
+        response = {"cnt":cnt}
+        return HttpResponse(json.dumps(response),mimetype='application/json')
 
         
