@@ -463,7 +463,8 @@ class ReferalView(View):
             for trade in confirmed_trades:
                 records = ReferalBonusRecord.objects.filter(trade_id=trade.id)
                 if records.count() < 1:
-                    ReferalBonusRecord.objects.create(user_openid=user_openid,
+                    if user_openid != mobile2openid[str(mobile)]:
+                        ReferalBonusRecord.objects.create(user_openid=user_openid,
                                                       referal_user_openid=mobile2openid[str(mobile)],
                                                       trade_id=trade.id,
                                                       bonus_value = int(trade.payment * 5),
