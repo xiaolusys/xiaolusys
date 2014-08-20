@@ -462,7 +462,7 @@ class ReferalView(View):
             confirmed_trades = MergeTrade.objects.filter(receiver_mobile=mobile).filter(status=pcfg.TRADE_FINISHED).filter(created__gt=effect_date)
             for trade in confirmed_trades:
                 records = ReferalBonusRecord.objects.filter(trade_id=trade.id)
-                if records.count() < 0:
+                if records.count() < 1:
                     ReferalBonusRecord.objects.create(user_openid=user_openid,
                                                       referal_user_openid=mobile2openid[str(mobile)],
                                                       trade_id=trade.id,
