@@ -1,6 +1,8 @@
 #pidfile='/home/user1/deploy/taobao/gunicorn.pid'
 #daemon=True
-workers=8
+import multiprocessing
+
+workers=multiprocessing.cpu_count() * 2 + 1
 bind="127.0.0.1:9000"
 
 timeout=10

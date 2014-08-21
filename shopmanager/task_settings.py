@@ -73,7 +73,7 @@ SYNC_MODEL_SCHEDULE = {
      },
     u'定时更新设置提醒的订单入问题单':{     #更新定时提醒订单
          'task':'shopback.trades.tasks.regularRemainOrderTask',
-         'schedule':crontab(minute="0",hour='*/12'),
+         'schedule':crontab(minute="0",hour='0,12,17'),
          'args':()
      },
     u'定时将将客户信息更新到会员列表':{     #更新客户信息

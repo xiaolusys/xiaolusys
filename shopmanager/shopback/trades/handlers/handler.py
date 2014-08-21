@@ -159,7 +159,7 @@ class FinalHandler(BaseHandler):
             not merge_trade.is_locked and 
             merge_trade.sys_status == pcfg.WAIT_PREPARE_SEND_STATUS) or 
             (merge_trade.sys_status == pcfg.REGULAR_REMAIN_STATUS and 
-             not merge_trade.remind_time)):
+             merge_trade.remind_time == None)):
             
             merge_trade.sys_status = pcfg.WAIT_AUDIT_STATUS
 
