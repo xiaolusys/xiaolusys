@@ -487,13 +487,13 @@ class MergeTradeAdmin(admin.ModelAdmin):
                             if strade.id in merge_trade_ids:
                                 continue
                             
-                            is_merge_success = self._handle_merge(request.user.visitor_id,
+                            is_merge_success = self._handle_merge(request.user.id,
                                                                   strade,
                                                                   main_trade)
                             if is_merge_success:
                                 merge_trade_ids.append(strade.id)
                                 
-                    is_merge_success = self._handle_merge(request.user.visitor_id,trade,main_trade)
+                    is_merge_success = self._handle_merge(request.user.id,trade,main_trade)
                     if is_merge_success:
                         merge_trade_ids.append(trade.id)
                         
@@ -511,8 +511,7 @@ class MergeTradeAdmin(admin.ModelAdmin):
                                u'合并订单(%s)'%','.join([str(id) for id in merge_trade_ids]))
             else:
                 audit_trades = queryset.filter(sys_status__in=(pcfg.WAIT_AUDIT_STATUS,
-                                                               pcfg.WAIT_PREPARE_SEND_STATUS,
-                                                               )
+                                                               pcfg.WAIT_PREPARE_SEND_STATUS)
                                                ).order_by('pay_time')	
                 if audit_trades.count()>0:
                     
@@ -546,12 +545,13 @@ class MergeTradeAdmin(admin.ModelAdmin):
                                 if strade.id in merge_trade_ids:
                                     continue
                                 
-                                is_merge_success = self._handle_merge(request.user.visitor_id,
+                                is_merge_success = self._handle_merge(request.user.id,
                                                                       strade,main_trade)
                                 if is_merge_success:
                                     merge_trade_ids.append(strade.id)
                         
-                        is_merge_success = MergeTrade.objects.mergeMaker(main_trade,trade)
+                        is_merge_success = self._handle_merge(request.user.id,
+                                                              trade,main_trade)
                         if not is_merge_success:
                             fail_reason      = u'订单合并错误'
                             break
