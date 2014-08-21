@@ -440,8 +440,9 @@ class ReferalView(View):
         for sample_order in sampleorders:
             wx_users = WeiXinUser.objects.filter(openid=sample_order.user_openid)
             if wx_users.count() > 0:
-                referal_mobiles.add(wx_users[0].mobile)
-                mobile2openid[str(wx_users[0].mobile)] = wx_users[0].openid
+                if wx_users[0].isValid():
+                    referal_mobiles.add(wx_users[0].mobile)
+                    mobile2openid[str(wx_users[0].mobile)] = wx_users[0].openid
 
         for coupon_click in couponclicks:
             referal_mobiles.add(coupon_click.wx_user.mobile)
@@ -461,8 +462,9 @@ class ReferalView(View):
             confirmed_trades = MergeTrade.objects.filter(receiver_mobile=mobile).filter(status=pcfg.TRADE_FINISHED).filter(created__gt=effect_date)
             for trade in confirmed_trades:
                 records = ReferalBonusRecord.objects.filter(trade_id=trade.id)
-                if records.count() < 0:
-                    ReferalBonusRecord.objects.create(user_openid=user_openid,
+                if records.count() < 1:
+                    if user_openid != mobile2openid[str(mobile)]:
+                        ReferalBonusRecord.objects.create(user_openid=user_openid,
                                                       referal_user_openid=mobile2openid[str(mobile)],
                                                       trade_id=trade.id,
                                                       bonus_value = int(trade.payment * 5),
@@ -480,6 +482,7 @@ class ReferalView(View):
                                    'referal_bonus':referal_bonus,
                                    'vipcode':vipcode, 'coupon':coupon,
                                    'payment':payment, 'num_orders':len(effect_mobiles),
+                                   'effect_mobiles':effect_mobiles,
                                    'coupon_click_count':coupon_click_count}, 
                                   context_instance=RequestContext(request))
         response.set_cookie("openid",user_openid)
@@ -1057,9 +1060,28 @@ class SurveyView(View):
     
 class TestView(View):
     def get(self, request, *args, **kwargs):
-
-        response = render_to_response('weixin/survey.html', 
-                                      context_instance=RequestContext(request))
-        return response
+        sample_orders = SampleOrder.objects.all()
+        referal_map = {}
+        for order in sample_orders:
+            openid = order.user_openid
+            vipcode = order.vipcode
+            codes = VipCode.objects.filter(code=vipcode)
+            if codes.count() > 0:
+                referal_map[openid] = codes[0].owner_openid.openid
+        
+        cnt = 0
+        for k,v in referal_map.iteritems():
+            wx_users = WeiXinUser.objects.filter(openid=k)
+            if wx_users.count() > 0:
+                user = wx_users[0]
+                user.referal_from_openid = v
+                user.save()
+                cnt += 1
+                
+        #response = render_to_response('weixin/survey.html', 
+        #                              context_instance=RequestContext(request))
+        #return response
+        response = {"cnt":cnt}
+        return HttpResponse(json.dumps(response),mimetype='application/json')
 
         
