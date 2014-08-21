@@ -211,6 +211,10 @@ class WeixinUserService():
          if not wx_user.validcode or wx_user.validcode != validCode:
              raise MessageException(u'验证码不对，请重新输入:')
          
+         wxusers = WeiXinUser.objects.filter(mobile=wx_user.vmobile).exclude(openid=openId)
+         if wxusers.count()>0:
+             raise MessageException(u'该手机号码已被其他用户验证。')
+         
          wx_user.mobile  = wx_user.vmobile
          wx_user.isvalid = True
          wx_user.save()
@@ -225,7 +229,7 @@ class WeixinUserService():
             return WeiXinAutoResponse.objects.get_or_create(message=u'校验成功提示')[0].autoParams()            
         
         if message == '0' and self._wx_user.isValid():
-            return self.genTextRespJson(u'您已经成功绑定手机，回复：\n[q] 取消绑定 \n[0] 重新绑定 \n(取消绑定后部分功能失效！)')
+            return self.genTextRespJson(u'您已成功绑定手机：\n[q] 取消绑定 \n[0] 重新绑定 \n*取消绑定后部分功能失效')
         
         for resp in self.getResponseList():
             if message.rfind(resp.message.strip()) > -1:
@@ -376,8 +380,7 @@ class WeixinUserService():
         
         TradeService.createTrade(user_id,order_id,pcfg.WX_TYPE)
         
-        return self.genTextRespJson(u'您的订单(%s)优尼世界已收到,我们会尽快将宝贝寄给您。'%
-                                                                order_id)
+        return self.genTextRespJson(u'您的订单(%s)优尼世界已收到,我们会尽快将宝贝寄给您。'%order_id)
         
     def handleRequest(self,params):
         

@@ -717,7 +717,6 @@ class SampleApplyView(View):
         skus = SampleSku.objects.filter(sku_code=sku_code)
         sku = skus[0]
 
-
         content = request.REQUEST
 
         code = content.get('code')
