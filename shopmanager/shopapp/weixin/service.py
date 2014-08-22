@@ -234,11 +234,11 @@ class WeixinUserService():
             if message.isdigit():
                 if resp.message.strip() == message:
                     return resp.autoParams()
-                
+                continue
             elif message.rfind(resp.message.strip()) > -1:
                 return resp.autoParams()
             
-        return self.genTextRespJson(u'[愉快]需要人工客服服务吗?\n(回复Y/N)')
+        return self.genTextRespJson(u'[愉快]亲，需要人工客服吗?\n(回复Y/N)')
         
     def getTrade2BuyerStatus(self,status,sys_status):
         
