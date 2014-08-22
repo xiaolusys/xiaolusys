@@ -238,7 +238,7 @@ class WeixinUserService():
             elif message.rfind(resp.message.strip()) > -1:
                 return resp.autoParams()
             
-        return self.genTextRespJson(u'[愉快]您需要人工客服吗?(回复Y/N)')
+        return self.genTextRespJson(u'[愉快]需要人工客服服务吗?\n(回复Y/N)')
         
     def getTrade2BuyerStatus(self,status,sys_status):
         
@@ -372,7 +372,7 @@ class WeixinUserService():
             return WeiXinAutoResponse.respDKF()
         
         elif eventKey == 'N':
-            raise MessageException(u'[OK]欢迎下次联系我们哦[愉快]')
+            raise MessageException(u'[OK]期待下次为您服务[愉快]')
         
         if eventType == WeiXinAutoResponse.WX_EVENT_SUBSCRIBE :
             self._wx_user.doSubscribe(eventKey.rfind('_') > -1 and eventKey.split('_')[1] or '')
