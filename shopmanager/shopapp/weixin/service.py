@@ -27,7 +27,7 @@ import logging
 logger = logging.getLogger('django.request')
 VALID_MOBILE_REGEX = '^1[34578][0-9]{9}'
 VALID_CODE_REGEX   = '^[0-9]{6}$'
-VALID_EVENT_CODE   = '^[qwertyuiopQWERTYUIOP]$'
+VALID_EVENT_CODE   = '^[qwertyuiopnQWERTYUIOPN]$'
 
 
 mobile_re = re.compile(VALID_MOBILE_REGEX)
@@ -187,8 +187,7 @@ class WeixinUserService():
             wx_user.isvalid   = True
             wx_user.save()
             raise MessageException(
-                    WeiXinAutoResponse.objects.get(
-                        message=u'校验成功提示').content.replace('\r',''))  
+                    WeiXinAutoResponse.objects.get(message=u'校验成功提示').content.replace('\r',''))  
         
         valid_code = self.genValidCode()
         self.sendValidCode(mobile,valid_code)        
@@ -232,10 +231,14 @@ class WeixinUserService():
             return self.genTextRespJson(u'您已成功绑定手机：\n[q] 取消绑定 \n[0] 重新绑定 \n*取消绑定后部分功能失效')
         
         for resp in self.getResponseList():
-            if message.rfind(resp.message.strip()) > -1:
+            if message.isdigit():
+                if resp.message.strip() == message:
+                    return resp.autoParams()
+                
+            elif message.rfind(resp.message.strip()) > -1:
                 return resp.autoParams()
             
-        return WeiXinAutoResponse.respDKF()
+        return self.genTextRespJson(u'[愉快]您需要人工客服吗?(回复Y/N)')
         
     def getTrade2BuyerStatus(self,status,sys_status):
         
@@ -364,7 +367,13 @@ class WeixinUserService():
         
         elif eventKey == "Z":
             return self.getReferalProgramWelcomeMessage(self._wx_user.mobile)
-
+        
+        elif eventKey == 'Y':
+            return WeiXinAutoResponse.respDKF()
+        
+        elif eventKey == 'N':
+            raise MessageException(u'[OK]欢迎下次联系我们哦[愉快]')
+        
         if eventType == WeiXinAutoResponse.WX_EVENT_SUBSCRIBE :
             self._wx_user.doSubscribe(eventKey.rfind('_') > -1 and eventKey.split('_')[1] or '')
             return WeiXinAutoResponse.respDefault()
@@ -380,7 +389,7 @@ class WeixinUserService():
         
         TradeService.createTrade(user_id,order_id,pcfg.WX_TYPE)
         
-        return self.genTextRespJson(u'您的订单(%s)优尼世界已收到,我们会尽快将宝贝寄给您。'%order_id)
+        return self.genTextRespJson(u'您的订单(%s)优尼世界已收到,我们会尽快将宝贝寄给您。[玫瑰]'%order_id)
         
     def handleRequest(self,params):
         
@@ -438,7 +447,7 @@ class WeixinUserService():
             
         except Exception,exc:
             logger.error(u'微信请求异常:%s'%exc.message ,exc_info=True)
-            ret_params.update(self.genTextRespJson(u'不好了，小优尼闹情绪不想干活了！'))
+            ret_params.update(self.genTextRespJson(u'不好了，小优尼闹情绪不想干活了！[撇嘴]'))
             
         return ret_params
     
