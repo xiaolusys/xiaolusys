@@ -214,6 +214,7 @@
             return;
           }
 
+	  window.clearInterval(global_timer);
           $("#id_verifycode_group")[0].innerHTML = '';
           $("#id_requestcode_button").removeClass("btn-primary").addClass("btn-success")[0].innerHTML="已验证";
           $("#id_mobile_input").attr("disabled","disabled");
