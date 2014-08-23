@@ -175,6 +175,7 @@
       };
 
       function requestcode() {
+        var btn = $("#id_requestcode_button");
         if (btn.attr("status") == "1") {
           return;
         }
@@ -184,7 +185,6 @@
           return;
         }
 
-        var btn = $("#id_requestcode_button");
         btn.attr("status","1");
 	btn[0].innerHTML = "60";
         global_timer = window.setInterval(updateTime, 1000);
