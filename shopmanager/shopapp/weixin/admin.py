@@ -91,9 +91,9 @@ admin.site.register(WeiXinUser, WeiXinUserAdmin)
 
 class WeiXinAutoResponseAdmin(admin.ModelAdmin):
     
-    list_display = ('message','rtype','title','content')
+    list_display = ('message','rtype','title','content','fuzzy_match')
     
-    list_filter = ('rtype',)
+    list_filter = ('rtype','fuzzy_match')
     search_fields = ['message','title','content']
     
     ordering = ('message',)

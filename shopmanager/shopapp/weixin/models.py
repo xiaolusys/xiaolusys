@@ -191,6 +191,21 @@ class WeiXinUser(models.Model):
         self.save()
 
 
+class ResponseManager(models.Manager):
+    
+    def get_query_set(self):
+        return (super(ResponseManager, self).get_query_set().extra(
+                    select={'length':'Length(message)'}).order_by('-length'))
+    
+    @property
+    def FuzzyMatch(self):
+        return self.get_query_set().filter(match_type=True)
+    
+    @property
+    def FullMatch(self):
+        return self.get_query_set().filter(match_type=False)
+
+
 class WeiXinAutoResponse(models.Model):
     
     WX_TEXT  = 'text'
@@ -238,6 +253,10 @@ class WeiXinAutoResponse(models.Model):
     news_json = JSONCharMyField(max_length=8192,blank=True,
                               load_kwargs={},default='[]',
                               verbose_name=u'图文信息')
+    
+    fuzzy_match = models.BooleanField(default=True,verbose_name=u'模糊匹配')
+    
+    objects = ResponseManager()
     
     class Meta:
         db_table = 'shop_weixin_response'
