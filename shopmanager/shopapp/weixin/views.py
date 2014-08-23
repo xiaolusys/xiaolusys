@@ -408,8 +408,8 @@ class ReferalView(View):
 
         referal_users = WeiXinUser.objects.filter(referal_from_openid=user_openid)
         for user in referal_users:
-            referal_mobiles.add(user.receiver_mobile)
-            mobile2openid[str(user.receiver_mobile)] = user.openid
+            referal_mobiles.add(user.mobile)
+            mobile2openid[str(user.mobile)] = user.openid
 
         for coupon_click in couponclicks:
             referal_mobiles.add(coupon_click.wx_user.mobile)
