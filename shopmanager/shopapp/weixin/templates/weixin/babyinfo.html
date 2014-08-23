@@ -72,7 +72,7 @@
 	  <div class="input-group">
 	    <span class="input-group-addon">手机号</span>
 	    {% if user.isvalid %}
-	    <input id="id_mobile_input" type="text" value="{{ user.mobile }}"class="form-control" disabled="disabled">
+	    <input id="id_mobile_input" type="text" value="{{ user.mobile }}" class="form-control" disabled="disabled">
 	    <span class="input-group-btn">
 	      <button id="id_requestcode_button" class="btn btn-success" type="button" status="1">已验证</button>
 	    </span>
@@ -101,6 +101,7 @@
 	<div class="input-group">
 	  <span class="input-group-addon">收货人 </span>
 	  <input id="id_receiver_name" type="text" value="{{ user.receiver_name}}" class="form-control">{% csrf_token %}
+	  <input type="hidden" id="id_openid" value="{{ openid }}">
 	</div>
 
 	<div class="input-group">
@@ -115,7 +116,7 @@
 	  <span class="input-group-addon">详址</span>
 	  <input id="id_streetaddr" type="text" value="{{ user.address }}" class="form-control">
 	</div>
-
+	
       </div>
     </div>
 
@@ -189,8 +190,9 @@
 	btn[0].innerHTML = "60";
         global_timer = window.setInterval(updateTime, 1000);
 
-        var url = "/weixin/requestcode/"+mobile+"/";
-      
+	var openid = $("#id_openid").val();
+        var url = "/weixin/requestcode/";
+	var data = {"mobile":mobile, "openid":openid};
 
         var callback = function (res) {
           if (res["code"] != "good") {
@@ -200,14 +202,15 @@
           }
         };
         
-        $.ajax({url:url, success:callback});
+        $.ajax({url:url, data:data, success:callback});
       };
+
       function verifycode() {
-        var code = $("#id_code_input").val();
-        if (validateVerifyCode(code) == false) {
+        var verifycode = $("#id_code_input").val();
+        if (validateVerifyCode(verifycode) == false) {
           return;
         }
-        var url = "/weixin/verifycode/"+code+"/";
+        var url = "/weixin/verifycode/";
         var callback = function (res) {
           if (res["code"] == "bad") {
             $("#id_verifycode_button")[0].innerHTML = "验证失败，刷新再试";
@@ -215,18 +218,19 @@
           }
 
 	  window.clearInterval(global_timer);
-          $("#id_verifycode_group")[0].innerHTML = '';
+          $("#id_verifycode_group").attr("display","none");
           $("#id_requestcode_button").removeClass("btn-primary").addClass("btn-success")[0].innerHTML="已验证";
           $("#id_mobile_input").attr("disabled","disabled");
           $("#id_requestcode_button").attr("status", "1");
         };
-        $.ajax({url:url, success:callback});
+        var openid = $("#id_openid").val();
+	var data = {"verifycode":verifycode, "openid":openid};
+        $.ajax({url:url, data:data, success:callback});
       };
       
       function babyinfo() {
         if ($("#id_requestcode_button").attr("status") != "1") {
           $("#id_savelabel")[0].innerHTML = "请先验证手机号！";
-	  alert("请先【点击验证】手机号！");
           return;
         }
         var year = $("#id_year").val();
@@ -246,10 +250,13 @@
           return;												 
         }
         var csrf_token = document.getElementsByName("csrfmiddlewaretoken")[0].value;
+        var verify_code = $("#id_code_input").val();
+        var openid = $("#id_openid").val();
         var url = "/weixin/babyinfo/";
         var data = {"year":year, "month":month, "sex":sex, 
                     "receiver_name":receiver_name, "province":province,
-                    "city":city, "streetaddr":streetaddr,
+                    "city":city, "streetaddr":streetaddr, 
+                    "verifycode":verify_code, "openid":openid,
                     "csrfmiddlewaretoken":csrf_token};
         var callback = function (res) {
           if (res["code"] == "ok") {

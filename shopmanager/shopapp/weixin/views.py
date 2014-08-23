@@ -134,73 +134,65 @@ from django.template import RequestContext
 
 class RequestCodeView(View):
     def get(self, request, *args, **kwargs):
-        mobile = kwargs.get('mobile',0)
+        content = request.REQUEST
+        mobile = content.get('mobile','0')
+        openid = content.get('openid',None)
         if len(mobile) != 11:
             response = {"code":"bad", "message":"wrong phone number"}
             return HttpResponse(json.dumps(response),mimetype='application/json')
-
-        content = request.REQUEST
-
-        code = content.get('code')
-
-        ## if user refresh page, we can get user_openid from cookie
-        user_openid = request.COOKIES.get('openid')
-
-        if user_openid == 'None' or user_openid == None:
-            user_openid = get_user_openid(code)
         
-        wx_users = WeiXinUser.objects.filter(mobile=mobile,
-                                             isvalid=True).exclude(openid=user_openid)
+        wx_users = WeiXinUser.objects.filter(mobile=mobile,isvalid=True)
         if wx_users.count() > 0:
-            response = {"code":"bad", "message":"duplication phone"}
+            response = {"code":"dup", "message":"duplication phone"}
             return HttpResponse(json.dumps(response),mimetype='application/json')
         
-        wx_user_service = WeixinUserService(openId=user_openid)
+        wx_user_service = WeixinUserService(openId=openid)
         if wx_user_service._wx_user.isNone():
-            response = {"code":"bad", "message":"anonymous user"}
+            response = {"code":"anony", "message":"anonymous user"}
             return HttpResponse(json.dumps(response),mimetype='application/json')
 
         code = wx_user_service.genValidCode()
+
+        if wx_user.valid_count >= 5:
+            response = {"code":"locked", "message":"limit reached, please contact us"}
+            return HttpResponse(json.dumps(response),mimetype='application/json')
         
+        if wx_user.valid_count > 0:
+            prev_time = wx_user.code_time
+            diff_time = datetime.datetime.now() - wx_user.code_time
+            if diff_time.seconds < 60:
+                response = {"code":"wait", "message":"wait 60s before requesting new code"}
+                return HttpResponse(json.dumps(response),mimetype='application/json')
+                
         # we have to write code into user's profile
         wx_user_service.sendValidCode(mobile, code)
         wx_user = wx_user_service._wx_user
-        wx_user.mobile    = mobile
+        wx_user.vmobile   = mobile
         wx_user.isvalid   = False
         wx_user.validcode = code
         wx_user.valid_count += 1
         wx_user.code_time = datetime.datetime.now()
         wx_user.save()
-
         
         response = {"code":"good", "message":"code has been sent"}
         return HttpResponse(json.dumps(response),mimetype='application/json')
 
+
 class VerifyCodeView(View):
-    def get(self, request, *args, **kwargs):
-        verifycode = kwargs.get('verifycode',0)
+    def get(self, request):
+        content = request.REQUEST
+        verifycode = content.get('verifycode','0')
+        openid = content.get('openid',None)
         if len(verifycode) not in (6, 7):
             response = {"code":"bad", "message":"wrong verification code"}
             return HttpResponse(json.dumps(response),mimetype='application/json')
 
-        #code = content.get('code')
-
-        ## if user refresh page, we can get user_openid from cookie
-        user_openid = request.COOKIES.get('openid')
-
-        if user_openid == 'None' or user_openid == None:
-            APPID = 'wxc2848fa1e1aa94b5'
-            SECRET = 'eb3bfe8e9a36a61176fa5cafe341c81f'
-            #user_openid = get_user_openid(code)
-            response = {"code":"bad", "message":"invalid request"}
-
-            return HttpResponse(json.dumps(response),mimetype='application/json')
-
-        wx_user_service = WeixinUserService(openId=user_openid)
+        wx_user_service = WeixinUserService(openId=openid)
         wx_user = wx_user_service._wx_user
         if not wx_user.validcode or wx_user.validcode != verifycode:
             response = {"code":"bad", "message":"invalid code"}
         else:    
+            wx_user.mobile = wx_user.vmobile
             wx_user.isvalid = True
             wx_user.save()
             response = {"code":"good", "message":"code has been verified"}
@@ -209,10 +201,9 @@ class VerifyCodeView(View):
         
     
 class OrderInfoView(View):
-
     def get(self, request):
         content = request.REQUEST
-        code = content.get('code')
+        code = content.get('code',None)
         user_openid = get_user_openid(code)
         
         weixin_user_service = WeixinUserService(user_openid)
@@ -302,9 +293,9 @@ class BabyInfoView(View):
         years = [2008, 2009, 2010, 2011, 2012, 2013, 2014, 2015]
         months = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
         response = render_to_response('weixin/babyinfo.html', 
-                                      {'user':wx_user, 'years': years, 'months': months},
+                                      {'user':wx_user, 'years': years, 
+                                       'months': months, 'openid':user_openid},
                                       context_instance=RequestContext(request))
-        response.set_cookie("openid",user_openid)
         return response
         
     def post(self, request, *args, **kwargs):
@@ -317,11 +308,8 @@ class BabyInfoView(View):
         province = content.get("province")
         city = content.get("city")
         streetaddr = content.get("streetaddr")
-
-        user_openid = request.COOKIES.get('openid')
-        code = content.get("code")
-        if user_openid == 'None' or user_openid == None:
-            user_openid = get_user_openid(code)
+        verifycode = content.get("verifycode")
+        user_openid = content.get('openid')
 
         wx_user_service = WeixinUserService(openId=user_openid)
         wx_user = wx_user_service._wx_user
@@ -333,14 +321,18 @@ class BabyInfoView(View):
         wx_user.province = province
         wx_user.city = city
         wx_user.address = streetaddr
-
-        
         wx_user.save()
-        
+
+        status = "ok"
+        message = "saved"
+        if wx_user.validcode != verifycode:
+            status = "bad"
+            messgae = "verification code wrong!"
+
         response = {"birth_year":wx_user.birth_year, "birth_month":wx_user.birth_month,
                     "sex":wx_user.baby_sex, "receiver_name":wx_user.receiver_name,
                     "province":wx_user.province,"city":wx_user.city,
-                    "streetaddr":wx_user.address, "code":"ok", "message":"saved"}
+                    "streetaddr":wx_user.address, "code":status, "message":message}
 
         return HttpResponse(json.dumps(response),mimetype='application/json')
 
