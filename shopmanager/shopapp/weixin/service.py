@@ -27,7 +27,7 @@ import logging
 logger = logging.getLogger('django.request')
 VALID_MOBILE_REGEX = '^1[34578][0-9]{9}'
 VALID_CODE_REGEX   = '^[0-9]{6}$'
-VALID_EVENT_CODE   = '^[qwertyuiopnQWERTYUIOPN]$'
+VALID_EVENT_CODE   = '^[qwertyuiopknQWERTYUIOPKN]$'
 
 
 mobile_re = re.compile(VALID_MOBILE_REGEX)
@@ -233,8 +233,9 @@ class WeixinUserService():
         for resp in WeiXinAutoResponse.objects.FuzzyMatch:
             if message.rfind(resp.message.strip()) > -1:
                 return resp.autoParams()
-            
-        return self.genTextRespJson(u'[愉快]亲，需要人工客服吗?\n(回复Y/N)')
+        
+        return WeiXinAutoResponse.respDKF()
+        
         
     def getTrade2BuyerStatus(self,status,sys_status):
         

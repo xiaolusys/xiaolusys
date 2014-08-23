@@ -5,7 +5,6 @@
 {% block container %}
 
 <div>
-
   <div class="panel panel-default" style="margin-top:5px">
     <div class="panel-heading" style="color:orange">
       <h4 class="panel-title">宝宝档案</h4>
@@ -67,11 +66,9 @@
 	</div>
       </div>
 
-
       <div class="row">
 	<div class="col-xs-12">
 	  <h5 style="color:#3071a9">验证手机</h5>
-
 	  <div class="input-group">
 	    <span class="input-group-addon">手机号</span>
 	    {% if user.isvalid %}
@@ -91,7 +88,7 @@
 	  <span class="input-group-addon">验证码</span>
 	  <input id="id_code_input" type="text" class="form-control">
 	  <span class="input-group-btn">
-	    <button id="id_verifycode_button" class="btn btn-warning" type="button" onclick="verifycode();">立即验证</button>
+	    <button id="id_verifycode_button" class="btn btn-warning" type="button" onclick="verifycode();">点击验证</button>
 	  </span>
 	</div>
 	{% endif %}
@@ -164,6 +161,19 @@
         return validateReg.test(s);
       };
 
+      var global_timer;
+      function updateTime() {
+        var btn = $("#id_requestcode_button");
+        time_left = parseInt(btn[0].innerHTML) - 1;
+        if (time_left <= 0) {
+          btn.attr("status","0");
+	  window.clearInterval(global_timer);
+          btn[0].innerHTML = "点击重发";
+	} else {
+          btn[0].innerHTML = time_left.toString();
+	}
+      };
+
       function requestcode() {
         var btn = $("#id_requestcode_button");
         if (btn.attr("status") == "1") {
@@ -175,11 +185,21 @@
           return;
         }
 
+        btn.attr("status","1");
+	btn[0].innerHTML = "60";
+        global_timer = window.setInterval(updateTime, 1000);
+
         var url = "/weixin/requestcode/"+mobile+"/";
+      
 
         var callback = function (res) {
-          btn.attr("status","1")[0].innerHTML = "已发送";
+          if (res["code"] != "good") {
+	    btn.attr("status","0");
+	    window.clearInterval(global_timer);
+            btn[0].innerHTML = "点击重发";
+          }
         };
+        
         $.ajax({url:url, success:callback});
       };
       function verifycode() {
@@ -194,6 +214,7 @@
             return;
           }
 
+	  window.clearInterval(global_timer);
           $("#id_verifycode_group")[0].innerHTML = '';
           $("#id_requestcode_button").removeClass("btn-primary").addClass("btn-success")[0].innerHTML="已验证";
           $("#id_mobile_input").attr("disabled","disabled");
@@ -224,7 +245,6 @@
           return;												 
         }
         var csrf_token = document.getElementsByName("csrfmiddlewaretoken")[0].value;
-        console.log(csrf_token);
         var url = "/weixin/babyinfo/";
         var data = {"year":year, "month":month, "sex":sex, 
                     "receiver_name":receiver_name, "province":province,
