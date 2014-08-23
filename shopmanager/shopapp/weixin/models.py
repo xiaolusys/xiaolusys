@@ -199,11 +199,11 @@ class ResponseManager(models.Manager):
     
     @property
     def FuzzyMatch(self):
-        return self.get_query_set().filter(match_type=True)
+        return self.get_query_set().filter(fuzzy_match=True)
     
     @property
     def FullMatch(self):
-        return self.get_query_set().filter(match_type=False)
+        return self.get_query_set().filter(fuzzy_match=False)
 
 
 class WeiXinAutoResponse(models.Model):
