@@ -3,6 +3,7 @@ from django.conf import settings
 from .handler import BaseHandler
 from shopback.trades.models import MergeTrade,MergeBuyerTrade
 from shopback import paramconfig as pcfg
+from shopback.base import log_action,User, ADDITION, CHANGE
 from common.modelutils import  update_model_fields
 
 class MemoHandler(BaseHandler):
@@ -57,6 +58,11 @@ class MemoHandler(BaseHandler):
         
         update_model_fields(merge_trade,update_fields=['seller_memo',
                                                        'buyer_message'])
+        
+        log_action(merge_trade.user.user.id,
+                   merge_trade,ADDITION,
+                   u'订单备注:[%s:%s]'%(merge_trade.buyer_message,
+                       merge_trade.seller_memo))
         
         merge_type = MergeBuyerTrade.getMergeType(merge_trade.id)
         

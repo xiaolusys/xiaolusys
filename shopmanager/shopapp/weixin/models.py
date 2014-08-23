@@ -103,6 +103,8 @@ class AnonymousWeixinUser():
     
 class WeiXinUser(models.Model): 
     
+    MAX_MOBILE_VALID_COUNT = 5 
+    
     MEN      = 'm'
     FERMALE  = 'f'
     
@@ -123,7 +125,7 @@ class WeiXinUser(models.Model):
     city       = models.CharField(max_length=24,blank=True,verbose_name=u"城市")
     address    = models.CharField(max_length=256,blank=True,verbose_name=u"地址")
     mobile     = models.CharField(max_length=24,blank=True,verbose_name=u"手机")
-    referal_from_openid = models.CharField(max_length=64,blank=True,verbose_name=u"推荐人ID")
+    referal_from_openid = models.CharField(max_length=64,blank=True,db_index=True,verbose_name=u"推荐人ID")
     
     receiver_name   = models.CharField(max_length=64,blank=True,verbose_name=u"收货人")
     birth_year  = models.IntegerField(default=0,verbose_name=u"出生年")
@@ -171,6 +173,9 @@ class WeiXinUser(models.Model):
         
         return delta_seconds < 60 and  (60 - delta_seconds) or 0
     
+    def is_valid_count_safe(self):
+        return self.valid_count > self.MAX_MOBILE_VALID_COUNT
+    
     def is_code_time_safe(self):
         
         if not self.code_time:
@@ -189,6 +194,21 @@ class WeiXinUser(models.Model):
     def unSubscribe(self):
         self.subscribe = False
         self.save()
+
+
+class ResponseManager(models.Manager):
+    
+    def get_query_set(self):
+        return (super(ResponseManager, self).get_query_set().extra(
+                    select={'length':'Length(message)'}).order_by('-length'))
+    
+    @property
+    def FuzzyMatch(self):
+        return self.get_query_set().filter(fuzzy_match=True)
+    
+    @property
+    def FullMatch(self):
+        return self.get_query_set().filter(fuzzy_match=False)
 
 
 class WeiXinAutoResponse(models.Model):
@@ -238,6 +258,10 @@ class WeiXinAutoResponse(models.Model):
     news_json = JSONCharMyField(max_length=8192,blank=True,
                               load_kwargs={},default='[]',
                               verbose_name=u'图文信息')
+    
+    fuzzy_match = models.BooleanField(default=True,verbose_name=u'模糊匹配')
+    
+    objects = ResponseManager()
     
     class Meta:
         db_table = 'shop_weixin_response'
@@ -489,14 +513,18 @@ class ReferalRelationship(models.Model):
 
 
 class ReferalBonusRecord(models.Model):
-    user_openid = models.CharField(max_length=64,db_index=True,verbose_name=u"ID")
-    from_referal_user = models.IntegerField() # IntegerField?
-    order_id = models.CharField(max_length=32)
-    bonus_value = models.IntegerField() # cent
-    confirmed_status = models.IntegerField() # 0 unconfirmed, 1 confirmed, 2 cancelled
+    REFERAL_BONUS_STATUS = ((0,u'未知'),(1,u'确定'),(2,u'取消'))
+    user_openid = models.CharField(max_length=64,db_index=True,verbose_name=u"微信ID")
+    referal_user_openid = models.CharField(max_length=64,db_index=True,verbose_name=u"被推荐人微信ID")
+    trade_id = models.IntegerField(default=0,db_index=True,unique=True,verbose_name=u"订单号") 
+    bonus_value = models.IntegerField(default=0,verbose_name=u"金额（分）") # cent
+    confirmed_status = models.IntegerField(default=0, choices=REFERAL_BONUS_STATUS, verbose_name=u'状态') # 0 unconfirmed, 1 confirmed, 2 cancelled
+    created = models.DateTimeField(default=datetime.datetime.now(), verbose_name=u"创建时间")
     
     class Meta:
-        db_table = 'shop_wexin_referal_bonus_record'
+        db_table = 'shop_weixin_referal_bonus_record'
+        verbose_name = u'大使返利'
+        verbose_name_plural = u'大使返利列表'
 
 
 class BonusCashoutRecord(models.Model):
@@ -661,6 +689,16 @@ class CouponClick(models.Model):
         verbose_name = u'优惠券点击'
         verbose_name_plural = u'优惠券点击列表'
 
+#class AmbassCoupon(models.Model):
+#    openid = models.CharField(max_length=64,db_index=True,verbose_name=u"微信ID")
+#    coupon_id = models.IntegerField(default=0,db_index=True,verbose_name=u"优惠券ID")
+#    created = models.DateTimeField(auto_now_add=True,null=True,verbose_name=u'创建时间')
+#    
+#    class Meta:
+#        db_table = 'shop_ambass_coupon'
+#        verbose_name = u'优尼大使优惠券'
+#        verbose_name_plural = u'优尼大使优惠券列表'
+        
 
 class Survey(models.Model):
     selection = models.IntegerField(default=0,verbose_name=u'选择')

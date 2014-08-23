@@ -27,7 +27,7 @@ import logging
 logger = logging.getLogger('django.request')
 VALID_MOBILE_REGEX = '^1[34578][0-9]{9}'
 VALID_CODE_REGEX   = '^[0-9]{6}$'
-VALID_EVENT_CODE   = '^[qwertyuiopQWERTYUIOP]$'
+VALID_EVENT_CODE   = '^[qwertyuiopknQWERTYUIOPKN]$'
 
 
 mobile_re = re.compile(VALID_MOBILE_REGEX)
@@ -158,10 +158,6 @@ class WeixinUserService():
     def activeAccount(self):
         self._wx_api._wx_account.activeAccount()
     
-    def getResponseList(self):
-        
-        return WeiXinAutoResponse.objects.extra(
-                    select={'length':'Length(message)'}).order_by('-length')
     
     def genValidCode(self):
         return str(random.randint(100000,999999))
@@ -181,10 +177,21 @@ class WeixinUserService():
         if not  wx_user.is_code_time_safe():      
             raise MessageException(u'请%d秒后重新发送'%(wx_user.get_wait_time()))
         
+        if wx_user.is_valid_count_safe():
+            raise MessageException(u'[撇嘴]您的手机号验证异常，请联系客服帮您处理！')
+        
+        if wx_user.mobile == mobile:
+            
+            wx_user.vmobile   = mobile
+            wx_user.isvalid   = True
+            wx_user.save()
+            valid_resp = WeiXinAutoResponse.objects.get(message=u'校验成功提示')
+            raise MessageException(valid_resp.content.replace('\r',''))  
+        
         valid_code = self.genValidCode()
         self.sendValidCode(mobile,valid_code)        
         
-        wx_user.vmobile    = mobile
+        wx_user.vmobile   = mobile
         wx_user.isvalid   = False
         wx_user.validcode = valid_code
         wx_user.valid_count += 1
@@ -202,6 +209,10 @@ class WeixinUserService():
          if not wx_user.validcode or wx_user.validcode != validCode:
              raise MessageException(u'验证码不对，请重新输入:')
          
+         wxusers = WeiXinUser.objects.filter(mobile=wx_user.vmobile).exclude(openid=openId)
+         if wxusers.count() > 0:
+             raise MessageException(u'该手机号码已被其他用户验证。')
+         
          wx_user.mobile  = wx_user.vmobile
          wx_user.isvalid = True
          wx_user.save()
@@ -216,13 +227,18 @@ class WeixinUserService():
             return WeiXinAutoResponse.objects.get_or_create(message=u'校验成功提示')[0].autoParams()            
         
         if message == '0' and self._wx_user.isValid():
-            return self.genTextRespJson(u'您已经成功绑定手机，修改绑定请重新输入手机号：')
+            return self.genTextRespJson(u'您已成功绑定手机：\n[q] 取消绑定 \n[0] 重新绑定 \n*取消绑定后部分功能失效')
         
-        for resp in self.getResponseList():
-            if message.rfind(resp.message.strip()) > -1:
+        for resp in WeiXinAutoResponse.objects.FullMatch:
+            if message == resp.message.strip():
                 return resp.autoParams()
             
+        for resp in WeiXinAutoResponse.objects.FuzzyMatch:
+            if message.rfind(resp.message.strip()) > -1:
+                return resp.autoParams()
+        
         return WeiXinAutoResponse.respDKF()
+        
         
     def getTrade2BuyerStatus(self,status,sys_status):
         
@@ -337,8 +353,11 @@ class WeixinUserService():
         if eventKey in ('Q','W','E','R', 'Z') and not self._wx_user.isValid():
             raise MessageException(u'你还没有绑定手机哦!\n请输入手机号:')
         
-        if eventKey in ("Q","R"):
-            raise MessageException(u'功能还没有准备好哦')
+        if eventKey == "Q":
+            
+            self._wx_user.isvalid = False
+            self._wx_user.save()
+            raise MessageException(u'您的手机已取消绑定，重新绑定请输入[0]。')
             
         elif  eventKey == "W":
             return self.getTradeMessageByMobile(self._wx_user.mobile)
@@ -348,7 +367,13 @@ class WeixinUserService():
         
         elif eventKey == "Z":
             return self.getReferalProgramWelcomeMessage(self._wx_user.mobile)
-
+        
+        elif eventKey == 'Y':
+            return WeiXinAutoResponse.respDKF()
+        
+        elif eventKey == 'N':
+            raise MessageException(u'[OK]期待下次为您服务[愉快]')
+        
         if eventType == WeiXinAutoResponse.WX_EVENT_SUBSCRIBE :
             self._wx_user.doSubscribe(eventKey.rfind('_') > -1 and eventKey.split('_')[1] or '')
             return WeiXinAutoResponse.respDefault()
@@ -364,8 +389,7 @@ class WeixinUserService():
         
         TradeService.createTrade(user_id,order_id,pcfg.WX_TYPE)
         
-        return self.genTextRespJson(u'您的订单(%s)优尼世界已收到,我们会尽快将宝贝寄给您。'%
-                                                                order_id)
+        return self.genTextRespJson(u'您的订单(%s)优尼世界已收到,我们会尽快将宝贝寄给您。[玫瑰]'%order_id)
         
     def handleRequest(self,params):
         
@@ -423,7 +447,7 @@ class WeixinUserService():
             
         except Exception,exc:
             logger.error(u'微信请求异常:%s'%exc.message ,exc_info=True)
-            ret_params.update(self.genTextRespJson(u'不好了，小优尼闹情绪不想干活了！'))
+            ret_params.update(self.genTextRespJson(u'不好了，小优尼闹情绪不想干活了！[撇嘴]'))
             
         return ret_params
     

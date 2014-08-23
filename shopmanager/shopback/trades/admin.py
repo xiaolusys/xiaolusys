@@ -487,13 +487,16 @@ class MergeTradeAdmin(admin.ModelAdmin):
                             if strade.id in merge_trade_ids:
                                 continue
                             
-                            is_merge_success = self._handle_merge(request.user.id,strade,main_trade)
+                            is_merge_success = self._handle_merge(request.user.id,
+                                                                  strade,
+                                                                  main_trade)
                             if is_merge_success:
                                 merge_trade_ids.append(strade.id)
-                            
+                                
                     is_merge_success = self._handle_merge(request.user.id,trade,main_trade)
                     if is_merge_success:
                         merge_trade_ids.append(trade.id)
+                        
                                 
                 if is_merge_success and len(merge_trade_ids)<sub_trades.count():
                     fail_reason = u'部分订单未合并成功'
@@ -508,8 +511,7 @@ class MergeTradeAdmin(admin.ModelAdmin):
                                u'合并订单(%s)'%','.join([str(id) for id in merge_trade_ids]))
             else:
                 audit_trades = queryset.filter(sys_status__in=(pcfg.WAIT_AUDIT_STATUS,
-                                                               pcfg.WAIT_PREPARE_SEND_STATUS,
-                                                               )
+                                                               pcfg.WAIT_PREPARE_SEND_STATUS)
                                                ).order_by('pay_time')	
                 if audit_trades.count()>0:
                     
@@ -523,13 +525,33 @@ class MergeTradeAdmin(admin.ModelAdmin):
                     main_full_addr = main_trade.buyer_full_address #主订单收货人地址
                     
                     for trade in queryset:
+                        if trade.id in merge_trade_ids:
+                            continue
+                        
                         if trade.buyer_full_address != main_full_addr:
                             is_merge_success = False
                             fail_reason      = (u'订单地址不同:%s'%MergeTrade.
                                             objects.diffTradeAddress(trade,main_trade))
                             break
                         
-                        is_merge_success = MergeTrade.objects.mergeMaker(main_trade,trade)
+                        if trade.has_merge and trade.sys_status == pcfg.WAIT_AUDIT_STATUS:
+                        
+                            sub_tids = MergeBuyerTrade.objects.filter(
+                                            main_tid=trade.id).values_list('sub_tid')
+                            MergeTrade.objects.mergeRemover(trade)
+                            
+                            for strade in MergeTrade.objects.filter(id__in=[t[0] for t in sub_tids]):
+                                
+                                if strade.id in merge_trade_ids:
+                                    continue
+                                
+                                is_merge_success = self._handle_merge(request.user.id,
+                                                                      strade,main_trade)
+                                if is_merge_success:
+                                    merge_trade_ids.append(strade.id)
+                        
+                        is_merge_success = self._handle_merge(request.user.id,
+                                                              trade,main_trade)
                         if not is_merge_success:
                             fail_reason      = u'订单合并错误'
                             break

@@ -40,6 +40,10 @@ class EffectUserManager(models.Manager):
     @property
     def WEIXIN(self):
         return self.get_query_set().filter(type=self.model.SHOP_TYPE_WX)
+    
+    @property
+    def SUNING(self):
+        return self.get_query_set().filter(type=self.model.SHOP_TYPE_SN)
         
     @property
     def AMAZON(self):
@@ -68,6 +72,7 @@ class User(models.Model):
     SHOP_TYPE_YHD = 'YHD'
     SHOP_TYPE_DD  = 'DD'
     SHOP_TYPE_WX  = 'WX'
+    SHOP_TYPE_SN  = 'SN'
     SHOP_TYPE_AMZ = 'AMZ'
     
     SHOP_TYPE = (
@@ -76,6 +81,7 @@ class User(models.Model):
         (SHOP_TYPE_JD,u'京东'),
         (SHOP_TYPE_YHD,u'一号店'),
         (SHOP_TYPE_DD,u'当当'),
+        (SHOP_TYPE_SN,u'苏宁'),
         (SHOP_TYPE_WX,u'微信小店'),
         (SHOP_TYPE_AMZ,u'亚马逊'),
     )   

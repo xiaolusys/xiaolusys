@@ -7,7 +7,7 @@ from django.conf import settings
 from django.views.decorators.csrf import csrf_exempt
 from django.views.generic import View
 from shopapp.weixin.service import *
-from models import WeiXinUser,ReferalRelationship,ReferalSummary,WXOrder,Refund,FreeSample, SampleSku, SampleOrder,VipCode,Coupon,CouponClick,Survey
+from models import WeiXinUser,ReferalRelationship,ReferalSummary,ReferalBonusRecord,WXOrder,Refund,FreeSample, SampleSku, SampleOrder,VipCode,Coupon,CouponClick,Survey
 
 from shopback.trades.models import MergeTrade
 from shopback import paramconfig as pcfg
@@ -75,11 +75,18 @@ from urllib import urlopen
 
 
 
-def get_user_openid(code, appid, secret):
+def get_user_openid(request, code):
+    appid = settings.WEIXIN_APPID
+    secret = settings.WEIXIN_SECRET
     url = 'https://api.weixin.qq.com/sns/oauth2/access_token?appid=%s&secret=%s&code=%s&grant_type=authorization_code'
     get_openid_url = url % (appid, secret, code)
     r = urlopen(get_openid_url).read()
     r = json.loads(r)
+
+    if r.has_key("errcode"):
+        openid = request.COOKIES.get('openid')
+        return openid 
+
     return r.get('openid')
 
 
@@ -132,76 +139,66 @@ from django.template import RequestContext
 
 class RequestCodeView(View):
     def get(self, request, *args, **kwargs):
-        mobile = kwargs.get('mobile',0)
+        content = request.REQUEST
+        mobile = content.get('mobile','0')
+        openid = content.get('openid',None)
         if len(mobile) != 11:
             response = {"code":"bad", "message":"wrong phone number"}
             return HttpResponse(json.dumps(response),mimetype='application/json')
-
-        content = request.REQUEST
-
-        code = content.get('code')
-
-        APPID = 'wxc2848fa1e1aa94b5'
-        SECRET = 'eb3bfe8e9a36a61176fa5cafe341c81f'
-
-        ## if user refresh page, we can get user_openid from cookie
-        user_openid = request.COOKIES.get('openid')
-
-        if user_openid == 'None' or user_openid == None:
-            user_openid = get_user_openid(code, APPID, SECRET)
         
-        wx_users = WeiXinUser.objects.filter(mobile=mobile,
-                                             isvalid=True).exclude(openid=user_openid)
+        wx_users = WeiXinUser.objects.filter(mobile=mobile,isvalid=True)
         if wx_users.count() > 0:
-            response = {"code":"bad", "message":"duplication phone"}
+            response = {"code":"dup", "message":"duplication phone"}
             return HttpResponse(json.dumps(response),mimetype='application/json')
         
-        wx_user_service = WeixinUserService(openId=user_openid)
+        wx_user_service = WeixinUserService(openId=openid)
         if wx_user_service._wx_user.isNone():
-            response = {"code":"bad", "message":"anonymous user"}
+            response = {"code":"anony", "message":"anonymous user"}
             return HttpResponse(json.dumps(response),mimetype='application/json')
 
         code = wx_user_service.genValidCode()
+        wx_user = wx_user_service._wx_user
         
+        if wx_user.valid_count >= 5:
+            response = {"code":"locked", "message":"limit reached, please contact us"}
+            return HttpResponse(json.dumps(response),mimetype='application/json')
+        
+        if wx_user.valid_count > 0:
+            prev_time = wx_user.code_time
+            diff_time = datetime.datetime.now() - wx_user.code_time
+            if diff_time.seconds < 60:
+                response = {"code":"wait", "message":"wait 60s before requesting new code"}
+                return HttpResponse(json.dumps(response),mimetype='application/json')
+                
         # we have to write code into user's profile
         wx_user_service.sendValidCode(mobile, code)
         wx_user = wx_user_service._wx_user
-        wx_user.mobile    = mobile
+        wx_user.vmobile   = mobile
         wx_user.isvalid   = False
         wx_user.validcode = code
         wx_user.valid_count += 1
         wx_user.code_time = datetime.datetime.now()
         wx_user.save()
-
         
         response = {"code":"good", "message":"code has been sent"}
         return HttpResponse(json.dumps(response),mimetype='application/json')
 
+
 class VerifyCodeView(View):
-    def get(self, request, *args, **kwargs):
-        verifycode = kwargs.get('verifycode',0)
+    def get(self, request):
+        content = request.REQUEST
+        verifycode = content.get('verifycode','0')
+        openid = content.get('openid',None)
         if len(verifycode) not in (6, 7):
             response = {"code":"bad", "message":"wrong verification code"}
             return HttpResponse(json.dumps(response),mimetype='application/json')
 
-        #code = content.get('code')
-
-        ## if user refresh page, we can get user_openid from cookie
-        user_openid = request.COOKIES.get('openid')
-
-        if user_openid == 'None' or user_openid == None:
-            APPID = 'wxc2848fa1e1aa94b5'
-            SECRET = 'eb3bfe8e9a36a61176fa5cafe341c81f'
-            #user_openid = get_user_openid(code, APPID, SECRET)
-            response = {"code":"bad", "message":"invalid request"}
-
-            return HttpResponse(json.dumps(response),mimetype='application/json')
-
-        wx_user_service = WeixinUserService(openId=user_openid)
+        wx_user_service = WeixinUserService(openId=openid)
         wx_user = wx_user_service._wx_user
         if not wx_user.validcode or wx_user.validcode != verifycode:
             response = {"code":"bad", "message":"invalid code"}
         else:    
+            wx_user.mobile = wx_user.vmobile
             wx_user.isvalid = True
             wx_user.save()
             response = {"code":"good", "message":"code has been verified"}
@@ -210,21 +207,10 @@ class VerifyCodeView(View):
         
     
 class OrderInfoView(View):
-
     def get(self, request):
         content = request.REQUEST
-
-        code = content.get('code')
-
-        APPID = 'wxc2848fa1e1aa94b5'
-        SECRET = 'eb3bfe8e9a36a61176fa5cafe341c81f'
-
-        ## if user refresh page, we can get user_openid from cookie
-        user_openid = request.COOKIES.get('openid')
-
-        if user_openid == 'None' or user_openid == None:
-            user_openid = get_user_openid(code, APPID, SECRET)
-
+        code = content.get('code',None)
+        user_openid = get_user_openid(request, code)
         
         weixin_user_service = WeixinUserService(user_openid)
         wx_user = weixin_user_service._wx_user
@@ -283,7 +269,7 @@ class OrderInfoView(View):
             refund = refund_list[0]
         
         passed = False
-        sample_orders = SampleOrder.objects.filter(user_openid=user_openid).filter(status__gt=0)
+        sample_orders = SampleOrder.objects.filter(user_openid=user_openid).filter(status__gt=0).filter(status__lt=7)
         if sample_orders.count() > 0:
             passed = True
         
@@ -300,30 +286,27 @@ class BabyInfoView(View):
 
     def get(self, request):
         content = request.REQUEST
-
         code = content.get('code')
 
-        APPID = 'wxc2848fa1e1aa94b5'
-        SECRET = 'eb3bfe8e9a36a61176fa5cafe341c81f'
-
-        ## if user refresh page, we can get user_openid from cookie
-        user_openid = request.COOKIES.get('openid')
-
-        if user_openid == 'None' or user_openid == None:
-            user_openid = get_user_openid(code, APPID, SECRET)
-
-        wx_user_service = WeixinUserService(user_openid)
+        if code == None or code == "None":
+            response = {"msg":"请从[优尼世界]微信打开此页面！"}
+            return HttpResponse(json.dumps(response),mimetype='application/json')
+        
+        openid = get_user_openid(request, code)
+            
+        wx_user_service = WeixinUserService(openid)
         wx_user = wx_user_service._wx_user
         
         years = [2008, 2009, 2010, 2011, 2012, 2013, 2014, 2015]
         months = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
         response = render_to_response('weixin/babyinfo.html', 
-                                      {'user':wx_user, 'years': years, 'months': months},
+                                      {'user':wx_user, 'years': years, 
+                                       'months': months, 'openid':openid},
                                       context_instance=RequestContext(request))
-        response.set_cookie("openid",user_openid)
+        response.set_cookie("openid",openid)
         return response
         
-    def post(self, request, *args, **kwargs):
+    def post(self, request):
         content = request.REQUEST
         year = content.get("year")
         month  = content.get("month")
@@ -333,15 +316,9 @@ class BabyInfoView(View):
         province = content.get("province")
         city = content.get("city")
         streetaddr = content.get("streetaddr")
+        openid = content.get('openid')
 
-        user_openid = request.COOKIES.get('openid')
-        code = content.get("code")
-        if user_openid == 'None' or user_openid == None:
-            APPID = 'wxc2848fa1e1aa94b5'
-            SECRET = 'eb3bfe8e9a36a61176fa5cafe341c81f'
-            user_openid = get_user_openid(code, APPID, SECRET)
-
-        wx_user_service = WeixinUserService(openId=user_openid)
+        wx_user_service = WeixinUserService(openId=openid)
         wx_user = wx_user_service._wx_user
 
         wx_user.birth_year = int(year)
@@ -351,10 +328,8 @@ class BabyInfoView(View):
         wx_user.province = province
         wx_user.city = city
         wx_user.address = streetaddr
-
-        
         wx_user.save()
-        
+
         response = {"birth_year":wx_user.birth_year, "birth_month":wx_user.birth_month,
                     "sex":wx_user.baby_sex, "receiver_name":wx_user.receiver_name,
                     "province":wx_user.province,"city":wx_user.city,
@@ -406,17 +381,8 @@ class ReferalView(View):
 
     def get(self, request):
         content = request.REQUEST
-
         code = content.get('code')
-
-        APPID = 'wxc2848fa1e1aa94b5'
-        SECRET = 'eb3bfe8e9a36a61176fa5cafe341c81f'
-
-        ## if user refresh page, we can get user_openid from cookie
-        user_openid = request.COOKIES.get('openid')
-
-        if user_openid == 'None' or user_openid == None:
-            user_openid = get_user_openid(code, APPID, SECRET)
+        user_openid = get_user_openid(request, code)
             
         referal_bonus = 0.00
         referal_count = 0
@@ -428,26 +394,25 @@ class ReferalView(View):
                 referal_count = vipcodes[0].usage_count
                 vipcode = vipcodes[0].code
         
-        rs = ReferalSummary.objects.filter(user_openid=user_openid)
-
-        if rs.count() > 0:
-            referal_bonus = rs[0].total_confirmed_value * 0.01
         
         coupon = Coupon.objects.get(pk=1)
         
         couponclicks = CouponClick.objects.filter(vipcode=vipcode)
         coupon_click_count = couponclicks.count()
-        
+
         referal_mobiles = set()
-        sampleorders = SampleOrder.objects.filter(vipcode=vipcode)
-        for sample_order in sampleorders:
-            wx_users = WeiXinUser.objects.filter(openid=sample_order.user_openid)
-            if wx_users.count() > 0:
-                referal_mobiles.add(wx_users[0].mobile)
+        mobile2openid = {}
+
+        referal_users = WeiXinUser.objects.filter(referal_from_openid=user_openid)
+        for user in referal_users:
+            referal_mobiles.add(user.mobile)
+            mobile2openid[str(user.mobile)] = user.openid
 
         for coupon_click in couponclicks:
             referal_mobiles.add(coupon_click.wx_user.mobile)
+            mobile2openid[str(coupon_click.wx_user.mobile)]=coupon_click.wx_user.openid
 
+        
         payment = 0
         
         effect_mobiles = set()
@@ -459,6 +424,22 @@ class ReferalView(View):
                 payment += trade.payment
                 effect_mobiles.add(mobile)
 
+            confirmed_trades = MergeTrade.objects.filter(receiver_mobile=mobile).filter(status=pcfg.TRADE_FINISHED).filter(created__gt=effect_date)
+            for trade in confirmed_trades:
+                records = ReferalBonusRecord.objects.filter(trade_id=trade.id)
+                if records.count() < 1:
+                    if user_openid != mobile2openid[str(mobile)]:
+                        ReferalBonusRecord.objects.create(user_openid=user_openid,
+                                                      referal_user_openid=mobile2openid[str(mobile)],
+                                                      trade_id=trade.id,
+                                                      bonus_value = int(trade.payment * 5),
+                                                      confirmed_status=1)
+                    
+
+        rs = ReferalBonusRecord.objects.filter(user_openid=user_openid)
+        for r in rs:
+            referal_bonus += r.bonus_value * 0.01
+                    
 
         response = render_to_response('weixin/ambass.html', 
                                   {'openid':user_openid, 
@@ -466,6 +447,7 @@ class ReferalView(View):
                                    'referal_bonus':referal_bonus,
                                    'vipcode':vipcode, 'coupon':coupon,
                                    'payment':payment, 'num_orders':len(effect_mobiles),
+                                   'effect_mobiles':effect_mobiles,
                                    'coupon_click_count':coupon_click_count}, 
                                   context_instance=RequestContext(request))
         response.set_cookie("openid",user_openid)
@@ -604,20 +586,9 @@ class RefundRecordView(View):
         
 class FreeSampleView(View):
     def get(self, request):
-
-        
         content = request.REQUEST
-
         code = content.get('code')
-
-        APPID = 'wxc2848fa1e1aa94b5'
-        SECRET = 'eb3bfe8e9a36a61176fa5cafe341c81f'
-
-        ## if user refresh page, we can get user_openid from cookie
-        user_openid = request.COOKIES.get('openid')
-
-        if user_openid == 'None' or user_openid == None:
-            user_openid = get_user_openid(code, APPID, SECRET)
+        user_openid = get_user_openid(request, code)
 
         wx_user_service = WeixinUserService(openId=user_openid)
         wx_user = wx_user_service._wx_user
@@ -703,19 +674,13 @@ class SampleApplyView(View):
         skus = SampleSku.objects.filter(sku_code=sku_code)
         sku = skus[0]
 
-
         content = request.REQUEST
 
         code = content.get('code')
-
-        APPID = 'wxc2848fa1e1aa94b5'
-        SECRET = 'eb3bfe8e9a36a61176fa5cafe341c81f'
-
         ## if user refresh page, we can get user_openid from cookie
         user_openid = request.COOKIES.get('openid')
-
         if user_openid == 'None' or user_openid == None:
-            user_openid = get_user_openid(code, APPID, SECRET)
+            user_openid = get_user_openid(request, code)
 
         wx_user_service = WeixinUserService(openId=user_openid)
         wx_user = wx_user_service._wx_user
@@ -727,7 +692,6 @@ class SampleApplyView(View):
         return response
     
 def genVIPCODE(wx_user):
-    
     expiry = datetime.datetime(2014,8,11,0,0,0)
     code_type = 0
     code_rule = u'免费试用'
@@ -740,7 +704,8 @@ def genVIPCODE(wx_user):
         objs = VipCode.objects.filter(code=new_code)
         if objs.count() < 0 or cnt > 20:
             break
-
+        new_code = str(random.randint(1000000,9999999))
+        
     wx_user.vipcodes.create(code=new_code, 
                              expiry=expiry,
                              code_type=code_type,
@@ -810,17 +775,8 @@ class SampleAdsView(View):
 class ResultView(View):
     def get(self, request):
         content = request.REQUEST
-
         code = content.get('code')
-
-        APPID = 'wxc2848fa1e1aa94b5'
-        SECRET = 'eb3bfe8e9a36a61176fa5cafe341c81f'
-
-        ## if user refresh page, we can get user_openid from cookie
-        user_openid = request.COOKIES.get('openid')
-
-        if user_openid == 'None' or user_openid == None:
-            user_openid = get_user_openid(code, APPID, SECRET)
+        user_openid = get_user_openid(request, code)
 
         end = datetime.datetime(2014,8,11)
         now = datetime.datetime.now()
@@ -947,18 +903,8 @@ class CouponView(View):
 class VipCouponView(View):
     def get(self, request):
         content = request.REQUEST
-
         code = content.get('code')
-
-        APPID = 'wxc2848fa1e1aa94b5'
-        SECRET = 'eb3bfe8e9a36a61176fa5cafe341c81f'
-
-        ## if user refresh page, we can get user_openid from cookie
-        user_openid = request.COOKIES.get('openid')
-
-        if user_openid == 'None' or user_openid == None:
-            user_openid = get_user_openid(code, APPID, SECRET)
-
+        user_openid = get_user_openid(request, code)
         
         weixin_user_service = WeixinUserService(user_openid)
         wx_user = weixin_user_service._wx_user
@@ -1044,9 +990,23 @@ class SurveyView(View):
     
 class TestView(View):
     def get(self, request, *args, **kwargs):
+        
+        wx_account = WeiXinAccount.getAccountInstance()
+        app_id = wx_account.app_id
+        app_secret = wx_account.app_secret
 
-        response = render_to_response('weixin/survey.html', 
-                                      context_instance=RequestContext(request))
-        return response
+        
+        id = kwargs.get("id")
+        print id, int(id)+1, type(id)
+        
+        content = request.REQUEST
+        data = content.get("data")
+        print type(data)
+        
+        #response = render_to_response('weixin/survey.html', 
+        #                              context_instance=RequestContext(request))
+        #return response
+        response = {"status":"ok"}
+        return HttpResponse(json.dumps(response),mimetype='application/json')
 
         

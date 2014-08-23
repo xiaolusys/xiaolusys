@@ -5,6 +5,7 @@ from django.db.models.signals import post_save
 from shopback.base import log_action,User, ADDITION, CHANGE
 from shopback.trades.models import MergeTrade,MergeOrder,MergeBuyerTrade
 from shopback.items.models import Product
+from shopback.signals import confirm_trade_signal
 from shopback import paramconfig as pcfg
 from common.utils import update_model_fields
 
@@ -17,7 +18,19 @@ class BaseHandler(object):
         
     def process(self,*args,**kwargs):
         raise Exception('Not Implement.')
+
+class ConfirmHandler(BaseHandler):
     
+    def handleable(self,merge_trade,*args,**kwargs):
+        return merge_trade.status == pcfg.TRADE_FINISHED
+        
+    def process(self,merge_trade,*args,**kwargs):
+        
+        try:
+            confirm_trade_signal.send(sender=MergeTrade,
+                                      trade_id=merge_trade.id)
+        except:
+            pass
 
 class InitHandler(BaseHandler):
     
@@ -31,9 +44,7 @@ class InitHandler(BaseHandler):
             
         log_action(merge_trade.user.user.id,
                    merge_trade,ADDITION,
-                   u'订单入库,备注:[%s:%s]'%(
-                       merge_trade.buyer_message,
-                       merge_trade.seller_memo))
+                   u'订单入库')
             
         merge_trade.sys_status = pcfg.REGULAR_REMAIN_STATUS
         update_model_fields(merge_trade,update_fields=['sys_status'])
@@ -148,7 +159,7 @@ class FinalHandler(BaseHandler):
             not merge_trade.is_locked and 
             merge_trade.sys_status == pcfg.WAIT_PREPARE_SEND_STATUS) or 
             (merge_trade.sys_status == pcfg.REGULAR_REMAIN_STATUS and 
-             not merge_trade.remind_time)):
+             merge_trade.remind_time == None)):
             
             merge_trade.sys_status = pcfg.WAIT_AUDIT_STATUS
 

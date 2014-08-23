@@ -10,6 +10,7 @@ from shopapp.weixin.models import (WeiXinAccount,
                                    WXLogistic,
                                    ReferalRelationship,
                                    ReferalSummary,
+                                   ReferalBonusRecord,
                                    Refund,
                                    FreeSample,
                                    SampleOrder,
@@ -90,9 +91,9 @@ admin.site.register(WeiXinUser, WeiXinUserAdmin)
 
 class WeiXinAutoResponseAdmin(admin.ModelAdmin):
     
-    list_display = ('message','rtype','title','content')
+    list_display = ('message','rtype','title','content','fuzzy_match')
     
-    list_filter = ('rtype',)
+    list_filter = ('rtype','fuzzy_match')
     search_fields = ['message','title','content']
     
     ordering = ('message',)
@@ -191,6 +192,14 @@ class ReferalSummaryAdmin(admin.ModelAdmin):
 admin.site.register(ReferalSummary, ReferalSummaryAdmin) 
 
 
+class ReferalBonusRecordAdmin(admin.ModelAdmin):
+    list_display = ('user_openid', 'referal_user_openid', 'trade_id', 'bonus_value', 'confirmed_status', 'created')
+
+    search_fields = ['user_openid', 'referal_user_openid', 'trade_id']
+
+admin.site.register(ReferalBonusRecord, ReferalBonusRecordAdmin) 
+    
+
 class RefundAdmin(admin.ModelAdmin):
     
     list_display = ('trade_id', 'refund_type','pay_amount','vip_code',
@@ -254,7 +263,7 @@ admin.site.register(CouponClick, CouponClickAdmin)
 
 class SurveyAdmin(admin.ModelAdmin):
     list_display = ('selection', 'wx_user', 'created')
-    search_fields = ['wx_user']
+    search_fields = ['wx_user__openid']
     list_filter = ('selection',)
 
 admin.site.register(Survey, SurveyAdmin) 

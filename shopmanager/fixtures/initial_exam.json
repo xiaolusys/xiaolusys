@@ -1,0 +1,3928 @@
+[
+  {
+    "pk": 1,
+    "model": "examination.examproblemselect",
+    "fields": {
+      "exam_problem_created": "2014-08-11T14:17:39",
+      "option_b": "\u666e\u901a\u6bcd\u4e73\u5582\u517b\uff0c\u6700\u957f\u4e0d\u53ef\u8d85\u8fc71\u5c81",
+      "option_c": "\u914d\u65b9\u5976\u7c89\u8425\u517b\u9ad8\u8fc7\u6bcd\u4e73",
+      "option_a": "\u666e\u901a\u6bcd\u4e73\u5582\u517b\uff0c\u516d\u4e2a\u6708\u5c31\u591f\u4e86",
+      "option_d": "\u666e\u901a\u6bcd\u4e73\u5582\u517b\u548c\u914d\u65b9\u5976\u7c89\u642d\u914d\u4e0d\u53ef\u4ee5",
+      "exam_problem_score": 2,
+      "exam_answer": "C",
+      "exam_problem": "\u4e0b\u9762\u54ea\u4e9b\u8bf4\u6cd5\u662f\u5bf9\u7684"
+    }
+  },
+  {
+    "pk": 2,
+    "model": "examination.examproblemselect",
+    "fields": {
+      "exam_problem_created": "2014-08-11T14:09:04",
+      "option_b": "\u7528\u7eaf\u51c0\u6c34\u51b2\u8c03\u540e\u518d\u70e7\u5f00",
+      "option_c": "\u51b2\u8c03\u8fc7\u7a0b\u4e2d\u53ef\u4ee5\u52a0\u5165\u7cd6\u6216\u8005\u836f\u5242",
+      "option_a": "60\u5ea6\u4ee5\u4e0a\uff0c90\u5ea6\u4e00\u4e0b\u51b2\u8c03\u3002",
+      "option_d": "\u8fc7\u7a20\u4f1a\u8ba9\u5b9d\u5b9d\u53d8\u80d6",
+      "exam_problem_score": 2,
+      "exam_answer": "D",
+      "exam_problem": "\u914d\u65b9\u5976\u7c89\u51b2\u8c03\u8fc7\u7a0b\u90a3\u4e9b\u662f\u5bf9\u7684"
+    }
+  },
+  {
+    "pk": 3,
+    "model": "examination.examproblemselect",
+    "fields": {
+      "exam_problem_created": "2014-08-11T10:36:12",
+      "option_b": "3%",
+      "option_c": "5%",
+      "option_a": "1%",
+      "option_d": "7%",
+      "exam_problem_score": 2,
+      "exam_answer": "D",
+      "exam_problem": "\u5a74\u513f\u4f53\u91cd\u4e0b\u964d\u8d85\u8fc7\u591a\u5c11\u5c31\u4e0d\u80fd\u575a\u6301\u6bcd\u4e73\u5582\u517b"
+    }
+  },
+  {
+    "pk": 4,
+    "model": "examination.examproblemselect",
+    "fields": {
+      "exam_problem_created": "2014-08-11T10:32:10",
+      "option_b": "1\u4e2a\u5c0f\u65f6\u4e4b\u540e",
+      "option_c": "3\u5c0f\u65f6\u4e4b\u540e",
+      "option_a": "30\u5206\u949f\u4e4b\u5185",
+      "option_d": "\u7b49\u5b69\u5b50\u7a33\u5b9a\u540e\u5148\u559d\u914d\u65b9\u5976\u7c89",
+      "exam_problem_score": 2,
+      "exam_answer": "A",
+      "exam_problem": "\u4ea7\u540e\u591a\u4e45\u5f00\u59cb\u6bcd\u4e73\u5582\u517b"
+    }
+  },
+  {
+    "pk": 5,
+    "model": "examination.examproblemselect",
+    "fields": {
+      "exam_problem_created": "2014-08-11T10:25:31",
+      "option_b": "\u4f7f\u7528\u542b\u6709\u6d88\u6bd2\u5242\u7684\u6e7f\u7eb8\u5dfe\u64e6\u6d17\u4e73\u623f",
+      "option_c": "\u6324\u538b\u4e73\u623f\uff0c\u5f03\u53bb\u4e00\u4e9b\u4e73\u6c41\u518d\u5582\u517b\u5a74\u513f",
+      "option_a": "\u5988\u5988\u5728\u6bcd\u4e73\u5582\u517b\u524d\u7528\u6e29\u6c34\u6bdb\u5dfe\u64e6\u6d17\u4e73\u623f\u6216\u5e38\u89c4\u6d17\u6fa1\u5373\u53ef",
+      "option_d": "\u4e0d\u5fc5\u5f7b\u5e95\u6e05\u6d17",
+      "exam_problem_score": 2,
+      "exam_answer": "A",
+      "exam_problem": "\u6bcd\u4e73\u5582\u517b\u662f\u5426\u8981\u5f7b\u5e95\u6e05\u6d01\u4e73\u623f"
+    }
+  },
+  {
+    "pk": 6,
+    "model": "examination.examproblemselect",
+    "fields": {
+      "exam_problem_created": "2014-08-11T15:36:03",
+      "option_b": "\u6700\u521d\u51e0\u5468\uff0c24\u5c0f\u65f6\u5185\u9891\u73878\uff5e12\u6b21\u4ee5\u4e0a",
+      "option_c": "\u6700\u521d\u51e0\u5468\uff0c24\u5c0f\u65f6\u5185\u9891\u73878\u6b21\u4e00\u4e0b",
+      "option_a": "\u6700\u521d\u51e0\u5468\uff0c24\u5c0f\u65f6\u5185\u9891\u738712\u6b21\u4ee5\u4e0a",
+      "option_d": "\u968f\u610f\u8c03\u6574",
+      "exam_problem_score": 2,
+      "exam_answer": "B",
+      "exam_problem": "\u5b69\u5b50\u5403\u5976\u6700\u521d\u51e0\u5468\u9891\u7387\u90a3\u4e9b\u662f\u5bf9\u7684"
+    }
+  },
+  {
+    "pk": 7,
+    "model": "examination.examproblemselect",
+    "fields": {
+      "exam_problem_created": "2014-08-11T15:46:40",
+      "option_b": "\u5b58\u50a8\u4e8e15\u5ea6\u7684\u51b0\u76d2\u5185  24\u5c0f\u65f6",
+      "option_c": "\u5b58\u50a8\u4e8e+4\u5ea6\u7684\u51b0\u7bb1\u5185   24\u5c0f\u65f6",
+      "option_a": "\u5b58\u50a8\u4e8e+25\u5ea6\u7684\u6e29\u5ba4   8\u5c0f\u65f6",
+      "option_d": "\u5b58\u50a8\u4e8e+4\u5ea6\u7684\u51b0\u7bb1\u5185   12\u5c0f\u65f6",
+      "exam_problem_score": 2,
+      "exam_answer": "B",
+      "exam_problem": "\u6bcd\u4e73\u50a8\u5b58\u65f6\u95f4\uff0c\u54ea\u4e9b\u662f\u5bf9\u7684"
+    }
+  },
+  {
+    "pk": 8,
+    "model": "examination.examproblemselect",
+    "fields": {
+      "exam_problem_created": "2014-08-11T16:27:19",
+      "option_b": "L3\u53ef\u4ee5\u6301\u7eed\u54fa\u4e73",
+      "option_c": "\u670d\u7528L5\u836f\u7269\u505c\u836f\uff0c12\u5c0f\u65f6\u540e\u53ef\u4ee5\u54fa\u4e73",
+      "option_a": "L2\u53ef\u4ee5\u6301\u7eed\u54fa\u4e73",
+      "option_d": "L1\uff5eL6\u4e00\u5171\u516d\u4e2a\u6807\u8bc6\u7ea7\u522b",
+      "exam_problem_score": 2,
+      "exam_answer": "A",
+      "exam_problem": "\u6bcd\u4e73\u5582\u517b\u671f\u95f4\u5988\u5988\u670d\u836f\u6ce8\u610f\u4e8b\u9879\u6b63\u786e\u7684\u662f"
+    }
+  },
+  {
+    "pk": 9,
+    "model": "examination.examproblemselect",
+    "fields": {
+      "exam_problem_created": "2014-08-11T17:21:06",
+      "option_b": "\u6bcd\u4e73\u51b7\u51bb\u53ef\u4ee5\u4fdd\u5b586\u4e2a\u6708",
+      "option_c": "\u89e3\u51bb\u7684\u5976\u5fae\u6ce2\u7089\u52a0\u70ed",
+      "option_a": "\u5c06\u6bcd\u4e73\u653e\u5230\u73bb\u7483\u74f6\u4e2d\u51b7\u51bb",
+      "option_d": "\u89e3\u51bb\u7684\u5976\u53ef\u4ee5\u660e\u706b\u52a0\u70ed",
+      "exam_problem_score": 2,
+      "exam_answer": "B",
+      "exam_problem": "\u51b7\u51bb\u6bcd\u4e73\u6ce8\u610f\u4e8b\u9879\u54ea\u4e9b\u662f\u5bf9\u7684"
+    }
+  },
+  {
+    "pk": 10,
+    "model": "examination.examproblemselect",
+    "fields": {
+      "exam_problem_created": "2014-08-11T17:58:56",
+      "option_b": "\u5988\u5988\u4e0a\u73ed\u524d\u8981\u8ba9\u5b69\u5b50\u4e60\u60ef\u5976\u74f6\u5582\u517b",
+      "option_c": "\u5976\u74f6\u5582\u517b\u8981\u8ba9\u5988\u5988\u6765\u505a",
+      "option_a": "\u5976\u74f6\u5582\u517b\u5e76\u4e0d\u610f\u5473\u7740\u5976\u7c89\u5582\u517b",
+      "option_d": "\u5988\u5988\u62b1\u7740\u5b69\u5b50\u5582\u5976\u5c4f=\u5b69\u5b50\u6c14",
+      "exam_problem_score": 2,
+      "exam_answer": "C",
+      "exam_problem": "\u5976\u74f6\u5582\u5976\u90a3\u4e9b\u662f\u9519\u7684"
+    }
+  },
+  {
+    "pk": 11,
+    "model": "examination.examproblemselect",
+    "fields": {
+      "exam_problem_created": "2014-08-12T11:35:00",
+      "option_b": "\u4f7f\u7528\u8702\u871c\u6da6\u6ed1\u80a0\u80c3",
+      "option_c": "\u6ce8\u610f\u5976\u7c89\u7a20\u5ea6",
+      "option_a": "\u517b\u6210\u5b9a\u65f6\u6392\u4fbf\u4e60\u60ef",
+      "option_d": "\u68c0\u67e5\u662f\u5426\u8fc7\u91cf\u8865\u5145\u7ef4\u751f\u7d20",
+      "exam_problem_score": 2,
+      "exam_answer": "B",
+      "exam_problem": "\u5a74\u513f\u4fbf\u79d8\u9519\u8bef\u7684\u89e3\u51b3\u529e\u6cd5\u662f"
+    }
+  },
+  {
+    "pk": 12,
+    "model": "examination.examproblemselect",
+    "fields": {
+      "exam_problem_created": "2014-08-12T12:12:27",
+      "option_b": "\u5982\u679c\u6000\u7591\u5b69\u5b50\u8d2b\u8840\uff0c\u5e94\u8be5\u901a\u8fc7\u624b\u6307\u8840\u68c0\u67e5\u8840\u8272\u7d20\uff0c\u786e\u5b9a\u662f\u5426\u8d2b\u8840",
+      "option_c": "\u5982\u679c\u5b69\u5b50\u8d2b\u8840\uff0c\u9664\u4e86\u589e\u52a0\u5bcc\u94c1\u8f85\u98df\uff0c\u8fd8\u8981\u8865\u5145\u8d34\u5242",
+      "option_a": "\u7eaf\u6bcd\u4e73\u5582\u517b\u8d85\u8fc7\u516d\u4e2a\u6708\u5c31\u4f1a\u589e\u52a0\u5a74\u513f\u7f3a\u94c1\u7684\u673a\u4f1a",
+      "option_d": "\u5bf9\u5a74\u513f\u6765\u8bf4\uff0c\u65e9\u671f\u8425\u517b\u7c73\u7c89\u4e0d\u80fd\u8db3\u591f\u8865\u5145\u94c1\u5143\u7d20",
+      "exam_problem_score": 2,
+      "exam_answer": "D",
+      "exam_problem": "\u7eaf\u6bcd\u4e73\u5582\u517b\u5b69\u5b50\u8865\u94c1\u9519\u8bef\u7684\u8bf4\u6cd5\u662f"
+    }
+  },
+  {
+    "pk": 13,
+    "model": "examination.examproblemselect",
+    "fields": {
+      "exam_problem_created": "2014-08-12T14:49:43",
+      "option_b": "\u5b69\u5b50\u51fa\u751f\u4e24\u5c0f\u65f6\u540e\uff0c\u5148\u5582\u70b9\u767d\u5f00\u6c34\uff0c\u518d\u5582\u5976",
+      "option_c": "\u4e00\u5c81\u524d\u9891\u6362\u5976\u7c89\u6709\u52a9\u513f\u7ae5\u53d1\u80b2",
+      "option_a": "\u5a74\u513f\u521a\u51fa\u751f\uff0c\u5582\u4e00\u52fa\u8461\u8404\u7cd6\u6c34\uff0c\u5bf9\u5065\u5eb7\u6709\u76ca",
+      "option_d": "\u591c\u95f4\u62b1\u7740\u5a74\u513f\u7761\u89c9\uff0c\u4f1a\u52a0\u5267\u5a74\u513f\u591c\u665a\u54fa\u4e73\u91cf",
+      "exam_problem_score": 2,
+      "exam_answer": "D",
+      "exam_problem": "\u4ee5\u4e0b\u8bf4\u6cd5\u54ea\u4e9b\u662f\u6b63\u786e\u7684"
+    }
+  },
+  {
+    "pk": 14,
+    "model": "examination.examproblemselect",
+    "fields": {
+      "exam_problem_created": "2014-08-12T14:59:31",
+      "option_b": "\u7535\u52a8\u5438\u5976\u5668\u6301\u4e45\u6052\u5b9a",
+      "option_c": "\u53cc\u5934\u7535\u52a8\u662f\u6700\u52a0\u9009\u62e9",
+      "option_a": "\u624b\u52a8\u5438\u5976\u5668\u4e0d\u597d\u638c\u63e1\uff0c\u4f1a\u5bf9\u4e73\u623f\u523a\u6fc0\u4e0d\u826f",
+      "option_d": "\u5438\u5976\u5668\u4e0d\u53ef\u4ee5\u4f7f\u7528\u4e8c\u624b\u7684",
+      "exam_problem_score": 2,
+      "exam_answer": "D",
+      "exam_problem": "\u6709\u5173\u5438\u5976\u5668\u9519\u8bef\u7684\u8bf4\u53d1"
+    }
+  },
+  {
+    "pk": 15,
+    "model": "examination.examproblemselect",
+    "fields": {
+      "exam_problem_created": "2014-08-12T15:07:58",
+      "option_b": "\u51b0\u7bb1\u51b7\u51bb\u6bcd\u4e73\u5bf9\u6bcd\u4e73\u8425\u517b\u7269\u8d28\u635f\u5bb3\u5f88\u5c0f",
+      "option_c": "\u5988\u5988\u4e73\u5934\u4e0a\u7684\u6709\u6c27\u538c\u6c27\u83cc\u5bf9\u5b69\u5b50\u6709\u597d\u5904",
+      "option_a": "\u53ea\u8981\u662f\u6bcd\u4e73\u5582\u517b\uff0c\u5c31\u662f\u76f4\u63a5\u6bcd\u4e73\u5582\u517b",
+      "option_d": "\u51b7\u85cf\u6bcd\u4e73\u4e0d\u80fd\u8d85\u8fc724\u5c0f\u65f6",
+      "exam_problem_score": 2,
+      "exam_answer": "A",
+      "exam_problem": "\u6709\u5173\u6bcd\u4e73\u5582\u517b\u7684\u8bf4\u6cd5\u9519\u8bef\u7684\u662f"
+    }
+  },
+  {
+    "pk": 16,
+    "model": "examination.examproblemselect",
+    "fields": {
+      "exam_problem_created": "2014-08-12T16:44:12",
+      "option_b": "\u5927\u9f84\u5b9d\u5b9d\u670d\u7528\u4f4e\u9636\u5976\u7c89\u4f1a\u8425\u517b\u4e0d\u8db3",
+      "option_c": "\u4f4e\u9f84\u5b9d\u5b9d\u53ef\u4ee5\u670d\u7528\u9ad8\u9636\u5976\u7c89",
+      "option_a": "\u5927\u9f84\u5a74\u513f\u53ef\u4ee5\u670d\u7528\u4f4e\u9636\u5976\u7c89",
+      "option_d": "\u8fc7\u4e8e\u6d53\u7a20\u7684\u5976\u7c89\u4e0d\u4f1a\u5bfc\u81f4\u5b9d\u5b9d\u80a5\u80d6",
+      "exam_problem_score": 2,
+      "exam_answer": "A",
+      "exam_problem": "\u5b9d\u5b9d\u4e0e\u914d\u65b9\u5976\u7c89\u6b63\u786e\u7684\u8bf4\u6cd5\u662f"
+    }
+  },
+  {
+    "pk": 17,
+    "model": "examination.examproblemselect",
+    "fields": {
+      "exam_problem_created": "2014-08-12T16:49:26",
+      "option_b": "\u53ea\u8981\u5b9d\u5b9d\u53d1\u80b2\u6b63\u5e38\uff0c\u5403\u591a\u5403\u5c11\u6ca1\u6709\u5173\u7cfb",
+      "option_c": "\u53ea\u8981\u5b9d\u5b9d\u4f53\u91cd\u589e\u957f\uff0c\u8eab\u9ad8\u589e\u9ad8\u5c31\u53ef\u4ee5",
+      "option_a": "\u53ea\u8981\u6309\u5976\u7c89\u5305\u88c5\u4e0a\u7684\u98df\u7528\u91cf\u5582\u98df\u5c31\u53ef\u4ee5",
+      "option_d": "\u4e0d\u53ef\u4ee5\u8d85\u8fc7\u914d\u65b9\u5976\u7c8910%\u7684\u53c2\u8003\u5582\u98df\u91cf",
+      "exam_problem_score": 2,
+      "exam_answer": "B",
+      "exam_problem": "\u5173\u4e8e\u914d\u65b9\u5976\u7c89\u7684\u670d\u7528\u91cf\u6b63\u786e\u7684\u662f"
+    }
+  },
+  {
+    "pk": 18,
+    "model": "examination.examproblemselect",
+    "fields": {
+      "exam_problem_created": "2014-08-12T16:56:43",
+      "option_b": "\u6c34\u89e3\u86cb\u767d\u914d\u65b9\u4f1a\u4f1a\u6709\u6240\u6539\u5584",
+      "option_c": "\u5c06\u6bcd\u4e73\u653e\u8fdb\u5976\u74f6\u5c1d\u8bd5\u5582\u98df",
+      "option_a": "\u5988\u5988\u4eb2\u81ea\u7528\u914d\u65b9\u5976\u7c89\u5582\u98df",
+      "option_d": "\u5c1d\u8bd5\u66f4\u6362\u5176\u4ed6\u54c1\u724c\u5976\u7c89",
+      "exam_problem_score": 2,
+      "exam_answer": "A",
+      "exam_problem": "\u54ea\u4e9b\u4f1a\u4e0d\u5229\u4e8e\u5b9d\u5b9d\u63a5\u53d7\u914d\u65b9\u5976\u7c89"
+    }
+  },
+  {
+    "pk": 19,
+    "model": "examination.examproblemselect",
+    "fields": {
+      "exam_problem_created": "2014-08-12T17:06:47",
+      "option_b": "\u751f\u540e\u5934\u4e24\u5929\u6392\u5c3f0\uff5e1\u6b21",
+      "option_c": "\u6bcf\u6b21\u5927\u4fbf\u4e0d\u591f\u4e00\u6c64\u52fa",
+      "option_a": "\u6bcf\u592912\uff5e20\u6b21",
+      "option_d": "\u6bcf\u6b21\u5582\u517b\u5b8c\u81f3\u5c11\u4e00\u4fa7\u4e73\u623f\u5df2\u6392\u7a7a",
+      "exam_problem_score": 2,
+      "exam_answer": "D",
+      "exam_problem": "\u4ec0\u4e48\u662f\u9002\u5b9c\u6bcd\u4e73\u5582\u517b"
+    }
+  },
+  {
+    "pk": 20,
+    "model": "examination.examproblemselect",
+    "fields": {
+      "exam_problem_created": "2014-08-12T18:46:55",
+      "option_b": "\u53ca\u65e9\u5438\u542e\u5988\u5988\u4e73\u623f\u523a\u6fc0\u4e73\u5934\u4ea7\u751f\u4e73\u6c41",
+      "option_c": "\u5988\u5988\u4e73\u5934\u4e0a\u5fb7\u7ec6\u83cc\u5bf9\u5a74\u513f\u4e0d\u597d",
+      "option_a": "\u914d\u65b9\u5976\u7c89\u5582\u517b\u524d\uff0c\u5e94\u5438\u542e\u5988\u5988\u4e73\u623f\u6bcf\u4fa710\uff5e15\u5206\u949f",
+      "option_d": "\u6c34\u89e3\u86cb\u767d\u914d\u65b9\u53ef\u4ee5\u7f13\u89e3\u8fc7\u654f",
+      "exam_problem_score": 2,
+      "exam_answer": "C",
+      "exam_problem": "\u5582\u517b\u8fc7\u7a0b\u4e2d\u9519\u8bef\u7684\u505a\u6cd5\u6709"
+    }
+  },
+  {
+    "pk": 21,
+    "model": "examination.examproblemselect",
+    "fields": {
+      "exam_problem_created": "2014-08-12T18:52:30",
+      "option_b": "\u5bf9\u4e8e\u6709\u5bb6\u65cf\u8fc7\u654f\u53f2\u7684\u5c1a\u65e0\u8fc7\u654f\u53cd\u5e94\u7684\u5a74\u513f\u5e94\u8be5\u63a5\u53d7\u90e8\u5206\u6c34\u89e3\u914d\u65b9",
+      "option_c": "\u5bf9\u4e8e\u5df2\u5bf9\u725b\u5976\u86cb\u767d\u8fc7\u654f\u7684\u5b9d\u5b9d\u5e94\u8be5\u63a5\u53d7\u6df1\u6e21\u6c34\u89e3\u6216\u6c28\u57fa\u9178\u914d\u65b9",
+      "option_a": "\u6574\u86cb\u767d\u5c31\u662f\u666e\u901a\u914d\u65b9\u5976\u7c89",
+      "option_d": "\u90e8\u5206\u6c34\u89e3+\u76ca\u751f\u83cc\u4e0d\u80fd\u6709\u6548\u9884\u9632\u8fc7\u654f",
+      "exam_problem_score": 2,
+      "exam_answer": "D",
+      "exam_problem": "\u5173\u4e8e\u5976\u7c89\u914d\u65b9\u8bf4\u6cd5\u9519\u8bef\u7684\u662f"
+    }
+  },
+  {
+    "pk": 22,
+    "model": "examination.examproblemselect",
+    "fields": {
+      "exam_problem_created": "2014-08-14T09:38:24",
+      "option_b": "30ml\u6c34\u52a0\u5165\u4e00\u5e73\u52fa\u5976\u7c89\uff0c\u6eb6\u89e3\u7ea635ml\uff0c\u5582\u517b\u91cf\u662f30ml",
+      "option_c": "30ml\u6c34\u52a0\u5165\u4e00\u5e73\u52fa\u5976\u7c89\uff0c\u6eb6\u89e3\u7ea635ml\uff0c\u5582\u517b\u91cf\u662f5ml",
+      "option_a": "30ml\u6c34\u52a0\u5165\u4e00\u5e73\u52fa\u5976\u7c89\uff0c\u6eb6\u89e3\u7ea635ml\uff0c\u5582\u517b\u91cf\u662f35ml",
+      "option_d": "30ml\u6c34\u52a0\u5165\u4e00\u5e73\u52fa\u5976\u7c89\uff0c\u6eb6\u89e3\u7ea635ml\uff0c\u5582\u517b\u91cf\u65e0\u6cd5\u8ba1\u7b97",
+      "exam_problem_score": 2,
+      "exam_answer": "A",
+      "exam_problem": "\u8ba1\u7b97\u914d\u65b9\u6444\u5165\u91cf\u6b63\u786e\u7684\u8bf4\u6cd5\u662f"
+    }
+  },
+  {
+    "pk": 23,
+    "model": "examination.examproblemselect",
+    "fields": {
+      "exam_problem_created": "2014-08-14T09:47:11",
+      "option_b": "\u51b2\u8c03\u5976\u7c89\u6e29\u5ea6\u4e0d\u80fd\u4f4e\u4e8e60\u5ea6",
+      "option_c": "\u5b69\u5b50\u5982\u679c\u51fa\u751f\u540e\u4e00\u76f4\u63a5\u53d7\u5ba4\u6e29\u51b2\u8c03\u5976\uff0c\u5c31\u4e0d\u4f1a\u51fa\u73b0\u95ee\u9898",
+      "option_a": "\u81ea\u6765\u6c34\u70e7\u5f00\uff0c\u53ef\u4ee5\u6d88\u6bd2\u5e76\u4e14\u6790\u51fa\u591a\u4f59\u7269\u8d28\u8fbe\u5230\u51b2\u8c03\u6807\u51c6",
+      "option_d": "\u63a5\u53d7\u5ba4\u6e29\u540e\uff0c\u7a81\u7136\u6e29\u6c34\u51b2\u8c03\uff0c\u4f1a\u5bfc\u81f4\u80a0\u80c3\u4e0d\u9002",
+      "exam_problem_score": 2,
+      "exam_answer": "B",
+      "exam_problem": "\u5976\u7c89\u51b2\u8c03\u7528\u6c34\uff0c\u8bf4\u6cd5\u9519\u8bef\u7684\u662f"
+    }
+  },
+  {
+    "pk": 24,
+    "model": "examination.examproblemselect",
+    "fields": {
+      "exam_problem_created": "2014-08-14T10:01:43",
+      "option_b": "\u914d\u65b9\u5976\u7c89\u88ab\u6253\u5f00\u540e\u5e94\u8be5\u57284\u5468\u5185\u7528\u5b8c",
+      "option_c": "\u914d\u65b9\u5976\u7c89\u5582\u517b\u5a74\u513f\u7684\u6dfb\u6c34\u91cf\u548c\u5a74\u513f\u5c3f\u6db2\u989c\u8272\u65e0\u5173",
+      "option_a": "\u6bcd\u4e73\u548c\u914d\u65b9\u5976\u7c89\u6df7\u5408\u5582\u517b\u4e0d\u4e00\u5b9a\u80fd\u8fbe\u5230\u53cc\u500d\u4f18\u52bf",
+      "option_d": "\u6bcd\u4e73\u5582\u517b\u7684\u8bdd\uff0c4\uff5e6\u4e2a\u6708\u5f00\u59cb\u6dfb\u52a0\u8f85\u98df",
+      "exam_problem_score": 2,
+      "exam_answer": "C",
+      "exam_problem": "\u4e0b\u5217\u8bf4\u6cd5\u9519\u8bef\u7684\u662f"
+    }
+  },
+  {
+    "pk": 25,
+    "model": "examination.examproblemselect",
+    "fields": {
+      "exam_problem_created": "2014-08-14T10:17:35",
+      "option_b": "\u201c\u7eaf\u201d\u6bcd\u4e73\u5582\u517b\uff0c\u4e0d\u5305\u62ec\u751f\u540e\u8fdb\u98df\u8fc7\u914d\u65b9\u5976\u7c89\u7684\u60c5\u51b5",
+      "option_c": "\u90e8\u5206\u6c34\u89e3\u914d\u65b9\u7edd\u5bf9\u6ca1\u6709\u6bcd\u4e73\u66f4\u6613\u4e8e\u5a74\u513f\u5438\u6536\u5229\u7528\u53ca\u9884\u9632\u8fc7\u654f",
+      "option_a": "\u201c\u7eaf\u201d\u6bcd\u4e73\u5582\u517b\uff0c\u5373\u4f7f\u4e00\u4e2a\u6708\uff0c\u5a74\u513f\u4eca\u540e\u51fa\u73b0\u8fc7\u654f\u98ce\u9669\u4e5f\u53ef\u4ee5\u660e\u663e\u964d\u4f4e",
+      "option_d": "\u751f\u540e\u65e9\u671f\u914d\u65b9\u5976\u7c89\u5582\u517b\u4e0d\u662f\u4eca\u540e\u5bb9\u6613\u51fa\u73b0\u8fc7\u654f\u7684\u771f\u51f6",
+      "exam_problem_score": 2,
+      "exam_answer": "D",
+      "exam_problem": "\u751f\u540e\u65e9\u671f\u914d\u65b9\u5976\u7c89\u5582\u517b\u4e0e\u8fc7\u654f\u9519\u8bef\u7684\u8bf4\u6cd5\u662f"
+    }
+  },
+  {
+    "pk": 112,
+    "model": "examination.examuser",
+    "fields": {
+      "exam_date": "2014-08-18T11:13:51",
+      "exam_grade": 0,
+      "user": 34,
+      "paper_id": "dapeng.song20140818111332",
+      "exam_selected_num": 3
+    }
+  },
+  {
+    "pk": 111,
+    "model": "examination.examuser",
+    "fields": {
+      "exam_date": "2014-08-18T11:12:36",
+      "exam_grade": 0,
+      "user": 34,
+      "paper_id": "dapeng.song20140818111222",
+      "exam_selected_num": 3
+    }
+  },
+  {
+    "pk": 110,
+    "model": "examination.examuser",
+    "fields": {
+      "exam_date": "2014-08-18T11:08:42",
+      "exam_grade": 4,
+      "user": 34,
+      "paper_id": "dapeng.song20140818110758",
+      "exam_selected_num": 3
+    }
+  },
+  {
+    "pk": 109,
+    "model": "examination.examuser",
+    "fields": {
+      "exam_date": "2014-08-18T11:02:43",
+      "exam_grade": 0,
+      "user": 34,
+      "paper_id": "dapeng.song20140818110011",
+      "exam_selected_num": 3
+    }
+  },
+  {
+    "pk": 108,
+    "model": "examination.examuser",
+    "fields": {
+      "exam_date": "2014-08-14T18:21:19",
+      "exam_grade": 4,
+      "user": 34,
+      "paper_id": "dapeng.song20140814181948",
+      "exam_selected_num": 3
+    }
+  },
+  {
+    "pk": 107,
+    "model": "examination.examuser",
+    "fields": {
+      "exam_date": "2014-08-14T18:19:44",
+      "exam_grade": 0,
+      "user": 34,
+      "paper_id": "dapeng.song20140814181105",
+      "exam_selected_num": 3
+    }
+  },
+  {
+    "pk": 106,
+    "model": "examination.examuser",
+    "fields": {
+      "exam_date": "2014-08-14T18:11:03",
+      "exam_grade": 0,
+      "user": 34,
+      "paper_id": "dapeng.song20140814181048",
+      "exam_selected_num": 3
+    }
+  },
+  {
+    "pk": 105,
+    "model": "examination.examuser",
+    "fields": {
+      "exam_date": "2014-08-14T18:09:49",
+      "exam_grade": 0,
+      "user": 34,
+      "paper_id": "dapeng.song20140814180816",
+      "exam_selected_num": 3
+    }
+  },
+  {
+    "pk": 103,
+    "model": "examination.examuser",
+    "fields": {
+      "exam_date": "2014-08-14T18:03:04",
+      "exam_grade": 0,
+      "user": 34,
+      "paper_id": "dapeng.song20140814180248",
+      "exam_selected_num": 3
+    }
+  },
+  {
+    "pk": 104,
+    "model": "examination.examuser",
+    "fields": {
+      "exam_date": "2014-08-14T18:03:51",
+      "exam_grade": 0,
+      "user": 34,
+      "paper_id": "dapeng.song20140814180338",
+      "exam_selected_num": 3
+    }
+  },
+  {
+    "pk": 102,
+    "model": "examination.examuser",
+    "fields": {
+      "exam_date": "2014-08-14T17:54:38",
+      "exam_grade": 6,
+      "user": 34,
+      "paper_id": "dapeng.song20140814175332",
+      "exam_selected_num": 13
+    }
+  },
+  {
+    "pk": 101,
+    "model": "examination.examuser",
+    "fields": {
+      "exam_date": "2014-08-14T17:53:02",
+      "exam_grade": 0,
+      "user": 34,
+      "paper_id": "dapeng.song20140814170907",
+      "exam_selected_num": 1
+    }
+  },
+  {
+    "pk": 100,
+    "model": "examination.examuser",
+    "fields": {
+      "exam_date": "2014-08-13T18:12:30",
+      "exam_grade": 4,
+      "user": 34,
+      "paper_id": "dapeng.song20140813181159",
+      "exam_selected_num": 4
+    }
+  },
+  {
+    "pk": 98,
+    "model": "examination.examuser",
+    "fields": {
+      "exam_date": "2014-08-13T17:41:10",
+      "exam_grade": 0,
+      "user": 34,
+      "paper_id": "dapeng.song20140813174051",
+      "exam_selected_num": 3
+    }
+  },
+  {
+    "pk": 99,
+    "model": "examination.examuser",
+    "fields": {
+      "exam_date": "2014-08-13T17:43:42",
+      "exam_grade": 0,
+      "user": 34,
+      "paper_id": "dapeng.song20140813174219",
+      "exam_selected_num": 6
+    }
+  },
+  {
+    "pk": 97,
+    "model": "examination.examuser",
+    "fields": {
+      "exam_date": "2014-08-13T17:40:50",
+      "exam_grade": 0,
+      "user": 34,
+      "paper_id": "dapeng.song20140813174014",
+      "exam_selected_num": 3
+    }
+  },
+  {
+    "pk": 96,
+    "model": "examination.examuser",
+    "fields": {
+      "exam_date": "2014-08-13T17:40:13",
+      "exam_grade": 0,
+      "user": 34,
+      "paper_id": "dapeng.song20140813173910",
+      "exam_selected_num": 3
+    }
+  },
+  {
+    "pk": 95,
+    "model": "examination.examuser",
+    "fields": {
+      "exam_date": "2014-08-13T17:37:22",
+      "exam_grade": 2,
+      "user": 34,
+      "paper_id": "dapeng.song20140813173701",
+      "exam_selected_num": 5
+    }
+  },
+  {
+    "pk": 94,
+    "model": "examination.examuser",
+    "fields": {
+      "exam_date": "2014-08-13T17:36:19",
+      "exam_grade": 4,
+      "user": 34,
+      "paper_id": "dapeng.song20140813173459",
+      "exam_selected_num": 6
+    }
+  },
+  {
+    "pk": 93,
+    "model": "examination.examuser",
+    "fields": {
+      "exam_date": "2014-08-13T17:34:31",
+      "exam_grade": 0,
+      "user": 34,
+      "paper_id": "dapeng.song20140813173342",
+      "exam_selected_num": 2
+    }
+  },
+  {
+    "pk": 92,
+    "model": "examination.examuser",
+    "fields": {
+      "exam_date": "2014-08-13T17:33:04",
+      "exam_grade": 4,
+      "user": 34,
+      "paper_id": "dapeng.song20140813173218",
+      "exam_selected_num": 6
+    }
+  },
+  {
+    "pk": 91,
+    "model": "examination.examuser",
+    "fields": {
+      "exam_date": "2014-08-13T17:21:15",
+      "exam_grade": 4,
+      "user": 34,
+      "paper_id": "dapeng.song20140813172016",
+      "exam_selected_num": 6
+    }
+  },
+  {
+    "pk": 90,
+    "model": "examination.examuser",
+    "fields": {
+      "exam_date": "2014-08-13T17:19:44",
+      "exam_grade": 0,
+      "user": 34,
+      "paper_id": "dapeng.song20140813171913",
+      "exam_selected_num": 2
+    }
+  },
+  {
+    "pk": 89,
+    "model": "examination.examuser",
+    "fields": {
+      "exam_date": "2014-08-13T17:18:58",
+      "exam_grade": 2,
+      "user": 34,
+      "paper_id": "dapeng.song20140813171706",
+      "exam_selected_num": 2
+    }
+  },
+  {
+    "pk": 88,
+    "model": "examination.examuser",
+    "fields": {
+      "exam_date": "2014-08-13T17:09:30",
+      "exam_grade": 0,
+      "user": 34,
+      "paper_id": "dapeng.song20140813170904",
+      "exam_selected_num": 1
+    }
+  },
+  {
+    "pk": 87,
+    "model": "examination.examuser",
+    "fields": {
+      "exam_date": "2014-08-13T17:09:01",
+      "exam_grade": 0,
+      "user": 34,
+      "paper_id": "dapeng.song20140813170835",
+      "exam_selected_num": 1
+    }
+  },
+  {
+    "pk": 86,
+    "model": "examination.examuser",
+    "fields": {
+      "exam_date": "2014-08-13T16:46:58",
+      "exam_grade": 2,
+      "user": 34,
+      "paper_id": "dapeng.song20140813164644",
+      "exam_selected_num": 1
+    }
+  },
+  {
+    "pk": 85,
+    "model": "examination.examuser",
+    "fields": {
+      "exam_date": "2014-08-13T16:46:42",
+      "exam_grade": 0,
+      "user": 34,
+      "paper_id": "dapeng.song20140813164522",
+      "exam_selected_num": 1
+    }
+  },
+  {
+    "pk": 113,
+    "model": "examination.examuser",
+    "fields": {
+      "exam_date": "2014-08-18T11:14:02",
+      "exam_grade": 0,
+      "user": 34,
+      "paper_id": "dapeng.song20140818111352",
+      "exam_selected_num": 3
+    }
+  },
+  {
+    "pk": 114,
+    "model": "examination.examuser",
+    "fields": {
+      "exam_date": "2014-08-18T11:17:11",
+      "exam_grade": 4,
+      "user": 34,
+      "paper_id": "dapeng.song20140818111437",
+      "exam_selected_num": 3
+    }
+  },
+  {
+    "pk": 115,
+    "model": "examination.examuser",
+    "fields": {
+      "exam_date": "2014-08-19T15:54:26",
+      "exam_grade": 0,
+      "user": 34,
+      "paper_id": "dapeng.song20140819155419",
+      "exam_selected_num": 3
+    }
+  },
+  {
+    "pk": 116,
+    "model": "examination.examuser",
+    "fields": {
+      "exam_date": "2014-08-19T15:54:45",
+      "exam_grade": 0,
+      "user": 34,
+      "paper_id": "dapeng.song20140819155437",
+      "exam_selected_num": 1
+    }
+  },
+  {
+    "pk": 2754,
+    "model": "examination.exampaper",
+    "fields": {
+      "examproblemselects": [],
+      "exam_selected": "",
+      "user": 34,
+      "paper_id": "dapeng.song20140818110734",
+      "exam_problem_score": 2,
+      "exam_answer": "B",
+      "problem_id": 11
+    }
+  },
+  {
+    "pk": 2753,
+    "model": "examination.exampaper",
+    "fields": {
+      "examproblemselects": [],
+      "exam_selected": "",
+      "user": 34,
+      "paper_id": "dapeng.song20140818110734",
+      "exam_problem_score": 2,
+      "exam_answer": "B",
+      "problem_id": 17
+    }
+  },
+  {
+    "pk": 2752,
+    "model": "examination.exampaper",
+    "fields": {
+      "examproblemselects": [],
+      "exam_selected": "",
+      "user": 34,
+      "paper_id": "dapeng.song20140818110718",
+      "exam_problem_score": 2,
+      "exam_answer": "D",
+      "problem_id": 3
+    }
+  },
+  {
+    "pk": 2751,
+    "model": "examination.exampaper",
+    "fields": {
+      "examproblemselects": [],
+      "exam_selected": "",
+      "user": 34,
+      "paper_id": "dapeng.song20140818110718",
+      "exam_problem_score": 2,
+      "exam_answer": "D",
+      "problem_id": 2
+    }
+  },
+  {
+    "pk": 2750,
+    "model": "examination.exampaper",
+    "fields": {
+      "examproblemselects": [],
+      "exam_selected": "",
+      "user": 34,
+      "paper_id": "dapeng.song20140818110718",
+      "exam_problem_score": 2,
+      "exam_answer": "A",
+      "problem_id": 18
+    }
+  },
+  {
+    "pk": 2749,
+    "model": "examination.exampaper",
+    "fields": {
+      "examproblemselects": [],
+      "exam_selected": "",
+      "user": 34,
+      "paper_id": "dapeng.song20140818110703",
+      "exam_problem_score": 2,
+      "exam_answer": "C",
+      "problem_id": 1
+    }
+  },
+  {
+    "pk": 2748,
+    "model": "examination.exampaper",
+    "fields": {
+      "examproblemselects": [],
+      "exam_selected": "",
+      "user": 34,
+      "paper_id": "dapeng.song20140818110703",
+      "exam_problem_score": 2,
+      "exam_answer": "B",
+      "problem_id": 11
+    }
+  },
+  {
+    "pk": 2747,
+    "model": "examination.exampaper",
+    "fields": {
+      "examproblemselects": [],
+      "exam_selected": "",
+      "user": 34,
+      "paper_id": "dapeng.song20140818110703",
+      "exam_problem_score": 2,
+      "exam_answer": "C",
+      "problem_id": 20
+    }
+  },
+  {
+    "pk": 2746,
+    "model": "examination.exampaper",
+    "fields": {
+      "examproblemselects": [],
+      "exam_selected": "",
+      "user": 34,
+      "paper_id": "dapeng.song20140818110618",
+      "exam_problem_score": 2,
+      "exam_answer": "D",
+      "problem_id": 19
+    }
+  },
+  {
+    "pk": 2745,
+    "model": "examination.exampaper",
+    "fields": {
+      "examproblemselects": [],
+      "exam_selected": "",
+      "user": 34,
+      "paper_id": "dapeng.song20140818110618",
+      "exam_problem_score": 2,
+      "exam_answer": "B",
+      "problem_id": 7
+    }
+  },
+  {
+    "pk": 2744,
+    "model": "examination.exampaper",
+    "fields": {
+      "examproblemselects": [],
+      "exam_selected": "",
+      "user": 34,
+      "paper_id": "dapeng.song20140818110618",
+      "exam_problem_score": 2,
+      "exam_answer": "B",
+      "problem_id": 9
+    }
+  },
+  {
+    "pk": 2743,
+    "model": "examination.exampaper",
+    "fields": {
+      "examproblemselects": [],
+      "exam_selected": "",
+      "user": 34,
+      "paper_id": "dapeng.song20140818110602",
+      "exam_problem_score": 2,
+      "exam_answer": "B",
+      "problem_id": 9
+    }
+  },
+  {
+    "pk": 2742,
+    "model": "examination.exampaper",
+    "fields": {
+      "examproblemselects": [],
+      "exam_selected": "",
+      "user": 34,
+      "paper_id": "dapeng.song20140818110602",
+      "exam_problem_score": 2,
+      "exam_answer": "B",
+      "problem_id": 11
+    }
+  },
+  {
+    "pk": 2741,
+    "model": "examination.exampaper",
+    "fields": {
+      "examproblemselects": [],
+      "exam_selected": "",
+      "user": 34,
+      "paper_id": "dapeng.song20140818110602",
+      "exam_problem_score": 2,
+      "exam_answer": "C",
+      "problem_id": 24
+    }
+  },
+  {
+    "pk": 2740,
+    "model": "examination.exampaper",
+    "fields": {
+      "examproblemselects": [],
+      "exam_selected": "",
+      "user": 34,
+      "paper_id": "dapeng.song20140818110537",
+      "exam_problem_score": 2,
+      "exam_answer": "A",
+      "problem_id": 5
+    }
+  },
+  {
+    "pk": 2739,
+    "model": "examination.exampaper",
+    "fields": {
+      "examproblemselects": [],
+      "exam_selected": "",
+      "user": 34,
+      "paper_id": "dapeng.song20140818110537",
+      "exam_problem_score": 2,
+      "exam_answer": "C",
+      "problem_id": 24
+    }
+  },
+  {
+    "pk": 2738,
+    "model": "examination.exampaper",
+    "fields": {
+      "examproblemselects": [],
+      "exam_selected": "",
+      "user": 34,
+      "paper_id": "dapeng.song20140818110537",
+      "exam_problem_score": 2,
+      "exam_answer": "A",
+      "problem_id": 16
+    }
+  },
+  {
+    "pk": 2737,
+    "model": "examination.exampaper",
+    "fields": {
+      "examproblemselects": [],
+      "exam_selected": "",
+      "user": 34,
+      "paper_id": "dapeng.song20140818110524",
+      "exam_problem_score": 2,
+      "exam_answer": "B",
+      "problem_id": 23
+    }
+  },
+  {
+    "pk": 2736,
+    "model": "examination.exampaper",
+    "fields": {
+      "examproblemselects": [],
+      "exam_selected": "",
+      "user": 34,
+      "paper_id": "dapeng.song20140818110524",
+      "exam_problem_score": 2,
+      "exam_answer": "B",
+      "problem_id": 9
+    }
+  },
+  {
+    "pk": 2735,
+    "model": "examination.exampaper",
+    "fields": {
+      "examproblemselects": [],
+      "exam_selected": "",
+      "user": 34,
+      "paper_id": "dapeng.song20140818110524",
+      "exam_problem_score": 2,
+      "exam_answer": "C",
+      "problem_id": 1
+    }
+  },
+  {
+    "pk": 2734,
+    "model": "examination.exampaper",
+    "fields": {
+      "examproblemselects": [],
+      "exam_selected": "",
+      "user": 34,
+      "paper_id": "dapeng.song20140818110514",
+      "exam_problem_score": 2,
+      "exam_answer": "B",
+      "problem_id": 17
+    }
+  },
+  {
+    "pk": 2733,
+    "model": "examination.exampaper",
+    "fields": {
+      "examproblemselects": [],
+      "exam_selected": "",
+      "user": 34,
+      "paper_id": "dapeng.song20140818110514",
+      "exam_problem_score": 2,
+      "exam_answer": "C",
+      "problem_id": 20
+    }
+  },
+  {
+    "pk": 2732,
+    "model": "examination.exampaper",
+    "fields": {
+      "examproblemselects": [],
+      "exam_selected": "",
+      "user": 34,
+      "paper_id": "dapeng.song20140818110514",
+      "exam_problem_score": 2,
+      "exam_answer": "D",
+      "problem_id": 14
+    }
+  },
+  {
+    "pk": 2731,
+    "model": "examination.exampaper",
+    "fields": {
+      "examproblemselects": [],
+      "exam_selected": "",
+      "user": 34,
+      "paper_id": "dapeng.song20140818110351",
+      "exam_problem_score": 2,
+      "exam_answer": "D",
+      "problem_id": 14
+    }
+  },
+  {
+    "pk": 2730,
+    "model": "examination.exampaper",
+    "fields": {
+      "examproblemselects": [],
+      "exam_selected": "",
+      "user": 34,
+      "paper_id": "dapeng.song20140818110351",
+      "exam_problem_score": 2,
+      "exam_answer": "A",
+      "problem_id": 18
+    }
+  },
+  {
+    "pk": 2729,
+    "model": "examination.exampaper",
+    "fields": {
+      "examproblemselects": [],
+      "exam_selected": "",
+      "user": 34,
+      "paper_id": "dapeng.song20140818110351",
+      "exam_problem_score": 2,
+      "exam_answer": "B",
+      "problem_id": 9
+    }
+  },
+  {
+    "pk": 2728,
+    "model": "examination.exampaper",
+    "fields": {
+      "examproblemselects": [],
+      "exam_selected": "D",
+      "user": 34,
+      "paper_id": "dapeng.song20140818110011",
+      "exam_problem_score": 2,
+      "exam_answer": "A",
+      "problem_id": 5
+    }
+  },
+  {
+    "pk": 2727,
+    "model": "examination.exampaper",
+    "fields": {
+      "examproblemselects": [],
+      "exam_selected": "D",
+      "user": 34,
+      "paper_id": "dapeng.song20140818110011",
+      "exam_problem_score": 2,
+      "exam_answer": "B",
+      "problem_id": 6
+    }
+  },
+  {
+    "pk": 2726,
+    "model": "examination.exampaper",
+    "fields": {
+      "examproblemselects": [],
+      "exam_selected": "D",
+      "user": 34,
+      "paper_id": "dapeng.song20140818110011",
+      "exam_problem_score": 2,
+      "exam_answer": "B",
+      "problem_id": 23
+    }
+  },
+  {
+    "pk": 2725,
+    "model": "examination.exampaper",
+    "fields": {
+      "examproblemselects": [],
+      "exam_selected": "",
+      "user": 34,
+      "paper_id": "dapeng.song20140818110006",
+      "exam_problem_score": 2,
+      "exam_answer": "B",
+      "problem_id": 11
+    }
+  },
+  {
+    "pk": 2724,
+    "model": "examination.exampaper",
+    "fields": {
+      "examproblemselects": [],
+      "exam_selected": "",
+      "user": 34,
+      "paper_id": "dapeng.song20140818110006",
+      "exam_problem_score": 2,
+      "exam_answer": "A",
+      "problem_id": 15
+    }
+  },
+  {
+    "pk": 2723,
+    "model": "examination.exampaper",
+    "fields": {
+      "examproblemselects": [],
+      "exam_selected": "",
+      "user": 34,
+      "paper_id": "dapeng.song20140818110006",
+      "exam_problem_score": 2,
+      "exam_answer": "A",
+      "problem_id": 8
+    }
+  },
+  {
+    "pk": 2722,
+    "model": "examination.exampaper",
+    "fields": {
+      "examproblemselects": [],
+      "exam_selected": "",
+      "user": 34,
+      "paper_id": "dapeng.song20140818105952",
+      "exam_problem_score": 2,
+      "exam_answer": "B",
+      "problem_id": 7
+    }
+  },
+  {
+    "pk": 2721,
+    "model": "examination.exampaper",
+    "fields": {
+      "examproblemselects": [],
+      "exam_selected": "",
+      "user": 34,
+      "paper_id": "dapeng.song20140818105952",
+      "exam_problem_score": 2,
+      "exam_answer": "B",
+      "problem_id": 9
+    }
+  },
+  {
+    "pk": 2720,
+    "model": "examination.exampaper",
+    "fields": {
+      "examproblemselects": [],
+      "exam_selected": "",
+      "user": 34,
+      "paper_id": "dapeng.song20140818105952",
+      "exam_problem_score": 2,
+      "exam_answer": "D",
+      "problem_id": 19
+    }
+  },
+  {
+    "pk": 2719,
+    "model": "examination.exampaper",
+    "fields": {
+      "examproblemselects": [],
+      "exam_selected": "",
+      "user": 34,
+      "paper_id": "dapeng.song20140818105942",
+      "exam_problem_score": 2,
+      "exam_answer": "A",
+      "problem_id": 16
+    }
+  },
+  {
+    "pk": 2718,
+    "model": "examination.exampaper",
+    "fields": {
+      "examproblemselects": [],
+      "exam_selected": "",
+      "user": 34,
+      "paper_id": "dapeng.song20140818105942",
+      "exam_problem_score": 2,
+      "exam_answer": "D",
+      "problem_id": 13
+    }
+  },
+  {
+    "pk": 2717,
+    "model": "examination.exampaper",
+    "fields": {
+      "examproblemselects": [],
+      "exam_selected": "",
+      "user": 34,
+      "paper_id": "dapeng.song20140818105942",
+      "exam_problem_score": 2,
+      "exam_answer": "A",
+      "problem_id": 4
+    }
+  },
+  {
+    "pk": 2716,
+    "model": "examination.exampaper",
+    "fields": {
+      "examproblemselects": [],
+      "exam_selected": "",
+      "user": 34,
+      "paper_id": "dapeng.song20140818105935",
+      "exam_problem_score": 2,
+      "exam_answer": "A",
+      "problem_id": 8
+    }
+  },
+  {
+    "pk": 2715,
+    "model": "examination.exampaper",
+    "fields": {
+      "examproblemselects": [],
+      "exam_selected": "",
+      "user": 34,
+      "paper_id": "dapeng.song20140818105935",
+      "exam_problem_score": 2,
+      "exam_answer": "A",
+      "problem_id": 18
+    }
+  },
+  {
+    "pk": 2708,
+    "model": "examination.exampaper",
+    "fields": {
+      "examproblemselects": [],
+      "exam_selected": "",
+      "user": 34,
+      "paper_id": "dapeng.song20140818105858",
+      "exam_problem_score": 2,
+      "exam_answer": "A",
+      "problem_id": 5
+    }
+  },
+  {
+    "pk": 2709,
+    "model": "examination.exampaper",
+    "fields": {
+      "examproblemselects": [],
+      "exam_selected": "",
+      "user": 34,
+      "paper_id": "dapeng.song20140818105858",
+      "exam_problem_score": 2,
+      "exam_answer": "C",
+      "problem_id": 10
+    }
+  },
+  {
+    "pk": 2710,
+    "model": "examination.exampaper",
+    "fields": {
+      "examproblemselects": [],
+      "exam_selected": "",
+      "user": 34,
+      "paper_id": "dapeng.song20140818105858",
+      "exam_problem_score": 2,
+      "exam_answer": "A",
+      "problem_id": 16
+    }
+  },
+  {
+    "pk": 2711,
+    "model": "examination.exampaper",
+    "fields": {
+      "examproblemselects": [],
+      "exam_selected": "",
+      "user": 34,
+      "paper_id": "dapeng.song20140818105911",
+      "exam_problem_score": 2,
+      "exam_answer": "A",
+      "problem_id": 22
+    }
+  },
+  {
+    "pk": 2712,
+    "model": "examination.exampaper",
+    "fields": {
+      "examproblemselects": [],
+      "exam_selected": "",
+      "user": 34,
+      "paper_id": "dapeng.song20140818105911",
+      "exam_problem_score": 2,
+      "exam_answer": "C",
+      "problem_id": 1
+    }
+  },
+  {
+    "pk": 2713,
+    "model": "examination.exampaper",
+    "fields": {
+      "examproblemselects": [],
+      "exam_selected": "",
+      "user": 34,
+      "paper_id": "dapeng.song20140818105911",
+      "exam_problem_score": 2,
+      "exam_answer": "A",
+      "problem_id": 8
+    }
+  },
+  {
+    "pk": 2714,
+    "model": "examination.exampaper",
+    "fields": {
+      "examproblemselects": [],
+      "exam_selected": "",
+      "user": 34,
+      "paper_id": "dapeng.song20140818105935",
+      "exam_problem_score": 2,
+      "exam_answer": "A",
+      "problem_id": 22
+    }
+  },
+  {
+    "pk": 2707,
+    "model": "examination.exampaper",
+    "fields": {
+      "examproblemselects": [],
+      "exam_selected": "",
+      "user": 34,
+      "paper_id": "dapeng.song20140818105841",
+      "exam_problem_score": 2,
+      "exam_answer": "C",
+      "problem_id": 20
+    }
+  },
+  {
+    "pk": 2706,
+    "model": "examination.exampaper",
+    "fields": {
+      "examproblemselects": [],
+      "exam_selected": "",
+      "user": 34,
+      "paper_id": "dapeng.song20140818105841",
+      "exam_problem_score": 2,
+      "exam_answer": "B",
+      "problem_id": 23
+    }
+  },
+  {
+    "pk": 2705,
+    "model": "examination.exampaper",
+    "fields": {
+      "examproblemselects": [],
+      "exam_selected": "",
+      "user": 34,
+      "paper_id": "dapeng.song20140818105841",
+      "exam_problem_score": 2,
+      "exam_answer": "B",
+      "problem_id": 6
+    }
+  },
+  {
+    "pk": 2704,
+    "model": "examination.exampaper",
+    "fields": {
+      "examproblemselects": [],
+      "exam_selected": "",
+      "user": 34,
+      "paper_id": "dapeng.song20140818105831",
+      "exam_problem_score": 2,
+      "exam_answer": "C",
+      "problem_id": 10
+    }
+  },
+  {
+    "pk": 2703,
+    "model": "examination.exampaper",
+    "fields": {
+      "examproblemselects": [],
+      "exam_selected": "",
+      "user": 34,
+      "paper_id": "dapeng.song20140818105831",
+      "exam_problem_score": 2,
+      "exam_answer": "B",
+      "problem_id": 6
+    }
+  },
+  {
+    "pk": 2702,
+    "model": "examination.exampaper",
+    "fields": {
+      "examproblemselects": [],
+      "exam_selected": "",
+      "user": 34,
+      "paper_id": "dapeng.song20140818105831",
+      "exam_problem_score": 2,
+      "exam_answer": "D",
+      "problem_id": 2
+    }
+  },
+  {
+    "pk": 2701,
+    "model": "examination.exampaper",
+    "fields": {
+      "examproblemselects": [],
+      "exam_selected": "",
+      "user": 34,
+      "paper_id": "dapeng.song20140818105808",
+      "exam_problem_score": 2,
+      "exam_answer": "A",
+      "problem_id": 15
+    }
+  },
+  {
+    "pk": 2700,
+    "model": "examination.exampaper",
+    "fields": {
+      "examproblemselects": [],
+      "exam_selected": "",
+      "user": 34,
+      "paper_id": "dapeng.song20140818105808",
+      "exam_problem_score": 2,
+      "exam_answer": "D",
+      "problem_id": 14
+    }
+  },
+  {
+    "pk": 2699,
+    "model": "examination.exampaper",
+    "fields": {
+      "examproblemselects": [],
+      "exam_selected": "",
+      "user": 34,
+      "paper_id": "dapeng.song20140818105808",
+      "exam_problem_score": 2,
+      "exam_answer": "B",
+      "problem_id": 9
+    }
+  },
+  {
+    "pk": 2698,
+    "model": "examination.exampaper",
+    "fields": {
+      "examproblemselects": [],
+      "exam_selected": "",
+      "user": 34,
+      "paper_id": "dapeng.song20140818105730",
+      "exam_problem_score": 2,
+      "exam_answer": "B",
+      "problem_id": 7
+    }
+  },
+  {
+    "pk": 2697,
+    "model": "examination.exampaper",
+    "fields": {
+      "examproblemselects": [],
+      "exam_selected": "",
+      "user": 34,
+      "paper_id": "dapeng.song20140818105730",
+      "exam_problem_score": 2,
+      "exam_answer": "B",
+      "problem_id": 6
+    }
+  },
+  {
+    "pk": 2696,
+    "model": "examination.exampaper",
+    "fields": {
+      "examproblemselects": [],
+      "exam_selected": "",
+      "user": 34,
+      "paper_id": "dapeng.song20140818105730",
+      "exam_problem_score": 2,
+      "exam_answer": "A",
+      "problem_id": 22
+    }
+  },
+  {
+    "pk": 2695,
+    "model": "examination.exampaper",
+    "fields": {
+      "examproblemselects": [],
+      "exam_selected": "",
+      "user": 34,
+      "paper_id": "dapeng.song20140815113713",
+      "exam_problem_score": 2,
+      "exam_answer": "C",
+      "problem_id": 10
+    }
+  },
+  {
+    "pk": 2694,
+    "model": "examination.exampaper",
+    "fields": {
+      "examproblemselects": [],
+      "exam_selected": "",
+      "user": 34,
+      "paper_id": "dapeng.song20140815113713",
+      "exam_problem_score": 2,
+      "exam_answer": "A",
+      "problem_id": 4
+    }
+  },
+  {
+    "pk": 2693,
+    "model": "examination.exampaper",
+    "fields": {
+      "examproblemselects": [],
+      "exam_selected": "",
+      "user": 34,
+      "paper_id": "dapeng.song20140815113713",
+      "exam_problem_score": 2,
+      "exam_answer": "A",
+      "problem_id": 5
+    }
+  },
+  {
+    "pk": 2692,
+    "model": "examination.exampaper",
+    "fields": {
+      "examproblemselects": [],
+      "exam_selected": "",
+      "user": 34,
+      "paper_id": "dapeng.song20140815092536",
+      "exam_problem_score": 2,
+      "exam_answer": "A",
+      "problem_id": 5
+    }
+  },
+  {
+    "pk": 2691,
+    "model": "examination.exampaper",
+    "fields": {
+      "examproblemselects": [],
+      "exam_selected": "",
+      "user": 34,
+      "paper_id": "dapeng.song20140815092536",
+      "exam_problem_score": 2,
+      "exam_answer": "B",
+      "problem_id": 7
+    }
+  },
+  {
+    "pk": 2690,
+    "model": "examination.exampaper",
+    "fields": {
+      "examproblemselects": [],
+      "exam_selected": "",
+      "user": 34,
+      "paper_id": "dapeng.song20140815092536",
+      "exam_problem_score": 2,
+      "exam_answer": "A",
+      "problem_id": 8
+    }
+  },
+  {
+    "pk": 2689,
+    "model": "examination.exampaper",
+    "fields": {
+      "examproblemselects": [],
+      "exam_selected": "",
+      "user": 34,
+      "paper_id": "dapeng.song20140814182124",
+      "exam_problem_score": 2,
+      "exam_answer": "B",
+      "problem_id": 11
+    }
+  },
+  {
+    "pk": 2688,
+    "model": "examination.exampaper",
+    "fields": {
+      "examproblemselects": [],
+      "exam_selected": "",
+      "user": 34,
+      "paper_id": "dapeng.song20140814182124",
+      "exam_problem_score": 2,
+      "exam_answer": "B",
+      "problem_id": 6
+    }
+  },
+  {
+    "pk": 2687,
+    "model": "examination.exampaper",
+    "fields": {
+      "examproblemselects": [],
+      "exam_selected": "",
+      "user": 34,
+      "paper_id": "dapeng.song20140814182124",
+      "exam_problem_score": 2,
+      "exam_answer": "A",
+      "problem_id": 18
+    }
+  },
+  {
+    "pk": 2686,
+    "model": "examination.exampaper",
+    "fields": {
+      "examproblemselects": [],
+      "exam_selected": "",
+      "user": 34,
+      "paper_id": "dapeng.song20140814182004",
+      "exam_problem_score": 2,
+      "exam_answer": "B",
+      "problem_id": 11
+    }
+  },
+  {
+    "pk": 2685,
+    "model": "examination.exampaper",
+    "fields": {
+      "examproblemselects": [],
+      "exam_selected": "",
+      "user": 34,
+      "paper_id": "dapeng.song20140814182004",
+      "exam_problem_score": 2,
+      "exam_answer": "C",
+      "problem_id": 10
+    }
+  },
+  {
+    "pk": 2684,
+    "model": "examination.exampaper",
+    "fields": {
+      "examproblemselects": [],
+      "exam_selected": "",
+      "user": 34,
+      "paper_id": "dapeng.song20140814182004",
+      "exam_problem_score": 2,
+      "exam_answer": "D",
+      "problem_id": 3
+    }
+  },
+  {
+    "pk": 2683,
+    "model": "examination.exampaper",
+    "fields": {
+      "examproblemselects": [],
+      "exam_selected": "B",
+      "user": 34,
+      "paper_id": "dapeng.song20140814181948",
+      "exam_problem_score": 2,
+      "exam_answer": "A",
+      "problem_id": 16
+    }
+  },
+  {
+    "pk": 2682,
+    "model": "examination.exampaper",
+    "fields": {
+      "examproblemselects": [],
+      "exam_selected": "D",
+      "user": 34,
+      "paper_id": "dapeng.song20140814181948",
+      "exam_problem_score": 2,
+      "exam_answer": "D",
+      "problem_id": 13
+    }
+  },
+  {
+    "pk": 2681,
+    "model": "examination.exampaper",
+    "fields": {
+      "examproblemselects": [],
+      "exam_selected": "A",
+      "user": 34,
+      "paper_id": "dapeng.song20140814181948",
+      "exam_problem_score": 2,
+      "exam_answer": "A",
+      "problem_id": 4
+    }
+  },
+  {
+    "pk": 2680,
+    "model": "examination.exampaper",
+    "fields": {
+      "examproblemselects": [],
+      "exam_selected": "",
+      "user": 34,
+      "paper_id": "dapeng.song20140814181230",
+      "exam_problem_score": 2,
+      "exam_answer": "D",
+      "problem_id": 14
+    }
+  },
+  {
+    "pk": 2679,
+    "model": "examination.exampaper",
+    "fields": {
+      "examproblemselects": [],
+      "exam_selected": "",
+      "user": 34,
+      "paper_id": "dapeng.song20140814181230",
+      "exam_problem_score": 2,
+      "exam_answer": "C",
+      "problem_id": 20
+    }
+  },
+  {
+    "pk": 2678,
+    "model": "examination.exampaper",
+    "fields": {
+      "examproblemselects": [],
+      "exam_selected": "",
+      "user": 34,
+      "paper_id": "dapeng.song20140814181230",
+      "exam_problem_score": 2,
+      "exam_answer": "D",
+      "problem_id": 2
+    }
+  },
+  {
+    "pk": 2677,
+    "model": "examination.exampaper",
+    "fields": {
+      "examproblemselects": [],
+      "exam_selected": "",
+      "user": 34,
+      "paper_id": "dapeng.song20140814181212",
+      "exam_problem_score": 2,
+      "exam_answer": "C",
+      "problem_id": 20
+    }
+  },
+  {
+    "pk": 2676,
+    "model": "examination.exampaper",
+    "fields": {
+      "examproblemselects": [],
+      "exam_selected": "",
+      "user": 34,
+      "paper_id": "dapeng.song20140814181212",
+      "exam_problem_score": 2,
+      "exam_answer": "A",
+      "problem_id": 18
+    }
+  },
+  {
+    "pk": 2675,
+    "model": "examination.exampaper",
+    "fields": {
+      "examproblemselects": [],
+      "exam_selected": "",
+      "user": 34,
+      "paper_id": "dapeng.song20140814181212",
+      "exam_problem_score": 2,
+      "exam_answer": "A",
+      "problem_id": 15
+    }
+  },
+  {
+    "pk": 2674,
+    "model": "examination.exampaper",
+    "fields": {
+      "examproblemselects": [],
+      "exam_selected": "",
+      "user": 34,
+      "paper_id": "dapeng.song20140814181159",
+      "exam_problem_score": 2,
+      "exam_answer": "A",
+      "problem_id": 18
+    }
+  },
+  {
+    "pk": 2673,
+    "model": "examination.exampaper",
+    "fields": {
+      "examproblemselects": [],
+      "exam_selected": "",
+      "user": 34,
+      "paper_id": "dapeng.song20140814181159",
+      "exam_problem_score": 2,
+      "exam_answer": "C",
+      "problem_id": 1
+    }
+  },
+  {
+    "pk": 2672,
+    "model": "examination.exampaper",
+    "fields": {
+      "examproblemselects": [],
+      "exam_selected": "",
+      "user": 34,
+      "paper_id": "dapeng.song20140814181159",
+      "exam_problem_score": 2,
+      "exam_answer": "A",
+      "problem_id": 5
+    }
+  },
+  {
+    "pk": 2671,
+    "model": "examination.exampaper",
+    "fields": {
+      "examproblemselects": [],
+      "exam_selected": "",
+      "user": 34,
+      "paper_id": "dapeng.song20140814181105",
+      "exam_problem_score": 2,
+      "exam_answer": "D",
+      "problem_id": 14
+    }
+  },
+  {
+    "pk": 2670,
+    "model": "examination.exampaper",
+    "fields": {
+      "examproblemselects": [],
+      "exam_selected": "",
+      "user": 34,
+      "paper_id": "dapeng.song20140814181105",
+      "exam_problem_score": 2,
+      "exam_answer": "B",
+      "problem_id": 17
+    }
+  },
+  {
+    "pk": 2669,
+    "model": "examination.exampaper",
+    "fields": {
+      "examproblemselects": [],
+      "exam_selected": "",
+      "user": 34,
+      "paper_id": "dapeng.song20140814181105",
+      "exam_problem_score": 2,
+      "exam_answer": "D",
+      "problem_id": 2
+    }
+  },
+  {
+    "pk": 2668,
+    "model": "examination.exampaper",
+    "fields": {
+      "examproblemselects": [],
+      "exam_selected": "",
+      "user": 34,
+      "paper_id": "dapeng.song20140814181048",
+      "exam_problem_score": 2,
+      "exam_answer": "C",
+      "problem_id": 1
+    }
+  },
+  {
+    "pk": 2667,
+    "model": "examination.exampaper",
+    "fields": {
+      "examproblemselects": [],
+      "exam_selected": "",
+      "user": 34,
+      "paper_id": "dapeng.song20140814181048",
+      "exam_problem_score": 2,
+      "exam_answer": "B",
+      "problem_id": 23
+    }
+  },
+  {
+    "pk": 2666,
+    "model": "examination.exampaper",
+    "fields": {
+      "examproblemselects": [],
+      "exam_selected": "",
+      "user": 34,
+      "paper_id": "dapeng.song20140814181048",
+      "exam_problem_score": 2,
+      "exam_answer": "A",
+      "problem_id": 5
+    }
+  },
+  {
+    "pk": 2665,
+    "model": "examination.exampaper",
+    "fields": {
+      "examproblemselects": [],
+      "exam_selected": "",
+      "user": 34,
+      "paper_id": "dapeng.song20140814180816",
+      "exam_problem_score": 2,
+      "exam_answer": "A",
+      "problem_id": 15
+    }
+  },
+  {
+    "pk": 2664,
+    "model": "examination.exampaper",
+    "fields": {
+      "examproblemselects": [],
+      "exam_selected": "",
+      "user": 34,
+      "paper_id": "dapeng.song20140814180816",
+      "exam_problem_score": 2,
+      "exam_answer": "C",
+      "problem_id": 24
+    }
+  },
+  {
+    "pk": 2663,
+    "model": "examination.exampaper",
+    "fields": {
+      "examproblemselects": [],
+      "exam_selected": "",
+      "user": 34,
+      "paper_id": "dapeng.song20140814180816",
+      "exam_problem_score": 2,
+      "exam_answer": "D",
+      "problem_id": 2
+    }
+  },
+  {
+    "pk": 2662,
+    "model": "examination.exampaper",
+    "fields": {
+      "examproblemselects": [],
+      "exam_selected": "",
+      "user": 34,
+      "paper_id": "dapeng.song20140814180338",
+      "exam_problem_score": 2,
+      "exam_answer": "B",
+      "problem_id": 11
+    }
+  },
+  {
+    "pk": 2661,
+    "model": "examination.exampaper",
+    "fields": {
+      "examproblemselects": [],
+      "exam_selected": "",
+      "user": 34,
+      "paper_id": "dapeng.song20140814180338",
+      "exam_problem_score": 2,
+      "exam_answer": "C",
+      "problem_id": 24
+    }
+  },
+  {
+    "pk": 2660,
+    "model": "examination.exampaper",
+    "fields": {
+      "examproblemselects": [],
+      "exam_selected": "",
+      "user": 34,
+      "paper_id": "dapeng.song20140814180338",
+      "exam_problem_score": 2,
+      "exam_answer": "D",
+      "problem_id": 12
+    }
+  },
+  {
+    "pk": 2659,
+    "model": "examination.exampaper",
+    "fields": {
+      "examproblemselects": [],
+      "exam_selected": "B",
+      "user": 34,
+      "paper_id": "dapeng.song20140814180248",
+      "exam_problem_score": 2,
+      "exam_answer": "A",
+      "problem_id": 18
+    }
+  },
+  {
+    "pk": 2658,
+    "model": "examination.exampaper",
+    "fields": {
+      "examproblemselects": [],
+      "exam_selected": "B",
+      "user": 34,
+      "paper_id": "dapeng.song20140814180248",
+      "exam_problem_score": 2,
+      "exam_answer": "A",
+      "problem_id": 15
+    }
+  },
+  {
+    "pk": 2657,
+    "model": "examination.exampaper",
+    "fields": {
+      "examproblemselects": [],
+      "exam_selected": "B",
+      "user": 34,
+      "paper_id": "dapeng.song20140814180248",
+      "exam_problem_score": 2,
+      "exam_answer": "C",
+      "problem_id": 10
+    }
+  },
+  {
+    "pk": 2656,
+    "model": "examination.exampaper",
+    "fields": {
+      "examproblemselects": [],
+      "exam_selected": "B",
+      "user": 34,
+      "paper_id": "dapeng.song20140814175332",
+      "exam_problem_score": 2,
+      "exam_answer": "D",
+      "problem_id": 2
+    }
+  },
+  {
+    "pk": 2655,
+    "model": "examination.exampaper",
+    "fields": {
+      "examproblemselects": [],
+      "exam_selected": "C",
+      "user": 34,
+      "paper_id": "dapeng.song20140814175332",
+      "exam_problem_score": 2,
+      "exam_answer": "A",
+      "problem_id": 18
+    }
+  },
+  {
+    "pk": 2654,
+    "model": "examination.exampaper",
+    "fields": {
+      "examproblemselects": [],
+      "exam_selected": "C",
+      "user": 34,
+      "paper_id": "dapeng.song20140814175332",
+      "exam_problem_score": 2,
+      "exam_answer": "D",
+      "problem_id": 25
+    }
+  },
+  {
+    "pk": 2653,
+    "model": "examination.exampaper",
+    "fields": {
+      "examproblemselects": [],
+      "exam_selected": "C",
+      "user": 34,
+      "paper_id": "dapeng.song20140814175332",
+      "exam_problem_score": 2,
+      "exam_answer": "A",
+      "problem_id": 8
+    }
+  },
+  {
+    "pk": 2652,
+    "model": "examination.exampaper",
+    "fields": {
+      "examproblemselects": [],
+      "exam_selected": "B",
+      "user": 34,
+      "paper_id": "dapeng.song20140814175332",
+      "exam_problem_score": 2,
+      "exam_answer": "C",
+      "problem_id": 1
+    }
+  },
+  {
+    "pk": 2651,
+    "model": "examination.exampaper",
+    "fields": {
+      "examproblemselects": [],
+      "exam_selected": "B",
+      "user": 34,
+      "paper_id": "dapeng.song20140814175332",
+      "exam_problem_score": 2,
+      "exam_answer": "C",
+      "problem_id": 24
+    }
+  },
+  {
+    "pk": 2650,
+    "model": "examination.exampaper",
+    "fields": {
+      "examproblemselects": [],
+      "exam_selected": "C",
+      "user": 34,
+      "paper_id": "dapeng.song20140814175332",
+      "exam_problem_score": 2,
+      "exam_answer": "C",
+      "problem_id": 20
+    }
+  },
+  {
+    "pk": 2648,
+    "model": "examination.exampaper",
+    "fields": {
+      "examproblemselects": [],
+      "exam_selected": "B",
+      "user": 34,
+      "paper_id": "dapeng.song20140814175332",
+      "exam_problem_score": 2,
+      "exam_answer": "B",
+      "problem_id": 7
+    }
+  },
+  {
+    "pk": 2649,
+    "model": "examination.exampaper",
+    "fields": {
+      "examproblemselects": [],
+      "exam_selected": "C",
+      "user": 34,
+      "paper_id": "dapeng.song20140814175332",
+      "exam_problem_score": 2,
+      "exam_answer": "C",
+      "problem_id": 10
+    }
+  },
+  {
+    "pk": 2647,
+    "model": "examination.exampaper",
+    "fields": {
+      "examproblemselects": [],
+      "exam_selected": "C",
+      "user": 34,
+      "paper_id": "dapeng.song20140814175332",
+      "exam_problem_score": 2,
+      "exam_answer": "A",
+      "problem_id": 22
+    }
+  },
+  {
+    "pk": 2644,
+    "model": "examination.exampaper",
+    "fields": {
+      "examproblemselects": [],
+      "exam_selected": "C",
+      "user": 34,
+      "paper_id": "dapeng.song20140814175332",
+      "exam_problem_score": 2,
+      "exam_answer": "D",
+      "problem_id": 19
+    }
+  },
+  {
+    "pk": 2645,
+    "model": "examination.exampaper",
+    "fields": {
+      "examproblemselects": [],
+      "exam_selected": "C",
+      "user": 34,
+      "paper_id": "dapeng.song20140814175332",
+      "exam_problem_score": 2,
+      "exam_answer": "D",
+      "problem_id": 21
+    }
+  },
+  {
+    "pk": 2646,
+    "model": "examination.exampaper",
+    "fields": {
+      "examproblemselects": [],
+      "exam_selected": "D",
+      "user": 34,
+      "paper_id": "dapeng.song20140814175332",
+      "exam_problem_score": 2,
+      "exam_answer": "B",
+      "problem_id": 23
+    }
+  },
+  {
+    "pk": 2640,
+    "model": "examination.exampaper",
+    "fields": {
+      "examproblemselects": [],
+      "exam_selected": "",
+      "user": 34,
+      "paper_id": "dapeng.song20140814175326",
+      "exam_problem_score": 2,
+      "exam_answer": "A",
+      "problem_id": 18
+    }
+  },
+  {
+    "pk": 2639,
+    "model": "examination.exampaper",
+    "fields": {
+      "examproblemselects": [],
+      "exam_selected": "",
+      "user": 34,
+      "paper_id": "dapeng.song20140814175326",
+      "exam_problem_score": 2,
+      "exam_answer": "A",
+      "problem_id": 5
+    }
+  },
+  {
+    "pk": 2638,
+    "model": "examination.exampaper",
+    "fields": {
+      "examproblemselects": [],
+      "exam_selected": "",
+      "user": 34,
+      "paper_id": "dapeng.song20140814175326",
+      "exam_problem_score": 2,
+      "exam_answer": "A",
+      "problem_id": 15
+    }
+  },
+  {
+    "pk": 2637,
+    "model": "examination.exampaper",
+    "fields": {
+      "examproblemselects": [],
+      "exam_selected": "",
+      "user": 34,
+      "paper_id": "dapeng.song20140814175318",
+      "exam_problem_score": 2,
+      "exam_answer": "B",
+      "problem_id": 7
+    }
+  },
+  {
+    "pk": 2636,
+    "model": "examination.exampaper",
+    "fields": {
+      "examproblemselects": [],
+      "exam_selected": "",
+      "user": 34,
+      "paper_id": "dapeng.song20140814175318",
+      "exam_problem_score": 2,
+      "exam_answer": "D",
+      "problem_id": 21
+    }
+  },
+  {
+    "pk": 2635,
+    "model": "examination.exampaper",
+    "fields": {
+      "examproblemselects": [],
+      "exam_selected": "",
+      "user": 34,
+      "paper_id": "dapeng.song20140814175318",
+      "exam_problem_score": 2,
+      "exam_answer": "A",
+      "problem_id": 8
+    }
+  },
+  {
+    "pk": 2634,
+    "model": "examination.exampaper",
+    "fields": {
+      "examproblemselects": [],
+      "exam_selected": "",
+      "user": 34,
+      "paper_id": "dapeng.song20140814175305",
+      "exam_problem_score": 2,
+      "exam_answer": "A",
+      "problem_id": 22
+    }
+  },
+  {
+    "pk": 2633,
+    "model": "examination.exampaper",
+    "fields": {
+      "examproblemselects": [],
+      "exam_selected": "",
+      "user": 34,
+      "paper_id": "dapeng.song20140814175305",
+      "exam_problem_score": 2,
+      "exam_answer": "B",
+      "problem_id": 23
+    }
+  },
+  {
+    "pk": 2632,
+    "model": "examination.exampaper",
+    "fields": {
+      "examproblemselects": [],
+      "exam_selected": "",
+      "user": 34,
+      "paper_id": "dapeng.song20140814175305",
+      "exam_problem_score": 2,
+      "exam_answer": "A",
+      "problem_id": 4
+    }
+  },
+  {
+    "pk": 2611,
+    "model": "examination.exampaper",
+    "fields": {
+      "examproblemselects": [],
+      "exam_selected": "B",
+      "user": 34,
+      "paper_id": "dapeng.song20140814170907",
+      "exam_problem_score": 2,
+      "exam_answer": "A",
+      "problem_id": 16
+    }
+  },
+  {
+    "pk": 2457,
+    "model": "examination.exampaper",
+    "fields": {
+      "examproblemselects": [],
+      "exam_selected": "",
+      "user": 34,
+      "paper_id": "dapeng.song20140814170823",
+      "exam_problem_score": 2,
+      "exam_answer": "A",
+      "problem_id": 5
+    }
+  },
+  {
+    "pk": 2456,
+    "model": "examination.exampaper",
+    "fields": {
+      "examproblemselects": [],
+      "exam_selected": "",
+      "user": 34,
+      "paper_id": "dapeng.song20140814170823",
+      "exam_problem_score": 2,
+      "exam_answer": "A",
+      "problem_id": 18
+    }
+  },
+  {
+    "pk": 2455,
+    "model": "examination.exampaper",
+    "fields": {
+      "examproblemselects": [],
+      "exam_selected": "",
+      "user": 34,
+      "paper_id": "dapeng.song20140814170823",
+      "exam_problem_score": 2,
+      "exam_answer": "C",
+      "problem_id": 20
+    }
+  },
+  {
+    "pk": 2454,
+    "model": "examination.exampaper",
+    "fields": {
+      "examproblemselects": [],
+      "exam_selected": "",
+      "user": 34,
+      "paper_id": "dapeng.song20140814170717",
+      "exam_problem_score": 2,
+      "exam_answer": "B",
+      "problem_id": 9
+    }
+  },
+  {
+    "pk": 2453,
+    "model": "examination.exampaper",
+    "fields": {
+      "examproblemselects": [],
+      "exam_selected": "",
+      "user": 34,
+      "paper_id": "dapeng.song20140814170717",
+      "exam_problem_score": 2,
+      "exam_answer": "A",
+      "problem_id": 16
+    }
+  },
+  {
+    "pk": 2452,
+    "model": "examination.exampaper",
+    "fields": {
+      "examproblemselects": [],
+      "exam_selected": "",
+      "user": 34,
+      "paper_id": "dapeng.song20140814170717",
+      "exam_problem_score": 2,
+      "exam_answer": "A",
+      "problem_id": 5
+    }
+  },
+  {
+    "pk": 2451,
+    "model": "examination.exampaper",
+    "fields": {
+      "examproblemselects": [],
+      "exam_selected": "",
+      "user": 34,
+      "paper_id": "dapeng.song20140814170658",
+      "exam_problem_score": 2,
+      "exam_answer": "D",
+      "problem_id": 13
+    }
+  },
+  {
+    "pk": 2450,
+    "model": "examination.exampaper",
+    "fields": {
+      "examproblemselects": [],
+      "exam_selected": "",
+      "user": 34,
+      "paper_id": "dapeng.song20140814170658",
+      "exam_problem_score": 2,
+      "exam_answer": "D",
+      "problem_id": 12
+    }
+  },
+  {
+    "pk": 2449,
+    "model": "examination.exampaper",
+    "fields": {
+      "examproblemselects": [],
+      "exam_selected": "",
+      "user": 34,
+      "paper_id": "dapeng.song20140814170658",
+      "exam_problem_score": 2,
+      "exam_answer": "A",
+      "problem_id": 16
+    }
+  },
+  {
+    "pk": 2448,
+    "model": "examination.exampaper",
+    "fields": {
+      "examproblemselects": [],
+      "exam_selected": "",
+      "user": 34,
+      "paper_id": "dapeng.song20140814170605",
+      "exam_problem_score": 2,
+      "exam_answer": "D",
+      "problem_id": 19
+    }
+  },
+  {
+    "pk": 2447,
+    "model": "examination.exampaper",
+    "fields": {
+      "examproblemselects": [],
+      "exam_selected": "",
+      "user": 34,
+      "paper_id": "dapeng.song20140814170605",
+      "exam_problem_score": 2,
+      "exam_answer": "D",
+      "problem_id": 12
+    }
+  },
+  {
+    "pk": 2446,
+    "model": "examination.exampaper",
+    "fields": {
+      "examproblemselects": [],
+      "exam_selected": "",
+      "user": 34,
+      "paper_id": "dapeng.song20140814170605",
+      "exam_problem_score": 2,
+      "exam_answer": "A",
+      "problem_id": 22
+    }
+  },
+  {
+    "pk": 2445,
+    "model": "examination.exampaper",
+    "fields": {
+      "examproblemselects": [],
+      "exam_selected": "",
+      "user": 34,
+      "paper_id": "dapeng.song20140814170429",
+      "exam_problem_score": 2,
+      "exam_answer": "B",
+      "problem_id": 11
+    }
+  },
+  {
+    "pk": 2444,
+    "model": "examination.exampaper",
+    "fields": {
+      "examproblemselects": [],
+      "exam_selected": "",
+      "user": 34,
+      "paper_id": "dapeng.song20140814170429",
+      "exam_problem_score": 2,
+      "exam_answer": "C",
+      "problem_id": 20
+    }
+  },
+  {
+    "pk": 2443,
+    "model": "examination.exampaper",
+    "fields": {
+      "examproblemselects": [],
+      "exam_selected": "",
+      "user": 34,
+      "paper_id": "dapeng.song20140814170429",
+      "exam_problem_score": 2,
+      "exam_answer": "A",
+      "problem_id": 8
+    }
+  },
+  {
+    "pk": 2442,
+    "model": "examination.exampaper",
+    "fields": {
+      "examproblemselects": [],
+      "exam_selected": "",
+      "user": 34,
+      "paper_id": "dapeng.song20140814170322",
+      "exam_problem_score": 2,
+      "exam_answer": "B",
+      "problem_id": 23
+    }
+  },
+  {
+    "pk": 2441,
+    "model": "examination.exampaper",
+    "fields": {
+      "examproblemselects": [],
+      "exam_selected": "",
+      "user": 34,
+      "paper_id": "dapeng.song20140814170322",
+      "exam_problem_score": 2,
+      "exam_answer": "D",
+      "problem_id": 2
+    }
+  },
+  {
+    "pk": 2440,
+    "model": "examination.exampaper",
+    "fields": {
+      "examproblemselects": [],
+      "exam_selected": "",
+      "user": 34,
+      "paper_id": "dapeng.song20140814170322",
+      "exam_problem_score": 2,
+      "exam_answer": "D",
+      "problem_id": 14
+    }
+  },
+  {
+    "pk": 2439,
+    "model": "examination.exampaper",
+    "fields": {
+      "examproblemselects": [],
+      "exam_selected": "",
+      "user": 34,
+      "paper_id": "dapeng.song20140814170143",
+      "exam_problem_score": 2,
+      "exam_answer": "D",
+      "problem_id": 21
+    }
+  },
+  {
+    "pk": 2438,
+    "model": "examination.exampaper",
+    "fields": {
+      "examproblemselects": [],
+      "exam_selected": "",
+      "user": 34,
+      "paper_id": "dapeng.song20140814170143",
+      "exam_problem_score": 2,
+      "exam_answer": "B",
+      "problem_id": 17
+    }
+  },
+  {
+    "pk": 2437,
+    "model": "examination.exampaper",
+    "fields": {
+      "examproblemselects": [],
+      "exam_selected": "",
+      "user": 34,
+      "paper_id": "dapeng.song20140814170143",
+      "exam_problem_score": 2,
+      "exam_answer": "C",
+      "problem_id": 20
+    }
+  },
+  {
+    "pk": 2436,
+    "model": "examination.exampaper",
+    "fields": {
+      "examproblemselects": [],
+      "exam_selected": "",
+      "user": 34,
+      "paper_id": "dapeng.song20140814170135",
+      "exam_problem_score": 2,
+      "exam_answer": "B",
+      "problem_id": 7
+    }
+  },
+  {
+    "pk": 2435,
+    "model": "examination.exampaper",
+    "fields": {
+      "examproblemselects": [],
+      "exam_selected": "",
+      "user": 34,
+      "paper_id": "dapeng.song20140814170135",
+      "exam_problem_score": 2,
+      "exam_answer": "D",
+      "problem_id": 12
+    }
+  },
+  {
+    "pk": 2434,
+    "model": "examination.exampaper",
+    "fields": {
+      "examproblemselects": [],
+      "exam_selected": "",
+      "user": 34,
+      "paper_id": "dapeng.song20140814170135",
+      "exam_problem_score": 2,
+      "exam_answer": "D",
+      "problem_id": 13
+    }
+  },
+  {
+    "pk": 2433,
+    "model": "examination.exampaper",
+    "fields": {
+      "examproblemselects": [],
+      "exam_selected": "",
+      "user": 34,
+      "paper_id": "dapeng.song20140814170121",
+      "exam_problem_score": 2,
+      "exam_answer": "D",
+      "problem_id": 25
+    }
+  },
+  {
+    "pk": 2432,
+    "model": "examination.exampaper",
+    "fields": {
+      "examproblemselects": [],
+      "exam_selected": "",
+      "user": 34,
+      "paper_id": "dapeng.song20140814170121",
+      "exam_problem_score": 2,
+      "exam_answer": "B",
+      "problem_id": 6
+    }
+  },
+  {
+    "pk": 2431,
+    "model": "examination.exampaper",
+    "fields": {
+      "examproblemselects": [],
+      "exam_selected": "",
+      "user": 34,
+      "paper_id": "dapeng.song20140814170121",
+      "exam_problem_score": 2,
+      "exam_answer": "B",
+      "problem_id": 7
+    }
+  },
+  {
+    "pk": 2430,
+    "model": "examination.exampaper",
+    "fields": {
+      "examproblemselects": [],
+      "exam_selected": "",
+      "user": 34,
+      "paper_id": "dapeng.song20140814170112",
+      "exam_problem_score": 2,
+      "exam_answer": "D",
+      "problem_id": 13
+    }
+  },
+  {
+    "pk": 2429,
+    "model": "examination.exampaper",
+    "fields": {
+      "examproblemselects": [],
+      "exam_selected": "",
+      "user": 34,
+      "paper_id": "dapeng.song20140814170112",
+      "exam_problem_score": 2,
+      "exam_answer": "D",
+      "problem_id": 19
+    }
+  },
+  {
+    "pk": 2428,
+    "model": "examination.exampaper",
+    "fields": {
+      "examproblemselects": [],
+      "exam_selected": "",
+      "user": 34,
+      "paper_id": "dapeng.song20140814170112",
+      "exam_problem_score": 2,
+      "exam_answer": "D",
+      "problem_id": 21
+    }
+  },
+  {
+    "pk": 2427,
+    "model": "examination.exampaper",
+    "fields": {
+      "examproblemselects": [],
+      "exam_selected": "",
+      "user": 34,
+      "paper_id": "dapeng.song20140814170044",
+      "exam_problem_score": 2,
+      "exam_answer": "A",
+      "problem_id": 5
+    }
+  },
+  {
+    "pk": 2426,
+    "model": "examination.exampaper",
+    "fields": {
+      "examproblemselects": [],
+      "exam_selected": "",
+      "user": 34,
+      "paper_id": "dapeng.song20140814170044",
+      "exam_problem_score": 2,
+      "exam_answer": "A",
+      "problem_id": 4
+    }
+  },
+  {
+    "pk": 2425,
+    "model": "examination.exampaper",
+    "fields": {
+      "examproblemselects": [],
+      "exam_selected": "",
+      "user": 34,
+      "paper_id": "dapeng.song20140814170044",
+      "exam_problem_score": 2,
+      "exam_answer": "D",
+      "problem_id": 14
+    }
+  },
+  {
+    "pk": 2424,
+    "model": "examination.exampaper",
+    "fields": {
+      "examproblemselects": [],
+      "exam_selected": "",
+      "user": 34,
+      "paper_id": "dapeng.song20140814170036",
+      "exam_problem_score": 2,
+      "exam_answer": "C",
+      "problem_id": 1
+    }
+  },
+  {
+    "pk": 2423,
+    "model": "examination.exampaper",
+    "fields": {
+      "examproblemselects": [],
+      "exam_selected": "",
+      "user": 34,
+      "paper_id": "dapeng.song20140814170036",
+      "exam_problem_score": 2,
+      "exam_answer": "D",
+      "problem_id": 3
+    }
+  },
+  {
+    "pk": 2422,
+    "model": "examination.exampaper",
+    "fields": {
+      "examproblemselects": [],
+      "exam_selected": "",
+      "user": 34,
+      "paper_id": "dapeng.song20140814170036",
+      "exam_problem_score": 2,
+      "exam_answer": "D",
+      "problem_id": 21
+    }
+  },
+  {
+    "pk": 2421,
+    "model": "examination.exampaper",
+    "fields": {
+      "examproblemselects": [],
+      "exam_selected": "",
+      "user": 34,
+      "paper_id": "dapeng.song20140814170029",
+      "exam_problem_score": 2,
+      "exam_answer": "D",
+      "problem_id": 3
+    }
+  },
+  {
+    "pk": 2420,
+    "model": "examination.exampaper",
+    "fields": {
+      "examproblemselects": [],
+      "exam_selected": "",
+      "user": 34,
+      "paper_id": "dapeng.song20140814170029",
+      "exam_problem_score": 2,
+      "exam_answer": "A",
+      "problem_id": 18
+    }
+  },
+  {
+    "pk": 2419,
+    "model": "examination.exampaper",
+    "fields": {
+      "examproblemselects": [],
+      "exam_selected": "",
+      "user": 34,
+      "paper_id": "dapeng.song20140814170029",
+      "exam_problem_score": 2,
+      "exam_answer": "D",
+      "problem_id": 19
+    }
+  },
+  {
+    "pk": 2418,
+    "model": "examination.exampaper",
+    "fields": {
+      "examproblemselects": [],
+      "exam_selected": "",
+      "user": 34,
+      "paper_id": "dapeng.song20140814170027",
+      "exam_problem_score": 2,
+      "exam_answer": "A",
+      "problem_id": 16
+    }
+  },
+  {
+    "pk": 2417,
+    "model": "examination.exampaper",
+    "fields": {
+      "examproblemselects": [],
+      "exam_selected": "",
+      "user": 34,
+      "paper_id": "dapeng.song20140814170027",
+      "exam_problem_score": 2,
+      "exam_answer": "A",
+      "problem_id": 4
+    }
+  },
+  {
+    "pk": 2416,
+    "model": "examination.exampaper",
+    "fields": {
+      "examproblemselects": [],
+      "exam_selected": "",
+      "user": 34,
+      "paper_id": "dapeng.song20140814170027",
+      "exam_problem_score": 2,
+      "exam_answer": "D",
+      "problem_id": 13
+    }
+  },
+  {
+    "pk": 2415,
+    "model": "examination.exampaper",
+    "fields": {
+      "examproblemselects": [],
+      "exam_selected": "",
+      "user": 34,
+      "paper_id": "dapeng.song20140814170017",
+      "exam_problem_score": 2,
+      "exam_answer": "B",
+      "problem_id": 17
+    }
+  },
+  {
+    "pk": 2414,
+    "model": "examination.exampaper",
+    "fields": {
+      "examproblemselects": [],
+      "exam_selected": "",
+      "user": 34,
+      "paper_id": "dapeng.song20140814170017",
+      "exam_problem_score": 2,
+      "exam_answer": "C",
+      "problem_id": 1
+    }
+  },
+  {
+    "pk": 2413,
+    "model": "examination.exampaper",
+    "fields": {
+      "examproblemselects": [],
+      "exam_selected": "",
+      "user": 34,
+      "paper_id": "dapeng.song20140814170017",
+      "exam_problem_score": 2,
+      "exam_answer": "D",
+      "problem_id": 21
+    }
+  },
+  {
+    "pk": 2412,
+    "model": "examination.exampaper",
+    "fields": {
+      "examproblemselects": [],
+      "exam_selected": "",
+      "user": 34,
+      "paper_id": "dapeng.song20140814170010",
+      "exam_problem_score": 2,
+      "exam_answer": "A",
+      "problem_id": 22
+    }
+  },
+  {
+    "pk": 2411,
+    "model": "examination.exampaper",
+    "fields": {
+      "examproblemselects": [],
+      "exam_selected": "",
+      "user": 34,
+      "paper_id": "dapeng.song20140814170010",
+      "exam_problem_score": 2,
+      "exam_answer": "D",
+      "problem_id": 14
+    }
+  },
+  {
+    "pk": 2410,
+    "model": "examination.exampaper",
+    "fields": {
+      "examproblemselects": [],
+      "exam_selected": "",
+      "user": 34,
+      "paper_id": "dapeng.song20140814170010",
+      "exam_problem_score": 2,
+      "exam_answer": "D",
+      "problem_id": 25
+    }
+  },
+  {
+    "pk": 2409,
+    "model": "examination.exampaper",
+    "fields": {
+      "examproblemselects": [],
+      "exam_selected": "",
+      "user": 34,
+      "paper_id": "dapeng.song20140814170003",
+      "exam_problem_score": 2,
+      "exam_answer": "A",
+      "problem_id": 18
+    }
+  },
+  {
+    "pk": 2408,
+    "model": "examination.exampaper",
+    "fields": {
+      "examproblemselects": [],
+      "exam_selected": "",
+      "user": 34,
+      "paper_id": "dapeng.song20140814170003",
+      "exam_problem_score": 2,
+      "exam_answer": "A",
+      "problem_id": 8
+    }
+  },
+  {
+    "pk": 2407,
+    "model": "examination.exampaper",
+    "fields": {
+      "examproblemselects": [],
+      "exam_selected": "",
+      "user": 34,
+      "paper_id": "dapeng.song20140814170003",
+      "exam_problem_score": 2,
+      "exam_answer": "A",
+      "problem_id": 16
+    }
+  },
+  {
+    "pk": 2406,
+    "model": "examination.exampaper",
+    "fields": {
+      "examproblemselects": [],
+      "exam_selected": "",
+      "user": 34,
+      "paper_id": "dapeng.song20140814165955",
+      "exam_problem_score": 2,
+      "exam_answer": "D",
+      "problem_id": 13
+    }
+  },
+  {
+    "pk": 2405,
+    "model": "examination.exampaper",
+    "fields": {
+      "examproblemselects": [],
+      "exam_selected": "",
+      "user": 34,
+      "paper_id": "dapeng.song20140814165955",
+      "exam_problem_score": 2,
+      "exam_answer": "A",
+      "problem_id": 15
+    }
+  },
+  {
+    "pk": 2404,
+    "model": "examination.exampaper",
+    "fields": {
+      "examproblemselects": [],
+      "exam_selected": "",
+      "user": 34,
+      "paper_id": "dapeng.song20140814165955",
+      "exam_problem_score": 2,
+      "exam_answer": "D",
+      "problem_id": 12
+    }
+  },
+  {
+    "pk": 2403,
+    "model": "examination.exampaper",
+    "fields": {
+      "examproblemselects": [],
+      "exam_selected": "",
+      "user": 34,
+      "paper_id": "dapeng.song20140814165945",
+      "exam_problem_score": 2,
+      "exam_answer": "D",
+      "problem_id": 13
+    }
+  },
+  {
+    "pk": 2402,
+    "model": "examination.exampaper",
+    "fields": {
+      "examproblemselects": [],
+      "exam_selected": "",
+      "user": 34,
+      "paper_id": "dapeng.song20140814165945",
+      "exam_problem_score": 2,
+      "exam_answer": "C",
+      "problem_id": 1
+    }
+  },
+  {
+    "pk": 2401,
+    "model": "examination.exampaper",
+    "fields": {
+      "examproblemselects": [],
+      "exam_selected": "",
+      "user": 34,
+      "paper_id": "dapeng.song20140814165945",
+      "exam_problem_score": 2,
+      "exam_answer": "D",
+      "problem_id": 21
+    }
+  },
+  {
+    "pk": 2400,
+    "model": "examination.exampaper",
+    "fields": {
+      "examproblemselects": [],
+      "exam_selected": "",
+      "user": 34,
+      "paper_id": "dapeng.song20140814165940",
+      "exam_problem_score": 2,
+      "exam_answer": "D",
+      "problem_id": 12
+    }
+  },
+  {
+    "pk": 2399,
+    "model": "examination.exampaper",
+    "fields": {
+      "examproblemselects": [],
+      "exam_selected": "",
+      "user": 34,
+      "paper_id": "dapeng.song20140814165940",
+      "exam_problem_score": 2,
+      "exam_answer": "D",
+      "problem_id": 21
+    }
+  },
+  {
+    "pk": 2398,
+    "model": "examination.exampaper",
+    "fields": {
+      "examproblemselects": [],
+      "exam_selected": "",
+      "user": 34,
+      "paper_id": "dapeng.song20140814165940",
+      "exam_problem_score": 2,
+      "exam_answer": "D",
+      "problem_id": 13
+    }
+  },
+  {
+    "pk": 2397,
+    "model": "examination.exampaper",
+    "fields": {
+      "examproblemselects": [],
+      "exam_selected": "",
+      "user": 34,
+      "paper_id": "dapeng.song20140814165924",
+      "exam_problem_score": 2,
+      "exam_answer": "C",
+      "problem_id": 1
+    }
+  },
+  {
+    "pk": 2396,
+    "model": "examination.exampaper",
+    "fields": {
+      "examproblemselects": [],
+      "exam_selected": "",
+      "user": 34,
+      "paper_id": "dapeng.song20140814165924",
+      "exam_problem_score": 2,
+      "exam_answer": "B",
+      "problem_id": 17
+    }
+  },
+  {
+    "pk": 2395,
+    "model": "examination.exampaper",
+    "fields": {
+      "examproblemselects": [],
+      "exam_selected": "",
+      "user": 34,
+      "paper_id": "dapeng.song20140814165924",
+      "exam_problem_score": 2,
+      "exam_answer": "B",
+      "problem_id": 9
+    }
+  },
+  {
+    "pk": 2394,
+    "model": "examination.exampaper",
+    "fields": {
+      "examproblemselects": [],
+      "exam_selected": "",
+      "user": 34,
+      "paper_id": "dapeng.song20140814165833",
+      "exam_problem_score": 2,
+      "exam_answer": "A",
+      "problem_id": 16
+    }
+  },
+  {
+    "pk": 2393,
+    "model": "examination.exampaper",
+    "fields": {
+      "examproblemselects": [],
+      "exam_selected": "",
+      "user": 34,
+      "paper_id": "dapeng.song20140814165833",
+      "exam_problem_score": 2,
+      "exam_answer": "A",
+      "problem_id": 18
+    }
+  },
+  {
+    "pk": 2392,
+    "model": "examination.exampaper",
+    "fields": {
+      "examproblemselects": [],
+      "exam_selected": "",
+      "user": 34,
+      "paper_id": "dapeng.song20140814165833",
+      "exam_problem_score": 2,
+      "exam_answer": "A",
+      "problem_id": 4
+    }
+  },
+  {
+    "pk": 2391,
+    "model": "examination.exampaper",
+    "fields": {
+      "examproblemselects": [],
+      "exam_selected": "",
+      "user": 34,
+      "paper_id": "dapeng.song20140814165817",
+      "exam_problem_score": 2,
+      "exam_answer": "D",
+      "problem_id": 21
+    }
+  },
+  {
+    "pk": 2390,
+    "model": "examination.exampaper",
+    "fields": {
+      "examproblemselects": [],
+      "exam_selected": "",
+      "user": 34,
+      "paper_id": "dapeng.song20140814165817",
+      "exam_problem_score": 2,
+      "exam_answer": "A",
+      "problem_id": 22
+    }
+  },
+  {
+    "pk": 2389,
+    "model": "examination.exampaper",
+    "fields": {
+      "examproblemselects": [],
+      "exam_selected": "",
+      "user": 34,
+      "paper_id": "dapeng.song20140814165817",
+      "exam_problem_score": 2,
+      "exam_answer": "C",
+      "problem_id": 20
+    }
+  },
+  {
+    "pk": 2388,
+    "model": "examination.exampaper",
+    "fields": {
+      "examproblemselects": [],
+      "exam_selected": "",
+      "user": 34,
+      "paper_id": "dapeng.song20140814165544",
+      "exam_problem_score": 2,
+      "exam_answer": "B",
+      "problem_id": 23
+    }
+  },
+  {
+    "pk": 2387,
+    "model": "examination.exampaper",
+    "fields": {
+      "examproblemselects": [],
+      "exam_selected": "",
+      "user": 34,
+      "paper_id": "dapeng.song20140814165544",
+      "exam_problem_score": 2,
+      "exam_answer": "A",
+      "problem_id": 5
+    }
+  },
+  {
+    "pk": 2386,
+    "model": "examination.exampaper",
+    "fields": {
+      "examproblemselects": [],
+      "exam_selected": "",
+      "user": 34,
+      "paper_id": "dapeng.song20140814165544",
+      "exam_problem_score": 2,
+      "exam_answer": "B",
+      "problem_id": 17
+    }
+  },
+  {
+    "pk": 2385,
+    "model": "examination.exampaper",
+    "fields": {
+      "examproblemselects": [],
+      "exam_selected": "",
+      "user": 34,
+      "paper_id": "dapeng.song20140814165439",
+      "exam_problem_score": 2,
+      "exam_answer": "C",
+      "problem_id": 1
+    }
+  },
+  {
+    "pk": 2384,
+    "model": "examination.exampaper",
+    "fields": {
+      "examproblemselects": [],
+      "exam_selected": "",
+      "user": 34,
+      "paper_id": "dapeng.song20140814165439",
+      "exam_problem_score": 2,
+      "exam_answer": "A",
+      "problem_id": 16
+    }
+  },
+  {
+    "pk": 2383,
+    "model": "examination.exampaper",
+    "fields": {
+      "examproblemselects": [],
+      "exam_selected": "",
+      "user": 34,
+      "paper_id": "dapeng.song20140814165439",
+      "exam_problem_score": 2,
+      "exam_answer": "B",
+      "problem_id": 23
+    }
+  },
+  {
+    "pk": 2374,
+    "model": "examination.exampaper",
+    "fields": {
+      "examproblemselects": [],
+      "exam_selected": "",
+      "user": 34,
+      "paper_id": "dapeng.song20140814165236",
+      "exam_problem_score": 2,
+      "exam_answer": "D",
+      "problem_id": 14
+    }
+  },
+  {
+    "pk": 2373,
+    "model": "examination.exampaper",
+    "fields": {
+      "examproblemselects": [],
+      "exam_selected": "",
+      "user": 34,
+      "paper_id": "dapeng.song20140814165236",
+      "exam_problem_score": 2,
+      "exam_answer": "D",
+      "problem_id": 21
+    }
+  },
+  {
+    "pk": 2372,
+    "model": "examination.exampaper",
+    "fields": {
+      "examproblemselects": [],
+      "exam_selected": "",
+      "user": 34,
+      "paper_id": "dapeng.song20140814165236",
+      "exam_problem_score": 2,
+      "exam_answer": "C",
+      "problem_id": 10
+    }
+  },
+  {
+    "pk": 2367,
+    "model": "examination.exampaper",
+    "fields": {
+      "examproblemselects": [],
+      "exam_selected": "",
+      "user": 34,
+      "paper_id": "dapeng.song20140814165141",
+      "exam_problem_score": 2,
+      "exam_answer": "D",
+      "problem_id": 13
+    }
+  },
+  {
+    "pk": 2366,
+    "model": "examination.exampaper",
+    "fields": {
+      "examproblemselects": [],
+      "exam_selected": "",
+      "user": 34,
+      "paper_id": "dapeng.song20140814165141",
+      "exam_problem_score": 2,
+      "exam_answer": "A",
+      "problem_id": 18
+    }
+  },
+  {
+    "pk": 2365,
+    "model": "examination.exampaper",
+    "fields": {
+      "examproblemselects": [],
+      "exam_selected": "",
+      "user": 34,
+      "paper_id": "dapeng.song20140814165141",
+      "exam_problem_score": 2,
+      "exam_answer": "A",
+      "problem_id": 16
+    }
+  },
+  {
+    "pk": 2352,
+    "model": "examination.exampaper",
+    "fields": {
+      "examproblemselects": [],
+      "exam_selected": "",
+      "user": 34,
+      "paper_id": "dapeng.song20140814164736",
+      "exam_problem_score": 2,
+      "exam_answer": "B",
+      "problem_id": 9
+    }
+  },
+  {
+    "pk": 2351,
+    "model": "examination.exampaper",
+    "fields": {
+      "examproblemselects": [],
+      "exam_selected": "",
+      "user": 34,
+      "paper_id": "dapeng.song20140814164736",
+      "exam_problem_score": 2,
+      "exam_answer": "D",
+      "problem_id": 25
+    }
+  },
+  {
+    "pk": 2350,
+    "model": "examination.exampaper",
+    "fields": {
+      "examproblemselects": [],
+      "exam_selected": "",
+      "user": 34,
+      "paper_id": "dapeng.song20140814164736",
+      "exam_problem_score": 2,
+      "exam_answer": "A",
+      "problem_id": 4
+    }
+  },
+  {
+    "pk": 2628,
+    "model": "examination.exampaper",
+    "fields": {
+      "examproblemselects": [],
+      "exam_selected": "",
+      "user": 34,
+      "paper_id": "dapeng.song20140814102105",
+      "exam_problem_score": 2,
+      "exam_answer": "B",
+      "problem_id": 23
+    }
+  },
+  {
+    "pk": 2629,
+    "model": "examination.exampaper",
+    "fields": {
+      "examproblemselects": [],
+      "exam_selected": "",
+      "user": 34,
+      "paper_id": "dapeng.song20140814102105",
+      "exam_problem_score": 2,
+      "exam_answer": "C",
+      "problem_id": 24
+    }
+  },
+  {
+    "pk": 2630,
+    "model": "examination.exampaper",
+    "fields": {
+      "examproblemselects": [],
+      "exam_selected": "",
+      "user": 34,
+      "paper_id": "dapeng.song20140814102105",
+      "exam_problem_score": 2,
+      "exam_answer": "C",
+      "problem_id": 20
+    }
+  },
+  {
+    "pk": 2631,
+    "model": "examination.exampaper",
+    "fields": {
+      "examproblemselects": [],
+      "exam_selected": "",
+      "user": 34,
+      "paper_id": "dapeng.song20140814102105",
+      "exam_problem_score": 2,
+      "exam_answer": "B",
+      "problem_id": 9
+    }
+  },
+  {
+    "pk": 2334,
+    "model": "examination.exampaper",
+    "fields": {
+      "examproblemselects": [],
+      "exam_selected": "B",
+      "user": 34,
+      "paper_id": "dapeng.song20140813181509",
+      "exam_problem_score": 2,
+      "exam_answer": "B",
+      "problem_id": 9
+    }
+  },
+  {
+    "pk": 2333,
+    "model": "examination.exampaper",
+    "fields": {
+      "examproblemselects": [],
+      "exam_selected": "",
+      "user": 34,
+      "paper_id": "dapeng.song20140813181509",
+      "exam_problem_score": 2,
+      "exam_answer": "D",
+      "problem_id": 2
+    }
+  },
+  {
+    "pk": 2332,
+    "model": "examination.exampaper",
+    "fields": {
+      "examproblemselects": [],
+      "exam_selected": "",
+      "user": 34,
+      "paper_id": "dapeng.song20140813181509",
+      "exam_problem_score": 2,
+      "exam_answer": "C",
+      "problem_id": 10
+    }
+  },
+  {
+    "pk": 2325,
+    "model": "examination.exampaper",
+    "fields": {
+      "examproblemselects": [],
+      "exam_selected": "A",
+      "user": 34,
+      "paper_id": "dapeng.song20140813181159",
+      "exam_problem_score": 2,
+      "exam_answer": "A",
+      "problem_id": 16
+    }
+  },
+  {
+    "pk": 2322,
+    "model": "examination.exampaper",
+    "fields": {
+      "examproblemselects": [],
+      "exam_selected": "B",
+      "user": 34,
+      "paper_id": "dapeng.song20140813181159",
+      "exam_problem_score": 2,
+      "exam_answer": "B",
+      "problem_id": 6
+    }
+  },
+  {
+    "pk": 2323,
+    "model": "examination.exampaper",
+    "fields": {
+      "examproblemselects": [],
+      "exam_selected": "",
+      "user": 34,
+      "paper_id": "dapeng.song20140813181159",
+      "exam_problem_score": 2,
+      "exam_answer": "A",
+      "problem_id": 5
+    }
+  },
+  {
+    "pk": 2324,
+    "model": "examination.exampaper",
+    "fields": {
+      "examproblemselects": [],
+      "exam_selected": "",
+      "user": 34,
+      "paper_id": "dapeng.song20140813181159",
+      "exam_problem_score": 2,
+      "exam_answer": "D",
+      "problem_id": 19
+    }
+  },
+  {
+    "pk": 2755,
+    "model": "examination.exampaper",
+    "fields": {
+      "examproblemselects": [],
+      "exam_selected": "",
+      "user": 34,
+      "paper_id": "dapeng.song20140818110734",
+      "exam_problem_score": 2,
+      "exam_answer": "D",
+      "problem_id": 13
+    }
+  },
+  {
+    "pk": 2756,
+    "model": "examination.exampaper",
+    "fields": {
+      "examproblemselects": [],
+      "exam_selected": "",
+      "user": 34,
+      "paper_id": "dapeng.song20140818110740",
+      "exam_problem_score": 2,
+      "exam_answer": "C",
+      "problem_id": 1
+    }
+  },
+  {
+    "pk": 2757,
+    "model": "examination.exampaper",
+    "fields": {
+      "examproblemselects": [],
+      "exam_selected": "",
+      "user": 34,
+      "paper_id": "dapeng.song20140818110740",
+      "exam_problem_score": 2,
+      "exam_answer": "A",
+      "problem_id": 22
+    }
+  },
+  {
+    "pk": 2758,
+    "model": "examination.exampaper",
+    "fields": {
+      "examproblemselects": [],
+      "exam_selected": "",
+      "user": 34,
+      "paper_id": "dapeng.song20140818110740",
+      "exam_problem_score": 2,
+      "exam_answer": "D",
+      "problem_id": 2
+    }
+  },
+  {
+    "pk": 2759,
+    "model": "examination.exampaper",
+    "fields": {
+      "examproblemselects": [],
+      "exam_selected": "",
+      "user": 34,
+      "paper_id": "dapeng.song20140818110753",
+      "exam_problem_score": 2,
+      "exam_answer": "C",
+      "problem_id": 20
+    }
+  },
+  {
+    "pk": 2760,
+    "model": "examination.exampaper",
+    "fields": {
+      "examproblemselects": [],
+      "exam_selected": "",
+      "user": 34,
+      "paper_id": "dapeng.song20140818110753",
+      "exam_problem_score": 2,
+      "exam_answer": "D",
+      "problem_id": 14
+    }
+  },
+  {
+    "pk": 2761,
+    "model": "examination.exampaper",
+    "fields": {
+      "examproblemselects": [],
+      "exam_selected": "",
+      "user": 34,
+      "paper_id": "dapeng.song20140818110753",
+      "exam_problem_score": 2,
+      "exam_answer": "A",
+      "problem_id": 8
+    }
+  },
+  {
+    "pk": 2762,
+    "model": "examination.exampaper",
+    "fields": {
+      "examproblemselects": [],
+      "exam_selected": "C",
+      "user": 34,
+      "paper_id": "dapeng.song20140818110758",
+      "exam_problem_score": 2,
+      "exam_answer": "D",
+      "problem_id": 3
+    }
+  },
+  {
+    "pk": 2763,
+    "model": "examination.exampaper",
+    "fields": {
+      "examproblemselects": [],
+      "exam_selected": "C",
+      "user": 34,
+      "paper_id": "dapeng.song20140818110758",
+      "exam_problem_score": 2,
+      "exam_answer": "C",
+      "problem_id": 24
+    }
+  },
+  {
+    "pk": 2764,
+    "model": "examination.exampaper",
+    "fields": {
+      "examproblemselects": [],
+      "exam_selected": "D",
+      "user": 34,
+      "paper_id": "dapeng.song20140818110758",
+      "exam_problem_score": 2,
+      "exam_answer": "D",
+      "problem_id": 21
+    }
+  },
+  {
+    "pk": 2765,
+    "model": "examination.exampaper",
+    "fields": {
+      "examproblemselects": [],
+      "exam_selected": "C",
+      "user": 34,
+      "paper_id": "dapeng.song20140818111222",
+      "exam_problem_score": 2,
+      "exam_answer": "B",
+      "problem_id": 6
+    }
+  },
+  {
+    "pk": 2766,
+    "model": "examination.exampaper",
+    "fields": {
+      "examproblemselects": [],
+      "exam_selected": "C",
+      "user": 34,
+      "paper_id": "dapeng.song20140818111222",
+      "exam_problem_score": 2,
+      "exam_answer": "D",
+      "problem_id": 13
+    }
+  },
+  {
+    "pk": 2767,
+    "model": "examination.exampaper",
+    "fields": {
+      "examproblemselects": [],
+      "exam_selected": "C",
+      "user": 34,
+      "paper_id": "dapeng.song20140818111222",
+      "exam_problem_score": 2,
+      "exam_answer": "D",
+      "problem_id": 25
+    }
+  },
+  {
+    "pk": 2768,
+    "model": "examination.exampaper",
+    "fields": {
+      "examproblemselects": [],
+      "exam_selected": "",
+      "user": 34,
+      "paper_id": "dapeng.song20140818111332",
+      "exam_problem_score": 2,
+      "exam_answer": "D",
+      "problem_id": 14
+    }
+  },
+  {
+    "pk": 2769,
+    "model": "examination.exampaper",
+    "fields": {
+      "examproblemselects": [],
+      "exam_selected": "",
+      "user": 34,
+      "paper_id": "dapeng.song20140818111332",
+      "exam_problem_score": 2,
+      "exam_answer": "D",
+      "problem_id": 21
+    }
+  },
+  {
+    "pk": 2770,
+    "model": "examination.exampaper",
+    "fields": {
+      "examproblemselects": [],
+      "exam_selected": "",
+      "user": 34,
+      "paper_id": "dapeng.song20140818111332",
+      "exam_problem_score": 2,
+      "exam_answer": "B",
+      "problem_id": 7
+    }
+  },
+  {
+    "pk": 2771,
+    "model": "examination.exampaper",
+    "fields": {
+      "examproblemselects": [],
+      "exam_selected": "",
+      "user": 34,
+      "paper_id": "dapeng.song20140818111352",
+      "exam_problem_score": 2,
+      "exam_answer": "D",
+      "problem_id": 3
+    }
+  },
+  {
+    "pk": 2772,
+    "model": "examination.exampaper",
+    "fields": {
+      "examproblemselects": [],
+      "exam_selected": "",
+      "user": 34,
+      "paper_id": "dapeng.song20140818111352",
+      "exam_problem_score": 2,
+      "exam_answer": "A",
+      "problem_id": 18
+    }
+  },
+  {
+    "pk": 2773,
+    "model": "examination.exampaper",
+    "fields": {
+      "examproblemselects": [],
+      "exam_selected": "",
+      "user": 34,
+      "paper_id": "dapeng.song20140818111352",
+      "exam_problem_score": 2,
+      "exam_answer": "A",
+      "problem_id": 22
+    }
+  },
+  {
+    "pk": 2774,
+    "model": "examination.exampaper",
+    "fields": {
+      "examproblemselects": [],
+      "exam_selected": "D",
+      "user": 34,
+      "paper_id": "dapeng.song20140818111437",
+      "exam_problem_score": 2,
+      "exam_answer": "D",
+      "problem_id": 25
+    }
+  },
+  {
+    "pk": 2775,
+    "model": "examination.exampaper",
+    "fields": {
+      "examproblemselects": [],
+      "exam_selected": "D",
+      "user": 34,
+      "paper_id": "dapeng.song20140818111437",
+      "exam_problem_score": 2,
+      "exam_answer": "D",
+      "problem_id": 3
+    }
+  },
+  {
+    "pk": 2776,
+    "model": "examination.exampaper",
+    "fields": {
+      "examproblemselects": [],
+      "exam_selected": "D",
+      "user": 34,
+      "paper_id": "dapeng.song20140818111437",
+      "exam_problem_score": 2,
+      "exam_answer": "A",
+      "problem_id": 8
+    }
+  },
+  {
+    "pk": 2777,
+    "model": "examination.exampaper",
+    "fields": {
+      "examproblemselects": [],
+      "exam_selected": "B",
+      "user": 34,
+      "paper_id": "dapeng.song20140818111714",
+      "exam_problem_score": 2,
+      "exam_answer": "A",
+      "problem_id": 22
+    }
+  },
+  {
+    "pk": 2778,
+    "model": "examination.exampaper",
+    "fields": {
+      "examproblemselects": [],
+      "exam_selected": "C",
+      "user": 34,
+      "paper_id": "dapeng.song20140818111714",
+      "exam_problem_score": 2,
+      "exam_answer": "B",
+      "problem_id": 7
+    }
+  },
+  {
+    "pk": 2779,
+    "model": "examination.exampaper",
+    "fields": {
+      "examproblemselects": [],
+      "exam_selected": "",
+      "user": 34,
+      "paper_id": "dapeng.song20140818111714",
+      "exam_problem_score": 2,
+      "exam_answer": "C",
+      "problem_id": 24
+    }
+  },
+  {
+    "pk": 2780,
+    "model": "examination.exampaper",
+    "fields": {
+      "examproblemselects": [],
+      "exam_selected": "",
+      "user": 34,
+      "paper_id": "dapeng.song20140819155410",
+      "exam_problem_score": 2,
+      "exam_answer": "D",
+      "problem_id": 25
+    }
+  },
+  {
+    "pk": 2781,
+    "model": "examination.exampaper",
+    "fields": {
+      "examproblemselects": [],
+      "exam_selected": "",
+      "user": 34,
+      "paper_id": "dapeng.song20140819155410",
+      "exam_problem_score": 2,
+      "exam_answer": "C",
+      "problem_id": 24
+    }
+  },
+  {
+    "pk": 2782,
+    "model": "examination.exampaper",
+    "fields": {
+      "examproblemselects": [],
+      "exam_selected": "",
+      "user": 34,
+      "paper_id": "dapeng.song20140819155410",
+      "exam_problem_score": 2,
+      "exam_answer": "B",
+      "problem_id": 11
+    }
+  },
+  {
+    "pk": 2783,
+    "model": "examination.exampaper",
+    "fields": {
+      "examproblemselects": [],
+      "exam_selected": "",
+      "user": 34,
+      "paper_id": "dapeng.song20140819155419",
+      "exam_problem_score": 2,
+      "exam_answer": "D",
+      "problem_id": 12
+    }
+  },
+  {
+    "pk": 2784,
+    "model": "examination.exampaper",
+    "fields": {
+      "examproblemselects": [],
+      "exam_selected": "",
+      "user": 34,
+      "paper_id": "dapeng.song20140819155419",
+      "exam_problem_score": 2,
+      "exam_answer": "D",
+      "problem_id": 19
+    }
+  },
+  {
+    "pk": 2785,
+    "model": "examination.exampaper",
+    "fields": {
+      "examproblemselects": [],
+      "exam_selected": "",
+      "user": 34,
+      "paper_id": "dapeng.song20140819155419",
+      "exam_problem_score": 2,
+      "exam_answer": "B",
+      "problem_id": 23
+    }
+  },
+  {
+    "pk": 2789,
+    "model": "examination.exampaper",
+    "fields": {
+      "examproblemselects": [],
+      "exam_selected": "C",
+      "user": 34,
+      "paper_id": "dapeng.song20140819155437",
+      "exam_problem_score": 2,
+      "exam_answer": "B",
+      "problem_id": 6
+    }
+  }
+]

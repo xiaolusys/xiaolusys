@@ -48,6 +48,7 @@ SITE_URL = 'http://qiyue.f3322.org/'
 ####################### TRADE HANDLERS CONFIG ########################
 TRADE_HANDLERS_PATH = (
    'shopback.trades.handlers.InitHandler',
+   'shopback.trades.handlers.ConfirmHandler',
    'shopback.trades.handlers.SplitHandler',
    'shopback.trades.handlers.MemoHandler',
    'shopback.trades.handlers.DefectHandler',
@@ -86,6 +87,8 @@ ASYNC_FILE_PATH = os.path.join(PROJECT_ROOT,"site_media","asyncfile")
 WEIXIN_API_HOST    = "https://api.weixin.qq.com"
 WEIXIN_MEDIA_HOST  = "http://file.api.weixin.qq.com"
 WEIXIN_QRCODE_HOST = "https://mp.weixin.qq.com"
+WEIXIN_APPID       = 'wxc2848fa1e1aa94b5'
+WEIXIN_SECRET      = 'eb3bfe8e9a36a61176fa5cafe341c81f'
 
 ################### JINGDONG SETTINGS #################
 

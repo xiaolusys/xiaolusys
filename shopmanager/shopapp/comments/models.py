@@ -92,7 +92,7 @@ class CommentItem(models.Model):
 class CommentGrade(models.Model):
     
     GRADE_GOOD = 1
-    GRADE_NORMAL    = 2
+    GRADE_NORMAL = 2
     GRADE_BAD  = 0
     GRADE_CHOICE = (
                 (GRADE_GOOD,u'优秀'),

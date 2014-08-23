@@ -10,5 +10,5 @@ rule_signal        = Signal(providing_args=["trade_id"])
 change_addr_signal = Signal(providing_args=["tid"])
 recalc_fee_signal  = Signal(providing_args=["trade_id"])
 
-
+confirm_trade_signal = Signal(providing_args=["trade_id"])
 
