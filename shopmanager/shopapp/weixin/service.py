@@ -177,13 +177,16 @@ class WeixinUserService():
         if not  wx_user.is_code_time_safe():      
             raise MessageException(u'请%d秒后重新发送'%(wx_user.get_wait_time()))
         
+        if wx_user.is_valid_count_safe():
+            raise MessageException(u'[撇嘴]您的手机号验证异常，请联系客服帮您处理！')
+        
         if wx_user.mobile == mobile:
             
             wx_user.vmobile   = mobile
             wx_user.isvalid   = True
             wx_user.save()
-            raise MessageException(
-                    WeiXinAutoResponse.objects.get(message=u'校验成功提示').content.replace('\r',''))  
+            valid_resp = WeiXinAutoResponse.objects.get(message=u'校验成功提示')
+            raise MessageException(valid_resp.content.replace('\r',''))  
         
         valid_code = self.genValidCode()
         self.sendValidCode(mobile,valid_code)        
@@ -207,7 +210,7 @@ class WeixinUserService():
              raise MessageException(u'验证码不对，请重新输入:')
          
          wxusers = WeiXinUser.objects.filter(mobile=wx_user.vmobile).exclude(openid=openId)
-         if wxusers.count()>0:
+         if wxusers.count() > 0:
              raise MessageException(u'该手机号码已被其他用户验证。')
          
          wx_user.mobile  = wx_user.vmobile

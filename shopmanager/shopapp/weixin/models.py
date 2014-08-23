@@ -103,6 +103,8 @@ class AnonymousWeixinUser():
     
 class WeiXinUser(models.Model): 
     
+    MAX_MOBILE_VALID_COUNT = 5 
+    
     MEN      = 'm'
     FERMALE  = 'f'
     
@@ -170,6 +172,9 @@ class WeiXinUser(models.Model):
                              self.code_time).total_seconds())
         
         return delta_seconds < 60 and  (60 - delta_seconds) or 0
+    
+    def is_valid_count_safe(self):
+        return self.valid_count > self.MAX_MOBILE_VALID_COUNT
     
     def is_code_time_safe(self):
         
