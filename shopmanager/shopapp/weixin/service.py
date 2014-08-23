@@ -158,10 +158,6 @@ class WeixinUserService():
     def activeAccount(self):
         self._wx_api._wx_account.activeAccount()
     
-    def getResponseList(self):
-        
-        return WeiXinAutoResponse.objects.extra(
-                    select={'length':'Length(message)'}).order_by('-length')
     
     def genValidCode(self):
         return str(random.randint(100000,999999))
@@ -230,12 +226,12 @@ class WeixinUserService():
         if message == '0' and self._wx_user.isValid():
             return self.genTextRespJson(u'您已成功绑定手机：\n[q] 取消绑定 \n[0] 重新绑定 \n*取消绑定后部分功能失效')
         
-        for resp in self.getResponseList():
-            if message.isdigit():
-                if resp.message.strip() == message:
-                    return resp.autoParams()
-                continue
-            elif message.rfind(resp.message.strip()) > -1:
+        for resp in WeiXinAutoResponse.objects.FullMatch:
+            if message == resp.message.strip():
+                return resp.autoParams()
+            
+        for resp in WeiXinAutoResponse.objects.FuzzyMatch:
+            if message.rfind(resp.message.strip()) > -1:
                 return resp.autoParams()
             
         return self.genTextRespJson(u'[愉快]亲，需要人工客服吗?\n(回复Y/N)')
