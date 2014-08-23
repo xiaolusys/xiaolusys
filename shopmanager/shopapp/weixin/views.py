@@ -81,6 +81,7 @@ def get_user_openid(code):
     url = 'https://api.weixin.qq.com/sns/oauth2/access_token?appid=%s&secret=%s&code=%s&grant_type=authorization_code'
     get_openid_url = url % (appid, secret, code)
     r = urlopen(get_openid_url).read()
+    logger.error("get_user_openid:"+r)
     r = json.loads(r)
     return r.get('openid')
 
