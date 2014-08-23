@@ -75,7 +75,7 @@ from urllib import urlopen
 
 
 
-def get_user_openid(code):
+def get_user_openid(request, code):
     appid = settings.WEIXIN_APPID
     secret = settings.WEIXIN_SECRET
     url = 'https://api.weixin.qq.com/sns/oauth2/access_token?appid=%s&secret=%s&code=%s&grant_type=authorization_code'
@@ -83,6 +83,11 @@ def get_user_openid(code):
     r = urlopen(get_openid_url).read()
     logger.error("get_user_openid:"+r)
     r = json.loads(r)
+
+    if r.has_key("errcode"):
+        openid = request.COOKIES.get('openid')
+        return openid 
+
     return r.get('openid')
 
 
@@ -206,7 +211,7 @@ class OrderInfoView(View):
     def get(self, request):
         content = request.REQUEST
         code = content.get('code',None)
-        user_openid = get_user_openid(code)
+        user_openid = get_user_openid(request, code)
         
         weixin_user_service = WeixinUserService(user_openid)
         wx_user = weixin_user_service._wx_user
@@ -286,11 +291,11 @@ class BabyInfoView(View):
         logger.error("code log:"+code)
 
         if code == None or code == "None":
-            
             response = {"msg":"请从[优尼世界]微信打开此页面！"}
             return HttpResponse(json.dumps(response),mimetype='application/json')
-        openid = get_user_openid(code)
-
+        
+        openid = get_user_openid(request, code)
+            
         wx_user_service = WeixinUserService(openid)
         wx_user = wx_user_service._wx_user
         
@@ -303,7 +308,7 @@ class BabyInfoView(View):
         response.set_cookie("openid",openid)
         return response
         
-    def post(self, request, *args, **kwargs):
+    def post(self, request):
         content = request.REQUEST
         year = content.get("year")
         month  = content.get("month")
@@ -379,7 +384,7 @@ class ReferalView(View):
     def get(self, request):
         content = request.REQUEST
         code = content.get('code')
-        user_openid = get_user_openid(code)
+        user_openid = get_user_openid(request, code)
             
         referal_bonus = 0.00
         referal_count = 0
@@ -585,7 +590,7 @@ class FreeSampleView(View):
     def get(self, request):
         content = request.REQUEST
         code = content.get('code')
-        user_openid = get_user_openid(code)
+        user_openid = get_user_openid(request, code)
 
         wx_user_service = WeixinUserService(openId=user_openid)
         wx_user = wx_user_service._wx_user
@@ -677,7 +682,7 @@ class SampleApplyView(View):
         ## if user refresh page, we can get user_openid from cookie
         user_openid = request.COOKIES.get('openid')
         if user_openid == 'None' or user_openid == None:
-            user_openid = get_user_openid(code)
+            user_openid = get_user_openid(request, code)
 
         wx_user_service = WeixinUserService(openId=user_openid)
         wx_user = wx_user_service._wx_user
@@ -773,7 +778,7 @@ class ResultView(View):
     def get(self, request):
         content = request.REQUEST
         code = content.get('code')
-        user_openid = get_user_openid(code)
+        user_openid = get_user_openid(request, code)
 
         end = datetime.datetime(2014,8,11)
         now = datetime.datetime.now()
@@ -901,7 +906,7 @@ class VipCouponView(View):
     def get(self, request):
         content = request.REQUEST
         code = content.get('code')
-        user_openid = get_user_openid(code)
+        user_openid = get_user_openid(request, code)
         
         weixin_user_service = WeixinUserService(user_openid)
         wx_user = weixin_user_service._wx_user
