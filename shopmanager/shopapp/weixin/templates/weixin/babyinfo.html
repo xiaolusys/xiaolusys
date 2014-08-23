@@ -177,7 +177,8 @@
 
       function requestcode() {
         var btn = $("#id_requestcode_button");
-        if (btn.attr("status") == "1") {
+        var status = btn.attr("status");
+        if (status == "1" || status == "2") {
           return;
         }
 
@@ -234,6 +235,7 @@
       function verifycode() {
         var verifycode = $("#id_code_input").val();
         if (validateVerifyCode(verifycode) == false) {
+          $("#id_verify_msg")[0].innerHTML = "验证码错误！";
           return;
         }
         var url = "/weixin/verifycode/";
@@ -247,7 +249,7 @@
           $("#id_verifycode_group").css("display","none");
           $("#id_requestcode_button").removeClass("btn-primary").addClass("btn-success")[0].innerHTML="已验证";
           $("#id_mobile_input").attr("disabled","disabled");
-          $("#id_requestcode_button").attr("status", "1");
+          $("#id_requestcode_button").attr("status", "2");
         };
         var openid = $("#id_openid").val();
 	var data = {"verifycode":verifycode, "openid":openid};
@@ -255,7 +257,7 @@
       };
       
       function babyinfo() {
-        if ($("#id_requestcode_button").attr("status") != "1") {
+        if ($("#id_requestcode_button").attr("status") != "2") {
           $("#id_savelabel")[0].innerHTML = "请先验证手机号！";
           return;
         }
@@ -276,13 +278,11 @@
           return;												 
         }
         var csrf_token = document.getElementsByName("csrfmiddlewaretoken")[0].value;
-        var verify_code = $("#id_code_input").val();
         var openid = $("#id_openid").val();
         var url = "/weixin/babyinfo/";
         var data = {"year":year, "month":month, "sex":sex, 
                     "receiver_name":receiver_name, "province":province,
-                    "city":city, "streetaddr":streetaddr, 
-                    "verifycode":verify_code, "openid":openid,
+                    "city":city, "streetaddr":streetaddr, "openid":openid,
                     "csrfmiddlewaretoken":csrf_token};
         var callback = function (res) {
           if (res["code"] == "ok") {
@@ -292,7 +292,6 @@
         };
         $.ajax({url:url, data:data, type:"post", success:callback});
       }
-      
       
     </script>
 

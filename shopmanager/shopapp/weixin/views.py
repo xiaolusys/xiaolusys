@@ -309,10 +309,9 @@ class BabyInfoView(View):
         province = content.get("province")
         city = content.get("city")
         streetaddr = content.get("streetaddr")
-        verifycode = content.get("verifycode")
-        user_openid = content.get('openid')
+        openid = content.get('openid')
 
-        wx_user_service = WeixinUserService(openId=user_openid)
+        wx_user_service = WeixinUserService(openId=openid)
         wx_user = wx_user_service._wx_user
 
         wx_user.birth_year = int(year)
@@ -324,16 +323,10 @@ class BabyInfoView(View):
         wx_user.address = streetaddr
         wx_user.save()
 
-        status = "ok"
-        message = "saved"
-        if wx_user.validcode != verifycode:
-            status = "bad"
-            messgae = "verification code wrong!"
-
         response = {"birth_year":wx_user.birth_year, "birth_month":wx_user.birth_month,
                     "sex":wx_user.baby_sex, "receiver_name":wx_user.receiver_name,
                     "province":wx_user.province,"city":wx_user.city,
-                    "streetaddr":wx_user.address, "code":status, "message":message}
+                    "streetaddr":wx_user.address, "code":"ok", "message":"saved"}
 
         return HttpResponse(json.dumps(response),mimetype='application/json')
 
