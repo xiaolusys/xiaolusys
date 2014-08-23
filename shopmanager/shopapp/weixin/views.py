@@ -290,6 +290,10 @@ class BabyInfoView(View):
     def get(self, request):
         content = request.REQUEST
         code = content.get('code')
+        
+        if code == None or code == "None":
+            response = {"msg":"请从[优尼世界]微信打开此页面！"}
+            return HttpResponse(json.dumps(response),mimetype='application/json')
         user_openid = get_user_openid(code)
 
         wx_user_service = WeixinUserService(user_openid)
