@@ -27,6 +27,7 @@ from .customutils import (verifySignature,
                       get_closest_time_slot,
                       map_int2str,
                       gen_string_image)
+from .processlock import Lock,process_lock
 
 BASE_STRING = 'abcdefghijklmnopqrstuvwxyz1234567890-'
 REGEX_INVALID_XML_CHAR = r'$><^;\&\[\]\?\!\"\:'
