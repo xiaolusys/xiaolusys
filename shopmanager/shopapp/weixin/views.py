@@ -81,7 +81,6 @@ def get_user_openid(request, code):
     url = 'https://api.weixin.qq.com/sns/oauth2/access_token?appid=%s&secret=%s&code=%s&grant_type=authorization_code'
     get_openid_url = url % (appid, secret, code)
     r = urlopen(get_openid_url).read()
-    logger.error("get_user_openid:"+r)
     r = json.loads(r)
 
     if r.has_key("errcode"):
@@ -288,7 +287,6 @@ class BabyInfoView(View):
     def get(self, request):
         content = request.REQUEST
         code = content.get('code')
-        logger.error("code log:"+code)
 
         if code == None or code == "None":
             response = {"msg":"请从[优尼世界]微信打开此页面！"}
