@@ -644,13 +644,14 @@ class Item(models.Model):
         category = Category.get_or_create(user_id,item_dict['cid'])
         if item_dict.has_key('outer_id') and item_dict['outer_id']:
             product,state = Product.objects.get_or_create(outer_id=item_dict['outer_id'])
-            if state or not product.name:
+            if state:
                 product.collect_num  = item_dict['num']
                 product.std_sale_price  = item_dict['price']
                 product.agent_price  = item_dict['price']
                 product.staff_price  = item_dict['price']
                 product.name        = item_dict['title']
-            product.pic_path    = item_dict['pic_url']    
+            product.name        = product.name or item_dict['title']
+            product.pic_path    = product.pic_path or item_dict['pic_url']    
             product.save()
     	else:
             #logger.warn('item has no outer_id(num_iid:%s)'%str(item_dict['num_iid']))
