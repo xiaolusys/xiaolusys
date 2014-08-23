@@ -282,21 +282,24 @@ class BabyInfoView(View):
     def get(self, request):
         content = request.REQUEST
         code = content.get('code')
-        
+        logger.error("code log:"+code)
+
         if code == None or code == "None":
+            
             response = {"msg":"请从[优尼世界]微信打开此页面！"}
             return HttpResponse(json.dumps(response),mimetype='application/json')
-        user_openid = get_user_openid(code)
+        openid = get_user_openid(code)
 
-        wx_user_service = WeixinUserService(user_openid)
+        wx_user_service = WeixinUserService(openid)
         wx_user = wx_user_service._wx_user
         
         years = [2008, 2009, 2010, 2011, 2012, 2013, 2014, 2015]
         months = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
         response = render_to_response('weixin/babyinfo.html', 
                                       {'user':wx_user, 'years': years, 
-                                       'months': months, 'openid':user_openid},
+                                       'months': months, 'openid':openid},
                                       context_instance=RequestContext(request))
+        response.set_cookie("openid",openid)
         return response
         
     def post(self, request, *args, **kwargs):
