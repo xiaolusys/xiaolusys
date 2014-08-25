@@ -119,6 +119,85 @@ class CSHXSMSManager(SMSManager):
             msg = exc.message
         
         return msg 
+    
+
+class IPYYSMSManager(SMSManager):
+    """ 创世华信短信发送接口实现 """
+    _platform = 'ipyy'
+    _sms_url  = 'http://sh2.ipyy.com/sms.aspx'
+    _status_url = 'http://sh2.ipyy.com/statusApi.aspx'
+    
+    def batch_send(self,*args,**kwargs):
+        """ 批量发送短信接口实现 
+            res_content      = '<?xml version="1.0" encoding="utf-8" ?>
+                    <returnsms>
+                        <returnstatus>Success</returnstatus>
+                        <message>ok</message>
+                        <remainpoint>58001</remainpoint>
+                        <taskID>132668</taskID>
+                        <successCounts>1</successCounts>
+                    </returnsms>'
+        """
+        
+        fields = ['userid','account','password','mobile','taskName','content',
+                  'sendtime','mobilenumber','countnumber','telephonenumber','checkcontent']
+        
+        params = {}
+        for f in fields:
+            if kwargs.has_key(f):
+                params[f] = kwargs[f]
+        
+        params['action']   = 'send'
+        
+        response = ''
+        success  = False
+        task_id  = None
+        succnums = 0
+        res_content = ''
+        try:
+            for k,v in params.items():
+                if isinstance(v,unicode):
+                    params[k]=v.encode('utf8')
+                    
+            encode_params = urllib.urlencode(params) 
+            response      = urllib2.urlopen(self._sms_url, encode_params, 60)
+            res_content   = response.read()
+
+            parser        = etree.XMLParser()
+            tree          = etree.parse(StringIO(res_content.strip()), parser)
+            status        = tree.xpath('/returnsms/returnstatus')[0].text
+            success       = status.lower() == 'success'
+        except Exception,exc:
+            logger.error(exc.message or 'empty error',exc_info=True)
+        else:
+            task_id  = tree.xpath('/returnsms/taskID')[0].text
+            succnums = tree.xpath('/returnsms/successCounts')[0].text
+            
+        return success,task_id,succnums,res_content
+    
+    def check_content(self,*args,**kwargs):
+        """ 创世华信短信非法关键词查询 """
+        
+        params = {}
+        params['userid']   = kwargs.get('userid','')
+        params['account']  = kwargs.get('account','')
+        params['password'] = kwargs.get('password','')
+        params['content']  = kwargs.get('content','')
+        params['action']   = 'checkkeyword'
+        
+        msg = ''
+        try:
+            encode_params = urllib.urlencode(params) 
+            response      = urllib2.urlopen(self._sms_url, encode_params, 60)
+            res_content   = response.read()
+
+            parser        = etree.XMLParser()
+            tree          = etree.parse(StringIO(res_content.strip()), parser)
+            msg  = tree.xpath('/returnsms/message')[0].text
+        except Exception,exc:
+            msg = exc.message
+        
+        return msg
  
  
 class DXTSMSManager(SMSManager):
@@ -202,5 +281,6 @@ class DXTSMSManager(SMSManager):
 SMS_CODE_MANAGER_TUPLE = (
     ('cshx',CSHXSMSManager),
     ('dxt',DXTSMSManager),
+    ('ipyy',IPYYSMSManager)
 )    
     
