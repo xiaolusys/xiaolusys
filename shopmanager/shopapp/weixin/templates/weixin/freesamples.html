@@ -32,13 +32,6 @@
     </div>
   </div>
 
-<div class="panel panel-default" style="margin-top:5px">
-  <div class="panel-heading" style="color:orange">8月免费试用：{{ sample.name }}</div>
-  <div class="panel-body">
-    <p style="color:red;font-size:20px">8月试用申请已结束，优尼世界感谢您的参与！</p>
-    <p style="color:red"> 1）每个努力过的妈妈，都有惊喜！<a href="/weixin/inviteresult/">点击查看您获得的奖品>></a></p>
-  </div>
-</div>
 {% if openid == "oMt59uE55lLOV2KS6vYZ_d0dOl5c" %}
 {% for sample in samples %}
 <div class="panel panel-default" style="margin-top:5px">
@@ -72,9 +65,9 @@
 	  <p>款式：
 	    <select class="form-control input-sm" name="color" id="id_color">
 	      <option value="0">选择</option>
-	      <option value="02">蓝色</option>
-	      <option value="03">粉色</option>
-	      <option value="01">黄色</option>
+	      <option value="03">彩色乐园</option>
+	      <option value="02">蓝色动物</option>
+	      <option value="01">黄色小熊</option>
 	    </select>
 	  </p>
 <!--
@@ -102,8 +95,13 @@
 	{% if order_exists %}
 	<a href="/weixin/sampleads/{{ pk }}/">您的试用申请已经提交！查看 >></a>
 	{% else %}
+
 	<div class="col-xs-12" style="text-align:center; margin-top:10px">
+	{% if started %}
 	  <input type="submit" class="btn btn-warning" value="提交试用申请"/>
+        {% else %} 
+	  <input type="button" class="btn btn-warning" disabled="disabled" value="提交试用申请"/>
+        {% endif %}
 	</div>
 	{% endif %}
 <!--
