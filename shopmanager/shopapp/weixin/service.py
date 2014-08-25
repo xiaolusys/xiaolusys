@@ -140,7 +140,7 @@ class WeixinUserService():
                 wx_user.nickname = replace_utf8mb4(wx_user.nickname.decode('utf8'))
                 subscribe_time = userinfo.get('subscribe_time',None)
                 if subscribe_time:
-                    wx_user.subscribe_time = datetime.datetime\
+                    wx_user.subscribe_time = wx_user.subscribe_time or datetime.datetime\
                         .fromtimestamp(int(subscribe_time))
                         
                 wx_user.save()
@@ -227,7 +227,7 @@ class WeixinUserService():
             return WeiXinAutoResponse.objects.get_or_create(message=u'校验成功提示')[0].autoParams()            
         
         if message == '0' and self._wx_user.isValid():
-            return self.genTextRespJson(u'您已成功绑定手机：\n[q] 取消绑定 \n[0] 重新绑定 \n*取消绑定后部分功能失效')
+            return self.genTextRespJson(u'您已成功绑定手机：\n[q] 取消绑定 \n*取消绑定后部分功能失效\n*取消绑定后可重新绑定')
         
         for resp in WeiXinAutoResponse.objects.FullMatch:
             if message == resp.message.strip():
@@ -357,7 +357,7 @@ class WeixinUserService():
             
             self._wx_user.isvalid = False
             self._wx_user.save()
-            raise MessageException(u'您的手机已取消绑定，重新绑定请输入[0]。')
+            raise MessageException(u'您的手机已取消绑定 \n重新绑定请输入数字[0]:')
             
         elif  eventKey == "W":
             return self.getTradeMessageByMobile(self._wx_user.mobile)
