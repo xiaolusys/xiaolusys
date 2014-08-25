@@ -133,14 +133,14 @@ class WeixinUserService():
         if state or force_update:
             try:     
                 userinfo = self. _wx_api.getUserInfo(openId)
-                
+                pre_subscribe_time = wx_user.subscribe_time
                 for k,v in userinfo.iteritems():
                     hasattr(wx_user,k) and setattr(wx_user,k,v or getattr(wx_user,k))
                 
                 wx_user.nickname = replace_utf8mb4(wx_user.nickname.decode('utf8'))
                 subscribe_time = userinfo.get('subscribe_time',None)
                 if subscribe_time:
-                    wx_user.subscribe_time = wx_user.subscribe_time or datetime.datetime\
+                    wx_user.subscribe_time = pre_subscribe_time or datetime.datetime\
                         .fromtimestamp(int(subscribe_time))
                         
                 wx_user.save()
