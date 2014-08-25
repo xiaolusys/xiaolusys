@@ -627,7 +627,7 @@ class FreeSampleView(View):
                                        "days_left":days_left,
                                        "hours_left":hours_left,
                                        "slots_left":slots_left,
-                                       "ended":ended,
+                                       "ended":ended,"openid":user_openid,
                                        "pk":wx_user.isNone() or wx_user.pk},
                                       context_instance=RequestContext(request))
         response.set_cookie("openid",user_openid)
