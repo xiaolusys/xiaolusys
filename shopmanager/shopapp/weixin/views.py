@@ -966,7 +966,13 @@ class SurveyView(View):
                 exist = True
             
         total = Survey.objects.all().count()
-        response = render_to_response('weixin/survey.html', {"exist":exist, "total":total},
+        choice1 = Survey.objects.filter(selection=1).count()
+        ratio1 = choice1 * 100.0/ total
+        ratio2 = 100 - ratio1
+        ratio1 = "%.2f" % ratio1
+        ratio2 = "%.2f" % ratio2
+        response = render_to_response('weixin/survey.html', 
+                                      {"exist":exist, "total":total, "ratio1":ratio1, "ratio2":ratio2},
                                       context_instance=RequestContext(request))
         response.set_cookie("openid",user_openid)
         return response
