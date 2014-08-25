@@ -75,13 +75,18 @@ from urllib import urlopen
 
 
 
-def get_user_openid(code):
+def get_user_openid(request, code):
     appid = settings.WEIXIN_APPID
     secret = settings.WEIXIN_SECRET
     url = 'https://api.weixin.qq.com/sns/oauth2/access_token?appid=%s&secret=%s&code=%s&grant_type=authorization_code'
     get_openid_url = url % (appid, secret, code)
     r = urlopen(get_openid_url).read()
     r = json.loads(r)
+
+    if r.has_key("errcode"):
+        openid = request.COOKIES.get('openid')
+        return openid 
+
     return r.get('openid')
 
 
@@ -205,7 +210,7 @@ class OrderInfoView(View):
     def get(self, request):
         content = request.REQUEST
         code = content.get('code',None)
-        user_openid = get_user_openid(code)
+        user_openid = get_user_openid(request, code)
         
         weixin_user_service = WeixinUserService(user_openid)
         wx_user = weixin_user_service._wx_user
@@ -282,24 +287,26 @@ class BabyInfoView(View):
     def get(self, request):
         content = request.REQUEST
         code = content.get('code')
-        
+
         if code == None or code == "None":
             response = {"msg":"请从[优尼世界]微信打开此页面！"}
             return HttpResponse(json.dumps(response),mimetype='application/json')
-        user_openid = get_user_openid(code)
-
-        wx_user_service = WeixinUserService(user_openid)
+        
+        openid = get_user_openid(request, code)
+            
+        wx_user_service = WeixinUserService(openid)
         wx_user = wx_user_service._wx_user
         
         years = [2008, 2009, 2010, 2011, 2012, 2013, 2014, 2015]
         months = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
         response = render_to_response('weixin/babyinfo.html', 
                                       {'user':wx_user, 'years': years, 
-                                       'months': months, 'openid':user_openid},
+                                       'months': months, 'openid':openid},
                                       context_instance=RequestContext(request))
+        response.set_cookie("openid",openid)
         return response
         
-    def post(self, request, *args, **kwargs):
+    def post(self, request):
         content = request.REQUEST
         year = content.get("year")
         month  = content.get("month")
@@ -309,10 +316,9 @@ class BabyInfoView(View):
         province = content.get("province")
         city = content.get("city")
         streetaddr = content.get("streetaddr")
-        verifycode = content.get("verifycode")
-        user_openid = content.get('openid')
+        openid = content.get('openid')
 
-        wx_user_service = WeixinUserService(openId=user_openid)
+        wx_user_service = WeixinUserService(openId=openid)
         wx_user = wx_user_service._wx_user
 
         wx_user.birth_year = int(year)
@@ -324,16 +330,10 @@ class BabyInfoView(View):
         wx_user.address = streetaddr
         wx_user.save()
 
-        status = "ok"
-        message = "saved"
-        if wx_user.validcode != verifycode:
-            status = "bad"
-            messgae = "verification code wrong!"
-
         response = {"birth_year":wx_user.birth_year, "birth_month":wx_user.birth_month,
                     "sex":wx_user.baby_sex, "receiver_name":wx_user.receiver_name,
                     "province":wx_user.province,"city":wx_user.city,
-                    "streetaddr":wx_user.address, "code":status, "message":message}
+                    "streetaddr":wx_user.address, "code":"ok", "message":"saved"}
 
         return HttpResponse(json.dumps(response),mimetype='application/json')
 
@@ -382,7 +382,7 @@ class ReferalView(View):
     def get(self, request):
         content = request.REQUEST
         code = content.get('code')
-        user_openid = get_user_openid(code)
+        user_openid = get_user_openid(request, code)
             
         referal_bonus = 0.00
         referal_count = 0
@@ -588,7 +588,7 @@ class FreeSampleView(View):
     def get(self, request):
         content = request.REQUEST
         code = content.get('code')
-        user_openid = get_user_openid(code)
+        user_openid = get_user_openid(request, code)
 
         wx_user_service = WeixinUserService(openId=user_openid)
         wx_user = wx_user_service._wx_user
@@ -680,7 +680,7 @@ class SampleApplyView(View):
         ## if user refresh page, we can get user_openid from cookie
         user_openid = request.COOKIES.get('openid')
         if user_openid == 'None' or user_openid == None:
-            user_openid = get_user_openid(code)
+            user_openid = get_user_openid(request, code)
 
         wx_user_service = WeixinUserService(openId=user_openid)
         wx_user = wx_user_service._wx_user
@@ -776,7 +776,7 @@ class ResultView(View):
     def get(self, request):
         content = request.REQUEST
         code = content.get('code')
-        user_openid = get_user_openid(code)
+        user_openid = get_user_openid(request, code)
 
         end = datetime.datetime(2014,8,11)
         now = datetime.datetime.now()
@@ -904,7 +904,7 @@ class VipCouponView(View):
     def get(self, request):
         content = request.REQUEST
         code = content.get('code')
-        user_openid = get_user_openid(code)
+        user_openid = get_user_openid(request, code)
         
         weixin_user_service = WeixinUserService(user_openid)
         wx_user = weixin_user_service._wx_user
@@ -966,7 +966,13 @@ class SurveyView(View):
                 exist = True
             
         total = Survey.objects.all().count()
-        response = render_to_response('weixin/survey.html', {"exist":exist, "total":total},
+        choice1 = Survey.objects.filter(selection=1).count()
+        ratio1 = choice1 * 100.0/ total
+        ratio2 = 100 - ratio1
+        ratio1 = "%.2f" % ratio1
+        ratio2 = "%.2f" % ratio2
+        response = render_to_response('weixin/survey.html', 
+                                      {"exist":exist, "total":total, "ratio1":ratio1, "ratio2":ratio2},
                                       context_instance=RequestContext(request))
         response.set_cookie("openid",user_openid)
         return response
