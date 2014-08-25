@@ -595,18 +595,16 @@ class FreeSampleView(View):
             
         user_isvalid = wx_user.isValid()
 
-        end = datetime.datetime(2014,8,11)
+        start = datetime.datetime(2014,8,30)
         now = datetime.datetime.now()
-        diff = end - now
+        diff = start - now
         days_left = diff.days
         hours_left = diff.seconds / 3600
 
-        ended = False
-        if now > end:
-            ended = True
-
-        consumed = SampleOrder.objects.filter(status__gt=0).filter(status__lt=6).count()
-        slots_left = 1000 - consumed
+        slots_left = 800
+        started = False
+        if now > start:
+            started = True
         
         samples = FreeSample.objects.filter(expiry__gt=datetime.datetime.now())
 
@@ -627,7 +625,7 @@ class FreeSampleView(View):
                                        "days_left":days_left,
                                        "hours_left":hours_left,
                                        "slots_left":slots_left,
-                                       "ended":ended,
+                                       "started":started,"openid":user_openid,
                                        "pk":wx_user.isNone() or wx_user.pk},
                                       context_instance=RequestContext(request))
         response.set_cookie("openid",user_openid)
