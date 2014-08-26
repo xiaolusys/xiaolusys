@@ -85,7 +85,7 @@ class VipCodeManager(models.Manager):
             if objs.count() < 0 or cnt > 20:
                 break
             new_code = str(random.randint(1000000,9999999))
-        self.create(code=new_code,expiry=expiry,code_type=code_type,code_rule=code_rule,max_usage=max_usage)
+        self.create(owner_openid=wx_user,code=new_code,expiry=expiry,code_type=code_type,code_rule=code_rule,max_usage=max_usage)
         
         return new_code
     
