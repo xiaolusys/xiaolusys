@@ -88,9 +88,9 @@
 -->
           {% if vip_exists %}
           <p style="color:red">您具有通关特权，无需邀请码!</p>
-	  <input class="form-control" type="text" placeholder="无需VIP邀请码" id="id_vipcode" disabled="disabled" name="vipcode"/>
+	  <input class="form-control" type="text" placeholder="无需VIP邀请码" id="id_vipcode" status="1" disabled="disabled" name="vipcode"/>
 	  {% else %}
-	  <input class="form-control" type="text" placeholder="VIP邀请码" id="id_vipcode" name="vipcode"/>
+	  <input class="form-control" type="text" placeholder="VIP邀请码" id="id_vipcode" status="0" name="vipcode"/>
 	  {% endif %}
 	</div>
       </div>
@@ -163,6 +163,7 @@
     var size = $("#id_size").val();
     var weight = $("#id_weight").val();
     var vipcode = $("#id_vipcode").val();  
+    var vip_status = $("#id_vipcode").attr("status");
 
     var msg = $("#id_msg");
     if (color == "0" || size == "0" || weight == "0") {
@@ -170,12 +171,10 @@
       return false;
     }
 
-    if (validateVipCode(vipcode) == false) {
+    if (vip_status == "0" && validateVipCode(vipcode) == false) {
       msg[0].innerHTML = "请检查您的VIP邀请码(6-7位数字)!";
       return false;
     }
-
-    
   };
 </script>
 {% endblock %}
