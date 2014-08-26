@@ -3,7 +3,7 @@ import datetime
 from django.db import models
 from shopback.base.fields import BigIntegerAutoField
 from shopback.base.models import JSONCharMyField
-from .managers import WeixinProductManager
+from .managers import WeixinProductManager,VipCodeManager
 from shopback.trades.models import MergeTrade
 
 SAFE_CODE_SECONDS = 60
@@ -658,6 +658,8 @@ class VipCode(models.Model):
 
     ### total number of usage
     usage_count = models.IntegerField(default=0,verbose_name=u'已使用')
+    
+    objects = VipCodeManager()
     
     class Meta:
         db_table = 'shop_weixin_vipcode'

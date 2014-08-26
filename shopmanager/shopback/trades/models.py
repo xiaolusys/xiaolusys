@@ -131,7 +131,7 @@ class MergeTrade(models.Model):
     SHIPPING_TYPE_CHOICE = SHIPPING_TYPE_CHOICE
     PRIORITY_TYPE    = PRIORITY_TYPE
     
-    id    = BigIntegerAutoField(primary_key=True,db_index=True,verbose_name=u'订单ID')
+    id    = BigIntegerAutoField(primary_key=True,verbose_name=u'订单ID')
     
     tid   = models.CharField(max_length=32,
                              default=lambda:'HYD%d'%int(time.time()*10**5),
@@ -167,13 +167,13 @@ class MergeTrade(models.Model):
     sys_memo      = models.TextField(max_length=1000,blank=True,verbose_name=u'系统备注')
     seller_flag   = models.IntegerField(null=True,verbose_name=u'淘宝旗帜')
     
-    created      = models.DateTimeField(db_index=True,null=True,blank=True,verbose_name=u'生成日期')
+    created      = models.DateTimeField(null=True,blank=True,verbose_name=u'生成日期')
     pay_time     = models.DateTimeField(db_index=True,null=True,blank=True,verbose_name=u'付款日期')
-    modified     = models.DateTimeField(db_index=True,null=True,blank=True,verbose_name=u'修改日期') 
-    consign_time = models.DateTimeField(db_index=True,null=True,blank=True,verbose_name=u'发货日期')
+    modified     = models.DateTimeField(null=True,blank=True,verbose_name=u'修改日期') 
+    consign_time = models.DateTimeField(null=True,blank=True,verbose_name=u'发货日期')
     send_time    = models.DateTimeField(null=True,blank=True,verbose_name=u'预售日期')
     weight_time  = models.DateTimeField(db_index=True,null=True,blank=True,verbose_name=u'称重日期')
-    charge_time  = models.DateTimeField(db_index=True,null=True,blank=True,verbose_name=u'揽件日期')
+    charge_time  = models.DateTimeField(null=True,blank=True,verbose_name=u'揽件日期')
     
     is_brand_sale  = models.BooleanField(default=False,verbose_name=u'品牌特卖') 
     is_force_wlb   = models.BooleanField(default=False,verbose_name=u'物流宝') 
@@ -196,7 +196,7 @@ class MergeTrade(models.Model):
                                        blank=True,verbose_name=u'物流编号')
     logistics_company  = models.ForeignKey(LogisticsCompany,null=True,
                                            blank=True,verbose_name=u'物流公司')
-    receiver_name    =  models.CharField(max_length=25,db_index=True,
+    receiver_name    =  models.CharField(max_length=25,
                                          blank=True,verbose_name=u'收货人姓名')
     receiver_state   =  models.CharField(max_length=16,blank=True,verbose_name=u'省')
     receiver_city    =  models.CharField(max_length=16,blank=True,verbose_name=u'市')
@@ -206,7 +206,7 @@ class MergeTrade(models.Model):
     receiver_zip       =  models.CharField(max_length=10,blank=True,verbose_name=u'邮编')
     receiver_mobile    =  models.CharField(max_length=24,db_index=True,
                                            blank=True,verbose_name=u'手机')
-    receiver_phone     =  models.CharField(max_length=20,db_index=True,
+    receiver_phone     =  models.CharField(max_length=20,
                                            blank=True,verbose_name=u'电话')
     
     step_paid_fee      = models.CharField(max_length=10,blank=True,verbose_name=u'分阶付款金额')
@@ -214,7 +214,7 @@ class MergeTrade(models.Model):
                                           blank=True,verbose_name=u'分阶付款状态')
     
     reason_code = models.CharField(max_length=100,blank=True,verbose_name=u'问题编号')  #1,2,3 问题单原因编码集合
-    status      = models.CharField(max_length=32,db_index=True,choices=TAOBAO_TRADE_STATUS,
+    status      = models.CharField(max_length=32,choices=TAOBAO_TRADE_STATUS,
                                         blank=True,verbose_name=u'订单状态')
         
     is_picking_print = models.BooleanField(default=False,verbose_name=u'发货单')
@@ -233,7 +233,7 @@ class MergeTrade(models.Model):
     qrcode_msg       = models.CharField(max_length=32,blank=True,verbose_name=u'打印信息')
     
     can_review       = models.BooleanField(default=False,verbose_name=u'复审') 
-    priority       =  models.IntegerField(db_index=True,default=0,
+    priority       =  models.IntegerField(default=0,
                                           choices=PRIORITY_TYPE,verbose_name=u'优先级')
     operator       =  models.CharField(max_length=32,blank=True,verbose_name=u'打单员')
     scanner        =  models.CharField(max_length=64,blank=True,verbose_name=u'扫描员')
@@ -523,7 +523,7 @@ class MergeOrder(models.Model):
                                        related_name='merge_orders',
                                        verbose_name=u'所属订单')
     
-    cid    = models.BigIntegerField(db_index=True,null=True,verbose_name=u'商品分类')
+    cid    = models.BigIntegerField(null=True,verbose_name=u'商品分类')
     num_iid  = models.CharField(max_length=64,blank=True,verbose_name=u'线上商品编号')
     title  =  models.CharField(max_length=128,blank=True,verbose_name=u'商品标题')
     price  = models.FloatField(default=0.0,verbose_name=u'单价')
@@ -548,12 +548,12 @@ class MergeOrder(models.Model):
     
     pic_path = models.CharField(max_length=512,blank=True,verbose_name=u'商品图片')
     
-    seller_nick = models.CharField(max_length=32,blank=True,db_index=True,verbose_name=u'卖家昵称')
-    buyer_nick  = models.CharField(max_length=32,db_index=True,blank=True,verbose_name=u'买家昵称')
+    seller_nick = models.CharField(max_length=32,blank=True,verbose_name=u'卖家昵称')
+    buyer_nick  = models.CharField(max_length=32,blank=True,verbose_name=u'买家昵称')
     
-    created       =  models.DateTimeField(db_index=True,null=True,blank=True,verbose_name=u'创建日期')
+    created       =  models.DateTimeField(null=True,blank=True,verbose_name=u'创建日期')
     pay_time      =  models.DateTimeField(db_index=True,null=True,blank=True,verbose_name=u'付款日期')
-    consign_time  =  models.DateTimeField(db_index=True,null=True,blank=True,verbose_name=u'发货日期')
+    consign_time  =  models.DateTimeField(null=True,blank=True,verbose_name=u'发货日期')
     
     out_stock   = models.BooleanField(default=False,verbose_name=u'缺货')
     is_merge    = models.BooleanField(default=False,verbose_name=u'合并') 
