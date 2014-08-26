@@ -613,6 +613,11 @@ class FreeSampleView(View):
         if orders.count() > 0 and not wx_user.isNone():
             order_exists = True
 
+        vip_exists = False
+        vipcodes = VipCode.objects.filter(owner_openid=user_openid)
+        if vipcodes.count() > 0:
+            vip_exists = True
+        
         today = datetime.date.today()
         start_time = datetime.datetime(today.year, today.month, today.day)
         today_orders = SampleOrder.objects.filter(created__gt=start_time).count()
@@ -626,6 +631,7 @@ class FreeSampleView(View):
                                        "hours_left":hours_left,
                                        "slots_left":slots_left,
                                        "started":started,"openid":user_openid,
+                                       "vip_exists":vip_exists,
                                        "pk":wx_user.isNone() or wx_user.pk},
                                       context_instance=RequestContext(request))
         response.set_cookie("openid",user_openid)

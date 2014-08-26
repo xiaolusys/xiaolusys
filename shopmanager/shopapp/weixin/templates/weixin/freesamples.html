@@ -86,7 +86,12 @@
 	    </select>
 	  </p>
 -->
+          {% if vip_exists %}
+          <p style="color:red">您具有通关特权，无需邀请码!</p>
+	  <input class="form-control" type="text" placeholder="VIP邀请码" id="id_vipcode" disabled="disabled" name="vipcode"/>
+	  {% else %}
 	  <input class="form-control" type="text" placeholder="VIP邀请码" id="id_vipcode" name="vipcode"/>
+	  {% endif %}
 	</div>
       </div>
       
