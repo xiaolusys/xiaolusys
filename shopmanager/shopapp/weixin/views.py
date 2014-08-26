@@ -829,9 +829,7 @@ class FinalListView(View):
         batch = int(kwargs.get('batch',1))
         order_list = None
         if batch == 1:
-            order_list = SampleOrder.objects.filter(status__gt=0).filter(status__lt=6)
-        if batch == 6:
-            order_list = SampleOrder.objects.filter(status=batch)
+            order_list = SampleOrder.objects.filter(status__gt=0).filter(status__lt=7)
         num_per_page = 20 # Show 20 contacts per page
         paginator = Paginator(order_list, num_per_page) 
 
