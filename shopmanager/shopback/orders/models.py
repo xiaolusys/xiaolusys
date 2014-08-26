@@ -47,16 +47,16 @@ class Trade(models.Model):
     id           =  BigIntegerAutoField(primary_key=True)
     user         =  models.ForeignKey(User,null=True,related_name='trades')
 
-    seller_id    =  models.CharField(max_length=64,db_index=True,blank=True)
-    seller_nick  =  models.CharField(max_length=64,db_index=True,blank=True)
-    buyer_nick   =  models.CharField(max_length=64,db_index=True,blank=True)
+    seller_id    =  models.CharField(max_length=64,blank=True)
+    seller_nick  =  models.CharField(max_length=64,blank=True)
+    buyer_nick   =  models.CharField(max_length=64,blank=True)
     type         =  models.CharField(max_length=32,blank=True)
 
-    year  = models.IntegerField(null=True,db_index=True)
-    month = models.IntegerField(null=True,db_index=True)
-    week  = models.IntegerField(null=True,db_index=True)
-    day   = models.IntegerField(null=True,db_index=True)
-    hour  = models.CharField(max_length=5,blank=True,db_index=True)
+    year  = models.IntegerField(null=True)
+    month = models.IntegerField(null=True)
+    week  = models.IntegerField(null=True)
+    day   = models.IntegerField(null=True)
+    hour  = models.CharField(max_length=5,blank=True)
 
     payment      =  models.FloatField(default=0.0)
     discount_fee =  models.FloatField(default=0.0)
@@ -69,11 +69,11 @@ class Trade(models.Model):
     real_point_fee   =  models.FloatField(default=0.0)
     commission_fee   =  models.FloatField(default=0.0)
 
-    created       =  models.DateTimeField(db_index=True,null=True,blank=True)
+    created       =  models.DateTimeField(null=True,blank=True)
     pay_time      =  models.DateTimeField(null=True,blank=True)
-    end_time      =  models.DateTimeField(db_index=True,null=True,blank=True)
-    modified      =  models.DateTimeField(db_index=True,null=True,blank=True)
-    consign_time  =  models.DateTimeField(db_index=True,null=True,blank=True)
+    end_time      =  models.DateTimeField(null=True,blank=True)
+    modified      =  models.DateTimeField(null=True,blank=True)
+    consign_time  =  models.DateTimeField(null=True,blank=True)
     send_time      = models.DateTimeField(null=True,blank=True)
     
     buyer_message    =  models.TextField(max_length=1000,blank=True)
@@ -229,21 +229,15 @@ class Order(models.Model):
     item_meal_name = models.CharField(max_length=88,blank=True)
     pic_path = models.CharField(max_length=128,blank=True)
 
-    seller_nick = models.CharField(max_length=32,blank=True,db_index=True)
-    buyer_nick  = models.CharField(max_length=32,db_index=True,blank=True)
+    seller_nick = models.CharField(max_length=32,blank=True)
+    buyer_nick  = models.CharField(max_length=32,blank=True)
 
     refund_status = models.CharField(max_length=40,choices=REFUND_STATUS,blank=True)
     outer_id = models.CharField(max_length=64,blank=True)
     
-    year  = models.IntegerField(null=True,db_index=True)
-    month = models.IntegerField(null=True,db_index=True)
-    week  = models.IntegerField(null=True,db_index=True)
-    day   = models.IntegerField(null=True,db_index=True)
-    hour  = models.CharField(max_length=5,blank=True,db_index=True)
-    
-    created       =  models.DateTimeField(db_index=True,null=True,blank=True)
+    created       =  models.DateTimeField(null=True,blank=True)
     pay_time      =  models.DateTimeField(db_index=True,null=True,blank=True)
-    consign_time  =  models.DateTimeField(db_index=True,null=True,blank=True)
+    consign_time  =  models.DateTimeField(null=True,blank=True)
     
     status = models.CharField(max_length=32,choices=TAOBAO_TRADE_STATUS,blank=True)
 

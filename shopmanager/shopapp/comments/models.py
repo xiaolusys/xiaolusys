@@ -102,9 +102,9 @@ class CommentGrade(models.Model):
 
     id = BigIntegerAutoField(primary_key=True)    
     
-    num_iid = models.BigIntegerField(null=False,db_index=True,verbose_name=u'商品ID')
+    num_iid = models.BigIntegerField(null=False,verbose_name=u'商品ID')
     tid     = models.BigIntegerField(null=False,db_index=True,verbose_name=u'交易ID')
-    oid     = models.BigIntegerField(null=False,db_index=True,verbose_name=u'订单ID')
+    oid     = models.BigIntegerField(null=False,verbose_name=u'订单ID')
     reply   = models.TextField(max_length=1500,blank=True,verbose_name=u'评价解释')
     created = models.DateTimeField(blank=True,null=True,auto_now=True,verbose_name=u'创建日期')
     replay_at = models.DateTimeField(db_index=True,blank=True,null=True,verbose_name=u'解释日期')

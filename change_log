@@ -1,3 +1,49 @@
+
+alter table shop_trades_mergeorder drop index shop_trades_mergeorder_132f42da;
+alter table shop_trades_mergeorder drop index shop_trades_mergeorder_3216ff68;
+alter table shop_trades_mergeorder drop index shop_trades_mergeorder_2e774e98;
+alter table shop_trades_mergeorder drop index shop_trades_mergeorder_6b9b2d4f;
+alter table shop_trades_mergeorder drop index shop_trades_mergeorder_4db90882;
+alter table shop_trades_mergeorder drop index shop_trades_mergeorder_1e04cc3c;
+alter table shop_trades_mergeorder drop index shop_trades_mergeorder_310979e8;
+
+alter table shop_trades_mergetrade drop index shop_trades_mergetrade_36528e23;
+alter table shop_trades_mergetrade drop index shop_trades_mergetrade_5341e6d3;
+alter table shop_trades_mergetrade drop index idx_mergetrade_receiver_phone;
+alter table shop_trades_mergetrade drop index index_mergetrade_charge_time;
+alter table shop_trades_mergetrade drop index shop_trades_mergetrade_132f42da;
+alter table shop_trades_mergetrade drop index shop_trades_mergetrade_5436e97a;
+alter table shop_trades_mergetrade drop index shop_trades_mergetrade_3216ff68;
+
+alter table shop_orders_order drop column hour;
+alter table shop_orders_order drop column day;
+alter table shop_orders_order drop column week;
+alter table shop_orders_order drop column month;
+alter table shop_orders_order drop column year;
+
+alter table shop_orders_order drop index shop_orders_order_132f42da;
+alter table shop_orders_order drop index shop_orders_order_3216ff68;
+alter table shop_orders_order drop index shop_orders_order_2e774e98;
+alter table shop_orders_order drop index shop_orders_order_6b9b2d4f;
+
+alter table shop_orders_trade drop column hour;
+alter table shop_orders_trade drop column day;
+alter table shop_orders_trade drop column week;
+alter table shop_orders_trade drop column month;
+alter table shop_orders_trade drop column year;
+
+alter table shop_orders_trade drop index shop_orders_trade_132f42da;
+alter table shop_orders_trade drop index shop_orders_trade_5436e97a;
+alter table shop_orders_trade drop index shop_orders_trade_801e862;
+alter table shop_orders_trade drop index shop_orders_trade_3216ff68;
+alter table shop_orders_trade drop index shop_orders_trade_2e774e98;
+alter table shop_orders_trade drop index shop_orders_trade_6b9b2d4f;
+alter table shop_orders_trade drop index shop_orders_trade_2ef613c9;
+
+alter table shop_fenxiao_purchaseorder drop index shop_fenxiao_purchaseorder_1375c848;
+alter table shop_fenxiao_purchaseorder drop index shop_fenxiao_purchaseorder_132f42da;
+alter table shop_comments_grade drop index shop_comments_grade_37f27cb7;
+alter table shop_comments_grade drop index shop_comments_grade_5bc4e2d4;
 ######## 2014-8-23 ##########
 alter table shop_weixin_response add column fuzzy_match tinyint(1) NOT NULL;
 update shop_weixin_response set fuzzy_match=1;

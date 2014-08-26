@@ -6,7 +6,7 @@
 {% block container %}
 
 <div class="container-fluid">
-
+<!--
   <div class="panel panel-default" style="margin-top:5px">
     <div class="panel-heading" style="color:#e8792a">9月免费试用投票</div>
     <div class="panel-body">
@@ -31,32 +31,18 @@
       </div>
     </div>
   </div>
-
-<div class="panel panel-default" style="margin-top:5px">
-  <div class="panel-heading" style="color:orange">8月免费试用：{{ sample.name }}</div>
-  <div class="panel-body">
-    <p style="color:red;font-size:20px">8月试用申请已结束，优尼世界感谢您的参与！</p>
-    <p style="color:red"> 1）每个努力过的妈妈，都有惊喜！<a href="/weixin/inviteresult/">点击查看您获得的奖品>></a></p>
-  </div>
-</div>
+-->
 
 {% for sample in samples %}
 <div class="panel panel-default" style="margin-top:5px">
-  <div class="panel-heading" style="color:orange">免费试用：{{ sample.name }}</div>
+  <div class="panel-heading" style="color:orange">免费试用：{{ sample.name }} (得票率:52%)</div>
   <div class="panel-body">
     
     <form class="form-group" method="post" action="/weixin/sampleapply/" onsubmit="return check()">{% csrf_token %}
       <input type="hidden" value="{{ sample.pk }}" name="sample_pk"/>
       <div class="row">
 	<div class="col-xs-12">
-	  <p style="color:red">公告：最后{{ slots_left }}份中奖名单将在8月11日9：00之前一起公布（周六晚不会公布名单，大家好好休息哦）！ </p>
-	  <p>妈妈们申请踊跃，优尼世界决定<font style="color:red">增加150个名额</font>，总计1000个。快告诉朋友来申请吧！</p>
-	  {% if ended %}
-	  <p style="color:red;font-size:20px">试用申请已结束，优尼世界感谢您的参与！</p>
-	  {% else %}
-	  <p>距离试用申请结束还有 <font style="color:red;font-size:20px">{{ days_left }}天{{ hours_left }}小时</font>，还有 <font style="color:red;font-size:20px">{{ slots_left }}份</font>名额未开奖哦！</p>
-	  {% endif %}
-	  <p style="color:red"> 1）所有审核名单已经公布，请大家 <a href="/weixin/inviteresult/">到这里查看 >></a></p>
+	  <p>距离试用申请开始还有 <font style="color:red;font-size:20px">{{ days_left }}天{{ hours_left }}小时</font>，共有 <font style="color:red;font-size:20px">{{ slots_left }}份</font>名额等您来抢哦！</p>
 	</div>
       </div>
       <div class="row">
@@ -66,59 +52,66 @@
 	    <img src="{{ sample.pic_url }}" alt="...">
 	  </a>
 
+<!--
 	  {% if today_orders > 1000 %}
 	  <p>超过<font style="color:red; font-size:20px">1000</font>人已申请</p>
 	  {% else %}
 	  <p>今日<font style="color:red; font-size:20px">{{ today_orders }}</font>人已申请</p>
 	  {% endif %}
+-->
 	</div>
 
 	<div class="col-xs-6">
 	  <p>款式：
 	    <select class="form-control input-sm" name="color" id="id_color">
 	      <option value="0">选择</option>
-	      <option value="02">蓝色</option>
-	      <option value="03">粉色</option>
-	      <option value="01">黄色</option>
+	      <option value="03">彩色乐园</option>
+	      <option value="02">蓝色动物</option>
+	      <option value="01">黄色小熊</option>
 	    </select>
 	  </p>
+<!--
 	  <p>尺寸：
 	    <select class="form-control input-sm" name="size" id="id_size">
 	      <option value="0">选择</option>
 	      <option value="1">90cm</option>
 	      <option value="2">120cm</option>
-	      <!--<option value="3">140cm</option>-->
 	    </select>
 	  </p>
 	  <p>厚度：
 	    <select class="form-control input-sm" name="weight" id="id_weight">
 	      <option value="0">选择</option>
 	      <option value="1">春秋薄款</option>
-	      <!--<option value="2">春秋中厚款</option>-->
 	      <option value="3">春秋加厚款</option>
 	    </select>
 	  </p>
+-->
+          {% if vip_exists %}
+          <p style="color:red">您具有通关特权，无需邀请码!</p>
+	  <input class="form-control" type="text" placeholder="无需VIP邀请码" id="id_vipcode" disabled="disabled" name="vipcode"/>
+	  {% else %}
 	  <input class="form-control" type="text" placeholder="VIP邀请码" id="id_vipcode" name="vipcode"/>
+	  {% endif %}
 	</div>
       </div>
       
       <div class="row" style="text-align:center">
 	<p id="id_msg" style="text-align:center;color:red"></p>
-	{% if user_isvalid %}
 	{% if order_exists %}
 	<a href="/weixin/sampleads/{{ pk }}/">您的试用申请已经提交！查看 >></a>
 	{% else %}
-	{% if ended %}
-	<p style="color:red;font-size:20px">试用申请已结束，感谢您的参与！</p>
-	{% else %}
+
 	<div class="col-xs-12" style="text-align:center; margin-top:10px">
+	{% if started %}
 	  <input type="submit" class="btn btn-warning" value="提交试用申请"/>
+        {% else %} 
+	  <input type="button" class="btn btn-warning" disabled="disabled" value="申请待开放..."/>
+        {% endif %}
 	</div>
 	{% endif %}
-	{% endif %}
-	{% else %}
+<!--
 	<p style="color:red">亲，到微信菜单【我的】->【宝宝档案】完善信息，绑定手机号码，<font style="font-size:20px">申请才会开放哦！</font></p>
-	{% endif %}
+-->
       </div>
     </form>      
     
@@ -126,7 +119,7 @@
 </div>
 {% endfor %}
 
-<!--
+
 <div class="row">
   <div class="col-xs-12">
     <h5 style="color:#3071a9">申请须知</h5>
@@ -140,11 +133,12 @@
 <div class="row">
   <div class="col-xs-12">
     <h5 style="color:#3071a9">常见问题</h5>
-    <p>1) VIP邀请码在哪里? <font style="color:red">在您看到的微信帖子里面, 请阅读寻找!</font></p>
+    <p>1) VIP邀请码在哪里? <font style="color:red">在您看到的微信帖子里面, 请阅读寻找！也可向申请过的朋友索要VIP邀请码。</font></p>
     <p>2) 我收不到手机验证码? <font style="color:red">微信中输入0，根据提示操作。若一份钟没收到短信验证码，可以重复。</font></p>
+    <p>3) 什么是通关特权？<font style="color:red">在8月15日之前关注优尼世界的微信粉丝，或者曾经提交过试用申请的粉丝，都具有通关特权，无需输入VIP邀请码！</font></p>
   </div>
 </div>
--->
+
 
 <div class="footer">
   <p>© Uni Littles 2014</p>

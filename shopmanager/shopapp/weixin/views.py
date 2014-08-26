@@ -7,7 +7,19 @@ from django.conf import settings
 from django.views.decorators.csrf import csrf_exempt
 from django.views.generic import View
 from shopapp.weixin.service import *
-from models import WeiXinUser,ReferalRelationship,ReferalSummary,ReferalBonusRecord,WXOrder,Refund,FreeSample, SampleSku, SampleOrder,VipCode,Coupon,CouponClick,Survey
+from .models import (WeiXinUser,
+                     ReferalRelationship,
+                     ReferalSummary,
+                     ReferalBonusRecord,
+                     WXOrder,
+                     Refund,
+                     FreeSample, 
+                     SampleSku, 
+                     SampleOrder,
+                     VipCode,
+                     Coupon,
+                     CouponClick,
+                     Survey)
 
 from shopback.trades.models import MergeTrade
 from shopback import paramconfig as pcfg
@@ -193,14 +205,16 @@ class VerifyCodeView(View):
             response = {"code":"bad", "message":"wrong verification code"}
             return HttpResponse(json.dumps(response),mimetype='application/json')
 
-        wx_user_service = WeixinUserService(openId=openid)
-        wx_user = wx_user_service._wx_user
+        wx_user = WeixinUser.objects.get_or_create(openId=openid)
         if not wx_user.validcode or wx_user.validcode != verifycode:
             response = {"code":"bad", "message":"invalid code"}
         else:    
             wx_user.mobile = wx_user.vmobile
             wx_user.isvalid = True
             wx_user.save()
+            
+            VipCode.objects.genVipCodeByWXUser(wx_user)
+            
             response = {"code":"good", "message":"code has been verified"}
             
         return HttpResponse(json.dumps(response),mimetype='application/json')
@@ -435,12 +449,10 @@ class ReferalView(View):
                                                       bonus_value = int(trade.payment * 5),
                                                       confirmed_status=1)
                     
-
         rs = ReferalBonusRecord.objects.filter(user_openid=user_openid)
         for r in rs:
             referal_bonus += r.bonus_value * 0.01
-                    
-
+        
         response = render_to_response('weixin/ambass.html', 
                                   {'openid':user_openid, 
                                    'referal_count':referal_count, 
@@ -595,26 +607,28 @@ class FreeSampleView(View):
             
         user_isvalid = wx_user.isValid()
 
-        end = datetime.datetime(2014,8,11)
+        start = datetime.datetime(2014,8,30)
         now = datetime.datetime.now()
-        diff = end - now
+        diff = start - now
         days_left = diff.days
         hours_left = diff.seconds / 3600
 
-        ended = False
-        if now > end:
-            ended = True
-
-        consumed = SampleOrder.objects.filter(status__gt=0).filter(status__lt=6).count()
-        slots_left = 1000 - consumed
+        slots_left = 800
+        started = False
+        if now > start:
+            started = True
         
         samples = FreeSample.objects.filter(expiry__gt=datetime.datetime.now())
 
         order_exists = False
-        orders = SampleOrder.objects.filter(user_openid=user_openid)
+        orders = SampleOrder.objects.filter(user_openid=user_openid).filter(created__gt=start)
         if orders.count() > 0 and not wx_user.isNone():
             order_exists = True
 
+        vip_exists = False
+        if wx_user.vipcodes.count() > 0:
+            vip_exists = True
+        
         today = datetime.date.today()
         start_time = datetime.datetime(today.year, today.month, today.day)
         today_orders = SampleOrder.objects.filter(created__gt=start_time).count()
@@ -627,7 +641,8 @@ class FreeSampleView(View):
                                        "days_left":days_left,
                                        "hours_left":hours_left,
                                        "slots_left":slots_left,
-                                       "ended":ended,
+                                       "started":started,"openid":user_openid,
+                                       "vip_exists":vip_exists,
                                        "pk":wx_user.isNone() or wx_user.pk},
                                       context_instance=RequestContext(request))
         response.set_cookie("openid",user_openid)
@@ -691,29 +706,6 @@ class SampleApplyView(View):
         response.set_cookie("openid",user_openid)
         return response
     
-def genVIPCODE(wx_user):
-    expiry = datetime.datetime(2014,8,11,0,0,0)
-    code_type = 0
-    code_rule = u'免费试用'
-    max_usage = 10000
-
-    new_code = str(random.randint(1000000,9999999))
-    cnt = 0
-    while True:
-        cnt += 1
-        objs = VipCode.objects.filter(code=new_code)
-        if objs.count() < 0 or cnt > 20:
-            break
-        new_code = str(random.randint(1000000,9999999))
-        
-    wx_user.vipcodes.create(code=new_code, 
-                             expiry=expiry,
-                             code_type=code_type,
-                             code_rule=code_rule,
-                             max_usage=max_usage)
-
-    return new_code
-
 class SampleConfirmView(View):
     def post(self, request):
         content = request.REQUEST
@@ -738,7 +730,7 @@ class SampleConfirmView(View):
         
         VipCode.objects.filter(code=vipcode).update(usage_count=F('usage_count')+1)
 
-        genVIPCODE(user[0])
+        #VipCode.objects.genVipCodeByWXUser(user)
         
         return redirect(redirect_url)
 
@@ -755,7 +747,7 @@ class SampleAdsView(View):
             if users[0].vipcodes.count() > 0:
                 vipcode = users[0].vipcodes.all()[0].code
             else:
-                vipcode = genVIPCODE(user[0])
+                vipcode = VipCode.objects.genVipCodeByWXUser(user[0])
 
             if users[0].openid == openid:
                 identical = True
@@ -826,9 +818,7 @@ class FinalListView(View):
         batch = int(kwargs.get('batch',1))
         order_list = None
         if batch == 1:
-            order_list = SampleOrder.objects.filter(status__gt=0).filter(status__lt=6)
-        if batch == 6:
-            order_list = SampleOrder.objects.filter(status=batch)
+            order_list = SampleOrder.objects.filter(status__gt=0).filter(status__lt=7)
         num_per_page = 20 # Show 20 contacts per page
         paginator = Paginator(order_list, num_per_page) 
 
@@ -966,7 +956,13 @@ class SurveyView(View):
                 exist = True
             
         total = Survey.objects.all().count()
-        response = render_to_response('weixin/survey.html', {"exist":exist, "total":total},
+        choice1 = Survey.objects.filter(selection=1).count()
+        ratio1 = choice1 * 100.0/ total
+        ratio2 = 100 - ratio1
+        ratio1 = "%.2f" % ratio1
+        ratio2 = "%.2f" % ratio2
+        response = render_to_response('weixin/survey.html', 
+                                      {"exist":exist, "total":total, "ratio1":ratio1, "ratio2":ratio2},
                                       context_instance=RequestContext(request))
         response.set_cookie("openid",user_openid)
         return response
