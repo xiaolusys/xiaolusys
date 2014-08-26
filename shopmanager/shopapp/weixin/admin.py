@@ -233,7 +233,7 @@ admin.site.register(SampleOrder, SampleOrderAdmin)
 class VipCodeAdmin(admin.ModelAdmin):
 
     list_display = ('owner_openid','code','expiry','code_type',
-                    'code_rule', 'max_usage', 'usage_count')
+                    'code_rule', 'max_usage', 'usage_count','created')
 
     search_fields = ['owner_openid__openid','code']
 
