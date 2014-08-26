@@ -609,9 +609,9 @@ class FreeSampleView(View):
         samples = FreeSample.objects.filter(expiry__gt=datetime.datetime.now())
 
         order_exists = False
-        #orders = SampleOrder.objects.filter(user_openid=user_openid)
-        #if orders.count() > 0 and not wx_user.isNone():
-        #    order_exists = True
+        orders = SampleOrder.objects.filter(user_openid=user_openid).filter(created__gt=start)
+        if orders.count() > 0 and not wx_user.isNone():
+            order_exists = True
 
         today = datetime.date.today()
         start_time = datetime.datetime(today.year, today.month, today.day)
