@@ -164,11 +164,11 @@ class PurchaseOrder(models.Model):
     distributor_username    = models.CharField(max_length=32,blank=True)
     distributor_payment     = models.FloatField(default=0.0)
 
-    logistics_id       = models.CharField(db_index=True,max_length=64,blank=True)
+    logistics_id       = models.CharField(max_length=64,blank=True)
     logistics_company_name  = models.CharField(max_length=64,blank=True)
-    consign_time       = models.DateTimeField(db_index=True,null=True,blank=True)
+    consign_time       = models.DateTimeField(null=True,blank=True)
 
-    pay_time   = models.DateTimeField(db_index=True,null=True,blank=True)
+    pay_time   = models.DateTimeField(null=True,blank=True)
     pay_type   = models.CharField(max_length=32,choices=PAY_TYPE_CHOICES,blank=True)
 
     post_fee   = models.FloatField(default=0.0)

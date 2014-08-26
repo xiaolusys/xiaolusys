@@ -7,7 +7,19 @@ from django.conf import settings
 from django.views.decorators.csrf import csrf_exempt
 from django.views.generic import View
 from shopapp.weixin.service import *
-from models import WeiXinUser,ReferalRelationship,ReferalSummary,ReferalBonusRecord,WXOrder,Refund,FreeSample, SampleSku, SampleOrder,VipCode,Coupon,CouponClick,Survey
+from .models import (WeiXinUser,
+                     ReferalRelationship,
+                     ReferalSummary,
+                     ReferalBonusRecord,
+                     WXOrder,
+                     Refund,
+                     FreeSample, 
+                     SampleSku, 
+                     SampleOrder,
+                     VipCode,
+                     Coupon,
+                     CouponClick,
+                     Survey)
 
 from shopback.trades.models import MergeTrade
 from shopback import paramconfig as pcfg
@@ -193,14 +205,16 @@ class VerifyCodeView(View):
             response = {"code":"bad", "message":"wrong verification code"}
             return HttpResponse(json.dumps(response),mimetype='application/json')
 
-        wx_user_service = WeixinUserService(openId=openid)
-        wx_user = wx_user_service._wx_user
+        wx_user = WeixinUser.objects.get_or_create(openId=openid)
         if not wx_user.validcode or wx_user.validcode != verifycode:
             response = {"code":"bad", "message":"invalid code"}
         else:    
             wx_user.mobile = wx_user.vmobile
             wx_user.isvalid = True
             wx_user.save()
+            
+            VipCode.objects.genVipCodeByWXUser(wx_user)
+            
             response = {"code":"good", "message":"code has been verified"}
             
         return HttpResponse(json.dumps(response),mimetype='application/json')
@@ -435,12 +449,10 @@ class ReferalView(View):
                                                       bonus_value = int(trade.payment * 5),
                                                       confirmed_status=1)
                     
-
         rs = ReferalBonusRecord.objects.filter(user_openid=user_openid)
         for r in rs:
             referal_bonus += r.bonus_value * 0.01
-                    
-
+        
         response = render_to_response('weixin/ambass.html', 
                                   {'openid':user_openid, 
                                    'referal_count':referal_count, 
@@ -694,29 +706,6 @@ class SampleApplyView(View):
         response.set_cookie("openid",user_openid)
         return response
     
-def genVIPCODE(wx_user):
-    expiry = datetime.datetime(2014,8,11,0,0,0)
-    code_type = 0
-    code_rule = u'免费试用'
-    max_usage = 10000
-
-    new_code = str(random.randint(1000000,9999999))
-    cnt = 0
-    while True:
-        cnt += 1
-        objs = VipCode.objects.filter(code=new_code)
-        if objs.count() < 0 or cnt > 20:
-            break
-        new_code = str(random.randint(1000000,9999999))
-        
-    wx_user.vipcodes.create(code=new_code, 
-                             expiry=expiry,
-                             code_type=code_type,
-                             code_rule=code_rule,
-                             max_usage=max_usage)
-
-    return new_code
-
 class SampleConfirmView(View):
     def post(self, request):
         content = request.REQUEST
@@ -741,7 +730,7 @@ class SampleConfirmView(View):
         
         VipCode.objects.filter(code=vipcode).update(usage_count=F('usage_count')+1)
 
-        genVIPCODE(user[0])
+        #VipCode.objects.genVipCodeByWXUser(user)
         
         return redirect(redirect_url)
 
@@ -758,7 +747,7 @@ class SampleAdsView(View):
             if users[0].vipcodes.count() > 0:
                 vipcode = users[0].vipcodes.all()[0].code
             else:
-                vipcode = genVIPCODE(user[0])
+                vipcode = VipCode.objects.genVipCodeByWXUser(user[0])
 
             if users[0].openid == openid:
                 identical = True

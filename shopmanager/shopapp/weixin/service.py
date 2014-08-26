@@ -12,7 +12,8 @@ from shopapp.weixin.models import (WeiXinAccount,
                                    WeiXinUser,
                                    WXProduct,
                                    WXOrder,
-                                   WXLogistic)
+                                   WXLogistic,
+                                   VipCode)
 from .weixin_apis import WeiXinAPI
 from shopback.base.service import LocalService
 from shopback.logistics import getLogisticTrace
@@ -216,6 +217,9 @@ class WeixinUserService():
          wx_user.mobile  = wx_user.vmobile
          wx_user.isvalid = True
          wx_user.save()
+         
+         VipCode.objects.genVipCodeByWXUser(wx_user)
+         
          return True
     
     def getResponseByBestMatch(self,message,openId,*args,**kwargs):
