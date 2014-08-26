@@ -205,7 +205,7 @@ class VerifyCodeView(View):
             response = {"code":"bad", "message":"wrong verification code"}
             return HttpResponse(json.dumps(response),mimetype='application/json')
 
-        wx_user = WeiXinUser.objects.get_or_create(openId=openid)
+        wx_user = WeiXinUser.objects.get_or_create(openid=openid)
         if not wx_user.validcode or wx_user.validcode != verifycode:
             response = {"code":"bad", "message":"invalid code"}
         else:    
