@@ -37,10 +37,13 @@
 	    <div>
 	      <p style="color:#3071a9">1. 若您的申请通过了，我们需要你到天猫旗舰店付款购买，确认收到货满意之后，再全额退款给您，你会:</p>
 	      <p id="id_p11"><input type="radio" name="p1" value="0" id="id_input11"> 不愿意。</p>
-	      <p id="id_p12"><input type="radio" name="p1" value="1" id="id_input12"> 愿意。</p>
+	      <p id="id_p12"><input type="radio" name="p1" value="1" id="id_input12"> 愿意。官方平台的物流记录，可作为活动真实性的依据。</p>
 	      <p style="color:#3071a9">2. 若您的申请没有通过，我们给您派发20元无条件优惠券，您会: </p>
 	      <p id="id_p21"><input type="radio" name="p2" value="0" id="id_input21"> 觉得没意思，优惠金额太少。</p>
 	      <p id="id_p22"><input type="radio" name="p2" value="1" id="id_input22"> 正好宝宝需要，用优惠券购买也算赚到。</p>
+	      <p style="color:#3071a9">3.（科普问题）彩棉，在中国种植的一种转基因棉（欧盟禁止种植），被无良商家打着“organic cotton(有机棉)”标签出售。您的态度是: </p>
+	      <p id="id_p31"><input type="radio" name="p3" value="0" id="id_input31"> 无所谓。</p>
+	      <p id="id_p32"><input type="radio" name="p3" value="1" id="id_input32"> 彩棉婴幼儿产品，出售时应具体标明转基因成份。</p>
 	    </div>
 	  </div>
 	</div>
@@ -100,12 +103,31 @@
   $("#id_p21").css("color","");  
   });
 
+  $("#id_p31").on("click", function () {
+  $("#id_input31").attr("checked",true);
+  $("#id_input32").attr("checked",false);
+  $("#id_p31").css("color","red");
+  $("#id_p32").css("color","");  
+  });
+
+  $("#id_p32").on("click", function () {
+  $("#id_input32").attr("checked",true);
+  $("#id_input31").attr("checked",false);
+  $("#id_p32").css("color","red");
+  $("#id_p31").css("color","");  
+  });
+
   function check() {
   if ((!$("#id_input11").is(':checked')) && (!$("#id_input12").is(':checked'))) {
     $("#id_msg")[0].innerHTML = "亲，麻烦选择下答案再提交哦。";
     return false;
   }
   if ((!$("#id_input21").is(':checked')) && (!$("#id_input22").is(':checked'))) {
+    $("#id_msg")[0].innerHTML = "亲，麻烦选择下答案再提交哦。";
+    return false;
+  }
+
+  if ((!$("#id_input31").is(':checked')) && (!$("#id_input32").is(':checked'))) {
     $("#id_msg")[0].innerHTML = "亲，麻烦选择下答案再提交哦。";
     return false;
   }
