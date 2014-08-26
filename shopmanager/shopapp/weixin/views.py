@@ -614,8 +614,7 @@ class FreeSampleView(View):
             order_exists = True
 
         vip_exists = False
-        vipcodes = VipCode.objects.filter(owner_openid=user_openid)
-        if vipcodes.count() > 0:
+        if wx_user.vipcodes.count() > 0:
             vip_exists = True
         
         today = datetime.date.today()
