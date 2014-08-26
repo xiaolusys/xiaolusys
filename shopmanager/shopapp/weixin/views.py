@@ -827,9 +827,18 @@ class FinalListView(View):
 
         page = int(kwargs.get('page',1))
         batch = int(kwargs.get('batch',1))
+        month = int(kwargs.get('month',8))
+        
+        start_time = datetime.datetime(2014,8,30)
+        end_time = datetime.datetime(2014,9,7)
         order_list = None
-        if batch == 1:
-            order_list = SampleOrder.objects.filter(status__gt=0).filter(status__lt=7)
+        
+        if month == 8:
+            start_time = datetime.datetime(2014,8,1)
+            end_time = datetime.datetime(2014,8,12)
+
+        order_list = SampleOrder.objects.filter(status__gt=0).filter(status__lt=7).filter(created__lt=end_time).filter(created__gt=start_time)
+        
         num_per_page = 20 # Show 20 contacts per page
         paginator = Paginator(order_list, num_per_page) 
 
@@ -858,7 +867,7 @@ class FinalListView(View):
                                       {"items":items, 'num_pages':num_pages, 
                                        'total':total, 'num_per_page':num_per_page,
                                        'prev_page':prev_page, 'next_page':next_page,
-                                       'page':page, 'batch':batch},
+                                       'page':page, 'batch':batch, 'month':month},
                                       context_instance=RequestContext(request))
         return response
 
