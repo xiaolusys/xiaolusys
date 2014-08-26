@@ -43,7 +43,7 @@ RAVEN_CONFIG = {
 }
 
 
-SITE_URL = 'http://qiyue.f3322.org/' 
+SITE_URL = 'http://youni.huyi.so/' 
 
 ####################### TRADE HANDLERS CONFIG ########################
 TRADE_HANDLERS_PATH = (

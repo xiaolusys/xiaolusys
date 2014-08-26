@@ -52,12 +52,6 @@ class Trade(models.Model):
     buyer_nick   =  models.CharField(max_length=64,blank=True)
     type         =  models.CharField(max_length=32,blank=True)
 
-    year  = models.IntegerField(null=True)
-    month = models.IntegerField(null=True)
-    week  = models.IntegerField(null=True)
-    day   = models.IntegerField(null=True)
-    hour  = models.CharField(max_length=5,blank=True)
-
     payment      =  models.FloatField(default=0.0)
     discount_fee =  models.FloatField(default=0.0)
     adjust_fee   =  models.FloatField(default=0.0)
