@@ -1,4 +1,4 @@
-#-*- coding:utf8 -*-
+#-*- coding:utf-8 -*-
 import random
 import datetime
 from django.db import models
@@ -68,12 +68,11 @@ class VipCodeManager(models.Manager):
     
     
     def genVipCodeByWXUser(self,wx_user):
-        
-        vip_code,state = self.get_or_create(owner_openid=wx_user)
-        if vip_code.code :
-            return vip_code.code
-        
-        expiry = datetime.datetime(2014,8,11,0,0,0)
+        vipcodes = self.filter(owner_openid=wx_user)
+        if vipcodes.count() > 0:
+            return vipcodes[0].code
+
+        expiry = datetime.datetime(2014,9,7,0,0,0)
         code_type = 0
         code_rule = u'免费试用'
         max_usage = 10000
@@ -86,13 +85,7 @@ class VipCodeManager(models.Manager):
             if objs.count() < 0 or cnt > 20:
                 break
             new_code = str(random.randint(1000000,9999999))
-            
-        vip_code.code=new_code 
-        vip_code.expiry=expiry
-        vip_code.code_type=code_type
-        vip_code.code_rule=code_rule
-        vip_code.max_usage=max_usage
-        vip_code.save()
+        self.create(owner_openid=wx_user,code=new_code,expiry=expiry,code_type=code_type,code_rule=code_rule,max_usage=max_usage)
         
         return new_code
     

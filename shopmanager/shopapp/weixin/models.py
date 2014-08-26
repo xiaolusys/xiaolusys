@@ -658,6 +658,8 @@ class VipCode(models.Model):
 
     ### total number of usage
     usage_count = models.IntegerField(default=0,verbose_name=u'已使用')
+
+    created = models.DateTimeField(auto_now_add=True,null=True,verbose_name=u'创建时间')
     
     objects = VipCodeManager()
     
