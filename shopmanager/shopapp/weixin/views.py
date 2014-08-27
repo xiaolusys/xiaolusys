@@ -231,7 +231,9 @@ class OrderInfoView(View):
         
         title = u'订单查询'
         if wx_user.isValid() == False:
-            response = render_to_response('weixin/remind.html', {"title":title}, context_instance=RequestContext(request))
+            response = render_to_response('weixin/remind.html', 
+                                          {"title":title, "openid":user_openid}, 
+                                          context_instance=RequestContext(request))
             response.set_cookie("openid",user_openid)
             return response
             
