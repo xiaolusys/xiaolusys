@@ -680,10 +680,12 @@ class SampleApplyView(View):
         size = content.get("size")
         weight = content.get("weight")
         vipcode = content.get("vipcode")
+        vip_exists = content.get("vip_exists")
         
-        vipcodes = VipCode.objects.filter(code=vipcode)
-        if vipcodes.count() <= 0:
-            return redirect("/weixin/sampleads/0/")
+        if vip_exists != "1":
+            vipcodes = VipCode.objects.filter(code=vipcode)
+            if vipcodes.count() <= 0:
+                return redirect("/weixin/sampleads/0/")
             
         sku_code = ''.join([color, size, weight])
         
@@ -692,19 +694,16 @@ class SampleApplyView(View):
         skus = SampleSku.objects.filter(sku_code=sku_code)
         sku = skus[0]
 
-        content = request.REQUEST
-
         code = content.get('code')
-        ## if user refresh page, we can get user_openid from cookie
-        user_openid = request.COOKIES.get('openid')
-        if user_openid == 'None' or user_openid == None:
-            user_openid = get_user_openid(request, code)
-
-        wx_user_service = WeixinUserService(openId=user_openid)
-        wx_user = wx_user_service._wx_user
+        user_openid = get_user_openid(request, code)
+        wx_user = None
+        users = WeiXinUser.objects.filter(openid=user_openid)
+        if users.count() > 0:
+            wx_user = users[0]
 
         response = render_to_response('weixin/sampleapply.html',
-                                      {"sample":sample, "sku":sku, "wx_user": wx_user, "vipcode":vipcode},
+                                      {"sample":sample, "sku":sku, "wx_user": wx_user, 
+                                       "vipcode":vipcode, "vip_exists":vip_exists},
                                       context_instance=RequestContext(request))
         response.set_cookie("openid",user_openid)
         return response
