@@ -942,8 +942,6 @@ class RequestCouponView(View):
         openid = content.get("openid")
         coupon_pk = int(content.get("coupon_pk","0"))
         
-        logger.error('|'.join([vipcode, openid]))
-        
         coupon = Coupon.objects.get(pk=coupon_pk)
         
         users = WeiXinUser.objects.filter(openid=openid)
@@ -952,12 +950,11 @@ class RequestCouponView(View):
         vipcodes = VipCode.objects.filter(code=vipcode)
         if vipcodes.count() > 0:
             vipcode_obj = vipcodes[0]
-            if vipcode_obj.usage_count > 9:
-                cc = CouponClick.objects.filter(coupon=coupon).filter(wx_user=wx_user).filter(vipcode=vipcode_obj.code)
-                if cc.count() < 1:
-                    CouponClick.objects.create(coupon=coupon,wx_user=wx_user,vipcode=vipcode_obj.code)
-                response = {"code":"ok"}
-                return HttpResponse(json.dumps(response),mimetype='application/json')
+            cc = CouponClick.objects.filter(coupon=coupon).filter(wx_user=wx_user).filter(vipcode=vipcode_obj.code)
+            if cc.count() < 1:
+                CouponClick.objects.create(coupon=coupon,wx_user=wx_user,vipcode=vipcode_obj.code)
+            response = {"code":"ok"}
+            return HttpResponse(json.dumps(response),mimetype='application/json')
 
         response = {"code":"bad"}
         return HttpResponse(json.dumps(response),mimetype='application/json')
