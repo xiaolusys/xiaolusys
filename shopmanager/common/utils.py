@@ -10,9 +10,7 @@ import urllib2
 import decimal
 import random
 import cStringIO
-import Image
-import ImageDraw
-import ImageFont
+
 
 from taskutils  import single_instance_task
 from modelutils import update_model_fields
