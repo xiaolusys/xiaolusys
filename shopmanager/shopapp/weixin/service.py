@@ -231,7 +231,7 @@ class WeixinUserService():
             return WeiXinAutoResponse.objects.get_or_create(message=u'校验成功提示')[0].autoParams()            
         
         if message == '0' and self._wx_user.isValid():
-            return self.genTextRespJson(u'您已成功绑定手机：\n[q] 取消绑定 \n*取消绑定后部分功能失效\n*取消绑定后可重新绑定')
+            return self.genTextRespJson(u'您已成功绑定手机：\n[q] 取消绑定 \n*取消绑定后部分功能失效')
         
         for resp in WeiXinAutoResponse.objects.FullMatch:
             if message == resp.message.strip():
