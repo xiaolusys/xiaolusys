@@ -69,6 +69,8 @@
 	      <option value="02">蓝色动物</option>
 	      <option value="01">黄色小熊</option>
 	    </select>
+	    <input type="hidden" name="size" value="1">
+	    <input type="hidden" name="weight" value="0">
 	  </p>
 	  {% if False %}
 	  <p>尺寸：
@@ -170,7 +172,7 @@
 
     var msg = $("#id_msg");
     if (color == "0" || size == "0" || weight == "0") {
-      msg[0].innerHTML = "请选择颜色、尺码、及厚度！";
+      msg[0].innerHTML = "亲，请选择您喜欢的款式！";
       return false;
     }
 
