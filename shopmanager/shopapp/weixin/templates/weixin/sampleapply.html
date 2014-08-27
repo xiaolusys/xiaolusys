@@ -14,6 +14,7 @@
 	<input type="hidden" name="sample_pk" value="{{ sample.pk }}"/>
 	<input type="hidden" name="sku_code" value="{{ sku.sku_code }}"/>
 	<input type="hidden" name="vipcode" value="{{ vipcode }}"/>
+	<input type="hidden" name="vip_exists" value="{{ vip_exists }}"/>
 	<div class="row">
 	  <div class="col-xs-4" style="text-align:center">
 	    <div class="thumbnail">
@@ -21,8 +22,8 @@
 	    </div>
 	  </div>
 	  <div class="col-xs-8">
-	    <p>{{ sample.name }}</p>
-	    <p>{{ sku.sku_name }}</p>
+	    <p style="color:#e8792a">{{ sample.name }}</p>
+	    <p style="color:#e8792a">{{ sku.sku_name }}</p>
 	  </div>
 	</div>
 
@@ -33,15 +34,15 @@
 	</div>
 	<div class="row">
 	  <div class="col-xs-12">
-	    <h5 style="color:#3071a9">试用问答</h5>
+	    <h5 style="color:#029fd6">试用问答</h5>
 	    <div>
-	      <p style="color:#3071a9">1. 若您的申请通过了，我们需要你到天猫旗舰店付款购买，确认收到货满意之后，再全额退款给您，你会:</p>
+	      <p style="color:#029fd6">1. 若您的申请通过了，我们需要你到官方旗舰店付款购买，确认收到货满意之后，再全额退款给您，你会:</p>
 	      <p id="id_p11"><input type="radio" name="p1" value="0" id="id_input11"> 不愿意。</p>
-	      <p id="id_p12"><input type="radio" name="p1" value="1" id="id_input12"> 愿意。官方平台的物流记录，可作为活动真实性的依据。</p>
-	      <p style="color:#3071a9">2. 若您的申请没有通过，我们给您派发20元无条件优惠券，您会: </p>
+	      <p id="id_p12"><input type="radio" name="p1" value="1" id="id_input12"> 我愿意。官方平台的物流记录，可作为活动真实性的依据。</p>
+	      <p style="color:#029fd6">2. 若您的申请没有通过，我们给您派发20元无条件优惠券，您会: </p>
 	      <p id="id_p21"><input type="radio" name="p2" value="0" id="id_input21"> 觉得没意思，优惠金额太少。</p>
-	      <p id="id_p22"><input type="radio" name="p2" value="1" id="id_input22"> 正好宝宝需要，用优惠券购买也算赚到。</p>
-	      <p style="color:#3071a9">3.（科普问题）彩棉，在中国种植的一种转基因棉（欧盟禁止种植），被无良商家打着“organic cotton(有机棉)”标签出售。您的态度是: </p>
+	      <p id="id_p22"><input type="radio" name="p2" value="1" id="id_input22"> 宝宝需要，用优惠券购买也算赚到。</p>
+	      <p style="color:#029fd6">3.（科普问答）彩棉，在中国种植的一种转基因棉（欧盟禁止种植），被部分商家打着“organic cotton(有机棉)”标签欺骗出售。您的态度是: </p>
 	      <p id="id_p31"><input type="radio" name="p3" value="0" id="id_input31"> 无所谓。</p>
 	      <p id="id_p32"><input type="radio" name="p3" value="1" id="id_input32"> 彩棉婴幼儿产品，出售时应具体标明转基因成份。</p>
 	    </div>

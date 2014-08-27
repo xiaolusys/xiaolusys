@@ -231,7 +231,9 @@ class OrderInfoView(View):
         
         title = u'订单查询'
         if wx_user.isValid() == False:
-            response = render_to_response('weixin/remind.html', {"title":title}, context_instance=RequestContext(request))
+            response = render_to_response('weixin/remind.html', 
+                                          {"title":title, "openid":user_openid}, 
+                                          context_instance=RequestContext(request))
             response.set_cookie("openid",user_openid)
             return response
             
@@ -288,7 +290,8 @@ class OrderInfoView(View):
             passed = True
         
         response = render_to_response('weixin/orderinfo.html', 
-                                      {'tradedata':data, "traces":shipping_traces, "refund": refund, "passed":passed},
+                                      {'tradedata':data, "traces":shipping_traces, 
+                                       "refund": refund, "passed":passed, "openid":user_openid },
                                       context_instance=RequestContext(request))
         response.set_cookie("openid",user_openid)
         return response
@@ -621,7 +624,8 @@ class FreeSampleView(View):
         samples = FreeSample.objects.filter(expiry__gt=datetime.datetime.now())
 
         order_exists = False
-        orders = SampleOrder.objects.filter(user_openid=user_openid).filter(created__gt=start)
+        tmp_time = datetime.datetime(2014,8,27)
+        orders = SampleOrder.objects.filter(user_openid=user_openid).filter(created__gt=tmp_time)
         if orders.count() > 0 and not wx_user.isNone():
             order_exists = True
 
@@ -677,10 +681,12 @@ class SampleApplyView(View):
         size = content.get("size")
         weight = content.get("weight")
         vipcode = content.get("vipcode")
+        vip_exists = content.get("vip_exists")
         
-        vipcodes = VipCode.objects.filter(code=vipcode)
-        if vipcodes.count() <= 0:
-            return redirect("/weixin/sampleads/0/")
+        if vip_exists != "1":
+            vipcodes = VipCode.objects.filter(code=vipcode)
+            if vipcodes.count() <= 0:
+                return redirect("/weixin/sampleads/0/")
             
         sku_code = ''.join([color, size, weight])
         
@@ -689,19 +695,16 @@ class SampleApplyView(View):
         skus = SampleSku.objects.filter(sku_code=sku_code)
         sku = skus[0]
 
-        content = request.REQUEST
-
         code = content.get('code')
-        ## if user refresh page, we can get user_openid from cookie
-        user_openid = request.COOKIES.get('openid')
-        if user_openid == 'None' or user_openid == None:
-            user_openid = get_user_openid(request, code)
-
-        wx_user_service = WeixinUserService(openId=user_openid)
-        wx_user = wx_user_service._wx_user
+        user_openid = get_user_openid(request, code)
+        wx_user = None
+        users = WeiXinUser.objects.filter(openid=user_openid)
+        if users.count() > 0:
+            wx_user = users[0]
 
         response = render_to_response('weixin/sampleapply.html',
-                                      {"sample":sample, "sku":sku, "wx_user": wx_user, "vipcode":vipcode},
+                                      {"sample":sample, "sku":sku, "wx_user": wx_user, 
+                                       "vipcode":vipcode, "vip_exists":vip_exists},
                                       context_instance=RequestContext(request))
         response.set_cookie("openid",user_openid)
         return response
@@ -713,22 +716,26 @@ class SampleConfirmView(View):
         sku_code = content.get("sku_code","0")
         p1 = content.get("p1","0")
         p2 = content.get("p2","0")
+        p3 = content.get("p3","0")
         vipcode = content.get("vipcode","0")
-        score = int(p1) + int(p2)
+        vip_exists = content.get("vip_exists", "0")
+        score = int(p1) + int(p2) + int(p3)
         
         user_openid = request.COOKIES.get('openid')
 
         user = WeiXinUser.objects.filter(openid=user_openid)        
         redirect_url = '/weixin/sampleads/%d/' % user[0].pk
 
-        order = SampleOrder.objects.filter(user_openid=user_openid)
+        start_time = datetime.datetime(2014,8,12)
+        order = SampleOrder.objects.filter(user_openid=user_openid).filter(created__gt=start_time)
         if order.count() > 0:
             return redirect(redirect_url)
 
         sample = FreeSample.objects.get(pk=sample_pk)
         sample.sample_orders.create(sku_code=sku_code,user_openid=user_openid,vipcode=vipcode,problem_score=score)
         
-        VipCode.objects.filter(code=vipcode).update(usage_count=F('usage_count')+1)
+        if vip_exists == "0":
+            VipCode.objects.filter(code=vipcode).update(usage_count=F('usage_count')+1)
 
         #VipCode.objects.genVipCodeByWXUser(user)
         
