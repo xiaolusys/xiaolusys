@@ -402,15 +402,14 @@ class ReferalView(View):
         user_openid = get_user_openid(request, code)
             
         referal_bonus = 0.00
-        referal_count = 0
         vipcode = ""
         users = WeiXinUser.objects.filter(openid=user_openid)
         if users.count() > 0:
             vipcodes = users[0].vipcodes.all()
             if vipcodes.count() > 0:
-                referal_count = vipcodes[0].usage_count
                 vipcode = vipcodes[0].code
         
+        referal_count = SampleOrder.objects.filter(vipcode=vipcode).count()
         
         coupon = Coupon.objects.get(pk=1)
         
@@ -429,7 +428,6 @@ class ReferalView(View):
             referal_mobiles.add(coupon_click.wx_user.mobile)
             mobile2openid[str(coupon_click.wx_user.mobile)]=coupon_click.wx_user.openid
 
-        
         payment = 0
         
         effect_mobiles = set()
