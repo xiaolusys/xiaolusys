@@ -918,7 +918,7 @@ class VipCouponView(View):
         
         title = u'VIP优惠券'
         if wx_user.isValid() == False:
-            response = render_to_response('weixin/remind.html', {"title":title},context_instance=RequestContext(request))
+            response = render_to_response('weixin/remind.html', {"title":title, "openid":user_openid},context_instance=RequestContext(request))
             response.set_cookie("openid",user_openid)
             return response
         
@@ -950,12 +950,11 @@ class RequestCouponView(View):
         vipcodes = VipCode.objects.filter(code=vipcode)
         if vipcodes.count() > 0:
             vipcode_obj = vipcodes[0]
-            if vipcode_obj.usage_count > 9:
-                cc = CouponClick.objects.filter(coupon=coupon).filter(wx_user=wx_user).filter(vipcode=vipcode_obj.code)
-                if cc.count() < 1:
-                    CouponClick.objects.create(coupon=coupon,wx_user=wx_user,vipcode=vipcode_obj.code)
-                response = {"code":"ok"}
-                return HttpResponse(json.dumps(response),mimetype='application/json')
+            cc = CouponClick.objects.filter(coupon=coupon).filter(wx_user=wx_user).filter(vipcode=vipcode_obj.code)
+            if cc.count() < 1:
+                CouponClick.objects.create(coupon=coupon,wx_user=wx_user,vipcode=vipcode_obj.code)
+            response = {"code":"ok"}
+            return HttpResponse(json.dumps(response),mimetype='application/json')
 
         response = {"code":"bad"}
         return HttpResponse(json.dumps(response),mimetype='application/json')
