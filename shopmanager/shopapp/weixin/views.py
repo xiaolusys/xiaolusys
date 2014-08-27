@@ -920,7 +920,7 @@ class VipCouponView(View):
         
         title = u'VIP优惠券'
         if wx_user.isValid() == False:
-            response = render_to_response('weixin/remind.html', {"title":title},context_instance=RequestContext(request))
+            response = render_to_response('weixin/remind.html', {"title":title, "openid":user_openid},context_instance=RequestContext(request))
             response.set_cookie("openid",user_openid)
             return response
         
@@ -943,6 +943,8 @@ class RequestCouponView(View):
         vipcode = content.get("vipcode")
         openid = content.get("openid")
         coupon_pk = int(content.get("coupon_pk","0"))
+        
+        logger.error('|'.join([vipcode, openid]))
         
         coupon = Coupon.objects.get(pk=coupon_pk)
         
