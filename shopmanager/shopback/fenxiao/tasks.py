@@ -31,6 +31,7 @@ def saveUserFenxiaoProductTask(seller_id):
     if not seller.has_fenxiao:
         return 
     
+    fenxiao_product_ids = []
     try:
         has_next    = True
         cur_page    = 1
@@ -46,6 +47,8 @@ def saveUserFenxiaoProductTask(seller_id):
                 for fenxiao_product in fenxiao_product_list:
                     FenxiaoProduct.save_fenxiao_product_dict(seller_id,fenxiao_product)
                     
+                    fenxiao_product_ids.append(fenxiao_product['pid'])
+                    
             total_nums = products['total_results']
             cur_nums = cur_page*settings.TAOBAO_PAGE_SIZE
             has_next = cur_nums<total_nums
@@ -56,7 +59,9 @@ def saveUserFenxiaoProductTask(seller_id):
         
     except TaobaoRequestException,exc:
         logger.error(u'分销商品更新异常：%s'%exc.message,exc_info=True)
-
+    
+    else:
+        FenxiaoProduct.objects.exclude(pid__in=fenxiao_product_ids).update(status=pcfg.DOWN_STATUS)
  
 @task(max_retries=3)
 def saveUserPurchaseOrderTask(seller_id,update_from=None,update_to=None,status=None):
