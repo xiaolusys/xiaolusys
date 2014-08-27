@@ -624,7 +624,8 @@ class FreeSampleView(View):
         samples = FreeSample.objects.filter(expiry__gt=datetime.datetime.now())
 
         order_exists = False
-        orders = SampleOrder.objects.filter(user_openid=user_openid).filter(created__gt=start)
+        tmp_time = datetime.datetime(2014,8,27)
+        orders = SampleOrder.objects.filter(user_openid=user_openid).filter(created__gt=tmp_time)
         if orders.count() > 0 and not wx_user.isNone():
             order_exists = True
 
