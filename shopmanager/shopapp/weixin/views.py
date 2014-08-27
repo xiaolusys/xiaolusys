@@ -291,7 +291,7 @@ class OrderInfoView(View):
         
         response = render_to_response('weixin/orderinfo.html', 
                                       {'tradedata':data, "traces":shipping_traces, 
-                                       "refund": refund, "passed":passed, "openid":openid },
+                                       "refund": refund, "passed":passed, "openid":user_openid },
                                       context_instance=RequestContext(request))
         response.set_cookie("openid",user_openid)
         return response
