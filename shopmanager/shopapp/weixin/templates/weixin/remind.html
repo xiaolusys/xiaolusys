@@ -13,11 +13,12 @@
     <div class="panel-body">
       <div class="row">
 	<div class="col-xs-12">
-	  <h5 style="color:#3071a9">请先验证手机号</h5>
+	  <h5 style="color:#3071a9">请先验证手机号</h5><span style="color:red" id="id_verify_msg"></span>
 
 	  <div class="input-group">
 	    <span class="input-group-addon">手机号</span>
 	    <input id="id_mobile_input" type="text" class="form-control">
+	    <input type="hidden" id="id_openid" value="{{ openid }}">
 	    <span class="input-group-btn">
 	      <button id="id_requestcode_button" class="btn btn-primary" type="button" onclick="requestcode();" status="0">获验证码</button>
 	    </span>
@@ -52,14 +53,29 @@
         var validateReg = /^((\+?86)|(\(\+86\)))?1\d{10}$/;
         return validateReg.test(s);
       };
+
       function validateVerifyCode(s) {
         var validateReg = /^\d{6}$/;
         return validateReg.test(s);
       };
 
+      var global_timer;
+      function updateTime() {
+        var btn = $("#id_requestcode_button");
+        time_left = parseInt(btn[0].innerHTML) - 1;
+        if (time_left <= 0) {
+          btn.attr("status","0");
+	  window.clearInterval(global_timer);
+          btn[0].innerHTML = "点击重发";
+	} else {
+          btn[0].innerHTML = time_left.toString();
+	}
+      };
+
       function requestcode() {
         var btn = $("#id_requestcode_button");
-        if (btn.attr("status") == "1") {
+        var status = btn.attr("status");
+        if (status == "1" || status == "2") {
           return;
         }
 
@@ -67,32 +83,76 @@
         if (validateMobile(mobile) == false) {
           return;
         }
-        var url = "/weixin/requestcode/"+mobile+"/";
+
+        btn.attr("status","1");
+	btn[0].innerHTML = "60";
+        global_timer = window.setInterval(updateTime, 1000);
+
+	var openid = $("#id_openid").val();
+        var url = "/weixin/requestcode/";
+	var data = {"mobile":mobile, "openid":openid};
 
         var callback = function (res) {
-          btn.attr("status","1")[0].innerHTML = "已发送";
+	  if (res["code"] == "wait") {
+            $("#id_verify_msg")[0].innerHTML = "请先耐心等待60秒哦！";
+            return;
+          } 
+
+          if (res["code"] != "good") {
+	    btn.attr("status","0");
+	    window.clearInterval(global_timer);
+          }
+
+	  if (res["code"] == "locked") {
+            $("#id_verify_msg")[0].innerHTML = "验证次数达到上限，请联系微信客服处理！";
+            btn[0].innerHTML = "已达上限";
+            return;
+          } 
+	  if (res["code"] == "anony") {
+            $("#id_verify_msg")[0].innerHTML = "请从优尼世界微信登录此页面！";
+            btn[0].innerHTML = "登录有误";
+            return;
+          } 
+	  if (res["code"] == "bad") {
+            $("#id_verify_msg")[0].innerHTML = "请输入正确的手机号码！";
+            btn[0].innerHTML = "点击重发";
+            return;
+          } 
+	  if (res["code"] == "dup") {
+            $("#id_verify_msg")[0].innerHTML = "此号码已被他人验证，请重新输入！";
+            btn[0].innerHTML = "点击重发";
+            return;
+          } 
+
         };
-        $.ajax({url:url, success:callback});
+        
+        $.ajax({url:url, data:data, success:callback});
       };
+
       function verifycode() {
-        var code = $("#id_code_input").val();
-        if (validateVerifyCode(code) == false) {
+        var verifycode = $("#id_code_input").val();
+        if (validateVerifyCode(verifycode) == false) {
+          $("#id_verify_msg")[0].innerHTML = "验证码错误！";
           return;
         }
-
-        var url = "/weixin/verifycode/"+code+"/";
+        var url = "/weixin/verifycode/";
         var callback = function (res) {
-          console.log(res);
           if (res["code"] == "bad") {
             $("#id_verifycode_button")[0].innerHTML = "验证失败，刷新再试";
             return;
           }
-          $("#id_verifycode_group")[0].innerHTML = '';
+
+	  window.clearInterval(global_timer);
+          $("#id_verifycode_group").css("display","none");
           $("#id_requestcode_button").removeClass("btn-primary").addClass("btn-success")[0].innerHTML="已验证";
           $("#id_mobile_input").attr("disabled","disabled");
+          $("#id_requestcode_button").attr("status", "2");
         };
-        $.ajax({url:url, success:callback});
+        var openid = $("#id_openid").val();
+	var data = {"verifycode":verifycode, "openid":openid};
+        $.ajax({url:url, data:data, success:callback});
       };
+
       
     </script>
 {% endblock %}
