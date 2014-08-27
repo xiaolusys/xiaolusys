@@ -630,7 +630,7 @@ class SampleOrder(models.Model):
     sku_code = models.CharField(max_length=32,null=False,blank=True,verbose_name=u'SKU编码')
     user_openid = models.CharField(max_length=64,db_index=True,verbose_name=u"微信ID")
     created = models.DateTimeField(auto_now_add=True,null=True,verbose_name=u'创建时间')
-    vipcode = models.CharField(max_length=16,null=False,blank=False,verbose_name=u'VIP邀请码')
+    vipcode = models.CharField(max_length=16,null=False,db_index=True,blank=False,verbose_name=u'VIP邀请码')
     problem_score = models.IntegerField(default=0, verbose_name=u"答题分数")
     status = models.IntegerField(default=0, verbose_name=u"状态")
     

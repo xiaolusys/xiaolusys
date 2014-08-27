@@ -27,7 +27,7 @@ class FenxiaoProductAdmin(admin.ModelAdmin):
     date_hierarchy = 'created'
     #ordering = ['created_at']
 
-    search_fields = ['pid','name']
+    search_fields = ['pid','name','outer_id']
 
 
 admin.site.register(FenxiaoProduct, FenxiaoProductAdmin)
