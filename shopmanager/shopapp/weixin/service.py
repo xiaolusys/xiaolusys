@@ -400,8 +400,8 @@ class WeixinUserService():
         
     def handleRequest(self,params):
         
-        MsgId    = params['MsgId']
-        if not cache.add(MsgId, True, WX_MESSAGE_TIMEOUT):
+        MsgId    = params.get('MsgId',None)
+        if MsgId and not cache.add(MsgId, True, WX_MESSAGE_TIMEOUT):
             return ''
         
         openId   = params['FromUserName']
