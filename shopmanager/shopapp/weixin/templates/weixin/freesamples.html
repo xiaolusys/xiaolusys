@@ -165,7 +165,8 @@
 
   function check() {
     {% if not user_isvalid %}
-    //$("#id_redirect").css("display":"");
+    var redirect = $("#id_redirect");
+    redirect.css("display":"block");
     return false;
     {% else %}
     var color = $("#id_color").val();
