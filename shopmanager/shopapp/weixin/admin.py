@@ -257,7 +257,7 @@ admin.site.register(Coupon, CouponAdmin)
 
 class CouponClickAdmin(admin.ModelAdmin):
     list_display = ('coupon','wx_user','vipcode','created')
-    search_fields = ['wx_user', 'vipcode']
+    search_fields = ['wx_user__openid', 'vipcode']
 
 admin.site.register(CouponClick, CouponClickAdmin) 
 
