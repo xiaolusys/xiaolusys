@@ -13,6 +13,7 @@
     </div>
   </div>
 
+  {% if False %}
   <div class="panel panel-default" style="margin-top:5px">
     <div class="panel-heading" style="color:orange">9月试用审核状态</div>
     <div class="panel-body">
@@ -22,7 +23,7 @@
       <p style="color:red">专属VIP码使用超过10次，您的中奖几率将大大增加！<br>专属VIP码使用超过20次，您就具有决定性的竞争力啦！！</p>
       <p>亲，分享、邀请，继续加油吧，惊喜等着您！</p>
 
-      {% if False %}
+
       {% if order_status > 0  %}
       {% if order_status < 7 %}
       <p>亲，恭喜您，你的试用申请已<font style="color:red">审核通过</font>啦，您有资格免费领取睡袋！所有中奖的妈妈，都请加入<a href="/weixin/referal/">优尼大使计划>></a></p>
@@ -53,10 +54,10 @@
       <p>感谢您的参与，请继续关注优尼世界，传播从<font style="color:red">宝宝角度出发的设计和养育理念！</font></p>
       <p>只要您持续关注我们，后续第一时间参加活动，下次中奖的就一定是您！优尼世界风暴会很快回来滴～～</p>
       {% endif %}
-      {% endif %}
+
     </div>
   </div>
-
+  {% endif %}
 
   <div class="panel panel-default" style="margin-top:5px">
     <div class="panel-heading" style="color:orange">历史中奖名单公示</div>
