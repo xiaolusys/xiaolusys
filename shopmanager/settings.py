@@ -75,6 +75,7 @@ TEMPLATE_LOADERS = (
 )
 
 MIDDLEWARE_CLASSES = (
+    
     'raven.contrib.django.middleware.SentryResponseErrorIdMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -84,7 +85,8 @@ MIDDLEWARE_CLASSES = (
     'django.contrib.messages.middleware.MessageMiddleware',
 )
 if DEBUG:
-    MIDDLEWARE_CLASSES = ('middleware.middleware.QueryCountDebugMiddleware',) + MIDDLEWARE_CLASSES
+    MIDDLEWARE_CLASSES = ('middleware.middleware.ProfileMiddleware',
+                          'middleware.middleware.QueryCountDebugMiddleware',) + MIDDLEWARE_CLASSES
 
 ROOT_URLCONF = 'shopmanager.urls'
 
