@@ -290,7 +290,11 @@
         var callback = function (res) {
           if (res["code"] == "ok") {
             $("#id_savebutton").css("display", "none");
+            {% if sample_count > 0 %}
+            $("#id_savelabel")[0].innerHTML = "信息已成功保存！<a href='https://open.weixin.qq.com/connect/oauth2/authorize?appid=wxc2848fa1e1aa94b5&redirect_uri=http://weixin.huyi.so/weixin/freesamples/&response_type=code&scope=snsapi_base&state=135#wechat_redirect'>请点击直达申请页面 >></a>";
+            {% else %}
             $("#id_savelabel")[0].innerHTML = "信息已成功保存！";
+            {% endif %}
           }
         };
         $.ajax({url:url, data:data, type:"post", success:callback});

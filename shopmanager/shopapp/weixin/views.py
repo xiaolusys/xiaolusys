@@ -634,7 +634,7 @@ class FreeSampleView(View):
         
         vip_exists = False
         vipcode = None
-        if (not wx_user.isNone()) and wx_user.vipcodes.count() > 0:
+        if wx_user and and wx_user.vipcodes.count() > 0:
             vip_exists = True
             vipcode = wx_user.vipcodes.all()[0].code
         
