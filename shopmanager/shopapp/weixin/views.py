@@ -428,6 +428,8 @@ class ReferalView(View):
             mobile2openid[str(user.mobile)] = user.openid
 
         for coupon_click in couponclicks:
+            if not coupon_click.wx_user.mobile.strip():
+                continue
             referal_mobiles.add(coupon_click.wx_user.mobile)
             mobile2openid[str(coupon_click.wx_user.mobile)]=coupon_click.wx_user.openid
 
@@ -437,7 +439,10 @@ class ReferalView(View):
         order_status = [pcfg.WAIT_SELLER_SEND_GOODS,pcfg.WAIT_BUYER_CONFIRM_GOODS]
         effect_date = datetime.datetime(2014,8,3)
         for mobile in referal_mobiles:
-            trades = MergeTrade.objects.filter(receiver_mobile=mobile).filter(status__in=order_status).filter(created__gt=effect_date)
+            trades = (MergeTrade.objects.filter(receiver_mobile=mobile)
+                      .filter(status__in=order_status,is_express_print=True)
+                      .filter(created__gt=effect_date)
+                      .exclude(type=pcfg.FENXIAO_TYPE))
             for trade in trades:
                 payment += trade.payment
                 effect_mobiles.add(mobile)
