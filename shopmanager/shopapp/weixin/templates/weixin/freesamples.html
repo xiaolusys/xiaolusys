@@ -105,7 +105,7 @@
 	{% if order_exists %}
 	<a href="/weixin/sampleads/{{ pk }}/">您的试用申请已经提交！查看 >></a>
 	{% else %}
-
+	<p id="id_redirect" style="text-align:center;color:red;display:none">亲，完善宝宝档案及验证手机号码，才能提交申请哦。<a href="https://open.weixin.qq.com/connect/oauth2/authorize?appid=wxc2848fa1e1aa94b5&redirect_uri=http://weixin.huyi.so/weixin/babyinfo/&response_type=code&scope=snsapi_base&state=135#wechat_redirect">点击完善 >></a></p>
 	<div class="col-xs-12" style="text-align:center; margin-top:10px">
 	{% if started %}
 	  <input type="submit" class="btn btn-warning" value="提交试用申请"/>
@@ -164,6 +164,10 @@
   };
 
   function check() {
+    {% if user_isvalid == False %}
+    $("#id_redirect").css("display":"none");
+    return false;
+    {% else %}
     var color = $("#id_color").val();
     var size = $("#id_size").val();
     var weight = $("#id_weight").val();
@@ -180,6 +184,7 @@
       msg[0].innerHTML = "请检查您的VIP邀请码(6-7位数字)!";
       return false;
     }
+    {% endif %}
   };
 </script>
 {% endblock %}
