@@ -188,7 +188,7 @@ class WeiXinUser(models.Model):
     def doSubscribe(self,sceneid):
         self.sceneid   = sceneid
         self.subscribe = True
-        self.subscribe_time = datetime.datetime.now()
+        self.subscribe_time = self.subscribe_time or datetime.datetime.now()
         self.save()
         
     def unSubscribe(self):
