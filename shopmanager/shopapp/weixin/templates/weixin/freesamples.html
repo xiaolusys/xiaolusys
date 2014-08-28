@@ -164,8 +164,8 @@
   };
 
   function check() {
-    {% if user_isvalid == False %}
-    $("#id_redirect").css("display":"none");
+    {% if not user_isvalid %}
+    $("#id_redirect").css("display":"block");
     return false;
     {% else %}
     var color = $("#id_color").val();

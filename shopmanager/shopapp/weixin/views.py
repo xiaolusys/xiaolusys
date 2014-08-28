@@ -606,10 +606,10 @@ class FreeSampleView(View):
         code = content.get('code')
         user_openid = get_user_openid(request, code)
 
-        wx_user_service = WeixinUserService(openId=user_openid)
-        wx_user = wx_user_service._wx_user
-            
-        user_isvalid = wx_user.isValid()
+        user_isvalid = False
+        wx_users = WeiXinUser.objects.filter(openid=user_openid)
+        if wx_users.count() > 0:
+            user_isvalid = wx_users[0].isValid()
 
         start = datetime.datetime(2014,8,30)
         now = datetime.datetime.now()
