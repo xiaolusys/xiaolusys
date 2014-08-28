@@ -635,8 +635,10 @@ class FreeSampleView(View):
         vip_exists = False
         vipcode = None
         if wx_user and wx_user.vipcodes.count() > 0:
-            vip_exists = True
-            vipcode = wx_user.vipcodes.all()[0].code
+            vipcode_obj = wx_user.vipcodes.all()[0]
+            if vipcode_obj.created < datetime.datetime(2014,8,15):
+                vip_exists = True
+                vipcode = vipcode_obj.code
         
         today = datetime.date.today()
         start_time = datetime.datetime(today.year, today.month, today.day)
