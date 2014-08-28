@@ -424,6 +424,8 @@ class ReferalView(View):
 
         referal_users = WeiXinUser.objects.filter(referal_from_openid=user_openid)
         for user in referal_users:
+            if not user.mobile.strip():
+                continue
             referal_mobiles.add(user.mobile)
             mobile2openid[str(user.mobile)] = user.openid
 
@@ -441,7 +443,7 @@ class ReferalView(View):
         for mobile in referal_mobiles:
             trades = (MergeTrade.objects.filter(receiver_mobile=mobile)
                       .filter(status__in=order_status,is_express_print=True)
-                      .filter(created__gt=effect_date)
+                      .filter(pay_time__gt=effect_date)
                       .exclude(type=pcfg.FENXIAO_TYPE))
             for trade in trades:
                 payment += trade.payment
