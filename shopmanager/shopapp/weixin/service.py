@@ -5,6 +5,7 @@ import time
 import datetime
 from lxml import etree
 from xml.dom import minidom 
+from django.core.cache import cache
 from django.conf import settings
 from django.views.generic import View
 from shopapp.weixin.models import (WeiXinAccount,
