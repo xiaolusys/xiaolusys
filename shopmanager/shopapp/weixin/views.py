@@ -635,8 +635,10 @@ class FreeSampleView(View):
         vip_exists = False
         vipcode = None
         if wx_user and wx_user.vipcodes.count() > 0:
-            vip_exists = True
-            vipcode = wx_user.vipcodes.all()[0].code
+            vipcode_obj = wx_user.vipcodes.all()[0]
+            if vipcode_obj.created < datetime.datetime(2014,8,15):
+                vip_exists = True
+                vipcode = vipcode_obj.code
         
         today = datetime.date.today()
         start_time = datetime.datetime(today.year, today.month, today.day)
@@ -768,7 +770,7 @@ class SampleAdsView(View):
             if users[0].vipcodes.count() > 0:
                 vipcode = users[0].vipcodes.all()[0].code
             else:
-                vipcode = VipCode.objects.genVipCodeByWXUser(user[0])
+                vipcode = VipCode.objects.genVipCodeByWXUser(users[0])
 
             if users[0].openid == openid:
                 identical = True
