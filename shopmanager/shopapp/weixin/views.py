@@ -642,6 +642,10 @@ class FreeSampleView(View):
         start_time = datetime.datetime(today.year, today.month, today.day)
         today_orders = SampleOrder.objects.filter(created__gt=start_time).count()
         
+        pk = None
+        if wx_user:
+            pk = wx_user.pk
+            
         response = render_to_response('weixin/freesamples.html', 
                                       {"samples":samples, 
                                        "today_orders":today_orders,
@@ -653,7 +657,7 @@ class FreeSampleView(View):
                                        "started":started,"openid":user_openid,
                                        "vip_exists":vip_exists,
                                        "vipcode":vipcode,
-                                       "pk":wx_user.isNone() or wx_user.pk},
+                                       "pk":pk},
                                       context_instance=RequestContext(request))
         response.set_cookie("openid",user_openid)
         return response
