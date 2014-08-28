@@ -1023,24 +1023,8 @@ class SurveyView(View):
 
     
 class TestView(View):
-    def get(self, request, *args, **kwargs):
-
-        wx_account = WeiXinAccount.getAccountInstance()
-        app_id = wx_account.app_id
-        app_secret = wx_account.app_secret
-
-        
-        id = kwargs.get("id")
-        print id, int(id)+1, type(id)
-        
-        content = request.REQUEST
-        data = content.get("data")
-        print type(data)
-        
-        #response = render_to_response('weixin/survey.html', 
-        #                              context_instance=RequestContext(request))
-        #return response
-        response = {"status":"ok"}
-        return HttpResponse(json.dumps(response),mimetype='application/json')
-
+    def get(self, request):
+        response = render_to_response('weixin/unilittles_story.html', 
+                                      context_instance=RequestContext(request))
+        return response
         

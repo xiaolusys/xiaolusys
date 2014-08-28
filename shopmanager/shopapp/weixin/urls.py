@@ -26,7 +26,9 @@ urlpatterns = patterns('shopapp.weixin.views',
             template_name="weixin/referal_rules.html")),
     url(r'^ambassintention/$', TemplateView.as_view(
             template_name="weixin/ambass_intention.html")),
-
+    url(r'^unistory/$', TemplateView.as_view(
+            template_name="weixin/unilittles_story.html")),
+                    
     url(r'^freesamples/$', FreeSampleView.as_view()),
     url(r'^sampleapply/$', SampleApplyView.as_view()),
     url(r'^sampleconfirm/$', SampleConfirmView.as_view()),
@@ -49,7 +51,7 @@ urlpatterns = patterns('shopapp.weixin.views',
     url(r'^requestcoupon/$', RequestCouponView.as_view()),
     url(r'^couponfaq/$', CouponFaqView.as_view()),
     url(r'^survey/$', SurveyView.as_view()),
-    url(r'^test/(?P<id>\d+)/$', TestView.as_view()),    
+    url(r'^test/$', TestView.as_view()),    
                      
     url(r'^validmobile/$', TemplateView.as_view(
         template_name="weixin/valid_mobile.html"), 
