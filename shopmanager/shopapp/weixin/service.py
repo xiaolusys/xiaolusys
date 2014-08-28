@@ -5,6 +5,7 @@ import time
 import datetime
 from lxml import etree
 from xml.dom import minidom 
+from django.core.cache import cache
 from django.conf import settings
 from django.views.generic import View
 from shopapp.weixin.models import (WeiXinAccount,
@@ -29,7 +30,7 @@ logger = logging.getLogger('django.request')
 VALID_MOBILE_REGEX = '^1[34578][0-9]{9}'
 VALID_CODE_REGEX   = '^[0-9]{6}$'
 VALID_EVENT_CODE   = '^[qwertyuiopknQWERTYUIOPKN]$'
-
+WX_MESSAGE_TIMEOUT = 30
 
 mobile_re = re.compile(VALID_MOBILE_REGEX)
 code_re   = re.compile(VALID_CODE_REGEX)
@@ -106,6 +107,9 @@ def buildDomByJson(parentDom,djson,arrayTag='',rootTag=''):
 def formatParam2XML(params):  
     """ 
     """      
+    if type(params) != dict:
+        return '%s'%params
+    
     dom = minidom.Document()
     initStr = dom.toxml()
     
@@ -397,7 +401,11 @@ class WeixinUserService():
         
     def handleRequest(self,params):
         
-        openId     = params['FromUserName']
+        MsgId    = params.get('MsgId',None)
+        if MsgId and not cache.add(MsgId, True, WX_MESSAGE_TIMEOUT):
+            return ''
+        
+        openId   = params['FromUserName']
         msgtype  = params['MsgType']
         
         self.setOpenId(openId)
