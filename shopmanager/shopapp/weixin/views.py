@@ -306,7 +306,7 @@ class BabyInfoView(View):
         code = content.get('code')
 
         if code == None or code == "None":
-            response = {"msg":"请从[优尼世界]微信打开此页面！"}
+            response = {"msg":u'请从[优尼世界]微信打开此页面！'}
             return HttpResponse(json.dumps(response),mimetype='application/json')
         
         openid = get_user_openid(request, code)
@@ -314,11 +314,14 @@ class BabyInfoView(View):
         wx_user_service = WeixinUserService(openid)
         wx_user = wx_user_service._wx_user
         
+        samples = FreeSample.objects.filter(expiry__gt=datetime.datetime.now())
+        
         years = [2008, 2009, 2010, 2011, 2012, 2013, 2014, 2015]
         months = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
         response = render_to_response('weixin/babyinfo.html', 
                                       {'user':wx_user, 'years': years, 
-                                       'months': months, 'openid':openid},
+                                       'months': months, 'openid':openid,
+                                       'sample_count':samples.count()},
                                       context_instance=RequestContext(request))
         response.set_cookie("openid",openid)
         return response
@@ -703,6 +706,10 @@ class SampleApplyView(View):
         if users.count() > 0:
             wx_user = users[0]
 
+        if wx_user.isValid() == False:
+	  redirect_url = "https://open.weixin.qq.com/connect/oauth2/authorize?appid=wxc2848fa1e1aa94b5&redirect_uri=http://weixin.huyi.so/weixin/babyinfo/&response_type=code&scope=snsapi_base&state=135#wechat_redirect"
+          return redirect(redirect_url)
+
         response = render_to_response('weixin/sampleapply.html',
                                       {"sample":sample, "sku":sku, "wx_user": wx_user, 
                                        "vipcode":vipcode, "vip_exists":vip_exists},
@@ -1002,7 +1009,7 @@ class SurveyView(View):
     
 class TestView(View):
     def get(self, request, *args, **kwargs):
-        
+
         wx_account = WeiXinAccount.getAccountInstance()
         app_id = wx_account.app_id
         app_secret = wx_account.app_secret
