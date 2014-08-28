@@ -770,7 +770,7 @@ class SampleAdsView(View):
             if users[0].vipcodes.count() > 0:
                 vipcode = users[0].vipcodes.all()[0].code
             else:
-                vipcode = VipCode.objects.genVipCodeByWXUser(user[0])
+                vipcode = VipCode.objects.genVipCodeByWXUser(users[0])
 
             if users[0].openid == openid:
                 identical = True
