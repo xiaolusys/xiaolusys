@@ -35,7 +35,7 @@
 
 {% for sample in samples %}
 <div class="panel panel-default" style="margin-top:5px">
-  <div class="panel-heading" style="color:orange">免费试用：{{ sample.name }} (得票率:52%)</div>
+  <div class="panel-heading" style="color:orange">免费试用：{{ sample.name }}</div>
   <div class="panel-body">
     
     <form class="form-group" method="post" action="/weixin/sampleapply/" onsubmit="return check()">{% csrf_token %}
