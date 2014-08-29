@@ -634,18 +634,20 @@ class FreeSampleView(View):
         samples = FreeSample.objects.filter(expiry__gt=datetime.datetime.now())
 
         order_exists = False
-        tmp_time = datetime.datetime(2014,8,27)
-        orders = SampleOrder.objects.filter(user_openid=user_openid).filter(created__gt=tmp_time)
+        orders = SampleOrder.objects.filter(user_openid=user_openid).filter(created__gt=start)
         if orders.count() > 0 and not wx_user.isNone():
             order_exists = True
         
         vip_exists = False
         vipcode = None
-        if wx_user and wx_user.vipcodes.count() > 0:
-            vipcode_obj = wx_user.vipcodes.all()[0]
-            if vipcode_obj.created < datetime.datetime(2014,8,15):
+        if wx_user:
+            if wx_user.vipcodes.count() > 0:
+                vipcode_obj = wx_user.vipcodes.all()[0]
+                if vipcode_obj.created < datetime.datetime(2014,8,15):
+                    vip_exists = True
+                    vipcode = vipcode_obj.code
+            elif wx_user.subscribe_time < datetime.datetime(2014,8,15):
                 vip_exists = True
-                vipcode = vipcode_obj.code
         
         today = datetime.date.today()
         start_time = datetime.datetime(today.year, today.month, today.day)
