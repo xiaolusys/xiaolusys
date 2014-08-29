@@ -42,7 +42,7 @@
       <input type="hidden" value="{{ sample.pk }}" name="sample_pk"/>
       <div class="row">
 	<div class="col-xs-12">
-	  <p>距离试用申请开始还有 <font style="color:red;font-size:20px">{{ days_left }}天{{ hours_left }}小时</font>，共有 <font style="color:red;font-size:20px">{{ slots_left }}份</font>名额等您来抢哦！</p>
+	  <p>距离试用申请结束还有 <font style="color:red;font-size:20px">{{ days_left }}天{{ hours_left }}小时</font>，还共有 <font style="color:red;font-size:20px">{{ slots_left }}份</font>名额未开奖哦！</p>
 	</div>
       </div>
       <div class="row">
@@ -92,6 +92,7 @@
 	  <input class="form-control" type="text" placeholder="无需VIP邀请码" {% if vipcode %} value="{{ vipcode }}" {% endif %} id="id_vipcode" status="1" disabled="disabled" name="vipcode"/>
 	  <input type="hidden" name="vip_exists" value="1">
 	  {% else %}
+          <p>邀请码：</p>
 	  <input class="form-control" type="text" placeholder="VIP邀请码" id="id_vipcode" status="0" name="vipcode"/>
 	  <input type="hidden" name="vip_exists" value="0">
 	  {% endif %}
