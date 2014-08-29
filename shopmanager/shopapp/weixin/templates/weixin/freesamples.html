@@ -102,6 +102,9 @@
       
       <div class="row" style="text-align:center">
 	<p id="id_msg" style="text-align:center;color:red"></p>
+	{% if not user_isvalid %}
+	<p style="color:red">亲，请提前完善宝宝档案及验证手机号码！<a href='https://open.weixin.qq.com/connect/oauth2/authorize?appid=wxc2848fa1e1aa94b5&redirect_uri=http://weixin.huyi.so/weixin/babyinfo/&response_type=code&scope=snsapi_base&state=135#wechat_redirect'>点击完善 >></a></p>
+	{% endif %}
 	{% if order_exists %}
 	<a href="/weixin/sampleads/{{ pk }}/">您的试用申请已经提交！查看 >></a>
 	{% else %}
@@ -110,11 +113,7 @@
 	{% if started %}
 	  <input type="submit" class="btn btn-warning" value="提交试用申请"/>
         {% else %} 
-	  {% if openid == "oMt59uGwyxgARNKTVxklPDEexaeU" %}
-	  <input type="button" class="btn btn-warning" value="提交试用申请"/>
-	  {% else %}
 	  <button type="button" class="btn btn-warning" disabled="disabled">申请待开放...</button>
-	  {% endif %}
         {% endif %}
 	</div>
 	{% endif %}
