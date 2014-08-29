@@ -646,7 +646,7 @@ class FreeSampleView(View):
                 if vipcode_obj.created < datetime.datetime(2014,8,15):
                     vip_exists = True
                     vipcode = vipcode_obj.code
-            if wx_user.subscribe_time < datetime.datetime(2014,8,15):
+            if wx_user.subscribe_time and wx_user.subscribe_time < datetime.datetime(2014,8,15):
                 vip_exists = True
         
         today = datetime.date.today()
