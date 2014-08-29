@@ -92,6 +92,7 @@
 	  <input class="form-control" type="text" placeholder="无需VIP邀请码" {% if vipcode %} value="{{ vipcode }}" {% endif %} id="id_vipcode" status="1" disabled="disabled" name="vipcode"/>
 	  <input type="hidden" name="vip_exists" value="1">
 	  {% else %}
+          <p>邀请码：</p>
 	  <input class="form-control" type="text" placeholder="VIP邀请码" id="id_vipcode" status="0" name="vipcode"/>
 	  <input type="hidden" name="vip_exists" value="0">
 	  {% endif %}

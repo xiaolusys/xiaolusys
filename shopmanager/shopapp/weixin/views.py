@@ -620,9 +620,10 @@ class FreeSampleView(View):
             wx_user = wx_users[0]
             user_isvalid = wx_user.isValid()
 
-        start = datetime.datetime(2014,8,30)
+        start = datetime.datetime(2014,8,28)
+        end = datetime.datetime(2014,9,7)
         now = datetime.datetime.now()
-        diff = start - now
+        diff = end - now
         days_left = diff.days
         hours_left = diff.seconds / 3600
 
@@ -631,7 +632,7 @@ class FreeSampleView(View):
         if now > start:
             started = True
         
-        samples = FreeSample.objects.filter(expiry__gt=datetime.datetime.now())
+        samples = FreeSample.objects.filter(expiry__gt=start)
 
         order_exists = False
         orders = SampleOrder.objects.filter(user_openid=user_openid).filter(created__gt=start)
