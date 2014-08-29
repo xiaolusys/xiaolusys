@@ -715,7 +715,10 @@ class SampleApplyView(View):
         sample = FreeSample.objects.get(pk=int(sample_pk))
 
         skus = SampleSku.objects.filter(sku_code=sku_code)
-        sku = skus[0]
+        if skus.count() > 0:
+            sku = skus[0]
+        else:
+            sku = "1000"
 
         code = content.get('code')
         user_openid = get_user_openid(request, code)
