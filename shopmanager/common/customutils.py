@@ -10,9 +10,6 @@ import urllib2
 import decimal
 import random
 import cStringIO
-import Image
-import ImageDraw
-import ImageFont
 
 def verifySignature(string,sign):
 
@@ -135,6 +132,9 @@ def gen_string_image(font_path,code_string):
     """
     gen string image
     """
+    import Image                                                                                                                                                                                              
+    import ImageDraw                                                                                                                                                                         
+    import ImageFont
 
     im     = Image.new ( "RGB", (75,24), "#ddd" )
     draw   = ImageDraw.Draw(im)
