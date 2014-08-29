@@ -30,6 +30,21 @@ if DEBUG:
 else :
     STATIC_ROOT = os.path.join(PROJECT_ROOT,"site_media","static")
 
+MIDDLEWARE_CLASSES = (
+    'raven.contrib.django.middleware.SentryResponseErrorIdMiddleware',
+    'django.middleware.common.CommonMiddleware',
+    'django.contrib.sessions.middleware.SessionMiddleware',
+    'django.middleware.csrf.CsrfViewMiddleware',
+    'django.middleware.locale.LocaleMiddleware',
+    'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'django.contrib.messages.middleware.MessageMiddleware',
+)
+
+if DEBUG:
+    MIDDLEWARE_CLASSES = ('middleware.middleware.ProfileMiddleware',
+                          'middleware.middleware.QueryCountDebugMiddleware',) + MIDDLEWARE_CLASSES
+
+
 CACHES = {
     'default': {
         'BACKEND': 'django.core.cache.backends.memcached.MemcachedCache',

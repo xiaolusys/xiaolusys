@@ -629,7 +629,7 @@ class SampleOrder(models.Model):
     sample_product = models.ForeignKey(FreeSample, related_name="sample_orders", verbose_name=u'试用商品')
     sku_code = models.CharField(max_length=32,null=False,blank=True,verbose_name=u'SKU编码')
     user_openid = models.CharField(max_length=64,db_index=True,verbose_name=u"微信ID")
-    created = models.DateTimeField(auto_now_add=True,null=True,verbose_name=u'创建时间')
+    created = models.DateTimeField(auto_now_add=True,db_index=True,null=True,verbose_name=u'创建时间')
     vipcode = models.CharField(max_length=16,null=False,db_index=True,blank=False,verbose_name=u'VIP邀请码')
     problem_score = models.IntegerField(default=0, verbose_name=u"答题分数")
     status = models.IntegerField(default=0, verbose_name=u"状态")
@@ -643,7 +643,7 @@ class SampleOrder(models.Model):
 class VipCode(models.Model):
     CODE_TYPES = ((0,u'试用'), (1,u'购买'))
     
-    owner_openid = models.ForeignKey(WeiXinUser, related_name="vipcodes", verbose_name=u"微信ID")
+    owner_openid = models.ForeignKey(WeiXinUser,unique=True,related_name="vipcodes", verbose_name=u"微信ID")
     code = models.CharField(max_length=16,db_index=True,null=False,blank=False,verbose_name=u'VIP邀请码')
     expiry = models.DateTimeField(null=False,blank=False,verbose_name=u'过期时间')
 
