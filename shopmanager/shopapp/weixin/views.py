@@ -802,14 +802,15 @@ class ResultView(View):
         code = content.get('code')
         user_openid = get_user_openid(request, code)
 
-        end = datetime.datetime(2014,8,11)
+        end = datetime.datetime(2014,9,7)
         now = datetime.datetime.now()
         diff = end - now
         days_left = diff.days
         hours_left = diff.seconds / 3600
 
 
-        order = SampleOrder.objects.filter(user_openid=user_openid)
+        start = datetime.datetime(2014,8,28)
+        order = SampleOrder.objects.filter(user_openid=user_openid).filter(created__gt=start)
         has_order = False
         order_status = 0
         if order.count() > 0:
@@ -1026,7 +1027,7 @@ class SurveyView(View):
     
 class TestView(View):
     def get(self, request):
-        response = render_to_response('weixin/unilittles_story.html', 
+        response = render_to_response('weixin/test.html', 
                                       context_instance=RequestContext(request))
         return response
         
