@@ -35,7 +35,7 @@
 
 {% for sample in samples %}
 <div class="panel panel-default" style="margin-top:5px">
-  <div class="panel-heading" style="color:orange">免费试用：{{ sample.name }} (得票率:52%)</div>
+  <div class="panel-heading" style="color:orange">免费试用：{{ sample.name }}</div>
   <div class="panel-body">
     
     <form class="form-group" method="post" action="/weixin/sampleapply/" onsubmit="return check()">{% csrf_token %}
@@ -90,8 +90,8 @@
 	  {% endif %}
 	  
           {% if vip_exists %}
-          <p style="color:red">优尼美妈忠粉,无需邀请码!</p>
-	  <input class="form-control" type="text" placeholder="无需VIP邀请码" value="{{ vipcode }}" id="id_vipcode" status="1" disabled="disabled" name="vipcode"/>
+          <p style="color:red">优尼美妈忠粉,无需邀请码即可申请!</p>
+	  <input class="form-control" type="text" placeholder="无需VIP邀请码" {% if vipcode %} value="{{ vipcode }}" {% endif %} id="id_vipcode" status="1" disabled="disabled" name="vipcode"/>
 	  <input type="hidden" name="vip_exists" value="1">
 	  {% else %}
 	  <input class="form-control" type="text" placeholder="VIP邀请码" id="id_vipcode" status="0" name="vipcode"/>
@@ -102,6 +102,9 @@
       
       <div class="row" style="text-align:center">
 	<p id="id_msg" style="text-align:center;color:red"></p>
+	{% if not user_isvalid %}
+	<p style="color:red">亲，申请需完善宝宝档案哦！<a href='https://open.weixin.qq.com/connect/oauth2/authorize?appid=wxc2848fa1e1aa94b5&redirect_uri=http://weixin.huyi.so/weixin/babyinfo/&response_type=code&scope=snsapi_base&state=135#wechat_redirect'>点击完善 >></a></p>
+	{% endif %}
 	{% if order_exists %}
 	<a href="/weixin/sampleads/{{ pk }}/">您的试用申请已经提交！查看 >></a>
 	{% else %}
@@ -110,11 +113,7 @@
 	{% if started %}
 	  <input type="submit" class="btn btn-warning" value="提交试用申请"/>
         {% else %} 
-	  {% if openid == "oMt59uGwyxgARNKTVxklPDEexaeU" %}
-	  <input type="submit" class="btn btn-warning" value="提交试用申请"/>
-	  {% else %}
 	  <button type="button" class="btn btn-warning" disabled="disabled">申请待开放...</button>
-	  {% endif %}
         {% endif %}
 	</div>
 	{% endif %}
