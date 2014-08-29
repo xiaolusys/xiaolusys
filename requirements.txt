@@ -9,6 +9,7 @@ django-kombu==0.9.4
 python-memcached==1.45
 djangorestframework==0.3.0
 django-bitfield==1.6.4
+gevent==1.0.1
 
 #geraldo
 #reportlab==2.5
