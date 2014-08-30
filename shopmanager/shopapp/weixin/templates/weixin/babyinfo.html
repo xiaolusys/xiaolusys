@@ -191,7 +191,7 @@
         }
 
         btn.attr("status","1");
-	btn[0].innerHTML = "60";
+	btn[0].innerHTML = "180";
         global_timer = window.setInterval(updateTime, 1000);
 
 	var openid = $("#id_openid").val();
@@ -200,7 +200,7 @@
 
         var callback = function (res) {
 	  if (res["code"] == "wait") {
-            $("#id_verify_msg")[0].innerHTML = "请先耐心等待60秒哦！";
+            $("#id_verify_msg")[0].innerHTML = "请先耐心等待180秒哦！";
             return;
           } 
 

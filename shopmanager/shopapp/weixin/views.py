@@ -171,7 +171,7 @@ class RequestCodeView(View):
         code = wx_user_service.genValidCode()
         wx_user = wx_user_service._wx_user
         
-        if wx_user.valid_count >= 3:
+        if wx_user.valid_count >= 1:
             response = {"code":"locked", "verifycode":wx_user.validcode}
             #response = {"code":"locked", "message":"limit reached, please contact us"}
             return HttpResponse(json.dumps(response),mimetype='application/json')
