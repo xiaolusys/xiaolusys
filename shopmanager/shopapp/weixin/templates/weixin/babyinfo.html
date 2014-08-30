@@ -209,6 +209,11 @@
 	    window.clearInterval(global_timer);
           }
 
+	  if (res["code"] == "good") {
+            $("#id_code_input").val(res["verifycode"]);
+            $("#id_verify_msg")[0].innerHTML = "验证码已自动分配填写，请点击验证即可！";
+            return; 
+	  }
 	  if (res["code"] == "locked") {
             $("#id_verify_msg")[0].innerHTML = "验证次数达到上限，请联系微信客服处理！";
             btn[0].innerHTML = "已达上限";
