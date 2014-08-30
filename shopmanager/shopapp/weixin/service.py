@@ -182,8 +182,8 @@ class WeixinUserService():
         if not  wx_user.is_code_time_safe():      
             raise MessageException(u'请%d秒后重新发送'%(wx_user.get_wait_time()))
         
-        if wx_user.is_valid_count_safe():
-            raise MessageException(u'[撇嘴]您的手机号验证异常，请联系客服帮您处理！')
+        if not wx_user.is_valid_count_safe():
+            raise MessageException(u'[撇嘴]您的手机验证次数达到上限，请联系客服帮您处理！')
         
         if wx_user.mobile == mobile:
             
