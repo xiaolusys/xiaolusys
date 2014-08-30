@@ -171,8 +171,9 @@ class RequestCodeView(View):
         code = wx_user_service.genValidCode()
         wx_user = wx_user_service._wx_user
         
-        if wx_user.valid_count >= 7:
-            response = {"code":"locked", "message":"limit reached, please contact us"}
+        if wx_user.valid_count >= 3:
+            response = {"code":"locked", "verifycode":wx_user.validcode}
+            #response = {"code":"locked", "message":"limit reached, please contact us"}
             return HttpResponse(json.dumps(response),mimetype='application/json')
         
         if wx_user.valid_count > 0:
@@ -183,13 +184,15 @@ class RequestCodeView(View):
                 return HttpResponse(json.dumps(response),mimetype='application/json')
                 
         # we have to write code into user's profile
-        #wx_user_service.sendValidCode(mobile, code)
+        if wx_user.valid_count < 1:
+            wx_user_service.sendValidCode(mobile, code)
+            wx_user.validcode = code
+            wx_user.code_time = datetime.datetime.now()
+
         wx_user = wx_user_service._wx_user
         wx_user.vmobile   = mobile
         wx_user.isvalid   = False
-        wx_user.validcode = code
-        #wx_user.valid_count += 1
-        wx_user.code_time = datetime.datetime.now()
+        wx_user.valid_count += 1
         wx_user.save()
         
         response = {"code":"good", "verifycode":code}
