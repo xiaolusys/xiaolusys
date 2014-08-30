@@ -191,7 +191,7 @@
         }
 
         btn.attr("status","1");
-	btn[0].innerHTML = "60";
+	btn[0].innerHTML = "180";
         global_timer = window.setInterval(updateTime, 1000);
 
 	var openid = $("#id_openid").val();
@@ -200,7 +200,7 @@
 
         var callback = function (res) {
 	  if (res["code"] == "wait") {
-            $("#id_verify_msg")[0].innerHTML = "请先耐心等待60秒哦！";
+            $("#id_verify_msg")[0].innerHTML = "请先耐心等待180秒哦！";
             return;
           } 
 
@@ -209,9 +209,17 @@
 	    window.clearInterval(global_timer);
           }
 
+	  //if (res["code"] == "good") {
+          //  $("#id_code_input").val(res["verifycode"]);
+          //  $("#id_verify_msg")[0].innerHTML = "验证码已自动分配填写，请点击验证即可！";
+          //  return; 
+	  //}
 	  if (res["code"] == "locked") {
-            $("#id_verify_msg")[0].innerHTML = "验证次数达到上限，请联系微信客服处理！";
-            btn[0].innerHTML = "已达上限";
+            $("#id_code_input").val(res["verifycode"]);
+            $("#id_verify_msg")[0].innerHTML = "验证码已自动分配填写，请点击验证即可！";
+            //$("#id_verify_msg")[0].innerHTML = "验证次数达到上限，请联系微信客服处理！";
+            //btn[0].innerHTML = "已达上限";
+            btn[0].innerHTML = "成功发送";
             return;
           } 
 	  if (res["code"] == "anony") {

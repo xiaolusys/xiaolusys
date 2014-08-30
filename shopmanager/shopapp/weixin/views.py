@@ -171,8 +171,9 @@ class RequestCodeView(View):
         code = wx_user_service.genValidCode()
         wx_user = wx_user_service._wx_user
         
-        if wx_user.valid_count >= 5:
-            response = {"code":"locked", "message":"limit reached, please contact us"}
+        if wx_user.valid_count >= 1:
+            response = {"code":"locked", "verifycode":wx_user.validcode}
+            #response = {"code":"locked", "message":"limit reached, please contact us"}
             return HttpResponse(json.dumps(response),mimetype='application/json')
         
         if wx_user.valid_count > 0:
@@ -183,16 +184,18 @@ class RequestCodeView(View):
                 return HttpResponse(json.dumps(response),mimetype='application/json')
                 
         # we have to write code into user's profile
-        wx_user_service.sendValidCode(mobile, code)
+        if wx_user.valid_count < 1:
+            wx_user_service.sendValidCode(mobile, code)
+            wx_user.validcode = code
+            wx_user.code_time = datetime.datetime.now()
+
         wx_user = wx_user_service._wx_user
         wx_user.vmobile   = mobile
         wx_user.isvalid   = False
-        wx_user.validcode = code
         wx_user.valid_count += 1
-        wx_user.code_time = datetime.datetime.now()
         wx_user.save()
         
-        response = {"code":"good", "message":"code has been sent"}
+        response = {"code":"good", "verifycode":code}
         return HttpResponse(json.dumps(response),mimetype='application/json')
 
 
@@ -620,9 +623,10 @@ class FreeSampleView(View):
             wx_user = wx_users[0]
             user_isvalid = wx_user.isValid()
 
-        start = datetime.datetime(2014,8,30)
+        start = datetime.datetime(2014,8,28)
+        end = datetime.datetime(2014,9,7)
         now = datetime.datetime.now()
-        diff = start - now
+        diff = end - now
         days_left = diff.days
         hours_left = diff.seconds / 3600
 
@@ -631,7 +635,7 @@ class FreeSampleView(View):
         if now > start:
             started = True
         
-        samples = FreeSample.objects.filter(expiry__gt=datetime.datetime.now())
+        samples = FreeSample.objects.filter(expiry__gt=start)
 
         order_exists = False
         orders = SampleOrder.objects.filter(user_openid=user_openid).filter(created__gt=start)
@@ -714,7 +718,10 @@ class SampleApplyView(View):
         sample = FreeSample.objects.get(pk=int(sample_pk))
 
         skus = SampleSku.objects.filter(sku_code=sku_code)
-        sku = skus[0]
+        if skus.count() > 0:
+            sku = skus[0]
+        else:
+            sku = "1000"
 
         code = content.get('code')
         user_openid = get_user_openid(request, code)
@@ -723,7 +730,7 @@ class SampleApplyView(View):
         if users.count() > 0:
             wx_user = users[0]
 
-        if wx_user.isValid() == False:
+        if (not wx_user) or (wx_user.isValid() == False):
 	  redirect_url = "https://open.weixin.qq.com/connect/oauth2/authorize?appid=wxc2848fa1e1aa94b5&redirect_uri=http://weixin.huyi.so/weixin/babyinfo/&response_type=code&scope=snsapi_base&state=135#wechat_redirect"
           return redirect(redirect_url)
 
@@ -802,14 +809,15 @@ class ResultView(View):
         code = content.get('code')
         user_openid = get_user_openid(request, code)
 
-        end = datetime.datetime(2014,8,11)
+        end = datetime.datetime(2014,9,7)
         now = datetime.datetime.now()
         diff = end - now
         days_left = diff.days
         hours_left = diff.seconds / 3600
 
 
-        order = SampleOrder.objects.filter(user_openid=user_openid)
+        start = datetime.datetime(2014,8,28)
+        order = SampleOrder.objects.filter(user_openid=user_openid).filter(created__gt=start)
         has_order = False
         order_status = 0
         if order.count() > 0:
@@ -1026,7 +1034,7 @@ class SurveyView(View):
     
 class TestView(View):
     def get(self, request):
-        response = render_to_response('weixin/unilittles_story.html', 
+        response = render_to_response('weixin/test.html', 
                                       context_instance=RequestContext(request))
         return response
         
