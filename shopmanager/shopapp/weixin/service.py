@@ -182,9 +182,6 @@ class WeixinUserService():
         if not  wx_user.is_code_time_safe():      
             raise MessageException(u'请%d秒后重新发送'%(wx_user.get_wait_time()))
         
-        if not wx_user.is_valid_count_safe():
-            raise MessageException(u'[撇嘴]您的手机验证次数达到上限，请联系客服帮您处理！')
-        
         if wx_user.mobile == mobile:
             
             wx_user.vmobile   = mobile
@@ -192,6 +189,9 @@ class WeixinUserService():
             wx_user.save()
             valid_resp = WeiXinAutoResponse.objects.get(message=u'校验成功提示')
             raise MessageException(valid_resp.content.replace('\r',''))  
+        
+        if not wx_user.is_valid_count_safe():
+            raise MessageException(u'[撇嘴]您的手机验证次数达到上限，请联系客服帮您处理！')
         
         valid_code = self.genValidCode()
         self.sendValidCode(mobile,valid_code)        
