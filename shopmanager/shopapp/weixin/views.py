@@ -183,16 +183,16 @@ class RequestCodeView(View):
                 return HttpResponse(json.dumps(response),mimetype='application/json')
                 
         # we have to write code into user's profile
-        wx_user_service.sendValidCode(mobile, code)
+        #wx_user_service.sendValidCode(mobile, code)
         wx_user = wx_user_service._wx_user
         wx_user.vmobile   = mobile
         wx_user.isvalid   = False
         wx_user.validcode = code
-        wx_user.valid_count += 1
+        #wx_user.valid_count += 1
         wx_user.code_time = datetime.datetime.now()
         wx_user.save()
         
-        response = {"code":"good", "message":"code has been sent"}
+        response = {"code":"good", "verifycode":code}
         return HttpResponse(json.dumps(response),mimetype='application/json')
 
 
