@@ -6,7 +6,7 @@ from shopback.base.models import JSONCharMyField
 from .managers import WeixinProductManager,VipCodeManager
 from shopback.trades.models import MergeTrade
 
-SAFE_CODE_SECONDS = 60
+SAFE_CODE_SECONDS = 180
 
 class AnonymousWeixinAccount():
     
@@ -103,7 +103,7 @@ class AnonymousWeixinUser():
     
 class WeiXinUser(models.Model): 
     
-    MAX_MOBILE_VALID_COUNT = 5 
+    MAX_MOBILE_VALID_COUNT = 2 
     
     MEN      = 'm'
     FERMALE  = 'f'
@@ -171,10 +171,10 @@ class WeiXinUser(models.Model):
         delta_seconds =int((datetime.datetime.now() -
                              self.code_time).total_seconds())
         
-        return delta_seconds < 60 and  (60 - delta_seconds) or 0
+        return delta_seconds < SAFE_CODE_SECONDS and  (SAFE_CODE_SECONDS - delta_seconds) or 0
     
     def is_valid_count_safe(self):
-        return self.valid_count > self.MAX_MOBILE_VALID_COUNT
+        return self.valid_count <= self.MAX_MOBILE_VALID_COUNT
     
     def is_code_time_safe(self):
         
