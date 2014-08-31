@@ -22,7 +22,12 @@
       <p>亲，恭喜您，你的试用申请已<font style="color:red">审核通过</font>啦!</p>
       <p>专属VIP邀请码<font style="color:red">{{ vipcode }}</font>已被使用<font style="color:red;font-size:20px">{{ usage_count }}</font>次!</p>
       <p><a href="/weixin/payguide/">请仔细阅读兑奖流程说明 >></a></p>
-      <p>阅读完以上说明之后，请<a href="">点击进入兑奖 >></a></p>
+      {% if order_status % 2 == 1 %}
+      <p>阅读完以上说明之后，请<a href="/weixin/samplechoose/">点击进入兑奖 >></a></p>
+      {% else %}
+      <p>请扫描下面二维码加入优尼世界服务qq群：</p>
+      <p><a href="" class="thumbnail"><img src="https://mmbiz.qlogo.cn/mmbiz/yMhOQPTKhLsCsdrD3olCziclw9tokRj8dZ2U3Ocaoj1Du1dWtfrE84dSGk0jI7vHxwXafDib50JXxRrR02oL80Jg/0"></a></p>
+      {% endif %}
       {% else %}
       <p>亲，您的申请正在审核中。专属VIP邀请码<font style="color:red">{{ vipcode }}</font>已被使用<font style="color:red;font-size:20px">{{ usage_count }}</font>次，请继续加油！</p>
       {% endif %}
