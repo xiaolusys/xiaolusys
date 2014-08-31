@@ -835,9 +835,8 @@ class ResultView(View):
         if sample_chooses.count() > 0:
             sample_choose = sample_chooses[0]
         
-        five_batch = SampleOrder.objects.filter(status__gt=0).filter(status__lt=6).count()
-        six_batch = SampleOrder.objects.filter(status=6).count()
-        slots_left = 1000 - five_batch
+        first_batch = SampleOrder.objects.filter(status__gt=10).filter(created__gt=start).count()
+        slots_left = 1600 - first_batch
         
         usage_count = 0
         users = WeiXinUser.objects.filter(openid=user_openid)
@@ -854,8 +853,8 @@ class ResultView(View):
                                       {'days_left':days_left, 'hours_left':hours_left,
                                        'slots_left':slots_left, 'has_order':has_order,
                                        'order_status':order_status, 'vipcode':vipcode, 
-                                       'usage_count':usage_count, 'five_batch':five_batch, 
-                                       'six_batch':six_batch, 'pk':pk ,'sample_choose':sample_choose},
+                                       'usage_count':usage_count, 'first_batch':first_batch, 
+                                       'pk':pk ,'sample_choose':sample_choose},
                                       context_instance=RequestContext(request))
         response.set_cookie("openid",user_openid)        
         return response
