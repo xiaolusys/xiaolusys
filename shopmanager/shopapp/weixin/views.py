@@ -1081,8 +1081,8 @@ class SampleChooseView(View):
                                         vipcode=vipcodes[0].code,
                                         mobile=wx_user.mobile)
             
-        response = {"code":"ok",'redirect_url':'/weixin/inviteresult/'}
-        return HttpResponse(json.dumps(response),mimetype='application/json')
+        return redirect("/weixin/inviteresult/")        
+
 
     
 class TestView(View):
