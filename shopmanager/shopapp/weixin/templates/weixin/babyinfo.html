@@ -158,28 +158,27 @@
       var tags = ["#id_year", "#id_month", "#id_sex"];
       var fields = ["#id_receiver_name", "#id_province", "#id_city", "#id_streetaddr"];
 
-      function save2local(key) {
-        localStorage[key] = $(key).val();
+      function save2cookie(key) {
+        var val = $(key).val();
+        $.cookie(key, val);
       };
-      function getfromlocal(key) {
-        return localStorage[key];
+      function getfromcookie(key) {
+        return $.cookie(key);
       };
 
       $(function () {
-        if (localStorage) {
-          tags.forEach(function(tag) {
-            var val = getfromlocal(tag);
-            if (val) {
-              $(tag+"_"+val).attr("selected",true);
-            }
-          });
-          fields.forEach(function(field) {
-            var val = getfromlocal(field);
-            if (val) {
-              $(field).val(val);
-            }
-          });
-        }
+         tags.forEach(function(tag) {
+           var val = getfromcookie(tag);
+           if (val) {
+             $(tag+"_"+val).attr("selected",true);
+           }
+         });
+         fields.forEach(function(field) {
+           var val = getfromcookie(field);
+           if (val) {
+             $(field).val(val);
+           }
+         });
       });
 
       function validateMobile(s) {
@@ -297,10 +296,10 @@
 
       function babyinfo() {
 	tags.forEach(function (tag) {
-          save2local(tag);
+          save2cookie(tag);
         });
 	fields.forEach(function (field) {
-          save2local(field);
+          save2cookie(field);
         });
 
         if ($("#id_requestcode_button").attr("status") != "2") {
@@ -346,6 +345,6 @@
 
     
     </script>
-    <script src="{{ STATIC_URL }}jquery/jquery.autoSave.min.js"></script>
+    <script src="{{ STATIC_URL }}jquery/jquery.cookie.js"></script>
 {% endblock %}
     
