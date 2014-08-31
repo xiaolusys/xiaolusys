@@ -632,7 +632,7 @@ class FreeSampleView(View):
         days_left = diff.days
         hours_left = diff.seconds / 3600
 
-        slots_left = 800
+        slots_left = 1600
         started = False
         if now > start:
             started = True
@@ -658,6 +658,9 @@ class FreeSampleView(View):
         today = datetime.date.today()
         start_time = datetime.datetime(today.year, today.month, today.day)
         today_orders = SampleOrder.objects.filter(created__gt=start_time).count()
+        
+        consumed = SampleOrder.objects.filter(created__gt=start_time,status__gt=10).count()
+        slots_left = slots_left - consumed
         
         pk = None
         if wx_user:
