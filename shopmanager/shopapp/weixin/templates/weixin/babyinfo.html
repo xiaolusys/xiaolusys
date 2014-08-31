@@ -158,15 +158,17 @@
       var tags = ["#id_year", "#id_month", "#id_sex"];
       var fields = ["#id_receiver_name", "#id_province", "#id_city", "#id_streetaddr"];
 
+      window.onload = autofill;
+      
       function save2cookie(key) {
         var val = $(key).val();
         $.cookie(key, val);
-      };
+      }
       function getfromcookie(key) {
         return $.cookie(key);
-      };
+      }
 
-      $(function () {
+      function autofill() {
          tags.forEach(function(tag) {
            var val = getfromcookie(tag);
            if (val) {
@@ -179,7 +181,7 @@
              $(field).val(val);
            }
          });
-      });
+      }
 
       function validateMobile(s) {
         var validateReg = /^((\+?86)|(\(\+86\)))?1\d{10}$/;
