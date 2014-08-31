@@ -656,10 +656,10 @@ class FreeSampleView(View):
                 vip_exists = True
         
         today = datetime.date.today()
-        start_time = datetime.datetime(today.year, today.month, today.day)
-        today_orders = SampleOrder.objects.filter(created__gt=start_time).count()
+        today_time = datetime.datetime(today.year, today.month, today.day)
+        today_orders = SampleOrder.objects.filter(created__gt=today_time).count()
         
-        consumed = SampleOrder.objects.filter(created__gt=start_time,status__gt=10).count()
+        consumed = SampleOrder.objects.filter(created__gt=start,status__gt=10).count()
         slots_left = slots_left - consumed
         
         pk = None
