@@ -19,7 +19,8 @@ from .models import (WeiXinUser,
                      VipCode,
                      Coupon,
                      CouponClick,
-                     Survey)
+                     Survey,
+                     SampleChoose)
 
 from shopback.trades.models import MergeTrade
 from shopback import paramconfig as pcfg
@@ -815,8 +816,7 @@ class ResultView(View):
         diff = end - now
         days_left = diff.days
         hours_left = diff.seconds / 3600
-
-
+        
         start = datetime.datetime(2014,8,28)
         order = SampleOrder.objects.filter(user_openid=user_openid).filter(created__gt=start)
         has_order = False
@@ -825,6 +825,13 @@ class ResultView(View):
             has_order = True
             order_status = order[0].status
             
+        is_answer  = False
+      
+        sample_choose  = None
+        sample_chooses = SampleChoose.objects.filter(user_openid=user_openid)
+        if sample_chooses.count() > 0:
+            sample_choose = sample_chooses[0]
+        
         five_batch = SampleOrder.objects.filter(status__gt=0).filter(status__lt=6).count()
         six_batch = SampleOrder.objects.filter(status=6).count()
         slots_left = 1000 - five_batch
@@ -845,7 +852,7 @@ class ResultView(View):
                                        'slots_left':slots_left, 'has_order':has_order,
                                        'order_status':order_status, 'vipcode':vipcode, 
                                        'usage_count':usage_count, 'five_batch':five_batch, 
-                                       'six_batch':six_batch, 'pk':pk},
+                                       'six_batch':six_batch, 'pk':pk ,'sample_choose':sample_choose},
                                       context_instance=RequestContext(request))
         response.set_cookie("openid",user_openid)        
         return response
@@ -1030,6 +1037,51 @@ class SurveyView(View):
                 return HttpResponse(json.dumps(response),mimetype='application/json')
 
         response = {"code":"bad"}
+        return HttpResponse(json.dumps(response),mimetype='application/json')
+
+
+class SampleChooseView(View):
+    def get(self, request):
+        user_openid = request.COOKIES.get('openid')
+        
+        exist = False
+        wx_users = WeiXinUser.objects.filter(openid=user_openid)
+        if wx_users.count() > 0:
+            wx_user = wx_users[0]
+            sample_chooses = SampleChoose.objects.filter(user_openid=user_openid)
+            if sample_chooses.count() > 0:
+                exist = True
+        
+        response = render_to_response('weixin/sample_choose.html', 
+                                      {"exist":exist},
+                                      context_instance=RequestContext(request))
+        response.set_cookie("openid",user_openid)
+        return response
+
+    def post(self, request):
+        content = request.REQUEST
+        selection = int(content.get("selection","0"))
+        user_openid = request.COOKIES.get('openid')
+        
+        sample_orders  = SampleOrder.objects.filter(user_openid=user_openid,
+                                                    sample_product__outer_id='102011')
+        if sample_orders.count() == 0:
+            return HttpResponse(json.dumps({"code":"bad"}),mimetype='application/json') 
+        
+        vipcodes  = VipCode.objects.filter(owner_openid__openid=user_openid,
+                                           usage_count__gt=10)
+        if vipcodes.count() == 0:
+            return HttpResponse(json.dumps({"code":"bad"}),mimetype='application/json') 
+        
+        wx_user = WeiXinUser.objects.get(openid=user_openid)
+        sample_chooses = SampleChoose.objects.filter(user_openid=user_openid)
+        if sample_chooses.count() == 0:
+            SampleChoose.objects.create(user_openid=user_openid,
+                                        selection=selection,
+                                        vipcode=vipcodes[0].code,
+                                        mobile=wx_user.mobile)
+            
+        response = {"code":"ok",'redirect_url':'/weixin/inviteresult/'}
         return HttpResponse(json.dumps(response),mimetype='application/json')
 
     
