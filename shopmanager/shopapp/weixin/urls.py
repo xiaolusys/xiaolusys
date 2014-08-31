@@ -5,7 +5,31 @@ from django.views.decorators.cache import cache_page
 
 from django.views.generic import TemplateView
 from shopback.base.proxy  import ProxyView
-from shopapp.weixin.views import WeixinAcceptView,WeixinAddReferalView,ReferalView,OrderInfoView,BabyInfoView,RequestCodeView,VerifyCodeView,RefundSubmitView,RefundReviewView,RefundRecordView,FreeSampleView,SampleApplyView,SampleAdsView,SampleConfirmView,VipCodeVerifyView,ResultView,FinalListView,PayGuideView,CouponView,VipCouponView,RequestCouponView,CouponFaqView,SurveyView,TestView
+from shopapp.weixin.views import (WeixinAcceptView,
+                                  WeixinAddReferalView,
+                                  ReferalView,
+                                  OrderInfoView,
+                                  BabyInfoView,
+                                  RequestCodeView,
+                                  VerifyCodeView,
+                                  RefundSubmitView,
+                                  RefundReviewView,
+                                  RefundRecordView,
+                                  FreeSampleView,
+                                  SampleApplyView,
+                                  SampleAdsView,
+                                  SampleConfirmView,
+                                  VipCodeVerifyView,
+                                  ResultView,
+                                  FinalListView,
+                                  PayGuideView,
+                                  CouponView,
+                                  VipCouponView,
+                                  RequestCouponView,
+                                  CouponFaqView,
+                                  SurveyView,
+                                  SampleChooseView,
+                                  TestView)
 
 urlpatterns = patterns('shopapp.weixin.views',
 
@@ -51,6 +75,7 @@ urlpatterns = patterns('shopapp.weixin.views',
     url(r'^requestcoupon/$', RequestCouponView.as_view()),
     url(r'^couponfaq/$', CouponFaqView.as_view()),
     url(r'^survey/$', SurveyView.as_view()),
+    url(r'^samplechoose/$', SampleChooseView.as_view()),
     url(r'^test/$', TestView.as_view()),    
                      
     url(r'^validmobile/$', TemplateView.as_view(
