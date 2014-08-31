@@ -103,7 +103,7 @@ class AnonymousWeixinUser():
     
 class WeiXinUser(models.Model): 
     
-    MAX_MOBILE_VALID_COUNT = 2 
+    MAX_MOBILE_VALID_COUNT = 3 
     
     MEN      = 'm'
     FERMALE  = 'f'
@@ -713,3 +713,24 @@ class Survey(models.Model):
         db_table = 'shop_weixin_survey'
         verbose_name = u'用户调研'
         verbose_name_plural = u'用户调研列表'
+        
+        
+class SampleChoose(models.Model):
+    
+    A = 1
+    B = 2
+    choices = ((A,u'斗篷'),
+               (B,u'睡袋'))
+    
+    user_openid = models.CharField(max_length=64,unique=True,verbose_name=u"微信ID")
+    vipcode = models.CharField(max_length=16,null=False,blank=False,verbose_name=u'VIP邀请码')
+    mobile     = models.CharField(max_length=24,blank=True,verbose_name=u"手机")
+    selection = models.IntegerField(default=0,choices=choices,verbose_name=u'选择')
+    created = models.DateTimeField(auto_now_add=True,null=True,verbose_name=u'创建时间')
+
+    class Meta:
+        db_table = 'shop_weixin_sample_choose'
+        verbose_name = u'试用商品选择'
+        verbose_name_plural = u'使用商品选择列表'
+        
+        
