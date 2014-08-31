@@ -169,11 +169,15 @@
         if (localStorage) {
           tags.forEach(function(tag) {
             var val = getfromlocal(tag);
-            $(tag+"_"+val).attr("selected",true);
+            if (val) {
+              $(tag+"_"+val).attr("selected",true);
+            }
           });
           fields.forEach(function(field) {
             var val = getfromlocal(field);
-            $(field).val(val);
+            if (val) {
+              $(field).val(val);
+            }
           });
         }
       });
