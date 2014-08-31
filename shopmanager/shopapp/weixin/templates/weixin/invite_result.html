@@ -34,18 +34,11 @@
       <p>亲，分享、邀请，继续加油吧，惊喜等着您！</p>
 
       {% if False %}
-      {% if order_status > 10  %}
-      {% if order_status < 13 %}
+      {% if order_status > 0 %}
+      {% if order_status < 7 %}
       <p>亲，恭喜您，你的试用申请已<font style="color:red">审核通过</font>啦，所有中奖的妈妈，都请加入<a href="/weixin/referal/">优尼大使计划</a></p>
-      {% if order_status % 2 == 1 %}
-      	{% if not sample_order %}
       	<p>你获得了试用分腿睡袋或斗篷的资格，<a href="/weixin/samplechoose/">请点击进入选择</a></p>
-      	{% else %}
-      	
-      	{% endif %}
-      {% else %}
-      
-      {% endif %}
+
       <p>您邀请了<font style="color:red;">{{ usage_count }}位</font>好友，优尼世界感谢您的努力！</p>
       <p>请用下面二维码加入微信群“优尼世界服务群”，有专门的客服为您服务，指导您接下来的操作流程。</p>
       <a href="#" class="thumbnail">
