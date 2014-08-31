@@ -170,7 +170,7 @@
          tags.forEach(function(tag) {
            var val = getfromcookie(tag);
            if (val) {
-             $(tag+"_"+val).attr("selected",true);
+             $(tag+"_"+val).attr("selected","selected");
            }
          });
          fields.forEach(function(field) {
