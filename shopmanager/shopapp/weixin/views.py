@@ -1066,12 +1066,12 @@ class SampleChooseView(View):
         sample_orders  = SampleOrder.objects.filter(user_openid=user_openid,
                                                     sample_product__outer_id='102011')
         if sample_orders.count() == 0:
-            return HttpResponse(json.dumps({"code":"bad"}),mimetype='application/json') 
+            return HttpResponse(json.dumps({"code":"bad", "msg":"no sample order"}),mimetype='application/json') 
         
         vipcodes  = VipCode.objects.filter(owner_openid__openid=user_openid,
-                                           usage_count__gt=10)
+                                           usage_count__gt=9)
         if vipcodes.count() == 0:
-            return HttpResponse(json.dumps({"code":"bad"}),mimetype='application/json') 
+            return HttpResponse(json.dumps({"code":"bad", "msg":"no vipcode"}),mimetype='application/json') 
         
         wx_user = WeiXinUser.objects.get(openid=user_openid)
         sample_chooses = SampleChoose.objects.filter(user_openid=user_openid)
