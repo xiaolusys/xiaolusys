@@ -23,9 +23,9 @@
 	    <option value="0">请选择</option>
 	    {% for year in years %}
 	    {% if year == user.birth_year %}
-	    <option value="{{ year }}" selected="selected">{{ year }}</option>
+	    <option id="id_year_{{ year }}" value="{{ year }}" selected="selected">{{ year }}</option>
 	    {% else %}
-	    <option value="{{ year }}">{{ year }}</option>
+	    <option id="id_year_{{ year }}" value="{{ year }}">{{ year }}</option>
 	    {% endif %}
 	    {% endfor %}
 	  </select>
@@ -40,9 +40,9 @@
 	    <option value="0">请选择</option>
 	    {% for month in months %}
 	    {% if month == user.birth_month %}
-	    <option value="{{ month }}" selected="selected">{{ month }}</option>
+	    <option id="id_month_{{ month }}" value="{{ month }}" selected="selected">{{ month }}</option>
 	    {% else %}
-	    <option value="{{ month }}">{{ month }}</option>
+	    <option id="id_month_{{ month }}" value="{{ month }}">{{ month }}</option>
 	    {% endif %}
 	    {% endfor %}
 	  </select>
@@ -56,14 +56,14 @@
 	  <select id="id_sex" class="form-control input-sm">
 	    <option value="0">请选择</option>
 	    {% if user.baby_sex == "m" %}
-	    <option value="m" selected="selected">王子</option>
-	    <option value="f">公主</option>
+	    <option id="id_sex_m" value="m" selected="selected">王子</option>
+	    <option id="id_sex_f" value="f">公主</option>
 	    {% elif user.baby_sex == "f" %}
-	    <option value="m">王子</option>
-	    <option value="f" selected="selected">公主</option>
+	    <option id="id_sex_m" value="m">王子</option>
+	    <option id="id_sex_f" value="f" selected="selected">公主</option>
 	    {% else %}
-	    <option value="m">王子</option>
-	    <option value="f">公主</option>
+	    <option id="id_sex_m" value="m">王子</option>
+	    <option id="id_sex_f" value="f">公主</option>
 	    {% endif %}
 	  </select>
 	</div>
@@ -155,6 +155,26 @@
 
 {% block tail_script %}
     <script type="text/javascript">
+      var fields = ["#id_receiver_name", "#id_province", "#id_city", "#id_streetaddr"];
+
+      
+      function save2cookie(key) {
+        var val = $(key).val();
+        $.cookie(key, val);
+      }
+      function getfromcookie(key) {
+        return $.cookie(key);
+      }
+
+      $(function () {
+         fields.forEach(function(field) {
+           var val = getfromcookie(field);
+           if (val) {
+             $(field).val(val);
+           }
+         });
+      });
+
       function validateMobile(s) {
         var validateReg = /^((\+?86)|(\(\+86\)))?1\d{10}$/;
         return validateReg.test(s);
@@ -267,12 +287,17 @@
         $.ajax({url:url, data:data, success:callback});
       };
       
+
       function babyinfo() {
+	fields.forEach(function (field) {
+          save2cookie(field);
+        });
+
         if ($("#id_requestcode_button").attr("status") != "2") {
           $("#id_savelabel")[0].innerHTML = "请先验证手机号！";
           return;
         }
-        var year = $("#id_year").val();
+        var year = $("#id_year").val(); 
         var month = $("#id_month").val();
         var sex = $("#id_sex").val();
         var receiver_name = $("#id_receiver_name").val();
@@ -305,10 +330,12 @@
             {% endif %}
           }
         };
+        
         $.ajax({url:url, data:data, type:"post", success:callback});
       }
-      
-    </script>
 
+    
+    </script>
+    <script src="{{ STATIC_URL }}jquery/jquery.cookie.js" type="text/javascript"></script>
 {% endblock %}
     
