@@ -18,7 +18,8 @@ from shopapp.weixin.models import (WeiXinAccount,
                                    SampleSku,
                                    Coupon,
                                    CouponClick,
-                                   Survey
+                                   Survey,
+                                   SampleChoose
                                    )
 
 class WeiXinAccountAdmin(admin.ModelAdmin):
@@ -267,3 +268,10 @@ class SurveyAdmin(admin.ModelAdmin):
     list_filter = ('selection',)
 
 admin.site.register(Survey, SurveyAdmin) 
+
+class SampleChooseAdmin(admin.ModelAdmin):
+    list_display = ('user_openid', 'vipcode', 'selection','created')
+    search_fields = ['user_openid','vipcode','mobile']
+    list_filter = ('selection',)
+
+admin.site.register(SampleChoose, SampleChooseAdmin) 
