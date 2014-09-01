@@ -290,7 +290,7 @@ class OrderInfoView(View):
         
         passed = False
         start_time = datetime.datetime(2014,8,28)
-        sample_orders = SampleOrder.objects.filter(user_openid=user_openid).filter(status__gt=0).filter(status__lt=7).filter(created__gt=start_time)
+        sample_orders = SampleOrder.objects.filter(user_openid=user_openid).filter(status__gt=10).filter(status__lt=20).filter(created__gt=start_time)
         if sample_orders.count() > 0:
             passed = True
         
@@ -632,7 +632,7 @@ class FreeSampleView(View):
         days_left = diff.days
         hours_left = diff.seconds / 3600
 
-        slots_left = 800
+        slots_left = 1600
         started = False
         if now > start:
             started = True
@@ -656,8 +656,11 @@ class FreeSampleView(View):
                 vip_exists = True
         
         today = datetime.date.today()
-        start_time = datetime.datetime(today.year, today.month, today.day)
-        today_orders = SampleOrder.objects.filter(created__gt=start_time).count()
+        today_time = datetime.datetime(today.year, today.month, today.day)
+        today_orders = SampleOrder.objects.filter(created__gt=today_time).count()
+        
+        first_batch = SampleOrder.objects.filter(created__gt=start,status__gt=10).count()
+        slots_left = slots_left - first_batch
         
         pk = None
         if wx_user:
@@ -673,7 +676,7 @@ class FreeSampleView(View):
                                        "slots_left":slots_left,
                                        "started":started,"openid":user_openid,
                                        "vip_exists":vip_exists,
-                                       "vipcode":vipcode,
+                                       "vipcode":vipcode,"first_batch":first_batch,
                                        "pk":pk},
                                       context_instance=RequestContext(request))
         response.set_cookie("openid",user_openid)
@@ -832,9 +835,8 @@ class ResultView(View):
         if sample_chooses.count() > 0:
             sample_choose = sample_chooses[0]
         
-        five_batch = SampleOrder.objects.filter(status__gt=0).filter(status__lt=6).count()
-        six_batch = SampleOrder.objects.filter(status=6).count()
-        slots_left = 1000 - five_batch
+        first_batch = SampleOrder.objects.filter(status__gt=10).filter(created__gt=start).count()
+        slots_left = 1600 - first_batch
         
         usage_count = 0
         users = WeiXinUser.objects.filter(openid=user_openid)
@@ -851,8 +853,8 @@ class ResultView(View):
                                       {'days_left':days_left, 'hours_left':hours_left,
                                        'slots_left':slots_left, 'has_order':has_order,
                                        'order_status':order_status, 'vipcode':vipcode, 
-                                       'usage_count':usage_count, 'five_batch':five_batch, 
-                                       'six_batch':six_batch, 'pk':pk ,'sample_choose':sample_choose},
+                                       'usage_count':usage_count, 'first_batch':first_batch, 
+                                       'pk':pk ,'sample_choose':sample_choose},
                                       context_instance=RequestContext(request))
         response.set_cookie("openid",user_openid)        
         return response
@@ -866,15 +868,16 @@ class FinalListView(View):
         batch = int(kwargs.get('batch',1))
         month = int(kwargs.get('month',8))
         
-        start_time = datetime.datetime(2014,8,30)
+        start_time = datetime.datetime(2014,8,28)
         end_time = datetime.datetime(2014,9,7)
         order_list = None
         
         if month == 8:
             start_time = datetime.datetime(2014,8,1)
             end_time = datetime.datetime(2014,8,12)
-
-        order_list = SampleOrder.objects.filter(status__gt=0).filter(status__lt=7).filter(created__lt=end_time).filter(created__gt=start_time)
+            order_list = SampleOrder.objects.filter(status__gt=0).filter(status__lt=7).filter(created__lt=end_time).filter(created__gt=start_time)
+        else:
+            order_list = SampleOrder.objects.filter(status__gt=10).filter(status__lt=20).filter(created__gt=start_time)
         
         num_per_page = 20 # Show 20 contacts per page
         paginator = Paginator(order_list, num_per_page) 
@@ -1066,12 +1069,12 @@ class SampleChooseView(View):
         sample_orders  = SampleOrder.objects.filter(user_openid=user_openid,
                                                     sample_product__outer_id='102011')
         if sample_orders.count() == 0:
-            return HttpResponse(json.dumps({"code":"bad"}),mimetype='application/json') 
+            return HttpResponse(json.dumps({"code":"bad", "msg":"no sample order"}),mimetype='application/json') 
         
         vipcodes  = VipCode.objects.filter(owner_openid__openid=user_openid,
-                                           usage_count__gt=10)
+                                           usage_count__gt=9)
         if vipcodes.count() == 0:
-            return HttpResponse(json.dumps({"code":"bad"}),mimetype='application/json') 
+            return HttpResponse(json.dumps({"code":"bad", "msg":"no vipcode"}),mimetype='application/json') 
         
         wx_user = WeiXinUser.objects.get(openid=user_openid)
         sample_chooses = SampleChoose.objects.filter(user_openid=user_openid)
@@ -1081,8 +1084,8 @@ class SampleChooseView(View):
                                         vipcode=vipcodes[0].code,
                                         mobile=wx_user.mobile)
             
-        response = {"code":"ok",'redirect_url':'/weixin/inviteresult/'}
-        return HttpResponse(json.dumps(response),mimetype='application/json')
+        return redirect("/weixin/inviteresult/")        
+
 
     
 class TestView(View):

@@ -9,7 +9,8 @@
   <div class="panel panel-default" style="margin-top:5px">
     <div class="panel-heading" style="color:orange">公告</div>
     <div class="panel-body">
-      <p style="color:#e8792a">亲，优尼世界9月大礼：800件时尚婴幼儿斗篷/披风，加礼盒包装免费派送，<a href="/weixin/freesamples/">快来抢啊！ >> </a></p>
+      <p style="color:#e8792a">亲，优尼世界9月大礼：800件时尚婴幼儿斗篷/披风，另加800份神秘大礼，共计1600份！<a href="/weixin/freesamples/">快来抢啊！ >> </a></p>
+      <p style="color:#e8792a">第一批中奖名单，共{{ first_batch }}名，邀请码使用<font style="color:red">22</font>次以上，祝贺她们！<a href="/weixin/finallist/1/1/9/">查看详情 >></a></p>
     </div>
   </div>
 
@@ -18,7 +19,30 @@
     <div class="panel-heading" style="color:orange">9月试用审核状态</div>
     <div class="panel-body">
       {% if has_order %}
+      {% if order_status > 10 %}
+      <p>亲，恭喜您，你的试用申请已<font style="color:red">审核通过</font>啦!</p>
+      <p>专属VIP邀请码<font style="color:red">{{ vipcode }}</font>已被使用<font style="color:red;font-size:20px">{{ usage_count }}</font>次!</p>
+      <p><a href="/weixin/payguide/">请仔细阅读兑奖流程说明 >></a></p>
+        {% if order_status|divisibleby:2 %}
+        <p>阅读完以上说明之后，请扫描下面二维码加入优尼世界服务qq群（把二维码图片保存到手机，微信扫一扫，选择右上角“相册”）：</p>
+        <p><a href="" class="thumbnail"><img src="https://mmbiz.qlogo.cn/mmbiz/yMhOQPTKhLsCsdrD3olCziclw9tokRj8dZ2U3Ocaoj1Du1dWtfrE84dSGk0jI7vHxwXafDib50JXxRrR02oL80Jg/0"></a></p>
+        <p style="color:red">申请进群时，请提供您的VIP邀请码！若不能进群，请联系微信客服！</p>
+        {% else %}
+          {% if sample_choose %}
+          <p>阅读完以上说明之后，请扫描下面二维码加入优尼世界服务qq群（把二维码图片保存到手机，微信扫一扫，选择右上角“相册”）：</p>
+            {% if sample_choose.selection == 1 %}
+            <p><a href="" class="thumbnail"><img src="https://mmbiz.qlogo.cn/mmbiz/yMhOQPTKhLsCsdrD3olCziclw9tokRj8dZ2U3Ocaoj1Du1dWtfrE84dSGk0jI7vHxwXafDib50JXxRrR02oL80Jg/0"></a></p>
+            {% else %}
+            <p><a href="" class="thumbnail"><img src="https://mmbiz.qlogo.cn/mmbiz/yMhOQPTKhLsCsdrD3olCziclw9tokRj8dg2qHdL13ic8gme5kmiaia2TYhwQkv45XtqevMCtria16Lv0vSiapRjbWjeQ/0"></a></p>
+            {% endif %}
+          <p style="color:red">申请进群时，请提供您的VIP邀请码！若不能进群，请联系微信客服！</p>
+          {% else %}
+          <p>阅读完以上说明之后，请<a href="/weixin/samplechoose/">点击进入兑奖 >></a></p>
+          {% endif %}
+        {% endif %}
+      {% else %}
       <p>亲，您的申请正在审核中。专属VIP邀请码<font style="color:red">{{ vipcode }}</font>已被使用<font style="color:red;font-size:20px">{{ usage_count }}</font>次，请继续加油！</p>
+      {% endif %}
       {% else %}
       <p style="color:#029fd6">亲，您还没有提交试用申请哦！</p>
       {% endif %}
@@ -27,18 +51,11 @@
       <p>亲，分享、邀请，继续加油吧，惊喜等着您！</p>
 
       {% if False %}
-      {% if order_status > 10  %}
-      {% if order_status < 13 %}
+      {% if order_status > 0 %}
+      {% if order_status < 7 %}
       <p>亲，恭喜您，你的试用申请已<font style="color:red">审核通过</font>啦，所有中奖的妈妈，都请加入<a href="/weixin/referal/">优尼大使计划</a></p>
-      {% if order_status % 2 == 1 %}
-      	{% if not sample_order %}
       	<p>你获得了试用分腿睡袋或斗篷的资格，<a href="/weixin/samplechoose/">请点击进入选择</a></p>
-      	{% else %}
-      	
-      	{% endif %}
-      {% else %}
-      
-      {% endif %}
+
       <p>您邀请了<font style="color:red;">{{ usage_count }}位</font>好友，优尼世界感谢您的努力！</p>
       <p>请用下面二维码加入微信群“优尼世界服务群”，有专门的客服为您服务，指导您接下来的操作流程。</p>
       <a href="#" class="thumbnail">
