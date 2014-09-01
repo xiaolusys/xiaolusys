@@ -14,15 +14,15 @@
 
       <div class="row">
 	<div class="col-xs-6" style="text-align:center">
-	  <h5 style="color:#e8792a">选择一：婴幼儿时尚斗篷/披风</h5>
-	  <a href="http://mp.weixin.qq.com/bizmall/malldetail?id=&pid=pMt59uO9ALgEo18Zz7dcDyEqiUbQ&biz=MzA5NTI1NjYyNg==&scene=&action=show_detail&showwxpaytitle=1#wechat_redirect" class="thumbnail">
-	    <img src="https://mmbiz.qlogo.cn/mmbiz/yMhOQPTKhLtMTpiclRQJZ7aBpwKS3xsvUXAqTHAHJBxx0s4CewutslnXYicWiaZtX34jtECwgv5IkV7gibxczqAo7A/0" alt="...">
+	  <h5 style="color:#e8792a">选择一：婴幼儿时尚分腿睡袋</h5>
+	  <a href="#" class="thumbnail">
+	    <img src="https://mmbiz.qlogo.cn/mmbiz/yMhOQPTKhLsRWbEbeOiaHBExWQGPyK4ajDrgnPFsnlSARzIJ0S0EwYCYwn6E52IBa23sO88pByhKoOdXgWTo3bw/0" alt="...">
 	  </a>
 	</div>
 	<div class="col-xs-6" style="text-align:center">
-	  <h5 style="color:#e8792a">选择二：婴幼儿时尚分腿睡袋</h5>
-	  <a href="http://mp.weixin.qq.com/bizmall/malldetail?id=&pid=pMt59uLzyCZkBcdK1rU9-bjKOkco&biz=MzA5NTI1NjYyNg==&scene=&action=show_detail&showwxpaytitle=1#wechat_redirect" class="thumbnail">
-	    <img src="https://mmbiz.qlogo.cn/mmbiz/yMhOQPTKhLvuSp8nx80CxFU6BqRvnNq17rGeyo6boPyITfGMbJvImH5Ckx0DtHzW0ictUWaqV5qeGIbUqS3yZxQ/0" alt="...">
+	  <h5 style="color:#e8792a">选择二：婴幼儿时尚斗篷/披风</h5>
+	  <a href="#" class="thumbnail">
+	    <img src="https://mmbiz.qlogo.cn/mmbiz/yMhOQPTKhLtMTpiclRQJZ7aBpwKS3xsvUXAqTHAHJBxx0s4CewutslnXYicWiaZtX34jtECwgv5IkV7gibxczqAo7A/0" alt="...">
 	  </a>
 	</div>
       </div>
@@ -32,8 +32,8 @@
 	<div class="col-xs-8" style="text-align:center" id="id_msg">
 	  <form method="post" action="/weixin/samplechoose/">{% csrf_token %}
 	  <select id="id_selection" name="selection" class="form-control input-sm">
+	    <option value="2">时尚分腿睡袋（0-6岁）</option>
 	    <option value="1">时尚斗篷/披风</option>
-	    <option value="2">时尚分腿睡袋</option>
 	  </select>
 	  <div class="col-xs-12" style="text-align:center;margin-top:10px" id="id_promt"></div>
 	  <button type="submit" class="btn btn-warning" id="id_submit">确定选择</button>
