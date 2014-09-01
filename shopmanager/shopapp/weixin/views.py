@@ -659,8 +659,9 @@ class FreeSampleView(View):
         today_time = datetime.datetime(today.year, today.month, today.day)
         today_orders = SampleOrder.objects.filter(created__gt=today_time).count()
         
-        first_batch = SampleOrder.objects.filter(created__gt=start,status__gt=10).count()
-        slots_left = slots_left - first_batch
+        first_batch = SampleOrder.objects.filter(created__gt=start,status__gt=10,status__lt=13).count()
+        second_batch = SampleOrder.objects.filter(created__gt=start,status__gt=12,status__lt=15).count()
+        slots_left = slots_left - (first_batch + second_batch)
         
         pk = None
         if wx_user:
@@ -677,6 +678,7 @@ class FreeSampleView(View):
                                        "started":started,"openid":user_openid,
                                        "vip_exists":vip_exists,
                                        "vipcode":vipcode,"first_batch":first_batch,
+                                       "second_batch":second_batch,
                                        "pk":pk},
                                       context_instance=RequestContext(request))
         response.set_cookie("openid",user_openid)
@@ -872,13 +874,19 @@ class FinalListView(View):
         end_time = datetime.datetime(2014,9,7)
         order_list = None
         
+        status_start, status_end = 0,0
+        if batch == 1:
+            status_start,status_end = 10,13
+        if batch == 2:
+            status_start,status_end = 12,15
+        
         if month == 8:
             start_time = datetime.datetime(2014,8,1)
             end_time = datetime.datetime(2014,8,12)
             order_list = SampleOrder.objects.filter(status__gt=0).filter(status__lt=7).filter(created__lt=end_time).filter(created__gt=start_time)
         else:
-            order_list = SampleOrder.objects.filter(status__gt=10).filter(status__lt=20).filter(created__gt=start_time)
-        
+            order_list = SampleOrder.objects.filter(status__gt=status_start).filter(status__lt=status_end).filter(created__gt=start_time)
+                
         num_per_page = 20 # Show 20 contacts per page
         paginator = Paginator(order_list, num_per_page) 
 
