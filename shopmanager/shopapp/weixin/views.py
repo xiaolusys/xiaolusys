@@ -837,8 +837,9 @@ class ResultView(View):
         if sample_chooses.count() > 0:
             sample_choose = sample_chooses[0]
         
-        first_batch = SampleOrder.objects.filter(status__gt=10).filter(created__gt=start).count()
-        slots_left = 1600 - first_batch
+        first_batch = SampleOrder.objects.filter(status__gt=10,status__lt=13).filter(created__gt=start).count()
+        second_batch = SampleOrder.objects.filter(status__gt=12,status__lt=15).filter(created__gt=start).count()
+        slots_left = 1600 - (first_batch + second_batch)
         
         usage_count = 0
         users = WeiXinUser.objects.filter(openid=user_openid)
@@ -856,6 +857,7 @@ class ResultView(View):
                                        'slots_left':slots_left, 'has_order':has_order,
                                        'order_status':order_status, 'vipcode':vipcode, 
                                        'usage_count':usage_count, 'first_batch':first_batch, 
+                                       'second_batch':second_batch,
                                        'pk':pk ,'sample_choose':sample_choose},
                                       context_instance=RequestContext(request))
         response.set_cookie("openid",user_openid)        
