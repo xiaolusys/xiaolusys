@@ -731,6 +731,6 @@ class SampleChoose(models.Model):
     class Meta:
         db_table = 'shop_weixin_sample_choose'
         verbose_name = u'试用商品选择'
-        verbose_name_plural = u'使用商品选择列表'
+        verbose_name_plural = u'试用商品选择列表'
         
         
