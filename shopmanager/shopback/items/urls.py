@@ -13,6 +13,7 @@ from shopback.base.renderers  import BaseJsonRenderer
 from shopback.base.permissions import IsAuthenticated
 from shopback.base.authentication import UserLoggedInAuthentication,login_required_ajax
 
+
 urlpatterns = patterns('shopback.items.views',
 
     url('update/items/$','update_user_items',name='update_items'),

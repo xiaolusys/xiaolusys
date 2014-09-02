@@ -1,6 +1,7 @@
 from django.conf.urls.defaults    import patterns, include, url
 from django.views.decorators.csrf import csrf_exempt
 from django.conf import settings
+from django.contrib.admin.views.decorators import staff_member_required
 from django.views.decorators.cache import cache_page
 
 from django.views.generic import TemplateView
@@ -67,8 +68,8 @@ urlpatterns = patterns('shopapp.weixin.views',
     url(r'^requestcode/$', RequestCodeView.as_view()),
     url(r'^verifycode/$', VerifyCodeView.as_view()),
     url(r'^refundsubmit/$', RefundSubmitView.as_view()),                       
-    url(r'^refundreview/$', RefundReviewView.as_view()),
-    url(r'^refundrecord/$', RefundRecordView.as_view()),
+    url(r'^refundreview/$', staff_member_required(RefundReviewView.as_view())),
+    url(r'^refundrecord/$', staff_member_required(RefundRecordView.as_view())),
     url(r'^payguide/$', PayGuideView.as_view()),
     url(r'^coupon/(?P<user_pk>\d+)/(?P<coupon_pk>\d+)/$', CouponView.as_view()),
     url(r'^vipcoupon/$', VipCouponView.as_view()),
