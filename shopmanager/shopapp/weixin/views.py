@@ -598,7 +598,7 @@ class RefundRecordView(View):
             wx_users = WeiXinUser.objects.filter(mobile=mobile)
             if wx_users.count() > 0:
                 openid = wx_users[0].openid
-                orders = SampleOrder.objects.filter(user_openid=openid).filter(status__gt=0)
+                orders = SampleOrder.objects.filter(user_openid=openid).filter(status__gt=10).filter(status__lt=15)
                 if orders.count() > 0:
                     sample_order = orders[0]
 
