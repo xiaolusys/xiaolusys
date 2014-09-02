@@ -23,7 +23,8 @@ from shopback.trades.views    import (StatisticMergeOrderView,
                                       ExchangeOrderInstanceView,
                                       DirectOrderInstanceView,
                                       replay_trade_send_result,
-                                      countFenxiaoAcount)
+                                      countFenxiaoAcount,
+                                      showFenxiaoDetail)
 
 from shopback.base.renderers  import BaseJsonRenderer
 from shopback.trades.renderers import (CheckOrderRenderer,
@@ -141,6 +142,6 @@ urlpatterns = patterns('shopback.trades.views',
     
     (r'fenxiao/count/$',csrf_exempt(countFenxiaoAcount)),
 
-    (r'fenxiao/count/detail/$','showFenxiaoDetail'),
+    (r'fenxiao/count/detail/$',staff_member_required(showFenxiaoDetail)),
     
 )

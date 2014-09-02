@@ -17,8 +17,8 @@ urlpatterns = patterns('shopback.purchases.views',
     (r'^add/$',csrf_exempt(PurchaseView.as_view(
         resource=PurchaseResource,
         renderers=(PurchaseHtmlRenderer,BaseJsonRenderer),
-#        authentication=(UserLoggedInAuthentication,),
-#        permissions=(IsAuthenticated,)
+        authentication=(UserLoggedInAuthentication,),
+        permissions=(IsAuthenticated,)
     ))),
     (r'^(?P<id>\d{1,20})/$',csrf_exempt(PurchaseInsView.as_view(
         resource=PurchaseResource,
