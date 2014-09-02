@@ -7,6 +7,7 @@ from django.http import HttpResponse,HttpResponseNotFound
 from django.shortcuts import render_to_response
 from django.template import RequestContext
 from django.db.models import Q,Sum
+from django.conf import settings
 from django.views.decorators.csrf import csrf_exempt
 from django.template.loader import render_to_string
 from djangorestframework.serializer import Serializer
@@ -22,7 +23,7 @@ from shopback.archives.models import DepositeDistrict
 from shopback.users.models import User
 from shopback.items.tasks import updateUserItemsTask,updateItemNum
 from shopback.base.authentication import login_required_ajax
-from auth import apis
+from auth import apis,staff_requried
 from common.utils  import update_model_fields,parse_date,format_date
 from shopback.base import log_action, ADDITION, CHANGE
 import logging
@@ -31,6 +32,7 @@ DISTRICT_REGEX = '^(?P<pno>[a-zA-Z0-9]+)-(?P<dno>[a-zA-Z0-9]+)?$'
 ASSRIGN_PARAMS_REGEX = '^(?P<num_iid>[0-9]+)-(?P<sku_id>[0-9]+)?$'
 logger = logging.getLogger('django.request')
 
+@staff_requried(login_url=settings.LOGIN_URL)
 def update_user_items(request):
 
     content = request.REQUEST
@@ -125,7 +127,7 @@ def update_product_stock(request):
     return HttpResponse(json.dumps(response),mimetype='application/json')
 
 #######################################################################################33
-
+@staff_requried(login_url=settings.LOGIN_URL)
 def update_user_item(request):
 
     content = request.REQUEST
