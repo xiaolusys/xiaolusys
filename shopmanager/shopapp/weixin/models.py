@@ -124,7 +124,7 @@ class WeiXinUser(models.Model):
     province   = models.CharField(max_length=24,blank=True,verbose_name=u"省份")
     city       = models.CharField(max_length=24,blank=True,verbose_name=u"城市")
     address    = models.CharField(max_length=256,blank=True,verbose_name=u"地址")
-    mobile     = models.CharField(max_length=24,blank=True,verbose_name=u"手机")
+    mobile     = models.CharField(max_length=24,db_index=True,blank=True,verbose_name=u"手机")
     referal_from_openid = models.CharField(max_length=64,blank=True,db_index=True,verbose_name=u"推荐人ID")
     
     receiver_name   = models.CharField(max_length=64,blank=True,verbose_name=u"收货人")

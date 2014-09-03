@@ -139,10 +139,13 @@ class WeixinUserService():
             try:     
                 userinfo = self. _wx_api.getUserInfo(openId)
                 pre_subscribe_time = wx_user.subscribe_time
+                pre_mobile         = wx_user.mobile
+                pre_nickname       = wx_user.nickname
                 for k,v in userinfo.iteritems():
                     hasattr(wx_user,k) and setattr(wx_user,k,v or getattr(wx_user,k))
                 
-                wx_user.nickname = replace_utf8mb4(wx_user.nickname.decode('utf8'))
+                wx_user.nickname = pre_nickname or replace_utf8mb4(wx_user.nickname.decode('utf8'))
+                wx_user.mobile   = pre_mobile
                 subscribe_time = userinfo.get('subscribe_time',None)
                 if subscribe_time:
                     wx_user.subscribe_time = pre_subscribe_time or datetime.datetime\
@@ -218,7 +221,7 @@ class WeixinUserService():
          if wxusers.count() > 0:
              raise MessageException(u'该手机号码已被其他用户验证。')
          
-         wx_user.mobile  = wx_user.vmobile
+         wx_user.mobile  = wx_user.vmobile or wx_user.mobile
          wx_user.isvalid = True
          wx_user.save()
          
