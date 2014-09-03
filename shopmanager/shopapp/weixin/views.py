@@ -213,7 +213,7 @@ class VerifyCodeView(View):
         if not wx_user.validcode or wx_user.validcode != verifycode:
             response = {"code":"bad", "message":"invalid code"}
         else:    
-            wx_user.mobile = wx_user.vmobile
+            wx_user.mobile = wx_user.vmobile or wx_user.mobile
             wx_user.isvalid = True
             wx_user.save()
             
