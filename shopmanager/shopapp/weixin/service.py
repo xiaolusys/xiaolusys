@@ -221,7 +221,7 @@ class WeixinUserService():
          if wxusers.count() > 0:
              raise MessageException(u'该手机号码已被其他用户验证。')
          
-         wx_user.mobile  = wx_user.vmobile
+         wx_user.mobile  = wx_user.vmobile or wx_user.mobile
          wx_user.isvalid = True
          wx_user.save()
          
