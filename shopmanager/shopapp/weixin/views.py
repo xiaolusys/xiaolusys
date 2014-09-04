@@ -901,6 +901,9 @@ class FinalListView(View):
             status_start,status_end = 14,16
         if batch == 4:
             status_start,status_end = 16,18
+        if batch == 5:
+            status_start,status_end = 18,20
+
         
         if month == 8:
             start_time = datetime.datetime(2014,8,1)
