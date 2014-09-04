@@ -1192,6 +1192,96 @@ class OrderListView(ModelView):
             
         return {'order_list':order_list}
     
+############################### 关联销售商品 #################################  
+
+class RelatedOrderStateView(ModelView):
+    """ docstring for class RelatedOrderStateView """
+    
+    def get(self, request, *args, **kwargs):
+        
+        content = request.REQUEST
+        df   = content.get('df')
+        dt   = content.get('dt')
+        outer_id = content.get('outer_id','')
+        outer_sku_ids = content.get('sku_ids')
+        limit  = content.get('limit',10) 
+        
+        if df and dt:
+            start_dt = parse_date(df)
+            end_dt   = parse_date(dt)
+            start_dt = datetime.datetime(start_dt.year,start_dt.month,start_dt.day,0,0,0)
+            end_dt   = datetime.datetime(end_dt.year,end_dt.month,end_dt.day,23,59,59)
+        else:
+            dt  = datetime.datetime.now()
+            start_dt = datetime.datetime(dt.year,dt.month,dt.day,0,0,0)
+            end_dt   = datetime.datetime(dt.year,dt.month,dt.day,23,59,59)
+        
+        order_item_list  = []
+        if outer_id:
+            merge_orders = MergeOrder.objects.filter(outer_id=outer_id,
+                                                created__gte=start_dt,
+                                                created__lte=end_dt).exclude(
+                           status__in=(pcfg.TRADE_CLOSED_BY_TAOBAO,
+                                       pcfg.WAIT_BUYER_PAY,
+                                       pcfg.TRADE_CLOSED))
+            if outer_sku_ids:
+                sku_ids = outer_sku_ids.split(',')
+                merge_orders = merge_orders.filter(outer_sku_id__in=sku_ids)
+                
+            buyer_set = set()
+            relative_orders_dict = {} 
+            for order in merge_orders:
+                receiver_mobile = order.merge_trade.receiver_mobile
+                try:
+                    buyer_set.remove(receiver_mobile)
+                except:
+                    buyer_set.add(receiver_mobile)
+                    relat_orders = MergeOrder.objects.filter(
+                                        merge_trade__receiver_mobile=receiver_mobile,
+                                        is_merge=False,
+                                        created__gte=start_dt,
+                                        created__lte=end_dt).exclude(
+                                             status__in=(pcfg.TRADE_CLOSED_BY_TAOBAO,
+                                                         pcfg.WAIT_BUYER_PAY,
+                                                         pcfg.TRADE_CLOSED))
+                    for o in relat_orders:
+                        relat_outer_id = o.outer_id
+                        if relative_orders_dict.has_key(relat_outer_id):
+                            relative_orders_dict[relat_outer_id]['cnum'] += o.num
+                        else:
+                            relative_orders_dict[relat_outer_id] = {'pic_path':o.pic_path,
+                                                                    'title':o.title,
+                                                                    'cnum':o.num}
+                else:
+                    buyer_set.add(receiver_mobile)
+                
+            relat_order_list = sorted(relative_orders_dict.items(),
+                                      key=lambda d:d[1]['cnum'],
+                                      reverse=True)  
+
+            for order in relat_order_list[0:int(limit)]:
+                pic_path = order[1]['pic_path']
+                try:
+                    product = Product.objects.get(outer_id=order[0])
+                except Product.DoesNotExist:
+                    pass
+                else:
+                    pic_path = pic_path or product.pic_path
+                order_item = []
+                order_item.append(order[0])
+                order_item.append(pic_path)
+                order_item.append(order[1]['title'])
+                order_item.append(order[1]['cnum'])
+                order_item_list.append(order_item)
+            print order_item_list
+
+        return {'df':format_date(start_dt),
+                'dt':format_date(end_dt),
+                'outer_id':outer_id,
+                'limit':limit,
+                'order_items':order_item_list}
+        
+    post = get
     
 ############################### 订单物流信息列表 #################################     
 class TradeLogisticView(ModelView):
@@ -1208,7 +1298,8 @@ class TradeLogisticView(ModelView):
         TOTAL_count = 0
         
         if q:
-            mergetrades = MergeTrade.objects.filter(out_sid=q.strip('\' '),is_express_print=True)
+            mergetrades = MergeTrade.objects.filter(out_sid=q.strip('\' '),
+                                                    is_express_print=True)
             for trade in mergetrades:
                 trade_dict = {"tid":trade.tid,
                               "seller_nick":trade.user.nick,
@@ -1231,7 +1322,8 @@ class TradeLogisticView(ModelView):
         if df:
             df = parse_date(df).date()
             queryset = MergeTrade.objects.filter(sys_status=pcfg.FINISHED_STATUS,
-                                                 weight_time__gt=df,logistics_company__code__in=("YUNDA","YUNDA_QR"))
+                                                 weight_time__gt=df,
+                                                 logistics_company__code__in=("YUNDA","YUNDA_QR"))
             if dt:
                 dt = parse_date(dt).date()
                 queryset = queryset.filter(weight_time__lt=dt)
@@ -1253,11 +1345,15 @@ class TradeLogisticView(ModelView):
     
     post = get 
     
+    
 def calFenxiaoInterval(fdt,tdt):
     fenxiao_array= []
     fenxiao_dict = {}
     fenxiao_sum  = 0
-    fenxiao = MergeTrade.objects.filter(pay_time__gte=fdt,pay_time__lte=tdt,type=pcfg.FENXIAO_TYPE,sys_status=pcfg.FINISHED_STATUS)
+    fenxiao = MergeTrade.objects.filter(pay_time__gte=fdt,
+                                        pay_time__lte=tdt,
+                                        type=pcfg.FENXIAO_TYPE,
+                                        sys_status=pcfg.FINISHED_STATUS)
     #buyer_nick 
     for f in fenxiao:
         
@@ -1267,14 +1363,14 @@ def calFenxiaoInterval(fdt,tdt):
         else:
             fenxiao_dict[buyer_nick] = float(f.payment or 0)
     fenxiao_array = fenxiao_dict.items()
-    print 'fenxiao_array',fenxiao_array
+    
     fenxiao_array.sort(lambda x,y:cmp(x[1],y[1]))
     for key in fenxiao_array:
         fenxiao_sum=fenxiao_sum+key[1]
     fenxiao_array.append(["sum",fenxiao_sum])
-    print 'fenxiao_sum',fenxiao_sum
 
     return fenxiao_array
+    
     
 def countFenxiaoAcount(request):
     
@@ -1282,39 +1378,55 @@ def countFenxiaoAcount(request):
     fromDate = content.get('fromDate')
     toDate   = content.get('endDate')
     
-    toDate   = toDate and datetime.datetime.strptime(toDate, '%Y%m%d').date() or datetime.datetime.now().date()
+    toDate   = (toDate 
+                and datetime.datetime.strptime(toDate, '%Y%m%d').date() 
+                or datetime.datetime.now().date())
         
-    fromDate = fromDate and datetime.datetime.strptime(fromDate, '%Y%m%d').date() or toDate - datetime.timedelta(days=1) 
+    fromDate = (fromDate 
+                and datetime.datetime.strptime(fromDate, '%Y%m%d').date() 
+                or toDate - datetime.timedelta(days=1)) 
     fromDateShow = fromDate.strftime('%Y%m%d')
     toDateShow   = toDate.strftime('%Y%m%d')
     fenxiaoDict = calFenxiaoInterval(fromDate,toDate)
     print 'fromDateShow',fromDateShow
     
-    return render_to_response('trades/trade_fenxiao_count.html', {'data': fenxiaoDict,'fromDateShow':fromDateShow,'toDateShow':toDateShow,},  context_instance=RequestContext(request))
+    return render_to_response('trades/trade_fenxiao_count.html', 
+                              {'data': fenxiaoDict,
+                               'fromDateShow':fromDateShow,
+                               'toDateShow':toDateShow,},
+                              context_instance=RequestContext(request))
+
 
 def showFenxiaoDateilFilter(fenxiao,fdt,tdt):
-    fenxiao = MergeTrade.objects.filter(buyer_nick=fenxiao,pay_time__gte=fdt,pay_time__lte=tdt,type=pcfg.FENXIAO_TYPE,sys_status=pcfg.FINISHED_STATUS)
+    fenxiao = MergeTrade.objects.filter(buyer_nick=fenxiao,
+                                        pay_time__gte=fdt,
+                                        pay_time__lte=tdt,
+                                        type=pcfg.FENXIAO_TYPE,
+                                        sys_status=pcfg.FINISHED_STATUS)
 #    print "fenxiao",fenxiao[2].tid 
     return fenxiao
     
 def showFenxiaoDetail(request):
     
-#for date to form
     content = request.GET
     fenxiao = content.get('fenxiao')
-    print 'fenxiao',fenxiao
+   
     fromDate  = content.get('fdt').replace('-','')
-    oneday = datetime.timedelta(days=1)
-    toDate  = content.get('tdt')
+    oneday    = datetime.timedelta(days=1)
+    toDate    = content.get('tdt')
     
     if toDate:
         toDate=datetime.date.today().strftime('%Y%m%d')
     else:
         toDate  =toDate.replace('-','')
 
-    toDate   = toDate and datetime.datetime.strptime(toDate, '%Y%m%d').date() or datetime.datetime.now().date()
+    toDate   = (toDate  
+                and datetime.datetime.strptime(toDate, '%Y%m%d').date() 
+                or datetime.datetime.now().date())
     toDate = toDate+oneday
-    fromDate = fromDate and datetime.datetime.strptime(fromDate, '%Y%m%d').date() or toDate - datetime.timedelta(days=1)
+    fromDate = (fromDate 
+                and datetime.datetime.strptime(fromDate, '%Y%m%d').date() 
+                or toDate - datetime.timedelta(days=1))
 # date  over
     iid = []
     tid = []
@@ -1327,11 +1439,8 @@ def showFenxiaoDetail(request):
     receiver_district = []
     receiver_address  = []
     payment = []
-# render data
+
     fenxiao_render_data = []    
-    
-    
-    print type(created),created
 
     FenxiaoDateil=showFenxiaoDateilFilter(fenxiao,fromDate,toDate)
 #    FenxiaoDateil=showFenxiaoDateilFilter('爱生活791115','20140526','20140527')
@@ -1349,16 +1458,20 @@ def showFenxiaoDetail(request):
         payment.append(c.payment)
         
     for i,v in enumerate(tid):
-        print i
-        fenxiao_render_data.append((buyer_nick[i],tid[i],receiver_name[i],receiver_mobile[i],receiver_state[i],receiver_city[i],receiver_district[i],receiver_address[i],payment[i],iid[i]))
+       
+        fenxiao_render_data.append((buyer_nick[i],
+                                    tid[i],
+                                    receiver_name[i],
+                                    receiver_mobile[i],
+                                    receiver_state[i],
+                                    receiver_city[i],
+                                    receiver_district[i],
+                                    receiver_address[i],
+                                    payment[i],iid[i]))
      
-
-    
-#    return render_to_response('trades/trade_fenxiao_detail.html',{'FenxiaoDateil':FenxiaoDateil,
-#                                                                  'fenxiao_render_data':fenxiao_render_data,},  context_instance=RequestContext(request))
-                                                                  
-    
-    return render_to_response('trades/trade_fenxiao_detail.html',{'FenxiaoDateil':FenxiaoDateil,
-                                                                  'fenxiao_render_data':fenxiao_render_data,},  context_instance=RequestContext(request))
+    return render_to_response('trades/trade_fenxiao_detail.html',
+                              {'FenxiaoDateil':FenxiaoDateil,
+                               'fenxiao_render_data':fenxiao_render_data,},  
+                              context_instance=RequestContext(request))
                                                                   
 
