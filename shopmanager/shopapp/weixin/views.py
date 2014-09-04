@@ -854,7 +854,7 @@ class ResultView(View):
         third_batch = SampleOrder.objects.filter(status__gt=14,status__lt=16).filter(created__gt=start).count()
         fourth_batch = SampleOrder.objects.filter(status__gt=16,status__lt=18).filter(created__gt=start).count()
         fifth_batch = SampleOrder.objects.filter(status__gt=18,status__lt=20).filter(created__gt=start).count()
-        slots_left = 1600 - (first_batch + second_batch + third_batch + fourth_batch + fifth)
+        slots_left = 1600 - (first_batch + second_batch + third_batch + fourth_batch + fifth_batch)
         
         usage_count = 0
         users = WeiXinUser.objects.filter(openid=user_openid)
