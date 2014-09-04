@@ -22,6 +22,7 @@ from shopback.trades.views    import (StatisticMergeOrderView,
                                       regular_trade,
                                       ExchangeOrderInstanceView,
                                       DirectOrderInstanceView,
+                                      RelatedOrderStateView,
                                       replay_trade_send_result,
                                       countFenxiaoAcount,
                                       showFenxiaoDetail)
@@ -34,8 +35,10 @@ from shopback.trades.renderers import (CheckOrderRenderer,
                                        StatisticMergeOrderRender,
                                        StatisticOutStockRender,
                                        OrderListRender,
-                                       TradeLogisticRender)
-from shopback.trades.resources import (TradeResource,
+                                       TradeLogisticRender,
+                                       RelatedOrderRenderer)
+from shopback.trades.resources import (BaseResource,
+                                       TradeResource,
                                        OrderPlusResource,
                                        ExchangeOrderResource,
                                        MergeTradeResource,
@@ -132,7 +135,14 @@ urlpatterns = patterns('shopback.trades.views',
         authentication=(UserLoggedInAuthentication,),
         permissions=(IsAuthenticated,)
     )),
-        
+                       
+    (r'^related/orders/$',RelatedOrderStateView.as_view(
+        resource=BaseResource,
+        renderers=(RelatedOrderRenderer,BaseJsonRenderer,),
+        authentication=(UserLoggedInAuthentication,),
+        permissions=(IsAuthenticated,)
+    )),
+                       
     (r'^logistic/query/$',TradeLogisticView.as_view(
         resource=MergeTradeResource,
         renderers=(BaseJsonRenderer,TradeLogisticRender),

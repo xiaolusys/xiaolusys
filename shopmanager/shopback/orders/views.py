@@ -263,8 +263,11 @@ class RelatedOrderStateView(ModelView):
         
         order_item_list  = []
         if outer_id:
-            merge_orders = Order.objects.filter(outer_id=outer_id,created__gte=start_dt,created__lte=end_dt).exclude(
-                        status__in=(pcfg.TRADE_CLOSED_BY_TAOBAO,pcfg.WAIT_BUYER_PAY,pcfg.TRADE_CLOSED))
+            merge_orders = Order.objects.filter(outer_id=outer_id,
+                                                created__gte=start_dt,
+                                                created__lte=end_dt).exclude(
+                           status__in=(pcfg.TRADE_CLOSED_BY_TAOBAO,
+                                       pcfg.WAIT_BUYER_PAY,pcfg.TRADE_CLOSED))
             if outer_sku_ids:
                 sku_ids = outer_sku_ids.split(',')
                 merge_orders = merge_orders.filter(outer_sku_id__in=sku_ids)
@@ -277,7 +280,9 @@ class RelatedOrderStateView(ModelView):
                     buyer_set.remove(buyer_nick)
                 except:
                     buyer_set.add(buyer_nick)
-                    relat_orders = Order.objects.filter(buyer_nick=buyer_nick,created__gte=start_dt,created__lte=end_dt).exclude(
+                    relat_orders = Order.objects.filter(buyer_nick=buyer_nick,
+                                                        created__gte=start_dt,
+                                                        created__lte=end_dt).exclude(
                         status__in=(pcfg.TRADE_CLOSED_BY_TAOBAO,pcfg.WAIT_BUYER_PAY,pcfg.TRADE_CLOSED))
                     for o in relat_orders:
                         relat_outer_id = o.outer_id

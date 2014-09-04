@@ -78,3 +78,11 @@ class TradeLogisticRender(TemplateRenderer):
     format = 'html'
     template = 'trades/trade_logistic_detail.html'
      
+class RelatedOrderRenderer(TemplateRenderer):
+    """
+    Renderer which serializes to Table
+    """
+    
+    media_type = 'text/html'
+    format = 'html'
+    template = 'related_orders_template.html'

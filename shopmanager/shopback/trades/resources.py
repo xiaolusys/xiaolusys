@@ -3,6 +3,7 @@ from djangorestframework.resources import ModelResource
 from shopback.trades.serializer import MergeTradetSerializer
 from shopback.trades.forms import ExchangeTradeForm,StatisticMergeOrderForm
 from shopback.trades.models import MergeTrade
+from shopback.base.resources import BaseResource
 
 class TradeResource(ModelResource):
     """ docstring for TradeResource TradeResource """
