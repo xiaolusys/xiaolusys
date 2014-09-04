@@ -454,7 +454,10 @@ class ReferalView(View):
                 payment += trade.payment
                 effect_mobiles.add(mobile)
 
-            confirmed_trades = MergeTrade.objects.filter(receiver_mobile=mobile).filter(status=pcfg.TRADE_FINISHED).filter(created__gt=effect_date)
+            confirmed_trades = (MergeTrade.objects.filter(receiver_mobile=mobile)
+                                .filter(status=pcfg.TRADE_FINISHED)
+                                .filter(created__gt=effect_date)
+                                .exclude(type=pcfg.FENXIAO_TYPE))
             for trade in confirmed_trades:
                 records = ReferalBonusRecord.objects.filter(trade_id=trade.id)
                 if records.count() < 1:
@@ -465,7 +468,7 @@ class ReferalView(View):
                                                       bonus_value = int(trade.payment * 5),
                                                       confirmed_status=1)
                     
-        rs = ReferalBonusRecord.objects.filter(user_openid=user_openid)
+        rs = ReferalBonusRecord.objects.filter(user_openid=user_openid,confirmed_status=1)
         for r in rs:
             referal_bonus += r.bonus_value * 0.01
         
