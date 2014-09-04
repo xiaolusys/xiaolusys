@@ -672,7 +672,8 @@ class FreeSampleView(View):
         third_batch = SampleOrder.objects.filter(created__gt=start,status__gt=14,status__lt=16).count()
         fourth_batch = SampleOrder.objects.filter(created__gt=start,status__gt=16,status__lt=18).count()
         fifth_batch = SampleOrder.objects.filter(created__gt=start,status__gt=18,status__lt=20).count()
-        slots_left = slots_left - (first_batch + second_batch + third_batch + fourth_batch + fifth_batch)
+        five_batch = first_batch + second_batch + third_batch + fourth_batch + fifth_batch
+        slots_left = slots_left - five_batch
         
         pk = None
         if wx_user:
@@ -688,9 +689,7 @@ class FreeSampleView(View):
                                        "slots_left":slots_left,
                                        "started":started,"openid":user_openid,
                                        "vip_exists":vip_exists,
-                                       "vipcode":vipcode,"first_batch":first_batch,
-                                       "second_batch":second_batch,"third_batch":third_batch,
-                                       "fourth_batch":fourth_batch,"fifth_batch":fifth_batch,
+                                       "vipcode":vipcode,"five_batch":five_batch,
                                        "pk":pk},
                                       context_instance=RequestContext(request))
         response.set_cookie("openid",user_openid)
