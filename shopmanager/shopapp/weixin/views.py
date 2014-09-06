@@ -1123,7 +1123,9 @@ class SampleChooseView(View):
     
 class TestView(View):
     def get(self, request):
-        response = render_to_response('weixin/test.html', 
-                                      context_instance=RequestContext(request))
-        return response
+        redirect_url = 'http://detail.m.tmall.com/item.htm?id=19810857532'
+        return redirect(redirect_url)        
+        #response = render_to_response('weixin/test.html', 
+        #                              context_instance=RequestContext(request))
+        #return response
         
