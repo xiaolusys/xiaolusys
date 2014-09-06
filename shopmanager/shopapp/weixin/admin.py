@@ -3,6 +3,7 @@ from django.contrib import admin
 from django.db import models
 from django.forms import TextInput, Textarea
 from shopapp.weixin.models import (WeiXinAccount,
+                                   UserGroup,
                                    WeiXinUser,
                                    WeiXinAutoResponse,
                                    WXProduct,
@@ -77,13 +78,21 @@ class WeiXinAccountAdmin(admin.ModelAdmin):
 
 admin.site.register(WeiXinAccount, WeiXinAccountAdmin)  
 
+class UserGroupAdmin(admin.ModelAdmin):
+    
+    list_display = ('code','name')
+    
+    search_fields = ['code','name']
+    
+
+admin.site.register(UserGroup, UserGroupAdmin) 
 
 class WeiXinUserAdmin(admin.ModelAdmin):
     
     list_display = ('openid','nickname','sex','province',
-                    'city','subscribe','subscribe_time','isvalid')
+                    'city','subscribe','subscribe_time','user_group','isvalid')
     
-    list_filter = ('subscribe','isvalid','sex')
+    list_filter = ('subscribe','isvalid','sex','user_group',)
     search_fields = ['openid','nickname','mobile','vmobile']
     
 

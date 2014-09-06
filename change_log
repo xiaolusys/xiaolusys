@@ -1,3 +1,7 @@
+######## 2014-9-6 ##########
+alter table shop_weixin_user add column user_group_id int(11);
+ALTER TABLE shop_weixin_user ADD CONSTRAINT fk_user_group 
+	FOREIGN KEY (user_group_id) REFERENCES shop_weixin_group (id);
 ######## 2014-8-26 ##########
 alter table shop_trades_mergeorder drop index shop_trades_mergeorder_132f42da;
 alter table shop_trades_mergeorder drop index shop_trades_mergeorder_3216ff68;

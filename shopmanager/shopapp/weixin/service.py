@@ -153,7 +153,7 @@ class WeixinUserService():
                         
                 wx_user.save()
             except Exception,exc:
-                logger.error(u'获取微信用户信息错误:%s'%exc.message,exc_info=True)
+                logger.warn(u'获取微信用户信息错误:%s'%exc.message,exc_info=True)
                 
         return wx_user
     
