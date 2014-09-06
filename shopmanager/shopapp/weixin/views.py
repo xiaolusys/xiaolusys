@@ -647,7 +647,7 @@ class FreeSampleView(View):
         if now > end:
             ended = True
         
-        samples = FreeSample.objects.filter(expiry__gt=start)
+        samples = FreeSample.objects.filter(expiry__gt=end)
 
         order_exists = False
         orders = SampleOrder.objects.filter(user_openid=user_openid).filter(created__gt=start)
