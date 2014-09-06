@@ -52,7 +52,7 @@
   <div class="panel-heading" style="color:orange">免费试用：{{ sample.name }}</div>
   <div class="panel-body">
     
-    <form class="form-group" method="post" action="/weixin/sampleapply/" onsubmit="return check()">{% csrf_token %}
+    <form action="/weixin/sampleapply/" method="post" onsubmit="return check()" class="form-group">{% csrf_token %}
       <input type="hidden" value="{{ sample.pk }}" name="sample_pk"/>
       <div class="row">
 	<div class="col-xs-6" style="text-align:center">
