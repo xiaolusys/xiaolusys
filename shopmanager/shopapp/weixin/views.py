@@ -644,7 +644,7 @@ class FreeSampleView(View):
         started,ended = False,False
         if now > start:
             started = True
-        else:
+        if now > end:
             ended = True
         
         samples = FreeSample.objects.filter(expiry__gt=start)
