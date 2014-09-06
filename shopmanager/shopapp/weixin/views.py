@@ -424,7 +424,7 @@ class ReferalView(View):
         
         referal_count = SampleOrder.objects.filter(vipcode=vipcode).count()
         
-        coupon = Coupon.objects.get(pk=1)
+        coupon = Coupon.objects.get(pk=4)
         
         couponclicks = CouponClick.objects.filter(vipcode=vipcode)
         coupon_click_count = couponclicks.count()
@@ -1116,7 +1116,7 @@ class SampleChooseView(View):
     
 class TestView(View):
     def get(self, request):
-        redirect_url = 'http://detail.m.tmall.com/item.htm?id=19810857532'
+        redirect_url = 'http://shop.m.taobao.com/shop/coupon.htm?sellerId=174265168&activityId=143904856'
         return redirect(redirect_url)        
         #response = render_to_response('weixin/test.html', 
         #                              context_instance=RequestContext(request))
