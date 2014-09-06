@@ -459,7 +459,10 @@ class ReferalView(View):
                 payment += trade.payment
                 effect_mobiles.add(mobile)
 
-            confirmed_trades = MergeTrade.objects.filter(receiver_mobile=mobile).filter(status=pcfg.TRADE_FINISHED).filter(created__gt=effect_date)
+            confirmed_trades = (MergeTrade.objects.filter(receiver_mobile=mobile)
+                                .filter(status=pcfg.TRADE_FINISHED)
+                                .filter(created__gt=effect_date)
+                                .exclude(type=pcfg.FENXIAO_TYPE))
             for trade in confirmed_trades:
                 records = ReferalBonusRecord.objects.filter(trade_id=trade.id)
                 if records.count() < 1:
@@ -470,7 +473,7 @@ class ReferalView(View):
                                                       bonus_value = int(trade.payment * 5),
                                                       confirmed_status=1)
                     
-        rs = ReferalBonusRecord.objects.filter(user_openid=user_openid)
+        rs = ReferalBonusRecord.objects.filter(user_openid=user_openid,confirmed_status=1)
         for r in rs:
             referal_bonus += r.bonus_value * 0.01
         
@@ -603,7 +606,7 @@ class RefundRecordView(View):
             wx_users = WeiXinUser.objects.filter(mobile=mobile)
             if wx_users.count() > 0:
                 openid = wx_users[0].openid
-                orders = SampleOrder.objects.filter(user_openid=openid).filter(status__gt=10).filter(status__lt=16)
+                orders = SampleOrder.objects.filter(user_openid=openid).filter(status__gt=10).filter(status__lt=20)
                 if orders.count() > 0:
                     sample_order = orders[0]
 
@@ -668,7 +671,9 @@ class FreeSampleView(View):
         second_batch = SampleOrder.objects.filter(created__gt=start,status__gt=12,status__lt=15).count()
         third_batch = SampleOrder.objects.filter(created__gt=start,status__gt=14,status__lt=16).count()
         fourth_batch = SampleOrder.objects.filter(created__gt=start,status__gt=16,status__lt=18).count()
-        slots_left = slots_left - (first_batch + second_batch + third_batch + fourth_batch)
+        fifth_batch = SampleOrder.objects.filter(created__gt=start,status__gt=18,status__lt=20).count()
+        five_batch = first_batch + second_batch + third_batch + fourth_batch + fifth_batch
+        slots_left = slots_left - five_batch
         
         pk = None
         if wx_user:
@@ -684,9 +689,7 @@ class FreeSampleView(View):
                                        "slots_left":slots_left,
                                        "started":started,"openid":user_openid,
                                        "vip_exists":vip_exists,
-                                       "vipcode":vipcode,"first_batch":first_batch,
-                                       "second_batch":second_batch,"third_batch":third_batch,
-                                       "fourth_batch":fourth_batch,
+                                       "vipcode":vipcode,"five_batch":five_batch,
                                        "pk":pk},
                                       context_instance=RequestContext(request))
         response.set_cookie("openid",user_openid)
@@ -721,9 +724,10 @@ class SampleApplyView(View):
         size = content.get("size")
         weight = content.get("weight")
         vipcode = content.get("vipcode")
-        vip_exists = content.get("vip_exists")
+        vip_exists = int(content.get("vip_exists"))
         
-        if vip_exists != "1":
+        if vip_exists != 1:
+            ## check whether input vipcode is valid (exists in database).
             vipcodes = VipCode.objects.filter(code=vipcode)
             if vipcodes.count() <= 0:
                 return redirect("/weixin/sampleads/0/")
@@ -849,7 +853,8 @@ class ResultView(View):
         second_batch = SampleOrder.objects.filter(status__gt=12,status__lt=15).filter(created__gt=start).count()
         third_batch = SampleOrder.objects.filter(status__gt=14,status__lt=16).filter(created__gt=start).count()
         fourth_batch = SampleOrder.objects.filter(status__gt=16,status__lt=18).filter(created__gt=start).count()
-        slots_left = 1600 - (first_batch + second_batch + third_batch + fourth_batch)
+        fifth_batch = SampleOrder.objects.filter(status__gt=18,status__lt=20).filter(created__gt=start).count()
+        slots_left = 1600 - (first_batch + second_batch + third_batch + fourth_batch + fifth_batch)
         
         usage_count = 0
         users = WeiXinUser.objects.filter(openid=user_openid)
@@ -868,7 +873,7 @@ class ResultView(View):
                                        'order_status':order_status, 'vipcode':vipcode, 
                                        'usage_count':usage_count, 'first_batch':first_batch, 
                                        'second_batch':second_batch,'third_batch':third_batch,
-                                       'fourth_batch':fourth_batch,
+                                       'fourth_batch':fourth_batch,'fifth_batch':fifth_batch,
                                        'pk':pk ,'sample_choose':sample_choose},
                                       context_instance=RequestContext(request))
         response.set_cookie("openid",user_openid)        
@@ -896,6 +901,9 @@ class FinalListView(View):
             status_start,status_end = 14,16
         if batch == 4:
             status_start,status_end = 16,18
+        if batch == 5:
+            status_start,status_end = 18,20
+
         
         if month == 8:
             start_time = datetime.datetime(2014,8,1)
@@ -1115,7 +1123,9 @@ class SampleChooseView(View):
     
 class TestView(View):
     def get(self, request):
-        response = render_to_response('weixin/test.html', 
-                                      context_instance=RequestContext(request))
-        return response
+        redirect_url = 'http://detail.m.tmall.com/item.htm?id=19810857532'
+        return redirect(redirect_url)        
+        #response = render_to_response('weixin/test.html', 
+        #                              context_instance=RequestContext(request))
+        #return response
         
