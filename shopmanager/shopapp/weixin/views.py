@@ -724,9 +724,10 @@ class SampleApplyView(View):
         size = content.get("size")
         weight = content.get("weight")
         vipcode = content.get("vipcode")
-        vip_exists = content.get("vip_exists")
+        vip_exists = int(content.get("vip_exists"))
         
-        if vip_exists != "1":
+        if vip_exists != 1:
+            ## check whether input vipcode is valid (exists in database).
             vipcodes = VipCode.objects.filter(code=vipcode)
             if vipcodes.count() <= 0:
                 return redirect("/weixin/sampleads/0/")
