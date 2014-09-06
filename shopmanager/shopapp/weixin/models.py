@@ -86,6 +86,20 @@ class WeiXinAccount(models.Model):
         self.save()
         
         
+class UserGroup(models.Model): 
+    
+    code   = models.CharField(max_length=32,blank=True,verbose_name=u"组代码")
+    name   = models.CharField(max_length=32,blank=True,verbose_name=u"组名")
+    
+    class Meta:
+        db_table = 'shop_weixin_group'
+        verbose_name=u'用户分组'
+        verbose_name_plural = u'用户分组列表'
+    
+    def __unicode__(self):
+        return self.name
+        
+        
 class AnonymousWeixinUser():
     
     def isNone(self):
@@ -108,6 +122,11 @@ class WeiXinUser(models.Model):
     MEN      = 'm'
     FERMALE  = 'f'
     
+    SEX_TYPE = (
+        (1,u'男'),
+        (2,u'女')
+    )
+    
     BABY_SEX_TYPE = (
         (MEN,u'男'),
         (FERMALE,u'女')
@@ -116,7 +135,7 @@ class WeiXinUser(models.Model):
     openid     = models.CharField(max_length=64,unique=True,verbose_name=u"用户ID")
     nickname   = models.CharField(max_length=64,blank=True,verbose_name=u"昵称")
     
-    sex        = models.IntegerField(default=0,verbose_name=u"性别")
+    sex        = models.IntegerField(default=0,choices=SEX_TYPE,verbose_name=u"性别")
     language   = models.CharField(max_length=10,blank=True,verbose_name=u"语言")
     
     headimgurl = models.URLField(verify_exists=False,blank=True,verbose_name=u"头像")
@@ -144,6 +163,8 @@ class WeiXinUser(models.Model):
     code_time    = models.DateTimeField(blank=True,null=True,verbose_name=u'短信发送时间')    
     
     sceneid    = models.CharField(max_length=32,blank=True,verbose_name=u'场景ID')
+    
+    user_group      = models.ForeignKey(UserGroup,null=True, verbose_name=u"分组")
     
     subscribe   = models.BooleanField(default=False,verbose_name=u"订阅该号")
     subscribe_time = models.DateTimeField(blank=True,null=True,verbose_name=u"订阅时间")
@@ -756,7 +777,10 @@ class WeixinPointItem(models.Model):
                (SHOPPING,u'购物积分'),
                (CONSUME,u'积分消费'),)
     
-    user_openid = models.CharField(max_length=64,unique=True,verbose_name=u"微信ID")
+    user_openid = models.CharField(max_length=64,db_index=True,verbose_name=u"微信ID")
+    referal_user_openid  = models.CharField(max_length=64,blank=True,verbose_name=u"被荐人ID")
+    
+    trade_id    = models.CharField(max_length=64,unique=True,verbose_name=u"订单ID")
     point_value = models.IntegerField(default=0,verbose_name=u'积分')
     point_type = models.IntegerField(default=0,choices=choices,verbose_name=u'积分类型')
     
