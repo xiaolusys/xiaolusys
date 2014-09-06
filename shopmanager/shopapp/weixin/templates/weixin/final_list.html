@@ -9,7 +9,11 @@
     {% if month == 8 %}
     <div class="panel-heading">详细名单</div>
     {% else %}
+    {% if batch == 1 %}
+    <div class="panel-heading">详细名单 (前五批)</div>
+    {% else %}
     <div class="panel-heading">详细名单 (第{{ batch }}批)</div>
+    {% endif %}
     {% endif %}
     <div class="panel-body">
 
