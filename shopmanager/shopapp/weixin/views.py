@@ -424,7 +424,7 @@ class ReferalView(View):
         
         referal_count = SampleOrder.objects.filter(vipcode=vipcode).count()
         
-        coupon = Coupon.objects.get(pk=1)
+        coupon = Coupon.objects.get(pk=4)
         
         couponclicks = CouponClick.objects.filter(vipcode=vipcode)
         coupon_click_count = couponclicks.count()
