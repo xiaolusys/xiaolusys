@@ -43,6 +43,7 @@
           {% endif %}
         {% endif %}
       {% else %}
+      {% if order_status == 9 %}
       <p>亲，您的专属VIP邀请码<font style="color:red">{{ vipcode }}</font>已被使用<font style="color:red;font-size:20px">{{ usage_count }}</font>次，奖励微信粉丝专属优惠券2张：</p>
       <p>1) 时尚婴幼儿斗篷<font style="color:red;">限量30元</font>优惠券。到天猫【优尼世界旗舰店】拍下，付款<font style="color:red;font-size:20px">立减30元！截至9月30日！</font></p>
       <p>微信扫一扫下面二维码领取（把二维码图片保存到手机，微信扫一扫，选择右上角“相册”）：</p>
@@ -56,6 +57,10 @@
 	<img src="https://mmbiz.qlogo.cn/mmbiz/yMhOQPTKhLspO8Hk8iaf5x1ST3fK3VZB0RuNe2FBSw5cMpMITxibq0AHBneaEauAWMFNwUm3Rha4RnXDicPzAlA1g/0" alt="...">
       </a>
       <p style="color:red">关于优惠券使用事宜，您也可以咨询我们的天猫客服、微信客服。</p>
+      {% else %}
+      <p>亲，您的专属VIP邀请码<font style="color:red">{{ vipcode }}</font>已被使用<font style="color:red;font-size:20px">{{ usage_count }}</font>次!</p>
+      <p>感谢您的参与，请关注优尼世界后续活动，赢取大奖哦！</p>
+      {% endif %}
       {% endif %}
       {% else %}
       <p style="color:#029fd6">亲，您没有提交试用申请哦！</p>
