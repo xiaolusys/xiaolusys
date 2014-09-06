@@ -641,9 +641,11 @@ class FreeSampleView(View):
         hours_left = diff.seconds / 3600
 
         slots_left = 1600
-        started = False
+        started,ended = False,False
         if now > start:
             started = True
+        else:
+            ended = True
         
         samples = FreeSample.objects.filter(expiry__gt=start)
 
@@ -667,13 +669,9 @@ class FreeSampleView(View):
         today_time = datetime.datetime(today.year, today.month, today.day)
         today_orders = SampleOrder.objects.filter(created__gt=today_time).count()
         
-        first_batch = SampleOrder.objects.filter(created__gt=start,status__gt=10,status__lt=13).count()
-        second_batch = SampleOrder.objects.filter(created__gt=start,status__gt=12,status__lt=15).count()
-        third_batch = SampleOrder.objects.filter(created__gt=start,status__gt=14,status__lt=16).count()
-        fourth_batch = SampleOrder.objects.filter(created__gt=start,status__gt=16,status__lt=18).count()
-        fifth_batch = SampleOrder.objects.filter(created__gt=start,status__gt=18,status__lt=20).count()
-        five_batch = first_batch + second_batch + third_batch + fourth_batch + fifth_batch
-        slots_left = slots_left - five_batch
+        five_batch = SampleOrder.objects.filter(created__gt=start,status__gt=10,status__lt=20).count()
+        six_batch = SampleOrder.objects.filter(created__gt=start,status__gt=20,status__lt=22).count()
+        slots_left = 1600 - five_batch
         
         pk = None
         if wx_user:
@@ -690,6 +688,7 @@ class FreeSampleView(View):
                                        "started":started,"openid":user_openid,
                                        "vip_exists":vip_exists,
                                        "vipcode":vipcode,"five_batch":five_batch,
+                                       "six_batch":six_batch,"ended":ended,
                                        "pk":pk},
                                       context_instance=RequestContext(request))
         response.set_cookie("openid",user_openid)
@@ -830,6 +829,11 @@ class ResultView(View):
 
         end = datetime.datetime(2014,9,7)
         now = datetime.datetime.now()
+
+        ended = False
+        if now > end:
+            ended = True
+            
         diff = end - now
         days_left = diff.days
         hours_left = diff.seconds / 3600
@@ -849,12 +853,9 @@ class ResultView(View):
         if sample_chooses.count() > 0:
             sample_choose = sample_chooses[0]
         
-        first_batch = SampleOrder.objects.filter(status__gt=10,status__lt=13).filter(created__gt=start).count()
-        second_batch = SampleOrder.objects.filter(status__gt=12,status__lt=15).filter(created__gt=start).count()
-        third_batch = SampleOrder.objects.filter(status__gt=14,status__lt=16).filter(created__gt=start).count()
-        fourth_batch = SampleOrder.objects.filter(status__gt=16,status__lt=18).filter(created__gt=start).count()
-        fifth_batch = SampleOrder.objects.filter(status__gt=18,status__lt=20).filter(created__gt=start).count()
-        slots_left = 1600 - (first_batch + second_batch + third_batch + fourth_batch + fifth_batch)
+        five_batch = SampleOrder.objects.filter(status__gt=10,status__lt=20).filter(created__gt=start).count()
+        six_batch = SampleOrder.objects.filter(status__gt=20,status__lt=22).filter(created__gt=start).count()
+        slots_left = 1600 - five_batch
         
         usage_count = 0
         users = WeiXinUser.objects.filter(openid=user_openid)
@@ -871,9 +872,8 @@ class ResultView(View):
                                       {'days_left':days_left, 'hours_left':hours_left,
                                        'slots_left':slots_left, 'has_order':has_order,
                                        'order_status':order_status, 'vipcode':vipcode, 
-                                       'usage_count':usage_count, 'first_batch':first_batch, 
-                                       'second_batch':second_batch,'third_batch':third_batch,
-                                       'fourth_batch':fourth_batch,'fifth_batch':fifth_batch,
+                                       'usage_count':usage_count, 'five_batch':five_batch, 
+                                       'six_batch':six_batch,'ended':ended,
                                        'pk':pk ,'sample_choose':sample_choose},
                                       context_instance=RequestContext(request))
         response.set_cookie("openid",user_openid)        
@@ -894,16 +894,9 @@ class FinalListView(View):
         
         status_start, status_end = 0,0
         if batch == 1:
-            status_start,status_end = 10,13
-        if batch == 2:
-            status_start,status_end = 12,15
-        if batch == 3:
-            status_start,status_end = 14,16
-        if batch == 4:
-            status_start,status_end = 16,18
-        if batch == 5:
-            status_start,status_end = 18,20
-
+            status_start,status_end = 10,20
+        if batch == 6:
+            status_start,status_end = 20,22
         
         if month == 8:
             start_time = datetime.datetime(2014,8,1)
