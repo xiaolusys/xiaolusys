@@ -714,6 +714,9 @@ class VipCodeVerifyView(View):
 
 class SampleApplyView(View):
     def get(self, request):
+        openid = request.COOKIES.get('openid')
+        if openid == 'oMt59uFkSaOjkDsEKWoTUZ4wkxBM':
+            logger.error(openid)
         return redirect("/weixin/sampleads/0/")
 
     def post(self, request):
@@ -725,6 +728,11 @@ class SampleApplyView(View):
         weight = content.get("weight")
         vipcode = content.get("vipcode")
         vip_exists = int(content.get("vip_exists"))
+
+        openid = request.COOKIES.get('openid')
+        if openid == 'oMt59uFkSaOjkDsEKWoTUZ4wkxBM':
+            error_str = "%s,%s,%s,%s,%s,%s,%s" % (openid,sample_pk,color,size,weight,vipcode,vip_exists)
+            logger.error(error_str)
         
         if vip_exists != 1:
             ## check whether input vipcode is valid (exists in database).
