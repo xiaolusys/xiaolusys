@@ -9,11 +9,10 @@
   <div class="panel panel-default" style="margin-top:5px">
     <div class="panel-heading" style="color:orange">公告</div>
     <div class="panel-body">
-      <p style="color:#e8792a">第一批中奖名单，共{{ first_batch }}名，邀请码使用<font style="color:red">22</font>次以上，祝贺她们！<a href="/weixin/finallist/1/1/9/">查看详情 >></a></p>
-      <p style="color:#e8792a">第二批中奖名单，共{{ second_batch }}名，邀请码使用<font style="color:red">24</font>次以上，祝贺她们！<a href="/weixin/finallist/2/1/9/">查看详情 >></a></p>
-      <p style="color:#e8792a">第三批中奖名单，共{{ third_batch }}名，邀请码使用<font style="color:red">28</font>次以上，祝贺她们！<a href="/weixin/finallist/3/1/9/">查看详情 >></a></p>
-      <p style="color:#e8792a">第四批中奖名单，共{{ fourth_batch }}名，邀请码使用<font style="color:red">27</font>次以上，祝贺她们！<a href="/weixin/finallist/4/1/9/">查看详情 >></a></p>
-      <p style="color:#e8792a">第五批中奖名单，共{{ fifth_batch }}名，邀请码使用<font style="color:red">22</font>次以上，祝贺她们！<a href="/weixin/finallist/5/1/9/">查看详情 >></a></p>
+      <p style="color:#e8792a">前五批中奖名单，共{{ five_batch }}名，邀请码使用<font style="color:red">22</font>次以上，祝贺她们！<a href="/weixin/finallist/1/1/9/">查看详情 >></a></p>
+      {% if ended %}
+      <p style="color:#e8792a">第六批中奖名单，共{{ six_batch }}名，邀请码使用<font style="color:red">21</font>次以上，祝贺她们！<a href="/weixin/finallist/6/1/9/">查看详情 >></a></p>
+      {% endif %}
     </div>
   </div>
 
@@ -44,16 +43,34 @@
           {% endif %}
         {% endif %}
       {% else %}
-      <p>亲，您的申请正在审核中。专属VIP邀请码<font style="color:red">{{ vipcode }}</font>已被使用<font style="color:red;font-size:20px">{{ usage_count }}</font>次，请继续加油！</p>
+      {% if order_status == 9 %}
+      <p>亲，您的专属VIP邀请码<font style="color:red">{{ vipcode }}</font>已被使用<font style="color:red;font-size:20px">{{ usage_count }}</font>次，奖励微信粉丝专属优惠券2张：</p>
+      <p>1) 时尚婴幼儿斗篷<font style="color:red;">限量30元</font>优惠券。到天猫【优尼世界旗舰店】拍下，付款<font style="color:red;font-size:20px">立减30元！截至9月30日！</font></p>
+      <p>微信扫一扫下面二维码领取（把二维码图片保存到手机，微信扫一扫，选择右上角“相册”）：</p>
+      <a href="#" class="thumbnail">
+	<img src="https://mmbiz.qlogo.cn/mmbiz/yMhOQPTKhLuWjC2yA8fC0Dh8VRu28gdCSUItxZ3EYr8bjIV6f4WwhgAKg83kLQeoobLDbZS0RHTNUCBrChQyicA/0" alt="...">
+      </a>
+      <p>2) 小小派睡袋<font style="color:red;">限量50元</font>优惠券。到天猫【优尼世界旗舰店】拍下，付款<font style="color:red;font-size:20px">立减50元！截至9月30日！</font></p>
+      <p style="color:red">微信粉丝特权: 收货后分享到朋友圈，还可领取10元晒单返现！总优惠60元哦！</p>
+      <p>微信扫一扫下面二维码领取（把二维码图片保存到手机，微信扫一扫，选择右上角“相册”）：</p>
+      <a href="#" class="thumbnail">
+	<img src="https://mmbiz.qlogo.cn/mmbiz/yMhOQPTKhLspO8Hk8iaf5x1ST3fK3VZB0RuNe2FBSw5cMpMITxibq0AHBneaEauAWMFNwUm3Rha4RnXDicPzAlA1g/0" alt="...">
+      </a>
+      <p style="color:red">关于优惠券使用事宜，您也可以咨询我们的天猫客服、微信客服。</p>
+      {% else %}
+      <p>亲，您的专属VIP邀请码<font style="color:red">{{ vipcode }}</font>已被使用<font style="color:red;font-size:20px">{{ usage_count }}</font>次!</p>
+      <p>感谢您的参与，请关注优尼世界后续活动，赢取大奖哦！</p>
+      {% endif %}
       {% endif %}
       {% else %}
-      <p style="color:#029fd6">亲，您还没有提交试用申请哦！</p>
+      <p style="color:#029fd6">亲，您没有提交试用申请哦！</p>
       {% endif %}
+      <!--
       <h5 style="color:#029fd6">申请攻略：</h5>
       <p>1. <font style="color:#029fd6">记住，一定要让妈妈好友闺密使用你的邀请码！</font>她们申请到了会感谢您！</font></p>
       <p>2. <font style="color:#029fd6"> 论坛/微博攻略： 发帖会被删，回帖一般不会。在回帖中带上你的vip邀请码试试，很不一样哦！</font></p>
       <p>亲，分享、邀请，继续加油吧，惊喜等着您！</p>
-
+      -->
       {% if False %}
       {% if order_status > 0 %}
       {% if order_status < 7 %}
