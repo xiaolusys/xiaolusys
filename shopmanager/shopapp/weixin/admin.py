@@ -212,7 +212,7 @@ admin.site.register(ReferalBonusRecord, ReferalBonusRecordAdmin)
 
 class RefundAdmin(admin.ModelAdmin):
     
-    list_display = ('trade_id', 'refund_type','pay_amount','vip_code',
+    list_display = ('trade_id', 'user_openid', 'refund_type','pay_amount','vip_code',
                     'review_note','pay_note','created','refund_status')
     
     list_filter = ('refund_type','refund_status','pay_type')
