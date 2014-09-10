@@ -247,7 +247,7 @@ class OrderInfoView(View):
             return response
             
         status = [pcfg.WAIT_SELLER_SEND_GOODS,pcfg.WAIT_BUYER_CONFIRM_GOODS, pcfg.TRADE_FINISHED]
-        latest_trades = MergeTrade.objects.filter(receiver_mobile=wx_user.mobile).filter(status__in=status).order_by('-pay_time')
+        latest_trades = MergeTrade.objects.filter(receiver_mobile=wx_user.mobile).filter(status__in=status).exclude(type=pcfg.FENXIAO_TYPE).order_by('-pay_time')
         
         if latest_trades.count() == 0:
             wx_trades = WXOrder.objects.filter(buyer_openid=user_openid).order_by('-order_create_time') 
@@ -271,7 +271,6 @@ class OrderInfoView(View):
         orders = []
         for order in trade.merge_orders.filter(sys_status=pcfg.IN_EFFECT):
             s = order.getImgSimpleNameAndPrice()
-            print 's',s
             orders.append(s)
         data["orders"] = orders
         data["ordernum"] = trade.order_num
@@ -296,7 +295,8 @@ class OrderInfoView(View):
         passed = False
         start_time = datetime.datetime(2014,8,28)
         sample_orders = SampleOrder.objects.filter(user_openid=user_openid).filter(status__gt=10).filter(status__lt=22).filter(created__gt=start_time)
-        if sample_orders.count() > 0:
+        refund_records = Refund.objects.filter(user_openid=user_openid,created__gt=start_time)
+        if sample_orders.count() > 0 and refund_records.count() < 1:
             passed = True
         
         response = render_to_response('weixin/orderinfo.html', 
