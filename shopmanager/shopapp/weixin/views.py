@@ -269,9 +269,8 @@ class OrderInfoView(View):
         data["platform"] = trade.user
         data["paytime"] = trade.pay_time
         orders = []
-        for order in trade.merge_orders.filter(sys_status=pcfg.IN_EFFECT):
+        for order in trade.merge_orders.filter(sys_status=pcfg.IN_EFFECT).exclude(type=pcfg.FENXIAO_TYPE):
             s = order.getImgSimpleNameAndPrice()
-            print 's',s
             orders.append(s)
         data["orders"] = orders
         data["ordernum"] = trade.order_num
@@ -296,7 +295,8 @@ class OrderInfoView(View):
         passed = False
         start_time = datetime.datetime(2014,8,28)
         sample_orders = SampleOrder.objects.filter(user_openid=user_openid).filter(status__gt=10).filter(status__lt=22).filter(created__gt=start_time)
-        if sample_orders.count() > 0:
+        refund_records = Refund.objects.filter(user_openid=user_openid,created__gt=start_time)
+        if sample_orders.count() > 0 and refund_records.count() < 0:
             passed = True
         
         response = render_to_response('weixin/orderinfo.html', 
