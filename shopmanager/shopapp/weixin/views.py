@@ -247,7 +247,7 @@ class OrderInfoView(View):
             return response
             
         status = [pcfg.WAIT_SELLER_SEND_GOODS,pcfg.WAIT_BUYER_CONFIRM_GOODS, pcfg.TRADE_FINISHED]
-        latest_trades = MergeTrade.objects.filter(receiver_mobile=wx_user.mobile).filter(status__in=status).order_by('-pay_time')
+        latest_trades = MergeTrade.objects.filter(receiver_mobile=wx_user.mobile).filter(status__in=status).exclude(type=pcfg.FENXIAO_TYPE).order_by('-pay_time')
         
         if latest_trades.count() == 0:
             wx_trades = WXOrder.objects.filter(buyer_openid=user_openid).order_by('-order_create_time') 
@@ -269,7 +269,7 @@ class OrderInfoView(View):
         data["platform"] = trade.user
         data["paytime"] = trade.pay_time
         orders = []
-        for order in trade.merge_orders.filter(sys_status=pcfg.IN_EFFECT).exclude(type=pcfg.FENXIAO_TYPE):
+        for order in trade.merge_orders.filter(sys_status=pcfg.IN_EFFECT)
             s = order.getImgSimpleNameAndPrice()
             orders.append(s)
         data["orders"] = orders
