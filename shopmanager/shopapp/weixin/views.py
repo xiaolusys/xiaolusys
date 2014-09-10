@@ -269,7 +269,7 @@ class OrderInfoView(View):
         data["platform"] = trade.user
         data["paytime"] = trade.pay_time
         orders = []
-        for order in trade.merge_orders.filter(sys_status=pcfg.IN_EFFECT)
+        for order in trade.merge_orders.filter(sys_status=pcfg.IN_EFFECT):
             s = order.getImgSimpleNameAndPrice()
             orders.append(s)
         data["orders"] = orders
