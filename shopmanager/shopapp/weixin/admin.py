@@ -2,6 +2,7 @@
 from django.contrib import admin
 from django.db import models
 from django.forms import TextInput, Textarea
+from shopback.base.options import DateFieldListFilter
 from shopapp.weixin.models import (WeiXinAccount,
                                    UserGroup,
                                    WeiXinUser,
@@ -20,7 +21,9 @@ from shopapp.weixin.models import (WeiXinAccount,
                                    Coupon,
                                    CouponClick,
                                    Survey,
-                                   SampleChoose
+                                   SampleChoose,
+                                   WeixinUserScore,
+                                   WeixinScoreItem
                                    )
 
 class WeiXinAccountAdmin(admin.ModelAdmin):
@@ -260,27 +263,53 @@ admin.site.register(SampleSku, SampleSkuAdmin)
 
 
 class CouponAdmin(admin.ModelAdmin):
+    
     list_display = ('description','coupon_url','face_value','expiry','created')
 
 admin.site.register(Coupon, CouponAdmin) 
 
 
 class CouponClickAdmin(admin.ModelAdmin):
+    
     list_display = ('coupon','wx_user','vipcode','created')
     search_fields = ['wx_user__openid', 'vipcode']
 
 admin.site.register(CouponClick, CouponClickAdmin) 
 
+
 class SurveyAdmin(admin.ModelAdmin):
+    
     list_display = ('selection', 'wx_user', 'created')
     search_fields = ['wx_user__openid']
     list_filter = ('selection',)
 
 admin.site.register(Survey, SurveyAdmin) 
 
+
 class SampleChooseAdmin(admin.ModelAdmin):
+    
     list_display = ('user_openid', 'vipcode', 'selection','created')
     search_fields = ['user_openid','vipcode','mobile']
     list_filter = ('selection',)
 
 admin.site.register(SampleChoose, SampleChooseAdmin) 
+
+
+class WeixinUserScoreAdmin(admin.ModelAdmin):
+    
+    list_display = ('user_openid', 'user_score', 'expiring_score','created')
+    search_fields = ['user_openid',]
+
+admin.site.register(WeixinUserScore, WeixinUserScoreAdmin) 
+
+
+class WeixinScoreItemAdmin(admin.ModelAdmin):
+    
+    list_display = ('user_openid', 'score', 'score_type','expired_at','created','memo')
+    search_fields = ['user_openid','memo']
+    list_filter = ('score_type',('created',DateFieldListFilter))
+
+admin.site.register(WeixinScoreItem, WeixinScoreItemAdmin) 
+
+
+

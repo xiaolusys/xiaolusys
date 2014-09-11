@@ -164,7 +164,7 @@ class WeiXinUser(models.Model):
     
     sceneid    = models.CharField(max_length=32,blank=True,verbose_name=u'场景ID')
     
-    user_group      = models.ForeignKey(UserGroup,null=True, verbose_name=u"分组")
+    user_group  = models.ForeignKey(UserGroup,null=True, verbose_name=u"分组")
     
     subscribe   = models.BooleanField(default=False,verbose_name=u"订阅该号")
     subscribe_time = models.DateTimeField(blank=True,null=True,verbose_name=u"订阅时间")
@@ -754,42 +754,63 @@ class SampleChoose(models.Model):
         verbose_name = u'试用商品选择'
         verbose_name_plural = u'试用商品选择列表'
         
-        
-class WeixinPoint(models.Model):
-    
-    user_openid  = models.CharField(max_length=64,unique=True,verbose_name=u"微信ID")
-    user_point   = models.IntegerField(default=0,verbose_name=u"积分值")
-    
-    created      = models.DateTimeField(auto_now_add=True,null=True,verbose_name=u'创建时间')
 
-    class Meta:
-        db_table = 'shop_weixin_point'
-        verbose_name = u'微信积分'
-        verbose_name_plural = u'微信积分列表'
-        
-        
-class WeixinPointItem(models.Model):
-    
-    INVITE    = 1
-    SHOPPING  = 2
-    CONSUME   = 0
-    choices = ((INVITE,u'邀请积分'),
-               (SHOPPING,u'购物积分'),
-               (CONSUME,u'积分消费'),)
+class TradeScoreRelevance(models.Model):
     
     user_openid = models.CharField(max_length=64,db_index=True,verbose_name=u"微信ID")
-    referal_user_openid  = models.CharField(max_length=64,blank=True,verbose_name=u"被荐人ID")
+    trade_id    = models.IntegerField(db_index=True,verbose_name=u'交易ID')
+        
+    class Meta:
+        db_table = 'shop_weixin_trade_score_relate'
+        verbose_name = u'交易积分关联'
+        verbose_name_plural = u'交易积分关联列表'
+
+
+class WeixinUserScore(models.Model):
     
-    trade_id    = models.CharField(max_length=64,unique=True,verbose_name=u"订单ID")
-    point_value = models.IntegerField(default=0,verbose_name=u'积分')
-    point_type = models.IntegerField(default=0,choices=choices,verbose_name=u'积分类型')
+    user_openid = models.CharField(max_length=64,unique=True,verbose_name=u"微信ID")
+    
+    user_score  = models.IntegerField(default=0,verbose_name=u'剩余积分')  
+    
+    expiring_score = models.IntegerField(default=0,verbose_name=u'即将过期积分')
+    
+    modified   = models.DateTimeField(auto_now=True,blank=True,null=True,verbose_name=u'修改时间')
+    created    = models.DateTimeField(auto_now_add=True,null=True,verbose_name=u'创建时间')
+    
+    class Meta:
+        db_table = 'shop_weixin_user_score'
+        verbose_name = u'用户积分'
+        verbose_name_plural = u'用户积分列表'      
+        
+        
+class WeixinScoreItem(models.Model):
+    
+    CONSUME   = 0
+    INVITE    = 1
+    SHOPPING  = 2
+    ACTIVE    = 3
+    OTHER     = 4
+    choices = (
+               (CONSUME ,u'返现消费'),
+               (SHOPPING,u'购物积分'),
+               (INVITE,u'邀请积分'),
+               (ACTIVE,u'活动积分'),
+               (OTHER,u'其它'),)
+    
+    user_openid = models.CharField(max_length=64,db_index=True,verbose_name=u"微信ID")
+    
+    score = models.IntegerField(default=0,verbose_name=u'积分变化')
+    score_type = models.IntegerField(default=0,db_index=True,choices=choices,verbose_name=u'积分类型')
     
     expired_at = models.DateTimeField(blank=True,null=True,verbose_name=u'过期时间')
+    modified   = models.DateTimeField(auto_now=True,blank=True,null=True,verbose_name=u'修改时间')
     created    = models.DateTimeField(auto_now_add=True,null=True,verbose_name=u'创建时间')
-
+    
+    memo  = models.CharField(max_length=64,db_index=True,blank=True,verbose_name=u'变更备注')
+    
     class Meta:
-        db_table = 'shop_weixin_point_item'
-        verbose_name = u'微信积分明细'
-        verbose_name_plural = u'微信积分明细列表'
+        db_table = 'shop_weixin_score_item'
+        verbose_name = u'用户积分明细'
+        verbose_name_plural = u'用户积分明细列表'
         
         
