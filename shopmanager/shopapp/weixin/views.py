@@ -866,12 +866,17 @@ class ResultView(View):
                 usage_count = code_obj.usage_count
                 vipcode = code_obj.code
 
+        score = 0
+        user_scores = WeixinUserScore.objects.filter(user_openid=user_openid)
+        if user_scores.count() > 0:
+            score = user_scores[0].user_score
+            
         response = render_to_response('weixin/invite_result.html',
                                       {'days_left':days_left, 'hours_left':hours_left,
                                        'slots_left':slots_left, 'has_order':has_order,
                                        'order_status':order_status, 'vipcode':vipcode, 
                                        'usage_count':usage_count, 'five_batch':five_batch, 
-                                       'six_batch':six_batch,'ended':ended,
+                                       'six_batch':six_batch,'ended':ended,'score':score,
                                        'pk':pk ,'sample_choose':sample_choose},
                                       context_instance=RequestContext(request))
         response.set_cookie("openid",user_openid)        
