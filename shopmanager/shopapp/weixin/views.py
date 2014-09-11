@@ -20,7 +20,8 @@ from .models import (WeiXinUser,
                      Coupon,
                      CouponClick,
                      Survey,
-                     SampleChoose)
+                     SampleChoose,
+                     WeixinUserScore)
 
 from shopback.trades.models import MergeTrade
 from shopback import paramconfig as pcfg
