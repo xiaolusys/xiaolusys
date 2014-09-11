@@ -177,16 +177,14 @@ class RequestCodeView(View):
         code = wx_user_service.genValidCode()
         wx_user = wx_user_service._wx_user
         
-#        if wx_user.valid_count >= 1:
-#            response = {"code":"locked", "verifycode":wx_user.validcode}
-#            #response = {"code":"locked", "message":"limit reached, please contact us"}
-#            return HttpResponse(json.dumps(response),mimetype='application/json')
+        if wx_user.valid_count > 3:
+            response = {"code":"locked", "message":"limit reached, please contact us"}
+            return HttpResponse(json.dumps(response),mimetype='application/json')
         
         if wx_user.valid_count > 0:
-            prev_time = wx_user.code_time
             diff_time = datetime.datetime.now() - wx_user.code_time
-            if diff_time.seconds < 60:
-                response = {"code":"wait", "message":"wait 60s before requesting new code"}
+            if diff_time.seconds < 180:
+                response = {"code":"wait", "message":"wait 180s before requesting new code"}
                 return HttpResponse(json.dumps(response),mimetype='application/json')
                 
         # we have to write code into user's profile
@@ -868,12 +866,17 @@ class ResultView(View):
                 usage_count = code_obj.usage_count
                 vipcode = code_obj.code
 
+        score = 0
+        user_scores = WeixinUserScore.objects.filter(user_openid=user_openid)
+        if user_scores.count() > 0:
+            score = user_scores[0].user_score
+            
         response = render_to_response('weixin/invite_result.html',
                                       {'days_left':days_left, 'hours_left':hours_left,
                                        'slots_left':slots_left, 'has_order':has_order,
                                        'order_status':order_status, 'vipcode':vipcode, 
                                        'usage_count':usage_count, 'five_batch':five_batch, 
-                                       'six_batch':six_batch,'ended':ended,
+                                       'six_batch':six_batch,'ended':ended,'score':score,
                                        'pk':pk ,'sample_choose':sample_choose},
                                       context_instance=RequestContext(request))
         response.set_cookie("openid",user_openid)        
@@ -888,22 +891,16 @@ class FinalListView(View):
         batch = int(kwargs.get('batch',1))
         month = int(kwargs.get('month',8))
         
-        start_time = datetime.datetime(2014,8,28)
-        end_time = datetime.datetime(2014,9,7)
         order_list = None
-        
-        status_start, status_end = 0,0
-        if batch == 1:
-            status_start,status_end = 10,20
-        if batch == 6:
-            status_start,status_end = 20,22
         
         if month == 8:
             start_time = datetime.datetime(2014,8,1)
             end_time = datetime.datetime(2014,8,12)
-            order_list = SampleOrder.objects.filter(status__gt=0).filter(status__lt=7).filter(created__lt=end_time).filter(created__gt=start_time)
+            order_list = SampleOrder.objects.filter(status__gt=0,status__lt=7,created__lt=end_time,created__gt=start_time)
         else:
-            order_list = SampleOrder.objects.filter(status__gt=status_start).filter(status__lt=status_end).filter(created__gt=start_time)
+            start_time = datetime.datetime(2014,8,28)
+            end_time = datetime.datetime(2014,9,7)
+            order_list = SampleOrder.objects.filter(status__gt=10,status__lt=22,created__gt=start_time)
                 
         num_per_page = 20 # Show 20 contacts per page
         paginator = Paginator(order_list, num_per_page) 

@@ -6,16 +6,11 @@
 
 <div class="container-fluid">
 
-  <div class="panel panel-default" style="margin-top:5px">
-    <div class="panel-heading" style="color:orange">公告</div>
-    <div class="panel-body">
-      <p style="color:#e8792a">前五批中奖名单，共{{ five_batch }}名，邀请码使用<font style="color:red">22</font>次以上，祝贺她们！<a href="/weixin/finallist/1/1/9/">查看详情 >></a></p>
-      {% if ended %}
-      <p style="color:#e8792a">第六批中奖名单，共{{ six_batch }}名，邀请码使用<font style="color:red">21</font>次以上，祝贺她们！<a href="/weixin/finallist/6/1/9/">查看详情 >></a></p>
-      {% endif %}
-    </div>
-  </div>
-
+  <ul class="list-group">
+    <li class="list-group-item list-group-item-success">我的积分</li>
+    <li class="list-group-item"><p style="color:orange">累计: {{ score }}分<span style="font-size:26px"></p></li>
+    <li class="list-group-item"><p style="color:orange">积分明细（待开放）>><span style="font-size:26px"></p></li>
+  </ul>
 
   <div class="panel panel-default" style="margin-top:5px">
     <div class="panel-heading" style="color:orange">9月试用审核状态</div>
@@ -114,6 +109,7 @@
     <div class="panel-body">
       <p>亲们，若您的申请已审核通过，请仔细阅读审核页面的说明，务必在活动结束后<font style="color:red">5个工作日内</font>按照指示操作领取试用产品！不要忘记错过啦！</p>
       <p>为了保证活动的公正性和真实性，我们保留历史中奖名单供查询。</p>
+      <a href="/weixin/finallist/1/1/9/">9月中奖名单 >></a>
       <a href="/weixin/finallist/1/1/8/">8月中奖名单 >></a>
     </div>
   </div>
