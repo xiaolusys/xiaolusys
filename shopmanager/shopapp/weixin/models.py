@@ -1,10 +1,11 @@
-#-*- coding:utf-8 -*-
+#-*- coding:utf8 -*-
 import datetime
 from django.db import models
 from shopback.base.fields import BigIntegerAutoField
 from shopback.base.models import JSONCharMyField
 from .managers import WeixinProductManager,VipCodeManager
 from shopback.trades.models import MergeTrade
+from shopapp.signals import confirm_trade_signal
 
 SAFE_CODE_SECONDS = 180
 
@@ -758,8 +759,13 @@ class SampleChoose(models.Model):
 class TradeScoreRelevance(models.Model):
     
     user_openid = models.CharField(max_length=64,db_index=True,verbose_name=u"微信ID")
-    trade_id    = models.IntegerField(db_index=True,verbose_name=u'交易ID')
-        
+    trade_id    = models.CharField(max_length=64,db_index=True,verbose_name=u'交易ID')
+    
+    mobile      = models.CharField(max_length=36,blank=True,verbose_name=u'手机')
+    payment     = models.IntegerField(default=0,verbose_name=u'付款金额')
+    
+    is_used    = models.BooleanField(default=False,verbose_name=u'使用')
+    created    = models.DateTimeField(auto_now_add=True,null=True,verbose_name=u'创建时间')
     class Meta:
         db_table = 'shop_weixin_trade_score_relate'
         verbose_name = u'交易积分关联'
@@ -785,11 +791,12 @@ class WeixinUserScore(models.Model):
         
 class WeixinScoreItem(models.Model):
     
-    CONSUME   = 0
+    CONSUME   = -1
+    OTHER     = 0
     INVITE    = 1
     SHOPPING  = 2
     ACTIVE    = 3
-    OTHER     = 4
+    
     choices = (
                (CONSUME ,u'返现消费'),
                (SHOPPING,u'购物积分'),
@@ -813,4 +820,66 @@ class WeixinScoreItem(models.Model):
         verbose_name = u'用户积分明细'
         verbose_name_plural = u'用户积分明细列表'
         
+from django.db import transaction
+
+@transaction.commit_manually
+def convert_trade_payment2score(sender,trade_id,*args,**kwargs):
+    
+    transaction.commit()
+    committed = False
+    try:
+        from shopback import paramconfig as pcfg
+        instance = MergeTrade.objects.get(id = trade_id)
+        #the order is finished , print express or handsale 
+        if not instance.is_express_print and instance.shipping_type != pcfg.EXTRACT_SHIPPING_TYPE:
+            return 
         
+        trade_score_relev,state = TradeScoreRelevance.objects.get_or_create(trade_id=instance.id)
+        if state:
+            trade_score_relev.mobile = instance.receiver_mobile
+            trade_score_relev.payment = int(instance.payment)
+            trade_score_relev.save()
+            
+        if trade_score_relev.is_used:
+            return 
+        
+        mobiles  = [m for m in instance.receiver_mobile.split(',') if m.strip()]
+        wx_users = WeiXinUser.objects.filter(mobile__in=mobiles)
+        
+        if wx_users.count() > 0:
+            
+            user_openid = wx_users[0].openid
+            WeixinScoreItem.objects.create(user_openid=user_openid,
+                                           score=trade_score_relev.payment/10,
+                                           score_type=WeixinScoreItem.SHOPPING,
+                                           expired_at=datetime.datetime.now()+datetime.timedelta(days=365),
+                                           memo=u"订单(%s)确认收货，结算积分。"%(instance.id))
+            
+            wx_user_score,state = WeixinUserScore.objects.get_or_create(user_openid=user_openid)
+            wx_user_score.user_score  = models.F('user_score') + trade_score_relev.payment/10
+            wx_user_score.save()
+            
+            trade_score_relev.user_openid = user_openid
+            trade_score_relev.is_used = True
+            trade_score_relev.save()
+        
+        committed = True
+        
+    except Exception,exc:
+        transaction.rollback()
+        
+        import logging
+        logger = logging.getLogger("celery.handler")
+        logger.error(u'订单积分转换失败:%s'%exc.message,exc_info=True)
+    else:
+        transaction.commit()
+    finally:
+        if not committed:
+            transaction.rollback()
+        
+        
+confirm_trade_signal.connect(convert_trade_payment2score, sender=MergeTrade)
+
+
+
+
