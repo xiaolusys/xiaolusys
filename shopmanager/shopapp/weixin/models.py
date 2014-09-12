@@ -5,7 +5,7 @@ from shopback.base.fields import BigIntegerAutoField
 from shopback.base.models import JSONCharMyField
 from .managers import WeixinProductManager,VipCodeManager
 from shopback.trades.models import MergeTrade
-from shopapp.signals import confirm_trade_signal
+
 
 SAFE_CODE_SECONDS = 180
 
@@ -776,9 +776,9 @@ class WeixinUserScore(models.Model):
     
     user_openid = models.CharField(max_length=64,unique=True,verbose_name=u"微信ID")
     
-    user_score  = models.IntegerField(default=0,verbose_name=u'剩余积分')  
+    user_score  = models.PositiveIntegerField(default=0,verbose_name=u'剩余积分')  
     
-    expiring_score = models.IntegerField(default=0,verbose_name=u'即将过期积分')
+    expiring_score = models.PositiveIntegerField(default=0,verbose_name=u'即将过期积分')
     
     modified   = models.DateTimeField(auto_now=True,blank=True,null=True,verbose_name=u'修改时间')
     created    = models.DateTimeField(auto_now_add=True,null=True,verbose_name=u'创建时间')
@@ -821,6 +821,9 @@ class WeixinScoreItem(models.Model):
         verbose_name_plural = u'用户积分明细列表'
         
 from django.db import transaction
+from shopapp.signals import (confirm_trade_signal,
+                             weixin_referal_signal,
+                             weixin_refund_signal)
 
 @transaction.commit_manually
 def convert_trade_payment2score(sender,trade_id,*args,**kwargs):
@@ -881,5 +884,66 @@ def convert_trade_payment2score(sender,trade_id,*args,**kwargs):
 confirm_trade_signal.connect(convert_trade_payment2score, sender=MergeTrade)
 
 
+@transaction.commit_manually
+def convert_referal2score(sender,user_openid,referal_from_openid,*args,**kwargs):
+    
+    transaction.commit()
+    invite_score = 1
+    try:
+        WeixinScoreItem.objects.create(user_openid=referal_from_openid,
+                                       score=invite_score,
+                                       score_type=WeixinScoreItem.INVITE,
+                                       expired_at=datetime.datetime.now()+datetime.timedelta(days=365),
+                                       memo=u"邀请好友(%s)获得积分。"%(user_openid))
+        
+        wx_user_score,state = WeixinUserScore.objects.get_or_create(user_openid=referal_from_openid)
+        wx_user_score.user_score  = models.F('user_score') + invite_score
+        wx_user_score.save()
+        
+    except Exception,exc:
+        transaction.rollback()
+        
+        import logging
+        logger = logging.getLogger("celery.handler")
+        logger.error(u'邀请好友积分保存失败:%s'%exc.message,exc_info=True)
+    else:
+        transaction.commit()
+
+weixin_referal_signal.connect(convert_referal2score, sender=SampleOrder)
+
+
+@transaction.commit_manually
+def decrease_refund_score(sender,refund_id,*args,**kwargs):
+    
+    transaction.commit()
+    try:
+        refund = Refund.objects.get(id=refund_id)
+        refund_score = 20 
+        
+        wx_user_score,state = WeixinUserScore.objects.get_or_create(
+                                        user_openid=refund.user_openid)
+        
+        dec_score = 0 - min(refund_score,wx_user_score.user_score)
+        WeixinScoreItem.objects.create(user_openid=refund.user_openid,
+                                       score=dec_score,
+                                       score_type=WeixinScoreItem.CONSUME,
+                                       expired_at=datetime.datetime.now(),
+                                       memo=u"订单返现(%s)消耗积分。"%(refund.trade_id))
+        
+        
+        wx_user_score.user_score  = models.F('user_score') + dec_score
+        wx_user_score.save()
+        
+    except Exception,exc:
+        transaction.rollback()
+        
+        import logging
+        logger = logging.getLogger("celery.handler")
+        logger.error(u'返现积分消耗失败:%s'%exc.message,exc_info=True)
+    else:
+        transaction.commit()
+        
+        
+weixin_refund_signal.connect(decrease_refund_score, sender=Refund)
 
 
