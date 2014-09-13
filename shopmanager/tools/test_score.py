@@ -24,7 +24,9 @@ def confirm_trade_score():
     
     index = 0 
     dt = datetime.datetime(2014,8,1)
-    mts = MergeTrade.objects.filter(is_express_print=True,pay_time__gt=dt)
+    mts = MergeTrade.objects.filter(is_express_print=True,
+                                    pay_time__gt=dt,
+                                    sys_status='FINISHED')
     print 'merge trade count:',mts.count()
     for t in mts:
         confirm_trade_signal.send(sender=MergeTrade,trade_id=t.id)
@@ -46,6 +48,6 @@ def refund_score():
                 rf.save()
                 
         if rf.refund_status == 3:
-            weixin_referal_signal.send(sender=Refund,
+            weixin_refund_signal.send(sender=Refund,
                                        refund_id=rf.id)
             
