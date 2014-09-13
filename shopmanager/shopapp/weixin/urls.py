@@ -30,6 +30,7 @@ from shopapp.weixin.views import (WeixinAcceptView,
                                   CouponFaqView,
                                   SurveyView,
                                   SampleChooseView,
+                                  ScoreView,
                                   TestView)
 
 urlpatterns = patterns('shopapp.weixin.views',
@@ -77,6 +78,7 @@ urlpatterns = patterns('shopapp.weixin.views',
     url(r'^couponfaq/$', CouponFaqView.as_view()),
     url(r'^survey/$', SurveyView.as_view()),
     url(r'^samplechoose/$', SampleChooseView.as_view()),
+    url(r'^score/(?P<user_pk>\d+)/$', ScoreView.as_view()),
     url(r'^test/$', TestView.as_view()),    
                      
     url(r'^validmobile/$', TemplateView.as_view(
