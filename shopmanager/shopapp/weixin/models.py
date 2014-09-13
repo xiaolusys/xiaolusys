@@ -762,7 +762,8 @@ class TradeScoreRelevance(models.Model):
     trade_id    = models.CharField(max_length=64,db_index=True,verbose_name=u'交易ID')
     
     mobile      = models.CharField(max_length=36,blank=True,verbose_name=u'手机')
-    payment     = models.IntegerField(default=0,verbose_name=u'付款金额')
+    #订单成交金额 以分未单位
+    payment     = models.IntegerField(default=0,verbose_name=u'付款金额') 
     
     is_used    = models.BooleanField(default=False,verbose_name=u'使用')
     created    = models.DateTimeField(auto_now_add=True,null=True,verbose_name=u'创建时间')
@@ -825,6 +826,7 @@ from shopapp.signals import (confirm_trade_signal,
                              weixin_referal_signal,
                              weixin_refund_signal)
 
+#订单确认收货增加积分
 @transaction.commit_manually
 def convert_trade_payment2score(sender,trade_id,*args,**kwargs):
     
@@ -845,7 +847,10 @@ def convert_trade_payment2score(sender,trade_id,*args,**kwargs):
         trade_score_relev,state = TradeScoreRelevance.objects.get_or_create(trade_id=instance.id)
         if state:
             trade_score_relev.mobile = instance.receiver_mobile
-            trade_score_relev.payment = int(instance.payment)
+            
+            payment_dict = instance.merge_orders.filter(sys_status=pcfg.IN_EFFECT)\
+                            .aggregate(total_payment=Sum('payment'))
+            trade_score_relev.payment = int((payment_dict.get('total_payment') or 0)*100)
             trade_score_relev.save()
             
         if trade_score_relev.is_used:
@@ -857,14 +862,15 @@ def convert_trade_payment2score(sender,trade_id,*args,**kwargs):
         if wx_users.count() > 0:
             
             user_openid = wx_users[0].openid
+            payment_score = int(round(trade_score_relev.payment/1000.0))
             WeixinScoreItem.objects.create(user_openid=user_openid,
-                                           score=int(round(trade_score_relev.payment/10.0)),
+                                           score=payment_score,
                                            score_type=WeixinScoreItem.SHOPPING,
                                            expired_at=datetime.datetime.now()+datetime.timedelta(days=365),
                                            memo=u"订单(%s)确认收货，结算积分。"%(instance.id))
             
             wx_user_score,state = WeixinUserScore.objects.get_or_create(user_openid=user_openid)
-            wx_user_score.user_score  = models.F('user_score') + trade_score_relev.payment/10
+            wx_user_score.user_score  = models.F('user_score') + payment_score
             wx_user_score.save()
             
             trade_score_relev.user_openid = user_openid
@@ -888,7 +894,7 @@ def convert_trade_payment2score(sender,trade_id,*args,**kwargs):
         
 confirm_trade_signal.connect(convert_trade_payment2score, sender=MergeTrade)
 
-
+#推荐关系增加积分
 @transaction.commit_manually
 def convert_referal2score(sender,user_openid,referal_from_openid,*args,**kwargs):
     
@@ -916,14 +922,14 @@ def convert_referal2score(sender,user_openid,referal_from_openid,*args,**kwargs)
 
 weixin_referal_signal.connect(convert_referal2score, sender=SampleOrder)
 
-
+#试用订单审核通过消耗积分
 @transaction.commit_manually
-def decrease_refund_score(sender,refund_id,*args,**kwargs):
+def decrease_sample_score(sender,refund_id,*args,**kwargs):
     
     transaction.commit()
     try:
-        refund = Refund.objects.get(id=refund_id)
-        refund_score = 20 
+        refund = Refund.objects.get(id=refund_id,refund_type=1)
+        sample_score = 20 
         
         wx_user_score,state = WeixinUserScore.objects.get_or_create(
                                         user_openid=refund.user_openid)
@@ -933,22 +939,60 @@ def decrease_refund_score(sender,refund_id,*args,**kwargs):
                                        score=dec_score,
                                        score_type=WeixinScoreItem.CONSUME,
                                        expired_at=datetime.datetime.now(),
-                                       memo=u"订单返现(%s)消耗积分。"%(refund.trade_id))
+                                       memo=u"试用订单(%s)返现审核通过，消耗积分。"%(refund.trade_id))
         
         
         wx_user_score.user_score  = models.F('user_score') + dec_score
         wx_user_score.save()
-        
+    
+    except Refund.DoesNotExist:
+        transaction.rollback()
     except Exception,exc:
         transaction.rollback()
         
         import logging
         logger = logging.getLogger("celery.handler")
-        logger.error(u'返现积分消耗失败:%s'%exc.message,exc_info=True)
+        logger.error(u'返现积分更新失败:%s'%exc.message,exc_info=True)
     else:
         transaction.commit()
         
+weixin_refund_signal.connect(decrease_sample_score, sender=Refund)
+
+#试用订单审核通过取消订单确认收货积分
+@transaction.commit_manually
+def decrease_refund_trade_score(sender,refund_id,*args,**kwargs):
+    
+    transaction.commit()
+    try:
+        refund = Refund.objects.get(id=refund_id,refund_type=1)
+
+        refund_score = int(round(refund.pay_amount / 1000.0))
         
-weixin_refund_signal.connect(decrease_refund_score, sender=Refund)
+        wx_user_score,state = WeixinUserScore.objects.get_or_create(
+                                        user_openid=refund.user_openid)
+        
+        dec_score = 0 - min(refund_score,wx_user_score.user_score)
+        WeixinScoreItem.objects.create(user_openid=refund.user_openid,
+                                       score=dec_score,
+                                       score_type=WeixinScoreItem.AWARD,
+                                       expired_at=datetime.datetime.now(),
+                                       memo=u"试用订单(%s)审核通过，取消购物积分。"%(refund.trade_id))
+        
+        
+        wx_user_score.user_score  = models.F('user_score') + dec_score
+        wx_user_score.save()
+    
+    except Refund.DoesNotExist:
+        transaction.rollback()    
+    except Exception,exc:
+        transaction.rollback()
+        
+        import logging
+        logger = logging.getLogger("celery.handler")
+        logger.error(u'试用积分更新失败:%s'%exc.message,exc_info=True)
+    else:
+        transaction.commit()
+
+weixin_refund_signal.connect(decrease_refund_trade_score, sender=Refund)
 
 

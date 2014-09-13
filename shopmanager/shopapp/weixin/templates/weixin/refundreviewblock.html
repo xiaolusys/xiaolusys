@@ -58,14 +58,7 @@
 	</select>
       </td>
       <td>
-	<select class="form-control" id="id_refund_amount">
-	  <option value="0" >客服协商</option>
-	  <option value="1" >订单全额</option>
-	  <option value="200" >￥2.00</option>
-	  <option value="300" >￥3.00</option>
-	  <option value="400" >￥4.00</option>
-	  <option value="500" >￥5.00</option>
-	</select>
+	<input type="text" class="form-control" id="id_refund_amount" value="{{ first_refund.pay_amount }}"/>
       </td>
       <td>
 	<input type="text" class="form-control" id="id_review_note" value="{{ first_refund.review_note }}"/>
