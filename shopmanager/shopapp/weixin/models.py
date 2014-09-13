@@ -834,8 +834,13 @@ def convert_trade_payment2score(sender,trade_id,*args,**kwargs):
         from shopback import paramconfig as pcfg
         instance = MergeTrade.objects.get(id = trade_id)
         #the order is finished , print express or handsale 
-        if not instance.is_express_print and instance.shipping_type != pcfg.EXTRACT_SHIPPING_TYPE:
-            return 
+        if (instance.sys_status != pcfg.FINISHED_STATUS 
+            or (not instance.is_express_print 
+                and instance.shipping_type != pcfg.EXTRACT_SHIPPING_TYPE)
+            or instance.type in (pcfg.FENXIAO_TYPE,
+                                 pcfg.EXCHANGE_TYPE,
+                                 pcfg.REISSUE_TYPE)):
+            return
         
         trade_score_relev,state = TradeScoreRelevance.objects.get_or_create(trade_id=instance.id)
         if state:
@@ -853,7 +858,7 @@ def convert_trade_payment2score(sender,trade_id,*args,**kwargs):
             
             user_openid = wx_users[0].openid
             WeixinScoreItem.objects.create(user_openid=user_openid,
-                                           score=trade_score_relev.payment/10,
+                                           score=int(round(trade_score_relev.payment/10.0)),
                                            score_type=WeixinScoreItem.SHOPPING,
                                            expired_at=datetime.datetime.now()+datetime.timedelta(days=365),
                                            memo=u"订单(%s)确认收货，结算积分。"%(instance.id))
