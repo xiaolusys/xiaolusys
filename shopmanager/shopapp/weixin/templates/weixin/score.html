@@ -8,10 +8,13 @@
 
 <div class="container-fluid">
   <ul class="list-group">
-    <li class="list-group-item list-group-item-success">积分明细</li>
+    <li class="list-group-item list-group-item-success">我的积分: {{ score }}分</li>
     {% for item in items %}
     <li class="list-group-item">{{ item.score }}分|{{ item|displayName:'score_type' }}({{ item.memo }})</li>
     {% endfor %}
+    {% if invite_items.count > 0 %}
+    <li class="list-group-item">{{ invite_items.count }}分|邀请积分(VIP码共使用{{ invite_items.count }}次)</li>
+    {% endif %}
   </ul>
 
   <div class="footer">
