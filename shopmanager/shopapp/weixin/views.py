@@ -1097,6 +1097,12 @@ class ScoreView(View):
     def get(self, request, *args, **kwargs):        
         user_pk = int(kwargs.get('user_pk','0'))
         wx_user = WeiXinUser.objects.get(pk=user_pk)
+
+        score = 0
+        user_scores = WeixinUserScore.objects.filter(user_openid=wx_user.openid)
+        if user_scores.count() > 0:
+            score = user_scores[0].user_score
+
         items = WeixinScoreItem.objects.filter(user_openid=wx_user.openid).exclude(score_type=WeixinScoreItem.AWARD)
         invite_items =  WeixinScoreItem.objects.filter(user_openid=wx_user.openid).exclude(score_type=WeixinScoreItem.INVITE)
 
