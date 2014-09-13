@@ -21,7 +21,8 @@ from .models import (WeiXinUser,
                      CouponClick,
                      Survey,
                      SampleChoose,
-                     WeixinUserScore)
+                     WeixinUserScore,
+                     WeixinScoreItem)
 
 from shopback.trades.models import MergeTrade
 from shopback import paramconfig as pcfg
@@ -826,17 +827,6 @@ class ResultView(View):
         code = content.get('code')
         user_openid = get_user_openid(request, code)
 
-        end = datetime.datetime(2014,9,7)
-        now = datetime.datetime.now()
-
-        ended = False
-        if now > end:
-            ended = True
-            
-        diff = end - now
-        days_left = diff.days
-        hours_left = diff.seconds / 3600
-        
         start = datetime.datetime(2014,8,28)
         order = SampleOrder.objects.filter(user_openid=user_openid).filter(created__gt=start)
         has_order = False
@@ -845,16 +835,10 @@ class ResultView(View):
             has_order = True
             order_status = order[0].status
             
-        is_answer  = False
-      
         sample_choose  = None
         sample_chooses = SampleChoose.objects.filter(user_openid=user_openid)
         if sample_chooses.count() > 0:
             sample_choose = sample_chooses[0]
-        
-        five_batch = SampleOrder.objects.filter(status__gt=10,status__lt=20).filter(created__gt=start).count()
-        six_batch = SampleOrder.objects.filter(status__gt=20,status__lt=22).filter(created__gt=start).count()
-        slots_left = 1600 - five_batch
         
         usage_count = 0
         users = WeiXinUser.objects.filter(openid=user_openid)
@@ -873,15 +857,13 @@ class ResultView(View):
             score = user_scores[0].user_score
             
         response = render_to_response('weixin/invite_result.html',
-                                      {'days_left':days_left, 'hours_left':hours_left,
-                                       'slots_left':slots_left, 'has_order':has_order,
-                                       'order_status':order_status, 'vipcode':vipcode, 
-                                       'usage_count':usage_count, 'five_batch':five_batch, 
-                                       'six_batch':six_batch,'ended':ended,'score':score,
-                                       'pk':pk ,'sample_choose':sample_choose},
+                                      {'has_order':has_order, 'order_status':order_status, 
+                                       'vipcode':vipcode, 'usage_count':usage_count, 
+                                       'score':score, 'pk':pk ,'sample_choose':sample_choose},
                                       context_instance=RequestContext(request))
         response.set_cookie("openid",user_openid)        
         return response
+
 
 
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
@@ -1111,6 +1093,23 @@ class SampleChooseView(View):
         return redirect("/weixin/inviteresult/")        
 
 
+class ScoreView(View):
+    def get(self, request, *args, **kwargs):        
+        user_pk = int(kwargs.get('user_pk','0'))
+        wx_user = WeiXinUser.objects.get(pk=user_pk)
+
+        score = 0
+        user_scores = WeixinUserScore.objects.filter(user_openid=wx_user.openid)
+        if user_scores.count() > 0:
+            score = user_scores[0].user_score
+
+        items = WeixinScoreItem.objects.filter(user_openid=wx_user.openid).exclude(score_type=WeixinScoreItem.INVITE)
+        invite_items =  WeixinScoreItem.objects.filter(user_openid=wx_user.openid,score_type=WeixinScoreItem.INVITE)
+
+        response = render_to_response('weixin/score.html', 
+                                      {'score':score,'items':items,'invite_items':invite_items},
+                                      context_instance=RequestContext(request))
+        return response
     
 class TestView(View):
     def get(self, request):

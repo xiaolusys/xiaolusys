@@ -791,7 +791,7 @@ class WeixinUserScore(models.Model):
         
         
 class WeixinScoreItem(models.Model):
-    
+    AWARD     = -2
     CONSUME   = -1
     OTHER     = 0
     INVITE    = 1
@@ -803,6 +803,7 @@ class WeixinScoreItem(models.Model):
                (SHOPPING,u'购物积分'),
                (INVITE,u'邀请积分'),
                (ACTIVE,u'活动积分'),
+               (AWARD, u'中奖扣除'),
                (OTHER,u'其它'),)
     
     user_openid = models.CharField(max_length=64,db_index=True,verbose_name=u"微信ID")

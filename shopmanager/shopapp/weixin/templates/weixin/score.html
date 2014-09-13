@@ -1,0 +1,28 @@
+{% extends "weixin/weixin_base.html" %}
+
+{% load custom_filter %}
+
+{% block title %} 我的积分 {% endblock %}
+
+{% block container %}
+
+<div class="container-fluid">
+  <ul class="list-group">
+    <li class="list-group-item list-group-item-success">我的积分: {{ score }}分</li>
+    {% for item in items %}
+    {% if item.score != 0 %}
+    <li class="list-group-item">{{ item.score }}分|{{ item|displayName:'score_type' }}({{ item.memo }})</li>
+    {% endif %}
+    {% endfor %}
+    {% if invite_items.count > 0 %}
+    <li class="list-group-item">{{ invite_items.count }}分|邀请积分(VIP码共使用{{ invite_items.count }}次)</li>
+    {% endif %}
+  </ul>
+
+  <div class="footer">
+    <p>© Uni Littles 2014</p>
+  </div>
+  
+</div>
+{% endblock %}
+
