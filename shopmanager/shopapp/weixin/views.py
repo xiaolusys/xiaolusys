@@ -21,7 +21,8 @@ from .models import (WeiXinUser,
                      CouponClick,
                      Survey,
                      SampleChoose,
-                     WeixinUserScore)
+                     WeixinUserScore,
+                     WeixinScoreItem)
 
 from shopback.trades.models import MergeTrade
 from shopback import paramconfig as pcfg
@@ -864,6 +865,7 @@ class ResultView(View):
         return response
 
 
+
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 class FinalListView(View):
     def get(self, request, *args, **kwargs):
@@ -1091,6 +1093,13 @@ class SampleChooseView(View):
         return redirect("/weixin/inviteresult/")        
 
 
+class ScoreView(View):
+    def get(self, request, *args, **kwargs):        
+        user_pk = int(kwargs.get('user_pk','0'))
+        wx_user = WeiXinUser.objects.get(pk=user_pk)
+        items = WeixinScoreItem.objects.filter(user_openid=wx_user.user_openid)
+        response = render_to_response('weixin/score.html', {'items':items}, context_instance=RequestContext(request))
+        
     
 class TestView(View):
     def get(self, request):
