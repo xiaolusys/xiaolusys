@@ -1097,8 +1097,12 @@ class ScoreView(View):
     def get(self, request, *args, **kwargs):        
         user_pk = int(kwargs.get('user_pk','0'))
         wx_user = WeiXinUser.objects.get(pk=user_pk)
-        items = WeixinScoreItem.objects.filter(user_openid=wx_user.openid)
-        response = render_to_response('weixin/score.html', {'items':items}, context_instance=RequestContext(request))
+        items = WeixinScoreItem.objects.filter(user_openid=wx_user.openid).exclude(score_type=WeixinScoreItem.AWARD)
+        invite_items =  WeixinScoreItem.objects.filter(user_openid=wx_user.openid).exclude(score_type=WeixinScoreItem.INVITE)
+
+        response = render_to_response('weixin/score.html', 
+                                      {'score':score,'items':items,'invite_items':invite_items}
+                                      context_instance=RequestContext(request))
         return response
     
 class TestView(View):
