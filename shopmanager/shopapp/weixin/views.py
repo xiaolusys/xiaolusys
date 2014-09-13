@@ -1101,7 +1101,7 @@ class ScoreView(View):
         invite_items =  WeixinScoreItem.objects.filter(user_openid=wx_user.openid).exclude(score_type=WeixinScoreItem.INVITE)
 
         response = render_to_response('weixin/score.html', 
-                                      {'score':score,'items':items,'invite_items':invite_items}
+                                      {'score':score,'items':items,'invite_items':invite_items},
                                       context_instance=RequestContext(request))
         return response
     
