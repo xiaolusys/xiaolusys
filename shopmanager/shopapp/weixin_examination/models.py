@@ -109,4 +109,14 @@ class ExamUserProblem(models.Model):
         verbose_name_plural = u'用户答题列表'
     
     
-    
+
+class Invitationship(models.Model):
+    from_openid = models.CharField(max_length=64,verbose_name=u"邀请人微信ID")
+    invite_openid = models.CharField(max_length=64,verbose_name=u"被邀请微信ID")
+    created = models.DateTimeField(auto_now_add=True,null=True,verbose_name=u'创建时间')
+
+    class Meta:
+        db_table = 'shop_weixin_exam_invitationship'
+        unique_together = ('from_openid', 'invite_openid')
+        verbose_name = u'答题关系'
+        verbose_name_plural = u'答题关系列表'
