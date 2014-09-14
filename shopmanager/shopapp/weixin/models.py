@@ -909,9 +909,8 @@ def convert_trade_payment2score(sender,trade_id,*args,**kwargs):
         trade_score_relev,state = TradeScoreRelevance.objects.get_or_create(trade_id=instance.id)
         if state:
             trade_score_relev.mobile = instance.receiver_mobile
-            
             payment_dict = instance.merge_orders.filter(sys_status=pcfg.IN_EFFECT)\
-                            .aggregate(total_payment=Sum('payment'))
+                            .aggregate(total_payment=models.Sum('payment'))
             trade_score_relev.payment = int((payment_dict.get('total_payment') or 0)*100)
             trade_score_relev.save()
             
@@ -999,7 +998,7 @@ def decrease_sample_score(sender,refund_id,*args,**kwargs):
         dec_score = 0 - min(refund_score,wx_user_score.user_score)
         WeixinScoreItem.objects.create(user_openid=refund.user_openid,
                                        score=dec_score,
-                                       score_type=WeixinScoreItem.CONSUME,
+                                       score_type=WeixinScoreItem.AWARD,
                                        expired_at=datetime.datetime.now(),
                                        memo=u"试用订单(%s)返现审核通过，消耗积分。"%(refund.trade_id))
         
@@ -1036,7 +1035,7 @@ def decrease_refund_trade_score(sender,refund_id,*args,**kwargs):
         dec_score = 0 - min(refund_score,wx_user_score.user_score)
         WeixinScoreItem.objects.create(user_openid=refund.user_openid,
                                        score=dec_score,
-                                       score_type=WeixinScoreItem.AWARD,
+                                       score_type=WeixinScoreItem.CONSUME,
                                        expired_at=datetime.datetime.now(),
                                        memo=u"试用订单(%s)审核通过，取消购物积分。"%(refund.trade_id))
         
