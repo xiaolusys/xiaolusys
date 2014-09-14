@@ -6,8 +6,8 @@ class ExamProblem(models.Model):
     
     ACTIVE   = 0
     DEACTIVE = 1
-    STATUS_CHOICES = ((ACTIVE,u'已使用'),
-                      (DEACTIVE,u'未使用'),)
+    STATUS_CHOICES = ((ACTIVE,u'使用'),
+                      (DEACTIVE,u'待用'),)
     
     problem_title   = models.CharField(max_length=1500,blank=True,verbose_name=u'题目')
     problem_answer  = models.CharField(max_length=4,blank=True,verbose_name=u'正确选项')
@@ -15,7 +15,7 @@ class ExamProblem(models.Model):
     option_b = models.CharField(max_length=200,blank=True,verbose_name=u'选项B')
     option_c = models.CharField(max_length=200,blank=True,verbose_name=u'选项C')
     option_d = models.CharField(max_length=200,blank=True,verbose_name=u'选项D')
-    problem_score = models.IntegerField(null=True,db_index=True,verbose_name=u'题目分数')
+    problem_score = models.IntegerField(default=1,verbose_name=u'题目分数')
     
     modified   = models.DateTimeField(auto_now=True,blank=True,null=True,verbose_name=u'修改时间')
     created = models.DateTimeField(auto_now_add=True,blank=True,null=True,verbose_name=u'创建日期')

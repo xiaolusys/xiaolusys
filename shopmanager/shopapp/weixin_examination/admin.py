@@ -10,7 +10,7 @@ class ExamProblemAdmin(admin.ModelAdmin):
     list_display = ('id','problem_title','problem_answer','problem_score','created','status')
     list_display_links = ('id','problem_title')
     
-    list_filter = ('status',)
+    list_filter = ('status','problem_answer')
     search_fields = ['id','problem_title']
 
 admin.site.register(ExamProblem, ExamProblemAdmin) 
