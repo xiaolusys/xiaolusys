@@ -1131,13 +1131,13 @@ class ClickScoreView(View):
         now = datetime.datetime.now()
         if expiry > now:
             # in effect
-            #try:
-            record = WeixinClickScoreRecord.objects.create(
-                user_openid=user_openid,click_score_id=click_score_id,score=score)
-            weixin_readclick_signal.send(
-                sender=WeixinClickScoreRecord,click_score_record_id=record.pk)
-            #except:
-                #pass
+            try:
+                record = WeixinClickScoreRecord.objects.create(
+                    user_openid=user_openid,click_score_id=click_score_id,score=score)
+                weixin_readclick_signal.send(
+                    sender=WeixinClickScoreRecord,click_score_record_id=record.pk)
+            except:
+                pass
             
         return redirect(redirect_link)
 
