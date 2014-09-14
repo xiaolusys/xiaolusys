@@ -77,16 +77,18 @@ class WeixinExamView(View):
         
         if exam_user_paper.status == ExamUserPaper.UNFINISHED:
             
+            answer_right = problem.problem_answer == selected
+            answer_score = answer_right and problem.problem_score or 0
             ExamUserProblem.objects.create(user_openid=user_openid,
                                           paper_id=paper_id,
                                           problem_id=problem_id,
                                           selected=selected,
-                                          status=problem.problem_answer==selected,
-                                          problem_score=problem.problem_score)
+                                          status=answer_right,
+                                          problem_score=answer_score)
             
             ExamUserPaper.objects.filter(user_openid=user_openid,
                         paper_id=paper_id).update(answer_num = models.F('answer_num') + 1,
-                                                  grade = models.F('grade') + problem.problem_score)
+                                                  grade = models.F('grade') + answer_score)
         
             exam_user_paper = ExamUserPaper.objects.get(user_openid=user_openid,paper_id=paper_id)
             
