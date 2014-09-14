@@ -1,0 +1,19 @@
+{% extends "weixin/weixin_base.html" %}
+
+{% block title %} 微信妈妈答题结果 {% endblock %}
+
+{% block container %}
+
+<div class="container-fluid">
+   <div class="panel panel-default" style="margin-top:5px">
+    <div class="panel-heading" style="color:orange">公告</div>
+    <div class="panel-body">
+      <div class="row">
+	<div class="col-xs-12">
+	  <p style="color:red">您本次答对{{ exam_user_paper.answer_num }}题，恭喜您！</p>
+	</div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}

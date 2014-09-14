@@ -9,6 +9,9 @@
   <ul class="list-group">
     <li class="list-group-item list-group-item-success">我的积分</li>
     <li class="list-group-item"><span style="color:orange">累计: <font style="font-size:26px">{{ score }}</font>分</span> (<a href="/weixin/score/{{pk}}/">积分明细>></a>)</li>
+    {% if pk == 2 %}
+    <a href="/weixin/examination/share/?userpk=2">click</a>
+    {% endif %}
   </ul>
 
   <div class="panel panel-default" style="margin-top:5px">
