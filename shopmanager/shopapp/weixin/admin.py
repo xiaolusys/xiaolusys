@@ -23,7 +23,9 @@ from shopapp.weixin.models import (WeiXinAccount,
                                    Survey,
                                    SampleChoose,
                                    WeixinUserScore,
-                                   WeixinScoreItem
+                                   WeixinScoreItem,
+                                   WeixinClickScore,
+                                   WeixinClickScoreRecord
                                    )
 
 class WeiXinAccountAdmin(admin.ModelAdmin):
@@ -310,6 +312,24 @@ class WeixinScoreItemAdmin(admin.ModelAdmin):
     list_filter = ('score_type',('created',DateFieldListFilter))
 
 admin.site.register(WeixinScoreItem, WeixinScoreItemAdmin) 
+
+
+class WeixinClickScoreAdmin(admin.ModelAdmin):
+    
+    list_display = ('id', 'description', 'redirect_link', 'score','expiry','created')
+    search_fields = ['description','redirect_link']
+    list_filter = ('score',)
+
+admin.site.register(WeixinClickScore, WeixinClickScoreAdmin) 
+
+
+class WeixinClickScoreRecordAdmin(admin.ModelAdmin):
+    
+    list_display = ('user_openid', 'click_score_id', 'score', 'created')
+    search_fields = ['user_openid']
+    list_filter = ('score',)
+
+admin.site.register(WeixinClickScoreRecord, WeixinClickScoreRecordAdmin) 
 
 
 
