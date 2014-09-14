@@ -759,7 +759,7 @@ class SampleChoose(models.Model):
 class TradeScoreRelevance(models.Model):
     
     user_openid = models.CharField(max_length=64,db_index=True,verbose_name=u"微信ID")
-    trade_id    = models.CharField(max_length=64,db_index=True,verbose_name=u'交易ID')
+    trade_id    = models.CharField(max_length=64,unique=True,verbose_name=u'交易ID')
     
     mobile      = models.CharField(max_length=36,blank=True,verbose_name=u'手机')
     #订单成交金额 以分未单位

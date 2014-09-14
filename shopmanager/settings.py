@@ -140,6 +140,7 @@ INSTALLED_APPS = (
 
     'shopapp.jingdong',
     'shopapp.examination',
+    'shopapp.weixin_examination',
 
 
     #'test.celery',

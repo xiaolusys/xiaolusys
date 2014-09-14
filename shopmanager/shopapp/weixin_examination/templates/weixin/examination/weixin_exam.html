@@ -1,0 +1,46 @@
+{% extends "weixin/weixin_base.html" %}
+ 
+{% block title %} 微信妈妈互动答题 {%endblock %} 
+
+{% block container %}
+<div class="container-fluid">
+<div class="panel panel-default" style="margin-top: 5px">
+<div class="panel-heading" style="color: orange">{{ problem.problem_title }}</div>
+<form name="form1" method="POST" action="./">
+{% csrf_token %}
+<input type="hidden" name="paper_id" value="{{ exam_user_paper.paper_id }}"/>
+<input type="hidden" name="problem_id" value="{{ problem.id }}"/>
+<table class="table">
+	{% if problem.option_a %}
+	<tr>
+		<td><input type="radio" id="selected_A" name="selected" value="A">
+		<label class="label label-primary" for="selected_A">{{ problem.option_a }}</label></td>
+	</tr>
+	{% endif %}
+	{% if problem.option_b %}
+	<tr>
+		<td><input type="radio" id="selected_B" name="selected" value="B">
+		<label class="label label-primary" for="selected_B">{{ problem.option_b }}</label></td>
+	</tr>
+	{% endif %}
+	{% if problem.option_c %}
+	<tr>
+		<td><input type="radio" id="selected_C" name="selected" value="C">
+		<label class="label label-primary" for="selected_C">{{ problem.option_c }}</label></td>
+	</tr>
+	{% endif %}
+	{% if problem.option_d %}
+	<tr>
+		<td><input type="radio" id="selected_D" name="selected" value="D">
+		<label class="label label-primary" for="selected_D">{{ problem.option_d }}</label></td>
+	</tr>
+	{% endif %}
+</table>
+<div style="text-align:center;"><input type="submit" class="btn btn-success" value="确定，并继续"/></div>
+</form>
+</div>
+</div>
+</div>
+
+
+{% endblock %}
