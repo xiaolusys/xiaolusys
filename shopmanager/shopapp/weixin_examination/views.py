@@ -36,12 +36,11 @@ class WeixinExamView(View):
         code = content.get('code')
         
         user_openid = get_user_openid(request, code)
-        user_openid = 'oMt59uJJBoNRC7Fdv1b5XiOAngdU'
         if not user_openid  or user_openid.upper() == 'NONE':
             return HttpResponse(u'只有微信用户才有答题权限哦')
         
         exam_papers = ExamPaper.objects.filter(status=ExamPaper.ACTIVE)
-        if exam_papers.count() < 0:
+        if exam_papers.count() <= 0:
             return HttpResponse(u'答题活动还没开始哦')
         exam_paper = exam_papers[0]
         exam_user_paper,state = ExamUserPaper.objects.get_or_create(user_openid=user_openid,
