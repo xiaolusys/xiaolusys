@@ -5,7 +5,7 @@
 {% block container %}
 <div class="container-fluid">
 <div class="panel panel-default" style="margin-top: 5px">
-<div class="panel-heading" style="color: orange">{{ exam_user_paper.answer_num + 1 }}.{{ problem.problem_title }}</div>
+<div class="panel-heading" style="color: orange">{{ exam_user_paper.answer_num|add:"1" }}.{{ problem.problem_title }}</div>
 <form name="form1" method="POST" action="./">
 {% csrf_token %}
 <input type="hidden" name="paper_id" value="{{ exam_user_paper.paper_id }}"/>
