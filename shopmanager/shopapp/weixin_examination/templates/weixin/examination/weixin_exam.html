@@ -5,7 +5,7 @@
 {% block container %}
 <div class="container-fluid">
 <div class="panel panel-default" style="margin-top: 5px">
-<div class="panel-heading" style="color: orange">{{ exam_user_paper.answer_num|add:"1" }}.{{ problem.problem_title }}</div>
+<div class="panel-heading" style="color: orange">第{{ exam_user_paper.answer_num|add:"1" }}题：{{ problem.problem_title }}</div>
 <form name="form1" method="POST" action="./">
 {% csrf_token %}
 <input type="hidden" name="paper_id" value="{{ exam_user_paper.paper_id }}"/>
@@ -13,22 +13,26 @@
 <table class="table">
 	{% if problem.option_a %}
 	<tr>
-		<td><input type="radio" id="selected_A" name="selected" value="A">{{ problem.option_a }}</td>
+		<td><input type="radio" id="selected_A" name="selected" value="A">
+		<div class="well well-small" style="display:inline-block;">{{ problem.option_a }}</div></td>
 	</tr>
 	{% endif %}
 	{% if problem.option_b %}
 	<tr>
-		<td><input type="radio" id="selected_B" name="selected" value="B">{{ problem.option_b }}</td>
+		<td><input type="radio" id="selected_B" name="selected" value="B">
+		<div class="well well-small" style="display:inline-block;">{{ problem.option_b }}</div></td>
 	</tr>
 	{% endif %}
 	{% if problem.option_c %}
 	<tr>
-		<td><input type="radio" id="selected_C" name="selected" value="C">{{ problem.option_c }}</td>
+		<td><input type="radio" id="selected_C" name="selected" value="C">
+		<div class="well well-small" style="display:inline-block;">{{ problem.option_c }}</div></td>
 	</tr>
 	{% endif %}
 	{% if problem.option_d %}
 	<tr>
-		<td><input type="radio" id="selected_D" name="selected" value="D">{{ problem.option_d }}</td>
+		<td><input type="radio" id="selected_D" name="selected" value="D">
+		<div class="well well-small" style="display:inline-block;">{{ problem.option_d }}</div></td>
 	</tr>
 	{% endif %}
 </table>

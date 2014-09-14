@@ -25,7 +25,7 @@ class WeixinExamView(View):
         answer_problem_ids = [p.problem_id for p in answer_problems]
         
         unanswer_problems = ExamProblem.objects.filter(status=ExamProblem.ACTIVE).exclude(id__in=answer_problem_ids)
-        rand_index = random.randint(0,min(len(unanswer_problems)-1,0))
+        rand_index = random.randint(0,max(len(unanswer_problems)-1,0))
         
         return unanswer_problems[rand_index]
         
@@ -36,6 +36,7 @@ class WeixinExamView(View):
         code = content.get('code')
         
         user_openid = get_user_openid(request, code)
+#        user_openid = 'oMt59uJJBoNRC7Fdv1b5XiOAngdU'
         if not user_openid  or user_openid.upper() == 'NONE':
             return HttpResponse(u'只有微信用户才有答题权限哦')
         
