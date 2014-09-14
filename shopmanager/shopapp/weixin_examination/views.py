@@ -30,12 +30,10 @@ class WeixinExamView(View):
         return unanswer_problems[rand_index]
         
         
-    def get(self, request):
+    def get(self, request, userpk):
         
         content = request.REQUEST
         code = content.get('code')
-        userpk = content.get('userpk')
-        logger.error(userpk+"|"+code)
         
         user_openid = get_user_openid(request, code)
         user_openid = 'oMt59uJJBoNRC7Fdv1b5XiOAngdU'
@@ -61,7 +59,7 @@ class WeixinExamView(View):
                                       context_instance=RequestContext(request))
         return response
 
-    def post(self, request):
+    def post(self, request, userpk):
         content = request.REQUEST
 
         code = content.get('code')
@@ -109,9 +107,8 @@ class WeixinExamView(View):
 
 
 class WeixinExamShareView(View):
-    def get(self, request):
+    def get(self, request, userpk):
         content = request.REQUEST
-        userpk = content.get("userpk","0")
         response = render_to_response('weixin/examination/weixin_exam_share.html', 
                                       {"userpk":userpk},
                                       context_instance=RequestContext(request))
