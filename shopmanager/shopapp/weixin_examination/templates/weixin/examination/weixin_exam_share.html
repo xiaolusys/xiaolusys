@@ -1,0 +1,91 @@
+{% extends "weixin/weixin_base.html" %}
+
+{% block title %} 一站到底 {% endblock %}
+
+
+{% block container %}
+
+<div class="container-fluid">
+
+  <div class="panel panel-default" style="margin-top:5px">
+    <div class="panel-heading" style="color:#e8792a">崔玉涛-经典育儿知识问答（系列一）</div>
+    <div class="panel-body">
+
+      <div class="row">
+	<div class="col-xs-12">
+	  <p style="color:#029fd6">美丽辣妈们，您是育儿高手！您有满腹育儿经！！ 您拥有养娃带娃的百分百经验！！！</p>
+	  <p style="color:#029fd6">还等什么，快来挑战“崔玉涛”医师的经典问答题目，一站到底！</p>
+	  <div style="text-align:center;margin-top:10px">
+	    <a href="https://open.weixin.qq.com/connect/oauth2/authorize?appid=wxc2848fa1e1aa94b5&redirect_uri=http://weixin.huyi.so/weixin/examination/{{ userpk }}/&response_type=code&scope=snsapi_base&state=135#wechat_redirect" class="btn btn-warning">点击开始</a>
+	  </div>
+	</div>
+      </div>
+
+      <div class="row" style="margin-top:15px">
+	<div class="col-xs-12">
+	  <p>温馨提示：所有经典育儿知识问答内容题目均来自明星医师“崔玉涛”的“家庭育儿”及“健康公开课”系列丛书。有兴趣的优粉美妈们可以自行购买阅读哦！</p>
+	</div>
+      </div>
+      
+      <div class="footer">
+	<p>© Uni Littles 2014</p>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block tail_script %}
+<script type="text/javascript">
+  $("#id_p1").on("click", function () {
+  $("#id_input1").attr("checked",true);
+  $("#id_input2").attr("checked",false);
+  $("#id_p1").css("color","#ed5377");
+  $("#id_p2").css("color","");  
+  });
+
+  $("#id_p2").on("click", function () {
+  $("#id_input2").attr("checked",true);
+  $("#id_input1").attr("checked",false);
+  $("#id_p2").css("color","#ed5377");
+  $("#id_p1").css("color","");  
+  });
+
+  function checkSelection() {
+    if ((!$("#id_input1").is(':checked')) && (!$("#id_input2").is(':checked'))) {
+      $("#id_msg")[0].innerHTML = "<p style='color:red'>亲，麻烦选择下答案再提交哦。</p>";
+      return false;
+    }
+    return true;
+  }
+
+  function submit() {
+    if (checkSelection() == false) {
+      return;
+    }
+  
+    var selection = 0;
+    if ($("#id_input1").is(':checked')) {
+      selection = 1;
+    }
+    if ($("#id_input2").is(':checked')) {
+      selection = 2;
+    }
+
+    var url = "/weixin/survey/";
+    var csrf_token = document.getElementsByName("csrfmiddlewaretoken")[0].value;
+    
+    var data = {"selection": selection, "csrfmiddlewaretoken":csrf_token};
+    var callback = function (res) {
+      console.log(res);
+    if (res["code"] == "ok") {
+      $("#id_msg")[0].innerHTML = "<p style='color:red'>亲，您的选择已经提交！感谢！</p>";
+    }
+    };
+    $.ajax({url:url, data:data, type:"post", success:callback});
+  }
+</script>
+
+{% endblock %}
