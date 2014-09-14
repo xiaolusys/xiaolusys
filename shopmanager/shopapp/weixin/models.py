@@ -797,13 +797,16 @@ class WeixinScoreItem(models.Model):
     INVITE    = 1
     SHOPPING  = 2
     ACTIVE    = 3
-    
+    READCLICK = 4
+
+
     choices = (
                (CONSUME ,u'返现消费'),
                (SHOPPING,u'购物积分'),
                (INVITE,u'邀请积分'),
                (ACTIVE,u'活动积分'),
                (AWARD, u'中奖扣除'),
+               (READCLICK,u'阅读点击'),
                (OTHER,u'其它'),)
     
     user_openid = models.CharField(max_length=64,db_index=True,verbose_name=u"微信ID")
@@ -821,11 +824,69 @@ class WeixinScoreItem(models.Model):
         db_table = 'shop_weixin_score_item'
         verbose_name = u'用户积分明细'
         verbose_name_plural = u'用户积分明细列表'
+
+
+class WeixinClickScore(models.Model):
+    description = models.CharField(max_length=64,verbose_name=u"描述")
+    redirect_link = models.URLField(verify_exists=False,blank=True,verbose_name=u"跳转链接")
+    score = models.IntegerField(default=0,verbose_name=u"积分数")
+    expiry = models.DateTimeField(blank=True,null=True,verbose_name=u'过期时间')
+    created = models.DateTimeField(auto_now_add=True,null=True,verbose_name=u'创建时间')
+
+    class Meta:
+        db_table = 'shop_weixin_click_score'
+        verbose_name = u'积分链接'
+        verbose_name_plural = u'积分链接列表'
+    
+
+class WeixinClickScoreRecord(models.Model):
+    user_openid = models.CharField(max_length=64,db_index=True,verbose_name=u"微信ID")
+    click_score_id = models.IntegerField(default=0,verbose_name=u"积分链接ID")
+    score = models.IntegerField(default=0,verbose_name=u"积分数")
+    created = models.DateTimeField(auto_now_add=True,null=True,verbose_name=u'创建时间')
+
+    class Meta:
+        unique_together = ('user_openid', 'click_score_id') 
+        
+        db_table = 'shop_weixin_click_score_item'
+        verbose_name = u'积分链接点击'
+        verbose_name_plural = u'积分链接点击列表'
+
         
 from django.db import transaction
 from shopapp.signals import (confirm_trade_signal,
                              weixin_referal_signal,
-                             weixin_refund_signal)
+                             weixin_refund_signal,
+                             weixin_readclick_signal)
+
+
+@transaction.commit_manually
+def click2score(sender, click_score_record_id, *args, **kwargs):
+    transaction.commit()
+    try:
+        record = WeixinClickScoreRecord.objects.get(pk=click_score_record_id)
+        user_openid = record.user_openid
+        score = record.score
+        click_score_id = record.click_score_id
+        WeixinScoreItem.objects.create(user_openid=user_openid,
+                                       score=score,
+                                       score_type=WeixinScoreItem.READCLICK,
+                                       expired_at=datetime.datetime.now()+datetime.timedelta(days=365),
+                                        memo=u"阅读点击(%d)。"%click_score_id)
+        wx_user_score,state = WeixinUserScore.objects.get_or_create(user_openid=user_openid)
+        wx_user_score.user_score  = models.F('user_score') + score
+        wx_user_score.save()
+    except Exception,exc:
+        transaction.rollback()
+        
+        import logging
+        logger = logging.getLogger("celery.handler")
+        logger.error(u'阅读点击积分转换失败:%s'%exc.message,exc_info=True)
+    else:
+        transaction.commit()
+    
+weixin_readclick_signal.connect(click2score, sender=WeixinClickScoreRecord)
+
 
 #订单确认收货增加积分
 @transaction.commit_manually

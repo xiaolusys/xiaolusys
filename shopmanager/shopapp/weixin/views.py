@@ -22,10 +22,14 @@ from .models import (WeiXinUser,
                      Survey,
                      SampleChoose,
                      WeixinUserScore,
-                     WeixinScoreItem)
+                     WeixinScoreItem,
+                     WeixinClickScore,
+                     WeixinClickScoreRecord)
 
 from shopback.trades.models import MergeTrade
 from shopback import paramconfig as pcfg
+
+from shopapp.signals import weixin_readclick_signal
 
 import logging
 import json
@@ -1110,7 +1114,35 @@ class ScoreView(View):
                                       {'score':score,'items':items,'invite_items':invite_items},
                                       context_instance=RequestContext(request))
         return response
-    
+
+
+class ClickScoreView(View):
+    def get(self, request, *args, **kwargs):
+        click_score_id = int(kwargs.get('id','0'))
+        click_score = WeixinClickScore.objects.get(pk=click_score_id)
+        score = click_score.score
+        expiry = click_score.expiry
+        redirect_link = click_score.redirect_link
+
+        content = request.REQUEST
+        code = content.get('code',None)
+        user_openid = get_user_openid(request, code)
+
+        now = datetime.datetime.now()
+        if expiry > now:
+            # in effect
+            try:
+                record = WeixinClickScoreRecord.objects.create(
+                    user_openid=user_openid,click_score_id=click_score_id,score=score)
+                weixin_readclick_signal.send(
+                    sender=WeixinClickScoreRecord,click_score_record_id=record.pk)
+            except:
+                pass
+            
+        return redirect(redirect_link)
+
+
+        
 class TestView(View):
     def get(self, request):
         redirect_url = 'http://shop.m.taobao.com/shop/coupon.htm?sellerId=174265168&activityId=143904856'
