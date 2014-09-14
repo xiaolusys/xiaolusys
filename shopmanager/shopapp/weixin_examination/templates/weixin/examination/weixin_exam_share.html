@@ -1,0 +1,87 @@
+{% extends "weixin/weixin_base.html" %}
+
+{% block title %} 优尼世界 一站到底 {% endblock %}
+
+
+{% block container %}
+
+<div class="container-fluid">
+
+  <div class="panel panel-default" style="margin-top:5px">
+    <div class="panel-heading" style="color:#e8792a">经典育儿知识问答</div>
+    <div class="panel-body">
+
+      <div class="row">
+	<div class="col-xs-12">
+	  <h5 style="color:#029fd6">崔玉涛 经典育儿知识 一站到底!</h5>
+	  <div>
+	    <a href="https://open.weixin.qq.com/connect/oauth2/authorize?appid=wxc2848fa1e1aa94b5&redirect_uri=http://weixin.huyi.so/weixin/examination/%3Fuserpk={{ userpk }}&response_type=code&scope=snsapi_base&state=135#wechat_redirect" class="btn"></a>
+	  </div>
+	</div>
+      </div>
+
+      <div class="row">
+	<div class="col-xs-12" style="text-align:center">
+	  <p>温馨提示：所有经典育儿知识问答题目均来自明星医师“崔玉涛”的“家庭育儿”及“健康公开课”系列丛书。有兴趣的优粉美妈们可以自行购买阅读哦！</p>
+	</div>
+      </div>
+      
+
+    </div>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block tail_script %}
+<script type="text/javascript">
+  $("#id_p1").on("click", function () {
+  $("#id_input1").attr("checked",true);
+  $("#id_input2").attr("checked",false);
+  $("#id_p1").css("color","#ed5377");
+  $("#id_p2").css("color","");  
+  });
+
+  $("#id_p2").on("click", function () {
+  $("#id_input2").attr("checked",true);
+  $("#id_input1").attr("checked",false);
+  $("#id_p2").css("color","#ed5377");
+  $("#id_p1").css("color","");  
+  });
+
+  function checkSelection() {
+    if ((!$("#id_input1").is(':checked')) && (!$("#id_input2").is(':checked'))) {
+      $("#id_msg")[0].innerHTML = "<p style='color:red'>亲，麻烦选择下答案再提交哦。</p>";
+      return false;
+    }
+    return true;
+  }
+
+  function submit() {
+    if (checkSelection() == false) {
+      return;
+    }
+  
+    var selection = 0;
+    if ($("#id_input1").is(':checked')) {
+      selection = 1;
+    }
+    if ($("#id_input2").is(':checked')) {
+      selection = 2;
+    }
+
+    var url = "/weixin/survey/";
+    var csrf_token = document.getElementsByName("csrfmiddlewaretoken")[0].value;
+    
+    var data = {"selection": selection, "csrfmiddlewaretoken":csrf_token};
+    var callback = function (res) {
+      console.log(res);
+    if (res["code"] == "ok") {
+      $("#id_msg")[0].innerHTML = "<p style='color:red'>亲，您的选择已经提交！感谢！</p>";
+    }
+    };
+    $.ajax({url:url, data:data, type:"post", success:callback});
+  }
+</script>
+
+{% endblock %}
