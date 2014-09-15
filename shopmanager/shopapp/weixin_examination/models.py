@@ -155,7 +155,7 @@ def convert_examgrade2score(sender,active_id,*args,**kwargs):
             
             invitor_openid = invite_ships[0].from_openid 
             invitor_user = WeiXinUser.objects.get(openid=invitor_openid)
-            invite_score = invitor_user.subscribe_time < datetime.dateime(2014,9,15) and 1 or 2
+            invite_score = invitor_user.subscribe_time < datetime.datetime(2014,9,15) and 1 or 2
             wx_user_score,state = WeixinUserScore.objects.get_or_create(
                                         user_openid=invitor_openid)
         
