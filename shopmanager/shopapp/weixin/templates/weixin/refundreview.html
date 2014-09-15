@@ -2,7 +2,7 @@
 
 {% load custom_filter %}
 
-{% block title %} 返利申请 {% endblock %}
+{% block title %} {% if refund_status == 0%}返利申请{% else %}返利支付{% endif %} {% endblock %}
 
 {% block container %}
 <link href='{{ STATIC_URL }}jquery-datatable-addon/css/demo_page.css' rel='stylesheet'  />
@@ -10,7 +10,7 @@
 <div class="container">
 
   <div class="panel panel-default" style="margin-top:5px">
-    <div class="panel-heading">返利审核</div>
+    <div class="panel-heading">{% if refund_status == 0%}返利申请{% else %}返利支付{% endif %}</div>
     <div class="panel-body">
       <p>1) 核对客人提交的材料是否齐全，比如：是否有符合标准的清晰晒单截图。</p>
       <p>2) 核对客人订单付款时间是否在有效时间范围内。</p>
@@ -66,6 +66,13 @@
     var pay_type = $("#id_pay_type").val();
     var pay_amount = $("#id_refund_amount").val();
 
+	if (!parseFloat(pay_amount)||parseFloat(pay_amount)==0){
+		$('#table-review').css("background-color","#FE2E64");
+		return
+	}else{
+		$('#table-review').css("background-color","#FFFFFF");
+	}
+	
     {% if refund_status == 0 %}
     var review_note = $("#id_review_note").val();
     {% endif %}
@@ -75,7 +82,7 @@
     {% endif %} 
 
     var csrf_token = document.getElementsByName("csrfmiddlewaretoken")[0].value;
-
+	
     var data = {"refund_status":{{ refund_status }}, "refund_id":refund_id, 
     "pay_type":pay_type, "pay_amount":pay_amount, 
     {% if refund_status == 0 %}   

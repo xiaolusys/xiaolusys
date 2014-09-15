@@ -56,10 +56,6 @@
         <ul class="object-tools">
           {% block object-tools-items %}
             <li>
-              <a href="/app/examination/examination_user/" class="addlink" target="_blank">考试系统
-              </a>
-            </li>
-            <li>
               <a href="{% url cl.opts|admin_urlname:'add' %}{% if is_popup %}?_popup=1{% endif %}" class="addlink">
                 {% blocktrans with cl.opts.verbose_name as name %}新{{ name }}{% endblocktrans %}
               </a>

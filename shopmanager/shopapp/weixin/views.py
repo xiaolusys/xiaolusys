@@ -556,7 +556,7 @@ class RefundReviewView(View):
 
         if refund_status == 0:
             pay_type = int(content.get("pay_type"))
-            pay_amount = int(content.get("pay_amount"))
+            pay_amount = int(float(content.get("pay_amount"))*100)
             review_note = content.get("review_note",)
             action = int(content.get("action"))
 

@@ -5,7 +5,7 @@ from django.views.decorators.csrf import csrf_exempt
 from .views import WeixinExamView,WeixinExamShareView
 
 urlpatterns = patterns('',
-    url(r'^(?P<userpk>\d+)/$',csrf_exempt(WeixinExamView.as_view())),
+    url(r'^(?P<userpk>\d+)/$',WeixinExamView.as_view()),
     url(r'^share/(?P<userpk>\d+)/$',csrf_exempt(WeixinExamShareView.as_view())),
 )
 
