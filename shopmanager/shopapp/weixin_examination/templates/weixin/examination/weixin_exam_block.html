@@ -4,7 +4,7 @@
 <input id="id_problem_id" type="hidden" name="problem_id" value="{{ problem.id }}"/>
 
 {% if problem.option_a %}
-<div class="row">
+<div class="row" style="margin-top:5px">
   <div class="col-xs-12">
     <input type="radio" id="selected_A" name="selected" value="A">
     <div class="well well-small" >{{ problem.option_a }}</div>
@@ -13,7 +13,7 @@
 {% endif %}
 
 {% if problem.option_b %}
-<div class="row">
+<div class="row" style="margin-top:5px">
   <div class="col-xs-12">
     <input type="radio" id="selected_B" name="selected" value="B">
     <div class="well well-small" >{{ problem.option_b }}</div>
@@ -22,7 +22,7 @@
 {% endif %}
 
 {% if problem.option_c %}
-<div class="row">
+<div class="row" style="margin-top:5px">
   <div class="col-xs-12">
     <input type="radio" id="selected_C" name="selected" value="C">
     <div class="well well-small" >{{ problem.option_c }}</div>
@@ -31,7 +31,7 @@
 {% endif %}
 
 {% if problem.option_d %}
-<div class="row">
+<div class="row" style="margin-top:5px">
   <div class="col-xs-12">
     <input type="radio" id="selected_D" name="selected" value="D">
     <div class="well well-small" >{{ problem.option_d }}</div>
@@ -39,7 +39,7 @@
 </div>
 {% endif %}
 
-<div class="row">
+<div class="row" style="margin-top:10px;margin-bottom:10px">
   <div class="col-xs-12" style="text-align:center">
     <button type="button" class="btn btn-success" onclick="submit()">确定，并继续</button>
   </div>

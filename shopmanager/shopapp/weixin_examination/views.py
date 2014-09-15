@@ -50,13 +50,14 @@ class WeixinExamView(View):
         if (exam_user_paper.status == ExamPaper.FINISHED or 
             exam_user_paper.answer_num >= exam_paper.problem_num):
             return render_to_response('weixin/examination/weixin_exam_final.html', 
-                                      {"exam_user_paper":exam_user_paper},
+                                      {"exam_user_paper":exam_user_paper, "userpk":userpk},
                                       context_instance=RequestContext(request))
         
         new_problem = self.getRandomProblemByUserPaper(exam_user_paper)
         
         response = render_to_response('weixin/examination/weixin_exam.html', 
-                                      {"problem":new_problem, "exam_user_paper": exam_user_paper},
+                                      {"problem":new_problem, "exam_user_paper": exam_user_paper,
+                                       "userpk":userpk},
                                       context_instance=RequestContext(request))
         return response
 
@@ -100,14 +101,15 @@ class WeixinExamView(View):
             exam_user_paper.status = ExamUserPaper.FINISHED
             exam_user_paper.save()
             return render_to_response('weixin/examination/weixin_exam_final.html', 
-                                      {"exam_user_paper":exam_user_paper},
+                                      {"exam_user_paper":exam_user_paper, "userpk":userpk},
                                       context_instance=RequestContext(request))
         
         new_problem = self.getRandomProblemByUserPaper(exam_user_paper)
 
         html_block_content = render_to_response('weixin/examination/weixin_exam_block.html', 
                                                 {"problem":new_problem, 
-                                                 "exam_user_paper": exam_user_paper},
+                                                 "exam_user_paper": exam_user_paper,
+                                                 "userpk":userpk},
                                                 context_instance=RequestContext(request))
 
         if content.get("block") == "yes":
