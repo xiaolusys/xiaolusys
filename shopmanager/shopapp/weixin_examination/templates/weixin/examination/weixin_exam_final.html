@@ -1,19 +1,9 @@
-{% extends "weixin/weixin_base.html" %}
+<div class="panel-heading" style="color:orange">答题结束啦！</div>
+<div class="panel-body">
 
-{% block title %}超难！崔玉涛经典育儿问答,我击败了90%的新手妈妈！快来挑战吧！{% endblock %}
-
-{% block container %}
-
-<div class="container-fluid">
-   <div class="panel panel-default" style="margin-top:5px">
-    <div class="panel-heading" style="color:orange">答题结束啦！</div>
-    <div class="panel-body">
-      <div class="row">
-	<div class="col-xs-12">
-	  <p style="color:red">恭喜！您本次答对{{ exam_user_paper.grade }}题，赢得了{{ exam_user_paper.grade }}个积分！</p>
-	</div>
-    </div>
+<div class="row" style="margin-top:20px;margin-bottom:10px">
+  <div class="col-xs-12" style="text-align:center">
+    <a href="/weixin/examination/share/{{ pk }}/" class="btn btn-success">查看结果</a>
   </div>
 </div>
 
-{% endblock %}

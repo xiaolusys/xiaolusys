@@ -128,7 +128,7 @@ from shopapp.weixin.models import WeiXinUser,WeixinUserScore,WeixinScoreItem
 from shopapp.signals import weixin_active_signal,weixin_verifymobile_signal
 
 @transaction.commit_manually
-def convert_examgrade2score(sender,active_id):
+def convert_examgrade2score(sender,active_id,*args,**kwargs):
     
     transaction.commit()
     try:
@@ -180,7 +180,7 @@ weixin_active_signal.connect(convert_examgrade2score,sender=ExamUserPaper)
 
 
 @transaction.commit_manually
-def convert_inviteship2score(sender,user_openid):
+def convert_inviteship2score(sender,user_openid,*args,**kwargs):
     
     transaction.commit()
     try:
