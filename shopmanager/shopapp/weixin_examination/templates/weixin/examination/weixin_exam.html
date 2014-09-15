@@ -2,6 +2,21 @@
  
 {% block title %} 微信妈妈互动答题 {%endblock %} 
 
+{% block head_script %}
+<style>
+   .well-small {
+   		display: inline-block;
+		min-width: 60%;
+		max-width: 85%;
+		padding: 5px;
+		margin-bottom:0px;
+		-webkit-border-radius: 6px;
+		-moz-border-radius: 6px;
+		border-radius: 6px;
+   }
+</style>
+{% endblock %}
+
 {% block container %}
 <div class="container-fluid">
 <div class="panel panel-default" style="margin-top: 5px">
@@ -10,29 +25,29 @@
 {% csrf_token %}
 <input type="hidden" name="paper_id" value="{{ exam_user_paper.paper_id }}"/>
 <input type="hidden" name="problem_id" value="{{ problem.id }}"/>
-<table class="table">
+<table class="table table-bordered  table-condensed">
 	{% if problem.option_a %}
 	<tr>
 		<td><input type="radio" id="selected_A" name="selected" value="A">
-		<div class="well well-small" style="display:inline-block;">{{ problem.option_a }}</div></td>
+		<div class="well well-small" >{{ problem.option_a }}</div></td>
 	</tr>
 	{% endif %}
 	{% if problem.option_b %}
 	<tr>
 		<td><input type="radio" id="selected_B" name="selected" value="B">
-		<div class="well well-small" style="display:inline-block;">{{ problem.option_b }}</div></td>
+		<div class="well well-small" >{{ problem.option_b }}</div></td>
 	</tr>
 	{% endif %}
 	{% if problem.option_c %}
 	<tr>
 		<td><input type="radio" id="selected_C" name="selected" value="C">
-		<div class="well well-small" style="display:inline-block;">{{ problem.option_c }}</div></td>
+		<div class="well well-small" >{{ problem.option_c }}</div></td>
 	</tr>
 	{% endif %}
 	{% if problem.option_d %}
 	<tr>
 		<td><input type="radio" id="selected_D" name="selected" value="D">
-		<div class="well well-small" style="display:inline-block;">{{ problem.option_d }}</div></td>
+		<div class="well well-small" >{{ problem.option_d }}</div></td>
 	</tr>
 	{% endif %}
 </table>

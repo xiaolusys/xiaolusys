@@ -36,7 +36,7 @@ class WeixinExamView(View):
         code = content.get('code')
         
         user_openid = get_user_openid(request, code)
-#        user_openid = 'oMt59uJJBoNRC7Fdv1b5XiOAngdU'
+        #user_openid = 'oMt59uJJBoNRC7Fdv1b5XiOAngdU'
         if not user_openid  or user_openid.upper() == 'NONE':
             return HttpResponse(u'只有微信用户才有答题权限哦')
         
