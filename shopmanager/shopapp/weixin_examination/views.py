@@ -106,18 +106,17 @@ class WeixinExamView(View):
         new_problem = self.getRandomProblemByUserPaper(exam_user_paper)
 
 
-        html_block_content = render_to_response('weixin/examination/weixin_exam_block.html', 
-                                                {"problem":new_problem, 
-                                                 "exam_user_paper": exam_user_paper},
-                                                context_instance=RequestContext(request))
+        if content.get("block") == "yes":
+            html_block_content = render_to_response('weixin/examination/weixin_exam_block.html', 
+                                                    {"problem":new_problem, 
+                                                     "exam_user_paper": exam_user_paper},
+                                                    context_instance=RequestContext(request))
+            return html_block_content
         
-        if exam_user_paper.anwer_num == 0:
-            response = render_to_response('weixin/examination/weixin_exam.html', 
+        response = render_to_response('weixin/examination/weixin_exam.html', 
                                           {"html_block_content":html_block_content},
                                           context_instance=RequestContext(request))
-            return response
-
-        return html_block_content
+        return response
 
 
 class WeixinExamShareView(View):

@@ -68,7 +68,7 @@
     var csrf_token = document.getElementsByName("csrfmiddlewaretoken")[0].value;
     var url = "./";
     var data = {"csrfmiddlewaretoken":csrf_token, "selected":selected,
-                "paper_id":paper_id, "problem_id":problem_id};
+                "paper_id":paper_id, "problem_id":problem_id, "block":"yes"};
     var callback = function (res) {
       $("#id_problem_body")[0].innerHTML = res;
     };
