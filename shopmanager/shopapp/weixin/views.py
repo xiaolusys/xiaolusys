@@ -647,13 +647,6 @@ class FreeSampleView(View):
         days_left = diff.days
         hours_left = diff.seconds / 3600
 
-        slots_left = 1600
-        started,ended = False,False
-        if now > start:
-            started = True
-        if now > end:
-            ended = True
-        
         samples = FreeSample.objects.filter(expiry__gt=end)
 
         order_exists = False
@@ -672,30 +665,18 @@ class FreeSampleView(View):
             if wx_user.subscribe_time and wx_user.subscribe_time < datetime.datetime(2014,8,15):
                 vip_exists = True
         
-        today = datetime.date.today()
-        today_time = datetime.datetime(today.year, today.month, today.day)
-        today_orders = SampleOrder.objects.filter(created__gt=today_time).count()
-        
-        five_batch = SampleOrder.objects.filter(created__gt=start,status__gt=10,status__lt=20).count()
-        six_batch = SampleOrder.objects.filter(created__gt=start,status__gt=20,status__lt=22).count()
-        slots_left = 1600 - five_batch
-        
         pk = None
         if wx_user:
             pk = wx_user.pk
             
         response = render_to_response('weixin/freesamples.html', 
                                       {"samples":samples, 
-                                       "today_orders":today_orders,
                                        "user_isvalid":user_isvalid, 
                                        "order_exists":order_exists, 
-                                       "days_left":days_left,
-                                       "hours_left":hours_left,
-                                       "slots_left":slots_left,
-                                       "started":started,"openid":user_openid,
+                                       "openid":user_openid,
                                        "vip_exists":vip_exists,
-                                       "vipcode":vipcode,"five_batch":five_batch,
-                                       "six_batch":six_batch,"ended":ended,
+                                       "vipcode":vipcode,
+                                       "ended":ended,
                                        "pk":pk},
                                       context_instance=RequestContext(request))
         response.set_cookie("openid",user_openid)
