@@ -14,6 +14,12 @@
 		-moz-border-radius: 6px;
 		border-radius: 6px;
    }
+   .table-bordered{
+   		border:solid 1px #fff;
+   }
+   .table>tbody>tr>td,.table>tfoot>tr>td{
+   		border:solid 1px #fff;
+   }
 </style>
 {% endblock %}
 
@@ -25,7 +31,7 @@
 {% csrf_token %}
 <input type="hidden" name="paper_id" value="{{ exam_user_paper.paper_id }}"/>
 <input type="hidden" name="problem_id" value="{{ problem.id }}"/>
-<table class="table table-bordered  table-condensed">
+<table class="table table-bordered table-condensed">
 	{% if problem.option_a %}
 	<tr>
 		<td><input type="radio" id="selected_A" name="selected" value="A">

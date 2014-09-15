@@ -43,6 +43,7 @@ class WeixinExamView(View):
         exam_papers = ExamPaper.objects.filter(status=ExamPaper.ACTIVE)
         if exam_papers.count() <= 0:
             return HttpResponse(u'答题活动还没开始哦')
+        
         exam_paper = exam_papers[0]
         exam_user_paper,state = ExamUserPaper.objects.get_or_create(user_openid=user_openid,
                                                               paper_id=exam_paper.id)
@@ -71,6 +72,8 @@ class WeixinExamView(View):
         paper_id   = content.get('paper_id')
         problem_id = content.get('problem_id')
         selected   = content.get('selected')
+        if not selected:
+            return HttpResponse(u'请选择答案')
         
         problem = ExamProblem.objects.get(id=problem_id)
         exam_paper = ExamPaper.objects.get(id=paper_id)
