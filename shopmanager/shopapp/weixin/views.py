@@ -676,7 +676,6 @@ class FreeSampleView(View):
                                        "openid":user_openid,
                                        "vip_exists":vip_exists,
                                        "vipcode":vipcode,
-                                       "ended":ended,
                                        "pk":pk},
                                       context_instance=RequestContext(request))
         response.set_cookie("openid",user_openid)
