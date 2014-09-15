@@ -121,10 +121,11 @@ class WeixinExamView(View):
             wx_users = WeiXinUser.objects.filter(openid=user_openid)
             if wx_users.count() > 0:
                 pk = wx_users[0].pk
-            return redirect('weixin/examination/share/%s/'%pk)
+            response = render_to_response('weixin/examination/weixin_exam_final.html', {"pk":pk}, 
+                                          context_instance=RequestContext(request))
+            return response
         
         new_problem = self.getRandomProblemByUserPaper(exam_user_paper)
-
         html_block_content = render_to_response('weixin/examination/weixin_exam_block.html', 
                                                 {"problem":new_problem, 
                                                  "exam_user_paper": exam_user_paper,
@@ -133,7 +134,7 @@ class WeixinExamView(View):
 
         if content.get("block") == "yes":
             return html_block_content
-        
+
         response = render_to_response('weixin/examination/weixin_exam.html', 
                                       {"problem":new_problem, 
                                        "exam_user_paper": exam_user_paper},
