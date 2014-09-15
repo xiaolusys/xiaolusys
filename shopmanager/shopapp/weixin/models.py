@@ -165,7 +165,7 @@ class WeiXinUser(models.Model):
     
     sceneid    = models.CharField(max_length=32,blank=True,verbose_name=u'场景ID')
     
-    user_group  = models.ForeignKey(UserGroup,null=True, verbose_name=u"分组")
+    user_group  = models.ForeignKey(UserGroup,null=True,blank=True,verbose_name=u"分组")
     
     subscribe   = models.BooleanField(default=False,verbose_name=u"订阅该号")
     subscribe_time = models.DateTimeField(blank=True,null=True,verbose_name=u"订阅时间")

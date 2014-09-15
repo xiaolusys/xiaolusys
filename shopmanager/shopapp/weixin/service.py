@@ -24,6 +24,7 @@ from shopback.trades.handlers import trade_handler
 from shopback.trades.models import MergeTrade,MergeOrder
 from shopback import paramconfig as pcfg
 from common.utils import parse_datetime,format_datetime,replace_utf8mb4,update_model_fields
+from shopapp.signals import weixin_verifymobile_signal
 import logging
 
 logger = logging.getLogger('django.request')
@@ -226,6 +227,8 @@ class WeixinUserService():
          wx_user.save()
          
          VipCode.objects.genVipCodeByWXUser(wx_user)
+         
+         weixin_verifymobile_signal.send(sender=WeiXinUser,user_openid=openId)
          
          return True
     
