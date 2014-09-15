@@ -114,8 +114,9 @@ class WeixinExamView(View):
             return html_block_content
         
         response = render_to_response('weixin/examination/weixin_exam.html', 
-                                          {"html_block_content":html_block_content},
-                                          context_instance=RequestContext(request))
+                                      {"problem":new_problem, 
+                                       "exam_user_paper": exam_user_paper},
+                                      context_instance=RequestContext(request))
         return response
 
 
