@@ -153,6 +153,7 @@ class WeixinExamShareView(View):
         identical = False
         paper_finished = False
         grade = 0
+        percentage = 70
         wx_user = WeiXinUser.objects.get(pk=userpk)
         if user_openid == wx_user.openid:
             identical = True
@@ -166,10 +167,12 @@ class WeixinExamShareView(View):
                     if user_papers[0].status == ExamUserPaper.FINISHED:
                         paper_finished = True
                         grade = user_papers[0].grade
+                        percentage = 70 + int(grade*1.5)
         
         response = render_to_response('weixin/examination/weixin_exam_share.html', 
                                       {"userpk":userpk, "identical":identical, 
-                                       "paper_finished":paper_finished, "grade":grade},
+                                       "paper_finished":paper_finished, "grade":grade,
+                                       "percentage":percentage},
                                       context_instance=RequestContext(request))
         return response
     
