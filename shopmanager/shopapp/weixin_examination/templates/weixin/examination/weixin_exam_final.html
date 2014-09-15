@@ -1,6 +1,6 @@
 {% extends "weixin/weixin_base.html" %}
 
-{% block title %} 一站到底：崔玉涛经典育儿知识问答 我击败了90%的新手妈妈！{% endblock %}
+{% block title %}超难！崔玉涛经典育儿问答,我击败了90%的新手妈妈！快来挑战吧！{% endblock %}
 
 {% block container %}
 
@@ -10,7 +10,7 @@
     <div class="panel-body">
       <div class="row">
 	<div class="col-xs-12">
-	  <p style="color:red">您本次答对{{ exam_user_paper.grade }}题，恭喜您！</p>
+	  <p style="color:red">恭喜！您本次答对{{ exam_user_paper.grade }}题，赢得了{{ exam_user_paper.grade }}个积分！</p>
 	</div>
     </div>
   </div>

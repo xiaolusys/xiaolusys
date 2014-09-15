@@ -12,6 +12,8 @@ from django.db import models
 
 from .models import ExamProblem,ExamPaper,ExamUserPaper,ExamUserProblem
 from shopapp.weixin.views import get_user_openid
+from django.shortcuts import redirect
+
 import logging
 
 logger = logging.getLogger('django.request')
@@ -36,9 +38,9 @@ class WeixinExamView(View):
         code = content.get('code')
         
         user_openid = get_user_openid(request, code)
-        user_openid = 'oMt59uE55lLOV2KS6vYZ_d0dOl5c'
+        
         if not user_openid  or user_openid.upper() == 'NONE':
-            return HttpResponse(u'只有微信用户才有答题权限哦')
+            return redirect("/weixin/examination/share/%s/"%userpk)
         
         exam_papers = ExamPaper.objects.filter(status=ExamPaper.ACTIVE)
         if exam_papers.count() <= 0:
@@ -124,7 +126,6 @@ class WeixinExamView(View):
 
 class WeixinExamShareView(View):
     def get(self, request, userpk):
-        content = request.REQUEST
         response = render_to_response('weixin/examination/weixin_exam_share.html', 
                                       {"userpk":userpk},
                                       context_instance=RequestContext(request))
