@@ -10,7 +10,7 @@ from django.views.generic import View
 from django.shortcuts import redirect
 from django.db import models
 #from django.contrib.admin.views.decorators import staff_member_required
-D
+
 from .models import (ExamProblem,
                      ExamPaper,
                      ExamUserPaper,
@@ -44,9 +44,10 @@ class WeixinExamView(View):
         
         user_openid = get_user_openid(request, code)
 
-        WeiXinUser.objects.get_or_create(openid=user_openid)
         if not user_openid  or user_openid.upper() == 'NONE':
             return redirect("/weixin/examination/share/%s/"%userpk)
+
+        wx_user,state = WeiXinUser.objects.get_or_create(openid=user_openid)        
         
         exam_papers = ExamPaper.objects.filter(status=ExamPaper.ACTIVE)
         if exam_papers.count() <= 0:
@@ -57,9 +58,7 @@ class WeixinExamView(View):
                                                               paper_id=exam_paper.id)
         if (exam_user_paper.status == ExamPaper.FINISHED or 
             exam_user_paper.answer_num >= exam_paper.problem_num):
-            return render_to_response('weixin/examination/weixin_exam_final.html', 
-                                      {"exam_user_paper":exam_user_paper, "userpk":userpk},
-                                      context_instance=RequestContext(request))
+            return redirect('/weixin/examination/share/%s/'%wx_user.pk)
         
         new_problem = self.getRandomProblemByUserPaper(exam_user_paper)
         
@@ -67,17 +66,15 @@ class WeixinExamView(View):
                                       {"problem":new_problem, "exam_user_paper": exam_user_paper,
                                        "userpk":userpk},
                                       context_instance=RequestContext(request))
+        response.set_cookie("openid",user_openid)
         return response
 
     def post(self, request, userpk):
-        content = request.REQUEST
-
-        code = content.get('code')
-        user_openid = get_user_openid(request, code)
-        #user_openid = 'oMt59uJJBoNRC7Fdv1b5XiOAngdU'
+        user_openid = request.COOKIES.get('openid')
         if not user_openid or user_openid.upper() == 'NONE':
             return HttpResponse(u'只有微信用户才有答题权限哦')
-        
+
+        content = request.REQUEST        
         paper_id   = content.get('paper_id')
         problem_id = content.get('problem_id')
         selected   = content.get('selected')
@@ -120,10 +117,11 @@ class WeixinExamView(View):
                 
                 weixin_active_signal.send(sender=ExamUserPaper,
                                           active_id=exam_user_paper.id)
-            
-            return render_to_response('weixin/examination/weixin_exam_final.html', 
-                                      {"exam_user_paper":exam_user_paper, "userpk":userpk},
-                                      context_instance=RequestContext(request))
+            pk = 0
+            wx_users = WeiXinUser.objects.filter(openid=user_openid)
+            if wx_users.count() > 0:
+                pk = wx_users[0].pk
+            return redirect('weixin/examination/share/%s/'%pk)
         
         new_problem = self.getRandomProblemByUserPaper(exam_user_paper)
 
@@ -145,8 +143,32 @@ class WeixinExamView(View):
 
 class WeixinExamShareView(View):
     def get(self, request, userpk):
+
+        if userpk == 0:
+            return HttpResponse(u'出错啦，请重新答题！');
+
+        user_openid = request.COOKIES.get('openid')
+
+        identical = False
+        paper_finished = False
+        grade = 0
+        wx_user = WeiXinUser.objects.get(pk=userpk)
+        if user_openid == wx_user.openid:
+            identical = True
+            
+            exam_papers = ExamPaper.objects.filter(status=ExamPaper.ACTIVE)
+            if exam_papers.count() > 0:
+                paper_id = exam_papers[0].pk
+            
+                user_papers = ExamUserPaper.objects.filter(user_openid=user_openid, paper_id=paper_id)
+                if user_papers.count() > 0:
+                    if user_papers[0].status == ExamUserPaper.FINISHED:
+                        paper_finished = True
+                        grade = user_papers[0].grade
+        
         response = render_to_response('weixin/examination/weixin_exam_share.html', 
-                                      {"userpk":userpk},
+                                      {"userpk":userpk, "identical":identical, 
+                                       "paper_finished":paper_finished, "grade":grade},
                                       context_instance=RequestContext(request))
         return response
     
