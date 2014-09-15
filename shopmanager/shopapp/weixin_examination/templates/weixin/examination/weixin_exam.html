@@ -72,7 +72,7 @@
     var callback = function (res) {
       $("#id_problem_body")[0].innerHTML = res;
     };
-    $.ajax(url:url, data:data, type:"post", success:callback);
+    $.ajax({url:url, data:data, type:"post", success:callback});
   }
 </script>
 {% endblock %}
