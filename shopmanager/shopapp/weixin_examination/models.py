@@ -189,8 +189,9 @@ def convert_inviteship2score(sender,user_openid,*args,**kwargs):
         invite_ships = Invitationship.objects.filter(invite_openid=user_openid).order_by('-created')
         if not wx_user.referal_from_openid and invite_ships.count() > 0:
             
-            invite_score = 10
-            invitor_openid = invite_ship[0].from_openid 
+            invitor_openid = invite_ships[0].from_openid 
+            invitor_user   = WeiXinUser.objects.get(openid=invitor_openid)
+            invite_score   = invitor_user.subscribe_time < datetime.datetime(2014,9,15) and 2 or 10
             
             wx_user.referal_from_openid = invitor_openid
             wx_user.save()
