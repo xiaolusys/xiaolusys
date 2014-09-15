@@ -73,7 +73,7 @@ class WeixinExamView(View):
         paper_id   = content.get('paper_id')
         problem_id = content.get('problem_id')
         selected   = content.get('selected')
-        if not selected:
+        if selected == "E":
             return HttpResponse(u'请选择答案')
         
         problem = ExamProblem.objects.get(id=problem_id)

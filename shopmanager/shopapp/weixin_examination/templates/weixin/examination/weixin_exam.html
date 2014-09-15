@@ -39,19 +39,6 @@
 
 {% block tail_script %}
 <script type="text/javascript">
-  function check() {
-    if ($("#selected_A").is(':checked')) {
-      return true;
-    } else if ($("#selected_B").is(':checked')) {
-      return true;
-    } else if ($("#selected_C").is(':checked')) {
-      return true;
-    } else if ($("#selected_D").is(':checked')) {
-      return true;
-    }
-    return false;
-  }
-
   function submit() {
     var paper_id = $("#id_paper_id").val();
     var problem_id = $("#id_problem_id").val();
@@ -64,6 +51,9 @@
       selected = "C";
     } else if ($("#selected_D").is(':checked')) {
       selected = "D";
+    }
+    if (selected == "E") {
+      return;
     }
     var csrf_token = document.getElementsByName("csrfmiddlewaretoken")[0].value;
     var url = "./";
