@@ -12,6 +12,7 @@ from django.db import models
 
 from .models import ExamProblem,ExamPaper,ExamUserPaper,ExamUserProblem
 from shopapp.weixin.views import get_user_openid
+from shopapp.weixin.models import WeiXinUser
 from django.shortcuts import redirect
 
 import logging
@@ -41,6 +42,11 @@ class WeixinExamView(View):
         
         if not user_openid  or user_openid.upper() == 'NONE':
             return redirect("/weixin/examination/share/%s/"%userpk)
+        
+        wx_users = WeiXinUser.objects.filter(openid=user_openid)
+        if wx_users.count() > 0:
+            if userpk != wx_users[0].pk:
+                return redirect("/weixin/examination/%s/"%wx_users[0].pk)
         
         exam_papers = ExamPaper.objects.filter(status=ExamPaper.ACTIVE)
         if exam_papers.count() <= 0:
