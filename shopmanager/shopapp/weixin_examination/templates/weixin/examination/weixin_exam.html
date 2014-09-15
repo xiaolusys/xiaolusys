@@ -1,6 +1,6 @@
 {% extends "weixin/weixin_base.html" %}
  
-{% block title %} 微信妈妈互动答题 {%endblock %} 
+{% block title %} 崔玉涛-育儿问答 {%endblock %} 
 
 {% block head_script %}
 <style>
@@ -25,43 +25,54 @@
 
 {% block container %}
 <div class="container-fluid">
-<div class="panel panel-default" style="margin-top: 5px">
-<div class="panel-heading" style="color: orange">第{{ exam_user_paper.answer_num|add:"1" }}题：{{ problem.problem_title }}</div>
-<form name="form1" method="POST" action="./">
-{% csrf_token %}
-<input type="hidden" name="paper_id" value="{{ exam_user_paper.paper_id }}"/>
-<input type="hidden" name="problem_id" value="{{ problem.id }}"/>
-<table class="table table-bordered table-condensed">
-	{% if problem.option_a %}
-	<tr>
-		<td><input type="radio" id="selected_A" name="selected" value="A">
-		<div class="well well-small" >{{ problem.option_a }}</div></td>
-	</tr>
-	{% endif %}
-	{% if problem.option_b %}
-	<tr>
-		<td><input type="radio" id="selected_B" name="selected" value="B">
-		<div class="well well-small" >{{ problem.option_b }}</div></td>
-	</tr>
-	{% endif %}
-	{% if problem.option_c %}
-	<tr>
-		<td><input type="radio" id="selected_C" name="selected" value="C">
-		<div class="well well-small" >{{ problem.option_c }}</div></td>
-	</tr>
-	{% endif %}
-	{% if problem.option_d %}
-	<tr>
-		<td><input type="radio" id="selected_D" name="selected" value="D">
-		<div class="well well-small" >{{ problem.option_d }}</div></td>
-	</tr>
-	{% endif %}
-</table>
-<div style="text-align:center;"><input type="submit" class="btn btn-success" value="确定，并继续"/></div>
-</form>
-</div>
-</div>
+  <div class="panel panel-default" style="margin-top: 5px" id="id_problem_body">
+    {{ html_block_content }}
+  </div>
+
+  <div class="footer">
+    <p>© Uni Littles 2014</p>
+  </div>
+
 </div>
 
+{% endblock %}
 
+{% block tail_script %}
+<script type="text/javascript">
+  function check() {
+    if ($("#selected_A").is(':checked')) {
+      return true;
+    } else if ($("#selected_B").is(':checked')) {
+      return true
+    } else if ($("#selected_C").is(':checked')) {
+      return true
+    } else if ($("#selected_D").is(':checked')) {
+      return true
+    }
+    return false;
+  }
+
+  function submit() {
+    var paper_id = $("#id_paper_id").val();
+    var problem_id = $("#id_problem_id").val();
+    var selected = "E";
+    if ($("#selected_A").is(':checked')) {
+      selected = "A";
+    } else if ($("#selected_B").is(':checked')) {
+      selected = "B";
+    } else if ($("#selected_C").is(':checked')) {
+      selected = "C";
+    } else if ($("#selected_D").is(':checked')) {
+      selected = "D";
+    }
+    var csrf_token = document.getElementsByName("csrfmiddlewaretoken")[0].value;
+    var url = "./";
+    var data = {"csrfmiddlewaretoken":csrf_token, "selected":selected,
+                "paper_id":paper_id, "problem_id":problem_id};
+    var callback = function (res) {
+      $("#id_problem_body")[0].innerHTML = res;
+    };
+    $.ajax(url:url, data:data, type:"post", success:callback);
+  }
+</script>
 {% endblock %}
