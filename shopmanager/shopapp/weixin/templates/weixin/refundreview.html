@@ -66,15 +66,17 @@
     var pay_type = $("#id_pay_type").val();
     var pay_amount = $("#id_refund_amount").val();
 
-	if (!parseFloat(pay_amount)||parseFloat(pay_amount)==0){
+	
+	
+    {% if refund_status == 0 %}
+    var review_note = $("#id_review_note").val();
+    
+    if (!parseFloat(pay_amount)||parseFloat(pay_amount)==0){
 		$('#table-review').css("background-color","#FE2E64");
 		return
 	}else{
 		$('#table-review').css("background-color","#FFFFFF");
 	}
-	
-    {% if refund_status == 0 %}
-    var review_note = $("#id_review_note").val();
     {% endif %}
 
     {% if refund_status == 1 %}
@@ -89,7 +91,7 @@
       "review_note":review_note, 
     {% endif %}
     {% if refund_status == 1 %}   
-      "pay_note":pay_note, 
+      "pay_note":pay_note,
     {% endif %}
     "action":action, "csrfmiddlewaretoken":csrf_token};
     var url = "/weixin/refundreview/";
