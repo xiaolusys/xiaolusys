@@ -7,10 +7,10 @@ from django.template import RequestContext
 from django.shortcuts import render_to_response
 from django.views.decorators.csrf import csrf_exempt
 from django.views.generic import View
-from 
+from django.shortcuts import redirect
 from django.db import models
 #from django.contrib.admin.views.decorators import staff_member_required
-
+D
 from .models import (ExamProblem,
                      ExamPaper,
                      ExamUserPaper,
@@ -18,6 +18,7 @@ from .models import (ExamProblem,
                      Invitationship)
 from shopapp.weixin.views import WeiXinUser,get_user_openid
 from shopapp.signals import weixin_active_signal
+
 import logging
 
 logger = logging.getLogger('django.request')
@@ -42,10 +43,10 @@ class WeixinExamView(View):
         code = content.get('code')
         
         user_openid = get_user_openid(request, code)
-        #user_openid = 'oMt59uJJBoNRC7Fdv1b5XiOAngdU'
+
         WeiXinUser.objects.get_or_create(openid=user_openid)
         if not user_openid  or user_openid.upper() == 'NONE':
-            return HttpResponse(u'只有微信用户才有答题权限哦')
+            return redirect("/weixin/examination/share/%s/"%userpk)
         
         exam_papers = ExamPaper.objects.filter(status=ExamPaper.ACTIVE)
         if exam_papers.count() <= 0:
@@ -57,13 +58,14 @@ class WeixinExamView(View):
         if (exam_user_paper.status == ExamPaper.FINISHED or 
             exam_user_paper.answer_num >= exam_paper.problem_num):
             return render_to_response('weixin/examination/weixin_exam_final.html', 
-                                      {"exam_user_paper":exam_user_paper},
+                                      {"exam_user_paper":exam_user_paper, "userpk":userpk},
                                       context_instance=RequestContext(request))
         
         new_problem = self.getRandomProblemByUserPaper(exam_user_paper)
         
         response = render_to_response('weixin/examination/weixin_exam.html', 
-                                      {"problem":new_problem, "exam_user_paper": exam_user_paper},
+                                      {"problem":new_problem, "exam_user_paper": exam_user_paper,
+                                       "userpk":userpk},
                                       context_instance=RequestContext(request))
         return response
 
@@ -79,7 +81,7 @@ class WeixinExamView(View):
         paper_id   = content.get('paper_id')
         problem_id = content.get('problem_id')
         selected   = content.get('selected')
-        if not selected:
+        if selected == "E":
             return HttpResponse(u'请选择答案')
         
         problem = ExamProblem.objects.get(id=problem_id)
@@ -120,20 +122,29 @@ class WeixinExamView(View):
                                           active_id=exam_user_paper.id)
             
             return render_to_response('weixin/examination/weixin_exam_final.html', 
-                                      {"exam_user_paper":exam_user_paper},
+                                      {"exam_user_paper":exam_user_paper, "userpk":userpk},
                                       context_instance=RequestContext(request))
         
         new_problem = self.getRandomProblemByUserPaper(exam_user_paper)
+
+        html_block_content = render_to_response('weixin/examination/weixin_exam_block.html', 
+                                                {"problem":new_problem, 
+                                                 "exam_user_paper": exam_user_paper,
+                                                 "userpk":userpk},
+                                                context_instance=RequestContext(request))
+
+        if content.get("block") == "yes":
+            return html_block_content
         
         response = render_to_response('weixin/examination/weixin_exam.html', 
-                                      {"problem":new_problem, "exam_user_paper": exam_user_paper},
+                                      {"problem":new_problem, 
+                                       "exam_user_paper": exam_user_paper},
                                       context_instance=RequestContext(request))
         return response
 
 
 class WeixinExamShareView(View):
     def get(self, request, userpk):
-        content = request.REQUEST
         response = render_to_response('weixin/examination/weixin_exam_share.html', 
                                       {"userpk":userpk},
                                       context_instance=RequestContext(request))
