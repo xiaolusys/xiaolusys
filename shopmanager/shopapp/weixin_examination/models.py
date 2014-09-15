@@ -153,8 +153,9 @@ def convert_examgrade2score(sender,active_id,*args,**kwargs):
         invite_ships = Invitationship.objects.filter(invite_openid=user_openid).order_by('-created')
         if invite_ships.count() > 0:
             
-            invite_score = 1
-            invitor_openid = invite_ship[0].from_openid 
+            invitor_openid = invite_ships[0].from_openid 
+            invitor_user = WeiXinUser.objects.get(openid=invitor_openid)
+            invite_score = invitor_user.subscribe_time < datetime.datetime(2014,9,15) and 1 or 2
             wx_user_score,state = WeixinUserScore.objects.get_or_create(
                                         user_openid=invitor_openid)
         
@@ -162,7 +163,7 @@ def convert_examgrade2score(sender,active_id,*args,**kwargs):
                                            score=invite_score,
                                            score_type=WeixinScoreItem.ACTIVE,
                                            expired_at=datetime.datetime.now(),
-                                           memo=u"邀请(%s)答题积分。"%(invitor_openid))
+                                           memo=u"邀请好友(%s)答题积分。"%(user_openid))
             
             wx_user_score.user_score  = models.F('user_score') + invite_score
             wx_user_score.save()
