@@ -1,7 +1,12 @@
 {% extends "weixin/weixin_base.html" %}
 
-{% block title %} 一站到底 {% endblock %}
-
+{% block title %}
+{% if paper_finished %}
+超难！崔玉涛经典育儿问答,我击败了90%的新手妈妈！快来挑战吧！
+{% else %}
+崔玉涛-经典育儿知识问答 
+{% endif %}
+{% endblock %}
 
 {% block container %}
 
@@ -10,14 +15,23 @@
   <div class="panel panel-default" style="margin-top:5px">
     <div class="panel-heading" style="color:#e8792a">崔玉涛-经典育儿知识问答（系列一）</div>
     <div class="panel-body">
-
       <div class="row">
 	<div class="col-xs-12">
+	  {% if paper_finished %}
+	  <p style="color:#029fd6">亲，您已经完成了答题挑战，豪取{{ grade }}个积分！恭喜！</p>
+	  <p style="color:#029fd6">快分享到朋友圈，让您的好友一起来挑战吧！</p>
+	  {% else %}
+	  {% if identical %}
 	  <p style="color:#029fd6">美丽辣妈们，您是育儿高手！您有满腹育儿经！！ 您拥有养娃带娃的百分百经验！！！</p>
+	  {% else %}
+	  <p style="color:#029fd6">亲，您的好友刚刚完成挑战，现在点名您啦！</p>
+	  {% endif %}
 	  <p style="color:#029fd6">还等什么，快来挑战“崔玉涛”医师的经典问答题目，一站到底！</p>
 	  <div style="text-align:center;margin-top:10px">
 	    <a href="https://open.weixin.qq.com/connect/oauth2/authorize?appid=wxc2848fa1e1aa94b5&redirect_uri=http://weixin.huyi.so/weixin/examination/{{ userpk }}/&response_type=code&scope=snsapi_base&state=135#wechat_redirect" class="btn btn-warning">点击开始</a>
 	  </div>
+	  {% endif %}
+
 	</div>
       </div>
 

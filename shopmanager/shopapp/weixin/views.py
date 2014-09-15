@@ -29,7 +29,7 @@ from .models import (WeiXinUser,
 from shopback.trades.models import MergeTrade
 from shopback import paramconfig as pcfg
 
-from shopapp.signals import weixin_readclick_signal
+from shopapp.signals import weixin_readclick_signal,weixin_verifymobile_signal
 
 import logging
 import json
@@ -227,6 +227,8 @@ class VerifyCodeView(View):
             wx_user.save()
             
             VipCode.objects.genVipCodeByWXUser(wx_user)
+
+            weixin_verifymobile_signal.send(sender=WeiXinUser,user_openid=openId)
             
             response = {"code":"good", "message":"code has been verified"}
             
@@ -972,7 +974,9 @@ class VipCouponView(View):
         
         title = u'VIP优惠券'
         if wx_user.isValid() == False:
-            response = render_to_response('weixin/remind.html', {"title":title, "openid":user_openid},context_instance=RequestContext(request))
+            response = render_to_response('weixin/remind.html', 
+                                          {"title":title, "openid":user_openid},
+                                          context_instance=RequestContext(request))
             response.set_cookie("openid",user_openid)
             return response
         
