@@ -66,7 +66,7 @@
       selected = "D";
     }
     var csrf_token = document.getElementsByName("csrfmiddlewaretoken")[0].value;
-    var url = "/weixin/examination/{{ userpk }}/";
+    var url = "./";
     var data = {"csrfmiddlewaretoken":csrf_token, "selected":selected,
                 "paper_id":paper_id, "problem_id":problem_id, "block":"yes"};
     var callback = function (res) {
