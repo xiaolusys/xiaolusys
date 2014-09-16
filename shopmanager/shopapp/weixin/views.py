@@ -1133,13 +1133,26 @@ class ScoreMenuView(View):
         content = request.REQUEST
         code = content.get('code')
         user_openid = get_user_openid(request, code)
+
+        wx_user = WeiXinUser.objects.get(openid=user_openid)
+        pk = wx_user.pk
+
+        title = u'积分查询'        
+        if wx_user.isValid() == False:
+            response = render_to_response('weixin/remind.html', 
+                                          {"title":title, "openid":user_openid}, 
+                                          context_instance=RequestContext(request))
+            response.set_cookie("openid",user_openid)
+            return response
+
+        score = 0
+        user_scores = WeixinUserScore.objects.filter(user_openid=user_openid)
+        if user_scores.count() > 0:
+            score = user_scores[0].user_score
         
-        if not user_openid or user_openid.upper() == 'NONE':
-            raise Http404(u'好像授权出问题了')
-         
-        wx_user = WeiXinUser.objects.get_or_create(openid=user_openid)
-        
-        return HttpResponse('')
+        response = render_to_response('weixin/scoremenu.html', {"score":score, "pk": pk},
+                                      context_instance=RequestContext(request))
+        return response
 
         
 class TestView(View):
