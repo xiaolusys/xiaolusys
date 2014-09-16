@@ -1,16 +1,35 @@
 {% extends "weixin/weixin_base.html" %}
 
-{% block title %} 积分规则 {% endblock %}
+{% block title %} 我的积分 {% endblock %}
 
 {% block container %}
 
 <div class="container-fluid">
 
+  <div class="panel panel-default" style="margin-top:5px">
+    <div class="panel-heading" style="color:orange">我的积分</div>
+    <div class="panel-body">
+
+      <div class="row">
+	<div class="col-xs-12">
+	  <span style="color:orange">累计: <font style="font-size:26px">{{ score }}</font>分</span>
+	</div>
+      </div>
+
+      <div class="row" style="margin-top:5px">
+	<div class="col-xs-12">
+	  <a href="/weixin/score/{{pk}}/">积分明细>></a>
+	</div>
+      </div>
+
+    </div>
+  </div>
+
   <ul class="list-group">
     <li class="list-group-item list-group-item-success">积分活动</li>
     <li class="list-group-item"><font style="color:orange">积分返利</font>：购物订单每满100元，可使用10积分在微信平台申请10元返利，上不封顶（9月下旬开放）。</li>
     <li class="list-group-item"><font style="color:orange">9月活动</font>：入围的粉丝美妈们，可用10积分<font style="color:red">折上再5折</font>换购小小派睡袋。</li>
-    <li class="list-group-item"><font style="color:orange">10月活动</font>：每10个积分可兑换一次VIP码使用次数，兑换不得超过50积分（VIP码使用最多增加5次）。<font style="color:red;font-size:20px">再不挣积分，十月活动你就out啦！</font></li>
+    <li class="list-group-item"><font style="color:orange">10月活动</font>：每10个积分可兑换一次VIP码使用次数，兑换不得超过50积分（VIP码使用最多增加5次）。</li>
   </ul>
 
   <ul class="list-group">
