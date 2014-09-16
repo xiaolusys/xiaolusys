@@ -7,6 +7,15 @@
 <div class="container-fluid">
 
   <div class="panel panel-default" style="margin-top:5px">
+    <div class="panel-heading" style="color:orange">公告</div>
+    <div class="panel-body">
+      <p>亲，9月积分换购活动第一批入围名单已出炉!</p>
+      <p>参与问答活动，并且总积分超过<font style="color:red">12</font>分的所有美妈粉丝们全部入围。</p>
+      <p>快查看您的审核状态，<font style="color:red">扫描二维码哦！</font></p>
+    </div>
+  </div>
+
+  <div class="panel panel-default" style="margin-top:5px">
     <div class="panel-heading" style="color:orange">9月积分活动</div>
     <div class="panel-body">
       <div class="row">
@@ -20,6 +29,22 @@
 	  <a class="btn btn-warning" href="https://open.weixin.qq.com/connect/oauth2/authorize?appid=wxc2848fa1e1aa94b5&redirect_uri=http://weixin.huyi.so/weixin/scoremenu/&response_type=code&scope=snsapi_base&state=135#wechat_redirect">查看我的积分 >></a>
 	</div>
       </div>
+      {% if passed %}
+      <div class="row">
+	<div class="col-xs-12">
+	  <p style="color:red;font-size:20px">亲，恭喜您入围9月积分折上再5折换购活动！</p>
+	  <p>请微信扫描下面二维码，加入优尼世界换购qq群（把二维码图片保存到手机，微信扫一扫，选择右上角“相册”）：</p>
+	  <p style="color:red">申请进群时，请提供您的VIP邀请码！若不能进群，请联系微信客服！</p>
+	</div>
+      </div>
+      <div class="row">
+	<div class="col-xs-12">
+	  <div class="thumbnail">
+	    <img src="https://mmbiz.qlogo.cn/mmbiz/yMhOQPTKhLvqk5eS0Rm8Fm119N5dvMEJ02XfU8ic9gfyoXFAoy4eQhgjRuZRhNlbdF31ZLeAwjqUeRBGwHL1Libw/0" alt="...">
+	  </div>
+	</div>
+      </div>
+      {% endif %}
     </div>
   </div>
   
