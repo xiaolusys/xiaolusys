@@ -25,6 +25,7 @@ from shopapp.weixin.models import (WeiXinAccount,
                                    WeixinUserScore,
                                    WeixinScoreItem,
                                    WeixinClickScore,
+                                   WeixinScoreBuy,
                                    WeixinClickScoreRecord
                                    )
 import logging
@@ -316,6 +317,15 @@ class WeixinScoreItemAdmin(admin.ModelAdmin):
     list_filter = ('score_type',('created',DateFieldListFilter))
 
 admin.site.register(WeixinScoreItem, WeixinScoreItemAdmin) 
+
+
+class WeixinScoreBuyAdmin(admin.ModelAdmin):
+    
+    list_display = ('user_openid', 'buy_score', 'created','batch')
+    search_fields = ['user_openid']
+    list_filter = ('batch',)
+
+admin.site.register(WeixinScoreBuy, WeixinScoreBuyAdmin) 
 
 
 class WeixinClickScoreAdmin(admin.ModelAdmin):

@@ -1152,7 +1152,10 @@ class ScoreMenuView(View):
         content = request.REQUEST
         code = content.get('code')
         user_openid = get_user_openid(request, code)
-
+        
+        if not user_openid or user_openid.upper() == 'NONE':
+            return HttpResponse(u'此页面需要授权可见')
+        
         wx_user = WeiXinUser.objects.get(openid=user_openid)
         pk = wx_user.pk
 
