@@ -26,7 +26,7 @@ from .models import (WeiXinUser,
                      WeixinClickScore,
                      WeixinClickScoreRecord)
 
-from shopapp.weixin_examination.models import WeixinUserPaper
+from shopapp.weixin_examination.models import ExamUserPaper
 from shopback.trades.models import MergeTrade
 from shopback import paramconfig as pcfg
 
@@ -843,7 +843,7 @@ class ResultView(View):
 
         passed = False
         if score >= 12:
-            user_papers = WeixinUserPaper.objects.filter(user_openid=user_openid,status=WeixinUserPaper.FINISHED)
+            user_papers = ExamUserPaper.objects.filter(user_openid=user_openid,status=WeixinUserPaper.FINISHED)
             if user_papers.count() > 0:
                 passed = True
             
