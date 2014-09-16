@@ -266,6 +266,7 @@ class OrderInfoView(View):
             latest_trades = MergeTrade.objects.filter(tid=order_id).order_by('-pay_time')
             
 
+
         
         trade = latest_trades[0]
         
@@ -273,9 +274,12 @@ class OrderInfoView(View):
         data["tradeid"] = trade.id
         data["platform"] = trade.user
         data["paytime"] = trade.pay_time
+        has_specific_product = False
         orders = []
         for order in trade.merge_orders.filter(sys_status=pcfg.IN_EFFECT):
             s = order.getImgSimpleNameAndPrice()
+            if order.outer_id == '3116BG7':
+                has_specific_product = True
             orders.append(s)
         data["orders"] = orders
         data["ordernum"] = trade.order_num
@@ -291,6 +295,16 @@ class OrderInfoView(View):
         except:
             shipping_traces = [("Sorry, 暂时无法查询到快递信息", "请尝试其他途径查询")]
 
+        score = 0
+        score_passed = False
+        if has_specific_product:
+            user_scores = WeixinUserScore.objects.filter(user_openid=user_openid)
+            if user_scores.count() > 0:
+                score = user_scores[0].user_score
+            if score >= 12:
+                user_papers = ExamUserPaper.objects.filter(user_openid=user_openid,status=ExamUserPaper.FINISHED)
+                if user_papers.count() > 0:
+                    score_passed = True
         
         refund = None
         refund_list = Refund.objects.filter(trade_id=trade.id)
@@ -305,7 +319,7 @@ class OrderInfoView(View):
             passed = True
         
         response = render_to_response('weixin/orderinfo.html', 
-                                      {'tradedata':data, "traces":shipping_traces, 
+                                      {'tradedata':data, "traces":shipping_traces, "score_passed":score_passed,
                                        "refund": refund, "passed":passed, "openid":user_openid },
                                       context_instance=RequestContext(request))
         response.set_cookie("openid",user_openid)
