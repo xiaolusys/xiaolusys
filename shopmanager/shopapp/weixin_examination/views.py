@@ -111,9 +111,8 @@ class WeixinExamView(View):
             
             if prefore_status == ExamUserPaper.UNFINISHED:
                 wx_user = WeiXinUser.objects.get(id=userpk)
-                if wx_user.openid != user_openid:
-                    Invitationship.objects.get_or_create(from_openid=wx_user.openid,
-                                              invite_openid=user_openid)
+                Invitationship.objects.get_or_create(from_openid=wx_user.openid,
+                                          invite_openid=user_openid)
                 
                 weixin_active_signal.send(sender=ExamUserPaper,
                                           active_id=exam_user_paper.id)
