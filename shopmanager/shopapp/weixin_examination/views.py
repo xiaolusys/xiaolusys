@@ -102,7 +102,7 @@ class WeixinExamView(View):
             
                 exam_user_paper = ExamUserPaper.objects.get(user_openid=user_openid,paper_id=paper_id)
             except:
-                return HttpResponseRedirect('./')
+                pass
             
         if exam_user_paper.answer_num >= exam_paper.problem_num:
             prefore_status         = exam_user_paper.status
