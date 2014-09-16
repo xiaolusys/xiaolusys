@@ -1,3 +1,5 @@
+######## 2014-9-16 ##########
+create unique index user_openid on shop_wexin_user_paper(user_openid,paper_id);
 ######## 2014-9-12 ##########
 create unique index owner_openid_id on shop_weixin_vipcode(owner_openid_id);
 ######## 2014-9-6 ##########

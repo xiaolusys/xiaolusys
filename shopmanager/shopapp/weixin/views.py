@@ -2,7 +2,7 @@
 import re
 import time
 import datetime
-from django.http import HttpResponse
+from django.http import Http404,HttpResponse
 from django.conf import settings
 from django.views.decorators.csrf import csrf_exempt
 from django.views.generic import View
@@ -1126,6 +1126,33 @@ class ClickScoreView(View):
             
         return redirect(redirect_link)
 
+
+class ScoreMenuView(View):
+    def get(self, request):
+        
+        content = request.REQUEST
+        code = content.get('code')
+        user_openid = get_user_openid(request, code)
+
+        wx_user = WeiXinUser.objects.get(openid=user_openid)
+        pk = wx_user.pk
+
+        title = u'积分查询'        
+        if wx_user.isValid() == False:
+            response = render_to_response('weixin/remind.html', 
+                                          {"title":title, "openid":user_openid}, 
+                                          context_instance=RequestContext(request))
+            response.set_cookie("openid",user_openid)
+            return response
+
+        score = 0
+        user_scores = WeixinUserScore.objects.filter(user_openid=user_openid)
+        if user_scores.count() > 0:
+            score = user_scores[0].user_score
+        
+        response = render_to_response('weixin/scoremenu.html', {"score":score, "pk": pk},
+                                      context_instance=RequestContext(request))
+        return response
 
         
 class TestView(View):

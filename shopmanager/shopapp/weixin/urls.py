@@ -32,6 +32,7 @@ from shopapp.weixin.views import (WeixinAcceptView,
                                   SampleChooseView,
                                   ScoreView,
                                   ClickScoreView,
+                                  ScoreMenuView,
                                   TestView)
 
 urlpatterns = patterns('shopapp.weixin.views',
@@ -83,6 +84,8 @@ urlpatterns = patterns('shopapp.weixin.views',
     url(r'^clickscore/(?P<id>\d+)/$', ClickScoreView.as_view()),
     url(r'^scorerule/$', TemplateView.as_view(
             template_name="weixin/scorerule.html")),
+    url(r'^scoremenu/$', ScoreMenuView.as_view()),
+        
     url(r'^test/$', TestView.as_view()),    
                      
     url(r'^validmobile/$', TemplateView.as_view(

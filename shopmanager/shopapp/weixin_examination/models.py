@@ -74,6 +74,7 @@ class ExamUserPaper(models.Model):
     
     class Meta:
         db_table = 'shop_wexin_user_paper'
+        unique_together = ('user_openid', 'paper_id')
         verbose_name = u'用户答卷'
         verbose_name_plural = u'用户答卷列表'    
     
