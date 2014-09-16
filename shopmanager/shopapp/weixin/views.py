@@ -228,7 +228,7 @@ class VerifyCodeView(View):
             
             VipCode.objects.genVipCodeByWXUser(wx_user)
 
-            weixin_verifymobile_signal.send(sender=WeiXinUser,user_openid=openId)
+            weixin_verifymobile_signal.send(sender=WeiXinUser,user_openid=openid)
             
             response = {"code":"good", "message":"code has been verified"}
             
