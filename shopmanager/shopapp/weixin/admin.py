@@ -27,6 +27,9 @@ from shopapp.weixin.models import (WeiXinAccount,
                                    WeixinClickScore,
                                    WeixinClickScoreRecord
                                    )
+import logging
+logger = logging.getLogger("django.request")
+
 
 class WeiXinAccountAdmin(admin.ModelAdmin):
     
@@ -78,7 +81,8 @@ class WeiXinAccountAdmin(admin.ModelAdmin):
                 wx_api.createMenu(jmenu)
             except Exception,exc:
                 self.message_user(request, u"微信菜单创建失败：%s"%(exc.message or u'请求错误'))
-            
+                logger.error(u"微信菜单创建失败：%s"%(exc.message or u'请求错误'),exc_info=True)
+                
         return super(WeiXinAccountAdmin, self).response_change(request, obj, *args, **kwargs)
 
 admin.site.register(WeiXinAccount, WeiXinAccountAdmin)  
