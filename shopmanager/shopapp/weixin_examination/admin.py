@@ -3,7 +3,8 @@ from django.contrib import admin
 from shopapp.weixin_examination.models import (ExamProblem,
                                                ExamPaper,
                                                ExamUserPaper,
-                                               ExamUserProblem)
+                                               ExamUserProblem,
+                                               Invitationship)
 
 class ExamProblemAdmin(admin.ModelAdmin):
     
@@ -47,5 +48,15 @@ class ExamUserProblemAdmin(admin.ModelAdmin):
     search_fields = ['id','user_openid','paper_id','problem_id']
     
 admin.site.register(ExamUserProblem,ExamUserProblemAdmin)
+
+
+class InvitationshipAdmin(admin.ModelAdmin):
+    
+    list_display = ('from_openid','invite_openid','created')
+    list_display_links = ('from_openid',)
+    
+    search_fields = ['from_openid','invite_openid']
+    
+admin.site.register(Invitationship,InvitationshipAdmin)
 
 
