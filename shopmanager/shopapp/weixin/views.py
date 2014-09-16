@@ -193,13 +193,10 @@ class RequestCodeView(View):
                 response = {"code":"wait", "message":"wait 180s before requesting new code"}
                 return HttpResponse(json.dumps(response),mimetype='application/json')
                 
-        # we have to write code into user's profile
-        if wx_user.valid_count < 1:
-            wx_user_service.sendValidCode(mobile, code)
-            wx_user.validcode = code
-            wx_user.code_time = datetime.datetime.now()
+        wx_user_service.sendValidCode(mobile, code)
+        wx_user.validcode = code
+        wx_user.code_time = datetime.datetime.now()
 
-        wx_user = wx_user_service._wx_user
         wx_user.vmobile   = mobile
         wx_user.isvalid   = False
         wx_user.valid_count += 1
