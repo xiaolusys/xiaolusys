@@ -26,6 +26,7 @@ from .models import (WeiXinUser,
                      WeixinClickScore,
                      WeixinClickScoreRecord)
 
+from shopapp.weixin_examination.models import WeixinUserPaper
 from shopback.trades.models import MergeTrade
 from shopback import paramconfig as pcfg
 
