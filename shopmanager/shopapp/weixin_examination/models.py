@@ -154,8 +154,18 @@ def convert_examgrade2score(sender,active_id,*args,**kwargs):
         if invite_ships.count() > 0:
             
             invitor_openid = invite_ships[0].from_openid 
-            invitor_user = WeiXinUser.objects.get(openid=invitor_openid)
-            invite_score = invitor_user.subscribe_time < datetime.datetime(2014,9,15) and 1 or 2
+            invitor_user   = WeiXinUser.objects.get(openid=invitor_openid)
+            
+            wx_user = WeiXinUser.objects.get(openid=user_openid)
+            subscribe_time  = wx_user.subscribe_time
+            new_subscribe   = not (subscribe_time and subscribe_time < datetime.datetime(2014,9,15))
+            is_invited      = wx_user.isvalid and not wx_user.referal_from_openid
+            
+            if is_invited:
+                wx_user.referal_from_openid = invitor_openid
+                wx_user.save()
+                
+            invite_score = new_subscribe and (is_invited and 12 or 2) or 1
             wx_user_score,state = WeixinUserScore.objects.get_or_create(
                                         user_openid=invitor_openid)
         
