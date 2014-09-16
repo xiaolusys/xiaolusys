@@ -2,7 +2,7 @@
 import re
 import time
 import datetime
-from django.http import HttpResponse
+from django.http import Http404,HttpResponse
 from django.conf import settings
 from django.views.decorators.csrf import csrf_exempt
 from django.views.generic import View
@@ -1126,6 +1126,20 @@ class ClickScoreView(View):
             
         return redirect(redirect_link)
 
+
+class ScoreMenuView(View):
+    def get(self, request):
+        
+        content = request.REQUEST
+        code = content.get('code')
+        user_openid = get_user_openid(request, code)
+        
+        if not user_openid or user_openid.upper() == 'NONE':
+            raise Http404(u'好像授权出问题了')
+         
+        wx_user = WeiXinUser.objects.get_or_create(openid=user_openid)
+        
+        return HttpResponse('')
 
         
 class TestView(View):
