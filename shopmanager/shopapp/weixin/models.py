@@ -826,6 +826,22 @@ class WeixinScoreItem(models.Model):
         verbose_name_plural = u'用户积分明细列表'
 
 
+class WeixinScoreBuy(models.Model):
+    
+    user_openid = models.CharField(max_length=64,db_index=True,verbose_name=u"微信ID")
+    
+    buy_score  = models.PositiveIntegerField(default=0,verbose_name=u'换购积分')  
+    
+    created    = models.DateTimeField(auto_now_add=True,null=True,verbose_name=u'创建时间')
+    
+    batch      = models.IntegerField(default=0,verbose_name=u"批次")
+    
+    class Meta:
+        db_table = 'shop_weixin_scorebuy'
+        verbose_name = u'积分换购名单'
+        verbose_name_plural = u'积分换购名单列表'   
+        
+
 class WeixinClickScore(models.Model):
     description = models.CharField(max_length=64,verbose_name=u"描述")
     redirect_link = models.URLField(verify_exists=False,blank=True,verbose_name=u"跳转链接")
@@ -851,6 +867,7 @@ class WeixinClickScoreRecord(models.Model):
         db_table = 'shop_weixin_click_score_item'
         verbose_name = u'积分链接点击'
         verbose_name_plural = u'积分链接点击列表'
+        
 
         
 from django.db import transaction
