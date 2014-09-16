@@ -52,7 +52,7 @@
       {% if refund %}
       {% include "weixin/refundresponse.html" %}
       {% else %}
-      {% if passed %}
+      {% if passed or score_passed %}
       {% include "weixin/refundapply.html" %}
       {% endif %}
       {% endif %}
