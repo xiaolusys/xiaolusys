@@ -24,7 +24,8 @@ from .models import (WeiXinUser,
                      WeixinUserScore,
                      WeixinScoreItem,
                      WeixinClickScore,
-                     WeixinClickScoreRecord)
+                     WeixinClickScoreRecord,
+                     WeixinScoreBuy)
 
 from shopapp.weixin_examination.models import ExamUserPaper
 from shopback.trades.models import MergeTrade
@@ -295,16 +296,11 @@ class OrderInfoView(View):
         except:
             shipping_traces = [("Sorry, 暂时无法查询到快递信息", "请尝试其他途径查询")]
 
-        score = 0
         score_passed = False
         if has_specific_product:
-            user_scores = WeixinUserScore.objects.filter(user_openid=user_openid)
-            if user_scores.count() > 0:
-                score = user_scores[0].user_score
-            if score >= 12:
-                user_papers = ExamUserPaper.objects.filter(user_openid=user_openid,status=ExamUserPaper.FINISHED)
-                if user_papers.count() > 0:
-                    score_passed = True
+            score_buys = WeixinScoreBuy.objects.filter(user_openid=user_openid)
+            if score_buys.count() > 0:
+                score_passed = True
         
         refund = None
         refund_list = Refund.objects.filter(trade_id=trade.id)
@@ -856,10 +852,9 @@ class ResultView(View):
             score = user_scores[0].user_score
 
         passed = False
-        if score >= 12:
-            user_papers = ExamUserPaper.objects.filter(user_openid=user_openid,status=ExamUserPaper.FINISHED)
-            if user_papers.count() > 0:
-                passed = True
+        score_buys = WeixinScoreBuy.objects.filter(user_openid=user_openid)
+        if score_buys.count() > 0:
+            passed = True
             
         response = render_to_response('weixin/invite_result.html',
                                       {'has_order':has_order, 'order_status':order_status, 
