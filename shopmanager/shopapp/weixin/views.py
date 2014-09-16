@@ -843,7 +843,7 @@ class ResultView(View):
 
         passed = False
         if score >= 12:
-            user_papers = ExamUserPaper.objects.filter(user_openid=user_openid,status=WeixinUserPaper.FINISHED)
+            user_papers = ExamUserPaper.objects.filter(user_openid=user_openid,status=ExamUserPaper.FINISHED)
             if user_papers.count() > 0:
                 passed = True
             
