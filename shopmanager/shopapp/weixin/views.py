@@ -839,11 +839,18 @@ class ResultView(View):
         user_scores = WeixinUserScore.objects.filter(user_openid=user_openid)
         if user_scores.count() > 0:
             score = user_scores[0].user_score
+
+        passed = False
+        if score >= 12:
+            user_papers = WeixinUserPaper.objects.filter(user_openid=user_openid,status=WeixinUserPaper.FINISHED)
+            if user_papers.count() > 0:
+                passed = True
             
         response = render_to_response('weixin/invite_result.html',
                                       {'has_order':has_order, 'order_status':order_status, 
                                        'vipcode':vipcode, 'usage_count':usage_count, 
-                                       'score':score, 'pk':pk ,'sample_choose':sample_choose},
+                                       'score':score, 'pk':pk ,'sample_choose':sample_choose,
+                                       'passed':passed},
                                       context_instance=RequestContext(request))
         response.set_cookie("openid",user_openid)        
         return response
