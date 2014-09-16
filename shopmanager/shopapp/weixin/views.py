@@ -1152,6 +1152,7 @@ class ScoreMenuView(View):
         
         response = render_to_response('weixin/scoremenu.html', {"score":score, "pk": pk},
                                       context_instance=RequestContext(request))
+        response.set_cookie("openid",user_openid)        
         return response
 
         
