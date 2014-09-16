@@ -2,7 +2,7 @@
 
 {% block title %}
 {% if paper_finished %}
-超难！崔玉涛经典育儿问答,我击败了90%的新手妈妈！快来挑战吧！
+超难！崔玉涛经典育儿问答,我击败了{{ percentage }}%的新手妈妈！快来挑战吧！
 {% else %}
 崔玉涛-经典育儿知识问答 
 {% endif %}
@@ -13,13 +13,17 @@
 <div class="container-fluid">
 
   <div class="panel panel-default" style="margin-top:5px">
-    <div class="panel-heading" style="color:#e8792a">崔玉涛-经典育儿知识问答（系列一）</div>
+    <div class="panel-heading" style="color:orange">崔玉涛-经典育儿知识问答（系列一）</div>
     <div class="panel-body">
       <div class="row">
 	<div class="col-xs-12">
+	  <div class="thumbnail">
+	  <img src="https://mmbiz.qlogo.cn/mmbiz/yMhOQPTKhLs3fFxcBMRZsmProgXkuSPF4esicxuYzMibQhriaicJFXdntMnicPf5cfQjNNibWUF8BJRn1RLURwOUmLKw/0" alt="...">
+	  </div>
 	  {% if paper_finished %}
-	  <p style="color:#029fd6">亲，您已经完成了答题挑战，豪取{{ grade }}个积分！恭喜！</p>
+	  <p style="color:red">亲，您已经完成了答题挑战，豪取<font style="font-size:20px">{{ grade }}</font>个积分！恭喜！</p>
 	  <p style="color:#029fd6">快分享到朋友圈，让您的好友一起来挑战吧！</p>
+	  <p>记得关注【审核通知】，每晚8点准时发布，您可能就入围9月积分<font style="color:red">5折换购</font>睡袋名单啦！（所有尺寸款式均5折! my god!）</p>
 	  {% else %}
 	  {% if identical %}
 	  <p style="color:#029fd6">美丽辣妈们，您是育儿高手！您有满腹育儿经！！ 您拥有养娃带娃的百分百经验！！！</p>
