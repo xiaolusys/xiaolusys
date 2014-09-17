@@ -265,9 +265,6 @@ class OrderInfoView(View):
             
             order_id = wx_trades[0].order_id
             latest_trades = MergeTrade.objects.filter(tid=order_id).order_by('-pay_time')
-            
-
-
         
         trade = latest_trades[0]
         
