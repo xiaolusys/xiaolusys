@@ -934,7 +934,8 @@ def convert_trade_payment2score(sender,trade_id,*args,**kwargs):
         if trade_score_relev.is_used:
             return 
         
-        mobiles  = [m for m in instance.receiver_mobile.split(',') if m.strip()]
+        mobiles  = set([m.strip() for m in instance.receiver_mobile.split(',') if len(m.strip())==11 ])
+        mobiles.update([m.strip() for m in instance.receiver_phone.split(',') if len(m.strip())==11  ])
         wx_users = WeiXinUser.objects.filter(mobile__in=mobiles)
         
         if wx_users.count() > 0:
@@ -1019,7 +1020,6 @@ def decrease_sample_score(sender,refund_id,*args,**kwargs):
                                        expired_at=datetime.datetime.now(),
                                        memo=u"试用订单(%s)返现审核通过，消耗积分。"%(refund.trade_id))
         
-        
         wx_user_score.user_score  = models.F('user_score') + dec_score
         wx_user_score.save()
     
@@ -1055,7 +1055,6 @@ def decrease_refund_trade_score(sender,refund_id,*args,**kwargs):
                                        score_type=WeixinScoreItem.CONSUME,
                                        expired_at=datetime.datetime.now(),
                                        memo=u"试用订单(%s)审核通过，取消购物积分。"%(refund.trade_id))
-        
         
         wx_user_score.user_score  = models.F('user_score') + dec_score
         wx_user_score.save()
