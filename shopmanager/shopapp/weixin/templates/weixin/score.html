@@ -11,7 +11,7 @@
     <li class="list-group-item list-group-item-success">我的积分: {{ score }}分</li>
     {% for item in items %}
     {% if item.score != 0 %}
-    <li class="list-group-item">{{ item.score }}分|{{ item|displayName:'score_type' }}({{ item.memo|regexReplace:'\(\w+\)' }})</li>
+    <li class="list-group-item">{{ item.score }}分|{{ item|displayName:'score_type' }}({{ item.memo|regexReplace:'\([\w-]+\)' }})</li>
     {% endif %}
     {% endfor %}
     {% if invite_items.count > 0 %}
