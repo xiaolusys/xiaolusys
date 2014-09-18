@@ -136,7 +136,7 @@
           return;
         }
       
-        if (refund_type == "1") {
+        if (refund_type == "1" || refund_type == "2") {
           if (checkVipCode(vipcode) == false) {
             $("#id_msg")[0].innerHTML = "请检查您的VIP邀请码(6-7位数字)!"
             return;
