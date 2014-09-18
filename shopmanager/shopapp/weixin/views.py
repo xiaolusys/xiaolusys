@@ -31,7 +31,9 @@ from shopapp.weixin_examination.models import ExamUserPaper
 from shopback.trades.models import MergeTrade
 from shopback import paramconfig as pcfg
 
-from shopapp.signals import weixin_readclick_signal,weixin_verifymobile_signal
+from shopapp.signals import (weixin_readclick_signal,
+                             weixin_verifymobile_signal,
+                             weixin_refund_signal)
 
 import logging
 import json
@@ -253,7 +255,8 @@ class OrderInfoView(View):
             
         status = [pcfg.WAIT_SELLER_SEND_GOODS,pcfg.WAIT_BUYER_CONFIRM_GOODS, pcfg.TRADE_FINISHED]
         latest_trades = MergeTrade.objects.filter(receiver_mobile=wx_user.mobile)\
-                .filter(status__in=status).exclude(type=pcfg.FENXIAO_TYPE).order_by('-pay_time')
+                .filter(status__in=status).exclude(sys_status=pcfg.ON_THE_FLY_STATUS)\
+                .exclude(type=pcfg.FENXIAO_TYPE).order_by('-pay_time')
         
         if latest_trades.count() == 0:
             wx_trades = WXOrder.objects.filter(buyer_openid=user_openid).order_by('-order_create_time') 
@@ -561,7 +564,9 @@ class RefundReviewView(View):
                 return HttpResponse(json.dumps(response),mimetype='application/json')
 
             Refund.objects.filter(pk=refund_id).update(pay_note=pay_note,refund_status=action)
-
+            
+            
+            
         if refund_status == 0:
             pay_type = int(content.get("pay_type"))
             pay_amount = int(float(content.get("pay_amount"))*100)
@@ -576,6 +581,8 @@ class RefundReviewView(View):
             refunds.update(pay_type=pay_type,pay_amount=pay_amount,review_note=review_note,refund_status=action)
             
             mergetrades = MergeTrade.objects.filter(id=refunds[0].trade_id)
+        
+        weixin_refund_signal.send(sender=Refund,refund_id=refund_id)
         
         refunds = Refund.objects.filter(pk__gt=refund_id).filter(refund_status=refund_status).order_by('pk')[0:1]
         next_trade,next_refund,sample_order = None,None,None
@@ -592,6 +599,7 @@ class RefundReviewView(View):
                     orders = SampleOrder.objects.filter(user_openid=openid).filter(status__gt=10).filter(status__lt=22)
                     if orders.count() > 0:
                         sample_order = orders[0]
+                        
 
         html = 'weixin/refundreviewblock.html'
         if refund_status == 1:
