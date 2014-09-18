@@ -31,7 +31,9 @@ from shopapp.weixin_examination.models import ExamUserPaper
 from shopback.trades.models import MergeTrade
 from shopback import paramconfig as pcfg
 
-from shopapp.signals import weixin_readclick_signal,weixin_verifymobile_signal
+from shopapp.signals import (weixin_readclick_signal,
+                             weixin_verifymobile_signal,
+                             weixin_refund_signal)
 
 import logging
 import json
