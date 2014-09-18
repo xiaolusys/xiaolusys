@@ -172,7 +172,7 @@ def convert_examgrade2score(sender,active_id,*args,**kwargs):
                 WeixinScoreItem.objects.create(user_openid=from_openid,
                                                score=invite_score,
                                                score_type=WeixinScoreItem.ACTIVE,
-                                               expired_at=datetime.datetime.now(),
+                                               expired_at=datetime.datetime.now()+datetime.timedelta(days=365),
                                                memo=u"邀请好友(%s)答题积分。"%(user_openid))
                 
                 wx_user_score.user_score  = models.F('user_score') + invite_score
@@ -212,7 +212,7 @@ def convert_inviteship2score(sender,user_openid,*args,**kwargs):
                 WeixinScoreItem.objects.create(user_openid=from_openid,
                                                score=invite_score,
                                                score_type=WeixinScoreItem.ACTIVE,
-                                               expired_at=datetime.datetime.now(),
+                                               expired_at=datetime.datetime.now()+datetime.timedelta(days=365),
                                                memo=u"邀请好友(%s)积分。"%(user_openid))
                 
                 wx_user_score.user_score  = models.F('user_score') + invite_score
