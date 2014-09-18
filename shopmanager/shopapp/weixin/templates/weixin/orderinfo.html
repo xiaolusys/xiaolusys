@@ -106,20 +106,20 @@
 
 <script type="text/javascript">
   function refundSelection(obj) {
-    if (obj.value == "1") {
-    var vipcode = $("#id_vip_code");
-            if (vipcode.css("display") == "none") {
-              vipcode.css("display","block");
-            }
-         } 
-         if (obj.value == "0") {
-            var vipcode = $("#id_vip_code");
-            if (vipcode.css("display") != "none") {
-              $("#id_code").val("");
-              vipcode.css("display","none");
-            }
-         }
-      };
+    if (obj.value == "1" || obj.value == "2") {
+      var vipcode = $("#id_vip_code");
+      if (vipcode.css("display") == "none") {
+        vipcode.css("display","block");
+      }
+    } 
+    if (obj.value == "0") {
+      var vipcode = $("#id_vip_code");
+      if (vipcode.css("display") != "none") {
+        $("#id_code").val("");
+        vipcode.css("display","none");
+       }
+    }
+  };
 
       function checkVipCode(code) {
         var reg = /^\d{6,7}$/;
@@ -136,7 +136,7 @@
           return;
         }
       
-        if (refund_type == "1") {
+        if (refund_type == "1" || refund_type == "2") {
           if (checkVipCode(vipcode) == false) {
             $("#id_msg")[0].innerHTML = "请检查您的VIP邀请码(6-7位数字)!"
             return;

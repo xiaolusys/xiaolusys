@@ -18,7 +18,11 @@
 <div id="id_vip_code" class="row" style="margin-top:5px;display:none">
   <div class="col-xs-12">
     <input id="id_trade_id" type="hidden" value="{{ tradedata.tradeid }}"/>{% csrf_token %}
+    {% if passed %}
     <input id="id_code" class="form-control" type="text" placeholder="您的专属VIP邀请码"/>
+    {% else %}
+    <input id="id_code" type="hidden" class="form-control" type="text" value="111111" placeholder="您的专属VIP邀请码"/>
+    {% endif %}
     <input id="id_bank_account" class="form-control" type="text" placeholder="您的支付宝帐号"/>
     <input id="id_account_owner" class="form-control" type="text" placeholder="支付宝对应姓名"/>
   </div>
