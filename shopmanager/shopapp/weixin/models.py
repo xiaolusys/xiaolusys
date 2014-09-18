@@ -1014,12 +1014,12 @@ def decrease_sample_score(sender,refund_id,*args,**kwargs):
         wx_user_score,state = WeixinUserScore.objects.get_or_create(
                                         user_openid=refund.user_openid)
         
-        dec_score = 0 - min(refund_score,wx_user_score.user_score)
+        dec_score = 0 - min(sample_score,wx_user_score.user_score)
         WeixinScoreItem.objects.create(user_openid=refund.user_openid,
                                        score=dec_score,
                                        score_type=WeixinScoreItem.AWARD,
                                        expired_at=datetime.datetime.now(),
-                                       memo=u"试用订单(%s)返现审核通过，消耗积分。"%(refund.trade_id))
+                                       memo=u"试用订单(%s)返现审核通过扣除积分。"%(refund.trade_id))
         
         wx_user_score.user_score  = models.F('user_score') + dec_score
         wx_user_score.save()
