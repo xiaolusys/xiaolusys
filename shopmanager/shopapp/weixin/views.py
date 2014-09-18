@@ -265,9 +265,6 @@ class OrderInfoView(View):
             
             order_id = wx_trades[0].order_id
             latest_trades = MergeTrade.objects.filter(tid=order_id).order_by('-pay_time')
-            
-
-
         
         trade = latest_trades[0]
         
@@ -1106,7 +1103,7 @@ class ScoreView(View):
         if user_scores.count() > 0:
             score = user_scores[0].user_score
 
-        items = WeixinScoreItem.objects.filter(user_openid=wx_user.openid).exclude(score_type=WeixinScoreItem.INVITE)
+        items = WeixinScoreItem.objects.filter(user_openid=wx_user.openid).exclude(score_type=WeixinScoreItem.INVITE).order_by('-created')
         invite_items =  WeixinScoreItem.objects.filter(user_openid=wx_user.openid,score_type=WeixinScoreItem.INVITE)
 
         response = render_to_response('weixin/score.html', 

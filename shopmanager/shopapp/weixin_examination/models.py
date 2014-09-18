@@ -64,7 +64,6 @@ class ExamUserPaper(models.Model):
     paper_id    = models.CharField(max_length=100,blank=True,verbose_name=u'卷')
     
     answer_num  = models.IntegerField(default=0,verbose_name=u'答题数')
-    
     grade       = models.IntegerField(default=0,verbose_name=u'考试得分')
     
     modified   = models.DateTimeField(auto_now=True,blank=True,null=True,verbose_name=u'修改时间')
@@ -154,30 +153,30 @@ def convert_examgrade2score(sender,active_id,*args,**kwargs):
         invite_ships = Invitationship.objects.filter(invite_openid=user_openid).order_by('-created')
         if invite_ships.count() > 0:
             
-            invitor_openid = invite_ships[0].from_openid 
-            invitor_user   = WeiXinUser.objects.get(openid=invitor_openid)
-            
-            wx_user = WeiXinUser.objects.get(openid=user_openid)
-            subscribe_time  = wx_user.subscribe_time
-            new_subscribe   = not (subscribe_time and subscribe_time < datetime.datetime(2014,9,15))
-            is_invited      = wx_user.isvalid and not wx_user.referal_from_openid
-            
-            if is_invited:
-                wx_user.referal_from_openid = invitor_openid
-                wx_user.save()
+            from_openid = invite_ships[0].from_openid 
+            if from_openid != exam_user_paper.user_openid:
+
+                wx_user = WeiXinUser.objects.get(openid=user_openid)
+                subscribe_time  = wx_user.subscribe_time
+                new_subscribe   = not (subscribe_time and subscribe_time < datetime.datetime(2014,9,15))
+                is_invited      = wx_user.isvalid and not wx_user.referal_from_openid
                 
-            invite_score = new_subscribe and (is_invited and 12 or 2) or 1
-            wx_user_score,state = WeixinUserScore.objects.get_or_create(
-                                        user_openid=invitor_openid)
-        
-            WeixinScoreItem.objects.create(user_openid=invitor_openid,
-                                           score=invite_score,
-                                           score_type=WeixinScoreItem.ACTIVE,
-                                           expired_at=datetime.datetime.now(),
-                                           memo=u"邀请好友(%s)答题积分。"%(user_openid))
+                if is_invited:
+                    wx_user.referal_from_openid = from_openid
+                    wx_user.save()
+                    
+                invite_score = new_subscribe and (is_invited and 12 or 2) or 1
+                wx_user_score,state = WeixinUserScore.objects.get_or_create(
+                                            user_openid=from_openid)
             
-            wx_user_score.user_score  = models.F('user_score') + invite_score
-            wx_user_score.save()
+                WeixinScoreItem.objects.create(user_openid=from_openid,
+                                               score=invite_score,
+                                               score_type=WeixinScoreItem.ACTIVE,
+                                               expired_at=datetime.datetime.now(),
+                                               memo=u"邀请好友(%s)答题积分。"%(user_openid))
+                
+                wx_user_score.user_score  = models.F('user_score') + invite_score
+                wx_user_score.save()
         
     except Exception,exc:
         transaction.rollback()
@@ -200,23 +199,24 @@ def convert_inviteship2score(sender,user_openid,*args,**kwargs):
         invite_ships = Invitationship.objects.filter(invite_openid=user_openid).order_by('-created')
         if not wx_user.referal_from_openid and invite_ships.count() > 0:
             
-            invitor_openid = invite_ships[0].from_openid 
-            invite_score   = 10
+            from_openid = invite_ships[0].from_openid 
+            if from_openid != user_openid:
+                invite_score   = 10
+                
+                wx_user.referal_from_openid = from_openid
+                wx_user.save()
+                
+                wx_user_score,state = WeixinUserScore.objects.get_or_create(
+                                            user_openid=from_openid)
             
-            wx_user.referal_from_openid = invitor_openid
-            wx_user.save()
-            
-            wx_user_score,state = WeixinUserScore.objects.get_or_create(
-                                        user_openid=invitor_openid)
-        
-            WeixinScoreItem.objects.create(user_openid=invitor_openid,
-                                           score=invite_score,
-                                           score_type=WeixinScoreItem.INVITE,
-                                           expired_at=datetime.datetime.now(),
-                                           memo=u"邀请好友(%s)积分。"%(invitor_openid))
-            
-            wx_user_score.user_score  = models.F('user_score') + invite_score
-            wx_user_score.save()
+                WeixinScoreItem.objects.create(user_openid=from_openid,
+                                               score=invite_score,
+                                               score_type=WeixinScoreItem.ACTIVE,
+                                               expired_at=datetime.datetime.now(),
+                                               memo=u"邀请好友(%s)积分。"%(user_openid))
+                
+                wx_user_score.user_score  = models.F('user_score') + invite_score
+                wx_user_score.save()
         
     except Exception,exc:
         transaction.rollback()
