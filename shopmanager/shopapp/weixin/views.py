@@ -637,7 +637,7 @@ class RefundRecordView(View):
                 if refund.refund_type == 2:
                     scorebuys = WeixinScoreBuy.objects.filter(user_openid=openid)
                     if scorebuys.count() > 0:
-                        score_buy = score_buys[0]
+                        score_buy = scorebuys[0]
 
         html = 'weixin/refundreviewblock.html'
         if refund_status == 1:
