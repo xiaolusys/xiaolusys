@@ -289,6 +289,10 @@ class OrderInfoView(View):
         data["receiver_mobile"] = trade.receiver_mobile
         data["address"] = ','.join([trade.receiver_state, trade.receiver_city, trade.receiver_district, trade.receiver_address])
         
+        # only for order paid after 2014-9-15
+        if trade.pay_time < datetime.datetime(2014,9,15):
+            has_specific_product = False
+            
         from shopback.logistics import getLogisticTrace
         shipping_traces = []
         try:
@@ -513,11 +517,11 @@ class RefundSubmitView(View):
         vipcode = content.get("vipcode")
         bank_account = content.get("bank_account")
         account_owner = content.get("account_owner")
-
+        
         user_openid = request.COOKIES.get('openid')
         mergetrades = MergeTrade.objects.filter(id=int(tradeid))
         mobile = mergetrades[0].receiver_mobile
-
+        
         review_note = '|'.join([bank_account, account_owner])
         
         obj = Refund.objects.filter(trade_id=tradeid)
@@ -558,11 +562,11 @@ class RefundReviewView(View):
         if refund_status == 1:
             pay_note = content.get("pay_note")            
             action = int(content.get("action"))            
-
+            
             if not action in (2,3):
                 response = {"code":"bad", "message":"wrong action"}
                 return HttpResponse(json.dumps(response),mimetype='application/json')
-
+            
             Refund.objects.filter(pk=refund_id).update(pay_note=pay_note,refund_status=action)
             
             
@@ -616,7 +620,7 @@ class RefundRecordView(View):
         refund_status = int(content.get("refund_status"))
         
         refund = Refund.objects.get(pk=refund_id)
-        trade,sample_order = None,None
+        trade,sample_order,score_buy = None,None,None
         
         refund.pay_amount = refund.pay_amount * 0.01
         mergetrades = MergeTrade.objects.filter(id=refund.trade_id)
@@ -626,15 +630,20 @@ class RefundRecordView(View):
             wx_users = WeiXinUser.objects.filter(mobile=mobile)
             if wx_users.count() > 0:
                 openid = wx_users[0].openid
-                orders = SampleOrder.objects.filter(user_openid=openid).filter(status__gt=10).filter(status__lt=22)
-                if orders.count() > 0:
-                    sample_order = orders[0]
+                if refund.refund_type == 1:
+                    orders = SampleOrder.objects.filter(user_openid=openid).filter(status__gt=10).filter(status__lt=22)
+                    if orders.count() > 0:
+                        sample_order = orders[0]
+                if refund.refund_type == 2:
+                    scorebuys = WeixinScoreBuy.objects.filter(user_openid=openid)
+                    if scorebuys.count() > 0:
+                        score_buy = scorebuys[0]
 
         html = 'weixin/refundreviewblock.html'
         if refund_status == 1:
             html = 'weixin/finalizeblock.html'    
         response = render_to_response(html, {"first_refund":refund, "first_trade": trade,
-                                             "sample_order":sample_order},
+                                             "sample_order":sample_order, "score_buy":score_buy},
                                       context_instance=RequestContext(request))
         return response
         
