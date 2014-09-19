@@ -40,6 +40,21 @@
 </table>
 {% endif %}
 
+{% if score_buy %}
+<table class="table table-bordered">
+  <thead>
+    <th>微信ID</th><th>换购积分</th><th>入围批次</th>
+  </thead>
+  <tbody>
+    <tr>
+      <td>{{ score_buy.user_openid }}</td>
+      <td>{{ score_buy.buy_score }}</td>
+      <td>{{ score_buy.batch }}</td>
+    </tr>
+  </tbody>
+</table>
+{% endif %}
+
 <table id="table-review" class="table table-bordered">
   <thead>
     <th>返利状态</th><th>申请时间</th><th>返利方式</th><th>返利金额</th><th>审核备注</th><th>返现备注</th><th>审核</th>
