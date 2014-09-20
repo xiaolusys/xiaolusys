@@ -276,10 +276,13 @@ class OrderInfoView(View):
         data["platform"] = trade.user
         data["paytime"] = trade.pay_time
         has_specific_product = False
+        specific_order_finished = False
         orders = []
         for order in trade.merge_orders.filter(sys_status=pcfg.IN_EFFECT):
             s = order.getImgSimpleNameAndPrice()
             if order.outer_id == '3116BG7':
+                if order.status==pcfg.TRADE_FINISHED:
+                    specific_order_finished = True
                 has_specific_product = True
             orders.append(s)
         data["orders"] = orders
@@ -320,7 +323,8 @@ class OrderInfoView(View):
         
         response = render_to_response('weixin/orderinfo.html', 
                                       {'tradedata':data, "traces":shipping_traces, "score_passed":score_passed,
-                                       "refund": refund, "passed":passed, "openid":user_openid },
+                                       "specific_order_finished":specific_order_finished,"refund": refund, 
+                                       "passed":passed, "openid":user_openid },
                                       context_instance=RequestContext(request))
         response.set_cookie("openid",user_openid)
         return response
