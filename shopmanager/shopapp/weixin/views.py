@@ -762,8 +762,8 @@ class SampleApplyView(View):
             wx_user = users[0]
 
         if (not wx_user) or (wx_user.isValid() == False):
-	  redirect_url = "https://open.weixin.qq.com/connect/oauth2/authorize?appid=wxc2848fa1e1aa94b5&redirect_uri=http://weixin.huyi.so/weixin/babyinfo/&response_type=code&scope=snsapi_base&state=135#wechat_redirect"
-          return redirect(redirect_url)
+            redirect_url = "https://open.weixin.qq.com/connect/oauth2/authorize?appid=wxc2848fa1e1aa94b5&redirect_uri=http://weixin.huyi.so/weixin/babyinfo/&response_type=code&scope=snsapi_base&state=135#wechat_redirect"
+            return redirect(redirect_url)
 
         response = render_to_response('weixin/sampleapply.html',
                                       {"sample":sample, "sku":sku, "wx_user": wx_user, 
