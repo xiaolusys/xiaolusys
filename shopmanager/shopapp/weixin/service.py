@@ -368,7 +368,6 @@ class WeixinUserService():
             raise MessageException(u'你还没有绑定手机哦!\n请输入手机号:')
         
         if eventKey == "Q":
-            
             self._wx_user.isvalid = False
             self._wx_user.save()
             raise MessageException(u'您的手机已取消绑定 \n重新绑定请输入数字[0]:')
@@ -394,6 +393,10 @@ class WeixinUserService():
             
         elif eventType == WeiXinAutoResponse.WX_EVENT_UNSUBSCRIBE:
             self._wx_user.unSubscribe()
+            
+        elif eventType == WeiXinAutoResponse.WX_EVENT_PIC_ALBUM:
+            pass
+            
             
         return self.getResponseByBestMatch(eventKey,openId)
     

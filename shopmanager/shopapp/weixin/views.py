@@ -255,7 +255,7 @@ class OrderInfoView(View):
             
         status = [pcfg.WAIT_SELLER_SEND_GOODS,pcfg.WAIT_BUYER_CONFIRM_GOODS, pcfg.TRADE_FINISHED]
         latest_trades = MergeTrade.objects.filter(receiver_mobile=wx_user.mobile)\
-                .filter(status__in=status).exclude(sys_status=pcfg.ON_THE_FLY_STATUS)\
+                .filter(status__in=status,is_express_print=True)\
                 .exclude(type=pcfg.FENXIAO_TYPE).order_by('-pay_time')
         
         if latest_trades.count() == 0:
