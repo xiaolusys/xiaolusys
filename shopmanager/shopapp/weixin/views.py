@@ -255,7 +255,7 @@ class OrderInfoView(View):
             
         status = [pcfg.WAIT_SELLER_SEND_GOODS,pcfg.WAIT_BUYER_CONFIRM_GOODS, pcfg.TRADE_FINISHED]
         latest_trades = MergeTrade.objects.filter(receiver_mobile=wx_user.mobile)\
-                .filter(status__in=status).exclude(sys_status=pcfg.ON_THE_FLY_STATUS)\
+                .filter(status__in=status,is_express_print=True)\
                 .exclude(type=pcfg.FENXIAO_TYPE).order_by('-pay_time')
         
         if latest_trades.count() == 0:
@@ -562,12 +562,13 @@ class RefundReviewView(View):
 
         refund_status = int(content.get("refund_status"))
         refund_id = int(content.get("refund_id"))
-
+        
+        refund    = Refund.objects.get(pk=refund_id)
         if refund_status == 1:
             pay_note = content.get("pay_note")            
             action = int(content.get("action"))            
             
-            if not action in (2,3):
+            if not action in (2,3) or refund.refund_status in (2,3):
                 response = {"code":"bad", "message":"wrong action"}
                 return HttpResponse(json.dumps(response),mimetype='application/json')
             
@@ -581,7 +582,7 @@ class RefundReviewView(View):
             review_note = content.get("review_note",)
             action = int(content.get("action"))
 
-            if not action in (1,2):
+            if not action in (1,2) or refund.refund_status in (1,2):
                 response = {"code":"bad", "message":"wrong action"}
                 return HttpResponse(json.dumps(response),mimetype='application/json')
 
