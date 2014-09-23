@@ -281,7 +281,7 @@ class OrderInfoView(View):
         for order in trade.merge_orders.filter(sys_status=pcfg.IN_EFFECT):
             s = order.getImgSimpleNameAndPrice()
             if order.outer_id == '3116BG7':
-                if order.status==pcfg.TRADE_FINISHED:
+                if trade.status == pcfg.TRADE_FINISHED:
                     specific_order_finished = True
                 has_specific_product = True
             orders.append(s)
