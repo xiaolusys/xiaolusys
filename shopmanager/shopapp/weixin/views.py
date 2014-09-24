@@ -306,7 +306,8 @@ class OrderInfoView(View):
         score_passed = False
         if has_specific_product:
             score_buys = WeixinScoreBuy.objects.filter(user_openid=user_openid)
-            if score_buys.count() > 0:
+            refund_records = Refund.objects.filter(user_openid=user_openid,refund_type=2)
+            if score_buys.count() > 0 and refund_records.count() < 1:
                 score_passed = True
         
         refund = None
@@ -695,7 +696,10 @@ class FreeSampleView(View):
         if wx_user:
             pk = wx_user.pk
             
-        response = render_to_response('weixin/freesamples.html', 
+        html = 'weixin/freesamples.html'
+        if user_openid == 'oMt59uE55lLOV2KS6vYZ_d0dOl5c':
+            html = 'weixin/freesamples1.html'
+        response = render_to_response(html, 
                                       {"samples":samples, 
                                        "user_isvalid":user_isvalid, 
                                        "order_exists":order_exists, 
