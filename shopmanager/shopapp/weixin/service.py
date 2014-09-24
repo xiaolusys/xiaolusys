@@ -409,14 +409,18 @@ class WeixinUserService():
     
     def handleSaleAction(self,user_id,pictures):   
         
-        if int(pictures['Count']) > 4:
+        pic_count = int(pictures['Count'])
+        if pic_count < 1:
+            return self.genTextRespJson(u'请上传至少一张图片')
+        
+        if pic_count > 4:
             return self.genTextRespJson(u'请不要上传超过三张图片')
         
         from shopapp.weixin_sales.service import WeixinSaleService
         
         logger.error('%s'%pictures)
         
-        return self.genTextRespJson(u'')
+        return self.genTextRespJson(u'[愉快]图片上传成功')
     
         
     def handleRequest(self,params):
@@ -449,7 +453,8 @@ class WeixinUserService():
                                     u'你的地理位置（%s,%s）.'%
                                     (params['Latitude'],params['Longitude'])))
                     
-                elif eventType in (WeiXinAutoResponse.WX_EVENT_PIC_ALBUM,
+                elif eventType in (WeiXinAutoResponse.WX_EVENT_PIC_SYSPHOTO,
+                                   WeiXinAutoResponse.WX_EVENT_PIC_ALBUM,
                                    WeiXinAutoResponse.WX_EVENT_PIC_WEIXIN):
                     ret_params.update(self.handleSaleAction(openId,
                                                             params['SendPicsInfo']))
