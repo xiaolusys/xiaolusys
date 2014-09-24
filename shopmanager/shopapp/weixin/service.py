@@ -24,7 +24,7 @@ from shopback.users.models import User
 from shopback.trades.handlers import trade_handler
 from shopback.trades.models import MergeTrade,MergeOrder
 from shopback import paramconfig as pcfg
-from common.utils import parse_datetime,format_datetime,replace_utf8mb4,update_model_fields
+from common.utils import parse_datetime,format_datetime,replace_utf8mb4,update_model_fields,xml2dict
 from shopapp.signals import weixin_verifymobile_signal
 import logging
 
@@ -57,8 +57,8 @@ def parseXMLElement(sub_elem):
     
 def parseXML2Param(xmlc):
     
-    sdict    = xmltodict.parse(xmlc)
-    djson    = json.dumps(sdict)
+    sdict    = xml2dict.parse(xmlc)
+    djson    = json.loads(json.dumps(sdict))
     xml_json = djson.get('xml',{})
     
     if xml_json.has_key('CreateTime'):
