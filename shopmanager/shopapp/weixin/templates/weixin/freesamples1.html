@@ -7,8 +7,6 @@
 
 <div class="container-fluid">
 
-{% for sample in samples %}
-
   <div class="panel panel-default" style="margin-top:5px">
   <div class="panel-heading" style="color:orange">十月大礼：随意购买 免费寄到家！</div>
   <div class="panel-body">
@@ -18,7 +16,7 @@
       <div class="row">
 	<div class="col-xs-12" style="text-align:center">
 	  <a href="{{ sample.sale_url }}" class="thumbnail">
-	    <img src="{{ sample.pic_url }}" alt="...">
+	    <img src="https://mmbiz.qlogo.cn/mmbiz/yMhOQPTKhLv3GC9Flq6Q7vwglrNkxIPZLIyYlUibDQ0R7qK4wMYlNkibm132jqZHj6icOFIvbIN1ZiaD0YzbXhgH6w/0" alt="...">
 	  </a>
 
 	  {% if today_orders > 1000 %}
@@ -42,37 +40,31 @@
       </div>
       
       <div class="row" style="text-align:center">
-	<p id="id_msg" style="text-align:center;color:red"></p>
-	{% if not user_isvalid %}
-	<p style="color:red">亲，申请需完善宝宝档案哦！<a href='https://open.weixin.qq.com/connect/oauth2/authorize?appid=wxc2848fa1e1aa94b5&redirect_uri=http://weixin.huyi.so/weixin/babyinfo/&response_type=code&scope=snsapi_base&state=135#wechat_redirect'>点击完善 >></a></p>
-	{% endif %}
+	<div class="col-xs-12" style="text-align:center; margin-top:10px">
 	{% if order_exists %}
 	<a href="/weixin/sampleads/{{ pk }}/">您的试用申请已经提交！查看 >></a>
 	{% else %}
-	<p id="id_redirect" style="text-align:center;color:red;"></p>
-	<div class="col-xs-12" style="text-align:center; margin-top:10px">
-	{% if started %}
-	  <input type="submit" class="btn btn-warning" value="提交试用申请"/>
-        {% else %} 
-	  <button type="button" class="btn btn-warning" disabled="disabled">申请待开放...</button>
-        {% endif %}
-	</div>
+	{% if openid %}
+	<input type="submit" class="btn btn-warning" value="提交试用申请"/>
+	{% else %}
+	<a href="https://open.weixin.qq.com/connect/oauth2/authorize?appid=wxc2848fa1e1aa94b5&redirect_uri=http://weixin.huyi.so/weixin/freesamples/&response_type=code&scope=snsapi_base&state=135#wechat_redirect" class="btn btn-warning">提交试用申请</a>
 	{% endif %}
+	{% endif %}
+	</div>
       </div>
     </form>      
     
   </div>
 </div>
-{% endfor %}
+
 
 
 <div class="row">
   <div class="col-xs-12">
     <h5 style="color:#3071a9">申请须知</h5>
-    <p>1) 申请试用前，请到微信菜单【我的】->【宝宝档案】完善信息，以便我们审核申请和邮寄产品给宝宝。</p>
-    <p style="color:orange">2) 申请之后，您会得到一个带VIP邀请码的专属页面，分享到您的朋友圈，会大大提高您的选中几率！</p>
-    <p>3) 若您有过购买记录、晒单记录、好评记录、或邀请好友记录，系统会优先审核您的申请。</p>
-    <p>4) 审核结果将在【活动中心】->【审核通知】页面显示，请每天查阅。若审核通过，会有<font style="color:red">红色醒目提示</font>！</p>
+    <p style="color:orange">1) 申请之后，您会得到一个带VIP邀请码的专属页面，分享到您的朋友圈，会大大提高您的选中几率！</p>
+    <p>2) 若您有过购买记录、晒单记录、好评记录、或邀请好友记录，系统会优先审核您的申请。</p>
+    <p>3) 审核结果将在【活动中心】->【审核通知】页面显示，请每天查阅。若审核通过，会有<font style="color:red">红色醒目提示</font>！</p>
   </div>
 </div>
 
@@ -81,7 +73,7 @@
     <h5 style="color:#3071a9">常见问题</h5>
     <p>1) VIP邀请码在哪里? <font style="color:red">在您看到的微信帖子里面, 请阅读寻找！也可向申请过的朋友索要VIP邀请码。</font></p>
     <p>2) 我收不到手机验证码? <font style="color:red">微信中输入0，根据提示操作。若一份钟没收到短信验证码，可以重复。</font></p>
-    <p>3) 哪些人无需邀请码申请？<font style="color:red">在8月15日之前关注优尼世界的微信粉丝，或者曾经提交过试用申请的粉丝，都无需输入VIP邀请码！</font></p>
+    <p>3) 哪些人无需邀请码申请？<font style="color:red">在9月30日之前关注优尼世界的微信粉丝，或者曾经提交过试用申请的粉丝，都无需输入VIP邀请码！</font></p>
   </div>
 </div>
 
@@ -101,11 +93,6 @@
   };
 
   function check() {
-    {% if not user_isvalid %}
-    var redirect = $("#id_redirect");
-    redirect[0].innerHTML = "亲，完善宝宝档案及验证手机号码，才能提交申请哦。<a href='https://open.weixin.qq.com/connect/oauth2/authorize?appid=wxc2848fa1e1aa94b5&redirect_uri=http://weixin.huyi.so/weixin/babyinfo/&response_type=code&scope=snsapi_base&state=135#wechat_redirect'>点击完善 >></a>";
-    return false;
-    {% else %}
     var color = $("#id_color").val();
     var size = $("#id_size").val();
     var weight = $("#id_weight").val();
@@ -122,7 +109,6 @@
       msg[0].innerHTML = "请检查您的VIP邀请码(6-7位数字)!";
       return false;
     }
-    {% endif %}
   };
 </script>
 {% endblock %}
