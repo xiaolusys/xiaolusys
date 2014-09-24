@@ -3,6 +3,7 @@ import re
 import random
 import time
 import datetime
+import json
 from lxml import etree
 from xml.dom import minidom 
 from django.core.cache import cache
@@ -23,7 +24,7 @@ from shopback.users.models import User
 from shopback.trades.handlers import trade_handler
 from shopback.trades.models import MergeTrade,MergeOrder
 from shopback import paramconfig as pcfg
-from common.utils import parse_datetime,format_datetime,replace_utf8mb4,update_model_fields
+from common.utils import parse_datetime,format_datetime,replace_utf8mb4,update_model_fields,xml2dict
 from shopapp.signals import weixin_verifymobile_signal
 import logging
 
@@ -56,14 +57,15 @@ def parseXMLElement(sub_elem):
     
 def parseXML2Param(xmlc):
     
-    doc     = etree.fromstring(xmlc)
-    root_elem = doc.xpath('/xml')[0]
-    xmld   = {}
+    sdict    = xml2dict.parse(xmlc)
+    djson    = json.loads(json.dumps(sdict))
+    xml_json = djson.get('xml',{})
     
-    for sub_elem in root_elem.iterchildren():
-        xmld.update(parseXMLElement(sub_elem))
+    if xml_json.has_key('CreateTime'):
+        xml_json['CreateTime'] = datetime.datetime.fromtimestamp(
+                                    int(xml_json['CreateTime']))
     
-    return xmld
+    return xml_json
 
 def buildDomByJson(parentDom,djson,arrayTag='',rootTag=''):
     
@@ -368,7 +370,6 @@ class WeixinUserService():
             raise MessageException(u'你还没有绑定手机哦!\n请输入手机号:')
         
         if eventKey == "Q":
-            
             self._wx_user.isvalid = False
             self._wx_user.save()
             raise MessageException(u'您的手机已取消绑定 \n重新绑定请输入数字[0]:')
@@ -404,6 +405,19 @@ class WeixinUserService():
         TradeService.createTrade(user_id,order_id,pcfg.WX_TYPE)
         
         return self.genTextRespJson(u'您的订单(%s)优尼世界已收到,我们会尽快将宝贝寄给您。[玫瑰]'%order_id)
+    
+    
+    def handleSaleAction(self,user_id,pictures):   
+        
+        if pictures['Count'] < 4:
+            return self.genTextRespJson(u'请不要上传超过三张图片')
+        
+        from shopapp.weixin_sales.service import WeixinSaleService
+        
+        logger.error('%s'%pictures)
+        
+        return self.genTextRespJson(u'')
+    
         
     def handleRequest(self,params):
         
@@ -434,6 +448,11 @@ class WeixinUserService():
                     ret_params.update(self.genTextRespJson(
                                     u'你的地理位置（%s,%s）.'%
                                     (params['Latitude'],params['Longitude'])))
+                    
+                elif eventType == WeiXinAutoResponse.WX_EVENT_PIC_ALBUM:
+                    ret_params.update(self.handleSaleAction(openId,
+                                                            params['SendPicsInfo']))
+                    
                 else:
                     ret_params.update(self.handleEvent(params['EventKey'].upper(), 
                                                        openId,eventType=params['Event']))

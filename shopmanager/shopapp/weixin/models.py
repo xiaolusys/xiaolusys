@@ -254,6 +254,9 @@ class WeiXinAutoResponse(models.Model):
     WX_EVENT_CLICK       = 'CLICK'
     WX_EVENT_VIEW        = 'VIEW'
     WX_EVENT_ORDER       = 'merchant_order'
+    WX_EVENT_SCAN_WAITMSG = 'scancode_waitmsg'
+    WX_EVENT_PIC_ALBUM    = 'pic_photo_or_album'
+    WX_EVENT_LOCATION_SELECT = 'location_select'
     
     WX_TYPE  = (
         (WX_TEXT ,u'文本'),

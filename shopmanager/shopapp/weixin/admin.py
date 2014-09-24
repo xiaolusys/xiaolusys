@@ -226,7 +226,7 @@ class RefundAdmin(admin.ModelAdmin):
                     'review_note','pay_note','created','refund_status')
     
     list_filter = ('refund_type','refund_status','pay_type')
-    search_fields = ['trade_id','vip_code','user_openid','mobile','review_note']
+    search_fields = ['trade_id','vip_code','user_openid','mobile','review_note','pay_note']
     
 admin.site.register(Refund, RefundAdmin) 
 

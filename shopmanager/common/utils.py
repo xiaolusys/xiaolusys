@@ -14,6 +14,7 @@ import cStringIO
 
 from taskutils  import single_instance_task
 from modelutils import update_model_fields
+from xmlutils   import xml2dict
 from csvutils   import gen_cvs_tuple,CSVUnicodeWriter
 from .customutils import (verifySignature,
                       decodeBase64String,
