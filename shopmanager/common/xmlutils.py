@@ -1,4 +1,7 @@
 #-*- encoding:utf8 -*-
+
+import xml2dict
+
 def makeEasyTag(dom, tagname, value, type='text'):
     tag = dom.createElement(tagname)
     
