@@ -45,6 +45,7 @@ class WeiXinAPI(object):
     _get_menu_uri       = "/cgi-bin/menu/get"
     _detele_menu_uri    = "/cgi-bin/menu/delete"
     _create_qrcode_uri  = "/cgi-bin/qrcode/create"
+    _media_get_uri      = "/cgi-bin/media/get"
     
     #微信小店接口
     _merchant_get_uri   = "/merchant/get"
@@ -322,3 +323,11 @@ class WeiXinAPI(object):
     def genPackageSignParams(self,package):
         
         return 
+    
+    def getMediaDownloadUrl(self,media_id):
+        
+        return '%s%s?access_token=%s&media_id=%s'%(settings.WEIXIN_MEDIA_HOST,
+                                                   self._media_get_uri,
+                                                   self.getAccessToken(),
+                                                   media_id)
+    
