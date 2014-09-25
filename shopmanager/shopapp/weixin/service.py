@@ -415,15 +415,15 @@ class WeixinUserService():
         
         if pic_count > 4:
             return self.genTextRespJson(u'请不要上传超过三张图片')
-        
-        from shopapp.weixin_sales.service import WeixinSaleService
-        
-        WeixinSaleService(self._wx_user).uploadPicture(pictures,attach_files=attach_files)
+#        
+#        from shopapp.weixin_sales.service import WeixinSaleService
+#        
+#        WeixinSaleService(self._wx_user).uploadPicture(pictures,attach_files=attach_files)
         
         return self.genTextRespJson(u'[愉快]图片上传成功')
     
         
-    def handleRequest(self,params,attach_files=[]):
+    def handleRequest(self,params):
         
         MsgId    = params.get('MsgId',None)
         if MsgId and not cache.add(MsgId, True, WX_MESSAGE_TIMEOUT):
@@ -457,8 +457,7 @@ class WeixinUserService():
                                    WeiXinAutoResponse.WX_EVENT_PIC_ALBUM,
                                    WeiXinAutoResponse.WX_EVENT_PIC_WEIXIN):
                     ret_params.update(self.handleSaleAction(openId,
-                                                            params['SendPicsInfo'],
-                                                            attach_files=attach_files))
+                                                            params['SendPicsInfo']))
                     
                 else:
                     eventKey = params['EventKey']
@@ -475,7 +474,13 @@ class WeixinUserService():
                     return ret_params
                 
             elif msgtype == WeiXinAutoResponse.WX_IMAGE:
-                matchMsg = u'图片'
+                
+                from shopapp.weixin_sales.service import WeixinSaleService
+                WeixinSaleService(self._wx_user).downloadPicture(params['MediaId'])
+                
+                ret_params.update(self.genTextRespJson(u'[愉快]图片上传成功'))
+                return ret_params
+                
             elif msgtype == WeiXinAutoResponse.WX_VOICE:
                 matchMsg = u'语音'
             elif msgtype == WeiXinAutoResponse.WX_VIDEO:

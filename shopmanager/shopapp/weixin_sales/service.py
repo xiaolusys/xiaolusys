@@ -1,8 +1,10 @@
 import os
 import time
+import urllib2
 from django.conf import settings
 
 from shopapp.weixin.models import WeiXinUser,AnonymousWeixinUser
+from shopapp.weixin.weixin_apis import WeiXinAPI
 from .models import WeixinUserPicture
 
 from common.utils import handle_uploaded_file
@@ -13,6 +15,7 @@ logger = logging.getLogger('django.request')
 class WeixinSaleService():
     
     _wx_user = None
+    _wx_api  = None
     
     def __init__(self,wx_user):
         
@@ -23,35 +26,39 @@ class WeixinSaleService():
                 wx_user = AnonymousWeixinUser()
             
         self._wx_user = wx_user
-
+        self._wx_api  = WeiXinAPI()
+    
+    def downloadPicture(self,media_id):
         
-    def uploadPicture(self,pictures,attach_files=[]):
-        """{u'Count': u'2', 
-            u'PicList': {u'item': [{u'PicMd5Sum': u'15fc32129c54e379b0a5082e7d4deff4'},
-                                   {u'PicMd5Sum': u'0c4625ecf16790550b91612c0849fcd1'}]}}"""
-        logger.error(attach_files)
-        file_names = []
-        for attach_file in attach_files:
-            
-            name = attach_file.name
-            file_name = '%s_%d%s'%(self._wx_user.openid,
-                                   int(time.time()*1000),
-                                   name[name.rfind('.'):]) 
-            
-            file_path = os.path.join(settings.MEDIA_ROOT,WEIXIN_PICTURE_PATH)
-            if not os.path.exists(file_path):
-                os.makedirs(file_path)
-            
-            handle_uploaded_file(attach_file,file_name,file_path=file_path)
-            
-            file_names.append('%s/%s'%(WEIXIN_PICTURE_PATH,file_name))
+        file_path = os.path.join(settings.MEDIA_ROOT,WEIXIN_PICTURE_PATH)
+        if not os.path.exists(file_path):
+            os.makedirs(file_path)
+        
+        media_url = self._wx_api.getMediaDownloadUrl()
+        req = urllib2.Request(media_url)
+        r   = urllib2.urlopen(req)
+        content = r.read()
+        
+        if r.info().has_key('Content-disposition'):
+            # If the response has Content-Disposition, we take file name from it
+            fileName = r.info()['Content-disposition'].split('filename=')[1]
+            if fileName[0] == '"' or fileName[0] == "'":
+                fileName = fileName[1:-1]
+        elif r.url != url:
+            # if we were redirected, the real file name we take from the final URL
+            fileName = url2name(r.url)
+        
+        with open(os.path.join(file_path,fileName), 'wb') as f:
+            f.write(content)
+        
+        relative_file_name = os.path.join(WEIXIN_PICTURE_PATH,fileName)
             
         WeixinUserPicture.objects.create(user_openid=self._wx_user.openid,
                                          mobile=self._wx_user.mobile,
-                                         pic_url=','.join(file_names),
+                                         pic_url=relative_file_name,
                                          pic_type=WeixinUserPicture.COMMENT,
-                                         pic_num=pictures['Count'])
+                                         pic_num=1)
         
         
-            
-    
+    def downloadMenuPictures(self,pictures):        
+        pass
