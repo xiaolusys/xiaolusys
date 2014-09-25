@@ -34,7 +34,7 @@ class WeixinSaleService():
         if not os.path.exists(file_path):
             os.makedirs(file_path)
         
-        media_url = self._wx_api.getMediaDownloadUrl()
+        media_url = self._wx_api.getMediaDownloadUrl(media_id)
         req = urllib2.Request(media_url)
         r   = urllib2.urlopen(req)
         content = r.read()
