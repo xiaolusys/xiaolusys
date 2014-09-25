@@ -407,7 +407,7 @@ class WeixinUserService():
         return self.genTextRespJson(u'您的订单(%s)优尼世界已收到,我们会尽快将宝贝寄给您。[玫瑰]'%order_id)
     
     
-    def handleSaleAction(self,user_id,pictures):   
+    def handleSaleAction(self,user_id,pictures,attach_files=[]):   
         
         pic_count = int(pictures['Count'])
         if pic_count < 1:
@@ -418,12 +418,12 @@ class WeixinUserService():
         
         from shopapp.weixin_sales.service import WeixinSaleService
         
-        logger.error('%s'%pictures)
+        WeixinSaleService(self._wx_user).uploadPicture(pictures,attach_files=attach_files)
         
         return self.genTextRespJson(u'[愉快]图片上传成功')
     
         
-    def handleRequest(self,params):
+    def handleRequest(self,params,attach_files=[]):
         
         MsgId    = params.get('MsgId',None)
         if MsgId and not cache.add(MsgId, True, WX_MESSAGE_TIMEOUT):
@@ -457,7 +457,8 @@ class WeixinUserService():
                                    WeiXinAutoResponse.WX_EVENT_PIC_ALBUM,
                                    WeiXinAutoResponse.WX_EVENT_PIC_WEIXIN):
                     ret_params.update(self.handleSaleAction(openId,
-                                                            params['SendPicsInfo']))
+                                                            params['SendPicsInfo'],
+                                                            attach_files=attach_files))
                     
                 else:
                     eventKey = params['EventKey']

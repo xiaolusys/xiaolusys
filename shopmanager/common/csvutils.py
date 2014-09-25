@@ -5,9 +5,9 @@ import csv, codecs, cStringIO
 from django.conf import settings
 
 
-def handle_uploaded_file(f,fname):
+def handle_uploaded_file(f,fname,file_path=settings.DOWNLOAD_ROOT):
     
-    filename = os.path.join(settings.DOWNLOAD_ROOT,fname)
+    filename = os.path.join(file_path,fname)
     with open(filename, 'wb+') as dst:
         for chunk in f.chunks():
             dst.write(chunk)

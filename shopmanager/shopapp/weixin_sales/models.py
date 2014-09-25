@@ -31,7 +31,7 @@ class WeixinUserPicture(models.Model):
     
     pic_url  = models.URLField(max_length=1024,blank=True,verbose_name=u'图片URL')
     pic_type = models.CharField(max_length=8,choices=PIC_STATUS,default=OTHER,verbose_name=u'图片类型')
-    pic_memo = models.CharField(max_length=256,blank=True,verbose_name=u'图片备注')
+    pic_num  = models.IntegerField(default=0,verbose_name=u'图片张数')
     
     upload_ended  = models.DateTimeField(blank=True,null=True,verbose_name=u'上传有效时间')
     
