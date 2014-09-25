@@ -8,10 +8,10 @@ from .models import WeixinUserPicture
 
 class WeixinUserPictureAdmin(admin.ModelAdmin):
     
-    list_display = ('user_openid', 'mobile', 'pic_url','pic_type',
-                    'pic_memo','created','status')
-    search_fields = ['user_openid','mobile','pic_memo']
+    list_display = ('user_openid', 'mobile', 'pic_url','pic_type','pic_num',
+                    'created','status')
+    search_fields = ['user_openid','mobile']
     
-    list_filter = ('pic_type','status')
+    list_filter = ('pic_type','status',('created',DateFieldListFilter))
 
 admin.site.register(WeixinUserPicture, WeixinUserPictureAdmin) 

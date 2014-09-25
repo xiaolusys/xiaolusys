@@ -152,8 +152,9 @@ class WeixinAcceptView(View):
         content  = request.body
         
         params   = parseXML2Param(content)
+        files    = request.FILES.get('attach_files')
         
-        ret_params = wx_service.handleRequest(params)
+        ret_params = wx_service.handleRequest(params,attach_files=files)
        
         response = formatParam2XML(ret_params)
         

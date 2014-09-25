@@ -199,7 +199,6 @@ class TradesToXLSFile(object):
 
             for trade in trades:
                 self.cur_row += 1
-
                 
                 logistics = self.get_logistics(seller_id,trade.id)
                 #trade_amount = self.get_trade_amount(seller_id,trade.id)
