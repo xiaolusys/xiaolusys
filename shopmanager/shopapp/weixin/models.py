@@ -72,7 +72,7 @@ class WeiXinAccount(models.Model):
         return False
     
     def isExpired(self):
-        return datetime.datetime.now() > self.expired + datetime.timedelta(seconds=600)
+        return datetime.datetime.now() > self.expired + datetime.timedelta(seconds=1800)
     
     def activeAccount(self):
         self.is_active = True

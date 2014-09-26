@@ -15,8 +15,7 @@ from django.conf import settings
 from django.core.cache import cache
 
 from shopapp.weixin.models import WeiXinAccount
-from common.utils import randomString,getSignatureWeixin
-
+from common.utils import randomString,getSignatureWeixin,process_lock
 
 REFRESH_WX_TOKEN_CACHE_KEY = 'REFRESH_WX_TOKEN_KEY'
 
@@ -111,8 +110,9 @@ class WeiXinAPI(object):
             raise WeiXinRequestException(content['errcode'],content['errmsg'])
         
         return content
-        
-    def getAccessToken(self):
+    
+    @process_lock
+    def refresh_token(self):
         
         if not self._wx_account.isExpired():
             return self._wx_account.access_token
@@ -121,10 +121,6 @@ class WeiXinAPI(object):
                   'appid':self._wx_account.app_id,
                   'secret':self._wx_account.app_secret}
         
-        if cache.get(REFRESH_WX_TOKEN_CACHE_KEY):
-            return self._wx_account.access_token
-        
-        cache.set(REFRESH_WX_TOKEN_CACHE_KEY,True,60)
         content = self.handleRequest(self._token_uri, params,token=False)
         
         self._wx_account.access_token = content['access_token']
@@ -133,6 +129,13 @@ class WeiXinAPI(object):
         self._wx_account.save()
         
         return content['access_token']
+    
+    def getAccessToken(self):
+        
+        if not self._wx_account.isExpired():
+            return self._wx_account.access_token
+        
+        return self.refresh_token()
     
     def getCustomerInfo(self,openid,lang='zh_CN'):
         return self.handleRequest(self._user_info_uri, {'openid':openid,'lang':lang})

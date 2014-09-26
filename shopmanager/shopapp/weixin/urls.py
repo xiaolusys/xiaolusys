@@ -93,6 +93,7 @@ urlpatterns = patterns('shopapp.weixin.views',
         name='weixin_valid_mobile'),
     
     (r'^examination/',include('shopapp.weixin_examination.urls')),
+    (r'^sales/',include('shopapp.weixin_sales.urls')),
     url(r'^warn/$','warn',name='weixin_warn'),
     url(r'^rights/$','rights',name='weixin_feedback'),
     url(r'^napay/$','napay',name='weixin_napay'),

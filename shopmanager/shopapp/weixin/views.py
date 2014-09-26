@@ -30,6 +30,7 @@ from .models import (WeiXinUser,
 from shopapp.weixin_examination.models import ExamUserPaper
 from shopback.trades.models import MergeTrade
 from shopback import paramconfig as pcfg
+from shopback.base import log_action, ADDITION, CHANGE
 
 from shopapp.signals import (weixin_readclick_signal,
                              weixin_verifymobile_signal,
@@ -575,8 +576,6 @@ class RefundReviewView(View):
             
             Refund.objects.filter(pk=refund_id).update(pay_note=pay_note,refund_status=action)
             
-            
-            
         if refund_status == 0:
             pay_type = int(content.get("pay_type"))
             pay_amount = int(float(content.get("pay_amount"))*100)
@@ -592,6 +591,7 @@ class RefundReviewView(View):
             
             mergetrades = MergeTrade.objects.filter(id=refunds[0].trade_id)
         
+        log_action(request.user.id,refund,CHANGE,(u'审核',u'支付')[refund_status])
         weixin_refund_signal.send(sender=Refund,refund_id=refund_id)
         
         refunds = Refund.objects.filter(pk__gt=refund_id).filter(refund_status=refund_status).order_by('pk')[0:1]

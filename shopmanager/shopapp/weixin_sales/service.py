@@ -39,15 +39,14 @@ class WeixinSaleService():
         r   = urllib2.urlopen(req)
         content = r.read()
         
-        if r.info().has_key('Content-disposition'):
-            # If the response has Content-Disposition, we take file name from it
-            fileName = r.info()['Content-disposition'].split('filename=')[1]
-            if fileName[0] == '"' or fileName[0] == "'":
-                fileName = fileName[1:-1]
-        elif r.url != url:
-            # if we were redirected, the real file name we take from the final URL
-            fileName = url2name(r.url)
-        
+        if not r.info().has_key('Content-disposition'):
+            raise Exception('下载图片返回数据异常')
+            
+        # If the response has Content-Disposition, we take file name from it
+        fileName = r.info()['Content-disposition'].split('filename=')[1]
+        if fileName[0] == '"' or fileName[0] == "'":
+            fileName = fileName[1:-1]
+            
         with open(os.path.join(file_path,fileName), 'wb') as f:
             f.write(content)
         
