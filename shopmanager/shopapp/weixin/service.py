@@ -410,11 +410,6 @@ class WeixinUserService():
     def handleSaleAction(self,user_id,pictures,attach_files=[]):   
         
         pic_count = int(pictures['Count'])
-        if pic_count < 1:
-            return self.genTextRespJson(u'请上传至少一张图片')
-        
-        if pic_count > 4:
-            return self.genTextRespJson(u'请不要上传超过三张图片')
 #        
 #        from shopapp.weixin_sales.service import WeixinSaleService
 #        

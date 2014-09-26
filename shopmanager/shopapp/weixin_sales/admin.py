@@ -10,7 +10,7 @@ from .models import WeixinUserPicture
 
 class WeixinUserPictureAdmin(admin.ModelAdmin):
     
-    list_display = ('user_openid', 'mobile', 'pic_link','check_link','pic_type','pic_num',
+    list_display = ('user_openid', 'mobile','pic_link','check_link','pic_type','pic_num',
                     'created','status')
     search_fields = ['user_openid','mobile']
     
@@ -25,14 +25,17 @@ class WeixinUserPictureAdmin(admin.ModelAdmin):
     
     def check_link(self, obj):
         return (u'<a href="javascript:void(0);" class="btn %s" pid="%d" >%s</a>'%
-                (('','btn-success')[0 if obj.status else 1],obj.id,(u'审核',u'已处理')[1 if obj.status else 0]))
+                (('btn-success','','')[obj.status],obj.id,(u'审核',u'已处理',u'')[obj.status]))
     
     check_link.allow_tags = True
     check_link.short_description = "操作"
     
     class Media:
-        css = {"all": ("admin/css/forms.css","css/admin/dialog.css","css/admin/common.css","jquery/jquery-ui-1.10.1.css")}
-        js = ("jquery/jquery-ui-1.8.13.min.js","jquery/addons/jquery.form.js","script/admin/adminpopup.js")
+        css = {"all": ("admin/css/forms.css","css/admin/common.css","jquery/jquery-ui-1.10.1.css")}
+        js = ("jquery/jquery-ui-1.8.13.min.js",
+              "jquery/addons/jquery.form.js",
+              "script/admin/adminpopup.js",
+              "weixin/sales/js/picturereview.js")
     
     
 admin.site.register(WeixinUserPicture, WeixinUserPictureAdmin) 
