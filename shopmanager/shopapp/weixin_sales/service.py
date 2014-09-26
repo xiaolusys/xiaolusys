@@ -1,3 +1,4 @@
+#-*- encoding:utf8 -*-
 import os
 import time
 import urllib2
@@ -40,7 +41,7 @@ class WeixinSaleService():
         content = r.read()
         
         if not r.info().has_key('Content-disposition'):
-            raise Exception('下载图片返回数据异常')
+            raise Exception(u'下载图片返回数据异常')
             
         # If the response has Content-Disposition, we take file name from it
         fileName = r.info()['Content-disposition'].split('filename=')[1]
