@@ -104,6 +104,11 @@ class Product(models.Model):
     def __unicode__(self):
         return '<%s,%s>'%(self.outer_id,self.name)
     
+    def clean(self):
+        for field in self._meta.fields:
+            if isinstance(field, (models.CharField, models.TextField)):
+                setattr(self, field.name, getattr(self, field.name).strip())
+    
     @property
     def eskus(self):
         return self.prod_skus.filter(status=pcfg.NORMAL)
@@ -337,6 +342,11 @@ class ProductSku(models.Model):
 
     def __unicode__(self):
         return '<%s,%s>'%(self.outer_id,self.properties_alias or self.properties_name)
+      
+    def clean(self):
+        for field in self._meta.fields:
+            if isinstance(field, (models.CharField, models.TextField)):
+                setattr(self, field.name, getattr(self, field.name).strip())
       
     @property
     def name(self):

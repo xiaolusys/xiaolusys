@@ -166,6 +166,7 @@ class MergeTradeAdmin(admin.ModelAdmin):
         BitField: {'widget': BitFieldCheckboxSelectMultiple},
     }
     
+    
     def get_readonly_fields(self, request, obj=None):
         readonly_fields = self.readonly_fields
         if not request.user.has_perm('trades.can_trade_modify'):
