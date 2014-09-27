@@ -307,7 +307,9 @@ class OrderInfoView(View):
         score_passed = False
         if has_specific_product:
             score_buys = WeixinScoreBuy.objects.filter(user_openid=user_openid)
-            refund_records = Refund.objects.filter(user_openid=user_openid,refund_type=2)
+            refund_records = Refund.objects.filter(trade_id=trade.id,
+                                                   user_openid=user_openid,
+                                                   refund_type=2)
             if score_buys.count() > 0 and refund_records.count() < 1:
                 score_passed = True
         
@@ -610,7 +612,6 @@ class RefundReviewView(View):
                     if orders.count() > 0:
                         sample_order = orders[0]
                         
-
         html = 'weixin/refundreviewblock.html'
         if refund_status == 1:
             html = 'weixin/finalizeblock.html'

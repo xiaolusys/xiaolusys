@@ -271,6 +271,11 @@ class MergeTrade(models.Model):
     def __unicode__(self):
         return '<%s,%s>'%(str(self.id),self.buyer_nick)
     
+    def clean(self):
+        for field in self._meta.fields:
+            if isinstance(field, (models.CharField, models.TextField)):
+                setattr(self, field.name, getattr(self, field.name).strip())
+    
     @property
     def total_num(self):
         """ 订单商品总数 """
