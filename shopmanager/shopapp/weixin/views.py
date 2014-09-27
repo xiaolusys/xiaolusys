@@ -1175,7 +1175,7 @@ class ScoreMenuView(View):
         if not user_openid or user_openid.upper() == 'NONE':
             return HttpResponse(u'此页面需要授权可见')
         
-        wx_user = WeiXinUser.objects.get(openid=user_openid)
+        wx_user,state = WeiXinUser.objects.get_or_create(openid=user_openid)
         pk = wx_user.pk
 
         title = u'积分查询'        

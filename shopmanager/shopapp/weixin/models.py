@@ -577,7 +577,7 @@ class ReferalSummary(models.Model):
 
 
 class Refund(models.Model):
-    REFUND_TYPES = ((0,u'晒单返现'), (1,u'VIP邀请'), (2,u'10积分换购'))
+    REFUND_TYPES = ((0,u'晒单返现'), (1,u'VIP邀请'), (2,u'10积分换购'), (3,u'满100元减10元'))
     REFUND_STATUSES = ((0,u'等待审核'), (1,u'审核通过'), (2,u'审核不通过'),(3,u'完成'))
     PAY_TYPES = ((0,u'申请退款'), (1,u'退邮费'), (2,u'支付宝转账'), (3, u'银行转账'))
 
