@@ -332,7 +332,7 @@ class OrderInfoView(View):
             score = user_scores[0].user_score
 
         score_refund = False
-        if data["payment"] >= 100 and score >= 10:
+        if data["payment"] >= 100 and score >= 10 and trade.status ==  pcfg.TRADE_FINISHED:
             score_refund = True
             
         response = render_to_response('weixin/orderinfo.html', 
