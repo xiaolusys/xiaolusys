@@ -1193,7 +1193,7 @@ class ScoreMenuView(View):
         
 
         vipcode = None
-        vipcodes = ex_user.vipcodes.all()
+        vipcodes = wx_user.vipcodes.all()
         if vipcodes.count() > 0:
             vipcode = vipcodes[0].code
             
