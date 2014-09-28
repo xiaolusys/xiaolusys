@@ -61,7 +61,11 @@
           {% else %}
           <p>亲，<font style="color:red">确认收货</font>好评后30分钟，返现申请入口就会开放哦！</p>
           {% endif %}
-        {% endif %}
+        {% else %}
+	  {% if score_refund %}
+          {% include "weixin/refundapply.html" %}
+	  {% endif %}
+	{% endif %}
       {% endif %}
       {% endif %}
     </div>
