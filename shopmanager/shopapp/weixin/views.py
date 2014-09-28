@@ -1191,7 +1191,13 @@ class ScoreMenuView(View):
         if user_scores.count() > 0:
             score = user_scores[0].user_score
         
-        response = render_to_response('weixin/scoremenu.html', {"score":score, "pk": pk},
+
+        vipcode = None
+        vipcodes = ex_user.vipcodes.all()
+        if vipcodes.count() > 0:
+            vipcode = vipcodes[0].code
+            
+        response = render_to_response('weixin/scoremenu.html', {"score":score, "pk": pk, "vipcode":vipcode},
                                       context_instance=RequestContext(request))
         response.set_cookie("openid",user_openid)        
         return response
