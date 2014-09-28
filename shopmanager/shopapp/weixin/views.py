@@ -325,10 +325,20 @@ class OrderInfoView(View):
         if sample_orders.count() > 0 and refund_records.count() < 1:
             passed = True
         
+            
+        score = 0
+        user_scores = WeixinUserScore.objects.filter(user_openid=user_openid)
+        if user_scores.count() > 0:
+            score = user_scores[0].user_score
+
+        score_refund = False
+        if data["payment"] >= 100 and score >= 10:
+            score_refund = True
+            
         response = render_to_response('weixin/orderinfo.html', 
                                       {'tradedata':data, "traces":shipping_traces, "score_passed":score_passed,
                                        "specific_order_finished":specific_order_finished,"refund": refund, 
-                                       "passed":passed, "openid":user_openid },
+                                       "passed":passed, "openid":user_openid, "score_refund":score_refund },
                                       context_instance=RequestContext(request))
         response.set_cookie("openid",user_openid)
         return response
