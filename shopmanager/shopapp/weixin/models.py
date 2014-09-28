@@ -72,7 +72,7 @@ class WeiXinAccount(models.Model):
         return False
     
     def isExpired(self):
-        return datetime.datetime.now() > self.expired + datetime.timedelta(seconds=1800)
+        return datetime.datetime.now() > self.expired + datetime.timedelta(seconds=1200)
     
     def activeAccount(self):
         self.is_active = True
@@ -671,7 +671,7 @@ class VipCode(models.Model):
     CODE_TYPES = ((0,u'试用'), (1,u'购买'))
     
     owner_openid = models.ForeignKey(WeiXinUser,unique=True,related_name="vipcodes", verbose_name=u"微信ID")
-    code = models.CharField(max_length=16,db_index=True,null=False,blank=False,verbose_name=u'VIP邀请码')
+    code = models.CharField(max_length=16,unique=True,null=False,blank=False,verbose_name=u'VIP邀请码')
     expiry = models.DateTimeField(null=False,blank=False,verbose_name=u'过期时间')
 
     ### 1. for getting samples; 2. for purchase discount
