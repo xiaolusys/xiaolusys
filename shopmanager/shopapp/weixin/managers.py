@@ -68,6 +68,7 @@ class VipCodeManager(models.Manager):
     
     
     def genVipCodeByWXUser(self,wx_user):
+        
         vipcodes = self.filter(owner_openid=wx_user)
         if vipcodes.count() > 0:
             return vipcodes[0].code
@@ -81,12 +82,20 @@ class VipCodeManager(models.Manager):
         cnt = 0
         while True:
             cnt += 1
-            objs = self.filter(code=new_code)
-            if objs.count() < 0 or cnt > 20:
-                break
-            new_code = str(random.randint(1000000,9999999))
-        self.create(owner_openid=wx_user,code=new_code,expiry=expiry,code_type=code_type,code_rule=code_rule,max_usage=max_usage)
+            try:
+                vipcode = self.get(owner_openid=wx_user)
+            except self.model.DoesNotExist:
+                try:
+                    self.create(owner_openid=wx_user,code=new_code,expiry=expiry,
+                            code_type=code_type,code_rule=code_rule,max_usage=max_usage)
+                except:
+                    new_code = str(random.randint(1000000,9999999))
+                else:
+                    return new_code
+            else:
+                return vipcode.code
+            
+            if cnt > 20:
+                raise Exception(u'F码生成异常')
         
-        return new_code
-    
     
