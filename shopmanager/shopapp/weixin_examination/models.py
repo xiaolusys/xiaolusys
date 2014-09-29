@@ -48,7 +48,7 @@ class ExamPaper(models.Model):
     status  = models.IntegerField(choices=STATUS_CHOICES,default=SCRIPT,verbose_name=u"状态")  
     
     class Meta:
-        db_table = 'shop_wexin_exam_paper'
+        db_table = 'shop_weixin_exam_paper'
         verbose_name = u'微信考试答卷'
         verbose_name_plural = u'微信考试答卷列表'
         
@@ -72,7 +72,7 @@ class ExamUserPaper(models.Model):
     status     = models.IntegerField(choices=STATUS_CHOICES,default=UNFINISHED,verbose_name=u"状态") 
     
     class Meta:
-        db_table = 'shop_wexin_user_paper'
+        db_table = 'shop_weixin_exam_user_paper'
         unique_together = ('user_openid', 'paper_id')
         verbose_name = u'用户答卷'
         verbose_name_plural = u'用户答卷列表'    
@@ -104,7 +104,7 @@ class ExamUserProblem(models.Model):
     
     status  = models.BooleanField(default=False,verbose_name=u'回答正确')
     class Meta:
-        db_table = 'shop_weixin_exam_user_proble'
+        db_table = 'shop_weixin_exam_user_problem'
         unique_together = ('user_openid', 'paper_id', 'problem_id')
         verbose_name = u'用户答题'
         verbose_name_plural = u'用户答题列表'
