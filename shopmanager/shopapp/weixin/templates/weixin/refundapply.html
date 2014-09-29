@@ -9,7 +9,11 @@
       {% if passed %}
       <option value="1">VIP 邀请</option>
       {% else%}
+      {% if score_passed %}
       <option value="2">10积分换购</option>
+      {% else %}
+      <option value="3">满100元返10元</option>
+      {% endif %}
       {% endif %}
     </select>
   </div>
@@ -21,7 +25,11 @@
     {% if passed %}
     <input id="id_code" class="form-control" type="text" placeholder="您的专属VIP邀请码"/>
     {% else %}
+    {% if score_passed %}
     <input id="id_code" type="hidden" class="form-control" type="text" value="111111" placeholder="您的专属VIP邀请码"/>
+    {% else %}
+    <input id="id_code" type="hidden" class="form-control" type="text" value="10010" placeholder="您的专属VIP邀请码"/>
+    {% endif %}
     {% endif %}
     <input id="id_bank_account" class="form-control" type="text" placeholder="您的支付宝帐号"/>
     <input id="id_account_owner" class="form-control" type="text" placeholder="支付宝对应姓名"/>
