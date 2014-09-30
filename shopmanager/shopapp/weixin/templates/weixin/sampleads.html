@@ -23,6 +23,7 @@
 	  <p style="color:blue">你获得了专属VIP邀请码：{{ vipcode }}，快分享到你朋友圈吧!</p>
 	  <p style="color:blue">您的专属VIP邀请码被朋友<font style="color:red">使用次数越多</font>，您被选中的几率就越大！</p>
 	  <p style="color:blue;font-size:20px">分享朋友圈后蓝色文字只有你自己可以看见！</p>
+	  <button class="btn btn-success" onclick="WeiXinShareBtn();">Share</button>
 	</div>
       </div>
       {% endif %}
@@ -88,5 +89,21 @@
 </div>
 {% endblock %}    
     
+{% block tail_script %}
+<script type="text/javascript">
+function WeiXinShareBtn() {
+if (typeof WeixinJSBridge == "undefined") {
+alert("请先关注优尼世界哦！");
+} else {
+WeixinJSBridge.invoke(‘shareTimeline‘, {
+"title": "这是一个测试题头",
+"link": "http://weixin.huyi.so/weixin/freesamples/",
+"desc": "优尼世界：有你，就有全世界！",
+"img_url": "https://mmbiz.qlogo.cn/mmbiz/yMhOQPTKhLvJpNQrKjtsWEBcauwu2dCnRafKdlgicrx2I82ykEBZCZ4BC5QKByyug2dXLbDlmr2jfzDT7WYjhTA/0"
+});
+}
+}
+</script>
 
+{% endblock %}
 
