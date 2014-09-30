@@ -1,6 +1,6 @@
 rename table shop_taobao_asynctask to shop_asynctask_taobao;
 rename table shop_wexin_exam_problem to shop_weixin_exam_problem;
-rename table shop_wexin_user_paper to shop_weixin_exam_user_paper;
+rename table shop_wexin_exam_paper to shop_weixin_exam_paper;
 rename table shop_weixin_exam_user_proble to shop_weixin_exam_user_problem;
 ######## 2014-9-28 ##########
 create unique index code on shop_weixin_vipcode(code);
