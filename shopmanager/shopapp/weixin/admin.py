@@ -99,8 +99,8 @@ admin.site.register(UserGroup, UserGroupAdmin)
 
 class WeiXinUserAdmin(admin.ModelAdmin):
     
-    list_display = ('openid','nickname','sex','province',
-                    'city','subscribe','subscribe_time','user_group','isvalid')
+    list_display = ('openid','nickname','sex','province','city','subscribe'
+                    ,'subscribe_time','modified','user_group','isvalid')
     
     list_filter = ('subscribe','isvalid','sex','user_group',)
     search_fields = ['openid','nickname','mobile','vmobile']

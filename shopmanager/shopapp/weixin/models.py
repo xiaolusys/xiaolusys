@@ -170,6 +170,9 @@ class WeiXinUser(models.Model):
     subscribe   = models.BooleanField(default=False,verbose_name=u"订阅该号")
     subscribe_time = models.DateTimeField(blank=True,null=True,verbose_name=u"订阅时间")
     
+    created    = models.DateTimeField(auto_now_add=True,verbose_name=u'创建日期')
+    modified   = models.DateTimeField(auto_now=True,verbose_name=u'修改日期')
+    
     class Meta:
         db_table = 'shop_weixin_user'
         verbose_name=u'微信用户'
@@ -1013,8 +1016,8 @@ def decrease_sample_score(sender,refund_id,*args,**kwargs):
     
     transaction.commit()
     try:
-        refund = Refund.objects.get(id=refund_id,refund_type=1,refund_status=3)
-        sample_score = 20 
+        refund = Refund.objects.get(id=refund_id,refund_type_in=(1,3),refund_status=3)
+        sample_score = refund.refund_type == 1 and 20 or 10 
         
         wx_user_score,state = WeixinUserScore.objects.get_or_create(
                                         user_openid=refund.user_openid)
@@ -1042,6 +1045,7 @@ def decrease_sample_score(sender,refund_id,*args,**kwargs):
         
 weixin_refund_signal.connect(decrease_sample_score, sender=Refund)
 
+
 #试用订单审核通过取消订单确认收货积分
 @transaction.commit_manually
 def decrease_refund_trade_score(sender,refund_id,*args,**kwargs):
@@ -1060,7 +1064,7 @@ def decrease_refund_trade_score(sender,refund_id,*args,**kwargs):
                                        score=dec_score,
                                        score_type=WeixinScoreItem.CONSUME,
                                        expired_at=datetime.datetime.now(),
-                                       memo=u"试用订单(%s)审核通过，取消购物积分。"%(refund.trade_id))
+                                       memo=u"订单(%s)返现扣除积分。"%(refund.trade_id))
         
         wx_user_score.user_score  = models.F('user_score') + dec_score
         wx_user_score.save()
@@ -1077,6 +1081,7 @@ def decrease_refund_trade_score(sender,refund_id,*args,**kwargs):
         transaction.commit()
 
 weixin_refund_signal.connect(decrease_refund_trade_score, sender=Refund)
+
 
 @transaction.commit_manually
 def decrease_scorebuy_score(sender,refund_id,*args,**kwargs):
