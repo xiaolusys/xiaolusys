@@ -1016,7 +1016,7 @@ def decrease_sample_score(sender,refund_id,*args,**kwargs):
     
     transaction.commit()
     try:
-        refund = Refund.objects.get(id=refund_id,refund_type_in=(1,3),refund_status=3)
+        refund = Refund.objects.get(id=refund_id,refund_type__in=(1,3),refund_status=3)
         sample_score = refund.refund_type == 1 and 20 or 10 
         
         wx_user_score,state = WeixinUserScore.objects.get_or_create(
