@@ -141,6 +141,7 @@ INSTALLED_APPS = (
     'shopapp.jingdong',
     'shopapp.examination',
     'shopapp.weixin_sales',
+    'shopapp.weixin_score',
     'shopapp.weixin_examination',
 
 

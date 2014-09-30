@@ -530,6 +530,7 @@ class ReferalView(View):
 
 
 class RefundSubmitView(View):
+    
     def post(self, request):
         content = request.REQUEST
         tradeid = content.get("tradeid")
@@ -811,9 +812,13 @@ class SampleConfirmView(View):
         order = SampleOrder.objects.filter(user_openid=user_openid).filter(created__gt=start_time)
         if order.count() > 0:
             return redirect(redirect_url)
-
+        
+        vipcode = VipCode.objects.get(code=vipcode)
+        
         sample = FreeSample.objects.get(pk=sample_pk)
         sample.sample_orders.create(sku_code=sku_code,user_openid=user_openid,vipcode=vipcode,problem_score=score)
+        
+        WeiXinUser.objects.createReferalShip(user_openid,vipcode.owner_openid.openid)
         
         if vip_exists == "0":
             VipCode.objects.filter(code=vipcode).update(usage_count=F('usage_count')+1)

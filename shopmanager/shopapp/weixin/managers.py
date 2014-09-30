@@ -54,7 +54,30 @@ class WeixinProductManager(models.Manager):
     @property
     def DOWNSHELF(self):
         return self.get_query_set().filter(status=self.model.DOWN_SHELF)
-            
+
+
+class WeixinUserManager(models.Manager):   
+    
+    def get_queryset(self):
+        
+        super_tm = super(WeixinUserManager,self)
+        #adapt to higer version django(>1.4)
+        if hasattr(super_tm,'get_query_set'):
+            return super_tm.get_query_set()
+        return super_tm.get_queryset()
+    
+    
+    def createReferalShip(self,referal_openid,referal_from_openid):
+        
+        wx_user = self.get(openid=referal_openid)
+        if wx_user.referal_from_openid:
+            return wx_user.referal_from_openid == referal_from_openid
+        
+        wx_user.referal_from_openid = referal_from_openid
+        wx_user.save()
+        return True
+           
+    
     
 class VipCodeManager(models.Manager):   
     
@@ -97,5 +120,7 @@ class VipCodeManager(models.Manager):
             
             if cnt > 20:
                 raise Exception(u'F码生成异常')
+            
+            
         
     
