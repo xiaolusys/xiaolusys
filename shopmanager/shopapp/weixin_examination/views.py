@@ -51,7 +51,7 @@ class WeixinExamView(View):
         
         exam_papers = ExamPaper.objects.filter(status=ExamPaper.ACTIVE)
         if exam_papers.count() <= 0:
-            return HttpResponse(u'答题活动还没开始哦')
+            return render_to_response('weixin/examination/weixin_exam_close.html')
         
         exam_paper = exam_papers[0]
         exam_user_paper,state = ExamUserPaper.objects.get_or_create(user_openid=user_openid,

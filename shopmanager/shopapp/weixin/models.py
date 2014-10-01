@@ -3,7 +3,7 @@ import datetime
 from django.db import models
 from shopback.base.fields import BigIntegerAutoField
 from shopback.base.models import JSONCharMyField
-from .managers import WeixinProductManager,VipCodeManager
+from .managers import WeixinProductManager,VipCodeManager,WeixinUserManager
 from shopback.trades.models import MergeTrade
 
 
@@ -169,6 +169,11 @@ class WeiXinUser(models.Model):
     
     subscribe   = models.BooleanField(default=False,verbose_name=u"订阅该号")
     subscribe_time = models.DateTimeField(blank=True,null=True,verbose_name=u"订阅时间")
+    
+    created    = models.DateTimeField(auto_now_add=True,verbose_name=u'创建日期')
+    modified   = models.DateTimeField(auto_now=True,verbose_name=u'修改日期')
+    
+    objects = WeixinUserManager()
     
     class Meta:
         db_table = 'shop_weixin_user'
@@ -796,6 +801,7 @@ class WeixinUserScore(models.Model):
         
         
 class WeixinScoreItem(models.Model):
+    FROZEN    = -3
     AWARD     = -2
     CONSUME   = -1
     OTHER     = 0
@@ -805,7 +811,7 @@ class WeixinScoreItem(models.Model):
     READCLICK = 4
 
 
-    choices = (
+    choices = ((FROZEN ,u'冻结积分'),
                (CONSUME ,u'返现消费'),
                (SHOPPING,u'购物积分'),
                (INVITE,u'邀请积分'),
@@ -1013,8 +1019,10 @@ def decrease_sample_score(sender,refund_id,*args,**kwargs):
     
     transaction.commit()
     try:
-        refund = Refund.objects.get(id=refund_id,refund_type=1,refund_status=3)
-        sample_score = 20 
+        refund = Refund.objects.get(id=refund_id,refund_type__in=(1,3),refund_status=3)
+        
+        is_award     = refund.refund_type == 1
+        sample_score = is_award and 20 or 10 
         
         wx_user_score,state = WeixinUserScore.objects.get_or_create(
                                         user_openid=refund.user_openid)
@@ -1022,9 +1030,9 @@ def decrease_sample_score(sender,refund_id,*args,**kwargs):
         dec_score = 0 - min(sample_score,wx_user_score.user_score)
         WeixinScoreItem.objects.create(user_openid=refund.user_openid,
                                        score=dec_score,
-                                       score_type=WeixinScoreItem.AWARD,
+                                       score_type=(WeixinScoreItem.CONSUME,WeixinScoreItem.AWARD)[is_award and 1 or 0],
                                        expired_at=datetime.datetime.now(),
-                                       memo=u"试用订单(%s)返现审核通过扣除积分。"%(refund.trade_id))
+                                       memo=u"%s订单(%s)审核通过扣除积分。"%((u'返现',u'试用')[is_award and 1 or 0],refund.trade_id))
         
         wx_user_score.user_score  = models.F('user_score') + dec_score
         wx_user_score.save()
@@ -1041,6 +1049,7 @@ def decrease_sample_score(sender,refund_id,*args,**kwargs):
         transaction.commit()
         
 weixin_refund_signal.connect(decrease_sample_score, sender=Refund)
+
 
 #试用订单审核通过取消订单确认收货积分
 @transaction.commit_manually
@@ -1060,7 +1069,7 @@ def decrease_refund_trade_score(sender,refund_id,*args,**kwargs):
                                        score=dec_score,
                                        score_type=WeixinScoreItem.CONSUME,
                                        expired_at=datetime.datetime.now(),
-                                       memo=u"试用订单(%s)审核通过，取消购物积分。"%(refund.trade_id))
+                                       memo=u"订单(%s)返现扣除积分。"%(refund.trade_id))
         
         wx_user_score.user_score  = models.F('user_score') + dec_score
         wx_user_score.save()
@@ -1077,6 +1086,7 @@ def decrease_refund_trade_score(sender,refund_id,*args,**kwargs):
         transaction.commit()
 
 weixin_refund_signal.connect(decrease_refund_trade_score, sender=Refund)
+
 
 @transaction.commit_manually
 def decrease_scorebuy_score(sender,refund_id,*args,**kwargs):

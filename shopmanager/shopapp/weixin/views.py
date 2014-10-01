@@ -316,15 +316,15 @@ class OrderInfoView(View):
         refund = None
         refund_list = Refund.objects.filter(trade_id=trade.id)
         if refund_list.count() > 0:
-            refund = refund_list[0]
+            refund = refund_list[0] 
         
         passed = False
         start_time = datetime.datetime(2014,8,28)
-        sample_orders = SampleOrder.objects.filter(user_openid=user_openid).filter(status__gt=10).filter(status__lt=22).filter(created__gt=start_time)
+        sample_orders = SampleOrder.objects.filter(user_openid=user_openid).filter(status__gt=10)\
+            .filter(status__lt=22).filter(created__gt=start_time)
         refund_records = Refund.objects.filter(user_openid=user_openid,created__gt=start_time)
         if sample_orders.count() > 0 and refund_records.count() < 1:
             passed = True
-        
             
         score = 0
         user_scores = WeixinUserScore.objects.filter(user_openid=user_openid)
@@ -530,6 +530,7 @@ class ReferalView(View):
 
 
 class RefundSubmitView(View):
+    
     def post(self, request):
         content = request.REQUEST
         tradeid = content.get("tradeid")
@@ -811,9 +812,13 @@ class SampleConfirmView(View):
         order = SampleOrder.objects.filter(user_openid=user_openid).filter(created__gt=start_time)
         if order.count() > 0:
             return redirect(redirect_url)
-
+        
+        vipcode = VipCode.objects.get(code=vipcode)
+        
         sample = FreeSample.objects.get(pk=sample_pk)
         sample.sample_orders.create(sku_code=sku_code,user_openid=user_openid,vipcode=vipcode,problem_score=score)
+        
+        WeiXinUser.objects.createReferalShip(user_openid,vipcode.owner_openid.openid)
         
         if vip_exists == "0":
             VipCode.objects.filter(code=vipcode).update(usage_count=F('usage_count')+1)
