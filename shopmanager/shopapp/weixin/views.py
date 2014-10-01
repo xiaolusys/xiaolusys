@@ -711,7 +711,8 @@ class FreeSampleView(View):
         pk = None
         if wx_user:
             pk = wx_user.pk
-            
+           
+        today_orders = 999
         html = 'weixin/freesamples.html'
         if user_openid == 'oMt59uE55lLOV2KS6vYZ_d0dOl5c':
             html = 'weixin/freesamples1.html'
@@ -720,8 +721,9 @@ class FreeSampleView(View):
                                        "user_isvalid":user_isvalid, 
                                        "order_exists":order_exists, 
                                        "openid":user_openid,
-                                       "vip_exists":vip_exists,
+                                       "vip_exists":False,
                                        "vipcode":vipcode,
+                                       "today_orders":today_orders,
                                        "pk":pk},
                                       context_instance=RequestContext(request))
         response.set_cookie("openid",user_openid)
