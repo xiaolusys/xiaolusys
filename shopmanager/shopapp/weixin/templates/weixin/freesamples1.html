@@ -16,7 +16,7 @@
       <div class="row">
 	<div class="col-xs-12" style="text-align:center">
 	  <a href="{{ sample.sale_url }}" class="thumbnail">
-	    <img src="https://mmbiz.qlogo.cn/mmbiz/yMhOQPTKhLv3GC9Flq6Q7vwglrNkxIPZLIyYlUibDQ0R7qK4wMYlNkibm132jqZHj6icOFIvbIN1ZiaD0YzbXhgH6w/0" alt="...">
+	    <img src="https://mmbiz.qlogo.cn/mmbiz/yMhOQPTKhLt5bHqM8Z3m3S1nnwqfz2puhOaicOIMy0aUy7KibibuHXicU5aXVbn33kK1PicFOK2mHhv66FXR5HlPDdA/0" alt="...">
 	  </a>
 
 	  {% if today_orders > 1000 %}
@@ -30,12 +30,11 @@
 	<div class="col-xs-3"></div>
 	<div class="col-xs-6">
           {% if vip_exists %}
-          <p style="color:red">优尼美妈忠粉,无需F码即可申请!</p>
-	  <input class="form-control" type="text" placeholder="无需VIP邀请码" {% if vipcode %} value="{{ vipcode }}" {% endif %} id="id_vipcode" status="1" disabled="disabled" name="vipcode"/>
+	  <input type="hidden" {% if vipcode %} value="{{ vipcode }}" {% endif %} id="id_vipcode" status="1" name="vipcode"/>
 	  <input type="hidden" name="vip_exists" value="1">
 	  {% else %}
-          <p>F码：</p>
-	  <input class="form-control" type="text" placeholder="VIP邀请码" id="id_vipcode" status="0" name="vipcode"/>
+          <p>请输入F码（原VIP邀请码）：</p>
+	  <input class="form-control" type="text" placeholder="F码" id="id_vipcode" status="0" name="vipcode"/>
 	  <input type="hidden" name="vip_exists" value="0">
 	  {% endif %}
 	</div>
