@@ -82,31 +82,10 @@
   </div>
 
   <div class="footer">
-    <button type="button" class="btn btn-success" onclick="WeiXinShareBtn();">Share</button>
     <p>© Uni Littles 2014</p>
   </div>
 
 </div>
 {% endblock %}    
     
-{% block tail_script %}
-
-<script type="text/javascript">
-  function WeiXinShareBtn() {
-    if (typeof WeixinJSBridge == "undefined") {
-      alert("请先关注优尼世界哦！");
-    } else {
-      WeixinJSBridge.invoke('shareTimeline', {
-        "title":"这是一个测试题头",
-        "link":"http://weixin.huyi.so/weixin/freesamples/",
-        "desc":"优尼世界：有你，就有全世界！",
-        "img_url":"https://mmbiz.qlogo.cn/mmbiz/yMhOQPTKhLvJpNQrKjtsWEBcauwu2dCnRafKdlgicrx2I82ykEBZCZ4BC5QKByyug2dXLbDlmr2jfzDT7WYjhTA/0"}, 
-        function(res) {
-          alert(res.err_msg);
-        });
-    }
-  }
-</script>
-
-{% endblock %}
 
