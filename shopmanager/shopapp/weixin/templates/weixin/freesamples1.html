@@ -27,8 +27,7 @@
 	</div>
       </div>
       <div class="row">
-	<div class="col-xs-3"></div>
-	<div class="col-xs-6">
+	<div class="col-xs-12" style="text-align:center">
           {% if vip_exists %}
 	  <input type="hidden" {% if vipcode %} value="{{ vipcode }}" {% endif %} id="id_vipcode" status="1" name="vipcode"/>
 	  <input type="hidden" name="vip_exists" value="1">
@@ -38,7 +37,6 @@
 	  <input type="hidden" name="vip_exists" value="0">
 	  {% endif %}
 	</div>
-	<div class="col-xs-3"></div>
       </div>
       
       <div class="row" style="text-align:center">
