@@ -8,7 +8,7 @@
 <div class="container-fluid">
 
   <div class="panel panel-default" style="margin-top:5px">
-  <div class="panel-heading" style="color:#e8792a">十月大礼：1000随意购买 免费寄到家！</div>
+  <div class="panel-heading" style="color:#e8792a">十月必抢：1000名免单 随意购买 免费包邮寄到家！</div>
   <div class="panel-body">
     
     <form action="/weixin/sampleapply/" method="post" onsubmit="return check()" class="form-group">{% csrf_token %}
@@ -32,8 +32,8 @@
 	  <input type="hidden" {% if vipcode %} value="{{ vipcode }}" {% endif %} id="id_vipcode" status="1" name="vipcode"/>
 	  <input type="hidden" name="vip_exists" value="1">
 	  {% else %}
-          <p style="color:#e8792a">请输入F码(原VIP邀请码):</p>
-	  <div style="width:180px;margin:auto">
+          <p style="color:#e8792a">请输入F码 (原VIP邀请码):</p>
+	  <div style="width:160px;margin:auto">
 	    <input class="form-control" type="text" placeholder="F码" id="id_vipcode" status="0" name="vipcode"/>
 	    <input type="hidden" name="vip_exists" value="0">
 	  </div>
