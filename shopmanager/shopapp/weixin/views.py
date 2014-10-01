@@ -1219,7 +1219,7 @@ class ScoreMenuView(View):
         start_dt = datetime.datetime(2014,8,28)
         frozen_score = None
         sample_order = None
-        tmp_openid == 'oMt59uE55lLOV2KS6vYZ_d0dOl5c'
+        tmp_openid = 'oMt59uE55lLOV2KS6vYZ_d0dOl5c'
         sample_orders = SampleOrder.objects.filter(user_openid=user_openid).filter(created__gt=start_dt)
         if sample_orders.count() > 0 and user_openid == tmp_openid:
             sample_order = sample_orders[0]
