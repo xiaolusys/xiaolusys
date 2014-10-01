@@ -27,6 +27,7 @@ from .models import (WeiXinUser,
                      WeixinClickScoreRecord,
                      WeixinScoreBuy)
 
+from shopapp.weixin_score.models import SampleFrozenScore
 from shopapp.weixin_examination.models import ExamUserPaper
 from shopback.trades.models import MergeTrade
 from shopback import paramconfig as pcfg
@@ -1190,7 +1191,6 @@ class ScoreMenuView(View):
         content = request.REQUEST
         code = content.get('code')
         user_openid = get_user_openid(request, code)
-        
         if not user_openid or user_openid.upper() == 'NONE':
             return HttpResponse(u'此页面需要授权可见')
         
@@ -1215,8 +1215,21 @@ class ScoreMenuView(View):
         vipcodes = wx_user.vipcodes.all()
         if vipcodes.count() > 0:
             vipcode = vipcodes[0].code
+        
+        start_dt = datetime.datetime(2014,8,28)
+        frozen_score = None
+        sample_order = None
+        tmp_openid == 'oMt59uE55lLOV2KS6vYZ_d0dOl5c'
+        sample_orders = SampleOrder.objects.filter(user_openid=user_openid).filter(created__gt=start_dt)
+        if sample_orders.count() > 0 and user_openid == tmp_openid:
+            sample_order = sample_orders[0]
+            frozen_score,state = SampleFrozenScore.objects.get_or_create(user_openid=user_openid,
+                                                                         sample_id=sample_order.id)
             
-        response = render_to_response('weixin/scoremenu.html', {"score":score, "pk": pk, "vipcode":vipcode},
+        response = render_to_response('weixin/scoremenu.html', {"score":score, "pk": pk, 
+                                                                "vipcode":vipcode,
+                                                                "sample_order":sample_order,
+                                                                "frozen_score":frozen_score},
                                       context_instance=RequestContext(request))
         response.set_cookie("openid",user_openid)        
         return response

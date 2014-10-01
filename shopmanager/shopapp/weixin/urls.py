@@ -94,6 +94,7 @@ urlpatterns = patterns('shopapp.weixin.views',
     
     (r'^examination/',include('shopapp.weixin_examination.urls')),
     (r'^sales/',include('shopapp.weixin_sales.urls')),
+    (r'^score/',include('shopapp.weixin_score.urls')),
     url(r'^warn/$','warn',name='weixin_warn'),
     url(r'^rights/$','rights',name='weixin_feedback'),
     url(r'^napay/$','napay',name='weixin_napay'),

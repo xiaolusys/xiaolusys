@@ -1,0 +1,72 @@
+
+<div class="panel panel-default" style="margin-top:5px">
+    <div class="panel-heading" style="color:orange">冻结积分</div>
+    <div class="panel-body">
+
+      <div class="row">
+	<div class="col-xs-12">
+	  <span style="color:orange">累计冻结: <font id="l_frozen_score" style="font-size:26px">{{ frozen_score.frozen_score }}</font>分</span>
+	</div>
+      </div>
+      
+	{% if frozen_score.frozen_score < 50 and score > 10 %}
+	<div id="frozen-form">
+     <div class="row" style="margin-top:5px">
+	{% csrf_token %}
+	<input type="hidden" name="sample_id" value="{{ sample_order.id }}"/>
+	<div class="col-xs-12">
+	  使用积分：
+	  <select id="frozen_score" name="frozen_score" class="input-sm">
+	  	{% if score > 49 %}
+	  	<option val="10">50</option>
+	  	{% endif %}
+	  	{% if score > 39 %}
+	  	<option val="10">40</option>
+	  	{% endif %}
+	  	{% if score > 29 %}
+	  	<option val="10">30</option>
+	  	{% endif %}
+	  	{% if score > 19 %}
+	  	<option val="10">20</option>
+	  	{% endif %}
+	  	{% if score > 9 %}
+	  	<option val="10">10</option>
+	  	{% endif %}
+	  </select>
+	</div>
+     </div>
+     <div class="row" style="margin-top:5px">
+	<div id="submit-btn" class="col-xs-12">
+	  <input type="button" class="btn btn-success" onclick="submit();" value="确定转换F码使用次数">
+	</div>
+      </div>
+    </div>
+	{% endif %}
+    </div>
+</div>
+  {% if frozen_score.frozen_score < 50 and score > 10 %}
+  <script type="text/javascript">
+  function submit() {
+    var frozen_score = $('#frozen_score').val();
+    if (frozen_score == ""||frozen_score == "undifine") {
+      return;
+    }
+    var csrf_token = document.getElementsByName("csrfmiddlewaretoken")[0].value;
+    var sample_id = document.getElementsByName("sample_id")[0].value;
+    var url = "/weixin/score/frozen/";
+    var data = {"csrfmiddlewaretoken":csrf_token, "frozen_score":frozen_score,
+    			"sample_id":sample_id};
+    
+    var callback = function (res) {
+      if (res.code == 'good'){
+      	$('#frozen-form').hide();
+      	var last_frozen_score = parseInt($('#l_frozen_score').html()) + res.frozen_score;
+      	$('#l_frozen_score').html(last_frozen_score.toString());
+      }else{
+      	$('#submit-btn').html('<lable class="lable label-warning">出现错误，请联系管理员！</lable>');
+      }
+    };
+    $.ajax({url:url, data:data, type:"post", success:callback});
+  }
+  </script>
+  {% endif %}
