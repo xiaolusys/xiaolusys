@@ -687,7 +687,7 @@ class FreeSampleView(View):
             return redirect(redirect_url)
             
         start = datetime.datetime(2014,10,8,18)
-        end = datetime.datetime(2014,8,16)
+        end = datetime.datetime(2014,10,16)
         if user_openid == 'oMt59uE55lLOV2KS6vYZ_d0dOl5c':
             end = datetime.datetime(2014,10,16)
 
