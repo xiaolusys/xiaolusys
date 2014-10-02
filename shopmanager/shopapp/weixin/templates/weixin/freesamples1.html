@@ -89,6 +89,26 @@
 
 {% block tail_script %}
 <script type="text/javascript">
+  var fields = ["#id_vipcode"];
+  
+  function save2cookie(key) {
+    var val = $(key).val();
+    $.cookie(key, val);
+  }
+  function getfromcookie(key) {
+    return $.cookie(key);
+  }
+
+  $(function () {
+    fields.forEach(function(field) {
+      var val = getfromcookie(field);
+      if (val) {
+        $(field).val(val);
+      }
+    });
+  });
+
+
   function validateVipCode(s) {
   var validateReg = /^\d{6,7}$/;
   return validateReg.test(s);

@@ -682,9 +682,15 @@ class FreeSampleView(View):
         if wx_users.count() > 0:
             wx_user = wx_users[0]
             user_isvalid = wx_user.isValid()
+        else:
+            redirect_url = "https://open.weixin.qq.com/connect/oauth2/authorize?appid=wxc2848fa1e1aa94b5&redirect_uri=http://weixin.huyi.so/weixin/freesamples/&response_type=code&scope=snsapi_base&state=135#wechat_redirect"
+            return redirect(redirect_url)
+            
+        start = datetime.datetime(2014,10,8,18)
+        end = datetime.datetime(2014,8,16)
+        if user_openid == 'oMt59uE55lLOV2KS6vYZ_d0dOl5c':
+            end = datetime.datetime(2014,10,16)
 
-        start = datetime.datetime(2014,8,28)
-        end = datetime.datetime(2014,9,7)
         now = datetime.datetime.now()
         diff = end - now
         days_left = diff.days
@@ -754,9 +760,9 @@ class SampleApplyView(View):
 
         content = request.REQUEST
         sample_pk = content.get("sample_pk")
-        color = content.get("color")
-        size = content.get("size")
-        weight = content.get("weight")
+        color = content.get("color","1")
+        size = content.get("size","1")
+        weight = content.get("weight","1")
         vipcode = content.get("vipcode")
         vip_exists = int(content.get("vip_exists"))
         
