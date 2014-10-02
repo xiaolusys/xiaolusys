@@ -7,7 +7,8 @@
 
 <div class="container-fluid">
 
-  <div class="panel panel-default" style="margin-top:5px">
+{% for sample in samples %}
+<div class="panel panel-default" style="margin-top:5px"> 
   <div class="panel-heading" style="color:orange">十月必抢：双11免单 随你挑 免费包邮！</div>
   <div class="panel-body">
     
@@ -43,22 +44,22 @@
       
       <div class="row" style="text-align:center">
 	<div class="col-xs-12" style="text-align:center; margin-top:10px">
-	{% if order_exists %}
-	<a href="/weixin/sampleads/{{ pk }}/">您的试用申请已经提交！查看 >></a>
-	{% else %}
-	{% if openid %}
-	<input type="submit" class="btn btn-warning" value="提交试用申请"/>
-	{% else %}
-	<a href="https://open.weixin.qq.com/connect/oauth2/authorize?appid=wxc2848fa1e1aa94b5&redirect_uri=http://weixin.huyi.so/weixin/freesamples/&response_type=code&scope=snsapi_base&state=135#wechat_redirect" class="btn btn-warning">提交试用申请</a>
-	{% endif %}
-	{% endif %}
+	  {% if order_exists %}
+	  <a href="/weixin/sampleads/{{ pk }}/">您的试用申请已经提交！查看 >></a>
+	  {% else %}
+	  {% if openid %}
+	  <input type="submit" class="btn btn-warning" value="提交试用申请"/>
+	  {% else %}
+	  <a href="https://open.weixin.qq.com/connect/oauth2/authorize?appid=wxc2848fa1e1aa94b5&redirect_uri=http://weixin.huyi.so/weixin/freesamples/&response_type=code&scope=snsapi_base&state=135#wechat_redirect" class="btn btn-warning">提交试用申请</a>
+	  {% endif %}
+	  {% endif %}
 	</div>
       </div>
     </form>      
     
   </div>
 </div>
-
+{% endfor %}
 
 
 <div class="row">
