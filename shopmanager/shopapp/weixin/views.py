@@ -99,6 +99,9 @@ def warn(request):
 from urllib import urlopen
 
 
+START_TIME = datetime.datetime(2014,10,8,18)
+END_TIME = datetime.datetime(2014,10,16,23,59,59)
+
 
 def get_user_openid(request, code):
     
@@ -118,6 +121,7 @@ def get_user_openid(request, code):
         return openid 
 
     return r.get('openid')
+
 
 
 class WeixinAcceptView(View):
@@ -686,8 +690,7 @@ class FreeSampleView(View):
             redirect_url = "https://open.weixin.qq.com/connect/oauth2/authorize?appid=wxc2848fa1e1aa94b5&redirect_uri=http://weixin.huyi.so/weixin/freesamples/&response_type=code&scope=snsapi_base&state=135#wechat_redirect"
             return redirect(redirect_url)
             
-        start = datetime.datetime(2014,10,8,18)
-        end = datetime.datetime(2014,10,16)
+        end = END_TIME
         if user_openid == 'oMt59uE55lLOV2KS6vYZ_d0dOl5c':
             end = datetime.datetime(2014,10,1)
 
@@ -699,7 +702,7 @@ class FreeSampleView(View):
         samples = FreeSample.objects.filter(expiry__gt=end)
 
         order_exists = False
-        orders = SampleOrder.objects.filter(user_openid=user_openid).filter(created__gt=start)
+        orders = SampleOrder.objects.filter(user_openid=user_openid).filter(created__gt=START_TIME)
         if orders.count() > 0 and not wx_user.isNone():
             order_exists = True
         
@@ -808,17 +811,18 @@ class SampleConfirmView(View):
         p1 = content.get("p1","0")
         p2 = content.get("p2","0")
         p3 = content.get("p3","0")
+        p4 = content.get("p4","0")
+        p5 = content.get("p5","0")
         vipcode = content.get("vipcode","0")
         vip_exists = content.get("vip_exists", "0")
-        score = int(p1) + int(p2) + int(p3)
+        score = int(p1) + int(p2) + int(p3) + int(p4) + int(p5)
         
         user_openid = request.COOKIES.get('openid')
 
         user = WeiXinUser.objects.filter(openid=user_openid)        
         redirect_url = '/weixin/sampleads/%d/' % user[0].pk
 
-        start_time = datetime.datetime(2014,8,12)
-        order = SampleOrder.objects.filter(user_openid=user_openid).filter(created__gt=start_time)
+        order = SampleOrder.objects.filter(user_openid=user_openid).filter(created__gt=START_TIME)
         if order.count() > 0:
             return redirect(redirect_url)
         
