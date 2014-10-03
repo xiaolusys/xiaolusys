@@ -829,7 +829,7 @@ class SampleConfirmView(View):
         vipcode = VipCode.objects.get(code=vipcode)
         
         sample = FreeSample.objects.get(pk=sample_pk)
-        sample.sample_orders.create(sku_code=sku_code,user_openid=user_openid,vipcode=vipcode,problem_score=score)
+        sample.sample_orders.create(sku_code=sku_code,user_openid=user_openid,vipcode=vipcode.code,problem_score=score)
         
         WeiXinUser.objects.createReferalShip(user_openid,vipcode.owner_openid.openid)
         
@@ -876,8 +876,7 @@ class ResultView(View):
         code = content.get('code')
         user_openid = get_user_openid(request, code)
 
-        start = datetime.datetime(2014,8,28)
-        order = SampleOrder.objects.filter(user_openid=user_openid).filter(created__gt=start)
+        order = SampleOrder.objects.filter(user_openid=user_openid).filter(created__gt=START_TIME)
         has_order = False
         order_status = 0
         if order.count() > 0:
