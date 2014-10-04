@@ -1,11 +1,7 @@
 {% extends "weixin/weixin_base.html" %}
 
 {% block title %} 
-{% if identical %}
-我刚在优尼世界申请了宝宝披风，礼盒包装免费寄到家哦！你也快去给宝宝领一件吧～～ 
-{% else %}
-优尼世界 9月送大礼 时尚婴童斗篷免费送啦！
-{% endif %}
+优尼世界：宝宝用品100元免单，无门槛，速度抢！
 {% endblock %}
 
 
@@ -13,15 +9,15 @@
 
 <div class="container-fluid">
   <div class="panel panel-default" style="margin-top:5px">
-    <div class="panel-heading" style="color:orange">优尼世界 时尚婴童斗篷免费送啦!</div>
+    <div class="panel-heading" style="color:orange">十月大礼 见者有份 100万免单送宝宝！</div>
     <div class="panel-body">
 
       {% if identical %}
       <div class="row">
 	<div class="col-xs-12">
 	  <p style="color:blue">亲，您的申请已经成功提交！</p>
-	  <p style="color:blue">你获得了专属VIP邀请码：{{ vipcode }}，快分享到你朋友圈吧!</p>
-	  <p style="color:blue">您的专属VIP邀请码被朋友<font style="color:red">使用次数越多</font>，您被选中的几率就越大！</p>
+	  <p style="color:blue">你获得了专属F码：{{ vipcode }}，快把本页发给好友, 一起赚免单吧！</p>
+	  <p style="color:blue">您的F码被朋友<font style="color:red">使用次数越多</font>，您被选中的几率就越大！</p>
 	  <p style="color:blue;font-size:20px">分享朋友圈后蓝色文字只有你自己可以看见！</p>
 	</div>
       </div>
@@ -37,41 +33,40 @@
 
       <div class="row">
 	<div class="col-xs-12">
-	  <p>留美海归团队设计，独家专利花型，天猫最时尚婴童斗篷，现在免费啦！</p>
-	  <p>这款天猫、京东已经售出10000多件，好评如潮的婴童斗篷，首次开放免费试用。<font style="color:red">斗篷派出800份名额，另加800粉神秘大礼，共计1600份！机会多到数不清，快抢啊！！！</font></p>  
+	  <p>亲们：</p>
+	  <p>优尼世界10月风暴来啦，简直就是撒钱，速度接！</p>
+	  <p>简单直接：<font style="color:red">1000份免单名额，中奖即得100元免单，无门槛无限制，双11当日随意购买！</font></p>
 	  {% if vipcode == "898786" %} 
 	  <p style="font-size:20px; color:red; text-align:center">您刚才输入的VIP邀请码错误，请用正确的VIP邀请码重新申请!</p>
 	  <a class="btn btn-waring" href="https://open.weixin.qq.com/connect/oauth2/authorize?appid=wxc2848fa1e1aa94b5&redirect_uri=http://weixin.huyi.so/weixin/freesamples/&response_type=code&scope=snsapi_base&state=135#wechat_redirect">点击重新申请</a>
 	  {% else %}
 	  <p style="font-size:20px; color:red; text-align:center">VIP邀请码: {{ vipcode }}</p>
 	  {% endif %}
-	  <p>关注【优尼世界】公众微信，到[活动中心] -> [免费试用]，开始申请吧！！</p>
+	  <p>申请流程：关注优尼世界公众微信，然后申请就搞定啦！</p>
 	</div>
       </div>
 
       <div class="row">
-	<div class="col-xs-12">
-	  <p>这款斗篷适用年龄<font style="color:red">0-6岁</font>。可为小宝宝做抱被抱毯，为大宝宝做披风外衣，穿上身绝对有范儿！</p>
-	  <div class="thumbnail">
-	    <img src="https://mmbiz.qlogo.cn/mmbiz/yMhOQPTKhLv3GC9Flq6Q7vwglrNkxIPZHG6wlwyHfsXQvtYAO3FFUMiaaGIdBaNKhD70Hqsny443I0JAYqFtBwA/0" alt="...">
+	<div class="col-xs-12" style="text-align:center">
+	  <p><a href="https://open.weixin.qq.com/connect/oauth2/authorize?appid=wxc2848fa1e1aa94b5&redirect_uri=http://weixin.huyi.so/weixin/freesamples/&response_type=code&scope=snsapi_base&state=135#wechat_redirect" class="btn btn-warning">点击直达申请页面>></a></p>
 	  </div>
 	</div>
-      </div>
-
+      
       <div class="row">
 	<div class="col-xs-12">
-	  <p>随斗篷一同免费寄给您的，还有精美礼盒包装，<font style="color:red">送人也绝对面子十足！</font></p>
-	  <div class="thumbnail">
-	    <img src="https://mmbiz.qlogo.cn/mmbiz/yMhOQPTKhLv3GC9Flq6Q7vwglrNkxIPZw6an6GW2qKCkpFCA11zvJTGXiaAia8Nt526f342SPNXicmIVJliaakJq2w/0" alt="...">
-	  </div>
+
+	  <p>您肯定已经厌倦了类似 “订单金额满100元起用，每张订单限用一张” 这样的条条框框？ 说送你100元券，结果领完一看细则，艾玛! 分成了十张10元的，每次还限用一张！天空飘来五个字“这不坑爹嘛！”</p>
+	  <p>优尼世界这次让你嗨翻！<font style="color:#029fd6">不设任何门槛，100元可以一次性花完！</font>霸气！阔绰！要的就是这国际范儿！</p>
+	  <p>活动时间：10月8日 - 10月16日（截至晚上12点）</p>
+	  <p>开奖时间：10月17日10:00前公布完所有名单。</p>
+
+	  <p>您也可以关注【优尼世界】公众微信，到[活动中心] -> [免费试用]，开始申请！！</p>
 	</div>
       </div>
 
-
       <div class="row">
 	<div class="col-xs-12">
-	  <p>亲，具体申请很简单：关注微信，然后申请就搞定啦！</p>
-	  <p>还有，悄悄告诉您：<font style="color:red">申请提交后的页面一定要分享到朋友圈哦，您的专属VIP邀请码被朋友<font style="color:red">使用次数越多</font>，您被选中的几率就越大！(朋友申请到了也会感激您！)</font></p>
+	  <p>还有，悄悄告诉您：<font style="color:red">申请提交后的页面一定要分享到朋友圈哦，您的F码被朋友<font style="color:red">使用次数越多</font>，您被选中的几率就越大！(朋友申请到了也会感激您！)</font></p>
 	  <div class="thumbnail">
 	    <img src="https://mmbiz.qlogo.cn/mmbiz/yMhOQPTKhLv3GC9Flq6Q7vwglrNkxIPZ7noJym3Hrh8MyBaYmGf3BibVUzic7n4hkaDicch99UCxB01kYwmFDpTew/0" alt="...">
 	  </div>
