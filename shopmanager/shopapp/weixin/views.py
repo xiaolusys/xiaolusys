@@ -711,10 +711,10 @@ class FreeSampleView(View):
         if wx_user:
             if wx_user.vipcodes.count() > 0:
                 vipcode_obj = wx_user.vipcodes.all()[0]
-                if vipcode_obj.created < datetime.datetime(2014,8,15):
+                if vipcode_obj.created < datetime.datetime(2014,10,1):
                     vip_exists = True
                     vipcode = vipcode_obj.code
-            if wx_user.subscribe_time and wx_user.subscribe_time < datetime.datetime(2014,8,15):
+            if wx_user.subscribe_time and wx_user.subscribe_time < datetime.datetime(2014,10,1):
                 vip_exists = True
         
         pk = None
@@ -730,7 +730,7 @@ class FreeSampleView(View):
                                        "user_isvalid":user_isvalid, 
                                        "order_exists":order_exists, 
                                        "openid":user_openid,
-                                       "vip_exists":False,
+                                       "vip_exists":vip_exists,
                                        "vipcode":vipcode,
                                        "today_orders":today_orders,
                                        "pk":pk},
