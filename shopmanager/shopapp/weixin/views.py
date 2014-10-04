@@ -690,6 +690,10 @@ class FreeSampleView(View):
             redirect_url = "https://open.weixin.qq.com/connect/oauth2/authorize?appid=wxc2848fa1e1aa94b5&redirect_uri=http://weixin.huyi.so/weixin/freesamples/&response_type=code&scope=snsapi_base&state=135#wechat_redirect"
             return redirect(redirect_url)
             
+        if not wx_user.isValid():
+            redirect_url = "http://weixin.huyi.so/weixin/babyinfo/"
+            return redirect(redirect_url)
+            
         end = END_TIME
         if user_openid == 'oMt59uE55lLOV2KS6vYZ_d0dOl5c':
             end = datetime.datetime(2014,10,1)
