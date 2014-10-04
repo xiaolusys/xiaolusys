@@ -358,12 +358,11 @@ class BabyInfoView(View):
     def get(self, request):
         content = request.REQUEST
         code = content.get('code')
-
-        if code == None or code == "None":
-            response = {"msg":u'请从[优尼世界]微信打开此页面！'}
-            return HttpResponse(json.dumps(response),mimetype='application/json')
-        
         openid = get_user_openid(request, code)
+
+        #if code == None or code == "None":
+        #    response = {"msg":u'请从[优尼世界]微信打开此页面！'}
+        #    return HttpResponse(json.dumps(response),mimetype='application/json')
             
         wx_user_service = WeixinUserService(openid)
         wx_user = wx_user_service._wx_user
@@ -690,9 +689,6 @@ class FreeSampleView(View):
             redirect_url = "https://open.weixin.qq.com/connect/oauth2/authorize?appid=wxc2848fa1e1aa94b5&redirect_uri=http://weixin.huyi.so/weixin/freesamples/&response_type=code&scope=snsapi_base&state=135#wechat_redirect"
             return redirect(redirect_url)
             
-        if not wx_user.isValid():
-            redirect_url = "http://weixin.huyi.so/weixin/babyinfo/"
-            return redirect(redirect_url)
             
         end = END_TIME
         if user_openid == 'oMt59uE55lLOV2KS6vYZ_d0dOl5c':
