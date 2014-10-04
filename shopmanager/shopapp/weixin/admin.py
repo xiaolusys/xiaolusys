@@ -242,9 +242,9 @@ admin.site.register(FreeSample, FreeSampleAdmin)
 
 class SampleOrderAdmin(admin.ModelAdmin):
 
-    list_display = ('sample_product','sku_code','user_openid','vipcode','created','status')
+    list_display = ('sample_product','sku_code','user_openid','problem_score','vipcode','created','status')
     
-    list_filter = ('status',)
+    list_filter = ('status','problem_score')
     search_fields = ['user_openid','vipcode']
 
 admin.site.register(SampleOrder, SampleOrderAdmin) 
