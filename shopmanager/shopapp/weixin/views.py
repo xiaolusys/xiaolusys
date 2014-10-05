@@ -803,7 +803,7 @@ class SampleApplyView(View):
             param["months"] = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
             param["user"] = wx_user
             param["openid"] = user_openid
-            param["from"] = "freesamples"
+            param["from_page"] = "freesamples"
             response = render_to_response("weixin/babyinfo.html",param,
                                           context_instance=RequestContext(request))
         else:
