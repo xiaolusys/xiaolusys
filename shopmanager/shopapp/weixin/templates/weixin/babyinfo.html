@@ -7,11 +7,14 @@
 <div>
   <div class="panel panel-default" style="margin-top:5px">
     <div class="panel-heading" style="color:orange">
+      {% if from_page != "freesamples" %}
       <h4 class="panel-title">宝宝档案</h4>
+      {% endif %}
     </div>
     <div class="panel-body">
       {% if from_page == "freesamples" %}
-      <p style="color:red">亲，还有两步就可完成申请啦！请补充以下信息：</p>
+      <p style="color:#3071a9">亲，还有<font style="color:orange"><span style="font-size:20px">2</span>步</font>就可完成申请啦！</p>
+      <p style="color:#3071a9">请补充以下信息：</p>
       {% endif %}
       <h5 style="color:#3071a9">出生/预产信息 </h5>
       <div class="row">
