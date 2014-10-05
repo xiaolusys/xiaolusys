@@ -793,15 +793,17 @@ class SampleApplyView(View):
         users = WeiXinUser.objects.filter(openid=user_openid)
         if users.count() > 0:
             wx_user = users[0]
+        
+        response = None
+        param = {"sample":sample, "sku":sku, "wx_user": wx_user, 
+                 "vipcode":vipcode, "vip_exists":vip_exists}
 
         if (not wx_user) or (wx_user.isValid() == False):
-            redirect_url = "https://open.weixin.qq.com/connect/oauth2/authorize?appid=wxc2848fa1e1aa94b5&redirect_uri=http://weixin.huyi.so/weixin/babyinfo/?from=freesamples&response_type=code&scope=snsapi_base&state=135#wechat_redirect"
-            return redirect(redirect_url)
-
-        response = render_to_response('weixin/sampleapply.html',
-                                      {"sample":sample, "sku":sku, "wx_user": wx_user, 
-                                       "vipcode":vipcode, "vip_exists":vip_exists},
-                                      context_instance=RequestContext(request))
+            response = render_to_response("weixin/babyinfo.html",param,
+                                          context_instance=RequestContext(request))
+        else:
+            response = render_to_response("weixin/sampleapply.html",param,
+                                          context_instance=RequestContext(request))
         response.set_cookie("openid",user_openid)
         return response
     
