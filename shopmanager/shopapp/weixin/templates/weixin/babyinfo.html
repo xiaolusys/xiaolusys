@@ -1,13 +1,14 @@
 {% extends "weixin/weixin_base.html" %}
 
+
+{% block title %}
 {% if from_page == "freesamples" %}
-{% block title %} 第二步：完善信息 {% endblock %}
+第二步：完善信息 
 {% else %}
-{% block title %} 宝宝档案 {% endblock %}
-{% endif %}
+宝宝档案
+{% endblock %}
 
 {% block container %}
-
 <div>
   <div class="panel panel-default" style="margin-top:5px">
     {% if from_page != "freesamples" %}
