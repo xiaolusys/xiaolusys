@@ -801,7 +801,7 @@ class SampleApplyView(View):
         if (not wx_user) or (wx_user.isValid() == False):
             param["years"] = [2008, 2009, 2010, 2011, 2012, 2013, 2014, 2015]
             param["months"] = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
-            param["wx_user"] = wx_user
+            param["user"] = wx_user
             param["openid"] = user_openid
             param["from"] = "freesamples"
             response = render_to_response("weixin/babyinfo.html",param,
