@@ -10,8 +10,8 @@
       <h4 class="panel-title">宝宝档案</h4>
     </div>
     <div class="panel-body">
-      {% if sample_count > 0 %}
-      <p style="color:red">特别提醒：填写宝宝档案、验证手机后，试用申请才能提交哦!</p>
+      {% if from_page == "freesamples" %}
+      <p style="color:red">亲，还有两步就可完成申请啦！请补充以下信息：</p>
       {% endif %}
       <h5 style="color:#3071a9">出生/预产信息 </h5>
       <div class="row">
@@ -126,7 +126,11 @@
     <div class="row" style="margin-top:10px;text-align:center">
       <p id="id_savelabel" style="color:red"></p>
       <div class="col-xs-12" style="text-align:center">
+	{% if from_page == "freesamples" %}
+	<button id="id_savebutton" class="btn btn-warning" onclick="babyinfo();">保存，下一步>></button>
+	{% else %}
 	<button id="id_savebutton" class="btn btn-warning" onclick="babyinfo();">保存信息</button>
+	{% endif %}
       </div>
     </div>
   </div>
@@ -314,15 +318,14 @@
         var data = {"year":year, "month":month, "sex":sex, 
                     "receiver_name":receiver_name, "province":province,
                     "city":city, "streetaddr":streetaddr, "openid":openid,
+                    {% if from_page == "freesamples" %}
+                    "from":"freesamples",
+                    {% endif %}
                     "csrfmiddlewaretoken":csrf_token};
         var callback = function (res) {
           if (res["code"] == "ok") {
             $("#id_savebutton").css("display", "none");
-            {% if sample_count > 0 %}
-            $("#id_savelabel")[0].innerHTML = "信息已成功保存！<a href='https://open.weixin.qq.com/connect/oauth2/authorize?appid=wxc2848fa1e1aa94b5&redirect_uri=http://weixin.huyi.so/weixin/freesamples/&response_type=code&scope=snsapi_base&state=135#wechat_redirect'>请点击直达申请页面 >></a>";
-            {% else %}
             $("#id_savelabel")[0].innerHTML = "信息已成功保存！";
-            {% endif %}
           }
         };
         
