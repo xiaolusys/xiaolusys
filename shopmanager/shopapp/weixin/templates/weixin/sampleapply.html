@@ -43,17 +43,17 @@
 	      <hr/>
 	      <p style="color:#029fd6">2. 您的F码被朋友使用一次，可得满199减50优惠券，什么时候使用最划算？</p>
 	      <p id="id_p21"><input type="radio" name="p2" value="0" id="id_input21"> 任何时候都会省50。</p>
-	      <p id="id_p22"><input type="radio" name="p2" value="2" id="id_input22"> 双11当日使用最划算。双11折扣全年最低，使用此券折上折。。。么么哒！</p>
+	      <p id="id_p22"><input type="radio" name="p2" value="2" id="id_input22"> 双11当日使用最划算。双11折扣全年最低，使用此券折上折！</p>
 	      <hr/>
-	      <p style="color:#029fd6">3. 如果你有20积分，在双11当日最多省多少钱？</p>
-	      <p id="id_p32"><input type="radio" name="p3" value="2" id="id_input32"> 优惠券省50，积分返现20，省70元。</p>
+	      <p style="color:#029fd6">3. 如果你有20积分，在双11当日最多可省多少钱？</p>
+	      <p id="id_p32"><input type="radio" name="p3" value="2" id="id_input32"> 优惠券省50，积分返现20，共70元。</p>
 	      <p id="id_p31"><input type="radio" name="p3" value="0" id="id_input31"> 优惠券省50元；</p>
 	      <hr/>
 	      <p style="color:#029fd6">4. 双11很多商品会在第一小时内售空，如何可以抢到？</p>
 	      <p id="id_p41"><input type="radio" name="p4" value="2" id="id_input41"> 提前加入购物车，在第一小时付款，免拥堵。</p>
 	      <p id="id_p42"><input type="radio" name="p4" value="0" id="id_input42"> 在双11凌晨选商品，下单，付款。</p>
 	      <hr/>
-	      <p style="color:#029fd6">5. 双11如果天猫用户只有满199减20优惠券，你如何看待微信用户折扣？</p>
+	      <p style="color:#029fd6">5. 双11当日，天猫用户只有满199减20优惠券，你如何看待微信用户优惠？</p>
 	      <p id="id_p51"><input type="radio" name="p5" value="0" id="id_input51"> 比天猫用户多省30元。</p>
 	      <p id="id_p52"><input type="radio" name="p5" value="2" id="id_input52"> 若有20积分，可多省50元。</p>
 	    </div>
@@ -159,26 +159,26 @@
 
   function check() {
   if ((!$("#id_input11").is(':checked')) && (!$("#id_input12").is(':checked'))) {
-    $("#id_msg")[0].innerHTML = "亲，麻烦选择下答案再提交哦。";
+    $("#id_msg")[0].innerHTML = "亲，请选择答案再提交哦。";
     return false;
   }
   if ((!$("#id_input21").is(':checked')) && (!$("#id_input22").is(':checked'))) {
-    $("#id_msg")[0].innerHTML = "亲，麻烦选择下答案再提交哦。";
+    $("#id_msg")[0].innerHTML = "亲，请选择答案再提交哦。";
     return false;
   }
 
   if ((!$("#id_input31").is(':checked')) && (!$("#id_input32").is(':checked'))) {
-    $("#id_msg")[0].innerHTML = "亲，麻烦选择下答案再提交哦。";
+    $("#id_msg")[0].innerHTML = "亲，请选择答案再提交哦。";
     return false;
   }
 
   if ((!$("#id_input41").is(':checked')) && (!$("#id_input42").is(':checked'))) {
-    $("#id_msg")[0].innerHTML = "亲，麻烦选择下答案再提交哦。";
+    $("#id_msg")[0].innerHTML = "亲，请选择答案再提交哦。";
     return false;
   }
 
   if ((!$("#id_input51").is(':checked')) && (!$("#id_input52").is(':checked'))) {
-    $("#id_msg")[0].innerHTML = "亲，麻烦选择下答案再提交哦。";
+    $("#id_msg")[0].innerHTML = "亲，请选择答案再提交哦。";
     return false;
   }
 

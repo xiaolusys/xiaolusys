@@ -723,6 +723,10 @@ class FreeSampleView(View):
         if wx_user:
             pk = wx_user.pk
            
+        subscribe = 0
+        if wx_user.subscribe:
+            subscribe = 1
+            
         today_orders = 999
         html = 'weixin/freesamples.html'
         if user_openid == 'oMt59uE55lLOV2KS6vYZ_d0dOl5c':
@@ -735,6 +739,7 @@ class FreeSampleView(View):
                                        "vip_exists":vip_exists,
                                        "vipcode":vipcode,
                                        "today_orders":today_orders,
+                                       "subscribe":subscribe,
                                        "pk":pk},
                                       context_instance=RequestContext(request))
         response.set_cookie("openid",user_openid)
