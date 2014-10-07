@@ -14,6 +14,7 @@
     
     <form action="/weixin/sampleapply/" method="post" onsubmit="return check()" class="form-group">{% csrf_token %}
       <input type="hidden" value="{{ sample.pk }}" name="sample_pk"/>
+      <input type="hidden" value="{{ subscribe }}" name="subscribe" id="id_subscribe"/>
       <div class="row">
 	<div class="col-xs-12" style="text-align:center">
 	  <a href="{{ sample.sale_url }}" class="thumbnail">
@@ -116,18 +117,16 @@
   };
 
   function check() {
-    var color = $("#id_color").val();
-    var size = $("#id_size").val();
-    var weight = $("#id_weight").val();
     var vipcode = $("#id_vipcode").val();  
     var vip_status = $("#id_vipcode").attr("status");
 
-    var msg = $("#id_msg");
-    if (color == "0" || size == "0" || weight == "0") {
-      msg[0].innerHTML = "亲，请选择您喜欢的款式！";
+
+    var msg = $("#id_msg");  
+    var subscribe = $("#id_subscribe").val();
+    if (subscribe != "1") {
+      msg[0].innerHTML = "亲，请点击右上角“...”，选择“查看公众号”，下拉“关注”，然后申请哦！";
       return false;
     }
-
     if (vip_status == "0" && validateVipCode(vipcode) == false) {
       msg[0].innerHTML = "请检查您的VIP邀请码(6-7位数字)!";
       return false;
