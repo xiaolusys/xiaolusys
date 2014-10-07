@@ -3,7 +3,7 @@
 
 {% block title %}
 {% if from_page == "freesamples" %}
-二：完善信息 
+完善信息
 {% else %}
 宝宝档案
 {% endif %}
@@ -12,11 +12,13 @@
 {% block container %}
 <div>
   <div class="panel panel-default" style="margin-top:5px">
-    {% if from_page != "freesamples" %}
     <div class="panel-heading" style="color:orange">
+    {% if from_page == "freesamples" %}
+      <h4 class="panel-title">完善信息</h4>
+    {% else %}
       <h4 class="panel-title">宝宝档案</h4>
-    </div>
     {% endif %}
+    </div>
     <div class="panel-body">
       {% if from_page == "freesamples" %}
       <p>亲，还有<font style="color:orange"><span style="font-size:20px">2</span>步</font>就完成啦！请补充宝宝信息：</p>
