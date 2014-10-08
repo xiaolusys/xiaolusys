@@ -693,9 +693,6 @@ class FreeSampleView(View):
             
             
         end = END_TIME
-        if user_openid == 'oMt59uE55lLOV2KS6vYZ_d0dOl5c':
-            end = datetime.datetime(2014,10,1)
-
         now = datetime.datetime.now()
         diff = end - now
         days_left = diff.days
@@ -708,16 +705,17 @@ class FreeSampleView(View):
         if orders.count() > 0 and not wx_user.isNone():
             order_exists = True
         
-        vip_exists = False
+        fcode_pass = False
+        fcode_pass_time = datetime.datetime(2014,10,1)
         vipcode = None
         if wx_user:
             if wx_user.vipcodes.count() > 0:
                 vipcode_obj = wx_user.vipcodes.all()[0]
-                if vipcode_obj.created < datetime.datetime(2014,10,1):
-                    vip_exists = True
+                if vipcode_obj.created < fcode_pass_time
+                    fcode_pass = True
                     vipcode = vipcode_obj.code
-            if wx_user.subscribe_time and wx_user.subscribe_time < datetime.datetime(2014,10,1):
-                vip_exists = True
+            if wx_user.subscribe_time and wx_user.subscribe_time < fcode_pass_time
+                fcode_pass = True
         
         pk = None
         if wx_user:
@@ -726,17 +724,15 @@ class FreeSampleView(View):
         subscribe = 0
         if wx_user.subscribe:
             subscribe = 1
-            
-        today_orders = 999
-        html = 'weixin/freesamples.html'
-        if user_openid == 'oMt59uE55lLOV2KS6vYZ_d0dOl5c':
-            html = 'weixin/freesamples1.html'
+        
+        today_orders = SampleOrder.objects.filter(created_gt=START_TIME).count()
+        html = 'weixin/freesamples1.html'
         response = render_to_response(html, 
                                       {"samples":samples, 
                                        "user_isvalid":user_isvalid, 
                                        "order_exists":order_exists, 
                                        "openid":user_openid,
-                                       "vip_exists":vip_exists,
+                                       "fcode_pass":fcode_pass,
                                        "vipcode":vipcode,
                                        "today_orders":today_orders,
                                        "subscribe":subscribe,
@@ -774,9 +770,9 @@ class SampleApplyView(View):
         size = content.get("size","1")
         weight = content.get("weight","1")
         vipcode = content.get("vipcode")
-        vip_exists = int(content.get("vip_exists"))
+        fcode_pass = int(content.get("fcode_pass"))
         
-        if vip_exists != 1:
+        if fcode_pass != 1:
             ## check whether input vipcode is valid (exists in database).
             vipcodes = VipCode.objects.filter(code=vipcode)
             if vipcodes.count() <= 0:
@@ -801,7 +797,7 @@ class SampleApplyView(View):
         
         response = None
         param = {"sample":sample, "sku":sku, "wx_user": wx_user, 
-                 "vipcode":vipcode, "vip_exists":vip_exists}
+                 "vipcode":vipcode, "fcode_pass":fcode_pass}
 
         if (not wx_user) or (wx_user.isValid() == False):
             param["years"] = [2008, 2009, 2010, 2011, 2012, 2013, 2014, 2015]
@@ -828,7 +824,7 @@ class SampleConfirmView(View):
         p4 = content.get("p4","0")
         p5 = content.get("p5","0")
         vipcode = content.get("vipcode","0")
-        vip_exists = content.get("vip_exists", "0")
+        fcode_pass = content.get("fcode_pass", "0")
         score = int(p1) + int(p2) + int(p3) + int(p4) + int(p5)
         
         user_openid = request.COOKIES.get('openid')
@@ -847,7 +843,7 @@ class SampleConfirmView(View):
         
         WeiXinUser.objects.createReferalShip(user_openid,vipcode.owner_openid.openid)
         
-        if vip_exists == "0":
+        if fcode_pass == "0":
             VipCode.objects.filter(code=vipcode).update(usage_count=F('usage_count')+1)
 
         #VipCode.objects.genVipCodeByWXUser(user)
