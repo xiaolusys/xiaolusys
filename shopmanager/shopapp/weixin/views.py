@@ -694,7 +694,7 @@ class FreeSampleView(View):
             
         end = END_TIME
         now = datetime.datetime.now()
-        diff = now - START_TIME
+        diff = START_TIME - now
         days_left = diff.days
         hours_left = diff.seconds / 3600
 
