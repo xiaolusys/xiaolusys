@@ -360,8 +360,8 @@ class BabyInfoView(View):
         code = content.get('code')
         from_page = content.get('from')
         
-        openid = get_user_openid(request, code)
-        
+        #openid = get_user_openid(request, code)
+        openid = 'oMt59uJJBoNRC7Fdv1b5XiOAngdU'
         if openid == None or openid == "None":
             redirect_url = "https://open.weixin.qq.com/connect/oauth2/authorize?appid=wxc2848fa1e1aa94b5&redirect_uri=http://weixin.huyi.so/weixin/babyinfo/&response_type=code&scope=snsapi_base&state=135#wechat_redirect"
             return redirect(redirect_url)
@@ -1240,6 +1240,7 @@ class ScoreMenuView(View):
             vipcode = vipcodes[0].code
         
         start_dt = datetime.datetime(2014,8,28)
+        wait_frozen_score = 0
         frozen_score = None
         sample_order = None
         tmp_openid = 'oMt59uE55lLOV2KS6vYZ_d0dOl5c'
@@ -1248,9 +1249,10 @@ class ScoreMenuView(View):
             sample_order = sample_orders[0]
             frozen_score,state = SampleFrozenScore.objects.get_or_create(user_openid=user_openid,
                                                                          sample_id=sample_order.id)
-            
+            wait_frozen_score = min(50 - frozen_score.frozen_score,score / 10 * 10)
         response = render_to_response('weixin/scoremenu.html', {"score":score, "pk": pk, 
                                                                 "vipcode":vipcode,
+                                                                "wait_frozen_score":wait_frozen_score,
                                                                 "sample_order":sample_order,
                                                                 "frozen_score":frozen_score},
                                       context_instance=RequestContext(request))

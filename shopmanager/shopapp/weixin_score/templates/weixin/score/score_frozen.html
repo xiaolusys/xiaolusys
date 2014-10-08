@@ -9,27 +9,28 @@
 	</div>
       </div>
       
-	{% if frozen_score.frozen_score < 50 and score > 10 %}
+	{% if wait_frozen_score > 0 %}
 	<div id="frozen-form">
      <div class="row" style="margin-top:5px">
 	{% csrf_token %}
 	<input type="hidden" name="sample_id" value="{{ sample_order.id }}"/>
+	<div></div>
 	<div class="col-xs-12">
 	  使用积分：
 	  <select id="frozen_score" name="frozen_score" class="input-sm">
-	  	{% if score > 49 %}
+	  	{% if wait_frozen_score > 49 %}
 	  	<option val="10">50</option>
 	  	{% endif %}
-	  	{% if score > 39 %}
+	  	{% if wait_frozen_score > 39 %}
 	  	<option val="10">40</option>
 	  	{% endif %}
-	  	{% if score > 29 %}
+	  	{% if wait_frozen_score > 29 %}
 	  	<option val="10">30</option>
 	  	{% endif %}
-	  	{% if score > 19 %}
+	  	{% if wait_frozen_score > 19 %}
 	  	<option val="10">20</option>
 	  	{% endif %}
-	  	{% if score > 9 %}
+	  	{% if wait_frozen_score > 9 %}
 	  	<option val="10">10</option>
 	  	{% endif %}
 	  </select>
@@ -44,7 +45,7 @@
 	{% endif %}
     </div>
 </div>
-  {% if frozen_score.frozen_score < 50 and score > 10 %}
+  {% if wait_frozen_score > 0 %}
   <script type="text/javascript">
   function submit() {
     var frozen_score = $('#frozen_score').val();
