@@ -1248,9 +1248,9 @@ class ScoreMenuView(View):
         wait_frozen_score = 0
         frozen_score = None
         sample_order = None
-        tmp_openid = 'oMt59uE55lLOV2KS6vYZ_d0dOl5c'
+
         sample_orders = SampleOrder.objects.filter(user_openid=user_openid).filter(created__gt=start_dt)
-        if sample_orders.count() > 0 and user_openid == tmp_openid:
+        if sample_orders.count() > 0:
             sample_order = sample_orders[0]
             frozen_score,state = SampleFrozenScore.objects.get_or_create(user_openid=user_openid,
                                                                          sample_id=sample_order.id)
