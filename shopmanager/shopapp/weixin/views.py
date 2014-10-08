@@ -1112,7 +1112,7 @@ class SurveyView(View):
         wx_users = WeiXinUser.objects.filter(openid=user_openid)
         if wx_users.count() > 0:
             wx_user = wx_users[0]
-            if wx_user.surveys.filter(selection>2).count() < 1:
+            if wx_user.surveys.filter(selection__gt=2).count() < 1:
                 survey = Survey.objects.create(selection=selection,wx_user=wx_user)
                 
                 weixin_surveyconfirm_signal.send(sender=Survey,survey_id=survey.id)
