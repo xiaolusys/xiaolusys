@@ -127,6 +127,7 @@
       console.log(res);
     if (res["code"] == "ok") {
       $("#id_msg")[0].innerHTML = "<p style='color:red'>亲，您的选择已经提交！感谢！</p>";
+      $("#id_submit").css("display":"none");
     }
     };
     $.ajax({url:url, data:data, type:"post", success:callback});
