@@ -60,7 +60,10 @@
 	  <a href="/weixin/sampleads/{{ pk }}/">您的试用申请已经提交！查看 >></a>
 	  {% else %}
 	  {% if openid %}
+	  <!--
 	  <input type="submit" class="btn btn-warning" value="提交试用申请"/>
+	  -->
+	  <p style="color:red">系统维护30分钟，给亲带来不便表示歉意！亲可以先投票赢积分哦！</p>
 	  {% else %}
 	  <a href="https://open.weixin.qq.com/connect/oauth2/authorize?appid=wxc2848fa1e1aa94b5&redirect_uri=http://weixin.huyi.so/weixin/freesamples/&response_type=code&scope=snsapi_base&state=135#wechat_redirect" class="btn btn-warning">提交试用申请</a>
 	  {% endif %}
