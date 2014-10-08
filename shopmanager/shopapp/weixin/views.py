@@ -711,10 +711,10 @@ class FreeSampleView(View):
         if wx_user:
             if wx_user.vipcodes.count() > 0:
                 vipcode_obj = wx_user.vipcodes.all()[0]
-                if vipcode_obj.created < fcode_pass_time
+                if vipcode_obj.created < fcode_pass_time:
                     fcode_pass = True
                     vipcode = vipcode_obj.code
-            if wx_user.subscribe_time and wx_user.subscribe_time < fcode_pass_time
+            if wx_user.subscribe_time and wx_user.subscribe_time < fcode_pass_time:
                 fcode_pass = True
         
         pk = None
