@@ -29,7 +29,7 @@
 <!--
 	  <p style="color:#e8792a">多款式，均码 <a href="http://mp.weixin.qq.com/bizmall/malldetail?id=&pid=pMt59uO9ALgEo18Zz7dcDyEqiUbQ&biz=MzA5NTI1NjYyNg==&scene=&action=show_detail&showwxpaytitle=1#wechat_redirect">商品详情 >></a></p>
 -->
-	  <p id="id_p1" style="color:#029fd6"><input type="radio" name="p1" value="1" id="id_input1"> 我选择 婴幼儿时尚羽绒系列</p>{% csrf_token %}
+	  <p id="id_p1" style="color:#029fd6"><input type="radio" name="p1" value="3" id="id_input1"> 我选择 婴幼儿时尚羽绒系列</p>{% csrf_token %}
 	  <p style="color:red">得票率：{{ ratio1 }}%</p>
 	</div>
       </div>
@@ -52,7 +52,7 @@
 <!--
 	  <p style="color:#e8792a">多款式，多尺寸 <a href="http://mp.weixin.qq.com/bizmall/malldetail?id=&pid=pMt59uLzyCZkBcdK1rU9-bjKOkco&biz=MzA5NTI1NjYyNg==&scene=&action=show_detail&showwxpaytitle=1#wechat_redirect">商品详情 >></a></p>
 -->
-	  <p id="id_p2" style="color:#029fd6"><input type="radio" name="p1" value="2" id="id_input2"> 我选择婴幼儿温暖棉服系列</p>
+	  <p id="id_p2" style="color:#029fd6"><input type="radio" name="p1" value="4" id="id_input2"> 我选择婴幼儿温暖棉服系列</p>
 	  <p style="color:red">得票率：{{ ratio2 }}%</p>
 	</div>
       </div>
@@ -113,10 +113,10 @@
   
     var selection = 0;
     if ($("#id_input1").is(':checked')) {
-      selection = 1;
+      selection = 3;
     }
     if ($("#id_input2").is(':checked')) {
-      selection = 2;
+      selection = 4;
     }
 
     var url = "/weixin/survey/";

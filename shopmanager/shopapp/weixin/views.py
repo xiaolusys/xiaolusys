@@ -1087,8 +1087,8 @@ class SurveyView(View):
             if wx_user.surveys.all().count() > 0:
                 exist = True
             
-        total = Survey.objects.all().count()
-        choice1 = Survey.objects.filter(selection=1).count()
+        total = Survey.objects.filter(selection>2).filter(selection<4).count()
+        choice1 = Survey.objects.filter(selection=3).count()
         
         ratio1,ratio2 = 0,0
         if total > 0:
@@ -1111,7 +1111,7 @@ class SurveyView(View):
         wx_users = WeiXinUser.objects.filter(openid=user_openid)
         if wx_users.count() > 0:
             wx_user = wx_users[0]
-            if wx_user.surveys.all().count() < 1:
+            if wx_user.surveys.filter(selection>2).count() < 1:
                 Survey.objects.create(selection=selection,wx_user=wx_user)
                 response = {"code":"ok"}
                 return HttpResponse(json.dumps(response),mimetype='application/json')
