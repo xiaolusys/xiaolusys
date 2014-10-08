@@ -725,7 +725,8 @@ class FreeSampleView(View):
         if wx_user.subscribe:
             subscribe = 1
         
-        today_orders = SampleOrder.objects.filter(created_gt=START_TIME).count()
+            
+        today_orders = SampleOrder.objects.filter(created__gt=datetime.datetime(2014,10,now.day)).count()
         html = 'weixin/freesamples1.html'
         response = render_to_response(html, 
                                       {"samples":samples, 
