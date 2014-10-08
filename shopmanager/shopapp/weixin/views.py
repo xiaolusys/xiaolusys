@@ -729,7 +729,7 @@ class FreeSampleView(View):
         today_orders = SampleOrder.objects.filter(created__gt=datetime.datetime(2014,10,now.day)).count()
         html = 'weixin/freesamples1.html'
         response = render_to_response(html, 
-                                      {"samples":samples, 
+                                      {"samples":samples, "days_left":days_left, "hours_left":hours_left,
                                        "user_isvalid":user_isvalid, 
                                        "order_exists":order_exists, 
                                        "openid":user_openid,
