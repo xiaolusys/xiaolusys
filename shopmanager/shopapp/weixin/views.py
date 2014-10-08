@@ -840,7 +840,7 @@ class SampleConfirmView(View):
         
         vipcodes = VipCode.objects.filter(code=vipcode)
         if vipcodes.count() < 0:
-            response = render_to_response('weixin/nofcode.html', 
+            response = render_to_response('/weixin/nofcode.html', 
                                           context_instance=RequestContext(request))
             return response
         
