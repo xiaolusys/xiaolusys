@@ -7,6 +7,15 @@
 
 <div class="container-fluid">
 
+<div class="panel panel-default" style="margin-top:5px"> 
+  <div class="panel-heading" style="color:orange">十月活动公告</div>
+  <div class="panel-body">
+    <p>第一阶段：10月08日 - 10月16日： 免单大礼活动（1000份免单名额）。第二阶段积分换购活动开始投票，投票即送积分。</p>
+    <p>第二阶段：10月17日 - 10月21日： 积分换购。</p>
+    <p></p>
+  </div>
+</div>
+
 {% for sample in samples %}
 <div class="panel panel-default" style="margin-top:5px"> 
   <div class="panel-heading" style="color:orange">十月必抢：双11免单 随你挑 免费包邮！</div>
@@ -18,7 +27,7 @@
       <div class="row">
 	<div class="col-xs-12" style="text-align:center">
 	  <a href="{{ sample.sale_url }}" class="thumbnail">
-	    <img src="https://mmbiz.qlogo.cn/mmbiz/yMhOQPTKhLt5bHqM8Z3m3S1nnwqfz2puhOaicOIMy0aUy7KibibuHXicU5aXVbn33kK1PicFOK2mHhv66FXR5HlPDdA/0" alt="...">
+	    <img src="https://mmbiz.qlogo.cn/mmbiz/yMhOQPTKhLuBe3lKsVRy6Kg6RMySy2lZ8xiaJQoY9RXEkPpmKtDZCvHuAicJsCmcQ3C9DGUYUC2wsS1iahzbFicVhw/0" alt="...">
 	  </a>
 
 	  {% if today_orders > 1000 %}
@@ -30,14 +39,14 @@
       </div>
       <div class="row">
 	<div class="col-xs-12" style="text-align:center">
-          {% if vip_exists %}
+          {% if fcode_pass %}
 	  <input type="hidden" {% if vipcode %} value="{{ vipcode }}" {% endif %} id="id_vipcode" status="1" name="vipcode"/>
-	  <input type="hidden" name="vip_exists" value="1">
+	  <input type="hidden" name="fcode_pass" value="1">
 	  {% else %}
           <p style="color:orange">请输入F码 (原VIP邀请码):</p>
 	  <div style="width:130px;margin:auto">
 	    <input class="form-control" type="text" placeholder="请输入F码" id="id_vipcode" status="0" name="vipcode"/>
-	    <input type="hidden" name="vip_exists" value="0">
+	    <input type="hidden" name="fcode_pass" value="0">
 	  </div>
 	  {% endif %}
 	</div>
@@ -121,8 +130,13 @@
     var vipcode = $("#id_vipcode").val();  
     var vip_status = $("#id_vipcode").attr("status");
 
+    var msg = $("#id_msg");
 
-    var msg = $("#id_msg");  
+    var d = new Date();
+    if (d.getHours() < 18) {
+      msg[0].innerHTML = "亲，活动将于18：00开始哦！";
+      return false;
+    }
     var subscribe = $("#id_subscribe").val();
     if (subscribe != "1") {
       msg[0].innerHTML = "亲，您还没关注咱呢！请点击右上角[...]，选择[查看公众号]，点击[关注]。";
@@ -135,4 +149,3 @@
   };
 </script>
 {% endblock %}
-
