@@ -846,7 +846,7 @@ class SampleConfirmView(View):
         WeiXinUser.objects.createReferalShip(user_openid,vipcode.owner_openid.openid)
         
         if fcode_pass == "0":
-            VipCode.objects.filter(code=vipcode).update(usage_count=F('usage_count')+1)
+            VipCode.objects.filter(code=vipcode.code).update(usage_count=F('usage_count')+1)
 
         #VipCode.objects.genVipCodeByWXUser(user)
         
