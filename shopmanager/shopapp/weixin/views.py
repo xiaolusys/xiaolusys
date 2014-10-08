@@ -35,7 +35,8 @@ from shopback.base import log_action, ADDITION, CHANGE
 
 from shopapp.signals import (weixin_readclick_signal,
                              weixin_verifymobile_signal,
-                             weixin_refund_signal)
+                             weixin_refund_signal,
+                             weixin_surveyconfirm_signal)
 
 import logging
 import json
@@ -1112,7 +1113,10 @@ class SurveyView(View):
         if wx_users.count() > 0:
             wx_user = wx_users[0]
             if wx_user.surveys.filter(selection>2).count() < 1:
-                Survey.objects.create(selection=selection,wx_user=wx_user)
+                survey = Survey.objects.create(selection=selection,wx_user=wx_user)
+                
+                weixin_surveyconfirm_signal.send(sender=Survey,survey_id=survey.id)
+
                 response = {"code":"ok"}
                 return HttpResponse(json.dumps(response),mimetype='application/json')
 

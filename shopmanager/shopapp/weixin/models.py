@@ -886,7 +886,8 @@ from shopapp.signals import (confirm_trade_signal,
                              weixin_referal_signal,
                              weixin_refund_signal,
                              weixin_readclick_signal,
-                             weixin_verifymobile_signal)
+                             weixin_verifymobile_signal,
+                             weixin_surveyconfirm_signal)
 
 
 @transaction.commit_manually
@@ -1163,3 +1164,37 @@ def calc_trade_payment2score(sender,user_openid,*args,**kwargs):
 
 
 weixin_verifymobile_signal.connect(calc_trade_payment2score,sender=WeiXinUser)
+
+@transaction.commit_manually
+def survey_confirm_score(sender,survey_id,*args,**kwargs):
+    """手机验证后，将订单金额转换成积分"""
+    transaction.commit()
+    try:
+        survey = Survey.objects.get(id=survey_id)
+        user_openid = survey.wx_user.openid
+        survey_score = 5
+        WeixinScoreItem.objects.create(user_openid=user_openid,
+                                       score=survey_score,
+                                       score_type=WeixinScoreItem.ACTIVE,
+                                       expired_at=datetime.datetime.now()+datetime.timedelta(days=365),
+                                       memo=u"调查问卷(%s)获得积分。"%(survey_id))
+        
+        wx_user_score,state = WeixinUserScore.objects.get_or_create(user_openid=user_openid)
+        wx_user_score.user_score  = models.F('user_score') + survey_score
+        wx_user_score.save()
+        
+    except Survey.DoesNotExist:
+        transaction.rollback()
+    except Exception,exc:
+        transaction.rollback()
+        
+        import logging
+        logger = logging.getLogger("celery.handler")
+        logger.error(u'返现积分更新失败:%s'%exc.message,exc_info=True)
+    else:
+        transaction.commit()
+
+
+weixin_surveyconfirm_signal.connect(survey_confirm_score,sender=Survey)
+
+
