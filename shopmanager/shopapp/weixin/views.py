@@ -695,7 +695,7 @@ class FreeSampleView(View):
             
         end = END_TIME
         now = datetime.datetime.now()
-        diff = end - now
+        diff = START_TIME - now
         days_left = diff.days
         hours_left = diff.seconds / 3600
 
@@ -730,7 +730,7 @@ class FreeSampleView(View):
         today_orders = SampleOrder.objects.filter(created__gt=datetime.datetime(2014,10,now.day)).count()
         html = 'weixin/freesamples1.html'
         response = render_to_response(html, 
-                                      {"samples":samples, 
+                                      {"samples":samples, "days_left":days_left, "hours_left":hours_left,
                                        "user_isvalid":user_isvalid, 
                                        "order_exists":order_exists, 
                                        "openid":user_openid,
@@ -1088,12 +1088,16 @@ class SurveyView(View):
             if wx_user.surveys.all().count() > 0:
                 exist = True
             
-        total = Survey.objects.all().count()
-        choice1 = Survey.objects.filter(selection=1).count()
-        ratio1 = choice1 * 100.0/ total
-        ratio2 = 100 - ratio1
-        ratio1 = "%.2f" % ratio1
-        ratio2 = "%.2f" % ratio2
+        total = Survey.objects.filter(selection>2).filter(selection<4).count()
+        choice1 = Survey.objects.filter(selection=3).count()
+        
+        ratio1,ratio2 = 0,0
+        if total > 0:
+            ratio1 = choice1 * 100.0/ total
+            ratio2 = 100 - ratio1
+            ratio1 = "%.2f" % ratio1
+            ratio2 = "%.2f" % ratio2
+            
         response = render_to_response('weixin/survey.html', 
                                       {"exist":exist, "total":total, "ratio1":ratio1, "ratio2":ratio2},
                                       context_instance=RequestContext(request))
@@ -1108,10 +1112,11 @@ class SurveyView(View):
         wx_users = WeiXinUser.objects.filter(openid=user_openid)
         if wx_users.count() > 0:
             wx_user = wx_users[0]
-            if wx_user.surveys.all().count() < 1:
+            if wx_user.surveys.filter(selection>2).count() < 1:
                 survey = Survey.objects.create(selection=selection,wx_user=wx_user)
                 
                 weixin_surveyconfirm_signal.send(sender=Survey,survey_id=survey.id)
+
                 response = {"code":"ok"}
                 return HttpResponse(json.dumps(response),mimetype='application/json')
 

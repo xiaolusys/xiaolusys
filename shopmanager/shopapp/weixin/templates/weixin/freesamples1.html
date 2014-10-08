@@ -10,9 +10,10 @@
 <div class="panel panel-default" style="margin-top:5px"> 
   <div class="panel-heading" style="color:orange">十月活动公告</div>
   <div class="panel-body">
-    <p>第一阶段：10月08日 - 10月16日： 免单大礼活动（1000份免单名额）。第二阶段积分换购活动开始投票，投票即送积分。</p>
-    <p>第二阶段：10月17日 - 10月21日： 积分换购。</p>
-    <p></p>
+    <p>距离活动开始，还剩<font style="font-size:20px;color:red">{{ days_left }}</font>天<font style="font-size:20px;color:red">{{ hours_left }}</font>小时！</p>
+    <p><font style="color:orange">第一阶段 (10月08日 - 10月16日)：</font> 免单大礼活动（1000份免单名额）。第二阶段积分换购活动开始投票，投票即送积分。</p>
+    <p><font style="color:orange">第二阶段 (10月17日 - 10月21日)：</font> 积分换购。</p>
+    <p style="font-size:20px"><a href="https://open.weixin.qq.com/connect/oauth2/authorize?appid=wxc2848fa1e1aa94b5&redirect_uri=http://weixin.huyi.so/weixin/survey/&response_type=code&scope=snsapi_base&state=135#wechat_redirect">点击投票赢积分>></a></p>
   </div>
 </div>
 
@@ -27,7 +28,7 @@
       <div class="row">
 	<div class="col-xs-12" style="text-align:center">
 	  <a href="{{ sample.sale_url }}" class="thumbnail">
-	    <img src="https://mmbiz.qlogo.cn/mmbiz/yMhOQPTKhLuBe3lKsVRy6Kg6RMySy2lZ8xiaJQoY9RXEkPpmKtDZCvHuAicJsCmcQ3C9DGUYUC2wsS1iahzbFicVhw/0" alt="...">
+	    <img src="{{ sample.pic_url }}" alt="...">
 	  </a>
 
 	  {% if today_orders > 1000 %}
