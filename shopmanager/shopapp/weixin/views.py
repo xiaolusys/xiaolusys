@@ -695,7 +695,7 @@ class FreeSampleView(View):
             
         end = END_TIME
         now = datetime.datetime.now()
-        diff = START_TIME - now
+        diff = end - now
         days_left = diff.days
         hours_left = diff.seconds / 3600
 
@@ -1085,7 +1085,7 @@ class SurveyView(View):
         wx_users = WeiXinUser.objects.filter(openid=user_openid)
         if wx_users.count() > 0:
             wx_user = wx_users[0]
-            if wx_user.surveys.filter(selection>2).count() > 0:
+            if wx_user.surveys.all().filter(selection>2).count() > 0:
                 exist = True
             
         total = Survey.objects.filter(selection>2).filter(selection<4).count()
