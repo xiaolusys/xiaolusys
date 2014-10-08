@@ -360,8 +360,8 @@ class BabyInfoView(View):
         code = content.get('code')
         from_page = content.get('from')
         
-        #openid = get_user_openid(request, code)
-        openid = 'oMt59uJJBoNRC7Fdv1b5XiOAngdU'
+        openid = get_user_openid(request, code)
+
         if openid == None or openid == "None":
             redirect_url = "https://open.weixin.qq.com/connect/oauth2/authorize?appid=wxc2848fa1e1aa94b5&redirect_uri=http://weixin.huyi.so/weixin/babyinfo/&response_type=code&scope=snsapi_base&state=135#wechat_redirect"
             return redirect(redirect_url)
