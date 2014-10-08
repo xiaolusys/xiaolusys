@@ -39,6 +39,7 @@
       <div class="row">
 	<div class="col-xs-12" style="text-align:center">
           {% if fcode_pass %}
+          <p style="color:red">优尼美妈忠粉，无需F码！</p>
 	  <input type="hidden" {% if vipcode %} value="{{ vipcode }}" {% endif %} id="id_vipcode" status="1" name="vipcode"/>
 	  <input type="hidden" name="fcode_pass" value="1">
 	  {% else %}
