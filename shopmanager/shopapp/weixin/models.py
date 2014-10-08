@@ -887,8 +887,8 @@ from shopapp.signals import (confirm_trade_signal,
                              weixin_refund_signal,
                              weixin_readclick_signal,
                              weixin_verifymobile_signal,
-                             weixin_surveyconfirm_signal)
-
+                             weixin_surveyconfirm_signal,
+                             weixin_sampleconfirm_signal)
 
 @transaction.commit_manually
 def click2score(sender, click_score_record_id, *args, **kwargs):
@@ -915,7 +915,34 @@ def click2score(sender, click_score_record_id, *args, **kwargs):
     else:
         transaction.commit()
     
-weixin_readclick_signal.connect(click2score, sender=WeixinClickScoreRecord)
+weixin_sampleconfirm_signal.connect(click2score, sender=WeixinClickScoreRecord)
+
+@transaction.commit_manually
+def sample_confirm_answer2score(sender, sample_order_id, *args, **kwargs):
+    transaction.commit()
+    try:
+        record = WeixinClickScoreRecord.objects.get(pk=click_score_record_id)
+        user_openid = record.user_openid
+        score = record.score
+        click_score_id = record.click_score_id
+        WeixinScoreItem.objects.create(user_openid=user_openid,
+                                       score=score,
+                                       score_type=WeixinScoreItem.READCLICK,
+                                       expired_at=datetime.datetime.now()+datetime.timedelta(days=365),
+                                        memo=u"阅读点击(%d)。"%click_score_id)
+        wx_user_score,state = WeixinUserScore.objects.get_or_create(user_openid=user_openid)
+        wx_user_score.user_score  = models.F('user_score') + score
+        wx_user_score.save()
+    except Exception,exc:
+        transaction.rollback()
+        
+        import logging
+        logger = logging.getLogger("celery.handler")
+        logger.error(u'阅读点击积分转换失败:%s'%exc.message,exc_info=True)
+    else:
+        transaction.commit()
+    
+weixin_readclick_signal.connect(sample_confirm_answer2score, sender=SampleOrder)
 
 
 #订单确认收货增加积分
@@ -1190,7 +1217,7 @@ def survey_confirm_score(sender,survey_id,*args,**kwargs):
         
         import logging
         logger = logging.getLogger("celery.handler")
-        logger.error(u'返现积分更新失败:%s'%exc.message,exc_info=True)
+        logger.error(u'问卷积分更新失败:%s'%exc.message,exc_info=True)
     else:
         transaction.commit()
 
