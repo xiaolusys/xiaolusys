@@ -1084,7 +1084,7 @@ class SurveyView(View):
         wx_users = WeiXinUser.objects.filter(openid=user_openid)
         if wx_users.count() > 0:
             wx_user = wx_users[0]
-            if wx_user.surveys.all().count() > 0:
+            if wx_user.surveys.filter(selection>2).count() > 0:
                 exist = True
             
         total = Survey.objects.filter(selection>2).filter(selection<4).count()
