@@ -838,15 +838,20 @@ class SampleConfirmView(View):
         if order.count() > 0:
             return redirect(redirect_url)
         
-        vipcode = VipCode.objects.get(code=vipcode)
+        vipcodes = VipCode.objects.filter(code=vipcode)
+        if vipcodes.count() < 0:
+            response = render_to_response('weixin/nofcode.html', 
+                                          context_instance=RequestContext(request))
+            return response
         
+        code = vipcodes[0].code
         sample = FreeSample.objects.get(pk=sample_pk)
-        sample.sample_orders.create(sku_code=sku_code,user_openid=user_openid,vipcode=vipcode.code,problem_score=score)
+        sample.sample_orders.create(sku_code=sku_code,user_openid=user_openid,vipcode=code,problem_score=score)
         
-        WeiXinUser.objects.createReferalShip(user_openid,vipcode.owner_openid.openid)
+        WeiXinUser.objects.createReferalShip(user_openid,vipcodes[0].owner_openid.openid)
         
         if fcode_pass == "0":
-            VipCode.objects.filter(code=vipcode.code).update(usage_count=F('usage_count')+1)
+            VipCode.objects.filter(code=code).update(usage_count=F('usage_count')+1)
 
         #VipCode.objects.genVipCodeByWXUser(user)
         
@@ -1263,7 +1268,6 @@ class ScoreMenuView(View):
                                       context_instance=RequestContext(request))
         response.set_cookie("openid",user_openid)        
         return response
-
         
 class TestView(View):
     def get(self, request):
