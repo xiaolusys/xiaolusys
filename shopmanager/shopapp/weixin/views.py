@@ -1088,7 +1088,7 @@ class SurveyView(View):
             if wx_user.surveys.filter(selection__gt=2).count() > 0:
                 exist = True
             
-        total = Survey.objects.filter(selection__gt=2).filter(selection__lt=4).count()
+        total = Survey.objects.filter(selection__gt=2).filter(selection__lt=5).count()
         choice1 = Survey.objects.filter(selection=3).count()
         
         ratio1,ratio2 = 0,0
