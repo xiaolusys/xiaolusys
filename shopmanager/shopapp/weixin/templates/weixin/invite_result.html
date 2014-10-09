@@ -5,17 +5,28 @@
 {% block container %}
 
 <div class="container-fluid">
-  
+
+  <div class="panel panel-default" style="margin-top:5px">
+    <div class="panel-heading" style="color:orange">公告</div>
+    <div class="panel-body">
+      <p style="color:orange">十月免单活动，第一批中奖名单出炉，共{{ batch_one }}名，<a href="">查看中奖列表>></a></p>
+    </div>
+  </div>
+
   <div class="panel panel-default" style="margin-top:5px">
     <div class="panel-heading" style="color:orange">10月活动审核状态</div>
     <div class="panel-body">
       {% if has_order %}
-        {% if order_status > 10 %}
+        {% if order_status > 30 %}
         <p>亲，恭喜您，你的试用申请已<font style="color:red">审核通过</font>啦!</p>
         <p>F码<font style="color:red">{{ vipcode }}</font>已被使用<font style="color:red;font-size:20px">{{ usage_count }}</font>次!</p>
-        <p><a href="/weixin/payguide/">请仔细阅读兑奖流程说明 >></a></p>
-        <p>阅读完以上说明之后，请扫描下面二维码加入优尼世界服务qq群（把二维码图片保存到手机，微信扫一扫，选择右上角“相册”）：</p>
-        <p><a href="" class="thumbnail"><img src="https://mmbiz.qlogo.cn/mmbiz/yMhOQPTKhLsCsdrD3olCziclw9tokRj8dZ2U3Ocaoj1Du1dWtfrE84dSGk0jI7vHxwXafDib50JXxRrR02oL80Jg/0"></a></p>
+
+
+        <p>请扫描下面二维码加入优尼世界服务qq群（把二维码图片保存到手机，微信扫一扫，选择右上角“相册”）：</p>
+        <p><a href="" class="thumbnail"><img src="
+
+
+https://mmbiz.qlogo.cn/mmbiz/yMhOQPTKhLsCsdrD3olCziclw9tokRj8dZ2U3Ocaoj1Du1dWtfrE84dSGk0jI7vHxwXafDib50JXxRrR02oL80Jg/0"></a></p>
         <p style="color:red">申请进群时，请提供您的F码！若不能进群，请联系微信客服！</p>
         {% else %}
           {% if order_status == 9 %}
