@@ -899,7 +899,7 @@ class ResultView(View):
             has_order = True
             order_status = order[0].status
             
-        batch_one = SampleOrder.objects.filter(status__gt=30).filter(status__lt=32)
+        batch_one = SampleOrder.objects.filter(status__gt=30).filter(status__lt=32).count()
         usage_count = 0
         users = WeiXinUser.objects.filter(openid=user_openid)
         vipcode = 0
