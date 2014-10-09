@@ -933,11 +933,15 @@ class FinalListView(View):
             start_time = datetime.datetime(2014,8,1)
             end_time = datetime.datetime(2014,8,12)
             order_list = SampleOrder.objects.filter(status__gt=0,status__lt=7,created__lt=end_time,created__gt=start_time)
-        else:
+        elif month == 9:
             start_time = datetime.datetime(2014,8,28)
             end_time = datetime.datetime(2014,9,7)
             order_list = SampleOrder.objects.filter(status__gt=10,status__lt=22,created__gt=start_time)
-                
+        elif month == 10:
+            start_time = datetime.datetime(2014,10,8)
+            end_time = datetime.datetime(2014,10,17)
+            order_list = SampleOrder.objects.filter(status__gt=30,status__lt=32,created__gt=start_time)
+
         num_per_page = 20 # Show 20 contacts per page
         paginator = Paginator(order_list, num_per_page) 
 
