@@ -929,7 +929,6 @@ class FinalListView(View):
         
         order_list = None
 
-        logger.error(month)        
         if month == 8:
             start_time = datetime.datetime(2014,8,1)
             end_time = datetime.datetime(2014,8,12)
@@ -939,7 +938,6 @@ class FinalListView(View):
             end_time = datetime.datetime(2014,9,7)
             order_list = SampleOrder.objects.filter(status__gt=10,status__lt=22,created__gt=start_time)
         elif month == 10:
-
             start_time = datetime.datetime(2014,10,8)
             end_time = datetime.datetime(2014,10,17)
             order_list = SampleOrder.objects.filter(status__gt=30,status__lt=32,created__gt=start_time)
