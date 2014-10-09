@@ -841,11 +841,13 @@ class SampleConfirmView(View):
         vipcodes = VipCode.objects.filter(code=vipcode)
         sample = FreeSample.objects.get(pk=sample_pk)
         if vipcodes.count() > 0:
+            
             code = vipcodes[0].code
+            referal_user_openid = vipcodes[0].owner_openid.openid
             sample.sample_orders.create(sku_code=sku_code,user_openid=user_openid,vipcode=code,problem_score=score)
-            WeiXinUser.objects.createReferalShip(user_openid,vipcodes[0].owner_openid.openid)
+            WeiXinUser.objects.createReferalShip(user_openid,referal_user_openid)
         
-            if fcode_pass == "0":
+            if fcode_pass == "0" and referal_user_openid != user_openid:
                 VipCode.objects.filter(code=code).update(usage_count=F('usage_count')+1)
         else:
             sample.sample_orders.create(sku_code=sku_code,user_openid=user_openid,problem_score=score)

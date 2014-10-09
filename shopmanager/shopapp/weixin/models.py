@@ -921,24 +921,23 @@ weixin_sampleconfirm_signal.connect(click2score, sender=WeixinClickScoreRecord)
 def sample_confirm_answer2score(sender, sample_order_id, *args, **kwargs):
     transaction.commit()
     try:
-        record = WeixinClickScoreRecord.objects.get(pk=click_score_record_id)
-        user_openid = record.user_openid
-        score = record.score
-        click_score_id = record.click_score_id
+        sample_order = SampleOrder.objects.get(pk=sample_order_id)
+        user_openid  = sample_order.user_openid
+        sample_score = sample_order.problem_score
         WeixinScoreItem.objects.create(user_openid=user_openid,
-                                       score=score,
-                                       score_type=WeixinScoreItem.READCLICK,
+                                       score=sample_score,
+                                       score_type=WeixinScoreItem.ACTIVE,
                                        expired_at=datetime.datetime.now()+datetime.timedelta(days=365),
-                                        memo=u"阅读点击(%d)。"%click_score_id)
+                                       memo=u"试用问答(%d)获得积分。"%sample_order.id)
         wx_user_score,state = WeixinUserScore.objects.get_or_create(user_openid=user_openid)
-        wx_user_score.user_score  = models.F('user_score') + score
+        wx_user_score.user_score  = models.F('user_score') + sample_score
         wx_user_score.save()
     except Exception,exc:
         transaction.rollback()
         
         import logging
         logger = logging.getLogger("celery.handler")
-        logger.error(u'阅读点击积分转换失败:%s'%exc.message,exc_info=True)
+        logger.error(u'试用问答积分转换失败:%s'%exc.message,exc_info=True)
     else:
         transaction.commit()
     
@@ -1047,20 +1046,18 @@ def decrease_sample_score(sender,refund_id,*args,**kwargs):
     
     transaction.commit()
     try:
-        refund = Refund.objects.get(id=refund_id,refund_type__in=(1,3),refund_status=3)
+        refund = Refund.objects.get(id=refund_id,refund_type=1,refund_status=3)
         
-        is_award     = refund.refund_type == 1
-        sample_score = is_award and 20 or 10 
-        
+        sample_score = 20  
         wx_user_score,state = WeixinUserScore.objects.get_or_create(
                                         user_openid=refund.user_openid)
         
         dec_score = 0 - min(sample_score,wx_user_score.user_score)
         WeixinScoreItem.objects.create(user_openid=refund.user_openid,
                                        score=dec_score,
-                                       score_type=(WeixinScoreItem.CONSUME,WeixinScoreItem.AWARD)[is_award and 1 or 0],
+                                       score_type=WeixinScoreItem.AWARD,
                                        expired_at=datetime.datetime.now(),
-                                       memo=u"%s订单(%s)审核通过扣除积分。"%((u'返现',u'试用')[is_award and 1 or 0],refund.trade_id))
+                                       memo=u"试用订单(%s)审核通过扣除积分。"%(refund.trade_id))
         
         wx_user_score.user_score  = models.F('user_score') + dec_score
         wx_user_score.save()
@@ -1085,8 +1082,9 @@ def decrease_refund_trade_score(sender,refund_id,*args,**kwargs):
     
     transaction.commit()
     try:
-        refund = Refund.objects.get(id=refund_id,refund_type=1,refund_status=3)
-
+        refund = Refund.objects.get(id=refund_id,refund_type__in=(1,3),refund_status=3)
+        
+        is_award     = refund.refund_type == 1 
         refund_score = int(round(refund.pay_amount / 1000.0))
         
         wx_user_score,state = WeixinUserScore.objects.get_or_create(
@@ -1095,9 +1093,9 @@ def decrease_refund_trade_score(sender,refund_id,*args,**kwargs):
         dec_score = 0 - min(refund_score,wx_user_score.user_score)
         WeixinScoreItem.objects.create(user_openid=refund.user_openid,
                                        score=dec_score,
-                                       score_type=WeixinScoreItem.CONSUME,
+                                       score_type=(WeixinScoreItem.CONSUME,WeixinScoreItem.AWARD)[is_award and 1 or 0],
                                        expired_at=datetime.datetime.now(),
-                                       memo=u"订单(%s)返现扣除积分。"%(refund.trade_id))
+                                       memo=u"%s返现(%s)扣除积分。"%((u'积分',u'试用')[is_award and 1 or 0],refund.trade_id))
         
         wx_user_score.user_score  = models.F('user_score') + dec_score
         wx_user_score.save()
@@ -1109,7 +1107,7 @@ def decrease_refund_trade_score(sender,refund_id,*args,**kwargs):
         
         import logging
         logger = logging.getLogger("celery.handler")
-        logger.error(u'试用积分更新失败:%s'%exc.message,exc_info=True)
+        logger.error(u'试用（返现）积分更新失败:%s'%exc.message,exc_info=True)
     else:
         transaction.commit()
 
