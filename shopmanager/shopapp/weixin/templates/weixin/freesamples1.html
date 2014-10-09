@@ -138,11 +138,11 @@
 
     var msg = $("#id_msg");
 
-    var d = new Date();
-    if (d.getHours() < 18) {
-      msg[0].innerHTML = "亲，活动将于18：00开始哦！";
-      return false;
-    }
+    //var d = new Date();
+    //if (d.getHours() < 18) {
+    //  msg[0].innerHTML = "亲，活动将于18：00开始哦！";
+    //  return false;
+    //}
     var subscribe = $("#id_subscribe").val();
     if (subscribe != "1") {
       msg[0].innerHTML = "亲，您还没关注咱呢！请点击右上角[...]，选择[查看公众号]，点击[关注]。";
