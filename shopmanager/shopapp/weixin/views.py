@@ -899,37 +899,20 @@ class ResultView(View):
             has_order = True
             order_status = order[0].status
             
-        sample_choose  = None
-        sample_chooses = SampleChoose.objects.filter(user_openid=user_openid)
-        if sample_chooses.count() > 0:
-            sample_choose = sample_chooses[0]
-        
+        batch_one = SampleOrder.objects.filter(status__gt=30).filter(status__lt=32)
         usage_count = 0
         users = WeiXinUser.objects.filter(openid=user_openid)
-        pk = 1
         vipcode = 0
         if users.count() > 0:
-            pk = users[0].pk
             if users[0].vipcodes.count() > 0:
                 code_obj = users[0].vipcodes.all()[0]
                 usage_count = code_obj.usage_count
                 vipcode = code_obj.code
 
-        score = 0
-        user_scores = WeixinUserScore.objects.filter(user_openid=user_openid)
-        if user_scores.count() > 0:
-            score = user_scores[0].user_score
-
-        passed = False
-        score_buys = WeixinScoreBuy.objects.filter(user_openid=user_openid)
-        if score_buys.count() > 0:
-            passed = True
-            
         response = render_to_response('weixin/invite_result.html',
                                       {'has_order':has_order, 'order_status':order_status, 
-                                       'vipcode':vipcode, 'usage_count':usage_count, 
-                                       'score':score, 'pk':pk ,'sample_choose':sample_choose,
-                                       'passed':passed},
+                                       'vipcode':vipcode, 'usage_count':usage_count,
+                                       'batch_one':batch_one},
                                       context_instance=RequestContext(request))
         response.set_cookie("openid",user_openid)        
         return response
