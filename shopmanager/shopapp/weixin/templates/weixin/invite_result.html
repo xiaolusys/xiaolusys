@@ -5,44 +5,36 @@
 {% block container %}
 
 <div class="container-fluid">
-
-  <div class="panel panel-default" style="margin-top:5px">
-    <div class="panel-heading" style="color:orange">公告</div>
-    <div class="panel-body">
-      <p>亲，优尼世界 十月大礼 活动将于10月8日下午6：00开始，请亲们持续关注哦！</p>
-      <p>大奖名额：1000名</p>
-      <p>活动时间：10月8日 - 10月16日</p>
-      <p>开奖时间：10月17日10点前公布所有名单</p>
-    </div>
-  </div>
   
   <div class="panel panel-default" style="margin-top:5px">
     <div class="panel-heading" style="color:orange">10月活动审核状态</div>
     <div class="panel-body">
       {% if has_order %}
-      {% if order_status > 10 %}
-      <p>亲，恭喜您，你的试用申请已<font style="color:red">审核通过</font>啦!</p>
-      <p>F码<font style="color:red">{{ vipcode }}</font>已被使用<font style="color:red;font-size:20px">{{ usage_count }}</font>次!</p>
-      <p><a href="/weixin/payguide/">请仔细阅读兑奖流程说明 >></a></p>
-      <p>阅读完以上说明之后，请扫描下面二维码加入优尼世界服务qq群（把二维码图片保存到手机，微信扫一扫，选择右上角“相册”）：</p>
-      <p><a href="" class="thumbnail"><img src="https://mmbiz.qlogo.cn/mmbiz/yMhOQPTKhLsCsdrD3olCziclw9tokRj8dZ2U3Ocaoj1Du1dWtfrE84dSGk0jI7vHxwXafDib50JXxRrR02oL80Jg/0"></a></p>
-      <p style="color:red">申请进群时，请提供您的F码！若不能进群，请联系微信客服！</p>
+        {% if order_status > 10 %}
+        <p>亲，恭喜您，你的试用申请已<font style="color:red">审核通过</font>啦!</p>
+        <p>F码<font style="color:red">{{ vipcode }}</font>已被使用<font style="color:red;font-size:20px">{{ usage_count }}</font>次!</p>
+        <p><a href="/weixin/payguide/">请仔细阅读兑奖流程说明 >></a></p>
+        <p>阅读完以上说明之后，请扫描下面二维码加入优尼世界服务qq群（把二维码图片保存到手机，微信扫一扫，选择右上角“相册”）：</p>
+        <p><a href="" class="thumbnail"><img src="https://mmbiz.qlogo.cn/mmbiz/yMhOQPTKhLsCsdrD3olCziclw9tokRj8dZ2U3Ocaoj1Du1dWtfrE84dSGk0jI7vHxwXafDib50JXxRrR02oL80Jg/0"></a></p>
+        <p style="color:red">申请进群时，请提供您的F码！若不能进群，请联系微信客服！</p>
+        {% else %}
+          {% if order_status == 9 %}
+          <p>亲，您的F码<font style="color:red">{{ vipcode }}</font>已被使用<font style="color:red;font-size:20px">{{ usage_count }}</font>次，奖励微信粉丝专属优惠券：</p>
+          <p>1) 时尚婴幼儿斗篷<font style="color:red;">限量30元</font>优惠券。到天猫【优尼世界旗舰店】拍下，付款<font style="color:red;font-size:20px">立减30元！截至9月30日！</font></p>
+          <p>微信扫一扫下面二维码领取（把二维码图片保存到手机，微信扫一扫，选择右上角“相册”）：</p>
+          <a href="#" class="thumbnail">
+	    <img src="https://mmbiz.qlogo.cn/mmbiz/yMhOQPTKhLuWjC2yA8fC0Dh8VRu28gdCSUItxZ3EYr8bjIV6f4WwhgAKg83kLQeoobLDbZS0RHTNUCBrChQyicA/0" alt="...">
+          </a>
+          <p style="color:red">关于优惠券使用事宜，您也可以咨询我们的天猫客服、微信客服。</p>
+          {% else %}
+          <p>亲，您的F码<font style="color:red">{{ vipcode }}</font>已被使用<font style="color:red;font-size:20px">{{ usage_count }}</font>次!</p>
+      <!--
+	  <p>感谢您的参与，请关注优尼世界后续活动，赢取大奖哦！</p>
+	  -->
+          {% endif %}
+        {% endif %}
       {% else %}
-      {% if order_status == 9 %}
-      <p>亲，您的F码<font style="color:red">{{ vipcode }}</font>已被使用<font style="color:red;font-size:20px">{{ usage_count }}</font>次，奖励微信粉丝专属优惠券：</p>
-      <p>1) 时尚婴幼儿斗篷<font style="color:red;">限量30元</font>优惠券。到天猫【优尼世界旗舰店】拍下，付款<font style="color:red;font-size:20px">立减30元！截至9月30日！</font></p>
-      <p>微信扫一扫下面二维码领取（把二维码图片保存到手机，微信扫一扫，选择右上角“相册”）：</p>
-      <a href="#" class="thumbnail">
-	<img src="https://mmbiz.qlogo.cn/mmbiz/yMhOQPTKhLuWjC2yA8fC0Dh8VRu28gdCSUItxZ3EYr8bjIV6f4WwhgAKg83kLQeoobLDbZS0RHTNUCBrChQyicA/0" alt="...">
-      </a>
-      <p style="color:red">关于优惠券使用事宜，您也可以咨询我们的天猫客服、微信客服。</p>
-      {% else %}
-      <p>亲，您的F码<font style="color:red">{{ vipcode }}</font>已被使用<font style="color:red;font-size:20px">{{ usage_count }}</font>次!</p>
-      <p>感谢您的参与，请关注优尼世界后续活动，赢取大奖哦！</p>
-      {% endif %}
-      {% endif %}
-      {% else %}
-      <p style="color:#029fd6">亲，10月活动将于10月8日下午6：00开始，请持续关注！</p>
+      <p style="color:#029fd6">亲，10月活动已经开始，快去申请吧！</p>
       {% endif %}
       <h5 style="color:#029fd6">申请攻略：</h5>
       <p style="color:red">1. 记住，一定要让妈妈好友闺密使用你的F码！她们申请到了会感谢您！</p>
