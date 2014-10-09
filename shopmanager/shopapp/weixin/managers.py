@@ -69,7 +69,11 @@ class WeixinUserManager(models.Manager):
     
     def createReferalShip(self,referal_openid,referal_from_openid):
         
+        if referal_openid == referal_from_openid:
+            return False
+        
         wx_user = self.get(openid=referal_openid)
+        
         if wx_user.referal_from_openid:
             return wx_user.referal_from_openid == referal_from_openid
         
