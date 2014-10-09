@@ -915,7 +915,7 @@ def click2score(sender, click_score_record_id, *args, **kwargs):
     else:
         transaction.commit()
     
-weixin_sampleconfirm_signal.connect(click2score, sender=WeixinClickScoreRecord)
+weixin_readclick_signal.connect(click2score, sender=WeixinClickScoreRecord)
 
 @transaction.commit_manually
 def sample_confirm_answer2score(sender, sample_order_id, *args, **kwargs):
@@ -941,7 +941,7 @@ def sample_confirm_answer2score(sender, sample_order_id, *args, **kwargs):
     else:
         transaction.commit()
     
-weixin_readclick_signal.connect(sample_confirm_answer2score, sender=SampleOrder)
+weixin_sampleconfirm_signal.connect(sample_confirm_answer2score, sender=SampleOrder)
 
 
 #订单确认收货增加积分
