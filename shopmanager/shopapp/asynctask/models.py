@@ -17,7 +17,7 @@ TAOBAO_ASYNC_TASK_STATUS =(
     (TASK_INVALID,'任务已作废'),
 )
 
-class TaobaoAsyncTask(models.Model):
+class TaobaoAsyncTaskModel(models.Model):
     #淘宝异步任务处理MODEL
     task_id  = models.AutoField(primary_key=True,verbose_name=u'任务ID')
     task = models.TextField(max_length=256,blank=True,verbose_name=u'任务标题')
@@ -41,10 +41,10 @@ class TaobaoAsyncTask(models.Model):
         verbose_name_plural = u'淘宝异步任务列表'
 
     def __unicode__(self):
-        return u'<TaobaoAsyncTask:%d,%s>'%(self.task_id,self.task)
+        return u'<TaobaoAsyncTaskModel:%d,%s>'%(self.task_id,self.task)
     
 
-class PrintAsyncTask(models.Model):
+class PrintAsyncTaskModel(models.Model):
     
     TASK_CREATED = 0
     TASK_SUCCESS = 1
@@ -65,7 +65,7 @@ class PrintAsyncTask(models.Model):
     task_type  = models.IntegerField(choices=PRINT_TASK_STATUS,default=TASK_CREATED,verbose_name=u'任务类型')
     
     operator = models.CharField(max_length=16,db_index=True,blank=True,verbose_name=u'操作员')
-    file_path_to = models.TextField(max_length=256,blank=True,verbose_name=u'结果存放文件路径')
+    file_path_to = models.TextField(max_length=256,blank=True,verbose_name=u'结果存放路径')
     
     created   = models.DateField(auto_now=True,verbose_name=u'创建日期')
     modified = models.DateField(auto_now_add=True,verbose_name=u'修改日期')

@@ -106,9 +106,9 @@ END_TIME = datetime.datetime(2014,10,16,23,59,59)
 
 def get_user_openid(request, code):
     
+    cookie_openid = request.COOKIES.get('openid')
     if not code :
-        openid = request.COOKIES.get('openid')
-        return openid 
+        return cookie_openid 
     
     appid = settings.WEIXIN_APPID
     secret = settings.WEIXIN_SECRET
@@ -116,11 +116,13 @@ def get_user_openid(request, code):
     get_openid_url = url % (appid, secret, code)
     r = urlopen(get_openid_url).read()
     r = json.loads(r)
-
+    
     if r.has_key("errcode"):
-        openid = request.COOKIES.get('openid')
-        return openid 
-
+        return cookie_openid 
+    
+    if (cookie_openid and cookie_openid != 'None' and r.get('openid') != cookie_openid):
+        raise Exception(u'COOKIE OPENID与授权OPENID码不一致')
+    
     return r.get('openid')
 
 
@@ -680,8 +682,8 @@ class FreeSampleView(View):
     def get(self, request):
         content = request.REQUEST
         code = content.get('code')
+        
         user_openid = get_user_openid(request, code)
-
         user_isvalid = False
         wx_user = None
         wx_users = WeiXinUser.objects.filter(openid=user_openid)
