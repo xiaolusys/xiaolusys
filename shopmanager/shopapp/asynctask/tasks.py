@@ -18,8 +18,14 @@ from celery.registry import tasks
 from celery.app.task import BaseTask
 from celery.signals import task_prerun
 from shopback.base.exception import NotImplement
-from shopapp.asynctask.models import TaobaoAsyncTask,TASK_ASYNCOK,TASK_INVALID,TASK_CREATED,TASK_SUCCESS,\
-    TASK_ASYNCCOMPLETE,TASK_DOWNLOAD
+from shopapp.asynctask.models import (TaobaoAsyncTaskModel,
+                                      PrintAsyncTaskModel,
+                                      TASK_ASYNCOK,
+                                      TASK_INVALID,
+                                      TASK_CREATED,
+                                      TASK_SUCCESS,
+                                      TASK_ASYNCCOMPLETE,
+                                      TASK_DOWNLOAD)
 from shopback.monitor.models import SystemConfig
 from shopback.categorys.models import Category
 from shopback.orders.models import Trade
@@ -42,7 +48,7 @@ def full_class_name(ins):
 @task()
 def taobaoAsyncHandleTask():
     """ 淘宝异步任务处理核心类 """
-    asynctasks = TaobaoAsyncTask.objects.filter(status__in=(TASK_ASYNCOK,TASK_ASYNCCOMPLETE,TASK_DOWNLOAD))
+    asynctasks = TaobaoAsyncTaskModel.objects.filter(status__in=(TASK_ASYNCOK,TASK_ASYNCCOMPLETE,TASK_DOWNLOAD))
     for asynctask in asynctasks:
         task_name = asynctask.task
 
@@ -52,17 +58,17 @@ def taobaoAsyncHandleTask():
         task_handler = tasks[task_name]
         if asynctask.status == TASK_ASYNCOK:
             task_handler.is_taobao_complete(asynctask.task_id)
-            asynctask = TaobaoAsyncTask.objects.get(task_id=asynctask.task_id)
+            asynctask = TaobaoAsyncTaskModel.objects.get(task_id=asynctask.task_id)
             
         if asynctask.status == TASK_ASYNCCOMPLETE:
             task_handler.download_result_file(asynctask.task_id)
             
-            asynctask = TaobaoAsyncTask.objects.get(task_id=asynctask.task_id)
+            asynctask = TaobaoAsyncTaskModel.objects.get(task_id=asynctask.task_id)
                 
         if asynctask.status == TASK_DOWNLOAD:
             handlerresult = task_handler.handle_result_file(asynctask.task_id)
             if handlerresult:
-                TaobaoAsyncTask.objects.filter(task_id=asynctask.task_id).update(status=TASK_SUCCESS)
+                TaobaoAsyncTaskModel.objects.filter(task_id=asynctask.task_id).update(status=TASK_SUCCESS)
 
 
 
@@ -89,7 +95,7 @@ class TaobaoAsyncBaseTask(Task):
     def after_return(self,status,result_dict,*args,**kwargs):
 
         try:
-            async_task = TaobaoAsyncTask.objects.create(task=full_class_name(self)) 
+            async_task = TaobaoAsyncTaskModel.objects.create(task=full_class_name(self)) 
         except Exception,exc:
             raise exc
         else:
@@ -98,13 +104,13 @@ class TaobaoAsyncBaseTask(Task):
             result_json = json.dumps(result_dict['result']) if result_dict['success'] else result_dict['result']
             top_task_id = result_dict.get('top_task_id','')
             params      = json.dumps(result_dict.get('params',{}))
-            TaobaoAsyncTask.objects.filter(task_id=async_task.task_id)\
+            TaobaoAsyncTaskModel.objects.filter(task_id=async_task.task_id)\
                 .update(user_id=user_id,status=next_status,result=result_json,top_task_id=top_task_id,params=params)
          
          
     def is_taobao_complete(self,task_id): 
         try:
-            async_task = TaobaoAsyncTask.objects.get(task_id=task_id)
+            async_task = TaobaoAsyncTaskModel.objects.get(task_id=task_id)
         except:
             logger.error('the taobao async task(id:%s) is not exist'%task_id)
         else:
@@ -115,13 +121,13 @@ class TaobaoAsyncBaseTask(Task):
             else:
                 task_status = response['topats_result_get_response']['task']['status'] 
                 async_task_status = TASK_STATUS.get(task_status,TASK_INVALID) 
-                TaobaoAsyncTask.objects.filter(task_id=task_id).update(status=async_task_status,result=json.dumps(response))
+                TaobaoAsyncTaskModel.objects.filter(task_id=task_id).update(status=async_task_status,result=json.dumps(response))
     
       
     def download_result_file(self,task_id):
 
         try:
-            async_task = TaobaoAsyncTask.objects.get(task_id=task_id)
+            async_task = TaobaoAsyncTaskModel.objects.get(task_id=task_id)
         except:
             logger.error('the taobao async task(id:%s) is not exist'%task_id)
         else:
@@ -137,7 +143,7 @@ class TaobaoAsyncBaseTask(Task):
                 logger.error('%s'%exc,exc_info=True)
             else:
                 async_status = TASK_DOWNLOAD if success else TASK_ASYNCOK
-                TaobaoAsyncTask.objects.filter(task_id=task_id).update(status=async_status,file_path_to=file_path)
+                TaobaoAsyncTaskModel.objects.filter(task_id=task_id).update(status=async_status,file_path_to=file_path)
     
     
     def handle_result_file(self,task_id,result={}):
@@ -215,7 +221,7 @@ class AsyncCategoryTask(TaobaoAsyncBaseTask):
  
     def handle_result_file(self,task_id):
         try:
-            async_task = TaobaoAsyncTask.objects.get(task_id=task_id)
+            async_task = TaobaoAsyncTaskModel.objects.get(task_id=task_id)
             task_files = os.listdir(async_task.file_path_to) 
             for fname in task_files:
                 fname = os.path.join(async_task.file_path_to,fname)
@@ -271,7 +277,7 @@ class AsyncOrderTask(TaobaoAsyncBaseTask):
  
     def handle_result_file(self,task_id):
         try:
-            async_task = TaobaoAsyncTask.objects.get(task_id=task_id)
+            async_task = TaobaoAsyncTaskModel.objects.get(task_id=task_id)
             task_files = os.listdir(async_task.file_path_to) 
             for fname in task_files:
                 fname = os.path.join(async_task.file_path_to,fname)
@@ -292,8 +298,14 @@ class AsyncOrderTask(TaobaoAsyncBaseTask):
 tasks.register(AsyncOrderTask) 
 
 
+class PrintAsyncTask(Task):
+    
+    def run(self,async_print_id,*args,**kwargs):
+        
+        print_async = PrintAsyncTaskModel.objects.get(id=async_print_id)
+        
+        
 
 
-
-
+tasks.register(PrintAsyncTask) 
 
