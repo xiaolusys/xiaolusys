@@ -728,7 +728,7 @@ class FreeSampleView(View):
         if wx_user.subscribe:
             subscribe = 1
         
-            
+        left = 1000 - SampleOrder.objects.filter(status__gt=30).count()
         today_orders = SampleOrder.objects.filter(created__gt=datetime.datetime(2014,10,now.day)).count()
         html = 'weixin/freesamples1.html'
         response = render_to_response(html, 
@@ -740,6 +740,7 @@ class FreeSampleView(View):
                                        "vipcode":vipcode,
                                        "today_orders":today_orders,
                                        "subscribe":subscribe,
+                                       "left":left,
                                        "pk":pk},
                                       context_instance=RequestContext(request))
         response.set_cookie("openid",user_openid)
@@ -930,7 +931,7 @@ class FinalListView(View):
         month = int(kwargs.get('month',8))
         
         order_list = None
-        
+
         if month == 8:
             start_time = datetime.datetime(2014,8,1)
             end_time = datetime.datetime(2014,8,12)
