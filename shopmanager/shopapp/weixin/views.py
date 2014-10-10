@@ -902,7 +902,8 @@ class ResultView(View):
             has_order = True
             order_status = order[0].status
             
-        batch_one = SampleOrder.objects.filter(status__gt=30).filter(status__lt=32).count()
+        batch_one = SampleOrder.objects.filter(status=31).count()
+        batch_two = SampleOrder.objects.filter(status=32).count()
         usage_count = 0
         users = WeiXinUser.objects.filter(openid=user_openid)
         vipcode = 0
@@ -915,7 +916,7 @@ class ResultView(View):
         response = render_to_response('weixin/invite_result.html',
                                       {'has_order':has_order, 'order_status':order_status, 
                                        'vipcode':vipcode, 'usage_count':usage_count,
-                                       'batch_one':batch_one},
+                                       'batch_one':batch_one,'batch_two':batch_two},
                                       context_instance=RequestContext(request))
         response.set_cookie("openid",user_openid)        
         return response
@@ -943,7 +944,7 @@ class FinalListView(View):
         elif month == 10:
             start_time = datetime.datetime(2014,10,8)
             end_time = datetime.datetime(2014,10,17)
-            order_list = SampleOrder.objects.filter(status__gt=30,status__lt=32,created__gt=start_time)
+            order_list = SampleOrder.objects.filter(status=batch+30,created__gt=start_time)
 
         num_per_page = 20 # Show 20 contacts per page
         paginator = Paginator(order_list, num_per_page) 
