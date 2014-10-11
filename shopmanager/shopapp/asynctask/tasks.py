@@ -29,6 +29,7 @@ from shopapp.asynctask.models import (TaobaoAsyncTaskModel,
 from shopback.monitor.models import SystemConfig
 from shopback.categorys.models import Category
 from shopback.orders.models import Trade
+from shopback.trades.models import MergeTrade
 from auth import apis
 import logging
 
@@ -300,11 +301,19 @@ tasks.register(AsyncOrderTask)
 
 class PrintAsyncTask(Task):
     
+    def genExpressData(self,trade_list):
+        pass
+    
+    def genInvoiceData(self,trade_list):
+        pass
+    
     def run(self,async_print_id,*args,**kwargs):
         
         print_async = PrintAsyncTaskModel.objects.get(id=async_print_id)
         
+        trade_ids = [p.strip() for p in print_async.params.split(',')]
         
+        trade_list = MergeTrade.objects.filter(id__in=trade_ids)
 
 
 tasks.register(PrintAsyncTask) 
