@@ -35,6 +35,8 @@
 	    <img src="https://mmbiz.qlogo.cn/mmbiz/yMhOQPTKhLuWjC2yA8fC0Dh8VRu28gdCSUItxZ3EYr8bjIV6f4WwhgAKg83kLQeoobLDbZS0RHTNUCBrChQyicA/0" alt="...">
           </a>
           <p style="color:red">关于优惠券使用事宜，您也可以咨询我们的天猫客服、微信客服。</p>
+          {% elif order_status == -1 %}
+          <p style="color:red">您的试用申请已被系统判定为黑名单，原因可能是您的申请所使用多个手机号均无法接通，如有疑问请联系微信客服。</p>
           {% else %}
           <p>亲，您的F码<font style="color:red">{{ vipcode }}</font>已被使用<font style="color:red;font-size:20px">{{ usage_count }}</font>次!</p>
       <!--
