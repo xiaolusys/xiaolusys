@@ -142,6 +142,11 @@ class ComposeRule(models.Model):
     def __unicode__(self):
         return str(self.id)
     
+    def clean(self):
+        for field in self._meta.fields:
+            if isinstance(field, (models.CharField, models.TextField)):
+                setattr(self, field.name, getattr(self, field.name).strip())
+    
     
     
 class ComposeItem(models.Model):
@@ -181,6 +186,11 @@ class ComposeItem(models.Model):
             prod = Product.objects.get(outer_id=self.outer_id)
             cost = prod.cost or 0
         return float(cost)
+    
+    def clean(self):
+        for field in self._meta.fields:
+            if isinstance(field, (models.CharField, models.TextField)):
+                setattr(self, field.name, getattr(self, field.name).strip())
     
     
 def rule_match_product(sender, trade_id, *args, **kwargs):
