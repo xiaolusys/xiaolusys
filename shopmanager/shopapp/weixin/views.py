@@ -909,6 +909,7 @@ class ResultView(View):
         batch_fifth = SampleOrder.objects.filter(status=35).count()
         batch_sixth = SampleOrder.objects.filter(status=36).count()
         batch_seventh = SampleOrder.objects.filter(status=37).count()
+        batch_eighth = SampleOrder.objects.filter(status=38).count()
         usage_count = 0
         users = WeiXinUser.objects.filter(openid=user_openid)
         vipcode = 0
@@ -924,7 +925,7 @@ class ResultView(View):
                                        'batch_one':batch_one,'batch_two':batch_two,
                                        'batch_third':batch_third,'batch_forth':batch_forth,
                                        'batch_fifth':batch_fifth,'batch_sixth':batch_sixth,
-                                       'batch_seventh':batch_seventh},
+                                       'batch_seventh':batch_seventh,'batch_eighth':batch_eighth},
                                       context_instance=RequestContext(request))
         response.set_cookie("openid",user_openid)        
         return response
