@@ -107,6 +107,9 @@ END_TIME = datetime.datetime(2014,10,16,23,59,59)
 def get_user_openid(request, code):
     
     cookie_openid = request.COOKIES.get('openid')
+    if settings.DEBUG:
+        return 'oMt59uE55lLOV2KS6vYZ_d0dOl5c'
+    
     if not code :
         return cookie_openid 
     
@@ -1248,7 +1251,8 @@ class ScoreMenuView(View):
         if vipcodes.count() > 0:
             vipcode = vipcodes[0].code
         
-        start_dt = datetime.datetime(2014,8,28)
+        sample_start = False
+        start_dt = datetime.datetime(2014,8,1)
         wait_frozen_score = 0
         frozen_score = None
         sample_order = None
@@ -1263,7 +1267,8 @@ class ScoreMenuView(View):
                                                                 "vipcode":vipcode,
                                                                 "wait_frozen_score":wait_frozen_score,
                                                                 "sample_order":sample_order,
-                                                                "frozen_score":frozen_score},
+                                                                "frozen_score":frozen_score,
+                                                                "sample_start":sample_start},
                                       context_instance=RequestContext(request))
         response.set_cookie("openid",user_openid)        
         return response
