@@ -913,11 +913,13 @@ class ResultView(View):
         usage_count = 0
         users = WeiXinUser.objects.filter(openid=user_openid)
         vipcode = 0
+        isvalid = False
         if users.count() > 0:
             if users[0].vipcodes.count() > 0:
                 code_obj = users[0].vipcodes.all()[0]
                 usage_count = code_obj.usage_count
                 vipcode = code_obj.code
+                isvalid = users[0].isvalid
 
         response = render_to_response('weixin/invite_result.html',
                                       {'has_order':has_order, 'order_status':order_status, 
@@ -925,7 +927,8 @@ class ResultView(View):
                                        'batch_one':batch_one,'batch_two':batch_two,
                                        'batch_third':batch_third,'batch_forth':batch_forth,
                                        'batch_fifth':batch_fifth,'batch_sixth':batch_sixth,
-                                       'batch_seventh':batch_seventh,'batch_eighth':batch_eighth},
+                                       'batch_seventh':batch_seventh,'batch_eighth':batch_eighth,
+                                       'isvalid':isvalid},
                                       context_instance=RequestContext(request))
         response.set_cookie("openid",user_openid)        
         return response
