@@ -1089,11 +1089,11 @@ class SurveyView(View):
         wx_users = WeiXinUser.objects.filter(openid=user_openid)
         if wx_users.count() > 0:
             wx_user = wx_users[0]
-            if wx_user.surveys.filter(selection__gt=2).count() > 0:
+            if wx_user.surveys.filter(selection__gt=4).count() > 0:
                 exist = True
             
-        total = Survey.objects.filter(selection__gt=2).filter(selection__lt=5).count()
-        choice1 = Survey.objects.filter(selection=3).count()
+        total = Survey.objects.filter(selection__gt=4).filter(selection__lt=6).count()
+        choice1 = Survey.objects.filter(selection=4).count()
         
         ratio1,ratio2 = 0,0
         if total > 0:
@@ -1270,9 +1270,18 @@ class ScoreMenuView(View):
         
 class TestView(View):
     def get(self, request):
-        redirect_url = 'http://shop.m.taobao.com/shop/coupon.htm?sellerId=174265168&activityId=143904856'
-        return redirect(redirect_url)        
-        #response = render_to_response('weixin/test.html', 
-        #                              context_instance=RequestContext(request))
-        #return response
+        now = datetime.datetime.now()
+        m = now.minute
+        s = now.second
+        res = json.dumps({"min":m, "sec":s})
+        response = HttpResponse(res,mimetype='application/json')
+        return response
+    
+        #response = "1,2|3,4\nabcdefg\nhijklmn"
+        #return HttpResponse(response,mimetype='text/css')
+        #redirect_url = 'http://shop.m.taobao.com/shop/coupon.htm?sellerId=174265168&activityId=143904856'
+        #return redirect(redirect_url)        
+        response = render_to_response('weixin/test.html', 
+                                      context_instance=RequestContext(request))
+        return response
         
