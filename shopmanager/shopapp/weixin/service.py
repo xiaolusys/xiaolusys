@@ -473,7 +473,7 @@ class WeixinUserService():
                 from shopapp.weixin_sales.service import WeixinSaleService
                 WeixinSaleService(self._wx_user).downloadPicture(params['MediaId'])
                 
-                ret_params.update(self.genTextRespJson(u'[愉快]图片上传成功'))
+                ret_params.update(WeiXinAutoResponse.respDKF())
                 return ret_params
                 
             elif msgtype == WeiXinAutoResponse.WX_VOICE:

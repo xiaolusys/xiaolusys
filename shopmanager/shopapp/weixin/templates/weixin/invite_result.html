@@ -11,6 +11,12 @@
     <div class="panel-body">
       <p style="color:orange">十月免单活动，第一批中奖名单出炉，共{{ batch_one }}名，<a href="/weixin/finallist/1/1/10/">查看中奖列表>></a></p>
       <p style="color:orange">十月免单活动，第二批中奖名单出炉，共{{ batch_two }}名，<a href="/weixin/finallist/2/1/10/">查看中奖列表>></a></p>
+      <p style="color:orange">十月免单活动，第三批中奖名单出炉，共{{ batch_third }}名，<a href="/weixin/finallist/3/1/10/">查看中奖列表>></a></p>
+      <p style="color:orange">十月免单活动，第四批中奖名单出炉，共{{ batch_forth }}名，<a href="/weixin/finallist/4/1/10/">查看中奖列表>></a></p>
+      <p style="color:orange">十月免单活动，第五批中奖名单出炉，共{{ batch_fifth }}名，<a href="/weixin/finallist/5/1/10/">查看中奖列表>></a></p>
+      <p style="color:orange">十月免单活动，第六批中奖名单出炉，共{{ batch_sixth }}名，<a href="/weixin/finallist/6/1/10/">查看中奖列表>></a></p>
+      <p style="color:orange">十月免单活动，第七批中奖名单出炉，共{{ batch_seventh }}名，<a href="/weixin/finallist/7/1/10/">查看中奖列表>></a></p>
+      <p style="color:orange">十月免单活动，第八批中奖名单出炉，共{{ batch_eighth }}名，<a href="/weixin/finallist/8/1/10/">查看中奖列表>></a></p>
     </div>
   </div>
 
@@ -33,6 +39,8 @@
 	    <img src="https://mmbiz.qlogo.cn/mmbiz/yMhOQPTKhLuWjC2yA8fC0Dh8VRu28gdCSUItxZ3EYr8bjIV6f4WwhgAKg83kLQeoobLDbZS0RHTNUCBrChQyicA/0" alt="...">
           </a>
           <p style="color:red">关于优惠券使用事宜，您也可以咨询我们的天猫客服、微信客服。</p>
+          {% elif order_status == -1 %}
+          <p style="color:red">您的试用申请已被系统判定为黑名单，原因可能是您的申请所使用多个手机号均无法接通，如有疑问请联系微信客服。</p>
           {% else %}
           <p>亲，您的F码<font style="color:red">{{ vipcode }}</font>已被使用<font style="color:red;font-size:20px">{{ usage_count }}</font>次!</p>
       <!--
