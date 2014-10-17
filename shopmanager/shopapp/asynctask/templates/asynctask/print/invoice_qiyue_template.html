@@ -1,0 +1,243 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN""http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
+<title>发货单打印模板</title>
+<style type='text/css'>
+@media print {
+	@font-face {
+		font-family: simsun;
+		src: url(/home/meixqhi/fonts/simsun.ttf);
+		font-style: italic;
+	}
+	@font-face {
+		font-family: simsun;
+		src: url(/home/meixqhi/fonts/simsunbd.ttf);
+		font-weight: bold;
+		font-style: italic;
+	}
+	@font-face {
+		font-family: msyh;
+		src: url(/home/meixqhi/fonts/msyh.ttf);
+		font-style: italic;
+	}
+	@font-face {
+		font-family: msyh;
+		src: url(/home/meixqhi/fonts/msyhbd.ttf);
+		font-weight: bold;
+		font-style: italic;
+	}
+}
+
+body {
+	backgroup-color: #9cc2a9;
+	width: 800px;
+	margin: 0px;
+	padding: 0px;
+	text-align: left;
+	font-size: 20px;
+	font-family: simsun;
+	font-weight: bold;
+}
+
+@page {
+	margin: 1cm 0.5cm;
+	font-family: simhei;
+	@frame footer {
+		-pdf-frame-content: footerContent;
+		bottom: 0cm;
+		margin-left: 1cm;
+		margin-right: 1cm;
+		height: 1.5cm;
+		font-family: simhei;
+	}
+}
+table {
+	backgroud-color: #ffffff;
+	border-collapse: collapse;
+	padding: 0px;
+	margin: 0px;
+	width: 100%;
+}
+
+td {
+	padding: 0px;
+	margin: 0px;
+	vertical-align: top;
+}
+
+.delivery {
+	width: 718px;
+	height: 464px;
+	margin: 0px;
+	padding: 0px;
+}
+
+.header {
+	height: 80px;
+	width: 100%;
+}
+
+.barcode39 {
+	display: none;
+	float: left;
+	width: 250px;
+	height: 20px;
+	margin-top: 20px;
+	margin-left: 100px;
+}
+
+.seller-nick {
+	clear: both;
+	margin-top: 40px;
+	text-align: center;
+}
+
+.base-info {
+	width: 100%;
+	margin: 0px;
+}
+
+.right-label {
+	float: left;
+	width: 200px;
+	display: inline;
+	padding: 0px;
+}
+
+.seller-info {
+	width: 100%;
+	clear: left;
+	height: 40px;
+	margin: 0px;
+}
+
+.seller-info td {
+	border: none;
+	padding: 1px;
+	margin:0px;
+}
+
+.order-info {
+	width: 100%;
+	margin-top: 15px;
+}
+
+.order-info td {
+	border: none;
+	margin:0px;
+	padding: 1px;
+}
+
+.memo-style {
+	text-align: left;
+	float: left;
+	font-size: 30px;
+}
+
+.order_num {
+	font-size: 30px;
+	width: 60px;
+	height: auto !important;
+	height: 100%;
+	text-decoration: underline;
+	text-align: center;
+}
+</style>
+</head>
+<body>
+	{% for trade in trade_list %}
+	<div id="delivery" class='delivery' >
+		<div class='seller-nick'><h1>{{ trade.ins.user.nick }} [发货单]</h1></div> 
+		<!-- <div class="header" ><div class="barcode39" >{{ trade.ins.out_sid }}</div></div> -->
+		<div class='base-info'>
+			<div class='right-label'>付款打单日期:{{ trade.ins.pay_time.month }}.{{ trade.ins.pay_time.day }}/{{ trade.today.month }}.{{ trade.today.day }}</div>
+		</div>
+		<hr/>
+		<div class='seller-info'>
+			<table >
+			    <tr>
+			    	<td><b>订单编号：</b></td><td>{{ trade.ins.id }}{% if trade.juhuasuan %}（聚）{% endif %}</td>
+			    	<td>快递：</td><td>{% if trade.ins.logistics_company %}{{ trade.ins.logistics_company.name }}({{ trade.ins.out_sid }}){% endif %}</td>
+			    </tr>
+				<tr >
+					<td >买家昵称：</td><td>{{ trade.ins.buyer_nick }}</td>
+					<td >收货人：</td><td>{{ trade.ins.receiver_name }}</td>
+				</tr>
+				<tr>
+					<td >手机：</td><td>{{ trade.ins.receiver_mobile }}</td>
+					<td>电话：</td><td>{{ trade.ins.receiver_phone }}</td>
+				</tr>
+				<tr></tr>
+				<tr >
+					<td>收货地址：</td><td colspan='3'>{{ trade.ins.receiver_state }} {{ trade.ins.receiver_city }} {{ trade.ins.receiver_district }} </td>
+				</tr>
+				<tr>
+					<td colspan='4'>{{ trade.ins.receiver_address }}</td>
+				</tr>
+			</table>
+		</div>
+		<hr/>
+		<div class='order-info'>
+			<table>
+				<thead>
+					<tr>
+						<td style="width:60px;">序号</td>
+						<td>商品编码</td>
+						<td>货品名称</td>
+						<td>规格</td>
+						<td>货位</td>
+						<td style="width:80px;">数量</td>
+						<!-- <td>单价</td>
+						<td>折扣</td>
+						<td>实付</td> -->
+					</tr>
+				</thead>
+				<tbody>
+				{% for order in trade.orders %}
+				{% with parentloop=forloop.parentloop outer_id=order.0 order=order.1 sku_len=order.skus|length %}
+			    {% if sku_len > 0 %}
+				    {% for sku_id,sku in order.skus %}
+				    <tr>
+				    	{% if parentloop.first %}
+				    	<td rowspan="{{ sku_len }}">{{ parentloop.counter }}</td>
+				    	<td rowspan="{{ sku_len }}">{{ outer_id }}</td>
+				    	<td rowspan="{{ sku_len }}">{{ order.title }}</td>
+						{% endif %}
+						<td >({{ sku_id }}){{ sku.sku_name }}</td>
+						<td >{{ sku.location }}</td>
+						<td >{{ sku.num }}</td>
+				    </tr>
+				    {% endfor %}
+			    {% else %}
+			    	<tr>
+			    		<td >{{ forloop.counter }}</td>
+				    	<td >{{ outer_id }}</td>
+				    	<td >{{ order.title }}</td>
+				    	<td>-</td>
+				    	<td >-</td>
+				    	<td >{{ order.num }}</td>
+					</tr>
+			    {% endif %}
+			    {% endwith %}
+				</tbody>
+				<tfoot>
+					<tr><td colspan="5" ></td><td rowspan="1"><label class="order_num">{{ trade.order_nums }}</label></td></tr>
+				</tfoot>
+				{% endfor %}
+			</table>
+		</div>
+		<div class='memo-style'>
+			<label>留言：</label><span>{{ trade.ins.buyer_message|slice:":140" }}</span>
+			<br><label>温馨提示：</label><span>{{ trade.buyer_prompt|slice:":140" }}</span>
+		</div>
+		<div id="footerContent" >
+          NO：<pdf:pagenumber>
+    	</div>
+	</div>
+	{% if not forloop.last %}
+	<pdf:nextpage>
+	{% endif %}
+	{% endfor %}
+</body>
+</html>
