@@ -146,6 +146,7 @@ td {
 </style>
 </head>
 <body>
+	{% load custom_filter %}
 	{% for trade in trade_list %}
 	<div id="delivery" class='delivery' >
 		<div class='seller-nick'><h1>{{ trade.ins.user.nick }} [发货单]</h1></div> 
@@ -156,6 +157,7 @@ td {
 		<hr/>
 		<div class='seller-info'>
 			<table >
+				<tr><td style="width:100px;"></td><td></td><td style="width:100px;"></td><td></td></tr>
 			    <tr>
 			    	<td><b>订单编号：</b></td><td>{{ trade.ins.id }}{% if trade.juhuasuan %}（聚）{% endif %}</td>
 			    	<td>快递：</td><td>{% if trade.ins.logistics_company %}{{ trade.ins.logistics_company.name }}({{ trade.ins.out_sid }}){% endif %}</td>
@@ -165,7 +167,7 @@ td {
 					<td >收货人：</td><td>{{ trade.ins.receiver_name }}</td>
 				</tr>
 				<tr>
-					<td >手机：</td><td>{{ trade.ins.receiver_mobile }}</td>
+					<td >手机：</td><td>{{ trade.ins.receiver_mobile|stringBlur }}</td>
 					<td>电话：</td><td>{{ trade.ins.receiver_phone }}</td>
 				</tr>
 				<tr></tr>
@@ -220,11 +222,11 @@ td {
 					</tr>
 			    {% endif %}
 			    {% endwith %}
+				{% endfor %}
 				</tbody>
 				<tfoot>
 					<tr><td colspan="5" ></td><td rowspan="1"><label class="order_num">{{ trade.order_nums }}</label></td></tr>
 				</tfoot>
-				{% endfor %}
 			</table>
 		</div>
 		<div class='memo-style'>
