@@ -895,12 +895,15 @@ class ResultView(View):
         code = content.get('code')
         user_openid = get_user_openid(request, code)
 
-        order = SampleOrder.objects.filter(user_openid=user_openid).filter(created__gt=START_TIME)
+        orders = SampleOrder.objects.filter(user_openid=user_openid)
         has_order = False
         order_status = 0
-        if order.count() > 0:
+        if orders.count() > 0:
             has_order = True
-            order_status = order[0].status
+            
+        for order in orders:
+            if order.status > order_status:
+                order_status = order.status
             
         batch_one = SampleOrder.objects.filter(status=31).count()
         batch_two = SampleOrder.objects.filter(status=32).count()
