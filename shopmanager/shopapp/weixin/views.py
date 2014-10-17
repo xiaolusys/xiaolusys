@@ -1261,9 +1261,18 @@ class ScoreMenuView(View):
         
 class TestView(View):
     def get(self, request):
-        redirect_url = 'http://shop.m.taobao.com/shop/coupon.htm?sellerId=174265168&activityId=143904856'
-        return redirect(redirect_url)        
-        #response = render_to_response('weixin/test.html', 
-        #                              context_instance=RequestContext(request))
-        #return response
+        now = datetime.datetime.now()
+        m = now.minute
+        s = now.second
+        res = json.dumps({"min":m, "sec":s})
+        response = HttpResponse(res,mimetype='application/json')
+        return response
+    
+        #response = "1,2|3,4\nabcdefg\nhijklmn"
+        #return HttpResponse(response,mimetype='text/css')
+        #redirect_url = 'http://shop.m.taobao.com/shop/coupon.htm?sellerId=174265168&activityId=143904856'
+        #return redirect(redirect_url)        
+        response = render_to_response('weixin/test.html', 
+                                      context_instance=RequestContext(request))
+        return response
         
