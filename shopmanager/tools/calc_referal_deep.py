@@ -45,8 +45,8 @@ def restore_frozen_score():
     
     sfs = SampleFrozenScore.objects.filter(frozen_score__gt=0)
     for sf in sfs:
-        so = SampleOrder.objects.get(user_openid=sf.user_openid,sample_product__id=3)
-        if so.status > 0:
+        so = SampleOrder.objects.filter(user_openid=sf.user_openid,sample_product__id=3)
+        if so.count() == 0 or so[0].status > 30:
             continue
         
         scores = WeixinUserScore.objects.filter(user_openid=sf.user_openid)
