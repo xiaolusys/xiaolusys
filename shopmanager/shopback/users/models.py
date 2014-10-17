@@ -48,6 +48,10 @@ class EffectUserManager(models.Manager):
     @property
     def AMAZON(self):
         return self.get_query_set().filter(type=self.model.SHOP_TYPE_AMZ)
+    
+    @property
+    def OTHER(self):
+        return self.get_query_set().filter(type=self.model.SHOP_TYPE_OTHER)
         
 
 class User(models.Model):
@@ -74,6 +78,7 @@ class User(models.Model):
     SHOP_TYPE_WX  = 'WX'
     SHOP_TYPE_SN  = 'SN'
     SHOP_TYPE_AMZ = 'AMZ'
+    SHOP_TYPE_OTHER = 'OTHER'
     
     SHOP_TYPE = (
         (SHOP_TYPE_B,u'淘宝商城'),
@@ -84,6 +89,7 @@ class User(models.Model):
         (SHOP_TYPE_SN,u'苏宁'),
         (SHOP_TYPE_WX,u'微信小店'),
         (SHOP_TYPE_AMZ,u'亚马逊'),
+        (SHOP_TYPE_OTHER,u'其它'),
     )   
 
     id = BigIntegerAutoField(primary_key=True)

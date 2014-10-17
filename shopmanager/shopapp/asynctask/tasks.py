@@ -13,6 +13,7 @@ from os.path import basename
 from urlparse import urlsplit
 from django.conf import settings
 from django.core.cache import cache
+from django.template.loader import render_to_string
 from celery.task import task,Task
 from celery.registry import tasks
 from celery.app.task import BaseTask
@@ -27,9 +28,11 @@ from shopapp.asynctask.models import (TaobaoAsyncTaskModel,
                                       TASK_ASYNCCOMPLETE,
                                       TASK_DOWNLOAD)
 from shopback.monitor.models import SystemConfig
+from shopback import paramconfig as pcfg
 from shopback.categorys.models import Category
 from shopback.orders.models import Trade
 from shopback.trades.models import MergeTrade
+from shopback.items.models import Product,ProductSku
 from auth import apis
 import logging
 
@@ -305,15 +308,120 @@ class PrintAsyncTask(Task):
         pass
     
     def genInvoiceData(self,trade_list):
-        pass
+        
+        picking_data_list = []
+        for trade in trade_list:
+
+            dt         = datetime.datetime.now() 
+            trade_data = {'ins':trade,
+                          'today':dt,
+                          'juhuasuan':trade.trade_from&trade.trade_from.JHS == trade.trade_from.JHS,
+                          'order_nums':0,
+                          'total_fee':0,
+                          'discount_fee':0,
+                          'payment':0,}
+            
+            prompt_set  = set()
+            order_items = {}
+            for order in trade.print_orders:
+                
+                trade_data['order_nums']     += order.num
+                trade_data['discount_fee']   += float(order.discount_fee or 0)
+                trade_data['total_fee']      += float(order.total_fee or 0) 
+                trade_data['payment']        += float(order.payment or 0)
+                
+                outer_id = order.outer_id or str(order.num_iid)
+                outer_sku_id = order.outer_sku_id or str(order.sku_id)
+                
+                products  = Product.objects.filter(outer_id=order.outer_id)
+                product   = products.count() > 0 and products[0] or None
+                prod_skus = ProductSku.objects.filter(outer_id=order.outer_sku_id,product=product)
+                prod_sku = prod_skus.count() > 0 and prod_skus[0] or None
+
+                product_id = product and product.id or ''
+                sku_id     = prod_sku and prod_sku.id or ''
+                
+                promptmsg = (prod_sku and prod_sku.buyer_prompt) or (product and product.buyer_prompt) or ''
+                if promptmsg:
+                    prompt_set.add(promptmsg)
+                
+                product_location = product and product.get_districts_code() or ''
+                product_sku_location = prod_sku and prod_sku.get_districts_code() or ''
+                
+                if order_items.has_key(outer_id):
+                    order_items[outer_id]['num'] += order.num
+                    skus = order_items[outer_id]['skus']
+                    if skus.has_key(outer_sku_id):
+                        skus[outer_sku_id]['num'] += order.num
+                    else:   
+                        prod_sku_name = prod_sku and prod_sku.name or order.sku_properties_name
+                        skus[outer_sku_id] = {'sku_name':prod_sku_name,
+                                              'num':order.num,
+                                              'location':product_sku_location}
+                else:
+                    prod_sku_name = prod_sku and prod_sku.name or order.sku_properties_name
+                    order_items[outer_id]={
+                                           'num':order.num,
+                                           'location':product_location,
+                                           'title': product.name if product else order.title,
+                                           'skus':{outer_sku_id:{'sku_name':prod_sku_name,
+                                                                 'num':order.num,
+                                                                 'location':product_sku_location}}
+                                           }
+            trade_data['buyer_prompt'] = prompt_set and ','.join(list(prompt_set)) or ''   
+            order_list = sorted(order_items.items(),key=lambda d:d[1]['location'])
+            for trade in order_list:
+                skus = trade[1]['skus']
+                trade[1]['skus'] = sorted(skus.items(),key=lambda d:d[1]['location'])    
+            
+            trade_data['orders'] = order_list    
+            picking_data_list.append(trade_data)
+        
+        return picking_data_list
+    
+    def genHtmlPDF(self,file_path,html_text):
+        
+        import xhtml2pdf.pisa as pisa
+        import cStringIO as StringIO
+        
+        with open(file_path,'wb') as result:
+        
+            pdf = pisa.pisaDocument(StringIO.StringIO(html_text), result)
+            if pdf.err:
+                raise Exception(u'PDF 创建失败')
+            
     
     def run(self,async_print_id,*args,**kwargs):
         
-        print_async = PrintAsyncTaskModel.objects.get(id=async_print_id)
+        print_async = PrintAsyncTaskModel.objects.get(pk=async_print_id)
         
-        trade_ids = [p.strip() for p in print_async.params.split(',')]
+        params_json = json.loads(print_async.params)
+        trade_ids  = [int(p.strip()) for p in params_json['trade_ids'].split(',')]
+        user_code  = params_json['user_code'].lower()
         
         trade_list = MergeTrade.objects.filter(id__in=trade_ids)
+        
+        if print_async.task_type == PrintAsyncTaskModel.INVOICE:
+            
+            invoice_data = self.genInvoiceData(trade_list)
+            invoice_html = render_to_string('asynctask/print/invoice_%s_template.html'%user_code,
+                                       {'trade_list':invoice_data})
+            
+            invoice_path = os.path.join(settings.DOWNLOAD_ROOT,'print','invoice')
+            if not os.path.exists(invoice_path):
+                os.makedirs(invoice_path)
+                
+            file_name    = 'IN%d.pdf'%print_async.pk
+            self.genHtmlPDF(os.path.join(invoice_path, file_name), invoice_html.encode('utf-8'))
+            
+            print_async.file_path_to = os.path.join('print','invoice',file_name)
+            print_async.status = PrintAsyncTaskModel.TASK_SUCCESS
+            print_async.save()
+            
+        else:
+            
+            express_data = self.genExpressData(trade_list)
+        
 
 
 tasks.register(PrintAsyncTask) 

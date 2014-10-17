@@ -227,6 +227,11 @@ LOGGING = {
             'level': 'INFO',
             'propagate': True,
         },
+        'xhtml2pdf':{
+            'handlers': ['sentry'],
+            'level': 'ERROR',
+            'propagate': True,
+        },
     }
 }
 

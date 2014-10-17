@@ -4,7 +4,8 @@ from django.http import HttpResponse
 from djangorestframework.views import ModelView
 from djangorestframework.response import ErrorResponse
 from djangorestframework import status
-from shopapp.asynctask.tasks import AsyncCategoryTask,AsyncOrderTask
+from .models import PrintAsyncTaskModel
+from shopapp.asynctask.tasks import AsyncCategoryTask,AsyncOrderTask,PrintAsyncTask
 from common.utils import parse_date
 
 
@@ -40,4 +41,49 @@ class AsyncOrderView(ModelView):
         return {"task_id":result}
     
     post = get
+    
+    
+class AsyncInvoicePrintView(ModelView):
+    """ docstring for class AsyncPrintView """
+
+    def get(self, request, *args, **kwargs):
+
+        profile    = request.user
+        content    = request.REQUEST
+        
+        params =  {'trade_ids':content.get('trade_ids'),
+                   'user_code':content.get('user_code')}
+        task_model = PrintAsyncTaskModel.objects.create(
+                                           task_type=PrintAsyncTaskModel.INVOICE,
+                                           operator=profile.username,
+                                           params=json.dumps(params))
+        
+        print_async_task = PrintAsyncTask.delay(task_model.pk)
+
+        return {"task_id":print_async_task,"async_print_id":task_model.pk}
+    
+    post = get
+    
+    
+class AsyncExpressPrintView(ModelView):
+    """ docstring for class AsyncPrintView """
+
+    def get(self, request, *args, **kwargs):
+
+        profile    = request.user
+        content    = request.REQUEST
+        
+        params =  {'trade_ids':content.get('trade_ids'),
+                   'user_code':content.get('user_code')}
+        task_model = PrintAsyncTaskModel.objects.create(
+                                           task_type=PrintAsyncTaskModel.EXPRESS,
+                                           operator=profile.username,
+                                           params=json.dumps(params))
+        
+        print_async_task = PrintAsyncTask.delay(task_model.pk)
+
+        return {"task_id":print_async_task,"async_print_id":task_model.pk}
+    
+    post = get
+    
     
