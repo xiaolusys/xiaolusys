@@ -99,7 +99,7 @@ INSTALLED_APPS = (
     'django.contrib.sites',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-
+    
     'chartit',
     'south',
     'gunicorn',
@@ -109,7 +109,8 @@ INSTALLED_APPS = (
     'djkombu',
     'deamon',
     'deamon.celery_sentry',
-
+    
+    'common',
     'shopback.amounts',
     'shopback.categorys',
     'shopback.fenxiao',
