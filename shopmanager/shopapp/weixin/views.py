@@ -1093,7 +1093,7 @@ class SurveyView(View):
                 exist = True
             
         total = Survey.objects.filter(selection__gt=4).filter(selection__lt=6).count()
-        choice1 = Survey.objects.filter(selection=4).count()
+        choice1 = Survey.objects.filter(selection=5).count()
         
         ratio1,ratio2 = 0,0
         if total > 0:
