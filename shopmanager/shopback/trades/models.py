@@ -286,6 +286,10 @@ class MergeTrade(models.Model):
         return self.merge_orders.filter(sys_status=pcfg.IN_EFFECT)  
          
     @property
+    def print_orders(self):
+        return self.merge_orders.filter(sys_status=pcfg.IN_EFFECT).exclude(gift_type=pcfg.RETURN_GOODS_GIT_TYPE)
+         
+    @property
     def buyer_full_address(self):
         return '%s%s%s%s%s%s%s'%(self.receiver_name.strip(),
                                  self.receiver_mobile.strip(),
