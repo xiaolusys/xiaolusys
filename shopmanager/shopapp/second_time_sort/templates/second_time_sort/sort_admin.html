@@ -1,0 +1,71 @@
+{% extends "second_time_sort/sort_base.html" %}
+
+
+{% block title %} 
+<title>二次分检</title>
+{% endblock %} 
+
+{% block head_script %}
+<script type="text/javascript">
+    function get_batch_number(){
+    $.ajax({
+            url:'/app/second_time_sort/batch_number/',
+            data:{'group':{{ group }}},
+            success:function(res) { 
+              $('#id_batch_number')[0].innerHTML=res['bid'];
+            }
+        });
+    }
+
+
+</script>
+<script src="/static/jquery/jquery-1.8.13.min.js"></script>
+{% endblock %}
+
+{% block batch_number_b %}
+
+<div class="container">
+<div class="row">
+<div class="col-md-6">
+组：<input type="text" style="width:30px;" name="group" value="{{ group }}">
+<input id="submitG" type="submit" value="组确认" onclick="get_batch_number()">
+</div>
+<div class="col-md-6">
+<p>当前批次号：<span id="id_batch_number"></span></p>
+</div>
+</div>
+</div>
+
+
+
+
+
+
+<div>
+<input id="outText" name="outSid" type="text" name="">
+<input type="hidden" name="batchNumber" value="{{id}}">
+
+<input id="submitO" type="submit" value="物流单号确认" onclick="out_submit()">
+</div>
+
+<div>
+<table style="margin-left: auto;margin-right: auto;">
+<thead>
+<tr>
+<th>批号</th><th>订单号</th><th>序号</th><th>时间</th><th>状态</th><th>组</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td></td><td></td><td></td><td></td><td></td><td></td>
+</tr>
+</tbody>
+</table>
+</div>
+
+<div>
+<input type="button" name="replace" value="重新生成批号" onclisk="replace()">
+<inpur type="submit" name="submitK" value="生成统计提货单">
+
+</div>
+{% endblock %}
