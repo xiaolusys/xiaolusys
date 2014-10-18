@@ -9,7 +9,7 @@
 	</div>
       </div>
       
-	{% if wait_frozen_score > 0 %}
+	{% if sample_start and wait_frozen_score > 0%}
 	<div id="frozen-form">
      <div class="row" style="margin-top:5px">
 	{% csrf_token %}
@@ -45,7 +45,7 @@
 	{% endif %}
     </div>
 </div>
-  {% if wait_frozen_score > 0 %}
+  {% if sample_start and wait_frozen_score > 0 %}
   <script type="text/javascript">
   function submit() {
     var frozen_score = $('#frozen_score').val();
