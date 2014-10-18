@@ -19,6 +19,9 @@
       <div class="row">
 	<div class="col-xs-12">
 	  <span style="color:orange">累计: <font style="font-size:26px">{{ score }}</font>分</span>
+	  {% if score > 9 %}
+	  <p>亲，积分5折换购活动正在进行中，快加群咨询客服具体规则吧! <a href="/weixin/inviteresult/">点击查看>></a></p>
+	  {% endif %}
 	</div>
       </div>
 
