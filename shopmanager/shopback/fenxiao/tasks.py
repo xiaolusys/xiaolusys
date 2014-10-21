@@ -34,7 +34,7 @@ def saveUserFenxiaoProductTask(seller_id):
     fenxiao_product_ids = []
     try:
         has_next    = True
-        cur_page    = 1
+        cur_page    = 0
         
         while has_next:
             response_list = apis.taobao_fenxiao_products_get(page_no=cur_page,
@@ -61,7 +61,8 @@ def saveUserFenxiaoProductTask(seller_id):
         logger.error(u'分销商品更新异常：%s'%exc.message,exc_info=True)
     
     else:
-        FenxiaoProduct.objects.exclude(pid__in=fenxiao_product_ids).update(status=pcfg.DOWN_STATUS)
+        FenxiaoProduct.objects.filter(user__visitor_id=seller_id)\
+            .exclude(pid__in=fenxiao_product_ids).update(status=pcfg.DOWN_STATUS)
  
 @task(max_retries=3)
 def saveUserPurchaseOrderTask(seller_id,update_from=None,update_to=None,status=None):
