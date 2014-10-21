@@ -21,6 +21,9 @@ def has_pull_order_permission(user):
 def has_unlock_trade_permission(user):
     return user.has_perm('trades.unlock_trade_action')
 
+def has_invalid_order_permission(user):
+    return user.has_perm('trades.invalid_order_action')
+
 def has_export_logistic_permission(user):
     return user.has_perm('trades.export_logistic_action')
 
