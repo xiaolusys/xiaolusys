@@ -126,7 +126,7 @@ class FenxiaoProduct(models.Model):
     @classmethod
     def get_or_create(cls,user_id,pid,force_update=True):
         fenxiao_product,state = cls.objects.get_or_create(pid=pid)
-        if state:
+        if state or force_update:
             try:
                 response = apis.taobao_fenxiao_products_get(pids=pid,tb_user_id=user_id)
                 if response['fenxiao_products_get_response']['total_results']>0:
