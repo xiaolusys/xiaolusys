@@ -20,8 +20,7 @@ from auth import apis
 import logging
 __author__ = 'meixqhi'
 
-logger = logging.getLogger('django.reqeust')
-
+logger = logging.getLogger('django.request')
 
 
 @task()
@@ -50,7 +49,7 @@ def saveUserFenxiaoProductTask(seller_id):
                     fenxiao_product_ids.append(fenxiao_product['pid'])
                     
             total_nums = products['total_results']
-            cur_nums = cur_page*settings.TAOBAO_PAGE_SIZE
+            cur_nums = cur_page*settings.TAOBAO_PAGE_SIZE/2
             has_next = cur_nums<total_nums
             cur_page += 1
     
@@ -62,7 +61,7 @@ def saveUserFenxiaoProductTask(seller_id):
     
     else:
         FenxiaoProduct.objects.filter(user__visitor_id=seller_id)\
-            .exclude(pid__in=fenxiao_product_ids).update(status=pcfg.DOWN_STATUS)
+            .exclude(pid__in=fenxiao_product_ids).update(status=FenxiaoProduct.DOWN)
  
 @task(max_retries=3)
 def saveUserPurchaseOrderTask(seller_id,update_from=None,update_to=None,status=None):
