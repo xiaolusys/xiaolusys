@@ -12,7 +12,9 @@
       {% if score_passed %}
       <option value="2">10积分换购</option>
       {% else %}
+      {% if score_refund %}
       <option value="3">满100元返10元</option>
+      {% endif %}
       {% endif %}
       {% endif %}
     </select>
