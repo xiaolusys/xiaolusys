@@ -1,0 +1,70 @@
+{% extends "items/base.html" %}
+
+{% block title%} 产品关联商品界面 {% endblock %}
+
+{% block navbar %}<div style="margin-top:30px"></div>{% endblock %}
+
+{% block container %}
+<div class='list_top'>
+
+<div id="id-csrftoken">{% csrf_token %}</div>
+{% load item_extras %}
+<div>
+<table class="table table-bordered table-striped table-condensed">
+  <tr>
+      <th>序号</th><th>商品图片</th><th>商品编码</th><th>卖家名称</th><th>出售标题</th><th>在售价格</th><th>数量</th><th>上架时间</th>
+      <th>销售状态</th><th>销售编码</th><th>销售属性</th><th>数量</th><th>销售价格</th><th>销售状态</th>
+  </tr>
+  {% for item in object.itemobjs %}
+  	{% if item.skus.sku %}
+  	{% with item.skus.sku|length as sku_len %}
+  	{% for sku in item.skus.sku %}
+  		<tr>
+  		{% if forloop.first %}
+  		<td rowspan="{{ sku_len }}">{{ forloop.parentloop.counter }}</td>
+  		<td rowspan="{{ sku_len }}" ><img src="{{ item.pic_url }}" width="60px" heigth="60px"/></td>
+  		<td rowspan="{{ sku_len }}" >{{ item.num_iid }}</td>
+  		<td rowspan="{{ sku_len }}" >{{ item.user.nick }}</td>
+  		<td rowspan="{{ sku_len }}" class="click_title"><a href="{{ item.detail_url }}" target="_blank">{{ item.title }}</a></td>
+  		<td rowspan="{{ sku_len }}">{{ item.price }}</td>
+  		<td rowspan="{{ sku_len }}">{{ item.num }}</td>
+  		<td rowspan="{{ sku_len }}">{{ item.list_time }}</td>
+  		<td rowspan="{{ sku_len }}">{% if item.approve_status == 'onsale' %}<a class="badge badge-success" style="display:block;"><i class="icon-ok"></i>在售</a>
+  			{% else %}<a class="badge" style="display:block;"><i class="icon-move icon-white"></i>下架</a>{%endif%}</td>
+  		{% endif %}
+  		<td>{{ sku.outer_id }}</td>
+  		<td>{{ sku|get_sku_name:item.outer_id }}</td>
+  		<td>{{ sku.quantity }}</td>
+  		<td>{{ sku.price }}</td>
+  		<td >{% if sku.status == "normal" %}<a class="badge badge-success" style="display:block;"><i class="icon-ok"></i>在售</a>
+  			{% else %}<a class="badge" style="display:block;"><i class="icon-move icon-white"></i>下架</a>{%endif%}</td>
+  		</tr>
+  	{% endfor %}
+ 	{% endwith %}
+  	{% else %}
+  		<tr>
+  		<td >{{ forloop.counter }}</td>
+  		<td ><img src="{{ item.pic_url }}" width="60px" heigth="60px"/></td>
+  		<td >{{ item.num_iid }}</td>
+  		<td >{{ item.user.nick }}</td>
+  		<td class="item_info"><a href="{{ item.detail_url }}" target="_blank">{{ item.title }}</a></td>
+  		<td >{{ item.price }}</td>
+  		<td >{{ item.num }}</td>
+  		<td >{{ item.list_time }}</td>
+  		<td >{% if item.approve_status == 'onsale' %}<a class="badge badge-success" style="display:block;"><i class="icon-ok"></i>在售</a>
+  			{% else %}<a class="badge" style="display:block;"><i class="icon-move"></i>下架</a>{%endif%}</td>
+  		<td colspan="5">该商品没有设置销售属性</td>
+  		</tr>
+  	{% endif %}
+  {% endfor %}
+  </table>
+</div>
+</div>
+
+{% endblock %}
+
+{% block delayed_script %}
+  <script type="text/javascript">
+      
+  </script>
+{% endblock %}

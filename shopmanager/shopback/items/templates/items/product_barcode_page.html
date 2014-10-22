@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html >
+  <head>
+    <title>商品条码管理</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <link href="{{ STATIC_URL }}bootstrap/css/bootstrap2.3.2.min.css" rel="stylesheet" type="text/css" />
+    <link href="{{ STATIC_URL }}bootstrap/css/bootstrap-responsive.min.css" rel="stylesheet" type="text/css" />
+    <link href="{{ STATIC_URL }}css/base.less" rel="stylesheet/less" type="text/css" />
+    <link href='{{ STATIC_URL }}jquery/jquery-ui-1.10.1.css' rel='stylesheet'  />
+    <script src="{{ STATIC_URL }}closure-library/closure/goog/base.js"></script>
+    <script src="{{ STATIC_URL }}jquery/jquery-1.8.13.min.js" type="text/javascript"></script>
+    <script src='{{ STATIC_URL }}jquery/jquery-ui-1.8.13.min.js'></script>
+    <script src="{{ STATIC_URL }}jquery-datatable-addon/jquery.dataTables.min.js" type="text/javascript"></script>
+    <style type="text/css" title="currentStyle">
+		@import "{{ STATIC_URL }}jquery-datatable-addon/css/demo_page.css";
+		@import "{{ STATIC_URL }}jquery-datatable-addon/css/demo_table.css";
+    </style>  
+    <style type="text/css">
+    body,div{
+    	margin:0px auto;
+    	padding:0px;
+    }
+    body{
+    	width:1000px;
+    }
+    .table-bordered {
+	    border: 1px solid #DDD;
+	    border-collapse: separate;
+	    border-left: 0;
+	    border-top:0;
+	    -webkit-border-radius: 4px;
+	    -moz-border-radius: 4px;
+	    border-radius: 4px;
+	}
+	.table {
+	    width: 100%;
+	    margin-bottom: 0px;
+	}
+	table {
+	    max-width: 100%;
+	    background-color: white;
+	    border-collapse: collapse;
+	    border-spacing: 0;
+	}
+	tr {
+	    display: table-row;
+	    vertical-align: inherit;
+	    border-color: inherit;
+	}
+	.table-bordered th, .table-bordered td {
+	    border-left: 1px solid #DDD;
+	}
+	.table tbody tr:hover td, .table tbody tr:hover th {
+	    background-color: whiteSmoke;
+	}
+    #purchaseitem-table input[type="text"]{
+		width:120px;
+		margin-bottom:2px;
+		height:14px;;
+	}
+	.panel-body{
+		margin-bottom:100px;
+	}
+	ul li{ 
+			list-style:none; 
+			display:inline; 
+			float:left; 
+		}
+    </style>
+  </head>
+  <body>
+  	<div class="container">
+	<div class="well well-large" style="margin-top:20px;">
+		<form  class="form-inline" method="GET" action="./" >
+		<ul>
+			<li>
+				<label class="control-label" for="outer_id">(商品/商家)编码:</label>
+				<input type="text" name="outer_id" value="{{ object.outer_id }}"/>
+			</li>
+			<li>
+				<input type="submit" value="查询" class="btn btn-primary"/>
+			</li>
+		</ul>
+		</form>
+	</div>
+    <div >
+	<div class="content-main">
+		<div class="panel-body">
+			<div class="panel-content">
+				<div>
+					<h3 class="head-left" id="id-purchaseitem-head">商品条码列表</h3>
+				</div>
+				<div id="purchase-items">
+					<table id="purchaseitem-table" class="table table-bordered table-condensed">
+						<thead>
+								<th>商品编码</th>
+								<th>商品名</th>
+								<th>规格编码</th>
+								<th>规格名</th>
+								<th style="width:200px;">商品条码</th>
+								<th style="width:30px;">操作</th>
+						</thead>
+						<tbody>
+							{% for product in object.products %}
+							{% for item in product.skus %}
+							<tr class="{% cycle 'odd' 'even' %}">
+								<td>{{ product.outer_id }}</td>
+								<td>{{ product.name }}</td>
+								<td>{{ item.outer_id }}</td>
+								<td>{{ item.name }}</td>
+								<td>{{ item.barcode }}</td>
+								<td>
+									<a class="edit" href=""><icon class="icon-pencil"></icon></a>
+								</td>
+							</tr>
+							{% empty %}
+							<tr class="{% cycle 'odd' 'even' %}">
+								<td>{{ product.outer_id }}</td>
+								<td>{{ product.name }}</td>
+								<td></td>
+								<td></td>
+								<td>{{ product.barcode }}</td>
+								<td>
+									<a class="edit" href=""><icon class="icon-pencil"></icon></a>
+								</td>
+							</tr>
+							{% endfor %}
+							{% endfor %}
+						</tbody>
+				  </table>
+			   </div>
+			</div>
+		</div>
+	</div>
+  </body>
+<script type="text/javascript">
+	function restoreRow ( oTable, nRow )
+	{
+		var aData = oTable.fnGetData(nRow);
+		var jqTds = $('>td', nRow);
+		
+		for ( var i=0, iLen=jqTds.length ; i<iLen ; i++ ) {
+			oTable.fnUpdate( aData[i], nRow, i, false );
+		}
+		
+		oTable.fnDraw();
+	}
+
+	/**修改一条datatable记录*/
+	function editRow ( oTable, nRow )
+	{
+		var aData = oTable.fnGetData(nRow);
+		var jqTds = $('>td', nRow);
+		jqTds[4].innerHTML = '<input type="text" class="edit-num" value="'+aData[4]+'" >';
+		jqTds[5].innerHTML = '<a class="save" href="#"><icon class="icon-ok"></icon></a>';
+	}
+	
+	/**保存一条datatable记录*/
+	function saveRow ( oTable, nRow )
+	{
+		var jqInputs = $('input', nRow);
+		oTable.fnUpdate( jqInputs[0].value, nRow, 4, false );
+		oTable.fnUpdate( '<a class="edit" href="#"><icon class="icon-pencil"></a>', nRow, 5, false);
+		oTable.fnDraw();
+	}
+	
+	var nEditing = null;
+	//对jquery的datatable表格进行初始化
+	var datatable = $('#purchaseitem-table').dataTable({
+   		//"bJQueryUI": true,
+		"bAutoWidth": false, //自适应宽度
+		"aaSorting": [[1, "asc"]],
+		"iDisplayLength": 50,
+		"aLengthMenu": [[20, 50, 100, -1], [20, 50, 100, "All"]],
+		//"sPaginationType": "full_numbers",
+		//"sDom": '<"H"Tfr>t<"F"ip>',
+		"oLanguage": {
+			"sLengthMenu": "每页 _MENU_ 条",
+			"sZeroRecords": "抱歉， 没有找到",
+			"sInfo": "从 _START_ 到 _END_ /共 _TOTAL_ 条",
+			"sInfoEmpty": "没有数据",
+			"sSearch": "搜索",
+			"sInfoFiltered": "(从 _MAX_ 条数据中检索)",
+			"oPaginate": {
+				"sFirst": "首页",
+				"sPrevious": "前一页",
+				"sNext": "后一页",
+				"sLast": "尾页"
+			},
+			"sZeroRecords": "没有检索到数据",
+			"sProcessing": "<img src='/static/img/loading.gif' />"
+		}		
+	});
+	
+	//绑定保存事件
+	$('#purchaseitem-table a.save').live('click', function (e) {
+	
+		e.preventDefault();
+		var nRow  = $(this).parents('tr')[0];
+		var outer_id = nRow.cells[0].innerHTML;
+		var outer_sku_id = nRow.cells[2].innerHTML;
+		var jqInputs = $('input', nRow);
+		var barcode  = jqInputs[0].value;
+		var callback = function(data){
+			try{
+				if( data.code == 0 ){
+					$(jqInputs[0]).val(data.response_content.barcode);
+					saveRow(datatable,nRow);
+				}else{
+					alert('提交失败:'+data.response_error);
+				}
+			}catch (err) {
+				console.log('Error: (ajax callback) - ', err);
+			}
+		}
+		
+		$.ajax({ 
+		    type: 'POST', 
+		    url: '/items/product/barcode/', 
+		    data: {
+		    	'outer_id':outer_id,
+		    	'outer_sku_id':outer_sku_id,
+		    	'barcode':barcode} , 
+		    dataType: 'json',
+		    success: callback
+		});
+		nEditing = null;
+		
+	} );
+	//绑定编辑事件
+	$('#purchaseitem-table a.edit').live('click', function (e) {
+		e.preventDefault();
+		var nRow = $(this).parents('tr')[0];
+		if ( nEditing !== null && nEditing != nRow ) {
+
+			restoreRow( datatable, nEditing );
+			editRow( datatable, nRow );
+			nEditing = nRow;
+		}else {
+
+			editRow( datatable, nRow );
+			nEditing = nRow;
+		}
+	});
+</script>
+</html>

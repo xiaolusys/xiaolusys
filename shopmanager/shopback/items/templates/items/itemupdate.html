@@ -1,0 +1,33 @@
+{% extends "items/base.html" %}
+
+{% block title%} 产品添加修改界面 {% endblock %}
+
+{% block navbar %}<div style="margin-top:30px"></div>{% endblock %}
+
+{% block container %}
+<div class='list_top'>
+
+<div id="id-csrftoken">{% csrf_token %}</div>
+
+<div>
+<table class="table  table-striped table-condensed">
+  <tr>
+  	<fieldset>
+  		<legend>产品信息<legend>
+  		
+  	</field>    
+  </tr>
+  <tr>
+  	<field></field>
+  </tr>
+  </table>
+</div>
+</div>
+
+{% endblock %}
+
+{% block delayed_script %}
+  <script type="text/javascript">
+      
+  </script>
+{% endblock %}
