@@ -61,9 +61,29 @@
 	.panel-body{
 		margin-bottom:100px;
 	}
+	ul li{ 
+			list-style:none; 
+			display:inline; 
+			float:left; 
+		}
     </style>
   </head>
   <body>
+  	<div class="container">
+	<div class="well well-large" style="margin-top:20px;">
+		<form  class="form-inline" method="GET" action="./" >
+		<ul>
+			<li>
+				<label class="control-label" for="outer_id">(商品/商家)编码:</label>
+				<input type="text" name="outer_id" value="{{ object.outer_id }}"/>
+			</li>
+			<li>
+				<input type="submit" value="查询" class="btn btn-primary"/>
+			</li>
+		</ul>
+		</form>
+	</div>
+    <div >
 	<div class="content-main">
 		<div class="panel-body">
 			<div class="panel-content">
@@ -81,7 +101,7 @@
 								<th style="width:30px;">操作</th>
 						</thead>
 						<tbody>
-							{% for product in object %}
+							{% for product in object.products %}
 							{% for item in product.skus %}
 							<tr class="{% cycle 'odd' 'even' %}">
 								<td>{{ product.outer_id }}</td>
@@ -152,7 +172,7 @@
 		"aaSorting": [[1, "asc"]],
 		"iDisplayLength": 50,
 		"aLengthMenu": [[20, 50, 100, -1], [20, 50, 100, "All"]],
-		"sPaginationType": "full_numbers",
+		//"sPaginationType": "full_numbers",
 		//"sDom": '<"H"Tfr>t<"F"ip>',
 		"oLanguage": {
 			"sLengthMenu": "每页 _MENU_ 条",

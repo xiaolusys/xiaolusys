@@ -20,7 +20,8 @@ class ProductResource(ModelResource):
     fields = ('id','outer_id','outer_sku_id','name','category','collect_num','warn_num','cost','modified',
                 'remain_num','wait_post_num','weight','std_purchase_price','std_sale_price','agent_price','staff_price',
                'sync_stock','is_split','is_match','is_assign','is_stock_warn','post_check','is_warning',
-               'skus','sku','status','match_reason','buyer_prompt','memo','barcode','warn_skus','assign_template') 
+               'skus','sku','status','match_reason','buyer_prompt','memo','barcode','warn_skus','assign_template',
+               'products') 
     exclude = ('url',)
     
     

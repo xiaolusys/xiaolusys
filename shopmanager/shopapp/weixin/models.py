@@ -144,7 +144,7 @@ class WeiXinUser(models.Model):
     province   = models.CharField(max_length=24,blank=True,verbose_name=u"省份")
     city       = models.CharField(max_length=24,blank=True,verbose_name=u"城市")
     address    = models.CharField(max_length=256,blank=True,verbose_name=u"地址")
-    mobile     = models.CharField(max_length=24,db_index=True,blank=True,verbose_name=u"手机")
+    mobile     = models.CharField(max_length=11,db_index=True,blank=True,verbose_name=u"手机")
     referal_from_openid = models.CharField(max_length=64,blank=True,db_index=True,verbose_name=u"推荐人ID")
     
     receiver_name   = models.CharField(max_length=64,blank=True,verbose_name=u"收货人")
@@ -156,7 +156,7 @@ class WeiXinUser(models.Model):
                                    verbose_name=u"宝宝性别")
     baby_topic  = models.CharField(max_length=256,blank=True,verbose_name=u"宝宝签名")
     
-    vmobile    = models.CharField(max_length=24,blank=True,verbose_name=u"待验证手机")
+    vmobile    = models.CharField(max_length=11,blank=True,verbose_name=u"待验证手机")
     isvalid    = models.BooleanField(default=False,verbose_name=u"已验证")
     validcode     = models.CharField(max_length=6,blank=True,verbose_name=u"验证码")
     

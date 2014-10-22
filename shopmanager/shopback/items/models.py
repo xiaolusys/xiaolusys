@@ -61,6 +61,7 @@ class Product(models.Model):
     warn_num     = models.IntegerField(null=True,default=0,verbose_name=u'警告数')    #警戒库位
     remain_num   = models.IntegerField(null=True,default=0,verbose_name=u'预留数')    #预留库存
     wait_post_num   = models.IntegerField(null=True,default=0,verbose_name=u'待发数') #待发数
+    retrieval_num  = models.IntegerField(null=True,default=0,verbose_name=u'日出库数')    #日出库
     reduce_num   = models.IntegerField(null=True,default=0,verbose_name=u'预减数')    #下次入库减掉这部分库存
     
     cost         = models.FloatField(default=0,verbose_name=u'成本价')
@@ -305,7 +306,8 @@ class ProductSku(models.Model):
     warn_num     = models.IntegerField(null=True,default=0,verbose_name='警戒数')    #警戒库位
     remain_num   = models.IntegerField(null=True,default=0,verbose_name='预留数')    #预留库存
     wait_post_num = models.IntegerField(null=True,default=0,verbose_name='待发数')    #待发数
-    reduce_num   = models.IntegerField(null=True,default=0,verbose_name='预减数')    #下次入库减掉这部分库存
+    retrieval_num = models.IntegerField(null=True,default=0,verbose_name=u'日出库数')    #日出库
+    reduce_num    = models.IntegerField(null=True,default=0,verbose_name='预减数')    #下次入库减掉这部分库存
     
     cost          = models.FloatField(default=0,verbose_name='成本价')
     std_purchase_price = models.FloatField(default=0,verbose_name='标准进价')
