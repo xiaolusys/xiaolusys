@@ -288,19 +288,20 @@ class ProductAdmin(admin.ModelAdmin):
 
         is_windows = request.META['HTTP_USER_AGENT'].lower().find('windows') >-1 
         pcsv =[]
-        pcsv.append((u'商品编码',u'商品名',u'规格编码',u'规格名',u'库存数',u'昨日销量',u'预留库位',u'待发数',u'成本',u'吊牌价',u'库位',u'条码'))
+        pcsv.append((u'商品编码',u'商品名',u'规格编码',u'规格名',u'库存数',u'昨日销量',u'预留库位'
+                     ,u'待发数',u'日出库',u'成本',u'吊牌价',u'库位',u'条码'))
         for prod in queryset:
             skus = prod.pskus.exclude(is_split=True)
             if skus.count() > 0:
                 for sku in skus:
                     pcsv.append((prod.outer_id,prod.name,sku.outer_id,sku.name,str(sku.quantity),str(sku.warn_num),\
-                                 str(sku.remain_num),str(sku.wait_post_num),str(sku.cost),str(sku.std_sale_price),\
-                                 sku.get_districts_code(),sku.barcode))
+                                 str(sku.remain_num),str(sku.wait_post_num),str(sku.retrieval_num),str(sku.cost),\
+                                 str(sku.std_sale_price),sku.get_districts_code(),sku.barcode))
             else:
                 pcsv.append((prod.outer_id,prod.name,'','',str(prod.collect_num),str(prod.warn_num),\
-                                 str(prod.remain_num),str(prod.wait_post_num),str(prod.cost),str(prod.std_sale_price),\
-                                 prod.get_districts_code(),prod.barcode))
-            pcsv.append(['','','','','','','','','','',''])
+                                 str(prod.remain_num),str(prod.wait_post_num),str(sku.retrieval_num),str(prod.cost),\
+                                 str(prod.std_sale_price),prod.get_districts_code(),prod.barcode))
+            pcsv.append(['','','','','','','','','','','',''])
         
         tmpfile = StringIO.StringIO()
         writer  = CSVUnicodeWriter(tmpfile,encoding= is_windows and "gbk" or 'utf8')

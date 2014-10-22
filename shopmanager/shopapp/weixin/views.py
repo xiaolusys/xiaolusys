@@ -106,7 +106,7 @@ END_TIME = datetime.datetime(2014,10,16,23,59,59)
 
 def get_user_openid(request, code):
     
-    cookie_openid = request.COOKIES.get('openid')
+    cookie_openid = request.COOKIES.get('openid').split(',')[0]
     if settings.DEBUG:
         return 'oMt59uE55lLOV2KS6vYZ_d0dOl5c'
     
