@@ -261,6 +261,7 @@ class MergeTrade(models.Model):
                        ("sync_trade_post_taobao", u"同步淘宝发货权限"),
                        ("merge_order_action", u"合并订单权限"),
                        ("pull_order_action", u"重新下载订单权限"),
+                       ("invalid_order_action", u"作废订单权限"),
                        ("unlock_trade_action", u"订单解锁权限"),
                        ("export_finance_action",u"订单金额导出权限"),
                        ("export_logistic_action",u"物流信息导出权限"),

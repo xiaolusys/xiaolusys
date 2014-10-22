@@ -24,40 +24,45 @@ logger = logging.getLogger('django.request')
 
 
 PURCHASE_ORDER_STATUS = (
-    (pcfg.WAIT_BUYER_PAY,"等待付款"),
-    (pcfg.WAIT_SELLER_SEND_GOODS,"已付款，待发货"),
-    (pcfg.WAIT_BUYER_CONFIRM_GOODS,"已付款，已发货"),
-    (pcfg.TRADE_FINISHED,"交易成功"),
-    (pcfg.TRADE_CLOSED,"交易关闭"),
-    (pcfg.WAIT_BUYER_CONFIRM_GOODS_ACOUNTED,"已付款（已分账），已发货"),
-    (pcfg.WAIT_SELLER_SEND_GOODS_ACOUNTED,"已付款（已分账），待发货"),
+    (pcfg.WAIT_BUYER_PAY,u"等待付款"),
+    (pcfg.WAIT_SELLER_SEND_GOODS,u"已付款，待发货"),
+    (pcfg.WAIT_BUYER_CONFIRM_GOODS,u"已付款，已发货"),
+    (pcfg.TRADE_FINISHED,u"交易成功"),
+    (pcfg.TRADE_CLOSED,u"交易关闭"),
+    (pcfg.WAIT_BUYER_CONFIRM_GOODS_ACOUNTED,u"已付款（已分账），已发货"),
+    (pcfg.WAIT_SELLER_SEND_GOODS_ACOUNTED,u"已付款（已分账），待发货"),
 ) 
 
 SUB_PURCHASE_ORDER_STATUS = (
-    (pcfg.WAIT_BUYER_PAY,"等待付款"),
-    (pcfg.WAIT_CONFIRM,"付款信息待确认"),
-    (pcfg.WAIT_CONFIRM_WAIT_SEND_GOODS,"付款信息待确认，待发货"),
-    (pcfg.WAIT_CONFIRM_SEND_GOODS,"付款信息待确认，已发货"),
-    (pcfg.WAIT_CONFIRM_GOODS_CONFIRM,"付款信息待确认，已收货"),
-    (pcfg.WAIT_SELLER_SEND_GOODS,"已付款，待发货"),
-    (pcfg.WAIT_BUYER_CONFIRM_GOODS,"已付款，已发货"),
-    (pcfg.CONFIRM_WAIT_SEND_GOODS,"付款信息已确认，待发货"),
-    (pcfg.CONFIRM_SEND_GOODS,"付款信息已确认，已发货"),
-    (pcfg.TRADE_REFUNDED,"已退款"),
-    (pcfg.TRADE_REFUNDING,"退款中"),
-    (pcfg.TRADE_FINISHED,"交易成功"),
-    (pcfg.TRADE_CLOSED,"交易关闭"),
+    (pcfg.WAIT_BUYER_PAY,u"等待付款"),
+    (pcfg.WAIT_CONFIRM,u"付款信息待确认"),
+    (pcfg.WAIT_CONFIRM_WAIT_SEND_GOODS,u"付款信息待确认，待发货"),
+    (pcfg.WAIT_CONFIRM_SEND_GOODS,u"付款信息待确认，已发货"),
+    (pcfg.WAIT_CONFIRM_GOODS_CONFIRM,u"付款信息待确认，已收货"),
+    (pcfg.WAIT_SELLER_SEND_GOODS,u"已付款，待发货"),
+    (pcfg.WAIT_BUYER_CONFIRM_GOODS,u"已付款，已发货"),
+    (pcfg.CONFIRM_WAIT_SEND_GOODS,u"付款信息已确认，待发货"),
+    (pcfg.CONFIRM_SEND_GOODS,u"付款信息已确认，已发货"),
+    (pcfg.TRADE_REFUNDED,u"已退款"),
+    (pcfg.TRADE_REFUNDING,u"退款中"),
+    (pcfg.TRADE_FINISHED,u"交易成功"),
+    (pcfg.TRADE_CLOSED,u"交易关闭"),
 )
 
 PAY_TYPE_CHOICES = (
-    (pcfg.ALIPAY_SURETY_TYPE,'支付宝担保交易'),
-    (pcfg.ALIPAY_CHAIN_TYPE,'分账交易'),
-    (pcfg.TRANSFER_TYPE,'线下转账'),
-    (pcfg.PREPAY_TYPE,'预存款'),
-    (pcfg.IMMEDIATELY_TYPE,'即时到账'),
+    (pcfg.ALIPAY_SURETY_TYPE,u'支付宝担保交易'),
+    (pcfg.ALIPAY_CHAIN_TYPE,u'分账交易'),
+    (pcfg.TRANSFER_TYPE,u'线下转账'),
+    (pcfg.PREPAY_TYPE,u'预存款'),
+    (pcfg.IMMEDIATELY_TYPE,u'即时到账'),
 )
 
 class FenxiaoProduct(models.Model):
+    
+    UP = 'up'
+    DOWN = 'down'
+    STATUS_CHOICES = ((UP,u'上架'),
+                      (DOWN,u'下架'),)
     
     pid               = models.CharField(max_length=64,primary_key=True)
     name              = models.CharField(max_length=64,blank=True)
@@ -109,7 +114,7 @@ class FenxiaoProduct(models.Model):
     created           = models.DateTimeField(null=True)
     modified          = models.DateTimeField(null=True)
     
-    status            = models.CharField(max_length=10,blank=True)
+    status            = models.CharField(max_length=10,choices=STATUS_CHOICES,blank=True)
     class Meta:
         db_table = 'shop_fenxiao_product'
         verbose_name=u'分销商品'
@@ -121,7 +126,7 @@ class FenxiaoProduct(models.Model):
     @classmethod
     def get_or_create(cls,user_id,pid,force_update=True):
         fenxiao_product,state = cls.objects.get_or_create(pid=pid)
-        if state:
+        if state or force_update:
             try:
                 response = apis.taobao_fenxiao_products_get(pids=pid,tb_user_id=user_id)
                 if response['fenxiao_products_get_response']['total_results']>0:

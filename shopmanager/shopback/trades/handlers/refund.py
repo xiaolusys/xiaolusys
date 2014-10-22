@@ -33,12 +33,10 @@ class RefundHandler(BaseHandler):
                 update_model_fields(main_order,update_fields=['status',
                                                               'refund_status',
                                                               'sys_status'])
-            if main_order: 
+                
+            if main_order : 
                 ruleMatchSplit(main_trade)
-                
                 ruleMatchPayment(main_trade)
-                
-                main_order.save()
             
         if (merge_trade.sys_status in pcfg.WAIT_DELIVERY_STATUS and 
             not merge_trade.is_locked):
@@ -54,9 +52,10 @@ class RefundHandler(BaseHandler):
             MergeTrade.objects.get(id=mbt.main_tid).append_reason_code(pcfg.NEW_REFUND_CODE)
         
         elif merge_type == pcfg.MAIN_MERGE_TYPE:
-            if merge_type not in (pcfg.WAIT_CHECK_BARCODE_STATUS,
-                                 pcfg.WAIT_SCAN_WEIGHT_STATUS,
-                                 pcfg.FINISHED_STATUS):
+            if merge_trade.sys_status not in (pcfg.WAIT_CHECK_BARCODE_STATUS,
+                                             pcfg.WAIT_SCAN_WEIGHT_STATUS,
+                                             pcfg.FINISHED_STATUS):
+                
                 MergeTrade.objects.mergeRemover(merge_trade.id)
                 
     

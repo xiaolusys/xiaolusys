@@ -193,6 +193,8 @@ class MergeTradeAdmin(admin.ModelAdmin):
             del actions['pull_order_action']
         if not perms.has_unlock_trade_permission(user) and 'unlock_trade_action' in actions:
             del actions['unlock_trade_action']
+        if not perms.has_invalid_order_permission(user) and 'invalid_trade_action' in actions:
+            del actions['invalid_trade_action']
         if not perms.has_export_logistic_permission(user) and 'export_logistic_action' in actions:
             del actions['export_logistic_action']
         if not perms.has_export_finance_permission(user) and 'export_finance_action' in actions:
@@ -704,6 +706,21 @@ class MergeTradeAdmin(admin.ModelAdmin):
 
     unlock_trade_action.short_description = "订单解锁".decode('utf8')
     
+    def invalid_trade_action(self, request, queryset):
+        """ 订单作废 """
+        
+        for trade in queryset:
+            trade.sys_status = pcfg.INVALID_STATUS
+            trade.save()
+            
+            log_action(request.user.id,trade,CHANGE,u'订单作废')
+                        
+        self.message_user(request, u"======= 订单批量作废成功 =======")
+
+        return HttpResponseRedirect("./") 
+
+    invalid_trade_action.short_description = "订单作废".decode('utf8')
+    
     def export_finance_action(self, request, queryset):
         """ 导出订单金额信息 """
         dt  = datetime.datetime.now()
@@ -819,8 +836,15 @@ class MergeTradeAdmin(admin.ModelAdmin):
 
     export_yunda_action.short_description = "导出韵达信息".decode('utf8')
     
-    actions = ['sync_trade_post_taobao','merge_order_action','pull_order_action','unlock_trade_action',
-               'export_logistic_action','export_buyer_action','export_finance_action','export_yunda_action']
+    actions = ['sync_trade_post_taobao',
+               'merge_order_action',
+               'pull_order_action',
+               'unlock_trade_action',
+               'invalid_trade_action',
+               'export_logistic_action',
+               'export_buyer_action',
+               'export_finance_action',
+               'export_yunda_action']
    
 
 admin.site.register(MergeTrade,MergeTradeAdmin)
