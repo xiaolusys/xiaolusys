@@ -144,6 +144,8 @@ INSTALLED_APPS = (
     'shopapp.weixin_sales',
     'shopapp.weixin_score',
     'shopapp.weixin_examination',
+    
+    'supplychain.wavepick',
 
 
     #'test.celery',
