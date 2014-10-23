@@ -173,7 +173,7 @@ class CancelUnsedYundaSidTask(Task):
 class UpdateYundaOrderAddrTask(Task):
     
     max_retries  = 3
-    pg                  = []
+    pg           = []
     
     def initial_data(self):
         self.pg = Paginator(self.getSourceData(), ADDR_UPLOAD_LIMIT)
@@ -288,7 +288,7 @@ class UpdateYundaOrderAddrTask(Task):
 class SyncYundaScanWeightTask(Task):
     
     max_retries  = 3
-    pg                  =  []    
+    pg           = []    
     
     def initial_data(self):
         self.pg = Paginator(self.getSourceData(), WEIGHT_UPLOAD_LIMIT)

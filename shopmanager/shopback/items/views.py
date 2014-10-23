@@ -461,10 +461,14 @@ class ProductBarCodeView(ModelView):
     
     def get(self, request, *args, **kwargs):
         #获取库存商品列表
-
-        queryset = Product.objects.filter(status__in=(pcfg.NORMAL,pcfg.REMAIN))
+        content  = request.REQUEST
+        outer_id = content.get('outer_id')
         
-        return [p.json for p in queryset]
+        products = Product.objects.getProductByBarcode(outer_id)
+        
+        product_json = [p.json for p in products]
+        
+        return {'products':product_json,'outer_id':outer_id}
  
     def post(self, request, *args, **kwargs):
         

@@ -1,3 +1,7 @@
+######## 2014-10-22 ##########
+alter table shop_weixin_user add column created datetime NOT NULL;
+alter table shop_weixin_user add column modified datetime NOT NULL;
+update shop_weixin_user set created = subscribe_time,modified=subscribe_time;
 ######## 2014-9-30 ##########
 alter table shop_weixin_user add column created datetime NOT NULL;
 alter table shop_weixin_user add column modified datetime NOT NULL;
@@ -544,7 +548,7 @@ purchase_product_sku
 wait_num
 remain_num
 ############## 2012-09-16 ###############
- alter table shop_items_product add column status varchar(16)  NOT NULL; #add index
+ alter table shop_items_product add column status varchar(16)  NOT NULL; 
 ########  2012-07-28  #########
 alter table shop_orders_trade add column seller_cod_fee varchar(10) NOT NULL;
 
