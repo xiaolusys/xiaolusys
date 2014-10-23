@@ -1,0 +1,56 @@
+{% extends "wavepick_base.html" %}
+
+{% block title %} 第{{ wave_id }}批详情 {% endblock %}
+
+{% block container %}
+<div class="container">
+
+<div class="row">
+  <div class="col-md-12" style="text-align:center">
+    <h3> 第{{ wave_id }}批详情</h3>
+  </div>
+</div>
+
+<div class="row" style="margin-top:10px">
+  <div class="col-md-12">
+    <div class="input-group input-group-lg">
+      <span class="input-group-addon">扫描SKU:</span>
+      <input id="id_sku" type="text" class="form-control" placeholder="2116BG4xxx">
+    </div>
+  </div>
+</div>
+
+
+<div class="row">
+  <div class="col-md-12">
+    <table class="table table-bordered" style="margin-top:30px">
+      <thead><th>SKU</th><th>格子分配</th></thead>
+      <tbody>
+	<tr><td>211B6383</td><td>(1,4)(5,2)</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+
+<div class="row">
+  <div class="col-md-12" style="text-align:center">
+    <a href="/supplychain/wavepick/wave/" type="button" class="btn btn-primary" style="display:none">开始下一批</a>
+  </div>
+</div>
+
+</div>
+
+{% endblock %}
+
+{% block tail_script %}
+<script type="text/javascript">
+  $('#id_sku').keydown(
+    function(event) {  
+      if (event.keyCode == 13) { 
+        console.log("hello");
+      }
+      event.preventDefault();
+    });  
+</script>
+{% endblock %}
