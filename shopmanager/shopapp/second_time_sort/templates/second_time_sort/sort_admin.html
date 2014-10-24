@@ -1,0 +1,139 @@
+{% extends "second_time_sort/sort_base.html" %}
+
+
+{% block title %} 
+<title>二次分检</title>
+{% endblock %} 
+
+{% block head_script %}
+<script type="text/javascript">
+
+    function get_batch_number(){
+    var a = $("#group").val();
+    $.ajax({
+            url:'/app/second_time_sort/batch_number/',
+            data:{"group":a},
+            success:function(res) { 
+                console.log(res);
+                $('#id_batch_number').val(res['bid']);
+                $('#id_merger_out_sid').val(res['bid']+"批次生成汇总表");
+                content = ('<a href="/app/second_time_sort/merger_out_sid/?batch='+res["bid"]+'" id="'+res["bid"]+"_merger"+'" type="submit"  value="'+res['bid']+"批次生成汇总表"+'">rr</a>');
+                content_h = ('<input id="merger_hide" type="hidden" value="'+res["bid"]+'">');
+                $('#id_merger_out_sid').empty(); 
+                $('#id_merger_out_sid').append(content);
+                $('#id_merger_out_sid').append(content_h);
+            }
+        });
+    }
+
+    function get_out_sid(){
+    var b = $("#out_sid").val();
+    var c = $("#id_batch_number").val();
+    var d = $("#group").val();
+    var children = $('#id_body').children();
+    var no = children.length+1;
+    
+    if (no<=12){
+        $.ajax({
+            url:'/app/second_time_sort/out_sid_batch/',
+            data:{"out_sid":b,"batch_number":c,"group":d,"number":no},
+            success:function(res){
+                content = ('<tr><td style="text-align: center;" >'+b+'</td><td >'+no+'</td><td><button id='+b+' onclick="drop_out_batch()"></button></td></tr>');
+                $('#id_body').append(content);
+            }
+        });
+    }
+    else {
+        get_batch_number();
+        alert("超过12");
+    }
+    }
+
+    function drop_out_batch(){
+        var b = $("#out_sid").val();
+        var ad = $(this).parent();
+        var c = $(this).parent().parent();
+        console.log(ad['id']);
+        
+        $.ajax({
+            url:'/app/second_time_sort/drop_out_batch/',
+            data:{"out_sid":b},
+            success:function(res){
+            console.log(res);
+            alert(b+'dd');
+            ad.remove();
+            
+            }
+        });
+        }
+
+    function send_batch (){
+        var a = $('#merger_hide').val()
+        alert(a);
+        $.ajax({
+            url:'/app/second_time_sort/merger_out_sid/',
+            data:{"batch":a},
+            
+
+        });
+    }
+
+
+</script>
+    
+   
+
+<script src="/static/jquery/jquery-1.8.13.min.js"></script>
+
+{% endblock %}
+
+{% block batch_number_b %}
+
+<div class="container1">
+<div class="row">
+<div class="col-md-6">
+组：<input type="text" id="group" style="width:30px;" name="group" value="{{ group }}">
+<input id="submitG" type="submit" value="组确认/生成新批号" onclick="get_batch_number()">
+</div>
+<div class="col-md-6">
+<p>当前批次号：<input id="id_batch_number" type="text" style="width:30px;" value="{{ batch_number }}" ></p>
+</div>
+</div>
+</div>
+
+<div class="container2">
+<div class="row">
+<div class="col-md-12">
+<p>
+<input type="text" id="out_sid" name="out_sid" value="输入快递单号" 
+onFocus="if(value==defaultValue){value='';this.style.color='#000'}" 
+onBlur="if(!value){value=defaultValue;this.style.color='#999'}" style="color:#999999">
+
+<input id="submitO" type="submit" value="物流单号确认" onclick="get_out_sid()">
+</p>
+</div>
+</div>
+</div>
+
+<div class="container3">
+<div class="row">
+<div class="col-md-12">
+<table style="margin-left: auto;margin-right: auto;width:60%;" id="id_out_sid_batch_table" border="1">
+<thead>
+<tr>
+<th style="text-align: center;width:40%">订单号</th><th style="text-align: center;width:40%">序号</th><th style="text-align: center;width:20%">button</th>
+</tr>
+</thead>
+<tbody id="id_body">
+</tbody>
+</table>
+</div>
+</div>
+</div>
+
+<div id='id_merger_out_sid'>
+
+
+
+</div>
+{% endblock %}

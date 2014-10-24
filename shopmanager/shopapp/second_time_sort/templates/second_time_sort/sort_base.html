@@ -1,18 +1,18 @@
-
 <!DOCTYPE html>
 <html>
-  <head>
+ <head>
     {% block title %} {% endblock %}
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <!-- Bootstrap -->
-    <link rel="stylesheet" href="{{ STATIC_URL }}bootstrap/css/bootstrap2.3.2.min.css">
+    <link rel="stylesheet" href="{{ STATIC_URL }}bootstrap/css/bootstrap.min.css">
 
     {% block head_script %} 
 
     {% endblock %}
   </head>
-  <body >
-    {% block  %} {% endblock %}
+  <body style="width:100%; padding:5%;text-align:center;">
 
+{% block batch_number_b %} {% endblock %}
+    
   </body>
 </html>

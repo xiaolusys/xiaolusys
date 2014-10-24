@@ -18,9 +18,19 @@ logger = logging.getLogger('django.request')
 def examination_user(request):
 #    进入页面，得到用户及考试信息，rander到页面
     content=request.GET
-    user_paper_id = str(request.user)
     user = request.user
 #    第一步，拿到paperID（卷），p_id(题号)
+#####################################################################
+#   统计已生成考卷数
+    paper_count = ExamPaper.objects.filter(user=user)
+    paper_id_array = []
+    for c in paper_count:
+        paper_id_array.append(c.paper_id)
+    paper_id_array_acount = len(set(paper_id_array))
+    print 'set(paper_id_array)',paper_id_array_acount
+    if (paper_id_array_acount>2):
+        return render_to_response('examination/exam_end.html',{"A":2, },context_instance=RequestContext(request)) 
+#####################################################################
 #    卷
     paper_id = content.get('paper_id')
     if (paper_id==None):
@@ -29,13 +39,12 @@ def examination_user(request):
         timeArray = time.localtime(t)
         otherStyleTime = time.strftime("%Y%m%d%H%M%S", timeArray)
 #    paperID是userID+年月日时分秒，来保证唯一
-        paper_id = user_paper_id+otherStyleTime
+        paper_id = str(user)+otherStyleTime
     else:
         ExamPaper.objects.filter(paper_id=paper_id).delete()
-#####################################################################      
+#####################################################################
 #    第二步，生成paper考题数量,再判断是否超出题库
     problem_count = content.get('problem_count')
-    print 'problem_countsssssssssssssssssss',problem_count
     if (problem_count==None):
         problem_count = 3
     else:
@@ -45,6 +54,7 @@ def examination_user(request):
         except:
             pass
 #####################################################################
+# 更改“设定题目数量”选项的最大长度，及输出提示
     p_list = []
     text = ''
     problem = ExamProblemSelect.objects.all()
@@ -62,7 +72,15 @@ def examination_user(request):
     except:
         pass
     problem_len = len(ExamProblemSelect.objects.all())
-    print 'problem_len',problem_len
+#####################################################################
+#   统计已生成考卷数
+#    paper_count = ExamPaper.objects.filter(user=user)
+#    paper_id_array = []
+#    for c in paper_count:
+#        paper_id_array.append(c.paper_id)
+#    paper_id_array_acount = len(set(paper_id_array))
+#    print 'set(paper_id_array)',paper_id_array_acount
+#####################################################################
     
     return render_to_response('examination/exam_index.html',{'paper_id':paper_id,
                                                              'user':user,

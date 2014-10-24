@@ -176,8 +176,8 @@ def filter_replyer(name,fdt,tdt):
         replyer = User.objects.get(username = name )
 #评论人过滤器        
         comments = Comment.objects.filter(
-            replayer=replyer
-            ,replay_at__gte=fdt,
+            replayer=replyer,
+            replay_at__gte=fdt,
             replay_at__lte=tdt,
             is_reply=True
             )
