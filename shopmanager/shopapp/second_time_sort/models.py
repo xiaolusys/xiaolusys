@@ -18,11 +18,11 @@ class BatchNumberOid(models.Model):
     
     ACTIVE   = 0
     DEACTIVE = 1
-    STATUS_CHOICES = ((ACTIVE,u'使用'),
-                      (DEACTIVE,u'待用'),)
+    STATUS_CHOICES = ((ACTIVE,u'未分捡'),
+                      (DEACTIVE,u'分捡'),)
 
-    batch_number = models.IntegerField(null=True,db_index=True,verbose_name=u'批号')
-    out_sid      = models.CharField(max_length=64,null=True,db_index=True,blank=True,verbose_name=u'物流编号')
+    batch_number = models.IntegerField(null=True,db_index=True,verbose_name=u'批号' )
+    out_sid      = models.CharField(max_length=64,null=True,db_index=True,blank=True,verbose_name=u'物流编号',unique=True)
 #    tid     = models.BigIntegerField(null=False,db_index=True,verbose_name=u'交易ID')
 #    oid     = models.BigIntegerField(null=False,db_index=True,verbose_name=u'订单ID')
     number  = models.IntegerField(null=True,db_index=True,verbose_name=u'序号')
@@ -42,4 +42,13 @@ class BatchNumberOid(models.Model):
 #    outer_sku_id = models.CharField(max_length=20,blank=True,verbose_name=u'规格外部编码')
 #    amount = models.IntegerField(null=True,db_index=True,verbose_name=u'数量')
 
+class out_list_sku(models.Model):
+    out_sid = models.CharField(max_length=64,null=True,db_index=True,blank=True,verbose_name=u'物流编号',unique=True)
+    outer_sku_id = models.CharField(max_length=20,blank=True,verbose_name=u'规格外部编码')
+    outer_id = models.CharField(max_length=64,blank=True,verbose_name=u'商品外部编码')
+    amount = models.IntegerField(null=True,db_index=True,verbose_name=u'数量')
     
+    class Meta:
+        db_table = 'batch_number_oid'
+        verbose_name = u'批号/物流单号'
+        verbose_name_plural = u'批号/物流单号'
