@@ -61,7 +61,7 @@ class WavePick(models.Model):
         
 class PickItem(models.Model):
     
-    wave_no = models.IntegerField(db_index=True,verbose_name=u'批号')
+    wave_no = models.IntegerField(null=True,db_index=True,verbose_name=u'批号')
     out_sid = models.CharField(max_length=64,db_index=True,blank=True,verbose_name=u'物流编号')
     serial_no  = models.IntegerField(null=True,db_index=True,verbose_name=u'序号')    
     
