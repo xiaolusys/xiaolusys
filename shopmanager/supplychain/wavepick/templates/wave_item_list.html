@@ -1,0 +1,69 @@
+<div class="row">
+  <div class="col-md-12" style="text-align:center">
+    <input type="hidden" id = "wave_id" value="{{ wave_id }}">
+    <h3>第 {{ wave_id }} 批</h3>
+  </div>
+</div>
+
+
+<div class="row" style="margin-top:10px">
+  <div class="col-md-12">
+    <div class="input-group input-group-lg">
+      <span class="input-group-addon">扫描输入面单号:</span>
+      <input id="id_miandan" type="text" class="form-control">
+    </div>
+  </div>
+</div>
+
+
+<div class="row">
+  <div class="col-md-12">
+    <table class="table table-bordered" style="margin-top:30px">
+      <thead><th>序号</th><th>面单号</th></thead>
+      <tbody id="id_tbody">
+      </tbody>
+    </table>
+  </div>
+</div>
+
+
+<div class="row">
+  <div class="col-md-12" style="text-align:center">
+    <a href="/supplychain/wavepick/wave/{{ wave_id }}/" type="button" class="btn btn-primary">生成订单汇总表</a>
+  </div>
+</div>
+<script type="text/javascript">
+  
+  $("#id_miandan").keydown(
+    function(event) {  
+      var wave_id = $("#wave_id").val();
+        
+      var callback = function(res){
+            if (res.isSuccess){
+                var child = $("<tr><td>"+res.serial_no+"</td><td>"+res.out_sid+"</td></tr>");
+                $("#id_tbody").append(child);
+                $("#id_miandan").val("");          
+            }
+      };
+
+      if (event.keyCode == 13) {
+        var out_sid = $("#id_miandan").val();
+        out_sid = $.trim(out_sid);
+        if (out_sid.length > 0) {
+          var children = $("#id_tbody").children();
+          var no = children.length + 1;
+          if (no < 5) { 
+            $.post("/supplychain/wavepick/wave/"+wave_id+"/",
+                {"out_sid":out_sid,"serial_no":no},
+                callback,"json"            
+            )
+            
+          } else {
+            alert("不能超过12条！");
+          }
+        }
+        event.preventDefault();
+      }
+
+    });  
+</script>

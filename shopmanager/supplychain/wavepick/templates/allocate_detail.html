@@ -25,8 +25,8 @@
   <div class="col-md-12">
     <table class="table table-bordered" style="margin-top:30px">
       <thead><th>SKU</th><th>格子分配</th></thead>
-      <tbody>
-	<tr><td>211B6383</td><td>(1,4)(5,2)</td></tr>
+      <tbody id="id_tbody">
+	
       </tbody>
     </table>
   </div>
@@ -35,7 +35,7 @@
 
 <div class="row">
   <div class="col-md-12" style="text-align:center">
-    <a href="/supplychain/wavepick/wave/" type="button" class="btn btn-primary" style="display:none">开始下一批</a>
+    <a href="/supplychain/wavepick/createwave/" type="button" class="btn btn-primary" style="display:none">开始下一批</a>
   </div>
 </div>
 
@@ -45,12 +45,25 @@
 
 {% block tail_script %}
 <script type="text/javascript">
-  $('#id_sku').keydown(
-    function(event) {  
-      if (event.keyCode == 13) { 
-        console.log("hello");
-      }
-      event.preventDefault();
+    
+    var callback = function(res){
+        if (res.barcode){
+             var child = $("<tr><td>"+res.barcode+"</td><td>"+res.pickval+"</td></tr>");
+            $("#id_tbody").append(child);
+            $("#id_sku").val("");            
+        }   
+    };
+    $('#id_sku').keydown(
+        function(event) {  
+          if (event.keyCode == 13) { 
+            var sku_id = $.trim($("#id_sku").val());
+            $.post("/supplychain/wavepick/allocate/{{ wave_id }}/",
+                {"barcode":sku_id},
+                callback,"json"            
+            )
+            
+            event.preventDefault();
+          }
     });  
 </script>
 {% endblock %}
