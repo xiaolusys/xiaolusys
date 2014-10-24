@@ -9,6 +9,7 @@ class BatchNumberGroup(models.Model):
 #    group_member = models.()
 #    created = models.DateTimeField(blank=True,null=True,verbose_name=u'创建日期')
     created = models.DateTimeField(auto_now_add=True,blank=True,null=True,verbose_name=u'创建日期')
+    
     class Meta:
         db_table = 'batch_number_group'
         verbose_name = u'批号/组'

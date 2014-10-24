@@ -144,7 +144,7 @@ INSTALLED_APPS = (
     'shopapp.weixin_sales',
     'shopapp.weixin_score',
     'shopapp.weixin_examination',
-#    'shopapp.second_time_sort',
+    #'shopapp.second_time_sort',
     'supplychain.wavepick',
 
 

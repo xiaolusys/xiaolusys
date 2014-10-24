@@ -55,10 +55,13 @@ def merger_out_sid(request):
     batch_number = content.get("batch")
     
     out_sid_list = BatchNumberOid.objects.filter(batch_number=batch_number)
-    print "len(out_sid_list)",len(out_sid_list)
+    print "len(out_sid_list)",out_sid_list.items
+    a = ()
+    b = ()
     for v in out_sid_list:
-        print "9999999999999999+",v
-    
+        b = (v.batch_number,v.out_sid)
+        a.__add__(b)
+    print 'aaaaaaaaaaaaaaaa',a
     return render_to_response('second_time_sort/merger_sort_out.html', 
                               {"batch_number":batch_number,},context_instance=RequestContext(request))
     
