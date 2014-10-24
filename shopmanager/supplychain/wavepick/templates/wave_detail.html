@@ -15,28 +15,26 @@
   <div class="col-md-12">
     <table class="table table-bordered" style="margin-top:30px">
       <thead>
-        <th>商品码</th><th style="width:200px;">商品名称</th><th>规格名</th><th>库位</th><th>数量</th>
+        <th style="min-width:100px;">商品名称</th><th>规格名</th><th style="min-width:60px;">库位</th><th>数量</th>
 	</thead>
       <tbody>
-                     {% for trade in order_items %}
+                    {% for trade in order_items %}
 				    {% with trade.1.skus|length as sku_len %}
 				    {% if sku_len > 0 %}
-					    {% for sku_id,sku in trade.1.skus.items %}
+					    {% for sku_id,sku in trade.1.skus %}
 					    <tr>
 					    	{% if forloop.first %}
-					    	<td rowspan="{{ sku_len }}">{{ trade.0 }}</td>
-					    	<td rowspan="{{ sku_len }}">{{ trade.1.title }}</td>
+					    	<td rowspan="{{ sku_len }}">{{ forloop.parentloop.counter }}.{{ trade.1.title }}</td>
 						{% endif %}
-						<td >({{ sku_id }}){{ sku.sku_name }}</td>
+						<td >({{ trade.0 }}{{ sku_id }}){{ sku.sku_name }}</td>
 						<td >{{ sku.location }}</td>
 						<td >{{ sku.num }}</td>
 					    </tr>
 					    {% endfor %}
 				    {% else %}
 				    	<tr>
-					    	<td >{{ trade.0 }}</td>
-					    	<td >{{ trade.1.title }}</td>
-    						<td >-</td>
+					    <td >{{ counter.counter }}.{{ trade.1.title }}</td>
+    					<td >({{ trade.0 }})</td>
 						<td >{{ trade.1.location }}</td>
 						<td >-</td>
 						</tr>

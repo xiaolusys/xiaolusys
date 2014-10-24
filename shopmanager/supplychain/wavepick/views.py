@@ -79,8 +79,11 @@ class WaveDetailView(View):
                                                                  'barcode':prod_sku.BARCODE, 
                                                                  'location':product_sku_location}}}
         
-       
         order_list = sorted(order_items.items(),key=lambda d:d[1]['location'])
+        for order in order_list:
+            skus = order[1]['skus']
+            order[1]['skus'] = sorted(skus.items(),key=lambda d:d[1]['location'])
+            
         return order_list    
     
     def get(self,request,wave_id):
