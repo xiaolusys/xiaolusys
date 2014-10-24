@@ -1,0 +1,34 @@
+{% extends "wavepick_base.html" %}
+
+{% block title %} 第{{ wave_id }}批详情 {% endblock %}
+
+{% block container %}
+<div class="container">
+
+<div class="row">
+  <div class="col-md-12" style="text-align:center">
+    <h3> 第{{ wave_id }}批详情</h3>
+  </div>
+</div>
+
+<div class="row">
+  <div class="col-md-12">
+    <table class="table table-bordered" style="margin-top:30px">
+      <thead><th>SKU</th><th>数量</th><th>库位</th></thead>
+      <tbody>
+	<tr><td>211B6383</td><td>5</td><td>A1-5</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+
+<div class="row">
+  <div class="col-md-12" style="text-align:center">
+    <a href="/supplychain/wavepick/allocate/{{ wave_id }}/" type="button" class="btn btn-primary">开始二次分件</a>
+  </div>
+</div>
+
+</div>
+
+{% endblock %}

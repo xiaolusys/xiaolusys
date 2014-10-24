@@ -7,18 +7,11 @@
 <div class="container-fluid">
 
   <div class="panel panel-default" style="margin-top:5px">
-    <div class="panel-heading" style="color:orange">公告</div>
-    <div class="panel-body">
-      <p style="color:orange">十月免单活动，中奖名单: 第<a href="/weixin/finallist/1/1/10/">1</a>,<a href="/weixin/finallist/2/1/10/">2</a>,<a href="/weixin/finallist/3/1/10/">3</a>,<a href="/weixin/finallist/4/1/10/">4</a>,<a href="/weixin/finallist/5/1/10/">5</a>,<a href="/weixin/finallist/6/1/10/">6</a>,<a href="/weixin/finallist/7/1/10/">7</a>,<a href="/weixin/finallist/8/1/10/">8</a>批。</p>
-    </div>
-  </div>
-
-  <div class="panel panel-default" style="margin-top:5px">
     <div class="panel-heading" style="color:orange">10月活动审核状态</div>
     <div class="panel-body">
       {% if isvalid %}
       {% if score > 9 %}
-      <p style="font-size:20px;color:red">亲，恭喜您入围10月积分5折换购，请加入优尼世界服务qq群385056821咨询购买及返现流程。</p>
+      <p style="font-size:20px;color:red">亲，恭喜您入围10月积分5折换购，请加入优尼世界服务qq群385056821咨询相关流程。</p>
       {% endif %}
       {% endif %}
       {% if has_order %}
@@ -32,8 +25,7 @@
         {% if order_status == -1 %}
         <p style="color:red">您的试用申请已被系统判定为黑名单，原因可能是您的申请所使用多个手机号均无法接通，如有疑问请联系微信客服。</p>
 	{% else %}
-        <p>亲，感谢您对优尼世界的一直关注，奖励微信粉丝专属优惠券：</p>
-        <p>双11当日，<font style="color:red;">满199减50元</font>优惠券！到天猫【优尼世界旗舰店】拍下，付款<font style="color:red;font-size:20px">立减50元！</font></p>
+        <p>您同时获得: 双11当日，<font style="color:red;">满199减50元</font>优惠券！到天猫【优尼世界旗舰店】拍下，付款<font style="color:red;font-size:20px">立减50元！</font></p>
         <p>微信扫一扫下面二维码领取（把二维码图片保存到手机，微信扫一扫，选择右上角“相册”）：</p>
         <a href="#" class="thumbnail">
 	  <img src="https://mmbiz.qlogo.cn/mmbiz/yMhOQPTKhLv3mjZZAzCvUDEPccQCMA3cmiag2XQfWhxCdPfpzfdRrBaFJ2FIq0OnH825VMwQkS9oDIW8avzwyoQ/0" alt="...">
@@ -53,6 +45,7 @@
     <div class="panel-body">
       <p>亲们，若您的申请已审核通过，请仔细阅读审核页面的说明，务必在活动结束后<font style="color:red">5个工作日内</font>按照指示操作领取试用产品！不要忘记错过啦！</p>
       <p>为了保证活动的公正性和真实性，我们保留历史中奖名单供查询。</p>
+      <p style="color:orange">十月免单活动，中奖名单: 第<a href="/weixin/finallist/1/1/10/">1</a>,<a href="/weixin/finallist/2/1/10/">2</a>,<a href="/weixin/finallist/3/1/10/">3</a>,<a href="/weixin/finallist/4/1/10/">4</a>,<a href="/weixin/finallist/5/1/10/">5</a>,<a href="/weixin/finallist/6/1/10/">6</a>,<a href="/weixin/finallist/7/1/10/">7</a>,<a href="/weixin/finallist/8/1/10/">8</a>批。</p>
       <p><a href="/weixin/finallist/1/1/9/">9月中奖名单 >></a></p>
       <p><a href="/weixin/finallist/1/1/8/">8月中奖名单 >></a></p>
     </div>

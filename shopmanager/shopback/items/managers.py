@@ -1,5 +1,6 @@
 #-*- coding:utf8 -*-
 from django.db import models
+from shopback import paramconfig as pcfg
 from common.utils import update_model_fields
 
 
@@ -11,7 +12,31 @@ class ProductManager(models.Manager):
             return self.get(outer_id=outer_id)
         except Product.DoesNotExist:
             None
+    
+    def getProductByBarcode(self,barcode):
         
+        if not barcode or not isinstance(barcode,(str,unicode)) or len(barcode)==0:
+            return []
+        
+        from shopback.items.models import ProductSku
+        
+        product_skus = ProductSku.objects.filter(product__status__in=(pcfg.NORMAL,pcfg.REMAIN),barcode=barcode)
+        if product_skus.count() > 0:
+            return list(set([sku.product for sku in product_skus]))
+        
+        products = self.filter(status__in=(pcfg.NORMAL,pcfg.REMAIN),barcode=barcode)
+        if products.count() > 0:
+            return [ p for p in products]
+        
+        bar_len = len(barcode)
+        for index in range(0,bar_len-1):
+            products = self.filter(outer_id=barcode[0:bar_len-index])
+            if products.count() > 0:
+                return [ p for p in products]
+            
+        return []
+            
+    
     def getProductSkuByOuterid(self,outer_id,outer_sku_id):
         
         from .models import ProductSku

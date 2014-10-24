@@ -18,7 +18,7 @@ class TradeRuleAdmin(admin.ModelAdmin):
     search_fields = ['memo','formula_desc']
 
 
-admin.site.register(TradeRule, TradeRuleAdmin)
+#admin.site.register(TradeRule, TradeRuleAdmin)
 
 
 
@@ -34,9 +34,7 @@ class RuleFieldTypeAdmin(admin.ModelAdmin):
     search_fields = ['field_name']
 
 
-admin.site.register(RuleFieldType, RuleFieldTypeAdmin)
-
-
+#admin.site.register(RuleFieldType, RuleFieldTypeAdmin)
 
 
 class ProductRuleFieldAdmin(admin.ModelAdmin):
@@ -51,7 +49,7 @@ class ProductRuleFieldAdmin(admin.ModelAdmin):
     search_fields = ['outer_id']
 
 
-admin.site.register(ProductRuleField, ProductRuleFieldAdmin)
+#admin.site.register(ProductRuleField, ProductRuleFieldAdmin)
 
 
 
@@ -68,7 +66,7 @@ class RuleMemoAdmin(admin.ModelAdmin):
     search_fields = ['tid']
 
 
-admin.site.register(RuleMemo, RuleMemoAdmin)
+#admin.site.register(RuleMemo, RuleMemoAdmin)
 
 
 class ComposeItemInline(admin.TabularInline):

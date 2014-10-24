@@ -107,6 +107,7 @@ END_TIME = datetime.datetime(2014,10,16,23,59,59)
 def get_user_openid(request, code):
     
     cookie_openid = request.COOKIES.get('openid')
+    cookie_openid = cookie_openid and cookie_openid.split(',')[0]
     if settings.DEBUG:
         return 'oMt59uE55lLOV2KS6vYZ_d0dOl5c'
     
@@ -292,7 +293,7 @@ class OrderInfoView(View):
         orders = []
         for order in trade.merge_orders.filter(sys_status=pcfg.IN_EFFECT):
             s = order.getImgSimpleNameAndPrice()
-            if order.outer_id == '3116BG7':
+            if order.outer_id in ['3116BG7','10201','3114CA3','3114CB1','3114CA2','3114CA1'] :
                 if trade.status == pcfg.TRADE_FINISHED:
                     specific_order_finished = True
                 has_specific_product = True
@@ -315,13 +316,17 @@ class OrderInfoView(View):
         except:
             shipping_traces = [("Sorry, 暂时无法查询到快递信息", "请尝试其他途径查询")]
 
+        score = 0
+        user_scores = WeixinUserScore.objects.filter(user_openid=user_openid)
+        if user_scores.count() > 0:
+            score = user_scores[0].user_score
+
         score_passed = False
         if has_specific_product:
-            score_buys = WeixinScoreBuy.objects.filter(user_openid=user_openid)
             refund_records = Refund.objects.filter(trade_id=trade.id,
                                                    user_openid=user_openid,
                                                    refund_type=2)
-            if score_buys.count() > 0 and refund_records.count() < 1:
+            if score >= 10 and refund_records.count() < 1:
                 score_passed = True
         
         refund = None
@@ -337,10 +342,6 @@ class OrderInfoView(View):
         if sample_orders.count() > 0 and refund_records.count() < 1:
             passed = True
             
-        score = 0
-        user_scores = WeixinUserScore.objects.filter(user_openid=user_openid)
-        if user_scores.count() > 0:
-            score = user_scores[0].user_score
 
         score_refund = False
         if (data["payment"] >= 100 and score >= 10 

@@ -53,7 +53,7 @@ CACHES = {
 }
     
 RAVEN_CONFIG = {
-    'dsn': 'http://1a2bda64a4b3420d9fee079bab4515b2:e370b8c46e0943ee8a1724d63fcfd720@sentry.huyi.so/2',
+    'dsn': 'http://53382bea24ca4a1f851f1e627a8dc0a1:0c2de1f22e884835a32d1fa396487101@sentry.huyi.so/10',
     'register_signals': True,
 }
 
