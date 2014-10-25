@@ -283,8 +283,10 @@ class Product(models.Model):
                 sdict[pno].add(dno)
             else:
                 sdict[pno] = set([dno])
+                
+        dc_list = sorted(sdict.items(),key=lambda d:d[0])
         ds = []
-        for k,v in sdict.iteritems():
+        for k,v in dc_list:
             ds.append(len(v)>1 and '%s-[%s]'%(k,','.join(list(v))) or '%s-%s'%(k,v.pop()))
         
         return ','.join(ds)
@@ -519,8 +521,9 @@ class ProductSku(models.Model):
             else:
                 sdict[pno] = set([dno])
         
+        dc_list = sorted(sdict.items(),key=lambda d:d[0])
         ds = []
-        for k,v in sdict.iteritems():
+        for k,v in dc_list:
             ds.append('%s-[%s]'%(k,','.join(v)))
         
         return ','.join(ds)
