@@ -12,6 +12,7 @@ from .split    import SplitHandler
 from .memo     import MemoHandler
 from .merge    import MergeHandler
 from .refund   import RefundHandler
+from .options  import RushHandler
 from .logistic import LogisticsHandler
 
 import logging
