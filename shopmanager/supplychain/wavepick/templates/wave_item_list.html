@@ -52,7 +52,7 @@
         if (out_sid.length > 0) {
           var children = $("#id_tbody").children();
           var no = children.length + 1;
-          if (no < 5) { 
+          if (no < 13) { 
             $.post("/supplychain/wavepick/wave/"+wave_id+"/",
                 {"out_sid":out_sid,"serial_no":no},
                 callback,"json"            

@@ -7,30 +7,30 @@
 @media print {
 	@font-face {
 		font-family: simsun;
-		src: url(/home/meixqhi/fonts/simsun.ttf);
+		src: url(/root/deploy/fonts/simsun.ttf);
 		font-style: italic;
 	}
 	@font-face {
 		font-family: simsun;
-		src: url(/home/meixqhi/fonts/simsunbd.ttf);
+		src: url(/root/deploy/fonts/simsunbd.ttf);
 		font-weight: bold;
 		font-style: italic;
 	}
 	@font-face {
 		font-family: msyh;
-		src: url(/home/meixqhi/fonts/msyh.ttf);
+		src: url(/root/deploy/fonts/msyh.ttf);
 		font-style: italic;
 	}
 	@font-face {
 		font-family: msyh;
-		src: url(/home/meixqhi/fonts/msyhbd.ttf);
+		src: url(/root/deploy/fonts/msyhbd.ttf);
 		font-weight: bold;
 		font-style: italic;
 	}
 }
 
 body {
-	backgroup-color: #9cc2a9;
+	background-color: #9cc2a9;
 	width: 800px;
 	margin: 0px;
 	padding: 0px;
@@ -48,12 +48,15 @@ body {
 		bottom: 0cm;
 		margin-left: 1cm;
 		margin-right: 1cm;
-		height: 1.5cm;
+		height: 2cm;
 		font-family: simhei;
 	}
 }
+
+div {border:none;}
+
 table {
-	backgroud-color: #ffffff;
+	background-color: #ffffff;
 	border-collapse: collapse;
 	padding: 0px;
 	margin: 0px;
@@ -132,7 +135,7 @@ td {
 .memo-style {
 	text-align: left;
 	float: left;
-	font-size: 30px;
+	font-size: 25px;
 }
 
 .order_num {
@@ -157,9 +160,8 @@ td {
 		<hr/>
 		<div class='seller-info'>
 			<table >
-				<tr><td style="width:100px;"></td><td></td><td style="width:100px;"></td><td></td></tr>
 			    <tr>
-			    	<td><b>订单编号：</b></td><td>{{ trade.ins.id }}{% if trade.juhuasuan %}（聚）{% endif %}</td>
+			    	<td><b>订单编号：</b></td><td>{{ trade.ins.id }}{% if trade.juhuasuan %}（ 聚 ）{% endif %}</td>
 			    	<td>快递：</td><td>{% if trade.ins.logistics_company %}{{ trade.ins.logistics_company.name }}({{ trade.ins.out_sid }}){% endif %}</td>
 			    </tr>
 				<tr >
@@ -184,11 +186,8 @@ td {
 			<table>
 				<thead>
 					<tr>
-						<td style="width:60px;">序号</td>
-						<td>商品编码</td>
-						<td>货品名称</td>
-						<td>规格</td>
-						<td>货位</td>
+						<td>商品编码/全称</td>
+						<td style="width:200px;">货位</td>
 						<td style="width:80px;">数量</td>
 						<!-- <td>单价</td>
 						<td>折扣</td>
@@ -197,35 +196,29 @@ td {
 				</thead>
 				<tbody>
 				{% for order in trade.orders %}
-				{% with parentloop=forloop.parentloop outer_id=order.0 order=order.1 sku_len=order.skus|length %}
+				{% with parentloop=forloop.parentloop outer_id=order.0 order=order.1 %}
+				{% with sku_len=order.skus|length %}
 			    {% if sku_len > 0 %}
 				    {% for sku_id,sku in order.skus %}
 				    <tr>
-				    	{% if parentloop.first %}
-				    	<td rowspan="{{ sku_len }}">{{ parentloop.counter }}</td>
-				    	<td rowspan="{{ sku_len }}">{{ outer_id }}</td>
-				    	<td rowspan="{{ sku_len }}">{{ order.title }}</td>
-						{% endif %}
-						<td >({{ sku_id }}){{ sku.sku_name }}</td>
+				    	<td >[ {{ outer_id }}{{ sku_id }} ]{{ order.title }}-{{ sku.sku_name }}</td>
 						<td >{{ sku.location }}</td>
 						<td >{{ sku.num }}</td>
 				    </tr>
 				    {% endfor %}
 			    {% else %}
 			    	<tr>
-			    		<td >{{ forloop.counter }}</td>
-				    	<td >{{ outer_id }}</td>
-				    	<td >{{ order.title }}</td>
-				    	<td>-</td>
-				    	<td >-</td>
+				    	<td >[ {{ outer_id }} ]{{ order.title }}</td>
+				    	<td >{{ order.location }}</td>
 				    	<td >{{ order.num }}</td>
 					</tr>
 			    {% endif %}
 			    {% endwith %}
+			    {% endwith %}
 				{% endfor %}
 				</tbody>
 				<tfoot>
-					<tr><td colspan="5" ></td><td rowspan="1"><label class="order_num">{{ trade.order_nums }}</label></td></tr>
+					<tr><td colspan="2" ></td><td rowspan="1"><label class="order_num">{{ trade.order_nums }}</label></td></tr>
 				</tfoot>
 			</table>
 		</div>
