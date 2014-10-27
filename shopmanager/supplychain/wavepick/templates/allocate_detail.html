@@ -26,7 +26,9 @@
     <table class="table table-bordered" style="margin-top:30px">
       <thead><th>SKU</th><th>格子分配</th></thead>
       <tbody id="id_tbody">
-	
+      {% for allocate in pick_alloctates %}
+        <tr id="alloc-row-{{ allocate.0 }}"><td>[ {{ allocate.0 }} ]</td><td>{{ allocate.2 }}</td></tr>
+      {% endfor %}
       </tbody>
     </table>
   </div>
@@ -35,7 +37,7 @@
 
 <div class="row">
   <div class="col-md-12" style="text-align:center">
-    <a href="/supplychain/wavepick/createwave/" type="button" class="btn btn-primary" style="display:none">开始下一批</a>
+    <a href="/supplychain/wavepick/createwave/?group_id={{ group_id }}" type="button" class="btn btn-primary" style="display:none">开始下一批</a>
   </div>
 </div>
 
@@ -46,11 +48,15 @@
 {% block tail_script %}
 <script type="text/javascript">
     
+    var pre_row = null;
     var callback = function(res){
-        if (res.barcode){
-             var child = $("<tr><td>"+res.barcode+"</td><td>"+res.pickval+"</td></tr>");
-            $("#id_tbody").append(child);
-            $("#id_sku").val("");            
+        if (res.identity){
+             var row = $("#alloc-row-"+res.identity);
+             if(pre_row != row && pre_row != null){
+                $(pre_row).css("background-color","green");            
+            } 
+            $(row).css("background-color","yellow");
+            pre_row = row;
         }   
     };
     $('#id_sku').keydown(
@@ -58,7 +64,7 @@
           if (event.keyCode == 13) { 
             var sku_id = $.trim($("#id_sku").val());
             $.post("/supplychain/wavepick/allocate/{{ wave_id }}/",
-                {"barcode":sku_id},
+                {"identity":sku_id,"barcode":sku_id},
                 callback,"json"            
             )
             
