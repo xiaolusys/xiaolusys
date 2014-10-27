@@ -51,40 +51,38 @@ class WaveDetailView(View):
                 prod_skus = ProductSku.objects.filter(outer_id=order.outer_sku_id,product=product)
                 prod_sku  = prod_skus.count() > 0 and prod_skus[0] or None
     
-                product_id = product and product.id or ''
-                sku_id     = prod_sku and prod_sku.id or ''
                 
-                product_location = product and product.get_districts_code() or ''
-                product_sku_location = prod_sku and prod_sku.get_districts_code() or ''
+                combose_id = outer_id + outer_sku_id                
+                order_num      = order.num
                 
-                if order_items.has_key(outer_id):
-                    order_items[outer_id]['num'] += order.num
-                    skus = order_items[outer_id]['skus']
-                    if skus.has_key(outer_sku_id):
-                        skus[outer_sku_id]['num'] += order.num
-                    else:   
-                        prod_sku_name = prod_sku and prod_sku.name or order.sku_properties_name
-                        skus[outer_sku_id] = {'sku_name':prod_sku_name,
-                                              'num':order.num,
-                                              'barcode':prod_sku.BARCODE, 
-                                              'location':product_sku_location}
+                if order_items.has_key(combose_id):
+                    order_items[combose_id]['num'] += order_num
+                    
                 else:
-                    prod_sku_name = prod_sku and prod_sku.name or order.sku_properties_name
-                    order_items[outer_id]={'num':order.num,
-                                           'barcode':product.BARCODE, 
-                                           'location':product_location,
-                                           'title': product.name if product else order.title,
-                                           'skus':{outer_sku_id:{'sku_name':prod_sku_name,
-                                                                 'num':order.num,
-                                                                 'barcode':prod_sku.BARCODE, 
-                                                                 'location':product_sku_location}}}
+                    order_location = prod_sku and prod_sku.get_districts_code() or product.get_districts_code() 
+                    order_title    = ('%s-%s'%(product and product.name or '', prod_sku and prod_sku.name or '')  
+                                     or '%s-%s'%(order.title,order.sku_properties_name))
+                    order_barcode  = prod_sku and prod_sku.BARCODE and product.BARCODE
+                
+                    order_items[combose_id]={'num':order_num,
+                                           'barcode':order_barcode, 
+                                           'location':order_location,
+                                           'title': order_title }
         
         order_list = sorted(order_items.items(),key=lambda d:d[1]['location'])
-        for order in order_list:
-            skus = order[1]['skus']
-            order[1]['skus'] = sorted(skus.items(),key=lambda d:d[1]['location'])
             
         return order_list    
+    
+    def getOrderItemIdentity(self,order_items):
+        
+        item_map = {}
+        index    = 1
+        for item in order_items:
+            item_map[item[0]] = index
+            index += 1
+            
+        return item_map
+            
     
     def get(self,request,wave_id):
         
@@ -95,6 +93,7 @@ class WaveDetailView(View):
                                                              pcfg.WAIT_CHECK_BARCODE_STATUS))
         
         order_items = self.getOrderItems(trades)
+        item_identity_map = self.getOrderItemIdentity(order_items)     
         
         for trade in trades:
             out_sid = trade.out_sid
@@ -105,13 +104,15 @@ class WaveDetailView(View):
                                             outer_id=order.outer_id,
                                             outer_sku_id=order.outer_sku_id,
                                             )
+                product_no = order.outer_id+order.outer_sku_id                                            
+                
                 pick_item.wave_no = wave_id
                 pick_item.serial_no = wpick.serial_no
-                pick_item.barcode = order.outer_id+order.outer_sku_id
-                pick_item.title   = order.title,
+                pick_item.barcode   = product_no
+                pick_item.title     = order.title,
                 pick_item.item_num  = order.num
+                pick_item.identity  = item_identity_map.get(product_no)
                 pick_item.save()
-                print pick_item.barcode,u'%s%s'%(order.outer_id,order.outer_sku_id)
                 
         
         response = render_to_response('wave_detail.html', 
@@ -137,10 +138,12 @@ class WaveDetailView(View):
         retparams   = {'isSuccess':isSuccess,'out_sid':out_sid,'serial_no':serial_no,'errmsg':errmsg}
         return HttpResponse(json.dumps(retparams),mimetype='application/json')
     
+    
+from django.db.models import Max
 
 class AllocateView(View):
     
-    def getPublishValue(self,pickitems):
+    def genPublishValue(self,pickitems):
         
         char_list = []
         for i in range(1,13):
@@ -158,11 +161,31 @@ class AllocateView(View):
         if waves.count() > 0:
             return waves[0].group_id
         return None
+          
+    def getPickItemAllocate(self,wave_id):
+        
+        pick_items = PickItem.objects.filter(wave_no=wave_id)
+        
+        identity_list = []
+        max_identity = pick_items.aggregate(max_identity=Max('identity')).get('max_identity') or 0
+        for i in range(1,max_identity+1):
             
+            identity_items = pick_items.filter(identity=i)
+            pick_value     = ','.join(['(%d,%d)'%(item.serial_no,item.item_num) for item in identity_items])
+            identity_list.append((i,identity_items[0].barcode,pick_value))
+            
+        return identity_list
+          
+          
     def get(self, request, wave_id):
         
+        pick_alloctates = self.getPickItemAllocate(wave_id)
+        group_id = self.getPickGroupByWaveNo(wave_id)
+        
         response = render_to_response('allocate_detail.html', 
-                                      {"wave_id":wave_id}, 
+                                      {"group_id":group_id,
+                                       "wave_id":wave_id,
+                                       "pick_alloctates":pick_alloctates}, 
                                       context_instance=RequestContext(request))
         return response
         
@@ -171,16 +194,17 @@ class AllocateView(View):
         
         content = request.REQUEST
         barcode = content.get('barcode')
+        identity = content.get('identity')
         
-        pick_items = PickItem.objects.filter(wave_no=wave_id,barcode=barcode).order_by('serial_no')
-        publish_value  =  self.getPublishValue(pick_items)
+        pick_items = PickItem.objects.filter(wave_no=wave_id,identity=identity).order_by('serial_no')
+        publish_value  =  self.genPublishValue(pick_items)
         
         group_id = self.getPickGroupByWaveNo(wave_id)
-        ppublish,state =  PickPublish.objects.get_or_create(group_id=group_id)
+        ppublish,state  = PickPublish.objects.get_or_create(group_id=group_id)
         ppublish.pvalue = publish_value
         ppublish.save()
         
-        resparams = {'barcode':barcode,'pickval':','.join(['(%d,%d)'%(item.serial_no,item.item_num) for item in pick_items])}
+        resparams = {'barcode':barcode,'identity':identity}
         return HttpResponse(json.dumps(resparams),mimetype='application/json')
         
         

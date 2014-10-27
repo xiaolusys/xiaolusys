@@ -72,6 +72,8 @@ class PickItem(models.Model):
     title    = models.CharField(max_length=256,blank=True,verbose_name=u'商品名称')
     item_num = models.IntegerField(null=True,db_index=True,verbose_name=u'数量')
     
+    identity = models.IntegerField(null=True,db_index=True,verbose_name=u'商品标识')    
+    
     class Meta:
         db_table = 'supplychain_pick_item'
         unique_together = ('out_sid','outer_id','outer_sku_id')
