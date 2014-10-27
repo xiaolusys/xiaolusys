@@ -1,7 +1,7 @@
+#define BUFSIZE 24
+char buf1[BUFSIZE];
+char buf2[BUFSIZE];
 
-
-#define BUFSIZE 25
-char buf[BUFSIZE];
 int light_a[][8] = {
  3,15,-1,-1,-1,-1,-1,-1, 
  0, 1, 3, 5, 6,15,-1,-1,
@@ -49,7 +49,7 @@ void setup() {
 
 }
 
-void display(int n, int a, int b, int x) {
+void display(int a, int b, int x) {
   int clockPin = pins[x][0];  
   int latchPin = pins[x][1];
   int dataPin  = pins[x][2];
@@ -70,12 +70,11 @@ void display(int n, int a, int b, int x) {
     // 送資料前要先把 latchPin 拉成低電位
     digitalWrite(latchPin, LOW);
 
-  for (int light=0; light<2; light++)    
+    
     // 先送高位元組 (Hight Byte), 給離 Arduino 較遠的那顆 74HC595
     shiftOut(dataPin, clockPin, MSBFIRST, high_Byte);  
     // 再送低位元組 (Low Byte), 給離 Arduino 較近的那顆 74HC595
     shiftOut(dataPin, clockPin, MSBFIRST, low_Byte);  
- }
     // 送完資料後要把 latchPin 拉回成高電位
     digitalWrite(latchPin, HIGH);
     
@@ -85,19 +84,24 @@ void display(int n, int a, int b, int x) {
 
 void loop() {
   if (Serial.available() > 0) {
-    memset(buf,0,BUFSIZE);
-    Serial.readBytes(buf, BUFSIZE);
-    for (int i=0; i<8; i=i+2) {
-      int a = buf[i]   - '0';
-      int b = buf[i+1] - '0';
+    memset(buf2,0,BUFSIZE);
+    Serial.readBytes(buf2, BUFSIZE);
+    if (memcmp(buf1,buf2,BUFSIZE) != 0) {
+      memcpy(buf1,buf2,BUFSIZE);
+      for (int i=0; i<24; i=i+2) {
+        int a = buf1[i]   - '0';
+        int b = buf1[i+1] - '0';
 
-      if (a == 0) {
-        a = 10;
-        if (b == 0) {
-          b = 10;
-	}
+        if (a == 0) {
+          a = 10;
+          if (b == 0) {
+            b = 10;
+	  }
+        }
+        display(a,b,0);
       }
-      display(a,b,0);
+    } else {
+      delay(100);
     }
     requested = 0;
   } else {
@@ -108,4 +112,3 @@ void loop() {
     delay(100);
   }
 }
-
