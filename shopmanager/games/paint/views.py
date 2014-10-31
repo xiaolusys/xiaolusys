@@ -42,7 +42,8 @@ class CreateAccountView(View):
         creater_id = request.user.pk
         
         pa = PaintAccount.objects.create(account_name=customer.nick,customer_id=customer.pk,
-                                    password=pw,province=customer.state,creater_id=creater_id)
+                                         password=pw,province=customer.state,
+                                         mobile=customer.mobile, creater_id=creater_id)
 
         response = render_to_response('create_account.html', 
                                       {'customer':customer, "pa":pa},
