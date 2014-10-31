@@ -462,7 +462,7 @@ class ProductBarCodeView(ModelView):
     def get(self, request, *args, **kwargs):
         #获取库存商品列表
         content  = request.REQUEST
-        outer_id = content.get('outer_id')
+        outer_id = content.get('outer_id','')
         
         products = Product.objects.getProductByBarcode(outer_id)
         

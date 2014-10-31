@@ -1,10 +1,20 @@
 #-*- coding:utf8 -*-
+import time
+import datetime
+import cStringIO as StringIO
 from django.contrib import admin
-from shopapp.yunda.models import ClassifyZone,BranchZone,LogisticOrder,YundaCustomer,\
-    ParentPackageWeight,TodaySmallPackageWeight,TodayParentPackageWeight
+from django.http import HttpResponse
+from shopapp.yunda.models import (ClassifyZone,
+                                  BranchZone,
+                                  LogisticOrder,
+                                  YundaCustomer,
+                                  ParentPackageWeight,
+                                  TodaySmallPackageWeight,
+                                  TodayParentPackageWeight)
 from shopback.base.options import DateFieldListFilter
 from django.contrib import messages
 from .service import YundaService,YundaPackageService,WEIGHT_UPLOAD_LIMIT
+from common.utils import gen_cvs_tuple,CSVUnicodeWriter
 
 class ClassifyZoneInline(admin.TabularInline):
     
@@ -38,6 +48,28 @@ class BranchZoneAdmin(admin.ModelAdmin):
     inlines = [ClassifyZoneInline]
     
     search_fields = ['code','name','barcode']
+    
+    def export_branch_zone(self,request,queryset):
+        
+        is_windows = request.META['HTTP_USER_AGENT'].lower().find('windows') >-1 
+        pcsv =[]
+        bz_tuple = gen_cvs_tuple(queryset,
+                                 fields=['barcode','name','code'],
+                                 title=[u'网点条码',u'网点名称',u'网点编号'])
+        
+        tmpfile = StringIO.StringIO()
+        writer  = CSVUnicodeWriter(tmpfile,encoding= is_windows and "gbk" or 'utf8')
+        writer.writerows(bz_tuple)
+            
+        response = HttpResponse(tmpfile.getvalue(), mimetype='application/octet-stream')
+        tmpfile.close()
+        response['Content-Disposition'] = 'attachment; filename=branch-zone-%s.csv'%str(int(time.time()))
+        
+        return response
+        
+    export_branch_zone.short_description = u"导出CSV文件"
+    
+    actions = ['export_branch_zone',]
 
 
 admin.site.register(BranchZone,BranchZoneAdmin)

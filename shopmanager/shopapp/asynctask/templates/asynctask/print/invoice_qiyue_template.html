@@ -35,31 +35,48 @@ body {
 	margin: 0px;
 	padding: 0px;
 	text-align: left;
-	font-size: 20px;
+	font-size: 25px;
 	font-family: simsun;
 	font-weight: bold;
 }
 
 @page {
-	margin: 1cm 0.5cm;
+	margin: 0.5cm 0.5cm;
 	font-family: simhei;
+	-pdf-frame-border: 0;
+	-pdf-outline: true;
+    -pdf-level: 0;
+    -pdf-open: false;
+	border:0;
+	@frame base{
+		-pdf-frame-content: baseInfo;
+		margin-top:1.9cm;
+		margin-left: 0.5cm;
+		margin-right: 0.50cm;
+		height: 1cm;
+		font-family: simhei;
+	}
 	@frame footer {
 		-pdf-frame-content: footerContent;
 		bottom: 0cm;
 		margin-left: 1cm;
 		margin-right: 1cm;
-		height: 2cm;
+		height: 1.5cm;
 		font-family: simhei;
 	}
 }
 
-div {border:none;}
+h1 {
+  -pdf-outline: true;
+  -pdf-level: 0;
+  -pdf-open: false;
+}
 
 table {
 	background-color: #ffffff;
 	border-collapse: collapse;
-	padding: 0px;
-	margin: 0px;
+	padding: 0em;
+	margin: 0em;
 	width: 100%;
 }
 
@@ -71,7 +88,7 @@ td {
 
 .delivery {
 	width: 718px;
-	height: 464px;
+	height: 1056px;
 	margin: 0px;
 	padding: 0px;
 }
@@ -81,31 +98,21 @@ td {
 	width: 100%;
 }
 
-.barcode39 {
-	display: none;
-	float: left;
-	width: 250px;
-	height: 20px;
-	margin-top: 20px;
-	margin-left: 100px;
-}
-
 .seller-nick {
-	clear: both;
-	margin-top: 40px;
 	text-align: center;
 }
 
 .base-info {
 	width: 100%;
 	margin: 0px;
+	padding:0px;
+	font-size:14px;
 }
 
 .right-label {
-	float: left;
-	width: 200px;
 	display: inline;
 	padding: 0px;
+	margin: 0px;
 }
 
 .seller-info {
@@ -123,7 +130,7 @@ td {
 
 .order-info {
 	width: 100%;
-	margin-top: 15px;
+	margin-top: 5px;
 }
 
 .order-info td {
@@ -133,9 +140,7 @@ td {
 }
 
 .memo-style {
-	text-align: left;
-	float: left;
-	font-size: 25px;
+	font-size: 30px;
 }
 
 .order_num {
@@ -152,17 +157,17 @@ td {
 	{% load custom_filter %}
 	{% for trade in trade_list %}
 	<div id="delivery" class='delivery' >
-		<div class='seller-nick'><h1>{{ trade.ins.user.nick }} [发货单]</h1></div> 
-		<!-- <div class="header" ><div class="barcode39" >{{ trade.ins.out_sid }}</div></div> -->
-		<div class='base-info'>
-			<div class='right-label'>付款打单日期:{{ trade.ins.pay_time.month }}.{{ trade.ins.pay_time.day }}/{{ trade.today.month }}.{{ trade.today.day }}</div>
-		</div>
+		<div class='seller-nick'>
+			<h1>{{ trade.ins.user.nick }} [发货单]</h1>
+		</div> 
+		<div id="baseInfo">付款打单日期:{{ trade.ins.pay_time.month }}.{{ trade.ins.pay_time.day }}/{{ trade.today.month }}.{{ trade.today.day }}</div>
 		<hr/>
 		<div class='seller-info'>
 			<table >
+				<tr><td style="width:120px;"></td><td></td><td style="width:120px;"></td><td></td></tr>
 			    <tr>
 			    	<td><b>订单编号：</b></td><td>{{ trade.ins.id }}{% if trade.juhuasuan %}（ 聚 ）{% endif %}</td>
-			    	<td>快递：</td><td>{% if trade.ins.logistics_company %}{{ trade.ins.logistics_company.name }}({{ trade.ins.out_sid }}){% endif %}</td>
+			    	<td>快递：</td><td>{% if trade.ins.logistics_company %}({{ trade.ins.out_sid }}){{ trade.ins.logistics_company.name|truncatechars:6 }}{% endif %}</td>
 			    </tr>
 				<tr >
 					<td >买家昵称：</td><td>{{ trade.ins.buyer_nick }}</td>
@@ -171,13 +176,6 @@ td {
 				<tr>
 					<td >手机：</td><td>{{ trade.ins.receiver_mobile|stringBlur }}</td>
 					<td>电话：</td><td>{{ trade.ins.receiver_phone }}</td>
-				</tr>
-				<tr></tr>
-				<tr >
-					<td>收货地址：</td><td colspan='3'>{{ trade.ins.receiver_state }} {{ trade.ins.receiver_city }} {{ trade.ins.receiver_district }} </td>
-				</tr>
-				<tr>
-					<td colspan='4'>{{ trade.ins.receiver_address }}</td>
 				</tr>
 			</table>
 		</div>
@@ -201,7 +199,7 @@ td {
 			    {% if sku_len > 0 %}
 				    {% for sku_id,sku in order.skus %}
 				    <tr>
-				    	<td >[ {{ outer_id }}{{ sku_id }} ]{{ order.title }}-{{ sku.sku_name }}</td>
+				    	<td >[{{ outer_id }}{{ sku_id }}]{{ order.title }}-{{ sku.sku_name }}</td>
 						<td >{{ sku.location }}</td>
 						<td >{{ sku.num }}</td>
 				    </tr>
@@ -223,8 +221,8 @@ td {
 			</table>
 		</div>
 		<div class='memo-style'>
-			<label>留言：</label><span>{{ trade.ins.buyer_message|slice:":140" }}</span>
-			<br><label>温馨提示：</label><span>{{ trade.buyer_prompt|slice:":140" }}</span>
+			<label>留言：</label>{{ trade.ins.buyer_message|slice:":140" }}
+			<br><label>温馨提示：</label>{{ trade.buyer_prompt|slice:":140" }}
 		</div>
 		<div id="footerContent" >
           NO：<pdf:pagenumber>
