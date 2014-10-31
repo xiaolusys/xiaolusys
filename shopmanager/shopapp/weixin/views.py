@@ -476,7 +476,7 @@ class ReferalView(View):
         
         referal_count = SampleOrder.objects.filter(vipcode=vipcode).count()
         
-        coupon = Coupon.objects.get(pk=4)
+        coupon = Coupon.objects.get(pk=5)
         
         couponclicks = CouponClick.objects.filter(vipcode=vipcode)
         coupon_click_count = couponclicks.count()
@@ -1058,7 +1058,7 @@ class VipCouponView(View):
             response.set_cookie("openid",user_openid)
             return response
         
-        response = render_to_response('weixin/vipcoupon.html', {"openid":user_openid, "coupon_pk":"1"},
+        response = render_to_response('weixin/vipcoupon.html', {"openid":user_openid, "coupon_pk":"5"},
                                       context_instance=RequestContext(request))
         response.set_cookie("openid",user_openid)        
         return response

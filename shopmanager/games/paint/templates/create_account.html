@@ -1,0 +1,127 @@
+{% extends "paint_base.html" %}
+
+{% block title %} 帐号创建 {% endblock %}
+
+{% block container %}
+
+<div class="container">
+
+  <div class="row">
+    <div class="col-md-3"></div>
+    <div class="col-md-6" style="text-align:center">
+      <h3 style="color:#428bca">参考信息</h3>
+      <div class="input-group">  
+	<span class="input-group-addon">姓名</span>
+	<input type="text" class="form-control" value="{{ customer.name }}">
+      </div>
+      <div class="input-group">  
+	<span class="input-group-addon">帐号</span>
+	<input type="text" class="form-control" value="{{ customer.nick }}">
+      </div>
+      <div class="input-group">
+	<span class="input-group-addon">省</span>
+	<input type="text" class="form-control" value="{{ customer.state }}">
+      </div>
+      <div class="input-group">
+	<span class="input-group-addon">街道地址</span>
+	<input type="text" class="form-control" value="{{ customer.city }} {{ customer.address}} {{ customer.zip }}">
+      </div>
+    </div>
+  </div>
+  <div class="row">
+    <div class="col-md-3"></div>
+    <div class="col-md-6" style="text-align:center">
+      <h3 style="color:#428bca">新建信息</h3>
+      <form action="/games/paint/createaccount/" method="post" onsubmit="return check()" class="form-group">{% csrf_token %}
+	<input type="hidden" name="customer_id" value="{{ customer.pk }}">
+	<div class="input-group">  
+	  <span class="input-group-addon">帐号</span>
+	  <input type="text" class="form-control" id="id_name" name="account_name">
+	</div>
+	<div class="input-group">  
+	  <span class="input-group-addon">密码</span>
+	  <input type="text" class="form-control" id="id_password" name="password" value="{{ pw }}">
+	</div>
+	<div class="input-group">
+	  <span class="input-group-addon">手机号</span>
+	  <input type="text" class="form-control" id="id_mobile" name="mobile">
+	</div>
+	<div class="input-group">
+	  <span class="input-group-addon">省</span>
+	  <input type="text" class="form-control" id="id_province" name="province">
+	</div>
+	<div class="input-group">
+	  <span class="input-group-addon">街道地址</span>
+	  <input type="text" class="form-control" id="id_streetaddr" name="street_addr">
+	</div>
+	<div class="checkbox">
+	  <label style="margin-right:40px"><input type="checkbox" id="id_tb" name="tb"> 淘宝帐号</label>
+	  <label style="margin-right:40px"><input type="checkbox" id="id_jd" name="jd"> 京东帐号</label>
+	  <label><input type="checkbox" id="id_wx" name="wx"> 微信帐号</label>
+	</div>
+	<div style="margin-top:30px">
+	  <span id="id_msg" style="color:red"></span>
+	  <button type="submit" class="btn btn-primary">保存信息</button>
+	</div>
+      </form>
+    </div>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block tail_script %}
+<script type="text/javascript">
+  
+  function check() {
+    var name = $("#id_name").val();  
+    name = $.trim(name);
+    if (name.length < 2) {
+      $("#id_msg")[0].innerHTML = "请填写新申请的帐号名称!";
+      return false;
+    }
+    
+    var password = $("#id_password").val();
+    password = $.trim(password);
+    if (password.length < 6) {
+      $("#id_msg")[0].innerHTML = "请填写新申请的帐号密码!";
+      return false;
+    } 
+
+    var mobile = $("#id_mobile").val();
+    mobile = $.trim(mobile);
+    if (mobile.length < 11) {
+      $("#id_msg")[0].innerHTML = "请填写新申请的帐号手机!";
+      return false;
+    }
+
+    var province = $("#id_province").val();
+    province = $.trim(province);
+    if (province.length < 2) {
+      $("#id_msg")[0].innerHTML = "请填写省份!";
+      return false;
+    }
+
+    var streetaddr = $("#id_streetaddr").val();
+    streetaddr = $.trim(streetaddr);
+    if (streetaddr.length < 3) {
+      $("#id_msg")[0].innerHTML = "请填写街道地址!";
+      return false;      
+    }
+    
+    var tb_checked = $("#id_tb").is(":checked");
+    var jd_checked = $("#id_jd").is(":checked");
+    var wx_checked = $("#id_wx").is(":checked");
+    console.log('tb',tb_checked);
+    console.log('jd',jd_checked);
+    console.log('wx',wx_checked);
+    if ((!tb_checked) && (!jd_checked) && (!wx_checked)) {
+      $("#id_msg")[0].innerHTML = "请勾选你注册的平台!";
+      return false;      
+    }
+
+    return true;
+  };
+
+</script>
+{% endblock %}
