@@ -19,6 +19,17 @@ EFFECT_PROVINCES = [u'上海',u'上海市',u'江苏',u'江苏省',u'浙江',u'�
 
 class CreateAccountView(View):
     def get(self, request):
+        content = request.GET
+        pk = content.get("pk", None)
+        
+        if pk:
+            pa = PaintAccount.objects.get(pk=pk)
+            customer = Customer.objects.get(pk=pa.customer_id)
+            response = render_to_response('create_account.html', 
+                                          {'customer':customer, "pa":pa},
+                                          context_instance=RequestContext(request))
+            return response
+            
         creater_id = request.user.pk
 
         current_customer_id = 0
