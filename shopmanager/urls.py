@@ -23,6 +23,7 @@ urlpatterns = patterns('',
     (r'^users/',include('shopback.users.urls')),
     (r'^weixin/',include('shopapp.weixin.urls')),
     (r'^supplychain/',include('supplychain.urls')),
+    (r'^games/',include('games.urls')),
     url(r'^djcelery/',include('djcelery.urls'),name="task_state"),
     
     (r'^app/',include('shopapp.urls')),
