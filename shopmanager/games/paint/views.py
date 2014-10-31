@@ -72,8 +72,9 @@ class CreateAccountView(View):
 
         try:
             PaintAccount.objects.create(account_name=account_name,customer_id=customer_id,
-                                        mobile=mobile,province=province,street_addr=street_addr,
-                                        is_tb=is_tb,is_jd=is_jd,is_wx=is_wx,creater_id=creater_id)
+                                        password=passowrd,mobile=mobile,province=province,
+                                        street_addr=street_addr,is_tb=is_tb,is_jd=is_jd,
+                                        is_wx=is_wx,creater_id=creater_id)
             return redirect('/games/paint/createaccount/')
         except:
             res = {"status":"failed"}
