@@ -33,14 +33,15 @@
     <div class="col-md-6" style="text-align:center">
       <h3 style="color:#428bca">新建信息</h3>
       <form action="/games/paint/createaccount/" method="post" onsubmit="return check()" class="form-group">{% csrf_token %}
-	<input type="hidden" name="customer_id" value="{{ customer.pk }}">
+	<input type="hidden" name="paint_id" value="{{ pa.pk }}">
+	<input type="hidden" name="customer_id" value="{{ pa.customer_id }}">
 	<div class="input-group">  
 	  <span class="input-group-addon">帐号</span>
 	  <input type="text" class="form-control" id="id_name" name="account_name">
 	</div>
 	<div class="input-group">  
 	  <span class="input-group-addon">密码</span>
-	  <input type="text" class="form-control" id="id_password" name="password" value="{{ pw }}">
+	  <input type="text" class="form-control" id="id_password" name="password" value="{{ pa.password }}">
 	</div>
 	<div class="input-group">
 	  <span class="input-group-addon">手机号</span>
@@ -48,7 +49,7 @@
 	</div>
 	<div class="input-group">
 	  <span class="input-group-addon">省</span>
-	  <input type="text" class="form-control" id="id_province" name="province">
+	  <input type="text" class="form-control" id="id_province" name="province" value="{{ pa.province }}">
 	</div>
 	<div class="input-group">
 	  <span class="input-group-addon">街道地址</span>

@@ -39,8 +39,13 @@ class CreateAccountView(View):
         
         pw = ''.join(passchars)
 
+        creater_id = request.user.pk
+        
+        pa = PaintAccount.objects.create(account_name=customer.nick,customer_id=customer.pk,
+                                    password=pw,province=customer.state,creater_id=creater_id)
+
         response = render_to_response('create_account.html', 
-                                      {'customer':customer, "pw":pw},
+                                      {'customer':customer, "pa":pa},
                                       context_instance=RequestContext(request))
 
         return response
@@ -48,6 +53,7 @@ class CreateAccountView(View):
 
     def post(self, request):
         content = request.POST
+        pk = int(content.get("paint_id"))
         account_name = content.get("account_name")
         customer_id = content.get("customer_id")
         password = content.get("password")
@@ -55,8 +61,6 @@ class CreateAccountView(View):
         province = content.get("province")
         street_addr = content.get("street_addr")
 
-        creater_id = request.user.pk
-        
         tb = content.get("tb")
         jd = content.get("jd")
         wx = content.get("wx")
@@ -71,10 +75,15 @@ class CreateAccountView(View):
             is_wx = 1
 
         try:
-            PaintAccount.objects.create(account_name=account_name,customer_id=customer_id,
-                                        password=passowrd,mobile=mobile,province=province,
-                                        street_addr=street_addr,is_tb=is_tb,is_jd=is_jd,
-                                        is_wx=is_wx,creater_id=creater_id)
+            pa = PaintAccount.objects.get(pk=pk)
+            pa.account_name = account_name
+            pa.mobile = mobile
+            pa.street_addr = street_addr
+            pa.is_tb = is_tb
+            pa.is_jx = is_jd
+            pa.is_wx = is_wx
+            pa.save()
+        
             return redirect('/games/paint/createaccount/')
         except:
             res = {"status":"failed"}
