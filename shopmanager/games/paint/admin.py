@@ -4,7 +4,7 @@ from .models import PaintAccount
 
 class PaintAccountAdmin(admin.ModelAdmin):
     
-    list_display = ('account_name','password','province','creater_id','created', 'modified', 'status')
+    list_display = ('pk','account_name','password','province','creater_id','created', 'modified', 'status')
     
     search_fields = ['account_name']
     list_filter = ('province','creater_id')
