@@ -7,7 +7,7 @@ class PaintAccountAdmin(admin.ModelAdmin):
     list_display = ('pk','account_name','password','mobile','province','creater_id','created', 'modified', 'status')
     
     search_fields = ['account_name','mobile']
-    list_filter = ('province','creater_id')
+    list_filter = ('province','creater_id','status')
 
 admin.site.register(PaintAccount, PaintAccountAdmin) 
 
