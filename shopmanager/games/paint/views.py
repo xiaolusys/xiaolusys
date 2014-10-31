@@ -79,7 +79,7 @@ class CreateAccountView(View):
             pa = PaintAccount.objects.get(pk=pk)
             pa.account_name = account_name
             pa.mobile = mobile
-            pa.passord = passord
+            pa.password = password
             pa.province = province
             pa.street_addr = street_addr
             pa.is_tb = is_tb
