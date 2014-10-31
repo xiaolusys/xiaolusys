@@ -11,6 +11,10 @@
     <div class="col-md-6" style="text-align:center">
       <h3 style="color:#428bca">参考信息</h3>
       <div class="input-group">  
+	<span class="input-group-addon">姓名</span>
+	<input type="text" class="form-control" value="{{ customer.name }}">
+      </div>
+      <div class="input-group">  
 	<span class="input-group-addon">帐号</span>
 	<input type="text" class="form-control" value="{{ customer.nick }}">
       </div>
@@ -20,7 +24,7 @@
       </div>
       <div class="input-group">
 	<span class="input-group-addon">街道地址</span>
-	<input type="text" class="form-control" value="{{ customer.city }}, {{ customer.address}}, {{ customer.zip }}">
+	<input type="text" class="form-control" value="{{ customer.city }} {{ customer.address}} {{ customer.zip }}">
       </div>
     </div>
   </div>
@@ -36,7 +40,7 @@
 	</div>
 	<div class="input-group">  
 	  <span class="input-group-addon">密码</span>
-	  <input type="text" class="form-control" id="id_password" name="password">
+	  <input type="text" class="form-control" id="id_password" name="password" value="{{ pw }}">
 	</div>
 	<div class="input-group">
 	  <span class="input-group-addon">手机号</span>

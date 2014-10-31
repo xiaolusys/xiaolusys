@@ -30,8 +30,17 @@ class CreateAccountView(View):
         customers = Customer.objects.filter(state__in=EFFECT_PROVINCES,pk__gt=current_customer_id).order_by('pk')
         customer = customers[0]
 
+        passchars = []
+        for x in range(0,8):
+            c = random.randint(0,35)
+            if c > 9:
+                c = chr(87+c)
+            passchars.append(str(c))
+        
+        pw = ''.join(passchars)
+
         response = render_to_response('create_account.html', 
-                                      {'customer':customer},
+                                      {'customer':customer, "pw":pw},
                                       context_instance=RequestContext(request))
 
         return response
