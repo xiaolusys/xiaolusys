@@ -22,7 +22,7 @@ class CreateAccountView(View):
         creater_id = request.user.pk
 
         current_customer_id = 0
-        accounts = PaintAccount.objects.all().order_by('pk')
+        accounts = PaintAccount.objects.filter(customer_id__gt=0).order_by('pk')
         total = accounts.count()
         if total > 0:
             current_customer_id = accounts[total-1].customer_id
@@ -85,6 +85,7 @@ class CreateAccountView(View):
             pa.is_tb = is_tb
             pa.is_jx = is_jd
             pa.is_wx = is_wx
+            pa.status = 1
             pa.save()
         
             return redirect('/games/paint/createaccount/')
