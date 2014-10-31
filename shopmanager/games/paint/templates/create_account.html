@@ -37,7 +37,11 @@
 	<input type="hidden" name="customer_id" value="{{ pa.customer_id }}">
 	<div class="input-group">  
 	  <span class="input-group-addon">帐号</span>
+	  {% if pa.status == 1 %}
+	  <input type="text" class="form-control" id="id_name" name="account_name" value="{{ pa.account_name }}">
+	  {% else %}
 	  <input type="text" class="form-control" id="id_name" name="account_name">
+	  {% endif %}
 	</div>
 	<div class="input-group">  
 	  <span class="input-group-addon">密码</span>
@@ -45,7 +49,11 @@
 	</div>
 	<div class="input-group">
 	  <span class="input-group-addon">手机号</span>
+	  {% if pa.status == 1 %}
+	  <input type="text" class="form-control" id="id_mobile" name="mobile" value="{{ pa.mobile }}">
+	  {% else %}
 	  <input type="text" class="form-control" id="id_mobile" name="mobile">
+	  {% endif %}
 	</div>
 	<div class="input-group">
 	  <span class="input-group-addon">省</span>
@@ -53,12 +61,28 @@
 	</div>
 	<div class="input-group">
 	  <span class="input-group-addon">街道地址</span>
+	  {% if pa.status == 1 %}
+	  <input type="text" class="form-control" id="id_streetaddr" name="street_addr" value="{{ pa.street_addr }}">
+	  {% else %}
 	  <input type="text" class="form-control" id="id_streetaddr" name="street_addr">
+	  {% endif %}
 	</div>
 	<div class="checkbox">
+	  {% if pa.is_tb == 1 %}
+	  <label style="margin-right:40px"><input type="checkbox" id="id_tb" name="tb" checked="true"> 淘宝帐号</label>
+	  {% else %}
 	  <label style="margin-right:40px"><input type="checkbox" id="id_tb" name="tb"> 淘宝帐号</label>
+	  {% endif %}
+	  {% if pa.is_jd == 1 %}
+	  <label style="margin-right:40px"><input type="checkbox" id="id_jd" name="jd" checked="true"> 京东帐号</label>
+	  {% else %}
 	  <label style="margin-right:40px"><input type="checkbox" id="id_jd" name="jd"> 京东帐号</label>
+	  {% endif %}
+	  {% if pa.is_wx == 1 %}
+	  <label><input type="checkbox" id="id_wx" name="wx" checked="true"> 微信帐号</label>
+	  {% else %}
 	  <label><input type="checkbox" id="id_wx" name="wx"> 微信帐号</label>
+	  {% endif %}
 	</div>
 	<div style="margin-top:30px">
 	  <span id="id_msg" style="color:red"></span>
