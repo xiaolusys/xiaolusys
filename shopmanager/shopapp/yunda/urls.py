@@ -2,9 +2,16 @@ from django.conf.urls.defaults    import patterns, include, url
 from django.views.decorators.csrf import csrf_exempt
 from django.conf import settings
 from django.contrib.admin.views.decorators import staff_member_required
+from django.views.decorators.cache import cache_page
 from django.views.generic import TemplateView
-from .views import PackageByCsvFileView,DiffPackageDataView,PackageWeightView,CustomerPackageImportView
-from .resources import PackageListResource,LogisticOrderResource
+from .views import (PackageByCsvFileView,
+                    DiffPackageDataView,
+                    PackageWeightView,
+                    CustomerPackageImportView,
+                    BranchZoneView)
+from .resources import (PackageListResource,
+                        LogisticOrderResource,
+                        BranchZoneResource)
 from .renderers import BaseJsonRenderer,PackageDiffHtmlRenderer
 from shopback.base.permissions import IsAuthenticated
 from shopback.base.authentication import UserLoggedInAuthentication,login_required_ajax
@@ -40,5 +47,12 @@ urlpatterns = patterns('shopapp.yunda.views',
         renderers=(BaseJsonRenderer,),
         authentication=(UserLoggedInAuthentication,),
         permissions=(IsAuthenticated,)
-    )),  
+    )), 
+                       
+    (r'^branchzone/$',cache_page(BranchZoneView.as_view(
+        resource=BranchZoneResource,
+        renderers=(BaseJsonRenderer,),
+#        authentication=(UserLoggedInAuthentication,),
+#        permissions=(IsAuthenticated,)
+    ),12*60*60)),  
 )

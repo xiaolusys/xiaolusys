@@ -122,7 +122,7 @@ class ComposeRule(models.Model):
     outer_sku_id = models.CharField(max_length=64,db_index=True,
                                 blank=True,verbose_name=u'商品规格编码')
     
-    payment  = models.IntegerField(null=True,verbose_name=u'金额')
+    payment  = models.IntegerField(null=True,default=0,verbose_name=u'金额')
     type     = models.CharField(max_length=10,
                                 choices=RULE_TYPE_CHOICE,
                                 verbose_name=u'规则类型')

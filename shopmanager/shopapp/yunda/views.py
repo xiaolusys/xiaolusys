@@ -325,12 +325,19 @@ class DiffPackageDataView(ModelView):
             if not self.isValidLanjianUser(lanjian_id):
                 raise Exception(u'揽件ID不正确，重新再试！')
             
-            small_queryset  = TodaySmallPackageWeight.objects.all()
             parent_queryset = TodayParentPackageWeight.objects.all()
             
             ydpkg_service = YundaPackageService()
+            for parent_package in parent_queryset:
+                
+                child_packages = TodaySmallPackageWeight.objects\
+                    .filter(parent_package_id=parent_package.parent_package_id)
+                ydpkg_service.uploadSmallPackageWeight(child_packages)
+                
+                ydpkg_service.uploadParentPackageWeight([parent_package])
+                
+            small_queryset  = TodaySmallPackageWeight.objects.all()
             ydpkg_service.uploadSmallPackageWeight(small_queryset)
-            ydpkg_service.uploadParentPackageWeight(parent_queryset)
             
         except Exception,exc:
             messages.error(request, u'XXXXXXXXXXXXXXXXXXXXX 包裹重量上传异常:%s XXXXXXXXXXXXXXXXXXXXX'%exc.message)
@@ -440,4 +447,24 @@ class PackageWeightView(ModelView):
         
         return {'isSuccess':True}
     
+
+class BranchZoneView(ModelView):
+    """ 获取分拨集包规则 """
     
+        
+    def get(self, request, *args, **kwargs):
+        
+        content    = request.REQUEST
+        province   = content.get('province','')
+        city       = content.get('city','')
+        district   = content.get('district','')
+        address   = content.get('address','')
+        
+        branch_zone = get_addr_zones(province,city,district,address=address)
+        print province,city,district,address,branch_zone
+        return {'province':province,
+                'city':city,
+                'district':district,
+                'address':address,
+                'branch_zone':branch_zone ,
+                }    
