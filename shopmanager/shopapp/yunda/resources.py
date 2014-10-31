@@ -1,7 +1,7 @@
 #-*- coding:utf8 -*-
 __author__ = 'meixqhi'
 from djangorestframework.resources import ModelResource
-from .models import LogisticOrder,TodaySmallPackageWeight,TodayParentPackageWeight
+from .models import (LogisticOrder,TodaySmallPackageWeight,TodayParentPackageWeight,BranchZone)
 
 
 class PackageListResource(ModelResource):
@@ -23,3 +23,10 @@ class LogisticOrderResource(ModelResource):
     exclude = ('url',)
     
     
+class BranchZoneResource(ModelResource):
+    """ docstring for ProductList ModelResource """
+
+    model  = BranchZone
+    fields = ('code','name','barcode','province',
+              'city','district','address','branch_zone') 
+    exclude = ('url',)    

@@ -265,7 +265,9 @@ class AsyncOrderTask(TaobaoAsyncBaseTask):
         start_time = start_time.strftime("%Y%m%d")
         end_time   = end_time.strftime("%Y%m%d")
         try:
-            response = apis.taobao_topats_trades_sold_get(start_time=start_time,end_time=end_time,tb_user_id=user_id)
+            response = apis.taobao_topats_trades_sold_get(start_time=start_time,
+                                                          end_time=end_time,
+                                                          tb_user_id=user_id)
             #response = {u'topats_trades_sold_get_response': {u'task': {u'task_id': 37606086, u'created': u'2012-08-31 17:40:42'}}}
         except Exception,exc:
             logger.error('%s'%exc,exc_info=True)
@@ -399,7 +401,7 @@ class PrintAsyncTask(Task):
         trade_ids  = [int(p.strip()) for p in params_json['trade_ids'].split(',')]
         user_code  = params_json['user_code'].lower()
         
-        trade_list = MergeTrade.objects.filter(id__in=trade_ids)
+        trade_list = MergeTrade.objects.filter(id__in=trade_ids).order_by('out_sid')
         
         if print_async.task_type == PrintAsyncTaskModel.INVOICE:
             

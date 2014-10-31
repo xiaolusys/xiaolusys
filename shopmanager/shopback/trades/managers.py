@@ -56,7 +56,9 @@ class MergeTradeManager(models.Manager):
     def getMergeQueryset(self,buyer_nick, 
                           receiver_name, 
                           receiver_mobile,
-                          receiver_phone):
+                          receiver_phone,
+                          state='',
+                          city=''):
         
         q = Q(receiver_name=receiver_name,buyer_nick=buyer_nick)
         if receiver_mobile :
@@ -65,10 +67,14 @@ class MergeTradeManager(models.Manager):
         if receiver_phone:
             q = q|Q(receiver_phone=receiver_phone)
             
-        return self.get_queryset().filter(q)\
+        queryset = self.get_queryset().filter(q)\
                 .exclude(sys_status__in=(pcfg.EMPTY_STATUS,
                                          pcfg.FINISHED_STATUS,
                                          pcfg.INVALID_STATUS))
+        if state and city:
+            queryset.filter(receiver_state=state,receiver_city=city)
+            
+        return queryset
                 
     def getMainMergeTrade(self,trade):
         
@@ -233,7 +239,9 @@ class MergeTradeManager(models.Manager):
         queryset = self.getMergeQueryset(trade.buyer_nick,
                                          trade.receiver_name,
                                          trade.receiver_mobile,
-                                         trade.receiver_phone)
+                                         trade.receiver_phone,
+                                         state=trade.receiver_state,
+                                         city=trade.receiver_city)
         trades = queryset.exclude(id=trade.id)
         
         return trades.count() > 0
