@@ -1255,6 +1255,11 @@ class ScoreMenuView(View):
                                           context_instance=RequestContext(request))
             response.set_cookie("openid",user_openid)
             return response
+        
+        referal_images = []
+        referal_users = WeiXinUser.objects.filter(referal_from_openid=user_openid)
+        for user in referal_users:
+            referal_images.append(user.headimgurl)
 
         score = 0
         user_scores = WeixinUserScore.objects.filter(user_openid=user_openid)
@@ -1284,7 +1289,8 @@ class ScoreMenuView(View):
                                                                 "wait_frozen_score":wait_frozen_score,
                                                                 "sample_order":sample_order,
                                                                 "frozen_score":frozen_score,
-                                                                "sample_start":sample_start},
+                                                                "sample_start":sample_start,
+                                                                "referal_images":referal_images},
                                       context_instance=RequestContext(request))
         response.set_cookie("openid",user_openid)        
         return response
