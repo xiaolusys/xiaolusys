@@ -21,7 +21,16 @@
 	  <span style="color:orange">累计: <font style="font-size:26px">{{ score }}</font>分</span>
 	</div>
       </div>
-
+      
+      <div class="row">
+	<div class="col-xs-12">
+	  <span style="color:orange">推荐好友：<font style="font-size:26px">{{ referal_images|length }}</font>人</span>
+	  {% for image in referal_images %}
+	  <img src="{{ images }}" width="20px" height="20px"/>
+	  {% endfor %}
+	</div>
+      </div>
+      
       <div class="row" style="margin-top:5px">
 	<div class="col-xs-12">
 	  <a href="/weixin/score/{{pk}}/">积分明细>></a>
