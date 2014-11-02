@@ -7,13 +7,9 @@
 <div class="container-fluid">
 
   <div class="panel panel-default" style="margin-top:5px">
-    <div class="panel-heading" style="color:orange">10月活动审核状态</div>
+    <div class="panel-heading" style="color:orange">11月活动</div>
     <div class="panel-body">
-      {% if isvalid %}
-      {% if score > 9 %}
-      <p style="font-size:20px;color:red">亲，恭喜您入围10月积分5折换购，请加入优尼世界服务qq群385056821咨询相关流程。</p>
-      {% endif %}
-      {% endif %}
+      <p style="color:#029fd6">亲，优尼世界双11大促已经开始预热，快去围观抢购吧！</p>
       {% if has_order %}
         {% if order_status > 30 %}
         <p>亲，你的10月免单申请已<font style="color:red">审核通过</font>啦!</p>
@@ -25,7 +21,7 @@
         {% if order_status == -1 %}
         <p style="color:red">您的试用申请已被系统判定为黑名单，原因可能是您的申请所使用多个手机号均无法接通，如有疑问请联系微信客服。</p>
 	{% else %}
-        <p>您同时获得: 双11当日，<font style="color:red;">满199减50元</font>优惠券！到天猫【优尼世界旗舰店】拍下，付款<font style="color:red;font-size:20px">立减50元！</font></p>
+        <p>您获得: 双11当日，<font style="color:red;">满199减50元</font>优惠券！到天猫【优尼世界旗舰店】拍下，付款<font style="color:red;font-size:20px">立减50元！</font></p>
         <p>微信扫一扫下面二维码领取（把二维码图片保存到手机，微信扫一扫，选择右上角“相册”）：</p>
         <a href="#" class="thumbnail">
 	  <img src="https://mmbiz.qlogo.cn/mmbiz/yMhOQPTKhLv3mjZZAzCvUDEPccQCMA3cmiag2XQfWhxCdPfpzfdRrBaFJ2FIq0OnH825VMwQkS9oDIW8avzwyoQ/0" alt="...">
@@ -33,8 +29,6 @@
 	<p>亲也可直接<a href="/weixin/clickscore/7/" style="font-size:20px">点击这里领取>></a> (点击后，请复制到浏览器打开）。</p>
         <p style="color:red">关于优惠券使用事宜，您也可以咨询我们的天猫客服、微信客服。</p>
         {% endif %}
-      {% else %}
-      <p style="color:#029fd6">亲，10月积分5折换购已经开始，快去抢购吧！</p>
       {% endif %}
 
     </div>
