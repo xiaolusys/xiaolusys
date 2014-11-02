@@ -474,8 +474,9 @@ class ReferalView(View):
             if vipcodes.count() > 0:
                 vipcode = vipcodes[0].code
         
-        referal_count = SampleOrder.objects.filter(vipcode=vipcode).count()
-        
+        referal_orders = SampleOrder.objects.filter(vipcode=vipcode) 
+        referal_count = referal_orders.count()
+
         coupon = Coupon.objects.get(pk=5)
         
         couponclicks = CouponClick.objects.filter(vipcode=vipcode)
@@ -484,8 +485,10 @@ class ReferalView(View):
         referal_mobiles = set()
         mobile2openid = {}
 
+        referal_images = []
         referal_users = WeiXinUser.objects.filter(referal_from_openid=user_openid)
         for user in referal_users:
+            referal_images.append(user.headimgurl)
             if not user.mobile.strip():
                 continue
             referal_mobiles.add(user.mobile)
@@ -536,7 +539,8 @@ class ReferalView(View):
                                    'vipcode':vipcode, 'coupon':coupon,
                                    'payment':payment, 'num_orders':len(effect_mobiles),
                                    'effect_mobiles':effect_mobiles,
-                                   'coupon_click_count':coupon_click_count}, 
+                                   'coupon_click_count':coupon_click_count,
+                                   'referal_images':referal_images}, 
                                   context_instance=RequestContext(request))
         response.set_cookie("openid",user_openid)
         return response
@@ -1287,18 +1291,15 @@ class ScoreMenuView(View):
         
 class TestView(View):
     def get(self, request):
-        now = datetime.datetime.now()
-        m = now.minute
-        s = now.second
-        res = json.dumps({"min":m, "sec":s})
-        response = HttpResponse(res,mimetype='application/json')
-        return response
+
+        response = redirect('/weixin/clickscore/2/')
+        print response
     
         #response = "1,2|3,4\nabcdefg\nhijklmn"
         #return HttpResponse(response,mimetype='text/css')
         #redirect_url = 'http://shop.m.taobao.com/shop/coupon.htm?sellerId=174265168&activityId=143904856'
         #return redirect(redirect_url)        
-        response = render_to_response('weixin/test.html', 
-                                      context_instance=RequestContext(request))
+        #response = render_to_response('weixin/test.html', 
+        #                              context_instance=RequestContext(request))
         return response
         
