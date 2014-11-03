@@ -49,4 +49,32 @@ class WeixinUserPicture(models.Model):
         return self.get_pic_type_display()
     
     
+class WeixinUserAward(models.Model): 
     
+    user_openid = models.CharField(max_length=64,unique=True,verbose_name=u"用户ID")
+    
+    referal_openid = models.CharField(max_length=64,db_index=True,verbose_name=u"邀请人ID")
+    
+    is_receive = models.BooleanField(default=False,verbose_name=u"领取")
+    is_share   = models.BooleanField(default=False,verbose_name=u"分享")
+    
+    is_notify  = models.BooleanField(default=False,verbose_name=u"短信通知")
+    
+    award_val  = models.IntegerField(default=0,verbose_name=u"奖励值")
+    
+    modified = models.DateTimeField(auto_now=True,blank=True,null=True,verbose_name=u'修改时间')
+    created  = models.DateTimeField(auto_now_add=True,blank=True,null=True,verbose_name=u'创建日期')
+    
+    class Meta:
+        db_table = 'shop_weixin_user_award'
+        verbose_name = u'微信邀请奖励'
+        verbose_name_plural = u'微信邀请奖励'
+    
+    def __unicode__(self):
+        return self.user_openid
+
+from shopapp.weixin.models import WeiXinUser,WeixinScoreItem,WeixinUserScore
+
+
+
+

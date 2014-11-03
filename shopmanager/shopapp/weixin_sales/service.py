@@ -4,9 +4,11 @@ import time
 import urllib2
 from django.conf import settings
 
-from shopapp.weixin.models import WeiXinUser,AnonymousWeixinUser
+from shopapp.weixin.models import (WeiXinUser,
+                                   AnonymousWeixinUser,
+                                   WeiXinAutoResponse)
 from shopapp.weixin.weixin_apis import WeiXinAPI
-from .models import WeixinUserPicture
+from .models import WeixinUserPicture,WeixinUserAward
 
 from common.utils import handle_uploaded_file
 WEIXIN_PICTURE_PATH  = 'weixin'
@@ -62,3 +64,40 @@ class WeixinSaleService():
         
     def downloadMenuPictures(self,pictures):        
         pass
+    
+    
+    def notifyReferalAward(self,title=u"微信邀请奖励"):
+        
+        user_openid   = self._wx_user.openid
+        user_nick     = self._wx_user.nickname
+        wx_award,state    = WeixinUserAward.objects.get_or_create(user_openid=user_openid)
+        if wx_award.is_share:
+            return 
+        
+        referal_ships = WeiXinUser.objects.NORMAL_USER.filter(referal_from_openid=user_openid)
+        
+        from shopapp.smsmgr import sendMessage
+        wx_resp = WeiXinAutoResponse.objects.get_or_create(message='YQJLTZ')[0]
+        msgTemplate = wx_resp.content
+        
+        for user in referal_ships:
+            
+            if not user.mobile:
+                continue
+            
+            swx_award,state = WeixinUserAward.objects.get_or_create(user_openid=user.openid)
+            if swx_award.is_notify :
+                continue
+            
+            swx_award.is_notify = True
+            swx_award.save()
+            
+            sendMessage(user.mobile,title,msgTemplate%user_nick)
+            
+        wx_award.is_share = True
+        wx_award.save()
+        
+        
+    
+    
+    

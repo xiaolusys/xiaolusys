@@ -173,7 +173,8 @@ class MergeTradeAdmin(admin.ModelAdmin):
             readonly_fields = readonly_fields+('tid','reason_code','has_rule_match','has_merge','has_memo',
                                                'payment','post_fee','user','type','trade_from','is_locked',
                                                'is_charged','operator','can_review','is_picking_print',
-                                               'is_express_print','sys_status','status')
+                                               'is_express_print','buyer_message','seller_memo','sys_memo',
+                                               'sys_status','status')
             if obj.sys_status==pcfg.WAIT_PREPARE_SEND_STATUS:
                 readonly_fields = readonly_fields+('priority',)
         return readonly_fields
@@ -225,7 +226,7 @@ class MergeTradeAdmin(admin.ModelAdmin):
         if obj._deferred:
             opts_ = opts.proxy_for_model._meta
             verbose_name = opts_.verbose_name
-
+        
         pk_value = obj._get_pk_val()
         operate_success = False
         if request.POST.has_key("_save_audit"):
