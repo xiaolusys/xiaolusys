@@ -1,0 +1,103 @@
+{% extends "weixin/weixin_base.html" %}
+
+{% block title %}
+{% if wxuser_award.is_receive %}
+超难！崔玉涛经典育儿问答,我击败了99%的新手妈妈！快来挑战吧！
+{% else %}
+崔玉涛-经典育儿知识问答 
+{% endif %}
+{% endblock %}
+
+{% block container %}
+
+<div class="container-fluid">
+
+  <div class="panel panel-default" style="margin-top:5px">
+    <div class="panel-heading" style="color:orange">崔玉涛-经典育儿知识问答（系列一）</div>
+    <div class="panel-body">
+      <div class="row">
+	<div class="col-xs-12">
+	  <div class="thumbnail">
+	  <img src="https://mmbiz.qlogo.cn/mmbiz/yMhOQPTKhLs3fFxcBMRZsmProgXkuSPF4esicxuYzMibQhriaicJFXdntMnicPf5cfQjNNibWUF8BJRn1RLURwOUmLKw/0" alt="...">
+	  </div>
+	  {% if wxuser_award.is_receive %}
+	  <p style="color:red">亲，您已经完成了答题挑战，豪取<font style="font-size:20px">{{ grade }}</font>个积分！恭喜！快关注【优尼世界】公众微信，查看积分折现活动！</p>
+	  <p style="color:#029fd6"><font style="font-size:20px">点击右上角，分享到朋友圈</font>，让您的好友一起来挑战吧！</p>
+	  <p>记得关注【审核通知】，每晚8点准时发布，您可能就入围9月积分<font style="color:red">5折换购</font>睡袋名单啦！（所有尺寸款式均5折! my god!）</p>
+	  {% else %}
+	  <p style="color:#029fd6">还等什么，快来挑战“崔玉涛”医师的经典问答题目，一站到底！</p>
+	  <div style="text-align:center;margin-top:10px">
+	    <a href="https://open.weixin.qq.com/connect/oauth2/authorize?appid=wxc2848fa1e1aa94b5&redirect_uri=http://weixin.huyi.so/weixin/sales/award/{{ userpk }}/&response_type=code&scope=snsapi_base&state=135#wechat_redirect" class="btn btn-warning">点击开始</a>
+	  </div>
+	  {% endif %}
+
+	</div>
+      </div>
+
+      <div class="row" style="margin-top:15px">
+	<div class="col-xs-12">
+	  <p>温馨提示：所有经典育儿知识问答内容题目均来自明星医师“崔玉涛”的“家庭育儿”及“健康公开课”系列丛书。有兴趣的优粉美妈们可以自行购买阅读哦！</p>
+	</div>
+      </div>
+      
+      <div class="footer">
+	<p>© Uni Littles 2014</p>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block tail_script %}
+<script type="text/javascript">
+  $("#id_p1").on("click", function () {
+  $("#id_input1").attr("checked",true);
+  $("#id_input2").attr("checked",false);
+  $("#id_p1").css("color","#ed5377");
+  $("#id_p2").css("color","");  
+  });
+
+  $("#id_p2").on("click", function () {
+  $("#id_input2").attr("checked",true);
+  $("#id_input1").attr("checked",false);
+  $("#id_p2").css("color","#ed5377");
+  $("#id_p1").css("color","");  
+  });
+
+  function checkSelection() {
+    if ((!$("#id_input1").is(':checked')) && (!$("#id_input2").is(':checked'))) {
+      $("#id_msg")[0].innerHTML = "<p style='color:red'>亲，麻烦选择下答案再提交哦。</p>";
+      return false;
+    }
+    return true;
+  }
+
+  function submit() {
+    if (checkSelection() == false) {
+      return;
+    }
+  
+    var selection = 0;
+    if ($("#id_input1").is(':checked')) {
+      selection = 1;
+    }
+    if ($("#id_input2").is(':checked')) {
+      selection = 2;
+    }
+
+    var url = "/weixin/survey/";
+    var csrf_token = document.getElementsByName("csrfmiddlewaretoken")[0].value;
+    
+    var data = {"selection": selection, "csrfmiddlewaretoken":csrf_token};
+    var callback = function (res) {
+      console.log(res);
+    if (res["code"] == "ok") {
+      $("#id_msg")[0].innerHTML = "<p style='color:red'>亲，您的选择已经提交！感谢！</p>";
+    }
+    };
+    $.ajax({url:url, data:data, type:"post", success:callback});
+  }
+</script>
+{% endblock %}

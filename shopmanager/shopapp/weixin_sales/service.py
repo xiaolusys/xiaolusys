@@ -74,7 +74,7 @@ class WeixinSaleService():
         if wx_award.is_share:
             return 
         
-        referal_ships = WeiXinUser.objects.NORMAL_USER.filter(referal_from_openid=user_openid)
+        referal_ships = WeiXinUser.objects.VALID_USER.filter(referal_from_openid=user_openid)
         
         from shopapp.smsmgr import sendMessage
         wx_resp = WeiXinAutoResponse.objects.get_or_create(message='YQJLTZ')[0]

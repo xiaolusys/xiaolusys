@@ -84,6 +84,10 @@ class WeixinUserManager(models.Manager):
     @property
     def NORMAL_USER(self):
         return self.get_queryset().exclude(user_group_id=2)
+    
+    @property
+    def VALID_USER(self):
+        return self.get_queryset().exclude(user_group_id=2).filter(isvalid=True)
         
     
     
