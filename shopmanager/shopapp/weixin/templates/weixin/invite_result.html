@@ -37,32 +37,10 @@ LuNJteKWgCoO5MdAicmCqFRg/0)">
         <p>您的好友 xx 给您发了一个感恩礼包，快打开看看吧！</p>                                                                                                                           
         <a href="" class="btn btn-danger">打开礼包 >></a>                                                                                                                                 
         -->
-        <p>亲，好友还未为您发送感恩礼包哦，快提醒下她吧！</p>
-        <a href="" class="btn btn-danger">点击发送提醒 >></a>
+        <p>亲，好友还未给您发送感恩礼包哦，快提醒下她吧！</p>
+        <button id="id-remind" type="button" class="btn btn-danger" onclick="remind()">点击发送提醒 >></button>
+	<p id="id-remind-msg" style="color:orange"></p>
       </div>
-<!--
-      <p style="color:#029fd6">亲，优尼世界双11大促已经开始预热，快去围观抢购吧！</p>
-      {% if has_order %}
-        {% if order_status > 30 %}
-        <p>亲，你的10月免单申请已<font style="color:red">审核通过</font>啦!</p>
-        <p>F码<font style="color:red">{{ vipcode }}</font>已被使用<font style="color:red;font-size:20px">{{ usage_count }}</font>次!</p>
-        <p>请扫描下面二维码加入优尼世界服务qq群（把二维码图片保存到手机，微信扫一扫，选择右上角“相册”）：</p>
-        <p><a href="#" class="thumbnail"><img src="https://mmbiz.qlogo.cn/mmbiz/yMhOQPTKhLs4KuzkadDvX5Ddk43ziaIpLXQFibJAA7txg7EUD2bJcArRxBic9CR5BfMOjevSLKnemodPbw4evtX1w/0"></a></p>
-        <p style="color:red">申请进群时，请提供您的F码！若不能进群，请联系微信客服！</p>
-        {% endif %}
-        {% if order_status == -1 %}
-        <p style="color:red">您的试用申请已被系统判定为黑名单，原因可能是您的申请所使用多个手机号均无法接通，如有疑问请联系微信客服。</p>
-	{% else %}
-        <p>您获得: 双11当日，<font style="color:red;">满199减50元</font>优惠券！到天猫【优尼世界旗舰店】拍下，付款<font style="color:red;font-size:20px">立减50元！</font></p>
-        <p>微信扫一扫下面二维码领取（把二维码图片保存到手机，微信扫一扫，选择右上角“相册”）：</p>
-        <a href="#" class="thumbnail">
-	  <img src="https://mmbiz.qlogo.cn/mmbiz/yMhOQPTKhLv3mjZZAzCvUDEPccQCMA3cmiag2XQfWhxCdPfpzfdRrBaFJ2FIq0OnH825VMwQkS9oDIW8avzwyoQ/0" alt="...">
-        </a>
-	<p>亲也可直接<a href="/weixin/clickscore/7/" style="font-size:20px">点击这里领取>></a> (点击后，请复制到浏览器打开）。</p>
-        <p style="color:red">关于优惠券使用事宜，您也可以咨询我们的天猫客服、微信客服。</p>
-        {% endif %}
-      {% endif %}
--->
     </div>
   </div>
 
@@ -85,3 +63,14 @@ LuNJteKWgCoO5MdAicmCqFRg/0)">
 </div>
 {% endblock %}
 
+{% block tail_script %}
+
+<script type="text/javascript">
+
+  function remind() {
+    $("#id-remind").css("display","none");
+    $("#id-remind-msg")[0].innerHTML = "亲，我们将尽快用短信通知您的好友，告诉她您在等待。感谢您的耐心！";
+  }
+</script>
+
+{% endblock %}
