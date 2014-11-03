@@ -1291,17 +1291,16 @@ class ScoreMenuView(View):
         response.set_cookie("openid",user_openid)        
         return response
         
+class GiftView(View):
+    def get(self, request):
+        response = render_to_response('weixin/giftbox.html', 
+                                      context_instance=RequestContext(request))
+        return response
+
+    
 class TestView(View):
     def get(self, request):
-
-        response = redirect('/weixin/clickscore/2/')
-        print response
-    
-        #response = "1,2|3,4\nabcdefg\nhijklmn"
-        #return HttpResponse(response,mimetype='text/css')
-        #redirect_url = 'http://shop.m.taobao.com/shop/coupon.htm?sellerId=174265168&activityId=143904856'
-        #return redirect(redirect_url)        
-        #response = render_to_response('weixin/test.html', 
-        #                              context_instance=RequestContext(request))
+        response = render_to_response('weixin/giftbox.html', 
+                                      context_instance=RequestContext(request))
         return response
         
