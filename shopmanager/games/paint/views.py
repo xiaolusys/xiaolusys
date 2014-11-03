@@ -19,10 +19,21 @@ EFFECT_PROVINCES = [u'上海',u'上海市',u'江苏',u'江苏省',u'浙江',u'�
 
 class CreateAccountView(View):
     def get(self, request):
+        content = request.GET
+        pk = content.get("pk", None)
+        
+        if pk:
+            pa = PaintAccount.objects.get(pk=pk)
+            customer = Customer.objects.get(pk=pa.customer_id)
+            response = render_to_response('create_account.html', 
+                                          {'customer':customer, "pa":pa},
+                                          context_instance=RequestContext(request))
+            return response
+            
         creater_id = request.user.pk
 
         current_customer_id = 0
-        accounts = PaintAccount.objects.all().order_by('pk')
+        accounts = PaintAccount.objects.filter(customer_id__gt=0).order_by('pk')
         total = accounts.count()
         if total > 0:
             current_customer_id = accounts[total-1].customer_id
@@ -39,8 +50,14 @@ class CreateAccountView(View):
         
         pw = ''.join(passchars)
 
+        creater_id = request.user.pk
+        
+        pa = PaintAccount.objects.create(account_name=customer.nick,customer_id=customer.pk,
+                                         password=pw,province=customer.state,
+                                         mobile=customer.mobile, creater_id=creater_id)
+
         response = render_to_response('create_account.html', 
-                                      {'customer':customer, "pw":pw},
+                                      {'customer':customer, "pa":pa},
                                       context_instance=RequestContext(request))
 
         return response
@@ -48,6 +65,7 @@ class CreateAccountView(View):
 
     def post(self, request):
         content = request.POST
+        pk = int(content.get("paint_id"))
         account_name = content.get("account_name")
         customer_id = content.get("customer_id")
         password = content.get("password")
@@ -55,8 +73,6 @@ class CreateAccountView(View):
         province = content.get("province")
         street_addr = content.get("street_addr")
 
-        creater_id = request.user.pk
-        
         tb = content.get("tb")
         jd = content.get("jd")
         wx = content.get("wx")
@@ -71,10 +87,18 @@ class CreateAccountView(View):
             is_wx = 1
 
         try:
-            PaintAccount.objects.create(account_name=account_name,customer_id=customer_id,
-                                        password=passowrd,mobile=mobile,province=province,
-                                        street_addr=street_addr,is_tb=is_tb,is_jd=is_jd,
-                                        is_wx=is_wx,creater_id=creater_id)
+            pa = PaintAccount.objects.get(pk=pk)
+            pa.account_name = account_name
+            pa.mobile = mobile
+            pa.password = password
+            pa.province = province
+            pa.street_addr = street_addr
+            pa.is_tb = is_tb
+            pa.is_jx = is_jd
+            pa.is_wx = is_wx
+            pa.status = 1
+            pa.save()
+        
             return redirect('/games/paint/createaccount/')
         except:
             res = {"status":"failed"}

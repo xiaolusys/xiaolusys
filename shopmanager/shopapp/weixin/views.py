@@ -473,8 +473,9 @@ class ReferalView(View):
             if vipcodes.count() > 0:
                 vipcode = vipcodes[0].code
         
-        referal_count = SampleOrder.objects.filter(vipcode=vipcode).count()
-        
+        referal_orders = SampleOrder.objects.filter(vipcode=vipcode) 
+        referal_count = referal_orders.count()
+
         coupon = Coupon.objects.get(pk=5)
         
         couponclicks = CouponClick.objects.filter(vipcode=vipcode)
@@ -483,8 +484,10 @@ class ReferalView(View):
         referal_mobiles = set()
         mobile2openid = {}
 
+        referal_images = []
         referal_users = WeiXinUser.objects.filter(referal_from_openid=user_openid)
         for user in referal_users:
+            referal_images.append(user.headimgurl)
             if not user.mobile.strip():
                 continue
             referal_mobiles.add(user.mobile)
@@ -535,7 +538,8 @@ class ReferalView(View):
                                    'vipcode':vipcode, 'coupon':coupon,
                                    'payment':payment, 'num_orders':len(effect_mobiles),
                                    'effect_mobiles':effect_mobiles,
-                                   'coupon_click_count':coupon_click_count}, 
+                                   'coupon_click_count':coupon_click_count,
+                                   'referal_images':referal_images}, 
                                   context_instance=RequestContext(request))
         response.set_cookie("openid",user_openid)
         return response
@@ -908,14 +912,7 @@ class ResultView(View):
             if order.status > order_status:
                 order_status = order.status
             
-        batch_one = SampleOrder.objects.filter(status=31).count()
-        batch_two = SampleOrder.objects.filter(status=32).count()
-        batch_third = SampleOrder.objects.filter(status=33).count()
-        batch_forth = SampleOrder.objects.filter(status=34).count()
-        batch_fifth = SampleOrder.objects.filter(status=35).count()
-        batch_sixth = SampleOrder.objects.filter(status=36).count()
-        batch_seventh = SampleOrder.objects.filter(status=37).count()
-        batch_eighth = SampleOrder.objects.filter(status=38).count()
+        batch_number = SampleOrder.objects.filter(status__gt=30,status__lt=39).count()
         usage_count = 0
         users = WeiXinUser.objects.filter(openid=user_openid)
         vipcode = 0
@@ -932,13 +929,16 @@ class ResultView(View):
         if user_scores.count() > 0:
             score = user_scores[0].user_score
 
+        referal_images = []
+        referal_users = WeiXinUser.objects.filter(referal_from_openid=user_openid)
+        for user in referal_users:
+            referal_images.append(user.headimgurl)
+
+
         response = render_to_response('weixin/invite_result.html',
                                       {'has_order':has_order, 'order_status':order_status, 
                                        'vipcode':vipcode, 'usage_count':usage_count,
-                                       'batch_one':batch_one,'batch_two':batch_two,
-                                       'batch_third':batch_third,'batch_forth':batch_forth,
-                                       'batch_fifth':batch_fifth,'batch_sixth':batch_sixth,
-                                       'batch_seventh':batch_seventh,'batch_eighth':batch_eighth,
+                                       'batch_number':batch_number,'referal_images':referal_images,
                                        'isvalid':isvalid, 'score':score},
                                       context_instance=RequestContext(request))
         response.set_cookie("openid",user_openid)        
@@ -967,7 +967,7 @@ class FinalListView(View):
         elif month == 10:
             start_time = datetime.datetime(2014,10,8)
             end_time = datetime.datetime(2014,10,17)
-            order_list = SampleOrder.objects.filter(status=batch+30,created__gt=start_time)
+            order_list = SampleOrder.objects.filter(status__gt=30,status__lt=39,created__gt=start_time)
 
         num_per_page = 20 # Show 20 contacts per page
         paginator = Paginator(order_list, num_per_page) 
@@ -1250,6 +1250,11 @@ class ScoreMenuView(View):
                                           context_instance=RequestContext(request))
             response.set_cookie("openid",user_openid)
             return response
+        
+        referal_images = []
+        referal_users = WeiXinUser.objects.filter(referal_from_openid=user_openid)
+        for user in referal_users:
+            referal_images.append(user.headimgurl)
 
         score = 0
         user_scores = WeixinUserScore.objects.filter(user_openid=user_openid)
@@ -1279,25 +1284,22 @@ class ScoreMenuView(View):
                                                                 "wait_frozen_score":wait_frozen_score,
                                                                 "sample_order":sample_order,
                                                                 "frozen_score":frozen_score,
-                                                                "sample_start":sample_start},
+                                                                "sample_start":sample_start,
+                                                                "referal_images":referal_images},
                                       context_instance=RequestContext(request))
         response.set_cookie("openid",user_openid)        
         return response
         
+class GiftView(View):
+    def get(self, request):
+        response = render_to_response('weixin/gift.html', 
+                                      context_instance=RequestContext(request))
+        return response
+
+    
 class TestView(View):
     def get(self, request):
-        now = datetime.datetime.now()
-        m = now.minute
-        s = now.second
-        res = json.dumps({"min":m, "sec":s})
-        response = HttpResponse(res,mimetype='application/json')
-        return response
-    
-        #response = "1,2|3,4\nabcdefg\nhijklmn"
-        #return HttpResponse(response,mimetype='text/css')
-        #redirect_url = 'http://shop.m.taobao.com/shop/coupon.htm?sellerId=174265168&activityId=143904856'
-        #return redirect(redirect_url)        
-        response = render_to_response('weixin/test.html', 
+        response = render_to_response('weixin/giftbox.html', 
                                       context_instance=RequestContext(request))
         return response
         

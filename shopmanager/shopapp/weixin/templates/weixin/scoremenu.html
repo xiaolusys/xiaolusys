@@ -19,12 +19,18 @@
       <div class="row">
 	<div class="col-xs-12">
 	  <span style="color:orange">累计: <font style="font-size:26px">{{ score }}</font>分</span>
-	  {% if score > 9 %}
-	  <p>亲，积分5折换购活动正在进行中，快加群咨询客服具体规则吧! <a href="/weixin/inviteresult/">点击查看>></a></p>
-	  {% endif %}
 	</div>
       </div>
-
+      
+      <div class="row">
+	<div class="col-xs-12">
+	  <span style="color:orange">推荐好友：<font style="font-size:26px">{{ referal_images|length }}</font>人</span>
+	  {% for image in referal_images %}
+	  <img src="{{ image }}" width="20px" height="20px"/>
+	  {% endfor %}
+	</div>
+      </div>
+      
       <div class="row" style="margin-top:5px">
 	<div class="col-xs-12">
 	  <a href="/weixin/score/{{pk}}/">积分明细>></a>
@@ -40,14 +46,15 @@
   <ul class="list-group">
     <li class="list-group-item list-group-item-success">积分活动</li>
     <li class="list-group-item"><font style="color:orange">积分返利</font>：购物订单每满100元，可使用10积分在微信平台申请10元返利，上不封顶（<font style="color:orange">换购活动除外</font>）。</li>
-    <li class="list-group-item"><font style="color:orange">9月活动</font>：入围的粉丝美妈们，可用10积分<font style="color:red">折上再5折</font>换购小小派睡袋。</li>
-    <li class="list-group-item"><font style="color:orange">10月活动</font>：每10个积分可兑换一次VIP码使用次数，兑换不得超过50积分（VIP码使用最多增加5次）。<font style="color:red;font-size:20px">再不挣积分，十月活动你就out啦！</font></li>
+    <li class="list-group-item"><font style="color:orange">积分换购</font>：每月的积分换购活动，美妈们可用10积分<font style="color:red">折上再5折</font>换购指定热销商品。</li>
   </ul>
 
   <ul class="list-group">
     <li class="list-group-item list-group-item-success">积分规则</li>
+<!--
     <li class="list-group-item">答题积分：共20题，每题1分，答对得分。</li>
     <li class="list-group-item">邀请积分：邀请朋友（取消再订阅的不计）答题，得1分-2分；邀请的朋友成为优尼世界新粉丝并领取答题积分，再加10分。</li>
+-->
     <li class="list-group-item">购物积分：任意官方旗舰店购物，实付每10元积1分，不足10元部分不计分。</li>
     <li class="list-group-item">阅读积分：阅读官方微信推文，点击相关链接（根据标注分数加分：2分-5分）。</li>
     <li class="list-group-item">历史积分：9月15日之前的活动，系统自动根据规则计分。8-9月免费试用活动中奖的亲，系统会自动扣除20积分。</li>
