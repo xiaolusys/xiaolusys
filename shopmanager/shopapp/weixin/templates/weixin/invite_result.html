@@ -9,13 +9,22 @@
   <div class="panel panel-default" style="margin-top:5px">
     <div class="panel-heading" style="color:orange">十一月 感恩季</div>
     <div class="panel-body">
-    <p style="color:red">感恩他人，就是善待自己。</p>    
-    <p>亲，有{{ referal_images|length }}位好友在期盼着您的感恩礼包！</p>
-    <p>
-      {% for images in referal_images %}
-      <img src="{{ images }}" width="20px" height="20px"/>
-      {% endfor %}
-    </p>
+      <div class="row">
+	<div class="col-xs-12">
+          <p style="color:red">感恩他人，就是善待自己。</p>
+          <p>亲，有<font style="color:orange;font-size:20px">{{ referal_images|length }}</font>位好友在期盼您的感恩礼包！</p>
+          <p>
+            {% for images in referal_images %}
+            <img src="{{ images }}" width="20px" height="20px"/>
+            {% endfor %}
+          </p>
+        </div>
+      </div>
+      <div class="row">
+	<div class="col-xs-12" style="text-align:center">
+          <p><a href="" class="btn btn-warning">立即发礼包 >></a></p>
+        </div>
+      </div>
     </div>
   </div>
 
