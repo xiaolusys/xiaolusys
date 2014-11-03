@@ -913,14 +913,7 @@ class ResultView(View):
             if order.status > order_status:
                 order_status = order.status
             
-        batch_one = SampleOrder.objects.filter(status=31).count()
-        batch_two = SampleOrder.objects.filter(status=32).count()
-        batch_third = SampleOrder.objects.filter(status=33).count()
-        batch_forth = SampleOrder.objects.filter(status=34).count()
-        batch_fifth = SampleOrder.objects.filter(status=35).count()
-        batch_sixth = SampleOrder.objects.filter(status=36).count()
-        batch_seventh = SampleOrder.objects.filter(status=37).count()
-        batch_eighth = SampleOrder.objects.filter(status=38).count()
+        batch_number = SampleOrder.objects.filter(status__gt=30,status__lt=39).count()
         usage_count = 0
         users = WeiXinUser.objects.filter(openid=user_openid)
         vipcode = 0
@@ -937,13 +930,16 @@ class ResultView(View):
         if user_scores.count() > 0:
             score = user_scores[0].user_score
 
+        referal_images = []
+        referal_users = WeiXinUser.objects.filter(referal_from_openid=user_openid)
+        for user in referal_users:
+            referal_images.append(user.headimgurl)
+
+
         response = render_to_response('weixin/invite_result.html',
                                       {'has_order':has_order, 'order_status':order_status, 
                                        'vipcode':vipcode, 'usage_count':usage_count,
-                                       'batch_one':batch_one,'batch_two':batch_two,
-                                       'batch_third':batch_third,'batch_forth':batch_forth,
-                                       'batch_fifth':batch_fifth,'batch_sixth':batch_sixth,
-                                       'batch_seventh':batch_seventh,'batch_eighth':batch_eighth,
+                                       'batch_number':batch_number,'referal_images':referal_images,
                                        'isvalid':isvalid, 'score':score},
                                       context_instance=RequestContext(request))
         response.set_cookie("openid",user_openid)        
@@ -972,7 +968,7 @@ class FinalListView(View):
         elif month == 10:
             start_time = datetime.datetime(2014,10,8)
             end_time = datetime.datetime(2014,10,17)
-            order_list = SampleOrder.objects.filter(status=batch+30,created__gt=start_time)
+            order_list = SampleOrder.objects.filter(status__gt=30,status__lt=39,created__gt=start_time)
 
         num_per_page = 20 # Show 20 contacts per page
         paginator = Paginator(order_list, num_per_page) 
