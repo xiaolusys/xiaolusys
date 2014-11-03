@@ -22,7 +22,7 @@
       </div>
       <div class="row">
 	<div class="col-xs-12" style="text-align:center">
-          <p><a href="" class="btn btn-warning">立即发礼包 >></a></p>
+          <p><a href="/weixin/gift/" class="btn btn-warning">立即发礼包 >></a></p>
         </div>
       </div>
     </div>
@@ -39,7 +39,7 @@ LuNJteKWgCoO5MdAicmCqFRg/0)">
         -->
         <p>亲，好友还未给您发送感恩礼包哦，快提醒下她吧！</p>
         <button id="id-remind" type="button" class="btn btn-danger" onclick="remind()">点击发送提醒 >></button>
-	<p id="id-remind-msg" style="color:orange"></p>
+	<p id="id-remind-msg" style="color:red"></p>
       </div>
     </div>
   </div>
@@ -69,7 +69,7 @@ LuNJteKWgCoO5MdAicmCqFRg/0)">
 
   function remind() {
     $("#id-remind").css("display","none");
-    $("#id-remind-msg")[0].innerHTML = "亲，我们将尽快用短信通知您的好友，告诉她您在等待。感谢您的耐心！";
+    $("#id-remind-msg")[0].innerHTML = "我们将尽快用短信通知您的好友，告诉她您在等待。感谢您的耐心！";
   }
 </script>
 
