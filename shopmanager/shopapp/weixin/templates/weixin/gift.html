@@ -37,7 +37,7 @@
 
       <div class="row">
 	<div class="col-xs-12">
-	  <h5 id="id_p1" style="color:#029fd6"><input type="radio" name="p1" value="5" id="id_input1"> 选择二：秋冬纯棉厚款毛巾袜</h5>{% csrf_token %}
+	  <h5 id="id_p2" style="color:#029fd6"><input type="radio" name="p1" value="5" id="id_input1"> 选择二：秋冬纯棉厚款毛巾袜</h5>{% csrf_token %}
 	</div>
       </div>
       <div class="row">
@@ -60,7 +60,7 @@
 
       <div class="row">
 	<div class="col-xs-12">
-	  <h5 id="id_p1" style="color:#029fd6"><input type="radio" name="p1" value="5" id="id_input1"> 选择三：婴幼儿防PM2.5卡通口罩</h5>{% csrf_token %}
+	  <h5 id="id_p3" style="color:#029fd6"><input type="radio" name="p1" value="5" id="id_input1"> 选择三：婴幼儿防PM2.5卡通口罩</h5>{% csrf_token %}
 	</div>
       </div>
       <div class="row">
@@ -83,7 +83,7 @@
 
       <div class="row">
 	<div class="col-xs-12">
-	  <h5 id="id_p1" style="color:#029fd6"><input type="radio" name="p1" value="5" id="id_input1"> 选择四：时尚针织三角巾</h5>{% csrf_token %}
+	  <h5 id="id_p4" style="color:#029fd6"><input type="radio" name="p1" value="5" id="id_input1"> 选择四：时尚针织三角巾</h5>{% csrf_token %}
 	</div>
       </div>
       <div class="row">
@@ -130,15 +130,45 @@
   $("#id_p1").on("click", function () {
   $("#id_input1").attr("checked",true);
   $("#id_input2").attr("checked",false);
+  $("#id_input3").attr("checked",false);
+  $("#id_input4").attr("checked",false);
   $("#id_p1").css("color","#ed5377");
-  $("#id_p2").css("color","");  
+  $("#id_p2").css("color","#029fd6");  
+  $("#id_p3").css("color","#029fd6");  
+  $("#id_p4").css("color","#029fd6");  
   });
 
   $("#id_p2").on("click", function () {
-  $("#id_input2").attr("checked",true);
   $("#id_input1").attr("checked",false);
+  $("#id_input2").attr("checked",true);
+  $("#id_input3").attr("checked",false);
+  $("#id_input4").attr("checked",false);
+  $("#id_p1").css("color","#029fd6");  
   $("#id_p2").css("color","#ed5377");
-  $("#id_p1").css("color","");  
+  $("#id_p3").css("color","#029fd6");  
+  $("#id_p4").css("color","#029fd6");  
+  });
+
+  $("#id_p3").on("click", function () {
+  $("#id_input1").attr("checked",false);
+  $("#id_input2").attr("checked",false);
+  $("#id_input3").attr("checked",true);
+  $("#id_input4").attr("checked",false);
+  $("#id_p1").css("color","#029fd6");  
+  $("#id_p2").css("color","#029fd6");
+  $("#id_p3").css("color","#ed5377");  
+  $("#id_p4").css("color","#029fd6");  
+  });
+
+  $("#id_p4").on("click", function () {
+  $("#id_input1").attr("checked",false);
+  $("#id_input2").attr("checked",false);
+  $("#id_input3").attr("checked",false);
+  $("#id_input4").attr("checked",true);
+  $("#id_p1").css("color","#029fd6");  
+  $("#id_p2").css("color","#029fd6");
+  $("#id_p3").css("color","#029fd6");  
+  $("#id_p4").css("color","#ed5377");  
   });
 
   function checkSelection() {

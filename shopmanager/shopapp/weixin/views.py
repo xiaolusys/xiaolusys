@@ -1299,7 +1299,7 @@ class GiftView(View):
     
 class TestView(View):
     def get(self, request):
-        response = render_to_response('weixin/giftbox.html', 
+        response = render_to_response('weixin/gift.html', 
                                       context_instance=RequestContext(request))
         return response
         
