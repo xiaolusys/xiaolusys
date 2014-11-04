@@ -58,11 +58,10 @@ class WeixinUserAward(models.Model):
     is_receive = models.BooleanField(default=False,verbose_name=u"领取")
     is_share   = models.BooleanField(default=False,verbose_name=u"发送")
     
-    is_agree   = models.BooleanField(default=False,verbose_name=u"同意")
     is_notify  = models.BooleanField(default=False,verbose_name=u"提醒通知")
     
     remind_count = models.IntegerField(default=0,verbose_name=u"提醒次数")
-    remind_time  = models.DateTimeField(blank=True,null=True,verbose_name=u'修改时间')
+    remind_time  = models.DateTimeField(blank=True,null=True,verbose_name=u'提醒时间')
     
     award_val  = models.IntegerField(default=0,verbose_name=u"奖励值")
     
