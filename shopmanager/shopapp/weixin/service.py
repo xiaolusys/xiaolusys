@@ -171,7 +171,12 @@ class WeixinUserService():
     
     
     def genValidCode(self):
+        
+        if self._wx_user.validcode:
+            return self._wx_user.validcode
+        
         return str(random.randint(100000,999999))
+        
         
     def getValidCode(self,mobile,openId):
         

@@ -159,10 +159,10 @@ td {
 		<hr/>
 		<div class='seller-info'>
 			<table >
-				<tr><td style="width:120px;"></td><td></td><td style="width:120px;"></td><td></td></tr>
+				<tr><td style="width:150px;"></td><td></td><td style="width:120px;"></td><td></td></tr>
 			    <tr>
 			    	<td><b>订单编号：</b></td><td>{{ trade.ins.id }}{% if trade.juhuasuan %}（ 聚 ）{% endif %}</td>
-			    	<td>快递：</td><td>{% if trade.ins.logistics_company %}({{ trade.ins.out_sid }}){{ trade.ins.logistics_company.name|truncatechars:6 }}{% endif %}</td>
+			    	<td>快递：</td><td>{% if trade.ins.logistics_company %}({{ trade.ins.out_sid }}){{ trade.ins.logistics_company.name|truncatechars:3 }}{% endif %}</td>
 			    </tr>
 				<tr >
 					<td >买家昵称：</td><td>{{ trade.ins.buyer_nick }}</td>
@@ -194,7 +194,7 @@ td {
 			    {% if sku_len > 0 %}
 				    {% for sku_id,sku in order.skus %}
 				    <tr>
-				    	<td >[{{ outer_id }}{{ sku_id }}]{{ order.title }}-{{ sku.sku_name }}</td>
+				    	<td >[{{ outer_id }}{{ sku_id }}]{{ order.title }} {{ sku.sku_name }}</td>
 						<td >{{ sku.location }}</td>
 						<td >{{ sku.num }}</td>
 				    </tr>

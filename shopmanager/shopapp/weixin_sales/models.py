@@ -51,14 +51,18 @@ class WeixinUserPicture(models.Model):
     
 class WeixinUserAward(models.Model): 
     
-    user_openid = models.CharField(max_length=64,unique=True,verbose_name=u"用户ID")
+    user_openid = models.CharField(max_length=64,unique=True,verbose_name=u"申请人ID")
     
-    referal_openid = models.CharField(max_length=64,db_index=True,verbose_name=u"邀请人ID")
+    referal_from_openid = models.CharField(max_length=64,db_index=True,verbose_name=u"邀请人ID")
     
     is_receive = models.BooleanField(default=False,verbose_name=u"领取")
-    is_share   = models.BooleanField(default=False,verbose_name=u"分享")
+    is_share   = models.BooleanField(default=False,verbose_name=u"发送")
     
-    is_notify  = models.BooleanField(default=False,verbose_name=u"短信通知")
+    is_agree   = models.BooleanField(default=False,verbose_name=u"同意")
+    is_notify  = models.BooleanField(default=False,verbose_name=u"提醒通知")
+    
+    remind_count = models.IntegerField(default=0,verbose_name=u"提醒次数")
+    remind_time  = models.DateTimeField(blank=True,null=True,verbose_name=u'修改时间')
     
     award_val  = models.IntegerField(default=0,verbose_name=u"奖励值")
     
@@ -73,8 +77,42 @@ class WeixinUserAward(models.Model):
     def __unicode__(self):
         return self.user_openid
 
+
+from django.db import transaction
+from shopapp.signals import weixin_referal_signal
 from shopapp.weixin.models import WeiXinUser,WeixinScoreItem,WeixinUserScore
 
 
+#推荐关系增加积分
+@transaction.commit_manually
+def convert_awardreferal2score(sender,user_openid,referal_from_openid,*args,**kwargs):
+    
+    transaction.commit()
+    invite_score = 1
+    try:
+        wx_user = WeiXinUser.objects.get(openid=user_openid)
+        if not wx_user.referal_from_openid:
+            wx_user.referal_from_openid = referal_from_openid
+            wx_user.save()
+            
+        WeixinScoreItem.objects.create(user_openid=referal_from_openid,
+                                       score=invite_score,
+                                       score_type=WeixinScoreItem.INVITE,
+                                       expired_at=datetime.datetime.now()+datetime.timedelta(days=365),
+                                       memo=u"邀请好友(%s)获得积分。"%(user_openid))
+        
+        wx_user_score,state = WeixinUserScore.objects.get_or_create(user_openid=referal_from_openid)
+        wx_user_score.user_score  = models.F('user_score') + invite_score
+        wx_user_score.save()
+        
+    except Exception,exc:
+        transaction.rollback()
+        
+        import logging
+        logger = logging.getLogger("celery.handler")
+        logger.error(u'邀请好友积分保存失败:%s'%exc.message,exc_info=True)
+    else:
+        transaction.commit()
 
+weixin_referal_signal.connect(convert_awardreferal2score, sender=WeixinUserAward)
 

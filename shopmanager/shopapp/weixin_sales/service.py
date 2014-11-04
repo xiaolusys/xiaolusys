@@ -74,6 +74,9 @@ class WeixinSaleService():
         if wx_award.is_share:
             return 
         
+        wx_award.is_share = True
+        wx_award.save()
+        
         referal_ships = WeiXinUser.objects.VALID_USER.filter(referal_from_openid=user_openid)
         
         from shopapp.smsmgr import sendMessage
@@ -81,21 +84,40 @@ class WeixinSaleService():
         msgTemplate = wx_resp.content
         
         for user in referal_ships:
-            
             if not user.mobile:
                 continue
             
-            swx_award,state = WeixinUserAward.objects.get_or_create(user_openid=user.openid)
-            if swx_award.is_notify :
-                continue
-            
-            swx_award.is_notify = True
-            swx_award.save()
-            
             sendMessage(user.mobile,title,msgTemplate%user_nick)
             
-        wx_award.is_share = True
+    def notifyNewAward(self,title=u"微信邀请奖励"):
+        
+        user_openid   = self._wx_user.openid
+        user_nick     = self._wx_user.nickname
+        wx_award,state    = WeixinUserAward.objects.get_or_create(user_openid=user_openid)
+        if wx_award.remind_count == 0:
+            return
+        
+        wx_award.remind_count = 0
         wx_award.save()
+        
+        wx_awards = WeixinUserAward.objects.filter(referal_from_openid=user_openid,is_agree=False)
+        
+        from shopapp.smsmgr import sendMessage
+        wx_resp = WeiXinAutoResponse.objects.get_or_create(message='YQJLTZ')[0]
+        msgTemplate = wx_resp.content
+        
+        for award in wx_awards:
+            
+            wx_user= WeiXinUser.objects.get(openid=award.user_openid)
+            if not wx_user.mobile:
+                continue
+            
+            sendMessage(wx_user.mobile,title,msgTemplate%user_nick)\
+            
+            award.is_agree = True
+            award.save()
+            
+        
         
         
     
