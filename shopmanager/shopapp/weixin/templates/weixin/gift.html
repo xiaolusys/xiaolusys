@@ -17,7 +17,7 @@
 	  <h5 id="id_p1" style="color:#029fd6"><input type="radio" name="p1" value="1" id="id_input1"> 选择一：天猫No.1 卡通吸汗巾</h5>{% csrf_token %}
 	</div>
       </div>
-      <div class="row">
+      <div class="row" id="id_i1">
 	<div class="col-xs-12">
 	  <div class="thumbnail">
 	  <img src="https://mmbiz.qlogo.cn/mmbiz/yMhOQPTKhLubJ13YV5YCHGRNgx5YhqiaNrK541Vd6eH9ewY4ib6oYnKBxbMOIsUphvaMeTCljia3TM6DLq6HbmJ6w/0">
@@ -30,7 +30,7 @@
 	  <h5 id="id_p2" style="color:#029fd6"><input type="radio" name="p1" value="2" id="id_input2"> 选择二：天鹅绒 时尚造型三角巾</h5>{% csrf_token %}
 	</div>
       </div>
-      <div class="row">
+      <div class="row" id="id_i2">
 	<div class="col-xs-12" style="text-align:center;">
 	  <div class="thumbnail">
 	    <img src="https://mmbiz.qlogo.cn/mmbiz/yMhOQPTKhLubJ13YV5YCHGRNgx5YhqiaNcPbGkJsfmvDD9CTqF8sK76NWCzbAvKJL9BELT383CRh0SqRvbnhRCw/0"/>
@@ -43,7 +43,7 @@
 	  <h5 id="id_p3" style="color:#029fd6"><input type="radio" name="p1" value="3" id="id_input3"> 选择三：纯棉不勒脚 毛巾袜（2双装）</h5>{% csrf_token %}
 	</div>
       </div>
-      <div class="row">
+      <div class="row" id="id_i3">
 	<div class="col-xs-12" style="text-align:center;">
 	  <div class="thumbnail">
 	    <img src="https://mmbiz.qlogo.cn/mmbiz/yMhOQPTKhLubJ13YV5YCHGRNgx5YhqiaNwpS5VyWq6FfO6PD9DXQA4ibcs8zvS1m95cuGaDWz7ibHaEMggUdfaxYw/0"/>
@@ -57,7 +57,7 @@
 	  <h5 id="id_p4" style="color:#029fd6"><input type="radio" name="p1" value="4" id="id_input4"> 选择四：婴幼儿防PM2.5卡通口罩</h5>{% csrf_token %}
 	</div>
       </div>
-      <div class="row">
+      <div class="row" id="id_i4">
 	<div class="col-xs-12" style="text-align:center;">
 	  <div class="thumbnail">
 	  <img src="https://mmbiz.qlogo.cn/mmbiz/yMhOQPTKhLubJ13YV5YCHGRNgx5YhqiaNSsFhXjOnUjbonibpY7NPgLgzKzDicpp0z1BpicpRiboryib1qAj0WfO8ffA/0"/>
@@ -71,7 +71,7 @@
 	</div>
       </div>
 
-      <div class="row">
+      <div class="row" id="id_i5">
 	<div class="col-xs-12" style="text-align:center;">
 	  <div class="thumbnail">
 	  <img src="https://mmbiz.qlogo.cn/mmbiz/yMhOQPTKhLubJ13YV5YCHGRNgx5YhqiaN65ibd1I6w8ZcSGMsC51BmFfVmjE6E12SqyNb56txgeKb7r4YyvWsia4A/0"/>
@@ -85,16 +85,13 @@
 	</div>
       </div>
 
-      <div class="row">
+      <div class="row" id="id_i6">
 	<div class="col-xs-12" style="text-align:center;">
 	  <div class="thumbnail">
 	  <img src="https://mmbiz.qlogo.cn/mmbiz/yMhOQPTKhLubJ13YV5YCHGRNgx5YhqiaNNlbUNRD9SvSafDqaFick0naAmRnlhgm3kcnVLRq1uyJoL19Yu06eIGQ/0"/>
 	  </div>
 	</div>
       </div>
-
-
-
 
       <div class="row">
 	<div class="col-xs-12" style="text-align:center" id="id_msg">
@@ -119,7 +116,7 @@
 {% block tail_script %}
 <script type="text/javascript">
   {% for i in 123456|make_list %}
-  $("#id_p{{ i }}").on("click", function () {
+  $("#id_p{{ i }},#id_i{{ i }}").on("click", function () {
       $("#id_input{{ i }}").attr("checked",true);
       $("#id_p{{ i }}").css("color","#ed5377");
     {% for j in 123456|make_list %}
