@@ -178,6 +178,11 @@ SHOP_APP_SCHEDULE = {
         'schedule':crontab(minute="20",hour='*/6'),
         'args':()
     },
+    u'定时短信通知微信用户':{
+        'task':'shopapp.weixin_sales.tasks.NotifyParentAwardTask',
+        'schedule':crontab(minute="*/5",),
+        'args':()
+    },
 #    'runs-every-10-minutes-update-seller-flag':{
 #        'task':'shopapp.memorule.tasks.updateTradeSellerFlagTask',
 #        'schedule':crontab(minute="*/10"),

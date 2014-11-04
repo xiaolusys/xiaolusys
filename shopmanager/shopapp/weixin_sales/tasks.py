@@ -8,8 +8,12 @@ from lxml import etree
 from StringIO import StringIO
 from celery.task import task
 from celery.task.sets import subtask
-from celery import Task
+from celery   import Task
 
+from django.db.models import Q
+
+from .models  import WeixinUserAward
+from .service import WeixinSaleService
 
 class NotifyReferalAwardTask(Task):
     
@@ -17,22 +21,32 @@ class NotifyReferalAwardTask(Task):
     
     def run(self,user_openid):
         
-        from shopapp.weixin_sales.service import WeixinSaleService
-            
         wx_service = WeixinSaleService(user_openid)
         
         wx_service.notifyReferalAward()
         
 
-class NotifyNewAwardTask(Task):
+
+class NotifyParentAwardTask(Task):
     
     max_retries  = 1
     
-    def run(self,user_openid):
+    def run(self):
         
-        from shopapp.weixin_sales.service import WeixinSaleService
-            
-        wx_service = WeixinSaleService(user_openid)
+        end_remind_time = datetime.datetime.now() - datetime.timedelta(seconds=10*60)
         
-        wx_service.notifyNewAward()            
+        remind_filter = Q(remind_count__gte=3)|Q(remind_time__lte=end_remind_time)
+        wx_awards     = WeixinUserAward.objects.filter(remind_filter,is_notify=False)
+        
+        for award in wx_awards:
+            try:
+                wx_service = WeixinSaleService(award.user_openid)
+                wx_service.notifyAward()
+                
+                award.is_notify    = True
+                award.save()
+            except Exception,exc:
+                pass
             
+            
+        

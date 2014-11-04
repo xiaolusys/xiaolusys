@@ -9,9 +9,9 @@ from .views import (picture_review,
 
 urlpatterns = patterns('',
     url(r'^review/$',picture_review),
-    url(r'^award/(?P<uid>\d+)/$', AwardView.as_view()),
-    url(r'^referal/notify/$', AwardNotifyView.as_view()),
-    url(r'^referal/remind/$', AwardRemindView.as_view()),
+    url(r'^award/$', AwardView.as_view()),
+    url(r'^award/notify/$', AwardNotifyView.as_view()),
+    url(r'^award/remind/$', AwardRemindView.as_view()),
 )
 
 
