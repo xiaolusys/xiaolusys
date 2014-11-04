@@ -3,15 +3,16 @@ import json
 import datetime
 from django.http import HttpResponse
 from django.conf import settings
+from django.db.models import F
 from django.views.decorators.csrf import csrf_exempt
 from django.views.generic import View
 from django.template import RequestContext 
 from django.shortcuts import render_to_response
 
 from shopback.base.authentication import login_required_ajax
-from shopapp.weixin.views import WeiXinUser,get_user_openid
+from shopapp.weixin.views import WeiXinUser,VipCode,get_user_openid
 from .models import WeixinUserPicture,WeixinUserAward
-from .tasks import NotifyReferalAwardTask,NotifyNewAwardTask
+from .tasks import NotifyReferalAwardTask
 from shopapp.signals import weixin_referal_signal
 
 
@@ -29,7 +30,7 @@ def picture_review(request):
 
 class AwardView(View):
     
-    def get(self, request, uid):
+    def get(self, request):
         
         content = request.REQUEST
         code = content.get('code')
@@ -46,31 +47,27 @@ class AwardView(View):
         return response
     
 
-    def post(self, request, uid):
+    def post(self, request):
         
         content    = request.REQUEST
         award_val  = content.get('award_val','')
-        referaled  = content.get('referaled','')
-        user_openid = 'oMt59uJJBoNRC7Fdv1b5XiOAngdU'
-#        user_openid = request.COOKIES.get('openid')
+#        user_openid = 'oMt59uJJBoNRC7Fdv1b5XiOAngdU'
+        user_openid = request.COOKIES.get('openid')
         try:
-            wx_user = WeiXinUser.objects.get(id=uid)
-            referal_openid = wx_user.openid
-            wx_award,state = WeixinUserAward.objects.get_or_create(user_openid=user_openid)
+            wx_user = WeiXinUser.objects.get(openid=user_openid)
+            referal_from_openid = wx_user.referal_from_openid
             
+            wx_award,state = WeixinUserAward.objects.get_or_create(user_openid=user_openid)
             if not wx_award.is_receive and award_val.isdigit() and award_val in ('1','2','3','4','5'):
-                
-                if referaled:
-                    wx_award.is_agree   = True
                 
                 wx_award.is_receive = True
                 wx_award.award_val  = award_val
-                wx_award.referal_from_openid  = referal_openid
+                wx_award.referal_from_openid  = referal_from_openid
                 wx_award.save()
                 
                 weixin_referal_signal.send(sender=WeixinUserAward,
                                            user_openid=user_openid,
-                                           referal_from_openid=referal_openid)
+                                           referal_from_openid=referal_from_openid)
                 
                 rep_json = {'success':True}
             elif wx_award.is_receive:
@@ -90,28 +87,25 @@ class AwardNotifyView(View):
         try:
             content = request.REQUEST
             code = content.get('code')
-            user_openid = 'oMt59uJJBoNRC7Fdv1b5XiOAngdU'
-#            user_openid = get_user_openid(request, code)
-            
+#            user_openid = 'oMt59uJJBoNRC7Fdv1b5XiOAngdU'
+            user_openid = get_user_openid(request, code)
+            notify_num = 0
             wx_award,state = WeixinUserAward.objects.get_or_create(user_openid=user_openid)
             
-            notify_num = 0
             referal_ships = WeiXinUser.objects.filter(referal_from_openid=user_openid)
             if referal_ships.count() > 0 and not wx_award.is_share:
                 
                 notify_num = referal_ships.count()
                 NotifyReferalAwardTask().delay(user_openid) 
                 
-            wx_awards = WeixinUserAward.objects.filter(referal_from_openid=user_openid,
-                                                       is_agree=False)
-            if wx_awards.count() and wx_award.remind_count > 0:
+                wx_award.is_share     = True
+                wx_award.remind_time  = datetime.datetime.now()
+                wx_award.remind_count = 0
+                wx_award.save()
                 
-                notify_num += wx_awards.count()
-                NotifyNewAwardTask().delay(user_openid) 
-                
-            rep_json = {'isSuccess':True,'notify_num':notify_num }
+            rep_json = {'success':True,'notify_num':notify_num }
         except:
-            rep_json = {'isSuccess':False,'notify_num':0}
+            rep_json = {'success':False,'notify_num':0}
             
         return  HttpResponse(json.dumps(rep_json),mimetype="application/json")  
     
@@ -122,31 +116,25 @@ class AwardRemindView(View):
         
         try:
             content = request.REQUEST
-            code = content.get('code')
-            user_openid = 'oMt59uJJBoNRC7Fdv1b5XiOAngdU'
-#            user_openid = get_user_openid(request, code)
+            code  = content.get('code')
+            fcode = content.get('fcode')
+#            user_openid = 'oMt59uJJBoNRC7Fdv1b5XiOAngdU'
+            user_openid = get_user_openid(request, code)
             
-            wx_award,state = WeixinUserAward.objects.get_or_create(user_openid=user_openid)
+            vipcode = VipCode.objects.get(code=fcode)
+            referal_from_openid = vipcode.owner_openid.openid
             
-            notify_num = 0
-            referal_ships = WeiXinUser.objects.filter(referal_from_openid=user_openid)
-            if referal_ships.count() > 0 and not wx_award.is_share:
+            if referal_from_openid != user_openid:
+                wx_award,state = WeixinUserAward.objects.get_or_create(user_openid=referal_from_openid)
                 
-                notify_num = referal_ships.count()
-                NotifyReferalAwardTask().delay(user_openid) 
+                wx_award.remind_count = F('remind_count') + 1
+                wx_award.remind_time  = datetime.datetime.now()
+                wx_award.save()
                 
-            wx_awards = WeixinUserAward.objects.filter(referal_from_openid=user_openid,
-                                                       is_agree=False)
-            if wx_awards.count() and wx_award.remind_count > 0:
-                
-                notify_num += wx_awards.count()
-                NotifyNewAwardTask().delay(user_openid) 
-                
-            rep_json = {'isSuccess':True,'notify_num':notify_num }
+            rep_json = {'success':True}
         except:
-            rep_json = {'isSuccess':False,'notify_num':0}
+            rep_json = {'success':False}
             
         return  HttpResponse(json.dumps(rep_json),mimetype="application/json")   
 
-    
     
