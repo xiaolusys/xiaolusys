@@ -1042,9 +1042,6 @@ def convert_referal2score(sender,user_openid,referal_from_openid,*args,**kwargs)
 
 weixin_referal_signal.connect(convert_referal2score, sender=SampleOrder)
 
-from shopapp.weixin_sales.models import WeixinUserAward
-#推荐关系增加积分
-weixin_referal_signal.connect(convert_referal2score, sender=WeixinUserAward)
 
 #试用订单审核通过消耗积分
 @transaction.commit_manually

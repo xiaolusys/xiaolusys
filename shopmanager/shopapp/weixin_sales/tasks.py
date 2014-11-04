@@ -13,7 +13,7 @@ from celery import Task
 
 class NotifyReferalAwardTask(Task):
     
-    max_retries  = 3
+    max_retries  = 1
     
     def run(self,user_openid):
         
@@ -23,5 +23,16 @@ class NotifyReferalAwardTask(Task):
         
         wx_service.notifyReferalAward()
         
+
+class NotifyNewAwardTask(Task):
+    
+    max_retries  = 1
+    
+    def run(self,user_openid):
+        
+        from shopapp.weixin_sales.service import WeixinSaleService
             
+        wx_service = WeixinSaleService(user_openid)
+        
+        wx_service.notifyNewAward()            
             

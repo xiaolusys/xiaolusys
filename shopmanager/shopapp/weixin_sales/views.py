@@ -11,7 +11,7 @@ from django.shortcuts import render_to_response
 from shopback.base.authentication import login_required_ajax
 from shopapp.weixin.views import WeiXinUser,get_user_openid
 from .models import WeixinUserPicture,WeixinUserAward
-from .tasks import NotifyReferalAwardTask
+from .tasks import NotifyReferalAwardTask,NotifyNewAwardTask
 from shopapp.signals import weixin_referal_signal
 
 
@@ -48,25 +48,33 @@ class AwardView(View):
 
     def post(self, request, uid):
         
-        content = request.REQUEST
-        award_val = content.get('award_val','')
-        user_openid = request.COOKIES.get('openid')
+        content    = request.REQUEST
+        award_val  = content.get('award_val','')
+        referaled  = content.get('referaled','')
+        user_openid = 'oMt59uJJBoNRC7Fdv1b5XiOAngdU'
+#        user_openid = request.COOKIES.get('openid')
         try:
             wx_user = WeiXinUser.objects.get(id=uid)
             referal_openid = wx_user.openid
+            wx_award,state = WeixinUserAward.objects.get_or_create(user_openid=user_openid)
             
-            if award_val.isdigit() and award_val in ('1','2','3','4','5'):
-                wx_award,state = WeixinUserAward.objects.get_or_create(user_openid=user_openid)
+            if not wx_award.is_receive and award_val.isdigit() and award_val in ('1','2','3','4','5'):
+                
+                if referaled:
+                    wx_award.is_agree   = True
+                
                 wx_award.is_receive = True
                 wx_award.award_val  = award_val
-                wx_award.referal_openid  = referal_openid
+                wx_award.referal_from_openid  = referal_openid
                 wx_award.save()
                 
                 weixin_referal_signal.send(sender=WeixinUserAward,
-                                       user_openid=user_openid,
-                                       referal_from_openid=referal_openid)
+                                           user_openid=user_openid,
+                                           referal_from_openid=referal_openid)
                 
                 rep_json = {'success':True}
+            elif wx_award.is_receive:
+                rep_json = {'success':False,'err_msg':u'不能重复提交'}
             else:
                 rep_json = {'success':False,'err_msg':u'选择奖励物品不对'}
         except:
@@ -82,19 +90,63 @@ class AwardNotifyView(View):
         try:
             content = request.REQUEST
             code = content.get('code')
-#            user_openid = 'oMt59uJJBoNRC7Fdv1b5XiOAngdU'
-            user_openid = get_user_openid(request, code)
+            user_openid = 'oMt59uJJBoNRC7Fdv1b5XiOAngdU'
+#            user_openid = get_user_openid(request, code)
             
+            wx_award,state = WeixinUserAward.objects.get_or_create(user_openid=user_openid)
+            
+            notify_num = 0
             referal_ships = WeiXinUser.objects.filter(referal_from_openid=user_openid)
-            if referal_ships.count() > 0:
+            if referal_ships.count() > 0 and not wx_award.is_share:
+                
+                notify_num = referal_ships.count()
                 NotifyReferalAwardTask().delay(user_openid) 
-            
-            rep_json = {'isSuccess':True,'notify_num':referal_ships.count()}
+                
+            wx_awards = WeixinUserAward.objects.filter(referal_from_openid=user_openid,
+                                                       is_agree=False)
+            if wx_awards.count() and wx_award.remind_count > 0:
+                
+                notify_num += wx_awards.count()
+                NotifyNewAwardTask().delay(user_openid) 
+                
+            rep_json = {'isSuccess':True,'notify_num':notify_num }
         except:
             rep_json = {'isSuccess':False,'notify_num':0}
             
-        return  HttpResponse(json.dumps(rep_json),mimetype="application/json")    
-
+        return  HttpResponse(json.dumps(rep_json),mimetype="application/json")  
+    
+    
+class AwardRemindView(View):
+    
+    def post(self, request):
+        
+        try:
+            content = request.REQUEST
+            code = content.get('code')
+            user_openid = 'oMt59uJJBoNRC7Fdv1b5XiOAngdU'
+#            user_openid = get_user_openid(request, code)
+            
+            wx_award,state = WeixinUserAward.objects.get_or_create(user_openid=user_openid)
+            
+            notify_num = 0
+            referal_ships = WeiXinUser.objects.filter(referal_from_openid=user_openid)
+            if referal_ships.count() > 0 and not wx_award.is_share:
+                
+                notify_num = referal_ships.count()
+                NotifyReferalAwardTask().delay(user_openid) 
+                
+            wx_awards = WeixinUserAward.objects.filter(referal_from_openid=user_openid,
+                                                       is_agree=False)
+            if wx_awards.count() and wx_award.remind_count > 0:
+                
+                notify_num += wx_awards.count()
+                NotifyNewAwardTask().delay(user_openid) 
+                
+            rep_json = {'isSuccess':True,'notify_num':notify_num }
+        except:
+            rep_json = {'isSuccess':False,'notify_num':0}
+            
+        return  HttpResponse(json.dumps(rep_json),mimetype="application/json")   
 
     
     
