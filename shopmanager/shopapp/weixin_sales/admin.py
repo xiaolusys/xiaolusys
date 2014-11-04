@@ -5,7 +5,7 @@ from django.conf import settings
 
 from django.forms import TextInput, Textarea
 from shopback.base.options import DateFieldListFilter
-from .models import WeixinUserPicture
+from .models import WeixinUserPicture,WeixinUserAward
 
 
 class WeixinUserPictureAdmin(admin.ModelAdmin):
@@ -39,3 +39,14 @@ class WeixinUserPictureAdmin(admin.ModelAdmin):
     
     
 admin.site.register(WeixinUserPicture, WeixinUserPictureAdmin) 
+
+class WeixinUserAwardAdmin(admin.ModelAdmin):
+    
+    list_display = ('user_openid', 'is_agree','is_receive','is_share'
+                    ,'award_val','created','modified')
+    search_fields = ['user_openid','referal_from_openid']
+    
+    list_filter = ('is_receive','is_share','is_agree',('created',DateFieldListFilter))
+    
+    
+admin.site.register(WeixinUserAward, WeixinUserAwardAdmin) 

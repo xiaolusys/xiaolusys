@@ -341,7 +341,6 @@ class OrderInfoView(View):
         refund_records = Refund.objects.filter(user_openid=user_openid,created__gt=start_time)
         if sample_orders.count() > 0 and refund_records.count() < 1:
             passed = True
-            
 
         score_refund = False
         if (data["payment"] >= 100 and score >= 10 
@@ -1300,7 +1299,7 @@ class GiftView(View):
     
 class TestView(View):
     def get(self, request):
-        response = render_to_response('weixin/giftbox.html', 
+        response = render_to_response('weixin/sampleads1.html', 
                                       context_instance=RequestContext(request))
         return response
         

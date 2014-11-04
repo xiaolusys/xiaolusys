@@ -1019,15 +1019,17 @@ def convert_referal2score(sender,user_openid,referal_from_openid,*args,**kwargs)
     transaction.commit()
     invite_score = 1
     try:
-        WeixinScoreItem.objects.create(user_openid=referal_from_openid,
-                                       score=invite_score,
-                                       score_type=WeixinScoreItem.INVITE,
-                                       expired_at=datetime.datetime.now()+datetime.timedelta(days=365),
-                                       memo=u"邀请好友(%s)获得积分。"%(user_openid))
-        
-        wx_user_score,state = WeixinUserScore.objects.get_or_create(user_openid=referal_from_openid)
-        wx_user_score.user_score  = models.F('user_score') + invite_score
-        wx_user_score.save()
+        wx_user = WeixinUser.objects.get(openid=user_openid)
+        if not wx_user.referal_from_openid:
+            WeixinScoreItem.objects.create(user_openid=referal_from_openid,
+                                           score=invite_score,
+                                           score_type=WeixinScoreItem.INVITE,
+                                           expired_at=datetime.datetime.now()+datetime.timedelta(days=365),
+                                           memo=u"邀请好友(%s)获得积分。"%(user_openid))
+            
+            wx_user_score,state = WeixinUserScore.objects.get_or_create(user_openid=referal_from_openid)
+            wx_user_score.user_score  = models.F('user_score') + invite_score
+            wx_user_score.save()
         
     except Exception,exc:
         transaction.rollback()
@@ -1039,6 +1041,7 @@ def convert_referal2score(sender,user_openid,referal_from_openid,*args,**kwargs)
         transaction.commit()
 
 weixin_referal_signal.connect(convert_referal2score, sender=SampleOrder)
+
 
 #试用订单审核通过消耗积分
 @transaction.commit_manually

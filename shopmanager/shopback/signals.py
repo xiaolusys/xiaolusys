@@ -12,3 +12,4 @@ recalc_fee_signal  = Signal(providing_args=["trade_id"])
 
 confirm_trade_signal = Signal(providing_args=["trade_id"])
 
+

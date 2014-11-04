@@ -461,7 +461,7 @@ class BranchZoneView(ModelView):
         address   = content.get('address','')
         
         branch_zone = get_addr_zones(province,city,district,address=address)
-        print province,city,district,address,branch_zone
+
         return {'province':province,
                 'city':city,
                 'district':district,

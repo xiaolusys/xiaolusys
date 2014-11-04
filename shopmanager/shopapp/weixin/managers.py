@@ -81,13 +81,21 @@ class WeixinUserManager(models.Manager):
         wx_user.save()
         return True
            
+    @property
+    def NORMAL_USER(self):
+        return self.get_queryset().exclude(user_group_id=2)
+    
+    @property
+    def VALID_USER(self):
+        return self.get_queryset().exclude(user_group_id=2).filter(isvalid=True)
+        
     
     
 class VipCodeManager(models.Manager):   
     
     def get_queryset(self):
         
-        super_tm = super(WeixinProductManager,self)
+        super_tm = super(VipCodeManager,self)
         #adapt to higer version django(>1.4)
         if hasattr(super_tm,'get_query_set'):
             return super_tm.get_query_set()
