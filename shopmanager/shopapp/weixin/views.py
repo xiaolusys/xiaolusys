@@ -872,10 +872,19 @@ class SampleAdsView(View):
         wx_user_pk = kwargs.get('pk',0)
         users = WeiXinUser.objects.filter(pk=wx_user_pk)
         
+
         openid = request.COOKIES.get('openid')
         
         identical = False
+        vipcode = 0
+        nickname = ''
         if users.count() > 0:
+            nickname = users[0].nickname
+            referal_images = []
+            referal_users = WeiXinUser.objects.filter(referal_from_openid=users[0].openid)
+            for user in referal_users:
+                referal_images.append(user.headimgurl)
+
             if users[0].vipcodes.count() > 0:
                 vipcode = users[0].vipcodes.all()[0].code
             else:
@@ -884,14 +893,15 @@ class SampleAdsView(View):
             if users[0].openid == openid:
                 identical = True
 
-            response = render_to_response('weixin/sampleads.html', 
-                                          {"identical":identical,"vipcode":vipcode}, 
+            response = render_to_response('weixin/sampleads1.html', 
+                                          {"identical":identical,"vipcode":vipcode, 
+                                           "nickname":nickname, "referal_images":referal_images}, 
                                           context_instance=RequestContext(request))
             return response
 
         vipcode = '898786' ## 'other' case
-        response = render_to_response('weixin/sampleads.html',         
-                                      {"identical":identical,"vipcode":vipcode}, 
+        response = render_to_response('weixin/sampleads1.html',         
+                                      {"identical":identical,"vipcode":vipcode, "nickname":nickname}, 
                                       context_instance=RequestContext(request))
         return response
         
@@ -1296,7 +1306,7 @@ class GiftView(View):
                                       context_instance=RequestContext(request))
         return response
 
-    
+
 class TestView(View):
     def get(self, request):
         response = render_to_response('weixin/sampleads1.html', 
