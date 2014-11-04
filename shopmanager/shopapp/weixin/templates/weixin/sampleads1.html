@@ -1,0 +1,55 @@
+{% extends "weixin/weixin_base.html" %}
+
+{% block title %} 
+小小礼物 代表我的感恩 谢谢你们！
+{% endblock %}
+
+{% block container %}
+
+<div class="container-fluid">
+  {% if identical %}
+  <p style="color:blue">亲，您已成功为{{ referal_images|length }}位好友发放了感恩礼包！</p>
+  <p style="color:blue">每有一位好友领取，您将获得1个积分。</p>
+  <p style="color:blue">把当前页面分享到朋友圈，新的好友看到后，仍然可以使用您的F码领取礼包哦！</p>
+  <p style="color:blue">注：分享到朋友圈后，蓝色文字朋友看不到哦！</p>
+  {% endif %}
+  <div class="panel panel-default" style="margin-top:5px">
+    <div class="panel-heading" style="color:red"><b>优尼世界 感谢有你！</b></div>
+    <div class="panel-body">
+      <div class="row">
+	<div class="col-xs-12">
+	  <p>十一月 感恩季</p>
+	  <p>为我们的友情 感谢您</p>
+	  <p>特别感谢 您曾使用我的F码</p>
+	  <p>在优尼世界 我为您准备了一个精美的感恩礼包</p>
+	  <p>请一定打开 让我放心您已收到</p>
+	  <p>-- {{ nickname }} 2014.11.05</p>
+	</div>
+      </div>
+      <hr>
+      <div class="row">
+	<div class="col-xs-12">
+	  <h4>礼包都有啥东东呢？</h4>
+	  <p>亲，您的感恩礼包至少包含下面两份精美礼品：</p>
+	  <ul class="list-group">
+	    <li class="list-group-item">1. 优尼世界 双十一满199减50优惠券 全场通用</li>
+	    <li class="list-group-item">2. 卡通吸汗巾 </li>
+	    <li class="list-group-item">3. 秋冬厚款毛巾袜（2双）</li>
+	    <li class="list-group-item">4. 婴幼儿防PM2.5卡通口罩</li>
+	    <li class="list-group-item">5. 时尚针织三角巾</li>
+	  </ul>
+	  <p>记得带上我的F码： {{ vipcode }} Go check it out!</p>
+	</div>
+      </div>
+      
+    </div>
+  </div>
+    
+  <div class="footer">
+    <p>© Uni Littles 2014</p>
+  </div>
+
+</div>
+{% endblock %}    
+    
+

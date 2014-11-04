@@ -1,0 +1,137 @@
+{% extends "weixin/weixin_base.html" %}
+
+{% block title %} 感恩礼包 {% endblock %}
+
+
+{% block container %}
+
+<div class="container-fluid">
+
+  <div class="panel panel-default" style="margin-top:5px">
+    <div class="panel-heading" style="color:#e8792a">十一月 感恩季</div>
+    <div class="panel-body">
+      <p style="color:#029fd6">快为好友挑选礼物吧！您选咱就送，<font style="color:red">[免费+包邮]</font>哦！</p>
+      <form action="/weixin/sales/award/notify/" method="post" onsubmit="return checkSelection()">{% csrf_token %}
+	<input type="hidden" value="" id="id_selection" name="award_val">
+      <div class="row">
+	<div class="col-xs-12">
+	  <h5 id="id_p1" style="color:#029fd6">选择一：天猫No.1 卡通吸汗巾</h5>
+	</div>
+      </div>
+      <div class="row">
+	<div class="col-xs-12">
+	  <div class="thumbnail" style="padding:3px" id="id_i1">
+	  <img src="https://mmbiz.qlogo.cn/mmbiz/yMhOQPTKhLubJ13YV5YCHGRNgx5YhqiaNrK541Vd6eH9ewY4ib6oYnKBxbMOIsUphvaMeTCljia3TM6DLq6HbmJ6w/0">
+	  </div>
+	</div>
+      </div>
+
+      <div class="row">
+	<div class="col-xs-12">
+	  <h5 id="id_p2" style="color:#029fd6">选择二：天鹅绒 时尚造型三角巾</h5>
+	</div>
+      </div>
+      <div class="row">
+	<div class="col-xs-12" style="text-align:center;">
+	  <div class="thumbnail" style="padding:3px" id="id_i2">
+	    <img src="https://mmbiz.qlogo.cn/mmbiz/yMhOQPTKhLubJ13YV5YCHGRNgx5YhqiaNcPbGkJsfmvDD9CTqF8sK76NWCzbAvKJL9BELT383CRh0SqRvbnhRCw/0"/>
+	  </div>
+	</div>
+      </div>
+
+      <div class="row">
+	<div class="col-xs-12">
+	  <h5 id="id_p3" style="color:#029fd6">选择三：纯棉不勒脚 毛巾袜（2双装）</h5>
+	</div>
+      </div>
+      <div class="row" >
+	<div class="col-xs-12" style="text-align:center;">
+	  <div class="thumbnail" style="padding:3px" id="id_i3">
+	    <img src="https://mmbiz.qlogo.cn/mmbiz/yMhOQPTKhLubJ13YV5YCHGRNgx5YhqiaNwpS5VyWq6FfO6PD9DXQA4ibcs8zvS1m95cuGaDWz7ibHaEMggUdfaxYw/0"/>
+	  </div>
+	</div>
+      </div>
+
+
+      <div class="row">
+	<div class="col-xs-12">
+	  <h5 id="id_p4" style="color:#029fd6">选择四：婴幼儿防PM2.5卡通口罩</h5>
+	</div>
+      </div>
+      <div class="row" >
+	<div class="col-xs-12" style="text-align:center;">
+	  <div class="thumbnail" style="padding:3px" id="id_i4">
+	  <img src="https://mmbiz.qlogo.cn/mmbiz/yMhOQPTKhLubJ13YV5YCHGRNgx5YhqiaNSsFhXjOnUjbonibpY7NPgLgzKzDicpp0z1BpicpRiboryib1qAj0WfO8ffA/0"/>
+	  </div>
+	</div>
+      </div>
+
+      <div class="row">
+	<div class="col-xs-12">
+	  <h5 id="id_p5" style="color:#029fd6">选择五：时尚针织三角巾</h5>
+	</div>
+      </div>
+
+      <div class="row" >
+	<div class="col-xs-12" style="text-align:center;">
+	  <div class="thumbnail" style="padding:3px" id="id_i5">
+	  <img src="https://mmbiz.qlogo.cn/mmbiz/yMhOQPTKhLubJ13YV5YCHGRNgx5YhqiaN65ibd1I6w8ZcSGMsC51BmFfVmjE6E12SqyNb56txgeKb7r4YyvWsia4A/0"/>
+	  </div>
+	</div>
+      </div>
+
+      <div class="row">
+	<div class="col-xs-12">
+	  <h5 id="id_p6" style="color:#029fd6">选择六：纯棉卡通三角裤</h5>
+	</div>
+      </div>
+
+      <div class="row" >
+	<div class="col-xs-12" style="text-align:center;">
+	  <div class="thumbnail" style="padding:3px" id="id_i6">
+	  <img src="https://mmbiz.qlogo.cn/mmbiz/yMhOQPTKhLubJ13YV5YCHGRNgx5YhqiaNNlbUNRD9SvSafDqaFick0naAmRnlhgm3kcnVLRq1uyJoL19Yu06eIGQ/0"/>
+	  </div>
+	</div>
+      </div>
+
+      <div class="row">
+	<div class="col-xs-12" style="text-align:center">
+	  <p style="color:red" id="id_msg"></p>
+	  <button type="submit" class="btn btn-warning" id="id_submit">确定提交</button>
+	</div>
+      </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block tail_script %}
+<script type="text/javascript">
+  {% for i in 123456|make_list %}
+  $("#id_p{{ i }},#id_i{{ i }}").on("click", function () {
+      $("#id_i{{ i }}").css("background-color","#ed5377");
+      $("#id_p{{ i }}").css("color","#ed5377");
+      $("#id_selection").val("{{ i }}");
+    {% for j in 123456|make_list %}
+      {% if i != j %}
+      $("#id_i{{ j }}").css("background-color","");
+      $("#id_p{{ j }}").css("color","#029fd6");  
+      {% endif %}
+    {% endfor %}
+
+  });
+  {% endfor %}
+
+  function checkSelection() {
+    if ($("#id_selection").val() == "") {
+      $("#id_msg")[0].innerHTML = "<p style='color:red'>亲，请先选择礼物再提交！</p>";
+      return false;
+    }
+    return true;
+  }
+
+</script>
+
+{% endblock %}
