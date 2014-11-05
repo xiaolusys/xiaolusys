@@ -582,8 +582,8 @@ class MergeOrder(models.Model):
     class Meta:
         db_table = 'shop_trades_mergeorder'
         unique_together = ("oid","merge_trade")
-        verbose_name=u'订单商品'
-        verbose_name_plural = u'订单商品列表'
+        verbose_name=u'订单明细'
+        verbose_name_plural = u'订单明细列表'
         
     def __unicode__(self):
         return '<%s,%s>'%(str(self.id),self.outer_id)

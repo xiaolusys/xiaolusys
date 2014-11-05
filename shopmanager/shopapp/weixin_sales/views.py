@@ -33,7 +33,6 @@ class AwardView(View):
     
     def post(self, request):
         content    = request.REQUEST
-        award_val  = content.get('award_val','')
 #        user_openid = 'oMt59uJJBoNRC7Fdv1b5XiOAngdU'
         user_openid = request.COOKIES.get('openid')
         try:
@@ -41,8 +40,10 @@ class AwardView(View):
             referal_from_openid = wx_user.referal_from_openid
             
             wx_award,state = WeixinUserAward.objects.get_or_create(user_openid=user_openid)
-            if award_val.isdigit() and award_val in ('1','2','3','4','5','6'):
-                wx_award.award_val  = award_val
+
+            if not wx_award.is_receive :
+                
+                wx_award.is_receive = True
                 wx_award.referal_from_openid  = referal_from_openid
                 wx_award.save()
                 
@@ -51,10 +52,8 @@ class AwardView(View):
                                            referal_from_openid=referal_from_openid)
                 
                 rep_json = {'success':True}
-            elif wx_award.is_receive:
+            else :
                 rep_json = {'success':False,'err_msg':u'不能重复提交'}
-            else:
-                rep_json = {'success':False,'err_msg':u'选择奖励物品不对'}
         except:
             rep_json = {'success':False,'err_msg':u'系统错误，请联系管理员'}
             

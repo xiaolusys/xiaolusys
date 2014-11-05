@@ -904,6 +904,7 @@ class SampleAdsView(View):
                                       context_instance=RequestContext(request))
         return response
         
+from shopapp.weixin_sales.models import WeixinUserAward
 
 class ResultView(View):
     def get(self, request):
@@ -922,16 +923,15 @@ class ResultView(View):
                 order_status = order.status
             
         batch_number = SampleOrder.objects.filter(status__gt=30,status__lt=39).count()
-        usage_count = 0
-        users = WeiXinUser.objects.filter(openid=user_openid)
+        usage_count  = 0
+        wx_user = WeiXinUser.objects.get(openid=user_openid)
         vipcode = 0
         isvalid = False
-        if users.count() > 0:
-            if users[0].vipcodes.count() > 0:
-                code_obj = users[0].vipcodes.all()[0]
-                usage_count = code_obj.usage_count
-                vipcode = code_obj.code
-                isvalid = users[0].isvalid
+        if wx_user.vipcodes.count() > 0:
+            code_obj = wx_user.vipcodes.all()[0]
+            usage_count = code_obj.usage_count
+            vipcode = code_obj.code
+            isvalid = wx_user.isvalid
 
         score = 0
         user_scores = WeixinUserScore.objects.filter(user_openid=user_openid)
@@ -942,15 +942,21 @@ class ResultView(View):
         referal_users = WeiXinUser.objects.filter(referal_from_openid=user_openid)
         for user in referal_users:
             referal_images.append(user.headimgurl)
-
-
+            
+        parent_awards = WeixinUserAward.objects.filter(user_openid=wx_user.referal_from_openid)
+        parent_award  = None
+        if parent_awards.count() > 0:
+            parent_award = parent_awards[0]
+        
         response = render_to_response('weixin/invite_result.html',
-                                      {'has_order':has_order, 'order_status':order_status, 
+                                      {'wx_user':wx_user,'parent_award':parent_award,
+                                       'has_order':has_order,'order_status':order_status, 
                                        'vipcode':vipcode, 'usage_count':usage_count,
                                        'batch_number':batch_number,'referal_images':referal_images,
                                        'isvalid':isvalid, 'score':score},
                                       context_instance=RequestContext(request))
-        response.set_cookie("openid",user_openid)        
+        response.set_cookie("openid",user_openid)  
+              
         return response
 
 
