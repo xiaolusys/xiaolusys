@@ -15,7 +15,7 @@ import json
 import random
 
 
-EFFECT_PROVINCES = [u'上海',u'上海市',u'江苏',u'江苏省',u'浙江',u'浙江省',u'安徽',u'安徽省',u'广东',u'广东省',u'北京',u'北京市']
+EFFECT_PROVINCES = [u'上海',u'上海市',u'江苏',u'江苏省',u'浙江',u'浙江省',u'安徽',u'安徽省']
 
 class CreateAccountView(View):
     def get(self, request):
@@ -94,7 +94,7 @@ class CreateAccountView(View):
             pa.province = province
             pa.street_addr = street_addr
             pa.is_tb = is_tb
-            pa.is_jx = is_jd
+            pa.is_jd = is_jd
             pa.is_wx = is_wx
             pa.status = 1
             pa.save()
