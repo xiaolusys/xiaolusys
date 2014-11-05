@@ -1,4 +1,4 @@
-#-*- encoding:utf8 -*-
+#-*- encoding:utf-8 -*-
 import json
 import datetime
 from django.http import HttpResponse
@@ -14,6 +14,7 @@ from shopapp.weixin.views import WeiXinUser,VipCode,get_user_openid
 from .models import WeixinUserPicture,WeixinUserAward
 from .tasks import NotifyReferalAwardTask
 from shopapp.signals import weixin_referal_signal
+from django.shortcuts import redirect
 
 
 @csrf_exempt
@@ -31,7 +32,6 @@ def picture_review(request):
 class AwardView(View):
     
     def post(self, request):
-        
         content    = request.REQUEST
 #        user_openid = 'oMt59uJJBoNRC7Fdv1b5XiOAngdU'
         user_openid = request.COOKIES.get('openid')
@@ -40,10 +40,10 @@ class AwardView(View):
             referal_from_openid = wx_user.referal_from_openid
             
             wx_award,state = WeixinUserAward.objects.get_or_create(user_openid=user_openid)
+
             if not wx_award.is_receive :
                 
                 wx_award.is_receive = True
-                wx_award.award_val  = award_val
                 wx_award.referal_from_openid  = referal_from_openid
                 wx_award.save()
                 
@@ -61,33 +61,44 @@ class AwardView(View):
     
     
 class AwardNotifyView(View):
-    
+    def get(self, request):
+        content = request.REQUEST
+        code = content.get('code')
+        user_openid = get_user_openid(request, code)
+        
+        response = render_to_response('weixin/sales/gift.html', 
+                                      {'user_openid':user_openid},
+                                      context_instance=RequestContext(request))
+        response.set_cookie("openid",user_openid)
+        return response
+
     def post(self, request):
+
+        content = request.REQUEST
+        award_val = content.get('award_val')
+        user_openid = request.COOKIES.get('openid')
+        notify_num = 0
         
         try:
-            content = request.REQUEST
-            code = content.get('code')
-#            user_openid = 'oMt59uJJBoNRC7Fdv1b5XiOAngdU'
-            user_openid = get_user_openid(request, code)
-            notify_num = 0
             wx_award,state = WeixinUserAward.objects.get_or_create(user_openid=user_openid)
-            
             referal_ships = WeiXinUser.objects.filter(referal_from_openid=user_openid)
+        
             if referal_ships.count() > 0 and not wx_award.is_share:
-                
                 notify_num = referal_ships.count()
                 NotifyReferalAwardTask().delay(user_openid) 
-                
+            
                 wx_award.is_share     = True
+                wx_award.award_val    = award_val
                 wx_award.remind_time  = datetime.datetime.now()
                 wx_award.remind_count = 0
                 wx_award.save()
                 
-            rep_json = {'success':True,'notify_num':notify_num }
+            wx_user = WeiXinUser.objects.get(openid=user_openid)
+            return redirect("/weixin/sampleads/%s/"%wx_user.pk)
         except:
             rep_json = {'success':False,'notify_num':0}
             
-        return  HttpResponse(json.dumps(rep_json),mimetype="application/json")  
+            return  HttpResponse(json.dumps(rep_json),mimetype="application/json")  
     
     
 class AwardRemindView(View):
