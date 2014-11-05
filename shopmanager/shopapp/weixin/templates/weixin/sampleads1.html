@@ -14,8 +14,15 @@
   <p style="color:blue">注：分享到朋友圈后，蓝色文字朋友看不到哦！</p>
   {% endif %}
   <div class="panel panel-default" style="margin-top:5px">
-    <div class="panel-heading" style="color:red"><b>优尼世界 感谢有你！</b></div>
+    <div class="panel-heading" style="color:#d9534f"><b>优尼世界 感谢有你！</b></div>
     <div class="panel-body">
+      <div class="row" style="margin-top:15px">
+	<div class="col-xs-12">
+	{% for image in referal_images %}
+	<img src="{{ image }}" width="26px" height="26px">
+	{% endfor %}
+	</div>
+      </div>
       <div class="row">
 	<div class="col-xs-12">
 	  <p>十一月 感恩季</p>
@@ -23,20 +30,17 @@
 	  <p>特别感谢 您曾使用我的F码</p>
 	  <p>在优尼世界 我为您准备了一个精美的感恩礼包</p>
 	  <p>请一定打开 让我放心您已收到</p>
-	  <p>-- {{ nickname }} 2014.11.05</p>
+	  <p style="color:#d9534f">-- {{ nickname }} 2014.11.05</p>
 	</div>
       </div>
-      <hr>
-      <div class="row">
-	{% for image in referal_images %}
-	<img src="{{ image }}" width="26px" height="26px">
-	{% endfor %}
+
+      <div style="text-align:center;height:80px;padding-top:20px;">
+        <a href="https://open.weixin.qq.com/connect/oauth2/authorize?appid=wxc2848fa1e1aa94b5&redirect_uri=http://weixin.huyi.so/weixin/inviteresult/&response_type=code&scope=snsapi_base&state=135#wechat_redirect" class="btn btn-danger">拆开礼包 >></a>
       </div>
-      <hr>
       <div class="row">
 	<div class="col-xs-12">
-	  <h4>礼包都有啥东东呢？</h4>
-	  <p>亲，您的感恩礼包至少包含下面<font style="color:orange;font-size:20px">2份</font>精美礼品：</p>
+	  <h4 style="color:#d9534f">礼包都有啥东东呢？</h4>
+	  <p>亲，您的感恩礼包至少含下面<font style="color:#d9534f;font-size:20px">2份</font>精美礼品：</p>
 	  <ul class="list-group">
 	    <li class="list-group-item">1. 优尼世界 双十一满199减50优惠券 全场通用</li>
 	    <li class="list-group-item">2. 天猫No.1 卡通吸汗巾</li>
@@ -46,10 +50,14 @@
 	    <li class="list-group-item">6. 时尚针织三角巾</li>
 	    <li class="list-group-item">7. 纯棉卡通三角裤</li>
 	  </ul>
-	  <p>记得带上我的F码： {{ vipcode }} Go check it out!</p>
 	</div>
       </div>
-      
+      <div class="row">
+        <div class="col-xs-12" style="text-align:center">
+          <p>记得我的F码： {{ vipcode }}</p>
+          <a href="https://open.weixin.qq.com/connect/oauth2/authorize?appid=wxc2848fa1e1aa94b5&redirect_uri=http://weixin.huyi.so/weixin/inviteresult/&response_type=code&scope=snsapi_base&state=135#wechat_redirect">Go >></a></p>
+        </div>
+      </div>
     </div>
   </div>
     
