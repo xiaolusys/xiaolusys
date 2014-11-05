@@ -52,7 +52,8 @@ class WeixinUserPicture(models.Model):
 class WeixinUserAward(models.Model): 
     
     user_openid = models.CharField(max_length=64,unique=True,verbose_name=u"申请人ID")
-    referal_from_openid = models.CharField(max_length=64,db_index=True,verbose_name=u"邀请人ID")
+    referal_from_openid = models.CharField(max_length=64,db_index=True,
+                                           blank=True,verbose_name=u"邀请人ID")
     
     is_receive = models.BooleanField(default=False,verbose_name=u"领取")
     is_share   = models.BooleanField(default=False,verbose_name=u"发送")
