@@ -79,27 +79,26 @@ class AwardNotifyView(View):
         user_openid = request.COOKIES.get('openid')
         notify_num = 0
         
+        try:
+            wx_award,state = WeixinUserAward.objects.get_or_create(user_openid=user_openid)
+            referal_ships = WeiXinUser.objects.filter(referal_from_openid=user_openid)
         
-        wx_award,state = WeixinUserAward.objects.get_or_create(user_openid=user_openid)
-
-        referal_ships = WeiXinUser.objects.filter(referal_from_openid=user_openid)
-        
-        if referal_ships.count() > 0 and not wx_award.is_share:
-            notify_num = referal_ships.count()
-            NotifyReferalAwardTask().delay(user_openid) 
+            if referal_ships.count() > 0 and not wx_award.is_share:
+                notify_num = referal_ships.count()
+                NotifyReferalAwardTask().delay(user_openid) 
             
-            wx_award.is_share     = True
-            wx_award.award_val    = award_val
-            wx_award.remind_time  = datetime.datetime.now()
-            wx_award.remind_count = 0
-            wx_award.save()
+                wx_award.is_share     = True
+                wx_award.award_val    = award_val
+                wx_award.remind_time  = datetime.datetime.now()
+                wx_award.remind_count = 0
+                wx_award.save()
                 
-        wx_user = WeiXinUser.objects.get(openid=user_openid)
-        return redirect("/weixin/sampleads/%s/"%wx_user.pk)
-        
-        rep_json = {'success':False,'notify_num':0}
+            wx_user = WeiXinUser.objects.get(openid=user_openid)
+            return redirect("/weixin/sampleads/%s/"%wx_user.pk)
+        except:
+            rep_json = {'success':False,'notify_num':0}
             
-        return  HttpResponse(json.dumps(rep_json),mimetype="application/json")  
+            return  HttpResponse(json.dumps(rep_json),mimetype="application/json")  
     
     
 class AwardRemindView(View):

@@ -28,15 +28,23 @@
       </div>
       <hr>
       <div class="row">
+	{% for image in referal_images %}
+	<img src="{{ image }}" width="26px" height="26px">
+	{% endfor %}
+      </div>
+      <hr>
+      <div class="row">
 	<div class="col-xs-12">
 	  <h4>礼包都有啥东东呢？</h4>
-	  <p>亲，您的感恩礼包至少包含下面两份精美礼品：</p>
+	  <p>亲，您的感恩礼包至少包含下面<font style="color:orange;font-size:20px">2份</font>精美礼品：</p>
 	  <ul class="list-group">
 	    <li class="list-group-item">1. 优尼世界 双十一满199减50优惠券 全场通用</li>
-	    <li class="list-group-item">2. 卡通吸汗巾 </li>
-	    <li class="list-group-item">3. 秋冬厚款毛巾袜（2双）</li>
-	    <li class="list-group-item">4. 婴幼儿防PM2.5卡通口罩</li>
-	    <li class="list-group-item">5. 时尚针织三角巾</li>
+	    <li class="list-group-item">2. 天猫No.1 卡通吸汗巾</li>
+	    <li class="list-group-item">3. 天鹅绒 时尚造型三角巾</li>
+	    <li class="list-group-item">4. 纯棉不勒脚 毛巾袜（2双装）</li>
+	    <li class="list-group-item">5. 婴幼儿防PM2.5卡通口罩</li>
+	    <li class="list-group-item">6. 时尚针织三角巾</li>
+	    <li class="list-group-item">7. 纯棉卡通三角裤</li>
 	  </ul>
 	  <p>记得带上我的F码： {{ vipcode }} Go check it out!</p>
 	</div>
