@@ -68,6 +68,7 @@ class AwardNotifyView(View):
         user_openid = get_user_openid(request, code)
         
         response = render_to_response('weixin/sales/gift.html', 
+                                      {'user_openid':user_openid},
                                       context_instance=RequestContext(request))
         response.set_cookie("openid",user_openid)
         return response
