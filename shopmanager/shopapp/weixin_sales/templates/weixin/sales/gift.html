@@ -11,8 +11,8 @@
     <div class="panel-heading" style="color:#e8792a">十一月 感恩季</div>
     <div class="panel-body">
       <p style="color:#029fd6">快为好友挑选礼物吧！您选咱就送，<font style="color:red">[免费+包邮]</font>哦！</p>
-      <form action="/weixin/gift/" method="post" onsubmit="return checkSelection()">{% csrf_token %}
-	<input type="hidden" value="" id="id_selection" name="selection">
+      <form action="/weixin/sales/award/notify/" method="post" onsubmit="return checkSelection()">{% csrf_token %}
+	<input type="hidden" value="" id="id_selection" name="award_val">
       <div class="row">
 	<div class="col-xs-12">
 	  <h5 id="id_p1" style="color:#029fd6">选择一：天猫No.1 卡通吸汗巾</h5>
@@ -97,7 +97,7 @@
       <div class="row">
 	<div class="col-xs-12" style="text-align:center">
 	  <p style="color:red" id="id_msg"></p>
-	  <button type="submit" class="btn btn-warning" id="id_submit">确定提交</button>
+	  <!--<button type="submit" class="btn btn-warning" id="id_submit">确定提交</button>-->
 	</div>
       </div>
       </form>
