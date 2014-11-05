@@ -10,7 +10,6 @@ from shopapp.weixin.models import (WeiXinUser,
 from shopapp.weixin.weixin_apis import WeiXinAPI
 from .models import WeixinUserPicture,WeixinUserAward
 
-from common.utils import handle_uploaded_file
 WEIXIN_PICTURE_PATH  = 'weixin'
 import logging
 logger = logging.getLogger('django.request')

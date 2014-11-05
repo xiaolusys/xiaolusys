@@ -140,6 +140,7 @@ INSTALLED_APPS = (
     'shopapp.tmcnotify',
 
     'shopapp.jingdong',
+    'shopapp.intercept',
     'shopapp.examination',
     'shopapp.weixin_sales',
     'shopapp.weixin_score',

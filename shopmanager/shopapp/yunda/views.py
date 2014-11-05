@@ -11,7 +11,7 @@ from djangorestframework import status
 from djangorestframework.response import Response,ErrorResponse
 from shopback import paramconfig as pcfg
 from shopback.logistics.models import LogisticsCompany
-from shopback.base.views import ModelView,ListOrCreateModelView,ListModelView
+from shopback.base.views import ModelView,ListOrCreateModelView,ListModelView,FileUploadView
 from shopback.base import log_action, ADDITION, CHANGE
 from .service import YundaPackageService,DEFUALT_CUSTOMER_CODE
 from .models import BranchZone,YundaCustomer,LogisticOrder,ParentPackageWeight,\
@@ -20,58 +20,7 @@ from .models import BranchZone,YundaCustomer,LogisticOrder,ParentPackageWeight,\
 from .options import get_addr_zones
 
 
-class YundaFileUploadView(ModelView):
-    
-    file_path     = ''
-    filename_save = ''
-    
-    def get(self, request, *args, **kwargs):
-        pass
-    
-    def getFileEncoding(self,request):
-        return request.META['HTTP_USER_AGENT'].lower().find('windows') >-1 and 'gbk' or 'utf8'
-    
-    def parseFileName(self):
-        dt = datetime.datetime.now()
-        return os.path.join(self.file_path,self.filename_save)%dt.strftime("%Y%m%d%H%M%S")
-        
-    def post(self, request, *args, **kwargs):
-        
-        from common.csvutils import handle_uploaded_file
-        import csv
-        
-        attach_files = request.FILES.get('attach_files')
-        if not attach_files:
-            return u'文件上传错误'
-        
-        attach_filename = attach_files.name
-        
-        if attach_filename[attach_filename.rfind('.'):] != '.csv':
-            return u'只接受csv文件格式'
-        
-        file_name = self.parseFileName()   
-        fullfile_path = handle_uploaded_file(attach_files,file_name)
-        
-        try:
-            with open(fullfile_path, 'rb') as csvfile:
-                spamreader = csv.reader(csvfile, delimiter=',', quotechar='"')
-                response = self.handle_post(request, spamreader)
-                
-        except Exception,exc:
-            if settings.DEBUG:
-                raise exc
-            return {'success':False,'errorMsg':exc.message}
-        
-        return response
-    
-    def handle_post(self,request,csv_iter):
-        
-        raise Exception(u'请实现该方法')
-    
-        
-
-class PackageByCsvFileView(YundaFileUploadView):
-    
+class PackageByCsvFileView(FileUploadView):
     
     file_path     = 'yunda'
     filename_save = 'package_%s.csv'
@@ -149,7 +98,7 @@ class PackageByCsvFileView(YundaFileUploadView):
                 'redirect_url':reverse('admin:yunda_todaysmallpackageweight_changelist')}
     
 
-class CustomerPackageImportView(YundaFileUploadView):
+class CustomerPackageImportView(FileUploadView):
     
     
     file_path     = 'yunda'
