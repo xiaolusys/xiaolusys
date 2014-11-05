@@ -14,6 +14,7 @@ urlpatterns = patterns('',
     (r'^comment/',include('shopapp.comments.urls')),
     (r'^yunda/',include('shopapp.yunda.urls')),
     (r'^examination/',include('shopapp.examination.urls')),
+    (r'^intercept/',include('shopapp.intercept.urls')),
     (r'^second_time_sort/',include('shopapp.second_time_sort.urls')),
 )
 
