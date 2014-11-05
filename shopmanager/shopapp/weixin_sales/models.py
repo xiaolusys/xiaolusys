@@ -52,7 +52,6 @@ class WeixinUserPicture(models.Model):
 class WeixinUserAward(models.Model): 
     
     user_openid = models.CharField(max_length=64,unique=True,verbose_name=u"申请人ID")
-    
     referal_from_openid = models.CharField(max_length=64,db_index=True,verbose_name=u"邀请人ID")
     
     is_receive = models.BooleanField(default=False,verbose_name=u"领取")
@@ -71,7 +70,7 @@ class WeixinUserAward(models.Model):
     class Meta:
         db_table = 'shop_weixin_user_award'
         verbose_name = u'微信邀请奖励'
-        verbose_name_plural = u'微信邀请奖励'
+        verbose_name_plural = u'微信邀请奖励列表'
     
     def __unicode__(self):
         return self.user_openid
@@ -93,7 +92,7 @@ def convert_awardreferal2score(sender,user_openid,referal_from_openid,*args,**kw
         if not wx_user.referal_from_openid:
             wx_user.referal_from_openid = referal_from_openid
             wx_user.save()
-            
+        
         WeixinScoreItem.objects.create(user_openid=referal_from_openid,
                                        score=invite_score,
                                        score_type=WeixinScoreItem.INVITE,

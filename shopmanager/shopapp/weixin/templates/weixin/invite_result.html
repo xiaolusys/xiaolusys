@@ -31,15 +31,17 @@
   <div class="panel panel-default" style="margin-top:5px">
     <div class="panel-heading" style="color:orange">我收到的礼包</div>
     <div class="panel-body">
-      <div style="height:166px;padding-top:20px;text-align:center;background-image:url(https://mmbiz.qlogo.cn/mmbiz/yMhOQPTKhLvXic8acrqDl4mC6c1wQH5GuaOn4yVkHfHHicFTe8ib5BaSuiawRibdN9Fia\
-LuNJteKWgCoO5MdAicmCqFRg/0)">
-        <!--                                                                                                                                                                              
+    {% csrf_token %}
+      <div style="height:166px;padding-top:20px;text-align:center;">
+        {% if parent_award and parent_award.remind_time > wx_user.created %}                                                                                                                                                                            
         <p>您的好友 xx 给您发了一个感恩礼包，快打开看看吧！</p>                                                                                                                           
-        <a href="" class="btn btn-danger">打开礼包 >></a>                                                                                                                                 
-        -->
-        <p>亲，好友还未给您发送感恩礼包哦，快提醒下她吧！</p>
-        <button id="id-remind" type="button" class="btn btn-danger" onclick="remind()">点击发送提醒 >></button>
-	<p id="id-remind-msg" style="color:red"></p>
+        <a type="button" class="btn btn-danger" href="">打开礼包 &gt;&gt;</a>                                                                                                                               
+        {% elif parent_award %}
+        <p>亲，好友已经被提醒了，礼包马上就会收到了！</p>
+        {% else %}
+        <p id="id-remind-msg" style="color:red">亲，好友还未给您发送感恩礼包哦，快提醒下她吧！</p>
+        <button id="id-remind" type="button" class="btn btn-danger" onclick="remind()">点击发送提醒 &gt;&gt;</button>
+        {% endif %}
       </div>
     </div>
   </div>
@@ -66,11 +68,30 @@ LuNJteKWgCoO5MdAicmCqFRg/0)">
 {% block tail_script %}
 
 <script type="text/javascript">
-
+	
+  function unpack(){
+  
+  	var callback = function(res){
+  		console.log("award:",res);
+  	};
+  	
+  	var csrf_token = document.getElementsByName("csrfmiddlewaretoken")[0].value;
+  	$.post("/weixin/sales/award/",{},callback,"json");
+  	
+  };
+  
   function remind() {
-    $("#id-remind").css("display","none");
-    $("#id-remind-msg")[0].innerHTML = "我们将尽快用短信通知您的好友，告诉她您在等待。感谢您的耐心！";
-  }
+  	var callback = function(res){
+  		if (res.success){
+  			$("#id-remind").css("display","none");
+    		$("#id-remind-msg")[0].innerHTML = "我们将尽快用短信通知您的好友，告诉她您在等待。感谢您的耐心！";
+  		}else{
+  			$("#id-remind-msg")[0].innerHTML = res.err_msg;
+  		}
+  	};
+  	
+  	$.post("/weixin/sales/award/notify/",{"csrfmiddlewaretoken":csrf_token},callback,"json");
+  };
 </script>
 
 {% endblock %}
