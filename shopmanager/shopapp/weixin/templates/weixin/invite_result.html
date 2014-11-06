@@ -44,15 +44,17 @@
     <div class="panel-body">
       {% csrf_token %}
       <div class="row" id="id_award_remind" {% if my_award and my_award.is_receive %} style="display:none" {% else %} style="display:block" {% endif %}>
-      <div class="col-xs-12" style="height:166px;padding-top:20px;text-align:center;">
+      <div class="col-xs-12" style="height:166px;padding-top:20px;text-align:center;background-image:url(https://mmbiz.qlogo.cn/mmbiz/yMhOQPTKhLvXic8acrqDl4mC6c1wQH5GuaOn4yVkHfHHicFTe8ib5BaSuiawRibdN9FiaLuNJteKWgCoO5MdAicmCqFRg/0)">
 	{% if parent_award and parent_award.is_share %} 
         <p>您的好友 [{{ parent_nickname }}] 给您发了一个感恩礼包，快打开看看吧！</p>
         <button class="btn btn-danger" onclick="unpack()">打开礼包 &gt;&gt;</button>
         {% elif parent_award and parent_award.remind_count > 0 %}
         <p>亲，我们已经用短信提醒您的好友，感谢您耐心等待！</p>
-        {% else %}
+        {% elif parent_award %}
         <p id="id-remind-msg" style="color:red">亲，好友 {{ parent_nickname }} 还未给您发送感恩礼包哦，快提醒下她吧！</p>
         <button id="id-remind" type="button" class="btn btn-danger" onclick="remind()">点击发送提醒 &gt;&gt;</button>
+	{% else %}
+	<p id="id-remind-msg" style="color:red">亲，您还未使用过任何人的F码。用好友F码立即申请，即可得到感恩礼包！</p>
         {% endif %}
       </div>
       </div>
