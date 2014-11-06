@@ -100,7 +100,7 @@ class WeixinSaleService():
         if not user_mobile:
             return
         
-        sendMessage(user_mobile,title,msgTemplate%(user_nick,friend_nicks),SMS_PLATFORM_CODE='cshx')
+        sendMessage(user_mobile,title,msgTemplate%("%s.."%user_nick[0:3],friend_nicks),SMS_PLATFORM_CODE='cshx')
         
         
         
