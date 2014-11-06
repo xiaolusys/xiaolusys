@@ -63,6 +63,7 @@ class WeixinUserAward(models.Model):
     remind_count = models.IntegerField(default=0,verbose_name=u"提醒次数")
     remind_time  = models.DateTimeField(blank=True,null=True,verbose_name=u'提醒时间')
     
+    select_val = models.IntegerField(default=0,verbose_name=u"选择值")
     award_val  = models.IntegerField(default=0,verbose_name=u"奖励值")
     
     modified = models.DateTimeField(auto_now=True,blank=True,null=True,verbose_name=u'修改时间')

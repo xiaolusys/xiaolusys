@@ -1,4 +1,5 @@
- alter  table supplychain_pick_item add identity  int(11) NOT NULL;
+alter table shop_weixin_user_award add select_val int(11) NOT NULL;
+alter table supplychain_pick_item add identity  int(11) NOT NULL;
 ######## 2014-10-22 ##########
 alter table shop_weixin_user add column created datetime NOT NULL;
 alter table shop_weixin_user add column modified datetime NOT NULL;
@@ -76,8 +77,8 @@ alter table shop_weixin_user add column vmobile varchar(24) NOT NULL;
 alter table shop_weixin_product add sync_stock tinyint(1) NOT NULL;
 update shop_weixin_product set sync_stock=1 ;
 ######### 2014-7-28 ##########
-alter table shop_trades_mergetrade add column scanner varchar(64) NOT NULL;
-alter table shop_trades_mergetrade add column weighter varchar(64) NOT NULL;
+alter table shop_trades_mergetrade add column scanner varchar(16) NOT NULL;
+alter table shop_trades_mergetrade add column weighter varchar(16) NOT NULL;
 ######### 2014-7-28 ##########
 alter table shop_refunds_refund drop index refund_id;
 alter table shop_refunds_refund change refund_id refund_id varchar(32) NOT NULL;
