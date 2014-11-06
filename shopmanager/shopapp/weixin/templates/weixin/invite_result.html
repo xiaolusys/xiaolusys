@@ -29,7 +29,7 @@
       <div class="row">
 	<div class="col-xs-12" style="text-align:center">
 	  {% if my_award and my_award.is_share %}
-	  <p style="color:#d9534f">您已完成感恩礼包发送。记得让好友来领！</p>
+	  <p style="color:#d9534f">您已完成感恩礼包发送。记得让好友来领！ <a href="/weixin/sampleads/{{ wx_user.pk }}/">分享朋友圈>></a></p>
 	  {% else %}
           <p><a href="/weixin/sales/award/notify/" class="btn btn-warning">立即发礼包 >></a></p>
 	  {% endif %}
