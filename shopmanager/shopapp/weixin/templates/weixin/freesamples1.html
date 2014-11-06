@@ -23,10 +23,10 @@
   <div class="panel-body">
     <p>如果您从未用过他人F码，现在也不晚。(马上开放。。。)</p>
     <p style="color:#d9534f">请选择您中意的礼品：</p>
+    <form action="/weixin/sales/award/apply/" method="post" onsubmit="return check()">{% csrf_token %}
     <div class="row">
       <div class="col-xs-12" style="text-align:center">
-	<select class="form-control input-sm" name="selection" id="id_selection" style="width:80%;">
-	  <option value="0">选择</option>
+	<select class="form-control input-sm" name="selection" id="id_selection" v="1">
 	  <option value="1">天猫No.1 卡通吸汗巾</option>
 	  <option value="2">天鹅绒 时尚造型三角巾</option>
 	  <option value="3">纯棉不勒脚 毛巾袜（2双装）</option>
@@ -37,96 +37,45 @@
       </div>
     </div>
 
-    <div class="row">
+    <div class="row" style="margin-top:10px">
       <div class="col-xs-12">
-	<div class="thumbnail" id="id_i1" {% if parent_award.award_val == 1 %} style="display:block" {% else %} style="display:none" {% endif %}>
+	<div class="thumbnail" id="id_i1">
 	  <img src="https://mmbiz.qlogo.cn/mmbiz/yMhOQPTKhLticIHepSybaDQKTV5LXs8iaL2PT8NunDm0QuwY0f3jZdzL4W2MXbOWodNrvDLqtSytTuxQ7mjkHiaGA/0">
 	</div>
-	<div class="thumbnail" id="id_i2" {% if parent_award.award_val == 2 %} style="display:block" {% else %} style="display:none" {% endif %}>
+	<div class="thumbnail" id="id_i2" style="display:none">
 	  <img src="https://mmbiz.qlogo.cn/mmbiz/yMhOQPTKhLticIHepSybaDQKTV5LXs8iaLN160Swld40Se6S4M1B2Eu4Ge1lFkBLNhblicfM0z63oceSYhmghSvHA/0">
 	</div>
-	<div class="thumbnail" id="id_i3" {% if parent_award.award_val == 3 %} style="display:block" {% else %} style="display:none" {% endif %}>
+	<div class="thumbnail" id="id_i3" style="display:none">
 	  <img src="https://mmbiz.qlogo.cn/mmbiz/yMhOQPTKhLticIHepSybaDQKTV5LXs8iaLiaIehcUeMgaSicJzjr1E7vNkkkIRV7oBOaa8QtvAVfl4pbJ3fribtia2Vg/0">
 	</div>
-	<div class="thumbnail" id="id_i4" {% if parent_award.award_val == 4 %} style="display:block" {% else %} style="display:none" {% endif %}>
+	<div class="thumbnail" id="id_i4" style="display:none">
 	  <img src="https://mmbiz.qlogo.cn/mmbiz/yMhOQPTKhLticIHepSybaDQKTV5LXs8iaLINLbNAiaqzCvXy0lb5mxpExonL6rdteicx7bazWdzViaJPia69E35l2raw/0">
 	</div>
-	<div class="thumbnail" id="id_i5" {% if parent_award.award_val == 5 %} style="display:block" {% else %} style="display:none" {% endif %}>
+	<div class="thumbnail" id="id_i5" style="display:none">
 	  <img src="https://mmbiz.qlogo.cn/mmbiz/yMhOQPTKhLticIHepSybaDQKTV5LXs8iaLQk8ZCJQciaD7hNMR4zQRWDhtUP2RRmVfAJiaypTianqTnGh1LznclxoVw/0">
 	</div>
-	<div class="thumbnail" id="id_i6" {% if parent_award.award_val == 6 %} style="display:block" {% else %} style="display:none" {% endif %}>
+	<div class="thumbnail" id="id_i6" style="display:none">
 	  <img src="https://mmbiz.qlogo.cn/mmbiz/yMhOQPTKhLticIHepSybaDQKTV5LXs8iaLdVg66clrLXM6rO34qYPpcBI0sKicjYwgrMjTPpgaxqrh89oEmz4D0yA/0">
 	</div>
       </div>
     </div>
     
-  </div>
-</div>
-
-
-{% for sample in samples %}
-<div class="panel panel-default" style="margin-top:5px"> 
-  <div class="panel-heading" style="color:red">双十一来啦，欢迎围观！</div>
-  <div class="panel-body">
     <div class="row">
       <div class="col-xs-12" style="text-align:center">
-	<a href="" class="thumbnail">
-	  <img src="https://mmbiz.qlogo.cn/mmbiz/yMhOQPTKhLsicb7mTwLoVKwGGhULrMQQvibpeWOIEmD3fLEAiarwiaqAHaibCBS0jlLwMa7Ytw6whcxtXwFPbJH3T4Q/0" alt="...">
-	</a>
-	</div>
+        {% if wx_user.referal_from_openid %}
+	<p>亲，您只需提醒您的好友发送礼包即可，无需申请。<a href="/weixin/inviteresult/">提醒 >></a></p>
+	{% else %}
+	<p>请输入好友F码：</p>
+	<input class="form-control" type="text" id="id_fcode" name="fcode"/>
+	<p id="id_msg"></p>
+	<button type="submit" class="btn btn-danger" style="margin-top:15px">提交申请</button>
+	{% endif %}
+      </div>
     </div>
-    <!--<form action="/weixin/sampleapply/" method="post" onsubmit="return check()" class="form-group">{% csrf_token %}
-      <input type="hidden" value="{{ sample.pk }}" name="sample_pk"/>
-      <input type="hidden" value="{{ subscribe }}" name="subscribe" id="id_subscribe"/>
-      <div class="row">
-	<div class="col-xs-12" style="text-align:center">
-	  <a href="{{ sample.sale_url }}" class="thumbnail">
-	    <img src="{{ sample.pic_url }}" alt="...">
-	  </a>
-
-	  {% if today_orders > 1000 %}
-	  <p style="color:#029fd6">超过<font style="color:red; font-size:20px">1000</font>人已申请</p>
-	  {% else %}
-	  <p style="color:#029fd6">今日<font style="color:red; font-size:20px">{{ today_orders }}</font>人已申请</p>
-	  {% endif %}
-	</div>
-      </div>
-      {% if not order_exists %}
-      <div class="row">
-	<div class="col-xs-12" style="text-align:center">
-      {% if fcode_pass %}
-          <p style="color:red">优尼美妈忠粉，无需F码！</p>
-	  <input type="hidden" {% if vipcode %} value="{{ vipcode }}" {% endif %} id="id_vipcode" status="1" name="vipcode"/>
-	  <input type="hidden" name="fcode_pass" value="1">
-	  {% else %}
-          <p style="color:orange">请输入F码 (原VIP邀请码):</p>
-	  <div style="width:130px;margin:auto">
-	    <input class="form-control" type="text" placeholder="请输入F码" id="id_vipcode" status="0" name="vipcode"/>
-	    <input type="hidden" name="fcode_pass" value="0">
-	  </div>
-	  {% endif %}
-	</div>
-      </div>
-      {% endif %}
-      <div class="row" style="text-align:center">
-	<div class="col-xs-12" style="text-align:center; margin-top:10px">
-	  <p id="id_msg" style="color:red"></p>
-	  {% if order_exists %}
-	  <a href="/weixin/sampleads/{{ pk }}/">您的试用申请已经提交！查看 >></a>
-	  {% else %}
-	  {% if openid %}
-	  <input type="submit" class="btn btn-warning" value="提交试用申请"/>
-	  {% else %}
-	  <a href="https://open.weixin.qq.com/connect/oauth2/authorize?appid=wxc2848fa1e1aa94b5&redirect_uri=http://weixin.huyi.so/weixin/freesamples/&response_type=code&scope=snsapi_base&state=135#wechat_redirect" class="btn btn-warning">提交试用申请</a>
-	  {% endif %}
-	  {% endif %}
-	</div>
-      </div>
-    </form>-->      
+    </form>
   </div>
+  
 </div>
-{% endfor %}
-
 
 <div class="row">
   <div class="col-xs-12">
@@ -158,24 +107,20 @@
 
 {% block tail_script %}
 <script type="text/javascript">
-  var fields = ["#id_vipcode"];
-  
-  function save2cookie(key) {
-    var val = $(key).val();
-    $.cookie(key, val);
-  }
-  function getfromcookie(key) {
-    return $.cookie(key);
-  }
 
-  $(function () {
-    fields.forEach(function(field) {
-      var val = getfromcookie(field);
-      if (val) {
-        $(field).val(val);
+  $("#id_selection").change(
+    function () {
+      var val = $("#id_selection").val();
+      if (val > 0 && val < 7) {
+        var selection = $("#id_selection").attr("v");
+        if (selection != val) {
+          $("#id_i"+selection).css("display","none");
+          $("#id_i"+val).css("display","block");
+          $("#id_selection").attr("v",val);
+        }
       }
-    });
-  });
+    }
+  );
 
   function validateVipCode(s) {
   var validateReg = /^\d{6,7}$/;
@@ -183,25 +128,19 @@
   };
 
   function check() {
-    var vipcode = $("#id_vipcode").val();  
-    var vip_status = $("#id_vipcode").attr("status");
-
+    {% if wx_user.referal_form_openid %}
+    var fcode = $("#id_fcode").val();  
     var msg = $("#id_msg");
-
-    //var d = new Date();
-    //if (d.getHours() < 18) {
-    //  msg[0].innerHTML = "亲，活动将于18：00开始哦！";
-    //  return false;
-    //}
-    var subscribe = $("#id_subscribe").val();
-    if (subscribe != "1") {
-      msg[0].innerHTML = "亲，您还没关注咱呢！请点击右上角[...]，选择[查看公众号]，点击[关注]。";
-      return false;
-    }
-    if (vip_status == "0" && validateVipCode(vipcode) == false) {
+    
+    if (validateVipCode(vipcode) == false) {
       msg[0].innerHTML = "请检查您的VIP邀请码(6-7位数字)!";
       return false;
     }
+    
+    return true;
+    {% else %}
+    return false;
+    {% endif %}
   };
 </script>
 {% endblock %}
