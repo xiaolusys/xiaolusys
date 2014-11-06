@@ -933,30 +933,37 @@ class ResultView(View):
             vipcode = code_obj.code
             isvalid = wx_user.isvalid
 
-        score = 0
-        user_scores = WeixinUserScore.objects.filter(user_openid=user_openid)
-        if user_scores.count() > 0:
-            score = user_scores[0].user_score
-
         referal_images = []
         referal_users = WeiXinUser.objects.filter(referal_from_openid=user_openid)
         for user in referal_users:
             referal_images.append(user.headimgurl)
-            
+
+        gift_selection = 0            
+        parent_nickname = ''
+        parent_award = None
         parent_awards = WeixinUserAward.objects.filter(user_openid=wx_user.referal_from_openid)
-        parent_award  = None
         if parent_awards.count() > 0:
             parent_award = parent_awards[0]
+            parent_user = WeiXinUser.objects.get(openid=wx_user.referal_from_openid)
+            parent_nickname = parent_user.nickname
+            gift_selection = parent_award.award_val
+
+        my_award = None
+        my_awards = WeixinUserAward.objects.filter(user_openid=user_openid)
+        if my_awards.count() > 0:
+            my_award = my_awards[0]
+            if my_award.select_val > 0:
+                gift_selection = my_award.select_val
         
         response = render_to_response('weixin/invite_result.html',
-                                      {'wx_user':wx_user,'parent_award':parent_award,
-                                       'has_order':has_order,'order_status':order_status, 
+                                      {'wx_user':wx_user,'has_order':has_order,'order_status':order_status,
                                        'vipcode':vipcode, 'usage_count':usage_count,
                                        'batch_number':batch_number,'referal_images':referal_images,
-                                       'isvalid':isvalid, 'score':score},
+                                       'isvalid':isvalid, 'my_award':my_award,'parent_award':parent_award,
+                                       'parent_nickname':parent_nickname, 'gift_selection':gift_selection},
                                       context_instance=RequestContext(request))
         response.set_cookie("openid",user_openid)  
-              
+        
         return response
 
 

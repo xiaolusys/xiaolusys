@@ -12,40 +12,142 @@
       <div class="row">
 	<div class="col-xs-12">
           <p style="color:red">感恩他人，就是善待自己。</p>
+	  {% if referal_images|length > 0 %}
           <p>亲，有<font style="color:orange;font-size:20px">{{ referal_images|length }}</font>位好友在期盼您的感恩礼包！</p>
           <p>
             {% for images in referal_images %}
             <img src="{{ images }}" width="20px" height="20px"/>
             {% endfor %}
           </p>
+	  {% else %}
+	  <p style="color:orange">亲，还没有人使用您的F吗哦。</p>
+	  <p style="color:red">把F码分享给好友，您就可以给她发感恩礼包啦！</p>
+	  {% endif %}
         </div>
       </div>
+      {% if referal_images|length > 0 %}
       <div class="row">
 	<div class="col-xs-12" style="text-align:center">
+	  {% if my_award and my_award.is_share %}
+	  <p style="color:#d9534f">您已完成感恩礼包发送。记得让好友来领！</p>
+	  {% else %}
           <p><a href="/weixin/sales/award/notify/" class="btn btn-warning">立即发礼包 >></a></p>
+	  {% endif %}
         </div>
       </div>
+      {% endif %}
     </div>
   </div>
 
   <div class="panel panel-default" style="margin-top:5px">
     <div class="panel-heading" style="color:orange">我收到的礼包</div>
     <div class="panel-body">
-    {% csrf_token %}
-      <div style="height:166px;padding-top:20px;text-align:center;">
-        {% if parent_award and parent_award.remind_time > wx_user.created %}                                                                                                                                                                            
-        <p>您的好友 xx 给您发了一个感恩礼包，快打开看看吧！</p>                                                                                                                           
-        <a type="button" class="btn btn-danger" href="">打开礼包 &gt;&gt;</a>                                                                                                                               
-        {% elif parent_award %}
-        <p>亲，好友已经被提醒了，礼包马上就会收到了！</p>
+      {% csrf_token %}
+      <div class="row" id="id_award_remind" {% if my_award and my_award.is_receive %} style="display:none" {% else %} style="display:block" {% endif %}>
+      <div class="col-xs-12" style="height:166px;padding-top:20px;text-align:center;">
+	{% if parent_award and parent_award.is_share %} 
+        <p>您的好友 [{{ parent_nickname }}] 给您发了一个感恩礼包，快打开看看吧！</p>
+        <button class="btn btn-danger" onclick="unpack()">打开礼包 &gt;&gt;</button>
+        {% elif parent_award and parent_award.remind_count > 0 %}
+        <p>亲，我们已经用短信提醒您的好友，感谢您耐心等待！</p>
         {% else %}
-        <p id="id-remind-msg" style="color:red">亲，好友还未给您发送感恩礼包哦，快提醒下她吧！</p>
+        <p id="id-remind-msg" style="color:red">亲，好友 {{ parent_nickname }} 还未给您发送感恩礼包哦，快提醒下她吧！</p>
         <button id="id-remind" type="button" class="btn btn-danger" onclick="remind()">点击发送提醒 &gt;&gt;</button>
         {% endif %}
       </div>
+      </div>
+      {% if parent_award and parent_award.is_share %}
+      <div id="id_award" {% if my_award and my_award.is_receive %} style="display:block" {% else %} style="display:none" {% endif %}>
+	<p style="color:#d9534f">您的礼包含有：</p>
+	<p style="color:#d9534f">1. 优尼世界 双十一满199减50优惠券</p>
+	<div class="row">
+	  <div class="col-xs-6">
+	    <div class="thumbnail">
+	      <img style="width:100%" src="https://mmbiz.qlogo.cn/mmbiz/yMhOQPTKhLticIHepSybaDQKTV5LXs8iaLKgbibibRvEcbiax61bchOUpyTFzP8qNGPUF6JSHQ3YOysrtfFOLj8tCqg/0"> 
+	      <span style="font-size:10px">请复制右边链接到电脑或手机浏览器领取。</span>
+	    </div>
+	    
+	  </div>
+	  <div class="col-xs-6">
+	    <p><font style="font-size:10px">电脑领取链接:</font><br><font style="font-size:11px">http://t.cn/R78HobI</font></p>
+	    <p><font style="font-size:10px">手机领取链接:</font><br><font style="font-size:11px">http://t.cn/R78Hku7</font></p>
+	    <p><a style="font-size:10px">其他领取方式 >></a></p>
+	  </div>
+	</div>
+	{% if gift_selection == 1 %}
+	<p id="id_parent_award" selection="1" style="color:#d9534f">2. 天猫No.1 卡通吸汗巾</p>
+	{% endif %}
+	{% if gift_selection == 2 %}
+	<p id="id_parent_award" selection="2" style="color:#d9534f">2. 天鹅绒 时尚造型三角巾</p>
+	{% endif %}
+	{% if gift_selection == 3 %}
+	<p id="id_parent_award" selection="3" style="color:#d9534f">2. 纯棉不勒脚 毛巾袜（2双装）</p>
+	{% endif %}
+	{% if gift_selection == 4 %}
+	<p id="id_parent_award" selection="4" style="color:#d9534f">2. 防雾霾PM2.5卡通口罩</p>
+	{% endif %}
+	{% if gift_selection == 5 %}
+	<p id="id_parent_award" selection="5" style="color:#d9534f">2. 时尚针织三角巾</p>
+	{% endif %}
+	{% if gift_selection == 6 %}
+	<p id="id_parent_award" selection="6" style="color:#d9534f">2. 纯棉卡通三角裤</p>
+	{% endif %}
+	<div class="row">
+	  <div class="col-xs-12">
+	    <div class="thumbnail" id="id_i1" {% if parent_award.award_val == 1 %} style="display:block" {% else %} style="display:none" {% endif %}>
+	      <img src="https://mmbiz.qlogo.cn/mmbiz/yMhOQPTKhLticIHepSybaDQKTV5LXs8iaL2PT8NunDm0QuwY0f3jZdzL4W2MXbOWodNrvDLqtSytTuxQ7mjkHiaGA/0">
+	    </div>
+	    <div class="thumbnail" id="id_i2" {% if parent_award.award_val == 2 %} style="display:block" {% else %} style="display:none" {% endif %}>
+	      <img src="https://mmbiz.qlogo.cn/mmbiz/yMhOQPTKhLticIHepSybaDQKTV5LXs8iaLN160Swld40Se6S4M1B2Eu4Ge1lFkBLNhblicfM0z63oceSYhmghSvHA/0">
+	    </div>
+	    <div class="thumbnail" id="id_i3" {% if parent_award.award_val == 3 %} style="display:block" {% else %} style="display:none" {% endif %}>
+	      <img src="https://mmbiz.qlogo.cn/mmbiz/yMhOQPTKhLticIHepSybaDQKTV5LXs8iaLiaIehcUeMgaSicJzjr1E7vNkkkIRV7oBOaa8QtvAVfl4pbJ3fribtia2Vg/0">
+	    </div>
+	    <div class="thumbnail" id="id_i4" {% if parent_award.award_val == 4 %} style="display:block" {% else %} style="display:none" {% endif %}>
+	      <img src="https://mmbiz.qlogo.cn/mmbiz/yMhOQPTKhLticIHepSybaDQKTV5LXs8iaLINLbNAiaqzCvXy0lb5mxpExonL6rdteicx7bazWdzViaJPia69E35l2raw/0">
+	    </div>
+	    <div class="thumbnail" id="id_i5" {% if parent_award.award_val == 5 %} style="display:block" {% else %} style="display:none" {% endif %}>
+	      <img src="https://mmbiz.qlogo.cn/mmbiz/yMhOQPTKhLticIHepSybaDQKTV5LXs8iaLQk8ZCJQciaD7hNMR4zQRWDhtUP2RRmVfAJiaypTianqTnGh1LznclxoVw/0">
+	    </div>
+	    <div class="thumbnail" id="id_i6" {% if parent_award.award_val == 6 %} style="display:block" {% else %} style="display:none" {% endif %}>
+	      <img src="https://mmbiz.qlogo.cn/mmbiz/yMhOQPTKhLticIHepSybaDQKTV5LXs8iaLdVg66clrLXM6rO34qYPpcBI0sKicjYwgrMjTPpgaxqrh89oEmz4D0yA/0">
+	    </div>
+	  </div>
+	</div>
+	<p style="color:#d9534f">您也可选择不同的礼品：</p>
+	<div class="row">
+	  <div class="col-xs-12" style="text-align:center">
+	    <select class="form-control input-sm" name="selection" id="id_selection" style="width:80%;">
+	      <option value="0">选择</option>
+	      <option value="1">天猫No.1 卡通吸汗巾</option>
+	      <option value="2">天鹅绒 时尚造型三角巾</option>
+	      <option value="3">纯棉不勒脚 毛巾袜（2双装）</option>
+	      <option value="4">防雾霾PM2.5卡通口罩</option>
+	      <option value="5">时尚针织三角巾</option>
+	      <option value="6">纯棉卡通三角裤</option>
+	    </select>
+	  </div>
+	</div>
+	<p style="margin-top:15px;color:red">为了实现自由选择，请用下面优惠券拍下您的礼物产品，免费包邮寄到家哦！</p>
+	<div class="row">
+	  <div class="col-xs-6">
+	    <div class="thumbnail">
+	      <img width="100%" src="https://mmbiz.qlogo.cn/mmbiz/yMhOQPTKhLticIHepSybaDQKTV5LXs8iaLqTM5mriaRVLuLR5LotjM9ks6OL1icCoED9qHibN7XGOzdLemSFqIfWwYw/0">
+	      <span style="font-size:10px">请复制右边链接到电脑或手机浏览器领取。</span>
+	    </div>
+	  </div>
+	  <div class="col-xs-6">
+	    <p><font style="font-size:10px">电脑领取链接:</font><br><font style="font-size:11px">http://t.cn/R78QNv4</font></p>
+	    <p><font style="font-size:10px">手机领取链接:</font><br><font style="font-size:11px">http://t.cn/R78Qi3f</font></p>
+	    <p><a style="font-size:10px">其他领取方式 >></a></p>
+	  </div>
+	</div>
+	<p style="font-size:10px"><font style="color:#d9534f">温馨提示</font>：您也可联系微信客服索要优惠券链接，及咨询其他问题。</p>
+      </div>
+      {% endif %}
     </div>
   </div>
-
+  
 
   <div class="panel panel-default" style="margin-top:5px">
     <div class="panel-heading" style="color:orange">历史中奖名单公示</div>
@@ -68,29 +170,47 @@
 {% block tail_script %}
 
 <script type="text/javascript">
-	
-  function unpack(){
-  
-  	var callback = function(res){
-  		console.log("award:",res);
-  	};
-  	
-  	var csrf_token = document.getElementsByName("csrfmiddlewaretoken")[0].value;
-  	$.post("/weixin/sales/award/",{},callback,"json");
-  	
-  };
-  
+  $("#id_selection").change(
+    function () {
+      var val = $("#id_selection").val();
+      if (val > 0 && val < 7) {
+        var selection = $("#id_parent_award").attr("selection");
+        if (selection != val) {
+          $("#id_i"+selection).css("display","none");
+          $("#id_i"+val).css("display","block");
+          $("#id_parent_award").attr("selection",val);
+          $("#id_parent_award")[0].innerHTML = "2. " + $("#id_selection option:selected").text();
+        }
+      }
+    }
+  );
+
+  function unpack() {
+    var select_val = $("#id_parent_award").attr("selection");
+    var url = "/weixin/sales/award/";
+    var csrf_token = document.getElementsByName("csrfmiddlewaretoken")[0].value;
+    var data = {"select_val":select_val, "csrfmiddlewaretoken":csrf_token};
+
+    var callback = function (res) {
+      if (res["success"] == true) {
+        $("#id_award").css("display","block");		
+        $("#id_award_remind").css("display","none");	   
+      }
+    };
+    $.ajax({url:url, data:data, method:"post", success:callback});
+  }
+
   function remind() {
-  	var callback = function(res){
-  		if (res.success){
-  			$("#id-remind").css("display","none");
-    		$("#id-remind-msg")[0].innerHTML = "我们将尽快用短信通知您的好友，告诉她您在等待。感谢您的耐心！";
-  		}else{
-  			$("#id-remind-msg")[0].innerHTML = res.err_msg;
-  		}
-  	};
-  	
-  	$.post("/weixin/sales/award/notify/",{"csrfmiddlewaretoken":csrf_token},callback,"json");
+    var callback = function(res){
+      if (res.success){
+        $("#id-remind").css("display","none");
+        $("#id-remind-msg")[0].innerHTML = "我们将尽快用短信通知您的好友，告诉她您在等待。感谢您的耐心！";
+      }else{
+        $("#id-remind-msg")[0].innerHTML = res.err_msg;
+      }
+    };
+    var csrf_token = document.getElementsByName("csrfmiddlewaretoken")[0].value;
+    $.post("/weixin/sales/award/remind/",{"csrfmiddlewaretoken":csrf_token},callback,"json");
   };
 </script>
 
