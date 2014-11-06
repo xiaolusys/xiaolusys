@@ -36,7 +36,9 @@ class NotifyParentAwardTask(Task):
         end_remind_time = datetime.datetime.now() - datetime.timedelta(seconds=10*60)
         
         remind_filter = Q(remind_count__gte=3)|Q(remind_time__lte=end_remind_time)
-        wx_awards     = WeixinUserAward.objects.filter(remind_filter,is_notify=False)
+        wx_awards     = WeixinUserAward.objects.filter(remind_filter,
+                                                       is_notify=False,
+                                                       is_share=False)
         
         for award in wx_awards:
             try:
