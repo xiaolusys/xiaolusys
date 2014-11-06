@@ -18,7 +18,7 @@ class BaseHandler(object):
         
     def process(self,*args,**kwargs):
         raise Exception('Not Implement.')
-
+    
 class ConfirmHandler(BaseHandler):
     
     def handleable(self,merge_trade,*args,**kwargs):
