@@ -1,5 +1,6 @@
 #-*- coding:utf8 -*-
 from django.conf import settings
+from django.core import exceptions
 from shopback import paramconfig as pcfg
 from .handler import (BaseHandler,
                       InitHandler,
@@ -12,8 +13,8 @@ from .split    import SplitHandler
 from .memo     import MemoHandler
 from .merge    import MergeHandler
 from .refund   import RefundHandler
-from .options  import RushHandler
 from .logistic import LogisticsHandler
+from .intercept import InterceptHandler
 
 import logging
 logger = logging.getLogger('celery.handler')
@@ -78,7 +79,7 @@ def getTradeHandler(config_handlers_path=[]):
             hl_class = getattr(mod, hl_classname)
         except AttributeError:
             raise exceptions.ImproperlyConfigured('Middleware module "%s" does not define a "%s" class' 
-                                                  % (mw_module, mw_classname))
+                                                  % (hl_module, hl_classname))
         
         trade_handler.register(hl_class)
         
