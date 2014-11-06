@@ -941,12 +941,13 @@ class ResultView(View):
         gift_selection = 0            
         parent_nickname = ''
         parent_award = None
-        parent_awards = WeixinUserAward.objects.filter(user_openid=wx_user.referal_from_openid)
-        if parent_awards.count() > 0:
-            parent_award = parent_awards[0]
-            parent_user = WeiXinUser.objects.get(openid=wx_user.referal_from_openid)
-            parent_nickname = parent_user.nickname
-            gift_selection = parent_award.award_val
+        if wx_user.referal_from_openid:
+            parent_awards = WeixinUserAward.objects.filter(user_openid=wx_user.referal_from_openid)
+            if parent_awards.count() > 0:
+                parent_award = parent_awards[0]
+                parent_user = WeiXinUser.objects.get(openid=wx_user.referal_from_openid)
+                parent_nickname = parent_user.nickname
+                gift_selection = parent_award.award_val
 
         my_award = None
         my_awards = WeixinUserAward.objects.filter(user_openid=user_openid)
