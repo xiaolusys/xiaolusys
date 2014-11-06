@@ -911,27 +911,14 @@ class ResultView(View):
         content = request.REQUEST
         code = content.get('code')
         user_openid = get_user_openid(request, code)
-
-        orders = SampleOrder.objects.filter(user_openid=user_openid)
-        has_order = False
-        order_status = 0
-        if orders.count() > 0:
-            has_order = True
-            
-        for order in orders:
-            if order.status > order_status:
-                order_status = order.status
-            
-        batch_number = SampleOrder.objects.filter(status__gt=30,status__lt=39).count()
-        usage_count  = 0
-        wx_user = WeiXinUser.objects.get(openid=user_openid)
-        vipcode = 0
-        isvalid = False
-        if wx_user.vipcodes.count() > 0:
-            code_obj = wx_user.vipcodes.all()[0]
-            usage_count = code_obj.usage_count
-            vipcode = code_obj.code
-            isvalid = wx_user.isvalid
+        
+        wx_user = None
+        wx_users = WeiXinUser.objects.filter(openid=user_openid)
+        if wx_users.count() > 0:
+            wx_user = wx_users[0]
+        else:
+            redirect_url = "https://open.weixin.qq.com/connect/oauth2/authorize?appid=wxc2848fa1e1aa94b5&redirect_uri=http://weixin.huyi.so/weixin/inviteresult/&response_type=code&scope=snsapi_base&state=135#wechat_redirect"
+            return redirect(redirect_url)
 
         referal_images = []
         referal_users = WeiXinUser.objects.filter(referal_from_openid=user_openid)
@@ -957,10 +944,8 @@ class ResultView(View):
                 gift_selection = my_award.select_val
         
         response = render_to_response('weixin/invite_result.html',
-                                      {'wx_user':wx_user,'has_order':has_order,'order_status':order_status,
-                                       'vipcode':vipcode, 'usage_count':usage_count,
-                                       'batch_number':batch_number,'referal_images':referal_images,
-                                       'isvalid':isvalid, 'my_award':my_award,'parent_award':parent_award,
+                                      {'wx_user':wx_user,'referal_images':referal_images,
+                                       'my_award':my_award,'parent_award':parent_award,
                                        'parent_nickname':parent_nickname, 'gift_selection':gift_selection},
                                       context_instance=RequestContext(request))
         response.set_cookie("openid",user_openid)  
