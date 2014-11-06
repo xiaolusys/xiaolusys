@@ -3,6 +3,8 @@ import datetime
 from django.db import models
 from shopback.base.fields import BigIntegerAutoField
 
+from .managers import InterceptTradeManager
+
 class InterceptTrade(models.Model): 
     
     COMPLETE   = 1
@@ -26,6 +28,8 @@ class InterceptTrade(models.Model):
     created  = models.DateTimeField(auto_now_add=True,blank=True,null=True,verbose_name=u'创建日期')
     
     status   = models.IntegerField(default=UNCOMPLETE,choices=STATUS_CHOICES,verbose_name=u'状态')
+    
+    objects  = InterceptTradeManager()
     
     class Meta:
         db_table = 'shop_intercept_trade'
