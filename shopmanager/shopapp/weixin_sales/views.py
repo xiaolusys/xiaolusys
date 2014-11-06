@@ -184,7 +184,7 @@ class AwardApplyView(View):
                 wx_user.referal_from_openid = referal_from_openid 
                 wx_user.save()
                 
-                redirect_url = "/weixin/sales/award/share/{{ wx_user.pk }}/"
+                redirect_url = "/weixin/sales/award/share/%s/" % wx_user.pk
                 return redirect(redirect_url)
 
         rep_json = {'code':'error', "try this F code": "866988"}
