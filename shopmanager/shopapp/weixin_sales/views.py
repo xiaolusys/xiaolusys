@@ -175,7 +175,7 @@ class AwardApplyView(View):
             return redirect(redirect_url)
 
         fcode = content.get("fcode")
-        code_objects = Vipcode.objects.filter(code=fcode)
+        code_objects = VipCode.objects.filter(code=fcode)
         if code_objects.count() > 0:
             referal_from_openid = code_objects[0].owner_openid
             
