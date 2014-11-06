@@ -128,7 +128,7 @@ class AwardRemindView(View):
         return  HttpResponse(json.dumps(rep_json),mimetype="application/json")   
 
 
-class AwardShareView(view):
+class AwardShareView(View):
     def get(self, request):
         wx_user_pk = kwargs.get('pk',0)
         users = WeiXinUser.objects.filter(pk=wx_user_pk)
