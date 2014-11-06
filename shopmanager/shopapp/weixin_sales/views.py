@@ -129,7 +129,7 @@ class AwardRemindView(View):
 
 
 class AwardShareView(View):
-    def get(self, request):
+    def get(self, request, *args, **kwargs):
         wx_user_pk = kwargs.get('pk',0)
         users = WeiXinUser.objects.filter(pk=wx_user_pk)
         
@@ -153,7 +153,7 @@ class AwardShareView(View):
             if users[0].openid == openid:
                 identical = True
             
-            response = render_to_response('weixin/share.html', 
+            response = render_to_response('weixin/sales/share.html', 
                                           {"identical":identical,"vipcode":vipcode, "pk":wx_user_pk,
                                            "nickname":nickname, "referal_images":referal_images}, 
                                           context_instance=RequestContext(request))
