@@ -8,10 +8,13 @@ import logging
 logger = logging.getLogger('smsmgr.handler')
 
 
-def sendMessage(mobile,title,content,msgType=SMS_NOTIFY_ACTIVITY):
+def sendMessage(mobile,title,content,msgType=SMS_NOTIFY_ACTIVITY,SMS_PLATFORM_CODE=''):
     
     try:
-        platform = SMSPlatform.objects.get(is_default=True)
+        if SMS_PLATFORM_CODE:
+            platform = SMSPlatform.objects.get(code=SMS_PLATFORM_CODE)
+        else:
+            platform = SMSPlatform.objects.get(is_default=True)
     except:
         return 
     

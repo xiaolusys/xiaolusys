@@ -80,7 +80,7 @@ class WeixinSaleService():
             if not user.mobile:
                 continue
             
-            sendMessage(user.mobile,title,msgTemplate%user_nick)
+            sendMessage(user.mobile,title,msgTemplate%("%s.."%user_nick[0:4]),SMS_PLATFORM_CODE='cshx')
             
             
     def notifyAward(self,title=u"微信邀请奖励"):
@@ -100,7 +100,7 @@ class WeixinSaleService():
         if not user_mobile:
             return
         
-        sendMessage(user_mobile,title,msgTemplate%(user_nick,friend_nicks))
+        sendMessage(user_mobile,title,msgTemplate%(user_nick,friend_nicks),SMS_PLATFORM_CODE='cshx')
         
         
         
