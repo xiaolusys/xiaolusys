@@ -127,5 +127,68 @@ class AwardRemindView(View):
             
         return  HttpResponse(json.dumps(rep_json),mimetype="application/json")   
 
-    
+
+class AwardShareView(view):
+    def get(self, request):
+        wx_user_pk = kwargs.get('pk',0)
+        users = WeiXinUser.objects.filter(pk=wx_user_pk)
+        
+        openid = request.COOKIES.get('openid')
+        
+        identical = False
+        vipcode = 0
+        nickname = ''
+        if users.count() > 0:
+            nickname = users[0].nickname
+            referal_images = []
+            referal_users = WeiXinUser.objects.filter(referal_from_openid=users[0].openid)
+            for user in referal_users:
+                referal_images.append(user.headimgurl)
+            
+            if users[0].vipcodes.count() > 0:
+                vipcode = users[0].vipcodes.all()[0].code
+            else:
+                vipcode = VipCode.objects.genVipCodeByWXUser(users[0])
+            
+            if users[0].openid == openid:
+                identical = True
+            
+            response = render_to_response('weixin/share.html', 
+                                          {"identical":identical,"vipcode":vipcode, "pk":wx_user_pk,
+                                           "nickname":nickname, "referal_images":referal_images}, 
+                                          context_instance=RequestContext(request))
+            return response
+        
+        redirect_url = "https://open.weixin.qq.com/connect/oauth2/authorize?appid=wxc2848fa1e1aa94b5&redirect_uri=http://weixin.huyi.so/weixin/freesamples/&response_type=code&scope=snsapi_base&state=135#wechat_redirect"
+        return redirect(redirect_url)
+
+
+class AwardApplyView(View):
+    def post(self, request):
+        content = request.REQUEST
+
+        code = content.get('code')
+        user_openid = get_user_openid(request, code)
+
+        if user_openid == "" or user_openid == None or user_openid == "None":
+            redirect_url = "https://open.weixin.qq.com/connect/oauth2/authorize?appid=wxc2848fa1e1aa94b5&redirect_uri=http://weixin.huyi.so/weixin/freesamples/&response_type=code&scope=snsapi_base&state=135#wechat_redirect"
+            return redirect(redirect_url)
+
+        fcode = content.get("fcode")
+        code_objects = Vipcode.objects.filter(code=fcode)
+        if code_objects.count() > 0:
+            referal_from_openid = code_objects[0].owner_openid
+            
+            if referal_from_openid != user_openid:
+                wx_user,state = WeiXinUser.objects.get_or_create(openid=user_openid)
+                wx_user.referal_from_openid = referal_from_openid 
+                wx_user.save()
+                
+                redirect_url = "/weixin/sales/award/share/{{ wx_user.pk }}/"
+                return redirect(redirect_url)
+
+        rep_json = {'code':'error', "try this F code": "866988"}
+        return  HttpResponse(json.dumps(rep_json),mimetype="application/json")
+        
+            
 

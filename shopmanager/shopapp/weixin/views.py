@@ -691,64 +691,14 @@ class FreeSampleView(View):
         code = content.get('code')
         
         user_openid = get_user_openid(request, code)
-        user_isvalid = False
-        wx_user = None
-        wx_users = WeiXinUser.objects.filter(openid=user_openid)
-        if wx_users.count() > 0:
-            wx_user = wx_users[0]
-            user_isvalid = wx_user.isValid()
-        else:
+        if user_openid == "" or user_openid == None or user_openid == "None":
             redirect_url = "https://open.weixin.qq.com/connect/oauth2/authorize?appid=wxc2848fa1e1aa94b5&redirect_uri=http://weixin.huyi.so/weixin/freesamples/&response_type=code&scope=snsapi_base&state=135#wechat_redirect"
             return redirect(redirect_url)
             
-            
-        end = END_TIME
-        now = datetime.datetime.now()
-        diff = end - now
-        days_left = diff.days
-        hours_left = diff.seconds / 3600
+        wx_user,state = WeiXinUser.objects.get_or_create(openid=user_openid)
 
-        samples = FreeSample.objects.filter(expiry__gt=end)
-
-        order_exists = False
-        orders = SampleOrder.objects.filter(user_openid=user_openid).filter(created__gt=START_TIME)
-        if orders.count() > 0 and not wx_user.isNone():
-            order_exists = True
-        
-        fcode_pass = False
-        fcode_pass_time = datetime.datetime(2014,10,1)
-        vipcode = None
-        if wx_user:
-            if wx_user.vipcodes.count() > 0:
-                vipcode_obj = wx_user.vipcodes.all()[0]
-                if vipcode_obj.created < fcode_pass_time:
-                    fcode_pass = True
-                    vipcode = vipcode_obj.code
-            if wx_user.subscribe_time and wx_user.subscribe_time < fcode_pass_time:
-                fcode_pass = True
-        
-        pk = None
-        if wx_user:
-            pk = wx_user.pk
-           
-        subscribe = 0
-        if wx_user.subscribe:
-            subscribe = 1
-        
-        left = 1000 - SampleOrder.objects.filter(status__gt=30).count()
-        today_orders = SampleOrder.objects.filter(created__gt=datetime.datetime(2014,10,now.day)).count()
         html = 'weixin/freesamples1.html'
-        response = render_to_response(html, 
-                                      {"samples":samples, "days_left":days_left, "hours_left":hours_left,
-                                       "user_isvalid":user_isvalid, 
-                                       "order_exists":order_exists, 
-                                       "openid":user_openid,
-                                       "fcode_pass":fcode_pass,
-                                       "vipcode":vipcode,
-                                       "today_orders":today_orders,
-                                       "subscribe":subscribe,
-                                       "left":left,
-                                       "pk":pk},
+        response = render_to_response(html, {"wx_user":wx_user},
                                       context_instance=RequestContext(request))
         response.set_cookie("openid",user_openid)
         return response
@@ -897,12 +847,10 @@ class SampleAdsView(View):
                                            "nickname":nickname, "referal_images":referal_images}, 
                                           context_instance=RequestContext(request))
             return response
-        
-        vipcode = '898786' ## 'other' case
-        response = render_to_response('weixin/sampleads1.html',         
-                                      {"identical":identical,"vipcode":vipcode, "nickname":nickname}, 
-                                      context_instance=RequestContext(request))
-        return response
+
+        redirect_url = "https://open.weixin.qq.com/connect/oauth2/authorize?appid=wxc2848fa1e1aa94b5&redirect_uri=http://weixin.huyi.so/weixin/freesamples/&response_type=code&scope=snsapi_base&state=135#wechat_redirect"
+        return redirect(redirect_url)
+
         
 from shopapp.weixin_sales.models import WeixinUserAward
 
@@ -912,13 +860,11 @@ class ResultView(View):
         code = content.get('code')
         user_openid = get_user_openid(request, code)
         
-        wx_user = None
-        wx_users = WeiXinUser.objects.filter(openid=user_openid)
-        if wx_users.count() > 0:
-            wx_user = wx_users[0]
-        else:
+        if user_openid == "" or user_openid == None or user_openid == "None":
             redirect_url = "https://open.weixin.qq.com/connect/oauth2/authorize?appid=wxc2848fa1e1aa94b5&redirect_uri=http://weixin.huyi.so/weixin/inviteresult/&response_type=code&scope=snsapi_base&state=135#wechat_redirect"
             return redirect(redirect_url)
+            
+        wx_user,state = WeiXinUser.objects.get_or_create(openid=user_openid)
 
         referal_images = []
         referal_users = WeiXinUser.objects.filter(referal_from_openid=user_openid)
@@ -945,7 +891,7 @@ class ResultView(View):
         
         response = render_to_response('weixin/invite_result.html',
                                       {'wx_user':wx_user,'referal_images':referal_images,
-                                       'my_award':my_award,'parent_award':parent_award,
+                                        'my_award':my_award,'parent_award':parent_award,
                                        'parent_nickname':parent_nickname, 'gift_selection':gift_selection},
                                       context_instance=RequestContext(request))
         response.set_cookie("openid",user_openid)  
