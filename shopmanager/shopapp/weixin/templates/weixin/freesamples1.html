@@ -129,6 +129,8 @@
 
   function check() {
     {% if wx_user.referal_form_openid %}
+    return false;
+    {% else %}
     var fcode = $("#id_fcode").val();  
     var msg = $("#id_msg");
     
@@ -138,8 +140,6 @@
     }
     
     return true;
-    {% else %}
-    return false;
     {% endif %}
   };
 </script>
