@@ -33,17 +33,18 @@ class AwardView(View):
     
     def post(self, request):
         content    = request.REQUEST
-#        user_openid = 'oMt59uJJBoNRC7Fdv1b5XiOAngdU'
         user_openid = request.COOKIES.get('openid')
+        select_val = content.get("select_val")
         try:
             wx_user = WeiXinUser.objects.get(openid=user_openid)
             referal_from_openid = wx_user.referal_from_openid
             
             wx_award,state = WeixinUserAward.objects.get_or_create(user_openid=user_openid)
-
+            
+            
             if not wx_award.is_receive :
-                
                 wx_award.is_receive = True
+                wx_award.select_val = select_val    
                 wx_award.referal_from_openid  = referal_from_openid
                 wx_award.save()
                 
@@ -53,7 +54,9 @@ class AwardView(View):
                 
                 rep_json = {'success':True}
             else :
-                rep_json = {'success':False,'err_msg':u'不能重复提交'}
+                wx_award.select_val = select_val
+                wx_award.save()
+                rep_json = {'success':True,'msg':u'更新选择'}
         except:
             rep_json = {'success':False,'err_msg':u'系统错误，请联系管理员'}
             
@@ -125,3 +128,4 @@ class AwardRemindView(View):
         return  HttpResponse(json.dumps(rep_json),mimetype="application/json")   
 
     
+
