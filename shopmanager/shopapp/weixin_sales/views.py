@@ -177,7 +177,7 @@ class AwardApplyView(View):
         fcode = content.get("fcode")
         code_objects = VipCode.objects.filter(code=fcode)
         if code_objects.count() > 0:
-            referal_from_openid = code_objects[0].owner_openid
+            referal_from_openid = code_objects[0].owner_openid.openid
             
             if referal_from_openid != user_openid:
                 wx_user,state = WeiXinUser.objects.get_or_create(openid=user_openid)
