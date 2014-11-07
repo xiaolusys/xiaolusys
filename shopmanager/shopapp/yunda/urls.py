@@ -54,5 +54,5 @@ urlpatterns = patterns('shopapp.yunda.views',
         renderers=(BaseJsonRenderer,),
 #        authentication=(UserLoggedInAuthentication,),
 #        permissions=(IsAuthenticated,)
-    ),12*60*60)),  
+    ),24*60*60)),  
 )
