@@ -50,7 +50,7 @@
         <button class="btn btn-danger" onclick="unpack()">打开礼包 &gt;&gt;</button>
         {% elif parent_award and parent_award.remind_count > 0 %}
         <p>亲，我们已经用短信提醒您的好友，感谢您耐心等待！</p>
-        {% elif parent_award %}
+        {% elif parent_nickname %}
         <p id="id-remind-msg" style="color:red">亲，好友 {{ parent_nickname }} 还未给您发送感恩礼包哦，快提醒下她吧！</p>
         <button id="id-remind" type="button" class="btn btn-danger" onclick="remind()">点击发送提醒 &gt;&gt;</button>
 	{% else %}
@@ -68,12 +68,12 @@
 	      <img src="https://mmbiz.qlogo.cn/mmbiz/yMhOQPTKhLticIHepSybaDQKTV5LXs8iaLKgbibibRvEcbiax61bchOUpyTFzP8qNGPUF6JSHQ3YOysrtfFOLj8tCqg/0"> 
 	      <span style="font-size:10px">请复制右边链接到电脑或手机浏览器领取。</span>
 	    </div>
-	    
+
 	  </div>
 	  <div class="col-xs-6">
 	    <p><font style="font-size:10px">电脑领取链接:</font><br><font style="font-size:11px">http://t.cn/R78HobI</font></p>
 	    <p><font style="font-size:10px">手机领取链接:</font><br><font style="font-size:11px">http://t.cn/R78Hku7</font></p>
-	    <p><a style="font-size:10px">其他领取方式 >></a></p>
+	    <p><a style="font-size:10px" href="/weixin/couponrule/">其他领取方式 &gt;&gt;</a></p>
 	  </div>
 	</div>
 	{% if gift_selection == 1 %}

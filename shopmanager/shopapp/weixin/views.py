@@ -879,7 +879,7 @@ class ResultView(View):
             if parent_awards.count() > 0:
                 parent_award = parent_awards[0]
                 parent_user = WeiXinUser.objects.get(openid=wx_user.referal_from_openid)
-                parent_nickname = parent_user.nickname
+                parent_nickname = parent_user.nickname or u'lucky'
                 gift_selection = parent_award.award_val
 
         my_award = None
