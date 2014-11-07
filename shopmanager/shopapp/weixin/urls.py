@@ -85,6 +85,9 @@ urlpatterns = patterns('shopapp.weixin.views',
     url(r'^clickscore/(?P<id>\d+)/$', ClickScoreView.as_view()),
     url(r'^scorerule/$', TemplateView.as_view(
             template_name="weixin/scorerule.html")),
+    url(r'^couponrule/$', TemplateView.as_view(
+            template_name="weixin/sales/couponrule.html")),
+                       
     url(r'^scoremenu/$', ScoreMenuView.as_view()),
     url(r'^gift/$', GiftView.as_view()),
         
