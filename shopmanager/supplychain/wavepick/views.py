@@ -71,8 +71,9 @@ class WaveDetailView(View):
                                            'title': order_title }
         
         order_list = sorted(order_items.items(),key=lambda d:d[1]['location'])
+        order_list.reverse()
             
-        return order_list.reverse()    
+        return order_list    
     
     def getOrderItemIdentity(self,order_items):
         
