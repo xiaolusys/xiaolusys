@@ -1,5 +1,6 @@
 # -*- coding:utf8 -*-.
 import json
+from django.db.models import Q
 from django.views.generic import View
 from django.http import Http404,HttpResponse
 from django.shortcuts import render_to_response
@@ -71,7 +72,7 @@ class WaveDetailView(View):
         
         order_list = sorted(order_items.items(),key=lambda d:d[1]['location'])
             
-        return order_list    
+        return order_list.reverse()    
     
     def getOrderItemIdentity(self,order_items):
         
@@ -185,7 +186,7 @@ class AllocateView(View):
         response = render_to_response('allocate_detail.html', 
                                       {"group_id":group_id,
                                        "wave_id":wave_id,
-                                       "pick_alloctates":pick_alloctates}, 
+                                       "pick_alloctates":pick_alloctates},
                                       context_instance=RequestContext(request))
         return response
         
@@ -196,7 +197,8 @@ class AllocateView(View):
         barcode = content.get('barcode')
         identity = content.get('identity')
         
-        pick_items = PickItem.objects.filter(wave_no=wave_id,identity=identity).order_by('serial_no')
+        pick_items = PickItem.objects.filter(Q(identity=identity)|Q(barcode=identity),
+                                             wave_no=wave_id).order_by('serial_no')
         publish_value  =  self.genPublishValue(pick_items)
         
         group_id = self.getPickGroupByWaveNo(wave_id)
