@@ -134,7 +134,7 @@ class AwardShareView(View):
         users = WeiXinUser.objects.filter(pk=wx_user_pk)
         
         openid = request.COOKIES.get('openid')
-        if openi == "" or openid == "None" or openid == None:
+        if openid == "" or openid == "None" or openid == None:
             redirect_url = "https://open.weixin.qq.com/connect/oauth2/authorize?appid=wxc2848fa1e1aa94b5&redirect_uri=http://weixin.huyi.so/weixin/freesamples/&response_type=code&scope=snsapi_base&state=135#wechat_redirect"
             return redirect(redirect_url)
         
