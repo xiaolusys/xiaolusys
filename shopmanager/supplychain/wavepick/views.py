@@ -72,8 +72,13 @@ class WaveDetailView(View):
         
         order_list = sorted(order_items.items(),key=lambda d:d[1]['location'])
         order_list.reverse()
-            
-        return order_list    
+        
+        gr_list    = []
+        block_size = 8
+        for i in range(0,len(order_list),block_size):
+            gr_list.extend(reverse(order_list[i:i+block_size]))
+        
+        return gr_list    
     
     def getOrderItemIdentity(self,order_items):
         
