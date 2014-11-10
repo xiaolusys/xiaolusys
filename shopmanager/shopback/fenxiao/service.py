@@ -64,7 +64,7 @@ class PurchaseOrderService(TaobaoSendTradeMixin,TaobaoTradeService,LocalService)
             if k.endswith('fee') or k.endswith('payment') or k.endswith('price'):
                 v = float(v or 0.0) 
             hasattr(purchase_order,k) and setattr(purchase_order,k,v)
-    
+        
         purchase_order.save()
         
         for sub_order in  sub_purchase_orders['sub_purchase_order']:

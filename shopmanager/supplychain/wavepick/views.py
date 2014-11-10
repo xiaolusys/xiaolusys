@@ -71,14 +71,8 @@ class WaveDetailView(View):
                                            'title': order_title }
         
         order_list = sorted(order_items.items(),key=lambda d:d[1]['location'])
-        order_list.reverse()
         
-        gr_list    = []
-        block_size = 8
-        for i in range(0,len(order_list),block_size):
-            gr_list.extend(reverse(order_list[i:i+block_size]))
-        
-        return gr_list    
+        return order_list    
     
     def getOrderItemIdentity(self,order_items):
         
@@ -86,6 +80,8 @@ class WaveDetailView(View):
         index    = 1
         for item in order_items:
             item_map[item[0]] = index
+            item_map[item[0]] = (index,item[1]['barcode'])
+            item[1]['identity'] = index
             index += 1
             
         return item_map
@@ -111,14 +107,15 @@ class WaveDetailView(View):
                                             outer_id=order.outer_id,
                                             outer_sku_id=order.outer_sku_id,
                                             )
-                product_no = order.outer_id+order.outer_sku_id                                            
+                product_no = order.outer_id+order.outer_sku_id                             
+                witem  = item_identity_map.get(product_no)                                    
                 
                 pick_item.wave_no = wave_id
                 pick_item.serial_no = wpick.serial_no
-                pick_item.barcode   = product_no
+                pick_item.barcode   = witem[1]
                 pick_item.title     = order.title,
                 pick_item.item_num  = order.num
-                pick_item.identity  = item_identity_map.get(product_no)
+                pick_item.identity  = witem[0]
                 pick_item.save()
                 
         
@@ -203,8 +200,22 @@ class AllocateView(View):
         barcode = content.get('barcode')
         identity = content.get('identity')
         
-        pick_items = PickItem.objects.filter(Q(identity=identity)|Q(barcode=identity),
-                                             wave_no=wave_id).order_by('serial_no')
+        if identity.isdigit() and len(identity)<3:
+            
+            pick_items = PickItem.objects.filter(identity=identity,
+                                                 wave_no=wave_id).order_by('serial_no')
+            identity   = identity
+            barcode    = ''
+        else:
+            pick_items = PickItem.objects.filter(barcode=identity,
+                                                 wave_no=wave_id).order_by('serial_no')
+            identity   = ''
+            barcode    = identity
+        
+        if pick_items.count() > 0:
+            if not identity:
+                identity = str(pick_items[0].identity)
+                
         publish_value  =  self.genPublishValue(pick_items)
         
         group_id = self.getPickGroupByWaveNo(wave_id)

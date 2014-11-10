@@ -1,5 +1,7 @@
 #-*- coding:utf-8 -*-
-from django.http import HttpResponseRedirect  
+import time
+import cStringIO as StringIO
+from django.http import HttpResponseRedirect,HttpResponse
 from django.contrib import admin
 from django.db import models
 from django.conf import settings
@@ -11,7 +13,7 @@ from shopback.base import log_action,User, ADDITION, CHANGE
 from shopback.base.options import DateFieldListFilter
 from shopback import paramconfig as pcfg
 from .models import InterceptTrade
-from common.utils import update_model_fields
+from common.utils import gen_cvs_tuple,CSVUnicodeWriter
 
 
 class InterceptTradeAdmin(admin.ModelAdmin):
@@ -56,9 +58,41 @@ class InterceptTradeAdmin(admin.ModelAdmin):
             
         return HttpResponseRedirect(reverse('admin:intercept_intercepttrade_changelist'))
         
-    intercept_trade_action.short_description = u"拦截订单"
+    intercept_trade_action.short_description = u"拦截选中订单"
     
-    actions = ['intercept_trade_action',]
+    
+    def export_tradeinfo_action(self,request,queryset):
+        """ 导出拦截订单信息 """
+        
+        queryset = queryset.filter(status=InterceptTrade.COMPLETE)
+        is_windows = request.META['HTTP_USER_AGENT'].lower().find('windows') >-1 
+        pcsv =[]
+        pcsv.append((u'订单ID','原单ID',u'用户ID',u'收货手机',u'下单金额',u'付款时间',
+                     u'发货时间',u'系统状态',u'省',u'市',u'详细地址'))
+        
+        from shopback.trades.models import MergeTrade
+        
+        for itrade in queryset:
+            mtrade = MergeTrade.objects.get(id=itrade.trade_id)
+            pcsv.append(('%s'%m for m in [mtrade.id,mtrade.tid,mtrade.buyer_nick,
+                               mtrade.receiver_mobile,mtrade.payment,mtrade.pay_time,
+                               mtrade.consign_time,mtrade.get_sys_status_display(),
+                               mtrade.receiver_state,mtrade.receiver_city,
+                               mtrade.receiver_district+mtrade.receiver_address]))
+        
+        tmpfile = StringIO.StringIO()
+        writer  = CSVUnicodeWriter(tmpfile,encoding = is_windows and "gbk" or 'utf8')
+        writer.writerows(pcsv)
+            
+        response = HttpResponse(tmpfile.getvalue(), mimetype='application/octet-stream')
+        tmpfile.close()
+        response['Content-Disposition'] = 'attachment;filename=intercept-tradeinfo-%s.csv'%str(int(time.time()))
+        
+        return response
+        
+    export_tradeinfo_action.short_description = u"导出拦截订单信息"
+    
+    actions = ['intercept_trade_action','export_tradeinfo_action']
     
     
 admin.site.register(InterceptTrade, InterceptTradeAdmin) 
