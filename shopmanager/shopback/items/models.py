@@ -358,8 +358,8 @@ class ProductSku(models.Model):
     
     @property
     def BARCODE(self):
-        return self.barcode.strip() or self.product.barcode.strip() or \
-                '%s%s'%(self.product.outer_id.strip(),self.outer_id.strip())
+        return self.barcode.strip() or '%s%s'%(self.product.outer_id.strip(),
+                                               self.outer_id.strip())
     
     @property
     def realnum(self):

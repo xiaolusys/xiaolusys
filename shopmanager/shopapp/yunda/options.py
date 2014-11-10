@@ -34,14 +34,18 @@ def get_addr_zones(s,c,d,address=''):
                 return czone.branch
         
     if c:
-        czones = ClassifyZone.objects.filter(state__startswith=lstate,
-                                                  city__startswith=lcity,district='')
+        czones = ClassifyZone.objects.extra(select={'city_length': "length(city)"})\
+                    .filter(state__startswith=lstate,
+                            city__startswith=lcity,district='').order_by('-city_length')
         if czones.count()==1:
             return czones[0].branch
-
+        
         for czone in czones:
-            if czone.city == c:
+            if czone.city.startswith(c):
                 return czone.branch
+            
+        if czones.count()>0:
+            return czones[0].branch
     
     if s:
         czones = ClassifyZone.objects.filter(state__startswith=lstate,

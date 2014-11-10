@@ -51,12 +51,15 @@
     var pre_row = null;
     var callback = function(res){
         if (res.identity){
-             var row = $("#alloc-row-"+res.identity);
+             var alloc_id = "alloc-row-"+res.identity;
+             var row = $("#"+alloc_id);
              if(pre_row != row && pre_row != null){
                 $(pre_row).css("background-color","green");            
             } 
             $(row).css("background-color","yellow");
+            $("#id_sku").val("");
             pre_row = row;
+            document.getElementById(alloc_id).scrollIntoView();
         }   
     };
     $('#id_sku').keydown(

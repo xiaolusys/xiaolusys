@@ -8,8 +8,12 @@ from django.db import models
 from django.shortcuts import render_to_response
 from django.template import RequestContext
 from django.forms import TextInput, Textarea
-from shopback.items.models import Item,Product,ProductSku,ProductLocation,\
-    ItemNumTaskLog,SkuProperty,ProductDaySale
+from shopback.items.models import (Item,Product,
+                                   ProductSku,
+                                   ProductLocation,
+                                   ItemNumTaskLog,
+                                   SkuProperty,
+                                   ProductDaySale)
 from shopback.trades.models import MergeTrade,MergeOrder
 from shopback.users.models import User
 from shopback.purchases import getProductWaitReceiveNum
