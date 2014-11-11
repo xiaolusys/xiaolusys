@@ -13,7 +13,7 @@ from shopback.base import log_action,User, ADDITION, CHANGE
 from shopback.base.options import DateFieldListFilter
 from shopback import paramconfig as pcfg
 from .models import InterceptTrade
-from common.utils import gen_cvs_tuple,CSVUnicodeWriter
+from common.utils import gen_cvs_tuple,CSVUnicodeWriter,update_model_fields
 
 
 class InterceptTradeAdmin(admin.ModelAdmin):
