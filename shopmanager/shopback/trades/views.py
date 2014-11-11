@@ -1474,4 +1474,12 @@ def showFenxiaoDetail(request):
                                'fenxiao_render_data':fenxiao_render_data,},  
                               context_instance=RequestContext(request))
                                                                   
-
+########################## 提升订单优先级 ###########################
+class ImprovePriorityView(ModelView):
+    """ docstring for class OrderListView """
+    
+    def post(self, request, id, *args, **kwargs):
+        
+        row = MergeTrade.objects.filter(id=id).update(priority=pcfg.PRIORITY_HIG)
+        
+        return {'success':row > 0}

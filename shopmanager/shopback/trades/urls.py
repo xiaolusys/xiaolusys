@@ -23,6 +23,7 @@ from shopback.trades.views    import (StatisticMergeOrderView,
                                       ExchangeOrderInstanceView,
                                       DirectOrderInstanceView,
                                       RelatedOrderStateView,
+                                      ImprovePriorityView,
                                       replay_trade_send_result,
                                       countFenxiaoAcount,
                                       showFenxiaoDetail)
@@ -56,6 +57,12 @@ urlpatterns = patterns('shopback.trades.views',
     (r'review/(?P<id>\d{1,20})/$',csrf_exempt(login_required_ajax(review_order))),
     (r'logistic/$',csrf_exempt(login_required_ajax(change_logistic_and_outsid))),
     (r'^memo/$',csrf_exempt(login_required_ajax(update_sys_memo))), 
+    (r'^priority/(?P<id>\d{1,20})/',ImprovePriorityView.as_view(
+        resource=MergeTradeResource,
+        renderers=(BaseJsonRenderer,),
+        authentication=(UserLoggedInAuthentication,),
+        permissions=(IsAuthenticated,)
+    )),
     (r'^regular/(?P<id>\d{1,20})/$',csrf_exempt(login_required_ajax(regular_trade))), 
     
     (r'^trade/(?P<id>\d{1,20})/$',InstanceModelView.as_view(
