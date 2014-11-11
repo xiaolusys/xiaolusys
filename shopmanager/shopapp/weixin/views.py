@@ -889,10 +889,16 @@ class ResultView(View):
             if my_award.select_val > 0:
                 gift_selection = my_award.select_val
         
+        oct_passed = False
+        sample_orders = SampleOrder.objects.filter(status__gt=30,status__lt=39,user_openid=user_openid)
+        if sample_orders.count() > 0:
+            oct_passed = True
+        
         response = render_to_response('weixin/invite_result.html',
                                       {'wx_user':wx_user,'referal_images':referal_images,
-                                        'my_award':my_award,'parent_award':parent_award,
-                                       'parent_nickname':parent_nickname, 'gift_selection':gift_selection},
+                                       'my_award':my_award,'parent_award':parent_award,
+                                       'parent_nickname':parent_nickname, 
+                                       'gift_selection':gift_selection, 'oct_passed':oct_passed},
                                       context_instance=RequestContext(request))
         response.set_cookie("openid",user_openid)  
         
