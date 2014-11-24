@@ -418,12 +418,13 @@ class MergeTradeAdmin(admin.ModelAdmin):
         if merge_success:
             sub_trade.out_sid           = main_trade.out_sid
             sub_trade.logistics_company = main_trade.logistics_company
-            sub_trade.sys_status        = pcfg.FINISHED_STATUS
+            sub_trade.sys_status        = pcfg.ON_THE_FLY_STATUS
             sub_trade.operator          = main_trade.operator
             sub_trade.consign_time      = main_trade.consign_time
             sub_trade.save()
             
-            if sub_trade.status == pcfg.WAIT_SELLER_SEND_GOODS:
+            if (sub_trade.status == pcfg.WAIT_SELLER_SEND_GOODS 
+               and main_trade.status in pcfg.ORDER_POST_STATUS):
                 
                 from shopback.trades.service import TradeService
                 try:

@@ -1,6 +1,6 @@
 # -*- coding:utf8 -*-.
 import json
-from django.db.models import Q
+from django.db.models import Q,F
 from django.views.generic import View
 from django.http import Http404,HttpResponse
 from django.shortcuts import render_to_response
@@ -10,7 +10,8 @@ from shopback.trades.models import MergeTrade
 from shopback.items.models import Product,ProductSku
 from shopback import paramconfig as pcfg
 
-import json
+import logging
+logger = logging.getLogger('django.request')
 
 
 class WaveView(View):
@@ -60,10 +61,12 @@ class WaveDetailView(View):
                     order_items[combose_id]['num'] += order_num
                     
                 else:
-                    order_location = prod_sku and prod_sku.get_districts_code() or product.get_districts_code() 
-                    order_title    = ('%s-%s'%(product and product.name or '', prod_sku and prod_sku.name or '')  
+                    order_location = (product and product.get_districts_code() or '',
+                                      prod_sku and prod_sku.get_districts_code() or '')[prod_sku and 1 or 0] 
+                    order_title    = ('%s-%s'%(product and product.name or '', 
+                                               prod_sku and prod_sku.name or '')  
                                      or '%s-%s'%(order.title,order.sku_properties_name))
-                    order_barcode  = prod_sku and prod_sku.BARCODE and product.BARCODE
+                    order_barcode  = prod_sku and prod_sku.BARCODE or product.BARCODE
                 
                     order_items[combose_id]={'num':order_num,
                                            'barcode':order_barcode, 
@@ -98,6 +101,8 @@ class WaveDetailView(View):
         order_items = self.getOrderItems(trades)
         item_identity_map = self.getOrderItemIdentity(order_items)     
         
+        PickItem.objects.filter(out_sid__in=out_sids).delete()
+        
         for trade in trades:
             out_sid = trade.out_sid
             wpick = WavePick.objects.get(wave_no=wave_id,out_sid=out_sid)
@@ -114,7 +119,7 @@ class WaveDetailView(View):
                 pick_item.serial_no = wpick.serial_no
                 pick_item.barcode   = witem[1]
                 pick_item.title     = order.title,
-                pick_item.item_num  = order.num
+                pick_item.item_num  = F('item_num') + order.num
                 pick_item.identity  = witem[0]
                 pick_item.save()
                 

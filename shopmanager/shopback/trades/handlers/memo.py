@@ -34,12 +34,12 @@ class MemoHandler(BaseHandler):
         
         origin_trade = kwargs.get('origin_trade',None)
         
-        seller_memo    = self.getOriginMemo(merge_trade,origin_trade)
-        buyer_message  = self.getOriginBuyerMessage(merge_trade,origin_trade)
+        seller_memo    = self.getOriginMemo(merge_trade,origin_trade).strip()
+        buyer_message  = self.getOriginBuyerMessage(merge_trade,origin_trade).strip()
         
         has_memo = seller_memo or buyer_message
-        new_memo = (merge_trade.buyer_message != buyer_message 
-                    or merge_trade.seller_memo  != seller_memo)
+        new_memo = has_memo and (merge_trade.buyer_message != buyer_message 
+                    or merge_trade.seller_memo != seller_memo)
         
         return new_memo or (kwargs.get('first_pay_load',None) and has_memo)
                 

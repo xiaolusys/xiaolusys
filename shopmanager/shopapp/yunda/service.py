@@ -189,18 +189,18 @@ class YundaPackageService(object):
         if weight < 0.5:
             return weight
         if weight < 1.0:
-            return weight * 0.8
+            return weight * 0.4
         if weight < 4.0:
-            return weight / 2
-        return weight - 2
+            return weight * 0.4
+        return weight * 0.4
             
     def _reCalcWeightRule(self,weight):
         
         if weight < 0.5:
             return weight
         if weight < 4.0:
-            return weight * 0.8
-        return weight - 1
+            return weight * 0.4
+        return weight * 0.4
     
     def calcSmallPackageWeight(self,tspw):
         
