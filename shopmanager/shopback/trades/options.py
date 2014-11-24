@@ -89,6 +89,11 @@ def mergeMaker(trade,sub_trade):
                                 sub_trade.seller_memo+sub_trade.sys_memo)
         trade.append_reason_code(pcfg.NEW_MEMO_CODE)
     
+    if sub_trade.has_merge:
+        strades = MergeBuyerTrade.objects.filter(main_tid=sub_trade.id)
+        for strade in strades:
+            MergeBuyerTrade.objects.get_or_create(sub_tid=strade.id,main_tid=trade.id)
+    
     for scode in sub_trade.reason_code.split(','):
         trade.append_reason_code(scode)
     
@@ -164,8 +169,6 @@ def mergeRemover(trade):
     MergeBuyerTrade.objects.filter(main_tid=trade_id).delete()
     
     log_action(trade.user.user.id,trade,CHANGE,u'订单取消合并')
-    
-    ruleMatchSplit(trade)
     
     recalc_fee_signal.send(sender=MergeTrade,trade_id=trade_id)
     
