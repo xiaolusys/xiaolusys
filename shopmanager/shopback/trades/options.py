@@ -162,9 +162,10 @@ def mergeRemover(trade):
         sub_trade.sys_status=pcfg.WAIT_AUDIT_STATUS
         update_model_fields(sub_trade,update_fields=['sys_status'])
         
+        trade.payment  -= sub_trade.payment
         trade.post_fee -= sub_trade.post_fee
     
-    update_model_fields(trade,update_fields=['post_fee','has_merge'])
+    update_model_fields(trade,update_fields=['payment','post_fee','has_merge'])
         
     MergeBuyerTrade.objects.filter(main_tid=trade_id).delete()
     
