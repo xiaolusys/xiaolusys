@@ -1,11 +1,11 @@
-pidfile='/var/www/deploy/taobao/gunicorn.pid'
+#pidfile='/var/www/deploy/taobao/gunicorn.pid'
 #daemon=True
 import multiprocessing
 
 workers=multiprocessing.cpu_count() * 2 + 1
 bind="127.0.0.1:9000"
 
-timeout=30
+timeout=120
 worker_connections=multiprocessing.cpu_count()*200
 max_requests=200
 backlog=multiprocessing.cpu_count()*300
