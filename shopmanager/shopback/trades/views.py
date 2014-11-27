@@ -175,7 +175,8 @@ class StatisticMergeOrderView(ModelView):
     def getProductSkuByOuterId(self,outer_id,outer_sku_id):
         
         try:
-            return ProductSku.objects.get(outer_id=outer_sku_id,product__outer_id=outer_id)
+            return ProductSku.objects.get(outer_id=outer_sku_id,
+                                          product__outer_id=outer_id)
         except:
             return None
         
@@ -1301,7 +1302,7 @@ class TradeLogisticView(ModelView):
             mergetrades = MergeTrade.objects.filter(out_sid=q.strip('\' '),
                                                     is_express_print=True)
             for trade in mergetrades:
-                trade_dict = {"tid":trade.tid,
+                trade_dict = {"tid":trade.tid, 
                               "seller_nick":trade.user.nick,
                               "buyer_nick":trade.buyer_nick,
                               "out_sid":trade.out_sid,
@@ -1483,3 +1484,194 @@ class ImprovePriorityView(ModelView):
         row = MergeTrade.objects.filter(id=id).update(priority=pcfg.PRIORITY_HIG)
         
         return {'success':row > 0}
+    
+########################## 订单重量入库 ###########################
+class PackageScanCheckView(ModelView):
+    """ 订单扫描验货 """
+    
+    def isValidYundaId(self,package_no):
+        if len(package_no) < 13:
+            return False
+        
+        yunda_company = LogisticsCompany.objects.get(code='YUNDA')
+        return re.compile(yunda_company.reg_mail_no).match(package_no[0:13])
+        
+    def parsePackageNo(self,package_no):
+        
+        if not self.isValidYundaId(package_no):
+            return package_no
+        
+        return package_no[0:13]  
+    
+    def getOrderItemsFromTrade(self,trade):
+        
+        order_items = []
+        for order in trade.print_orders:
+            
+            barcode = Product.objects.getBarcodeByOuterid(order.outer_id,
+                                                          order.outer_sku_id)
+            product = Product.objects.getProductByOuterid(order.outer_id)
+            if order.outer_sku_id:
+                product_sku = Product.objects.getProductSkuByOuterid(order.outer_id,
+                                                                        order.outer_sku_id)
+            is_need_check = product_sku and product_sku.post_check or product.post_check
+            
+            order_dict = {'barcode':barcode,
+                          'order_id':order.id,
+                          'outer_id':order.outer_id,
+                          'outer_sku_id':order.outer_sku_id,
+                          'title':order.title,
+                          'sku_properties_name':order.sku_properties_name,
+                          'pic_url':product.pic_path,
+                          'num':order.num,
+                          'post_check':is_need_check,
+                          }
+            
+            order_items.append(order_dict)
+            
+        return order_items
+        
+    def get(self, request, *args, **kwargs):
+        
+        content    = request.REQUEST
+        package_no = content.get('package_no','').strip()
+        if not package_no:
+            return u'运单号不能为空'
+        
+        package_id = self.parsePackageNo(package_no)
+        try:
+            mt  =  MergeTrade.objects.get(out_sid=package_id,
+                                          sys_status__in=(pcfg.WAIT_SCAN_WEIGHT_STATUS,
+                                                        pcfg.WAIT_CHECK_BARCODE_STATUS))
+        except MergeTrade.DoesNotExist:
+            return u'运单号未找到订单'
+        except MergeTrade.MultipleObjectsReturned:
+            return u'结果返回多个订单'
+        
+        order_items = self.getOrderItemsFromTrade(mt)
+        
+        return {'package_id':package_id,
+                'trade_id':mt.id,
+                'order_items':order_items}
+    
+        
+    def post(self, request,*args, **kwargs):
+        
+        content    = request.REQUEST
+        package_no = content.get('package_no','').strip()
+        
+        if not package_no:
+            return u'运单号不能为空'
+        
+        package_id = self.parsePackageNo(package_no)
+        try:
+            mt = MergeTrade.objects.get(out_sid=package_id,
+                                        reason_code='',
+                                        sys_status=pcfg.WAIT_CHECK_BARCODE_STATUS)
+        except MergeTrade.DoesNotExist:
+            return u'运单号未找到订单或被拦截'
+        
+        except MergeTrade.MultipleObjectsReturned:
+            return u'运单号返回多个订单'
+            
+        mt.sys_status = pcfg.WAIT_SCAN_WEIGHT_STATUS
+        mt.scanner    = request.user.username
+        mt.save()
+        
+        log_action(request.user.id,mt,CHANGE,u'扫描验货')
+        
+        return {'isSuccess':True}
+        
+    
+########################## 订单重量入库 ###########################
+class PackageScanWeightView(ModelView):
+    """ 订单扫描称重 """
+    
+    def isValidYundaId(self,package_no):
+        if len(package_no) < 13:
+            return False
+        
+        yunda_company = LogisticsCompany.objects.get(code='YUNDA')
+        return re.compile(yunda_company.reg_mail_no).match(package_no[0:13])
+        
+    def parsePackageNo(self,package_no):
+        
+        if not self.isValidYundaId(package_no):
+            return package_no
+        
+        return package_no[0:13]  
+    
+        
+    def get(self, request, *args, **kwargs):
+        
+        content    = request.REQUEST
+        package_no = content.get('package_no','').strip()
+        if not package_no:
+            return u'运单号不能为空'
+        
+        package_id = self.parsePackageNo(package_no)
+        
+        try:
+            mt  =  MergeTrade.objects.get(out_sid=package_id,
+                                          sys_status__in=(pcfg.WAIT_SCAN_WEIGHT_STATUS,
+                                                        pcfg.WAIT_CHECK_BARCODE_STATUS))
+        except MergeTrade.DoesNotExist:
+            return u'运单号未找到订单或被拦截'
+        except MergeTrade.MultipleObjectsReturned:
+            return u'运单号返回多个订单'
+
+        return {'package_no':package_id,
+                'trade_id':mt.id,
+                'seller_nick':mt.user.nick,
+                'trade_type':mt.get_type_display(),
+                'buyer_nick':mt.buyer_nick,
+                'sys_status':mt.get_sys_status_display(),
+                'company_name':mt.logistics_company.name,
+                'receiver_mobile':mt.receiver_mobile,
+                'receiver_name':mt.receiver_name,
+                'receiver_state':mt.receiver_state,
+                'receiver_city':mt.receiver_city,
+                'receiver_district':mt.receiver_district,
+                'receiver_address':mt.receiver_address,
+                }
+    
+        
+    def post(self, request,*args, **kwargs):
+        
+        content    = request.REQUEST
+        package_no = content.get('package_no','').strip()
+        package_weight = content.get('package_weight','').strip()
+        
+        if not package_no:
+            return u'运单号不能为空'
+        
+        try:
+            if float(package_weight) > 100000:
+                return u'重量超过100千克'
+        except:
+            return u'重量异常:%s'%package_weight
+        
+        package_id = self.parsePackageNo(package_no)
+        try:
+            mt = MergeTrade.objects.get(out_sid=package_id,
+                                        reason_code='',
+                                        sys_status__in=(pcfg.WAIT_SCAN_WEIGHT_STATUS,
+                                                        pcfg.WAIT_CHECK_BARCODE_STATUS))
+        except MergeTrade.DoesNotExist:
+            return u'运单号未找到订单'
+        except MergeTrade.MultipleObjectsReturned:
+            return u'结果返回多个订单'
+            
+        MergeTrade.objects.updateProductStockByTrade(mt)
+            
+        mt.weight  = package_weight
+        mt.sys_status = pcfg.FINISHED_STATUS
+        mt.weight_time = datetime.datetime.now()
+        mt.weighter = request.user.username
+        mt.save()
+        
+        log_action(request.user.id,mt,CHANGE,u'扫描称重')
+        
+        return {'isSuccess':True}
+    
+

@@ -26,7 +26,9 @@ from shopback.trades.views    import (StatisticMergeOrderView,
                                       ImprovePriorityView,
                                       replay_trade_send_result,
                                       countFenxiaoAcount,
-                                      showFenxiaoDetail)
+                                      showFenxiaoDetail,
+                                      PackageScanCheckView,
+                                      PackageScanWeightView)
 
 from shopback.base.renderers  import BaseJsonRenderer
 from shopback.trades.renderers import (CheckOrderRenderer,
@@ -161,4 +163,17 @@ urlpatterns = patterns('shopback.trades.views',
 
     (r'fenxiao/count/detail/$',staff_member_required(showFenxiaoDetail)),
     
+    (r'^scancheck/$',csrf_exempt(PackageScanCheckView.as_view(
+        resource=BaseResource,
+        renderers=(BaseJsonRenderer,),
+        authentication=(UserLoggedInAuthentication,),
+        permissions=(IsAuthenticated,)
+    ))), 
+     
+    (r'^scanweight/$',csrf_exempt(PackageScanWeightView.as_view(
+        resource=BaseResource,
+        renderers=(BaseJsonRenderer,),
+        authentication=(UserLoggedInAuthentication,),
+        permissions=(IsAuthenticated,)
+    ))), 
 )

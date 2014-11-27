@@ -351,25 +351,13 @@ class MergeTradeAdmin(admin.ModelAdmin):
         elif request.POST.has_key("_finish"):
             if obj.sys_status in (pcfg.WAIT_CHECK_BARCODE_STATUS,
                                   pcfg.WAIT_SCAN_WEIGHT_STATUS):
+                
+                MergeTrade.objects.updateProductStockByTrade(obj)
+                
                 obj.sys_status = pcfg.FINISHED_STATUS
                 obj.weight_time = datetime.datetime.now()
+                obj.weighter = request.user.username
                 obj.save()
-                
-                for order in obj.inuse_orders.exclude(gift_type=pcfg.RETURN_GOODS_GIT_TYPE):
-                    outer_id     = order.outer_id
-                    outer_sku_id = order.outer_sku_id
-                    order_num    = order.num
-                    
-                    if outer_sku_id:
-                        psku = ProductSku.objects.get(product__outer_id=outer_id,
-                                                      outer_id=outer_sku_id)
-                        psku.update_quantity(order_num,dec_update=True)
-                        psku.update_wait_post_num(order_num,dec_update=True)
-                        
-                    else:
-                        prod = Product.objects.get(outer_id=outer_id)
-                        prod.update_collect_num(order_num,dec_update=True)
-                        prod.update_wait_post_num(order_num,dec_update=True)
                 
                 msg = u'%(name)s "%(obj)s" 订单手动修改已完成.'% { 'name': force_unicode(verbose_name), 
                                                                 'obj': force_unicode(obj)} 
