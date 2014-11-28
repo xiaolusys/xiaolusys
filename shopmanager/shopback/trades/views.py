@@ -1511,6 +1511,7 @@ class PackageScanCheckView(ModelView):
             barcode = Product.objects.getBarcodeByOuterid(order.outer_id,
                                                           order.outer_sku_id)
             product = Product.objects.getProductByOuterid(order.outer_id)
+            product_sku = None
             if order.outer_sku_id:
                 product_sku = Product.objects.getProductSkuByOuterid(order.outer_id,
                                                                         order.outer_sku_id)
@@ -1522,9 +1523,11 @@ class PackageScanCheckView(ModelView):
                           'outer_sku_id':order.outer_sku_id,
                           'title':order.title,
                           'sku_properties_name':order.sku_properties_name,
-                          'pic_url':product.pic_path,
+                          'sku_name':product_sku and product_sku.name or '',
+                          'pic_path':product.pic_path,
                           'num':order.num,
                           'post_check':is_need_check,
+                          'status':order.get_status_display()
                           }
             
             order_items.append(order_dict)
@@ -1550,7 +1553,7 @@ class PackageScanCheckView(ModelView):
         
         order_items = self.getOrderItemsFromTrade(mt)
         
-        return {'package_id':package_id,
+        return {'package_no':package_id,
                 'trade_id':mt.id,
                 'order_items':order_items}
     
@@ -1578,7 +1581,7 @@ class PackageScanCheckView(ModelView):
         mt.scanner    = request.user.username
         mt.save()
         
-        log_action(request.user.id,mt,CHANGE,u'扫描验货')
+        log_action(mt.user.user.id,mt,CHANGE,u'扫描验货')
         
         return {'isSuccess':True}
         
@@ -1670,7 +1673,7 @@ class PackageScanWeightView(ModelView):
         mt.weighter = request.user.username
         mt.save()
         
-        log_action(request.user.id,mt,CHANGE,u'扫描称重')
+        log_action(mt.user.user.id,mt,CHANGE,u'扫描称重')
         
         return {'isSuccess':True}
     
