@@ -1544,8 +1544,8 @@ class PackageScanCheckView(ModelView):
         package_id = self.parsePackageNo(package_no)
         try:
             mt  =  MergeTrade.objects.get(out_sid=package_id,
-                                          sys_status__in=(pcfg.WAIT_SCAN_WEIGHT_STATUS,
-                                                        pcfg.WAIT_CHECK_BARCODE_STATUS))
+                                          reason_code='',
+                                          sys_status=pcfg.WAIT_CHECK_BARCODE_STATUS)
         except MergeTrade.DoesNotExist:
             return u'运单号未找到订单'
         except MergeTrade.MultipleObjectsReturned:
@@ -1616,8 +1616,9 @@ class PackageScanWeightView(ModelView):
         
         try:
             mt  =  MergeTrade.objects.get(out_sid=package_id,
+                                          reason_code='',
                                           sys_status__in=(pcfg.WAIT_SCAN_WEIGHT_STATUS,
-                                                        pcfg.WAIT_CHECK_BARCODE_STATUS))
+                                                          pcfg.WAIT_CHECK_BARCODE_STATUS))
         except MergeTrade.DoesNotExist:
             return u'运单号未找到订单或被拦截'
         except MergeTrade.MultipleObjectsReturned:
@@ -1635,7 +1636,7 @@ class PackageScanWeightView(ModelView):
                 'receiver_state':mt.receiver_state,
                 'receiver_city':mt.receiver_city,
                 'receiver_district':mt.receiver_district,
-                'receiver_address':mt.receiver_address,
+                'receiver_address':mt.receiver_address
                 }
     
         

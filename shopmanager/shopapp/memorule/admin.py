@@ -81,7 +81,7 @@ class ComposeItemInline(admin.TabularInline):
     
 
 class ComposeRuleAdmin(admin.ModelAdmin):
-    list_display = ('id','outer_id','outer_sku_id','payment','type','extra_info')
+    list_display = ('id','outer_id','outer_sku_id','payment','type','extra_info','created','modified')
     list_display_links = ('id','outer_id')
     #list_editable = ('update_time','task_type' ,'is_success','status')
 
@@ -90,6 +90,11 @@ class ComposeRuleAdmin(admin.ModelAdmin):
     search_fields = ['id','outer_id','extra_info']
     
     inlines = [ComposeItemInline]
+    
+    class Media:
+        css = {"all": ("admin/css/forms.css","css/admin/dialog.css", "jquery/jquery-ui-1.10.1.css")}
+        js = ("script/admin/adminpopup.js","jquery/jquery-ui-1.8.13.min.js",
+              "jquery/addons/jquery.upload.js","memorule/js/rule.csvfile.upload.js")
 
 
 admin.site.register(ComposeRule, ComposeRuleAdmin)

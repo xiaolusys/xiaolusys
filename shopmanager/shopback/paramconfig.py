@@ -130,8 +130,7 @@ HAS_DELIVERY_STATUS = [WAIT_CHECK_BARCODE_STATUS,
                        FINISHED_STATUS,
                        INVALID_STATUS]
 
-CANCEL_YUNDASID_STATUS = (WAIT_AUDIT_STATUS,
-                          INVALID_STATUS,
+CANCEL_YUNDASID_STATUS = (INVALID_STATUS,
                           REGULAR_REMAIN_STATUS,
                           ON_THE_FLY_STATUS)
 

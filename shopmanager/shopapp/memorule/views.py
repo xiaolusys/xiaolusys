@@ -1,20 +1,30 @@
 #-*- coding:utf8 -*-
 __author__ = 'meixqhi'
+import re
 import json
+from django.core.urlresolvers import reverse
 from djangorestframework.views import ModelView
 from djangorestframework.response import ErrorResponse
 from djangorestframework import status
+
 from shopback.orders.models import Order,Trade
 from shopback.trades.models import MergeTrade
 from shopback.items.models import Item
 from shopback.users.models import User
-from shopapp.memorule.models import TradeRule,ProductRuleField,RuleMemo
+from shopback.base.views import ModelView,FileUploadView
+from shopapp.memorule.models import (TradeRule,
+                                     ProductRuleField,
+                                     RuleMemo,
+                                     ComposeRule,
+                                     ComposeItem)
 from common.utils import parse_datetime
 from auth import apis
+
+CHAR_NUMBER_REGEX = re.compile('^\w+$')
+
 import logging
 
 logger = logging.getLogger('django.request')
-
 
 
 def to_memo_string(memo):
@@ -92,3 +102,86 @@ class ProductRuleFieldsView(ModelView):
         return product_fields
 
     post = get
+
+
+class ComposeRuleByCsvFileView(FileUploadView):
+    
+    file_path     = 'product'
+    filename_save = 'splitrule_%s.csv'
+    
+    def get(self, request, *args, **kwargs):
+        pass
+    
+    def getSerialNo(self,row):
+        return row[0]
+    
+    def getProductCode(self,row):
+        return row[1]
+    
+    def getProductName(self,row):
+        return row[2]
+    
+    def getSkuCode(self,row):
+        return row[3]
+    
+    def getSkuName(self,row):
+        return row[4]
+    
+    def getProductNum(self,row):
+        return row[5]
+        
+    def createComposeRule(self,row):
+        
+        product_code = self.getProductCode(row)
+        if not CHAR_NUMBER_REGEX.match(product_code):
+            return 
+        
+        sku_code = self.getSkuCode(row)
+        
+        cr,state = ComposeRule.objects.get_or_create(outer_id=product_code,
+                                                     outer_sku_id=sku_code)
+        
+        cr.type = ComposeRule.RULE_SPLIT_TYPE
+        cr.extra_info = self.getProductName(row)+self.getSkuName(row)
+        cr.save()
+        
+        return cr
+        
+        
+    def createComposeItem(self,row,rule=None):
+        
+        product_code = self.getProductCode(row)
+        if not (rule and CHAR_NUMBER_REGEX.match(product_code)):
+            return 
+        
+        sku_code = self.getSkuCode(row)
+        
+        ci,state = ComposeItem.objects.get_or_create(compose_rule=rule,
+                                                     outer_id=product_code,
+                                                     outer_sku_id=sku_code)
+        
+        ci.num   = self.getProductNum(row)
+        ci.extra_info   = self.getProductName(row)+self.getSkuName(row)
+        ci.save()
+        
+    
+    def handle_post(self,request,csv_iter):
+        
+        encoding     = self.getFileEncoding(request)
+        cur_rule     = None
+        
+        for row in csv_iter:
+            
+            row = [r.strip().decode(encoding) for r in row]
+            print row
+            if self.getSerialNo(row):
+                cur_rule = self.createComposeRule(row)
+                continue
+            
+            self.createComposeItem(row,rule=cur_rule)
+                
+        return {'success':True,
+                'redirect_url':reverse('admin:memorule_composerule_changelist')}
+        
+        
+ 
