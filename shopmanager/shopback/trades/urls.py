@@ -166,14 +166,14 @@ urlpatterns = patterns('shopback.trades.views',
     (r'^scancheck/$',csrf_exempt(PackageScanCheckView.as_view(
         resource=BaseResource,
         renderers=(BaseJsonRenderer,),
-        authentication=(UserLoggedInAuthentication,),
-        permissions=(IsAuthenticated,)
+#        authentication=(UserLoggedInAuthentication,),
+#        permissions=(IsAuthenticated,)
     ))), 
      
     (r'^scanweight/$',csrf_exempt(PackageScanWeightView.as_view(
         resource=BaseResource,
         renderers=(BaseJsonRenderer,),
-        authentication=(UserLoggedInAuthentication,),
-        permissions=(IsAuthenticated,)
+#        authentication=(UserLoggedInAuthentication,),
+#        permissions=(IsAuthenticated,)
     ))), 
 )
