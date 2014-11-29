@@ -107,7 +107,7 @@ class ProductRuleFieldsView(ModelView):
 class ComposeRuleByCsvFileView(FileUploadView):
     
     file_path     = 'product'
-    filename_save = 'splitrule_%s.csv'
+    filename_save = 'composerule_%s.csv'
     
     def get(self, request, *args, **kwargs):
         pass
