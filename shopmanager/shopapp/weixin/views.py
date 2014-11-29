@@ -697,7 +697,7 @@ class FreeSampleView(View):
             
         wx_user,state = WeiXinUser.objects.get_or_create(openid=user_openid)
 
-        html = 'weixin/freesamples1.html'
+        html = 'weixin/freesamples2.html'
         response = render_to_response(html, {"wx_user":wx_user},
                                       context_instance=RequestContext(request))
         response.set_cookie("openid",user_openid)
