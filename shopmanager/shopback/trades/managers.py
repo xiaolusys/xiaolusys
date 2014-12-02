@@ -315,6 +315,40 @@ class MergeTradeManager(models.Manager):
             
         return from_code
     
+    def updateProductStockByTrade(self,trade):
+        
+        for order in trade.print_orders:
+            
+            outer_id     = order.outer_id
+            outer_sku_id = order.outer_sku_id
+            order_num    = order.num
+            
+            if outer_sku_id:
+                psku = ProductSku.objects.get(product__outer_id=outer_id,
+                                              outer_id=outer_sku_id)
+                psku.update_quantity(order_num,dec_update=True)
+                psku.update_wait_post_num(order_num,dec_update=True)
+                
+            else:
+                prod = Product.objects.get(outer_id=outer_id)
+                prod.update_collect_num(order_num,dec_update=True)
+                prod.update_wait_post_num(order_num,dec_update=True)
+                
+        for order in trade.return_orders:
+            
+            outer_id     = order.outer_id
+            outer_sku_id = order.outer_sku_id
+            order_num    = order.num
+            
+            if outer_sku_id:
+                psku = ProductSku.objects.get(product__outer_id=outer_id,
+                                              outer_id=outer_sku_id)
+                psku.update_quantity(order_num,dec_update=False)
+                
+            else:
+                prod = Product.objects.get(outer_id=outer_id)
+                prod.update_collect_num(order_num,dec_update=False)
+    
     
     
     

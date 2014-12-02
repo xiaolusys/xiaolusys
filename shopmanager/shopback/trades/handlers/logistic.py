@@ -35,7 +35,7 @@ class LogisticsHandler(BaseHandler):
         elif shipping_type in (pcfg.POST_SHIPPING_TYPE.upper(),
                                pcfg.EMS_SHIPPING_TYPE.upper()):
             return LogisticsCompany.objects.get_or_create(
-                                        code=shipping_type)
+                                        code=shipping_type)[0]
         
             
     def process(self,merge_trade,*args,**kwargs):

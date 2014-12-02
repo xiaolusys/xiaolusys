@@ -10,8 +10,8 @@ from shopapp.weixin.models import (WeiXinAccount,
                                    WXProduct,
                                    WXOrder,
                                    WXLogistic,
-                                   ReferalRelationship,
-                                   ReferalSummary,
+                                   #ReferalRelationship,
+                                   #ReferalSummary,
                                    ReferalBonusRecord,
                                    Refund,
                                    FreeSample,
@@ -201,7 +201,7 @@ class ReferalRelationshipAdmin(admin.ModelAdmin):
     
     search_fields = ['referal_from_openid','referal_to_mobile']
 
-admin.site.register(ReferalRelationship, ReferalRelationshipAdmin) 
+#admin.site.register(ReferalRelationship, ReferalRelationshipAdmin) 
 
 
 class ReferalSummaryAdmin(admin.ModelAdmin):
@@ -209,7 +209,7 @@ class ReferalSummaryAdmin(admin.ModelAdmin):
 
     search_fields = ['user_openid']
 
-admin.site.register(ReferalSummary, ReferalSummaryAdmin) 
+#admin.site.register(ReferalSummary, ReferalSummaryAdmin) 
 
 
 class ReferalBonusRecordAdmin(admin.ModelAdmin):

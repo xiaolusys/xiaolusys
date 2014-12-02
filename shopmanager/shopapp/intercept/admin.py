@@ -13,7 +13,7 @@ from shopback.base import log_action,User, ADDITION, CHANGE
 from shopback.base.options import DateFieldListFilter
 from shopback import paramconfig as pcfg
 from .models import InterceptTrade
-from common.utils import gen_cvs_tuple,CSVUnicodeWriter
+from common.utils import gen_cvs_tuple,CSVUnicodeWriter,update_model_fields
 
 
 class InterceptTradeAdmin(admin.ModelAdmin):
@@ -21,7 +21,7 @@ class InterceptTradeAdmin(admin.ModelAdmin):
     list_display = ('id','buyer_nick','buyer_mobile','serial_no','trade_id','created','modified','status')
     search_fields = ['buyer_nick','buyer_mobile','serial_no']
     
-    list_filter = ('status',)
+    list_filter = ('status',('created',DateFieldListFilter))
     
     class Media:
         css = {"all": ("admin/css/forms.css","css/admin/dialog.css", "jquery/jquery-ui-1.10.1.css")}
@@ -92,7 +92,43 @@ class InterceptTradeAdmin(admin.ModelAdmin):
         
     export_tradeinfo_action.short_description = u"导出拦截订单信息"
     
-    actions = ['intercept_trade_action','export_tradeinfo_action']
+    def export_orderdetail_action(self,request,queryset):
+        """ 导出订单明细信息 """
+        
+        queryset = queryset.filter(status=InterceptTrade.COMPLETE)
+        is_windows = request.META['HTTP_USER_AGENT'].lower().find('windows') >-1 
+        pcsv =[]
+        pcsv.append((u'商品编码','商品名称',u'规格编码',u'规格名称',u'拍下数量'))
+        
+        from shopback.trades.models import MergeTrade
+        from shopback.trades.tasks import get_trade_pickle_list_data
+        trade_ids = []
+        for itrade in queryset:
+            trade_ids.append(itrade.id)
+        
+        mtrades = MergeTrade.objects.filter(id__in=trade_ids)
+        pickle_list = get_trade_pickle_list_data(mtrades)
+        
+        for pickle in pickle_list:
+            
+            pskus = pickle[1]['skus']
+            for sku in pskus:
+            
+                pcsv.append(('%s'%p for p in [pickle[0],pickle[1]['title'],sku[0],sku[1]['sku_name'],sku[1]['num']]))
+                
+        tmpfile = StringIO.StringIO()
+        writer  = CSVUnicodeWriter(tmpfile,encoding = is_windows and "gbk" or 'utf8')
+        writer.writerows(pcsv)
+            
+        response = HttpResponse(tmpfile.getvalue(), mimetype='application/octet-stream')
+        tmpfile.close()
+        response['Content-Disposition'] = 'attachment;filename=intercept-tradedetail-%s.csv'%str(int(time.time()))
+        
+        return response
+        
+    export_orderdetail_action.short_description = u"导出订单明细信息"
+    
+    actions = ['intercept_trade_action','export_tradeinfo_action','export_orderdetail_action']
     
     
 admin.site.register(InterceptTrade, InterceptTradeAdmin) 

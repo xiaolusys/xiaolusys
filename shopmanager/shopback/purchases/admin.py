@@ -429,7 +429,7 @@ class PurchaseStorageRelationshipAdmin(admin.ModelAdmin):
     #list_editable = ('update_time','task_type' ,'is_success','status')
 
     list_filter = ('is_addon',)
-    search_fields = ['purchase_id','purchase_item_id','storage_id','outer_id']
+    search_fields = ['purchase_id','purchase_item_id','storage_id','outer_id','outer_sku_id']
     
 
 admin.site.register(PurchaseStorageRelationship,PurchaseStorageRelationshipAdmin)

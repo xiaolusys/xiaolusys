@@ -116,6 +116,10 @@ class RuleMemo(models.Model):
     
     
 class ComposeRule(models.Model):
+    
+    RULE_PAYMENT_TYPE = 'payment'
+    RULE_SPLIT_TYPE   = 'product'
+    
     #匹配规则
     outer_id = models.CharField(max_length=64,db_index=True,
                                 blank=True,verbose_name=u'商品外部编码')

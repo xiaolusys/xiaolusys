@@ -35,6 +35,15 @@ class ProductManager(models.Manager):
                 return [ p for p in products]
             
         return []
+    
+    def getBarcodeByOuterid(self,outer_id,outer_sku_id=''):
+        
+        product = self.get(outer_id=outer_id)
+        product_sku = None
+        if outer_sku_id:
+            product_sku = product.prod_skus.get(outer_id=outer_sku_id)
+            
+        return product_sku and product_sku.BARCODE or product.BARCODE
             
     
     def getProductSkuByOuterid(self,outer_id,outer_sku_id):

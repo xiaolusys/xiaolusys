@@ -6,22 +6,13 @@
 
 <div class="container-fluid">
 
-  {% if oct_passed %}
-  <div class="panel panel-default" style="margin-top:5px">
-    <div class="panel-heading" style="color:orange">十月活动 100元免单</div>
-    <div class="panel-body">
-      <p>亲，您具有100元免单资格！</p>
-      <p style="color:red">请在今晚0:00 - 4:00拍下支付您所需的产品！</p>
-    </div>
-  </div>
-  {% endif %}
   <div class="panel panel-default" style="margin-top:5px">
     <div class="panel-heading" style="color:orange">十一月 感恩季</div>
     <div class="panel-body">
       <div class="row">
 	<div class="col-xs-12">
-          <p style="color:red">感恩他人，就是善待自己。</p>
-	  {% if referal_images|length > 0 %}
+          <p style="color:red">感恩大礼包活动已结束，下期活动即将来袭...</p>
+	  <!--{% if referal_images|length > 0 %}
           <p>亲，有<font style="color:orange;font-size:20px">{{ referal_images|length }}</font>位好友在期盼您的感恩礼包！</p>
           <p>
             {% for images in referal_images %}
@@ -31,58 +22,25 @@
 	  {% else %}
 	  <p style="color:orange">亲，还没有人使用您的F吗哦。</p>
 	  <p style="color:red">把F码分享给好友，您就可以给她发感恩礼包啦！</p>
-	  {% endif %}
+	  {% endif %}-->
         </div>
       </div>
       <div class="row">
-	<div class="col-xs-12" style="text-align:center">
+	<!--<div class="col-xs-12" style="text-align:center">
 	  {% if my_award and my_award.is_share %}
-	  <p style="color:#d9534f">您已完成感恩礼包发送。记得让好友来领！ <a href="/weixin/sampleads/{{ wx_user.pk }}/">分享朋友圈>></a></p>
+	  	<p style="color:#d9534f">您已完成感恩礼包发送。记得让好友来领！ <a href="/weixin/sampleads/{{ wx_user.pk }}/">分享朋友圈>></a></p>
 	  {% else %}
-          <p><a href="/weixin/sales/award/notify/" class="btn btn-warning">立即发礼包 >></a></p>
+        <p><a href="/weixin/sales/award/notify/" class="btn btn-warning">立即发礼包 >></a></p>
 	  {% endif %}
-        </div>
+        </div>-->
       </div>
     </div>
   </div>
 
   <div class="panel panel-default" style="margin-top:5px">
-    <div class="panel-heading" style="color:orange">我收到的礼包</div>
+    <div class="panel-heading" style="color:orange">上期感恩活动产品展示</div>
     <div class="panel-body">
       {% csrf_token %}
-      <div class="row" id="id_award_remind" {% if my_award and my_award.is_receive %} style="display:none" {% else %} style="display:block" {% endif %}>
-      <div class="col-xs-12" style="height:160px;padding-top:20px;text-align:center;background-image:url(https://mmbiz.qlogo.cn/mmbiz/yMhOQPTKhLvXic8acrqDl4mC6c1wQH5GuaOn4yVkHfHHicFTe8ib5BaSuiawRibdN9FiaLuNJteKWgCoO5MdAicmCqFRg/0)">
-	{% if parent_award and parent_award.is_share %} 
-        <p>您的好友 [{{ parent_nickname }}] 给您发了一个感恩礼包，快打开看看吧！</p>
-        <button class="btn btn-danger" onclick="unpack()">打开礼包 &gt;&gt;</button>
-        {% elif parent_award and parent_award.remind_count > 0 %}
-        <p>亲，我们已经用短信提醒您的好友，感谢您耐心等待！</p>
-        {% elif parent_nickname %}
-        <p id="id-remind-msg" style="color:red">亲，好友 {{ parent_nickname }} 还未给您发送感恩礼包哦，快提醒下她吧！</p>
-        <button id="id-remind" type="button" class="btn btn-danger" onclick="remind()">点击发送提醒 &gt;&gt;</button>
-	{% else %}
-	<p id="id-remind-msg" style="color:red">亲，您还未使用过任何人的F码。用好友F码立即申请，即可得到感恩礼包！<a href="/weixin/freesamples/">立即申请 >></a></p>
-        {% endif %}
-      </div>
-      </div>
-      {% if parent_award and parent_award.is_share %}
-      <div id="id_award" {% if my_award and my_award.is_receive %} style="display:block" {% else %} style="display:none" {% endif %}>
-	<p style="color:#d9534f">您的礼包含有：</p>
-	<p style="color:#d9534f">1. 优尼世界 双十一满199减50优惠券</p>
-	<div class="row">
-	  <div class="col-xs-6">
-	    <div class="thumbnail">
-	      <img src="https://mmbiz.qlogo.cn/mmbiz/yMhOQPTKhLticIHepSybaDQKTV5LXs8iaLKgbibibRvEcbiax61bchOUpyTFzP8qNGPUF6JSHQ3YOysrtfFOLj8tCqg/0"> 
-	      <span style="font-size:10px">请复制右边链接到电脑或手机浏览器领取。</span>
-	    </div>
-
-	  </div>
-	  <div class="col-xs-6">
-	    <p><font style="font-size:10px">电脑领取链接:</font><br><font style="font-size:11px">http://t.cn/R78HobI</font></p>
-	    <p><font style="font-size:10px">手机领取链接:</font><br><font style="font-size:11px">http://t.cn/R78Hku7</font></p>
-	    <p><a style="font-size:10px" href="/weixin/couponrule/">其他领取方式 &gt;&gt;</a></p>
-	  </div>
-	</div>
 	{% if gift_selection == 1 %}
 	<p id="id_parent_award" selection="1" style="color:#d9534f">2. 天猫No.1 卡通吸汗巾</p>
 	{% endif %}
@@ -117,7 +75,7 @@
 	    </div>
 	  </div>
 	</div>
-	<p style="color:#d9534f">您也可选择不同的礼品：</p>
+	<p style="color:#d9534f">您还可以选择：</p>
 	<div class="row">
 	  <div class="col-xs-12" style="text-align:center">
 	    <select class="form-control input-sm" name="selection" id="id_selection">
@@ -130,23 +88,6 @@
 	    </select>
 	  </div>
 	</div>
-	<p style="margin-top:15px;color:red">为了实现自由选择，请用下面优惠券拍下您的礼物产品，免费包邮寄到家哦！</p>
-	<div class="row">
-	  <div class="col-xs-6">
-	    <div class="thumbnail">
-	      <img src="https://mmbiz.qlogo.cn/mmbiz/yMhOQPTKhLticIHepSybaDQKTV5LXs8iaLqTM5mriaRVLuLR5LotjM9ks6OL1icCoED9qHibN7XGOzdLemSFqIfWwYw/0">
-	      <span style="font-size:10px">请复制右边链接到电脑或手机浏览器领取。</span>
-	    </div>
-	  </div>
-	  <div class="col-xs-6">
-	    <p><font style="font-size:10px">电脑领取链接:</font><br><font style="font-size:11px">http://t.cn/R78QNv4</font></p>
-	    <p><font style="font-size:10px">手机领取链接:</font><br><font style="font-size:11px">http://t.cn/R7BYJ8i</font></p>
-	    <p><a style="font-size:10px" href="/weixin/couponrule/">其他领取方式 >></a></p>
-	  </div>
-	</div>
-	<p style="font-size:10px"><font style="color:#d9534f">温馨提示</font>：您也可联系微信客服索要优惠券链接，及咨询其他问题。</p>
-      </div>
-      {% endif %}
     </div>
   </div>
   

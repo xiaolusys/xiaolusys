@@ -70,7 +70,7 @@ class PickItem(models.Model):
     
     barcode  = models.CharField(max_length=64,db_index=True,blank=True,verbose_name=u'识别码')
     title    = models.CharField(max_length=256,blank=True,verbose_name=u'商品名称')
-    item_num = models.IntegerField(null=True,db_index=True,verbose_name=u'数量')
+    item_num = models.IntegerField(default=0,db_index=True,verbose_name=u'数量')
     
     identity = models.IntegerField(default=0,db_index=True,verbose_name=u'商品标识')    
     

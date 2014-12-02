@@ -288,8 +288,14 @@ class MergeTrade(models.Model):
          
     @property
     def print_orders(self):
-        return self.merge_orders.filter(sys_status=pcfg.IN_EFFECT).exclude(gift_type=pcfg.RETURN_GOODS_GIT_TYPE)
-         
+        return self.merge_orders.filter(sys_status=pcfg.IN_EFFECT)\
+            .exclude(gift_type=pcfg.RETURN_GOODS_GIT_TYPE)
+    
+    @property
+    def return_orders(self):
+        return self.merge_orders.filter(sys_status=pcfg.IN_EFFECT,
+                                        gift_type=pcfg.RETURN_GOODS_GIT_TYPE)
+    
     @property
     def buyer_full_address(self):
         return '%s%s%s%s%s%s%s'%(self.receiver_name.strip(),
@@ -550,7 +556,7 @@ class MergeOrder(models.Model):
     adjust_fee   = models.FloatField(default=0.0,verbose_name=u'调整费用')
 
     sku_properties_name = models.CharField(max_length=256,blank=True,
-                                           verbose_name=u'购买商品规格')
+                                           verbose_name=u'购买规格')
     
     refund_id = models.BigIntegerField(null=True,blank=True,verbose_name=u'退款号')
     refund_status = models.CharField(max_length=40,choices=REFUND_STATUS,

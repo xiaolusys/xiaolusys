@@ -14,9 +14,16 @@ from shopback.logistics.models import LogisticsCompany
 from shopback.base.views import ModelView,ListOrCreateModelView,ListModelView,FileUploadView
 from shopback.base import log_action, ADDITION, CHANGE
 from .service import YundaPackageService,DEFUALT_CUSTOMER_CODE
-from .models import BranchZone,YundaCustomer,LogisticOrder,ParentPackageWeight,\
-    TodaySmallPackageWeight,TodayParentPackageWeight,JZHW_REGEX,YUNDA,NORMAL,\
-    DELETE
+from .models import (BranchZone,
+                     YundaCustomer,
+                     LogisticOrder,
+                     ParentPackageWeight,
+                     TodaySmallPackageWeight,
+                     TodayParentPackageWeight,
+                     JZHW_REGEX,
+                     YUNDA,
+                     NORMAL,
+                     DELETE)
 from .options import get_addr_zones
 
 

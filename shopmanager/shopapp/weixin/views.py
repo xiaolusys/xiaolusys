@@ -335,10 +335,10 @@ class OrderInfoView(View):
             refund = refund_list[0] 
         
         passed = False
-        start_time = datetime.datetime(2014,8,28)
-        sample_orders = SampleOrder.objects.filter(user_openid=user_openid).filter(status__gt=10)\
-            .filter(status__lt=22).filter(created__gt=start_time)
-        refund_records = Refund.objects.filter(user_openid=user_openid,created__gt=start_time)
+        start_time = datetime.datetime(2014,10,8)
+        sample_orders = SampleOrder.objects.filter(user_openid=user_openid,status__gt=30,status__lt=39,created__gt=start_time)
+        refund_time = datetime.datetime(2014,11,23)
+        refund_records = Refund.objects.filter(user_openid=user_openid,created__gt=refund_time)
         if sample_orders.count() > 0 and refund_records.count() < 1:
             passed = True
 
@@ -637,7 +637,7 @@ class RefundReviewView(View):
                 wx_users = WeiXinUser.objects.filter(mobile=mobile)
                 if wx_users.count() > 0:
                     openid = wx_users[0].openid
-                    orders = SampleOrder.objects.filter(user_openid=openid).filter(status__gt=10).filter(status__lt=22)
+                    orders = SampleOrder.objects.filter(user_openid=openid).filter(status__gt=30).filter(status__lt=39)
                     if orders.count() > 0:
                         sample_order = orders[0]
                         
@@ -666,8 +666,8 @@ class RefundRecordView(View):
             wx_users = WeiXinUser.objects.filter(mobile=mobile)
             if wx_users.count() > 0:
                 openid = wx_users[0].openid
-                if refund.refund_type == 1:
-                    orders = SampleOrder.objects.filter(user_openid=openid).filter(status__gt=10).filter(status__lt=22)
+                if refund.refund_type == 4:
+                    orders = SampleOrder.objects.filter(user_openid=openid).filter(status__gt=30).filter(status__lt=39)
                     if orders.count() > 0:
                         sample_order = orders[0]
                 if refund.refund_type == 2:
@@ -694,10 +694,10 @@ class FreeSampleView(View):
         if user_openid == "" or user_openid == None or user_openid == "None":
             redirect_url = "https://open.weixin.qq.com/connect/oauth2/authorize?appid=wxc2848fa1e1aa94b5&redirect_uri=http://weixin.huyi.so/weixin/freesamples/&response_type=code&scope=snsapi_base&state=135#wechat_redirect"
             return redirect(redirect_url)
-            
+        
         wx_user,state = WeiXinUser.objects.get_or_create(openid=user_openid)
-
-        html = 'weixin/freesamples1.html'
+        
+        html = 'weixin/freesamples2.html'
         response = render_to_response(html, {"wx_user":wx_user},
                                       context_instance=RequestContext(request))
         response.set_cookie("openid",user_openid)
