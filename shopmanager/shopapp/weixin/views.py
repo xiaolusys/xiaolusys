@@ -694,9 +694,9 @@ class FreeSampleView(View):
         if user_openid == "" or user_openid == None or user_openid == "None":
             redirect_url = "https://open.weixin.qq.com/connect/oauth2/authorize?appid=wxc2848fa1e1aa94b5&redirect_uri=http://weixin.huyi.so/weixin/freesamples/&response_type=code&scope=snsapi_base&state=135#wechat_redirect"
             return redirect(redirect_url)
-            
+        
         wx_user,state = WeiXinUser.objects.get_or_create(openid=user_openid)
-
+        
         html = 'weixin/freesamples2.html'
         response = render_to_response(html, {"wx_user":wx_user},
                                       context_instance=RequestContext(request))
