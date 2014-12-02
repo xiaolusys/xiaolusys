@@ -1057,8 +1057,14 @@ class RequestCouponView(View):
 
 class SurveyView(View):
     def get(self, request):
-        user_openid = request.COOKIES.get('openid')
-        
+        content = request.REQUEST
+        code = content.get('code',None)
+        user_openid = get_user_openid(request, code)
+
+        if user_openid == None or user_openid == "None":
+            redirect_url = "https://open.weixin.qq.com/connect/oauth2/authorize?appid=wxc2848fa1e1aa94b5&redirect_uri=http://weixin.huyi.so/weixin/survey/&response_type=code&scope=snsapi_base&state=135#wechat_redirect"
+            return redirect(redirect_url)
+
         exist = False
         wx_users = WeiXinUser.objects.filter(openid=user_openid)
         if wx_users.count() > 0:
