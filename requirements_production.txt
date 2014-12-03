@@ -32,7 +32,7 @@ xhtml2pdf==0.0.6
 #line_profiler
 #guppy
 
-git+ssh://user1@qiyue.huyi.so/home/user1/repo/django-chartit.git#egg=django-chartit
+#git+ssh://user1@qiyue.huyi.so/home/user1/repo/django-chartit.git#egg=django-chartit
 #git+shh://user1@222.73.86.185/repo/django-rest-framework.git#egg=djangorestframework
 #git+git://github.com/dcramer/django-devserver#egg=django-devserver
 
