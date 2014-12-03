@@ -20,8 +20,7 @@ gevent==1.0.1
 Pillow>=2.0.0
 coverage==3.5
 html5lib==0.90
-httplib2==0.9
-nose==1.3.1
+#nose==1.3.1
 pyPdf2==1.19
 reportlab==2.5
 xhtml2pdf==0.0.6
@@ -33,7 +32,7 @@ xhtml2pdf==0.0.6
 #line_profiler
 #guppy
 
-git+ssh://user1@qiyue.f3322.org/home/user1/repo/django-chartit.git#egg=django-chartit
+git+ssh://user1@qiyue.huyi.so/home/user1/repo/django-chartit.git#egg=django-chartit
 #git+shh://user1@222.73.86.185/repo/django-rest-framework.git#egg=djangorestframework
 #git+git://github.com/dcramer/django-devserver#egg=django-devserver
 
