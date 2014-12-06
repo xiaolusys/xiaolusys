@@ -11,11 +11,11 @@ class CrawZhe800ItemsTask(Task):
     platform  = SaleProduct.ZHEBABAI
     
     def crawUrlItems(self,url):
-        
+        pass
         
     
     def run(self,*args, **kwargs):
-        
+        pass
      
      
 class CrawXiaoherItemsTask(Task):

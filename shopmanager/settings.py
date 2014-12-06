@@ -149,7 +149,7 @@ INSTALLED_APPS = (
     'supplychain.wavepick',
     'games.paint',
     
-    'grandsale.supplier',
+    'flashsale.supplier',
 
     #'test.celery',
     #'shopapp.notify',
