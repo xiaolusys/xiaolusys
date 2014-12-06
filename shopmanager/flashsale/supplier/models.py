@@ -3,9 +3,9 @@ from django.db import models
 
 
 class SaleSupplier(models.Model):
-
-    supplier_code   =   models.CharField(max_length=64,unique=True, blank=True,verbose_name=u'品牌缩写')
+    
     supplier_name =   models.CharField(max_length=64,unique=True,blank=True,verbose_name=u'店铺名称')
+    supplier_code   =   models.CharField(max_length=64, blank=True,verbose_name=u'品牌缩写')
     
     brand_url  = models.CharField(max_length=512, blank=True,verbose_name=u'商标图')
     main_page      = models.CharField(max_length=256,blank=True,verbose_name='品牌主页')
