@@ -33,5 +33,8 @@ def has_export_buyer_permission(user):
 def has_export_finance_permission(user):
     return user.has_perm('trades.export_finance_action')
 
+def has_export_orderdetail_permission(user):
+    return user.has_perm('trades.export_orderdetail_action')
+
 def has_export_yunda_permission(user):
     return user.has_perm('trades.export_yunda_action')

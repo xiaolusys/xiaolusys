@@ -202,6 +202,8 @@ class MergeTradeAdmin(admin.ModelAdmin):
             del actions['export_finance_action']
         if not perms.has_export_buyer_permission(user) and 'export_buyer_action' in actions:
             del actions['export_buyer_action']
+        if not perms.has_export_orderdetail_permission(user) and 'export_orderdetail_action' in actions:
+            del actions['export_orderdetail_action']
         if not perms.has_export_yunda_permission(user) and 'export_yunda_action' in actions:
             del actions['export_yunda_action']
         return actions
@@ -823,6 +825,55 @@ class MergeTradeAdmin(admin.ModelAdmin):
         myfile.close()
         response['Content-Disposition'] = 'attachment; filename=%s'%file_name
         return response
+    
+    def export_orderdetail_action(self,request,queryset):
+        """ 导出订单明细信息 """
+        
+        is_windows = request.META['HTTP_USER_AGENT'].lower().find('windows') >-1 
+        pcsv =[]
+        pcsv.append((u'订单序号',u'订单明细ID',u'订单ID',u'客户名称',u'商品编码','商品名称',u'规格编码',u'规格名称',
+                                u'拍下数量',u'付款时间',u'收货人',u'固话',u'手机',u'省',u'市',u'区',u'详细地址',u'快递方式'))
+        
+        trade_ids = []
+        rindex      = 1
+        for itrade in queryset:
+            trade_ids.append(itrade.id)
+        
+        for trade in queryset:
+            index = 0
+            for order in trade.print_orders:  
+                pcsv.append(('%s'%p for p in [ (rindex ,'')[index],
+                                                                            order.oid,
+                                                                            trade.tid,
+                                                                            trade.buyer_nick,
+                                                                            order.outer_id,
+                                                                            order.title,
+                                                                            order.outer_sku_id,
+                                                                            order.sku_properties_name,
+                                                                            order.num,
+                                                                            trade.pay_time,
+                                                                            trade.receiver_name,
+                                                                            trade.receiver_phone,
+                                                                            trade.receiver_mobile,
+                                                                            trade.receiver_state,
+                                                                            trade.receiver_city,
+                                                                            trade.receiver_district,
+                                                                            trade.receiver_address,
+                                                                            trade.get_shipping_type_display()]))
+                index = 1
+            rindex += 1
+            
+        tmpfile = StringIO.StringIO()
+        writer  = CSVUnicodeWriter(tmpfile,encoding = is_windows and "gbk" or 'utf8')
+        writer.writerows(pcsv)
+            
+        response = HttpResponse(tmpfile.getvalue(), mimetype='application/octet-stream')
+        tmpfile.close()
+        response['Content-Disposition'] = 'attachment;filename=orderdetail-%s.csv'%str(int(time.time()))
+        
+        return response
+        
+    export_orderdetail_action.short_description = u"导出订单明细"
 
     export_yunda_action.short_description = "导出韵达信息".decode('utf8')
     
@@ -834,6 +885,7 @@ class MergeTradeAdmin(admin.ModelAdmin):
                'export_logistic_action',
                'export_buyer_action',
                'export_finance_action',
+               'export_orderdetail_action',
                'export_yunda_action']
    
 
