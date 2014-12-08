@@ -832,7 +832,7 @@ class MergeTradeAdmin(admin.ModelAdmin):
         is_windows = request.META['HTTP_USER_AGENT'].lower().find('windows') >-1 
         pcsv =[]
         pcsv.append((u'订单序号',u'订单明细ID',u'订单ID',u'客户名称',u'商品编码','商品名称',u'规格编码',u'规格名称',
-                                u'拍下数量',u'付款时间',u'收货人',u'固话',u'手机',u'省',u'市',u'区',u'详细地址',u'快递方式'))
+                                u'拍下数量',u'留言',u'备注',u'付款时间',u'收货人',u'固话',u'手机',u'省',u'市',u'区',u'详细地址',u'快递方式'))
         
         trade_ids = []
         rindex      = 1
@@ -851,6 +851,8 @@ class MergeTradeAdmin(admin.ModelAdmin):
                                                                             order.outer_sku_id,
                                                                             order.sku_properties_name,
                                                                             order.num,
+                                                                            trade.buyer_message,
+                                                                            '%s%s'%(trade.seller_memo,trade.sys_memo),
                                                                             trade.pay_time,
                                                                             trade.receiver_name,
                                                                             trade.receiver_phone,
