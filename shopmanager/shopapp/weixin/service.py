@@ -307,7 +307,6 @@ class WeixinUserService():
     
     def getLatestTradeByMobile(self,mobile):
         
-        from shopback.trades.models import MergeTrade
         latest_trades = MergeTrade.objects.filter(
                             receiver_mobile=mobile)\
                             .order_by('-pay_time')
@@ -400,6 +399,7 @@ class WeixinUserService():
             
         elif eventType == WeiXinAutoResponse.WX_EVENT_UNSUBSCRIBE:
             self._wx_user.unSubscribe()
+            return WeiXinAutoResponse.respEmptyString()
             
         return self.getResponseByBestMatch(eventKey,openId)
     

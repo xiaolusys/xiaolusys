@@ -220,7 +220,7 @@ class WeiXinUser(models.Model):
         
     def unSubscribe(self):
         self.subscribe = False
-        self.save()
+        self.save() 
 
 
 class ResponseManager(models.Manager):
@@ -309,6 +309,12 @@ class WeiXinAutoResponse(models.Model):
         resp,state = cls.objects.get_or_create(message=cls.WX_DEFAULT,
                                                rtype=cls.WX_TEXT)
         return resp.autoParams()
+    
+    @classmethod
+    def respEmptyString(cls):
+
+        return {'MsgType':cls.WX_TEXT,
+                        'Content':''}
     
     @classmethod
     def respDKF(cls):
