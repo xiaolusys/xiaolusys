@@ -8,7 +8,7 @@ from celery.task.sets import subtask
 from .models import SaleProduct, SaleSupplier, SaleCategory
 
 
-def CrawTask(Task):
+class CrawTask(Task):
     
     def getBeaSoupByCrawUrl(self,url):
         headers = {'Accept':'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
@@ -43,7 +43,7 @@ class CrawZhe800ItemsTask(CrawTask):
         
         for brand_tag in brand_tags:
             
-            brand_url = brand_tag.
+            brand_url = brand_tag
             if brand_url in brand_url_set:
                 continue
             brand_url_set.add(brand_url)
