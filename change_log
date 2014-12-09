@@ -1,3 +1,7 @@
+######## 2014-12-9 ##########
+alter table shop_flashsale_product add column status varchar(16) NOT NULL;
+update shop_flashsale_product set status='wait';
+######## 2014-10-30 ##########
 alter table shop_weixin_user_award add select_val int(11) NOT NULL;
 alter table supplychain_pick_item add identity  int(11) NOT NULL;
 ######## 2014-10-22 ##########

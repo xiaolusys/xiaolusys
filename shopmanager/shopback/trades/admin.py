@@ -743,7 +743,7 @@ class MergeTradeAdmin(admin.ModelAdmin):
                                  fields=['out_sid','tid','user__nick','receiver_name',
                                          'receiver_state','receiver_city','weight',
                                          'logistics_company','post_fee','weight_time'],
-                                 title=[u'运单ID',u'淘宝单号',u'店铺',u'收货人',u'省',u'市',
+                                 title=[u'运单ID',u'原始单号',u'店铺',u'收货人',u'省',u'市',
                                         u'重量',u'快递',u'实付邮费',u'称重日期'])
 
         is_windows = request.META['HTTP_USER_AGENT'].lower().find('windows') >-1 
