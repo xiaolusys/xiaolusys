@@ -25,9 +25,12 @@ class SaleSupplier(models.Model):
     modified   = models.DateTimeField(auto_now=True,verbose_name=u'修改日期')
 
     class Meta:
-        db_table = 'shop_grandsale_supplier'
+        db_table = 'shop_flashsale_supplier'
         verbose_name=u'特卖 供应商'
         verbose_name_plural = u'特卖 供应商列表'
+        
+    def __unicode__(self):
+        return self.supplier_name
 
 
 class SaleCategory(models.Model):
@@ -38,22 +41,25 @@ class SaleCategory(models.Model):
     modified   = models.DateTimeField(auto_now=True,verbose_name=u'修改日期')
 
     class Meta:
-        db_table = 'shop_grandsale_category'  
+        db_table = 'shop_flashsale_category'  
         verbose_name=u'特卖类目'
         verbose_name_plural = u'特卖类目列表'
+        
+    def __unicode__(self):
+        return self.name
         
         
 class SaleProduct(models.Model):
     
-    TIANMAO     = 'tianmao'
+    TAOBAO        = 'tianmao'
     ZHEBABAI     = 'zhe800'
     XIAOHER       = 'xiaoher'
     
-    PLATFORM_CHOICE =  ((TIANMAO,u'天猫'),
+    PLATFORM_CHOICE =  ((TAOBAO,u'淘宝'),
                                                    (ZHEBABAI,u'折800'),
                                                    (XIAOHER,u'小荷特卖'),)
     
-    outer_id  =  models.CharField(max_length=64, blank=True,verbose_name=u'识别码')
+    outer_id  =  models.CharField(max_length=64, blank=True,verbose_name=u'外部ID')
     title           =  models.CharField(max_length=64, blank=True,db_index=True,verbose_name=u'标题')
     price         =  models.FloatField(default=0,verbose_name=u'价格')
     pic_url      =  models.CharField(max_length=512,blank=True,verbose_name=u'商品图片')
@@ -68,10 +74,13 @@ class SaleProduct(models.Model):
     modified   = models.DateTimeField(auto_now=True,verbose_name=u'修改日期')
 
     class Meta:
-        db_table = 'shop_grandsale_product'
+        db_table = 'shop_flashsale_product'
         unique_together = ( "outer_id","platform")
         verbose_name=u'特卖商品'
         verbose_name_plural = u'特卖商品列表'
+        
+    def __unicode__(self):
+        return self.title
         
 
 

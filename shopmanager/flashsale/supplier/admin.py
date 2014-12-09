@@ -31,12 +31,21 @@ admin.site.register(SaleCategory,SaleCategoryAdmin)
 
 class SaleProductAdmin(admin.ModelAdmin):
     
-    list_display = ('outer_id','title','price','sale_supplier','platform','modified')
+    list_display = ('outer_id','pic_link','title','price','sale_supplier','platform','modified')
     list_display_links = ('outer_id','title')
     #list_editable = ('update_time','task_type' ,'is_success','status')
 
-    list_filter   = ('sale_supplier','platform')
+    list_filter   = ('sale_category','platform')
     search_fields = ['id','title','outer_id']
+    
+    def pic_link(self, obj):
+#         abs_pic_url = '%s%s'%(settings.MEDIA_URL,obj.pic_url)
+        return (u'<a href="%s" target="_blank"><img src="%s" width="200px" height="80px"/></a>'%(obj.product_link,obj.pic_url))
+    
+    pic_link.allow_tags = True
+    pic_link.short_description = "上传图片"
+    
+    
     
 admin.site.register(SaleProduct,SaleProductAdmin)
 
