@@ -1,5 +1,6 @@
 # -*- coding:utf8 -*-
 import re
+import datetime
 import urllib
 import httplib2
 from BeautifulSoup import BeautifulSoup
@@ -32,7 +33,7 @@ class CrawTask(Task):
 class CrawZhe800ItemsTask(CrawTask):
     
     craw_urls = (('http://www.zhe800.com/zhuanchang/muying',u'母婴'),
-                            ('http://www.zhe800.com/ju_tag/taofushi',u'女装'))
+                 ('http://www.zhe800.com/ju_tag/taofushi',u'女装'))
     
     
     def saveZ800Item(self,item_url,category=''):
@@ -94,7 +95,7 @@ class CrawZhe800ItemsTask(CrawTask):
             
     
     def crawItems(self,brand_url,category=''):
-        
+        print datetime.datetime.now(),brand_url
         isoup = self.getBeaSoupByCrawUrl(brand_url)
         item_tags  = isoup.findAll(attrs={'href' : re.compile("^http://shop.zhe800.com/products/ze[\w]+")})
         for item_tag in item_tags:
@@ -147,7 +148,7 @@ class CrawZhe800ItemsTask(CrawTask):
 
             if not item_tags or not tmall_tags:
                 has_next = False
-            has_next = False
+
 
     def run(self,*args, **kwargs):
         
