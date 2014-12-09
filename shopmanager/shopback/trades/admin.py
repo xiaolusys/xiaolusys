@@ -845,7 +845,7 @@ class MergeTradeAdmin(admin.ModelAdmin):
                 pcsv.append(('%s'%p for p in [ (rindex ,'')[index],
                                                                             order.oid,
                                                                             trade.tid,
-                                                                            trade.buyer_nick,
+                                                                            trade.receiver_name,
                                                                             order.outer_id,
                                                                             order.title,
                                                                             order.outer_sku_id,

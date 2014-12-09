@@ -37,15 +37,14 @@ class CrawZhe800ItemsTask(CrawTask):
     
     def saveZ800Item(self,item_url,category=''):
         
-        zsoup = self.getBeaSoupByCrawUrl(item_url)
-        
-        bname_tags = zsoup.findAll(attrs={'class' : 'nubB bm'})
-        if not bname_tags:
-            return
-
         outer_id = ZHE_ITEM_NO_RE.match(item_url).groupdict().get('item_no')
         sproduct,state = SaleProduct.objects.get_or_create(outer_id=outer_id)
         if sproduct.title:
+            return
+        
+        zsoup = self.getBeaSoupByCrawUrl(item_url)
+        bname_tags = zsoup.findAll(attrs={'class' : 'nubB bm'})
+        if not bname_tags:
             return
         
         brand_name = bname_tags[0].findAll('p')[0].text
@@ -67,15 +66,14 @@ class CrawZhe800ItemsTask(CrawTask):
         
     def saveTaobaoItem(self,item_url,category=''):
         
-        tsoup = self.getBeaSoupByCrawUrl(item_url)
-        
-        bname_tags = tsoup.findAll(attrs={'class' : 'shop-intro'})
-        if not bname_tags:
-            return
-
         outer_id = TMALL_ITEM_ID_RE.match(item_url).groupdict().get('item_id')
         sproduct,state = SaleProduct.objects.get_or_create(outer_id=outer_id)
         if sproduct.title:
+            return
+        
+        tsoup = self.getBeaSoupByCrawUrl(item_url)     
+        bname_tags = tsoup.findAll(attrs={'class' : 'shop-intro'})
+        if not bname_tags:
             return
         
         brand_name = bname_tags[0].findAll('shopLink')[0].text
@@ -123,7 +121,7 @@ class CrawZhe800ItemsTask(CrawTask):
                     
             zhe_url              = '%s?%s'%(url,urllib.urlencode({'page':page,'sort':'hottest','type':'all'}))
             bsoup = self.getBeaSoupByCrawUrl(zhe_url)
-            print zhe_url
+
             brand_tags = bsoup.findAll(attrs={'href' : re.compile("^http://brand.zhe800.com/[\w]+")})
             for brand_tag in brand_tags:
                 
@@ -146,7 +144,7 @@ class CrawZhe800ItemsTask(CrawTask):
                 if not tmall_url :
                     continue
                 self.saveTaobaoItem(tmall_url,category=category)
-            print item_tags,'-----------',tmall_tags
+
             if not item_tags or not tmall_tags:
                 has_next = False
             has_next = False

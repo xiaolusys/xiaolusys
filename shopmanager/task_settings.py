@@ -183,6 +183,11 @@ SHOP_APP_SCHEDULE = {
         'schedule':crontab(minute="*/5",),
         'args':()
     },
+    u'定时抓取折800平台商品':{
+        'task':'flashsale.supplier.tasks.CrawZhe800ItemsTask',
+        'schedule':crontab(minute="30",hour='6'),
+        'args':()
+    },    
 #    'runs-every-10-minutes-update-seller-flag':{
 #        'task':'shopapp.memorule.tasks.updateTradeSellerFlagTask',
 #        'schedule':crontab(minute="*/10"),
