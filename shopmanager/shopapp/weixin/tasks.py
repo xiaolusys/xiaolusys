@@ -29,7 +29,7 @@ def pullWXProductTask():
     
 @task
 def pullWaitPostWXOrderTask(begintime,endtime,update_status=[WXOrder.WX_WAIT_SEND,
-                                                      WXOrder.WX_FINISHED]):
+                                                     WXOrder.WX_WAIT_CONFIRM, WXOrder.WX_FINISHED]):
     
     _wx_api = WeiXinAPI()
     
