@@ -17,7 +17,7 @@ headers = {'Accept':'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q
 
 ckjar = cookielib.MozillaCookieJar(os.path.join('/tmp/', 'cookies.txt'))
 # uri = 'http://brand.zhe800.com/langshamuying'
-uri = 'http://out.zhe800.com/ju/deal/2014dong_719879?page_stats_w=ju_tag/taofushi/3*3&amp;ju_flag=1'
+uri = 'http://www.xiaoher.com/detail/3910/10073820'
  
 request = urllib2.Request(uri)
 for k,v in headers.iteritems():
@@ -38,7 +38,7 @@ html = response.read()
 gzipped = response.headers.get('Content-Encoding')
 if gzipped:
     html = zlib.decompress(html, 16+zlib.MAX_WBITS)
-html = html.decode('gbk')
+html = html.decode('utf-8')
 
 # print u'你是中国人吗'
 
@@ -61,7 +61,7 @@ html = html.decode('gbk')
 print html
 from BeautifulSoup import BeautifulSoup
 soup = BeautifulSoup(html)
-items =  soup.findAll(attrs={'class' : 'ks-imagezoom-wrap'})
+items =  soup.findAll(attrs={'href' :re.compile('^/detail/')})
 print items
 for item in items:
     print item
