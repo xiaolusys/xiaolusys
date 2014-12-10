@@ -51,11 +51,13 @@ class SaleCategory(models.Model):
         
 class SaleProduct(models.Model):
     
-    TAOBAO        = 'tianmao'
+    TAOBAO        = 'taobao'
+    TMALL           = 'tianmao'
     ZHEBABAI     = 'zhe800'
     XIAOHER       = 'xiaoher'
     
     PLATFORM_CHOICE =  ((TAOBAO,u'淘宝'),
+                                                   (TMALL,u'天猫'),
                                                    (ZHEBABAI,u'折800'),
                                                    (XIAOHER,u'小荷特卖'),)
     
