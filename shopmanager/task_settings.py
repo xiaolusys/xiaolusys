@@ -188,6 +188,11 @@ SHOP_APP_SCHEDULE = {
         'schedule':crontab(minute="30",hour='6'),
         'args':()
     },    
+    u'定时抓取小荷特卖商品':{
+        'task':'flashsale.supplier.tasks.CrawXiaoherItemsTask',
+        'schedule':crontab(minute="30",hour='7'),
+        'args':()
+    },  
 #    'runs-every-10-minutes-update-seller-flag':{
 #        'task':'shopapp.memorule.tasks.updateTradeSellerFlagTask',
 #        'schedule':crontab(minute="*/10"),
