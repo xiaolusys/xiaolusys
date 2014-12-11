@@ -93,11 +93,10 @@ def updateUserItemsTask(user_id):
 @task()
 def updateAllUserItemsTask():
     """ 更新所有用户商品信息任务 """
+    
     users = Seller.effect_users.all()
-
     for user in users:
         subtask(updateUserItemsTask).delay(user.visitor_id)
-
 
 
 @task()
@@ -143,16 +142,16 @@ def updateUserProductSkuTask(user_id=None,outer_ids=None,force_update_num=False)
                                                p.split(':')[3]) 
                                               for p in sku['properties_name'].split(';') if p])
                         
-                        psku, state = ProductSku.objects.get_or_create(outer_id=sku_outer_id, 
+                        pskus = ProductSku.objects.filter(outer_id=sku_outer_id, 
                                                                        product=item.product)
-                        if state:
-                            for key, value in sku.iteritems():
-                                hasattr(psku, key) and setattr(psku, key, value)
-                        else:
-                            psku.properties_name = psku.properties_name or sku['properties_name']
-                            if force_update_num:
-                                wait_post_num = psku.wait_post_num >= 0 and psku.wait_post_num or 0
-                                psku.quantity = sku['quantity'] + wait_post_num
+                        if pskus.count() < 0:
+                            continue
+                         
+                        psku  = pskus[0]
+                        psku.properties_name = psku.properties_name or sku['properties_name']
+                        if force_update_num:
+                            wait_post_num = psku.wait_post_num >= 0 and psku.wait_post_num or 0
+                            psku.quantity = sku['quantity'] + wait_post_num
                                 
                         #psku.std_sale_price =  float(sku['price'])
                         properties = ''
@@ -340,12 +339,14 @@ def updateItemNum(user_id,num_iid):
         return
     
     user_percent = user.stock_percent
-    outer_id = product.outer_id
+    p_outer_id = product.outer_id
     skus = json.loads(item.skus) if item.skus else None
     if skus:
         for sku in skus.get('sku',[]):
             try:
                 outer_sku_id = sku.get('outer_id','')
+                outer_id,outer_sku_id = Product.objects.trancecode(p_outer_id,outer_sku_id)
+                
                 if sku['status'] != pcfg.NORMAL or not outer_sku_id:
                     continue
                 product_sku  = product.prod_skus.get(outer_id=outer_sku_id)
@@ -358,7 +359,7 @@ def updateItemNum(user_id,num_iid):
                 
                 #如果自动更新库存状态开启，并且计算后库存不等于在线库存，则更新
                 if sync_num>0 and user_percent>0:
-                    sync_num = int(user_percet*sync_num)
+                    sync_num = int(user_percent * sync_num)
                 elif sync_num >0 and sync_num <= product_sku.warn_num:
                     total_num,user_order_num = MergeOrder.get_yesterday_orders_totalnum(item.user.id,
                                                                                         outer_id,
@@ -407,7 +408,8 @@ def updateItemNum(user_id,num_iid):
                 
     else:
         order_nums    = 0
-        outer_sku_id  = ''
+        outer_id,outer_sku_id = Product.objects.trancecode(p_outer_id,'')
+        
         wait_nums  = product.wait_post_num >0 and product.wait_post_num or 0
         remain_nums = product.remain_num or 0
         real_num   = product.collect_num
@@ -415,7 +417,7 @@ def updateItemNum(user_id,num_iid):
 
         #如果自动更新库存状态开启，并且计算后库存不等于在线库存，则更新
         if sync_num>0 and user_percent>0:
-            sync_num = int(user_percet*sync_num)
+            sync_num = int(user_percent*sync_num)
         elif sync_num >0 and sync_num <= product.warn_num:
             total_num,user_order_num = MergeOrder.get_yesterday_orders_totalnum(
                                             item.user.id,
