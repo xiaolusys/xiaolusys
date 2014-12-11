@@ -29,8 +29,9 @@ class InterceptHandler(BaseHandler):
         if settings.DEBUG:
             print 'DEBUG INTERCEPT:',merge_trade
         
-        itrades = InterceptTrade.objects.getInterceptTradeByBuyerInfo(merge_trade.buyer_nick,
-                                                                      merge_trade.receiver_mobile,
+        itrades = InterceptTrade.objects.getInterceptTradeByBuyerInfo(
+                                                                      merge_trade.buyer_nick.strip(),
+                                                                      merge_trade.receiver_mobile.strip(),
                                                                       merge_trade.tid)
         
         for itrade in itrades:
