@@ -10,6 +10,10 @@ from celery import Task
 from celery.task import task
 from celery.task.sets import subtask
 from .models import SaleProduct, SaleSupplier, SaleCategory
+import logging
+
+logger = logging.getLogger('celery.handler')
+
 
 ZHE_ITEM_NO_RE     = re.compile('^.+ze(?P<item_no>[0-9]{16,22})')
 TMALL_ITEM_ID_RE = re.compile('^.+id=(?P<item_id>[0-9]{6,16})')
@@ -167,8 +171,8 @@ class CrawZhe800ItemsTask(CrawTask):
                     
                 if  resp_url.startswith('http://item.taobao.com/item.htm'):
                     self.saveTaobaoItem(isoup, resp_url, category=category)
-            except:
-                print 'DEBUG EXCEPT:',resp_url
+            except Exception,exc:
+                logger.error('ITEM URL ERROR:%s'%exc.message,exc_info=True)
                 
         return len(item_tags)
     
@@ -222,7 +226,7 @@ class CrawZhe800ItemsTask(CrawTask):
 class CrawXiaoherItemsTask(CrawTask):
     
     category_urls =  (('http://www.xiaoher.com/?q=children',u'母婴'),
-                                      ('http://www.xiaoher.com/?q=ladys',u'女装'))
+                                      ('http://www.xiaoher.com/?q=ladys',u'女装'),)
     
     site_url = 'http://www.xiaoher.com'
     
@@ -263,8 +267,8 @@ class CrawXiaoherItemsTask(CrawTask):
                 resp_url = response.geturl()
               
                 self.saveXiaoHerItem(isoup, resp_url, category=category)
-            except:
-                print 'DEBUG EXCEPT:',resp_url
+            except Exception,exc:
+                logger.error('ITEM URL ERROR:%s'%exc.message,exc_info=True)
                 
         return len(item_tags)
     
@@ -300,9 +304,6 @@ class CrawXiaoherItemsTask(CrawTask):
             
             item_num = self.crawItemUrl(bsoup, category=category)
             has_next = False
-            
-            if not item_num :
-                has_next = False
 
     def run(self,*args, **kwargs):
         
