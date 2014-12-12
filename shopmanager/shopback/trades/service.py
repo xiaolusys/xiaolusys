@@ -12,6 +12,7 @@ TRADE_TYPE_SERVICE_MAP = {
     pcfg.FENXIAO_TYPE:PurchaseOrderService,
     pcfg.TAOBAO_TYPE:OrderService,
     pcfg.GUARANTEE_TYPE:OrderService,
+    pcfg.TB_STEP_TYPE:OrderService,
     pcfg.COD_TYPE:OrderService,
     pcfg.JD_TYPE:JDShopService,
     pcfg.YHD_TYPE:LocalService,
