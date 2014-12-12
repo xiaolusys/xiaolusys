@@ -82,7 +82,8 @@ class SaleProduct(models.Model):
     platform             = models.CharField(max_length=16,blank=True,
                                             choices=PLATFORM_CHOICE,verbose_name=u'来自平台')
     
-    status       = models.CharField(max_length=16,blank=True,
+    hot_value   = models.IntegerField(default=0,verbose_name=u'热度值')
+    status          = models.CharField(max_length=16,blank=True,
                                             choices=STATUS_CHOICES,default=WAIT,verbose_name=u'状态')
     
     created    = models.DateTimeField(auto_now_add=True,verbose_name=u'创建日期')

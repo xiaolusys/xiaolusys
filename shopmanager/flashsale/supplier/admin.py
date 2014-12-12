@@ -31,10 +31,11 @@ admin.site.register(SaleCategory,SaleCategoryAdmin)
 
 class SaleProductAdmin(admin.ModelAdmin):
     
-    list_display = ('outer_id','pic_link','title','price','sale_supplier','platform','status','modified')
+    list_display = ('outer_id','pic_link','title','price','sale_supplier','platform','hot_value','status','modified')
     list_display_links = ('outer_id','title')
     #list_editable = ('update_time','task_type' ,'is_success','status')
-
+    
+    ordering   = ('-hot_value',)
     list_filter   = ('sale_category','platform','status')
     search_fields = ['id','title','outer_id']
     

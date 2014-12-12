@@ -247,11 +247,19 @@ class CrawXiaoherItemsTask(CrawTask):
         title          = tsoup.findAll(attrs={'class':'details clearfix'})[0].findAll('h2')[0].text.strip()
         item_pic = tsoup.findAll(attrs={'class':'bigPic'})[0].findAll('img')[0].attrMap.get('src','')
         price        = tsoup.findAll(attrs={'class':'item price'})[0].findAll('span')[0].text.replace(u'￥','')
-         
+        
+        psize        = tsoup.findAll(attr={'class':'item size'})[0]
+        hot_value = 0
+        if len(psize.findAll(attr={'class':'s none'}) ):
+            hot_value = 10
+            if len(psize.findAll(attr={'class':'s'})):
+                hot_value = 5
+
         sproduct.title = title
         sproduct.price = price
         sproduct.pic_url = item_pic
         sproduct.product_link = item_url
+        sproduct.hot_value = hot_value
         sproduct.sale_supplier = supplier
         sproduct.sale_category = salecategory
         sproduct.platform = SaleProduct.XIAOHER
