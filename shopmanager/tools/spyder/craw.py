@@ -17,7 +17,7 @@ headers = {'Accept':'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q
 
 ckjar = cookielib.MozillaCookieJar(os.path.join('/tmp/', 'cookies.txt'))
 # uri = 'http://brand.zhe800.com/langshamuying'
-uri = 'http://www.xiaoher.com/detail/3910/10073820'
+uri = 'http://www.xiaoher.com/detail/4260/10088517'
  
 request = urllib2.Request(uri)
 for k,v in headers.iteritems():
@@ -58,10 +58,10 @@ html = html.decode('utf-8')
 # response,content = http.request(uri,'GET',headers=headers)
 # 
 # print response
-print html
+#print html
 from BeautifulSoup import BeautifulSoup
 soup = BeautifulSoup(html)
-items =  soup.findAll(attrs={'href' :re.compile('^/detail/')})
+items =  soup.findAll(attrs={'class' :'item size'})
 print items
 for item in items:
     print item

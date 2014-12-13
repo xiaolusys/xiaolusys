@@ -248,11 +248,11 @@ class CrawXiaoherItemsTask(CrawTask):
         item_pic = tsoup.findAll(attrs={'class':'bigPic'})[0].findAll('img')[0].attrMap.get('src','')
         price        = tsoup.findAll(attrs={'class':'item price'})[0].findAll('span')[0].text.replace(u'￥','')
         
-        psize        = tsoup.findAll(attr={'class':'item size'})[0]
+        psize        = tsoup.findAll(attrs={'class':'item size'})[0]
         hot_value = 0
-        if len(psize.findAll(attr={'class':'s none'}) ):
+        if len(psize.findAll(attrs={'class':'s none'}) ):
             hot_value = 10
-            if len(psize.findAll(attr={'class':'s'})):
+            if len(psize.findAll(attrs={'class':'s'})):
                 hot_value = 5
 
         sproduct.title = title

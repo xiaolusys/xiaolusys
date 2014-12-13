@@ -69,7 +69,6 @@ class SaleProduct(models.Model):
                                (SELECT,u'初选'),
                                (PURCHASE,u'通过'),
                                (INVALID,u'淘汰'),)
-
     
     outer_id  =  models.CharField(max_length=64, blank=True,verbose_name=u'外部ID')
     title           =  models.CharField(max_length=64, blank=True,db_index=True,verbose_name=u'标题')
