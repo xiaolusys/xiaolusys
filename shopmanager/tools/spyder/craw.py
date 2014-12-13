@@ -17,7 +17,7 @@ headers = {'Accept':'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q
 
 ckjar = cookielib.MozillaCookieJar(os.path.join('/tmp/', 'cookies.txt'))
 # uri = 'http://brand.zhe800.com/langshamuying'
-uri = 'http://www.xiaoher.com/detail/4260/10088517'
+uri = 'http://www.zhe800.com/ju_type/baoyou/page/2'
  
 request = urllib2.Request(uri)
 for k,v in headers.iteritems():
@@ -61,9 +61,14 @@ html = html.decode('utf-8')
 #print html
 from BeautifulSoup import BeautifulSoup
 soup = BeautifulSoup(html)
-items =  soup.findAll(attrs={'class' :'item size'})
-print items
+items =  soup.findAll(attrs={'href' :re.compile('^http://out.zhe800.com/ju/deal/')})
+#print items
+print dir(items[0])
+print items[0].findParent().findAll('h4')[0]
 for item in items:
-    print item
+    print item.findParent()
+    print item.findParent().findAll('h4')[0].findAll('em')[0].text.replace('¥','')
 #   print item.findAll('p')[0].text
+    
+    
     

@@ -58,7 +58,8 @@ class CrawTask(Task):
 class CrawZhe800ItemsTask(CrawTask):
     
     category_urls = (('http://www.zhe800.com/zhuanchang/muying',u'母婴'),
-                                    ('http://www.zhe800.com/ju_tag/taofushi',u'女装'),)
+                                    ('http://www.zhe800.com/ju_tag/taofushi',u'女装'),
+                                    ('http://www.zhe800.com/ju_type/baoyou',u'9.9包邮'),)
 
     imatch_urls = ("^http://shop.zhe800.com/products/ze",
                                 "^http://detail.tmall.com/item.htm",
@@ -67,13 +68,11 @@ class CrawZhe800ItemsTask(CrawTask):
     
     imatch_re = re.compile('(%s)'%'|'.join(imatch_urls))
     
-    def saveZ800Item(self,zsoup,item_url,category=''):
+    def saveZ800Item(self,zsoup,item_url,category='',**kwargs):
 
         outer_id = ZHE_ITEM_NO_RE.match(item_url).groupdict().get('item_no')
         sproduct,state = SaleProduct.objects.get_or_create(outer_id=outer_id)
-        if sproduct.title:
-            return
-        
+
         bname_tags = zsoup.findAll(attrs={'class' : 'nubB bm'})
         if not bname_tags:
             return
@@ -95,12 +94,10 @@ class CrawZhe800ItemsTask(CrawTask):
         sproduct.save()
         
         
-    def saveTmallItem(self,tsoup,item_url,category=''):
+    def saveTmallItem(self,tsoup,item_url,category='',**kwargs):
         
         outer_id = TMALL_ITEM_ID_RE.match(item_url).groupdict().get('item_id')
         sproduct,state = SaleProduct.objects.get_or_create(outer_id=outer_id)
-        if sproduct.title:
-            return
         
         bname_tags = tsoup.findAll(attrs={'class' : 'slogo-shopname'})
         if not bname_tags:
@@ -111,12 +108,9 @@ class CrawZhe800ItemsTask(CrawTask):
         salecategory,state   = SaleCategory.objects.get_or_create(name=category)
         title          = tsoup.findAll(attrs={'class':'tb-detail-hd'})[0].findAll('h1')[0].text.strip()
         item_pic = tsoup.findAll(attrs={'class':'tb-booth'})[0].findAll('img')[0].attrMap.get('src','')
-        price        = tsoup.findAll(attrs={'class':'tm-promo-price'}) or 0
-        if price:
-            price = price[0].findAll(attrs={'class':'tm-price'})[0].text.strip()
         
         sproduct.title = title
-        sproduct.price = price
+        sproduct.price = kwargs.get('item_price',0)
         sproduct.pic_url = item_pic
         sproduct.product_link = item_url
         sproduct.sale_supplier = supplier
@@ -124,12 +118,10 @@ class CrawZhe800ItemsTask(CrawTask):
         sproduct.platform = SaleProduct.TMALL
         sproduct.save()
             
-    def saveTaobaoItem(self,tsoup,item_url,category=''):
+    def saveTaobaoItem(self,tsoup,item_url,category='',**kwargs):
         
         outer_id = TMALL_ITEM_ID_RE.match(item_url).groupdict().get('item_id')
         sproduct,state = SaleProduct.objects.get_or_create(outer_id=outer_id)
-        if sproduct.title:
-            return
         
         bname_tags = tsoup.findAll(attrs={'class' : 'tb-seller-name'})
         if not bname_tags:
@@ -140,12 +132,9 @@ class CrawZhe800ItemsTask(CrawTask):
         salecategory,state   = SaleCategory.objects.get_or_create(name=category)
         title          = tsoup.findAll(attrs={'class':'tb-main-title'})[0].text.strip()
         item_pic = tsoup.findAll(attrs={'id':'J_ImgBooth'})[0].attrMap.get('data-src','')
-        price        = tsoup.findAll(attrs={'id':'J_Price'}) or 0
-        if price:
-            price = price[0].text.strip()
         
         sproduct.title = title
-        sproduct.price = price
+        sproduct.price = kwargs.get('item_price',0)
         sproduct.pic_url = item_pic
         sproduct.product_link = item_url
         sproduct.sale_supplier = supplier
@@ -155,22 +144,34 @@ class CrawZhe800ItemsTask(CrawTask):
     
     def crawItemUrl(self,soup,category=''):
         
+        url_set        = set([])
         item_tags  = soup.findAll(attrs={'href' : self.imatch_re})
         
         for item_tag in item_tags:
             try:
                 item_url = item_tag.attrMap.get('href','')
+                item_uri  = item_url.split('?')[0]
+                if item_uri in url_set:
+                    continue
+                url_set.add(item_uri)
+                
                 isoup,response     = self.getBeaSoupByCrawUrl(item_url)
                 resp_url = response.geturl()
+                kwargs   = {'category':category}
               
                 if  resp_url.startswith('http://shop.zhe800.com/products/'):
-                    self.saveZ800Item(isoup, resp_url, category=category)
+                    self.saveZ800Item(isoup, resp_url, **kwargs)
                  
                 if  resp_url.startswith('http://detail.tmall.com/item.htm'):
-                    self.saveTmallItem(isoup, resp_url, category=category)
+                    item_price = item_tag.findParent().findAll('h4')[0].findAll('em')[0].text.replace(u'¥','')
+                    kwargs.update({'item_price':item_price})
+                    self.saveTmallItem(isoup, resp_url, **kwargs)
                     
                 if  resp_url.startswith('http://item.taobao.com/item.htm'):
-                    self.saveTaobaoItem(isoup, resp_url, category=category)
+                    item_price = item_tag.findParent().findAll('h4')[0].findAll('em')[0].text.replace(u'¥','')
+                    kwargs.update({'item_price':item_price})
+                    self.saveTaobaoItem(isoup, resp_url,**kwargs)
+                    
             except Exception,exc:
                 logger.error('ITEM URL ERROR:%s'%exc.message,exc_info=True)
                 
@@ -185,6 +186,9 @@ class CrawZhe800ItemsTask(CrawTask):
     def getPageUrl(self,url,page):
         
         if url.startswith('http://www.zhe800.com/ju_tag/taofushi'):
+            return url+'/page/%s'%page
+        
+        if url.startswith('http://www.zhe800.com/ju_type/baoyou'):
             return url+'/page/%s'%page
         
         if url.startswith('http://www.zhe800.com/zhuanchang/muying'):
