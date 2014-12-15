@@ -1,0 +1,41 @@
+{% extends "supplier_base.html" %}
+
+
+{% block title %}
+品牌商品
+{% endblock %}
+
+{% block container %}
+<div class="container">
+  <div class="row">
+    <div class="col-xs-4">
+      <div class="thumbnail">
+	<a href="{{ record.product_link }}" target="_blank">
+	  <img src="{{ record.pic_url }}">
+	</a>
+      </div>
+    </div>
+    <div class="col-xs-4">
+      <p>{{ record.title }}</p>
+      <p>售价: <font style="color:red" id="id-price-{{ forloop.counter }}">{{ record.price }}</font></p>
+      <p>商家: {{ record.sale_supplier.supplier_name }}</p>
+      <p>平台: {{ record.platform }}</p>
+      <p>类别: {{ record.sale_category.name }}</p>
+      <p>创建时间: {{ record.created }}</p>
+    </div>
+    <div class="col-xs-4">
+      <p>指导价: <font style="color:red;font-size:20px" id="id-target-price-{{ forloop.counter }}"></font></p>
+      <p style="margin-top:10px">审核结果：</p>
+      <select class="form-control input" id="id-select-{{ forloop.counter}}">
+	<option value="0">拒绝</option>
+	<option value="1">通过</option>
+      </select>
+      <button type="button" class="btn btn-warning" style="margin-top:20px" onclick="screen({{ record.id }}, '{{ forloop.counter }}')";>确定</button>
+
+    </div>
+  </div>
+</div>
+
+{% endblock %}
+
+    

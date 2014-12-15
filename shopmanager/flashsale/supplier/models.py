@@ -57,29 +57,30 @@ class SaleProduct(models.Model):
     XIAOHER       = 'xiaoher'
     
     PLATFORM_CHOICE =  ((TAOBAO,u'淘宝'),
-                                                   (TMALL,u'天猫'),
-                                                   (ZHEBABAI,u'折800'),
-                                                   (XIAOHER,u'小荷特卖'),)
-    
+                        (TMALL,u'天猫'),
+                        (ZHEBABAI,u'折800'),
+                        (XIAOHER,u'小荷特卖'),)
     WAIT = 'wait'
-    SELECT = 'select'
-    PURCHASE = 'purchase'
-    INVALID     = 'invalid'
+    SELECTED = 'selected'
+    PURCHASE = 'passed'
+    IGNORED  = 'ignored'
+    REJECTED = 'rejected'
     STATUS_CHOICES = ((WAIT,u'待选'),
-                               (SELECT,u'初选'),
-                               (PURCHASE,u'通过'),
-                               (INVALID,u'淘汰'),)
-    
+                      (SELECTED,u'初选'),
+                      (PURCHASE,u'通过'),
+                      (REJECTED,u'淘汰'),
+                      (IGNORED,u'忽略'),)
+
     outer_id  =  models.CharField(max_length=64, blank=True,verbose_name=u'外部ID')
-    title           =  models.CharField(max_length=64, blank=True,db_index=True,verbose_name=u'标题')
-    price         =  models.FloatField(default=0,verbose_name=u'价格')
-    pic_url      =  models.CharField(max_length=512,blank=True,verbose_name=u'商品图片')
-    product_link      =  models.CharField(max_length=512,blank=True,verbose_name=u'商品外部链接')
+    title     =  models.CharField(max_length=64, blank=True,db_index=True,verbose_name=u'标题')
+    price     =  models.FloatField(default=0,verbose_name=u'价格')
+    pic_url   =  models.CharField(max_length=512,blank=True,verbose_name=u'商品图片')
+    product_link =  models.CharField(max_length=512,blank=True,verbose_name=u'商品外部链接')
     
-    sale_supplier     = models.ForeignKey(SaleSupplier,null=True,related_name='suppliers',verbose_name=u'供货商')
-    sale_category    = models.ForeignKey(SaleCategory,null=True,related_name='categories',verbose_name=u'类别')
-    platform             = models.CharField(max_length=16,blank=True,
-                                            choices=PLATFORM_CHOICE,verbose_name=u'来自平台')
+    sale_supplier = models.ForeignKey(SaleSupplier,null=True,related_name='suppliers',verbose_name=u'供货商')
+    sale_category = models.ForeignKey(SaleCategory,null=True,related_name='categories',verbose_name=u'类别')
+    platform      = models.CharField(max_length=16,blank=True,
+                                     choices=PLATFORM_CHOICE,verbose_name=u'来自平台')
     
     hot_value   = models.IntegerField(default=0,verbose_name=u'热度值')
     sale_price   = models.FloatField(default=0,verbose_name=u'采购价')
@@ -88,8 +89,8 @@ class SaleProduct(models.Model):
     status          = models.CharField(max_length=16,blank=True,
                                             choices=STATUS_CHOICES,default=WAIT,verbose_name=u'状态')
     
-    created    = models.DateTimeField(auto_now_add=True,verbose_name=u'创建日期')
-    modified   = models.DateTimeField(auto_now=True,verbose_name=u'修改日期')
+    created  = models.DateTimeField(auto_now_add=True,verbose_name=u'创建日期')
+    modified = models.DateTimeField(auto_now=True,verbose_name=u'修改日期')
 
     class Meta:
         db_table = 'shop_flashsale_product'

@@ -1,0 +1,72 @@
+
+{% extends "supplier_base.html" %}
+
+{% load mathfilters %}
+
+
+{% block title %}
+品牌供应商
+{% endblock %}
+
+{% block container %}
+<div class="container">
+  <div class="navbar navbar-inverse">
+    <div class="nav-collapse" style="height: auto;">
+      <ul class="nav nav-tabs" role="tablist">
+	<li role="presentation" class="active"><a href="#">预审</a></li>
+	<li role="presentation"><a href="#">接洽</a></li>
+	<li role="presentation"><a href="#">终审</a></li>
+	<li role="presentation"><a href="#">排期</a></li>
+      </ul>
+    </div>
+  </div>
+  <div class="row">
+    <div class="col-md-12" style="text-align:right">
+      <nav>
+	<ul class="pagination pagination-lg">
+	  {% if previous %}
+	  <li><a href={{ previous }}><< 上一页</a></li>
+          {% endif %}
+	  {% if next %}
+	  <li><a href={{ next }}>下一页 >></a></li>
+	  {% endif %}
+	</ul>
+      </nav>
+    </div>
+  </div>
+  <ul class="list-group">
+    {% for record in results %}
+    <li class="list-group-item" id="id-item-{{ record.id }}">
+      <div class="row">
+	<div class="col-xs-4">
+	  <div class="thumbnail">
+	    <a href="{{ record.product_link }}" target="_blank">
+	    <img src="{{ record.pic_url }}">
+	    </a>
+	  </div>
+	</div>
+	<div class="col-xs-4">
+	  <p>{{ record.title }}</p>
+	  <p>售价: <font style="color:red" id="id-price-{{ forloop.counter }}">{{ record.price }}</font></p>
+	  <p>商家: {{ record.sale_supplier.supplier_name }}</p>
+	  <p>平台: {{ record.platform }}</p>
+	  <p>类别: {{ record.sale_category.name }}</p>
+	  <p>创建时间: {{ record.created }}</p>
+	</div>
+	<div class="col-xs-4">
+	  <p style="margin-top:10px">审核结果：{{ record.status }}</p>
+	</div>
+      </div>
+    </li>
+    {% endfor %}
+  </ul>
+
+  
+  <div class="footer">
+    <p>© Uni Littles 2014</p>
+  </div>
+
+</div>
+
+{% endblock %}
+
