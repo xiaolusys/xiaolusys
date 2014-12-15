@@ -7,19 +7,13 @@ from rest_framework.renderers import JSONRenderer
 class SaleSupplierList(generics.ListCreateAPIView):
     queryset = SaleSupplier.objects.all()
     serializer_class = SaleSupplierSerializer
-    paginate_by = 10
+    template_name = "supplier_list.html"
     
-    def get(self, request, *args, **kwargs):
-        page = self.paginate_queryset(self.queryset)
-        serializer = PaginatedSaleSupplierSerializer(instance=page)
-        
-        return Response({'data': serializer.data,'page_number':page.number}, template_name='supplier.html')
-
 
 class SaleSupplierDetail(generics.RetrieveUpdateDestroyAPIView):
     queryset = SaleSupplier.objects.all()
     serializer_class = SaleSupplierSerializer
-    
+    template_name = "supplier.html"
 
 class SaleCategoryList(generics.ListCreateAPIView):
     queryset = SaleCategory.objects.all()
