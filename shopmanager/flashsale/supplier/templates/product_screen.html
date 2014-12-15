@@ -56,8 +56,8 @@
 	  <p>指导价: <font style="color:red;font-size:20px" id="id-target-price-{{ forloop.counter }}">{{ record.price|mul:1.5}}</font></p>
 	  <p style="margin-top:10px">审核结果：</p>
 	  <select class="form-control input" id="id-select-{{ forloop.counter}}">
-	    <option value="0">拒绝</option>
-	    <option value="1">通过</option>
+	    <option value="rejected">拒绝</option>
+	    <option value="selected">通过</option>
 	  </select>
 	  <button type="button" class="btn btn-warning" style="margin-top:20px" onclick="screen({{ record.id }}, '{{ forloop.counter }}')";>确定</button>
 
@@ -86,12 +86,8 @@
             $("#id-item-"+id).slideUp();
           }
         };
-        var status = "ignored";
-        if (selection == "1") {
-          status = "selected";
-        }
-        var data = {"status": status};
-        console.log(url);
+        var data = {"status": selection};
+
         $.ajax({url:url,data:data,success:callback,method:"patch"});
       };
       

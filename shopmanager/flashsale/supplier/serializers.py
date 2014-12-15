@@ -29,6 +29,8 @@ class StatusField(serializers.Field):
                 return record[1]
         return ""
 
+    def to_internal_value(self, data):
+        return data
 
 class SaleProductSerializer(serializers.ModelSerializer):
     sale_supplier = SaleSupplierSerializer(read_only=True)

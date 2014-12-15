@@ -70,25 +70,3 @@
 
 {% endblock %}
 
-{% block tail_script %}
-    <script type="text/javascript">
-      function screen(id, counter) {
-        var selection = $("#id-select-"+counter).val();
-        var url = "/flashsale/supplier/product/"+id+"/";
-        var callback = function (res) {
-          if (res["status"] != "wait") {
-            $("#id-item-"+id).slideUp();
-          }
-        };
-        var status = "ignored";
-        if (selection == "1") {
-          status = "selected";
-        }
-        var data = {"status": status};
-        console.log(url);
-        $.ajax({url:url,data:data,success:callback,method:"patch"});
-      };
-      
-    </script>
-{% endblock %}
-    

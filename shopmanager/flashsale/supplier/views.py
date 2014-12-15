@@ -40,7 +40,7 @@ class SaleProductList(generics.ListCreateAPIView):
     def get(self, request, *args, **kwargs):
         queryset = self.filter_queryset(self.queryset)
         page = self.paginate_queryset(queryset)
-        serializer = PaginatedSaleProductSerializer(page)
+        serializer = PaginatedSaleProductSerializer(page, context={'request': request})
 
 
         status =  request.QUERY_PARAMS.get("status")
