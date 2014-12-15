@@ -10,7 +10,7 @@ class ProductManager(models.Manager):
         
         try:
             return self.get(outer_id=outer_id)
-        except Product.DoesNotExist:
+        except self.model.DoesNotExist:
             None
     
     def getProductByBarcode(self,barcode):

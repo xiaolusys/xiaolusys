@@ -104,6 +104,7 @@ INSTALLED_APPS = (
     'south',
     'gunicorn',
     'raven.contrib.django',
+    'djangorestframework',
     'rest_framework',
     'djcelery',
     'djkombu',

@@ -1,9 +1,10 @@
 MySQL-python==1.2.3
-Django==1.4.1
+Django==1.4.11
 gunicorn==0.14.6
 httplib2==0.9
 raven==2.0.6
 celery==3.0.19
+django-filter==0.9.1
 django-celery==3.0.17
 django-kombu==0.9.4
 python-memcached==1.53
