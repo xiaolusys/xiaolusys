@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import datetime
 from .models import MergeTrade,MergeOrder
 from shopback.base.service import LocalService
 from shopback.orders.service import OrderService
@@ -12,6 +13,7 @@ TRADE_TYPE_SERVICE_MAP = {
     pcfg.FENXIAO_TYPE:PurchaseOrderService,
     pcfg.TAOBAO_TYPE:OrderService,
     pcfg.GUARANTEE_TYPE:OrderService,
+    pcfg.TB_STEP_TYPE:OrderService,
     pcfg.COD_TYPE:OrderService,
     pcfg.JD_TYPE:JDShopService,
     pcfg.YHD_TYPE:LocalService,

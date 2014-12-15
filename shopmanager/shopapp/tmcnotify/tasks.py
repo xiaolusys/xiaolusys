@@ -43,7 +43,8 @@ class ProcessMessageTask(Task):
         if tradeType not in (pcfg.TAOBAO_TYPE,
                              pcfg.FENXIAO_TYPE,
                              pcfg.GUARANTEE_TYPE,
-                             pcfg.COD_TYPE):
+                             pcfg.COD_TYPE,
+                             pcfg.TB_STEP_TYPE):
             raise Exception(u'系统不支持该淘宝订单类型:%s'%tradeType)
         
         if (not TradeService.isTradeExist(userId,tradeId) or 
@@ -106,7 +107,8 @@ class ProcessMessageTask(Task):
         if tradeType not in (pcfg.TAOBAO_TYPE,
                              pcfg.FENXIAO_TYPE,
                              pcfg.GUARANTEE_TYPE,
-                             pcfg.COD_TYPE):
+                             pcfg.COD_TYPE,
+                             pcfg.TB_STEP_TYPE):
             raise Exception(u'系统不支持该淘宝订单类型:%s'%tradeType)
         
         if (not TradeService.isTradeExist(userId,tradeId) or 

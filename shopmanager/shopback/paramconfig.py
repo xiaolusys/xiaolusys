@@ -25,6 +25,7 @@ AUTO_DELIVERY_TYPE = 'auto_delivery'
 COD_TYPE        = 'cod'
 GUARANTEE_TYPE  = 'guarantee_trade'
 AUCTION_TYPE    = 'auction'
+TB_STEP_TYPE    = 'step'
 #店铺类型
 
 

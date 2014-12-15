@@ -156,13 +156,11 @@ SHOP_APP_SCHEDULE = {
         'schedule':crontab(minute="0",hour="*/6"),
         'args':(None,None,)
     },
-    
     u'定时增量更新微信维权订单':{
         'task':'shopapp.weixin.tasks.pullFeedBackWXOrderTask',
         'schedule':crontab(minute="*/30",hour=','.join([str(i) for i in range(9,23)])),
         'args':(None,None,)
-    },
-                     
+    },      
     u'定时同步微信商品库存':{
         'task':'shopapp.weixin.tasks.syncWXProductNumTask',
         'schedule':crontab(minute="10",hour='1,12'),
@@ -188,6 +186,11 @@ SHOP_APP_SCHEDULE = {
         'schedule':crontab(minute="30",hour='6'),
         'args':()
     },    
+    u'定时抓取小荷特卖商品':{
+        'task':'flashsale.supplier.tasks.CrawXiaoherItemsTask',
+        'schedule':crontab(minute="0",hour='6'),
+        'args':()
+    },  
 #    'runs-every-10-minutes-update-seller-flag':{
 #        'task':'shopapp.memorule.tasks.updateTradeSellerFlagTask',
 #        'schedule':crontab(minute="*/10"),
