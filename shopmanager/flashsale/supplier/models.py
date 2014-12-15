@@ -82,6 +82,9 @@ class SaleProduct(models.Model):
                                             choices=PLATFORM_CHOICE,verbose_name=u'来自平台')
     
     hot_value   = models.IntegerField(default=0,verbose_name=u'热度值')
+    sale_price   = models.FloatField(default=0,verbose_name=u'采购价')
+    memo         = models.CharField(max_length=1024,blank=True,verbose_name=u'备注')
+    
     status          = models.CharField(max_length=16,blank=True,
                                             choices=STATUS_CHOICES,default=WAIT,verbose_name=u'状态')
     

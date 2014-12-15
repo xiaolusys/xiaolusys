@@ -465,7 +465,6 @@ def updateItemNum(user_id,num_iid):
 
 def getPurchaseSkuNum(product,product_sku):
     
-    order_nums  = 0
     wait_nums   = product_sku.wait_post_num>0 and product_sku.wait_post_num or 0
     remain_nums = product_sku.remain_num or 0
     real_num    = product_sku.quantity
@@ -480,7 +479,7 @@ def getPurchaseSkuNum(product,product_sku):
     else:
         sync_num = 0
         
-    return sync_num
+    return int(sync_num)
 
 
 @transaction.commit_on_success
@@ -556,7 +555,8 @@ def updatePurchaseItemNum(user_id,pid):
             sync_num = PURCHASE_STOCK_PERCENT * sync_num
         else:
             sync_num = 0    
-            
+        sync_num  =  int(sync_num)
+        
         if (not (sync_num == 0 and product.is_assign) 
             and user.sync_stock and product.sync_stock):
              
