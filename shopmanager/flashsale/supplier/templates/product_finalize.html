@@ -50,16 +50,18 @@
 	  <p>商家: {{ record.sale_supplier.supplier_name }}</p>
 	  <p>平台: {{ record.platform }}</p>
 	  <p>类别: {{ record.sale_category.name }}</p>
+	  <p>热卖指数：{{ record.hot_value }}</p>
 	  <p>创建时间: {{ record.created }}</p>
 	</div>
 	<div class="col-xs-4">
-	  <p>指导价: <font style="color:red;font-size:20px" id="id-target-price-{{ forloop.counter }}">{{ record.price|mul:1.5}}</font></p>
+	  <p style="margin-top:10px;color:orange">备注：{{ record.memo }}</p>
+	  <p id="id-msg">进货价：</p><input id="id-buy-price" class="form-control" placeholder="进货价(必须)">
 	  <p style="margin-top:10px">接洽结果：</p>
 	  <select class="form-control input" id="id-select-{{ forloop.counter}}">
 	    <option value="ignored">拒绝</option>
 	    <option value="passed">通过</option>
 	  </select>
-	  <button type="button" class="btn btn-warning" style="margin-top:20px" onclick="screen({{ record.id }}, '{{ forloop.counter }}')";>确定</button>
+	  <button type="button" class="btn btn-warning" style="margin-top:20px" onclick="finalize({{ record.id }}, '{{ forloop.counter }}')";>确定</button>
 
 	</div>
       </div>
@@ -78,7 +80,14 @@
 
 {% block tail_script %}
     <script type="text/javascript">
-      function screen(id, counter) {
+      function finalize(id, counter) {
+        var buyPrice = parseFloat($("#id-buy-price").val());
+
+        if (isNaN(buyPrice) || buyPrice < 0) {
+          $("#id-msg")[0].innerHTML = "请输入进货价：";
+          $("#id-msg").css("color","red");
+          return;
+        }
         var selection = $("#id-select-"+counter).val();
         var url = "/flashsale/supplier/product/"+id+"/";
         var callback = function (res) {
@@ -87,6 +96,7 @@
           }
         };
 
+        
         var data = {"status": selection};
 
         $.ajax({url:url,data:data,success:callback,method:"patch"});

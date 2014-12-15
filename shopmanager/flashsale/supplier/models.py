@@ -86,7 +86,7 @@ class SaleProduct(models.Model):
     sale_price   = models.FloatField(default=0,verbose_name=u'采购价')
     memo         = models.CharField(max_length=1024,blank=True,verbose_name=u'备注')
     
-    status          = models.CharField(max_length=16,blank=True,
+    status       = models.CharField(max_length=16,blank=True,
                                             choices=STATUS_CHOICES,default=WAIT,verbose_name=u'状态')
     
     created  = models.DateTimeField(auto_now_add=True,verbose_name=u'创建日期')

@@ -50,6 +50,7 @@
 	  <p>商家: {{ record.sale_supplier.supplier_name }}</p>
 	  <p>平台: {{ record.platform }}</p>
 	  <p>类别: {{ record.sale_category.name }}</p>
+	  <p>热卖指数：{{ record.hot_value }}</p>
 	  <p>创建时间: {{ record.created }}</p>
 	</div>
 	<div class="col-xs-4">
@@ -59,6 +60,7 @@
 	    <option value="rejected">拒绝</option>
 	    <option value="selected">通过</option>
 	  </select>
+	  <p style="margin-top:10px">备注：</p><input class="form-control"/>
 	  <button type="button" class="btn btn-warning" style="margin-top:20px" onclick="screen({{ record.id }}, '{{ forloop.counter }}')";>确定</button>
 
 	</div>

@@ -39,7 +39,7 @@ class SaleProductSerializer(serializers.ModelSerializer):
     class Meta:
         model = SaleProduct
         fields = ('id','outer_id','title','price','pic_url','product_link','sale_supplier',
-                  'sale_category','platform','status','created','modified')
+                  'sale_category','platform','hot_value','sale_price','memo','status','created','modified')
 
 
 class PaginatedSaleProductSerializer(PaginationSerializer):
