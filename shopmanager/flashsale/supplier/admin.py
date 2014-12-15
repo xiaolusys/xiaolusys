@@ -31,7 +31,7 @@ admin.site.register(SaleCategory,SaleCategoryAdmin)
 
 class SaleProductAdmin(admin.ModelAdmin):
     
-    list_display = ('outer_id','pic_link','title','price','sale_supplier','platform','hot_value','status','modified')
+    list_display = ('outer_id','pic_link','title','price','sale_supplier','platform','hot_value','sale_price','status','modified')
     list_display_links = ('outer_id','title')
     #list_editable = ('update_time','task_type' ,'is_success','status')
     

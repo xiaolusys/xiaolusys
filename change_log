@@ -1,4 +1,7 @@
 ######## 2014-12-12 ##########
+alter table shop_flashsale_product add column sale_price double NOT NULL;
+alter table shop_flashsale_product add column memo varchar(1024) NOT NULL;
+######## 2014-12-12 ##########
 alter table shop_flashsale_product add column hot_value int(11) NOT NULL;
 ######## 2014-12-9 ##########
 alter table shop_flashsale_product add column status varchar(16) NOT NULL;
