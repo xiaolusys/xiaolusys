@@ -116,7 +116,6 @@ def syncStockByWxShopTask(wx_product):
         if not (wx_user.sync_stock and product.sync_stock and product_sku.sync_stock):
             continue
         
-        order_nums  = 0
         wait_nums   = (product_sku.wait_post_num>0 and 
                        product_sku.wait_post_num or 0)
         remain_nums = product_sku.remain_num or 0
@@ -125,7 +124,7 @@ def syncStockByWxShopTask(wx_product):
         
         #如果自动更新库存状态开启，并且计算后库存不等于在线库存，则更新
         if sync_num>0 and user_percent>0:
-            sync_num = int(user_percet*sync_num)
+            sync_num = int(user_percent*sync_num)
             
         elif sync_num >0 and sync_num <= product_sku.warn_num:
             total_num,user_order_num = MergeOrder.get_yesterday_orders_totalnum(wx_user.id,

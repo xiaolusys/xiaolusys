@@ -1,4 +1,4 @@
-from models import SaleSupplier, SaleCategory, SaleProduct
+from .models import SaleSupplier, SaleCategory, SaleProduct
 from rest_framework import serializers
 from rest_framework.pagination import PaginationSerializer
 

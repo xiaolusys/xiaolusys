@@ -1025,7 +1025,7 @@ def convert_referal2score(sender,user_openid,referal_from_openid,*args,**kwargs)
     transaction.commit()
     invite_score = 1
     try:
-        wx_user = WeixinUser.objects.get(openid=user_openid)
+        wx_user = WeiXinUser.objects.get(openid=user_openid)
         if not wx_user.referal_from_openid:
             WeixinScoreItem.objects.create(user_openid=referal_from_openid,
                                            score=invite_score,

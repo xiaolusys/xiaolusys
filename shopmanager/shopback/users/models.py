@@ -177,7 +177,7 @@ class User(models.Model):
         #获取该店铺商品库存同步比例
         if self.percentage <= 0:
             return -1
-        total_percent = User.objects.filter(status=pcfg.USER_NORMAL).aggregate(
+        total_percent = User.objects.filter(status=self.NORMAL).aggregate(
                                         total_percent=models.Sum('percentage')).get('total_percent')
         if total_percent >0 and total_percent > self.percentage>0:
             return self.percentage/float(total_percent)

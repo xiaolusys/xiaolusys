@@ -984,7 +984,7 @@ class ReplayPostTradeAdmin(admin.ModelAdmin):
         
         from shopback.trades.tasks import get_replay_results
         reponse_result  = get_replay_results(replaypost)
-        reponse_result['post_no'] = reponse_result.get('post_no',None) or replay_trade.id 
+        reponse_result['post_no'] = reponse_result.get('post_no',None) or replaypost.id 
             
         return render_to_response('trades/trade_post_success.html',reponse_result,
                                   context_instance=RequestContext(request),mimetype="text/html")

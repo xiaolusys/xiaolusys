@@ -1,5 +1,11 @@
-from models import SaleSupplier,SaleCategory,SaleProduct
-from serializers import SaleSupplierSerializer,PaginatedSaleSupplierSerializer,SaleCategorySerializer,SaleProductSerializer,PaginatedSaleProductSerializer
+from .models import SaleSupplier,SaleCategory,SaleProduct
+from .serializers import (
+    SaleSupplierSerializer,
+    PaginatedSaleSupplierSerializer,
+    SaleCategorySerializer,
+    SaleProductSerializer,
+    PaginatedSaleProductSerializer
+)
 from rest_framework import generics
 from rest_framework.response import Response
 from rest_framework.renderers import JSONRenderer

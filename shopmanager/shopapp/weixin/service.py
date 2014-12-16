@@ -346,8 +346,11 @@ class WeixinUserService():
         msg = "把优尼世界推荐给您的朋友，你们双方都将有机会获得额外的返利。\n\n请输入您朋友的姓氏和她的手机号,用#号连接：\n(例如：李#13801235666)"
         return self.genTextRespJson(msg)
 
-    def addReferal(self, referal_from_mobile, refral_to_mobile, referal_to_lastname):
-        user_exits_num = Customer.objects.filter(mobile=referal_to_mobile).count()
+    def addReferal(self, referal_from_mobile, referal_to_mobile, referal_to_lastname):
+        
+        from shopback.users.models import Customer
+        from shopapp.weixin.models import ReferalRelationship
+        user_exists_num = Customer.objects.filter(mobile=referal_to_mobile).count()
         
         if user_exists_num > 0:
             return False

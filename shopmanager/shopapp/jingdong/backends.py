@@ -6,6 +6,7 @@ import urlparse
 from django.db import models
 from django.contrib.auth.models import User
 from django.contrib.auth.models import SiteProfileNotAvailable
+from django.core.exceptions import ImproperlyConfigured
 from common.utils import verifySignature,decodeBase64String,parse_urlparams
 from django.conf import settings
 from auth import apis

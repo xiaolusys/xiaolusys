@@ -25,7 +25,7 @@ from auth import apis
 @login_required
 def invalid_list_task(request,num_iid):
 
-    if not (num_iid.isdigit() and num.isdigit()):
+    if not num_iid.isdigit():
         response = {'code':1,'response_error':u'商品编号不合规则'}
         return HttpResponse(json.dumps(response),mimetype='application/json')
     
@@ -403,28 +403,5 @@ class CreateListItemTaskModelView(CreateModelMixin,ModelView):
 
 
 
-@login_required
-def direct_update_listing(request,num_iid,num):
-
-    if not (num_iid.isdigit() and num.isdigit()):
-        response = {'errormsg':'The num_iid and num must be number!'}
-        return HttpResponse(json.dumps(response),mimetype='application/json')
-    
-    response = apis.taobao_item_update_listing(num_iid=num_iid,num=num,tb_user_id=user_id)
-
-    return HttpResponse(json.dumps(response),mimetype='application/json')
-
-
-
-@login_required
-def direct_del_listing(request,num_iid):
-
-    if not num_iid.isdigit():
-        response = {'errormsg':'The num_iid  must be number!'}
-        return HttpResponse(json.dumps(response),mimetype='application/json')
-
-    response = apis.taobao_item_update_delisting(num_iid=num_iid,tb_user_id=user_id)
-
-    return HttpResponse(json.dumps(response),mimetype='application/json')
 
 
