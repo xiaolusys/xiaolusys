@@ -213,7 +213,7 @@ class TodayParentPackageWeightAdmin(admin.ModelAdmin):
     search_fields = ['parent_package_id',]
     
     class Media:
-        css = {"all": ("admin/css/forms.css","css/admin/dialog.css", "jquery/jquery-ui-1.10.1.css")}
+        css = {"all": ("admin/css/forms.css","css/admin/dialog.css","jquery/jquery-ui-1.10.1.css")}
         js = ("script/admin/adminpopup.js","jquery/jquery-ui-1.8.13.min.js",
               "jquery/addons/jquery.upload.js","yunda/js/package.csvfile.upload.js")
     

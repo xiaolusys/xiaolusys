@@ -9,7 +9,7 @@
 
 {% block container %}
 <div class="container">
-  <div class="navbar navbar-inverse">
+   <!-- <div class="navbar navbar-inverse">
     <div class="nav-collapse" style="height: auto;">
       <ul class="nav nav-tabs" role="tablist">
 	<li role="presentation" class="active"><a href="#">预审</a></li>
@@ -18,11 +18,14 @@
 	<li role="presentation"><a href="#">排期</a></li>
       </ul>
     </div>
-  </div>
+  </div>  -->
+  {% csrf_token %}
   <div class="row">
+  	<div class="col-md-12" style="text-align:left">
+  	ABC{{ results.0.sale_supplier.supplier_name }}
+  	</div>
     <div class="col-md-12" style="text-align:right">
-      <nav>
-	<ul class="pagination pagination-lg">
+	<ul class="nav nav-pills pagination pagination-lg">
 	  {% if previous %}
 	  <li><a href={{ previous }}><< 上一页</a></li>
           {% endif %}
@@ -30,7 +33,6 @@
 	  <li><a href={{ next }}>下一页 >></a></li>
 	  {% endif %}
 	</ul>
-      </nav>
     </div>
   </div>
   <ul class="list-group">
@@ -88,6 +90,7 @@
           $("#id-msg").css("color","red");
           return;
         }
+        
         var selection = $("#id-select-"+counter).val();
         var url = "/flashsale/supplier/product/"+id+"/";
         var callback = function (res) {
@@ -95,11 +98,14 @@
             $("#id-item-"+id).slideUp();
           }
         };
-
+		var csrf_token = document.getElementsByName("csrfmiddlewaretoken")[0].value;
+        var data = {"status": selection,"csrfmiddlewaretoken":csrf_token,};
         
-        var data = {"status": selection};
+       var headers = {
+	     'X-HTTP-Method-Override': 'PATCH'
+	   };
 
-        $.ajax({url:url,data:data,success:callback,method:"patch"});
+        $.ajax({url:url,data:data,success:callback,method:"post",headers:headers });
       };
       
     </script>

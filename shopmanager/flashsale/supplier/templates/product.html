@@ -9,7 +9,7 @@
 
 {% block container %}
 <div class="container">
-  <div class="navbar navbar-inverse">
+  <!--  <div class="navbar navbar-inverse">
     <div class="nav-collapse" style="height: auto;">
       <ul class="nav nav-tabs" role="tablist">
 	<li role="presentation" class="active"><a href="#">预审</a></li>
@@ -18,11 +18,10 @@
 	<li role="presentation"><a href="#">排期</a></li>
       </ul>
     </div>
-  </div>
+  </div> -->
   <div class="row">
     <div class="col-md-12" style="text-align:right">
-      <nav>
-	<ul class="pagination pagination-lg">
+	<ul class="nav nav-pills pagination pagination-lg">
 	  {% if previous %}
 	  <li><a href={{ previous }}><< 上一页</a></li>
           {% endif %}
@@ -30,7 +29,6 @@
 	  <li><a href={{ next }}>下一页 >></a></li>
 	  {% endif %}
 	</ul>
-      </nav>
     </div>
   </div>
   <ul class="list-group">

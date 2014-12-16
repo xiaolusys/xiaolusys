@@ -1,6 +1,7 @@
 from django.conf.urls.defaults import patterns, include, url
 from rest_framework.urlpatterns import format_suffix_patterns
-import views
+from django.views.decorators.csrf import csrf_exempt
+from . import views
 
 
 urlpatterns = [

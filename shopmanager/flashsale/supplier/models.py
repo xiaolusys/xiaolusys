@@ -62,19 +62,21 @@ class SaleProduct(models.Model):
                         (XIAOHER,u'小荷特卖'),)
     WAIT = 'wait'
     SELECTED = 'selected'
-    PURCHASE = 'passed'
+    PURCHASE = 'purchase'
+    PASSED      = 'passed'
     IGNORED  = 'ignored'
     REJECTED = 'rejected'
     STATUS_CHOICES = ((WAIT,u'待选'),
-                      (SELECTED,u'初选'),
-                      (PURCHASE,u'通过'),
+                      (SELECTED,u'入围'),
+                      (PURCHASE,u'取样'),
+                      (PASSED,u'通过'),
                       (REJECTED,u'淘汰'),
                       (IGNORED,u'忽略'),)
 
     outer_id  =  models.CharField(max_length=64, blank=True,verbose_name=u'外部ID')
-    title     =  models.CharField(max_length=64, blank=True,db_index=True,verbose_name=u'标题')
-    price     =  models.FloatField(default=0,verbose_name=u'价格')
-    pic_url   =  models.CharField(max_length=512,blank=True,verbose_name=u'商品图片')
+    title          =  models.CharField(max_length=64, blank=True,db_index=True,verbose_name=u'标题')
+    price        =  models.FloatField(default=0,verbose_name=u'价格')
+    pic_url     =  models.CharField(max_length=512,blank=True,verbose_name=u'商品图片')
     product_link =  models.CharField(max_length=512,blank=True,verbose_name=u'商品外部链接')
     
     sale_supplier = models.ForeignKey(SaleSupplier,null=True,related_name='suppliers',verbose_name=u'供货商')

@@ -9,7 +9,7 @@
 
 {% block container %}
 <div class="container">
-  <div class="navbar navbar-inverse">
+  <!-- <div class="navbar navbar-inverse">
     <div class="nav-collapse" style="height: auto;">
       <ul class="nav nav-tabs" role="tablist">
 	<li role="presentation" class="active"><a href="#">预审</a></li>
@@ -18,11 +18,14 @@
 	<li role="presentation"><a href="#">排期</a></li>
       </ul>
     </div>
-  </div>
+  </div> -->
+  {% csrf_token %}
   <div class="row">
-    <div class="col-md-12" style="text-align:right">
-      <nav>
-	<ul class="pagination pagination-lg">
+  	<div class="col-md-6" style="text-align:left;display:inline;padding:0px;margin:0px;">
+  	<div class="page-header"><h2>{{ results.0.sale_supplier.supplier_name }}</h2></div>
+  	</div>
+    <div class="col-md-6" style="text-align:right;display:inline;padding:0px;margin:0px;">
+	<ul class="nav nav-pills pagination pagination-lg">
 	  {% if previous %}
 	  <li><a href={{ previous }}><< 上一页</a></li>
           {% endif %}
@@ -58,7 +61,7 @@
 	  <p style="margin-top:10px">审核结果：</p>
 	  <select class="form-control input" id="id-select-{{ forloop.counter}}">
 	    <option value="rejected">拒绝</option>
-	    <option value="selected">通过</option>
+	    <option value="purchase">通过</option>
 	  </select>
 	  <p style="margin-top:10px">备注：</p><input class="form-control"/>
 	  <button type="button" class="btn btn-warning" style="margin-top:20px" onclick="screen({{ record.id }}, '{{ forloop.counter }}')";>确定</button>
@@ -88,9 +91,15 @@
             $("#id-item-"+id).slideUp();
           }
         };
-        var data = {"status": selection};
+        
+      var csrf_token = document.getElementsByName("csrfmiddlewaretoken")[0].value;
+      var data = {"status": selection,"csrfmiddlewaretoken":csrf_token,};
+        
+      var headers = {
+	    'X-HTTP-Method-Override': 'PATCH'
+	   };
 
-        $.ajax({url:url,data:data,success:callback,method:"patch"});
+        $.ajax({url:url,data:data,success:callback,method:"post",headers:headers });
       };
       
     </script>

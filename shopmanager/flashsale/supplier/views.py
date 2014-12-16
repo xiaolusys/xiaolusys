@@ -8,7 +8,7 @@ from .serializers import (
 )
 from rest_framework import generics
 from rest_framework.response import Response
-from rest_framework.renderers import JSONRenderer
+from rest_framework.renderers import JSONRenderer,TemplateHTMLRenderer
 
 class SaleSupplierList(generics.ListCreateAPIView):
     queryset = SaleSupplier.objects.all()
@@ -33,7 +33,7 @@ class SaleCategoryDetail(generics.RetrieveUpdateDestroyAPIView):
 class SaleProductList(generics.ListCreateAPIView):
     queryset = SaleProduct.objects.all()
     serializer_class = SaleProductSerializer
-    filter_fields = ("status",)
+    filter_fields = ("status","sale_supplier")
     #renderer_classes = (JSONRenderer,)
     #template_name = "product.html"
 
@@ -42,13 +42,12 @@ class SaleProductList(generics.ListCreateAPIView):
         page = self.paginate_queryset(queryset)
         serializer = PaginatedSaleProductSerializer(page, context={'request': request})
 
-
         status =  request.QUERY_PARAMS.get("status")
         if not status:
             self.template_name = "product_list.html"
-        elif "wait" in status:
+        elif SaleProduct.SELECTED in status:
             self.template_name = "product_screen.html"
-        elif "selected" in status:
+        elif SaleProduct.PURCHASE in status:
             self.template_name = "product_finalize.html"
         else:
             self.template_name = "product_list.html"
@@ -59,5 +58,7 @@ class SaleProductDetail(generics.RetrieveUpdateDestroyAPIView):
     queryset = SaleProduct.objects.all()
     serializer_class = SaleProductSerializer
     renderer_classes = (JSONRenderer,)
+    
+#     template_name = "product_detail.html"
 
     
