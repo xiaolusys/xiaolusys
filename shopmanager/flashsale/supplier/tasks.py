@@ -322,4 +322,98 @@ class CrawXiaoherItemsTask(CrawTask):
         for craw_url,category_name in self.category_urls:
             self.crawBrands(craw_url,category= category_name)
      
-     
+#############################################################     
+class CrawVIPItemsTask(CrawTask):
+    
+    category_urls =  (('http://www.xiaoher.com/?q=children',u'母婴'),
+                                      ('http://www.xiaoher.com/?q=ladys',u'女装'),)
+    
+    site_url = 'http://www.xiaoher.com'
+    
+    def saveXiaoHerItem(self,tsoup,item_url,category=''):
+        
+        outer_id = XHER_ITEM_ID_RE.match(item_url).groupdict().get('item_id')
+        sproduct,state = SaleProduct.objects.get_or_create(outer_id=outer_id)
+        if sproduct.title:
+            return
+        
+        bname_tags = tsoup.findAll(attrs={'class' : 'detail_head'})
+        if not bname_tags:
+            return
+        
+        brand_name = bname_tags[0].findAll(attrs={'href':re.compile('^/show/')})[0].text.strip()
+        supplier,state =  SaleSupplier.objects.get_or_create(supplier_name=brand_name)
+        salecategory,state   = SaleCategory.objects.get_or_create(name=category)
+        title          = tsoup.findAll(attrs={'class':'details clearfix'})[0].findAll('h2')[0].text.strip()
+        item_pic = tsoup.findAll(attrs={'class':'bigPic'})[0].findAll('img')[0].attrMap.get('src','')
+        price        = tsoup.findAll(attrs={'class':'item price'})[0].findAll('span')[0].text.replace(u'￥','')
+        
+        psize        = tsoup.findAll(attrs={'class':'item size'})[0]
+        hot_value = 0
+        if len(psize.findAll(attrs={'class':'s none'}) ):
+            hot_value = 10
+            if len(psize.findAll(attrs={'class':'s'})):
+                hot_value = 5
+
+        sproduct.title = title
+        sproduct.price = price
+        sproduct.pic_url = item_pic
+        sproduct.product_link = item_url
+        sproduct.hot_value = hot_value
+        sproduct.sale_supplier = supplier
+        sproduct.sale_category = salecategory
+        sproduct.platform = SaleProduct.XIAOHER
+        sproduct.save()
+    
+    def crawItemUrl(self,soup,category=''):
+        
+        item_tags  = soup.findAll(attrs={'href' : re.compile('^/detail/[0-9]+/[0-9]+')})
+        for item_tag in item_tags:
+            try:
+                item_url = '%s%s'%(self.site_url,item_tag.attrMap.get('href',''))
+                isoup,response     = self.getBeaSoupByCrawUrl(item_url)
+                resp_url = response.geturl()
+              
+                self.saveXiaoHerItem(isoup, resp_url, category=category)
+            except Exception,exc:
+                logger.error('ITEM URL ERROR:%s'%exc.message,exc_info=True)
+                
+        return len(item_tags)
+    
+    def crawItems(self,brand_url,category=''):
+        
+        print 'DEBUG BRAND:',datetime.datetime.now(),brand_url
+        isoup,response = self.getBeaSoupByCrawUrl(brand_url)
+        self.crawItemUrl(isoup, category=category)
+    
+    def getPageUrl(self,url,page):
+        
+        return url
+    
+    def crawBrands(self,url,category=''):
+        
+        brand_url_set = set([])
+        has_next = True
+        page         = 1
+        while has_next:
+                    
+            zhe_url    = self.getPageUrl(url, page)
+            bsoup,response = self.getBeaSoupByCrawUrl(zhe_url)
+            
+            brand_tags = bsoup.findAll(attrs={'href' : re.compile("^/show/[0-9]+")})
+            for brand_tag in brand_tags:
+                
+                brand_url = '%s%s'%(self.site_url,brand_tag.attrMap.get('href',''))
+                if  brand_url in brand_url_set:
+                    continue
+                
+                brand_url_set.add(brand_url)
+                self.crawItems(brand_url,category=category)
+            
+            item_num = self.crawItemUrl(bsoup, category=category)
+            has_next = False
+
+    def run(self,*args, **kwargs):
+        
+        for craw_url,category_name in self.category_urls:
+            self.crawBrands(craw_url,category= category_name)     

@@ -4,13 +4,14 @@ from django.db import models
 from django.forms import TextInput, Textarea
 from django.http import HttpResponseRedirect
 from .models import SaleProduct,SaleSupplier,SaleCategory
+from shopback.trades.filters import DateFieldListFilter
 
 class SaleSupplierAdmin(admin.ModelAdmin):
     list_display = ('id','supplier_code','supplier_name','main_page','created','modified')
     list_display_links = ('id','supplier_name')
     #list_editable = ('update_time','task_type' ,'is_success','status')
 
-    #list_filter   = ('can_reuse','is_finish')
+    list_filter   = (('created',DateFieldListFilter),('modified',DateFieldListFilter),)
     search_fields = ['supplier_name','supplier_code']
     
 admin.site.register(SaleSupplier,SaleSupplierAdmin)
@@ -36,7 +37,7 @@ class SaleProductAdmin(admin.ModelAdmin):
     #list_editable = ('update_time','task_type' ,'is_success','status')
     
     ordering   = ('-hot_value',)
-    list_filter   = ('sale_category','platform','status',)
+    list_filter   = ('sale_category','platform','status',('created',DateFieldListFilter),('modified',DateFieldListFilter))
     search_fields = ['id','title','outer_id','sale_supplier__supplier_name']
     
     def pic_link(self, obj):
