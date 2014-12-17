@@ -37,7 +37,8 @@ class InterceptTradeManager(models.Manager):
         if len(filter_dict.keys()) == 1:
             trades = MergeTrade.objects.filter(**filter_dict)\
                                   .exclude(sys_status__in=(pcfg.FINISHED_STATUS,
-                                                           pcfg.INVALID_STATUS))
+                                                           pcfg.INVALID_STATUS,
+                                                           pcfg.EMPTY_STATUS))
         
         if len(filter_dict.keys()) > 1:
             

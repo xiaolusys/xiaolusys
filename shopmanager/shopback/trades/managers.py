@@ -14,36 +14,7 @@ from common.utils import update_model_fields
 
 class MergeTradeManager(models.Manager):
     
-    def isFenxiaoType(cls,trade_type,*args,**kwargs):
-        return trade_type == pcfg.FENXIAO_TYPE
-    
-    def isTaobaoType(cls,trade_type,*args,**kwargs):
-        return trade_type == pcfg.TAOBAO_TYPE
-    
-    def isJingDongType(cls,trade_type,*args,**kwargs):
-        return trade_type == pcfg.JD_TYPE
-    
-    def isYiHaoDianType(cls,trade_type,*args,**kwargs):
-        return trade_type == pcfg.YHD_TYPE
-    
-    def isWeixinType(cls,trade_type,*args,**kwargs):
-        return trade_type == pcfg.WX_TYPE
-    
-    def isAMZType(cls,trade_type,*args,**kwargs):
-        return trade_type == pcfg.AMZ_TYPE
-    
-    def isDangDangType(cls,trade_type,*args,**kwargs):
-        return trade_type == pcfg.DD_TYPE
-    
-    def isDirectType(cls,trade_type,*args,**kwargs):
-        return trade_type == pcfg.DIRECT_TYPE
-    
-    def isExchangeType(cls,trade_type,*args,**kwargs):
-        return trade_type == pcfg.EXCHANGE_TYPE
-    
-    def isReissueType(cls,trade_type,*args,**kwargs):
-        return trade_type == pcfg.REISSUE_TYPE
-    
+
     def get_queryset(self):
         
         super_tm = super(MergeTradeManager,self)

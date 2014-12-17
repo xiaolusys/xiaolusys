@@ -28,11 +28,11 @@ $('.btn-selecte').live('click',function(e){
 	var pid = target.getAttribute('pid');
 	
 	var url = "/flashsale/supplier/product/"+pid+"/";
-        var callback = function (res) {
-          if (res["status"] != "selected") {
-            $(target.parentElement.parentElement.parentElement).slideUp();
-          }
-        };
+    var callback = function (res) {
+      if (res["status"] != "selected") {
+        $(target.parentElement.parentElement.parentElement).slideUp();
+      }
+    };
 	
 	var csrf_token = document.getElementsByName("csrfmiddlewaretoken")[0].value;
     var data = {"status": "selected",

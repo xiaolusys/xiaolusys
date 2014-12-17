@@ -26,6 +26,7 @@ from shopback.items.models import Product,ProductSku,ProductDaySale
 from shopback.base import log_action, ADDITION, CHANGE
 from shopback.refunds.models import REFUND_STATUS,Refund
 from shopback.signals import rule_signal,change_addr_signal
+from shopapp.memorule import ruleMatchSplit
 from shopback.users.models import User
 from shopback import paramconfig as pcfg
 from auth import apis
@@ -501,13 +502,13 @@ class OrderPlusView(ModelView):
         except MergeTrade.DoesNotExist:
             return '该订单不存在'.decode('utf8')
         try:
-            product = Product.objects.get(outer_id=outer_id)
+            Product.objects.get(outer_id=outer_id)
         except Product.DoesNotExist:
             return '该商品不存在'.decode('utf8')
         
         if outer_sku_id:
             try:
-                prod_sku = ProductSku.objects.get(product__outer_id=outer_id,outer_id=outer_sku_id)
+                ProductSku.objects.get(product__outer_id=outer_id,outer_id=outer_sku_id)
             except ProductSku.DoesNotExist:
                 return '该商品规格不存在'.decode('utf8')
         
@@ -521,6 +522,9 @@ class OrderPlusView(ModelView):
         
         merge_order = MergeOrder.gen_new_order(trade_id,outer_id,outer_sku_id,num,gift_type=type
                                                ,status=pcfg.WAIT_BUYER_CONFIRM_GOODS,is_reverse=is_reverse_order)
+        
+        #组合拆分
+        ruleMatchSplit(merge_trade)
         
         log_action(user_id,merge_trade,ADDITION,u'添加子订单(%d)'%merge_order.id)
         
@@ -538,7 +542,7 @@ def change_trade_addr(request):
         return HttpResponse(json.dumps({'code':1,"response_error":"订单不存在！"}),mimetype="application/json")
         
     for (key, val) in CONTENT.items():
-         setattr(trade, key, val.strip())
+        setattr(trade, key, val.strip())
     trade.save()
     
     try:
@@ -548,23 +552,28 @@ def change_trade_addr(request):
             and trade.sys_status in (pcfg.WAIT_AUDIT_STATUS,
                                      pcfg.WAIT_CHECK_BARCODE_STATUS,
                                      pcfg.WAIT_SCAN_WEIGHT_STATUS):
-            response = apis.taobao_trade_shippingaddress_update(tid=trade.tid,
-                                                            receiver_name=trade.receiver_name,
-                                                            receiver_phone=trade.receiver_phone,
-                                                            receiver_mobile=trade.receiver_mobile,
-                                                            receiver_state=trade.receiver_state,
-                                                            receiver_city=trade.receiver_city,
-                                                            receiver_district=trade.receiver_district,
-                                                            receiver_address=trade.receiver_address,
-                                                            receiver_zip=trade.receiver_zip,
-                                                            tb_user_id=trade.user.visitor_id)
+            apis.taobao_trade_shippingaddress_update(
+                tid=trade.tid,
+                receiver_name=trade.receiver_name,
+                receiver_phone=trade.receiver_phone,
+                receiver_mobile=trade.receiver_mobile,
+                receiver_state=trade.receiver_state,
+                receiver_city=trade.receiver_city,
+                receiver_district=trade.receiver_district,
+                receiver_address=trade.receiver_address,
+                receiver_zip=trade.receiver_zip,
+                tb_user_id=trade.user.visitor_id
+            )
     except Exception,exc:
         logger.debug(u'订单地址更新失败：%s'%exc.message)
         
     #通知其他APP，订单地址已修改
     change_addr_signal.send(sender=MergeTrade,tid=trade.id)
-        
+    
     trade.append_reason_code(pcfg.ADDR_CHANGE_CODE)
+    
+    if MergeTrade.objects.isTradeMergeable(trade):
+        trade.append_reason_code(pcfg.MULTIPLE_ORDERS_CODE) 
     
     log_action(user_id,trade,CHANGE,u'修改地址,修改前（%s）'%trade.buyer_full_address)
     
