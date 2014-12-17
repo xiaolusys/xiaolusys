@@ -150,6 +150,7 @@ INSTALLED_APPS = (
     'supplychain.wavepick',
     'supplychain.temai',
     'games.paint',
+    'games.bomb',
 
     'flashsale.supplier',
     'mathfilters',
