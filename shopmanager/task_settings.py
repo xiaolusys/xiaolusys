@@ -191,6 +191,11 @@ SHOP_APP_SCHEDULE = {
         'schedule':crontab(minute="0",hour='6'),
         'args':()
     },  
+    u'定时抓取唯品会商品':{
+        'task':'flashsale.supplier.tasks.CrawVIPItemsTask',
+        'schedule':crontab(minute="30",hour='5'),
+        'args':()
+    },
 #    'runs-every-10-minutes-update-seller-flag':{
 #        'task':'shopapp.memorule.tasks.updateTradeSellerFlagTask',
 #        'schedule':crontab(minute="*/10"),

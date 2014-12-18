@@ -55,11 +55,13 @@ class SaleProduct(models.Model):
     TMALL           = 'tianmao'
     ZHEBABAI     = 'zhe800'
     XIAOHER       = 'xiaoher'
+    VIP                  = 'vip'
     
     PLATFORM_CHOICE =  ((TAOBAO,u'淘宝'),
                         (TMALL,u'天猫'),
                         (ZHEBABAI,u'折800'),
-                        (XIAOHER,u'小荷特卖'),)
+                        (XIAOHER,u'小荷特卖'),
+                        (VIP,u'唯品会'),)
     WAIT = 'wait'
     SELECTED = 'selected'
     PURCHASE = 'purchase'

@@ -18,6 +18,7 @@ logger = logging.getLogger('celery.handler')
 ZHE_ITEM_NO_RE     = re.compile('^.+ze(?P<item_no>[0-9]{16,22})')
 TMALL_ITEM_ID_RE = re.compile('^.+id=(?P<item_id>[0-9]{6,16})')
 XHER_ITEM_ID_RE    = re.compile('^.+/[0-9]+/(?P<item_id>[0-9]{6,16})')
+VIP_ITEM_ID_RE       = re.compile('^.+/detail-[0-9]+-(?P<item_id>[0-9]+).html')
 ENCODING_RE          = re.compile('^.+charset=(?P<encoding>[\w]+)')
 
 ckjar = cookielib.MozillaCookieJar(os.path.join('/tmp/', 'cookies.txt'))
@@ -71,7 +72,9 @@ class CrawZhe800ItemsTask(CrawTask):
     def saveZ800Item(self,zsoup,item_url,category='',**kwargs):
 
         outer_id = ZHE_ITEM_NO_RE.match(item_url).groupdict().get('item_no')
-        sproduct,state = SaleProduct.objects.get_or_create(outer_id=outer_id)
+        sproduct,state = SaleProduct.objects.get_or_create(
+                                                           outer_id=outer_id,
+                                                           platform=SaleProduct.ZHEBABAI)
 
         bname_tags = zsoup.findAll(attrs={'class' : 'nubB bm'})
         if not bname_tags:
@@ -90,14 +93,15 @@ class CrawZhe800ItemsTask(CrawTask):
         sproduct.product_link = item_url
         sproduct.sale_supplier = supplier
         sproduct.sale_category = salecategory
-        sproduct.platform = SaleProduct.ZHEBABAI
         sproduct.save()
         
         
     def saveTmallItem(self,tsoup,item_url,category='',**kwargs):
         
         outer_id = TMALL_ITEM_ID_RE.match(item_url).groupdict().get('item_id')
-        sproduct,state = SaleProduct.objects.get_or_create(outer_id=outer_id)
+        sproduct,state = SaleProduct.objects.get_or_create(
+                                                           outer_id=outer_id,
+                                                           platform=SaleProduct.TMALL)
         
         bname_tags = tsoup.findAll(attrs={'class' : 'slogo-shopname'})
         if not bname_tags:
@@ -115,13 +119,14 @@ class CrawZhe800ItemsTask(CrawTask):
         sproduct.product_link = item_url
         sproduct.sale_supplier = supplier
         sproduct.sale_category = salecategory
-        sproduct.platform = SaleProduct.TMALL
         sproduct.save()
             
     def saveTaobaoItem(self,tsoup,item_url,category='',**kwargs):
         
         outer_id = TMALL_ITEM_ID_RE.match(item_url).groupdict().get('item_id')
-        sproduct,state = SaleProduct.objects.get_or_create(outer_id=outer_id)
+        sproduct,state = SaleProduct.objects.get_or_create(
+                                                           outer_id=outer_id,
+                                                           platform=SaleProduct.TAOBAO)
         
         bname_tags = tsoup.findAll(attrs={'class' : 'tb-seller-name'})
         if not bname_tags:
@@ -139,7 +144,6 @@ class CrawZhe800ItemsTask(CrawTask):
         sproduct.product_link = item_url
         sproduct.sale_supplier = supplier
         sproduct.sale_category = salecategory
-        sproduct.platform = SaleProduct.TAOBAO
         sproduct.save()
     
     def crawItemUrl(self,soup,category=''):
@@ -163,12 +167,12 @@ class CrawZhe800ItemsTask(CrawTask):
                     self.saveZ800Item(isoup, resp_url, **kwargs)
                  
                 if  resp_url.startswith('http://detail.tmall.com/item.htm'):
-                    item_price = item_tag.findParent().findAll('h4')[0].findAll('em')[0].text.replace(u'¥','')
+                    item_price = item_tag.findParent().findAll('h4')[0].findAll('em')[0].text.replace(u'¥','').replace('&yen;','')
                     kwargs.update({'item_price':item_price})
                     self.saveTmallItem(isoup, resp_url, **kwargs)
                     
                 if  resp_url.startswith('http://item.taobao.com/item.htm'):
-                    item_price = item_tag.findParent().findAll('h4')[0].findAll('em')[0].text.replace(u'¥','')
+                    item_price = item_tag.findParent().findAll('h4')[0].findAll('em')[0].text.replace(u'¥','').replace('&yen;','')
                     kwargs.update({'item_price':item_price})
                     self.saveTaobaoItem(isoup, resp_url,**kwargs)
                     
@@ -237,7 +241,9 @@ class CrawXiaoherItemsTask(CrawTask):
     def saveXiaoHerItem(self,tsoup,item_url,category=''):
         
         outer_id = XHER_ITEM_ID_RE.match(item_url).groupdict().get('item_id')
-        sproduct,state = SaleProduct.objects.get_or_create(outer_id=outer_id)
+        sproduct,state = SaleProduct.objects.get_or_create(
+                                                           outer_id=outer_id,
+                                                           platform=SaleProduct.XIAOHER)
         if sproduct.title:
             return
         
@@ -250,7 +256,7 @@ class CrawXiaoherItemsTask(CrawTask):
         salecategory,state   = SaleCategory.objects.get_or_create(name=category)
         title          = tsoup.findAll(attrs={'class':'details clearfix'})[0].findAll('h2')[0].text.strip()
         item_pic = tsoup.findAll(attrs={'class':'bigPic'})[0].findAll('img')[0].attrMap.get('src','')
-        price        = tsoup.findAll(attrs={'class':'item price'})[0].findAll('span')[0].text.replace(u'￥','')
+        price        = tsoup.findAll(attrs={'class':'item price'})[0].findAll('span')[0].text.replace(u'￥','').replace('&yen;','')
         
         psize        = tsoup.findAll(attrs={'class':'item size'})[0]
         hot_value = 0
@@ -325,34 +331,36 @@ class CrawXiaoherItemsTask(CrawTask):
 #############################################################     
 class CrawVIPItemsTask(CrawTask):
     
-    category_urls =  (('http://www.xiaoher.com/?q=children',u'母婴'),
-                                      ('http://www.xiaoher.com/?q=ladys',u'女装'),)
+    category_urls =  (('http://category.vip.com/search-2-0-{0}.html?q=1|7830',u'女装'),
+                                      ('http://category.vip.com/search-2-0-{0}.html?q=1|8053',u'母婴'),)
     
-    site_url = 'http://www.xiaoher.com'
+    site_url = 'http://www.vip.com'
     
-    def saveXiaoHerItem(self,tsoup,item_url,category=''):
+    def saveVIPItem(self,tsoup,item_url,category=''):
         
-        outer_id = XHER_ITEM_ID_RE.match(item_url).groupdict().get('item_id')
-        sproduct,state = SaleProduct.objects.get_or_create(outer_id=outer_id)
+        outer_id = VIP_ITEM_ID_RE.match(item_url).groupdict().get('item_id')
+        sproduct,state = SaleProduct.objects.get_or_create(
+                                                           outer_id=outer_id,
+                                                           platform=SaleProduct.VIP)
         if sproduct.title:
             return
         
-        bname_tags = tsoup.findAll(attrs={'class' : 'detail_head'})
+        bname_tags = tsoup.findAll(attrs={'class' : 'pib_title'})
         if not bname_tags:
             return
         
-        brand_name = bname_tags[0].findAll(attrs={'href':re.compile('^/show/')})[0].text.strip()
+        brand_name = bname_tags[0].findAll('a')[0].text.strip()
         supplier,state =  SaleSupplier.objects.get_or_create(supplier_name=brand_name)
         salecategory,state   = SaleCategory.objects.get_or_create(name=category)
-        title          = tsoup.findAll(attrs={'class':'details clearfix'})[0].findAll('h2')[0].text.strip()
-        item_pic = tsoup.findAll(attrs={'class':'bigPic'})[0].findAll('img')[0].attrMap.get('src','')
-        price        = tsoup.findAll(attrs={'class':'item price'})[0].findAll('span')[0].text.replace(u'￥','')
+        title          = tsoup.findAll(attrs={'class':'pib_title_detail'})[0].text.strip()
+        item_pic = tsoup.findAll(attrs={'class':'show_midpic '})[0].findAll('img')[0].attrMap.get('src','')
+        price        = tsoup.findAll(attrs={'class':'pi_price_box'})[0].findAll('span')[0].text.replace(u'￥','').replace('&yen;','')
         
-        psize        = tsoup.findAll(attrs={'class':'item size'})[0]
+        psize        = tsoup.findAll(attrs={'class':'size_list'})[0]
         hot_value = 0
-        if len(psize.findAll(attrs={'class':'s none'}) ):
+        if len(psize.findAll(attrs={'class':'size_list_item J_sizeID sli_disabled size_list_item_small'}) ):
             hot_value = 10
-            if len(psize.findAll(attrs={'class':'s'})):
+            if len(psize.findAll(attrs={'class':'size_list_item J_sizeID size_list_item_small'})):
                 hot_value = 5
 
         sproduct.title = title
@@ -362,19 +370,18 @@ class CrawVIPItemsTask(CrawTask):
         sproduct.hot_value = hot_value
         sproduct.sale_supplier = supplier
         sproduct.sale_category = salecategory
-        sproduct.platform = SaleProduct.XIAOHER
         sproduct.save()
     
     def crawItemUrl(self,soup,category=''):
         
-        item_tags  = soup.findAll(attrs={'href' : re.compile('^/detail/[0-9]+/[0-9]+')})
+        item_tags  = soup.findAll(attrs={'href' : re.compile('^http://www.vip.com/detail-[0-9]+-[0-9]+.html')})
         for item_tag in item_tags:
             try:
-                item_url = '%s%s'%(self.site_url,item_tag.attrMap.get('href',''))
+                item_url = item_tag.attrMap.get('href','')
                 isoup,response     = self.getBeaSoupByCrawUrl(item_url)
                 resp_url = response.geturl()
               
-                self.saveXiaoHerItem(isoup, resp_url, category=category)
+                self.saveVIPItem(isoup, resp_url, category=category)
             except Exception,exc:
                 logger.error('ITEM URL ERROR:%s'%exc.message,exc_info=True)
                 
@@ -388,30 +395,22 @@ class CrawVIPItemsTask(CrawTask):
     
     def getPageUrl(self,url,page):
         
-        return url
+        return url.format(page)
     
     def crawBrands(self,url,category=''):
         
-        brand_url_set = set([])
         has_next = True
         page         = 1
         while has_next:
                     
             zhe_url    = self.getPageUrl(url, page)
-            bsoup,response = self.getBeaSoupByCrawUrl(zhe_url)
+            print 'DEBUG BRAND:',datetime.datetime.now(),zhe_url
+            vsoup,response = self.getBeaSoupByCrawUrl(zhe_url)
             
-            brand_tags = bsoup.findAll(attrs={'href' : re.compile("^/show/[0-9]+")})
-            for brand_tag in brand_tags:
-                
-                brand_url = '%s%s'%(self.site_url,brand_tag.attrMap.get('href',''))
-                if  brand_url in brand_url_set:
-                    continue
-                
-                brand_url_set.add(brand_url)
-                self.crawItems(brand_url,category=category)
-            
-            item_num = self.crawItemUrl(bsoup, category=category)
-            has_next = False
+            item_num = self.crawItemUrl(vsoup, category=category)
+            page += 1
+            if item_num == 0: 
+                has_next = False
 
     def run(self,*args, **kwargs):
         
