@@ -1,6 +1,6 @@
 #-*- coding:utf8 -*-
 from django.db import models
-
+from django.contrib.auth.models import User
 
 class SaleSupplier(models.Model):
     
@@ -90,6 +90,8 @@ class SaleProduct(models.Model):
     
     status       = models.CharField(max_length=16,blank=True,
                                             choices=STATUS_CHOICES,default=WAIT,verbose_name=u'状态')
+    
+    contactor =  models.ForeignKey(User,null=True,related_name='sale_products',verbose_name=u'接洽人')
     
     created  = models.DateTimeField(auto_now_add=True,verbose_name=u'创建日期')
     modified = models.DateTimeField(auto_now=True,verbose_name=u'修改日期')

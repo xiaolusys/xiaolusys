@@ -12,14 +12,15 @@ from django.db.models import Q,Sum
 from djangorestframework.views import ModelView
 from djangorestframework.response import ErrorResponse
 
-from shopback.trades.models import (MergeTrade,
-                                    MergeOrder,
-                                    ReplayPostTrade,
-                                    GIFT_TYPE,
-                                    SYS_TRADE_STATUS,
-                                    TAOBAO_TRADE_STATUS,
-                                    SHIPPING_TYPE_CHOICE,
-                                    TAOBAO_ORDER_STATUS)
+from shopback.trades.models import (
+        MergeTrade,
+        MergeOrder,
+        ReplayPostTrade,
+        GIFT_TYPE,
+        SYS_TRADE_STATUS,
+        TAOBAO_TRADE_STATUS,
+        SHIPPING_TYPE_CHOICE,
+        TAOBAO_ORDER_STATUS)
 from shopback.trades.forms import ExchangeTradeForm
 from shopback.logistics.models import LogisticsCompany
 from shopback.items.models import Product,ProductSku,ProductDaySale

@@ -1,5 +1,6 @@
 ######## 2014-12-18##########
-alter table games_bomb_weixinbomb add column bomb_owner_id int(11) references games_bomb_bombowner(id);
+alter table shop_flashsale_product add column contactor_id int(11) references auth_user(id);
+alter table games_bomb_weixinbomb add column creator_id int(11) references auth_user(id);
 ######## 2014-12-12 ##########
 alter table shop_flashsale_product add column sale_price double NOT NULL;
 alter table shop_flashsale_product add column memo varchar(1024) NOT NULL;

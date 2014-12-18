@@ -38,8 +38,9 @@ class SaleProductSerializer(serializers.ModelSerializer):
     status = StatusField()
     class Meta:
         model = SaleProduct
-        fields = ('id','outer_id','title','price','pic_url','product_link','sale_supplier',
+        fields = ('id','outer_id','title','price','pic_url','product_link','sale_supplier','contactor',
                   'sale_category','platform','hot_value','sale_price','memo','status','created','modified')
+
 
 
 class PaginatedSaleProductSerializer(PaginationSerializer):
