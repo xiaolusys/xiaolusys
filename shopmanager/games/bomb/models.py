@@ -35,7 +35,9 @@ class WeixinBomb(models.Model):
 
     coverage = models.IntegerField(default=0,verbose_name=u"覆盖估计")
     memo     = models.CharField(max_length=128,blank=True,verbose_name=u'备注')
-
+    
+    bomb_owner = models.ForeignKey(BombOwner,null=True,related_name='bomb_owners',verbose_name=u'接洽人')   
+    
     created  = models.DateTimeField(auto_now_add=True,verbose_name=u'创建日期')
     modified = models.DateTimeField(auto_now=True,verbose_name=u'修改日期')
 
