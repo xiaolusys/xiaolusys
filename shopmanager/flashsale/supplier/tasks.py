@@ -19,6 +19,7 @@ ZHE_ITEM_NO_RE     = re.compile('^.+ze(?P<item_no>[0-9]{16,22})')
 TMALL_ITEM_ID_RE = re.compile('^.+id=(?P<item_id>[0-9]{6,16})')
 XHER_ITEM_ID_RE    = re.compile('^.+/[0-9]+/(?P<item_id>[0-9]{6,16})')
 VIP_ITEM_ID_RE       = re.compile('^.+/detail-[0-9]+-(?P<item_id>[0-9]+).html')
+JHS_ITEM_ID_RE       =  re.compile('^.+item_id=(?P<item_id>[0-9]{6,16})')
 ENCODING_RE          = re.compile('^.+charset=(?P<encoding>[\w]+)')
 
 ckjar = cookielib.MozillaCookieJar(os.path.join('/tmp/', 'cookies.txt'))
@@ -416,3 +417,105 @@ class CrawVIPItemsTask(CrawTask):
         
         for craw_url,category_name in self.category_urls:
             self.crawBrands(craw_url,category= category_name)     
+            
+#############################################################     
+class CrawJHSItemsTask(CrawTask):
+    
+    category_urls =  (('http://ju.taobao.com/jusp/nvzhuangpindao/tp.htm?spm=608.7192301.102211.2.EHdbAU',u'女装'),
+                                      ('http://ju.taobao.com/jusp/muyingpindao/tp.htm?spm=608.7207413.102211.8.LDCvTl',u'母婴'),)
+    
+    site_url = 'http://detail.tmall.com/item.htm?id={0}'
+    
+    def saveJHSItem(self,tsoup,item_url,category='',**kwargs):
+        
+        outer_id = TMALL_ITEM_ID_RE.match(item_url).groupdict().get('item_id')
+        sproduct,state = SaleProduct.objects.get_or_create(
+                                                           outer_id=outer_id,
+                                                           platform=SaleProduct.JHS)
+        
+        bname_tags = tsoup.findAll(attrs={'class' : 'slogo-shopname'})
+        if not bname_tags:
+            return
+        
+        brand_name = bname_tags[0].findAll('strong')[0].text.strip()
+        supplier,state =  SaleSupplier.objects.get_or_create(supplier_name=brand_name)
+        salecategory,state   = SaleCategory.objects.get_or_create(name=category)
+        title          = tsoup.findAll(attrs={'class':'tb-detail-hd'})[0].findAll('h1')[0].text.strip()[0:64]
+        item_pic = tsoup.findAll(attrs={'class':'tb-booth'})[0].findAll('img')[0].attrMap.get('src','')
+        
+        sproduct.title = title
+        sproduct.price = kwargs.get('item_price',0)
+        sproduct.pic_url = item_pic
+        sproduct.product_link = item_url
+        sproduct.sale_supplier = supplier
+        sproduct.sale_category = salecategory
+        sproduct.save()
+    
+    def crawItemUrl(self,soup,category=''):
+        
+        item_tags  = soup.findAll(attrs={'href' : re.compile('^http://detail.ju.taobao.com/home.htm?')})
+        for item_tag in item_tags:
+            try:
+                tag_url = item_tag.attrMap.get('href','')
+                item_id = JHS_ITEM_ID_RE.match(tag_url).groupdict().get('item_id')
+                item_url = self.site_url.format(item_id)
+                
+                kwargs = {}
+                item_price = item_tag.findAll(attrs={'class':re.compile('J_actPrice|actPrice')})[0].text.replace(u'¥','').replace('&yen;','')
+                kwargs.update({'item_price':item_price})
+                
+                isoup,response     = self.getBeaSoupByCrawUrl(item_url)
+                resp_url = response.geturl()
+              
+                self.saveJHSItem(isoup, resp_url, category=category,**kwargs)
+            except Exception,exc:
+                logger.error('ITEM URL ERROR:%s'%exc.message,exc_info=True)
+                
+        return len(item_tags)
+    
+    def crawItems(self,brand_url,category=''):
+        
+        print 'DEBUG BRAND:',datetime.datetime.now(),brand_url
+        isoup,response = self.getBeaSoupByCrawUrl(brand_url)
+        self.crawItemUrl(isoup, category=category)
+    
+    def getPageUrl(self,url,page):
+
+        return url
+    
+    def crawBrands(self,url,category=''):
+        
+        brand_url_set = set([])
+        has_next = True
+        page         = 1
+        while has_next:
+                    
+            zhe_url    = self.getPageUrl(url, page)
+            csoup,response = self.getBeaSoupByCrawUrl(zhe_url)
+            #
+            cat_tags = csoup.findAll(attrs={'data-ajaxurl' : re.compile("^http://ju.taobao.com/json/jusp/tpData.htm?")})
+            for cat_tag in cat_tags:
+                ##
+                cat_url = cat_tag.attrMap.get('data-ajaxurl','')
+                bsoup,response = self.getBeaSoupByCrawUrl(cat_url)
+
+                brand_tags =  bsoup.findAll(attrs={'href' : re.compile("^http://ju.taobao.com/tg/brand_items.htm?")})
+                for brand_tag in brand_tags:
+                    brand_url = brand_tag.attrMap.get('href','')
+                    if  brand_url in brand_url_set:
+                        continue
+
+                    brand_url_set.add(brand_url)
+                    self.crawItems(brand_url,category=category)
+                ##
+                self.crawItemUrl(bsoup, category=category)
+            #    
+            self.crawItemUrl(csoup, category=category)
+            has_next = False
+
+    def run(self,*args, **kwargs):
+        
+        for craw_url,category_name in self.category_urls:
+            self.crawBrands(craw_url,category= category_name)     
+            
+            
