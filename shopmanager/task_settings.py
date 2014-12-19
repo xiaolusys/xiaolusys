@@ -196,6 +196,11 @@ SHOP_APP_SCHEDULE = {
         'schedule':crontab(minute="30",hour='5'),
         'args':()
     },
+    u'定时抓取聚划算商品':{
+        'task':'flashsale.supplier.tasks.CrawJHSItemsTask',
+        'schedule':crontab(minute="0",hour='6'),
+        'args':()
+    },
 #    'runs-every-10-minutes-update-seller-flag':{
 #        'task':'shopapp.memorule.tasks.updateTradeSellerFlagTask',
 #        'schedule':crontab(minute="*/10"),
