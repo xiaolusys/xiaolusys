@@ -104,7 +104,7 @@ WEIXIN_API_HOST    = "https://api.weixin.qq.com"
 WEIXIN_MEDIA_HOST  = "http://file.api.weixin.qq.com"
 WEIXIN_QRCODE_HOST = "https://mp.weixin.qq.com"
 WEIXIN_APPID       = 'wxc2848fa1e1aa94b5'
-WEIXIN_SECRET      = 'eb3bfe8e9a36a61176fa5cafe341c81f'
+WEIXIN_SECRET      = 'bc41b3a535b095afc55cd40d2e808d9c'
 
 ################### JINGDONG SETTINGS #################
 
