@@ -14,6 +14,20 @@ class SaleSupplierAdmin(admin.ModelAdmin):
     list_filter   = (('created',DateFieldListFilter),('modified',DateFieldListFilter),)
     search_fields = ['supplier_name','supplier_code']
     
+    #--------设置页面布局----------------
+    fieldsets =((u'客户基本信息:', {
+                        'classes': ('expand',),
+                        'fields': (('supplier_name','supplier_code')
+                                       ,('brand_url','main_page')
+                                       ,('contact','fax')
+                                       ,('phone','mobile')
+                                       ,('zip_code','email')
+                                       ,('address',)
+                                       ,('account_bank','account_no')
+                                       ,('memo',)
+                                       )}),)
+    
+    
 admin.site.register(SaleSupplier,SaleSupplierAdmin)
 
 

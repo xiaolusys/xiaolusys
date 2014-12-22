@@ -1,3 +1,5 @@
+######## 2014-12-20##########
+alter table shop_flashsale_supplier add column memo varchar(1024) NOT NULL;
 ######## 2014-12-18##########
 alter table shop_flashsale_product add column contactor_id int(11) references auth_user(id);
 alter table games_bomb_weixinbomb add column creator_id int(11) references auth_user(id);
