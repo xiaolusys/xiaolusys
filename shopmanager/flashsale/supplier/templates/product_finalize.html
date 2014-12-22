@@ -57,7 +57,7 @@
 	</div>
 	<div class="col-xs-4">
 	  <p style="margin-top:10px;color:orange">备注：{{ record.memo }}</p>
-	  <p id="id-msg">进货价：</p><input id="id-buy-price" class="form-control" placeholder="进货价(必须)">
+	  <p id="id-msg">进货价：</p><input id="id-buy-price" class="form-control" placeholder="进货价(必须)" value="{{ record.sale_price }}">
 	  <p style="margin-top:10px">接洽结果：</p>
 	  <select class="form-control input" id="id-select-{{ forloop.counter}}">
 	    <option value="ignored">拒绝</option>
@@ -99,7 +99,7 @@
           }
         };
 		var csrf_token = document.getElementsByName("csrfmiddlewaretoken")[0].value;
-        var data = {"status": selection,"csrfmiddlewaretoken":csrf_token,};
+        var data = {"status": selection,"csrfmiddlewaretoken":csrf_token,"sale_price":buyPrice};
         
        var headers = {
 	     'X-HTTP-Method-Override': 'PATCH'
