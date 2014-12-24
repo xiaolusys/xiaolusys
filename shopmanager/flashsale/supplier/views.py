@@ -1,3 +1,4 @@
+#-*- encoding:utf8 -*-
 from .models import SaleSupplier,SaleCategory,SaleProduct
 from .serializers import (
     SaleSupplierSerializer,
@@ -9,6 +10,7 @@ from .serializers import (
 from rest_framework import generics
 from rest_framework.response import Response
 from rest_framework.renderers import JSONRenderer,TemplateHTMLRenderer
+from shopback.base import log_action, ADDITION, CHANGE
 
 class SaleSupplierList(generics.ListCreateAPIView):
     queryset = SaleSupplier.objects.all()
@@ -58,6 +60,24 @@ class SaleProductDetail(generics.RetrieveUpdateDestroyAPIView):
     queryset = SaleProduct.objects.all()
     serializer_class = SaleProductSerializer
     renderer_classes = (JSONRenderer,)
+    
+    def update(self, request, *args, **kwargs):
+        partial = kwargs.pop('partial', False)
+        instance = self.get_object()
+        if not instance.contactor:
+            instance.contactor = self.request.user
+        serializer = self.get_serializer(instance, data=request.data, partial=partial)
+        serializer.is_valid(raise_exception=True)
+        self.perform_update(serializer)
+        
+        index_map = {SaleProduct.SELECTED:1,
+                                        SaleProduct.PURCHASE:2,
+                                        SaleProduct.PASSED:3}
+            
+        log_action(request.user.id,instance,CHANGE,(u'淘汰',u'初选入围',
+                                                                                                u'洽谈通过',u'审核通过')[index_map.get(instance.status,0)])
+        
+        return Response(serializer.data)
     
 #     template_name = "product_detail.html"
 

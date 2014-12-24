@@ -104,12 +104,12 @@ WEIXIN_API_HOST    = "https://api.weixin.qq.com"
 WEIXIN_MEDIA_HOST  = "http://file.api.weixin.qq.com"
 WEIXIN_QRCODE_HOST = "https://mp.weixin.qq.com"
 WEIXIN_APPID       = 'wxc2848fa1e1aa94b5'
-WEIXIN_SECRET      = 'eb3bfe8e9a36a61176fa5cafe341c81f'
+WEIXIN_SECRET      = 'bc41b3a535b095afc55cd40d2e808d9c'
 
 ################### JINGDONG SETTINGS #################
 
-JD_APP_KEY = '6C293E8AE6439E5A3AD6E4A3F5999F63'
-JD_APP_SECRET = 'aef8cb559b44416abfdef5e3fa5b7940'
+JD_APP_KEY = 'F7B529B5AD3152D0BEF916B6271B51F8'
+JD_APP_SECRET = 'b7e716fbd8044b2dbb71a13427e55295'
 
 JD_API_HOSTNAME = 'gw.api.360buy.com'
 JD_AUTHRIZE_URL = 'https://auth.360buy.com/oauth/authorize'

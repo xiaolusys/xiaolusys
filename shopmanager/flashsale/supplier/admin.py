@@ -14,6 +14,20 @@ class SaleSupplierAdmin(admin.ModelAdmin):
     list_filter   = (('created',DateFieldListFilter),('modified',DateFieldListFilter),)
     search_fields = ['supplier_name','supplier_code']
     
+    #--------设置页面布局----------------
+    fieldsets =((u'客户基本信息:', {
+                        'classes': ('expand',),
+                        'fields': (('supplier_name','supplier_code')
+                                       ,('brand_url','main_page')
+                                       ,('contact','fax')
+                                       ,('phone','mobile')
+                                       ,('zip_code','email')
+                                       ,('address',)
+                                       ,('account_bank','account_no')
+                                       ,('memo',)
+                                       )}),)
+    
+    
 admin.site.register(SaleSupplier,SaleSupplierAdmin)
 
 
@@ -32,13 +46,18 @@ admin.site.register(SaleCategory,SaleCategoryAdmin)
 
 class SaleProductAdmin(admin.ModelAdmin):
     
-    list_display = ('outer_id','pic_link','title_link','price','supplier_link','platform','hot_value','sale_price','status','modified')
+    list_display = ('outer_id','pic_link','title_link','price','supplier_link','platform','hot_value','sale_price','status','contactor','modified')
     list_display_links = ('outer_id',)
     #list_editable = ('update_time','task_type' ,'is_success','status')
     
     ordering   = ('-hot_value',)
     list_filter   = ('sale_category','platform','status',('created',DateFieldListFilter),('modified',DateFieldListFilter))
-    search_fields = ['id','title','outer_id','sale_supplier__supplier_name']
+    search_fields = ['id','title','outer_id','sale_supplier__supplier_name','contactor__username']
+    
+    def get_readonly_fields(self, request, obj=None):
+        if  'contactor' not in self.readonly_fields:
+            self.readonly_fields = self.readonly_fields + ('contactor',)
+        return self.readonly_fields
     
     def pic_link(self, obj):
 #         abs_pic_url = '%s%s'%(settings.MEDIA_URL,obj.pic_url)

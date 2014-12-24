@@ -17,7 +17,8 @@ headers = {'Accept':'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q
 
 ckjar = cookielib.MozillaCookieJar(os.path.join('/tmp/', 'cookies.txt'))
 # uri = 'http://brand.zhe800.com/langshamuying'
-uri = 'http://www.zhe800.com/ju_type/baoyou/page/2'
+#http://ju.taobao.com/json/jusp/tpData.htm?urlKey=muyingpindao&amp;floorIndex=7
+uri = 'http://ju.taobao.com/json/jusp/tpData.htm?urlKey=nvzhuangpindao&floorIndex=2'
  
 request = urllib2.Request(uri)
 for k,v in headers.iteritems():
@@ -38,7 +39,7 @@ html = response.read()
 gzipped = response.headers.get('Content-Encoding')
 if gzipped:
     html = zlib.decompress(html, 16+zlib.MAX_WBITS)
-html = html.decode('utf-8')
+html = html.decode('GBK')
 
 # print u'你是中国人吗'
 
@@ -58,17 +59,17 @@ html = html.decode('utf-8')
 # response,content = http.request(uri,'GET',headers=headers)
 # 
 # print response
-#print html
+print html
 from BeautifulSoup import BeautifulSoup
 soup = BeautifulSoup(html)
-items =  soup.findAll(attrs={'href' :re.compile('^http://out.zhe800.com/ju/deal/')})
-#print items
+items =  soup.findAll(attrs={'href': re.compile('^http://ju.taobao.com/tg/brand_items.htm?')})
+print 'items------------------------------',items
 print dir(items[0])
 print items[0].findParent().findAll('h4')[0]
 for item in items:
     print item.findParent()
     print item.findParent().findAll('h4')[0].findAll('em')[0].text.replace('¥','')
-#   print item.findAll('p')[0].text
+
     
     
     

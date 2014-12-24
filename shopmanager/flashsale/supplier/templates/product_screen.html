@@ -9,33 +9,70 @@
 
 {% block container %}
 <div class="container">
-  <!-- <div class="navbar navbar-inverse">
-    <div class="nav-collapse" style="height: auto;">
-      <ul class="nav nav-tabs" role="tablist">
-	<li role="presentation" class="active"><a href="#">预审</a></li>
-	<li role="presentation"><a href="#">接洽</a></li>
-	<li role="presentation"><a href="#">终审</a></li>
-	<li role="presentation"><a href="#">排期</a></li>
-      </ul>
-    </div>
-  </div> -->
   {% csrf_token %}
   <div class="row">
   	<div class="col-md-6" style="text-align:left;display:inline;padding:0px;margin:0px;">
-  	<div class="page-header"><h2>{{ results.0.sale_supplier.supplier_name }}</h2></div>
+  		<div class="page-header"><h2>{{ results.0.sale_supplier.supplier_name }} 
+  			<a href="javascript:void(0);" onclick="slideToggle()" class="glyphicon glyphicon-pushpin"></a></h2>
+  		</div>
   	</div>
     <div class="col-md-6" style="text-align:right;display:inline;padding:0px;margin:0px;">
 	<ul class="nav nav-pills pagination pagination-lg">
 	  {% if previous %}
-	  <li><a href={{ previous }}><< 上一页</a></li>
+	  <li><a href="{{ previous }}">&lt;&lt; 上一页</a></li>
           {% endif %}
 	  {% if next %}
-	  <li><a href={{ next }}>下一页 >></a></li>
+	  <li><a href="{{ next }}">下一页 &gt;&gt;</a></li>
 	  {% endif %}
 	</ul>
-      </nav>
-    </div>
   </div>
+   </div>
+ <div class="panel panel-default supplier-info" style="display:none;">
+  <!-- Default panel contents -->
+  <div class="panel-heading">
+	 商家信息
+  </div>
+  <div class="panel-body">
+    <label>说明：</label><p>{{ results.0.sale_supplier.memo }} 
+    <a href="/admin/supplier/salesupplier/{{  results.0.sale_supplier.id }}/" class="btn btn-primary" style="display:inline;float:right;" onclick="return showAddAnotherPopup(this);">修改</a></p>
+    
+  </div>
+  <!-- List group -->
+  <ul class="list-group">
+    <li class="list-group-item">
+    	<div class="row">
+  		<div class="col-md-12" style="text-align:left;display:inline;">
+  		<label>品牌主页：</label>
+  		<a href="{{ results.0.sale_supplier.main_page }}">{{ results.0.sale_supplier.memo }} </a></div>
+  		</div>
+  	</li>
+    <li class="list-group-item">
+		<div class="row">
+  		<div class="col-md-6" style="text-align:left;display:inline;"><label>联系人：</label><span>{{ results.0.sale_supplier.contact }}</span></div>
+  		<div class="col-md-5" style="text-align:left;display:inline;"><label>传真：</label><span>{{ results.0.sale_supplier.fax }}</span></div>
+  		</div>
+	</li>
+    <li class="list-group-item">
+    	<div class="row">
+  		<div class="col-md-6" style="text-align:left;display:inline;"><label>固话：</label><span>{{ results.0.sale_supplier.phone }}</span></div>
+  		<div class="col-md-5" style="text-align:left;display:inline;"><label>手机：</label><span>{{ results.0.sale_supplier.mobile }}</span></div>
+  		</div>
+    </li>
+    <li class="list-group-item">
+    	<div class="row">
+  		<div class="col-md-6" style="text-align:left;display:inline;"><label>邮编：</label><span>{{ results.0.sale_supplier.zip_code }}</span></div>
+  		<div class="col-md-5" style="text-align:left;display:inline;"><label>邮箱：</label><span>{{ results.0.sale_supplier.email }}</span></div>
+  		</div>
+    </li>
+    <li class="list-group-item">
+    	<div class="row">
+  		<div class="col-md-12" ><label>地址：</label><span>{{ results.0.sale_supplier.address }}</span></div>
+  		</div>
+    </li>
+  </ul>
+</div>
+  
+
   <ul class="list-group">
     {% for record in results %}
     <li class="list-group-item" id="id-item-{{ record.id }}">
@@ -58,6 +95,7 @@
 	</div>
 	<div class="col-xs-4">
 	  <p>指导价: <font style="color:red;font-size:20px" id="id-target-price-{{ forloop.counter }}">{{ record.price|mul:1.5}}</font></p>
+	  <p id="id-msg">进货价：<input id="id-buy-price" class="form-control" placeholder="进货价(必须)" value="{{ record.sale_price }}"></p>
 	  <p style="margin-top:10px">审核结果：</p>
 	  <select class="form-control input" id="id-select-{{ forloop.counter}}">
 	    <option value="rejected">拒绝</option>
@@ -84,6 +122,15 @@
 {% block tail_script %}
     <script type="text/javascript">
       function screen(id, counter) {
+      
+      	 var buyPrice = parseFloat($("#id-buy-price").val());
+
+        if (isNaN(buyPrice) || buyPrice < 0) {
+          $("#id-msg")[0].innerHTML = "请输入进货价：";
+          $("#id-msg").css("color","red");
+          return;
+        }
+        
         var selection = $("#id-select-"+counter).val();
         var url = "/flashsale/supplier/product/"+id+"/";
         var callback = function (res) {
@@ -93,7 +140,7 @@
         };
         
       var csrf_token = document.getElementsByName("csrfmiddlewaretoken")[0].value;
-      var data = {"status": selection,"csrfmiddlewaretoken":csrf_token,};
+      var data = {"status": selection,"csrfmiddlewaretoken":csrf_token,"sale_price":buyPrice };
         
       var headers = {
 	    'X-HTTP-Method-Override': 'PATCH'
@@ -101,7 +148,9 @@
 
         $.ajax({url:url,data:data,success:callback,method:"post",headers:headers });
       };
-      
+	 function slideToggle(){ 
+      	$(".supplier-info").slideToggle(1000);
+      };
     </script>
 {% endblock %}
     

@@ -1,6 +1,6 @@
 #-*- coding:utf8 -*-
 from django.db import models
-
+from django.contrib.auth.models import User
 
 class SaleSupplier(models.Model):
     
@@ -20,6 +20,8 @@ class SaleSupplier(models.Model):
     address        = models.CharField(max_length=64,blank=True,verbose_name='地址')
     account_bank   = models.CharField(max_length=32,blank=True,verbose_name='汇款银行')
     account_no     = models.CharField(max_length=32,blank=True,verbose_name='汇款帐号')
+    
+    memo   = models.TextField(max_length=1024,blank=True,verbose_name=u'备注')
     
     created    = models.DateTimeField(auto_now_add=True,verbose_name=u'创建日期')
     modified   = models.DateTimeField(auto_now=True,verbose_name=u'修改日期')
@@ -55,11 +57,15 @@ class SaleProduct(models.Model):
     TMALL           = 'tianmao'
     ZHEBABAI     = 'zhe800'
     XIAOHER       = 'xiaoher'
+    VIP                  = 'vip'
+    JHS                  = 'jhs'
     
     PLATFORM_CHOICE =  ((TAOBAO,u'淘宝'),
                         (TMALL,u'天猫'),
                         (ZHEBABAI,u'折800'),
-                        (XIAOHER,u'小荷特卖'),)
+                        (XIAOHER,u'小荷特卖'),
+                        (VIP,u'唯品会'),
+                        (JHS,u'聚划算'),)
     WAIT = 'wait'
     SELECTED = 'selected'
     PURCHASE = 'purchase'
@@ -86,10 +92,12 @@ class SaleProduct(models.Model):
     
     hot_value   = models.IntegerField(default=0,verbose_name=u'热度值')
     sale_price   = models.FloatField(default=0,verbose_name=u'采购价')
-    memo         = models.CharField(max_length=1024,blank=True,verbose_name=u'备注')
+    memo         = models.TextField(max_length=1024,blank=True,verbose_name=u'备注')
     
     status       = models.CharField(max_length=16,blank=True,
                                             choices=STATUS_CHOICES,default=WAIT,verbose_name=u'状态')
+    
+    contactor =  models.ForeignKey(User,null=True,related_name='sale_products',verbose_name=u'接洽人')
     
     created  = models.DateTimeField(auto_now_add=True,verbose_name=u'创建日期')
     modified = models.DateTimeField(auto_now=True,verbose_name=u'修改日期')

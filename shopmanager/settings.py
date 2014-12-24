@@ -148,7 +148,7 @@ INSTALLED_APPS = (
     'shopapp.weixin_examination',
     #'shopapp.second_time_sort',
     'supplychain.wavepick',
-    'supplychain.temai',
+    #'supplychain.temai',
     'games.paint',
     'games.bomb',
 
