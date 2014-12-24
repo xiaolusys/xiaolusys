@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 #-*- coding:utf-8 -*-
 import time
 import json
@@ -20,13 +22,13 @@ def examination_user(request):
 #    第一步，拿到paperID（卷），p_id(题号)
     content=request.GET
     user = request.user
-    
     questionKind = content.get('questionKind')
     if(questionKind==None):
         questionKind='essayQ'
    
 #    临时用作保存下拉列表状态的传值
     select = "selected = 'selected'"
+    ExamPaper = None
     if (questionKind=="selectP"):
         select = ""
         ExamPaper = ExamSelectProblemPaper
@@ -34,7 +36,6 @@ def examination_user(request):
     elif(questionKind=="essayQ"):
         ExamPaper = ExamEssayQuestionPaper
         Exam = ExmaEssayQuestion
-
 #####################################################################
 #   统计已生成考卷数
     paper_count = ExamPaper.objects.filter(user=user)
@@ -42,6 +43,7 @@ def examination_user(request):
     for c in paper_count:
         paper_id_array.append(c.paper_id)
     paper_id_array_acount = len(set(paper_id_array))
+    print 'set(paper_id_array)',paper_id_array_acount
 #####################################################################
 #可以判断是否已经存在id，并作出判断
 #    if (paper_id_array_acount>2):
@@ -84,7 +86,7 @@ def examination_user(request):
 #####################################################################           
 #   这里还要有一个生成problem_list前期写入数据库的方法
     try:
-        write_paper_l(user,problem_l,paper_id,questionKind)
+        write_paper_l(user,problem_l,paper_id)
     except:
         pass
     problem_len = len(Exam.objects.all())
@@ -108,19 +110,13 @@ def examination_user(request):
                                                              },context_instance=RequestContext(request))
                                               
 #problem_l 预存到数据库
-def write_paper_l(user,problem_l,paper_id,questionKind):
+def write_paper_l(user,problem_l,paper_id):
     user = user
     problem_l = problem_l
     paper_id = paper_id
-    if (questionKind=="selectP"):
-        ExamPaper = ExamSelectProblemPaper
-        Exam = ExamProblemSelect
-    elif(questionKind=="essayQ"):
-        ExamPaper = ExamEssayQuestionPaper
-        Exam = ExmaEssayQuestion
     for k in problem_l:
         problem_id = k
-        problem = Exam.objects.get(id=k)
+        problem = ExamProblemSelect.objects.get(id=k)
         exam_answer = problem.exam_answer
         exam_problem_score = problem.exam_problem_score
         e_exam_selected,state = ExamPaper.objects.get_or_create(problem_id=problem_id,
@@ -145,14 +141,8 @@ def start_exam(request):
     problem_count = str(problem_count)
     problem_count = int(problem_count)
     p_id = content.get('p_id')
-    Exam = None
     questionKind = content.get('questionKind')
-    if (questionKind=="selectP"):
-        ExamPaper = ExamSelectProblemPaper
-        Exam = ExamProblemSelect
-    elif(questionKind=="essayQ"):
-        ExamPaper = ExamEssayQuestionPaper
-        Exam = ExmaEssayQuestion
+    print 'questionKind',questionKind
     if(questionKind=="selectP"):
         try:
             if (p_id==''):
@@ -160,11 +150,10 @@ def start_exam(request):
             elif (p_id==problem_count_u):
                 p_id=str(p_id)
                 p_id=int(p_id)
-                grade_total = exam_grade(paper_id,user,questionKind)
+                grade_total = exam_grade(paper_id,user)
                 return render_to_response('examination/selectP/exam_selectP_finish.html',{'user':user,'paper_id':paper_id,
                                                                           'problem_count':problem_count,
-                                                                          'grade_total':grade_total,
-                                                                          'questionKind':questionKind
+                                                                          'grade_total':grade_total
                                                                           },context_instance=RequestContext(request))
             else:
                 p_id=str(p_id)
@@ -172,60 +161,58 @@ def start_exam(request):
                 p_id=p_id+1
             problem_paper = ExamPaper.objects.filter(paper_id=paper_id)
             problem_id = problem_paper[p_id-1].problem_id
-            problem = Exam.objects.get(id=problem_id)
+            problem = ExamProblemSelect.objects.get(id=problem_id)
             return render_to_response('examination/selectP/exam_selectP_admin.html',{'paper_id':paper_id,
                                                                      'user':user,
                                                                      'problem_paper':problem_paper,
                                                                      'problem':problem,
                                                                      'p_id':p_id,
-                                                                     'problem_count':problem_count,
-                                                                     'questionKind':questionKind
+                                                                     'problem_count':problem_count
                                                                      },context_instance=RequestContext(request))
         except Exception,exc:
             logger.error(exc.message or str(exc),exc_info=True)
-            grade_total = exam_grade(paper_id,user,questionKind)
+            grade_total = exam_grade(paper_id,user)
             return render_to_response('examination/selectP/exam_selectP_finish.html',{'user':user,
                                                                       'paper_id':paper_id,
                                                                       'problem_count':problem_count,
                                                                       'grade_total':grade_total
                                                                       },context_instance=RequestContext(request))
-        
-##    或者problem_count在判断和p_id的关系，而不是抛出错误
+            
+#    或者problem_count在判断和p_id的关系，而不是抛出错误
     elif(questionKind=="essayQ"):
-#        try:
-        if (p_id==''):
-            p_id = 1
-        elif (p_id==problem_count_u):
-            p_id=str(p_id)
-            p_id=int(p_id)
-            grade_total = exam_grade(paper_id,user,questionKind)
-            return render_to_response('examination/essayQ/exam_essayQ_finish.html',{'user':user,'paper_id':paper_id,
+        try:
+            if (p_id==''):
+                p_id = 1
+            elif (p_id==problem_count_u):
+                p_id=str(p_id)
+                p_id=int(p_id)
+                grade_total = exam_grade(paper_id,user)
+                return render_to_response('examination/selectP/exam_selectP_finish.html',{'user':user,'paper_id':paper_id,
+                                                                          'problem_count':problem_count,
+                                                                          'grade_total':grade_total
+                                                                          },context_instance=RequestContext(request))
+            else:
+                p_id=str(p_id)
+                p_id=int(p_id)
+                p_id=p_id+1
+            problem_paper = ExamPaper.objects.filter(paper_id=paper_id)
+            problem_id = problem_paper[p_id-1].problem_id
+            problem = ExamProblemSelect.objects.get(id=problem_id)
+            return render_to_response('examination/essayQ/exam_essayQ_admin.html',{'paper_id':paper_id,
+                                                                     'user':user,
+                                                                     'problem_paper':problem_paper,
+                                                                     'problem':problem,
+                                                                     'p_id':p_id,
+                                                                     'problem_count':problem_count
+                                                                     },context_instance=RequestContext(request))
+        except Exception,exc:
+            logger.error(exc.message or str(exc),exc_info=True)
+            grade_total = exam_grade(paper_id,user)
+            return render_to_response('examination/selectP/exam_selectP_finish.html',{'user':user,
+                                                                      'paper_id':paper_id,
                                                                       'problem_count':problem_count,
                                                                       'grade_total':grade_total
                                                                       },context_instance=RequestContext(request))
-        else:
-            p_id=str(p_id)
-            p_id=int(p_id)
-            p_id=p_id+1
-        problem_paper = ExamPaper.objects.filter(paper_id=paper_id)
-        problem_id = problem_paper[p_id-1].problem_id
-        problem = Exam.objects.get(id=problem_id)
-        return render_to_response('examination/essayQ/exam_essayQ_admin.html',{'paper_id':paper_id,
-                                                                 'user':user,
-                                                                 'problem_paper':problem_paper,
-                                                                 'problem':problem,
-                                                                 'p_id':p_id,
-                                                                 'problem_count':problem_count,
-                                                                 'questionKind':questionKind
-                                                                 },context_instance=RequestContext(request))
-#        except Exception,exc:
-#            logger.error(exc.message or str(exc),exc_info=True)
-#            grade_total = exam_grade(paper_id,user,questionKind)
-#            return render_to_response('examination/essayQ/exam_essayQ_finish.html',{'user':user,
-#                                                                      'paper_id':paper_id,
-#                                                                      'problem_count':problem_count,
-#                                                                      'grade_total':grade_total
-#                                                                      },context_instance=RequestContext(request))
 
                                                        
 #@staff_member_required                    
@@ -233,21 +220,12 @@ def start_exam(request):
 def write_select_paper(request):
     content=request.GET
     id = content.get('id')
-    questionKind = content.get('questionKind')
-    if (questionKind=="selectP"):
-        ExamPaper = ExamSelectProblemPaper
-        Exam = ExamProblemSelect
-    elif(questionKind=="essayQ"):
-        ExamPaper = ExamEssayQuestionPaper
-        Exam = ExmaEssayQuestion
     paper_id = content.get('paper_id')
     exam_selected = content.get('exam_selected')
-    problem       = Exam.objects.get(id=id)
+    problem       = ExamProblemSelect.objects.get(id=id)
     problem_id    = problem.id
     exam_selected = exam_selected
     exam_answer   = problem.exam_answer
-    
-    
     
     e_exam_selected,state = ExamPaper.objects.get_or_create(problem_id=problem_id,paper_id=paper_id,)
     
@@ -255,30 +233,23 @@ def write_select_paper(request):
     e_exam_selected.paper_id = paper_id
     e_exam_selected.exam_answer = exam_answer
     e_exam_selected.exam_selected = exam_selected
-    if (questionKind=="selectP"):
-        if (exam_selected == 'A'):
-            e_exam_selected.exam_selected = ExamPaper.SELECTED_A
-        elif(exam_selected == 'B'):
-            e_exam_selected.exam_selected = ExamPaper.SELECTED_B
-        elif(exam_selected == 'C'):
-            e_exam_selected.exam_selected = ExamPaper.SELECTED_C
-        else:
-            e_exam_selected.exam_selected = ExamPaper.SELECTED_D
+    
+    if (exam_selected == 'A'):
+        e_exam_selected.exam_selected = ExamPaper.SELECTED_A
+    elif(exam_selected == 'B'):
+        e_exam_selected.exam_selected = ExamPaper.SELECTED_B
+    elif(exam_selected == 'C'):
+        e_exam_selected.exam_selected = ExamPaper.SELECTED_C
+    else:
+        e_exam_selected.exam_selected = ExamPaper.SELECTED_D
         
     e_exam_selected.save()
     
     return  HttpResponse(json.dumps({'response_content':'success'}),mimetype="application/json")
     
     
-def exam_grade(paper_id,user,questionKind):
+def exam_grade(paper_id,user):
     user = user
-    if (questionKind=="selectP"):
-        ExamPaper = ExamSelectProblemPaper
-        Exam = ExamProblemSelect
-    elif(questionKind=="essayQ"):
-        ExamPaper = ExamEssayQuestionPaper
-        Exam = ExmaEssayQuestion
-    
     problem_list = ExamPaper.objects.filter(paper_id=paper_id)
     grade_p = 0
     grade_total=0
@@ -312,6 +283,9 @@ def exam_end(request):
 
 def exam_essay_question_admin(request):
     content=request.GET
-    a=0
     user = request.user
     return render_to_response('examination/exam_end.html',{'a':a,},context_instance=RequestContext(request))
+################################################################
+[24/Dec/2014 00:04:21] "GET /app/examination/write_select_paper/?exam_selected=d&id=x&paper_id=dapeng.song20141224000410&questionKind=essayQ HTTP/1.1" 500 30079
+[24/Dec/2014 00:09:21] "GET /app/examination/write_select_paper/?exam_selected=B&id=1&paper_id=dapeng.song20141224000915&questionKind=selectP HTTP/1.1" 200 31
+

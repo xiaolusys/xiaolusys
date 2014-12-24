@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>客服考试系统首页</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Bootstrap -->
+    <link rel="stylesheet" href="{{ STATIC_URL }}bootstrap/css/bootstrap2.3.2.min.css">
+    <script src="/static/jquery/jquery-1.8.13.min.js"></script>
+    <script>
+    function essayQUpload(exam_selected,id,paper_id,questionKind){
+    var text = $("#exam_selected").val();
+    $.ajax({
+            url:'/app/examination/write_select_paper/',
+            data:{exam_selected:text,id:id,paper_id:paper_id,questionKind:questionKind},
+            success:function() {  console.log('ok'); }
+            });
+    };
+
+    </script>
+  </head>
+<body background-color="#66FFFF">
+
+<div style="width:80%; padding:1%; margin:1% auto; text-align:center;" >
+<h1 style=" text-align:center;color:#FF0066;">答题</h1>
+
+</div>
+
+<div style="text-align:center;">
+<p style=" text-align:center;color:#000000;"><b>{{ problem.exam_problem }}<b></p>
+<from id="input" action="/app/examination/write_select_paper/" method="post">
+
+</br>
+<textarea maxlength="200" id="exam_selected" style="width:600px;height:100px;"/></textarea>
+<br/>
+<input type="button" onclick="essayQUpload('exam_selected','{{ problem.id }}','{{ paper_id }}','{{ questionKind }}')" value="保存答案" />
+</from>
+
+</div>
+<form name="form2" > 
+<input type="hidden" name="paper_id" value="{{ paper_id }}" />
+<input type="hidden" name="p_id" value="{{ p_id }}" />
+<input type="hidden" name="problem_list" value="{{ problem_l_get }}">
+<input type="hidden" name="problem_l" value="{{ problem_l }}">
+<input type="hidden" name="problem_count" value="{{ problem_count }}">
+<input type="hidden" name="questionKind" value="{{ questionKind }}">
+<div style="margin-top:10%; text-align:center; margin-bottom:10%;">
+<input type="submit"  value="下一题" style="color:white;background:#FF9900;border:solid 0px">
+</div>
+</from>
+
+</body>
+</html>
+
