@@ -179,7 +179,6 @@ def sendTaobaoTradeTask(request_user_id,trade_id):
                     sub_trade = MergeTrade.objects.get(id=sub_buyer_trade.sub_tid)
                     sub_trade.out_sid           = trade.out_sid
                     sub_trade.logistics_company = trade.logistics_company
-                    sub_trade.save()
                     if sub_trade.status == pcfg.WAIT_SELLER_SEND_GOODS:
                         TradeService(sub_trade.user.visitor_id,sub_trade).sendTrade()
                         

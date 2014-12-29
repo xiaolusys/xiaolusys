@@ -156,7 +156,7 @@ class WeiXinAPI(object):
         name = type(name)==unicode and name.encode('utf8') and name
         return self.handleRequest(self._update_group_uri, {'id':id,'name':name}, method='POST')    
         
-    def updateGroupName(self,openid,to_groupid):
+    def updateGroupMember(self,openid,to_groupid):
         return self.handleRequest(self._update_group_member_uri, {'openid':openid,
                                                       'to_groupid':to_groupid}, 
                                   method='POST')   
@@ -264,11 +264,12 @@ class WeiXinAPI(object):
                                       method='POST')
         return response['order_list']
         
-    def deliveryOrder(self,order_id,delivery_company,delivery_track_no):
+    def deliveryOrder(self,order_id,delivery_company,delivery_track_no,is_others=0):
 
         params = json.dumps({'order_id':order_id,
                              'delivery_company':delivery_company,
-                             'delivery_track_no':delivery_track_no},
+                             'delivery_track_no':delivery_track_no,
+                             'is_others':is_others},
                             ensure_ascii=False)
         return self.handleRequest(self._merchant_order_setdelivery_uri, 
                                   str(params),

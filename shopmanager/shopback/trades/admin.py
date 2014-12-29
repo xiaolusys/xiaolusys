@@ -491,8 +491,7 @@ class MergeTradeAdmin(admin.ModelAdmin):
                     is_merge_success = self._handle_merge(request.user.id,trade,main_trade)
                     if is_merge_success:
                         merge_trade_ids.append(trade.id)
-                        
-                                
+
                 if is_merge_success and len(merge_trade_ids)<sub_trades.count():
                     fail_reason = u'部分订单未合并成功'
                     is_merge_success = False 
