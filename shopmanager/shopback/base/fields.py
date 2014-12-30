@@ -30,3 +30,5 @@ class BigIntegerForeignKey(models.ForeignKey):
                                        models.PositiveSmallIntegerField)))):
             return models.BigIntegerField().db_type(connection=connection)
         return rel_field.db_type(connection=connection)
+    
+    

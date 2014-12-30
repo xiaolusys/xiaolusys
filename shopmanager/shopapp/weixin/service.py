@@ -673,12 +673,19 @@ class WxShopService(LocalService):
     def sendTrade(self, company_code=None, out_sid=None, retry_times=3, *args, **kwargs):
         
         try:
-            wx_logistic = WXLogistic.objects.get(origin_code__icontains
-=company_code.split('_')[0])
+            wx_logistic = WXLogistic.objects.get(origin_code__icontains=company_code.split('_')[0])
+        except:
+            is_others = 1
+            lg_code    = company_code
+        else:
+            is_others = 0
+            lg_code = wx_logistic.company_code
             
+        try:
             self.wx_api.deliveryOrder(self.order.order_id,
-                                                 wx_logistic.company_code,
-                                                 out_sid)
+                                                 lg_code,
+                                                 out_sid,
+                                                 is_others=is_others)
         except Exception, exc:
             logger.error(u'微信发货失败:%s' % exc.message, exc_info=True)
             raise exc
