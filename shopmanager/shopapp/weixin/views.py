@@ -301,6 +301,9 @@ class OrderInfoView(View):
         data["orders"] = orders
         data["ordernum"] = trade.order_num
         data["payment"] = trade.payment
+        data["post_fee"] = trade.post_fee
+        data["status"] = trade.status
+        data["type"] = trade.type
         data["receiver_name"] = trade.receiver_name
         data["receiver_mobile"] = trade.receiver_mobile
         data["address"] = ','.join([trade.receiver_state, trade.receiver_city, trade.receiver_district, trade.receiver_address])
@@ -348,10 +351,15 @@ class OrderInfoView(View):
             and trade.pay_time > datetime.datetime(2014,9,15)):
             score_refund = True
             
+        post_fee_refund = False
+        if (data["post_fee"] > 0 and score >= 10 and data["type"] == pcfg.WX_TYPE and data["status"] == pcfg.TRADE_FINISHED):
+            post_fee_refund = True
+
         response = render_to_response('weixin/orderinfo.html', 
                                       {'tradedata':data, "traces":shipping_traces, "score_passed":score_passed,
                                        "specific_order_finished":specific_order_finished,"refund": refund, 
-                                       "passed":passed, "openid":user_openid, "score_refund":score_refund },
+                                       "passed":passed, "openid":user_openid, "score_refund":score_refund,
+                                       "post_fee_refund":post_fee_refund},
                                       context_instance=RequestContext(request))
         response.set_cookie("openid",user_openid)
         return response
