@@ -42,6 +42,27 @@
         </table>
         </div>
     {% endfor %}
+    <div class="module">
+    <table summary="Models available in the Examination application.">
+        <caption><a href="/admin/examination/" class="section">Tongji</a></caption>
+            <tbody><tr>
+                <th scope="row"><a href="/orders/ordernum/pivotchart/">成交订单分析</a></th>
+            </tr>
+            <tr>
+                <th scope="row"><a href="/trades/order/statistic/">成交商品分析</a></th>
+            </tr>
+            <tr>
+                <th scope="row"><a href="/items/product/sale/">商品库存分析</a></th>
+            </tr>
+            <tr>
+                <th scope="row"><a href="/trades/related/orders/">关联商品销售分析</a></th>
+            </tr>
+            <tr>
+                <th scope="row"><a href="/admin/users/customer/">客户购买力分析</a></th>
+            </tr>
+        </tbody>
+        </table>
+     </div>
 {% else %}
     <p>{% trans "You don't have permission to edit anything." %}</p>
 {% endif %}
