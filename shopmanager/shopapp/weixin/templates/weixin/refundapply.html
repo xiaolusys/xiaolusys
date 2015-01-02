@@ -18,6 +18,9 @@
       {% if score_refund %}
       <option value="3">满100元返10元</option>
       {% endif %}
+      {% if post_fee_refund %}
+      <option value="5">10积分返邮费</option>
+      {% endif %}
       {% endif %}
       {% endif %}
     </select>
@@ -33,7 +36,11 @@
     {% if score_passed %}
     <input id="id_code" type="hidden" class="form-control" type="text" value="111111" placeholder="您的专属VIP邀请码"/>
     {% else %}
+    {% if post_fee_refund %}
+    <input id="id_code" type="hidden" class="form-control" type="text" value="10110" placeholder="您的专属VIP邀请码"/>
+    {% else %}
     <input id="id_code" type="hidden" class="form-control" type="text" value="10010" placeholder="您的专属VIP邀请码"/>
+    {% endif %}
     {% endif %}
     {% endif %}
     <input id="id_bank_account" class="form-control" type="text" placeholder="您的支付宝帐号"/>
