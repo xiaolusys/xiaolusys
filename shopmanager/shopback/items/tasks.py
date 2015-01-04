@@ -144,7 +144,7 @@ def updateUserProductSkuTask(user_id=None,outer_ids=None,force_update_num=False)
                         
                         pskus = ProductSku.objects.filter(outer_id=sku_outer_id, 
                                                                        product=item.product)
-                        if pskus.count() < 0:
+                        if pskus.count() <= 0:
                             continue
                          
                         psku  = pskus[0]

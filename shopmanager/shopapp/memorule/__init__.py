@@ -139,7 +139,7 @@ def ruleMatchGifts(trade):
                         
                         compose_rule.gif_count -= gifts_num
                         
-                        ComposeRule.objects.filter(id=rule.id).update(gif_count=F('gif_count')-gifts_num)
+                        ComposeRule.objects.filter(id=compose_rule.id).update(gif_count=F('gif_count')-gifts_num)
 
                 msg = u'买(oid:%s)就送(%s)'%(order.id,','.join([ '%s-%s'%(r.outer_id,r.outer_sku_id) for r in rules]))
                 log_action(trade.user.user.id,trade,CHANGE,msg)
