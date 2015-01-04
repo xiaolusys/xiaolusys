@@ -28,6 +28,7 @@ SCOPE_CHOICE = (
 RULE_TYPE_CHOICE = (
     (pcfg.RULE_PAYMENT_TYPE,'满就送'),
     (pcfg.RULE_SPLIT_TYPE,'组合拆分'),
+    (pcfg.RULE_GIFTS_TYPE,'买就送'),
 )
 
 class TradeRule(models.Model):
@@ -117,8 +118,9 @@ class RuleMemo(models.Model):
     
 class ComposeRule(models.Model):
     
-    RULE_PAYMENT_TYPE = 'payment'
-    RULE_SPLIT_TYPE   = 'product'
+    RULE_PAYMENT_TYPE = pcfg.RULE_PAYMENT_TYPE
+    RULE_SPLIT_TYPE   = pcfg.RULE_SPLIT_TYPE
+    RULE_GIFTS_TYPE   = pcfg.RULE_GIFTS_TYPE
     
     #匹配规则
     outer_id = models.CharField(max_length=64,db_index=True,
@@ -334,32 +336,20 @@ def rule_match_combose_split(sender, trade_id, *args, **kwargs):
         trade.merge_orders.filter(gift_type=pcfg.COMBOSE_SPLIT_GIT_TYPE).delete()
         try:
             orders = trade.merge_orders.filter(gift_type=pcfg.REAL_ORDER_GIT_TYPE
-                            ,status__in=(pcfg.WAIT_SELLER_SEND_GOODS,pcfg.WAIT_BUYER_CONFIRM_GOODS)
+                            ,status__in=(pcfg.WAIT_SELLER_SEND_GOODS,
+                                         pcfg.WAIT_BUYER_CONFIRM_GOODS)
                             ).exclude(refund_status=pcfg.REFUND_SUCCESS)
             for order in orders:
                 outer_id     = order.outer_id
                 outer_sku_id = order.outer_sku_id
                 order_num    = order.num
                 order_payment = order.payment
-                prod_sku = None
-                prod     = None
-                if outer_sku_id:
-                    try:
-                        prod_sku = ProductSku.objects.get(product__outer_id=outer_id,outer_id=outer_sku_id)
-                    except:
-                        trade.append_reason_code(pcfg.OUTER_ID_NOT_MAP_CODE)
-                        continue
-                    else:
-                        if not prod_sku.is_split:
-                            continue
-                else:
-                    try:
-                        prod     = Product.objects.get(outer_id=outer_id)
-                    except:
-                        trade.append_reason_code(pcfg.OUTER_ID_NOT_MAP_CODE)
-                    else:
-                        if not prod.is_split:
-                            continue            
+                
+                prod = Product.objects.getProductByOuterid(outer_id)
+                prod_sku = Product.objects.getProductSkuByOuterid(outer_sku_id)
+                if not (prod and prod.is_split) or not (prod_sku and prod_sku.is_split):
+                    continue
+                
                 try:
                     compose_rule = ComposeRule.objects.get(outer_id=outer_id,outer_sku_id=outer_sku_id,type='product')
                 except Exception,exc:
@@ -386,4 +376,56 @@ def rule_match_combose_split(sender, trade_id, *args, **kwargs):
             trade.append_reason_code(pcfg.COMPOSE_RULE_ERROR_CODE)
 
 rule_signal.connect(rule_match_combose_split,sender='combose_split_rule',dispatch_uid='rule_match_combose_split')    
+
+
+def rule_match_gifts(sender, trade_id, *args, **kwargs):
+
+    try:
+        trade = MergeTrade.objects.get(id=trade_id)
+    except MergeTrade.DoesNotExist:
+        pass
+    else:
+        trade.merge_orders.filter(gift_type=pcfg.ITEM_GIFT_TYPE).delete()
+        try:
+            orders = trade.merge_orders.filter(gift_type=pcfg.REAL_ORDER_GIT_TYPE
+                            ,status__in=(pcfg.WAIT_SELLER_SEND_GOODS,
+                                         pcfg.WAIT_BUYER_CONFIRM_GOODS)
+                            ).exclude(refund_status=pcfg.REFUND_SUCCESS)
+            for order in orders:
+                outer_id     = order.outer_id
+                outer_sku_id = order.outer_sku_id
+                order_num    = order.num
+                
+                prod = Product.objects.getProductByOuterid(outer_id)
+                prod_sku = Product.objects.getProductSkuByOuterid(outer_sku_id)
+                if not (prod and prod.is_split) or not (prod_sku and prod_sku.is_split):
+                    continue
+                    
+                try:
+                    compose_rule = ComposeRule.objects.get(outer_id=outer_id,
+                                                           outer_sku_id=outer_sku_id,type=ComposeRule.RULE_GIFTS_TYPE)
+                except Exception,exc:
+                    pass
+                else:
+                    rules  = compose_rule.compose_items.all()
+                    
+                    for rule in rules:
+                        if rule.gif_count > 0:
+                            MergeOrder.gen_new_order(trade.id,
+                                                     rule.outer_id,
+                                                     rule.outer_sku_id,
+                                                     rule.num*order_num,
+                                                     gift_type=pcfg.ITEM_GIFT_TYPE,
+                                                     payment=0)
+                            
+                            ComposeRule.objects.filter(id=rule.id).update(gif_count=F('gif_count')-1)
+
+                    msg = u'买(oid:%s)就送(%s)'%str(order.id,','.join([ '%s-%s'%(r.outer_id,r.outer_sku_id) for r in rules]))
+                    log_action(trade.user.user.id,trade,CHANGE,msg)
+                    
+        except Exception,exc:
+            logger.error(exc.message or 'combose split error',exc_info=True)
+            trade.append_reason_code(pcfg.COMPOSE_RULE_ERROR_CODE)
+
+rule_signal.connect(rule_match_gifts,sender='gifts_rule',dispatch_uid='rule_match_gifts')    
 

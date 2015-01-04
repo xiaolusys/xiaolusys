@@ -67,6 +67,7 @@ RP_CANCEL_STATUS      = 4
 #规则类型
 RULE_PAYMENT_TYPE = 'payment'
 RULE_SPLIT_TYPE   = 'product'
+RULE_GIFTS_TYPE   = 'gifts'
 
 #物流类型
 EXPRESS_SHIPPING_TYPE = 'express' #快递
@@ -95,6 +96,7 @@ OVER_PAYMENT_GIT_TYPE  = 2 #满就送
 COMBOSE_SPLIT_GIT_TYPE = 3 #拆分
 RETURN_GOODS_GIT_TYPE  = 4 #退货
 CHANGE_GOODS_GIT_TYPE  = 5 #换货
+ITEM_GIFT_TYPE   = 6 #买就送
 
 #系统内部状态
 EMPTY_STATUS = ''

@@ -15,6 +15,9 @@ from shopback.items.models import Item,Product,ProductSku
 from shopback.orders.models import Order,Trade
 from shopback import paramconfig as pcfg
 
+def map_datetime2daystr(*t):
+    return t[0]
+        #return (t[0][0] and t[0][0].split(' ')[0] or '',)
 
 class TimerOrderStatisticsView(ModelView):
     """ docstring for class TimerOrderStatisticsView """
@@ -43,15 +46,15 @@ class TimerOrderStatisticsView(ModelView):
 
         queryset = Trade.objects.filter(seller_nick__in = nicks_list,
                                         status__in=pcfg.ORDER_SUCCESS_STATUS)
-        queryset = queryset.filter(pay_time__gte=start_dt,
-                                   pay_time__lte=end_dt)
+        queryset = queryset.filter(pay_time__gte=start_dt,pay_time__lte=end_dt)\
+                                   .extra(select={'pay_time':"date_format(pay_time,'%%y-%%m-%%d')"})
         
         if logistic_company:
             queryset = queryset.filter(logistics_company=logistic_company)
             
         if trade_type != 'all':
             queryset = queryset.filter(type=trade_type)
-            
+        
         orders_data_chts = []
         
         if queryset.count() != 0:
@@ -71,7 +74,7 @@ class TimerOrderStatisticsView(ModelView):
                     categories = ['year','month','day','hour']
     
             series = {
-                'options': {'source': queryset,'categories': categories,'legend_by':'seller_nick'},
+                'options': {'source': queryset,'categories': "pay_time",'legend_by':'seller_nick'},
                 'terms': {
                     'total_trades':{'func':Count('id'),'legend_by':'seller_nick'},
                     'total_sales':{'func':Sum('payment'),'legend_by':'seller_nick'},
@@ -81,7 +84,7 @@ class TimerOrderStatisticsView(ModelView):
                 }
             }
     
-            ordersdata = PivotDataPool(series=[series],sortf_mapf_mts=(None,map_int2str,True))
+            ordersdata = PivotDataPool(series=[series],sortf_mapf_mts=(None,map_datetime2daystr,True))
     
             series_options =[{
                 'options':{'type':'column','stacking':True,'yAxis':0},
@@ -111,11 +114,13 @@ class TimerOrderStatisticsView(ModelView):
                 PivotChart(
                     datasource = ordersdata,
                     series_options = series_options,
-                    chart_options = chart_options )
+                    chart_options = chart_options 
+                    )
                 )
 
-        chart_data = {'df':format_date(start_dt),'dt':format_date(end_dt),'nicks':nicks,'cat_by':cat_by,
-                      'type':trade_type,'xy':xy,'charts':orders_data_chts}
+        chart_data = {'df':format_date(start_dt),'dt':format_date(end_dt),
+                                   'nicks':nicks,'cat_by':cat_by,
+                                   'type':trade_type,'xy':xy,'charts':orders_data_chts}
 
         return chart_data
     

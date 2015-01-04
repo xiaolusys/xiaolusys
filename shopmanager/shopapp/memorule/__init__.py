@@ -70,7 +70,7 @@ def ruleMatchSplit(trade):
                 compose_rule = ComposeRule.objects.get(outer_id=order.outer_id,
                                                        outer_sku_id=order.outer_sku_id,
                                                        type=pcfg.RULE_SPLIT_TYPE)
-            except Exception,exc:
+            except:
                 continue
             else:
                 items  = compose_rule.compose_items.all()
@@ -102,6 +102,52 @@ def ruleMatchSplit(trade):
     except Exception,exc:
         trade.append_reason_code(pcfg.COMPOSE_RULE_ERROR_CODE)
         logger.error(u'组合拆分出错：%s'%exc.message ,exc_info=True)
+        
+        
+def ruleMatchGifts(trade): 
+     
+    try:
+        trade.merge_orders.filter(gift_type=pcfg.ITEM_GIFT_TYPE).delete()
+  
+        orders = trade.merge_orders.filter(gift_type=pcfg.REAL_ORDER_GIT_TYPE
+                        ,status__in=(pcfg.WAIT_SELLER_SEND_GOODS,
+                                     pcfg.WAIT_BUYER_CONFIRM_GOODS)
+                        ).exclude(refund_status=pcfg.REFUND_SUCCESS)
+        for order in orders:
+            try:
+                if not Product.objects.isProductRuleSplit(order.outer_id,
+                                                                                                order.outer_sku_id):
+                    continue
+                
+                compose_rule = ComposeRule.objects.get(outer_id=order.outer_id,
+                                                       outer_sku_id=order.outer_sku_id,
+                                                       type=ComposeRule.RULE_GIFTS_TYPE)
+            except :
+                continue
+            else:
+                rules  = compose_rule.compose_items.all()
+                
+                for rule in rules:
+                    gifts_num = rule.num*order.num
+                    if compose_rule.gif_count >= gifts_num:
+                        MergeOrder.gen_new_order(trade.id,
+                                                 rule.outer_id,
+                                                 rule.outer_sku_id,
+                                                 gifts_num,
+                                                 gift_type=pcfg.ITEM_GIFT_TYPE,
+                                                 payment=0)
+                        
+                        compose_rule.gif_count -= gifts_num
+                        
+                        ComposeRule.objects.filter(id=rule.id).update(gif_count=F('gif_count')-gifts_num)
+
+                msg = u'买(oid:%s)就送(%s)'%(order.id,','.join([ '%s-%s'%(r.outer_id,r.outer_sku_id) for r in rules]))
+                log_action(trade.user.user.id,trade,CHANGE,msg)
+                
+    except Exception,exc:
+        logger.error(exc.message or 'rule gifts error',exc_info=True)
+        trade.append_reason_code(pcfg.COMPOSE_RULE_ERROR_CODE)    
+
         
         
         
