@@ -134,7 +134,7 @@ def mergeMaker(trade,sub_trade):
     
 def mergeRemover(trade):
     
-    from shopapp.memorule import ruleMatchPayment,ruleMatchSplit
+    from shopapp.memorule import ruleMatchPayment
     
     if not isinstance(trade,MergeTrade):
         trade = MergeTrade.objects.get(id=trade)

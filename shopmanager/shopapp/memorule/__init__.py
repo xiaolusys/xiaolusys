@@ -60,7 +60,7 @@ def ruleMatchSplit(trade):
     try:
         trade.merge_orders.filter(gift_type=pcfg.COMBOSE_SPLIT_GIT_TYPE).delete()
         
-        for order in trade.inuse_orders:
+        for order in trade.split_orders:
 
             try:
                 if not Product.objects.isProductRuleSplit(order.outer_id,

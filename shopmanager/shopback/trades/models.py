@@ -292,6 +292,12 @@ class MergeTrade(models.Model):
     def print_orders(self):
         return self.merge_orders.filter(sys_status=pcfg.IN_EFFECT)\
             .exclude(gift_type=pcfg.RETURN_GOODS_GIT_TYPE)
+            
+    @property
+    def split_orders(self):
+        return self.merge_orders.filter(refund_status__in=(pcfg.NO_REFUND,pcfg.REFUND_CLOSED))\
+            .exclude(gift_type=pcfg.RETURN_GOODS_GIT_TYPE)\
+            .exclude(sys_status=pcfg.INVALID_STATUS,gift_type=pcfg.CS_PERMI_GIT_TYPE)
     
     @property
     def return_orders(self):
