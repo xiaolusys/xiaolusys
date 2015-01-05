@@ -3,7 +3,7 @@ __author__ = 'meixqhi'
 import json
 from django.db import models
 from django.conf import settings
-from django.db.models import Sum,F
+from django.db.models import Sum,F,Q
 from shopback import paramconfig as pcfg
 from shopback.items.models import Product
 from shopback.trades.models import MergeTrade,MergeOrder
@@ -116,11 +116,12 @@ def ruleMatchGifts(trade):
         for order in orders:
             try:
                 if not Product.objects.isProductRuleSplit(order.outer_id,
-                                                                                                order.outer_sku_id):
+                                                                                                 order.outer_sku_id):
                     continue
                 
-                compose_rule = ComposeRule.objects.get(outer_id=order.outer_id,
-                                                       outer_sku_id=order.outer_sku_id,
+                compose_rule = ComposeRule.objects.get(
+                                                       Q(outer_id=order.outer_id,outer_sku_id=order.outer_sku_id)|
+                                                       Q(outer_id=order.outer_id,outer_sku_id=''),
                                                        type=ComposeRule.RULE_GIFTS_TYPE)
             except :
                 continue
