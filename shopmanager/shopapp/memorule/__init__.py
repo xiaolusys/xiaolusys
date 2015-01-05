@@ -27,7 +27,7 @@ def ruleMatchPayment(trade):
         real_payment = trade.inuse_orders.aggregate(
                         total_payment=Sum('payment'))['total_payment'] or 0
     
-        payment_rules = ComposeRule.objects.filter(type=pcfg.RULE_PAYMENT_TYPE)\
+        payment_rules = ComposeRule.objects.filter(type=pcfg.RULE_PAYMENT_TYPE,status=True)\
                         .order_by('-payment')
         
         for rule in payment_rules:
@@ -71,7 +71,8 @@ def ruleMatchSplit(trade):
             
                 compose_rule = ComposeRule.objects.get(outer_id=order.outer_id,
                                                        outer_sku_id=order.outer_sku_id,
-                                                       type=pcfg.RULE_SPLIT_TYPE)
+                                                       type=pcfg.RULE_SPLIT_TYPE,
+                                                       status=True)
             except:
                 continue
             else:
@@ -124,7 +125,8 @@ def ruleMatchGifts(trade):
                 compose_rule = ComposeRule.objects.get(
                                                        Q(outer_id=order.outer_id,outer_sku_id=order.outer_sku_id)|
                                                        Q(outer_id=order.outer_id,outer_sku_id=''),
-                                                       type=ComposeRule.RULE_GIFTS_TYPE)
+                                                       type=ComposeRule.RULE_GIFTS_TYPE,
+                                                       status=True)
             except :
                 continue
             else:
