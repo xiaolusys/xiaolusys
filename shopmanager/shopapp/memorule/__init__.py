@@ -46,7 +46,9 @@ def ruleMatchPayment(trade):
                 log_action(trade.user.user.id,trade,CHANGE,
                            u'满就送（实付:%s）'%str(real_payment))
                 
-            ComposeRule.objects.filter(id=rule.id).update(gif_count=F('gif_count')-1)
+            ComposeRule.objects.filter(id=rule.id).update(
+                                                          gif_count=F('gif_count')-1,
+                                                          scb_count=F('scb_count')+1)
             break
         
     except Exception,exc:
@@ -140,7 +142,9 @@ def ruleMatchGifts(trade):
                         
                         compose_rule.gif_count -= gifts_num
                         
-                        ComposeRule.objects.filter(id=compose_rule.id).update(gif_count=F('gif_count')-gifts_num)
+                        ComposeRule.objects.filter(id=compose_rule.id).update(
+                                                                              gif_count=F('gif_count')-gifts_num,
+                                                                              scb_count=F('scb_count')+gifts_num)
 
                 msg = u'买(oid:%s)就送(%s)'%(order.id,','.join([ '%s-%s'%(r.outer_id,r.outer_sku_id) for r in rules]))
                 log_action(trade.user.user.id,trade,CHANGE,msg)

@@ -1,3 +1,5 @@
+######## 2015-1-5##########
+create unique index uniq_item_outer_and_sku_id on shop_memorule_composerule(`outer_id`,`outer_sku_id`,`type`) ;
 ######## 2014-12-20##########
 alter table shop_flashsale_supplier add column memo varchar(1024) NOT NULL;
 ######## 2014-12-18##########

@@ -133,17 +133,21 @@ class ComposeRule(models.Model):
                                 choices=RULE_TYPE_CHOICE,
                                 verbose_name=u'规则类型')
     
-    gif_count   = models.IntegerField(default=0,verbose_name=u'赠送名额')
+    gif_count   = models.IntegerField(default=0,verbose_name=u'剩余名额')
+    scb_count = models.IntegerField(default=0,verbose_name=u'已送名额')
+    
     extra_info = models.TextField(blank=True,verbose_name=u'信息')
     
     created  = models.DateTimeField(null=True,blank=True,auto_now_add=True)
     modified = models.DateTimeField(null=True,blank=True,auto_now=True)
     
+    status  = models.BooleanField(default=False,verbose_name=u'生效')
+    
     class Meta:
         db_table = 'shop_memorule_composerule'
         verbose_name=u'匹配规则'
         verbose_name_plural = u'拆分规则列表'
-        unique_together = ("outer_id","outer_sku_id")
+        unique_together = ("outer_id","outer_sku_id","type")
         
     def __unicode__(self):
         return str(self.id)

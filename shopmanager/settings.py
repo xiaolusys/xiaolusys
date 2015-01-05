@@ -152,8 +152,8 @@ INSTALLED_APPS = (
     'games.paint',
     'games.bomb',
 
-    'flashsale.supplier',
-    'mathfilters',
+#     'flashsale.supplier',
+#     'mathfilters',
 
 
     #'test.celery',

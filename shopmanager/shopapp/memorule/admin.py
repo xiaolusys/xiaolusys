@@ -2,12 +2,22 @@
 __author__ = 'meixqhi'
 import time
 import cStringIO as StringIO
-from django.http import HttpResponse
+from django.http import HttpResponse,HttpResponseRedirect
 from django.contrib import admin
+from django.contrib import messages
 from common.utils import CSVUnicodeWriter
 from django.db import models
+
 from django.forms import TextInput, Textarea
-from shopapp.memorule.models import TradeRule,RuleFieldType,ProductRuleField,RuleMemo,ComposeRule,ComposeItem
+from shopback.items.models import Product,ProductSku
+from shopback.base import log_action, ADDITION, CHANGE
+from shopapp.memorule.models import (
+                                     TradeRule,
+                                     RuleFieldType,
+                                     ProductRuleField,
+                                     RuleMemo,
+                                     ComposeRule,
+                                     ComposeItem)
 
 
 
@@ -86,12 +96,14 @@ class ComposeItemInline(admin.TabularInline):
     
 
 class ComposeRuleAdmin(admin.ModelAdmin):
-    list_display = ('id','outer_id','outer_sku_id','payment','type','extra_info','created','modified')
+    
+    list_display = ('id','outer_id','outer_sku_id','payment','type','extra_info','status','created','modified')
     list_display_links = ('id','outer_id')
     #list_editable = ('update_time','task_type' ,'is_success','status')
 
     date_hierarchy = 'created'
     #ordering = ['created_at']
+    list_filter = ('type','status')
     search_fields = ['id','outer_id','extra_info']
     
     inlines = [ComposeItemInline]
@@ -125,7 +137,90 @@ class ComposeRuleAdmin(admin.ModelAdmin):
         
     export_compose_rule.short_description = u"CSV文件导出"
     
-    actions = ['export_compose_rule',]
+    def active_items(self, rule, splite_enable=True):
+        
+        for item in   rule.compose_items.all():
+                
+                prod_sku = prod = None
+                if item.outer_sku_id:
+                    prod_sku = Product.objects.getProductSkuByOuterid(
+                                                                      item.outer_id,
+                                                                      item.outer_sku_id)
+                else:
+                    prod = Product.objects.getProductByOuterid(item.outer_id)
+                    
+                if not prod_sku and not prod:
+                    raise Exception(u'拆分明细编码错误:(%s,%s)'%(item.outer_id,item.outer_sku_id))
+        
+        up_row = 0
+        try:
+            ComposeRule.objects.get(outer_id=rule.outer_id,
+                                                                outer_sku_id=rule.outer_sku_id,
+                                                                status=True)
+        except:
+            if rule.outer_sku_id:
+                up_row = ProductSku.objects.filter(outer_id=rule.outer_sku_id,
+                                                                      product__outer_id=rule.outer_id).update(is_split=splite_enable)
+            else:
+                up_row = Product.objects.filter(outer_id=rule.outer_id).update(is_split=splite_enable)
+            
+        return up_row
+    
+    def errormsg_user(self,request,message):
+        
+        messages.error(request, message)
+    
+    def batch_activerule_action(self, request, queryset):
+        """ 订单规则批量激活 """
+        
+        has_error = False
+        for rule in queryset:
+            try:
+                if rule.type in (ComposeRule.RULE_SPLIT_TYPE,
+                                 ComposeRule.RULE_GIFTS_TYPE):
+                    self.active_items(rule)
+                    
+                    rule.status = True
+                    rule.save()  
+    
+                    log_action(request.user.id,rule,CHANGE,u'规则激活')
+            except Exception,exc:
+                has_error = True
+                self.errormsg_user(request,exc.message)
+        
+        if not has_error:
+            self.message_user(request, u"======= 订单规则批量激活成功 =======")
+
+        return HttpResponseRedirect("./") 
+
+    batch_activerule_action.short_description = u"批量规则激活"
+    
+    def batch_disactiverule_action(self, request, queryset):
+        """ 订单规则批量失效"""
+        
+        has_error = False
+        for rule in queryset:
+            try:
+                if rule.type in (ComposeRule.RULE_SPLIT_TYPE,
+                                 ComposeRule.RULE_GIFTS_TYPE):
+                    rule.status = False
+                    rule.save()
+                    
+                    self.active_items(rule, splite_enable=False)
+                    
+                    log_action(request.user.id,rule,CHANGE,u'规则失效')
+            except Exception,exc:
+                has_error = True
+                self.errormsg_user(request,exc.message)
+        
+        if not has_error:
+            self.message_user(request, u"======= 订单规则批量失效成功 =======")
+
+        return HttpResponseRedirect("./")
+
+    batch_disactiverule_action.short_description = u"批量规则失效"
+    
+    actions = ['batch_activerule_action', 'batch_disactiverule_action','export_compose_rule']
     
     
 admin.site.register(ComposeRule, ComposeRuleAdmin)
