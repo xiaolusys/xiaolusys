@@ -116,7 +116,6 @@ PRIORITY_TYPE = (
 GIFT_TYPE = (
     (pcfg.REAL_ORDER_GIT_TYPE  ,u'实付'),
     (pcfg.CS_PERMI_GIT_TYPE,u'赠送'),
-    (pcfg.CS_PERMI_GIT_TYPE,u'买就送'),
     (pcfg.OVER_PAYMENT_GIT_TYPE,u'满就送'),
     (pcfg.COMBOSE_SPLIT_GIT_TYPE,u'拆分'),
     (pcfg.RETURN_GOODS_GIT_TYPE,u'退货'),
