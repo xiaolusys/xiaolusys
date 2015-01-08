@@ -62,7 +62,7 @@ urlpatterns = patterns('shopapp.weixin.views',
     url(r'^sampleapply/$', SampleApplyView.as_view()),
     url(r'^sampleconfirm/$', SampleConfirmView.as_view()),
     url(r'^vipcodeverify/$', VipCodeVerifyView.as_view()),                       
-    url(r'^sampleads/(?P<pk>\d+)/$', SampleAdsView.as_view()),
+    url(r'^sampleads/(?P<pk>\d+)/$', SampleAdsView.as_view(),name="weixin_sampleads"),
     url(r'^inviteresult/$', ResultView.as_view()),
     url(r'^finallist/(?P<batch>\d+)/(?P<page>\d+)/(?P<month>\d+)/$', cache_page(FinalListView.as_view(),24*60*60)),
 
