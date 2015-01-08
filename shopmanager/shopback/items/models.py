@@ -555,9 +555,6 @@ def calculate_product_stock_num(sender, instance, *args, **kwargs):
         product.std_purchase_price = "{0:.2f}".format(product_dict.get('avg_purchase_price') or 0)
         product.agent_price        = "{0:.2f}".format(product_dict.get('avg_agent_price') or 0)
         product.staff_price        = "{0:.2f}".format(product_dict.get('avg_staff_price') or 0)
-        
-    product.is_split    = product_skus.filter(is_split=True).count() > 0    
-    product.is_match    = product_skus.filter(is_match=True).count() > 0 
     
     product.save()
         
