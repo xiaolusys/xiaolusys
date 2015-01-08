@@ -700,7 +700,6 @@ class VipCode(models.Model):
     created = models.DateTimeField(auto_now_add=True,null=True,verbose_name=u'创建时间')
     
     objects = VipCodeManager()
-    
     class Meta:
         db_table = 'shop_weixin_vipcode'
         verbose_name = u'VIP邀请码'

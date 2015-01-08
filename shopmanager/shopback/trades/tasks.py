@@ -6,7 +6,7 @@ import json
 from celery.task import task
 from celery.task.sets import subtask
 from django.conf import settings
-from django.db.models import Q
+from django.db.models import Q,Sum
 from shopback import paramconfig as pcfg
 from shopback.orders.models import Trade,Order
 from shopback.trades.service import TradeService
@@ -289,7 +289,7 @@ def pushBuyerToCustomerTask(day):
             customer.district  = trade.receiver_district
             customer.save()
             
-            trades        = MergeTrade.objects.filter(buyer_nick=self.buyer_nick,
+            trades        = MergeTrade.objects.filter(buyer_nick=trade.buyer_nick,
                             receiver_mobile=trade.receiver_mobile,
                             status__in=pcfg.ORDER_SUCCESS_STATUS)\
                             .exclude(is_express_print=False,

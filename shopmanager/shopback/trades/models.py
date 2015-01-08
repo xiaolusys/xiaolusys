@@ -400,8 +400,8 @@ class MergeTrade(models.Model):
                                                 'can_review'])
         
         rows = MergeTrade.objects.filter(id=self.id,
-                                         sys_status=pcfg.WAIT_PREPARE_SEND_STATUS,
-                                         is_locked=False)\
+                                         out_sid='',
+                                         sys_status=pcfg.WAIT_PREPARE_SEND_STATUS)\
                                          .update(sys_status=pcfg.WAIT_AUDIT_STATUS)
         if rows > 0:
             self.sys_status = pcfg.WAIT_AUDIT_STATUS
@@ -712,7 +712,7 @@ def refresh_trade_status(sender,instance,*args,**kwargs):
     prod_num      = effect_orders.values_list('outer_id').distinct().count()
     merge_trade.prod_num = prod_num
     
-    if merge_trade.status in(pcfg.WAIT_SELLER_SEND_GOODS,
+    if merge_trade.status in (pcfg.WAIT_SELLER_SEND_GOODS,
                              pcfg.WAIT_BUYER_CONFIRM_GOODS):
         
         merge_trade.has_refund     = MergeTrade.objects.isTradeRefunding(merge_trade)
