@@ -78,9 +78,9 @@ class ProductManager(models.Manager):
             if outer_sku_id:
                 product_sku = ProductSku.objects.get(outer_id=outer_sku_id,
                                                      product__outer_id=outer_id)
-                return product_sku.is_match
-            
-            return product.is_match
+
+            return product.is_match or (product_sku and product_sku.is_match)
+
         except (self.model.DoesNotExist,ProductSku.DoesNotExist):
             raise self.model.ProductCodeDefect(u'(%s,%s)编码组合未匹配到商品'%(outer_id,outer_sku_id))
         
@@ -93,6 +93,7 @@ class ProductManager(models.Manager):
             if outer_sku_id:
                 product_sku = ProductSku.objects.get(outer_id=outer_sku_id,
                                                      product__outer_id=outer_id)
+                
             return product.is_split or (product_sku and product_sku.is_split)
             
         except (self.model.DoesNotExist,ProductSku.DoesNotExist):
