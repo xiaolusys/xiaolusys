@@ -5,7 +5,10 @@ from django.conf import settings
 
 from django.forms import TextInput, Textarea
 from shopback.base.options import DateFieldListFilter
-from .models import WeixinUserPicture,WeixinUserAward
+from .models import (
+                     WeixinUserPicture,
+                     WeixinUserAward,
+                     WeixinLinkClicks)
 
 
 class WeixinUserPictureAdmin(admin.ModelAdmin):
@@ -49,3 +52,14 @@ class WeixinUserAwardAdmin(admin.ModelAdmin):
     
     
 admin.site.register(WeixinUserAward, WeixinUserAwardAdmin) 
+
+class WeixinLinkClicksAdmin(admin.ModelAdmin):
+    
+    list_display = ('user_openid','link_url','clicker_num','click_count','validated_in','modified','created')
+    search_fields = ['user_openid','link_url']
+    
+    list_filter = (('modified',DateFieldListFilter),)
+    
+    
+admin.site.register(WeixinLinkClicks, WeixinLinkClicksAdmin) 
+

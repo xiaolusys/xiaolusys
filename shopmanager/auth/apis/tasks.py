@@ -298,11 +298,8 @@ def taobao_item_sku_get(num_iid=None,sku_id=None,fields=API_FIELDS['taobao.item.
 
 @apis('taobao.item.skus.get')
 def taobao_item_skus_get(num_iids=None,fields=API_FIELDS['taobao.item.skus.get'],tb_user_id=None):
-    pass
+    pass 
 
-@apis('taobao.products.get')
-def taobao_products_get(nick=None,page_no=None,page_size=None,fields=API_FIELDS['taobao.products.get'],tb_user_id=None):
-    pass
 
 @apis('taobao.products.search')
 def taobao_products_search(q=None,cid=None,props=None,fields=API_FIELDS['taobao.products.search'],tb_user_id=None):

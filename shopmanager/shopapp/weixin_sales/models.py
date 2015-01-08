@@ -76,7 +76,29 @@ class WeixinUserAward(models.Model):
     
     def __unicode__(self):
         return self.user_openid
+    
 
+class WeixinLinkClicks(models.Model): 
+    
+    user_openid = models.CharField(max_length=64,unique=True,verbose_name=u"申请人ID")
+    
+    link_url           = models.CharField(max_length=128,db_index=True,blank=True,verbose_name=u'分享链接')
+    clicker_num = models.IntegerField(default=0,verbose_name=u"点击人数")
+    click_count   = models.IntegerField(default=0,verbose_name=u"点击次数")
+    
+    validated_in = models.IntegerField(default=0,verbose_name=u"有效间隔(s)")
+    
+    modified = models.DateTimeField(auto_now=True,blank=True,null=True,verbose_name=u'修改时间')
+    created  = models.DateTimeField(auto_now_add=True,blank=True,null=True,verbose_name=u'创建日期')
+    
+    class Meta:
+        db_table = 'shop_weixin_sale_linkclicks'
+        verbose_name = u'微信分享点击'
+        verbose_name_plural = u'微信分享点击列表'
+    
+    def __unicode__(self):
+        return  '<%s,%s>'%(self.link_url,self.click_count)
+    
 
 from django.db import transaction
 from shopapp.signals import weixin_referal_signal
