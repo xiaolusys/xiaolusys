@@ -1,7 +1,9 @@
 {% extends "weixin/weixin_base.html" %}
 
 {% block meta %}
+<!--
 <meta name="sharecontent" data-msg-img="https://mmbiz.qlogo.cn/mmbiz/yMhOQPTKhLsSjykVcEsrWrYMpcpmu0b6nQt45cBqN7GKu0ZryPNxvZ8cW4oJlqpxDjxEc53qj96Ga4bYGINjeQ/0" data-msg-title="2015，给孩子最温暖的回忆！" data-msg-content="一个星期之后，我收到了Fay寄来的礼物。一个温暖的黄色斗篷：柔软、轻盈。里面夹着一张卡片..." data-msg-callBack="" data-line-img="https://mmbiz.qlogo.cn/mmbiz/yMhOQPTKhLsSjykVcEsrWrYMpcpmu0b6nQt45cBqN7GKu0ZryPNxvZ8cW4oJlqpxDjxEc53qj96Ga4bYGINjeQ/0" data-line-title="小小礼物 感恩的心 感谢有你！" data-line-callBack=""/>  
+-->
 {% endblock %}
 
 {% block title %} 
@@ -122,7 +124,7 @@ WeixinApi.ready(function(Api) {
         "appId": "", // 服务号可以填写appId
         "imgUrl" : "https://mmbiz.qlogo.cn/mmbiz/yMhOQPTKhLsSjykVcEsrWrYMpcpmu0b6nQt45cBqN7GKu0ZryPNxvZ8cW4oJlqpxDjxEc53qj96Ga4bYGINjeQ/0",
         "link" : "http://weixin.huyi.so/weixin/sampleads/{{ pk }}/",
-        "desc" : "一个星期之后，我收到了Fay寄来的礼物。一个温暖的黄色斗篷：柔软、轻盈。里面夹着一张卡片...",
+        "desc" : "2015，我要给孩子最温暖的回忆！一个星期之后，我收到了Fay寄来的礼物。一个温暖的黄色斗篷：柔软、轻盈。里面夹着一张卡片...",
         "title": "2015，给孩子最温暖的回忆！" 
     };
 
@@ -149,7 +151,7 @@ WeixinApi.ready(function(Api) {
         // 分享成功
         confirm : function(resp) {
             // 分享成功了，我们是不是可以做一些分享统计呢？
-            alert("感谢分享！请到【审核通知】查询申请状态！");
+            alert("感谢分享！请到【审核通知】查询状态！");
         },
         // 整个分享过程结束
         all : function(resp,shareTo) {
@@ -170,65 +172,6 @@ WeixinApi.ready(function(Api) {
     // iOS上，可以直接调用这个API进行分享，一句话搞定
     Api.generalShare(wxData,wxCallbacks);
 });
-/*
-var imgUrl = "https://mmbiz.qlogo.cn/mmbiz/yMhOQPTKhLsSjykVcEsrWrYMpcpmu0b6nQt45cBqN7GKu0ZryPNxvZ8cW4oJlqpxDjxEc53qj96Ga4bYGINjeQ/0";
-var lineLink = "http://weixin.huyi.so/weixin/sampleads/{{ pk }}/";
-var descContent = "2015，给孩子最温暖的回忆: 一个星期之后，我收到了Fay寄来的礼物。一个温暖的黄色斗篷：柔软、轻盈。里面夹着一张卡片...";
-var shareTitle = "2015，给孩子最温暖的回忆！";
-var appid = "wxc2848fa1e1aa94b5";
-
-function shareFriend() {  
-    WeixinJSBridge.invoke('sendAppMessage',{  
-                            "appid": appid,  
-                            "img_url": imgUrl,  
-                            "img_width": "100",  
-                            "img_height": "100",  
-                            "link": lineLink,  
-                            "desc": descContent,  
-                            "title": shareTitle  
-                            }, function(res) {  
-                            _report('send_msg', res.err_msg);  
-                            })  
-}  
-function shareTimeline() {  
-    WeixinJSBridge.invoke('shareTimeline',{  
-                            "img_url": imgUrl,  
-                            "img_width": "100",  
-                            "img_height": "100",  
-                            "link": lineLink,  
-                            "desc": descContent,  
-                            "title": shareTitle  
-                            }, function(res) {  
-                            _report('timeline', res.err_msg);  
-                            });  
-}  
-function shareWeibo() {  
-    WeixinJSBridge.invoke('shareWeibo',{  
-                            "content": descContent,  
-                            "url": lineLink,  
-                            }, function(res) {  
-                            _report('weibo', res.err_msg);  
-                            });  
-}  
-// 当微信内置浏览器完成内部初始化后会触发WeixinJSBridgeReady事件。  
-document.addEventListener('WeixinJSBridgeReady', function onBridgeReady() {  
-  
-        // 发送给好友  
-        WeixinJSBridge.on('menu:share:appmessage', function(argv){  
-            shareFriend();  
-            });  
-  
-        // 分享到朋友圈  
-        WeixinJSBridge.on('menu:share:timeline', function(argv){  
-            shareTimeline();  
-            });  
-  
-        // 分享到微博  
-        WeixinJSBridge.on('menu:share:weibo', function(argv){  
-            shareWeibo();  
-            });  
-        }, false);  
-*/
 </script>  
 {% endblock %}
 
