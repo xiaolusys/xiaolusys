@@ -16,6 +16,7 @@ from shopback.items.models import (Item,Product,
                                    ProductDaySale)
 from shopback.trades.models import MergeTrade,MergeOrder
 from shopback.users.models import User
+from shopback.categorys.models import ProductCategory
 from shopback.purchases import getProductWaitReceiveNum
 from shopback import paramconfig as pcfg
 from shopback.base import log_action, ADDITION, CHANGE
@@ -53,7 +54,7 @@ class ItemAdmin(admin.ModelAdmin):
     date_hierarchy = 'last_num_updated'
     #ordering = ['created_at']
 
-    list_filter = ('user','has_showcase','sync_stock','approve_status')
+    list_filter = ('user','has_showcase','sync_stock','approve_status','category')
     search_fields = ['num_iid', 'outer_id', 'title']
 
 
@@ -61,7 +62,7 @@ admin.site.register(Item, ItemAdmin)
 
 
 class ProductAdmin(admin.ModelAdmin):
-    list_display = ('id','outer_id','name_link','collect_num','category','warn_num','remain_num','wait_post_num','wait_receive_num'
+    list_display = ('id','outer_id','name_link','collect_num','category_select','warn_num','remain_num','wait_post_num','wait_receive_num'
                    ,'cost' ,'std_sale_price','sync_stock','is_match','post_check','is_split','district_link','status')
     list_display_links = ('id',)
     #list_editable = ('name',)
@@ -89,9 +90,35 @@ class ProductAdmin(admin.ModelAdmin):
     wait_receive_num.allow_tags = True
     wait_receive_num.short_description = u"在途数" 
     
+    def category_list(self):
+        if hasattr(self,"categorys"):
+            return self.categorys
+        self.categorys = ProductCategory.objects.filter(is_parent=False)
+        return self.categorys
+        
+    def category_select(self, obj):
+
+        categorys = self.category_list()
+
+        cat_list = ["<select class='category_select' pid='%s'>"%obj.id]
+        cat_list.append("<option value=''>-------------------</option>")
+        for cat in categorys:
+
+            if obj and obj.category == cat:
+                cat_list.append("<option value='%s' selected>%s</option>"%(cat.cid,cat))
+                continue
+
+            cat_list.append("<option value='%s'>%s</option>"%(cat.cid,cat))
+        cat_list.append("</select>")
+
+        return "".join(cat_list)
+
+    category_select.allow_tags = True
+    category_select.short_description = u"所属类目"
+    
     inlines = [ProductSkuInline]
     
-    list_filter = ('status','sync_stock','is_split','is_match','is_assign','post_check')
+    list_filter = ('status','sync_stock','is_split','is_match','is_assign','post_check','category')
     search_fields = ['id','outer_id', 'name' , 'barcode']
     
     #--------设置页面布局----------------
@@ -115,6 +142,10 @@ class ProductAdmin(admin.ModelAdmin):
         models.FloatField: {'widget': TextInput(attrs={'size':'16'})},
         models.TextField: {'widget': Textarea(attrs={'rows':4, 'cols':40})},
     }
+    
+    class Media:
+        css = {"all": ("admin/css/forms.css","css/admin/dialog.css","css/admin/common.css", "jquery/jquery-ui-1.10.1.css")}
+        js = ("js/admin/adminpopup.js","js/item_change_list.js")
     
     def queryset(self, request):
         """

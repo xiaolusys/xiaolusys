@@ -8,7 +8,7 @@ class ProductListResource(ModelResource):
     """ docstring for ProductList ModelResource """
 
     model = Product
-    fields = ('id','outer_id','name','category','wait_post_num','collect_num','warn_num','remain_num','price','modified','sync_stock'
+    fields = ('id','outer_id','name','category_id','wait_post_num','collect_num','warn_num','remain_num','price','modified','sync_stock'
                ,'is_stock_warn','is_warning','is_assign','is_split','is_match','post_check','status','match_reason','buyer_prompt','memo') 
     exclude = ('url',)
     
