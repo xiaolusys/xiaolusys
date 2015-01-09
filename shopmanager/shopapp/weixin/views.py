@@ -847,7 +847,8 @@ class SampleAdsView(View):
                 identical = True
             
             response = render_to_response('weixin/sampleads2.html', 
-                                          {"identical":identical,"vipcode":vipcode, "pk":wx_user_pk}, 
+                                          {"identical":identical,"vipcode":vipcode, 
+                                           "pk":wx_user_pk, 'wx_user':users[0]}, 
                                           context_instance=RequestContext(request))
             return response
 
