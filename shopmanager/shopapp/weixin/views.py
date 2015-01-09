@@ -914,16 +914,18 @@ class ResultView(View):
         if vip_codes.count() > 0:
             vip_code = vip_codes[0]
         
-        link_click = None
+        link_click = {'clicker_num':0}
         link_clicks = WeixinLinkClicks.objects.filter(user_openid=user_openid)
         if link_clicks.count() > 0:
             link_click = link_clicks[0]
-        print 'link click',link_clicks,user_openid
+            
+        jan_pass = False
         response = render_to_response('weixin/invite_result1.html',
                                       {'wx_user':wx_user,
                                        'sample_order':sample_order,
                                        'vip_code':vip_code,
                                        'link_click':link_click,
+                                       'jan_pass':jan_pass,
                                        },
                                       context_instance=RequestContext(request))
         response.set_cookie("openid",user_openid)  
