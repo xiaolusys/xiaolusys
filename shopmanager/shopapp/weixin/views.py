@@ -697,6 +697,7 @@ class FreeSampleView(View):
     def get(self, request):
         content = request.REQUEST
         code = content.get('code')
+        fcode = content.get('f')
         
         user_openid = get_user_openid(request, code)
         if user_openid == "" or user_openid == None or user_openid == "None":
@@ -705,8 +706,8 @@ class FreeSampleView(View):
         
         wx_user,state = WeiXinUser.objects.get_or_create(openid=user_openid)
         
-        html = 'weixin/freesamples2.html'
-        response = render_to_response(html, {"wx_user":wx_user},
+        html = 'weixin/freesamples.html'
+        response = render_to_response(html, {"wx_user":wx_user, 'fcode':fcode},
                                       context_instance=RequestContext(request))
         response.set_cookie("openid",user_openid)
         return response
