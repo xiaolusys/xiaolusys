@@ -23,7 +23,7 @@ def  record_weixin_clicks(function=None,validated_in=24*60*60):
             if not click_time or  int(time.time()) - int(click_time) > validated_in :
                 WeixinLinkClicks.objects.filter(link_url=req_url).update(
                                                                          click_count=F('click_count') + 1,
-                                                                         clicker_num=F('clicker_num') + (click_time and 1 or 0),
+                                                                         clicker_num=F('clicker_num') + ([1,0][click_time and  1 or 0]),
                                                                          validated_in=validated_in)
                 link_dict[req_url] = int(time.time())
                 
