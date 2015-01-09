@@ -706,7 +706,7 @@ class FreeSampleView(View):
         
         wx_user,state = WeiXinUser.objects.get_or_create(openid=user_openid)
 
-        if wx_user.subscribe_time < datetime.datetime(2015,1,5):
+        if wx_user.subscribe and wx_user.subscribe_time < datetime.datetime(2015,1,5):
             if wx_user.vipcodes.count() > 0:
                 fcode = wx_user.vipcodes.all()[0].code
         
@@ -715,10 +715,7 @@ class FreeSampleView(View):
             redirect_url = '/weixin/sampleads/%d/' % wx_user.pk
             return redirect(redirect_url)
         
-        started = False
-        if wx_user.openid == 'oMt59uE55lLOV2KS6vYZ_d0dOl5c':
-            started = True
-        
+        started = True
         
         html = 'weixin/freesamples.html'
         response = render_to_response(html, {"wx_user":wx_user, 'fcode':fcode, 'started':started},
