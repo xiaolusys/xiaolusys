@@ -886,7 +886,7 @@ class WeixinClickScoreRecord(models.Model):
         
 
         
-from django.db import transaction
+
 from shopapp.signals import (confirm_trade_signal,
                              weixin_referal_signal,
                              weixin_refund_signal,
@@ -895,9 +895,9 @@ from shopapp.signals import (confirm_trade_signal,
                              weixin_surveyconfirm_signal,
                              weixin_sampleconfirm_signal)
 
-@transaction.commit_manually
+
 def click2score(sender, click_score_record_id, *args, **kwargs):
-    transaction.commit()
+
     try:
         record = WeixinClickScoreRecord.objects.get(pk=click_score_record_id)
         user_openid = record.user_openid
@@ -912,19 +912,17 @@ def click2score(sender, click_score_record_id, *args, **kwargs):
         wx_user_score.user_score  = models.F('user_score') + score
         wx_user_score.save()
     except Exception,exc:
-        transaction.rollback()
-        
+
         import logging
         logger = logging.getLogger("celery.handler")
         logger.error(u'阅读点击积分转换失败:%s'%exc.message,exc_info=True)
-    else:
-        transaction.commit()
+
     
 weixin_readclick_signal.connect(click2score, sender=WeixinClickScoreRecord)
 
-@transaction.commit_manually
+
 def sample_confirm_answer2score(sender, sample_order_id, *args, **kwargs):
-    transaction.commit()
+
     try:
         sample_order = SampleOrder.objects.get(pk=sample_order_id)
         user_openid  = sample_order.user_openid
@@ -938,23 +936,18 @@ def sample_confirm_answer2score(sender, sample_order_id, *args, **kwargs):
         wx_user_score.user_score  = models.F('user_score') + sample_score
         wx_user_score.save()
     except Exception,exc:
-        transaction.rollback()
-        
+
         import logging
         logger = logging.getLogger("celery.handler")
         logger.error(u'试用问答积分转换失败:%s'%exc.message,exc_info=True)
-    else:
-        transaction.commit()
+
     
 weixin_sampleconfirm_signal.connect(sample_confirm_answer2score, sender=SampleOrder)
 
 
 #订单确认收货增加积分
-@transaction.commit_manually
 def convert_trade_payment2score(sender,trade_id,*args,**kwargs):
-    
-    transaction.commit()
-    committed = False
+
     try:
         from shopback import paramconfig as pcfg
         instance = MergeTrade.objects.get(id = trade_id)
@@ -999,29 +992,21 @@ def convert_trade_payment2score(sender,trade_id,*args,**kwargs):
             trade_score_relev.user_openid = user_openid
             trade_score_relev.is_used = True
             trade_score_relev.save()
-        
-        committed = True
-        
+
     except Exception,exc:
-        transaction.rollback()
-        
+
         import logging
         logger = logging.getLogger("celery.handler")
         logger.error(u'订单积分转换失败:%s'%exc.message,exc_info=True)
-    else:
-        transaction.commit()
-    finally:
-        if not committed:
-            transaction.rollback()
+
         
         
 confirm_trade_signal.connect(convert_trade_payment2score, sender=MergeTrade)
 
 #推荐关系增加积分
-@transaction.commit_manually
+
 def convert_referal2score(sender,user_openid,referal_from_openid,*args,**kwargs):
     
-    transaction.commit()
     invite_score = 1
     try:
         wx_user = WeiXinUser.objects.get(openid=user_openid)
@@ -1037,22 +1022,19 @@ def convert_referal2score(sender,user_openid,referal_from_openid,*args,**kwargs)
             wx_user_score.save()
         
     except Exception,exc:
-        transaction.rollback()
         
         import logging
         logger = logging.getLogger("celery.handler")
         logger.error(u'邀请好友积分保存失败:%s'%exc.message,exc_info=True)
-    else:
-        transaction.commit()
+
 
 weixin_referal_signal.connect(convert_referal2score, sender=SampleOrder)
 
 
 #试用订单审核通过消耗积分
-@transaction.commit_manually
 def decrease_sample_score(sender,refund_id,*args,**kwargs):
     
-    transaction.commit()
+
     try:
         refund = Refund.objects.get(id=refund_id,refund_type=1,refund_status=3)
         
@@ -1069,26 +1051,20 @@ def decrease_sample_score(sender,refund_id,*args,**kwargs):
         
         wx_user_score.user_score  = models.F('user_score') + dec_score
         wx_user_score.save()
-    
-    except Refund.DoesNotExist:
-        transaction.rollback()
+
     except Exception,exc:
-        transaction.rollback()
-        
+
         import logging
         logger = logging.getLogger("celery.handler")
         logger.error(u'返现积分更新失败:%s'%exc.message,exc_info=True)
-    else:
-        transaction.commit()
+
         
 weixin_refund_signal.connect(decrease_sample_score, sender=Refund)
 
 
 #试用订单审核通过取消订单确认收货积分
-@transaction.commit_manually
 def decrease_refund_trade_score(sender,refund_id,*args,**kwargs):
     
-    transaction.commit()
     try:
         refund = Refund.objects.get(id=refund_id,refund_type__in=(1,3),refund_status=3)
         
@@ -1108,24 +1084,20 @@ def decrease_refund_trade_score(sender,refund_id,*args,**kwargs):
         wx_user_score.user_score  = models.F('user_score') + dec_score
         wx_user_score.save()
     
-    except Refund.DoesNotExist:
-        transaction.rollback()    
     except Exception,exc:
-        transaction.rollback()
         
         import logging
         logger = logging.getLogger("celery.handler")
         logger.error(u'试用（返现）积分更新失败:%s'%exc.message,exc_info=True)
-    else:
-        transaction.commit()
+
 
 weixin_refund_signal.connect(decrease_refund_trade_score, sender=Refund)
 
 
-@transaction.commit_manually
+
 def decrease_scorebuy_score(sender,refund_id,*args,**kwargs):
     """积分换购审核通过，扣除换购积分"""
-    transaction.commit()
+
     try:
         refund = Refund.objects.get(id=refund_id,refund_type=2,refund_status=3)
         score_buys = WeixinScoreBuy.objects.filter(user_openid=refund.user_openid)
@@ -1144,24 +1116,20 @@ def decrease_scorebuy_score(sender,refund_id,*args,**kwargs):
             wx_user_score.user_score  = models.F('user_score') + dec_score
             wx_user_score.save()
     
-    except Refund.DoesNotExist:
-        transaction.rollback()
+
     except Exception,exc:
-        transaction.rollback()
         
         import logging
         logger = logging.getLogger("celery.handler")
         logger.error(u'返现积分更新失败:%s'%exc.message,exc_info=True)
-    else:
-        transaction.commit()
+
         
 weixin_refund_signal.connect(decrease_scorebuy_score, sender=Refund)
 
 
-@transaction.commit_manually
 def calc_trade_payment2score(sender,user_openid,*args,**kwargs):
     """手机验证后，将订单金额转换成积分"""
-    transaction.commit()
+
     try:
         from shopback import paramconfig as pcfg
         wx_user = WeiXinUser.objects.get(openid=user_openid)
@@ -1183,25 +1151,21 @@ def calc_trade_payment2score(sender,user_openid,*args,**kwargs):
             trade_score_relev.user_openid = user_openid
             trade_score_relev.is_used = True
             trade_score_relev.save()
-    
-    except WeiXinUser.DoesNotExist:
-        transaction.rollback()
+
     except Exception,exc:
-        transaction.rollback()
         
         import logging
         logger = logging.getLogger("celery.handler")
         logger.error(u'返现积分更新失败:%s'%exc.message,exc_info=True)
-    else:
-        transaction.commit()
+
 
 
 weixin_verifymobile_signal.connect(calc_trade_payment2score,sender=WeiXinUser)
 
-@transaction.commit_manually
+
 def survey_confirm_score(sender,survey_id,*args,**kwargs):
     """手机验证后，将订单金额转换成积分"""
-    transaction.commit()
+
     try:
         survey = Survey.objects.get(id=survey_id)
         user_openid = survey.wx_user.openid
@@ -1216,16 +1180,12 @@ def survey_confirm_score(sender,survey_id,*args,**kwargs):
         wx_user_score.user_score  = models.F('user_score') + survey_score
         wx_user_score.save()
         
-    except Survey.DoesNotExist:
-        transaction.rollback()
     except Exception,exc:
-        transaction.rollback()
         
         import logging
         logger = logging.getLogger("celery.handler")
         logger.error(u'问卷积分更新失败:%s'%exc.message,exc_info=True)
-    else:
-        transaction.commit()
+
 
 
 weixin_surveyconfirm_signal.connect(survey_confirm_score,sender=Survey)

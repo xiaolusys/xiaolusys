@@ -17,3 +17,4 @@ weixin_surveyconfirm_signal = Signal(providing_args=["survey_id"])
 
 weixin_sampleconfirm_signal = Signal(providing_args=["sample_order_id"])
 
+minus_frozenscore_signal = Signal(providing_args=["forzen_score_id"])

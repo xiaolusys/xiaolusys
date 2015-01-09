@@ -81,7 +81,7 @@ urlpatterns = patterns('shopapp.weixin.views',
     url(r'^couponfaq/$', CouponFaqView.as_view()),
     url(r'^survey/$', SurveyView.as_view()),
     url(r'^samplechoose/$', SampleChooseView.as_view()),
-    url(r'^score/(?P<user_pk>\d+)/$', ScoreView.as_view()),
+    url(r'^score/(?P<user_pk>\d+)/$', cache_page(ScoreView.as_view(),5*60)),
     url(r'^clickscore/(?P<id>\d+)/$', ClickScoreView.as_view()),
     url(r'^scorerule/$', TemplateView.as_view(
             template_name="weixin/scorerule.html")),

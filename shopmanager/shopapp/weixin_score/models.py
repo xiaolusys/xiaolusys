@@ -26,3 +26,37 @@ class SampleFrozenScore(models.Model):
         db_table = 'shop_weixin_score_frozen'
         verbose_name = u'试用冻结积分'
         verbose_name_plural = u'使用冻结积分列表'
+    
+    def __unicode__(self):
+        return '%d'%self.frozen_score
+ 
+from shopapp.signals import minus_frozenscore_signal
+from shopapp.weixin.models import WeixinScoreItem,WeixinUserScore
+        
+def minus_frozenscore(sender, forzen_score_id, *args, **kwargs):
+
+    try:
+        record = SampleFrozenScore.objects.get(pk=forzen_score_id)
+        user_openid = record.user_openid
+        wx_user_score,state = WeixinUserScore.objects.get_or_create(user_openid=user_openid)
+
+        dec_score = 0 - min(record.frozen_score,wx_user_score.user_score)
+        WeixinScoreItem.objects.create(user_openid=user_openid,
+                                       score=dec_score,
+                                       score_type=WeixinScoreItem.FROZEN,
+                                       expired_at=datetime.datetime.now()+datetime.timedelta(days=365),
+                                        memo=u"冻结积分扣除(%d)。"%forzen_score_id)
+
+        wx_user_score.user_score  = models.F('user_score') + dec_score
+        wx_user_score.save()
+        
+        record.frozen_score = 0
+        record.save()
+    except Exception,exc:
+
+        import logging
+        logger = logging.getLogger("celery.handler")
+        logger.error(u'冻结积分扣除失败:%s'%exc.message,exc_info=True)
+
+    
+minus_frozenscore_signal.connect(minus_frozenscore, sender=SampleFrozenScore)        
