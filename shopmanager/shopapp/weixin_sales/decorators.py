@@ -12,7 +12,7 @@ def  record_weixin_clicks(function=None,validated_in=24*60*60):
         def wrapped_view(request,*args,**kwargs):
             
             user_agent = request.META.get('HTTP_USER_AGENT')
-            if user_agent.find('MicroMessenger') < 0:
+            if not user_agent or user_agent.find('MicroMessenger') < 0:
                 return view_func(request,*args,**kwargs)
             
             req_url = request.get_full_path()
