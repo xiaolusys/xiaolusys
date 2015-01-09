@@ -706,7 +706,7 @@ class FreeSampleView(View):
         
         wx_user,state = WeiXinUser.objects.get_or_create(openid=user_openid)
 
-        if wx_user.subscribe_time < datetime.datetime(2015,1,5):
+        if wx_user.subscribe and wx_user.subscribe_time < datetime.datetime(2015,1,5):
             if wx_user.vipcodes.count() > 0:
                 fcode = wx_user.vipcodes.all()[0].code
         
