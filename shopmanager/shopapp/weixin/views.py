@@ -715,10 +715,7 @@ class FreeSampleView(View):
             redirect_url = '/weixin/sampleads/%d/' % wx_user.pk
             return redirect(redirect_url)
         
-        started = False
-        if wx_user.openid == 'oMt59uE55lLOV2KS6vYZ_d0dOl5c':
-            started = True
-        
+        started = True
         
         html = 'weixin/freesamples.html'
         response = render_to_response(html, {"wx_user":wx_user, 'fcode':fcode, 'started':started},
