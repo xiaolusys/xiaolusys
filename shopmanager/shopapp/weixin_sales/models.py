@@ -148,7 +148,8 @@ def create_weixin_link_click(sender,instance,*args,**kwargs):
     try:
         wx_user = WeiXinUser.objects.get(openid=user_openid)
         link_url  = reverse('weixin_sampleads',args=(wx_user.pk,))
-        WeixinLinkClicks.objects.get_or_create(user_openid=user_openid,
+        WeixinLinkClicks.objects.get_or_create(
+                                               user_openid=user_openid,
                                                link_url=link_url)
     except Exception,exc:
         import logging

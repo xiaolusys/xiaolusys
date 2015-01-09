@@ -338,7 +338,7 @@ class ProductView(ModelView):
         
             content =  request.REQUEST
             
-            fields = ['outer_id','barcode','name','remain_num','weight','cost','std_purchase_price','std_sale_price'
+            fields = ['outer_id','barcode','name','category_id','remain_num','weight','cost','std_purchase_price','std_sale_price'
                       ,'agent_price','staff_price','is_split','sync_stock','post_check','is_match','match_reason'
                       ,'buyer_prompt','memo']
             
@@ -362,8 +362,8 @@ class ProductView(ModelView):
             product.save()
         except Product.DoesNotExist:
             return u'商品未找到'
-        except Exception,exc:
-            return u'填写信息不规则'
+#         except Exception,exc:
+#             return u'填写信息不规则'
         log_action(request.user.id,product,CHANGE,u'更新商品基本信息')
         
         return product.json
