@@ -13,12 +13,16 @@
       <form method="post" action="/weixin/sampleconfirm/" onsubmit="return check()">{% csrf_token %}
 	<input type="hidden" name="sample_pk" value="{{ sample.pk }}"/>
 	<input type="hidden" name="sku_code" value="{{ sku.sku_code }}"/>
-	<input type="hidden" name="vipcode" value="{{ vipcode }}"/>
-	<input type="hidden" name="fcode_pass" value="{{ fcode_pass }}"/>
+	<input type="hidden" name="fcode" value="{{ fcode }}"/>
+	<input type="hidden" name="openid" id="id_openid" value="{{ wx_user.openid }}"/>
 	<div class="row">
 	  <div class="col-xs-4" style="text-align:center">
 	    <div class="thumbnail">
+	      {% if sku.sku_code == '0210' %}
+	      <img src="https://mmbiz.qlogo.cn/mmbiz/yMhOQPTKhLtMTpiclRQJZ7aBpwKS3xsvU0Hv1Pc7bCliadwlHAa9z5zxDzB5OvRphHcb5X103Zu8g3cSkZz5RjsA/0" alt="...">
+	      {% else %}
 	      <img src="{{ sample.pic_url }}" alt="...">
+	      {% endif %}
 	    </div>
 	  </div>
 	  <div class="col-xs-8">
@@ -29,38 +33,46 @@
 
 	<div class="row">
 	  <div class="col-xs-12">
+	    {% if wx_user.isvalid %}
 	    <p>收货人: {{ wx_user.receiver_name }}, 地址: {{ wx_user.province }}，{{ wx_user.city }}，{{ wx_user.address }}, {{ wx_user.mobile }}</p>
+	    {% else %}
+	    
+	    <h5 style="color:#3071a9">验证手机</h5><span style="color:red" id="id_verify_msg"></span>
+	    <div class="input-group">
+	      <span class="input-group-addon">手机号</span>
+	      <input id="id_mobile_input" type="text" class="form-control">
+	      <span class="input-group-btn">
+		<button id="id_requestcode_button" class="btn btn-primary" type="button" onclick="requestcode();" status="0">获验证码</button>
+	      </span>
+	    </div>
+	    <div id="id_verifycode_group" class="input-group">
+	      <span class="input-group-addon">验证码</span>
+	      <input id="id_code_input" type="text" class="form-control">
+	      <span class="input-group-btn">
+		<button id="id_verifycode_button" class="btn btn-warning" type="button" onclick="verifycode();">点击验证</button>
+	      </span>
+	    </div>
+	    {% endif %}
 	  </div>
 	</div>
+
 	<hr/>
 	<div class="row">
 	  <div class="col-xs-12">
-	    <h5 style="color:red"><b>积分问答</b>（每题2个积分，共10分）</h5>
+	    <h5 style="color:red"><b>小调查</b></h5>
 	    <div>
-	      <p style="color:#029fd6">1. 若您获得了双11免单资格，我们需要你到官方旗舰店付款购买，确认收到货满意之后，再全额退款给您，你会:</p>
-	      <p id="id_p11"><input type="radio" name="p1" value="0" id="id_input11"> 不愿意。</p>
-	      <p id="id_p12"><input type="radio" name="p1" value="2" id="id_input12"> 我愿意。官方平台的物流记录，可作为活动真实性的依据。</p>
+	      <p style="color:#029fd6">1. 您希望中奖名单的公布方式为？</p>
+	      <p id="id_p11"><input type="radio" name="p1" value="1" id="id_input11"> 每天公布一批。</p>
+	      <p id="id_p12"><input type="radio" name="p1" value="2" id="id_input12"> 活动结束后一起全部公布。</p>
 	      <hr/>
-	      <p style="color:#029fd6">2. 您的F码被朋友使用一次，可得满199减50优惠券，什么时候使用最划算？</p>
-	      <p id="id_p21"><input type="radio" name="p2" value="0" id="id_input21"> 任何时候都会省50。</p>
-	      <p id="id_p22"><input type="radio" name="p2" value="2" id="id_input22"> 双11当日使用最划算。双11折扣全年最低，使用此券折上折！</p>
-	      <hr/>
-	      <p style="color:#029fd6">3. 如果你有20积分，在双11当日最多可省多少钱？</p>
-	      <p id="id_p32"><input type="radio" name="p3" value="2" id="id_input32"> 优惠券省50，积分返现20，共70元。</p>
-	      <p id="id_p31"><input type="radio" name="p3" value="0" id="id_input31"> 优惠券省50元；</p>
-	      <hr/>
-	      <p style="color:#029fd6">4. 双11很多商品会在第一小时内售空，如何可以抢到？</p>
-	      <p id="id_p41"><input type="radio" name="p4" value="2" id="id_input41"> 提前加入购物车，在第一小时付款，免拥堵。</p>
-	      <p id="id_p42"><input type="radio" name="p4" value="0" id="id_input42"> 在双11凌晨选商品，下单，付款。</p>
-	      <hr/>
-	      <p style="color:#029fd6">5. 双11当日，天猫用户只有满199减20优惠券，你如何看待微信用户优惠？</p>
-	      <p id="id_p51"><input type="radio" name="p5" value="0" id="id_input51"> 比天猫用户多省30元。</p>
-	      <p id="id_p52"><input type="radio" name="p5" value="2" id="id_input52"> 若有20积分，可多省50元。</p>
+	      <p style="color:#029fd6">2. 您会对【齐悦母婴惠】后续的闪购特卖活动感兴趣吗？</p>
+	      <p id="id_p21"><input type="radio" name="p2" value="4" id="id_input21"> 每天可以准时来看看都特卖啥宝贝。</p>
+	      <p id="id_p22"><input type="radio" name="p2" value="8" id="id_input22"> 看看可以的，特别实惠的才会想买。</p>
 	    </div>
 	  </div>
 	</div>
 
-	<div class="row">
+	<div class="row" style="margin-top:16px">
 	  <p id="id_msg" style="text-align:center;color:red"></p>
 	  <div class="col-xs-12" style="text-align:center">
 	    <input type="submit" class="btn btn-warning" value="确认提交"/>
@@ -87,6 +99,116 @@
 
 {% block tail_script %}
 <script type="text/javascript">
+  function validateMobile(s) {
+    var validateReg = /^((\+?86)|(\(\+86\)))?1\d{10}$/;
+    return validateReg.test(s);
+  };
+
+  function validateVerifyCode(s) {
+    var validateReg = /^\d{6}$/;
+    return validateReg.test(s);
+  };
+
+  var global_timer;
+  function updateTime() {
+    var btn = $("#id_requestcode_button");
+    time_left = parseInt(btn[0].innerHTML) - 1;
+    if (time_left <= 0) {
+      btn.attr("status","0");
+      window.clearInterval(global_timer);
+      btn[0].innerHTML = "点击重发";
+    } else {
+      btn[0].innerHTML = time_left.toString();
+    }
+  };
+
+  function requestcode() {
+    var btn = $("#id_requestcode_button");
+    var status = btn.attr("status");
+    if (status == "1" || status == "2") {
+      return;
+    }
+    
+    var mobile = $("#id_mobile_input").val();
+    if (validateMobile(mobile) == false) {
+      return;
+    }
+
+    btn.attr("status","1");
+    btn[0].innerHTML = "180";
+    global_timer = window.setInterval(updateTime, 1000);
+
+    var openid = $("#id_openid").val();
+    var url = "/weixin/requestcode/";
+    var data = {"mobile":mobile, "openid":openid};
+    
+    var callback = function (res) {
+      if (res["code"] == "wait") {
+        $("#id_verify_msg")[0].innerHTML = "请先耐心等待180秒哦！";
+        return;
+      } 
+      
+      if (res["code"] != "good") {
+        btn.attr("status","0");
+        window.clearInterval(global_timer);
+      }
+
+      if (res["code"] == "locked") {
+        $("#id_verify_msg")[0].innerHTML = "验证次数达到上限，请联系微信客服处理！";
+        btn[0].innerHTML = "已达上限";
+        btn[0].innerHTML = "成功发送";
+        return;
+      } 
+
+      if (res["code"] == "anony") {
+        $("#id_verify_msg")[0].innerHTML = "请从优尼世界微信登录此页面！";
+        btn[0].innerHTML = "登录有误";
+        return;
+      } 
+
+      if (res["code"] == "bad") {
+        $("#id_verify_msg")[0].innerHTML = "请输入正确的手机号码！";
+        btn[0].innerHTML = "点击重发";
+        return;
+      } 
+
+      if (res["code"] == "dup") {
+        $("#id_verify_msg")[0].innerHTML = "此号码已被他人验证，请重新输入！";
+        btn[0].innerHTML = "点击重发";
+        return;
+      } 
+    };
+          
+    $.ajax({url:url, data:data, success:callback});
+  };
+
+      function verifycode() {
+        var verifycode = $("#id_code_input").val();
+        if (validateVerifyCode(verifycode) == false) {
+          $("#id_verify_msg")[0].innerHTML = "验证码错误！";
+          return;
+        }
+        var url = "/weixin/verifycode/";
+        var callback = function (res) {
+          if (res["code"] == "bad") {
+            $("#id_verifycode_button")[0].innerHTML = "验证失败，刷新再试";
+            return;
+          }
+
+	  window.clearInterval(global_timer);
+          $("#id_verifycode_group").css("display","none");
+          $("#id_requestcode_button").removeClass("btn-primary").addClass("btn-success")[0].innerHTML="已验证";
+          $("#id_mobile_input").attr("disabled","disabled");
+          $("#id_requestcode_button").attr("status", "2");
+        };
+        var openid = $("#id_openid").val();
+	var data = {"verifycode":verifycode, "openid":openid};
+        $.ajax({url:url, data:data, success:callback});
+      };
+
+
+
+
   $("#id_p11").on("click", function () {
   $("#id_input11").attr("checked",true);
   $("#id_input12").attr("checked",false);
@@ -115,74 +237,24 @@
   $("#id_p21").css("color","");  
   });
 
-  $("#id_p31").on("click", function () {
-  $("#id_input31").attr("checked",true);
-  $("#id_input32").attr("checked",false);
-  $("#id_p31").css("color","red");
-  $("#id_p32").css("color","");  
-  });
-
-  $("#id_p32").on("click", function () {
-  $("#id_input32").attr("checked",true);
-  $("#id_input31").attr("checked",false);
-  $("#id_p32").css("color","red");
-  $("#id_p31").css("color","");  
-  });
-
-  $("#id_p41").on("click", function () {
-  $("#id_input41").attr("checked",true);
-  $("#id_input42").attr("checked",false);
-  $("#id_p41").css("color","red");
-  $("#id_p42").css("color","");  
-  });
-
-  $("#id_p42").on("click", function () {
-  $("#id_input42").attr("checked",true);
-  $("#id_input41").attr("checked",false);
-  $("#id_p42").css("color","red");
-  $("#id_p41").css("color","");  
-  });
-
-  $("#id_p51").on("click", function () {
-  $("#id_input51").attr("checked",true);
-  $("#id_input52").attr("checked",false);
-  $("#id_p51").css("color","red");
-  $("#id_p52").css("color","");  
-  });
-
-  $("#id_p52").on("click", function () {
-  $("#id_input52").attr("checked",true);
-  $("#id_input51").attr("checked",false);
-  $("#id_p52").css("color","red");
-  $("#id_p51").css("color","");  
-  });
-
   function check() {
-  if ((!$("#id_input11").is(':checked')) && (!$("#id_input12").is(':checked'))) {
-    $("#id_msg")[0].innerHTML = "亲，请选择答案再提交哦。";
-    return false;
-  }
-  if ((!$("#id_input21").is(':checked')) && (!$("#id_input22").is(':checked'))) {
-    $("#id_msg")[0].innerHTML = "亲，请选择答案再提交哦。";
-    return false;
-  }
+    {% if not wx_user.isvalid %}
+    if ($("#id_requestcode_button").attr("status") != "2") {
+      $("#id_msg")[0].innerHTML = "请先验证手机号！";
+      return false;
+    }
+    {% endif %}
 
-  if ((!$("#id_input31").is(':checked')) && (!$("#id_input32").is(':checked'))) {
-    $("#id_msg")[0].innerHTML = "亲，请选择答案再提交哦。";
-    return false;
-  }
-
-  if ((!$("#id_input41").is(':checked')) && (!$("#id_input42").is(':checked'))) {
-    $("#id_msg")[0].innerHTML = "亲，请选择答案再提交哦。";
-    return false;
-  }
-
-  if ((!$("#id_input51").is(':checked')) && (!$("#id_input52").is(':checked'))) {
-    $("#id_msg")[0].innerHTML = "亲，请选择答案再提交哦。";
-    return false;
-  }
-
-  return true;
+    if ((!$("#id_input11").is(':checked')) && (!$("#id_input12").is(':checked'))) {
+      $("#id_msg")[0].innerHTML = "亲，请选择答案再提交哦。";
+      return false;
+    }
+    if ((!$("#id_input21").is(':checked')) && (!$("#id_input22").is(':checked'))) {
+      $("#id_msg")[0].innerHTML = "亲，请选择答案再提交哦。";
+      return false;
+    }
+    
+    return true;
   }
 </script>
 {% endblock %}

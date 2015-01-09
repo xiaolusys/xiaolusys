@@ -1,0 +1,188 @@
+{% extends "weixin/weixin_base.html" %}
+
+{% block meta %}
+<!--
+<meta name="sharecontent" data-msg-img="https://mmbiz.qlogo.cn/mmbiz/yMhOQPTKhLsSjykVcEsrWrYMpcpmu0b6nQt45cBqN7GKu0ZryPNxvZ8cW4oJlqpxDjxEc53qj96Ga4bYGINjeQ/0" data-msg-title="2015，给孩子最温暖的回忆！" data-msg-content="一个星期之后，我收到了Fay寄来的礼物。一个温暖的黄色斗篷：柔软、轻盈。里面夹着一张卡片..." data-msg-callBack="" data-line-img="https://mmbiz.qlogo.cn/mmbiz/yMhOQPTKhLsSjykVcEsrWrYMpcpmu0b6nQt45cBqN7GKu0ZryPNxvZ8cW4oJlqpxDjxEc53qj96Ga4bYGINjeQ/0" data-line-title="小小礼物 感恩的心 感谢有你！" data-line-callBack=""/>  
+-->
+{% endblock %}
+
+{% block title %} 
+2015，给孩子最温暖的回忆！
+{% endblock %}
+
+{% block container %}
+
+<div class="container-fluid">
+  {% if identical %}
+  <div class="row" id="id_donebox">
+    <div class="col-xs-12">
+      <p style="color:blue">亲，您的申请已经成功提交！</p>
+      <p style="color:blue">您的F码：{{ vipcode }}，快把本页分享给好友, 一起来领可爱的斗篷吧！</p>
+      <p>申请结果请到【齐悦母婴惠】公众号菜单【活动中心】->【审核通知】查看。</p>
+      <!--
+      <p style="color:blue">我们会根据下列数据来审核您的申请：</p>
+      <p style="color:red">1. 您的F码被朋友使用次数。</p>
+      <p style="color:red">2. 您分享的页面被朋友点击次数。</p>
+      -->
+      <p style="color:blue">注：分享到朋友圈后，蓝色文字朋友看不到哦！</p>
+    </div>
+  </div>
+  {% endif %}
+  
+  <div class="panel panel-default" style="margin-top:5px">
+    <div class="panel-heading" style="color:white;background-color:rgb(255,124,0);text-align:center"><b>送给5岁时的你！</b></div>
+    <div class="panel-body">
+      <div class="row" style="margin-top:15px">
+	<div class="col-xs-12">
+	  <a href="" class="thumbnail">
+	    <img src="https://mmbiz.qlogo.cn/mmbiz/yMhOQPTKhLsFs4D2nwNg0Pxibxly1ZI5dicf6icTjVDU9U5NYibgp6G2vfuXVpq3GKKl7syrAALlahSvtiaibZX9aPTg/0"/>
+	  </a>
+	</div>
+      </div>
+      <div class="row" style="margin-top:10px">
+	<div class="col-xs-12">
+	  <p>&nbsp;&nbsp;&nbsp;&nbsp;一个星期之后，我收到了Fay寄来的礼物。一个温暖的黄色斗篷：柔软、轻盈。里面夹着一张卡片，上面用淡蓝色的墨水笔写着：</p>
+	</div>
+      </div>
+      <div class="row">
+	<div class="col-xs-12" style="text-align:center">
+	  <p style="color:#029fd6">送给5岁时的Lucy,</p>
+	  <p style="color:#029fd6">也抱抱那时候的我自己。</p>
+	  <p style="color:#029fd6">- Fay</p>
+	  <p><br/></p>
+	  <p>感动、怀念。</p>
+	  <p>我说，把斗篷免费送给更多的孩子吧。</p>
+	  <p>好，那就送200件！</p>
+	  <p>新年，给孩子一份温暖回忆，我愿意。</p>
+	</div>
+      </div>
+
+      <div style="text-align:center;height:80px;padding-top:20px;">
+	<p><a href="https://open.weixin.qq.com/connect/oauth2/authorize?appid=wxc2848fa1e1aa94b5&redirect_uri=http://weixin.huyi.so/weixin/freesamples/?f={{ vipcode }}&response_type=code&scope=snsapi_base&state=135#wechat_redirect" class="btn btn-warning">点击申请领取 >></a></p>
+	<p style="color:red">F码：{{ vipcode }}</p>
+      </div>
+    </div>
+  </div>
+  
+  <div class="panel panel-default" style="margin-top:5px">
+    <div class="panel-heading" style="color:white;background-color:rgb(255,124,0);text-align:center"><b>梦幻斗篷的故事</b></div>
+    <div class="panel-body">
+      <div class="row">
+	<div class="col-xs-12">
+	  <p>&nbsp;&nbsp;&nbsp;&nbsp;大概是回国后一个月，刚刚从倒时差的黑眼圈，浮肿的脸和水土不服导致的上吐下泻中缓过来的我，和闺蜜Fay坐在咖啡馆里聊着这几年的变迁。</p>
+	  <p>&nbsp;&nbsp;&nbsp;&nbsp;Fay早年从美国波士顿大学毕业随即回到上海，自己做设计师。突然她问我，你还记得咱俩那时候披着窗帘扮公主么？</p>
+	  <p>&nbsp;&nbsp;&nbsp;&nbsp;我说，怎么不记得。</p>
+	  <p><a href="" class="thumbnail"><img src="https://mmbiz.qlogo.cn/mmbiz/yMhOQPTKhLsFs4D2nwNg0Pxibxly1ZI5d4Lf0RScC2sbpwdWnzAR3kcpHu2FibK8zCLLIA8iahvOtut0X0bWDFyuQ/0"></a></p>
+	  <p>&nbsp;&nbsp;&nbsp;&nbsp;那时候每周四的下午是不用上学的。两个人在家扯下窗帘披在身上，头上插满假花，上蹦下跳演绎着欢乐的情节，觉得自己美得不得了，直到爸妈开门后齐齐张大了嘴。</p>
+	  <p>&nbsp;&nbsp;&nbsp;&nbsp;我说，你怎么想起来这个了？</p>
+	  <p>&nbsp;&nbsp;&nbsp;&nbsp;她说，你知道么，那时候我无数次的跟爸妈说过我想要一个斗篷，我觉得有了它，我就像一个灰姑娘一样。至少穿上它的那一刻，我是个公主。我始终记得商场里面那个斗篷，温暖的颜色，柔软的质地。我叨念过很多次，但是他们只是说太贵了。时间久了，似乎就懒得给我解释。很多次，我都做一个梦，梦见我站在橱窗前，眼巴巴的看着心爱的斗篷。</p>
+	  <p><a href="" class="thumbnail"><img src="https://mmbiz.qlogo.cn/mmbiz/yMhOQPTKhLsFs4D2nwNg0Pxibxly1ZI5d29Qom18WxMJWVC7YnhwJrFXPV7GibLXp4wW8MLvS0VFo0MtiaH9eFbHQ/0"></a></p>
+	  <p>&nbsp;&nbsp;&nbsp;&nbsp;她看着手机上的照片说，这是我设计的斗篷。上面是温暖的黄色和清新的蓝色，中间点缀着奶白色的小动物轮廓的图案。<font style="color:rgb(255,124,0)">我想给现在的小孩子们一个温暖的回忆，而这个回忆，并不会让他们的父母因为太贵而却步。</font></p>
+	  <p>&nbsp;&nbsp;&nbsp;&nbsp;眼眶湿润。</p>
+	  <p>&nbsp;&nbsp;&nbsp;&nbsp;我知道这也是我要的回忆，我的儿女也一样。</p>
+	  <p><a href="" class="thumbnail"><img src="https://mmbiz.qlogo.cn/mmbiz/yMhOQPTKhLu7ajlTicCDC0lcm17wHotBAjnAHmTgGpdbWfwuMPgrtjQ6aGLH0htJlBGKwkD7FzsHiaiarCw9Xz35A/0"></a></p>
+	</div>
+      </div>
+
+      <div style="text-align:center;height:80px;padding-top:20px;">
+	<p><a href="https://open.weixin.qq.com/connect/oauth2/authorize?appid=wxc2848fa1e1aa94b5&redirect_uri=http://weixin.huyi.so/weixin/freesamples/?f={{ vipcode }}&response_type=code&scope=snsapi_base&state=135#wechat_redirect" class="btn btn-warning">现在申请领取 >></a></p>
+	<p style="color:red">F码：{{ vipcode }}</p>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="panel panel-default" style="margin-top:5px">
+    <div class="panel-heading" style="color:white;background-color:rgb(255,124,0);text-align:center"><b>斗篷领取 流程说明</b></div>
+    <div class="panel-body">
+      <div class="row" style="margin-top:15px">
+	<div class="col-xs-12">
+	  <p>一、斗篷温暖放送活动由“上海齐悦家居用品有限公司”承办，微信认证公众号【齐悦母婴惠】。</p>
+	  <p>二、活动说明及详细规则，请咨询【齐悦母婴惠】（回复“1”可见）。</p>
+	  <p>三、支持温暖放送活动，欢迎妈妈们积极参与，按照流程申请。</p>
+	  <p style="color:red">四、申请结果: 公众号菜单【审核通知】进入查看。</p>
+	</div>
+      </div>
+    </div>
+  </div>
+    
+  <div class="footer">
+    <p>© Uni Littles 2015</p>
+  </div>
+
+</div>
+{% endblock %}    
+
+{% block tail_script %}    
+<script type="text/javascript" src="{{ STATIC_URL }}script/WeixinApi.js"></script>
+<script type="text/javascript">  
+  var global_timer;
+  function slideup() {
+    $("#id_donebox").slideUp(2000);
+    window.clearInterval(global_timer);
+  };
+
+  global_timer =  window.setInterval(slideup, 5000);
+  
+// 开发阶段，开启WeixinApi的调试模式
+WeixinApi.enableDebugMode();
+
+// 初始化WeixinApi，等待分享
+WeixinApi.ready(function(Api) {
+
+    // 微信分享的数据
+    var wxData = {
+        "appId": "", // 服务号可以填写appId
+        "imgUrl" : "https://mmbiz.qlogo.cn/mmbiz/yMhOQPTKhLsSjykVcEsrWrYMpcpmu0b6nQt45cBqN7GKu0ZryPNxvZ8cW4oJlqpxDjxEc53qj96Ga4bYGINjeQ/0",
+        "link" : "http://weixin.huyi.so/weixin/sampleads/{{ pk }}/",
+        "desc" : "2015，我要给孩子最温暖的回忆！一个星期之后，我收到了Fay寄来的礼物。一个温暖的黄色斗篷：柔软、轻盈。里面夹着一张卡片...",
+        "title": "2015，给孩子最温暖的回忆！" 
+    };
+
+    // 分享的回调
+    var wxCallbacks = {
+        // 收藏操作不执行回调，默认是开启(true)的
+        favorite : false,
+
+        // 分享操作开始之前
+        ready : function() {
+            // 你可以在这里对分享的数据进行重组
+            //alert("准备分享");
+        },
+        // 分享被用户自动取消
+        cancel : function(resp) {
+            // 你可以在你的页面上给用户一个小Tip，为什么要取消呢？
+            //alert("分享被取消，msg=" + resp.err_msg);
+        },
+        // 分享失败了
+        fail : function(resp) {
+            // 分享失败了，是不是可以告诉用户：不要紧，可能是网络问题，一会儿再试试？
+            //alert("分享失败，msg=" + resp.err_msg);
+        },
+        // 分享成功
+        confirm : function(resp) {
+            // 分享成功了，我们是不是可以做一些分享统计呢？
+            alert("感谢分享！请到【审核通知】查询状态！");
+        },
+        // 整个分享过程结束
+        all : function(resp,shareTo) {
+            // 如果你做的是一个鼓励用户进行分享的产品，在这里是不是可以给用户一些反馈了？
+            //alert("分享" + (shareTo ? "到" + shareTo : "") + "结束，msg=" + resp.err_msg);
+        }
+    };
+
+    // 用户点开右上角popup菜单后，点击分享给好友，会执行下面这个代码
+    Api.shareToFriend(wxData, wxCallbacks);
+
+    // 点击分享到朋友圈，会执行下面这个代码
+    Api.shareToTimeline(wxData, wxCallbacks);
+
+    // 点击分享到腾讯微博，会执行下面这个代码
+    Api.shareToWeibo(wxData, wxCallbacks);
+
+    // iOS上，可以直接调用这个API进行分享，一句话搞定
+    Api.generalShare(wxData,wxCallbacks);
+});
+</script>  
+{% endblock %}
+
