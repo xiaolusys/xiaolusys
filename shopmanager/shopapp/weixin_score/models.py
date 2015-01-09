@@ -38,18 +38,14 @@ def minus_frozenscore(sender, forzen_score_id, *args, **kwargs):
     try:
         record = SampleFrozenScore.objects.get(pk=forzen_score_id)
         user_openid = record.user_openid
-        wx_user_score,state = WeixinUserScore.objects.get_or_create(user_openid=user_openid)
+        frozen_score = record.frozen_score
 
-        dec_score = 0 - min(record.frozen_score,wx_user_score.user_score)
         WeixinScoreItem.objects.create(user_openid=user_openid,
-                                       score=dec_score,
+                                       score=frozen_score,
                                        score_type=WeixinScoreItem.FROZEN,
                                        expired_at=datetime.datetime.now()+datetime.timedelta(days=365),
                                         memo=u"冻结积分扣除(%d)。"%forzen_score_id)
 
-        wx_user_score.user_score  = models.F('user_score') + dec_score
-        wx_user_score.save()
-        
         record.frozen_score = 0
         record.save()
     except Exception,exc:

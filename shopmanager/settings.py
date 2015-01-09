@@ -153,7 +153,7 @@ INSTALLED_APPS = (
     'games.bomb',
 
 #     'flashsale.supplier',
-#     'mathfilters',
+    'mathfilters',
 
 
     #'test.celery',

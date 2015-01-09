@@ -338,8 +338,8 @@ class OrderInfoView(View):
             refund = refund_list[0] 
         
         passed = False
-        start_time = datetime.datetime(2014,10,8)
-        sample_orders = SampleOrder.objects.filter(user_openid=user_openid,status__gt=30,status__lt=39,created__gt=start_time)
+
+        sample_orders = SampleOrder.objects.filter(user_openid=user_openid,status__gt=30,status__lt=39,created__gt=START_TIME)
         refund_time = datetime.datetime(2014,11,23)
         refund_records = Refund.objects.filter(user_openid=user_openid,created__gt=refund_time)
         if sample_orders.count() > 0 and refund_records.count() < 1:
@@ -859,8 +859,42 @@ class SampleAdsView(View):
         return redirect(redirect_url)
 
         
-from shopapp.weixin_sales.models import WeixinUserAward
+from shopapp.weixin_sales.models import WeixinUserAward,WeixinLinkClicks
+"""
+#         referal_images = []
+#         referal_users = WeiXinUser.objects.filter(referal_from_openid=user_openid)
+#         for user in referal_users:
+#             referal_images.append(user.headimgurl)
 
+#         gift_selection = 0            
+#         parent_nickname = ''
+#         parent_award = None
+#         if wx_user.referal_from_openid:
+#             parent_awards = WeixinUserAward.objects.filter(user_openid=wx_user.referal_from_openid)
+#             if parent_awards.count() > 0:
+#                 parent_award = parent_awards[0]
+#                 parent_user = WeiXinUser.objects.get(openid=wx_user.referal_from_openid)
+#                 parent_nickname = parent_user.nickname or u'lucky'
+#                 gift_selection = parent_award.award_val
+# 
+#         my_award = None
+#         my_awards = WeixinUserAward.objects.filter(user_openid=user_openid)
+#         if my_awards.count() > 0:
+#             my_award = my_awards[0]
+#             if my_award.select_val > 0:
+#                 gift_selection = my_award.select_val
+
+#         response = render_to_response('weixin/invite_result.html',
+#                                       {'wx_user':wx_user,'referal_images':referal_images,
+#                                        'my_award':my_award,'parent_award':parent_award,
+#                                        'parent_nickname':parent_nickname, 
+#                                        'gift_selection':gift_selection, 'oct_passed':oct_passed},
+#                                       context_instance=RequestContext(request))
+#         oct_passed = False
+#         sample_orders = SampleOrder.objects.filter(status__gt=30,status__lt=39,user_openid=user_openid)
+#         if sample_orders.count() > 0:
+#             oct_passed = True
+"""
 class ResultView(View):
     def get(self, request):
         content = request.REQUEST
@@ -873,39 +907,27 @@ class ResultView(View):
             
         wx_user,state = WeiXinUser.objects.get_or_create(openid=user_openid)
 
-        referal_images = []
-        referal_users = WeiXinUser.objects.filter(referal_from_openid=user_openid)
-        for user in referal_users:
-            referal_images.append(user.headimgurl)
-
-        gift_selection = 0            
-        parent_nickname = ''
-        parent_award = None
-        if wx_user.referal_from_openid:
-            parent_awards = WeixinUserAward.objects.filter(user_openid=wx_user.referal_from_openid)
-            if parent_awards.count() > 0:
-                parent_award = parent_awards[0]
-                parent_user = WeiXinUser.objects.get(openid=wx_user.referal_from_openid)
-                parent_nickname = parent_user.nickname or u'lucky'
-                gift_selection = parent_award.award_val
-
-        my_award = None
-        my_awards = WeixinUserAward.objects.filter(user_openid=user_openid)
-        if my_awards.count() > 0:
-            my_award = my_awards[0]
-            if my_award.select_val > 0:
-                gift_selection = my_award.select_val
-        
-        oct_passed = False
-        sample_orders = SampleOrder.objects.filter(status__gt=30,status__lt=39,user_openid=user_openid)
+        sample_order = None 
+        sample_orders = SampleOrder.objects.filter(user_openid=user_openid,created__gte=START_TIME)
         if sample_orders.count() > 0:
-            oct_passed = True
+            sample_order = sample_orders[0]
         
-        response = render_to_response('weixin/invite_result.html',
-                                      {'wx_user':wx_user,'referal_images':referal_images,
-                                       'my_award':my_award,'parent_award':parent_award,
-                                       'parent_nickname':parent_nickname, 
-                                       'gift_selection':gift_selection, 'oct_passed':oct_passed},
+        vip_code = None
+        vip_codes = VipCode.objects.filter(owner_openid__openid=user_openid)
+        if vip_codes.count() > 0:
+            vip_code = vip_codes[0]
+        
+        link_click = None
+        link_clicks = WeixinLinkClicks.objects.filter(user_openid=user_openid)
+        if link_clicks.count() > 0:
+            link_click = link_clicks[0]
+        print 'link click',link_clicks,user_openid
+        response = render_to_response('weixin/invite_result1.html',
+                                      {'wx_user':wx_user,
+                                       'sample_order':sample_order,
+                                       'vip_code':vip_code,
+                                       'link_click':link_click,
+                                       },
                                       context_instance=RequestContext(request))
         response.set_cookie("openid",user_openid)  
         
@@ -1272,6 +1294,8 @@ class GiftView(View):
 
 class TestView(View):
     def get(self, request):
+        
+        print request.META.get('HTTP_USER_AGENT')
         response = render_to_response('weixin/sampleads1.html', 
                                       context_instance=RequestContext(request))
         return response

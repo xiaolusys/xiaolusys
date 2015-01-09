@@ -6,6 +6,7 @@ from django.views.decorators.cache import cache_page
 
 from django.views.generic import TemplateView
 from shopback.base.proxy  import ProxyView
+from shopapp.weixin_sales.decorators import record_weixin_clicks
 from shopapp.weixin.views import (WeixinAcceptView,
                                   WeixinAddReferalView,
                                   ReferalView,
@@ -62,7 +63,9 @@ urlpatterns = patterns('shopapp.weixin.views',
     url(r'^sampleapply/$', SampleApplyView.as_view()),
     url(r'^sampleconfirm/$', SampleConfirmView.as_view()),
     url(r'^vipcodeverify/$', VipCodeVerifyView.as_view()),                       
-    url(r'^sampleads/(?P<pk>\d+)/$', SampleAdsView.as_view(),name="weixin_sampleads"),
+    url(r'^sampleads/(?P<pk>\d+)/$', 
+        record_weixin_clicks(SampleAdsView.as_view()),
+        name="weixin_sampleads"),
     url(r'^inviteresult/$', ResultView.as_view()),
     url(r'^finallist/(?P<batch>\d+)/(?P<page>\d+)/(?P<month>\d+)/$', cache_page(FinalListView.as_view(),24*60*60)),
 
