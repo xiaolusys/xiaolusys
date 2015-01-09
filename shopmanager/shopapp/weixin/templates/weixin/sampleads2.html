@@ -14,16 +14,21 @@
 
 <div class="container-fluid">
   {% if identical %}
-  <p style="color:blue">亲，您的申请已经成功提交！</p>
-  <p style="color:blue">您的F码：{{ vipcode }}，快把本页分享给好友, 一起来领可爱的斗篷吧！</p>
-  <p>申请结果请到【齐悦母婴惠】公众号菜单【活动中心】->【审核通知】查看。</p>
-  <!--
-  <p style="color:blue">我们会根据下列数据来审核您的申请：</p>
-  <p style="color:red">1. 您的F码被朋友使用次数。</p>
-  <p style="color:red">2. 您分享的页面被朋友点击次数。</p>
-  -->
-  <p style="color:blue">注：分享到朋友圈后，蓝色文字朋友看不到哦！</p>
+  <div class="row" id="id_donebox">
+    <div class="col-xs-12">
+      <p style="color:blue">亲，您的申请已经成功提交！</p>
+      <p style="color:blue">您的F码：{{ vipcode }}，快把本页分享给好友, 一起来领可爱的斗篷吧！</p>
+      <p>申请结果请到【齐悦母婴惠】公众号菜单【活动中心】->【审核通知】查看。</p>
+      <!--
+      <p style="color:blue">我们会根据下列数据来审核您的申请：</p>
+      <p style="color:red">1. 您的F码被朋友使用次数。</p>
+      <p style="color:red">2. 您分享的页面被朋友点击次数。</p>
+      -->
+      <p style="color:blue">注：分享到朋友圈后，蓝色文字朋友看不到哦！</p>
+    </div>
+  </div>
   {% endif %}
+  
   <div class="panel panel-default" style="margin-top:5px">
     <div class="panel-heading" style="color:white;background-color:rgb(255,124,0);text-align:center"><b>送给5岁时的你！</b></div>
     <div class="panel-body">
@@ -111,8 +116,14 @@
 {% block tail_script %}    
 <script type="text/javascript" src="{{ STATIC_URL }}script/WeixinApi.js"></script>
 <script type="text/javascript">  
+  var global_timer;
+  function slideup() {
+    $("#id_donebox").slideUp(2000);
+    window.clearInterval(global_timer);
+  };
 
-
+  global_timer =  window.setInterval(slideup, 5000);
+  
 // 开发阶段，开启WeixinApi的调试模式
 WeixinApi.enableDebugMode();
 
