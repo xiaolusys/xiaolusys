@@ -709,16 +709,16 @@ class FreeSampleView(View):
         if wx_user.subscribe_time < datetime.datetime(2015,1,5):
             if wx_user.vipcodes.count() > 0:
                 fcode = wx_user.vipcodes.all()[0].code
-
+        
         order = SampleOrder.objects.filter(user_openid=user_openid).filter(created__gt=START_TIME)
         if order.count() > 0:
             redirect_url = '/weixin/sampleads/%d/' % wx_user.pk
             return redirect(redirect_url)
-
+        
         started = False
         if wx_user.openid == 'oMt59uE55lLOV2KS6vYZ_d0dOl5c':
             started = True
-
+        
         
         html = 'weixin/freesamples.html'
         response = render_to_response(html, {"wx_user":wx_user, 'fcode':fcode, 'started':started},
@@ -800,10 +800,13 @@ class SampleConfirmView(View):
         vipcode = content.get("fcode","0")
         score = int(p1) + int(p2)
         
-        print sample_pk, sku_code, p1, p2, vipcode, score
         user_openid = request.COOKIES.get('openid')
 
-        user = WeiXinUser.objects.filter(openid=user_openid)        
+        user = WeiXinUser.objects.filter(openid=user_openid)
+        
+        if not user[0].isvalid:
+            redirect("/weixin/freesamples/")
+
         redirect_url = '/weixin/sampleads/%d/' % user[0].pk
 
         order = SampleOrder.objects.filter(user_openid=user_openid).filter(created__gt=START_TIME)
