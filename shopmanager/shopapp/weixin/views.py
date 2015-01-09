@@ -100,8 +100,8 @@ def warn(request):
 from urllib import urlopen
 
 
-START_TIME = datetime.datetime(2014,10,8,16)
-END_TIME = datetime.datetime(2014,10,16,23,59,59)
+START_TIME = datetime.datetime(2015,1,9)
+END_TIME = datetime.datetime(2015,1,19,23,59,59)
 
 
 def get_user_openid(request, code):
@@ -710,6 +710,11 @@ class FreeSampleView(View):
             if wx_user.vipcodes.count() > 0:
                 fcode = wx_user.vipcodes.all()[0].code
 
+        order = SampleOrder.objects.filter(user_openid=user_openid).filter(created__gt=START_TIME)
+        if order.count() > 0:
+            redirect_url = '/weixin/sampleads/%d/' % wx_user.pk
+            return redirect(redirect_url)
+
         started = False
         if wx_user.openid == 'oMt59uE55lLOV2KS6vYZ_d0dOl5c':
             started = True
@@ -740,7 +745,7 @@ class VipCodeVerifyView(View):
 
 class SampleApplyView(View):
     def get(self, request):
-        return redirect("/weixin/sampleads/0/")
+        return redirect("/weixin/freesamples/")
 
     def post(self, request):
         content = request.REQUEST
@@ -783,19 +788,19 @@ class SampleApplyView(View):
         return response
     
 class SampleConfirmView(View):
+    def get(self, request):
+        return redirect("/weixin/freesamples/")
+
     def post(self, request):
         content = request.REQUEST
         sample_pk = int(content.get("sample_pk","0"))
         sku_code = content.get("sku_code","0")
         p1 = content.get("p1","0")
         p2 = content.get("p2","0")
-        p3 = content.get("p3","0")
-        p4 = content.get("p4","0")
-        p5 = content.get("p5","0")
-        vipcode = content.get("vipcode","0")
-        fcode_pass = content.get("fcode_pass", "0")
-        score = int(p1) + int(p2) + int(p3) + int(p4) + int(p5)
+        vipcode = content.get("fcode","0")
+        score = int(p1) + int(p2)
         
+        print sample_pk, sku_code, p1, p2, vipcode, score
         user_openid = request.COOKIES.get('openid')
 
         user = WeiXinUser.objects.filter(openid=user_openid)        
@@ -808,19 +813,15 @@ class SampleConfirmView(View):
         vipcodes = VipCode.objects.filter(code=vipcode)
         sample = FreeSample.objects.get(pk=sample_pk)
         if vipcodes.count() > 0:
-            
             code = vipcodes[0].code
             referal_user_openid = vipcodes[0].owner_openid.openid
             sample.sample_orders.create(sku_code=sku_code,user_openid=user_openid,vipcode=code,problem_score=score)
             WeiXinUser.objects.createReferalShip(user_openid,referal_user_openid)
         
-            if fcode_pass == "0" and referal_user_openid != user_openid:
+            if referal_user_openid != user_openid:
                 VipCode.objects.filter(code=code).update(usage_count=F('usage_count')+1)
         else:
-            sample.sample_orders.create(sku_code=sku_code,user_openid=user_openid,problem_score=score)
-
-        #VipCode.objects.genVipCodeByWXUser(user)
-        
+            redirect_url = '/weixin/freesamples/'
         return redirect(redirect_url)
 
         
@@ -833,14 +834,7 @@ class SampleAdsView(View):
         
         identical = False
         vipcode = 0
-        nickname = ''
         if users.count() > 0:
-            nickname = users[0].nickname
-            referal_images = []
-            referal_users = WeiXinUser.objects.filter(referal_from_openid=users[0].openid)
-            for user in referal_users:
-                referal_images.append(user.headimgurl)
-            
             if users[0].vipcodes.count() > 0:
                 vipcode = users[0].vipcodes.all()[0].code
             else:
@@ -849,9 +843,8 @@ class SampleAdsView(View):
             if users[0].openid == openid:
                 identical = True
             
-            response = render_to_response('weixin/sampleads1.html', 
-                                          {"identical":identical,"vipcode":vipcode, "pk":wx_user_pk,
-                                           "nickname":nickname, "referal_images":referal_images}, 
+            response = render_to_response('weixin/sampleads2.html', 
+                                          {"identical":identical,"vipcode":vipcode, "pk":wx_user_pk}, 
                                           context_instance=RequestContext(request))
             return response
 
