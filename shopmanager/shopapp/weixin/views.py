@@ -697,7 +697,7 @@ class FreeSampleView(View):
     def get(self, request):
         content = request.REQUEST
         code = content.get('code')
-        fcode = content.get('f')
+        fcode = content.get('f', '')
         
         user_openid = get_user_openid(request, code)
         if user_openid == "" or user_openid == None or user_openid == "None":
@@ -705,9 +705,18 @@ class FreeSampleView(View):
             return redirect(redirect_url)
         
         wx_user,state = WeiXinUser.objects.get_or_create(openid=user_openid)
+
+        if wx_user.subscribe_time < datetime.datetime(2015,1,5):
+            if wx_user.vipcodes.count() > 0:
+                fcode = wx_user.vipcodes.all()[0].code
+
+        started = False
+        if wx_user.openid == 'oMt59uE55lLOV2KS6vYZ_d0dOl5c':
+            started = True
+
         
         html = 'weixin/freesamples.html'
-        response = render_to_response(html, {"wx_user":wx_user, 'fcode':fcode},
+        response = render_to_response(html, {"wx_user":wx_user, 'fcode':fcode, 'started':started},
                                       context_instance=RequestContext(request))
         response.set_cookie("openid",user_openid)
         return response
@@ -734,23 +743,22 @@ class SampleApplyView(View):
         return redirect("/weixin/sampleads/0/")
 
     def post(self, request):
-
         content = request.REQUEST
         sample_pk = content.get("sample_pk")
-        color = content.get("color","1")
-        size = content.get("size","1")
-        weight = content.get("weight","1")
-        vipcode = content.get("vipcode")
-        fcode_pass = int(content.get("fcode_pass"))
+        fcode = content.get("fcode")
+        selection = content.get("selection")
         
-        if fcode_pass != 1:
-            ## check whether input vipcode is valid (exists in database).
-            vipcodes = VipCode.objects.filter(code=vipcode)
-            if vipcodes.count() <= 0:
-                return redirect("/weixin/sampleads/0/")
-            
-        sku_code = ''.join([color, size, weight])
-        
+        ## validate fcode
+        ## if not correct, redirect
+        vipcodes = VipCode.objects.filter(code=fcode)
+        if vipcodes.count() < 1:
+            redirect_url = "https://open.weixin.qq.com/connect/oauth2/authorize?appid=wxc2848fa1e1aa94b5&redirect_uri=http://weixin.huyi.so/weixin/freesamples/&response_type=code&scope=snsapi_base&state=135#wechat_redirect"
+            return redirect(redirect_url)
+
+        sku_code = '0110'
+        if int(selection) == 2:
+            sku_code = '0210'
+
         sample = FreeSample.objects.get(pk=int(sample_pk))
 
         skus = SampleSku.objects.filter(sku_code=sku_code)
@@ -767,20 +775,10 @@ class SampleApplyView(View):
             wx_user = users[0]
         
         response = None
-        param = {"sample":sample, "sku":sku, "wx_user": wx_user, 
-                 "vipcode":vipcode, "fcode_pass":fcode_pass}
+        param = {"sample":sample, "sku":sku, "wx_user": wx_user, "fcode":fcode}
 
-        if (not wx_user) or (wx_user.isValid() == False):
-            param["years"] = [2008, 2009, 2010, 2011, 2012, 2013, 2014, 2015]
-            param["months"] = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
-            param["user"] = wx_user
-            param["openid"] = user_openid
-            param["from_page"] = "freesamples"
-            response = render_to_response("weixin/babyinfo.html",param,
-                                          context_instance=RequestContext(request))
-        else:
-            response = render_to_response("weixin/sampleapply.html",param,
-                                          context_instance=RequestContext(request))
+        response = render_to_response("weixin/sampleapply.html",param,
+                                      context_instance=RequestContext(request))
         response.set_cookie("openid",user_openid)
         return response
     
