@@ -76,7 +76,7 @@ class WeixinUserAward(models.Model):
     
     def __unicode__(self):
         return self.user_openid
-
+    
 
 from django.db import transaction
 from shopapp.signals import weixin_referal_signal
@@ -116,3 +116,43 @@ def convert_awardreferal2score(sender,user_openid,referal_from_openid,*args,**kw
 
 weixin_referal_signal.connect(convert_awardreferal2score, sender=WeixinUserAward)
 
+
+class WeixinLinkClicks(models.Model): 
+    
+    user_openid = models.CharField(max_length=64,db_index=True,verbose_name=u"申请人ID")
+    
+    link_url           = models.CharField(max_length=128,db_index=True,blank=True,verbose_name=u'分享链接')
+    clicker_num = models.IntegerField(default=0,verbose_name=u"点击人数")
+    click_count   = models.IntegerField(default=0,verbose_name=u"点击次数")
+    
+    validated_in = models.IntegerField(default=0,verbose_name=u"有效间隔(s)")
+    
+    modified = models.DateTimeField(auto_now=True,blank=True,null=True,verbose_name=u'修改时间')
+    created  = models.DateTimeField(auto_now_add=True,blank=True,null=True,verbose_name=u'创建日期')
+    
+    class Meta:
+        db_table = 'shop_weixin_sale_linkclicks'
+        verbose_name = u'微信分享点击'
+        verbose_name_plural = u'微信分享点击列表'
+    
+    def __unicode__(self):
+        return  '<%s,%s>'%(self.link_url,self.click_count)
+    
+from django.core.urlresolvers import reverse
+from django.db.models.signals import post_save
+from shopapp.weixin.models import SampleOrder
+
+def create_weixin_link_click(sender,instance,*args,**kwargs):
+    
+    user_openid = instance.user_openid
+    try:
+        wx_user = WeiXinUser.objects.get(openid=user_openid)
+        link_url  = reverse('weixin_sampleads',args=(wx_user.pk,))
+        WeixinLinkClicks.objects.get_or_create(user_openid=user_openid,
+                                               link_url=link_url)
+    except Exception,exc:
+        import logging
+        logger = logging.getLogger("django.request")
+        logger.error(u'分享记录错误:%s'%exc.message,exc_info=True)
+
+post_save.connect(create_weixin_link_click, sender=SampleOrder)

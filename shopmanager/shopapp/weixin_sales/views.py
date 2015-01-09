@@ -192,6 +192,6 @@ class AwardApplyView(View):
 
         rep_json = {'code':'error', "try this F code": "866988"}
         return  HttpResponse(json.dumps(rep_json),mimetype="application/json")
-        
-            
+
+
 

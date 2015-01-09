@@ -894,8 +894,8 @@ admin.site.register(MergeTrade,MergeTradeAdmin)
 
     
 class MergeOrderAdmin(admin.ModelAdmin):
-    list_display = ('id','oid','outer_id','outer_sku_id','sku_properties_name','price','num',
-                    'payment','out_stock','is_rule_match','gift_type','refund_status','status','sys_status')
+    list_display = ('id','oid','merge_trade','outer_id','outer_sku_id','sku_properties_name','price','num',
+                    'payment','gift_type','refund_status','status','sys_status')
     list_display_links = ('oid','id')
     #list_editable = ('update_time','task_type' ,'is_success','status')
 
@@ -904,7 +904,7 @@ class MergeOrderAdmin(admin.ModelAdmin):
 
     list_filter = ('sys_status','merge_trade__sys_status','refund_status','out_stock',
                    'is_rule_match','is_merge','gift_type',('pay_time',DateFieldListFilter))
-    search_fields = ['id','oid','merge_trade__id','outer_id','outer_sku_id']
+    search_fields = ['id','oid','merge_trade__tid','outer_id','outer_sku_id']
     
 
 admin.site.register(MergeOrder,MergeOrderAdmin)
