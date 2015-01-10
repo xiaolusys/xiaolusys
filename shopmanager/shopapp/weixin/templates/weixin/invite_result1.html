@@ -6,23 +6,46 @@
 
 <div class="container-fluid">
 
-<!--
   <div class="panel panel-default" style="margin-top:5px">
-    <div class="panel-heading" style="color:orange">免费试用</div>
+    <div class="panel-heading" style="color:orange">免费试用 中奖名单</div>
     <div class="panel-body">
-      <p>新年大礼，200件斗篷免费送，即将开始！请点击 <a href="http://mp.weixin.qq.com/s?__biz=MzA5NTI1NjYyNg==&mid=203259157&idx=2&sn=e9e5a55ddd9525cc20c92b17d63778c7#rd">查看详情>></a></p>
+      <p>第一批 综合得分 140，点击次数 10 以上  <a href="/weixin/finallist/1/1/1/">中奖名单&gt;&gt;</a></p>
+      <p>恭喜他们！</p>
     </div>
   </div>
--->
+
   <div class="panel panel-default" style="margin-top:5px">
     <div class="panel-heading" style="color:orange">免费试用 审核结果</div>
     <div class="panel-body">
     {% if sample_order %}
-      {% if not jan_pass %}<label >您的试用申请还在审核中，请继续加油哦!</label>{% endif %}
-      <p>您的F码使用人数: <font style="color:red">{{ vip_code.usage_count }}</font></p>
-      <p>您的分享页面被点击人数: <font style="color:orange">{{ link_click.clicker_num  }}</font></p>
-      <p>您的综合得分: <font style="color:red">{{ vip_code.usage_count  }} *10</font> + <font style="color:orange">{{ link_click.clicker_num }}</font> = {{ vip_code.usage_count|mul:10|add:link_click.clicker_num }}</p>
-      <p><br/></p>
+      {% if not sample_pass %}
+      	<label >您的试用申请还在审核中，请继续加油哦!</label>
+      	<p>您的F码使用人数: <font style="color:red">{{ vip_code.usage_count }}</font></p>
+	    <p>您的分享页面被点击人数: <font style="color:orange">{{ link_click.clicker_num  }}</font></p>
+	    <p>您的综合得分: <font style="color:red">{{ vip_code.usage_count  }} *10</font> + <font style="color:orange">{{ link_click.clicker_num }}</font> = {{ vip_code.usage_count|mul:10|add:link_click.clicker_num }}</p>
+	     <p><br/></p>
+      {% else %}
+         <p style="color:red;">恭喜您的试用申请通过了！</p>
+         <p>您的综合得分: <font style="color:red">{{ vip_code.usage_count  }} *10</font> + <font style="color:orange">{{ link_click.clicker_num }}</font> = {{ vip_code.usage_count|mul:10|add:link_click.clicker_num }}</p>
+          <p style="color:#029fd6">请扫描二维码加入中奖微信群(将图片保存到手机，然后从微信选择“扫一扫”，再选择“相册”。)</p>
+         <div class="row">
+	    <div class="col-xs-12">
+	      <div class="thumbnail" style="padding:3px" id="id_i1">
+			<img src="https://mmbiz.qlogo.cn/mmbiz/yMhOQPTKhLtDavnT74sl95zz5cpKJTibmhSa41KX7tiaS2vP30sllElHvzdY51pwBgRZc2nDS9otNNnvHutkX7qg/0" alt="">
+	      </div>
+	     </div>
+	   </div>
+	   <p style="color:#029fd6">斗篷拍下链接：</p>
+	   <div class="col-xs-12">
+	      <div class="thumbnail" style="padding:3px" id="id_i2">
+			<a href="http://mp.weixin.qq.com/bizmall/malldetail?id=&pid=pMt59uO9ALgEo18Zz7dcDyEqiUbQ&biz=MzA5NTI1NjYyNg==&scene=&action=show_detail&showwxpaytitle=1#wechat_redirect">
+			<img src="https://mmbiz.qlogo.cn/mmbiz/ibbEWWCOYbuYbqHaFxQiaPXj7gYSjGBC6GUnhgyKo6GNGw7sOztl6a8zINWjtZ8rxj8mAxsGMfsWXtHg4URwuRyQ/0" alt="">
+			</a>
+	      </div>
+	     </div>
+	   </div>
+      {% endif %}
+      
     <p style="color:#029fd6">审核说明：本次免费试用活动，将按照综合得分来审核申请。综合得分越高，审核通过几率越大！</p>
     <p style="color:red">如果您的得分在100分以上，您将具有极大的竞争力！</p>
     <p>快快分享您的F码专属页面吧！ <a href="/weixin/sampleads/{{ wx_user.pk }}/">Go >></a></p>

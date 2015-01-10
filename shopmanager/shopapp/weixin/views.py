@@ -901,12 +901,14 @@ class ResultView(View):
             return redirect(redirect_url)
             
         wx_user,state = WeiXinUser.objects.get_or_create(openid=user_openid)
-
+        
+        sample_pass = False
         sample_order = None 
         sample_orders = SampleOrder.objects.filter(user_openid=user_openid,created__gte=START_TIME)
         if sample_orders.count() > 0:
             sample_order = sample_orders[0]
-        
+            sample_pass = sample_order.status > 40
+            
         vip_code = None
         vip_codes = VipCode.objects.filter(owner_openid__openid=user_openid)
         if vip_codes.count() > 0:
@@ -917,13 +919,13 @@ class ResultView(View):
         if link_clicks.count() > 0:
             link_click = link_clicks[0]
             
-        jan_pass = False
+        
         response = render_to_response('weixin/invite_result1.html',
                                       {'wx_user':wx_user,
                                        'sample_order':sample_order,
                                        'vip_code':vip_code,
                                        'link_click':link_click,
-                                       'jan_pass':jan_pass,
+                                       'sample_pass':sample_pass,
                                        },
                                       context_instance=RequestContext(request))
         response.set_cookie("openid",user_openid)  
@@ -936,23 +938,30 @@ from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 
 class FinalListView(View):
     
-    def getSampleScore(self,user):
+    def getListItem(self,user):
         
+        mobile = ''.join([user.mobile[0:3], "****", user.mobile[7:11]])
         link_clicks = WeixinLinkClicks.objects.filter(user_openid=user.openid)
         if link_clicks.count() > 0:
-            return user.vipcodes.all()[0].usage_count * 10 + link_clicks[0].clicker_num
+            clicker_num = link_clicks[0].clicker_num
+            total_socre =  user.vipcodes.all()[0].usage_count * 10 + clicker_num
+            return (mobile,total_socre,clicker_num)
         
-        return user.vipcodes.all()[0].usage_count * 10
+        return (mobile,user.vipcodes.all()[0].usage_count * 10,0)
         
     def get(self, request, *args, **kwargs):
 
         page = int(kwargs.get('page',1))
         batch = int(kwargs.get('batch',1))
-        month = int(kwargs.get('month',8))
+        month = int(kwargs.get('month',1))
         
         order_list = None
-
-        if month == 8:
+        
+        if month == 1 and batch == 1:
+            start_time = datetime.datetime(2015,1,9)
+            end_time = datetime.datetime(2015,1,11)
+            order_list = SampleOrder.objects.filter(status__gt=40,status__lt=42,created__gt=start_time)
+        elif month == 8:
             start_time = datetime.datetime(2014,8,1)
             end_time = datetime.datetime(2014,8,12)
             order_list = SampleOrder.objects.filter(status__gt=0,status__lt=7,created__lt=end_time,created__gt=start_time)
@@ -964,6 +973,8 @@ class FinalListView(View):
             start_time = datetime.datetime(2014,10,8)
             end_time = datetime.datetime(2014,10,17)
             order_list = SampleOrder.objects.filter(status__gt=30,status__lt=39,created__gt=start_time)
+            
+        
 
         num_per_page = 20 # Show 20 contacts per page
         paginator = Paginator(order_list, num_per_page) 
@@ -981,9 +992,8 @@ class FinalListView(View):
         wx_users = WeiXinUser.objects.filter(openid__in=openids)
         items = []
         for user in wx_users:
-            mobile = ''.join([user.mobile[0:3], "****", user.mobile[7:11]])
-            
-            items.append([mobile, self.getSampleScore(user)])
+
+            items.append(self.getListItem(user))
 
         total = order_list.count()
         num_pages = paginator.num_pages
