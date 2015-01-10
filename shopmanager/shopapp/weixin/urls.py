@@ -94,7 +94,7 @@ urlpatterns = patterns('shopapp.weixin.views',
     url(r'^scoremenu/$', ScoreMenuView.as_view()),
     url(r'^gift/$', GiftView.as_view()),
         
-    url(r'^test/$', TestView.as_view()),    
+    url(r'^test/$', record_weixin_clicks(TestView.as_view())),    
                      
     url(r'^validmobile/$', TemplateView.as_view(
         template_name="weixin/valid_mobile.html"), 

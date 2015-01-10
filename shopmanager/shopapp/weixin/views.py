@@ -933,7 +933,17 @@ class ResultView(View):
 
 
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
+
 class FinalListView(View):
+    
+    def getSampleScore(self,user):
+        
+        link_clicks = WeixinLinkClicks.objects.filter(user_openid=user.openid)
+        if link_clicks.count() > 0:
+            return user.vipcodes.all()[0].usage_count * 10 + link_clicks[0].clicker_num
+        
+        return user.vipcodes.all()[0].usage_count * 10
+        
     def get(self, request, *args, **kwargs):
 
         page = int(kwargs.get('page',1))
@@ -966,14 +976,14 @@ class FinalListView(View):
         except EmptyPage:
             # If page is out of range (e.g. 9999), deliver last page of results.
             items = paginator.page(paginator.num_pages)
-
         
         openids = [item.user_openid for item in items]
         wx_users = WeiXinUser.objects.filter(openid__in=openids)
         items = []
         for user in wx_users:
             mobile = ''.join([user.mobile[0:3], "****", user.mobile[7:11]])
-            items.append([mobile, user.vipcodes.all()[0].usage_count])
+            
+            items.append([mobile, self.getSampleScore(user)])
 
         total = order_list.count()
         num_pages = paginator.num_pages
@@ -1292,7 +1302,9 @@ class GiftView(View):
 class TestView(View):
     def get(self, request):
         
-        print request.META.get('HTTP_USER_AGENT')
+#         print request.META.get('HTTP_USER_AGENT')
+#         print request.META.get('HTTP_USER_AGENT').find('MicroMessenger') 
+
         response = render_to_response('weixin/sampleads1.html', 
                                       context_instance=RequestContext(request))
         return response

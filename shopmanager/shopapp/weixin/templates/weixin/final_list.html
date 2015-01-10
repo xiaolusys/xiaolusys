@@ -33,7 +33,7 @@
       
       <div class="list-group">
 	{% for item in items %}
-	{% if month == 8 or month == 9%}
+	{% if month == 8 or month == 9 or month == 10 %}
 	<a href="#" class="list-group-item">{{ forloop.counter }}: {{ item.0 }}</a>
 	{% else %}
 	<a href="#" class="list-group-item">{{ forloop.counter }}: {{ item.0 }}<span class="badge">{{ item.1 }}</span></a>
