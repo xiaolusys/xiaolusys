@@ -19,9 +19,9 @@
     <div class="panel-body">
     {% if sample_order %}
       {% if not jan_pass %}<label >您的试用申请还在审核中，请继续加油哦!</label>{% endif %}
-      <p>您的F码使用人数: <span class="badge"><font style="color:red">{{ vip_code.usage_count }}</font></span></p>
-      <p>您的分享页面被点击人数: <span class="badge"><font style="color:orange">{{ link_click.clicker_num  }}</font></span></p>
-      <p>您的综合得分: <font style="color:red">{{ vip_code.usage_count  }} *10</font> + <font style="color:orange">{{ link_click.clicker_num }}</font> = <span class="badge badge-success">{{ vip_code.usage_count|mul:10|add:link_click.clicker_num }}</span></p>
+      <p>您的F码使用人数: <font style="color:red">{{ vip_code.usage_count }}</font></p>
+      <p>您的分享页面被点击人数: <font style="color:orange">{{ link_click.clicker_num  }}</font></p>
+      <p>您的综合得分: <font style="color:red">{{ vip_code.usage_count  }} *10</font> + <font style="color:orange">{{ link_click.clicker_num }}</font> = {{ vip_code.usage_count|mul:10|add:link_click.clicker_num }}</p>
       <p><br/></p>
     <p style="color:#029fd6">审核说明：本次免费试用活动，将按照综合得分来审核申请。综合得分越高，审核通过几率越大！</p>
     <p style="color:red">如果您的得分在100分以上，您将具有极大的竞争力！</p>
