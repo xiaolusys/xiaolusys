@@ -231,6 +231,7 @@ class WeixinUserService():
         
         wx_user.mobile = wx_user.vmobile or wx_user.mobile
         wx_user.isvalid = True
+        wx_user.valid_count = 0
         wx_user.save()
         
         VipCode.objects.genVipCodeByWXUser(wx_user)

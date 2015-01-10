@@ -18,9 +18,9 @@ def  record_weixin_clicks(function=None,validated_in=24*60*60):
             req_url = request.get_full_path()
             link_string = request.COOKIES.get('click_links','')
             link_dict  = dict([(r.split('|')[0],r.split('|')[1]) for r in link_string.split(',') if len(r.split('|')) == 2 ])
-            click_time = link_dict.get(req_url,'')
+            click_time = link_dict.get(req_url,'0')
             
-            if not click_time or  int(time.time()) - int(click_time) > validated_in :
+            if (not click_time or  int(time.time()) - int(click_time) > validated_in) and len(link_dict.keys()) < 5:
                 WeixinLinkClicks.objects.filter(link_url=req_url).update(
                                                                          click_count=F('click_count') + 1,
                                                                          clicker_num=F('clicker_num') + ([1,0][click_time and  1 or 0]),

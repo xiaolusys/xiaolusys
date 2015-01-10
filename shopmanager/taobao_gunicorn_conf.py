@@ -7,7 +7,7 @@ bind="127.0.0.1:9000"
 
 timeout=120
 worker_connections=multiprocessing.cpu_count()*200
-max_requests=200
+max_requests=800
 backlog=multiprocessing.cpu_count()*300
 
 accesslog='/var/log/taobao/gunicorn.out'
