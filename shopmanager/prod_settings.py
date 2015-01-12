@@ -6,7 +6,7 @@ DEBUG = False
 TEMPLATE_DEBUG = DEBUG
 
 SESSION_EXPIRE_AT_BROWSER_CLOSE = False  
-SESSION_COOKIE_AGE = 24*60*60             
+SESSION_COOKIE_AGE = 48*60*60             
 
 PROJECT_ROOT = os.path.abspath(os.path.dirname(__file__))
 

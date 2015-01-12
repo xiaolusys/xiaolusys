@@ -959,8 +959,12 @@ class FinalListView(View):
         
         if month == 1 and batch == 1:
             start_time = datetime.datetime(2015,1,9)
-            end_time = datetime.datetime(2015,1,11)
+            end_time = datetime.datetime(2015,1,13)
             order_list = SampleOrder.objects.filter(status__gt=40,status__lt=42,created__gt=start_time)
+        elif month == 1 and batch == 2:
+            start_time = datetime.datetime(2015,1,9)
+            end_time = datetime.datetime(2015,1,13)
+            order_list = SampleOrder.objects.filter(status__gt=41,status__lt=43,created__gt=start_time)
         elif month == 8:
             start_time = datetime.datetime(2014,8,1)
             end_time = datetime.datetime(2014,8,12)
@@ -973,8 +977,6 @@ class FinalListView(View):
             start_time = datetime.datetime(2014,10,8)
             end_time = datetime.datetime(2014,10,17)
             order_list = SampleOrder.objects.filter(status__gt=30,status__lt=39,created__gt=start_time)
-            
-        
 
         num_per_page = 20 # Show 20 contacts per page
         paginator = Paginator(order_list, num_per_page) 

@@ -157,3 +157,21 @@ def create_weixin_link_click(sender,instance,*args,**kwargs):
         logger.error(u'分享记录错误:%s'%exc.message,exc_info=True)
 
 post_save.connect(create_weixin_link_click, sender=SampleOrder)
+
+
+class WeixinLinkClickRecord(models.Model):
+
+    user_openid = models.CharField(max_length=64,db_index=True,verbose_name=u"申请人ID")
+
+    link_url  = models.CharField(max_length=128,db_index=True,verbose_name=u"点击链接")
+
+    modified = models.DateTimeField(auto_now=True,blank=True,null=True,verbose_name=u'修改时间')
+    created  = models.DateTimeField(auto_now_add=True,blank=True,null=True,verbose_name=u'创建日期')
+
+    class Meta:
+        db_table = 'shop_weixin_sale_clickrecord'
+        verbose_name = u'微信点击记录'
+        verbose_name_plural = u'微信点击记录列表'
+
+    def __unicode__(self):
+        return  '<%s,%s>'%(self.user_openid,self.link_url)
