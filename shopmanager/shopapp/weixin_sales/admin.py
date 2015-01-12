@@ -8,7 +8,8 @@ from shopback.base.options import DateFieldListFilter
 from .models import (
                      WeixinUserPicture,
                      WeixinUserAward,
-                     WeixinLinkClicks)
+                     WeixinLinkClicks,
+                     WeixinLinkClickRecord)
 
 
 class WeixinUserPictureAdmin(admin.ModelAdmin):
@@ -62,4 +63,14 @@ class WeixinLinkClicksAdmin(admin.ModelAdmin):
     
     
 admin.site.register(WeixinLinkClicks, WeixinLinkClicksAdmin) 
+
+class WeixinLinkClickRecordAdmin(admin.ModelAdmin):
+    
+    list_display = ('user_openid','link_url','created')
+    search_fields = ['user_openid','link_url']
+    
+    list_filter = (('created',DateFieldListFilter),)
+    
+    
+admin.site.register(WeixinLinkClickRecord, WeixinLinkClickRecordAdmin) 
 
