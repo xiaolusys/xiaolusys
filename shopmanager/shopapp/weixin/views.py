@@ -965,6 +965,10 @@ class FinalListView(View):
             start_time = datetime.datetime(2015,1,9)
             end_time = datetime.datetime(2015,1,13)
             order_list = SampleOrder.objects.filter(status__gt=41,status__lt=43,created__gt=start_time)
+        elif month == 1 and batch == 3:
+            start_time = datetime.datetime(2015,1,9)
+            end_time = datetime.datetime(2015,1,13)
+            order_list = SampleOrder.objects.filter(status__gt=42,status__lt=44,created__gt=start_time)
         elif month == 8:
             start_time = datetime.datetime(2014,8,1)
             end_time = datetime.datetime(2014,8,12)
