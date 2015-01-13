@@ -21,7 +21,7 @@
 	{% endif %}
 	<div class="col-xs-4">
 	  <a href="/weixin/finallist/{{ batch }}/{{ prev_page }}/{{ month }}/"><< 上一页</a>
-							  </div>
+	</div>
 	<div class="col-xs-4">
 	  <p>第{{ page }}页</p>
 	</div>
@@ -38,7 +38,7 @@
 	{% else %}
 	<a href="#" class="list-group-item">
 		{{ forloop.counter }}: {{ item.0 }}
-		<span class="badge">{{ item.1 }}&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{{ item.2 }}</span>
+		<span class="badge">{{ item.2 }}&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{% if batch == 3 %}{{ item.1 }}{% else %}{{ item.3 }}{% endif %}</span>
 	</a>
 	{% endif %}
 	{% endfor %}

@@ -941,13 +941,14 @@ class FinalListView(View):
     def getListItem(self,user):
         
         mobile = ''.join([user.mobile[0:3], "****", user.mobile[7:11]])
+        vipcode = user.vipcodes.all()[0]
         link_clicks = WeixinLinkClicks.objects.filter(user_openid=user.openid)
         if link_clicks.count() > 0:
             clicker_num = link_clicks[0].clicker_num
-            total_socre =  user.vipcodes.all()[0].usage_count * 10 + clicker_num
-            return (mobile,total_socre,clicker_num)
+            total_socre = vipcode.usage_count * 10 + clicker_num
+            return (mobile,vipcode.usage_count,total_socre,clicker_num)
         
-        return (mobile,user.vipcodes.all()[0].usage_count * 10,0)
+        return (mobile,vipcode.usage_count,0,0)
         
     def get(self, request, *args, **kwargs):
 
