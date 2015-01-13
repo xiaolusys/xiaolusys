@@ -68,7 +68,7 @@ urlpatterns = patterns('shopapp.weixin.views',
 #         record_weixin_clicks(SampleAdsView.as_view(),validated_in=48*60*60),
         name="weixin_sampleads"),
     url(r'^inviteresult/$', ResultView.as_view()),
-    url(r'^finallist/(?P<batch>\d+)/(?P<page>\d+)/(?P<month>\d+)/$', cache_page(FinalListView.as_view(),24*60*60)),
+    url(r'^finallist/(?P<batch>\d+)/(?P<page>\d+)/(?P<month>\d+)/$', cache_page(FinalListView.as_view(),96*60*60)),
 
     url(r'^babyinfo/$', BabyInfoView.as_view()),
     url(r'^orderinfo/$', OrderInfoView.as_view()),
