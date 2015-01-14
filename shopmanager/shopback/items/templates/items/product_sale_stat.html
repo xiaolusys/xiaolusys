@@ -3,11 +3,11 @@
 <head>
    <title>商品销量统计</title>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-    <link href="{{ STATIC_URL }}bootstrap/css/bootstrap2.3.2.min.css" rel="stylesheet" type="text/css" />
+    <link href="http://cdn.bootcss.com/bootstrap/3.2.0/css/bootstrap.min.css" rel="stylesheet" type="text/css" />
     <link href="{{ STATIC_URL }}css/base.less" rel="stylesheet/less" type="text/css" />
-    <link rel="stylesheet" href="http://code.jquery.com/ui/1.10.1/themes/base/jquery-ui.css" />
-    <script src="http://code.jquery.com/jquery-1.9.1.js"></script>
-    <script src="http://code.jquery.com/ui/1.10.1/jquery-ui.js"></script>
+    <link rel="stylesheet" href="{{ STATIC_URL }}jquery/jquery-ui-1.10.1.css" />
+    <script src="{{ STATIC_URL }}jquery/jquery-1.9.1.min.js"></script>
+    <script src="{{ STATIC_URL }}jquery/jquery-ui-1.10.1.min.js"></script>
 	<!-- <script src="{{ STATIC_URL }}jquery-timepicker-addon/js/jquery.ui.datepicker-zh-CN.js.js" type="text/javascript" charset="gb2312"></script> -->
     <style type="text/css">
         *{ margin:0; padding:0;}
@@ -32,18 +32,23 @@
             display:inline;        
         }
         .outer-filter{
-            margin:20px auto 10px;   
+            margin:20px auto 30px;   
             text-align:center;     
         }
         .inner-filter{
             margin10px;     
-            float:right;  
         }
         .inner-filter input{
-            width:25px;        
+ 			width:40px;
+ 			height:24px;
+            padding:1px; 
         }
-        .inner-filter label{
+       .inner-filter label{
             display:inline;        
+        }
+       .inner-filter button{
+             height:24px;   
+             padding:2px 10px;
         }
         .inner-filter-one{
            color:#f89406;
@@ -106,17 +111,19 @@
 	<input type="text" name="sale_paycost_gte" class="sale_paycost" value="" size="4"
 	/>-<input type="text" name="sale_paycost_lte" class="sale_paycost" value="" size="4"/>
     </div>
-    <button class="div-inline">过滤</button>
+    <button class="div-inline btn">过滤</button>
   </div>
+  <div>
   <table class="table table-bordered  table-condensed">
     <tr>
-      <th>序号</th><th>商品/规格编码</th><th style="width:150px;">商品/规格名称</th>
-      <th>销售数量</th><th>销售成本</th><th>销售额</th><th>退款</th><th>剩余库存</th><th>库存成本</th>
+      <th class="col-xs-1">序号</th><th class="col-xs-2">商品/规格编码</th><th class="col-xs-3">商品/规格名称</th>
+      <th class="col-xs-1">销售数量</th><th class="col-xs-1">销售成本</th><th class="col-xs-1">销售额</th>
+      <th class="col-xs-1">退款</th><th class="col-xs-1">剩余库存</th><th class="col-xs-1">库存成本</th>
     </tr>
    <tr>
    		<td>-</td>
         <td>-</td>
-        <td style="width:150px;">共计</td>
+        <td >共计</td>
         <td>{{ sale_stats.total_sale_num }}</td>
         <td>{{ sale_stats.total_sale_cost }}</td>
         <td>{{ sale_stats.total_sale_payment }}</td>
@@ -125,20 +132,21 @@
 	<td>{{ sale_stats.total_stock_cost }}</td>
     </tr>
   </table>
+  </div>
   {% for product_id ,product in sale_stats.sale_items %}
   <div class="list-tables">
     <div class="list-table-head">
       <table class="table table-bordered  table-condensed">
         <tr>
-        	<td>{{ forloop.counter }}</td>
-            <td>{{ product.outer_id }}</td>
-            <td style="width:150px;">{{ product.name }}</td>
-            <td>{{ product.sale_num }}</td>
-            <td>{{ product.sale_cost }}</td>
-            <td>{{ product.sale_payment }}</td>
-            <td>{{ product.sale_refunds }}</td>
-            <td>{{ product.collect_num }}</td>
-	    <td>{{ product.stock_cost }}</td>
+        	<td class="col-xs-1">{{ forloop.counter }}</td>
+            <td class="col-xs-2">{{ product.outer_id }}</td>
+            <td class="col-xs-3">{{ product.name }}</td>
+            <td class="col-xs-1">{{ product.sale_num }}</td>
+            <td class="col-xs-1">{{ product.sale_cost }}</td>
+            <td class="col-xs-1">{{ product.sale_payment }}</td>
+            <td class="col-xs-1">{{ product.sale_refunds }}</td>
+            <td class="col-xs-1">{{ product.collect_num }}</td>
+	    	<td class="col-xs-1">{{ product.stock_cost }}</td>
         </tr>
     </table>
     </div>
@@ -146,15 +154,15 @@
 	<table class="table table-bordered  table-condensed">
 	    {% for sku_id,sku in product.skus %}
         <tr>
-        <td>{{ forloop.counter }}&nbsp;&gt;</td>
-		<td >{{ sku.outer_id }}</td>
-		<td >{{ sku.name }}</td>
-		<td >{{ sku.sale_num }}</td>
-		<td >{{ sku.sale_cost }}</td>
-		<td >{{ sku.sale_payment }}</td>
-        <td >{{ sku.sale_refund }}</td>
-        <td >{{ sku.quantity }}</td>
-	<td >{{ sku.stock_cost }}</td>
+        <td class="col-xs-1">{{ forloop.counter }}&nbsp;&gt;</td>
+		<td class="col-xs-2">{{ sku.outer_id }}</td>
+		<td class="col-xs-3">{{ sku.name }}</td>
+		<td class="col-xs-1">{{ sku.sale_num }}</td>
+		<td class="col-xs-1">{{ sku.sale_cost }}</td>
+		<td class="col-xs-1">{{ sku.sale_payment }}</td>
+        <td class="col-xs-1">{{ sku.sale_refund }}</td>
+        <td class="col-xs-1">{{ sku.quantity }}</td>
+		<td class="col-xs-1">{{ sku.stock_cost }}</td>
         </tr>
 	    {% endfor %}
 	</table>

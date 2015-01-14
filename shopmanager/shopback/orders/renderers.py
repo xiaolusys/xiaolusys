@@ -9,7 +9,7 @@ class TimerOrderStatChartRenderer(ChartTemplateRenderer):
     
     media_type = 'text/html'
     format = 'html'
-    template = 'trades/timer_order_statistic_chart.html'
+    template = 'trades/order_report_chart.html'
     
     
 class ProductOrderTableRenderer(ChartTemplateRenderer):

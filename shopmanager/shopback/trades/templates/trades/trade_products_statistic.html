@@ -3,9 +3,8 @@
 <head>
 	<title>订单交易商品统计</title>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-     <link href="{{ STATIC_URL }}bootstrap/css/bootstrap.min.css" rel="stylesheet" type="text/css" />
-    <link href="{{ STATIC_URL }}bootstrap/css/bootstrap-responsive.min.css" rel="stylesheet" type="text/css" />
-    <link href="{{ STATIC_URL }}css/base.less" rel="stylesheet/less" type="text/css" />
+    <link href="http://cdn.bootcss.com/bootstrap/3.2.0/css/bootstrap.min.css" rel="stylesheet" type="text/css" />
+   
     <link href="{{ STATIC_URL }}jquery-timepicker-addon/timepicker/jquery-ui-timepicker-addon.css" type="text/css" />
     <link rel="stylesheet" href="{{ STATIC_URL }}jquery/jquery-ui-1.10.1.css" />
 	<script src="{{ STATIC_URL }}jquery/jquery-1.8.13.min.js"></script>
@@ -22,72 +21,86 @@
 			margin-left:20px;
 			float:left;
 		}
+		.inner-filter{
+			margin:20px auto 0px;
+			width:60%;
+		}
 		ul{
 			width:900px;
 			display:block; 
 		}
-		input{
-			width:140px;
-		}
-		select{
-			width:120px;
-		}
+
 	</style>
 </head>
 <body>
 	{% with object.trade_items as trade_items %}
 	<div class="container">
-		<div >
-			<form  class="form-inline" method="GET" action="/trades/order/statistic/" >
-			<ul>
-				<li>
+		<div class="inner-filter">
+			<form  class="form-horizontal" role="form" method="GET" action="/trades/order/statistic/" >
+			<input type="hidden" name="is_sale" value="{{ object.is_sale }}"/>
+			<div class="row form-group" >
+				<div class="col-xs-4">
 					<label class="control-label" for="sc_by">日期类型:</label>
-					<select name="sc_by" class="selector">
+					<select name="sc_by" class="form-control">
 						<option value="pay" {% if object.sc_by == "pay" %}selected{% endif %}>付款日期</option>
 						<option value="weight" {% if object.sc_by == "weight" %}selected{% endif %}>称重日期</option>
 						<option value="create" {% if object.sc_by == "create" %}selected{% endif %}>生成日期</option>
 					</select>
-				</li>
-				<li>
+				</div>
+				<div class="col-xs-4">
+					<label class="control-label" for="df">起始日期:</label>
+					<input type="text" id="f_datepicker" name="df" class="form-control datepicker" value="{{ object.df }}"/>
+				</div>
+				<div class="col-xs-4">
+					<label class="control-label" for="dt">结束日期:</label>
+					<input type="text" id="t_datepicker" name="dt" class="form-control datepicker" value="{{ object.dt }}"/>
+				</div>
+			</div>
+			<div class="row form-group">
+				<div class="col-xs-4">
 					<label class="control-label" for="shop_id">选择店铺:</label>
-					<select name="shop_id" class="selector">
+					<select name="shop_id" class="form-control">
 						<option value="" >全部</option>
 					    {% for shop in object.shops %}
 						<option value="{{ shop.id }}" {% if object.shop_id == shop.id %}selected{% endif %}>{{ shop.nick }}</option>
 						{% endfor %}
 					</select>
-				</li>
-				<li>
-					<label class="control-label" for="df">起始日期:</label>
-					<input type="text" id="f_datepicker" name="df" class="datepicker" value="{{ object.df }}"/>
-				</li>
-				<li>
-					<label class="control-label" for="dt">结束日期:</label>
-					<input type="text" id="t_datepicker" name="dt" class="datepicker" value="{{ object.dt }}"/>
-				</li>
-				<li>
+				</div>
+				<div class="col-xs-4">
 					<label class="control-label" for="outer_id">商家编码:</label>
-					<input type="text" name="outer_id" value="{{ object.outer_id }}"/>
-				</li>
-				<li>
-					<label class="control-label" for="wait_send">待发货:</label>
-					<input type="checkbox" name="wait_send" {% if object.wait_send %}checked{% endif %} />
-				</li>
-				<li>
-					<input type="submit" value="查询" class="btn btn-primary"/>
-				</li>
-			</ul>
+					<input type="text" name="outer_id" class="form-control" value="{{ object.outer_id }}"/>
+				</div>
+				<div class="col-xs-2">
+					<label class="control-label" for="wait_send">发货状态:</label>
+					<select name="wait_send" class="form-control">
+						<option value="0" {% if object.wait_send == "0" %}selected{% endif %}>全部</option>
+						<option value="1" {% if object.wait_send == "1" %}selected{% endif %}>待发货</option>
+						<option value="2" {% if object.sc_by == "2" %}selected{% endif %}>待出库</option>
+					</select>
+				</div>
+				<div class="col-xs-2">
+					<input type="submit" value="查询" class="btn btn-primary" style="margin-top:27px;"/>
+				</div>
+			 </div>
 			</form>
 		</div>
 		<div id="post-items" style="display:block;clear:both;">
 		  <fieldset>
-		  	<legend>订单商品统计列表(成本:{{ object.total_cost }},销售额:{{ object.total_sales }},实付邮费:{{ object.post_fees }}
-		  	,退款:{{ object.refund_fees }},付款单数:{{ object.trade_nums }},购买人数:{{ object.buyer_nums }})</legend>
+		  	<legend><h2><label >{% if object.is_sale %}特卖订单{% else %}订单{% endif %}</label> 商品统计列表</h2></legend>
 			  <table class="table table-bordered  table-condensed">
-			    <tr>
-			      <th>商品编码</th><th style="width:150px;">商品名称</th><th>总数量</th><th>成本</th><th>销售额</th>
-			      <th>规格编码</th><th style="width:200px;">商品规格</th><th>数量</th><th>成本</th><th>销售额</th>
+			  <thead>
+			  	<tr >
+			      <th colspan="2" >成本：{{ object.total_cost }}</th><th colspan="2">销售额:{{ object.total_sales }}</th><th colspan="2">实付邮费:{{ object.post_fees }}</th>
+			      <th >付款单数:{{ object.trade_nums }}</th><th >退款:{{ object.refund_fees }}</th><th colspan="2">购买人数:{{ object.buyer_nums }}</th>
 			    </tr>
+			    <tr style="background-color:#428BCA;">
+			      <th class="col-xs-1">商品编码</th><th class="col-xs-2">商品名称</th><th class="col-xs-1">总数量</th>
+			      <th class="col-xs-1">成本</th><th class="col-xs-1">销售额</th><th class="col-xs-1">规格编码</th>
+			      <th class="col-xs-2">商品规格</th><th class="col-xs-1">数量</th><th class="col-xs-1">成本</th><th class="col-xs-1">销售额</th>
+			    </tr>
+
+			  </thead>
+			  <tbody>
 			    {% for trade in trade_items %}
 				    {% with trade.1.skus|length as sku_len %}
 				    {% if sku_len > 0 %}
@@ -119,6 +132,8 @@
 				    {% endif %}
 				    {% endwith %}
 			    {% endfor %}
+			  </tbody> 
+
 			  </table>
 		  </fieldset>
 		</div>
