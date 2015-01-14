@@ -306,7 +306,7 @@ class StatisticMergeOrderView(ModelView):
                                           start_dt=start_dt,
                                            end_dt=end_dt,
                                            is_sale=is_sale)
-        order_qs  = self.getSourceOrders(trade_qs,p_outer_id = p_outer_id)
+        order_qs  = self.getSourceOrders(trade_qs,p_outer_id = p_outer_id,is_sale=is_sale)
         
         buyer_nums   = trade_qs.values_list('buyer_nick').distinct().count()
         trade_nums    = trade_qs.count()

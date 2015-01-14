@@ -57,7 +57,7 @@ class ProductManager(models.Manager):
             
     def isProductOutOfStock(self,outer_id,outer_sku_id):
         
-        from .models import Product,ProductSku
+        from .models import ProductSku
         try:
             product = self.get(outer_id=outer_id)
             product_sku = None
@@ -72,9 +72,10 @@ class ProductManager(models.Manager):
     
     def isProductRuelMatch(self,outer_id,outer_sku_id):
         
-        from .models import Product,ProductSku
+        from .models import ProductSku
         try:
             product = self.get(outer_id=outer_id)
+            product_sku = None
             if outer_sku_id:
                 product_sku = ProductSku.objects.get(outer_id=outer_sku_id,
                                                      product__outer_id=outer_id)
@@ -86,7 +87,7 @@ class ProductManager(models.Manager):
         
     def isProductRuleSplit(self,outer_id,outer_sku_id):
         
-        from .models import Product,ProductSku
+        from .models import ProductSku
         try:
             product = self.get(outer_id=outer_id)
             product_sku = None
@@ -102,7 +103,7 @@ class ProductManager(models.Manager):
     
     def getProductMatchReason(self,outer_id,outer_sku_id):
         
-        from .models import Product,ProductSku
+        from .models import ProductSku
         try:
             product = self.get(outer_id=outer_id)
             
