@@ -271,8 +271,8 @@ class StatisticMergeOrderView(ModelView):
             total_sales += trade[1]['sales']
             trade[1]['skus'] = sorted(trade[1]['skus'] .items(),key=lambda d:d[0])
         
-        order_items.append(total_cost)
         order_items.append(total_sales)
+        order_items.append( total_cost)
         
         return order_items
     
