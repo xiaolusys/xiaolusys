@@ -1,7 +1,9 @@
 #-*- coding:utf8 -*-
 import re
-import datetime
 import json
+import time
+import datetime
+import cStringIO as StringIO
 from django.core.urlresolvers import reverse
 from django.http import HttpResponse,HttpResponseNotFound,HttpResponseRedirect
 from django.shortcuts import render_to_response
@@ -31,7 +33,12 @@ from shopapp.memorule import ruleMatchSplit
 from shopback.users.models import User
 from shopback import paramconfig as pcfg
 from auth import apis
-from common.utils import parse_date,parse_datetime,format_date,format_datetime
+from common.utils import (
+						parse_date,
+                        CSVUnicodeWriter,
+						parse_datetime,
+						format_date,
+						format_datetime)
 import logging
 
 logger = logging.getLogger('django.request')
@@ -166,7 +173,7 @@ class StatisticMergeOrderView(ModelView):
     def getSourceOrders(self,trade_qs,p_outer_id=None,is_sale=False):
         
         order_qs  = MergeOrder.objects.filter(merge_trade__in=trade_qs,
-                            sys_status=pcfg.IN_EFFECT,is_merge=False)\
+                            sys_status=pcfg.IN_EFFECT)\
                             .exclude(gift_type=pcfg.RETURN_GOODS_GIT_TYPE)
                             
         if is_sale :
@@ -284,6 +291,41 @@ class StatisticMergeOrderView(ModelView):
                     pcfg.REFUND_WAIT_SELLER_AGREE,pcfg.REFUND_CONFIRM_GOODS,pcfg.REFUND_SUCCESS))\
                     .aggregate(total_refund_fee=Sum('refund_fee')).get('total_refund_fee',0)
         
+    def responseCSVFile(self,request,order_items):
+        
+        is_windows = request.META['HTTP_USER_AGENT'].lower().find('windows') >-1 
+        pcsv =[]
+        pcsv.append(("商品编码","商品名称","总数量","成本","销售额","规格编码","商品规格	","数量","成本","销售额"))
+        
+        for order in order_items:
+            first_loop = True
+            for item in order:  
+                pcsv.append((first_loop and order[0] or '',
+                                            first_loop and order[1]['title'] or '',
+                                            first_loop and str(order[1]['num']) or '',
+                                            first_loop and str(order[1]['cost']) or '',
+                                            first_loop and str(order[1]['sales']) or '',
+                                            item[0],
+                                            item[1]['title'],
+                                            str(item[1]['num']),
+                                            str(item[1]['cost']),
+                                            str(item[1]['sales']),
+                                			))
+                first_loop = False
+            
+        tmpfile = StringIO.StringIO()
+        writer  = CSVUnicodeWriter(tmpfile,encoding = is_windows and "gbk" or 'utf8')
+        writer.writerows(pcsv)
+            
+        response = HttpResponse(tmpfile.getvalue(), mimetype='application/octet-stream')
+        tmpfile.close()
+        
+        dt = datetime.datetime.now()
+        
+        response['Content-Disposition'] = 'attachment;filename=wx-sale-%s.csv'%dt.strftime("%Y%m%d%H")
+        
+        return response
+        
     def get(self, request, *args, **kwargs):
         
         content   = request.REQUEST
@@ -294,6 +336,7 @@ class StatisticMergeOrderView(ModelView):
         sc_by = content.get('sc_by','pay')
         wait_send = content.get('wait_send','0')
         is_sale       = content.get('is_sale','')
+        action      = content.get('action','')
         
         start_dt  = self.parseStartDt(start_dt)
         end_dt    = self.parseEndDt(end_dt)
@@ -316,6 +359,9 @@ class StatisticMergeOrderView(ModelView):
         trade_list   = self.getTradeSortedItems(order_qs,is_sale=is_sale)
         total_cost = trade_list.pop()
         total_sales = trade_list.pop()
+        
+        if action =="download":
+            return self.responseCSVFile(request, trade_list)
         
         shopers = User.objects.filter(status=User.NORMAL)
         
@@ -1782,8 +1828,6 @@ class SaleMergeOrderView(ModelView):
                     final_trade_qs.append(object)
             
         return trade_qs
-        
-
     
     def getEffectOrdersId(self,order_qs):
         
@@ -1865,7 +1909,55 @@ class SaleMergeOrderView(ModelView):
         return Refund.objects.filter(oid__in=effect_oids,status__in=(
                     pcfg.REFUND_WAIT_SELLER_AGREE,pcfg.REFUND_CONFIRM_GOODS,pcfg.REFUND_SUCCESS))\
                     .aggregate(total_refund_fee=Sum('refund_fee')).get('total_refund_fee',0)
+    
+    def responseCSVFile(self,request,trade_list):
         
+        is_windows = request.META['HTTP_USER_AGENT'].lower().find('windows') >-1 
+        pcsv =[]
+        pcsv.append((u'订单序号',u'订单明细ID',u'订单ID',u'客户名称',u'商品编码','商品名称',u'规格编码',u'规格名称',
+                                u'拍下数量',u'留言',u'备注',u'付款时间',u'收货人',u'固话',u'手机',u'省',u'市',u'区',u'详细地址',u'快递方式'))
+        
+        trade_ids = []
+        rindex      = 1
+        for itrade in queryset:
+            trade_ids.append(itrade.id)
+        
+        for trade in queryset:
+            index = 0
+            for order in trade.print_orders:  
+                pcsv.append(('%s'%p for p in [ (rindex ,'')[index],
+                                                                            order.oid,
+                                                                            trade.tid,
+                                                                            trade.receiver_name,
+                                                                            order.outer_id,
+                                                                            order.title,
+                                                                            order.outer_sku_id,
+                                                                            order.sku_properties_name,
+                                                                            order.num,
+                                                                            trade.buyer_message,
+                                                                            '%s%s'%(trade.seller_memo,trade.sys_memo),
+                                                                            trade.pay_time,
+                                                                            trade.receiver_name,
+                                                                            trade.receiver_phone,
+                                                                            trade.receiver_mobile,
+                                                                            trade.receiver_state,
+                                                                            trade.receiver_city,
+                                                                            trade.receiver_district,
+                                                                            trade.receiver_address,
+                                                                            trade.get_shipping_type_display()]))
+                index = 1
+            rindex += 1
+            
+        tmpfile = StringIO.StringIO()
+        writer  = CSVUnicodeWriter(tmpfile,encoding = is_windows and "gbk" or 'utf8')
+        writer.writerows(pcsv)
+            
+        response = HttpResponse(tmpfile.getvalue(), mimetype='application/octet-stream')
+        tmpfile.close()
+        response['Content-Disposition'] = 'attachment;filename=orderdetail-%s.csv'%str(int(time.time()))
+        
+        return response
+    
     def get(self, request, *args, **kwargs):
         
         content   = request.REQUEST

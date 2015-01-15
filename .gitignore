@@ -15,4 +15,3 @@ local_settings.py
 download/
 closure-library/
 config-enable/
-site_media/

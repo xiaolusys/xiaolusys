@@ -124,7 +124,6 @@ WAIT_DELIVERY_STATUS = [WAIT_AUDIT_STATUS,
 WAIT_WEIGHT_STATUS = [WAIT_AUDIT_STATUS,
                       WAIT_PREPARE_SEND_STATUS,
                       REGULAR_REMAIN_STATUS,
-                      ON_THE_FLY_STATUS,
                       WAIT_CHECK_BARCODE_STATUS,
                       WAIT_SCAN_WEIGHT_STATUS]
 #淘宝卖家已发货后对应系统内部状态

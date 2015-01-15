@@ -72,7 +72,7 @@ def pinghost(hostid):
     return ret
 
 def valid_mobile(m):
-    rg = re.compile('^1[3458][0-9]{9}$')
+    rg = re.compile('^1[34578][0-9]{9}$')
     return rg.match(m)
 
 def group_list(l,block):
