@@ -75,7 +75,7 @@
 					<select name="wait_send" class="form-control">
 						<option value="0" {% if object.wait_send == "0" %}selected{% endif %}>全部</option>
 						<option value="1" {% if object.wait_send == "1" %}selected{% endif %}>待发货</option>
-						<option value="2" {% if object.sc_by == "2" %}selected{% endif %}>待出库</option>
+						<option value="2" {% if object.wait_send == "2" %}selected{% endif %}>待出库</option>
 					</select>
 				</div>
 				<div class="col-xs-2">
