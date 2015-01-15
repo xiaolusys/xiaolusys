@@ -5,7 +5,7 @@ from django.db.models import Q,Sum
 from shopback import paramconfig as pcfg
 from shopback.items.models import Product,ProductSku
 from common.utils import update_model_fields
-from shopback.trades.models import MergeOrder
+
 
 class MergeTradeManager(models.Manager):
     
@@ -318,6 +318,7 @@ class MergeTradeManager(models.Manager):
     
     def getProductOrSkuWaitPostNum(self,outer_id,outer_sku_id):
         """ 获取订单商品待发数"""
+        from shopback.trades.models import MergeOrder
         
         wait_nums = MergeOrder.objects.filter(
                                               outer_id=outer_id,
