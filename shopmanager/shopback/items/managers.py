@@ -181,7 +181,24 @@ class ProductManager(models.Manager):
             
         return outer_id,outer_sku_id
     
-    
+    def updateProductWaitPostNum(self,product):
+        
+        from shopback.trades.models import MergeTrade
+        
+        outer_id  = product.outer_id 
+        prod_skus = product.pskus
+        if prod_skus.count()>0:
+            for sku in prod_skus:
+                outer_sku_id = sku.outer_id
+                wait_post_num = MergeTrade.objects.getProductOrSkuWaitPostNum(outer_id,outer_sku_id)
+                sku.wait_post_num = wait_post_num
+                sku.save()
+
+        else:
+            outer_sku_id = ''
+            wait_post_num = MergeTrade.objects.getProductOrSkuWaitPostNum(outer_id,outer_sku_id)
+            product.wait_post_num = wait_post_num
+            product.save() 
     
     
     

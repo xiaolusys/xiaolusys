@@ -185,22 +185,9 @@ def updateUserProductSkuTask(user_id=None,outer_ids=None,force_update_num=False)
 def updateProductWaitPostNumTask():
     """ 更新商品待发数任务 """
     products = Product.objects.filter(status=pcfg.NORMAL)
-    for prod in products:
+    for product in products:
         
-        outer_id  = prod.outer_id 
-        prod_skus = prod.pskus
-        if prod_skus.count()>0:
-            for sku in prod_skus:
-                outer_sku_id = sku.outer_id
-                wait_post_num = MergeTrade.get_trades_wait_post_prod_num(outer_id,outer_sku_id)
-                sku.wait_post_num = wait_post_num
-                sku.save()
-
-        else:
-            outer_sku_id = ''
-            wait_post_num = MergeTrade.get_trades_wait_post_prod_num(outer_id,outer_sku_id)
-            prod.wait_post_num = wait_post_num
-            prod.save()
+        Product.objects.updateProductWaitPostNum(product)
 
 
 

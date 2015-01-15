@@ -81,6 +81,11 @@ SYNC_MODEL_SCHEDULE = {
          'schedule':crontab(minute="0",hour='2',day_of_week='sun'),
          'args':(21,)
      },
+     u'定时更新商品待发数':{     #更新库存
+        'task':'shopback.items.tasks.updateProductWaitPostNumTask',
+        'schedule':crontab(minute="0",hour="5"),#
+        'args':()
+     },
      u'定时更新淘宝商品库存':{     #更新库存
         'task':'shopback.items.tasks.updateAllUserItemNumTask',
         'schedule':crontab(minute="0",hour="*/7"),#

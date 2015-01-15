@@ -1,16 +1,11 @@
 #-*- coding:utf8 -*-
 from django.db import models
 from django.db.models import Q,Sum
-from django.db.models.signals import post_save
-from django.db import IntegrityError, transaction
 
 from shopback import paramconfig as pcfg
-from shopback.orders.models import Trade,Order
-from shopback.fenxiao.models import PurchaseOrder
 from shopback.items.models import Product,ProductSku
-from shopback.signals import rule_signal,recalc_fee_signal
 from common.utils import update_model_fields
-
+from shopback.trades.models import MergeOrder
 
 class MergeTradeManager(models.Manager):
     
@@ -321,6 +316,16 @@ class MergeTradeManager(models.Manager):
                 prod.update_collect_num(order_num,dec_update=False)
     
     
+    def getProductOrSkuWaitPostNum(self,outer_id,outer_sku_id):
+        """ 获取订单商品待发数"""
+        
+        wait_nums = MergeOrder.objects.filter(
+                                              outer_id=outer_id,
+                                              outer_sku_id=outer_sku_id,
+                                              merge_trade__sys_status__in=pcfg.WAIT_WEIGHT_STATUS,
+                                              sys_status=pcfg.IN_EFFECT)\
+                                              .aggregate(sale_nums=Sum('num')).get('sale_nums')
+        return wait_nums or 0
     
     
  

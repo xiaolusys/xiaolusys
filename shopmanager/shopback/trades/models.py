@@ -377,14 +377,6 @@ class MergeTrade(models.Model):
                     prod.update_wait_post_num(order_num,dec_update=True)
             
         return True            
-       
-    @classmethod
-    def get_trades_wait_post_prod_num(cls,outer_id,outer_sku_id):
-        """ 获取订单商品待发数"""
-        wait_nums = MergeOrder.objects.filter(outer_id=outer_id,outer_sku_id=outer_sku_id,
-            merge_trade__sys_status__in=pcfg.WAIT_WEIGHT_STATUS,sys_status=pcfg.IN_EFFECT)\
-            .aggregate(sale_nums=Sum('num')).get('sale_nums')
-        return wait_nums or 0
     
     def append_reason_code(self,code):  
         
@@ -648,8 +640,8 @@ class MergeOrder(models.Model):
                 productsku = ProductSku.objects.get(outer_id=outer_sku_id,product__outer_id=outer_id)
                 sku_properties_name = productsku.name
             except Exception,exc:
-                 logger.error(exc.message,exc_info=True)
-                 merge_trade.append_reason_code(pcfg.OUTER_ID_NOT_MAP_CODE)
+                logger.error(exc.message,exc_info=True)
+                merge_trade.append_reason_code(pcfg.OUTER_ID_NOT_MAP_CODE)
         merge_order = MergeOrder.objects.create(
             merge_trade = merge_trade,
             outer_id = outer_id,

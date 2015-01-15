@@ -162,7 +162,8 @@ class StatisticMergeOrderView(ModelView):
                                        sys_status__in=pcfg.WAIT_WEIGHT_STATUS)
         else:
             trade_qs = trade_qs.filter(status__in=pcfg.ORDER_SUCCESS_STATUS)\
-                .exclude(sys_status=pcfg.INVALID_STATUS)
+                .exclude(sys_status_in=(pcfg.INVALID_STATUS,pcfg.ON_THE_FLY_STATUS))\
+                .exclude(sys_status=pcfg.FINISHED_STATUS,is_express_print=False)
         
         if p_outer_id:
             order_qs = self.getSourceOrders(trade_qs,p_outer_id=p_outer_id)
