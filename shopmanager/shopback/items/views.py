@@ -338,9 +338,9 @@ class ProductView(ModelView):
         
             content =  request.REQUEST
             
-            fields = ['outer_id','barcode','name','category_id','remain_num','weight','cost','std_purchase_price','std_sale_price'
-                      ,'agent_price','staff_price','is_split','sync_stock','post_check','is_match','match_reason'
-                      ,'buyer_prompt','memo']
+            fields = ['outer_id','barcode','name','category_id','remain_num','weight','cost',
+                      'std_purchase_price','std_sale_price','agent_price','staff_price','is_split',
+                      'sync_stock','post_check','is_match','match_reason','buyer_prompt','memo']
             
             check_fields = set(['is_split','sync_stock'])
             if not product.prod_skus.count() > 0:

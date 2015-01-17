@@ -143,7 +143,7 @@ class Product(models.Model):
                 'id':self.id,
                 'outer_id':self.outer_id,
                 'name':self.name,
-                'category':self.category,
+                'category':self.category or {},
                 'collect_num':self.collect_num,
                 'remain_num':self.remain_num,
                 'warn_num':self.warn_num,

@@ -3,7 +3,7 @@ import json
 import datetime,time
 import cStringIO as StringIO
 from django.contrib import admin
-from django.http import HttpResponse
+from django.http import HttpResponse,HttpResponseRedirect
 from django.db import models
 from django.shortcuts import render_to_response
 from django.template import RequestContext
@@ -271,7 +271,7 @@ class ProductAdmin(admin.ModelAdmin):
     update_items_sku.short_description = u"更新系统商品SKU"    
     
     #取消该商品缺货订单
-    def cancle_items_out_stock(self,request,queryset):
+    def cancle_orders_out_stock(self,request,queryset):
         
         sync_items = []
         for prod in queryset:
@@ -292,30 +292,83 @@ class ProductAdmin(admin.ModelAdmin):
         return render_to_response('items/product_action.html',{'prods':sync_items,'action_name':u'取消商品对应订单缺货状态'},
                                   context_instance=RequestContext(request),mimetype="text/html")
         
-    cancle_items_out_stock.short_description = u"取消商品订单缺货"
+    cancle_orders_out_stock.short_description = u"取消订单商品缺货"
     
-    #聚划算入仓商品
-    def juhuasuan_instock_product(self,request,queryset):
+    #取消商品库存同步（批量）
+    def active_syncstock_action(self,request,queryset):
+         
+        for p in queryset:
+            p.sync_stock = True
+            p.save()
         
-        from shopapp.juhuasuan.models import PinPaiTuan
-        sync_items = []
-        for prod in queryset:
-            pull_dict = {'outer_id':prod.outer_id,'name':prod.name}
-            try:
-                for sku in prod.prod_skus.all():
-                    prod_sku_name = '%s--%s'%(prod.name,sku.properties_alias or sku.properties_name)
-                    PinPaiTuan.objects.get_or_create(outer_id=prod.outer_id,outer_sku_id=sku.outer_id,prod_sku_name=prod_sku_name)
-            except Exception,exc:
-                pull_dict['success']=False
-                pull_dict['errmsg']=exc.message or '%s'%exc  
+        self.message_user(request,u"已成功设置%s个商品库存同步!"%queryset.count())
+        
+        return HttpResponseRedirect(request.get_full_path())
+        
+    active_syncstock_action.short_description = u"设置商品库存同步"
+    
+    #取消商品库存同步（批量）
+    def cancel_syncstock_action(self,request,queryset):
+         
+        for p in queryset:
+            p.sync_stock = False
+            p.save()
+        
+        self.message_user(request,u"已成功取消%s个商品库存同步!"%queryset.count())
+        
+        return HttpResponseRedirect(request.get_full_path())
+        
+    cancel_syncstock_action.short_description = u"取消商品库存同步"
+    
+    #取消订单匹配标记状态（批量）
+    def regular_saleorder_action(self,request,queryset):
+         
+        remind_time = datetime.datetime.now() + datetime.timedelta(days=7)
+        outer_ids = [p.outer_id for p in queryset]
+        mos = MergeOrder.objects.filter(outer_id__in=outer_ids,
+                                    merge_trade__sys_status__in=("WAIT_PREPARE_SEND","WAIT_AUDIT"))
+        
+        merge_trades = set([o.merge_trade for o in mos])
+        effect_num = 0
+        for t in merge_trades:
+            if (t.status == pcfg.WAIT_SELLER_SEND_GOODS
+                and not t.out_sid):
+                t.sys_status="REGULAR_REMAIN"
+                t.remind_time=remind_time
+                t.save()
+                effect_num += 1
+                log_action(request.user.id,t,CHANGE,u'定时(%s)提醒'%remind_time)
+            
+        self.message_user(request,u"已成功设置%s个订单定时提醒!"%effect_num)
+        
+        return HttpResponseRedirect(request.get_full_path())
+        
+    regular_saleorder_action.short_description = u"定时商品订单七日"
+    
+    #取消订单匹配标记状态（批量）
+    def deliver_saleorder_action(self,request,queryset):
+         
+        outer_ids = [p.outer_id for p in queryset]
+        mos = MergeOrder.objects.filter(outer_id__in=outer_ids,
+                                    merge_trade__sys_status="REGULAR_REMAIN")
+    
+        merge_trades = set([o.merge_trade for o in mos])
+    
+        for t in merge_trades:
+
+            if (t.inuse_orders.count() > 1 or 
+                not t.logistics_company or 
+                t.reason_code ):
+                t.sys_status="WAIT_AUDIT"
             else:
-                pull_dict['success']=True
-            sync_items.append(pull_dict)
-       
-        return render_to_response('items/product_action.html',{'prods':sync_items,'action_name':u'聚划算入仓商品'},
-                                  context_instance=RequestContext(request),mimetype="text/html")
+                t.sys_status="WAIT_PREPARE_SEND"
+            t.save()
         
-    juhuasuan_instock_product.short_description = u"加聚划算入仓商品"
+        self.message_user(request,u"已成功取消%s个订单定时提醒!"%len(merge_trades))
+        
+        return HttpResponseRedirect(request.get_full_path())
+        
+    deliver_saleorder_action.short_description = u"释放商品定时订单"
     
     #导出商品规格信息
     def export_prodsku_info_action(self,request,queryset):
@@ -353,8 +406,11 @@ class ProductAdmin(admin.ModelAdmin):
     actions = ['sync_items_stock',
                'sync_purchase_items_stock',
                'update_items_sku',
-               'cancle_items_out_stock',
-               'juhuasuan_instock_product',
+               'cancle_orders_out_stock',
+               'active_syncstock_action',
+               'cancel_syncstock_action',
+               'regular_saleorder_action',
+               'deliver_saleorder_action',
                'export_prodsku_info_action']
 
 admin.site.register(Product, ProductAdmin)

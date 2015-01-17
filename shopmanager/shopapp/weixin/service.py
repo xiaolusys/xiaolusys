@@ -613,7 +613,7 @@ class WxShopService(LocalService):
         
         update_fields = ['buyer_nick', 'created', 'pay_time', 'modified', 'status']
         
-        merge_trade.buyer_nick = trade.buyer_nick
+        merge_trade.buyer_nick = trade.buyer_nick or trade.receiver_name 
         merge_trade.created = trade.order_create_time
         merge_trade.modified = trade.order_create_time
         merge_trade.pay_time = trade.order_create_time

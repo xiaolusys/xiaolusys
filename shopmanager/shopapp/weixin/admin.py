@@ -257,7 +257,17 @@ class VipCodeAdmin(admin.ModelAdmin):
                     'code_rule', 'max_usage', 'usage_count','created')
 
     search_fields = ['owner_openid__openid','code']
-
+    
+    #--------设置页面布局----------------
+    fieldsets =((u'邀请码信息:', {
+                    'classes': ('expand',),
+                    'fields': (('code','expiry')
+                               ,('code_type','code_rule')
+                               ,('max_usage','usage_count')
+                               )
+                }),
+                )
+    
 admin.site.register(VipCode, VipCodeAdmin) 
 
 
