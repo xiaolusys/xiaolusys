@@ -586,7 +586,8 @@ class MergeTradeAdmin(admin.ModelAdmin):
                 continue
             
             if trade.has_merge:
-                MergeTrade.objects.mergeRemover(trade)
+                pull_fail_ids.append(trade.id)
+                continue
             
             trade.sys_status  = pcfg.EMPTY_STATUS
             trade.reason_code = ''

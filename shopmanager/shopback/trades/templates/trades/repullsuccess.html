@@ -14,19 +14,7 @@
 			    <tr>
 			      <th>订单ID</th><th>淘宝订单编号</th><th>店铺名称</th><th>买家昵称</th><th>付款日期</th><th>下载状态</th><th>问题编号</th>
 			    </tr>
-			    <tr><td colspan="7">下载成功的订单{{ success_trades|length }}</td></tr>
-			    {% for trade in success_trades %}
-			    <tr>
-			    	<td>{{ trade.id }}</td>
-					<td>{{ trade.tid }}</td>
-					<td>{{ trade.seller_nick }}</td>
-			    	<td>{{ trade.buyer_nick }}</td>
-			    	<td>{{ trade.pay_time|date:'Y-m-d H:i:s' }}</td>
-			    	<td><img src="{{ STATIC_URL }}admin/img/icon-yes.gif" alt="yes"></td>
-			    	<td>{{ trade.reason_code }}</td>
-			    </tr>
-			    {% endfor %}
-			    <tr><td colspan="7">下载失败的订单{{ fail_trades|length }}</td></tr>
+			    <tr style="background-color:red;"><td colspan="7">下载失败的订单{{ fail_trades|length }}</td></tr>
 			    {% for trade in fail_trades %}
 			    <tr>
 			    	<td>{{ trade.id }}</td>
@@ -35,6 +23,18 @@
 			    	<td>{{ trade.buyer_nick }}</td>
 			    	<td>{{ trade.pay_time|date:'Y-m-d H:i:s' }}</td>
 			    	<td><img src="{{ STATIC_URL }}admin/img/icon-no.gif" alt="no"></td>
+			    	<td>{{ trade.reason_code }}</td>
+			    </tr>
+			    {% endfor %}
+			    <tr style="backgroumd-color:green;"><td colspan="7">下载成功的订单{{ success_trades|length }}</td></tr>
+			    {% for trade in success_trades %}
+			    <tr>
+			    	<td>{{ trade.id }}</td>
+					<td>{{ trade.tid }}</td>
+					<td>{{ trade.seller_nick }}</td>
+			    	<td>{{ trade.buyer_nick }}</td>
+			    	<td>{{ trade.pay_time|date:'Y-m-d H:i:s' }}</td>
+			    	<td><img src="{{ STATIC_URL }}admin/img/icon-yes.gif" alt="yes"></td>
 			    	<td>{{ trade.reason_code }}</td>
 			    </tr>
 			    {% endfor %}
