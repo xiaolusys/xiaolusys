@@ -33,7 +33,7 @@ class RegularSaleHandler(BaseHandler):
         merge_trade.remind_time = remind_time
         merge_trade.sys_memo += u'特卖订单，到货再发'
         
-        update_model_fields(merge_trade,update_fields=['sys_memo'])
+        update_model_fields(merge_trade,update_fields=['sys_memo','remind_time'])
         
         log_action(merge_trade.user.user.id,merge_trade,CHANGE, u'定时(%s)提醒'%remind_time)
         
