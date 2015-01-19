@@ -30,9 +30,10 @@ tradetag.Manager = function () {
 
 tradetag.Manager.prototype.showDialog = function(e) {
 	var that     = this;
-    var target   = e.target.parentElement;
+    var target   = e.target;
     this.tag_tid = target.getAttribute('trade_id');
     this.show();
+    
     var callback = function(e){
     	var xhr = e.target;
         try {
@@ -57,11 +58,11 @@ tradetag.Manager.prototype.showDialog = function(e) {
 
 tradetag.Manager.prototype.regularTrade = function(e) {
 	var that     = this;
-    var target   = e.target.parentElement;
-    var row      = target.parentElement.parentElement;
+    var target   = e.target;
+    var row      = target.parentElement;
 	var rowIndex = row.rowIndex;
 	var table    = row.parentElement.parentElement;
-    var tag_tid = target.getAttribute('trade_id');
+    this.tag_tid = target.getAttribute('trade_id');
 
     var callback = function(e){
     	var xhr = e.target;
@@ -76,7 +77,7 @@ tradetag.Manager.prototype.regularTrade = function(e) {
             console.log('Error: (ajax callback) - ', err);
         } 
     };
-	goog.net.XhrIo.send('/trades/regular/'+tag_tid+'/?format=json',callback,'GET'); 
+	goog.net.XhrIo.send('/trades/regular/'+this.tag_tid+'/?format=json',callback,'GET'); 
 }
 
 
