@@ -267,6 +267,9 @@ class MergeTradeAdmin(admin.ModelAdmin):
             if obj.sys_status in (pcfg.WAIT_AUDIT_STATUS,
                                   pcfg.WAIT_CHECK_BARCODE_STATUS,
                                   pcfg.WAIT_SCAN_WEIGHT_STATUS):
+                #作废前需拆分订单
+                MergeTrade.objects.mergeRemover(obj)
+                
                 obj.sys_status=pcfg.INVALID_STATUS
                 obj.save()
                 msg = u"订单已作废"
