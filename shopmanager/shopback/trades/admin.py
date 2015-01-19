@@ -94,10 +94,11 @@ class MergeTradeAdmin(admin.ModelAdmin):
     list_per_page = 100
     
     def trade_id_link(self, obj):
-        return ('<a href="%d/">%d</a><a href="javascript:void(0);" class="trade-tag" trade_id="%d">'
-                +'<img src="/static/img/tags.png" class="icon-tag" alt="系统备注"/></a>'
-                +'<a href="javascript:void(0);" class="trade-regular" trade_id="%d">'
-                +'<img src="/static/img/regular.jpg" class="icon-time" alt="定时提醒明天"/></a>')%(obj.id,obj.id,obj.id,obj.id)
+        link_content = '<a href="%d/">%d</a><a href="javascript:void(0);" class="trade-tag" style="display:block" trade_id="%d">备注</a>'%(obj.id,obj.id,obj.id)
+        if obj.sys_status == pcfg.WAIT_AUDIT_STATUS:
+            link_content +=  '<a href="javascript:void(0);" class="trade-regular"  style="display:block" trade_id="%d">延一天</a>'%obj.id
+        return link_content
+               
     trade_id_link.allow_tags = True
     trade_id_link.short_description = "ID"
     
@@ -267,6 +268,7 @@ class MergeTradeAdmin(admin.ModelAdmin):
             if obj.sys_status in (pcfg.WAIT_AUDIT_STATUS,
                                   pcfg.WAIT_CHECK_BARCODE_STATUS,
                                   pcfg.WAIT_SCAN_WEIGHT_STATUS):
+                
                 #作废前需拆分订单
                 MergeTrade.objects.mergeRemover(obj)
                 
