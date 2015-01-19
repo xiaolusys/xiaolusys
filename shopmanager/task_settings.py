@@ -158,13 +158,13 @@ SHOP_APP_SCHEDULE = {
     },
     u'定时增量下载更新微信订单':{
         'task':'shopapp.weixin.tasks.pullWaitPostWXOrderTask',
-        'schedule':crontab(minute="0",hour="*/6"),
-        'args':(None,None,)
+        'schedule':crontab(minute="0",hour=",".join([i  for i in range(8,23)])),
+        'args':(None,None)
     },
     u'定时增量更新微信维权订单':{
         'task':'shopapp.weixin.tasks.pullFeedBackWXOrderTask',
         'schedule':crontab(minute="*/30",hour=','.join([str(i) for i in range(9,23)])),
-        'args':(None,None,)
+        'args':(None,None)
     },      
     u'定时同步微信商品库存':{
         'task':'shopapp.weixin.tasks.syncWXProductNumTask',

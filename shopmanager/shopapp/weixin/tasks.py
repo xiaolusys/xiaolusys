@@ -28,8 +28,11 @@ def pullWXProductTask():
         .update(status=WXProduct.DOWN_SHELF)
     
 @task
-def pullWaitPostWXOrderTask(begintime,endtime,update_status=[WXOrder.WX_WAIT_SEND,
-                                                     WXOrder.WX_WAIT_CONFIRM, WXOrder.WX_FINISHED]):
+def pullWaitPostWXOrderTask(begintime,endtime):
+    
+    update_status=[WXOrder.WX_WAIT_SEND,
+                                    WXOrder.WX_WAIT_CONFIRM,
+                                    WXOrder.WX_FINISHED]
     
     _wx_api = WeiXinAPI()
     
@@ -95,8 +98,7 @@ def syncStockByWxShopTask(wx_product):
     user_percent = wx_user.stock_percent
     
     skus  =  wx_product.sku_list or []
-    sku_stock_list = []
-    
+
     for sku in skus:
         
         if not sku.get('product_code',None):
