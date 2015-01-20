@@ -28,12 +28,15 @@ class RegularSaleHandler(BaseHandler):
             print 'DEBUG REGULARSALE:',merge_trade
         
         remind_time = datetime.datetime.now() + datetime.timedelta(days=7)
+        if merge_trade.sys_status != pcfg.ON_THE_FLY_STATUS:
+            return 
+        
         merge_trade.sys_status = pcfg.REGULAR_REMAIN_STATUS
         
         merge_trade.remind_time = remind_time
         merge_trade.sys_memo += u'特卖订单，到货再发'
         
-        update_model_fields(merge_trade,update_fields=['sys_memo','remind_time'])
+        update_model_fields(merge_trade,update_fields=['sys_memo','remind_time','sys_status'])
         
         log_action(merge_trade.user.user.id,merge_trade,CHANGE, u'定时(%s)提醒'%remind_time)
         
