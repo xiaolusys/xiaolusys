@@ -7,7 +7,7 @@ djcelery.setup_loader()
 
 CELERYBEAT_SCHEDULER = 'djcelery.schedulers.DatabaseScheduler'
 
-BROKER_URL = 'amqp://user1:passwd1@127.0.0.1:5672/vhost1'
+BROKER_URL = 'amqp://user1:passwd1@192.168.1.101:5672/vhost1'
 CELERY_RESULT_BACKEND = "amqp"
 CELERY_TASK_RESULT_EXPIRES = 18000  # 5 hours.
 BROKER_POOL_LIMIT = 10 # 10 connections
@@ -158,7 +158,7 @@ SHOP_APP_SCHEDULE = {
     },
     u'定时增量下载更新微信订单':{
         'task':'shopapp.weixin.tasks.pullWaitPostWXOrderTask',
-        'schedule':crontab(minute="0",hour=",".join([i  for i in range(8,23)])),
+        'schedule':crontab(minute="0",hour=",".join([str(i)  for i in range(8,23)])),
         'args':(None,None)
     },
     u'定时增量更新微信维权订单':{

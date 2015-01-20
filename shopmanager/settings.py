@@ -249,17 +249,17 @@ LOGGING = {
 try:
     from prod_settings import *
 except Exception,exc:
-    pass
+    print 'PROD SETTING ERROR:',exc.message
 
 try:
     from local_settings import *
 except Exception,exc:
-    pass
+    print 'LOCAL SETTING ERROR:',exc.message
 
 try:
     from task_settings import *
 except Exception,exc:
-    pass
+    print 'TASK SETTING ERROR:',exc.message
 
 REST_FRAMEWORK = {
     #'DEFAULT_PERMISSION_CLASSES': ('rest_framework.permissions.AllowAny',),

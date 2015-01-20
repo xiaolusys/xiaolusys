@@ -106,15 +106,27 @@ class UserAdmin(admin.ModelAdmin):
     
     #更新用户线上商品入库
     def pull_user_items(self,request,queryset):
-        
-        from shopback.items.tasks import updateUserItemSkuFenxiaoProductTask
-        
+
         pull_users = []
         for user in queryset:
             pull_dict = {'uid':user.visitor_id,'nick':user.nick}
             try:
-                #下载更新用户商品分销商品
-                updateUserItemSkuFenxiaoProductTask.delay(user.visitor_id)
+                if user.type in (User.SHOP_TYPE_B,User.SHOP_TYPE_C):
+                    #更新等待发货商城订单
+                    #下载更新用户商品分销商品
+                    from shopback.items.tasks import updateUserItemSkuFenxiaoProductTask
+                    updateUserItemSkuFenxiaoProductTask.delay(user.visitor_id)
+                
+                elif user.type == User.SHOP_TYPE_JD:
+                    
+                    from shopapp.jingdong.tasks import pullJDProductByVenderidTask
+                    pullJDProductByVenderidTask.delay(user.visitor_id)
+                    
+                elif user.type == User.SHOP_TYPE_WX:
+                    
+                    from shopapp.weixin.tasks import pullWXProductTask
+                    pullWXProductTask.delay()
+                    
             except Exception,exc:
                 pull_dict['success']=False
                 pull_dict['errmsg']=exc.message or '%s'%exc
