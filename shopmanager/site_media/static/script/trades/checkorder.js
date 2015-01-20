@@ -452,7 +452,7 @@ ordercheck.Manager.prototype.checkorder = function(trade_id,logistic_code,priori
 					'action':action
 				};
 	var content = goog.uri.utils.buildQueryDataFromMap(params);
-	goog.net.XhrIo.send('/trades/checkorder/'+trade_id+'/',callback,'POST',content);
+	goog.net.XhrIo.send('/trades/checkorder/'+trade_id+'/?format=json',callback,'POST',content);
 }
 
 

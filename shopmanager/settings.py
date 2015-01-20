@@ -256,10 +256,7 @@ try:
 except Exception,exc:
     print 'LOCAL SETTING ERROR:',exc.message
 
-try:
-    from task_settings import *
-except Exception,exc:
-    print 'TASK SETTING ERROR:',exc.message
+from task_settings import *
 
 REST_FRAMEWORK = {
     #'DEFAULT_PERMISSION_CLASSES': ('rest_framework.permissions.AllowAny',),
