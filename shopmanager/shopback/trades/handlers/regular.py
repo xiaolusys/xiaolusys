@@ -27,10 +27,10 @@ class RegularSaleHandler(BaseHandler):
         if settings.DEBUG:
             print 'DEBUG REGULARSALE:',merge_trade
         
-        remind_time = datetime.datetime.now() + datetime.timedelta(days=7)
-        if merge_trade.sys_status != pcfg.ON_THE_FLY_STATUS:
+        if merge_trade.sys_status == pcfg.ON_THE_FLY_STATUS:
             return 
         
+        remind_time = datetime.datetime.now() + datetime.timedelta(days=7)
         merge_trade.sys_status = pcfg.REGULAR_REMAIN_STATUS
         
         merge_trade.remind_time = remind_time
