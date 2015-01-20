@@ -165,8 +165,9 @@ class FinalHandler(BaseHandler):
 
         
         if (not merge_trade.reason_code and
-            merge_trade.sys_status in (pcfg.WAIT_AUDIT_STATUS,
-                                       pcfg.REGULAR_REMAIN_STATUS) 
+            (merge_trade.sys_status == pcfg.WAIT_AUDIT_STATUS
+             or (merge_trade.sys_status == pcfg.REGULAR_REMAIN_STATUS 
+             and merge_trade.remind_time == None))
             and merge_trade.type not in (pcfg.DIRECT_TYPE,
                                          pcfg.EXCHANGE_TYPE,
                                          pcfg.REISSUE_TYPE)):
