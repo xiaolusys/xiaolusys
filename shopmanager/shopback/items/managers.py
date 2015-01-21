@@ -70,7 +70,9 @@ class ProductManager(models.Manager):
         return (product.is_out_stock,
                 product_sku and product_sku.is_out_stock)[product_sku and 1 or 0]
     
-    def isProductOutingStockEnough(self,outer_id,outer_sku_id):
+    def isProductOutingStockEnough(self,outer_id,outer_sku_id,num):
+        
+        assert num >= 0
         
         from .models import ProductSku
         from shopback.trades.models import MergeTrade
@@ -84,11 +86,11 @@ class ProductManager(models.Manager):
             raise self.model.ProductCodeDefect(u'(%s,%s)编码组合未匹配到商品'%(outer_id,outer_sku_id))
         
         outing_num = MergeTrade.objects.getProductOrSkuOrderOutingNum(outer_id, outer_sku_id)
-        
+        print 'outing_num:' ,product_sku.quantity,outing_num,num
         if product_sku:
-            return product_sku.quantity - outing_num > 0
+            return product_sku.quantity - outing_num - num >= 0
         else:
-            return product.collect_num - outing_num > 0
+            return product.collect_num - outing_num - num >= 0
 
     
     def isProductRuelMatch(self,outer_id,outer_sku_id):

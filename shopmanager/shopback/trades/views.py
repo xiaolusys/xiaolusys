@@ -716,7 +716,10 @@ def change_trade_order(request,id):
     order.outer_sku_id=prod_sku.outer_id
     order.sku_properties_name=prod_sku.properties_name
     order.is_rule_match = False
-    order.out_stock     = Product.objects.isProductOutingStockEnough(order.outer_id, order.outer_sku_id)
+    order.out_stock     = not Product.objects.isProductOutingStockEnough(
+                                                                     order.outer_id, 
+                                                                     order.outer_sku_id,
+                                                                     order.num)
     order.is_reverse_order = is_reverse_order
     order.num           = order_num
     order.save()
