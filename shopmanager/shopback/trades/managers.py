@@ -328,5 +328,20 @@ class MergeTradeManager(models.Manager):
                                               .aggregate(sale_nums=Sum('num')).get('sale_nums')
         return wait_nums or 0
     
+    def getProductOrSkuOrderOutingNum(self,outer_id,outer_sku_id):
+        """ 获取订单商品正在出库数（包括发货准备和扫描部分的订单数量）"""
+        from shopback.trades.models import MergeOrder
+
+        outing_nums = MergeOrder.objects.filter(
+                                              outer_id=outer_id,
+                                              outer_sku_id=outer_sku_id,
+                                              merge_trade__sys_status__in= 
+                                                [  pcfg.WAIT_PREPARE_SEND_STATUS,
+                                                    pcfg.WAIT_CHECK_BARCODE_STATUS,
+                                                    pcfg.WAIT_SCAN_WEIGHT_STATUS],
+                                              sys_status=pcfg.IN_EFFECT)\
+                                              .aggregate(sale_nums=Sum('num')).get('sale_nums')
+        return outing_nums or 0
+    
     
  

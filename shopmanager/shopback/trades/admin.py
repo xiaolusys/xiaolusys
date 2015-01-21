@@ -270,8 +270,13 @@ class MergeTradeAdmin(admin.ModelAdmin):
                                   pcfg.WAIT_SCAN_WEIGHT_STATUS):
                 
                 #作废前需拆分订单
-                MergeTrade.objects.mergeRemover(obj)
+                if obj.sys_status == pcfg.WAIT_AUDIT_STATUS:
+                    MergeTrade.objects.mergeRemover(obj)
                 
+                try:
+                    MergeTrade.objects.reduceWaitPostNum(obj)
+                except:
+                    pass
                 obj.sys_status=pcfg.INVALID_STATUS
                 obj.save()
                 msg = u"订单已作废"
@@ -289,12 +294,19 @@ class MergeTradeAdmin(admin.ModelAdmin):
                 if obj.status == pcfg.WAIT_BUYER_CONFIRM_GOODS:
                     obj.sys_status=pcfg.WAIT_CHECK_BARCODE_STATUS
                     msg = u"订单反作废入待扫描状态"
+                    
+                    MergeTrade.objects.updateWaitPostNum(obj)
+                    
                 elif obj.status == pcfg.TRADE_FINISHED:
                     obj.sys_status=pcfg.FINISHED_STATUS
                     msg = u"订单反作废入已完成"
+                    
                 else :
                     obj.sys_status=pcfg.WAIT_AUDIT_STATUS
                     msg = u"订单反作废入问题单"
+                    
+                    MergeTrade.objects.updateWaitPostNum(obj)
+                    
                 obj.save()
 
                 self.message_user(request, msg)

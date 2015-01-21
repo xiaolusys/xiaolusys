@@ -70,6 +70,27 @@ class ProductManager(models.Manager):
         return (product.is_out_stock,
                 product_sku and product_sku.is_out_stock)[product_sku and 1 or 0]
     
+    def isProductOutingStockEnough(self,outer_id,outer_sku_id):
+        
+        from .models import ProductSku
+        from shopback.trades.models import MergeTrade
+        try:
+            product = self.get(outer_id=outer_id)
+            product_sku = None
+            if outer_sku_id:
+                product_sku = ProductSku.objects.get(outer_id=outer_sku_id,
+                                                     product__outer_id=outer_id)
+        except (self.model.DoesNotExist,ProductSku.DoesNotExist):
+            raise self.model.ProductCodeDefect(u'(%s,%s)编码组合未匹配到商品'%(outer_id,outer_sku_id))
+        
+        outing_num = MergeTrade.objects.getProductOrSkuOrderOutingNum(outer_id, outer_sku_id)
+        
+        if product_sku:
+            return product_sku.quantity - outing_num > 0
+        else:
+            return product.collect_num - outing_num > 0
+
+    
     def isProductRuelMatch(self,outer_id,outer_sku_id):
         
         from .models import ProductSku

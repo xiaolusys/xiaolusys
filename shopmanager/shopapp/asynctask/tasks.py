@@ -176,7 +176,7 @@ class TaobaoAsyncBaseTask(Task):
                 fileName = fileName[1:-1]
         elif r.url != url:
             # if we were redirected, the real file name we take from the final URL
-            fileName = url2name(r.url)
+            fileName = self.url2name(r.url)
         if file_path:
             # we can force to save the file as specified name
             fileName = os.path.join(file_path,fileName)
@@ -196,8 +196,8 @@ class TaobaoAsyncBaseTask(Task):
                 #    fname = string.replace(fname, '/', '\\')
                 file(fname, 'wb').write(z.read(zf))
         except Exception,exc:
-             logger.error('%s'%exc,exc_info=True)
-             return False
+            logger.error('%s'%exc,exc_info=True)
+            return False
         else:   
             os.remove(fileName)
             

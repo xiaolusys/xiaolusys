@@ -86,4 +86,4 @@ def replace_utf8mb4(v):
     """Replace 4-byte unicode characters by REPLACEMENT CHARACTER"""
     import re
     INVALID_UTF8_RE = re.compile(u'[^\u0000-\uD7FF\uE000-\uFFFF]', re.UNICODE)
-    return INVALID_UTF8_RE.sub(u'\uFFFD', v)
+    return INVALID_UTF8_RE.sub(u'*', v)

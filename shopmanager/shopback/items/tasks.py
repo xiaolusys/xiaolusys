@@ -339,7 +339,7 @@ def updateItemNum(user_id,num_iid):
                 product_sku  = product.prod_skus.get(outer_id=outer_sku_id)
                 
                 order_nums  = 0
-                wait_nums   = product_sku.wait_post_num>0 and product_sku.wait_post_num or 0
+                wait_nums   = max(product_sku.wait_post_num , 0)
                 remain_nums = product_sku.remain_num or 0
                 real_num    = product_sku.quantity
                 sync_num    = real_num - wait_nums - remain_nums
@@ -397,7 +397,7 @@ def updateItemNum(user_id,num_iid):
         order_nums    = 0
         outer_id,outer_sku_id = Product.objects.trancecode(p_outer_id,'')
         
-        wait_nums  = product.wait_post_num >0 and product.wait_post_num or 0
+        wait_nums  = max( product.wait_post_num , 0)
         remain_nums = product.remain_num or 0
         real_num   = product.collect_num
         sync_num   = real_num - wait_nums - remain_nums

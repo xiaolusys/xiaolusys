@@ -328,6 +328,7 @@ ordercheck.Dialog.prototype.changeOrder=function(e){
 	var order_id     = target.getAttribute('oid');
 	var outer_sku_id = goog.dom.getElement('id-select-ordersku-'+idx).value;
 	var order_num    = goog.dom.getElement('id-change-order-num-'+idx).value;
+	
 	var callback = function(e){
 		var xhr  = e.target;
         try {
@@ -335,19 +336,19 @@ ordercheck.Dialog.prototype.changeOrder=function(e){
             if (res.code == 0){
                 var order = res.response_content;
             	var cell  = target.parentElement.parentElement;
-            	cell.cells[0].innerText = order.id;
-            	cell.cells[1].innerText = order.outer_id;
-            	cell.cells[2].innerText = order.title;
-            	cell.cells[3].innerText = order.sku_properties_name;
+            	cell.cells[0].innerHTML = order.id;
+            	cell.cells[1].innerHTML = order.outer_id;
+            	cell.cells[2].innerHTML = order.title;
+            	cell.cells[3].innerHTML = order.sku_properties_name;
             	cell.cells[4].innerHTML = '<input class="order_num" type="text" value="'+order.num+'" size="8" disabled="disabled" />';
-            	cell.cells[5].innerText = order.price;
+            	cell.cells[5].innerHTML = order.price;
             	if (order.out_stock){
             		cell.cells[6].innerHTML = '<img src="/static/admin/img/icon-yes.gif" alt="True">';
             	}else{
             		cell.cells[6].innerHTML = '<img src="/static/admin/img/icon-no.gif" alt="False">';	
             	} 
-				cell.cells[7].innerText = GIT_TYPE[order.gift_type];
-				cell.cells[8].innerText = '';
+				cell.cells[7].innerHTML = GIT_TYPE[order.gift_type];
+				cell.cells[8].innerHTML = '';
             }else{
                 alert("订单修改失败:"+res.response_error);
             }

@@ -341,9 +341,7 @@ class MergeTrade(models.Model):
         return self.status in (pcfg.WAIT_CHECK_BARCODE_STATUS,
                                pcfg.WAIT_SCAN_WEIGHT_STATUS)
     
-    
-    
-    def update_inventory(self,update_returns=True,update_changes=True):
+    def update_inventory(self, update_returns=True, update_changes=True):
         #自提直接更新订单库存信息
         
         post_orders = self.inuse_orders     

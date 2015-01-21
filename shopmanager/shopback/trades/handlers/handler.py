@@ -155,8 +155,7 @@ class FinalHandler(BaseHandler):
             merge_trade.has_reason_code(pcfg.LOGISTIC_ERROR_CODE)):
             merge_trade.remove_reason_code(pcfg.LOGISTIC_ERROR_CODE)
         
-        if ((merge_trade.reason_code and 
-            not merge_trade.is_locked and 
+        if ((merge_trade.reason_code and  not merge_trade.is_locked and 
             merge_trade.sys_status == pcfg.WAIT_PREPARE_SEND_STATUS) or 
             (merge_trade.sys_status == pcfg.REGULAR_REMAIN_STATUS and 
              merge_trade.remind_time == None)):

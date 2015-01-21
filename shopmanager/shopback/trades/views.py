@@ -620,6 +620,10 @@ class OrderPlusView(ModelView):
         #组合拆分
         ruleMatchSplit(merge_trade)
         
+        Product.objects.updateWaitPostNumByCode(merge_order.outer_id,
+                                                    merge_order.outer_sku_id,
+                                                    merge_order.num)
+        
         log_action(user_id,merge_trade,ADDITION,u'添加子订单(%d)'%merge_order.id)
         
         return merge_order
@@ -698,10 +702,12 @@ def change_trade_order(request,id):
         return HttpResponse(json.dumps({'code':1,"response_error":"商品规格不存在！"}),mimetype="application/json")
     
     merge_trade = order.merge_trade
-
+    
     if not merge_trade.can_change_order:
         return HttpResponse(json.dumps({'code':1,"response_error":"商品规格不能修改！"}),mimetype="application/json")
     
+    old_sku_id = order.outer_sku_id
+
     is_reverse_order = False
     if merge_trade.can_reverse_order:
         merge_trade.append_reason_code(pcfg.ORDER_ADD_REMOVE_CODE)
@@ -710,16 +716,28 @@ def change_trade_order(request,id):
     order.outer_sku_id=prod_sku.outer_id
     order.sku_properties_name=prod_sku.properties_name
     order.is_rule_match = False
-    order.out_stock     = prod_sku.is_out_stock if prod_sku else prod.is_out_stock
+    order.out_stock     = Product.objects.isProductOutingStockEnough(order.outer_id, order.outer_sku_id)
     order.is_reverse_order = is_reverse_order
     order.num           = order_num
     order.save()
     merge_trade.remove_reason_code(pcfg.RULE_MATCH_CODE)
     order = MergeOrder.objects.get(id=order.id)
     
+    if old_sku_id != order.outer_sku_id:
+        Product.objects.reduceWaitPostNumByCode(
+                                                order.outer_id, 
+                                                old_sku_id, 
+                                                order.num)
+        Product.objects.updateWaitPostNumByCode(
+                                                order.outer_id, 
+                                                order.outer_sku_id, 
+                                                order.num)
+    
     log_action(user_id,merge_trade,CHANGE,u'修改子订单(%d)'%order.id)
     
-    ret_params = {'code':0,'response_content':{'id':order.id,
+    ret_params = {'code':0,
+                                'response_content':{
+                                               'id':order.id,
                                                'outer_id':order.outer_id,
                                                'title':prod.name,
                                                'sku_properties_name':order.sku_properties_name,
@@ -736,7 +754,7 @@ def delete_trade_order(request,id):
     
     user_id      = request.user.id
     try:
-        merge_order  = MergeOrder.objects.get(id=id)
+        merge_order  = MergeOrder.objects.get(id=id,sys_status=pcfg.IN_EFFECT)
     
         merge_trade = merge_order.merge_trade
         is_reverse_order = False
@@ -750,14 +768,19 @@ def delete_trade_order(request,id):
         merge_order.is_reverse_order = is_reverse_order
         merge_order.save()
         
+        Product.objects.reduceWaitPostNumByCode(
+                                                merge_order.outer_id, 
+                                                merge_order.outer_sku_id, 
+                                                merge_order.num)
+        
         log_action(user_id,merge_trade,CHANGE,u'子订单作废(%d)'%merge_order.id)
             
     except MergeOrder.DoesNotExist:
         ret_params = {'code':1,'response_error':u'订单不存在'}
         
     except Exception,exc:
-         ret_params = {'code':1,'response_error':u'系统操作失败'}
-         logger.error(u'子订单(%s)删除失败:%s'%(id,exc.message),exc_info=True)
+        ret_params = {'code':1,'response_error':u'系统操作失败'}
+        logger.error(u'子订单(%s)删除失败:%s'%(id,exc.message),exc_info=True)
          
     else:
         ret_params = {'code':0,'response_content':{'success':True}}
