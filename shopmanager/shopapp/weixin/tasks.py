@@ -109,6 +109,10 @@ def syncStockByWxShopTask(wx_product):
                                                                sku['product_code'],
                                                                sku_code_prior=True)
             
+            #特卖商品暂不同步库存
+            if outer_id.startswith('9') and len(outer_id) == 9:
+                continue
+            
             product      = Product.objects.get(outer_id=outer_id)
             product_sku  = ProductSku.objects.get(outer_id=outer_sku_id,
                                                   product__outer_id=outer_id)

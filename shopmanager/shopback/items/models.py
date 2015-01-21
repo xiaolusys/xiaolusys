@@ -627,13 +627,13 @@ class Item(models.Model):
     
     @property
     def property_alias_dict(self):
-    	property_list = self.property_alias.split(';')
-    	property_dict = {}
-    	for p in property_list:
+        property_list = self.property_alias.split(';')
+        property_dict = {}
+        for p in property_list:
             if p:
                 r = p.split(':')
                 property_dict['%s:%s'%(r[0],r[1])]=r[2]
-    	return property_dict
+        return property_dict
     
     @classmethod
     def get_or_create(cls,user_id,num_iid,force_update=False):
@@ -664,7 +664,7 @@ class Item(models.Model):
             product.name        = product.name or item_dict['title']
             product.pic_path    = product.pic_path or item_dict['pic_url']    
             product.save()
-    	else:
+        else:
             #logger.warn('item has no outer_id(num_iid:%s)'%str(item_dict['num_iid']))
             product = None
         
