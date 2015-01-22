@@ -718,7 +718,10 @@ class FreeSampleView(View):
 #             redirect_url = '/weixin/sampleads/%d/' % wx_user.pk
 #             return redirect(redirect_url)
         
+        
         started = False
+        if user_openid == "oMt59uE55lLOV2KS6vYZ_d0dOl5c":
+            started = True
         
         html = 'weixin/freesamples.html'
         response = render_to_response(html, {"wx_user":wx_user, 'fcode':fcode, 'started':started},
@@ -760,9 +763,7 @@ class SampleApplyView(View):
             redirect_url = "https://open.weixin.qq.com/connect/oauth2/authorize?appid=wxc2848fa1e1aa94b5&redirect_uri=http://weixin.huyi.so/weixin/freesamples/&response_type=code&scope=snsapi_base&state=135#wechat_redirect"
             return redirect(redirect_url)
 
-        sku_code = '0110'
-        if int(selection) == 2:
-            sku_code = '0210'
+        sku_code =  int(selection) or 1
 
         sample = FreeSample.objects.get(pk=int(sample_pk))
 
@@ -795,10 +796,9 @@ class SampleConfirmView(View):
         content = request.REQUEST
         sample_pk = int(content.get("sample_pk","0"))
         sku_code = content.get("sku_code","0")
-        p1 = content.get("p1","0")
         p2 = content.get("p2","0")
         vipcode = content.get("fcode","0")
-        score = int(p1) + int(p2)
+        score = int(p2)
         
         user_openid = request.COOKIES.get('openid')
 

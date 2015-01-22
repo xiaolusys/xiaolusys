@@ -6,6 +6,7 @@
 {% block container %}
 
 <div class="container-fluid">
+  <!--
   <div class="panel panel-default" style="margin-top:5px">
     <div class="panel-heading" style="color:orange">免费试用 中奖名单</div>
     <div class="panel-body">
@@ -15,46 +16,38 @@
       <p style="color:red;">免费试用申请已经结束了，试用名单已经全部公布，没有成功的亲们下期活动再加油哦！</p>
     </div>
   </div>
+  -->
   <div class="panel panel-default" style="margin-top:5px">
-  <div class="panel-heading" style="color:orange">免费试用：时尚婴童斗篷</div>
+  <div class="panel-heading" style="color:orange">免费试用：宝宝时尚睡袋</div>
   <div class="panel-body">
     
-      <div class="row">
-	<div class="col-xs-12" style="text-align:center">
-	  <p><a href="http://mp.weixin.qq.com/bizmall/mallshelf?id=&t=mall/list&biz=MzA5NTI1NjYyNg==&shelf_id=2&showwxpaytitle=1#wechat_redirect">查看商品详情 >></a></p>
-	</div>
-      </div>
+      <form action="/weixin/sampleapply/" method="post" onsubmit="return check()" class="form-group">{% csrf_token %}
+      <input type="hidden" value="4" name="sample_pk"/>
+
       <div class="row">
 	<div class="col-xs-6" style="text-align:center">
 	  <a href="" class="thumbnail">
-	    <img src="https://mmbiz.qlogo.cn/mmbiz/yMhOQPTKhLtMTpiclRQJZ7aBpwKS3xsvU0Hv1Pc7bCliadwlHAa9z5zxDzB5OvRphHcb5X103Zu8g3cSkZz5RjsA/0" alt="...">
+	    <img id="id_img1" src="https://mmbiz.qlogo.cn/mmbiz/yMhOQPTKhLvuSp8nx80CxFU6BqRvnNq1EhhsibFYg9kZa2t0yPgdGMoFPWO0Xh900qyqiahTWf2HwY8xwTmgZatg/0" alt="...">
 	  </a>
-	  <p style="color:#029fd6">选择一：蓝底动物</p>
 	</div>
-	<div class="col-xs-6" style="text-align:center">
-	  <a href="" class="thumbnail">
-	    <img src="https://mmbiz.qlogo.cn/mmbiz/yMhOQPTKhLtMTpiclRQJZ7aBpwKS3xsvUfibrEhY3L4kErCdEyV2MfkHrHov2XsB0I0HAkibf72HVz9eUZb5vo9cQ/0" alt="...">
-	  </a>
-	  <p style="color:#029fd6">选择二：黄底小熊</p>
+	<div class="col-xs-6">
+	  <p style="margin-top:10px"><a href="http://mp.weixin.qq.com/bizmall/mallshelf?id=&t=mall/list&biz=MzA5NTI1NjYyNg==&shelf_id=2&showwxpaytitle=1#wechat_redirect">查看商品详情 >></a></p>
+	  <p style="margin-top:20px">款式选择：</p>
+	  <select class="form-control" name="selection" id="id_selection">
+	    <option value="1">幸运小马</option>
+	    <option value="2">福气小熊</option>
+	    <option value="3">幸福小鸟</option>
+	  </select>
  	</div>
       </div>
-
-    <!--<form action="/weixin/sampleapply/" method="post" onsubmit="return check()" class="form-group">{% csrf_token %}
-      <input type="hidden" value="2" name="sample_pk"/>
-
+    
       <div class="row" style="margin-top:10px">
 	<div class="col-xs-2"></div>	  
 	<div class="col-xs-8" style="text-align:center">
 	  <p>超过<font style="color:red; font-size:20px">1000</font>人已申请</p>
-	  <p>款式选择：
-	    <select class="form-control" name="selection" id="id_selection">
-	      <option value="1">黄底小熊</option>
-	      <option value="2">蓝底动物</option>
-	    </select>
-	  </p>
 	  
-          <p style="margin-top:16px">输入F码：
-	  <input class="form-control" type="text" placeholder="F码" id="id_vipcode" name="fcode" value="{{ fcode }}"/>
+          <p style="margin-top:16px">VIP邀请码：
+	  <input class="form-control" type="text" id="id_vipcode" name="fcode" value="{{ fcode }}"/>
 	  </p>
 	</div>
 	<div class="col-xs-2"></div>
@@ -67,22 +60,17 @@
 	  <input type="submit" class="btn btn-warning" value="提交试用申请"/>
         {% else %} 
 	  <button type="button" class="btn btn-warning" disabled="disabled">申请待开放...</button>
-	  <p style="color:red">请提前关注【齐悦母婴惠】，申请待开放！</p>
+	  <p style="color:red;margin-top:10px">请提前关注【齐悦母婴惠】，申请待开放！</p>
         {% endif %}
 	</div>
-    </form>-->
-    <div class="row" style="margin-top:10px">
-    <div class="col-xs-8" style="text-align:center">
-       <p style="color:red">本期试用申请已经结束了!</p>
-     </div>
-    </div>
+    </form>
   </div>
 </div>
 
 <div class="row">
   <div class="col-xs-12">
     <h5 style="color:#3071a9">申请须知</h5>
-    <p style="color:orange">1) 申请提交完成的页面，有您的专属F码，分享到朋友圈，会大大提高您的中奖几率！</p>
+    <p style="color:orange">1) 申请提交完成的页面，有您的专属VIP邀请码，分享到朋友圈，会大大提高您的中奖几率！</p>
     <p>2) 若您有过购买记录、晒单记录、好评记录、或邀请好友记录，系统会优先审核您的申请。</p>
     <p>3) 审核结果将在【活动中心】->【审核通知】页面显示，请查阅。<font style="color:red">分数越高，中奖几率越大！</font>！</p>
   </div>
@@ -91,7 +79,7 @@
 <div class="row">
   <div class="col-xs-12">
     <h5 style="color:#3071a9">常见问题</h5>
-    <p>1) F码在哪里? <font style="color:red">在您看到的微信帖子里面, 请阅读寻找！也可向申请过的朋友索要F码。</font></p>
+    <p>1) VIP邀请码在哪里? <font style="color:red">在您看到的微信帖子里面, 请阅读寻找！也可向申请过的朋友索要VIP邀请码。</font></p>
   </div>
 </div>
 
@@ -106,12 +94,28 @@
 {% block tail_script %}
 <script type="text/javascript">
 
+  var imgsrc = [
+  "0",
+  "https://mmbiz.qlogo.cn/mmbiz/yMhOQPTKhLvuSp8nx80CxFU6BqRvnNq1EhhsibFYg9kZa2t0yPgdGMoFPWO0Xh900qyqiahTWf2HwY8xwTmgZatg/0",
+  "https://mmbiz.qlogo.cn/mmbiz/yMhOQPTKhLvuSp8nx80CxFU6BqRvnNq17rGeyo6boPyITfGMbJvImH5Ckx0DtHzW0ictUWaqV5qeGIbUqS3yZxQ/0",
+  "https://mmbiz.qlogo.cn/mmbiz/yMhOQPTKhLvuSp8nx80CxFU6BqRvnNq1c7y3wOe9HzygQoSdaGkLg5AoyTicMshNlXJPj60hSQ2kc4CQFfiafvOg/0"
+  ];
+
+  $("#id_selection").change(function(){ 
+    var val = $(this).children("option:selected").val();
+    $("#id_img1").attr("src",imgsrc[val]);
+  });
+
   function validateVipCode(s) {
   var validateReg = /^\d{6,7}$/;
   return validateReg.test(s);
   };
 
   function check() {
+    {% if not started %}
+    return false;
+    {% endif %}
+  
     var vipcode = $("#id_vipcode").val();  
     var msg = $("#id_msg");
     if (validateVipCode(vipcode) == false) {
