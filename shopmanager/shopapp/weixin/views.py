@@ -100,8 +100,8 @@ def warn(request):
 from urllib import urlopen
 
 
-START_TIME = datetime.datetime(2015,1,9)
-END_TIME = datetime.datetime(2015,1,19,23,59,59)
+START_TIME = datetime.datetime(2015,1,23)
+END_TIME = datetime.datetime(2015,1,26,23,59,59)
 
 
 def get_user_openid(request, code):
@@ -709,14 +709,14 @@ class FreeSampleView(View):
         
         wx_user,state = WeiXinUser.objects.get_or_create(openid=user_openid)
 
-        if wx_user.subscribe and wx_user.subscribe_time < datetime.datetime(2015,1,5):
+        if wx_user.subscribe and wx_user.subscribe_time < datetime.datetime(2015,1,22):
             if wx_user.vipcodes.count() > 0:
                 fcode = wx_user.vipcodes.all()[0].code
         
-#         order = SampleOrder.objects.filter(user_openid=user_openid).filter(created__gt=START_TIME)
-#         if order.count() > 0:
-#             redirect_url = '/weixin/sampleads/%d/' % wx_user.pk
-#             return redirect(redirect_url)
+         order = SampleOrder.objects.filter(user_openid=user_openid).filter(created__gt=START_TIME)
+         if order.count() > 0:
+             redirect_url = '/weixin/sampleads/%d/' % wx_user.pk
+             return redirect(redirect_url)
         
         
         started = False
