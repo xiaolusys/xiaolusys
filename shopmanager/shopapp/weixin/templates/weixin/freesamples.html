@@ -56,12 +56,16 @@
       <div class="row" style="text-align:center">
 	<p id="id_msg" style="text-align:center;color:red"></p>
 	<div class="col-xs-12" style="text-align:center; margin-top:16px">
+	{% if order_exist %}
+	<p>亲，您的申请已经提交。<a href="/weixin/sampleads/{{ wx_user.pk }}/">分享您的VIP邀请码>></a></p>
+        {% else %}
 	{% if started %}
 	  <input type="submit" class="btn btn-warning" value="提交试用申请"/>
         {% else %} 
 	  <button type="button" class="btn btn-warning" disabled="disabled">申请待开放...</button>
 	  <p style="color:red;margin-top:10px">请提前关注【齐悦母婴惠】，申请待开放！</p>
         {% endif %}
+	{% endif %}
 	</div>
     </form>
   </div>

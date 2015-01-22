@@ -713,10 +713,12 @@ class FreeSampleView(View):
             if wx_user.vipcodes.count() > 0:
                 fcode = wx_user.vipcodes.all()[0].code
         
+        order_exist = False
         order = SampleOrder.objects.filter(user_openid=user_openid).filter(created__gt=START_TIME)
         if order.count() > 0:
-            redirect_url = '/weixin/sampleads/%d/' % wx_user.pk
-            return redirect(redirect_url)
+            #redirect_url = '/weixin/sampleads/%d/' % wx_user.pk
+            #return redirect(redirect_url)
+            order_exist = True
         
         
         started = False
@@ -724,7 +726,8 @@ class FreeSampleView(View):
             started = True
         
         html = 'weixin/freesamples.html'
-        response = render_to_response(html, {"wx_user":wx_user, 'fcode':fcode, 'started':started},
+        response = render_to_response(html, 
+                                      {"wx_user":wx_user, 'fcode':fcode, 'started':started, 'order_exist':order_exist},
                                       context_instance=RequestContext(request))
         response.set_cookie("openid",user_openid)
         return response
