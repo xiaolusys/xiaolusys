@@ -104,7 +104,7 @@ class WeiXinUserAdmin(admin.ModelAdmin):
                     ,'subscribe_time','modified','user_group','isvalid')
     
     list_filter = ('subscribe','isvalid','sex','user_group',)
-    search_fields = ['openid','referal_from_openid','nickname','mobile','vmobile']
+    search_fields = ['openid','referal_from_openid','nickname','mobile','vmobile','unionid']
     
 
 admin.site.register(WeiXinUser, WeiXinUserAdmin) 
