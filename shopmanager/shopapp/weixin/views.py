@@ -713,10 +713,10 @@ class FreeSampleView(View):
             if wx_user.vipcodes.count() > 0:
                 fcode = wx_user.vipcodes.all()[0].code
         
-         order = SampleOrder.objects.filter(user_openid=user_openid).filter(created__gt=START_TIME)
-         if order.count() > 0:
-             redirect_url = '/weixin/sampleads/%d/' % wx_user.pk
-             return redirect(redirect_url)
+        order = SampleOrder.objects.filter(user_openid=user_openid).filter(created__gt=START_TIME)
+        if order.count() > 0:
+            redirect_url = '/weixin/sampleads/%d/' % wx_user.pk
+            return redirect(redirect_url)
         
         
         started = False
