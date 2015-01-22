@@ -6,7 +6,7 @@
 
 <div class="container-fluid">
   <div class="panel panel-default" style="margin-top:5px">
-    {% if month == 8 or month == 9%}
+    {% if month < 15012 %}
     <div class="panel-heading">详细名单</div>
     {% else %}
     <div class="panel-heading">详细名单 (第{{ batch }}批)</div>
@@ -14,10 +14,10 @@
     <div class="panel-body">
 
       <div class="row">
-	{% if month == 8 or month == 9 %}
+	{% if month < 15011 %}
 	<p>总共{{ total }}条记录，{{ num_pages }}页（每页{{ num_per_page }}条）。名单包含中奖粉丝的手机号。</p>
 	{% else %}
-	<p>总共{{ total }}条记录，{{ num_pages }}页（每页{{ num_per_page }}条）。名单包含中奖粉丝的手机号，综合得分和{% if batch == 3 %}<span class="color:red;">邀请码试用次数</span>{% else %}点击次数{% endif %}。</p>
+	<p>总共{{ total }}条记录，{{ num_pages }}页（每页{{ num_per_page }}条）。名单包含中奖粉丝的手机号，综合得分和点击次数。</p>
 	{% endif %}
 	<div class="col-xs-4">
 	  <a href="/weixin/finallist/{{ batch }}/{{ prev_page }}/{{ month }}/"><< 上一页</a>
@@ -33,7 +33,7 @@
       
       <div class="list-group">
 	{% for item in items %}
-	{% if month == 8 or month == 9 or month == 10 %}
+	{% if month < 15012 %}
 	<a href="#" class="list-group-item">{{ forloop.counter }}: {{ item.0 }}</a>
 	{% else %}
 	<a href="#" class="list-group-item">

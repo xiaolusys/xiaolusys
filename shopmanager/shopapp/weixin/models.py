@@ -427,6 +427,41 @@ class WXProduct(models.Model):
 
     def __unicode__(self):
         return u'<WXProduct:%s>'%(self.product_id)
+    
+    
+class WXProductSku(models.Model):
+    
+    UP_SHELF   = 1
+    DOWN_SHELF = 2
+    
+    PRODUCT_STATUS = (
+        (UP_SHELF,u'上架'),
+        (DOWN_SHELF,u'下架')
+            )
+            
+    product_id   = models.CharField(max_length=32,
+                                    primary_key=True,
+                                    verbose_name=u'商品ID')
+            
+    product_name = models.CharField(max_length=64,verbose_name=u'商品标题')
+    product_img  = models.CharField(max_length=512,verbose_name=u'商品图片')
+    
+  
+    
+    status       = models.IntegerField(null=False,default=0,
+                                       choices=PRODUCT_STATUS,
+                                       verbose_name=u'是否上架')
+    
+    objects = WeixinProductManager()
+    
+    class Meta:
+        db_table = 'shop_weixin_productsku'
+        verbose_name=u'微信小店商品'
+        verbose_name_plural = u'微信小店商品列表'
+
+    def __unicode__(self):
+        return u'<WXProductSku:%s>'%(self.product_id)
+    
        
 class WXOrder(models.Model):
     

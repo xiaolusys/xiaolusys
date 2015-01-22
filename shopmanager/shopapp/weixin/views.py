@@ -900,7 +900,8 @@ class ResultView(View):
         user_openid = get_user_openid(request, code)
         
         if user_openid == "" or user_openid == None or user_openid == "None":
-            redirect_url = "https://open.weixin.qq.com/connect/oauth2/authorize?appid=wxc2848fa1e1aa94b5&redirect_uri=http://weixin.huyi.so/weixin/inviteresult/&response_type=code&scope=snsapi_base&state=135#wechat_redirect"
+            redirect_url = ("https://open.weixin.qq.com/connect/oauth2/authorize?appid=wxc2848fa1e1aa94b5&"
+                +"redirect_uri=http://weixin.huyi.so/weixin/inviteresult/&response_type=code&scope=snsapi_base&state=135#wechat_redirect")
             return redirect(redirect_url)
             
         wx_user,state = WeiXinUser.objects.get_or_create(openid=user_openid)
@@ -961,27 +962,19 @@ class FinalListView(View):
         
         order_list = None
         
-        if month == 1 and batch == 1:
+        if month == 15011:
             start_time = datetime.datetime(2015,1,9)
             end_time = datetime.datetime(2015,1,13)
-            order_list = SampleOrder.objects.filter(status__gt=40,status__lt=42,created__gt=start_time)
-        elif month == 1 and batch == 2:
-            start_time = datetime.datetime(2015,1,9)
-            end_time = datetime.datetime(2015,1,13)
-            order_list = SampleOrder.objects.filter(status__gt=41,status__lt=43,created__gt=start_time)
-        elif month == 1 and batch == 3:
-            start_time = datetime.datetime(2015,1,9)
-            end_time = datetime.datetime(2015,1,13)
-            order_list = SampleOrder.objects.filter(status__gt=42,status__lt=44,created__gt=start_time)
-        elif month == 8:
+            order_list = SampleOrder.objects.filter(status__gt=40,status__lt=50,created__gt=start_time)
+        elif month == 1408:
             start_time = datetime.datetime(2014,8,1)
             end_time = datetime.datetime(2014,8,12)
             order_list = SampleOrder.objects.filter(status__gt=0,status__lt=7,created__lt=end_time,created__gt=start_time)
-        elif month == 9:
+        elif month == 1409:
             start_time = datetime.datetime(2014,8,28)
             end_time = datetime.datetime(2014,9,7)
             order_list = SampleOrder.objects.filter(status__gt=10,status__lt=22,created__gt=start_time)
-        elif month == 10:
+        elif month == 1410:
             start_time = datetime.datetime(2014,10,8)
             end_time = datetime.datetime(2014,10,17)
             order_list = SampleOrder.objects.filter(status__gt=30,status__lt=39,created__gt=start_time)

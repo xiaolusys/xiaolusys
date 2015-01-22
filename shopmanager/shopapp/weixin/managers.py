@@ -6,6 +6,8 @@ from django.db.models import Q,Sum
 from django.db.models.signals import post_save
 from django.db import IntegrityError, transaction
 
+from shopapp.signals import weixin_referal_signal
+
 class WeixinProductManager(models.Manager):
     
     def get_queryset(self):
@@ -79,6 +81,13 @@ class WeixinUserManager(models.Manager):
         
         wx_user.referal_from_openid = referal_from_openid
         wx_user.save()
+                     
+        from shopapp.weixin.models import SampleOrder
+                     
+        weixin_referal_signal.send(sender=SampleOrder,
+                                   user_openid=referal_openid,
+                                   referal_from_openid=referal_from_openid)
+                     
         return True
            
     @property

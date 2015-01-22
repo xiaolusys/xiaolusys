@@ -6,7 +6,7 @@
 
 <div class="container-fluid">
 
-  <div class="panel panel-default" style="margin-top:5px">
+<!--  <div class="panel panel-default" style="margin-top:5px">
     <div class="panel-heading" style="color:orange">免费试用 中奖名单</div>
     <div class="panel-body">
       <p>第一批 综合得分 140，点击次数 10 以上  <a href="/weixin/finallist/1/1/1/">中奖名单&gt;&gt;</a></p>
@@ -14,14 +14,14 @@
       <p>第三批 综合得分 356，邀请码使用28以上  <a href="/weixin/finallist/3/1/1/">中奖名单&gt;&gt;</a></p>
       <p style="color:red;">恭喜他们！免费试用申请已经结束了，试用名单已经全部公布，没有成功的亲们下期活动再加油哦！</p>
     </div>
-  </div>
+  </div>-->
 
   <div class="panel panel-default" style="margin-top:5px">
     <div class="panel-heading" style="color:orange">免费试用 审核结果</div>
     <div class="panel-body">
     {% if sample_order %}
       {% if not sample_pass %}
-      	<label >您的试用申请还在审核中，请继续加油哦!</label>
+      	<label >免费试用申请已经结束了，试用名单已经全部公布，没有成功的亲们下期活动再加油哦！</label>
       	<p>您的F码使用人数: <font style="color:red">{{ vip_code.usage_count }}</font></p>
 	    <p>您的分享页面被点击人数: <font style="color:orange">{{ link_click.clicker_num  }}</font></p>
 	    <p>您的综合得分: <font style="color:red">{{ vip_code.usage_count  }} *10</font> + <font style="color:orange">{{ link_click.clicker_num }}</font> = {{ vip_code.usage_count|mul:10|add:link_click.clicker_num }}</p>
@@ -62,9 +62,10 @@
     <div class="panel-body">
       <p>亲们，若您的申请已审核通过，请仔细阅读审核页面的说明，务必在活动结束后<font style="color:red">5个工作日内</font>按照指示操作领取试用产品！不要忘记错过啦！</p>
       <p>为了保证活动的公正性和真实性，我们保留历史中奖名单供查询。</p>
-      <p><a href="/weixin/finallist/1/1/10/">10月中奖名单 >></a></p>
-      <p><a href="/weixin/finallist/1/1/9/">9月中奖名单 >></a></p>
-      <p><a href="/weixin/finallist/1/1/8/">8月中奖名单 >></a></p>
+      <p><a href="/weixin/finallist/1/1/15011/">15年1月1期中奖名单 >></a></p>
+      <p><a href="/weixin/finallist/1/1/1410/">14年10月中奖名单 >></a></p>
+      <p><a href="/weixin/finallist/1/1/1409/">14年9月中奖名单 >></a></p>
+      <p><a href="/weixin/finallist/1/1/1408/">14年8月中奖名单 >></a></p>
     </div>
   </div>
   
