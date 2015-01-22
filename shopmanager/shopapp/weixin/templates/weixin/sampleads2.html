@@ -22,9 +22,10 @@
       {% else %}
       <p style="color:blue">亲，您的申请已经提交！</p>
       <p style="color:blue">您的VIP邀请码：{{ vipcode }}，快把本页分享给好友, 一起来领可爱的睡袋吧！</p>
-      <p style="color:red">您还未关注【齐悦母婴惠】，关注后您的申请才会得到及时审核！</p>
+      <p style="color:red">VIP邀请码被使用10次以上，您中奖的几率将大大提升！</p>
+      <p style="color:red">若您还未关注【齐悦母婴惠】，关注后您的申请才会得到及时审核！</p>
       {% endif %}
-      <p style="color:blue">注：分享到朋友圈后，蓝色文字朋友看不到哦！</p>
+      <p style="color:blue">注：以上文字将在5秒后消失！</p>
     </div>
   </div>
   {% endif %}
@@ -32,7 +33,7 @@
   <div class="panel panel-default" style="margin-top:5px">
     <div class="panel-heading" style="color:white;background-color:rgb(255,124,0);text-align:center"><b>宝宝再也不感冒啦！</b></div>
     <div class="panel-body">
-      <div class="row" style="margin-top:15px">
+      <div class="row">
 	<div class="col-xs-12">
 	  <a href="" class="thumbnail">
 	    <img src="https://mmbiz.qlogo.cn/mmbiz/yMhOQPTKhLvu5WdzhDicmHmlBpuga4YW6ibGu0FfFiaIPz3OicSibRVDjf7pSdSbEibO2O435ibuLRIdqicZtNzaic7XjLQ/0"/>
@@ -58,7 +59,8 @@
 	    <img src="https://mmbiz.qlogo.cn/mmbiz/yMhOQPTKhLv3GC9Flq6Q7vwglrNkxIPZw6an6GW2qKCkpFCA11zvJTGXiaAia8Nt526f342SPNXicmIVJliaakJq2w/0" />
 	  </a>
 	  <p>具体流程非常简单：关注【齐悦母婴惠】公众微信，然后申请就搞定啦！</p>
-	  <p>赶快去吧，Go！</p>
+	  <p style="color:red">悄悄告诉您：VIP邀请码被使用10次以上，您中奖的几率将大大提升！</p>
+	  <p>赶快行动吧，惊喜等着您！Go！</p>
 	</div>
       </div>
     </div>
@@ -93,7 +95,7 @@
     window.clearInterval(global_timer);
   };
 
-  global_timer =  window.setInterval(slideup, 5000);
+  global_timer =  window.setInterval(slideup, 3500);
   
 // 开发阶段，开启WeixinApi的调试模式
 //WeixinApi.enableDebugMode();
@@ -104,10 +106,10 @@ WeixinApi.ready(function(Api) {
     // 微信分享的数据
     var wxData = {
         "appId": "", // 服务号可以填写appId
-        "imgUrl" : "https://mmbiz.qlogo.cn/mmbiz/yMhOQPTKhLsSjykVcEsrWrYMpcpmu0b6nQt45cBqN7GKu0ZryPNxvZ8cW4oJlqpxDjxEc53qj96Ga4bYGINjeQ/0",
+        "imgUrl" : "https://mmbiz.qlogo.cn/mmbiz/yMhOQPTKhLvu5WdzhDicmHmlBpuga4YW6nwKMuINKhI5Nicyp8baGAwt06DSgFFktcvolIAPHJmUDviaaQguqqPtg/0",
         "link" : "http://weixin.huyi.so/weixin/sampleads/{{ pk }}/",
-        "desc" : "2015，我要给孩子最温暖的回忆！一个星期之后，我收到了Fay寄来的礼物。一个温暖的黄色斗篷：柔软、轻盈。里面夹着一张卡片...",
-        "title": "2015，给孩子最温暖的回忆！" 
+        "desc" : "超级实用的睡袋，适用年龄0-6岁，宝宝穿上就再也不怕感冒咯！",
+        "title": "宝宝再也不感冒啦！我刚申请了免费试用这款睡袋，你也快来申请吧！" 
     };
 
     // 分享的回调
