@@ -100,7 +100,7 @@ def warn(request):
 from urllib import urlopen
 
 
-START_TIME = datetime.datetime(2015,1,23)
+START_TIME = datetime.datetime(2015,1,22)
 END_TIME = datetime.datetime(2015,1,26,23,59,59)
 
 
