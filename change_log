@@ -1,3 +1,6 @@
+######## 2015-1-22 ##########
+alter table shop_weixin_user add column unionid varchar(64) NOT NULL;
+alter table shop_weixin_user add index shop_weixin_user_9ac2212(unionid);
 ######## 2015-1-5##########
 create unique index uniq_item_outer_and_sku_id on shop_memorule_composerule(`outer_id`,`outer_sku_id`,`type`) ;
 ######## 2014-12-20##########

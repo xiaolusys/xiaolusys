@@ -135,7 +135,7 @@ class WeiXinUser(models.Model):
     
     openid     = models.CharField(max_length=64,unique=True,verbose_name=u"用户ID")
     nickname   = models.CharField(max_length=64,blank=True,verbose_name=u"昵称")
-    
+    unionid   = models.CharField(max_length=64,db_index=True,blank=True,verbose_name=u"UnionID")
     sex        = models.IntegerField(default=0,choices=SEX_TYPE,verbose_name=u"性别")
     language   = models.CharField(max_length=10,blank=True,verbose_name=u"语言")
     
@@ -439,20 +439,20 @@ class WXProductSku(models.Model):
         (DOWN_SHELF,u'下架')
             )
             
-    product_id   = models.CharField(max_length=32,
+    sku_id   = models.CharField(max_length=32,
                                     primary_key=True,
-                                    verbose_name=u'商品ID')
+                                    verbose_name=u'规格ID')
             
-    product_name = models.CharField(max_length=64,verbose_name=u'商品标题')
-    product_img  = models.CharField(max_length=512,verbose_name=u'商品图片')
-    
-  
-    
+    outer_id = models.CharField(max_length=64,blank=True,verbose_name=u'商品编码')
+    outer_sku_id = models.CharField(max_length=20,blank=True,verbose_name=u'规格编码')
+            
+    sku_name = models.CharField(max_length=64,verbose_name=u'规格名称')
+    sku_img  = models.CharField(max_length=512,verbose_name=u'规格图片')
+   
     status       = models.IntegerField(null=False,default=0,
                                        choices=PRODUCT_STATUS,
                                        verbose_name=u'是否上架')
-    
-    objects = WeixinProductManager()
+
     
     class Meta:
         db_table = 'shop_weixin_productsku'
