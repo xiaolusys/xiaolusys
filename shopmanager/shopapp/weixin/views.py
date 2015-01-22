@@ -268,7 +268,8 @@ class OrderInfoView(View):
             
         status = [pcfg.WAIT_SELLER_SEND_GOODS,pcfg.WAIT_BUYER_CONFIRM_GOODS, pcfg.TRADE_FINISHED]
         latest_trades = MergeTrade.objects.filter(receiver_mobile=wx_user.mobile)\
-                .filter(status__in=status,is_express_print=True)\
+                .filter(status__in=status).exclude(sys_status__in=[pcfg.ON_THE_FLY_STATUS,pcfg.INVALID_STATUS])\
+                .exclude(sys_status=pcfg.FINISHED_STATUS,is_express_print=False)\
                 .exclude(type=pcfg.FENXIAO_TYPE).order_by('-pay_time')
         
         if latest_trades.count() == 0:
@@ -347,12 +348,14 @@ class OrderInfoView(View):
 
         score_refund = False
         if (data["payment"] >= 100 and score >= 10 
-            and trade.status ==  pcfg.TRADE_FINISHED 
+            and trade.status ==  pcfg.TRADE_FINISHED
             and trade.pay_time > datetime.datetime(2014,9,15)):
             score_refund = True
             
         post_fee_refund = False
-        if (data["post_fee"] > 0 and score >= 10 and data["type"] == pcfg.WX_TYPE and data["status"] == pcfg.TRADE_FINISHED):
+        if (data["post_fee"] > 0 and score >= 10 
+            and data["type"] == pcfg.WX_TYPE 
+            and data["status"] == pcfg.TRADE_FINISHED):
             post_fee_refund = True
 
         response = render_to_response('weixin/orderinfo.html', 

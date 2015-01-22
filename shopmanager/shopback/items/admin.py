@@ -289,7 +289,8 @@ class ProductAdmin(admin.ModelAdmin):
                 pull_dict['success']=True
             sync_items.append(pull_dict)
        
-        return render_to_response('items/product_action.html',{'prods':sync_items,'action_name':u'取消商品对应订单缺货状态'},
+        return render_to_response('items/product_action.html',
+                                  {'prods':sync_items,'action_name':u'取消商品对应订单缺货状态'},
                                   context_instance=RequestContext(request),mimetype="text/html")
         
     cancle_orders_out_stock.short_description = u"取消订单商品缺货"
@@ -440,7 +441,7 @@ class ProductSkuAdmin(admin.ModelAdmin):
         models.TextField: {'widget': Textarea(attrs={'rows':2, 'cols':25})},
     }
     
-     #--------设置页面布局----------------
+        #--------设置页面布局----------------
     fieldsets =(('商品基本信息:', {
                     'classes': ('expand',),
                     'fields': (('outer_id','properties_name','properties_alias','status')

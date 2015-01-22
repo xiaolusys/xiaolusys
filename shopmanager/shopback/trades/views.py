@@ -1946,32 +1946,32 @@ class SaleMergeOrderView(ModelView):
         
         trade_ids = []
         rindex      = 1
-        for itrade in queryset:
+        for itrade in trade_list:
             trade_ids.append(itrade.id)
         
-        for trade in queryset:
+        for trade in trade_list:
             index = 0
             for order in trade.print_orders:  
                 pcsv.append(('%s'%p for p in [ (rindex ,'')[index],
-                                                                            order.oid,
-                                                                            trade.tid,
-                                                                            trade.receiver_name,
-                                                                            order.outer_id,
-                                                                            order.title,
-                                                                            order.outer_sku_id,
-                                                                            order.sku_properties_name,
-                                                                            order.num,
-                                                                            trade.buyer_message,
-                                                                            '%s%s'%(trade.seller_memo,trade.sys_memo),
-                                                                            trade.pay_time,
-                                                                            trade.receiver_name,
-                                                                            trade.receiver_phone,
-                                                                            trade.receiver_mobile,
-                                                                            trade.receiver_state,
-                                                                            trade.receiver_city,
-                                                                            trade.receiver_district,
-                                                                            trade.receiver_address,
-                                                                            trade.get_shipping_type_display()]))
+                            order.oid,
+                            trade.tid,
+                            trade.receiver_name,
+                            order.outer_id,
+                            order.title,
+                            order.outer_sku_id,
+                            order.sku_properties_name,
+                            order.num,
+                            trade.buyer_message,
+                            '%s%s'%(trade.seller_memo,trade.sys_memo),
+                            trade.pay_time,
+                            trade.receiver_name,
+                            trade.receiver_phone,
+                            trade.receiver_mobile,
+                            trade.receiver_state,
+                            trade.receiver_city,
+                            trade.receiver_district,
+                            trade.receiver_address,
+                            trade.get_shipping_type_display()]))
                 index = 1
             rindex += 1
             
