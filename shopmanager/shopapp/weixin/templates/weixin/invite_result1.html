@@ -21,7 +21,7 @@
     <div class="panel-body">
     {% if sample_order %}
       {% if not sample_pass %}
-      	<label >免费试用申请已经结束了，试用名单已经全部公布，没有成功的亲们下期活动再加油哦！</label>
+      	<label >睡袋免费试用申请已经开始了，亲们赶快行动吧！</label>
       	<p>您的F码使用人数: <font style="color:red">{{ vip_code.usage_count }}</font></p>
 	    <p>您的分享页面被点击人数: <font style="color:orange">{{ link_click.clicker_num  }}</font></p>
 	    <p>您的综合得分: <font style="color:red">{{ vip_code.usage_count  }} *10</font> + <font style="color:orange">{{ link_click.clicker_num }}</font> = {{ vip_code.usage_count|mul:10|add:link_click.clicker_num }}</p>
