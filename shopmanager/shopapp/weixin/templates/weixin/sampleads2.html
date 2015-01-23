@@ -47,11 +47,13 @@
 	</div>
       </div>
 
+      {% if not identical %}
       <div style="text-align:center;height:80px;padding-top:20px;">
 	<p><a href="https://open.weixin.qq.com/connect/oauth2/authorize?appid=wxc2848fa1e1aa94b5&redirect_uri=http://weixin.huyi.so/weixin/freesamples/?f={{ vipcode }}&response_type=code&scope=snsapi_base&state=135#wechat_redirect" class="btn btn-warning">点击申请领取 >></a></p>
 	<p style="color:red">F码：{{ vipcode }}</p>
       </div>
-
+      {% endif %}
+      
       <div class="row">
 	<div class="col-xs-12" style="margin-top:10px">
 	  <p>哦，对了！这款睡袋还带礼盒包装，直接免费寄送，您是不是一下子觉得世界美好了很多呢～～～</p>
@@ -101,6 +103,7 @@
 //WeixinApi.enableDebugMode();
 
 // 初始化WeixinApi，等待分享
+/*
 WeixinApi.ready(function(Api) {
 
     // 微信分享的数据
@@ -156,6 +159,7 @@ WeixinApi.ready(function(Api) {
     // iOS上，可以直接调用这个API进行分享，一句话搞定
     Api.generalShare(wxData,wxCallbacks);
 });
+*/
 </script>  
 {% endblock %}
 
