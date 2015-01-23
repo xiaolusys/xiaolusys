@@ -21,7 +21,7 @@
     <div class="panel-body">
     {% if sample_order %}
       {% if not sample_pass %}
-      	<label >免费试用申请已经结束了，试用名单已经全部公布，没有成功的亲们下期活动再加油哦！</label>
+      	<label>睡袋免费试用申请已经开始了，活动期限为3天（1月25日晚12点结束），每天晚上12点锁定名单，次日早上10点公布名单，亲赶快行动吧！</label>
       	<p>您的F码使用人数: <font style="color:red">{{ vip_code.usage_count }}</font></p>
 	    <p>您的分享页面被点击人数: <font style="color:orange">{{ link_click.clicker_num  }}</font></p>
 	    <p>您的综合得分: <font style="color:red">{{ vip_code.usage_count  }} *10</font> + <font style="color:orange">{{ link_click.clicker_num }}</font> = {{ vip_code.usage_count|mul:10|add:link_click.clicker_num }}</p>
@@ -49,6 +49,10 @@
       {% endif %}
       
     <p style="color:#029fd6">审核说明：本次免费试用活动，将按照综合得分来审核申请。综合得分越高，审核通过几率越大！</p>
+    <p style="color:#029fd6">加分规则：</p>
+    <p style="color:#029fd6">a，只有微信好友的点击才会给你加分；</p>
+    <p style="color:#029fd6">b，每个微信用户只有前5次点击能给5位朋友的链接加分，超过5次后的点击不计加分；</p>
+    <p style="color:#029fd6">c，同一个手机上登录多个帐号相互点击不会加分；</p>
     <p style="color:red">如果您的得分在100分以上，您将具有极大的竞争力！</p>
     <p>快快分享您的F码专属页面吧！ <a href="/weixin/sampleads/{{ wx_user.pk }}/">Go >></a></p>
     {% else %}
