@@ -912,7 +912,7 @@ class ResultView(View):
         sample_orders = SampleOrder.objects.filter(user_openid=user_openid,created__gte=START_TIME)
         if sample_orders.count() > 0:
             sample_order = sample_orders[0]
-            sample_pass = sample_order.status > 40
+            sample_pass = sample_order.status > 50
             
         vip_code = None
         vip_codes = VipCode.objects.filter(owner_openid__openid=user_openid)
@@ -930,8 +930,7 @@ class ResultView(View):
                                        'sample_order':sample_order,
                                        'vip_code':vip_code,
                                        'link_click':link_click,
-                                       'sample_pass':sample_pass,
-                                       },
+                                       'sample_pass':sample_pass,},
                                       context_instance=RequestContext(request))
         response.set_cookie("openid",user_openid)  
         
@@ -963,7 +962,11 @@ class FinalListView(View):
         
         order_list = None
         
-        if month == 15011:
+        if month == 15012 and batch == 1:
+            start_time = datetime.datetime(2015,1,23)
+            end_time = datetime.datetime(2015,1,26)
+            order_list = SampleOrder.objects.filter(status=51,created__gt=start_time)
+        elif month == 15011:
             start_time = datetime.datetime(2015,1,9)
             end_time = datetime.datetime(2015,1,13)
             order_list = SampleOrder.objects.filter(status__gt=40,status__lt=50,created__gt=start_time)
