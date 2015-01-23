@@ -14,10 +14,8 @@ from shopback.orders.models import Trade,Order,STEP_TRADE_STATUS
 from shopback.trades.managers import MergeTradeManager
 from shopback.items.models import Item,Product,ProductSku
 from shopback.logistics.models import Logistics,LogisticsCompany,DestCompany
-from shopback.fenxiao.models import PurchaseOrder,SubPurchaseOrder,FenxiaoProduct
 from shopback.refunds.models import Refund,REFUND_STATUS
 from shopback import paramconfig as pcfg
-from shopback.monitor.models import SystemConfig,Reason
 from shopback.signals import merge_trade_signal,rule_signal,recalc_fee_signal
 from auth import apis
 from common.utils import (parse_datetime ,
