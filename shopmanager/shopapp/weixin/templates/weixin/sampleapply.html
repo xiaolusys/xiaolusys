@@ -18,10 +18,14 @@
 	<div class="row">
 	  <div class="col-xs-4" style="text-align:center">
 	    <div class="thumbnail">
-	      {% if sku.sku_code == '0210' %}
-	      <img src="https://mmbiz.qlogo.cn/mmbiz/yMhOQPTKhLtMTpiclRQJZ7aBpwKS3xsvU0Hv1Pc7bCliadwlHAa9z5zxDzB5OvRphHcb5X103Zu8g3cSkZz5RjsA/0" alt="...">
-	      {% else %}
-	      <img src="{{ sample.pic_url }}" alt="...">
+	      {% if sku.sku_code == '1' %}
+	      <img src="https://mmbiz.qlogo.cn/mmbiz/yMhOQPTKhLvuSp8nx80CxFU6BqRvnNq1EhhsibFYg9kZa2t0yPgdGMoFPWO0Xh900qyqiahTWf2HwY8xwTmgZatg/0" alt="...">
+	      {% endif %}
+	      {% if sku.sku_code == '2' %}
+	      <img src="https://mmbiz.qlogo.cn/mmbiz/yMhOQPTKhLvuSp8nx80CxFU6BqRvnNq17rGeyo6boPyITfGMbJvImH5Ckx0DtHzW0ictUWaqV5qeGIbUqS3yZxQ/0" alt="...">
+	      {% endif %}
+	      {% if sku.sku_code == '3' %}
+	      <img src="https://mmbiz.qlogo.cn/mmbiz/yMhOQPTKhLvuSp8nx80CxFU6BqRvnNq1c7y3wOe9HzygQoSdaGkLg5AoyTicMshNlXJPj60hSQ2kc4CQFfiafvOg/0" alt="...">
 	      {% endif %}
 	    </div>
 	  </div>
@@ -61,13 +65,9 @@
 	  <div class="col-xs-12">
 	    <h5 style="color:red"><b>小调查</b></h5>
 	    <div>
-	      <p style="color:#029fd6">1. 您希望中奖名单的公布方式为？</p>
-	      <p id="id_p11"><input type="radio" name="p1" value="1" id="id_input11"> 每天公布一批。</p>
-	      <p id="id_p12"><input type="radio" name="p1" value="2" id="id_input12"> 活动结束后一起全部公布。</p>
-	      <hr/>
-	      <p style="color:#029fd6">2. 您会对【齐悦母婴惠】后续的闪购特卖活动感兴趣吗？</p>
-	      <p id="id_p21"><input type="radio" name="p2" value="4" id="id_input21"> 每天可以准时来看看都特卖啥宝贝。</p>
-	      <p id="id_p22"><input type="radio" name="p2" value="8" id="id_input22"> 看看可以的，特别实惠的才会想买。</p>
+	      <p style="color:#029fd6">1. 您会对【齐悦母婴惠】后续的闪购特卖活动感兴趣吗？</p>
+	      <p id="id_p21"><input type="radio" name="p2" value="1" id="id_input21"> 每天可以准时来看看都特卖啥宝贝。</p>
+	      <p id="id_p22"><input type="radio" name="p2" value="2" id="id_input22"> 看看可以的，特别实惠的才会想买。</p>
 	    </div>
 	  </div>
 	</div>
@@ -207,22 +207,6 @@
       };
 
 
-
-
-  $("#id_p11").on("click", function () {
-  $("#id_input11").attr("checked",true);
-  $("#id_input12").attr("checked",false);
-  $("#id_p11").css("color","red");
-  $("#id_p12").css("color","");  
-  });
-
-  $("#id_p12").on("click", function () {
-  $("#id_input12").attr("checked",true);
-  $("#id_input11").attr("checked",false);
-  $("#id_p12").css("color","red");
-  $("#id_p11").css("color","");  
-  });
-
   $("#id_p21").on("click", function () {
   $("#id_input21").attr("checked",true);
   $("#id_input22").attr("checked",false);
@@ -245,10 +229,6 @@
     }
     {% endif %}
 
-    if ((!$("#id_input11").is(':checked')) && (!$("#id_input12").is(':checked'))) {
-      $("#id_msg")[0].innerHTML = "亲，请选择答案再提交哦。";
-      return false;
-    }
     if ((!$("#id_input21").is(':checked')) && (!$("#id_input22").is(':checked'))) {
       $("#id_msg")[0].innerHTML = "亲，请选择答案再提交哦。";
       return false;

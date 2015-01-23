@@ -100,8 +100,8 @@ def warn(request):
 from urllib import urlopen
 
 
-START_TIME = datetime.datetime(2015,1,9)
-END_TIME = datetime.datetime(2015,1,19,23,59,59)
+START_TIME = datetime.datetime(2015,1,22)
+END_TIME = datetime.datetime(2015,1,26,23,59,59)
 
 
 def get_user_openid(request, code):
@@ -709,19 +709,23 @@ class FreeSampleView(View):
         
         wx_user,state = WeiXinUser.objects.get_or_create(openid=user_openid)
 
-        if wx_user.subscribe and wx_user.subscribe_time < datetime.datetime(2015,1,5):
+        if wx_user.subscribe and wx_user.subscribe_time < datetime.datetime(2015,1,22):
             if wx_user.vipcodes.count() > 0:
                 fcode = wx_user.vipcodes.all()[0].code
         
-#         order = SampleOrder.objects.filter(user_openid=user_openid).filter(created__gt=START_TIME)
-#         if order.count() > 0:
-#             redirect_url = '/weixin/sampleads/%d/' % wx_user.pk
-#             return redirect(redirect_url)
+        order_exist = False
+        order = SampleOrder.objects.filter(user_openid=user_openid).filter(created__gt=START_TIME)
+        if order.count() > 0:
+            #redirect_url = '/weixin/sampleads/%d/' % wx_user.pk
+            #return redirect(redirect_url)
+            order_exist = True
         
-        started = False
+        
+        started = True
         
         html = 'weixin/freesamples.html'
-        response = render_to_response(html, {"wx_user":wx_user, 'fcode':fcode, 'started':started},
+        response = render_to_response(html, 
+                                      {"wx_user":wx_user, 'fcode':fcode, 'started':started, 'order_exist':order_exist},
                                       context_instance=RequestContext(request))
         response.set_cookie("openid",user_openid)
         return response
@@ -760,9 +764,7 @@ class SampleApplyView(View):
             redirect_url = "https://open.weixin.qq.com/connect/oauth2/authorize?appid=wxc2848fa1e1aa94b5&redirect_uri=http://weixin.huyi.so/weixin/freesamples/&response_type=code&scope=snsapi_base&state=135#wechat_redirect"
             return redirect(redirect_url)
 
-        sku_code = '0110'
-        if int(selection) == 2:
-            sku_code = '0210'
+        sku_code =  int(selection) or 1
 
         sample = FreeSample.objects.get(pk=int(sample_pk))
 
@@ -795,10 +797,9 @@ class SampleConfirmView(View):
         content = request.REQUEST
         sample_pk = int(content.get("sample_pk","0"))
         sku_code = content.get("sku_code","0")
-        p1 = content.get("p1","0")
         p2 = content.get("p2","0")
         vipcode = content.get("fcode","0")
-        score = int(p1) + int(p2)
+        score = int(p2)
         
         user_openid = request.COOKIES.get('openid')
 
