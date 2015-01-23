@@ -721,9 +721,7 @@ class FreeSampleView(View):
             order_exist = True
         
         
-        started = False
-        if user_openid == "oMt59uE55lLOV2KS6vYZ_d0dOl5c":
-            started = True
+        started = True
         
         html = 'weixin/freesamples.html'
         response = render_to_response(html, 
