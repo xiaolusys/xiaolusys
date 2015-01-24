@@ -23,7 +23,7 @@ def  record_weixin_clicks(function=None,validated_in=24*60*60):
             if not user_openid and not code:
                 return HttpResponseRedirect('https://open.weixin.qq.com/connect/oauth2/authorize?appid=wxc2848fa1e1aa94b5&redirect_uri=http://weixin.huyi.so%s&response_type=code&scope=snsapi_base&state=135#wechat_redirect'%req_url)
             
-            if code and (not user_openid.strip() or user_openid == 'None'):
+            if code and (not user_openid or user_openid.strip()=='' or user_openid == 'None'):
                 user_openid = get_user_openid(request,code)
                 
             if not user_openid:
