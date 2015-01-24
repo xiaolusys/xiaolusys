@@ -589,6 +589,7 @@ class WxShopService(LocalService):
               
             merge_order.payment = order.order_total_price / 100.0
             merge_order.created = order.order_create_time
+            merge_order.pay_time = order.order_create_time
             merge_order.num = order.product_count
             merge_order.title = order.product_name
             merge_order.pic_path = order.product_img
