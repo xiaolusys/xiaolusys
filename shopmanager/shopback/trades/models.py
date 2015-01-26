@@ -1,6 +1,7 @@
 #-*- coding:utf-8 -*-
 import time
 import json
+import datetime
 from django.db import models
 from django.db.models import Q,Sum
 from django.db.models.signals import post_save
@@ -624,8 +625,12 @@ class MergeOrder(models.Model):
     
     @classmethod
     @transaction.commit_on_success
-    def gen_new_order(cls,trade_id,outer_id,outer_sku_id,num,gift_type=pcfg.REAL_ORDER_GIT_TYPE
-                      ,status=pcfg.WAIT_SELLER_SEND_GOODS,is_reverse=False,payment='0'):
+    def gen_new_order(cls,trade_id,outer_id,outer_sku_id,num,
+                      gift_type=pcfg.REAL_ORDER_GIT_TYPE
+                      ,status=pcfg.WAIT_SELLER_SEND_GOODS,
+                      is_reverse=False,payment='0',
+                      created=None,
+                      pay_time=None):
         
         merge_trade = MergeTrade.objects.get(id=trade_id)
         product = Product.objects.get(outer_id=outer_id)
@@ -650,8 +655,8 @@ class MergeOrder(models.Model):
             refund_status = pcfg.NO_REFUND,
             seller_nick = merge_trade.user.nick,
             buyer_nick = merge_trade.buyer_nick,
-            created = merge_trade.created,
-            pay_time = merge_trade.pay_time,
+            created = created or datetime.datetime.now(),
+            pay_time = pay_time or datetime.datetime.now(),
             consign_time = merge_trade.consign_time,
             gift_type = gift_type,
             is_reverse_order = is_reverse,

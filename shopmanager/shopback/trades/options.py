@@ -37,6 +37,8 @@ def _createAndCalcOrderFee(trade,sub_trade):
         merge_order.is_merge    = True
         merge_order.sys_status  = order.sys_status
         merge_order.is_reverse_order = trade.isPostScan()
+        merge_order.created  = order.created
+        merge_order.pay_time = order.pay_time
         merge_order.save()
         
         if order.isEffect():

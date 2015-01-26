@@ -94,7 +94,9 @@ def ruleMatchSplit(trade):
                                              item.outer_sku_id,
                                              item.num*order.num,
                                              gift_type=pcfg.COMBOSE_SPLIT_GIT_TYPE,
-                                             payment=payment)
+                                             payment=payment,
+                                             created=order.created,
+                                             pay_time=order.pay_time)
                     
                 order.sys_status=pcfg.INVALID_STATUS
                 order.save()
@@ -140,7 +142,9 @@ def ruleMatchGifts(trade):
                                                  rule.outer_sku_id,
                                                  gifts_num,
                                                  gift_type=pcfg.ITEM_GIFT_TYPE,
-                                                 payment=0)
+                                                 payment=0,
+                                                 created=order.created,
+                                                 pay_time=order.pay_time)
                         
                         compose_rule.gif_count -= gifts_num
                         
