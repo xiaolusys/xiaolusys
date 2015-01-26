@@ -19,7 +19,9 @@
     <div class="panel-heading" style="color:orange">免费试用 中奖名单</div>
     <div class="panel-body">
       <p>第一批  综合得分 370，邀请码使用 30 次, 点击次数 70 次以上  <a href="/weixin/finallist/1/1/15012/">中奖名单</a></p>
-      <p style="color:red;">恭喜他们！还有154个免费试用名额，没有成功的亲们继续加油哦！</p>
+      <p>第二批  综合得分 540，邀请码使用 46 次, 点击次数 80 次以上  <a href="/weixin/finallist/2/1/15012/">中奖名单</a></p>
+      <p>第三批  综合得分 475，邀请码使用 40 次, 点击次数 75 次以上  <a href="/weixin/finallist/3/1/15012/">中奖名单</a></p>
+      <p style="color:red;">本期睡袋试用申请结束了，试用名单也已全部公布，恭喜获得本次免费试用机会的妈妈们,没有成功亲们下期活动加油哦！</p>
     </div>
   </div>
 
@@ -28,7 +30,8 @@
     <div class="panel-body">
     {% if sample_order %}
       {% if not sample_pass %}
-      	<label>睡袋免费试用申请已经开始了，活动期限为3天（1月25日晚12点结束），每天晚上12点锁定名单，次日早上10点公布名单，亲赶快行动吧！</label>
+      	<!--<label>睡袋免费试用申请已经开始了，活动期限为3天（1月25日晚12点结束），每天晚上12点锁定名单，次日早上10点公布名单，亲赶快行动吧！</label>-->
+	<p>本期睡袋试用申请结束了,齐悦母婴感谢您的参与，没有申请成功的亲们也不要泄气哦，特卖商城每日都有超低价精选商品，后续会有更多试用活动，加油哦！</p>
       	<p>您的F码使用人数: <font style="color:red">{{ vip_code.usage_count }}</font></p>
 	    <p>您的分享页面被点击人数: <font style="color:orange">{{ link_click.clicker_num  }}</font></p>
 	    <p>您的综合得分: <font style="color:red">{{ vip_code.usage_count  }} *10</font> + <font style="color:orange">{{ link_click.clicker_num }}</font> = {{ vip_code.usage_count|mul:10|add:link_click.clicker_num }}</p>
