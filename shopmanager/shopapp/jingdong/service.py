@@ -70,6 +70,7 @@ class JDShopService(LocalService):
             merge_order.total_fee = order['jd_price']
             
             merge_order.created = merge_trade.created
+            merge_order.pay_time = merge_trade.payment_confirm_time
             merge_order.num     = order['item_total']
             merge_order.title   = order['sku_name']
             merge_order.outer_id = outer_id
