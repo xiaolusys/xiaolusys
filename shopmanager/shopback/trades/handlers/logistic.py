@@ -25,7 +25,10 @@ class LogisticsHandler(BaseHandler):
         city           = merge_trade.receiver_city
         district       = merge_trade.receiver_district
         shipping_type  = merge_trade.shipping_type.upper()
-        
+                    
+        if not district:
+            raise Exception(u"请补充或审核收货地址(区县)信息")
+                    
         if shipping_type == pcfg.EXPRESS_SHIPPING_TYPE.upper():
                         
             return LogisticsCompany.get_recommend_express(state,
@@ -43,16 +46,17 @@ class LogisticsHandler(BaseHandler):
         if settings.DEBUG:
             print 'DEBUG LOGISTIC:',merge_trade
         
-#        try:
-        if merge_trade.is_force_wlb:
-            merge_trade.append_reason_code(pcfg.TRADE_BY_WLB_CODE)
-        
-        merge_trade.logistics_company = self.getLogisticCompany(merge_trade)
-        
-        update_model_fields(merge_trade,update_fields=['logistics_company'])
-        
-#        except Exception,exc:
-#            merge_trade.append_reason_code(pcfg.DISTINCT_RULE_CODE)
+        try:
+            if merge_trade.is_force_wlb:
+                merge_trade.append_reason_code(pcfg.TRADE_BY_WLB_CODE)
+             
+            merge_trade.logistics_company = self.getLogisticCompany(merge_trade)
+                 
+            update_model_fields(merge_trade,update_fields=['logistics_company'])
+        except Exception,exc:
+            merge_trade.sys_memo += '[物流：%s]'%exc.message
+            update_model_fields(merge_trade,update_fields=['sys_memo'])
+            merge_trade.append_reason_code(pcfg.DISTINCT_RULE_CODE)
         
 
 
