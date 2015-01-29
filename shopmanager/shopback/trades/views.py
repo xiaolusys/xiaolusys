@@ -134,49 +134,36 @@ class StatisticMergeOrderView(ModelView):
             return parse_datetime(end_dt)
         
         return parse_date(end_dt)
-    
-    def getSourceTrades(self,
-                        shop_id=None,is_sale=None,
+
+
+    def getSourceOrders(self,shop_id=None,is_sale=None,
                         sc_by='created',start_dt=None,
                         end_dt=None,wait_send='0',p_outer_id=''):
         
-        trade_qs  = MergeTrade.objects.all()
+        order_qs  = MergeOrder.objects.filter(sys_status=pcfg.IN_EFFECT)\
+                            .exclude(gift_type=pcfg.RETURN_GOODS_GIT_TYPE)
         if shop_id:
-            trade_qs = trade_qs.filter(user=shop_id)
-        
-        if is_sale:
-            trade_qs = trade_qs.filter(type=MergeTrade.WX_TYPE)
+            order_qs = order_qs.filter(merge_trade__user=shop_id)
         
         if sc_by == 'pay':
-            trade_qs = trade_qs.filter(pay_time__gte=start_dt,pay_time__lte=end_dt)
+            order_qs = order_qs.filter(pay_time__gte=start_dt,pay_time__lte=end_dt)
         elif sc_by == 'weight':
-            trade_qs = trade_qs.filter(weight_time__gte=start_dt,weight_time__lte=end_dt)
+            order_qs = order_qs.filter(merge_trade__weight_time__gte=start_dt,
+                                       merge_trade__weight_time__lte=end_dt)
         else:
-            trade_qs = trade_qs.filter(created__gte=start_dt,created__lte=end_dt)
+            order_qs = order_qs.filter(created__gte=start_dt,created__lte=end_dt)
         
         if  wait_send == '1':
-            trade_qs = trade_qs.filter(sys_status=pcfg.WAIT_PREPARE_SEND_STATUS)
+            order_qs = order_qs.filter(merge_trade__sys_status=pcfg.WAIT_PREPARE_SEND_STATUS)
         elif wait_send == '2':
-            trade_qs = trade_qs.filter(
-                                       status__in=pcfg.ORDER_SUCCESS_STATUS,
-                                       sys_status__in=pcfg.WAIT_WEIGHT_STATUS)
+            order_qs = order_qs.filter(merge_trade__status__in=pcfg.ORDER_SUCCESS_STATUS,
+                                       merge_trade__sys_status__in=pcfg.WAIT_WEIGHT_STATUS)
         else:
-            trade_qs = trade_qs.filter(status__in=pcfg.ORDER_SUCCESS_STATUS)\
-                .exclude(sys_status__in=(pcfg.INVALID_STATUS,pcfg.ON_THE_FLY_STATUS))\
-                .exclude(sys_status=pcfg.FINISHED_STATUS,is_express_print=False)
-        
-        if p_outer_id:
-            order_qs = self.getSourceOrders(trade_qs,p_outer_id=p_outer_id)
-            trade_qs = MergeTrade.objects.filter(id__in=set([o.merge_trade.id for o in order_qs]))
-            
-        return trade_qs
-        
-    def getSourceOrders(self,trade_qs,p_outer_id=None,is_sale=False):
-        
-        order_qs  = MergeOrder.objects.filter(merge_trade__in=trade_qs,
-                            sys_status=pcfg.IN_EFFECT)\
-                            .exclude(gift_type=pcfg.RETURN_GOODS_GIT_TYPE)
-                            
+            order_qs = order_qs.filter(merge_trade__status__in=pcfg.ORDER_SUCCESS_STATUS)\
+                .exclude(merge_trade__sys_status__in=(pcfg.INVALID_STATUS,pcfg.ON_THE_FLY_STATUS))\
+                .exclude(merge_trade__sys_status=pcfg.FINISHED_STATUS,
+                         merge_trade__is_express_print=False)
+                
         if is_sale :
             order_qs = order_qs.extra(where=["CHAR_LENGTH(outer_id)>=9"]).filter(outer_id__startswith="9")
         
@@ -184,6 +171,13 @@ class StatisticMergeOrderView(ModelView):
             order_qs = order_qs.filter(outer_id=p_outer_id)
     
         return order_qs
+    
+    def getSourceTrades(self,order_qs):
+        
+        trade_ids = [t[0] for t in order_qs.values_list('merge_trade__id')]
+
+        return MergeTrade.objects.filter(id__in=trade_ids)
+    
     
     def getEffectOrdersId(self,order_qs):
         
@@ -342,25 +336,26 @@ class StatisticMergeOrderView(ModelView):
         start_dt  = self.parseStartDt(start_dt)
         end_dt    = self.parseEndDt(end_dt)
         
-        trade_qs  = self.getSourceTrades(
-                                         shop_id=shop_id, 
+        order_qs  = self.getSourceOrders(shop_id=shop_id, 
                                          sc_by=sc_by,
-                                          wait_send=wait_send, 
-                                          p_outer_id=p_outer_id, 
-                                          start_dt=start_dt,
-                                           end_dt=end_dt,
-                                           is_sale=is_sale)
-        order_qs  = self.getSourceOrders(trade_qs,p_outer_id = p_outer_id,is_sale=is_sale)
-        
+                                         wait_send=wait_send, 
+                                         p_outer_id=p_outer_id, 
+                                         start_dt=start_dt,
+                                         end_dt=end_dt,
+                                         is_sale=is_sale)
+        print 'order qs:',datetime.datetime.now()
+        trade_qs  = self.getSourceTrades(order_qs)
+        print 'trade qs:',datetime.datetime.now()
         buyer_nums   = trade_qs.values_list('buyer_nick').distinct().count()
         trade_nums    = trade_qs.count()
         total_post_fee = trade_qs.aggregate(total_post_fee=Sum('post_fee')).get('total_post_fee') or 0
+        print 'post fee:',datetime.datetime.now()
         refund_fees      = self.getTotalRefundFee(order_qs)
-        
+        print 'refund fee:',datetime.datetime.now()
         trade_list   = self.getTradeSortedItems(order_qs,is_sale=is_sale)
         total_cost = trade_list.pop()
         total_sales = trade_list.pop()
-        
+        print 'trade list:',datetime.datetime.now()
         if action =="download":
             return self.responseCSVFile(request, trade_list)
         

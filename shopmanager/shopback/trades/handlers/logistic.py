@@ -26,8 +26,8 @@ class LogisticsHandler(BaseHandler):
         district       = merge_trade.receiver_district
         shipping_type  = merge_trade.shipping_type.upper()
                     
-        if not district:
-            raise Exception(u"请补充或审核收货地址(区县)信息")
+        if not state or not city or not district:
+            raise Exception(u"地址不全(请精确到省市区（县）)")
                     
         if shipping_type == pcfg.EXPRESS_SHIPPING_TYPE.upper():
                         
