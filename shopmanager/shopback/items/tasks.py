@@ -190,7 +190,6 @@ def updateProductWaitPostNumTask():
         Product.objects.updateProductWaitPostNum(product)
 
 
-
 class CalcProductSaleTask(Task):
     """ 更新商品销售数量任务 """
     
@@ -204,8 +203,11 @@ class CalcProductSaleTask(Task):
     def getYesterdayEndtime(self,day_date):
         return datetime.datetime(day_date.year,day_date.month,day_date.day,23,59,59)
     
-    def getSourceList(self):
-        return Product.objects.filter(status=pcfg.NORMAL)
+    def getSourceList(self,yest_start,yest_end):
+        return set(MergeOrder.objects.filter(
+                 pay_time__gte=yest_start,
+                 pay_time__lte=yest_end)\
+                 .values_list('outer_id','outer_sku_id'))
         
     def getValidUser(self):
         return Seller.effect_users.all()
@@ -215,7 +217,7 @@ class CalcProductSaleTask(Task):
                  pay_time__gte=yest_start,
                  pay_time__lte=yest_end,
                  is_merge=False)\
-                 .exclude(gift_type=pcfg.RETURN_GOODS_GIT_TYPE)\
+                 .exclude(gift_type__in=(pcfg.RETURN_GOODS_GIT_TYPE,pcfg.COMBOSE_SPLIT_GIT_TYPE))\
                  .exclude(merge_trade__sys_status=pcfg.EMPTY_STATUS)\
                  .exclude(merge_trade__type=pcfg.EXCHANGE_TYPE,sys_status=pcfg.INVALID_STATUS)
         
@@ -277,28 +279,29 @@ class CalcProductSaleTask(Task):
         
     def run(self,yest_date=None,update_warn_num=False,*args,**kwargs):
         
-        products = self.getSourceList()
-        print 'RUN:',yest_date
         yest_date  = yest_date or self.getYesterdayDate()
         yest_start = self.getYesterdayStarttime(yest_date)
         yest_end   = self.getYesterdayEndtime(yest_date)
         
         sellers = self.getValidUser()
-                 
-        for prod in products:
+        
+        outer_tuple = self.getSourceList(yest_start,yest_end)
+        for outer_id,outer_sku_id in outer_tuple:
             
-            for sku in prod.prod_skus.all():
+            prod = Product.objects.getProductByOuterid(outer_id)
+            prod_sku = Product.objects.getProductSkuByOuterid(outer_id, outer_sku_id)
+            if prod_sku:
                 
                 total_sale   = 0
                 for user in sellers:
-                    pds = self.calcSaleByUserAndProduct(yest_start,yest_end,user,prod,sku)
+                    pds = self.calcSaleByUserAndProduct(yest_start,yest_end,user,prod,prod_sku)
                     total_sale   += pds[0]
                     
                 if update_warn_num:
-                    sku.warn_num = total_sale
-                    sku.save()
+                    prod_sku.warn_num = total_sale
+                    prod_sku.save()
                 
-            if prod.prod_skus.count() == 0:
+            if not prod_sku and prod and prod.prod_skus.count() == 0:
                 
                 total_sale   = 0
                 for user in sellers:
@@ -306,6 +309,18 @@ class CalcProductSaleTask(Task):
                     total_sale   += pds[0]
                     
                 if update_warn_num:
+                    prod.warn_num = total_sale
+                    prod.save()
+                    
+        if update_warn_num:
+            products = Product.objects.all()
+            for p in products:
+                for sku in p.prod_skus.all():
+                    if (prod.outer_id,sku.outer_id) not in outer_tuple:
+                        sku.warn_num = 0
+                        sku.save()
+                        
+                if p.prod_skus.count() == 0 and (p.outer_id,"") not in outer_tuple:
                     prod.warn_num = total_sale
                     prod.save()
                 
