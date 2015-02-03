@@ -181,7 +181,7 @@ class StatisticMergeOrderView(ModelView):
     
     def getEffectOrdersId(self,order_qs):
         
-        return [o.oid for o in order_qs if o.num]
+        return [o[0] for o in order_qs.values_list('oid') if len(o) > 0]
         
     def getProductByOuterId(self,outer_id):
         
@@ -215,8 +215,8 @@ class StatisticMergeOrderView(ModelView):
         trade_items  = {}
         for order in order_qs:
             
-            outer_id = order.outer_id or str(order.num_iid)
-            outer_sku_id = order.outer_sku_id or str(order.sku_id)
+            outer_id = order.outer_id.strip() or str(order.num_iid)
+            outer_sku_id = order.outer_sku_id.strip() or str(order.sku_id)
             payment   = float(order.payment or 0)
             order_num = order.num  or 0
             prod,prod_sku     = self.getProductAndSku(outer_id,outer_sku_id)
@@ -284,7 +284,7 @@ class StatisticMergeOrderView(ModelView):
         
         return Refund.objects.filter(oid__in=effect_oids,status__in=(
                     pcfg.REFUND_WAIT_SELLER_AGREE,pcfg.REFUND_CONFIRM_GOODS,pcfg.REFUND_SUCCESS))\
-                    .aggregate(total_refund_fee=Sum('refund_fee')).get('total_refund_fee',0)
+                    .aggregate(total_refund_fee=Sum('refund_fee')).get('total_refund_fee') or 0
         
     def responseCSVFile(self,request,order_items):
         
@@ -343,19 +343,19 @@ class StatisticMergeOrderView(ModelView):
                                          start_dt=start_dt,
                                          end_dt=end_dt,
                                          is_sale=is_sale)
-        print 'order qs:',datetime.datetime.now()
+       
         trade_qs  = self.getSourceTrades(order_qs)
-        print 'trade qs:',datetime.datetime.now()
+       
         buyer_nums   = trade_qs.values_list('buyer_nick').distinct().count()
         trade_nums    = trade_qs.count()
         total_post_fee = trade_qs.aggregate(total_post_fee=Sum('post_fee')).get('total_post_fee') or 0
-        print 'post fee:',datetime.datetime.now()
+       
         refund_fees      = self.getTotalRefundFee(order_qs)
-        print 'refund fee:',datetime.datetime.now()
+       
         trade_list   = self.getTradeSortedItems(order_qs,is_sale=is_sale)
         total_cost = trade_list.pop()
         total_sales = trade_list.pop()
-        print 'trade list:',datetime.datetime.now()
+       
         if action =="download":
             return self.responseCSVFile(request, trade_list)
         

@@ -789,9 +789,12 @@ class ProductDaySale(models.Model):
     product_id  = models.IntegerField(null=False,verbose_name='商品ID')
     sku_id      = models.IntegerField(null=True,verbose_name='规格ID')
 
-    sale_num     = models.IntegerField(default=0.0,verbose_name='销售数量')
+    sale_num     = models.IntegerField(default=0,verbose_name='销售数量')
     sale_payment = models.FloatField(default=0.0,verbose_name='销售金额')
     sale_refund  = models.FloatField(default=0.0,verbose_name='退款金额')
+    
+    confirm_num  = models.IntegerField(default=0,verbose_name='成交数量')
+    confirm_payment  = models.FloatField(default=0.0,verbose_name='成交金额')
     
     class Meta:
         db_table = 'shop_items_daysale'

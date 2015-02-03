@@ -246,15 +246,15 @@ LOGGING = {
     }
 }
 
-try:
-    from prod_settings import *
-except Exception,exc:
-    print 'PROD SETTING ERROR:',exc.message
+
+from prod_settings import *
 
 try:
     from local_settings import *
-except Exception,exc:
-    print 'LOCAL SETTING ERROR:',exc.message
+except ImportError:
+    if DEBUG:
+        raise Exception("LOCAL SETTINGS IS REQUIRED!")
+
 
 from task_settings import *
 

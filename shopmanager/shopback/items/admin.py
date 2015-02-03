@@ -200,6 +200,37 @@ class ProductAdmin(admin.ModelAdmin):
     
     sync_items_stock.short_description = u"同步淘宝线上库存"
     
+    
+    #作废商品
+    def invalid_product_action(self,request,queryset):
+         
+        for p in queryset:
+            cnt = 0
+            success = False
+            invalid_outerid = p.outer_id 
+            while cnt < 10:
+                invalid_outerid += '_del'
+                products = Product.objects.filter(outer_id=invalid_outerid)
+                if products.count() == 0:
+                    success = True
+                    break
+                cnt += 1
+                
+            if not success:
+                continue
+            
+            p.outer_id = invalid_outerid
+            p.status = pcfg.DELETE
+            p.save()
+            
+            log_action(request.user.id,p,CHANGE,u'商品作废')
+        
+        self.message_user(request,u"已成功作废%s个商品!"%queryset.filter(status=pcfg.DELETE).count())
+        
+        return HttpResponseRedirect(request.get_full_path())
+        
+    invalid_product_action.short_description = u"作废库存商品（批量 ）"
+    
     #更新用户线上商品入库
     def sync_purchase_items_stock(self,request,queryset):
         
@@ -405,6 +436,7 @@ class ProductAdmin(admin.ModelAdmin):
     export_prodsku_info_action.short_description = u"导出商品及规格信息"
     
     actions = ['sync_items_stock',
+               'invalid_product_action',
                'sync_purchase_items_stock',
                'update_items_sku',
                'cancle_orders_out_stock',
@@ -520,7 +552,8 @@ admin.site.register(ItemNumTaskLog, ItemNumTaskLogAdmin)
 
 
 class ProductDaySaleAdmin(admin.ModelAdmin):
-    list_display = ('day_date','user_id','product_id', 'sku_id', 'sale_num', 'sale_payment', 'sale_refund')
+    list_display = ('day_date','user_id','product_id', 'sku_id', 'sale_num',
+                     'sale_payment','confirm_num','confirm_payment', 'sale_refund')
     list_display_links = ('day_date', 'user_id','product_id')
     #list_editable = ('update_time','task_type' ,'is_success','status')
 
