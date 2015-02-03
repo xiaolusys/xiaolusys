@@ -134,14 +134,15 @@ class OrderService(TaobaoSendTradeMixin,TaobaoTradeService,LocalService):
             
             merge_order.outer_id     = code_tuple[0]
             merge_order.outer_sku_id = code_tuple[1]
-            
+            merge_order.created  = merge_trade.created
+            merge_order.pay_time = merge_trade.pay_time
             merge_order.sku_properties_name = order.properties_values
             merge_order.sys_status = sys_status
         else:
             merge_order.refund_status = order.refund_status
-            merge_order.payment = order.payment
-            merge_order.pay_time = order.pay_time
-            merge_order.consign_time = order.consign_time
+            merge_order.payment  = merge_trade.created
+            merge_order.pay_time = merge_trade.pay_time
+            merge_order.consign_time = merge_trade.consign_time
             merge_order.status   = order.status
             merge_order.sys_status = sys_status
         merge_order.save()
