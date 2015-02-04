@@ -267,10 +267,10 @@ class CalcProductSaleTask(Task):
                                              user_id=user.id,
                                              product_id=product.id,
                                              sku_id=sku and sku.id)
-                                            
+            print sale_dict['sale_payment'] , real_sale_dict['sale_payment'] , refund_fee
             pds.sale_num = sale_dict['sale_num'] or 0
             pds.sale_payment = sale_dict['sale_payment'] or 0
-            pds.sale_refund  = pds.sale_payment - (real_sale_dict['sale_payment'] or 0) + refund_fee
+            pds.sale_refund  = sale_dict['sale_payment'] - (real_sale_dict['sale_payment'] or 0) + refund_fee
             pds.confirm_num  = real_sale_dict['sale_num'] or 0
             pds.confirm_payment = (real_sale_dict['sale_payment'] or 0) - refund_fee
             pds.save()

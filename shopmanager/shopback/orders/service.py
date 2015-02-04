@@ -140,7 +140,7 @@ class OrderService(TaobaoSendTradeMixin,TaobaoTradeService,LocalService):
             merge_order.sys_status = sys_status
         else:
             merge_order.refund_status = order.refund_status
-            merge_order.payment  = merge_trade.created
+            merge_order.created  = merge_trade.created
             merge_order.pay_time = merge_trade.pay_time
             merge_order.consign_time = merge_trade.consign_time
             merge_order.status   = order.status
