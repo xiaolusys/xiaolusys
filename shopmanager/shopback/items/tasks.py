@@ -215,8 +215,9 @@ class CalcProductSaleTask(Task):
     def genPaymentQueryset(self,yest_start,yest_end):
         return MergeOrder.objects.filter(
                  pay_time__gte=yest_start,
-                 pay_time__lte=yest_end)\
-                 .exclude(gift_type__in=(pcfg.RETURN_GOODS_GIT_TYPE,pcfg.COMBOSE_SPLIT_GIT_TYPE))\
+                 pay_time__lte=yest_end,
+                 is_merge=False)\
+                 .exclude(gift_type=pcfg.RETURN_GOODS_GIT_TYPE)\
                  .exclude(merge_trade__sys_status=pcfg.EMPTY_STATUS)\
                  .exclude(merge_trade__type=pcfg.EXCHANGE_TYPE,sys_status=pcfg.INVALID_STATUS)
         
