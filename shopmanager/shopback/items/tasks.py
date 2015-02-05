@@ -215,8 +215,7 @@ class CalcProductSaleTask(Task):
     def genPaymentQueryset(self,yest_start,yest_end):
         return MergeOrder.objects.filter(
                  pay_time__gte=yest_start,
-                 pay_time__lte=yest_end,
-                 is_merge=False)\
+                 pay_time__lte=yest_end)\
                  .exclude(gift_type__in=(pcfg.RETURN_GOODS_GIT_TYPE,pcfg.COMBOSE_SPLIT_GIT_TYPE))\
                  .exclude(merge_trade__sys_status=pcfg.EMPTY_STATUS)\
                  .exclude(merge_trade__type=pcfg.EXCHANGE_TYPE,sys_status=pcfg.INVALID_STATUS)
@@ -267,7 +266,7 @@ class CalcProductSaleTask(Task):
                                              user_id=user.id,
                                              product_id=product.id,
                                              sku_id=sku and sku.id)
-            print sale_dict['sale_payment'] , real_sale_dict['sale_payment'] , refund_fee
+            
             pds.sale_num = sale_dict['sale_num'] or 0
             pds.sale_payment = sale_dict['sale_payment'] or 0
             pds.sale_refund  = sale_dict['sale_payment'] - (real_sale_dict['sale_payment'] or 0) + refund_fee

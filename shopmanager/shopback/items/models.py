@@ -803,10 +803,10 @@ class ProductDaySale(models.Model):
         verbose_name_plural = u'商品销量统计'
 
     def __unicode__(self):
-        return '<%s,%d,%d,%s,%d>'%(self.day_date,
+        return '<%s,%s,%d,%d,%s>'%(self.id,
+                                   self.day_date,
                                    self.user_id,
                                    self.product_id,
-                                   str(self.sku_id),
-                                   self.sale_num)
+                                   str(self.sku_id))
     
     

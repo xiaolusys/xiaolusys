@@ -560,7 +560,7 @@ class ProductDaySaleAdmin(admin.ModelAdmin):
     #date_hierarchy = 'day_date'
 
     list_filter = ('user_id',('day_date',DateFieldListFilter))
-    search_fields = ['user_id','product_id','sku_id']
+    search_fields = ['id','user_id','product_id','sku_id']
     
 
 admin.site.register(ProductDaySale, ProductDaySaleAdmin)
