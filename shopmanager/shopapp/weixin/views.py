@@ -960,7 +960,7 @@ class FinalListView(View):
         batch = int(kwargs.get('batch',1))
         month = int(kwargs.get('month',1))
         
-        order_list = None
+        order_list = SampleOrder.objects.none()
         
         if month == 15012 :
             start_time = datetime.datetime(2015,1,23)
