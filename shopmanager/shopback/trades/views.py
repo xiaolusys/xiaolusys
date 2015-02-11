@@ -379,6 +379,9 @@ class StatisticMergeOrderView(ModelView):
         
     post = get    
 
+from django.forms.models import model_to_dict
+from shopback.trades.service import TradeService
+
 class CheckOrderView(ModelView):
     """ docstring for class CheckOrderView """
     
@@ -391,49 +394,25 @@ class CheckOrderView(ModelView):
         
         #rule_signal.send(sender='payment_rule',trade_id=trade.id)
         logistics = LogisticsCompany.objects.filter(status=True)
+        order_nums = trade.inuse_orders.aggregate(total_num=Sum('num')).get('total_num')
+        trade_dict = model_to_dict(trade)
         
-        trade_dict = {
-            'id':trade.id,
-            'tid':trade.tid,
-            'buyer_nick':trade.buyer_nick,
-            'seller_nick':trade.user.nick,
-            'pay_time':trade.pay_time,
-            'payment':trade.payment,
-            'post_fee':trade.post_fee,
-            'buyer_message':trade.buyer_message,
-            'seller_memo':trade.seller_memo,
-            'sys_memo':trade.sys_memo,
-            'logistics_company':trade.logistics_company,
-            'shipping_type':trade.shipping_type,
-            'priority':trade.priority,
-            'type':trade.type,
-            'total_num':trade.total_num,
-            'receiver_name':trade.receiver_name,
-            'receiver_state':trade.receiver_state,
-            'receiver_city':trade.receiver_city,
-            'receiver_district':trade.receiver_district,
-            'receiver_address':trade.receiver_address,
-            'receiver_mobile':trade.receiver_mobile,
-            'receiver_phone':trade.receiver_phone,
-            'receiver_zip':trade.receiver_zip,
-            'has_memo':trade.has_memo,
-            'has_refund':trade.has_refund,
-            'has_out_stock':trade.has_out_stock,
-            'out_of_logistic':trade.has_reason_code(pcfg.LOGISTIC_ERROR_CODE),
-            'has_rule_match':(trade.has_rule_match and 
-                              trade.has_reason_code(pcfg.RULE_MATCH_CODE)),
-            'is_product_defect':(trade.has_rule_match and 
-                                 trade.has_reason_code(pcfg.TRADE_DEFECT_CODE)),
-            'has_merge':trade.has_merge,
-            'has_sys_err':trade.has_sys_err,
-            'need_manual_merge':trade.has_reason_code(pcfg.MULTIPLE_ORDERS_CODE),
-            'reason_code':trade.reason_code,
-            'status':trade.status,
-            'sys_status':trade.sys_status,
-            'used_orders':trade.inuse_orders,
-        }
-        
-        return {'trade':trade_dict,'logistics':logistics,'shippings':dict(SHIPPING_TYPE_CHOICE)}
+        trade_dict.update({'id':trade.id,
+                           'seller_nick':trade.user.nick,
+                           'used_orders':trade.inuse_orders,
+                           'total_num':order_nums,
+                           'logistics_company':trade.logistics_company,
+                           'out_of_logistic':trade.has_reason_code(pcfg.LOGISTIC_ERROR_CODE),
+                           'has_rule_match':(trade.has_rule_match and 
+                                             trade.has_reason_code(pcfg.RULE_MATCH_CODE)),
+                           'is_product_defect':(trade.has_rule_match and 
+                                                trade.has_reason_code(pcfg.TRADE_DEFECT_CODE)),
+                           'need_manual_merge':trade.has_reason_code(pcfg.MULTIPLE_ORDERS_CODE),
+                           })
+ 
+        return {'trade':trade_dict,
+                'logistics':logistics,
+                'shippings':dict(SHIPPING_TYPE_CHOICE)}
         
     def post(self, request, id, *args, **kwargs):
         
@@ -481,7 +460,7 @@ class CheckOrderView(ModelView):
             orders = trade.inuse_orders.exclude(refund_status__in=
                                                 pcfg.REFUND_APPROVAL_STATUS) 
             if orders.count()==0:
-                check_msg.append(u"订单没有商品信息")   
+                check_msg.append(u"订单没有商品信息")
             if check_msg:
                 return ','.join(check_msg)
             
@@ -529,10 +508,14 @@ class CheckOrderView(ModelView):
             else:
                 if shipping_type == pcfg.EXTRACT_SHIPPING_TYPE: 
                     try:
-                        response = apis.taobao_logistics_offline_send(
-                                                  tid=trade.tid,out_sid=1111111111
-                                                  ,company_code=pcfg.EXTRACT_COMPANEY_CODE,
-                                                  tb_user_id=trade.user.visitor_id)
+                        trade.out_sid   = '1111111111'
+                        trade.is_picking_print = True
+                        trade.is_express_print = True
+                        trade.company_code = pcfg.EXTRACT_COMPANEY_CODE
+                        trade.save()
+                        
+                        ts = TradeService(trade.user.id,trade)
+                        ts.sendTrade()
                     except Exception,exc:
                         trade.append_reason_code(pcfg.POST_MODIFY_CODE)
                         trade.sys_status=pcfg.WAIT_AUDIT_STATUS
@@ -548,7 +531,7 @@ class CheckOrderView(ModelView):
                     trade.update_inventory()
                 else:
                     MergeTrade.objects.filter(id=id,sys_status = pcfg.WAIT_AUDIT_STATUS)\
-                        .update(sys_status=pcfg.WAIT_PREPARE_SEND_STATUS,reason_code='',out_sid='')  
+                        .update(sys_status=pcfg.WAIT_PREPARE_SEND_STATUS,reason_code='',out_sid='')
             log_action(user_id,trade,CHANGE,u'审核成功')
             
         elif action_code == 'review':
@@ -572,7 +555,8 @@ class OrderPlusView(ModelView):
         q  = request.GET.get('q')
         if not q:
             return '没有输入查询关键字'.decode('utf8')
-        products = Product.objects.filter(Q(outer_id=q)|Q(name__contains=q),status__in=(pcfg.NORMAL,pcfg.REMAIN))
+        products = Product.objects.filter(Q(outer_id=q)|Q(name__contains=q)
+                                          ,status__in=(pcfg.NORMAL,pcfg.REMAIN))
         
         prod_list = [(prod.outer_id,prod.name,prod.std_sale_price,
                       [(sku.outer_id,sku.name,sku.quantity) for sku in prod.pskus]) for prod in products]
@@ -602,7 +586,8 @@ class OrderPlusView(ModelView):
                 return '该商品规格不存在'.decode('utf8')
         
         if not merge_trade.can_change_order:
-            return HttpResponse(json.dumps({'code':1,"response_error":"订单不能修改！"}),mimetype="application/json")
+            return HttpResponse(json.dumps({'code':1,"response_error":"订单不能修改！"})
+                                ,mimetype="application/json")
         
         is_reverse_order = False
         if merge_trade.can_reverse_order:
@@ -684,22 +669,26 @@ def change_trade_order(request,id):
     try:
         order = MergeOrder.objects.get(id=id)
     except MergeOrder.DoesNotExist:
-        return HttpResponse(json.dumps({'code':1,"response_error":"订单不存在！"}),mimetype="application/json")
+        return HttpResponse(json.dumps({'code':1,"response_error":"订单不存在！"})
+                            ,mimetype="application/json")
     
     try:
         prod  = Product.objects.get(outer_id=order.outer_id)
     except Product.DoesNotExist:
-        return HttpResponse(json.dumps({'code':1,"response_error":"商品不存在！"}),mimetype="application/json")
+        return HttpResponse(json.dumps({'code':1,"response_error":"商品不存在！"})
+                            ,mimetype="application/json")
         
     try:
         prod_sku = ProductSku.objects.get(product__outer_id=order.outer_id,outer_id=outer_sku_id) 
     except ProductSku.DoesNotExist:
-        return HttpResponse(json.dumps({'code':1,"response_error":"商品规格不存在！"}),mimetype="application/json")
+        return HttpResponse(json.dumps({'code':1,"response_error":"商品规格不存在！"})
+                            ,mimetype="application/json")
     
     merge_trade = order.merge_trade
     
     if not merge_trade.can_change_order:
-        return HttpResponse(json.dumps({'code':1,"response_error":"商品规格不能修改！"}),mimetype="application/json")
+        return HttpResponse(json.dumps({'code':1,"response_error":"商品规格不能修改！"})
+                            ,mimetype="application/json")
     
     old_sku_id = order.outer_sku_id
 
@@ -801,46 +790,31 @@ class ReviewOrderView(ModelView):
         logistics = LogisticsCompany.objects.filter(status=True)
         order_nums = trade.inuse_orders.aggregate(total_num=Sum('num')).get('total_num')
         
-        trade_dict = {
-            'id':trade.id,
-            'tid':trade.tid,
-            'buyer_nick':trade.buyer_nick,
-            'seller_nick':trade.user.nick,
-            'pay_time':trade.pay_time,
-            'payment':trade.payment,
-            'post_fee':trade.post_fee,
-            'buyer_message':trade.buyer_message,
-            'seller_memo':trade.seller_memo,
-            'sys_memo':trade.sys_memo,
-            'logistics_company':trade.logistics_company,
-            'out_sid':trade.out_sid,
-            'consign_time':trade.consign_time,
-            'priority':trade.priority,
-            'receiver_name':trade.receiver_name,
-            'receiver_state':trade.receiver_state,
-            'receiver_city':trade.receiver_city,
-            'receiver_district':trade.receiver_district,
-            'receiver_address':trade.receiver_address,
-            'receiver_mobile':trade.receiver_mobile,
-            'receiver_phone':trade.receiver_phone,
-            'reason_code':trade.reason_code,
-            'can_review':trade.can_review,
-            'can_review_status':trade.sys_status in pcfg.WAIT_SCAN_CHECK_WEIGHT,
-            'status':trade.status,
-            'sys_status':trade.sys_status,
-            'status_name':dict(TAOBAO_TRADE_STATUS).get(trade.status,u'未知'),
-            'sys_status_name':dict(SYS_TRADE_STATUS).get(trade.sys_status,u'未知'),
-            'used_orders':trade.inuse_orders.exclude(gift_type=pcfg.RETURN_GOODS_GIT_TYPE),
-            'order_nums':order_nums,
-            'new_memo':trade.has_reason_code(pcfg.NEW_MEMO_CODE),
-            'new_refund':trade.has_reason_code(pcfg.WAITING_REFUND_CODE) or trade.has_reason_code(pcfg.NEW_REFUND_CODE),
-            'order_modify':trade.has_reason_code(pcfg.ORDER_ADD_REMOVE_CODE),
-            'addr_modify':trade.has_reason_code(pcfg.ADDR_CHANGE_CODE),
-            'new_merge':trade.has_reason_code(pcfg.NEW_MERGE_TRADE_CODE),
-            'wait_merge':trade.has_reason_code(pcfg.MULTIPLE_ORDERS_CODE),
-            'has_out_stock':trade.has_out_stock,
-        }
+        trade_dict = model_to_dict(trade)
         
+        trade_dict.update({'id':trade.id,
+                           'seller_nick':trade.user.nick,
+                           'used_orders':trade.inuse_orders,
+                           'order_nums':order_nums,
+                           'logistics_company':trade.logistics_company,
+                           'can_review_status':trade.sys_status in pcfg.WAIT_SCAN_CHECK_WEIGHT,
+                           'out_of_logistic':trade.has_reason_code(pcfg.LOGISTIC_ERROR_CODE),
+                           'has_rule_match':(trade.has_rule_match and 
+                                             trade.has_reason_code(pcfg.RULE_MATCH_CODE)),
+                           'is_product_defect':(trade.has_rule_match and 
+                                                trade.has_reason_code(pcfg.TRADE_DEFECT_CODE)),
+                           'need_manual_merge':trade.has_reason_code(pcfg.MULTIPLE_ORDERS_CODE),
+                           'status_name':dict(TAOBAO_TRADE_STATUS).get(trade.status,u'未知'),
+                           'sys_status_name':dict(SYS_TRADE_STATUS).get(trade.sys_status,u'未知'),
+                           'new_memo':trade.has_reason_code(pcfg.NEW_MEMO_CODE),
+                            'new_refund':(trade.has_reason_code(pcfg.WAITING_REFUND_CODE) or 
+                                          trade.has_reason_code(pcfg.NEW_REFUND_CODE)),
+                           'order_modify':trade.has_reason_code(pcfg.ORDER_ADD_REMOVE_CODE),
+                           'addr_modify':trade.has_reason_code(pcfg.ADDR_CHANGE_CODE),
+                           'new_merge':trade.has_reason_code(pcfg.NEW_MERGE_TRADE_CODE),
+                           'wait_merge':trade.has_reason_code(pcfg.MULTIPLE_ORDERS_CODE),
+                           })
+
         return {'trade':trade_dict,'logistics':logistics}
         
               
@@ -850,15 +824,18 @@ def review_order(request,id):
     try:
         merge_trade = MergeTrade.objects.get(id=id)
     except MergeTrade.DoesNotExist:
-        return HttpResponse(json.dumps({'code':1,'response_error':u'该订单不存在'}),mimetype="application/json")
+        return HttpResponse(json.dumps({'code':1,'response_error':u'该订单不存在'}),
+                            mimetype="application/json")
 
     if not merge_trade.can_review and merge_trade.sys_status \
         not in (pcfg.WAIT_CHECK_BARCODE_STATUS,pcfg.WAIT_SCAN_WEIGHT_STATUS):
-        return HttpResponse(json.dumps({'code':1,'response_error':u'该订单不能复审'}),mimetype="application/json")
+        return HttpResponse(json.dumps({'code':1,'response_error':u'该订单不能复审'}),
+                            mimetype="application/json")
     MergeTrade.objects.filter(id=id).update(reason_code='')
     
     log_action(user_id,merge_trade,CHANGE,u'复审通过')
-    return HttpResponse(json.dumps({'code':0,'response_content':{'success':True}}),mimetype="application/json")
+    return HttpResponse(json.dumps({'code':0,'response_content':{'success':True}}),
+                        mimetype="application/json")
 
 
 def change_order_stock_status(request,id):
