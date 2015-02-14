@@ -186,7 +186,8 @@ class RefundProduct(models.Model):
 
     def __unicode__(self):
         
-        info_list = [self.buyer_nick,self.buyer_mobile,self.buyer_phone,str(self.trade_id),self.out_sid,self.company]
+        info_list = [self.buyer_nick,self.buyer_mobile,self.buyer_phone,
+                     str(self.trade_id),self.out_sid,self.company]
         info_string = '-'.join([ s for s in info_list if s])    
         return '<%s,%s,%s>'%(info_string,self.outer_id,self.outer_sku_id)
     

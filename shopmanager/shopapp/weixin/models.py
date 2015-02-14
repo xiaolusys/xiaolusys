@@ -572,7 +572,7 @@ class WXLogistic(models.Model):
     class Meta:
         db_table = 'shop_weixin_logistic'
         verbose_name=u'微信小店快递'
-        verbose_name_plural = u'微信小店快递列表'   
+        verbose_name_plural = u'微信小店快递列表'
     
 
 class ReferalRelationship(models.Model):

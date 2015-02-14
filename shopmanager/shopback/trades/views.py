@@ -544,7 +544,7 @@ class CheckOrderView(ModelView):
             MergeTrade.objects.filter(id=id).update(can_review=True)
             log_action(user_id,trade,CHANGE,u'订单复审')
             
-        return {'success':True}    
+        return {'success':True}
       
        
 class OrderPlusView(ModelView):

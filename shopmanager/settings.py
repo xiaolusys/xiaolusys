@@ -124,6 +124,7 @@ INSTALLED_APPS = (
     'shopback.users',
     'shopback.archives',
     'shopback.purchases',
+    'shopback.aftersale',
     
     'shopapp.autolist',
     'shopapp.collector',
@@ -139,6 +140,7 @@ INSTALLED_APPS = (
     'shopapp.comments',
     'shopapp.weixin',
     'shopapp.tmcnotify',
+    
 
     'shopapp.jingdong',
     'shopapp.intercept',
