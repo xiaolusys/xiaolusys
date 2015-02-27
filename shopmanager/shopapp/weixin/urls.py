@@ -51,6 +51,7 @@ urlpatterns = patterns('shopapp.weixin.views',
         template_name="weixin/baby_archives.html"), 
         name='weixin_baby_archive'),
 
+    url(r'^charge/(?P<pk>\d+)/$', 'chargeWXUser'),
     url(r'^referal/$', ReferalView.as_view()),
     url(r'^referalrules/$', TemplateView.as_view(
             template_name="weixin/referal_rules.html")),

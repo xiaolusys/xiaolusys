@@ -173,6 +173,27 @@ class WeixinAcceptView(View):
         return HttpResponse(response,mimetype="text/xml")
 
 
+def chargeWXUser(request,pk):
+    
+    result = {}
+    charged = False
+    employee = request.user
+    try:
+        supplier = WeiXinUser.objects.get(id=pk)
+    except WeiXinUser.DoesNotExist:
+        result ={'code':1,'error_response':u'微信用户未找到'}
+    else:
+        charged = WeiXinUser.objects.charge(supplier, employee)
+        if not charged:
+            result ={'code':1,'error_response':''}
+            
+    if charged :
+        result ={'success':True}
+        
+        log_action(request.user.id,supplier,CHANGE,u'接管用户')
+    
+    return HttpResponse( json.dumps(result),content_type='application/json')
+
 
 from django.shortcuts import render_to_response
 from django.template import RequestContext

@@ -1,3 +1,8 @@
+########### 2015-2-27  #################
+alter table shop_weixin_user add referal_count int(11) NOT NULL;
+update shop_weixin_user set charge_status = 'uncharge';
+alter table shop_weixin_user add charge_status varchar(16) NOT NULL;
+########### 2015-2-10  #################
 alter table shop_items_daysale add column confirm_num int(11) NOT NULL;
 alter table shop_items_daysale add column confirm_payment double NOT NULL;
 ######## 2015-1-22 ##########

@@ -97,6 +97,45 @@ class WeixinUserManager(models.Manager):
     @property
     def VALID_USER(self):
         return self.get_queryset().exclude(user_group_id=2).filter(isvalid=True)
+    
+    def  charge(self,wx_user,user,*args,**kwargs):
+        
+        from .models import WXUserCharge
+        
+        try:
+            WXUserCharge.objects.get(
+                                      wxuser_id=wx_user.id,
+                                      status=WXUserCharge.EFFECT)
+        except WXUserCharge.DoesNotExist:
+            WXUserCharge.objects.get_or_create(
+                                 wxuser_id=wx_user.id,
+                                 employee=user,
+                                 status=WXUserCharge.EFFECT)
+            
+        else:
+            return False
+        
+        wx_user.charge_status = self.model.CHARGED
+        wx_user.save()
+        return True
+    
+    def  uncharge(self,wx_user,*args,**kwargs):
+        
+        from .models import WXUserCharge
+        
+        try:
+            scharge = WXUserCharge.objects.get(
+                                      wxuser_id=wx_user.id,
+                                      status=WXUserCharge.EFFECT)
+        except WXUserCharge.DoesNotExist:
+            return False
+        else:
+            scharge.status = WXUserCharge.INVALID
+            scharge.save()
+        
+        wx_user.charge_status = self.model.UNCHARGE
+        wx_user.save()
+        return True
         
     
     

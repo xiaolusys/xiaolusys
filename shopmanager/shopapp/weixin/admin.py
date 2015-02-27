@@ -7,6 +7,7 @@ from shopback.base.options import DateFieldListFilter
 from shopapp.weixin.models import (WeiXinAccount,
                                    UserGroup,
                                    WeiXinUser,
+                                   WXUserCharge,
                                    WeiXinAutoResponse,
                                    WXProduct,
                                    WXOrder,
@@ -101,10 +102,43 @@ admin.site.register(UserGroup, UserGroupAdmin)
 class WeiXinUserAdmin(admin.ModelAdmin):
     
     list_display = ('openid','nickname','sex','province','city','subscribe'
-                    ,'subscribe_time','modified','user_group','isvalid')
+                    ,'subscribe_time','referal_count','charge_link','user_group','isvalid')
     
-    list_filter = ('subscribe','isvalid','sex','user_group',)
+    list_filter = ('charge_status','subscribe','isvalid','sex','user_group',)
     search_fields = ['openid','referal_from_openid','nickname','mobile','vmobile','unionid']
+    
+    def charge_link(self, obj):
+
+        if obj.charge_status == WeiXinUser.CHARGED:
+            scharge = WXUserCharge.objects.get(wxuser_id=obj.id,
+                                               status=WXUserCharge.EFFECT)
+            return u'[ %s ]' % scharge.employee.username
+        
+        if obj.charge_status == WeiXinUser.FROZEN:
+            return obj.get_charge_status_display()
+
+        return ('<a href="javascript:void(0);" class="btn btn-primary btn-charge" '
+                + 'style="color:white;" sid="{0}">接管</a></p>'.format(obj.id))
+
+    
+    charge_link.allow_tags = True
+    charge_link.short_description = u"接管信息"
+    
+    class Media:
+        css = {"all": ("admin/css/forms.css","css/admin/dialog.css"
+                       ,"css/admin/common.css", "jquery/jquery-ui-1.10.1.css")}
+        js = ("js/admin/adminpopup.js","js/wxuser_change_list.js")
+    
+    def get_queryset(self,request):
+        
+        qs = super(WeiXinUserAdmin,self).get_queryset(request)
+        return qs
+#         if request.user.is_superuser:
+#             return qs
+#         scharges = SupplierCharge.objects.filter(employee=request.user,status=SupplierCharge.EFFECT)
+#         supplier_ids = [s.supplier_id for s in scharges] 
+#         
+#         return qs.filter(models.Q(status=SaleSupplier.UNCHARGE)|models.Q(id__in=supplier_ids,status=SaleSupplier.CHARGED))
     
 
 admin.site.register(WeiXinUser, WeiXinUserAdmin) 

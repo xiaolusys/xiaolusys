@@ -1,6 +1,7 @@
 #-*- coding:utf8 -*-
 import datetime
 from django.db import models
+from django.contrib.auth.models import User
 from shopback.base.fields import BigIntegerAutoField
 from shopback.base.models import JSONCharMyField
 from .managers import WeixinProductManager,VipCodeManager,WeixinUserManager
@@ -133,6 +134,15 @@ class WeiXinUser(models.Model):
         (FERMALE,u'女')
     )
     
+    CHARGED = 'charged'
+    UNCHARGE = 'uncharge'
+    FROZEN = 'frozen'
+    STATUS_CHOICES = (
+        (UNCHARGE,u'待接管'),
+        (CHARGED,u'已接管'),
+        (FROZEN,u'已冻结'),
+        )
+                    
     openid     = models.CharField(max_length=64,unique=True,verbose_name=u"用户ID")
     nickname   = models.CharField(max_length=64,blank=True,verbose_name=u"昵称")
     unionid   = models.CharField(max_length=64,db_index=True,blank=True,verbose_name=u"UnionID")
@@ -165,13 +175,18 @@ class WeiXinUser(models.Model):
     
     sceneid    = models.CharField(max_length=32,blank=True,verbose_name=u'场景ID')
     
-    user_group  = models.ForeignKey(UserGroup,null=True,blank=True,verbose_name=u"分组")
+    user_group = models.ForeignKey(UserGroup,null=True,blank=True,verbose_name=u"分组")
     
     subscribe   = models.BooleanField(default=False,verbose_name=u"订阅该号")
     subscribe_time = models.DateTimeField(blank=True,null=True,verbose_name=u"订阅时间")
     
     created    = models.DateTimeField(auto_now_add=True,verbose_name=u'创建日期')
     modified   = models.DateTimeField(auto_now=True,verbose_name=u'修改日期')
+    
+    referal_count = models.IntegerField(default=0,verbose_name=u'F码次数')
+    charge_status = models.CharField(max_length=16,blank=True,
+                                       choices=STATUS_CHOICES,
+                                       default=UNCHARGE,verbose_name=u'接管状态')
     
     objects = WeixinUserManager()
     
@@ -221,6 +236,34 @@ class WeiXinUser(models.Model):
     def unSubscribe(self):
         self.subscribe = False
         self.save() 
+
+
+class WXUserCharge(models.Model):
+    
+    EFFECT = 'effect'
+    INVALID  = 'invalid'
+    STATUS_CHOICES = (
+        (EFFECT,u'有效'),
+        (INVALID,u'失效'),
+    )
+    
+    wxuser_id     =   models.IntegerField(default=0,verbose_name=u'微信用户ID')
+    employee      =   models.ForeignKey(User,related_name='employee_wxusers',verbose_name=u'接管人')
+    
+    status  = models.CharField(max_length=16,blank=True,choices=STATUS_CHOICES,
+                                            default=EFFECT,verbose_name=u'状态')
+    
+    created    = models.DateTimeField(auto_now_add=True,verbose_name=u'创建日期')
+    modified   = models.DateTimeField(auto_now=True,verbose_name=u'修改日期')
+    
+    class Meta:
+        db_table = 'shop_weixin_user_charge'
+        unique_together = ( "wxuser_id","employee")
+        verbose_name=u'员工 接管商家'
+        verbose_name_plural = u'员工 接管商家列表'
+        
+    def __unicode__(self):
+        return '<{0},{1},{2}>'.format(self.wxuser_id,self.employee,self.get_status_display())
 
 
 class ResponseManager(models.Manager):
@@ -717,7 +760,7 @@ class VipCode(models.Model):
     CODE_TYPES = ((0,u'试用'), (1,u'购买'))
     
     owner_openid = models.ForeignKey(WeiXinUser,unique=True,related_name="vipcodes", verbose_name=u"微信ID")
-    code = models.CharField(max_length=16,unique=True,null=False,blank=False,verbose_name=u'VIP邀请码')
+    code = models.CharField(max_length=16,unique=True,null=False,blank=False,verbose_name=u'F码')
     expiry = models.DateTimeField(null=False,blank=False,verbose_name=u'过期时间')
 
     ### 1. for getting samples; 2. for purchase discount
