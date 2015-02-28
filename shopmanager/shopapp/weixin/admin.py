@@ -101,8 +101,8 @@ admin.site.register(UserGroup, UserGroupAdmin)
 
 class WeiXinUserAdmin(admin.ModelAdmin):
     
-    list_display = ('openid','nickname','sex','province','city','subscribe'
-                    ,'subscribe_time','referal_count','charge_link','user_group','isvalid')
+    list_display = ('openid','nickname','sex','province','city','mobile','subscribe'
+                    ,'subscribe_time','vipcode_link','referal_count','charge_link','user_group','isvalid')
     
     list_filter = ('charge_status','subscribe','isvalid','sex','user_group',)
     search_fields = ['openid','referal_from_openid','nickname','mobile','vmobile','unionid']
@@ -123,6 +123,17 @@ class WeiXinUserAdmin(admin.ModelAdmin):
     
     charge_link.allow_tags = True
     charge_link.short_description = u"接管信息"
+    
+    def vipcode_link(self, obj):
+
+        vipcodes = VipCode.objects.filter(owner_openid=obj)
+        if vipcodes.count() > 0:
+            return vipcodes[0].code
+        return '-'
+
+    
+    vipcode_link.allow_tags = True
+    vipcode_link.short_description = u"F码"
     
     class Media:
         css = {"all": ("admin/css/forms.css","css/admin/dialog.css"
