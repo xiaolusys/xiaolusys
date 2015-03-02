@@ -119,10 +119,10 @@ weixin_referal_signal.connect(convert_awardreferal2score, sender=WeixinUserAward
 
 class WeixinLinkClicks(models.Model): 
     
-    user_openid = models.CharField(max_length=64,db_index=True,verbose_name=u"申请人ID")
+    user_openid = models.CharField(max_length=64,db_index=True,verbose_name=u"OPEN ID")
     
-    link_url           = models.CharField(max_length=128,db_index=True,blank=True,verbose_name=u'分享链接')
-    clicker_num = models.IntegerField(default=0,verbose_name=u"点击人数")
+    link_url  = models.CharField(max_length=128,db_index=True,blank=True,verbose_name=u'分享链接')
+    clicker_num  = models.IntegerField(default=0,verbose_name=u"点击人数")
     click_count   = models.IntegerField(default=0,verbose_name=u"点击次数")
     
     validated_in = models.IntegerField(default=0,verbose_name=u"有效间隔(s)")

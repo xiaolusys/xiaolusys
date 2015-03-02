@@ -104,6 +104,7 @@ ASYNC_FILE_PATH = os.path.join(PROJECT_ROOT,"site_media","asyncfile")
 WEIXIN_API_HOST    = "https://api.weixin.qq.com"
 WEIXIN_MEDIA_HOST  = "http://file.api.weixin.qq.com"
 WEIXIN_QRCODE_HOST = "https://mp.weixin.qq.com"
+WEIXIN_AUTHORIZE_URL = "https://open.weixin.qq.com/connect/oauth2/authorize"
 WEIXIN_APPID       = 'wxc2848fa1e1aa94b5'
 WEIXIN_SECRET      = 'bc41b3a535b095afc55cd40d2e808d9c'
 

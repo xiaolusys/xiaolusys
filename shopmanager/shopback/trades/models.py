@@ -608,6 +608,11 @@ class MergeOrder(models.Model):
     
     def isInvalid(self):    
         return self.sys_status == pcfg.INVALID_STATUS
+    
+    def clean(self):
+        for field in self._meta.fields:
+            if isinstance(field, (models.CharField, models.TextField)):
+                setattr(self, field.name, getattr(self, field.name).strip())
             
     @classmethod
     def get_yesterday_orders_totalnum(cls,shop_user_id,outer_id,outer_sku_id):
