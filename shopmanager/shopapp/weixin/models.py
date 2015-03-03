@@ -759,7 +759,8 @@ class SampleOrder(models.Model):
 class VipCode(models.Model):
     CODE_TYPES = ((0,u'试用'), (1,u'购买'))
     
-    owner_openid = models.ForeignKey(WeiXinUser,unique=True,related_name="vipcodes", verbose_name=u"微信ID")
+    owner_openid = models.ForeignKey(WeiXinUser,unique=True,
+                                     related_name="vipcodes", verbose_name=u"微信ID")
     code = models.CharField(max_length=16,unique=True,null=False,blank=False,verbose_name=u'F码')
     expiry = models.DateTimeField(null=False,blank=False,verbose_name=u'过期时间')
 

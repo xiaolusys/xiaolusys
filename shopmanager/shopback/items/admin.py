@@ -22,6 +22,7 @@ from shopback.purchases import getProductWaitReceiveNum
 from shopback import paramconfig as pcfg
 from shopback.base import log_action, ADDITION, CHANGE
 from shopback.items import permissions as perms
+from shopback.items.forms import ProductModelForm
 from shopback.base.options import DateFieldListFilter
 from common.utils import gen_cvs_tuple,CSVUnicodeWriter
 import logging 
@@ -63,8 +64,11 @@ admin.site.register(Item, ItemAdmin)
 
 
 class ProductAdmin(admin.ModelAdmin):
-    list_display = ('id','outer_id','pic_link','name_link','collect_num','category_select','warn_num','remain_num','wait_post_num','wait_receive_num'
-                   ,'cost' ,'std_sale_price','sync_stock','is_match','post_check','is_split','district_link','status')
+    
+    form = ProductModelForm
+    list_display = ('id','outer_id','pic_link','name_link','collect_num','category_select',
+                    'warn_num','remain_num','wait_post_num','wait_receive_num','cost' ,'std_sale_price'
+                   ,'sync_stock','is_match','post_check','is_split','district_link','status')
     list_display_links = ('id',)
     #list_editable = ('name',)
     
@@ -73,8 +77,8 @@ class ProductAdmin(admin.ModelAdmin):
     
     def pic_link(self, obj):
         abs_pic_url = obj.pic_path or '%s%s'%(settings.MEDIA_URL,'img/nopic.jpg')
-        return (u'<a href="%s" target="_blank"><img src="%s" width="100px" '
-                +' height="80px" title="%s"/></a>')%(abs_pic_url,abs_pic_url,obj.name)
+        return (u'<a href="/items/product/%d/" target="_blank"><img src="%s" width="100px" '
+                +' height="80px" title="%s"/></a>')%(obj.id,abs_pic_url,obj.name)
     
     pic_link.allow_tags = True
     pic_link.short_description = "商品图片"
@@ -142,13 +146,13 @@ class ProductAdmin(admin.ModelAdmin):
                 ('商品系统设置:', {
                     'classes': ('collapse',),
                     'fields': (('weight','sync_stock','is_assign','is_split','is_match','post_check')
-                               ,('barcode','match_reason','buyer_prompt')
-                               ,'memo')
+                               ,('barcode','match_reason')
+                               ,('buyer_prompt','memo'))
                 }),)
     
     formfield_overrides = {
-        models.CharField: {'widget': TextInput(attrs={'size':'64'})},
-        models.FloatField: {'widget': TextInput(attrs={'size':'24'})},
+        models.CharField: {'widget': TextInput(attrs={'size':64, 'maxlength': '256',})},
+        models.FloatField: {'widget': TextInput(attrs={'size':24})},
         models.TextField: {'widget': Textarea(attrs={'rows':4, 'cols':40})},
     }
     
