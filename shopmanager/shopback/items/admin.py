@@ -5,6 +5,7 @@ import cStringIO as StringIO
 from django.contrib import admin
 from django.http import HttpResponse,HttpResponseRedirect
 from django.db import models
+from django.db import settings
 from django.shortcuts import render_to_response
 from django.template import RequestContext
 from django.forms import TextInput, Textarea
@@ -62,13 +63,21 @@ admin.site.register(Item, ItemAdmin)
 
 
 class ProductAdmin(admin.ModelAdmin):
-    list_display = ('id','outer_id','name_link','collect_num','category_select','warn_num','remain_num','wait_post_num','wait_receive_num'
+    list_display = ('id','outer_id','pic_link','name_link','collect_num','category_select','warn_num','remain_num','wait_post_num','wait_receive_num'
                    ,'cost' ,'std_sale_price','sync_stock','is_match','post_check','is_split','district_link','status')
     list_display_links = ('id',)
     #list_editable = ('name',)
     
     date_hierarchy = 'modified'
     #ordering = ['created_at']
+    
+    def pic_link(self, obj):
+        abs_pic_url = obj.pic_path or '%s%s'%(settings.MEDIA_URL,'img/nopic.jpg')
+        return (u'<a href="%s" target="_blank"><img src="%s" width="100px" '
+                +' height="80px" title="%s"/></a>')%(abs_pic_url,abs_pic_url,obj.name)
+    
+    pic_link.allow_tags = True
+    pic_link.short_description = "商品图片"
     
     def name_link(self, obj):
         return u'<a href="/items/product/%d/" style="display:block;width:200px;">%s</a>' %(obj.id,obj.name or u'--' )
@@ -124,11 +133,11 @@ class ProductAdmin(admin.ModelAdmin):
     #--------设置页面布局----------------
     fieldsets =(('商品基本信息:', {
                     'classes': ('expand',),
-                    'fields': (('outer_id','name','category')
+                    'fields': (('outer_id','category','status')
+                               ,('name','pic_path')
                                ,('collect_num','warn_num','remain_num','wait_post_num')
                                ,('reduce_num','cost','std_sale_price')
-                               ,('std_purchase_price','agent_price','staff_price')
-                               ,('pic_path','status'))
+                               ,('std_purchase_price','agent_price','staff_price'))
                 }),
                 ('商品系统设置:', {
                     'classes': ('collapse',),
@@ -138,8 +147,8 @@ class ProductAdmin(admin.ModelAdmin):
                 }),)
     
     formfield_overrides = {
-        models.CharField: {'widget': TextInput(attrs={'size':'16'})},
-        models.FloatField: {'widget': TextInput(attrs={'size':'16'})},
+        models.CharField: {'widget': TextInput(attrs={'size':'64'})},
+        models.FloatField: {'widget': TextInput(attrs={'size':'24'})},
         models.TextField: {'widget': Textarea(attrs={'rows':4, 'cols':40})},
     }
     
