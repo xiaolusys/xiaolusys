@@ -180,7 +180,7 @@ def mergeRemover(trade):
     return True
 
 
-def driveMergeTrade(trade):
+def driveMergeTrade(trade,latest_paytime=None):
     """ 驱动合单程序 """
     
     if not isinstance(trade,MergeTrade):
@@ -207,7 +207,8 @@ def driveMergeTrade(trade):
                             buyer_nick, 
                             receiver_name, 
                             receiver_mobile, 
-                            receiver_phone)
+                            receiver_phone,
+                            latest_paytime=latest_paytime)
         
         scan_merge_trades = merge_queryset.filter(sys_status__in=(
                                     pcfg.WAIT_CHECK_BARCODE_STATUS,

@@ -155,7 +155,7 @@ class VipCodeManager(models.Manager):
         vipcodes = self.filter(owner_openid=wx_user)
         if vipcodes.count() > 0:
             return vipcodes[0].code
-
+        
         expiry = datetime.datetime(2014,9,7,0,0,0)
         code_type = 0
         code_rule = u'免费试用'
