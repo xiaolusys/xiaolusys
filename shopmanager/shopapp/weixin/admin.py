@@ -133,16 +133,17 @@ class WeiXinUserAdmin(admin.ModelAdmin):
     vipcode_link.allow_tags = True
     vipcode_link.short_description = u"F码"
     
-    def get_queryset(self,request):
+    def queryset(self,request):
         
-        qs = super(WeiXinUserAdmin,self).get_queryset(request)
+        qs = super(WeiXinUserAdmin,self).queryset(request)
+        print 'qs',qs.count()
         if request.user.is_superuser:
             return qs
         scharges = WXUserCharge.objects.filter(employee=request.user,status=WXUserCharge.EFFECT)
-        supplier_ids = [s.supplier_id for s in scharges] 
+        wxuser_ids = [s.wxuser_id for s in scharges] 
         
-        return qs.filter(models.Q(status=WeiXinUser.UNCHARGE)|
-                         models.Q(id__in=supplier_ids,status=WeiXinUser.CHARGED))
+        return qs.filter(models.Q(charge_status=WeiXinUser.UNCHARGE)|
+                         models.Q(id__in=wxuser_ids,charge_status=WeiXinUser.CHARGED))
     
     class Media:
         css = {"all": ("admin/css/forms.css","css/admin/dialog.css"
