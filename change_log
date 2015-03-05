@@ -1,3 +1,9 @@
+########### 2015-3-5  #################
+alter table shop_weixin_sale_linkclicks add link_type varchar(8) NOT NULL;
+update shop_weixin_sale_linkclicks set link_type='sample';
+alter table shop_weixin_sale_linkclicks drop index shop_weixin_sale_linkclicks_6338e735;
+create index shop_weixin_sale_linkclicks_118edc33 on shop_weixin_sale_linkclicks(link_type);
+create unique index user_openid on shop_weixin_sale_linkclicks(user_openid,link_url,link_type);
 ########### 2015-2-27  #################
 alter table shop_weixin_user add referal_count int(11) NOT NULL;
 update shop_weixin_user set charge_status = 'uncharge';

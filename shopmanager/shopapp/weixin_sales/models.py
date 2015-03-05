@@ -119,9 +119,18 @@ weixin_referal_signal.connect(convert_awardreferal2score, sender=WeixinUserAward
 
 class WeixinLinkClicks(models.Model): 
     
-    user_openid = models.CharField(max_length=64,db_index=True,verbose_name=u"OPEN ID")
+    SAMPLE_LINK = 'sample'
+    SALE_LINK   = 'sale'
+    LINK_TYPE_CHOICES = (
+                         (SAMPLE_LINK,u'试用链接'),
+                         (SALE_LINK,u'特卖链接'))
+    
+    user_openid = models.CharField(max_length=64,verbose_name=u"OPEN ID")
     
     link_url  = models.CharField(max_length=128,db_index=True,blank=True,verbose_name=u'分享链接')
+    link_type = models.CharField(max_length=8,choices=LINK_TYPE_CHOICES
+                                 ,db_index=True,default=SAMPLE_LINK,verbose_name=u'链接类型')
+    
     clicker_num  = models.IntegerField(default=0,verbose_name=u"点击人数")
     click_count   = models.IntegerField(default=0,verbose_name=u"点击次数")
     
@@ -131,7 +140,8 @@ class WeixinLinkClicks(models.Model):
     created  = models.DateTimeField(auto_now_add=True,blank=True,null=True,verbose_name=u'创建日期')
     
     class Meta:
-        db_table = 'shop_weixin_sale_linkclicks'
+        db_table = 'shop_weixin_sale_linkclicks_tmp'
+        unique_together = ("user_openid","link_url","link_type")
         verbose_name = u'微信分享点击'
         verbose_name_plural = u'微信分享点击列表'
     
@@ -148,9 +158,16 @@ def create_weixin_link_click(sender,instance,*args,**kwargs):
     try:
         wx_user = WeiXinUser.objects.get(openid=user_openid)
         link_url  = reverse('weixin_sampleads',args=(wx_user.pk,))
-        WeixinLinkClicks.objects.get_or_create(
+        
+        wlc,state = WeixinLinkClicks.objects.get_or_create(
                                                user_openid=user_openid,
-                                               link_url=link_url)
+                                               link_url=link_url,
+                                               link_type=WeixinLinkClicks.SAMPLE_LINK)
+        
+        wlc.clicker_num = 0
+        wlc.click_count = 0
+        wlc.save()
+        
     except Exception,exc:
         import logging
         logger = logging.getLogger("django.request")

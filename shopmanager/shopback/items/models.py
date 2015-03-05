@@ -47,6 +47,7 @@ class Product(models.Model):
     
     ProductCodeDefect = ProductDefectException
     PRODUCT_CODE_DELIMITER = '.'
+    NO_PIC_PATH = '/media/img/nopic.jpg'
     
     outer_id     = models.CharField(max_length=64,unique=True,null=False,
                                     blank=True,verbose_name=u'外部编码')
@@ -131,7 +132,11 @@ class Product(models.Model):
             self.wait_post_num = self.wait_post_num >0 and self.wait_post_num or 0 
             self.save()
         return self.collect_num-self.wait_post_num <= 0
-    
+        
+    @property
+    def PIC_PATH(self):
+        return self.pic_path.strip() or self.NO_PIC_PATH
+        
     @property
     def json(self):
         

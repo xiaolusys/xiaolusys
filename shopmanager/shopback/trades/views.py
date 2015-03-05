@@ -249,9 +249,11 @@ class StatisticMergeOrderView(ModelView):
                 prod_sku_name  = prod_sku.name if prod_sku else order.sku_properties_name
                 purchase_price = float(prod_sku.cost) if prod_sku else payment/order_num    
                 trade_items[outer_id]={
+                                       'product_id':prod.id,
                                        'num':order_num,
                                        'title': prod.name if prod else order.title,
                                        'cost':purchase_price*order_num ,
+                                       'pic_path':prod.PIC_PATH,
                                        'sales':payment,
                                        'skus':{outer_sku_id:{
                                             'sku_name':prod_sku_name,
