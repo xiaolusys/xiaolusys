@@ -140,7 +140,7 @@ class WeixinLinkClicks(models.Model):
     created  = models.DateTimeField(auto_now_add=True,blank=True,null=True,verbose_name=u'创建日期')
     
     class Meta:
-        db_table = 'shop_weixin_sale_linkclicks_tmp'
+        db_table = 'shop_weixin_sale_linkclicks'
         unique_together = ("user_openid","link_url","link_type")
         verbose_name = u'微信分享点击'
         verbose_name_plural = u'微信分享点击列表'

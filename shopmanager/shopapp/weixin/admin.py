@@ -119,7 +119,6 @@ class WeiXinUserAdmin(admin.ModelAdmin):
 
         return ('<a href="javascript:void(0);" class="btn btn-primary btn-charge" '
                 + 'style="color:white;" sid="{0}">接管</a></p>'.format(obj.id))
-
     
     charge_link.allow_tags = True
     charge_link.short_description = u"接管信息"
@@ -130,10 +129,20 @@ class WeiXinUserAdmin(admin.ModelAdmin):
         if vipcodes.count() > 0:
             return vipcodes[0].code
         return '-'
-
     
     vipcode_link.allow_tags = True
     vipcode_link.short_description = u"F码"
+    
+    def get_queryset(self,request):
+        
+        qs = super(WeiXinUserAdmin,self).get_queryset(request)
+        if request.user.is_superuser:
+            return qs
+        scharges = WXUserCharge.objects.filter(employee=request.user,status=WXUserCharge.EFFECT)
+        supplier_ids = [s.supplier_id for s in scharges] 
+        
+        return qs.filter(models.Q(status=WeiXinUser.UNCHARGE)|
+                         models.Q(id__in=supplier_ids,status=WeiXinUser.CHARGED))
     
     class Media:
         css = {"all": ("admin/css/forms.css","css/admin/dialog.css"
