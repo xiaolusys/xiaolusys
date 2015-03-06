@@ -59,11 +59,11 @@ class Product(models.Model):
     pic_path     = models.CharField(max_length=256,blank=True,verbose_name=u'图片链接')
     
     collect_num  = models.IntegerField(default=0,verbose_name=u'库存数')  #库存数
-    warn_num     = models.IntegerField(null=True,default=0,verbose_name=u'警告数')    #警戒库位
-    remain_num   = models.IntegerField(null=True,default=0,verbose_name=u'预留数')    #预留库存
-    wait_post_num   = models.IntegerField(null=True,default=0,verbose_name=u'待发数') #待发数
-    retrieval_num  = models.IntegerField(null=True,default=0,verbose_name=u'日出库数')    #日出库
-    reduce_num   = models.IntegerField(null=True,default=0,verbose_name=u'预减数')    #下次入库减掉这部分库存
+    warn_num     = models.IntegerField(null=True,default=0,verbose_name=u'警告数')  #警戒库位
+    remain_num   = models.IntegerField(null=True,default=0,verbose_name=u'预留数')  #预留库存
+    wait_post_num   = models.IntegerField(null=True,default=0,verbose_name=u'待发数')  #待发数
+    retrieval_num  = models.IntegerField(null=True,default=0,verbose_name=u'日出库数')  #日出库
+    reduce_num   = models.IntegerField(null=True,default=0,verbose_name=u'预减数')  #下次入库减掉这部分库存
     
     cost         = models.FloatField(default=0,verbose_name=u'成本价')
     std_purchase_price = models.FloatField(default=0,verbose_name=u'标准进价')
@@ -82,7 +82,7 @@ class Product(models.Model):
     is_match   = models.BooleanField(default=False,verbose_name=u'有匹配')
     
     sync_stock   = models.BooleanField(default=True,verbose_name=u'库存同步')
-    is_assign    = models.BooleanField(default=False,verbose_name=u'取消警告') 
+    is_assign    = models.BooleanField(default=False,verbose_name=u'取消警告')
     
     post_check   = models.BooleanField(default=False,verbose_name=u'需扫描')
     status       = models.CharField(max_length=16,db_index=True,

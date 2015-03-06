@@ -10,6 +10,7 @@ from shopapp.weixin.models import (WeiXinAccount,
                                    WXUserCharge,
                                    WeiXinAutoResponse,
                                    WXProduct,
+                                   WXProductSku,
                                    WXOrder,
                                    WXLogistic,
                                    #ReferalRelationship,
@@ -204,6 +205,16 @@ class WXProductAdmin(admin.ModelAdmin):
     search_fields = ['product_id','product_name']
     
 admin.site.register(WXProduct, WXProductAdmin) 
+
+class WXProductSkuAdmin(admin.ModelAdmin):
+    
+    list_display = ('sku_id','product','outer_id','outer_sku_id',
+                    'sku_name','sku_img','sku_price','ori_price','status')
+    
+    list_filter = ('status',)
+    search_fields = ['sku_id','product_id','outer_id','outer_sku_id']
+    
+admin.site.register(WXProductSku, WXProductSkuAdmin) 
 
 
 class WXOrderAdmin(admin.ModelAdmin):

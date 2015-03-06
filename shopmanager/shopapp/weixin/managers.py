@@ -47,7 +47,31 @@ class WeixinProductManager(models.Manager):
          
         product.save()
         
+        for sku_dict in product.sku_list:
+            self.createSkuByDict(product, sku_dict)
+        
         return product
+    
+    def createSkuByDict(self,product,sku_dict):
+        
+        from .models import WXProductSku
+        from shopback.items.models import Product
+        
+        sku_id = sku_dict['sku_id']
+        product_sku,state   = WXProductSku.objects.get_or_create(product=product,
+                                                                 sku_id=sku_id)
+        
+        product_sku.outer_id,product_sku.outer_sku_id = Product.objects.trancecode(
+                                                               sku_dict['product_code'], '',
+                                                               sku_code_prior=True)
+        
+        product_sku.sku_img = sku_dict['icon_url']
+        product_sku.sku_num  = sku_dict['quantity']
+        
+        product_sku.sku_price   = round(float(sku_dict['price'])/100,2)
+        product_sku.ori_price   = round(float(sku_dict['ori_price'])/100,2)
+        
+        product_sku.save()
     
     @property
     def UPSHELF(self):
@@ -103,8 +127,7 @@ class WeixinUserManager(models.Manager):
         from .models import WXUserCharge
         
         try:
-            WXUserCharge.objects.get(
-                                      wxuser_id=wx_user.id,
+            WXUserCharge.objects.get(wxuser_id=wx_user.id,
                                       status=WXUserCharge.EFFECT)
         except WXUserCharge.DoesNotExist:
             WXUserCharge.objects.get_or_create(

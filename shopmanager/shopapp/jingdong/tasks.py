@@ -210,9 +210,11 @@ def syncWareStockByJDShopTask(jd_ware):
 #        if product.outer_id == '3116BG7':
 #            sync_num = product_sku.warn_num > 0 and min(sync_num,product_sku.warn_num+10) or min(sync_num,15)
 #    
+        if product_sku.is_assign:
+            sync_num = 0
+            
         #同步库存数不为0，或者没有库存警告，同步数量不等于线上库存，并且店铺，商品，规格同步状态正确
-        if (not (sync_num == 0 and product_sku.is_assign) 
-            and sync_num != sku['stock_num']):
+        if (sync_num != sku['stock_num']):
             
             api.jd_sku_stock_update(outer_id=sku['outer_id'],
                                     quantity=sync_num,

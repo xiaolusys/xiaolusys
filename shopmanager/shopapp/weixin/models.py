@@ -431,9 +431,7 @@ class WXProduct(models.Model):
         (DOWN_SHELF,u'下架')
     )
     
-    product_id   = models.CharField(max_length=32,
-                                    primary_key=True,
-                                    verbose_name=u'商品ID')
+    product_id   = models.CharField(max_length=32,primary_key=True,verbose_name=u'商品ID')
     
     product_name = models.CharField(max_length=64,verbose_name=u'商品标题')
     product_img  = models.CharField(max_length=512,verbose_name=u'商品图片')
@@ -482,20 +480,22 @@ class WXProductSku(models.Model):
         (DOWN_SHELF,u'下架')
             )
             
-    sku_id   = models.CharField(max_length=32,
-                                    primary_key=True,
-                                    verbose_name=u'规格ID')
-            
+    sku_id   = models.CharField(max_length=64,primary_key=True,verbose_name=u'规格ID')
+    product  = models.ForeignKey(WXProduct,verbose_name=u'微信商品')
+    
     outer_id = models.CharField(max_length=64,blank=True,verbose_name=u'商品编码')
-    outer_sku_id = models.CharField(max_length=20,blank=True,verbose_name=u'规格编码')
+    outer_sku_id = models.CharField(max_length=64,blank=True,verbose_name=u'规格编码')
             
     sku_name = models.CharField(max_length=64,verbose_name=u'规格名称')
     sku_img  = models.CharField(max_length=512,verbose_name=u'规格图片')
-   
-    status       = models.IntegerField(null=False,default=0,
+    sku_num  = models.IntegerField(default=0,verbose_name=u"规格数量")
+    
+    sku_price = models.FloatField(default=0,verbose_name=u'售价')
+    ori_price = models.FloatField(default=0,verbose_name=u'原价')
+    
+    status       = models.IntegerField(null=False,default=UP_SHELF,
                                        choices=PRODUCT_STATUS,
                                        verbose_name=u'是否上架')
-
     
     class Meta:
         db_table = 'shop_weixin_productsku'
@@ -503,7 +503,7 @@ class WXProductSku(models.Model):
         verbose_name_plural = u'微信小店商品列表'
 
     def __unicode__(self):
-        return u'<WXProductSku:%s>'%(self.product_id)
+        return u'<WXProductSku:%s,%s>'%(self.outer_id,self.outer_sku_id)
     
        
 class WXOrder(models.Model):
@@ -666,7 +666,8 @@ class ReferalSummary(models.Model):
 
 
 class Refund(models.Model):
-    REFUND_TYPES = ((0,u'晒单返现'), (1,u'VIP邀请'), (2,u'10积分换购'), (3,u'满100元返10元'),(4,u'100元免单'),(5,u'10积分返邮费'))
+    
+    REFUND_TYPES = ((0,u'晒单返现'), (1,u'VIP邀请'), (2,u'10积分换购'),(3,u'满100元返10元'),(4,u'100元免单'),(5,u'10积分返邮费'))
     REFUND_STATUSES = ((0,u'等待审核'), (1,u'审核通过'), (2,u'审核不通过'),(3,u'完成'))
     PAY_TYPES = ((0,u'申请退款'), (1,u'退邮费'), (2,u'支付宝转账'), (3, u'银行转账'))
 
@@ -697,7 +698,6 @@ class Refund(models.Model):
     pay_note = models.CharField(max_length=256, blank=True, verbose_name=u'返现备注')
 
     created = models.DateTimeField(null=True,db_index=True,auto_now_add=True,verbose_name=u'申请日期')
-
 
     class Meta:
         db_table = 'shop_weixin_refund'
@@ -871,7 +871,7 @@ class WeixinUserScore(models.Model):
     
     user_openid = models.CharField(max_length=64,unique=True,verbose_name=u"微信ID")
     
-    user_score  = models.PositiveIntegerField(default=0,verbose_name=u'剩余积分')  
+    user_score  = models.PositiveIntegerField(default=0,verbose_name=u'剩余积分')
     
     expiring_score = models.PositiveIntegerField(default=0,verbose_name=u'即将过期积分')
     
@@ -881,7 +881,7 @@ class WeixinUserScore(models.Model):
     class Meta:
         db_table = 'shop_weixin_user_score'
         verbose_name = u'用户积分'
-        verbose_name_plural = u'用户积分列表'      
+        verbose_name_plural = u'用户积分列表'
         
         
 class WeixinScoreItem(models.Model):
