@@ -480,7 +480,7 @@ class WXProductSku(models.Model):
         (DOWN_SHELF,u'下架')
             )
             
-    sku_id   = models.CharField(max_length=64,primary_key=True,verbose_name=u'规格ID')
+    sku_id   = models.CharField(max_length=64,verbose_name=u'规格ID')
     product  = models.ForeignKey(WXProduct,verbose_name=u'微信商品')
     
     outer_id = models.CharField(max_length=64,blank=True,verbose_name=u'商品编码')
@@ -499,6 +499,7 @@ class WXProductSku(models.Model):
     
     class Meta:
         db_table = 'shop_weixin_productsku'
+        unique_together = ("sku_id","product")
         verbose_name=u'微信小店商品'
         verbose_name_plural = u'微信小店商品列表'
 
