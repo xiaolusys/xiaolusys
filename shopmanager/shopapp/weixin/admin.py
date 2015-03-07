@@ -1,7 +1,9 @@
 #-*- coding:utf-8 -*-
+import re
 import urllib
 from django.contrib import admin
 from django.db import models
+from django.conf import settings
 from django.forms import TextInput, Textarea
 from shopback.base.options import DateFieldListFilter
 from shopapp.weixin.models import (WeiXinAccount,
@@ -136,8 +138,20 @@ class WeiXinUserAdmin(admin.ModelAdmin):
     
     def queryset(self,request):
         
+
+        #如果查询条件中含有邀请码
+        search_q = request.GET.get('q','').strip()
+        if search_q.isdigit() and len(search_q) in (6,8):
+            vipcodes = VipCode.objects.filter(vip_code=search_q)
+            wxuser_ids = [v.owner_openid.id for v in vipcodes]
+            return WeiXinUser.objects.filter(models.Q(id__in=wxuser_ids)|
+                                             models.Q(nickname__contains=search_q))
+        
+        if re.compile('^[\w-]{24,64}$').match(search_q):
+            return WeiXinUser.objects.filter(models.Q(openid=search_q)|
+                                             models.Q(referal_from_openid=search_q))
+            
         qs = super(WeiXinUserAdmin,self).queryset(request)
-        print 'qs',qs.count()
         if request.user.is_superuser:
             return qs
         scharges = WXUserCharge.objects.filter(employee=request.user,status=WXUserCharge.EFFECT)
@@ -151,18 +165,6 @@ class WeiXinUserAdmin(admin.ModelAdmin):
                        ,"css/admin/common.css", "jquery/jquery-ui-1.10.1.css")}
         js = ("js/admin/adminpopup.js","js/wxuser_change_list.js")
     
-    def get_queryset(self,request):
-        
-        qs = super(WeiXinUserAdmin,self).get_queryset(request)
-        return qs
-#         if request.user.is_superuser:
-#             return qs
-#         scharges = SupplierCharge.objects.filter(employee=request.user,status=SupplierCharge.EFFECT)
-#         supplier_ids = [s.supplier_id for s in scharges] 
-#         
-#         return qs.filter(models.Q(status=SaleSupplier.UNCHARGE)|models.Q(id__in=supplier_ids,status=SaleSupplier.CHARGED))
-    
-
 admin.site.register(WeiXinUser, WeiXinUserAdmin) 
 
 
@@ -209,10 +211,18 @@ admin.site.register(WXProduct, WXProductAdmin)
 class WXProductSkuAdmin(admin.ModelAdmin):
     
     list_display = ('sku_id','product','outer_id','outer_sku_id',
-                    'sku_name','sku_img','sku_price','ori_price','status')
+                    'sku_name','pic_link','sku_price','ori_price','status')
     
     list_filter = ('status',)
     search_fields = ['sku_id','product_id','outer_id','outer_sku_id']
+    
+    def pic_link(self, obj):
+        abs_pic_url = obj.sku_img or '%s%s'%(settings.MEDIA_URL,settings.NO_PIC_PATH)
+        return (u'<img src="%s" width="100px" height="80px" title="%s"/></a>')%(abs_pic_url,
+                                                                                obj.product.product_name)
+    
+    pic_link.allow_tags = True
+    pic_link.short_description = "商品图片"
     
 admin.site.register(WXProductSku, WXProductSkuAdmin) 
 

@@ -35,7 +35,15 @@ from shopapp.weixin.views import (WeixinAcceptView,
                                   ClickScoreView,
                                   ScoreMenuView,
                                   GiftView,
+                                  WeixinProductView,
                                   TestView)
+
+from shopback.base.renderers  import BaseJsonRenderer
+from shopback.base.permissions import IsAuthenticated
+from shopback.base.authentication import UserLoggedInAuthentication
+from .resources import WeixinProductResource
+from .renderers import WeixinProductHtmlRenderer
+
 
 urlpatterns = patterns('shopapp.weixin.views',
 
@@ -106,6 +114,13 @@ urlpatterns = patterns('shopapp.weixin.views',
     (r'^examination/',include('shopapp.weixin_examination.urls')),
     (r'^sales/',include('shopapp.weixin_sales.urls')),
     (r'^score/',include('shopapp.weixin_score.urls')),
+    
+    url(r'^product/sync/$',WeixinProductView.as_view(
+        resource=WeixinProductResource,
+        renderers=(BaseJsonRenderer,WeixinProductHtmlRenderer),
+        authentication=(UserLoggedInAuthentication,),
+        permissions=(IsAuthenticated,)),name='weixin_product_modify'),
+    
     url(r'^warn/$','warn',name='weixin_warn'),
     url(r'^rights/$','rights',name='weixin_feedback'),
     url(r'^napay/$','napay',name='weixin_napay'),

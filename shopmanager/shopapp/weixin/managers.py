@@ -5,6 +5,7 @@ from django.db import models
 from django.db.models import Q,Sum
 from django.db.models.signals import post_save
 from django.db import IntegrityError, transaction
+from django.forms.models import model_to_dict
 
 from shopapp.signals import weixin_referal_signal
 
@@ -18,11 +19,11 @@ class WeixinProductManager(models.Manager):
             return super_tm.get_query_set()
         return super_tm.get_queryset()
     
-    def getOrCreate(self,product_id):
+    def getOrCreate(self,product_id,force_update=False):
         
         product,state = self.get_or_create(product_id=product_id)
         
-        if not state and product.status:
+        if not force_update and not state and product.status:
             return product
         
         from .weixin_apis import WeiXinAPI
@@ -72,6 +73,28 @@ class WeixinProductManager(models.Manager):
         product_sku.ori_price   = round(float(sku_dict['ori_price'])/100,2)
         
         product_sku.save()
+        
+    def fetchSkuMatchInfo(self,product):
+        
+        from .models import WXProductSku
+        product_dict = model_to_dict(product)
+        product_dict['pskus'] = []
+        
+        for sku in product.pskus.order_by('outer_id'):
+            
+            sku_dict = model_to_dict(sku)
+            outer_id = product.outer_id
+            outer_sku_id = sku.outer_id
+            wsku_list_dict = WXProductSku.objects.filter(
+                                        outer_id=outer_id,
+                                        outer_sku_id=outer_sku_id,
+                                        status=WXProductSku.UP_SHELF).values()
+                                        
+            sku_dict['wskus'] = wsku_list_dict
+                
+            product_dict['pskus'].append(sku_dict)
+            
+        return product_dict
     
     @property
     def UPSHELF(self):

@@ -259,8 +259,8 @@ class WXUserCharge(models.Model):
     class Meta:
         db_table = 'shop_weixin_user_charge'
         unique_together = ( "wxuser_id","employee")
-        verbose_name=u'员工 接管商家'
-        verbose_name_plural = u'员工 接管商家列表'
+        verbose_name=u'微信用户接管'
+        verbose_name_plural = u'微信用户接管列表'
         
     def __unicode__(self):
         return '<{0},{1},{2}>'.format(self.wxuser_id,self.employee,self.get_status_display())
@@ -500,8 +500,8 @@ class WXProductSku(models.Model):
     class Meta:
         db_table = 'shop_weixin_productsku'
         unique_together = ("sku_id","product")
-        verbose_name=u'微信小店商品'
-        verbose_name_plural = u'微信小店商品列表'
+        verbose_name=u'微信小店规格'
+        verbose_name_plural = u'微信小店规格列表'
 
     def __unicode__(self):
         return u'<WXProductSku:%s,%s>'%(self.outer_id,self.outer_sku_id)

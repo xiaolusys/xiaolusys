@@ -6,9 +6,11 @@ from django.contrib import admin
 from django.http import HttpResponse,HttpResponseRedirect
 from django.db import models
 from django.db import settings
+from django.core.urlresolvers import reverse
 from django.shortcuts import render_to_response
 from django.template import RequestContext
 from django.forms import TextInput, Textarea
+
 from shopback.items.models import (Item,Product,
                                    ProductSku,
                                    ProductLocation,
@@ -76,7 +78,7 @@ class ProductAdmin(admin.ModelAdmin):
     #ordering = ['created_at']
     
     def pic_link(self, obj):
-        abs_pic_url = obj.pic_path or '%s%s'%(settings.MEDIA_URL,'img/nopic.jpg')
+        abs_pic_url = obj.pic_path or '%s%s'%(settings.MEDIA_URL,settings.NO_PIC_PATH)
         return (u'<a href="/items/product/%d/" target="_blank"><img src="%s" width="100px" '
                 +' height="80px" title="%s"/></a>')%(obj.id,abs_pic_url,obj.name)
     
@@ -278,41 +280,41 @@ class ProductAdmin(admin.ModelAdmin):
     
     sync_purchase_items_stock.short_description = u"同步分销商品库存"
     
-    #根据线上商品SKU 更新系统商品SKU
-    def update_items_sku(self,request,queryset):
-        
-        from shopback.items.tasks import updateUserProductSkuTask
-        users = User.objects.filter(status=pcfg.NORMAL,is_primary=True)
-        sync_items = []
-        for prod in queryset:
-            pull_dict = {'outer_id':prod.outer_id,'name':prod.name}
-            try:
-                items = Item.objects.filter(outer_id=prod.outer_id)
-                for item in items:
-                    Item.get_or_create(item.user.visitor_id,item.num_iid,force_update=True)    
-                
-                for u in users:
-                    updateUserProductSkuTask(user_id=u.visitor_id,outer_ids=[prod.outer_id])
-                    
-                item_sku_outer_ids = set()
-                items = Item.objects.filter(outer_id=prod.outer_id)
-                for item in items:
-                    sku_dict = json.loads(item.skus or '{}')
-                    if sku_dict:
-                        sku_list = sku_dict.get('sku')
-                        item_sku_outer_ids.update([ sku.get('outer_id','') for sku in sku_list])
-                prod.prod_skus.exclude(outer_id__in=item_sku_outer_ids).update(status=pcfg.REMAIN)
-            except Exception,exc:
-                pull_dict['success']=False
-                pull_dict['errmsg']=exc.message or '%s'%exc  
-            else:
-                pull_dict['success']=True
-            sync_items.append(pull_dict)
-       
-        return render_to_response('items/product_action.html',{'prods':sync_items,'action_name':u'更新商品SKU'},
-                                  context_instance=RequestContext(request),mimetype="text/html")
-    
-    update_items_sku.short_description = u"更新系统商品SKU"    
+#     #根据线上商品SKU 更新系统商品SKU
+#     def update_items_sku(self,request,queryset):
+#         
+#         from shopback.items.tasks import updateUserProductSkuTask
+#         users = User.objects.filter(status=pcfg.NORMAL,is_primary=True)
+#         sync_items = []
+#         for prod in queryset:
+#             pull_dict = {'outer_id':prod.outer_id,'name':prod.name}
+#             try:
+#                 items = Item.objects.filter(outer_id=prod.outer_id)
+#                 for item in items:
+#                     Item.get_or_create(item.user.visitor_id,item.num_iid,force_update=True)    
+#                 
+#                 for u in users:
+#                     updateUserProductSkuTask(user_id=u.visitor_id,outer_ids=[prod.outer_id])
+#                     
+#                 item_sku_outer_ids = set()
+#                 items = Item.objects.filter(outer_id=prod.outer_id)
+#                 for item in items:
+#                     sku_dict = json.loads(item.skus or '{}')
+#                     if sku_dict:
+#                         sku_list = sku_dict.get('sku')
+#                         item_sku_outer_ids.update([ sku.get('outer_id','') for sku in sku_list])
+#                 prod.prod_skus.exclude(outer_id__in=item_sku_outer_ids).update(status=pcfg.REMAIN)
+#             except Exception,exc:
+#                 pull_dict['success']=False
+#                 pull_dict['errmsg']=exc.message or '%s'%exc  
+#             else:
+#                 pull_dict['success']=True
+#             sync_items.append(pull_dict)
+#        
+#         return render_to_response('items/product_action.html',{'prods':sync_items,'action_name':u'更新商品SKU'},
+#                                   context_instance=RequestContext(request),mimetype="text/html")
+#     
+#     update_items_sku.short_description = u"更新系统商品SKU"    
     
     #取消该商品缺货订单
     def cancle_orders_out_stock(self,request,queryset):
@@ -355,11 +357,12 @@ class ProductAdmin(admin.ModelAdmin):
     #取消商品库存同步（批量）
     def cancel_syncstock_action(self,request,queryset):
          
+        count = queryset.count
         for p in queryset:
             p.sync_stock = False
             p.save()
         
-        self.message_user(request,u"已成功取消%s个商品库存同步!"%queryset.count())
+        self.message_user(request,u"已成功取消%s个商品库存同步!"%(count - queryset.count()))
         
         return HttpResponseRedirect(request.get_full_path())
         
@@ -415,6 +418,20 @@ class ProductAdmin(admin.ModelAdmin):
         
     deliver_saleorder_action.short_description = u"释放商品定时订单"
     
+    #商品库存
+    def weixin_product_action(self,request,queryset):
+        
+        if queryset.count() > 10:
+            self.message_user(request,u"*********选择更新的商品数不能超过10个************")
+            return HttpResponseRedirect(request.get_full_path())
+         
+        product_ids = ','.join([str(p.id) for p in queryset])
+        
+        return HttpResponseRedirect(reverse('weixin_product_modify')
+                                    +'?format=html&product_ids=%s'%product_ids)
+        
+    weixin_product_action.short_description = u"更新微信商品库存信息"
+    
     #导出商品规格信息
     def export_prodsku_info_action(self,request,queryset):
         """ 导出商品及规格信息 """
@@ -451,7 +468,7 @@ class ProductAdmin(admin.ModelAdmin):
     actions = ['sync_items_stock',
                'invalid_product_action',
                'sync_purchase_items_stock',
-               'update_items_sku',
+               'weixin_product_action',
                'cancle_orders_out_stock',
                'active_syncstock_action',
                'cancel_syncstock_action',

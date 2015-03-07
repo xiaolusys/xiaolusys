@@ -4,21 +4,27 @@ import datetime
 import json
 from django.core.serializers.json import DjangoJSONEncoder
 from django.http import HttpResponse,HttpResponseNotFound
-from django.shortcuts import render_to_response
-from django.template import RequestContext
 from django.db.models import Q,Sum
 from django.conf import settings
 from django.views.decorators.csrf import csrf_exempt
 from django.template.loader import render_to_string
+
 from djangorestframework.serializer import Serializer
 from djangorestframework.utils import as_tuple
 from djangorestframework import status
 from djangorestframework.response import Response,ErrorResponse
 from djangorestframework.mixins import CreateModelMixin
+
 from shopback import paramconfig as pcfg
 from shopback.base.views import ModelView,ListOrCreateModelView,ListModelView
-from shopback.items.models import Item,SkuProperty,Product,ProductSku,ProductLocation,\
-    ProductDaySale,APPROVE_STATUS,ONLINE_PRODUCT_STATUS
+from shopback.items.models import (Item,
+                                   SkuProperty,
+                                   Product,
+                                   ProductSku,
+                                   ProductLocation,
+                                   ProductDaySale,
+                                   APPROVE_STATUS,
+                                   ONLINE_PRODUCT_STATUS)
 from shopback.archives.models import DepositeDistrict
 from shopback.users.models import User
 from shopback.items.tasks import updateUserItemsTask,updateItemNum
@@ -26,6 +32,7 @@ from shopback.base.authentication import login_required_ajax
 from auth import apis,staff_requried
 from common.utils  import update_model_fields,parse_date,format_date
 from shopback.base import log_action, ADDITION, CHANGE
+
 import logging
 
 DISTRICT_REGEX = '^(?P<pno>[a-zA-Z0-9]+)-(?P<dno>[a-zA-Z0-9]+)?$'
@@ -1093,4 +1100,4 @@ class StatProductSaleView(ModelView):
         
     post = get                
             
-                        
+

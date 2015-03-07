@@ -181,6 +181,8 @@ LOGOUT_URL = '/accounts/logout/'
 
 
 TAOBAO_PAGE_SIZE = 100              #the page_size of  per request
+NO_PIC_PATH = 'img/nopic.jpg'
+
 
 LOGGING = {
     'version': 1,

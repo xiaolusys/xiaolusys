@@ -21,7 +21,7 @@ class ProductResource(ModelResource):
                 'remain_num','wait_post_num','weight','std_purchase_price','std_sale_price','agent_price','staff_price',
                'sync_stock','is_split','is_match','is_assign','is_stock_warn','post_check','is_warning',
                'skus','sku','status','match_reason','buyer_prompt','memo','barcode','warn_skus','assign_template',
-               'products') 
+               'products','product_list','product_ids') 
     exclude = ('url',)
     
     
