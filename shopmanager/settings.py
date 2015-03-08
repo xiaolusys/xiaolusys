@@ -124,6 +124,7 @@ INSTALLED_APPS = (
     'shopback.users',
     'shopback.archives',
     'shopback.purchases',
+    'shopback.aftersale',
     
     'shopapp.autolist',
     'shopapp.collector',
@@ -139,6 +140,7 @@ INSTALLED_APPS = (
     'shopapp.comments',
     'shopapp.weixin',
     'shopapp.tmcnotify',
+    
 
     'shopapp.jingdong',
     'shopapp.intercept',
@@ -179,6 +181,8 @@ LOGOUT_URL = '/accounts/logout/'
 
 
 TAOBAO_PAGE_SIZE = 100              #the page_size of  per request
+NO_PIC_PATH = 'img/nopic.jpg'
+
 
 LOGGING = {
     'version': 1,
@@ -246,15 +250,15 @@ LOGGING = {
     }
 }
 
-try:
-    from prod_settings import *
-except Exception,exc:
-    print 'PROD SETTING ERROR:',exc.message
+
+from prod_settings import *
 
 try:
     from local_settings import *
-except Exception,exc:
-    print 'LOCAL SETTING ERROR:',exc.message
+except ImportError:
+    if DEBUG:
+        raise Exception("LOCAL SETTINGS IS REQUIRED!")
+
 
 from task_settings import *
 

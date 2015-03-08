@@ -5,9 +5,12 @@ import cStringIO as StringIO
 from django.contrib import admin
 from django.http import HttpResponse,HttpResponseRedirect
 from django.db import models
+from django.db import settings
+from django.core.urlresolvers import reverse
 from django.shortcuts import render_to_response
 from django.template import RequestContext
 from django.forms import TextInput, Textarea
+
 from shopback.items.models import (Item,Product,
                                    ProductSku,
                                    ProductLocation,
@@ -21,6 +24,7 @@ from shopback.purchases import getProductWaitReceiveNum
 from shopback import paramconfig as pcfg
 from shopback.base import log_action, ADDITION, CHANGE
 from shopback.items import permissions as perms
+from shopback.items.forms import ProductModelForm
 from shopback.base.options import DateFieldListFilter
 from common.utils import gen_cvs_tuple,CSVUnicodeWriter
 import logging 
@@ -62,13 +66,24 @@ admin.site.register(Item, ItemAdmin)
 
 
 class ProductAdmin(admin.ModelAdmin):
-    list_display = ('id','outer_id','name_link','collect_num','category_select','warn_num','remain_num','wait_post_num','wait_receive_num'
-                   ,'cost' ,'std_sale_price','sync_stock','is_match','post_check','is_split','district_link','status')
+    
+    form = ProductModelForm
+    list_display = ('id','outer_id','pic_link','name_link','collect_num','category_select',
+                    'warn_num','remain_num','wait_post_num','wait_receive_num','cost' ,'std_sale_price'
+                   ,'sync_stock','is_match','post_check','is_split','district_link','status')
     list_display_links = ('id',)
     #list_editable = ('name',)
     
     date_hierarchy = 'modified'
     #ordering = ['created_at']
+    
+    def pic_link(self, obj):
+        abs_pic_url = obj.pic_path or '%s%s'%(settings.MEDIA_URL,settings.NO_PIC_PATH)
+        return (u'<a href="/items/product/%d/" target="_blank"><img src="%s" width="100px" '
+                +' height="80px" title="%s"/></a>')%(obj.id,abs_pic_url,obj.name)
+    
+    pic_link.allow_tags = True
+    pic_link.short_description = "商品图片"
     
     def name_link(self, obj):
         return u'<a href="/items/product/%d/" style="display:block;width:200px;">%s</a>' %(obj.id,obj.name or u'--' )
@@ -124,22 +139,22 @@ class ProductAdmin(admin.ModelAdmin):
     #--------设置页面布局----------------
     fieldsets =(('商品基本信息:', {
                     'classes': ('expand',),
-                    'fields': (('outer_id','name','category')
+                    'fields': (('outer_id','category','status')
+                               ,('name','pic_path')
                                ,('collect_num','warn_num','remain_num','wait_post_num')
                                ,('reduce_num','cost','std_sale_price')
-                               ,('std_purchase_price','agent_price','staff_price')
-                               ,('pic_path','status'))
+                               ,('std_purchase_price','agent_price','staff_price'))
                 }),
                 ('商品系统设置:', {
                     'classes': ('collapse',),
                     'fields': (('weight','sync_stock','is_assign','is_split','is_match','post_check')
-                               ,('barcode','match_reason','buyer_prompt')
-                               ,'memo')
+                               ,('barcode','match_reason')
+                               ,('buyer_prompt','memo'))
                 }),)
     
     formfield_overrides = {
-        models.CharField: {'widget': TextInput(attrs={'size':'16'})},
-        models.FloatField: {'widget': TextInput(attrs={'size':'16'})},
+        models.CharField: {'widget': TextInput(attrs={'size':64, 'maxlength': '256',})},
+        models.FloatField: {'widget': TextInput(attrs={'size':24})},
         models.TextField: {'widget': Textarea(attrs={'rows':4, 'cols':40})},
     }
     
@@ -200,6 +215,37 @@ class ProductAdmin(admin.ModelAdmin):
     
     sync_items_stock.short_description = u"同步淘宝线上库存"
     
+    
+    #作废商品
+    def invalid_product_action(self,request,queryset):
+         
+        for p in queryset:
+            cnt = 0
+            success = False
+            invalid_outerid = p.outer_id 
+            while cnt < 10:
+                invalid_outerid += '_del'
+                products = Product.objects.filter(outer_id=invalid_outerid)
+                if products.count() == 0:
+                    success = True
+                    break
+                cnt += 1
+                
+            if not success:
+                continue
+            
+            p.outer_id = invalid_outerid
+            p.status = pcfg.DELETE
+            p.save()
+            
+            log_action(request.user.id,p,CHANGE,u'商品作废')
+        
+        self.message_user(request,u"已成功作废%s个商品!"%queryset.filter(status=pcfg.DELETE).count())
+        
+        return HttpResponseRedirect(request.get_full_path())
+        
+    invalid_product_action.short_description = u"作废库存商品（批量 ）"
+    
     #更新用户线上商品入库
     def sync_purchase_items_stock(self,request,queryset):
         
@@ -234,41 +280,41 @@ class ProductAdmin(admin.ModelAdmin):
     
     sync_purchase_items_stock.short_description = u"同步分销商品库存"
     
-    #根据线上商品SKU 更新系统商品SKU
-    def update_items_sku(self,request,queryset):
-        
-        from shopback.items.tasks import updateUserProductSkuTask
-        users = User.objects.filter(status=pcfg.NORMAL,is_primary=True)
-        sync_items = []
-        for prod in queryset:
-            pull_dict = {'outer_id':prod.outer_id,'name':prod.name}
-            try:
-                items = Item.objects.filter(outer_id=prod.outer_id)
-                for item in items:
-                    Item.get_or_create(item.user.visitor_id,item.num_iid,force_update=True)    
-                
-                for u in users:
-                    updateUserProductSkuTask(user_id=u.visitor_id,outer_ids=[prod.outer_id])
-                    
-                item_sku_outer_ids = set()
-                items = Item.objects.filter(outer_id=prod.outer_id)
-                for item in items:
-                    sku_dict = json.loads(item.skus or '{}')
-                    if sku_dict:
-                        sku_list = sku_dict.get('sku')
-                        item_sku_outer_ids.update([ sku.get('outer_id','') for sku in sku_list])
-                prod.prod_skus.exclude(outer_id__in=item_sku_outer_ids).update(status=pcfg.REMAIN)
-            except Exception,exc:
-                pull_dict['success']=False
-                pull_dict['errmsg']=exc.message or '%s'%exc  
-            else:
-                pull_dict['success']=True
-            sync_items.append(pull_dict)
-       
-        return render_to_response('items/product_action.html',{'prods':sync_items,'action_name':u'更新商品SKU'},
-                                  context_instance=RequestContext(request),mimetype="text/html")
-    
-    update_items_sku.short_description = u"更新系统商品SKU"    
+#     #根据线上商品SKU 更新系统商品SKU
+#     def update_items_sku(self,request,queryset):
+#         
+#         from shopback.items.tasks import updateUserProductSkuTask
+#         users = User.objects.filter(status=pcfg.NORMAL,is_primary=True)
+#         sync_items = []
+#         for prod in queryset:
+#             pull_dict = {'outer_id':prod.outer_id,'name':prod.name}
+#             try:
+#                 items = Item.objects.filter(outer_id=prod.outer_id)
+#                 for item in items:
+#                     Item.get_or_create(item.user.visitor_id,item.num_iid,force_update=True)    
+#                 
+#                 for u in users:
+#                     updateUserProductSkuTask(user_id=u.visitor_id,outer_ids=[prod.outer_id])
+#                     
+#                 item_sku_outer_ids = set()
+#                 items = Item.objects.filter(outer_id=prod.outer_id)
+#                 for item in items:
+#                     sku_dict = json.loads(item.skus or '{}')
+#                     if sku_dict:
+#                         sku_list = sku_dict.get('sku')
+#                         item_sku_outer_ids.update([ sku.get('outer_id','') for sku in sku_list])
+#                 prod.prod_skus.exclude(outer_id__in=item_sku_outer_ids).update(status=pcfg.REMAIN)
+#             except Exception,exc:
+#                 pull_dict['success']=False
+#                 pull_dict['errmsg']=exc.message or '%s'%exc  
+#             else:
+#                 pull_dict['success']=True
+#             sync_items.append(pull_dict)
+#        
+#         return render_to_response('items/product_action.html',{'prods':sync_items,'action_name':u'更新商品SKU'},
+#                                   context_instance=RequestContext(request),mimetype="text/html")
+#     
+#     update_items_sku.short_description = u"更新系统商品SKU"    
     
     #取消该商品缺货订单
     def cancle_orders_out_stock(self,request,queryset):
@@ -311,11 +357,12 @@ class ProductAdmin(admin.ModelAdmin):
     #取消商品库存同步（批量）
     def cancel_syncstock_action(self,request,queryset):
          
+        count = queryset.count
         for p in queryset:
             p.sync_stock = False
             p.save()
         
-        self.message_user(request,u"已成功取消%s个商品库存同步!"%queryset.count())
+        self.message_user(request,u"已成功取消%s个商品库存同步!"%(count - queryset.count()))
         
         return HttpResponseRedirect(request.get_full_path())
         
@@ -371,6 +418,20 @@ class ProductAdmin(admin.ModelAdmin):
         
     deliver_saleorder_action.short_description = u"释放商品定时订单"
     
+    #商品库存
+    def weixin_product_action(self,request,queryset):
+        
+        if queryset.count() > 10:
+            self.message_user(request,u"*********选择更新的商品数不能超过10个************")
+            return HttpResponseRedirect(request.get_full_path())
+         
+        product_ids = ','.join([str(p.id) for p in queryset])
+        
+        return HttpResponseRedirect(reverse('weixin_product_modify')
+                                    +'?format=html&product_ids=%s'%product_ids)
+        
+    weixin_product_action.short_description = u"更新微信商品库存信息"
+    
     #导出商品规格信息
     def export_prodsku_info_action(self,request,queryset):
         """ 导出商品及规格信息 """
@@ -405,8 +466,9 @@ class ProductAdmin(admin.ModelAdmin):
     export_prodsku_info_action.short_description = u"导出商品及规格信息"
     
     actions = ['sync_items_stock',
+               'invalid_product_action',
                'sync_purchase_items_stock',
-               'update_items_sku',
+               'weixin_product_action',
                'cancle_orders_out_stock',
                'active_syncstock_action',
                'cancel_syncstock_action',
@@ -520,14 +582,15 @@ admin.site.register(ItemNumTaskLog, ItemNumTaskLogAdmin)
 
 
 class ProductDaySaleAdmin(admin.ModelAdmin):
-    list_display = ('day_date','user_id','product_id', 'sku_id', 'sale_num', 'sale_payment', 'sale_refund')
+    list_display = ('day_date','user_id','product_id', 'sku_id', 'sale_num',
+                     'sale_payment','confirm_num','confirm_payment', 'sale_refund')
     list_display_links = ('day_date', 'user_id','product_id')
     #list_editable = ('update_time','task_type' ,'is_success','status')
 
     #date_hierarchy = 'day_date'
 
     list_filter = ('user_id',('day_date',DateFieldListFilter))
-    search_fields = ['user_id','product_id','sku_id']
+    search_fields = ['id','user_id','product_id','sku_id']
     
 
 admin.site.register(ProductDaySale, ProductDaySaleAdmin)

@@ -2,7 +2,7 @@
 import re
 import time
 import datetime
-from django.http import Http404,HttpResponse
+from django.http import Http404,HttpResponse,HttpResponseRedirect
 from django.conf import settings
 from django.views.decorators.csrf import csrf_exempt
 from django.views.generic import View
@@ -13,6 +13,8 @@ from .models import (WeiXinUser,
                      ReferalBonusRecord,
                      WXOrder,
                      Refund,
+                     WXProduct,
+                     WXProductSku,
                      FreeSample, 
                      SampleSku, 
                      SampleOrder,
@@ -30,6 +32,7 @@ from .models import (WeiXinUser,
 from shopapp.weixin_score.models import SampleFrozenScore
 from shopapp.weixin_examination.models import ExamUserPaper
 from shopback.trades.models import MergeTrade
+from shopback.items.models import Product,ItemNumTaskLog
 from shopback import paramconfig as pcfg
 from shopback.base import log_action, ADDITION, CHANGE
 
@@ -172,6 +175,27 @@ class WeixinAcceptView(View):
         
         return HttpResponse(response,mimetype="text/xml")
 
+
+def chargeWXUser(request,pk):
+    
+    result = {}
+    charged = False
+    employee = request.user
+    try:
+        supplier = WeiXinUser.objects.get(id=pk)
+    except WeiXinUser.DoesNotExist:
+        result ={'code':1,'error_response':u'微信用户未找到'}
+    else:
+        charged = WeiXinUser.objects.charge(supplier, employee)
+        if not charged:
+            result ={'code':1,'error_response':''}
+            
+    if charged :
+        result ={'success':True}
+        
+        log_action(request.user.id,supplier,CHANGE,u'接管用户')
+    
+    return HttpResponse( json.dumps(result),content_type='application/json')
 
 
 from django.shortcuts import render_to_response
@@ -912,7 +936,7 @@ class ResultView(View):
         sample_orders = SampleOrder.objects.filter(user_openid=user_openid,created__gte=START_TIME)
         if sample_orders.count() > 0:
             sample_order = sample_orders[0]
-            sample_pass = sample_order.status > 40
+            sample_pass = sample_order.status > 50
             
         vip_code = None
         vip_codes = VipCode.objects.filter(owner_openid__openid=user_openid)
@@ -930,8 +954,7 @@ class ResultView(View):
                                        'sample_order':sample_order,
                                        'vip_code':vip_code,
                                        'link_click':link_click,
-                                       'sample_pass':sample_pass,
-                                       },
+                                       'sample_pass':sample_pass,},
                                       context_instance=RequestContext(request))
         response.set_cookie("openid",user_openid)  
         
@@ -961,9 +984,13 @@ class FinalListView(View):
         batch = int(kwargs.get('batch',1))
         month = int(kwargs.get('month',1))
         
-        order_list = None
+        order_list = SampleOrder.objects.none()
         
-        if month == 15011:
+        if month == 15012 :
+            start_time = datetime.datetime(2015,1,23)
+            end_time = datetime.datetime(2015,1,27)
+            order_list = SampleOrder.objects.filter(status__gt=50,status__lt=60,created__gt=start_time)
+        elif month == 15011:
             start_time = datetime.datetime(2015,1,9)
             end_time = datetime.datetime(2015,1,13)
             order_list = SampleOrder.objects.filter(status__gt=40,status__lt=50,created__gt=start_time)
@@ -1312,6 +1339,91 @@ class GiftView(View):
                                       context_instance=RequestContext(request))
         return response
 
+from django.contrib import messages
+from django.core.urlresolvers import reverse
+from shopback.base.views import ModelView,ListOrCreateModelView,ListModelView
+from .weixin_apis import WeiXinAPI
+
+
+LINK_RE = re.compile('^.+pid=(?P<pid>[\w-]{16,64})')            
+            
+class WeixinProductView(ModelView):
+    """ 微信特卖商品更新 """
+    
+    def getPid(self,link):
+        m = LINK_RE.match(link)
+        return m and m.groupdict()['pid'] or ''
+    
+    def getLinkProductIds(self,content):
+        link1 = content.get('link1','')
+        link2 = content.get('link2','')
+        link3 = content.get('link3','')
+
+        return [self.getPid(link1), self.getPid(link2), self.getPid(link3)]
+
+    def get(self, request, *args, **kwargs):
+        
+        content = request.REQUEST
+        product_ids = content.get('product_ids','').split(',')
+        
+        wx_pids = self.getLinkProductIds(content)
+        
+        for pid in wx_pids:
+            if not pid:continue
+            WXProduct.objects.getOrCreate(pid,force_update=True)
+        
+        product_list = []
+        queryset = Product.objects.filter(id__in=product_ids)
+        for p in queryset:
+            product_list.append(WXProduct.objects.fetchSkuMatchInfo(p))
+                    
+        return {'product_list':product_list,
+                'product_ids':','.join([str(p.id) for p in queryset])}
+
+        
+    def post(self, request,*args, **kwargs):
+
+        content = request.REQUEST
+        product_ids = content.get('product_ids','').split(',')
+        products = Product.objects.filter(id__in=product_ids)
+        wx_api = WeiXinAPI()
+        
+        for product in products:
+
+            wx_skus = WXProductSku.objects.filter(outer_id=product.outer_id)
+            wx_pids = set([sku.product_id for sku in wx_skus])
+            for wx_pid in wx_pids:
+                wx_product = WXProduct.objects.getOrCreate(wx_pid,force_update=True)
+            
+            for sku in product.pskus:
+                outer_id = product.outer_id
+                outer_sku_id = sku.outer_id
+                sync_num = sku.remain_num - sku.wait_post_num
+                wx_skus = WXProductSku.objects.filter(outer_id=outer_id,
+                                            outer_sku_id=outer_sku_id)
+                for wx_sku in wx_skus:
+                    
+                    vector_num = sync_num - wx_sku.sku_num
+                    if vector_num == 0:continue
+                    if vector_num > 0:
+                        wx_api.addMerchantStock(wx_sku.product_id,
+                                                vector_num,
+                                                sku_info=wx_sku.sku_id)
+                    else:
+                        wx_api.reduceMerchantStock(wx_sku.product_id,
+                                                   abs(vector_num),
+                                                   sku_info=wx_sku.sku_id)
+        
+                    ItemNumTaskLog.objects.get_or_create(user_id=request.user.id,
+                                                         outer_id=outer_id,
+                                                         sku_outer_id='wx%s'%outer_sku_id,
+                                                         num=sync_num,
+                                                         end_at=datetime.datetime.now())
+                    
+        messages.add_message(request, messages.INFO, 
+                             u'已成功更新%s个商品(%s)微信平台库存'%(products.count(),
+                                                            [p.outer_id for p in products]))
+        return HttpResponseRedirect(reverse("admin:items_product_changelist"))
 
 class TestView(View):
     def get(self, request):

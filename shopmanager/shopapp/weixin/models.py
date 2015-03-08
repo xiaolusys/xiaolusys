@@ -1,6 +1,7 @@
 #-*- coding:utf8 -*-
 import datetime
 from django.db import models
+from django.contrib.auth.models import User
 from shopback.base.fields import BigIntegerAutoField
 from shopback.base.models import JSONCharMyField
 from .managers import WeixinProductManager,VipCodeManager,WeixinUserManager
@@ -133,6 +134,15 @@ class WeiXinUser(models.Model):
         (FERMALE,u'女')
     )
     
+    CHARGED = 'charged'
+    UNCHARGE = 'uncharge'
+    FROZEN = 'frozen'
+    STATUS_CHOICES = (
+        (UNCHARGE,u'待接管'),
+        (CHARGED,u'已接管'),
+        (FROZEN,u'已冻结'),
+        )
+                    
     openid     = models.CharField(max_length=64,unique=True,verbose_name=u"用户ID")
     nickname   = models.CharField(max_length=64,blank=True,verbose_name=u"昵称")
     unionid   = models.CharField(max_length=64,db_index=True,blank=True,verbose_name=u"UnionID")
@@ -165,13 +175,18 @@ class WeiXinUser(models.Model):
     
     sceneid    = models.CharField(max_length=32,blank=True,verbose_name=u'场景ID')
     
-    user_group  = models.ForeignKey(UserGroup,null=True,blank=True,verbose_name=u"分组")
+    user_group = models.ForeignKey(UserGroup,null=True,blank=True,verbose_name=u"分组")
     
     subscribe   = models.BooleanField(default=False,verbose_name=u"订阅该号")
     subscribe_time = models.DateTimeField(blank=True,null=True,verbose_name=u"订阅时间")
     
     created    = models.DateTimeField(auto_now_add=True,verbose_name=u'创建日期')
     modified   = models.DateTimeField(auto_now=True,verbose_name=u'修改日期')
+    
+    referal_count = models.IntegerField(default=0,verbose_name=u'F码次数')
+    charge_status = models.CharField(max_length=16,blank=True,
+                                       choices=STATUS_CHOICES,
+                                       default=UNCHARGE,verbose_name=u'接管状态')
     
     objects = WeixinUserManager()
     
@@ -223,6 +238,34 @@ class WeiXinUser(models.Model):
         self.save() 
 
 
+class WXUserCharge(models.Model):
+    
+    EFFECT = 'effect'
+    INVALID  = 'invalid'
+    STATUS_CHOICES = (
+        (EFFECT,u'有效'),
+        (INVALID,u'失效'),
+    )
+    
+    wxuser_id     =   models.IntegerField(default=0,verbose_name=u'微信用户ID')
+    employee      =   models.ForeignKey(User,related_name='employee_wxusers',verbose_name=u'接管人')
+    
+    status  = models.CharField(max_length=16,blank=True,choices=STATUS_CHOICES,
+                                            default=EFFECT,verbose_name=u'状态')
+    
+    created    = models.DateTimeField(auto_now_add=True,verbose_name=u'创建日期')
+    modified   = models.DateTimeField(auto_now=True,verbose_name=u'修改日期')
+    
+    class Meta:
+        db_table = 'shop_weixin_user_charge'
+        unique_together = ( "wxuser_id","employee")
+        verbose_name=u'微信用户接管'
+        verbose_name_plural = u'微信用户接管列表'
+        
+    def __unicode__(self):
+        return '<{0},{1},{2}>'.format(self.wxuser_id,self.employee,self.get_status_display())
+
+
 class ResponseManager(models.Manager):
     
     def get_query_set(self):
@@ -263,7 +306,9 @@ class WeiXinAutoResponse(models.Model):
     WX_EVENT_PIC_SYSPHOTO = 'pic_sysphoto'
     WX_EVENT_PIC_ALBUM    = 'pic_photo_or_album'
     WX_EVENT_PIC_WEIXIN   = 'pic_weixin'
-    WX_EVENT_LOCATION_SELECT = 'location_select'
+    WX_EVENT_KF_CLOSE_SESSION   = 'kf_close_session'
+    WX_EVENT_KF_CREATE_SESSION  = 'kf_create_session'
+    WX_EVENT_LOCATION_SELECT   = 'location_select'
     
     WX_TYPE  = (
         (WX_TEXT ,u'文本'),
@@ -388,9 +433,7 @@ class WXProduct(models.Model):
         (DOWN_SHELF,u'下架')
     )
     
-    product_id   = models.CharField(max_length=32,
-                                    primary_key=True,
-                                    verbose_name=u'商品ID')
+    product_id   = models.CharField(max_length=32,primary_key=True,verbose_name=u'商品ID')
     
     product_name = models.CharField(max_length=64,verbose_name=u'商品标题')
     product_img  = models.CharField(max_length=512,verbose_name=u'商品图片')
@@ -439,28 +482,31 @@ class WXProductSku(models.Model):
         (DOWN_SHELF,u'下架')
             )
             
-    sku_id   = models.CharField(max_length=32,
-                                    primary_key=True,
-                                    verbose_name=u'规格ID')
-            
+    sku_id   = models.CharField(max_length=64,verbose_name=u'规格ID')
+    product  = models.ForeignKey(WXProduct,verbose_name=u'微信商品')
+    
     outer_id = models.CharField(max_length=64,blank=True,verbose_name=u'商品编码')
-    outer_sku_id = models.CharField(max_length=20,blank=True,verbose_name=u'规格编码')
+    outer_sku_id = models.CharField(max_length=64,blank=True,verbose_name=u'规格编码')
             
     sku_name = models.CharField(max_length=64,verbose_name=u'规格名称')
     sku_img  = models.CharField(max_length=512,verbose_name=u'规格图片')
-   
-    status       = models.IntegerField(null=False,default=0,
+    sku_num  = models.IntegerField(default=0,verbose_name=u"规格数量")
+    
+    sku_price = models.FloatField(default=0,verbose_name=u'售价')
+    ori_price = models.FloatField(default=0,verbose_name=u'原价')
+    
+    status       = models.IntegerField(null=False,default=UP_SHELF,
                                        choices=PRODUCT_STATUS,
                                        verbose_name=u'是否上架')
-
     
     class Meta:
         db_table = 'shop_weixin_productsku'
-        verbose_name=u'微信小店商品'
-        verbose_name_plural = u'微信小店商品列表'
+        unique_together = ("sku_id","product")
+        verbose_name=u'微信小店规格'
+        verbose_name_plural = u'微信小店规格列表'
 
     def __unicode__(self):
-        return u'<WXProductSku:%s>'%(self.product_id)
+        return u'<WXProductSku:%s,%s>'%(self.outer_id,self.outer_sku_id)
     
        
 class WXOrder(models.Model):
@@ -572,7 +618,7 @@ class WXLogistic(models.Model):
     class Meta:
         db_table = 'shop_weixin_logistic'
         verbose_name=u'微信小店快递'
-        verbose_name_plural = u'微信小店快递列表'   
+        verbose_name_plural = u'微信小店快递列表'
     
 
 class ReferalRelationship(models.Model):
@@ -623,7 +669,8 @@ class ReferalSummary(models.Model):
 
 
 class Refund(models.Model):
-    REFUND_TYPES = ((0,u'晒单返现'), (1,u'VIP邀请'), (2,u'10积分换购'), (3,u'满100元返10元'),(4,u'100元免单'),(5,u'10积分返邮费'))
+    
+    REFUND_TYPES = ((0,u'晒单返现'), (1,u'VIP邀请'), (2,u'10积分换购'),(3,u'满100元返10元'),(4,u'100元免单'),(5,u'10积分返邮费'))
     REFUND_STATUSES = ((0,u'等待审核'), (1,u'审核通过'), (2,u'审核不通过'),(3,u'完成'))
     PAY_TYPES = ((0,u'申请退款'), (1,u'退邮费'), (2,u'支付宝转账'), (3, u'银行转账'))
 
@@ -654,7 +701,6 @@ class Refund(models.Model):
     pay_note = models.CharField(max_length=256, blank=True, verbose_name=u'返现备注')
 
     created = models.DateTimeField(null=True,db_index=True,auto_now_add=True,verbose_name=u'申请日期')
-
 
     class Meta:
         db_table = 'shop_weixin_refund'
@@ -716,8 +762,9 @@ class SampleOrder(models.Model):
 class VipCode(models.Model):
     CODE_TYPES = ((0,u'试用'), (1,u'购买'))
     
-    owner_openid = models.ForeignKey(WeiXinUser,unique=True,related_name="vipcodes", verbose_name=u"微信ID")
-    code = models.CharField(max_length=16,unique=True,null=False,blank=False,verbose_name=u'VIP邀请码')
+    owner_openid = models.ForeignKey(WeiXinUser,unique=True,
+                                     related_name="vipcodes", verbose_name=u"微信ID")
+    code = models.CharField(max_length=16,unique=True,null=False,blank=False,verbose_name=u'F码')
     expiry = models.DateTimeField(null=False,blank=False,verbose_name=u'过期时间')
 
     ### 1. for getting samples; 2. for purchase discount
@@ -827,7 +874,7 @@ class WeixinUserScore(models.Model):
     
     user_openid = models.CharField(max_length=64,unique=True,verbose_name=u"微信ID")
     
-    user_score  = models.PositiveIntegerField(default=0,verbose_name=u'剩余积分')  
+    user_score  = models.PositiveIntegerField(default=0,verbose_name=u'剩余积分')
     
     expiring_score = models.PositiveIntegerField(default=0,verbose_name=u'即将过期积分')
     
@@ -837,7 +884,7 @@ class WeixinUserScore(models.Model):
     class Meta:
         db_table = 'shop_weixin_user_score'
         verbose_name = u'用户积分'
-        verbose_name_plural = u'用户积分列表'      
+        verbose_name_plural = u'用户积分列表'
         
         
 class WeixinScoreItem(models.Model):

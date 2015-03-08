@@ -61,9 +61,9 @@ SYNC_MODEL_SCHEDULE = {
         'schedule':crontab(minute="30",hour="23"),
         'args':()
     },
-    u'更新昨日销量为商品警告数':{     #将昨日的订单数更新为商品的警告库位
-         'task':'shopback.items.tasks.CalcProductSaleTask',
-         'schedule':crontab(minute="30",hour='1'),
+    u'分段日期统计商品销售数据':{     #将昨日的订单数更新为商品的警告库位
+         'task':'shopback.items.tasks.gradCalcProductSaleTask',
+         'schedule':crontab(minute="30",hour='3'),
          'args':()
      },
     u'定时淘宝退款订单下载任务':{     #更新昨日退货退款单

@@ -69,12 +69,13 @@ class JDShopService(LocalService):
                                     *float(order['jd_price']),2)
             merge_order.total_fee = order['jd_price']
             
-            merge_order.created = merge_trade.created
             merge_order.num     = order['item_total']
             merge_order.title   = order['sku_name']
             merge_order.outer_id = outer_id
             merge_order.outer_sku_id = outer_sku_id
-       
+                    
+        merge_order.created = merge_trade.created
+        merge_order.pay_time = merge_trade.pay_time
         merge_order.status = merge_trade.status
         merge_order.sys_status = sys_status
         merge_order.save()
@@ -99,7 +100,7 @@ class JDShopService(LocalService):
         
         merge_trade.created  = trade.order_start_time
         merge_trade.modified = trade.modified
-        merge_trade.pay_time = trade.order_start_time
+        merge_trade.pay_time = trade.payment_confirm_time
         merge_trade.status   = JDOrder.mapTradeStatus(trade.order_state) 
         
         update_address = False

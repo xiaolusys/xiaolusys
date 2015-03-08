@@ -37,6 +37,8 @@ def _createAndCalcOrderFee(trade,sub_trade):
         merge_order.is_merge    = True
         merge_order.sys_status  = order.sys_status
         merge_order.is_reverse_order = trade.isPostScan()
+        merge_order.created  = order.created
+        merge_order.pay_time = order.pay_time
         merge_order.save()
         
         if order.isEffect():
@@ -91,8 +93,11 @@ def mergeMaker(trade,sub_trade):
     
     if sub_trade.has_merge:
         strades = MergeBuyerTrade.objects.filter(main_tid=sub_trade.id)
+        
         for strade in strades:
-            MergeBuyerTrade.objects.get_or_create(sub_tid=strade.id,main_tid=trade.id)
+            MergeBuyerTrade.objects.filter(sub_tid=strade.id).update(main_tid=trade.id)
+        
+        MergeOrder.objects.filter(merge_trade=sub_trade.id,is_merge=True).delete()
     
     for scode in sub_trade.reason_code.split(','):
         trade.append_reason_code(scode)
@@ -103,9 +108,10 @@ def mergeMaker(trade,sub_trade):
     queryset = MergeTrade.objects.getMergeQueryset(trade.buyer_nick,
                                                    trade.receiver_name,
                                                    trade.receiver_mobile,
-                                                   trade.receiver_phone)
+                                                   trade.receiver_phone,)
     
-    if (queryset.filter(sys_status__in=(pcfg.WAIT_AUDIT_STATUS,
+    if (trade.type ==  MergeTrade.WX_TYPE 
+        or queryset.filter(sys_status__in=(pcfg.WAIT_AUDIT_STATUS,
                                        pcfg.REGULAR_REMAIN_STATUS))\
         .exclude(id__in=(sub_trade.id,trade.id)).count() == 0):
         trade.remove_reason_code(pcfg.MULTIPLE_ORDERS_CODE)
@@ -144,7 +150,7 @@ def mergeRemover(trade):
         return False
     
     trade.remove_reason_code(pcfg.NEW_MERGE_TRADE_CODE)
-    trade.append_reason_code(pcfg.MULTIPLE_ORDERS_CODE) 
+    trade.append_reason_code(pcfg.MULTIPLE_ORDERS_CODE)
     trade.has_merge = False
     
     trade.merge_orders.filter(is_merge=True).delete()
@@ -178,7 +184,7 @@ def mergeRemover(trade):
     return True
 
 
-def driveMergeTrade(trade):
+def driveMergeTrade(trade,latest_paytime=None):
     """ 驱动合单程序 """
     
     if not isinstance(trade,MergeTrade):
@@ -205,7 +211,8 @@ def driveMergeTrade(trade):
                             buyer_nick, 
                             receiver_name, 
                             receiver_mobile, 
-                            receiver_phone)
+                            receiver_phone,
+                            latest_paytime=latest_paytime)
         
         scan_merge_trades = merge_queryset.filter(sys_status__in=(
                                     pcfg.WAIT_CHECK_BARCODE_STATUS,

@@ -1,0 +1,95 @@
+{% extends "bootstrap_base.html" %}
+{% load mathfilters %}
+{% block title %}微信商品库存同步界面{% endblock %}
+
+{% block style %}
+<style type="text/css">
+    .well{
+        margin-top:0px;
+        margin-bottom:0px;
+    }
+</style>
+{% endblock %}
+
+{% block container %}
+<fieldset style="border:2px solid #E3E3E3">
+<legend>微信商品信息及库存更新表单</legend>
+<div style="height:500px;overflow-y:scroll;" class="well">
+<table class="table table-bordered table-condensed">
+<thead>
+<tr>
+    <th class="col-xs-1">序号</th>
+    <th class="col-xs-1">商品图片</th>
+    <th class="col-xs-2">商品标题</th>
+    <th class="col-xs-2">组合商品编码</th>
+    <th class="col-xs-1">规格名称</th>
+    <th class="col-xs-1">预购数</th>
+    <th class="col-xs-1">剩余数</th>
+    <th class="col-xs-3">架上商品图片</th>
+</tr>
+</thead>
+<tbody>
+{% for product in object.product_list %}
+{% for psku in product.pskus %}
+<tr>
+    {% if forloop.counter == 1 %}
+    <td rowspan="{{ product.pskus|length }}">{{ forloop.parentloop.counter }}</td>
+    <td rowspan="{{ product.pskus|length }}">
+        <a href="/admin/items/product/{{ product.id }}/">
+        <img src="{% if product.pic_path %}{{ product.pic_path }}{% else %}{{ MEDIA_URL }}img/nopic.jpg{% endif %}" height="60px" width="80px"/>
+        </a>
+    </td>
+    <td rowspan="{{ product.pskus|length }}">{{ product.name }}</td>
+    {% endif %}
+    <td>{{ psku.outer_id }}.{{ product.outer_id }}</td>
+    <td>{{ psku.properties_alias }}</td>
+    <td>{{ psku.remain_num }}</td>
+    <td>{{ psku.remain_num|sub:psku.wait_post_num }}</td>
+    <td>
+        {% for wsku in psku.wskus %}
+        <img title="[{{ wsku.product_id }}-{{ wsku.sku_id }}(售价:{{ wsku.sku_price }}) ]" 
+        src="{% if wsku.sku_img %}{{ wsku.sku_img }}{% else %}{{ MEDIA_URL }}img/nopic.jpg{% endif %}" height="30px" width="40px"/>
+        {% endfor %}
+    </td>
+</tr>
+{% endfor %}
+{% endfor %}
+</tbody>
+</table>
+</div>
+<div class="well">
+<form method="GET" action="." class="form-horizontal">
+  <input type="hidden" name="product_ids" value="{{ object.product_ids }}"/>
+  <div class="form-group">
+    <label for="product-link1" class="col-sm-2 control-label">链接一</label>
+    <div class="col-sm-10">
+      <input type="text" name="link1" class="form-control" id="product-link1" placeholder="请输入微信商品链接一">
+    </div>
+  </div>
+  <div class="form-group">
+    <label for="product-link2" class="col-sm-2 control-label">链接二</label>
+    <div class="col-sm-10">
+      <input type="text" name="link2" class="form-control" id="product-link2" placeholder="请输入微信商品链接二">
+    </div>
+  </div>
+  <div class="form-group">
+    <label for="product-link3" class="col-sm-2 control-label">链接三</label>
+    <div class="col-sm-10">
+      <input type="text" name="link3" class="form-control" id="product-link3" placeholder="请输入微信商品链接三">
+    </div>
+  </div>
+  <div class="form-group">
+    <div class="col-sm-offset-2 col-sm-10">
+      <button type="submit" class="btn btn-info">下载并更新商品信息</button>
+    </div>
+  </div>
+</form>
+</div>
+<div class="well" style="text-align:center;">
+<form method="POST" action="." >
+    <input type="hidden" name="product_ids" value="{{ object.product_ids }}"/>
+    <button type="submit" class="btn btn-lg btn-primary">更新微信商品库存</button>
+</form>
+</div>
+</fieldset>
+{% endblock %}

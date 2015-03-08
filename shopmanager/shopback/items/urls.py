@@ -1,14 +1,32 @@
 from django.conf.urls.defaults import patterns, url
 from django.views.generic import TemplateView
-from shopback.items.views import ProductListView,ProductItemView,ProductModifyView,ProductUpdateView,\
-    ProductSkuCreateView,ProductSkuInstanceView,ProductSearchView,ProductDistrictView,ProductBarCodeView,\
-    ProductWarnMgrView,ProductNumAssignView,ProductOrSkuStatusMdView,ProductView,ProductSkuView,\
-    StatProductSaleView
+from shopback.items.views import (ProductListView,
+                                  ProductItemView,
+                                  ProductModifyView,
+                                  ProductUpdateView,
+                                  ProductSkuCreateView,
+                                  ProductSkuInstanceView,
+                                  ProductSearchView,
+                                  ProductDistrictView,
+                                  ProductBarCodeView,
+                                  ProductWarnMgrView,
+                                  ProductNumAssignView,
+                                  ProductOrSkuStatusMdView,
+                                  ProductView,
+                                  ProductSkuView,
+                                  StatProductSaleView,)
 from shopback.items.resources import ProductListResource,ProductItemResource,ProductResource,\
     ProductSkuResource,ProductDistrictResource,ProductDaySaleResource
-from shopback.items.renderers import ProductListHtmlRenderer,JSONRenderer,ProductItemHtmlRenderer,\
-    ProductUpdateHtmlRenderer,ProductSkuHtmlRenderer,ProductDistrictHtmlRenderer,ProductHtmlRenderer,\
-    ProductBarcodeHtmlRenderer,ProductWarnHtmlRenderer,ProductSaleHtmlRenderer
+from shopback.items.renderers import (ProductListHtmlRenderer,
+                                      JSONRenderer,
+                                      ProductItemHtmlRenderer,
+                                      ProductUpdateHtmlRenderer,
+                                      ProductSkuHtmlRenderer,
+                                      ProductDistrictHtmlRenderer,
+                                      ProductHtmlRenderer,
+                                      ProductBarcodeHtmlRenderer,
+                                      ProductWarnHtmlRenderer,
+                                      ProductSaleHtmlRenderer,)
 from shopback.base.renderers  import BaseJsonRenderer
 from shopback.base.permissions import IsAuthenticated
 from shopback.base.authentication import UserLoggedInAuthentication,login_required_ajax
@@ -100,12 +118,16 @@ urlpatterns = patterns('shopback.items.views',
         renderers=(BaseJsonRenderer,),
         authentication=(UserLoggedInAuthentication,),
         permissions=(IsAuthenticated,)
-    )),      
+    )),
      (r'^product/sale/$',StatProductSaleView.as_view(
         resource=ProductDaySaleResource,
         renderers=(BaseJsonRenderer,ProductSaleHtmlRenderer),
         authentication=(UserLoggedInAuthentication,),
         permissions=(IsAuthenticated,)
-    )),      
+    )),
+    
+    url(r'^test/$', TemplateView.as_view(
+        template_name="items/product_sku_diff.html"), 
+        name='test_diff'),
     #(r'^product_lookup/$', 'shopback.items.views.json_lookup', product_lookup),
 )

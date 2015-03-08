@@ -87,7 +87,7 @@ class UserAdmin(admin.ModelAdmin):
                     
                 elif user.type == User.SHOP_TYPE_WX:
                     
-                    pullWaitPostWXOrderTask.delay(WXOrder.WX_WAIT_SEND,None,None)
+                    pullWaitPostWXOrderTask.delay(None,None)
                     
             except Exception,exc:
                 pull_dict['success']=False

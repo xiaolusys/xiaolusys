@@ -104,13 +104,14 @@ ASYNC_FILE_PATH = os.path.join(PROJECT_ROOT,"site_media","asyncfile")
 WEIXIN_API_HOST    = "https://api.weixin.qq.com"
 WEIXIN_MEDIA_HOST  = "http://file.api.weixin.qq.com"
 WEIXIN_QRCODE_HOST = "https://mp.weixin.qq.com"
+WEIXIN_AUTHORIZE_URL = "https://open.weixin.qq.com/connect/oauth2/authorize"
 WEIXIN_APPID       = 'wxc2848fa1e1aa94b5'
 WEIXIN_SECRET      = 'bc41b3a535b095afc55cd40d2e808d9c'
 
 ################### JINGDONG SETTINGS #################
 
-JD_APP_KEY = 'F7B529B5AD3152D0BEF916B6271B51F8'
-JD_APP_SECRET = 'b7e716fbd8044b2dbb71a13427e55295'
+JD_APP_KEY = 'F9653439C316A32BF49DFFDE8381CBC9'
+JD_APP_SECRET = 'f4fe333676af4f4eaeaa00ed20c82086'
 
 JD_API_HOSTNAME = 'gw.api.360buy.com'
 JD_AUTHRIZE_URL = 'https://auth.360buy.com/oauth/authorize'

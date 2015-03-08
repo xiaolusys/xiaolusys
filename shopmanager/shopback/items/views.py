@@ -4,21 +4,27 @@ import datetime
 import json
 from django.core.serializers.json import DjangoJSONEncoder
 from django.http import HttpResponse,HttpResponseNotFound
-from django.shortcuts import render_to_response
-from django.template import RequestContext
 from django.db.models import Q,Sum
 from django.conf import settings
 from django.views.decorators.csrf import csrf_exempt
 from django.template.loader import render_to_string
+
 from djangorestframework.serializer import Serializer
 from djangorestframework.utils import as_tuple
 from djangorestframework import status
 from djangorestframework.response import Response,ErrorResponse
 from djangorestframework.mixins import CreateModelMixin
+
 from shopback import paramconfig as pcfg
 from shopback.base.views import ModelView,ListOrCreateModelView,ListModelView
-from shopback.items.models import Item,SkuProperty,Product,ProductSku,ProductLocation,\
-    ProductDaySale,APPROVE_STATUS,ONLINE_PRODUCT_STATUS
+from shopback.items.models import (Item,
+                                   SkuProperty,
+                                   Product,
+                                   ProductSku,
+                                   ProductLocation,
+                                   ProductDaySale,
+                                   APPROVE_STATUS,
+                                   ONLINE_PRODUCT_STATUS)
 from shopback.archives.models import DepositeDistrict
 from shopback.users.models import User
 from shopback.items.tasks import updateUserItemsTask,updateItemNum
@@ -26,6 +32,7 @@ from shopback.base.authentication import login_required_ajax
 from auth import apis,staff_requried
 from common.utils  import update_model_fields,parse_date,format_date
 from shopback.base import log_action, ADDITION, CHANGE
+
 import logging
 
 DISTRICT_REGEX = '^(?P<pno>[a-zA-Z0-9]+)-(?P<dno>[a-zA-Z0-9]+)?$'
@@ -864,9 +871,11 @@ class StatProductSaleView(ModelView):
             sku_id         = sale.sku_id 
             
             if sale_items.has_key(product_id):
-                sale_items[product_id]['sale_num']        += sale.sale_num
-                sale_items[product_id]['sale_payment'] += sale.sale_payment
-                sale_items[product_id]['sale_refund']     += sale.sale_refund
+                sale_items[product_id]['sale_num']      += sale.sale_num
+                sale_items[product_id]['sale_payment']  += sale.sale_payment
+                sale_items[product_id]['sale_refund']   += sale.sale_refund
+                sale_items[product_id]['confirm_num']   += sale.confirm_num
+                sale_items[product_id]['confirm_payment']   += sale.confirm_payment
                 
                 if not sku_id :continue                
                 skus = sale_items[product_id]['skus']
@@ -874,22 +883,30 @@ class StatProductSaleView(ModelView):
                     skus[sku_id]['sale_num']        += sale.sale_num
                     skus[sku_id]['sale_payment'] += sale.sale_payment
                     skus[sku_id]['sale_refund']     += sale.sale_refund
+                    skus[sku_id]['confirm_num']   += sale.confirm_num
+                    skus[sku_id]['confirm_payment']   += sale.confirm_payment
                 else:
                     skus[sku_id] = {
                                   'sale_num':sale.sale_num,
                                   'sale_payment':sale.sale_payment,
-                                  'sale_refund':sale.sale_refund}
+                                  'sale_refund':sale.sale_refund,
+                                  'confirm_num':sale.confirm_num,
+                                  'confirm_payment':sale.confirm_payment}
             else:
                 sale_items[product_id]={
                                        'sale_num':sale.sale_num,
                                        'sale_payment':sale.sale_payment,
                                        'sale_refund':sale.sale_refund ,
+                                       'confirm_num':sale.confirm_num,
+                                       'confirm_payment':sale.confirm_payment,
                                        'skus':{}}
                 if sku_id:
                     sale_items[product_id]['skus'][sku_id] = {
                                         'sale_num':sale.sale_num,
                                         'sale_payment':sale.sale_payment,
-                                        'sale_refund':sale.sale_refund  
+                                        'sale_refund':sale.sale_refund,
+                                        'confirm_num':sale.confirm_num,
+                                        'confirm_payment':sale.confirm_payment,
                                        }
             
         return sorted(sale_items.items(),key=lambda d:d[1]['sale_num'],reverse=True)
@@ -897,9 +914,11 @@ class StatProductSaleView(ModelView):
     def calcSaleSortedItems(self,queryset):
         
         total_stock_num   = 0
-        total_sale_cost   = 0
         total_sale_num  = 0
         total_sale_payment = 0
+        total_confirm_num   = 0
+        total_confirm_payment   = 0
+        total_confirm_cost   = 0
         total_sale_refund  = 0
         total_stock_cost   = 0
         sale_stat_list = self.getSaleSortedItems(queryset)
@@ -910,7 +929,7 @@ class StatProductSaleView(ModelView):
             has_sku = sale_stat['skus'] and True or False
             sale_stat['name']     = product.name
             sale_stat['outer_id'] = product.outer_id
-            sale_stat['sale_cost'] = not has_sku and product.cost * sale_stat['sale_num'] or 0 
+            sale_stat['confirm_cost'] = not has_sku and product.cost * sale_stat['confirm_num'] or 0 
             sale_stat['collect_num'] = not has_sku and product.collect_num or 0 
             sale_stat['stock_cost']  = not has_sku and product.cost * product.collect_num or 0 
 
@@ -920,9 +939,9 @@ class StatProductSaleView(ModelView):
                 sku_stat['name']      = sku.name 
                 sku_stat['outer_id']  = sku.outer_id
                 sku_stat['quantity']  = sku.quantity
-                sku_stat['sale_cost'] =  sku.cost * sku_stat['sale_num']
+                sku_stat['confirm_cost'] =  sku.cost * sku_stat['confirm_num']
                 sku_stat['stock_cost'] = sku.cost * sku.quantity
-                sale_stat['sale_cost'] += sku_stat['sale_cost'] 
+                sale_stat['confirm_cost'] += sku_stat['confirm_cost'] 
                 sale_stat['collect_num'] += sku.quantity
                 sale_stat['stock_cost']  += sku_stat['stock_cost']
 
@@ -931,14 +950,18 @@ class StatProductSaleView(ModelView):
                                        reverse=True)
             
             total_stock_num        += sale_stat['collect_num']
-            total_sale_cost        += sale_stat['sale_cost']
             total_sale_num         += sale_stat['sale_num']
+            total_confirm_num      += sale_stat['confirm_num']
+            total_confirm_payment  += sale_stat['confirm_payment']
+            total_confirm_cost     += sale_stat['confirm_cost']
             total_sale_payment     += sale_stat['sale_payment']
             total_sale_refund      += sale_stat['sale_refund']
             total_stock_cost       += sale_stat['stock_cost']
 
         return {'sale_items':sale_stat_list, 
-                'total_sale_cost':total_sale_cost ,
+                'total_confirm_cost':total_confirm_cost ,
+                'total_confirm_num':total_confirm_num ,
+                'total_confirm_payment':total_confirm_payment ,
                 'total_sale_num':total_sale_num,
                 'total_sale_refund':total_sale_refund,
                 'total_sale_payment':total_sale_payment,
@@ -974,6 +997,9 @@ class StatProductSaleView(ModelView):
                                            'sale_num':0,
                                            'sale_payment':0,
                                            'sale_refund':0 ,
+                                           'confirm_num':0,
+                                           'confirm_payment':0,
+                                           'confirm_cost':0 ,
                                            'name':product.name,
                                            'outer_id':product.outer_id,
                                            'sale_cost':0,
@@ -989,6 +1015,9 @@ class StatProductSaleView(ModelView):
                                         'sale_num':0,
                                         'sale_payment':0,
                                         'sale_refund':0,
+                                        'confirm_num':0,
+                                        'confirm_payment':0,
+                                        'confirm_cost':0 ,
                                         'stock_cost':sku.quantity * sku.cost
                                    }
                 sale_items[product_id]['collect_num'] += sku.quantity
@@ -1000,6 +1029,9 @@ class StatProductSaleView(ModelView):
                                        'sale_num':0,
                                        'sale_payment':0,
                                        'sale_refund':0 ,
+                                       'confirm_num':0,
+                                       'confirm_payment':0,
+                                       'confirm_cost':0 ,
                                        'name':product.name,
                                        'outer_id':product.outer_id,
                                        'collect_num':product.collect_num,
@@ -1019,7 +1051,9 @@ class StatProductSaleView(ModelView):
         return {'sale_items':sorted(sale_items.items(),
                                     key=lambda d:d[1]['collect_num'],
                                     reverse=True),
-                'total_sale_cost':0 ,
+                'total_confirm_cost':0 ,
+                'total_confirm_num':0 ,
+                'total_confirm_payment':0 ,
                 'total_sale_num':0,
                 'total_sale_refund':0,
                 'total_sale_payment':0,
@@ -1048,9 +1082,9 @@ class StatProductSaleView(ModelView):
             params.update(user_id=shop_id)
          
         if p_outer_id:
-             product = self.getProductByOuterId(p_outer_id)
-             if product:
-                 params.update(product_id=product.id)
+            product = self.getProductByOuterId(p_outer_id)
+            if product:
+                params.update(product_id=product.id)
         
         sale_qs  = ProductDaySale.objects.filter(**params)
         sale_items   = self.calcSaleItems(sale_qs,p_outer_id=p_outer_id,show_sale=show_sale)
@@ -1066,4 +1100,4 @@ class StatProductSaleView(ModelView):
         
     post = get                
             
-                        
+

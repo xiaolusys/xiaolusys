@@ -112,7 +112,13 @@ class ComposeRuleAdmin(admin.ModelAdmin):
         css = {"all": ("admin/css/forms.css","css/admin/dialog.css", "jquery/jquery-ui-1.10.1.css")}
         js = ("script/admin/adminpopup.js","jquery/jquery-ui-1.8.13.min.js",
               "jquery/addons/jquery.upload.js","memorule/js/rule.csvfile.upload.js")
+        
+    def get_readonly_fields(self, request, obj=None):
 
+        if not request.user.is_superuser:
+            return self.readonly_fields + ('scb_count','status')
+        return self.readonly_fields
+        
     def export_compose_rule(self,request,queryset):
         
         is_windows = request.META['HTTP_USER_AGENT'].lower().find('windows') >-1 

@@ -197,12 +197,12 @@ class ProductManager(models.Manager):
         
         index  = conncate_code.rfind(self.model.PRODUCT_CODE_DELIMITER)
         if sku_code_prior and index > 0:
-            return conncate_code[index+1:],conncate_code[0:index]
+            return conncate_code[index+1:].strip(),conncate_code[0:index].strip()
         
         if index > 0:
-            return conncate_code[0:index],conncate_code[index+1:]
+            return conncate_code[0:index].strip(),conncate_code[index+1:].strip()
             
-        return outer_id,outer_sku_id
+        return outer_id.strip(),outer_sku_id.strip()
     
     def updateProductWaitPostNum(self,product):
         

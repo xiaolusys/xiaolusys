@@ -6,7 +6,7 @@ from celery import Task
 from celery.task import task
 from celery.task.sets import subtask
 from django.conf import settings
-from django.db.models import Sum
+from django.db.models import Sum,Max
 from django.db   import transaction
 from django.db.models.query import QuerySet
 
@@ -15,7 +15,7 @@ from shopback.items.models import Item,Product,ProductSku,SkuProperty,\
     ItemNumTaskLog,ProductDaySale
 from shopback.fenxiao.models import FenxiaoProduct
 from shopback.orders.models import Order, Trade
-from shopback.trades.models import MergeOrder, MergeTrade
+from shopback.trades.models import MergeOrder, MergeTrade, Refund
 from shopback.users import Seller
 from shopback.fenxiao.tasks import saveUserFenxiaoProductTask
 from shopback import paramconfig as pcfg
@@ -190,7 +190,6 @@ def updateProductWaitPostNumTask():
         Product.objects.updateProductWaitPostNum(product)
 
 
-
 class CalcProductSaleTask(Task):
     """ 更新商品销售数量任务 """
     
@@ -204,34 +203,81 @@ class CalcProductSaleTask(Task):
     def getYesterdayEndtime(self,day_date):
         return datetime.datetime(day_date.year,day_date.month,day_date.day,23,59,59)
     
-    def getSourceList(self):
-        return Product.objects.filter(status=pcfg.NORMAL)
+    def getSourceList(self,yest_start,yest_end):
+        return set(MergeOrder.objects.filter(
+                 pay_time__gte=yest_start,
+                 pay_time__lte=yest_end)\
+                 .values_list('outer_id','outer_sku_id'))
         
     def getValidUser(self):
         return Seller.effect_users.all()
     
-    def calcSaleByUserAndProduct(self,queryset,user,product,sku,yest_date):
+    def genPaymentQueryset(self,yest_start,yest_end):
+        return MergeOrder.objects.filter(
+                 pay_time__gte=yest_start,
+                 pay_time__lte=yest_end,
+                 is_merge=False)\
+                 .exclude(gift_type=pcfg.RETURN_GOODS_GIT_TYPE)\
+                 .exclude(merge_trade__sys_status=pcfg.EMPTY_STATUS)\
+                 .exclude(merge_trade__type=pcfg.EXCHANGE_TYPE,sys_status=pcfg.INVALID_STATUS)
         
-        sale_dict = queryset.filter(merge_trade__user=user,
-                                    outer_id=product.outer_id,
-                                    outer_sku_id=sku and sku.outer_id or '')\
-                    .aggregate(sale_num=Sum('num'),
-                               sale_payment=Sum('payment'))
-        if sale_dict['sale_num'] :
+    def genRealQueryset(self,yest_start,yest_end):
+        return MergeOrder.objects.filter(
+                 sys_status=pcfg.IN_EFFECT,
+                 pay_time__gte=yest_start,
+                 pay_time__lte=yest_end,
+                 merge_trade__status__in=pcfg.ORDER_SUCCESS_STATUS)\
+                 .exclude(gift_type=pcfg.RETURN_GOODS_GIT_TYPE)\
+                 .exclude(merge_trade__sys_status__in=(pcfg.INVALID_STATUS,pcfg.ON_THE_FLY_STATUS))\
+                 .exclude(merge_trade__sys_status=pcfg.FINISHED_STATUS,
+                         merge_trade__is_express_print=False)
+          
+    def sumQueryset(self,queryset,user,product,sku):
+        return queryset.filter(merge_trade__user=user,
+                            outer_id=product.outer_id,
+                            outer_sku_id=sku and sku.outer_id or '')
+                    
+    
+    
+    def getTotalRefundFee(self,order_qs):
+        
+        effect_oids = [o[0] for o in order_qs.values_list('oid') if len(o[0]) > 6 ]
+
+        refunds = Refund.objects.filter(oid__in=effect_oids,status__in=(
+                    pcfg.REFUND_WAIT_SELLER_AGREE,pcfg.REFUND_CONFIRM_GOODS,pcfg.REFUND_SUCCESS))
+
+        return refunds.aggregate(total_refund_fee=Sum('refund_fee')).get('total_refund_fee') or 0
+    
+    def calcSaleByUserAndProduct(self,yest_start,yest_end,user,product,sku):
+        
+        yest_date = yest_start.date()
+        queryset = self.genPaymentQueryset(yest_start, yest_end)
+        real_queryset = self.genRealQueryset(yest_start, yest_end)
+        
+        sale_queryset  = self.sumQueryset(queryset, user, product, sku)
+        sale_dict = sale_queryset.aggregate(sale_num=Sum('num'),sale_payment=Sum('payment'))
+        
+        real_sale_queryset  = self.sumQueryset(real_queryset, user, product, sku)
+        real_sale_dict = real_sale_queryset.aggregate(sale_num=Sum('num'),sale_payment=Sum('payment'))
+        
+        refund_fee = self.getTotalRefundFee(real_sale_queryset)
+        if sale_dict['sale_num']:
             pds,state = ProductDaySale.objects.get_or_create(
                                              day_date=yest_date,
                                              user_id=user.id,
                                              product_id=product.id,
                                              sku_id=sku and sku.id)
-                                             
+            
             pds.sale_num = sale_dict['sale_num'] or 0
-            pds.sale_payment=sale_dict['sale_payment'] or 0
+            pds.sale_payment = sale_dict['sale_payment'] or 0
+            pds.sale_refund  = sale_dict['sale_payment'] - (real_sale_dict['sale_payment'] or 0) + refund_fee
+            pds.confirm_num  = real_sale_dict['sale_num'] or 0
+            pds.confirm_payment = (real_sale_dict['sale_payment'] or 0) - refund_fee
             pds.save()
+
         return sale_dict['sale_num'] or 0,sale_dict['sale_payment'] or 0
         
-    def run(self,yest_date=None,*args,**kwargs):
-        
-        products = self.getSourceList()
+    def run(self,yest_date=None,update_warn_num=False,*args,**kwargs):
         
         yest_date  = yest_date or self.getYesterdayDate()
         yest_start = self.getYesterdayStarttime(yest_date)
@@ -239,35 +285,44 @@ class CalcProductSaleTask(Task):
         
         sellers = self.getValidUser()
         
-        queryset = MergeOrder.objects.filter(merge_trade__pay_time__gte=yest_start,
-                                             merge_trade__pay_time__lte=yest_end,
-                                             is_merge=False,
-                                             gift_type__in=(pcfg.OVER_PAYMENT_GIT_TYPE,
-                                                            pcfg.REAL_ORDER_GIT_TYPE,
-                                                            pcfg.COMBOSE_SPLIT_GIT_TYPE),
-                                             sys_status=pcfg.IN_EFFECT)\
-                                             .exclude(merge_trade__sys_status='')
-        for prod in products:
+        outer_tuple = self.getSourceList(yest_start,yest_end)
+        for outer_id,outer_sku_id in outer_tuple:
             
-            for sku in prod.prod_skus.all():
+            prod = Product.objects.getProductByOuterid(outer_id)
+            prod_sku = Product.objects.getProductSkuByOuterid(outer_id, outer_sku_id)
+            if prod_sku:
                 
                 total_sale   = 0
                 for user in sellers:
-                    pds = self.calcSaleByUserAndProduct(queryset,user,prod,sku,yest_date)
-                    total_sale   += pds[0]
-                
-                sku.warn_num = total_sale
-                sku.save()
-                
-            if prod.prod_skus.count() == 0:
-                
-                total_sale   = 0
-                for user in sellers:
-                    pds = self.calcSaleByUserAndProduct(queryset,user,prod,None,yest_date)
+                    pds = self.calcSaleByUserAndProduct(yest_start,yest_end,user,prod,prod_sku)
                     total_sale   += pds[0]
                     
-                prod.warn_num = total_sale
-                prod.save()
+                if update_warn_num:
+                    prod_sku.warn_num = total_sale
+                    prod_sku.save()
+                
+            if not prod_sku and prod and prod.prod_skus.count() == 0:
+                
+                total_sale   = 0
+                for user in sellers:
+                    pds = self.calcSaleByUserAndProduct(yest_start,yest_end,user,prod,None)
+                    total_sale   += pds[0]
+                    
+                if update_warn_num:
+                    prod.warn_num = total_sale
+                    prod.save()
+                    
+        if update_warn_num:
+            products = Product.objects.all()
+            for p in products:
+                for sku in p.prod_skus.all():
+                    if (prod.outer_id,sku.outer_id) not in outer_tuple:
+                        sku.warn_num = 0
+                        sku.save()
+                        
+                if p.prod_skus.count() == 0 and (p.outer_id,"") not in outer_tuple:
+                    prod.warn_num = total_sale
+                    prod.save()
                 
 
 @task()
@@ -301,6 +356,25 @@ def updateUserItemSkuFenxiaoProductTask(user_id):
     updateUserItemsTask(user_id)
     updateUserProductSkuTask(user_id)
     saveUserFenxiaoProductTask(user_id)
+    
+    
+@task()
+def gradCalcProductSaleTask():
+    """  计算商品销售 """
+    
+    dt = datetime.datetime.now() 
+    #更新一个月以前的账单
+    if settings.DEBUG:
+        CalcProductSaleTask()(yest_date = dt - datetime.timedelta(days=30))
+    else:
+        subtask(CalcProductSaleTask()).delay(yest_date = dt - datetime.timedelta(days=30))
+    
+    #更新昨日的账单
+    if settings.DEBUG:
+        CalcProductSaleTask()(yest_date = dt - datetime.timedelta(days=1),update_warn_num = True)
+    else:
+        subtask(CalcProductSaleTask()).delay(yest_date = dt - datetime.timedelta(days=1),
+                                           update_warn_num = True)
 
 ###########################################################  商品库存管理  ########################################################
 
@@ -334,8 +408,9 @@ def updateItemNum(user_id,num_iid):
                 outer_sku_id = sku.get('outer_id','')
                 outer_id,outer_sku_id = Product.objects.trancecode(p_outer_id,outer_sku_id)
                 
-                if sku['status'] != pcfg.NORMAL or not outer_sku_id:
+                if p_outer_id != outer_id or sku['status'] != pcfg.NORMAL or not outer_sku_id:
                     continue
+
                 product_sku  = product.prod_skus.get(outer_id=outer_sku_id)
                 
                 order_nums  = 0
@@ -377,7 +452,7 @@ def updateItemNum(user_id,num_iid):
                     and product_sku.sync_stock):
                     response = apis.taobao_item_quantity_update(num_iid=item.num_iid,
                                                                 quantity=sync_num,
-                                                                outer_id=outer_sku_id,
+                                                                sku_id=sku['sku_id'],
                                                                 tb_user_id=user_id)
                     item_dict = response['item_quantity_update_response']['item']
                     Item.objects.filter(num_iid=item_dict['num_iid']).update(modified=item_dict['modified'],

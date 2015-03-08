@@ -5,6 +5,7 @@ from django.db import models
 from django.db.models import Q,Sum
 from django.db.models.signals import post_save
 from django.db import IntegrityError, transaction
+from django.forms.models import model_to_dict
 
 from shopapp.signals import weixin_referal_signal
 
@@ -18,11 +19,11 @@ class WeixinProductManager(models.Manager):
             return super_tm.get_query_set()
         return super_tm.get_queryset()
     
-    def getOrCreate(self,product_id):
+    def getOrCreate(self,product_id,force_update=False):
         
         product,state = self.get_or_create(product_id=product_id)
         
-        if not state and product.status:
+        if not force_update and not state and product.status:
             return product
         
         from .weixin_apis import WeiXinAPI
@@ -47,7 +48,53 @@ class WeixinProductManager(models.Manager):
          
         product.save()
         
+        for sku_dict in product.sku_list:
+            self.createSkuByDict(product, sku_dict)
+        
         return product
+    
+    def createSkuByDict(self,product,sku_dict):
+        
+        from .models import WXProductSku
+        from shopback.items.models import Product
+        
+        sku_id = sku_dict['sku_id']
+        product_sku,state   = WXProductSku.objects.get_or_create(product=product,
+                                                                 sku_id=sku_id)
+        
+        product_sku.outer_id,product_sku.outer_sku_id = Product.objects.trancecode(
+                                                               sku_dict['product_code'], '',
+                                                               sku_code_prior=True)
+        
+        product_sku.sku_img = sku_dict['icon_url']
+        product_sku.sku_num  = sku_dict['quantity']
+        
+        product_sku.sku_price   = round(float(sku_dict['price'])/100,2)
+        product_sku.ori_price   = round(float(sku_dict['ori_price'])/100,2)
+        
+        product_sku.save()
+        
+    def fetchSkuMatchInfo(self,product):
+        
+        from .models import WXProductSku
+        product_dict = model_to_dict(product)
+        product_dict['pskus'] = []
+        
+        for sku in product.pskus.order_by('outer_id'):
+            
+            sku_dict = model_to_dict(sku)
+            outer_id = product.outer_id
+            outer_sku_id = sku.outer_id
+            wsku_list_dict = WXProductSku.objects.filter(
+                                        outer_id=outer_id,
+                                        outer_sku_id=outer_sku_id,
+                                        status=WXProductSku.UP_SHELF).values()
+                                        
+            sku_dict['wskus'] = wsku_list_dict
+                
+            product_dict['pskus'].append(sku_dict)
+            
+        return product_dict
     
     @property
     def UPSHELF(self):
@@ -97,6 +144,44 @@ class WeixinUserManager(models.Manager):
     @property
     def VALID_USER(self):
         return self.get_queryset().exclude(user_group_id=2).filter(isvalid=True)
+    
+    def  charge(self,wx_user,user,*args,**kwargs):
+        
+        from .models import WXUserCharge
+        
+        try:
+            WXUserCharge.objects.get(wxuser_id=wx_user.id,
+                                      status=WXUserCharge.EFFECT)
+        except WXUserCharge.DoesNotExist:
+            WXUserCharge.objects.get_or_create(
+                                 wxuser_id=wx_user.id,
+                                 employee=user,
+                                 status=WXUserCharge.EFFECT)
+            
+        else:
+            return False
+        
+        wx_user.charge_status = self.model.CHARGED
+        wx_user.save()
+        return True
+    
+    def  uncharge(self,wx_user,*args,**kwargs):
+        
+        from .models import WXUserCharge
+        
+        try:
+            scharge = WXUserCharge.objects.get(
+                                      wxuser_id=wx_user.id,
+                                      status=WXUserCharge.EFFECT)
+        except WXUserCharge.DoesNotExist:
+            return False
+        else:
+            scharge.status = WXUserCharge.INVALID
+            scharge.save()
+        
+        wx_user.charge_status = self.model.UNCHARGE
+        wx_user.save()
+        return True
         
     
     
@@ -116,7 +201,7 @@ class VipCodeManager(models.Manager):
         vipcodes = self.filter(owner_openid=wx_user)
         if vipcodes.count() > 0:
             return vipcodes[0].code
-
+        
         expiry = datetime.datetime(2014,9,7,0,0,0)
         code_type = 0
         code_rule = u'免费试用'

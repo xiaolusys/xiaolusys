@@ -16,6 +16,8 @@ urlpatterns = patterns('',
     url(r'^award/remind/$', AwardRemindView.as_view()),
     url(r'^award/apply/$', AwardApplyView.as_view()),
     url(r'^award/share/(?P<pk>\d+)/$', AwardShareView.as_view()),
+    
+    
 )
 
 

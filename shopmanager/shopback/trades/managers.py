@@ -24,7 +24,8 @@ class MergeTradeManager(models.Manager):
                           receiver_mobile,
                           receiver_phone,
                           state='',
-                          city=''):
+                          city='',
+                          latest_paytime=None):
         
         q = Q(receiver_name=receiver_name,buyer_nick=buyer_nick)
         if receiver_mobile :
@@ -36,9 +37,13 @@ class MergeTradeManager(models.Manager):
         queryset = self.get_queryset().filter(q)\
                 .exclude(sys_status__in=(pcfg.EMPTY_STATUS,
                                          pcfg.FINISHED_STATUS,
-                                         pcfg.INVALID_STATUS))
+                                         pcfg.INVALID_STATUS,
+                                         pcfg.ON_THE_FLY_STATUS))
         if state and city:
-            queryset.filter(receiver_state=state,receiver_city=city)
+            queryset = queryset.filter(receiver_state=state,receiver_city=city)
+            
+        if latest_paytime:
+            queryset = queryset.filter(pay_time__gte=latest_paytime)
             
         return queryset
                 
@@ -65,12 +70,12 @@ class MergeTradeManager(models.Manager):
         from shopback.trades.options import mergeRemover
         return mergeRemover(trade)
         
-    def driveMergeTrade(self,trade):
+    def driveMergeTrade(self,trade,**kwargs):
         
         from shopback.trades.options import driveMergeTrade
-        return driveMergeTrade(trade)
+        return driveMergeTrade(trade,**kwargs)
     
-    def updateWaitPostNum(self,trade):
+    def updateWaitPostNum(self,trade,**kwargs):
         
         for order in trade.inuse_orders:
             

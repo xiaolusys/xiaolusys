@@ -404,6 +404,10 @@ class WeixinUserService():
         elif eventType == WeiXinAutoResponse.WX_EVENT_UNSUBSCRIBE:
             self._wx_user.unSubscribe()
             return WeiXinAutoResponse.respEmptyString()
+        
+        elif eventType in (WeiXinAutoResponse.WX_EVENT_KF_CLOSE_SESSION,
+                           WeiXinAutoResponse.WX_EVENT_KF_CREATE_SESSION):
+            return WeiXinAutoResponse.respEmptyString()
             
         return self.getResponseByBestMatch(eventKey, openId)
     
@@ -464,9 +468,9 @@ class WeixinUserService():
                                                             params['SendPicsInfo']))
                     
                 else:
-                    eventKey = params['EventKey']
+                    eventKey = params.get('EventKey','')
                     ret_params.update(self.handleEvent(eventKey and eventKey.upper() or '',
-                                                       openId, eventType=params['Event']))
+                                                       openId, eventType=eventType))
                     
                 return ret_params
                 
@@ -589,6 +593,7 @@ class WxShopService(LocalService):
               
             merge_order.payment = order.order_total_price / 100.0
             merge_order.created = order.order_create_time
+            merge_order.pay_time = order.order_create_time
             merge_order.num = order.product_count
             merge_order.title = order.product_name
             merge_order.pic_path = order.product_img

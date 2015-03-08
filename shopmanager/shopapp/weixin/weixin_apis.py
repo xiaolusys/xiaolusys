@@ -104,7 +104,7 @@ class WeiXinAPI(object):
                                   urllib.urlencode(params) or params)
             resp = req.read()
 
-        content = json.loads(resp)
+        content = json.loads(resp,strict=False)
         
         if content.has_key('errcode') and content['errcode'] != 0:
             raise WeiXinRequestException(content['errcode'],content['errmsg'])

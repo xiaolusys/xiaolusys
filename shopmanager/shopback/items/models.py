@@ -47,6 +47,7 @@ class Product(models.Model):
     
     ProductCodeDefect = ProductDefectException
     PRODUCT_CODE_DELIMITER = '.'
+    NO_PIC_PATH = '/media/img/nopic.jpg'
     
     outer_id     = models.CharField(max_length=64,unique=True,null=False,
                                     blank=True,verbose_name=u'外部编码')
@@ -55,14 +56,14 @@ class Product(models.Model):
     barcode      = models.CharField(max_length=64,blank=True,db_index=True,verbose_name=u'条码')
     category     = models.ForeignKey(ProductCategory,null=True,blank=True,
                                      related_name='products',verbose_name=u'内部分类')
-    pic_path     = models.CharField(max_length=256,blank=True)
+    pic_path     = models.CharField(max_length=256,blank=True,verbose_name=u'图片链接')
     
     collect_num  = models.IntegerField(default=0,verbose_name=u'库存数')  #库存数
-    warn_num     = models.IntegerField(null=True,default=0,verbose_name=u'警告数')    #警戒库位
-    remain_num   = models.IntegerField(null=True,default=0,verbose_name=u'预留数')    #预留库存
-    wait_post_num   = models.IntegerField(null=True,default=0,verbose_name=u'待发数') #待发数
-    retrieval_num  = models.IntegerField(null=True,default=0,verbose_name=u'日出库数')    #日出库
-    reduce_num   = models.IntegerField(null=True,default=0,verbose_name=u'预减数')    #下次入库减掉这部分库存
+    warn_num     = models.IntegerField(null=True,default=0,verbose_name=u'警告数')  #警戒库位
+    remain_num   = models.IntegerField(null=True,default=0,verbose_name=u'预留数')  #预留库存
+    wait_post_num   = models.IntegerField(null=True,default=0,verbose_name=u'待发数')  #待发数
+    retrieval_num  = models.IntegerField(null=True,default=0,verbose_name=u'日出库数')  #日出库
+    reduce_num   = models.IntegerField(null=True,default=0,verbose_name=u'预减数')  #下次入库减掉这部分库存
     
     cost         = models.FloatField(default=0,verbose_name=u'成本价')
     std_purchase_price = models.FloatField(default=0,verbose_name=u'标准进价')
@@ -81,7 +82,7 @@ class Product(models.Model):
     is_match   = models.BooleanField(default=False,verbose_name=u'有匹配')
     
     sync_stock   = models.BooleanField(default=True,verbose_name=u'库存同步')
-    is_assign    = models.BooleanField(default=False,verbose_name=u'取消警告') 
+    is_assign    = models.BooleanField(default=False,verbose_name=u'取消警告')
     
     post_check   = models.BooleanField(default=False,verbose_name=u'需扫描')
     status       = models.CharField(max_length=16,db_index=True,
@@ -131,7 +132,11 @@ class Product(models.Model):
             self.wait_post_num = self.wait_post_num >0 and self.wait_post_num or 0 
             self.save()
         return self.collect_num-self.wait_post_num <= 0
-    
+        
+    @property
+    def PIC_PATH(self):
+        return self.pic_path.strip() or self.NO_PIC_PATH
+        
     @property
     def json(self):
         
@@ -654,16 +659,13 @@ class Item(models.Model):
         
         category = Category.get_or_create(user_id,item_dict['cid'])
         if item_dict.has_key('outer_id') and item_dict['outer_id']:
-            product,state = Product.objects.get_or_create(outer_id=item_dict['outer_id'])
-            if state:
-                product.collect_num  = item_dict['num']
-                product.std_sale_price  = item_dict['price']
-                product.agent_price  = item_dict['price']
-                product.staff_price  = item_dict['price']
-                product.name        = item_dict['title']
-            product.name        = product.name or item_dict['title']
-            product.pic_path    = product.pic_path or item_dict['pic_url']    
-            product.save()
+            products = Product.objects.filter(outer_id=item_dict['outer_id'])
+            product = None
+            if products.count() > 0:
+                product = products[0]
+                product.name        = product.name or item_dict['title']
+                product.pic_path    = product.pic_path or item_dict['pic_url']
+                product.save()
         else:
             #logger.warn('item has no outer_id(num_iid:%s)'%str(item_dict['num_iid']))
             product = None
@@ -789,9 +791,12 @@ class ProductDaySale(models.Model):
     product_id  = models.IntegerField(null=False,verbose_name='商品ID')
     sku_id      = models.IntegerField(null=True,verbose_name='规格ID')
 
-    sale_num     = models.IntegerField(default=0.0,verbose_name='销售数量')
+    sale_num     = models.IntegerField(default=0,verbose_name='销售数量')
     sale_payment = models.FloatField(default=0.0,verbose_name='销售金额')
     sale_refund  = models.FloatField(default=0.0,verbose_name='退款金额')
+    
+    confirm_num  = models.IntegerField(default=0,verbose_name='成交数量')
+    confirm_payment  = models.FloatField(default=0.0,verbose_name='成交金额')
     
     class Meta:
         db_table = 'shop_items_daysale'
@@ -800,10 +805,10 @@ class ProductDaySale(models.Model):
         verbose_name_plural = u'商品销量统计'
 
     def __unicode__(self):
-        return '<%s,%d,%d,%s,%d>'%(self.day_date,
+        return '<%s,%s,%d,%d,%s>'%(self.id,
+                                   self.day_date,
                                    self.user_id,
                                    self.product_id,
-                                   str(self.sku_id),
-                                   self.sale_num)
+                                   str(self.sku_id))
     
     

@@ -1,14 +1,18 @@
 #-*- coding:utf-8 -*-
+import re
 import urllib
 from django.contrib import admin
 from django.db import models
+from django.conf import settings
 from django.forms import TextInput, Textarea
 from shopback.base.options import DateFieldListFilter
 from shopapp.weixin.models import (WeiXinAccount,
                                    UserGroup,
                                    WeiXinUser,
+                                   WXUserCharge,
                                    WeiXinAutoResponse,
                                    WXProduct,
+                                   WXProductSku,
                                    WXOrder,
                                    WXLogistic,
                                    #ReferalRelationship,
@@ -100,13 +104,67 @@ admin.site.register(UserGroup, UserGroupAdmin)
 
 class WeiXinUserAdmin(admin.ModelAdmin):
     
-    list_display = ('openid','nickname','sex','province','city','subscribe'
-                    ,'subscribe_time','modified','user_group','isvalid')
+    list_display = ('openid','nickname','sex','province','city','mobile','subscribe'
+                    ,'subscribe_time','vipcode_link','referal_count','charge_link','user_group','isvalid')
     
-    list_filter = ('subscribe','isvalid','sex','user_group',)
+    list_filter = ('charge_status','subscribe','isvalid','sex','user_group',)
     search_fields = ['openid','referal_from_openid','nickname','mobile','vmobile','unionid']
     
+    def charge_link(self, obj):
 
+        if obj.charge_status == WeiXinUser.CHARGED:
+            scharge = WXUserCharge.objects.get(wxuser_id=obj.id,
+                                               status=WXUserCharge.EFFECT)
+            return u'[ %s ]' % scharge.employee.username
+        
+        if obj.charge_status == WeiXinUser.FROZEN:
+            return obj.get_charge_status_display()
+
+        return ('<a href="javascript:void(0);" class="btn btn-primary btn-charge" '
+                + 'style="color:white;" sid="{0}">接管</a></p>'.format(obj.id))
+    
+    charge_link.allow_tags = True
+    charge_link.short_description = u"接管信息"
+    
+    def vipcode_link(self, obj):
+
+        vipcodes = VipCode.objects.filter(owner_openid=obj)
+        if vipcodes.count() > 0:
+            return vipcodes[0].code
+        return '-'
+    
+    vipcode_link.allow_tags = True
+    vipcode_link.short_description = u"F码"
+    
+    def queryset(self,request):
+        
+
+        #如果查询条件中含有邀请码
+        search_q = request.GET.get('q','').strip()
+        if search_q.isdigit() and len(search_q) in (6,7,8):
+            vipcodes = VipCode.objects.filter(code=search_q)
+            wxuser_ids = [v.owner_openid.id for v in vipcodes]
+            return WeiXinUser.objects.filter(models.Q(id__in=wxuser_ids)|
+                                             models.Q(nickname__contains=search_q))
+        
+        if re.compile('^[\w-]{24,64}$').match(search_q):
+            return WeiXinUser.objects.filter(models.Q(openid=search_q)|
+                                             models.Q(referal_from_openid=search_q))
+            
+        qs = super(WeiXinUserAdmin,self).queryset(request)
+        if request.user.is_superuser:
+            return qs
+        scharges = WXUserCharge.objects.filter(employee=request.user,status=WXUserCharge.EFFECT)
+        wxuser_ids = [s.wxuser_id for s in scharges] 
+        
+        return qs.filter(models.Q(charge_status=WeiXinUser.UNCHARGE)|
+                         models.Q(id__in=wxuser_ids,charge_status=WeiXinUser.CHARGED))
+    
+    class Media:
+        css = {"all": ("admin/css/forms.css","css/admin/dialog.css"
+                       ,"css/admin/common.css", "jquery/jquery-ui-1.10.1.css")}
+        js = ("js/admin/adminpopup.js","js/wxuser_change_list.js")
+    
 admin.site.register(WeiXinUser, WeiXinUserAdmin) 
 
 
@@ -149,6 +207,24 @@ class WXProductAdmin(admin.ModelAdmin):
     search_fields = ['product_id','product_name']
     
 admin.site.register(WXProduct, WXProductAdmin) 
+
+class WXProductSkuAdmin(admin.ModelAdmin):
+    
+    list_display = ('sku_id','product','outer_id','outer_sku_id',
+                    'sku_name','pic_link','sku_price','ori_price','status')
+    
+    list_filter = ('status',)
+    search_fields = ['sku_id','product__product_id','outer_id','outer_sku_id']
+    
+    def pic_link(self, obj):
+        abs_pic_url = obj.sku_img or '%s%s'%(settings.MEDIA_URL,settings.NO_PIC_PATH)
+        return (u'<img src="%s" width="100px" height="80px" title="%s"/></a>')%(abs_pic_url,
+                                                                                obj.product.product_name)
+    
+    pic_link.allow_tags = True
+    pic_link.short_description = "商品图片"
+    
+admin.site.register(WXProductSku, WXProductSkuAdmin) 
 
 
 class WXOrderAdmin(admin.ModelAdmin):
