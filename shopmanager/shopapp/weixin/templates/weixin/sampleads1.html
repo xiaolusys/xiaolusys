@@ -1,18 +1,15 @@
 {% extends "weixin/weixin_base.html" %}
 
-{% block meta %}
-<meta name="sharecontent" data-msg-img="https://mmbiz.qlogo.cn/mmbiz/yMhOQPTKhLticIHepSybaDQKTV5LXs8iaLRB3EMEibPzXZWs7XCPmBmqW8uzaCBBxYudU0PKYjmw0r7MOsoJ000zg/0" data-msg-title="小小礼物 感恩的心 感谢有你！" data-msg-content="十一月，感恩季。一份小小礼物，代表我的感恩。请一定打开，让我放心您已收到。" data-msg-callBack="" data-line-img="https://mmbiz.qlogo.cn/mmbiz/yMhOQPTKhLticIHepSybaDQKTV5LXs8iaLRB3EMEibPzXZWs7XCPmBmqW8uzaCBBxYudU0PKYjmw0r7MOsoJ000zg/0" data-line-title="小小礼物 感恩的心 感谢有你！" data-line-callBack=""/>  
-{% endblock %}
 
 {% block title %} 
-小小礼物 感恩的心 谢谢你们！
+自从有了娃
 {% endblock %}
 
 {% block container %}
 
 <div class="container-fluid">
   <div class="thumbnail" style="text-align:center">
-    <img src="https://mmbiz.qlogo.cn/mmbiz/yMhOQPTKhLvicXDpybDibWGUxYObT8cpBtibR2bAgNhGJQyFtnJBxzx3qfwAQMibbYWF2SN4XZe0YWkBJIuvHBm0xg/0"/>
+    <img id="id_donebox" src="https://mmbiz.qlogo.cn/mmbiz/yMhOQPTKhLvicXDpybDibWGUxYObT8cpBtibR2bAgNhGJQyFtnJBxzx3qfwAQMibbYWF2SN4XZe0YWkBJIuvHBm0xg/0"/>
     <img src="https://mmbiz.qlogo.cn/mmbiz/yMhOQPTKhLvicXDpybDibWGUxYObT8cpBtOKHibDRnWkTB5Kzfr7ynNdjJRAq3qJfE2mDB1yibADIHicZndYF4JiabdQ/0"/>
     <img src="https://mmbiz.qlogo.cn/mmbiz/yMhOQPTKhLvicXDpybDibWGUxYObT8cpBtf1DKN4MtQN4TgCPS2v03Wq9LutYL1qWPOViaJyZrGLn5ibnFlgJWayiaA/0"/>
     <img src="https://mmbiz.qlogo.cn/mmbiz/yMhOQPTKhLvicXDpybDibWGUxYObT8cpBt6Y87W5TD52tnEcHzicHnr6wYpbYPxR53pP7wJcPWG1jmzVgeFmQTA3g/0"/>
@@ -29,8 +26,15 @@
 {% endblock %}    
 
 {% block tail_script %}    
-<script src="http://res.wx.qq.com/open/js/jweixin-1.0.0.js"></script>
 <script type="text/javascript">
+  var global_timer;
+  function slideup() {
+    $("#id_donebox").slideUp(2000);
+    window.clearInterval(global_timer);
+  };
+
+  global_timer =  window.setInterval(slideup, 3500);
+
   wx.config({
     debug: true, // 开启调试模式,调用的所有api的返回值会在客户端alert出来，若要查看传入的参数，可以在pc端打开，参数信息会通过log打出，仅在pc端时才会打印。
     appId: "{{ signkey.app_id }}", // 必填，公众号的唯一标识

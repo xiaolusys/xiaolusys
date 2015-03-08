@@ -104,8 +104,8 @@ def warn(request):
 from urllib import urlopen
 
 
-START_TIME = datetime.datetime(2015,1,22)
-END_TIME = datetime.datetime(2015,1,26,23,59,59)
+START_TIME = datetime.datetime(2015,3,9,10)
+END_TIME = datetime.datetime(2015,3,16,23,59,59)
 
 
 def get_user_openid(request, code):
@@ -734,24 +734,46 @@ class FreeSampleView(View):
         
         wx_user,state = WeiXinUser.objects.get_or_create(openid=user_openid)
 
-        if wx_user.subscribe and wx_user.subscribe_time < datetime.datetime(2015,1,22):
+        if wx_user.subscribe and wx_user.subscribe_time < datetime.datetime(2015,3,8):
             if wx_user.vipcodes.count() > 0:
                 fcode = wx_user.vipcodes.all()[0].code
         
+        today = datetime.datetime.today()
+        today_time = datetime.datetime(today.year, today.month, today.day)
+        today_orders = SampleOrder.objects.filter(created__gt=today_time)
+        
         order_exist = False
         order = SampleOrder.objects.filter(user_openid=user_openid).filter(created__gt=START_TIME)
+        
         if order.count() > 0:
             #redirect_url = '/weixin/sampleads/%d/' % wx_user.pk
             #return redirect(redirect_url)
             order_exist = True
         
         
-        started = True
-        
+        started = False
+        days,hours,minutes,delta = 0,0,0,None
+        now = datetime.datetime.now()
+        if now >= START_TIME:
+            started = True
+            delta = now - END_TIME
+        else:
+            delta = START_TIME - now
+
+        if user_openid == 'oMt59uE55lLOV2KS6vYZ_d0dOl5c':
+            started = True
+
+        days = delta.days
+        hours = delta.seconds/3600
+        minutes = (delta.seconds - hours*3600)/60
+            
         html = 'weixin/freesamples.html'
-        response = render_to_response(html, 
-                                      {"wx_user":wx_user, 'fcode':fcode, 'started':started, 'order_exist':order_exist},
-                                      context_instance=RequestContext(request))
+        response = render_to_response(
+            html, 
+            {"wx_user":wx_user, "fcode":fcode, "started":started, 
+             "order_exist":order_exist, "order_number":today_orders.count(),
+             "days":days, "hours":hours, "minutes":minutes},
+            context_instance=RequestContext(request))
         response.set_cookie("openid",user_openid)
         return response
 
@@ -780,7 +802,8 @@ class SampleApplyView(View):
         content = request.REQUEST
         sample_pk = content.get("sample_pk")
         fcode = content.get("fcode")
-        selection = content.get("selection")
+        color = content.get("color")
+        size  = content.get("size")
         
         ## validate fcode
         ## if not correct, redirect
@@ -789,15 +812,16 @@ class SampleApplyView(View):
             redirect_url = "https://open.weixin.qq.com/connect/oauth2/authorize?appid=wxc2848fa1e1aa94b5&redirect_uri=http://weixin.huyi.so/weixin/freesamples/&response_type=code&scope=snsapi_base&state=135#wechat_redirect"
             return redirect(redirect_url)
 
-        sku_code =  int(selection) or 1
+        color =  int(color) or 1
+        size = int(size) or 1
+
+        sku_code = "%d%d" % (color,size)
 
         sample = FreeSample.objects.get(pk=int(sample_pk))
 
         skus = SampleSku.objects.filter(sku_code=sku_code)
-        if skus.count() > 0:
-            sku = skus[0]
-        else:
-            sku = "1000"
+        if skus.count() < 1:
+            skus = SampleSku.objects.filter(sku_code='11')
 
         code = content.get('code')
         user_openid = get_user_openid(request, code)
@@ -807,7 +831,7 @@ class SampleApplyView(View):
             wx_user = users[0]
         
         response = None
-        param = {"sample":sample, "sku":sku, "wx_user": wx_user, "fcode":fcode}
+        param = {"sample":sample, "sku":skus[0], "color":color ,"wx_user": wx_user, "fcode":fcode}
 
         response = render_to_response("weixin/sampleapply.html",param,
                                       context_instance=RequestContext(request))

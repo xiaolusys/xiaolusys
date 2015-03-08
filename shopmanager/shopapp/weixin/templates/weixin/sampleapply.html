@@ -18,14 +18,14 @@
 	<div class="row">
 	  <div class="col-xs-4" style="text-align:center">
 	    <div class="thumbnail">
-	      {% if sku.sku_code == '1' %}
-	      <img src="https://mmbiz.qlogo.cn/mmbiz/yMhOQPTKhLvuSp8nx80CxFU6BqRvnNq1EhhsibFYg9kZa2t0yPgdGMoFPWO0Xh900qyqiahTWf2HwY8xwTmgZatg/0" alt="...">
+	      {% if color == 1 %}
+	      <img src="https://mmbiz.qlogo.cn/mmbiz/yMhOQPTKhLvicXDpybDibWGUxYObT8cpBtbkb3KOBdrVR7grpsFLUvr61EIBORu6KENetZhF9fiaPbS7htAXS3mjg/0" alt="...">
 	      {% endif %}
-	      {% if sku.sku_code == '2' %}
-	      <img src="https://mmbiz.qlogo.cn/mmbiz/yMhOQPTKhLvuSp8nx80CxFU6BqRvnNq17rGeyo6boPyITfGMbJvImH5Ckx0DtHzW0ictUWaqV5qeGIbUqS3yZxQ/0" alt="...">
+	      {% if color == 2 %}
+	      <img src="https://mmbiz.qlogo.cn/mmbiz/yMhOQPTKhLvicXDpybDibWGUxYObT8cpBtd6D7YwO4Chl7icWB6FIXzicxQl220MWrWg2BulcDXt1yKCAF6ibwkYaaQ/0" alt="...">
 	      {% endif %}
-	      {% if sku.sku_code == '3' %}
-	      <img src="https://mmbiz.qlogo.cn/mmbiz/yMhOQPTKhLvuSp8nx80CxFU6BqRvnNq1c7y3wOe9HzygQoSdaGkLg5AoyTicMshNlXJPj60hSQ2kc4CQFfiafvOg/0" alt="...">
+	      {% if color == 3 %}
+	      <img src="https://mmbiz.qlogo.cn/mmbiz/yMhOQPTKhLvicXDpybDibWGUxYObT8cpBtlk0icBWVBsBh9gE9r6g5xT2YIGS6L9nIcU5t7TdlIDBicEnYgTPZBXDQ/0" alt="...">
 	      {% endif %}
 	    </div>
 	  </div>
@@ -34,7 +34,7 @@
 	    <p style="color:#e8792a">{{ sku.sku_name }}</p>
 	  </div>
 	</div>
-	<!--
+
 	<div class="row">
 	  <div class="col-xs-12">
 	    {% if wx_user.isvalid %}
@@ -66,7 +66,7 @@
 	  <div class="col-xs-12">
 	    <h5 style="color:red"><b>小调查</b></h5>
 	    <div>
-	      <p style="color:#029fd6">1. 您会对【齐悦母婴惠】后续的闪购特卖活动感兴趣吗？</p>
+	      <p style="color:#029fd6">1. 小鹿美美，是优尼世界旗下新的童装女装特卖平台，主推外贸原单新款，每天10点上新。您会感兴趣吗？</p>
 	      <p id="id_p21"><input type="radio" name="p2" value="1" id="id_input21"> 每天可以准时来看看都特卖啥宝贝。</p>
 	      <p id="id_p22"><input type="radio" name="p2" value="2" id="id_input22"> 看看可以的，特别实惠的才会想买。</p>
 	    </div>
@@ -78,10 +78,12 @@
 	  <div class="col-xs-12" style="text-align:center">
 	    <input type="submit" class="btn btn-warning" value="确认提交"/>
 	  </div>
-	</div>-->
+	</div>
+	<!--
 	<div class="row">
 	  <div class="col-xs-12"><p>本期睡袋免费试用活动已经结束申请了，亲们下期活动再会！</p></div>
 	</div>
+	-->
       </form>
     </div>
   </div>

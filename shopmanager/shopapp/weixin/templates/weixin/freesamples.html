@@ -6,56 +6,73 @@
 {% block container %}
 
 <div class="container-fluid">
-  <!--
+
   <div class="panel panel-default" style="margin-top:5px">
-    <div class="panel-heading" style="color:orange">免费试用 中奖名单</div>
+    <div class="panel-heading" style="color:orange">三月送睡袋活动 公告</div>
     <div class="panel-body">
-      <p>第一批 综合得分 140，点击次数 10 以上  <a href="/weixin/finallist/1/1/1/">中奖名单&gt;&gt;</a></p>
+      {% if started %}
+      <p>距离活动结束还有<font style="color:red;"><span style="font-size:20px">{{ days }}</span>天<span style="font-size:20px">{{ hours }}</span>小时<span style="font-size:20px">{{ minutes }}</span>分</font>，共有<font style="color:red;font-size:20px">1000份</font>睡袋免费领取！</p>
+      {% else %}
+      <p>距离活动开始还有<font style="color:red;"><span style="font-size:20px">{{ days }}</span>天<span style="font-size:20px">{{ hours }}</span>小时<span style="font-size:20px">{{ minutes }}</span>分</font>，共有<font style="color:red;font-size:20px">1000份</font>睡袋免费领取！</p>
+      {% endif %}
+
+      <!--
       <p>第一批 综合得分 350，点击次数 20 以上  <a href="/weixin/finallist/2/1/1/">中奖名单&gt;&gt;</a></p>
       <p>第三批 综合得分 356，邀请码使用28以上  <a href="/weixin/finallist/3/1/1/">中奖名单&gt;&gt;</a></p>
       <p style="color:red;">免费试用申请已经结束了，试用名单已经全部公布，没有成功的亲们下期活动再加油哦！</p>
+      -->
     </div>
   </div>
-  -->
+
   <div class="panel panel-default" style="margin-top:5px">
-  <div class="panel-heading" style="color:orange">免费试用：宝宝时尚睡袋</div>
+  <div class="panel-heading" style="color:red">2015春夏新款睡袋（适用0-6岁）</div>
   <div class="panel-body">
     
-      <form action="/weixin/sampleapply/" method="post" onsubmit="return check()" class="form-group">{% csrf_token %}
-      <input type="hidden" value="4" name="sample_pk"/>
+    <form action="/weixin/sampleapply/" method="post" onsubmit="return check()" class="form-group">{% csrf_token %}
+      <input type="hidden" value="5" name="sample_pk"/>
 
       <div class="row">
 	<div class="col-xs-6" style="text-align:center">
+	  <p style="margin-top:10px"><a href="http://mp.weixin.qq.com/bizmall/mallshelf?id=&t=mall/list&biz=MzA5NTI1NjYyNg==&shelf_id=2&showwxpaytitle=1#wechat_redirect">查看今日特卖 >></a></p>
 	  <a href="" class="thumbnail">
-	    <img id="id_img1" src="https://mmbiz.qlogo.cn/mmbiz/yMhOQPTKhLvuSp8nx80CxFU6BqRvnNq1EhhsibFYg9kZa2t0yPgdGMoFPWO0Xh900qyqiahTWf2HwY8xwTmgZatg/0" alt="...">
+	    <img id="id_img1" src="https://mmbiz.qlogo.cn/mmbiz/yMhOQPTKhLvicXDpybDibWGUxYObT8cpBtbkb3KOBdrVR7grpsFLUvr61EIBORu6KENetZhF9fiaPbS7htAXS3mjg/0" alt="...">
 	  </a>
 	</div>
 	<div class="col-xs-6">
-	  <p style="margin-top:10px"><a href="http://mp.weixin.qq.com/bizmall/mallshelf?id=&t=mall/list&biz=MzA5NTI1NjYyNg==&shelf_id=2&showwxpaytitle=1#wechat_redirect">查看商品详情 >></a></p>
-	  <p style="margin-top:20px">款式选择：</p>
-	  <select class="form-control" name="selection" id="id_selection">
-	    <option value="1">幸运小马</option>
-	    <option value="2">福气小熊</option>
-	    <option value="3">幸福小鸟</option>
+	  <p style="margin-top:10px">款式选择：</p>
+	  <select class="form-control" name="color" id="id_selection_color">
+	    <option value="1">生日派对</option>
+	    <option value="2">滴滴小车</option>
+	    <option value="3">兔兔果园</option>
 	  </select>
+	  <p style="margin-top:20px">尺寸选择：</p>
+	  <select class="form-control" name="size" id="id_selection_size">
+	    <option value="1">0-3岁</option>
+	    <option value="2">2-4岁</option>
+	    <option value="3">3-6岁</option>
+	  </select>
+
  	</div>
       </div>
     
-      <!--<div class="row" style="margin-top:10px">
+      <div class="row" style="margin-top:10px">
 	<div class="col-xs-2"></div>	  
 	<div class="col-xs-8" style="text-align:center">
-	  <p>超过<font style="color:red; font-size:20px">1000</font>人已申请</p>
-	  
+	  {% if order_number < 1000 %}
+	  <p>今日<font style="color:red; font-size:20px">{{ order_number }}</font>人已申请</p>
+	  {% else %}
+	  <p>今日超过<font style="color:red; font-size:20px">1000</font>人已申请</p>
+	  {% endif %}
           <p style="margin-top:16px">VIP邀请码：
 	  <input class="form-control" type="text" id="id_vipcode" name="fcode" value="{{ fcode }}"/>
 	  </p>
 	</div>
 	<div class="col-xs-2"></div>
-      </div>-->
+      </div>
       
       <div class="row" style="text-align:center">
-	<p id="id_msg" style="text-align:center;color:red">本期试用申请已经结束了，恭喜获得免费试用机会的妈妈们，没有成功亲们下期活动加油哦！</p>
-	<!--<div class="col-xs-12" style="text-align:center; margin-top:16px">
+	<p id="id_msg" style="text-align:center;color:red"></p>
+	<div class="col-xs-12" style="text-align:center; margin-top:16px">
 	{% if order_exist %}
 	<p>亲，您的申请已经提交。</p>
 	<p><a href="/weixin/sampleads/{{ wx_user.pk }}/">分享您的VIP邀请码页面>></a></p>
@@ -64,10 +81,11 @@
 	  <input type="submit" class="btn btn-warning" value="提交试用申请"/>
         {% else %} 
 	  <button type="button" class="btn btn-warning" disabled="disabled">申请待开放...</button>
-	  <p style="color:red;margin-top:10px">请提前关注【齐悦母婴惠】，申请待开放！</p>
+	  <p style="color:red;margin-top:10px">请提前关注【优尼世界】，申请待开放！</p>
         {% endif %}
 	{% endif %}
-	</div>--></div>
+	</div>
+      </div>
     </form>
   </div>
 </div>
@@ -75,7 +93,7 @@
 <div class="row">
   <div class="col-xs-12">
     <h5 style="color:#3071a9">申请须知</h5>
-    <p style="color:orange">1) 申请提交完成的页面，有您的专属VIP邀请码，分享到朋友圈，会大大提高您的中奖几率！</p>
+    <p style="color:red">1) 申请提交完成的页面底部，有您的专属VIP邀请码！</p>
     <p>2) 若您有过购买记录、晒单记录、好评记录、或邀请好友记录，系统会优先审核您的申请。</p>
     <p>3) 审核结果将在【活动中心】->【审核通知】页面显示，请查阅。<font style="color:red">分数越高，中奖几率越大！</font>！</p>
   </div>
@@ -84,7 +102,7 @@
 <div class="row">
   <div class="col-xs-12">
     <h5 style="color:#3071a9">常见问题</h5>
-    <p>1) VIP邀请码在哪里? <font style="color:red">在您看到的微信帖子里面, 请阅读寻找！也可向申请过的朋友索要VIP邀请码。</font></p>
+    <p>1) VIP邀请码在哪里? <font style="color:red">在您看到的微信文章里, 请阅读寻找！也可向申请过的朋友索要VIP邀请码。</font></p>
   </div>
 </div>
 
@@ -101,12 +119,12 @@
 
   var imgsrc = [
   "0",
-  "https://mmbiz.qlogo.cn/mmbiz/yMhOQPTKhLvuSp8nx80CxFU6BqRvnNq1EhhsibFYg9kZa2t0yPgdGMoFPWO0Xh900qyqiahTWf2HwY8xwTmgZatg/0",
-  "https://mmbiz.qlogo.cn/mmbiz/yMhOQPTKhLvuSp8nx80CxFU6BqRvnNq17rGeyo6boPyITfGMbJvImH5Ckx0DtHzW0ictUWaqV5qeGIbUqS3yZxQ/0",
-  "https://mmbiz.qlogo.cn/mmbiz/yMhOQPTKhLvuSp8nx80CxFU6BqRvnNq1c7y3wOe9HzygQoSdaGkLg5AoyTicMshNlXJPj60hSQ2kc4CQFfiafvOg/0"
+  "https://mmbiz.qlogo.cn/mmbiz/yMhOQPTKhLvicXDpybDibWGUxYObT8cpBtbkb3KOBdrVR7grpsFLUvr61EIBORu6KENetZhF9fiaPbS7htAXS3mjg/0",
+  "https://mmbiz.qlogo.cn/mmbiz/yMhOQPTKhLvicXDpybDibWGUxYObT8cpBtd6D7YwO4Chl7icWB6FIXzicxQl220MWrWg2BulcDXt1yKCAF6ibwkYaaQ/0",
+  "https://mmbiz.qlogo.cn/mmbiz/yMhOQPTKhLvicXDpybDibWGUxYObT8cpBtlk0icBWVBsBh9gE9r6g5xT2YIGS6L9nIcU5t7TdlIDBicEnYgTPZBXDQ/0"
   ];
 
-  $("#id_selection").change(function(){ 
+  $("#id_selection_color").change(function(){ 
     var val = $(this).children("option:selected").val();
     $("#id_img1").attr("src",imgsrc[val]);
   });
