@@ -848,7 +848,7 @@ class SampleAdsView(View):
             if users[0].openid == openid:
                 identical = True
             
-            response = render_to_response('weixin/sampleads2.html', 
+            response = render_to_response('weixin/sampleads1.html', 
                                           {"identical":identical,"vipcode":vipcode, 
                                            "pk":wx_user_pk, 'wx_user':users[0]}, 
                                           context_instance=RequestContext(request))

@@ -11,153 +11,36 @@
 {% block container %}
 
 <div class="container-fluid">
-  {% if identical %}
-  <p style="color:blue">亲，您已成功为{{ referal_images|length }}位好友发放了感恩礼包！</p>
-  <p style="color:blue">每有一位好友领取，您将获得1个积分。</p>
-  <p style="color:blue">把当前页面分享到朋友圈，新的好友看到后，仍然可以使用您的F码领取礼包哦！</p>
-  <p style="color:blue">注：分享到朋友圈后，蓝色文字朋友看不到哦！</p>
-  {% endif %}
-  <div class="panel panel-default" style="margin-top:5px">
-    <div class="panel-heading" style="color:#d9534f"><b>优尼世界 感谢有你！</b></div>
-    <div class="panel-body">
-      <div class="row" style="margin-top:15px">
-	<div class="col-xs-12">
-	{% for image in referal_images %}
-	<img src="{{ image }}" width="26px" height="26px">
-	{% endfor %}
-	</div>
-      </div>
-      <div class="row" style="margin-top:15px">
-	<div class="col-xs-12">
-	  <p>十一月 感恩季</p>
-	  <p>为我们的友情 感谢您</p>
-	  <p>特别感谢 您曾使用我的F码</p>
-	  <p>在优尼世界 我为您准备了一份感恩礼物</p>
-	  <p>请一定打开 让我放心您已收到</p>
-	  <p style="color:#d9534f">-- {{ nickname }} 2014.11.05</p>
-	</div>
-      </div>
-
-      <div style="text-align:center;height:80px;padding-top:20px;">
-        <a href="https://open.weixin.qq.com/connect/oauth2/authorize?appid=wxc2848fa1e1aa94b5&redirect_uri=http://weixin.huyi.so/weixin/inviteresult/&response_type=code&scope=snsapi_base&state=135#wechat_redirect" class="btn btn-danger">拆开礼包 >></a>
-      </div>
-      <div class="row">
-	<div class="col-xs-12">
-	  <h4 style="color:#d9534f">礼包都有啥东东呢？</h4>
-	  <p>亲，您的礼包至少含下面<font style="color:#d9534f;font-size:20px">2份</font>精美礼品：</p>
-	  <div class="row">
-	    <div class="col-xs-12">
-	      <h5 id="id_p1" style="color:#029fd6">礼物一：天猫No.1 卡通吸汗巾</h5>
-	    </div>
-	  </div>
-	  <div class="row">
-	    <div class="col-xs-12">
-	      <div class="thumbnail" style="padding:3px" id="id_i1">
-		<img src="https://mmbiz.qlogo.cn/mmbiz/yMhOQPTKhLticIHepSybaDQKTV5LXs8iaL2PT8NunDm0QuwY0f3jZdzL4W2MXbOWodNrvDLqtSytTuxQ7mjkHiaGA/0">
-	      </div>
-	    </div>
-	  </div>
-
-	  <div class="row">
-	    <div class="col-xs-12">
-	      <h5 id="id_p2" style="color:#029fd6">礼物二：天鹅绒 时尚造型三角巾</h5>
-	    </div>
-	  </div>
-	  <div class="row">
-	    <div class="col-xs-12" style="text-align:center;">
-	      <div class="thumbnail" style="padding:3px" id="id_i2">
-		<img src="https://mmbiz.qlogo.cn/mmbiz/yMhOQPTKhLticIHepSybaDQKTV5LXs8iaLN160Swld40Se6S4M1B2Eu4Ge1lFkBLNhblicfM0z63oceSYhmghSvHA/0"/>
-	      </div>
-	    </div>
-	  </div>
-
-	  <div class="row">
-	    <div class="col-xs-12">
-	      <h5 id="id_p3" style="color:#029fd6">礼物三：纯棉不勒脚 毛巾袜（2双装）</h5>
-	    </div>
-	  </div>
-	  <div class="row" >
-	    <div class="col-xs-12" style="text-align:center;">
-	      <div class="thumbnail" style="padding:3px" id="id_i3">
-		<img src="https://mmbiz.qlogo.cn/mmbiz/yMhOQPTKhLticIHepSybaDQKTV5LXs8iaLiaIehcUeMgaSicJzjr1E7vNkkkIRV7oBOaa8QtvAVfl4pbJ3fribtia2Vg/0"/>
-	      </div>
-	    </div>
-	  </div>
-
-	  <div class="row">
-	    <div class="col-xs-12">
-	      <h5 id="id_p4" style="color:#029fd6">礼物四：婴幼儿防PM2.5卡通口罩</h5>
-	    </div>
-	  </div>
-	  <div class="row" >
-	    <div class="col-xs-12" style="text-align:center;">
-	      <div class="thumbnail" style="padding:3px" id="id_i4">
-		<img src="https://mmbiz.qlogo.cn/mmbiz/yMhOQPTKhLticIHepSybaDQKTV5LXs8iaLINLbNAiaqzCvXy0lb5mxpExonL6rdteicx7bazWdzViaJPia69E35l2raw/0"/>
-	      </div>
-	    </div>
-	  </div>
-
-	  <div class="row">
-	    <div class="col-xs-12">
-	      <h5 id="id_p5" style="color:#029fd6">礼物五：时尚针织三角巾</h5>
-	    </div>
-	  </div>
-
-	  <div class="row" >
-	    <div class="col-xs-12" style="text-align:center;">
-	      <div class="thumbnail" style="padding:3px" id="id_i5">
-		<img src="https://mmbiz.qlogo.cn/mmbiz/yMhOQPTKhLticIHepSybaDQKTV5LXs8iaLQk8ZCJQciaD7hNMR4zQRWDhtUP2RRmVfAJiaypTianqTnGh1LznclxoVw/0"/>
-	      </div>
-	    </div>
-	  </div>
-
-	  <div class="row">
-	    <div class="col-xs-12">
-	      <h5 id="id_p6" style="color:#029fd6">礼物六：纯棉卡通三角裤</h5>
-	    </div>
-	  </div>
-
-	  <div class="row" >
-	    <div class="col-xs-12" style="text-align:center;">
-	      <div class="thumbnail" style="padding:3px" id="id_i6">
-		<img src="https://mmbiz.qlogo.cn/mmbiz/yMhOQPTKhLticIHepSybaDQKTV5LXs8iaLdVg66clrLXM6rO34qYPpcBI0sKicjYwgrMjTPpgaxqrh89oEmz4D0yA/0"/>
-	      </div>
-	    </div>
-	  </div>
-
-	  <div class="row">
-	    <div class="col-xs-12">
-	      <h5 id="id_p7" style="color:#029fd6">礼物七：50元优惠券</h5>
-	    </div>
-	  </div>
-
-	  <div class="row" >
-	    <div class="col-xs-12" style="text-align:center;">
-	      <div class="thumbnail" style="padding:3px" id="id_i7">
-		<img src="https://mmbiz.qlogo.cn/mmbiz/yMhOQPTKhLticIHepSybaDQKTV5LXs8iaLKgbibibRvEcbiax61bchOUpyTFzP8qNGPUF6JSHQ3YOysrtfFOLj8tCqg/0"/>
-	      </div>
-	    </div>
-	  </div>
-
-	</div>
-      </div>
-      <div class="row">
-        <div class="col-xs-12" style="text-align:center">
-          <p>记得我的F码： <font style="color:red">{{ vipcode }}</font></p>
-          <a href="https://open.weixin.qq.com/connect/oauth2/authorize?appid=wxc2848fa1e1aa94b5&redirect_uri=http://weixin.huyi.so/weixin/inviteresult/&response_type=code&scope=snsapi_base&state=135#wechat_redirect">Go >></a></p>
-        </div>
-      </div>
-    </div>
+  <div class="thumbnail" style="text-align:center">
+    <img src="https://mmbiz.qlogo.cn/mmbiz/yMhOQPTKhLvicXDpybDibWGUxYObT8cpBtibR2bAgNhGJQyFtnJBxzx3qfwAQMibbYWF2SN4XZe0YWkBJIuvHBm0xg/0"/>
+    <img src="https://mmbiz.qlogo.cn/mmbiz/yMhOQPTKhLvicXDpybDibWGUxYObT8cpBtOKHibDRnWkTB5Kzfr7ynNdjJRAq3qJfE2mDB1yibADIHicZndYF4JiabdQ/0"/>
+    <img src="https://mmbiz.qlogo.cn/mmbiz/yMhOQPTKhLvicXDpybDibWGUxYObT8cpBtf1DKN4MtQN4TgCPS2v03Wq9LutYL1qWPOViaJyZrGLn5ibnFlgJWayiaA/0"/>
+    <img src="https://mmbiz.qlogo.cn/mmbiz/yMhOQPTKhLvicXDpybDibWGUxYObT8cpBt6Y87W5TD52tnEcHzicHnr6wYpbYPxR53pP7wJcPWG1jmzVgeFmQTA3g/0"/>
+    <img src="https://mmbiz.qlogo.cn/mmbiz/yMhOQPTKhLvicXDpybDibWGUxYObT8cpBtbOzQYltsb4I2xszsOGQcgibTUicWzCnRto0caEU21qDD7ktpBfBTRF2w/0"/>
+    <button type="button" class="btn btn-danger" style="margin-top:16px">快点去抢 >></button>
+    <p style="margin-top:16px">记住我的VIP邀请码: {{ vipcode }}</p>
   </div>
     
   <div class="footer">
-    <p>© Uni Littles 2014</p>
+    <p>© Uni Littles 2015</p>
   </div>
 
 </div>
 {% endblock %}    
 
 {% block tail_script %}    
+<script src="http://res.wx.qq.com/open/js/jweixin-1.0.0.js"></script>
+<script type="text/javascript">
+  wx.config({
+    debug: true, // 开启调试模式,调用的所有api的返回值会在客户端alert出来，若要查看传入的参数，可以在pc端打开，参数信息会通过log打出，仅在pc端时才会打印。
+    appId: 'wxc2848fa1e1aa94b5', // 必填，公众号的唯一标识
+    timestamp: , // 必填，生成签名的时间戳
+    nonceStr: 'abadfa12434qafdafaee0321a', // 必填，生成签名的随机串
+    signature: '',// 必填，签名，见附录1
+    jsApiList: [] // 必填，需要使用的JS接口列表，所有JS接口列表见附录2
+  });
+</script>
+<!--
 <script type="text/javascript">  
 var imgUrl = "https://mmbiz.qlogo.cn/mmbiz/yMhOQPTKhLticIHepSybaDQKTV5LXs8iaLRB3EMEibPzXZWs7XCPmBmqW8uzaCBBxYudU0PKYjmw0r7MOsoJ000\
 zg/0";
@@ -218,5 +101,7 @@ document.addEventListener('WeixinJSBridgeReady', function onBridgeReady() {
             });  
         }, false);  
 </script>  
+-->
+
 {% endblock %}
 
