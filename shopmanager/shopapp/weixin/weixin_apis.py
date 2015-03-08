@@ -320,7 +320,7 @@ class WeiXinAPI(object):
         req = urllib2.urlopen(js_url)
         content = json.loads(req.read())
         
-        self._wx_account.jsapi_ticket = content['ticket']
+        self._wx_account.js_ticket = content['ticket']
         self._wx_account.js_expired   = datetime.datetime.now()
         update_model_fields(self._wx_account,
                             update_fields=['js_ticket','js_expired'])
