@@ -105,9 +105,10 @@ def mergeMaker(trade,sub_trade):
     queryset = MergeTrade.objects.getMergeQueryset(trade.buyer_nick,
                                                    trade.receiver_name,
                                                    trade.receiver_mobile,
-                                                   trade.receiver_phone)
+                                                   trade.receiver_phone,)
     
-    if (queryset.filter(sys_status__in=(pcfg.WAIT_AUDIT_STATUS,
+    if (trade.type ==  MergeTrade.WX_TYPE 
+        or queryset.filter(sys_status__in=(pcfg.WAIT_AUDIT_STATUS,
                                        pcfg.REGULAR_REMAIN_STATUS))\
         .exclude(id__in=(sub_trade.id,trade.id)).count() == 0):
         trade.remove_reason_code(pcfg.MULTIPLE_ORDERS_CODE)

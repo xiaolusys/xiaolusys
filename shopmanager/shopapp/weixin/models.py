@@ -306,7 +306,9 @@ class WeiXinAutoResponse(models.Model):
     WX_EVENT_PIC_SYSPHOTO = 'pic_sysphoto'
     WX_EVENT_PIC_ALBUM    = 'pic_photo_or_album'
     WX_EVENT_PIC_WEIXIN   = 'pic_weixin'
-    WX_EVENT_LOCATION_SELECT = 'location_select'
+    WX_EVENT_KF_CLOSE_SESSION   = 'kf_close_session'
+    WX_EVENT_KF_CREATE_SESSION  = 'kf_create_session'
+    WX_EVENT_LOCATION_SELECT   = 'location_select'
     
     WX_TYPE  = (
         (WX_TEXT ,u'文本'),

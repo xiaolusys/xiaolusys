@@ -1404,6 +1404,7 @@ class WeixinProductView(ModelView):
                 for wx_sku in wx_skus:
                     
                     vector_num = sync_num - wx_sku.sku_num
+                    if vector_num == 0:continue
                     if vector_num > 0:
                         wx_api.addMerchantStock(wx_sku.product_id,
                                                 vector_num,

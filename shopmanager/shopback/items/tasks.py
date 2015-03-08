@@ -367,13 +367,13 @@ def gradCalcProductSaleTask():
     if settings.DEBUG:
         CalcProductSaleTask()(yest_date = dt - datetime.timedelta(days=30))
     else:
-        subtask(CalcProductSaleTask).delay(yest_date = dt - datetime.timedelta(days=30))
+        subtask(CalcProductSaleTask()).delay(yest_date = dt - datetime.timedelta(days=30))
     
     #更新昨日的账单
     if settings.DEBUG:
-        CalcProductSaleTask()(yest_date = dt - datetime.timedelta(days=1))
+        CalcProductSaleTask()(yest_date = dt - datetime.timedelta(days=1),update_warn_num = True)
     else:
-        subtask(CalcProductSaleTask).delay(yest_date = dt - datetime.timedelta(days=1),
+        subtask(CalcProductSaleTask()).delay(yest_date = dt - datetime.timedelta(days=1),
                                            update_warn_num = True)
 
 ###########################################################  商品库存管理  ########################################################
@@ -408,8 +408,9 @@ def updateItemNum(user_id,num_iid):
                 outer_sku_id = sku.get('outer_id','')
                 outer_id,outer_sku_id = Product.objects.trancecode(p_outer_id,outer_sku_id)
                 
-                if sku['status'] != pcfg.NORMAL or not outer_sku_id:
+                if p_outer_id != outer_id or sku['status'] != pcfg.NORMAL or not outer_sku_id:
                     continue
+
                 product_sku  = product.prod_skus.get(outer_id=outer_sku_id)
                 
                 order_nums  = 0
@@ -451,7 +452,7 @@ def updateItemNum(user_id,num_iid):
                     and product_sku.sync_stock):
                     response = apis.taobao_item_quantity_update(num_iid=item.num_iid,
                                                                 quantity=sync_num,
-                                                                outer_id=outer_sku_id,
+                                                                sku_id=sku['sku_id'],
                                                                 tb_user_id=user_id)
                     item_dict = response['item_quantity_update_response']['item']
                     Item.objects.filter(num_iid=item_dict['num_iid']).update(modified=item_dict['modified'],
