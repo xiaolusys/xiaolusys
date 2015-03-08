@@ -4,6 +4,7 @@ reload(sys)
 sys.setdefaultencoding('utf-8')
 
 import re
+import hashlib
 import inspect
 import copy
 import time
@@ -15,7 +16,11 @@ from django.conf import settings
 from django.core.cache import cache
 
 from shopapp.weixin.models import WeiXinAccount
-from common.utils import randomString,getSignatureWeixin,process_lock
+from common.utils import (randomString,
+                          update_model_fields,
+                          randomString,
+                          getSignatureWeixin,
+                          process_lock)
 
 REFRESH_WX_TOKEN_CACHE_KEY = 'REFRESH_WX_TOKEN_KEY'
 
@@ -45,6 +50,7 @@ class WeiXinAPI(object):
     _detele_menu_uri    = "/cgi-bin/menu/delete"
     _create_qrcode_uri  = "/cgi-bin/qrcode/create"
     _media_get_uri      = "/cgi-bin/media/get"
+    _js_ticket_uri      = "/cgi-bin/ticket/getticket"
     
     #微信小店接口
     _merchant_get_uri   = "/merchant/get"
@@ -71,7 +77,7 @@ class WeiXinAPI(object):
         return self._wx_account.account_id
         
     def getAbsoluteUrl(self,uri,token):
-        url = settings.WEIXIN_API_HOST+uri
+        url = settings.WEIXIN_API_HOST + uri
         return token and '%s?access_token=%s'%(url,self.getAccessToken()) or url+'?'
         
     def checkSignature(self,signature,timestamp,nonce):
@@ -89,7 +95,7 @@ class WeiXinAPI(object):
 
         return sha1_value.hexdigest() == signature
         
-    def handleRequest(self,uri,params={},method="GET",token=True):    
+    def handleRequest(self,uri,params={},method="GET",token=True):
         
         absolute_url = self.getAbsoluteUrl(uri,token)
         
@@ -126,7 +132,8 @@ class WeiXinAPI(object):
         self._wx_account.access_token = content['access_token']
         self._wx_account.expired      = datetime.datetime.now()
         self._wx_account.expires_in   = content['expires_in']
-        self._wx_account.save()
+        update_model_fields(self._wx_account,
+                            update_fields=['access_token','expired','expired_in'])
         
         return content['access_token']
     
@@ -296,8 +303,44 @@ class WeiXinAPI(object):
                            str(json.dumps(params)), 
                            method='POST')
         
+    def getJSTicket(self):
         
+        if not self._wx_account.isJSTicketExpired():
+            return self._wx_account.js_ticket
         
+        return self.refreshJSTicket()
+        
+    def refreshJSTicket(self):
+        
+        if not self._wx_account.isJSTicketExpired():
+            return self._wx_account.js_ticket
+        
+        js_url = self.getAbsoluteUrl(self._js_ticket_uri, self.getAccessToken())+'&type=jsapi'
+
+        req = urllib2.urlopen(js_url)
+        content = json.loads(req.read())
+        
+        self._wx_account.jsapi_ticket = content['ticket']
+        self._wx_account.js_expired   = datetime.datetime.now()
+        update_model_fields(self._wx_account,
+                            update_fields=['js_ticket','js_expired'])
+        
+        return content['ticket']
+
+    def getShareSignParams(self,share_url):
+        
+        sign_params = {"noncestr":randomString(),
+                       "jsapi_ticket":self.getJSTicket(),
+                       "timestamp":int(time.time()),
+                       "url":share_url }
+        key_pairs = ["%s=%s"%(k,v) for k,v in sign_params.iteritems()]
+        key_pairs.sort()
+        
+        sign_params['signature'] = hashlib.sha1('&'.join(key_pairs)).hexdigest()
+        sign_params['app_id'] = self._wx_account.app_id
+        
+        return sign_params
+
     def genNativeSignParams(self,product_id):
         
         signString = {'appid':self._wx_account.app_id,

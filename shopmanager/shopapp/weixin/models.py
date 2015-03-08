@@ -25,7 +25,7 @@ class WeiXinAccount(models.Model):
                                   verbose_name=u'OPEN ID')
     
     token      = models.CharField(max_length=32,verbose_name=u'TOKEN')    
-    
+
     app_id     = models.CharField(max_length=64,verbose_name=u'应用ID')
     app_secret = models.CharField(max_length=128,verbose_name=u'应用SECRET')
     
@@ -36,9 +36,14 @@ class WeiXinAccount(models.Model):
     access_token = models.CharField(max_length=256,blank=True,
                                     verbose_name=u'ACCESS TOKEN')
     
+    js_ticket = models.CharField(max_length=64,blank=True,verbose_name=u'JSAPI_TICKET')
+    
     expires_in = models.BigIntegerField(default=0,verbose_name="使用期限(s)")
     expired    = models.DateTimeField(default=datetime.datetime.now(),
                                       verbose_name="上次过期时间")
+    
+    js_expired    = models.DateTimeField(default=datetime.datetime.now(),
+                                      verbose_name="TICKET上次过期时间")
     
     jmenu     =  JSONCharMyField(max_length=4096,blank=True,
                                load_kwargs={},default='{}',
@@ -73,7 +78,16 @@ class WeiXinAccount(models.Model):
         return False
     
     def isExpired(self):
+        
+        if not self.expired:
+            return True
         return datetime.datetime.now() > self.expired + datetime.timedelta(seconds=1200)
+    
+    def isJSTicketExpired(self):
+        
+        if not self.js_expired:
+            return True
+        return datetime.datetime.now() > self.js_expired + datetime.timedelta(seconds=3600)
     
     def activeAccount(self):
         self.is_active = True
