@@ -9,7 +9,9 @@
 
 <div class="container-fluid">
   <div class="thumbnail" style="text-align:center">
+    {% if identical %}
     <img id="id_donebox" src="https://mmbiz.qlogo.cn/mmbiz/yMhOQPTKhLvicXDpybDibWGUxYObT8cpBtibR2bAgNhGJQyFtnJBxzx3qfwAQMibbYWF2SN4XZe0YWkBJIuvHBm0xg/0"/>
+    {% endif %}
     <img src="https://mmbiz.qlogo.cn/mmbiz/yMhOQPTKhLvicXDpybDibWGUxYObT8cpBtOKHibDRnWkTB5Kzfr7ynNdjJRAq3qJfE2mDB1yibADIHicZndYF4JiabdQ/0"/>
     <img src="https://mmbiz.qlogo.cn/mmbiz/yMhOQPTKhLvicXDpybDibWGUxYObT8cpBtf1DKN4MtQN4TgCPS2v03Wq9LutYL1qWPOViaJyZrGLn5ibnFlgJWayiaA/0"/>
     <img src="https://mmbiz.qlogo.cn/mmbiz/yMhOQPTKhLvicXDpybDibWGUxYObT8cpBt6Y87W5TD52tnEcHzicHnr6wYpbYPxR53pP7wJcPWG1jmzVgeFmQTA3g/0"/>
@@ -53,8 +55,8 @@
 var imgUrl = "https://mmbiz.qlogo.cn/mmbiz/yMhOQPTKhLticIHepSybaDQKTV5LXs8iaLRB3EMEibPzXZWs7XCPmBmqW8uzaCBBxYudU0PKYjmw0r7MOsoJ000\
 zg/0";
 var lineLink = "http://weixin.huyi.so/weixin/sampleads/{{ pk }}/";
-var descContent = "十一月，感恩季。用我的一份感动，带给你一份惊喜。感谢有你！";
-var shareTitle = "小小礼物 感恩的心 感谢有你！";
+var descContent = "自从有了娃，梦想中，他们睡觉是这样。。。";
+var shareTitle = "自从有了娃";
 
 wx.onMenuShareAppMessage({
     title: shareTitle, // 分享标题
