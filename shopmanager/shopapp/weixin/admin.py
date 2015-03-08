@@ -141,8 +141,8 @@ class WeiXinUserAdmin(admin.ModelAdmin):
 
         #如果查询条件中含有邀请码
         search_q = request.GET.get('q','').strip()
-        if search_q.isdigit() and len(search_q) in (6,8):
-            vipcodes = VipCode.objects.filter(vip_code=search_q)
+        if search_q.isdigit() and len(search_q) in (6,7,8):
+            vipcodes = VipCode.objects.filter(code=search_q)
             wxuser_ids = [v.owner_openid.id for v in vipcodes]
             return WeiXinUser.objects.filter(models.Q(id__in=wxuser_ids)|
                                              models.Q(nickname__contains=search_q))
@@ -214,7 +214,7 @@ class WXProductSkuAdmin(admin.ModelAdmin):
                     'sku_name','pic_link','sku_price','ori_price','status')
     
     list_filter = ('status',)
-    search_fields = ['sku_id','product_id','outer_id','outer_sku_id']
+    search_fields = ['sku_id','product__product_id','outer_id','outer_sku_id']
     
     def pic_link(self, obj):
         abs_pic_url = obj.sku_img or '%s%s'%(settings.MEDIA_URL,settings.NO_PIC_PATH)

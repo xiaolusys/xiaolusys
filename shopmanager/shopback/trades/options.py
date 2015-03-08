@@ -93,8 +93,11 @@ def mergeMaker(trade,sub_trade):
     
     if sub_trade.has_merge:
         strades = MergeBuyerTrade.objects.filter(main_tid=sub_trade.id)
+        
         for strade in strades:
-            MergeBuyerTrade.objects.get_or_create(sub_tid=strade.id,main_tid=trade.id)
+            MergeBuyerTrade.objects.filter(sub_tid=strade.id).update(main_tid=trade.id)
+        
+        MergeOrder.objects.filter(merge_trade=sub_trade.id,is_merge=True).delete()
     
     for scode in sub_trade.reason_code.split(','):
         trade.append_reason_code(scode)
@@ -147,7 +150,7 @@ def mergeRemover(trade):
         return False
     
     trade.remove_reason_code(pcfg.NEW_MERGE_TRADE_CODE)
-    trade.append_reason_code(pcfg.MULTIPLE_ORDERS_CODE) 
+    trade.append_reason_code(pcfg.MULTIPLE_ORDERS_CODE)
     trade.has_merge = False
     
     trade.merge_orders.filter(is_merge=True).delete()
