@@ -36,7 +36,7 @@ class WeiXinAccount(models.Model):
     access_token = models.CharField(max_length=256,blank=True,
                                     verbose_name=u'ACCESS TOKEN')
     
-    js_ticket = models.CharField(max_length=64,blank=True,verbose_name=u'JSAPI_TICKET')
+    js_ticket = models.CharField(max_length=256,blank=True,verbose_name=u'JSAPI_TICKET')
     
     expires_in = models.BigIntegerField(default=0,verbose_name="使用期限(s)")
     expired    = models.DateTimeField(default=datetime.datetime.now(),

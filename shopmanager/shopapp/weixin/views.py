@@ -884,6 +884,7 @@ class SampleConfirmView(View):
         
 class SampleAdsView(View):
     def get(self, request, *args, **kwargs):
+        
         wx_user_pk = kwargs.get('pk',0)
         users = WeiXinUser.objects.filter(pk=wx_user_pk)
         
@@ -900,8 +901,9 @@ class SampleAdsView(View):
             if users[0].openid == openid:
                 identical = True
             
+            share_url = request.build_absolute_uri().split('#')[0]
             wx_api = WeiXinAPI()
-            signparams = wx_api.getShareSignParams('http://weixin.huyi.so'+reverse('weixin_sampleads',kwargs={'pk':wx_user_pk}))
+            signparams = wx_api.getShareSignParams(share_url)
 
             response = render_to_response('weixin/sampleads1.html', 
                                           {"identical":identical,"vipcode":vipcode, 
