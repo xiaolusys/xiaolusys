@@ -29,6 +29,7 @@ from .models import (WeiXinUser,
                      WeixinClickScoreRecord,
                      WeixinScoreBuy)
 
+from .weixin_apis import WeiXinAPI
 from shopapp.weixin_score.models import SampleFrozenScore
 from shopapp.weixin_examination.models import ExamUserPaper
 from shopback.trades.models import MergeTrade
@@ -896,9 +897,13 @@ class SampleAdsView(View):
             if users[0].openid == openid:
                 identical = True
             
+            wx_api = WeiXinAPI()
+            signparams = wx_api.getShareSignParams('http://weixin.huyi.so'+reverse('weixin_sampleads',kwargs={'pk':wx_user_pk}))
+
             response = render_to_response('weixin/sampleads1.html', 
                                           {"identical":identical,"vipcode":vipcode, 
-                                           "pk":wx_user_pk, 'wx_user':users[0]}, 
+                                           "pk":wx_user_pk, 'wx_user':users[0],
+                                           'signkey':signparams},
                                           context_instance=RequestContext(request))
             return response
 
@@ -1366,7 +1371,6 @@ class GiftView(View):
 from django.contrib import messages
 from django.core.urlresolvers import reverse
 from shopback.base.views import ModelView,ListOrCreateModelView,ListModelView
-from .weixin_apis import WeiXinAPI
 
 
 LINK_RE = re.compile('^.+pid=(?P<pid>[\w-]{16,64})')            

@@ -1,3 +1,5 @@
+alter table shop_weixin_account add js_ticket varchar(64) NOT NULL;
+alter table shop_weixin_account add js_expired datetime NOT NULL;
 ########### 2015-3-5  #################
 alter table shop_weixin_sale_linkclicks add link_type varchar(8) NOT NULL;
 update shop_weixin_sale_linkclicks set link_type='sample';
