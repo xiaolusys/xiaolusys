@@ -64,7 +64,11 @@
 	  <p>今日超过<font style="color:red; font-size:20px">1000</font>人已申请</p>
 	  {% endif %}
           <p style="margin-top:16px">VIP邀请码：
-	  <input class="form-control" type="text" id="id_vipcode" name="fcode" value="{{ fcode }}"/>
+	    {% if wx_user.referal_from_openid %}
+	    <input class="form-control" type="text" id="id_vipcode" name="fcode" value="{{ self_vipcode }}" disabled="disabled" />
+	    {% else %}
+	    <input class="form-control" type="text" id="id_vipcode" name="fcode" value="{{ fcode }}"/>
+	    {% endif %}
 	  </p>
 	</div>
 	<div class="col-xs-2"></div>
