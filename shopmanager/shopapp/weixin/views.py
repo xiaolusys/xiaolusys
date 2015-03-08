@@ -874,8 +874,8 @@ class SampleAdsView(View):
                 identical = True
             
             wx_api = WeiXinAPI()
-            signparams = wx_api.getShareSignParams(reverse('weixin_sampleads',kwargs={'pk':wx_user_pk}))
-            
+            signparams = wx_api.getShareSignParams('http://weixin.huyi.so'+reverse('weixin_sampleads',kwargs={'pk':wx_user_pk}))
+
             response = render_to_response('weixin/sampleads1.html', 
                                           {"identical":identical,"vipcode":vipcode, 
                                            "pk":wx_user_pk, 'wx_user':users[0],
