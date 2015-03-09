@@ -60,7 +60,7 @@ class WeixinLinkClicksAdmin(admin.ModelAdmin):
     list_display = ('user_openid','link_url','clicker_num','click_count','validated_in','modified','created')
     search_fields = ['user_openid','link_url']
     
-    list_filter = (('modified',DateFieldListFilter),)
+    list_filter = (('modified',DateFieldListFilter),'link_type')
     
     
 admin.site.register(WeixinLinkClicks, WeixinLinkClicksAdmin) 
