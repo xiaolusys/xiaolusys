@@ -761,9 +761,6 @@ class FreeSampleView(View):
         else:
             delta = START_TIME - now
 
-        if user_openid == 'oMt59uE55lLOV2KS6vYZ_d0dOl5c':
-            started = True
-
         days = delta.days
         hours = delta.seconds/3600
         minutes = (delta.seconds - hours*3600)/60
