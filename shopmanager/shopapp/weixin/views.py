@@ -757,7 +757,7 @@ class FreeSampleView(View):
         now = datetime.datetime.now()
         if now >= START_TIME:
             started = True
-            delta = now - END_TIME
+            delta = END_TIME - now
         else:
             delta = START_TIME - now
 
