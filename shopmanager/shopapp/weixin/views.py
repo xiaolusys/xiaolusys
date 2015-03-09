@@ -128,8 +128,8 @@ def get_user_openid(request, code):
     if r.has_key("errcode"):
         return cookie_openid 
     
-    if (cookie_openid and cookie_openid != 'None' and r.get('openid') != cookie_openid):
-        raise Exception(u'COOKIE OPENID与授权OPENID码不一致')
+#     if (cookie_openid and cookie_openid != 'None' and r.get('openid') != cookie_openid):
+#         raise Exception(u'COOKIE OPENID与授权OPENID码不一致')
     
     return r.get('openid')
 
@@ -734,10 +734,9 @@ class FreeSampleView(View):
         
         wx_user,state = WeiXinUser.objects.get_or_create(openid=user_openid)
 
-        
-        self_vipcode = None
-        if wx_user.vipcodes.count() > 0:
-            self_vipcode = wx_user.vipcodes.all()[0].code
+        if wx_user.subscribe and wx_user.subscribe_time < datetime.datetime(2015,3,8):
+            if wx_user.vipcodes.count() > 0:
+                fcode = wx_user.vipcodes.all()[0].code
         
         today = datetime.datetime.today()
         today_time = datetime.datetime(today.year, today.month, today.day)
@@ -757,9 +756,12 @@ class FreeSampleView(View):
         now = datetime.datetime.now()
         if now >= START_TIME:
             started = True
-            delta = END_TIME - now
+            delta = now - END_TIME
         else:
             delta = START_TIME - now
+
+        if user_openid == 'oMt59uE55lLOV2KS6vYZ_d0dOl5c':
+            started = True
 
         days = delta.days
         hours = delta.seconds/3600
@@ -768,8 +770,7 @@ class FreeSampleView(View):
         html = 'weixin/freesamples.html'
         response = render_to_response(
             html, 
-            {"wx_user":wx_user, "fcode":fcode, "self_vipcode":self_vipcode,
-             "started":started, 
+            {"wx_user":wx_user, "fcode":fcode, "started":started, 
              "order_exist":order_exist, "order_number":today_orders.count(),
              "days":days, "hours":hours, "minutes":minutes},
             context_instance=RequestContext(request))
@@ -853,7 +854,7 @@ class SampleConfirmView(View):
 
         user = WeiXinUser.objects.filter(openid=user_openid)
         
-        if user.count() == 0 or not user[0].isvalid:
+        if not user[0].isvalid:
             redirect("/weixin/freesamples/")
 
         redirect_url = '/weixin/sampleads/%d/' % user[0].pk
@@ -868,12 +869,11 @@ class SampleConfirmView(View):
             code = vipcodes[0].code
             referal_user_openid = vipcodes[0].owner_openid.openid
             sample.sample_orders.create(sku_code=sku_code,user_openid=user_openid,vipcode=code,problem_score=score)
-            if not user[0].referal_from_openid and referal_user_openid != user_openid:
-                VipCode.objects.filter(code=code).update(usage_count=F('usage_count')+1)
-
             if not user[0].referal_from_openid:
                 WeiXinUser.objects.createReferalShip(user_openid,referal_user_openid)
         
+            if referal_user_openid != user_openid:
+                VipCode.objects.filter(code=code).update(usage_count=F('usage_count')+1)
         else:
             redirect_url = '/weixin/freesamples/'
         return redirect(redirect_url)

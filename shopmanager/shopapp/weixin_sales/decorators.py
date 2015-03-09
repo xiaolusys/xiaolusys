@@ -44,10 +44,10 @@ def  record_weixin_clicks(function=None,validated_in=24*60*60):
             wlcr_num =  WeixinLinkClickRecord.objects.filter(user_openid=user_openid).count()
             if wlcr_num < 4:
                 
-                wlcr,state = WeixinLinkClickRecord.objects.get_or_create(user_openid=user_openid,link_url=req_url)
+                wlcr = WeixinLinkClickRecord.objects.create(user_openid=user_openid,link_url=req_url)
                 wlcs = WeixinLinkClicks.objects.filter(link_url=req_url)
                 
-                if (state and wlcs.count() > 0 and 
+                if ( wlcs.count() > 0 or 
                     (not wlcs[0].validated_in or 
                      (datetime.datetime.now() - wlcs[0].created).total_seconds() < validated_in)):
                 
