@@ -29,7 +29,7 @@ def  record_weixin_clicks(function=None,validated_in=24*60*60):
             
             user_openid = request.COOKIES.get("openid")
             code   = request.GET.get('code')
-            req_url = request.get_full_path().split('?')[0]
+            req_url = request.build_absolute_uri().split('#')[0]
             if not user_openid and not code:
                 
                 redirect_url = getAuthorizeUrl(req_url)
