@@ -664,8 +664,9 @@ class WxShopService(LocalService):
                                     merge_trade.status == pcfg.WAIT_SELLER_SEND_GOODS),
                   'first_pay_load':(merge_trade.sys_status == pcfg.EMPTY_STATUS and 
                                     merge_trade.status == pcfg.WAIT_SELLER_SEND_GOODS)}
+        _params.update(kwargs)
         
-        trade_handler.proccess(merge_trade,*args,**_params.update(kwargs))
+        trade_handler.proccess(merge_trade,*args,**_params)
         
         return merge_trade
     
