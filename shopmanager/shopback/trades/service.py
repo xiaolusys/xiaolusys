@@ -84,7 +84,7 @@ class TradeService(LocalService):
      
     def payTrade(self,*args,**kwargs):
         
-        self.merge_trade = self.bservice.payTrade()
+        self.merge_trade = self.bservice.payTrade(*args,**kwargs)
         
     
     def sendTrade(self,*args,**kwargs):
@@ -137,7 +137,7 @@ class TradeService(LocalService):
                 self.trade.tid,
                 self.trade.type)
         else:
-            self.payTrade()
+            self.payTrade(*args,**kwargs)
     
     def changeTradeOrder(self,oid,*args,**kwargs):
         self.changeTrade()

@@ -606,7 +606,7 @@ class MergeTradeAdmin(admin.ModelAdmin):
                 pull_fail_ids.append(trade.id)
                 continue
             
-            trade.sys_status  = pcfg.WAIT_AUDIT_STATUS
+            trade.sys_status  = pcfg.EMPTY_STATUS
             trade.reason_code = ''
             trade.has_sys_err = False
             trade.has_merge   = False
@@ -628,7 +628,7 @@ class MergeTradeAdmin(admin.ModelAdmin):
                 trade.merge_orders.all().delete()
                 seller_id = trade.user.visitor_id
                 
-                TradeService(seller_id,trade.tid).payTrade()
+                TradeService(seller_id,trade.tid).payTrade(trade_merge_flag=False)
                 
             except Exception,exc:
                 logger.error(u'重新下单错误:%s'%exc.message,exc_info=True)

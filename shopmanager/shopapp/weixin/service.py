@@ -659,13 +659,13 @@ class WxShopService(LocalService):
         
         cls.createMergeOrder(merge_trade, trade)
         
-        trade_handler.proccess(merge_trade,
-                               **{'origin_trade':trade,
-                                  'update_address':(update_address and 
-                                                    merge_trade.status == pcfg.WAIT_SELLER_SEND_GOODS),
-                                  'first_pay_load':(
-                                    merge_trade.sys_status == pcfg.EMPTY_STATUS and 
-                                    merge_trade.status == pcfg.WAIT_SELLER_SEND_GOODS)})
+        _params = {'origin_trade':trade,
+                  'update_address':(update_address and 
+                                    merge_trade.status == pcfg.WAIT_SELLER_SEND_GOODS),
+                  'first_pay_load':(merge_trade.sys_status == pcfg.EMPTY_STATUS and 
+                                    merge_trade.status == pcfg.WAIT_SELLER_SEND_GOODS)}
+        
+        trade_handler.proccess(merge_trade,*args,**_params.update(kwargs))
         
         return merge_trade
     
@@ -674,7 +674,7 @@ class WxShopService(LocalService):
         trade = self.__class__.createTrade(self.order.seller_id,
                                           self.order.order_id)
         
-        return WxShopService.createMergeTrade(trade)
+        return WxShopService.createMergeTrade(trade,*args, **kwargs)
     
     def sendTrade(self, company_code=None, out_sid=None, retry_times=3, *args, **kwargs):
         
