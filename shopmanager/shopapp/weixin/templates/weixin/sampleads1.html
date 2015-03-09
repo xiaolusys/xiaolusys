@@ -9,13 +9,15 @@
 
 <div class="container-fluid">
   <div class="thumbnail" style="text-align:center">
+    {% if identical %}
     <img id="id_donebox" src="https://mmbiz.qlogo.cn/mmbiz/yMhOQPTKhLvicXDpybDibWGUxYObT8cpBtibR2bAgNhGJQyFtnJBxzx3qfwAQMibbYWF2SN4XZe0YWkBJIuvHBm0xg/0"/>
+    {% endif %}
     <img src="https://mmbiz.qlogo.cn/mmbiz/yMhOQPTKhLvicXDpybDibWGUxYObT8cpBtOKHibDRnWkTB5Kzfr7ynNdjJRAq3qJfE2mDB1yibADIHicZndYF4JiabdQ/0"/>
     <img src="https://mmbiz.qlogo.cn/mmbiz/yMhOQPTKhLvicXDpybDibWGUxYObT8cpBtf1DKN4MtQN4TgCPS2v03Wq9LutYL1qWPOViaJyZrGLn5ibnFlgJWayiaA/0"/>
     <img src="https://mmbiz.qlogo.cn/mmbiz/yMhOQPTKhLvicXDpybDibWGUxYObT8cpBt6Y87W5TD52tnEcHzicHnr6wYpbYPxR53pP7wJcPWG1jmzVgeFmQTA3g/0"/>
     <img src="https://mmbiz.qlogo.cn/mmbiz/yMhOQPTKhLvicXDpybDibWGUxYObT8cpBtbOzQYltsb4I2xszsOGQcgibTUicWzCnRto0caEU21qDD7ktpBfBTRF2w/0"/>
-    <button type="button" class="btn btn-danger" style="margin-top:16px">快点去抢 >></button>
-    <p style="margin-top:16px">记住我的VIP邀请码: {{ vipcode }}</p>
+    <a href="https://open.weixin.qq.com/connect/oauth2/authorize?appid=wxc2848fa1e1aa94b5&redirect_uri=http://weixin.huyi.so/weixin/freesamples/?f={{ vipcode }}&response_type=code&scope=snsapi_base&state=135#wechat_redirect" type="button" class="btn btn-danger" style="margin-top:16px">快点去抢 >></a>
+    <p style="margin-top:16px">我的VIP邀请码: {{ vipcode }}</p>
   </div>
     
   <div class="footer">
@@ -52,9 +54,8 @@
 <script type="text/javascript">  
 var imgUrl = "https://mmbiz.qlogo.cn/mmbiz/yMhOQPTKhLupibeUUTBbhbybLrhfNa2E5RT33NF7bs3zfYIicNNrX5bFVpmvEEstfIsa73ia4uodeiamOIte6T4p7A/0";
 var lineLink = "http://weixin.huyi.so/weixin/sampleads/{{ pk }}/";
-var descContent = "十一月，感恩季。用我的一份感动，带给你一份惊喜。感谢有你！";
-var shareTitle = "小小礼物 感恩的心 感谢有你！";
-var openid = "{{ wx_user.openid }}";
+var descContent = "自从有了娃，梦想中，他们睡觉是这样。。。";
+var shareTitle = "自从有了娃";
 
 wx.onMenuShareAppMessage({
     title: shareTitle, // 分享标题
@@ -90,44 +91,7 @@ wx.onMenuShareTimeline({
 
 
 </script>  
-<!--wx.onMenuShareTimeline({
-        title: '', // 分享标题
-        link: '', // 分享链接
-        imgUrl: '', // 分享图标
-        success: function () { 
-            // 用户确认分享后执行的回调函数
-        },
-        cancel: function () { 
-            // 用户取消分享后执行的回调函数
-        }
-    });
 
-wx.onMenuShareWeibo({
-        title: '', // 分享标题
-        desc: '', // 分享描述
-        link: '', // 分享链接
-        imgUrl: '', // 分享图标
-        success: function () { 
-           // 用户确认分享后执行的回调函数
-        },
-        cancel: function () { 
-            // 用户取消分享后执行的回调函数
-        }
-    });
-
-wx.onMenuShareQQ({
-        title: '', // 分享标题
-        desc: '', // 分享描述
-        link: '', // 分享链接
-        imgUrl: '', // 分享图标
-        success: function () { 
-           // 用户确认分享后执行的回调函数
-        },
-        cancel: function () { 
-           // 用户取消分享后执行的回调函数
-        }
-    });
--->
 
 {% endblock %}
 

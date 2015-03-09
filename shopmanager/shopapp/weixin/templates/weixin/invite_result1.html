@@ -18,18 +18,20 @@
   <div class="panel panel-default" style="margin-top:5px">
     <div class="panel-heading" style="color:orange">免费试用 中奖名单</div>
     <div class="panel-body">
-      <p style="color:red;">本期睡袋试用申请结束了，试用名单也已全部公布，恭喜获得本次免费试用机会的妈妈们,没有成功亲们下期活动加油哦！</p>
+      <p style="color:red;">3月9日 - 3月16日 1000件新款睡袋免费派送！<a href="http://weixin.huyi.so/weixin/freesamples/">大家快抢 >></a></p>
     </div>
   </div>
 
   <div class="panel panel-default" style="margin-top:5px">
     <div class="panel-heading" style="color:orange">免费试用 审核结果</div>
     <div class="panel-body">
+      <label>睡袋免费试用申请已经开始了，第一批通过名单将在3月10日上午公布，亲赶快行动吧！</label>
     {% if sample_order %}
       {% if not sample_pass %}
-      	<!--<label>睡袋免费试用申请已经开始了，活动期限为3天（1月25日晚12点结束），每天晚上12点锁定名单，次日早上10点公布名单，亲赶快行动吧！</label>-->
+	<!--
 	<p>本期睡袋试用申请结束了,齐悦母婴感谢您的参与，没有申请成功的亲们也不要泄气哦，特卖商城每日都有超低价精选商品，后续会有更多试用活动，加油哦！</p>
-      	<p>您的F码使用人数: <font style="color:red">{{ vip_code.usage_count }}</font></p>
+	-->
+      	<p>您的VIP邀请码使用人数: <font style="color:red">{{ vip_code.usage_count }}</font></p>
 	    <p>您的分享页面被点击人数: <font style="color:orange">{{ link_click.clicker_num  }}</font></p>
 	    <p>您的综合得分: <font style="color:red">{{ vip_code.usage_count  }} *10</font> + <font style="color:orange">{{ link_click.clicker_num }}</font> = {{ vip_code.usage_count|mul:10|add:link_click.clicker_num }}</p>
 	     <p><br/></p>
@@ -61,7 +63,7 @@
     	<li>每个微信用户只有前5次点击能给5位朋友的链接加分，超过5次后的点击不计加分；</li>
     	<li>同一个手机上登录多个帐号相互点击不会加分；</li></ul></p>
     <p style="color:red">如果您的得分在100分以上，您将具有极大的竞争力！</p>
-    <p>快快分享您的F码专属页面吧！ <a href="/weixin/sampleads/{{ wx_user.pk }}/">Go >></a></p>
+    <p><a href="/weixin/sampleads/{{ wx_user.pk }}/">快快分享您的VIP邀请码专属页面吧！ Go >></a></p>
     {% else %}
     
       <p>您还没有申请试用,请点击 <a href="https://open.weixin.qq.com/connect/oauth2/authorize?appid=wxc2848fa1e1aa94b5&redirect_uri=http://weixin.huyi.so/weixin/freesamples/&response_type=code&scope=snsapi_base&state=135#wechat_redirect">申请免费试用>></a></p>
