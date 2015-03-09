@@ -4,6 +4,7 @@ import urllib
 from django.contrib import admin
 from django.db import models
 from django.conf import settings
+from django.contrib.admin.views.main import ChangeList
 from django.forms import TextInput, Textarea
 from shopback.base.options import DateFieldListFilter
 from shopapp.weixin.models import (WeiXinAccount,
@@ -36,6 +37,30 @@ from shopapp.weixin.models import (WeiXinAccount,
 import logging
 logger = logging.getLogger("django.request")
 
+class UserChangeList(ChangeList):
+    
+    def get_query_set(self,request):
+        
+        #如果查询条件中含有邀请码
+        search_q = request.GET.get('q','').strip()
+        if search_q.isdigit() and len(search_q) in (6,7,8):
+            vipcodes = VipCode.objects.filter(code=search_q)
+            wxuser_ids = [v.owner_openid.id for v in vipcodes]
+
+            return WeiXinUser.objects.filter(models.Q(id__in=wxuser_ids)|
+                                             models.Q(nickname__contains=search_q))
+            
+        qs = super(UserChangeList,self).get_query_set(request)
+        if re.compile('^[\w-]{24,64}$').match(search_q):
+            return qs
+
+        if request.user.is_superuser:
+            return qs
+        scharges = WXUserCharge.objects.filter(employee=request.user,status=WXUserCharge.EFFECT)
+        wxuser_ids = [s.wxuser_id for s in scharges] 
+        
+        return qs.filter(models.Q(charge_status=WeiXinUser.UNCHARGE)|
+                         models.Q(id__in=wxuser_ids,charge_status=WeiXinUser.CHARGED))
 
 class WeiXinAccountAdmin(admin.ModelAdmin):
     
@@ -136,29 +161,11 @@ class WeiXinUserAdmin(admin.ModelAdmin):
     vipcode_link.allow_tags = True
     vipcode_link.short_description = u"F码"
     
-    def queryset(self,request):
-        
-
-        #如果查询条件中含有邀请码
-        search_q = request.GET.get('q','').strip()
-        if search_q.isdigit() and len(search_q) in (6,7,8):
-            vipcodes = VipCode.objects.filter(code=search_q)
-            wxuser_ids = [v.owner_openid.id for v in vipcodes]
-            return WeiXinUser.objects.filter(models.Q(id__in=wxuser_ids)|
-                                             models.Q(nickname__contains=search_q))
-        
-        if re.compile('^[\w-]{24,64}$').match(search_q):
-            return WeiXinUser.objects.filter(models.Q(openid=search_q)|
-                                             models.Q(referal_from_openid=search_q))
-            
-        qs = super(WeiXinUserAdmin,self).queryset(request)
-        if request.user.is_superuser:
-            return qs
-        scharges = WXUserCharge.objects.filter(employee=request.user,status=WXUserCharge.EFFECT)
-        wxuser_ids = [s.wxuser_id for s in scharges] 
-        
-        return qs.filter(models.Q(charge_status=WeiXinUser.UNCHARGE)|
-                         models.Q(id__in=wxuser_ids,charge_status=WeiXinUser.CHARGED))
+    def get_changelist(self, request, **kwargs):
+        """
+        Returns the ChangeList class for use on the changelist page.
+        """
+        return UserChangeList
     
     class Media:
         css = {"all": ("admin/css/forms.css","css/admin/dialog.css"
