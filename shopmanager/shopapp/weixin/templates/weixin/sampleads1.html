@@ -50,11 +50,11 @@
 </script>
 
 <script type="text/javascript">  
-var imgUrl = "https://mmbiz.qlogo.cn/mmbiz/yMhOQPTKhLticIHepSybaDQKTV5LXs8iaLRB3EMEibPzXZWs7XCPmBmqW8uzaCBBxYudU0PKYjmw0r7MOsoJ000\
-zg/0";
+var imgUrl = "https://mmbiz.qlogo.cn/mmbiz/yMhOQPTKhLupibeUUTBbhbybLrhfNa2E5RT33NF7bs3zfYIicNNrX5bFVpmvEEstfIsa73ia4uodeiamOIte6T4p7A/0";
 var lineLink = "http://weixin.huyi.so/weixin/sampleads/{{ pk }}/";
 var descContent = "十一月，感恩季。用我的一份感动，带给你一份惊喜。感谢有你！";
 var shareTitle = "小小礼物 感恩的心 感谢有你！";
+var openid = "{{ wx_user.openid }}";
 
 wx.onMenuShareAppMessage({
     title: shareTitle, // 分享标题
@@ -64,12 +64,30 @@ wx.onMenuShareAppMessage({
     type: 'link', // 分享类型,music、video或link，不填默认为link
     dataUrl: '', // 如果type是music或video，则要提供数据链接，默认为空
     success: function () { 
-        alter("给好友分享成功" );
+        $.post('/weixin/sales/link/share/',
+            {"share_link":lineLink,"share_type":"APP"},
+            function(res){console.log(res);},
+            "json");
     },
     cancel: function () { 
-        alter("取消分享" );
+        console.log("取消分享" );
     }
 });
+wx.onMenuShareTimeline({
+        title: shareTitle, // 分享标题
+        link: lineLink, // 分享链接
+        imgUrl: imgUrl, // 分享图标
+        success: function () { 
+           $.post('/weixin/sales/link/share/',
+            {"share_link":lineLink,"share_type":"PYQ"},
+            function(res){console.log(res);},
+            "json");
+        },
+        cancel: function () { 
+            console.log("取消分享" );
+        }
+    });
+
 
 </script>  
 <!--wx.onMenuShareTimeline({

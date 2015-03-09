@@ -11,7 +11,7 @@ from django.shortcuts import render_to_response
 
 from shopback.base.authentication import login_required_ajax
 from shopapp.weixin.views import WeiXinUser,VipCode,get_user_openid
-from .models import WeixinUserPicture,WeixinUserAward
+from .models import WeixinUserPicture,WeixinUserAward,WeixinLinkShare
 from .tasks import NotifyReferalAwardTask
 from shopapp.signals import weixin_referal_signal
 from django.shortcuts import redirect
@@ -192,6 +192,25 @@ class AwardApplyView(View):
 
         rep_json = {'code':'error', "try this F code": "866988"}
         return  HttpResponse(json.dumps(rep_json),mimetype="application/json")
+    
+    
+class LinkShareView(View):
+    
+    def post(self, request):
+        content = request.REQUEST
+
+        code = content.get('code')
+        user_openid = get_user_openid(request, code)
+        share_type  = content.get('share_type')
+        share_link  = content.get('share_link')
+        
+        wls = WeixinLinkShare.objects.create(user_openid=user_openid,
+                                              link_url=share_link,
+                                              link_type=share_type)
+        
+        return  HttpResponse(json.dumps({"success":"ok"}),mimetype="application/json")
+    
+    get = post
 
 
 

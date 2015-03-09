@@ -132,7 +132,7 @@ class WeixinLinkClicks(models.Model):
                                  ,db_index=True,default=SAMPLE_LINK,verbose_name=u'链接类型')
     
     clicker_num  = models.IntegerField(default=0,verbose_name=u"点击人数")
-    click_count   = models.IntegerField(default=0,verbose_name=u"点击次数")
+    click_count  = models.IntegerField(default=0,verbose_name=u"点击次数")
     
     validated_in = models.IntegerField(default=0,verbose_name=u"有效间隔(s)")
     
@@ -192,3 +192,31 @@ class WeixinLinkClickRecord(models.Model):
 
     def __unicode__(self):
         return  '<%s,%s>'%(self.user_openid,self.link_url)
+    
+class WeixinLinkShare(models.Model): 
+    
+    APP_LINK = 'APP'
+    PYQ_LINK  = 'TIMELINE'
+    SHARE_TYPE_CHOICES = (
+                         (APP_LINK,u'微信好友'),
+                         (PYQ_LINK,u'朋友圈'))
+    
+    user_openid = models.CharField(max_length=64,db_index=True,verbose_name=u"OPEN ID")
+    
+    link_url  = models.CharField(max_length=128,db_index=True,blank=True,verbose_name=u'分享链接')
+    link_type = models.CharField(max_length=8,choices=SHARE_TYPE_CHOICES
+                                 ,db_index=True,verbose_name=u'分享类型')
+    
+    modified = models.DateTimeField(auto_now=True,blank=True,null=True,verbose_name=u'修改时间')
+    created  = models.DateTimeField(auto_now_add=True,blank=True,null=True,verbose_name=u'创建日期')
+    
+    class Meta:
+        db_table = 'shop_weixin_sale_linkshare'
+        verbose_name = u'微信分享链接'
+        verbose_name_plural = u'微信分享链接列表'
+    
+    def __unicode__(self):
+        return  '<%s,%s>'%(self.link_url,self.link_type)
+    
+    
+    

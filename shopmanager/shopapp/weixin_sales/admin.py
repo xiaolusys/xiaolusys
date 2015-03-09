@@ -9,7 +9,8 @@ from .models import (
                      WeixinUserPicture,
                      WeixinUserAward,
                      WeixinLinkClicks,
-                     WeixinLinkClickRecord)
+                     WeixinLinkClickRecord,
+                     WeixinLinkShare)
 
 
 class WeixinUserPictureAdmin(admin.ModelAdmin):
@@ -74,3 +75,12 @@ class WeixinLinkClickRecordAdmin(admin.ModelAdmin):
     
 admin.site.register(WeixinLinkClickRecord, WeixinLinkClickRecordAdmin) 
 
+class WeixinLinkShareAdmin(admin.ModelAdmin):
+    
+    list_display = ('user_openid','link_url','link_type','created','modified')
+    search_fields = ['user_openid','link_url']
+    
+    list_filter = (('created',DateFieldListFilter),)
+    
+    
+admin.site.register(WeixinLinkShare, WeixinLinkShareAdmin) 

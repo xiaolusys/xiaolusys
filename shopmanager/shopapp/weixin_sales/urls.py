@@ -6,7 +6,8 @@ from .views import (picture_review,
                     AwardNotifyView,
                     AwardRemindView,
                     AwardApplyView,
-                    AwardShareView)
+                    AwardShareView,
+                    LinkShareView)
 
 
 urlpatterns = patterns('',
@@ -17,7 +18,7 @@ urlpatterns = patterns('',
     url(r'^award/apply/$', AwardApplyView.as_view()),
     url(r'^award/share/(?P<pk>\d+)/$', AwardShareView.as_view()),
     
-    
+    url(r'^link/share/$', LinkShareView.as_view()),
 )
 
 
