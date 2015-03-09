@@ -606,7 +606,7 @@ class MergeTradeAdmin(admin.ModelAdmin):
                 pull_fail_ids.append(trade.id)
                 continue
             
-            trade.sys_status  = pcfg.EMPTY_STATUS
+            trade.sys_status  = pcfg.WAIT_AUDIT_STATUS
             trade.reason_code = ''
             trade.has_sys_err = False
             trade.has_merge   = False
