@@ -734,9 +734,10 @@ class FreeSampleView(View):
         
         wx_user,state = WeiXinUser.objects.get_or_create(openid=user_openid)
 
-        if wx_user.subscribe and wx_user.subscribe_time < datetime.datetime(2015,3,8):
+        self_vipcode = None
+        if wx_user.referal_from_openid:
             if wx_user.vipcodes.count() > 0:
-                fcode = wx_user.vipcodes.all()[0].code
+                self_vipcode = wx_user.vipcodes.all()[0].code
         
         today = datetime.datetime.today()
         today_time = datetime.datetime(today.year, today.month, today.day)
@@ -756,7 +757,7 @@ class FreeSampleView(View):
         now = datetime.datetime.now()
         if now >= START_TIME:
             started = True
-            delta = now - END_TIME
+            delta = END_TIME - now
         else:
             delta = START_TIME - now
 
@@ -772,6 +773,7 @@ class FreeSampleView(View):
             html, 
             {"wx_user":wx_user, "fcode":fcode, "started":started, 
              "order_exist":order_exist, "order_number":today_orders.count(),
+             "self_vipcode":self_vipcode,
              "days":days, "hours":hours, "minutes":minutes},
             context_instance=RequestContext(request))
         response.set_cookie("openid",user_openid)
@@ -967,7 +969,7 @@ class ResultView(View):
         sample_orders = SampleOrder.objects.filter(user_openid=user_openid,created__gte=START_TIME)
         if sample_orders.count() > 0:
             sample_order = sample_orders[0]
-            sample_pass = sample_order.status > 50
+            sample_pass = (sample_order.status > 60 and sample_order.status < 100)
             
         vip_code = None
         vip_codes = VipCode.objects.filter(owner_openid__openid=user_openid)
@@ -1016,15 +1018,14 @@ class FinalListView(View):
         month = int(kwargs.get('month',1))
         
         order_list = SampleOrder.objects.none()
-        
-        if month == 15012 :
-            start_time = datetime.datetime(2015,1,23)
-            end_time = datetime.datetime(2015,1,27)
-            order_list = SampleOrder.objects.filter(status__gt=50,status__lt=60,created__gt=start_time)
-        elif month == 15011:
+        if month == 1503 :
+            start_time = datetime.datetime(2015,3,9)
+            end_time = datetime.datetime(2015,3,20)
+            order_list = SampleOrder.objects.filter(status=61,created__gt=start_time)
+        elif month == 1501:
             start_time = datetime.datetime(2015,1,9)
-            end_time = datetime.datetime(2015,1,13)
-            order_list = SampleOrder.objects.filter(status__gt=40,status__lt=50,created__gt=start_time)
+            end_time = datetime.datetime(2015,1,27)
+            order_list = SampleOrder.objects.filter(status__gt=40,status__lt=60,created__gt=start_time)
         elif month == 1408:
             start_time = datetime.datetime(2014,8,1)
             end_time = datetime.datetime(2014,8,12)
