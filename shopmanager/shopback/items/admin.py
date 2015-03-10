@@ -133,7 +133,9 @@ class ProductAdmin(admin.ModelAdmin):
     
     inlines = [ProductSkuInline]
     
-    list_filter = ('status','sync_stock','is_split','is_match','is_assign','post_check','category')
+    list_filter = ('status',('created',DateFieldListFilter),'sync_stock'
+                   ,'is_split','is_match','is_assign','post_check','category')
+
     search_fields = ['id','outer_id', 'name' , 'barcode']
     
     #--------设置页面布局----------------
