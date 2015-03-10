@@ -85,6 +85,9 @@ wx.ready(function () {
         },
         cancel: function () { 
             console.log("取消分享" );
+        },
+        fail: function(){
+            console.log("分享失败")
         }
     });
 });

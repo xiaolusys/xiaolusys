@@ -32,7 +32,8 @@ def  record_weixin_clicks(function=None,validated_in=24*60*60):
             req_url = request.get_full_path().split('?')[0]
             if not user_openid and not code:
                 
-                redirect_url = getAuthorizeUrl(req_url)
+                abs_url = request.build_absolute_uri().split('#')[0]
+                redirect_url = getAuthorizeUrl(abs_url)
                 return HttpResponseRedirect(redirect_url)
             
             if code and (not user_openid or user_openid.strip()=='' or user_openid == 'None'):
