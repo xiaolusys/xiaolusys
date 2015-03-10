@@ -1,6 +1,6 @@
 {% extends "weixin/weixin_base.html" %}
 {% load mathfilters %}
-{% block title %} 审核通知 {% endblock %}
+{% block title %}审核通知 1000个睡袋免费送！{% endblock %}
 
 {% block container %}
 
@@ -19,13 +19,13 @@
     <div class="panel-heading" style="color:orange">免费试用 中奖名单</div>
     <div class="panel-body">
       <p style="color:red;">3月9日 - 3月16日 1000件新款睡袋免费派送！<a href="http://weixin.huyi.so/weixin/freesamples/">大家快抢 >></a></p>
+      <p>第一批通过303名幸运妈妈（VIP码使用15次，点击次数41次以上）<a href="/weixin/finallist/1/1/1503/">中奖名单&gt;&gt;</a></p>
     </div>
   </div>
 
   <div class="panel panel-default" style="margin-top:5px">
     <div class="panel-heading" style="color:orange">免费试用 审核结果</div>
     <div class="panel-body">
-      <label>睡袋免费试用申请已经开始了，第一批通过名单将在3月10日上午公布，亲赶快行动吧！</label>
       {% if sample_order %}
       {% if not sample_pass %}
       <!--
@@ -36,7 +36,7 @@
       <p>您的综合得分: <font style="color:red">{{ vip_code.usage_count  }} *10</font> + <font style="color:orange">{{ link_click.clicker_num }}</font> = {{ vip_code.usage_count|mul:10|add:link_click.clicker_num }}</p>
       <p><br/></p>
       {% else %}
-      <p style="color:red;">恭喜您的试用申请通过了！</p>
+      <p style="color:red;">亲，恭喜您的试用申请通过了！</p>
       <p>您的综合得分: <font style="color:red">{{ vip_code.usage_count  }} *10</font> + <font style="color:orange">{{ link_click.clicker_num }}</font> = {{ vip_code.usage_count|mul:10|add:link_click.clicker_num }}</p>
       <p style="color:#029fd6">请扫描二维码添加客服微信(长按图片识别二维码)咨询睡袋领取流程:</p>
       <div class="row">
