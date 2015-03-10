@@ -55,9 +55,8 @@ var shareTitle = "自从有了娃，睡袋免费拿！";
                  "onMenuShareWeibo"] // 必填，需要使用的JS接口列表，所有JS接口列表见附录2
   });
 
-
-  wx.ready(function () {
-wx.onMenuShareAppMessage({
+wx.ready(function () {
+  wx.onMenuShareAppMessage({
     title: shareTitle, // 分享标题
     desc: descContent, // 分享描述
     link: lineLink, // 分享链接
@@ -73,8 +72,8 @@ wx.onMenuShareAppMessage({
     cancel: function () { 
         console.log("取消分享" );
     }
-});
-wx.onMenuShareTimeline({
+  });
+  wx.onMenuShareTimeline({
         title: shareTitle, // 分享标题
         link: lineLink, // 分享链接
         imgUrl: imgUrl, // 分享图标
@@ -91,7 +90,6 @@ wx.onMenuShareTimeline({
             console.log("分享失败")
         }
     });
-
 });
 
 </script>  
