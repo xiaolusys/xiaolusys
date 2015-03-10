@@ -965,11 +965,13 @@ class ResultView(View):
         wx_user,state = WeiXinUser.objects.get_or_create(openid=user_openid)
         
         sample_pass = False
+        hongbao_pass = False
         sample_order = None 
         sample_orders = SampleOrder.objects.filter(user_openid=user_openid,created__gte=START_TIME)
         if sample_orders.count() > 0:
             sample_order = sample_orders[0]
             sample_pass = (sample_order.status > 60 and sample_order.status < 100)
+            hongbao_pass = sample_order.status > 100 
             
         vip_code = None
         vip_codes = VipCode.objects.filter(owner_openid__openid=user_openid)
@@ -997,7 +999,8 @@ class ResultView(View):
                                        'vip_code':vip_code,
                                        'link_click':link_click,
                                        'sample_pass':sample_pass,
-                                       'kefu_urls':kefu_urls},
+                                       'hongbao_pass':hongbao_pass,
+                                       'kefu_url':kefu_urls[sample_order.pk % 8]},
                                       context_instance=RequestContext(request))
         response.set_cookie("openid",user_openid)  
         
