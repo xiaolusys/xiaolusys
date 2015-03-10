@@ -14,9 +14,15 @@ from shopback.items.views import (ProductListView,
                                   ProductOrSkuStatusMdView,
                                   ProductView,
                                   ProductSkuView,
-                                  StatProductSaleView,)
-from shopback.items.resources import ProductListResource,ProductItemResource,ProductResource,\
-    ProductSkuResource,ProductDistrictResource,ProductDaySaleResource
+                                  StatProductSaleView,
+                                  ProductScanView)
+from shopback.items.resources import (ProductListResource,
+                                      ProductItemResource,
+                                      ProductResource,
+                                      ProductSkuResource,
+                                      ProductDistrictResource,
+                                      ProductDaySaleResource,
+                                      ProductScanResource)
 from shopback.items.renderers import (ProductListHtmlRenderer,
                                       JSONRenderer,
                                       ProductItemHtmlRenderer,
@@ -26,7 +32,8 @@ from shopback.items.renderers import (ProductListHtmlRenderer,
                                       ProductHtmlRenderer,
                                       ProductBarcodeHtmlRenderer,
                                       ProductWarnHtmlRenderer,
-                                      ProductSaleHtmlRenderer,)
+                                      ProductSaleHtmlRenderer,
+                                      ProductScanRenderer)
 from shopback.base.renderers  import BaseJsonRenderer
 from shopback.base.permissions import IsAuthenticated
 from shopback.base.authentication import UserLoggedInAuthentication,login_required_ajax
@@ -125,7 +132,12 @@ urlpatterns = patterns('shopback.items.views',
         authentication=(UserLoggedInAuthentication,),
         permissions=(IsAuthenticated,)
     )),
-    
+     (r'^product/scan/$',ProductScanView.as_view(
+        resource=ProductScanResource,
+        renderers=(BaseJsonRenderer,ProductScanRenderer),
+        authentication=(UserLoggedInAuthentication,),
+        permissions=(IsAuthenticated,)
+    )),
     url(r'^test/$', TemplateView.as_view(
         template_name="items/product_sku_diff.html"), 
         name='test_diff'),

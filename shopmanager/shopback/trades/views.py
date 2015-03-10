@@ -270,13 +270,16 @@ class StatisticMergeOrderView(ModelView):
         
         total_cost   = 0
         total_sales  = 0
+        total_num    = 0
         for trade in order_items:
             total_cost  += trade[1]['cost']
             total_sales += trade[1]['sales']
+            total_num   += trade[1]['num']
             trade[1]['skus'] = sorted(trade[1]['skus'] .items(),key=lambda d:d[0])
         
         order_items.append(total_sales)
-        order_items.append( total_cost)
+        order_items.append(total_cost)
+        order_items.append(total_num)
         
         return order_items
     
@@ -355,7 +358,8 @@ class StatisticMergeOrderView(ModelView):
         refund_fees      = self.getTotalRefundFee(order_qs)
        
         trade_list   = self.getTradeSortedItems(order_qs,is_sale=is_sale)
-        total_cost = trade_list.pop()
+        total_num   = trade_list.pop()
+        total_cost  = trade_list.pop()
         total_sales = trade_list.pop()
        
         if action =="download":
@@ -374,6 +378,7 @@ class StatisticMergeOrderView(ModelView):
                 'shop_id':shop_id and int(shop_id) or '',
                 'total_cost':total_cost and round(total_cost,2) or 0 ,
                 'total_sales':total_sales and round(total_sales,2) or 0,
+                'total_num':total_num ,
                 'refund_fees':refund_fees and round(refund_fees,2) or 0,
                 'buyer_nums':buyer_nums,
                 'trade_nums':trade_nums,

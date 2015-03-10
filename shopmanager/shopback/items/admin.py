@@ -6,6 +6,7 @@ from django.contrib import admin
 from django.http import HttpResponse,HttpResponseRedirect
 from django.db import models
 from django.db import settings
+from django.contrib import messages
 from django.core.urlresolvers import reverse
 from django.shortcuts import render_to_response
 from django.template import RequestContext
@@ -16,7 +17,8 @@ from shopback.items.models import (Item,Product,
                                    ProductLocation,
                                    ItemNumTaskLog,
                                    SkuProperty,
-                                   ProductDaySale)
+                                   ProductDaySale,
+                                   ProductScanStorage)
 from shopback.trades.models import MergeTrade,MergeOrder
 from shopback.users.models import User
 from shopback.categorys.models import ProductCategory
@@ -595,3 +597,146 @@ class ProductDaySaleAdmin(admin.ModelAdmin):
 
 admin.site.register(ProductDaySale, ProductDaySaleAdmin)
 
+class ProductScanStorageAdmin(admin.ModelAdmin):
+    list_display = ('wave_no','product_id','qc_code','sku_code',
+                    'product_name','barcode', 'scan_num','created', 'status')
+    list_display_links = ('product_id', 'barcode')
+    #list_editable = ('update_time','task_type' ,'is_success','status')
+
+    #date_hierarchy = 'day_date'
+
+    list_filter = ('status',('created',DateFieldListFilter))
+    search_fields = ['product_id','qc_code','barcode','wave_no']
+    
+    def get_actions(self, request):
+        
+        user = request.user
+        actions = super(ProductScanStorageAdmin, self).get_actions(request)
+
+        if not user.has_perm('items.has_delete_permission') and 'delete_selected' in actions:
+            del actions['delete_selected']
+
+        return actions
+    
+    def queryset(self, request):
+        """
+        Returns a QuerySet of all model instances that can be edited by the
+        admin site. This is used by changelist_view.
+        """
+        qs = self.model._default_manager.get_query_set()
+        # TODO: this should be handled by some parameter to the ChangeList.
+        if not request.user.is_superuser:
+            qs = qs.exclude(status=ProductScanStorage.DELETE)
+        
+        ordering = self.get_ordering(request)
+        if ordering:
+            qs = qs.order_by(*ordering)
+        return qs
+    
+    #取消该商品缺货订单
+    def confirm_scan_action(self,request,queryset):
+        
+        queryset = queryset.filter(status=ProductScanStorage.WAIT)
+        try:
+            for prod in queryset:
+                
+                product = Product.objects.get(id=prod.product_id)
+                
+                product.update_collect_num(prod.scan_num)
+                
+                prod.status = ProductScanStorage.PASS
+                
+                prod.save()
+                
+                log_action(request.user.id,prod,CHANGE,
+                          u'确认入库：%s'%prod.scan_num)
+                
+                log_action(request.user.id,product,CHANGE,
+                          u'扫描确认入库数：%s'%prod.scan_num)
+                    
+        except Exception,exc:
+            messages.add_message(request,messages.ERROR,u'XXXXXXXXXXXXXXXXX确认入库异常:%sXXXXXXXXXXXX'%exc)
+        else:
+            messages.add_message(request,messages.INFO,u'==================操作成功==================')
+            
+        return HttpResponseRedirect('./')
+        
+    confirm_scan_action.short_description = u"确认入库"
+    
+    #取消该商品缺货订单
+    def delete_scan_action(self,request,queryset):
+        
+        queryset = queryset.filter(status=ProductScanStorage.WAIT)
+        try:
+            for prod in queryset:
+                
+                prod.scan_num = 0
+                prod.status = ProductScanStorage.DELETE
+                
+                prod.save()
+                
+                log_action(request.user.id,prod,CHANGE, u'作废')
+                
+        except Exception,exc:
+            messages.add_message(request,messages.ERROR,
+                                 u'XXXXXXXXXXXXXXXXX作废失败:%sXXXXXXXXXXXX'%exc)
+        else:
+            messages.add_message(request,messages.INFO,
+                                 u'==================已作废==================')
+            
+        return HttpResponseRedirect('./')
+        
+    delete_scan_action.short_description = u"作废扫描记录"
+    
+    #取消该商品缺货订单
+    def export_scan_action(self,request,queryset):
+        
+        """ 导出商品及规格信息 """
+
+        is_windows = request.META['HTTP_USER_AGENT'].lower().find('windows') >-1 
+        
+        pcsv = gen_cvs_tuple(queryset,
+                             fields=['barcode','product_id','sku_id'
+                                     ,'product_name','sku_name','scan_num','created','wave_no'],
+                             title=[u'商品条码',u'商品ID',u'规格ID'
+                                    ,u'商品名称',u'规格名',u'扫描数量',u'扫描时间',u'批次号'])
+        
+        pcsv[0].insert(1,u'库位')
+        pcsv[0].insert(2,u'商品编码')
+        pcsv[0].insert(3,u'规格编码')
+
+        for i in range(1,len(pcsv)):
+            item = pcsv[i]
+            product_id,sku_id = item[1].strip(),item[2].strip()
+            
+            product_loc = ''
+            try:
+                product = Product.objects.get(id=product_id)
+            except:
+                product = None
+            product_sku = None
+            if sku_id and sku_id != 'None' and sku_id != '-':
+                product_sku = ProductSku.objects.get(id=sku_id)
+            
+            item.insert(1,product_sku and product_sku.get_districts_code() or (product and product.get_districts_code() or ''))
+            item.insert(2,product and product.outer_id or u'商品未找到!!!')
+            item.insert(3,product_sku and product_sku.outer_id or '')
+        
+        tmpfile = StringIO.StringIO()
+        writer  = CSVUnicodeWriter(tmpfile,encoding= is_windows and "gbk" or 'utf8')
+        writer.writerows(pcsv)
+            
+        response = HttpResponse(tmpfile.getvalue(), mimetype='application/octet-stream')
+        tmpfile.close()
+        response['Content-Disposition'] = 'attachment; filename=product-scan-%s.csv'%str(int(time.time()))
+        
+        return response
+        
+        
+    export_scan_action.short_description = u"导出扫描商品数"
+    
+    actions = ['confirm_scan_action','delete_scan_action','export_scan_action']
+    
+    
+
+admin.site.register(ProductScanStorage, ProductScanStorageAdmin)
