@@ -811,4 +811,41 @@ class ProductDaySale(models.Model):
                                    self.product_id,
                                    str(self.sku_id))
     
+class ProductScanStorage(models.Model):
     
+    DELETE = -1
+    PASS = 1
+    WAIT = 0
+    SCAN_STATUS = ((DELETE,u'已删除'),
+                   (WAIT,u'未入库'),
+                   (PASS,u'已入库'))
+    
+    product_id = models.IntegerField(null=True,verbose_name=u'商品ID')
+    sku_id     = models.IntegerField(null=True,verbose_name=u'规格ID')
+    
+    qc_code    = models.CharField(max_length=32,blank=True,verbose_name=u'商品编码')
+    sku_code   = models.CharField(max_length=32,blank=True,verbose_name=u'规格编码')
+    barcode    = models.CharField(max_length=32,blank=True,verbose_name=u'商品条码')
+    
+    product_name   = models.CharField(max_length=32,blank=True,verbose_name=u'商品名称')
+    sku_name       = models.CharField(max_length=32,blank=True,verbose_name=u'规格名称')
+    
+    scan_num   = models.IntegerField(null=False,default=0,verbose_name=u'扫描次数')
+    
+    created    = models.DateTimeField(auto_now_add=True,verbose_name=u'创建时间')
+    modified   = models.DateTimeField(auto_now=True,verbose_name=u'修改时间')
+    
+    wave_no    = models.CharField(max_length=32,blank=True,verbose_name=u'批次号')
+    
+    status     = models.IntegerField(null=False,default=WAIT,choices=SCAN_STATUS,verbose_name=u'状态')
+    
+    class Meta:
+        db_table = 'shop_items_scan'
+        unique_together = ("wave_no","product_id","sku_id")
+        verbose_name    = u'扫描入库商品'
+        verbose_name_plural = u'扫描入库商品列表'
+
+    def __unicode__(self):
+        return '<%s-%s,%d>'%(self.product_name,
+                           self.sku_name,
+                           self.scan_num)

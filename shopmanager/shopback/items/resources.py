@@ -3,6 +3,7 @@ __author__ = 'meixqhi'
 from djangorestframework.resources import ModelResource
 from shopback.items.models import Product,ProductSku,Item,ProductDaySale
 from shopback.items.serializer import ProductSerializer,ItemSerializer
+from shopback.items.forms import ProductScanForm
 
 class ProductListResource(ModelResource):
     """ docstring for ProductList ModelResource """
@@ -56,4 +57,12 @@ class ProductDaySaleResource(ModelResource):
     model = ProductDaySale
     fields = ('day_date','user_id','product_id','sku_id','sale_num','sale_payment','sale_refund',
               'sale_stats') 
+    exclude = ('url',)
+    
+class ProductScanResource(ModelResource):
+    """ docstring for ProductScanResource ModelResource """
+    
+    model = Product
+    #fields = (('charts','ChartSerializer'),('item_dict',None))
+    form    = ProductScanForm
     exclude = ('url',)

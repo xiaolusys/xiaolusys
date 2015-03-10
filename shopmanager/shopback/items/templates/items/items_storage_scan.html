@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>商品扫描入库</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <meta name="viewport" content="width=decice-width,uer-scalable=no">
+    <link href="{{ STATIC_URL }}css/base.less" rel="stylesheet/less" type="text/css" />
+    <script src="{{ STATIC_URL }}jquery/jquery-1.8.13.min.js" type="text/javascript"></script>
+    <script src='{{ STATIC_URL }}jquery/jquery-ui-1.8.13.min.js'></script>
+    <script src="{{ STATIC_URL }}bootstrap/js/bootstrap.js" type="text/javascript"></script>
+    <style type="text/css" title="currentStyle">
+    	@import "{{ STATIC_URL }}bootstrap/css/bootstrap-responsive.min.css";
+    	@import "{{ STATIC_URL }}bootstrap/css/bootstrap.min.css";
+    </style>  
+    <style type="text/css">
+    body,div{
+    	margin:0px auto;
+    	padding:0px;
+    }
+    .well {
+    	margin-bottom:0px;
+    }
+    .head-panel{
+    	text-align:center;
+    }
+    .title-panel{
+    	font-size:16px;
+    	background-color:#3A87AD;
+    }
+    .title-panel a{
+    	color:black;
+    }
+    .opt-panel{
+    	height:100px;
+    	text-align:center;
+    }
+    .opt-panel input{
+    	height:25px;
+    	width:150px;
+    	margin-left:5px;
+    	margin-right:40px;
+    }
+    .opt-panel input:first-child{
+    	width:250px;
+    }
+    .detail-panel{
+    	text-align:left;
+    }
+    .detail-panel label{
+    	margin-left:15px;
+    }
+    .detail-panel input{
+    	width:80px;
+    }
+    #sort_code{
+    	display:inline;
+    	padding:1px 20px;
+    	font-size:50px;
+		color:red;
+    	margin:0px 10px;
+    	border: 2px solid grey;
+    }
+    #address{
+    	width:450px;
+    }
+    .body-panel {
+    	overflow-x:hidden;
+		overflow-y:auto;
+		height:500px;
+    }
+    .body-panel table th{
+    	background-color:#3A87AD;
+    }
+    .scan_status{
+    	width:200px;
+    	margin-top:10px;
+    	margin-bottom:0px;
+    	display:none;	
+    }
+    </style>
+  </head>
+  <body>
+  	<div class="container">
+  		<div class="head-panel">
+  			<div class="well well-small title-panel"><a id="backword-scan" href="javascript:void(0);" >
+  				<icon class="icon-backward"></icon>&nbsp;&nbsp;返回到今日入库详细</a>
+  			</div>
+	  		<div class="well opt-panel" >
+			  <input id="product_barcode" type="text" name="barcode" class="input-small" placeholder="商品条码">
+			  <label class="label">单位数：</label><input id="product_unit" type="text" name="unit" class="input-small" value="1">
+			  <label class="label">批次号：</label><input id="wave_no" type="text" name="wave_no" class="input-small" value="{{ object.wave_no }}">
+			  <br/>
+			  <div id="error_msg" class="btn btn-small btn-danger scan_status"></div>
+			</div>
+		</div>
+		<div class="body-panel">
+			<table id="package-table" class="table table-bordered table-striped table-condensed">
+			  <thead>
+			  <tr><th>商品ID</th><th>商品名称</th><th>库位</th><th>商品条码</th><th>扫描次数</th></tr>
+			  </thead>
+			  <tbody>
+			  	
+			  </tbody>
+			</table>
+		</div>
+  	</div>
+  </body>
+  <script type="text/javascript">
+  	var cur_product   = null;
+  	var max_table_row = 15;
+  	
+  	var showErrorMsg = function(msg){
+  		$("#error_msg").show();
+  		$("#error_msg").html(msg);
+  	}
+  	
+  	var hideErrorMsg = function(){
+  		$("#error_msg").hide();
+  	}
+  	
+  	var insertProductToTable = function(cur_product,num){
+  	
+  		var table_tr =  "<tr><td>"+cur_product.product_id+"</td>"
+  						+"<td>"+cur_product.product_name+"</td>"
+  						+"<td>"+cur_product.location+"</td>"
+  						+"<td>"+cur_product.barcode+"</td>"
+  						+"<td>"+num+"</td>";
+  		
+  		if ($('#package-table > tbody:first > tr').length == 0){
+  			$('#package-table > tbody:first').append(table_tr);
+  		}else{
+  			$('#package-table > tbody:first > tr:first').before(table_tr);
+  		}
+  		
+  		if ($('#package-table > tbody:first > tr').length > max_table_row){
+  			$('#package-table > tbody:first >tr:last').remove();
+  		}
+  	}
+  	
+  	var pushProductInfo = function(wave_no,barcode,num){
+  		
+  		$.post("/items/product/scan/", 
+  			{ "wave_no":wave_no,"barcode": barcode,"num": num,"format":"json"},
+   			function(data){
+   				
+     			try{
+  					if (data.code == 0 ){
+  						cur_product = data.response_content;
+  						insertProductToTable(cur_product,num);
+  						cur_product = null;
+  						$('#product_barcode').val('');
+  						$('#product_barcode').focus();
+  					}else{
+  						alert('错误:'+data.response_error);
+  					}
+  				}
+  				catch(e){
+  					console.log('ajax error:'+e);
+  				}
+   		}, "json");
+  	}
+  	
+  	$(document).ready(  
+  	
+        function() {
+        	$('#product_barcode').focus();
+        	
+		  	$('#product_barcode').keydown(function(event) {  
+		        if (event.keyCode == 13) { 
+		            pushProductInfo($('#wave_no').val(),
+		            				$(this).val(),
+		            				$('#product_unit').val());
+		            event.preventDefault();
+		        }  
+		    })
+		    
+		    $('#backword-scan').click(function(event){
+				window.location = '/admin/items/productscanstorage/?status__exact=0&q='+$('#wave_no').val();
+			})
+		}
+	)	
+	
+  </script>
+</html>

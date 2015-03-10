@@ -185,7 +185,7 @@ class WeiXinUser(models.Model):
     validcode     = models.CharField(max_length=6,blank=True,verbose_name=u"验证码")
     
     valid_count  = models.IntegerField(default=0,verbose_name=u'验证次数')
-    code_time    = models.DateTimeField(blank=True,null=True,verbose_name=u'短信发送时间')    
+    code_time    = models.DateTimeField(blank=True,null=True,verbose_name=u'短信发送时间')
     
     sceneid    = models.CharField(max_length=32,blank=True,verbose_name=u'场景ID')
     

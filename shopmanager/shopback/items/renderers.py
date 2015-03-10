@@ -94,5 +94,12 @@ class ProductSaleHtmlRenderer(TemplateRenderer):
     template = 'items/product_sale_stat.html'
 
 
-
+class ProductScanRenderer(TemplateRenderer):
+    """
+    Renderer which serializes to JSON
+    """
+    
+    media_type = 'text/html'
+    format = 'html'
+    template = 'items/items_storage_scan.html'
 

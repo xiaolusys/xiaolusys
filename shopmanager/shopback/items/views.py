@@ -4,7 +4,7 @@ import datetime
 import json
 from django.core.serializers.json import DjangoJSONEncoder
 from django.http import HttpResponse,HttpResponseNotFound
-from django.db.models import Q,Sum
+from django.db.models import Q,Sum,F
 from django.conf import settings
 from django.views.decorators.csrf import csrf_exempt
 from django.template.loader import render_to_string
@@ -23,6 +23,7 @@ from shopback.items.models import (Item,
                                    ProductSku,
                                    ProductLocation,
                                    ProductDaySale,
+                                   ProductScanStorage,
                                    APPROVE_STATUS,
                                    ONLINE_PRODUCT_STATUS)
 from shopback.archives.models import DepositeDistrict
@@ -1101,3 +1102,46 @@ class StatProductSaleView(ModelView):
     post = get                
             
 
+class ProductScanView(ModelView):
+    
+    def get(self,request,*args,**kwargs):
+        
+        wave_no = datetime.datetime.now().strftime("%Y-%m-%d-%H")
+        
+        return {'wave_no':wave_no}
+    
+    def post(self,request,*args,**kwargs):
+        
+        content = request.REQUEST
+        
+        barcode = content.get('barcode')
+        product_list = Product.objects.getProductByBarcode(barcode)
+        if len(product_list) == 0:
+            return u'条码未找到商品'
+        
+        if len(product_list) > 1:
+            return u'条码对应多件商品'
+        
+        product = product_list[0]
+        wave_no = content.get('wave_no')
+        sku_id  = content.get('sku_id')
+        num     = content.get('num')
+        
+        prod,state = ProductScanStorage.objects.get_or_create(wave_no=wave_no,
+                                                 product_id=product.id,
+                                                 sku_id=sku_id)
+        prod.product_name = product.name
+        prod.sku_name     = ''
+        prod.qc_code      = product.outer_id
+        prod.barcode      = barcode
+        prod.scan_num     = F('scan_num') + int(num)
+        prod.status       = ProductScanStorage.WAIT
+        prod.save()
+        
+        return {'product_id':prod.product_id,
+                'product_name':prod.product_name,
+                'sku_name':prod.sku_name,
+                'scan_num':prod.scan_num,
+                'location':product.get_districts_code(),
+                'barcode':prod.barcode}
+        
