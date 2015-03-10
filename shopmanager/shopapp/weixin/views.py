@@ -979,13 +979,23 @@ class ResultView(View):
         if link_clicks.count() > 0:
             link_click = link_clicks[0]
             
+        kefu_urls = [
+            "https://mmbiz.qlogo.cn/mmbiz/yMhOQPTKhLt8UfGVxAqDTnhPOxglygBpTQoyJU7SPkpD8uQDZta0IhGUSA7CDCaJJdtXOicHVicfHGI7jmuTV0zQ/0",
+            "https://mmbiz.qlogo.cn/mmbiz/yMhOQPTKhLt8UfGVxAqDTnhPOxglygBp3iaiacMzibmULmM4qWcybzPHZAnojDz9jHEeibhWkibm4TZRLGjKIo91Obg/0",
+            "https://mmbiz.qlogo.cn/mmbiz/yMhOQPTKhLt8UfGVxAqDTnhPOxglygBpG88L2ou3RkvVauTAyA0SOBgg1bib5M6UbnsphP0aCticd2gwaeSHt4KA/0",
+            "https://mmbiz.qlogo.cn/mmbiz/yMhOQPTKhLt8UfGVxAqDTnhPOxglygBptP0hGXy2NcTOzy39pbINAAVXqXWp8ya6dylUXa4VbcdalxbrRU2iaXw/0",
+            "https://mmbiz.qlogo.cn/mmbiz/yMhOQPTKhLt8UfGVxAqDTnhPOxglygBpm9CCABMmia0pHFNTnQYrrgvSZRAxjQkS1ialYmsMDe8Uz0JicRnXqibiaIw/0",
+            "https://mmbiz.qlogo.cn/mmbiz/yMhOQPTKhLt8UfGVxAqDTnhPOxglygBpG8DGHpEUxFI144JmzwGVib21qiactaJ8Sdsmq2iaVZm4DyV7FtR9D6gjA/0",
+            "https://mmbiz.qlogo.cn/mmbiz/yMhOQPTKhLt8UfGVxAqDTnhPOxglygBpswRlutibR5EJBu4ian97b5OXGY8uLO4f5B7ibBlCQLAfjmKJrrjzaSq8g/0",
+            "https://mmbiz.qlogo.cn/mmbiz/yMhOQPTKhLt8UfGVxAqDTnhPOxglygBpPohZvOxLckul5pzTJ2zQ5ZzVicUqUJBLicsll6EMicVK7vtC3SkvJyBhg/0"]
         
         response = render_to_response('weixin/invite_result1.html',
                                       {'wx_user':wx_user,
                                        'sample_order':sample_order,
                                        'vip_code':vip_code,
                                        'link_click':link_click,
-                                       'sample_pass':sample_pass,},
+                                       'sample_pass':sample_pass,
+                                       'kefu_urls':kefu_urls},
                                       context_instance=RequestContext(request))
         response.set_cookie("openid",user_openid)  
         
