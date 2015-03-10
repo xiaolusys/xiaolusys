@@ -42,6 +42,7 @@ var imgUrl = "https://mmbiz.qlogo.cn/mmbiz/yMhOQPTKhLupibeUUTBbhbybLrhfNa2E5RT33
 var lineLink = "http://weixin.huyi.so/weixin/sampleads/{{ pk }}/";
 var descContent = "自从有了娃，梦想中，他们睡觉是这样。。。";
 var shareTitle = "自从有了娃，睡袋免费拿！";
+var user_openid = "{{ wx_user.openid }}";
 
   wx.config({
     debug: false, // 开启调试模式,调用的所有api的返回值会在客户端alert出来，若要查看传入的参数，可以在pc端打开，参数信息会通过log打出，仅在pc端时才会打印。
@@ -65,7 +66,9 @@ wx.ready(function () {
     dataUrl: '', // 如果type是music或video，则要提供数据链接，默认为空
     success: function () { 
         $.post('/weixin/sales/link/share/',
-            {"share_link":lineLink,"share_type":"APP"},
+            {share_link:lineLink,
+             share_type:"APP",
+             user_openid:user_openid},
             function(res){console.log(res);},
             "json");
     },
@@ -79,7 +82,9 @@ wx.ready(function () {
         imgUrl: imgUrl, // 分享图标
         success: function () { 
            $.post('/weixin/sales/link/share/',
-            {"share_link":lineLink,"share_type":"PYQ"},
+            {share_link:lineLink,
+             share_type:"PYQ",
+             user_openid:user_openid},
             function(res){console.log(res);},
             "json");
         },
