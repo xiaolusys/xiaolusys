@@ -734,9 +734,10 @@ class FreeSampleView(View):
         
         wx_user,state = WeiXinUser.objects.get_or_create(openid=user_openid)
 
-        if wx_user.subscribe and wx_user.subscribe_time < datetime.datetime(2015,3,8):
+        self_vipcode = None
+        if wx_user.referal_from_openid:
             if wx_user.vipcodes.count() > 0:
-                fcode = wx_user.vipcodes.all()[0].code
+                self_vipcode = wx_user.vipcodes.all()[0].code
         
         today = datetime.datetime.today()
         today_time = datetime.datetime(today.year, today.month, today.day)
@@ -756,7 +757,7 @@ class FreeSampleView(View):
         now = datetime.datetime.now()
         if now >= START_TIME:
             started = True
-            delta = now - END_TIME
+            delta = END_TIME - now
         else:
             delta = START_TIME - now
 
@@ -772,6 +773,7 @@ class FreeSampleView(View):
             html, 
             {"wx_user":wx_user, "fcode":fcode, "started":started, 
              "order_exist":order_exist, "order_number":today_orders.count(),
+             "self_vipcode":self_vipcode,
              "days":days, "hours":hours, "minutes":minutes},
             context_instance=RequestContext(request))
         response.set_cookie("openid",user_openid)
@@ -963,11 +965,13 @@ class ResultView(View):
         wx_user,state = WeiXinUser.objects.get_or_create(openid=user_openid)
         
         sample_pass = False
+        hongbao_pass = False
         sample_order = None 
         sample_orders = SampleOrder.objects.filter(user_openid=user_openid,created__gte=START_TIME)
         if sample_orders.count() > 0:
             sample_order = sample_orders[0]
-            sample_pass = sample_order.status > 50
+            sample_pass = (sample_order.status > 60 and sample_order.status < 100)
+            hongbao_pass = sample_order.status > 100 
             
         vip_code = None
         vip_codes = VipCode.objects.filter(owner_openid__openid=user_openid)
@@ -979,13 +983,24 @@ class ResultView(View):
         if link_clicks.count() > 0:
             link_click = link_clicks[0]
             
+        kefu_urls = [
+            "https://mmbiz.qlogo.cn/mmbiz/yMhOQPTKhLt8UfGVxAqDTnhPOxglygBpTQoyJU7SPkpD8uQDZta0IhGUSA7CDCaJJdtXOicHVicfHGI7jmuTV0zQ/0",
+            "https://mmbiz.qlogo.cn/mmbiz/yMhOQPTKhLt8UfGVxAqDTnhPOxglygBp3iaiacMzibmULmM4qWcybzPHZAnojDz9jHEeibhWkibm4TZRLGjKIo91Obg/0",
+            "https://mmbiz.qlogo.cn/mmbiz/yMhOQPTKhLt8UfGVxAqDTnhPOxglygBpG88L2ou3RkvVauTAyA0SOBgg1bib5M6UbnsphP0aCticd2gwaeSHt4KA/0",
+            "https://mmbiz.qlogo.cn/mmbiz/yMhOQPTKhLt8UfGVxAqDTnhPOxglygBptP0hGXy2NcTOzy39pbINAAVXqXWp8ya6dylUXa4VbcdalxbrRU2iaXw/0",
+            "https://mmbiz.qlogo.cn/mmbiz/yMhOQPTKhLt8UfGVxAqDTnhPOxglygBpm9CCABMmia0pHFNTnQYrrgvSZRAxjQkS1ialYmsMDe8Uz0JicRnXqibiaIw/0",
+            "https://mmbiz.qlogo.cn/mmbiz/yMhOQPTKhLt8UfGVxAqDTnhPOxglygBpG8DGHpEUxFI144JmzwGVib21qiactaJ8Sdsmq2iaVZm4DyV7FtR9D6gjA/0",
+            "https://mmbiz.qlogo.cn/mmbiz/yMhOQPTKhLt8UfGVxAqDTnhPOxglygBpswRlutibR5EJBu4ian97b5OXGY8uLO4f5B7ibBlCQLAfjmKJrrjzaSq8g/0",
+            "https://mmbiz.qlogo.cn/mmbiz/yMhOQPTKhLt8UfGVxAqDTnhPOxglygBpPohZvOxLckul5pzTJ2zQ5ZzVicUqUJBLicsll6EMicVK7vtC3SkvJyBhg/0"]
         
         response = render_to_response('weixin/invite_result1.html',
                                       {'wx_user':wx_user,
                                        'sample_order':sample_order,
                                        'vip_code':vip_code,
                                        'link_click':link_click,
-                                       'sample_pass':sample_pass,},
+                                       'sample_pass':sample_pass,
+                                       'hongbao_pass':hongbao_pass,
+                                       'kefu_url':kefu_urls[sample_order.pk % 8]},
                                       context_instance=RequestContext(request))
         response.set_cookie("openid",user_openid)  
         
@@ -1016,15 +1031,14 @@ class FinalListView(View):
         month = int(kwargs.get('month',1))
         
         order_list = SampleOrder.objects.none()
-        
-        if month == 15012 :
-            start_time = datetime.datetime(2015,1,23)
-            end_time = datetime.datetime(2015,1,27)
-            order_list = SampleOrder.objects.filter(status__gt=50,status__lt=60,created__gt=start_time)
-        elif month == 15011:
+        if month == 1503 :
+            start_time = datetime.datetime(2015,3,9)
+            end_time = datetime.datetime(2015,3,20)
+            order_list = SampleOrder.objects.filter(status=61,created__gt=start_time)
+        elif month == 1501:
             start_time = datetime.datetime(2015,1,9)
-            end_time = datetime.datetime(2015,1,13)
-            order_list = SampleOrder.objects.filter(status__gt=40,status__lt=50,created__gt=start_time)
+            end_time = datetime.datetime(2015,1,27)
+            order_list = SampleOrder.objects.filter(status__gt=40,status__lt=60,created__gt=start_time)
         elif month == 1408:
             start_time = datetime.datetime(2014,8,1)
             end_time = datetime.datetime(2014,8,12)
