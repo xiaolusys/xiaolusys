@@ -642,10 +642,17 @@ class ProductScanStorageAdmin(admin.ModelAdmin):
         try:
             for prod in queryset:
                 
-                product = Product.objects.get(id=prod.product_id)
-                
-                product.update_collect_num(prod.scan_num)
-                
+                if prod.sku_id:
+                    product_sku = ProductSku.objects.get(id=prod.sku_id,product=prod.product_id)
+                    
+                    product_sku.update_quantity(prod.scan_num)
+                    
+                    product = product_sku.product
+                else:
+                    product = Product.objects.get(id=prod.product_id)
+                    
+                    product.update_collect_num(prod.scan_num)
+                    
                 prod.status = ProductScanStorage.PASS
                 
                 prod.save()

@@ -30,9 +30,38 @@ class ProductManager(models.Manager):
         
         bar_len = len(barcode)
         for index in range(0,bar_len-1):
-            products = self.filter(outer_id=barcode[0:bar_len-index])
-            if products.count() > 0:
-                return [ p for p in products]
+            outer_id = barcode[0:bar_len-index]
+            outer_sku_id = barcode[bar_len-index:]
+            
+            products = self.filter(outer_id=outer_id)
+            for product in products:
+                skus = product.prod_skus.filter(outer_id=outer_sku_id)
+                if skus.count() > 0:
+                    return [product]
+            
+        return []
+    
+    def getProductSkuByBarcode(self,barcode):
+        
+        if not barcode or not isinstance(barcode,(str,unicode)) or len(barcode)==0:
+            return []
+        
+        from shopback.items.models import ProductSku
+        
+        product_skus = ProductSku.objects.filter(product__status__in=(pcfg.NORMAL,pcfg.REMAIN),barcode=barcode)
+        if product_skus.count() > 0:
+            return list(product_skus)
+        
+        bar_len = len(barcode)
+        for index in range(0,bar_len-1):
+            outer_id = barcode[0:bar_len-index]
+            outer_sku_id = barcode[bar_len-index:]
+            
+            products = self.filter(outer_id=outer_id)
+            for product in products:
+                skus = product.prod_skus.filter(outer_id=outer_sku_id)
+                if skus.count() > 0:
+                    return list(skus)
             
         return []
     
