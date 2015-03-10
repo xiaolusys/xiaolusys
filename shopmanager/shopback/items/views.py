@@ -1115,24 +1115,35 @@ class ProductScanView(ModelView):
         content = request.REQUEST
         
         barcode = content.get('barcode')
-        product_list = Product.objects.getProductByBarcode(barcode)
-        if len(product_list) == 0:
-            return u'条码未找到商品'
+        product_sku_list = Product.objects.getProductSkuByBarcode(barcode)
+        if len(product_sku_list) == 0:
+            product_list = Product.objects.getProductByBarcode(barcode)
+            if len(product_list) == 0:
+                return u'条码未找到商品'
+            
+            if len(product_list) > 1:
+                return u'条码对应多件商品'
         
-        if len(product_list) > 1:
+        if len(product_sku_list) > 1:
             return u'条码对应多件商品'
         
-        product = product_list[0]
+        if len(product_sku_list) == 1:
+            product_sku = product_sku_list[0]
+            product = product_sku.product
+        else:
+            product_sku = None
+            product = product_list[0]
+        
         wave_no = content.get('wave_no')
-        sku_id  = content.get('sku_id')
         num     = content.get('num')
         
         prod,state = ProductScanStorage.objects.get_or_create(wave_no=wave_no,
                                                  product_id=product.id,
-                                                 sku_id=sku_id)
+                                                 sku_id=product_sku and product_sku.id or '')
         prod.product_name = product.name
-        prod.sku_name     = ''
+        prod.sku_name     = product_sku and product_sku.name or ''
         prod.qc_code      = product.outer_id
+        prod.sku_code     = product_sku and product_sku.outer_id or ''
         prod.barcode      = barcode
         prod.scan_num     = F('scan_num') + int(num)
         prod.status       = ProductScanStorage.WAIT
