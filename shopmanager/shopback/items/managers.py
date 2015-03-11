@@ -28,18 +28,22 @@ class ProductManager(models.Manager):
         if products.count() > 0:
             return [ p for p in products]
         
+        cur_products = []
         bar_len = len(barcode)
         for index in range(0,bar_len-1):
             outer_id = barcode[0:bar_len-index]
             outer_sku_id = barcode[bar_len-index:]
             
             products = self.filter(outer_id=outer_id)
+            if products.count() > 0 and not cur_products:
+                cur_products = products
+                
             for product in products:
                 skus = product.prod_skus.filter(outer_id=outer_sku_id)
                 if skus.count() > 0:
                     return [product]
             
-        return []
+        return cur_products
     
     def getProductSkuByBarcode(self,barcode):
         
