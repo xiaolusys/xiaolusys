@@ -318,10 +318,10 @@ class OrderInfoView(View):
         orders = []
         for order in trade.merge_orders.filter(sys_status=pcfg.IN_EFFECT):
             s = order.getImgSimpleNameAndPrice()
-            #if order.outer_id in ['3116BG7','10201','3114CA3','3114CB1','3114CA2','3114CA1','3113BI2','10802','10202'] :
-            #    if trade.status == pcfg.TRADE_FINISHED:
-            #        specific_order_finished = True
-            #    has_specific_product = True
+#             if order.outer_id in ['10206'] :
+#                 if trade.status == pcfg.TRADE_FINISHED:
+#                     specific_order_finished = True
+#                 has_specific_product = True
             orders.append(s)
         data["orders"]   = orders
         data["ordernum"] = trade.order_num
@@ -360,13 +360,11 @@ class OrderInfoView(View):
         refund = None
         refund_list = Refund.objects.filter(trade_id=trade.id)
         if refund_list.count() > 0:
-            refund = refund_list[0] 
+            refund = refund_list[0]
         
         passed = False
-
         sample_orders = SampleOrder.objects.filter(user_openid=user_openid,status__gt=60,status__lt=69,created__gt=START_TIME)
-        refund_time = datetime.datetime(2014,11,23)
-        refund_records = Refund.objects.filter(user_openid=user_openid,created__gt=refund_time)
+        refund_records = Refund.objects.filter(user_openid=user_openid,created__gt=START_TIME)
         if sample_orders.count() > 0 and refund_records.count() < 1:
             passed = True
 
