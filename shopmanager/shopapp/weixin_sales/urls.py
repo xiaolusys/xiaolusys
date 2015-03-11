@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 
 from django.conf.urls.defaults import patterns, url
+from django.views.decorators.csrf import csrf_exempt
+
 from .views import (picture_review,
                     AwardView,
                     AwardNotifyView,
@@ -18,7 +20,7 @@ urlpatterns = patterns('',
     url(r'^award/apply/$', AwardApplyView.as_view()),
     url(r'^award/share/(?P<pk>\d+)/$', AwardShareView.as_view()),
     
-    url(r'^link/share/$', LinkShareView.as_view()),
+    url(r'^link/share/$', csrf_exempt(LinkShareView.as_view())),
 )
 
 

@@ -36,7 +36,7 @@ class ProductManager(models.Manager):
             
             products = self.filter(outer_id=outer_id)
             if products.count() > 0 and not cur_products:
-                cur_products = products
+                cur_products = list(products)
                 
             for product in products:
                 skus = product.prod_skus.filter(outer_id=outer_sku_id)

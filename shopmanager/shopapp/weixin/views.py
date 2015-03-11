@@ -128,8 +128,8 @@ def get_user_openid(request, code):
     if r.has_key("errcode"):
         return cookie_openid 
     
-#     if (cookie_openid and cookie_openid != 'None' and r.get('openid') != cookie_openid):
-#         raise Exception(u'COOKIE OPENID与授权OPENID码不一致')
+    if (cookie_openid and cookie_openid != 'None' and r.get('openid') != cookie_openid):
+        raise Exception(u'COOKIE OPENID与授权OPENID码不一致')
     
     return r.get('openid')
 
@@ -280,8 +280,7 @@ class OrderInfoView(View):
         code = content.get('code',None)
         user_openid = get_user_openid(request, code)
         
-        weixin_user_service = WeixinUserService(user_openid)
-        wx_user = weixin_user_service._wx_user
+        wx_user = WeiXinUser.objects.get_or_create(openid=user_openid)
         
         title = u'订单查询'
         if wx_user.isValid() == False:
@@ -319,18 +318,18 @@ class OrderInfoView(View):
         orders = []
         for order in trade.merge_orders.filter(sys_status=pcfg.IN_EFFECT):
             s = order.getImgSimpleNameAndPrice()
-            #if order.outer_id in ['3116BG7','10201','3114CA3','3114CB1','3114CA2','3114CA1','3113BI2','10802','10202'] :
-            #    if trade.status == pcfg.TRADE_FINISHED:
-            #        specific_order_finished = True
-            #    has_specific_product = True
+#             if order.outer_id in ['10206'] :
+#                 if trade.status == pcfg.TRADE_FINISHED:
+#                     specific_order_finished = True
+#                 has_specific_product = True
             orders.append(s)
-        data["orders"] = orders
+        data["orders"]   = orders
         data["ordernum"] = trade.order_num
-        data["payment"] = trade.payment
+        data["payment"]  = trade.payment
         data["post_fee"] = trade.post_fee
-        data["status"] = trade.status
-        data["type"] = trade.type
-        data["receiver_name"] = trade.receiver_name
+        data["status"]   = trade.status
+        data["type"]     = trade.type
+        data["receiver_name"]   = trade.receiver_name
         data["receiver_mobile"] = trade.receiver_mobile
         data["address"] = ','.join([trade.receiver_state, trade.receiver_city, trade.receiver_district, trade.receiver_address])
         
@@ -361,13 +360,11 @@ class OrderInfoView(View):
         refund = None
         refund_list = Refund.objects.filter(trade_id=trade.id)
         if refund_list.count() > 0:
-            refund = refund_list[0] 
+            refund = refund_list[0]
         
         passed = False
-
-        sample_orders = SampleOrder.objects.filter(user_openid=user_openid,status__gt=30,status__lt=39,created__gt=START_TIME)
-        refund_time = datetime.datetime(2014,11,23)
-        refund_records = Refund.objects.filter(user_openid=user_openid,created__gt=refund_time)
+        sample_orders = SampleOrder.objects.filter(user_openid=user_openid,status__gt=60,status__lt=69,created__gt=START_TIME)
+        refund_records = Refund.objects.filter(user_openid=user_openid,created__gt=START_TIME)
         if sample_orders.count() > 0 and refund_records.count() < 1:
             passed = True
 
@@ -1278,7 +1275,7 @@ class SampleChooseView(View):
                                         vipcode=vipcodes[0].code,
                                         mobile=wx_user.mobile)
             
-        return redirect("/weixin/inviteresult/")        
+        return redirect("/weixin/inviteresult/")
 
 
 class ScoreView(View):
