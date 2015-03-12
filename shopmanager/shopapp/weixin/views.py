@@ -989,7 +989,10 @@ class ResultView(View):
             "https://mmbiz.qlogo.cn/mmbiz/yMhOQPTKhLt8UfGVxAqDTnhPOxglygBpG8DGHpEUxFI144JmzwGVib21qiactaJ8Sdsmq2iaVZm4DyV7FtR9D6gjA/0",
             "https://mmbiz.qlogo.cn/mmbiz/yMhOQPTKhLt8UfGVxAqDTnhPOxglygBpswRlutibR5EJBu4ian97b5OXGY8uLO4f5B7ibBlCQLAfjmKJrrjzaSq8g/0",
             "https://mmbiz.qlogo.cn/mmbiz/yMhOQPTKhLt8UfGVxAqDTnhPOxglygBpPohZvOxLckul5pzTJ2zQ5ZzVicUqUJBLicsll6EMicVK7vtC3SkvJyBhg/0"]
-        
+        idx = 0
+        if sample_order:
+            idx = sample_order.pk % 8
+            
         response = render_to_response('weixin/invite_result1.html',
                                       {'wx_user':wx_user,
                                        'sample_order':sample_order,
@@ -997,7 +1000,7 @@ class ResultView(View):
                                        'link_click':link_click,
                                        'sample_pass':sample_pass,
                                        'hongbao_pass':hongbao_pass,
-                                       'kefu_url':kefu_urls[sample_order.pk % 8]},
+                                       'kefu_url':kefu_urls[idx]},
                                       context_instance=RequestContext(request))
         response.set_cookie("openid",user_openid)  
         
@@ -1028,10 +1031,14 @@ class FinalListView(View):
         month = int(kwargs.get('month',1))
         
         order_list = SampleOrder.objects.none()
-        if month == 1503 :
+        if month == 1503 and batch == 1 :
             start_time = datetime.datetime(2015,3,9)
             end_time = datetime.datetime(2015,3,20)
             order_list = SampleOrder.objects.filter(status=61,created__gt=start_time)
+        if month == 1503 and batch == 2 :
+            start_time = datetime.datetime(2015,3,9)
+            end_time = datetime.datetime(2015,3,20)
+            order_list = SampleOrder.objects.filter(status=62,created__gt=start_time)
         elif month == 1501:
             start_time = datetime.datetime(2015,1,9)
             end_time = datetime.datetime(2015,1,27)
