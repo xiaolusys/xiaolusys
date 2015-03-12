@@ -196,7 +196,7 @@ class WeixinLinkClickRecord(models.Model):
 class WeixinLinkShare(models.Model): 
     
     APP_LINK = 'APP'
-    PYQ_LINK  = 'TIMELINE'
+    PYQ_LINK  = 'PYQ'
     SHARE_TYPE_CHOICES = (
                          (APP_LINK,u'微信好友'),
                          (PYQ_LINK,u'朋友圈'))

@@ -130,7 +130,7 @@ def get_user_openid(request, code):
     
     if (cookie_openid and cookie_openid != 'None' and r.get('openid') != cookie_openid):
         raise Exception(u'COOKIE OPENID与授权OPENID码不一致')
-    
+
     return r.get('openid')
 
 
@@ -280,7 +280,7 @@ class OrderInfoView(View):
         code = content.get('code',None)
         user_openid = get_user_openid(request, code)
         
-        wx_user = WeiXinUser.objects.get_or_create(openid=user_openid)
+        wx_user,state = WeiXinUser.objects.get_or_create(openid=user_openid)
         
         title = u'订单查询'
         if wx_user.isValid() == False:
@@ -670,14 +670,14 @@ class RefundReviewView(View):
                 wx_users = WeiXinUser.objects.filter(mobile=mobile)
                 if wx_users.count() > 0:
                     openid = wx_users[0].openid
-                    orders = SampleOrder.objects.filter(user_openid=openid).filter(status__gt=30).filter(status__lt=39)
+                    orders = SampleOrder.objects.filter(user_openid=openid).filter(status__gt=60).filter(status__lt=69)
                     if orders.count() > 0:
                         sample_order = orders[0]
-                        
+
         html = 'weixin/refundreviewblock.html'
         if refund_status == 1:
             html = 'weixin/finalizeblock.html'
-        response = render_to_response(html, {"first_refund":next_refund, "first_trade": next_trade},
+        response = render_to_response(html, {"first_refund":next_refund, "first_trade": next_trade,"sample_order":sample_order},
                                       context_instance=RequestContext(request))
         return response
     
@@ -699,15 +699,15 @@ class RefundRecordView(View):
             wx_users = WeiXinUser.objects.filter(mobile=mobile)
             if wx_users.count() > 0:
                 openid = wx_users[0].openid
-                if refund.refund_type == 4:
-                    orders = SampleOrder.objects.filter(user_openid=openid).filter(status__gt=30).filter(status__lt=39)
+                if refund.refund_type in (1,4):
+                    orders = SampleOrder.objects.filter(user_openid=openid).filter(status__gt=60).filter(status__lt=69)
                     if orders.count() > 0:
                         sample_order = orders[0]
                 if refund.refund_type == 2:
                     scorebuys = WeixinScoreBuy.objects.filter(user_openid=openid)
                     if scorebuys.count() > 0:
                         score_buy = scorebuys[0]
-
+        
         html = 'weixin/refundreviewblock.html'
         if refund_status == 1:
             html = 'weixin/finalizeblock.html'    
