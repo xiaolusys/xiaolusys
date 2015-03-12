@@ -130,6 +130,9 @@ def get_user_openid(request, code):
     
     if (cookie_openid and cookie_openid != 'None' and r.get('openid') != cookie_openid):
         raise Exception(u'COOKIE OPENID与授权OPENID码不一致')
+
+    if not r.get('openid'):
+        raise Exception(u'微信用户授权错误')
     
     return r.get('openid')
 
@@ -280,7 +283,7 @@ class OrderInfoView(View):
         code = content.get('code',None)
         user_openid = get_user_openid(request, code)
         
-        wx_user = WeiXinUser.objects.get_or_create(openid=user_openid)
+        wx_user,state = WeiXinUser.objects.get_or_create(openid=user_openid)
         
         title = u'订单查询'
         if wx_user.isValid() == False:
@@ -318,10 +321,10 @@ class OrderInfoView(View):
         orders = []
         for order in trade.merge_orders.filter(sys_status=pcfg.IN_EFFECT):
             s = order.getImgSimpleNameAndPrice()
-#             if order.outer_id in ['10206'] :
-#                 if trade.status == pcfg.TRADE_FINISHED:
-#                     specific_order_finished = True
-#                 has_specific_product = True
+            if order.outer_id in ['10206'] :
+                if trade.status == pcfg.TRADE_FINISHED:
+                    specific_order_finished = True
+                has_specific_product = True
             orders.append(s)
         data["orders"]   = orders
         data["ordernum"] = trade.order_num
@@ -350,12 +353,12 @@ class OrderInfoView(View):
             score = user_scores[0].user_score
 
         score_passed = False
-        if has_specific_product:
-            refund_records = Refund.objects.filter(trade_id=trade.id,
-                                                   user_openid=user_openid,
-                                                   refund_type=2)
-            if score >= 10 and refund_records.count() < 1:
-                score_passed = True
+        #if has_specific_product:
+        #    refund_records = Refund.objects.filter(trade_id=trade.id,
+        #                                           user_openid=user_openid,
+        #                                           refund_type=2)
+        #    if score >= 10 and refund_records.count() < 1:
+        #        score_passed = True
         
         refund = None
         refund_list = Refund.objects.filter(trade_id=trade.id)
@@ -365,7 +368,7 @@ class OrderInfoView(View):
         passed = False
         sample_orders = SampleOrder.objects.filter(user_openid=user_openid,status__gt=60,status__lt=69,created__gt=START_TIME)
         refund_records = Refund.objects.filter(user_openid=user_openid,created__gt=START_TIME)
-        if sample_orders.count() > 0 and refund_records.count() < 1:
+        if specific_order_finished and sample_orders.count() > 0 and refund_records.count() < 1:
             passed = True
 
         score_refund = False
@@ -1039,6 +1042,10 @@ class FinalListView(View):
             start_time = datetime.datetime(2015,3,9)
             end_time = datetime.datetime(2015,3,20)
             order_list = SampleOrder.objects.filter(status=62,created__gt=start_time)
+        if month == 1503 and batch == 3 :
+            start_time = datetime.datetime(2015,3,9)
+            end_time = datetime.datetime(2015,3,20)
+            order_list = SampleOrder.objects.filter(status=63,created__gt=start_time)
         elif month == 1501:
             start_time = datetime.datetime(2015,1,9)
             end_time = datetime.datetime(2015,1,27)

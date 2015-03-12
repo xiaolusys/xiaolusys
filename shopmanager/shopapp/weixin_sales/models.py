@@ -164,9 +164,6 @@ def create_weixin_link_click(sender,instance,*args,**kwargs):
                                                link_url=link_url,
                                                link_type=WeixinLinkClicks.SAMPLE_LINK)
         
-        wlc.clicker_num = 0
-        wlc.click_count = 0
-        wlc.save()
         
     except Exception,exc:
         import logging
@@ -196,10 +193,14 @@ class WeixinLinkClickRecord(models.Model):
 class WeixinLinkShare(models.Model): 
     
     APP_LINK = 'APP'
-    PYQ_LINK  = 'TIMELINE'
+    PYQ_LINK  = 'PYQ'
+    QQ_LINK  = 'QQ'
+    WB_LINK  = 'WB'
     SHARE_TYPE_CHOICES = (
                          (APP_LINK,u'微信好友'),
-                         (PYQ_LINK,u'朋友圈'))
+                         (PYQ_LINK,u'朋友圈'),
+                         (QQ_LINK,u'QQ'),
+                         (WB_LINK,u'微博'),)
     
     user_openid = models.CharField(max_length=64,db_index=True,verbose_name=u"OPEN ID")
     
