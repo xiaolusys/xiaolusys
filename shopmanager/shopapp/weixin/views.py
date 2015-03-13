@@ -988,13 +988,23 @@ class ResultView(View):
             "https://mmbiz.qlogo.cn/mmbiz/yMhOQPTKhLt8UfGVxAqDTnhPOxglygBp3iaiacMzibmULmM4qWcybzPHZAnojDz9jHEeibhWkibm4TZRLGjKIo91Obg/0",
             "https://mmbiz.qlogo.cn/mmbiz/yMhOQPTKhLt8UfGVxAqDTnhPOxglygBpG88L2ou3RkvVauTAyA0SOBgg1bib5M6UbnsphP0aCticd2gwaeSHt4KA/0",
             "https://mmbiz.qlogo.cn/mmbiz/yMhOQPTKhLt8UfGVxAqDTnhPOxglygBptP0hGXy2NcTOzy39pbINAAVXqXWp8ya6dylUXa4VbcdalxbrRU2iaXw/0",
-            "https://mmbiz.qlogo.cn/mmbiz/yMhOQPTKhLt8UfGVxAqDTnhPOxglygBpm9CCABMmia0pHFNTnQYrrgvSZRAxjQkS1ialYmsMDe8Uz0JicRnXqibiaIw/0",
-            "https://mmbiz.qlogo.cn/mmbiz/yMhOQPTKhLt8UfGVxAqDTnhPOxglygBpG8DGHpEUxFI144JmzwGVib21qiactaJ8Sdsmq2iaVZm4DyV7FtR9D6gjA/0",
+            "https://mmbiz.qlogo.cn/mmbiz/yMhOQPTKhLvCTbjPEx63GRglflnPllY1q8NmetxTxkpoZALOad17ia2EZ8pTicuwL7Lk4q7YvkHLBEHukib0GzYXg/0",
             "https://mmbiz.qlogo.cn/mmbiz/yMhOQPTKhLt8UfGVxAqDTnhPOxglygBpswRlutibR5EJBu4ian97b5OXGY8uLO4f5B7ibBlCQLAfjmKJrrjzaSq8g/0",
-            "https://mmbiz.qlogo.cn/mmbiz/yMhOQPTKhLt8UfGVxAqDTnhPOxglygBpPohZvOxLckul5pzTJ2zQ5ZzVicUqUJBLicsll6EMicVK7vtC3SkvJyBhg/0"]
+            "https://mmbiz.qlogo.cn/mmbiz/yMhOQPTKhLvCTbjPEx63GRglflnPllY17u9Y6SkN6QpfO4vMbS6biaonoKV3G1EMOzFia2QElEfWFuxicUibwhYUQw/0",
+            "https://mmbiz.qlogo.cn/mmbiz/yMhOQPTKhLvCTbjPEx63GRglflnPllY1FweBnCmiannEWTupiavRmTlUBIy1zuiaBUsAG5hzcgmQYW27cpDicUanuw/0",
+            "https://mmbiz.qlogo.cn/mmbiz/yMhOQPTKhLvCTbjPEx63GRglflnPllY1dSIAK1IaVs6upZv6dISpUGXsxfToCSg83A0gF9TibAMsic9lfoRicTWsw/0",
+            "https://mmbiz.qlogo.cn/mmbiz/yMhOQPTKhLvCTbjPEx63GRglflnPllY145kE9JhMtianHkibFYnK7NLqNoGJLHmD3icNl2SUWKHicvibGI0nAiaEDpibA/0",
+            "https://mmbiz.qlogo.cn/mmbiz/yMhOQPTKhLvCTbjPEx63GRglflnPllY137hGAGuHzRiaBiaT5QpbJJBibs2ODiaIic3qcuEvclZxkRaLUY2Z0tGiaFAw/0",
+            "https://mmbiz.qlogo.cn/mmbiz/yMhOQPTKhLvCTbjPEx63GRglflnPllY1Pok5yibWywLOWGiclX7VSCj4ic3iaZ8EKGGnnhw4dSAibOYzQ1op0n2G60Q/0",
+            "https://mmbiz.qlogo.cn/mmbiz/yMhOQPTKhLvCTbjPEx63GRglflnPllY1UyM1bFVWceyfH4wgFaDPc85hLdXG8vsXicqzIXCtXjWC2DQQXIz1ibzQ/0",
+            "https://mmbiz.qlogo.cn/mmbiz/yMhOQPTKhLvCTbjPEx63GRglflnPllY1DxoOIb3SA8OLN91yQLv4TjmTeNDLOl2IDKBibfib2oEaHrX3jkolMFwg/0",
+            "https://mmbiz.qlogo.cn/mmbiz/yMhOQPTKhLvCTbjPEx63GRglflnPllY1EzkFl9NupOibbjfNTrZtWicblFj6HpEUF3zWCbBjnXlfob9o4G1EFGoQ/0",
+            "https://mmbiz.qlogo.cn/mmbiz/yMhOQPTKhLvCTbjPEx63GRglflnPllY1jrufW2eTb3KhQaFpEIBSjBN69qAleIUsWCv87L8iaDtKfQBIdMfh1icg/0",
+            "https://mmbiz.qlogo.cn/mmbiz/yMhOQPTKhLvCTbjPEx63GRglflnPllY1ib2TdE0YiaIcHJsyPY0r9VYn294MdTbwxqt3rXxqTILHFrGLaYq5Iybg/0"]
+
         idx = 0
         if sample_order:
-            idx = sample_order.pk % 8
+            idx = sample_order.pk % 17
             
         response = render_to_response('weixin/invite_result1.html',
                                       {'wx_user':wx_user,
