@@ -21,3 +21,26 @@ $('.btn-charge').live('click',function(e){
     $.ajax({"url":url,"data":data,"success":callback,"type":"POST" });
 });
 
+$(".group_select").live("change",function(e){
+    e.preventDefault();
+
+    var target = e.target;
+    var pid = target.getAttribute('gid');
+    var cat_id = $(target).val();
+
+    var url = "/weixin/user/"+pid+"/?format=json";
+    var callback = function (res) {
+
+     if (res.code == 0 && res.response_content.user_group == cat_id) {
+          $(target).after("<img src='/static/admin/img/icon-yes.gif '>");
+        }
+    };
+    
+    var csrf_token = document.getElementsByName("csrfmiddlewaretoken")[0].value;
+    var data = {"csrfmiddlewaretoken":csrf_token,
+                        "format":"json",
+                        "user_group_id":cat_id};
+
+    $.ajax({"url":url,"data":data,"success":callback,"type":"POST"});
+});
+

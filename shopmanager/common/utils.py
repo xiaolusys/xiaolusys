@@ -87,3 +87,17 @@ def replace_utf8mb4(v):
     import re
     INVALID_UTF8_RE = re.compile(u'[^\u0000-\uD7FF\uE000-\uFFFF]', re.UNICODE)
     return INVALID_UTF8_RE.sub(u'*', v)
+
+
+from django.db.models.base import ModelState
+
+class MyJsonEncoder(json.JSONEncoder):
+    def default(self, obj):
+        if hasattr(obj, 'isoformat'):
+            return obj.isoformat()
+        elif isinstance(obj, decimal.Decimal):
+            return float(obj)
+        elif isinstance(obj, ModelState):
+            return None
+        else:
+            return json.JSONEncoder.default(self, obj)

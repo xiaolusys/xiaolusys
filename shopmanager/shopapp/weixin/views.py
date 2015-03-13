@@ -4,6 +4,7 @@ import time
 import datetime
 from django.http import Http404,HttpResponse,HttpResponseRedirect
 from django.conf import settings
+from django.forms.models import model_to_dict
 from django.views.decorators.csrf import csrf_exempt
 from django.views.generic import View
 from shopapp.weixin.service import *
@@ -41,6 +42,8 @@ from shopapp.signals import (weixin_readclick_signal,
                              weixin_verifymobile_signal,
                              weixin_refund_signal,
                              weixin_surveyconfirm_signal)
+
+from common.utils import MyJsonEncoder
 
 import logging
 import json
@@ -200,6 +203,25 @@ def chargeWXUser(request,pk):
         log_action(request.user.id,supplier,CHANGE,u'接管用户')
     
     return HttpResponse( json.dumps(result),content_type='application/json')
+
+
+class WeixinUserModelView(View):
+    """ 微信接收消息接口 """
+    
+    def post(self,request ,pk):
+        
+        content    = request.REQUEST
+        user_group_id = content.get('user_group_id')
+        
+        wx_user = WeiXinUser.objects.get(id=pk)
+        wx_user.user_group_id = user_group_id
+        wx_user.save()
+        
+        user_dict = {'code':0,'response_content':model_to_dict(wx_user,
+                                fields=['id','nickname','user_group','charge_status'])}
+        
+        return HttpResponse(json.dumps(user_dict,cls=MyJsonEncoder),mimetype="application/json")
+    
 
 
 from django.shortcuts import render_to_response

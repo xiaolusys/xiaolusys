@@ -20,6 +20,7 @@ from shopapp.weixin.views import (WeixinAcceptView,
                                   FreeSampleView,
                                   SampleApplyView,
                                   SampleAdsView,
+                                  WeixinUserModelView,
                                   SampleConfirmView,
                                   VipCodeVerifyView,
                                   ResultView,
@@ -60,6 +61,8 @@ urlpatterns = patterns('shopapp.weixin.views',
         name='weixin_baby_archive'),
 
     url(r'^charge/(?P<pk>\d+)/$', 'chargeWXUser'),
+    url(r'^user/(?P<pk>\d+)/$', WeixinUserModelView.as_view()),
+    
     url(r'^referal/$', ReferalView.as_view()),
     url(r'^referalrules/$', TemplateView.as_view(
             template_name="weixin/referal_rules.html")),
