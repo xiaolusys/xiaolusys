@@ -971,7 +971,7 @@ class ResultView(View):
         if sample_orders.count() > 0:
             sample_order = sample_orders[0]
             sample_pass = (sample_order.status > 60 and sample_order.status < 100)
-            hongbao_pass = sample_order.status > 100 
+            hongbao_pass = sample_order.status > 100 and wx_user.charge_status == WeiXinUser.UNCHARGE
             
         vip_code = None
         vip_codes = VipCode.objects.filter(owner_openid__openid=user_openid)
