@@ -130,7 +130,7 @@ admin.site.register(UserGroup, UserGroupAdmin)
 class WeiXinUserAdmin(admin.ModelAdmin):
     
     list_display = ('openid','nickname','sex','province','city','mobile','subscribe'
-                    ,'subscribe_time','vipcode_link','referal_count','charge_link','user_group','isvalid')
+                    ,'subscribe_time','vipcode_link','referal_count','charge_link','group_select','isvalid')
     
     list_filter = ('charge_status','subscribe','isvalid','sex','user_group',)
     search_fields = ['openid','referal_from_openid','nickname','mobile','vmobile','unionid']
@@ -160,6 +160,26 @@ class WeiXinUserAdmin(admin.ModelAdmin):
     
     vipcode_link.allow_tags = True
     vipcode_link.short_description = u"F码"
+    
+    def group_select(self, obj):
+
+        categorys = UserGroup.objects.all()
+
+        cat_list = ["<select class='group_select' gid='%s'>"%obj.id]
+        cat_list.append("<option value=''>-------------------</option>")
+        for cat in categorys:
+
+            if obj and obj.user_group == cat:
+                cat_list.append("<option value='%s' selected>%s</option>"%(cat.id,cat))
+                continue
+
+            cat_list.append("<option value='%s'>%s</option>"%(cat.id,cat))
+        cat_list.append("</select>")
+
+        return "".join(cat_list)
+
+    group_select.allow_tags = True
+    group_select.short_description = u"所属群组"
     
     def get_changelist(self, request, **kwargs):
         """
