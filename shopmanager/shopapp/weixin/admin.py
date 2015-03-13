@@ -51,7 +51,7 @@ class UserChangeList(ChangeList):
                                              models.Q(nickname__contains=search_q))
             
         qs = super(UserChangeList,self).get_query_set(request)
-        if re.compile('^[\w-]{24,64}$').match(search_q):
+        if re.compile('^([\w]{11}|[\w-]{24,64})$').match(search_q):
             return qs
 
         if request.user.is_superuser:
