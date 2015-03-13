@@ -196,6 +196,7 @@ class WeixinLinkShare(models.Model):
     PYQ_LINK  = 'PYQ'
     QQ_LINK  = 'QQ'
     WB_LINK  = 'WB'
+
     SHARE_TYPE_CHOICES = (
                          (APP_LINK,u'微信好友'),
                          (PYQ_LINK,u'朋友圈'),

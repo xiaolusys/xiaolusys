@@ -673,14 +673,14 @@ class RefundReviewView(View):
                 wx_users = WeiXinUser.objects.filter(mobile=mobile)
                 if wx_users.count() > 0:
                     openid = wx_users[0].openid
-                    orders = SampleOrder.objects.filter(user_openid=openid).filter(status__gt=30).filter(status__lt=39)
+                    orders = SampleOrder.objects.filter(user_openid=openid).filter(status__gt=60).filter(status__lt=69)
                     if orders.count() > 0:
                         sample_order = orders[0]
-                        
+
         html = 'weixin/refundreviewblock.html'
         if refund_status == 1:
             html = 'weixin/finalizeblock.html'
-        response = render_to_response(html, {"first_refund":next_refund, "first_trade": next_trade},
+        response = render_to_response(html, {"first_refund":next_refund, "first_trade": next_trade,"sample_order":sample_order},
                                       context_instance=RequestContext(request))
         return response
     
@@ -702,15 +702,15 @@ class RefundRecordView(View):
             wx_users = WeiXinUser.objects.filter(mobile=mobile)
             if wx_users.count() > 0:
                 openid = wx_users[0].openid
-                if refund.refund_type == 4:
-                    orders = SampleOrder.objects.filter(user_openid=openid).filter(status__gt=30).filter(status__lt=39)
+                if refund.refund_type in (1,4):
+                    orders = SampleOrder.objects.filter(user_openid=openid).filter(status__gt=60).filter(status__lt=69)
                     if orders.count() > 0:
                         sample_order = orders[0]
                 if refund.refund_type == 2:
                     scorebuys = WeixinScoreBuy.objects.filter(user_openid=openid)
                     if scorebuys.count() > 0:
                         score_buy = scorebuys[0]
-
+        
         html = 'weixin/refundreviewblock.html'
         if refund_status == 1:
             html = 'weixin/finalizeblock.html'    
@@ -1038,14 +1038,18 @@ class FinalListView(View):
             start_time = datetime.datetime(2015,3,9)
             end_time = datetime.datetime(2015,3,20)
             order_list = SampleOrder.objects.filter(status=61,created__gt=start_time)
-        if month == 1503 and batch == 2 :
+        elif month == 1503 and batch == 2 :
             start_time = datetime.datetime(2015,3,9)
             end_time = datetime.datetime(2015,3,20)
             order_list = SampleOrder.objects.filter(status=62,created__gt=start_time)
-        if month == 1503 and batch == 3 :
+        elif month == 1503 and batch == 3 :
             start_time = datetime.datetime(2015,3,9)
             end_time = datetime.datetime(2015,3,20)
             order_list = SampleOrder.objects.filter(status=63,created__gt=start_time)
+        elif month == 1503 and batch == 4 :
+            start_time = datetime.datetime(2015,3,9)
+            end_time = datetime.datetime(2015,3,20)
+            order_list = SampleOrder.objects.filter(status=64,created__gt=start_time)
         elif month == 1501:
             start_time = datetime.datetime(2015,1,9)
             end_time = datetime.datetime(2015,1,27)

@@ -1,7 +1,7 @@
 {% load custom_filter %}
 <table class="table table-bordered">
   <thead>
-    <th>编号</th><th>手机号码</th><th>交易平台</th><th>用户昵称</th><th>交易金额</th><th>订单状态</th><th>付款时间</th><th>返利类型</th><th>VIP邀请码</th>
+    <th>编号</th><th>手机号码</th><th>交易平台</th><th>用户昵称</th><th>交易金额</th><th>订单状态</th><th>付款时间</th><th>返利类型</th><th>VIP邀请码</th><th>获奖批次</th>
   </thead>
   <tbody>
     <tr>
@@ -15,6 +15,7 @@
       <td>{{ first_trade.pay_time }}</td>
       <td>{{ first_refund|displayName:'refund_type' }}</td>
       <td>{{ first_refund.vip_code }}</td>
+      <td>{{ sample_order.status }}</td>
       {% endif %}
     </tr>
   </tbody>
