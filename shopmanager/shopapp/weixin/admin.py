@@ -129,6 +129,7 @@ admin.site.register(UserGroup, UserGroupAdmin)
 
 class WeiXinUserAdmin(admin.ModelAdmin):
     
+    user_groups = []
     list_display = ('openid','nickname','sex','province','city','mobile','subscribe'
                     ,'subscribe_time','vipcode_link','referal_count','charge_link','group_select','isvalid')
     
@@ -163,7 +164,7 @@ class WeiXinUserAdmin(admin.ModelAdmin):
     
     def group_select(self, obj):
 
-        categorys = UserGroup.objects.all()
+        categorys = self.user_groups
 
         cat_list = ["<select class='group_select' gid='%s'>"%obj.id]
         cat_list.append("<option value=''>-------------------</option>")
@@ -185,6 +186,11 @@ class WeiXinUserAdmin(admin.ModelAdmin):
         """
         Returns the ChangeList class for use on the changelist page.
         """
+        default_code = ['BLACK','NORMAL']
+        default_code.append(request.user.username)
+        
+        self.user_groups = UserGroup.objects.filter(code__in=default_code)
+
         return UserChangeList
     
     class Media:
