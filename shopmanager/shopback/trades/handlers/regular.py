@@ -17,7 +17,8 @@ class RegularSaleHandler(BaseHandler):
         if not kwargs.get('first_pay_load',None) or merge_trade.type != pcfg.WX_TYPE:
             return False
         
-        orders = merge_trade.inuse_orders.extra(where=["CHAR_LENGTH(outer_id)>=9"]).filter(outer_id__startswith="9")
+        orders = merge_trade.inuse_orders.extra(where=["CHAR_LENGTH(outer_id)>=9"])\
+            .filter(Q(outer_id__startswith="9")|Q(outer_id__startswith="1")|Q(outer_id__startswith="8"))
         
         return  orders.count() > 0
                 

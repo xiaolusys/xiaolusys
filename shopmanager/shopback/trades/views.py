@@ -165,7 +165,8 @@ class StatisticMergeOrderView(ModelView):
                          merge_trade__is_express_print=False)
                 
         if is_sale :
-            order_qs = order_qs.extra(where=["CHAR_LENGTH(outer_id)>=9"]).filter(outer_id__startswith="9")
+            order_qs = order_qs.extra(where=["CHAR_LENGTH(outer_id)>=9"])\
+                .filter(Q(outer_id__startswith="9")|Q(outer_id__startswith="1")|Q(outer_id__startswith="8"))
         
         if p_outer_id:
             order_qs = order_qs.filter(outer_id=p_outer_id)
