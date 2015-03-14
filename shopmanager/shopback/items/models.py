@@ -68,7 +68,7 @@ class Product(models.Model):
     cost         = models.FloatField(default=0,verbose_name=u'成本价')
     std_purchase_price = models.FloatField(default=0,verbose_name=u'标准进价')
     std_sale_price     = models.FloatField(default=0,verbose_name=u'吊牌价')
-    agent_price        = models.FloatField(default=0,verbose_name=u'代理售价')
+    agent_price        = models.FloatField(default=0,verbose_name=u'出售价')
     staff_price        = models.FloatField(default=0,verbose_name=u'员工价')
     
     weight       = models.CharField(max_length=10,blank=True,verbose_name=u'重量(g)')
@@ -318,7 +318,7 @@ class ProductSku(models.Model):
     cost          = models.FloatField(default=0,verbose_name='成本价')
     std_purchase_price = models.FloatField(default=0,verbose_name='标准进价')
     std_sale_price     = models.FloatField(default=0,verbose_name='吊牌价')
-    agent_price        = models.FloatField(default=0,verbose_name='代理售价')
+    agent_price        = models.FloatField(default=0,verbose_name='出售价')
     staff_price        = models.FloatField(default=0,verbose_name='员工价')
     
     weight             = models.CharField(max_length=10,blank=True,verbose_name='重量(g)')
