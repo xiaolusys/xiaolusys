@@ -72,7 +72,7 @@ class ProductAdmin(admin.ModelAdmin):
     form = ProductModelForm
     list_display = ('id','outer_id','pic_link','name_link','collect_num','category_select',
                     'warn_num','remain_num','wait_post_num','wait_receive_num','cost' ,'std_sale_price'
-                   ,'sync_stock','is_match','post_check','is_split','district_link','status')
+                   ,'agent_price','sync_stock','is_match','post_check','is_split','district_link','status')
     list_display_links = ('id',)
     #list_editable = ('name',)
     
@@ -146,8 +146,8 @@ class ProductAdmin(admin.ModelAdmin):
                     'fields': (('outer_id','category','status')
                                ,('name','pic_path')
                                ,('collect_num','warn_num','remain_num','wait_post_num')
-                               ,('reduce_num','cost','std_sale_price')
-                               ,('std_purchase_price','agent_price','staff_price'))
+                               ,('reduce_num','std_purchase_price','staff_price')
+                               ,('cost','std_sale_price','agent_price'))
                 }),
                 ('商品系统设置:', {
                     'classes': ('collapse',),

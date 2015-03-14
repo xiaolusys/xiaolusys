@@ -548,6 +548,7 @@ def calculate_product_stock_num(sender, instance, *args, **kwargs):
                                                total_reduce_num=Sum('reduce_num'),
                                                avg_cost=Avg('cost'),
                                                avg_purchase_price=Avg('std_purchase_price'),
+                                               avg_sale_price=Avg('std_sale_price'),
                                                avg_agent_price=Avg('agent_price'),
                                                avg_staff_price=Avg('staff_price'))
     
@@ -559,6 +560,7 @@ def calculate_product_stock_num(sender, instance, *args, **kwargs):
             
         product.cost               = "{0:.2f}".format(product_dict.get('avg_cost') or 0)
         product.std_purchase_price = "{0:.2f}".format(product_dict.get('avg_purchase_price') or 0)
+        product.std_sale_price     = "{0:.2f}".format(product_dict.get('avg_sale_price') or 0)
         product.agent_price        = "{0:.2f}".format(product_dict.get('avg_agent_price') or 0)
         product.staff_price        = "{0:.2f}".format(product_dict.get('avg_staff_price') or 0)
     
