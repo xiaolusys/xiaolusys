@@ -11,7 +11,7 @@ from django.core.urlresolvers import reverse
 from django.shortcuts import render_to_response
 from django.template import RequestContext
 from django.forms import TextInput, Textarea
-from django.contrib.auth.models import User,Group
+from django.contrib.auth.models import Group
 
 from shopback.items.models import (Item,Product,
                                    ProductSku,
