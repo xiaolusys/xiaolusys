@@ -45,6 +45,10 @@ class ProductDefectException(Exception):
 class Product(models.Model):
     """ 系统商品（根据淘宝外部编码) """
     
+    NORMAL = pcfg.NORMAL
+    REMAIN = pcfg.REMAIN
+    DELETE = pcfg.DELETE
+    
     ProductCodeDefect = ProductDefectException
     PRODUCT_CODE_DELIMITER = '.'
     NO_PIC_PATH = '/media/img/nopic.jpg'
@@ -92,6 +96,9 @@ class Product(models.Model):
     match_reason = models.CharField(max_length=80,blank=True,verbose_name=u'匹配原因')
     buyer_prompt = models.CharField(max_length=60,blank=True,verbose_name=u'客户提示')
     memo         = models.TextField(max_length=1000,blank=True,verbose_name=u'备注')
+    
+    sale_charger = models.CharField(max_length=32,db_index=True,blank=True,verbose_name=u'归属采购员')
+    storage_charger = models.CharField(max_length=32,db_index=True,blank=True,verbose_name=u'归属仓管员')
     
     objects = ProductManager()
     

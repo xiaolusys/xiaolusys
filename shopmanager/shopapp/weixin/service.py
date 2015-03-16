@@ -29,7 +29,7 @@ from shopapp.signals import weixin_verifymobile_signal
 import logging
 
 logger = logging.getLogger('django.request')
-VALID_MOBILE_REGEX = '^1[34578][0-9]{9}'
+VALID_MOBILE_REGEX = '^1[34578][0-9]{9}$'
 VALID_CODE_REGEX = '^[0-9]{6}$'
 VALID_EVENT_CODE = '^[qwertyuiopknQWERTYUIOPKN]$'
 WX_MESSAGE_TIMEOUT = 30

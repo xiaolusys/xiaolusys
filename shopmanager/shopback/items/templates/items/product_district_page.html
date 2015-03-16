@@ -42,6 +42,7 @@
 {% with product=object.product %}
 <div class="content-main">
 	<div><h3>商品库位分配</h3></div>
+	<div class="well">{{ object.product_districts }}</div>
 	<input id="product_id" type="hidden" value="{{ product.id }}"/>
 	<table class="table table-bordered table-condensed">
 		<thead>

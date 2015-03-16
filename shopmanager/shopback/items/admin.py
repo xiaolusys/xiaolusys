@@ -11,6 +11,7 @@ from django.core.urlresolvers import reverse
 from django.shortcuts import render_to_response
 from django.template import RequestContext
 from django.forms import TextInput, Textarea
+from django.contrib.auth.models import User,Group
 
 from shopback.items.models import (Item,Product,
                                    ProductSku,
@@ -28,6 +29,7 @@ from shopback.base import log_action, ADDITION, CHANGE
 from shopback.items import permissions as perms
 from shopback.items.forms import ProductModelForm
 from shopback.base.options import DateFieldListFilter
+from shopback.items.filters import ChargerFilter
 from common.utils import gen_cvs_tuple,CSVUnicodeWriter
 import logging 
 
@@ -70,9 +72,9 @@ admin.site.register(Item, ItemAdmin)
 class ProductAdmin(admin.ModelAdmin):
     
     form = ProductModelForm
-    list_display = ('id','outer_id','pic_link','name_link','collect_num','category_select',
-                    'warn_num','remain_num','wait_post_num','wait_receive_num','cost' ,'std_sale_price'
-                   ,'agent_price','sync_stock','is_match','post_check','is_split','district_link','status')
+    list_display = ('id','outer_id','pic_link','collect_num','category_select',
+                    'warn_num','remain_num','wait_post_num','wait_receive_num','cost' ,'std_sale_price','agent_price'
+                   ,'sync_stock','is_match','is_split','sale_charger','charger_select','district_link','status')
     list_display_links = ('id',)
     #list_editable = ('name',)
     
@@ -82,19 +84,14 @@ class ProductAdmin(admin.ModelAdmin):
     def pic_link(self, obj):
         abs_pic_url = obj.pic_path or '%s%s'%(settings.MEDIA_URL,settings.NO_PIC_PATH)
         return (u'<a href="/items/product/%d/" target="_blank"><img src="%s" width="100px" '
-                +' height="80px" title="%s"/></a>')%(obj.id,abs_pic_url,obj.name)
+                +' height="80px" title="%s"/></a><p><span>%s</span></p>')%(obj.id,abs_pic_url,obj.name,obj.name or u'--')
     
     pic_link.allow_tags = True
     pic_link.short_description = "商品图片"
     
-    def name_link(self, obj):
-        return u'<a href="/items/product/%d/" style="display:block;width:200px;">%s</a>' %(obj.id,obj.name or u'--' )
-    name_link.allow_tags = True
-    name_link.short_description = u"商品名称" 
-    
     def district_link(self, obj):
-        return u'<a href="/items/product/district/%d/" target="_blank" style="display: block;width:200px;">%s</a>' \
-            %(obj.id,obj.get_districts_code() or u'--' )
+        return u'<a href="/items/product/district/%d/" target="_blank" style="display: block;">查看 &gt;&gt;</a>' \
+            %(obj.id, )
     district_link.allow_tags = True
     district_link.short_description = u"货位" 
     
@@ -111,7 +108,7 @@ class ProductAdmin(admin.ModelAdmin):
         if hasattr(self,"categorys"):
             return self.categorys
         self.categorys = ProductCategory.objects.filter(is_parent=False)
-        return self.categorys
+        return list(self.categorys)
         
     def category_select(self, obj):
 
@@ -121,7 +118,7 @@ class ProductAdmin(admin.ModelAdmin):
         cat_list.append("<option value=''>-------------------</option>")
         for cat in categorys:
 
-            if obj and obj.category == cat:
+            if obj.category and obj.category == cat:
                 cat_list.append("<option value='%s' selected>%s</option>"%(cat.cid,cat))
                 continue
 
@@ -133,9 +130,43 @@ class ProductAdmin(admin.ModelAdmin):
     category_select.allow_tags = True
     category_select.short_description = u"所属类目"
     
+    def charger_list(self):
+        if hasattr(self,"storage_chargers"):
+            return self.storage_chargers
+        
+        group = Group.objects.get(name=u'仓管员')  
+        self.storage_chargers = group.user_set.filter(is_staff=True) 
+        
+        return self.storage_chargers
+    
+    def charger_select(self, obj):
+
+        categorys = self.charger_list()
+
+        if len(categorys) > 0:
+            cat_list = ["<select class='charger_select' cid='%s'>"%obj.id]
+            cat_list.append("<option value=''>---------------</option>")
+            for cat in categorys:
+    
+                if obj and obj.storage_charger == cat.username:
+                    cat_list.append("<option value='%s' selected>%s</option>"%(cat.id,cat.username))
+                    continue
+    
+                cat_list.append("<option value='%s'>%s</option>"%(cat.id,cat.username))
+            
+            cat_list.append("</select>")
+            
+            return "".join(cat_list)
+        else:
+            return obj.storage_charger and '[%s]'%[obj.storage_charger] or '[-]'
+        
+        
+    charger_select.allow_tags = True
+    charger_select.short_description = u"所属仓管员"
+    
     inlines = [ProductSkuInline]
     
-    list_filter = ('status',('created',DateFieldListFilter),'sync_stock'
+    list_filter = (ChargerFilter,'status',('created',DateFieldListFilter),'sync_stock'
                    ,'is_split','is_match','is_assign','post_check','category')
 
     search_fields = ['id','outer_id', 'name' , 'barcode']
@@ -153,7 +184,9 @@ class ProductAdmin(admin.ModelAdmin):
                     'classes': ('collapse',),
                     'fields': (('weight','sync_stock','is_assign','is_split','is_match','post_check')
                                ,('barcode','match_reason')
-                               ,('buyer_prompt','memo'))
+                               ,('sale_charger','storage_charger')
+                               ,('buyer_prompt','memo')
+                               )
                 }),)
     
     formfield_overrides = {
@@ -166,11 +199,29 @@ class ProductAdmin(admin.ModelAdmin):
         css = {"all": ("admin/css/forms.css","css/admin/dialog.css","css/admin/common.css", "jquery/jquery-ui-1.10.1.css")}
         js = ("js/admin/adminpopup.js","js/item_change_list.js")
     
+    def get_readonly_fields(self, request, obj=None):
+        if not perms.has_change_product_skunum_permission(request.user):
+            return self.readonly_fields + ('collect_num','warn_num','wait_post_num','sale_charger','storage_charger')
+        return self.readonly_fields
+    
+    def response_add(self, request, obj, post_url_continue='../%s/'):
+        
+        if not obj.sale_charger:
+            obj.sale_charger = request.user.username
+            obj.save()
+
+        return super(ProductAdmin,self).response_add(request, obj, post_url_continue=post_url_continue)
+    
     def queryset(self, request):
         """
         Returns a QuerySet of all model instances that can be edited by the
         admin site. This is used by changelist_view.
         """
+        if not perms.has_change_product_skunum_permission(request.user):
+            self.storage_chargers = []
+        else:
+            self.charger_list()
+            
         qs = self.model._default_manager.get_query_set()
         # TODO: this should be handled by some parameter to the ChangeList.
         if not request.user.is_superuser:

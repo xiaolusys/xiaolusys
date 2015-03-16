@@ -524,7 +524,9 @@ class ProductDistrictView(ModelView):
         except:
             return u'商品未找到'
         
-        return {'product':product.json}
+        product_district = product.get_districts_code() or u'--'
+        
+        return {'product':product.json,'product_districts':product_district}
         
     def post(self, request, id,*args, **kwargs):
         

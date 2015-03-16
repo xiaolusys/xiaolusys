@@ -48,7 +48,7 @@ class ProductDistrictResource(ModelResource):
     """ docstring for ProductSku ModelResource """
 
     model = Product
-    fields = ('product',) 
+    fields = ('product','product_districts') 
     exclude = ('url',)
     
 class ProductDaySaleResource(ModelResource):
