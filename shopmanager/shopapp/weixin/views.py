@@ -1521,12 +1521,15 @@ class WeixinProductView(ModelView):
             for sku in product.pskus:
                 outer_id = product.outer_id
                 outer_sku_id = sku.outer_id
-                sync_num = sku.remain_num - sku.wait_post_num
+                sync_num = (sku.quantity or sku.remain_num) - sku.wait_post_num
+                if sync_num <= 0 :
+                    continue
+                
                 wx_skus = WXProductSku.objects.filter(outer_id=outer_id,
                                             outer_sku_id=outer_sku_id)
                 for wx_sku in wx_skus:
                     
-                    vector_num = sync_num - wx_sku.sku_num
+                    vector_num =  sync_num - wx_sku.sku_num 
                     if vector_num == 0:continue
                     if vector_num > 0:
                         wx_api.addMerchantStock(wx_sku.product_id,

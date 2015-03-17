@@ -256,6 +256,9 @@ class StatisticMergeOrderView(ModelView):
                                        'cost':purchase_price*order_num ,
                                        'pic_path':prod and prod.PIC_PATH or '',
                                        'sales':payment,
+                                       'sale_charger':prod and prod.sale_charger or '',
+                                       'storage_charger':prod and prod.storage_charger or '',
+                                       'sales':payment,
                                        'skus':{outer_sku_id:{
                                             'sku_name':prod_sku_name,
                                             'num':order_num,

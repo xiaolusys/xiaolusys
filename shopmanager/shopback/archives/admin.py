@@ -3,9 +3,13 @@ from django.contrib import admin
 from django.http import HttpResponse,HttpResponseRedirect
 from django.contrib.contenttypes.models import ContentType
 from django.utils.encoding import force_unicode
+from django.utils.html import escape, escapejs
+
 from django.db import models
 from django.forms import TextInput, Textarea
 from django.utils.translation import ugettext as _
+from django.core.urlresolvers import reverse
+
 from shopback.archives.models import SupplierType,Supplier,Deposite,PurchaseType,DepositeDistrict
 from shopback.items.models import ProductLocation
 
@@ -36,7 +40,7 @@ class CustomAdmin(admin.ModelAdmin):
                 '<!DOCTYPE html><html><head><title></title></head><body>'
                 '<script type="text/javascript">opener.dismissAddAnotherPopup(window, "%s", "%s");</script></body></html>' % \
                 # escape() calls force_unicode.
-                (escape(pk_value), escapejs(obj)))
+                (cgi.escape(pk_value), cgi.escapejs(obj)))
         elif "_addanother" in request.POST:
             self.message_user(request, msg + ' ' + (_("You may add another %s below.") % force_unicode(opts.verbose_name)))
             return HttpResponseRedirect(request.path)
