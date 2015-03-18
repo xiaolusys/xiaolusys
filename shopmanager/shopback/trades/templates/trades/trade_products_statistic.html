@@ -117,8 +117,8 @@
 					    <tr class="{% if forloop.first and trade.1.cost >= trade.1.sales or sku.cost >= sku.sales %}label-warning{% endif %}">
 					    	{% if forloop.first %}
 					    	<td rowspan="{{ sku_len }}">{{ trade.0 }}
-					    	   <p>买:[{{ trade.sale_charger }}]</p>
-               <p>仓:[{{ trade.storage_charger }}]</p></td>
+					    	   <p>买:[{{ trade.1.sale_charger }}]</p>
+               <p>仓:[{{ trade.1.storage_charger }}]</p></td>
 					    	<td rowspan="{{ sku_len }}">
 					    	  <a href="/admin/items/product/{{ trade.1.product_id }}/" target="_blank">
 					    	      <img src="{{ trade.1.pic_path }}" title="{{ trade.1.title }}" width="180px" height="80px" />
