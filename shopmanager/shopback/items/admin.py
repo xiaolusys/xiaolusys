@@ -190,6 +190,7 @@ class ProductAdmin(admin.ModelAdmin):
         js = ("js/admin/adminpopup.js","js/item_change_list.js")
     
     def get_readonly_fields(self, request, obj=None):
+        
         if not perms.has_change_product_skunum_permission(request.user):
             return self.readonly_fields + ('collect_num','warn_num','wait_post_num','sale_charger','storage_charger')
         return self.readonly_fields
@@ -202,17 +203,23 @@ class ProductAdmin(admin.ModelAdmin):
 
         return super(ProductAdmin,self).response_add(request, obj, post_url_continue=post_url_continue)
     
+    def get_changelist(self, request, **kwargs):
+        """
+        Returns the ChangeList class for use on the changelist page.
+        """
+        if perms.has_change_product_skunum_permission(request.user):
+            groups = Group.objects.filter(name=u'仓管员')
+            if groups.count() > 0:
+                self.storage_chargers = groups[0].user_set.filter(is_staff=True)
+        self.category_list = ProductCategory.objects.filter(is_parent=False)
+
+        return super(ProductAdmin,self).get_changelist(request, **kwargs)
+    
     def queryset(self, request):
         """
         Returns a QuerySet of all model instances that can be edited by the
         admin site. This is used by changelist_view.
         """
-        if perms.has_change_product_skunum_permission(request.user):
-            groups = Group.objects.filter(name=u'仓管员')
-            if groups.count() > 0:
-                self.storage_chargers = groups[0].user_set.filter(is_staff=True) 
-        self.category_list = ProductCategory.objects.filter(is_parent=False)
-            
         qs = self.model._default_manager.get_query_set()
         # TODO: this should be handled by some parameter to the ChangeList.
         if not request.user.is_superuser:
