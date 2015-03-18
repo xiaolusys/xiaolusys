@@ -212,7 +212,7 @@ class ProductAdmin(admin.ModelAdmin):
             if groups.count() > 0:
                 self.storage_chargers = groups[0].user_set.filter(is_staff=True)
         self.category_list = ProductCategory.objects.filter(is_parent=False)
-
+   
         return super(ProductAdmin,self).get_changelist(request, **kwargs)
     
     def queryset(self, request):

@@ -29,7 +29,8 @@ class DateFieldListFilter(FieldListFilter):
             today = now.replace(hour=0, minute=0, second=0, microsecond=0)
         else:       # field is a models.DateField
             today = now.date()
-        lastday  = today - datetime.timedelta(days=1)
+        yesterday  = today - datetime.timedelta(days=1)
+        before_yesterday = today - datetime.timedelta(days=2)
         tomorrow = today + datetime.timedelta(days=1)
         last_month = today.month-1
         
@@ -42,8 +43,12 @@ class DateFieldListFilter(FieldListFilter):
                 self.lookup_kwarg_until: str(tomorrow),
             }),
             (_(u'昨日'), {
-                self.lookup_kwarg_since: str(lastday),
+                self.lookup_kwarg_since: str(yesterday),
                 self.lookup_kwarg_until: str(today),
+            }),
+            (_(u'前日'), {
+                self.lookup_kwarg_since: str(before_yesterday),
+                self.lookup_kwarg_until: str(yesterday),
             }),
             (_(u'过去七天'), {
                 self.lookup_kwarg_since: str(today - datetime.timedelta(days=7)),
