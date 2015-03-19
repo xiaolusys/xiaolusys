@@ -31,8 +31,8 @@ def pullWXProductTask():
 def pullWaitPostWXOrderTask(begintime,endtime):
     
     update_status=[WXOrder.WX_WAIT_SEND,
-                                    WXOrder.WX_WAIT_CONFIRM,
-                                    WXOrder.WX_FINISHED]
+                   WXOrder.WX_WAIT_CONFIRM,
+                   WXOrder.WX_FINISHED]
     
     _wx_api = WeiXinAPI()
     
@@ -122,7 +122,7 @@ def syncStockByWxShopTask(wx_product):
         if not (wx_user.sync_stock and product.sync_stock and product_sku.sync_stock):
             continue
         
-        wait_nums   = (product_sku.wait_post_num>0 and 
+        wait_nums   = (product_sku.wait_post_num>0 and
                        product_sku.wait_post_num or 0)
         remain_nums = product_sku.remain_num or 0
         real_num    = product_sku.quantity

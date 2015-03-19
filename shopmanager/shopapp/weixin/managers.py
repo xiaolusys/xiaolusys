@@ -36,6 +36,8 @@ class WeixinProductManager(models.Manager):
     
     def createByDict(self,product_dict):
         
+        from .models import WXProductSku
+        
         product_id = product_dict['product_id']
         
         product,state = self.get_or_create(product_id=product_id)
@@ -48,8 +50,12 @@ class WeixinProductManager(models.Manager):
          
         product.save()
         
+        sku_ids = []
         for sku_dict in product.sku_list:
             self.createSkuByDict(product, sku_dict)
+            sku_ids.append(sku_dict['sku_id'])
+        
+        WXProductSku.objects.exclude(sku_id__in=sku_ids).update(status=WXProductSku.DOWN_SHELF)
         
         return product
     
