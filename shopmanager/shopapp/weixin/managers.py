@@ -55,7 +55,8 @@ class WeixinProductManager(models.Manager):
             self.createSkuByDict(product, sku_dict)
             sku_ids.append(sku_dict['sku_id'])
         
-        WXProductSku.objects.exclude(sku_id__in=sku_ids).update(status=WXProductSku.DOWN_SHELF)
+        WXProductSku.objects.filter(product=product).exclude(sku_id__in=sku_ids)\
+            .update(status=WXProductSku.DOWN_SHELF)
         
         return product
     
