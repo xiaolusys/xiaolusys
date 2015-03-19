@@ -1,3 +1,4 @@
+alter table shop_items_product add column sale_time date,add index item_sale_time_idx(sale_time);
 ########### 2015-3-16  #################
 alter table shop_items_product add column sale_charger varchar(32) NOT NULL, add index (sale_charger);
 alter table shop_items_product add column storage_charger varchar(32) NOT NULL, add index (storage_charger);

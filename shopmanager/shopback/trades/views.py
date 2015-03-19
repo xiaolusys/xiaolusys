@@ -388,7 +388,7 @@ class StatisticMergeOrderView(ModelView):
                 'trade_nums':trade_nums,
                 'post_fees':total_post_fee }
         
-    post = get    
+    post = get
 
 from django.forms.models import model_to_dict
 from shopback.trades.service import TradeService
@@ -1791,8 +1791,8 @@ class PackageScanWeightView(ModelView):
         return {'isSuccess':True}
     
 
-class SaleMergeOrderView(ModelView):
-    """ docstring for class StatisticsMergeOrderView """
+class SaleMergeOrderListView(ModelView):
+    """ docstring for class SaleMergeOrderListView """
     
     def parseStartDt(self,start_dt):
         
@@ -1815,33 +1815,55 @@ class SaleMergeOrderView(ModelView):
             return parse_datetime(end_dt)
         
         return parse_date(end_dt)
-    
-    def getSourceTrades(self,statistic_by,wait_send,p_outer_id,start_dt,end_dt):
+
+
+    def getSourceOrders(self,shop_id=None,is_sale=None,
+                        sc_by='created',start_dt=None,
+                        end_dt=None,wait_send='0',p_outer_id=''):
         
-        trade_qs  = MergeTrade.objects.filter(type=pcfg.WX_TYPE)
-
-        if statistic_by == 'pay':
-            trade_qs = trade_qs.filter(pay_time__gte=start_dt,pay_time__lte=end_dt)
-        elif statistic_by == 'weight':
-            trade_qs = trade_qs.filter(weight_time__gte=start_dt,weight_time__lte=end_dt)
-
-        if wait_send:
-            trade_qs = trade_qs.filter(sys_status=pcfg.WAIT_PREPARE_SEND_STATUS)
+        order_qs  = MergeOrder.objects.filter(sys_status=pcfg.IN_EFFECT)\
+                            .exclude(gift_type=pcfg.RETURN_GOODS_GIT_TYPE)
+        if shop_id:
+            order_qs = order_qs.filter(merge_trade__user=shop_id)
+        
+        if sc_by == 'pay':
+            order_qs = order_qs.filter(pay_time__gte=start_dt,pay_time__lte=end_dt)
+        elif sc_by == 'weight':
+            order_qs = order_qs.filter(merge_trade__weight_time__gte=start_dt,
+                                       merge_trade__weight_time__lte=end_dt)
         else:
-            trade_qs = trade_qs.filter(status__in=pcfg.ORDER_SUCCESS_STATUS)
+            order_qs = order_qs.filter(created__gte=start_dt,created__lte=end_dt)
         
-        final_trade_qs = []
+        if  wait_send == '1':
+            order_qs = order_qs.filter(merge_trade__sys_status=pcfg.WAIT_PREPARE_SEND_STATUS)
+        elif wait_send == '2':
+            order_qs = order_qs.filter(merge_trade__status__in=pcfg.ORDER_SUCCESS_STATUS,
+                                       merge_trade__sys_status__in=pcfg.WAIT_WEIGHT_STATUS)
+        else:
+            order_qs = order_qs.filter(merge_trade__status__in=pcfg.ORDER_SUCCESS_STATUS)\
+                .exclude(merge_trade__sys_status__in=(pcfg.INVALID_STATUS,pcfg.ON_THE_FLY_STATUS))\
+                .exclude(merge_trade__sys_status=pcfg.FINISHED_STATUS,
+                         merge_trade__is_express_print=False)
+                
+        if is_sale :
+            order_qs = order_qs.extra(where=["CHAR_LENGTH(outer_id)>=9"])\
+                .filter(Q(outer_id__startswith="9")|Q(outer_id__startswith="1")|Q(outer_id__startswith="8"))
+        
         if p_outer_id:
-            for trade in trade_qs:
-                e_orders = trade.inuse_orders.filter(outer_id=p_outer_id)
-                if e_orders.count() > 0:
-                    final_trade_qs.append(object)
-            
-        return trade_qs
+            order_qs = order_qs.filter(outer_id=p_outer_id)
+    
+        return order_qs
+    
+    def getSourceTrades(self,order_qs):
+        
+        trade_ids = [t[0] for t in order_qs.values_list('merge_trade__id')]
+
+        return MergeTrade.objects.filter(id__in=trade_ids)
+    
     
     def getEffectOrdersId(self,order_qs):
         
-        return [o.oid for o in order_qs if o.num]
+        return [o[0] for o in order_qs.values_list('oid') if len(o) > 0]
         
     def getProductByOuterId(self,outer_id):
         
@@ -1857,19 +1879,30 @@ class SaleMergeOrderView(ModelView):
                                           product__outer_id=outer_id)
         except:
             return None
+    
+    def getProductAndSku(self,outer_id,outer_sku_id):
         
-    def getTradeSortedItems(self,order_qs):
+        self.prod_map = {}
+        outer_key = '-'.join((outer_id,outer_sku_id))
+        if self.prod_map.has_key(outer_key):
+            return self.prod_map.get(outer_key)
+        
+        prod = self.getProductByOuterId(outer_id)
+        prod_sku = self.getProductSkuByOuterId(outer_id,outer_sku_id)
+        self.prod_map[outer_key] = (prod,prod_sku)
+        return  (prod,prod_sku)
+    
+    def getTradeSortedItems(self,order_qs,is_sale=False):
         
         trade_items  = {}
         for order in order_qs:
             
-            outer_id = order.outer_id or str(order.num_iid)
-            outer_sku_id = order.outer_sku_id or str(order.sku_id)
+            outer_id = order.outer_id.strip() or str(order.num_iid)
+            outer_sku_id = order.outer_sku_id.strip() or str(order.sku_id)
             payment   = float(order.payment or 0)
             order_num = order.num  or 0
-            prod     = self.getProductByOuterId(outer_id)
-            prod_sku = self.getProductSkuByOuterId(outer_id,outer_sku_id)
-            
+            prod,prod_sku     = self.getProductAndSku(outer_id,outer_sku_id)
+
             if trade_items.has_key(outer_id):
                 trade_items[outer_id]['num'] += order_num
                 skus = trade_items[outer_id]['skus']
@@ -1898,9 +1931,14 @@ class SaleMergeOrderView(ModelView):
                 prod_sku_name  = prod_sku.name if prod_sku else order.sku_properties_name
                 purchase_price = float(prod_sku.cost) if prod_sku else payment/order_num    
                 trade_items[outer_id]={
+                                       'product_id':prod and prod.id or None,
                                        'num':order_num,
                                        'title': prod.name if prod else order.title,
                                        'cost':purchase_price*order_num ,
+                                       'pic_path':prod and prod.PIC_PATH or '',
+                                       'sales':payment,
+                                       'sale_charger':prod and prod.sale_charger or '',
+                                       'storage_charger':prod and prod.storage_charger or '',
                                        'sales':payment,
                                        'skus':{outer_sku_id:{
                                             'sku_name':prod_sku_name,
@@ -1909,8 +1947,26 @@ class SaleMergeOrderView(ModelView):
                                             'sales':payment,
                                             'std_purchase_price':purchase_price}}
                                        }
-            
-        return sorted(trade_items.items(),key=lambda d:d[1]['num'],reverse=True)
+        
+        if  is_sale:
+            order_items = sorted(trade_items.items(),key=lambda d:d[0])
+        else:
+            order_items = sorted(trade_items.items(),key=lambda d:d[1]['num'],reverse=True)
+        
+        total_cost   = 0
+        total_sales  = 0
+        total_num    = 0
+        for trade in order_items:
+            total_cost  += trade[1]['cost']
+            total_sales += trade[1]['sales']
+            total_num   += trade[1]['num']
+            trade[1]['skus'] = sorted(trade[1]['skus'] .items(),key=lambda d:d[0])
+        
+        order_items.append(total_sales)
+        order_items.append(total_cost)
+        order_items.append(total_num)
+        
+        return order_items
     
     def getTotalRefundFee(self,order_qs):
         
@@ -1918,45 +1974,29 @@ class SaleMergeOrderView(ModelView):
         
         return Refund.objects.filter(oid__in=effect_oids,status__in=(
                     pcfg.REFUND_WAIT_SELLER_AGREE,pcfg.REFUND_CONFIRM_GOODS,pcfg.REFUND_SUCCESS))\
-                    .aggregate(total_refund_fee=Sum('refund_fee')).get('total_refund_fee',0)
-    
-    def responseCSVFile(self,request,trade_list):
+                    .aggregate(total_refund_fee=Sum('refund_fee')).get('total_refund_fee') or 0
+        
+    def responseCSVFile(self,request,order_items):
         
         is_windows = request.META['HTTP_USER_AGENT'].lower().find('windows') >-1 
         pcsv =[]
-        pcsv.append((u'订单序号',u'订单明细ID',u'订单ID',u'客户名称',u'商品编码','商品名称',u'规格编码',u'规格名称',
-                                u'拍下数量',u'留言',u'备注',u'付款时间',u'收货人',u'固话',u'手机',u'省',u'市',u'区',u'详细地址',u'快递方式'))
+        pcsv.append(("商品编码","商品名称","总数量","成本","销售额","规格编码","商品规格    ","数量","成本","销售额"))
         
-        trade_ids = []
-        rindex      = 1
-        for itrade in trade_list:
-            trade_ids.append(itrade.id)
-        
-        for trade in trade_list:
-            index = 0
-            for order in trade.print_orders:  
-                pcsv.append(('%s'%p for p in [ (rindex ,'')[index],
-                            order.oid,
-                            trade.tid,
-                            trade.receiver_name,
-                            order.outer_id,
-                            order.title,
-                            order.outer_sku_id,
-                            order.sku_properties_name,
-                            order.num,
-                            trade.buyer_message,
-                            '%s%s'%(trade.seller_memo,trade.sys_memo),
-                            trade.pay_time,
-                            trade.receiver_name,
-                            trade.receiver_phone,
-                            trade.receiver_mobile,
-                            trade.receiver_state,
-                            trade.receiver_city,
-                            trade.receiver_district,
-                            trade.receiver_address,
-                            trade.get_shipping_type_display()]))
-                index = 1
-            rindex += 1
+        for order in order_items:
+            first_loop = True
+            for item in order:  
+                pcsv.append((first_loop and order[0] or '',
+                                            first_loop and order[1]['title'] or '',
+                                            first_loop and str(order[1]['num']) or '',
+                                            first_loop and str(order[1]['cost']) or '',
+                                            first_loop and str(order[1]['sales']) or '',
+                                            item[0],
+                                            item[1]['title'],
+                                            str(item[1]['num']),
+                                            str(item[1]['cost']),
+                                            str(item[1]['sales']),
+                                            ))
+                first_loop = False
             
         tmpfile = StringIO.StringIO()
         writer  = CSVUnicodeWriter(tmpfile,encoding = is_windows and "gbk" or 'utf8')
@@ -1964,10 +2004,13 @@ class SaleMergeOrderView(ModelView):
             
         response = HttpResponse(tmpfile.getvalue(), mimetype='application/octet-stream')
         tmpfile.close()
-        response['Content-Disposition'] = 'attachment;filename=orderdetail-%s.csv'%str(int(time.time()))
+        
+        dt = datetime.datetime.now()
+        
+        response['Content-Disposition'] = 'attachment;filename=wx-sale-%s.csv'%dt.strftime("%Y%m%d%H")
         
         return response
-    
+        
     def get(self, request, *args, **kwargs):
         
         content   = request.REQUEST
@@ -1975,42 +2018,55 @@ class SaleMergeOrderView(ModelView):
         end_dt    = content.get('dt','').strip()
         shop_id   = content.get('shop_id')
         p_outer_id   = content.get('outer_id','')
-        statistic_by = content.get('sc_by','pay')
-        wait_send = content.get('wait_send','')
+        sc_by = content.get('sc_by','pay')
+        wait_send = content.get('wait_send','0')
+        is_sale       = content.get('is_sale','')
+        action      = content.get('action','')
         
         start_dt  = self.parseStartDt(start_dt)
         end_dt    = self.parseEndDt(end_dt)
         
-        trade_qs  = self.getSourceTrades(shop_id, statistic_by, wait_send, p_outer_id, start_dt, end_dt)
-        order_qs  = self.getSourceOrders(trade_qs,p_outer_id = p_outer_id)
-        
+        order_qs  = self.getSourceOrders(shop_id=shop_id,
+                                         sc_by=sc_by,
+                                         wait_send=wait_send,
+                                         p_outer_id=p_outer_id,
+                                         start_dt=start_dt,
+                                         end_dt=end_dt,
+                                         is_sale=is_sale)
+       
+        trade_qs  = self.getSourceTrades(order_qs)
+       
         buyer_nums   = trade_qs.values_list('buyer_nick').distinct().count()
-        trade_nums   = trade_qs.count()
-        total_post_fee = trade_qs.aggregate(total_post_fee=Sum('post_fee')).get('total_post_fee',0)
-        refund_fees  = self.getTotalRefundFee(order_qs)
+        trade_nums    = trade_qs.count()
+        total_post_fee = trade_qs.aggregate(total_post_fee=Sum('post_fee')).get('total_post_fee') or 0
+       
+        refund_fees      = self.getTotalRefundFee(order_qs)
+       
+        trade_list   = self.getTradeSortedItems(order_qs,is_sale=is_sale)
+        total_num   = trade_list.pop()
+        total_cost  = trade_list.pop()
+        total_sales = trade_list.pop()
+       
+        if action =="download":
+            return self.responseCSVFile(request, trade_list)
         
-        trade_list   = self.getTradeSortedItems(order_qs)
-        total_cost   = 0
-        total_sales  = 0
-        
-        for trade in trade_list:
-            total_cost  += trade[1]['cost']
-            total_sales += trade[1]['sales']
-            trade[1]['skus'] = sorted(trade[1]['skus'].items(),key=lambda d:d[1]['num'],reverse=True)
+        shopers = User.objects.filter(status=User.NORMAL)
         
         return {'df':format_datetime(start_dt),
                 'dt':format_datetime(end_dt),
-                'sc_by':statistic_by,
+                'sc_by':sc_by,
+                'is_sale':is_sale,
                 'outer_id':p_outer_id,
                 'wait_send':wait_send,
-                'shops':User.effect_users.all(),
+                'shops':shopers ,
                 'trade_items':trade_list, 
                 'shop_id':shop_id and int(shop_id) or '',
                 'total_cost':total_cost and round(total_cost,2) or 0 ,
                 'total_sales':total_sales and round(total_sales,2) or 0,
+                'total_num':total_num ,
                 'refund_fees':refund_fees and round(refund_fees,2) or 0,
                 'buyer_nums':buyer_nums,
                 'trade_nums':trade_nums,
                 'post_fees':total_post_fee }
         
-    post = get    
+    post = get
