@@ -81,6 +81,7 @@ class Product(models.Model):
                                         auto_now_add=True,verbose_name=u'创建时间')
     modified     = models.DateTimeField(null=True,blank=True,
                                         auto_now=True,verbose_name=u'修改时间')
+    sale_time    = models.DateField(null=True,blank=True,verbose_name=u'上架日期')
     
     is_split   = models.BooleanField(default=False,verbose_name=u'需拆分')
     is_match   = models.BooleanField(default=False,verbose_name=u'有匹配')

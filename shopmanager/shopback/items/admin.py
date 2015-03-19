@@ -28,7 +28,7 @@ from shopback import paramconfig as pcfg
 from shopback.base import log_action, ADDITION, CHANGE
 from shopback.items import permissions as perms
 from shopback.items.forms import ProductModelForm
-from shopback.base.options import DateFieldListFilter
+from shopback.base.options import DateFieldListFilter,DateScheduleFilter
 from shopback.items.filters import ChargerFilter
 from common.utils import gen_cvs_tuple,CSVUnicodeWriter
 import logging 
@@ -77,11 +77,11 @@ class ProductAdmin(admin.ModelAdmin):
     form = ProductModelForm
     list_display = ('id','outer_id','pic_link','collect_num','category_select',
                     'warn_num','remain_num','wait_post_num','wait_receive_num','cost' ,'std_sale_price','agent_price'
-                   ,'sync_stock','is_match','is_split','sale_charger','charger_select','district_link','status')
+                   ,'sync_stock','is_match','is_split','sale_time','sale_charger','charger_select','district_link','status')
     list_display_links = ('id',)
     #list_editable = ('name',)
     
-    date_hierarchy = 'modified'
+    date_hierarchy = 'sale_time'
     #ordering = ['created_at']
     
     def pic_link(self, obj):
@@ -156,8 +156,9 @@ class ProductAdmin(admin.ModelAdmin):
     
     inlines = [ProductSkuInline]
     
-    list_filter = (ChargerFilter,'status',('created',DateFieldListFilter),'sync_stock'
-                   ,'is_split','is_match','is_assign','post_check','category')
+    list_filter = (ChargerFilter,'status',('sale_time',DateScheduleFilter)
+                   ,'sync_stock','is_split','is_match','is_assign'
+                   ,'post_check',('created',DateFieldListFilter),'category')
 
     search_fields = ['id','outer_id', 'name' , 'barcode']
     
@@ -166,8 +167,8 @@ class ProductAdmin(admin.ModelAdmin):
                     'classes': ('expand',),
                     'fields': (('outer_id','category','status')
                                ,('name','pic_path')
-                               ,('collect_num','warn_num','remain_num','wait_post_num')
-                               ,('reduce_num','std_purchase_price','staff_price')
+                               ,('collect_num','warn_num','remain_num','wait_post_num','reduce_num')
+                               ,('std_purchase_price','staff_price','sale_time')
                                ,('cost','std_sale_price','agent_price'))
                 }),
                 ('商品系统设置:', {

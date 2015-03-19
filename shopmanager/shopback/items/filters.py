@@ -8,6 +8,8 @@ from shopback import paramconfig as pcfg
 from shopback.base.options import SimpleListFilter
 from shopback.items.models import Product
 
+
+
 class ChargerFilter(SimpleListFilter):
     # Human-readable title which will be displayed in the
     title = u'接管状态'
