@@ -1816,10 +1816,7 @@ class SaleMergeOrderListView(ModelView):
         
         return parse_date(end_dt)
 
-
-    def getSourceOrders(self,shop_id=None,is_sale=None,
-                        sc_by='created',start_dt=None,
-                        end_dt=None,wait_send='0',p_outer_id=''):
+    def getSaleOrders(self,charger):
         
         order_qs  = MergeOrder.objects.filter(sys_status=pcfg.IN_EFFECT)\
                             .exclude(gift_type=pcfg.RETURN_GOODS_GIT_TYPE)

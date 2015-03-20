@@ -1,5 +1,6 @@
 #-*- coding:utf8 -*-
 from django.db import models
+from django.contrib.auth.models import User
 from shopback import paramconfig as pcfg
 from common.utils import update_model_fields
 
@@ -69,6 +70,29 @@ class ProductManager(models.Manager):
             
         return []
     
+    
+    def getSaleProductByCharger(self,charger,from_sale_time=None,to_sale_time=None):
+        
+        assert isinstance(charger,User)
+        
+        user_name = charger.username
+        from .models import ProductSku
+        try:
+            product = self.get(outer_id=outer_id)
+            
+            if outer_sku_id:
+                product_sku = ProductSku.objects.get(outer_id=outer_sku_id,
+                                                     product__outer_id=outer_id)
+                return (product_sku.match_reason 
+                        or product.match_reason 
+                        or u'匹配原因不明')
+            
+            return product.match_reason or u'匹配原因不明'
+   
+        except (self.model.DoesNotExist,ProductSku.DoesNotExist):
+            raise self.model.ProductCodeDefect(u'(%s,%s)编码组合未匹配到商品'%(outer_id,outer_sku_id))
+        
+    
     def getBarcodeByOuterid(self,outer_id,outer_sku_id=''):
         
         product = self.get(outer_id=outer_id)
@@ -78,7 +102,7 @@ class ProductManager(models.Manager):
             
         return product_sku and product_sku.BARCODE or product.BARCODE
             
-    
+            
     def getProductSkuByOuterid(self,outer_id,outer_sku_id):
         
         from .models import ProductSku
@@ -208,6 +232,7 @@ class ProductManager(models.Manager):
         except (self.model.DoesNotExist,ProductSku.DoesNotExist):
             raise self.model.ProductCodeDefect(u'(%s,%s)编码组合未匹配到商品'%(outer_id,outer_sku_id))
         
+        
     def reduceWaitPostNumByCode(self,outer_id,outer_sku_id,order_num):
         
         from .models import ProductSku
@@ -224,6 +249,7 @@ class ProductManager(models.Manager):
         except (self.model.DoesNotExist,ProductSku.DoesNotExist):
             raise self.model.ProductCodeDefect(u'(%s,%s)编码组合未匹配到商品'%(outer_id,outer_sku_id))
         
+        
     def trancecode(self,outer_id,outer_sku_id,sku_code_prior=False):
         
         conncate_code = outer_sku_id or outer_id
@@ -236,6 +262,7 @@ class ProductManager(models.Manager):
             return conncate_code[0:index].strip(),conncate_code[index+1:].strip()
             
         return outer_id.strip(),outer_sku_id.strip()
+    
     
     def updateProductWaitPostNum(self,product):
         

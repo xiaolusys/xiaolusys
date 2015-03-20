@@ -1147,7 +1147,10 @@ def decrease_sample_score(sender,refund_id,*args,**kwargs):
         
         wx_user_score.user_score  = models.F('user_score') + dec_score
         wx_user_score.save()
-
+        
+    except Refund.DoesNotExist:
+        pass
+    
     except Exception,exc:
 
         import logging
@@ -1179,6 +1182,9 @@ def decrease_refund_trade_score(sender,refund_id,*args,**kwargs):
         
         wx_user_score.user_score  = models.F('user_score') + dec_score
         wx_user_score.save()
+        
+    except Refund.DoesNotExist:
+        pass
     
     except Exception,exc:
         
@@ -1212,7 +1218,9 @@ def decrease_scorebuy_score(sender,refund_id,*args,**kwargs):
             wx_user_score.user_score  = models.F('user_score') + dec_score
             wx_user_score.save()
     
-
+    except Refund.DoesNotExist:
+        pass
+    
     except Exception,exc:
         
         import logging
