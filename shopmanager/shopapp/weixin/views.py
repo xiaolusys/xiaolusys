@@ -119,7 +119,7 @@ def get_user_openid(request, code):
         return 'oMt59uE55lLOV2KS6vYZ_d0dOl5c'
     
     if not code :
-        return cookie_openid 
+        return cookie_openid
     
     appid = settings.WEIXIN_APPID
     secret = settings.WEIXIN_SECRET
@@ -304,6 +304,10 @@ class OrderInfoView(View):
         content = request.REQUEST
         code = content.get('code',None)
         user_openid = get_user_openid(request, code)
+        
+        if user_openid == None or user_openid == "None":
+            redirect_url = "https://open.weixin.qq.com/connect/oauth2/authorize?appid=wxc2848fa1e1aa94b5&redirect_uri=http://weixin.huyi.so/weixin/orderinfo/&response_type=code&scope=snsapi_base&state=135#wechat_redirect"
+            return redirect(redirect_url)
         
         wx_user,state = WeiXinUser.objects.get_or_create(openid=user_openid)
         
