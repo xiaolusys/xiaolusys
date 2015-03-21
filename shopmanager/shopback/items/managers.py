@@ -76,23 +76,32 @@ class ProductManager(models.Manager):
         assert isinstance(charger,User)
         
         user_name = charger.username
-        from .models import ProductSku
-        try:
-            product = self.get(outer_id=outer_id)
-            
-            if outer_sku_id:
-                product_sku = ProductSku.objects.get(outer_id=outer_sku_id,
-                                                     product__outer_id=outer_id)
-                return (product_sku.match_reason 
-                        or product.match_reason 
-                        or u'匹配原因不明')
-            
-            return product.match_reason or u'匹配原因不明'
-   
-        except (self.model.DoesNotExist,ProductSku.DoesNotExist):
-            raise self.model.ProductCodeDefect(u'(%s,%s)编码组合未匹配到商品'%(outer_id,outer_sku_id))
+        product_list = self.filter(models.Q(sale_charger=user_name)
+                                   |models.Q(storage_charger=user_name))
         
+        if from_sale_time:
+            product_list.filter(sale_time__gte=from_sale_time)
+            
+        if to_sale_time:
+            product_list.filter(sale_time__lte=to_sale_time)
+            
+        return  product_list
     
+    
+    def getOrderListByOuterid(self,outer_ids):
+        
+        from shopback.trades.models import MergeOrder
+
+        trade_list = set([])
+        mos = MergeOrder.objects.filter(outer_id__in=outer_ids,sys_status=pcfg.IN_EFFECT)\
+            .exclude(merge_trade__sys_status__in=(pcfg.INVALID_STATUS,pcfg.ON_THE_FLY_STATUS))
+            
+        for o in mos:
+            trade_list.add(o.merge_trade)
+            
+        return  list(trade_list)
+        
+        
     def getBarcodeByOuterid(self,outer_id,outer_sku_id=''):
         
         product = self.get(outer_id=outer_id)

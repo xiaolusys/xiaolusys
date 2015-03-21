@@ -856,6 +856,6 @@ class ProductScanStorage(models.Model):
         verbose_name_plural = u'扫描入库商品列表'
 
     def __unicode__(self):
-        return '<%s-%s,%d>'%(self.product_name,
-                           self.sku_name,
-                           self.scan_num)
+        return '<%s,%s,%d>'%(self.id,
+                             self.barcode,
+                             self.scan_num)
