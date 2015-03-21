@@ -76,7 +76,7 @@ class ProductAdmin(admin.ModelAdmin):
     
     form = ProductModelForm
     list_display = ('id','outer_id','pic_link','collect_num','category_select',
-                    'warn_num','remain_num','wait_post_num','wait_receive_num','cost' ,'std_sale_price','agent_price'
+                    'warn_num','remain_num','wait_post_num','cost' ,'std_sale_price','agent_price'
                    ,'sync_stock','is_match','is_split','sale_time','sale_charger','charger_select','district_link','status')
     list_display_links = ('id',)
     #list_editable = ('name',)
