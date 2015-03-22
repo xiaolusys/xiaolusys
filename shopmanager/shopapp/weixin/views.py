@@ -1169,7 +1169,7 @@ class FinalListView(View):
         if month == 1503 :
             start_time = datetime.datetime(2015,3,9)
             end_time = datetime.datetime(2015,3,20)
-            order_list = SampleOrder.objects.filter(status__gt=61,status__lt=70,created__gt=start_time)
+            order_list = SampleOrder.objects.filter(status__gt=60,status__lt=70,created__gt=start_time)
         elif month == 1501:
             start_time = datetime.datetime(2015,1,9)
             end_time = datetime.datetime(2015,1,27)
