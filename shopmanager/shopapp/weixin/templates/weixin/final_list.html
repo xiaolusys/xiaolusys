@@ -6,7 +6,7 @@
 
 <div class="container-fluid">
   <div class="panel panel-default" style="margin-top:5px">
-    {% if month < 15012 %}
+    {% if month < 1503 %}
     <div class="panel-heading">详细名单</div>
     {% else %}
     <div class="panel-heading">详细名单 (第{{ batch }}批)</div>
@@ -14,7 +14,7 @@
     <div class="panel-body">
 
       <div class="row">
-	{% if month < 15011 %}
+	{% if month < 1503 %}
 	<p>总共{{ total }}条记录，{{ num_pages }}页（每页{{ num_per_page }}条）。名单包含中奖粉丝的手机号。</p>
 	{% else %}
 	<p>总共{{ total }}条记录，{{ num_pages }}页（每页{{ num_per_page }}条）。名单包含中奖粉丝的手机号，综合得分,邀请码使用次数和点击次数。</p>
@@ -33,7 +33,7 @@
       
       <div class="list-group">
 	{% for item in items %}
-	{% if month < 15020%}
+	{% if month < 1503%}
 	<a href="#" class="list-group-item">{{ forloop.counter }}: {{ item.0 }}</a>
 	{% else %}
 	<a href="#" class="list-group-item">

@@ -73,6 +73,14 @@
 	  </div>
 	</div>
 
+	{% if not wx_user.subscribe %}
+	<div class="row" style="margin-top:16px">
+	  <div class="col-xs-12" style="text-align:center">
+	    <p><font style="color:red;font-size:20px">亲，您还没有关注公众号【优尼世界】哦。</font>请在申请提交后立即关注，以便公众号自动通知您申请结果。</p>
+	  </div>
+	</div>
+	{% endif %}
+	
 	<div class="row" style="margin-top:16px">
 	  <p id="id_msg" style="text-align:center;color:red"></p>
 	  <div class="col-xs-12" style="text-align:center">

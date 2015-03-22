@@ -1,6 +1,6 @@
 {% extends "weixin/weixin_base.html" %}
 {% load mathfilters %}
-{% block title %}审核通知 1000个睡袋免费送！{% endblock %}
+{% block title %}审核通知 1000+200个睡袋免费送！{% endblock %}
 
 {% block container %}
 
@@ -27,12 +27,14 @@
     <div class="panel-body">
       {% if sample_order %}
       {% if not sample_pass %}
+      {% if hongbao_pass %}
+      <p style="color:red">亲，为了奖励您积极参与，送您一个微信<font style="font-size:20px">现金红包</font>!请扫描下图中的二维码领取！</p>
+      {% endif %}
       <p>您的VIP邀请码使用人数: <font style="color:red">{{ vip_code.usage_count }}</font></p>
       <p>您的分享页面被点击人数: <font style="color:orange">{{ link_click.clicker_num  }}</font></p>
       <p>您的综合得分: <font style="color:red">{{ vip_code.usage_count  }} *10</font> + <font style="color:orange">{{ link_click.clicker_num }}</font> = {{ vip_code.usage_count|mul:10|add:link_click.clicker_num }}</p>
         {% if hongbao_pass %}
           <br/>
-          <p style="color:red">亲，为了奖励您积极参与，送您一个微信<font style="font-size:20px">现金红包</font>！继续加油，就能拿睡袋啦！</p>
           <p style="color:#029fd6">请扫描二维码添加客服微信(长按图片识别二维码)索要现金红包:</p>
 	  <div class="row">
 	    <div class="col-xs-12">
