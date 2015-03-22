@@ -107,8 +107,8 @@ def warn(request):
 from urllib import urlopen
 
 
-START_TIME = datetime.datetime(2015,3,9,10)
-END_TIME = datetime.datetime(2015,3,16,23,59,59)
+START_TIME = datetime.datetime(2015,3,23,10)
+END_TIME = datetime.datetime(2015,3,29,23,59,59)
 
 
 def get_user_openid(request, code):
