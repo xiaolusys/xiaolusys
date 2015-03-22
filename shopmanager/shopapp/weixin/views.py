@@ -830,7 +830,7 @@ class FreeSampleView(View):
             return redirect(redirect_url)
         
         wx_user,state = WeiXinUser.objects.get_or_create(openid=user_openid)
-
+        
         self_vipcode = None
         if wx_user.referal_from_openid:
             if wx_user.vipcodes.count() > 0:
@@ -860,7 +860,6 @@ class FreeSampleView(View):
 
         if user_openid == 'oMt59uE55lLOV2KS6vYZ_d0dOl5c':
             started = True
-        started = False
 
         days = delta.days
         hours = delta.seconds/3600
@@ -912,14 +911,14 @@ class SampleApplyView(View):
             redirect_url = "https://open.weixin.qq.com/connect/oauth2/authorize?appid=wxc2848fa1e1aa94b5&redirect_uri=http://weixin.huyi.so/weixin/freesamples/&response_type=code&scope=snsapi_base&state=135#wechat_redirect"
             return redirect(redirect_url)
 
-        color =  int(color) or 1
+        color = int(color) or 1
         size = int(size) or 1
 
         sku_code = "%d%d" % (color,size)
 
         sample = FreeSample.objects.get(pk=int(sample_pk))
 
-        skus = SampleSku.objects.filter(sku_code=sku_code)
+        skus = sample.skus.all()
         if skus.count() < 1:
             skus = SampleSku.objects.filter(sku_code='11')
 

@@ -744,7 +744,7 @@ class FreeSample(models.Model):
         return self.name
 
 class SampleSku(models.Model):
-    sample_product = models.ForeignKey(FreeSample, verbose_name=u'试用商品')
+    sample_product = models.ForeignKey(FreeSample, verbose_name=u'试用商品', related_name="skus")
     sku_code = models.CharField(max_length=32,null=False,blank=True,verbose_name=u'SKU编码')
     sku_name = models.CharField(max_length=64,blank=True,verbose_name=u'款式尺寸')
 
