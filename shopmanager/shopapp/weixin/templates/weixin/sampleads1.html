@@ -11,6 +11,8 @@
   <div class="thumbnail" style="text-align:center">
     {% if identical %}
     <img id="id_donebox" src="https://mmbiz.qlogo.cn/mmbiz/yMhOQPTKhLvicXDpybDibWGUxYObT8cpBtibR2bAgNhGJQyFtnJBxzx3qfwAQMibbYWF2SN4XZe0YWkBJIuvHBm0xg/0"/>
+    <p style="color:red">感谢您参与，请添加微客服微信，奖励现金红包一个！（长按二维码添加）</p>
+    <img src="{{ kefu_url }}" alt="">
     {% endif %}
     <img src="https://mmbiz.qlogo.cn/mmbiz/yMhOQPTKhLvicXDpybDibWGUxYObT8cpBtOKHibDRnWkTB5Kzfr7ynNdjJRAq3qJfE2mDB1yibADIHicZndYF4JiabdQ/0"/>
     <img src="https://mmbiz.qlogo.cn/mmbiz/yMhOQPTKhLvicXDpybDibWGUxYObT8cpBtf1DKN4MtQN4TgCPS2v03Wq9LutYL1qWPOViaJyZrGLn5ibnFlgJWayiaA/0"/>
@@ -80,7 +82,7 @@ wx.ready(function () {
         link: lineLink, // 分享链接
         imgUrl: imgUrl, // 分享图标
         success: function () { 
-           $.post('/weixin/sales/link/share/',
+           $.post("/weixin/sales/link/share/",
             {share_link:lineLink,
              share_type:"PYQ",
              user_openid:user_openid},
@@ -94,6 +96,45 @@ wx.ready(function () {
             console.log("分享失败")
         }
     });
+  wx.onMenuShareQQ({
+        title: shareTitle, // 分享标题
+        desc: descContent, // 分享描述
+        link: lineLink, // 分享链接
+        imgUrl: imgUrl, // 分享图标
+        success: function () {
+           $.post("/weixin/sales/link/share/",
+            {share_link:lineLink,
+             share_type:"QQ",
+             user_openid:user_openid},
+            function(res){console.log(res);},
+            "json");
+        },
+        cancel: function () {
+            console.log("取消分享" );
+        },
+        fail: function(){
+            console.log("分享失败")
+        }
+  });
+  wx.onMenuShareWeibo({
+        title: shareTitle, // 分享标题
+        desc: descContent, // 分享描述
+        link: lineLink, // 分享链接
+        imgUrl: imgUrl, // 分享图标
+
+       success: function () { 
+           $.post("/weixin/sales/link/share/",
+            {share_link:lineLink,
+             share_type:"WB",
+             user_openid:user_openid},
+            function(res){console.log(res);},
+            "json");// 用户确认分享后执行的回调函数
+       },
+       cancel: function () { 
+        // 用户取消分享后执行的回调函数
+       }
+});
+
 });
 
 </script>  

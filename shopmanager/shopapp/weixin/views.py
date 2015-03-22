@@ -111,7 +111,7 @@ START_TIME = datetime.datetime(2015,3,9,10)
 END_TIME = datetime.datetime(2015,3,16,23,59,59)
 
 URLMAP= [ 15, 3, 3, 4, 5, 5, 7, 8, 20,10,20,12,18,14,15,16,12,14,19]
-#URLMAP = [ 1, 2,19, 4,18,18, 7, 8, 2,10,16,12,13,14,12,16,19,18,19]
+#URLMAP = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18,19]
 KFKEYS = [
     "xiangxiang",#0 
       "ningmeng",#1
@@ -134,6 +134,16 @@ KFKEYS = [
           "mimi",#18
        "qianxun",#19
         "qinqin",#20
+      "tangtang",#21
+        "qunqun",#22
+          "tutu",#23
+          "dudu",#24
+        "guoguo",#25
+        "yueyue",#26
+        "lanlan",#27
+      "tongtong",#28
+        "xuexue",#29
+        "beibei",#30
     ]
 
 IMG_URL_PREFIX = "https://mmbiz.qlogo.cn/mmbiz/"
@@ -158,7 +168,17 @@ KFMAP ={
           "yuyu":"yMhOQPTKhLvCTbjPEx63GRglflnPllY1EzkFl9NupOibbjfNTrZtWicblFj6HpEUF3zWCbBjnXlfob9o4G1EFGoQ/0",
           "mimi":"yMhOQPTKhLvCTbjPEx63GRglflnPllY1UyM1bFVWceyfH4wgFaDPc85hLdXG8vsXicqzIXCtXjWC2DQQXIz1ibzQ/0",
        "qianxun":"yMhOQPTKhLvZc2FUku1FliaQ8B8SqeF6Q55G8shIVOgzIpUI5bQ6hF7BJ9ic7DFmCUSTTA7uO9491pvEY9hdbTTg/0",
-        "qinqin":"yMhOQPTKhLu7w86ZohiaT3zQfAX4xaRJhO2bSAoXKoJIHeIgeKomHKIXhQgpuF5axlvY76CJcich6ichtWyC50LTA/0"
+        "qinqin":"yMhOQPTKhLu7w86ZohiaT3zQfAX4xaRJhO2bSAoXKoJIHeIgeKomHKIXhQgpuF5axlvY76CJcich6ichtWyC50LTA/0",
+      "tangtang":"yMhOQPTKhLtwVNgtZuNUJnbO5P487z38d3uiaA0RXqdMgsyHibwJNyhmfNCzP5qqFsH2Tlpy6hXQB7FsshCNrYUQ/0",
+      "tongtong":"yMhOQPTKhLtwVNgtZuNUJnbO5P487z38Pe5WL4JsCFwVdFpYxwtyVJiaia9q6klDyIC97at5ylLuzNKcqCy6YbeA/0",
+        "xuexue":"yMhOQPTKhLtwVNgtZuNUJnbO5P487z38iaZbzicxEBEwWOBRaHTu1vcjEs2Zib78JVVL9pAMdg5STt79CIaib1ibDtQ/0",
+        "beibei":"yMhOQPTKhLtwVNgtZuNUJnbO5P487z386dWjrPj77BrKHS5fYRwiaz7Z2zXIq7essuOKXas57uDYsFcw74ygg1g/0",
+        "guoguo":"yMhOQPTKhLtwVNgtZuNUJnbO5P487z38TKQwvLxejdz2jQgj6fmJM8ialEjTbX7ryK0keL6cv03ztk3paJHWKFg/0",
+          "tutu":"yMhOQPTKhLtwVNgtZuNUJnbO5P487z38Gy13KsTpN89JfmhxLUgMcr5Pr5IPB91JgFnbggicLbdOPFdERWqnBhw/0",
+        "yueyue":"yMhOQPTKhLtwVNgtZuNUJnbO5P487z38Gy13KsTpN89JfmhxLUgMcr5Pr5IPB91JgFnbggicLbdOPFdERWqnBhw/0",
+        "lanlan":"yMhOQPTKhLtwVNgtZuNUJnbO5P487z38ibFIicEQGCicVyOgK3a5xrzfmcvxm1hnec1zDicOicOpJTTJo9OpdPOEvaQ/0",
+        "qunqun":"yMhOQPTKhLtwVNgtZuNUJnbO5P487z38fb73OBr5OE3ESeXFsdibhl5BV2x5QTFm5icrupYt4cpSgWQGtltopeZQ/0",
+          "dudu":"yMhOQPTKhLtwVNgtZuNUJnbO5P487z385UZJW8qvDlLeD2ZrMuWmKnkvhbUYxtXEyjSZdWNibialFvBOz4OzwRXg/0",
     }
 
 

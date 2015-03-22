@@ -1,6 +1,6 @@
 {% extends "weixin/weixin_base.html" %}
 {% load mathfilters %}
-{% block title %}审核通知 1000个睡袋免费送！{% endblock %}
+{% block title %}审核通知 1000+200个睡袋免费送！{% endblock %}
 
 {% block container %}
 
@@ -18,8 +18,14 @@
   <div class="panel panel-default" style="margin-top:5px">
     <div class="panel-heading" style="color:orange">免费试用 中奖名单</div>
     <div class="panel-body">
-      <p style="color:red;">3月9日 - 3月16日 1000件新款睡袋免费派送！<a href="http://weixin.huyi.so/weixin/freesamples/">大家快抢 >></a></p>
+      <p style="color:red;">3月9日 - 3月16日 1000+500件新款睡袋免费派送！<a href="http://weixin.huyi.so/weixin/freesamples/">大家快抢 >></a>
+      最后一批名单将在3月16日公布，3月15日不公布名单，祝周末愉快！</p>
       <p>第一批通过303名幸运妈妈（VIP码使用15次，点击次数41次以上）<a href="/weixin/finallist/1/1/1503/">中奖名单&gt;&gt;</a></p>
+      <p>第二批通过213名幸运妈妈（VIP码使用18次，点击次数75次以上）<a href="/weixin/finallist/2/1/1503/">中奖名单&gt;&gt;</a></p>
+      <p>第三批通过209名幸运妈妈（VIP码使用22次，点击次数97次以上）<a href="/weixin/finallist/3/1/1503/">中奖名单&gt;&gt;</a></p>
+      <p>第四批通过301名幸运妈妈（VIP码使用22次，点击次数75次以上）<a href="/weixin/finallist/4/1/1503/">中奖名单&gt;&gt;</a></p>
+      <p>第五批通过230名幸运妈妈（VIP码使用22次，点击次数75次以上）<a href="/weixin/finallist/5/1/1503/">中奖名单&gt;&gt;</a></p>
+      <p>第六批通过244名幸运妈妈（VIP码使用25次，点击次数76次以上）<a href="/weixin/finallist/6/1/1503/">中奖名单&gt;&gt;</a></p>
     </div>
   </div>
 
@@ -28,12 +34,14 @@
     <div class="panel-body">
       {% if sample_order %}
       {% if not sample_pass %}
+      {% if hongbao_pass %}
+      <p style="color:red">亲，为了奖励您积极参与，送您一个微信<font style="font-size:20px">现金红包</font>!请扫描下图中的二维码领取！</p>
+      {% endif %}
       <p>您的VIP邀请码使用人数: <font style="color:red">{{ vip_code.usage_count }}</font></p>
       <p>您的分享页面被点击人数: <font style="color:orange">{{ link_click.clicker_num  }}</font></p>
       <p>您的综合得分: <font style="color:red">{{ vip_code.usage_count  }} *10</font> + <font style="color:orange">{{ link_click.clicker_num }}</font> = {{ vip_code.usage_count|mul:10|add:link_click.clicker_num }}</p>
         {% if hongbao_pass %}
           <br/>
-          <p style="color:red">亲，为了奖励您积极参与，送您一个微信<font style="font-size:20px">现金红包</font>！继续加油，就能拿睡袋啦！</p>
           <p style="color:#029fd6">请扫描二维码添加客服微信(长按图片识别二维码)索要现金红包:</p>
 	  <div class="row">
 	    <div class="col-xs-12">

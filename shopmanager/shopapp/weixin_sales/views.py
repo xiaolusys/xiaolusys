@@ -199,8 +199,7 @@ class LinkShareView(View):
     def post(self, request):
         content = request.REQUEST
 
-        code = content.get('code')
-        user_openid = get_user_openid(request, code)
+        user_openid = content.get('user_openid')
         share_type  = content.get('share_type')
         share_link  = content.get('share_link')
         

@@ -46,7 +46,7 @@
 
   <div class="panel panel-default">
     <div class="panel-heading" style="color:orange">
-      <span>申请返利</span>
+      <span>申请返现</span>
     </div>
     <div class="panel-body" id="id_refund_body">
       {% if refund %}
@@ -148,12 +148,12 @@
           return;
         }
       
-        if (refund_type == "1" || refund_type == "2") {
+        /**if (refund_type == "1" || refund_type == "2") {
           if (checkVipCode(vipcode) == false) {
             $("#id_msg")[0].innerHTML = "请检查您的VIP邀请码(6-7位数字)!"
             return;
           } 
-        }
+        }*/
        var bank_account = $("#id_bank_account").val();
        var account_owner = $("#id_account_owner").val();
 

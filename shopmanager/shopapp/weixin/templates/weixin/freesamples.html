@@ -1,6 +1,6 @@
 {% extends "weixin/weixin_base.html" %}
 
-{% block title %} 免费试用 {% endblock %}
+{% block title %} 免费试用 1000个睡袋免费送！{% endblock %}
 
 
 {% block container %}
@@ -10,10 +10,11 @@
   <div class="panel panel-default" style="margin-top:5px">
     <div class="panel-heading" style="color:orange">三月送睡袋活动 公告</div>
     <div class="panel-body">
+      <p><font style="color:red;">本次活动共送出<span style="font-size:20px">1500</span>份免费睡袋，中奖名单也已全部公布，恭喜获奖的美妈们，未通过的美妈都可以领取一个</font><a href="/weixin/inviteresult/">现金红包</a>！</p>
+      <p>所有幸运名单已经出炉（1500名）<a href="/weixin/inviteresult/">请到这里查看 &gt;&gt;</a></p>
       {% if started %}
-      <p>距离活动结束还有<font style="color:red;"><span style="font-size:20px">{{ days }}</span>天<span style="font-size:20px">{{ hours }}</span>小时<span style="font-size:20px">{{ minutes }}</span>分</font>，共有<font style="color:red;font-size:20px">1000份</font>睡袋免费领取！</p>
-      {% else %}
-      <p>距离活动开始还有<font style="color:red;"><span style="font-size:20px">{{ days }}</span>天<span style="font-size:20px">{{ hours }}</span>小时<span style="font-size:20px">{{ minutes }}</span>分</font>，共有<font style="color:red;font-size:20px">1000份</font>睡袋免费领取！</p>
+      <p>距离活动结束还有<font style="color:red;"><span style="font-size:20px">{{ days }}</span>天<span style="font-size:20px">{{ hours }}</span>小时<span style="font-size:20px">{{ minutes }}</span>分</font>，本次活动共送出1500份免费睡袋，中奖名单也已全部公布，恭喜获奖的美妈们，未通过的美妈都可以领取一个<a href="/weixin/inviteresult/">现金红包</a>！</p>
+      <p>所有幸运名单已经出炉（1500名）<a href="/weixin/inviteresult/">请到这里查看 &gt;&gt;</a></p>
       {% endif %}
 
       <!--
