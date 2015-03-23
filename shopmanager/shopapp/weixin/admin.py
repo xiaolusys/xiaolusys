@@ -53,13 +53,13 @@ class UserChangeList(ChangeList):
         if re.compile('^([\w]{11}|[\w-]{24,64})$').match(search_q):
             return qs
 
-        if request.user.is_superuser:
-            return qs
-        scharges = WXUserCharge.objects.filter(employee=request.user,status=WXUserCharge.EFFECT)
-        wxuser_ids = [s.wxuser_id for s in scharges] 
+        #if request.user.is_superuser:
+        return qs
+        #scharges = WXUserCharge.objects.filter(employee=request.user,status=WXUserCharge.EFFECT)
+        #wxuser_ids = [s.wxuser_id for s in scharges] 
         
-        return qs.filter(models.Q(charge_status=WeiXinUser.UNCHARGE)|
-                         models.Q(id__in=wxuser_ids,charge_status=WeiXinUser.CHARGED))
+        #return qs.filter(models.Q(charge_status=WeiXinUser.UNCHARGE)|
+        #                 models.Q(id__in=wxuser_ids,charge_status=WeiXinUser.CHARGED))
 
 class WeiXinAccountAdmin(admin.ModelAdmin):
     
