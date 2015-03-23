@@ -110,8 +110,8 @@ from urllib import urlopen
 START_TIME = datetime.datetime(2015,3,23,10)
 END_TIME = datetime.datetime(2015,3,29,23,59,59)
 
-#URLMAP= [ 15, 3, 3, 4, 5, 5, 7, 8, 20,10,20,12,18,14,15,16,12,14,19]
-URLMAP = [1, 28, 2, 3, 29, 5, 6, 7, 8, 28, 10, 11, 12, 9, 14, 15, 16, 17, 18,19,20,21,22,23,24,25,26,27,28,29,30]
+#URLMAP = [1, 28, 2, 3, 29, 5, 6, 7, 8, 28, 10, 11, 12, 13, 14, 15, 16, 17, 18,19,20,21,22,23,24,25,26,27,28,29,30]
+URLMAP = [1, 28, 2, 3, 29, 5, 6, 7, 8, 28, 10, 11, 12, 13, 14, 15, 16, 17, 18,19,20,21,22,23,24,25,26,27,28,29,30]
 KFKEYS = [
     "xiangxiang",#0 
       "ningmeng",#1
@@ -1086,7 +1086,7 @@ class ResultView(View):
         if sample_orders.count() > 0:
             sample_order = sample_orders[0]
             sample_pass = (sample_order.status > 60 and sample_order.status < 100)
-            hongbao_pass = sample_order.status > 100 and wx_user.charge_status == WeiXinUser.UNCHARGE
+            hongbao_pass = wx_user.charge_status == WeiXinUser.UNCHARGE
             
         vip_code = None
         vip_codes = VipCode.objects.filter(owner_openid__openid=user_openid)
