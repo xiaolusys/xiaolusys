@@ -40,7 +40,7 @@ def  record_weixin_clicks(function=None,validated_in=24*60*60):
                 user_openid = get_user_openid(request,code)
                 
             if not user_openid:
-                raise Exception("authorize error,code:%s,user_agent:%s"%(code,user_agent))
+                return view_func(request,*args,**kwargs)
             
             wlcr_num =  WeixinLinkClickRecord.objects.filter(user_openid=user_openid).count()
             if wlcr_num < 4:
