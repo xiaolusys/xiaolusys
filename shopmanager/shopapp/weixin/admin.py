@@ -129,7 +129,7 @@ admin.site.register(UserGroup, UserGroupAdmin)
 class WeiXinUserAdmin(admin.ModelAdmin):
     
     user_groups = []
-    list_per_page = 40
+    list_per_page = 25
     list_display = ('openid','nickname','sex','province','city','mobile','subscribe'
                     ,'subscribe_time','vipcode_link','referal_count','charge_link','group_select','isvalid')
     
@@ -366,7 +366,7 @@ class VipCodeAdmin(admin.ModelAdmin):
                     'code_rule', 'max_usage', 'usage_count','created')
 
     search_fields = ['owner_openid__openid','code']
-    
+    list_per_page = 50
     #--------设置页面布局----------------
     fieldsets =((u'邀请码信息:', {
                     'classes': ('expand',),
