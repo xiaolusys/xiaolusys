@@ -49,17 +49,17 @@ class UserChangeList(ChangeList):
 
             return WeiXinUser.objects.filter(id__in=wxuser_ids)
             
-        qs = super(UserChangeList,self).get_query_set(request)
-        if re.compile('^([\w]{11}|[\w-]{24,64})$').match(search_q):
-            return qs
-
-        #if request.user.is_superuser:
-        return qs
-        #scharges = WXUserCharge.objects.filter(employee=request.user,status=WXUserCharge.EFFECT)
-        #wxuser_ids = [s.wxuser_id for s in scharges] 
+        if re.compile('^[\w]{11}$').match(search_q):
+            return WeiXinUser.objects.filter(models.Q(mobile=search_q)|models.Q(vmobile=search_q))
+            
+        if re.compile('^[\w-]{24,64}$').match(search_q):
+            return WeiXinUser.objects.filter(models.Q(mobile=search_q)|models.Q(vmobile=search_q))
         
-        #return qs.filter(models.Q(charge_status=WeiXinUser.UNCHARGE)|
-        #                 models.Q(id__in=wxuser_ids,charge_status=WeiXinUser.CHARGED))
+        if search_q:
+            return WeiXinUser.objects.none()
+        
+        return super(UserChangeList,self).get_query_set(request)
+
 
 class WeiXinAccountAdmin(admin.ModelAdmin):
     
