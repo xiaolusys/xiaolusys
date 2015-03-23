@@ -397,9 +397,9 @@ class OrderInfoView(View):
                 .exclude(type=pcfg.FENXIAO_TYPE).order_by('-pay_time')
         
         if latest_trades.count() == 0:
-            wx_trades = WXOrder.objects.filter(buyer_openid=user_openid).order_by('-order_create_time') 
+            wx_trades = WXOrder.objects.filter(buyer_openid=user_openid).order_by('-order_create_time')
             if wx_trades.count() == 0:
-                response = render_to_response('weixin/noorderinfo.html', 
+                response = render_to_response('weixin/noorderinfo.html',
                                       context_instance=RequestContext(request))
                 response.set_cookie("openid",user_openid)
                 return response
@@ -463,8 +463,9 @@ class OrderInfoView(View):
             refund = refund_list[0]
         
         passed = False
-        sample_orders = SampleOrder.objects.filter(user_openid=user_openid,status__gt=60,status__lt=69,created__gt=START_TIME)
-        refund_records = Refund.objects.filter(user_openid=user_openid,created__gt=START_TIME)
+        start_time = datetime.datetime(2015,3,9)
+        sample_orders = SampleOrder.objects.filter(user_openid=user_openid,status__gt=60,status__lt=69)
+        refund_records = Refund.objects.filter(user_openid=user_openid,created__gt=start_time)
         if specific_order_finished and sample_orders.count() > 0 and refund_records.count() < 1:
             passed = True
 
