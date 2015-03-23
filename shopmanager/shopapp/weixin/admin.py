@@ -47,8 +47,7 @@ class UserChangeList(ChangeList):
             vipcodes = VipCode.objects.filter(code=search_q)
             wxuser_ids = [v.owner_openid.id for v in vipcodes]
 
-            return WeiXinUser.objects.filter(models.Q(id__in=wxuser_ids)|
-                                             models.Q(nickname__contains=search_q))
+            return WeiXinUser.objects.filter(id__in=wxuser_ids)
             
         qs = super(UserChangeList,self).get_query_set(request)
         if re.compile('^([\w]{11}|[\w-]{24,64})$').match(search_q):
