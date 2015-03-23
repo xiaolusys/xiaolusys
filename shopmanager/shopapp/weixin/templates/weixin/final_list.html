@@ -6,7 +6,7 @@
 
 <div class="container-fluid">
   <div class="panel panel-default" style="margin-top:5px">
-    {% if month < 1503 %}
+    {% if month < 150322 %}
     <div class="panel-heading">详细名单</div>
     {% else %}
     <div class="panel-heading">详细名单 (第{{ batch }}批)</div>
@@ -33,7 +33,7 @@
       
       <div class="list-group">
 	{% for item in items %}
-	{% if month < 1503%}
+	{% if month < 150322%}
 	<a href="#" class="list-group-item">{{ forloop.counter }}: {{ item.0 }}</a>
 	{% else %}
 	<a href="#" class="list-group-item">

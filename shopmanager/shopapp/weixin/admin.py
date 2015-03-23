@@ -134,7 +134,7 @@ class WeiXinUserAdmin(admin.ModelAdmin):
                     ,'subscribe_time','vipcode_link','referal_count','charge_link','group_select','isvalid')
     
     list_filter = ('charge_status','subscribe','isvalid','sex','user_group',)
-    search_fields = ['openid','referal_from_openid','nickname','mobile','vmobile','unionid']
+    search_fields = ['openid','mobile']
     
     def charge_link(self, obj):
 
