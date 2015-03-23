@@ -102,7 +102,7 @@ class MergeTradeAdmin(admin.ModelAdmin):
     change_form_template  = "admin/trades/change_trade_form.html"
     
     ordering = ['-sys_status',]
-    list_per_page = 40
+    list_per_page = 50
     
     def trade_id_link(self, obj):
         link_content = '<a href="%d/">%d</a><a href="javascript:void(0);" class="trade-tag" style="display:block" trade_id="%d">备注</a>'%(obj.id,obj.id,obj.id)
