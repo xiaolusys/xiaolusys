@@ -97,13 +97,12 @@ class MergeTradeAdmin(admin.ModelAdmin):
     #list_display_links = ('trade_id_link','popup_tid_link')
     #list_editable = ('update_time','task_type' ,'is_success','status')
     
-    list_select_related = True
     
     change_list_template  = "admin/trades/change_list.html"
     change_form_template  = "admin/trades/change_trade_form.html"
     
     ordering = ['-sys_status',]
-    list_per_page = 100
+    list_per_page = 40
     
     def trade_id_link(self, obj):
         link_content = '<a href="%d/">%d</a><a href="javascript:void(0);" class="trade-tag" style="display:block" trade_id="%d">备注</a>'%(obj.id,obj.id,obj.id)
