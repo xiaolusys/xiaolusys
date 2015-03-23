@@ -110,8 +110,8 @@ from urllib import urlopen
 START_TIME = datetime.datetime(2015,3,23,10)
 END_TIME = datetime.datetime(2015,3,29,23,59,59)
 
-URLMAP= [ 15, 3, 3, 4, 5, 5, 7, 8, 20,10,20,12,18,14,15,16,12,14,19]
-#URLMAP = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18,19]
+#URLMAP= [ 15, 3, 3, 4, 5, 5, 7, 8, 20,10,20,12,18,14,15,16,12,14,19]
+URLMAP = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18,19,20,21,22,23,24,25,26,27,28,29,30]
 KFKEYS = [
     "xiangxiang",#0 
       "ningmeng",#1
@@ -291,9 +291,9 @@ class WeixinUserModelView(View):
         user_dict = {'code':0,'response_content':model_to_dict(wx_user,
                                 fields=['id','nickname','user_group','charge_status'])}
         
-        return HttpResponse(json.dumps(user_dict,cls=MyJsonEncoder),mimetype="application/json")
+        return HttpResponse(json.dumps(user_dict,cls=MyJsonEncoder),
+                            mimetype="application/json")
     
-
 
 from django.shortcuts import render_to_response
 from django.template import RequestContext
@@ -1120,7 +1120,7 @@ class ResultView(View):
             
         idx = 0
         if sample_order:
-            idx = sample_order.pk % 19
+            idx = sample_order.pk % 31
 
         idx = URLMAP[idx]
         url_key = KFKEYS[idx]
