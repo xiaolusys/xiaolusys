@@ -111,7 +111,7 @@ START_TIME = datetime.datetime(2015,3,23,10)
 END_TIME = datetime.datetime(2015,3,29,23,59,59)
 
 #URLMAP= [ 15, 3, 3, 4, 5, 5, 7, 8, 20,10,20,12,18,14,15,16,12,14,19]
-URLMAP = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18,19,20,21,22,23,24,25,26,27,28,29,30]
+URLMAP = [1, 28, 2, 3, 29, 5, 6, 7, 8, 28, 10, 11, 12, 9, 14, 15, 16, 17, 18,19,20,21,22,23,24,25,26,27,28,29,30]
 KFKEYS = [
     "xiangxiang",#0 
       "ningmeng",#1
@@ -175,7 +175,7 @@ KFMAP ={
         "beibei":"yMhOQPTKhLtwVNgtZuNUJnbO5P487z386dWjrPj77BrKHS5fYRwiaz7Z2zXIq7essuOKXas57uDYsFcw74ygg1g/0",
         "guoguo":"yMhOQPTKhLtwVNgtZuNUJnbO5P487z38TKQwvLxejdz2jQgj6fmJM8ialEjTbX7ryK0keL6cv03ztk3paJHWKFg/0",
           "tutu":"yMhOQPTKhLtwVNgtZuNUJnbO5P487z38Gy13KsTpN89JfmhxLUgMcr5Pr5IPB91JgFnbggicLbdOPFdERWqnBhw/0",
-        "yueyue":"yMhOQPTKhLtwVNgtZuNUJnbO5P487z38Gy13KsTpN89JfmhxLUgMcr5Pr5IPB91JgFnbggicLbdOPFdERWqnBhw/0",
+        "yueyue":"yMhOQPTKhLtwVNgtZuNUJnbO5P487z38jg7SjP02qFySG9pSehEVaYicbXZPiccLTD7YK9W1ic3OaRNbvYichIqfNQ/0",
         "lanlan":"yMhOQPTKhLtwVNgtZuNUJnbO5P487z38ibFIicEQGCicVyOgK3a5xrzfmcvxm1hnec1zDicOicOpJTTJo9OpdPOEvaQ/0",
         "qunqun":"yMhOQPTKhLtwVNgtZuNUJnbO5P487z38fb73OBr5OE3ESeXFsdibhl5BV2x5QTFm5icrupYt4cpSgWQGtltopeZQ/0",
           "dudu":"yMhOQPTKhLtwVNgtZuNUJnbO5P487z385UZJW8qvDlLeD2ZrMuWmKnkvhbUYxtXEyjSZdWNibialFvBOz4OzwRXg/0",
