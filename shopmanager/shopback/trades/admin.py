@@ -67,20 +67,32 @@ class MergeOrderInline(admin.TabularInline):
     }
 
 class MergeTradeChangeList(ChangeList):
+    
+    def get_query_set(self,request):
+        
+        #如果查询条件中含有邀请码
+        search_q = request.GET.get('q','').strip()
+        if search_q.isdigit():
+            trades = MergeTrade.objects.filter(models.Q(id=search_q)
+                                               |models.Q(tid=search_q)
+                                               |models.Q(out_sid=search_q)
+                                               |models.Q(receiver_mobile=search_q))
 
-    def get_query_set(self, request):
-        """
-        Replace a global select_related() directive added by Django in 
-        ChangeList.get_query_set() with a more limited one.
-        """
-        qs = super(MergeTradeChangeList, self).get_query_set(request)
-        qs = qs.select_related('logistics_company')  # Don't join on dealer or category
-        return qs
+            return trades
+        
+        if search_q:
+            trades = MergeTrade.objects.filter(models.Q(buyer_nick=search_q)
+                                               |models.Q(tid=search_q)
+                                               |models.Q(out_sid=search_q))
+            return trades
+        
+        return super(MergeTradeChangeList,self).get_query_set(request)
+
 
 class MergeTradeAdmin(admin.ModelAdmin):
-    list_display = ('trade_id_link','popup_tid_link','user','buyer_nick_link','type',
+    list_display = ('trade_id_link','popup_tid_link','buyer_nick_link','type',
                     'payment','pay_time','consign_time','status','sys_status',
-                    'logistics_company','reason_code','is_picking_print','is_express_print'#
+                    'reason_code','is_picking_print','is_express_print'#
                     ,'can_review','operator','weight_time','charge_time')
     #list_display_links = ('trade_id_link','popup_tid_link')
     #list_editable = ('update_time','task_type' ,'is_success','status')
@@ -123,7 +135,7 @@ class MergeTradeAdmin(admin.ModelAdmin):
                      'has_out_stock','has_rule_match','has_merge','has_sys_err','has_memo',
                     'is_picking_print','is_express_print', 'is_locked','is_charged','is_qrcode')
 
-    search_fields = ['id','buyer_nick','tid','out_sid','receiver_mobile','receiver_phone']
+    search_fields = ['id','buyer_nick','tid','out_sid','receiver_mobile']
     
     class Media:
         css = {"all": ("admin/css/forms.css","css/admin/dialog.css","css/admin/checkorder.css")}

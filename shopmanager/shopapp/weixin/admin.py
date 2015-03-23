@@ -53,7 +53,7 @@ class UserChangeList(ChangeList):
             return WeiXinUser.objects.filter(models.Q(mobile=search_q)|models.Q(vmobile=search_q))
             
         if re.compile('^[\w-]{24,64}$').match(search_q):
-            return WeiXinUser.objects.filter(models.Q(mobile=search_q)|models.Q(vmobile=search_q))
+            return WeiXinUser.objects.filter(openid=search_q)
         
         if search_q:
             return WeiXinUser.objects.none()
@@ -129,6 +129,7 @@ admin.site.register(UserGroup, UserGroupAdmin)
 class WeiXinUserAdmin(admin.ModelAdmin):
     
     user_groups = []
+    list_per_page = 40
     list_display = ('openid','nickname','sex','province','city','mobile','subscribe'
                     ,'subscribe_time','vipcode_link','referal_count','charge_link','group_select','isvalid')
     
