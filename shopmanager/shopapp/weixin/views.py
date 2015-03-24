@@ -153,7 +153,7 @@ KFKEYS = [
         "yuyu36",#36
         "yaya37",#37
       "paopao38",#38
-        "momo39"#39
+        "momo39",#39
     ]
 
 IMG_URL_PREFIX = "https://mmbiz.qlogo.cn/mmbiz/"
@@ -188,7 +188,7 @@ KFMAP ={
         "lanlan":"yMhOQPTKhLtwVNgtZuNUJnbO5P487z38ibFIicEQGCicVyOgK3a5xrzfmcvxm1hnec1zDicOicOpJTTJo9OpdPOEvaQ/0",
         "qunqun":"yMhOQPTKhLtwVNgtZuNUJnbO5P487z38fb73OBr5OE3ESeXFsdibhl5BV2x5QTFm5icrupYt4cpSgWQGtltopeZQ/0",
         "yueyue":"yMhOQPTKhLtwVNgtZuNUJnbO5P487z38jg7SjP02qFySG9pSehEVaYicbXZPiccLTD7YK9W1ic3OaRNbvYichIqfNQ/0",
-          "dudu":"yMhOQPTKhLtwVNgtZuNUJnbO5P487z385UZJW8qvDlLeD2ZrMuWmKnkvhbUYxtXEyjSZdWNibialFvBOz4OzwRXg/0"
+          "dudu":"yMhOQPTKhLtwVNgtZuNUJnbO5P487z385UZJW8qvDlLeD2ZrMuWmKnkvhbUYxtXEyjSZdWNibialFvBOz4OzwRXg/0",
         "lulu31":"yMhOQPTKhLv8BwrLsqGqIG0C2TSeic1Gp66fictl9RFpVa85lUgqyNU0uUicicjia9yibx2w9EsZwSFUufGwSfb78wJA/0",
       "lanlan32":"yMhOQPTKhLv8BwrLsqGqIG0C2TSeic1Gp6PNo39FCL5PooG1oRBCROX17uBPXicaJicMictxgyPDzHWdgV3E3Uic4Sw/0",
     "huanhuan33":"yMhOQPTKhLv8BwrLsqGqIG0C2TSeic1GpM2VnOv7HXTQNy4CiapxKsWOw8LaTQz3iaib6Xe0yCmwyCK9NK52XgzckA/0",
@@ -198,7 +198,7 @@ KFMAP ={
         "yaya37":"yMhOQPTKhLv8BwrLsqGqIG0C2TSeic1Gpp3PEmjK9I6W2YnkQ60sXkdbqfBibTtuUzhiaSfBoCpdTKAusvt73y9ibg/0",
       "paopao38":"yMhOQPTKhLv8BwrLsqGqIG0C2TSeic1Gpr6Ciafh9xpCM8ZrmGH7myG3qCvvJtYJ96CMx6BgoibelIShOpfnVyttA/0",
         "momo39":"yMhOQPTKhLv8BwrLsqGqIG0C2TSeic1GpLLAGM4MRYcdjibZksYVyZVxhhkDL17ahC8JuQxkpghW0RWUbGFZ8wjg/0",
-        "sisi40":"yMhOQPTKhLv8BwrLsqGqIG0C2TSeic1GpCXeILoLWTia6zTBzR5Gc6huWR5xcGiatNKTO2TWemnq8bEbpWhuicrnQQ/0",
+        "sisi40":"yMhOQPTKhLv8BwrLsqGqIG0C2TSeic1GpCXeILoLWTia6zTBzR5Gc6huWR5xcGiatNKTO2TWemnq8bEbpWhuicrnQQ/0"
     }
 
 
