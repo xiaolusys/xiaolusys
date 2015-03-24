@@ -765,7 +765,7 @@ class SampleOrder(models.Model):
     created = models.DateTimeField(auto_now_add=True,db_index=True,null=True,verbose_name=u'创建时间')
     vipcode = models.CharField(max_length=16,null=False,db_index=True,blank=False,verbose_name=u'VIP邀请码')
     problem_score = models.IntegerField(default=0, verbose_name=u"答题分数")
-    status = models.IntegerField(default=0, verbose_name=u"状态")
+    status = models.IntegerField(default=0,db_index=True, verbose_name=u"状态")
     
     class Meta:
         db_table = 'shop_weixin_sample_order'
