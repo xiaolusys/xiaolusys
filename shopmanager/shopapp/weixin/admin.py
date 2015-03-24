@@ -342,7 +342,7 @@ admin.site.register(Refund, RefundAdmin)
 
 
 class FreeSampleAdmin(admin.ModelAdmin):
-
+    
     list_display = ('outer_id','name','expiry','stock')
 
     search_fields = ['outer_id','name']
@@ -350,23 +350,77 @@ class FreeSampleAdmin(admin.ModelAdmin):
 admin.site.register(FreeSample, FreeSampleAdmin) 
 
 
+class SampleOrderChangeList(ChangeList):
+    
+    def get_query_set(self,request):
+        
+        #如果查询条件中含有邀请码
+        search_q = request.GET.get('q','').strip()
+        if search_q.isdigit() and len(search_q) in (6,7,8):
+            return SampleOrder.objects.filter(vipcode=search_q)
+
+        if re.compile('^[\w-]{24,64}$').match(search_q):
+            return SampleOrder.objects.filter(user_openid=search_q)
+        
+        if re.compile('^[\w]{11}$').match(search_q):
+            wxusers = WeiXinUser.objects.filter(mobile=search_q)
+            if wxusers.count() > 0 :
+                return SampleOrder.objects.filter(user_openid=wxusers[0].openid)
+        
+        if search_q:
+            return SampleOrder.objects.none()
+        
+        return super(SampleOrderChangeList,self).get_query_set(request)
+
 class SampleOrderAdmin(admin.ModelAdmin):
 
+    list_per_page = 25
     list_display = ('sample_product','sku_code','user_openid','problem_score','vipcode','created','status')
     
     list_filter = ('status','problem_score')
     search_fields = ['user_openid','vipcode']
+    
+    def get_changelist(self, request, **kwargs):
+        """
+        Returns the ChangeList class for use on the changelist page.
+        """
+        return SampleOrderChangeList
 
 admin.site.register(SampleOrder, SampleOrderAdmin) 
 
 
+class VipCodeChangeList(ChangeList):
+    
+    def get_query_set(self,request):
+        
+        #如果查询条件中含有邀请码
+        search_q = request.GET.get('q','').strip()
+        if search_q.isdigit() and len(search_q) in (6,7,8):
+            return VipCode.objects.filter(code=search_q)
+
+        if re.compile('^[\w-]{24,64}$').match(search_q):
+            wxusers = WeiXinUser.objects.filter(openid=search_q)
+            if wxusers.count() > 0:
+                return VipCode.objects.filter(owner_openid=wxusers[0])
+        
+        if re.compile('^[\w]{11}$').match(search_q):
+            wxusers = WeiXinUser.objects.filter(mobile=search_q)
+            if wxusers.count() > 0 :
+                return VipCode.objects.filter(owner_openid=wxusers[0])
+        
+        if search_q:
+            return VipCode.objects.none()
+        
+        return super(VipCodeChangeList,self).get_query_set(request)
+    
+    
 class VipCodeAdmin(admin.ModelAdmin):
 
     list_display = ('owner_openid','code','expiry','code_type',
                     'code_rule', 'max_usage', 'usage_count','created')
 
     search_fields = ['owner_openid__openid','code']
-    list_per_page = 50
+    list_per_page = 25
     #--------设置页面布局----------------
     fieldsets =((u'邀请码信息:', {
                     'classes': ('expand',),
@@ -376,6 +430,12 @@ class VipCodeAdmin(admin.ModelAdmin):
                                )
                 }),
                 )
+    
+    def get_changelist(self, request, **kwargs):
+        """
+        Returns the ChangeList class for use on the changelist page.
+        """
+        return VipCodeChangeList
     
 admin.site.register(VipCode, VipCodeAdmin) 
 
