@@ -1145,7 +1145,11 @@ class FinalListView(View):
         month = int(kwargs.get('month',1))
         
         order_list = SampleOrder.objects.none()
-        if month == 1503 :
+        if month == 150322 :
+            start_time = datetime.datetime(2015,3,23)
+            end_time = datetime.datetime(2015,3,31)
+            order_list = SampleOrder.objects.filter(status=71,created__gt=start_time)
+        elif month == 1503 :
             start_time = datetime.datetime(2015,3,9)
             end_time = datetime.datetime(2015,3,20)
             order_list = SampleOrder.objects.filter(status__gt=60,status__lt=70,created__gt=start_time)
