@@ -148,7 +148,7 @@ class WeiXinUser(models.Model):
         (FERMALE,u'女')
     )
     
-    CHARGED = 'charged'
+    CHARGED  = 'charged'
     UNCHARGE = 'uncharge'
     FROZEN = 'frozen'
     STATUS_CHOICES = (
@@ -198,7 +198,7 @@ class WeiXinUser(models.Model):
     modified   = models.DateTimeField(auto_now=True,verbose_name=u'修改日期')
     
     referal_count = models.IntegerField(default=0,verbose_name=u'F码次数')
-    charge_status = models.CharField(max_length=16,blank=True,
+    charge_status = models.CharField(max_length=16,blank=True,db_index=True,
                                        choices=STATUS_CHOICES,
                                        default=UNCHARGE,verbose_name=u'接管状态')
     

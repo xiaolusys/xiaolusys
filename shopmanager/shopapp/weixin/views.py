@@ -1119,13 +1119,16 @@ class ResultView(View):
             link_click = link_clicks[0]
             
         idx = 0
+        sidx = 0
         if sample_order:
             idx = sample_order.pk % len(URLMAP)
+            sidx = sample_order.pk % 2
 
         idx = URLMAP[idx]
         url_key = KFKEYS[idx]
         kefu_url = IMG_URL_PREFIX + KFMAP[url_key]
 
+        sample_kefu_url = IMG_URL_PREFIX + [KFMAP['xiangxiang'],['sisi40']][sidx]
 
         response = render_to_response('weixin/invite_result1.html',
                                       {'wx_user':wx_user,
@@ -1134,7 +1137,8 @@ class ResultView(View):
                                        'link_click':link_click,
                                        'sample_pass':sample_pass,
                                        'hongbao_pass':hongbao_pass,
-                                       'kefu_url':kefu_url},
+                                       'kefu_url':kefu_url,
+                                       'sample_kefu_url':sample_kefu_url},
                                       context_instance=RequestContext(request))
         response.set_cookie("openid",user_openid)  
         
@@ -1165,10 +1169,14 @@ class FinalListView(View):
         month = int(kwargs.get('month',1))
         
         order_list = SampleOrder.objects.none()
-        if month == 150322 :
+        if month == 150322 and batch == 1:
             start_time = datetime.datetime(2015,3,23)
             end_time = datetime.datetime(2015,3,31)
             order_list = SampleOrder.objects.filter(status=71,created__gt=start_time)
+        if month == 150322 and batch == 2:
+            start_time = datetime.datetime(2015,3,23)
+            end_time = datetime.datetime(2015,3,31)
+            order_list = SampleOrder.objects.filter(status=72,created__gt=start_time)
         elif month == 1503 :
             start_time = datetime.datetime(2015,3,9)
             end_time = datetime.datetime(2015,3,20)

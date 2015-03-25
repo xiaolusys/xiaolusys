@@ -374,17 +374,29 @@ class SampleOrderChangeList(ChangeList):
 
 class SampleOrderAdmin(admin.ModelAdmin):
 
-    list_per_page = 25
+    
     list_display = ('sample_product','sku_code','user_openid','problem_score','vipcode','created','status')
+    list_display_links = ('user_openid',)
     
     list_filter = ('status','problem_score')
     search_fields = ['user_openid','vipcode']
+    list_per_page = 25
+    
+    
+    def sample_link(self, obj):
+        return obj.sample_product.name
+    
+    sample_link.allow_tags = True
+    sample_link.short_description = u"试用商品"
+    
     
     def get_changelist(self, request, **kwargs):
         """
         Returns the ChangeList class for use on the changelist page.
         """
         return SampleOrderChangeList
+    
+    
 
 admin.site.register(SampleOrder, SampleOrderAdmin) 
 
