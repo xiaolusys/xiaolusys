@@ -397,7 +397,6 @@ class SampleOrderAdmin(admin.ModelAdmin):
         return SampleOrderChangeList
     
     
-
 admin.site.register(SampleOrder, SampleOrderAdmin) 
 
 
