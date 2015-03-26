@@ -9,11 +9,11 @@ from shopapp.weixin_sales.models import WeixinLinkClicks
 def dumps():
     
     mobiles = []
-    sos = SampleOrder.objects.filter(status=0,created__gt=datetime.datetime(2015,3,23),created__lt=datetime.datetime(2015,3,24),)
+    sos = SampleOrder.objects.filter(status__gt=70)
     print 'sos len:',sos.count()
     cnt = 0 
     for m in sos:
-        wxusers = WeiXinUser.objects.filter(openid=m.user_openid,charge_status=WeiXinUser.UNCHARGE)
+        wxusers = WeiXinUser.objects.filter(openid=m.user_openid)#,charge_status=WeiXinUser.UNCHARGE)
         if wxusers.count() > 0:
             wxuser = wxusers[0]
             
@@ -28,7 +28,7 @@ if __name__ == "__main__":
     
     rmobiles = dumps()
 
-    with open('/tmp/dumps-mobiles-15-03.txt','w+') as f:
+    with open('/tmp/dumps-mobiles-15-04.txt','w+') as f:
         for m in rmobiles:
             try:
                 print >> f,m,','

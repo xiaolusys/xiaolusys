@@ -111,7 +111,7 @@ START_TIME = datetime.datetime(2015,3,23,10)
 END_TIME = datetime.datetime(2015,3,29,23,59,59)
 
 
-URLMAP = [1, 7, 3, 4, 5, 6, 7, 3, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39]
+URLMAP = [1, 7, 3, 4, 5, 6, 7, 15, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18,37,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,19,38,39]
 
 KFKEYS = [
     "xiangxiang",#0 
@@ -1128,7 +1128,7 @@ class ResultView(View):
         url_key = KFKEYS[idx]
         kefu_url = IMG_URL_PREFIX + KFMAP[url_key]
 
-        sample_kefu_url = IMG_URL_PREFIX + [KFMAP['xiangxiang'],['sisi40']][sidx]
+        sample_kefu_url = IMG_URL_PREFIX + [KFMAP['xiangxiang'],KFMAP['sisi40']][sidx]
 
         response = render_to_response('weixin/invite_result1.html',
                                       {'wx_user':wx_user,
