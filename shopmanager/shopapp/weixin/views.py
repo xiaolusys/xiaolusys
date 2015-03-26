@@ -438,7 +438,7 @@ class OrderInfoView(View):
         orders = []
         for order in trade.merge_orders.filter(sys_status=pcfg.IN_EFFECT):
             s = order.getImgSimpleNameAndPrice()
-            if order.outer_id in ['10206'] :
+            if order.outer_id in ['10206','10501'] :
                 if trade.status == pcfg.TRADE_FINISHED:
                     specific_order_finished = True
                 has_specific_product = True
@@ -484,7 +484,7 @@ class OrderInfoView(View):
         
         passed = False
         start_time = datetime.datetime(2015,3,9)
-        sample_orders = SampleOrder.objects.filter(user_openid=user_openid,status__gt=60,status__lt=69)
+        sample_orders = SampleOrder.objects.filter(user_openid=user_openid,status__gt=60,status__lt=79).exclude(status=69)
         refund_records = Refund.objects.filter(user_openid=user_openid,created__gt=start_time)
         if specific_order_finished and sample_orders.count() > 0 and refund_records.count() < 1:
             passed = True
