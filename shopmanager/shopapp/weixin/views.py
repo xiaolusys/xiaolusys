@@ -611,7 +611,6 @@ class WeixinAddReferalView(View):
         
         
 
-
 class ReferalView(View):
 
     def get(self, request):
@@ -1177,6 +1176,10 @@ class FinalListView(View):
             start_time = datetime.datetime(2015,3,23)
             end_time = datetime.datetime(2015,3,31)
             order_list = SampleOrder.objects.filter(status=72,created__gt=start_time)
+        if month == 150322 and batch == 3:
+            start_time = datetime.datetime(2015,3,23)
+            end_time = datetime.datetime(2015,3,31)
+            order_list = SampleOrder.objects.filter(status=73,created__gt=start_time)
         elif month == 1503 :
             start_time = datetime.datetime(2015,3,9)
             end_time = datetime.datetime(2015,3,20)
