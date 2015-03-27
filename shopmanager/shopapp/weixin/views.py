@@ -489,6 +489,10 @@ class OrderInfoView(View):
         if specific_order_finished and sample_orders.count() > 0 and refund_records.count() < 1:
             passed = True
 
+        if specific_order_finished and sample_orders.count() > 0 and refund_records.count() > 0:
+            if refund_records.filter(refund_status=3).count() > 0:
+                passed = True
+
         score_refund = False
         if (data["payment"] >= 100 and score >= 10 
             and trade.status ==  pcfg.TRADE_FINISHED
@@ -1172,14 +1176,18 @@ class FinalListView(View):
             start_time = datetime.datetime(2015,3,23)
             end_time = datetime.datetime(2015,3,31)
             order_list = SampleOrder.objects.filter(status=71,created__gt=start_time)
-        if month == 150322 and batch == 2:
+        elif month == 150322 and batch == 2:
             start_time = datetime.datetime(2015,3,23)
             end_time = datetime.datetime(2015,3,31)
             order_list = SampleOrder.objects.filter(status=72,created__gt=start_time)
-        if month == 150322 and batch == 3:
+        elif month == 150322 and batch == 3:
             start_time = datetime.datetime(2015,3,23)
             end_time = datetime.datetime(2015,3,31)
             order_list = SampleOrder.objects.filter(status=73,created__gt=start_time)
+        elif month == 150322 and batch == 4:
+            start_time = datetime.datetime(2015,3,23)
+            end_time = datetime.datetime(2015,3,31)
+            order_list = SampleOrder.objects.filter(status=74,created__gt=start_time)
         elif month == 1503 :
             start_time = datetime.datetime(2015,3,9)
             end_time = datetime.datetime(2015,3,20)
