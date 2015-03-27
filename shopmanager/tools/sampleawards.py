@@ -28,7 +28,7 @@ if __name__ == "__main__":
     args = sys.argv
     if len(args) != 3:
         print "usage:python *.py <table_name> <awardcode>"
-        return
+        
     print 'params:', args[1],args[2]
     
     awards(args[1],args[2]) 
