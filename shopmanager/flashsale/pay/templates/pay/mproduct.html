@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <!-- 新 Bootstrap 核心 CSS 文件 -->
+    <link rel="stylesheet" href="http://cdn.bootcss.com/bootstrap/3.2.0/css/bootstrap.min.css">
+
+    <!-- jQuery文件。务必在bootstrap.min.js 之前引入 -->
+    <script src="http://ajax.aspnetcdn.com/ajax/jQuery/jquery-2.1.3.min.js"></script>
+    <script src="http://ajax.aspnetcdn.com/ajax/jquery.mobile/1.4.5/jquery.mobile-1.4.5.min.js"></script>
+
+    <!-- 最新的 Bootstrap 核心 JavaScript 文件 -->
+    <script src="http://cdn.bootcss.com/bootstrap/3.2.0/js/bootstrap.min.js"></script>
+    <script src="http://cdn.bootcss.com/fullPage.js/2.5.2/vendors/jquery.easings.min.js"></script>
+
+    <script src="{{ STATIC_URL }}script/page_ctrl.js"></script>
+    <link rel="stylesheet" href="{{ STATIC_URL }}style/product.css">
+    <link rel="stylesheet" href="{{ STATIC_URL }}style/style_other.css">
+    <link rel="stylesheet" href="{{ STATIC_URL }}style/animation.css">
+
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+    <title>商品详情</title>
+</head>
+<body>
+{% csrf_token %}
+<input type="hidden" id="id_product" value="{{ id }}"/>
+<div id="image_slider">
+    <div class="holder">
+        <!-- 此处为商品所有的展示图 -->
+        <div class="img_holder"><img src="{{ pic_path }}"/></div>
+        <div class="img_holder"><img src="{{ pic_path }}"/></div>
+    </div>
+    <div class="tags"></div>
+    <div class="mark"><img src="{{ STATIC_URL }}images/watermark_white.png"></div>
+</div>
+<div id="info_holder">
+    <div class="name">
+        {{ product.title }}
+    </div>
+    <div class="detail">
+        <!-- 商品详情 -->
+        {{ memo }}
+    </div>
+    <div class="share" onclick="Ctrl_share">
+        <div class="i"><img src="{{ STATIC_URL }}images/share.png" /></div>
+        <div class="t">分享</div>
+    </div>
+    <div class="price">
+        ￥
+        <span class="p">
+            {{ agent_price }}
+        </span>
+        <span class="t">价格</span>
+    </div>
+    <div class="sale">
+        销量：{{ wait_post_num }}
+        <span>
+            <!-- 商品销量 -->
+        </span>
+    </div>
+</div>
+
+<div id="recommend">
+    <div class="img"><img src="{{ STATIC_URL }}images/recommend.png" /><span class="dot">.</span></div>
+    <div class="text">商品详情<span></span></div>
+</div>
+
+<div id="detail">
+    <img src="{{ pic_path }}" />
+</div>
+
+<a id="buy_now" href="javascript:void(0)" onclick="Ctrl_buy_now()" target="_top">
+    <div class="btn"><img width="16" height="16" style="margin-right: 5px;" src="{{ STATIC_URL }}images/buy.png" />立即购买</div>
+</a>
+<a id="popout_show" onclick="View_popout_show()"></a>
+
+<div id="popout">
+    <div class="title">选择分类<div class="i" onclick="View_popout_hide()"><img src="{{ STATIC_URL }}images/shut.png"></div></div>
+    <div class="holder">
+        <div class="chooser info">
+            <div class="name">
+                <!-- 商品名称 -->
+            </div>
+            <div class="detail">
+                <!-- 商品详情 -->
+            </div>
+            <div class="price">
+                ￥
+                <span><!-- 商品价格 -->{{ agent_price }}</span>
+            </div>
+        </div>
+        <div id="size" class="chooser single">
+            <div class="name">尺码选择</div>
+            <div class="choose">
+              {% for sku in prod_skus %}
+              <a id="{{ sku.id }}"  {% if forloop.first %}class="active"{% endif %}>{{ sku.properties_alias }}</a>
+              {% endfor %}
+            </div>
+        </div>
+        <div id="amount" class="chooser count">
+            <div class="name">数量</div>
+            <div class="counter">
+                <a class="add">+</a>
+                <a class="amount">1</a>
+                <a class="min">-</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    var MAX;
+
+    var moveX_start;
+    var sliderNow;
+    var sliderNext;
+    var sliderPrev;
+    var sliderSpeed = 700;
+    var sliderInterval = 3000;
+    var sliderTimer;
+    var sliderAnimation = false;
+    $(document).ready(function(){
+        $('.ui-loader').remove();
+        //页面载入时的更新页面信息，包括名称，介绍，价格，尺码，颜色等数据
+        //若采用服务器直接生成页面则可以不使用这个函数
+        //View_Page_in();
+
+        View_slider_start();
+
+        //选项选择
+        $('.chooser.single').on('tap','.choose a',function(){
+            $(this).closest('.choose').find('a').removeClass('active');
+            $(this).addClass('active');
+        });
+
+        //数量+1/-1
+        $('#amount').on('tap','.counter a',function(){
+            if ($(this).hasClass('add')){
+                var n = parseInt($('.amount').html())+1;
+                n = n<MAX?n:MAX;
+                $('.amount').html(n);
+            }
+            if ($(this).hasClass('min')){
+                var n = parseInt($('.amount').html())-1;
+                n = n>0?n:1;
+
+                $('.amount').html(n);
+            }
+        });
+
+        //slider_bind();
+
+        $('#buy_now').on('touchstart',function(){
+            $(this).addClass('pressed');
+        })
+        $('#buy_now').on('touchend',function(){
+            $(this).removeClass('pressed');
+        })
+    });
+
+    //
+    function Ctrl_slider_touch_start(event){
+        event.preventDefault();
+        Ctrl_slider_set();
+        moveX_start = event.changedTouches[0].screenX;
+        var target = document.getElementById('image_slider');
+        $(target)[0].addEventListener("touchmove",Ctrl_slider_touch_move,false);
+        $(target)[0].addEventListener("touchend",Ctrl_slider_touch_end,false);
+        window.clearInterval(sliderTimer);
+    }
+    function Ctrl_slider_touch_move(event){
+        event.preventDefault();
+        var move_x = event.changedTouches[0].screenX - moveX_start;
+        sliderNow.css('left',move_x+'px');
+        if (move_x>=0){
+            sliderPrev.css('left',move_x-$('#image_slider').width()+'px');
+        }
+        else{
+            sliderNext.css('left',move_x+$('#image_slider').width()+'px');
+        }
+    }
+    function Ctrl_slider_touch_end(event){
+        event.preventDefault();
+        var move_x = (event.changedTouches[0].screenX - moveX_start)*2;
+        var width = $('#image_slider').width();
+        var speed;
+        if (move_x>=width){
+            console.log('touchend prev');
+            speed = (width-move_x/2)/width*sliderSpeed;
+            View_slider_prev(true,speed);
+        }
+        else if ((0-move_x)>=width){
+            console.log('touchend next');
+            speed = (width+move_x/2)/width*sliderSpeed;
+            View_slider_next(true,speed);
+        }
+        else{
+            sliderNow.animate({
+                left:'0%'
+            },sliderSpeed);
+            sliderPrev.animate({
+                left:'-100%'
+            },sliderSpeed);
+            sliderNext.animate({
+                left:'100%'
+            },sliderSpeed);
+        }
+        var target = document.getElementById('image_slider');
+        $(target)[0].removeEventListener("touchmove",Ctrl_slider_touch_move,false);
+        sliderTimer = setInterval(View_slider_next,sliderInterval)
+    }
+    //banner定义
+    function Ctrl_slider_set(){
+        var index = sliderNow.index();
+        $('#image_slider .tags span').removeClass('active');
+        $('#image_slider .tags span:eq('+index+')').addClass('active');
+        if (index==0){
+            sliderPrev = $('.img_holder:last')
+        }
+        else{
+            sliderPrev = sliderNow.prev();
+        }
+        if (index>=$('#image_slider .img_holder').length-1){
+            sliderNext = $('.img_holder:first')
+        }
+        else{
+            sliderNext = sliderNow.next();
+        }
+        sliderNow.css('left','0%');
+        sliderPrev.css('left','-100%');
+        sliderNext.css('left','100%');
+    }
+    //banner滚动开始
+    function View_slider_start(){
+        var n = $('#image_slider .img_holder').length;
+        var width = $(window).width();
+        $('#image_slider').height(width);
+        if (n<=1){
+            return;
+        }
+        var ht = '';
+        for (var i=0;i<n;i++){
+            ht += '<span></span>';
+        }
+        $('#image_slider .tags').html(ht);
+        sliderNow = $('#image_slider .img_holder:first');
+        Ctrl_slider_set();
+        $('#image_slider').on('swipeleft',View_slider_next);
+        $('#image_slider').on('swiperight',View_slider_prev);
+        sliderTimer = setInterval(View_slider_next,sliderInterval)
+    }
+    //banner下一个
+    function View_slider_next(check,speed){
+        if(sliderAnimation){return}
+        sliderAnimation = true;
+        window.clearInterval(sliderTimer);
+        if (!speed){speed = sliderSpeed}
+        if(!check){
+            sliderNext.css('left','100%');
+        }
+        sliderNow.animate({
+            left:'-100%'
+        },speed);
+        sliderNext.animate({
+            left:'0%'
+        },speed,function(){
+            sliderNow = sliderNext;
+            Ctrl_slider_set();
+            sliderTimer = setInterval(View_slider_next,sliderInterval);
+            sliderAnimation = false;
+        });
+    }
+    //banner上一个
+    function View_slider_prev(check,speed){
+        if(sliderAnimation){return}
+        sliderAnimation = true;
+        window.clearInterval(sliderTimer);
+        if (!speed){speed = sliderSpeed}
+        if (!check){
+            sliderPrev.css('left','-100%');
+        }
+        sliderNow.animate({
+            left:'100%'
+        },speed);
+        sliderPrev.animate({
+            left:'0%'
+        },speed,function(){
+            sliderNow = sliderPrev;
+            Ctrl_slider_set();
+            sliderTimer = setInterval(View_slider_next,sliderInterval);
+            sliderAnimation = false;
+        });
+    }
+
+//弹出框显示
+    function View_popout_show(){
+        var h = $('#popout').height()+59;
+        $('#popout').animate({
+            marginTop:0-h+'px'
+        },400,function(){
+            $('#popout_show').hide();
+        })
+    }
+    //弹出框隐藏
+    function View_popout_hide(){
+        $('#popout').animate({
+            marginTop:'0px'
+        },400,function(){
+            $('#popout_show').show();
+        })
+    }
+
+    //分享按钮的函数
+    function Ctrl_share(){
+        console.log('share_start');
+    }
+
+    //点击立即购买后执行的函数,获取了页面中的选择信息(数量、尺码、颜色)，后续请自行添加
+    function Ctrl_buy_now(){
+        var size = $('#size a.active').attr('id');//尺寸
+        var amount = parseInt($('.amount').html());//数量
+        
+        var csrf_token = document.getElementsByName("csrfmiddlewaretoken")[0].value;
+        
+        var params = {"pid":$('#id_product').val(),
+                      "sid":size,
+                      "num":amount,
+                      "csrfmiddlewaretoken":csrf_token}
+        console.log(params)
+        window.location.href = '/mm/orderbuy/?'+$.param(params);
+    }
+
+</script>
+
+<script type="text/javascript">
+    function slider_bind(){
+        var isTouchPad = (/hp-tablet/gi).test(navigator.appVersion),
+                hasTouch = 'ontouchstart' in window && !isTouchPad,
+                START_EV = hasTouch ? 'touchstart' : 'mousedown',
+                MOVE_EV = hasTouch ? 'touchmove' : 'mousemove',
+                END_EV = hasTouch ? 'touchend' : 'mouseup';
+
+        var target = document.getElementById('image_slider');
+        $(target)[0].addEventListener("touchstart",Ctrl_slider_touch_start,false);
+    }
+</script>
+</body>
+</html>

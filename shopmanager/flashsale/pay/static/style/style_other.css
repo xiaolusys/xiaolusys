@@ -1,0 +1,13 @@
+#p_list .wrapper{
+    background-image: url("../images/watermark_orange.png");
+}
+
+.pay_way .wrapper .check{
+    background-image: url("../images/pay_way_check.png");
+    background-size: 100%;
+}
+
+.price_sure .line{
+    background-image: url("../images/line_dot.png");
+    background-size: 7px 3px;
+}

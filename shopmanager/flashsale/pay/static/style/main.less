@@ -1,0 +1,161 @@
+*{
+  margin: 0;
+  padding: 0;
+  font-family: "Microsoft YaHei", "微软雅黑";
+}
+img{
+  max-width: 100%;
+  max-height: 100%;
+}
+a,a:visited,a:hover{
+  text-decoration: none;
+}
+
+@p_color:#ff7200;
+@p_wrapper_bg:#ffe9d7;
+@p_bg:#fff;
+@p_shadow:#848484;
+@p_text_main:#010101;
+@p_text_grey:#ababab;
+
+#main{
+  width: 100%;
+  height: 100%;
+  overflow: scroll;
+}
+
+#header{
+  width: 100%;
+  height: 78px;
+  margin-bottom: 43px;
+  background-color: @p_wrapper_bg;
+}
+
+#tab_nav{
+  width: 100%;
+  height: 43px;
+  padding: 6px 0;
+  position: absolute;
+  top: 78px;
+  left: 0;
+  background-color: @p_color;
+  .block{
+    width: 214px;
+    height: 30px;
+    margin: 0px auto;
+    padding: 1px;
+    border-radius: 5px;
+    border: solid 1px @p_wrapper_bg;
+    a{
+      display: block;
+      width: 70px;
+      height: 26px;
+      line-height: 26px;
+      float: left;
+      color: @p_wrapper_bg;
+      text-align: center;
+      border-radius: 3px;
+      font-size: 13px;
+    }
+    a.active{
+      background-color: @p_wrapper_bg;
+      color: @p_color;
+    }
+  }
+}
+#tab_nav.blocked{
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 9999;
+}
+
+#p_list{
+  width: 100%;
+  max-width: 500px;
+  margin: 0 auto;
+  padding: 0 2px;
+  padding-top: 5px;
+  overflow: hidden;
+  .holder{
+    float: left;
+    width: 50%;
+    padding: 0 4px 1px;
+  }
+  .wrapper{
+    display: block;
+    width: 100%;
+    //height: 225px;
+    overflow: hidden;
+    margin: 0 0px 5px;
+    box-shadow: 0px 0px 2px @p_shadow;
+    background-repeat: no-repeat;
+    background-size: 45px;
+    background-position: right bottom;
+    .image{
+      width: 100%;
+      height: 150px;
+      position: relative;
+      background-color: @p_wrapper_bg;
+      span{
+        display: none;
+        position: absolute;
+        width: 66px;
+        height: 66px;
+        left: 50%;
+        top: 50%;
+        margin-left: -33px;
+        margin-top: -33px;
+        border-radius: 50px;
+        background-color: rgba(0,0,0,0.5);
+        color: @p_bg;
+        line-height: 66px;
+        text-align: center;
+      }
+    }
+    .name{
+      font-size: 13px;
+      color: @p_text_main;
+      line-height: 15px;
+      height: 45px;
+      overflow: hidden;
+      padding: 13px 5px 2px;
+    }
+    .price{
+      color: @p_color;
+      font-size: 12px;
+      width: 50px;
+      height: 25px;
+      float: left;
+      padding: 0 5px;
+      span{
+        font-size: 18px;
+      }
+    }
+    .price_o{
+      float: left;
+      width: 50px;
+      margin-top: 6px;
+      text-decoration: line-through;
+      font-size: 11px;
+      color: @p_text_grey;
+    }
+  }
+  .wrapper.soldout{
+    .image{
+      span{
+        display: block;
+      }
+    }
+  }
+}
+#no_more{
+  width: 100%;
+  height: 44px;
+  text-align: center;
+  line-height: 44px;
+  font-size: 13px;
+  background-color: #e9e9e9;
+  color: #999;
+}
+

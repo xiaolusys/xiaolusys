@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <!-- 新 Bootstrap 核心 CSS 文件 -->
+    <link rel="stylesheet" href="http://cdn.bootcss.com/bootstrap/3.2.0/css/bootstrap.min.css">
+
+    <!-- jQuery文件。务必在bootstrap.min.js 之前引入 -->
+    <script src="http://ajax.aspnetcdn.com/ajax/jQuery/jquery-2.1.3.min.js"></script>
+    <script src="http://ajax.aspnetcdn.com/ajax/jquery.mobile/1.4.5/jquery.mobile-1.4.5.min.js"></script>
+
+    <!-- 最新的 Bootstrap 核心 JavaScript 文件 -->
+    <script src="http://cdn.bootcss.com/bootstrap/3.2.0/js/bootstrap.min.js"></script>
+    <script src="http://cdn.bootcss.com/fullPage.js/2.5.2/vendors/jquery.easings.min.js"></script>
+
+    <script src="{{ STATIC_URL }}script/pingpp_pay.js"></script>
+    <script src="{{ STATIC_URL }}script/page_ctrl.js"></script>
+    <link rel="stylesheet" href="{{ STATIC_URL }}style/order.css">
+    <link rel="stylesheet" href="{{ STATIC_URL }}style/style_other.css">
+    <link rel="stylesheet" href="{{ STATIC_URL }}style/animation.css">
+
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+    <title>订单详情</title>
+</head>
+<body>
+{% if not order_pass %}
+<div class="well ">商品信息已失效，2秒后跳转...</div>
+{% else %}
+<div id="form">
+    <div class="content">
+        <div class="wrapper">
+            <div class="name">收货人：</div>
+            <input id="name">
+        </div>
+        <div class="wrapper">
+            <div class="name">手机号码：</div>
+            <input id="phone">
+        </div>
+        <div class="wrapper">
+            <div class="name">所在地区：</div>
+            <input id="place">
+        </div>
+        <div class="wrapper" style="padding-left: 0px">
+            <div class="name">街道地址：</div>
+            <textarea id="address"></textarea>
+        </div>
+    </div>
+</div>
+<div class="title">选择支付方式</div>
+<div class="pay_way">
+    <div id="wx_pub" class="wrapper selected">
+        <div class="check"></div>
+        <div class="img"><img src="{{ STATIC_URL }}images/pay_wechat.png"></div>
+        <div class="text">微信支付</div>
+    </div>
+    <div id="alipay_wap" class="wrapper">
+        <div class="check"></div>
+        <div class="img"><img src="{{ STATIC_URL }}images/pay_union.png"></div>
+        <div class="text">支付宝支付</div>
+    </div>
+    <div id="upmp_wap" class="wrapper">
+        <div class="check"></div>
+        <div class="img"><img src="{{ STATIC_URL }}images/pay_union.png"></div>
+        <div class="text">银联支付</div>
+    </div>
+    <div id="pay_credit" class="wrapper">
+        <div class="check"></div>
+        <div class="text">选择信用卡</div>
+        <div class="add"><img src="{{ STATIC_URL }}images/add.png"></div>
+    </div>
+    <div id="pay_pet" class="wrapper" >
+        <div class="check"></div>
+        <div class="text">选择储值卡</div>
+        <div class="add"><img src="{{ STATIC_URL }}images/add.png"></div>
+    </div>
+</div>
+<div class="title">确认购买商品</div>
+<div class="product_sure">
+    <div class="wrapper">
+        <div class="img"><img src="{{ STATIC_URL }}images/test_sure.jpg" /></div>
+        <div class="info">
+            <div class="name">{{ product.title }}</div>
+            <div class="detail info" style="margin-top: 25px;">
+                尺码类别：<span class="size">{{ sku.properties_alias }}</span>；
+                <!--颜色类别：<span class="color">红色</span>；-->
+            </div>
+            <div class="detail price">
+                <span class="orange">￥<span class="p">{{ sku.agent_price }}</span></span>
+                &nbsp;X&nbsp;
+                <span class="a">{{ num }}</span>件
+            </div>
+        </div>
+    </div>
+    <div class="wrapper">
+        <div class="text">
+            合计：
+            
+            <span class="orange">
+                ￥
+                <span class="price_all">{{ payment }}</span>
+            </span>
+            <span class="grey">
+                （含运费
+                <span class="post">{{ post_fee }}</span>
+                元）
+            </span>
+        </div>
+    </div>
+    <div class="wrapper">
+        <div class="text">给买家留言：</div>
+        <div class="message">
+            <textarea id="to_seller" placeholder="有什么想对卖家说的"></textarea>
+        </div>
+    </div>
+</div>
+<div class="title">确认付款金额</div>
+<div class="price_sure">
+    <div class="wrapper">商品金额总计<div class="price sum">￥<span>{{ real_fee }}</span></div></div>
+    <div class="wrapper">快递费<div class="price post">￥<span>{{ post_fee }}</span></div></div>
+    <div class="line"></div>
+    <div class="wrapper">订单总额<div class="price all">￥<span>{{ payment }}</span></div></div>
+</div>
+
+<div id="pay_now">
+    <div class="btn">
+        <img width="16" height="16" style="margin-right: 5px;" src="{{ STATIC_URL }}images/pay.png" />
+        确认付款
+    </div>
+</div>
+
+<script>
+    $(document).ready(function(){
+        $('.ui-loader').remove();
+        //View_page_in();//页面载入时的信息写入，若服务器生成页面则无需此函数
+
+        //切换支付方式
+        $('.pay_way').on('tap','.wrapper',function(){
+            $('.pay_way .wrapper').removeClass('selected');
+            $(this).addClass('selected');
+        })
+
+        $('#pay_now').on('tap',Ctrl_sure_pay);
+
+        $('#pay_now').on('touchstart',function(){
+            $(this).addClass('pressed');
+        })
+        $('#pay_now').on('touchend',function(){
+            $(this).removeClass('pressed');
+        })
+
+        $('.pay_way').on('tap','.wrapper .add',function(){
+            var id = $(this).closest('.wrapper').attr('id');
+            Ctrl_card_add(id);
+        })
+    });
+
+    //页面载入时的信息写入，若服务器生成页面则无需此函数
+    function View_page_in(){
+        var name = '特卖 公主花朵123套装';//商品名
+        var img = './assets/images/test_sure.jpg';//商品预览图
+        var price = 50;//商品单价
+        var size = 'S';//选择的尺码
+        var color = '橙色';//选择的颜色
+        var amount = 2;//数量
+        var post = '5.50';//运费
+
+        var sum = price*amount;
+        var all = sum+parseFloat(post);
+
+        $('.product_sure .img').html('<img src="'+img+'" />');
+        var info = $('.product_sure .info');
+        info.find('.name').html(name);
+        info.find('.info .size').html(size);
+        info.find('.info .color').html(color);
+        info.find('.price .p').html(price);
+        info.find('.price .a').html(amount);
+        $('.product_sure .post').html(post);
+        $('.product_sure .price_all').html(all);
+
+        var pricer = $('.price_sure');
+        pricer.find('.sum span').html(sum);
+        pricer.find('.post span').html(post);
+        pricer.find('.all span').html(all);
+
+    }
+
+    //选择添加卡时的函数，type为pay_credit或者pay_pet，分别为信用卡和储值卡的添加
+    function Ctrl_card_add(type){
+        console.log('card add:',type);
+        switch (type){
+            case 'pay_credit':break;//信用卡
+            case 'pay_pet':break;//储值卡
+            default :break;
+        }
+    }
+
+    //确认订单后的付款操作，后续操作请自行添加
+    function Ctrl_sure_pay(){
+    
+        var CHARGE_URL = '/mm/charge/';
+        var buyer = $('#name').val();//买家姓名
+        var phone = $('#phone').val();//手机号码
+        var place = $('#place').val();//所在地区
+        var address = $('#address').val();//详细地址
+        var message = $('#to_seller').val();//买家留言
+        var pay_way  = $('.pay_way .wrapper.selected').attr('id');//支付方式
+
+        if (buyer.length==0){
+            alert('请填写收货人姓名');
+            return;
+        }
+        if (phone.length==0){
+            alert('请填写收货人的联系方式');
+            return;
+        }
+        if (place.length==0){
+            alert('请填写收货地址所在地区');
+            return;
+        }
+        if (address.length==0){
+            alert('请填写详细的收货地址');
+            return;
+        }
+        
+        var params = {
+            channel: pay_way,
+            amount: '0.1',
+            extra:{trade_type:'JSAPI',open_id:'oMt59uJJBoNRC7Fdv1b5XiOAngdU'}
+        }
+        var callback = function(data){
+          console.log('response:',data);
+          pingpp.createPayment(data, function(result, err) {
+                    console.log(result);
+                    console.log(err);
+                });
+        }
+    $.post(CHARGE_URL,JSON.stringify(params),callback,'json');
+        
+    }
+</script>
+{% endif %}
+</body>
+</html>

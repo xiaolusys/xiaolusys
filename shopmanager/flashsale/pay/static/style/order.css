@@ -1,0 +1,233 @@
+* {
+  margin: 0;
+  padding: 0;
+  font-family: "Microsoft YaHei", "微软雅黑";
+}
+img {
+  max-width: 100%;
+  max-height: 100%;
+}
+a,
+a:visited,
+a:hover {
+  text-decoration: none;
+}
+#form {
+  margin: 10px 5px;
+  border: dashed 2px #ff7200 !important;
+  padding: 3px;
+  border-radius: 5px;
+  -moz-border-radius: 5px;
+  -webkit-border-radius: 5px;
+}
+#form .content {
+  padding: 10px 15px 5px;
+  background-color: #ff7200;
+  border-radius: 5px;
+}
+#form .content .wrapper {
+  line-height: 30px;
+  background-color: #ffffff;
+  margin-bottom: 5px;
+  min-height: 30px;
+  font-size: 13px;
+  padding-left: 75px;
+  position: relative;
+}
+#form .content .wrapper .name {
+  position: absolute;
+  width: 75px;
+  height: 30px;
+  line-height: 30px;
+  text-align: right;
+  left: 0;
+  top: 0;
+  color: #ff7200;
+}
+#form .content .wrapper input {
+  padding: 5px;
+  line-height: 20px;
+  border: none 0;
+  width: 100%;
+  color: #969696;
+}
+#form .content .wrapper input:focus {
+  outline: none 0;
+}
+#form .content .wrapper textarea {
+  display: block;
+  border: none 0;
+  padding: 5px 10px;
+  text-indent: 65px;
+  line-height: 20px;
+  width: 100%;
+  min-height: 60px;
+  max-height: 60px;
+  margin: 0;
+  color: #969696;
+}
+#form .content .wrapper textarea:focus {
+  outline: none 0;
+}
+.title {
+  background-color: #a4a4a4;
+  height: 30px;
+  line-height: 28px;
+  font-size: 13px;
+  padding: 0 10px;
+  color: #ffffff;
+}
+.pay_way .wrapper {
+  margin: 0 10px;
+  padding: 10px 0;
+  line-height: 40px;
+  border-bottom: solid 1px #e9e9e9;
+  overflow: hidden;
+  position: relative;
+}
+.pay_way .wrapper .check {
+  float: left;
+  margin-right: 12px;
+  width: 18px;
+  height: 18px;
+  margin-top: 11px;
+  background-position: 0 0;
+}
+.pay_way .wrapper .img {
+  width: 40px;
+  height: 40px;
+  float: left;
+  margin-right: 15px;
+}
+.pay_way .wrapper .text {
+  float: left;
+  font-size: 16px;
+  color: #444;
+}
+.pay_way .wrapper .add {
+  position: absolute;
+  right: 0;
+  top: 50%;
+  margin-top: -20px;
+  margin-right: -10px;
+  width: 40px;
+  height: 40px;
+  padding: 15px;
+  line-height: 0px;
+}
+.pay_way .wrapper.selected .check {
+  background-position: 0 -100%;
+}
+.pay_way .wrapper:last-child {
+  border-bottom: none 0;
+}
+.product_sure {
+  margin-bottom: -1px;
+}
+.product_sure .wrapper {
+  margin: 0 10px;
+  padding: 10px 0;
+  border-bottom: solid 1px #e9e9e9;
+  overflow: hidden;
+}
+.product_sure .wrapper .img {
+  width: 80px;
+  height: 80px;
+  float: left;
+  margin-right: 10px;
+}
+.product_sure .wrapper .info {
+  float: left;
+}
+.product_sure .wrapper .info .name {
+  font-size: 15px;
+  line-height: 15px;
+  height: 15px;
+  margin-top: 5px;
+  color: #444;
+}
+.product_sure .wrapper .info .detail {
+  font-size: 13px;
+  color: #999;
+}
+.product_sure .wrapper .grey {
+  color: #999;
+}
+.product_sure .wrapper .orange {
+  color: #ff7200;
+}
+.product_sure .wrapper .message {
+  width: 100%;
+  height: 65px;
+  border: solid 1px #a4a4a4;
+  margin-top: 5px;
+  margin-bottom: 5px;
+  border-radius: 5px;
+  -moz-border-radius: 5px;
+  -webkit-border-radius: 5px;
+  overflow: hidden;
+}
+.product_sure .wrapper .message textarea {
+  width: 100%;
+  margin: 0;
+  padding: 10px 12px;
+  border: none 0;
+  font-size: 13px;
+  line-height: 16px;
+  color: #999;
+}
+.product_sure .wrapper .message textarea:focus {
+  outline: none 0;
+}
+.price_sure {
+  background-color: #ffe9d7;
+  padding: 5px 0;
+  margin-bottom: 15px;
+}
+.price_sure .wrapper {
+  line-height: 30px;
+  height: 30px;
+  padding: 0 10px;
+  color: #444;
+  position: relative;
+}
+.price_sure .wrapper .price {
+  position: absolute;
+  line-height: 30px;
+  height: 30px;
+  right: 10px;
+  top: 0;
+  text-align: right;
+  color: #ff7200;
+  font-size: 13px;
+}
+.price_sure .wrapper .price.all {
+  font-size: 17px;
+  font-weight: bold;
+}
+.price_sure .line {
+  height: 3px;
+  margin: 5px;
+}
+#pay_now {
+  display: block;
+  width: 100%;
+  height: 60px;
+  padding: 10px;
+  background-color: #ffe9d7;
+  z-index: 20;
+}
+#pay_now .btn {
+  width: 100%;
+  height: 40px;
+  line-height: 38px;
+  padding: 0;
+  background-color: #ff7200;
+  border-radius: 5px;
+  text-align: center;
+  font-size: 17px;
+  color: #ffffff;
+}
+#pay_now.pressed .btn {
+  background-color: #f75d00;
+}

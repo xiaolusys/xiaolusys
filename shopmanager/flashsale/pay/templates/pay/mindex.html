@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+  <!-- 新 Bootstrap 核心 CSS 文件 -->
+  <link rel="stylesheet" href="http://cdn.bootcss.com/bootstrap/3.2.0/css/bootstrap.min.css">
+
+  <!-- jQuery文件。务必在bootstrap.min.js 之前引入 -->
+  <script src="http://ajax.aspnetcdn.com/ajax/jQuery/jquery-2.1.3.min.js"></script>
+  <script src="http://ajax.aspnetcdn.com/ajax/jquery.mobile/1.4.5/jquery.mobile-1.4.5.min.js"></script>
+  
+  <!-- 最新的 Bootstrap 核心 JavaScript 文件 -->
+  <script src="http://cdn.bootcss.com/bootstrap/3.2.0/js/bootstrap.min.js"></script>
+  <script src="http://cdn.bootcss.com/fullPage.js/2.5.2/vendors/jquery.easings.min.js"></script>
+
+  <script src="{{ STATIC_URL }}/script/page_ctrl.js"></script>
+  <link rel="stylesheet" href="{{ STATIC_URL }}style/main.css">
+  <link rel="stylesheet" href="{{ STATIC_URL }}style/style_other.css">
+  <link rel="stylesheet" href="{{ STATIC_URL }}style/animation.css">
+
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+  <title>小鹿美美-外卖原单正品热卖</title>
+</head>
+<body>
+
+  <!-- 头图 -->
+  <div id="header"><img src="{{ STATIC_URL }}images/title.png"/></div>
+
+  <!-- 导航 -->
+  <div id="tab_nav">
+    <div class="block">
+      <a id="for_boy">男童</a>
+      <a id="for_all" class="active">全部</a>
+      <a id="for_girl">女童</a>
+    </div>
+  </div>
+
+  <!-- 商品列表 -->
+  
+  <div id="p_list">
+  {% for product in results %}
+    <div class="holder">
+      <a id="p{{ product.id }}" class="wrapper {% cycle 'girl' 'boy' %}" href="../p/{{ product.id }}/" target="_top">
+      <div class="image" style="height:240px">
+      <img src="{{ product.pic_path }}"><span>已抢光</span></div>
+      <div class="name">{{ product.name }}</div>
+      <div class="price">￥<span>{{ product.agent_price }}</span></div>
+      <div class="price_o">￥<span>{{ product.std_sale_price }}</span>&nbsp;</div>
+      </a>
+    </div>
+    {% endfor %}
+  </div>
+  
+  <div id="no_more">已无更多商品</div>
+
+<script>
+  $(document).ready(function(){
+    $('.ui-loader').remove();
+    $(document).on('scroll touchmove',function(){
+      var h = $('body').scrollTop();
+      if (h>=78){
+        $('#tab_nav').addClass('blocked');
+      }
+      else{
+        $('#tab_nav').removeClass('blocked');
+      }
+    });
+
+    //若采用页面内筛选的形式,则可以用以下绑定来完成筛选
+    $('#tab_nav').on('tap','.block a:not(.active)',function(){
+      $('#tab_nav .block a').removeClass('active');
+      $(this).addClass('active');
+      var id = $(this).attr('id');
+      $('#p_list .holder').show();
+      if (id == 'for_boy'){
+        $('#p_list .holder .wrapper.boy').closest('.holder').show();
+        $('#p_list .holder .wrapper.girl').closest('.holder').hide();
+      }
+      if (id == 'for_girl'){
+        $('#p_list .holder .wrapper.boy').closest('.holder').hide();
+        $('#p_list .holder .wrapper.girl').closest('.holder').show();
+      }
+    });
+
+    Ctrl_list_write();//列表写入
+  });
+
+
+  //商品列表信息引入，使用JSON文件引入数据
+  function Ctrl_list_write(){
+    //示例（仅示例用，实际使用时请删除）
+    //for (var i=0;i<8;i++)View_list_wrapper_write();
+
+    //实际JSON引入部分，可根据实际情况调整
+    //$.getJSON('',function(data){
+    //  $.each(data,function(index,entry){
+    //    View_list_wrapper_write(entry);
+    //  });
+    //})
+  }
+
+</script>
+</body>
+</html>
