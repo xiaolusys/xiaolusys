@@ -143,3 +143,4 @@ urlpatterns = patterns('shopback.items.views',
         name='test_diff'),
     #(r'^product_lookup/$', 'shopback.items.views.json_lookup', product_lookup),
 )
+

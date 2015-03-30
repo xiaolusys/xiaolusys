@@ -155,6 +155,7 @@ INSTALLED_APPS = (
     'games.bomb',
 
 #     'flashsale.supplier',
+    'flashsale.pay',
     'mathfilters',
 
 

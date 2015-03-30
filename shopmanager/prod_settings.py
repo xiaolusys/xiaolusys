@@ -118,3 +118,9 @@ JD_AUTHRIZE_URL = 'https://auth.360buy.com/oauth/authorize'
 JD_AUTHRIZE_TOKEN_URL = 'https://auth.360buy.com/oauth/token'
 JD_REDIRECT_URI    = '/app/jd/login/auth/'
 JD_API_ENDPOINT = 'http://%s/routerjson'%JD_API_HOSTNAME
+
+################### PING++ SETTINGS ##################
+PING_APPID           = "app_qPCaj95Serj5PKOq"
+PING_APPKEY          = "sk_live_HOS4OSW10u5CDyrn5Gn9izLC" 
+
+
