@@ -66,7 +66,7 @@ class Product(models.Model):
     warn_num     = models.IntegerField(null=True,default=0,verbose_name=u'警告数')  #警戒库位
     remain_num   = models.IntegerField(null=True,default=0,verbose_name=u'预留数')  #预留库存
     wait_post_num   = models.IntegerField(null=True,default=0,verbose_name=u'待发数')  #待发数
-    retrieval_num  = models.IntegerField(null=True,default=0,verbose_name=u'日出库数')  #日出库
+    sale_num  = models.IntegerField(null=True,default=0,verbose_name=u'日出库数')  #日出库
     reduce_num   = models.IntegerField(null=True,default=0,verbose_name=u'预减数')  #下次入库减掉这部分库存
     
     cost         = models.FloatField(default=0,verbose_name=u'成本价')
@@ -131,7 +131,9 @@ class Product(models.Model):
     
     @property
     def realnum(self):
-        return self.collect_num - self.wait_post_num
+        if self.collect_num >= self.sale_num:
+            return self.collect_num - self.sale_num
+        return 0
     
     @property
     def is_out_stock(self):
@@ -320,7 +322,7 @@ class ProductSku(models.Model):
     warn_num     = models.IntegerField(null=True,default=0,verbose_name='警戒数')    #警戒库位
     remain_num   = models.IntegerField(null=True,default=0,verbose_name='预留数')    #预留库存
     wait_post_num = models.IntegerField(null=True,default=0,verbose_name='待发数')    #待发数
-    retrieval_num = models.IntegerField(null=True,default=0,verbose_name=u'日出库数')    #日出库
+    sale_num = models.IntegerField(null=True,default=0,verbose_name=u'日出库数')    #日出库
     reduce_num    = models.IntegerField(null=True,default=0,verbose_name='预减数')    #下次入库减掉这部分库存
     
     cost          = models.FloatField(default=0,verbose_name='成本价')
@@ -375,7 +377,9 @@ class ProductSku(models.Model):
     
     @property
     def realnum(self):
-        return self.quantity - self.wait_post_num
+        if self.remain_num >= self.sale_num:
+            return self.remain_num - self.sale_num
+        return 0
     
     @property
     def is_out_stock(self):

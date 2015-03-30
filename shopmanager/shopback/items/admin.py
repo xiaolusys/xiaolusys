@@ -500,11 +500,11 @@ class ProductAdmin(admin.ModelAdmin):
             if skus.count() > 0:
                 for sku in skus:
                     pcsv.append((prod.outer_id,prod.name,sku.outer_id,sku.name,str(sku.quantity),str(sku.warn_num),\
-                                 str(sku.remain_num),str(sku.wait_post_num),str(sku.retrieval_num),str(sku.cost),\
+                                 str(sku.remain_num),str(sku.wait_post_num),str(sku.sale_num),str(sku.cost),\
                                  str(sku.std_sale_price),sku.get_districts_code(),sku.barcode))
             else:
                 pcsv.append((prod.outer_id,prod.name,'','',str(prod.collect_num),str(prod.warn_num),\
-                                 str(prod.remain_num),str(prod.wait_post_num),str(sku.retrieval_num),str(prod.cost),\
+                                 str(prod.remain_num),str(prod.wait_post_num),str(sku.sale_num),str(prod.cost),\
                                  str(prod.std_sale_price),prod.get_districts_code(),prod.barcode))
             pcsv.append(['','','','','','','','','','','',''])
         
