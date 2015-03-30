@@ -794,10 +794,10 @@ class RefundReviewView(View):
                 wx_users = WeiXinUser.objects.filter(mobile=mobile)
                 if wx_users.count() > 0:
                     openid = wx_users[0].openid
-                    orders = SampleOrder.objects.filter(user_openid=openid).filter(status__gt=60).filter(status__lt=69)
+                    orders = SampleOrder.objects.filter(user_openid=openid).filter(status__gt=0).order_by('-created')
                     if orders.count() > 0:
                         sample_order = orders[0]
-
+        print 'refund:',refunds,next_trade,next_refund,sample_order
         html = 'weixin/refundreviewblock.html'
         if refund_status == 1:
             html = 'weixin/finalizeblock.html'
@@ -824,7 +824,7 @@ class RefundRecordView(View):
             if wx_users.count() > 0:
                 openid = wx_users[0].openid
                 if refund.refund_type in (1,4):
-                    orders = SampleOrder.objects.filter(user_openid=openid).filter(status__gt=60).filter(status__lt=69)
+                    orders = SampleOrder.objects.filter(user_openid=openid).filter(status__gt=0).order_by('-created')
                     if orders.count() > 0:
                         sample_order = orders[0]
                 if refund.refund_type == 2:
