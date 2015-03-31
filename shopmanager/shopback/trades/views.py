@@ -177,7 +177,7 @@ class StatisticMergeOrderView(ModelView):
         
         trade_ids = [t[0] for t in order_qs.values_list('merge_trade__id')]
         
-        return trade_ids
+        return set(trade_ids)
         #return MergeTrade.objects.filter(id__in=trade_ids)
     
     

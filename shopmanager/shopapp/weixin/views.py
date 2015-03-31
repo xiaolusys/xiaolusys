@@ -7,6 +7,8 @@ from django.conf import settings
 from django.forms.models import model_to_dict
 from django.views.decorators.csrf import csrf_exempt
 from django.views.generic import View
+from django.shortcuts import get_object_or_404
+
 from shopapp.weixin.service import *
 from .models import (WeiXinUser,
                      ReferalRelationship,
@@ -49,6 +51,16 @@ import logging
 import json
 
 logger = logging.getLogger('django.request')
+
+import re
+OPENID_RE = re.compile('^[a-zA-Z0-9-_]{20,40}$')
+
+def valid_openid(openid):
+    if not openid:
+        return False
+    if not OPENID_RE.match(openid):
+        return False
+    return True 
 
 @csrf_exempt
 def wxpay(request):
@@ -279,14 +291,12 @@ def chargeWXUser(request,pk):
     result = {}
     charged = False
     employee = request.user
-    try:
-        supplier = WeiXinUser.objects.get(id=pk)
-    except WeiXinUser.DoesNotExist:
-        result ={'code':1,'error_response':u'微信用户未找到'}
-    else:
-        charged = WeiXinUser.objects.charge(supplier, employee)
-        if not charged:
-            result ={'code':1,'error_response':''}
+
+    supplier = get_object_or_404(WeiXinUser,pk=pk)
+   
+    charged = WeiXinUser.objects.charge(supplier, employee)
+    if not charged:
+        result ={'code':1,'error_response':''}
             
     if charged :
         result ={'success':True}
@@ -373,7 +383,7 @@ class VerifyCodeView(View):
             response = {"code":"bad", "message":"wrong verification code"}
             return HttpResponse(json.dumps(response),mimetype='application/json')
 
-        wx_user, state = WeiXinUser.objects.get_or_create(openid=openid)
+        wx_user = get_object_or_404(WeiXinUser,openid=openid)
         if not wx_user.validcode or wx_user.validcode != verifycode:
             response = {"code":"bad", "message":"invalid code"}
         else:    
@@ -396,7 +406,7 @@ class OrderInfoView(View):
         code = content.get('code',None)
         user_openid = get_user_openid(request, code)
         
-        if user_openid == None or user_openid == "None":
+        if not valid_openid(user_openid):
             redirect_url = "https://open.weixin.qq.com/connect/oauth2/authorize?appid=wxc2848fa1e1aa94b5&redirect_uri=http://weixin.huyi.so/weixin/orderinfo/&response_type=code&scope=snsapi_base&state=135#wechat_redirect"
             return redirect(redirect_url)
         
@@ -529,7 +539,7 @@ class BabyInfoView(View):
         
         openid = get_user_openid(request, code)
 
-        if openid == None or openid == "None":
+        if not valid_openid(openid):
             redirect_url = "https://open.weixin.qq.com/connect/oauth2/authorize?appid=wxc2848fa1e1aa94b5&redirect_uri=http://weixin.huyi.so/weixin/babyinfo/&response_type=code&scope=snsapi_base&state=135#wechat_redirect"
             return redirect(redirect_url)
         
@@ -852,7 +862,7 @@ class FreeSampleView(View):
         fcode = content.get('f', '')
         
         user_openid = get_user_openid(request, code)
-        if user_openid == "" or user_openid == None or user_openid == "None":
+        if not valid_openid(user_openid):
             redirect_url = "https://open.weixin.qq.com/connect/oauth2/authorize?appid=wxc2848fa1e1aa94b5&redirect_uri=http://weixin.huyi.so/weixin/freesamples/&response_type=code&scope=snsapi_base&state=135#wechat_redirect"
             return redirect(redirect_url)
         
@@ -1257,7 +1267,7 @@ class PayGuideView(View):
         user_openid = request.COOKIES.get('openid')
         
         user_valid = True
-        if user_openid == 'None' or user_openid == None:
+        if not valid_openid(user_openid):
             user_valid = False
             
         passed = False
@@ -1351,7 +1361,7 @@ class SurveyView(View):
         code = content.get('code',None)
         user_openid = get_user_openid(request, code)
 
-        if user_openid == None or user_openid == "None":
+        if not valid_openid(user_openid):
             redirect_url = "https://open.weixin.qq.com/connect/oauth2/authorize?appid=wxc2848fa1e1aa94b5&redirect_uri=http://weixin.huyi.so/weixin/survey/&response_type=code&scope=snsapi_base&state=135#wechat_redirect"
             return redirect(redirect_url)
 
