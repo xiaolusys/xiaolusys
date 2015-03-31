@@ -120,7 +120,7 @@ JD_REDIRECT_URI    = '/app/jd/login/auth/'
 JD_API_ENDPOINT = 'http://%s/routerjson'%JD_API_HOSTNAME
 
 ################### PING++ SETTINGS ##################
-PING_APPID           = "app_qPCaj95Serj5PKOq"
-PING_APPKEY          = "sk_live_HOS4OSW10u5CDyrn5Gn9izLC" 
+PINGPP_APPID           = "app_qPCaj95Serj5PKOq"
+PINGPP_APPKEY          = "sk_live_HOS4OSW10u5CDyrn5Gn9izLC" 
 
 
