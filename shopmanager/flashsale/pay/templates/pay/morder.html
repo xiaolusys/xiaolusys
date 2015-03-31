@@ -55,23 +55,13 @@
     </div>
     <div id="alipay_wap" class="wrapper">
         <div class="check"></div>
-        <div class="img"><img src="{{ STATIC_URL }}images/pay_union.png"></div>
+        <div class="img"><img src="{{ STATIC_URL }}images/pay_alipay.png"></div>
         <div class="text">支付宝支付</div>
     </div>
-    <div id="upmp_wap" class="wrapper">
+    <div id="upacp_wap" class="wrapper">
         <div class="check"></div>
         <div class="img"><img src="{{ STATIC_URL }}images/pay_union.png"></div>
         <div class="text">银联支付</div>
-    </div>
-    <div id="pay_credit" class="wrapper">
-        <div class="check"></div>
-        <div class="text">选择信用卡</div>
-        <div class="add"><img src="{{ STATIC_URL }}images/add.png"></div>
-    </div>
-    <div id="pay_pet" class="wrapper" >
-        <div class="check"></div>
-        <div class="text">选择储值卡</div>
-        <div class="add"><img src="{{ STATIC_URL }}images/add.png"></div>
     </div>
 </div>
 <div class="title">确认购买商品</div>
@@ -221,12 +211,12 @@
             alert('请填写详细的收货地址');
             return;
         }
-        
-        var params = {
+        var params = {     
             channel: pay_way,
             amount: '1',
-            extra:{trade_type:'JSAPI',open_id:'oMt59uJJBoNRC7Fdv1b5XiOAngdU'}
+
         }
+        
         var callback = function(data){
           console.log('response:',data);
           pingpp.createPayment(data, function(result, err) {

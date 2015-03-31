@@ -1,3 +1,6 @@
+########### 2015-3-31  #################
+create index idx_mergetrade_receiver_phone on shop_trades_mergetrade(receiver_phone);
+########### 2015-3-23  #################
 alter table shop_items_product change retrieval_num sale_num int(11) NOT NULL;
 alter table shop_items_productsku change retrieval_num sale_num int(11) NOT NULL;
 alter table shop_items_product add column sale_time date,add index item_sale_time_idx(sale_time);

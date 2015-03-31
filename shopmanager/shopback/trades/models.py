@@ -218,7 +218,7 @@ class MergeTrade(models.Model):
     receiver_zip       =  models.CharField(max_length=10,blank=True,verbose_name=u'邮编')
     receiver_mobile    =  models.CharField(max_length=24,db_index=True,
                                            blank=True,verbose_name=u'手机')
-    receiver_phone     =  models.CharField(max_length=20,
+    receiver_phone     =  models.CharField(max_length=20,db_index=True,
                                            blank=True,verbose_name=u'电话')
     
     step_paid_fee      = models.CharField(max_length=10,blank=True,verbose_name=u'分阶付款金额')
@@ -542,7 +542,7 @@ class MergeOrder(models.Model):
     
     id    = BigIntegerAutoField(primary_key=True)
     oid   = models.CharField(max_length=32,
-                             default=lambda:'HYO%d'%int(time.time()*10**5),
+                             default=lambda:'DO%d'%int(time.time()*10**5),
                              verbose_name=u'原单ID')
     merge_trade = BigIntegerForeignKey(MergeTrade,
                                        related_name='merge_orders',
