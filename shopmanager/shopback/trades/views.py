@@ -176,8 +176,9 @@ class StatisticMergeOrderView(ModelView):
     def getSourceTrades(self,order_qs):
         
         trade_ids = [t[0] for t in order_qs.values_list('merge_trade__id')]
-
-        return MergeTrade.objects.filter(id__in=trade_ids)
+        
+        return trade_ids
+        #return MergeTrade.objects.filter(id__in=trade_ids)
     
     
     def getEffectOrdersId(self,order_qs):
@@ -355,9 +356,9 @@ class StatisticMergeOrderView(ModelView):
        
         trade_qs  = self.getSourceTrades(order_qs)
        
-        buyer_nums   = trade_qs.values_list('buyer_nick').distinct().count()
-        trade_nums    = trade_qs.count()
-        total_post_fee = trade_qs.aggregate(total_post_fee=Sum('post_fee')).get('total_post_fee') or 0
+        buyer_nums   = len(trade_qs)
+        trade_nums    = len(trade_qs)
+        total_post_fee = 0.00
        
         refund_fees      = self.getTotalRefundFee(order_qs)
        

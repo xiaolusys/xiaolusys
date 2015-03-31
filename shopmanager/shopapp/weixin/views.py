@@ -450,7 +450,10 @@ class OrderInfoView(View):
         data["status"]   = trade.status
         data["type"]     = trade.type
         data["receiver_name"]   = trade.receiver_name
-        data["receiver_mobile"] = trade.receiver_mobile
+        receiver_mobile = trade.receiver_mobile 
+        if len(receiver_mobile) >10:
+            receiver_mobile = '%s****%s'%(receiver_mobile[0:3],receiver_mobile[7:])
+        data["receiver_mobile"] = receiver_mobile 
         data["address"] = ','.join([trade.receiver_state, trade.receiver_city, trade.receiver_district, trade.receiver_address])
         
         # only for order paid after 2014-9-15

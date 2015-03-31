@@ -45,6 +45,9 @@ import logging
 
 logger =  logging.getLogger('django.request')
 
+import re
+PHONE_RE = re.compile('^(1[0-9]{10}|([0-9]{3,4}-)?[0-9-]{6,8})$')
+
 __author__ = 'meixqhi'
 
 class MergeOrderInline(admin.TabularInline):
@@ -72,12 +75,15 @@ class MergeTradeChangeList(ChangeList):
         
         #如果查询条件中含有邀请码
         search_q = request.GET.get('q','').strip()
+        if PHONE_RE.match(search_q):
+            trades = MergeTrade.objects.filter(models.Q(receiver_phone=search_q)
+                                               |models.Q(receiver_mobile=search_q))
+            return trades
+        
         if search_q.isdigit():
             trades = MergeTrade.objects.filter(models.Q(id=search_q)
                                                |models.Q(tid=search_q)
-                                               |models.Q(out_sid=search_q)
-                                               |models.Q(receiver_mobile=search_q))
-
+                                               |models.Q(out_sid=search_q))
             return trades
         
         if search_q:

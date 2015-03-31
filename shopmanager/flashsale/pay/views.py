@@ -20,13 +20,28 @@ class PINGPPChargeView(View):
         logger.debug('PINGPP CHARGE REQ: %s'%content)
         
         form = json.loads(content)
+        channel = form['channel'] 
+        open_id = form.pop('open_id')
+        
+        if channel == 'wx_pub':
+            return 
+            extra = {'open_id':open_id,
+                      'trade_type':'JSAPI'}
+            
+        elif channel == 'alipay_wap':
+            extra = {"success_url":"http://youni.huyi.so/mm/callback/",
+                     "cancel_url":"http://192.168.1.6:9000/mm/cancel/"}
+        else :
+            extra = {"result_url":"http://192.168.1.6:9000/mm/callback/?code="}
+        
         form.update({ 'order_no':'T%s'%int(time.time()),
                       'app':dict(id=settings.PINGPP_APPID),
                       'currency':'cny',
                       'client_ip':'121.199.168.159',
                       'subject':'test-subject',
                       'body':'test-body',
-                      'metadata':dict(color='red')})
+                      'metadata':dict(color='red'),
+                      'extra':extra})
         
         response_charge = pingpp.Charge.create(api_key=settings.PINGPP_APPKEY,**form)
         logger.debug('PINGPP CHARGE RESP: %s'%response_charge)
@@ -139,45 +154,8 @@ class OrderBuyReview(APIView):
         return Response(data)
     
     get = post
-
-class OrderBuyConfirm(APIView):
-
-#     authentication_classes = (authentication.TokenAuthentication,)
-    permission_classes = (permissions.IsAuthenticated,)
-    template_name = ""
-
     
-    def post(self,  request, format=None):
-        
-        content = request.REQUEST
-        
-        pid = content.get('pid')
-        sid  = content.get('sid')
-        num   = int(content.get('num'))
-        payment  = float(content.get('payment'))
-        post_fee = float(content.get('post_fee'))
-        
-        
-        product = get_object_or_404(Product,pk=pid)
-        sku  = get_object_or_404(ProductSku,pk=sid)
-        
-        order_pass = False 
-        product_dict = None
-        sku_dict = None
-        if num <= sku.realnum:
-            order_pass =True
-            product_dict = model_to_dict(product)
-            sku_dict     = model_to_dict(sku)
-            
-            
-        data = {'product':product_dict,
-                'sku':sku_dict,
-                'num':num,
-                'post_fee':post_fee,
-                'payment':payment,
-                'order_pass':order_pass}
-        
-        return Response(data)
     
-    get = post
+
+
     
