@@ -8,11 +8,53 @@ from django.views.generic import View
 from django.forms import model_to_dict
 from django.shortcuts import get_object_or_404
 
+from shopback.items.models import Product,ProductSku
+from .models import SaleTrade,SaleOrder,genUUID
 import pingpp
 import logging
 logger = logging.getLogger('django.request')
 
+import re
+UUID_RE = re.compile('^[a-f0-9-]{36}$')
+
 class PINGPPChargeView(View):
+    
+    def createSaleTrade(self,form):
+        uuid = form.pop('uuid')
+        if not UUID_RE.match(uuid):
+            raise Http404('UUID NOT EXIST')
+        
+        sale_trade = SaleTrade.objects.create(
+                                 tid=uuid,
+                                 channel=form.get('channel'),
+                                 receiver_name=form.get('receiver_name'),
+                                 receiver_state=form.get('receiver_state'),
+                                 receiver_address=form.get('receiver_address'),
+                                 receiver_phone=form.get('receiver_phone'),
+                                 buyer_message=form.get('buyer_message'),
+                                 payment=float(form.get('payment')),
+                                 post_fee=form.get('post_fee'),
+                                 status=SaleTrade.WAIT_BUYER_PAY
+                                 )
+        
+        product = get_object_or_404(Product,pk=form.get('item_id'))
+        sku = get_object_or_404(ProductSku,pk=form.get('sku_id'))
+        
+        SaleOrder.objects.create(
+                                 oid=uuid,
+                                 sale_trade=sale_trade,
+                                 item_id=form.get('item_id'),
+                                 sku_id=form.get('sku_id'),
+                                 num=form.get('num'),
+                                 outer_id=product.outer_id,
+                                 outer_sku_id=sku.outer_id,
+                                 title=product.name,
+                                 pic_path=product.pic_path,
+                                 sku_name=sku.properties_alias,
+                                 status=SaleTrade.WAIT_BUYER_PAY
+                                 )
+        
+        return sale_trade
     
     def post(self, request, *args, **kwargs):
         
@@ -20,13 +62,14 @@ class PINGPPChargeView(View):
         logger.debug('PINGPP CHARGE REQ: %s'%content)
         
         form = json.loads(content)
-        channel = form['channel'] 
-        open_id = form.pop('open_id')
+        channel = form.get('channel')
+        open_id = form.get('open_id')
+        
+        strade = self.createSaleTrade(form)
         
         if channel == 'wx_pub':
-            return 
             extra = {'open_id':open_id,
-                      'trade_type':'JSAPI'}
+                    'trade_type':'JSAPI'}
             
         elif channel == 'alipay_wap':
             extra = {"success_url":"http://youni.huyi.so/mm/callback/",
@@ -34,16 +77,18 @@ class PINGPPChargeView(View):
         else :
             extra = {"result_url":"http://192.168.1.6:9000/mm/callback/?code="}
         
-        form.update({ 'order_no':'T%s'%int(time.time()),
-                      'app':dict(id=settings.PINGPP_APPID),
-                      'currency':'cny',
-                      'client_ip':'121.199.168.159',
-                      'subject':'test-subject',
-                      'body':'test-body',
-                      'metadata':dict(color='red'),
-                      'extra':extra})
+        params ={ 'order_no':'T%s'%strade.id,
+                  'app':dict(id=settings.PINGPP_APPID),
+                  'channel':channel,
+                  'currency':'cny',
+                  'amount':'%d'%(strade.payment*100),
+                  'client_ip':'121.199.168.159',
+                  'subject':u'小鹿美美平台交易',
+                  'body':strade.body_describe,
+                  'metadata':dict(color='red'),
+                  'extra':extra}
         
-        response_charge = pingpp.Charge.create(api_key=settings.PINGPP_APPKEY,**form)
+        response_charge = pingpp.Charge.create(api_key=settings.PINGPP_APPKEY,**params)
         logger.debug('PINGPP CHARGE RESP: %s'%response_charge)
         
         return HttpResponse(json.dumps(response_charge),content_type='application/json')
@@ -142,10 +187,11 @@ class OrderBuyReview(APIView):
         post_fee = 0
         real_fee = num * sku.agent_price
         payment  = num * sku.agent_price + post_fee
-        print num,real_fee,post_fee,payment,order_pass
+
         data = {'product':product_dict,
                 'sku':sku_dict,
                 'num':num,
+                'uuid':genUUID(),
                 'real_fee':real_fee,
                 'post_fee':post_fee,
                 'payment':payment,

@@ -235,10 +235,10 @@ def get_user_openid(request, code):
         return cookie_openid 
     
     if (cookie_openid and cookie_openid != 'None' and r.get('openid') != cookie_openid):
-        raise Exception(u'COOKIE OPENID与授权OPENID码不一致')
+        raise Http404('openid-not-unique-on-aphone')
 
     if not r.get('openid'):
-        raise Exception(u'微信用户授权错误')
+        raise Http404('openid-not-fond')
     
     return r.get('openid')
 
@@ -1503,8 +1503,9 @@ class ScoreMenuView(View):
         content = request.REQUEST
         code = content.get('code')
         user_openid = get_user_openid(request, code)
-        if not user_openid or user_openid.upper() == 'NONE':
-            return HttpResponse(u'此页面需要授权可见')
+        if not valid_openid(user_openid):
+            redirect_url = "https://open.weixin.qq.com/connect/oauth2/authorize?appid=wxc2848fa1e1aa94b5&redirect_uri=http://weixin.huyi.so/weixin/scoremenu/&response_type=code&scope=snsapi_base&state=135#wechat_redirect"
+            return redirect(redirect_url)
         
         wx_user,state = WeiXinUser.objects.get_or_create(openid=user_openid)
         pk = wx_user.pk

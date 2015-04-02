@@ -25,6 +25,7 @@
 <body>
 {% if not order_pass %}
 <div class="well ">商品信息已失效，2秒后跳转...</div>
+<script></script>
 {% else %}
 <div id="form">
     <div class="content">
@@ -84,7 +85,6 @@
     <div class="wrapper">
         <div class="text">
             合计：
-            
             <span class="orange">
                 ￥
                 <span class="price_all">{{ payment }}</span>
@@ -110,7 +110,12 @@
     <div class="line"></div>
     <div class="wrapper">订单总额<div class="price all">￥<span>{{ payment }}</span></div></div>
 </div>
-
+<input type="hidden" id="pid" value="{{ product.id }}" />
+<input type="hidden" id="sid" value="{{ sku.id }}" />
+<input type="hidden" id="num" value="{{ num }}" />
+<input type="hidden" id="uuid" value="{{ uuid }}" />
+<input type="hidden" id="post_fee" value="{{ post_fee }}" />
+<input type="hidden" id="payment" value="{{ payment }}" />
 <div id="pay_now">
     <div class="btn">
         <img width="16" height="16" style="margin-right: 5px;" src="{{ STATIC_URL }}images/pay.png" />
@@ -144,35 +149,6 @@
         })
     });
 
-    //页面载入时的信息写入，若服务器生成页面则无需此函数
-    function View_page_in(){
-        var name = '特卖 公主花朵123套装';//商品名
-        var img = './assets/images/test_sure.jpg';//商品预览图
-        var price = 50;//商品单价
-        var size = 'S';//选择的尺码
-        var color = '橙色';//选择的颜色
-        var amount = 2;//数量
-        var post = '5.50';//运费
-
-        var sum = price*amount;
-        var all = sum+parseFloat(post);
-
-        $('.product_sure .img').html('<img src="'+img+'" />');
-        var info = $('.product_sure .info');
-        info.find('.name').html(name);
-        info.find('.info .size').html(size);
-        info.find('.info .color').html(color);
-        info.find('.price .p').html(price);
-        info.find('.price .a').html(amount);
-        $('.product_sure .post').html(post);
-        $('.product_sure .price_all').html(all);
-
-        var pricer = $('.price_sure');
-        pricer.find('.sum span').html(sum);
-        pricer.find('.post span').html(post);
-        pricer.find('.all span').html(all);
-
-    }
 
     //选择添加卡时的函数，type为pay_credit或者pay_pet，分别为信用卡和储值卡的添加
     function Ctrl_card_add(type){
@@ -194,7 +170,14 @@
         var address = $('#address').val();//详细地址
         var message = $('#to_seller').val();//买家留言
         var pay_way  = $('.pay_way .wrapper.selected').attr('id');//支付方式
-
+        
+        var pid  = $('#pid').val();
+        var sid  = $('#sid').val();
+        var num  = $('#num').val();
+        var post_fee = $('#post_fee').val();
+        var payment  = $('#payment').val();
+        var uuid     = $('#uuid').val();
+        
         if (buyer.length==0){
             alert('请填写收货人姓名');
             return;
@@ -211,10 +194,20 @@
             alert('请填写详细的收货地址');
             return;
         }
-        var params = {     
+        var params = {    
+            item_id: pid,
+            sku_id: sid, 
+            uuid: uuid,
+            num: num,
             channel: pay_way,
-            amount: '1',
-
+            post_fee: post_fee,
+            payment: payment,
+            
+            receiver_name:buyer,
+            receiver_phone:phone,
+            receiver_state:place,
+            receiver_address:address,
+            buyer_message:message
         }
         
         var callback = function(data){

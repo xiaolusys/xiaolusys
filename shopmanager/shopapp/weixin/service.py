@@ -242,8 +242,13 @@ class WeixinUserService():
     
     def getResponseByBestMatch(self, message, openId, *args, **kwargs):
         
-        if mobile_re.match(message) and self.getValidCode(message, openId):
-            return WeiXinAutoResponse.objects.get_or_create(message=u'校验码提醒')[0].autoParams()
+        if mobile_re.match(message) :
+            wx_user = self.getOrCreateUser(openId, force_update=True)
+            if wx_user.isValid():
+                return WeiXinAutoResponse.respDKF()
+            
+            if self.getValidCode(message, openId):
+                return WeiXinAutoResponse.objects.get_or_create(message=u'校验码提醒')[0].autoParams()
         
         if code_re.match(message) and self.checkValidCode(message, openId):
             return WeiXinAutoResponse.objects.get_or_create(message=u'校验成功提示')[0].autoParams()            
@@ -417,10 +422,10 @@ class WeixinUserService():
         
         TradeService.createTrade(user_id, order_id, pcfg.WX_TYPE)
         
-        return self.genTextRespJson(u'您的订单(%s)优尼世界已收到,我们会尽快将宝贝寄给您。[玫瑰]' % order_id)
+        return self.genTextRespJson(u'您的订单(%s)已收到,我们会尽快将宝贝寄给您。[玫瑰]' % order_id)
     
     
-    def handleSaleAction(self, user_id, pictures, attach_files=[]):   
+    def handleSaleAction(self, user_id, pictures, attach_files=[]):
         
         pic_count = int(pictures['Count'])
 #        

@@ -164,8 +164,10 @@ class WeiXinUserAdmin(admin.ModelAdmin):
     
     def group_select(self, obj):
 
-        categorys = self.user_groups
-
+        categorys = set(self.user_groups)
+        if obj.user_group:
+            categorys.add(obj.user_group)
+            
         cat_list = ["<select class='group_select' gid='%s'>"%obj.id]
         cat_list.append("<option value=''>-------------------</option>")
         for cat in categorys:

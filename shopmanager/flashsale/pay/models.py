@@ -10,6 +10,10 @@ from django.db import IntegrityError, transaction
 from shopback.base.fields import BigIntegerAutoField,BigIntegerForeignKey
 from shopback.logistics.models import LogisticsCompany
 
+import uuid
+
+def genUUID():
+    return str(uuid.uuid1(clock_seq=True))
 
 class SaleTrade(models.Model):
     
@@ -18,9 +22,17 @@ class SaleTrade(models.Model):
     UPMP_TYPE = 'upmp_wap'
     
     CHANNEL_CHOICES = (
-        (WX_TYPE,u'微信小店'),
+        (WX_TYPE,u'微支付'),
         (ALIPAY_TYPE,u'支付宝'),
         (UPMP_TYPE,u'银联'),
+    )
+    
+    PREPAY  = 0
+    POSTPAY = 1
+    
+    TRADE_TYPE_CHOICES = (
+        (PREPAY,u"在线支付"),
+        (POSTPAY,"货到付款"),
     )
     
     TRADE_NO_CREATE_PAY = 0
@@ -46,12 +58,11 @@ class SaleTrade(models.Model):
     
     id    = BigIntegerAutoField(primary_key=True,verbose_name=u'订单ID')
     
-    tid   = models.CharField(max_length=32,
-                             verbose_name=u'原单ID')  
-    buyer_nick  = models.CharField(max_length=64,db_index=True,blank=True,verbose_name=u'买家昵称')
+    tid   = models.CharField(max_length=40,unique=True,verbose_name=u'原单ID')  
+    buyer_id   = models.BigIntegerField(null=False,db_index=True,verbose_name=u'买家ID')
+    buyer_nick  = models.CharField(max_length=64,blank=True,verbose_name=u'买家昵称')
     
-    channel     = models.CharField(max_length=16,choices=CHANNEL_CHOICES,
-                                  blank=True,verbose_name=u'付款类型')
+    channel     = models.CharField(max_length=16,choices=CHANNEL_CHOICES,blank=True,verbose_name=u'付款类型')
     
     payment    =   models.FloatField(default=0.0,verbose_name=u'实付款')
     post_fee   =   models.FloatField(default=0.0,verbose_name=u'物流费用')
@@ -60,13 +71,14 @@ class SaleTrade(models.Model):
     buyer_message = models.TextField(max_length=1000,blank=True,verbose_name=u'买家留言')
     seller_memo   = models.TextField(max_length=1000,blank=True,verbose_name=u'卖家备注')
     
-    created      = models.DateTimeField(null=True,blank=True,verbose_name=u'生成日期')
+    created      = models.DateTimeField(null=True,auto_now_add=True,blank=True,verbose_name=u'生成日期')
     pay_time     = models.DateTimeField(db_index=True,null=True,blank=True,verbose_name=u'付款日期')
-    modified     = models.DateTimeField(null=True,blank=True,verbose_name=u'修改日期')
+    modified     = models.DateTimeField(null=True,auto_now=True,blank=True,verbose_name=u'修改日期')
     consign_time = models.DateTimeField(null=True,blank=True,verbose_name=u'发货日期')
     
-    out_sid         = models.CharField(max_length=64,db_index=True,
-                                       blank=True,verbose_name=u'物流编号')
+    trade_type = models.IntegerField(choices=TRADE_TYPE_CHOICES,default=PREPAY,verbose_name=u'订单类型')
+    
+    out_sid         = models.CharField(max_length=64,blank=True,verbose_name=u'物流编号')
     logistics_company  = models.ForeignKey(LogisticsCompany,null=True,
                                            blank=True,verbose_name=u'物流公司')
     receiver_name    =  models.CharField(max_length=25,
@@ -77,10 +89,12 @@ class SaleTrade(models.Model):
     
     receiver_address   =  models.CharField(max_length=128,blank=True,verbose_name=u'详细地址')
     receiver_zip       =  models.CharField(max_length=10,blank=True,verbose_name=u'邮编')
-    receiver_mobile    =  models.CharField(max_length=24,db_index=True,blank=True,verbose_name=u'手机')
+    receiver_mobile    =  models.CharField(max_length=11,db_index=True,blank=True,verbose_name=u'手机')
     receiver_phone     =  models.CharField(max_length=20,blank=True,verbose_name=u'电话')
 
-    status = models.IntegerField(choices=TRADE_STATUS,default=TRADE_NO_CREATE_PAY,
+    openid  = models.CharField(max_length=40,blank=True,verbose_name=u'微信用户ID')
+
+    status  = models.IntegerField(choices=TRADE_STATUS,default=TRADE_NO_CREATE_PAY,
                               db_index=True,blank=True,verbose_name=u'交易状态')
 
     class Meta:
@@ -91,7 +105,13 @@ class SaleTrade(models.Model):
     def __unicode__(self):
         return '<%s,%s>'%(str(self.id),self.buyer_nick)
     
-
+    @property
+    def body_describe(self):
+        subc = ''
+        for order in self.sale_orders.all():
+            subc += order.title
+        return subc
+            
 
 class SaleOrder(models.Model):
     
@@ -116,10 +136,8 @@ class SaleOrder(models.Model):
     )
 
     id    = BigIntegerAutoField(primary_key=True)
-    oid   = models.CharField(max_length=64,
-                             verbose_name=u'原单ID')
-    sale_trade = BigIntegerForeignKey(SaleTrade,
-                                       related_name='sale_orders',
+    oid   = models.CharField(max_length=40,unique=True,verbose_name=u'原单ID')
+    sale_trade = BigIntegerForeignKey(SaleTrade,related_name='sale_orders',
                                        verbose_name=u'所属订单')
     
     item_id  = models.CharField(max_length=64,blank=True,verbose_name=u'商品ID')
@@ -140,8 +158,8 @@ class SaleOrder(models.Model):
     
     pic_path = models.CharField(max_length=512,blank=True,verbose_name=u'商品图片')
     
-    created       =  models.DateTimeField(null=True,blank=True,verbose_name=u'创建日期')
-    modified      = models.DateTimeField(null=True,blank=True,verbose_name=u'修改日期')
+    created       =  models.DateTimeField(null=True,auto_now_add=True,blank=True,verbose_name=u'创建日期')
+    modified      = models.DateTimeField(null=True,auto_now=True,blank=True,verbose_name=u'修改日期')
     pay_time      =  models.DateTimeField(db_index=True,null=True,blank=True,verbose_name=u'付款日期')
     consign_time  =  models.DateTimeField(null=True,blank=True,verbose_name=u'发货日期')
     
@@ -150,7 +168,6 @@ class SaleOrder(models.Model):
 
     class Meta:
         db_table = 'flashsale_order'
-        unique_together = ("oid","sale_trade")
         verbose_name=u'特卖/订单明细'
         verbose_name_plural = u'特卖/订单明细列表'
         

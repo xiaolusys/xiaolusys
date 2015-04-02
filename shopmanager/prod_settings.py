@@ -32,6 +32,7 @@ else :
 
 MIDDLEWARE_CLASSES = (
     'raven.contrib.django.middleware.SentryResponseErrorIdMiddleware',
+    'middleware.middleware.SecureRequiredMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -98,6 +99,13 @@ REFRESH_URL = 'https://oauth.taobao.com/token'
 
 FONT_PATH = '/usr/share/fonts/truetype/ttf-dejavu/DejaVuSerif-Bold.ttf'
 ASYNC_FILE_PATH = os.path.join(PROJECT_ROOT,"site_media","asyncfile")
+
+################### HTTPS/SSL SETTINGS ##################
+
+HTTPS_SUPPORT = False
+SECURE_REQUIRED_PATHS = (
+    '/admin/',
+)
 
 ################### WEIXIN SETTINGS ##################
 
