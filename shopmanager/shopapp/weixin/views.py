@@ -509,7 +509,9 @@ class OrderInfoView(View):
         score_refund = False
         if (data["payment"] >= 100 and score >= 10 
             and trade.status ==  pcfg.TRADE_FINISHED
-            and trade.pay_time > datetime.datetime(2014,9,15)):
+            and trade.pay_time > datetime.datetime(2014,9,15)
+            and trade.weight_time
+            and (datetime.datetime.now() - trade.weight_time).days < 15):
             score_refund = True
             
         post_fee_refund = False

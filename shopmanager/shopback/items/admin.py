@@ -161,7 +161,7 @@ class ProductAdmin(admin.ModelAdmin):
                    ,'sync_stock','is_split','is_match','is_assign'
                    ,'post_check',('created',DateFieldListFilter),'category')
 
-    search_fields = ['id','outer_id', 'name' , 'barcode']
+    search_fields = ['id','outer_id', 'name' , 'barcode','sale_charger','storage_charger']
     
     #--------设置页面布局----------------
     fieldsets =(('商品基本信息:', {
