@@ -497,13 +497,13 @@ class OrderInfoView(View):
         
         passed = False
         start_time = datetime.datetime(2015,3,9)
-        sample_orders = SampleOrder.objects.filter(user_openid=user_openid,status__gt=60,status__lt=79).exclude(status=69)
+        sample_orders = SampleOrder.objects.filter(user_openid=user_openid,status__gt=60,status__lt=80)
         refund_records = Refund.objects.filter(user_openid=user_openid,created__gt=start_time)
         if specific_order_finished and sample_orders.count() > 0 and refund_records.count() < 1:
             passed = True
 
-        if specific_order_finished and sample_orders.count() > 0 and refund_records.count() > 0:
-            if refund_records.filter(refund_status=3).count() > 0:
+        if specific_order_finished and sample_orders.count() > 1 and refund_records.count() > 0:
+            if refund_records.filter(refund_status=3).count() == 1:
                 passed = True
 
         score_refund = False
