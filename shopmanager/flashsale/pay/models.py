@@ -18,7 +18,7 @@ def genUUID():
 class SaleTrade(models.Model):
     
     WX_TYPE = 'wx_pub'
-    ALIPAY_TYPE = 'alipay_pub'
+    ALIPAY_TYPE = 'alipay_wap'
     UPMP_TYPE = 'upmp_wap'
     
     CHANNEL_CHOICES = (

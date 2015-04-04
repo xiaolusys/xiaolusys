@@ -141,6 +141,8 @@ class StatisticMergeOrderView(ModelView):
                         end_dt=None,wait_send='0',p_outer_id=''):
         
         order_qs  = MergeOrder.objects.filter(sys_status=pcfg.IN_EFFECT)\
+                            .exclude(merge_trade__type=pcfg.REISSUE_TYPE)\
+                            .exclude(merge_trade__type=pcfg.EXCHANGE_TYPE)\
                             .exclude(gift_type=pcfg.RETURN_GOODS_GIT_TYPE)
         if shop_id:
             order_qs = order_qs.filter(merge_trade__user=shop_id)
@@ -161,8 +163,7 @@ class StatisticMergeOrderView(ModelView):
         else:
             order_qs = order_qs.filter(merge_trade__status__in=pcfg.ORDER_SUCCESS_STATUS)\
                 .exclude(merge_trade__sys_status__in=(pcfg.INVALID_STATUS,pcfg.ON_THE_FLY_STATUS))\
-                .exclude(merge_trade__sys_status=pcfg.FINISHED_STATUS,
-                         merge_trade__is_express_print=False)
+                .exclude(merge_trade__sys_status=pcfg.FINISHED_STATUS,merge_trade__is_express_print=False)
                 
         if is_sale :
             order_qs = order_qs.extra(where=["CHAR_LENGTH(outer_id)>=9"])\

@@ -72,10 +72,11 @@ class PINGPPChargeView(View):
                     'trade_type':'JSAPI'}
             
         elif channel == 'alipay_wap':
-            extra = {"success_url":"http://youni.huyi.so/mm/callback/",
-                     "cancel_url":"http://192.168.1.6:9000/mm/cancel/"}
+            extra = {"success_url":"%s/mm/callback/"%settings.SITE_URL,
+                     "cancel_url":"%s/mm/cancel/"%settings.SITE_URL}
+            
         else :
-            extra = {"result_url":"http://192.168.1.6:9000/mm/callback/?code="}
+            extra = {"result_url":"%s/mm/callback/?code="%settings.SITE_URL}
         
         params ={ 'order_no':'T%s'%strade.id,
                   'app':dict(id=settings.PINGPP_APPID),

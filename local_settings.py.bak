@@ -33,6 +33,7 @@ else :
 
 MIDDLEWARE_CLASSES = (
     'raven.contrib.django.middleware.SentryResponseErrorIdMiddleware',
+    'middleware.middleware.SecureRequiredMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -59,7 +60,7 @@ RAVEN_CONFIG = {
 }
 
 
-SITE_URL = 'http://mytest.huyi.so/' 
+SITE_URL = 'http://mytest.huyi.so:8089/' 
 
 ####################### TRADE HANDLERS CONFIG ########################
 TRADE_HANDLERS_PATH = (
@@ -99,6 +100,13 @@ REFRESH_URL = 'https://oauth.taobao.com/token'
 FONT_PATH = '/usr/share/fonts/truetype/ttf-dejavu/DejaVuSerif-Bold.ttf'
 ASYNC_FILE_PATH = os.path.join(PROJECT_ROOT, "site_media", "asyncfile")
 
+################### HTTPS/SSL SETTINGS ##################
+
+HTTPS_SUPPORT = False
+SECURE_REQUIRED_PATHS = (
+    '/admin/',
+)
+
 ################### WEIXIN SETTINGS ##################
 
 WEIXIN_API_HOST = "https://api.weixin.qq.com"
@@ -117,3 +125,8 @@ JD_AUTHRIZE_URL = 'https://auth.360buy.com/oauth/authorize'
 JD_AUTHRIZE_TOKEN_URL = 'https://auth.360buy.com/oauth/token'
 JD_REDIRECT_URI = '/app/jd/login/auth/'
 JD_API_ENDPOINT = 'http://%s/routerjson' % JD_API_HOSTNAME
+
+################### PING++ SETTINGS ##################
+PINGPP_APPID           = "app_qPCaj95Serj5PKOq"
+PINGPP_APPKEY          = "sk_test_8y58u9zbPWTKTGGa1GrTi1mT" #TEST KEY
+

@@ -4,7 +4,7 @@ import urllib
 import urllib2
 import urlparse
 from django.db import models
-from django.contrib.auth.models import User
+from django.contrib.auth.models import User as DjangoUser
 from django.contrib.auth.models import SiteProfileNotAvailable
 from django.core.exceptions import ImproperlyConfigured
 from common.utils import verifySignature,decodeBase64String,parse_urlparams
@@ -30,6 +30,26 @@ token {
     "r1_expires_in": 1800
 }
 """
+def getAuthProfileModel():
+    
+    try:
+        app_label, model_name = settings.AUTH_PROFILE_MODULE.split('.')
+    except ValueError:
+        raise SiteProfileNotAvailable('app_label and model_name should'
+                                      ' be separated by a dot in the AUTH_PROFILE_MODULE set'
+                                      'ting')
+
+    try:
+        model = models.get_model(app_label, model_name)
+        if model is None:
+            raise SiteProfileNotAvailable('Unable to load the profile '
+                                          'model, check AUTH_PROFILE_MODULE in your project sett'
+                                          'ings')
+    except (ImportError,ImproperlyConfigured):
+        raise SiteProfileNotAvailable('ImportError, ImproperlyConfigured error')
+    
+    return model 
+
 class TaoBaoBackend:
     supports_anonymous_user = False
     supports_object_permissions = False
@@ -66,21 +86,8 @@ class TaoBaoBackend:
         request.session['top_parameters'] = top_parameters
         top_parameters['ts']  = time.time()
         
-        try:
-            app_label, model_name = settings.AUTH_PROFILE_MODULE.split('.')
-        except ValueError:
-            raise SiteProfileNotAvailable('app_label and model_name should'
-                                          ' be separated by a dot in the AUTH_PROFILE_MODULE set'
-                                          'ting')
-
-        try:
-            model = models.get_model(app_label, model_name)
-            if model is None:
-                raise SiteProfileNotAvailable('Unable to load the profile '
-                                              'model, check AUTH_PROFILE_MODULE in your project sett'
-                                              'ings')
-        except (ImportError,ImproperlyConfigured):
-            raise SiteProfileNotAvailable('ImportError, ImproperlyConfigured error')
+        from shopback.users.models import User
+        model = User
 
         user_id  =  top_parameters['taobao_user_id']
 
