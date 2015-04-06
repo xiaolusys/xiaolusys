@@ -1,0 +1,179 @@
+{% extends "bootstrap_base.html" %}
+
+{% block title%} 我的订单统计  {% endblock %}
+
+ {% block style %}
+ <link href="{{ STATIC_URL }}jquery-timepicker-addon/timepicker/jquery-ui-timepicker-addon.css" type="text/css" />
+ <style type="text/css">
+    *{ margin:0; padding:0;}
+    ul li{ 
+        list-style:none; 
+        display:inline; 
+        margin-top:30px;
+        margin-left:20px;
+        float:left;
+    }
+    .inner-filter{
+        margin:20px auto 0px;
+        width:60%;
+    }
+    ul{
+        width:900px;
+        display:block; 
+    }
+</style>
+{% endblock %}
+
+{% block preload_script %}
+<script src="{{ STATIC_URL }}jquery-timepicker-addon/timepicker/jquery-ui-timepicker-addon.js" type="text/javascript"></script>
+<script src="{{ STATIC_URL }}jquery-timepicker-addon/js/jquery-ui-timepicker-zh-CN.js" type="text/javascript"></script>
+{% endblock %}
+
+{% block container %}
+{% with object.trade_items as trade_items %}
+<div class="container">
+    <div class="inner-filter">
+        <form  class="form-horizontal" role="form" method="GET" action="/trades/order/statistic/" >
+        <input type="hidden" name="is_sale" value="{{ object.is_sale }}"/>
+        <div class="row form-group" >
+            <div class="col-xs-4">
+                <label class="control-label" for="sc_by">日期类型:</label>
+                <select name="sc_by" class="form-control">
+                    <option value="pay" {% if object.sc_by == "pay" %}selected{% endif %}>付款日期</option>
+                    <option value="weight" {% if object.sc_by == "weight" %}selected{% endif %}>称重日期</option>
+                    <option value="create" {% if object.sc_by == "create" %}selected{% endif %}>生成日期</option>
+                </select>
+            </div>
+            <div class="col-xs-4">
+                <label class="control-label" for="df">起始日期:</label>
+                <input type="text" id="f_datepicker" name="df" class="form-control datepicker" value="{{ object.df }}"/>
+            </div>
+            <div class="col-xs-4">
+                <label class="control-label" for="dt">结束日期:</label>
+                <input type="text" id="t_datepicker" name="dt" class="form-control datepicker" value="{{ object.dt }}"/>
+            </div>
+        </div>
+        <div class="row form-group">
+            <div class="col-xs-4">
+                <label class="control-label" for="shop_id">选择店铺:</label>
+                <select name="shop_id" class="form-control">
+                    <option value="" >全部</option>
+                    {% for shop in object.shops %}
+                    <option value="{{ shop.id }}" {% if object.shop_id == shop.id %}selected{% endif %}>{{ shop.nick }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-xs-4">
+                <label class="control-label" for="outer_id">商家编码:</label>
+                <input type="text" name="outer_id" class="form-control" value="{{ object.outer_id }}"/>
+            </div>
+            <div class="col-xs-2">
+                <label class="control-label" for="wait_send">发货状态:</label>
+                <select name="wait_send" class="form-control">
+                    <option value="0" {% if object.wait_send == "0" %}selected{% endif %}>全部</option>
+                    <option value="1" {% if object.wait_send == "1" %}selected{% endif %}>待发货</option>
+                    <option value="2" {% if object.wait_send == "2" %}selected{% endif %}>待出库</option>
+                </select>
+            </div>
+            <div class="col-xs-2">
+                <input type="submit" value="查询" class="btn btn-primary" style="margin-top:27px;"/>
+            </div>
+         </div>
+        </form>
+    </div>
+    <div id="post-items" style="display:block;clear:both;">
+      <fieldset>
+        <legend><h2><label >{% if object.is_sale %}特卖订单{% else %}订单{% endif %}</label> 商品统计列表</h2></legend>
+        <table id="id-head-table" class="table table-bordered  table-condensed" >
+  <thead>
+  <tr style="background-color:#01B5A2;">
+      <th colspan="2" >成本：{{ object.total_cost }}</th><th colspan="2">销售额:{{ object.total_sales }}</th><th colspan="2">实付邮费:{{ object.post_fees }}</th>
+      <th >付款单数:{{ object.trade_nums }}</th><th >退款:{{ object.refund_fees }}</th><th colspan="2">购买人数:{{ object.buyer_nums }}</th>
+    </tr>
+    <tr style="background-color:#428BCA;">
+      <th class="col-xs-1">商品编码</th><th class="col-xs-2">商品图片</th><th class="col-xs-1">总数量</th>
+      <th class="col-xs-1">成本</th><th class="col-xs-1">销售额</th><th class="col-xs-1">规格编码</th>
+      <th class="col-xs-2">商品规格</th><th class="col-xs-1">数量</th><th class="col-xs-1">成本</th><th class="col-xs-1">销售额</th>
+    </tr>
+  </thead>
+ </table>
+          <table class="table table-bordered  table-condensed">
+          <thead>
+            <tr style="background-color:#428BCA;">
+              <th class="col-xs-1">合计:</th><th class="col-xs-2">--</th><th class="col-xs-1">{{ object.total_num }}</th>
+              <th class="col-xs-1">--</th><th class="col-xs-1">--</th><th class="col-xs-1">--</th>
+              <th class="col-xs-2">--</th><th class="col-xs-1">--</th><th class="col-xs-1">--</th><th class="col-xs-1">--</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for trade in trade_items %}
+                {% with trade.1.skus|length as sku_len %}
+                {% if sku_len > 0 %}
+                    {% for sku_id,sku in trade.1.skus %}
+                    <tr class="{% if forloop.first and trade.1.cost >= trade.1.sales or sku.cost >= sku.sales %}label-warning{% endif %}">
+                        {% if forloop.first %}
+                        <td rowspan="{{ sku_len }}">{{ trade.0 }}
+                           <p>买:[{{ trade.1.sale_charger }}]</p>
+           <p>仓:[{{ trade.1.storage_charger }}]</p></td>
+                        <td rowspan="{{ sku_len }}">
+                          <a href="/admin/items/product/{{ trade.1.product_id }}/" target="_blank">
+                              <img src="{{ trade.1.pic_path }}" title="{{ trade.1.title }}" width="180px" height="80px" />
+                          </a>
+                          <label >{{ trade.1.title }}</label>
+                    </td>
+                        <td rowspan="{{ sku_len }}">{{ trade.1.num }}</td>
+                        <td rowspan="{{ sku_len }}">{{ trade.1.cost }}</td>
+                        <td rowspan="{{ sku_len }}">{{ trade.1.sales }}</td>
+                        {% endif %}
+                        <td >{{ sku_id }}</td>
+                        <td >{{ sku.sku_name }}</td>
+                        <td >{{ sku.num }}</td>
+                        <td >{{ sku.cost }}</td>
+                        <td >{{ sku.sales }}</td>
+                    </tr>
+                    {% endfor %}
+                {% else %}
+                    <tr>
+                        <td >{{ trade.0 }}</td>
+                        <td >{{ trade.1.title }}</td>
+                        <td >{{ trade.1.num }}</td>
+                        <td >{{ trade.1.cost }}</td>
+                        <td >{{ trade.1.sales }}</td>
+                        <td colspan="5">--</td>
+                    </tr>
+                {% endif %}
+                {% endwith %}
+            {% endfor %}
+          </tbody> 
+
+          </table>
+      </fieldset>
+    </div>
+</div>  
+{% endwith %}
+{% endblock %}
+
+{% block delayed_script %}
+<script type="text/javascript">
+    $(function() {
+         $("#f_datepicker").datetimepicker({
+                timeFormat: "HH:mm:ss",
+                dateFormat: "yy-mm-dd"
+            });
+         $("#t_datepicker").datetimepicker({
+                timeFormat: "HH:mm:ss",
+                dateFormat: "yy-mm-dd"
+            });
+            //置顶按钮显示/隐藏实现
+    $(window).scroll(function(){
+        var w_height = $(window).height();//浏览器高度
+        var scroll_top = $(document).scrollTop();//滚动条到顶部的垂直高度
+        if(scroll_top > 100){
+         $("#id-head-table").css("position" , "fixed").css("top","0").css("width",1140);
+        }else{
+         $("#id-head-table").css("position" , "static");
+                     }
+            });
+    });
+</script>
+{% endblock %}

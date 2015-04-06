@@ -1,0 +1,111 @@
+{% extends "weixin/weixin_base.html" %}
+
+{% block meta %}
+<meta name="sharecontent" data-msg-img="https://mmbiz.qlogo.cn/mmbiz/yMhOQPTKhLticIHepSybaDQKTV5LXs8iaLRB3EMEibPzXZWs7XCPmBmqW8uzaCBBxYudU0PKYjmw0r7MOsoJ000zg/0" data-msg-title="小小礼物 感恩的心 感谢有你！" data-msg-content="十一月，感恩季。一份小小礼物，代表我的感恩。请一定打开，让我放心您已收到。" data-msg-callBack="" data-line-img="https://mmbiz.qlogo.cn/mmbiz/yMhOQPTKhLticIHepSybaDQKTV5LXs8iaLRB3EMEibPzXZWs7XCPmBmqW8uzaCBBxYudU0PKYjmw0r7MOsoJ000zg/0" data-line-title="小小礼物 感恩的心 感谢有你！" data-line-callBack=""/>  
+{% endblock %}
+
+{% block title %} 
+小鹿妈咪 每日特卖任务
+{% endblock %}
+
+{% block container %}
+
+<div class="container-fluid">
+    <div class="panel panel-default" style="margin-top:5px">
+    <div class="panel-heading" style="color:#d9534f"><b>昨日数据统计</b></div>
+    <div class="panel-body">
+      
+      
+      <div class="row" >
+        <div class="col-xs-12" style="text-align:center;">
+          <div class="thumbnail" style="padding:3px" id="id_i7">
+          <img src="https://mmbiz.qlogo.cn/mmbiz/yMhOQPTKhLticIHepSybaDQKTV5LXs8iaLKgbibibRvEcbiax61bchOUpyTFzP8qNGPUF6JSHQ3YOysrtfFOLj8tCqg/0"/>
+          </div>
+        </div>
+      </div>
+
+      <div style="text-align:center;height:80px;padding-top:20px;">
+        <a href="https://open.weixin.qq.com/connect/oauth2/authorize?appid=wxc2848fa1e1aa94b5&redirect_uri=http://weixin.huyi.so/weixin/freesamples/&response_type=code&scope=snsapi_base&state=135#wechat_redirect" class="btn btn-danger">拆开礼包 >></a>
+      </div>
+
+	   </div>
+	   </div>
+      <div class="row">
+        <div class="col-xs-12" style="text-align:center">
+          <p>记得我的F码： <font style="color:red">{{ vipcode }}</font></p>
+          <a href="https://open.weixin.qq.com/connect/oauth2/authorize?appid=wxc2848fa1e1aa94b5&redirect_uri=http://weixin.huyi.so/weixin/inviteresult/&response_type=code&scope=snsapi_base&state=135#wechat_redirect">Go >></a></p>
+        </div>
+      </div>
+    </div>
+  </div>
+    
+  <div class="footer">
+    <p>© Uni Littles 2014</p>
+  </div>
+
+</div>
+{% endblock %}    
+
+{% block tail_script %}    
+<script type="text/javascript">  
+var imgUrl = "https://mmbiz.qlogo.cn/mmbiz/yMhOQPTKhLticIHepSybaDQKTV5LXs8iaLRB3EMEibPzXZWs7XCPmBmqW8uzaCBBxYudU0PKYjmw0r7MOsoJ000\
+zg/0";
+var lineLink = "http://weixin.huyi.so/weixin/sampleads/{{ pk }}/";
+var descContent = "十一月，感恩季。用我的一份感动，带给你一份惊喜。感谢有你！";
+var shareTitle = "小小礼物 感恩的心 感谢有你！";
+var appid = 'wxc2848fa1e1aa94b5';
+
+function shareFriend() {  
+    WeixinJSBridge.invoke('sendAppMessage',{  
+                            "appid": appid,  
+                            "img_url": imgUrl,  
+                            "img_width": "100",  
+                            "img_height": "100",  
+                            "link": lineLink,  
+                            "desc": descContent,  
+                            "title": shareTitle  
+                            }, function(res) {  
+                            _report('send_msg', res.err_msg);  
+                            })  
+}  
+function shareTimeline() {  
+    WeixinJSBridge.invoke('shareTimeline',{  
+                            "img_url": imgUrl,  
+                            "img_width": "100",  
+                            "img_height": "100",  
+                            "link": lineLink,  
+                            "desc": descContent,  
+                            "title": shareTitle  
+                            }, function(res) {  
+                            _report('timeline', res.err_msg);  
+                            });  
+}  
+function shareWeibo() {  
+    WeixinJSBridge.invoke('shareWeibo',{  
+                            "content": descContent,  
+                            "url": lineLink,  
+                            }, function(res) {  
+                            _report('weibo', res.err_msg);  
+                            });  
+}  
+// 当微信内置浏览器完成内部初始化后会触发WeixinJSBridgeReady事件。  
+document.addEventListener('WeixinJSBridgeReady', function onBridgeReady() {  
+  
+        // 发送给好友  
+        WeixinJSBridge.on('menu:share:appmessage', function(argv){  
+            shareFriend();  
+            });  
+  
+        // 分享到朋友圈  
+        WeixinJSBridge.on('menu:share:timeline', function(argv){  
+            shareTimeline();  
+            });  
+  
+        // 分享到微博  
+        WeixinJSBridge.on('menu:share:weibo', function(argv){  
+            shareWeibo();  
+            });  
+        }, false);  
+</script>  
+{% endblock %}
+
