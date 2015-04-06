@@ -10,9 +10,9 @@ class SecureRequiredMiddleware(object):
     def __init__(self):
         self.paths = getattr(settings, 'SECURE_REQUIRED_PATHS')
         self.enabled = self.paths and getattr(settings, 'HTTPS_SUPPORT')
-        print 'secure:',self.paths,self.enabled
+
     def process_request(self, request):
-        print self.enabled , request.is_secure()
+
         if self.enabled and not request.is_secure():
             for path in self.paths:
                 if request.get_full_path().startswith(path):

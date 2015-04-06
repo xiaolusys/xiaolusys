@@ -5,7 +5,7 @@ from django.forms import TextInput, Textarea
 from django.http import HttpResponseRedirect
 
 from shopback.trades.filters import DateFieldListFilter
-from .models import SaleTrade,SaleOrder
+from .models import SaleTrade,SaleOrder,Customer
 
 
 class SaleOrderInline(admin.TabularInline):
@@ -78,3 +78,12 @@ class SaleOrderAdmin(admin.ModelAdmin):
 admin.site.register(SaleOrder,SaleOrderAdmin)
 
 
+class CustomerAdmin(admin.ModelAdmin):
+    
+    list_display = ('id','nick','mobile','phone','created','modified')
+    list_display_links = ('id','nick',)
+    
+    search_fields = ['id','mobile','openid']
+    
+    
+admin.site.register(Customer,CustomerAdmin)

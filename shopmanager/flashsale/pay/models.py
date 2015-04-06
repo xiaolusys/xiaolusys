@@ -9,6 +9,7 @@ from django.db import IntegrityError, transaction
 
 from shopback.base.fields import BigIntegerAutoField,BigIntegerForeignKey
 from shopback.logistics.models import LogisticsCompany
+from .umodels import Register,Customer
 
 import uuid
 
@@ -174,4 +175,7 @@ class SaleOrder(models.Model):
     def __unicode__(self):
         return '<%s>'%(self.id)
         
+        
+    
+
     

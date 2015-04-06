@@ -101,8 +101,8 @@ FONT_PATH = '/usr/share/fonts/truetype/ttf-dejavu/DejaVuSerif-Bold.ttf'
 ASYNC_FILE_PATH = os.path.join(PROJECT_ROOT,"site_media","asyncfile")
 
 ################### HTTPS/SSL SETTINGS ##################
-
-HTTPS_SUPPORT = False
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+HTTPS_SUPPORT = True
 SECURE_REQUIRED_PATHS = (
     '/admin/',
 )
