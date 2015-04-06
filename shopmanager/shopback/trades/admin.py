@@ -60,8 +60,10 @@ class MergeOrderInline(admin.TabularInline):
     def get_readonly_fields(self, request, obj=None):
         readonly_fields = set(self.readonly_fields + ('tid','oid'))
         if not perms.has_modify_trade_permission(request.user):
-            return readonly_fields.update(('outer_id','outer_sku_id','is_merge',
+            readonly_fields.update(('outer_id','outer_sku_id','is_merge',
                                            'is_reverse_order','operator','gift_type','status'))
+            return tuple(readonly_fields)
+
         return tuple(readonly_fields)
     
     formfield_overrides = {
