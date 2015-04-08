@@ -63,7 +63,8 @@ class PINGPPChargeView(View):
         form = json.loads(content)
         channel = form.get('channel')
         
-        customer = Customer.getCustomerByUser(request.user)
+        user = request.user
+        customer = Customer.getCustomerByUser(user)
         form.update(buyer_id=customer.id)
         
         strade = self.createSaleTrade(form)
