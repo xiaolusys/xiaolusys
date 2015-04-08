@@ -69,7 +69,7 @@ class PINGPPChargeView(View):
         strade = self.createSaleTrade(form)
         
         if channel == SaleTrade.WX_PUB:
-            extra = {'open_id':customer.open_id,
+            extra = {'open_id':customer.openid,
                     'trade_type':'JSAPI'}
             
         elif channel == SaleTrade.ALIPAY_WAP:
