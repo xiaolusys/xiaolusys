@@ -26,11 +26,11 @@ def sale_buyer_required(view_func):
         user_agent = request.META.get('HTTP_USER_AGENT')
         if user_agent and user_agent.find('MicroMessenger') >= 0:
             if not code :
-                params = {'appid':settings.WEIXIN_APPID,
-                              'redirect_uri':request.build_absolute_uri().split('#')[0],
-                              'response_type':'code',
-                              'scope':'snsapi_base',
-                              'state':'135'}
+                params = {'appid':settings.WXPAY_APPID,
+                          'redirect_uri':request.build_absolute_uri().split('#')[0],
+                          'response_type':'code',
+                          'scope':'snsapi_base',
+                          'state':'135'}
                 redirect_url = ('{0}?{1}').format(settings.WEIXIN_AUTHORIZE_URL,urllib.urlencode(params))
                     
                 return HttpResponseRedirect(redirect_url)

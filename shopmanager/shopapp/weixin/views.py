@@ -215,7 +215,9 @@ KFMAP ={
     }
 
 
-def get_user_openid(request, code):
+def get_user_openid(request, code, 
+                    appid=settings.WEIXIN_APPID, 
+                    secret=settings.WEIXIN_SECRET):
     
     cookie_openid = request.COOKIES.get('openid')
     cookie_openid = cookie_openid and cookie_openid.split(',')[0]
@@ -224,9 +226,7 @@ def get_user_openid(request, code):
     
     if not code :
         return cookie_openid
-    
-    appid = settings.WEIXIN_APPID
-    secret = settings.WEIXIN_SECRET
+
     url = 'https://api.weixin.qq.com/sns/oauth2/access_token?appid=%s&secret=%s&code=%s&grant_type=authorization_code'
     get_openid_url = url % (appid, secret, code)
     r = urlopen(get_openid_url).read()

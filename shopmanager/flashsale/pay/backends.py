@@ -1,11 +1,7 @@
 #-*- encoding:utf8 -*-
-import time
-import json
-import urllib
-import urllib2
-import urlparse
-from django.http import Http404
+
 from django.db import models
+from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.models import User,AnonymousUser
 from django.contrib.auth.backends import RemoteUserBackend
@@ -17,6 +13,7 @@ from shopapp.weixin.models import WeiXinUser
 
 import logging
 logger = logging.getLogger('django.request')
+
 
 class FlashSaleBackend(RemoteUserBackend):
     
@@ -58,6 +55,7 @@ class FlashSaleBackend(RemoteUserBackend):
             return User.objects.get(pk=user_id)
         except:
             return None
+        
 
 class WeixinPubBackend(RemoteUserBackend):
     
@@ -71,7 +69,7 @@ class WeixinPubBackend(RemoteUserBackend):
             return None
         
         code = request.GET.get('code')
-        user_openid = get_user_openid(request,code)
+        user_openid = get_user_openid(request,code,appid=settings.WXPAY_APPID,secret=settings.WXPAY_SECRET)
         if not valid_openid(user_openid):
             return AnonymousUser()
         
