@@ -7,12 +7,12 @@ from shopback.base.fields import BigIntegerAutoField,BigIntegerForeignKey
     
 class Register(models.Model):
     
-    MAX_VALID_COUNT = 3
+    MAX_VALID_COUNT   = 3
     MAX_SUBMIT_TIMES  = 6
     
     id    = BigIntegerAutoField(primary_key=True,verbose_name=u'ID')
     
-    customer_id  = models.BigIntegerField(verbose_name=u"客户ID")
+    cus_uid      = models.BigIntegerField(db_index=True,null=True,verbose_name=u"客户ID")
     
     vmobile      = models.CharField(max_length=11,blank=True,verbose_name=u"待验证手机")
     verify_code  = models.CharField(max_length=8,blank=True,verbose_name=u"验证码")
@@ -56,8 +56,7 @@ class Register(models.Model):
             return False
         return True
     
-    
-    
+
     
 class Customer(models.Model):
     

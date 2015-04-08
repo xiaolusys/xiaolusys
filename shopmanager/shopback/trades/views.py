@@ -35,7 +35,7 @@ from shopback import paramconfig as pcfg
 from auth import apis
 from common.utils import (
 						parse_date,
-         CSVUnicodeWriter,
+                        CSVUnicodeWriter,
 						parse_datetime,
 						format_date,
 						format_datetime)

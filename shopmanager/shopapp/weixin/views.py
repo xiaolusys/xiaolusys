@@ -8,6 +8,7 @@ from django.forms.models import model_to_dict
 from django.views.decorators.csrf import csrf_exempt
 from django.views.generic import View
 from django.shortcuts import get_object_or_404
+from django.core.serializers.json import DjangoJSONEncoder
 
 from shopapp.weixin.service import *
 from .models import (WeiXinUser,
@@ -45,7 +46,7 @@ from shopapp.signals import (weixin_readclick_signal,
                              weixin_refund_signal,
                              weixin_surveyconfirm_signal)
 
-from common.utils import MyJsonEncoder
+
 
 import logging
 import json
@@ -53,7 +54,7 @@ import json
 logger = logging.getLogger('django.request')
 
 import re
-OPENID_RE = re.compile('^[a-zA-Z0-9-_]{20,40}$')
+OPENID_RE = re.compile('^[a-zA-Z0-9-_]{28}$')
 
 def valid_openid(openid):
     if not openid:
@@ -321,7 +322,7 @@ class WeixinUserModelView(View):
         user_dict = {'code':0,'response_content':model_to_dict(wx_user,
                                 fields=['id','nickname','user_group','charge_status'])}
         
-        return HttpResponse(json.dumps(user_dict,cls=MyJsonEncoder),
+        return HttpResponse(json.dumps(user_dict,cls=DjangoJSONEncoder),
                             mimetype="application/json")
     
 

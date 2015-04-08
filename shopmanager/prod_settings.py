@@ -30,20 +30,6 @@ if DEBUG:
 else :
     STATIC_ROOT = os.path.join(PROJECT_ROOT,"site_media","static")
 
-MIDDLEWARE_CLASSES = (
-    'raven.contrib.django.middleware.SentryResponseErrorIdMiddleware',
-    'middleware.middleware.SecureRequiredMiddleware',
-    'django.middleware.common.CommonMiddleware',
-    'django.contrib.sessions.middleware.SessionMiddleware',
-    'django.middleware.csrf.CsrfViewMiddleware',
-    'django.middleware.locale.LocaleMiddleware',
-    'django.contrib.auth.middleware.AuthenticationMiddleware',
-    'django.contrib.messages.middleware.MessageMiddleware',
-)
-
-if DEBUG:
-    MIDDLEWARE_CLASSES = ('middleware.middleware.ProfileMiddleware',
-                          'middleware.middleware.QueryCountDebugMiddleware',) + MIDDLEWARE_CLASSES
 
 
 CACHES = {
@@ -128,7 +114,7 @@ JD_REDIRECT_URI    = '/app/jd/login/auth/'
 JD_API_ENDPOINT = 'http://%s/routerjson'%JD_API_HOSTNAME
 
 ################### PING++ SETTINGS ##################
-PINGPP_APPID           = "app_qPCaj95Serj5PKOq"
+PINGPP_APPID           = "app_LOOajDn9u9WDjfHa"
 PINGPP_APPKEY          = "sk_live_HOS4OSW10u5CDyrn5Gn9izLC" 
 
 

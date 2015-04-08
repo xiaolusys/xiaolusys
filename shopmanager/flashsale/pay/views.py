@@ -40,8 +40,7 @@ class PINGPPChargeView(View):
         product = get_object_or_404(Product,pk=form.get('item_id'))
         sku = get_object_or_404(ProductSku,pk=form.get('sku_id'))
         
-        SaleOrder.objects.create(
-                                 oid=uuid,
+        SaleOrder.objects.create(oid=uuid,
                                  sale_trade=sale_trade,
                                  item_id=form.get('item_id'),
                                  sku_id=form.get('sku_id'),
@@ -51,8 +50,7 @@ class PINGPPChargeView(View):
                                  title=product.name,
                                  pic_path=product.pic_path,
                                  sku_name=sku.properties_alias,
-                                 status=SaleTrade.WAIT_BUYER_PAY
-                                 )
+                                 status=SaleTrade.WAIT_BUYER_PAY)
         
         return sale_trade
     
@@ -67,15 +65,15 @@ class PINGPPChargeView(View):
         
         strade = self.createSaleTrade(form)
         
-        if channel == 'wx_pub':
+        if channel == SaleTrade.WX_PUB:
             extra = {'open_id':open_id,
                     'trade_type':'JSAPI'}
             
-        elif channel == 'alipay_wap':
+        elif channel == SaleTrade.ALIPAY_WAP:
             extra = {"success_url":"%s/mm/callback/"%settings.SITE_URL,
                      "cancel_url":"%s/mm/cancel/"%settings.SITE_URL}
             
-        else :
+        elif channel == SaleTrade.UPMP_WAP:
             extra = {"result_url":"%s/mm/callback/?code="%settings.SITE_URL}
         
         params ={ 'order_no':'T%s'%strade.id,

@@ -328,6 +328,7 @@ class MergeTrade(models.Model):
     @property
     def can_change_order(self):
         return self.sys_status in (pcfg.WAIT_AUDIT_STATUS,
+                                   pcfg.REGULAR_REMAIN_STATUS,
                                    pcfg.WAIT_CHECK_BARCODE_STATUS,
                                    pcfg.WAIT_SCAN_WEIGHT_STATUS)
     

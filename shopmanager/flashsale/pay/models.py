@@ -9,7 +9,7 @@ from django.db import IntegrityError, transaction
 
 from shopback.base.fields import BigIntegerAutoField,BigIntegerForeignKey
 from shopback.logistics.models import LogisticsCompany
-from .umodels import Register,Customer
+from .models_user import Register,Customer
 
 import uuid
 
@@ -18,14 +18,14 @@ def genUUID():
 
 class SaleTrade(models.Model):
     
-    WX_TYPE = 'wx_pub'
-    ALIPAY_TYPE = 'alipay_wap'
-    UPMP_TYPE = 'upmp_wap'
+    WX_PUB     = 'wx_pub'
+    ALIPAY_WAP = 'alipay_wap'
+    UPMP_WAP   = 'upmp_wap'
     
     CHANNEL_CHOICES = (
-        (WX_TYPE,u'微支付'),
-        (ALIPAY_TYPE,u'支付宝'),
-        (UPMP_TYPE,u'银联'),
+        (WX_PUB,u'微支付'),
+        (ALIPAY_WAP,u'支付宝'),
+        (UPMP_WAP,u'银联'),
     )
     
     PREPAY  = 0

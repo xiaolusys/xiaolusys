@@ -59,9 +59,7 @@ def format_time(dt):
     return dt.strftime("%H:%M")
 
 def unquote(text):
-        def unicode_unquoter(match):
-            return unichr(int(match.group(1),16))
-        return re.sub(r'%5Cu([0-9a-fA-F]{4})',unicode_unquoter,text)
+    return re.sub(r'%5Cu([0-9a-fA-F]{4})',unicode_unquoter,text)
 
 def pinghost(hostid):
     try:
@@ -89,15 +87,3 @@ def replace_utf8mb4(v):
     return INVALID_UTF8_RE.sub(u'*', v)
 
 
-from django.db.models.base import ModelState
-
-class MyJsonEncoder(json.JSONEncoder):
-    def default(self, obj):
-        if hasattr(obj, 'isoformat'):
-            return obj.isoformat()
-        elif isinstance(obj, decimal.Decimal):
-            return float(obj)
-        elif isinstance(obj, ModelState):
-            return None
-        else:
-            return json.JSONEncoder.default(self, obj)

@@ -129,7 +129,7 @@ class MergeTradeAdmin(admin.ModelAdmin):
     def buyer_nick_link(self, obj):
         symbol_link = obj.buyer_nick
 
-        if  obj.sys_status in (pcfg.WAIT_AUDIT_STATUS,pcfg.WAIT_CHECK_BARCODE_STATUS,pcfg.WAIT_SCAN_WEIGHT_STATUS):
+        if  obj.can_change_order:
             symbol_link = '<a href="javascript:void(0);" class="check-order" trade_id="%d" >%s</a>'%(obj.id,symbol_link) 
         return symbol_link
     buyer_nick_link.allow_tags = True

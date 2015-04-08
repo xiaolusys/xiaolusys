@@ -76,13 +76,16 @@ TEMPLATE_LOADERS = (
 
 MIDDLEWARE_CLASSES = (
     'raven.contrib.django.middleware.SentryResponseErrorIdMiddleware',
+    'middleware.middleware.SecureRequiredMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.middleware.locale.LocaleMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'django.contrib.auth.middleware.RemoteUserMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
 )
+
 
 ROOT_URLCONF = 'shopmanager.urls'
 
@@ -164,14 +167,11 @@ INSTALLED_APPS = (
 )
 
 
-
-APPKEY = '12517640'
-APPSECRET = 'e50beebdf9226e3fc991834375e32b5a'
-
-
 AUTH_PROFILE_MODULE = 'users.user'
 
 AUTHENTICATION_BACKENDS = (
+    'flashsale.pay.backends.FlashSaleBackend',
+    'flashsale.pay.backends.WeixinPubBackend',
     'auth.accounts.backends.TaoBaoBackend',
     'shopapp.jingdong.backends.JingDongBackend',
     'django.contrib.auth.backends.ModelBackend')
@@ -277,3 +277,6 @@ REST_FRAMEWORK = {
 }
 
 
+if DEBUG:
+    MIDDLEWARE_CLASSES = ('middleware.middleware.ProfileMiddleware',
+                          'middleware.middleware.QueryCountDebugMiddleware',) + MIDDLEWARE_CLASSES

@@ -20,7 +20,7 @@ class JingDongBackend:
     supports_anonymous_user = False
     supports_object_permissions = False
 
-    def authenticate(self, request, user=None):
+    def authenticate(self, request, user=None,**kwargs):
         """{u'state': [u''], u'code': [u'sVT2F1nZtnkVLaEnhKiy5gS832237']}"""
         
         if not request.path.endswith(settings.JD_REDIRECT_URI):

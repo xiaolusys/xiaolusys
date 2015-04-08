@@ -308,7 +308,7 @@ a:hover {
 #popout .holder .chooser .choose a {
   display: block;
   float: left;
-  width: 70px;
+  min-width:75px;
   height: 25px;
   line-height: 23px;
   margin-right: 10px;

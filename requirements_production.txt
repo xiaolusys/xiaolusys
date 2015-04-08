@@ -16,7 +16,7 @@ django-bitfield==1.6.4
 BeautifulSoup==3.2.1
 #jsonfield depend on six
 six==1.6.1
-#jsonfield==0.9.20
+jsonfield==0.9.20
 greenlet==0.4.3
 gevent==1.0.1
 
@@ -44,8 +44,8 @@ xhtml2pdf==0.0.6
 #sudo apt-get install python-mysqldb
 #virtualenv==1.8.2
 #lxml==2.3
-PIL==1.1.7
-South==1.0
+#PIL==1.1.7
+#South==1.0
 #raven==2.0.6
 #sentry==4.8.1
 #celery==3.0.10

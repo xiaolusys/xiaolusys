@@ -324,9 +324,8 @@
         
         var params = {"pid":$('#id_product').val(),
                       "sid":size,
-                      "num":amount,
-                      "csrfmiddlewaretoken":csrf_token}
-        console.log(params)
+                      "num":amount}
+                      //"csrfmiddlewaretoken":csrf_token};
         window.location.href = '/mm/orderbuy/?'+$.param(params);
     }
 
