@@ -64,7 +64,7 @@ class PINGPPChargeView(View):
         channel = form.get('channel')
         open_id = form.get('open_id')
         
-        customer = Customer.getCustomerByUser(request)
+        customer = Customer.getCustomerByUser(request.user)
         form.update(buyer_id=customer.id)
         
         strade = self.createSaleTrade(form)
