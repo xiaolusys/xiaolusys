@@ -99,5 +99,12 @@ class Customer(models.Model):
     def __unicode__(self):
         return '%s(%s)'%(self.nick,self.id) 
     
-    
+    @classmethod
+    def getCustomerByUser(cls,user):
+        
+        customers = cls.objects.filter(user=user)
+        if customers.count() > 0:
+            return customers[0]
+        return None
+        
     

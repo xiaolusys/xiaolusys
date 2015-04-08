@@ -9,7 +9,7 @@ from django.forms import model_to_dict
 from django.shortcuts import get_object_or_404
 
 from shopback.items.models import Product,ProductSku
-from .models import SaleTrade,SaleOrder,genUUID
+from .models import SaleTrade,SaleOrder,genUUID,Customer
 import pingpp
 import logging
 logger = logging.getLogger('django.request')
@@ -26,6 +26,7 @@ class PINGPPChargeView(View):
         
         sale_trade = SaleTrade.objects.create(
                                  tid=uuid,
+                                 buyer_id=form.get('buyer_id'),
                                  channel=form.get('channel'),
                                  receiver_name=form.get('receiver_name'),
                                  receiver_state=form.get('receiver_state'),
@@ -62,6 +63,9 @@ class PINGPPChargeView(View):
         form = json.loads(content)
         channel = form.get('channel')
         open_id = form.get('open_id')
+        
+        customer = Customer.getCustomerByUser(request)
+        form.update(buyer_id=customer.id)
         
         strade = self.createSaleTrade(form)
         
