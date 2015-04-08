@@ -62,7 +62,6 @@ class PINGPPChargeView(View):
         
         form = json.loads(content)
         channel = form.get('channel')
-        open_id = form.get('open_id')
         
         customer = Customer.getCustomerByUser(request.user)
         form.update(buyer_id=customer.id)
@@ -70,7 +69,7 @@ class PINGPPChargeView(View):
         strade = self.createSaleTrade(form)
         
         if channel == SaleTrade.WX_PUB:
-            extra = {'open_id':open_id,
+            extra = {'open_id':customer.open_id,
                     'trade_type':'JSAPI'}
             
         elif channel == SaleTrade.ALIPAY_WAP:
