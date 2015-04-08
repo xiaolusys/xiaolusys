@@ -1,4 +1,5 @@
 #-*- encoding:utf8 -*-
+import urllib
 from functools import wraps
 from django.http import HttpResponseRedirect
 from django.shortcuts import render_to_response
@@ -25,10 +26,12 @@ def sale_buyer_required(view_func):
         user_agent = request.META.get('HTTP_USER_AGENT')
         if user_agent and user_agent.find('MicroMessenger') >= 0:
             if not code :
-                redirect_url = ('{0}?appid={1}&redirect_uri={2}&response_type=code&scope=snsapi_base&state=135#wechat_redirect')\
-                    .format(settings.WEIXIN_AUTHORIZE_URL,
-                            settings.WEIXIN_APPID,
-                            request.build_absolute_uri().split('#')[0])
+                params = {'appid':settings.WEIXIN_APPID,
+                              'redirect_uri':request.build_absolute_uri().split('#')[0],
+                              'response_type':'code',
+                              'scope':'snsapi_base',
+                              'state':'135'}
+                redirect_url = ('{0}?{1}').format(settings.WEIXIN_AUTHORIZE_URL,urllib.urlencode(params))
                     
                 return HttpResponseRedirect(redirect_url)
 
