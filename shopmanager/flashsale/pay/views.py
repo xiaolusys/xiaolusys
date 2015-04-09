@@ -3,6 +3,7 @@ import json
 import time
 import datetime
 from django.conf import settings
+from django.db import IntegrityError,models
 from django.http import HttpResponse,Http404
 from django.views.generic import View
 from django.forms import model_to_dict
@@ -22,7 +23,7 @@ class PINGPPChargeView(View):
     def createSaleTrade(self,form):
         uuid = form.pop('uuid')
         if not UUID_RE.match(uuid):
-            raise Http404('UUID NOT EXIST')
+            raise Exception('参数错误!')
         
         sale_trade = SaleTrade.objects.create(
                                  tid=uuid,
@@ -38,8 +39,8 @@ class PINGPPChargeView(View):
                                  status=SaleTrade.WAIT_BUYER_PAY
                                  )
         
-        product = get_object_or_404(Product,pk=form.get('item_id'))
-        sku = get_object_or_404(ProductSku,pk=form.get('sku_id'))
+        product = Product.objects.get(pk=form.get('item_id'))
+        sku = ProductSku.objects.get(pk=form.get('sku_id'),product=product)
         
         SaleOrder.objects.create(oid=uuid,
                                  sale_trade=sale_trade,
@@ -59,40 +60,52 @@ class PINGPPChargeView(View):
         
         content = request.body
         logger.debug('PINGPP CHARGE REQ: %s'%content)
-        
-        form = json.loads(content)
-        channel = form.get('channel')
-        
-        user = request.user
-        customer = Customer.getCustomerByUser(user)
-        form.update(buyer_id=customer.id)
-        
-        strade = self.createSaleTrade(form)
-        
-        if channel == SaleTrade.WX_PUB:
-            extra = {'open_id':customer.openid,
-                    'trade_type':'JSAPI'}
+        err_msg = ''
+        try:
+            form = json.loads(content)
+            channel = form.get('channel')
             
-        elif channel == SaleTrade.ALIPAY_WAP:
-            extra = {"success_url":"%s/mm/callback/"%settings.SITE_URL,
-                     "cancel_url":"%s/mm/cancel/"%settings.SITE_URL}
+            user = request.user
+            customer = Customer.getCustomerByUser(user)
+            if not customer:
+                raise Exception(u'用户未找到')
+            form.update(buyer_id=customer.id)
             
-        elif channel == SaleTrade.UPMP_WAP:
-            extra = {"result_url":"%s/mm/callback/?code="%settings.SITE_URL}
+            strade = self.createSaleTrade(form)
+            
+            if channel == SaleTrade.WX_PUB:
+                extra = {'open_id':customer.openid,'trade_type':'JSAPI'}
+                
+            elif channel == SaleTrade.ALIPAY_WAP:
+                extra = {"success_url":"%s/mm/callback/"%settings.SITE_URL,
+                         "cancel_url":"%s/mm/cancel/"%settings.SITE_URL}
+                
+            elif channel == SaleTrade.UPMP_WAP:
+                extra = {"result_url":"%s/mm/callback/?code="%settings.SITE_URL}
+            
+            params ={ 'order_no':'T%s'%strade.id,
+                      'app':dict(id=settings.PINGPP_APPID),
+                      'channel':channel,
+                      'currency':'cny',
+                      'amount':'%d'%(strade.payment*100),
+                      'client_ip':settings.PINGPP_CLENTIP,
+                      'subject':u'小鹿美美平台交易',
+                      'body':strade.body_describe,
+                      'metadata':dict(color='red'),
+                      'extra':extra}
+            
+            response_charge = pingpp.Charge.create(api_key=settings.PINGPP_APPKEY,**params)
+            
+        except IntegrityError:
+            err_msg = u'订单已提交'
+        except Exception,exc:
+            logger.error(exc.message,exc_info=True)
+            err_msg = u'参数错误'
+            
+        if err_msg:
+            response_charge = {'errcode':'10001','errmsg':err_msg}
         
-        params ={ 'order_no':'T%s'%strade.id,
-                  'app':dict(id=settings.PINGPP_APPID),
-                  'channel':channel,
-                  'currency':'cny',
-                  'amount':'%d'%(strade.payment*100),
-                  'client_ip':'121.199.168.159',
-                  'subject':u'小鹿美美平台交易',
-                  'body':strade.body_describe,
-                  'metadata':dict(color='red'),
-                  'extra':extra}
-        
-        response_charge = pingpp.Charge.create(api_key=settings.PINGPP_APPKEY,**params)
-        logger.debug('PINGPP CHARGE RESP: %s'%response_charge)
+        logger.debug('CHARGE RESP: %s'%response_charge)
         
         return HttpResponse(json.dumps(response_charge),content_type='application/json')
     
@@ -106,6 +119,17 @@ class PINGPPCallbackView(View):
         content = request.body 
         logger.debug('pingpp callback:%s'%content )
         return HttpResponse('ok',content_type='application/json')
+    
+    get = post
+    
+    
+class WXPayWarnView(View):
+    
+    def post(self, request, *args, **kwargs):
+        
+        content = request.body
+        logger.error('wx warning:%s'%content )
+        return HttpResponse('ok')
     
     get = post
     

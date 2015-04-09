@@ -118,7 +118,7 @@
 <input type="hidden" id="payment" value="{{ payment }}" />
 <div id="pay_now">
     <div class="btn">
-        <img width="16" height="16" style="margin-right: 5px;" src="{{ STATIC_URL }}images/pay.png" />
+        <img width="16" height="16" style="margin-right: 5px;"  src="{{ STATIC_URL }}images/pay.png" />
         确认付款
     </div>
 </div>
@@ -162,7 +162,9 @@
 
     //确认订单后的付款操作，后续操作请自行添加
     function Ctrl_sure_pay(){
-    
+        if $('#pay_now').hasClass('charged'):
+        	return
+        	
         var CHARGE_URL = '/mm/charge/';
         var buyer = $('#name').val();//买家姓名
         var phone = $('#phone').val();//手机号码
@@ -209,15 +211,21 @@
             receiver_address:address,
             buyer_message:message
         }
+        $('#pay_now').addClass('charged');
+        $('#pay_now #btn').addClass('pressed');
         
         var callback = function(data){
-          console.log('response:',data);
-          alert('pay charge:'+data);
-          pingpp.createPayment(data, function(result, err) {
-                    console.log(result);
-                    console.log(err);
-                });
+          if(typeof data.errcode != "undifine"){ 
+	          console.log('response:',data);
+	          pingpp.createPayment(data, function(result, err) {
+	                    console.log(result);
+	                    console.log(err);
+	          });
+           }else{
+           	 alert('err:'+data.errmsg);
+           }
         }
+        
     $.post(CHARGE_URL,JSON.stringify(params),callback,'json');
         
     }

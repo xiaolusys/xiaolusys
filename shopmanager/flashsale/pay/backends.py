@@ -29,7 +29,7 @@ class FlashSaleBackend(RemoteUserBackend):
         
         username = request.POST.get('username')
         password = request.POST.get('password')
-        print username,password
+        
         try:
             customer = Customer.objects.get(models.Q(email=username)|models.Q(mobile=username))
             user = customer.user 
