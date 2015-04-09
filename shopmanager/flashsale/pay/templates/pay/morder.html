@@ -162,9 +162,7 @@
 
     //确认订单后的付款操作，后续操作请自行添加
     function Ctrl_sure_pay(){
-        if $('#pay_now').hasClass('charged'):
-        	return
-        	
+        if ($('#pay_now').hasClass('charged')){return;}       	
         var CHARGE_URL = '/mm/charge/';
         var buyer = $('#name').val();//买家姓名
         var phone = $('#phone').val();//手机号码
