@@ -83,7 +83,7 @@ class CustomerAdmin(admin.ModelAdmin):
     list_display = ('id','nick','mobile','phone','created','modified')
     list_display_links = ('id','nick',)
     
-    search_fields = ['id','mobile','openid']
+    search_fields = ['id','mobile','openid','unionid']
     
     
 admin.site.register(Customer,CustomerAdmin)

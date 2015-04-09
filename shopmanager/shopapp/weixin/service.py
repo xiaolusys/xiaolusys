@@ -138,7 +138,7 @@ class WeixinUserService():
     def getOrCreateUser(self, openId, force_update=False):
         
         wx_user, state = WeiXinUser.objects.get_or_create(openid=openId) 
-        if state or force_update:
+        if state or force_update or not wx_user.unionid:
             try:     
                 userinfo = self. _wx_api.getUserInfo(openId)
                 pre_subscribe_time = wx_user.subscribe_time

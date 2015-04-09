@@ -83,10 +83,10 @@ class Customer(models.Model):
     email   = models.CharField(max_length=32,db_index=True,blank=True,verbose_name=u'邮箱') 
     phone   = models.CharField(max_length=18,blank=True,verbose_name=u'电话') 
     
-    openid = models.CharField(max_length=40,db_index=True,blank=True,verbose_name=u'微信ID') 
+    openid  = models.CharField(max_length=28,db_index=True,blank=True,verbose_name=u'微信ID') 
+    unionid = models.CharField(max_length=28,db_index=True,blank=True,verbose_name=u'联合ID') 
     
-    status     = models.IntegerField(choices=USER_STATUS_CHOICES,
-                                  default=NORMAL,verbose_name= u'状态') 
+    status     = models.IntegerField(choices=USER_STATUS_CHOICES,default=NORMAL,verbose_name= u'状态') 
     
     created     = models.DateTimeField(auto_now_add=True,verbose_name=u'创建日期')
     modified   = models.DateTimeField(auto_now=True,verbose_name=u'修改日期')

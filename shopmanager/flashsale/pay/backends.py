@@ -8,7 +8,8 @@ from django.contrib.auth.backends import RemoteUserBackend
 from django.core.urlresolvers import reverse
 
 from .models import Customer
-from shopapp.weixin.views import get_user_openid,valid_openid
+from .options import get_user_unionid
+from shopapp.weixin.views import valid_openid
 from shopapp.weixin.models import WeiXinUser
 
 import logging
@@ -69,19 +70,17 @@ class WeixinPubBackend(RemoteUserBackend):
             return None
         
         code = request.GET.get('code')
-        user_openid = get_user_openid(request,code,appid=settings.WXPAY_APPID,secret=settings.WXPAY_SECRET)
-        if not valid_openid(user_openid):
-            return AnonymousUser()
+        openid,unionid = get_user_unionid(code,appid=settings.WXPAY_APPID,secret=settings.WXPAY_SECRET)
         
         try:
-            profile = Customer.objects.get(openid=user_openid)
+            profile = Customer.objects.get(openid=openid,unionid=unionid)
             if profile.user:
                 if not profile.user.is_active:
                     profile.user.is_active = True
                     profile.user.save()
                 return profile.user
             else:
-                user,state = User.objects.get_or_create(username=user_openid,is_active=True)
+                user,state = User.objects.get_or_create(username=unionid,is_active=True)
                 profile.user = user
                 profile.save()
                 
@@ -89,11 +88,11 @@ class WeixinPubBackend(RemoteUserBackend):
             if not self.create_unknown_user:
                 return AnonymousUser()
             
-            user,state = User.objects.get_or_create(username=user_openid,is_active=True)
-            profile,state = Customer.objects.get_or_create(openid=user_openid,user=user)
+            user,state = User.objects.get_or_create(username=unionid,is_active=True)
+            profile,state = Customer.objects.get_or_create(openid=openid,unionid=unionid,user=user)
             
         try:
-            wxuser = WeiXinUser.objects.get(openid=user_openid)
+            wxuser = WeiXinUser.objects.get(models.Q(openid=openid)|models.Q(unionid=unionid))
             profile.nick   = wxuser.nickname
             profile.mobile = wxuser.mobile
             profile.save()
