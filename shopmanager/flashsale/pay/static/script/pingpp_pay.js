@@ -114,7 +114,7 @@ PingppSDK.prototype = {
         'getBrandWCPayRequest',
         self._jsApiParameters,
         function(res){
-        alert('postpay:'+res);
+        alert('postpay:'+res.err_msg);
           if(res.err_msg == 'get_brand_wcpay_request:ok'){
             self._innerCallback("success");
           }else if(res.err_msg == 'get_brand_wcpay_request:cancel'){
