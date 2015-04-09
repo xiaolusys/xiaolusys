@@ -212,6 +212,7 @@
         
         var callback = function(data){
           console.log('response:',data);
+          alert('pay charge:'+data);
           pingpp.createPayment(data, function(result, err) {
                     console.log(result);
                     console.log(err);

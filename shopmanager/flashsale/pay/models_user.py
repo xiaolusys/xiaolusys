@@ -78,7 +78,7 @@ class Customer(models.Model):
     
     user  = BigIntegerForeignKey(DjangoUser,verbose_name= u'原始用户')
     
-    nick  = models.CharField(max_length=32,db_index=True,blank=True,verbose_name=u'昵称') 
+    nick  = models.CharField(max_length=32,blank=True,verbose_name=u'昵称') 
     mobile  = models.CharField(max_length=11,db_index=True,blank=True,verbose_name=u'手机') 
     email   = models.CharField(max_length=32,db_index=True,blank=True,verbose_name=u'邮箱') 
     phone   = models.CharField(max_length=18,blank=True,verbose_name=u'电话') 
