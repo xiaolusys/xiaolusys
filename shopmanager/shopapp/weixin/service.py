@@ -613,21 +613,38 @@ class WxShopService(LocalService):
         
         return merge_order
     
+    @classmethod
+    def getOrCreateSeller(cls,trade):
+        
+        wx_product = WXProduct.objects.getOrCreate(trade.product_id)
+        product_name   = wx_product.product_name
+        
+        seller_id = trade.seller_id
+        if product_name.find(u'秒杀') >= 0:
+            ###需要创建wxmiaosha 该买家才能正常工作
+            seller_id = 'wxmiaosha'
+            trade.buyer_nick = trade.buyer_nick + u'[秒杀]'
+        try:
+            seller = User.objects.get(visitor_id=seller_id)
+        except:
+            seller = User.objects.get(visitor_id=trade.seller_id)
+        
+        return seller
     
     @classmethod
     def createMergeTrade(cls, trade, *args, **kwargs):
         
-        user = User.objects.get(visitor_id=trade.seller_id)
+        user = cls.getOrCreateSeller(trade)
         merge_trade, state = MergeTrade.objects.get_or_create(user=user,
                                                              tid=trade.order_id)
         
         update_fields = ['buyer_nick', 'created', 'pay_time', 'modified', 'status']
         
         merge_trade.buyer_nick = trade.buyer_nick or trade.receiver_name 
-        merge_trade.created = trade.order_create_time
+        merge_trade.created  = trade.order_create_time
         merge_trade.modified = trade.order_create_time
         merge_trade.pay_time = trade.order_create_time
-        merge_trade.status = WXOrder.mapTradeStatus(trade.order_status) 
+        merge_trade.status   = WXOrder.mapTradeStatus(trade.order_status) 
         
         update_address = False
         if not merge_trade.receiver_name and trade.receiver_name:

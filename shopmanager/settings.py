@@ -187,79 +187,6 @@ TAOBAO_PAGE_SIZE = 100              #the page_size of  per request
 NO_PIC_PATH = 'img/nopic.jpg'
 
 
-LOGGING = {
-    'version': 1,
-    'disable_existing_loggers': False,
-    'formatters': {
-        'verbose': {
-            'format': '%(levelname)s %(asctime)s %(module)s %(process)d %(thread)d %(message)s'
-        },
-        'simple': {
-            'format': '%(levelname)s %(message)s'
-        },
-    },
-    'handlers': {
-        'file': {
-            'level': 'DEBUG',
-            'class': 'logging.FileHandler',
-            'filename': '/tmp/django-debug.log',
-            'formatter': 'simple'
-        },
-        'sentry': {
-            'level': 'ERROR',
-            'class': 'raven.contrib.django.handlers.SentryHandler'
-        },
-        'console':{
-            'level':'DEBUG',
-            'class':'logging.StreamHandler',
-            'formatter': 'simple'
-        },
-        'mail_admins': {
-            'level': 'INFO',
-            'class': 'django.utils.log.AdminEmailHandler',
-            'include_html': True,
-        }
-    },
-    'loggers': {
-        'django.request': {
-            'handlers': ['console','sentry'],
-            'level': 'DEBUG',
-            'propagate': True,
-        },
-        'sentry.errors': {
-            'handlers': ['sentry'],
-            'level': 'ERROR',
-            'propagate': True,
-        },
-        'celery.handler': {
-            'handlers': ['sentry','console'],
-            'level': 'ERROR',
-            'propagate': True,
-        },
-        'notifyserver.handler':{
-            'handlers': ['sentry','console'],
-            'level': 'ERROR',
-            'propagate': True,
-        },
-        'yunda.handler':{
-            'handlers': ['sentry'],
-            'level': 'ERROR',
-            'propagate': True,
-        },
-        'mail.handler':{
-            'handlers': ['mail_admins','sentry'],
-            'level': 'INFO',
-            'propagate': True,
-        },
-        'xhtml2pdf':{
-            'handlers': ['sentry'],
-            'level': 'ERROR',
-            'propagate': True,
-        },
-    }
-}
-
-
 from prod_settings import *
 
 try:
@@ -288,3 +215,5 @@ REST_FRAMEWORK = {
 if DEBUG:
     MIDDLEWARE_CLASSES = ('middleware.middleware.ProfileMiddleware',
                           'middleware.middleware.QueryCountDebugMiddleware',) + MIDDLEWARE_CLASSES
+
+

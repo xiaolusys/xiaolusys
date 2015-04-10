@@ -10,6 +10,7 @@ REMAIN = 'remain'  #保留
 #订单类型
 FENXIAO_TYPE = 'fenxiao'
 TAOBAO_TYPE  = 'fixed'
+SALE_TYPE    = 'sale'
 JD_TYPE      = 'jd'
 YHD_TYPE     = 'yhd'
 DD_TYPE      = 'dd'

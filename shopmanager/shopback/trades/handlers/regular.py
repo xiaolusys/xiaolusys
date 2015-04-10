@@ -17,6 +17,9 @@ class RegularSaleHandler(BaseHandler):
         if not kwargs.get('first_pay_load',None) or merge_trade.type != pcfg.WX_TYPE:
             return False
         
+        if merge_trade.user.visitor_id.lower().endswith('miaosha'):
+            return False
+        
         orders = merge_trade.inuse_orders.extra(where=["CHAR_LENGTH(outer_id)>=9"])\
             .filter(Q(outer_id__startswith="9")|Q(outer_id__startswith="1")|Q(outer_id__startswith="8"))
         
@@ -31,7 +34,7 @@ class RegularSaleHandler(BaseHandler):
         if merge_trade.sys_status == pcfg.ON_THE_FLY_STATUS:
             return 
         
-        remind_time = datetime.datetime.now() + datetime.timedelta(days=7)
+        remind_time = datetime.datetime.now() + datetime.timedelta(days=3)
         merge_trade.sys_status = pcfg.REGULAR_REMAIN_STATUS
         
         merge_trade.remind_time = remind_time

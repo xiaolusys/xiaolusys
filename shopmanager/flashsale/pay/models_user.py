@@ -5,6 +5,8 @@ from django.contrib.auth.models import User as DjangoUser
     
 from shopback.base.fields import BigIntegerAutoField,BigIntegerForeignKey
     
+
+    
 class Register(models.Model):
     
     MAX_VALID_COUNT   = 3
@@ -35,7 +37,7 @@ class Register(models.Model):
     class Meta:
         db_table = 'flashsale_register'
         verbose_name=u'特卖用户/注册'
-        verbose_name_plural = u'特卖用户/客户列表'
+        verbose_name_plural = u'特卖用户/注册列表'
         
     def __unicode__(self):
         return '<%s>'%(self.id)

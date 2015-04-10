@@ -112,13 +112,43 @@ class PINGPPChargeView(View):
     get = post
     
 
+from . import tasks
+
 class PINGPPCallbackView(View):
     
     def post(self, request, *args, **kwargs):
         
         content = request.body 
         logger.debug('pingpp callback:%s'%content )
-        return HttpResponse('ok',content_type='application/json')
+
+        # 读取异步通知数据
+        notify   = json.loads(content)
+        response = ''
+        
+        # 对异步通知做处理
+        if 'object' not in notify:
+            response = 'fail'
+        else:
+            if notify['object'] == 'charge':
+                # 开发者在此处加入对支付异步通知的处理代码
+                if settings.DEBUG:
+                    tasks.notifyTradePayTask(notify)
+                else:
+                    tasks.notifyTradePayTask.s(notify)
+                
+                response = 'success'
+            elif notify['object'] == 'refund':
+                # 开发者在此处加入对退款异步通知的处理代码
+                if settings.DEBUG:
+                    tasks.notifyTradeRefundTask(notify)
+                else:
+                    tasks.notifyTradeRefundTask.s(notify)
+                
+                response = 'success'
+            else:
+                response = 'fail'
+        
+        return HttpResponse(response)
     
     get = post
     

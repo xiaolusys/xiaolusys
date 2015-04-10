@@ -106,8 +106,9 @@ class Refund(models.Model):
         return '<%s,%s,%s>'%(self.tid,self.buyer_nick,self.refund_fee)
     
     def clean(self):
-        if self.tid:
-            self.tid = self.tid.strip()
+        for field in self._meta.fields:
+            if isinstance(field, (models.CharField, models.TextField)):
+                setattr(self, field.name, getattr(self, field.name).strip())
 
     @classmethod
     def get_or_create(cls,user_id,refund_id,force_update=False):
@@ -190,5 +191,12 @@ class RefundProduct(models.Model):
                      str(self.trade_id),self.out_sid,self.company]
         info_string = '-'.join([ s for s in info_list if s])    
         return '<%s,%s,%s>'%(info_string,self.outer_id,self.outer_sku_id)
+    
+    def clean(self):
+        for field in self._meta.fields:
+            if isinstance(field, (models.CharField, models.TextField)):
+                setattr(self, field.name, getattr(self, field.name).strip())
+                
+                
     
     

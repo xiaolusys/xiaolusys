@@ -5,7 +5,7 @@ from django.forms import TextInput, Textarea
 from django.http import HttpResponseRedirect
 
 from shopback.trades.filters import DateFieldListFilter
-from .models import SaleTrade,SaleOrder,Customer
+from .models import SaleTrade,SaleOrder,TradeCharge,Customer,Register
 
 
 class SaleOrderInline(admin.TabularInline):
@@ -66,16 +66,26 @@ class SaleTradeAdmin(admin.ModelAdmin):
 admin.site.register(SaleTrade,SaleTradeAdmin)
 
 
-class SaleOrderAdmin(admin.ModelAdmin):
-    list_display = ('id','oid','sale_trade','price','title','sku_name','created')
-    list_display_links = ('id','oid')
+class TradeChargeAdmin(admin.ModelAdmin):
+    
+    list_display = ('order_no','charge','channel','amount','time_paid','paid','refunded')
+    list_display_links = ('order_no','charge',)
+    
+    list_filter   = (('time_paid',DateFieldListFilter),)
+    search_fields = ['order_no','charge']
+
+admin.site.register(TradeCharge,TradeChargeAdmin)
+
+
+class RegisterAdmin(admin.ModelAdmin):
+    list_display = ('id','cus_uid','vmobile','vemail','created')
+    list_display_links = ('id','cus_uid')
     #list_editable = ('update_time','task_type' ,'is_success','status')
 
     list_filter   = (('created',DateFieldListFilter),)
-    search_fields = ['id','oid']
+    search_fields = ['id','cus_uid','vmobile','vemail']
 
-    
-admin.site.register(SaleOrder,SaleOrderAdmin)
+admin.site.register(Register,RegisterAdmin)
 
 
 class CustomerAdmin(admin.ModelAdmin):
@@ -87,3 +97,5 @@ class CustomerAdmin(admin.ModelAdmin):
     
     
 admin.site.register(Customer,CustomerAdmin)
+
+

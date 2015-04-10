@@ -6,12 +6,14 @@ from shopback.orders.service import OrderService
 from shopback.fenxiao.service import PurchaseOrderService
 from shopapp.weixin.service import WxShopService
 from shopapp.jingdong.service import JDShopService
+from flashsale.pay.service import FlashSaleService
 from shopback import paramconfig as pcfg
 from common.utils import update_model_fields
 
 TRADE_TYPE_SERVICE_MAP = {
     pcfg.FENXIAO_TYPE:PurchaseOrderService,
     pcfg.TAOBAO_TYPE:OrderService,
+    pcfg.SALE_TYPE:FlashSaleService,
     pcfg.GUARANTEE_TYPE:OrderService,
     pcfg.TB_STEP_TYPE:OrderService,
     pcfg.COD_TYPE:OrderService,
