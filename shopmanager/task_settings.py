@@ -32,6 +32,10 @@ CELERY_ROUTES = {
             'queue': 'trade_notify',
             'routing_key': 'trade.process_trade_notify',
         },
+        'flashsale.pay.tasks.notifyTradePayTask': {
+            'queue': 'trade_notify',
+            'routing_key': 'trade.pingpp_paycallback',
+        },
 }
 
 

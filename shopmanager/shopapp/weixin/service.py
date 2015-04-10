@@ -623,6 +623,7 @@ class WxShopService(LocalService):
         if product_name.find(u'秒杀') >= 0:
             ###需要创建wxmiaosha 该买家才能正常工作
             seller_id = 'wxmiaosha'
+            trade.buyer_nick = trade.buyer_nick + u'[秒杀]'
         try:
             seller = User.objects.get(visitor_id=seller_id)
         except:
@@ -640,10 +641,10 @@ class WxShopService(LocalService):
         update_fields = ['buyer_nick', 'created', 'pay_time', 'modified', 'status']
         
         merge_trade.buyer_nick = trade.buyer_nick or trade.receiver_name 
-        merge_trade.created = trade.order_create_time
+        merge_trade.created  = trade.order_create_time
         merge_trade.modified = trade.order_create_time
         merge_trade.pay_time = trade.order_create_time
-        merge_trade.status = WXOrder.mapTradeStatus(trade.order_status) 
+        merge_trade.status   = WXOrder.mapTradeStatus(trade.order_status) 
         
         update_address = False
         if not merge_trade.receiver_name and trade.receiver_name:
