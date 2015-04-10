@@ -23,12 +23,13 @@ checkrefund.Dialog = function (manager) {
     this.refundTable   = goog.dom.getElement('id_refund_table'); 
 }
 
-checkrefund.Dialog.prototype.init = function (tid) {
+checkrefund.Dialog.prototype.init = function (tid,seller_id) {
 	var dialog = this.dialog ;
     var that   = this ;
     this.tid   = tid;
+    this.seller_id = seller_id;
     dialog.setContent('');
-    var params = {'tid':tid,'format':'json'};
+    var params = {'tid':tid,'seller_id':this.seller_id,'format':'json'};
     
     var callback = function(e){
         var xhr = e.target;
@@ -65,7 +66,7 @@ checkrefund.Dialog.prototype.hide = function(data) {
 checkrefund.Dialog.prototype.handleEvent= function (e) {
 	
     if (e.key == 'OK') {
-		var url = '/refunds/exchange/'+this.tid+'/';
+		var url = '/refunds/exchange/'+this.seller_id+'/'+this.tid+'/';
 		var row_idx = this.refundManager.check_row_idx;
 		this.refundTable.deleteRow(row_idx);
 		this.hide();
@@ -160,7 +161,8 @@ checkrefund.Manager = function () {
 checkrefund.Manager.prototype.showDialog = function(e) {
     var elt = e.target;
     var trade_id = elt.getAttribute('tid');
-    this.dialog.init(trade_id);
+    var seller_id = elt.getAttribute('seller_id');
+    this.dialog.init(trade_id,seller_id);
     this.dialog.clickPos = goog.style.getPageOffset(elt);
     this.check_row_idx = elt.parentElement.parentElement.rowIndex;
     this.dialog.show(); 

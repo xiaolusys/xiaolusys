@@ -25,7 +25,8 @@ urlpatterns = patterns('shopback.refunds.views',
     
     url('^rel/$','relate_refund_product',name='relate_refund_product'),  
                      
-    url('^exchange/(?P<tid>\w{1,32})/$','create_refund_exchange_trade',name='refund_exchange_create'), 
+    url('^exchange/(?P<seller_id>\d)/(?P<tid>\w{1,32})/$',
+         'create_refund_exchange_trade',name='refund_exchange_create'), 
                      
     (r'^refund/$',staff_member_required(RefundView.as_view(
         resource=RefundResource,

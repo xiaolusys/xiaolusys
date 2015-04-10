@@ -78,7 +78,8 @@ class MergeTradeChangeList(ChangeList):
         #如果查询条件中含有邀请码
         search_q = request.GET.get('q','').strip()
         if PHONE_RE.match(search_q):
-            trades = MergeTrade.objects.filter(models.Q(receiver_phone=search_q)
+            trades = MergeTrade.objects.filter(models.Q(id=search_q)
+                                               |models.Q(receiver_phone=search_q)
                                                |models.Q(receiver_mobile=search_q))
             return trades
         
