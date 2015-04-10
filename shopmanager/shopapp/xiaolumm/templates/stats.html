@@ -1,0 +1,55 @@
+{% extends "mama_base.html" %}
+
+{% block title %} 每日数据 {% endblock %}
+
+
+{% block container %}
+<div class="row" style="margin-top:20px">
+  <div class="col-xs-8"></div>
+  <div class="col-xs-4">
+  <select class="form-control" name="color" id="id-select">
+    <option {% if pk == '70' %} selected="selected" {% endif %} value="70">zhehui.zhou</option>
+    <option {% if pk == '75' %} selected="selected" {% endif %} value="75">xiaobo.dai</option>
+    <option {% if pk == '76' %} selected="selected" {% endif %} value="76">xiaoguang.huo</option>
+    <option {% if pk == '81' %} selected="selected" {% endif %} value="81">yechu.li</option>
+    <option {% if pk == '55' %} selected="selected" {% endif %} value="55">jasmine.jiang</option>
+    <option {% if pk == '56' %} selected="selected" {% endif %} value="56">hua.yan</option>
+    <option {% if pk == '6' %} selected="selected" {% endif %} value="6">zifei.zhong</option>
+    <option {% if pk == '7' %} selected="selected" {% endif %} value="7">shirley.zhang</option>
+    <option {% if pk == '77' %} selected="selected" {% endif %} value="77">bing.luo</option>
+  </select>
+  </div>
+</div>
+
+<div style="margin-top:20px">
+  <table class="table table-bordered">
+    <thead>
+      <th>手机号</th><th>访问人数</th><th>访问次数</th><th>微客服</th>
+    </thead>
+    <tbody>
+      {% for item in data %}
+      <tr><td>{{ item.mobile }}</td><td>{{ item.user_num }}</td><td>{{ item.click_num }}</td><td>{{ item.weikefu }}</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  
+</div>
+
+<form action="/m/stats/" method="get" id="id-form">
+  <input type="hidden" name="pk" id="id-pk"/>
+</form>
+
+{% endblock %}
+
+
+{% block tail_script %}
+
+<script type="text/javascript">
+  $("#id-select").change(function(){ 
+    var val = $(this).children("option:selected").val();
+    $("#id-pk").val(val);
+    $("#id-form").submit()
+  });
+</script>
+
+{% endblock %}

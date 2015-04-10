@@ -20,8 +20,14 @@ class StatsView(View):
         today = datetime.date.today()
         time_from = datetime.datetime(today.year, today.month, today.day)
 
-        user = request.user
-        mama_list = XiaoluMama.objects.filter(manager=user.pk)
+        content = request.REQUEST
+        pk = content.get('pk')
+        if not pk or pk == 'None':
+            if request.user:
+                pk = request.user.pk
+        
+        mama_list = XiaoluMama.objects.filter(manager=pk)
+
         data = []
         for mama in mama_list:
             weikefu = mama.weikefu
@@ -29,13 +35,13 @@ class StatsView(View):
             click_list = Clicks.objects.filter(linkid=mama.pk,created__gt=time_from)
 
             click_num = click_list.count()
-            tmp_set = set()
-            for click in click_list:
-                tmp_set.add(click.openid)
-                
-            data.append({"mobile":mobile, "weikefu":weikefu, "click_num":click_num, "click_user":len(tmp_set)})
+            openid_list = click_list.values('openid').distinct()
+            
+            data_entry = {"mobile":mobile, "weikefu":weikefu, 
+                          "click_num":click_num, "user_num":len(openid_list)} 
+            data.append(data_entry)
         
-        return render_to_response("xiaolumama.html", {"data":data}, context_instance=RequestContext(request))
+        return render_to_response("stats.html", {"data":data, "pk":pk}, context_instance=RequestContext(request))
 
 
 
