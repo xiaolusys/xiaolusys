@@ -5,7 +5,7 @@ from django.forms import TextInput, Textarea
 from django.http import HttpResponseRedirect
 
 from shopback.trades.filters import DateFieldListFilter
-from .models import SaleTrade,SaleOrder,Customer,Register
+from .models import SaleTrade,SaleOrder,TradeCharge,Customer,Register
 
 
 class SaleOrderInline(admin.TabularInline):
@@ -64,6 +64,17 @@ class SaleTradeAdmin(admin.ModelAdmin):
         return self.readonly_fields
     
 admin.site.register(SaleTrade,SaleTradeAdmin)
+
+
+class TradeChargeAdmin(admin.ModelAdmin):
+    
+    list_display = ('order_no','charge','channel','amount','time_paid','paid','refunded')
+    list_display_links = ('order_no','charge',)
+    
+    list_filter   = (('time_paid',DateFieldListFilter),)
+    search_fields = ['order_no','charge']
+
+admin.site.register(TradeCharge,TradeChargeAdmin)
 
 
 class RegisterAdmin(admin.ModelAdmin):

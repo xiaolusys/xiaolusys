@@ -54,7 +54,7 @@ class LogisticsHandler(BaseHandler):
                  
             update_model_fields(merge_trade,update_fields=['logistics_company'])
         except Exception,exc:
-            merge_trade.sys_memo += '[物流：%s]'%exc.message
+            merge_trade.sys_memo += u'[物流：%s]'%exc.message
             update_model_fields(merge_trade,update_fields=['sys_memo'])
             merge_trade.append_reason_code(pcfg.DISTINCT_RULE_CODE)
         

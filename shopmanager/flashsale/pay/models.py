@@ -117,7 +117,7 @@ class SaleTrade(models.Model):
     def mapTradeStatus(cls,index):
         from shopback.trades.models import MergeTrade
         status_list = MergeTrade.TAOBAO_TRADE_STATUS
-        return status_list[index]
+        return status_list[index][0]
 
 class SaleOrder(models.Model):
     
@@ -205,8 +205,8 @@ class TradeCharge(models.Model):
     class Meta:
         db_table = 'flashsale_trade_charge'
         unique_together = ("order_no","charge")
-        verbose_name=u'特卖/支付'
-        verbose_name_plural = u'特卖/支付列表'
+        verbose_name=u'特卖支付/交易'
+        verbose_name_plural = u'特卖支付/交易列表'
         
     def __unicode__(self):
         return '<%s>'%(self.id)

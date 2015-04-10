@@ -1,3 +1,4 @@
+#-*- encoding:utf8 -*-
 import time
 import datetime
 import calendar
@@ -19,23 +20,33 @@ logger = logging.getLogger('celery.handler')
 def notifyTradePayTask(notify):
 
     try:
-        order_no = notify['order_no']
-        charge   = notify['charge']
+        order_no = notify['order_no'].replace('T','')
+        charge   = notify['id']
         
         tcharge,state = TradeCharge.objects.get_or_create(order_no=order_no,charge=charge)
         
-        if tcharge.paid:
-            return 
-            
+        if tcharge.paid == True:
+            return
+         
+        update_fields = set(['paid','refunded','channel','amount','currency','transaction_no',
+                         'amount_refunded','failure_code','failure_msg','time_paid','time_expire'])
+
         for k,v in notify.iteritems():
+            if k not in update_fields:
+                continue
+            
             if k in ('time_paid','time_expire'):
                 v = v and datetime.datetime.fromtimestamp(v / 1e3)
+            
+            if k in ('failure_code','failure_msg'):
+                v = v or ''
+            
             hasattr(tcharge,k) and setattr(tcharge,k,v)
             
         tcharge.save()
         
         strade = SaleTrade.objects.get(id=order_no)
-        strade.status = SaleTrade.WAIT_SELLER_SEND_GOODS,
+        strade.status = SaleTrade.WAIT_SELLER_SEND_GOODS
         strade.pay_time = tcharge.time_paid
         strade.save()
         
@@ -43,6 +54,7 @@ def notifyTradePayTask(notify):
         saleservice.payTrade()
     
     except Exception,exc:
+
         logger.error('notifyTradePayTask error:%s' %(exc), exc_info=True)
         if not settings.DEBUG:
             notifyTradePayTask.retry(exc=exc,countdown=2)

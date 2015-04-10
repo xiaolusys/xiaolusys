@@ -37,8 +37,8 @@ class FlashSaleService(LocalService):
             sys_status = merge_order.sys_status or pcfg.IN_EFFECT
         
         if state:
-            product = Product.objects.get(id=order['item_id'])
-            sku     = ProductSku.objects.get(id=order['sku_id'],product=product)
+            product = Product.objects.get(id=order.item_id)
+            sku     = ProductSku.objects.get(id=order.sku_id,product=product)
               
             merge_order.payment = order.payment
             merge_order.total_fee = order.total_fee
@@ -46,6 +46,7 @@ class FlashSaleService(LocalService):
             merge_order.num     = order.num
             merge_order.title   = order.title
             merge_order.outer_id     = product.outer_id
+            merge_order.sku_properties_name = order.sku_name
             merge_order.outer_sku_id = sku.outer_id
                     
         merge_order.created  = merge_trade.created

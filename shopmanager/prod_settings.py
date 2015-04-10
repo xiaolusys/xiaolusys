@@ -121,3 +121,76 @@ PINGPP_CLENTIP = "121.199.168.159"
 PINGPP_APPID   = "app_LOOajDn9u9WDjfHa"
 #PINGPP_APPKEY = "sk_test_8y58u9zbPWTKTGGa1GrTi1mT"
 PINGPP_APPKEY  = "sk_live_HOS4OSW10u5CDyrn5Gn9izLC" 
+
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'verbose': {
+            'format': '%(levelname)s %(asctime)s %(module)s %(process)d %(thread)d %(message)s'
+        },
+        'simple': {
+            'format': '%(levelname)s %(message)s'
+        },
+    },
+    'handlers': {
+        'file': {
+            'level': 'DEBUG',
+            'class': 'logging.FileHandler',
+            'filename': '/tmp/django-debug.log',
+            'formatter': 'simple'
+        },
+        'sentry': {
+            'level': 'ERROR',
+            'class': 'raven.contrib.django.handlers.SentryHandler'
+        },
+        'console':{
+            'level':'DEBUG',
+            'class':'logging.StreamHandler',
+            'formatter': 'simple'
+        },
+        'mail_admins': {
+            'level': 'INFO',
+            'class': 'django.utils.log.AdminEmailHandler',
+            'include_html': True,
+        }
+    },
+    'loggers': {
+        'django.request': {
+            'handlers': ['sentry'],
+            'level': 'DEBUG',
+            'propagate': True,
+        },
+        'sentry.errors': {
+            'handlers': ['sentry'],
+            'level': 'ERROR',
+            'propagate': True,
+        },
+        'celery.handler': {
+            'handlers': ['sentry'],
+            'level': 'ERROR',
+            'propagate': True,
+        },
+        'notifyserver.handler':{
+            'handlers': ['sentry'],
+            'level': 'ERROR',
+            'propagate': True,
+        },
+        'yunda.handler':{
+            'handlers': ['sentry'],
+            'level': 'ERROR',
+            'propagate': True,
+        },
+        'mail.handler':{
+            'handlers': ['mail_admins','sentry'],
+            'level': 'INFO',
+            'propagate': True,
+        },
+        'xhtml2pdf':{
+            'handlers': ['sentry'],
+            'level': 'ERROR',
+            'propagate': True,
+        },
+    }
+}

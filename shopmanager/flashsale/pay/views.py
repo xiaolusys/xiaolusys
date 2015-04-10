@@ -131,14 +131,18 @@ class PINGPPCallbackView(View):
         else:
             if notify['object'] == 'charge':
                 # 开发者在此处加入对支付异步通知的处理代码
-                
-                tasks.notifyTradePayTask.s(notify)
+                if settings.DEBUG:
+                    tasks.notifyTradePayTask(notify)
+                else:
+                    tasks.notifyTradePayTask.s(notify)
                 
                 response = 'success'
             elif notify['object'] == 'refund':
                 # 开发者在此处加入对退款异步通知的处理代码
-                
-                tasks.notifyTradeRefundTask.s(notify)
+                if settings.DEBUG:
+                    tasks.notifyTradeRefundTask(notify)
+                else:
+                    tasks.notifyTradeRefundTask.s(notify)
                 
                 response = 'success'
             else:
