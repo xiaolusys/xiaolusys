@@ -66,7 +66,7 @@ checkrefund.Dialog.prototype.hide = function(data) {
 checkrefund.Dialog.prototype.handleEvent= function (e) {
 	
     if (e.key == 'OK') {
-		var url = '/refunds/exchange/'+this.tid+'/';
+		var url = '/refunds/exchange/'+this.seller_id+'/'+this.tid+'/';
 		var row_idx = this.refundManager.check_row_idx;
 		this.refundTable.deleteRow(row_idx);
 		this.hide();

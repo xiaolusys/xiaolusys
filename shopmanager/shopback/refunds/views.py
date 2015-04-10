@@ -236,15 +236,16 @@ class RefundView(ModelView):
 
 @csrf_exempt
 @staff_member_required
-def create_refund_exchange_trade(request,tid):
+def create_refund_exchange_trade(request,seller_id,tid):
     
     try:
-        origin_trade = MergeTrade.objects.get(tid=tid.strip())
+        origin_trade = MergeTrade.objects.get(tid=tid.strip(),user=seller_id)
     except:
         return HttpResponseNotFound('<h1>订单未找到 404<h1>')
+    
     refunds  = Refund.objects.filter(tid=tid)
     rfprods  = RefundProduct.objects.filter(trade_id=tid.strip())
-    if rfprods.count()<0:
+    if rfprods.count() < 0:
         return HttpResponseNotFound('<h1>未找到退货商品 404<h1>')
     
     dt = datetime.datetime.now()
