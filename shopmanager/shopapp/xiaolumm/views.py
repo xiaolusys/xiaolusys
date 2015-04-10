@@ -40,8 +40,8 @@ class StatsView(View):
             data_entry = {"mobile":mobile, "weikefu":weikefu, 
                           "click_num":click_num, "user_num":len(openid_list)} 
             data.append(data_entry)
-        
-        return render_to_response("stats.html", {"data":data, "pk":pk}, context_instance=RequestContext(request))
+
+        return render_to_response("stats.html", {"data":data, "pk":int(pk)}, context_instance=RequestContext(request))
 
 
 
