@@ -112,7 +112,12 @@ class SaleTrade(models.Model):
         for order in self.sale_orders.all():
             subc += order.title
         return subc
-            
+    
+    @classmethod
+    def mapTradeStatus(cls,index):
+        from shopback.trades.models import MergeTrade
+        status_list = MergeTrade.TAOBAO_TRADE_STATUS
+        return status_list[index]
 
 class SaleOrder(models.Model):
     
@@ -176,6 +181,34 @@ class SaleOrder(models.Model):
         return '<%s>'%(self.id)
         
         
+class TradeCharge(models.Model):
     
-
+    order_no    = models.BigIntegerField(verbose_name=u'订单ID')
+    charge      = models.CharField(max_length=28,verbose_name=u'CH-ID')
+    
+    paid        = models.BooleanField(db_index=True,default=False,verbose_name=u'付款')
+    refunded    = models.BooleanField(db_index=True,default=False,verbose_name=u'退款')
+    
+    channel     = models.CharField(max_length=16,blank=True,verbose_name=u'支付方式')
+    amount      = models.CharField(max_length=10,blank=True,verbose_name=u'付款金额')
+    currency    = models.CharField(max_length=8,blank=True,verbose_name=u'币种')
+    
+    transaction_no  = models.CharField(max_length=28,blank=True,verbose_name=u'事务NO')
+    amount_refunded = models.CharField(max_length=16,blank=True,verbose_name=u'退款金额')
+    
+    failure_code    = models.CharField(max_length=16,blank=True,verbose_name=u'错误编码')
+    failure_msg     = models.CharField(max_length=16,blank=True,verbose_name=u'错误信息')
+    
+    time_paid       = models.DateTimeField(null=True,blank=True,db_index=True,verbose_name=u'付款时间')
+    time_expire     = models.DateTimeField(null=True,blank=True,db_index=True,verbose_name=u'失效时间')
+    
+    class Meta:
+        db_table = 'flashsale_trade_charge'
+        unique_together = ("order_no","charge")
+        verbose_name=u'特卖/支付'
+        verbose_name_plural = u'特卖/支付列表'
+        
+    def __unicode__(self):
+        return '<%s>'%(self.id)
+    
     

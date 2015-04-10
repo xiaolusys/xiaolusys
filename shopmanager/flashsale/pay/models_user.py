@@ -5,6 +5,8 @@ from django.contrib.auth.models import User as DjangoUser
     
 from shopback.base.fields import BigIntegerAutoField,BigIntegerForeignKey
     
+
+    
 class Register(models.Model):
     
     MAX_VALID_COUNT   = 3

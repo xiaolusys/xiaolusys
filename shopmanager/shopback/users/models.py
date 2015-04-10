@@ -78,12 +78,14 @@ class User(models.Model):
     SHOP_TYPE_WX  = 'WX'
     SHOP_TYPE_SN  = 'SN'
     SHOP_TYPE_AMZ = 'AMZ'
+    SHOP_TYPE_SALE = 'SALE'
     SHOP_TYPE_OTHER = 'OTHER'
     
     SHOP_TYPE = (
         (SHOP_TYPE_B,u'淘宝商城'),
         (SHOP_TYPE_C,u'淘宝C店'),
         (SHOP_TYPE_JD,u'京东'),
+        (SHOP_TYPE_SALE,u'闪购特卖'),
         (SHOP_TYPE_YHD,u'一号店'),
         (SHOP_TYPE_DD,u'当当'),
         (SHOP_TYPE_SN,u'苏宁'),
