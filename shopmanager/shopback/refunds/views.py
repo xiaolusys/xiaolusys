@@ -59,6 +59,7 @@ class RefundManagerView(ModelView):
                 has_refund_prod = RefundProduct.objects.filter(trade_id=refund_tid).count()>0
                 refund_dict[refund_tid] = {'tid':refund_tid,
                                            'buyer_nick':refund.buyer_nick,
+                                           'seller_id':refund.user.id,
                                            'seller_nick':refund.user.nick,
                                            'receiver_name':receiver_name,
                                            'order_num':1,
@@ -87,13 +88,14 @@ class RefundManagerView(ModelView):
         
     def post(self, request, *args, **kwargs):
         
-        content = request.REQUEST
-        tid     = content.get('tid')
+        content     = request.REQUEST
+        tid         = content.get('tid')
+        seller_id   = content.get('seller_id')
         if not tid :
             return u'请输入交易ID'
         
         try:
-            merge_trade = MergeTrade.objects.get(tid=tid)
+            merge_trade = MergeTrade.objects.get(tid=tid,user=seller_id)
         except:
             return u'订单未找到'
         refund_orders = Refund.objects.filter(tid=tid)

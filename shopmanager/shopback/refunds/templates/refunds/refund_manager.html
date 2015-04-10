@@ -77,12 +77,12 @@
 		  	<legend><h1 class="head-title" >退货单列表  <a href="/admin/refunds/refund/add/" title="创建新退货款单" target="_blank"><i class="icon-plus"></i></a></h1></legend>
 			  <table id='id_refund_table' class="table table-bordered table-condensed">
 			    <thead>
-			      <tr><th>序号</th><th>买家昵称</th><th>卖家昵称</th><th>收货人</th><th>退货单数</th><th>创建日期</th><th>退回快递</th><th>快递单号</th><th>退款状态</th><th>天猫介入</th><th>原因</th><th>描述</th></tr>
+			      <tr><th>序号</th><th>买家昵称</th><th>卖家昵称</th><th>收货人</th><th>退货单数</th><th>创建日期</th><th>退回快递</th><th>快递单号</th><th>退款状态</th><th>原因</th><th>描述</th></tr>
 			    </thead>
 			    {% for trade in refund_trades %}
 			    <tr class="{% if trade.has_refund_prod %}label-warning{% endif %}">
 			    	<td>{{ forloop.counter }}</td>
-			    	<td><a href="javascript:void(0);" class="check-refund-order" style="cursor:pointer;" title="{{ trade.tid }}" tid="{{ trade.tid }}">
+			    	<td><a href="javascript:void(0);" class="check-refund-order" style="cursor:pointer;" title="{{ trade.tid }}" seller_id="{{ trade.seller_id }}" tid="{{ trade.tid }}">
 			    		{{ trade.buyer_nick }}</a></td>
 			    	<td>{{ trade.seller_nick }}</td>
 			    	<td>{{ trade.receiver_name }}</td>
@@ -91,7 +91,6 @@
 			    	<td>{{ trade.company_name }}</td>
 			    	<td>{{ trade.sid }}</td>
 			    	<td>{{ trade.status }}</td>
-			    	<td>{{ trade.cs_status }}</td>
 			    	<td>{{ trade.reason }}</td>
 			    	<td>{{ trade.desc }}</td>
 			    </tr>
