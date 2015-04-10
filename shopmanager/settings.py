@@ -151,6 +151,8 @@ INSTALLED_APPS = (
     'shopapp.weixin_sales',
     'shopapp.weixin_score',
     'shopapp.weixin_examination',
+    
+    'shopapp.xiaolumm',
     #'shopapp.second_time_sort',
     'supplychain.wavepick',
     #'supplychain.temai',
