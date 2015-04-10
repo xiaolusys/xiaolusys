@@ -5,8 +5,8 @@ from .models import Clicks,XiaoluMama,AgencyLevel,CashOut
 
 
 class XiaoluMamaAdmin(admin.ModelAdmin):
-    list_display = ('pk','mobile','province','weikefu','agencylevel','created','status')
-    list_filter = ('weikefu','agencylevel','status')
+    list_display = ('pk','mobile','province','weikefu','agencylevel','manager','created','status')
+    list_filter = ('weikefu','agencylevel','manager','status')
 
 admin.site.register(XiaoluMama, XiaoluMamaAdmin) 
     
