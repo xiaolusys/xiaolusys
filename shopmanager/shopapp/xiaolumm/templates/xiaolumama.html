@@ -1,0 +1,20 @@
+{% extends "mama_base.html" %}
+
+{% block title %} 每日数据 {% endblock %}
+
+
+{% block container %}
+<div style="margin-top:20px">
+  <table class="table table-bordered">
+    <thead>
+      <th>手机号</th><th>访问人数</th><th>访问次数</th><th>微客服</th>
+    </thead>
+    <tbody>
+      {% for item in data %}
+      <tr><td>{{ item.mobile }}</td><td>{{ item.click_user }}</td><td>{{ item.click_num }}</td><td>{{ item.weikefu }}</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  
+</div>
+{% endblock %}
