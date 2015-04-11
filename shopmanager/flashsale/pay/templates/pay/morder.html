@@ -216,8 +216,7 @@
           if(typeof data.errcode != "undifine"){ 
 	          console.log('response:',data);
 	          pingpp.createPayment(data, function(result, err) {
-	                    console.log(result);
-	                    console.log(err);
+	              window.location.href = '/mm/p/'+ pid +'/';
 	          });
            }else{
            	 alert('err:'+data.errmsg);
