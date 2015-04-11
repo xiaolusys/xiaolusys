@@ -47,7 +47,7 @@ class StatsView(View):
             click_num = click_list.count()
             openid_list = click_list.values('openid').distinct()
             
-            username  = self.getUserName(mama.pk)
+            username  = self.getUserName(mama.manager)
             for item in openid_list:
                 orders = WXOrder.objects.filter(buyer_openid=item["openid"],
                                                 order_create_time__gt=time_from,
