@@ -36,7 +36,7 @@ class StatsView(View):
         data = []
 
         for mama in mama_list:
-            order_list = []
+            order_num = 0
             weikefu = mama.weikefu
             mobile = mama.mobile
             agencylevel = mama.agencylevel
@@ -47,12 +47,10 @@ class StatsView(View):
             
             for openid in openid_list:
                 orders = WXOrder.objects.filter(buyer_openid=openid,order_create_time__gt=time_from,order_create_time__lt=time_to)
-                if orders.count() > 0:
-                    for order in orders:
-                        order_list.append({"nick":order.buyer_nick, "product_img":order.product_img, "payment":order.order_total_price, "time":order.order_create_time})
+                order_num = order_num + orders.count()
             
             data_entry = {"mobile":mobile, "weikefu":weikefu, "agencylevel":agencylevel,
-                          "click_num":click_num, "user_num":len(openid_list), "order_list":order_list} 
+                          "click_num":click_num, "user_num":len(openid_list), "order_num":order_num} 
             data.append(data_entry)
 
         
