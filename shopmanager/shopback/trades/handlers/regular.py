@@ -16,7 +16,7 @@ class RegularSaleHandler(BaseHandler):
         
         if not kwargs.get('first_pay_load',None) or merge_trade.type != pcfg.WX_TYPE:
             return False
-        
+        #秒杀订单 取消定时
         if merge_trade.user.visitor_id.lower().endswith('miaosha'):
             return False
         

@@ -17,7 +17,7 @@ class FlashSaleService(LocalService):
         if isinstance(t,SaleTrade):
             self.trade = t
         else:
-            self.trade = SaleTrade.objects.get(tid=t)
+            self.trade = SaleTrade.objects.get(id=t)
  
         
     @classmethod
@@ -66,7 +66,7 @@ class FlashSaleService(LocalService):
         from .options import getOrCreateSaleSeller
         
         seller = getOrCreateSaleSeller()
-        merge_trade,state = MergeTrade.objects.get_or_create(tid=trade.tid,
+        merge_trade,state = MergeTrade.objects.get_or_create(tid=trade.id,
                                                              user=seller)
         
         update_fields = ['buyer_nick','created','pay_time','modified','status']

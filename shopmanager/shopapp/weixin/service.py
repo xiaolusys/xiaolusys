@@ -623,7 +623,8 @@ class WxShopService(LocalService):
         if product_name.find(u'秒杀') >= 0:
             ###需要创建wxmiaosha 该买家才能正常工作
             seller_id = 'wxmiaosha'
-            trade.buyer_nick = trade.buyer_nick + u'[秒杀]'
+            if trade.buyer_nick.find(u'[秒杀]') < 0:
+                trade.buyer_nick = u'[秒杀]' + trade.buyer_nick 
         try:
             seller = User.objects.get(visitor_id=seller_id)
         except:

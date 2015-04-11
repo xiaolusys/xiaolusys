@@ -108,13 +108,11 @@ PingppSDK.prototype = {
 
   _jsApiCall: function(){
     var self = this;
-    alert('prepay:'+self._jsApiParameters);
     if(self._jsApiParameters != {}){
       WeixinJSBridge.invoke(
         'getBrandWCPayRequest',
         self._jsApiParameters,
         function(res){
-        alert('postpay:'+res.err_msg);
           if(res.err_msg == 'get_brand_wcpay_request:ok'){
             self._innerCallback("success");
           }else if(res.err_msg == 'get_brand_wcpay_request:cancel'){
@@ -129,7 +127,6 @@ PingppSDK.prototype = {
 
   _callpay: function(){
     var self = this;
-    alert('callpay:'+ typeof WeixinJSBridge);
     if (typeof WeixinJSBridge == "undefined"){
       function eventCallback(){
         self._jsApiCall();
