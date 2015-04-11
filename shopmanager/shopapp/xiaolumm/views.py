@@ -46,7 +46,7 @@ class StatsView(View):
             openid_list = click_list.values('openid').distinct()
             
             for item in openid_list:
-                orders = WXOrder.objects.filter(buyer_openid=item.openid,order_create_time__gt=time_from,order_create_time__lt=time_to)
+                orders = WXOrder.objects.filter(buyer_openid=item["openid"],order_create_time__gt=time_from,order_create_time__lt=time_to)
                 order_num = order_num + orders.count()
             
             data_entry = {"mobile":mobile, "weikefu":weikefu, "agencylevel":agencylevel,
