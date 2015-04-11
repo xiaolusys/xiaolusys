@@ -47,7 +47,8 @@ class StatsView(View):
             
             for item in openid_list:
                 orders = WXOrder.objects.filter(buyer_openid=item["openid"],order_create_time__gt=time_from,order_create_time__lt=time_to)
-                order_num = order_num + orders.count()
+                if orders.count() > 0:
+                    order_num += 1
             
             data_entry = {"mobile":mobile, "weikefu":weikefu, "agencylevel":agencylevel,
                           "click_num":click_num, "user_num":len(openid_list), "order_num":order_num} 
