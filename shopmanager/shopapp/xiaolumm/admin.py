@@ -5,8 +5,8 @@ from .models import Clicks,XiaoluMama,AgencyLevel,CashOut
 
 
 class XiaoluMamaAdmin(admin.ModelAdmin):
-    list_display = ('pk','mobile','province','weikefu','agencylevel','created','status')
-    list_filter = ('weikefu','agencylevel','status')
+    list_display = ('pk','mobile','province','weikefu','agencylevel','manager','created','status')
+    list_filter = ('weikefu','agencylevel','manager','status')
 
 admin.site.register(XiaoluMama, XiaoluMamaAdmin) 
     
@@ -20,6 +20,7 @@ admin.site.register(AgencyLevel, AgencyLevelAdmin)
 class ClicksAdmin(admin.ModelAdmin):
     list_display = ('linkid','openid','created')
     list_filter = ('linkid',)
+    search_fields = ['openid',]
 
 admin.site.register(Clicks, ClicksAdmin) 
 
