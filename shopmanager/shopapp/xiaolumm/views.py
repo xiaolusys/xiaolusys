@@ -50,7 +50,7 @@ class StatsView(View):
                 if orders.count() > 0:
                     order_num += 1
             
-            data_entry = {"mobile":mobile, "weikefu":weikefu, "agencylevel":agencylevel,
+            data_entry = {"mobile":mobile[-4:], "weikefu":weikefu, "agencylevel":agencylevel,
                           "click_num":click_num, "user_num":len(openid_list), "order_num":order_num} 
             data.append(data_entry)
 
