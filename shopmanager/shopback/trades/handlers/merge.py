@@ -10,6 +10,10 @@ from common.modelutils import  update_model_fields
 class MergeHandler(BaseHandler):
     
     def handleable(self,merge_trade,*args,**kwargs):
+        #秒杀订单 取消合并
+        if merge_trade.user.visitor_id.lower().endswith('miaosha'):
+            return False
+        
         return (kwargs.get('trade_merge_flag',True) and
                 (kwargs.get('first_pay_load',None) or 
                  kwargs.get('update_address',None)) and 
