@@ -139,7 +139,7 @@ class PINGPPCallbackView(View):
                 if settings.DEBUG:
                     tasks.notifyTradePayTask(notify)
                 else:
-                    tasks.notifyTradePayTask.s(notify)
+                    tasks.notifyTradePayTask.s(notify)()
                 
                 response = 'success'
             elif notify['object'] == 'refund':
@@ -147,7 +147,7 @@ class PINGPPCallbackView(View):
                 if settings.DEBUG:
                     tasks.notifyTradeRefundTask(notify)
                 else:
-                    tasks.notifyTradeRefundTask.s(notify)
+                    tasks.notifyTradeRefundTask.s(notify)()
                 
                 response = 'success'
             else:
