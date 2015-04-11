@@ -50,7 +50,8 @@ class OutStockOrderProductView(ModelView):
     
     def get(self, request, *args, **kwargs):
         
-        outer_stock_orders  = MergeOrder.objects.filter(merge_trade__sys_status__in=pcfg.WAIT_WEIGHT_STATUS,out_stock=True) 
+        outer_stock_orders  = MergeOrder.objects.filter(
+                    merge_trade__sys_status__in=pcfg.WAIT_WEIGHT_STATUS,out_stock=True)
         trade_items = {}
         
         for order in outer_stock_orders:
@@ -69,8 +70,7 @@ class OutStockOrderProductView(ModelView):
                     except:
                         prod_sku = None
                     prod_sku_name = prod_sku.name if prod_sku else order.sku_properties_name
-                    skus[outer_sku_id] = {
-                                          'sku_name':prod_sku_name,
+                    skus[outer_sku_id] = {'sku_name':prod_sku_name,
                                           'num':order.num,
                                           'quality':prod_sku.quantity if prod_sku else 0,
                                           'wait_post_num':prod_sku.wait_post_num if prod_sku else 0}
@@ -525,6 +525,7 @@ class CheckOrderView(ModelView):
                         trade.is_picking_print = True
                         trade.is_express_print = True
                         trade.company_code = pcfg.EXTRACT_COMPANEY_CODE
+                        trade.logistics_company = LogisticsCompany.getNoPostCompany()
                         trade.save()
                         
                         ts = TradeService(trade.user.id,trade)

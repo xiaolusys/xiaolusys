@@ -5,7 +5,9 @@ from .models import SaleTrade,SaleOrder
 from shopback.base.service import LocalService
 from shopback import paramconfig as pcfg
 from common.utils import update_model_fields
+import logging
 
+logger = logging.getLogger('celery.handler')
 
 class FlashSaleService(LocalService):
     
@@ -129,8 +131,12 @@ class FlashSaleService(LocalService):
         
         from shopback.logistics.models import LogisticsCompany
         try:
-            lg = LogisticsCompany.objects.get(code=company_code)
+            if not company_code:
+                lg =  LogisticsCompany.getNoPostCompany()
+            else:
+                lg = LogisticsCompany.objects.get(code=company_code)
             self.trade.logistics_company = lg
+            self.trade.out_sid = out_sid
             self.trade.consign_time      = datetime.datetime.now()
             self.trade.status  = SaleTrade.WAIT_BUYER_CONFIRM_GOODS
             self.trade.save()
@@ -141,6 +147,6 @@ class FlashSaleService(LocalService):
                 order.save()
                 
         except Exception,exc:
-            raise exc
+            logger.error(exc.message,exc_info=True)
         
         

@@ -91,6 +91,8 @@ class DestCompany(models.Model):
 
 class LogisticsCompany(models.Model):
     
+    NOPOST = 'HANDSALE'
+    
     id      = models.BigIntegerField(primary_key=True,verbose_name='ID')
     code    = models.CharField(max_length=64,unique=True,blank=True,verbose_name='快递编码')
     name    = models.CharField(max_length=64,blank=True,verbose_name='快递名称')
@@ -107,6 +109,16 @@ class LogisticsCompany(models.Model):
 
     def __unicode__(self):
         return '<%s,%s>'%(self.code,self.name)
+    
+    @classmethod
+    def getNoPostCompany(cls):
+        
+        company,state = cls.objects.get_or_create(code=cls.NOPOST)
+        if state:
+            company.name = u'无需物流'
+            company.save()
+            
+        return company
     
     @classmethod
     def get_recommend_express(cls,state,city,district):

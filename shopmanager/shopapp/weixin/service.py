@@ -19,6 +19,7 @@ from shopapp.weixin.models import (WeiXinAccount,
 from .weixin_apis import WeiXinAPI
 from shopback.base.service import LocalService
 from shopback.logistics import getLogisticTrace
+from shopback.logistics.models import LogisticsCompany
 from shopback.items.models import Product
 from shopback.users.models import User
 from shopback.trades.handlers import trade_handler
@@ -705,17 +706,25 @@ class WxShopService(LocalService):
         try:
             wx_logistic = WXLogistic.objects.get(origin_code__icontains=company_code.split('_')[0])
         except:
-            is_others = 1
-            lg_code    = company_code
+            is_others     = 1
+            lg_code       = company_code
+   
         else:
             is_others = 0
             lg_code = wx_logistic.company_code
-            
+        
+        need_delivery = 1
+        if company_code == LogisticsCompany.NOPOST:
+            lg_code       = ''
+            out_sid       = ''
+            need_delivery = 0
+        
         try:
             self.wx_api.deliveryOrder(self.order.order_id,
-                                                 lg_code,
-                                                 out_sid,
-                                                 is_others=is_others)
+                                     lg_code,
+                                     out_sid,
+                                     need_delivery=need_delivery,
+                                     is_others=is_others)
         except Exception, exc:
             logger.error(u'微信发货失败:%s' % exc.message, exc_info=True)
             raise exc

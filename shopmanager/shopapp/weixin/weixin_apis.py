@@ -271,7 +271,7 @@ class WeiXinAPI(object):
                                       method='POST')
         return response['order_list']
         
-    def deliveryOrder(self,order_id,delivery_company,delivery_track_no,is_others=0):
+    def deliveryOrder(self,order_id,delivery_company,delivery_track_no,need_delivery=1,is_others=0):
 
         params = json.dumps({'order_id':order_id,
                              'delivery_company':delivery_company,

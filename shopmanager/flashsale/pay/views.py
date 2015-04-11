@@ -25,6 +25,10 @@ class PINGPPChargeView(View):
         if not UUID_RE.match(uuid):
             raise Exception('参数错误!')
         
+        receiver_mobile = ''
+        if form.get('receiver_phone').isdigit() and len(form.get('receiver_phone')) == 11:
+            receiver_mobile = form.get('receiver_phone')
+            
         sale_trade = SaleTrade.objects.create(
                                  tid=uuid,
                                  buyer_id=form.get('buyer_id'),
@@ -33,6 +37,7 @@ class PINGPPChargeView(View):
                                  receiver_state=form.get('receiver_state'),
                                  receiver_address=form.get('receiver_address'),
                                  receiver_phone=form.get('receiver_phone'),
+                                 receiver_mobile=receiver_mobile,
                                  buyer_message=form.get('buyer_message'),
                                  payment=float(form.get('payment')),
                                  post_fee=form.get('post_fee'),
