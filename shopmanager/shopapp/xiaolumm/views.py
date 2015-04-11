@@ -5,6 +5,7 @@ from django.http import HttpResponse
 from django.shortcuts import redirect,render_to_response
 from django.views.generic import View
 from django.template import RequestContext
+from django.contrib.auth.models import User
 
 from shopapp.weixin.views import get_user_openid,valid_openid
 from shopapp.weixin.models import WXOrder
@@ -19,44 +20,49 @@ SHOPURL = "http://mp.weixin.qq.com/bizmall/mallshelf?id=&t=mall/list&biz=MzA5NTI
 
 
 class StatsView(View):
+    
+    def getUserName(self,uid):
+        try:
+            return User.objects.get(pk=uid).username
+        except:
+            return 'none'
+        
     def get(self,request):
         
         today = datetime.date.today()
         time_from = datetime.datetime(today.year, today.month, today.day)
         time_to = datetime.datetime(today.year, today.month, today.day, 23, 59, 59)
-
-        content = request.REQUEST
-        pk = content.get('pk')
-        if not pk or pk == 'None':
-            if request.user:
-                pk = request.user.pk
                 
-        mama_list = XiaoluMama.objects.filter(manager=pk)
+        mama_list = XiaoluMama.objects.all()
 
         data = []
 
         for mama in mama_list:
             order_num = 0
-            weikefu = mama.weikefu
-            mobile = mama.mobile
+            weikefu   = mama.weikefu
+            mobile    = mama.mobile
             agencylevel = mama.agencylevel
             click_list = Clicks.objects.filter(linkid=mama.pk,created__gt=time_from,created__lt=time_to)
 
             click_num = click_list.count()
             openid_list = click_list.values('openid').distinct()
             
+            username  = self.getUserName(mama.pk)
             for item in openid_list:
-                orders = WXOrder.objects.filter(buyer_openid=item["openid"],order_create_time__gt=time_from,order_create_time__lt=time_to)
+                orders = WXOrder.objects.filter(buyer_openid=item["openid"],
+                                                order_create_time__gt=time_from,
+                                                order_create_time__lt=time_to)
                 if orders.count() > 0:
                     order_num += 1
             
-            data_entry = {"mobile":mobile[-4:], "weikefu":weikefu, "agencylevel":agencylevel,
-                          "click_num":click_num, "user_num":len(openid_list), "order_num":order_num} 
+            data_entry = {"mobile":mobile[-4:], "weikefu":weikefu, 
+                          "agencylevel":agencylevel,'username':username,
+                          "click_num":click_num, "user_num":len(openid_list),
+                           "order_num":order_num} 
             data.append(data_entry)
-
-        
-        
-        return render_to_response("stats.html", {"data":data, "pk":int(pk)}, context_instance=RequestContext(request))
+            
+        return render_to_response("stats.html", {"data":data}, 
+                                  context_instance=RequestContext(request))
 
 
 

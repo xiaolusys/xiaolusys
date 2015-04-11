@@ -10,6 +10,8 @@ from django.db import IntegrityError, transaction
 from shopback.base.fields import BigIntegerAutoField,BigIntegerForeignKey
 from shopback.logistics.models import LogisticsCompany
 from .models_user import Register,Customer
+from .models_addr import District
+from .models_custom import Productdetail
 
 import uuid
 
@@ -179,8 +181,56 @@ class SaleOrder(models.Model):
         
     def __unicode__(self):
         return '<%s>'%(self.id)
+
+
+class SaleRefund(models.Model):
+    
+    id           = BigIntegerAutoField(primary_key=True,verbose_name='ID')
+    refund_id    = models.CharField(max_length=32,
+                                    default=lambda:'RF%d'%int(time.time()*10**2),
+                                    verbose_name='退款单ID')
+    tid          = models.CharField(max_length=32,blank=True,verbose_name='交易ID')
+    
+    item_id      = models.BigIntegerField(null=True,default=0,verbose_name='商品ID')
+    title        = models.CharField(max_length=64,blank=True,verbose_name='出售标题')
+
+    buyer_nick   = models.CharField(max_length=64,blank=True,verbose_name='买家昵称')
+    mobile = models.CharField(max_length=20,db_index=True,blank=True,verbose_name='手机')
+    phone  = models.CharField(max_length=20,db_index=True,blank=True,verbose_name='固话')
+    
+    total_fee    = models.CharField(max_length=10,blank=True,verbose_name='总费用')
+    refund_fee   = models.CharField(max_length=10,blank=True,verbose_name='退款费用')
+    payment      = models.CharField(max_length=10,blank=True,verbose_name='实付')
+
+    created   = models.DateTimeField(db_index=True,null=True,auto_now_add=True,verbose_name='创建日期')
+    modified  = models.DateTimeField(db_index=True,null=True,auto_now=True,verbose_name='修改日期')
+
+    oid       = models.CharField(db_index=True,max_length=32,blank=True,verbose_name='订单ID')
+    sku_name  = models.CharField(max_length=64,blank=True,verbose_name='规格标题')
+    
+    company_name = models.CharField(max_length=64,blank=True,verbose_name='快递公司')
+    sid       = models.CharField(max_length=64,db_index=True,blank=True,verbose_name='快递单号')
+
+    reason    = models.TextField(max_length=200,blank=True,verbose_name='退款原因')
+    desc      = models.TextField(max_length=1000,blank=True,verbose_name='描述')
+    has_good_return = models.BooleanField(default=False,verbose_name='是否退货')
+    
+    is_reissue   = models.BooleanField(default=False,verbose_name='已处理')
+    
+    good_status  = models.CharField(max_length=32,blank=True,verbose_name='退货商品状态')
+    order_status = models.CharField(max_length=32,blank=True,verbose_name='订单状态')
+
+    status       = models.CharField(max_length=32,blank=True,verbose_name='退款状态')
+
+    class Meta:
+        db_table = 'flashsale_refund'
+        verbose_name=u'特卖/退款单'
+        verbose_name_plural = u'特卖/退款单列表'
         
-        
+    def __unicode__(self):
+        return '<%s>'%(self.id)
+
+
 class TradeCharge(models.Model):
     
     order_no    = models.BigIntegerField(verbose_name=u'订单ID')

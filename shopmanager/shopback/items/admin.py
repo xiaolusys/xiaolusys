@@ -31,6 +31,7 @@ from shopback.items.forms import ProductModelForm
 from shopback.base.options import DateFieldListFilter
 from shopback.items.filters import ChargerFilter,DateScheduleFilter
 from common.utils import gen_cvs_tuple,CSVUnicodeWriter
+from flashsale.pay.models import Productdetail
 import logging 
 
 logger =  logging.getLogger('django.request')
@@ -51,6 +52,18 @@ class ProductSkuInline(admin.TabularInline):
         if not perms.has_change_product_skunum_permission(request.user):
             return self.readonly_fields + ('quantity','warn_num','wait_post_num','is_split')
         return self.readonly_fields
+    
+class ProductdetailInline(admin.TabularInline):
+    
+    model = Productdetail
+    fields = ('head_img',
+              ('ct_img1','ct_img2'),
+              ('ct_img3','ct_img4'))
+    
+    formfield_overrides = {
+        models.CharField: {'widget': TextInput(attrs={'size':'50'})},
+    }
+    
 
 
 class ItemAdmin(admin.ModelAdmin):
@@ -155,7 +168,7 @@ class ProductAdmin(admin.ModelAdmin):
     charger_select.allow_tags = True
     charger_select.short_description = u"所属仓管员"
     
-    inlines = [ProductSkuInline]
+    inlines = [ProductdetailInline,ProductSkuInline]
     
     list_filter = (ChargerFilter,'status',('sale_time',DateScheduleFilter)
                    ,'sync_stock','is_split','is_match','is_assign'

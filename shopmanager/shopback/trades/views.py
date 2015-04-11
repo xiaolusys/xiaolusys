@@ -560,6 +560,7 @@ class CheckOrderView(ModelView):
             
         return {'success':True}
       
+import re
        
 class OrderPlusView(ModelView):
     """ docstring for class OrderPlusView """
@@ -569,11 +570,17 @@ class OrderPlusView(ModelView):
         q  = request.GET.get('q')
         if not q:
             return '没有输入查询关键字'.decode('utf8')
-        products = Product.objects.filter(Q(outer_id=q)|Q(name__contains=q)
-                                          ,status__in=(pcfg.NORMAL,pcfg.REMAIN))
+        
+        product_set = set()
+        if re.compile('\w+').match(q):
+            product_set.update(Product.objects.getProductByBarcode(q))
+
+        queryset = Product.objects.filter(Q(outer_id=q)|Q(name__contains=q)
+                                      ,status__in=(pcfg.NORMAL,pcfg.REMAIN))
+        product_set.update(list(queryset))
         
         prod_list = [(prod.outer_id,prod.name,prod.std_sale_price,
-                      [(sku.outer_id,sku.name,sku.quantity) for sku in prod.pskus]) for prod in products]
+                      [(sku.outer_id,sku.name,sku.quantity) for sku in prod.pskus]) for prod in product_set]
         return prod_list
         
     def post(self, request, *args, **kwargs):

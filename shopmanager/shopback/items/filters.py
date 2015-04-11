@@ -78,6 +78,10 @@ class DateScheduleFilter(FieldListFilter):
                 self.lookup_kwarg_since: str(today + datetime.timedelta(days=1)),
                 self.lookup_kwarg_until: str(today + datetime.timedelta(days=8)),
             }),
+            (_(u'大大后天'), {
+                self.lookup_kwarg_since: str(today + datetime.timedelta(days=4)),
+                self.lookup_kwarg_until: str(today + datetime.timedelta(days=5)),
+            }),
             (_(u'大后天'), {
                 self.lookup_kwarg_since: str(today + datetime.timedelta(days=3)),
                 self.lookup_kwarg_until: str(today + datetime.timedelta(days=4)),
