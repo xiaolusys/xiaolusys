@@ -7,7 +7,11 @@ from django.views.generic import View
 from django.template import RequestContext
 
 from shopapp.weixin.views import get_user_openid,valid_openid
+from shopapp.weixin.models import WXOrder
+
 from models import Clicks, XiaoluMama
+
+
 
 import datetime
 
@@ -19,28 +23,40 @@ class StatsView(View):
         
         today = datetime.date.today()
         time_from = datetime.datetime(today.year, today.month, today.day)
+        time_to = datetime.datetime(today.year, today.month, today.day, 23, 59, 59)
 
         content = request.REQUEST
         pk = content.get('pk')
         if not pk or pk == 'None':
             if request.user:
                 pk = request.user.pk
-        
+                
         mama_list = XiaoluMama.objects.filter(manager=pk)
 
         data = []
+
         for mama in mama_list:
+            order_list = []
             weikefu = mama.weikefu
             mobile = mama.mobile
-            click_list = Clicks.objects.filter(linkid=mama.pk,created__gt=time_from)
+            agencylevel = mama.agencylevel
+            click_list = Clicks.objects.filter(linkid=mama.pk,created__gt=time_from,created__lt=time_to)
 
             click_num = click_list.count()
             openid_list = click_list.values('openid').distinct()
             
-            data_entry = {"mobile":mobile, "weikefu":weikefu, 
-                          "click_num":click_num, "user_num":len(openid_list)} 
+            for openid in openid_list:
+                orders = WXOrder.objects.filter(buyer_openid=openid,order_create_time__gt=time_from,order_create_time__lt=time_to)
+                if orders.count() > 0:
+                    for order in orders:
+                        order_list.append({"nick":order.buyer_nick, "product_img":order.product_img, "payment":order.order_total_price, "time":order.order_create_time})
+            
+            data_entry = {"mobile":mobile, "weikefu":weikefu, "agencylevel":agencylevel,
+                          "click_num":click_num, "user_num":len(openid_list), "order_list":order_list} 
             data.append(data_entry)
 
+        
+        
         return render_to_response("stats.html", {"data":data, "pk":int(pk)}, context_instance=RequestContext(request))
 
 

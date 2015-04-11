@@ -24,16 +24,31 @@
 <div style="margin-top:20px">
   <table class="table table-bordered">
     <thead>
-      <th>手机号</th><th>访问人数</th><th>访问次数</th><th>微客服</th>
+      <th>手机号</th><th>访问人数</th><th>访问次数</th><th>微客服</th><th>类别</th>
     </thead>
     <tbody>
       {% for item in data %}
-      <tr><td>{{ item.mobile }}</td><td>{{ item.user_num }}</td><td>{{ item.click_num }}</td><td>{{ item.weikefu }}</td></tr>
+      <tr><td>{{ item.mobile }}</td><td>{{ item.user_num }}</td><td>{{ item.click_num }}</td><td>{{ item.weikefu }}</td><td>{{ item.agencylevel }}</td></tr>
       {% endfor %}
     </tbody>
   </table>
-  
 </div>
+
+{% for item in data %}
+<div style="margin-top:20px">
+  <h3>{{ item.weikefu }}</h3>
+  <table class="table table-bordered">
+    <thead>
+      <th>昵称</th><th>商品</th><th>金额</th><th>下单时间</th>
+    </thead>
+    <tbody>
+      {% for order in item.order_list %}
+      <tr><td>{{ order.nick }}</td><td>{{ order.product_img }}</td><td>{{ order.payment }}</td><td>{{ order.time }}</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endfor %}
 
 <form action="/m/stats/" method="get" id="id-form">
   <input type="hidden" name="pk" id="id-pk"/>
