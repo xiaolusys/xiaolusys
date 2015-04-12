@@ -2,7 +2,7 @@
 
 
 {% block title %} 
-抢！3000条宝宝卡通浴巾免费送啦！
+你家娃，夏天能否凉快玩耍？(专治好奇心严重妈妈)
 {% endblock %}
 
 {% block container %}
@@ -11,19 +11,21 @@
   <div class="thumbnail" style="text-align:center">
     {% if identical %}
     <img id="id_donebox" src="https://mmbiz.qlogo.cn/mmbiz/yMhOQPTKhLs0e3mcsIj9jBmIzl1fMYaHFpZwlK0PynUhZUU3fA0J4KmIrftRhG4W3zhdwicAXxNLRW2qG1iaF5cA/0"/>
+    <p style="margin-top:16px">您的VIP邀请码: {{ vipcode }}</p>
     {% if hongbao_pass %}
     <p style="color:red">亲，感谢您参与活动，您还获得了微信现金红包一个！请扫二维码加客服微信领取！（长按二维码添加;或保存图片，微信扫一扫，选择相册）</p>
     <img src="{{ kefu_url }}" alt="">
     {% endif %}
     {% endif %}
-    <img src="https://mmbiz.qlogo.cn/mmbiz/yMhOQPTKhLs0e3mcsIj9jBmIzl1fMYaHfqxwMpaarzesR1nucnYUD2JGUwprkT9qBySLWuRjDekELX6PyyftcQ/0"/>
-    <img src="https://mmbiz.qlogo.cn/mmbiz/yMhOQPTKhLs0e3mcsIj9jBmIzl1fMYaHF0kroGNlIiaV2kOuPuyC28fSa3dibR5Z6TNl2bmO7MeRZa28tGGrvyug/0"/>
-    <img src="https://mmbiz.qlogo.cn/mmbiz/yMhOQPTKhLs0e3mcsIj9jBmIzl1fMYaHuVV9XdQ3ZYWMJyQJgiag2nDjgFb3rmMKzIontTicfKRQe3ONo8WtMadw/0"/>
-    <img src="https://mmbiz.qlogo.cn/mmbiz/yMhOQPTKhLs0e3mcsIj9jBmIzl1fMYaH1uWAXn3Jsiavib1E12Y4pjuy0Qd4rtQpmodRET27Ta5mmqVmVeo0r3xQ/0"/>
-    <img src="https://mmbiz.qlogo.cn/mmbiz/yMhOQPTKhLs0e3mcsIj9jBmIzl1fMYaHqYKbueGF9ErbZLzfYicpOicMkYZMZjO4X5ZN0SpQlJ0rK0UyMY7PHDgg/0"/>
-    <img src="https://mmbiz.qlogo.cn/mmbiz/yMhOQPTKhLs0e3mcsIj9jBmIzl1fMYaH7jzNIqdHMzia7XufmBnSsWM3D453YvMTHs4eJNdA8iayibSBOt1ticDzcw/0"/>
+    <img src="https://mmbiz.qlogo.cn/mmbiz/yMhOQPTKhLtT6gXc7vVWZrYUYJMtKDF2f8gJHY8DaryssDiaD2q4S1ZDAfHIj3OEbql5auGMWEsCaaXqqPEjovg/0"/>
+    <img src="https://mmbiz.qlogo.cn/mmbiz/yMhOQPTKhLtT6gXc7vVWZrYUYJMtKDF2lHxjZ8XVMC7hure8VsLJnnaPopIZlOE787keLf5Y7ftwzpIeKPK1Aw/0"/>
+    <img src="https://mmbiz.qlogo.cn/mmbiz/yMhOQPTKhLtT6gXc7vVWZrYUYJMtKDF2aymIv62pw8mrUlzZ0TRS5ajtWxBlsfGicgMsEowJibUiaoTERCErO4YOw/0"/>
+    <img src="https://mmbiz.qlogo.cn/mmbiz/yMhOQPTKhLtT6gXc7vVWZrYUYJMtKDF24C0AXibTSkib7cCOQ85nAPA5agPGkumia2O0aTrsLvZvsibpJ3zNAAdV4A/0"/>
+    <a href="https://open.weixin.qq.com/connect/oauth2/authorize?appid=wxc2848fa1e1aa94b5&redirect_uri=http://weixin.huyi.so/weixin/freesamples/?f={{ vipcode }}&response_type=code&scope=snsapi_base&state=135#wechat_redirect"><img src="https://mmbiz.qlogo.cn/mmbiz/yMhOQPTKhLtT6gXc7vVWZrYUYJMtKDF2dNG1BvEm9Dh5Ef72Ynr1s1jHQLxPOTNMnePAxT0ux27E3f7GPBLsBw/0"/></a>
     <a href="https://open.weixin.qq.com/connect/oauth2/authorize?appid=wxc2848fa1e1aa94b5&redirect_uri=http://weixin.huyi.so/weixin/freesamples/?f={{ vipcode }}&response_type=code&scope=snsapi_base&state=135#wechat_redirect" type="button" class="btn btn-danger" style="margin-top:16px">快点去抢 >></a>
-    <p style="margin-top:16px">我的VIP邀请码: {{ vipcode }}</p>
+    {% if not identical %}
+    <p style="margin-top:16px">好友的VIP邀请码: {{ vipcode }}</p>
+    {% endif %}
   </div>
     
   <div class="footer">
@@ -46,8 +48,8 @@
 
 var imgUrl = "https://mmbiz.qlogo.cn/mmbiz/yMhOQPTKhLtwVNgtZuNUJnbO5P487z38MIUrX95ZVsYNjxrfGnUX3j3ibmCVsnvt2yoleHYs1zXoppdDDiaLqbibg/0";
 var lineLink = "http://weixin.huyi.so/weixin/sampleads/{{ pk }}/";
-var descContent = "浴巾用得好，宝宝爱洗澡！其实，每个宝宝都爱洗澡。。。";
-var shareTitle = "抢！3000条宝宝卡通浴巾免费送啦！";
+var descContent = "其实，每个宝宝夏天都要凉快玩耍。。。";
+var shareTitle = "你家娃，夏天能否凉快玩耍？（专治好奇心严重妈妈）";
 var user_openid = "{{ wx_user.openid }}";
 
   wx.config({
