@@ -58,6 +58,7 @@
     $('.ui-loader').remove();
     $(document).on('scroll touchmove',function(){
       var h = $('body').scrollTop();
+
       if (h>=78){
         $('#tab_nav').addClass('blocked');
         if (!$('#no_more').hasClass('loading')){
@@ -92,8 +93,10 @@
   //商品列表信息引入，使用JSON文件引入数据
   function Ctrl_list_write(){
   
+    $('#no_more').addClass('loading');
 	var list_url = $('#no_more').attr('next');
 	if (!list_url){return;}
+	
     //实际JSON引入部分，可根据实际情况调整
     $.getJSON(list_url,function(data){
       
