@@ -268,7 +268,7 @@ class WXOrderAdmin(admin.ModelAdmin):
                     'delivery_id','delivery_company','order_status')
     
     list_filter = ('order_status',)
-    search_fields = ['order_id','buyer_nick','buyer_openid']
+    search_fields = ['order_id','trans_id','buyer_nick','buyer_openid']
     
      #--------设置页面布局----------------
     fieldsets =((u'订单信息:', {
