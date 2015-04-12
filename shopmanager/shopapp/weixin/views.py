@@ -881,7 +881,8 @@ class FreeSampleView(View):
         today_orders = SampleOrder.objects.filter(created__gt=today_time)
         
         order_exist = False
-        order = SampleOrder.objects.filter(user_openid=user_openid).filter(created__gt=START_TIME)
+        start_time1 = datetime.datetime(2015,4,12)
+        order = SampleOrder.objects.filter(user_openid=user_openid).filter(created__gt=start_time1)
         
         if order.count() > 0:
             #redirect_url = '/weixin/sampleads/%d/' % wx_user.pk
@@ -898,9 +899,9 @@ class FreeSampleView(View):
         else:
             delta = START_TIME - now
 
-        if user_openid == 'oMt59uE55lLOV2KS6vYZ_d0dOl5c':
-            started = True
-        started = False
+        #if user_openid == 'oMt59uE55lLOV2KS6vYZ_d0dOl5c' or user_openid == 'oMt59uOr8DItI6FvJqmu7j69unZM':
+        #    started = True
+
         days = delta.days
         hours = delta.seconds/3600
         minutes = (delta.seconds - hours*3600)/60
@@ -969,8 +970,13 @@ class SampleApplyView(View):
         if users.count() > 0:
             wx_user = users[0]
         
+        
+        hongbao_pass = False
+        if wx_user.charge_status == WeiXinUser.UNCHARGE:
+            hongbao_pass = True
+        
         response = None
-        param = {"sample":sample, "sku":skus[0], "color":color ,"wx_user": wx_user, "fcode":fcode}
+        param = {"sample":sample, "sku":skus[0], "color":color ,"wx_user": wx_user, "fcode":fcode, "hongbao_pass":hongbao_pass}
 
         response = render_to_response("weixin/sampleapply.html",param,
                                       context_instance=RequestContext(request))
@@ -985,9 +991,9 @@ class SampleConfirmView(View):
         content = request.REQUEST
         sample_pk = int(content.get("sample_pk","0"))
         sku_code = content.get("sku_code","0")
-        p2 = content.get("p2","0")
+        p1 = content.get("p1","0")
         vipcode = content.get("fcode","0")
-        score = int(p2)
+        score = int(p1)
         
         user_openid = request.COOKIES.get('openid')
 
@@ -1028,7 +1034,8 @@ class SampleAdsView(View):
         
         hongbao_pass = False
         sample_order = None 
-        sample_orders = SampleOrder.objects.filter(user_openid=openid,created__gte=START_TIME)
+        start_time1 = datetime.datetime(2015,4,12)
+        sample_orders = SampleOrder.objects.filter(user_openid=openid,created__gte=start_time1)
         if sample_orders.count() > 0:
             sample_order = sample_orders[0]
             if users.count() > 0 and users[0].charge_status == WeiXinUser.UNCHARGE:

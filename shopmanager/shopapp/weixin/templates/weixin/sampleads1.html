@@ -10,7 +10,7 @@
 <div class="container-fluid">
   <div class="thumbnail" style="text-align:center">
     {% if identical %}
-    <img id="id_donebox" src="https://mmbiz.qlogo.cn/mmbiz/yMhOQPTKhLs0e3mcsIj9jBmIzl1fMYaHFpZwlK0PynUhZUU3fA0J4KmIrftRhG4W3zhdwicAXxNLRW2qG1iaF5cA/0"/>
+    <img id="id_donebox" src="https://mmbiz.qlogo.cn/mmbiz/yMhOQPTKhLtT6gXc7vVWZrYUYJMtKDF2Lfv5fs7BjaibicJhnUnibTfe2DK8I4fXChgmEukzJuePZ2BA3GcxbEUCg/0"/>
     <p style="margin-top:16px">您的VIP邀请码: {{ vipcode }}</p>
     {% if hongbao_pass %}
     <p style="color:red">亲，感谢您参与活动，您还获得了微信现金红包一个！请扫二维码加客服微信领取！（长按二维码添加;或保存图片，微信扫一扫，选择相册）</p>
@@ -21,10 +21,12 @@
     <img src="https://mmbiz.qlogo.cn/mmbiz/yMhOQPTKhLtT6gXc7vVWZrYUYJMtKDF2lHxjZ8XVMC7hure8VsLJnnaPopIZlOE787keLf5Y7ftwzpIeKPK1Aw/0"/>
     <img src="https://mmbiz.qlogo.cn/mmbiz/yMhOQPTKhLtT6gXc7vVWZrYUYJMtKDF2aymIv62pw8mrUlzZ0TRS5ajtWxBlsfGicgMsEowJibUiaoTERCErO4YOw/0"/>
     <img src="https://mmbiz.qlogo.cn/mmbiz/yMhOQPTKhLtT6gXc7vVWZrYUYJMtKDF24C0AXibTSkib7cCOQ85nAPA5agPGkumia2O0aTrsLvZvsibpJ3zNAAdV4A/0"/>
+    {% if not identical %}
     <a href="https://open.weixin.qq.com/connect/oauth2/authorize?appid=wxc2848fa1e1aa94b5&redirect_uri=http://weixin.huyi.so/weixin/freesamples/?f={{ vipcode }}&response_type=code&scope=snsapi_base&state=135#wechat_redirect"><img src="https://mmbiz.qlogo.cn/mmbiz/yMhOQPTKhLtT6gXc7vVWZrYUYJMtKDF2dNG1BvEm9Dh5Ef72Ynr1s1jHQLxPOTNMnePAxT0ux27E3f7GPBLsBw/0"/></a>
     <a href="https://open.weixin.qq.com/connect/oauth2/authorize?appid=wxc2848fa1e1aa94b5&redirect_uri=http://weixin.huyi.so/weixin/freesamples/?f={{ vipcode }}&response_type=code&scope=snsapi_base&state=135#wechat_redirect" type="button" class="btn btn-danger" style="margin-top:16px">快点去抢 >></a>
-    {% if not identical %}
     <p style="margin-top:16px">好友的VIP邀请码: {{ vipcode }}</p>
+    {% else %}
+    <img src="https://mmbiz.qlogo.cn/mmbiz/yMhOQPTKhLtT6gXc7vVWZrYUYJMtKDF2dNG1BvEm9Dh5Ef72Ynr1s1jHQLxPOTNMnePAxT0ux27E3f7GPBLsBw/0"/>
     {% endif %}
   </div>
     
@@ -46,9 +48,9 @@
 
   global_timer =  window.setInterval(slideup, 3500);
 
-var imgUrl = "https://mmbiz.qlogo.cn/mmbiz/yMhOQPTKhLtwVNgtZuNUJnbO5P487z38MIUrX95ZVsYNjxrfGnUX3j3ibmCVsnvt2yoleHYs1zXoppdDDiaLqbibg/0";
+var imgUrl = "https://mmbiz.qlogo.cn/mmbiz/yMhOQPTKhLtT6gXc7vVWZrYUYJMtKDF2vdMlmfjfkMpOXnnWenNicqokRfQBUrNRO2VUJw6YLPGTvJyCV4HNVIw/0";
 var lineLink = "http://weixin.huyi.so/weixin/sampleads/{{ pk }}/";
-var descContent = "其实，每个宝宝夏天都要凉快玩耍。。。";
+var descContent = "其实，每个宝宝夏天都需要凉快玩耍！不过，。。。";
 var shareTitle = "你家娃，夏天能否凉快玩耍？（专治好奇心严重妈妈）";
 var user_openid = "{{ wx_user.openid }}";
 

@@ -16,29 +16,17 @@
 	<input type="hidden" name="fcode" value="{{ fcode }}"/>
 	<input type="hidden" name="openid" id="id_openid" value="{{ wx_user.openid }}"/>
 	<div class="row">
-	  <div class="col-xs-4" style="text-align:center">
+	  <div class="col-xs-5" style="text-align:center">
 	    <div class="thumbnail">
 	      {% if color == 1 %}
-	      <img src="https://mmbiz.qlogo.cn/mmbiz/yMhOQPTKhLtwVNgtZuNUJnbO5P487z38MIUrX95ZVsYNjxrfGnUX3j3ibmCVsnvt2yoleHYs1zXoppdDDiaLqbibg/0" alt="...">
+	      <img src="https://mmbiz.qlogo.cn/mmbiz/yMhOQPTKhLtT6gXc7vVWZrYUYJMtKDF2ThVHf8kSFqTIL7iboBB5F8zwYE9M3V16TcxqdJ3mEnFicmDOW1TJ2YSw/0" alt="...">
 	      {% endif %}
 	      {% if color == 2 %}
-	      <img src="https://mmbiz.qlogo.cn/mmbiz/yMhOQPTKhLtwVNgtZuNUJnbO5P487z38FWZtO9Jmh8DthHhZicasUbA1VgeTjdRDhQeIZXJev0mn5b6J9Y41K1Q/0"  alt="...">
-	      {% endif %}
-	      {% if color == 3 %}
-	      <img src="https://mmbiz.qlogo.cn/mmbiz/yMhOQPTKhLtwVNgtZuNUJnbO5P487z3821sN9PEJfdAT7AA0RUCwQPodJtbT8rmY4jJqewprggBWz3lJ0iaAxqw/0" alt="...">
-	      {% endif %}
-	      {% if color == 4 %}
-	      <img src="https://mmbiz.qlogo.cn/mmbiz/yMhOQPTKhLtwVNgtZuNUJnbO5P487z38Cib53ElicBETBXKeapCLHeaV7QLC6AjOdH24r5k3Mj16bxyY7eojBMJw/0" alt="...">
-	      {% endif %}
-	      {% if color == 5 %}
-	      <img src="https://mmbiz.qlogo.cn/mmbiz/yMhOQPTKhLtwVNgtZuNUJnbO5P487z38Z6ao3icHl35SWictl5RDdTiaVkRhVxZypiajmsXU9uGS0WKWkM8NoZDiaUA/0" alt="...">
-	      {% endif %}
-	      {% if color == 6 %}
-	      <img src="https://mmbiz.qlogo.cn/mmbiz/yMhOQPTKhLtwVNgtZuNUJnbO5P487z38B4LJZRib3R0hYc565lr51B6SMViafFIGUtDWP5e0DFEmmHpRSKUKqY6A/0" alt="...">
+	      <img src="https://mmbiz.qlogo.cn/mmbiz/yMhOQPTKhLtT6gXc7vVWZrYUYJMtKDF2rJtQV3iazrFt9fxmHx31ibMPZHf3LhXXibkZtbSnajIJjy8ia3pUk68smQ/0"  alt="...">
 	      {% endif %}
 	    </div>
 	  </div>
-	  <div class="col-xs-8">
+	  <div class="col-xs-7">
 	    <p style="color:#e8792a">{{ sample.name }}</p>
 	    <p style="color:#e8792a">{{ sku.sku_name }}</p>
 	  </div>
@@ -47,7 +35,7 @@
 	<div class="row">
 	  <div class="col-xs-12">
 	    {% if wx_user.isvalid %}
-	    <p>收货人: {{ wx_user.receiver_name }}, 地址: {{ wx_user.province }}，{{ wx_user.city }}，{{ wx_user.address }}, {{ wx_user.mobile }}</p>
+	    <p>收货人手机: {{ wx_user.mobile }}</p>
 	    {% else %}
 	    
 	    <h5 style="color:#3071a9">验证手机</h5><span style="color:red" id="id_verify_msg"></span>
@@ -76,11 +64,40 @@
 	    <h5 style="color:red"><b>小调查</b></h5>
 	    <div>
 	      <p style="color:#029fd6">1. 小鹿美美，是优尼世界旗下新的童装女装特卖平台，主推外贸原单新款，每天10点上新。您会感兴趣吗？</p>
-	      <p id="id_p21"><input type="radio" name="p2" value="1" id="id_input21"> 每天可以准时来看看都特卖啥宝贝。</p>
-	      <p id="id_p22"><input type="radio" name="p2" value="2" id="id_input22"> 看看可以的，特别实惠的才会想买。</p>
+	      <div class="radio">
+		<label>
+		  <input type="radio" name="p1" value="1" id="id_input11"> 每天可以准时来看看都特卖啥宝贝。
+		</label>
+	      </div>
+	      <div class="radio">
+		<label>
+		  <input type="radio" name="p1" value="2" id="id_input12"> 看看可以的，特别实惠的才会想买。
+		</label>
+	      </div>
 	    </div>
+
+	    <div style="margin-top:20px">
+	      <p style="color:#029fd6">2. 申请提交后，您的VIP邀请码请发给好友使用，VIP码使用次数越多，那么</p>
+	      <div class="radio">
+		<label>
+		  <input type="radio" name="p2" value="1" id="id_input2"> 中奖几率越大。
+		</label>
+	      </div>
+	    </div>
+
+	    {% if hongbao_pass %}
+	    <div style="margin-top:20px">
+	      <p style="color:#029fd6">3. 若您是第一次参加小鹿美美活动，那么</p>
+	      <div class="radio">
+		<label>
+		  <input type="radio" name="p3" value="1" id="id_input3"> 可在申请提交后加客服微信，领>1元现金红包。
+		</label>
+	      </div>
+	    </div>
+	    {% endif %}
 	  </div>
 	</div>
+
 
 	{% if not wx_user.subscribe %}
 	<div class="row" style="margin-top:16px">
@@ -230,19 +247,6 @@
       };
 
 
-  $("#id_p21").on("click", function () {
-  $("#id_input21").attr("checked",true);
-  $("#id_input22").attr("checked",false);
-  $("#id_p21").css("color","red");
-  $("#id_p22").css("color","");  
-  });
-
-  $("#id_p22").on("click", function () {
-  $("#id_input22").attr("checked",true);
-  $("#id_input21").attr("checked",false);
-  $("#id_p22").css("color","red");
-  $("#id_p21").css("color","");  
-  });
 
   function check() {
     {% if not wx_user.isvalid %}
@@ -252,11 +256,23 @@
     }
     {% endif %}
 
-    if ((!$("#id_input21").is(':checked')) && (!$("#id_input22").is(':checked'))) {
+    if ((!$("#id_input11").is(':checked')) && (!$("#id_input12").is(':checked'))) {
       $("#id_msg")[0].innerHTML = "亲，请选择答案再提交哦。";
       return false;
     }
-    
+
+    if ((!$("#id_input2").is(':checked')) ) {
+      $("#id_msg")[0].innerHTML = "亲，请选择答案再提交哦。";
+      return false;
+    }
+
+    {% if hongbao_pass %}
+    if ((!$("#id_input3").is(':checked')) ) {
+      $("#id_msg")[0].innerHTML = "亲，请选择答案再提交哦。";
+      return false;
+    }
+    {% endif %}
+
     return true;
   }
 </script>
