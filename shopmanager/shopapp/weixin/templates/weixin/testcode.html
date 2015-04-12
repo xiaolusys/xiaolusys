@@ -1,0 +1,25 @@
+{% extends "weixin/weixin_base.html" %}
+
+{% block title %} 客服二维码校对 {% endblock %}
+
+{% block container %}
+
+<div >
+
+  <div class="panel panel-default" style="margin-top:5px">
+    <div class="panel-heading" style="color:orange">
+      <h4 class="panel-title">校对表</h4>
+    </div>
+    
+    {% for k,v in kfmap.items %}
+     <div class="row"><img src="{{ url_prifix }}{{ v }}" ></img><label>{{ k }}</label></div>
+     {% endfor %}
+  </div>
+
+  <div class="footer">
+    <p>© Uni Littles 2014</p>
+  </div>
+
+</div>
+
+{% endblock %}

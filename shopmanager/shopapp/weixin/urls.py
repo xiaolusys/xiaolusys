@@ -37,7 +37,8 @@ from shopapp.weixin.views import (WeixinAcceptView,
                                   ScoreMenuView,
                                   GiftView,
                                   WeixinProductView,
-                                  TestView)
+                                  TestView,
+                                  TestCodeView)
 
 from shopback.base.renderers  import BaseJsonRenderer
 from shopback.base.permissions import IsAuthenticated
@@ -123,6 +124,8 @@ urlpatterns = patterns('shopapp.weixin.views',
         renderers=(BaseJsonRenderer,WeixinProductHtmlRenderer),
         authentication=(UserLoggedInAuthentication,),
         permissions=(IsAuthenticated,)),name='weixin_product_modify'),
+    
+    (r'^checkqr/',TestCodeView.as_view()),
     
     url(r'^warn/$','warn',name='weixin_warn'),
     url(r'^rights/$','rights',name='weixin_feedback'),

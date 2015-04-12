@@ -46,7 +46,7 @@ from shopapp.signals import (weixin_readclick_signal,
                              weixin_refund_signal,
                              weixin_surveyconfirm_signal)
 
-
+from .weixin_kfkeys import URLMAP,KFKEYS,KFMAP,IMG_URL_PREFIX
 
 import logging
 import json
@@ -122,97 +122,6 @@ from urllib import urlopen
 
 START_TIME = datetime.datetime(2015,3,23,10)
 END_TIME = datetime.datetime(2015,3,29,23,59,59)
-
-
-URLMAP = [1, 9, 18, 6, 5, 6, 14, 8, 14, 10, 11, 12, 13, 14, 15, 16, 17, 18,19,20,21,22,23,24,25,26,27,28,29,30,29,32,33,29,35,36,37,38,39]
-
-KFKEYS = [
-    "xiangxiang",#0 
-      "ningmeng",#1
-    "qiqi-shuzi",#2
-          "mumu",#3
-        "meimei",#4
-        "niuniu",#5
-        "yunyun",#6
-       "huashao",#7
-       "yingtao",#8
-        "duoduo",#9
-      "mengmeng",#10
-      "ningning",#11
-      "lingling",#12
-          "qiqi",#13
-        "huahua",#14
-       "chengzi",#15
-      "mingming",#16
-          "yuyu",#17
-          "mimi",#18
-       "qianxun",#19
-        "qinqin",#20
-      "tangtang",#21
-        "qunqun",#22
-          "tutu",#23
-          "dudu",#24
-        "guoguo",#25
-        "yueyue",#26
-        "lanlan",#27
-      "tongtong",#28
-        "xuexue",#29
-        "beibei",#30
-        "lulu31",#31
-      "lanlan32",#32
-    "huanhuan33",#33
-      "yaoyao34",#34
-    "jingjing35",#35
-        "yuyu36",#36
-        "yaya37",#37
-      "paopao38",#38
-        "momo39",#39
-    ]
-
-IMG_URL_PREFIX = "https://mmbiz.qlogo.cn/mmbiz/"
-KFMAP ={
-    "xiangxiang":"yMhOQPTKhLt8UfGVxAqDTnhPOxglygBpIfJuq9AmIBEGmRxHUjcExOFWccAYfaTn3pNrWcoEzicGFKmfEMKWV0g/0",
-      "ningmeng":"yMhOQPTKhLt8UfGVxAqDTnhPOxglygBpTQoyJU7SPkpD8uQDZta0IhGUSA7CDCaJJdtXOicHVicfHGI7jmuTV0zQ/0",
-    "qiqi-shuzi":"yMhOQPTKhLt8UfGVxAqDTnhPOxglygBp3iaiacMzibmULmM4qWcybzPHZAnojDz9jHEeibhWkibm4TZRLGjKIo91Obg/0",
-          "mumu":"yMhOQPTKhLt8UfGVxAqDTnhPOxglygBpG88L2ou3RkvVauTAyA0SOBgg1bib5M6UbnsphP0aCticd2gwaeSHt4KA/0",
-        "meimei":"yMhOQPTKhLt8UfGVxAqDTnhPOxglygBptP0hGXy2NcTOzy39pbINAAVXqXWp8ya6dylUXa4VbcdalxbrRU2iaXw/0",
-        "niuniu":"yMhOQPTKhLvCTbjPEx63GRglflnPllY1q8NmetxTxkpoZALOad17ia2EZ8pTicuwL7Lk4q7YvkHLBEHukib0GzYXg/0",
-        "yunyun":"yMhOQPTKhLt8UfGVxAqDTnhPOxglygBpswRlutibR5EJBu4ian97b5OXGY8uLO4f5B7ibBlCQLAfjmKJrrjzaSq8g/0",
-       "huashao":"yMhOQPTKhLvCTbjPEx63GRglflnPllY17u9Y6SkN6QpfO4vMbS6biaonoKV3G1EMOzFia2QElEfWFuxicUibwhYUQw/0",
-       "yingtao":"yMhOQPTKhLvCTbjPEx63GRglflnPllY1Z19diacyaa7qUWjiccebLib3Up3uCJU6MDHRQRgV5TyicXaoNtLRROicLfw/0",
-        "duoduo":"yMhOQPTKhLvCTbjPEx63GRglflnPllY1FweBnCmiannEWTupiavRmTlUBIy1zuiaBUsAG5hzcgmQYW27cpDicUanuw/0",
-      "mengmeng":"yMhOQPTKhLvCTbjPEx63GRglflnPllY1dSIAK1IaVs6upZv6dISpUGXsxfToCSg83A0gF9TibAMsic9lfoRicTWsw/0",
-      "ningning":"yMhOQPTKhLvCTbjPEx63GRglflnPllY145kE9JhMtianHkibFYnK7NLqNoGJLHmD3icNl2SUWKHicvibGI0nAiaEDpibA/0",
-      "lingling":"yMhOQPTKhLvCTbjPEx63GRglflnPllY137hGAGuHzRiaBiaT5QpbJJBibs2ODiaIic3qcuEvclZxkRaLUY2Z0tGiaFAw/0",
-          "qiqi":"yMhOQPTKhLvCTbjPEx63GRglflnPllY1Pok5yibWywLOWGiclX7VSCj4ic3iaZ8EKGGnnhw4dSAibOYzQ1op0n2G60Q/0",
-        "huahua":"yMhOQPTKhLvCTbjPEx63GRglflnPllY1ib2TdE0YiaIcHJsyPY0r9VYn294MdTbwxqt3rXxqTILHFrGLaYq5Iybg/0",
-       "chengzi":"yMhOQPTKhLvCTbjPEx63GRglflnPllY1jrufW2eTb3KhQaFpEIBSjBN69qAleIUsWCv87L8iaDtKfQBIdMfh1icg/0",
-      "mingming":"yMhOQPTKhLvCTbjPEx63GRglflnPllY1DxoOIb3SA8OLN91yQLv4TjmTeNDLOl2IDKBibfib2oEaHrX3jkolMFwg/0",
-          "yuyu":"yMhOQPTKhLvCTbjPEx63GRglflnPllY1EzkFl9NupOibbjfNTrZtWicblFj6HpEUF3zWCbBjnXlfob9o4G1EFGoQ/0",
-          "mimi":"yMhOQPTKhLvCTbjPEx63GRglflnPllY1UyM1bFVWceyfH4wgFaDPc85hLdXG8vsXicqzIXCtXjWC2DQQXIz1ibzQ/0",
-       "qianxun":"yMhOQPTKhLvZc2FUku1FliaQ8B8SqeF6Q55G8shIVOgzIpUI5bQ6hF7BJ9ic7DFmCUSTTA7uO9491pvEY9hdbTTg/0",
-        "qinqin":"yMhOQPTKhLu7w86ZohiaT3zQfAX4xaRJhO2bSAoXKoJIHeIgeKomHKIXhQgpuF5axlvY76CJcich6ichtWyC50LTA/0",
-      "tangtang":"yMhOQPTKhLtwVNgtZuNUJnbO5P487z38d3uiaA0RXqdMgsyHibwJNyhmfNCzP5qqFsH2Tlpy6hXQB7FsshCNrYUQ/0",
-      "tongtong":"yMhOQPTKhLtwVNgtZuNUJnbO5P487z38Pe5WL4JsCFwVdFpYxwtyVJiaia9q6klDyIC97at5ylLuzNKcqCy6YbeA/0",
-        "xuexue":"yMhOQPTKhLtwVNgtZuNUJnbO5P487z38iaZbzicxEBEwWOBRaHTu1vcjEs2Zib78JVVL9pAMdg5STt79CIaib1ibDtQ/0",
-        "beibei":"yMhOQPTKhLtwVNgtZuNUJnbO5P487z386dWjrPj77BrKHS5fYRwiaz7Z2zXIq7essuOKXas57uDYsFcw74ygg1g/0",
-        "guoguo":"yMhOQPTKhLtwVNgtZuNUJnbO5P487z38TKQwvLxejdz2jQgj6fmJM8ialEjTbX7ryK0keL6cv03ztk3paJHWKFg/0",
-          "tutu":"yMhOQPTKhLtwVNgtZuNUJnbO5P487z38Gy13KsTpN89JfmhxLUgMcr5Pr5IPB91JgFnbggicLbdOPFdERWqnBhw/0",
-        "lanlan":"yMhOQPTKhLtwVNgtZuNUJnbO5P487z38ibFIicEQGCicVyOgK3a5xrzfmcvxm1hnec1zDicOicOpJTTJo9OpdPOEvaQ/0",
-        "qunqun":"yMhOQPTKhLtwVNgtZuNUJnbO5P487z38fb73OBr5OE3ESeXFsdibhl5BV2x5QTFm5icrupYt4cpSgWQGtltopeZQ/0",
-        "yueyue":"yMhOQPTKhLtwVNgtZuNUJnbO5P487z38jg7SjP02qFySG9pSehEVaYicbXZPiccLTD7YK9W1ic3OaRNbvYichIqfNQ/0",
-          "dudu":"yMhOQPTKhLtwVNgtZuNUJnbO5P487z385UZJW8qvDlLeD2ZrMuWmKnkvhbUYxtXEyjSZdWNibialFvBOz4OzwRXg/0",
-        "lulu31":"yMhOQPTKhLv8BwrLsqGqIG0C2TSeic1Gp66fictl9RFpVa85lUgqyNU0uUicicjia9yibx2w9EsZwSFUufGwSfb78wJA/0",
-      "lanlan32":"yMhOQPTKhLv8BwrLsqGqIG0C2TSeic1Gp6PNo39FCL5PooG1oRBCROX17uBPXicaJicMictxgyPDzHWdgV3E3Uic4Sw/0",
-    "huanhuan33":"yMhOQPTKhLv8BwrLsqGqIG0C2TSeic1GpM2VnOv7HXTQNy4CiapxKsWOw8LaTQz3iaib6Xe0yCmwyCK9NK52XgzckA/0",
-      "yaoyao34":"yMhOQPTKhLv8BwrLsqGqIG0C2TSeic1GpJXW1W0d8ttoEIIj2EroGQHWhc6NNIOn2oW9XGhiaVFTeziadplezn6hQ/0",
-    "jingjing35":"yMhOQPTKhLv8BwrLsqGqIG0C2TSeic1GpnGTxt7Qic6eZmtyRaxJich6Yvro6M1KCQKowzROJY7EM4fwAkNicaq6KQ/0",
-        "yuyu36":"yMhOQPTKhLv8BwrLsqGqIG0C2TSeic1GpGLhHS8wDo7VW06XS6nySIa9VVx7wU4N8nn65OqicxED8UCexOciaibKVg/0",
-        "yaya37":"yMhOQPTKhLv8BwrLsqGqIG0C2TSeic1Gpp3PEmjK9I6W2YnkQ60sXkdbqfBibTtuUzhiaSfBoCpdTKAusvt73y9ibg/0",
-      "paopao38":"yMhOQPTKhLv8BwrLsqGqIG0C2TSeic1Gpr6Ciafh9xpCM8ZrmGH7myG3qCvvJtYJ96CMx6BgoibelIShOpfnVyttA/0",
-        "momo39":"yMhOQPTKhLv8BwrLsqGqIG0C2TSeic1GpLLAGM4MRYcdjibZksYVyZVxhhkDL17ahC8JuQxkpghW0RWUbGFZ8wjg/0",
-        "sisi40":"yMhOQPTKhLv8BwrLsqGqIG0C2TSeic1GpCXeILoLWTia6zTBzR5Gc6huWR5xcGiatNKTO2TWemnq8bEbpWhuicrnQQ/0"
-    }
 
 
 def get_user_openid(request, code, 
@@ -1663,4 +1572,16 @@ class TestView(View):
         response = render_to_response('weixin/sampleads1.html', 
                                       context_instance=RequestContext(request))
         return response
+    
+class TestCodeView(View):
+    def get(self, request):
+        
+#         print request.META.get('HTTP_USER_AGENT')
+#         print request.META.get('HTTP_USER_AGENT').find('MicroMessenger') 
+
+        response = render_to_response('weixin/testcode.html', {'kfmap':KFMAP,'url_prifix':IMG_URL_PREFIX},
+                                      context_instance=RequestContext(request))
+        return response
+    
+    
         
