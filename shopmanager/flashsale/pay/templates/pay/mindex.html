@@ -51,7 +51,7 @@
     {% endfor %}
   </div>
   
-  <div id="no_more">已无更多商品</div>
+  <div id="no_more" next="{{ next }}&format=json">努力加载中...</div>
 
 <script>
   $(document).ready(function(){
@@ -60,6 +60,9 @@
       var h = $('body').scrollTop();
       if (h>=78){
         $('#tab_nav').addClass('blocked');
+        if (!$('#no_more').hasClass('loading')){
+        	Ctrl_list_write();
+        } 
       }
       else{
         $('#tab_nav').removeClass('blocked');
@@ -82,21 +85,64 @@
       }
     });
 
-    Ctrl_list_write();//列表写入
+    //Ctrl_list_write();//列表写入
   });
 
 
   //商品列表信息引入，使用JSON文件引入数据
   function Ctrl_list_write(){
-    //示例（仅示例用，实际使用时请删除）
-    //for (var i=0;i<8;i++)View_list_wrapper_write();
-
+  
+	var list_url = $('#no_more').attr('next');
+	if (!list_url){return;}
     //实际JSON引入部分，可根据实际情况调整
-    //$.getJSON('',function(data){
-    //  $.each(data,function(index,entry){
-    //    View_list_wrapper_write(entry);
-    //  });
-    //})
+    $.getJSON(list_url,function(data){
+      
+      $.each(data.results,function(index,entry){
+        View_list_wrapper_write(entry);
+      });
+      
+      if( !data.next ){
+      	$('#no_more').attr('next',data.next).html('努力加载中...');
+      };
+      
+      if( data.next ){
+      	$('#no_more').attr('next','').html('没有更多了');
+      };
+      $('#no_more').removeClass('loading');
+    });
+  }
+  
+  //列表中单个商品写入 object中包含商品的相关信息进行替换
+  function View_list_wrapper_write(object){
+    var id = object.id;//商品ID，可用以跳转到对应页面
+    var name = object.name;//商品名/简介
+    var href = '../p/'+ object.id +'/';//商品对应页面的链接
+    var type = parseInt(Math.random()*2)==1?'boy':'girl';//分类：boy/girl
+    var src = object.pic_path;//图片路径
+    var price = object.std_sale_price;//售价
+    var price_o = object.agent_price;//原价
+    var price_change = parseInt(Math.random()*2)==1?true:false;//是否有降价
+    var sold_out = parseInt(Math.random()*3)==1?true:false;//是否已售完
+
+    var width = $('#p_list').width()/2-8;
+
+    var ht = '';
+    ht += '<div class="holder">';
+    ht += '<a id="' + id + '" class="wrapper ' + type;
+    if (sold_out){ht += ' soldout'};
+    ht += '" href="'+href+'" target="_top">';
+    ht += '<div class="image" style="height:'+width+'px">';
+    ht += '<img src="' + src + '"/>';
+    ht += '<span>已抢光</span>';
+    ht += '</div>';
+    ht += '<div class="name">' + name + '</div>';
+    ht += '<div class="price">￥<span>' + price + '</span></div>';
+    ht += '<div class="price_o" ';
+    if (!price_change){ht += 'style="display:none"'};
+    ht += '>￥<span>' + price_o + '</span>&nbsp;</div>';
+    ht += '</a>';
+    ht += '</div>';
+    $('#p_list').append(ht);
   }
 
 </script>
