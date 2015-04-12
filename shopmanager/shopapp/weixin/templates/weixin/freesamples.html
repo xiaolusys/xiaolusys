@@ -1,6 +1,6 @@
 {% extends "weixin/weixin_base.html" %}
 
-{% block title %}免费试用 3000条卡通浴巾免费送！{% endblock %}
+{% block title %}免费试用 3000条卡通凉席免费送！{% endblock %}
 
 
 {% block container %}
@@ -8,17 +8,14 @@
 <div class="container-fluid">
 
   <div class="panel panel-default" style="margin-top:5px">
-    <div class="panel-heading" style="color:orange">三月送浴巾活动 公告</div>
+    <div class="panel-heading" style="color:orange">四月送凉席活动 公告</div>
     <div class="panel-body">
       {% if started %}
-      <p>距离活动结束还有<font style="color:red;"><span style="font-size:20px">{{ days }}</span>天<span style="font-size:20px">{{ hours }}</span>小时<span style="font-size:20px">{{ minutes }}</span>分</font>
-            ，为了感谢美妈们的积极参与，小鹿美美团队决定再加<font style="color:red;font-size:20px;">1000个</font>免费名额，共有<font style="color:red;font-size:20px">3000份</font>卡通浴巾免费领取！</p>
+      <p>距离活动结束还有<font style="color:red;"><span style="font-size:20px">{{ days }}</span>天<span style="font-size:20px">{{ hours }}</span>小时<span style="font-size:20px">{{ minutes }}</span>分</font>，共有<font style="color:red;font-size:20px">3000份</font>卡通凉席免费领取！</p>
       {% else %}
-      <!--<p>距离活动开始还有<font style="color:red;"><span style="font-size:20px">{{ days }}</span>天<span style="font-size:20px">{{ hours }}</span>小时<span style="font-size:20px">{{ minutes }}</span>分</font>，
-             共有<font style="color:red;font-size:20px">2000份</font>卡通浴巾免费领取！</p>-->
-      <p>3000份卡通浴巾赠送活动已经圆满结束，恭喜获得免费试用的妈妈们，下期活动更精彩，美妈们请继续关注哦！</p>
+      <p>距离活动开始还有<font style="color:red;"><span style="font-size:20px">{{ days }}</span>天<span style="font-size:20px">{{ hours }}</span>小时<span style="font-size:20px">{{ minutes }}</span>分</font>，共有<font style="color:red;font-size:20px">3000份</font>卡通凉席免费领取！</p>
+      <!--<p>3000份卡通凉席赠送活动已经圆满结束，恭喜获得免费试用的妈妈们，下期活动更精彩，美妈们请继续关注哦！</p>-->
       {% endif %}
-      <p>3000份卡通浴巾免费试用名单已经全部公布，  <a href="/weixin/inviteresult/">查看名单&gt;&gt;</a></p>
       <!--
       <p>第一批 综合得分 350，点击次数 20 以上  <a href="/weixin/finallist/2/1/1/">中奖名单&gt;&gt;</a></p>
       <p>第三批 综合得分 356，邀请码使用28以上  <a href="/weixin/finallist/3/1/1/">中奖名单&gt;&gt;</a></p>
@@ -28,38 +25,34 @@
   </div>
 
   <div class="panel panel-default" style="margin-top:5px">
-  <div class="panel-heading" style="color:red">上期活动产品展示</div>
+  <div class="panel-heading" style="color:red">宝宝卡通凉席 0-6岁</div>
   <div class="panel-body">
     
     <form action="/weixin/sampleapply/" method="post" onsubmit="return check()" class="form-group">{% csrf_token %}
-      <input type="hidden" value="6" name="sample_pk"/>
+      <input type="hidden" value="7" name="sample_pk"/>
 
       <div class="row">
 	<div class="col-xs-6" style="text-align:center">
 	  <p style="margin-top:10px"><a href="http://mp.weixin.qq.com/bizmall/mallshelf?id=&t=mall/list&biz=MzA5NTI1NjYyNg==&shelf_id=2&showwxpaytitle=1#wechat_redirect">查看今日特卖 >></a></p>
 	  <a href="" class="thumbnail">
-	    <img id="id_img1" src="https://mmbiz.qlogo.cn/mmbiz/yMhOQPTKhLtwVNgtZuNUJnbO5P487z38MIUrX95ZVsYNjxrfGnUX3j3ibmCVsnvt2yoleHYs1zXoppdDDiaLqbibg/0" alt="...">
+	    <img id="id_img1" src="https://mmbiz.qlogo.cn/mmbiz/yMhOQPTKhLtT6gXc7vVWZrYUYJMtKDF2ThVHf8kSFqTIL7iboBB5F8zwYE9M3V16TcxqdJ3mEnFicmDOW1TJ2YSw/0" alt="...">
 	  </a>
 	</div>
 	<div class="col-xs-6">
 	  <p style="margin-top:10px">款式选择：</p>
 	  <select class="form-control" name="color" id="id_selection_color">
-	    <option value="1">小巧虎</option>
-	    <option value="2">小粉兔</option>
-	    <option value="3">小奔牛</option>
-	    <option value="4">小萌象</option>
-	    <option value="5">长颈鹿</option>
-	    <option value="6">猫头鹰</option>
+	    <option value="1">阳光派对</option>
+	    <option value="2">海底动员</option>
 	  </select>
 	  <p style="margin-top:20px">尺寸选择：</p>
 	  <select class="form-control" name="size" id="id_selection_size">
-	    <option value="1">0-6岁</option>
+	    <option value="1">0-6岁 多尺寸</option>
 	  </select>
 
  	</div>
       </div>
     
-      <!--<div class="row" style="margin-top:10px">
+      <div class="row" style="margin-top:10px">
 	<div class="col-xs-2"></div>	  
 	<div class="col-xs-8" style="text-align:center">
 	  {% if order_number < 600 %}
@@ -93,7 +86,7 @@
         {% endif %}
 	{% endif %}
 	</div>
-      </div> -->
+      </div>
     </form>
   </div>
 </div>
@@ -101,9 +94,8 @@
 <div class="row">
   <div class="col-xs-12">
     <h5 style="color:#3071a9">申请须知</h5>
-    <p style="color:red">1) 申请提交完成的页面底部，有您的专属VIP邀请码！</p>
-    <p>2) 若您有过购买记录、晒单记录、好评记录、或邀请好友记录，系统会优先审核您的申请。</p>
-    <p>3) 审核结果于每天上午10点发布，将在【活动中心】->【审核通知】页面显示，请查阅。<font style="color:red">分数越高，中奖几率越大！</font>！</p>
+    <p style="color:red">1) 申请提交完成的页面，有您的专属VIP邀请码！</p>
+    <p>2) 审核结果于每天上午10点发布，将在【活动中心】->【审核通知】页面显示，请查阅。<font style="color:red">分数越高，中奖几率越大！</font>！</p>
   </div>
 </div>
 
@@ -127,12 +119,8 @@
 
   var imgsrc = [
   "0",
-  "https://mmbiz.qlogo.cn/mmbiz/yMhOQPTKhLtwVNgtZuNUJnbO5P487z38MIUrX95ZVsYNjxrfGnUX3j3ibmCVsnvt2yoleHYs1zXoppdDDiaLqbibg/0",
-  "https://mmbiz.qlogo.cn/mmbiz/yMhOQPTKhLtwVNgtZuNUJnbO5P487z38FWZtO9Jmh8DthHhZicasUbA1VgeTjdRDhQeIZXJev0mn5b6J9Y41K1Q/0",
-  "https://mmbiz.qlogo.cn/mmbiz/yMhOQPTKhLtwVNgtZuNUJnbO5P487z3821sN9PEJfdAT7AA0RUCwQPodJtbT8rmY4jJqewprggBWz3lJ0iaAxqw/0",
-  "https://mmbiz.qlogo.cn/mmbiz/yMhOQPTKhLtwVNgtZuNUJnbO5P487z38Cib53ElicBETBXKeapCLHeaV7QLC6AjOdH24r5k3Mj16bxyY7eojBMJw/0",
-  "https://mmbiz.qlogo.cn/mmbiz/yMhOQPTKhLtwVNgtZuNUJnbO5P487z38Z6ao3icHl35SWictl5RDdTiaVkRhVxZypiajmsXU9uGS0WKWkM8NoZDiaUA/0",
-  "https://mmbiz.qlogo.cn/mmbiz/yMhOQPTKhLtwVNgtZuNUJnbO5P487z38B4LJZRib3R0hYc565lr51B6SMViafFIGUtDWP5e0DFEmmHpRSKUKqY6A/0"
+  "https://mmbiz.qlogo.cn/mmbiz/yMhOQPTKhLtT6gXc7vVWZrYUYJMtKDF2ThVHf8kSFqTIL7iboBB5F8zwYE9M3V16TcxqdJ3mEnFicmDOW1TJ2YSw/0",
+  "https://mmbiz.qlogo.cn/mmbiz/yMhOQPTKhLtT6gXc7vVWZrYUYJMtKDF2rJtQV3iazrFt9fxmHx31ibMPZHf3LhXXibkZtbSnajIJjy8ia3pUk68smQ/0"
   ];
 
   $("#id_selection_color").change(function(){ 
