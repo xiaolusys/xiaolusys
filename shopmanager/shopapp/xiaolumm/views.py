@@ -33,8 +33,12 @@ class StatsView(View):
         time_from = datetime.datetime(today.year, today.month, today.day)
         time_to = datetime.datetime(today.year, today.month, today.day, 23, 59, 59)
                 
-        mama_list = XiaoluMama.objects.all()
-
+        pk = request.REQUEST.get('pk')
+        mama_list = XiaoluMama.objects.filter(manager=pk)
+        
+        mama_managers = XiaoluMama.objects.values('manager').distinct()
+        manager_ids   = [m.get('manager') for m in mama_managers if m]
+        managers      = User.objects.filter(id__in=manager_ids)
         data = []
 
         for mama in mama_list:
@@ -61,7 +65,7 @@ class StatsView(View):
                            "order_num":order_num} 
             data.append(data_entry)
             
-        return render_to_response("stats.html", {"data":data}, 
+        return render_to_response("stats.html", {"data":data,"managers":managers}, 
                                   context_instance=RequestContext(request))
 
 
