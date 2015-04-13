@@ -153,10 +153,10 @@ class ProductAdmin(admin.ModelAdmin):
             for cat in categorys:
     
                 if obj and obj.storage_charger == cat.username:
-                    cat_list.append("<option value='%s' selected>%s</option>"%(cat.id,cat.username))
+                    cat_list.append("<option value='%s' selected>%s</option>"%(cat.username,cat.username))
                     continue
     
-                cat_list.append("<option value='%s'>%s</option>"%(cat.id,cat.username))
+                cat_list.append("<option value='%s'>%s</option>"%(cat.username,cat.username))
             
             cat_list.append("</select>")
             

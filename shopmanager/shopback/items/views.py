@@ -362,10 +362,13 @@ class ProductView(ModelView):
                     
                 if k in ('wait_post_num','remain_num'):
                     v = int(v)
+                    
                 setattr(product,k,v)
+                
             
             for k in check_fields:
                 setattr(product,k,False)
+            
             
             product.save()
         except Product.DoesNotExist:
