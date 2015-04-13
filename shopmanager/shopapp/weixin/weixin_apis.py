@@ -276,8 +276,10 @@ class WeiXinAPI(object):
         params = json.dumps({'order_id':order_id,
                              'delivery_company':delivery_company,
                              'delivery_track_no':delivery_track_no,
-                             'is_others':is_others},
+                             'is_others':is_others,
+                             'need_delivery':need_delivery},
                             ensure_ascii=False)
+
         return self.handleRequest(self._merchant_order_setdelivery_uri, 
                                   str(params),
                                   method='POST')
