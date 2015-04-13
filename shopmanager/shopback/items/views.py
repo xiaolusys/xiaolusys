@@ -348,7 +348,7 @@ class ProductView(ModelView):
             
             fields = ['outer_id','barcode','name','category_id','remain_num','weight','cost',
                       'std_purchase_price','std_sale_price','agent_price','staff_price','is_split',
-                      'sync_stock','post_check','is_match','match_reason','buyer_prompt','memo']
+                      'sync_stock','post_check','is_match','match_reason','buyer_prompt','memo','storage_charger']
             
             check_fields = set(['is_split','sync_stock'])
             if not product.prod_skus.count() > 0:
@@ -371,7 +371,7 @@ class ProductView(ModelView):
         except Product.DoesNotExist:
             return u'商品未找到'
 #         except Exception,exc:
-#             return u'填写信息不规则'
+#             return u'填写信息不规则:%s'%exc.message
         log_action(request.user.id,product,CHANGE,u'更新商品基本信息')
         
         return product.json
