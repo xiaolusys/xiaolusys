@@ -875,14 +875,13 @@ class SampleApplyView(View):
         code = content.get('code')
         user_openid = get_user_openid(request, code)
         wx_user = None
+        hongbao_pass = False
         users = WeiXinUser.objects.filter(openid=user_openid)
         if users.count() > 0:
             wx_user = users[0]
-        
-        
-        hongbao_pass = False
-        if wx_user.charge_status == WeiXinUser.UNCHARGE:
-            hongbao_pass = True
+ 
+            if wx_user.charge_status == WeiXinUser.UNCHARGE:
+                hongbao_pass = True
         
         response = None
         param = {"sample":sample, "sku":skus[0], "color":color ,"wx_user": wx_user, "fcode":fcode, "hongbao_pass":hongbao_pass}

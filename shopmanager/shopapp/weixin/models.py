@@ -525,6 +525,7 @@ class WXProductSku(models.Model):
        
 class WXOrder(models.Model):
     
+    WX_WAIT_PAY  = 1
     WX_WAIT_SEND = 2
     WX_WAIT_CONFIRM = 3
     WX_FINISHED  = 5
@@ -532,6 +533,7 @@ class WXOrder(models.Model):
     WX_FEEDBACK  = 8
     
     WXORDER_STATUS = (
+        (WX_WAIT_PAY,u'待付款'),         
         (WX_WAIT_SEND,u'待发货'),
         (WX_WAIT_CONFIRM,u'待确认收货'),
         (WX_FINISHED,u'已完成'),
