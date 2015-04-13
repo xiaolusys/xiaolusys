@@ -1103,34 +1103,11 @@ class FinalListView(View):
         month = int(kwargs.get('month',1))
         
         order_list = SampleOrder.objects.none()
-        if month == 150322 and batch == 1:
-            start_time = datetime.datetime(2015,3,23)
-            end_time = datetime.datetime(2015,3,31)
-            order_list = SampleOrder.objects.filter(status=71,created__gt=start_time)
-        elif month == 150322 and batch == 2:
-            start_time = datetime.datetime(2015,3,23)
-            end_time = datetime.datetime(2015,3,31)
-            order_list = SampleOrder.objects.filter(status=72,created__gt=start_time)
-        elif month == 150322 and batch == 3:
-            start_time = datetime.datetime(2015,3,23)
-            end_time = datetime.datetime(2015,3,31)
-            order_list = SampleOrder.objects.filter(status=73,created__gt=start_time)
-        elif month == 150322 and batch == 4:
-            start_time = datetime.datetime(2015,3,23)
-            end_time = datetime.datetime(2015,3,31)
-            order_list = SampleOrder.objects.filter(status=74,created__gt=start_time)
-        elif month == 150322 and batch == 5:
-            start_time = datetime.datetime(2015,3,23)
-            end_time = datetime.datetime(2015,3,31)
-            order_list = SampleOrder.objects.filter(status=75,created__gt=start_time)
-        elif month == 150322 and batch == 6:
-            start_time = datetime.datetime(2015,3,23)
-            end_time = datetime.datetime(2015,3,31)
-            order_list = SampleOrder.objects.filter(status=76,created__gt=start_time)
-        elif month == 1503 :
+
+        if month == 1503 :
             start_time = datetime.datetime(2015,3,9)
-            end_time = datetime.datetime(2015,3,20)
-            order_list = SampleOrder.objects.filter(status__gt=60,status__lt=70,created__gt=start_time)
+            end_time = datetime.datetime(2015,3,31)
+            order_list = SampleOrder.objects.filter(status__gt=60,status__lt=80,created__gt=start_time)
         elif month == 1501:
             start_time = datetime.datetime(2015,1,9)
             end_time = datetime.datetime(2015,1,27)
