@@ -65,7 +65,7 @@ class StatsView(View):
                            "order_num":order_num} 
             data.append(data_entry)
             
-        return render_to_response("stats.html", {"data":data,"managers":managers}, 
+        return render_to_response("stats.html", {'pk':int(pk),"data":data,"managers":managers}, 
                                   context_instance=RequestContext(request))
 
 
