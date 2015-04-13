@@ -1,4 +1,4 @@
-{% extends "weixin/weixin_base.html" %}
+{% extends "weixin/weixin_pubbase.html" %}
 
 
 {% block title %} 
@@ -10,7 +10,7 @@
 <div class="container-fluid">
   <div class="thumbnail" style="text-align:center">
     {% if identical %}
-    <img id="id_donebox" src="https://mmbiz.qlogo.cn/mmbiz/yMhOQPTKhLtT6gXc7vVWZrYUYJMtKDF2Lfv5fs7BjaibicJhnUnibTfe2DK8I4fXChgmEukzJuePZ2BA3GcxbEUCg/0"/>
+    <img id="id_donebox" src="https://mmbiz.qlogo.cn/mmbiz/yMhOQPTKhLvpFMUamRIwhQRoaZS4QzjaI1rJJdw0fT1V0KvRSjDDJUlMtiauUQwsWE8SIBIn2eZJJwgrMzJ6Tmg/0"/>
     <p style="margin-top:16px">您的VIP邀请码: {{ vipcode }}</p>
     {% if hongbao_pass %}
     <p style="color:red">亲，感谢您参与活动，您还获得了微信现金红包一个！请扫二维码加客服微信领取！（长按二维码添加;或保存图片，微信扫一扫，选择相册）</p>
