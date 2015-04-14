@@ -76,16 +76,16 @@
 	      </div>
 	    </div>
 
-	    <div style="margin-top:20px">
+	    <!--<div style="margin-top:20px">
 	      <p style="color:#029fd6">2. 申请提交后，您的VIP邀请码请发给好友使用，VIP码使用次数越多，那么</p>
 	      <div class="radio">
 		<label>
 		  <input type="radio" name="p2" value="1" id="id_input2"> 中奖几率越大。
 		</label>
 	      </div>
-	    </div>
+	    </div>-->
 
-	    {% if hongbao_pass %}
+	    <!--{% if hongbao_pass %}
 	    <div style="margin-top:20px">
 	      <p style="color:#029fd6">3. 若您是第一次参加小鹿美美活动，那么</p>
 	      <div class="radio">
@@ -94,7 +94,7 @@
 		</label>
 	      </div>
 	    </div>
-	    {% endif %}
+	    {% endif %}-->
 	  </div>
 	</div>
 
@@ -261,7 +261,7 @@
       return false;
     }
 
-    if ((!$("#id_input2").is(':checked')) ) {
+   /** if ((!$("#id_input2").is(':checked')) ) {
       $("#id_msg")[0].innerHTML = "亲，请选择答案再提交哦。";
       return false;
     }
@@ -271,7 +271,7 @@
       $("#id_msg")[0].innerHTML = "亲，请选择答案再提交哦。";
       return false;
     }
-    {% endif %}
+    {% endif %}**/
 
     return true;
   }
