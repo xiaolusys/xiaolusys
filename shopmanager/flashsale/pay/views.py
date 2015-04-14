@@ -190,16 +190,17 @@ class ProductList(generics.ListCreateAPIView):
     def list(self, request, *args, **kwargs):
         
         content    = request.REQUEST
-        time_line  = content.get('time_line','today')
+        time_line  = content.get('time_line','0')
+        if not time_line.isdigit() or int(time_line) < 0:
+            time_line = 0
+        time_line = int(time_line)
+        
+        filter_date = datetime.datetime.now() + datetime.timedelta(days=time_line)
+        
         instance = self.filter_queryset(self.get_queryset())
-        
-        if time_line == "today":
-            instance = instance.filter(sale_time=datetime.datetime(2015,3,28),
-                                       status=Product.NORMAL)
-        else:
-            instance = instance.filter(sale_time=datetime.datetime(2015,3,29),
-                                       status=Product.NORMAL)
-        
+
+        instance = instance.filter(sale_time=filter_date.date(),status=Product.NORMAL)
+
         page = self.paginate_queryset(instance)
         if page is not None:
             serializer = self.get_pagination_serializer(page)

@@ -28,18 +28,17 @@
   <!-- 导航 -->
   <div id="tab_nav">
     <div class="block">
-      <a id="for_boy">男童</a>
+      <a id="for_boy">童装</a>
       <a id="for_all" class="active">全部</a>
-      <a id="for_girl">女童</a>
+      <a id="for_girl">女装</a>
     </div>
   </div>
 
   <!-- 商品列表 -->
-  
   <div id="p_list">
   {% for product in results %}
     <div class="holder">
-      <a id="p{{ product.id }}" class="wrapper {% cycle 'girl' 'boy' %}" href="../p/{{ product.id }}/" target="_top">
+      <a id="p{{ product.id }}" class="wrapper {% if product.category == 5 %}boy{% else %}girl{% endif %}" href="../p/{{ product.id }}/" target="_top">
       <div class="image" style="height:240px">
       <img src="{{ product.pic_path }}"><span>已抢光</span></div>
       <div class="name">{{ product.name }}</div>
@@ -119,7 +118,7 @@
     var id = object.id;//商品ID，可用以跳转到对应页面
     var name = object.name;//商品名/简介
     var href = '../p/'+ object.id +'/';//商品对应页面的链接
-    var type = parseInt(Math.random()*2)==1?'boy':'girl';//分类：boy/girl
+    var type = object.category==5?'boy':'girl';//分类：boy/girl
     var src = object.pic_path;//图片路径
     var price = object.std_sale_price;//售价
     var price_o = object.agent_price;//原价
