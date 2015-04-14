@@ -52,15 +52,19 @@
   <div id="no_more" next="{{ next }}&format=json">努力加载中...</div>
 
 <script>
+  var from_top = 78;
+  var page_height = 500;
+  
   $(document).ready(function(){
     $('.ui-loader').remove();
     $(document).on('scroll touchmove',function(){
       var h = $('body').scrollTop();
 
-      if (h>=78){
+      if ( h >= from_top ){
         $('#tab_nav').addClass('blocked');
         if (!$('#no_more').hasClass('loading')){
         	Ctrl_list_write();
+        	from_top += page_height;
         } 
       }
       else{
