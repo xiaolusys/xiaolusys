@@ -11,76 +11,70 @@
     </style>
   </head>
   <body>
-  <div class="panel panel-default">
-	  <div class="panel-body">
-	    <div class="row wrap" >
-	      <h2>
-		    <div class="col-xs-offset-1 col-xs-1">
-	          <a href="http://m.xiaolu.so/" class="glyphicon glyphicon-home"></a>
-	        </div>
-	        <div class="col-xs-9" style="text-align:center;">
-	          <span>{{ title }}</span>
-	        </div>
-	      </h2>
-	    </div>
-	    <div class="form-group">
-	    <div class="row" style="text-align:center;font-size:18px;margin:0 5px;padding:10px 10px;color:#b3b3b3;"><p>如您已注册会员，请直接登录</p></div>
-	    </div>
-	    <div class="row" >
-	      <form class="form-horizontal" action="/mm/login/" method="post">
-	      {% csrf_token %}
-		  <div class="form-group">
-		    <div class="col-xs-offset-1 col-xs-10">
-		      <input type="email" class="form-control" name="username" id="inputEmail" maxlength="30" placeholder="请输入手机号/邮箱">
-		    </div>
-		  </div>
-		  <div class="form-group">
-		    <div class="col-xs-offset-1 col-xs-10">
-		      <input type="password" class="form-control" name="password" id="inputPassword" placeholder="请输入密码">
-		    </div>
-		  </div>
-		  
-		  {% if messages %}
-		  <div class="form-group">
-			<div class="col-xs-offset-1 col-xs-10">
-			    {% for message in messages %}
-			    <p class="bg-danger" style="color:#b81b22;">{{ message }}</p>
-			    {% endfor %}
-			</div>
-			</div>
-			{% endif %}
-		  
-		  <div class="form-group">
-		    <div class="col-xs-12" style="text-align:center;">
-		      <input type="hidden" name="this_is_the_login_form" value="1">
-		      <input type="hidden" name="next" id="next" value="{{ next }}"/>
-		      <a href="javascript:void(0);" class="btn btn-lg col-xs-offset-1 col-xs-10 wrap" onclick="javascript:document.forms[0].submit();">登录</a>
-		    </div>
-		  </div>
-		</form>
-		<script type="text/javascript">document.getElementById('inputEmail').focus();</script>
-	    </div>
-	    <div class="form-group">
-		    <div class="row">
-			    <div class="col-xs-offset-1 col-xs-5 pull-left">
-		          <a href="http://m.xiaolu.so/" >免费注册<span>&gt;</span></a>
-		        </div>
-		        <div class="col-xs-6 pull-right" style="s">
-		          <a href="http://m.vancl.com/User/RetrieveStep1">手机账号取回密码<span>&gt;</span></a>
-		        </div>
-		        </div>
-    		</div>
+    <div class="row wrap" >
+      <h2>
+	    <div class="col-xs-offset-1 col-xs-1">
+          <a href="http://m.xiaolu.so/" class="glyphicon glyphicon-home"></a>
+        </div>
+        <div class="col-xs-9" style="text-align:center;">
+          <span>{{ title }}</span>
+        </div>
+      </h2>
+    </div>
+    <div class="row" style="text-align:center;font-size:18px;margin:0 5px;padding:10px 10px;color:#b3b3b3;"><p>如您已注册会员，请直接登录</p></div>
+    <div class="row" >
+      <form class="form-horizontal" action="/mm/login/" method="post">
+      {% csrf_token %}
+	  <div class="form-group">
+	    <div class="col-xs-offset-1 col-xs-10">
+	      <input type="email" class="form-control" name="username" id="inputEmail" maxlength="30" placeholder="请输入手机号/邮箱">
 	    </div>
 	  </div>
-  </div>
+	  <div class="form-group">
+	    <div class="col-xs-offset-1 col-xs-10">
+	      <input type="password" class="form-control" name="password" id="inputPassword" placeholder="请输入密码">
+	    </div>
+	  </div>
+	  
+	  {% if messages %}
+	  <div class="form-group">
+		<div class="col-xs-offset-1 col-xs-10">
+		    {% for message in messages %}
+		    <p class="bg-danger" style="color:#b81b22;">{{ message }}</p>
+		    {% endfor %}
+		</div>
+		</div>
+		{% endif %}
+	  
+	  <div class="form-group">
+	    <div class="col-xs-12" style="text-align:center;">
+	      <input type="hidden" name="this_is_the_login_form" value="1">
+	      <input type="hidden" name="next" id="next" value="{{ next }}"/>
+	      <a href="javascript:void(0);" class="btn btn-lg col-xs-offset-1 col-xs-10 wrap" onclick="javascript:document.forms[0].submit();">登录</a>
+	    </div>
+	  </div>
+	  </form>
+	<script type="text/javascript">document.getElementById('inputEmail').focus();</script>
+    </div>
+    <div class="form-group">
+	    <div class="row">
+		    <div class="col-xs-offset-1 col-xs-5 pull-left">
+	          <a href="http://m.xiaolu.so/" >免费注册<span>&gt;</span></a>
+	        </div>
+	        <div class="col-xs-6 pull-right" style="s">
+	          <a href="http://m.vancl.com/User/RetrieveStep1">手机账号取回密码<span>&gt;</span></a>
+	        </div>
+	        </div>
+		</div>
+    </div>
     <script src="../../../Content/H5/js/zepto.min.js">
     </script>
     <script type="text/javascript">
       $(function () {
         $("#btnNewVerityCode").click(function () {
           $("#verityCode").attr("src", "/User/LoginVerityCode?s=s&r=" + Math.random());
-          });
-          });
-        </script>
-      </body>
-    </html>
+      });
+      });
+    </script>
+  </body>
+</html>
