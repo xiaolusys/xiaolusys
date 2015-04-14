@@ -305,6 +305,7 @@ class Product(models.Model):
         
         return ','.join(ds)
     
+    
 class ProductSku(models.Model):
     
     """ 

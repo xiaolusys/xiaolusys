@@ -51,14 +51,21 @@
     {% endfor %}
   </div>
   
-  <div id="no_more" next="{{ next }}&format=json">努力加载中...</div>
+  <div id="no_more" next="{% if next %}{{ next }}&format=json{% endif %}">努力加载中...</div>
 
 <script>
-  var from_top = 500;
-  var page_height = 1000;
+  var from_top = 75;
+  var page_height = 850;
   
   $(document).ready(function(){
     $('.ui-loader').remove();
+	var width = $('#p_list').width()/2-8;
+	
+    $.each($('.holder .image'),function(index,entry){
+    	console.log(index,$(entry).css('height'));
+    	$(entry).css('height',width);
+    })
+    
     $(document).on('scroll touchmove',function(){
       var h = $('body').scrollTop();
 
@@ -126,8 +133,8 @@
     var href = '../p/'+ object.id +'/';//商品对应页面的链接
     var type = object.category==5?'boy':'girl';//分类：boy/girl
     var src = object.pic_path;//图片路径
-    var price = object.std_sale_price;//售价
-    var price_o = object.agent_price;//原价
+    var price = object.agent_price;//售价
+    var price_o = object.std_sale_price;//原价
     var price_change = parseInt(Math.random()*2)==1?true:false;//是否有降价
     var sold_out = parseInt(Math.random()*3)==1?true:false;//是否已售完
 
