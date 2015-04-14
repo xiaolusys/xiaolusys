@@ -101,12 +101,12 @@
       $.each(data.results,function(index,entry){
         View_list_wrapper_write(entry);
       });
-      
-      if( !data.next ){
+      console.log('next:',data.next);
+      if( data.next != ''||data.next != 'undifine' ){
       	$('#no_more').attr('next',data.next).html('努力加载中...');
       };
       
-      if( data.next ){
+      if( data.next == '' && data.next == 'undifine' ){
       	$('#no_more').attr('next','').html('没有更多了');
       };
       $('#no_more').removeClass('loading');
