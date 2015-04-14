@@ -1039,7 +1039,7 @@ class ResultView(View):
         sample_orders = SampleOrder.objects.filter(user_openid=user_openid,created__gte=START_TIME)
         if sample_orders.count() > 0:
             sample_order = sample_orders[0]
-            sample_pass = (sample_order.status > 60 and sample_order.status < 100)
+            sample_pass = (sample_order.status > 80 and sample_order.status < 100)
             hongbao_pass = wx_user.charge_status == WeiXinUser.UNCHARGE
             
         vip_code = None
