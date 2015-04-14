@@ -125,12 +125,13 @@ class ProductAdmin(admin.ModelAdmin):
     def category_select(self, obj):
 
         categorys = self.category_list
-
+        
         cat_list = ["<select class='category_select' pid='%s'>"%obj.id]
-        cat_list.append("<option value=''>-------------------</option>")
-        for cat in categorys:
+        cat_list.append("<option value=''>-------------</option>")
 
-            if obj.category and obj.category == cat:
+        for cat in categorys:
+            
+            if obj.category and obj.category.cid == cat.cid:
                 cat_list.append("<option value='%s' selected>%s</option>"%(cat.cid,cat))
                 continue
 
@@ -226,7 +227,8 @@ class ProductAdmin(admin.ModelAdmin):
             groups = Group.objects.filter(name=u'仓管员')
             if groups.count() > 0:
                 self.storage_chargers = groups[0].user_set.filter(is_staff=True)
-        self.category_list = ProductCategory.objects.filter(is_parent=False)
+                
+        self.category_list = ProductCategory.objects.filter()
    
         return super(ProductAdmin,self).get_changelist(request, **kwargs)
     
