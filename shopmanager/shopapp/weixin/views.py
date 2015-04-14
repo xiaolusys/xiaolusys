@@ -358,7 +358,7 @@ class OrderInfoView(View):
         orders = []
         for order in trade.merge_orders.filter(sys_status=pcfg.IN_EFFECT):
             s = order.getImgSimpleNameAndPrice()
-            if order.outer_id in ['10206','10501'] :
+            if order.outer_id in ['10206','10501','10102'] :
                 if trade.status == pcfg.TRADE_FINISHED:
                     specific_order_finished = True
                 has_specific_product = True
@@ -407,7 +407,7 @@ class OrderInfoView(View):
         
         passed = False
         start_time = datetime.datetime(2015,3,9)
-        sample_orders = SampleOrder.objects.filter(user_openid=user_openid,status__gt=60,status__lt=80)
+        sample_orders = SampleOrder.objects.filter(user_openid=user_openid,status__gt=70,status__lt=90)
         refund_records = Refund.objects.filter(user_openid=user_openid,created__gt=start_time)
         if specific_order_finished and sample_orders.count() > 0 and refund_records.count() < 1:
             passed = True
@@ -1103,7 +1103,12 @@ class FinalListView(View):
         month = int(kwargs.get('month',1))
         
         order_list = SampleOrder.objects.none()
-
+        
+        if month == 1504 and batch == 1 :
+            start_time = datetime.datetime(2015,4,13)
+            end_time = datetime.datetime(2015,4,21)
+            order_list = SampleOrder.objects.filter(status=81,created__gt=start_time)
+        
         if month == 1503 :
             start_time = datetime.datetime(2015,3,9)
             end_time = datetime.datetime(2015,3,31)
