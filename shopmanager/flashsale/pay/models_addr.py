@@ -55,7 +55,7 @@ class UserAddress(models.Model):
     
     default         = models.BooleanField(default=False,verbose_name=u'默认地址')
     
-    status          = models.CharField(blank=True,db_index=True,
+    status          = models.CharField(max_length=8,blank=True,db_index=True,
                                        choices=STATUS_CHOICES,verbose_name=u'状态')
     
     class Meta:
