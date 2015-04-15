@@ -71,8 +71,14 @@ def mergeMaker(trade,sub_trade):
     if MergeBuyerTrade.objects.filter(sub_tid=trade.id).count() > 0:
         return False
     
-    MergeBuyerTrade.objects.get_or_create(sub_tid=sub_trade.id,
-                                          main_tid=trade.id)
+    try:
+        mt = MergeBuyerTrade.objects.get(sub_tid=sub_trade.id)
+    except:
+        MergeBuyerTrade.objects.get_or_create(sub_tid=sub_trade.id,
+                                              main_tid=trade.id)
+    else:
+        mt.main_tid = trade.id
+        mt.save()
     
     trade.append_reason_code(pcfg.MULTIPLE_ORDERS_CODE)
     
@@ -173,7 +179,9 @@ def mergeRemover(trade):
     
     update_model_fields(trade,update_fields=['payment','post_fee','has_merge'])
         
-    MergeBuyerTrade.objects.filter(main_tid=trade_id).delete()
+    mbts = MergeBuyerTrade.objects.filter(main_tid=trade_id)
+    for mbt in mbts:
+        mbt.delete()
     
     log_action(trade.user.user.id,trade,CHANGE,u'订单取消合并')
     

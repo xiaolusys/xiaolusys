@@ -3,6 +3,23 @@ from rest_framework import serializers
 
 from shopback.items.models import Product,ProductSku
 
+        
+class DetailInfoField(serializers.Field):
+    
+    def to_representation(self, obj):
+        
+        detail_dict  = {'head_imgs':[],'content_imgs':[]}
+        if obj.head_imgs.strip():
+            detail_dict['head_imgs'] = [s.strip() for s in obj.head_imgs.split('\n') if s.startswith('http://')]
+        
+        if obj.content_imgs.strip():
+            detail_dict['content_imgs'] = [s.strip() for s in obj.content_imgs.split('\n') if s.startswith('http://')]
+
+        return detail_dict
+
+    def to_internal_value(self, data):
+        return data
+    
 
 class ProductSerializer(serializers.ModelSerializer):
     
@@ -28,9 +45,13 @@ class ProductSkuField(serializers.Field):
         
 class ProductDetailSerializer(serializers.ModelSerializer):
     
-#     category = SaleCategorySerializer()
+#    category = SaleCategorySerializer()
+    details   = DetailInfoField()
     prod_skus = ProductSkuField()
     class Meta:
         model = Product
         fields = ('id','name','category','pic_path','collect_num','std_sale_price',
-                  'agent_price','status','created','memo','prod_skus')
+                  'agent_price','status','created','memo','prod_skus','details')
+        
+
+    

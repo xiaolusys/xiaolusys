@@ -19,8 +19,10 @@
 <div id="image_slider">
     <div class="holder">
         <!-- 此处为商品所有的展示图 -->
-        <div class="img_holder"><img src="{{ pic_path }}"/></div>
-        <div class="img_holder"><img src="{{ pic_path }}"/></div>
+        {% for img in details.head_imgs %}
+        <div class="img_holder"><img src="{{ img }}"/></div>
+        {% endfor %}
+ 
     </div>
     <div class="tags"></div>
     <div class="mark"><img src="{{ STATIC_URL }}images/watermark_white.png"></div>
@@ -58,7 +60,9 @@
 </div>
 
 <div id="detail">
-    <img src="{{ pic_path }}" />
+	{% for img in details.content_imgs %}
+    <img src="{{ img }}" />
+    {% endfor %}
 </div>
 
 <a id="buy_now" href="javascript:void(0)" onclick="Ctrl_buy_now()" target="_top">
