@@ -30,7 +30,8 @@ def pullWXProductTask():
 @task
 def pullWaitPostWXOrderTask(begintime,endtime):
     
-    update_status=[WXOrder.WX_WAIT_SEND,
+    update_status=[WXOrder.WX_WAIT_PAY,
+                   WXOrder.WX_WAIT_SEND,
                    WXOrder.WX_WAIT_CONFIRM,
                    WXOrder.WX_FINISHED]
     
