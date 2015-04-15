@@ -10,7 +10,7 @@ from django.db import IntegrityError, transaction
 from shopback.base.fields import BigIntegerAutoField,BigIntegerForeignKey
 from shopback.logistics.models import LogisticsCompany
 from .models_user import Register,Customer
-from .models_addr import District
+from .models_addr import District,UserAddress
 from .models_custom import Productdetail
 
 import uuid

@@ -34,6 +34,12 @@ class District(models.Model):
 
 class UserAddress(models.Model):
     
+    NORMAL = 'normal'
+    DELETE = 'delete'
+    
+    STATUS_CHOICES = ((NORMAL,u'正常'),
+                      (DELETE,u'删除'))
+    
     cus_uid          =  models.BigIntegerField(verbose_name=u'客户ID')
     
     receiver_name    =  models.CharField(max_length=25,
@@ -49,13 +55,16 @@ class UserAddress(models.Model):
     
     default         = models.BooleanField(default=False,verbose_name=u'默认地址')
     
+    status          = models.CharField(blank=True,db_index=True,
+                                       choices=STATUS_CHOICES,verbose_name=u'状态')
+    
     class Meta:
         db_table = 'flashsale_address' 
-        verbose_name = u'省市/区划'
-        verbose_name_plural = u'省市/区划列表'
+        verbose_name = u'特卖用户/地址'
+        verbose_name_plural = u'特卖用户/地址列表'
         
     def __unicode__(self):
         
-        return '%s,%s'%(self.id,self.name)
+        return '<%s,%s>'%(self.id,self.cus_uid)
     
     

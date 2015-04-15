@@ -413,7 +413,7 @@ class OrderInfoView(View):
             passed = True
 
         if specific_order_finished and sample_orders.count() > 1 and refund_records.count() > 0:
-            if refund_records.filter(refund_status=3).count() == 1:
+            if refund_records.filter(refund_status__in=(0,1)).count() == 0:
                 passed = True
 
         score_refund = False
