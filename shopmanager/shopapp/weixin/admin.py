@@ -377,13 +377,21 @@ class SampleOrderChangeList(ChangeList):
 class SampleOrderAdmin(admin.ModelAdmin):
 
     
-    list_display = ('sample_product','sku_code','user_openid','problem_score','vipcode','created','status')
+    list_display = ('product_name','sku_code','user_openid','problem_score','vipcode','created','status')
     list_display_links = ('user_openid',)
     
     list_filter = ('status','problem_score')
     search_fields = ['user_openid','vipcode']
     list_per_page = 25
     
+    def product_name(self, obj):
+
+        if obj.sample_product:
+            return obj.sample_product.name
+        return 'NULL'
+    
+    product_name.allow_tags = True
+    product_name.short_description = u"试用商品名称" 
     
     def sample_link(self, obj):
         return obj.sample_product.name
