@@ -79,8 +79,8 @@
 	{% if order_exist %}
 	<p>亲，您的申请已经提交。</p>
 	<p><a href="/weixin/sampleads/{{ wx_user.pk }}/">分享您的VIP邀请码页面>></a></p>
-        {% else %}
-	{% if started %}
+    {% else %}
+		{% if started %}
 	  <input type="submit" class="btn btn-warning" value="提交试用申请"/>
         {% else %} 
 	  <button type="button" class="btn btn-warning" disabled="disabled">申请待开放...</button>
