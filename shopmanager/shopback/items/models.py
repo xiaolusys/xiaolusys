@@ -60,7 +60,7 @@ class Product(models.Model):
     barcode      = models.CharField(max_length=64,blank=True,db_index=True,verbose_name=u'条码')
     category     = models.ForeignKey(ProductCategory,null=True,blank=True,
                                      related_name='products',verbose_name=u'内部分类')
-    pic_path     = models.CharField(max_length=256,blank=True,verbose_name=u'图片链接')
+    pic_path     = models.CharField(max_length=256,blank=True,verbose_name=u'商品主图')
     
     collect_num  = models.IntegerField(default=0,verbose_name=u'库存数')  #库存数
     warn_num     = models.IntegerField(null=True,default=0,verbose_name=u'警告数')  #警戒库位

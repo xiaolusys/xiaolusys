@@ -10,10 +10,12 @@ class DetailInfoField(serializers.Field):
         
         detail_dict  = {'head_imgs':[],'content_imgs':[]}
         if obj.head_imgs.strip():
-            detail_dict['head_imgs'] = [s.strip() for s in obj.head_imgs.split('\n') if s.startswith('http://')]
+            detail_dict['head_imgs'] = [s.strip() for s in obj.head_imgs.split('\n') 
+                                        if s.startswith('http://') or s.startswith('https://')]
         
         if obj.content_imgs.strip():
-            detail_dict['content_imgs'] = [s.strip() for s in obj.content_imgs.split('\n') if s.startswith('http://')]
+            detail_dict['content_imgs'] = [s.strip() for s in obj.content_imgs.split('\n') 
+                                           if s.startswith('http://') or s.startswith('https://')]
 
         return detail_dict
 
