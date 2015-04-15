@@ -4,13 +4,11 @@ from shopback.items.models import Product
 
 class Productdetail(models.Model):
     
-    product  = models.OneToOneField(Product, primary_key=True,verbose_name=u'商品ID')
+    product  = models.OneToOneField(Product, primary_key=True,related_name='details',verbose_name=u'库存商品')
     
-    head_img = models.CharField(max_length=256,blank=True,verbose_name=u'题头照')
-    ct_img1  = models.CharField(max_length=256,blank=True,verbose_name=u'内容照1')
-    ct_img2  = models.CharField(max_length=256,blank=True,verbose_name=u'内容照2')
-    ct_img3  = models.CharField(max_length=256,blank=True,verbose_name=u'内容照3')
-    ct_img4  = models.CharField(max_length=256,blank=True,verbose_name=u'内容照4')
+    head_imgs  = models.TextField(blank=True,verbose_name=u'题头照(多张请换行)')
+
+    content_imgs = models.TextField(blank=True,verbose_name=u'内容照(多张请换行)')
 
     class Meta:
         db_table = 'flashsale_productdetail'
@@ -18,4 +16,4 @@ class Productdetail(models.Model):
         verbose_name_plural = u'特卖商品/详情列表'
     
     def __unicode__(self):
-        return '%s'%self.product
+        return '<%s,%s>'%(self.product.outer_id,self.product.name)

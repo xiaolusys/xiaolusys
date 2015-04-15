@@ -31,7 +31,7 @@ from shopback.items.forms import ProductModelForm
 from shopback.base.options import DateFieldListFilter
 from shopback.items.filters import ChargerFilter,DateScheduleFilter
 from common.utils import gen_cvs_tuple,CSVUnicodeWriter
-from flashsale.pay.models import Productdetail
+from flashsale.pay import Productdetail
 import logging 
 
 logger =  logging.getLogger('django.request')
@@ -53,12 +53,11 @@ class ProductSkuInline(admin.TabularInline):
             return self.readonly_fields + ('quantity','warn_num','wait_post_num','is_split')
         return self.readonly_fields
     
-class ProductdetailInline(admin.TabularInline):
+class ProductdetailInline(admin.StackedInline):
     
     model = Productdetail
-    fields = ('head_img',
-              ('ct_img1','ct_img2'),
-              ('ct_img3','ct_img4'))
+    
+    fields = (('head_imgs','content_imgs'),)
     
     formfield_overrides = {
         models.CharField: {'widget': TextInput(attrs={'size':'50'})},
