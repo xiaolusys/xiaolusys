@@ -112,10 +112,10 @@ admin.site.register(District, DistrictAdmin)
 
 class UserAddressAdmin(admin.ModelAdmin):
     
-    list_display = ('id','cus_uid','receiver_name','receiver_state','receiver_city','receiver_mobile','sort_order')
-    search_fields = ['parent_id','name']
+    list_display = ('id','cus_uid','receiver_name','receiver_state','receiver_city','receiver_mobile','default','status')
+    search_fields = ['cus_uid','receiver_mobile']
     
-    list_filter = ('grade',)
+    list_filter = ('default','status')
 
 admin.site.register(UserAddress, UserAddressAdmin)
 
