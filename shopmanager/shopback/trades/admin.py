@@ -91,13 +91,15 @@ class MergeTradeChangeList(ChangeList):
         
         if re.compile('^wx[\d]{20,28}$').match(search_q):
             
+            tid = search_q.replace('wx','')
             try:
                 from shopback.users.models import User as Shop
                 shops = Shop.objects.filter(type=Shop.SHOP_TYPE_WX).exclude(uid='wxmiaosha')
                 if shops.count() > 0:
-                    TradeService.createTrade(shops[0].uid, search_q.replace('wx',''), MergeTrade.WX_TYPE)
+                    TradeService.createTrade(shops[0].uid, tid, MergeTrade.WX_TYPE)
             except:
                 pass
+            return MergeTrade.objects.filter(tid=tid)
             
         if search_q:
             trades = MergeTrade.objects.filter(models.Q(buyer_nick=search_q)

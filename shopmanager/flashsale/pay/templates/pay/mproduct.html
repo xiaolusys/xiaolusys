@@ -55,13 +55,15 @@
 </div>
 
 <div id="recommend">
-    <div class="img"><img src="{{ STATIC_URL }}images/recommend.png" /><span class="dot">.</span></div>
+    <div class="img"><img src="{{ details.content_imgs.0 }}" /><span class="dot">.</span></div>
     <div class="text">商品详情<span></span></div>
 </div>
 
 <div id="detail">
 	{% for img in details.content_imgs %}
+	{% if not forloop.first %}
     <img src="{{ img }}" />
+    {% endif %}
     {% endfor %}
 </div>
 
