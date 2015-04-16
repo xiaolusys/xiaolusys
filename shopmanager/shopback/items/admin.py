@@ -426,12 +426,12 @@ class ProductAdmin(admin.ModelAdmin):
     #取消商品库存同步（批量）
     def cancel_syncstock_action(self,request,queryset):
          
-        count = queryset.count
+        count = queryset.count()
         for p in queryset:
             p.sync_stock = False
             p.save()
         
-        self.message_user(request,u"已成功取消%s个商品库存同步!"%(count - queryset.count()))
+        self.message_user(request,u"已成功取消%s个商品库存同步!"%count)
         
         return HttpResponseRedirect(request.get_full_path())
         
