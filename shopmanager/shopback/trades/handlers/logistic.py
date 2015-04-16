@@ -18,7 +18,7 @@ class LogisticsHandler(BaseHandler):
                                                LogisticsCompany,
                                                DestCompany)
         if merge_trade.is_force_wlb:
-            return LogisticCompany.objects.get_or_create(
+            return LogisticsCompany.objects.get_or_create(
                                     code=pcfg.WLB_LOGISTIC_CODE)
                     
         state          = merge_trade.receiver_state

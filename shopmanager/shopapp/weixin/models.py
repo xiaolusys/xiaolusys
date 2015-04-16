@@ -1120,17 +1120,15 @@ def convert_referal2score(sender,user_openid,referal_from_openid,*args,**kwargs)
     
     invite_score = 1
     try:
-        wx_user = WeiXinUser.objects.get(openid=user_openid)
-        if not wx_user.referal_from_openid:
-            WeixinScoreItem.objects.create(user_openid=referal_from_openid,
-                                           score=invite_score,
-                                           score_type=WeixinScoreItem.INVITE,
-                                           expired_at=datetime.datetime.now()+datetime.timedelta(days=365),
-                                           memo=u"邀请好友(%s)获得积分。"%(user_openid))
-            
-            wx_user_score,state = WeixinUserScore.objects.get_or_create(user_openid=referal_from_openid)
-            wx_user_score.user_score  = models.F('user_score') + invite_score
-            wx_user_score.save()
+        WeixinScoreItem.objects.create(user_openid=referal_from_openid,
+                                       score=invite_score,
+                                       score_type=WeixinScoreItem.INVITE,
+                                       expired_at=datetime.datetime.now()+datetime.timedelta(days=365),
+                                       memo=u"邀请好友(%s)获得积分。"%(user_openid))
+        
+        wx_user_score,state = WeixinUserScore.objects.get_or_create(user_openid=referal_from_openid)
+        wx_user_score.user_score  = models.F('user_score') + invite_score
+        wx_user_score.save()
         
     except Exception,exc:
         
