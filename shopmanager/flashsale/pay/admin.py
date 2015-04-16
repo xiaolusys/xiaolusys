@@ -117,5 +117,5 @@ class UserAddressAdmin(admin.ModelAdmin):
     
     list_filter = ('grade',)
 
-admin.site.register(District, DistrictAdmin)
+admin.site.register(UserAddress, UserAddressAdmin)
 
