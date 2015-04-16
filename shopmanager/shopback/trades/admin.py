@@ -89,6 +89,16 @@ class MergeTradeChangeList(ChangeList):
                                                |models.Q(out_sid=search_q))
             return trades
         
+        if re.compile('^wx[\d]{20,28}$').match(search_q):
+            
+            try:
+                from shopback.users.models import User as Shop
+                shops = Shop.objects.filter(type=Shop.SHOP_TYPE_WX).exclude(uid='wxmiaosha')
+                if shops.count() > 0:
+                    TradeService.createTrade(shops[0].uid, search_q.replace('wx',''), MergeTrade.WX_TYPE)
+            except:
+                pass
+            
         if search_q:
             trades = MergeTrade.objects.filter(models.Q(buyer_nick=search_q)
                                                |models.Q(tid=search_q)
@@ -930,21 +940,95 @@ class MergeTradeAdmin(admin.ModelAdmin):
 
 admin.site.register(MergeTrade,MergeTradeAdmin)
 
+
+class MergeOrderChangeList(ChangeList):
+     
+    def get_query_set(self,request):
+         
+        from django.core.exceptions import SuspiciousOperation, ImproperlyConfigured
+        from django.contrib.admin.options import IncorrectLookupParameters
+        
+        #如果查询条件中含有邀请码
+        search_q = request.GET.get('q','').strip()
+        if len(search_q.split()) > 1:
+            outer_id,outer_sku_id = search_q.split()
+ 
+            (self.filter_specs, self.has_filters, remaining_lookup_params,
+             use_distinct) = self.get_filters(request)
+    
+            # Then, we let every list filter modify the queryset to its liking.
+            qs = self.root_query_set
+            for filter_spec in self.filter_specs:
+                new_qs = filter_spec.queryset(request, qs)
+                if new_qs is not None:
+                    qs = new_qs
+
+            try:
+                qs = qs.filter(**remaining_lookup_params)
+            except (SuspiciousOperation, ImproperlyConfigured):
+                raise
+            except Exception, e:
+                raise IncorrectLookupParameters(e)
+
+            qs = qs.filter(outer_id=outer_id,outer_sku_id=outer_sku_id)
+            
+            ordering = self.get_ordering(request, qs)
+            qs = qs.order_by(*ordering)
+            
+            return qs
+             
+        if re.compile('^[\w]{1,36}$').match(search_q):
+            try:
+                mts = MergeTrade.objects.filter(tid=search_q)
+                mtids = [m.id for m in mts]
+            except:
+                mtids = []
+                
+            if search_q.isdigit():
+                mtids.append(int(search_q))
+
+            return MergeOrder.objects.filter(models.Q(oid=search_q)
+                                             |models.Q(merge_trade__in=mtids)
+                                             |models.Q(outer_id=search_q))
+        
+        if search_q:
+            return MergeOrder.objects.none()
+         
+        return super(MergeOrderChangeList,self).get_query_set(request)
+
     
 class MergeOrderAdmin(admin.ModelAdmin):
-    list_display = ('id','oid','merge_trade','outer_id','outer_sku_id','sku_properties_name','price','num',
-                    'payment','gift_type','refund_status','status','sys_status')
+    list_display = ('id','oid','merge_trade_link','outer_id','outer_sku_id','sku_properties_name','price','num',
+                    'payment','gift_type','refund_status','trade_status_link','sys_status')
     list_display_links = ('oid','id')
     #list_editable = ('update_time','task_type' ,'is_success','status')
 
     #date_hierarchy = 'created'
     #ordering = ['created_at']
-
-    list_filter = ('sys_status','merge_trade__sys_status','refund_status','out_stock',
-                   'is_rule_match','is_merge','gift_type',('pay_time',DateFieldListFilter))
-    search_fields = ['id','oid','merge_trade__tid','outer_id','outer_sku_id']
+    list_per_page = 50
     
-
+    list_filter = ('sys_status','out_stock','is_rule_match','is_merge','gift_type',('pay_time',DateFieldListFilter))
+    search_fields = ['id','oid','outer_id','outer_sku_id']
+    
+    
+    def merge_trade_link(self, obj):
+        return '%s-%s-%s'%(obj.merge_trade.is_express_print and '[P]' or '[N]',
+                           obj.merge_trade.get_type_display(),
+                           obj.merge_trade)
+        
+    merge_trade_link.allow_tags = True
+    merge_trade_link.short_description = "交易信息" 
+    
+    def trade_status_link(self, obj):
+        return obj.merge_trade.get_sys_status_display()
+        
+    trade_status_link.allow_tags = True
+    trade_status_link.short_description = "交易状态" 
+    
+    def get_changelist(self, request, **kwargs):
+        return MergeOrderChangeList
+    
+    
 admin.site.register(MergeOrder,MergeOrderAdmin)
 
 

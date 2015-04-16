@@ -198,7 +198,7 @@ class User(models.Model):
         userdict['seller_credit'] = json.dumps(userdict['seller_credit'])
         userdict.pop('user_id',None)
         for key, value in userdict.iteritems():
-             hasattr(self, key) and  setattr(self, key, value)
+            hasattr(self, key) and  setattr(self, key, value)
 
         self.top_session = top_session
         top_parameters['ts'] = time.time()
