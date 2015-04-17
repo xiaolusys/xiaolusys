@@ -135,7 +135,7 @@ class AwardShareView(View):
         
         openid = request.COOKIES.get('openid')
         if openid == "" or openid == "None" or openid == None:
-            redirect_url = "https://open.weixin.qq.com/connect/oauth2/authorize?appid=wxc2848fa1e1aa94b5&redirect_uri=http://xiaolu.so/weixin/freesamples/&response_type=code&scope=snsapi_base&state=135#wechat_redirect"
+            redirect_url = "https://open.weixin.qq.com/connect/oauth2/authorize?appid=wxc2848fa1e1aa94b5&redirect_uri=http://weixin.huyi.so/weixin/freesamples/&response_type=code&scope=snsapi_base&state=135#wechat_redirect"
             return redirect(redirect_url)
         
         identical = False
@@ -162,7 +162,7 @@ class AwardShareView(View):
                                           context_instance=RequestContext(request))
             return response
         
-        redirect_url = "https://open.weixin.qq.com/connect/oauth2/authorize?appid=wxc2848fa1e1aa94b5&redirect_uri=http://xiaolu.so/weixin/freesamples/&response_type=code&scope=snsapi_base&state=135#wechat_redirect"
+        redirect_url = "https://open.weixin.qq.com/connect/oauth2/authorize?appid=wxc2848fa1e1aa94b5&redirect_uri=http://weixin.huyi.so/weixin/freesamples/&response_type=code&scope=snsapi_base&state=135#wechat_redirect"
         return redirect(redirect_url)
 
 

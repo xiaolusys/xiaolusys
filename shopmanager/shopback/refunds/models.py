@@ -55,7 +55,7 @@ class Refund(models.Model):
     
     id           = BigIntegerAutoField(primary_key=True,verbose_name='ID')
     refund_id    = models.CharField(max_length=32,
-                                    default=lambda:'HYRF%d'%int(time.time()*10**2),
+                                    default=lambda:'RF%d'%int(time.time()*10**2),
                                     verbose_name='退款单ID')
     tid          = models.CharField(max_length=32,blank=True,verbose_name='交易ID')
 
