@@ -1,5 +1,6 @@
 from django.conf.urls import patterns, include, url
 from django.views.decorators.csrf import csrf_exempt
+from django.views.generic import TemplateView
 
 from .decorators import sale_buyer_required
 from . import views
@@ -18,4 +19,7 @@ urlpatterns = (
     url(r'^orderbuy/$',sale_buyer_required(views.OrderBuyReview.as_view())),
     
     url(r'^login/$', flashsale_login,name="flashsale_login"),
+    
+    url(r'^test/$', TemplateView.as_view(
+        template_name="pay/maddress.html")),
 )
