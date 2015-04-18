@@ -1001,7 +1001,7 @@ class MergeOrderChangeList(ChangeList):
     
 class MergeOrderAdmin(admin.ModelAdmin):
     list_display = ('id','oid','merge_trade_link','outer_id','outer_sku_id','sku_properties_name','price','num',
-                    'payment','gift_type','refund_status','trade_status_link','sys_status')
+                    'payment','gift_type','pay_time','refund_status','trade_status_link','sys_status')
     list_display_links = ('oid','id')
     #list_editable = ('update_time','task_type' ,'is_success','status')
 

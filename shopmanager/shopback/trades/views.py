@@ -170,7 +170,7 @@ class StatisticMergeOrderView(ModelView):
                 .filter(Q(outer_id__startswith="9")|Q(outer_id__startswith="1")|Q(outer_id__startswith="8"))
         
         if p_outer_id:
-            order_qs = order_qs.filter(outer_id=p_outer_id)
+            order_qs = order_qs.filter(outer_id__startswith=p_outer_id)
     
         return order_qs
     
