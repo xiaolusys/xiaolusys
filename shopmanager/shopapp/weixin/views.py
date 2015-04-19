@@ -1046,10 +1046,10 @@ class ResultView(View):
         
         link_click = {'clicker_num':0}
         link_clicks = WeixinLinkClicks.objects.filter(user_openid=user_openid)
-        if link_clicks.count() > 0:
-            link_click = link_clicks[0]
+        for lc in link_clicks:
+            link_click['clicker_num'] += lc.clicker_num
             
-        idx = 0
+        idx  = 0
         sidx = 0
         if sample_order:
             idx = sample_order.pk % len(URLMAP)
