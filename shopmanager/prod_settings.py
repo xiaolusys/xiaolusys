@@ -159,7 +159,7 @@ LOGGING = {
     'loggers': {
         'django.request': {
             'handlers': ['sentry','file'],
-            'level': 'DEBUG',
+            'level': 'INFO',
             'propagate': True,
         },
         'sentry.errors': {

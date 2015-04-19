@@ -358,7 +358,7 @@ class OrderInfoView(View):
         orders = []
         for order in trade.merge_orders.filter(sys_status=pcfg.IN_EFFECT):
             s = order.getImgSimpleNameAndPrice()
-            if order.outer_id in ['10206','10501','10102'] :
+            if order.outer_id in ['10206','10501','10102','0112BK3'] :
                 if trade.status == pcfg.TRADE_FINISHED:
                     specific_order_finished = True
                 has_specific_product = True
