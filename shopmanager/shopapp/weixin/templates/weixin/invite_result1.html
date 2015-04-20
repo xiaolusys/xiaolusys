@@ -18,9 +18,14 @@
   <div class="panel panel-default" style="margin-top:5px">
     <div class="panel-heading" style="color:orange">免费试用 中奖名单</div>
     <div class="panel-body">
-      {% if sample_pass %}<p style="color:red;font-size:18px;">亲,你已获得免费试用资格（红包将不与试用通过用户同时发放），请通知帮助过你的好友来领红包吧！</p>
+      {% if sample_pass %}
+      <p style="color:red;font-size:18px;">亲,你已获得免费试用资格（红包将不与试用通过用户同时发放），请通知帮助过你的好友来领红包吧！</p>
       {% else %}
-      {% if hongbao_pass %}<p style="color:red;font-size:18px;">亲，你还没有领取现金红包，请扫描下方审核结果区域二维码找客服索取！</p>{% endif %}
+      {% if hongbao_pass %}
+      <p style="color:red;font-size:18px;">亲，你还没有领取现金红包，请扫描下方审核结果区域二维码加客服索取！</p>
+      {% elif user_charged %}
+      <p style="color:red;font-size:18px;">亲，您已经领过红包了，小鹿美美精选特卖，每天都会不同！</p>
+      {% endif %}
       {% endif %}
       <p style="color:red;"><font style="font-size:20px;color:red;">3000</font>份卡通凉席免费试用活动已经圆满结束，所有试用通过名单都已公布，恭喜中奖妈妈们！ </p>
       <p>第一批 共735名 ，邀请码 9 次 ，点击 11 次以上  <a href="/weixin/finallist/1/1/1504/">中奖名单&gt;&gt;</a></p>

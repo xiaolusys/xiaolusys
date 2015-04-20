@@ -1033,12 +1033,14 @@ class ResultView(View):
         sample_pass  = False
         hongbao_pass = False
         sample_order = None 
+        user_charged = False
         start_time   = datetime.datetime(2015,3,9)
         sample_orders = SampleOrder.objects.filter(user_openid=user_openid,created__gte=start_time).order_by('-created')#,created__gte=START_TIME)
         if sample_orders.count() > 0:
             sample_order = sample_orders[0]
-            sample_pass = (sample_order.status > 80 and sample_order.status < 100)
+            sample_pass  = (sample_order.status > 80 and sample_order.status < 100)
             hongbao_pass = wx_user.charge_status == WeiXinUser.UNCHARGE
+            user_charged = wx_user.charge_status == WeiXinUser.CHARGED
             
         vip_code = None
         vip_codes = VipCode.objects.filter(owner_openid__openid=user_openid)
@@ -1069,6 +1071,7 @@ class ResultView(View):
                                        'link_click':link_click,
                                        'sample_pass':sample_pass,
                                        'hongbao_pass':hongbao_pass,
+                                       'user_charged':user_charged,
                                        'kefu_url':kefu_url,
                                        'sample_kefu_url':sample_kefu_url},
                                       context_instance=RequestContext(request))
