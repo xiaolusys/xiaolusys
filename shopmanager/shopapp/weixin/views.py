@@ -807,7 +807,7 @@ class FreeSampleView(View):
 
         #if user_openid == 'oMt59uE55lLOV2KS6vYZ_d0dOl5c' or user_openid == 'oMt59uOr8DItI6FvJqmu7j69unZM':
         #    started = True
-
+        started = False
         days = delta.days
         hours = delta.seconds/3600
         minutes = (delta.seconds - hours*3600)/60
@@ -1034,7 +1034,7 @@ class ResultView(View):
         hongbao_pass = False
         sample_order = None 
         start_time   = datetime.datetime(2015,3,9)
-        sample_orders = SampleOrder.objects.filter(user_openid=user_openid,created__gte=start_time)#,created__gte=START_TIME)
+        sample_orders = SampleOrder.objects.filter(user_openid=user_openid,created__gte=start_time).order_by('-created')#,created__gte=START_TIME)
         if sample_orders.count() > 0:
             sample_order = sample_orders[0]
             sample_pass = (sample_order.status > 80 and sample_order.status < 100)

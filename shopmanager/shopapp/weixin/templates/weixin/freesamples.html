@@ -13,10 +13,10 @@
       {% if started %}
       <p>距离活动结束还有<font style="color:red;"><span style="font-size:20px">{{ days }}</span>天<span style="font-size:20px">{{ hours }}</span>小时<span style="font-size:20px">{{ minutes }}</span>分</font>，共有<font style="color:red;font-size:20px">3000份</font>卡通凉席免费领取！</p>
       {% else %}
-      <p>距离活动开始还有<font style="color:red;"><span style="font-size:20px">{{ days }}</span>天<span style="font-size:20px">{{ hours }}</span>小时<span style="font-size:20px">{{ minutes }}</span>分</font>，共有<font style="color:red;font-size:20px">3000份</font>卡通凉席免费领取！</p>
-      <!--<p>3000份卡通凉席赠送活动已经圆满结束，恭喜获得免费试用的妈妈们，下期活动更精彩，美妈们请继续关注哦！</p>-->
+      <!--<p>距离活动开始还有<font style="color:red;"><span style="font-size:20px">{{ days }}</span>天<span style="font-size:20px">{{ hours }}</span>小时<span style="font-size:20px">{{ minutes }}</span>分</font>，共有<font style="color:red;font-size:20px">3000份</font>卡通凉席免费领取！</p>-->
+      <p>3000份卡通凉席赠送活动已经圆满结束，恭喜获得免费试用的妈妈们，下期活动更精彩，美妈们请继续关注哦！</p>
       {% endif %}
-      <p>前五批 共<font style="color:red;font-size:20px">2731</font>位妈妈审核通过  <a href="/weixin/inviteresult/">查看中奖名单&gt;&gt;</a></p>
+      <p>3000件卡通凉席已全部送出 <a href="/weixin/inviteresult/">查看中奖名单&gt;&gt;</a></p>
 
       <!--
       <p>第一批 综合得分 350，点击次数 20 以上  <a href="/weixin/finallist/2/1/1/">中奖名单&gt;&gt;</a></p>
@@ -27,7 +27,7 @@
   </div>
 
   <div class="panel panel-default" style="margin-top:5px">
-  <div class="panel-heading" style="color:red">宝宝卡通凉席 0-6岁</div>
+  <div class="panel-heading" style="color:red">上期活动产品展示</div>
   <div class="panel-body">
     
     <form action="/weixin/sampleapply/" method="post" onsubmit="return check()" class="form-group">{% csrf_token %}
@@ -54,39 +54,45 @@
  	</div>
       </div>
     
+
       <div class="row" style="margin-top:10px">
 	<div class="col-xs-2"></div>	  
 	<div class="col-xs-8" style="text-align:center">
+	  {% if started %}
 	  {% if order_number < 600 %}
 	  <p>今日<font style="color:red; font-size:20px">{{ order_number }}</font>人已申请</p>
 	  {% else %}
 	  <p>今日超过<font style="color:red; font-size:20px">600</font>人已申请</p>
 	  {% endif %}
-          <p style="margin-top:16px">VIP邀请码：
-	    {% if wx_user.referal_from_openid and self_vipcode %}
-	    <input class="form-control" type="text" id="id_vipcode" name="fcode" value="{{ self_vipcode }}" readonly="readonly" />
-	    {% else %}
-	    <input class="form-control" type="text" id="id_vipcode" name="fcode" value="{{ fcode }}"/>
-	    {% endif %}
+	  {% endif %}
+      <p style="margin-top:16px">VIP邀请码：
+      {% if wx_user.referal_from_openid and self_vipcode %}
+      <input class="form-control" type="text" id="id_vipcode" name="fcode" value="{{ self_vipcode }}" readonly="readonly" />
+      {% else %}
+      <input class="form-control" type="text" id="id_vipcode" name="fcode" value="{{ fcode }}"/>
+      {% endif %}
 	  </p>
 	</div>
 	<div class="col-xs-2"></div>
       </div>
+
       
       <div class="row" style="text-align:center">
 	<p id="id_msg" style="text-align:center;color:red"></p>
 	<div class="col-xs-12" style="text-align:center; margin-top:16px">
+	{% if started %}
 	{% if order_exist %}
 	<p>亲，您的申请已经提交。</p>
 	<p><a href="/wx/sampleads/{{ wx_user.pk }}/">分享您的VIP邀请码页面>></a></p>
     {% else %}
-		{% if started %}
-	  <input type="submit" class="btn btn-warning" value="提交试用申请"/>
-        {% else %} 
-	  <button type="button" class="btn btn-warning" disabled="disabled">申请待开放...</button>
-	  <p style="color:red;margin-top:10px">请提前关注【优尼世界】，申请待开放！</p>
-        {% endif %}
+	<input type="submit" class="btn btn-warning" value="提交试用申请"/>
 	{% endif %}
+    {% else %} 
+	  <!--<button type="button" class="btn btn-warning" disabled="disabled">申请待开放...</button>
+	  <p style="color:red;margin-top:10px">请提前关注【优尼世界】，申请待开放！</p>-->
+	  <p style="color:red;margin-top:10px">卡通凉席免费试用活动已结束，谢谢美妈们的参与，后期活动更精彩！</p>
+    {% endif %}
+	
 	</div>
       </div>
     </form>
