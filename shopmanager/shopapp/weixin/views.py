@@ -1030,10 +1030,11 @@ class ResultView(View):
             
         wx_user,state = WeiXinUser.objects.get_or_create(openid=user_openid)
         
-        sample_pass = False
+        sample_pass  = False
         hongbao_pass = False
         sample_order = None 
-        sample_orders = SampleOrder.objects.filter(user_openid=user_openid,created__gte=START_TIME)
+        start_time   = datetime.datetime(2015,3,9)
+        sample_orders = SampleOrder.objects.filter(user_openid=user_openid,created__gte=start_time)#,created__gte=START_TIME)
         if sample_orders.count() > 0:
             sample_order = sample_orders[0]
             sample_pass = (sample_order.status > 80 and sample_order.status < 100)
@@ -1085,9 +1086,13 @@ class FinalListView(View):
         
         mobile = ''.join([user.mobile[0:3], "****", user.mobile[7:11]])
         vipcode = user.vipcodes.all()[0]
+        
         link_clicks = WeixinLinkClicks.objects.filter(user_openid=user.openid)
-        if link_clicks.count() > 0:
-            clicker_num = link_clicks[0].clicker_num
+        clicker_num = 0
+        for lc in link_clicks:
+            clicker_num += lc.clicker_num
+        
+        if clicker_num > 0:
             total_socre = vipcode.usage_count * 10 + clicker_num
             return (mobile,vipcode.usage_count,total_socre,clicker_num)
         
