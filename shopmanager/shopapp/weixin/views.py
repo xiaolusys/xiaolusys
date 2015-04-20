@@ -807,7 +807,7 @@ class FreeSampleView(View):
 
         #if user_openid == 'oMt59uE55lLOV2KS6vYZ_d0dOl5c' or user_openid == 'oMt59uOr8DItI6FvJqmu7j69unZM':
         #    started = True
-
+        started = False
         days = delta.days
         hours = delta.seconds/3600
         minutes = (delta.seconds - hours*3600)/60
