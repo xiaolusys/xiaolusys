@@ -34,7 +34,7 @@ class RegularSaleHandler(BaseHandler):
         if merge_trade.sys_status == pcfg.ON_THE_FLY_STATUS:
             return 
         
-        remind_time = datetime.datetime.now() + datetime.timedelta(days=3)
+        remind_time = datetime.datetime.now() + datetime.timedelta(days=settings.REGULAR_DAYS)
         merge_trade.sys_status = pcfg.REGULAR_REMAIN_STATUS
         
         merge_trade.remind_time = remind_time
