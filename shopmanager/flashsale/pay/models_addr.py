@@ -31,6 +31,8 @@ class District(models.Model):
         
         return '%s,%s'%(self.id,self.name)
     
+    
+from .managers import UserAddressManager
 
 class UserAddress(models.Model):
     
@@ -40,7 +42,7 @@ class UserAddress(models.Model):
     STATUS_CHOICES = ((NORMAL,u'正常'),
                       (DELETE,u'删除'))
     
-    cus_uid          =  models.BigIntegerField(verbose_name=u'客户ID')
+    cus_uid          =  models.BigIntegerField(db_index=True,verbose_name=u'客户ID')
     
     receiver_name    =  models.CharField(max_length=25,
                                          blank=True,verbose_name=u'收货人姓名')
@@ -55,8 +57,14 @@ class UserAddress(models.Model):
     
     default         = models.BooleanField(default=False,verbose_name=u'默认地址')
     
-    status          = models.CharField(max_length=8,blank=True,db_index=True,
+    status          = models.CharField(max_length=8,blank=True,db_index=True,default=NORMAL,
                                        choices=STATUS_CHOICES,verbose_name=u'状态')
+    
+    created     = models.DateTimeField(auto_now_add=True,verbose_name=u'创建日期')
+    modified   = models.DateTimeField(auto_now=True,verbose_name=u'修改日期')
+    
+    objects     = models.Manager()
+    normal_objects = UserAddressManager()
     
     class Meta:
         db_table = 'flashsale_address' 

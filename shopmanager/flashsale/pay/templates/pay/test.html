@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- 上述3个meta标签*必须*放在最前面，任何其他内容都*必须*跟随其后！ -->
+    <title>Bootstrap 101 Template</title>
+
+    <!-- Bootstrap -->
+    <link href="http://cdn.bootcss.com/bootstrap/3.3.4/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+      <script src="http://cdn.bootcss.com/html5shiv/3.7.2/html5shiv.min.js"></script>
+      <script src="http://cdn.bootcss.com/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+  </head>
+  <body>
+    <h1>你好，世界！</h1>
+  <form class="form-horizontal">
+  <div class="form-group">
+    <label for="inputReceiverName" class="col-xs-offset-1 col-xs-3 control-label">收货人</label>
+    <div class="col-xs-7">
+      <input type="text" name="receiver_name" class="form-control" id="inputReceiverName" >
+    </div>
+  </div>
+  <div class="form-group">
+    <label for="inputReceiverMobile" class="col-xs-offset-1 col-xs-3 control-label">手机号码</label>
+    <div class="col-xs-7">
+      <input type="text" name="receiver_mobile" class="form-control" id="inputReceiverMobile" >
+    </div>
+  </div>
+  <div class="form-group">
+    <label for="inputReceiverState" class="col-xs-offset-1 col-xs-3 control-label">省份</label>
+    <div class="col-xs-7">
+      <select name="receiver_state" class="form-control" id="inputReceiverState" >
+      </select>
+    </div>
+  </div>
+  <div class="form-group">
+    <label for="inputReceiverCity" class="col-xs-offset-1 col-xs-3 control-label">城市</label>
+    <div class="col-xs-7">
+      <select name="receiver_city" class="form-control" id="inputReceiverCity" >
+      </select>
+    </div>
+  </div>
+  <div class="form-group">
+    <label for="inputReceiverDistrict" class="col-xs-offset-1 col-xs-3 control-label">地区</label>
+    <div class="col-xs-7">
+      <select type="text" name="receiver_district" class="form-control" id="inputReceiverDistrict" >
+      </select>
+    </div>
+  </div>
+  <div class="form-group">
+    <label for="inputReceiverAddress" class="col-xs-offset-1 col-xs-3 control-label">详细地址</label>
+    <div class="col-xs-7">
+      <textarea class="form-control" name="receiver_address" id="inputReceiverAddress" row="2"></textarea>
+    </div>
+  </div>
+  <div class="form-group">
+    <label for="inputReceiverZipCode" class="col-xs-offset-1 col-xs-3 control-label">邮政编码</label>
+    <div class="col-xs-7">
+      <input type="text" name="receiver_zipcode" class="form-control" id="inputReceiverZipCode">
+    </div>
+  </div>
+  <div class="form-group">
+    <div class="col-xs-offset-4 col-xs-8">
+      <div class="checkbox">
+        <label>
+          <input name="default" type="checkbox"> 设为默认地址
+        </label>
+      </div>
+    </div>
+  </div>
+  <div class="form-group">
+    <div class="col-xs-offset-1 col-xs-10">
+      <button type="submit" class="btn btn-default" style="width:100%;">确定</button>
+    </div>
+  </div>
+</form>
+    <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
+    <script src="http://cdn.bootcss.com/jquery/1.11.2/jquery.min.js"></script>
+    <!-- Include all compiled plugins (below), or include individual files as needed -->
+    <script src="http://cdn.bootcss.com/bootstrap/3.3.4/js/bootstrap.min.js"></script>
+  </body>
+</html>
