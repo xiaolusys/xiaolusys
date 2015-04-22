@@ -1,0 +1,50 @@
+{% extends "mama_base.html" %}
+
+{% block title %} 我的账户 {% endblock %}
+
+{% block head_script %}
+<link href='{{ STATIC_URL }}jquery/jquery-ui-1.10.1.css' rel='stylesheet'  />	
+<style type="text/css" title="currentStyle">
+	@import "{{ STATIC_URL }}jquery-datatable-addon/css/demo_page.css";
+	@import "{{ STATIC_URL }}jquery-datatable-addon/css/demo_table.css";
+</style>  
+<style type="text/css" >
+    tfoot input{
+    	width:50%;
+    }
+</style>
+{% endblock %}
+
+
+{% block container %}
+
+
+<h3>今日数据统计</h3>
+
+<div style="margin-top:20px">
+  <ul class="list-group">
+    <li class="list-group-item">手机号: {{ mobile }}</li>
+    <li class="list-group-item">微客服: {{ weikefu }}</li>
+    <li class="list-group-item">抢购链接： <b>http://xiaolu.so/m/{{ pk }}/</b></li>
+    <li class="list-group-item">点击人数: {{ click_num }}</li>
+    <li class="list-group-item">订单人数: {{ order_num }}</li>
+  </ul>
+
+
+  <h3>今日订单详情</h3>
+  <table id="state_table" class="table table-bordered">
+    <thead>
+      <th>昵称</th><th>金额</th><th>时间</th><th>状态</th>
+    </thead>
+    <tbody>
+      {% for order in order_list %}
+      <tr><td>{{ order.nick }}</td><td>{{ order.price }}</td><td>{{ order.time }}</td><td>{{ order.status }}</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+
+</div>
+
+{% endblock %}
+
