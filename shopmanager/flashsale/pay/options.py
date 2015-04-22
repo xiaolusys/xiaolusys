@@ -81,7 +81,7 @@ def getAddressByUserOrID(customer,id=None):
         return None
     
     address_set = UserAddress.normal_objects.filter(cus_uid=customer.id)
-    if address_set.filter(default=True)>0:
+    if address_set.filter(default=True).count() > 0:
         return address_set.filter(default=True)[0]
     elif address_set.count() > 0:
         return address_set[0]
