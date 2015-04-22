@@ -449,7 +449,7 @@ class ProductAdmin(admin.ModelAdmin):
         effect_num = 0
         for t in merge_trades:
             if (t.status == pcfg.WAIT_SELLER_SEND_GOODS
-                and not t.out_sid):
+                and not t.out_sid and t.prod_num == 1):
                 t.sys_status="REGULAR_REMAIN"
                 t.remind_time=remind_time
                 t.save()
