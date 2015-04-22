@@ -14,6 +14,9 @@ from shopapp.weixin.service import WeixinUserService
 
 from models import Clicks, XiaoluMama
 
+import logging
+
+logger = logging.getLogger('django.request')
 
 
 import datetime
@@ -45,7 +48,7 @@ class MamaStatsView(View):
         openid = get_user_openid(request, code)
 
         if not valid_openid(openid):
-            redirect_url = "https://open.weixin.qq.com/connect/oauth2/authorize?appid=wxc2848fa1e1aa94b5&redirect_uri=http://xiaolu.so/m/&response_type=code&scope=snsapi_base&state=135#wechat_redirect"
+            redirect_url = "https://open.weixin.qq.com/connect/oauth2/authorize?appid=wxc2848fa1e1aa94b5&redirect_uri=http://weixin.huyi.so/m/&response_type=code&scope=snsapi_base&state=135#wechat_redirect"
             return redirect(redirect_url)
 
         service = WeixinUserService(openid)
@@ -73,9 +76,10 @@ class MamaStatsView(View):
                 if orders.count() > 0:
                     order_num += 1
                 for order in orders:
-                    status = WXORDER_STATUS[order.order_status]
+                    status = WXORDER_STATUS[int(order.order_status)]
+                    time = str(order.order_create_time)[11:16]
                     order_info = {"nick":order.buyer_nick, "price":order.order_total_price*0.01,
-                                  "time":order.order_create_time, "status":status}
+                                  "time":time, "status":status}
                     order_list.append(order_info)
 
             click_num = len(openid_list)

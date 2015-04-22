@@ -34,11 +34,11 @@
   <h3>今日订单详情</h3>
   <table id="state_table" class="table table-bordered">
     <thead>
-      <th>客户昵称</th><th>订单金额</th><th>创建时间</th><th>订单状态</th>
+      <th>昵称</th><th>金额</th><th>时间</th><th>状态</th>
     </thead>
     <tbody>
       {% for order in order_list %}
-      <tr><td>{{ nick }}</td><td>{{ price }}</td><td>{{ time }}</td><td>{{ status }}</td></tr>
+      <tr><td>{{ order.nick }}</td><td>{{ order.price }}</td><td>{{ order.time }}</td><td>{{ order.status }}</td></tr>
       {% endfor %}
     </tbody>
   </table>
