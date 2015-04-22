@@ -63,7 +63,8 @@ TRADE_HANDLERS_PATH = (
    'shopback.trades.handlers.RegularSaleHandler',
    'shopback.trades.handlers.FinalHandler',
 )
-
+#sale order regular days
+REGULAR_DAYS = 5
 
 #################### TAOBAO SETTINGS ###################
 #APPKEY = '21532915'   #app name super ERP test ,younixiaoxiao
@@ -158,7 +159,7 @@ LOGGING = {
     },
     'loggers': {
         'django.request': {
-            'handlers': ['sentry','file'],
+            'handlers': ['sentry'],
             'level': 'INFO',
             'propagate': True,
         },

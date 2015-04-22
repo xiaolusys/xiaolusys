@@ -1,0 +1,121 @@
+{% extends "pay/base_addr.html" %}
+
+{% block title %}小鹿美美-新增地址{% endblock %}
+
+{% block style %}
+<style style="text/css">
+  *{margin:0px;padding:0px;}
+  .wrap { background:#b81b22; }
+  .wrap a{font-size:16px;color:white;padding:10px 10px;margin-top:10px;display: inline-block;}
+  .well {margin-bottom:0px;padding:10px; }
+  .opt-link {margin-top:5px;font-size:30px;}
+  .opt-link .del-link{display:none;color:red;}
+  .bold {font-weight:bold;}
+  .clear {clear:both;}
+</style>
+{% endblock %}
+
+
+{% block preload_script %}
+<script src="http://ajax.aspnetcdn.com/ajax/jquery.mobile/1.4.5/jquery.mobile-1.4.5.min.js"></script>
+{% endblock %}
+
+
+{% block container %}
+
+<nav class="navbar navbar-default navbar-fixed-top">
+	<div class="row wrap" >
+	<div class="col-xs-8" >
+	  <a href="{% if origin_url %}{{ origin_url }}{% else %}#{% endif %}" class="glyphicon glyphicon-menu-left" target="_self">返回</a>
+	</div>
+	<div class="col-xs-4" >
+	  <a id="address_plus_link" href="javascript:void(0);" class="add" >添加</a>
+	</div>
+    </div>
+</nav>
+
+<div class="container-fluid" style="margin-top:50px;">
+<div id="address_plus_module" class="row" style="display:none;">
+<!--此处加载添加地址表单-->
+</div>
+{% csrf_token %}
+<div id="address_list">
+{% for addr in results %}
+<div id="addrid-{{ addr.id }}" addrid="{{ addr.id }}" class="well row" >
+	<a class="well-link" href="{% if origin_url %}{{ origin_url }}&addrid={{ addr.id }}{% else %}#{% endif %}" target="_self">
+    <div id="addrwell-{{ addr.id }}" class=" col-xs-offset-1 col-xs-9 pd">
+    <div><font class="bold">{{ addr.receiver_name }}</font>&nbsp;&nbsp;&nbsp;{{ addr.receiver_state }}&nbsp;{{ addr.receiver_city }}&nbsp;{{ addr.receiver_district }}</div>
+	<div>{{ addr.receiver_address }}</div>
+	</div>
+	</a>
+	<div id="optlink-{{ addr.id }}" class="opt-link ">
+		<div class="col-xs-1 glyphicon {% if origin_addrid  %}{% if origin_addrid == addr.id %}glyphicon-heart{% endif %}{% else %}{% if addr.default %}glyphicon-heart{% endif %}{% endif %}"></div>
+		<div id="dellink-{{ addr.id }}" addrid="{{ addr.id }}" class="col-xs-1 glyphicon glyphicon-remove del-link"></div>
+	</div>
+	
+</div>
+{% endfor %}
+</div>
+
+</div>
+{% endblock %}
+
+{% block delayed_script %}
+<script type="text/javascript">
+$(function(){
+	$('.ui-loader').remove();
+	
+	$('#address_plus_link').click(function(event){
+		console.log('init ready');
+		if ($(this).hasClass('cancel')){
+			$('#address_plus_module').slideUp(1000);
+			$(this).removeClass('cancel').addClass('add').html('添加');
+			return 
+		}
+		
+		$(this).addClass('cancel').removeClass('add').html('取消');
+		var callback = function(resp){
+			$('#address_plus_module').html(resp).slideDown(1000);
+			
+		};
+	
+		$.get('/mm/addr/?format=html',callback);
+	});
+	
+	$('.del-link').on("click",function(event){
+		
+		var addrId = $(this).attr('addrid');
+		var csrf_token = document.getElementsByName("csrfmiddlewaretoken")[0].value;
+		var params =  { "pk":addrId, 
+						"status":"delete", 
+						"csrfmiddlewaretoken":csrf_token, 
+						"format":"json" };
+
+		var callback = function(resp){
+			if (resp.success == true){
+				console.log(resp,resp.success);
+				$('#addrid-'+addrId).slideUp(500);
+			}
+		};
+		console.log(params);
+		$.post('/mm/addr/',params,callback,'json');
+	});
+	
+	$(".well").bind("swipeleft", function(event) {
+		var addrid = $(this).attr('addrid');
+		$('#addrwell-'+addrid).removeClass('col-xs-offset-1');
+        $('#dellink-'+addrid).show();
+
+    }); 
+    
+    $(".well").bind("swiperight", function(event) {
+	    var addrid = $(this).attr('addrid');
+		$('#addrwell-'+addrid).addClass('col-xs-offset-1');
+        $('#dellink-'+addrid).hide();
+    }); 
+	
+});
+
+
+</script>
+{% endblock %}

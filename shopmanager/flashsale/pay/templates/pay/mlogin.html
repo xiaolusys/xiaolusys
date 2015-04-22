@@ -14,7 +14,7 @@
     <div class="row wrap" >
       <h2>
 	    <div class="col-xs-offset-1 col-xs-1">
-          <a href="http://m.xiaolu.so/" class="glyphicon glyphicon-home"></a>
+          <a href="{% url sale_home %}" class="glyphicon glyphicon-home"></a>
         </div>
         <div class="col-xs-9" style="text-align:center;">
           <span>{{ title }}</span>
@@ -23,7 +23,7 @@
     </div>
     <div class="row" style="text-align:center;font-size:18px;margin:0 5px;padding:10px 10px;color:#b3b3b3;"><p>如您已注册会员，请直接登录</p></div>
     <div class="row" >
-      <form class="form-horizontal" action="/mm/login/" method="post">
+      <form class="form-horizontal" action="{% url flashsale_login %}" method="post">
       {% csrf_token %}
 	  <div class="form-group">
 	    <div class="col-xs-offset-1 col-xs-10">

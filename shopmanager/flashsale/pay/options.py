@@ -40,3 +40,50 @@ def getOrCreateSaleSeller():
     seller.save()
     
     return seller
+
+from django.forms import model_to_dict
+from .models_addr import District
+
+def getDistrictTree(province=None):
+
+    dc_json = []
+    fdist = District.objects.filter(grade=District.FIRST_STAGE)
+    if province:
+        fdist = fdist.filter(name=province)
+        
+    for fd in fdist:
+        sdist = District.objects.filter(parent_id=fd.id)
+        fd_json = model_to_dict(fd)
+        fd_json['childs'] = []
+        
+        for sd in sdist:
+            sd_json = model_to_dict(sd)
+            sd_json['childs'] = []
+            tdist = District.objects.filter(parent_id=sd.id)
+            
+            for td in tdist:
+                sd_json['childs'].append(model_to_dict(td))
+                
+            fd_json['childs'].append(sd_json)
+        
+        dc_json.append(fd_json)
+        
+    return dc_json
+
+from .models_addr import UserAddress
+
+def getAddressByUserOrID(customer,id=None):
+    
+    if id:
+        address_set = UserAddress.normal_objects.filter(cus_uid=customer.id,id=id)
+        if address_set.count() > 0:
+            return address_set[0]
+        return None
+    
+    address_set = UserAddress.normal_objects.filter(cus_uid=customer.id)
+    if address_set.filter(default=True).count() > 0:
+        return address_set.filter(default=True)[0]
+    elif address_set.count() > 0:
+        return address_set[0]
+    else:
+        return None
