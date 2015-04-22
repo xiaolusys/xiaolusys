@@ -17,6 +17,22 @@ from models import Clicks, XiaoluMama
 
 import datetime
 
+
+WX_WAIT_PAY  = 1
+WX_WAIT_SEND = 2
+WX_WAIT_CONFIRM = 3
+WX_FINISHED  = 5
+WX_CLOSE     = 6
+WX_FEEDBACK  = 8
+    
+WXORDER_STATUS = {
+    WX_WAIT_PAY:u'待付款',         
+    WX_WAIT_SEND:u'待发货',
+    WX_WAIT_CONFIRM:u'待确认收货',
+    WX_FINISHED:u'已完成',
+    WX_CLOSE:u'已关闭',
+    WX_FEEDBACK:u'维权中'}
+
 SHOPURL = "http://mp.weixin.qq.com/bizmall/mallshelf?id=&t=mall/list&biz=MzA5NTI1NjYyNg==&shelf_id=2&showwxpaytitle=1#wechat_redirect"
 
 class MamaStatsView(View):
@@ -28,7 +44,7 @@ class MamaStatsView(View):
         openid = get_user_openid(request, code)
 
         if not valid_openid(openid):
-            redirect_url = "https://open.weixin.qq.com/connect/oauth2/authorize?appid=wxc2848fa1e1aa94b5&redirect_uri=http://weixin.huyi.so/m/&response_type=code&scope=snsapi_base&state=135#wechat_redirect"
+            redirect_url = "https://open.weixin.qq.com/connect/oauth2/authorize?appid=wxc2848fa1e1aa94b5&redirect_uri=http://xiaolu.so/m/&response_type=code&scope=snsapi_base&state=135#wechat_redirect"
             return redirect(redirect_url)
 
         service = WeixinUserService(openid)
@@ -43,7 +59,7 @@ class MamaStatsView(View):
         data = {}
         try:
             xlmm = XiaoluMama.objects.get(mobile=mobile)
-            clicks = Clicks.objects.filter(linkid=xlmm.pk)
+            clicks = Clicks.objects.filter(linkid=xlmm.pk,created__gt=time_from,created__lt=time_to)
             openid_list = clicks.values("openid").distinct()
             
             order_num = 0
@@ -56,7 +72,10 @@ class MamaStatsView(View):
                 if orders.count() > 0:
                     order_num += 1
                 for order in orders:
-                    order_list.append(order)
+                    status = WXORDER_STATUS[order.order_status]
+                    order_info = {"nick":order.buyer_nick, "price":order.order_total_price*0.01,
+                                  "time":order.order_create_time, "status":status}
+                    order_list.append(order_info)
 
             click_num = len(openid_list)
             weikefu = xlmm.weikefu

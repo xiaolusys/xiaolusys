@@ -18,6 +18,7 @@
 
 {% block container %}
 
+
 <h3>今日数据统计</h3>
 
 <div style="margin-top:20px">
@@ -37,7 +38,7 @@
     </thead>
     <tbody>
       {% for order in order_list %}
-      <tr><td>{{ order.buyer_nick }}</td><td>{{ order.order_total_price }}</td><td>{{ order.order_create_time }}</td><td>{{ order.order_status }}</td></tr>
+      <tr><td>{{ nick }}</td><td>{{ price }}</td><td>{{ time }}</td><td>{{ status }}</td></tr>
       {% endfor %}
     </tbody>
   </table>
