@@ -25,9 +25,24 @@
   <ul class="list-group">
     <li class="list-group-item">手机号: {{ mobile }}</li>
     <li class="list-group-item">微客服: {{ weikefu }}</li>
+    {% if agencylevel.pk > 1 %}
+    {% if agencylevel.cash > 0 %}
+    <li class="list-group-item"><p style="color:orange">账户现金: ￥<span style="font-size:26px">{{ agencylevel.cash }}</span>（<a href="">详情</a>）<button class="btn btn-warning" style="float:right;">提现</button></p></li>
+    {% else %}
+    <li class="list-group-item"><p style="color:orange">账户现金: {{ agencylevel.cash }}</p></li>
+    {% endif %}
+    {% endif %}
     <li class="list-group-item">抢购链接： <b>http://xiaolu.so/m/{{ pk }}/</b></li>
     <li class="list-group-item">点击人数: {{ click_num }}</li>
     <li class="list-group-item">订单人数: {{ order_num }}</li>
+    <li class="list-group-item"><span style="color:orange">订单金额: ￥{{ total_value }}</span></li>
+    {% if agencylevel.pk > 1 %}
+    {% if carry > 0 %}
+    <li class="list-group-item"><span style="color:orange">可得补贴: ￥{{ carry }}（待确认）</span></li>
+    {% else %}
+    <li class="list-group-item"><span style="color:orange">可得补贴: {{ carry }}</span></li>
+    {% endif %}
+    {% endif %}
   </ul>
 
 

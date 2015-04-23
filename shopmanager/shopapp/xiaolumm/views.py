@@ -12,7 +12,7 @@ from shopapp.weixin.views import get_user_openid,valid_openid
 from shopapp.weixin.models import WXOrder
 from shopapp.weixin.service import WeixinUserService
 
-from models import Clicks, XiaoluMama
+from models import Clicks, XiaoluMama, AgencyLevel
 
 import logging
 
@@ -59,7 +59,7 @@ class MamaStatsView(View):
         time_to = datetime.datetime(today.year, today.month, today.day, 23, 59, 59)
         
         mobile = wx_user.mobile
-
+        
         data = {}
         try:
             xlmm = XiaoluMama.objects.get(mobile=mobile)
@@ -67,6 +67,7 @@ class MamaStatsView(View):
             openid_list = clicks.values("openid").distinct()
             
             order_num = 0
+            total_value = 0
             order_list = []
             for item in openid_list:
                 orders = WXOrder.objects.filter(buyer_openid=item["openid"],
@@ -76,18 +77,24 @@ class MamaStatsView(View):
                 if orders.count() > 0:
                     order_num += 1
                 for order in orders:
+                    total_value += order.order_total_price*0.01
                     status = WXORDER_STATUS[int(order.order_status)]
                     time = str(order.order_create_time)[11:16]
-                    order_info = {"nick":order.buyer_nick, "price":order.order_total_price*0.01,
+                    order_info = {"nick":"*"+order.buyer_nick[1:], "price":order.order_total_price*0.01,
                                   "time":time, "status":status}
                     order_list.append(order_info)
 
+            order_list.sort(key=lambda a: a["time"])
             click_num = len(openid_list)
             weikefu = xlmm.weikefu
             mobile_revised = "%s****%s" % (mobile[:3], mobile[-4:])
 
+            agencylevel = AgencyLevel.objects.get(pk=xlmm.agencylevel)
+            carry = agencylevel.basic_rate * total_value * 0.01
+
             data = {"mobile":mobile_revised, "click_num":click_num, "weikefu":weikefu,
-                    "order_num":order_num, "order_list":order_list, "pk":xlmm.pk}
+                    "order_num":order_num, "order_list":order_list, "pk":xlmm.pk,
+                    "total_value":total_value, "carry":carry, "agencylevel":agencylevel}
 
             return render_to_response("mama_stats.html", data, context_instance=RequestContext(request))
         except:

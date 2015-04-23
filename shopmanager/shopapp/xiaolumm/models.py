@@ -25,7 +25,7 @@ class XiaoluMama(models.Model):
     cash = models.IntegerField(default=0,verbose_name=u"现金")
     pending = models.IntegerField(default=0,verbose_name=u"佣金")
 
-    agencylevel = models.IntegerField(default=0,verbose_name=u"类别")
+    agencylevel = models.IntegerField(default=1,verbose_name=u"类别")
 
     created = models.DateTimeField(auto_now_add=True,verbose_name=u'创建时间')
     status  = models.CharField(max_length=16,blank=True,choices=STATUS_CHOICES,default=EFFECT,verbose_name=u'状态')
