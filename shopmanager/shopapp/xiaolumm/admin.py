@@ -1,7 +1,7 @@
 from django.contrib import admin
 
 
-from .models import Clicks,XiaoluMama,AgencyLevel,CashOut
+from .models import Clicks,XiaoluMama,AgencyLevel,CashOut,CarryLog
 
 
 class XiaoluMamaAdmin(admin.ModelAdmin):
@@ -28,9 +28,16 @@ admin.site.register(Clicks, ClicksAdmin)
 
 
 class CashOutAdmin(admin.ModelAdmin):
-    list_display = ('mobile','value','status','created')
+    list_display = ('xlmm','value','status','created')
     list_filter  = ('status',)
-    search_fields = ['mobile']
+    search_fields = ['xlmm']
     
 admin.site.register(CashOut, CashOutAdmin) 
 
+
+class CarryLogAdmin(admin.ModelAdmin):
+    list_display = ('xlmm', 'buyer_nick', 'value', 'status', 'created')
+    list_filter = ('status',)
+    search_fields = ['xlmm', 'buyer_nick']
+
+admin.site.register(CarryLog, CarryLogAdmin)

@@ -73,7 +73,7 @@ class CashOut(models.Model):
         (COMPLETED,u'完成'),
     )
     
-    mobile = models.CharField(max_length=11,db_index=True,unique=True,blank=False,verbose_name=u"手机")
+    xlmm = models.IntegerField(default=0,db_index=True,verbose_name=u"妈妈编号")
     value = models.IntegerField(default=0,verbose_name=u"金额")
     status = models.CharField(max_length=16,blank=True,choices=STATUS_CHOICES,default=PENDING,verbose_name=u'状态')
     created = models.DateTimeField(auto_now_add=True,verbose_name=u'创建时间')
@@ -83,4 +83,26 @@ class CashOut(models.Model):
         verbose_name=u'提现记录'
         verbose_name_plural = u'提现记录列表'
 
+
+class CarryLog(models.Model):
+    PENDING = 'pending'
+    CONFIRMED = 'confirmed'
+    CANCELED = 'canceled'
+    STATUS_CHOICES = (
+        (PENDING,u'待确认'),
+        (CONFIRMED,u'确定'),
+        (CANCELED,u'已退款'),
+    )
+
+    xlmm = models.IntegerField(default=0,db_index=True,verbose_name=u"妈妈编号")
+    order_num = models.IntegerField(default=0,db_index=True,verbose_name=u"订单编号")
+    buyer_nick = models.CharField(max_length=32,blank=True,verbose_name=u'买家昵称')
+    value = models.IntegerField(default=0,verbose_name=u"金额")
+    status = models.CharField(max_length=16,blank=True,choices=STATUS_CHOICES,default=PENDING,verbose_name=u'状态')
+    created = models.DateTimeField(auto_now_add=True,verbose_name=u'创建时间')
+    
+    class Meta:
+        db_table = 'xiaolumm_carrylog'
+        verbose_name=u'补贴记录'
+        verbose_name_plural = u'补贴记录列表'
 
