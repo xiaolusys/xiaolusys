@@ -121,6 +121,7 @@ class MamaStatsView(View):
         return response
 
 
+
 class StatsView(View):
     
     def getUserName(self,uid):
@@ -130,12 +131,28 @@ class StatsView(View):
             return 'none'
         
     def get(self,request):
-        
+        content = request.REQUEST
+
+        daystr = content.get("day", None)
         today = datetime.date.today()
-        time_from = datetime.datetime(today.year, today.month, today.day)
-        time_to = datetime.datetime(today.year, today.month, today.day, 23, 59, 59)
+        year,month,day = today.year,today.month,today.day
+
+        target_date = today
+        if daystr:
+            year,month,day = daystr.split('-')
+            target_date = datetime.date(int(year),int(month),int(day))
+            if target_date > today:
+                target_date = today
+
+        time_from = datetime.datetime(target_date.year, target_date.month, target_date.day)
+        time_to = datetime.datetime(target_date.year, target_date.month, target_date.day, 23, 59, 59)
+
+        prev_day = target_date - datetime.timedelta(days=1)
+        next_day = None
+        if target_date < today:
+            next_day = target_date + datetime.timedelta(days=1)
                 
-        pk = request.REQUEST.get('pk')
+        pk = content.get('pk','6')
         mama_list = XiaoluMama.objects.filter(manager=pk)
         
         mama_managers = XiaoluMama.objects.values('manager').distinct()
@@ -164,10 +181,12 @@ class StatsView(View):
             data_entry = {"mobile":mobile[-4:], "weikefu":weikefu, 
                           "agencylevel":agencylevel,'username':username,
                           "click_num":click_num, "user_num":len(openid_list),
-                           "order_num":order_num} 
+                          "order_num":order_num}
             data.append(data_entry)
             
-        return render_to_response("stats.html", {'pk':int(pk),"data":data,"managers":managers}, 
+        return render_to_response("stats.html", 
+                                  {'pk':int(pk),"data":data,"managers":managers,"prev_day":prev_day,
+                                   "target_date":target_date, "next_day":next_day}, 
                                   context_instance=RequestContext(request))
 
 
