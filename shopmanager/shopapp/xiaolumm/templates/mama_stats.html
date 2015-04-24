@@ -19,7 +19,21 @@
 {% block container %}
 
 
-<h3>今日数据统计</h3>
+<h3>数据统计</h3>
+
+<div class="row">
+  <div class="col-xs-4">
+    <a href="/m/?day={{ prev_day }}"><< 前一天</a>
+  </div>
+  <div class="col-xs-4">
+    <p>{{ target_date }}</p>
+  </div>
+  <div class="col-xs-4">
+    {% if next_day %}
+    <a href="/m/?day={{ next_day }}">后一天 >></a>
+    {% endif %}
+  </div>
+</div>
 
 <div style="margin-top:20px">
   <ul class="list-group">
@@ -46,7 +60,7 @@
   </ul>
 
 
-  <h3>今日订单详情</h3>
+  <h3>订单详情</h3>
   <table id="state_table" class="table table-bordered">
     <thead>
       <th>昵称</th><th>金额</th><th>时间</th><th>状态</th>

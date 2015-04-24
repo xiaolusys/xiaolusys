@@ -51,12 +51,29 @@ class MamaStatsView(View):
             redirect_url = "https://open.weixin.qq.com/connect/oauth2/authorize?appid=wxc2848fa1e1aa94b5&redirect_uri=http://weixin.huyi.so/m/&response_type=code&scope=snsapi_base&state=135#wechat_redirect"
             return redirect(redirect_url)
 
+
+        
         service = WeixinUserService(openid)
         wx_user = service._wx_user
-        
+
+        daystr = content.get("day", None)
         today = datetime.date.today()
-        time_from = datetime.datetime(today.year, today.month, today.day)
-        time_to = datetime.datetime(today.year, today.month, today.day, 23, 59, 59)
+        year,month,day = today.year,today.month,today.day
+
+        target_date = today
+        if daystr:
+            year,month,day = daystr.split('-')
+            target_date = datetime.date(int(year),int(month),int(day))
+            if target_date > today:
+                target_date = today
+            
+        time_from = datetime.datetime(target_date.year, target_date.month, target_date.day)
+        time_to = datetime.datetime(target_date.year, target_date.month, target_date.day, 23, 59, 59)
+
+        prev_day = target_date - datetime.timedelta(days=1)
+        next_day = None
+        if target_date < today:
+            next_day = target_date + datetime.timedelta(days=1)
         
         mobile = wx_user.mobile
         
@@ -94,12 +111,15 @@ class MamaStatsView(View):
 
             data = {"mobile":mobile_revised, "click_num":click_num, "weikefu":weikefu,
                     "order_num":order_num, "order_list":order_list, "pk":xlmm.pk,
-                    "total_value":total_value, "carry":carry, "agencylevel":agencylevel}
-
-            return render_to_response("mama_stats.html", data, context_instance=RequestContext(request))
+                    "total_value":total_value, "carry":carry, "agencylevel":agencylevel,
+                    "target_date":target_date, "prev_day":prev_day, "next_day":next_day}
         except:
-            return render_to_response("mama_stats.html", data, context_instance=RequestContext(request))
+            pass 
         
+        response = render_to_response("mama_stats.html", data, context_instance=RequestContext(request))
+        response.set_cookie("openid",openid)
+        return response
+
 
 class StatsView(View):
     
