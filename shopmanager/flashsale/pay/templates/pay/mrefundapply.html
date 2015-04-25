@@ -6,13 +6,7 @@
 <link rel="stylesheet" href="{{ STATIC_URL }}style/main.css">
 <link rel="stylesheet" href="{{ STATIC_URL }}style/profile.css">
 <style typ="text/css">
-.tab-content .control-label{
-	padding-left:10px;
-	padding-right:0px;
-}
-.tab-content .col-xs-9{
-	padding-left:0px;
-}
+
 </style>
 {% endblock %}
 
@@ -78,70 +72,59 @@
   
   <!-- Nav tabs -->
   <ul class="nav nav-tabs" role="tablist">
-    <li role="presentation" class="li-half active" ><a href="#refund" aria-controls="home" role="tab" data-toggle="tab" ><div class="">我要退款</div></a></li>
-    <li role="presentation" class="li-half"><a href="#refund-good" aria-controls="profile" role="tab" data-toggle="tab" ><div class="">我要退货</div></a></li>
+    <li role="presentation" class="li-half active" ><a href="#refund" aria-controls="home" role="tab" data-toggle="tab" >我要退款</a></li>
+    <li role="presentation" class="li-half"><a href="#refund-good" aria-controls="profile" role="tab" data-toggle="tab" >我要退货</a></li>
   </ul>
   
   <!-- Tab panes -->
   <div class="tab-content">
     <div role="tabpanel" class="tab-pane active" id="refund">
     <div class="tab-form">
-    	<form id="refund-form" class="form-horizontal" action="{% url refund_apply %}" method="POST">
+    	<form id="refund-form" action="{% url refund_apply %}" method="POST">
     	 {% csrf_token %}
     	 <input type="hidden" name="trade_id" value="{{ order.sale_trade }}" >
     	  <input type="hidden" name="order_id" value="{{ order.id }}" >
     	  <div class="form-group form-group-sm">
-		    <label for="inputNum32" class="col-xs-3 col-lg-1 control-label">是否收货：</label>
-		    <div class="col-xs-9 col-lg-11">
-		      <select id="selectReason31" name="good_receive" required="required" class="form-control">
-		      	<option value="">提示：亲，退货退款请选择我要退货哦</option>
-				<option value="Y">是</option>
-				<option value="N">否</option>
-			  </select>
-		    </div>
+		    <label for="inputNum32" class="control-label">是否收货：</label>
+		    <select id="selectReason31" name="good_receive" required="required" class="form-control">
+		      <option value="">提示：亲，退货退款请选择我要退货哦</option>
+			  <option value="Y">是</option>
+			  <option value="N">否</option>
+			</select>
 		  </div>
 		  <div class="form-group form-group-sm">
-		    <label for="selectReason31" class="col-xs-3 col-lg-1 control-label">退款原因：</label>
-		    <div class="col-xs-9 col-lg-11">
-		      <select id="selectReason31" name="reason" required="required" class="form-control">
-				  <option value="">请选择退款理由</option>
-				  <option value="2">2</option>
-				  <option value="3">3</option>
-				  <option value="4">4</option>
-				  <option value="5">5</option>
-			  </select>
-		    </div>
+		    <label for="selectReason31" class="control-label">退款原因：</label>
+		    <select id="selectReason31" name="reason" required="required" class="form-control">
+			  <option value="">请选择退款理由</option>
+			  <option value="2">2</option>
+			  <option value="3">3</option>
+			  <option value="4">4</option>
+			  <option value="5">5</option>
+			</select>
 		  </div>
 		  <div class="form-group form-group-sm">
-		    <label for="inputRefund31" class="col-xs-3 col-lg-1 control-label">退款金额：</label>
-		    <div class="col-xs-9 col-lg-11">
-		      <input type="number" name="refund_fee" max="{{ order.payment }}" min="0" step = "any" required = "required" class="form-control " id="inputRefund31" value="0">
-		    </div>
+		    <label for="inputRefund31" class="control-label">退款金额：</label>
+		    <input type="number" name="refund_fee" max="{{ order.payment }}" min="0" step = "any" required = "required" class="form-control " id="inputRefund31" value="0">
 		  </div>
 		  <div class="form-group ">
-		    <label for="textDesc31" class="col-xs-3 col-lg-1 control-label">补充描述：</label>
-		    <div class="col-xs-9 col-lg-11">
-		      <textarea id="textDesc31" name="desc" class="form-control" rows="3" placeholder="补充详细描述能帮助售后快速处理你的退款退货申请"></textarea>
-		    </div>
+		    <label for="textDesc31" class="control-label">补充描述：</label>
+		    <textarea id="textDesc31" name="desc" class="form-control" rows="3" placeholder="补充详细描述能帮助售后快速处理你的退款退货申请"></textarea>
 		  </div>
 		  <div class="form-group form-group-sm">
-		    <div class="col-xs-12">
-		      <button type="submit" class="btn btn-default btn-rowfull" >提交退款申请</button>
-		    </div>
+		    <button type="submit" class="btn btn-default btn-rowfull" >提交退款申请</button>
 		  </div>
 		</form>
 	</div>
     </div>
     <div role="tabpanel" class="tab-pane" id="refund-good">
     <div class="tab-form">
-    	<form id="return-form" class="form-horizontal" action="{% url refund_apply %}" method="POST">
+    	<form id="return-form" action="{% url refund_apply %}" method="POST">
     	  {% csrf_token %}
     	  <input type="hidden" name="return_good" value="1" >
     	  <input type="hidden" name="trade_id" value="{{ order.sale_trade }}" >
     	  <input type="hidden" name="order_id" value="{{ order.id }}" >
 		  <div class="form-group form-group-sm">
-		    <label for="selectReason32" class="col-xs-3 col-lg-1 control-label">退货原因：</label>
-		    <div class="col-xs-9 col-lg-11">
+		    <label for="selectReason32" class="control-label">退货原因：</label>
 		      <select id="selectReason32" name="reason" required = "required" class="form-control">
 		      	  <option value="">提示：亲，请确保商品包装完好再退货</option>
 				  <option value="1">1</option>
@@ -150,42 +133,29 @@
 				  <option value="4">4</option>
 				  <option value="5">5</option>
 			  </select>
-		    </div>
 		  </div>
 		  <div class="form-group form-group-sm">
-		    <label for="inputNum32" class="col-xs-3 col-lg-1 control-label">退货数量：</label>
-		    <div class="col-xs-9 col-lg-11">
-		      <input type="number" name="refund_num" max="{{ order.num }}" min="1"  required = "required" class="form-control " id="inputNum32" value="{{ order.num }}" {% if order.num == 1 %}readonly{% endif %}>
-		    </div>
+		    <label for="inputNum32" class="control-label">退货数量：</label>
+		    <input type="number" name="refund_num" max="{{ order.num }}" min="1"  required = "required" class="form-control " id="inputNum32" value="{{ order.num }}" {% if order.num == 1 %}readonly{% endif %}>
 		  </div>
 		  <div class="form-group form-group-sm">
-		    <label for="inputRefund32" class="col-xs-3 col-lg-1 control-label">退款金额：</label>
-		    <div class="col-xs-9 col-lg-11">
-		      <input type="number" name="refund_fee" max="{{ order.payment }}" min="0" step = "any" required = "required" class="form-control " id="inputRefund32" value="{{ order.payment }}">
-		    </div>
+		    <label for="inputRefund32" class="control-label">退款金额：</label>
+		    <input type="number" name="refund_fee" max="{{ order.payment }}" min="0" step = "any" required = "required" class="form-control " id="inputRefund32" value="{{ order.payment }}">
 		  </div>
 		  <div class="form-group form-group-sm">
-		    <label for="inputCompany32" class="col-xs-3 col-lg-1 control-label">退货快递：</label>
-		    <div class="col-xs-9 col-lg-11">
-		      <input type="text" name="company_name" maxlength="20" required = "required" class="form-control " id="inputCompany32" placeholder="请输入退货快递...">
-		    </div>
+		    <label for="inputCompany32" class="control-label">退货快递：</label>
+		    <input type="text" name="company_name" maxlength="20" required = "required" class="form-control " id="inputCompany32" placeholder="请输入退货快递...">
 		  </div>
 		  <div class="form-group form-group-sm">
-		    <label for="inputSid32" class="col-xs-3 col-lg-1 control-label">退回单号：</label>
-		    <div class="col-xs-9 col-lg-11">
-		      <input type="text" name="sid" maxlength="20" pattern="[A-z0-9]{8,20}" required = "required" class="form-control " id="inputSid32" placeholder="请输入退货快递单号...">
-		    </div>
+		    <label for="inputSid32" class="control-label">退回单号：</label>
+		    <input type="text" name="sid" maxlength="20" pattern="[A-z0-9]{8,20}" required = "required" class="form-control " id="inputSid32" placeholder="请输入退货快递单号...">
 		  </div>
 		  <div class="form-group ">
-		    <label for="textDesc32" class="col-xs-3 col-lg-1 control-label">补充描述：</label>
-		    <div class="col-xs-9 col-lg-11">
-		      <textarea name="desc" class="form-control" rows="3" cols="200" id="textDesc32" placeholder="补充详细描述能帮助售后快速处理你的退款退货申请"></textarea>
-		    </div>
+		    <label for="textDesc32" class="control-label">补充描述：</label>
+		    <textarea name="desc" class="form-control" rows="3" cols="200" id="textDesc32" placeholder="补充详细描述能帮助售后快速处理你的退款退货申请"></textarea>
 		  </div>
 		  <div class="form-group form-group-sm">
-		    <div class="col-xs-12">
 		      <button type="submit" class="btn btn-default btn-rowfull">提交退货申请</button>
-		    </div>
 		  </div>
 		</form>
 	</div>

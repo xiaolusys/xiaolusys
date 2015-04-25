@@ -63,6 +63,7 @@
   </nav>
 <script>
   var from_top = 75;
+  var pre_val  = 0;
   var page_height = 1000;
   
   $(document).ready(function(){
@@ -87,12 +88,12 @@
         $('#tab_nav').removeClass('blocked');
       }
 
-      if ((from_top > page_height && from_top - page_height> h)|| h < $(window).height()){
+      if ((h - pre_val) < 0 || h < $(window).height()){
       	$('#main-nav').show();
       }else{
       	$('#main-nav').hide();
       }
-      
+      pre_val = h;
     });
 
     //若采用页面内筛选的形式,则可以用以下绑定来完成筛选
@@ -128,7 +129,7 @@
       $.each(data.results,function(index,entry){
         View_list_wrapper_write(entry);
       });
-      console.log('next:',data.next);
+   
       if( data.next != ''||data.next != 'undifine' ){
       	$('#no_more').attr('next',data.next).html('努力加载中...');
       };
