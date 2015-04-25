@@ -12,7 +12,7 @@
 }
 .nav-top {background-color:#770077;}
 .nav-top span{font-size:20px;}
-.nav-top p{font-size:10px;}
+.nav-top p{font-size:16px;}
 .nav-top a {color:white;}
 .nav-pills>li+li{
 	margin-left:0px;
@@ -35,12 +35,17 @@
 	border-bottom: #e0e0e0 1px solid;
 }
 
+.prop-list li{
+	border:1px solid #ccc;
+	border-width: 0px 0px 1px;
+}
+
 .nav-item div{
 	text-align:left;
 }
 
 .nav-item {
-	padding:12px;
+	padding:8px 10px;
 }
 
 .list-row { 
@@ -88,26 +93,26 @@
 </ul>
 </div>
 
-<div role="navigation">
-<ul class="nav nav-pills  ">
+<div class="row" role="navigation">
+<ul class="nav nav-pills prop-list ">
   <li role="presentation" class="col-xs-12 padding-lf5">
-  	<a href="{% url address_list %}"><div class="nav-item " >
-  	<div class="row"><div class="col-xs-10" >地址管理</div><div class="col-xs-2 glyphicon glyphicon-chevron-right pull-right"></div></div></div>
+  	<a href="{% url address_list %}">
+  	<div class="row nav-item"><div class="col-xs-10" >地址管理</div><div class="col-xs-2 glyphicon glyphicon-chevron-right pull-right"></div></div>
   	</a>
   </li>
    <li role="presentation" class="col-xs-12 padding-lf5">
   	<a href="#">
-  	<div class="row"><div class="nav-item "><div class="col-xs-10">优惠券/礼品卡</div><div class="col-xs-2 glyphicon glyphicon-chevron-right pull-right"></div></div></div>
+  	<div class="row nav-item"><div class="col-xs-10">优惠券/礼品卡</div><div class="col-xs-2 glyphicon glyphicon-chevron-right pull-right"></div></div>
   	</a>
   </li>
    <li role="presentation" class="col-xs-12 padding-lf5">
   	<a href="#">
-  	<div class="row"><div class="nav-item "><div class="col-xs-10">钱包管理</div><div class="col-xs-2 glyphicon glyphicon-chevron-right pull-right"></div></div></div>
+  	<div class="row nav-item"><div class="col-xs-10">钱包管理</div><div class="col-xs-2 glyphicon glyphicon-chevron-right pull-right"></div></div>
   	</a>
   </li>
    <li role="presentation" class="col-xs-12 padding-lf5">
   	<a href="#">
-  	<div class="row"><div class="nav-item "><div class="col-xs-10">积分兑换</div><div class="col-xs-2 glyphicon glyphicon-chevron-right pull-right"></div></div></div>
+  	<div class="row nav-item"><div class="col-xs-10">积分兑换</div><div class="col-xs-2 glyphicon glyphicon-chevron-right pull-right"></div></div>
   	</a>
   </li>
 </ul>

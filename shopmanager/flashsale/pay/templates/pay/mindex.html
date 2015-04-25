@@ -56,8 +56,8 @@
   <nav id="main-nav" class="navbar navbar-default navbar-fixed-bottom">
   <div class="container">
 	  <ul class="nav nav-pills nav-justified">
-		  <li role="presentation" ><a href="{% url sale_home %}" class="col-xs-6" target="_self">今日上新</a></li>
-		  <li role="presentation" ><a href="{% url user_profile %}" class="col-xs-6" target="_self">个人中心</a></li>
+		  <li role="presentation" ><a href="{% url sale_home %}" class="col-xs-6 btn" target="_self">今日上新</a></li>
+		  <li role="presentation" ><a href="{% url user_profile %}" class="col-xs-6 btn" target="_self">个人中心</a></li>
 	  </ul>
   </div>
   </nav>
@@ -78,20 +78,18 @@
       var h = $('body').scrollTop();
 
       if ( h >= from_top){
-        $('#tab_nav').addClass('blocked');
         if (!$('#no_more').hasClass('loading')){
         	Ctrl_list_write();
         	from_top += page_height;
         } 
       }
-      else{
-        $('#tab_nav').removeClass('blocked');
-      }
 
-      if ((h - pre_val) < 0 || h < $(window).height()){
+      if ((h - pre_val) < 0 || h < $(window).height()/2){
       	$('#main-nav').show();
+      	$('#tab_nav').removeClass('blocked');
       }else{
       	$('#main-nav').hide();
+      	$('#tab_nav').addClass('blocked');
       }
       pre_val = h;
     });

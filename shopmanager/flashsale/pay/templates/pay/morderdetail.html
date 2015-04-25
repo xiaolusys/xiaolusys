@@ -3,9 +3,8 @@
 {% block title %}小鹿美美-我的订单{% endblock %}
 
 {% block style %}
+<link rel="stylesheet" href="{{ STATIC_URL }}style/profile.css">
 <style typ="text/css">
-
-
 .panel-first-child{
 	margin-top:60px;
 }
@@ -13,10 +12,11 @@
 .list-panel {
 	margin-right: -15px;
 	margin-left: -15px;
+	font-size:14px;
 }
 
 .list-row { 
-	padding:10px;
+	padding:10px ;
 	margin-right: -10px;
 	margin-left: -10px;
 }
@@ -77,21 +77,22 @@
 {% endblock %}
 
 {% block container %}
-<div class="container-fluid">
 
-<nav class="navbar navbar-default navbar-fixed-top">
-	<div class="row" >
+
+<nav class="navbar navbar-default navbar-fixed-top row">
+	<div class="col-xs-2" >
+	  <a href="{% if origin_url %}{{ origin_url }}{% else %}javascript:history.back();{% endif %}" class="glyphicon glyphicon-menu-left" target="_self"></a>
+	</div>
 	<div class="col-xs-8" >
-	  <a href="{% if origin_url %}{{ origin_url }}{% else %}#{% endif %}" class="glyphicon glyphicon-menu-left" target="_self">返回</a>
+	  <span class="h3">订单详情</span>
 	</div>
-	<div class="col-xs-4" >
-	  <a id="address_plus_link" href="javascript:void(0);" class="add" >订单详情</a>
+	<div class="col-xs-2" >
+	  <a id="address_plus_link" href="{% url sale_home %}" class="glyphicon glyphicon-home" ></a>
 	</div>
-    </div>
 </nav>
 
-
-<div class="list-panel panel-default panel-first-child">
+<div class="container-fluid">
+<div class="list-panel panel-default">
   <div class="panel-heading">商品信息</div>
   <div class="panel-body">
 	{% for order in sale_orders %}
@@ -134,7 +135,7 @@
     </a>
 	</div>
 	{% endfor %}
-	<div class="row list-row font10">
+	<div class="row list-row ">
 	<div class="col-xs-12 padding-lf0"><span class="pull-left h6">实付款：</span><span class=" pull-right text-danger"><em>￥</em>{{ payment }}</span></div>
 	<div class="col-xs-12 padding-lf0"><span class="pull-left h6">数量：</span><span class="pull-right text-danger">{{ order_num }}</span></div>
 	</div>
@@ -145,19 +146,19 @@
 </div>
 
 
-<div class="list-panel panel-default">
+<div class="list-panel panel-default ">
   <div class="panel-heading">订单信息</div>
-  <div class="panel-body font10">
+  <div class="panel-body ">
 	<div class="row list-row list-row-border">
-		<div class="col-xs-3 padding-lf5">订单编号：</div>
+		<div class="col-xs-3 padding-lf0">订单编号：</div>
 		<div class="col-xs-9 padding-lf5">{{ tid }}</div>
 	</div>
 	<div class="row list-row list-row-border">
-		<div class="col-xs-3 padding-lf5">下单时间：</div>
+		<div class="col-xs-3 padding-lf0">下单时间：</div>
 		<div class="col-xs-9 padding-lf5">{{ created }}</div>
 	</div>
 	<div class="row list-row list-row-border">
-		<div class="col-xs-3 padding-lf5">付款时间：</div>
+		<div class="col-xs-3 padding-lf0">付款时间：</div>
 		<div class="col-xs-9 padding-lf5">{{ created }}</div>
 	</div>
   </div>
@@ -165,17 +166,17 @@
 
 <div class="list-panel panel-default">
   <div class="panel-heading">收货信息</div>
-  <div class="panel-body font10">
-   <div class="row list-row list-row-border">
-		<div class="col-xs-3 padding-lf5">收货人：</div>
+  <div class="panel-body ">
+   <div class="row list-row list-row-border ">
+		<div class="col-xs-3 padding-lf0">收货人：</div>
 		<div class="col-xs-9 padding-lf5">{{ receiver_name }}</div>
 	</div>
 	<div class="row list-row list-row-border">
-		<div class="col-xs-3 padding-lf5">手机号码：</div>
+		<div class="col-xs-3 padding-lf0">手机号码：</div>
 		<div class="col-xs-9 padding-lf5">{{ receiver_mobile }}</div>
 	</div>
 	<div class="row list-row list-row-border">
-		<div class="col-xs-3 padding-lf5">收货地址：</div>
+		<div class="col-xs-3 padding-lf0">收货地址：</div>
 		<div class="col-xs-9 padding-lf5">{{ receiver_state }}{{ receiver_city }}{{ receiver_district }}{{ receiver_address }}</div>
 	</div>
   </div>

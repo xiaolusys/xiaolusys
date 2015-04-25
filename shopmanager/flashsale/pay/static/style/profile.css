@@ -3,6 +3,14 @@
   background-color: #000000;
 }
 
+.navbar-fixed-top{
+	text-align:center;
+	font-size:25px;
+}
+.navbar-fixed-top div{
+	padding:10px 0px;
+}
+
 .panel-first-child{
 	margin-top:60px;
 }
@@ -94,3 +102,4 @@
 	padding-left:5px;
 	font-size:12px;
 }
+

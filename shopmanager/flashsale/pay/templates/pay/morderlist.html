@@ -3,6 +3,7 @@
 {% block title %}小鹿美美-我的订单{% endblock %}
 
 {% block style %}
+<link rel="stylesheet" href="{{ STATIC_URL }}style/profile.css">
 <style typ="text/css">
 
 body{
@@ -50,10 +51,18 @@ body{
 
 .order-item-detail {
 	padding:10px;
-	font-size:12px;
+	font-size:14px;
 }
+.order-item-detail a{
+	color:#555;
+}
+
 .origin-price{
 	text-decoration:line-through;
+}
+
+.clear-lp{
+	padding-left:0px;
 }
 </style>
 
@@ -67,15 +76,16 @@ body{
 {% block container %}
 <div class="container-fluid">
 
-<nav class="navbar navbar-default navbar-fixed-top">
-	<div class="row" >
+<nav class="navbar navbar-default navbar-fixed-top row">
+	<div class="col-xs-2" >
+	  <a href="{% if origin_url %}{{ origin_url }}{% else %}javascript:history.back();{% endif %}" class="glyphicon glyphicon-menu-left" target="_self"></a>
+	</div>
 	<div class="col-xs-8" >
-	  <a href="{% if origin_url %}{{ origin_url }}{% else %}#{% endif %}" class="glyphicon glyphicon-menu-left" target="_self">返回</a>
+	  <span class="h3">订单列表</span>
 	</div>
-	<div class="col-xs-4" >
-	  <a id="address_plus_link" href="javascript:void(0);" class="add" >待支付订单</a>
+	<div class="col-xs-2" >
+	  <a id="address_plus_link" href="{% url sale_home %}" class="glyphicon glyphicon-home" ></a>
 	</div>
-    </div>
 </nav>
 
 <div class="order-list">
@@ -90,11 +100,12 @@ body{
     <div class="col-xs-2 thumbnail">
     	<img src="{{ trade.order_pic }}" data-original="{{ trade.order_pic }}" >
     </div>
-    <div class="col-xs-10">
+    <div class="col-xs-9">
        <div class="clearfix block"><span class="title">{{ trade.order_title }}</span></div>
        <div class="clearfix block">数量：<span>{{ trade.order_num }}</span></div>
        <div class="clearfix block">订单状态：<span>{{ trade.status_name }}</span></div>
     </div>
+    <div class="col-xs-1 glyphicon glyphicon-chevron-right clear-lp"></div>
     </a>
   </div>
   <div class="pay-now row row-bg-line-bottom">

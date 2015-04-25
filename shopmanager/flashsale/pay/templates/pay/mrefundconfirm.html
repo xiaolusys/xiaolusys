@@ -17,15 +17,16 @@
 
 {% block container %}
 <div class="container-fluid">
-<nav class="navbar navbar-default navbar-fixed-top">
-	<div class="row" >
+<nav class="navbar navbar-default navbar-fixed-top row">
+	<div class="col-xs-2" >
+	  <a href="{% if origin_url %}{{ origin_url }}{% else %}javascript:history.back();{% endif %}" class="glyphicon glyphicon-menu-left" target="_self"></a>
+	</div>
 	<div class="col-xs-8" >
-	  <a href="{% if origin_url %}{{ origin_url }}{% else %}#{% endif %}" class="glyphicon glyphicon-menu-left" target="_self">返回</a>
+	  <span class="h3">售后订单状态</span>
 	</div>
-	<div class="col-xs-4" >
-	  <a id="address_plus_link" href="javascript:void(0);" class="add" >申请售后</a>
+	<div class="col-xs-2" >
+	  <a id="address_plus_link" href="{% url sale_home %}" class="glyphicon glyphicon-home" ></a>
 	</div>
-    </div>
 </nav>
 
 <div class="list-panel panel-default panel-first-child">
@@ -82,7 +83,7 @@
 			<tr><td >补充描述：</td><td >{{ refund.desc }}</td></tr>
 		</table>
 		
-		<p><a href="javascript:history.back();" class="btn btn-default btn-rowfull">返回订单详情</a></p>
+		<p><a href="{% url user_orderdetail pk=order.sale_trade %}" class="btn btn-default btn-rowfull">返回订单详情</a></p>
 	  </div>
 	</div>
   </div>
