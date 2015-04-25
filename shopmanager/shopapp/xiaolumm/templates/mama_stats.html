@@ -19,19 +19,48 @@
 {% block container %}
 
 
-<h3>今日数据统计</h3>
+<h3>数据统计</h3>
+
+<div class="row">
+  <div class="col-xs-4">
+    <a href="/m/?day={{ prev_day }}"><< 前一天</a>
+  </div>
+  <div class="col-xs-4">
+    <p>{{ target_date }}</p>
+  </div>
+  <div class="col-xs-4">
+    {% if next_day %}
+    <a href="/m/?day={{ next_day }}">后一天 >></a>
+    {% endif %}
+  </div>
+</div>
 
 <div style="margin-top:20px">
   <ul class="list-group">
     <li class="list-group-item">手机号: {{ mobile }}</li>
     <li class="list-group-item">微客服: {{ weikefu }}</li>
+    {% if agencylevel.pk > 1 %}
+    {% if agencylevel.cash > 0 %}
+    <li class="list-group-item"><p style="color:orange">账户现金: ￥<span style="font-size:26px">{{ agencylevel.cash }}</span>（<a href="">详情</a>）<button class="btn btn-warning" style="float:right;">提现</button></p></li>
+    {% else %}
+    <li class="list-group-item"><p style="color:orange">账户现金: {{ agencylevel.cash }}</p></li>
+    {% endif %}
+    {% endif %}
     <li class="list-group-item">抢购链接： <b>http://xiaolu.so/m/{{ pk }}/</b></li>
     <li class="list-group-item">点击人数: {{ click_num }}</li>
     <li class="list-group-item">订单人数: {{ order_num }}</li>
+    <li class="list-group-item"><span style="color:orange">订单金额: ￥{{ total_value }}</span></li>
+    {% if agencylevel.pk > 1 %}
+    {% if carry > 0 %}
+    <li class="list-group-item"><span style="color:orange">可得补贴: ￥{{ carry }}（待确认）</span></li>
+    {% else %}
+    <li class="list-group-item"><span style="color:orange">可得补贴: {{ carry }}</span></li>
+    {% endif %}
+    {% endif %}
   </ul>
 
 
-  <h3>今日订单详情</h3>
+  <h3>订单详情</h3>
   <table id="state_table" class="table table-bordered">
     <thead>
       <th>昵称</th><th>金额</th><th>时间</th><th>状态</th>

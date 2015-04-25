@@ -12,7 +12,7 @@ from shopapp.weixin.views import get_user_openid,valid_openid
 from shopapp.weixin.models import WXOrder
 from shopapp.weixin.service import WeixinUserService
 
-from models import Clicks, XiaoluMama
+from models import Clicks, XiaoluMama, AgencyLevel
 
 import logging
 
@@ -51,15 +51,32 @@ class MamaStatsView(View):
             redirect_url = "https://open.weixin.qq.com/connect/oauth2/authorize?appid=wxc2848fa1e1aa94b5&redirect_uri=http://weixin.huyi.so/m/&response_type=code&scope=snsapi_base&state=135#wechat_redirect"
             return redirect(redirect_url)
 
+
+        
         service = WeixinUserService(openid)
         wx_user = service._wx_user
-        
+
+        daystr = content.get("day", None)
         today = datetime.date.today()
-        time_from = datetime.datetime(today.year, today.month, today.day)
-        time_to = datetime.datetime(today.year, today.month, today.day, 23, 59, 59)
+        year,month,day = today.year,today.month,today.day
+
+        target_date = today
+        if daystr:
+            year,month,day = daystr.split('-')
+            target_date = datetime.date(int(year),int(month),int(day))
+            if target_date > today:
+                target_date = today
+            
+        time_from = datetime.datetime(target_date.year, target_date.month, target_date.day)
+        time_to = datetime.datetime(target_date.year, target_date.month, target_date.day, 23, 59, 59)
+
+        prev_day = target_date - datetime.timedelta(days=1)
+        next_day = None
+        if target_date < today:
+            next_day = target_date + datetime.timedelta(days=1)
         
         mobile = wx_user.mobile
-
+        
         data = {}
         try:
             xlmm = XiaoluMama.objects.get(mobile=mobile)
@@ -67,6 +84,7 @@ class MamaStatsView(View):
             openid_list = clicks.values("openid").distinct()
             
             order_num = 0
+            total_value = 0
             order_list = []
             for item in openid_list:
                 orders = WXOrder.objects.filter(buyer_openid=item["openid"],
@@ -76,23 +94,33 @@ class MamaStatsView(View):
                 if orders.count() > 0:
                     order_num += 1
                 for order in orders:
+                    total_value += order.order_total_price*0.01
                     status = WXORDER_STATUS[int(order.order_status)]
                     time = str(order.order_create_time)[11:16]
-                    order_info = {"nick":order.buyer_nick, "price":order.order_total_price*0.01,
+                    order_info = {"nick":"*"+order.buyer_nick[1:], "price":order.order_total_price*0.01,
                                   "time":time, "status":status}
                     order_list.append(order_info)
 
+            order_list.sort(key=lambda a: a["time"])
             click_num = len(openid_list)
             weikefu = xlmm.weikefu
             mobile_revised = "%s****%s" % (mobile[:3], mobile[-4:])
 
-            data = {"mobile":mobile_revised, "click_num":click_num, "weikefu":weikefu,
-                    "order_num":order_num, "order_list":order_list, "pk":xlmm.pk}
+            agencylevel = AgencyLevel.objects.get(pk=xlmm.agencylevel)
+            carry = agencylevel.basic_rate * total_value * 0.01
 
-            return render_to_response("mama_stats.html", data, context_instance=RequestContext(request))
+            data = {"mobile":mobile_revised, "click_num":click_num, "weikefu":weikefu,
+                    "order_num":order_num, "order_list":order_list, "pk":xlmm.pk,
+                    "total_value":total_value, "carry":carry, "agencylevel":agencylevel,
+                    "target_date":target_date, "prev_day":prev_day, "next_day":next_day}
         except:
-            return render_to_response("mama_stats.html", data, context_instance=RequestContext(request))
+            pass 
         
+        response = render_to_response("mama_stats.html", data, context_instance=RequestContext(request))
+        response.set_cookie("openid",openid)
+        return response
+
+
 
 class StatsView(View):
     
@@ -103,12 +131,28 @@ class StatsView(View):
             return 'none'
         
     def get(self,request):
-        
+        content = request.REQUEST
+
+        daystr = content.get("day", None)
         today = datetime.date.today()
-        time_from = datetime.datetime(today.year, today.month, today.day)
-        time_to = datetime.datetime(today.year, today.month, today.day, 23, 59, 59)
+        year,month,day = today.year,today.month,today.day
+
+        target_date = today
+        if daystr:
+            year,month,day = daystr.split('-')
+            target_date = datetime.date(int(year),int(month),int(day))
+            if target_date > today:
+                target_date = today
+
+        time_from = datetime.datetime(target_date.year, target_date.month, target_date.day)
+        time_to = datetime.datetime(target_date.year, target_date.month, target_date.day, 23, 59, 59)
+
+        prev_day = target_date - datetime.timedelta(days=1)
+        next_day = None
+        if target_date < today:
+            next_day = target_date + datetime.timedelta(days=1)
                 
-        pk = request.REQUEST.get('pk')
+        pk = content.get('pk','6')
         mama_list = XiaoluMama.objects.filter(manager=pk)
         
         mama_managers = XiaoluMama.objects.values('manager').distinct()
@@ -137,10 +181,12 @@ class StatsView(View):
             data_entry = {"mobile":mobile[-4:], "weikefu":weikefu, 
                           "agencylevel":agencylevel,'username':username,
                           "click_num":click_num, "user_num":len(openid_list),
-                           "order_num":order_num} 
+                          "order_num":order_num}
             data.append(data_entry)
             
-        return render_to_response("stats.html", {'pk':int(pk),"data":data,"managers":managers}, 
+        return render_to_response("stats.html", 
+                                  {'pk':int(pk),"data":data,"managers":managers,"prev_day":prev_day,
+                                   "target_date":target_date, "next_day":next_day}, 
                                   context_instance=RequestContext(request))
 
 
