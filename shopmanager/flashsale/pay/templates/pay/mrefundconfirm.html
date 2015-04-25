@@ -1,0 +1,103 @@
+{% extends "pay/base_profile.html" %}
+
+{% block title %}小鹿美美-个人中心{% endblock %}
+
+{% block style %}
+<link rel="stylesheet" href="{{ STATIC_URL }}style/main.css">
+<link rel="stylesheet" href="{{ STATIC_URL }}style/profile.css">
+
+{% endblock %}
+
+
+{% block preload_script %}
+
+
+{% endblock %}
+
+
+{% block container %}
+<div class="container-fluid">
+<nav class="navbar navbar-default navbar-fixed-top">
+	<div class="row" >
+	<div class="col-xs-8" >
+	  <a href="{% if origin_url %}{{ origin_url }}{% else %}#{% endif %}" class="glyphicon glyphicon-menu-left" target="_self">返回</a>
+	</div>
+	<div class="col-xs-4" >
+	  <a id="address_plus_link" href="javascript:void(0);" class="add" >申请售后</a>
+	</div>
+    </div>
+</nav>
+
+<div class="list-panel panel-default panel-first-child">
+  <div class="panel-heading">申请售后商品信息</div>
+  <div class="panel-body">
+	<div class="row list-row list-row-border">
+	<div class="col-xs-2  thumbnail ">
+    <img src="{{ order.pic_path }}" data-original="{{ order.pic_path }}"  class="pro" >
+    </div>
+    <div class=" col-xs-10 ">
+       <div class="row padding-lf0">
+       <div class="col-xs-10 padding-lf5"><span class="title h6">{{ order.title }}</span></div>
+       <div class="col-xs-2 ">
+       <div class="price"><em class="tm-yen">￥</em><span>{{ order.payment }}</span></div>
+       <div class="num"><span >x&nbsp;{{ order.num }}</span></div>
+	   </div>
+	   </div>
+	   <div class="row padding-lf5 font8 font-tp">尺码：<span >{{ order.sku_name }}</span></div>
+    </div>
+    <div class="col-xs-10 padding-lf0">
+       
+    </div>
+	</div>
+  </div>
+</div>
+
+<div id="refund-status" class="list-panel panel-default" >
+  <div class="panel-heading">售后申请状态</div>
+  <div class="panel-body">
+	<div id="refund-resp" class="row list-row list-row-border">
+	  <div class="well well-lg">
+	  	{% if refund.status == 2 %}
+	  	<p><span>亲，您的售后申请被拒绝！</span></p>
+	  	<p><span class="label label-danger">拒绝原因：{{ refund.feedback }}</span></p>
+	    {% elif refund.status == 3 %}
+		<p>亲，您的售后申请已提交成功了！</p>
+		<p>客服将在 <span class="glyphicon glyphicon-time label label-danger">退款申请后两天内</span>处理您的退货/退款申请，请耐心等待！</p>
+		{% elif refund.status == 4 or sale_refund.status == 5 %}
+		<p>亲，您的退货申请正在处理中，请将包裹及时寄回方便售后客服给您处理！</p>
+		{% elif refund.status == 6 %}
+		<p>亲，您的售后申请处理已完成，退款款项将返回到你付款时选择的支付方式里，请及时查看！</p>
+		{% else %}
+		<p>退款申请已关闭，如有疑问请联系在线客服！</p>
+		{% endif %}
+		
+		<table class="table table-striped">
+			<tr><td >申请时间：</td><td >{{ refund.created }}</td></tr>
+			<tr><td >申请类型：</td><td >{% if refund.has_good_return %}退货退款{% else %}退款{% endif %}</td></tr>
+			<tr><td >退款金额：</td><td ><span><em>￥</em>{{ refund.refund_fee }}</span></td></tr>
+			{% if refund.has_good_return %}
+			<tr><td >退货信息：</td><td >{{ refund.company_name }}/{{ refund.sid }}</td></tr>
+			{% endif %}
+			<tr><td >申请原因：</td><td >{{ refund.reason }}</td></tr>
+			<tr><td >补充描述：</td><td >{{ refund.desc }}</td></tr>
+		</table>
+		
+		<p><a href="javascript:history.back();" class="btn btn-default btn-rowfull">返回订单详情</a></p>
+	  </div>
+	</div>
+  </div>
+  </div>
+</div>	
+
+</div>
+{% endblock %}
+
+
+
+{% block delayed_script %}
+<script type="text/javascript">
+$(function(){
+	$('.ui-loader').remove();
+})
+</script>
+{% endblock %}

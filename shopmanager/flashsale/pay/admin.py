@@ -5,7 +5,14 @@ from django.forms import TextInput, Textarea
 from django.http import HttpResponseRedirect
 
 from shopback.trades.filters import DateFieldListFilter
-from .models import SaleTrade,SaleOrder,TradeCharge,Customer,Register,District,UserAddress
+from .models import (SaleTrade,
+                     SaleOrder,
+                     TradeCharge,
+                     Customer,
+                     Register,
+                     District,
+                     UserAddress,
+                     SaleRefund)
 
 
 class SaleOrderInline(admin.TabularInline):
@@ -30,7 +37,7 @@ class SaleTradeAdmin(admin.ModelAdmin):
     list_display_links = ('id','tid')
     #list_editable = ('update_time','task_type' ,'is_success','status')
 
-    list_filter   = ('channel',('created',DateFieldListFilter))
+    list_filter   = ('status','channel',('created',DateFieldListFilter))
     search_fields = ['tid','id']
     
     inlines = [SaleOrderInline]
@@ -118,4 +125,14 @@ class UserAddressAdmin(admin.ModelAdmin):
     list_filter = ('default','status')
 
 admin.site.register(UserAddress, UserAddressAdmin)
+
+
+class SaleRefundAdmin(admin.ModelAdmin):
+    
+    list_display = ('refund_no','trade_id','order_id','title','refund_fee','has_good_return','has_good_change','created','status')
+    search_fields = ['cus_uid','receiver_mobile']
+    
+    list_filter = ('status','good_status','has_good_return','has_good_change')
+
+admin.site.register(SaleRefund, SaleRefundAdmin)
 

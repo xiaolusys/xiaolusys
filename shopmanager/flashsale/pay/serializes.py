@@ -1,8 +1,9 @@
+#-*- encoding:utf8 -*-
 from django.forms import model_to_dict
 from rest_framework import serializers
 
 from shopback.items.models import Product,ProductSku
-from .models import District,UserAddress
+from .models import SaleTrade,District,UserAddress
         
 class DetailInfoField(serializers.Field):
     
@@ -66,6 +67,48 @@ class ProductDetailSerializer(serializers.ModelSerializer):
                   'agent_price','status','created','memo','prod_skus','details')
         
 
+class SaleOrderField(serializers.Field):
+    
+    def to_representation(self, obj):
+        order_list  = []
+        for order in obj.all():
+            odict = model_to_dict(order)
+            odict['refund'] = order.refund
+            order_list.append(odict)
+        return order_list
+
+    def to_internal_value(self, data):
+        return data
+
+
+class SaleTradeSerializer(serializers.ModelSerializer):
+    
+#    category = SaleCategorySerializer()
+    sale_orders = SaleOrderField()
+    
+    class Meta:
+        model = SaleTrade
+        fields = ( 'id','tid','buyer_id','buyer_nick','channel','payment','post_fee','total_fee','channel',
+                    'payment','post_fee','total_fee','buyer_message','seller_memo','created','pay_time',
+                    'modified','consign_time','trade_type','out_sid','logistics_company','receiver_name',
+                    'receiver_state','receiver_city','receiver_district','receiver_address','receiver_zip',
+                    'receiver_mobile','receiver_phone','status','status_name','sale_orders','order_num')
+    
+
+class SampleSaleTradeSerializer(serializers.ModelSerializer):
+    
+#    category = SaleCategorySerializer()
+    
+    class Meta:
+        model = SaleTrade
+        fields = ( 'id','tid','buyer_id','buyer_nick','channel','payment','post_fee','total_fee','channel',
+                    'payment','post_fee','total_fee','buyer_message','seller_memo','created','pay_time',
+                    'modified','consign_time','trade_type','out_sid','logistics_company','receiver_name',
+                    'receiver_state','receiver_city','receiver_district','receiver_address','receiver_zip',
+                    'receiver_mobile','receiver_phone','status','status_name','order_num','order_title','order_pic')
+        
+
+
 class UserAddressSerializer(serializers.ModelSerializer):
     
 #    category = SaleCategorySerializer()
@@ -73,6 +116,8 @@ class UserAddressSerializer(serializers.ModelSerializer):
         model = UserAddress
         fields = ('id','cus_uid','receiver_name','receiver_state','receiver_city','receiver_district',
                   'receiver_address','receiver_zip','receiver_mobile','receiver_phone','default')
+        
+        
 
 
 

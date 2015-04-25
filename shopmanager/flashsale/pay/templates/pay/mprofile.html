@@ -1,0 +1,125 @@
+{% extends "pay/base_profile.html" %}
+
+{% block title %}小鹿美美-个人中心{% endblock %}
+
+{% block style %}
+<link rel="stylesheet" href="{{ STATIC_URL }}style/main.css">
+
+<style style="text/css">
+.header {
+  background-image: url({{ STATIC_URL }}images/title.png);
+  background-color: #000000;
+}
+.nav-top {background-color:#770077;}
+.nav-top span{font-size:20px;}
+.nav-top p{font-size:10px;}
+.nav-top a {color:white;}
+.nav-pills>li+li{
+	margin-left:0px;
+}
+
+.padding-lf5{
+	padding-right: 5px;
+	padding-left: 5px;
+}
+
+.nav-top>li>a{
+	text-align:center;
+}
+
+.nav-stacked li{
+	margin-top:0px;
+}
+
+.nav-stacked>li>a{
+	border-bottom: #e0e0e0 1px solid;
+}
+
+.nav-item div{
+	text-align:left;
+}
+
+.nav-item {
+	padding:12px;
+}
+
+.list-row { 
+	padding:10px;
+}
+
+.list-row-border {
+	border:1px solid #ccc;
+	border-width: 0px 0px 1px;
+}
+
+</style>
+{% endblock %}
+
+
+{% block preload_script %}
+
+
+{% endblock %}
+
+
+{% block container %}
+<div class="container-fluid">
+<div class="row">
+<div class="header"><div style="width:100%;height:100px;"></div></div>
+</div>
+
+<div class="row" role="navigation">
+<ul class="nav nav-pills nav-top">
+  <li role="presentation" class="col-xs-4 padding-lf5" >
+  	<a href="{% url user_orderlist  %}?status=1" target="_self">
+  		<span class="glyphicon glyphicon-credit-card"></span><p>待支付</p>
+  	</a>
+  </li>
+  <li role="presentation" class="col-xs-4 padding-lf5">
+	<a href="{% url user_orderlist  %}?status=2" target="_self">
+		<span class="glyphicon glyphicon-plane"></span><p>待收货</p>
+	</a>
+  </li>
+  <li role="presentation" class="col-xs-4 padding-lf5">
+  	<a href="{% url user_orderlist  %}" target="_self">
+  	<span class="glyphicon glyphicon-list-alt"></span><p>全部订单</p>
+  	</a>
+  </li>
+</ul>
+</div>
+
+<div role="navigation">
+<ul class="nav nav-pills  ">
+  <li role="presentation" class="col-xs-12 padding-lf5">
+  	<a href="{% url address_list %}"><div class="nav-item " >
+  	<div class="row"><div class="col-xs-10" >地址管理</div><div class="col-xs-2 glyphicon glyphicon-chevron-right pull-right"></div></div></div>
+  	</a>
+  </li>
+   <li role="presentation" class="col-xs-12 padding-lf5">
+  	<a href="#">
+  	<div class="row"><div class="nav-item "><div class="col-xs-10">优惠券/礼品卡</div><div class="col-xs-2 glyphicon glyphicon-chevron-right pull-right"></div></div></div>
+  	</a>
+  </li>
+   <li role="presentation" class="col-xs-12 padding-lf5">
+  	<a href="#">
+  	<div class="row"><div class="nav-item "><div class="col-xs-10">钱包管理</div><div class="col-xs-2 glyphicon glyphicon-chevron-right pull-right"></div></div></div>
+  	</a>
+  </li>
+   <li role="presentation" class="col-xs-12 padding-lf5">
+  	<a href="#">
+  	<div class="row"><div class="nav-item "><div class="col-xs-10">积分兑换</div><div class="col-xs-2 glyphicon glyphicon-chevron-right pull-right"></div></div></div>
+  	</a>
+  </li>
+</ul>
+</div>
+</div>
+{% endblock %}
+
+
+{% block delayed_script %}
+<script type="text/javascript">
+$(function(){
+	$('.ui-loader').remove();
+})
+</script>
+{% endblock %}

@@ -12,6 +12,8 @@ from shopback.logistics.models import LogisticsCompany
 from .models_user import Register,Customer
 from .models_addr import District,UserAddress
 from .models_custom import Productdetail
+from .models_refund import SaleRefund
+from .managers import SaleTradeManager
 
 import uuid
 
@@ -20,6 +22,7 @@ def genUUID():
 
 class SaleTrade(models.Model):
     
+    PREFIX_NO  = 'FD'
     WX_PUB     = 'wx_pub'
     ALIPAY_WAP = 'alipay_wap'
     UPMP_WAP   = 'upmp_wap'
@@ -45,20 +48,27 @@ class SaleTrade(models.Model):
     TRADE_BUYER_SIGNED = 4
     TRADE_FINISHED = 5
     TRADE_CLOSED = 6
-    TRADE_CLOSED_BY_TAOBAO = 7
+    TRADE_CLOSED_BY_SYS = 7
+    
+    NORMAL_TRADE_STATUS = (WAIT_BUYER_PAY,
+                           WAIT_SELLER_SEND_GOODS,
+                           WAIT_BUYER_CONFIRM_GOODS,
+                           TRADE_BUYER_SIGNED,
+                           TRADE_FINISHED,
+                           TRADE_CLOSED,
+                           TRADE_CLOSED_BY_SYS)
     
     TRADE_STATUS = (
         (TRADE_NO_CREATE_PAY,u'订单创建'),
         (WAIT_BUYER_PAY,u'待付款'),
-        (WAIT_SELLER_SEND_GOODS,u'待发货'),
-        (WAIT_BUYER_CONFIRM_GOODS,u'待确认收货'),
+        (WAIT_SELLER_SEND_GOODS,u'已付款'),
+        (WAIT_BUYER_CONFIRM_GOODS,u'已发货'),
         (TRADE_BUYER_SIGNED,u'货到付款签收'),
         (TRADE_FINISHED,u'交易成功'),
-        (TRADE_CLOSED,u'退款交易关闭'),
-        (TRADE_CLOSED_BY_TAOBAO,u'未付款关闭'),
+        (TRADE_CLOSED,u'退款关闭'),
+        (TRADE_CLOSED_BY_SYS,u'交易关闭'),
     )
 
-    
     id    = BigIntegerAutoField(primary_key=True,verbose_name=u'订单ID')
     
     tid   = models.CharField(max_length=40,unique=True,verbose_name=u'原单ID')  
@@ -99,7 +109,10 @@ class SaleTrade(models.Model):
 
     status  = models.IntegerField(choices=TRADE_STATUS,default=TRADE_NO_CREATE_PAY,
                               db_index=True,blank=True,verbose_name=u'交易状态')
-
+    
+    objects = models.Manager()
+    normal_objects = SaleTradeManager()
+    
     class Meta:
         db_table = 'flashsale_trade'
         verbose_name=u'特卖/订单'
@@ -107,6 +120,30 @@ class SaleTrade(models.Model):
 
     def __unicode__(self):
         return '<%s,%s>'%(str(self.id),self.buyer_nick)
+    
+    @property
+    def order_title(self):
+        if self.sale_orders.count() > 0:
+            return self.sale_orders.all()[0].title
+        return ''
+    
+    @property
+    def order_num(self):
+        onum = 0
+        order_values = self.sale_orders.values_list('num')
+        for order in order_values:
+            onum += order[0]
+        return onum
+    
+    @property
+    def order_pic(self):
+        if self.sale_orders.count() > 0:
+            return self.sale_orders.all()[0].pic_path
+        return ''
+    
+    @property
+    def status_name(self):
+        return self.get_status_display()
     
     @property
     def body_describe(self):
@@ -182,53 +219,13 @@ class SaleOrder(models.Model):
     def __unicode__(self):
         return '<%s>'%(self.id)
 
-
-class SaleRefund(models.Model):
-    
-    id           = BigIntegerAutoField(primary_key=True,verbose_name='ID')
-    refund_id    = models.CharField(max_length=32,
-                                    default=lambda:'RF%d'%int(time.time()*10**2),
-                                    verbose_name='退款单ID')
-    tid          = models.CharField(max_length=32,blank=True,verbose_name='交易ID')
-    
-    item_id      = models.BigIntegerField(null=True,default=0,verbose_name='商品ID')
-    title        = models.CharField(max_length=64,blank=True,verbose_name='出售标题')
-
-    buyer_nick   = models.CharField(max_length=64,blank=True,verbose_name='买家昵称')
-    mobile = models.CharField(max_length=20,db_index=True,blank=True,verbose_name='手机')
-    phone  = models.CharField(max_length=20,db_index=True,blank=True,verbose_name='固话')
-    
-    total_fee    = models.CharField(max_length=10,blank=True,verbose_name='总费用')
-    refund_fee   = models.CharField(max_length=10,blank=True,verbose_name='退款费用')
-    payment      = models.CharField(max_length=10,blank=True,verbose_name='实付')
-
-    created   = models.DateTimeField(db_index=True,null=True,auto_now_add=True,verbose_name='创建日期')
-    modified  = models.DateTimeField(db_index=True,null=True,auto_now=True,verbose_name='修改日期')
-
-    oid       = models.CharField(db_index=True,max_length=32,blank=True,verbose_name='订单ID')
-    sku_name  = models.CharField(max_length=64,blank=True,verbose_name='规格标题')
-    
-    company_name = models.CharField(max_length=64,blank=True,verbose_name='快递公司')
-    sid       = models.CharField(max_length=64,db_index=True,blank=True,verbose_name='快递单号')
-
-    reason    = models.TextField(max_length=200,blank=True,verbose_name='退款原因')
-    desc      = models.TextField(max_length=1000,blank=True,verbose_name='描述')
-    has_good_return = models.BooleanField(default=False,verbose_name='是否退货')
-    
-    is_reissue   = models.BooleanField(default=False,verbose_name='已处理')
-    
-    good_status  = models.CharField(max_length=32,blank=True,verbose_name='退货商品状态')
-    order_status = models.CharField(max_length=32,blank=True,verbose_name='订单状态')
-
-    status       = models.CharField(max_length=32,blank=True,verbose_name='退款状态')
-
-    class Meta:
-        db_table = 'flashsale_refund'
-        verbose_name=u'特卖/退款单'
-        verbose_name_plural = u'特卖/退款单列表'
-        
-    def __unicode__(self):
-        return '<%s>'%(self.id)
+    @property
+    def refund(self):
+        try:
+            refund = SaleRefund.objects.get(trade_id=self.sale_trade.id,order_id=self.id)
+            return refund
+        except:
+            return None
 
 
 class TradeCharge(models.Model):
@@ -248,6 +245,8 @@ class TradeCharge(models.Model):
     
     failure_code    = models.CharField(max_length=16,blank=True,verbose_name=u'错误编码')
     failure_msg     = models.CharField(max_length=16,blank=True,verbose_name=u'错误信息')
+    
+#     out_trade_no    = models.CharField(max_length=32,db_index=True,blank=True,verbose_name=u'外部交易ID')
     
     time_paid       = models.DateTimeField(null=True,blank=True,db_index=True,verbose_name=u'付款时间')
     time_expire     = models.DateTimeField(null=True,blank=True,db_index=True,verbose_name=u'失效时间')

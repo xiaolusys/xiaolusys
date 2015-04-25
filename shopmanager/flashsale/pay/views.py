@@ -1,10 +1,11 @@
 #-*- encoding:utf8 -*-
 import json
 import time
+import urlparse
 import datetime
 from django.conf import settings
 from django.db import IntegrityError,models
-from django.http import HttpResponse,Http404
+from django.http import HttpResponse,HttpResponseRedirect,Http404
 from django.views.generic import View
 from django.forms import model_to_dict
 from django.shortcuts import get_object_or_404
@@ -16,7 +17,7 @@ import logging
 logger = logging.getLogger('django.request')
 
 import re
-UUID_RE = re.compile('^[a-f0-9-]{36}$')
+UUID_RE = re.compile('^[a-zA-Z0-9-]{21,36}$')
 
 class PINGPPChargeView(View):
     
@@ -78,18 +79,19 @@ class PINGPPChargeView(View):
                 raise Exception(u'用户未找到')
             
             strade = self.createSaleTrade(customer,form)
+            payback_url = urlparse.urljoin(settings.SITE_URL,reverse('user_payresult'))
             
             if channel == SaleTrade.WX_PUB:
                 extra = {'open_id':customer.openid,'trade_type':'JSAPI'}
                 
             elif channel == SaleTrade.ALIPAY_WAP:
-                extra = {"success_url":"%s/mm/callback/"%settings.SITE_URL,
-                         "cancel_url":"%s/mm/cancel/"%settings.SITE_URL}
+                extra = {"success_url":payback_url,
+                         "cancel_url":payback_url}
                 
             elif channel == SaleTrade.UPMP_WAP:
-                extra = {"result_url":"%s/mm/callback/?code="%settings.SITE_URL}
+                extra = {"result_url":payback_url}
             
-            params ={ 'order_no':'T%s'%strade.id,
+            params ={ 'order_no':'%s'%strade.tid,
                       'app':dict(id=settings.PINGPP_APPID),
                       'channel':channel,
                       'currency':'cny',
@@ -117,7 +119,7 @@ class PINGPPChargeView(View):
     
     get = post
     
-
+from django.core.urlresolvers import reverse
 from . import tasks
 
 class PINGPPCallbackView(View):
@@ -158,6 +160,17 @@ class PINGPPCallbackView(View):
     
     get = post
     
+
+########## alipay callback ###########
+class PayResultView(View):
+
+    def get(self, request, *args, **kwargs):
+        
+        content = request.REQUEST
+        logger.info('pay result:%s'%content )
+
+        return HttpResponseRedirect(reverse('user_orderlist'))
+    
     
 class WXPayWarnView(View):
     
@@ -169,6 +182,7 @@ class WXPayWarnView(View):
     
     get = post
     
+    
 from rest_framework import generics
 from rest_framework.response import Response
 from rest_framework import authentication
@@ -177,12 +191,12 @@ from rest_framework.renderers import JSONRenderer,TemplateHTMLRenderer
 from rest_framework.views import APIView
 
 from shopback.items.models import Product,ProductSku
-from .serializes import ProductSerializer,ProductDetailSerializer
+from . import serializes 
 
 class ProductList(generics.ListCreateAPIView):
     
     queryset = Product.objects.all()
-    serializer_class = ProductSerializer
+    serializer_class = serializes.ProductSerializer
     renderer_classes = (JSONRenderer,TemplateHTMLRenderer)
     
     template_name = "pay/mindex.html"
@@ -215,17 +229,18 @@ class ProductList(generics.ListCreateAPIView):
 class ProductDetail(generics.RetrieveUpdateDestroyAPIView):
     
     queryset = Product.objects.all()
-    serializer_class = ProductDetailSerializer
+    serializer_class = serializes.ProductDetailSerializer
     renderer_classes = (JSONRenderer,TemplateHTMLRenderer)
     
     template_name = "pay/mproduct.html"
     #permission_classes = (permissions.IsAuthenticated,)
 
 import urllib
+from django.http import HttpResponseForbidden
 from .models_addr import UserAddress
 from .views_address import ADDRESS_PARAM_KEY_NAME
-from .options import getAddressByUserOrID
-from django.http import HttpResponseForbidden
+from .options import uniqid,getAddressByUserOrID
+
 
 class OrderBuyReview(APIView):
 
@@ -273,34 +288,103 @@ class OrderBuyReview(APIView):
         abs_url  = request.build_absolute_uri().split('#')[0]
         urlparam = urllib.urlencode({'url':abs_url})
         origin_url = urlparam[len('url='):]
-     
+        
+        weixin_from = False
+        alipay_from = True
+        user_agent = request.META.get('HTTP_USER_AGENT')
+        if customers[0].openid.strip() != '': 
+            weixin_from = True
+        
+        if user_agent and user_agent.find('MicroMessenger') > 0:
+            alipay_from = False
+        
         data = {'product':product_dict,
                 'sku':sku_dict,
                 'num':num,
-                'uuid':genUUID(),
+                'uuid':uniqid('%s%s'%(SaleTrade.PREFIX_NO,datetime.datetime.now().strftime('%y%m%d'))),
                 'real_fee':real_fee,
                 'post_fee':post_fee,
                 'payment':payment,
                 'address':address,
                 'origin_url':origin_url,
-                'order_pass':order_pass}
+                'order_pass':order_pass,
+                'alipay_from':alipay_from,
+                'weixin_from':weixin_from}
         
         return Response(data)
     
     get = post
-    
-    
-class MyOrderList(APIView):
+
+class UserProfile(APIView):
     
     permission_classes = (permissions.IsAuthenticated,)
-    template_name = "pay/myorder.html"
+    template_name = "pay/mprofile.html"
     
     def get(self, request, format=None):
+        
+        
         
         return Response({})
     
     def post(self, request, format=None):
         
         return Response({})
+    
+    
+class SaleOrderList(APIView):
+    
+    permission_classes = (permissions.IsAuthenticated,)
+    template_name = "pay/morderlist.html"
+    
+    def get(self, request, format=None):
+        
+        status = request.GET.get('status')
+        user = request.user
+        customers = Customer.objects.filter(user=user)
+        if customers.count() < 0:
+            raise HttpResponseForbidden('NOT EXIST')
+        
+        customer   = customers[0]
+        trade_list = []
+        strades = SaleTrade.normal_objects.filter(buyer_id=customer.id)
+        if status:
+            strades =  strades.filter(status=status)
+            
+        for trade in strades:
+            serializer_trade = serializes.SampleSaleTradeSerializer(trade)
+            trade_list.append(serializer_trade.data)
+        
+        return Response({'trades':trade_list})
+    
+    def post(self, request, format=None):
+        
+        return Response({})
+    
+    
+class SaleOrderDetail(APIView):
+    
+    permission_classes = (permissions.IsAuthenticated,)
+    template_name = "pay/morderdetail.html"
+    
+    def get(self, request,pk, format=None):
+        
+        user = request.user
+        customers = Customer.objects.filter(user=user)
+        if customers.count() < 0:
+            raise HttpResponseForbidden('NOT EXIST')
+        
+        customer   = customers[0]
+
+        strade = get_object_or_404(SaleTrade,buyer_id=customer.id,pk=pk)
+        serializer_trade = serializes.SaleTradeSerializer(strade)
+
+        return Response(serializer_trade.data)
+    
+    def post(self, request, format=None):
+        
+        return Response({})
+    
+    
+    
     
     

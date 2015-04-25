@@ -45,7 +45,8 @@ def notifyTradePayTask(notify):
             
         tcharge.save()
         
-        strade = SaleTrade.objects.get(id=order_no)
+        order_no = order_no.split('_')[0]
+        strade = SaleTrade.objects.get(tid=order_no)
         strade.status = SaleTrade.WAIT_SELLER_SEND_GOODS
         strade.pay_time = tcharge.time_paid
         strade.save()

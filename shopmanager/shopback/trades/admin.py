@@ -1012,6 +1012,13 @@ class MergeOrderAdmin(admin.ModelAdmin):
     list_filter = ('sys_status','out_stock','is_rule_match','is_merge','gift_type',('pay_time',DateFieldListFilter))
     search_fields = ['id','oid','outer_id','outer_sku_id']
     
+    #--------设置页面布局----------------
+    fieldsets =(('订单明细基本信息:', {
+                    'classes': ('expend',),
+                    'fields': ('oid','outer_id','outer_sku_id','title','price','payment','num',
+                               'sku_properties_name','out_stock','is_merge','is_rule_match','is_reverse_order',
+                               'gift_type','pay_time','refund_id','refund_status','status','sys_status')
+                }),)
     
     def merge_trade_link(self, obj):
         return '%s-%s-%s'%(obj.merge_trade.is_express_print and '[P]' or '[N]',

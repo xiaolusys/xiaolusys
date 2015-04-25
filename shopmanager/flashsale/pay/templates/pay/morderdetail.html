@@ -1,0 +1,199 @@
+{% extends "pay/base_profile.html" %}
+
+{% block title %}小鹿美美-我的订单{% endblock %}
+
+{% block style %}
+<style typ="text/css">
+
+
+.panel-first-child{
+	margin-top:60px;
+}
+
+.list-panel {
+	margin-right: -15px;
+	margin-left: -15px;
+}
+
+.list-row { 
+	padding:10px;
+	margin-right: -10px;
+	margin-left: -10px;
+}
+.list-row-border {
+	border:1px solid #ccc;
+	border-width: 0px 0px 1px;
+}
+
+.panel-body {
+	padding: 10px;
+}
+
+.font-tp{
+	margin-top: 10px;
+	margin-bottom: 10px;
+}
+
+.font8 {
+	font-size:8px;
+}
+
+.font10 {
+	font-size:10px;
+}
+
+.padding-lf0{
+	padding-right: 0px;
+	padding-left: 0px;
+}
+
+.padding-lf5{
+	padding-right: 5px;
+	padding-left: 5px;
+}
+
+.c-red,.c-grey{
+	display:block;
+	overflow:hidden;
+}
+.block {display:block;}
+
+.price, .num, .refund{
+	padding-right:5px;
+	padding-left:0px;
+	text-align:right;
+}
+.btn-rowfull{
+	width:100%;
+}
+
+</style>
+
+{% endblock %}
+
+
+{% block preload_script %}
+
+{% endblock %}
+
+{% block container %}
+<div class="container-fluid">
+
+<nav class="navbar navbar-default navbar-fixed-top">
+	<div class="row" >
+	<div class="col-xs-8" >
+	  <a href="{% if origin_url %}{{ origin_url }}{% else %}#{% endif %}" class="glyphicon glyphicon-menu-left" target="_self">返回</a>
+	</div>
+	<div class="col-xs-4" >
+	  <a id="address_plus_link" href="javascript:void(0);" class="add" >订单详情</a>
+	</div>
+    </div>
+</nav>
+
+
+<div class="list-panel panel-default panel-first-child">
+  <div class="panel-heading">商品信息</div>
+  <div class="panel-body">
+	{% for order in sale_orders %}
+	<div class="row list-row list-row-border">
+	<a href="{% url product_detail pk=order.item_id %}" target="_self">
+    <div class="col-xs-2 thumbnail">
+    <img src="{{ order.pic_path }}" data-original="{{ order.pic_path }}" data-onerror="" width="50" height="60" class="pro" >
+    </div>
+    <div class=" col-xs-10 padding-lf0">
+    <div class=" col-xs-12 padding-lf0">
+       <div class="col-xs-10 padding-lf5"><span class="title h6">{{ order.title }}</span></div>
+       <div class="col-xs-2 padding-lf0">
+       <div class="col-xs-12 price"><em class="tm-yen">￥</em><span>{{ order.payment }}</span></div>
+       <div class="col-xs-12 num"><span >x&nbsp;{{ order.num }}</span></div>
+	   </div>
+    </div>
+    <div class="col-xs-12 padding-lf0">
+       <div class="col-xs-6 padding-lf5 font8 font-tp">尺码：<span >{{ order.sku_name }}</span></div>
+       <div class="col-xs-6 refund padding-lf0">
+       {% if order.refund %}
+       <a href="{% url refund_confirm pk=order.refund.id %}" class="btn btn-xs btn-default font10 font-tp" target="_self">
+       	 {% if order.refund.status == 1 %}
+       	 <span class="glyphicon glyphicon-ban-circle">退款关闭</span>
+       	 {% elif order.refund.status == 2 %}
+       	 <span class="glyphicon glyphicon-flash">退款驳回</span>
+       	 {% elif order.refund.status == 6 %}
+       	 <span class="glyphicon glyphicon-ok-circle">退款成功</span>
+       	 {% elif order.refund.status == 4 %}
+       	 <span class="glyphicon glyphicon-time">同意退款，待退货</span>
+       	 {% else %}
+       	 <span class="glyphicon glyphicon-time">退款中</span>
+       	 {% endif %}
+       </a>
+       {% else %}
+       	<a href="{% url refund_apply %}?trade_id={{ id }}&order_id={{ order.id }}" class="btn btn-xs btn-default font10 font-tp" target="_self">申请售后</a>
+       {% endif %}
+       </div>
+    </div>
+    </div>
+    </a>
+	</div>
+	{% endfor %}
+	<div class="row list-row font10">
+	<div class="col-xs-12 padding-lf0"><span class="pull-left h6">实付款：</span><span class=" pull-right text-danger"><em>￥</em>{{ payment }}</span></div>
+	<div class="col-xs-12 padding-lf0"><span class="pull-left h6">数量：</span><span class="pull-right text-danger">{{ order_num }}</span></div>
+	</div>
+	<div class="row list-row">
+		<a class="btn btn-default btn-rowfull">查看物流</a>
+	</div>
+  </div>
+</div>
+
+
+<div class="list-panel panel-default">
+  <div class="panel-heading">订单信息</div>
+  <div class="panel-body font10">
+	<div class="row list-row list-row-border">
+		<div class="col-xs-3 padding-lf5">订单编号：</div>
+		<div class="col-xs-9 padding-lf5">{{ tid }}</div>
+	</div>
+	<div class="row list-row list-row-border">
+		<div class="col-xs-3 padding-lf5">下单时间：</div>
+		<div class="col-xs-9 padding-lf5">{{ created }}</div>
+	</div>
+	<div class="row list-row list-row-border">
+		<div class="col-xs-3 padding-lf5">付款时间：</div>
+		<div class="col-xs-9 padding-lf5">{{ created }}</div>
+	</div>
+  </div>
+</div>
+
+<div class="list-panel panel-default">
+  <div class="panel-heading">收货信息</div>
+  <div class="panel-body font10">
+   <div class="row list-row list-row-border">
+		<div class="col-xs-3 padding-lf5">收货人：</div>
+		<div class="col-xs-9 padding-lf5">{{ receiver_name }}</div>
+	</div>
+	<div class="row list-row list-row-border">
+		<div class="col-xs-3 padding-lf5">手机号码：</div>
+		<div class="col-xs-9 padding-lf5">{{ receiver_mobile }}</div>
+	</div>
+	<div class="row list-row list-row-border">
+		<div class="col-xs-3 padding-lf5">收货地址：</div>
+		<div class="col-xs-9 padding-lf5">{{ receiver_state }}{{ receiver_city }}{{ receiver_district }}{{ receiver_address }}</div>
+	</div>
+  </div>
+</div>
+
+
+
+</div>
+{% endblock %}
+
+{% block delayed_script %}
+<script type="text/javascript">
+$(function(){
+	$('.ui-loader').remove();
+})
+</script>
+
+
+{% endblock %}
+
+

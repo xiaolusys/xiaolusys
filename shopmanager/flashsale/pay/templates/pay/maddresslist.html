@@ -8,8 +8,8 @@
   .wrap { background:#b81b22; }
   .wrap a{font-size:16px;color:white;padding:10px 10px;margin-top:10px;display: inline-block;}
   .well {margin-bottom:0px;padding:10px; }
-  .opt-link {margin-top:5px;font-size:30px;}
-  .opt-link .del-link{display:none;color:red;}
+  .opt-link {margin-top:5px;font-size:30px;color:#FFB7DD;}
+  .opt-link .del-link{display:none;color:#AA0000;}
   .bold {font-weight:bold;}
   .clear {clear:both;}
 </style>
@@ -26,7 +26,7 @@
 <nav class="navbar navbar-default navbar-fixed-top">
 	<div class="row wrap" >
 	<div class="col-xs-8" >
-	  <a href="{% if origin_url %}{{ origin_url }}{% else %}#{% endif %}" class="glyphicon glyphicon-menu-left" target="_self">返回</a>
+	  <a href="{% if origin_url %}{{ origin_url }}{% else %}javascript:history.back();{% endif %}" class="glyphicon glyphicon-menu-left" target="_self">返回</a>
 	</div>
 	<div class="col-xs-4" >
 	  <a id="address_plus_link" href="javascript:void(0);" class="add" >添加</a>
@@ -41,7 +41,7 @@
 {% csrf_token %}
 <div id="address_list">
 {% for addr in results %}
-<div id="addrid-{{ addr.id }}" addrid="{{ addr.id }}" class="well row" >
+<div id="addrid-{{ addr.id }}" addrid="{{ addr.id }}" class="well well-sm row" >
 	<a class="well-link" href="{% if origin_url %}{{ origin_url }}&addrid={{ addr.id }}{% else %}#{% endif %}" target="_self">
     <div id="addrwell-{{ addr.id }}" class=" col-xs-offset-1 col-xs-9 pd">
     <div><font class="bold">{{ addr.receiver_name }}</font>&nbsp;&nbsp;&nbsp;{{ addr.receiver_state }}&nbsp;{{ addr.receiver_city }}&nbsp;{{ addr.receiver_district }}</div>
@@ -49,7 +49,7 @@
 	</div>
 	</a>
 	<div id="optlink-{{ addr.id }}" class="opt-link ">
-		<div class="col-xs-1 glyphicon {% if origin_addrid  %}{% if origin_addrid == addr.id %}glyphicon-heart{% endif %}{% else %}{% if addr.default %}glyphicon-heart{% endif %}{% endif %}"></div>
+		<div class="col-xs-1 glyphicon {% if origin_addrid  %}{% if origin_addrid == addr.id %}glyphicon-heart-empty{% endif %}{% else %}{% if addr.default %}glyphicon-heart-empty{% endif %}{% endif %}"></div>
 		<div id="dellink-{{ addr.id }}" addrid="{{ addr.id }}" class="col-xs-1 glyphicon glyphicon-remove del-link"></div>
 	</div>
 	
@@ -93,11 +93,9 @@ $(function(){
 
 		var callback = function(resp){
 			if (resp.success == true){
-				console.log(resp,resp.success);
 				$('#addrid-'+addrId).slideUp(500);
 			}
 		};
-		console.log(params);
 		$.post('/mm/addr/',params,callback,'json');
 	});
 	
