@@ -37,7 +37,7 @@ urlpatterns = (
     url(r'^refund/(?P<pk>[0-9]+)/$',sale_buyer_required(RefundConfirm.as_view()),name="refund_confirm"),
  
     #############profile urls############
-    url(r'^profile/$',sale_buyer_required(views.UserProfile.as_view())),
+    url(r'^profile/$',sale_buyer_required(views.UserProfile.as_view()),name="user_profile"),
     
     url(r'^login/$', flashsale_login,name="flashsale_login"),
     

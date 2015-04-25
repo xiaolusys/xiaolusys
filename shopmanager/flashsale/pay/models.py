@@ -230,7 +230,7 @@ class SaleOrder(models.Model):
 
 class TradeCharge(models.Model):
     
-    order_no    = models.BigIntegerField(verbose_name=u'订单ID')
+    order_no    = models.CharField(max_length=40,unique=True,verbose_name=u'订单ID')
     charge      = models.CharField(max_length=28,verbose_name=u'CH-ID')
     
     paid        = models.BooleanField(db_index=True,default=False,verbose_name=u'付款')

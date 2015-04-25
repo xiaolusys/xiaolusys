@@ -53,6 +53,14 @@
   
   <div id="no_more" next="{% if next %}{{ next }}&format=json{% endif %}">努力加载中...</div>
 
+  <nav id="main-nav" class="navbar navbar-default navbar-fixed-bottom">
+  <div class="container">
+	  <ul class="nav nav-pills nav-justified">
+		  <li role="presentation" ><a href="{% url sale_home %}" class="col-xs-6" target="_self">今日上新</a></li>
+		  <li role="presentation" ><a href="{% url user_profile %}" class="col-xs-6" target="_self">个人中心</a></li>
+	  </ul>
+  </div>
+  </nav>
 <script>
   var from_top = 75;
   var page_height = 1000;
@@ -69,7 +77,7 @@
     $(document).on('scroll touchmove',function(){
       var h = $('body').scrollTop();
 
-      if ( h >= from_top ){
+      if ( h >= from_top){
         $('#tab_nav').addClass('blocked');
         if (!$('#no_more').hasClass('loading')){
         	Ctrl_list_write();
@@ -79,6 +87,13 @@
       else{
         $('#tab_nav').removeClass('blocked');
       }
+      
+      if ((from_top > page_height && from_top - page_height> h)|| h < page_height){
+      	$('#main-nav').show();
+      }else{
+      	$('#main-nav').hide();
+      }
+      
     });
 
     //若采用页面内筛选的形式,则可以用以下绑定来完成筛选

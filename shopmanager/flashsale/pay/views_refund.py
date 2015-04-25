@@ -23,7 +23,7 @@ logger = logging.getLogger('django.request')
 class RefundApply(APIView):
     
     renderer_classes = (JSONRenderer,TemplateHTMLRenderer)
-    permission_classes = (permissions.IsAuthenticated,)
+#     permission_classes = (permissions.IsAuthenticated,)
     template_name = "pay/mrefundapply.html"
     
     def get(self, request, format=None):
@@ -102,7 +102,8 @@ class RefundApply(APIView):
     
 class RefundConfirm(APIView):
     
-    permission_classes = (permissions.IsAuthenticated,)
+    renderer_classes = (JSONRenderer,TemplateHTMLRenderer)
+#     permission_classes = (permissions.IsAuthenticated,)
     template_name = "pay/mrefundconfirm.html"
     
     def get(self, request, pk, format=None):
