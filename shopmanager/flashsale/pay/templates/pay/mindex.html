@@ -68,9 +68,8 @@
   $(document).ready(function(){
     $('.ui-loader').remove();
 	var width = $('#p_list').width()/2-8;
-	
+
     $.each($('.holder .image'),function(index,entry){
-    	console.log(index,$(entry).css('height'));
     	$(entry).css('height',width);
     })
     
@@ -87,8 +86,8 @@
       else{
         $('#tab_nav').removeClass('blocked');
       }
-      
-      if ((from_top > page_height && from_top - page_height> h)|| h < page_height){
+
+      if ((from_top > page_height && from_top - page_height> h)|| h < $(window).height()){
       	$('#main-nav').show();
       }else{
       	$('#main-nav').hide();
