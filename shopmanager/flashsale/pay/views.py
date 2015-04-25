@@ -284,7 +284,7 @@ class OrderBuyReview(APIView):
         payment  = num * sku.agent_price + post_fee
         
         customers = Customer.objects.filter(user=user)
-        if customers.count() < 0:
+        if customers.count() == 0:
             raise HttpResponseForbidden('NOT EXIST')
         
         address = getAddressByUserOrID(customers[0],addrid)
@@ -347,7 +347,7 @@ class SaleOrderList(APIView):
         status = request.GET.get('status')
         user = request.user
         customers = Customer.objects.filter(user=user)
-        if customers.count() < 0:
+        if customers.count() == 0:
             raise HttpResponseForbidden('NOT EXIST')
         
         customer   = customers[0]
@@ -376,7 +376,7 @@ class SaleOrderDetail(APIView):
         
         user = request.user
         customers = Customer.objects.filter(user=user)
-        if customers.count() < 0:
+        if customers.count() == 0:
             raise HttpResponseForbidden('NOT EXIST')
         
         customer   = customers[0]
