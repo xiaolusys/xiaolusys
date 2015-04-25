@@ -285,7 +285,7 @@ class OrderBuyReview(APIView):
         
         customers = Customer.objects.filter(user=user)
         if customers.count() == 0:
-            raise HttpResponseForbidden('NOT EXIST')
+            return HttpResponseForbidden('NOT EXIST')
         
         address = getAddressByUserOrID(customers[0],addrid)
         if address:
@@ -348,7 +348,7 @@ class SaleOrderList(APIView):
         user = request.user
         customers = Customer.objects.filter(user=user)
         if customers.count() == 0:
-            raise HttpResponseForbidden('NOT EXIST')
+            return HttpResponseForbidden('NOT EXIST')
         
         customer   = customers[0]
         trade_list = []
@@ -377,7 +377,7 @@ class SaleOrderDetail(APIView):
         user = request.user
         customers = Customer.objects.filter(user=user)
         if customers.count() == 0:
-            raise HttpResponseForbidden('NOT EXIST')
+            return HttpResponseForbidden('NOT EXIST')
         
         customer   = customers[0]
 

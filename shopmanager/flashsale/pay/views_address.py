@@ -1,6 +1,7 @@
 #-*- encoding:utf8 -*-
 import urllib
 from urlparse import urlparse, parse_qs
+from django.http import HttpResponseForbidden
 from django.core.urlresolvers import reverse
 from django.shortcuts import get_object_or_404
 from django.forms import model_to_dict
@@ -52,14 +53,19 @@ class AddressList(APIView):
 
     def post(self, request, format=None):
         
-        user_id = request.user.id
+        user = request.user
         content = request.POST
         
+        customers = Customer.objects.filter(user=user)
+        if customers.count() == 0:
+            return HttpResponseForbidden('NOT EXIST')
+        
+        cus_uid = customers[0].id
         params =  {}
         for k,v in content.iteritems():
             params[k] = v
             
-        params['cus_uid'] = user_id
+        params['cus_uid'] = cus_uid
         params.pop('csrfmiddlewaretoken')
         params.pop('pk')
         
@@ -67,7 +73,7 @@ class AddressList(APIView):
         addr_defualt = params.get('default',None)
         if addr_defualt == 'on':
             params['default'] = True
-            UserAddress.normal_objects.filter(cus_uid=user_id).update(default=False)
+            UserAddress.normal_objects.filter(cus_uid=cus_uid).update(default=False)
         else:
             params['default'] = False
 
