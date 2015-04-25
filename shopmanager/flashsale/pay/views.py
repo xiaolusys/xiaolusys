@@ -207,11 +207,17 @@ class ProductList(generics.ListCreateAPIView):
         
         content    = request.REQUEST
         time_line  = content.get('time_line','0')
+        history    = content.get('history','')
         if not time_line.isdigit() or int(time_line) < 0:
             time_line = 0
+        
         time_line = int(time_line)
         
-        filter_date = datetime.datetime.now() + datetime.timedelta(days=time_line)
+        filter_date = datetime.datetime.now()
+        if history:
+            filter_date = filter_date - datetime.timedelta(days=time_line)
+        else:
+            filter_date = filter_date + datetime.timedelta(days=time_line)
         
         instance = self.filter_queryset(self.get_queryset())
 
