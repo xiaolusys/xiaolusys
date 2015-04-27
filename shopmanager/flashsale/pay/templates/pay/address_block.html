@@ -152,7 +152,7 @@ $("#address-form").submit(function (res) {
 		return false
 	}
 	if (receiver_address == ''){
-		$('#err_msg').html('<span class="label label-warning">请填写收货地址</span>');
+		$('#err_msg').html('<span class="label label-warning">请填写收货详细地址</span>');
 		return false
 	}
 
@@ -171,9 +171,9 @@ $("#address-form").submit(function (res) {
 	    $('#address_list').prepend(ht);
 		
 		var addBtnLink = $('#address_plus_link');
-		if (addBtnLink.hasClass('cancel')){
+		if (addBtnLink.hasClass('glyphicon-collapse-up')){
 			$('#address_plus_module').slideUp(1000);
-			addBtnLink.removeClass('cancel').addClass('add').html('添加');
+			addBtnLink.removeClass('glyphicon-collapse-up').addClass('glyphicon-collapse-down');
 		}
 		
 	}catch(exc){

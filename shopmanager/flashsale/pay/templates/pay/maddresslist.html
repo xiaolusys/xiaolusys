@@ -12,6 +12,7 @@
 .address{
 	background-color:white;
 	margin-bottom:0px;
+	min-height:80px;
 }
 .address a{
 	color:#555;
@@ -47,7 +48,7 @@
 	  <span class="h3">地址列表</span>
 	</div>
 	<div class="col-xs-2" >
-	  <a id="address_plus_link" href="javascript:void(0);" class="glyphicon glyphicon-collapse-down" ></a>
+	  <a id="address_plus_link" href="javascript:void(0);" class="glyphicon glyphicon-collapse-down " ></a>
 	</div>
 </nav>
 
@@ -90,10 +91,9 @@ $(function(){
 			$(this).removeClass('glyphicon-collapse-up').addClass('glyphicon-collapse-down');
 			return 
 		}
-		
 		$(this).addClass('glyphicon-collapse-up').removeClass('glyphicon-collapse-down');
 		var callback = function(resp){
-			$('#address_plus_module').html(resp).slideDown(1000);
+			$('#address_plus_module').html(resp).slideDown(500);
 			
 		};
 	
