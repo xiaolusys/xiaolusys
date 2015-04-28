@@ -185,7 +185,10 @@ class Product(models.Model):
                 'match_reason':self.match_reason,
                 'skus':skus_json
                 }    
-        
+    
+    def title(self):
+        return self.name
+    
     def update_collect_num(self,num,full_update=False,dec_update=False):
         """
             更新商品库存:
