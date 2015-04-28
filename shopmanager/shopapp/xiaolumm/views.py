@@ -143,7 +143,11 @@ class MamaStatsView(View):
         
         data = {}
         try:
-            xlmm = XiaoluMama.objects.get(mobile=mobile)
+            xlmm,status = XiaoluMama.objects.get_or_create(mobile=mobile)
+            if not xlmm.openid:
+                xlmm.openid = wx_user.openid
+                xlmm.save()
+            
             clicks = Clicks.objects.filter(linkid=xlmm.pk,created__gt=time_from,created__lt=time_to)
             openid_list = clicks.values("openid").distinct()
             
