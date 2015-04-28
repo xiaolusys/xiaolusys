@@ -51,7 +51,7 @@
 
 <div id="id-cashout-list" style="margin-top:10px; display:none">
   <p style="color:orange">&nbsp;您的可提现金额为￥<span style="font-size:26px">{{ xlmm.cash }}</span>。</p>
-  <div id="id-cashout-area" {% if xlmm.cashout > 0 %} style="display:none" {% endif %}>
+  <div id="id-cashout-area" {% if xlmm.cash > 0 %} style="display:none" {% endif %}>
     <p>&nbsp;请输入提现金额（元）：</p>
     <div class="input-group" style="margin-top:5px">
       <span class="input-group-addon">￥</span>
