@@ -66,10 +66,13 @@ class Clicks(models.Model):
 class CashOut(models.Model):
     PENDING = 'pending'
     APPROVED = 'approved'
+    REJECTED = 'rejected'
     COMPLETED = 'completed'
+
     STATUS_CHOICES = (
         (PENDING,u'待审核'),
         (APPROVED,u'审核通过'),
+        (REJECTED,u'已拒绝'),
         (COMPLETED,u'完成'),
     )
     
@@ -88,10 +91,13 @@ class CarryLog(models.Model):
     PENDING = 'pending'
     CONFIRMED = 'confirmed'
     CANCELED = 'canceled'
+    CONSUMED = 'consumed'
+
     STATUS_CHOICES = (
         (PENDING,u'待确认'),
         (CONFIRMED,u'确定'),
         (CANCELED,u'已退款'),
+        (CANCELED,u'已消费'),
     )
 
     xlmm = models.IntegerField(default=0,db_index=True,verbose_name=u"妈妈编号")
