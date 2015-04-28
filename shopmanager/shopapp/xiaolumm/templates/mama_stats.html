@@ -41,7 +41,7 @@
     <li class="list-group-item">微客服: {{ weikefu }}</li>
     {% if agencylevel.pk > 1 %}
     {% if agencylevel.cash > 0 %}
-    <li class="list-group-item"><p style="color:orange">账户现金: ￥<span style="font-size:26px">{{ agencylevel.cash }}</span>（<a href="">详情</a>）<button class="btn btn-warning" style="float:right;">提现</button></p></li>
+    <li class="list-group-item"><p style="color:orange">账户现金: ￥<span style="font-size:26px">{{ agencylevel.cash }}</span>（<a href="/m/cashout/">详情</a>）<a href="/m/cashout/" class="btn btn-warning" style="float:right;">提现</a></p></li>
     {% else %}
     <li class="list-group-item"><p style="color:orange">账户现金: {{ agencylevel.cash }}</p></li>
     {% endif %}
