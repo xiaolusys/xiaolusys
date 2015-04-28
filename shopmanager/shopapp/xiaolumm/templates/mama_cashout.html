@@ -24,22 +24,6 @@
   <li id="id-cashout" role="presentation"><a href="#">提现</a></li>
 </ul>
 
-<!--
-<div class="row" style="margin-top:10px">
-  <div class="col-xs-4">
-    <a href="/m/?day={{ prev_day }}"><< 前一天</a>
-  </div>
-  <div class="col-xs-4">
-    <p>{{ target_date }}</p>
-  </div>
-  <div class="col-xs-4">
-    {% if next_day %}
-    <a href="/m/?day={{ next_day }}">后一天 >></a>
-    {% endif %}
-  </div>
-</div>
--->
-
 <div id="id-carry-list" style="margin-top:20px">
   <div></div>
   <div style="margin-top:20px">
@@ -66,7 +50,7 @@
 </div>
 
 <div id="id-cashout-list" style="margin-top:10px; display:none">
-  <p style="color:orange">&nbsp;您的可提现金额为￥<span style="font-size:26px">128</span>。</p>
+  <p style="color:orange">&nbsp;您的可提现金额为￥<span style="font-size:26px">{{ xlmm.cash }}</span>。</p>
   <div id="id-cashout-area" {% if cashout > 0 %} style="display:none" {% endif %}>
     <p>&nbsp;请输入提现金额（元）：</p>
     <div class="input-group" style="margin-top:5px">
@@ -112,9 +96,9 @@
   <script type="text/javascript">
 
   $(function () {
-    var cashout_url = "/m/cashoutlist/?xlmm={{ xlmm }}";
+    var cashout_url = "/m/cashoutlist/?xlmm={{ xlmm.pk }}";
     get_cashout_list(cashout_url);
-    var carry_url = "/m/carrylist/?xlmm={{ xlmm }}";
+    var carry_url = "/m/carrylist/?xlmm={{ xlmm.pk }}";
     get_carry_list(carry_url);
     
   });
@@ -220,13 +204,11 @@
   });
 
   $("#id-cashout-submit").click(function (e) {
-
     var url = "/m/cashout/";
     var csrf_token = document.getElementsByName("csrfmiddlewaretoken")[0].value;
     var v = $("#id-cashout-input").val();
     var data = {"v":v, "csrfmiddlewaretoken":csrf_token};
     var callback = function (res) {
-      console.log(res);
       if (res["code"] == 0) {
         $("#id-cashout-notice").css("display","block");
         $("#id-cashout-area").css("display","none");

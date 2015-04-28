@@ -60,8 +60,7 @@ class CashoutView(View):
         
         xlmm = XiaoluMama.objects.get(openid=openid)
         cashout_objs = CashOut.objects.filter(xlmm=xlmm.pk,status=CashOut.PENDING)
-        #CarryLog.objects.filter(xlmm=xlmm.pk)
-        data = {"xlmm":xlmm.pk, "cashout": cashout_objs.count()}
+        data = {"xlmm":xlmm, "cashout": cashout_objs.count()}
         
         
         response = render_to_response("mama_cashout.html", data, context_instance=RequestContext(request))
@@ -79,9 +78,7 @@ class CashoutView(View):
         if m:
             value = int(m.group())
             try:
-                print openid
                 xlmm = XiaoluMama.objects.get(openid=openid)
-                print xlmm
                 CashOut.objects.create(xlmm=xlmm.pk,value=value)
             except:
                 status = {"code":1, "status":"error"}
@@ -171,13 +168,12 @@ class MamaStatsView(View):
 
             order_list.sort(key=lambda a: a["time"])
             click_num = len(openid_list)
-            weikefu = xlmm.weikefu
             mobile_revised = "%s****%s" % (mobile[:3], mobile[-4:])
 
             agencylevel = AgencyLevel.objects.get(pk=xlmm.agencylevel)
             carry = agencylevel.basic_rate * total_value * 0.01
 
-            data = {"mobile":mobile_revised, "click_num":click_num, "weikefu":weikefu,
+            data = {"mobile":mobile_revised, "click_num":click_num, "xlmm":xlmm,
                     "order_num":order_num, "order_list":order_list, "pk":xlmm.pk,
                     "total_value":total_value, "carry":carry, "agencylevel":agencylevel,
                     "target_date":target_date, "prev_day":prev_day, "next_day":next_day}
