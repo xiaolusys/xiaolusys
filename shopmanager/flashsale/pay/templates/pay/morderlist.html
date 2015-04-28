@@ -1,0 +1,146 @@
+{% extends "pay/base_profile.html" %}
+
+{% block title %}小鹿美美-我的订单{% endblock %}
+
+{% block style %}
+<link rel="stylesheet" href="{{ STATIC_URL }}style/profile.css">
+<style typ="text/css">
+
+body{
+	background-color: #f8f8f8;
+}
+.row-bg-line-top{
+	border-color: #e7e7e7;
+	border:1px solid #ccc;
+	border-top:1px solid #e7e7e7;;
+	border-width: 1px 0px ;
+	min-height:40px;
+}
+
+.row-bg-line-bottom{
+	padding:5px;
+	border-color: #e7e7e7;
+	border:1px solid #ccc;
+	border-top-style:dotted;
+	border-width: 1px 0px;
+	min-height:30px;
+}
+
+.order-list {
+	margin-top:60px;
+}
+
+.order-item { 
+	margin:15px 0px;
+}
+
+.row{
+	background-color:white;
+}
+
+.order-item-header{
+	padding:0px;
+	font-size:12px;
+}
+
+.c-red,.c-grey{
+	display:block;
+	overflow:hidden;
+}
+.block {display:block;}
+
+.order-item-detail {
+	padding:10px;
+	font-size:14px;
+}
+.order-item-detail a{
+	color:#555;
+}
+
+.origin-price{
+	text-decoration:line-through;
+}
+
+.clear-lp{
+	padding-left:0px;
+}
+</style>
+
+{% endblock %}
+
+
+{% block preload_script %}
+
+{% endblock %}
+
+{% block container %}
+<div class="container-fluid">
+
+<nav class="navbar navbar-default navbar-fixed-top row">
+	<div class="col-xs-2" >
+	  <a href="{% if origin_url %}{{ origin_url }}{% else %}javascript:history.back();{% endif %}" class="glyphicon glyphicon-menu-left" target="_self"></a>
+	</div>
+	<div class="col-xs-8" >
+	  <span class="h3">订单列表</span>
+	</div>
+	<div class="col-xs-2" >
+	  <a id="address_plus_link" href="{% url sale_home %}" class="glyphicon glyphicon-home" target="_self"></a>
+	</div>
+</nav>
+
+<div class="order-list">
+{% for trade in trades %}
+<div class="order-item clearfix">
+  <div class="order-item-header row row-bg-line-top">
+  	<div class="col-xs-6">订单编号：<span class="c-red">{{ trade.tid }}</span></div>
+  	<div class="col-xs-6 ">下单时间：<span class="c-grey ">{{ trade.created }}</span></div>
+  </div>
+  <div class="order-item-detail row ">
+    <a href="{% url user_orderdetail pk=trade.id %}" class="ablock orderRlink" target="_self">
+    <div class="col-xs-2 thumbnail">
+    	<img src="{{ trade.order_pic }}" data-original="{{ trade.order_pic }}" >
+    </div>
+    <div class="col-xs-9">
+       <div class="clearfix block"><span class="title">{{ trade.order_title }}</span></div>
+       <div class="clearfix block">数量：<span>{{ trade.order_num }}</span></div>
+       <div class="clearfix block">订单状态：<span>{{ trade.status_name }}</span></div>
+    </div>
+    <div class="col-xs-1 glyphicon glyphicon-chevron-right clear-lp"></div>
+    </a>
+  </div>
+  <div class="pay-now row row-bg-line-bottom">
+  	<div class="col-xs-9">总金额:<em>￥</em><span>{{ trade.payment }}</span></div>
+  	{% if trade.status == 1 %}
+   	<div class="col-xs-3">
+       <button type="button" name="afresh-check" class="btn btn-xs btn-default" data-order_sn="15042252589829">立即支付</button>
+    </div>
+    {% elif trade.status == 2 %}
+    <div class="col-xs-3">
+       <button type="button" name="afresh-check" class="btn btn-xs btn-default" data-order_sn="15042252589829">取消订单</button>
+    </div>
+    {% elif trade.status == 3 %}
+    <div class="col-xs-3">
+       <button type="button" name="afresh-check" class="btn btn-xs btn-default" data-order_sn="15042252589829">确认收货</button>
+    </div>
+    {% elif trade.status == 5 %}
+    <div class="col-xs-3">
+       <button type="button" name="afresh-check" class="btn btn-xs btn-default" data-order_sn="15042252589829">查看物流</button>
+    </div>
+    {% endif %}
+   </div>
+  <span class="rightrow"></span>
+</div>
+{% endfor %}
+</div>
+</div>
+{% endblock %}
+
+{% block delayed_script %}
+<script type="text/javascript">
+$(function(){
+	$('.ui-loader').remove();
+})
+</script>
+
+
+{% endblock %}

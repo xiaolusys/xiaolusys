@@ -11,3 +11,8 @@
     background-image: url("../images/line_dot.png");
     background-size: 7px 3px;
 }
+
+.navbar-fixed-bottom li+li{
+	border:1px solid #770077;
+	border-width: 0px 0px 0px 1px;
+}

@@ -90,8 +90,12 @@ class TradeService(LocalService):
         
     
     def sendTrade(self,*args,**kwargs):
-
-        return self.bservice.sendTrade(company_code=self.trade.logistics_company.code,
+        
+        company_code = ''
+        if self.trade.logistics_company:
+            company_code = self.trade.logistics_company.code
+            
+        return self.bservice.sendTrade(company_code=company_code,
                                        out_sid=self.trade.out_sid,
                                        is_cod=self.trade.is_cod,
                                        serial_no=self.trade.id)

@@ -3,15 +3,32 @@
 {% block title %}小鹿美美-新增地址{% endblock %}
 
 {% block style %}
+<link rel="stylesheet" href="{{ STATIC_URL }}style/profile.css">
 <style style="text/css">
-  *{margin:0px;padding:0px;}
-  .wrap { background:#b81b22; }
-  .wrap a{font-size:16px;color:white;padding:10px 10px;margin-top:10px;display: inline-block;}
-  .well {margin-bottom:0px;padding:10px; }
-  .opt-link {margin-top:5px;font-size:30px;}
-  .opt-link .del-link{display:none;color:red;}
-  .bold {font-weight:bold;}
-  .clear {clear:both;}
+.bold { 
+	font-size:16px;
+	padding:10px 10px 10px 0px;
+}
+.address{
+	background-color:white;
+	margin-bottom:0px;
+	min-height:80px;
+}
+.address a{
+	color:#555;
+}
+.opt-link a{
+	font-size:30px;
+}
+.opt-link .glyphicon-remove{
+	color:#C63300;
+}
+.opt-link .glyphicon-heart-empty{
+	color:#FFB7DD;
+}
+.del-link{
+	display:none;
+}
 </style>
 {% endblock %}
 
@@ -23,36 +40,38 @@
 
 {% block container %}
 
-<nav class="navbar navbar-default navbar-fixed-top">
-	<div class="row wrap" >
+<nav class="navbar navbar-default navbar-fixed-top row">
+	<div class="col-xs-2" >
+	  <a href="{% if origin_url %}{{ origin_url }}{% else %}javascript:history.back();{% endif %}" class="glyphicon glyphicon-menu-left" target="_self"></a>
+	</div>
 	<div class="col-xs-8" >
-	  <a href="{% if origin_url %}{{ origin_url }}{% else %}#{% endif %}" class="glyphicon glyphicon-menu-left" target="_self">返回</a>
+	  <span class="h3">地址列表</span>
 	</div>
-	<div class="col-xs-4" >
-	  <a id="address_plus_link" href="javascript:void(0);" class="add" >添加</a>
+	<div class="col-xs-2" >
+	  <a id="address_plus_link" href="javascript:void(0);" class="glyphicon glyphicon-collapse-down " target="_self"></a>
 	</div>
-    </div>
 </nav>
 
-<div class="container-fluid" style="margin-top:50px;">
+
+<div class="container-fluid" style="margin-top:60px;">
 <div id="address_plus_module" class="row" style="display:none;">
 <!--此处加载添加地址表单-->
 </div>
 {% csrf_token %}
 <div id="address_list">
 {% for addr in results %}
-<div id="addrid-{{ addr.id }}" addrid="{{ addr.id }}" class="well row" >
+<div id="addrid-{{ addr.id }}" addrid="{{ addr.id }}" class="well well-sm row list-row-border address" >
 	<a class="well-link" href="{% if origin_url %}{{ origin_url }}&addrid={{ addr.id }}{% else %}#{% endif %}" target="_self">
-    <div id="addrwell-{{ addr.id }}" class=" col-xs-offset-1 col-xs-9 pd">
-    <div><font class="bold">{{ addr.receiver_name }}</font>&nbsp;&nbsp;&nbsp;{{ addr.receiver_state }}&nbsp;{{ addr.receiver_city }}&nbsp;{{ addr.receiver_district }}</div>
-	<div>{{ addr.receiver_address }}</div>
+    <div id="addrwell-{{ addr.id }}" class=" col-xs-offset-1 col-xs-9">
+      <div><font class="bold">{{ addr.receiver_name }}</font>&nbsp;&nbsp;&nbsp;{{ addr.receiver_state }}&nbsp;{{ addr.receiver_city }}&nbsp;{{ addr.receiver_district }}</div>
+	  <div>{{ addr.receiver_address }}</div>
 	</div>
 	</a>
 	<div id="optlink-{{ addr.id }}" class="opt-link ">
-		<div class="col-xs-1 glyphicon {% if origin_addrid  %}{% if origin_addrid == addr.id %}glyphicon-heart{% endif %}{% else %}{% if addr.default %}glyphicon-heart{% endif %}{% endif %}"></div>
-		<div id="dellink-{{ addr.id }}" addrid="{{ addr.id }}" class="col-xs-1 glyphicon glyphicon-remove del-link"></div>
+		<a class="col-xs-1 glyphicon {% if origin_addrid  %}{% if origin_addrid == addr.id %}glyphicon-heart-empty{% endif %}{% else %}{% if addr.default %}glyphicon-heart-empty{% endif %}{% endif %}"></a>
+		<a id="dellink-{{ addr.id }}" addrid="{{ addr.id }}" class="col-xs-1 glyphicon glyphicon-remove del-link"></a>
 	</div>
-	
+
 </div>
 {% endfor %}
 </div>
@@ -67,15 +86,14 @@ $(function(){
 	
 	$('#address_plus_link').click(function(event){
 		console.log('init ready');
-		if ($(this).hasClass('cancel')){
+		if ($(this).hasClass('glyphicon-collapse-up')){
 			$('#address_plus_module').slideUp(1000);
-			$(this).removeClass('cancel').addClass('add').html('添加');
+			$(this).removeClass('glyphicon-collapse-up').addClass('glyphicon-collapse-down');
 			return 
 		}
-		
-		$(this).addClass('cancel').removeClass('add').html('取消');
+		$(this).addClass('glyphicon-collapse-up').removeClass('glyphicon-collapse-down');
 		var callback = function(resp){
-			$('#address_plus_module').html(resp).slideDown(1000);
+			$('#address_plus_module').html(resp).slideDown(500);
 			
 		};
 	
@@ -93,11 +111,9 @@ $(function(){
 
 		var callback = function(resp){
 			if (resp.success == true){
-				console.log(resp,resp.success);
 				$('#addrid-'+addrId).slideUp(500);
 			}
 		};
-		console.log(params);
 		$.post('/mm/addr/',params,callback,'json');
 	});
 	
@@ -115,7 +131,6 @@ $(function(){
     }); 
 	
 });
-
 
 </script>
 {% endblock %}

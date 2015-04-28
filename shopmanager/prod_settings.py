@@ -30,7 +30,7 @@ if DEBUG:
 else :
     STATIC_ROOT = os.path.join(PROJECT_ROOT,"site_media","static")
 
-
+ALLOWED_HOSTS = ['.huyi.so','.xiaolu.so','192.168.1.1','192.168.1.6','192.168.1.24']
 
 CACHES = {
     'default': {
@@ -44,8 +44,10 @@ RAVEN_CONFIG = {
     'register_signals': True,
 }
 
-
+#WEB DNS
 SITE_URL = 'http://youni.huyi.so/' 
+#WAP DNS
+M_SITE_URL = 'http://weixin.huyi.so/'  
 
 ####################### TRADE HANDLERS CONFIG ########################
 TRADE_HANDLERS_PATH = (

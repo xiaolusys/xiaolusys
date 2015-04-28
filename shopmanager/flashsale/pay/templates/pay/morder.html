@@ -9,9 +9,13 @@
     <style style="text/css">
     .wrap { background:#b81b22; }
   	.wrap a{font-size:16px;color:white;padding:10px 10px;margin-top:10px;display: inline-block;}
-    .address {margin-top:50px;margin-bottom:0px;background:#6f5499;}
-    .address a{color:white;}
-    .glyphicon{font-size:30px;}
+  	.container-head{margin-top:50px;margin-bottom:0px;background:#6f5499;}
+  	.container-head a {color:white;}
+    .well-lg { padding:24px 5px;}
+    .navbar-fixed-top{
+		text-align:center;
+		font-size:25px;
+	}
     .address-detail {font-size:6px;}
     </style>
 {% endblock %}
@@ -22,50 +26,66 @@
 {% endblock %}
 
 {% block container %}
-<nav class="navbar navbar-default navbar-fixed-top">
-	<div class="row wrap" >
-	<div class="col-xs-7" >
-	  <a href="{% if origin_url %}{{ origin_url }}{% else %}#{% endif %}" class="glyphicon glyphicon-menu-left" >返回</a>
+<nav class="navbar navbar-default navbar-fixed-top row">
+	<div class="col-xs-2" >
+	  <a href="{% url product_detail pk=product.id %}" class="glyphicon glyphicon-menu-left" target="_self"></a>
 	</div>
-	<div class="col-xs-5" >
-	  <a id="address_plus_link" href="javascript:void(0);" class="add" >确认订单</a>
+	<div class="col-xs-8" >
+	  <span class="h3">订单付款</span>
 	</div>
-    </div>
+	<div class="col-xs-2" >
+	  <a href="{% url sale_home %}" class="glyphicon glyphicon-home" target="_self"></a>
+	</div>
 </nav>
 
-<div class="well well-sm row address">
+<div class="container-fluid">
+<div class="well well-lg row container-head">
 	{% if address %}
     <a href="/mm/addr/list/?origin_url={{ origin_url }}" target="_self">
-    <div class="col-xs-1 glyphicon glyphicon-map-marker" ></div>
-    <div class="col-xs-9"><div><label>收货人:</label><span>{{ address.receiver_name }}</span>
-    	<span class="pull-right">{{ address.receiver_mobile }}</span></div>
-    <div class="address-detail"><label>收货地址:</label><span>{{ address.receiver_state }}&nbsp;{{ address.receiver_city }}
-    	&nbsp;{{ address.receiver_district }}&nbsp;{{ address.receiver_address }}</span></div></div>
-    <div class="col-xs-1 glyphicon glyphicon-chevron-right" target="_self"></div>
+    <div >
+    <div class="pull-left glyphicon glyphicon-map-marker" ></div>
+    <div class="col-xs-9">
+    	<div><label>收货人:</label><span>{{ address.receiver_name }}</span><span class="pull-right">{{ address.receiver_mobile }}</span></div>
+    	<div class="address-detail"><label>收货地址:</label><span>{{ address.receiver_state }}&nbsp;{{ address.receiver_city }}
+    	&nbsp;{{ address.receiver_district }}&nbsp;{{ address.receiver_address }}</span></div>
+    </div>
+    <div class="glyphicon glyphicon-chevron-right" target="_self"></div>
+ 	</div>
     </a>
     {% else %}
-    <a href="/mm/addr/list/?origin_url={{ origin_url }}" target="_self"><div class="col-xs-offset-1 col-xs-9">您还没有添加您地址，点击添加</div></a>
+    <a href="/mm/addr/list/?origin_url={{ origin_url }}" target="_self"><div class="col-xs-offset-1 col-xs-9 ">您还没有添加您地址，点击添加</div></a>
     {% endif %}
 </div>
+<div class="row">
 <div class="title">选择支付方式</div>
+</div>
+<div class="row">
 <div class="pay_way">
+    {% if weixin_from %}
     <div id="wx_pub" class="wrapper selected">
         <div class="check"></div>
         <div class="img"><img src="{{ STATIC_URL }}images/pay_wechat.png"></div>
         <div class="text">微信支付</div>
     </div>
-    <div id="alipay_wap" class="wrapper">
+    {% endif %}
+    {% if alipay_from %}
+    <div id="alipay_wap" class="wrapper {% if not weixin_from %}selected{% endif %}">
         <div class="check"></div>
         <div class="img"><img src="{{ STATIC_URL }}images/pay_alipay.png"></div>
         <div class="text">支付宝支付</div>
     </div>
+    {% endif %}
    <!-- <div id="upacp_wap" class="wrapper">
         <div class="check"></div>
         <div class="img"><img src="{{ STATIC_URL }}images/pay_union.png"></div>
         <div class="text">银联支付</div>
     </div>-->
 </div>
+</div>
+<div class="row">
 <div class="title">确认购买商品</div>
+</div>
+<div class="row">
 <div class="product_sure">
     <div class="wrapper">
         <div class="img"><img src="{{ product.pic_path }}" /></div>
@@ -103,14 +123,18 @@
         </div>
     </div>
 </div>
+</div>
+<div class="row">
 <div class="title">确认付款金额</div>
+</div>
+<div class="row">
 <div class="price_sure">
     <div class="wrapper">商品金额总计<div class="price sum">￥<span>{{ real_fee }}</span></div></div>
     <div class="wrapper">快递费<div class="price post">￥<span>{{ post_fee }}</span></div></div>
     <div class="line"></div>
     <div class="wrapper">订单总额<div class="price all">￥<span>{{ payment }}</span></div></div>
 </div>
-
+</div>
 <form id="order-form" action="#" method="POST">
 <input type="hidden" name="item_id" value="{{ product.id }}" />
 <input type="hidden" name="sku_id" value="{{ sku.id }}" />
@@ -128,12 +152,14 @@
 <input type="hidden" id="channel" name="channel" />
 <input type="hidden" id="message" name="buyer_message" />
 </form>
-
+<div class="row">
 <div id="pay_now">
     <div class="btn">
         <img width="16" height="16" style="margin-right: 5px;"  src="{{ STATIC_URL }}images/pay.png" />
         确认付款
     </div>
+</div>
+</div>
 </div>
 {% endblock %}
 

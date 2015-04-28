@@ -1,0 +1,204 @@
+{% extends "pay/base_profile.html" %}
+
+{% block title %}小鹿美美-个人中心{% endblock %}
+
+{% block style %}
+<link rel="stylesheet" href="{{ STATIC_URL }}style/main.css">
+<link rel="stylesheet" href="{{ STATIC_URL }}style/profile.css">
+
+{% endblock %}
+
+
+{% block preload_script %}
+
+
+{% endblock %}
+
+
+{% block container %}
+<div class="container-fluid">
+<nav class="navbar navbar-default navbar-fixed-top row">
+	<div class="col-xs-2" >
+	  <a href="{% if origin_url %}{{ origin_url }}{% else %}javascript:history.back();{% endif %}" class="glyphicon glyphicon-menu-left" target="_self"></a>
+	</div>
+	<div class="col-xs-8" >
+	  <span class="h3">申请售后</span>
+	</div>
+	<div class="col-xs-2" >
+	  <a id="address_plus_link" href="{% url sale_home %}" class="glyphicon glyphicon-home" target="_self"></a>
+	</div>
+</nav>
+
+<div class="list-panel panel-default panel-first-child">
+  <div class="panel-heading">申请售后商品信息</div>
+  <div class="panel-body">
+	<div class="row list-row list-row-border">
+	<div class="col-xs-2  thumbnail ">
+    <img src="{{ order.pic_path }}" data-original="{{ order.pic_path }}"  class="pro" >
+    </div>
+    <div class=" col-xs-10 ">
+       <div class="row padding-lf0">
+       <div class="col-xs-10 padding-lf5"><span class="title h6">{{ order.title }}</span></div>
+       <div class="col-xs-2 ">
+       <div class="price"><em class="tm-yen">￥</em><span>{{ order.payment }}</span></div>
+       <div class="num"><span >x&nbsp;{{ order.num }}</span></div>
+	   </div>
+	   </div>
+	   <div class="row padding-lf5 font8 font-tp">尺码：<span >{{ order.sku_name }}</span></div>
+    </div>
+    <div class="col-xs-10 padding-lf0">
+       
+    </div>
+	</div>
+  </div>
+</div>
+
+<div id="refund-status" class="list-panel panel-default" style="display:none;">
+  <div class="panel-heading">售后订单申请状态</div>
+  <div class="panel-body">
+	<div id="refund-resp" class="row list-row list-row-border">
+	  <div class="well well-lg">
+		<p>亲，您的售后申请已提交成功了！</p>
+		<p>客服将在 <span class="glyphicon glyphicon-time label label-danger">退款申请后两天内</span>处理您的退货/退款申请，请耐心等待！</p>
+		<p><a href="{% url user_orderdetail pk=order.sale_trade %}" class="btn btn-default btn-rowfull">返回订单详情</a></p>
+	  </div>
+	</div>
+  </div>
+  </div>
+</div>	
+
+<div id="refund-module" role="tabpanel">
+  
+  <!-- Nav tabs -->
+  <ul class="nav nav-tabs" role="tablist">
+    <li role="presentation" class="li-half active" ><a href="#refund" aria-controls="home" role="tab" data-toggle="tab" >我要退款</a></li>
+    <li role="presentation" class="li-half"><a href="#refund-good" aria-controls="profile" role="tab" data-toggle="tab" >我要退货</a></li>
+  </ul>
+  
+  <!-- Tab panes -->
+  <div class="tab-content">
+    <div role="tabpanel" class="tab-pane active" id="refund">
+    <div class="tab-form">
+    	<form id="refund-form" action="{% url refund_apply %}" method="POST">
+    	 {% csrf_token %}
+    	 <input type="hidden" name="trade_id" value="{{ order.sale_trade }}" >
+    	  <input type="hidden" name="order_id" value="{{ order.id }}" >
+    	  <div class="form-group ">
+		    <label for="inputNum32" class="control-label">是否收货：</label>
+		    <select id="selectReason31" name="good_receive" required="required" class="form-control">
+		      <option value="">提示：收货后退货退款请选择我要退货哦</option>
+			  <option value="Y">是</option>
+			  <option value="N">否</option>
+			</select>
+		  </div>
+		  <div class="form-group ">
+		    <label for="selectReason31" class="control-label">退款原因：</label>
+		    <select id="selectReason31" name="reason" required="required" class="form-control">
+			  <option value="">请选择退款理由</option>
+			  <option value="2">2</option>
+			  <option value="3">3</option>
+			  <option value="4">4</option>
+			  <option value="5">5</option>
+			</select>
+		  </div>
+		  <div class="form-group ">
+		    <label for="inputRefund31" class="control-label">退款金额：</label>
+		    <input type="number" name="refund_fee" max="{{ order.payment }}" min="0" step = "any" 
+		    	required = "required" class="form-control " id="inputRefund31" value="{{ order.payment }}">
+		  </div>
+		  <div class="form-group ">
+		    <label for="textDesc31" class="control-label">补充描述：</label>
+		    <textarea id="textDesc31" name="desc" class="form-control" rows="3" placeholder="补充详细描述能帮助售后快速处理你的退款退货申请"></textarea>
+		  </div>
+		  <div class="form-group ">
+		    <button type="submit" class="btn btn-default btn-rowfull" >提交退款申请</button>
+		  </div>
+		</form>
+	</div>
+    </div>
+    <div role="tabpanel" class="tab-pane" id="refund-good">
+    <div class="tab-form">
+    	<form id="return-form" action="{% url refund_apply %}" method="POST">
+    	  {% csrf_token %}
+    	  <input type="hidden" name="return_good" value="1" >
+    	  <input type="hidden" name="trade_id" value="{{ order.sale_trade }}" >
+    	  <input type="hidden" name="order_id" value="{{ order.id }}" >
+		  <div class="form-group ">
+		    <label for="selectReason32" class="control-label">退货原因：</label>
+		      <select id="selectReason32" name="reason" required = "required" class="form-control">
+		      	  <option value="">提示：请确保商品包装完好再申请退货</option>
+				  <option value="1">1</option>
+				  <option value="2">2</option>
+				  <option value="3">3</option>
+				  <option value="4">4</option>
+				  <option value="5">5</option>
+			  </select>
+		  </div>
+		  <div class="form-group ">
+		    <label for="inputNum32" class="control-label">退货数量：</label>
+		    <input type="number" name="refund_num" max="{{ order.num }}" min="1"  required = "required" class="form-control " id="inputNum32" value="{{ order.num }}" {% if order.num == 1 %}readonly{% endif %}>
+		  </div>
+		  <div class="form-group ">
+		    <label for="inputRefund32" class="control-label">退款金额：</label>
+		    <input type="number" name="refund_fee" max="{{ order.payment }}" min="0" step = "any" required = "required" class="form-control " id="inputRefund32" value="{{ order.payment }}">
+		  </div>
+		  <div class="form-group ">
+		    <label for="inputCompany32" class="control-label">退货快递：</label>
+		    <input type="text" name="company_name" maxlength="20" required = "required" class="form-control " id="inputCompany32" placeholder="请输入退货快递...">
+		  </div>
+		  <div class="form-group ">
+		    <label for="inputSid32" class="control-label">退回单号：</label>
+		    <input type="text" name="sid" maxlength="20" pattern="[A-z0-9]{8,20}" required = "required" class="form-control " id="inputSid32" placeholder="请输入退货快递单号...">
+		  </div>
+		  <div class="form-group ">
+		    <label for="textDesc32" class="control-label">补充描述：</label>
+		    <textarea name="desc" class="form-control" rows="3" cols="200" id="textDesc32" placeholder="补充详细描述能帮助售后快速处理你的退款退货申请"></textarea>
+		  </div>
+		  <div class="form-group ">
+		      <button type="submit" class="btn btn-default btn-rowfull">提交退货申请</button>
+		  </div>
+		</form>
+	</div>
+    </div>
+  </div>
+
+</div>
+
+</div>
+{% endblock %}
+
+
+
+{% block delayed_script %}
+<script type="text/javascript">
+$(function(){
+	$('.ui-loader').remove();
+	
+	var Submit_func = function(event){
+	
+		var form = $(this);
+		var action = form.attr('action');
+		var data = form.serialize();
+		
+		var callback = function(resp){
+			try{
+				if(resp.id){
+					$('#refund-status').show();
+					$('#refund-module').empty();
+				}
+			}catch(err){
+				console.log('Ajax error:'+errr);
+			}
+		}
+		
+		$.post(action,data,callback,'json');
+		
+		return false;
+	};
+	
+	$('#refund-form').submit(Submit_func);
+	
+	$('#return-form').submit(Submit_func);
+})
+</script>
+{% endblock %}
