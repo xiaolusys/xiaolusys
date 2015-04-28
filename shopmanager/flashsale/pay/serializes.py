@@ -74,6 +74,7 @@ class SaleOrderField(serializers.Field):
         for order in obj.all():
             odict = model_to_dict(order)
             odict['refund'] = order.refund
+            odict['refundable'] = order.refundable
             order_list.append(odict)
         return order_list
 
@@ -105,7 +106,8 @@ class SampleSaleTradeSerializer(serializers.ModelSerializer):
                     'payment','post_fee','total_fee','buyer_message','seller_memo','created','pay_time',
                     'modified','consign_time','trade_type','out_sid','logistics_company','receiver_name',
                     'receiver_state','receiver_city','receiver_district','receiver_address','receiver_zip',
-                    'receiver_mobile','receiver_phone','status','status_name','order_num','order_title','order_pic')
+                    'receiver_mobile','receiver_phone','status','status_name','order_num','order_title',
+                    'order_pic')
         
 
 

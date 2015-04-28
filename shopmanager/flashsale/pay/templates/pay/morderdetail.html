@@ -126,7 +126,7 @@
        	 <span class="glyphicon glyphicon-time">退款中</span>
        	 {% endif %}
        </a>
-       {% else %}
+       {% elif order.refundable %}
        	<a href="{% url refund_apply %}?trade_id={{ id }}&order_id={{ order.id }}" class="btn btn-xs btn-default font10 font-tp" target="_self">申请售后</a>
        {% endif %}
        </div>

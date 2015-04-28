@@ -33,7 +33,10 @@ class FlashSaleService(LocalService):
                                                              merge_trade=merge_trade)
         state = state or not merge_order.sys_status
         
-        if (merge_trade.status == pcfg.TRADE_CLOSED):
+        if (order.status in (SaleOrder.TRADE_CLOSED,
+                             SaleOrder.TRADE_CLOSED_BY_SYS) or 
+            merge_trade.status == pcfg.TRADE_CLOSED or 
+            merge_trade.status == SaleTrade.TRADE_CLOSED_BY_SYS):
             sys_status = pcfg.INVALID_STATUS
         else:
             sys_status = merge_order.sys_status or pcfg.IN_EFFECT
@@ -50,7 +53,7 @@ class FlashSaleService(LocalService):
             merge_order.outer_id     = product.outer_id
             merge_order.sku_properties_name = order.sku_name
             merge_order.outer_sku_id = sku.outer_id
-                    
+            
         merge_order.created  = merge_trade.created
         merge_order.pay_time = merge_trade.pay_time
         merge_order.status   = merge_trade.status
@@ -106,7 +109,6 @@ class FlashSaleService(LocalService):
         update_model_fields(merge_trade,update_fields=update_fields
                             +['shipping_type','type','payment',
                               'total_fee','post_fee','trade_from'])
-        
 
         for order in trade.sale_orders.all():
             cls.createMergeOrder(merge_trade,order)

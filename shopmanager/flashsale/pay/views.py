@@ -21,17 +21,14 @@ UUID_RE = re.compile('^[a-zA-Z0-9-]{21,36}$')
 
 class PINGPPChargeView(View):
     
-    def createSaleTrade(self,customer,form):
-        uuid = form.get('uuid')
-        if not UUID_RE.match(uuid):
-            raise Exception('参数错误!')
+    def createSaleTrade(self,customer,form,charge=None):
         
         product = Product.objects.get(pk=form.get('item_id'))
         sku = ProductSku.objects.get(pk=form.get('sku_id'),product=product)
         total_fee = sku.std_sale_price * int(form.get('num'))
         
         sale_trade = SaleTrade.objects.create(
-                                 tid=uuid,
+                                 tid=form.get('uuid'),
                                  buyer_id=customer.id,
                                  channel=form.get('channel'),
                                  receiver_name=form.get('receiver_name'),
@@ -46,10 +43,11 @@ class PINGPPChargeView(View):
                                  payment=float(form.get('payment')),
                                  total_fee=total_fee,
                                  post_fee=form.get('post_fee'),
+                                 charge=charge and charge['id'] or '',
                                  status=SaleTrade.WAIT_BUYER_PAY
                                  )
-
-        SaleOrder.objects.create(oid=uuid,
+        sale_order_no = form.get('uuid').replace('FD','FO')
+        SaleOrder.objects.create(oid=sale_order_no,
                                  sale_trade=sale_trade,
                                  item_id=form.get('item_id'),
                                  sku_id=form.get('sku_id'),
@@ -78,8 +76,11 @@ class PINGPPChargeView(View):
             if not customer:
                 raise Exception(u'用户未找到')
             
-            strade = self.createSaleTrade(customer,form)
-            payback_url = urlparse.urljoin(settings.SITE_URL,reverse('user_payresult'))
+            order_no = form.get('uuid')
+            if not UUID_RE.match(order_no):
+                raise Exception('参数错误!')
+            
+            payback_url = urlparse.urljoin(settings.MB_SITE_URL,reverse('user_payresult'))
             
             if channel == SaleTrade.WX_PUB:
                 extra = {'open_id':customer.openid,'trade_type':'JSAPI'}
@@ -91,19 +92,25 @@ class PINGPPChargeView(View):
             elif channel == SaleTrade.UPMP_WAP:
                 extra = {"result_url":payback_url}
             
-            params ={ 'order_no':'%s'%strade.tid,
+            params ={ 'order_no':'%s'%order_no,
                       'app':dict(id=settings.PINGPP_APPID),
                       'channel':channel,
                       'currency':'cny',
-                      'amount':'%d'%(strade.payment*100),
+                      'amount':'%d'%(float(form['payment'])*100),
                       'client_ip':settings.PINGPP_CLENTIP,
                       'subject':u'小鹿美美平台交易',
-                      'body':strade.body_describe,
+                      'body':json.dumps([form.get('item_id'),
+                                         form.get('sku_id'),
+                                         form.get('num'),
+                                         form.get('payment'),
+                                         form.get('post_fee')]),
                       'metadata':dict(color='red'),
                       'extra':extra}
             
             response_charge = pingpp.Charge.create(api_key=settings.PINGPP_APPKEY,**params)
-        
+            
+            strade = self.createSaleTrade(customer,form,charge=response_charge)
+  
         except IntegrityError:
             err_msg = u'订单已提交'
         except Exception,exc:
@@ -168,7 +175,9 @@ class PayResultView(View):
         
         content = request.REQUEST
         logger.info('pay result:%s'%content )
-
+        
+        print 'debug orderlist:',reverse('user_orderlist')
+        
         return HttpResponseRedirect(reverse('user_orderlist'))
     
     

@@ -4,18 +4,19 @@
 
 {% block style %}
 <link rel="stylesheet" href="{{ STATIC_URL }}style/main.css">
-
+<link rel="stylesheet" href="{{ STATIC_URL }}style/style_other.css">
 <style style="text/css">
-.header {
-  background-image: url({{ STATIC_URL }}images/title.png);
-  background-color: #000000;
-}
+
 .nav-top {background-color:#770077;}
 .nav-top span{font-size:20px;}
 .nav-top p{font-size:16px;}
 .nav-top a {color:white;}
 .nav-pills>li+li{
 	margin-left:0px;
+}
+
+#header{
+	margin-bottom:0px;
 }
 
 .padding-lf5{
@@ -70,10 +71,10 @@
 {% block container %}
 <div class="container-fluid">
 <div class="row">
-<div class="header"><div style="width:100%;height:100px;"></div></div>
+<div id="header"><img src="/static/images/title.png"></div>
 </div>
 
-<div class="row" role="navigation">
+<div class="row " role="navigation" >
 <ul class="nav nav-pills nav-top">
   <li role="presentation" class="col-xs-4 padding-lf5" >
   	<a href="{% url user_orderlist  %}?status=1" target="_self">
@@ -94,7 +95,7 @@
 </div>
 
 <div class="row" role="navigation">
-<ul class="nav nav-pills prop-list ">
+<ul class="nav nav-pills prop-list">
   <li role="presentation" class="col-xs-12 padding-lf5">
   	<a href="{% url address_list %}">
   	<div class="row nav-item"><div class="col-xs-10" >地址管理</div><div class="col-xs-2 glyphicon glyphicon-chevron-right pull-right"></div></div>

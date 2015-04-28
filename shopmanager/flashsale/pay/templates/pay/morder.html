@@ -12,7 +12,10 @@
   	.container-head{margin-top:50px;margin-bottom:0px;background:#6f5499;}
   	.container-head a {color:white;}
     .well-lg { padding:24px 5px;}
-    .glyphicon{font-size:30px;}
+    .navbar-fixed-top{
+		text-align:center;
+		font-size:25px;
+	}
     .address-detail {font-size:6px;}
     </style>
 {% endblock %}
@@ -23,15 +26,16 @@
 {% endblock %}
 
 {% block container %}
-<nav class="navbar navbar-default navbar-fixed-top">
-	<div class="row wrap" >
-	<div class="col-xs-7" >
-	  <a href="{% if origin_url %}{{ origin_url }}{% else %}#{% endif %}" class="glyphicon glyphicon-menu-left" >返回</a>
+<nav class="navbar navbar-default navbar-fixed-top row">
+	<div class="col-xs-2" >
+	  <a href="{% url product_detail pk=product.id %}" class="glyphicon glyphicon-menu-left" target="_self"></a>
 	</div>
-	<div class="col-xs-5" >
-	  <a id="address_plus_link" href="javascript:void(0);" class="add" >确认订单</a>
+	<div class="col-xs-8" >
+	  <span class="h3">订单付款</span>
 	</div>
-    </div>
+	<div class="col-xs-2" >
+	  <a href="{% url sale_home %}" class="glyphicon glyphicon-home" target="_self"></a>
+	</div>
 </nav>
 
 <div class="container-fluid">

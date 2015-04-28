@@ -15,6 +15,7 @@ from .models_custom import Productdetail
 from .models_refund import SaleRefund
 from .managers import SaleTradeManager
 
+from .options import uniqid
 import uuid
 
 def genUUID():
@@ -58,6 +59,9 @@ class SaleTrade(models.Model):
                            TRADE_CLOSED,
                            TRADE_CLOSED_BY_SYS)
     
+    REFUNDABLE_STATUS = (WAIT_SELLER_SEND_GOODS,
+                         WAIT_BUYER_CONFIRM_GOODS)
+    
     TRADE_STATUS = (
         (TRADE_NO_CREATE_PAY,u'订单创建'),
         (WAIT_BUYER_PAY,u'待付款'),
@@ -71,8 +75,10 @@ class SaleTrade(models.Model):
 
     id    = BigIntegerAutoField(primary_key=True,verbose_name=u'订单ID')
     
-    tid   = models.CharField(max_length=40,unique=True,verbose_name=u'原单ID')  
-    buyer_id   = models.BigIntegerField(null=False,db_index=True,verbose_name=u'买家ID')
+    tid   = models.CharField(max_length=40,unique=True,
+                             default=lambda:uniqid('%s%s'%(PREFIX_NO,datetime.datetime.now().strftime('%y%m%d'))),
+                             verbose_name=u'原单ID')  
+    buyer_id    = models.BigIntegerField(null=False,db_index=True,verbose_name=u'买家ID')
     buyer_nick  = models.CharField(max_length=64,blank=True,verbose_name=u'买家昵称')
     
     channel     = models.CharField(max_length=16,choices=CHANNEL_CHOICES,blank=True,verbose_name=u'付款类型')
@@ -106,7 +112,8 @@ class SaleTrade(models.Model):
     receiver_phone     =  models.CharField(max_length=20,blank=True,verbose_name=u'电话')
 
     openid  = models.CharField(max_length=40,blank=True,verbose_name=u'微信用户ID')
-
+    charge  = models.CharField(max_length=28,verbose_name=u'支付编号')
+    
     status  = models.IntegerField(choices=TRADE_STATUS,default=TRADE_NO_CREATE_PAY,
                               db_index=True,blank=True,verbose_name=u'交易状态')
     
@@ -157,6 +164,9 @@ class SaleTrade(models.Model):
         from shopback.trades.models import MergeTrade
         status_list = MergeTrade.TAOBAO_TRADE_STATUS
         return status_list[index][0]
+    
+    def normal_orders(self):
+        return self.sale_orders.filter(status__in=SaleOrder.NORMAL_ORDER_STATUS)
 
 class SaleOrder(models.Model):
     
@@ -167,7 +177,7 @@ class SaleOrder(models.Model):
     TRADE_BUYER_SIGNED = 4
     TRADE_FINISHED = 5
     TRADE_CLOSED = 6
-    TRADE_CLOSED_BY_TAOBAO = 7
+    TRADE_CLOSED_BY_SYS = 7
     
     ORDER_STATUS = (
         (TRADE_NO_CREATE_PAY,u'订单创建'),
@@ -177,11 +187,18 @@ class SaleOrder(models.Model):
         (TRADE_BUYER_SIGNED,u'货到付款签收'),
         (TRADE_FINISHED,u'交易成功'),
         (TRADE_CLOSED,u'退款交易关闭'),
-        (TRADE_CLOSED_BY_TAOBAO,u'未付款关闭'),
+        (TRADE_CLOSED_BY_SYS,u'未付款关闭'),
     )
-
+    
+    NORMAL_ORDER_STATUS = (WAIT_SELLER_SEND_GOODS,
+                           WAIT_BUYER_CONFIRM_GOODS,
+                           TRADE_BUYER_SIGNED,
+                           TRADE_FINISHED,)
+    
     id    = BigIntegerAutoField(primary_key=True)
-    oid   = models.CharField(max_length=40,unique=True,verbose_name=u'原单ID')
+    oid   = models.CharField(max_length=40,unique=True,
+                             default=lambda:uniqid('FO%s'%(datetime.datetime.now().strftime('%y%m%d'))),
+                             verbose_name=u'原单ID')
     sale_trade = BigIntegerForeignKey(SaleTrade,related_name='sale_orders',
                                        verbose_name=u'所属订单')
     
@@ -204,9 +221,15 @@ class SaleOrder(models.Model):
     pic_path = models.CharField(max_length=512,blank=True,verbose_name=u'商品图片')
     
     created       =  models.DateTimeField(null=True,auto_now_add=True,blank=True,verbose_name=u'创建日期')
-    modified      = models.DateTimeField(null=True,auto_now=True,blank=True,verbose_name=u'修改日期')
+    modified      =  models.DateTimeField(null=True,auto_now=True,blank=True,verbose_name=u'修改日期')
     pay_time      =  models.DateTimeField(db_index=True,null=True,blank=True,verbose_name=u'付款日期')
     consign_time  =  models.DateTimeField(null=True,blank=True,verbose_name=u'发货日期')
+    
+    refund_id     = models.BigIntegerField(null=True,verbose_name=u'退款ID')
+    refund_fee    = models.FloatField(default=0.0,verbose_name=u'退款费用')
+    refund_status = models.IntegerField(choices=SaleRefund.REFUND_STATUS,
+                                       default=SaleRefund.NO_REFUND,
+                                       blank=True,verbose_name='退款状态')
     
     status = models.IntegerField(choices=ORDER_STATUS,default=TRADE_NO_CREATE_PAY,
                               db_index=True,blank=True,verbose_name=u'订单状态')
@@ -226,12 +249,19 @@ class SaleOrder(models.Model):
             return refund
         except:
             return None
-
+        
+    @property
+    def refundable(self):
+        
+        return self.sale_trade.status in SaleTrade.REFUNDABLE_STATUS
+   
+    
+    
 
 class TradeCharge(models.Model):
     
-    order_no    = models.CharField(max_length=40,unique=True,verbose_name=u'订单ID')
-    charge      = models.CharField(max_length=28,verbose_name=u'CH-ID')
+    order_no    = models.CharField(max_length=40,verbose_name=u'订单ID')
+    charge      = models.CharField(max_length=28,verbose_name=u'支付编号')
     
     paid        = models.BooleanField(db_index=True,default=False,verbose_name=u'付款')
     refunded    = models.BooleanField(db_index=True,default=False,verbose_name=u'退款')
@@ -255,7 +285,7 @@ class TradeCharge(models.Model):
         db_table = 'flashsale_trade_charge'
         unique_together = ("order_no","charge")
         verbose_name=u'特卖支付/交易'
-        verbose_name_plural = u'特卖支付/交易列表'
+        verbose_name_plural = u'特卖交易/支付列表'
         
     def __unicode__(self):
         return '<%s>'%(self.id)

@@ -20,7 +20,6 @@ urlpatterns = (
     url(r'^plist/$', views.ProductList.as_view(),name="sale_home"),
     url(r'^p/(?P<pk>[0-9]+)/$', views.ProductDetail.as_view(),name="product_detail"),
     
-    
     ##############order urls################
     url(r'^orderbuy/$',sale_buyer_required(views.OrderBuyReview.as_view())),
     url(r'^orderlist/$', sale_buyer_required(views.SaleOrderList.as_view()),name="user_orderlist"),

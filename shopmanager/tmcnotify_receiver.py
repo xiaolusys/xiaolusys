@@ -64,7 +64,7 @@ class NotifyCommand():
             return users[0]
         
         
-    def getTotalResults(self,reponse):
+    def getTotalResults(self,response):
         
         return response['tmc_messages_consume_response'].get('total_results')
         

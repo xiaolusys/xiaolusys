@@ -1,8 +1,6 @@
 #-*- encoding:utf8 -*-
-import json
-import time
-import urlparse
-import datetime
+from django.conf import settings
+from django.http import Http404,HttpResponseForbidden
 from django.views.generic import View
 from django.forms import model_to_dict
 from django.shortcuts import redirect,get_object_or_404
@@ -14,8 +12,9 @@ from rest_framework import permissions
 from rest_framework.renderers import JSONRenderer,TemplateHTMLRenderer
 from rest_framework.views import APIView
 
-from .models import SaleTrade,SaleOrder,Customer
+from .models import SaleTrade,SaleOrder,Customer,TradeCharge
 from .models_refund import SaleRefund
+from . import tasks
 import pingpp
 import logging
 logger = logging.getLogger('django.request')
@@ -37,6 +36,9 @@ class RefundApply(APIView):
         
         sale_order = get_object_or_404(SaleOrder,pk=order_id,sale_trade=trade_id,sale_trade__buyer_id=customer.id)
         
+        if not sale_order.refundable:
+            raise Http404
+        
         if sale_order.refund:
             return redirect('refund_confirm',pk=sale_order.refund.id)
 
@@ -55,6 +57,9 @@ class RefundApply(APIView):
         sale_trade = get_object_or_404(SaleTrade,pk=trade_id,buyer_id=customer.id)
         sale_order = get_object_or_404(SaleOrder,pk=order_id,sale_trade=trade_id,sale_trade__buyer_id=customer.id)
         
+        if not sale_order.refundable:
+            return HttpResponseForbidden('UNREFUNDABLE')
+        
         if sale_order.refund:
             return redirect('refund_confirm',pk=sale_order.refund.id)
         
@@ -72,7 +77,8 @@ class RefundApply(APIView):
                   'total_fee':sale_order.total_fee,
                   'payment':sale_order.payment,
                   'mobile':sale_trade.receiver_mobile,
-                  'phone':sale_trade.receiver_phone
+                  'phone':sale_trade.receiver_phone,
+                  'charge':sale_trade.charge,
                   }
         if return_good:
             params.update({'refund_num':content.get('refund_num'),
@@ -80,9 +86,8 @@ class RefundApply(APIView):
                            'sid':content.get('sid'),
                            'has_good_return':True,
                            'good_status':SaleRefund.BUYER_RECEIVED,
-                           'status':SaleRefund.REFUND_CONFIRM_GOODS
+                           'status':SaleRefund.REFUND_WAIT_SELLER_AGREE
                            })
-            
             
         else:
             good_status   = SaleRefund.BUYER_NOT_RECEIVED
@@ -94,8 +99,22 @@ class RefundApply(APIView):
                            'good_status':good_status,
                            'status':SaleRefund.REFUND_WAIT_SELLER_AGREE
                            })
-            
+        
         sale_refund = SaleRefund.objects.create(**params)
+        
+        try:
+            so = SaleOrder.objects.get(id=order_id)
+            so.refund_id  = sale_refund.id
+            so.refund_fee = sale_refund.refund_fee
+            so.refund_status  = sale_refund.refund_status
+            so.save()
+        except:
+            pass
+        
+        if settings.DEBUG:
+            tasks.pushTradeRefundTask(sale_refund.id)
+        else:
+            tasks.pushTradeRefundTask.s(sale_refund.id)()
         
         return Response(model_to_dict(sale_refund))
     

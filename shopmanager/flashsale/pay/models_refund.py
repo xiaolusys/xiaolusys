@@ -17,7 +17,9 @@ class SaleRefund(models.Model):
     REFUND_WAIT_SELLER_AGREE = 3
     REFUND_WAIT_RETURN_GOODS = 4
     REFUND_CONFIRM_GOODS = 5
-    REFUND_SUCCESS = 6
+    REFUND_APPROVE = 6
+    REFUND_SUCCESS = 7
+    
     
     REFUND_STATUS = (
         (NO_REFUND,'没有退款'),
@@ -25,6 +27,7 @@ class SaleRefund(models.Model):
         (REFUND_WAIT_RETURN_GOODS,'卖家已经同意退款'),
         (REFUND_CONFIRM_GOODS,'买家已经退货'),
         (REFUND_REFUSE_BUYER,'卖家拒绝退款'),
+        (REFUND_APPROVE,'确认退款，等待返款'),
         (REFUND_CLOSED,'退款关闭'),
         (REFUND_SUCCESS,'退款成功'),
     )
@@ -42,12 +45,12 @@ class SaleRefund(models.Model):
     id           = BigIntegerAutoField(primary_key=True,verbose_name='ID')
     refund_no    = models.CharField(max_length=32,unique=True,
                                     default=lambda:uniqid('RF%s'%(datetime.datetime.now().strftime('%y%m%d'))),
-                                    verbose_name='退款单ID')
+                                    verbose_name='退款编号')
     trade_id     = models.IntegerField(verbose_name='交易ID')
     order_id     = models.IntegerField(verbose_name='订单ID')
     
-    refund_id   = models.CharField(max_length=28,db_index=True,verbose_name=u'P++退款编号')
-    charge      = models.CharField(max_length=28,db_index=True,verbose_name=u'P++支付编号')
+    refund_id   = models.CharField(max_length=28,blank=True,db_index=True,verbose_name=u'P++退款编号')
+    charge      = models.CharField(max_length=28,blank=True,db_index=True,verbose_name=u'P++支付编号')
     
     item_id      = models.BigIntegerField(null=True,default=0,verbose_name='商品ID')
     title        = models.CharField(max_length=64,blank=True,verbose_name='出售标题')
@@ -61,9 +64,9 @@ class SaleRefund(models.Model):
     mobile = models.CharField(max_length=20,db_index=True,blank=True,verbose_name='手机')
     phone  = models.CharField(max_length=20,blank=True,verbose_name='固话')
     
-    total_fee    = models.CharField(max_length=10,blank=True,verbose_name='总费用')
-    payment      = models.CharField(max_length=10,blank=True,verbose_name='实付')
-    refund_fee   = models.CharField(max_length=10,blank=True,verbose_name='退款费用')
+    total_fee    = models.FloatField(default=0.0,verbose_name='总费用')
+    payment      = models.FloatField(default=0.0,verbose_name='实付')
+    refund_fee   = models.FloatField(default=0.0,verbose_name='退款费用')
     
     created   = models.DateTimeField(db_index=True,auto_now_add=True,verbose_name='创建日期')
     modified  = models.DateTimeField(auto_now=True,verbose_name='修改日期')
@@ -93,6 +96,10 @@ class SaleRefund(models.Model):
     def __unicode__(self):
         return '<%s>'%(self.id)
     
+    def refund_desc(self):
+        return u'退款不退货(oid:%s),%s'%(self.order_id,self.reason)
+    
+
 
     
     
