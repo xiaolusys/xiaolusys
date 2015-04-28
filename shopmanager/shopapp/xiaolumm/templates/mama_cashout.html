@@ -1,0 +1,245 @@
+{% extends "mama_base.html" %}
+
+{% block title %} 补贴详情 {% endblock %}
+
+{% block head_script %}
+<link href='{{ STATIC_URL }}jquery/jquery-ui-1.10.1.css' rel='stylesheet'  />	
+
+<style type="text/css" title="currentStyle">
+	@import "{{ STATIC_URL }}jquery-datatable-addon/css/demo_page.css";
+	@import "{{ STATIC_URL }}jquery-datatable-addon/css/demo_table.css";
+</style>  
+<style type="text/css" >
+    tfoot input{
+    	width:50%;
+    }
+</style>
+{% endblock %}
+
+
+{% block container %}
+
+<ul class="nav nav-tabs" style="margin-top:10px">
+  <li id="id-carry" role="presentation" class="active"><a href="#">补贴</a></li>
+  <li id="id-cashout" role="presentation"><a href="#">提现</a></li>
+</ul>
+
+<!--
+<div class="row" style="margin-top:10px">
+  <div class="col-xs-4">
+    <a href="/m/?day={{ prev_day }}"><< 前一天</a>
+  </div>
+  <div class="col-xs-4">
+    <p>{{ target_date }}</p>
+  </div>
+  <div class="col-xs-4">
+    {% if next_day %}
+    <a href="/m/?day={{ next_day }}">后一天 >></a>
+    {% endif %}
+  </div>
+</div>
+-->
+
+<div id="id-carry-list" style="margin-top:20px">
+  <div></div>
+  <div style="margin-top:20px">
+  <h5>我的补贴记录：</h5>
+    <table class="table table-bordered" style="margin-top:10px">
+      <thead>
+	<th>客户</th><th>金额</th><th>时间</th><th>状态</th>
+      </thead>
+      <tbody id="id-carry-tbody">
+      </tbody>
+    </table>
+  </div>
+  <div class="row">
+    <div class="col-xs-4">
+      <a href="#" id="id-carry-prev" url="null"><< 上一页</a>
+    </div>
+    <div class="col-xs-4">
+    </div>
+    <div class="col-xs-4">
+      <a href="#" id="id-carry-next" url="null">下一页 >></a>
+    </div>
+  </div>
+
+</div>
+
+<div id="id-cashout-list" style="margin-top:10px; display:none">
+  <p style="color:orange">&nbsp;您的可提现金额为￥<span style="font-size:26px">128</span>。</p>
+  <div id="id-cashout-area" {% if cashout > 0 %} style="display:none" {% endif %}>
+    <p>&nbsp;请输入提现金额（元）：</p>
+    <div class="input-group" style="margin-top:5px">
+      <span class="input-group-addon">￥</span>
+      <input id="id-cashout-input" type="text" class="form-control" aria-label="Amount (to the nearest dollar)">{% csrf_token %}
+      <span class="input-group-btn">
+	<button id="id-cashout-submit" class="btn btn-warning" type="button">确认提交</button>
+      </span>
+    </div>
+    <p id="id-submit-message" style="color:red"></p>
+  </div>
+  <ul id="id-cashout-notice" style="color:red;margin-top:6px;{% if cashout < 1 %}display:none{% endif %}" class="list-group">
+    <li class="list-group-item">提现申请已提交！<br/>请微信加微客服 <b>xiaolu_tixian</b> 审核提现申请，提现将由微信转账完成。</li>
+  </ul>
+
+  <div style="margin-top:20px">
+    <h5>最近提现记录：</h5>
+    <table class="table table-bordered" style="margin-top:10px">
+      <thead>
+	<th>金额</th><th>时间</th><th>状态</th>
+      </thead>
+      <tbody id="id-cashout-tbody">
+      </tbody>
+    </table>
+  </div>
+  <div class="row">
+    <div class="col-xs-4">
+      <a href="#" id="id-cashout-prev" url="null"><< 上一页</a>
+    </div>
+    <div class="col-xs-4">
+    </div>
+    <div class="col-xs-4">
+      <a href="#" id="id-cashout-next" url="null">下一页 >></a>
+    </div>
+  </div>
+
+</div>
+
+{% endblock %}
+
+
+{% block tail_script %}
+  <script type="text/javascript">
+
+  $(function () {
+    var cashout_url = "/m/cashoutlist/?xlmm={{ xlmm }}";
+    get_cashout_list(cashout_url);
+    var carry_url = "/m/carrylist/?xlmm={{ xlmm }}";
+    get_carry_list(carry_url);
+    
+  });
+
+  $("#id-cashout-prev").click(function () {
+    var url= $("#id-cashout-prev").attr("url");
+    if (url != "null") {
+      get_cashout_list(url);
+    }
+  });
+
+
+  $("#id-cashout-next").click(function () {
+    var url= $("#id-cashout-next").attr("url");
+    if (url != "null") {
+      get_cashout_list(url);
+    }
+  });
+
+  $("#id-carry-prev").click(function () {
+    var url= $("#id-carry-prev").attr("url");
+    if (url != "null") {
+      get_carry_list(url);
+    }
+  });
+
+
+  $("#id-carry-next").click(function () {
+    var url= $("#id-carry-next").attr("url");
+    if (url != "null") {
+      get_carry_list(url);
+    }
+  });
+
+  function get_carry_list(url) {
+    var callback = function (res) {
+      var results = res["results"];
+      var previous = res["previous"];
+      var next = res["next"];
+      if (previous != null) {
+        $("#id-carry-prev").attr("url",previous);
+      } else {
+        $("#id-carry-prev").attr("url","null");
+      }
+      if (next != null) {
+        $("#id-carry-next").attr("url",next);
+      } else {
+        $("#id-carry-next").attr("url","null");
+      }
+      $("#id-carry-tbody")[0].innerHTML = "";
+      for (var i=0; i<results.length; ++i) {
+        var entry = results[i];
+        var row = "<tr><td>"+entry["buyer_nick"]+"</td><td>"+entry["value"]+"</td><td>"+entry["created"]+"</td><td>"+entry["status"]+"</td></tr>";
+        $("#id-carry-tbody").append(row);
+      }
+    };
+    $.ajax({url:url, success:callback});
+  }
+
+  function get_cashout_list(url) {
+    var callback = function (res) {
+      var results = res["results"];
+      var previous = res["previous"];
+      var next = res["next"];
+      if (previous != null) {
+        $("#id-cashout-prev").attr("url",previous);
+      } else {
+        $("#id-cashout-prev").attr("url","null");
+      }
+      if (next != null) {
+        $("#id-cashout-next").attr("url",next);
+      } else {
+        $("#id-cashout-next").attr("url","null");
+      }
+      $("#id-cashout-tbody")[0].innerHTML = "";
+      for (var i=0; i<results.length; ++i) {
+        var entry = results[i];
+        var row = "<tr><td>"+entry["value"]+"</td><td>"+entry["created"]+"</td><td>"+entry["status"]+"</td></tr>";
+        $("#id-cashout-tbody").append(row);
+      }
+    };
+    $.ajax({url:url, success:callback});
+  }
+
+
+
+  
+  
+  $("#id-cashout").click(function (e) {
+    $("#id-carry").removeClass("active");
+    $("#id-cashout").addClass("active");
+
+    $("#id-carry-list").css("display","none");
+    $("#id-cashout-list").css("display","block");
+  });
+
+  $("#id-carry").click(function (e) {
+    $("#id-cashout").removeClass("active");
+    $("#id-carry").addClass("active");
+
+    $("#id-cashout-list").css("display","none");
+    $("#id-carry-list").css("display","block");
+  });
+
+  $("#id-cashout-submit").click(function (e) {
+
+    var url = "/m/cashout/";
+    var csrf_token = document.getElementsByName("csrfmiddlewaretoken")[0].value;
+    var v = $("#id-cashout-input").val();
+    var data = {"v":v, "csrfmiddlewaretoken":csrf_token};
+    var callback = function (res) {
+      console.log(res);
+      if (res["code"] == 0) {
+        $("#id-cashout-notice").css("display","block");
+        $("#id-cashout-area").css("display","none");
+      }
+      if (res["code"] == 1) {
+        $("#id-submit-message")[0].innerHTML = "系统错误，请联系微客服解决！";
+      }
+      if (res["code"] == 2) {
+        $("#id-submit-message")[0].innerHTML = "输入金额错误！请输入整数金额。";
+      }
+    };
+    $.ajax({url:url, data:data, type:"post", success:callback});
+  });
+
+  </script>
+{% endblock %}

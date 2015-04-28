@@ -12,14 +12,19 @@ from shopapp.weixin.views import get_user_openid,valid_openid
 from shopapp.weixin.models import WXOrder
 from shopapp.weixin.service import WeixinUserService
 
-from models import Clicks, XiaoluMama, AgencyLevel
+from models import Clicks, XiaoluMama, AgencyLevel, CashOut, CarryLog
+
+from serializers import CashOutSerializer,CarryLogSerializer
+from rest_framework import generics
+from rest_framework.renderers import JSONRenderer
+from rest_framework.response import Response
 
 import logging
 
 logger = logging.getLogger('django.request')
 
 
-import datetime
+import datetime, re
 
 
 WX_WAIT_PAY  = 1
@@ -39,6 +44,67 @@ WXORDER_STATUS = {
 
 SHOPURL = "http://mp.weixin.qq.com/bizmall/mallshelf?id=&t=mall/list&biz=MzA5NTI1NjYyNg==&shelf_id=2&showwxpaytitle=1#wechat_redirect"
 
+class CashoutView(View):
+    def get(self, request):
+        content = request.REQUEST
+        code = content.get('code',None)
+
+        openid = get_user_openid(request, code)
+
+        if not valid_openid(openid):
+            redirect_url = "https://open.weixin.qq.com/connect/oauth2/authorize?appid=wxc2848fa1e1aa94b5&redirect_uri=http://weixin.huyi.so/m/cashout/&response_type=code&scope=snsapi_base&state=135#wechat_redirect"
+            return redirect(redirect_url)
+
+        service = WeixinUserService(openid)
+        wx_user = service._wx_user
+        
+        xlmm = XiaoluMama.objects.get(openid=openid)
+        cashout_objs = CashOut.objects.filter(xlmm=xlmm.pk,status=CashOut.PENDING)
+        #CarryLog.objects.filter(xlmm=xlmm.pk)
+        data = {"xlmm":xlmm.pk, "cashout": cashout_objs.count()}
+        
+        
+        response = render_to_response("mama_cashout.html", data, context_instance=RequestContext(request))
+        response.set_cookie("openid",openid)
+        return response
+
+    def post(self, request):
+        content = request.REQUEST
+        code = content.get('code',None)
+        openid = get_user_openid(request, code)
+        v = content.get("v")
+        m = re.match(r'^\d+$', v)
+
+        status = {"code":0, "status":"ok"}
+        if m:
+            value = int(m.group())
+            try:
+                print openid
+                xlmm = XiaoluMama.objects.get(openid=openid)
+                print xlmm
+                CashOut.objects.create(xlmm=xlmm.pk,value=value)
+            except:
+                status = {"code":1, "status":"error"}
+        else:
+            status = {"code":2, "status": "input error"}
+            
+        return HttpResponse(json.dumps(status),content_type='application/json')
+
+
+
+class CashOutList(generics.ListAPIView):
+    queryset = CashOut.objects.all().order_by('-created')
+    serializer_class = CashOutSerializer
+    renderer_classes = (JSONRenderer,)
+    filter_fields = ("xlmm",)
+
+class CarryLogList(generics.ListAPIView):
+    queryset = CarryLog.objects.all().order_by('-created')
+    serializer_class = CarryLogSerializer
+    renderer_classes = (JSONRenderer,)
+    filter_fields = ("xlmm",)
+
+
 class MamaStatsView(View):
     def get(self, request):
 
@@ -51,8 +117,6 @@ class MamaStatsView(View):
             redirect_url = "https://open.weixin.qq.com/connect/oauth2/authorize?appid=wxc2848fa1e1aa94b5&redirect_uri=http://weixin.huyi.so/m/&response_type=code&scope=snsapi_base&state=135#wechat_redirect"
             return redirect(redirect_url)
 
-
-        
         service = WeixinUserService(openid)
         wx_user = service._wx_user
 
