@@ -51,11 +51,12 @@
 
 <div id="id-cashout-list" style="margin-top:10px; display:none">
   <p style="color:orange">&nbsp;您的可提现金额为￥<span style="font-size:26px">{{ xlmm.cash }}</span>。</p>
-  <div id="id-cashout-area" {% if xlmm.cash <= 20 %} style="display:none" {% endif %}>
-    <p>&nbsp;请输入提现金额（元）：</p>
+  <div id="id-cashout-area" {% if cashout > 0 %} style="display:none" {% endif %}>
+    <p>&nbsp;提现需20元以上,请输入提现金额：</p>
     <div class="input-group" style="margin-top:5px">
       <span class="input-group-addon">￥</span>
-      <input id="id-cashout-input" type="text" class="form-control" aria-label="Amount (to the nearest dollar)">{% csrf_token %}
+      
+      <input id="id-cashout-input" type="text" class="form-control" {% if xlmm.cash <= 20 %} readonly="readonly"  {% endif %}>{% csrf_token %}
       <span class="input-group-btn">
 	<button id="id-cashout-submit" class="btn btn-warning" type="button">确认提交</button>
       </span>
