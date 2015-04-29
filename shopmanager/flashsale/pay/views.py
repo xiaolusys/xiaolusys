@@ -80,7 +80,7 @@ class PINGPPChargeView(View):
             if not UUID_RE.match(order_no):
                 raise Exception('参数错误!')
             
-            payback_url = urlparse.urljoin(settings.MB_SITE_URL,reverse('user_payresult'))
+            payback_url = urlparse.urljoin(settings.M_SITE_URL,reverse('user_payresult'))
             
             if channel == SaleTrade.WX_PUB:
                 extra = {'open_id':customer.openid,'trade_type':'JSAPI'}

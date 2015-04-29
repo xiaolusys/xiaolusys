@@ -51,7 +51,7 @@ def notifyTradePayTask(notify):
         strade.pay_time = tcharge.time_paid
         strade.save()
         
-        for order in strade.sale_orders:
+        for order in strade.normal_orders():
             order.status = SaleOrder.WAIT_SELLER_SEND_GOODS
             order.save()
         
