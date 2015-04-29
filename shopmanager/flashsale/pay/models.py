@@ -27,8 +27,10 @@ class SaleTrade(models.Model):
     WX_PUB     = 'wx_pub'
     ALIPAY_WAP = 'alipay_wap'
     UPMP_WAP   = 'upmp_wap'
+    WALLET     = 'wallet'
     
     CHANNEL_CHOICES = (
+        (WALLET,u'钱包'),
         (WX_PUB,u'微支付'),
         (ALIPAY_WAP,u'支付宝'),
         (UPMP_WAP,u'银联'),
@@ -165,6 +167,17 @@ class SaleTrade(models.Model):
         status_list = MergeTrade.TAOBAO_TRADE_STATUS
         return status_list[index][0]
     
+    def charge_confirm(self,charge_time=None):
+        
+        self.status = self.WAIT_SELLER_SEND_GOODS
+        self.pay_time = charge_time or datetime.datetime.now()
+        self.save()
+        
+        for order in self.normal_orders():
+            order.status = order.WAIT_SELLER_SEND_GOODS
+            order.save()
+    
+    
     def normal_orders(self):
         return self.sale_orders.filter(status__in=SaleOrder.NORMAL_ORDER_STATUS)
 
@@ -183,12 +196,12 @@ class SaleOrder(models.Model):
     ORDER_STATUS = (
         (TRADE_NO_CREATE_PAY,u'订单创建'),
         (WAIT_BUYER_PAY,u'待付款'),
-        (WAIT_SELLER_SEND_GOODS,u'待发货'),
-        (WAIT_BUYER_CONFIRM_GOODS,u'待确认收货'),
+        (WAIT_SELLER_SEND_GOODS,u'已付款'),
+        (WAIT_BUYER_CONFIRM_GOODS,u'已发货'),
         (TRADE_BUYER_SIGNED,u'货到付款签收'),
         (TRADE_FINISHED,u'交易成功'),
-        (TRADE_CLOSED,u'退款交易关闭'),
-        (TRADE_CLOSED_BY_SYS,u'未付款关闭'),
+        (TRADE_CLOSED,u'退款关闭'),
+        (TRADE_CLOSED_BY_SYS,u'交易关闭'),
     )
     
     NORMAL_ORDER_STATUS = (WAIT_BUYER_PAY,

@@ -100,8 +100,8 @@ class CarryLog(models.Model):
         (CANCELED,u'已消费'),
     )
 
-    xlmm = models.IntegerField(default=0,db_index=True,verbose_name=u"妈妈编号")
-    order_num = models.IntegerField(default=0,db_index=True,verbose_name=u"订单编号")
+    xlmm = models.BigIntegerField(default=0,db_index=True,verbose_name=u"妈妈编号")
+    order_num = models.BigIntegerField(default=0,db_index=True,verbose_name=u"订单编号")
     buyer_nick = models.CharField(max_length=32,blank=True,verbose_name=u'买家昵称')
     value = models.IntegerField(default=0,verbose_name=u"金额")
     status = models.CharField(max_length=16,blank=True,choices=STATUS_CHOICES,default=PENDING,verbose_name=u'状态')

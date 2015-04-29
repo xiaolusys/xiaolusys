@@ -17,6 +17,16 @@
 		font-size:25px;
 	}
     .address-detail {font-size:6px;}
+    .unselectable .utext{
+    	color:#999;
+    	float: left;
+		font-size: 16px;
+    }
+    .money{
+    	display:inline;
+    	font-size:14px;
+    	color:#ff7200;
+    }
     </style>
 {% endblock %}
 
@@ -61,15 +71,22 @@
 </div>
 <div class="row">
 <div class="pay_way">
+	{% if xiaolumm %}
+	<div id="wallet" class="wrapper {% if not wallet_payable %}unselectable{% endif %}">
+        <div class="{% if wallet_payable %}check{% else %}check_unable{% endif %}"></div>
+        <div class="img"><img src="{{ STATIC_URL }}images/pay_wallet.png"></div>
+        <div class="{% if wallet_payable %}text{% else %}utext{% endif %}">小鹿钱包 <div class="money">可用余额:<span><em>￥</em>{{ xiaolumm.cash }}</span></div></div>
+    </div>
+	{% endif %}
     {% if weixin_from %}
-    <div id="wx_pub" class="wrapper selected">
+    <div id="wx_pub" class="wrapper {% if not wallet_payable %}selected{% endif %}">
         <div class="check"></div>
         <div class="img"><img src="{{ STATIC_URL }}images/pay_wechat.png"></div>
         <div class="text">微信支付</div>
     </div>
     {% endif %}
     {% if alipay_from %}
-    <div id="alipay_wap" class="wrapper {% if not weixin_from %}selected{% endif %}">
+    <div id="alipay_wap" class="wrapper {% if not weixin_from and not wallet_payable %}selected{% endif %}">
         <div class="check"></div>
         <div class="img"><img src="{{ STATIC_URL }}images/pay_alipay.png"></div>
         <div class="text">支付宝支付</div>
@@ -141,7 +158,7 @@
 <input type="hidden" name="num" value="{{ num }}" />
 <input type="hidden" name="uuid" value="{{ uuid }}" />
 <input type="hidden" name="post_fee" value="{{ post_fee }}" />
-<input type="hidden" name="payment" value="{{ payment }}" />
+<input type="hidden" id="payment" name="payment" value="{{ payment }}" />
 <input type="hidden" name="receiver_name" value="{{ address.receiver_name }}" />
 <input type="hidden" name="receiver_state" value="{{ address.receiver_state }}" />
 <input type="hidden" name="receiver_city" value="{{ address.receiver_city }}" />
@@ -152,6 +169,7 @@
 <input type="hidden" id="channel" name="channel" />
 <input type="hidden" id="message" name="buyer_message" />
 </form>
+<div id="dialog-confirm"></div>
 <div class="row">
 <div id="pay_now">
     <div class="btn">
@@ -171,8 +189,10 @@
 
         //切换支付方式
         $('.pay_way').on('tap','.wrapper',function(){
-            $('.pay_way .wrapper').removeClass('selected');
-            $(this).addClass('selected');
+        	if (!$(this).hasClass('unselectable')){
+            	$('.pay_way .wrapper').removeClass('selected');
+            	$(this).addClass('selected');
+            }
         })
 
         $('#pay_now').on('tap',Ctrl_sure_pay);
@@ -193,7 +213,6 @@
 
     //选择添加卡时的函数，type为pay_credit或者pay_pet，分别为信用卡和储值卡的添加
     function Ctrl_card_add(type){
-        console.log('card add:',type);
         switch (type){
             case 'pay_credit':break;//信用卡
             case 'pay_pet':break;//储值卡
@@ -204,11 +223,18 @@
     //确认订单后的付款操作，后续操作请自行添加
     function Ctrl_sure_pay(){
         if ($('#pay_now').hasClass('charged')){return;}       	
-        var CHARGE_URL = '/mm/charge/';
+        var CHARGE_URL  = '/mm/charge/';
+        var WALLET_PAY  = 'wallet';
+		var channel     = $('.pay_way .wrapper.selected').attr('id');
 		
+		if (typeof channel === "undefined"){
+			alert('请选择支付方式！');
+        	return
+		}
 		$('#message').val($('#to_seller').val());//买家留言
-        $('#channel').val($('.pay_way .wrapper.selected').attr('id'));//支付方式
+        $('#channel').val(channel);//支付方式
 		
+		var payment = $('#payment').val();
         var form_array = $('#order-form').serializeArray();
         var params = {};
 
@@ -220,16 +246,24 @@
         	alert('请填写您的收货地址！');
         	return 
         }  
-
+		console.log('channel:'+channel);
+		if(channel == WALLET_PAY && !confirm("确认使用小鹿钱包支付金额（￥"+payment+'元)吗？')){
+			return 
+		}
+		
         $('#pay_now').addClass('charged');
         $('#pay_now #btn').addClass('pressed');
-        
+
         var callback = function(data){
           
           if(typeof data.errcode === "undefined"){ 
+          	if (data.channel == WALLET_PAY){//使用钱包支付
+          		window.location.href = '/mm/orderlist/';
+          	}else{
 	          pingpp.createPayment(data, function(result, err) {
 	              window.location.href = '/mm/orderlist/';
 	          });
+	        }
            }else{
            	 alert('err:' + data.errmsg);
            }

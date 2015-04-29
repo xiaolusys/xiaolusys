@@ -49,6 +49,7 @@ class ProductSkuField(serializers.Field):
         sku_list  = []
         for sku in obj.all():
             sku_list.append(model_to_dict(sku))
+            
         return sku_list
 
     def to_internal_value(self, data):

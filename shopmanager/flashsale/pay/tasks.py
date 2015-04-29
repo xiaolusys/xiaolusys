@@ -47,13 +47,8 @@ def notifyTradePayTask(notify):
         tcharge.save()
         
         strade = SaleTrade.objects.get(tid=order_no)
-        strade.status = SaleTrade.WAIT_SELLER_SEND_GOODS
-        strade.pay_time = tcharge.time_paid
-        strade.save()
         
-        for order in strade.normal_orders():
-            order.status = SaleOrder.WAIT_SELLER_SEND_GOODS
-            order.save()
+        strade.charge_confirm(charge_time=tcharge.time_paid)
         
         saleservice = FlashSaleService(strade)
         saleservice.payTrade()

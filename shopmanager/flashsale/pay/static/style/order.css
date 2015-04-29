@@ -93,6 +93,17 @@ a:hover {
   margin-top: 11px;
   background-position: 0 0;
 }
+.pay_way .wrapper .check_unable {
+  float: left;
+  margin-right: 12px;
+  width: 18px;
+  height: 18px;
+  margin-top: 11px;
+  background-position: 0 0;
+  background-image: url("../images/pay_way_check.png");
+  background-size: 100%;
+  background-color:#999;
+}
 .pay_way .wrapper .img {
   width: 40px;
   height: 40px;

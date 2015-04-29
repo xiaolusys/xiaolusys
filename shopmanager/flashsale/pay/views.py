@@ -9,9 +9,11 @@ from django.http import HttpResponse,HttpResponseRedirect,Http404
 from django.views.generic import View
 from django.forms import model_to_dict
 from django.shortcuts import get_object_or_404
+from django.core.serializers.json import DjangoJSONEncoder
 
 from shopback.items.models import Product,ProductSku
 from .models import SaleTrade,SaleOrder,genUUID,Customer
+from flashsale.xiaolumm.models import CarryLog,XiaoluMama
 import pingpp
 import logging
 logger = logging.getLogger('django.request')
@@ -80,37 +82,65 @@ class PINGPPChargeView(View):
             if not UUID_RE.match(order_no):
                 raise Exception('参数错误!')
             
-            payback_url = urlparse.urljoin(settings.M_SITE_URL,reverse('user_payresult'))
-            
-            if channel == SaleTrade.WX_PUB:
-                extra = {'open_id':customer.openid,'trade_type':'JSAPI'}
+            payment = int(float(form.get('payment')) * 100)
+            response_charge = None
+            if channel == SaleTrade.WALLET:
                 
-            elif channel == SaleTrade.ALIPAY_WAP:
-                extra = {"success_url":payback_url,
-                         "cancel_url":payback_url}
+                try:
+                    xlmm = XiaoluMama.objects.get(openid=customer.openid)
+                except XiaoluMama.DoesNotExist:
+                    raise Exception(u'小鹿妈妈未找到')
                 
-            elif channel == SaleTrade.UPMP_WAP:
-                extra = {"result_url":payback_url}
+                urows = XiaoluMama.objects.filter(openid=customer.openid,
+                                                 cash__gte=payment).update(cash=models.F('cash')-payment)
+
+                if urows == 0:
+                    raise Exception(u'钱包付款失败')
+                
+                strade = self.createSaleTrade(customer,form)
+                strade.charge_confirm()
+                
+                CarryLog.objects.create(xlmm=xlmm.id,
+                                        order_num=strade.id,
+                                        buyer_nick=strade.buyer_nick,
+                                        value=payment,
+                                        status=CarryLog.CONSUMED)
+                
+                response_charge = {'channel':channel,'success':True}
+                
+            else:
+                payback_url = urlparse.urljoin(settings.M_SITE_URL,reverse('user_payresult'))
+                extra = {}
+                if channel == SaleTrade.WX_PUB:
+                    extra = {'open_id':customer.openid,'trade_type':'JSAPI'}
+                    
+                elif channel == SaleTrade.ALIPAY_WAP:
+                    extra = {"success_url":payback_url,
+                             "cancel_url":payback_url}
+                    
+                elif channel == SaleTrade.UPMP_WAP:
+                    extra = {"result_url":payback_url}
+                
+                params ={ 'order_no':'%s'%order_no,
+                          'app':dict(id=settings.PINGPP_APPID),
+                          'channel':channel,
+                          'currency':'cny',
+                          'amount':'%d'%(float(form['payment'])*100),
+                          'client_ip':settings.PINGPP_CLENTIP,
+                          'subject':u'小鹿美美平台交易',
+                          'body':json.dumps([form.get('item_id'),
+                                             form.get('sku_id'),
+                                             form.get('num'),
+                                             form.get('payment'),
+                                             form.get('post_fee')]),
+                          'metadata':dict(color='red'),
+                          'extra':extra}
+                
+                response_charge = pingpp.Charge.create(api_key=settings.PINGPP_APPKEY,**params)
             
-            params ={ 'order_no':'%s'%order_no,
-                      'app':dict(id=settings.PINGPP_APPID),
-                      'channel':channel,
-                      'currency':'cny',
-                      'amount':'%d'%(float(form['payment'])*100),
-                      'client_ip':settings.PINGPP_CLENTIP,
-                      'subject':u'小鹿美美平台交易',
-                      'body':json.dumps([form.get('item_id'),
-                                         form.get('sku_id'),
-                                         form.get('num'),
-                                         form.get('payment'),
-                                         form.get('post_fee')]),
-                      'metadata':dict(color='red'),
-                      'extra':extra}
-            
-            response_charge = pingpp.Charge.create(api_key=settings.PINGPP_APPKEY,**params)
-            
-            strade = self.createSaleTrade(customer,form,charge=response_charge)
-  
+                strade = self.createSaleTrade(customer,form,charge=response_charge)
+                
+                logger.debug('CHARGE RESP: %s'%response_charge)
         except IntegrityError:
             err_msg = u'订单已提交'
         except Exception,exc:
@@ -119,10 +149,8 @@ class PINGPPChargeView(View):
             
         if err_msg:
             response_charge = {'errcode':'10001','errmsg':err_msg}
-        
-        logger.debug('CHARGE RESP: %s'%response_charge)
-        
-        return HttpResponse(json.dumps(response_charge),content_type='application/json')
+
+        return HttpResponse(json.dumps(response_charge,cls=DjangoJSONEncoder),content_type='application/json')
     
     get = post
     
@@ -255,7 +283,7 @@ from django.http import HttpResponseForbidden
 from .models_addr import UserAddress
 from .views_address import ADDRESS_PARAM_KEY_NAME
 from .options import uniqid,getAddressByUserOrID
-
+from flashsale.xiaolumm.models import XiaoluMama
 
 class OrderBuyReview(APIView):
 
@@ -274,7 +302,7 @@ class OrderBuyReview(APIView):
         addrid  = content.get(ADDRESS_PARAM_KEY_NAME,'')
         
         product = get_object_or_404(Product,pk=pid)
-        sku  = get_object_or_404(ProductSku,pk=sid)
+        sku     = get_object_or_404(ProductSku,pk=sid)
         if product.prod_skus.filter(id=sku.id).count() == 0:
             raise Http404
         
@@ -296,7 +324,8 @@ class OrderBuyReview(APIView):
         if customers.count() == 0:
             return HttpResponseForbidden('NOT EXIST')
         
-        address = getAddressByUserOrID(customers[0],addrid)
+        customer  = customers[0]
+        address = getAddressByUserOrID(customer,addrid)
         if address:
             address = model_to_dict(address)
         
@@ -306,12 +335,20 @@ class OrderBuyReview(APIView):
         
         weixin_from = False
         alipay_from = True
+        wallet_payable = False
         user_agent = request.META.get('HTTP_USER_AGENT')
-        if customers[0].openid.strip() != '': 
+        if customer.openid.strip() != '': 
             weixin_from = True
         
         if user_agent and user_agent.find('MicroMessenger') > 0:
             alipay_from = False
+        
+        xiaolumms = XiaoluMama.objects.filter(openid=customer.openid)
+        xiaolumm  = None
+        if xiaolumms.count() > 0:
+            xiaolumm = xiaolumms[0]
+            if xiaolumm.cash > 0 and xiaolumm.cash >= payment:
+                wallet_payable = True
         
         data = {'product':product_dict,
                 'sku':sku_dict,
@@ -323,6 +360,8 @@ class OrderBuyReview(APIView):
                 'address':address,
                 'origin_url':origin_url,
                 'order_pass':order_pass,
+                'xiaolumm':xiaolumm,
+                'wallet_payable':wallet_payable,
                 'alipay_from':alipay_from,
                 'weixin_from':weixin_from}
         
