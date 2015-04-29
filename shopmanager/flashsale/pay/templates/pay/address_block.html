@@ -159,9 +159,9 @@ $("#address-form").submit(function (res) {
 	var params 	 = jform.serialize();
 	var callback = function(resp){
 	try{
-		var order_url = ''
-		var ht = '<div id="addrid-'+resp.id+'" class="well row">';
-	    ht += '<a class="well-link" href="'+order_url+'&addrid='+resp.id+'">';
+		var order_url = $('#history-url').attr('href');
+		var ht = '<div id="addrid-'+resp.id+'" class="well well-sm row list-row-border address">';
+	    ht += '<a class="well-link" href="'+order_url+'&addrid='+resp.id+'" target="_self">';
 	    ht += '<div class=" col-xs-offset-1 col-xs-9 ">';
 	    ht += '<div><font class="bold">'+resp.receiver_name+'</font>';
 	    ht += '&nbsp;&nbsp;&nbsp;'+resp.receiver_state+'&nbsp;'+resp.receiver_city+'&nbsp;'+resp.receiver_district+'</div>';
@@ -171,9 +171,9 @@ $("#address-form").submit(function (res) {
 	    $('#address_list').prepend(ht);
 		
 		var addBtnLink = $('#address_plus_link');
-		if (addBtnLink.hasClass('glyphicon-collapse-up')){
+		if (addBtnLink.hasClass('glyphicon-menu-up')){
 			$('#address_plus_module').slideUp(1000);
-			addBtnLink.removeClass('glyphicon-collapse-up').addClass('glyphicon-collapse-down');
+			addBtnLink.removeClass('glyphicon-menu-up').addClass('glyphicon-plus');
 		}
 		
 	}catch(exc){

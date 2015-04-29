@@ -124,7 +124,7 @@ def notifyPacketPostTask(days):
     df  = dt - datetime.timedelta(0,60*60*13*days,0)
     wait_sms_trades = MergeTrade.objects.filter(type__in=(pcfg.FENXIAO_TYPE,pcfg.TAOBAO_TYPE,pcfg.COD_TYPE),
         sys_status=pcfg.FINISHED_STATUS,is_send_sms=False,weight_time__gte=df, weight_time__lte=dt,
-        is_express_print=True).exclude(receiver_mobile='') #
+        is_express_print=True).exclude(receiver_mobile='')#
 
     for trade in wait_sms_trades:
         

@@ -168,6 +168,7 @@ class SaleTrade(models.Model):
     def normal_orders(self):
         return self.sale_orders.filter(status__in=SaleOrder.NORMAL_ORDER_STATUS)
 
+
 class SaleOrder(models.Model):
     
     TRADE_NO_CREATE_PAY = 0

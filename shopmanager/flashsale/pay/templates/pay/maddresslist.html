@@ -42,18 +42,18 @@
 
 <nav class="navbar navbar-default navbar-fixed-top row">
 	<div class="col-xs-2" >
-	  <a href="{% if origin_url %}{{ origin_url }}{% else %}javascript:history.back();{% endif %}" class="glyphicon glyphicon-menu-left" target="_self"></a>
+	  <a id="history-url" href="{% if origin_url %}{{ origin_url }}{% else %}javascript:history.back();{% endif %}" class="glyphicon glyphicon-menu-left" target="_self"></a>
 	</div>
 	<div class="col-xs-8" >
 	  <span class="h3">地址列表</span>
 	</div>
 	<div class="col-xs-2" >
-	  <a id="address_plus_link" href="javascript:void(0);" class="glyphicon glyphicon-collapse-down " target="_self"></a>
+	  <a id="address_plus_link" href="javascript:void(0);" class="glyphicon glyphicon-plus " target="_self"></a>
 	</div>
 </nav>
 
 
-<div class="container-fluid" style="margin-top:60px;">
+<div class="container-fluid" style="margin-top:65px;">
 <div id="address_plus_module" class="row" style="display:none;">
 <!--此处加载添加地址表单-->
 </div>
@@ -86,12 +86,12 @@ $(function(){
 	
 	$('#address_plus_link').click(function(event){
 		console.log('init ready');
-		if ($(this).hasClass('glyphicon-collapse-up')){
+		if ($(this).hasClass('glyphicon-menu-up')){
 			$('#address_plus_module').slideUp(1000);
-			$(this).removeClass('glyphicon-collapse-up').addClass('glyphicon-collapse-down');
+			$(this).removeClass('glyphicon-menu-up').addClass('glyphicon-plus');
 			return 
 		}
-		$(this).addClass('glyphicon-collapse-up').removeClass('glyphicon-collapse-down');
+		$(this).addClass('glyphicon-menu-up').removeClass('glyphicon-plus');
 		var callback = function(resp){
 			$('#address_plus_module').html(resp).slideDown(500);
 			
