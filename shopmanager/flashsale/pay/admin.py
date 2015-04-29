@@ -22,7 +22,7 @@ logger = logging.getLogger('django.request')
 class SaleOrderInline(admin.TabularInline):
     
     model = SaleOrder
-    fields = ('oid','outer_id','title','outer_sku_id','sku_name','payment','num','status')
+    fields = ('oid','outer_id','title','outer_sku_id','sku_name','payment','num','refund_fee','refund_status','status')
 
     formfield_overrides = {
         models.CharField: {'widget': TextInput(attrs={'size':'16'})},

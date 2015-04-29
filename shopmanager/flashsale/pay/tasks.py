@@ -60,7 +60,7 @@ def notifyTradePayTask(notify):
     
     except Exception,exc:
 
-        logger.error('notifyTradePayTask error:%s' %(exc), exc_info=True)
+        logger.error('notifyTradePayTask error:%s'%(exc), exc_info=True)
         if not settings.DEBUG:
             notifyTradePayTask.retry(exc=exc,countdown=20)
 
@@ -102,7 +102,7 @@ def notifyTradeRefundTask(notify):
         
     except Exception,exc:
 
-        logger.error('notifyTradeRefundTask error:%s' %(exc), exc_info=True)
+        logger.error('notifyTradeRefundTask error:%s'%exc, exc_info=True)
         if not settings.DEBUG:
             notifyTradePayTask.retry(exc=exc,countdown=2)
         
@@ -121,7 +121,7 @@ def pushTradeRefundTask(refund_id):
         
     except Exception,exc:
 
-        logger.error('pushTradeRefundTask error:%s' %(exc), exc_info=True)
+        logger.error('pushTradeRefundTask error:%s'%(exc), exc_info=True)
         if not settings.DEBUG:
             pushTradeRefundTask.retry(exc=exc,countdown=2)
 
