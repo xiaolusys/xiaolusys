@@ -30,7 +30,7 @@ if DEBUG:
 else :
     STATIC_ROOT = os.path.join(PROJECT_ROOT,"site_media","static")
 
-ALLOWED_HOSTS = ['.huyi.so','.xiaolu.so','192.168.1.1','192.168.1.6','192.168.1.24']
+ALLOWED_HOSTS = ['.huyi.so','.xiaolu.so','121.199.168.159','192.168.1.1']
 
 CACHES = {
     'default': {
