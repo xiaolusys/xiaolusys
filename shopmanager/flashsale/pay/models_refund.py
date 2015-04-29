@@ -6,6 +6,7 @@ from django.db.models import Q,Sum
 from django.db.models.signals import post_save
 from django.db import IntegrityError, transaction
 
+from shopback import paramconfig as pcfg
 from shopback.base.fields import BigIntegerAutoField,BigIntegerForeignKey
 from .options import uniqid
 
@@ -30,6 +31,17 @@ class SaleRefund(models.Model):
         (REFUND_APPROVE,'确认退款，等待返款'),
         (REFUND_CLOSED,'退款关闭'),
         (REFUND_SUCCESS,'退款成功'),
+    )
+    
+    REFUND_STATUS_MAP = (
+        (NO_REFUND,pcfg.NO_REFUND),
+        (REFUND_WAIT_SELLER_AGREE,pcfg.REFUND_WAIT_SELLER_AGREE),
+        (REFUND_WAIT_RETURN_GOODS,pcfg.REFUND_WAIT_RETURN_GOODS),
+        (REFUND_CONFIRM_GOODS,pcfg.REFUND_CONFIRM_GOODS),
+        (REFUND_REFUSE_BUYER,pcfg.REFUND_REFUSE_BUYER),
+        (REFUND_APPROVE,pcfg.REFUND_SUCCESS),
+        (REFUND_CLOSED,pcfg.REFUND_CLOSED),
+        (REFUND_SUCCESS,pcfg.REFUND_SUCCESS)
     )
     
     BUYER_NOT_RECEIVED = 0

@@ -191,6 +191,7 @@ class SaleOrder(models.Model):
         (TRADE_CLOSED_BY_SYS,u'未付款关闭'),
     )
     
+    
     NORMAL_ORDER_STATUS = (WAIT_SELLER_SEND_GOODS,
                            WAIT_BUYER_CONFIRM_GOODS,
                            TRADE_BUYER_SIGNED,
@@ -256,8 +257,7 @@ class SaleOrder(models.Model):
         
         return self.sale_trade.status in SaleTrade.REFUNDABLE_STATUS
    
-    
-    
+   
 
 class TradeCharge(models.Model):
     

@@ -1,7 +1,7 @@
 #-*- coding:utf8 -*-
 import json
 import datetime
-from .models import SaleTrade,SaleOrder
+from .models import SaleTrade,SaleOrder,SaleRefund
 from shopback.base.service import LocalService
 from shopback import paramconfig as pcfg
 from common.utils import update_model_fields
@@ -50,9 +50,11 @@ class FlashSaleService(LocalService):
             
             merge_order.num     = order.num
             merge_order.title   = order.title
-            merge_order.outer_id     = product.outer_id
+            merge_order.outer_id      = product.outer_id
             merge_order.sku_properties_name = order.sku_name
-            merge_order.outer_sku_id = sku.outer_id
+            merge_order.outer_sku_id  = sku.outer_id
+            merge_order.refund_fee    = order.refund_fee
+            merge_order.refund_status = dict(SaleRefund.REFUND_STATUS_MAP).get(order.refund_status)
             
         merge_order.created  = merge_trade.created
         merge_order.pay_time = merge_trade.pay_time
