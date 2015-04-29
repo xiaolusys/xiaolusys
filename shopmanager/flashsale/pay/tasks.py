@@ -37,7 +37,7 @@ def notifyTradePayTask(notify):
                 continue
             
             if k in ('time_paid','time_expire'):
-                v = v and datetime.datetime.fromtimestamp(v / 1e3)
+                v = v and datetime.datetime.fromtimestamp(v)
             
             if k in ('failure_code','failure_msg'):
                 v = v or ''

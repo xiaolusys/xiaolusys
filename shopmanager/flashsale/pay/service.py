@@ -53,13 +53,13 @@ class FlashSaleService(LocalService):
             merge_order.outer_id      = product.outer_id
             merge_order.sku_properties_name = order.sku_name
             merge_order.outer_sku_id  = sku.outer_id
-            merge_order.refund_fee    = order.refund_fee
-            merge_order.refund_status = dict(SaleRefund.REFUND_STATUS_MAP).get(order.refund_status)
             
         merge_order.created  = merge_trade.created
         merge_order.pay_time = merge_trade.pay_time
         merge_order.status   = merge_trade.status
         merge_order.sys_status = sys_status
+        merge_order.refund_fee    = order.refund_fee
+        merge_order.refund_status = dict(SaleRefund.REFUND_STATUS_MAP).get(order.refund_status)
         merge_order.save()
         
         return merge_order

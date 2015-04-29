@@ -144,7 +144,6 @@ INSTALLED_APPS = (
     'shopapp.weixin',
     'shopapp.tmcnotify',
     
-
     'shopapp.jingdong',
     'shopapp.intercept',
     'shopapp.examination',
@@ -152,7 +151,7 @@ INSTALLED_APPS = (
     'shopapp.weixin_score',
     'shopapp.weixin_examination',
     
-    'shopapp.xiaolumm',
+    
     #'shopapp.second_time_sort',
     'supplychain.wavepick',
     #'supplychain.temai',
@@ -161,6 +160,7 @@ INSTALLED_APPS = (
 
 #     'flashsale.supplier',
     'flashsale.pay',
+    'flashsale.xiaolumm',
     'mathfilters',
 
 
