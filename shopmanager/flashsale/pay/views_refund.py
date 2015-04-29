@@ -101,15 +101,12 @@ class RefundApply(APIView):
                            })
         
         sale_refund = SaleRefund.objects.create(**params)
+
+        sale_order.refund_id  = sale_refund.id
+        sale_order.refund_fee = sale_refund.refund_fee
+        sale_order.refund_status  = sale_refund.status
+        sale_order.save()
         
-        try:
-            so = SaleOrder.objects.get(id=order_id)
-            so.refund_id  = sale_refund.id
-            so.refund_fee = sale_refund.refund_fee
-            so.refund_status  = sale_refund.refund_status
-            so.save()
-        except:
-            pass
         
         if settings.DEBUG:
             tasks.pushTradeRefundTask(sale_refund.id)
