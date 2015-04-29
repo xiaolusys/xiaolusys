@@ -66,7 +66,7 @@ from .options import getOrCreateSaleSeller
 def notifyTradeRefundTask(notify):
     
     try:
-        refund_id = notify['refund_id']
+        refund_id = notify['id']
         
         seller = getOrCreateSaleSeller()
         srefund = SaleRefund.objects.get(refund_id=refund_id)
@@ -104,7 +104,7 @@ def notifyTradeRefundTask(notify):
 
 @task(max_retry=3)
 def pushTradeRefundTask(refund_id):
-    #退款更新
+    #退款申请
     try:
         sale_refund = SaleRefund.objects.get(id=refund_id)
         trade_id    = sale_refund.trade_id

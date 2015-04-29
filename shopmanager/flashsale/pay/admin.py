@@ -136,7 +136,7 @@ admin.site.register(UserAddress, UserAddressAdmin)
 class SaleRefundAdmin(admin.ModelAdmin):
     
     list_display = ('refund_no','order_no','title','refund_fee','has_good_return','has_good_change','created','status')
-    search_fields = ['cus_uid','receiver_mobile']
+    search_fields = ['order_no','refund_id','receiver_mobile']
     
     list_filter = ('status','good_status','has_good_return','has_good_change')
     
