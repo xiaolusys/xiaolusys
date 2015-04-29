@@ -117,6 +117,9 @@ class MamaStatsView(View):
         service = WeixinUserService(openid)
         wx_user = service._wx_user
 
+        if not wx_user.isValid():
+            return render_to_response("remind.html",{"openid":openid}, context_instance=RequestContext(request))
+
         daystr = content.get("day", None)
         today = datetime.date.today()
         year,month,day = today.year,today.month,today.day
@@ -137,7 +140,6 @@ class MamaStatsView(View):
             next_day = target_date + datetime.timedelta(days=1)
         
         mobile = wx_user.mobile
-        
         data = {}
         try:
             xlmm,status = XiaoluMama.objects.get_or_create(mobile=mobile)

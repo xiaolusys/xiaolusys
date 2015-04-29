@@ -97,7 +97,7 @@ class CarryLog(models.Model):
         (PENDING,u'待确认'),
         (CONFIRMED,u'确定'),
         (CANCELED,u'已退款'),
-        (CANCELED,u'已消费'),
+        (CONSUMED,u'已消费'),
     )
 
     xlmm = models.BigIntegerField(default=0,db_index=True,verbose_name=u"妈妈编号")
