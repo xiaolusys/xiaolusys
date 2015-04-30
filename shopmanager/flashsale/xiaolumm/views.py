@@ -49,16 +49,16 @@ class CashoutView(View):
         content = request.REQUEST
         code = content.get('code',None)
 
-        openid = get_user_openid(request, code)
+        openid,unionid = get_user_unionid(code,appid=settings.WEIXIN_APPID,
+                                          secret=settings.WEIXIN_SECRET)
 
         if not valid_openid(openid):
             redirect_url = "https://open.weixin.qq.com/connect/oauth2/authorize?appid=wxc2848fa1e1aa94b5&redirect_uri=http://weixin.huyi.so/m/cashout/&response_type=code&scope=snsapi_base&state=135#wechat_redirect"
             return redirect(redirect_url)
 
-        service = WeixinUserService(openid)
-        wx_user = service._wx_user
+        service = WeixinUserService(openid,unionId=unionid)
         
-        xlmm = XiaoluMama.objects.get(openid=openid)
+        xlmm = XiaoluMama.objects.get(openid=unionid)
         cashout_objs = CashOut.objects.filter(xlmm=xlmm.pk,status=CashOut.PENDING)
         data = {"xlmm":xlmm, "cashout": cashout_objs.count()}
         
@@ -145,7 +145,7 @@ class MamaStatsView(View):
         data = {}
         try:
             xlmm,status = XiaoluMama.objects.get_or_create(mobile=mobile)
-            if not xlmm.openid:
+            if not xlmm.openid != wx_user.unionid :
                 xlmm.openid = wx_user.unionid
                 xlmm.save()
             
@@ -263,7 +263,8 @@ def logclicks(request, linkid):
     content = request.REQUEST
     code = content.get('code',None)
 
-    openid = get_user_openid(request, code)
+    openid,unionid = get_user_unionid(code,appid=settings.WEIXIN_APPID,
+                                          secret=settings.WEIXIN_SECRET)
 
     if not valid_openid(openid):
         redirect_url = "https://open.weixin.qq.com/connect/oauth2/authorize?appid=wxc2848fa1e1aa94b5&redirect_uri=http://weixin.huyi.so/m/%d/&response_type=code&scope=snsapi_base&state=135#wechat_redirect" % int(linkid)
