@@ -23,10 +23,10 @@ def get_user_unionid(code,
                     secret=settings.WEIXIN_SECRET):
 
     if settings.DEBUG:
-        return 'oMt59uE55lLOV2KS6vYZ_d0dOl5c'
+        return ('oMt59uE55lLOV2KS6vYZ_d0dOl5c','')
     
     if not code :
-        return ''
+        return ('','')
 
     url = 'https://api.weixin.qq.com/sns/oauth2/access_token?appid=%s&secret=%s&code=%s&grant_type=authorization_code'
     get_openid_url = url % (appid, secret, code)
