@@ -109,8 +109,8 @@
 {% endblock %}
 
 {% block delayed_script %}
-<script>
-    var MAX;
+<script type="text/javascript">
+    var MAX = 3;
 
     var moveX_start;
     var sliderNow;
@@ -144,7 +144,6 @@
             if ($(this).hasClass('min')){
                 var n = parseInt($('.amount').html())-1;
                 n = n>0?n:1;
-
                 $('.amount').html(n);
             }
         });

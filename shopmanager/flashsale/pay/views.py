@@ -379,9 +379,7 @@ class UserProfile(APIView):
     template_name = "pay/mprofile.html"
     
     def get(self, request, format=None):
-        
-        
-        
+
         return Response({})
     
     def post(self, request, format=None):
