@@ -87,11 +87,11 @@ class PINGPPChargeView(View):
             if channel == SaleTrade.WALLET:
                 
                 try:
-                    xlmm = XiaoluMama.objects.get(openid=customer.openid)
+                    xlmm = XiaoluMama.objects.get(openid=customer.unionid)
                 except XiaoluMama.DoesNotExist:
                     raise Exception(u'小鹿妈妈未找到')
                 
-                urows = XiaoluMama.objects.filter(openid=customer.openid,
+                urows = XiaoluMama.objects.filter(openid=customer.unionid,
                                                  cash__gte=payment).update(cash=models.F('cash')-payment)
 
                 if urows == 0:
@@ -143,10 +143,13 @@ class PINGPPChargeView(View):
                 logger.debug('CHARGE RESP: %s'%response_charge)
         except IntegrityError:
             err_msg = u'订单已提交'
+        except XiaoluMama.MultipleObjectsReturned,exc:
+            logger.error(exc.message,exc_info=True)
+            err_msg = u'OPENID异常请联系管理'
         except Exception,exc:
             logger.error(exc.message,exc_info=True)
             err_msg = u'参数错误'
-            
+        
         if err_msg:
             response_charge = {'errcode':'10001','errmsg':err_msg}
 

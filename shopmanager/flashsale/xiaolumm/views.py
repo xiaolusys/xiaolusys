@@ -55,8 +55,6 @@ class CashoutView(View):
         if not valid_openid(openid):
             redirect_url = "https://open.weixin.qq.com/connect/oauth2/authorize?appid=wxc2848fa1e1aa94b5&redirect_uri=http://weixin.huyi.so/m/cashout/&response_type=code&scope=snsapi_base&state=135#wechat_redirect"
             return redirect(redirect_url)
-
-        service = WeixinUserService(openid,unionId=unionid)
         
         xlmm = XiaoluMama.objects.get(openid=unionid)
         cashout_objs = CashOut.objects.filter(xlmm=xlmm.pk,status=CashOut.PENDING)
