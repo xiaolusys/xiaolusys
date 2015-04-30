@@ -143,7 +143,7 @@ class MamaStatsView(View):
         data = {}
         try:
             xlmm,status = XiaoluMama.objects.get_or_create(mobile=mobile)
-            if not xlmm.openid != wx_user.unionid :
+            if xlmm.openid != wx_user.unionid:
                 xlmm.openid = wx_user.unionid
                 xlmm.save()
             

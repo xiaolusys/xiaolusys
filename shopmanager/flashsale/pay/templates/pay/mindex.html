@@ -63,8 +63,8 @@
   </div>
   </nav>
 <script>
-  var from_top = 75;
-  var pre_val  = 0;
+  var from_top  = 75;
+  var nav_fix = from_top;
   var page_height = 1000;
   
   $(document).ready(function(){
@@ -85,14 +85,12 @@
         } 
       }
 
-      if ((h - pre_val) < 0 || h < $(window).height()/2){
-      	$('#main-nav').show();
-      	$('#tab_nav').removeClass('blocked');
-      }else{
-      	$('#main-nav').hide();
+      if (h > nav_fix){
       	$('#tab_nav').addClass('blocked');
+      }else{
+      	$('#tab_nav').removeClass('blocked');
       }
-      pre_val = h;
+
     });
 
     //若采用页面内筛选的形式,则可以用以下绑定来完成筛选
