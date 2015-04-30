@@ -148,7 +148,7 @@ class LogisticsCompany(models.Model):
         index = random.randint(1,total_priority)    
         for rg in priority_ranges:
             if index>=rg[0] and index<=rg[1]:
-                 return rg[2]
+                return rg[2]
         return None
             
         

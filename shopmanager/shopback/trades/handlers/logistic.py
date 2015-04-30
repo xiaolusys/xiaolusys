@@ -30,7 +30,11 @@ class LogisticsHandler(BaseHandler):
             raise Exception(u"地址不全(请精确到省市区（县）)")
                     
         if shipping_type == pcfg.EXPRESS_SHIPPING_TYPE.upper():
-                        
+            #定制订单快递分配
+            if merge_trade.receiver_address.find(u'村') >= 0:
+                return LogisticsCompany.objects.get_or_create(
+                                        code='STO')[0]
+            
             return LogisticsCompany.get_recommend_express(state,
                                                           city,
                                                           district)

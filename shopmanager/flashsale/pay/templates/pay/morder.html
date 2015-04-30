@@ -73,7 +73,7 @@
 	<div id="wallet" class="wrapper {% if not wallet_payable %}unselectable{% endif %}">
         <div class="{% if wallet_payable %}check{% else %}check_unable{% endif %}"></div>
         <div class="img"><img src="{{ STATIC_URL }}images/pay_wallet.png"></div>
-        <div class="{% if wallet_payable %}text{% else %}utext{% endif %}">小鹿钱包 <div class="money">可用余额:<span><em>￥</em>{{ xiaolumm.cash }}</span></div></div>
+        <div class="{% if wallet_payable %}text{% else %}utext{% endif %}">小鹿钱包 <div class="money">可用余额:<span><em>￥</em>{{ xiaolumm.cash_money }}</span></div></div>
     </div>
 	{% endif %}
     {% if weixin_from %}

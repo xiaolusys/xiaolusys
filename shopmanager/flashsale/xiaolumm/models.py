@@ -35,6 +35,9 @@ class XiaoluMama(models.Model):
         verbose_name=u'小鹿妈妈'
         verbose_name_plural = u'小鹿妈妈列表'
     
+    @property
+    def cash_money(self):
+        return round(self.cash/100.0,2)
 
 class AgencyLevel(models.Model):
     category = models.CharField(max_length=11,unique=True,blank=False,verbose_name=u"类别")
