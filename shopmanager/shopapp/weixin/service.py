@@ -127,17 +127,24 @@ class WeixinUserService():
     _wx_api = None
     _wx_user = None
     
-    def __init__(self, openId=None):
+    def __init__(self, openId=None, unionId=None):
         
         self._wx_api = WeiXinAPI()
         if openId:
-            self._wx_user = self.getOrCreateUser(openId)
+            self._wx_user = self.getOrCreateUser(openId,unionId=unionId)
         
         if not self._wx_user:
             self._wx_user = WeiXinUser.getAnonymousWeixinUser()
         
-    def getOrCreateUser(self, openId, force_update=False):
+    def getOrCreateUser(self, openId, unionId=None, force_update=False):
         
+        if unionId:
+            try:
+                wx_user = WeiXinUser.objects.get(unionid=unionId)
+                return wx_user
+            except:
+                pass
+            
         wx_user, state = WeiXinUser.objects.get_or_create(openid=openId) 
         if state or force_update or not wx_user.unionid:
             try:     
@@ -149,8 +156,9 @@ class WeixinUserService():
                     hasattr(wx_user, k) and setattr(wx_user, k, v or getattr(wx_user, k))
                 
                 wx_user.nickname = pre_nickname or replace_utf8mb4(wx_user.nickname.decode('utf8'))
-                wx_user.mobile = pre_mobile
-                subscribe_time = userinfo.get('subscribe_time', None)
+                wx_user.unionid  = unionId
+                wx_user.mobile   = pre_mobile
+                subscribe_time   = userinfo.get('subscribe_time', None)
                 if subscribe_time:
                     wx_user.subscribe_time = pre_subscribe_time or datetime.datetime\
                         .fromtimestamp(int(subscribe_time))

@@ -32,9 +32,9 @@ def sale_buyer_required(view_func):
                           'scope':'snsapi_base',
                           'state':'135'}
                 redirect_url = ('{0}?{1}').format(settings.WEIXIN_AUTHORIZE_URL,urllib.urlencode(params))
-                    
+                
                 return HttpResponseRedirect(redirect_url)
-
+            
             else :
                 user = authenticate(request=request)
                 if not user or user.is_anonymous():
@@ -51,7 +51,7 @@ def sale_buyer_required(view_func):
         }
         return render_to_response("pay/mlogin.html", defaults,
                                   context_instance=RequestContext(request))
-        return view_login(request, **defaults)
+
     return _checklogin
 
 

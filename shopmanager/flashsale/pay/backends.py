@@ -83,7 +83,7 @@ class WeixinPubBackend(RemoteUserBackend):
                 user,state = User.objects.get_or_create(username=unionid,is_active=True)
                 profile.user = user
                 profile.save()
-                
+            
         except Customer.DoesNotExist:
             if not self.create_unknown_user:
                 return AnonymousUser()
@@ -98,7 +98,7 @@ class WeixinPubBackend(RemoteUserBackend):
             profile.save()
         except:
             pass 
-
+        
         return user
     
 

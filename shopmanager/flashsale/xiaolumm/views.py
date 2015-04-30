@@ -101,20 +101,22 @@ class CarryLogList(generics.ListAPIView):
     renderer_classes = (JSONRenderer,)
     filter_fields = ("xlmm",)
 
-
+from django.conf import settings
+from flashsale.pay.options import get_user_unionid
 class MamaStatsView(View):
     def get(self, request):
 
         content = request.REQUEST
         code = content.get('code',None)
 
-        openid = get_user_openid(request, code)
-
+        openid,unionid = get_user_unionid(code,appid=settings.WEIXIN_APPID,
+                                          secret=settings.WEIXIN_SECRET)
+        
         if not valid_openid(openid):
             redirect_url = "https://open.weixin.qq.com/connect/oauth2/authorize?appid=wxc2848fa1e1aa94b5&redirect_uri=http://weixin.huyi.so/m/&response_type=code&scope=snsapi_base&state=135#wechat_redirect"
             return redirect(redirect_url)
 
-        service = WeixinUserService(openid)
+        service = WeixinUserService(openid,unionId=unionid)
         wx_user = service._wx_user
 
         if not wx_user.isValid():
@@ -144,7 +146,7 @@ class MamaStatsView(View):
         try:
             xlmm,status = XiaoluMama.objects.get_or_create(mobile=mobile)
             if not xlmm.openid:
-                xlmm.openid = wx_user.openid
+                xlmm.openid = wx_user.unionid
                 xlmm.save()
             
             clicks = Clicks.objects.filter(linkid=xlmm.pk,created__gt=time_from,created__lt=time_to)

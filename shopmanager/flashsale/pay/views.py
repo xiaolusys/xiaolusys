@@ -336,14 +336,15 @@ class OrderBuyReview(APIView):
         weixin_from = False
         alipay_from = True
         wallet_payable = False
+        unionid    = customer.unionid.strip()
         user_agent = request.META.get('HTTP_USER_AGENT')
-        if customer.openid.strip() != '': 
+        if unionid != '': 
             weixin_from = True
         
         if user_agent and user_agent.find('MicroMessenger') > 0:
             alipay_from = False
         
-        xiaolumms = XiaoluMama.objects.filter(openid=customer.openid)
+        xiaolumms = XiaoluMama.objects.filter(openid=unionid)
         xiaolumm  = None
         if xiaolumms.count() > 0:
             xiaolumm = xiaolumms[0]
