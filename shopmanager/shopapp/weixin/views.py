@@ -1545,8 +1545,8 @@ class WeixinProductView(ModelView):
             for sku in product.pskus:
                 outer_id = product.outer_id
                 outer_sku_id = sku.outer_id
-                sync_num = (sku.quantity or sku.remain_num) - sku.wait_post_num
-                if sync_num <= 0 :
+                sync_num = sku.remain_num - sku.wait_post_num
+                if sync_num < 0 :
                     continue
                 
                 wx_skus = WXProductSku.objects.filter(outer_id=outer_id,
@@ -1573,7 +1573,7 @@ class WeixinProductView(ModelView):
         messages.add_message(request, messages.INFO, 
                              u'已成功更新%s个商品(%s)微信平台库存'%(products.count(),
                                                             [p.outer_id for p in products]))
-        return HttpResponseRedirect(reverse("admin:items_product_changelist"))
+        return HttpResponseRedirect(reverse("admin:items_product_changelist")+'?id__in='+','.join(product_ids))
 
 class TestView(View):
     def get(self, request):

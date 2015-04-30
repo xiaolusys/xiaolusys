@@ -9,8 +9,9 @@
     <style style="text/css">
     .wrap { background:#b81b22; }
   	.wrap a{font-size:16px;color:white;padding:10px 10px;margin-top:10px;display: inline-block;}
-  	.container-head{margin-top:50px;margin-bottom:0px;background:#6f5499;}
+  	.container-head{margin-top:50px;margin-bottom:0px;background:#EE7700;}
   	.container-head a {color:white;}
+  	.container-head .glyphicon{font-size:25px;}
     .well-lg { padding:24px 5px;}
     .navbar-fixed-top{
 		text-align:center;
@@ -26,6 +27,9 @@
     	display:inline;
     	font-size:14px;
     	color:#ff7200;
+    }
+    .price{
+    	
     }
     </style>
 {% endblock %}
@@ -105,12 +109,11 @@
     <div class="wrapper">
         <div class="img"><img src="{{ product.pic_path }}" /></div>
         <div class="info">
-            <div class="name">{{ product.title }}</div>
+        	<div class="name">{{ product.name }}</div>
             <div class="detail info" style="margin-top: 25px;">
                 尺码类别：<span class="size">{{ sku.properties_alias }}</span>；
-                <!--颜色类别：<span class="color">红色</span>；-->
             </div>
-            <div class="detail price">
+            <div class="detail price" style="margin-top: 25px;">
                 <span class="orange">￥<span class="p">{{ sku.agent_price }}</span></span>
                 &nbsp;X&nbsp;
                 <span class="a">{{ num }}</span>件

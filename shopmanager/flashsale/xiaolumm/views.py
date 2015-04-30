@@ -179,8 +179,8 @@ class MamaStatsView(View):
                     "order_num":order_num, "order_list":order_list, "pk":xlmm.pk,
                     "total_value":total_value, "carry":carry, "agencylevel":agencylevel,
                     "target_date":target_date, "prev_day":prev_day, "next_day":next_day}
-        except:
-            pass 
+        except Exception,exc:
+            logger.error(exc.message,exc_info=True)
         
         response = render_to_response("mama_stats.html", data, context_instance=RequestContext(request))
         response.set_cookie("openid",openid)
