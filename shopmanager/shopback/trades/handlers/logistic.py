@@ -31,7 +31,12 @@ class LogisticsHandler(BaseHandler):
                     
         if shipping_type == pcfg.EXPRESS_SHIPPING_TYPE.upper():
             #定制订单快递分配
-            if merge_trade.receiver_address.find(u'村') >= 0:
+            if (merge_trade.receiver_address.find(u'镇') >= 0 
+                and merge_trade.receiver_address.find(u'村') >= 0):
+                states = (u'甘肃',u'青海',u'陕西',u'广西',u'宁夏',u'贵州',u'内蒙','西藏','新疆')
+                if state.startswith(states):
+                    return LogisticsCompany.objects.get_or_create(
+                                        code='POSTB')[0]
                 return LogisticsCompany.objects.get_or_create(
                                         code='STO')[0]
             
