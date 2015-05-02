@@ -17,7 +17,7 @@ urlpatterns = (
     #############product urls############
     url(r'^wxwarn/$', csrf_exempt(views.WXPayWarnView.as_view())),
     
-    url(r'^plist/$', views.ProductList.as_view(),name="sale_home"),
+    url(r'^plist/$', cache_page(views.ProductList.as_view(),4*60*60),name="sale_home"),
     url(r'^p/(?P<pk>[0-9]+)/$', views.ProductDetail.as_view(),name="product_detail"),
     
     ##############order urls################

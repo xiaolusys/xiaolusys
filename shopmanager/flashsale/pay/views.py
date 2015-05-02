@@ -11,7 +11,7 @@ from django.forms import model_to_dict
 from django.shortcuts import get_object_or_404
 from django.core.serializers.json import DjangoJSONEncoder
 
-from shopback.items.models import Product,ProductSku
+from shopback.items.models import Product,ProductSku,ProductCategory
 from .models import SaleTrade,SaleOrder,genUUID,Customer
 from flashsale.xiaolumm.models import CarryLog,XiaoluMama
 import pingpp
@@ -229,6 +229,7 @@ from rest_framework import authentication
 from rest_framework import permissions
 from rest_framework.renderers import JSONRenderer,TemplateHTMLRenderer
 from rest_framework.views import APIView
+from rest_framework import filters
 
 from shopback.items.models import Product,ProductSku
 from . import serializes 
@@ -243,11 +244,18 @@ class ProductList(generics.ListCreateAPIView):
     #permission_classes = (permissions.IsAuthenticated,)
     paginate_by = 10
     
+    filter_backends = (filters.DjangoFilterBackend,)
+    
+    filter_fields = (
+        'category',
+    )
+    
     def list(self, request, *args, **kwargs):
         
         content    = request.REQUEST
         time_line  = content.get('time_line','0')
         history    = content.get('history','')
+        category   = content.get('category','')
         if not time_line.isdigit() or int(time_line) < 0:
             time_line = 0
         
@@ -262,14 +270,15 @@ class ProductList(generics.ListCreateAPIView):
         instance = self.filter_queryset(self.get_queryset())
 
         instance = instance.filter(sale_time=filter_date.date(),status=Product.NORMAL)
-
+        
         page = self.paginate_queryset(instance)
         if page is not None:
             serializer = self.get_pagination_serializer(page)
         else:
             serializer = self.get_serializer(instance, many=True)
-            
-        return Response(serializer.data)
+
+        return Response({'products':serializer.data, 'category':category, 
+                         'history':history, 'time_line':time_line})
     
     
 class ProductDetail(generics.RetrieveUpdateDestroyAPIView):

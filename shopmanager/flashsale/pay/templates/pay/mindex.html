@@ -29,18 +29,19 @@
 
   <!-- 导航 -->
   <div id="tab_nav">
-    <div class="block">
-      <a id="for_boy">童装</a>
-      <a id="for_all" class="active">全部</a>
-      <a id="for_girl">女装</a>
+    <div class="block row" style="width:100%;">
+      <a id="for_all" target="_self" href="{% url sale_home %}" class="col-xs-3 {% if not category %}active{% endif %}">首页</a>
+      <a id="for_boy" target="_self" href="{% url sale_home %}?category=5{% if history %}&history={{ history }}{% endif %}{% if time_line %}&time_line={{ time_line }}{% endif %}" class="col-xs-3 {% if category == '5' %}active{% endif %}">童装</a>
+      <a id="for_wom" target="_self" href="{% url sale_home %}?category=8{% if history %}&history={{ history }}{% endif %}{% if time_line %}&time_line={{ time_line }}{% endif %}" class="col-xs-3 {% if category == '8' %}active{% endif %}">女装</a>
+      <a id="for_fam" target="_self" href="{% url sale_home %}?category=9{% if history %}&history={{ history }}{% endif %}{% if time_line %}&time_line={{ time_line }}{% endif %}" class="col-xs-3 {% if category == '9' %}active{% endif %}">亲子装</a>
     </div>
   </div>
 
   <!-- 商品列表 -->
   <div id="p_list">
-  {% for product in results %}
+  {% for product in products.results %}
     <div class="holder">
-      <a id="p{{ product.id }}" class="wrapper {% if product.category == 5 %}boy{% else %}girl{% endif %}" href="../p/{{ product.id }}/" target="_top">
+      <a id="p{{ product.id }}" class="wrapper " href="../p/{{ product.id }}/" target="_top">
       <div class="image" style="height:240px">
       <img src="{{ product.pic_path }}"><span>已抢光</span></div>
       <div class="name">{{ product.name }}</div>
@@ -48,23 +49,23 @@
       <div class="price_o">￥<span>{{ product.std_sale_price }}</span>&nbsp;</div>
       </a>
     </div>
-    {% endfor %}
+  {% endfor %}
   </div>
   
-  <div id="no_more" next="{% if next %}{{ next }}&format=json{% endif %}">努力加载中...</div>
+  <div id="no_more" next="{% if products.next %}{{ products.next }}&format=json{% endif %}">努力加载中...</div>
 
   <nav id="main-nav" class="navbar navbar-default navbar-fixed-bottom">
   <div class="container">
 	  <ul class="nav nav-pills nav-justified">
-		  <li role="presentation" ><a href="{% url sale_home %}?history=yes&time_line=1" class="col-xs-4 " target="_self">历史特卖</a></li>
-		  <li role="presentation" ><a href="{% url sale_home %}" class="col-xs-4 " target="_self">今日上新</a></li>
+		  <li role="presentation" ><a href="{% url sale_home %}?{% if category %}category={{ category }}&{% endif %}history=yes&time_line=1" class="col-xs-4 " target="_self">昨日特卖</a></li>
+		  <li role="presentation" ><a href="{% url sale_home %}?{% if category %}category={{ category }}{% endif %}" class="col-xs-4 " target="_self">今日上新</a></li>
 		  <li role="presentation" ><a href="{% url user_profile %}" class="col-xs-4 " target="_self">个人中心</a></li>
 	  </ul>
   </div>
   </nav>
 <script>
   var from_top  = 75;
-  var nav_fix = from_top;
+  var nav_fix   = from_top;
   var page_height = 1000;
   
   $(document).ready(function(){
@@ -93,22 +94,6 @@
 
     });
 
-    //若采用页面内筛选的形式,则可以用以下绑定来完成筛选
-    $('#tab_nav').on('tap','.block a:not(.active)',function(){
-      $('#tab_nav .block a').removeClass('active');
-      $(this).addClass('active');
-      var id = $(this).attr('id');
-      $('#p_list .holder').show();
-      if (id == 'for_boy'){
-        $('#p_list .holder .wrapper.boy').closest('.holder').show();
-        $('#p_list .holder .wrapper.girl').closest('.holder').hide();
-      }
-      if (id == 'for_girl'){
-        $('#p_list .holder .wrapper.boy').closest('.holder').hide();
-        $('#p_list .holder .wrapper.girl').closest('.holder').show();
-      }
-    });
-
     //Ctrl_list_write();//列表写入
   });
 
@@ -121,12 +106,14 @@
 	if (!list_url){return;}
 	
     //实际JSON引入部分，可根据实际情况调整
-    $.getJSON(list_url,function(data){
+    $.getJSON(list_url,function(resp){
+      
+      var data = resp.products;
       
       $.each(data.results,function(index,entry){
         View_list_wrapper_write(entry);
       });
-   
+
       if( data.next != ''||data.next != 'undifine' ){
       	$('#no_more').attr('next',data.next).html('努力加载中...');
       };

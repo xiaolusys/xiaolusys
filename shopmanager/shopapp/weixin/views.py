@@ -1540,7 +1540,7 @@ class WeixinProductView(ModelView):
             wx_skus = WXProductSku.objects.filter(outer_id=product.outer_id)
             wx_pids = set([sku.product_id for sku in wx_skus])
             for wx_pid in wx_pids:
-                wx_product = WXProduct.objects.getOrCreate(wx_pid,force_update=True)
+                WXProduct.objects.getOrCreate(wx_pid,force_update=True)
             
             for sku in product.pskus:
                 outer_id = product.outer_id
