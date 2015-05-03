@@ -687,7 +687,7 @@ class ReferalSummary(models.Model):
 class Refund(models.Model):
     
     REFUND_TYPES = ((0,u'晒单返现'), 
-                    (1,u'VIP邀请'), 
+                    (1,u'VIP邀请'),
                     (2,u'10积分换购'),
                     (3,u'满100元返10元'),
                     (4,u'100元免单'),

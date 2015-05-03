@@ -1,12 +1,16 @@
 #-*- coding:utf-8 -*-
 import re
 import urllib
+import time
 from django.contrib import admin
+import cStringIO as StringIO
 from django.db import models
+from django.http import HttpResponse
 from django.conf import settings
 from django.contrib.admin.views.main import ChangeList
 from django.forms import TextInput, Textarea
 from shopback.base.options import DateFieldListFilter
+from common.utils import gen_cvs_tuple,CSVUnicodeWriter
 from shopapp.weixin.models import (WeiXinAccount,
                                    UserGroup,
                                    WeiXinUser,
@@ -339,6 +343,40 @@ class RefundAdmin(admin.ModelAdmin):
     
     list_filter = ('refund_type','refund_status','pay_type',('created',DateFieldListFilter))
     search_fields = ['trade_id','vip_code','user_openid','mobile','review_note','pay_note']
+    
+    #导出商品规格信息
+    def export_refund_action(self,request,queryset):
+        """ 导出商品及规格信息 """
+        
+        from django.core import exceptions
+        if not request.user.is_superuser:
+            raise exceptions.PermissionDenied
+        
+        is_windows = request.META['HTTP_USER_AGENT'].lower().find('windows') >-1 
+        
+        csv_fields = ['trade_id','user_openid','vip_code','pay_amount','refund_status',
+                      'created','refund_type','pay_type','pay_note']
+        csv_title = (u'订单编号',u'用户OPENID',u'邀请码',u'退款金额',u'退款状态'
+                     ,u'创建日期',u'返利类型',u'支付方式',u'备注'
+                     ,u'退款状态(0等待审核,1审核通过,2审核不通过,3完成)'
+                     ,u'返利类型(1VIP邀请,210积分换购,3满100元返10元,4100元免单,510积分返邮费)')
+        
+        pcsv = gen_cvs_tuple(queryset,fields=csv_fields,title=csv_title)
+        
+        tmpfile = StringIO.StringIO()
+        writer  = CSVUnicodeWriter(tmpfile,encoding= is_windows and "gbk" or 'utf8')
+        writer.writerows(pcsv)
+            
+        response = HttpResponse(tmpfile.getvalue(), mimetype='application/octet-stream')
+        tmpfile.close()
+        response['Content-Disposition'] = 'attachment; filename=weixin-refund-%s.csv'%str(int(time.time()))
+        
+        return response
+        
+    export_refund_action.short_description = u"导出退款订单信息"
+    
+    actions = ['export_refund_action']
+    
     
 admin.site.register(Refund, RefundAdmin) 
 
