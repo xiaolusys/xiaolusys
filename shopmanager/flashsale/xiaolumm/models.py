@@ -22,7 +22,7 @@ class XiaoluMama(models.Model):
     weikefu = models.CharField(max_length=11,db_index=True,blank=True,verbose_name=u"微客服")
     manager = models.IntegerField(default=0,verbose_name=u"管理员")
     
-    cash = models.IntegerField(default=0,verbose_name=u"现金")
+    cash = models.IntegerField(default=0,verbose_name=u"现金(分)")
     pending = models.IntegerField(default=0,verbose_name=u"佣金")
 
     agencylevel = models.IntegerField(default=1,verbose_name=u"类别")
