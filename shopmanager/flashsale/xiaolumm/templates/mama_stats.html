@@ -38,11 +38,11 @@
 <div style="margin-top:20px">
   <ul class="list-group">
     <li class="list-group-item">手机号: {{ mobile }}</li>
-    <li class="list-group-item">微客服: {{ xlmm.weikefu }}</li>
+    <li class="list-group-item">小鹿妈妈: {{ xlmm.weikefu }}</li>
     {% if agencylevel.pk > 1 %}
     <li class="list-group-item"><p style="color:orange">账户现金: ￥<span style="font-size:26px">{{ xlmm.cash }}</span>（<a href="/m/cashout/">详情</a>）<a href="/m/cashout/" class="btn btn-warning" style="float:right;">提现</a></p></li>
     {% endif %}
-    <li class="list-group-item">抢购链接： <b>http://xiaolu.so/m/{{ pk }}/</b></li>
+    <li class="list-group-item">专属链接： <b>http://xiaolu.so/m/{{ pk }}/</b></li>
     <li class="list-group-item">点击人数: {{ click_num }}</li>
     <li class="list-group-item">订单人数: {{ order_num }}</li>
     <li class="list-group-item"><span style="color:orange">订单金额: ￥{{ total_value }}</span></li>

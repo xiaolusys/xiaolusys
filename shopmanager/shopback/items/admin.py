@@ -103,7 +103,7 @@ class ProductAdmin(admin.ModelAdmin):
                 +' height="80px" title="%s"/></a><p><span>%s</span></p>')%(obj.id,abs_pic_url,obj.name,obj.name or u'--')
     
     pic_link.allow_tags = True
-    pic_link.short_description = "商品图片"
+    pic_link.short_description = u"商品图片"
     
     def district_link(self, obj):
         return u'<a href="/items/product/district/%d/" target="_blank" style="display: block;">查看 &gt;&gt;</a>' \
