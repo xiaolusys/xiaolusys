@@ -339,9 +339,10 @@ admin.site.register(ReferalBonusRecord, ReferalBonusRecordAdmin)
 class RefundAdmin(admin.ModelAdmin):
     
     list_display = ('trade_id', 'user_openid', 'refund_type','pay_amount','vip_code',
-                    'review_note','pay_note','created','refund_status')
+                    'review_note','pay_note','created','pay_time','refund_status')
     
-    list_filter = ('refund_type','refund_status','pay_type',('created',DateFieldListFilter))
+    list_filter = ('refund_type','refund_status','pay_type',
+                   ('created',DateFieldListFilter),('pay_time',DateFieldListFilter))
     search_fields = ['trade_id','vip_code','user_openid','mobile','review_note','pay_note']
     
     #导出商品规格信息
@@ -355,9 +356,10 @@ class RefundAdmin(admin.ModelAdmin):
         is_windows = request.META['HTTP_USER_AGENT'].lower().find('windows') >-1 
         
         csv_fields = ['trade_id','user_openid','vip_code','pay_amount','refund_status',
-                      'created','refund_type','pay_type','pay_note']
+                      'created','pay_time','refund_type','pay_type','pay_note']
+        
         csv_title = (u'订单编号',u'用户OPENID',u'邀请码',u'退款金额',u'退款状态'
-                     ,u'创建日期',u'返利类型',u'支付方式',u'备注'
+                     ,u'创建日期',u'付款日期',u'返利类型',u'支付方式',u'备注'
                      ,u'退款状态(0等待审核,1审核通过,2审核不通过,3完成)'
                      ,u'返利类型(1VIP邀请,210积分换购,3满100元返10元,4100元免单,510积分返邮费)')
         
