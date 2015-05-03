@@ -103,25 +103,27 @@ from django.conf import settings
 from flashsale.pay.options import get_user_unionid
 class MamaStatsView(View):
     def get(self, request):
-
+        
         content = request.REQUEST
         code = content.get('code',None)
-
-        openid,unionid = get_user_unionid(code,appid=settings.WEIXIN_APPID,
-                                          secret=settings.WEIXIN_SECRET)
+        
+        openid,unionid = get_user_unionid(code,
+                                          appid=settings.WEIXIN_APPID,
+                                          secret=settings.WEIXIN_SECRET,
+                                          request=request)
         
         if not valid_openid(openid):
             redirect_url = "https://open.weixin.qq.com/connect/oauth2/authorize?appid=wxc2848fa1e1aa94b5&redirect_uri=http://weixin.huyi.so/m/&response_type=code&scope=snsapi_base&state=135#wechat_redirect"
             return redirect(redirect_url)
-
+        
         service = WeixinUserService(openid,unionId=unionid)
         wx_user = service._wx_user
-
+        
         if not wx_user.isValid():
             return render_to_response("remind.html",{"openid":openid}, context_instance=RequestContext(request))
-
+        
         daystr = content.get("day", None)
-        today = datetime.date.today()
+        today  = datetime.date.today()
         year,month,day = today.year,today.month,today.day
 
         target_date = today
@@ -130,10 +132,10 @@ class MamaStatsView(View):
             target_date = datetime.date(int(year),int(month),int(day))
             if target_date > today:
                 target_date = today
-            
+        
         time_from = datetime.datetime(target_date.year, target_date.month, target_date.day)
         time_to = datetime.datetime(target_date.year, target_date.month, target_date.day, 23, 59, 59)
-
+        
         prev_day = target_date - datetime.timedelta(days=1)
         next_day = None
         if target_date < today:
@@ -157,7 +159,7 @@ class MamaStatsView(View):
                 orders = WXOrder.objects.filter(buyer_openid=item["openid"],
                                                 order_create_time__gt=time_from,
                                                 order_create_time__lt=time_to)
-                                                
+                
                 if orders.count() > 0:
                     order_num += 1
                 for order in orders:

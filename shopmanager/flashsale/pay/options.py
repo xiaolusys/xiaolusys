@@ -20,13 +20,17 @@ from django.conf import settings
 
 def get_user_unionid(code, 
                     appid=settings.WEIXIN_APPID, 
-                    secret=settings.WEIXIN_SECRET):
+                    secret=settings.WEIXIN_SECRET,
+                    request=None):
 
     if settings.DEBUG:
         return ('oMt59uE55lLOV2KS6vYZ_d0dOl5c','')
     
-    if not code :
+    if not code and not request:
         return ('','')
+    
+    if not code and request:
+        return (request.COOKIES.get('openid'),'')
 
     url = 'https://api.weixin.qq.com/sns/oauth2/access_token?appid=%s&secret=%s&code=%s&grant_type=authorization_code'
     get_openid_url = url % (appid, secret, code)

@@ -647,7 +647,7 @@ class RefundSubmitView(View):
             else:
                 obj = Refund.objects.create(trade_id=int(tradeid),refund_type=int(refundtype),vip_code=vipcode,review_note=review_note,user_openid=user_openid,mobile=mobile)
         else:
-            obj = obj[0]
+            obj = obj[0] 
         response = render_to_response('weixin/refundresponse.html', {"refund":obj},
                                       context_instance=RequestContext(request))
         return response
@@ -677,25 +677,29 @@ class RefundReviewView(View):
         
         refund    = Refund.objects.get(pk=refund_id)
         if refund_status == 1:
-            pay_note = content.get("pay_note")            
+            pay_note = content.get("pay_note")             
             action = int(content.get("action"))            
             
             if not action in (2,3) or refund.refund_status in (2,3):
                 response = {"code":"bad", "message":"wrong action"}
                 return HttpResponse(json.dumps(response),mimetype='application/json')
             
-            Refund.objects.filter(pk=refund_id).update(pay_note=pay_note,refund_status=action)
+            dt = datetime.datetime.now()
+            
+            Refund.objects.filter(pk=refund_id).update(pay_note=pay_note,
+                                                       refund_status=action,
+                                                       pay_time=(action == 3) and dt or None)
             
         if refund_status == 0:
             pay_type = int(content.get("pay_type"))
             pay_amount = int(float(content.get("pay_amount"))*100)
             review_note = content.get("review_note",)
             action = int(content.get("action"))
-
+            
             if not action in (1,2) or refund.refund_status in (1,2):
                 response = {"code":"bad", "message":"wrong action"}
                 return HttpResponse(json.dumps(response),mimetype='application/json')
-
+            
             refunds = Refund.objects.filter(pk=refund_id)
             refunds.update(pay_type=pay_type,pay_amount=pay_amount,review_note=review_note,refund_status=action)
             
@@ -719,11 +723,13 @@ class RefundReviewView(View):
                     orders = SampleOrder.objects.filter(user_openid=openid).filter(status__gt=0).order_by('-created')
                     if orders.count() > 0:
                         sample_order = orders[0]
-        print 'refund:',refunds,next_trade,next_refund,sample_order
+        
         html = 'weixin/refundreviewblock.html'
         if refund_status == 1:
             html = 'weixin/finalizeblock.html'
-        response = render_to_response(html, {"first_refund":next_refund, "first_trade": next_trade,"sample_order":sample_order},
+        response = render_to_response(html, {"first_refund":next_refund, 
+                                             "first_trade": next_trade,
+                                             "sample_order":sample_order},
                                       context_instance=RequestContext(request))
         return response
     
