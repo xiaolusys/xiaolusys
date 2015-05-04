@@ -25,23 +25,28 @@ POST_CODE_NAME_MAP = {'YUNDA':u'韵达快递',
                       'HTKY':u'汇通快递',
                       'TTKDEX':u'天天快递',
                       'QFKD':u'全峰快递',
+                      'POST':u'邮政',
+                      'POSTB':u'邮政小包',
                       }
 
 def getLogisticTrace(out_sid,exType):
     
+    post_array = []
+    post_array.append((u'快递公司', POST_CODE_NAME_MAP[exType]))
+    post_array.append((u'快递单号', out_sid))
+    
     if exType in ('POST','POSTB'):
-        raise Exception(u'暂时无法查询该快递信息')
+        post_array.append(('运输信息',[('','暂时无法查询该快递公司')]))
+        return post_array
     
     data = {'type':BAIDU_POST_CODE_EXCHANGE.get(exType),'postid':out_sid}
     req = urllib2.urlopen(BADU_KD100_URL, urllib.urlencode(data),timeout=30)
     content = json.loads(req.read())
     
     if content.get('message') != 'ok':
-        raise Exception(u'暂未查询到快递信息')
+        post_array.append(('运输信息',[('','暂未查询到快递信息')]))
+        return post_array
     
-    post_array = []
-    post_array.append((u'快递公司', POST_CODE_NAME_MAP[exType]))
-    post_array.append((u'快递单号', out_sid))
     traces  = []
     for t in content['data']:
         traces.append((t['ftime'],t['context']))

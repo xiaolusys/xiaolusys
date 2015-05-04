@@ -1,0 +1,62 @@
+{% extends "pay/base_profile.html" %}
+
+{% block title %}小鹿美美-个人中心{% endblock %}
+
+{% block style %}
+<link rel="stylesheet" href="{{ STATIC_URL }}style/main.css">
+<link rel="stylesheet" href="{{ STATIC_URL }}style/profile.css">
+
+{% endblock %}
+
+
+{% block preload_script %}
+
+
+{% endblock %}
+
+
+{% block container %}
+<div class="container-fluid">
+<nav class="navbar navbar-default navbar-fixed-top row">
+	<div class="col-xs-2" >
+	  <a href="{% if origin_url %}{{ origin_url }}{% else %}javascript:history.back();{% endif %}" class="glyphicon glyphicon-menu-left" target="_self"></a>
+	</div>
+	<div class="col-xs-8" >
+	  <span class="h3">订单物流状态</span>
+	</div>
+	<div class="col-xs-2" >
+	  <a id="address_plus_link" href="{% url sale_home %}" class="glyphicon glyphicon-home" target="_self"></a>
+	</div>
+</nav>
+
+<div id="refund-status" class="list-panel panel-default" >
+  <div class="panel-heading">订单物流跟踪信息</div>
+  <div class="panel-body">
+	<div id="refund-resp" class="row list-row list-row-border">
+	  <div class="well well-lg">
+		<table class="table table-striped">
+			<tr><td >快递公司：</td><td >{{ logistic_trace.0.1 }}</td></tr>
+			<tr><td >快递单号：</td><td >{{ logistic_trace.1.1 }}</td></tr>
+			<tr><td colspan="2">物流信息</td></tr>
+			{% for trace in logistic_trace.2.1 %}
+			<tr><td >{{ trace.0 }}：</td><td >{{ trace.1 }}</td></tr>
+			{% endfor %}
+		</table>
+	  </div>
+	</div>
+  </div>
+  </div>
+</div>	
+
+</div>
+{% endblock %}
+
+
+
+{% block delayed_script %}
+<script type="text/javascript">
+$(function(){
+	$('.ui-loader').remove();
+})
+</script>
+{% endblock %}

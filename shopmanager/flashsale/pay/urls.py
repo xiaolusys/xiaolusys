@@ -25,6 +25,7 @@ urlpatterns = (
     url(r'^orderlist/$', sale_buyer_required(views.SaleOrderList.as_view()),name="user_orderlist"),
     url(r'^order/(?P<pk>[0-9]+)/$', sale_buyer_required(views.SaleOrderDetail.as_view()),name="user_orderdetail"),
     url(r'^payresult/$',sale_buyer_required(views.PayResultView.as_view()),name="user_payresult"),
+    url(r'^logistic/(?P<pk>[0-9]+)/$',sale_buyer_required(cache_page(views.SaleTradeLogistic.as_view(),60*60)),name="order_logistic"),
     
     #############address urls############
     url(r'^addr/list/$',sale_buyer_required(AddressList.as_view()),name="address_list"),

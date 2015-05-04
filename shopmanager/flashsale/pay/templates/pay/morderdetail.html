@@ -118,7 +118,7 @@
        	 <span class="glyphicon glyphicon-ban-circle">退款关闭</span>
        	 {% elif order.refund.status == 2 %}
        	 <span class="glyphicon glyphicon-flash">退款驳回</span>
-       	 {% elif order.refund.status == 6 %}
+       	 {% elif order.refund.status == 7 %}
        	 <span class="glyphicon glyphicon-ok-circle">退款成功</span>
        	 {% elif order.refund.status == 4 %}
        	 <span class="glyphicon glyphicon-time">同意退款，待退货</span>
@@ -140,7 +140,7 @@
 	<div class="col-xs-12 padding-lf0"><span class="pull-left h6">数量：</span><span class="pull-right text-danger">{{ order_num }}</span></div>
 	</div>
 	<div class="row list-row">
-		<a class="btn btn-default btn-rowfull">查看物流</a>
+		<a class="btn btn-default btn-rowfull" href="{% url order_logistic pk=id %}">查看物流</a>
 	</div>
   </div>
 </div>

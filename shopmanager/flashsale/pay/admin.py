@@ -220,7 +220,8 @@ class SaleRefundAdmin(admin.ModelAdmin):
                                         buyer_nick=strade.buyer_nick,
                                         value=payment,
                                         status=CarryLog.CONFIRMED)
-                        
+                        obj.status = SaleRefund.REFUND_SUCCESS
+                            
                     elif obj.refund_fee > 0 and obj.charge:
                         import pingpp
                         pingpp.api_key = settings.PINGPP_APPKEY
@@ -228,8 +229,8 @@ class SaleRefundAdmin(admin.ModelAdmin):
                         re = ch.refunds.create(description=obj.refund_desc, 
                                                amount=int(obj.refund_fee*100))
                         obj.refund_id = re.id
+                        obj.status = SaleRefund.REFUND_APPROVE
                         
-                    obj.status = SaleRefund.REFUND_APPROVE
                     obj.save()
                     
                     log_action(request.user.id,obj,CHANGE,'退款审核通过:%s'%obj.refund_id)

@@ -451,6 +451,33 @@ class SaleOrderDetail(APIView):
         return Response({})
     
     
+from shopback.logistics import getLogisticTrace
     
+class SaleTradeLogistic(APIView):
+    
+    permission_classes = (permissions.IsAuthenticated,)
+    template_name = "pay/mlogistic.html"
+    
+    def get(self, request,pk, format=None):
+        
+        user = request.user
+        customers = Customer.objects.filter(user=user)
+        if customers.count() == 0:
+            return HttpResponseForbidden('NOT EXIST')
+        
+        customer   = customers[0]
+        strade = get_object_or_404(SaleTrade,buyer_id=customer.id,pk=pk)
+        
+        logistic_trace = None
+        if strade.logistics_company and strade.out_sid:
+            logistic_trace = getLogisticTrace(strade.out_sid,
+                                              strade.logistics_company.code)
+        
+        print 'logistic trade:',logistic_trace
+        
+        return Response({'logistic_trace':logistic_trace})
+    
+
+        
     
     
