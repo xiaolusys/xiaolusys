@@ -729,7 +729,7 @@ class Refund(models.Model):
     pay_note = models.CharField(max_length=256, blank=True, verbose_name=u'返现备注')
 
     created = models.DateTimeField(null=True,db_index=True,auto_now_add=True,verbose_name=u'申请日期')
-    pay_time = models.DateTimeField(null=True,db_index=True,verbose_name=u'付款日期')
+    pay_time = models.DateTimeField(null=True,blank=True,db_index=True,verbose_name=u'付款日期')
 
     class Meta:
         db_table = 'shop_weixin_refund'

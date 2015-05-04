@@ -284,14 +284,13 @@ from django.core.serializers.json import DjangoJSONEncoder
 def chargeWXUser(request,pk):
     
     result = {}
-    charged = False
     employee = request.user
 
     xiaolumm = get_object_or_404(XiaoluMama,pk=pk)
    
     charged = XiaoluMama.objects.charge(xiaolumm, employee)
     if not charged:
-        result ={'code':1,'error_response':''}
+        result ={'code':1,'error_response':u'已经被接管'}
             
     if charged :
         result ={'success':True}
@@ -313,8 +312,10 @@ class XiaoluMamaModelView(View):
         xlmm.user_group_id = user_group_id
         xlmm.save()
         
-        user_dict = {'code':0,'response_content':model_to_dict(xlmm,
-                                fields=['id','nickname','user_group','charge_status'])}
+        user_dict = {'code':0,'response_content':
+                     model_to_dict(xlmm, fields=['id','user_group','charge_status'])}
         
         return HttpResponse(json.dumps(user_dict,cls=DjangoJSONEncoder),
                             mimetype="application/json")
+        
+        

@@ -2,7 +2,7 @@
 from django.contrib import admin
 from flashsale.xiaolumm.models import UserGroup
 
-
+from shopback.base.options import DateFieldListFilter
 from .models import Clicks,XiaoluMama,AgencyLevel,CashOut,CarryLog
 
 
@@ -10,8 +10,8 @@ class XiaoluMamaAdmin(admin.ModelAdmin):
     
     user_groups = []
     
-    list_display = ('id','mobile','province','weikefu','agencylevel','manager','created','status')
-    list_filter = ('weikefu','agencylevel','manager','status')
+    list_display = ('id','mobile','province','weikefu','agencylevel','charge_link','group_select','created','status')
+    list_filter = ('weikefu','agencylevel','manager','status',('created',DateFieldListFilter),'user_group')
     search_fields = ['id','mobile','manager']
     
     def get_changelist(self, request, **kwargs):
@@ -26,22 +26,27 @@ class XiaoluMamaAdmin(admin.ModelAdmin):
         return super(XiaoluMamaAdmin,self).get_changelist(request,**kwargs)
     
     def group_select(self, obj):
+        print 'select',obj
+        try:
+            categorys = set(self.user_groups)
+            print 'group:', obj.user_group
+            if obj.user_group:
+                categorys.add(obj.user_group)
 
-        categorys = set(self.user_groups)
-        if obj.user_group:
-            categorys.add(obj.user_group)
-            
-        cat_list = ["<select class='group_select' gid='%s'>"%obj.id]
-        cat_list.append("<option value=''>-------------------</option>")
-        for cat in categorys:
-
-            if obj and obj.user_group == cat:
-                cat_list.append("<option value='%s' selected>%s</option>"%(cat.id,cat))
-                continue
-
-            cat_list.append("<option value='%s'>%s</option>"%(cat.id,cat))
-        cat_list.append("</select>")
-
+        
+            cat_list = ["<select class='group_select' gid='%s'>"%obj.id]
+            cat_list.append("<option value=''>-------------------</option>")
+            for cat in categorys:
+    
+                if obj and obj.user_group == cat:
+                    cat_list.append("<option value='%s' selected>%s</option>"%(cat.id,cat))
+                    continue
+    
+                cat_list.append("<option value='%s'>%s</option>"%(cat.id,cat))
+            cat_list.append("</select>")
+        except Exception,exc:
+            print exc.message
+        print 'cat_list:',cat_list
         return "".join(cat_list)
     
     group_select.allow_tags = True
@@ -50,7 +55,7 @@ class XiaoluMamaAdmin(admin.ModelAdmin):
     def charge_link(self, obj):
 
         if obj.charge_status == XiaoluMama.CHARGED:
-            return u'[ %s ]' % obj.username
+            return u'[ %s ]' % obj.manager_name
         
         if obj.charge_status == XiaoluMama.FROZEN:
             return obj.get_charge_status_display()

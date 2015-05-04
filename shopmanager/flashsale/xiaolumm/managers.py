@@ -24,7 +24,7 @@ class XiaoluMamaManager(models.Manager):
         if xlmm.charge_status == self.model.CHARGED:
             return False
         
-        xlmm.charger = user
+        xlmm.manager = user.id
         xlmm.charge_status = self.model.CHARGED
         xlmm.save()
         

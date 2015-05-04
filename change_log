@@ -1,3 +1,6 @@
+########### 2015-5-4  #################
+ALTER TABLE `xiaolumm_xiaolumama` ADD column charge_status varchar(16) NOT NULL,ADD INDEX `xiaolumm_xiaolumama`(`charge_status`);
+ALTER TABLE `xiaolumm_xiaolumama` ADD column user_group_id bigint(20) DEFAULT NULL, ADD CONSTRAINT `xiaolumm_user_group_id` FOREIGN KEY (`user_group_id`) REFERENCES `shop_weixin_group` (`id`);
 ########### 2015-3-31  #################
 create index idx_mergetrade_receiver_phone on shop_trades_mergetrade(receiver_phone);
 ########### 2015-3-23  #################

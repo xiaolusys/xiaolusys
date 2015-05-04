@@ -38,13 +38,12 @@ class XiaoluMama(models.Model):
     pending = models.IntegerField(default=0,verbose_name=u"佣金")
 
     agencylevel = models.IntegerField(default=1,verbose_name=u"类别")
-    user_group = models.ForeignKey(UserGroup,null=True,blank=True,verbose_name=u"类别")
+    user_group = models.ForeignKey(UserGroup,null=True,verbose_name=u"类别")
     
     created = models.DateTimeField(auto_now_add=True,verbose_name=u'创建时间')
     status  = models.CharField(max_length=16,blank=True,choices=STATUS_CHOICES,
                                default=EFFECT,verbose_name=u'状态')
     
-    charger = models.ForeignKey(DjangoUser,related_name='xiaolumms',verbose_name=u'接管人')
     charge_status = models.CharField(max_length=16,blank=True,db_index=True,
                                        choices=STATUS_CHOICES,
                                        default=UNCHARGE,verbose_name=u'接管状态')
@@ -60,7 +59,14 @@ class XiaoluMama(models.Model):
     @property
     def cash_money(self):
         return round(self.cash/100.0,2)
-
+    
+    @property
+    def manager_name(self):
+        try:
+            return DjangoUser.objects.get(id=self.manager).username
+        except:
+            return self.manager
+        
 class AgencyLevel(models.Model):
     category = models.CharField(max_length=11,unique=True,blank=False,verbose_name=u"类别")
     deposit = models.IntegerField(default=0,verbose_name=u"押金")
