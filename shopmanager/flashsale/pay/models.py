@@ -30,7 +30,7 @@ class SaleTrade(models.Model):
     WALLET     = 'wallet'
     
     CHANNEL_CHOICES = (
-        (WALLET,u'钱包'),
+        (WALLET,u'小鹿钱包'),
         (WX_PUB,u'微支付'),
         (ALIPAY_WAP,u'支付宝'),
         (UPMP_WAP,u'银联'),
@@ -177,7 +177,7 @@ class SaleTrade(models.Model):
         self.pay_time = charge_time or datetime.datetime.now()
         self.save()
         
-        for order in self.normal_orders():
+        for order in self.normal_orders:
             order.status = order.WAIT_SELLER_SEND_GOODS
             order.save()
     

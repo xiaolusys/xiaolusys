@@ -1150,7 +1150,8 @@ def regular_trade(request,id):
         
     user_id  = request.user.id
     try:
-        merge_trade = MergeTrade.objects.get(id=id,sys_status=pcfg.WAIT_AUDIT_STATUS)
+        merge_trade = MergeTrade.objects.get(id=id,
+                                             sys_status=pcfg.WAIT_AUDIT_STATUS)
     except:
         return HttpResponse(json.dumps({'code':1,'response_error':u'订单不在问题单'}),mimetype="application/json")
     else:
@@ -1724,7 +1725,7 @@ class PackageScanWeightView(ModelView):
         if not self.isValidYundaId(package_no):
             return package_no
         
-        return package_no[0:13]  
+        return package_no[0:13]
     
         
     def get(self, request, *args, **kwargs):
@@ -1826,40 +1827,6 @@ class SaleMergeOrderListView(ModelView):
         
         return parse_date(end_dt)
 
-    def getSaleOrders(self,charger):
-        
-        order_qs  = MergeOrder.objects.filter(sys_status=pcfg.IN_EFFECT)\
-                            .exclude(gift_type=pcfg.RETURN_GOODS_GIT_TYPE)
-        if shop_id:
-            order_qs = order_qs.filter(merge_trade__user=shop_id)
-        
-        if sc_by == 'pay':
-            order_qs = order_qs.filter(pay_time__gte=start_dt,pay_time__lte=end_dt)
-        elif sc_by == 'weight':
-            order_qs = order_qs.filter(merge_trade__weight_time__gte=start_dt,
-                                       merge_trade__weight_time__lte=end_dt)
-        else:
-            order_qs = order_qs.filter(created__gte=start_dt,created__lte=end_dt)
-        
-        if  wait_send == '1':
-            order_qs = order_qs.filter(merge_trade__sys_status=pcfg.WAIT_PREPARE_SEND_STATUS)
-        elif wait_send == '2':
-            order_qs = order_qs.filter(merge_trade__status__in=pcfg.ORDER_SUCCESS_STATUS,
-                                       merge_trade__sys_status__in=pcfg.WAIT_WEIGHT_STATUS)
-        else:
-            order_qs = order_qs.filter(merge_trade__status__in=pcfg.ORDER_SUCCESS_STATUS)\
-                .exclude(merge_trade__sys_status__in=(pcfg.INVALID_STATUS,pcfg.ON_THE_FLY_STATUS))\
-                .exclude(merge_trade__sys_status=pcfg.FINISHED_STATUS,
-                         merge_trade__is_express_print=False)
-                
-        if is_sale :
-            order_qs = order_qs.extra(where=["CHAR_LENGTH(outer_id)>=9"])\
-                .filter(Q(outer_id__startswith="9")|Q(outer_id__startswith="1")|Q(outer_id__startswith="8"))
-        
-        if p_outer_id:
-            order_qs = order_qs.filter(outer_id=p_outer_id)
-    
-        return order_qs
     
     def getSourceTrades(self,order_qs):
         

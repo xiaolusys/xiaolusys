@@ -349,41 +349,6 @@ class ProductAdmin(admin.ModelAdmin):
     
     sync_purchase_items_stock.short_description = u"同步分销商品库存"
     
-#     #根据线上商品SKU 更新系统商品SKU
-#     def update_items_sku(self,request,queryset):
-#         
-#         from shopback.items.tasks import updateUserProductSkuTask
-#         users = User.objects.filter(status=pcfg.NORMAL,is_primary=True)
-#         sync_items = []
-#         for prod in queryset:
-#             pull_dict = {'outer_id':prod.outer_id,'name':prod.name}
-#             try:
-#                 items = Item.objects.filter(outer_id=prod.outer_id)
-#                 for item in items:
-#                     Item.get_or_create(item.user.visitor_id,item.num_iid,force_update=True)    
-#                 
-#                 for u in users:
-#                     updateUserProductSkuTask(user_id=u.visitor_id,outer_ids=[prod.outer_id])
-#                     
-#                 item_sku_outer_ids = set()
-#                 items = Item.objects.filter(outer_id=prod.outer_id)
-#                 for item in items:
-#                     sku_dict = json.loads(item.skus or '{}')
-#                     if sku_dict:
-#                         sku_list = sku_dict.get('sku')
-#                         item_sku_outer_ids.update([ sku.get('outer_id','') for sku in sku_list])
-#                 prod.prod_skus.exclude(outer_id__in=item_sku_outer_ids).update(status=pcfg.REMAIN)
-#             except Exception,exc:
-#                 pull_dict['success']=False
-#                 pull_dict['errmsg']=exc.message or '%s'%exc  
-#             else:
-#                 pull_dict['success']=True
-#             sync_items.append(pull_dict)
-#        
-#         return render_to_response('items/product_action.html',{'prods':sync_items,'action_name':u'更新商品SKU'},
-#                                   context_instance=RequestContext(request),mimetype="text/html")
-#     
-#     update_items_sku.short_description = u"更新系统商品SKU"    
     
     #取消该商品缺货订单
     def cancle_orders_out_stock(self,request,queryset):
@@ -437,7 +402,7 @@ class ProductAdmin(admin.ModelAdmin):
         
     cancel_syncstock_action.short_description = u"取消商品库存同步"
     
-    #取消订单匹配标记状态（批量）
+    #订单商品定时提醒（批量）
     def regular_saleorder_action(self,request,queryset):
          
         remind_time = datetime.datetime.now() + datetime.timedelta(days=7)
@@ -462,25 +427,32 @@ class ProductAdmin(admin.ModelAdmin):
         
     regular_saleorder_action.short_description = u"定时商品订单七日"
     
-    #取消订单匹配标记状态（批量）
+    #订单商品定时释放（批量）
     def deliver_saleorder_action(self,request,queryset):
          
         outer_ids = [p.outer_id for p in queryset]
         mos = MergeOrder.objects.filter(outer_id__in=outer_ids,
-                                    merge_trade__sys_status="REGULAR_REMAIN")
-    
-        merge_trades = set([o.merge_trade for o in mos])
-    
-        for t in merge_trades:
-
-            if (t.inuse_orders.count() > 1 or 
-                not t.logistics_company or 
-                t.reason_code ):
-                t.sys_status="WAIT_AUDIT"
-            else:
-                t.sys_status="WAIT_PREPARE_SEND"
-            t.save()
+                                    merge_trade__sys_status=pcfg.REGULAR_REMAIN_STATUS)
         
+        merge_trades = set([o.merge_trade for o in mos])
+        for t in merge_trades:
+            
+            for order in t.normal_orders:
+                out_stock = Product.objects.isProductOutingStockEnough(
+                                     order.outer_id, 
+                                     order.outer_sku_id,
+                                     order.num)
+                order.out_stock = out_stock
+                order.save()
+                
+            t = MergeTrade.objects.get(id=t.id)
+            if t.reason_code:
+                t.sys_status = pcfg.WAIT_AUDIT_STATUS
+            else:
+                t.sys_status = pcfg.WAIT_PREPARE_SEND_STATUS
+            
+            t.save()
+
         self.message_user(request,u"已成功取消%s个订单定时提醒!"%len(merge_trades))
         
         return HttpResponseRedirect(request.get_full_path())

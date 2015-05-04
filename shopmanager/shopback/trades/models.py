@@ -300,6 +300,10 @@ class MergeTrade(models.Model):
     @property
     def inuse_orders(self):
         return self.merge_orders.filter(sys_status=pcfg.IN_EFFECT)  
+    
+    @property
+    def normal_orders(self):
+        return self.merge_orders.filter(sys_status=pcfg.IN_EFFECT) 
          
     @property
     def print_orders(self):

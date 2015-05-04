@@ -134,6 +134,8 @@ class UserAddressAdmin(admin.ModelAdmin):
 admin.site.register(UserAddress, UserAddressAdmin)
 
 
+from flashsale.xiaolumm.models import XiaoluMama,CarryLog
+
 class SaleRefundAdmin(admin.ModelAdmin):
     
     list_display = ('refund_no','order_id','title','refund_fee','has_good_return','has_good_change','created','status')
@@ -198,20 +200,36 @@ class SaleRefundAdmin(admin.ModelAdmin):
         pk_value = obj._get_pk_val()
         if request.POST.has_key("_refund_confirm"):
             try:
-                import pingpp
+                
                 if obj.status in (SaleRefund.REFUND_WAIT_SELLER_AGREE,
                                   SaleRefund.REFUND_WAIT_RETURN_GOODS,
                                   SaleRefund.REFUND_CONFIRM_GOODS):
                     
-                    obj.status = SaleRefund.REFUND_APPROVE
+                    strade = SaleTrade.objects.get(id=obj.trade_id)
+                    customer = Customer.objects.get(id=strade.buyer_id)
                     
-                    if obj.refund_fee > 0 and obj.charge:
+                    if strade.channel == SaleTrade.WALLET :
+                        payment = int(obj.refund_fee * 100)
+                        xlmm_queryset = XiaoluMama.objects.filter(openid=customer.unionid)
+                        urows = xlmm_queryset.update(cash=models.F('cash')+payment)
+                        
+                        if urows > 0:
+                            xlmm = xlmm_queryset[0]
+                            CarryLog.objects.create(xlmm=xlmm.id,
+                                        order_num=strade.id,
+                                        buyer_nick=strade.buyer_nick,
+                                        value=payment,
+                                        status=CarryLog.CONFIRMED)
+                        
+                    elif obj.refund_fee > 0 and obj.charge:
+                        import pingpp
                         pingpp.api_key = settings.PINGPP_APPKEY
                         ch = pingpp.Charge.retrieve(obj.charge)
                         re = ch.refunds.create(description=obj.refund_desc, 
                                                amount=int(obj.refund_fee*100))
-                        
                         obj.refund_id = re.id
+                        
+                    obj.status = SaleRefund.REFUND_APPROVE
                     obj.save()
                     
                     log_action(request.user.id,obj,CHANGE,'退款审核通过:%s'%obj.refund_id)

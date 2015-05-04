@@ -152,7 +152,7 @@ class ProductManager(models.Manager):
             raise self.model.ProductCodeDefect(u'(%s,%s)编码组合未匹配到商品'%(outer_id,outer_sku_id))
         
         outing_num = MergeTrade.objects.getProductOrSkuOrderOutingNum(outer_id, outer_sku_id)
-        print 'outing_num:' ,product_sku.quantity,outing_num,num
+        
         if product_sku:
             return product_sku.quantity - outing_num - num >= 0
         else:
