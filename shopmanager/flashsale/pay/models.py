@@ -131,6 +131,10 @@ class SaleTrade(models.Model):
         return '<%s,%s>'%(str(self.id),self.buyer_nick)
     
     @property
+    def normal_orders(self):
+        return self.sale_orders.filter(status__in=SaleOrder.NORMAL_ORDER_STATUS)
+    
+    @property
     def order_title(self):
         if self.sale_orders.count() > 0:
             return self.sale_orders.all()[0].title
@@ -177,9 +181,6 @@ class SaleTrade(models.Model):
             order.status = order.WAIT_SELLER_SEND_GOODS
             order.save()
     
-    
-    def normal_orders(self):
-        return self.sale_orders.filter(status__in=SaleOrder.NORMAL_ORDER_STATUS)
 
 
 class SaleOrder(models.Model):
