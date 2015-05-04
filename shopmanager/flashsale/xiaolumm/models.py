@@ -18,7 +18,7 @@ class XiaoluMama(models.Model):
     CHARGED  = 'charged'
     UNCHARGE = 'uncharge'
     FROZEN = 'frozen'
-    STATUS_CHOICES = (
+    CHARGE_STATUS_CHOICES = (
         (UNCHARGE,u'待接管'),
         (CHARGED,u'已接管'),
         (FROZEN,u'已冻结'),
@@ -45,7 +45,7 @@ class XiaoluMama(models.Model):
                                default=EFFECT,verbose_name=u'状态')
     
     charge_status = models.CharField(max_length=16,blank=True,db_index=True,
-                                       choices=STATUS_CHOICES,
+                                       choices=CHARGE_STATUS_CHOICES,
                                        default=UNCHARGE,verbose_name=u'接管状态')
     
     objects = XiaoluMamaManager()

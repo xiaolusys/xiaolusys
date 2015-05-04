@@ -26,27 +26,23 @@ class XiaoluMamaAdmin(admin.ModelAdmin):
         return super(XiaoluMamaAdmin,self).get_changelist(request,**kwargs)
     
     def group_select(self, obj):
-        print 'select',obj
-        try:
-            categorys = set(self.user_groups)
-            print 'group:', obj.user_group
-            if obj.user_group:
-                categorys.add(obj.user_group)
 
-        
-            cat_list = ["<select class='group_select' gid='%s'>"%obj.id]
-            cat_list.append("<option value=''>-------------------</option>")
-            for cat in categorys:
-    
-                if obj and obj.user_group == cat:
-                    cat_list.append("<option value='%s' selected>%s</option>"%(cat.id,cat))
-                    continue
-    
-                cat_list.append("<option value='%s'>%s</option>"%(cat.id,cat))
-            cat_list.append("</select>")
-        except Exception,exc:
-            print exc.message
-        print 'cat_list:',cat_list
+        categorys = set(self.user_groups)
+
+        if obj.user_group:
+            categorys.add(obj.user_group)
+
+        cat_list = ["<select class='group_select' gid='%s'>"%obj.id]
+        cat_list.append("<option value=''>-------------------</option>")
+        for cat in categorys:
+
+            if obj and obj.user_group == cat:
+                cat_list.append("<option value='%s' selected>%s</option>"%(cat.id,cat))
+                continue
+
+            cat_list.append("<option value='%s'>%s</option>"%(cat.id,cat))
+        cat_list.append("</select>")
+
         return "".join(cat_list)
     
     group_select.allow_tags = True
