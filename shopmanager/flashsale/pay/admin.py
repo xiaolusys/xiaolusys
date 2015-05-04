@@ -48,7 +48,7 @@ class SaleTradeAdmin(admin.ModelAdmin):
     inlines = [SaleOrderInline]
     
     #-------------- 页面布局 --------------
-    fieldsets =(('订单基本信息:', {
+    fieldsets =((u'订单基本信息:', {
                     'classes': ('expand',),
                     'fields': (('tid','buyer_nick','channel','status')
                                ,('trade_type','total_fee','payment','post_fee')
@@ -56,7 +56,7 @@ class SaleTradeAdmin(admin.ModelAdmin):
                                ,('buyer_message','seller_memo')
                                )
                 }),
-                ('收货人及物流信息:', {
+                (u'收货人及物流信息:', {
                     'classes': ('expand',),
                     'fields': (('receiver_name','receiver_state','receiver_city','receiver_district')
                             ,('receiver_address','receiver_zip','receiver_mobile','receiver_phone')
@@ -115,8 +115,8 @@ admin.site.register(Customer,CustomerAdmin)
 
 class DistrictAdmin(admin.ModelAdmin):
     
-    list_display = ('id','name','parent_id','grade','sort_order')
-    search_fields = ['parent_id','name']
+    list_display = ('id','name','full_name','parent_id','grade','sort_order')
+    search_fields = ['id','parent_id','name']
     
     list_filter = ('grade',)
 
@@ -125,7 +125,8 @@ admin.site.register(District, DistrictAdmin)
 
 class UserAddressAdmin(admin.ModelAdmin):
     
-    list_display = ('id','cus_uid','receiver_name','receiver_state','receiver_city','receiver_mobile','default','status')
+    list_display = ('id','cus_uid','receiver_name','receiver_state',
+                    'receiver_city','receiver_mobile','default','status')
     search_fields = ['cus_uid','receiver_mobile']
     
     list_filter = ('default','status')

@@ -11,6 +11,7 @@ from django.contrib.auth.models import User
 from shopapp.weixin.views import get_user_openid,valid_openid
 from shopapp.weixin.models import WXOrder
 from shopapp.weixin.service import WeixinUserService
+from shopback.base import log_action, ADDITION, CHANGE
 
 from models import Clicks, XiaoluMama, AgencyLevel, CashOut, CarryLog
 
@@ -274,3 +275,46 @@ def logclicks(request, linkid):
     
     
     return redirect(SHOPURL)
+
+
+from django.shortcuts import get_object_or_404
+from django.forms import model_to_dict
+from django.core.serializers.json import DjangoJSONEncoder
+
+def chargeWXUser(request,pk):
+    
+    result = {}
+    charged = False
+    employee = request.user
+
+    xiaolumm = get_object_or_404(XiaoluMama,pk=pk)
+   
+    charged = XiaoluMama.objects.charge(xiaolumm, employee)
+    if not charged:
+        result ={'code':1,'error_response':''}
+            
+    if charged :
+        result ={'success':True}
+        
+        log_action(request.user.id,xiaolumm,CHANGE,u'接管用户')
+    
+    return HttpResponse( json.dumps(result),content_type='application/json')
+
+
+class XiaoluMamaModelView(View):
+    """ 微信接收消息接口 """
+    
+    def post(self,request ,pk):
+        
+        content    = request.REQUEST
+        user_group_id = content.get('user_group_id')
+        
+        xlmm = get_object_or_404(XiaoluMama,pk=pk)
+        xlmm.user_group_id = user_group_id
+        xlmm.save()
+        
+        user_dict = {'code':0,'response_content':model_to_dict(xlmm,
+                                fields=['id','nickname','user_group','charge_status'])}
+        
+        return HttpResponse(json.dumps(user_dict,cls=DjangoJSONEncoder),
+                            mimetype="application/json")

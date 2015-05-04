@@ -718,8 +718,8 @@ def change_trade_order(request,id):
         merge_trade.append_reason_code(pcfg.ORDER_ADD_REMOVE_CODE)
         is_reverse_order = True
         
-    order.outer_sku_id=prod_sku.outer_id
-    order.sku_properties_name=prod_sku.properties_name
+    order.outer_sku_id = prod_sku.outer_id
+    order.sku_properties_name = prod_sku.name
     order.is_rule_match = False
     order.out_stock     = not Product.objects.isProductOutingStockEnough(
                                                                      order.outer_id, 

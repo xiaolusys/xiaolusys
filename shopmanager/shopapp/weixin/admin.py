@@ -36,8 +36,7 @@ from shopapp.weixin.models import (WeiXinAccount,
                                    WeixinScoreItem,
                                    WeixinClickScore,
                                    WeixinScoreBuy,
-                                   WeixinClickScoreRecord
-                                   )
+                                   WeixinClickScoreRecord)
 import logging
 logger = logging.getLogger("django.request")
 

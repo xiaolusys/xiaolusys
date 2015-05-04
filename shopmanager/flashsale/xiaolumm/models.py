@@ -1,16 +1,28 @@
 #-*- coding:utf-8 -*-
 from django.db import models
-
+from django.contrib.auth.models import User as DjangoUser
+from shopapp.weixin.models import UserGroup
+from .managers import XiaoluMamaManager
 # Create your models here.
 
 
 class XiaoluMama(models.Model):
+    
     EFFECT = 'effect'
     INVALID = 'invalid'
     STATUS_CHOICES = (
         (EFFECT,u'有效'),
         (INVALID,u'失效'),
     )
+    
+    CHARGED  = 'charged'
+    UNCHARGE = 'uncharge'
+    FROZEN = 'frozen'
+    STATUS_CHOICES = (
+        (UNCHARGE,u'待接管'),
+        (CHARGED,u'已接管'),
+        (FROZEN,u'已冻结'),
+        )
 
     mobile = models.CharField(max_length=11,db_index=True,unique=True,blank=False,verbose_name=u"手机")
     openid = models.CharField(max_length=64,blank=True,db_index=True,verbose_name=u"UnionID")    
@@ -26,10 +38,20 @@ class XiaoluMama(models.Model):
     pending = models.IntegerField(default=0,verbose_name=u"佣金")
 
     agencylevel = models.IntegerField(default=1,verbose_name=u"类别")
-
+    user_group = models.ForeignKey(UserGroup,null=True,blank=True,verbose_name=u"类别")
+    
     created = models.DateTimeField(auto_now_add=True,verbose_name=u'创建时间')
-    status  = models.CharField(max_length=16,blank=True,choices=STATUS_CHOICES,default=EFFECT,verbose_name=u'状态')
-
+    status  = models.CharField(max_length=16,blank=True,choices=STATUS_CHOICES,
+                               default=EFFECT,verbose_name=u'状态')
+    
+    charger = models.ForeignKey(DjangoUser,related_name='xiaolumms',verbose_name=u'接管人')
+    charge_status = models.CharField(max_length=16,blank=True,db_index=True,
+                                       choices=STATUS_CHOICES,
+                                       default=UNCHARGE,verbose_name=u'接管状态')
+    
+    objects = XiaoluMamaManager()
+    
+    
     class Meta:
         db_table = 'xiaolumm_xiaolumama'
         verbose_name=u'小鹿妈妈'

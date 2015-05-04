@@ -173,16 +173,15 @@ class WeiXinUser(models.Model):
     
     receiver_name   = models.CharField(max_length=64,blank=True,verbose_name=u"收货人")
     birth_year  = models.IntegerField(default=0,verbose_name=u"出生年")
-    birth_month  = models.IntegerField(default=0,verbose_name=u"出生月")
-    baby_sex    = models.CharField(max_length=1,
-                                   blank=True,
+    birth_month = models.IntegerField(default=0,verbose_name=u"出生月")
+    baby_sex    = models.CharField(max_length=1,blank=True,
                                    choices=BABY_SEX_TYPE,
                                    verbose_name=u"宝宝性别")
-    baby_topic  = models.CharField(max_length=256,blank=True,verbose_name=u"宝宝签名")
+    baby_topic = models.CharField(max_length=256,blank=True,verbose_name=u"宝宝签名")
     
     vmobile    = models.CharField(max_length=11,blank=True,verbose_name=u"待验证手机")
     isvalid    = models.BooleanField(default=False,verbose_name=u"已验证")
-    validcode     = models.CharField(max_length=6,blank=True,verbose_name=u"验证码")
+    validcode  = models.CharField(max_length=6,blank=True,verbose_name=u"验证码")
     
     valid_count  = models.IntegerField(default=0,verbose_name=u'验证次数')
     code_time    = models.DateTimeField(blank=True,null=True,verbose_name=u'短信发送时间')

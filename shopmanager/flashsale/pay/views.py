@@ -32,6 +32,7 @@ class PINGPPChargeView(View):
         sale_trade = SaleTrade.objects.create(
                                  tid=form.get('uuid'),
                                  buyer_id=customer.id,
+                                 buyer_nick=customer.nick,
                                  channel=form.get('channel'),
                                  receiver_name=form.get('receiver_name'),
                                  receiver_state=form.get('receiver_state'),

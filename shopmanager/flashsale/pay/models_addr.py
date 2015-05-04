@@ -28,8 +28,20 @@ class District(models.Model):
         verbose_name_plural = u'省市/区划列表'
         
     def __unicode__(self):
-        
         return '%s,%s'%(self.id,self.name)
+    
+    @property
+    def full_name(self):
+        
+        if self.parent_id and self.parent_id != 0:
+
+            try:
+                dist = self.__class__.objects.get(id=self.parent_id)
+            except:
+                return '[父ID未找到]-%s'%self.name
+            else:
+                return '%s,%s'%(dist.full_name,self.name)
+        return self.name
     
     
 from .managers import UserAddressManager
