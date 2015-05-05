@@ -15,7 +15,7 @@ class XiaoluMamaForm( forms.ModelForm ):
         self.initial['pending'] = self.instance.get_pending_display()
     
     cash    = forms.FloatField(label=u'可用现金',min_value=0)
-    pending = forms.FloatField(label=u'可用现金',min_value=0)
+    pending = forms.FloatField(label=u'冻结现金',min_value=0)
     
     class Meta:
         model = XiaoluMama
@@ -34,7 +34,8 @@ class XiaoluMamaAdmin(admin.ModelAdmin):
     user_groups = []
     
     form = XiaoluMamaForm
-    list_display = ('id','mobile','province','weikefu','agencylevel','charge_link','group_select','created','status')
+    list_display = ('id','mobile','province','get_cash_display','get_pending_display',
+                    'weikefu','agencylevel','charge_link','group_select','created','status')
     list_filter = ('agencylevel','manager','status','charge_status',('created',DateFieldListFilter),'user_group')
     search_fields = ['id','mobile','manager','weikefu']
     

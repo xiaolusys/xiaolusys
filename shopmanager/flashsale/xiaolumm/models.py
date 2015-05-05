@@ -59,8 +59,14 @@ class XiaoluMama(models.Model):
     def get_cash_display(self):
         return float(self.cash/100.0)
     
+    get_cash_display.allow_tags = True
+    get_cash_display.short_description = u"可用现金"
+    
     def get_pending_display(self):
-        return float(self.cash/100.0)
+        return float(self.pending/100.0)
+    
+    get_pending_display.allow_tags = True
+    get_pending_display.short_description = u"冻结现金"
     
     @property
     def cash_money(self):
