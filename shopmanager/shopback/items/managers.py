@@ -1,5 +1,6 @@
 #-*- coding:utf8 -*-
 from django.db import models
+from django.core.exceptions import ObjectDoesNotExist
 from django.contrib.auth.models import User
 from shopback import paramconfig as pcfg
 from common.utils import update_model_fields
@@ -291,6 +292,34 @@ class ProductManager(models.Manager):
             wait_post_num = MergeTrade.objects.getProductOrSkuWaitPostNum(outer_id,outer_sku_id)
             product.wait_post_num = wait_post_num
             product.save() 
+            
+            
+    def isQuantityLockable(self,sku,num):
+        
+        try:
+            product_detail = sku.product.details
+            if product_detail.buy_limit and num > product_detail.per_limit:
+                return False
+        except ObjectDoesNotExist:
+            pass
+  
+        return sku.free_num >= num
+        
+        
+    def lockQuantity(self,sku,num):
+        
+        try:
+            product_detail = sku.product.details
+            if product_detail.buy_limit and num > product_detail.per_limit:
+                return False
+        except:
+            pass
+
+        urows = (sku.__class__.objects.filter(id=sku.id,remain_num__gte=
+                 models.F('wait_post_num')+models.F('lock_num')+num)
+                 .update(lock_num=models.F('lock_num')+num))
+                                  
+        return urows > 0
     
     
     

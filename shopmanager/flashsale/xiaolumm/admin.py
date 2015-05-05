@@ -11,7 +11,7 @@ class XiaoluMamaAdmin(admin.ModelAdmin):
     user_groups = []
     
     list_display = ('id','mobile','province','weikefu','agencylevel','charge_link','group_select','created','status')
-    list_filter = ('agencylevel','manager','status',('created',DateFieldListFilter),'user_group')
+    list_filter = ('agencylevel','manager','status','charge_status',('created',DateFieldListFilter),'user_group')
     search_fields = ['id','mobile','manager','weikefu']
     
     def get_changelist(self, request, **kwargs):

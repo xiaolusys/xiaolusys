@@ -180,7 +180,6 @@ class SaleTrade(models.Model):
         for order in self.normal_orders:
             order.status = order.WAIT_SELLER_SEND_GOODS
             order.save()
-    
 
 
 class SaleOrder(models.Model):

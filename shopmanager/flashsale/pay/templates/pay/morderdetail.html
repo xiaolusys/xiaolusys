@@ -139,9 +139,12 @@
 	<div class="col-xs-12 padding-lf0"><span class="pull-left h6">实付款：</span><span class=" pull-right text-danger"><em>￥</em>{{ payment }}</span></div>
 	<div class="col-xs-12 padding-lf0"><span class="pull-left h6">数量：</span><span class="pull-right text-danger">{{ order_num }}</span></div>
 	</div>
+	{% if status == 3 or status == 4 or status == 5 %}
 	<div class="row list-row">
 		<a class="btn btn-default btn-rowfull" href="{% url order_logistic pk=id %}">查看物流</a>
 	</div>
+	{% endif %}
+
   </div>
 </div>
 

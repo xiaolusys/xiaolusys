@@ -1,3 +1,7 @@
+########### 2015-5-5  #################
+alter table shop_items_productsku add column lock_num int(11) NOT NULL;
+alter table flashsale_productdetail add column buy_limit tinyint(1) NOT NULL;
+alter table flashsale_productdetail add column per_limit int(11) NOT NULL;
 ########### 2015-5-4  #################
 ALTER TABLE `xiaolumm_xiaolumama` ADD column charge_status varchar(16) NOT NULL,ADD INDEX `xiaolumm_xiaolumama`(`charge_status`);
 ALTER TABLE `xiaolumm_xiaolumama` ADD column user_group_id bigint(20) DEFAULT NULL, ADD CONSTRAINT `xiaolumm_user_group_id` FOREIGN KEY (`user_group_id`) REFERENCES `shop_weixin_group` (`id`);

@@ -9,6 +9,9 @@ class Productdetail(models.Model):
     head_imgs  = models.TextField(blank=True,verbose_name=u'题头照(多张请换行)')
 
     content_imgs = models.TextField(blank=True,verbose_name=u'内容照(多张请换行)')
+    
+    buy_limit    = models.BooleanField(default=False,verbose_name=u'是否限购')
+    per_limit    = models.IntegerField(default=5,verbose_name=u'限购数量')
 
     class Meta:
         db_table = 'flashsale_productdetail'
