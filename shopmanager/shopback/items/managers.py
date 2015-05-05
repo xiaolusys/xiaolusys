@@ -315,8 +315,8 @@ class ProductManager(models.Manager):
         except:
             pass
 
-        urows = (sku.__class__.objects.filter(id=sku.id,remain_num__gte=
-                 models.F('wait_post_num')+models.F('lock_num')+num)
+        urows = (sku.__class__.objects.filter(id=sku.id,
+                 remain_num__gte=models.F('wait_post_num')+models.F('lock_num')+num)
                  .update(lock_num=models.F('lock_num')+num))
                                   
         return urows > 0

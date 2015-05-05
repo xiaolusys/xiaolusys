@@ -34,8 +34,8 @@ class XiaoluMama(models.Model):
     weikefu = models.CharField(max_length=11,db_index=True,blank=True,verbose_name=u"微客服")
     manager = models.IntegerField(default=0,verbose_name=u"管理员")
     
-    cash = models.IntegerField(default=0,verbose_name=u"现金(分)")
-    pending = models.IntegerField(default=0,verbose_name=u"佣金")
+    cash = models.IntegerField(default=0,verbose_name=u"可用现金")
+    pending = models.IntegerField(default=0,verbose_name=u"冻结现金")
 
     agencylevel = models.IntegerField(default=1,verbose_name=u"类别")
     user_group = models.ForeignKey(UserGroup,null=True,verbose_name=u"类别")
@@ -56,9 +56,19 @@ class XiaoluMama(models.Model):
         verbose_name=u'小鹿妈妈'
         verbose_name_plural = u'小鹿妈妈列表'
     
+    def get_cash_display(self):
+        return float(self.cash/100.0)
+    
+    def get_pending_display(self):
+        return float(self.cash/100.0)
+    
     @property
     def cash_money(self):
-        return round(self.cash/100.0,2)
+        return self.get_cash_display()
+    
+    @property
+    def pending_money(self):
+        return self.get_pending_display()
     
     @property
     def manager_name(self):
