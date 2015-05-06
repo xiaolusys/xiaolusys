@@ -41,7 +41,7 @@
   <div id="p_list">
   {% for product in products.results %}
     <div class="holder">
-      <a id="p{{ product.id }}" class="wrapper {% if product.sale_out %}sale_out{% endif %}" href="../p/{{ product.id }}/" target="_top">
+      <a id="p{{ product.id }}" class="wrapper {% if product.sale_out %}soldout{% endif %}" href="../p/{{ product.id }}/" target="_top">
       <div class="image" style="height:240px">
       <img src="{{ product.pic_path }}"><span>已抢光</span></div>
       <div class="name">{{ product.name }}</div>

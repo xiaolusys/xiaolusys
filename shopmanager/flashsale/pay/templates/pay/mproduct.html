@@ -166,6 +166,8 @@ function hideLoader()
 	            $(this).closest('.choose').find('a').removeClass('active');
 	            $(this).addClass('active');
 	        }
+	        $('#amount .error_msg').html('');
+	        $('.amount').html(1); 
         });
 
         //数量+1/-1

@@ -140,6 +140,7 @@ class Product(models.Model):
         sale_out = True
         for sku in self.pskus:
             sale_out &= sku.sale_out
+
         return sale_out
     
     @property
