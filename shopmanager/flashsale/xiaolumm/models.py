@@ -35,7 +35,7 @@ class XiaoluMama(models.Model):
     manager = models.IntegerField(default=0,verbose_name=u"管理员")
     
     cash = models.IntegerField(default=0,verbose_name=u"可用现金")
-    pending = models.IntegerField(default=0,verbose_name=u"冻结现金")
+    pending = models.IntegerField(default=0,verbose_name=u"冻结佣金")
 
     agencylevel = models.IntegerField(default=1,verbose_name=u"类别")
     user_group = models.ForeignKey(UserGroup,null=True,verbose_name=u"类别")
@@ -66,7 +66,7 @@ class XiaoluMama(models.Model):
         return float(self.pending/100.0)
     
     get_pending_display.allow_tags = True
-    get_pending_display.short_description = u"冻结现金"
+    get_pending_display.short_description = u"冻结佣金"
     
     @property
     def cash_money(self):

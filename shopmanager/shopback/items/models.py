@@ -136,6 +136,13 @@ class Product(models.Model):
         return 0
     
     @property
+    def sale_out(self):
+        sale_out = False
+        for sku in self.pskus:
+            sale_out |= sku.sale_out
+        return sale_out
+    
+    @property
     def is_out_stock(self):
         if self.collect_num<0 or self.wait_post_num <0 :
             self.collect_num = self.collect_num >0 and self.collect_num or 0 
@@ -389,6 +396,10 @@ class ProductSku(models.Model):
     @property
     def free_num(self):
         return self.remain_num - self.wait_post_num - self.lock_num
+    
+    @property
+    def sale_out(self):
+        return self.free_num <= 0
     
     @property
     def is_out_stock(self):

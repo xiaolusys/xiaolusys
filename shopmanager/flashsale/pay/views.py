@@ -237,7 +237,7 @@ from . import serializes
 
 class ProductList(generics.ListCreateAPIView):
     
-    queryset = Product.objects.all()
+    queryset = Product.objects.order_by('outer_id')
     serializer_class = serializes.ProductSerializer
     renderer_classes = (JSONRenderer,TemplateHTMLRenderer)
     

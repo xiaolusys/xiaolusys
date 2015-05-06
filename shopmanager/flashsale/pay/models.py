@@ -78,7 +78,7 @@ class SaleTrade(models.Model):
     id    = BigIntegerAutoField(primary_key=True,verbose_name=u'订单ID')
     
     tid   = models.CharField(max_length=40,unique=True,
-                             default=lambda:uniqid('%s%s'%(PREFIX_NO,datetime.datetime.now().strftime('%y%m%d'))),
+                             default=lambda:uniqid('%s%s'%(SaleTrade.PREFIX_NO,datetime.datetime.now().strftime('%y%m%d'))),
                              verbose_name=u'原单ID')  
     buyer_id    = models.BigIntegerField(null=False,db_index=True,verbose_name=u'买家ID')
     buyer_nick  = models.CharField(max_length=64,blank=True,verbose_name=u'买家昵称')

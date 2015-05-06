@@ -9,7 +9,9 @@ class DetailInfoField(serializers.Field):
     
     def to_representation(self, obj):
         
-        detail_dict  = {'head_imgs':[],'content_imgs':[]}
+        detail_dict  = {'head_imgs':[],'content_imgs':[],
+                        'buy_limit':obj.buy_limit,
+                        'per_limit':obj.per_limit}
         if obj.head_imgs.strip():
             detail_dict['head_imgs'] = [s.strip() for s in obj.head_imgs.split('\n') 
                                         if s.startswith('http://') or s.startswith('https://')]
@@ -22,6 +24,8 @@ class DetailInfoField(serializers.Field):
 
     def to_internal_value(self, data):
         return data
+    
+        
     
 class CusUidField(serializers.Field):
     
@@ -40,7 +44,7 @@ class ProductSerializer(serializers.ModelSerializer):
     class Meta:
         model = Product
         fields = ('id','name','title','category','pic_path','collect_num','std_sale_price',
-                  'agent_price','status','created','memo')
+                  'agent_price','sale_out','status','created','memo')
         
     
 class ProductSkuField(serializers.Field):
@@ -48,7 +52,9 @@ class ProductSkuField(serializers.Field):
     def to_representation(self, obj):
         sku_list  = []
         for sku in obj.all():
-            sku_list.append(model_to_dict(sku))
+            sku_dict = model_to_dict(sku)
+            sku_dict['sale_out'] = sku.sale_out
+            sku_list.append(sku_dict)
             
         return sku_list
 

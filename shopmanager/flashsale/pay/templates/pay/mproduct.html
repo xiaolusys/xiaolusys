@@ -3,9 +3,22 @@
 {% block title %}小鹿美美-商品详情{% endblock %}
 
 {% block style %}
+<link rel="stylesheet" href="{{ STATIC_URL }}jquery/jquery.mobile-1.4.5.min.css"/>
 <link rel="stylesheet" href="{{ STATIC_URL }}style/product.css">
 <link rel="stylesheet" href="{{ STATIC_URL }}style/style_other.css">
 <link rel="stylesheet" href="{{ STATIC_URL }}style/animation.css">
+<style type="text/css">
+.ui-icon-loading {
+	background: url({{ STATIC_URL }}jquery/images/ajax-loader.gif);
+}
+.error_msg{
+	color:red;
+	display:inline;
+}
+.c_limit{
+	display:inline;
+}
+</style>
 {% endblock %}
 
 {% block preload_script %}
@@ -31,14 +44,10 @@
     <div class="name">
         {{ name }}
     </div>
-    <div class="detail">
-        <!-- 商品详情 -->
+    <!--<div class="detail">
+         商品详情 
         {{ memo }}
-    </div>
-    <div class="share" onclick="Ctrl_share">
-        <div class="i"><img src="{{ STATIC_URL }}images/share.png" /></div>
-        <div class="t">分享</div>
-    </div>
+    </div>-->
     <div class="price">
         ￥
         <span class="p">
@@ -46,13 +55,14 @@
         </span>
         <span class="t">价格</span>
     </div>
-    <div class="sale">
+    <!--<div class="sale">
         销量：{{ wait_post_num }}
         <span>
-            <!-- 商品销量 -->
+             商品销量 
         </span>
-    </div>
+    </div>-->
 </div>
+
 
 <div id="recommend">
     <div class="img"><img src="{{ details.content_imgs.0 }}" /><span class="dot">.</span></div>
@@ -66,6 +76,7 @@
     {% endif %}
     {% endfor %}
 </div>
+
 
 <a id="buy_now" href="javascript:void(0)" onclick="Ctrl_buy_now()" target="_top">
     <div class="btn"><img width="16" height="16" style="margin-right: 5px;" src="{{ STATIC_URL }}images/buy.png" />立即购买</div>
@@ -84,31 +95,52 @@
                 <!-- 商品详情 -->
             </div>
             <div class="price">
-                ￥
-                <span><!-- 商品价格 -->{{ agent_price }}</span>
+                ￥<span><!-- 商品价格 -->{{ agent_price }}</span>
             </div>
         </div>
         <div id="size" class="chooser single">
             <div class="name">尺码选择</div>
             <div class="choose">
               {% for sku in prod_skus %}
-              <a id="{{ sku.id }}"  {% if forloop.first %}class="active"{% endif %}>{{ sku.properties_alias }}</a>
+              <a id="{{ sku.id }}"  class="{% if sku.sale_out %}none{% endif %}">{{ sku.properties_alias }}</a>
               {% endfor %}
             </div>
         </div>
         <div id="amount" class="chooser count">
             <div class="name">数量</div>
             <div class="counter">
-                <a class="add">+</a>
+                <a class="add" >+</a>
                 <a class="amount">1</a>
-                <a class="min">-</a>
+                <a class="min" >-</a>
             </div>
+            <div class='error_msg'></div>
+            {% if details.buy_limit %}<div class="c_limit">（限购&nbsp;{{ details.per_limit }}&nbsp;件）</div>{% endif %}
         </div>
     </div>
 </div>
 {% endblock %}
 
 {% block delayed_script %}
+<script type="text/javascript">
+function showLoader() {
+    //显示加载器.for jQuery Mobile 1.2.0
+    $.mobile.loading('show', {
+		text: '更新中...', //加载器中显示的文字
+		textVisible: true, //是否显示文字
+		theme: 'a',        //加载器主题样式a-e
+		textonly: false,   //是否只显示文字
+		html: ""           //要显示的html内容，如图片等
+	});
+}
+
+function hideLoader()
+{
+    //隐藏加载器
+    $.mobile.loading('hide');
+}
+
+
+</script>
 <script type="text/javascript">
     var MAX = 3;
 
@@ -121,7 +153,7 @@
     var sliderTimer;
     var sliderAnimation = false;
     $(document).ready(function(){
-        $('.ui-loader').remove();
+        //$('.ui-loader').remove();
         //页面载入时的更新页面信息，包括名称，介绍，价格，尺码，颜色等数据
         //若采用服务器直接生成页面则可以不使用这个函数
         //View_Page_in();
@@ -130,16 +162,49 @@
 
         //选项选择
         $('.chooser.single').on('tap','.choose a',function(){
-            $(this).closest('.choose').find('a').removeClass('active');
-            $(this).addClass('active');
+        	if(!$(this).hasClass('none')){
+	            $(this).closest('.choose').find('a').removeClass('active');
+	            $(this).addClass('active');
+	        }
         });
 
         //数量+1/-1
         $('#amount').on('tap','.counter a',function(){
             if ($(this).hasClass('add')){
+            	$(this).removeClass('add');
+            	
                 var n = parseInt($('.amount').html())+1;
-                n = n<MAX?n:MAX;
-                $('.amount').html(n);
+                var product_id = $('#id_product').val();
+				var sku_id = $('.chooser .choose .active').attr('id');
+
+				if (sku_id === 'undifined' || sku_id == null){
+					alert('请选择正确的尺寸');
+					$(this).addClass('add');
+					return 
+				}
+				showLoader();
+				var csrf_token = document.getElementsByName("csrfmiddlewaretoken")[0].value;
+				
+				var that = $(this);
+				var callback = function(resp){
+					try{
+						if (resp.success){
+							$('.amount').html(n);
+						}else{
+							$('#amount .error_msg').html('库存不够了');
+						}
+					}catch(err){
+						console.log('AjaxError:'+err);
+					}finally{
+						hideLoader();
+					}
+					that.addClass('add');
+				};
+				
+				$.post('{% url skuquantity_lock %}',
+						{ "product_id":product_id, "sku_id":sku_id,"num":n,"csrfmiddlewaretoken":csrf_token},
+						callback,
+						'json');
             }
             if ($(this).hasClass('min')){
                 var n = parseInt($('.amount').html())-1;
@@ -319,8 +384,12 @@
     function Ctrl_buy_now(){
         var size = $('#size a.active').attr('id');//尺寸
         var amount = parseInt($('.amount').html());//数量
-        
         var csrf_token = document.getElementsByName("csrfmiddlewaretoken")[0].value;
+        
+        if (size === 'undifined' || size == null){
+			alert('请选择正确的尺寸');
+			return 
+		}
         
         var params = {"pid":$('#id_product').val(),
                       "sid":size,

@@ -43,6 +43,10 @@ body{
 	font-size:12px;
 }
 
+.pindding-f0{
+	padding-right:0px;
+}
+
 .c-red,.c-grey{
 	display:block;
 	overflow:hidden;
@@ -92,7 +96,7 @@ body{
 {% for trade in trades %}
 <div class="order-item clearfix">
   <div class="order-item-header row row-bg-line-top">
-  	<div class="col-xs-6">订单编号：<span class="c-red">{{ trade.tid }}</span></div>
+  	<div class="col-xs-6 pindding-f0">订单编号：<span class="c-red">{{ trade.tid }}</span></div>
   	<div class="col-xs-6 ">下单时间：<span class="c-grey ">{{ trade.created }}</span></div>
   </div>
   <div class="order-item-detail row ">

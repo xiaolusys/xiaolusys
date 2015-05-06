@@ -350,3 +350,9 @@ a:hover {
 #popout .holder .chooser:last-child {
   border-bottom: none 0;
 }
+#popout .holder .chooser .choose a.none{
+	background: #ddd;
+	border: 1px solid #bcbcbc;
+	text-decoration: line-through;
+	cursor: not-allowed;
+}
