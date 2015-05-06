@@ -293,6 +293,8 @@ class ProductDetail(generics.RetrieveUpdateDestroyAPIView):
 
 import urllib
 from django.http import HttpResponseForbidden
+from django.template import RequestContext
+from django.shortcuts import render_to_response
 from .models_addr import UserAddress
 from .views_address import ADDRESS_PARAM_KEY_NAME
 from .options import uniqid,getAddressByUserOrID
@@ -318,16 +320,13 @@ class OrderBuyReview(APIView):
         sku     = get_object_or_404(ProductSku,pk=sid)
         if product.prod_skus.filter(id=sku.id).count() == 0:
             raise Http404
-        
-        #判断订单商品是否超出
-        order_pass = False 
-        product_dict = {}
-        sku_dict = {}
 
-        if num <= sku.realnum:
-            order_pass =True
-            product_dict = model_to_dict(product)
-            sku_dict     = model_to_dict(sku)
+        if not Product.objects.isQuantityLockable(sku,num):
+            return render_to_response('pay/mproductexpired.html',{'produt_id':pid}
+                                      ,context_instance=RequestContext(request))
+            
+        product_dict = model_to_dict(product)
+        sku_dict     = model_to_dict(sku)
  
         post_fee = 0
         real_fee = num * sku.agent_price
@@ -373,7 +372,6 @@ class OrderBuyReview(APIView):
                 'payment':payment,
                 'address':address,
                 'origin_url':origin_url,
-                'order_pass':order_pass,
                 'xiaolumm':xiaolumm,
                 'wallet_payable':wallet_payable,
                 'alipay_from':alipay_from,

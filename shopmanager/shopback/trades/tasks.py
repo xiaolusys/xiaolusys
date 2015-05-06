@@ -227,7 +227,7 @@ def sendTaobaoTradeTask(request_user_id,trade_id):
             trade.save()
             log_action(request_user_id,trade,CHANGE,
                        u'订单发货成功[%s:%s]'%(company_name,out_sid))
-                
+            
     except Exception,exc:
         logger.error(u'发货异常:%s'%exc.message,exc_info=True)
 

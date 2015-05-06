@@ -1,0 +1,72 @@
+{% extends "pay/base_profile.html" %}
+
+{% block title %}商品信息过期页{% endblock %}
+
+{% block style %}
+<link rel="stylesheet" href="{{ STATIC_URL }}style/profile.css">
+<style type="text/css">
+#seconds{
+	color:#EE7700;
+	font-size:25px;
+}
+</style>
+{% endblock %}
+
+
+{% block preload_script %}
+
+
+{% endblock %}
+
+
+{% block container %}
+<div class="container-fluid">
+
+<nav class="navbar navbar-default navbar-fixed-top row ">
+	<div class="col-xs-2" >
+	</div>
+	<div class="col-xs-8" >
+	  <span class="h3">商品详情</span>
+	</div>
+	<div class="col-xs-2" >
+	</div>
+</nav>
+
+<div class="list-panel panel-default panel-first-child" >
+  <div class="panel-heading">商品信息已过期</div>
+  <div class="panel-body">
+	<div class="row list-row list-row-border">
+	  <div class="well well-lg">
+	  	<div class="bg-warning">亲，您所浏览的商品信息已过期，<span id="seconds">5</span>秒后跳转到新商品页，你也可以手动点击下方按钮，谢谢！</div>
+		
+		<a href="{% url product_detail pk=produt_id %}" class="btn btn-default btn-rowfull">查看最新商品详情</a>
+	  </div>
+	</div>
+  </div>
+  </div>
+</div>	
+
+</div>
+{% endblock %}
+
+
+{% block delayed_script %}
+<script type="text/javascript">
+$(function(){
+	$('.ui-loader').remove();
+})
+
+var count = 5;
+var global_timer;
+function slideup() {
+	count -= 1;
+	$('#seconds').html(count);
+    if (count <= 0 ){
+    	window.clearInterval(global_timer);
+    	window.location.replace($('.well a').attr('href'));
+    }
+};
+
+global_timer =  window.setInterval(slideup, 1000);
+</script>
+{% endblock %}

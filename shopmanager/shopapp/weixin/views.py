@@ -748,13 +748,16 @@ class RefundRecordView(View):
         if mergetrades.count() > 0:
             trade = mergetrades[0]
             mobile = trade.receiver_mobile
+            order_outer_ids = [o[0] for o in trade.normal_orders.values_list('outer_id')]
             wx_users = WeiXinUser.objects.filter(mobile=mobile)
             if wx_users.count() > 0:
                 openid = wx_users[0].openid
                 if refund.refund_type in (1,4):
                     orders = SampleOrder.objects.filter(user_openid=openid).filter(status__gt=0).order_by('-created')
-                    if orders.count() > 0:
-                        sample_order = orders[0]
+                    for order in orders:
+                        if order.sample_product.outer_id in order_outer_ids: 
+                            sample_order = order
+                            break
                 if refund.refund_type == 2:
                     scorebuys = WeixinScoreBuy.objects.filter(user_openid=openid)
                     if scorebuys.count() > 0:
@@ -1588,7 +1591,7 @@ class TestView(View):
         
 #         print request.META.get('HTTP_USER_AGENT')
 #         print request.META.get('HTTP_USER_AGENT').find('MicroMessenger') 
-
+        
         response = render_to_response('weixin/sampleads1.html', 
                                       context_instance=RequestContext(request))
         return response
