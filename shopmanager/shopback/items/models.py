@@ -137,9 +137,9 @@ class Product(models.Model):
     
     @property
     def sale_out(self):
-        sale_out = False
+        sale_out = True
         for sku in self.pskus:
-            sale_out |= sku.sale_out
+            sale_out &= sku.sale_out
         return sale_out
     
     @property
