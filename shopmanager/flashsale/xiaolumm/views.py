@@ -186,6 +186,7 @@ class MamaStatsView(View):
             logger.error(exc.message,exc_info=True)
         
         response = render_to_response("mama_stats.html", data, context_instance=RequestContext(request))
+        response.set_cookie("unionid",unionid)
         response.set_cookie("openid",openid)
         return response
 

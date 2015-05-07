@@ -53,7 +53,7 @@ class UserChangeList(ChangeList):
             return WeiXinUser.objects.filter(id__in=wxuser_ids)
             
         if re.compile('^[\w]{11}$').match(search_q):
-            return WeiXinUser.objects.filter(mobile=search_q)
+            return WeiXinUser.objects.filter(models.Q(mobile=search_q)|models.Q(vmobile=search_q))
             
         if re.compile('^[\w-]{24,64}$').match(search_q):
             return WeiXinUser.objects.filter(openid=search_q)

@@ -155,7 +155,7 @@ class WeixinUserService():
                     hasattr(wx_user, k) and setattr(wx_user, k, v or getattr(wx_user, k))
                 
                 wx_user.nickname = pre_nickname or replace_utf8mb4(wx_user.nickname.decode('utf8'))
-                wx_user.unionid  = unionId 
+                wx_user.unionid  = wx_user.unionid or unionId 
                 wx_user.mobile   = pre_mobile
                 subscribe_time   = userinfo.get('subscribe_time', None)
                 if subscribe_time:

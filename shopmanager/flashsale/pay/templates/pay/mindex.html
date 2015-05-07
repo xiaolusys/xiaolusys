@@ -57,7 +57,7 @@
   <nav id="main-nav" class="navbar navbar-default navbar-fixed-bottom">
   <div class="container">
 	  <ul class="nav nav-pills nav-justified">
-		  <li role="presentation" ><a href="{% url sale_home %}?{% if category %}category={{ category }}&{% endif %}history=yes&time_line=1" class="col-xs-4 " target="_self">昨日特卖</a></li>
+		  <li role="presentation" ><a href="{% url sale_home %}?{% if category %}category={{ category }}&{% endif %}history=yes&time_line=0" class="col-xs-4 " target="_self">历史特卖</a></li>
 		  <li role="presentation" ><a href="{% url sale_home %}?{% if category %}category={{ category }}{% endif %}" class="col-xs-4 " target="_self">今日上新</a></li>
 		  <li role="presentation" ><a href="{% url user_profile %}" class="col-xs-4 " target="_self">个人中心</a></li>
 	  </ul>
