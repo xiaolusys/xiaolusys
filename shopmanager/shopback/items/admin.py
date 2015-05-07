@@ -33,6 +33,8 @@ from shopback.items.filters import ChargerFilter,DateScheduleFilter
 from common.utils import gen_cvs_tuple,CSVUnicodeWriter
 from flashsale.pay import Productdetail
 import logging 
+from flashsale.dinghuo.models import orderdraft
+from django.forms.models import model_to_dict
 
 logger =  logging.getLogger('django.request')
 
@@ -375,6 +377,32 @@ class ProductAdmin(admin.ModelAdmin):
                                   context_instance=RequestContext(request),mimetype="text/html")
         
     cancle_orders_out_stock.short_description = u"取消订单商品缺货"
+
+
+    #批量添加订单
+    def add_orders(self,request,queryset):
+        user=request.user
+        orderDrAll = orderdraft.objects.all().filter(buyer_name=user)
+        productres = []
+        for p in queryset:
+            product_dict = model_to_dict(p)
+            product_dict['prod_skus'] = []
+            guiges = ProductSku.objects.filter(product_id=p.id)
+            for guige in guiges:
+                print "add !!!!!"
+                sku_dict = model_to_dict(guige)
+                product_dict['prod_skus'] = sku_dict
+            productres.append(product_dict)
+        print productres
+
+        productguige = ProductSku.objects.all()
+        return render_to_response("dinghuo/addpurchasedetail.html",
+                                  {"productRestult": queryset,
+                                   "productguige": productguige,
+                                   "drafts": orderDrAll},
+                                  context_instance=RequestContext(request))
+
+    add_orders.short_description = u"批量添加订单"
     
     #取消商品库存同步（批量）
     def active_syncstock_action(self,request,queryset):
@@ -516,7 +544,8 @@ class ProductAdmin(admin.ModelAdmin):
                'cancel_syncstock_action',
                'regular_saleorder_action',
                'deliver_saleorder_action',
-               'export_prodsku_info_action']
+               'export_prodsku_info_action',
+               'add_orders']
 
 admin.site.register(Product, ProductAdmin)
 
