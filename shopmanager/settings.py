@@ -161,6 +161,7 @@ INSTALLED_APPS = (
 #     'flashsale.supplier',
     'flashsale.pay',
     'flashsale.xiaolumm',
+    'flashsale.dinghuo',
     'mathfilters',
 
 
