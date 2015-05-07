@@ -29,8 +29,9 @@ def get_user_unionid(code,
     if not code and not request:
         return ('','')
     
+    cookies = request.COOKIES
     if not code and request:
-        return (request.COOKIES.get('openid'),'')
+        return (cookies.get('openid'),cookies.get('unionid'))
 
     url = 'https://api.weixin.qq.com/sns/oauth2/access_token?appid=%s&secret=%s&code=%s&grant_type=authorization_code'
     get_openid_url = url % (appid, secret, code)
@@ -38,7 +39,7 @@ def get_user_unionid(code,
     r = json.loads(r)
     
     if r.has_key("errcode"):
-        raise Exception(r['errmsg'])
+        return (cookies.get('openid'),cookies.get('unionid'))
     
     return (r.get('openid'),r.get('unionid'))
 
