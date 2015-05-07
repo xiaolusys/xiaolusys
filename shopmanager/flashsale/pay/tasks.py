@@ -66,7 +66,7 @@ def notifyTradePayTask(notify):
         
         strade = SaleTrade.objects.get(tid=order_no)
         
-        confirmTradeCharge(strade.id)
+        confirmTradeChargeTask(strade.id)
     
     except Exception,exc:
 
