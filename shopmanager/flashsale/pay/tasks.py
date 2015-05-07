@@ -18,6 +18,24 @@ logger = logging.getLogger('celery.handler')
 
 
 @task(max_retry=3)
+def confirmTradeChargeTask(sale_trade_id,charge_time=None):
+    
+    try:
+        strade = SaleTrade.objects.get(id=sale_trade_id)
+        
+        strade.charge_confirm(charge_time=charge_time)
+        
+        saleservice = FlashSaleService(strade)
+        saleservice.payTrade()
+        
+    except Exception,exc:
+
+        logger.error('confirmTradeChargeTask error:%s'%(exc), exc_info=True)
+        if not settings.DEBUG:
+            notifyTradePayTask.retry(exc=exc,countdown=20)
+            
+
+@task(max_retry=3)
 def notifyTradePayTask(notify):
 
     try:
@@ -48,10 +66,7 @@ def notifyTradePayTask(notify):
         
         strade = SaleTrade.objects.get(tid=order_no)
         
-        strade.charge_confirm(charge_time=tcharge.time_paid)
-        
-        saleservice = FlashSaleService(strade)
-        saleservice.payTrade()
+        confirmTradeCharge(strade.id)
     
     except Exception,exc:
 

@@ -74,11 +74,11 @@ class DateScheduleFilter(FieldListFilter):
         self.lookup_kwarg_until = '%s__lt' % field_path
         self.links = (
             (_('All'), {}),
-            (_(u'未来七天'), {
-                self.lookup_kwarg_since: str(today + datetime.timedelta(days=1)),
-                self.lookup_kwarg_until: str(today + datetime.timedelta(days=8)),
+             (_(u'五天后'), {
+                self.lookup_kwarg_since: str(today + datetime.timedelta(days=5)),
+                self.lookup_kwarg_until: str(today + datetime.timedelta(days=6)),
             }),
-            (_(u'大大后天'), {
+            (_(u'四天后'), {
                 self.lookup_kwarg_since: str(today + datetime.timedelta(days=4)),
                 self.lookup_kwarg_until: str(today + datetime.timedelta(days=5)),
             }),

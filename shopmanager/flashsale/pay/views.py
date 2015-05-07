@@ -13,6 +13,7 @@ from django.core.serializers.json import DjangoJSONEncoder
 
 from shopback.items.models import Product,ProductSku,ProductCategory
 from .models import SaleTrade,SaleOrder,genUUID,Customer
+from .tasks import confirmTradeChargeTask
 from flashsale.xiaolumm.models import CarryLog,XiaoluMama
 import pingpp
 import logging
@@ -99,7 +100,8 @@ class PINGPPChargeView(View):
                     raise Exception(u'钱包付款失败')
                 
                 strade = self.createSaleTrade(customer,form)
-                strade.charge_confirm()
+                #确认付款后保存
+                confirmTradeChargeTask.s(strade.id)()
                 
                 CarryLog.objects.create(xlmm=xlmm.id,
                                         order_num=strade.id,
