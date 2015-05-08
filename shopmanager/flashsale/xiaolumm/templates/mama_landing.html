@@ -1,0 +1,30 @@
+{% extends "mama_base.html" %}
+
+{% block title %} 我的账户 {% endblock %}
+
+{% block head_script %}
+<link href='{{ STATIC_URL }}jquery/jquery-ui-1.10.1.css' rel='stylesheet'  />	
+<style type="text/css" title="currentStyle">
+	@import "{{ STATIC_URL }}jquery-datatable-addon/css/demo_page.css";
+	@import "{{ STATIC_URL }}jquery-datatable-addon/css/demo_table.css";
+</style>  
+<style type="text/css" >
+    tfoot input{
+    	width:50%;
+    }
+</style>
+{% endblock %}
+
+
+{% block container %}
+
+<div style="margin-top:40px;text-align:center">
+  <a href="/m/m/" class="thumbnail"><img src="https://mmbiz.qlogo.cn/mmbiz/yMhOQPTKhLvtbPpOxAbtUpwyV7yrYTNLBUDXIuPeaM5c1Dq6cyFN0MuOn0A0gM7oyWr3ZCOV802ZVp0D0a3W2Q/0?wx_fmt=jpeg" alt="..."/></a>
+
+  <a href="/m/m/" type="button" class="btn btn-warning">点击查看 >></a>
+  <p style="color:orange;margin-top:10px"><span style="color:red">400万现金</span>补贴代理计划，和您一起成就未来！</p>
+  <p style="color:red;margin-top:10px">报名立得30元，推荐立得50元！无上限！</p>
+</div>
+
+{% endblock %}
+
