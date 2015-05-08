@@ -45,6 +45,9 @@ WXORDER_STATUS = {
 
 SHOPURL = "http://mp.weixin.qq.com/bizmall/mallshelf?id=&t=mall/list&biz=MzA5NTI1NjYyNg==&shelf_id=2&showwxpaytitle=1#wechat_redirect"
 
+def landing(request):
+    return render_to_response("mama_landing.html", context_instance=RequestContext(request))
+
 class CashoutView(View):
     def get(self, request):
         content = request.REQUEST
@@ -114,7 +117,7 @@ class MamaStatsView(View):
                                           request=request)
         
         if not valid_openid(openid):
-            redirect_url = "https://open.weixin.qq.com/connect/oauth2/authorize?appid=wxc2848fa1e1aa94b5&redirect_uri=http://weixin.huyi.so/m/&response_type=code&scope=snsapi_base&state=135#wechat_redirect"
+            redirect_url = "https://open.weixin.qq.com/connect/oauth2/authorize?appid=wxc2848fa1e1aa94b5&redirect_uri=http://weixin.huyi.so/m/m/&response_type=code&scope=snsapi_base&state=135#wechat_redirect"
             return redirect(redirect_url)
         
         service = WeixinUserService(openid,unionId=unionid)
