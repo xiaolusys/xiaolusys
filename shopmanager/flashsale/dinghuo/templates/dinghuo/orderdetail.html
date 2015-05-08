@@ -11,8 +11,10 @@
                 if (res == "OK") {
                     if (button.id == "shenhebutton") {
                         orderstatus.text("审核");
-                    } else {
+                    } else if(button.id == "zuifeibutton"){
                         orderstatus.text("作废");
+                    }else{
+                        orderstatus.text("完成")
                     }
                 }
 
