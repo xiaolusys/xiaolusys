@@ -790,6 +790,44 @@ class MergeBuyerTrade(models.Model):
         return pcfg.SUB_MERGE_TYPE
 
 
+class MergeTradeDelivery(models.Model):
+    
+    WAIT_DELIVERY    = 0
+    FAIL_DELIVERY    = 1
+    
+    DELIVERY_CHOICES = ((WAIT_DELIVERY,u'等待上传'),
+                        (FAIL_DELIVERY,u'上传失败'),)
+    
+    id      =  BigIntegerAutoField(primary_key=True)
+    seller    =  models.ForeignKey(User,null=True,verbose_name=u'所属店铺')
+
+    trade_id     =  models.BigIntegerField(unique=True,verbose_name=u'订单ID')
+    trade_no     =  models.CharField(max_length=64,db_index=True,blank=True,verbose_name=u'订单编号')
+    buyer_nick   =  models.CharField(max_length=64,blank=True,verbose_name=u'买家昵称')
+    
+    created    = models.DateTimeField(auto_now_add=True,verbose_name=u'创建日期')
+    modified   = models.DateTimeField(auto_now=True,verbose_name=u'修改日期')
+    delivery_time  =  models.DateTimeField(db_index=True,null=True,blank=True,verbose_name=u'发货时间')
+    
+    is_parent = models.BooleanField(default=False,verbose_name=u'父订单')
+    is_sub    = models.BooleanField(default=False,verbose_name=u'子订单')
+    
+    parent_tid = models.BigIntegerField(default=0,db_index=True,verbose_name=u'父订单ID')
+    
+    message  =  models.CharField(max_length=126,blank=True,verbose_name=u'错误消息')
+    
+    status   =  models.IntegerField(choices=DELIVERY_CHOICES,
+                                    default=WAIT_DELIVERY,blank=True,verbose_name=u'上传状态')
+    
+    class Meta:
+        db_table = 'shop_trades_delivery'
+        verbose_name = u'订单/发货上传'
+        verbose_name_plural = u'订单/发货上传列表'
+        
+    def __unicode__(self):
+        return '%s'%self.trade_id
+   
+
 REPLAY_TRADE_STATUS = (
     (pcfg.RP_INITIAL_STATUS,u'初始状态'),
     (pcfg.RP_WAIT_ACCEPT_STATUS,u'待接单'),

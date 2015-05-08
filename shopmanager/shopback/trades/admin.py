@@ -11,20 +11,20 @@ from django.forms import TextInput, Textarea
 from django.http import HttpResponse,HttpResponseRedirect
 from django.shortcuts import render_to_response
 from django.template import RequestContext
-from django.core import serializers
 from django.contrib.contenttypes.models import ContentType
 from django.utils.encoding import force_unicode
 from bitfield import BitField
 from bitfield.forms import BitFieldCheckboxSelectMultiple
 from django.conf import settings
 
-from celery import chord
+from celery import chord,group
 from shopback.orders.models import Trade
 from shopback.items.models import Product,ProductSku
 from shopback.trades.models import (MergeTrade,
                                     MergeOrder,
                                     MergeBuyerTrade,
-                                    ReplayPostTrade)
+                                    ReplayPostTrade,
+                                    MergeTradeDelivery)
 from shopback import paramconfig as pcfg
 from shopback.fenxiao.models import PurchaseOrder
 from shopback.trades.tasks import sendTaobaoTradeTask,sendTradeCallBack
@@ -219,8 +219,8 @@ class MergeTradeAdmin(admin.ModelAdmin):
 
         if not perms.has_delete_trade_permission(user) and 'delete_selected' in actions:
             del actions['delete_selected']
-        if not perms.has_sync_post_permission(user) and 'sync_trade_post_taobao' in actions:
-            del actions['sync_trade_post_taobao']
+        if not perms.has_sync_post_permission(user) and 'push_trade_to_scan' in actions:
+            del actions['push_trade_to_scan']
         if not perms.has_merge_order_permission(user) and 'merge_order_action' in actions:
             del actions['merge_order_action']
         if not perms.has_pull_order_permission(user) and 'pull_order_action' in actions:
@@ -683,14 +683,10 @@ class MergeTradeAdmin(admin.ModelAdmin):
     pull_order_action.short_description = "重新下单".decode('utf8')
     
                           
-    #淘宝后台同步发货
-    def sync_trade_post_taobao(self, request, queryset):
+    #订单
+    def push_trade_to_scan(self, request, queryset):
         
         try:
-            pingstatus = pinghost(settings.TAOBAO_API_HOSTNAME)
-            if pingstatus:
-                return HttpResponse('<body style="text-align:center;"><h1>当前网络不稳定，请稍后再试...</h1></body>')
-            
             user_id   = request.user.id
             trade_ids = [t.id for t in queryset]
             if not trade_ids :
@@ -715,7 +711,7 @@ class MergeTradeAdmin(admin.ModelAdmin):
                                   context_instance=RequestContext(request),
                                   mimetype="text/html")                 
         
-    sync_trade_post_taobao.short_description = "同步发货".decode('utf8')
+    push_trade_to_scan.short_description = "同步发货".decode('utf8')
     
     
     def unlock_trade_action(self, request, queryset):
@@ -928,7 +924,7 @@ class MergeTradeAdmin(admin.ModelAdmin):
 
     export_yunda_action.short_description = "导出韵达信息".decode('utf8')
     
-    actions = ['sync_trade_post_taobao',
+    actions = ['push_trade_to_scan',
                'merge_order_action',
                'pull_order_action',
                'unlock_trade_action',
@@ -1052,6 +1048,54 @@ class MergeBuyerTradeAdmin(admin.ModelAdmin):
     
 
 admin.site.register(MergeBuyerTrade,MergeBuyerTradeAdmin)
+
+from shopback.trades.tasks import uploadTradeLogisticsTask,deliveryTradeCallBack
+
+class MergeTradeDeliveryAdmin(admin.ModelAdmin):
+    
+    list_display = ('trade_id','buyer_nick','seller_nick','is_parent','is_sub','created','delivery_time','status')
+    
+    list_filter = ('status','is_parent','is_sub',('created',DateFieldListFilter))
+    search_fields = ['trade_id','trade_no']
+    
+    def seller_nick(self, obj):
+        return obj.seller.nick
+    
+    seller_nick.allow_tags = True
+    seller_nick.short_description = "店铺昵称"
+    
+    #淘宝后台同步发货
+    def delivery_trade(self, request, queryset):
+        
+        try:
+            pingstatus = pinghost(settings.TAOBAO_API_HOSTNAME)
+            if pingstatus:
+                return HttpResponse('<body style="text-align:center;"><h1>当前网络不稳定，请稍后再试...</h1></body>')
+            
+            user_id   = request.user.id
+            trade_ids = [t.id for t in queryset]
+            if not trade_ids :
+                self.message_user(request, u'没有可发货的订单')
+                return 
+
+            send_tasks = chord([uploadTradeLogisticsTask.s(trade.trade_id,user_id) for trade in queryset])(deliveryTradeCallBack.s())
+
+        except Exception,exc:
+            return HttpResponse('<body style="text-align:center;"><h1>发货信息上传执行出错:（%s）</h1></body>'%exc.message) 
+        
+        response_dict = {'task_id':send_tasks.task_id,'origin_url':request.get_full_path()}
+        
+        return render_to_response('trades/delivery_trade_reponse.html',
+                                  response_dict,
+                                  context_instance=RequestContext(request),
+                                  mimetype="text/html")                 
+        
+    delivery_trade.short_description = "订单发货单号上传".decode('utf8')
+    
+    actions = ['delivery_trade']
+    
+    
+admin.site.register(MergeTradeDelivery, MergeTradeDeliveryAdmin) 
 
 
 class ReplayPostTradeAdmin(admin.ModelAdmin):

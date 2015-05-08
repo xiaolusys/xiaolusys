@@ -615,8 +615,9 @@ class OrderPlusView(ModelView):
             merge_trade.append_reason_code(pcfg.ORDER_ADD_REMOVE_CODE)
             is_reverse_order = True    
         
-        merge_order = MergeOrder.gen_new_order(trade_id,outer_id,outer_sku_id,num,gift_type=type
-                                               ,status=pcfg.WAIT_BUYER_CONFIRM_GOODS,is_reverse=is_reverse_order)
+        merge_order = MergeOrder.gen_new_order(trade_id,outer_id,outer_sku_id,num,gift_type=type,
+                                               status=pcfg.WAIT_BUYER_CONFIRM_GOODS,
+                                               is_reverse=is_reverse_order)
         
         #组合拆分
         ruleMatchSplit(merge_trade)

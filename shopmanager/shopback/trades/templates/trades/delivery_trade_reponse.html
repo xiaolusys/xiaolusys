@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>订单发货跳转界面</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+     <link href="{{ STATIC_URL }}bootstrap/css/bootstrap.min.css" rel="stylesheet" type="text/css" />
+    <link href="{{ STATIC_URL }}bootstrap/css/bootstrap-responsive.min.css" rel="stylesheet" type="text/css" />
+    <link href="{{ STATIC_URL }}css/base.less" rel="stylesheet/less" type="text/css" />
+	<script src="{{ STATIC_URL }}script/jquery-1.7.1.min.js"></script>
+    <style type="text/css">
+		*{ margin:0; padding:0;}
+		body{
+			text-align:center;
+		}
+		.container{
+			margin:200px auto;
+			width:400px;
+		}
+		button {
+			width:400px;
+			heigth:25px;
+		}
+		.label {
+			font-size:23px;
+			font-color:black;
+			height:25px;
+			
+		}
+	</style>
+</head>
+<body>
+	<div class="container">
+		<input id="task_id" type="hidden" value="{{ task_id }}" />
+		<input id="replay_id" type="hidden" value="{{ replay_id }}" />
+		<button id="task-status" class="btn btn-large btn-primary">
+			批次编号:{{ replay_id }}。等待任务完成，倒计时<label id="task_counter_id" class="label label-info">100</label>秒
+		</button>
+	</div>
+	
+	<script type="text/javascript">
+	
+		var interval_id = null;
+		var task_id     = $('#task_id').val();
+		var replay_id   = $('#replay_id').val();
+		
+		var task_status_url = '/djcelery/'+task_id+'/status/?';
+		var max_timer = 100;
+		
+		var update_task_status = function(e){
+		
+			var callback = function(data){
+					
+				try{
+					if (data == ''||data.task=='undifine'){
+						clearInterval(interval_id);
+						alert(data);
+					}
+
+					if (data.task.status == 'SUCCESS'){
+						clearInterval(interval_id);
+						window.location = '{{ origin_url }}';
+					}
+					else if(data.task.status == 'FAILURE'){
+					
+						$('#task-status').html('发货任务出错');
+						clearInterval(interval_id);
+					}
+					else{
+						if (max_timer>0){
+							max_timer = max_timer-2;
+							$('#task_counter_id').text(max_timer+'');
+						}
+						else{
+							max_timer = max_timer-1;
+							$('#task-status').html('手动查看发货任务结果');
+							$('#task-status').removeAttr("disabled");
+							clearInterval(interval_id);
+						}
+					}
+				}catch (err) {
+					clearInterval(interval_id);
+		            alert('ajax error:'+err);
+		        } 
+			}
+			$.get(task_status_url+max_timer.toString(),{},callback,'json');
+		}
+		
+		$('#task-status').click(update_task_status);
+		$('#task-status').attr("disabled","disabled");
+		interval_id = setInterval(update_task_status,2000);
+
+	</script>
+</body>
+</html>
