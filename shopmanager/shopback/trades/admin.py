@@ -1054,7 +1054,7 @@ from shopback.trades.tasks import uploadTradeLogisticsTask,deliveryTradeCallBack
 
 class MergeTradeDeliveryAdmin(admin.ModelAdmin):
     
-    list_display = ('trade_id','buyer_nick','seller_nick','is_parent','is_sub','created','delivery_time','status')
+    list_display = ('trade_no','buyer_nick','seller_nick','is_parent','is_sub','created','message','status')
     
     list_filter = ('status','is_parent','is_sub',('created',DateFieldListFilter))
     search_fields = ['trade_id','trade_no']

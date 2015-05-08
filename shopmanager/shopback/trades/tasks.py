@@ -217,38 +217,51 @@ def uploadTradeLogisticsTask(trade_id,operator_id):
     
     try:
         delivery_trade = MergeTradeDelivery.objects.get(trade_id=trade_id)
-        trade = MergeTrade.objects.get(id=trade_id)
+        merge_trade = MergeTrade.objects.get(id=trade_id)
         
-        if delivery_trade.is_sub and trade.sys_status == pcfg.ON_THE_FLY_STATUS:
-                        
-            main_trade = MergeTrade.objects.get(id=trade.parent_tid)
-            trade.logistics_company = main_trade.logistics_company
-            trade.out_sid = main_trade.out_sid
-            trade.save()
+        if not delivery_trade.is_sub and merge_trade.sys_status != pcfg.FINISHED_STATUS:
+            delivery_trade.message = u'订单未称重'
+            delivery_trade.status = MergeTradeDelivery.FAIL_DELIVERY
+            delivery_trade.save()
+            return
+        
+        if delivery_trade.is_sub and merge_trade.sys_status == pcfg.ON_THE_FLY_STATUS:
             
-        tservice = TradeService(trade.user.visitor_id,trade)
+            main_trade = MergeTrade.objects.get(id=delivery_trade.parent_tid)
+            if main_trade.sys_status != pcfg.FINISHED_STATUS:
+                delivery_trade.message = u'父订单未称重'
+                delivery_trade.status = MergeTradeDelivery.FAIL_DELIVERY
+                delivery_trade.save()
+                return
+
+            merge_trade.logistics_company = main_trade.logistics_company
+            merge_trade.out_sid = main_trade.out_sid
+            merge_trade.save()
+            
+        tservice = TradeService(merge_trade.user.visitor_id,merge_trade)
         tservice.sendTrade()
     
     except Exception,exc:
-        logger.error(exc.message,exc_info=True)
-        trade.append_reason_code(pcfg.POST_MODIFY_CODE)
+
+        merge_trade.append_reason_code(pcfg.POST_MODIFY_CODE)
         MergeTradeDelivery.objects.filter(trade_id=trade_id).update(
                                     status=MergeTradeDelivery.FAIL_DELIVERY,
                                     message=exc.message)
                                                                            
-        log_action(operator_id,trade,CHANGE,u'单号上传失败:%s'%exc.message)
+        log_action(operator_id,merge_trade,CHANGE,u'单号上传失败:%s'%exc.message)
           
     else:
         delivery_trade.delete()
           
-        if delivery_trade.is_sub and trade.sys_status == pcfg.ON_THE_FLY_STATUS:
-            trade.sys_status = pcfg.FINISHED_STATUS
+        if delivery_trade.is_sub and merge_trade.sys_status == pcfg.ON_THE_FLY_STATUS:
+            merge_trade.sys_status = pcfg.FINISHED_STATUS
               
-        trade.status = pcfg.WAIT_BUYER_CONFIRM_GOODS
-        trade.consign_time = datetime.datetime.now()
-        trade.save()
+        merge_trade.status = pcfg.WAIT_BUYER_CONFIRM_GOODS
+        merge_trade.consign_time = datetime.datetime.now()
+        merge_trade.save()
           
-        log_action(operator_id,trade,CHANGE,u'快递单号上传成功[%s:%s]'%(trade.logistics_company.name,trade.out_sid))
+        log_action(operator_id,merge_trade,CHANGE,
+                   u'快递单号上传成功[%s:%s]'%(merge_trade.logistics_company.name,merge_trade.out_sid))
        
        
 @task()
