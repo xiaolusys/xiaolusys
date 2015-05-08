@@ -635,8 +635,7 @@ class WxShopService(LocalService):
             if trade.buyer_nick.find(u'[秒杀]') < 0:
                 trade.buyer_nick = u'[秒杀]' + trade.buyer_nick 
 
-        seller = User.getOrCreateSeller(visitor_id=seller_id,
-                                        seller_type=User.SHOP_TYPE_WX)
+        seller = User.getOrCreateSeller(seller_id,seller_type=User.SHOP_TYPE_WX)
         
         return seller
     
