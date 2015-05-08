@@ -185,7 +185,7 @@ class User(models.Model):
     def getOrCreateSeller(cls,vid,seller_type=None):
         
         if seller_type:
-            seller,state = User.objects.get_or_create(visitor_id=vid,type=cls.seller_type)
+            seller,state = User.objects.get_or_create(visitor_id=vid,type=seller_type)
         else:
             seller,state = User.objects.get_or_create(visitor_id=vid)
             
