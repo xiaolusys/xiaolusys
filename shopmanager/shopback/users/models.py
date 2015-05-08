@@ -13,6 +13,7 @@ import logging
 
 logger = logging.getLogger('django.request')
 
+SYSTEMOA_NAME = 'systemoa'
 
 class EffectUserManager(models.Manager):
     
@@ -173,7 +174,28 @@ class User(models.Model):
             return cls.objects.get(visitor_id=visitor_id)
         except cls.DoesNotExist:
             return None
-
+    
+    @classmethod
+    def getSystemOAUser(cls):
+        
+        djuser,state = DjangoUser.objects.get_or_create(username=SYSTEMOA_NAME,is_active=True)
+        return djuser
+        
+    @classmethod
+    def getOrCreateSeller(cls,vid,seller_type=None):
+        
+        if seller_type:
+            seller,state = User.objects.get_or_create(visitor_id=vid,type=cls.seller_type)
+        else:
+            seller,state = User.objects.get_or_create(visitor_id=vid)
+            
+        if state:
+            seller.user = seller.user or cls.getSystemOAUser()
+            seller.save()
+            
+        return seller
+        
+    
     @property
     def stock_percent(self):
         #获取该店铺商品库存同步比例

@@ -128,6 +128,12 @@ class FlashSaleService(LocalService):
     
     def payTrade(self,*args,**kwargs):
         
+        ########################## 押金链接，不需仓库处理 ######################
+        outer_ids = set([o[0] for o in self.trade.normal_orders.values_list('outer_id')])
+        if len(outer_ids) == 1 and outer_ids[0].startswith('RMB'):
+            return 
+        ###################################################################
+        
         return self.__class__.createMergeTrade(self.trade)
     
     

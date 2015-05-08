@@ -714,19 +714,20 @@ def change_trade_order(request,id):
     
     old_sku_id = order.outer_sku_id
 
-    is_reverse_order = False
-    if merge_trade.can_reverse_order:
-        merge_trade.append_reason_code(pcfg.ORDER_ADD_REMOVE_CODE)
-        is_reverse_order = True
-        
-    order.outer_sku_id = prod_sku.outer_id
+    order.outer_sku_id  = prod_sku.outer_id
     order.sku_properties_name = prod_sku.name
     order.is_rule_match = False
-    order.out_stock     = not Product.objects.isProductOutingStockEnough(
-                                                                     order.outer_id, 
-                                                                     order.outer_sku_id,
-                                                                     order.num)
-    order.is_reverse_order = is_reverse_order
+    order.out_stock     = False
+    order.is_reverse_order = False
+    if merge_trade.can_reverse_order:
+        merge_trade.append_reason_code(pcfg.ORDER_ADD_REMOVE_CODE)
+        order.is_reverse_order = True
+    else:
+        order.out_stock = not Product.objects.isProductOutingStockEnough(
+                                                         order.outer_id, 
+                                                         order.outer_sku_id,
+                                                         order.num)
+
     order.num           = order_num
     order.save()
     merge_trade.remove_reason_code(pcfg.RULE_MATCH_CODE)
@@ -745,16 +746,16 @@ def change_trade_order(request,id):
     log_action(user_id,merge_trade,CHANGE,u'修改子订单(%d)'%order.id)
     
     ret_params = {'code':0,
-                                'response_content':{
-                                               'id':order.id,
-                                               'outer_id':order.outer_id,
-                                               'title':prod.name,
-                                               'sku_properties_name':order.sku_properties_name,
-                                               'num':order.num,
-                                               'out_stock':order.out_stock,
-                                               'price':order.price,
-                                               'gift_type':order.gift_type,
-                                               }}
+                'response_content':{
+                               'id':order.id,
+                               'outer_id':order.outer_id,
+                               'title':prod.name,
+                               'sku_properties_name':order.sku_properties_name,
+                               'num':order.num,
+                               'out_stock':order.out_stock,
+                               'price':order.price,
+                               'gift_type':order.gift_type,
+                               }}
     
     return HttpResponse(json.dumps(ret_params),mimetype="application/json")
 

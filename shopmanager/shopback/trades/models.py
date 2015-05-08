@@ -800,7 +800,7 @@ class MergeTradeDelivery(models.Model):
     
     id      =  BigIntegerAutoField(primary_key=True)
     seller    =  models.ForeignKey(User,null=True,verbose_name=u'所属店铺')
-
+    
     trade_id     =  models.BigIntegerField(unique=True,verbose_name=u'订单ID')
     trade_no     =  models.CharField(max_length=64,db_index=True,blank=True,verbose_name=u'订单编号')
     buyer_nick   =  models.CharField(max_length=64,blank=True,verbose_name=u'买家昵称')

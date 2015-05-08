@@ -188,7 +188,8 @@ def sendTaobaoTradeTask(operator_id,trade_id):
                                           buyer_nick=sub_trade.buyer_nick,
                                           is_parent=False,
                                           is_sub=True,
-                                          parent_tid=trade.id)
+                                          parent_tid=trade.id,
+                                          status=MergeTradeDelivery.WAIT_DELIVERY)
 
     MergeTradeDelivery.objects.create(seller=trade.user,
                                       trade_id=trade.id,
@@ -196,7 +197,8 @@ def sendTaobaoTradeTask(operator_id,trade_id):
                                       buyer_nick=trade.buyer_nick,
                                       is_parent=trade.has_merge,
                                       is_sub=False,
-                                      parent_tid=0)
+                                      parent_tid=0,
+                                      status=MergeTradeDelivery.WAIT_DELIVERY)
 
     trade.sys_status=pcfg.WAIT_CHECK_BARCODE_STATUS
     trade.save()
