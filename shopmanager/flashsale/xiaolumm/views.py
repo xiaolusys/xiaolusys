@@ -21,7 +21,6 @@ from rest_framework.renderers import JSONRenderer
 from rest_framework.response import Response
 
 import logging
-
 logger = logging.getLogger('django.request')
 
 
@@ -36,7 +35,7 @@ WX_CLOSE     = 6
 WX_FEEDBACK  = 8
     
 WXORDER_STATUS = {
-    WX_WAIT_PAY:u'待付款',         
+    WX_WAIT_PAY:u'待付款',
     WX_WAIT_SEND:u'待发货',
     WX_WAIT_CONFIRM:u'待确认收货',
     WX_FINISHED:u'已完成',
