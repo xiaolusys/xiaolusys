@@ -3,7 +3,7 @@ __author__ = 'yann'
 from django.db import models
 from shopapp.weixin.models import WXOrder
 from flashsale.xiaolumm.models import Clicks, XiaoluMama
-import datetime,signals
+import datetime
 
 class StatisticsShopping(models.Model):
     linkid = models.IntegerField(default=0, db_index=True, verbose_name=u"链接ID")
@@ -35,44 +35,46 @@ class StatisticsShoppingByDay(models.Model):
         verbose_name_plural = u'按天统计购买列表'
 
 
-def tongji(sender, **kwargs):
-    if "obj" in kwargs:
-        obj = kwargs.get("obj")
-        today = datetime.date.today()
-        target_time = obj.order_create_time
-        target_time = datetime.date(target_time.year, target_time.month, target_time.day)
-        if target_time > today:
-            target_time = today
-        is_today = False
-        if (today == target_time):
-            is_today = True
+from shopapp import signals
 
-        ordertime = obj.order_create_time
-        time_from = ordertime - datetime.timedelta(days=1)
-        clicksbetwwentime = Clicks.objects.filter(created__range=(time_from, ordertime)).filter(
-            openid=obj.buyer_openid).values('linkid').distinct()
-        print clicksbetwwentime, len(clicksbetwwentime), clicksbetwwentime.count()
-        if clicksbetwwentime:
-            length = clicksbetwwentime.count()
-            for s in clicksbetwwentime:
-                xiaolu_mm = XiaoluMama.objects.get(linkid=s['linkid'])
-                StatisticsShopping(linkid=s['linkid'], linkname=xiaolu_mm.weikefu, openid=obj.buyer_openid,
-                                   wxorderid=str(obj.order_id),
-                                   wxorderamount=obj.order_total_price,
-                                   shoptime=obj.order_create_time, tichengcount=obj.order_total_price / length).save()
-                if is_today:
-                    daytongji = StatisticsShoppingByDay.objects.get_or_create(linkid=s['linkid'],
-                                                                              tongjidate=target_time)
-                    daytongji[0].ordernumcount = daytongji[0].ordernumcount + 1
-                    daytongji[0].orderamountcount = daytongji[0].orderamountcount + obj.order_total_price
-                    daytongji[0].todayamountcount = daytongji[0].todayamountcount + obj.order_total_price / length
-                    daytongji[0].save()
+def tongji(sender, obj, **kwargs):
+    
+    today = datetime.date.today()
+    target_time = obj.order_create_time
+    target_time = datetime.date(target_time.year, target_time.month, target_time.day)
+    if target_time > today:
+        target_time = today
+    is_today = False
+    if (today == target_time):
+        is_today = True
 
-
-        else:
-            StatisticsShopping(linkid=0, openid=obj.buyer_openid, wxorderid=str(obj.order_id),
+    ordertime = obj.order_create_time
+    time_from = ordertime - datetime.timedelta(days=1)
+    clicksbetwwentime = Clicks.objects.filter(created__range=(time_from, ordertime)).filter(
+        openid=obj.buyer_openid).values('linkid').distinct()
+    print clicksbetwwentime, len(clicksbetwwentime), clicksbetwwentime.count()
+    if clicksbetwwentime:
+        length = clicksbetwwentime.count()
+        for s in clicksbetwwentime:
+            xiaolu_mm = XiaoluMama.objects.get(linkid=s['linkid'])
+            StatisticsShopping(linkid=s['linkid'], linkname=xiaolu_mm.weikefu, openid=obj.buyer_openid,
+                               wxorderid=str(obj.order_id),
                                wxorderamount=obj.order_total_price,
-                               shoptime=obj.order_create_time, tichengcount=0).save()
+                               shoptime=obj.order_create_time, tichengcount=obj.order_total_price / length).save()
+            if is_today:
+                daytongji = StatisticsShoppingByDay.objects.get_or_create(linkid=s['linkid'],
+                                                                          tongjidate=target_time)
+                daytongji[0].ordernumcount = daytongji[0].ordernumcount + 1
+                daytongji[0].orderamountcount = daytongji[0].orderamountcount + obj.order_total_price
+                daytongji[0].todayamountcount = daytongji[0].todayamountcount + obj.order_total_price / length
+                daytongji[0].save()
 
 
-signals.WXOrder_save_tongji.connect(tongji, sender=WXOrder)
+    else:
+        StatisticsShopping(linkid=0, openid=obj.buyer_openid, wxorderid=str(obj.order_id),
+                           wxorderamount=obj.order_total_price,
+                           shoptime=obj.order_create_time, tichengcount=0).save()
+
+
+signals.signal_wxorder_pay_confirm.connect(tongji, sender=WXOrder)
+

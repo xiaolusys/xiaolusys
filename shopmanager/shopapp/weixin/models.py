@@ -521,6 +521,7 @@ class WXProductSku(models.Model):
     def __unicode__(self):
         return u'<WXProductSku:%s,%s>'%(self.outer_id,self.outer_sku_id)
     
+from shopapp.signals import signal_wxorder_pay_confirm
        
 class WXOrder(models.Model):
     
@@ -621,6 +622,10 @@ class WXOrder(models.Model):
 
         return pcfg.WAIT_BUYER_PAY
     
+    def confirm_payment(self):
+        
+        signal_wxorder_pay_confirm.send(sender=WXOrder,obj=self)
+
 
 class WXLogistic(models.Model):
     company_name = models.CharField(max_length=16,blank=True,verbose_name=u'快递名称')

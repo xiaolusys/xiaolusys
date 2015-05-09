@@ -168,7 +168,6 @@ def sendTaobaoTradeTask(operator_id,trade_id):
         trade.save()
         return trade_id
 
-
     merge_buyer_trades = []
     #判断是否有合单子订单
     if trade.has_merge:
