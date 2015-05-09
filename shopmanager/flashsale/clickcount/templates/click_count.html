@@ -15,11 +15,11 @@
         }
     </style>
 
-    <script>
-        function click_count() {// 触发后台写入数据库函数 write_all_user_click()
-            $.ajax("{% url flashsale_writeall %}");
-        }
-    </script>
+{#    <script>#}
+{#        function click_count() {// 触发后台写入数据库函数 write_all_user_click()#}
+{#            $.ajax("{% url flashsale_writeall %}");#}
+{#        }#}
+{#    </script>#}
 
 
     {# 日期选择器 #}
@@ -55,7 +55,7 @@
 {% endblock %}
 
 {% block container %}
-    <button id="spacial" onclick="click_count()">统计所有昨天的小鹿妈妈的点击到数据库表</button>
+{#    <button id="spacial" onclick="click_count()">统计所有昨天的小鹿妈妈的点击到数据库表</button>#}
 
 
 
