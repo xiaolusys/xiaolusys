@@ -471,10 +471,10 @@ class MergeTradeAdmin(admin.ModelAdmin):
                 else:
                     mtd,state = MergeTradeDelivery.objects.get_or_create(seller=sub_trade.user,
                                                                          trade_id=sub_trade.id)        
-                    mtd.trade_no=sub_trade.tid,
-                    mtd.buyer_nick=sub_trade.buyer_nick,
-                    mtd.is_parent=False,
-                    mtd.is_sub=True,
+                    mtd.trade_no=sub_trade.tid
+                    mtd.buyer_nick=sub_trade.buyer_nick
+                    mtd.is_parent=False
+                    mtd.is_sub=True
                     mtd.parent_tid=main_trade.id
                     mtd.status=MergeTradeDelivery.WAIT_DELIVERY
                     mtd.save()
