@@ -556,6 +556,7 @@ class WxShopService(LocalService):
         order.buyer_nick = replace_utf8mb4(order_dict['buyer_nick']).strip()
         order.order_create_time = datetime.datetime.fromtimestamp(
             int(order_dict['order_create_time']))
+        
         order.save()
         
         return order
