@@ -8,6 +8,7 @@ djcelery.setup_loader()
 CELERYBEAT_SCHEDULER = 'djcelery.schedulers.DatabaseScheduler'
 
 BROKER_URL = 'amqp://user1:passwd1@127.0.0.1:5672/vhost1'
+
 CELERY_RESULT_BACKEND = "amqp"
 CELERY_TASK_RESULT_EXPIRES = 18000  # 5 hours.
 BROKER_POOL_LIMIT = 10 # 10 connections
@@ -218,6 +219,13 @@ SHOP_APP_SCHEDULE = {
         'schedule':crontab(minute="0",hour='6'),
         'args':()
     },
+
+    u'定时统计昨日小鹿妈妈点击':{
+        'task':'flashsale.clickcount.tasks.task_Record_User_Click',
+        'schedule':crontab(minute="30",hour='0'),
+        'args':()
+    },
+
 #    'runs-every-10-minutes-update-seller-flag':{
 #        'task':'shopapp.memorule.tasks.updateTradeSellerFlagTask',
 #        'schedule':crontab(minute="*/10"),
