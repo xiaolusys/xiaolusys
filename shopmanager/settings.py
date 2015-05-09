@@ -197,9 +197,11 @@ except ImportError:
     if DEBUG:
         raise Exception("LOCAL SETTINGS IS REQUIRED!")
 
-
 from task_settings import *
 
+if DEBUG:
+    BROKER_URL = 'amqp://user1:passwd1@192.168.1.101:5672/vtest1'
+    
 REST_FRAMEWORK = {
     #'DEFAULT_PERMISSION_CLASSES': ('rest_framework.permissions.AllowAny',),
     'DEFAULT_FILTER_BACKENDS': ('rest_framework.filters.DjangoFilterBackend',),
