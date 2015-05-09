@@ -556,6 +556,7 @@ class WxShopService(LocalService):
         order.buyer_nick = replace_utf8mb4(order_dict['buyer_nick']).strip()
         order.order_create_time = datetime.datetime.fromtimestamp(
             int(order_dict['order_create_time']))
+        
         order.save()
         
         return order
@@ -696,16 +697,20 @@ class WxShopService(LocalService):
                                     merge_trade.status == pcfg.WAIT_SELLER_SEND_GOODS)}
         _params.update(kwargs)
         
+        if _params.get('first_pay_load'):
+            trade.confirm_payment()
+        
         trade_handler.proccess(merge_trade,*args,**_params)
         
         return merge_trade
     
     def payTrade(self, *args, **kwargs):
         
-        trade = self.__class__.createTrade(self.order.seller_id,
+        wxorder = self.__class__.createTrade(self.order.seller_id,
                                           self.order.order_id)
+        merge_trade = WxShopService.createMergeTrade(wxorder,*args, **kwargs)
         
-        return WxShopService.createMergeTrade(trade,*args, **kwargs)
+        return merge_trade
     
     def sendTrade(self, company_code=None, out_sid=None, retry_times=3, *args, **kwargs):
         

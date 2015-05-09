@@ -521,6 +521,7 @@ class WXProductSku(models.Model):
     def __unicode__(self):
         return u'<WXProductSku:%s,%s>'%(self.outer_id,self.outer_sku_id)
     
+from shopapp.signals import signal_wxorder_pay_confirm
        
 class WXOrder(models.Model):
     
@@ -548,10 +549,10 @@ class WXOrder(models.Model):
     buyer_openid = models.CharField(max_length=64,blank=True,verbose_name=u'买家OPENID')
     buyer_nick   = models.CharField(max_length=32,blank=True,verbose_name=u'买家昵称')
     
-    order_total_price   = models.FloatField(default=0,verbose_name=u'订单总价')
-    order_express_price = models.FloatField(default=0,verbose_name=u'订单运费')
+    order_total_price   = models.IntegerField(default=0,verbose_name=u'订单总价(分)')
+    order_express_price = models.IntegerField(default=0,verbose_name=u'订单运费(分)')
     order_create_time   = models.DateTimeField(blank=True,null=True,verbose_name=u'创建时间')
-    order_status = models.IntegerField(choices=WXORDER_STATUS,verbose_name=u'订单状态')
+    order_status = models.IntegerField(choices=WXORDER_STATUS,default=WX_WAIT_PAY,verbose_name=u'订单状态')
     
     receiver_name     = models.CharField(max_length=64,blank=True,verbose_name=u'收货人')
     receiver_province = models.CharField(max_length=24,blank=True,verbose_name=u'省')
@@ -563,7 +564,7 @@ class WXOrder(models.Model):
     
     product_id     = models.CharField(max_length=64,blank=True,verbose_name=u'商品ID')
     product_name   = models.CharField(max_length=64,blank=True,verbose_name=u'商品名')
-    product_price  = models.FloatField(default=0,verbose_name=u'商品价格')
+    product_price  = models.IntegerField(default=0,verbose_name=u'商品价格(分)')
     product_sku    = models.CharField(max_length=128,blank=True,verbose_name=u'商品SKU')
     product_count  = models.IntegerField(default=0,verbose_name=u'商品个数')
     product_img    = models.CharField(max_length=512,blank=True,verbose_name=u'商品图片')
@@ -621,6 +622,10 @@ class WXOrder(models.Model):
 
         return pcfg.WAIT_BUYER_PAY
     
+    def confirm_payment(self):
+        
+        signal_wxorder_pay_confirm.send(sender=WXOrder,obj=self)
+
 
 class WXLogistic(models.Model):
     company_name = models.CharField(max_length=16,blank=True,verbose_name=u'快递名称')

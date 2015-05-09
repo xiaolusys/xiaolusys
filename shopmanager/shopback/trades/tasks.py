@@ -168,7 +168,6 @@ def sendTaobaoTradeTask(operator_id,trade_id):
         trade.save()
         return trade_id
 
-
     merge_buyer_trades = []
     #判断是否有合单子订单
     if trade.has_merge:
@@ -177,32 +176,35 @@ def sendTaobaoTradeTask(operator_id,trade_id):
     for sub_buyer_trade in merge_buyer_trades:
         
         sub_trade = MergeTrade.objects.get(id=sub_buyer_trade.sub_tid)
+        
+        mtd, state = MergeTradeDelivery.objects.get_or_create(seller=sub_trade.user,
+                                                              trade_id=sub_trade.id)
+        mtd.trade_no = sub_trade.tid
+        mtd.buyer_nick = sub_trade.buyer_nick
+        mtd.is_parent = False
+        mtd.is_sub = True
+        mtd.parent_tid = trade.id
+        mtd.status = MergeTradeDelivery.WAIT_DELIVERY
+        mtd.save()
+        
         sub_trade.out_sid           = trade.out_sid
         sub_trade.logistics_company = trade.logistics_company
-        
         update_model_fields(sub_trade,update_fields=['out_sid','logistics_company'])
-        
-        MergeTradeDelivery.objects.create(seller=sub_trade.user,
-                                          trade_id=sub_trade.id,
-                                          trade_no=sub_trade.tid,
-                                          buyer_nick=sub_trade.buyer_nick,
-                                          is_parent=False,
-                                          is_sub=True,
-                                          parent_tid=trade.id,
-                                          status=MergeTradeDelivery.WAIT_DELIVERY)
-
-    MergeTradeDelivery.objects.create(seller=trade.user,
-                                      trade_id=trade.id,
-                                      trade_no=trade.tid,
-                                      buyer_nick=trade.buyer_nick,
-                                      is_parent=trade.has_merge,
-                                      is_sub=False,
-                                      parent_tid=0,
-                                      status=MergeTradeDelivery.WAIT_DELIVERY)
+    
+    mtd, state = MergeTradeDelivery.objects.get_or_create(seller=trade.user,
+                                                          trade_id=trade.id)
+    
+    mtd.trade_no   = trade.tid
+    mtd.buyer_nick = trade.buyer_nick
+    mtd.is_parent  = trade.has_merge
+    mtd.is_sub     = False
+    mtd.parent_tid = 0
+    mtd.status     = MergeTradeDelivery.WAIT_DELIVERY
+    mtd.save()
 
     trade.sys_status=pcfg.WAIT_CHECK_BARCODE_STATUS
     trade.save()
-    log_action(operator_id,trade,CHANGE,u'发货成功')
+    log_action(operator_id,trade,CHANGE,u'订单打印')
     
     return trade_id
        
@@ -252,7 +254,7 @@ def uploadTradeLogisticsTask(trade_id,operator_id):
           
     else:
         delivery_trade.delete()
-          
+        
         if delivery_trade.is_sub and merge_trade.sys_status == pcfg.ON_THE_FLY_STATUS:
             merge_trade.sys_status = pcfg.FINISHED_STATUS
               

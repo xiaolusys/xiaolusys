@@ -1,0 +1,181 @@
+{% extends "mama_base.html" %}
+
+{% block title %} 每日数据统计 {% endblock %}
+
+{% block head_script %}
+    <link href='{{ STATIC_URL }}jquery/jquery-ui-1.10.1.css' rel='stylesheet'/>
+    <style type="text/css" title="currentStyle">
+        @import "{{ STATIC_URL }}jquery-datatable-addon/css/demo_page.css";
+        @import "{{ STATIC_URL }}jquery-datatable-addon/css/demo_table.css";
+    </style>
+    <style type="text/css">
+        tfoot input {
+            width: 50%;
+        }
+    </style>
+{% endblock %}
+
+{% block container %}
+
+    <div class="row" style="margin-top:20px">
+        <div class="col-xs-8 page-header">
+            <h2>购买 - 数据统计</h2>
+        </div>
+        <div class="col-xs-4" style="margin: 80px 0 20px;">
+            <select class="form-control" name="color" id="id-select">
+                {% for xlmama in xiaolumamas %}
+                    <option {% if xlmama.pk == pk %} selected="selected" {% endif %}
+                                                     value="{{ xlmama.pk }}">{{ xlmama.weikefu }}</option>
+                {% endfor %}
+            </select>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-xs-4">
+            <a href="/sale/rebeta/?pk={{ pk }}&day={{ prev_day }}"><< 前一天</a>
+        </div>
+        <div class="col-xs-4">
+            <p>{{ target_date }}</p>
+        </div>
+        <div class="col-xs-4">
+            {% if next_day %}
+                <a href="/sale/rebeta/?pk={{ pk }}&day={{ next_day }}">后一天 >></a>
+            {% endif %}
+        </div>
+    </div>
+    <div style="margin-top:20px">
+        <table id="state_table" class="table table-bordered">
+            <thead>
+            <th>代理</th>
+            <th>openid</th>
+            <th>订单id</th>
+            <th>订单金额</th>
+            <th>提成</th>
+            </thead>
+            <tbody>
+            {% for item in data %}
+                <tr>
+                    <td>{{ item.linkid }}</td>
+                    <td>{{ item.openid }}</td>
+                    <td>{{ item.wxorderid }}</td>
+                    <td align="center">{{ item.wxorderamount }}</td>
+                    <td align="center">{{ item.tichengcount }}</td>
+                </tr>
+            {% endfor %}
+            </tbody>
+            <tfoot>
+            <tr>
+                <td colspan="3"></td>
+                <td align="right"><input id="total_order_num" type="text"
+                           {% if countdata %}value="{{ countdata.orderamountcount }}" {% endif %}readonly/></td>
+                <td align="right"><input id="total_ticheng_num" type="text" {% if countdata %}
+                           value="{{ countdata.todayamountcount }}"{% endif %} readonly/></td>
+            </tr>
+            </tfoot>
+        </table>
+    </div>
+
+    <form action="/sale/rebeta/" method="get" id="id-form">
+        <input type="hidden" name="pk" id="id-pk"/>
+        <input type="hidden" name="day" value="{{ target_date }}"/>
+    </form>
+
+{% endblock %}
+
+{% block tail_script %}
+    <script src="{{ STATIC_URL }}jquery/jquery-2.1.1.min.js"></script>
+    <script src="{{ STATIC_URL }}jquery-datatable-addon/jquery.dataTables.min.js" type="text/javascript"></script>
+    <script type="text/javascript">
+        $("#id-select").change(function () {
+            var val = $(this).children("option:selected").val();
+            $("#id-pk").val(val);
+            $("#id-form").submit()
+        });
+    </script>
+    <script type="text/javascript">
+
+        $('#state_table').dataTable({
+            //"bJQueryUI": true,
+            "bAutoWidth": false, //自适应宽度
+            "aaSorting": [[1, "asc"]],
+            "iDisplayLength": 50,
+            "aLengthMenu": [[20, 50, 100, -1], [20, 50, 100, "All"]],
+            //"bInfo":true,
+            //"sPaginationType": "full_numbers",
+            //"sDom": '<"H"Tfr>t<"F"ip>',
+            "oLanguage": {
+                "sLengthMenu": "每页 _MENU_ 条",
+                "sZeroRecords": "抱歉， 没有找到",
+                "sInfo": "从 _START_ 到 _END_ /共 _TOTAL_ 条",
+                "sInfoEmpty": "没有数据",
+                "sSearch": "搜索",
+                "sInfoFiltered": "(从 _MAX_ 条数据中检索)",
+                "oPaginate": {
+                    "sFirst": "首页",
+                    "sPrevious": "前一页",
+                    "sNext": "后一页",
+                    "sLast": "尾页"
+                },
+                "sZeroRecords": "没有检索到数据",
+                "sProcessing": "<img src='/static/img/loading.gif' />"
+            }
+        });
+
+        var Calc_stats_data = function () {
+            var total_ticheng_num = 0;
+            var total_order_num = 0;
+
+            var ticheng_num = 0;
+            var order_num = 0;
+            var rows = $("#state_table > tbody > tr");
+
+            for (var i = 0; i < rows.length; i++) {
+                row = rows[i];
+                if (row.cells.length < 5) {
+                    continue;
+                }
+
+                order_num = row.cells[3].innerHTML;
+                ticheng_num = row.cells[4].innerHTML;
+
+
+                if (parseInt(ticheng_num)) {
+                    total_ticheng_num += parseInt(ticheng_num);
+                }
+
+                if (parseInt(order_num)) {
+                    total_order_num += parseInt(order_num);
+                }
+            }
+
+            $('#total_ticheng_num').val(total_ticheng_num.toString());
+            $('#total_order_num').val(total_order_num.toString());
+
+        }
+
+        $("select[name='#state_table_length']").change(function (e) {
+            e.preventDefault();
+            Calc_stats_data();
+        });
+
+        //搜索时，重新计算
+        $("#state_table_filter input").keyup(function (e) {
+            e.preventDefault();
+            Calc_stats_data();
+        });
+
+        //分页时，重新计算
+        $("#state_table_paginate a").click(function (e) {
+            e.preventDefault();
+            Calc_stats_data();
+        });
+
+
+        $(function () {
+            Calc_stats_data();
+        });
+
+    </script>
+
+{% endblock %}

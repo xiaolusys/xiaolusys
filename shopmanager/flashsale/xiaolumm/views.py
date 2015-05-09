@@ -124,7 +124,8 @@ class MamaStatsView(View):
         wx_user = service._wx_user
         
         if not wx_user.isValid():
-            return render_to_response("remind.html",{"openid":openid}, context_instance=RequestContext(request))
+            return render_to_response("remind.html",{"openid":openid}, 
+                                      context_instance=RequestContext(request))
         
         daystr = content.get("day", None)
         today  = datetime.date.today()
@@ -170,7 +171,8 @@ class MamaStatsView(View):
                     total_value += order.order_total_price*0.01
                     status = WXORDER_STATUS[int(order.order_status)]
                     time = str(order.order_create_time)[11:16]
-                    order_info = {"nick":"*"+order.buyer_nick[1:], "price":order.order_total_price*0.01,
+                    order_info = {"nick":"*"+order.buyer_nick[1:], 
+                                  "price":order.order_total_price*0.01,
                                   "time":time, "status":status}
                     order_list.append(order_info)
 
