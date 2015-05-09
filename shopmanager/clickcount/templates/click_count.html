@@ -1,0 +1,148 @@
+{% extends "click_count_base.html" %}
+
+{% block title %} 点击统计 {% endblock %}
+
+
+{% block head_script %}
+    <link href='{{ STATIC_URL }}jquery/jquery-ui-1.10.1.css' rel='stylesheet'/>
+    <style type="text/css" title="currentStyle">
+        @import "{{ STATIC_URL }}jquery-datatable-addon/css/demo_page.css";
+        @import "{{ STATIC_URL }}jquery-datatable-addon/css/demo_table.css";
+    </style>
+    <style type="text/css">
+        tfoot input {
+            width: 50%;
+        }
+    </style>
+
+    <script>
+        function click_count() {// 触发后台写入数据库函数 write_all_user_click()
+            $.ajax({url: "/clickcount/clickcount/writeall/"});
+        }
+    </script>
+
+
+    {# 日期选择器 #}
+    <script>
+        $(function () {
+            $("#datepicker").datepicker();
+        });
+    </script>
+
+
+
+    <script>
+        function throwdate() {
+            var date = document.getElementById('datepicker').value;
+            $.get("/clickcount/clickcount/bydate/", {date: date},
+                    function (result) {
+                        var tb = $('#mytable');
+                        $("#mytable thead").eq(0).nextAll().remove();
+                        $.each(result, function (index, dic) {
+                            tb.append('<tr><td> ' + dic.number + '</td>' +
+                            '<td>' + dic.name + '</td>' +
+                            '<td>' + dic.nop + '</td>' +
+                            '<td>' + dic.frequency + '</td>' +
+                            '<td>' + dic.date + '</td>' +
+                            '<td>' + dic.write_time + '</td>' +
+                            '<td>' + dic.administrator + '</td></tr>');
+                        });
+                    }, 'json');
+        }
+
+    </script>
+
+{% endblock %}
+
+{% block container %}
+    <button id="spacial" onclick="click_count()">统计所有昨天的小鹿妈妈的点击到数据库表</button>
+
+
+
+    <div class="row">
+        <div class="page-header">
+            <h1>点击统计
+                <small id="h1-small"></small>
+            </h1>
+        </div>
+        <div class="page-header " style="margin-top: auto">
+            <span class="label label-info">当前用户:{{ user }}</span> <span class="label label-primary">查看统计记录</span>
+            <p>Date: <input type="text" id="datepicker" onchange="throwdate()"></p>
+        </div>
+    </div>
+
+        <div class="panel panel-default row">
+            <div class="panel-heading">统计列表</div>
+    {#        <!--<div class="panel-body">-->#}
+
+    <!--</div>-->
+    <div>
+        <table class="table" id="mytable">
+            <thead>
+            <th>数字</th>
+            <th>名字</th>
+            <th>人数</th>
+            <th>次数</th>
+            <th>日期</th>
+            <th>写入时间</th>
+            <th>管理员</th>
+            </thead>
+            <tbody>
+            {% if clickcounts %}
+                {% for clickcount in clickcounts %}
+                    <tr>
+                        <td>{{ clickcount.number }}</td>
+                        <td>{{ clickcount.name }}</td>
+                        <td>{{ clickcount.nop }}</td>
+                        <td>{{ clickcount.frequency }}</td>
+                        <td>{{ clickcount.date }}</td>
+                        <td>{{ clickcount.write_time }}</td>
+                        {% for user in users %}
+                            {% if user.id == clickcount.administrator %}
+                                <td>{{ user.username }}</td>
+                            {% endif %}
+                        {% endfor %}
+                    </tr>
+                {% endfor %}
+            {% endif %}
+
+            </tbody>
+        </table>
+    </div>
+        </div>
+
+
+
+{% endblock %}
+
+{% block tail_script %}
+    <script src="{{ STATIC_URL }}jquery-datatable-addon/jquery.dataTables.min.js" type="text/javascript"></script>
+    <script type="text/javascript">
+        $('#mytable').dataTable({
+            //"bJQueryUI": true,
+            "bAutoWidth": false, //自适应宽度
+            "aaSorting": [[1, "asc"]],
+            "iDisplayLength": 50,
+            "aLengthMenu": [[20, 50, 100, -1], [20, 50, 100, "All"]],
+            //"sPaginationType": "full_numbers",
+            //"sDom": '<"H"Tfr>t<"F"ip>',
+            "oLanguage": {
+                "sLengthMenu": "每页 _MENU_ 条",
+                "sZeroRecords": "抱歉， 没有找到",
+                "sInfo": "从 _START_ 到 _END_ /共 _TOTAL_ 条",
+                "sInfoEmpty": "没有数据",
+                "sSearch": "搜索",
+                "sInfoFiltered": "(从 _MAX_ 条数据中检索)",
+                "oPaginate": {
+                    "sFirst": "首页",
+                    "sPrevious": "前一页",
+                    "sNext": "后一页",
+                    "sLast": "尾页"
+                },
+                "sZeroRecords": "没有检索到数据",
+                "sProcessing": "<img src='/static/img/loading.gif' />"
+            }
+        });
+    </script>
+{% endblock %}
+

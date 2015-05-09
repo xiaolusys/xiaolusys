@@ -11,6 +11,8 @@ admin.autodiscover()
 
 urlpatterns = patterns('',
 
+    (r'^clickcount/', include('clickcount.urls')),
+
     (r'^accounts/', include('auth.accounts.urls')),
     (r'^category/',include('shopback.categorys.urls')),
     (r'^fenxiao/',include('shopback.fenxiao.urls')),

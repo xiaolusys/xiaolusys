@@ -162,6 +162,7 @@ INSTALLED_APPS = (
     'flashsale.pay',
     'flashsale.xiaolumm',
     'mathfilters',
+    'clickcount',
 
 
     #'test.celery',
