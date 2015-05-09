@@ -14,7 +14,8 @@ class RegularSaleHandler(BaseHandler):
     
     def handleable(self,merge_trade,*args,**kwargs):
         
-        if not kwargs.get('first_pay_load',None) or merge_trade.type != pcfg.WX_TYPE:
+        if (not kwargs.get('first_pay_load',None) or 
+            merge_trade.type not in (pcfg.WX_TYPE,pcfg.SALE_TYPE)):
             return False
         #秒杀订单 取消定时
         if merge_trade.user.visitor_id.lower().endswith('miaosha'):

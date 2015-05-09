@@ -1,0 +1,152 @@
+{% extends "dinghuo/dinghuo_base.html" %}
+{% block title %}订单详情页{% endblock %}
+{% block head_script %}
+    <script type="text/javascript">
+        function changestatus(id, button) {
+
+            var url = "/dinghuo/changestatus/";
+            var data = {"orderid": id, "func": button.value};
+            var orderstatus = $("#order_status");
+            var callback = function (res) {
+                if (res == "OK") {
+                    if (button.id == "shenhebutton") {
+                        orderstatus.text("审核");
+                    } else {
+                        orderstatus.text("作废");
+                    }
+                }
+
+
+            };
+            if (orderstatus.text() == "草稿") {
+                $.ajax({url: url, data: data, type: "post", success: callback});
+            } else {
+
+            }
+        }
+
+
+    </script>
+{% endblock %}
+{% block container %}
+    <div class="container">
+        <div class="row" style="margin-top: 20px">
+            <div class="col-lg-6">
+                <span class="label label-info" style="font-size: 30px">当前状态：</span>
+                <label id="order_status" class="label label-success"
+                       style="font-size: large">{{ orderlist.status }}</label>
+            </div>
+        </div>
+        <div class="row" style="margin-top: 20px">
+
+            <div class="col-lg-4">
+                <div class="alert alert-success" role="alert">
+                    <strong>订货单号:</strong>{{ orderlist.orderlistID }}
+                </div>
+            </div>
+
+            <div class="col-lg-4">
+                <div class="alert alert-success" role="alert">
+                    <strong>收 货 人:</strong>{{ orderlist.receiver }}
+                </div>
+            </div>
+            <div class="col-lg-4">
+                <div class="alert alert-success" role="alert">
+                    <strong>供 应 商:</strong>{{ orderlist.supplier_name }}
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-lg-4">
+                <div class="alert alert-success" role="alert">
+                    <strong>快递公司:</strong>{{ orderlist.express_company }}
+                </div>
+            </div>
+
+            <div class="col-lg-4">
+                <div class="alert alert-success" role="alert">
+                    <strong>快递单号:</strong>{{ orderlist.express_no }}
+                </div>
+            </div>
+            <div class="col-lg-4">
+                <div class="alert alert-success" role="alert">
+                    <strong>金额:</strong>{{ orderlist.order_amount }}
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-lg-4">
+
+
+                <input type="button" class="btn btn-default" id="shenhebutton" value="审核"
+                       onclick="changestatus({{ orderlist.orderlistID }},this)">
+                <input type="button" class="btn btn-default" id="zuofeibutton" value="作废"
+                       onclick="changestatus({{ orderlist.orderlistID }},this)">
+                <input type="button" class="btn btn-default" id="wanchengbutton" value="完成"
+                       onclick="changestatus({{ orderlist.orderlistID }},this)">
+
+
+            </div>
+
+        </div>
+        <div class="row">
+
+            <legend>
+                <h2 class="head-title">详细列表</h2>
+            </legend>
+        </div>
+        <div class="row">
+            <table id="orderdetailtable" border="1" class="table table-striped table-bordered table-hover">
+                <tr>
+                    <td width="100px">商品名称</td>
+                    <td width="100px">规格</td>
+                    <td width="100px">数量</td>
+                    <td width="100px">买入价格</td>
+                    <td width="100px">单项价格</td>
+                </tr>
+                {% for order in orderdetails %}
+                    <tr id="draft_{{ forloop.counter }}">
+                        <td>{{ order.product_name }}</td>
+                        <td>{{ order.product_chicun }}</td>
+                        <td>
+                            <span id="quantity_{{ order.id }}">{{ order.buy_quantity }}</span>
+                        </td>
+                        <td>{{ order.buy_unitprice }}</td>
+                        <td>¥{{ order.total_price }}</td>
+                    </tr>
+                {% endfor %}
+            </table>
+        </div>
+        <div class="row">
+
+            <div align="center">
+                <nav>
+                    <ul class="pagination">
+                        {% if orderdetails.has_previous %}
+                            <li>
+                                <a href="?page={{ orderdetails.previous_page_number }}" aria-label="Previous">
+                                    <span aria-hidden="true">&laquo;</span>
+                                </a>
+                            </li>
+                        {% endif %}
+                        {% for i in num_page %}
+                            {% if orderdetails.number == i %}
+                                <li class="active"><a href="?page={{ i }}">{{ i }} <span
+                                        class="sr-only">(current)</span></a></li>
+                            {% else %}
+                                <li><a href="?page={{ i }}">{{ i }}</a></li>
+                            {% endif %}
+                        {% endfor %}
+                        {% if orderdetails.has_next %}
+                            <li>
+                                <a href="?page={{ orderdetails.next_page_number }}" aria-label="Next">
+                                    <span aria-hidden="true">&raquo;</span>
+                                </a>
+                            </li>
+                        {% endif %}
+                    </ul>
+                </nav>
+            </div>
+        </div>
+    </div>
+{% endblock %}

@@ -28,10 +28,10 @@ class WeiXinRequestException(Exception):
     
     def __init__(self,code=None,msg=None):
         self.code = code
-        self.msg  = msg
+        self.message  = msg
   
     def __str__(self):
-        return u'微信API错误:(%s,%s)'%(str(self.code),self.msg)
+        return u'微信API错误:(%s,%s)'%(str(self.code),self.message)
 
 
 class WeiXinAPI(object):

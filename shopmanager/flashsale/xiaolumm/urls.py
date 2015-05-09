@@ -4,11 +4,12 @@ from django.contrib.auth.decorators import login_required
 
 
 from views import logclicks
-from views import StatsView,MamaStatsView,CashoutView,CashOutList,CarryLogList
+from views import StatsView,MamaStatsView,CashoutView,CashOutList,CarryLogList,landing
 from .views import chargeWXUser,XiaoluMamaModelView
 
 urlpatterns = patterns('',
-    url(r'^$',MamaStatsView.as_view()),
+    url(r'^$',landing),
+    url(r'^m/$',MamaStatsView.as_view()),
     url(r'^stats/$',login_required(StatsView.as_view())),
     url(r'^cashout/$',CashoutView.as_view()),
     url(r'^cashoutlist/$',CashOutList.as_view()),

@@ -30,7 +30,8 @@ def get_user_unionid(code,
         return ('','')
     
     if not code and request:
-        return (request.COOKIES.get('openid'),'')
+        cookies = request.COOKIES
+        return (cookies.get('openid'),cookies.get('unionid'))
 
     url = 'https://api.weixin.qq.com/sns/oauth2/access_token?appid=%s&secret=%s&code=%s&grant_type=authorization_code'
     get_openid_url = url % (appid, secret, code)
@@ -38,7 +39,10 @@ def get_user_unionid(code,
     r = json.loads(r)
     
     if r.has_key("errcode"):
-        raise Exception(r['errmsg'])
+        if not request:
+            return ('','')
+        cookies = request.COOKIES
+        return (cookies.get('openid'),cookies.get('unionid'))
     
     return (r.get('openid'),r.get('unionid'))
 
@@ -47,12 +51,9 @@ from shopback.users.models import User
 
 def getOrCreateSaleSeller():
     
-    sellers = User.objects.filter(type=User.SHOP_TYPE_SALE)
-    if sellers.count() > 0:
-        return sellers[0]
+    from flashsale.pay.models import FLASH_SELLER_ID
     
-    user,state = DjangoUser.objects.get_or_create(username='flashsale')
-    seller,state = User.objects.get_or_create(user=user,type=User.SHOP_TYPE_SALE)
+    seller = User.getOrCreateSeller(FLASH_SELLER_ID,seller_type=User.SHOP_TYPE_SALE)
     seller.nick  = u'小鹿美美特卖平台'
     seller.save()
     

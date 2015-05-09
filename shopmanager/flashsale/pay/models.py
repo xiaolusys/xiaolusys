@@ -18,6 +18,9 @@ from .managers import SaleTradeManager
 from .options import uniqid
 import uuid
 
+FLASH_SELLER_ID = 'flashsale'
+
+
 def genUUID():
     return str(uuid.uuid1(clock_seq=True))
 

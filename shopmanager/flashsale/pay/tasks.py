@@ -17,7 +17,7 @@ __author__ = 'meixqhi'
 logger = logging.getLogger('celery.handler')
 
 
-@task(max_retry=3)
+@task(max_retry=3,default_retry_delay=60)
 def confirmTradeChargeTask(sale_trade_id,charge_time=None):
     
     try:
@@ -27,15 +27,12 @@ def confirmTradeChargeTask(sale_trade_id,charge_time=None):
         
         saleservice = FlashSaleService(strade)
         saleservice.payTrade()
-        
+            
     except Exception,exc:
-
-        logger.error('confirmTradeChargeTask error:%s'%(exc), exc_info=True)
-        if not settings.DEBUG:
-            notifyTradePayTask.retry(exc=exc,countdown=20)
+        raise pushTradeRefundTask.retry(exc=exc)
             
 
-@task(max_retry=3)
+@task(max_retry=3,default_retry_delay=60)
 def notifyTradePayTask(notify):
 
     try:
@@ -49,7 +46,7 @@ def notifyTradePayTask(notify):
          
         update_fields = set(['paid','refunded','channel','amount','currency','transaction_no',
                          'amount_refunded','failure_code','failure_msg','time_paid','time_expire'])
-
+    
         for k,v in notify.iteritems():
             if k not in update_fields:
                 continue
@@ -69,15 +66,13 @@ def notifyTradePayTask(notify):
         confirmTradeChargeTask(strade.id)
     
     except Exception,exc:
+        raise pushTradeRefundTask.retry(exc=exc)
 
-        logger.error('notifyTradePayTask error:%s'%(exc), exc_info=True)
-        if not settings.DEBUG:
-            notifyTradePayTask.retry(exc=exc,countdown=20)
 
 from shopback.base import log_action, ADDITION, CHANGE 
 from .options import getOrCreateSaleSeller
 
-@task(max_retry=3)
+@task(max_retry=3,default_retry_delay=60)
 def notifyTradeRefundTask(notify):
     
     try:
@@ -106,18 +101,15 @@ def notifyTradeRefundTask(notify):
         if strade.normal_orders.count() == 0:
             strade.status = SaleTrade.TRADE_CLOSED
             strade.save()
-
+    
         saleservice = FlashSaleService(strade)
         saleservice.payTrade()
-        
+    
     except Exception,exc:
-
-        logger.error('notifyTradeRefundTask error:%s'%exc, exc_info=True)
-        if not settings.DEBUG:
-            notifyTradePayTask.retry(exc=exc,countdown=2)
+        raise pushTradeRefundTask.retry(exc=exc)
         
 
-@task(max_retry=3)
+@task(max_retries=3,default_retry_delay=30)
 def pushTradeRefundTask(refund_id):
     #退款申请
     try:
@@ -130,11 +122,8 @@ def pushTradeRefundTask(refund_id):
         saleservice.payTrade()
         
     except Exception,exc:
-
-        logger.error('pushTradeRefundTask error:%s'%(exc), exc_info=True)
-        if not settings.DEBUG:
-            pushTradeRefundTask.retry(exc=exc,countdown=2)
-
+        raise pushTradeRefundTask.retry(exc=exc)
+        
             
             
                        

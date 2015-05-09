@@ -1,0 +1,59 @@
+<html>
+<head>
+
+    <title>localstorage</title>
+s
+    <script type="text/javascript">
+         function addStu(){
+             console.log("tttttttt");
+             $('#goo').click(function () {
+                 var dataSet = new Object;
+                 var myMap = {};
+                 for (var i = 1; i >= 0; i--) {
+                     console.log("tttttttt");
+                     var index1 = String("sno_" + String(i));
+                     var sno = document.getElementById(index1).value;
+                     var index2 = String("name_" + String(i));
+                     var name = document.getElementById(index2).value;
+                     var index3 = String("sex_" + String(i));
+                     var sex = document.getElementById(index3).value;
+                     var index4 = String("score_" + String(i));
+                     var score = document.getElementById(index4).value;
+                     console.log(sno, name, sex, score);
+
+                     dataSet.sno = sno;
+                     dataSet.name = name;
+                     dataSet.sex = sex;
+                     dataSet.score = score;
+                     var list = JSON.stringify(dataSet);
+                     var index = String(i);
+                     myMap[index] = list;
+
+                 }
+                 ;
+                 var list = JSON.stringify(myMap);
+                 console.log(myMap);
+             }
+         }
+    </script>
+</head>
+<body>
+
+<table>
+    <tr>
+        <td><input type="text" id="sno_0" value="1"/></td>
+        <td><input type="text" id="name_0" value="2"/></td>
+        <td><input type="text" id="sex_0" value="3"/></td>
+        <td><input type="text" id="score_0" value="4"/></td>
+    </tr>
+    <tr>
+        <td><input type="text" id="sno_1" value="5"/></td>
+        <td><input type="text" id="name_1" value="6"/></td>
+        <td><input type="text" id="sex_1" value="7"/></td>
+        <td><input type="text" id="score_1" value="8"/></td>
+    </tr>
+</table>
+<input type="submit" value="go" onclick="addStu()"/>
+
+</body>
+</html>

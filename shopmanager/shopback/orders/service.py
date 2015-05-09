@@ -85,7 +85,7 @@ class OrderService(TaobaoSendTradeMixin,TaobaoTradeService,LocalService):
         
         trade,state = Trade.objects.get_or_create(pk=trade_dict['tid'],
                                                   seller_id=user_id)
-        trade.user  = Seller.objects.get(visitor_id=user_id)
+        trade.user  = Seller.getOrCreateSeller(user_id)
         trade.seller_id   = user_id
         
         for k,v in trade_dict.iteritems():
