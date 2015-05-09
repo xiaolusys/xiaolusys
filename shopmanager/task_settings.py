@@ -218,6 +218,13 @@ SHOP_APP_SCHEDULE = {
         'schedule':crontab(minute="0",hour='6'),
         'args':()
     },
+
+    u'定时统计昨日小鹿妈妈点击':{
+        'task':'flashsale.clickcount.tasks.task_Record_User_Click',
+        'schedule':crontab(minute="30",hour='0'),
+        'args':()
+    },
+
 #    'runs-every-10-minutes-update-seller-flag':{
 #        'task':'shopapp.memorule.tasks.updateTradeSellerFlagTask',
 #        'schedule':crontab(minute="*/10"),

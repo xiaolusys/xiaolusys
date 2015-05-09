@@ -162,9 +162,8 @@ INSTALLED_APPS = (
     'flashsale.pay',
     'flashsale.xiaolumm',
     'flashsale.dinghuo',
+    'flashsale.clickcount',
     'mathfilters',
-    'clickcount',
-
 
     #'test.celery',
     #'shopapp.notify',
