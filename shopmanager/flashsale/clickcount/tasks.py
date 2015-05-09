@@ -29,17 +29,15 @@ def task_Record_User_Click():
         for xiaolumama in xiaolumamas:  #
             clicks = Clicks.objects.filter(linkid=xiaolumama.id).filter(created__gt=time_from,
                                                                         created__lt=time_to)  # 根据代理的id过滤出点击表中属于该代理的点击
-            if clicks:  # 如果昨天有对应的小鹿妈妈的点击存在
-                clickcount = ClickCount()  # 新建一个统计实例 待写入    # 一定要在写入之前 创建  在 如果在FOR循环外面 则会出现后来数据重写到同一个 中
-                clickcount.number = xiaolumama.id  # 写ID到统计表
-                clickcount.name = xiaolumama.weikefu  # 写名字到统计表
-                frequency = clicks.count()  # 点击数量
-                nop = clicks.values('openid').distinct().count()  # 点击人数
-                clickcount.administrator = xiaolumama.manager  # 接管人
-                clickcount.frequency = frequency
-                clickcount.nop = nop
-                clickcount.date = yesterday
-                clickcount.save()
+            clickcount, state = ClickCount.objects.get_or_create(date=yesterday,
+                                                                 number=xiaolumama.id)  # 在点击统计表中找今天的记录 如果 有number和小鹿妈妈的id相等的 说明已经该记录已经统计过了
+            clickcount.name = xiaolumama.weikefu  # 写名字到统计表
+            frequency = clicks.count()  # 点击数量
+            nop = clicks.values('openid').distinct().count()  # 点击人数
+            clickcount.administrator = xiaolumama.manager  # 接管人
+            clickcount.frequency = frequency
+            clickcount.nop = nop
+            clickcount.save()
 
     except Exception, exc:
         raise task_Record_User_Click.retry(exc=exc)
