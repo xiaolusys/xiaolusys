@@ -192,8 +192,8 @@ def sendTaobaoTradeTask(operator_id,trade_id):
         sub_trade.logistics_company = trade.logistics_company
         update_model_fields(sub_trade,update_fields=['out_sid','logistics_company'])
     
-    mtd, state = MergeTradeDelivery.objects.get_or_create(seller=sub_trade.user,
-                                                              trade_id=trade.id)
+    mtd, state = MergeTradeDelivery.objects.get_or_create(seller=trade.user,
+                                                          trade_id=trade.id)
     
     mtd.trade_no   = trade.tid
     mtd.buyer_nick = trade.buyer_nick
