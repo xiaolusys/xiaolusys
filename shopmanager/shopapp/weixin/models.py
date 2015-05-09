@@ -551,7 +551,7 @@ class WXOrder(models.Model):
     order_total_price   = models.FloatField(default=0,verbose_name=u'订单总价')
     order_express_price = models.FloatField(default=0,verbose_name=u'订单运费')
     order_create_time   = models.DateTimeField(blank=True,null=True,verbose_name=u'创建时间')
-    order_status = models.IntegerField(choices=WXORDER_STATUS,verbose_name=u'订单状态')
+    order_status = models.IntegerField(choices=WXORDER_STATUS,default=WX_WAIT_PAY,verbose_name=u'订单状态')
     
     receiver_name     = models.CharField(max_length=64,blank=True,verbose_name=u'收货人')
     receiver_province = models.CharField(max_length=24,blank=True,verbose_name=u'省')
