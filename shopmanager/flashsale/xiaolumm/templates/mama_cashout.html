@@ -56,7 +56,8 @@
     <div class="input-group" style="margin-top:5px">
       <span class="input-group-addon">￥</span>
       
-      <input id="id-cashout-input" type="text" class="form-control" {% if xlmm.cash_money <= 20 %} readonly="readonly"  {% endif %}>{% csrf_token %}
+      <input id="id-cashout-input" type="text" class="form-control" {% if xlmm.cash_money <= 20 %} readonly="readonly"  {% endif %}/>
+      {% csrf_token %}
       <span class="input-group-btn">
 	<button id="id-cashout-submit" class="btn btn-warning" type="button">确认提交</button>
       </span>
