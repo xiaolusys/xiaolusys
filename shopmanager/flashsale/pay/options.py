@@ -51,12 +51,9 @@ from shopback.users.models import User
 
 def getOrCreateSaleSeller():
     
-    sellers = User.objects.filter(type=User.SHOP_TYPE_SALE)
-    if sellers.count() > 0:
-        return sellers[0]
+    from flashsale.pay.models import FLASH_SELLER_ID
     
-    user,state = DjangoUser.objects.get_or_create(username='flashsale')
-    seller,state = User.objects.get_or_create(user=user,type=User.SHOP_TYPE_SALE)
+    seller = User.getOrCreateSeller(FLASH_SELLER_ID,seller_type=User.SHOP_TYPE_SALE)
     seller.nick  = u'小鹿美美特卖平台'
     seller.save()
     

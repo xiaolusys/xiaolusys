@@ -1,3 +1,5 @@
+########### 2015-5-7  #################
+ALTER TABLE `shop_weixin_user` ADD INDEX shop_weixin_user_vmobile(vmobile);
 ########### 2015-5-5  #################
 alter table shop_items_productsku add column lock_num int(11) NOT NULL;
 alter table flashsale_productdetail add column buy_limit tinyint(1) NOT NULL;

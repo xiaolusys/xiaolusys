@@ -87,7 +87,7 @@ class TaoBaoBackend:
         user_id  =  top_parameters['taobao_user_id']
 
         try:
-            profile = model.objects.get(visitor_id=user_id)
+            profile = model.objects.get(visitor_id=user_id,type__in=['', model.SHOP_TYPE_B, model.SHOP_TYPE_C])
             profile.top_session    = top_parameters['access_token']
             profile.top_parameters = json.dumps(top_parameters)
             profile.save()
@@ -98,13 +98,13 @@ class TaoBaoBackend:
                     profile.user.save()
                 return profile.user
             else:
-                user,state = User.objects.get_or_create(username=user_id,is_active=True)
+                user = model.getSystemOAUser()
                 profile.user = user
                 profile.save()
                 return user
+            
         except model.DoesNotExist:
-            user,state = User.objects.get_or_create(username=user_id,is_active=True)
-            profile,state = model.objects.get_or_create(user=user,visitor_id=user_id)
+            profile = model.getOrCreateSeller(user_id)
             profile.top_session    = top_parameters['access_token']
             profile.top_parameters = json.dumps(top_parameters)
             profile.save()

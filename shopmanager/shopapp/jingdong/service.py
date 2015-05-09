@@ -90,7 +90,7 @@ class JDShopService(LocalService):
         from shopback.trades.models import MergeTrade
         from shopback.users.models import User
         
-        seller = User.objects.get(visitor_id=trade.shop.vender_id)
+        seller = User.getOrCreateSeller(trade.shop.vender_id,seller_type=User.SHOP_TYPE_JD)
         merge_trade,state = MergeTrade.objects.get_or_create(tid=trade.order_id,
                                                              user=seller)
         

@@ -29,7 +29,7 @@ class TaobaoSendTradeMixin(object):
                                                     tb_user_id=self.trade.seller_id,
                                                     fields='out_sid,tid')
         trade_dicts = response['logistics_orders_get_response']['shippings']['shipping']
-        
+        print 'trade_dicts:',trade_dicts
         if len(trade_dicts) == 0:
             raise Exception(u'订单物流信息未查到')
         
@@ -71,7 +71,6 @@ class TaobaoSendTradeMixin(object):
             return self.isTradePostOK(out_sid)
             
         except apis.LogisticServiceB60Exception,exc:
-            
             from shopback.logistics.models import LogisticsCompany
             company  = LogisticsCompany.objects.get(code=company_code)
             self.sendTrade(company_code=u'%s'%company.name,out_sid=out_sid,is_cod=is_cod)

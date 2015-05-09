@@ -7,7 +7,7 @@ from shopback.base.models import JSONCharMyField
 from .managers import WeixinProductManager,VipCodeManager,WeixinUserManager
 from shopback.trades.models import MergeTrade
 
-
+MIAOSHA_SELLER_ID = 'wxmiaosha'
 SAFE_CODE_SECONDS = 180
 
 class AnonymousWeixinAccount():
