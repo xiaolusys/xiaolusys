@@ -204,7 +204,7 @@ def sendTaobaoTradeTask(operator_id,trade_id):
 
     trade.sys_status=pcfg.WAIT_CHECK_BARCODE_STATUS
     trade.save()
-    log_action(operator_id,trade,CHANGE,u'发货成功')
+    log_action(operator_id,trade,CHANGE,u'订单打印')
     
     return trade_id
        
