@@ -18,7 +18,6 @@ class StatisticTongJi(View):
 
     def get(self, request):
         content = request.REQUEST
-
         daystr = content.get("day", None)
         pk = content.get('pk', '1')
 
@@ -32,7 +31,6 @@ class StatisticTongJi(View):
         time_from = datetime.datetime(target_date.year, target_date.month, target_date.day)
         time_to = datetime.datetime(target_date.year, target_date.month, target_date.day, 23, 59, 59)
         if target_date == today:
-            print "today"
             time_to = datetime.datetime.now()
 
         prev_day = target_date - datetime.timedelta(days=1)

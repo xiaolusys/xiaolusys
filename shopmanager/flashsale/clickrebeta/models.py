@@ -15,7 +15,7 @@ class StatisticsShopping(models.Model):
     shoptime = models.DateTimeField(auto_now_add=True, verbose_name=u'提成时间')
 
     class Meta:
-        db_table = 'xiaolumm_tongji_shopping'
+        db_table = 'flashsale_tongji_shopping'
         verbose_name = u'统计购买'
         verbose_name_plural = u'统计购买列表'
 
@@ -30,7 +30,7 @@ class StatisticsShoppingByDay(models.Model):
 
 
     class Meta:
-        db_table = 'xiaolumm_tongji_shopping_day'
+        db_table = 'flashsale_tongji_shopping_day'
         verbose_name = u'按天统计购买'
         verbose_name_plural = u'按天统计购买列表'
 
