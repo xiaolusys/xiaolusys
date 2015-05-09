@@ -27,7 +27,7 @@ urlpatterns = patterns('',
     (r'^games/',include('games.urls')),
     (r'^mm/',include('flashsale.pay.urls')),
     (r'^m/',include('flashsale.xiaolumm.urls')),
-    (r'^dinghuo/',include('flashsale.dinghuo.urls')),
+    (r'^sale/',include('flashsale.urls')),
     url(r'^djcelery/',include('djcelery.urls'),name="task_state"),
     
     (r'^app/',include('shopapp.urls')),
