@@ -182,10 +182,19 @@ class MamaStatsView(View):
             agencylevel = AgencyLevel.objects.get(pk=xlmm.agencylevel)
             carry = agencylevel.basic_rate * total_value * 0.01
 
+            click_price = 0.2
+            if order_num > 2:
+                click_price = 0.5
+            else:
+                click_price += order_num * 0.1
+
+            click_pay = click_price * click_num
+            
             data = {"mobile":mobile_revised, "click_num":click_num, "xlmm":xlmm,
                     "order_num":order_num, "order_list":order_list, "pk":xlmm.pk,
                     "total_value":total_value, "carry":carry, "agencylevel":agencylevel,
-                    "target_date":target_date, "prev_day":prev_day, "next_day":next_day}
+                    "target_date":target_date, "prev_day":prev_day, "next_day":next_day,
+                    "click_price":click_price, "click_pay":click_pay}
         except Exception,exc:
             logger.error(exc.message,exc_info=True)
         
