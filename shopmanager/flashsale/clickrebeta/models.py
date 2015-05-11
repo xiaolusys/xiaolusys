@@ -56,13 +56,18 @@ class StatisticsShoppingByDay(models.Model):
     def ticheng_rate(self):
         return 0.1
 
-    @property
-    def order_cash(self):
-        return self.orderamountcount / 100
 
-    @property
+    def order_cash(self):
+        return float(self.orderamountcount) / 100
+
+    order_cash.allow_tags = True
+    order_cash.short_description = u"今日订单总价"
+
     def today_cash(self):
-        return (self.todayamountcount / 100) * self.ticheng_rate
+        return (float(self.todayamountcount) / 100) * self.ticheng_rate
+
+    today_cash.allow_tags = True
+    today_cash.short_description = u"提成总价"
 
 from shopapp import signals
 
