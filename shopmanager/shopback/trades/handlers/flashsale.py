@@ -64,26 +64,26 @@ class FlashSaleHandler(BaseHandler):
                 if sync_num < 0 :
                     continue
                
-                    wx_skus = WXProductSku.objects.filter(outer_id=outer_id,
-                                                outer_sku_id=outer_sku_id)
-                    for wx_sku in wx_skus:
-                        
-                        vector_num =  sync_num - wx_sku.sku_num 
-                        if vector_num == 0:continue
-                        if vector_num > 0:
-                            wx_api.addMerchantStock(wx_sku.product_id,
-                                                    vector_num,
-                                                    sku_info=wx_sku.sku_id)
-                        else:
-                            wx_api.reduceMerchantStock(wx_sku.product_id,
-                                                       abs(vector_num),
-                                                       sku_info=wx_sku.sku_id)
-            
-                        ItemNumTaskLog.objects.get_or_create(user_id=oauser.id,
-                                                             outer_id=outer_id,
-                                                             sku_outer_id='wx%s'%outer_sku_id,
-                                                             num=sync_num,
-                                                             end_at=datetime.datetime.now())
+                wx_skus = WXProductSku.objects.filter(outer_id=outer_id,
+                                            outer_sku_id=outer_sku_id)
+                for wx_sku in wx_skus:
+                    
+                    vector_num =  sync_num - wx_sku.sku_num 
+                    if vector_num == 0:continue
+                    if vector_num > 0:
+                        wx_api.addMerchantStock(wx_sku.product_id,
+                                                vector_num,
+                                                sku_info=wx_sku.sku_id)
+                    else:
+                        wx_api.reduceMerchantStock(wx_sku.product_id,
+                                                   abs(vector_num),
+                                                   sku_info=wx_sku.sku_id)
+        
+                    ItemNumTaskLog.objects.get_or_create(user_id=oauser.id,
+                                                         outer_id=outer_id,
+                                                         sku_outer_id='wx%s'%outer_sku_id,
+                                                         num=sync_num,
+                                                         end_at=datetime.datetime.now())
                     
             except Exception,exc:
                 logger.error(exc.message,exc_info=True)
