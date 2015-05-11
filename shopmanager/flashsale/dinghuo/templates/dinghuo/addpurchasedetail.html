@@ -8,14 +8,16 @@
             $("#drafttable thead").eq(0).nextAll().remove();
             document.getElementById("orderAdd").disabled = true;
         }
-        function quickInput() {
-            var t = $(".mairucost");
-            var v = t.eq(0).val();
-            for (i = 1; i < t.length; i++) {
-                t.eq(i).attr("value", v);
-            }
-
-        }
+        $(document).ready(function () {
+            var t = $(".mairucost").eq(0);
+            t.blur(function () {
+                var t = $(".mairucost");
+                var v = t.eq(0).val();
+                for (i = 1; i < t.length; i++) {
+                    t.eq(i).attr("value", v);
+                }
+            });
+        });
     </script>
 {% endblock %}
 {% block container %}
@@ -33,7 +35,8 @@
 
                         <div class="row" style="margin-top: 20px">
                             <div class="col-lg-3">
-                                <div><h5>{{ product.name }}</h5><img class="img-responsive" src="{{ product.pic_path }}" width="80px"></div>
+                                <div><h5>{{ product.name }}</h5><img class="img-responsive" src="{{ product.pic_path }}"
+                                                                     width="80px"></div>
                             </div>
                             <div class="col-lg-9">
                                 <table class="table table-striped table-bordered">
@@ -68,7 +71,7 @@
                                                                t_value=""
                                                                o_value=""
                                                                onkeypress="if(!this.value.match(/^[\+\-]?\d*?\.?\d*?$/))this.value=this.t_value;else this.t_value=this.value;if(this.value.match(/^(?:[\+\-]?\d+(?:\.\d+)?)?$/))this.o_value=this.value"
-                                                               onblur="if(!this.value.match(/^[\+\-]?\d*?\.?\d*?$/))this.value=this.t_value;else this.t_value=this.value;if(this.value.match(/^(?:[\+\-]?\d+(?:\.\d+)?)?$/))this.o_value=this.value;quickInput()"
+                                                               onblur="if(!this.value.match(/^[\+\-]?\d*?\.?\d*?$/))this.value=this.t_value;else this.t_value=this.value;if(this.value.match(/^(?:[\+\-]?\d+(?:\.\d+)?)?$/))this.o_value=this.value"
                                                                onkeyup="if(!this.value.match(/^[\+\-]?\d*?\.?\d*?$/))this.value=this.t_value;else this.t_value=this.value;if(this.value.match(/^(?:[\+\-]?\d+(?:\.\d+)?)?$/))this.o_value=this.value"
                                                                onafterpaste="if(!this.value.match(/^[\+\-]?\d*?\.?\d*?$/))this.value=this.t_value;else this.t_value=this.value;if(this.value.match(/^(?:[\+\-]?\d+(?:\.\d+)?)?$/))this.o_value=this.value"
                                                                aria-describedby="basic-addon1">
