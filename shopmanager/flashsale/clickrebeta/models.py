@@ -19,6 +19,23 @@ class StatisticsShopping(models.Model):
         verbose_name = u'统计购买'
         verbose_name_plural = u'统计购买列表'
 
+    @property
+    def ticheng_rate(self):
+        return 0.1
+
+
+    def order_cash(self):
+        return float(self.wxorderamount) / 100
+
+    order_cash.allow_tags = True
+    order_cash.short_description = u"订单价格"
+
+
+    def ticheng_cash(self):
+        return (float(self.tichengcount) / 100) * self.ticheng_rate
+
+    ticheng_cash.allow_tags = True
+    ticheng_cash.short_description = u"提成"
 
 class StatisticsShoppingByDay(models.Model):
     linkid = models.IntegerField(default=0, db_index=True, verbose_name=u"链接ID")
@@ -34,6 +51,18 @@ class StatisticsShoppingByDay(models.Model):
         verbose_name = u'按天统计购买'
         verbose_name_plural = u'按天统计购买列表'
 
+
+    @property
+    def ticheng_rate(self):
+        return 0.1
+
+    @property
+    def order_cash(self):
+        return self.orderamountcount / 100
+
+    @property
+    def today_cash(self):
+        return (self.todayamountcount / 100) * self.ticheng_rate
 
 from shopapp import signals
 
