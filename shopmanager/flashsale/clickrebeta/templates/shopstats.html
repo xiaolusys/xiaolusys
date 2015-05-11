@@ -68,9 +68,9 @@
             <tr>
                 <td colspan="3"></td>
                 <td align="right"><input id="total_order_num" type="text"
-                           {% if countdata %}value="{{ countdata.orderamountcount }}" {% endif %}readonly/></td>
+                           {% if countdata %}value="{{ countdata.order_cash }}" {% endif %}readonly/></td>
                 <td align="right"><input id="total_ticheng_num" type="text" {% if countdata %}
-                           value="{{ countdata.todayamountcount }}"{% endif %} readonly/></td>
+                           value="{{ countdata.today_cash }}"{% endif %} readonly/></td>
             </tr>
             </tfoot>
         </table>
