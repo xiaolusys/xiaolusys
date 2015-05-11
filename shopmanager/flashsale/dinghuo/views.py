@@ -93,7 +93,7 @@ def initdraft(request):
                         tdraft.save()
                 else:
                     guigequantity = 0
-        return HttpResponseRedirect("/dinghuo/dingdan/")
+        return HttpResponseRedirect("/sale/dinghuo/dingdan/")
     elif request.method == "GET":
         print "get"
         response = HttpResponse()
@@ -164,7 +164,7 @@ def neworder(request):
                                               created=shijian, updated=shijian)
         drafts.delete()
         log_action(request.user.id, orderlist[0], CHANGE, u'新建订货单')
-        return HttpResponseRedirect("/dinghuo/detail/" + orderlistID)
+        return HttpResponseRedirect("/sale/dinghuo/detail/" + orderlistID)
     else:
         print "else"
 

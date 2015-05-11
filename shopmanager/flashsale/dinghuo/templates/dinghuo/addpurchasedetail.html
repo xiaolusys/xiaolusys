@@ -27,7 +27,7 @@
                 <div class="row" style="margin-left: 80px">
                     <span class="label label-default" style="font-size: 20px">添加购买</span>
                 </div>
-                <form method="post" action="/dinghuo/initdraft/">
+                <form method="post" action="/sale/dinghuo/initdraft/">
                     <input type="text" name="product_counter" value="{{ productRestult|length }}" hidden="hidden">
                     {% for product in productRestult %}
                         <input type="text" value="{{ product.id }}" hidden="hidden"
