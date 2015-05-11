@@ -30,8 +30,8 @@ def get_user_unionid(code,
         return ('','')
     
     if not code and request:
-        cookies = request.COOKIES
-        return (cookies.get('openid'),cookies.get('unionid'))
+        content = request.REQUEST  
+        return (content.get('openid',''),content.get('unionid',''))
 
     url = 'https://api.weixin.qq.com/sns/oauth2/access_token?appid=%s&secret=%s&code=%s&grant_type=authorization_code'
     get_openid_url = url % (appid, secret, code)

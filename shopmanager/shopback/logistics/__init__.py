@@ -25,17 +25,15 @@ POST_CODE_NAME_MAP = {'YUNDA':u'韵达快递',
                       'HTKY':u'汇通快递',
                       'TTKDEX':u'天天快递',
                       'QFKD':u'全峰快递',
-                      'POST':u'邮政',
-                      'POSTB':u'邮政小包',
                       }
 
 def getLogisticTrace(out_sid,exType):
     
     post_array = []
-    post_array.append((u'快递公司', POST_CODE_NAME_MAP[exType]))
+    post_array.append((u'快递公司', POST_CODE_NAME_MAP.get(exType,'other')))
     post_array.append((u'快递单号', out_sid))
     
-    if exType in ('POST','POSTB'):
+    if exType not in POST_CODE_NAME_MAP.keys():
         post_array.append(('运输信息',[('','暂时无法查询该快递公司')]))
         return post_array
     

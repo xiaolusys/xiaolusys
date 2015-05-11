@@ -473,13 +473,12 @@ class ProductAdmin(admin.ModelAdmin):
                                      order.num)
                 order.out_stock = out_stock
                 order.save()
-                
+            
             t = MergeTrade.objects.get(id=t.id)
             if t.reason_code:
                 t.sys_status = pcfg.WAIT_AUDIT_STATUS
             else:
                 t.sys_status = pcfg.WAIT_PREPARE_SEND_STATUS
-            
             t.save()
 
         self.message_user(request,u"已成功取消%s个订单定时提醒!"%len(merge_trades))
