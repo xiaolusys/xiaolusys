@@ -7,7 +7,6 @@ from django.db.models import Q
 from .handler import BaseHandler
 from shopback import paramconfig as pcfg
 from shopback.base import log_action,User, ADDITION, CHANGE
-from common.modelutils import  update_model_fields
 
 import logging
 logger = logging.getLogger('celery.handler')

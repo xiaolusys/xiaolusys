@@ -301,7 +301,7 @@ def delete_trade_order(request,id):
     try:
         refund_prod  = RefundProduct.objects.get(id=id)
     except:
-        HttpResponse(json.dumps({'code':1,'response_error':u'订单不存在'}),
+        return HttpResponse(json.dumps({'code':1,'response_error':u'订单不存在'}),
                      mimetype="application/json")
     
     refund_prod.delete()    

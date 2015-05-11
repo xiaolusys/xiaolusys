@@ -164,6 +164,7 @@ INSTALLED_APPS = (
     'flashsale.dinghuo',
     'flashsale.clickcount',
     'flashsale.clickrebeta',
+    'flashsale.mmexam',
 
     'mathfilters',
 
