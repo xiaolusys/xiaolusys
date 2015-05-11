@@ -1403,7 +1403,7 @@ class RelatedOrderStateView(ModelView):
                 order_item.append(order[1]['title'])
                 order_item.append(order[1]['cnum'])
                 order_item_list.append(order_item)
-            print order_item_list
+            
 
         return {'df':format_date(start_dt),
                 'dt':format_date(end_dt),

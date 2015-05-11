@@ -81,7 +81,7 @@ class XiaoluMama(models.Model):
         try:
             return DjangoUser.objects.get(id=self.manager).username
         except:
-            return self.manager
+            return '%s'%self.manager
         
 class AgencyLevel(models.Model):
     category = models.CharField(max_length=11,unique=True,blank=False,verbose_name=u"类别")
@@ -96,6 +96,16 @@ class AgencyLevel(models.Model):
         db_table = 'xiaolumm_agencylevel'
         verbose_name=u'代理类别'
         verbose_name_plural = u'代理类别列表'
+        
+    def get_cash_display(self):
+        return float(self.cash/100.0)
+    
+    get_cash_display.allow_tags = True
+    get_cash_display.short_description = u"可用现金"
+    
+    @property
+    def cash_money(self):
+        return self.get_cash_display()
 
 
 class Clicks(models.Model):
@@ -132,6 +142,17 @@ class CashOut(models.Model):
         db_table = 'xiaolumm_cashout'
         verbose_name=u'提现记录'
         verbose_name_plural = u'提现记录列表'
+        
+    def get_value_display(self):
+        return float(self.cash/100.0)
+    
+    get_value_display.allow_tags = True
+    get_value_display.short_description = u"可用现金"
+    
+    @property
+    def cash_money(self):
+        return self.get_cash_display()    
+    
 
 
 class CarryLog(models.Model):
