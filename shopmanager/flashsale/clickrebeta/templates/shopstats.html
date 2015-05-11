@@ -59,8 +59,8 @@
                     <td>{{ item.linkid }}</td>
                     <td>{{ item.openid }}</td>
                     <td>{{ item.wxorderid }}</td>
-                    <td align="center">{{ item.wxorderamount }}</td>
-                    <td align="center">{{ item.tichengcount }}</td>
+                    <td align="center">{{ item.order_cash }}</td>
+                    <td align="center">{{ item.ticheng_cash }}</td>
                 </tr>
             {% endfor %}
             </tbody>
@@ -140,15 +140,16 @@
                 ticheng_num = row.cells[4].innerHTML;
 
 
-                if (parseInt(ticheng_num)) {
-                    total_ticheng_num += parseInt(ticheng_num);
+                if (parseFloat(ticheng_num)) {
+                    total_ticheng_num += parseFloat(ticheng_num);
                 }
 
-                if (parseInt(order_num)) {
-                    total_order_num += parseInt(order_num);
+                if (parseFloat(order_num)) {
+                    total_order_num += parseFloat(order_num);
                 }
+
             }
-
+            total_ticheng_num=total_ticheng_num.toPrecision(3);
             $('#total_ticheng_num').val(total_ticheng_num.toString());
             $('#total_order_num').val(total_order_num.toString());
 
