@@ -29,7 +29,6 @@ class ordelistAdmin(admin.ModelAdmin):
 
     def shenhe(self, obj):
         symbol_link = obj.status or u'【空标题】'
-        # return '<a href="/dinghuo/detail/%d/" >fff</a>'%(int(obj.orderlistID))
         return '<a href="/sale/dinghuo/detail/{0}/" >{1}</a>'.format(int(obj.orderlistID), symbol_link)
 
     shenhe.allow_tags = True
@@ -37,7 +36,6 @@ class ordelistAdmin(admin.ModelAdmin):
 
     def orderlist_ID(self, obj):
         symbol_link = obj.orderlistID or u'【空标题】'
-        # return '<a href="/dinghuo/detail/%d/" >fff</a>'%(int(obj.orderlistID))
         return '<a href="/sale/dinghuo/detail/{0}/" >{1}</a>'.format(int(obj.orderlistID), symbol_link)
 
     orderlist_ID.allow_tags = True
