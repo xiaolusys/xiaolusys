@@ -286,8 +286,7 @@ def logclicks(request, linkid):
         return redirect(redirect_url)
 
     Clicks.objects.create(linkid=linkid,openid=openid)
-    
-    
+
     return redirect(SHOPURL)
 
 

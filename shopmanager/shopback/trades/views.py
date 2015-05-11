@@ -270,7 +270,11 @@ class StatisticMergeOrderView(ModelView):
                                        }
         
         if  is_sale:
-            order_items = sorted(trade_items.items(),key=lambda d:d[0])
+            def sort_items(x,y):
+                if x[0][:-1] == y[0][:-1]:
+                    return -cmp(x[1],y[1])
+                return cmp(x[0],y[0])
+            order_items = sorted(trade_items.items(),key=lambda d:(d[0],d[1]['num']),cmp=sort_items)
         else:
             order_items = sorted(trade_items.items(),key=lambda d:d[1]['num'],reverse=True)
         

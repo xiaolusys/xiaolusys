@@ -63,8 +63,8 @@ TRADE_HANDLERS_PATH = (
    'shopback.trades.handlers.LogisticsHandler',
    'shopback.trades.handlers.InterceptHandler',
    'shopback.trades.handlers.RegularSaleHandler',
-   'shopback.trades.handlers.FlashSaleHandler',
    'shopback.trades.handlers.FinalHandler',
+   'shopback.trades.handlers.FlashSaleHandler',
 )
 #sale order regular days
 REGULAR_DAYS = 5
