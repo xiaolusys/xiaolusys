@@ -25,7 +25,7 @@ class XiaoluMama(models.Model):
         )
 
     mobile = models.CharField(max_length=11,db_index=True,unique=True,blank=False,verbose_name=u"手机")
-    openid = models.CharField(max_length=64,blank=True,db_index=True,verbose_name=u"UnionID")    
+    openid = models.CharField(max_length=64,blank=True,unique=True,verbose_name=u"UnionID")    
     province = models.CharField(max_length=24,blank=True,verbose_name=u"省份")
     city     = models.CharField(max_length=24,blank=True,verbose_name=u"城市")
     address  = models.CharField(max_length=256,blank=True,verbose_name=u"地址")

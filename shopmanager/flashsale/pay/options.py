@@ -24,7 +24,7 @@ def get_user_unionid(code,
                     request=None):
 
     if settings.DEBUG:
-        return ('oMt59uE55lLOV2KS6vYZ_d0dOl5c','')
+        return ('oMt59uE55lLOV2KS6vYZ_d0dOl5c','o29cQs9QlfWpL0v0ZV_b2nyTOM-4')
     
     if not code and not request:
         return ('','')

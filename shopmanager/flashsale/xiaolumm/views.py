@@ -95,12 +95,14 @@ class CashOutList(generics.ListAPIView):
     serializer_class = CashOutSerializer
     renderer_classes = (JSONRenderer,)
     filter_fields = ("xlmm",)
+    
 
 class CarryLogList(generics.ListAPIView):
     queryset = CarryLog.objects.all().order_by('-created')
     serializer_class = CarryLogSerializer
     renderer_classes = (JSONRenderer,)
     filter_fields = ("xlmm",)
+    
 
 from django.conf import settings
 from flashsale.pay.options import get_user_unionid
@@ -129,7 +131,7 @@ class MamaStatsView(View):
         daystr = content.get("day", None)
         today  = datetime.date.today()
         year,month,day = today.year,today.month,today.day
-
+        
         target_date = today
         if daystr:
             year,month,day = daystr.split('-')
@@ -146,11 +148,12 @@ class MamaStatsView(View):
             next_day = target_date + datetime.timedelta(days=1)
         
         mobile = wx_user.mobile
-        data = {}
+        data   = {}
         try:
-            xlmm,status = XiaoluMama.objects.get_or_create(mobile=mobile)
-            if xlmm.openid != wx_user.unionid:
-                xlmm.openid = wx_user.unionid
+            xlmm,status = XiaoluMama.objects.get_or_create(openid=unionid)
+            if xlmm.mobile  != mobile:
+                xlmm.mobile  = mobile
+                xlmm.weikefu = wx_user.nickname
                 xlmm.save()
             
             clicks = Clicks.objects.filter(linkid=xlmm.pk,created__gt=time_from,created__lt=time_to)
