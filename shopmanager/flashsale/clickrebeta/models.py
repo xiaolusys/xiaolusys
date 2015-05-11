@@ -55,8 +55,9 @@ def tongji(sender, obj, **kwargs):
     if clicksbetwwentime:
         length = clicksbetwwentime.count()
         for s in clicksbetwwentime:
-            xiaolu_mm = XiaoluMama.objects.filter(id=s['linkid'])
-            if xiaolu_mm:
+            xiaolu_mmset = XiaoluMama.objects.filter(id=s['linkid'])
+            if xiaolu_mmset.count() > 0:
+                xiaolu_mm = xiaolu_mmset[0]
                 StatisticsShopping(linkid=s['linkid'], linkname=xiaolu_mm.weikefu, openid=obj.buyer_openid,
                                    wxorderid=str(obj.order_id),
                                    wxorderamount=obj.order_total_price,
