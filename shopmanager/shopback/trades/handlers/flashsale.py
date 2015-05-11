@@ -25,7 +25,7 @@ class FlashSaleHandler(BaseHandler):
         if settings.DEBUG:
             print 'DEBUG FlashSale:',merge_trade
         
-        if kwargs.get('first_pay_load',None) :
+        if not kwargs.get('first_pay_load',None) :
             return 
         
         from shopback.items.models import ProductSku,ItemNumTaskLog
