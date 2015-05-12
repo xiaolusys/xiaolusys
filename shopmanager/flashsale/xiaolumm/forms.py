@@ -53,6 +53,23 @@ class CashOutForm( forms.ModelForm ):
     class Meta:
         model = CashOut
     
-    def  clean_cash(self):
+    def  clean_value(self):
         value = self.cleaned_data['value']
         return int(value * 100) 
+    
+
+class CarryLogForm( forms.ModelForm ):
+    
+    def __init__(self, *args, **kwargs):
+        super(CarryLogForm, self).__init__(*args, **kwargs)
+        self.initial['value']    = self.instance.get_value_display()
+    
+    value    = forms.FloatField(label=u'现金',min_value=0)
+    
+    class Meta:
+        model = CashOut
+    
+    def  clean_value(self):
+        value = self.cleaned_data['value']
+        return int(value * 100)     
+

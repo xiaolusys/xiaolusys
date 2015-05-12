@@ -150,14 +150,14 @@ class CashOut(models.Model):
         verbose_name_plural = u'提现记录列表'
         
     def get_value_display(self):
-        return float(self.cash/100.0)
+        return float(self.value / 100.0)
     
     get_value_display.allow_tags = True
     get_value_display.short_description = u"可用现金"
     
     @property
-    def cash_money(self):
-        return self.get_cash_display()    
+    def value_money(self):
+        return self.get_value_display()    
     
 
 
@@ -185,4 +185,14 @@ class CarryLog(models.Model):
         db_table = 'xiaolumm_carrylog'
         verbose_name=u'补贴记录'
         verbose_name_plural = u'补贴记录列表'
-
+    
+    def get_value_display(self):
+        return float(self.value / 100.0)
+    
+    get_value_display.allow_tags = True
+    get_value_display.short_description = u"可用现金"
+    
+    @property
+    def value_money(self):
+        return self.get_value_display()    
+    

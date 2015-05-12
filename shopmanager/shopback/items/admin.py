@@ -495,11 +495,12 @@ class ProductAdmin(admin.ModelAdmin):
                 order.save()
             
             t = MergeTrade.objects.get(id=t.id)
+            
             if t.reason_code:
                 t.sys_status = pcfg.WAIT_AUDIT_STATUS
                 
-                t.normal_orders.filter(outer_id__in=outer_ids,
-                                       sys_status=pcfg.IN_EFFECT).update(out_stock=True)
+#                 t.normal_orders.filter(outer_id__in=outer_ids,
+#                                        sys_status=pcfg.IN_EFFECT).update(out_stock=True)
             else:
                 t.sys_status = pcfg.WAIT_PREPARE_SEND_STATUS
             t.save()

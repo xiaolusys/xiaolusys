@@ -28,7 +28,7 @@ class CashOutSerializer(serializers.ModelSerializer):
     status = CashOutStatusField()
     class Meta:
         model = CashOut
-        fields = ('xlmm', 'value', 'status', 'created')
+        fields = ('xlmm', 'value','value_money', 'status', 'created')
 
 
 class CarryLogSerializer(serializers.ModelSerializer):
@@ -36,7 +36,7 @@ class CarryLogSerializer(serializers.ModelSerializer):
     status = CarryLogStatusField()
     class Meta:
         model = CarryLog
-        fields = ('xlmm', 'order_num', 'buyer_nick', 'value', 'status', 'created')
+        fields = ('xlmm', 'order_num', 'buyer_nick', 'value', 'value_money', 'status', 'created')
         
         
 

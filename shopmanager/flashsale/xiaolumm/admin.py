@@ -95,7 +95,7 @@ admin.site.register(Clicks, ClicksAdmin)
 class CashOutAdmin(admin.ModelAdmin):
     
     form = forms.CashOutForm
-    list_display = ('xlmm','value','status','created')
+    list_display = ('xlmm','get_value_display','status','created')
     list_filter  = ('status',)
     search_fields = ['xlmm']
     
@@ -103,7 +103,9 @@ admin.site.register(CashOut, CashOutAdmin)
 
 
 class CarryLogAdmin(admin.ModelAdmin):
-    list_display = ('xlmm', 'buyer_nick', 'value', 'status', 'created')
+    
+    form = forms.CarryLogForm
+    list_display = ('xlmm', 'buyer_nick', 'get_value_display', 'status', 'created')
     list_filter = ('status',)
     search_fields = ['xlmm', 'buyer_nick']
 

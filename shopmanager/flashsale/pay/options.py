@@ -19,8 +19,8 @@ from django.http import Http404
 from django.conf import settings
 
 def get_user_unionid(code, 
-                    appid=settings.WEIXIN_APPID, 
-                    secret=settings.WEIXIN_SECRET,
+                    appid='', 
+                    secret='',
                     request=None):
 
     if settings.DEBUG:
@@ -34,7 +34,7 @@ def get_user_unionid(code,
         cookies = request.COOKIES 
         return (content.get('sopenid','') or cookies.get('sopenid'),
                 content.get('sunionid','') or cookies.get('sunionid'))
-
+    
     url = 'https://api.weixin.qq.com/sns/oauth2/access_token?appid=%s&secret=%s&code=%s&grant_type=authorization_code'
     get_openid_url = url % (appid, secret, code)
     r = urlopen(get_openid_url).read()
