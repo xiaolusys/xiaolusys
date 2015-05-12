@@ -323,8 +323,9 @@ class XiaoluMamaModelView(View):
         
         return HttpResponse(json.dumps(user_dict,cls=DjangoJSONEncoder),
                             mimetype="application/json")
-        
-        
+
+
+from shopmanager.flashsale.clickcount.models import ClickCount
 def click_Count(request):
     today = datetime.date.today()  # 今天的日期
     oneday = datetime.timedelta(days=1)
