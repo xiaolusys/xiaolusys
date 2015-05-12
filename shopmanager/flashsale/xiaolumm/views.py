@@ -21,7 +21,6 @@ from rest_framework.renderers import JSONRenderer
 from rest_framework.response import Response
 
 import logging
-
 logger = logging.getLogger('django.request')
 
 
@@ -36,7 +35,7 @@ WX_CLOSE     = 6
 WX_FEEDBACK  = 8
     
 WXORDER_STATUS = {
-    WX_WAIT_PAY:u'待付款',         
+    WX_WAIT_PAY:u'待付款',
     WX_WAIT_SEND:u'待发货',
     WX_WAIT_CONFIRM:u'待确认收货',
     WX_FINISHED:u'已完成',
@@ -96,12 +95,14 @@ class CashOutList(generics.ListAPIView):
     serializer_class = CashOutSerializer
     renderer_classes = (JSONRenderer,)
     filter_fields = ("xlmm",)
+    
 
 class CarryLogList(generics.ListAPIView):
     queryset = CarryLog.objects.all().order_by('-created')
     serializer_class = CarryLogSerializer
     renderer_classes = (JSONRenderer,)
     filter_fields = ("xlmm",)
+    
 
 from django.conf import settings
 from flashsale.pay.options import get_user_unionid
@@ -130,7 +131,7 @@ class MamaStatsView(View):
         daystr = content.get("day", None)
         today  = datetime.date.today()
         year,month,day = today.year,today.month,today.day
-
+        
         target_date = today
         if daystr:
             year,month,day = daystr.split('-')
@@ -147,11 +148,12 @@ class MamaStatsView(View):
             next_day = target_date + datetime.timedelta(days=1)
         
         mobile = wx_user.mobile
-        data = {}
+        data   = {}
         try:
-            xlmm,status = XiaoluMama.objects.get_or_create(mobile=mobile)
-            if xlmm.openid != wx_user.unionid:
-                xlmm.openid = wx_user.unionid
+            xlmm,status = XiaoluMama.objects.get_or_create(openid=unionid)
+            if xlmm.mobile  != mobile:
+                xlmm.mobile  = mobile
+                xlmm.weikefu = wx_user.nickname
                 xlmm.save()
             
             clicks = Clicks.objects.filter(linkid=xlmm.pk,created__gt=time_from,created__lt=time_to)
@@ -183,16 +185,25 @@ class MamaStatsView(View):
             agencylevel = AgencyLevel.objects.get(pk=xlmm.agencylevel)
             carry = agencylevel.basic_rate * total_value * 0.01
 
+            click_price = 0.2
+            if order_num > 2:
+                click_price = 0.5
+            else:
+                click_price += order_num * 0.1
+
+            click_pay = click_price * click_num
+            
             data = {"mobile":mobile_revised, "click_num":click_num, "xlmm":xlmm,
                     "order_num":order_num, "order_list":order_list, "pk":xlmm.pk,
                     "total_value":total_value, "carry":carry, "agencylevel":agencylevel,
-                    "target_date":target_date, "prev_day":prev_day, "next_day":next_day}
+                    "target_date":target_date, "prev_day":prev_day, "next_day":next_day,
+                    "click_price":click_price, "click_pay":click_pay}
         except Exception,exc:
             logger.error(exc.message,exc_info=True)
         
         response = render_to_response("mama_stats.html", data, context_instance=RequestContext(request))
-        response.set_cookie("unionid",unionid)
-        response.set_cookie("openid",openid)
+        response.set_cookie("sunionid",unionid)
+        response.set_cookie("sopenid",openid)
         return response
 
 from flashsale.clickrebeta.models import StatisticsShoppingByDay
@@ -208,7 +219,6 @@ class StatsView(View):
         
     def get(self,request):
         content = request.REQUEST
-
         daystr = content.get("day", None)
         today = datetime.date.today()
         year,month,day = today.year,today.month,today.day
@@ -222,15 +232,14 @@ class StatsView(View):
 
         time_from = datetime.datetime(target_date.year, target_date.month, target_date.day)
         time_to = datetime.datetime(target_date.year, target_date.month, target_date.day, 23, 59, 59)
-
+        print "time_from"
         prev_day = target_date - datetime.timedelta(days=1)
         next_day = None
         if target_date < today:
             next_day = target_date + datetime.timedelta(days=1)
-                
+
         pk = content.get('pk','6')
         mama_list = XiaoluMama.objects.filter(manager=pk)
-        
         mama_managers = XiaoluMama.objects.values('manager').distinct()
         manager_ids   = [m.get('manager') for m in mama_managers if m]
         managers      = User.objects.filter(id__in=manager_ids)
@@ -238,10 +247,12 @@ class StatsView(View):
 
         for mama in mama_list:
             order_num = 0
+            click_num = 0
+            user_num  = 0
             weikefu   = mama.weikefu
             mobile    = mama.mobile
-            agencylevel = mama.
-            
+            agencylevel = mama.agencylevel
+            username  = self.getUserName(mama.manager)
 
             # click_list = Clicks.objects.filter(linkid=mama.pk,created__gt=time_from,created__lt=time_to)
             #
@@ -272,7 +283,7 @@ class StatsView(View):
 
             data_entry = {"mobile":mobile[-4:], "weikefu":weikefu,
                           "agencylevel":agencylevel,'username':username,
-                          "click_num":click_num, "user_num":len(openid_list),
+                          "click_num":click_num, "user_num":user_num,
                           "order_num":order_num}
             data.append(data_entry)
             
@@ -281,7 +292,7 @@ class StatsView(View):
                                    "target_date":target_date, "next_day":next_day}, 
                                   context_instance=RequestContext(request))
 
-
+from . import tasks
 
 def logclicks(request, linkid):
     content = request.REQUEST
@@ -294,9 +305,8 @@ def logclicks(request, linkid):
         redirect_url = "https://open.weixin.qq.com/connect/oauth2/authorize?appid=wxc2848fa1e1aa94b5&redirect_uri=http://weixin.huyi.so/m/%d/&response_type=code&scope=snsapi_base&state=135#wechat_redirect" % int(linkid)
         return redirect(redirect_url)
 
-    Clicks.objects.create(linkid=linkid,openid=openid)
-    
-    
+    tasks.task_Create_Click_Record.s(linkid, openid)()
+
     return redirect(SHOPURL)
 
 
@@ -340,3 +350,5 @@ class XiaoluMamaModelView(View):
         
         return HttpResponse(json.dumps(user_dict,cls=DjangoJSONEncoder),
                             mimetype="application/json")
+
+

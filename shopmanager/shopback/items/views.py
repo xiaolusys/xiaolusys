@@ -280,7 +280,6 @@ class ProductUpdateView(ModelView):
     def post(self, request, *args, **kwargs):
         #修改库存商品信息
         
-        
         return 0
    
    

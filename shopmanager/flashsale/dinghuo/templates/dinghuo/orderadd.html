@@ -10,7 +10,7 @@
                 var searchtext = $("#searchtext").val();
                 console.log('search:' + searchtext);
                 $("#mytable tr").eq(0).nextAll().remove();
-                $.get("/dinghuo/searchproduct", {searchtext: searchtext},
+                $.get("/sale/dinghuo/searchproduct", {searchtext: searchtext},
                         function (result) {
                             console.log(result);
 
@@ -20,7 +20,7 @@
 {#console.log(result);#}
                                 var guiges = dd.prod_skus;
                                 tb.append('<tr><td width="100px"><label id=\"tb_name_' + index + '\">' + dd.name
-                                + '</label></td><td><a href="/dinghuo/adddetail/" id=\"tb_outer_id_' + index + '\">' + dd.outer_id
+                                + '</label></td><td><a href="/sale/dinghuo/adddetail/" id=\"tb_outer_id_' + index + '\">' + dd.outer_id
                                 + '</a></td><td><img width="100px" src = "' + dd.pic_path
                                 + '"/></td><td><select id =\"tb_sku_name_'
                                 + index + '\"></select></td><td><label id=\"buy_unitprice_' + index + '\">' + dd.cost
@@ -64,7 +64,7 @@
                 var but_unit_price = document.getElementById(index4).innerHTML;
                 console.log(tb_sku_name);
                 $("#drafttable tr").eq(0).nextAll().remove();
-                $.get("/dinghuo/initdraft", {
+                $.get("/sale/dinghuo/initdraft", {
                     "tb_outer_id": tb_outer_id,
                     "buy_quantity": buy_quantity,
                     "tb_sku_name": tb_sku_name,
@@ -80,7 +80,7 @@
 
         }
         function delcaogao() {
-            $.get("/dinghuo/delcaogao");
+            $.get("/sale/dinghuo/delcaogao");
             $("#drafttable tr").eq(0).nextAll().remove();
             document.getElementById("orderAdd").disabled = true;
         }
@@ -143,10 +143,10 @@
     {{ orderdraft.size }} fdfdfd
     {% if orderdraft %}
         <input id="orderAdd" type="button" value="生成订单"
-               onclick="window.location.href='/dinghuo/dingdan'"/>
+               onclick="window.location.href='/sale/dinghuo/dingdan'"/>
     {% else %}
         <input id="orderAdd" type="button" value="生成订单" disabled="disabled"
-               onclick="window.location.href='/dinghuo/dingdan'"/>
+               onclick="window.location.href='/sale/dinghuo/dingdan'"/>
     {% endif %}
     <input id="orderAdd" type="button" value="删除草稿" onclick="delcaogao()"/>
 </fieldset>

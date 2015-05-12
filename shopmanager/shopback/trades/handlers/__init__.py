@@ -16,6 +16,7 @@ from .refund   import RefundHandler
 from .logistic import LogisticsHandler
 from .intercept import InterceptHandler
 from .regular import RegularSaleHandler
+from .flashsale import FlashSaleHandler
 
 import logging
 logger = logging.getLogger('celery.handler')

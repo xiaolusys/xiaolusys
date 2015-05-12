@@ -91,19 +91,39 @@ class ProductAdmin(admin.ModelAdmin):
     
     form = ProductModelForm
     list_per_page = 25
-    list_display = ('id','outer_id','pic_link','collect_num','category_select',
+    list_display = ('id','outer_id_link','pic_link','collect_num','category_select',
                     'warn_num','remain_num','wait_post_num','cost' ,'std_sale_price','agent_price'
                    ,'sync_stock','is_match','is_split','sale_time','sale_charger','charger_select','district_link','status')
     list_display_links = ('id',)
     #list_editable = ('name',)
     
     date_hierarchy = 'sale_time'
-    #ordering = ['created_at']
+#     ordering = ['created','']
+    
+    def outer_id_link(self, obj):
+        
+        NO_PIC_URL = '%s%s'%(settings.MEDIA_URL,settings.NO_PIC_PATH)
+        try:
+            product_detail = obj.details
+        except:
+            product_detail = None
+        head_img_url = product_detail and product_detail.head_imgs.split('\n')[0] or NO_PIC_URL
+        
+        return u'<p>%s</p><img src="%s" width="50px" height="40px" />'%(obj.outer_id, head_img_url)
+    
+    outer_id_link.allow_tags = True
+    outer_id_link.short_description = u"商品编码(题头图)" 
     
     def pic_link(self, obj):
-        abs_pic_url = obj.pic_path or '%s%s'%(settings.MEDIA_URL,settings.NO_PIC_PATH)
-        return (u'<a href="/items/product/%d/" target="_blank"><img src="%s" width="100px" '
-                +' height="80px" title="%s"/></a><p><span>%s</span></p>')%(obj.id,abs_pic_url,obj.name,obj.name or u'--')
+        
+        NO_PIC_URL = '%s%s'%(settings.MEDIA_URL,settings.NO_PIC_PATH)
+        abs_pic_url = obj.pic_path or NO_PIC_URL
+        
+        str_list = []
+        str_list.append('<a href="/items/product/%d/" target="_blank">'%obj.id)
+        str_list.append('<img src="%s" width="100px" height="80px" title="%s"/>'%(abs_pic_url,obj.name))
+        str_list.append('<p><span>%s</span></p>'%(obj.name or u'--'))
+        return ''.join(str_list)
     
     pic_link.allow_tags = True
     pic_link.short_description = u"商品图片"
@@ -467,19 +487,22 @@ class ProductAdmin(admin.ModelAdmin):
         for t in merge_trades:
             
             for order in t.normal_orders:
-                out_stock = Product.objects.isProductOutingStockEnough(
-                                     order.outer_id, 
-                                     order.outer_sku_id,
-                                     order.num)
-                order.out_stock = out_stock
+#                 out_stock = not Product.objects.isProductOutingStockEnough(
+#                                      order.outer_id, 
+#                                      order.outer_sku_id,
+#                                      order.num)
+                order.out_stock = False
                 order.save()
-                
+            
             t = MergeTrade.objects.get(id=t.id)
+            
             if t.reason_code:
                 t.sys_status = pcfg.WAIT_AUDIT_STATUS
+                
+#                 t.normal_orders.filter(outer_id__in=outer_ids,
+#                                        sys_status=pcfg.IN_EFFECT).update(out_stock=True)
             else:
                 t.sys_status = pcfg.WAIT_PREPARE_SEND_STATUS
-            
             t.save()
 
         self.message_user(request,u"已成功取消%s个订单定时提醒!"%len(merge_trades))

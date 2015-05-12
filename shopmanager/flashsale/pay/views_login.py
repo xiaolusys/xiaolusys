@@ -11,8 +11,8 @@ import logging
 logger = logging.getLogger('django.request')
 
 def flashsale_login(request):
-    print request.method
-    next_url = request.REQUEST.get(REDIRECT_FIELD_NAME,reverse('sale_list'))
+    
+    next_url = request.REQUEST.get(REDIRECT_FIELD_NAME,reverse('sale_home'))
     if request.method == 'GET':
         
         defaults = {
