@@ -7,7 +7,7 @@ from django.shortcuts import  render_to_response
 from django.template import RequestContext
 from flashsale.xiaolumm.models import XiaoluMama
 from .models import StatisticsShopping, StatisticsShoppingByDay
-
+from django.http import HttpResponse
 
 class StatisticTongJi(View):
     def getUserName(self, uid):
@@ -48,3 +48,10 @@ class StatisticTongJi(View):
                                    "prev_day": prev_day,
                                    "target_date": target_date, "next_day": next_day},
                                   context_instance=RequestContext(request))
+
+from shopapp.weixin.models import WXOrder
+def ShengChengAll(req):
+    all = WXOrder.objects.all()
+    for order1 in all:
+        order1.confirm_payment()
+    return HttpResponse("OK")
