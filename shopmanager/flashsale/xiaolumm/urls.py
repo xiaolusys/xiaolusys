@@ -3,15 +3,13 @@ from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth.decorators import login_required  
 
 
-from views import logclicks,click_Count
-from views import StatsView,MamaStatsView,CashoutView,CashOutList,CarryLogList,landing
+from views import logclicks,StatsView,MamaStatsView,CashoutView,CashOutList,CarryLogList,landing
 from .views import chargeWXUser,XiaoluMamaModelView
 
 urlpatterns = patterns('',
     url(r'^$',landing),
     url(r'^m/$',MamaStatsView.as_view()),
     url(r'^stats/$',login_required(StatsView.as_view())),
-    url(r'^clickcount/$',click_Count),
     url(r'^cashout/$',CashoutView.as_view()),
     url(r'^cashoutlist/$',CashOutList.as_view()),
     url(r'^carrylist/$',CarryLogList.as_view()),
