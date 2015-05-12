@@ -18,9 +18,9 @@ logger = logging.getLogger('celery.handler')
 
 
 @task(max_retry=3, default_retry_delay=5)
-def task_Record_User_Click():
+def task_Record_User_Click(pre_day=1):
     try:
-        yesterday = datetime.date.today() - datetime.timedelta(days=1)
+        yesterday = datetime.date.today() - datetime.timedelta(days=pre_day)
         time_from = datetime.datetime(yesterday.year, yesterday.month, yesterday.day)  # 生成带时间的格式  开始时间
         time_to = datetime.datetime(yesterday.year, yesterday.month, yesterday.day, 23, 59, 59)  # 停止时间
 
