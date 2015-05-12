@@ -39,13 +39,6 @@ def task_Record_User_Click():
             clickcount.click_num = click_num
             clickcount.mobile = xiaolumama.mobile
             clickcount.user_num = user_num
-            order_num = 0
-            for item in clicks:
-                orders = WXOrder.objects.filter(buyer_openid=item["openid"],
-                                                order_create_time__gt=time_from,
-                                                order_create_time__lt=time_to)
-                if orders.count() > 0:
-                    order_num += 1
             clickcount.save()
 
     except Exception, exc:

@@ -9,7 +9,6 @@ class ClickCount(models.Model):
     mobile = models.CharField(max_length=11, verbose_name=u"手机")
     user_num = models.IntegerField(default=0, verbose_name=u'人数')
     click_num = models.IntegerField(default=0, verbose_name=u'次数')
-    order_num = models.IntegerField(default=0, verbose_name=u'订单数量')
     date = models.DateField(verbose_name=u'日期')
     write_time = models.DateTimeField(auto_now_add=True, verbose_name=u'写入时间')
     username = models.IntegerField(default=0, db_index=True, verbose_name=u'接管人')

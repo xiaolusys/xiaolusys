@@ -195,7 +195,8 @@ class MamaStatsView(View):
         response.set_cookie("openid",openid)
         return response
 
-
+from flashsale.clickrebeta.models import StatisticsShoppingByDay
+from flashsale.clickcount.models import ClickCount
 
 class StatsView(View):
     
@@ -239,21 +240,37 @@ class StatsView(View):
             order_num = 0
             weikefu   = mama.weikefu
             mobile    = mama.mobile
-            agencylevel = mama.agencylevel
-            click_list = Clicks.objects.filter(linkid=mama.pk,created__gt=time_from,created__lt=time_to)
+            agencylevel = mama.
+            
 
-            click_num = click_list.count()
-            openid_list = click_list.values('openid').distinct()
-            
-            username  = self.getUserName(mama.manager)
-            for item in openid_list:
-                orders = WXOrder.objects.filter(buyer_openid=item["openid"],
-                                                order_create_time__gt=time_from,
-                                                order_create_time__lt=time_to)
-                if orders.count() > 0:
-                    order_num += 1
-            
-            data_entry = {"mobile":mobile[-4:], "weikefu":weikefu, 
+            # click_list = Clicks.objects.filter(linkid=mama.pk,created__gt=time_from,created__lt=time_to)
+            #
+            # click_num = click_list.count()
+            # openid_list = click_list.values('openid').distinct()
+            #
+
+            # for item in openid_list:
+            #     orders = WXOrder.objects.filter(buyer_openid=item["openid"],
+            #                                     order_create_time__gt=time_from,
+            #                                     order_create_time__lt=time_to)
+            #     if orders.count() > 0:
+            #         order_num += 1
+
+            day_stats = StatisticsShoppingByDay.objects.filter(linkid=mama.pk,tongjidate=target_date)
+            if day_stats.count() > 0:
+                order_num = day_stats[0].ordernumcount
+
+            click_counts = ClickCount.objects.filter(linkid=mama.pk, date=target_date)
+            if click_counts.count() > 0:
+                click_num = click_counts[0].click_num
+                user_num = click_counts[0].user_num
+            else:
+                click_list = Clicks.objects.filter(linkid=mama.pk,created__gt=time_from,created__lt=time_to)
+                click_num = click_list.count()
+                openid_list = click_list.values('openid').distinct()
+                user_num = len(openid_list)
+
+            data_entry = {"mobile":mobile[-4:], "weikefu":weikefu,
                           "agencylevel":agencylevel,'username':username,
                           "click_num":click_num, "user_num":len(openid_list),
                           "order_num":order_num}
@@ -323,38 +340,3 @@ class XiaoluMamaModelView(View):
         
         return HttpResponse(json.dumps(user_dict,cls=DjangoJSONEncoder),
                             mimetype="application/json")
-        
-        
-def click_Count(request):
-    today = datetime.date.today()  # 今天的日期
-    oneday = datetime.timedelta(days=1)
-
-    target_date = request.GET.get("date")
-    if target_date == today:
-        StatsView.as_view()  # 如果日期是今天则实时计算
-
-    if target_date == None or target_date == "None":
-        target_date = today
-        target_date = str(target_date)
-
-    year, month, day = target_date.split('-')
-    target_date = datetime.date(int(year), int(month), int(day))
-
-    prev_day = target_date - oneday
-    next_day = target_date + oneday
-    pk = request.REQUEST.get('pk', 2)
-
-    clickcounts = ClickCount.objects.all() #filter(username=request.user.id, date=target_date)
-    data_entry = {}
-    data = []
-    for clickcount in clickcounts:
-        data_entry = {"mobile": clickcount.mobile[-4:], "weikefu": clickcount.weikefu,
-                              "agencylevel": clickcount.agencylevel, 'username': clickcount.username,
-                              "click_num": clickcount.click_num, "user_num": clickcount.user_num,
-                              "order_num": clickcount.order_num}
-        data.append(data_entry)
-
-    return render_to_response("stats.html",
-                              {'pk': int(pk), "data": data, "prev_day": prev_day, "target_date": target_date,
-                               "next_day": next_day},
-                              context_instance=RequestContext(request))
