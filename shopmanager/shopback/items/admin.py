@@ -487,11 +487,11 @@ class ProductAdmin(admin.ModelAdmin):
         for t in merge_trades:
             
             for order in t.normal_orders:
-                out_stock = Product.objects.isProductOutingStockEnough(
-                                     order.outer_id, 
-                                     order.outer_sku_id,
-                                     order.num)
-                order.out_stock = out_stock
+#                 out_stock = not Product.objects.isProductOutingStockEnough(
+#                                      order.outer_id, 
+#                                      order.outer_sku_id,
+#                                      order.num)
+                order.out_stock = False
                 order.save()
             
             t = MergeTrade.objects.get(id=t.id)
