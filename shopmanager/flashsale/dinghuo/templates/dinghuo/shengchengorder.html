@@ -30,7 +30,7 @@
                 var orderidinput = $("#id_orderID");
                 if (orderid != "") {
                     console.log(orderid);
-                    $.get("/dinghuo/checkorderexist", {orderID: orderid},
+                    $.get("/sale/dinghuo/checkorderexist", {orderID: orderid},
                             function (result) {
                                 console.log(result);
                                 var ret = eval("(" + result + ")");
@@ -55,7 +55,7 @@
             var index = "quantity_" + draftid;
             p = $("#" + index);
 
-            var url = "/dinghuo/plusquantity/";
+            var url = "/sale/dinghuo/plusquantity/";
             var data = {"draftid": draftid};
             var callback = function (res) {
                 if (res == "OK") {
@@ -68,7 +68,7 @@
             var index = "quantity_" + draftid;
             p = $("#" + index);
             if (p.text() != "0") {
-                var url = "/dinghuo/minusquantity/";
+                var url = "/sale/dinghuo/minusquantity/";
                 var data = {"draftid": draftid};
                 var callback = function (res) {
                     if (res == "OK") {
@@ -83,7 +83,7 @@
         }
         function removedraft(draftid, tr_id) {
             var tb = $("#" + "draft_" + tr_id);
-            var url = "/dinghuo/removedraft/";
+            var url = "/sale/dinghuo/removedraft/";
             var data = {"draftid": draftid};
             var callback = function (res) {
                 if (res == "OK") {
@@ -149,7 +149,7 @@
                 </h2>
             </legend>
             <div>
-                <form novalidate="novalidate" id="purchase-form" method="POST" action="/dinghuo/dingdan/">
+                <form novalidate="novalidate" id="purchase-form" method="POST" action="/sale/dinghuo/dingdan/">
                     <table class="table table-bordered table-striped table-condensed">
                         <tbody>
                         <tr>

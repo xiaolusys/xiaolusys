@@ -219,6 +219,11 @@ class WeiXinUser(models.Model):
         return False
     
     def isValid(self):
+        if not self.mobile and self.isvalid:
+            self.isvalid = False
+            self.save()
+            return False
+        
         return self.isvalid
     
     def get_wait_time(self):

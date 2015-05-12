@@ -5,6 +5,7 @@ from shopapp.weixin.models import UserGroup
 from .managers import XiaoluMamaManager
 # Create your models here.
 
+MM_CLICK_DAY_LIMIT = 3
 
 class XiaoluMama(models.Model):
     
@@ -24,8 +25,8 @@ class XiaoluMama(models.Model):
         (FROZEN,u'已冻结'),
         )
 
-    mobile = models.CharField(max_length=11,db_index=True,unique=True,blank=False,verbose_name=u"手机")
-    openid = models.CharField(max_length=64,blank=True,db_index=True,verbose_name=u"UnionID")    
+    mobile = models.CharField(max_length=11,db_index=True,blank=False,verbose_name=u"手机")
+    openid = models.CharField(max_length=64,blank=True,unique=True,verbose_name=u"UnionID")    
     province = models.CharField(max_length=24,blank=True,verbose_name=u"省份")
     city     = models.CharField(max_length=24,blank=True,verbose_name=u"城市")
     address  = models.CharField(max_length=256,blank=True,verbose_name=u"地址")
@@ -81,9 +82,10 @@ class XiaoluMama(models.Model):
         try:
             return DjangoUser.objects.get(id=self.manager).username
         except:
-            return self.manager
+            return '%s'%self.manager
         
 class AgencyLevel(models.Model):
+    
     category = models.CharField(max_length=11,unique=True,blank=False,verbose_name=u"类别")
     deposit = models.IntegerField(default=0,verbose_name=u"押金")
     cash = models.IntegerField(default=0,verbose_name=u"现金")
@@ -96,11 +98,25 @@ class AgencyLevel(models.Model):
         db_table = 'xiaolumm_agencylevel'
         verbose_name=u'代理类别'
         verbose_name_plural = u'代理类别列表'
+        
+    def get_cash_display(self):
+        return float(self.cash/100.0)
+    
+    get_cash_display.allow_tags = True
+    get_cash_display.short_description = u"可用现金"
+    
+    @property
+    def cash_money(self):
+        return self.get_cash_display()
 
 
 class Clicks(models.Model):
+    
+    CLICK_DAY_LIMIT = MM_CLICK_DAY_LIMIT
+    
     linkid = models.IntegerField(default=0,db_index=True,verbose_name=u"链接ID")    
     openid = models.CharField(max_length=64,blank=True,db_index=True,verbose_name=u"OpenId")    
+    isvalid = models.BooleanField(default=False,verbose_name='是否有效')
     created = models.DateTimeField(auto_now_add=True,verbose_name=u'创建时间')
 
     class Meta:
@@ -132,6 +148,17 @@ class CashOut(models.Model):
         db_table = 'xiaolumm_cashout'
         verbose_name=u'提现记录'
         verbose_name_plural = u'提现记录列表'
+        
+    def get_value_display(self):
+        return float(self.value / 100.0)
+    
+    get_value_display.allow_tags = True
+    get_value_display.short_description = u"可用现金"
+    
+    @property
+    def value_money(self):
+        return self.get_value_display()    
+    
 
 
 class CarryLog(models.Model):
@@ -158,4 +185,14 @@ class CarryLog(models.Model):
         db_table = 'xiaolumm_carrylog'
         verbose_name=u'补贴记录'
         verbose_name_plural = u'补贴记录列表'
-
+    
+    def get_value_display(self):
+        return float(self.value / 100.0)
+    
+    get_value_display.allow_tags = True
+    get_value_display.short_description = u"可用现金"
+    
+    @property
+    def value_money(self):
+        return self.get_value_display()    
+    

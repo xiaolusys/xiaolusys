@@ -153,7 +153,7 @@
       $("#id-carry-tbody")[0].innerHTML = "";
       for (var i=0; i<results.length; ++i) {
         var entry = results[i];
-        var row = "<tr><td>"+entry["buyer_nick"]+"</td><td>"+entry["value"]+"</td><td>"+entry["created"]+"</td><td>"+entry["status"]+"</td></tr>";
+        var row = "<tr><td>"+entry["buyer_nick"]+"</td><td>"+entry["value_money"]+"</td><td>"+entry["created"]+"</td><td>"+entry["status"]+"</td></tr>";
         $("#id-carry-tbody").append(row);
       }
     };
@@ -178,17 +178,13 @@
       $("#id-cashout-tbody")[0].innerHTML = "";
       for (var i=0; i<results.length; ++i) {
         var entry = results[i];
-        var row = "<tr><td>"+entry["value"]+"</td><td>"+entry["created"]+"</td><td>"+entry["status"]+"</td></tr>";
+        var row = "<tr><td>"+entry["value_money"]+"</td><td>"+entry["created"]+"</td><td>"+entry["status"]+"</td></tr>";
         $("#id-cashout-tbody").append(row);
       }
     };
     $.ajax({url:url, success:callback});
   }
 
-
-
-  
-  
   $("#id-cashout").click(function (e) {
     $("#id-carry").removeClass("active");
     $("#id-cashout").addClass("active");

@@ -270,7 +270,11 @@ class StatisticMergeOrderView(ModelView):
                                        }
         
         if  is_sale:
-            order_items = sorted(trade_items.items(),key=lambda d:d[0])
+            def sort_items(x,y):
+                if x[0][:-1] == y[0][:-1]:
+                    return -cmp(x[1],y[1])
+                return cmp(x[0],y[0])
+            order_items = sorted(trade_items.items(),key=lambda d:(d[0],d[1]['num']),cmp=sort_items)
         else:
             order_items = sorted(trade_items.items(),key=lambda d:d[1]['num'],reverse=True)
         
@@ -919,7 +923,7 @@ def change_logistic_and_outsid(request):
         if merge_trade.sys_status in (pcfg.WAIT_CHECK_BARCODE_STATUS,pcfg.WAIT_SCAN_WEIGHT_STATUS):
             
             try:
-                if not is_qrcode and (dt-merge_trade.consign_time).days<1:
+                if not is_qrcode and merge_trade.consign_time and (dt-merge_trade.consign_time).days<1:
                     response = apis.taobao_logistics_consign_resend(tid=merge_trade.tid,out_sid=out_sid
                                                      ,company_code=real_logistic_code,tb_user_id=merge_trade.user.visitor_id)
                     if not response['logistics_consign_resend_response']['shipping']['is_success']:
@@ -936,7 +940,7 @@ def change_logistic_and_outsid(request):
             log_action(user_id,merge_trade,CHANGE,u'修改快递及单号(修改前:%s,%s)'%(origin_logistic_code,origin_out_sid))
         elif merge_trade.sys_status == pcfg.FINISHED_STATUS:
             try:
-                if not is_qrcode and (dt-merge_trade.consign_time).days<1:
+                if not is_qrcode and merge_trade.consign_time and (dt-merge_trade.consign_time).days<1:
                     apis.taobao_logistics_consign_resend(tid=merge_trade.tid,out_sid=out_sid
                                                  ,company_code=real_logistic_code,tb_user_id=merge_trade.user.visitor_id)
             except:
@@ -1399,7 +1403,7 @@ class RelatedOrderStateView(ModelView):
                 order_item.append(order[1]['title'])
                 order_item.append(order[1]['cnum'])
                 order_item_list.append(order_item)
-            print order_item_list
+            
 
         return {'df':format_date(start_dt),
                 'dt':format_date(end_dt),

@@ -730,7 +730,7 @@ def refresh_trade_status(sender,instance,*args,**kwargs):
     merge_trade.prod_num = prod_num
     
     if merge_trade.status in (pcfg.WAIT_SELLER_SEND_GOODS,
-                             pcfg.WAIT_BUYER_CONFIRM_GOODS):
+                              pcfg.WAIT_BUYER_CONFIRM_GOODS):
         
         merge_trade.has_refund     = MergeTrade.objects.isTradeRefunding(merge_trade)
         merge_trade.has_out_stock  = effect_orders.filter(out_stock=True).count()>0
