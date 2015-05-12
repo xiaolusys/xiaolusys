@@ -202,8 +202,8 @@ class MamaStatsView(View):
             logger.error(exc.message,exc_info=True)
         
         response = render_to_response("mama_stats.html", data, context_instance=RequestContext(request))
-        response.set_cookie("unionid",unionid)
-        response.set_cookie("openid",openid)
+        response.set_cookie("sunionid",unionid)
+        response.set_cookie("sopenid",openid)
         return response
 
 
@@ -275,7 +275,7 @@ class StatsView(View):
                                    "target_date":target_date, "next_day":next_day}, 
                                   context_instance=RequestContext(request))
 
-
+from . import tasks
 
 def logclicks(request, linkid):
     content = request.REQUEST
@@ -288,7 +288,7 @@ def logclicks(request, linkid):
         redirect_url = "https://open.weixin.qq.com/connect/oauth2/authorize?appid=wxc2848fa1e1aa94b5&redirect_uri=http://weixin.huyi.so/m/%d/&response_type=code&scope=snsapi_base&state=135#wechat_redirect" % int(linkid)
         return redirect(redirect_url)
 
-    Clicks.objects.create(linkid=linkid,openid=openid)
+    tasks.task_Create_Click_Record.s(linkid, openid)()
 
     return redirect(SHOPURL)
 

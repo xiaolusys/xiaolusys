@@ -85,8 +85,8 @@ admin.site.register(AgencyLevel, AgencyLevelAdmin)
 
 
 class ClicksAdmin(admin.ModelAdmin):
-    list_display = ('linkid','openid','created')
-    list_filter = (('created',DateFieldListFilter),)
+    list_display = ('linkid','openid','isvalid','created')
+    list_filter = ('isvalid',('created',DateFieldListFilter),)
     search_fields = ['openid',]
 
 admin.site.register(Clicks, ClicksAdmin) 
