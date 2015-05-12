@@ -119,7 +119,7 @@ JD_API_ENDPOINT = 'http://%s/routerjson'%JD_API_HOSTNAME
 
 ################### PING++ SETTINGS ##################
 WXPAY_APPID    = "wx3f91056a2928ad2d"
-WXPAY_SECRET   = "726f44ea3e5f077dd4b93e03e3c4b096"
+WXPAY_SECRET   = "e8e1f648a5e02492e1584e5413cef158"
 
 PINGPP_CLENTIP = "121.199.168.159"
 PINGPP_APPID   = "app_LOOajDn9u9WDjfHa"

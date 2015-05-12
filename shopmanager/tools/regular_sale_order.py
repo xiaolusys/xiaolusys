@@ -6,33 +6,41 @@ from django.core.management import setup_environ
 import settings
 setup_environ(settings)
 
-from shopback.trades.models import MergeTrade,MergeOrder
+from django.db.models import Sum
+from shopback import paramconfig as pcfg
+from shopback.trades.models import MergeTrade,MergeOrder,Refund
 
 def regular(outer_ids=[],remind_time=datetime.datetime.now()):
-    mos = MergeOrder.objects.filter(merge_trade__type="wx",outer_id__in=outer_ids,
-                                    merge_trade__sys_status__in=("WAIT_PREPARE_SEND","WAIT_AUDIT"))
     
-    tids = set([o.merge_trade.id for o in mos])
-    print "update trades count:",len(tids)
+    start_dt = datetime.datetime(2014,11,1)
+    end_dt   = datetime.datetime(2014,12,1)
 
-    MergeTrade.objects.filter(id__in=tids,sys_status__in=("WAIT_PREPARE_SEND","WAIT_AUDIT"))\
-        .update(sys_status="REGULAR_REMAIN",remind_time=remind_time)
+    mos = MergeOrder.objects.filter(outer_id="2116CG1",outer_sku_id="67ZB")\
+        .filter(pay_time__gt=start_dt,pay_time__lt=end_dt,is_merge=False)\
+        .exclude(gift_type=pcfg.RETURN_GOODS_GIT_TYPE)\
+        .exclude(merge_trade__sys_status=pcfg.EMPTY_STATUS)\
+        .exclude(merge_trade__type=pcfg.EXCHANGE_TYPE,sys_status=pcfg.INVALID_STATUS)
+
+    print 'total:',mos.filter(is_merge=False).aggregate(total_fee=Sum('payment')),mos.count()
+    mtids = set([o.merge_trade.tid for o in mos])
     
-    
+    order_qs = MergeOrder.objects.filter(outer_id="2116CG1",outer_sku_id="67ZB",sys_status=pcfg.IN_EFFECT,pay_time__gte=start_dt,pay_time__lte=end_dt,merge_trade__status__in=pcfg.ORDER_SUCCESS_STATUS).exclude(gift_type=pcfg.RETURN_GOODS_GIT_TYPE).exclude(merge_trade__sys_status__in=(pcfg.INVALID_STATUS,pcfg.ON_THE_FLY_STATUS)).exclude(merge_trade__sys_status=pcfg.FINISHED_STATUS,merge_trade__is_express_print=False)
+    print 'real:',order_qs.aggregate(total_fee=Sum('payment')),order_qs.count()
+    otids = set([o.merge_trade.tid for o in order_qs])
+
+    effect_oids = [o[0] for o in order_qs.values_list('oid') if len(o[0]) > 6 ]
+    refunds = Refund.objects.filter(oid__in=effect_oids,status__in=(pcfg.REFUND_WAIT_SELLER_AGREE,pcfg.REFUND_CONFIRM_GOODS,pcfg.REFUND_SUCCESS))
+
+    print 'refund:',refunds.aggregate(total_refund_fee=Sum('refund_fee')),refunds.count()
+
+    print 'final:',otids - mtids
 if __name__ == "__main__":
     
-    if len(sys.argv) != 3:
-        print >> sys.stderr, "usage: python *.py <outer_ids> <regular_days>"
-        return
+    #if len(sys.argv) != 3:
+    #    print >> sys.stderr, "usage: python *.py <outer_ids> <regular_days>"
     
-    outer_ids = sys.argv[1].split(',')
-    regular_days = int(sys.argv[2])
+    regular()
     
-    print outer_ids , regular_days
     
-    today = datetime.datetime.now()
-    regular_data = datetime.datetime(today.year,today.month,today.day) + datetime.timedelta(days=regular_days)
-    
-    regular(outer_ids=outer_ids,remind_time=regular_data)
 
     
