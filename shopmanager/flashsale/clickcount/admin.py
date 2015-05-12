@@ -4,10 +4,9 @@ from .models import ClickCount
 
 
 class ClickCountAdmin(admin.ModelAdmin):
-    list_display = ('number', 'name', 'nop', 'frequency', 'date', 'write_time', 'administrator')
-    list_display_links = ['number', 'administrator']
-    list_filter = ('name', 'nop', 'frequency', 'date', 'write_time', 'administrator')
-    search_fields = ['name', 'administrator', 'date']
-
+    list_display = ('linkid', 'weikefu','mobile', 'click_num', 'user_num', 'date', 'write_time', 'username')
+    list_display_links = ['linkid', 'username']
+    list_filter = ('date', 'username')
 
 admin.site.register(ClickCount, ClickCountAdmin)
+

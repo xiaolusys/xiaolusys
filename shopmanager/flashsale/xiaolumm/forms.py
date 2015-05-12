@@ -23,23 +23,6 @@ class XiaoluMamaForm( forms.ModelForm ):
     def  clean_pending(self):
         pending = self.cleaned_data['pending']
         return int(pending * 100)
-    
-    
-class AgencyLevelForm( forms.ModelForm ):
-    
-    def __init__(self, *args, **kwargs):
-        super(AgencyLevelForm, self).__init__(*args, **kwargs)
-        self.initial['cash']    = self.instance.get_cash_display()
-    
-    cash    = forms.FloatField(label=u'现金',min_value=0)
-    
-    class Meta:
-        model = AgencyLevel
-    
-    def  clean_cash(self):
-        cash = self.cleaned_data['cash']
-        return int(cash * 100)
-    
 
     
 class CashOutForm( forms.ModelForm ):

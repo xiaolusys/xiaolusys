@@ -208,7 +208,8 @@ class MamaStatsView(View):
         response.set_cookie("sopenid",openid)
         return response
 
-
+from flashsale.clickrebeta.models import StatisticsShoppingByDay
+from flashsale.clickcount.models import ClickCount
 
 class StatsView(View):
     
@@ -220,7 +221,6 @@ class StatsView(View):
         
     def get(self,request):
         content = request.REQUEST
-
         daystr = content.get("day", None)
         today = datetime.date.today()
         year,month,day = today.year,today.month,today.day
@@ -234,15 +234,14 @@ class StatsView(View):
 
         time_from = datetime.datetime(target_date.year, target_date.month, target_date.day)
         time_to = datetime.datetime(target_date.year, target_date.month, target_date.day, 23, 59, 59)
-
+        print "time_from"
         prev_day = target_date - datetime.timedelta(days=1)
         next_day = None
         if target_date < today:
             next_day = target_date + datetime.timedelta(days=1)
-                
+
         pk = content.get('pk','6')
         mama_list = XiaoluMama.objects.filter(manager=pk)
-        
         mama_managers = XiaoluMama.objects.values('manager').distinct()
         manager_ids   = [m.get('manager') for m in mama_managers if m]
         managers      = User.objects.filter(id__in=manager_ids)
@@ -250,25 +249,43 @@ class StatsView(View):
 
         for mama in mama_list:
             order_num = 0
+            click_num = 0
+            user_num  = 0
             weikefu   = mama.weikefu
             mobile    = mama.mobile
             agencylevel = mama.agencylevel
-            click_list = Clicks.objects.filter(linkid=mama.pk,created__gt=time_from,created__lt=time_to)
-
-            click_num = click_list.count()
-            openid_list = click_list.values('openid').distinct()
-            
             username  = self.getUserName(mama.manager)
-            for item in openid_list:
-                orders = WXOrder.objects.filter(buyer_openid=item["openid"],
-                                                order_create_time__gt=time_from,
-                                                order_create_time__lt=time_to)
-                if orders.count() > 0:
-                    order_num += 1
-            
-            data_entry = {"mobile":mobile[-4:], "weikefu":weikefu, 
+
+            # click_list = Clicks.objects.filter(linkid=mama.pk,created__gt=time_from,created__lt=time_to)
+            #
+            # click_num = click_list.count()
+            # openid_list = click_list.values('openid').distinct()
+            #
+
+            # for item in openid_list:
+            #     orders = WXOrder.objects.filter(buyer_openid=item["openid"],
+            #                                     order_create_time__gt=time_from,
+            #                                     order_create_time__lt=time_to)
+            #     if orders.count() > 0:
+            #         order_num += 1
+
+            day_stats = StatisticsShoppingByDay.objects.filter(linkid=mama.pk,tongjidate=target_date)
+            if day_stats.count() > 0:
+                order_num = day_stats[0].ordernumcount
+
+            click_counts = ClickCount.objects.filter(linkid=mama.pk, date=target_date)
+            if click_counts.count() > 0:
+                click_num = click_counts[0].click_num
+                user_num = click_counts[0].user_num
+            else:
+                click_list = Clicks.objects.filter(linkid=mama.pk,created__gt=time_from,created__lt=time_to)
+                click_num = click_list.count()
+                openid_list = click_list.values('openid').distinct()
+                user_num = len(openid_list)
+
+            data_entry = {"mobile":mobile[-4:], "weikefu":weikefu,
                           "agencylevel":agencylevel,'username':username,
-                          "click_num":click_num, "user_num":len(openid_list),
+                          "click_num":click_num, "user_num":user_num,
                           "order_num":order_num}
             data.append(data_entry)
             
@@ -335,5 +352,5 @@ class XiaoluMamaModelView(View):
         
         return HttpResponse(json.dumps(user_dict,cls=DjangoJSONEncoder),
                             mimetype="application/json")
-        
-        
+
+
