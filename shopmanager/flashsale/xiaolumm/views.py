@@ -325,3 +325,36 @@ class XiaoluMamaModelView(View):
                             mimetype="application/json")
         
         
+def click_Count(request):
+    today = datetime.date.today()  # 今天的日期
+    oneday = datetime.timedelta(days=1)
+
+    target_date = request.GET.get("date")
+    if target_date == today:
+        StatsView.as_view()  # 如果日期是今天则实时计算
+
+    if target_date == None or target_date == "None":
+        target_date = today
+        target_date = str(target_date)
+
+    year, month, day = target_date.split('-')
+    target_date = datetime.date(int(year), int(month), int(day))
+
+    prev_day = target_date - oneday
+    next_day = target_date + oneday
+    pk = request.REQUEST.get('pk', 2)
+
+    clickcounts = ClickCount.objects.all() #filter(username=request.user.id, date=target_date)
+    data_entry = {}
+    data = []
+    for clickcount in clickcounts:
+        data_entry = {"mobile": clickcount.mobile[-4:], "weikefu": clickcount.weikefu,
+                              "agencylevel": clickcount.agencylevel, 'username': clickcount.username,
+                              "click_num": clickcount.click_num, "user_num": clickcount.user_num,
+                              "order_num": clickcount.order_num}
+        data.append(data_entry)
+
+    return render_to_response("stats.html",
+                              {'pk': int(pk), "data": data, "prev_day": prev_day, "target_date": target_date,
+                               "next_day": next_day},
+                              context_instance=RequestContext(request))
