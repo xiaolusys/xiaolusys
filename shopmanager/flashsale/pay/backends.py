@@ -76,7 +76,6 @@ class WeixinPubBackend(RemoteUserBackend):
             return AnonymousUser()
         
         try:
-            logger.error(' auth openid: %s,unionid: %s'%(openid,unionid))
             profile = Customer.objects.get(openid=openid,unionid=unionid)
             if profile.user:
                 if not profile.user.is_active:
@@ -91,7 +90,7 @@ class WeixinPubBackend(RemoteUserBackend):
         except Customer.DoesNotExist:
             if not self.create_unknown_user:
                 return AnonymousUser()
-            logger.error('anoymous openid: %s,unionid: %s'%(openid,unionid))
+            
             user,state = User.objects.get_or_create(username=unionid,is_active=True)
             profile,state = Customer.objects.get_or_create(openid=openid,unionid=unionid,user=user)
             
