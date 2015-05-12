@@ -14,7 +14,7 @@ class ClickCount(models.Model):
     username = models.IntegerField(default=0, db_index=True, verbose_name=u'接管人')
 
     class Meta:
-        db_table = 'suplychain_flashsale_clickcount'
+        db_table = 'flashsale_clickcount'
         unique_together = ('date', 'linkid')  # 联合索引
         verbose_name = u'点击统计表'
         verbose_name_plural = u'点击统计表列表'
