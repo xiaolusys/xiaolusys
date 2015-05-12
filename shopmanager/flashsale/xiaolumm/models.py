@@ -5,6 +5,7 @@ from shopapp.weixin.models import UserGroup
 from .managers import XiaoluMamaManager
 # Create your models here.
 
+MM_CLICK_DAY_LIMIT = 3
 
 class XiaoluMama(models.Model):
     
@@ -24,7 +25,7 @@ class XiaoluMama(models.Model):
         (FROZEN,u'已冻结'),
         )
 
-    mobile = models.CharField(max_length=11,db_index=True,unique=True,blank=False,verbose_name=u"手机")
+    mobile = models.CharField(max_length=11,db_index=True,blank=False,verbose_name=u"手机")
     openid = models.CharField(max_length=64,blank=True,unique=True,verbose_name=u"UnionID")    
     province = models.CharField(max_length=24,blank=True,verbose_name=u"省份")
     city     = models.CharField(max_length=24,blank=True,verbose_name=u"城市")
@@ -84,6 +85,7 @@ class XiaoluMama(models.Model):
             return '%s'%self.manager
         
 class AgencyLevel(models.Model):
+    
     category = models.CharField(max_length=11,unique=True,blank=False,verbose_name=u"类别")
     deposit = models.IntegerField(default=0,verbose_name=u"押金")
     cash = models.IntegerField(default=0,verbose_name=u"现金")
@@ -109,8 +111,12 @@ class AgencyLevel(models.Model):
 
 
 class Clicks(models.Model):
+    
+    CLICK_DAY_LIMIT = MM_CLICK_DAY_LIMIT
+    
     linkid = models.IntegerField(default=0,db_index=True,verbose_name=u"链接ID")    
     openid = models.CharField(max_length=64,blank=True,db_index=True,verbose_name=u"OpenId")    
+    isvalid = models.BooleanField(default=False,verbose_name='是否有效')
     created = models.DateTimeField(auto_now_add=True,verbose_name=u'创建时间')
 
     class Meta:
