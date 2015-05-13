@@ -77,7 +77,6 @@
     {% endfor %}
 </div>
 
-
 <a id="buy_now" href="javascript:void(0)" onclick="Ctrl_buy_now()" target="_top">
     <div class="btn"><img width="16" height="16" style="margin-right: 5px;" src="{{ STATIC_URL }}images/buy.png" />立即购买</div>
 </a>
@@ -102,7 +101,8 @@
             <div class="name">尺码选择</div>
             <div class="choose">
               {% for sku in prod_skus %}
-              <a id="{{ sku.id }}"  class="{% if sku.sale_out %}none{% endif %}">{{ sku.properties_alias }}</a>
+              <a id="{{ sku.id }}"  class="{% if sku.sale_out %}none{% endif %}" 
+              	origin-price='{{ sku.std_sale_price }}' sale-price='{{ sku.agent_price }}'>{{ sku.properties_alias }}</a>
               {% endfor %}
             </div>
         </div>
@@ -162,6 +162,9 @@ function hideLoader()
 
         //选项选择
         $('.chooser.single').on('tap','.choose a',function(){
+        
+        	$('.chooser.info .price span').html($(this).attr('sale-price'));
+        	
         	if(!$(this).hasClass('none')){
 	            $(this).closest('.choose').find('a').removeClass('active');
 	            $(this).addClass('active');
@@ -172,6 +175,7 @@ function hideLoader()
 
         //数量+1/-1
         $('#amount').on('tap','.counter a',function(){
+        
             if ($(this).hasClass('add')){
             	$(this).removeClass('add');
             	
@@ -184,6 +188,7 @@ function hideLoader()
 					$(this).addClass('add');
 					return 
 				}
+
 				showLoader();
 				var csrf_token = document.getElementsByName("csrfmiddlewaretoken")[0].value;
 				
