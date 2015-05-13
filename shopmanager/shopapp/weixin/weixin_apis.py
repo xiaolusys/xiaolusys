@@ -283,7 +283,8 @@ class WeiXinAPI(object):
         response = self.handleRequest(self._merchant_category_getsku_uri, 
                                       str(params_str),
                                       method='POST')
-        return response['sku_table']
+        
+        return response['sku_table'].get('value_list',[])
         
     def deliveryOrder(self,order_id,delivery_company,delivery_track_no,need_delivery=1,is_others=0):
 

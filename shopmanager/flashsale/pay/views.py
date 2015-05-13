@@ -29,7 +29,7 @@ class PINGPPChargeView(View):
         product = Product.objects.get(pk=form.get('item_id'))
         sku = ProductSku.objects.get(pk=form.get('sku_id'),product=product)
         total_fee = sku.std_sale_price * int(form.get('num'))
-        if float(form['payment']) <= total_fee:
+        if float(form['payment']) < total_fee:
             raise Exception(u'订单提交金额与商品价格差异')
         
         sale_trade = SaleTrade.objects.create(
@@ -95,21 +95,22 @@ class PINGPPChargeView(View):
                 except XiaoluMama.DoesNotExist:
                     raise Exception(u'小鹿妈妈未找到')
                 
+                strade = self.createSaleTrade(customer,form)
+                
                 urows = XiaoluMama.objects.filter(openid=customer.unionid,
                                                  cash__gte=payment).update(cash=models.F('cash')-payment)
-
+                
                 if urows == 0:
                     raise Exception(u'钱包付款失败')
-                
-                strade = self.createSaleTrade(customer,form)
-                #确认付款后保存
-                confirmTradeChargeTask.s(strade.id)()
                 
                 CarryLog.objects.create(xlmm=xlmm.id,
                                         order_num=strade.id,
                                         buyer_nick=strade.buyer_nick,
                                         value=payment,
                                         status=CarryLog.CONSUMED)
+                
+                #确认付款后保存
+                confirmTradeChargeTask.s(strade.id)()
                 
                 response_charge = {'channel':channel,'success':True}
                 
