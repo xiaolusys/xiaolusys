@@ -6,16 +6,11 @@
         $(document).ready(function () {
             $('#error_tip').hide();
             $('#submit_form').click(function (event) {
-                var orderidinput = $("#id_orderID"), receiver = $('#id_consigneeName');
-                var data1 = orderidinput.val(), data2 = receiver.val();
+                var receiver = $('#id_consigneeName');
+                var data1 = receiver.val();
                 data1 = $.trim(data1);
-                data2 = $.trim(data2);
+
                 if (data1.length < 1) {
-                    $('#error_tip').show(3000).html('订货单号为空');
-                    $('#error_tip').hide(1000);
-                    orderidinput.focus();
-                    event.preventDefault();
-                } else if (data2.length < 1) {
                     $('#error_tip').show(3000).html('收货人为空');
                     $('#error_tip').hide(1000);
                     receiver.focus();
@@ -24,31 +19,6 @@
                     $('#error_tip').hide();
                 }
             });
-
-            $('#id_orderID').blur(function () {
-                var orderid = $("#id_orderID").val();
-                var orderidinput = $("#id_orderID");
-                if (orderid != "") {
-                    console.log(orderid);
-                    $.get("/sale/dinghuo/checkorderexist", {orderID: orderid},
-                            function (result) {
-                                console.log(result);
-                                var ret = eval("(" + result + ")");
-                                if (ret.result) {
-
-                                    $('#error_tip').show(1000).html('该编号已经存在');
-                                    $('#error_tip').hide(3000);
-                                    {#                                    orderidinput.removeClass("form-control");#}
-                                    {#                                    orderidinput.addClass("inputerror");#}
-                                    orderidinput.focus();
-
-                                }
-                            });
-                } else {
-                    orderidinput.focus();
-                }
-            });
-
         });
 
         function plusQuantity(draftid) {
@@ -155,46 +125,27 @@
                         <tr>
                             <td>
                                 <div class="input-group">
-                                    <span class="input-group-addon">订货单号</span>
-                                    <input id="id_orderID" name="orderID" type="text" class="form-control"
-                                           required="required" onkeyup="this.value=this.value.replace(/\D/g,'')"
-                                           onblur="this.value=this.value.replace(/\D/g,'')"
-                                           onafterpaste="this.value=this.value.replace(/\D/g,'')"
-                                           aria-describedby="sizing-addon2">
-                                </div>
-                            </td>
-                            <td>
-                                <div class="input-group">
                                     <span class="input-group-addon">收&nbsp;&nbsp;货&nbsp;&nbsp;人</span>
                                     <input id="id_consigneeName" name="consigneeName" type="text"
-                                           class="form-control required"
+                                           class="form-control required" placeholder="必填"
                                            placeholder="" aria-describedby="sizing-addon2">
                                 </div>
                             </td>
                             <td>
-                                <div style="width: 200px" class="control-group">
-                                    <label for="id_supplierId" class="control-label">供&nbsp;&nbsp;应&nbsp;&nbsp;商</label>
-
-                                    <div class="controls">
-                                        <select id="id_supplierId" name="supplierId"
-                                                class="chosen-select form-control"
-                                                data-placeholder="选择">
-                                            <option selected="selected" value="">请选择</option>
-                                            <option name="供应商1" value="嘉兴市龙门纺织品有限公司">嘉兴市龙门纺织品有限公司</option>
-                                            <option name="供应商2" value="常熟市方天服饰有限公司">常熟市方天服饰有限公司</option>
-                                            <option name="供应商3" value="江苏雪涛服饰贸易有限公司">江苏雪涛服饰贸易有限公司</option>
-
-                                        </select>
-                                    </div>
+                                <div class="input-group">
+                                    <span class="input-group-addon">供&nbsp;&nbsp;应&nbsp;&nbsp;商</span>
+                                    <input id="id_supplierId" name="supplierId" type="text"
+                                           class="form-control"
+                                           placeholder="" aria-describedby="sizing-addon2">
                                 </div>
                             </td>
                         </tr>
                         <tr>
-
                             <td>
                                 <div class="input-group">
                                     <span class="input-group-addon">快递公司</span>
-                                    <input id="express_company" name="express_company" type="text" class="form-control"
+                                    <input id="express_company" name="express_company" type="text"
+                                           class="form-control"
                                            placeholder="快递公司" aria-describedby="sizing-addon2">
                                 </div>
                             </td>
@@ -205,38 +156,47 @@
                                            placeholder="快递单号" aria-describedby="sizing-addon2">
                                 </div>
                             </td>
+                        </tr>
+                        <tr>
                             <td>
-                                <div>
-                                    <label class="simple-text">&nbsp;仓&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;库</label>
-                                    <select id="id_storehouseId" name="storehouseId" class="form-control">
-                                        <option selected="selected" value="">----请选择----</option>
-                                        <option value="正品仓">正品仓</option>
-                                        <option value="辅料">辅料</option>
-                                        <option value="货架设备">货架设备</option>
-                                        <option value="面料">面料</option>
-
-                                    </select>
+                                <div class="input-group">
+                                    <span class="input-group-addon">仓库</span>
+                                    <input id="id_storehouseId" name="storehouseId" type="text"
+                                           class="form-control"
+                                           placeholder="" aria-describedby="sizing-addon2">
                                 </div>
-
-
+                            </td>
+                            <td>
+                                <div class="input-group">
+                                    <span class="input-group-addon">快递费</span>
+                                    <input id="costofemsid" name="costofems" type="number"
+                                           class="form-control"
+                                           placeholder="" aria-describedby="sizing-addon2">
+                                </div>
                             </td>
                         </tr>
                         <tr>
-                            <td colspan="2" rowspan="2">
+                            <td rowspan="2">
                                 <div class="input-group">
                                     <span class="input-group-addon">备注</span>
-                                    <textarea style="width: 800px;resize: none;" id="id_remarks" name="remarks"
+                                    <textarea style="width: 400px;resize: none;" id="id_remarks" name="remarks"
                                               type="text" class="form-control"></textarea>
                                 </div>
                             </td>
                             <td style="text-align:center;padding-top:20px;">
-                                <button id="submit_form" type="submit" value="保存" class="btn btn-default">保存</button>
-
+                                <div class="input-group">
+                                    <button id="submit_form" type="submit" value="保存" class="btn btn-default">保存
+                                    </button>
+                                </div>
                             </td>
+
                         </tr>
+
+
                         <span id="error_tip" hidden="hidden">数据项为空！</span>
                         </tbody>
                     </table>
+
                 </form>
             </div>
         </fieldset>
@@ -250,6 +210,7 @@
         <table id="drafttable" border="1" class="table table-striped table-bordered table-hover">
             <tr>
                 <td width="100px">商品名称</td>
+                <td width="100px">产品编码</td>
                 <td width="100px">规格</td>
                 <td width="100px">数量</td>
                 <td width="100px">买入价格</td>
@@ -258,6 +219,7 @@
             {% for draft in orderdraft %}
                 <tr id="draft_{{ forloop.counter }}">
                     <td>{{ draft.product_name }}</td>
+                    <td>{{ draft.outer_id }}</td>
                     <td>{{ draft.product_chicun }}</td>
                     <td align="center"><a onclick="plusQuantity({{ draft.id }})">
                         <span class="glyphicon glyphicon-plus"></span></a>&nbsp;

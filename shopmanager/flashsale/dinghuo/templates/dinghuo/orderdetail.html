@@ -11,9 +11,9 @@
                 if (res == "OK") {
                     if (button.id == "shenhebutton") {
                         orderstatus.text("审核");
-                    } else if(button.id == "zuifeibutton"){
+                    } else if (button.id == "zuifeibutton") {
                         orderstatus.text("作废");
-                    }else{
+                    } else {
                         orderstatus.text("完成")
                     }
                 }
@@ -38,12 +38,18 @@
                 <label id="order_status" class="label label-success"
                        style="font-size: large">{{ orderlist.status }}</label>
             </div>
+            <div class="col-lg-4"></div>
+            <div class="col-lg-2">
+                <a href="/admin/items/product" style="text-align: right">
+                    <span class="label label-info" style="font-size: 20px">回到商品页面</span>
+                </a>
+            </div>
         </div>
         <div class="row" style="margin-top: 20px">
 
             <div class="col-lg-4">
                 <div class="alert alert-success" role="alert">
-                    <strong>订货单号:</strong>{{ orderlist.orderlistID }}
+                    <strong>填写地址:</strong>XXXXXXXX_{{ orderlist.id }}
                 </div>
             </div>
 
@@ -76,21 +82,7 @@
                 </div>
             </div>
         </div>
-        <div class="row">
-            <div class="col-lg-4">
 
-
-                <input type="button" class="btn btn-default" id="shenhebutton" value="审核"
-                       onclick="changestatus({{ orderlist.orderlistID }},this)">
-                <input type="button" class="btn btn-default" id="zuofeibutton" value="作废"
-                       onclick="changestatus({{ orderlist.orderlistID }},this)">
-                <input type="button" class="btn btn-default" id="wanchengbutton" value="完成"
-                       onclick="changestatus({{ orderlist.orderlistID }},this)">
-
-
-            </div>
-
-        </div>
         <div class="row">
 
             <legend>
@@ -100,6 +92,7 @@
         <div class="row">
             <table id="orderdetailtable" border="1" class="table table-striped table-bordered table-hover">
                 <tr>
+                    <td width="100px">商品编码</td>
                     <td width="100px">商品名称</td>
                     <td width="100px">规格</td>
                     <td width="100px">数量</td>
@@ -108,6 +101,7 @@
                 </tr>
                 {% for order in orderdetails %}
                     <tr id="draft_{{ forloop.counter }}">
+                        <td>{{ order.outer_id }}</td>
                         <td>{{ order.product_name }}</td>
                         <td>{{ order.product_chicun }}</td>
                         <td>
