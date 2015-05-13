@@ -7,7 +7,7 @@ from celery.task import task
 from celery.task.sets import subtask
 from django.conf import settings
 from shopapp.weixin.models import WXOrder
-from flashsale.clickrebeta.models import StatisticsShoppingByDay
+from flashsale.clickrebeta.models import StatisticsShoppingByDay,StatisticsShopping
 
 
 import logging
@@ -33,3 +33,15 @@ def task_Tongji_User_Order(pre_day=1):
 
     except Exception, exc:
         raise task_Tongji_User_Order.retry(exc=exc)
+
+
+@task(max_retry=3, default_retry_delay=5)
+def task_Tongji_All_Order():
+    try:
+        StatisticsShoppingByDay.objects.all().delete()
+        StatisticsShopping.objects.all().delete()
+        all = WXOrder.objects.all()
+        for order1 in all:
+            order1.confirm_payment()
+    except Exception, exc:
+        raise task_Tongji_All_Order.retry(exc=exc)
