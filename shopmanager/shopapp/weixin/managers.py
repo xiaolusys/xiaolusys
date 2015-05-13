@@ -31,7 +31,6 @@ class WeixinProductManager(models.Manager):
         _wx_api = WeiXinAPI()
         product_dict = _wx_api.getMerchant(product_id)
         
-
         category_list = product_dict['product_base'].get('category_id',[])
         for category_id in category_list:
             self.createSkuPropertyByCategory(category_id)
@@ -50,6 +49,7 @@ class WeixinProductManager(models.Manager):
             for sku_dict in sku_table.get('value_list',[]):
                 WXSkuProperty.objects.get_or_create(sku_id=sku_dict['id'],name=sku_dict['name'])
         
+    
     
     def createByDict(self,product_dict):
         
@@ -90,7 +90,8 @@ class WeixinProductManager(models.Manager):
                                                                sku_dict['product_code'], '',
                                                                sku_code_prior=True)
         
-        product_sku.sku_img = sku_dict['icon_url']
+        product_sku.sku_name = WXProductSku.getSkuNameBySkuId(sku_id)
+        product_sku.sku_img  = sku_dict['icon_url']
         product_sku.sku_num  = sku_dict['quantity']
         
         product_sku.sku_price   = round(float(sku_dict['price'])/100,2)

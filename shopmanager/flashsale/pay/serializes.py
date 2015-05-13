@@ -51,7 +51,7 @@ class ProductSkuField(serializers.Field):
     
     def to_representation(self, obj):
         sku_list  = []
-        for sku in obj.all():
+        for sku in obj.filter(status=ProductSku.NORMAL):
             sku_dict = model_to_dict(sku)
             sku_dict['sale_out'] = sku.sale_out
             sku_list.append(sku_dict)
