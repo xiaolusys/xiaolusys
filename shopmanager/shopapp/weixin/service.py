@@ -708,6 +708,7 @@ class WxShopService(LocalService):
         
         wxorder = self.__class__.createTrade(self.order.seller_id,
                                           self.order.order_id)
+        
         merge_trade = WxShopService.createMergeTrade(wxorder,*args, **kwargs)
         
         return merge_trade
@@ -739,6 +740,12 @@ class WxShopService(LocalService):
         except Exception, exc:
             logger.error(u'微信发货失败:%s' % exc.message, exc_info=True)
             raise exc
+        
+        else:
+            self.order.order_status = WXOrder.WX_WAIT_CONFIRM
+            self.order.delivery_id  = out_sid
+            self.order.delivery_company = lg_code
+            self.order.save()
 
 
 
