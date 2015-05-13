@@ -158,7 +158,7 @@ class MamaStatsView(View):
                 xlmm.weikefu = wx_user.nickname
                 xlmm.save()
             
-            clicks = Clicks.objects.filter(linkid=xlmm.pk,created__gt=time_from,created__lt=time_to)
+            clicks = Clicks.objects.filter(linkid=xlmm.pk,created__gt=time_from,created__lt=time_to,isvalid=True)
             openid_list = clicks.values("openid").distinct()
 
             order_num = 0
