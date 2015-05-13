@@ -51,7 +51,6 @@ class XiaoluMama(models.Model):
     
     objects = XiaoluMamaManager()
     
-    
     class Meta:
         db_table = 'xiaolumm_xiaolumama'
         verbose_name=u'小鹿妈妈'

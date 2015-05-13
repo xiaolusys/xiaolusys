@@ -8,35 +8,34 @@ from flashsale.dinghuo import log_action, CHANGE
 class orderdetailInline(admin.TabularInline):
     model = OrderDetail
     fields = (
-        'product_name', 'product_chicun', 'buy_quantity', 'buy_unitprice', 'total_price',
+        'product_name', 'outer_id', 'product_chicun', 'buy_quantity', 'buy_unitprice', 'total_price',
         'arrival_quantity')
     extra = 3
 
 
 class ordelistAdmin(admin.ModelAdmin):
-    fieldsets = ((u'商品信息:', {
+    fieldsets = ((u'订单信息:', {
         'classes': ('expand',),
-        'fields': ('orderlistID', 'buyer_name',  'supplier_name', 'express_company', 'express_no'
-                   , 'receiver', 'status', 'created', 'note')
+        'fields': ('buyer_name', 'supplier_name', 'express_company', 'express_no'
+                   , 'receiver', 'status', 'note')
     }),)
     inlines = [orderdetailInline]
-    list_display = (
-        'orderlistID',  'buyer_name', 'order_amount', 'supplier_name', 'express_company', 'express_no'
-        , 'receiver', 'created', 'shenhe', 'note')
-    list_filter = ['orderlistID']
+    list_display = ('id', 'buyer_name', 'order_amount', 'supplier_name', 'express_company', 'express_no'
+                    , 'receiver', 'created', 'shenhe', 'note')
+    list_filter = ['created']
     search_fields = ['buyer_name']
     date_hierarchy = 'created'
 
     def shenhe(self, obj):
         symbol_link = obj.status or u'【空标题】'
-        return '<a href="/sale/dinghuo/detail/{0}/" >{1}</a>'.format(int(obj.orderlistID), symbol_link)
+        return '<a href="/sale/dinghuo/detail/{0}/" >{1}</a>'.format(int(obj.id), symbol_link)
 
     shenhe.allow_tags = True
     shenhe.short_description = "状态"
 
     def orderlist_ID(self, obj):
         symbol_link = obj.orderlistID or u'【空标题】'
-        return '<a href="/sale/dinghuo/detail/{0}/" >{1}</a>'.format(int(obj.orderlistID), symbol_link)
+        return '<a href="/sale/dinghuo/detail/{0}/" >{1}</a>'.format(int(obj.id), symbol_link)
 
     orderlist_ID.allow_tags = True
     orderlist_ID.short_description = "订单编号"

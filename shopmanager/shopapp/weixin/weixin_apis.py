@@ -284,7 +284,7 @@ class WeiXinAPI(object):
                                       str(params_str),
                                       method='POST')
         
-        return response['sku_table'].get('value_list',[])
+        return response['sku_table']
         
     def deliveryOrder(self,order_id,delivery_company,delivery_track_no,need_delivery=1,is_others=0):
 

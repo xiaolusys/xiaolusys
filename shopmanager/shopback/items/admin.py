@@ -409,11 +409,9 @@ class ProductAdmin(admin.ModelAdmin):
             product_dict['prod_skus'] = []
             guiges = ProductSku.objects.filter(product_id=p.id)
             for guige in guiges:
-                print "add !!!!!"
                 sku_dict = model_to_dict(guige)
                 product_dict['prod_skus'] = sku_dict
             productres.append(product_dict)
-        print productres
 
         productguige = ProductSku.objects.all()
         return render_to_response("dinghuo/addpurchasedetail.html",
