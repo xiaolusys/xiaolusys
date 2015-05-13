@@ -41,7 +41,7 @@ class StatisticsShopping(models.Model):
 
 
 class StatisticsShoppingByDay(models.Model):
-    linkid = models.IntegerField(default=0, db_index=True, verbose_name=u"链接ID")
+    linkid = models.IntegerField(default=0, verbose_name=u"链接ID")
     linkname = models.CharField(max_length=20, default="", verbose_name=u'代理人')
     ordernumcount = models.IntegerField(default=0, verbose_name=u'订单总数')
     orderamountcount = models.IntegerField(default=0, verbose_name=u'订单总价')
