@@ -22,6 +22,7 @@
 <ul class="nav nav-tabs" style="margin-top:10px">
   <li id="id-carry" role="presentation" class="active"><a href="#">补贴</a></li>
   <li id="id-cashout" role="presentation"><a href="#">提现</a></li>
+  <li id="id-referal" role="presentation"><a href="#">推荐</a></li>
 </ul>
 
 <div id="id-carry-list" style="margin-top:20px">
@@ -90,6 +91,23 @@
   </div>
 
 </div>
+
+<div id="id-referal-list" style="margin-top:20px;display:none">
+  <div style="margin-top:20px">
+  <h5>我推荐的代理：</h5>
+    <table class="table table-bordered" style="margin-top:10px">
+      <thead>
+	<th>序号</th><th>昵称</th><th>时间</th>
+      </thead>
+      <tbody id="id-referal-tbody">
+	{% for referal in referal_list %}
+	<tr><td>{{ forloop.counter }}</td><td>{{ referal.weikefu }}</td><td>{{ referal.created }}</td></tr>
+	{% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
 
 {% endblock %}
 
@@ -187,19 +205,35 @@
 
   $("#id-cashout").click(function (e) {
     $("#id-carry").removeClass("active");
+    $("#id-referal").removeClass("active");
     $("#id-cashout").addClass("active");
 
     $("#id-carry-list").css("display","none");
+    $("#id-referal-list").css("display","none");
     $("#id-cashout-list").css("display","block");
   });
 
   $("#id-carry").click(function (e) {
     $("#id-cashout").removeClass("active");
+    $("#id-referal").removeClass("active");
     $("#id-carry").addClass("active");
 
     $("#id-cashout-list").css("display","none");
+    $("#id-referal-list").css("display","none");
     $("#id-carry-list").css("display","block");
   });
+
+  $("#id-referal").click(function (e) {
+    $("#id-cashout").removeClass("active");
+    $("#id-carry").removeClass("active");
+    $("#id-referal").addClass("active");
+
+    $("#id-cashout-list").css("display","none");
+    $("#id-carry-list").css("display","none");
+    $("#id-referal-list").css("display","block");
+  });
+
+
 
   $("#id-cashout-submit").click(function (e) {
     var url = "/m/cashout/";

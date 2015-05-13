@@ -96,13 +96,13 @@ def tongji(sender, obj, **kwargs):
                                    wxorderid=str(obj.order_id),
                                    wxorderamount=obj.order_total_price,
                                    shoptime=obj.order_create_time, tichengcount=obj.order_total_price / length).save()
-                if is_today:
-                    daytongji = StatisticsShoppingByDay.objects.get_or_create(linkid=s['linkid'],
-                                                                              tongjidate=target_time)
-                    daytongji[0].ordernumcount = daytongji[0].ordernumcount + 1
-                    daytongji[0].orderamountcount = daytongji[0].orderamountcount + obj.order_total_price
-                    daytongji[0].todayamountcount = daytongji[0].todayamountcount + obj.order_total_price / length
-                    daytongji[0].save()
+                # if is_today:
+                daytongji = StatisticsShoppingByDay.objects.get_or_create(linkid=s['linkid'],
+                                                                          tongjidate=target_time)
+                daytongji[0].ordernumcount = daytongji[0].ordernumcount + 1
+                daytongji[0].orderamountcount = daytongji[0].orderamountcount + obj.order_total_price
+                daytongji[0].todayamountcount = daytongji[0].todayamountcount + obj.order_total_price / length
+                daytongji[0].save()
             else:
                 StatisticsShopping(linkid=0, openid=obj.buyer_openid, wxorderid=str(obj.order_id),
                            wxorderamount=obj.order_total_price,
