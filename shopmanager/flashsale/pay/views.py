@@ -29,7 +29,7 @@ class PINGPPChargeView(View):
         product = Product.objects.get(pk=form.get('item_id'))
         sku = ProductSku.objects.get(pk=form.get('sku_id'),product=product)
         total_fee = sku.std_sale_price * int(form.get('num'))
-        if float(form['payment']) <= total_fee:
+        if float(form['payment']) < total_fee:
             raise Exception(u'订单提交金额与商品价格差异')
         
         sale_trade = SaleTrade.objects.create(
