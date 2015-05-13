@@ -61,6 +61,8 @@ class WeiXinAPI(object):
     _merchant_order_getbyfilter_uri   = "/merchant/order/getbyfilter"
     _merchant_order_setdelivery_uri   = "/merchant/order/setdelivery"
     
+    _merchant_category_getsku_uri   = "/merchant/category/getsku"
+    
     #微信原生支付URL
     _native_url   = "weixin://wxpay/bizpayurl"
     _deliver_notify_url = "/pay/delivernotify"
@@ -270,6 +272,18 @@ class WeiXinAPI(object):
                                       str(params_str),
                                       method='POST')
         return response['order_list']
+    
+    def getSkuByCategory(self,cate_id=None):
+        
+        params = {'cate_id':cate_id}
+                
+        params_str = json.dumps(params,
+                            ensure_ascii=False)
+
+        response = self.handleRequest(self._merchant_category_getsku_uri, 
+                                      str(params_str),
+                                      method='POST')
+        return response['sku_table']
         
     def deliveryOrder(self,order_id,delivery_company,delivery_track_no,need_delivery=1,is_others=0):
 
