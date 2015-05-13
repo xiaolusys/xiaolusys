@@ -84,9 +84,7 @@ def tongji(sender, obj, **kwargs):
     target_time = datetime.date(target_time.year, target_time.month, target_time.day)
     if target_time > today:
         target_time = today
-    is_today = False
-    if (today == target_time):
-        is_today = True
+
 
     ordertime = obj.order_create_time
     time_from = ordertime - datetime.timedelta(days=1)
@@ -125,7 +123,7 @@ def tongji(sender, obj, **kwargs):
                     tongjiorder[0].shoptime = obj.order_create_time
                     tongjiorder[0].tichengcount = obj.order_total_price / length
                     tongjiorder[0].save()
-                    # if is_today:
+
                     daytongji = StatisticsShoppingByDay.objects.get_or_create(linkid=s['linkid'],
                                                                               tongjidate=target_time)
                     daytongji[0].ordernumcount = daytongji[0].ordernumcount + 1

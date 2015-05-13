@@ -226,6 +226,12 @@ SHOP_APP_SCHEDULE = {
         'args':()
     },
 
+    u'定时统计昨日代理的订单':{
+        'task':'flashsale.clickrebeta.tasks.task_Tongji_User_Order',
+        'schedule':crontab(minute="15",hour='0'),
+        'args':()
+    },
+
 #    'runs-every-10-minutes-update-seller-flag':{
 #        'task':'shopapp.memorule.tasks.updateTradeSellerFlagTask',
 #        'schedule':crontab(minute="*/10"),
