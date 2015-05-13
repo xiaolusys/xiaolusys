@@ -174,6 +174,8 @@ def mergeRemover(trade):
         sub_trade.sys_status=pcfg.WAIT_AUDIT_STATUS
         update_model_fields(sub_trade,update_fields=['sys_status'])
         
+        log_action(trade.user.user.id,sub_trade,CHANGE,u'取消合并')
+        
         trade.payment  -= sub_trade.payment
         trade.post_fee -= sub_trade.post_fee
     
@@ -183,7 +185,7 @@ def mergeRemover(trade):
     for mbt in mbts:
         mbt.delete()
     
-    log_action(trade.user.user.id,trade,CHANGE,u'订单取消合并')
+    log_action(trade.user.user.id,trade,CHANGE,u'取消合并')
     
     recalc_fee_signal.send(sender=MergeTrade,trade_id=trade_id)
     
