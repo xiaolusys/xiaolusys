@@ -50,7 +50,8 @@ class PINGPPChargeView(View):
                                  total_fee=total_fee,
                                  post_fee=form.get('post_fee'),
                                  charge=charge and charge['id'] or '',
-                                 status=SaleTrade.WAIT_BUYER_PAY
+                                 status=SaleTrade.WAIT_BUYER_PAY,
+                                 openid=customer.openid
                                  )
         sale_order_no = form.get('uuid').replace('FD','FO')
         SaleOrder.objects.create(oid=sale_order_no,
