@@ -489,7 +489,22 @@ class WXProduct(models.Model):
     def __unicode__(self):
         return u'<WXProduct:%s>'%(self.product_id)
     
+
+class WXSkuProperty(models.Model):
     
+    sku_id   = models.CharField(max_length=32,db_index=True,verbose_name=u'规格ID')
+    
+    name     = models.CharField(max_length=64,verbose_name=u'规格名称')
+    
+    class Meta:
+        db_table = 'shop_weixin_skuproperty'
+        verbose_name=u'微信商品属性'
+        verbose_name_plural = u'微信商品属性列表'
+
+    def __unicode__(self):
+        return u'<WXSkuProperty:%s>'%self.sku_id
+    
+  
 class WXProductSku(models.Model):
     
     UP_SHELF   = 1
@@ -526,22 +541,19 @@ class WXProductSku(models.Model):
     def __unicode__(self):
         return u'<WXProductSku:%s,%s>'%(self.outer_id,self.outer_sku_id)
     
-    
-class WXSkuProperty(models.Model):
-    
-    sku_id   = models.CharField(max_length=32,db_index=True,verbose_name=u'规格ID')
-    
-    name     = models.CharField(max_length=64,verbose_name=u'规格名称')
-    
-    class Meta:
-        db_table = 'shop_weixin_skuproperty'
-        verbose_name=u'微信商品属性'
-        verbose_name_plural = u'微信商品属性列表'
+    @classmethod
+    def getSkuNameBySkuId(self,sku_id):
+        
+        sku_name = ''
+        skuid_list = [s for s in sku_id.split(';') if s.strip()]
+        for sku_tair in skuid_list:
+            k_id,vid = sku_tair.strip(':')
+            wx_skus = WXSkuProperty.objects.filter(sku_id=vid)
+            if wx_skus.count() > 0:
+                sku_name += wx_skus[0].name
+        return sku_name
+        
 
-    def __unicode__(self):
-        return u'<WXSkuProperty:%s>'%self.sku_id
-    
-    
 from shopapp.signals import signal_wxorder_pay_confirm
        
 class WXOrder(models.Model):
