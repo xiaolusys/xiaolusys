@@ -1,7 +1,7 @@
 # -*- coding:utf-8 -*-
 from django.db import models
 from flashsale.dinghuo import paramconfig as pcfg
-
+from shopback.base.fields import BigIntegerAutoField,BigIntegerForeignKey
 
 ORDER_PRODUCT_STATUS = (
     (pcfg.SUBMITTING, u'提交中'),
@@ -11,6 +11,9 @@ ORDER_PRODUCT_STATUS = (
 
 
 class OrderList(models.Model):
+    
+    id = BigIntegerAutoField(primary_key=True)
+    
     buyer_name = models.CharField(default="None", max_length=32, verbose_name=u'买手')
     order_amount = models.FloatField(default=0, verbose_name=u'金额')
     supplier_name = models.CharField(default="", max_length=128, verbose_name=u'供应商')
@@ -33,7 +36,10 @@ class OrderList(models.Model):
 
 
 class OrderDetail(models.Model):
-    orderlist = models.ForeignKey(OrderList, verbose_name=u'订单编号')
+    
+    id = BigIntegerAutoField(primary_key=True)
+    
+    orderlist = BigIntegerForeignKey(OrderList, verbose_name=u'订单编号')
     product_id = models.CharField(max_length=32, verbose_name=u'商品id')
     outer_id = models.CharField(max_length=32, verbose_name=u'产品外部编码')
     product_name = models.CharField(max_length=128, verbose_name=u'产品名称')
