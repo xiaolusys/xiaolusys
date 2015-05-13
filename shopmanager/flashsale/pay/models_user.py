@@ -104,7 +104,7 @@ class Customer(models.Model):
     @classmethod
     def getCustomerByUser(cls,user):
         
-        customers = cls.objects.filter(user=user)
+        customers = cls.objects.filter(user=user.id)
         if customers.count() > 0:
             return customers[0]
         return None

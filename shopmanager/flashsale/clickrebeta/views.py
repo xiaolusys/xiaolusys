@@ -49,11 +49,7 @@ class StatisticTongJi(View):
                                    "target_date": target_date, "next_day": next_day},
                                   context_instance=RequestContext(request))
 
-from shopapp.weixin.models import WXOrder
+from flashsale.clickrebeta import tasks
 def ShengChengAll(req):
-    StatisticsShoppingByDay.objects.all().delete()
-    StatisticsShopping.objects.all().delete()
-    all = WXOrder.objects.all()
-    for order1 in all:
-        order1.confirm_payment()
+    tasks.task_Tongji_All_Order.delay()
     return HttpResponse("OK")

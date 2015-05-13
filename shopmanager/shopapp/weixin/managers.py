@@ -31,10 +31,11 @@ class WeixinProductManager(models.Manager):
         _wx_api = WeiXinAPI()
         product_dict = _wx_api.getMerchant(product_id)
         
+
         category_list = product_dict['product_base'].get('category_id',[])
         for category_id in category_list:
             self.createSkuPropertyByCategory(category_id)
-        
+            
         return self.createByDict(product_dict)
         
     def createSkuPropertyByCategory(self,category_id):
@@ -44,10 +45,10 @@ class WeixinProductManager(models.Manager):
         
         _wx_api = WeiXinAPI()
         
-        sku_properties = _wx_api.getSkuByCategory(cate_id=category_id)
-        for sku_dict in sku_properties:
-            WXSkuProperty.objects.get_or_create(sku_id=sku_dict['id'],name=sku_dict['name'])
-        
+        sku_tables = _wx_api.getSkuByCategory(cate_id=category_id)
+        for sku_table in sku_tables:
+            for sku_dict in sku_table.get('value_list',[]):
+                WXSkuProperty.objects.get_or_create(sku_id=sku_dict['id'],name=sku_dict['name'])
         
     
     def createByDict(self,product_dict):
