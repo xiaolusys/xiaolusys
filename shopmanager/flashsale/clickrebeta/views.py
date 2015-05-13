@@ -51,6 +51,8 @@ class StatisticTongJi(View):
 
 from shopapp.weixin.models import WXOrder
 def ShengChengAll(req):
+    StatisticsShoppingByDay.objects.all().delete()
+    StatisticsShopping.objects.all().delete()
     all = WXOrder.objects.all()
     for order1 in all:
         order1.confirm_payment()
