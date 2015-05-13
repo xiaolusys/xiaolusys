@@ -325,6 +325,10 @@ class ProductSku(models.Model):
         2,库存管理的规格核心类；
     """
     
+    NORMAL = pcfg.NORMAL
+    REMAIN = pcfg.REMAIN
+    DELETE = pcfg.DELETE
+    
     outer_id = models.CharField(max_length=64,blank=False,verbose_name='规格外部编码')
     
     barcode  = models.CharField(max_length=64,blank=True,db_index=True,verbose_name='条码')
