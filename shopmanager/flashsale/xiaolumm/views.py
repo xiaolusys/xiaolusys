@@ -60,8 +60,9 @@ class CashoutView(View):
             return redirect(redirect_url)
         
         xlmm = XiaoluMama.objects.get(openid=unionid)
+        referal_list = XiaoluMama.objects.filter(referal_from=xlmm.mobile)
         cashout_objs = CashOut.objects.filter(xlmm=xlmm.pk,status=CashOut.PENDING)
-        data = {"xlmm":xlmm, "cashout": cashout_objs.count()}
+        data = {"xlmm":xlmm, "cashout": cashout_objs.count(), "referal_list":referal_list}
         
         
         response = render_to_response("mama_cashout.html", data, context_instance=RequestContext(request))
@@ -150,6 +151,7 @@ class MamaStatsView(View):
         mobile = wx_user.mobile
         data   = {}
         try:
+            referal_num = XiaoluMama.objects.filter(referal_from=mobile).count()
             xlmm,status = XiaoluMama.objects.get_or_create(openid=unionid)
             if xlmm.mobile  != mobile:
                 xlmm.mobile  = mobile
@@ -158,7 +160,7 @@ class MamaStatsView(View):
             
             clicks = Clicks.objects.filter(linkid=xlmm.pk,created__gt=time_from,created__lt=time_to)
             openid_list = clicks.values("openid").distinct()
-            
+
             order_num = 0
             total_value = 0
             order_list = []
@@ -192,12 +194,12 @@ class MamaStatsView(View):
                 click_price += order_num * 0.1
 
             click_pay = click_price * click_num
-            
+
             data = {"mobile":mobile_revised, "click_num":click_num, "xlmm":xlmm,
                     "order_num":order_num, "order_list":order_list, "pk":xlmm.pk,
                     "total_value":total_value, "carry":carry, "agencylevel":agencylevel,
                     "target_date":target_date, "prev_day":prev_day, "next_day":next_day,
-                    "click_price":click_price, "click_pay":click_pay}
+                    "click_price":click_price, "click_pay":click_pay, "referal_num":referal_num}
         except Exception,exc:
             logger.error(exc.message,exc_info=True)
         

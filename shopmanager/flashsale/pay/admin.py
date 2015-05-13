@@ -2,6 +2,7 @@
 from django.contrib import admin
 from django.db import models
 from django.conf import settings
+from django.contrib.admin.views.main import ChangeList
 from django.forms import TextInput, Textarea, FloatField
 from django.http import HttpResponseRedirect
 
@@ -133,15 +134,45 @@ class UserAddressAdmin(admin.ModelAdmin):
 
 admin.site.register(UserAddress, UserAddressAdmin)
 
+class SaleRefundChangeList(ChangeList):
+    
+    def get_query_set(self,request):
+        
+        search_q = request.GET.get('q','').strip()
+        if search_q :
+            
+            refunds = SaleRefund.objects.none()
+            trades = SaleTrade.objects.filter(tid=search_q)
+            if trades.count() > 0 and search_q.isdigit():
+                
+                refunds = SaleRefund.objects.filter(models.Q(trade_id=trades[0].id)|
+                                                    models.Q(order_id=search_q)|
+                                                    models.Q(refund_id=search_q)|
+                                                    models.Q(mobile=search_q)|
+                                                    models.Q(trade_id=search_q))
+                
+            elif trades.count() > 0:
+                refunds = SaleRefund.objects.filter(trade_id=trades[0].id)
+                
+            elif search_q.isdigit():
+                refunds = SaleRefund.objects.filter(models.Q(order_id=search_q)|
+                                                    models.Q(refund_id=search_q)|
+                                                    models.Q(mobile=search_q)|
+                                                    models.Q(trade_id=search_q))
+            
+            return refunds
+        
+        return super(SaleRefundChangeList,self).get_query_set(request)
 
 from flashsale.xiaolumm.models import XiaoluMama,CarryLog
 
 class SaleRefundAdmin(admin.ModelAdmin):
     
-    list_display = ('refund_no','order_id','title','refund_fee','has_good_return','has_good_change','created','status')
-    search_fields = ['trade_id','order_id','refund_id','mobile']
+    list_display = ('refund_no','order_no','title','refund_fee','has_good_return','has_good_change','created','status')
     
     list_filter = ('status','good_status','has_good_return','has_good_change')
+    
+    search_fields = ['trade_id','order_id','refund_id','mobile']
     
     def order_no(self, obj):
         strade = SaleTrade.objects.get(id=obj.trade_id)
@@ -149,6 +180,7 @@ class SaleRefundAdmin(admin.ModelAdmin):
     
     order_no.allow_tags = True
     order_no.short_description = "交易编号" 
+    
     
     #-------------- 页面布局 --------------
     fieldsets =(('基本信息:', {
@@ -187,6 +219,9 @@ class SaleRefundAdmin(admin.ModelAdmin):
                                    'reason','desc','refund_id','charge','status'))
 
         return readonly_fields
+    
+    def get_changelist(self, request, **kwargs):
+        return SaleRefundChangeList
     
     def response_change(self, request, obj, *args, **kwargs):
         #订单处理页面

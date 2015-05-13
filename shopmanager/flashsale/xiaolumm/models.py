@@ -5,7 +5,7 @@ from shopapp.weixin.models import UserGroup
 from .managers import XiaoluMamaManager
 # Create your models here.
 
-MM_CLICK_DAY_LIMIT = 3
+MM_CLICK_DAY_LIMIT = 2
 
 class XiaoluMama(models.Model):
     
@@ -87,11 +87,11 @@ class XiaoluMama(models.Model):
 class AgencyLevel(models.Model):
     
     category = models.CharField(max_length=11,unique=True,blank=False,verbose_name=u"类别")
-    deposit = models.IntegerField(default=0,verbose_name=u"押金")
-    cash = models.IntegerField(default=0,verbose_name=u"现金")
-    basic_rate = models.IntegerField(default=0,verbose_name=u"基本佣金率")
-    target = models.IntegerField(default=0,verbose_name=u"达标额度")
-    extra_rate = models.IntegerField(default=0,verbose_name=u"奖励佣金率")
+    deposit = models.IntegerField(default=0,verbose_name=u"押金(元)")
+    cash = models.IntegerField(default=0,verbose_name=u"现金(元)")
+    basic_rate = models.IntegerField(default=0,verbose_name=u"基本佣金率（百分比）")
+    target = models.IntegerField(default=0,verbose_name=u"达标额度（元）")
+    extra_rate = models.IntegerField(default=0,verbose_name=u"奖励佣金率（百分比）")
     created = models.DateTimeField(auto_now_add=True,verbose_name=u'创建时间')
 
     class Meta:
@@ -103,11 +103,21 @@ class AgencyLevel(models.Model):
         return float(self.cash/100.0)
     
     get_cash_display.allow_tags = True
-    get_cash_display.short_description = u"可用现金"
+    get_cash_display.short_description = u"现金"
     
     @property
     def cash_money(self):
         return self.get_cash_display()
+    
+    def get_deposit_display(self):
+        return float(self.cash/100.0)
+    
+    get_deposit_display.allow_tags = True
+    get_deposit_display.short_description = u"押金"
+    
+    @property
+    def deposit_money(self):
+        return self.get_deposit_display()
 
 
 class Clicks(models.Model):

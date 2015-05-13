@@ -240,6 +240,14 @@ def uploadTradeLogisticsTask(trade_id,operator_id):
             merge_trade.out_sid = main_trade.out_sid
             merge_trade.save()
             
+        if (delivery_trade.is_sub 
+            and merge_trade.sys_status in [pcfg.WAIT_AUDIT_STATUS,
+                                           pcfg.WAIT_PREPARE_SEND_STATUS,
+                                           pcfg.INVALID_STATUS,
+                                           pcfg.REGULAR_REMAIN_STATUS]):
+            delivery_trade.delete()
+            return 
+            
         tservice = TradeService(merge_trade.user.visitor_id,merge_trade)
         tservice.sendTrade()
     

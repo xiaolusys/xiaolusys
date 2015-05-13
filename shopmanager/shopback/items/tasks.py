@@ -592,8 +592,7 @@ def updatePurchaseItemNum(user_id,pid):
                                                           tb_user_id=user_id)
             
             item_dict = response['fenxiao_product_update_response']
-            FenxiaoProduct.objects.filter(pid=item_dict['pid']
-                                          ).update(modified=item_dict['modified'])
+            FenxiaoProduct.objects.filter(pid=pid).update(modified=item_dict['modified'])
             
             for index,sku in enumerate(sku_tuple):
                 ItemNumTaskLog.objects.get_or_create(user_id=user_id,

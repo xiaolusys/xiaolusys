@@ -43,15 +43,16 @@
     <li class="list-group-item"><p style="color:orange">账户现金: ￥<span style="font-size:26px">{{ xlmm.cash_money }}</span>（<a href="/m/cashout/">详情</a>）<a href="/m/cashout/" class="btn btn-warning" style="float:right;">提现</a></p></li>
     {% endif %}
     <li class="list-group-item">专属链接： <b>http://xiaolu.so/m/{{ pk }}/</b></li>
-    <li class="list-group-item">点击人数: {{ click_num }}</li>
-    <li class="list-group-item"><span style="color:orange">点击补贴: {{ click_num }} * {{ click_price }} = ￥{{ click_pay }}</span>（培训通过后生效）</li>
-    <li class="list-group-item">订单人数: {{ order_num }}</li>
-    <li class="list-group-item"><span style="color:orange">订单金额: ￥{{ total_value }}</span></li>
+    <li class="list-group-item">推荐人数： {{ referal_num }}（<a href="/m/cashout/">详情</a>）</li>
+    <li class="list-group-item">点击人数： {{ click_num }}</li>
+    <li class="list-group-item"><span style="color:orange">点击补贴： {{ click_num }} * {{ click_price }} = ￥{{ click_pay }}</span>（培训通过后生效）</li>
+    <li class="list-group-item"><span style="color:orange">订单人数： {{ order_num }}</span></li>
+    <li class="list-group-item"><span style="color:orange">订单金额： ￥{{ total_value }}</span></li>
     {% if agencylevel.pk > 1 %}
     {% if carry > 0 %}
-    <li class="list-group-item"><span style="color:orange">订单补贴: ￥{{ carry }}（待确认）</span></li>
+    <li class="list-group-item"><span style="color:orange">订单补贴： ￥{{ carry }}（待确认）</span></li>
     {% else %}
-    <li class="list-group-item"><span style="color:orange">订单补贴: {{ carry }}</span></li>
+    <li class="list-group-item"><span style="color:orange">订单补贴： {{ carry }}</span></li>
     {% endif %}
     {% endif %}
   </ul>
