@@ -8,16 +8,16 @@
             $("#drafttable thead").eq(0).nextAll().remove();
             document.getElementById("orderAdd").disabled = true;
         }
-        $(document).ready(function () {
-            var t = $(".mairucost").eq(0);
-            t.blur(function () {
-                var t = $(".mairucost");
-                var v = t.eq(0).val();
-                for (i = 1; i < t.length; i++) {
-                    t.eq(i).attr("value", v);
-                }
-            });
-        });
+{#        $(document).ready(function () {#}
+{#            var t = $(".mairucost").eq(0);#}
+{#            t.blur(function () {#}
+{#                var t = $(".mairucost");#}
+{#                var v = t.eq(0).val();#}
+{#                for (i = 1; i < t.length; i++) {#}
+{#                    t.eq(i).attr("value", v);#}
+{#                }#}
+{#            });#}
+{#        });#}
     </script>
 {% endblock %}
 {% block container %}
@@ -67,7 +67,7 @@
                                                 <td>
                                                     <div>
                                                         <input name="{{ guige.product_id }}_tb_cost_{{ guige.id }}"
-                                                               type="text" min="0" class="mairucost form-control"
+                                                               type="text" min="0" value="{{ guige.cost }}" class="mairucost form-control"
                                                                t_value=""
                                                                o_value=""
                                                                onkeypress="if(!this.value.match(/^[\+\-]?\d*?\.?\d*?$/))this.value=this.t_value;else this.t_value=this.value;if(this.value.match(/^(?:[\+\-]?\d+(?:\.\d+)?)?$/))this.o_value=this.value"

@@ -27,10 +27,8 @@ def searchProduct(request):
     response = HttpResponse()
     response['Content-Type'] = "text/javascript"
     ProductIDFrompage = request.GET.get("searchtext", "")
-    print "ProductIDFrompage", ProductIDFrompage
     productRestult = Product.objects.filter(outer_id__icontains=ProductIDFrompage)
     # data = serializers.serialize("json", productRestult)
-    # print "tttttttttttttt", data
     product_list = []
     for product in productRestult:
         product_dict = model_to_dict(product)
@@ -44,25 +42,17 @@ def searchProduct(request):
         product_list.append(product_dict)
 
     data = json.dumps(product_list, cls=DjangoJSONEncoder)
-
-
-    # productRestult[0].prod_skus.all()
-
-    # model_to_dict(productRestult[0])
     return HttpResponse(data)
 
 
 @csrf_exempt
 def initdraft(request):
     user = request.user
-    print "initdraft"
     if request.method == "POST":
-        print "post"
 
         post = request.POST
 
         product_counter = int(post["product_counter"])
-        print product_counter
         for i in range(1, product_counter + 1):
             product_id_index = "product_id_" + str(i)
             product_id = post[product_id_index]
@@ -72,10 +62,10 @@ def initdraft(request):
                 guigequantity = post[guigequantityindex]
                 mairujiageindex = product_id + "_tb_cost_" + str(guige.id)
                 mairujiage = post[mairujiageindex]
-                if guigequantity and mairujiage and mairujiage != "0" and guigequantity != "0":
+                mairujiage = float(mairujiage)
+                if guigequantity and mairujiage and mairujiage != 0 and guigequantity != "0":
                     guigequantity = int(guigequantity)
                     mairujiage = float(mairujiage)
-                    print guigequantityindex + ":" + str(guigequantity), mairujiage
                     try:
                         p1 = Product.objects.get(id=product_id)
                     except Exception as e:
@@ -87,19 +77,17 @@ def initdraft(request):
                         draftquery[0].save()
                     else:
                         shijian = datetime.datetime.now()
-                        tdraft = orderdraft(buyer_name=user, product_id=product_id, buy_quantity=guigequantity,
-                                            product_name=p1.name, buy_unitprice=mairujiage, chichu_id=guige.id,
-                                            product_chicun=guige.name, created=shijian)
+                        tdraft = orderdraft(buyer_name=user, product_id=product_id, outer_id=p1.outer_id,
+                                            buy_quantity=guigequantity, product_name=p1.name, buy_unitprice=mairujiage,
+                                            chichu_id=guige.id, product_chicun=guige.name, created=shijian)
                         tdraft.save()
                 else:
                     guigequantity = 0
         return HttpResponseRedirect("/sale/dinghuo/dingdan/")
     elif request.method == "GET":
-        print "get"
         response = HttpResponse()
         response['Content-Type'] = "text/javascript"
         tb_id = request.GET.get("tb_outer", "hello")
-        print tb_id
         tb_outer_id = request.GET.get("tb_outer_id", "")
         buy_quantity = request.GET.get("buy_quantity", "0")
 
@@ -132,15 +120,15 @@ def initdraft(request):
 def neworder(request):
     username = request.user
     orderDrAll = orderdraft.objects.all().filter(buyer_name=username)
-    print len(orderDrAll)
-    print "hi", request.method == 'POST'
     orderlist = None
     if request.method == 'POST':
-        amount = calamount(username)
-        print amount
         post = request.POST
+        costofems = post['costofems']
+        if costofems=="":
+            costofems = 0
+        else:
+            costofems = int(costofems)
         shijian = datetime.datetime.now()
-        orderlistID = post['orderID']
         receiver = post['consigneeName']
         supplierId = post['supplierId']
         storehouseId = post['storehouseId']
@@ -148,39 +136,53 @@ def neworder(request):
         express_no = post['express_no']
         businessDate = datetime.datetime.now()
         remarks = post['remarks']
-        print pcfg.SUBMITTING
-        orderlist = OrderList.objects.get_or_create(buyer_name=username, orderlistID=orderlistID, receiver=receiver,
-                                                    express_company=express_company, express_no=express_no,
-                                                    supplier_name=supplierId, created=businessDate,
-                                                    updated=businessDate,
-                                                    note=remarks, status=pcfg.SUBMITTING, order_amount=amount)
+        amount = calamount(username, costofems)
+        orderlist = OrderList()
+        orderlist.buyer_name = username
+        orderlist.costofems = costofems
+        orderlist.receiver = receiver
+        orderlist.express_company = express_company
+        orderlist.express_no = express_no
+        orderlist.supplier_name = supplierId
+        orderlist.created = businessDate
+        orderlist.updated = businessDate
+        orderlist.note = remarks
+        orderlist.status = pcfg.SUBMITTING
+        orderlist.order_amount = amount
+        orderlist.save()
+
         drafts = orderdraft.objects.filter(buyer_name=username)
         for draft in drafts:
             total_price = draft.buy_quantity * draft.buy_unitprice
-            OrderDetail.objects.get_or_create(orderlistID_id=orderlistID, product_id=draft.product_id,
-                                              product_name=draft.product_name, product_chicun=draft.product_chicun,
-                                              chichu_id=draft.chichu_id, buy_quantity=draft.buy_quantity,
-                                              total_price=total_price, buy_unitprice=draft.buy_unitprice,
-                                              created=shijian, updated=shijian)
+            orderdetail1 = OrderDetail()
+            orderdetail1.orderlist_id = orderlist.id
+            orderdetail1.product_id = draft.product_id
+            orderdetail1.outer_id = draft.outer_id
+            orderdetail1.product_name = draft.product_name
+            orderdetail1.product_chicun = draft.product_chicun
+            orderdetail1.chichu_id = draft.chichu_id
+            orderdetail1.buy_quantity = draft.buy_quantity
+            orderdetail1.total_price = total_price
+            orderdetail1.buy_unitprice = draft.buy_unitprice
+            orderdetail1.created = shijian
+            orderdetail1.updated = shijian
+            orderdetail1.save()
         drafts.delete()
-        log_action(request.user.id, orderlist[0], CHANGE, u'新建订货单')
-        return HttpResponseRedirect("/sale/dinghuo/detail/" + orderlistID)
-    else:
-        print "else"
+        log_action(request.user.id, orderlist, CHANGE, u'新建订货单')
+        return HttpResponseRedirect("/sale/dinghuo/detail/" + str(orderlist.id))
 
     return render_to_response('dinghuo/shengchengorder.html', {"orderdraft": orderDrAll},
                               context_instance=RequestContext(request))
 
 
-def calamount(u):
-    print "fdfd", u
+def calamount(u, costofems):
     amount = 0;
+    print costofems
     drafts = orderdraft.objects.all().filter(buyer_name=u)
-    print drafts
     try:
         for draft in drafts:
-            print "test"
             amount = amount + draft.buy_unitprice * draft.buy_quantity
+        amount = amount + costofems
     except Exception as e:
         print e
     return amount
@@ -253,12 +255,10 @@ def removedraft(req):
 
 @csrf_exempt
 def viewdetail(req, orderdetail_id):
-    print orderdetail_id
-    orderlist = OrderList.objects.get(orderlistID=orderdetail_id)
-    orderdetail = OrderDetail.objects.filter(orderlistID=orderdetail_id)
+    orderlist = OrderList.objects.get(id=orderdetail_id)
+    orderdetail = OrderDetail.objects.filter(orderlist_id=orderdetail_id)
     paginator = Paginator(orderdetail, 7)
     page = req.GET.get('page')
-    print(paginator.num_pages)
     dict = {}
     for i in range(1, paginator.num_pages + 1):
         dict[i] = i
@@ -283,9 +283,9 @@ def changestatus(req):
     orderlist.status = status_text
     orderlist.save()
     state = True
-    if status_text=="审核":
+    if status_text == "审核":
         state = True
     else:
         state = False
-    log_action(req.user.id, orderlist, CHANGE, u'%s采购单'%(state and u'审核' or u'作废'))
+    log_action(req.user.id, orderlist, CHANGE, u'%s采购单' % (state and u'审核' or u'作废'))
     return HttpResponse("OK")

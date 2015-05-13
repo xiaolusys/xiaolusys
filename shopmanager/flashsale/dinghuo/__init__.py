@@ -7,7 +7,6 @@ logger =  logging.getLogger('django.request')
 
 def log_action(user_id,obj,action,msg):
     try:
-        print "tryyyyyyyyyyyyyyyyyyyyyyyy"
         LogEntry.objects.log_action(
                 user_id = user_id,
                 content_type_id = ContentType.objects.get_for_model(obj).id,

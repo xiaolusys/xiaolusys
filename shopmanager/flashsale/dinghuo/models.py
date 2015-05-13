@@ -11,18 +11,17 @@ ORDER_PRODUCT_STATUS = (
 
 
 class OrderList(models.Model):
-    orderlistID = models.CharField(primary_key=True, max_length=10, verbose_name=u"订单编号")  # 订单编号
-    buyer_name = models.CharField(max_length=32, verbose_name=u'买手')
+    buyer_name = models.CharField(default="None", max_length=32, verbose_name=u'买手')
     order_amount = models.FloatField(default=0, verbose_name=u'金额')
-    supplier_name = models.CharField(max_length=128, verbose_name=u'供应商')
-    # supplier_name = models.ForeignKey(Supplier, verbose_name=u'供应商')
-    express_company = models.CharField(default="hello", max_length=32, verbose_name=u'快递公司')
+    supplier_name = models.CharField(default="", max_length=128, verbose_name=u'供应商')
+    express_company = models.CharField(default="", max_length=32, verbose_name=u'快递公司')
     express_no = models.CharField(default="", max_length=32, verbose_name=u'快递单号')
-    receiver = models.CharField(max_length=32, verbose_name=u'仓库负责人')
+    receiver = models.CharField(default="", max_length=32, verbose_name=u'仓库负责人')
+    costofems = models.IntegerField(default=0, verbose_name=u'快递费用')
     status = models.CharField(max_length=32, verbose_name=u'订货单状态', choices=ORDER_PRODUCT_STATUS)
-    created = models.DateField(verbose_name=u'订货日期')
+    created = models.DateField(auto_now_add=True, verbose_name=u'订货日期')
     updated = models.DateField(auto_now_add=True, verbose_name=u'更新日期')
-    note = models.TextField(verbose_name=u'备注信息')
+    note = models.TextField(default="", verbose_name=u'备注信息')
 
     class Meta:
         db_table = 'suplychain_flashsale_orderlist'
@@ -30,21 +29,22 @@ class OrderList(models.Model):
         verbose_name_plural = u'订货表'
 
     def __unicode__(self):
-        return '<%s,%s,%s>' % (str(self.orderlistID or ''), self.orderlistID, self.buyer_name)
+        return '<%s,%s,%s>' % (str(self.id or ''), self.id, self.buyer_name)
 
 
 class OrderDetail(models.Model):
-    orderlistID = models.ForeignKey(OrderList, verbose_name=u'订单编号')
-    product_id = models.CharField(max_length=32, verbose_name=u'产品编码')
+    orderlist = models.ForeignKey(OrderList, verbose_name=u'订单编号')
+    product_id = models.CharField(max_length=32, verbose_name=u'商品id')
+    outer_id = models.CharField(max_length=32, verbose_name=u'产品外部编码')
     product_name = models.CharField(max_length=128, verbose_name=u'产品名称')
     chichu_id = models.CharField(max_length=32, verbose_name=u'规格id')
     product_chicun = models.CharField(max_length=100, verbose_name=u'产品尺寸')
-    buy_quantity = models.IntegerField(verbose_name=u'产品数量')
-    buy_unitprice = models.FloatField(verbose_name=u'买入价格')
-    total_price = models.FloatField(verbose_name=u'单项总价')
+    buy_quantity = models.IntegerField(default=0, verbose_name=u'产品数量')
+    buy_unitprice = models.FloatField(default=0, verbose_name=u'买入价格')
+    total_price = models.FloatField(default=0, verbose_name=u'单项总价')
     arrival_quantity = models.IntegerField(default=0, verbose_name=u'到货数量')
-    created = models.DateField(verbose_name=u'生成日期')
-    updated = models.DateField(verbose_name=u'更新日期')
+    created = models.DateField(auto_now_add=True, verbose_name=u'生成日期')
+    updated = models.DateField(auto_now_add=True, verbose_name=u'更新日期')
 
 
     class Meta:
@@ -57,13 +57,14 @@ class OrderDetail(models.Model):
 
 
 class orderdraft(models.Model):
-    buyer_name = models.CharField(max_length=32, verbose_name=u'买手')
-    product_id = models.CharField(max_length=32, verbose_name=u'产品编码')
+    buyer_name = models.CharField(default="None", max_length=32, verbose_name=u'买手')
+    product_id = models.CharField(max_length=32, verbose_name=u'商品id')
+    outer_id = models.CharField(max_length=32, verbose_name=u'产品外部编码')
     product_name = models.CharField(max_length=128, verbose_name=u'产品名称')
     chichu_id = models.CharField(max_length=32, verbose_name=u'规格id')
     product_chicun = models.CharField(default="", max_length=20, verbose_name=u'产品尺寸')
-    buy_unitprice = models.FloatField(verbose_name=u'买入价格')
-    buy_quantity = models.IntegerField(verbose_name=u'产品数量')
+    buy_unitprice = models.FloatField(default=0, verbose_name=u'买入价格')
+    buy_quantity = models.IntegerField(default=0, verbose_name=u'产品数量')
     created = models.DateField(auto_now_add=True, verbose_name=u'生成日期')
 
     class Meta:
