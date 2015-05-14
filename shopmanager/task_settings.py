@@ -59,56 +59,56 @@ GEN_AMOUNT_FILE_MIN_DAYS = 20
 from celery.schedules import crontab
 
 SYNC_MODEL_SCHEDULE = {
-#     u'定时淘宝分销订单增量下载任务':{    #增量更新分销部分订单
-#         'task':'shopback.fenxiao.tasks.updateAllUserIncrementPurchasesTask',
-#         'schedule':crontab(minute="*/15"),
-#         'args':()
-#     },
-#     u'定时淘宝商城订单增量下载任务':{
-#         'task':'shopback.orders.tasks.updateAllUserIncrementTradesTask',
-#         'schedule':crontab(minute="0",hour="*/12"),
-#         'args':()
-#     },
-#     u'定时淘宝商城待发货订单下载任务':{
-#         'task':'shopback.orders.tasks.updateAllUserWaitPostOrderTask',
-#         'schedule':crontab(minute="30",hour="23"),
-#         'args':()
-#     },
-#     u'分段日期统计商品销售数据':{     #将昨日的订单数更新为商品的警告库位
-#          'task':'shopback.items.tasks.gradCalcProductSaleTask',
-#          'schedule':crontab(minute="30",hour='3'),
-#          'args':()
-#      },
-#     u'定时淘宝退款订单下载任务':{     #更新昨日退货退款单
-#          'task':'shopback.refunds.tasks.updateAllUserRefundOrderTask',
-#          'schedule':crontab(minute="0",hour='2'),
-#          'args':(1,None,None,)
-#      },
-#     u'定时更新设置提醒的订单入问题单':{     #更新定时提醒订单
-#          'task':'shopback.trades.tasks.regularRemainOrderTask',
-#          'schedule':crontab(minute="0",hour='0,12,17'),
-#          'args':()
-#      },
-#     u'定时将将客户信息更新到会员列表':{     #更新客户信息
-#          'task':'shopback.trades.tasks.pushBuyerToCustomerTask',
-#          'schedule':crontab(minute="0",hour='2',day_of_week='sun'),
-#          'args':(21,)
-#      },
-#      u'定时更新商品待发数':{     #更新库存
-#         'task':'shopback.items.tasks.updateProductWaitPostNumTask',
-#         'schedule':crontab(minute="0",hour="5"),#
-#         'args':()
-#      },
-#      u'定时更新淘宝商品库存':{     #更新库存
-#         'task':'shopback.items.tasks.updateAllUserItemNumTask',
-#         'schedule':crontab(minute="0",hour="*/7"),#
-#         'args':()
-#     },
-#     u'定时更新分销商品库存':{     #更新库存
-#         'task':'shopback.items.tasks.updateAllUserPurchaseItemNumTask',
-#         'schedule':crontab(minute="0",hour="*/7"),#
-#         'args':()
-#     },
+    u'定时淘宝分销订单增量下载任务':{    #增量更新分销部分订单
+        'task':'shopback.fenxiao.tasks.updateAllUserIncrementPurchasesTask',
+        'schedule':crontab(minute="*/15"),
+        'args':()
+    },
+    u'定时淘宝商城订单增量下载任务':{
+        'task':'shopback.orders.tasks.updateAllUserIncrementTradesTask',
+        'schedule':crontab(minute="0",hour="*/12"),
+        'args':()
+    },
+    u'定时淘宝商城待发货订单下载任务':{
+        'task':'shopback.orders.tasks.updateAllUserWaitPostOrderTask',
+        'schedule':crontab(minute="30",hour="23"),
+        'args':()
+    },
+    u'分段日期统计商品销售数据':{     #将昨日的订单数更新为商品的警告库位
+         'task':'shopback.items.tasks.gradCalcProductSaleTask',
+         'schedule':crontab(minute="30",hour='3'),
+         'args':()
+     },
+    u'定时淘宝退款订单下载任务':{     #更新昨日退货退款单
+         'task':'shopback.refunds.tasks.updateAllUserRefundOrderTask',
+         'schedule':crontab(minute="0",hour='2'),
+         'args':(1,None,None,)
+     },
+    u'定时更新设置提醒的订单入问题单':{     #更新定时提醒订单
+         'task':'shopback.trades.tasks.regularRemainOrderTask',
+         'schedule':crontab(minute="0",hour='0,12,17'),
+         'args':()
+     },
+    u'定时将将客户信息更新到会员列表':{     #更新客户信息
+         'task':'shopback.trades.tasks.pushBuyerToCustomerTask',
+         'schedule':crontab(minute="0",hour='2',day_of_week='sun'),
+         'args':(21,)
+     },
+     u'定时更新商品待发数':{     #更新库存
+        'task':'shopback.items.tasks.updateProductWaitPostNumTask',
+        'schedule':crontab(minute="0",hour="5"),#
+        'args':()
+     },
+     u'定时更新淘宝商品库存':{     #更新库存
+        'task':'shopback.items.tasks.updateAllUserItemNumTask',
+        'schedule':crontab(minute="0",hour="*/7"),#
+        'args':()
+    },
+    u'定时更新分销商品库存':{     #更新库存
+        'task':'shopback.items.tasks.updateAllUserPurchaseItemNumTask',
+        'schedule':crontab(minute="0",hour="*/7"),#
+        'args':()
+    },
     
 #    'runs-every-weeks-order-amount':{   #更新用户商城订单结算，按周
 #        'task':'shopback.amounts.tasks.updateAllUserOrdersAmountTask',
@@ -129,76 +129,76 @@ SYNC_MODEL_SCHEDULE = {
 
 
 SHOP_APP_SCHEDULE = {
-#     u'定时抓取商品评价':{
-#         'task':'shopapp.comments.tasks.crawAllUserOnsaleItemComment',
-#         'schedule':crontab(minute="0",hour="8,10,12,14,16,18,20,22"),
-#         'args':()
-#     },
-#     u'定时上架任务':{  #定时上架任务
-#         'task':'shopapp.autolist.tasks.updateAllItemListTask',
-#         'schedule':crontab(minute='*/10',hour=','.join([str(i) for i in range(7,24)])),
-#         'args':(),
-#     },
-#     u'定时生成月销售报表':{
-#         'task':'shopapp.report.tasks.updateMonthTradeXlsFileTask',
-#         'schedule':crontab(minute="0",hour="3"),
-#         'args':()
-#     },
-#     u'淘宝异步任务结果自动处理':{     #淘宝异步任务执行主任务
-#          'task':'shopapp.asynctask.tasks.taobaoAsyncHandleTask',
-#          'schedule':crontab(minute="*/30"),
-#          'args':()
-#     },           
-#     u'定时发货短信通知客户':{     #更新库存
-#         'task':'shopapp.smsmgr.tasks.notifyPacketPostTask',
-#         'schedule':crontab(minute="30",hour="9,19"),#
-#         'args':(1,)
-#     },
-#     u'定时韵达录单任务':{
-#         'task':'shopapp.yunda.tasks.UpdateYundaOrderAddrTask',
-#         'schedule':crontab(minute="0",hour="10,13"),
-#         'args':()
-#     },
-#     u'定时取消二维码未揽件单号':{
-#         'task':'shopapp.yunda.tasks.CancelUnsedYundaSidTask',
-#         'schedule':crontab(minute="0",hour="4"),
-#         'args':()
-#     },
-#     u'定时系统订单重量更新至韵达对接系统':{
-#         'task':'shopapp.yunda.tasks.PushYundaPackageWeightTask',
-#         'schedule':crontab(minute="*/15",hour="17,18,19,20,21,22,23"),
-#         'args':()
-#     },
-#     u'定时增量下载更新微信订单':{
-#         'task':'shopapp.weixin.tasks.pullWaitPostWXOrderTask',
-#         'schedule':crontab(minute="0",hour=",".join([str(i)  for i in range(8,23)])),
-#         'args':(None,None)
-#     },
-#     u'定时增量更新微信维权订单':{
-#         'task':'shopapp.weixin.tasks.pullFeedBackWXOrderTask',
-#         'schedule':crontab(minute="*/30",hour=','.join([str(i) for i in range(9,23)])),
-#         'args':(None,None)
-#     },      
-#     u'定时同步微信商品库存':{
-#         'task':'shopapp.weixin.tasks.syncWXProductNumTask',
-#         'schedule':crontab(minute="10",hour='1,12'),
-#         'args':()
-#     },
-#     u'定时增量下载京东订单信息':{
-#         'task':'shopapp.jingdong.tasks.pullAllJDShopOrderByModifiedTask',
-#         'schedule':crontab(minute="*/15",hour=','.join([str(i) for i in range(9,23)])),
-#         'args':()
-#     },
-#     u'定时同步京东商品库存':{
-#         'task':'shopapp.jingdong.tasks.syncAllJDUserWareNumTask',
-#         'schedule':crontab(minute="20",hour='*/6'),
-#         'args':()
-#     },
-#     u'定时短信通知微信用户':{
-#         'task':'shopapp.weixin_sales.tasks.NotifyParentAwardTask',
-#         'schedule':crontab(minute="*/5",),
-#         'args':()
-#     },
+    u'定时抓取商品评价':{
+        'task':'shopapp.comments.tasks.crawAllUserOnsaleItemComment',
+        'schedule':crontab(minute="0",hour="8,10,12,14,16,18,20,22"),
+        'args':()
+    },
+    u'定时上架任务':{  #定时上架任务
+        'task':'shopapp.autolist.tasks.updateAllItemListTask',
+        'schedule':crontab(minute='*/10',hour=','.join([str(i) for i in range(7,24)])),
+        'args':(),
+    },
+    u'定时生成月销售报表':{
+        'task':'shopapp.report.tasks.updateMonthTradeXlsFileTask',
+        'schedule':crontab(minute="0",hour="3"),
+        'args':()
+    },
+    u'淘宝异步任务结果自动处理':{     #淘宝异步任务执行主任务
+         'task':'shopapp.asynctask.tasks.taobaoAsyncHandleTask',
+         'schedule':crontab(minute="*/30"),
+         'args':()
+    },           
+    u'定时发货短信通知客户':{     #更新库存
+        'task':'shopapp.smsmgr.tasks.notifyPacketPostTask',
+        'schedule':crontab(minute="30",hour="9,19"),#
+        'args':(1,)
+    },
+    u'定时韵达录单任务':{
+        'task':'shopapp.yunda.tasks.UpdateYundaOrderAddrTask',
+        'schedule':crontab(minute="0",hour="10,13"),
+        'args':()
+    },
+    u'定时取消二维码未揽件单号':{
+        'task':'shopapp.yunda.tasks.CancelUnsedYundaSidTask',
+        'schedule':crontab(minute="0",hour="4"),
+        'args':()
+    },
+    u'定时系统订单重量更新至韵达对接系统':{
+        'task':'shopapp.yunda.tasks.PushYundaPackageWeightTask',
+        'schedule':crontab(minute="*/15",hour="17,18,19,20,21,22,23"),
+        'args':()
+    },
+    u'定时增量下载更新微信订单':{
+        'task':'shopapp.weixin.tasks.pullWaitPostWXOrderTask',
+        'schedule':crontab(minute="0",hour=",".join([str(i)  for i in range(8,23)])),
+        'args':(None,None)
+    },
+    u'定时增量更新微信维权订单':{
+        'task':'shopapp.weixin.tasks.pullFeedBackWXOrderTask',
+        'schedule':crontab(minute="*/30",hour=','.join([str(i) for i in range(9,23)])),
+        'args':(None,None)
+    },      
+    u'定时同步微信商品库存':{
+        'task':'shopapp.weixin.tasks.syncWXProductNumTask',
+        'schedule':crontab(minute="10",hour='1,12'),
+        'args':()
+    },
+    u'定时增量下载京东订单信息':{
+        'task':'shopapp.jingdong.tasks.pullAllJDShopOrderByModifiedTask',
+        'schedule':crontab(minute="*/15",hour=','.join([str(i) for i in range(9,23)])),
+        'args':()
+    },
+    u'定时同步京东商品库存':{
+        'task':'shopapp.jingdong.tasks.syncAllJDUserWareNumTask',
+        'schedule':crontab(minute="20",hour='*/6'),
+        'args':()
+    },
+    u'定时短信通知微信用户':{
+        'task':'shopapp.weixin_sales.tasks.NotifyParentAwardTask',
+        'schedule':crontab(minute="*/5",),
+        'args':()
+    },
 
     u'定时统计昨日小鹿妈妈点击':{
         'task':'flashsale.clickcount.tasks.task_Record_User_Click',
