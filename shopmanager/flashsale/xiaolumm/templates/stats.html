@@ -47,12 +47,12 @@
 <div style="margin-top:20px">
   <table id="state_table" class="table table-bordered">
     <thead>
-      <th>管理员</th><th>手机</th><th>UV</th><th>PV</th><th>客服</th><th>类别</th><th>订单</th>
+      <th>管理员</th><th>手机</th><th>UV</th><th>PV</th><th>客服</th><th>类别</th><th>购买人数</th><th>购买单数</th>
     </thead>
     <tbody>
       {% for item in data %}
       <tr><td>{{ item.username }}</td><td>{{ item.mobile }}</td><td>{{ item.user_num }}</td><td>{{ item.click_num }}</td>
-      <td>{{ item.weikefu }}</td><td>{{ item.agencylevel }}</td><td>{{ item.order_num }}</td></tr>
+      <td>{{ item.weikefu }}</td><td>{{ item.agencylevel }}</td><td>{{ item.buyer_num }}</td><td>{{ item.order_num }}</td></tr>
       {% endfor %}
     </tbody>
     <tfoot>

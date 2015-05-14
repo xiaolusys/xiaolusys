@@ -248,6 +248,7 @@ class StatsView(View):
         data = []
 
         for mama in mama_list:
+            buyer_num = 0
             order_num = 0
             click_num = 0
             user_num  = 0
@@ -256,21 +257,9 @@ class StatsView(View):
             agencylevel = mama.agencylevel
             username  = self.getUserName(mama.manager)
 
-            # click_list = Clicks.objects.filter(linkid=mama.pk,created__gt=time_from,created__lt=time_to)
-            #
-            # click_num = click_list.count()
-            # openid_list = click_list.values('openid').distinct()
-            #
-
-            # for item in openid_list:
-            #     orders = WXOrder.objects.filter(buyer_openid=item["openid"],
-            #                                     order_create_time__gt=time_from,
-            #                                     order_create_time__lt=time_to)
-            #     if orders.count() > 0:
-            #         order_num += 1
-
             day_stats = StatisticsShoppingByDay.objects.filter(linkid=mama.pk,tongjidate=target_date)
             if day_stats.count() > 0:
+                buyer_num = day_stats[0].buyercount
                 order_num = day_stats[0].ordernumcount
 
             click_counts = ClickCount.objects.filter(linkid=mama.pk, date=target_date)
@@ -278,15 +267,15 @@ class StatsView(View):
                 click_num = click_counts[0].click_num
                 user_num = click_counts[0].user_num
             else:
-                click_list = Clicks.objects.filter(linkid=mama.pk,created__gt=time_from,created__lt=time_to)
-                click_num = click_list.count()
+                click_list = Clicks.objects.filter(linkid=mama.pk, created__gt=time_from, created__lt=time_to)
+                click_num  = click_list.count()
                 openid_list = click_list.values('openid').distinct()
                 user_num = len(openid_list)
 
             data_entry = {"mobile":mobile[-4:], "weikefu":weikefu,
                           "agencylevel":agencylevel,'username':username,
                           "click_num":click_num, "user_num":user_num,
-                          "order_num":order_num}
+                          "buyer_num":buyer_num,"order_num":order_num}
             data.append(data_entry)
             
         return render_to_response("stats.html", 

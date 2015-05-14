@@ -1,3 +1,12 @@
+########### 2015-5-14  #################
+alter table xiaolumm_carrylog add column log_type varchar(8) NOT NULL;
+alter table xiaolumm_carrylog add column carry_type varchar(8) NOT NULL;
+
+update xiaolumm_carrylog set status='confirmed',log_type='refund',carry_type='in' where status='confirmed';
+update xiaolumm_carrylog set status='confirmed',log_type='buy',carry_type='out' where status='consumed';
+
+alter table flashsale_tongji_shopping_day add column buyercount int(11) NOT NULL;
+alter table flashsale_tongji_shopping add column wxordernick varchar(32) NOT NULL;
 ########### 2015-5-7  #################
 ALTER TABLE `shop_weixin_user` ADD INDEX shop_weixin_user_vmobile(vmobile);
 ########### 2015-5-5  #################

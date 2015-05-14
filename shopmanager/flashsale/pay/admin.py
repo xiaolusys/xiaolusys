@@ -254,7 +254,8 @@ class SaleRefundAdmin(admin.ModelAdmin):
                                         order_num=strade.id,
                                         buyer_nick=strade.buyer_nick,
                                         value=payment,
-                                        status=CarryLog.CONFIRMED)
+                                        log_type=CarryLog.REFUND_RETURN,
+                                        carry_type=CarryLog.CARRY_IN)
                         obj.status = SaleRefund.REFUND_SUCCESS
                         obj.save()
                         

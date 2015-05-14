@@ -41,7 +41,15 @@ def task_Tongji_All_Order():
         StatisticsShoppingByDay.objects.all().delete()
         StatisticsShopping.objects.all().delete()
         all = WXOrder.objects.all()
+        cnt = 0
         for order1 in all:
             order1.confirm_payment()
+            cnt += 1
+            if cnt % 1000 == 0:
+                print cnt
+    
     except Exception, exc:
         raise task_Tongji_All_Order.retry(exc=exc)
+    
+    
+    

@@ -21,7 +21,7 @@
 {% endblock extrahead %}
 
 {% block after_field_sets %}{{ block.super }}
-{% if original.status == 3 or original.status == 4 or original.status == 5 %}
+{% if original.refund_no and original.status == 3 or original.status == 4 or original.status == 5 %}
 <input id="refund_confirm_id" type="submit" value="同意退款" class="default"  name="_refund_confirm" >
 <input id="refund_refuse_id" type="submit" value="驳回重申" class="default"  name="_refund_refuse" >
 {% endif %}

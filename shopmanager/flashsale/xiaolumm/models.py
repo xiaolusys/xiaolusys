@@ -174,21 +174,43 @@ class CarryLog(models.Model):
     PENDING = 'pending'
     CONFIRMED = 'confirmed'
     CANCELED = 'canceled'
-    CONSUMED = 'consumed'
 
     STATUS_CHOICES = (
         (PENDING,u'待确认'),
         (CONFIRMED,u'确定'),
-        (CANCELED,u'已退款'),
-        (CONSUMED,u'已消费'),
+        (CANCELED,u'已取消'),
     )
-
-    xlmm = models.BigIntegerField(default=0,db_index=True,verbose_name=u"妈妈编号")
-    order_num = models.BigIntegerField(default=0,db_index=True,verbose_name=u"订单编号")
+    
+    ORDER_REBETA  = 'rebeta'
+    ORDER_BUY     = 'buy'
+    CLICK_REBETA  = 'click'
+    REFUND_RETURN = 'refund'
+    
+    LOG_TYPE_CHOICES = (
+        (ORDER_REBETA,u'订单返利'),
+        (ORDER_BUY,u'消费支出'),
+        (REFUND_RETURN,u'退款返现'),
+        (CLICK_REBETA,u'点击兑现')
+    )
+    
+    CARRY_OUT = 'out'
+    CARRY_IN  = 'in'
+    CARRY_TYPE_CHOICES = (
+        (CARRY_OUT,u'支出'),
+        (CARRY_IN,u'收入'),
+    )
+    
+    xlmm       = models.BigIntegerField(default=0,db_index=True,verbose_name=u"妈妈编号")
+    order_num  = models.BigIntegerField(default=0,db_index=True,verbose_name=u"订单编号")
     buyer_nick = models.CharField(max_length=32,blank=True,verbose_name=u'买家昵称')
-    value = models.IntegerField(default=0,verbose_name=u"金额")
-    status = models.CharField(max_length=16,blank=True,choices=STATUS_CHOICES,default=PENDING,verbose_name=u'状态')
-    created = models.DateTimeField(auto_now_add=True,verbose_name=u'创建时间')
+    value      = models.IntegerField(default=0,verbose_name=u"金额")
+    
+    log_type   = models.CharField(max_length=8,blank=True,choices=LOG_TYPE_CHOICES,default=ORDER_REBETA,verbose_name=u"类型")
+    carry_type = models.CharField(max_length=8,blank=True,choices=CARRY_TYPE_CHOICES,default=CARRY_OUT,verbose_name=u"盈负")
+    
+    status   = models.CharField(max_length=16,blank=True,choices=STATUS_CHOICES,default=CONFIRMED,verbose_name=u'状态')
+    
+    created  = models.DateTimeField(auto_now_add=True,verbose_name=u'创建时间')
     
     class Meta:
         db_table = 'xiaolumm_carrylog'
@@ -203,5 +225,19 @@ class CarryLog(models.Model):
     
     @property
     def value_money(self):
-        return self.get_value_display()    
+        return self.get_value_display() 
+    
+    @property
+    def log_type_name(self):
+        return self.get_log_type_display()   
+    
+    @property
+    def carry_type_name(self):
+        return self.get_carry_type_display()   
+    
+    @property
+    def status_name(self):
+        return self.get_status_display()
+    
+    
     

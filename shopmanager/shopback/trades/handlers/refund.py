@@ -72,7 +72,9 @@ class RefundHandler(BaseHandler):
             main_tid = MergeBuyerTrade.objects.get(
                                     sub_tid=merge_trade.id).main_tid
 
-            MergeTrade.objects.mergeRemover(main_tid)
+            remove_succes = MergeTrade.objects.mergeRemover(main_tid)
+            if remove_succes:
+                merge_trade.sys_status = pcfg.WAIT_AUDIT_STATUS
             
         else:
             MergeTrade.objects.mergeRemover(merge_trade.id)
@@ -99,6 +101,6 @@ class RefundHandler(BaseHandler):
         elif merge_trade.status == pcfg.TRADE_CLOSED:
             self.atTRADE_CLOSED(merge_trade)
             
-        update_model_fields(merge_trade,update_fields=['has_refund','sys_status'])
+        update_model_fields(merge_trade,update_fields=['has_refund'])
         
     

@@ -12,16 +12,6 @@ class CashOutStatusField(serializers.Field):
     def to_internal_value(self, data):
         return data
 
-class CarryLogStatusField(serializers.Field):
-    def to_representation(self, obj):
-        for choice in CarryLog.STATUS_CHOICES:
-            if choice[0] == obj:
-                return choice[1]
-        return ""
-    
-    def to_internal_value(self, data):
-        return data
-
 
 class CashOutSerializer(serializers.ModelSerializer):
     created = serializers.DateTimeField(format="%Y-%m-%d")
@@ -33,10 +23,10 @@ class CashOutSerializer(serializers.ModelSerializer):
 
 class CarryLogSerializer(serializers.ModelSerializer):
     created = serializers.DateTimeField(format="%Y-%m-%d")
-    status = CarryLogStatusField()
     class Meta:
         model = CarryLog
-        fields = ('xlmm', 'order_num', 'buyer_nick', 'value', 'value_money', 'status', 'created')
+        fields = ('xlmm', 'order_num', 'buyer_nick', 'value', 'value_money',
+                  'log_type_name','carry_type_name', 'status_name', 'created')
         
         
 

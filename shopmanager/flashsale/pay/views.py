@@ -108,7 +108,8 @@ class PINGPPChargeView(View):
                                         order_num=strade.id,
                                         buyer_nick=strade.buyer_nick,
                                         value=payment,
-                                        status=CarryLog.CONSUMED)
+                                        log_type=CarryLog.ORDER_BUY,
+                                        carry_type=CarryLog.CARRY_OUT)
                 
                 #确认付款后保存
                 confirmTradeChargeTask.s(strade.id)()

@@ -11,6 +11,7 @@ class StatisticsShopping(models.Model):
     linkname = models.CharField(max_length=20, default="", verbose_name=u'代理人')
     openid = models.CharField(max_length=64, blank=True, db_index=True, verbose_name=u"OpenId")
     wxorderid = models.CharField(max_length=64, verbose_name=u'微信订单')
+    wxordernick = models.CharField(max_length=32, verbose_name=u'购买昵称')
     wxorderamount = models.IntegerField(default=0, verbose_name=u'微信订单价格')
     tichengcount = models.IntegerField(default=0, verbose_name=u'提成')
     shoptime = models.DateTimeField(auto_now_add=True, verbose_name=u'提成时间')
@@ -42,20 +43,21 @@ class StatisticsShopping(models.Model):
 
 
 class StatisticsShoppingByDay(models.Model):
+    
     linkid = models.IntegerField(default=0, verbose_name=u"链接ID")
     linkname = models.CharField(max_length=20, default="", verbose_name=u'代理人')
+    buyercount = models.IntegerField(default=0, verbose_name=u'购买人数')
     ordernumcount = models.IntegerField(default=0, verbose_name=u'订单总数')
     orderamountcount = models.IntegerField(default=0, verbose_name=u'订单总价')
     todayamountcount = models.IntegerField(default=0, verbose_name=u'提成总数')
     tongjidate = models.DateField(verbose_name=u'统计的日期')
 
-
     class Meta:
         db_table = 'flashsale_tongji_shopping_day'
         unique_together = ('linkid', 'tongjidate')
         app_label = 'xiaolumm'
-        verbose_name = u'按天统计购买'
-        verbose_name_plural = u'按天统计购买列表'
+        verbose_name = u'统计购买(按天)'
+        verbose_name_plural = u'统计购买(按天)列表'
 
 
     @property
@@ -76,39 +78,47 @@ class StatisticsShoppingByDay(models.Model):
     today_cash.short_description = u"提成总价"
 
 
+from django.db.models import F
 from shopapp import signals
 
-
 def tongji(sender, obj, **kwargs):
-    clicksbetwwentime = None
+
     today = datetime.date.today()
-    target_time = obj.order_create_time
-    target_time = datetime.date(target_time.year, target_time.month, target_time.day)
+    target_time = obj.order_create_time.date()
     if target_time > today:
         target_time = today
 
     ordertime = obj.order_create_time
-    time_from = ordertime - datetime.timedelta(days=1)
+    time_from = datetime.datetime(target_time.year,target_time.month,target_time.day,0,0,0)
+    time_dayend  = datetime.datetime(target_time.year,target_time.month,target_time.day,23,59,59) 
     isinxiaolumm = XiaoluMama.objects.filter(openid=obj.buyer_openid)
+    
     if isinxiaolumm.count() > 0:
-        try:
-            tongjiorder = StatisticsShopping.objects.get_or_create(linkid=isinxiaolumm[0].id,
-                                                                   wxorderid=str(obj.order_id))
-            tongjiorder[0].linkname = isinxiaolumm[0].weikefu
-            tongjiorder[0].openid = obj.buyer_openid
-            tongjiorder[0].wxorderamount = obj.order_total_price
-            tongjiorder[0].shoptime = obj.order_create_time
-            tongjiorder[0].tichengcount = obj.order_total_price
-            tongjiorder[0].save()
-            daytongji = StatisticsShoppingByDay.objects.get_or_create(linkid=isinxiaolumm[0].id, tongjidate=target_time)
-            daytongji[0].linkname = isinxiaolumm[0].weikefu
-            daytongji[0].ordernumcount = daytongji[0].ordernumcount + 1
-            daytongji[0].orderamountcount = daytongji[0].orderamountcount + obj.order_total_price
-            daytongji[0].todayamountcount = daytongji[0].todayamountcount + obj.order_total_price
-            daytongji[0].save()
-            return
-        except Exception as e:
-            print e
+        xiaolumm = isinxiaolumm[0]
+
+        tongjiorder,state   = StatisticsShopping.objects.get_or_create(linkid=xiaolumm.id,
+                                                               wxorderid=str(obj.order_id))
+        tongjiorder.linkname = xiaolumm.weikefu
+        tongjiorder.openid = obj.buyer_openid
+        tongjiorder.wxordernick = obj.buyer_nick
+        tongjiorder.wxorderamount = obj.order_total_price
+        tongjiorder.shoptime = obj.order_create_time
+        tongjiorder.tichengcount = obj.order_total_price
+        tongjiorder.save()
+        
+        daytongji,state = StatisticsShoppingByDay.objects.get_or_create(linkid=xiaolumm.id, tongjidate=target_time)
+        daytongji.linkname = xiaolumm.weikefu
+        daytongji.ordernumcount    = F('ordernumcount') + 1
+        daytongji.orderamountcount = F('orderamountcount') + obj.order_total_price
+        daytongji.todayamountcount = F('todayamountcount') + obj.order_total_price
+        daytongji.save()
+        
+        buyercount = StatisticsShopping.objects.filter(linkid=xiaolumm.id,
+                            shoptime__range=(time_from, time_dayend)).values('openid').distinct().count()
+        if buyercount != daytongji.buyercount:
+            StatisticsShoppingByDay.objects.filter(linkid=xiaolumm.id, 
+                                               tongjidate=target_time).update(buyercount=buyercount)
+        return
 
     clicksbetwwentime = Clicks.objects.filter(created__range=(time_from, ordertime)).filter(
         openid=obj.buyer_openid).values('linkid').distinct()
@@ -117,25 +127,32 @@ def tongji(sender, obj, **kwargs):
         for s in clicksbetwwentime:
             xiaolu_mmset = XiaoluMama.objects.filter(id=s['linkid'])
             if xiaolu_mmset.count() > 0:
-                try:
-                    xiaolu_mm = xiaolu_mmset[0]
-                    tongjiorder = StatisticsShopping.objects.get_or_create(linkid=s['linkid'],
-                                                                           wxorderid=str(obj.order_id))
-                    tongjiorder[0].linkname = xiaolu_mm.weikefu
-                    tongjiorder[0].openid = obj.buyer_openid
-                    tongjiorder[0].wxorderamount = obj.order_total_price
-                    tongjiorder[0].shoptime = obj.order_create_time
-                    tongjiorder[0].tichengcount = obj.order_total_price / length
-                    tongjiorder[0].save()
-                    daytongji = StatisticsShoppingByDay.objects.get_or_create(linkid=s['linkid'],
-                                                                              tongjidate=target_time)
-                    daytongji[0].linkname = xiaolu_mm.weikefu
-                    daytongji[0].ordernumcount = daytongji[0].ordernumcount + 1
-                    daytongji[0].orderamountcount = daytongji[0].orderamountcount + obj.order_total_price
-                    daytongji[0].todayamountcount = daytongji[0].todayamountcount + obj.order_total_price / length
-                    daytongji[0].save()
-                except Exception as e:
-                    print e
+                
+                xiaolu_mm = xiaolu_mmset[0]
+                tongjiorder,state = StatisticsShopping.objects.get_or_create(linkid=s['linkid'],
+                                                                       wxorderid=str(obj.order_id))
+                tongjiorder.linkname = xiaolu_mm.weikefu
+                tongjiorder.openid = obj.buyer_openid
+                tongjiorder.wxordernick = obj.buyer_nick
+                tongjiorder.wxorderamount = obj.order_total_price
+                tongjiorder.shoptime = obj.order_create_time
+                tongjiorder.tichengcount = obj.order_total_price / length
+                tongjiorder.save()
+                
+                daytongji,state = StatisticsShoppingByDay.objects.get_or_create(linkid=s['linkid'],
+                                                          tongjidate=target_time)
+                daytongji.linkname   = xiaolu_mm.weikefu
+                daytongji.ordernumcount    = F('ordernumcount') + 1
+                daytongji.orderamountcount = F('orderamountcount') + obj.order_total_price
+                daytongji.todayamountcount = F('todayamountcount') + obj.order_total_price / length
+                daytongji.save()
+                
+                buyercount = StatisticsShopping.objects.filter(linkid=xiaolu_mm.id,
+                            shoptime__range=(time_from, time_dayend)).values('openid').distinct().count()
+                if buyercount != daytongji.buyercount:
+                    StatisticsShoppingByDay.objects.filter(linkid=xiaolu_mm.id, 
+                                                       tongjidate=target_time).update(buyercount=buyercount)
+        
             else:
                 StatisticsShopping(linkid=0, openid=obj.buyer_openid, wxorderid=str(obj.order_id),
                                    wxorderamount=obj.order_total_price,
@@ -143,12 +160,12 @@ def tongji(sender, obj, **kwargs):
 
 
     else:
-        tongjiorder = StatisticsShopping.objects.get_or_create(linkid=0, wxorderid=str(obj.order_id))
-        tongjiorder[0].openid = obj.buyer_openid
-        tongjiorder[0].wxorderamount = obj.order_total_price
-        tongjiorder[0].shoptime = obj.order_create_time
-        tongjiorder[0].save()
-
+        tongjiorder,state = StatisticsShopping.objects.get_or_create(linkid=0, wxorderid=str(obj.order_id))
+        tongjiorder.openid = obj.buyer_openid
+        tongjiorder.wxorderamount = obj.order_total_price
+        tongjiorder.shoptime = obj.order_create_time
+        tongjiorder.save()
+    
 
 signals.signal_wxorder_pay_confirm.connect(tongji, sender=WXOrder)
 

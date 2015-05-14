@@ -105,7 +105,7 @@ class WXProductSku(models.Model):
         return u'<WXProductSku:%s,%s>'%(self.outer_id,self.outer_sku_id)
     
     @classmethod
-    def getSkuNameBySkuId(self,sku_id):
+    def getSkuNameBySkuId(cls,sku_id):
         
         sku_name = ''
         skuid_list = [s for s in sku_id.split(';') if s.strip()]
