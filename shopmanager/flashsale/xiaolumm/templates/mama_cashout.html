@@ -31,7 +31,7 @@
   <h5>我的补贴记录：</h5>
     <table class="table table-bordered" style="margin-top:10px">
       <thead>
-	<th>客户</th><th>金额</th><th>时间</th><th>状态</th>
+		<tr><th class="col-xs-4">时间</th><th class="col-xs-4">金额</th><th class="col-xs-4">类型</th></tr>
       </thead>
       <tbody id="id-carry-tbody">
       </tbody>
@@ -73,7 +73,7 @@
     <h5>最近提现记录：</h5>
     <table class="table table-bordered" style="margin-top:10px">
       <thead>
-	<th>金额</th><th>时间</th><th>状态</th>
+		<tr><th class="col-xs-4">金额</th><th class="col-xs-4">时间</th><th class="col-xs-4">状态</th></tr>
       </thead>
       <tbody id="id-cashout-tbody">
       </tbody>
@@ -171,7 +171,11 @@
       $("#id-carry-tbody")[0].innerHTML = "";
       for (var i=0; i<results.length; ++i) {
         var entry = results[i];
-        var row = "<tr><td>"+entry["buyer_nick"]+"</td><td>"+entry["value_money"]+"</td><td>"+entry["created"]+"</td><td>"+entry["status"]+"</td></tr>";
+        var td_money = '<span class="text-success" >'+entry['value_money']+'</span>';
+        if (entry['carry_type'] == 'out'){
+        	td_money = '<span class="text-danger" >-'+entry['value_money']+'</span>';
+        }
+        var row = "<tr><td>"+entry["created"]+"</td><td>"+td_money+"</td><td>"+entry["log_type_name"]+"</td></tr>";
         $("#id-carry-tbody").append(row);
       }
     };

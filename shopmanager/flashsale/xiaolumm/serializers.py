@@ -26,7 +26,7 @@ class CarryLogSerializer(serializers.ModelSerializer):
     class Meta:
         model = CarryLog
         fields = ('xlmm', 'order_num', 'buyer_nick', 'value', 'value_money',
-                  'log_type_name','carry_type_name', 'status_name', 'created')
+                  'log_type_name','carry_type','carry_type_name', 'status_name', 'created')
         
         
 
