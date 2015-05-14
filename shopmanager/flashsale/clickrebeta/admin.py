@@ -1,6 +1,6 @@
 # -*- coding:utf8 -*-
 from django.contrib import admin
-
+from shopback.base.options import DateFieldListFilter
 from .models import StatisticsShopping, StatisticsShoppingByDay
 from django import forms
 
@@ -29,7 +29,7 @@ class StatisticsShoppingForm(forms.ModelForm):
 class StatisticsShoppingAdmin(admin.ModelAdmin):
     form = StatisticsShoppingForm
     list_display = ('linkid', 'linkname', 'openid', 'wxorderid', 'order_cash', 'ticheng_cash', 'shoptime')
-    list_filter = ('linkid',)
+    list_filter = (('shoptime',DateFieldListFilter),)
     search_fields = ['linkid', 'openid']
 
 
