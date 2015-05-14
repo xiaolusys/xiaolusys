@@ -59,7 +59,7 @@ class StatisticsShoppingByDayAdminForm(forms.ModelForm):
 class StatisticsShoppingByDayAdmin(admin.ModelAdmin):
     form = StatisticsShoppingByDayAdminForm
     list_display = ('linkid', 'linkname', 'ordernumcount', 'order_cash', 'today_cash', 'tongjidate')
-    list_filter = ('linkid',)
+    list_filter = (('tongjidate',DateFieldListFilter),)
     search_fields = ['linkid', 'tongjidate']
 
 
