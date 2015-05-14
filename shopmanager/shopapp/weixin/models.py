@@ -546,11 +546,18 @@ class WXProductSku(models.Model):
         
         sku_name = ''
         skuid_list = [s for s in sku_id.split(';') if s.strip()]
+        skuid_list.reverse()
         for sku_tair in skuid_list:
             k_id,vid = sku_tair.split(':')
-            wx_skus = WXSkuProperty.objects.filter(sku_id=vid)
+            if not vid.startswith('$'):
+                wx_skus = WXSkuProperty.objects.filter(sku_id=vid)
+            else:
+                vid = vid.strip('$')
+            
             if wx_skus.count() > 0:
                 sku_name += wx_skus[0].name
+            else:
+                sku_name += vid
         return sku_name
         
 

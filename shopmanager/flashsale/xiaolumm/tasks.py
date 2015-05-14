@@ -11,7 +11,7 @@ __author__ = 'meixqhi'
 
 
 @task()
-def task_Create_Click_Record(customer_id,openid):
+def task_Create_Click_Record(xlmmid,openid):
     
     today = datetime.datetime.now()
     tf = datetime.datetime(today.year,today.month,today.day,0,0,0)
@@ -19,12 +19,13 @@ def task_Create_Click_Record(customer_id,openid):
     
     isvalid = False
     clicks = Clicks.objects.filter(openid=openid,created__gt=tf,created__lt=tt)
-    click_count = len(clicks.values('linkid').distinct())
-    xlmms = XiaoluMama.objects.filter(id=customer_id)
+    click_linkids = set([l.get('linkid') for l in clicks.values('linkid').distinct()])
+    click_count   = len(click_linkids)
+    xlmms = XiaoluMama.objects.filter(id=xlmmid)
     
-    if click_count <= Clicks.CLICK_DAY_LIMIT and xlmms.count() > 0:
+    if click_count < Clicks.CLICK_DAY_LIMIT and xlmms.count() > 0 and xlmmid not in click_linkids:
         isvalid = True
         
-    Clicks.objects.create(linkid=customer_id,openid=openid,isvalid=isvalid)
+    Clicks.objects.create(linkid=xlmmid,openid=openid,isvalid=isvalid)
 
 
