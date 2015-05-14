@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html>
+<head lang="en">
+    <meta charset="UTF-8">
+    <title>样品出（入）库条码扫描</title>
+</head>
+<script type="text/javascript" src="/static/js/jquery-1.8.0.js"></script>
+<link rel="stylesheet" href="/static/bootstrap-3.3.4-dist/css/bootstrap.min.css">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<script type="text/javascript">
+
+    <!--获取表格ID为mytable的行数 -->
+    function len() {
+        var index = $("#mytable tr").length;
+        document.getElementById("tet").value = index;
+
+    }
+
+    <!--判断ID为t的value-->
+    function pd() {
+        var i = document.getElementById("t").value;
+        if (i == 3) {
+            alert('还未选择扫描类型！');
+        }
+    }
+
+</script>
+<body>
+<div class="container">
+
+    <h2 align="center">商品条码扫描</h2>
+    </br>
+    <form action="../scan_sel/" method="post">
+        <div class="col-sm-3 col-lg-offset-2">
+            <div class="input-group has-error">
+                <div class="input-group-addon">扫描类型</div>
+                <select id="t" class="form-control" name="t">
+                    <option value="3">请选择扫描类型</option>
+                    <option value="0">入库扫描</option>
+                    <option value="1">出库扫描</option>
+                </select>
+            </div>
+        </div>
+        <div class="col-sm-3 ">
+            <div class="input-group has-success">
+                <div class="input-group-addon">输入条码:</div>
+                <input type="text" class="form-control" maxlength="10" name="tiaoma" onclick="pd()" placeholder="请输入条码">
+            </div>
+        </div>
+        <div class="col-sm-1">
+            <button class="btn btn-success" type="submit">扫描</button>
+        </div>
+        <div class="col-sm-2">
+            {{ l }}
+        </div>
+    </form>
+
+    </br><h3>扫描列表</h3>
+
+    <form action="../scan_save/" method="post">
+        <input id="tet" type="text" hidden="hidden" name="count">
+        <table id="mytable" class="table table-bordered">
+            <tr align="center">
+                <td  class="active">商品ID</td>
+                <td  class="success">规格ID</td>
+                <td class="warning">商品名称</td>
+                <td class="danger">规格尺寸</td>
+                <td class="info">扫描条码</td>
+                <td class="success">扫描数量</td>
+                <td  class="warning">扫描类型</td>
+                <td  class="info">处理状态</td>
+            </tr>
+            {% if lshi != '' %}
+                {% for ls in lshi %}
+                    <tr align="center">
+                        <td><input name="A_{{ forloop.counter }}" style="width: 50px" type="text" value="{{ ls.pid }}"
+                                   readonly></td>
+                        <td><input name="B_{{ forloop.counter }}" style="width: 50px" type="text"
+                                   value="{{ ls.sku_id }}"
+                                   readonly></td>
+                        <td><input name="C_{{ forloop.counter }}" style="width: 100px" type="text"
+                                   value="{{ ls.title }}"
+                                   readonly></td>
+                        <td><input name="D_{{ forloop.counter }}" style="width: 80px" type="text"
+                                   value="{{ ls.sku_name }}"
+                                   readonly></td>
+                        <td><input name="E_{{ forloop.counter }}" style="width: 100px" type="text"
+                                   value="{{ ls.bar_code }}"
+                                   readonly></td>
+                        <td><input name="F_{{ forloop.counter }}" style="width: 70px" type="text"
+                                   value="{{ ls.scan_num }}"
+                                   readonly></td>
+                        {% if ls.scan_type == 0 %}
+                            <td class="info">
+                                <input name="G_{{ forloop.counter }}" style="width: 70px" type="text"
+                                    value="入库扫描" readonly>
+                            </td>
+                        {% else %}
+                            <td class="danger">
+                                <input name="G_{{ forloop.counter }}" style="width: 70px" type="text"
+                                    value="出库扫描" readonly>
+                            </td>
+                        {% endif %}
+                        <td>
+                            <select id="sect" name="H_{{ forloop.counter }}">
+                                <option value="1">确认</option>
+                                <option value="2">作废</option>
+                            </select>
+                        </td>
+                    </tr>
+                {% endfor %}
+            {% else %}
+                <p>找不到该条码，导致数据无法加载，请扫描正确的条码！！！</p>
+            {% endif %}
+        </table>
+        <div class="col-sm-12" style="text-align: right ">
+            <button class="btn btn-success" type="submit" onclick="len()">确认入库</button>
+        </div>
+    </form>
+</div>
+</body>
+</html>
