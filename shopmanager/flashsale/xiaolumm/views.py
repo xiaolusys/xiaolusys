@@ -158,7 +158,7 @@ class MamaStatsView(View):
                 xlmm.weikefu = wx_user.nickname
                 xlmm.save()
             
-            clicks = Clicks.objects.filter(linkid=xlmm.pk,created__gt=time_from,created__lt=time_to,isvalid=True)
+            clicks = Clicks.objects.filter(linkid=xlmm.pk,created__gt=time_from,created__lt=time_to)
             openid_list = clicks.values("openid").distinct()
 
             order_num = 0
@@ -174,14 +174,14 @@ class MamaStatsView(View):
                 for order in orders:
                     total_value += order.order_total_price*0.01
                     status = WXORDER_STATUS[int(order.order_status)]
-                    time = str(order.order_create_time)[11:16]
+                    time   = str(order.order_create_time)[11:16]
                     order_info = {"nick":"*"+order.buyer_nick[1:], 
                                   "price":order.order_total_price*0.01,
                                   "time":time, "status":status}
                     order_list.append(order_info)
 
             order_list.sort(key=lambda a: a["time"])
-            click_num = len(openid_list)
+            click_num = len(clicks.filter(isvalid=True).values("openid").distinct())
             mobile_revised = "%s****%s" % (mobile[:3], mobile[-4:])
 
             agencylevel = AgencyLevel.objects.get(pk=xlmm.agencylevel)
@@ -234,7 +234,7 @@ class StatsView(View):
 
         time_from = datetime.datetime(target_date.year, target_date.month, target_date.day)
         time_to = datetime.datetime(target_date.year, target_date.month, target_date.day, 23, 59, 59)
-        print "time_from"
+        
         prev_day = target_date - datetime.timedelta(days=1)
         next_day = None
         if target_date < today:

@@ -41,3 +41,4 @@ def task_Record_User_Click(pre_day=1):
         clickcount.user_num = user_num
         clickcount.save()
 
+

@@ -16,8 +16,10 @@ class ClickCount(models.Model):
     class Meta:
         db_table = 'flashsale_clickcount'
         unique_together = ('date', 'linkid')  # 联合索引
+        app_label = 'xiaolumm'
         verbose_name = u'点击统计表'
         verbose_name_plural = u'点击统计表列表'
+        ordering=['-date','-user_num','-click_num']
 
     def __unicode__(self):
         return self.weikefu

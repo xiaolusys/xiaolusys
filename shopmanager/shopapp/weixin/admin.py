@@ -12,6 +12,7 @@ from django.forms import TextInput, Textarea
 from shopback.base.options import DateFieldListFilter
 from common.utils import gen_cvs_tuple,CSVUnicodeWriter
 from shopapp.weixin.models import (WeiXinAccount,
+                                   WeixinUnionID,
                                    UserGroup,
                                    WeiXinUser,
                                    WXUserCharge,
@@ -39,6 +40,18 @@ from shopapp.weixin.models import (WeiXinAccount,
                                    WeixinClickScoreRecord)
 import logging
 logger = logging.getLogger("django.request")
+
+class WeixinUnionIDAdmin(admin.ModelAdmin):
+    
+    list_display = ('openid','app_key','unionid')
+    
+    list_display_links = ('openid',)
+    
+    list_filter = ('app_key',)
+    search_fields = ['openid','unionid']
+
+admin.site.register(WeixinUnionID, WeixinUnionIDAdmin)  
+
 
 class UserChangeList(ChangeList):
     

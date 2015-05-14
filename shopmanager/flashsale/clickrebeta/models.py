@@ -18,6 +18,7 @@ class StatisticsShopping(models.Model):
     class Meta:
         db_table = 'flashsale_tongji_shopping'
         unique_together = ('linkid', 'wxorderid')
+        app_label = 'xiaolumm'
         verbose_name = u'统计购买'
         verbose_name_plural = u'统计购买列表'
 
@@ -52,6 +53,7 @@ class StatisticsShoppingByDay(models.Model):
     class Meta:
         db_table = 'flashsale_tongji_shopping_day'
         unique_together = ('linkid', 'tongjidate')
+        app_label = 'xiaolumm'
         verbose_name = u'按天统计购买'
         verbose_name_plural = u'按天统计购买列表'
 
