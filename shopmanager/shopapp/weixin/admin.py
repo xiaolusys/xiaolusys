@@ -43,7 +43,7 @@ logger = logging.getLogger("django.request")
 
 class WeixinUnionIDAdmin(admin.ModelAdmin):
     
-    list_display = ('openid','app_key','unionid')
+    list_display = ('openid','app_key','unionid','created')
     
     list_display_links = ('openid',)
     
