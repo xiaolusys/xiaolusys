@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html>
+<head lang="en">
+    <meta charset="UTF-8">
+    <title>扫描信息列表界面</title>
+</head>
+<script type="text/javascript" src="/static/js/jquery-1.8.0.js"></script>
+<link rel="stylesheet" href="/static/bootstrap-3.3.4-dist/css/bootstrap.min.css">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<body>
+<div class="container">
+    <h1>扫描信息列表</h1>
+    <table class="table table-striped">
+            <tr align="center">
+                <td width="50px" class="active">商品ID</td>
+                <td width="50px" class="success">规格ID</td>
+                <td width="90px" class="warning">商品名称</td>
+                <td width="80px" class="danger">规格尺寸</td>
+                <td width="80px" class="info">扫描条码</td>
+                <td width="70px" class="success">扫描数量</td>
+                <td width="70px" class="warning">扫描类型</td>
+                <td width="70px" class="warning">扫描时间</td>
+                <td width="70px" class="info">处理状态</td>
+            </tr>
+            {% for l in list %}
+                <tr align="center">
+                    <td>{{ l.pid }}</td>
+                    <td>{{ l.sku_id }}</td>
+                    <td>{{ l.title }}</td>
+                    <td>{{ l.sku_name }}</td>
+                    <td>{{ l.bar_code }}</td>
+                    <td>{{ l.scan_num }}</td>
+                    <td>{{ l.scan_type }}</td>
+                    <td>{{ l.created }}</td>
+                    <td>
+                        {% if l.status == 1 %}
+                            已确认
+                        {% else %}
+                            作废
+                        {% endif %}
+                    </td>
+                </tr>
+            {% endfor %}
+        </table>
+
+</div>
+</body>
+</html>

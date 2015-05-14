@@ -150,6 +150,7 @@ INSTALLED_APPS = (
     'shopapp.weixin_sales',
     'shopapp.weixin_score',
     'shopapp.weixin_examination',
+    'shopapp.sampleproduct',
     
     
     #'shopapp.second_time_sort',
