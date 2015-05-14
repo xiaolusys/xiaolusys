@@ -13,18 +13,17 @@ ORDER_PRODUCT_STATUS = (
 class OrderList(models.Model):
     
     id = BigIntegerAutoField(primary_key=True)
-    
-    buyer_name = models.CharField(default="None", max_length=32, verbose_name=u'买手')
+    buyer_name = models.CharField(default="",max_length=32, verbose_name=u'买手')
     order_amount = models.FloatField(default=0, verbose_name=u'金额')
-    supplier_name = models.CharField(default="", max_length=128, verbose_name=u'供应商')
-    express_company = models.CharField(default="", max_length=32, verbose_name=u'快递公司')
-    express_no = models.CharField(default="", max_length=32, verbose_name=u'快递单号')
+    supplier_name = models.CharField(default="",blank=True, max_length=128, verbose_name=u'供应商')
+    express_company = models.CharField(default="", blank=True, max_length=32, verbose_name=u'快递公司')
+    express_no = models.CharField(default="",blank=True, max_length=32, verbose_name=u'快递单号')
     receiver = models.CharField(default="", max_length=32, verbose_name=u'仓库负责人')
     costofems = models.IntegerField(default=0, verbose_name=u'快递费用')
     status = models.CharField(max_length=32, verbose_name=u'订货单状态', choices=ORDER_PRODUCT_STATUS)
     created = models.DateField(auto_now_add=True, verbose_name=u'订货日期')
     updated = models.DateField(auto_now_add=True, verbose_name=u'更新日期')
-    note = models.TextField(default="", verbose_name=u'备注信息')
+    note = models.TextField(default="",blank=True, verbose_name=u'备注信息')
 
     class Meta:
         db_table = 'suplychain_flashsale_orderlist'
