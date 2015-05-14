@@ -34,7 +34,7 @@ class ordelistAdmin(admin.ModelAdmin):
     shenhe.short_description = "状态"
 
     def orderlist_ID(self, obj):
-        symbol_link = obj.orderlistID or u'【空标题】'
+        symbol_link = obj.id or u'【空标题】'
         return '<a href="/sale/dinghuo/detail/{0}/" >{1}</a>'.format(int(obj.id), symbol_link)
 
     orderlist_ID.allow_tags = True

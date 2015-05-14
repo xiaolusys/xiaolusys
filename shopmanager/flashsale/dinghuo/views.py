@@ -192,7 +192,7 @@ def CheckOrderExist(request):
     response = HttpResponse()
     response['Content-Type'] = "text/javascript"
     orderIDFrompage = request.GET.get("orderID", "")
-    orderM = OrderList.objects.filter(orderlistID=orderIDFrompage)
+    orderM = OrderList.objects.filter(id=orderIDFrompage)
     if orderM:
         result = """{"result":true}"""
     else:
@@ -279,7 +279,7 @@ def changestatus(req):
     post = req.POST
     orderid = post["orderid"]
     status_text = post["func"]
-    orderlist = OrderList.objects.get(orderlistID=orderid)
+    orderlist = OrderList.objects.get(id=orderid)
     orderlist.status = status_text
     orderlist.save()
     state = True
