@@ -6,6 +6,7 @@
 </head>
 <script type="text/javascript" src="/static/js/jquery-1.8.0.js"></script>
 <link rel="stylesheet" href="/static/bootstrap-3.3.4-dist/css/bootstrap.min.css">
+<script type="text/javascript" src="/static/jquery/addons/jquery.form.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
 <script type="text/javascript">
 
@@ -23,14 +24,47 @@
             alert('还未选择扫描类型！');
         }
     }
-
+	$(document).ready(function() {
+        $('#scan-form').on('submit', function(e) {
+            e.preventDefault(); // <-- important
+            $(this).ajaxSubmit({
+                success:function(resp){
+                	$.each(resp,function(index,data){
+                		
+                		var target_tr = document.getElementById('s_'+data.id);
+                		console.log('target:',target_tr);
+                		if (target_tr == 'undifined' || target_tr == null){
+                			var table_len = $('#mytable tr').length;
+                			var scan_type = data.scan_type==0?'入库扫描':'出库扫描';
+                			ht = '<tr id="s_'+ data.id +'" align="center" >';
+                			ht += '<td><input name="A_'+table_len+'" style="width: 50px" type="text" value="'+ data.pid +'" readonly></td>';
+                			ht += '<td><input name="B_'+table_len+'" style="width: 50px" type="text" value="'+ data.sku_id +'" readonly></td>';
+                			ht += '<td><input name="C_'+table_len+'" style="width: 100px" type="text" value="'+ data.title +'" readonly></td>';
+                			ht += '<td><input name="D_'+table_len+'" style="width: 80px" type="text" value="'+ data.sku_name +'" readonly></td>';
+                			ht += '<td><input name="E_'+table_len+'" style="width: 100px" type="text" value="'+ data.bar_code +'" readonly></td>';
+                			ht += '<td><input id="num_'+ data.id +'"  name="F_'+table_len+'" style="width: 70px" type="text" value="'+ data.scan_num +'" readonly></td>';
+                			ht += '<td><input name="G_'+table_len+'" style="width: 70px" type="text" value="'+ scan_type +'" readonly></td>';
+                			ht += '<td><select id="sect" name="H_'+table_len+'" ><option value="1">确认</option><option value="2">作废</option></select></td>';
+                			ht += '</tr>';
+                			console.log('ht-----',ht);
+                			$('#mytable').append(ht);
+                			return
+                		}
+                		$('#num_'+data.id).val(data.scan_num);
+                	})
+                }
+            });
+        });
+    });
+	
 </script>
 <body>
 <div class="container">
 
     <h2 align="center">商品条码扫描</h2>
     </br>
-    <form action="../scan_sel/" method="post">
+    <form id="scan-form" action="./?format=json" method="post">
+    	{% csrf_token %}
         <div class="col-sm-3 col-lg-offset-2">
             <div class="input-group has-error">
                 <div class="input-group-addon">扫描类型</div>
@@ -54,7 +88,6 @@
             {{ l }}
         </div>
     </form>
-
     </br><h3>扫描列表</h3>
 
     <form action="../scan_save/" method="post">
@@ -72,7 +105,7 @@
             </tr>
             {% if lshi != '' %}
                 {% for ls in lshi %}
-                    <tr align="center">
+                    <tr id="s_{{ ls.id }}" align="center" >
                         <td><input name="A_{{ forloop.counter }}" style="width: 50px" type="text" value="{{ ls.pid }}"
                                    readonly></td>
                         <td><input name="B_{{ forloop.counter }}" style="width: 50px" type="text"
@@ -87,7 +120,7 @@
                         <td><input name="E_{{ forloop.counter }}" style="width: 100px" type="text"
                                    value="{{ ls.bar_code }}"
                                    readonly></td>
-                        <td><input name="F_{{ forloop.counter }}" style="width: 70px" type="text"
+                        <td><input id="num_{{ ls.id }}" name="F_{{ forloop.counter }}" style="width: 70px" type="text"
                                    value="{{ ls.scan_num }}"
                                    readonly></td>
                         {% if ls.scan_type == 0 %}

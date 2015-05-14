@@ -33,7 +33,10 @@ class SampleProduct(models.Model):
         db_table = 'sample_product'
         verbose_name = u'样品'
         verbose_name_plural = u'样品信息表'
-
+        
+    def __unicode__(self):
+        return self.title
+        
 # 样品规格表
 class SampleProductSku(models.Model):
     NORMAL = 0
@@ -61,7 +64,10 @@ class SampleProductSku(models.Model):
     class Meta:
         db_table = 'sample_product_sku'
         verbose_name = u'样品规格'
-
+        
+    def __unicode__(self):
+        return self.sku_name
+    
 #扫描临时表
 class ScanLinShi(models.Model):
 
@@ -74,7 +80,7 @@ class ScanLinShi(models.Model):
     bar_code = models.CharField(max_length=64, blank=True, verbose_name=u'扫描条码')
 
     scan_num = models.IntegerField(default=0, verbose_name=u'扫描数量')
-    scan_type = models.IntegerField(max_length=8, verbose_name=u'扫描类型')
+    scan_type = models.IntegerField( verbose_name=u'扫描类型')
 
     status = models.IntegerField(default=0, verbose_name=u'处理状态')
 
@@ -84,7 +90,9 @@ class ScanLinShi(models.Model):
         verbose_name = u'临时表'
         verbose_name_plural = u'扫描临时表'
 
-
+    def __unicode__(self):
+        return self.bar_code
+    
 #扫描（出）入库表
 class SampleScan(models.Model):
     SCAN_IN = 'in'
@@ -119,3 +127,7 @@ class SampleScan(models.Model):
         db_table = 'sample_scan'
         verbose_name = u'（出）入库表'
         verbose_name_plural = u'样品（出）入库记录表'
+        
+    def __unicode__(self):
+        return self.bar_code
+    

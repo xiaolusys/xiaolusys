@@ -1,4 +1,5 @@
 # coding: utf-8
+import json
 from django.http import HttpResponseRedirect
 from django.shortcuts import render, render_to_response
 
@@ -14,7 +15,79 @@ def scan_ruku(request):
 
     return render(request, 'scan_ruku.html')
 
+from django.db.models import F
+from rest_framework.response import Response
+from rest_framework import authentication
+from rest_framework import permissions
+from rest_framework.renderers import JSONRenderer,TemplateHTMLRenderer
+from rest_framework.views import APIView
 
+from rest_framework import serializers
+
+class ScanLinShiSerializer(serializers.ModelSerializer):
+    
+    class Meta:
+        model = ScanLinShi
+        fields = ('id','pid','sku_id','title','sku_name','bar_code',
+                  'scan_num','scan_type','status')
+        
+
+class SampleScanView(APIView):
+
+#     authentication_classes = (authentication.TokenAuthentication,)
+    permission_classes = (permissions.IsAuthenticated,)
+    renderer_classes = (JSONRenderer,TemplateHTMLRenderer)
+    serializer_class = ScanLinShiSerializer
+    template_name = "scan_ruku.html"
+    
+    def get(self, request, format=None):
+        
+        lshi = ScanLinShi.objects.all()
+        ls_serializers = []
+        for ls in lshi:
+            ls_serializers.append(ScanLinShiSerializer(ls).data)
+        
+        return Response({'lshi': ls_serializers})
+    
+    def get_Sample_By_Barcode(self,barcode):
+        
+        bar_len = len(barcode)
+        len_list = range(1,bar_len)
+        len_list.reverse()
+        for l in len_list:
+            outer_id = barcode[0:l]
+            sku_code = barcode[l:]
+            sp_skus = SampleProductSku.objects.filter(product__outer_id=outer_id,outer_id=sku_code)
+            if sp_skus.count() > 0 :
+                return sp_skus[0]
+        return None
+    
+    def post(self, request, format=None):
+        
+        content = request.REQUEST
+        user    = request.user
+        
+        scan_type = content.get('t')
+        tiaoma = content.get('tiaoma','')
+        p_sku = self.get_Sample_By_Barcode(tiaoma)
+        if not p_sku:
+            return Response({'code':1,'err':u'未找到商品'})
+        
+        # 保存到临时表
+        ls,state = ScanLinShi.objects.get_or_create(pid=p_sku.product.id,sku_id=p_sku.id,scan_type=scan_type)
+        if state:
+            ls.title = p_sku.product.title
+            ls.sku_name = p_sku.sku_name
+            ls.bar_code = tiaoma
+        
+        ls.scan_num = ls.scan_num + 1
+        ls.save()
+#         
+        sls_serialize = ScanLinShiSerializer(ls)
+        
+        return Response([sls_serialize.data])
+    
+#     get = post
 
 # 查询条码
 @csrf_exempt
@@ -79,6 +152,7 @@ def scan_select(request):
             lshi = ScanLinShi.objects.all()
 
             return render_to_response('scan_ruku.html', {'lshi': lshi})
+
 
 
 # 显示出入表数据集合
