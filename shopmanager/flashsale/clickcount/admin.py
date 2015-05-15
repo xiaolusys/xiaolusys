@@ -10,5 +10,7 @@ class ClickCountAdmin(admin.ModelAdmin):
     list_display_links = ['linkid', 'username']
     list_filter = ('date', 'username')
     
+    search_fields = ['mobile']
+    
 admin.site.register(ClickCount, ClickCountAdmin)
 

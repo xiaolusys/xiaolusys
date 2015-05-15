@@ -107,6 +107,9 @@ class CarryLogList(generics.ListAPIView):
 
 from django.conf import settings
 from flashsale.pay.options import get_user_unionid
+from flashsale.clickcount.models import ClickCount
+from flashsale.clickrebeta.models import StatisticsShoppingByDay,StatisticsShopping
+
 class MamaStatsView(View):
     def get(self, request):
         
@@ -160,40 +163,57 @@ class MamaStatsView(View):
             
             clicks = Clicks.objects.filter(linkid=xlmm.pk,created__gt=time_from,created__lt=time_to)
             openid_list = clicks.values("openid").distinct()
-
-            order_num = 0
-            total_value = 0
-            order_list = []
-            for item in openid_list:
-                orders = WXOrder.objects.filter(buyer_openid=item["openid"],
-                                                order_create_time__gt=time_from,
-                                                order_create_time__lt=time_to)
-                
-                if orders.count() > 0:
-                    order_num += 1
-                for order in orders:
-                    total_value += order.order_total_price*0.01
-                    status = WXORDER_STATUS[int(order.order_status)]
-                    time   = str(order.order_create_time)[11:16]
-                    order_info = {"nick":"*"+order.buyer_nick[1:], 
-                                  "price":order.order_total_price*0.01,
-                                  "time":time, "status":status}
-                    order_list.append(order_info)
-
-            order_list.sort(key=lambda a: a["time"])
-            click_num = len(clicks.filter(isvalid=True).values("openid").distinct())
             mobile_revised = "%s****%s" % (mobile[:3], mobile[-4:])
-
             agencylevel = AgencyLevel.objects.get(pk=xlmm.agencylevel)
-            carry = agencylevel.basic_rate * total_value * 0.01
-
-            click_price = 0.2
-            if order_num > 2:
-                click_price = 0.5
+            
+            order_num   = 0
+            total_value = 0
+            carry       = 0
+#             for item in openid_list:
+#                 orders = WXOrder.objects.filter(buyer_openid=item["openid"],
+#                                                 order_create_time__gt=time_from,
+#                                                 order_create_time__lt=time_to)
+#                 
+#                 if orders.count() > 0:
+#                     order_num += 1
+#                 for order in orders:
+#                     total_value += order.order_total_price*0.01
+#                     status = WXORDER_STATUS[int(order.order_status)]
+#                     time   = str(order.order_create_time)[11:16]
+#                     order_info = {"nick":"*"+order.buyer_nick[1:], 
+#                                   "price":order.order_total_price*0.01,
+#                                   "time":time, "status":status}
+#                     order_list.append(order_info)
+# 
+#             order_list.sort(key=lambda a: a["time"])
+#             click_num = len(clicks.filter(isvalid=True).values("openid").distinct())
+#
+#             carry = agencylevel.basic_rate * total_value * 0.01
+# 
+#             click_price = 0.2
+#             if order_num > 2:
+#                 click_price = 0.5
+#             else:
+#                 click_price += order_num * 0.1
+# 
+#             click_pay = click_price * click_num
+            order_list = StatisticsShopping.objects.filter(linkid=xlmm.pk,shoptime=target_date)
+            order_stat = StatisticsShoppingByDay.objects.filter(linkid=xlmm.pk,tongjidate=target_date)
+            if order_stat.count() > 0:
+                order_num   = order_stat[0].buyercount
+                total_value = order_stat[0].todayamountcount / 100.0
+                carry = (order_stat[0].todayamountcount / 100.0) * agencylevel.get_Rebeta_Rate() 
+            
+            click_state = ClickCount.objects.filter(linkid=xlmm.pk,date=target_date)
+            if click_state.count() > 0:
+                click_num = click_state[0].valid_num 
             else:
-                click_price += order_num * 0.1
-
-            click_pay = click_price * click_num
+                click_list = Clicks.objects.filter(linkid=xlmm.pk, created__gt=time_from, 
+                                                   created__lt=time_to, isvalid=True)
+                click_num  = click_list.values('openid').distinct().count()
+                
+            click_price = agencylevel.get_Click_Price(order_num) / 100
+            click_pay   = click_price * click_num 
 
             data = {"mobile":mobile_revised, "click_num":click_num, "xlmm":xlmm,
                     "order_num":order_num, "order_list":order_list, "pk":xlmm.pk,
@@ -208,8 +228,6 @@ class MamaStatsView(View):
         response.set_cookie("sopenid",openid)
         return response
 
-from flashsale.clickrebeta.models import StatisticsShoppingByDay
-from flashsale.clickcount.models import ClickCount
 
 class StatsView(View):
     
@@ -270,7 +288,7 @@ class StatsView(View):
                 click_list = Clicks.objects.filter(linkid=mama.pk, created__gt=time_from, created__lt=time_to)
                 click_num  = click_list.count()
                 openid_list = click_list.values('openid').distinct()
-                user_num = len(openid_list)
+                user_num = openid_list.count()
 
             data_entry = {"mobile":mobile[-4:], "weikefu":weikefu,
                           "agencylevel":agencylevel,'username':username,

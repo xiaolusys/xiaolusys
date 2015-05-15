@@ -7,6 +7,7 @@ import datetime
 
 
 class StatisticsShopping(models.Model):
+    
     linkid = models.IntegerField(default=0, verbose_name=u"链接ID")
     linkname = models.CharField(max_length=20, default="", verbose_name=u'代理人')
     openid = models.CharField(max_length=64, blank=True, db_index=True, verbose_name=u"OpenId")
@@ -15,7 +16,7 @@ class StatisticsShopping(models.Model):
     wxorderamount = models.IntegerField(default=0, verbose_name=u'微信订单价格')
     tichengcount = models.IntegerField(default=0, verbose_name=u'提成')
     shoptime = models.DateTimeField(auto_now_add=True, verbose_name=u'提成时间')
-
+    
     class Meta:
         db_table = 'flashsale_tongji_shopping'
         unique_together = ('linkid', 'wxorderid')
