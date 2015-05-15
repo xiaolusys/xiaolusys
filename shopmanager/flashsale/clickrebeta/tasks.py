@@ -35,6 +35,7 @@ def task_Push_Rebeta_To_MamaCash(target_date):
         if not state:
             continue
         c_log.value = order_rebeta
+        c_log.carry_date = target_date
         c_log.carry_type = CarryLog.CARRY_IN
         c_log.status = CarryLog.CONFIRMED
         c_log.save()
