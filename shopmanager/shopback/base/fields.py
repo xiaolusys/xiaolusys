@@ -2,7 +2,7 @@ from django.db import models
 from django.conf import settings
 from django.db.backends.mysql.creation import DatabaseCreation
 
-DatabaseCreation.data_types['AutoField'] = 'bigint(20) AUTO_INCREMENT'
+#DatabaseCreation.data_types['AutoField'] = 'bigint(20) AUTO_INCREMENT'
 
 class BigIntegerAutoField(models.AutoField):
     description = "BigInteger field that auto increments"
