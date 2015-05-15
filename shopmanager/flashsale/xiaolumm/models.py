@@ -37,7 +37,7 @@ class XiaoluMama(models.Model):
     
     cash = models.IntegerField(default=0,verbose_name=u"可用现金")
     pending = models.IntegerField(default=0,verbose_name=u"冻结佣金")
-
+    
     agencylevel = models.IntegerField(default=1,verbose_name=u"类别")
     user_group = models.ForeignKey(UserGroup,null=True,verbose_name=u"类别")
     
@@ -98,26 +98,39 @@ class AgencyLevel(models.Model):
         verbose_name=u'代理类别'
         verbose_name_plural = u'代理类别列表'
         
-    def get_cash_display(self):
-        return float(self.cash/100.0)
+    def get_basic_rate_display(self):
+        return self.basic_rate / 100.0
     
-    get_cash_display.allow_tags = True
-    get_cash_display.short_description = u"现金"
-    
-    @property
-    def cash_money(self):
-        return self.get_cash_display()
-    
-    def get_deposit_display(self):
-        return float(self.cash/100.0)
-    
-    get_deposit_display.allow_tags = True
-    get_deposit_display.short_description = u"押金"
+    get_basic_rate_display.allow_tags = True
+    get_basic_rate_display.short_description = u"基本佣金率"
     
     @property
-    def deposit_money(self):
-        return self.get_deposit_display()
+    def basic_rate_percent(self):
+        return self.get_basic_rate_display()
+    
+    def get_extra_rate_display(self):
+        return self.extra_rate / 100.0
+    
+    get_extra_rate_display.allow_tags = True
+    get_extra_rate_display.short_description = u"奖励佣金率"
+    
+    @property
+    def extra_rate_percent(self):
+        return self.get_extra_rate_display()
+    
+    def get_Click_Price(self,order_num):
+        
+        click_price = 0.2
+        if order_num > 2:
+            click_price = 0.5
+        else:
+            click_price += order_num * 0.1
 
+        return click_price * 100
+    
+    def get_Rebeta_Rate(self,*args,**kwargs):
+        return 0.1
+    
 
 class Clicks(models.Model):
     
@@ -214,14 +227,14 @@ class CarryLog(models.Model):
     
     class Meta:
         db_table = 'xiaolumm_carrylog'
-        verbose_name=u'补贴记录'
-        verbose_name_plural = u'补贴记录列表'
+        verbose_name=u'妈妈钱包/收支记录'
+        verbose_name_plural = u'妈妈钱包/收支记录列表'
     
     def get_value_display(self):
         return float(self.value / 100.0)
     
     get_value_display.allow_tags = True
-    get_value_display.short_description = u"可用现金"
+    get_value_display.short_description = u"金额"
     
     @property
     def value_money(self):

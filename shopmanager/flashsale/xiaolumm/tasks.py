@@ -27,5 +27,6 @@ def task_Create_Click_Record(xlmmid,openid):
         isvalid = True
         
     Clicks.objects.create(linkid=xlmmid,openid=openid,isvalid=isvalid)
+    
 
 

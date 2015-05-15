@@ -24,7 +24,26 @@ class XiaoluMamaForm( forms.ModelForm ):
         pending = self.cleaned_data['pending']
         return int(pending * 100)
 
+
+class AgencyLevelForm( forms.ModelForm ):
     
+    def __init__(self, *args, **kwargs):
+        super(AgencyLevelForm, self).__init__(*args, **kwargs)
+        self.initial['basic_rate'] = self.instance.basic_rate_percent()
+        self.initial['extra_rate'] = self.instance.get_extra_rate_display()
+    
+    class Meta:
+        model = AgencyLevel
+    
+    def  clean_basic_rate(self):
+        basic_rate = self.cleaned_data['basic_rate']
+        return int(basic_rate * 100) 
+    
+    def  clean_extra_rate(self):
+        extra_rate = self.cleaned_data['extra_rate']
+        return int(extra_rate * 100) 
+
+
 class CashOutForm( forms.ModelForm ):
     
     def __init__(self, *args, **kwargs):

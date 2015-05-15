@@ -55,7 +55,7 @@ class WXProduct(models.Model):
 
 class WXSkuProperty(models.Model):
     
-    sku_id   = models.CharField(max_length=32,db_index=True,verbose_name=u'规格ID')
+    sku_id   = models.CharField(max_length=32,unique=True,verbose_name=u'规格ID')
     
     name     = models.CharField(max_length=64,verbose_name=u'规格名称')
     

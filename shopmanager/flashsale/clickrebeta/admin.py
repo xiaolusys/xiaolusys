@@ -23,7 +23,7 @@ class StatisticsShoppingForm(forms.ModelForm):
 
     def clean_tichengcount(self):
         tichengcount = self.cleaned_data['tichengcount']
-        return int(tichengcount * 1000)
+        return int(tichengcount * 100)
 
 
 class StatisticsShoppingAdmin(admin.ModelAdmin):
@@ -54,7 +54,8 @@ class StatisticsShoppingByDayAdminForm(forms.ModelForm):
 
     def clean_todayamountcount(self):
         todayamountcount = self.cleaned_data['todayamountcount']
-        return int(todayamountcount * 1000)
+        return int(todayamountcount * 100)
+    
 
 class StatisticsShoppingByDayAdmin(admin.ModelAdmin):
     form = StatisticsShoppingByDayAdminForm
@@ -64,3 +65,4 @@ class StatisticsShoppingByDayAdmin(admin.ModelAdmin):
 
 
 admin.site.register(StatisticsShoppingByDay, StatisticsShoppingByDayAdmin)
+

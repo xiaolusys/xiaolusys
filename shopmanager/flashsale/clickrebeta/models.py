@@ -2,7 +2,7 @@ __author__ = 'yann'
 # -*- coding:utf-8 -*-
 from django.db import models
 from shopapp.weixin.models import WXOrder
-from flashsale.xiaolumm.models import Clicks, XiaoluMama
+from flashsale.xiaolumm.models import Clicks, XiaoluMama, AgencyLevel
 import datetime
 
 
@@ -23,23 +23,19 @@ class StatisticsShopping(models.Model):
         verbose_name = u'统计购买'
         verbose_name_plural = u'统计购买列表'
 
-    @property
-    def ticheng_rate(self):
-        return 0.1
-
 
     def order_cash(self):
-        return float(self.wxorderamount) / 100
+        return self.wxorderamount / 100.0
 
     order_cash.allow_tags = True
-    order_cash.short_description = u"订单价格"
+    order_cash.short_description = u"订单金额"
 
 
     def ticheng_cash(self):
-        return (float(self.tichengcount) / 100) * self.ticheng_rate
+        return self.tichengcount / 100.0
 
     ticheng_cash.allow_tags = True
-    ticheng_cash.short_description = u"提成"
+    ticheng_cash.short_description = u"提成金额"
 
 
 class StatisticsShoppingByDay(models.Model):
@@ -60,11 +56,6 @@ class StatisticsShoppingByDay(models.Model):
         verbose_name_plural = u'统计购买(按天)列表'
 
 
-    @property
-    def ticheng_rate(self):
-        return 0.1
-
-
     def order_cash(self):
         return float(self.orderamountcount) / 100
 
@@ -72,17 +63,17 @@ class StatisticsShoppingByDay(models.Model):
     order_cash.short_description = u"今日订单总价"
 
     def today_cash(self):
-        return (float(self.todayamountcount) / 100) * self.ticheng_rate
+        return self.todayamountcount / 100.0 
 
     today_cash.allow_tags = True
     today_cash.short_description = u"提成总价"
-
+    
 
 from django.db.models import F
 from shopapp import signals
 
 def tongji(sender, obj, **kwargs):
-
+    
     today = datetime.date.today()
     target_time = obj.order_create_time.date()
     if target_time > today:
@@ -95,7 +86,6 @@ def tongji(sender, obj, **kwargs):
     
     if isinxiaolumm.count() > 0:
         xiaolumm = isinxiaolumm[0]
-
         tongjiorder,state   = StatisticsShopping.objects.get_or_create(linkid=xiaolumm.id,
                                                                wxorderid=str(obj.order_id))
         tongjiorder.linkname = xiaolumm.weikefu

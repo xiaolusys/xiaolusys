@@ -77,7 +77,7 @@ admin.site.register(XiaoluMama, XiaoluMamaAdmin)
 
 class AgencyLevelAdmin(admin.ModelAdmin):
     
-    list_display = ('category','deposit','cash','basic_rate','target','extra_rate','created')
+    list_display = ('category','deposit','cash','get_basic_rate_display','target','get_extra_rate_display','created')
     search_fields = ['category']
     
 admin.site.register(AgencyLevel, AgencyLevelAdmin) 
