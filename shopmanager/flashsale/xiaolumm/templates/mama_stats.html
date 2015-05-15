@@ -65,7 +65,7 @@
     </thead>
     <tbody>
       {% for order in order_list %}
-      <tr><td>{{ order.nick }}</td><td>{{ order.price }}</td><td>{{ order.time }}</td><td>{{ order.status }}</td></tr>
+      <tr><td>{{ order.wxordernick }}</td><td>{{ order.order_cash }}</td><td>{{ order.shoptime }}</td><td>已付款</td></tr>
       {% endfor %}
     </tbody>
   </table>
