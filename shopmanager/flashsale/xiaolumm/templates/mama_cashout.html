@@ -171,11 +171,16 @@
       $("#id-carry-tbody")[0].innerHTML = "";
       for (var i=0; i<results.length; ++i) {
         var entry = results[i];
+        var entry_created = entry["created"];
+        if (entry['log_type'] == 'rebeta' || entry['log_type'] == 'click'){
+        	entry_created = entry['order_num'];
+        }
+        
         var td_money = '<span class="text-success" >'+entry['value_money']+'</span>';
         if (entry['carry_type'] == 'out'){
         	td_money = '<span class="text-danger" >-'+entry['value_money']+'</span>';
         }
-        var row = "<tr><td>"+entry["created"]+"</td><td>"+td_money+"</td><td>"+entry["log_type_name"]+"</td></tr>";
+        var row = "<tr><td>"+entry_created+"</td><td>"+td_money+"</td><td>"+entry["log_type_name"]+"</td></tr>";
         $("#id-carry-tbody").append(row);
       }
     };

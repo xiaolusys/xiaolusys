@@ -197,7 +197,7 @@ class MamaStatsView(View):
 #                 click_price += order_num * 0.1
 # 
 #             click_pay = click_price * click_num
-            order_list = StatisticsShopping.objects.filter(linkid=xlmm.pk,shoptime=target_date)
+            order_list = StatisticsShopping.objects.filter(linkid=xlmm.pk,shoptime__range=(time_from,time_to))
             order_stat = StatisticsShoppingByDay.objects.filter(linkid=xlmm.pk,tongjidate=target_date)
             if order_stat.count() > 0:
                 order_num   = order_stat[0].buyercount
@@ -208,8 +208,7 @@ class MamaStatsView(View):
             if click_state.count() > 0:
                 click_num = click_state[0].valid_num 
             else:
-                click_list = Clicks.objects.filter(linkid=xlmm.pk, created__gt=time_from, 
-                                                   created__lt=time_to, isvalid=True)
+                click_list = Clicks.objects.filter(linkid=xlmm.pk, created__range=(time_from, time_to), isvalid=True)
                 click_num  = click_list.values('openid').distinct().count()
                 
             click_price = agencylevel.get_Click_Price(order_num) / 100
