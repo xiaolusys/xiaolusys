@@ -1,6 +1,6 @@
 # coding: utf-8
 from django.db import models
-
+from shopback.base.fields import BigIntegerAutoField,BigIntegerForeignKey
 # Create your models here.
 # 样品表
 class SampleProduct(models.Model):
@@ -14,7 +14,9 @@ class SampleProduct(models.Model):
                       (WAIT_DELIVERY, U'已审核'),
                       (RECEIVER_CONFIRM, U'已扫描'),
                       (INVALID, U'已作废'),)
-
+    
+    id = BigIntegerAutoField(primary_key=True)
+    
     outer_id = models.CharField(max_length=16, db_index=True, blank=True, verbose_name=u'商品编码')
     title = models.CharField(max_length=64, db_index=True, blank=True, verbose_name=u'商品名称')
     supplier = models.CharField(max_length=64, blank=True, verbose_name=u'供应商')
@@ -43,14 +45,14 @@ class SampleProductSku(models.Model):
     DELETE = 1
     STATUS_CHOICES = ((NORMAL, u'正常'),
                       (DELETE, u'作废'),)
-
+    
+    id = BigIntegerAutoField(primary_key=True)
+    
     outer_id = models.CharField(max_length=16, db_index=True, blank=True, verbose_name=u'规格编码')
-    product = models.ForeignKey(SampleProduct, verbose_name=u'所属样品')
+    product  = BigIntegerForeignKey(SampleProduct, verbose_name=u'所属样品')
 
     sku_name = models.CharField(max_length=64, blank=True, verbose_name=u'规格尺寸')
-
     cost = models.FloatField(default=0, verbose_name=u'采购价格')
-
     payable = models.FloatField(default=0, verbose_name=u'应付金额')
 
     std_price = models.FloatField(default=0, verbose_name=u'吊牌价')
