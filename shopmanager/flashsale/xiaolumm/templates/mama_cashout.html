@@ -31,7 +31,7 @@
   <h5>我的补贴记录：</h5>
     <table class="table table-bordered" style="margin-top:10px">
       <thead>
-		<tr><th class="col-xs-4">时间</th><th class="col-xs-4">金额</th><th class="col-xs-4">类型</th></tr>
+		<tr><th class="col-xs-3">时间</th><th class="col-xs-3">类型</th><th class="col-xs-3">金额</th><th class="col-xs-3">状态</th></tr>
       </thead>
       <tbody id="id-carry-tbody">
       </tbody>
@@ -171,17 +171,13 @@
       $("#id-carry-tbody")[0].innerHTML = "";
       for (var i=0; i<results.length; ++i) {
         var entry = results[i];
-        var entry_created = entry["created"];
-        if (entry['log_type'] == 'rebeta' || entry['log_type'] == 'click'){
-        	order_num  = entry['order_num'].toString() ;
-        	entry_created = '20'+order_num.slice(0,2)+'-'+order_num.slice(2,4)+'-'+order_num.slice(4,6);
-        }
+        var carry_date = entry["carry_date"];
         
         var td_money = '<span class="text-success" >'+entry['value_money']+'</span>';
         if (entry['carry_type'] == 'out'){
         	td_money = '<span class="text-danger" >-'+entry['value_money']+'</span>';
         }
-        var row = "<tr><td>"+entry_created+"</td><td>"+td_money+"</td><td>"+entry["log_type_name"]+"</td></tr>";
+        var row = "<tr><td>"+carry_date+"</td><td>"+td_money+"</td><td>"+entry["log_type_name"]+"</td><td>"+entry["status_name"]+"</td></tr>";
         $("#id-carry-tbody").append(row);
       }
     };

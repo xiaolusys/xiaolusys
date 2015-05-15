@@ -218,12 +218,20 @@ class CarryLog(models.Model):
     buyer_nick = models.CharField(max_length=32,blank=True,verbose_name=u'买家昵称')
     value      = models.IntegerField(default=0,verbose_name=u"金额")
     
-    log_type   = models.CharField(max_length=8,blank=True,choices=LOG_TYPE_CHOICES,default=ORDER_REBETA,verbose_name=u"类型")
-    carry_type = models.CharField(max_length=8,blank=True,choices=CARRY_TYPE_CHOICES,default=CARRY_OUT,verbose_name=u"盈负")
+    log_type   = models.CharField(max_length=8,blank=True,
+                                  choices=LOG_TYPE_CHOICES,
+                                  default=ORDER_REBETA,verbose_name=u"类型")
     
-    status   = models.CharField(max_length=16,blank=True,choices=STATUS_CHOICES,default=CONFIRMED,verbose_name=u'状态')
+    carry_type = models.CharField(max_length=8,blank=True,
+                                  choices=CARRY_TYPE_CHOICES,
+                                  default=CARRY_OUT,verbose_name=u"盈负")
     
-    created  = models.DateTimeField(auto_now_add=True,verbose_name=u'创建时间')
+    status     = models.CharField(max_length=16,blank=True,
+                                  choices=STATUS_CHOICES,
+                                  default=CONFIRMED,verbose_name=u'状态')
+    
+    carry_date = models.DateField(verbose_name=u'业务日期')
+    created    = models.DateTimeField(auto_now_add=True,verbose_name=u'创建时间')
     
     class Meta:
         db_table = 'xiaolumm_carrylog'

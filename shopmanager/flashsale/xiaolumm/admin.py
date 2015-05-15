@@ -104,8 +104,8 @@ admin.site.register(CashOut, CashOutAdmin)
 class CarryLogAdmin(admin.ModelAdmin):
     
     form = forms.CarryLogForm
-    list_display = ('xlmm', 'buyer_nick', 'get_value_display', 'log_type', 'carry_type', 'status', 'created')
-    list_filter = ('log_type','carry_type','status')
+    list_display = ('xlmm', 'buyer_nick', 'get_value_display', 'log_type', 'carry_type', 'status', 'carry_date', 'created')
+    list_filter = ('log_type','carry_type','status',('carry_date',DateFieldListFilter))
     search_fields = ['xlmm', 'buyer_nick']
 
 admin.site.register(CarryLog, CarryLogAdmin)
