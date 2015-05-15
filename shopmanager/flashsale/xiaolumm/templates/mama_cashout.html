@@ -173,7 +173,8 @@
         var entry = results[i];
         var entry_created = entry["created"];
         if (entry['log_type'] == 'rebeta' || entry['log_type'] == 'click'){
-        	entry_created = entry['order_num'];
+        	order_num  = entry['order_num'].toString() ;
+        	entry_created = '20'+order_num.slice(0,2)+'-'+order_num.slice(2,4)+'-'+order_num.slice(4,6);
         }
         
         var td_money = '<span class="text-success" >'+entry['value_money']+'</span>';
