@@ -39,7 +39,7 @@ def task_Push_Rebeta_To_MamaCash(target_date):
         c_log.status = CarryLog.CONFIRMED
         c_log.save()
         
-        urows = XiaoluMama.objects.filter(id=mm_stat.linkid).update(cash=F('cash') + order_rebeta)
+        urows = XiaoluMama.objects.filter(id=mm_stat.linkid).update(pending=F('pending') + order_rebeta)
         if urows == 0:
             raise Exception(u'小鹿妈妈订单提成返现更新异常:%s,%s'%(xlmm.id,urows))
         

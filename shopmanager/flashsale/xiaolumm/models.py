@@ -57,13 +57,13 @@ class XiaoluMama(models.Model):
         verbose_name_plural = u'小鹿妈妈列表'
     
     def get_cash_display(self):
-        return float(self.cash/100.0)
+        return self.cash / 100.0
     
     get_cash_display.allow_tags = True
     get_cash_display.short_description = u"可用现金"
     
     def get_pending_display(self):
-        return float(self.pending/100.0)
+        return self.pending / 100.0
     
     get_pending_display.allow_tags = True
     get_pending_display.short_description = u"冻结佣金"
