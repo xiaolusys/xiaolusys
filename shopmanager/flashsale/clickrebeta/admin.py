@@ -30,7 +30,7 @@ class StatisticsShoppingAdmin(admin.ModelAdmin):
     form = StatisticsShoppingForm
     list_display = ('linkid', 'linkname', 'openid','wxordernick', 'wxorderid', 'order_cash', 'ticheng_cash', 'shoptime')
     list_filter = (('shoptime',DateFieldListFilter),)
-    search_fields = ['linkid', 'openid']
+    search_fields = ['openid','wxorderid']
 
 
 admin.site.register(StatisticsShopping, StatisticsShoppingAdmin)
@@ -61,7 +61,7 @@ class StatisticsShoppingByDayAdmin(admin.ModelAdmin):
     form = StatisticsShoppingByDayAdminForm
     list_display = ('linkid', 'linkname','buyercount', 'ordernumcount', 'order_cash', 'today_cash', 'tongjidate')
     list_filter = (('tongjidate',DateFieldListFilter),)
-    search_fields = ['linkid', 'tongjidate']
+    search_fields = ['linkid']
 
 
 admin.site.register(StatisticsShoppingByDay, StatisticsShoppingByDayAdmin)
