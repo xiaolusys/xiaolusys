@@ -120,6 +120,9 @@ class AgencyLevel(models.Model):
     
     def get_Click_Price(self,order_num):
         
+        if self.id < 2:
+            return 0
+        
         click_price = 0.2
         if order_num > 2:
             click_price = 0.5

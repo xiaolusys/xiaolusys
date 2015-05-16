@@ -27,12 +27,14 @@ def task_Push_Rebeta_To_MamaCash(target_date):
         xlmm = xlmms[0]
         agency_level = AgencyLevel.objects.get(id=xlmm.agencylevel)
         rebeta_rate  = agency_level.get_Rebeta_Rate()
-        
         order_rebeta = mm_stat.todayamountcount * rebeta_rate
+        if order_rebeta <= 0:
+            continue
+        
         c_log,state = CarryLog.objects.get_or_create(xlmm=xlmm.id,
                                                      order_num=carry_no,
                                                      log_type=CarryLog.ORDER_REBETA)
-        if not state:
+        if not state :
             continue
         c_log.value = order_rebeta
         c_log.carry_type = CarryLog.CARRY_IN
