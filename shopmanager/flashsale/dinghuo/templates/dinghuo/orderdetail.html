@@ -14,7 +14,6 @@
 
     <script type="text/javascript">
         function changestatus(id, button) {
-
             var url = "/sale/dinghuo/changestatus/";
             var data = {"orderid": id, "func": button.value};
             var orderstatus = $("#order_status");
@@ -24,8 +23,6 @@
                         orderstatus.text("审核");
                     } else if (button.id == "zuifeibutton") {
                         orderstatus.text("作废");
-                    } else {
-                        orderstatus.text("完成")
                     }
                 }
 
@@ -33,8 +30,6 @@
             };
             if (orderstatus.text() == "草稿") {
                 $.ajax({url: url, data: data, type: "post", success: callback});
-            } else {
-
             }
         }
 
@@ -93,7 +88,17 @@
                 </div>
             </div>
         </div>
+        <div class="row">
+            <div class="col-lg-4"></div>
+            <div class="col-lg-4"></div>
+            <div class="col-lg-4" style="text-align: right">
+                <input type="button" class="btn btn-info" id="shenhebutton" value="审核"
+                       onclick="changestatus({{ orderlist.id }},this)">
+                <input type="button" class="btn btn-danger" id="zuofeibutton" value="作废"
+                       onclick="changestatus({{ orderlist.id }},this)">
+            </div>
 
+        </div>
         <div class="row">
 
             <legend>
