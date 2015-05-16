@@ -161,47 +161,18 @@ class MamaStatsView(View):
                 xlmm.weikefu = wx_user.nickname
                 xlmm.save()
             
-            clicks = Clicks.objects.filter(linkid=xlmm.pk,created__gt=time_from,created__lt=time_to)
-            openid_list = clicks.values("openid").distinct()
             mobile_revised = "%s****%s" % (mobile[:3], mobile[-4:])
             agencylevel = AgencyLevel.objects.get(pk=xlmm.agencylevel)
             
             order_num   = 0
             total_value = 0
             carry       = 0
-#             for item in openid_list:
-#                 orders = WXOrder.objects.filter(buyer_openid=item["openid"],
-#                                                 order_create_time__gt=time_from,
-#                                                 order_create_time__lt=time_to)
-#                 
-#                 if orders.count() > 0:
-#                     order_num += 1
-#                 for order in orders:
-#                     total_value += order.order_total_price*0.01
-#                     status = WXORDER_STATUS[int(order.order_status)]
-#                     time   = str(order.order_create_time)[11:16]
-#                     order_info = {"nick":"*"+order.buyer_nick[1:], 
-#                                   "price":order.order_total_price*0.01,
-#                                   "time":time, "status":status}
-#                     order_list.append(order_info)
-# 
-#             order_list.sort(key=lambda a: a["time"])
-#             click_num = len(clicks.filter(isvalid=True).values("openid").distinct())
-#
-#             carry = agencylevel.basic_rate * total_value * 0.01
-# 
-#             click_price = 0.2
-#             if order_num > 2:
-#                 click_price = 0.5
-#             else:
-#                 click_price += order_num * 0.1
-# 
-#             click_pay = click_price * click_num
+
             order_list = StatisticsShopping.objects.filter(linkid=xlmm.pk,shoptime__range=(time_from,time_to))
             order_stat = StatisticsShoppingByDay.objects.filter(linkid=xlmm.pk,tongjidate=target_date)
             if order_stat.count() > 0:
                 order_num   = order_stat[0].buyercount
-                total_value = order_stat[0].todayamountcount / 100.0
+                total_value = order_stat[0].orderamountcount / 100.0
                 carry = (order_stat[0].todayamountcount / 100.0) * agencylevel.get_Rebeta_Rate() 
             
             click_state = ClickCount.objects.filter(linkid=xlmm.pk,date=target_date)

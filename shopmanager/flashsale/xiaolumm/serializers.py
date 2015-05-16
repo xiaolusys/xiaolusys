@@ -22,7 +22,7 @@ class CashOutSerializer(serializers.ModelSerializer):
 
 
 class CarryLogSerializer(serializers.ModelSerializer):
-#     created = serializers.DateTimeField(format="%Y-%m-%d")
+    carry_date = serializers.DateTimeField(format="%y-%m-%d")
     class Meta:
         model = CarryLog
         fields = ('xlmm', 'order_num', 'buyer_nick', 'value', 'value_money','log_type',

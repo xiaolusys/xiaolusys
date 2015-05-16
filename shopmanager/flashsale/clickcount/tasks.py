@@ -45,7 +45,7 @@ def task_Push_ClickCount_To_MamaCash(target_date):
         c_log.value = click_rebeta
         c_log.carry_date = target_date
         c_log.carry_type = CarryLog.CARRY_IN
-        c_log.status = CarryLog.CONFIRMED
+        c_log.status = CarryLog.PENDING
         c_log.save()
         
         urows = XiaoluMama.objects.filter(id=mm_cc.linkid).update(pending=F('pending') + click_rebeta)
