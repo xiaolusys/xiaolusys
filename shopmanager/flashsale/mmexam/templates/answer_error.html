@@ -1,0 +1,52 @@
+{% extends "weixin/weixin_base.html" %}
+{% load url from future %}
+{% block title %} 此题回答错误 {%endblock %} 
+
+{% block head_script %}
+
+
+<style>
+   .well-small {
+   		display: inline-block;
+		min-width: 60%;
+		max-width: 85%;
+		padding: 5px;
+		margin-bottom:0px;
+		-webkit-border-radius: 6px;
+		-moz-border-radius: 6px;
+		border-radius: 6px;
+   }
+   .table-bordered{
+   		border:solid 1px #fff;
+   }
+   .table>tbody>tr>td,.table>tfoot>tr>td{
+   		border:solid 1px #fff;
+   }
+</style>
+{% endblock %}
+
+{% block container %}
+<em>您好，回答不正确</em>
+<div class="container-fluid">
+  <div class="panel panel-default" style="margin-top: 5px" id="id_problem_body">
+    <div class="row" style="margin-top:20px;margin-bottom:10px">
+    
+  <div class="col-xs-12" style="text-align:center">
+    <button type="button" class="btn btn-success" onclick="location='/sale/exam/mmexam/{{question_id}}'">重新做此题</button>
+      
+  </div>
+  
+ <div  class="col-xs-12" style="text-align:center"   >
+ 
+  <div>
+</div>
+  </div>
+
+  <div class="footer">
+    <p>© Uni Littles 2014</p>
+  </div>
+
+</div>
+
+{% endblock %}
+

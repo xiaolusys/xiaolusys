@@ -1,0 +1,77 @@
+
+{% extends "weixin/weixin_base.html" %} {% load url from future %} {% block title %} 代理测试首页 {%endblock %} {% load static
+%} {% block head_script %}
+<style>
+  .well-small { display: inline-block; min-width: 60%; max-width: 85%; padding: 5px; margin-bottom:0px;
+  -webkit-border-radius: 6px; -moz-border-radius: 6px; border-radius: 6px; } .table-bordered{ border:solid 1px #fff; }
+  .table>tbody>tr>td,.table>tfoot>tr>td{ border:solid 1px #fff; }
+</style>
+
+{% endblock %} {% block container %}
+</div>
+<div class="panel panel-warning">
+  <div class="panel-heading">
+    <h3 class="panel-title">
+      小鹿妈妈考试首页
+    </h3>
+  </div>
+  <div class="panel-body">
+    <div>
+      <span class="label label-warning">
+        请注意：
+      </span>
+      1.中途退出答题无效。
+    </div>
+  </div>
+  <div class="panel-body">
+    <span class="label label-info">
+      请注意：
+    </span>
+    2.只有回答正确，才能进入下一题。
+  </div>
+</div>
+
+<!--               -->
+<div  style="margin-left:25px">
+
+  <img 
+      src="{{ STATIC_URL }}img/mmlogo.jpg"
+      class="img-responsive img-circle"
+      alt="Cinque Terre"
+      width="304"
+      height="236">
+
+
+
+</div>
+
+<div class="container-fluid">
+
+  <div class="" style="margin-top: 5px" id="id_problem_body">
+    <div class="row" style="margin-top:20px;margin-bottom:10px">
+
+      <div class="col-xs-12" style="text-align:center">
+
+
+        <button 
+            type="button"
+            id="fat-btn"
+            class="btn btn-warning btn-lg btn-block"
+            onclick="location='/sale/exam/mmexam/1'">
+          点击进入考试
+        </button>
+
+      </div>
+
+      <div class="footer"  style="text-align:center">
+        <p >
+          © Uni Littles 2015
+        </p>
+      </div>
+
+    </div>
+    {% endblock %} {% block tail_script %}
+    <script type="text/javascript">
+    </script>
+
+    {% endblock %}
