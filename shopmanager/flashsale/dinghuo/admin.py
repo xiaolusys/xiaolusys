@@ -3,7 +3,7 @@ from django.contrib import admin
 from flashsale.dinghuo.models import OrderList, OrderDetail, orderdraft
 from django.http import HttpResponseRedirect
 from flashsale.dinghuo import log_action, CHANGE
-
+from shopback.base.options import DateFieldListFilter
 
 class orderdetailInline(admin.TabularInline):
     model = OrderDetail
@@ -22,7 +22,7 @@ class ordelistAdmin(admin.ModelAdmin):
     inlines = [orderdetailInline]
     list_display = ('id', 'buyer_name', 'order_amount', 'supplier_name', 'express_company', 'express_no'
                     , 'receiver', 'created', 'shenhe', 'note')
-    list_filter = ['created']
+    list_filter = (('created',DateFieldListFilter),)
     search_fields = ['buyer_name']
     date_hierarchy = 'created'
 
