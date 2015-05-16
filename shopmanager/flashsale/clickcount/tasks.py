@@ -33,13 +33,15 @@ def task_Push_ClickCount_To_MamaCash(target_date):
         agency_level = AgencyLevel.objects.get(id=xlmm.agencylevel)
         click_price  = agency_level.get_Click_Price(buyercount)
         click_rebeta = mm_cc.valid_num * click_price 
+        if mm_cc.valid_num == 0 or click_price <= 0:
+            continue
         
         c_log,state = CarryLog.objects.get_or_create(xlmm=xlmm.id,
                                                      order_num=carry_no,
                                                      log_type=CarryLog.CLICK_REBETA)
-        if not state or mm_cc.valid_num == 0:
+        if not state :
             continue
-
+        
         c_log.value = click_rebeta
         c_log.carry_date = target_date
         c_log.carry_type = CarryLog.CARRY_IN
