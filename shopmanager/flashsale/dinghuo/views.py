@@ -124,7 +124,7 @@ def neworder(request):
     if request.method == 'POST':
         post = request.POST
         costofems = post['costofems']
-        if costofems=="":
+        if costofems == "":
             costofems = 0
         else:
             costofems = int(costofems)
@@ -257,20 +257,8 @@ def removedraft(req):
 def viewdetail(req, orderdetail_id):
     orderlist = OrderList.objects.get(id=orderdetail_id)
     orderdetail = OrderDetail.objects.filter(orderlist_id=orderdetail_id)
-    paginator = Paginator(orderdetail, 7)
-    page = req.GET.get('page')
-    dict = {}
-    for i in range(1, paginator.num_pages + 1):
-        dict[i] = i
-    try:
-        orderdetail = paginator.page(page)
-    except PageNotAnInteger:
-        orderdetail = paginator.page(1)
-    except EmptyPage:
-        orderdetail = paginator.page(paginator.num_pages)
     return render_to_response("dinghuo/orderdetail.html", {"orderlist": orderlist,
-                                                           "orderdetails": orderdetail,
-                                                           "num_page": dict},
+                                                           "orderdetails": orderdetail},
                               context_instance=RequestContext(req))
 
 
