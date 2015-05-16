@@ -28,5 +28,10 @@ def task_Create_Click_Record(xlmmid,openid):
         
     Clicks.objects.create(linkid=xlmmid,openid=openid,isvalid=isvalid)
     
+    
+
+
+    
+    
 
 

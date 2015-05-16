@@ -202,16 +202,22 @@ SHOP_APP_SCHEDULE = {
 
     u'定时统计昨日小鹿妈妈点击':{
         'task':'flashsale.clickcount.tasks.task_Record_User_Click',
-        'schedule':crontab(minute="37",hour='9'),
+        'schedule':crontab(minute="20",hour='0'),
         'args':(),
 #         'kwargs':{'pre_day':1}
     },
 
-#     u'定时统计昨日代理的订单':{
-#         'task':'flashsale.clickrebeta.tasks.task_Tongji_User_Order',
-#         'schedule':crontab(minute="15",hour='0'),
-#         'args':()
-#     },
+    u'定时统计昨日代理的订单':{
+        'task':'flashsale.clickrebeta.tasks.task_Tongji_User_Order',
+        'schedule':crontab(minute="40",hour='0'),
+        'args':()
+    },
+                     
+    u'定时更新代理妈妈佣金提成':{
+        'task':'flashsale.clickrebeta.tasks.task_Push_Pending_Carry_Cash',
+        'schedule':crontab(minute="30",hour='1'),
+        'args':(),
+    },
 
 #    'runs-every-10-minutes-update-seller-flag':{
 #        'task':'shopapp.memorule.tasks.updateTradeSellerFlagTask',
