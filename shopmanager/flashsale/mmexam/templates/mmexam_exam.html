@@ -1,0 +1,61 @@
+{% extends "weixin/weixin_base.html" %}
+{% load url from future %}
+{% block title %} 代理测试 {%endblock %} 
+
+{% block head_script %}
+<style>
+   .well-small {
+   		display: inline-block;
+		min-width: 60%;
+		max-width: 85%;
+		margin-bottom:0px;
+		-webkit-border-radius: 6px;
+		-moz-border-radius: 6px;
+		border-radius: 6px;
+   }
+   .table-bordered{
+   		border:solid 1px #fff;
+   }
+   .table>tbody>tr>td,.table>tfoot>tr>td{
+   		border:solid 1px #fff;
+   }
+   .on{
+   background:RED
+   }  
+  .tron  {background-color:red}    
+}
+   
+   
+   
+</style>
+{% endblock %}
+
+{% block container %}
+<div class="container-fluid">
+  <div class="panel panel-default" style="margin-top: 5px" id="id_problem_body">
+    {% include "mmexam/examination/daili_exam_block.html" %}
+  </div>
+
+  <div class="footer" style="text-align:center" >
+    <p>© Uni Littles 2015</p>
+  </div>
+
+</div>
+
+{% endblock %}
+
+{% block tail_script %}
+
+<script type="text/javascript">
+//function td_click( ){
+//alert('td没有响应tr单击事件!');
+
+//}
+
+
+
+//});
+  
+
+</script>
+{% endblock %}

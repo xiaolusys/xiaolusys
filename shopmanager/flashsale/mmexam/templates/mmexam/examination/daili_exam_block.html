@@ -1,0 +1,56 @@
+
+{% load url from future %}
+<div class="panel-heading" style="color: orange; font-size:20px;  ">
+  第{{ question.id }}题：{{ question.question }}
+</div>
+
+{% csrf_token %}
+<input id="id_problem_id" type="hidden" name="problem_id" value=""/>
+
+
+
+
+<form action="{% url 'exam' question.id  %}" method="post">
+  {% csrf_token %}
+  <table 
+      id="mytable"
+       class="table table-bordered table-striped  table-hover table-condensed  "
+      cellspacing="0"
+      cellpadding="0"
+  >
+
+    {% for choice in question.choice_set.all %}
+    <!--<tr   onClick="td_click()"  >   -->
+    <tr  >
+      <td >
+        <div class="checkbox" >
+          <label style=" font-size: 18px;" >
+            <input type="checkbox"   name="chk"  value={{ choice.choice_title }} />
+            {{ choice.choice_title }}. {{ choice.choice_text }}。
+           <input type="hidden" name="number" value="{{ number }}"/>
+          </label>
+        </div>
+      </td>
+    </tr>
+    {% endfor %}
+    <tr>
+      <td>
+        <div align="center">
+          <span style='color:red;  '>
+            {{result}}
+          </span>
+        </div>
+        <div class="row" style="margin-top:20px;margin-bottom:10px">
+          <div class="col-xs-12" style="text-align:center">
+            <input type="submit" value="提交"   class="btn btn-warning btn-lg btn-block"   onclick="submit();"      />
+          </div>
+        </div>
+      </td>
+    </tr>
+  </form>
+
+</table>
+
+
+
+

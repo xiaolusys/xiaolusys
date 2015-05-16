@@ -20,12 +20,8 @@
             var orderstatus = $("#order_status");
             var callback = function (res) {
                 if (res == "OK") {
-                    if (button.id == "shenhebutton") {
-                        orderstatus.text("审核");
-                    } else if (button.id == "zuifeibutton") {
+                    if (button.id == "zuifeibutton") {
                         orderstatus.text("作废");
-                    } else {
-                        orderstatus.text("完成")
                     }
                 }
 
@@ -121,53 +117,60 @@
                 </div>
             </div>
         </div>
-
-        <div class="row">
-
-            <legend>
-                <h2 class="head-title">详细列表</h2>
-            </legend>
+        <div class="row" style="text-align: right">
+            <div class="col-lg-4"></div>
+            <div class="col-lg-4"></div>
+            <div class="col-lg-4"><input type="button" class="btn btn-danger" id="zuofeibutton" value="作废"
+                                         onclick="changestatus({{ orderlist.id }},this)"></div>
         </div>
-        <div class="row">
-            <table id="orderdetailtable" border="1" class="table table-striped table-bordered table-hover">
-                <thead>
-                <th width="100px">商品编码</th>
-                <th width="100px">商品名称
-                </td>
-                <th width="100px">规格</th>
-                <th width="100px">数量</th>
-                <th width="100px">买入价格</th>
-                <th width="100px">单项价格</th>
-                <th style="width:40px;">操作</th>
-                </thead>
-                <tbody>
-                {% for order in orderdetails %}
-                    <tr id="orderdetail_{{ forloop.counter }}">
-                        <td>{{ order.outer_id }}</td>
-                        <td>{{ order.product_name }}</td>
-                        <td>{{ order.product_chicun }}</td>
 
-                        <td align="center"><a onclick="plusQuantity({{ order.id }})">
-                            <span class="glyphicon glyphicon-plus"></span></a>&nbsp;
-                            <span id="quantity_{{ order.id }}">{{ order.buy_quantity }}</span>
-                            <a onclick="minusQuantity({{ order.id }})">
-                                <span class="glyphicon glyphicon-minus"></span>
-                            </a>
-                        </td>
-                        <td>{{ order.buy_unitprice }}</td>
-                        <td>¥{{ order.total_price }}</td>
-                        <td>
-                            <a class="edit" href="javascript:void(0);">
-                                <icon class="icon-edit"></icon>
-                            </a><a class="delete" href="javascript:void(0);">
-                            <icon class="icon-remove"></icon>
+
+    <div class="row">
+
+        <legend>
+            <h2 class="head-title">详细列表</h2>
+        </legend>
+    </div>
+    <div class="row">
+        <table id="orderdetailtable" border="1" class="table table-striped table-bordered table-hover">
+            <thead>
+            <th width="100px">商品编码</th>
+            <th width="100px">商品名称
+            </td>
+            <th width="100px">规格</th>
+            <th width="100px">数量</th>
+            <th width="100px">买入价格</th>
+            <th width="100px">单项价格</th>
+            <th style="width:40px;">操作</th>
+            </thead>
+            <tbody>
+            {% for order in orderdetails %}
+                <tr id="orderdetail_{{ forloop.counter }}">
+                    <td>{{ order.outer_id }}</td>
+                    <td>{{ order.product_name }}</td>
+                    <td>{{ order.product_chicun }}</td>
+
+                    <td align="center"><a onclick="plusQuantity({{ order.id }})">
+                        <span class="glyphicon glyphicon-plus"></span></a>&nbsp;
+                        <span id="quantity_{{ order.id }}">{{ order.buy_quantity }}</span>
+                        <a onclick="minusQuantity({{ order.id }})">
+                            <span class="glyphicon glyphicon-minus"></span>
                         </a>
-                        </td>
-                    </tr>
-                {% endfor %}
-                </tbody>
-            </table>
-        </div>
+                    </td>
+                    <td>{{ order.buy_unitprice }}</td>
+                    <td>¥{{ order.total_price }}</td>
+                    <td>
+                        <a class="edit" href="javascript:void(0);">
+                            <icon class="icon-edit"></icon>
+                        </a><a class="delete" href="javascript:void(0);">
+                        <icon class="icon-remove"></icon>
+                    </a>
+                    </td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
     </div>
 {% endblock %}
 {% block tail_script %}
