@@ -240,10 +240,13 @@ def plusordertail(req):
     post = req.POST
     orderdetailid = post["orderdetailid"]
     orderdetail = OrderDetail.objects.get(id=orderdetailid)
+    orderlist = OrderList.objects.get(id=orderdetail.orderlist_id)
     OrderDetail.objects.filter(id=orderdetailid).update(buy_quantity=F('buy_quantity') + 1)
     OrderDetail.objects.filter(id=orderdetailid).update(total_price=F('total_price') + orderdetail.buy_unitprice)
     OrderList.objects.filter(id=orderdetail.orderlist_id).update(
         order_amount=F('order_amount') + orderdetail.buy_unitprice)
+    log_action(req.user.id, orderlist, CHANGE, u'订货单{0}{1}'.format((u'加一件'), orderdetail.product_name))
+    log_action(req.user.id, orderdetail, CHANGE, u'%s' % (u'加一'))
     return HttpResponse("OK")
 
 
@@ -262,11 +265,14 @@ def minusordertail(req):
     post = req.POST
     orderdetailid = post["orderdetailid"]
     orderdetail = OrderDetail.objects.get(id=orderdetailid)
+    orderlist = OrderList.objects.get(id=orderdetail.orderlist_id)
     OrderDetail.objects.filter(id=orderdetailid).update(buy_quantity=F('buy_quantity') - 1)
     OrderDetail.objects.filter(id=orderdetailid).update(total_price=F('total_price') - orderdetail.buy_unitprice)
     orderdetail = OrderDetail.objects.get(id=orderdetailid)
     OrderList.objects.filter(id=orderdetail.orderlist_id).update(
         order_amount=F('order_amount') - orderdetail.buy_unitprice)
+    log_action(req.user.id, orderlist, CHANGE, u'订货单{0}{1}'.format((u'加一件'), orderdetail.product_name))
+    log_action(req.user.id, orderdetail, CHANGE, u'%s' % (u'减一'))
     return HttpResponse("OK")
 
 
