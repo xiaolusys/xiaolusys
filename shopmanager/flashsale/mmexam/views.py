@@ -19,7 +19,7 @@ def index(request):
     user_openid = get_user_openid(request, code)
         
     if not valid_openid(user_openid):
-         redirect_url = "https://open.weixin.qq.com/connect/oauth2/authorize?appid=wxc2848fa1e1aa94b5&redirect_uri=http://weixin.huyi.so/mmexam/index/&response_type=code&scope=snsapi_base&state=135#wechat_redirect"
+         redirect_url = "https://open.weixin.qq.com/connect/oauth2/authorize?appid=wxc2848fa1e1aa94b5&redirect_uri=http://weixin.huyi.so/sale/exam/&response_type=code&scope=snsapi_base&state=135#wechat_redirect"
         #return redirect(redirect_url)
     #    if not user_openid  or user_openid.upper() == 'NONE':
             #render(request, 'invalid_user.html')#无效用户

@@ -1,0 +1,1617 @@
+[
+    {
+        "pk": 1,
+        "model": "mmexam.question",
+        "fields": {
+            "pub_date": "2015-05-15T09:13:03",
+            "real_answer": "ABC",
+            "question": "\u5c0f\u9e7f\u5988\u5988\u7684\u4ea7\u54c1\u4e3a\u4ec0\u4e48\u6027\u4ef7\u6bd4\u8fd9\u4e48\u9ad8\uff1f",
+            "single_many": 2
+        }
+    },
+    {
+        "pk": 2,
+        "model": "mmexam.question",
+        "fields": {
+            "pub_date": "2015-05-15T09:14:30",
+            "real_answer": "AB",
+            "question": "\u5c0f\u9e7f\u7f8e\u7f8e\u4e3a\u7528\u6237\u8d2d\u4e70\u63d0\u4f9b\u4e86\u54ea\u4e9b\u4fdd\u8bc1\uff1f",
+            "single_many": 2
+        }
+    },
+    {
+        "pk": 3,
+        "model": "mmexam.question",
+        "fields": {
+            "pub_date": "2015-05-15T09:23:58",
+            "real_answer": "BC",
+            "question": "\u5c0f\u9e7f\u7f8e\u7f8e\u7684\u53d1\u8d27\u65f6\u95f4\u53ca\u539f\u56e0\u662f\uff1f",
+            "single_many": 2
+        }
+    },
+    {
+        "pk": 4,
+        "model": "mmexam.question",
+        "fields": {
+            "pub_date": "2015-05-15T12:13:50",
+            "real_answer": "A",
+            "question": "\u4e0b\u5217\u54ea\u79cd\u60c5\u51b5\u53ef\u80fd\u9020\u6210\u53d1\u8d27\u65f6\u95f4\u7279\u522b\u957f\uff1f",
+            "single_many": 2
+        }
+    },
+    {
+        "pk": 5,
+        "model": "mmexam.question",
+        "fields": {
+            "pub_date": "2015-05-15T20:33:19",
+            "real_answer": "BC",
+            "question": "\u5c0f\u9e7f\u7f8e\u7f8e\u63d0\u4f9b\u600e\u4e48\u6837\u7684\u9000\u8d27\u670d\u52a1\uff1f",
+            "single_many": 2
+        }
+    },
+    {
+        "pk": 6,
+        "model": "mmexam.question",
+        "fields": {
+            "pub_date": "2015-05-15T20:35:53",
+            "real_answer": "ABD",
+            "question": "\u5c0f\u9e7f\u7f8e\u7f8e\u7684\u7279\u5356\u65f6\u95f4\u53ca\u5468\u671f\u662f\uff1f",
+            "single_many": 2
+        }
+    },
+    {
+        "pk": 7,
+        "model": "mmexam.question",
+        "fields": {
+            "pub_date": "2015-05-15T20:37:32",
+            "real_answer": "A",
+            "question": "\u5982\u679c\u62cd\u9519\u5c3a\u7801\u6216\u989c\u8272\u600e\u4e48\u529e\uff1f",
+            "single_many": 2
+        }
+    },
+    {
+        "pk": 8,
+        "model": "mmexam.question",
+        "fields": {
+            "pub_date": "2015-05-15T20:38:44",
+            "real_answer": "A",
+            "question": "\u4f55\u67e5\u770b\u5c0f\u9e7f\u5988\u5988\u9500\u552e\u6570\u636e\uff1f",
+            "single_many": 2
+        }
+    },
+    {
+        "pk": 9,
+        "model": "mmexam.question",
+        "fields": {
+            "pub_date": "2015-05-15T20:40:19",
+            "real_answer": "ABCDE",
+            "question": "\u70b9\u51fb\u8865\u8d34\u5982\u4f55\u8ba1\u7b97\uff1f",
+            "single_many": 2
+        }
+    },
+    {
+        "pk": 10,
+        "model": "mmexam.question",
+        "fields": {
+            "pub_date": "2015-05-15T20:41:36",
+            "real_answer": "AB",
+            "question": "\u8ba2\u5355\u8865\u8d34\u5982\u4f55\u8ba1\u7b97\u6309\uff1f",
+            "single_many": 2
+        }
+    },
+    {
+        "pk": 11,
+        "model": "mmexam.question",
+        "fields": {
+            "pub_date": "2015-05-15T20:42:29",
+            "real_answer": "A",
+            "question": "\u5c0f\u9e7f\u5988\u5988\u80fd\u4e92\u76f8\u70b9\u522b\u4eba\u7684\u94fe\u63a5\u4e48\uff1f",
+            "single_many": 2
+        }
+    },
+    {
+        "pk": 12,
+        "model": "mmexam.question",
+        "fields": {
+            "pub_date": "2015-05-15T20:43:21",
+            "real_answer": "AB",
+            "question": "\u4e3a\u4ec0\u4e48\u8981\u4ea4\u62bc\u91d1\uff1f",
+            "single_many": 2
+        }
+    },
+    {
+        "pk": 13,
+        "model": "mmexam.question",
+        "fields": {
+            "pub_date": "2015-05-15T20:44:22",
+            "real_answer": "ABC",
+            "question": "\u6210\u529f\u63a8\u8350\u4ee3\u7406\u600e\u4e48\u5956\u52b1\uff1f",
+            "single_many": 2
+        }
+    },
+    {
+        "pk": 14,
+        "model": "mmexam.question",
+        "fields": {
+            "pub_date": "2015-05-15T20:45:26",
+            "real_answer": "ABC",
+            "question": "\u5982\u4f55\u83b7\u5f97\u6bcf\u5929\u670b\u53cb\u5708\u5e94\u53d1\u5e03\u7684\u4fe1\u606f",
+            "single_many": 2
+        }
+    },
+    {
+        "pk": 15,
+        "model": "mmexam.question",
+        "fields": {
+            "pub_date": "2015-05-15T20:46:18",
+            "real_answer": "AB",
+            "question": "\u600e\u4e48\u8054\u7cfb\u5ba2\u670d\uff1f",
+            "single_many": 2
+        }
+    },
+    {
+        "pk": 16,
+        "model": "mmexam.question",
+        "fields": {
+            "pub_date": "2015-05-15T20:47:05",
+            "real_answer": "AB",
+            "question": "\u6211\u63a8\u8350\u6210\u529f\u7684\u5c0f\u9e7f\u5988\u5988\uff0c\u6211\u7684\u63d0\u6210\u600e\u4e48\u8ba1\u7b97\uff1f",
+            "single_many": 2
+        }
+    },
+    {
+        "pk": 17,
+        "model": "mmexam.question",
+        "fields": {
+            "pub_date": "2015-05-15T20:47:52",
+            "real_answer": "AB",
+            "question": " \u600e\u4e48\u63a8\u8350\u670b\u53cb\u6210\u4e3a\u5c0f\u9e7f\u5988\u5988\uff1f",
+            "single_many": 2
+        }
+    },
+    {
+        "pk": 18,
+        "model": "mmexam.question",
+        "fields": {
+            "pub_date": "2015-05-15T20:50:00",
+            "real_answer": "BCD",
+            "question": "\u62bc\u91d1\u53ef\u4ee5\u9000\u5417\uff1f",
+            "single_many": 2
+        }
+    },
+    {
+        "pk": 19,
+        "model": "mmexam.question",
+        "fields": {
+            "pub_date": "2015-05-15T20:50:57",
+            "real_answer": "AB",
+            "question": "\u6211\u4e00\u4e2a\u987e\u5ba2\u8d2d\u4e70\u597d\u591a\u4ef6\uff0c\u4e3a\u4ec0\u4e48\u53ea\u663e\u793a\u4e00\u4e2a\u8ba2\u5355\uff1f",
+            "single_many": 2
+        }
+    },
+    {
+        "pk": 20,
+        "model": "mmexam.question",
+        "fields": {
+            "pub_date": "2015-05-15T20:52:10",
+            "real_answer": "ABC",
+            "question": "\u6211\u901a\u8baf\u5f55\u597d\u53cb\u6bd4\u8f83\u5c11\uff0c\u5982\u4f55\u52a0\u4eba\uff1f",
+            "single_many": 2
+        }
+    },
+    {
+        "pk": 21,
+        "model": "mmexam.question",
+        "fields": {
+            "pub_date": "2015-05-15T20:53:12",
+            "real_answer": "ABC",
+            "question": "\u600e\u4e48\u7ecf\u8425\u670b\u53cb\u5708\uff1f",
+            "single_many": 2
+        }
+    },
+    {
+        "pk": 22,
+        "model": "mmexam.question",
+        "fields": {
+            "pub_date": "2015-05-15T20:54:14",
+            "real_answer": "ABC",
+            "question": "\u5982\u4f55\u67e5\u8be2\u5fae\u5e97\u8ba2\u5355\u548c\u8054\u7cfb\u5ba2\u670d",
+            "single_many": 2
+        }
+    },
+    {
+        "pk": 23,
+        "model": "mmexam.question",
+        "fields": {
+            "pub_date": "2015-05-15T20:55:33",
+            "real_answer": "ABCDE",
+            "question": "\u4ee5\u4e0b\u54ea\u4e9b\u95ee\u9898\u662f\u817e\u8baf\u5e73\u53f0\u7684\u95ee\u9898\uff1f",
+            "single_many": 2
+        }
+    },
+    {
+        "pk": 24,
+        "model": "mmexam.question",
+        "fields": {
+            "pub_date": "2015-05-15T20:56:37",
+            "real_answer": "C",
+            "question": "\u6211\u4eec\u7684\u4eb2\u5b50\u88c5\u4ec0\u4e48\u65f6\u95f4\u4e0a\u65b0\uff1f",
+            "single_many": 2
+        }
+    },
+    {
+        "pk": 25,
+        "model": "mmexam.question",
+        "fields": {
+            "pub_date": "2015-05-15T20:57:18",
+            "real_answer": "AB",
+            "question": "\u600e\u4e48\u7ed1\u5b9a\u5fae\u4fe1\u652f\u4ed8\uff1f",
+            "single_many": 2
+        }
+    },
+    {
+        "pk": 26,
+        "model": "mmexam.question",
+        "fields": {
+            "pub_date": "2015-05-15T20:58:11",
+            "real_answer": "ABC",
+            "question": "\u6211\u4eec\u53d1\u4ec0\u4e48\u5feb\u9012\u7684\uff1f",
+            "single_many": 2
+        }
+    },
+    {
+        "pk": 27,
+        "model": "mmexam.question",
+        "fields": {
+            "pub_date": "2015-05-15T20:58:57",
+            "real_answer": "ABC",
+            "question": "\u6211\u4eec\u7279\u5356\u9664\u4e86\u5fae\u5e97\u8fd8\u6709\u5176\u4ed6\u8d2d\u4e70\u5e73\u53f0\u5417\uff1f",
+            "single_many": 2
+        }
+    },
+    {
+        "pk": 28,
+        "model": "mmexam.question",
+        "fields": {
+            "pub_date": "2015-05-15T20:59:41",
+            "real_answer": "AB",
+            "question": "\u4e00\u8d77\u62cd\u4e0b\u7684\u51e0\u4ef6\u8863\u670d\u80fd\u4e00\u8d77\u53d1\u8d27\u5417\uff1f",
+            "single_many": 2
+        }
+    },
+    {
+        "pk": 29,
+        "model": "mmexam.question",
+        "fields": {
+            "pub_date": "2015-05-15T21:05:40",
+            "real_answer": "ABCDEFGHIJ",
+            "question": "\u5c0f\u9e7f\u5988\u5988\u5fae\u4fe1\u7fa4\u89c4\u6709\u54ea\u4e9b\uff1f",
+            "single_many": 2
+        }
+    },
+    {
+        "pk": 30,
+        "model": "mmexam.question",
+        "fields": {
+            "pub_date": "2015-05-15T21:06:45",
+            "real_answer": "ABC",
+            "question": "\u8865\u8d34\u600e\u4e48\u63d0\u73b0\uff1f",
+            "single_many": 2
+        }
+    },
+    {
+        "pk": 31,
+        "model": "mmexam.question",
+        "fields": {
+            "pub_date": "2015-05-15T21:07:22",
+            "real_answer": "A",
+            "question": "\u7279\u5356\u5e73\u53f0\u4e0a\u8863\u670d\u600e\u4e48\u9009\u62e9\u5c3a\u7801",
+            "single_many": 2
+        }
+    },
+    {
+        "pk": 1,
+        "model": "mmexam.choice",
+        "fields": {
+            "choice_title": "A",
+            "question": 1,
+            "choice_text": "\u76f4\u63a5\u5bf9\u63a5\u5916\u8d38\u5de5\u5382\u8d27\u6e90"
+        }
+    },
+    {
+        "pk": 2,
+        "model": "mmexam.choice",
+        "fields": {
+            "choice_title": "B",
+            "question": 1,
+            "choice_text": "\u4ea7\u54c1\u5728\u51fa\u5e93\u524d\u90fd\u5fc5\u987b\u5148\u53d1\u5230\u5c0f\u9e7f\u7f8e\u7f8e\u8d28\u68c0\u4ed3\u5e93\u5168\u90e8\u8d28\u68c0"
+        }
+    },
+    {
+        "pk": 3,
+        "model": "mmexam.choice",
+        "fields": {
+            "choice_title": "C",
+            "question": 1,
+            "choice_text": "\u6211\u4eec\u5b9a\u4ef7\u4f4e\uff0c\u5229\u6da6\u4f4e\uff0c\u4f46\u8d28\u91cf\u4fdd\u8bc1"
+        }
+    },
+    {
+        "pk": 5,
+        "model": "mmexam.choice",
+        "fields": {
+            "choice_title": "A",
+            "question": 2,
+            "choice_text": "\u5168\u573a\u5168\u56fd\u5305\u90ae"
+        }
+    },
+    {
+        "pk": 6,
+        "model": "mmexam.choice",
+        "fields": {
+            "choice_title": "B",
+            "question": 2,
+            "choice_text": "\u6536\u83b7\u540e7\u5929\u65e0\u7406\u7531\u9000\u6b3e"
+        }
+    },
+    {
+        "pk": 7,
+        "model": "mmexam.choice",
+        "fields": {
+            "choice_title": "A",
+            "question": 3,
+            "choice_text": "\u9694\u5929\u53d1\u8d27"
+        }
+    },
+    {
+        "pk": 8,
+        "model": "mmexam.choice",
+        "fields": {
+            "choice_title": "B",
+            "question": 3,
+            "choice_text": "\u4e00\u822c5-7\u5929\u53d1\u8d27"
+        }
+    },
+    {
+        "pk": 9,
+        "model": "mmexam.choice",
+        "fields": {
+            "choice_title": "C",
+            "question": 3,
+            "choice_text": "\u5916\u8d38\u5de5\u5382\u5148\u53d1\u8d27\u5230\u7f8e\u7f8e\u8d28\u68c0\u4ed3\u5e93\uff0c\u8d28\u68c0\u901a\u8fc7\u540e\u624d\u4f1a\u53d1\u8d27\u7ed9\u5ba2\u4eba\uff0c\u6240\u4ee5\u8017\u65f6\u7a0d\u957f"
+        }
+    },
+    {
+        "pk": 11,
+        "model": "mmexam.choice",
+        "fields": {
+            "choice_title": "A",
+            "question": 4,
+            "choice_text": "\u5916\u8d38\u5de5\u5382\u5148\u53d1\u8d27\u5230\u5c0f\u9e7f\u7f8e\u7f8e\u8d28\u68c0\u4ed3\u5e93\uff0c\u88ab\u8d28\u68c0\u51fa\u6b21\u54c1\uff0c\u9700\u8981\u91cd\u65b0\u8c03\u8d27"
+        }
+    },
+    {
+        "pk": 101,
+        "model": "mmexam.choice",
+        "fields": {
+            "choice_title": "A",
+            "question": 5,
+            "choice_text": "\u5546\u54c17\u5929\u5185\u53ef\u4ee5\u9000\u3001\u6362\u8d27"
+        }
+    },
+    {
+        "pk": 100,
+        "model": "mmexam.choice",
+        "fields": {
+            "choice_title": "B",
+            "question": 5,
+            "choice_text": " \u56e0\u4e3a\u5c0f\u9e7f\u7f8e\u7f8e\u7684\u9650\u65f6\u9650\u91cf\u7279\u5356\uff0c\u4e00\u822c\u90fd\u79d2\u6740\u4e00\u7a7a\uff0c\u6240\u4ee5\u4e0d\u63d0\u4f9b\u6362\u8d27"
+        }
+    },
+    {
+        "pk": 99,
+        "model": "mmexam.choice",
+        "fields": {
+            "choice_title": "C",
+            "question": 5,
+            "choice_text": "\u53ea\u63d0\u4f9b\u9000\u8d27"
+        }
+    },
+    {
+        "pk": 21,
+        "model": "mmexam.choice",
+        "fields": {
+            "choice_title": "A",
+            "question": 6,
+            "choice_text": " \u6bcf\u5929\u4e0a\u534810\u70b9\u4e0a\u67b6\u65b0\u6b3e\uff0c\u7b2c\u4e8c\u5929\u4e0b\u53482\u70b9\u5c31\u4f1a\u4e0b\u67b6"
+        }
+    },
+    {
+        "pk": 22,
+        "model": "mmexam.choice",
+        "fields": {
+            "choice_title": "B",
+            "question": 6,
+            "choice_text": "\u4e0b\u67b6\u7684\u4ea7\u54c1\u5c31\u4e0d\u80fd\u518d\u62cd\u4e86\uff0c\u56e0\u4e3a\u5e93\u5b58\u552e\u5b8c"
+        }
+    },
+    {
+        "pk": 23,
+        "model": "mmexam.choice",
+        "fields": {
+            "choice_title": "C",
+            "question": 6,
+            "choice_text": " \u6bcf\u5929\u4e0a\u5348\u5341\u70b9\u4e0a\u65b0\uff0c\u6b21\u65e5\u4e0b\u53482\u70b9\u4e0b\u67b6"
+        }
+    },
+    {
+        "pk": 24,
+        "model": "mmexam.choice",
+        "fields": {
+            "choice_title": "D",
+            "question": 6,
+            "choice_text": " \u5468\u516d\u4e0a\u5348\u5341\u70b9\u4e0a\u65b0\uff0c\u5468\u4e00\u4e0a\u5348\u4e5d\u70b9\u4e0b\u67b6\uff0c\u5468\u65e5\u4e0d\u4e0a\u65b0"
+        }
+    },
+    {
+        "pk": 25,
+        "model": "mmexam.choice",
+        "fields": {
+            "choice_title": "A",
+            "question": 7,
+            "choice_text": "\u7533\u8bf7\u9000\u6b3e\uff0c\u7136\u540e\u91cd\u65b0\u62cd\u6b63\u786e\u7684\u989c\u8272\u6216\u5c3a\u5bf8"
+        }
+    },
+    {
+        "pk": 26,
+        "model": "mmexam.choice",
+        "fields": {
+            "choice_title": "A",
+            "question": 8,
+            "choice_text": " \u5728\u4e2a\u4eba\u8d26\u6237  http://xiaolu.so/m/  \u67e5\u770b"
+        }
+    },
+    {
+        "pk": 27,
+        "model": "mmexam.choice",
+        "fields": {
+            "choice_title": "B",
+            "question": 8,
+            "choice_text": " \u5728\u4e2a\u4eba\u4e13\u5c5e\u94fe\u63a5   http://xiaolu.so/m/\u6570\u5b57/  \u67e5\u770b"
+        }
+    },
+    {
+        "pk": 28,
+        "model": "mmexam.choice",
+        "fields": {
+            "choice_title": "A",
+            "question": 9,
+            "choice_text": "\u4e00\u5929\u5f53\u4e2d\u6ca1\u6709\u4ea7\u751f\u8ba2\u5355\uff0c1\u4e2a\u70b9\u51fb\u8865\u8d342\u6bdb\u7ed9\u5c0f\u9e7f\u5988\u5988"
+        }
+    },
+    {
+        "pk": 29,
+        "model": "mmexam.choice",
+        "fields": {
+            "choice_title": "B",
+            "question": 9,
+            "choice_text": "\u4ea7\u751f\u4e00\u7b14\u8ba2\u5355\uff0c1\u4e2a\u70b9\u51fb\u8865\u8d343\u6bdb\u7ed9\u5c0f\u9e7f\u5988\u5988"
+        }
+    },
+    {
+        "pk": 30,
+        "model": "mmexam.choice",
+        "fields": {
+            "choice_title": "C",
+            "question": 9,
+            "choice_text": "\u4ea7\u751f\u4e24\u7b14\u8ba2\u5355\uff0c1\u4e2a\u70b9\u51fb\u8865\u8d344\u6bdb\u7ed9\u5c0f\u9e7f\u5988\u5988"
+        }
+    },
+    {
+        "pk": 31,
+        "model": "mmexam.choice",
+        "fields": {
+            "choice_title": "D",
+            "question": 9,
+            "choice_text": "\u4ea7\u751f\u4e09\u7b14\u53ca\u4ee5\u4e0a\u8ba2\u5355\uff0c1\u4e2a\u70b9\u51fb\u8865\u8d345\u6bdb\u7ed9\u5c0f\u9e7f\u5988\u5988"
+        }
+    },
+    {
+        "pk": 32,
+        "model": "mmexam.choice",
+        "fields": {
+            "choice_title": "E",
+            "question": 9,
+            "choice_text": "\u672c\u6b21\u57f9\u8bad\u8003\u8bd5\u901a\u8fc7\u540e\u5b9e\u884c\u8be5\u8865\u8d34"
+        }
+    },
+    {
+        "pk": 33,
+        "model": "mmexam.choice",
+        "fields": {
+            "choice_title": "A",
+            "question": 10,
+            "choice_text": " \u5ba2\u6237\u70b9\u51fb\u5c0f\u9e7f\u5988\u5988\u4e13\u5c5e\u94fe\u63a5\u4e4b\u540e\uff0c\u5f53\u5929\u4ea7\u751f\u7684\u8ba2\u5355\u9500\u552e\u91d1\u989d\u768410%"
+        }
+    },
+    {
+        "pk": 34,
+        "model": "mmexam.choice",
+        "fields": {
+            "choice_title": "B",
+            "question": 10,
+            "choice_text": "\u4e00\u6708\u9500\u552e\u91d1\u989d\u8fbe\u52301000\u53ca\u4ee5\u4e0a\u7684\uff0c\u8865\u8d34\u63d0\u9ad85%\uff0c\u603b\u8ba1\u6708\u9500\u552e\u91d1\u989d\u768415%"
+        }
+    },
+    {
+        "pk": 35,
+        "model": "mmexam.choice",
+        "fields": {
+            "choice_title": "A",
+            "question": 11,
+            "choice_text": " \u4e0d\u80fd\uff0c\u6bcf\u4eba\u6bcf\u5929\u70b9\u51fb\u53ea\u8ba1\u7b97\u4e00\u6b21\u6709\u6548"
+        }
+    },
+    {
+        "pk": 36,
+        "model": "mmexam.choice",
+        "fields": {
+            "choice_title": "B",
+            "question": 11,
+            "choice_text": " \u53ef\u4ee5\u591a\u6b21\u70b9\u51fb\u81ea\u5df1\u6216\u522b\u4eba\u7684\u94fe\u63a5\uff0c\u90fd\u8ba1\u7b97\u70b9\u51fb\u6b21\u6570"
+        }
+    },
+    {
+        "pk": 37,
+        "model": "mmexam.choice",
+        "fields": {
+            "choice_title": "A",
+            "question": 12,
+            "choice_text": " \u7f34\u7eb3100\u5143\u62bc\u91d1\uff0c\u6b21\u6708\u53ef\u8fd4\u8fd830\u5143\u8865\u8d34\uff08\u4ec5\u9650\u9996\u6b21\u9996\u6708\uff09"
+        }
+    },
+    {
+        "pk": 38,
+        "model": "mmexam.choice",
+        "fields": {
+            "choice_title": "B",
+            "question": 12,
+            "choice_text": " \u62bc\u91d1\u662f\u8ba9\u6211\u548c\u5c0f\u9e7f\u7f8e\u7f8e\u516c\u53f8\u7b7e\u8ba2\u4e00\u79cd\u5408\u4f5c\u534f\u8bae"
+        }
+    },
+    {
+        "pk": 39,
+        "model": "mmexam.choice",
+        "fields": {
+            "choice_title": "A",
+            "question": 13,
+            "choice_text": " \u63a8\u83501\u4f4d\u670950\u5143\u73b0\u91d1\u7ea2\u5305\u53d1\u653e"
+        }
+    },
+    {
+        "pk": 40,
+        "model": "mmexam.choice",
+        "fields": {
+            "choice_title": "B",
+            "question": 13,
+            "choice_text": "\u63a8\u835010\u4f4d\u53ef\u4ee5\u6709500\u5143\u73b0\u91d1\u53d1\u653e"
+        }
+    },
+    {
+        "pk": 41,
+        "model": "mmexam.choice",
+        "fields": {
+            "choice_title": "C",
+            "question": 13,
+            "choice_text": "\u53ef\u4ee5\u65e0\u9650\u5236\u63a8\u8350\u5c0f\u9e7f\u5988\u5988\u52a0\u5165"
+        }
+    },
+    {
+        "pk": 42,
+        "model": "mmexam.choice",
+        "fields": {
+            "choice_title": "A",
+            "question": 14,
+            "choice_text": "\u7559\u610f\u6211\u4eec\u56e2\u961f\u7ba1\u7406\u53f7\u53d1\u5e03\u7684\u670b\u53cb\u5708\u4fe1\u606f"
+        }
+    },
+    {
+        "pk": 43,
+        "model": "mmexam.choice",
+        "fields": {
+            "choice_title": "B",
+            "question": 14,
+            "choice_text": "\u53d1\u5e03\u7279\u5356\u7684\u65f6\u95f4\u5206\u522b\u4e3a\u4e0a\u5348\u5341\u70b9\uff0c\u4e2d\u5348\u5341\u4e8c\u70b9\uff0c\u4e0b\u5348\u56db\u70b9\uff0c\u665a\u4e0a\u516b\u70b9"
+        }
+    },
+    {
+        "pk": 44,
+        "model": "mmexam.choice",
+        "fields": {
+            "choice_title": "C",
+            "question": 14,
+            "choice_text": "\u6bb5\u5b50\u3001\u6f2b\u753b\u3001\u8da3\u95fb\u4e0d\u5b9a\u65f6"
+        }
+    },
+    {
+        "pk": 45,
+        "model": "mmexam.choice",
+        "fields": {
+            "choice_title": "A",
+            "question": 15,
+            "choice_text": "\u5728\u5546\u54c1\u8be6\u60c5\u9875\u53f3\u4e0a\u89d2\u70b9\u51fb\u2018\u5ba2\u670d\u2019\u6309\u94ae\u8054\u7cfb"
+        }
+    },
+    {
+        "pk": 46,
+        "model": "mmexam.choice",
+        "fields": {
+            "choice_title": "B",
+            "question": 15,
+            "choice_text": " \u5173\u6ce8\u5e76\u8fdb\u5165\u3010\u4f18\u5c3c\u4e16\u754c\u3011\u516c\u4f17\u53f7\u2014>\u70b9\u51fb\u3010\u6211\u7684\u3011\u2014>\u70b9\u51fb\u3010\u8054\u7cfb\u5ba2\u670d\u3011"
+        }
+    },
+    {
+        "pk": 47,
+        "model": "mmexam.choice",
+        "fields": {
+            "choice_title": "A",
+            "question": 16,
+            "choice_text": " \u5979\u7684\u9500\u552e\u603b\u989d\u76845%\u53ef\u4ee5\u8865\u8d34\u7ed9\u6211"
+        }
+    },
+    {
+        "pk": 48,
+        "model": "mmexam.choice",
+        "fields": {
+            "choice_title": "B",
+            "question": 16,
+            "choice_text": " \u5979\u63a8\u8350\u7684\u5c0f\u9e7f\u5988\u5988\u7684\u9500\u552e\u91d1\u989d\u548c\u6211\u6ca1\u6709\u5173\u7cfb"
+        }
+    },
+    {
+        "pk": 49,
+        "model": "mmexam.choice",
+        "fields": {
+            "choice_title": "A",
+            "question": 17,
+            "choice_text": "\u9996\u5148\u8ddf\u670b\u53cb\u8be6\u7ec6\u4ecb\u7ecd\u5c0f\u9e7f\u5988\u5988\u89c4\u5219"
+        }
+    },
+    {
+        "pk": 50,
+        "model": "mmexam.choice",
+        "fields": {
+            "choice_title": "B",
+            "question": 17,
+            "choice_text": "\u670b\u53cb\u540c\u610f\u52a0\u5165\u518d\u62a5\u4f60\u7684\u771f\u5b9e\u59d3\u540d\uff0c\u52a0\u5c0f\u7f16\u5fae\u4fe1\uff0c\u6ce8\u660e***\u63a8\u8350"
+        }
+    },
+    {
+        "pk": 51,
+        "model": "mmexam.choice",
+        "fields": {
+            "choice_title": "A",
+            "question": 18,
+            "choice_text": "100\u5757\u62bc\u91d1\u968f\u65f6\u53ef\u4ee5\u9000"
+        }
+    },
+    {
+        "pk": 52,
+        "model": "mmexam.choice",
+        "fields": {
+            "choice_title": "B",
+            "question": 18,
+            "choice_text": "100\u5143\u62bc\u91d1\u662f\u4e0d\u9000\u7684\uff01"
+        }
+    },
+    {
+        "pk": 53,
+        "model": "mmexam.choice",
+        "fields": {
+            "choice_title": "C",
+            "question": 18,
+            "choice_text": "\u4f60\u9000\u51fa\u4ee3\u7406\uff0c\u6211\u4eec\u6b21\u6708\u5c31\u4f1a\u9000\u8fd8100\u5143\u62bc\u91d1\u7ed9\u4f60\u5c31\u53ef\u4ee5\u5728\u5c0f\u9e7f\u7f8e\u7f8e\u81ea\u6709\u5e73\u53f0\u6d88\u8d39130\u4e86"
+        }
+    },
+    {
+        "pk": 54,
+        "model": "mmexam.choice",
+        "fields": {
+            "choice_title": "A",
+            "question": 19,
+            "choice_text": "\u4e00\u5929\u4e4b\u5185\u540c\u4e00\u4e2a\u4eba\u70b9\u51fb\u591a\u6b21\u53ea\u8ba1\u7b97\u4e00\u6b21\u70b9\u51fb"
+        }
+    },
+    {
+        "pk": 55,
+        "model": "mmexam.choice",
+        "fields": {
+            "choice_title": "B",
+            "question": 19,
+            "choice_text": "\u4e00\u5929\u4e4b\u5185\u540c\u4e00\u4e2a\u4eba\u8d2d\u4e70\u591a\u6b21\u53ea\u8ba1\u7b97\u4e00\u4e2a\u8ba2\u5355"
+        }
+    },
+    {
+        "pk": 56,
+        "model": "mmexam.choice",
+        "fields": {
+            "choice_title": "A",
+            "question": 20,
+            "choice_text": " \u628a\u81ea\u5df1\u901a\u8baf\u5f55\u7684\u4eba\u548cQQ\u597d\u53cb\u52a0\u8fdb\u53bb"
+        }
+    },
+    {
+        "pk": 57,
+        "model": "mmexam.choice",
+        "fields": {
+            "choice_title": "B",
+            "question": 20,
+            "choice_text": "\u8ba9\u4f60\u7684\u670b\u53cb\u62c9\u4f60\u8fdb\u7fa4\uff0c\u52a0\u7fa4\u53cb\u597d\u53cb"
+        }
+    },
+    {
+        "pk": 58,
+        "model": "mmexam.choice",
+        "fields": {
+            "choice_title": "C",
+            "question": 20,
+            "choice_text": "\u4e0d\u8981\u8d2d\u4e70\u52a0\u4eba\u4e92\u7c89\u7684\u8f6f\u4ef6\uff0c\u4ea7\u751f\u76d7\u53f7\u98ce\u9669\u540e\u679c\u81ea\u8d1f"
+        }
+    },
+    {
+        "pk": 59,
+        "model": "mmexam.choice",
+        "fields": {
+            "choice_title": "A",
+            "question": 21,
+            "choice_text": "\u591a\u53bb\u670b\u53cb\u5708\u8bc4\u8bba\u597d\u53cb\u52a8\u6001\uff0c\u4ea7\u751f\u4e92\u52a8"
+        }
+    },
+    {
+        "pk": 60,
+        "model": "mmexam.choice",
+        "fields": {
+            "choice_title": "B",
+            "question": 21,
+            "choice_text": "\u7528\u5fc3\u7ecf\u8425\u81ea\u5df1\u7684\u771f\u5b9e\u670b\u53cb\u5708\uff0c\u4e0d\u8981\u53ea\u53d1\u5e7f\u544a\uff0c\u4e0b\u4e00\u4e2a\u7f51\u7edc\u7ea2\u4eba\uff0c\u8d85\u7ea7\u5988\u54aa\u5c31\u662f\u4f60\uff01"
+        }
+    },
+    {
+        "pk": 61,
+        "model": "mmexam.choice",
+        "fields": {
+            "choice_title": "C",
+            "question": 21,
+            "choice_text": "\u5076\u5c14\u53d1\u53d1\u6709\u610f\u601d\u7684\u4e1c\u897f\uff0c\u5438\u5f15\u5927\u5bb6\u773c\u7403"
+        }
+    },
+    {
+        "pk": 62,
+        "model": "mmexam.choice",
+        "fields": {
+            "choice_title": "A",
+            "question": 22,
+            "choice_text": "\u5173\u6ce8\u3010\u4f18\u5c3c\u4e16\u754c\u3011\u516c\u4f17\u53f7\uff0c\u70b9\u51fb\u3010\u6211\u7684\u3011\u2014\u3009\u3010\u6211\u7684\u8ba2\u5355\u3011"
+        }
+    },
+    {
+        "pk": 63,
+        "model": "mmexam.choice",
+        "fields": {
+            "choice_title": "B",
+            "question": 22,
+            "choice_text": "\u5173\u6ce8\u3010\u4f18\u5c3c\u4e16\u754c\u3011\u516c\u4f17\u53f7\u2014>\u70b9\u51fb\u3010\u6211\u7684\u3011\u2014>\u70b9\u51fb\u3010\u8054\u7cfb\u5ba2\u670d\u3011\u54a8\u8be2"
+        }
+    },
+    {
+        "pk": 64,
+        "model": "mmexam.choice",
+        "fields": {
+            "choice_title": "C",
+            "question": 22,
+            "choice_text": "\u53d7\u5fae\u4fe1\u5e73\u53f0\u7684\u5c40\u9650\uff0c\u5fae\u4fe1\u5c0f\u5e97\u53ea\u80fd\u67e5\u770b\u6700\u8fd1\u4e00\u7b14\u8ba2\u5355\uff0c\u4e4b\u524d\u7684\u8ba2\u5355\u53ef\u8054\u7cfb\u5ba2\u670d\uff0c\u8ba9\u4ed6\u4eec\u622a\u56fe\u7ed9\u4f60"
+        }
+    },
+    {
+        "pk": 65,
+        "model": "mmexam.choice",
+        "fields": {
+            "choice_title": "A",
+            "question": 23,
+            "choice_text": " \u5fae\u5e97\u6ca1\u6709\u8d2d\u7269\u8f66"
+        }
+    },
+    {
+        "pk": 66,
+        "model": "mmexam.choice",
+        "fields": {
+            "choice_title": "B",
+            "question": 23,
+            "choice_text": "\u4e0d\u80fd\u67e5\u4ee5\u5f80\u7684\u8ba2\u5355\uff0c\u53ea\u80fd\u8054\u7cfb\u5ba2\u670d"
+        }
+    },
+    {
+        "pk": 67,
+        "model": "mmexam.choice",
+        "fields": {
+            "choice_title": "C",
+            "question": 23,
+            "choice_text": " \u4e0d\u80fd\u67e5\u8be2\u7269\u6d41\u4fe1\u606f\uff0c\u53ea\u80fd\u8054\u7cfb\u5ba2\u670d"
+        }
+    },
+    {
+        "pk": 68,
+        "model": "mmexam.choice",
+        "fields": {
+            "choice_title": "D",
+            "question": 23,
+            "choice_text": " \u4e0d\u80fd\u540c\u65f6\u8d2d\u4e70\u591a\u4ef6\uff0c\u53ea\u80fd\u4e00\u4ef6\u4ef6\u8d2d\u4e70"
+        }
+    },
+    {
+        "pk": 69,
+        "model": "mmexam.choice",
+        "fields": {
+            "choice_title": "E",
+            "question": 23,
+            "choice_text": " \u53ea\u80fd\u5fae\u4fe1\u94b1\u5305\u652f\u4ed8"
+        }
+    },
+    {
+        "pk": 70,
+        "model": "mmexam.choice",
+        "fields": {
+            "choice_title": "A",
+            "question": 24,
+            "choice_text": "\u5468\u4e00\u5230\u5468\u516d\u6bcf\u5929\u4e0a\u73ed"
+        }
+    },
+    {
+        "pk": 71,
+        "model": "mmexam.choice",
+        "fields": {
+            "choice_title": "B",
+            "question": 24,
+            "choice_text": "\u5468\u4e8c\u3001\u5468\u56db\u3001\u5468\u516d"
+        }
+    },
+    {
+        "pk": 72,
+        "model": "mmexam.choice",
+        "fields": {
+            "choice_title": "C",
+            "question": 24,
+            "choice_text": "\u5468\u4e00\u3001\u5468\u4e09\u3001\u5468\u4e94"
+        }
+    },
+    {
+        "pk": 73,
+        "model": "mmexam.choice",
+        "fields": {
+            "choice_title": "A",
+            "question": 25,
+            "choice_text": "\u5728\u5fae\u4fe1\u94b1\u5305\u7ed1\u5b9a\u94f6\u884c\u5361\u5373\u53ef\uff0c\u5efa\u8bae\u519c\uff0c\u5de5\uff0c\u4e2d\uff0c\u5efa\u884c\u4e3a\u4f73"
+        }
+    },
+    {
+        "pk": 74,
+        "model": "mmexam.choice",
+        "fields": {
+            "choice_title": "B",
+            "question": 25,
+            "choice_text": "\u4e0d\u9700\u8981\u5f00\u901a\u7f51\u94f6"
+        }
+    },
+    {
+        "pk": 75,
+        "model": "mmexam.choice",
+        "fields": {
+            "choice_title": "A",
+            "question": 26,
+            "choice_text": "\u9ed8\u8ba4\u4e2d\u901a\u548c\u7533\u901a\u5feb\u9012"
+        }
+    },
+    {
+        "pk": 76,
+        "model": "mmexam.choice",
+        "fields": {
+            "choice_title": "B",
+            "question": 26,
+            "choice_text": "\u504f\u8fdc\u5730\u533a\u8054\u7cfb\u5ba2\u670d\u53d1\u90ae\u653f\u5c0f\u5305"
+        }
+    },
+    {
+        "pk": 77,
+        "model": "mmexam.choice",
+        "fields": {
+            "choice_title": "C",
+            "question": 26,
+            "choice_text": "\u76ee\u524d\u8fd8\u4e0d\u652f\u6301\u5176\u4ed6\u5feb\u9012"
+        }
+    },
+    {
+        "pk": 78,
+        "model": "mmexam.choice",
+        "fields": {
+            "choice_title": "D",
+            "question": 26,
+            "choice_text": "\u5feb\u9012\u53ef\u4ee5\u968f\u610f\u6307\u5b9a"
+        }
+    },
+    {
+        "pk": 79,
+        "model": "mmexam.choice",
+        "fields": {
+            "choice_title": "A",
+            "question": 27,
+            "choice_text": "\u5929\u732b\u65d7\u8230\u5e97\u53eb\u2018\u4f18\u5c3c\u4e16\u754c\u2019\uff0c\u4f46\u7279\u5356\u670d\u88c5\u53ea\u5728\u5fae\u4fe1\uff0c\u6bcf\u5929\u4e0a\u65b0"
+        }
+    },
+    {
+        "pk": 80,
+        "model": "mmexam.choice",
+        "fields": {
+            "choice_title": "B",
+            "question": 27,
+            "choice_text": "\u6211\u4eec\u81ea\u4e3b\u5efa\u8bbe\u7684\u5e73\u53f0\u5373\u5c06\u4e0a\u7ebf"
+        }
+    },
+    {
+        "pk": 81,
+        "model": "mmexam.choice",
+        "fields": {
+            "choice_title": "C",
+            "question": 27,
+            "choice_text": "\u5c0f\u9e7f\u7f8e\u7f8eAPP\u6b63\u5728\u7814\u53d1"
+        }
+    },
+    {
+        "pk": 82,
+        "model": "mmexam.choice",
+        "fields": {
+            "choice_title": "A",
+            "question": 28,
+            "choice_text": "\u4e0d\u540c\u5382\u5bb6\u5230\u8d27\u60c5\u51b5\u4e0d\u4e00\u6837\uff0c\u5148\u5230\u8d27\u7684\u5148\u53d1"
+        }
+    },
+    {
+        "pk": 83,
+        "model": "mmexam.choice",
+        "fields": {
+            "choice_title": "B",
+            "question": 28,
+            "choice_text": "\u5982\u6709\u8981\u6c42\u4e00\u8d77\u53d1\u8d27\u7684\u53ef\u4ee5\u8054\u7cfb\u5fae\u5e97\u5ba2\u670d\u8bf4\u660e"
+        }
+    },
+    {
+        "pk": 84,
+        "model": "mmexam.choice",
+        "fields": {
+            "choice_title": "A",
+            "question": 29,
+            "choice_text": " \u9664\u7fa4\u4e3b\u5176\u4ed6\u4eba\u4e0d\u5f97\u53d1\u7ea2\u5305"
+        }
+    },
+    {
+        "pk": 85,
+        "model": "mmexam.choice",
+        "fields": {
+            "choice_title": "B",
+            "question": 29,
+            "choice_text": "\u4e0d\u5f97\u53d1\u5e03\u4efb\u4f55\u6d3b\u52a8\u4fe1\u606f(\u5305\u62ec\u5e73\u53f0\u7684\u6d3b\u52a8)"
+        }
+    },
+    {
+        "pk": 86,
+        "model": "mmexam.choice",
+        "fields": {
+            "choice_title": "C",
+            "question": 29,
+            "choice_text": " \u4e0d\u5f97\u717d\u52a8\u5927\u5bb6\u7684\u8d1f\u9762\u60c5\u7eea"
+        }
+    },
+    {
+        "pk": 87,
+        "model": "mmexam.choice",
+        "fields": {
+            "choice_title": "D",
+            "question": 29,
+            "choice_text": "\u4e0d\u5f97\u5728\u7fa4\u91cc\u558a\u53bb**\u53c2\u52a0\u6d3b\u52a8\uff0c\u6c42\u5e2e\u5fd9\u70b9\u8d5e\u7b49\u7b49"
+        }
+    },
+    {
+        "pk": 88,
+        "model": "mmexam.choice",
+        "fields": {
+            "choice_title": "E",
+            "question": 29,
+            "choice_text": "\u4e0d\u51c6\u53d1\u5e7f\u544a\uff0c\u4e0d\u51c6\u53d1\u94fe\u63a5(\u5305\u62ec\u5e73\u53f0\u7684\u94fe\u63a5)"
+        }
+    },
+    {
+        "pk": 89,
+        "model": "mmexam.choice",
+        "fields": {
+            "choice_title": "F",
+            "question": 29,
+            "choice_text": "\u4e0d\u51c6\u53d1\u89c6\u9891"
+        }
+    },
+    {
+        "pk": 90,
+        "model": "mmexam.choice",
+        "fields": {
+            "choice_title": "G",
+            "question": 29,
+            "choice_text": " \u4e0d\u51c6\u6076\u610f\u5237\u5c4f\uff0c\u4e0d\u51c6\u62c9\u4eba\u8fdb\u7fa4"
+        }
+    },
+    {
+        "pk": 91,
+        "model": "mmexam.choice",
+        "fields": {
+            "choice_title": "H",
+            "question": 29,
+            "choice_text": " \u4e0d\u51c6\u70b9\u5176\u4ed6\u5c0f\u9e7f\u5988\u5988\u7684\u94fe\u63a5\uff0c\u6bcf\u4e2a\u70b9\u51fb\u53ea\u6709\u4e00\u6b21\u6709\u6548\uff0c\u4e0d\u8981\u6d6a\u8d39"
+        }
+    },
+    {
+        "pk": 92,
+        "model": "mmexam.choice",
+        "fields": {
+            "choice_title": "I",
+            "question": 29,
+            "choice_text": "\u51fa\u73b0\u95ee\u9898\u4e0d\u80fd\u8a00\u8bed\u8fc7\u6fc0\uff0c\u79c1\u804a\u7ba1\u7406\u5458"
+        }
+    },
+    {
+        "pk": 93,
+        "model": "mmexam.choice",
+        "fields": {
+            "choice_title": "J",
+            "question": 29,
+            "choice_text": "\u4e3a\u907f\u514d\u8bc8\u9a97\u548c\u76d7\u53f7\uff0c\u4e0d\u8981\u79c1\u81ea\u4e92\u52a0\u597d\u53cb"
+        }
+    },
+    {
+        "pk": 94,
+        "model": "mmexam.choice",
+        "fields": {
+            "choice_title": "A",
+            "question": 30,
+            "choice_text": "\u5728\u8ba2\u5355\u4ea4\u6613\u6210\u529f7\u5929\u540e\u83b7\u5f97\u73b0\u91d1\u8865\u8d34\uff0c\u4ea4\u6613\u6210\u529f\u6307\u5ba2\u6237\u7b7e\u6536\u5f53\u65e5"
+        }
+    },
+    {
+        "pk": 95,
+        "model": "mmexam.choice",
+        "fields": {
+            "choice_title": "B",
+            "question": 30,
+            "choice_text": "\u8865\u8d34\u91d1\u989d\u523020\u5757\u5373\u53ef\u7533\u8bf7\u63d0\u73b0\uff0c\u7ba1\u7406\u5458\u4eba\u5de5\u5ba1\u6838\u540e\u53d1\u653e"
+        }
+    },
+    {
+        "pk": 96,
+        "model": "mmexam.choice",
+        "fields": {
+            "choice_title": "C",
+            "question": 30,
+            "choice_text": "\u9996\u6b21\u52a0\u5165\u5c0f\u9e7f\u5988\u5988\u768430\u5143\u8865\u8d34\uff0c\u5982\u679c\u5f53\u6708\u6ca1\u6709\u6d88\u8d39\u5b8c\uff0c\u5728\u70b9\u51fb\u8fbe\u5230\u5e73\u5747\u6bcf\u59295\u6b21\u548c\u4ea7\u751f\u4e00\u7b14\u8ba2\u5355\uff0c\u6216\u8005\u4ea7\u751f6\u7b14\u8ba2\u5355\u4e4b\u540e\uff0c\u6b21\u6708\u53ef\u4ee5\u63d0\u73b0\u8be530\u5143"
+        }
+    },
+    {
+        "pk": 97,
+        "model": "mmexam.choice",
+        "fields": {
+            "choice_title": "A",
+            "question": 31,
+            "choice_text": "\u7531\u4e8e\u5382\u5bb6\u4e0d\u540c\uff0c\u5c3a\u7801\u8868\u65e0\u6cd5\u7edf\u4e00\uff0c\u8bf7\u5ba2\u6237\u6309\u7167\u5c3a\u7801\u8868\u4e0a\u7684\u5b9e\u9645\u6d4b\u91cf\u5c3a\u5bf8\u9009\u62e9"
+        }
+    },
+    {
+        "pk": 98,
+        "model": "mmexam.choice",
+        "fields": {
+            "choice_title": "D",
+            "question": 18,
+            "choice_text": "\u62bc\u91d1\u53ef\u4ee5\u53bb\u5c0f\u9e7f\u7f8e\u7f8e\u7684\u5fae\u5e97\u6d88\u8d39\uff0c\u52a0\u5165\u4ee3\u7406\u4f60\u5c31\u53ef\u4ee5\u5728\u5c0f\u9e7f\u7f8e\u7f8e\u81ea\u6709\u5e73\u53f0\u6d88\u8d39130\u4e86"
+        }
+    },
+    {
+        "pk": 1,
+        "model": "mmexam.result",
+        "fields": {
+            "exam_date": "2015-05-15T09:14:52",
+            "daili_user": "\u7b2c\u4e8c\u4e2a",
+            "exam_state": 1
+        }
+    },
+    {
+        "pk": 2,
+        "model": "mmexam.result",
+        "fields": {
+            "exam_date": "2015-05-15T12:04:28",
+            "daili_user": "\u591a\u9009\u6d4b\u8bd5",
+            "exam_state": 1
+        }
+    },
+    {
+        "pk": 5,
+        "model": "mmexam.result",
+        "fields": {
+            "exam_date": "2015-05-15T13:34:04",
+            "daili_user": "oMt59uE55lLOV2KS6vYZ_d0dOl5c",
+            "exam_state": 1
+        }
+    },
+    {
+        "pk": 4,
+        "model": "mmexam.result",
+        "fields": {
+            "exam_date": "2015-05-15T13:17:04",
+            "daili_user": "oMt59uE55lLOV2KS6vYZ_d0dOl5c",
+            "exam_state": 1
+        }
+    },
+    {
+        "pk": 6,
+        "model": "mmexam.result",
+        "fields": {
+            "exam_date": "2015-05-15T13:34:59",
+            "daili_user": "oMt59uE55lLOV2KS6vYZ_d0dOl5c",
+            "exam_state": 1
+        }
+    },
+    {
+        "pk": 7,
+        "model": "mmexam.result",
+        "fields": {
+            "exam_date": "2015-05-15T14:02:06",
+            "daili_user": "oMt59uE55lLOV2KS6vYZ_d0dOl5c",
+            "exam_state": 1
+        }
+    },
+    {
+        "pk": 8,
+        "model": "mmexam.result",
+        "fields": {
+            "exam_date": "2015-05-15T18:40:37",
+            "daili_user": "oMt59uE55lLOV2KS6vYZ_d0dOl5c",
+            "exam_state": 1
+        }
+    },
+    {
+        "pk": 9,
+        "model": "mmexam.result",
+        "fields": {
+            "exam_date": "2015-05-15T19:07:44",
+            "daili_user": "oMt59uE55lLOV2KS6vYZ_d0dOl5c",
+            "exam_state": 1
+        }
+    },
+    {
+        "pk": 10,
+        "model": "mmexam.result",
+        "fields": {
+            "exam_date": "2015-05-15T19:15:09",
+            "daili_user": "oMt59uE55lLOV2KS6vYZ_d0dOl5c",
+            "exam_state": 1
+        }
+    },
+    {
+        "pk": 11,
+        "model": "mmexam.result",
+        "fields": {
+            "exam_date": "2015-05-15T19:34:02",
+            "daili_user": "oMt59uE55lLOV2KS6vYZ_d0dOl5c",
+            "exam_state": 1
+        }
+    },
+    {
+        "pk": 12,
+        "model": "mmexam.result",
+        "fields": {
+            "exam_date": "2015-05-15T19:43:01",
+            "daili_user": "oMt59uE55lLOV2KS6vYZ_d0dOl5c",
+            "exam_state": 1
+        }
+    },
+    {
+        "pk": 13,
+        "model": "mmexam.result",
+        "fields": {
+            "exam_date": "2015-05-15T19:55:14",
+            "daili_user": "oMt59uE55lLOV2KS6vYZ_d0dOl5c",
+            "exam_state": 1
+        }
+    },
+    {
+        "pk": 14,
+        "model": "mmexam.result",
+        "fields": {
+            "exam_date": "2015-05-15T20:26:26",
+            "daili_user": "oMt59uE55lLOV2KS6vYZ_d0dOl5c",
+            "exam_state": 1
+        }
+    },
+    {
+        "pk": 15,
+        "model": "mmexam.result",
+        "fields": {
+            "exam_date": "2015-05-15T21:54:40",
+            "daili_user": "oMt59uE55lLOV2KS6vYZ_d0dOl5c",
+            "exam_state": 1
+        }
+    },
+    {
+        "pk": 16,
+        "model": "mmexam.result",
+        "fields": {
+            "exam_date": "2015-05-16T09:58:13",
+            "daili_user": "oMt59uE55lLOV2KS6vYZ_d0dOl5c",
+            "exam_state": 1
+        }
+    },
+    {
+        "pk": 17,
+        "model": "mmexam.result",
+        "fields": {
+            "exam_date": "2015-05-16T09:58:23",
+            "daili_user": "oMt59uE55lLOV2KS6vYZ_d0dOl5c",
+            "exam_state": 1
+        }
+    },
+    {
+        "pk": 18,
+        "model": "mmexam.result",
+        "fields": {
+            "exam_date": "2015-05-16T09:58:31",
+            "daili_user": "oMt59uE55lLOV2KS6vYZ_d0dOl5c",
+            "exam_state": 1
+        }
+    },
+    {
+        "pk": 19,
+        "model": "mmexam.result",
+        "fields": {
+            "exam_date": "2015-05-16T09:58:57",
+            "daili_user": "oMt59uE55lLOV2KS6vYZ_d0dOl5c",
+            "exam_state": 1
+        }
+    },
+    {
+        "pk": 20,
+        "model": "mmexam.result",
+        "fields": {
+            "exam_date": "2015-05-16T10:02:04",
+            "daili_user": "oMt59uE55lLOV2KS6vYZ_d0dOl5c",
+            "exam_state": 1
+        }
+    },
+    {
+        "pk": 21,
+        "model": "mmexam.result",
+        "fields": {
+            "exam_date": "2015-05-16T10:02:50",
+            "daili_user": "oMt59uE55lLOV2KS6vYZ_d0dOl5c",
+            "exam_state": 1
+        }
+    },
+    {
+        "pk": 22,
+        "model": "mmexam.result",
+        "fields": {
+            "exam_date": "2015-05-16T10:03:21",
+            "daili_user": "oMt59uE55lLOV2KS6vYZ_d0dOl5c",
+            "exam_state": 1
+        }
+    },
+    {
+        "pk": 23,
+        "model": "mmexam.result",
+        "fields": {
+            "exam_date": "2015-05-16T10:03:41",
+            "daili_user": "oMt59uE55lLOV2KS6vYZ_d0dOl5c",
+            "exam_state": 1
+        }
+    },
+    {
+        "pk": 24,
+        "model": "mmexam.result",
+        "fields": {
+            "exam_date": "2015-05-16T11:02:39",
+            "daili_user": "oMt59uE55lLOV2KS6vYZ_d0dOl5c",
+            "exam_state": 1
+        }
+    },
+    {
+        "pk": 25,
+        "model": "mmexam.result",
+        "fields": {
+            "exam_date": "2015-05-16T15:47:42",
+            "daili_user": "oMt59uE55lLOV2KS6vYZ_d0dOl5c",
+            "exam_state": 1
+        }
+    },
+    {
+        "pk": 26,
+        "model": "mmexam.result",
+        "fields": {
+            "exam_date": "2015-05-16T15:48:07",
+            "daili_user": "oMt59uE55lLOV2KS6vYZ_d0dOl5c",
+            "exam_state": 1
+        }
+    },
+    {
+        "pk": 27,
+        "model": "mmexam.result",
+        "fields": {
+            "exam_date": "2015-05-16T15:52:14",
+            "daili_user": "oMt59uE55lLOV2KS6vYZ_d0dOl5c",
+            "exam_state": 1
+        }
+    },
+    {
+        "pk": 28,
+        "model": "mmexam.result",
+        "fields": {
+            "exam_date": "2015-05-16T15:52:22",
+            "daili_user": "oMt59uE55lLOV2KS6vYZ_d0dOl5c",
+            "exam_state": 1
+        }
+    },
+    {
+        "pk": 29,
+        "model": "mmexam.result",
+        "fields": {
+            "exam_date": "2015-05-16T15:55:23",
+            "daili_user": "oMt59uE55lLOV2KS6vYZ_d0dOl5c",
+            "exam_state": 1
+        }
+    },
+    {
+        "pk": 30,
+        "model": "mmexam.result",
+        "fields": {
+            "exam_date": "2015-05-16T16:51:41",
+            "daili_user": "oMt59uE55lLOV2KS6vYZ_d0dOl5c",
+            "exam_state": 1
+        }
+    },
+    {
+        "pk": 31,
+        "model": "mmexam.result",
+        "fields": {
+            "exam_date": "2015-05-16T16:52:07",
+            "daili_user": "oMt59uE55lLOV2KS6vYZ_d0dOl5c",
+            "exam_state": 1
+        }
+    },
+    {
+        "pk": 32,
+        "model": "mmexam.result",
+        "fields": {
+            "exam_date": "2015-05-16T17:02:02",
+            "daili_user": "oMt59uE55lLOV2KS6vYZ_d0dOl5c",
+            "exam_state": 1
+        }
+    },
+    {
+        "pk": 33,
+        "model": "mmexam.result",
+        "fields": {
+            "exam_date": "2015-05-16T17:04:14",
+            "daili_user": "oMt59uE55lLOV2KS6vYZ_d0dOl5c",
+            "exam_state": 1
+        }
+    },
+    {
+        "pk": 34,
+        "model": "mmexam.result",
+        "fields": {
+            "exam_date": "2015-05-16T17:05:18",
+            "daili_user": "oMt59uE55lLOV2KS6vYZ_d0dOl5c",
+            "exam_state": 1
+        }
+    },
+    {
+        "pk": 35,
+        "model": "mmexam.result",
+        "fields": {
+            "exam_date": "2015-05-16T17:11:38",
+            "daili_user": "oMt59uE55lLOV2KS6vYZ_d0dOl5c",
+            "exam_state": 1
+        }
+    },
+    {
+        "pk": 36,
+        "model": "mmexam.result",
+        "fields": {
+            "exam_date": "2015-05-16T17:17:16",
+            "daili_user": "oMt59uE55lLOV2KS6vYZ_d0dOl5c",
+            "exam_state": 1
+        }
+    },
+    {
+        "pk": 37,
+        "model": "mmexam.result",
+        "fields": {
+            "exam_date": "2015-05-16T17:17:33",
+            "daili_user": "oMt59uE55lLOV2KS6vYZ_d0dOl5c",
+            "exam_state": 1
+        }
+    },
+    {
+        "pk": 38,
+        "model": "mmexam.result",
+        "fields": {
+            "exam_date": "2015-05-16T17:25:09",
+            "daili_user": "oMt59uE55lLOV2KS6vYZ_d0dOl5c",
+            "exam_state": 1
+        }
+    },
+    {
+        "pk": 39,
+        "model": "mmexam.result",
+        "fields": {
+            "exam_date": "2015-05-16T17:30:54",
+            "daili_user": "oMt59uE55lLOV2KS6vYZ_d0dOl5c",
+            "exam_state": 1
+        }
+    },
+    {
+        "pk": 40,
+        "model": "mmexam.result",
+        "fields": {
+            "exam_date": "2015-05-16T17:31:24",
+            "daili_user": "oMt59uE55lLOV2KS6vYZ_d0dOl5c",
+            "exam_state": 1
+        }
+    },
+    {
+        "pk": 41,
+        "model": "mmexam.result",
+        "fields": {
+            "exam_date": "2015-05-16T18:38:10",
+            "daili_user": "oMt59uE55lLOV2KS6vYZ_d0dOl5c",
+            "exam_state": 1
+        }
+    },
+    {
+        "pk": 42,
+        "model": "mmexam.result",
+        "fields": {
+            "exam_date": "2015-05-16T18:40:09",
+            "daili_user": "oMt59uE55lLOV2KS6vYZ_d0dOl5c",
+            "exam_state": 1
+        }
+    },
+    {
+        "pk": 43,
+        "model": "mmexam.result",
+        "fields": {
+            "exam_date": "2015-05-16T19:58:21",
+            "daili_user": "oMt59uE55lLOV2KS6vYZ_d0dOl5c",
+            "exam_state": 1
+        }
+    },
+    {
+        "pk": 44,
+        "model": "mmexam.result",
+        "fields": {
+            "exam_date": "2015-05-16T19:59:58",
+            "daili_user": "oMt59uE55lLOV2KS6vYZ_d0dOl5c",
+            "exam_state": 1
+        }
+    },
+    {
+        "pk": 45,
+        "model": "mmexam.result",
+        "fields": {
+            "exam_date": "2015-05-16T20:00:16",
+            "daili_user": "oMt59uE55lLOV2KS6vYZ_d0dOl5c",
+            "exam_state": 1
+        }
+    },
+    {
+        "pk": 46,
+        "model": "mmexam.result",
+        "fields": {
+            "exam_date": "2015-05-16T20:01:11",
+            "daili_user": "oMt59uE55lLOV2KS6vYZ_d0dOl5c",
+            "exam_state": 1
+        }
+    },
+    {
+        "pk": 47,
+        "model": "mmexam.result",
+        "fields": {
+            "exam_date": "2015-05-16T20:01:37",
+            "daili_user": "oMt59uE55lLOV2KS6vYZ_d0dOl5c",
+            "exam_state": 1
+        }
+    },
+    {
+        "pk": 48,
+        "model": "mmexam.result",
+        "fields": {
+            "exam_date": "2015-05-16T20:03:00",
+            "daili_user": "oMt59uE55lLOV2KS6vYZ_d0dOl5c",
+            "exam_state": 1
+        }
+    },
+    {
+        "pk": 49,
+        "model": "mmexam.result",
+        "fields": {
+            "exam_date": "2015-05-16T20:03:59",
+            "daili_user": "oMt59uE55lLOV2KS6vYZ_d0dOl5c",
+            "exam_state": 1
+        }
+    },
+    {
+        "pk": 50,
+        "model": "mmexam.result",
+        "fields": {
+            "exam_date": "2015-05-16T20:04:09",
+            "daili_user": "oMt59uE55lLOV2KS6vYZ_d0dOl5c",
+            "exam_state": 1
+        }
+    },
+    {
+        "pk": 51,
+        "model": "mmexam.result",
+        "fields": {
+            "exam_date": "2015-05-16T20:07:39",
+            "daili_user": "oMt59uE55lLOV2KS6vYZ_d0dOl5c",
+            "exam_state": 1
+        }
+    },
+    {
+        "pk": 52,
+        "model": "mmexam.result",
+        "fields": {
+            "exam_date": "2015-05-16T20:10:28",
+            "daili_user": "oMt59uE55lLOV2KS6vYZ_d0dOl5c",
+            "exam_state": 1
+        }
+    },
+    {
+        "pk": 53,
+        "model": "mmexam.result",
+        "fields": {
+            "exam_date": "2015-05-16T20:11:17",
+            "daili_user": "oMt59uE55lLOV2KS6vYZ_d0dOl5c",
+            "exam_state": 1
+        }
+    },
+    {
+        "pk": 54,
+        "model": "mmexam.result",
+        "fields": {
+            "exam_date": "2015-05-16T20:13:03",
+            "daili_user": "oMt59uE55lLOV2KS6vYZ_d0dOl5c",
+            "exam_state": 1
+        }
+    },
+    {
+        "pk": 55,
+        "model": "mmexam.result",
+        "fields": {
+            "exam_date": "2015-05-16T20:53:07",
+            "daili_user": "oMt59uE55lLOV2KS6vYZ_d0dOl5c",
+            "exam_state": 1
+        }
+    },
+    {
+        "pk": 56,
+        "model": "mmexam.result",
+        "fields": {
+            "exam_date": "2015-05-16T20:53:17",
+            "daili_user": "oMt59uE55lLOV2KS6vYZ_d0dOl5c",
+            "exam_state": 1
+        }
+    }
+]
