@@ -148,7 +148,7 @@
         <tr>
         	<td class="col-xs-1">{{ forloop.counter }}</td>
             <td class="col-xs-1">{{ product.outer_id }}</td>
-            <td class="col-xs-2">{{ product.name }}</td>
+            <td class="col-xs-2"><a href="/admin/items/product/?q={{ product.outer_id }}" target="_blank">{{ product.name }}</a></td>
             <td class="col-xs-1">{{ product.sale_num }}</td>
             <td class="col-xs-1">{{ product.sale_payment }}</td>
             <td class="col-xs-1">{{ product.confirm_num }}</td>
