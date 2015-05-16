@@ -53,7 +53,7 @@ def task_Push_Pending_Carry_Cash(day_ago=7):
         if cl.carry_type != CarryLog.CARRY_IN:
             continue
         
-        urows = xlmms.update(cash=F('cash') + cl.value)
+        urows = xlmms.update(cash=F('cash') + cl.value, pending=F('pending') - cl.value)
         if urows > 0:
             cl.status = CarryLog.CONFIRMED
             cl.save()
