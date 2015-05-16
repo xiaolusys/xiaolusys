@@ -188,6 +188,7 @@ class MergeTrade(models.Model):
     send_time    = models.DateTimeField(null=True,blank=True,verbose_name=u'预售日期')
     weight_time  = models.DateTimeField(db_index=True,null=True,blank=True,verbose_name=u'称重日期')
     charge_time  = models.DateTimeField(null=True,blank=True,verbose_name=u'揽件日期')
+    remind_time      = models.DateTimeField(null=True,blank=True,verbose_name=u'提醒日期')
     
     is_brand_sale  = models.BooleanField(default=False,verbose_name=u'品牌特卖') 
     is_force_wlb   = models.BooleanField(default=False,verbose_name=u'物流宝') 
@@ -240,7 +241,6 @@ class MergeTrade(models.Model):
     has_memo         = models.BooleanField(default=False,verbose_name=u'有留言')
     has_merge        = models.BooleanField(default=False,verbose_name=u'有合单')
     has_sys_err      = models.BooleanField(default=False,verbose_name=u'系统错误')
-    remind_time      = models.DateTimeField(null=True,blank=True,verbose_name=u'提醒日期')
     refund_num       = models.IntegerField(null=True,default=0,verbose_name=u'退款单数')  #退款单数
     
     is_qrcode        = models.BooleanField(default=False,verbose_name=u'热敏订单')

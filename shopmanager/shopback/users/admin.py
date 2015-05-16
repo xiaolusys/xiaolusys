@@ -115,17 +115,17 @@ class UserAdmin(admin.ModelAdmin):
                     #更新等待发货商城订单
                     #下载更新用户商品分销商品
                     from shopback.items.tasks import updateUserItemSkuFenxiaoProductTask
-                    updateUserItemSkuFenxiaoProductTask.delay(user.visitor_id)
+                    updateUserItemSkuFenxiaoProductTask.s(user.visitor_id)()
                 
                 elif user.type == User.SHOP_TYPE_JD:
                     
                     from shopapp.jingdong.tasks import pullJDProductByVenderidTask
-                    pullJDProductByVenderidTask.delay(user.visitor_id)
+                    pullJDProductByVenderidTask.s(user.visitor_id)()
                     
                 elif user.type == User.SHOP_TYPE_WX:
                     
                     from shopapp.weixin.tasks import pullWXProductTask
-                    pullWXProductTask.delay()
+                    pullWXProductTask.s()()
                     
             except Exception,exc:
                 pull_dict['success']=False
@@ -209,7 +209,7 @@ admin.site.register(User, UserAdmin)
 class CustomerAdmin(admin.ModelAdmin):
     
     list_display = ('id','nick','name','buy_times','avg_payment','last_buy_time',
-                    'city','state','district','phone','mobile','is_valid')
+                    'city','state','district','is_valid')
     list_display_links = ('id', 'nick')
 
     ordering = ['-last_buy_time']

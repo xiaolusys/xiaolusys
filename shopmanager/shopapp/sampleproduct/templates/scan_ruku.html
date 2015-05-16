@@ -29,10 +29,13 @@
             e.preventDefault(); // <-- important
             $(this).ajaxSubmit({
                 success:function(resp){
+                	if (resp.code == 1){
+            			alert(resp.err);
+            			return
+            		}
                 	$.each(resp,function(index,data){
                 		
                 		var target_tr = document.getElementById('s_'+data.id);
-                		console.log('target:',target_tr);
                 		if (target_tr == 'undifined' || target_tr == null){
                 			var table_len = $('#mytable tr').length;
                 			var scan_type = data.scan_type==0?'入库扫描':'出库扫描';
@@ -46,7 +49,6 @@
                 			ht += '<td><input name="G_'+table_len+'" style="width: 70px" type="text" value="'+ scan_type +'" readonly></td>';
                 			ht += '<td><select id="sect" name="H_'+table_len+'" ><option value="1">确认</option><option value="2">作废</option></select></td>';
                 			ht += '</tr>';
-                			console.log('ht-----',ht);
                 			$('#mytable').append(ht);
                 			return
                 		}
