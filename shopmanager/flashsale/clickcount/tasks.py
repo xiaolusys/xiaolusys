@@ -61,7 +61,7 @@ def task_Record_User_Click(pre_day=1):
     time_to = datetime.datetime(pre_date.year, pre_date.month, pre_date.day, 23, 59, 59)  # 停止时间
 
     xiaolumamas = XiaoluMama.objects.all()  # 所有小鹿妈妈们
-
+    
     for xiaolumama in xiaolumamas:  #
         clicks = Clicks.objects.filter(created__gt=time_from, created__lt=time_to,
                                        linkid=xiaolumama.id)  # 根据代理的id过滤出点击表中属于该代理的点击

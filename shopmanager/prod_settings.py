@@ -67,7 +67,7 @@ TRADE_HANDLERS_PATH = (
    'shopback.trades.handlers.FlashSaleHandler',
 )
 #sale order regular days
-REGULAR_DAYS = 10
+REGULAR_DAYS = 20
 
 #################### TAOBAO SETTINGS ###################
 #APPKEY = '21532915'   #app name super ERP test ,younixiaoxiao
