@@ -2,13 +2,14 @@
 import time
 import json
 import random
+from django.conf import settings
 from django.http import HttpResponse,HttpResponseRedirect  
 from django.template import RequestContext 
 from django.shortcuts import render
 from django.views.decorators.csrf import csrf_exempt
 from flashsale.mmexam.models import Question,Choice,Result
 from django.shortcuts import get_object_or_404, render
-from shopapp.weixin.views import get_user_openid
+from flashsale.pay.options import get_user_unionid
 
 
 def index(request):
@@ -16,17 +17,20 @@ def index(request):
     #这里得到openid
     content = request.REQUEST
     code = content.get('code',None)
-    user_openid = get_user_openid(request, code)
+    user_openid,user_unionid = get_user_unionid(code,
+                                                appid=settings.WEIXIN_APPID,
+                                                secret=settings.WEIXIN_SECRET,
+                                                request=request)
         
-    if not valid_openid(user_openid):
+    if not valid_openid(user_openid) or not valid_openid(user_unionid):
          redirect_url = "https://open.weixin.qq.com/connect/oauth2/authorize?appid=wxc2848fa1e1aa94b5&redirect_uri=http://weixin.huyi.so/sale/exam/&response_type=code&scope=snsapi_base&state=135#wechat_redirect"
         #return redirect(redirect_url)
     #    if not user_openid  or user_openid.upper() == 'NONE':
             #render(request, 'invalid_user.html')#无效用户
-    #
+
     response=render(request, 'index.html')
      #response.set_cookie("openid", "多选测试")
-    response.set_cookie("openid", user_openid)
+    response.set_cookie("unionid", user_unionid)
     return response
 
 def exam(request,question_id):
@@ -64,7 +68,7 @@ def exam(request,question_id):
               question = get_object_or_404(Question, pk=question_id)
               return render(request, 'mmexam_exam.html', {'question': question,'result':"",'number':number})
             except:
-              user=request.COOKIES.get('openid')
+              user=request.COOKIES.get('unionid')
               print "openid",user
               #Result.objects.create(daili_user="方",exam_state=1)  #这里对结果统一赋值
               Result.objects.create(daili_user=user,exam_state=1)
