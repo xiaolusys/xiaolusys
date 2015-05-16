@@ -22,7 +22,7 @@ class ordelistAdmin(admin.ModelAdmin):
     }),)
     inlines = [orderdetailInline]
     list_display = (
-    'id', 'buyer_name', 'order_amount', 'quantity', 'receiver', 'created', 'shenhe', 'note', 'supplier_name',
+    'id', 'buyer_name', 'order_amount', 'quantity', 'receiver', 'created', 'shenhe', 'changedetail', 'note', 'supplier_name',
     'express_company', 'express_no'
     )
     list_filter = (('created', DateFieldListFilter),)
@@ -44,6 +44,13 @@ class ordelistAdmin(admin.ModelAdmin):
 
     shenhe.allow_tags = True
     shenhe.short_description = "状态"
+
+    def changedetail(self, obj):
+        symbol_link = u'【详情页】'
+        return '<a href="/sale/dinghuo/changedetail/{0}/" >{1}</a>'.format(int(obj.id), symbol_link)
+
+    changedetail.allow_tags = True
+    changedetail.short_description = "更改订单"
 
     def orderlist_ID(self, obj):
         symbol_link = obj.id or u'【空标题】'
