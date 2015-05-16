@@ -27,10 +27,10 @@ def index(request):
         #return redirect(redirect_url)
     #    if not user_openid  or user_openid.upper() == 'NONE':
             #render(request, 'invalid_user.html')#无效用户
-    #
+
     response=render(request, 'index.html')
      #response.set_cookie("openid", "多选测试")
-    response.set_cookie("unionid", user_openid)
+    response.set_cookie("unionid", user_unionid)
     return response
 
 def exam(request,question_id):
