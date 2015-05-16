@@ -129,7 +129,7 @@ class AgencyLevel(models.Model):
         return click_price * 100
     
     def get_Rebeta_Rate(self,*args,**kwargs):
-        return 0.1
+        return self.basic_rate / 100.0
     
 
 class Clicks(models.Model):
