@@ -26,12 +26,7 @@ class ordelistAdmin(admin.ModelAdmin):
     search_fields = ['buyer_name']
     date_hierarchy = 'created'
 
-    def queryset(self, request):#重写queryset方法
-        qs = super(ordelistAdmin,self).queryset(request)
-        if request.user.is_superuser:
-            return qs
-        else:
-            return qs.filter(buyer_name =request.user)
+
         
     def shenhe(self, obj):
         symbol_link = obj.status or u'【空标题】'
