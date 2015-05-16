@@ -1,0 +1,205 @@
+{% extends "dinghuo/dinghuo_base.html" %}
+{% block title %}订单详情页{% endblock %}
+{% block head_script %}
+    <link href='{{ STATIC_URL }}jquery/jquery-ui-1.10.1.css' rel='stylesheet'/>
+    <style type="text/css" title="currentStyle">
+        @import "{{ STATIC_URL }}jquery-datatable-addon/css/demo_page.css";
+        @import "{{ STATIC_URL }}jquery-datatable-addon/css/demo_table.css";
+    </style>
+    <style type="text/css">
+        tfoot input {
+            width: 50%;
+        }
+    </style>
+
+    <script type="text/javascript">
+        function changestatus(id, button) {
+
+            var url = "/sale/dinghuo/changestatus/";
+            var data = {"orderid": id, "func": button.value};
+            var orderstatus = $("#order_status");
+            var callback = function (res) {
+                if (res == "OK") {
+                    if (button.id == "shenhebutton") {
+                        orderstatus.text("审核");
+                    } else if (button.id == "zuifeibutton") {
+                        orderstatus.text("作废");
+                    } else {
+                        orderstatus.text("完成")
+                    }
+                }
+
+
+            };
+            if (orderstatus.text() == "草稿") {
+                $.ajax({url: url, data: data, type: "post", success: callback});
+            } else {
+
+            }
+        }
+
+        function plusQuantity(orderdetailid) {
+            var index = "quantity_" + orderdetailid;
+            p = $("#" + index);
+            var url = "/sale/dinghuo/plusordertail/";
+            var data = {"orderdetailid": orderdetailid};
+            var callback = function (res) {
+                if (res == "OK") {
+                    p.text(parseInt(p.text()) + 1);
+                }
+            };
+            $.ajax({url: url, data: data, type: "post", success: callback});
+        }
+        function minusQuantity(orderdetailid) {
+            var index = "quantity_" + orderdetailid;
+            p = $("#" + index);
+            if (p.text() != "0") {
+                var url = "/sale/dinghuo/minusordertail/";
+                var data = {"orderdetailid": orderdetailid};
+                var callback = function (res) {
+                    if (res == "OK") {
+                        p.text(parseInt(p.text()) - 1);
+                    }
+                };
+                $.ajax({url: url, data: data, type: "post", success: callback});
+            } else {
+                alert("已经为零")
+            }
+
+        }
+    </script>
+{% endblock %}
+{% block container %}
+    <div class="container">
+        <div class="row" style="margin-top: 20px">
+            <div class="col-lg-6">
+                <span class="label label-info" style="font-size: 30px">当前状态：</span>
+                <label id="order_status" class="label label-success"
+                       style="font-size: large">{{ orderlist.status }}</label>
+            </div>
+            <div class="col-lg-4"></div>
+            <div class="col-lg-2">
+                <a href="/admin/items/product" style="text-align: right">
+                    <span class="label label-info" style="font-size: 20px">回到商品页面</span>
+                </a>
+            </div>
+        </div>
+        <div class="row" style="margin-top: 20px">
+
+            <div class="col-lg-4">
+                <div class="alert alert-success" role="alert">
+                    <strong>填写地址:</strong>上海市佘山镇吉业路245号5号楼_{{ orderlist.id }}室
+                </div>
+            </div>
+
+            <div class="col-lg-4">
+                <div class="alert alert-success" role="alert">
+                    <strong>收 货 人:</strong>{{ orderlist.receiver }}
+                </div>
+            </div>
+            <div class="col-lg-4">
+                <div class="alert alert-success" role="alert">
+                    <strong>供 应 商:</strong>{{ orderlist.supplier_name }}
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-lg-4">
+                <div class="alert alert-success" role="alert">
+                    <strong>快递公司:</strong>{{ orderlist.express_company }}
+                </div>
+            </div>
+
+            <div class="col-lg-4">
+                <div class="alert alert-success" role="alert">
+                    <strong>快递单号:</strong>{{ orderlist.express_no }}
+                </div>
+            </div>
+            <div class="col-lg-4">
+                <div class="alert alert-success" role="alert">
+                    <strong>金额:</strong>{{ orderlist.order_amount }}
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+
+            <legend>
+                <h2 class="head-title">详细列表</h2>
+            </legend>
+        </div>
+        <div class="row">
+            <table id="orderdetailtable" border="1" class="table table-striped table-bordered table-hover">
+                <thead>
+                <th width="100px">商品编码</th>
+                <th width="100px">商品名称
+                </td>
+                <th width="100px">规格</th>
+                <th width="100px">数量</th>
+                <th width="100px">买入价格</th>
+                <th width="100px">单项价格</th>
+                <th style="width:40px;">操作</th>
+                </thead>
+                <tbody>
+                {% for order in orderdetails %}
+                    <tr id="orderdetail_{{ forloop.counter }}">
+                        <td>{{ order.outer_id }}</td>
+                        <td>{{ order.product_name }}</td>
+                        <td>{{ order.product_chicun }}</td>
+
+                        <td align="center"><a onclick="plusQuantity({{ order.id }})">
+                            <span class="glyphicon glyphicon-plus"></span></a>&nbsp;
+                            <span id="quantity_{{ order.id }}">{{ order.buy_quantity }}</span>
+                            <a onclick="minusQuantity({{ order.id }})">
+                                <span class="glyphicon glyphicon-minus"></span>
+                            </a>
+                        </td>
+                        <td>{{ order.buy_unitprice }}</td>
+                        <td>¥{{ order.total_price }}</td>
+                        <td>
+                            <a class="edit" href="javascript:void(0);">
+                                <icon class="icon-edit"></icon>
+                            </a><a class="delete" href="javascript:void(0);">
+                            <icon class="icon-remove"></icon>
+                        </a>
+                        </td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+{% endblock %}
+{% block tail_script %}
+    <script src="{{ STATIC_URL }}jquery/jquery-2.1.1.min.js"></script>
+    <script src="{{ STATIC_URL }}jquery-datatable-addon/jquery.dataTables.min.js" type="text/javascript"></script>
+    <script type="text/javascript">
+        $('#orderdetailtable').dataTable({
+            //"bJQueryUI": true,
+            "bAutoWidth": false, //自适应宽度
+            "aaSorting": [[1, "asc"]],
+            "iDisplayLength": 50,
+            "aLengthMenu": [[20, 50, 100, -1], [20, 50, 100, "All"]],
+            //"bInfo":true,
+            //"sPaginationType": "full_numbers",
+            //"sDom": '<"H"Tfr>t<"F"ip>',
+            "oLanguage": {
+                "sLengthMenu": "每页 _MENU_ 条",
+                "sZeroRecords": "抱歉， 没有找到",
+                "sInfo": "从 _START_ 到 _END_ /共 _TOTAL_ 条",
+                "sInfoEmpty": "没有数据",
+                "sSearch": "搜索",
+                "sInfoFiltered": "(从 _MAX_ 条数据中检索)",
+                "oPaginate": {
+                    "sFirst": "首页",
+                    "sPrevious": "前一页",
+                    "sNext": "后一页",
+                    "sLast": "尾页"
+                },
+                "sZeroRecords": "没有检索到数据",
+                "sProcessing": "<img src='/static/img/loading.gif' />"
+            }
+        });
+
+    </script>
+{% endblock %}

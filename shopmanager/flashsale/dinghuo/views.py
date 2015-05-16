@@ -13,6 +13,7 @@ from flashsale.dinghuo import paramconfig as pcfg
 from django.template import RequestContext
 from django.core.paginator import Paginator, InvalidPage, EmptyPage, PageNotAnInteger
 from flashsale.dinghuo import log_action, ADDITION, CHANGE
+from django.db.models import F
 
 
 def orderadd(request):
@@ -235,12 +236,37 @@ def plusquantity(req):
 
 
 @csrf_exempt
+def plusordertail(req):
+    post = req.POST
+    orderdetailid = post["orderdetailid"]
+    orderdetail = OrderDetail.objects.get(id=orderdetailid)
+    OrderDetail.objects.filter(id=orderdetailid).update(buy_quantity=F('buy_quantity') + 1)
+    OrderDetail.objects.filter(id=orderdetailid).update(total_price=F('total_price') + orderdetail.buy_unitprice)
+    OrderList.objects.filter(id=orderdetail.orderlist_id).update(
+        order_amount=F('order_amount') + orderdetail.buy_unitprice)
+    return HttpResponse("OK")
+
+
+@csrf_exempt
 def minusquantity(req):
     post = req.POST
     draftid = post["draftid"]
     draft = orderdraft.objects.get(id=draftid)
     draft.buy_quantity = draft.buy_quantity - 1
     draft.save()
+    return HttpResponse("OK")
+
+
+@csrf_exempt
+def minusordertail(req):
+    post = req.POST
+    orderdetailid = post["orderdetailid"]
+    orderdetail = OrderDetail.objects.get(id=orderdetailid)
+    OrderDetail.objects.filter(id=orderdetailid).update(buy_quantity=F('buy_quantity') - 1)
+    OrderDetail.objects.filter(id=orderdetailid).update(total_price=F('total_price') - orderdetail.buy_unitprice)
+    orderdetail = OrderDetail.objects.get(id=orderdetailid)
+    OrderList.objects.filter(id=orderdetail.orderlist_id).update(
+        order_amount=F('order_amount') - orderdetail.buy_unitprice)
     return HttpResponse("OK")
 
 
@@ -277,3 +303,12 @@ def changestatus(req):
         state = False
     log_action(req.user.id, orderlist, CHANGE, u'%s采购单' % (state and u'审核' or u'作废'))
     return HttpResponse("OK")
+
+
+@csrf_exempt
+def changedetail(req, orderdetail_id):
+    orderlist = OrderList.objects.get(id=orderdetail_id)
+    orderdetail = OrderDetail.objects.filter(orderlist_id=orderdetail_id)
+    return render_to_response("dinghuo/changedetail.html", {"orderlist": orderlist,
+                                                            "orderdetails": orderdetail},
+                              context_instance=RequestContext(req))
