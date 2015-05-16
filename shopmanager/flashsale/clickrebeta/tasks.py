@@ -103,8 +103,12 @@ def task_Tongji_User_Order(pre_day=1):
         time_to = datetime.datetime(pre_date.year, pre_date.month, pre_date.day, 23, 59, 59)
 
         wxorders = WXOrder.objects.filter(order_create_time__range=(time_from,time_to))
+        stat_shoppings = StatisticsShopping.objects.filter(shoptime__range=(time_from,time_to))
+        stat_shoppings.delete()
+        
         tongjibyday = StatisticsShoppingByDay.objects.filter(tongjidate__range=(time_from,time_to))
         tongjibyday.delete()
+        
         for wxorder in wxorders:
             wxorder.confirm_payment()
         
