@@ -46,13 +46,16 @@ class ordelistAdmin(admin.ModelAdmin):
     # 测试action
     def test_order_action(self, request, queryset):
         for p in queryset:
-            log_action(request.user.id, p, CHANGE, u'测试action')
+            if p.status != "审核":
+                p.status = "审核"
+                p.save()
+                log_action(request.user.id, p, CHANGE, u'审核订货单')
 
-        self.message_user(request, u"已成功测试!")
+                self.message_user(request, u"已成功审核!")
 
         return HttpResponseRedirect(request.get_full_path())
 
-    test_order_action.short_description = u"测试action（批量 ）"
+    test_order_action.short_description = u"审核（批量 ）"
 
     actions = ['test_order_action']
 

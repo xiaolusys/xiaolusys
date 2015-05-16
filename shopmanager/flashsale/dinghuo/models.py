@@ -6,6 +6,7 @@ from shopback.base.fields import BigIntegerAutoField,BigIntegerForeignKey
 ORDER_PRODUCT_STATUS = (
     (pcfg.SUBMITTING, u'提交中'),
     (pcfg.APPROVAL, u'审核'),
+    (pcfg.ZUOFEI, u'作废'),
     (pcfg.COMPLETED, u'验货通过'),
 )
 
