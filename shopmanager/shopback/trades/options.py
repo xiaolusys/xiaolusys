@@ -156,7 +156,6 @@ def mergeRemover(trade):
         return False
     
     trade.remove_reason_code(pcfg.NEW_MERGE_TRADE_CODE)
-    trade.append_reason_code(pcfg.MULTIPLE_ORDERS_CODE)
     trade.has_merge = False
     
     trade.merge_orders.filter(is_merge=True).delete()
@@ -166,7 +165,6 @@ def mergeRemover(trade):
         
         sub_trade = MergeTrade.objects.get(id=sub_merge.sub_tid)
         sub_trade.remove_reason_code(pcfg.NEW_MERGE_TRADE_CODE)
-        sub_trade.append_reason_code(pcfg.MULTIPLE_ORDERS_CODE)
         
         trade.remove_buyer_message(sub_merge.sub_tid)
         trade.remove_seller_memo(sub_merge.sub_tid)
