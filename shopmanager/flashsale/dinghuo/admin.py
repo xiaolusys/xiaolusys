@@ -5,6 +5,7 @@ from django.http import HttpResponseRedirect
 from flashsale.dinghuo import log_action, CHANGE
 from shopback.base.options import DateFieldListFilter
 
+
 class orderdetailInline(admin.TabularInline):
     model = OrderDetail
     fields = (
@@ -17,17 +18,26 @@ class ordelistAdmin(admin.ModelAdmin):
     fieldsets = ((u'订单信息:', {
         'classes': ('expand',),
         'fields': ( 'supplier_name', 'express_company', 'express_no'
-                   , 'receiver', 'status', 'note')
+                    , 'receiver', 'status', 'note')
     }),)
     inlines = [orderdetailInline]
-    list_display = ('id', 'buyer_name', 'order_amount', 'supplier_name', 'express_company', 'express_no'
-                    , 'receiver', 'created', 'shenhe', 'note')
-    list_filter = (('created',DateFieldListFilter),)
+    list_display = (
+    'id', 'buyer_name', 'order_amount', 'quantity', 'receiver', 'created', 'shenhe', 'note', 'supplier_name',
+    'express_company', 'express_no'
+    )
+    list_filter = (('created', DateFieldListFilter),)
     search_fields = ['buyer_name']
     date_hierarchy = 'created'
 
+    def quantity(self, obj):
+        alldetails = OrderDetail.objects.filter(orderlist_id=obj.id)
+        quantityofoneorder = 0
+        for detail in alldetails:
+            quantityofoneorder += detail.buy_quantity
+        return '{0}'.format(quantityofoneorder)
+    quantity.allow_tags = True
+    quantity.short_description = "购买商品数量"
 
-        
     def shenhe(self, obj):
         symbol_link = obj.status or u'【空标题】'
         return '<a href="/sale/dinghuo/detail/{0}/" >{1}</a>'.format(int(obj.id), symbol_link)
