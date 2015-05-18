@@ -10,6 +10,48 @@ from flashsale.pay.service import FlashSaleService
 from shopback import paramconfig as pcfg
 from common.utils import update_model_fields
 
+
+class LocalTradeService():
+    
+    def __init__(self,t):
+        
+        if isinstance(t,MergeTrade):
+            self.trade = t
+        else:
+            self.trade = MergeTrade.objects.get(
+                            type__in=(MergeTrade.YHD_TYPE,
+                                      MergeTrade.DD_TYPE,
+                                      MergeTrade.SN_TYPE,
+                                      MergeTrade.DIRECT_TYPE,
+                                      MergeTrade.REISSUE_TYPE,
+                                      MergeTrade.EXCHANGE_TYPE),
+                            tid=t)
+            
+        self.bservice = self.getBaseService()
+    
+    @classmethod
+    def createTrade(cls,user_id,tid,*args,**kwargs):
+        """ TODO """
+        pass
+    
+    @classmethod
+    def createMergeTrade(cls,trade,*args,**kwargs):
+        """ TODO """
+        pass
+    
+    def payTrade(self,*args,**kwargs):
+        """ TODO """
+        pass
+        
+    
+    def sendTrade(self,*args,**kwargs):
+        
+        self.trade.status = pcfg.WAIT_BUYER_CONFIRM_GOODS
+        self.consign_time = datetime.datetime.now()
+        self.save()
+    
+ 
+
 TRADE_TYPE_SERVICE_MAP = {
     pcfg.FENXIAO_TYPE:PurchaseOrderService,
     pcfg.TAOBAO_TYPE:OrderService,
@@ -18,13 +60,13 @@ TRADE_TYPE_SERVICE_MAP = {
     pcfg.TB_STEP_TYPE:OrderService,
     pcfg.COD_TYPE:OrderService,
     pcfg.JD_TYPE:JDShopService,
-    pcfg.YHD_TYPE:LocalService,
-    pcfg.DD_TYPE:LocalService,
+    pcfg.YHD_TYPE:LocalTradeService,
+    pcfg.DD_TYPE:LocalTradeService,
     pcfg.WX_TYPE:WxShopService,
     pcfg.AMZ_TYPE:LocalService,
-    pcfg.DIRECT_TYPE:LocalService,
-    pcfg.EXCHANGE_TYPE:LocalService,
-    pcfg.REISSUE_TYPE:LocalService,
+    pcfg.DIRECT_TYPE:LocalTradeService,
+    pcfg.EXCHANGE_TYPE:LocalTradeService,
+    pcfg.REISSUE_TYPE:LocalTradeService,
 }
 
     

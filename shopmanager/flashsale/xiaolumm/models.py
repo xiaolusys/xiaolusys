@@ -3,6 +3,7 @@ from django.db import models
 from django.contrib.auth.models import User as DjangoUser
 from shopapp.weixin.models import UserGroup
 from .managers import XiaoluMamaManager
+from shopback.base.fields import BigIntegerAutoField,BigIntegerForeignKey
 # Create your models here.
 
 MM_CLICK_DAY_LIMIT = 2
@@ -35,11 +36,11 @@ class XiaoluMama(models.Model):
     weikefu = models.CharField(max_length=11,db_index=True,blank=True,verbose_name=u"微客服")
     manager = models.IntegerField(default=0,verbose_name=u"管理员")
     
-    cash = models.IntegerField(default=0,verbose_name=u"可用现金")
+    cash    = models.IntegerField(default=0,verbose_name=u"可用现金")
     pending = models.IntegerField(default=0,verbose_name=u"冻结佣金")
     
     agencylevel = models.IntegerField(default=1,verbose_name=u"代理类别")
-    user_group = models.ForeignKey(UserGroup,null=True,verbose_name=u"分组")
+    user_group  = BigIntegerForeignKey(UserGroup,null=True,verbose_name=u"分组")
     
     created = models.DateTimeField(auto_now_add=True,verbose_name=u'创建时间')
     status  = models.CharField(max_length=16,blank=True,choices=STATUS_CHOICES,
