@@ -45,7 +45,7 @@ CELERY_ROUTES = {
             'queue': 'trade_notify',
             'routing_key': 'trade.push_refund',
         },
-        'flashsale.xiaolumm.tasks.task_Push_Pending_Carry_By_Mama': {
+        'flashsale.xiaolumm.tasks.task_Push_Pending_Carry_Cash': {
             'queue': 'default',
             'routing_key': 'tasks.push_xlmm_pending_cash',
         },
