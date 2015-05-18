@@ -155,7 +155,7 @@ class MamaStatsView(View):
         exam_pass = False
         result = Result.objects.filter(daili_user=unionid)
         if result.count() > 0:
-            exam_pass = result[0].exam_Passed()
+            exam_pass = result[0].is_Exam_Funished()
         
         mobile = wx_user.mobile
         data   = {}

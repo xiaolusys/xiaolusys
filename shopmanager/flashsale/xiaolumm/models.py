@@ -265,4 +265,13 @@ class CarryLog(models.Model):
         return self.get_status_display()
     
     
+from . import signals
+
+def push_pending_carry_to_cash(obj,*args,**kwargs):
     
+    from flashsale.xiaolumm.tasks import task_Push_Pending_Carry_By_Mama
+    
+    task_Push_Pending_Carry_By_Mama.s(xlmm_id=obj)()
+    
+signals.signal_push_pending_carry_to_cash.connect(push_pending_carry_to_cash,sender=XiaoluMama)
+

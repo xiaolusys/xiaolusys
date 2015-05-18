@@ -14,51 +14,6 @@ __author__ = 'yann'
 logger = logging.getLogger('celery.handler')
 
 
-@task()
-def task_Pull_Pending_Carry(day_ago=7):
-    
-    date_to  = datetime.datetime.now().date()
-    date_from    = date_to - datetime.timedelta(days=day_ago)
-    
-    c_logs = CarryLog.objects.filter(carry_date__range=(date_from,date_to),
-                                     log_type__in=(CarryLog.ORDER_REBETA,),#CarryLog.CLICK_REBETA
-                                     status=CarryLog.CONFIRMED)
-
-    for cl in c_logs:
-        #重新计算pre_date之前订单金额，取消退款订单提成
-        
-        #将carrylog里的金额更新到最新，然后将金额写入mm的钱包帐户
-        xlmms = XiaoluMama.objects.filter(id=cl.xlmm)
-        
-        if cl.carry_date == datetime.datetime(2015,5,15).date():
-            urows = xlmms.update(cash=F('cash') - cl.value)
-        else:
-            urows = xlmms.update(pending=F('pending') - cl.value)
-        
-        if urows > 0:
-            cl.status = CarryLog.PENDING
-            cl.save()
-
-@task()
-def task_Push_Pending_Carry_Cash(day_ago=7):
-    
-    pre_date = datetime.date.today() - datetime.timedelta(days=day_ago)
-    
-    c_logs = CarryLog.objects.filter(carry_date__lt=pre_date,status=CarryLog.PENDING)
-    for cl in c_logs:
-        #重新计算pre_date之前订单金额，取消退款订单提成
-        
-        #将carrylog里的金额更新到最新，然后将金额写入mm的钱包帐户
-        xlmms = XiaoluMama.objects.filter(id=cl.xlmm)
-        if cl.carry_type != CarryLog.CARRY_IN:
-            continue
-        
-        urows = xlmms.update(cash=F('cash') + cl.value, pending=F('pending') - cl.value)
-        if urows > 0:
-            cl.status = CarryLog.CONFIRMED
-            cl.save()
-        
-        
 
 @task()
 def task_Push_Rebeta_To_MamaCash(target_date):
