@@ -47,11 +47,15 @@ class Result(models.Model):
     STATUS_CHOICES = ((UNFINISHED,u'未通过'),
                       (FINISHED,u'已通过'),)
     
-    daili_user  = models.CharField(max_length=200,verbose_name=u'代理unionid')
+    daili_user  = models.CharField(max_length=32,unique=True,verbose_name=u'代理unionid')
     #exam_grade = models.IntegerField(max_length=10,blank=True,verbose_name=u'考试得分',default="60")
     exam_date  = models.DateTimeField(null=True,auto_now_add=True,verbose_name='答题日期')
-    exam_state=models.IntegerField(choices=STATUS_CHOICES,verbose_name=u"是否通过") 
+    exam_state=models.IntegerField(choices=STATUS_CHOICES,default=UNFINISHED,verbose_name=u"是否通过") 
     class Meta:
         db_table = 'flashsale_mmexam_result'
         verbose_name = u'代理考试结果'
         verbose_name_plural = u'代理考试结果列表'
+        
+    def exam_Passed(self):
+        return self.exam_state == self.FINISHED
+    

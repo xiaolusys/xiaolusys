@@ -1,4 +1,5 @@
 #-*- coding:utf8 -*-
+import datetime
 from django.contrib import admin
 from flashsale.xiaolumm.models import UserGroup
 
@@ -6,6 +7,7 @@ from shopback.base.options import DateFieldListFilter
 from .models import Clicks,XiaoluMama,AgencyLevel,CashOut,CarryLog
 
 from . import forms 
+from flashsale.mmexam.models import Result
 
 class XiaoluMamaAdmin(admin.ModelAdmin):
     
@@ -13,7 +15,7 @@ class XiaoluMamaAdmin(admin.ModelAdmin):
     
     form = forms.XiaoluMamaForm
     list_display = ('id','mobile','province','get_cash_display','get_pending_display',
-                    'weikefu','agencylevel','charge_link','group_select','created','status')
+                    'weikefu','agencylevel','charge_link','group_select','click_state','exam_pass','created','status')
     list_filter = ('agencylevel','manager','status','charge_status',('created',DateFieldListFilter),'user_group')
     search_fields = ['id','mobile','manager','weikefu','openid']
     
@@ -66,6 +68,25 @@ class XiaoluMamaAdmin(admin.ModelAdmin):
     charge_link.short_description = u"接管信息"
     
     
+    def exam_pass(self, obj):
+
+        results = Result.objects.filter(daili_user=obj.openid)
+        if results.count() > 0  and results[0].exam_Passed():
+            return u'<img src="/static/admin/img/icon-yes.gif"></img>&nbsp;%s' % obj.get_exam_state_display()
+
+        return u'<img src="/static/admin/img/icon-no.gif"></img>&nbsp;未通过' 
+        
+    exam_pass.allow_tags = True
+    exam_pass.short_description = u"考试状态"
+    
+    def click_state(self, obj):
+        dt = datetime.date.today()
+        return (u'<div><a style="display:block;" href="/admin/xiaolumm/statisticsshopping/?shoptime__gte=%s&linkid=%s&">今日订单</a>'%(dt,obj.id)+
+        '<a style="display:block;" href="/admin/xiaolumm/statisticsshopping/?shoptime__gte=%s&linkid=%s">今日点击</a></div>'%(dt,obj.id))
+        
+    click_state.allow_tags = True
+    click_state.short_description = u"妈妈统计"
+    
     class Media:
         css = {"all": ("admin/css/forms.css","css/admin/dialog.css"
                        ,"css/admin/common.css", "jquery/jquery-ui-1.10.1.css")}
@@ -104,7 +125,8 @@ admin.site.register(CashOut, CashOutAdmin)
 class CarryLogAdmin(admin.ModelAdmin):
     
     form = forms.CarryLogForm
-    list_display = ('xlmm', 'buyer_nick', 'get_value_display', 'log_type', 'carry_type', 'status', 'carry_date', 'created')
+    list_display = ('xlmm', 'buyer_nick', 'get_value_display', 'log_type', 
+                    'carry_type', 'status', 'carry_date', 'created')
     list_filter = ('log_type','carry_type','status',('carry_date',DateFieldListFilter))
     search_fields = ['xlmm', 'buyer_nick']
 

@@ -109,6 +109,7 @@ from django.conf import settings
 from flashsale.pay.options import get_user_unionid
 from flashsale.clickcount.models import ClickCount
 from flashsale.clickrebeta.models import StatisticsShoppingByDay,StatisticsShopping
+from flashsale.mmexam.models import Result
 
 class MamaStatsView(View):
     def get(self, request):
@@ -151,6 +152,11 @@ class MamaStatsView(View):
         if target_date < today:
             next_day = target_date + datetime.timedelta(days=1)
         
+        exam_pass = False
+        result = Result.objects.filter(daili_user=unionid)
+        if result.count() > 0:
+            exam_pass = result[0].exam_Passed()
+        
         mobile = wx_user.mobile
         data   = {}
         try:
@@ -186,7 +192,7 @@ class MamaStatsView(View):
             click_pay   = click_price * click_num 
 
             data = {"mobile":mobile_revised, "click_num":click_num, "xlmm":xlmm,
-                    "order_num":order_num, "order_list":order_list, "pk":xlmm.pk,
+                    "order_num":order_num, "order_list":order_list, "pk":xlmm.pk,"exam_pass":exam_pass,
                     "total_value":total_value, "carry":carry, "agencylevel":agencylevel,
                     "target_date":target_date, "prev_day":prev_day, "next_day":next_day,
                     "click_price":click_price, "click_pay":click_pay, "referal_num":referal_num}
