@@ -2,7 +2,7 @@
 # Create your views here.
 
 import json
-from django.http import HttpResponse
+from django.http import HttpResponse,Http404
 from django.shortcuts import redirect,render_to_response
 from django.views.generic import View
 from django.template import RequestContext
@@ -55,7 +55,7 @@ class CashoutView(View):
         openid,unionid = get_user_unionid(code,appid=settings.WEIXIN_APPID,
                                           secret=settings.WEIXIN_SECRET)
 
-        if not valid_openid(openid):
+        if not valid_openid(openid) or not valid_openid(unionid):
             redirect_url = "https://open.weixin.qq.com/connect/oauth2/authorize?appid=wxc2848fa1e1aa94b5&redirect_uri=http://weixin.huyi.so/m/cashout/&response_type=code&scope=snsapi_base&state=135#wechat_redirect"
             return redirect(redirect_url)
         
@@ -67,12 +67,15 @@ class CashoutView(View):
         
         response = render_to_response("mama_cashout.html", data, context_instance=RequestContext(request))
         response.set_cookie("openid",openid)
+        response.set_cookie("unionid",unionid)
         return response
 
     def post(self, request):
         content = request.REQUEST
-        code = content.get('code',None)
-        openid = get_user_openid(request, code)
+        unionid = request.COOKIES.get('unionid')
+        if not valid_openid(unionid):
+            raise Http404
+        
         v = content.get("v")
         m = re.match(r'^\d+$', v)
 
@@ -80,7 +83,7 @@ class CashoutView(View):
         if m:
             value = int(m.group())
             try:
-                xlmm = XiaoluMama.objects.get(openid=openid)
+                xlmm = XiaoluMama.objects.get(openid=unionid)
                 CashOut.objects.create(xlmm=xlmm.pk,value=value)
             except:
                 status = {"code":1, "status":"error"}
