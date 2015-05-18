@@ -30,11 +30,11 @@
             $(this).ajaxSubmit({
                 success:function(resp){
                 	if (resp.code == 1){
-            			alert(resp.err);
+            			document.getElementById("test").innerHTML=resp.err;
             			return
             		}
                 	$.each(resp,function(index,data){
-                		
+                		document.getElementById("test").innerHTML='';
                 		var target_tr = document.getElementById('s_'+data.id);
                 		if (target_tr == 'undifined' || target_tr == null){
                 			var table_len = $('#mytable tr').length;
@@ -87,7 +87,7 @@
             <button class="btn btn-success" type="submit">扫描</button>
         </div>
         <div class="col-sm-2">
-            {{ l }}
+            <span id="test" style="font-size: 20px;color: red"></span>
         </div>
     </form>
     </br><h3>扫描列表</h3>
