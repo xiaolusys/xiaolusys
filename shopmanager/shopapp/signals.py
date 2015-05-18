@@ -20,3 +20,4 @@ weixin_sampleconfirm_signal = Signal(providing_args=["sample_order_id"])
 minus_frozenscore_signal = Signal(providing_args=["forzen_score_id"])
 
 signal_wxorder_pay_confirm = Signal(providing_args=['obj'])
+
