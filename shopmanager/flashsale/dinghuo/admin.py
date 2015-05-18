@@ -22,12 +22,20 @@ class ordelistAdmin(admin.ModelAdmin):
     }),)
     inlines = [orderdetailInline]
     list_display = (
-    'id', 'buyer_name', 'order_amount', 'quantity', 'receiver', 'created', 'shenhe', 'changedetail', 'note', 'supplier_name',
-    'express_company', 'express_no'
+        'id', 'buyer_name', 'order_amount', 'quantity', 'receiver', 'created', 'shenhe', 'changedetail', 'note',
+        'supplier_name', 'express_company', 'express_no'
     )
-    list_filter = (('created', DateFieldListFilter),)
+    list_filter = (('created', DateFieldListFilter),'status',)
     search_fields = ['buyer_name']
     date_hierarchy = 'created'
+
+    def queryset(self, request):
+        qs = super(ordelistAdmin, self).queryset(request)
+        if request.user.is_superuser:
+            return qs
+        else:
+            return qs.exclude(status='作废')
+
 
     def quantity(self, obj):
         alldetails = OrderDetail.objects.filter(orderlist_id=obj.id)
@@ -35,6 +43,7 @@ class ordelistAdmin(admin.ModelAdmin):
         for detail in alldetails:
             quantityofoneorder += detail.buy_quantity
         return '{0}'.format(quantityofoneorder)
+
     quantity.allow_tags = True
     quantity.short_description = "购买商品数量"
 
