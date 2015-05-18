@@ -54,40 +54,21 @@ def task_Pull_Pending_Carry(day_ago=7):
             cl.save()
 
 @task()
-def task_Push_Pending_Carry_Cash(day_ago=7):
+def task_Push_Pending_Carry_Cash(day_ago=7, xlmm_id=None):
     
     from flashsale.mmexam.models import Result
     
     pre_date = datetime.date.today() - datetime.timedelta(days=day_ago)
     
-    c_logs = CarryLog.objects.filter(carry_date__lt=pre_date,status=CarryLog.PENDING)
-    for cl in c_logs:
-        #是否考试通过
-        results = Result.objects.filter(daili_user=cl.xlmm)
-        if results.count() == 0 or not results[0].exam_Passed():
-            continue
-        #重新计算pre_date之前订单金额，取消退款订单提成
+    c_logs = CarryLog.objects.filter(log_type__in=(CarryLog.ORDER_REBETA,
+                                                   CarryLog.CLICK_REBETA), 
+                                     status=CarryLog.PENDING)\
+                                     .exclude(carry_date__gt=pre_date,log_type=CarryLog.ORDER_REBETA)
         
-        #将carrylog里的金额更新到最新，然后将金额写入mm的钱包帐户
-        xlmms = XiaoluMama.objects.filter(id=cl.xlmm)
-        if cl.carry_type != CarryLog.CARRY_IN:
-            continue
+    if xlmm_id:
+        xlmm  = XiaoluMama.objects.get(id=xlmm_id)
+        c_logs = c_logs.filter(xlmm=xlmm.id)
         
-        urows = xlmms.update(cash=F('cash') + cl.value, pending=F('pending') - cl.value)
-        if urows > 0:
-            cl.status = CarryLog.CONFIRMED
-            cl.save()
-            
-            
-@task()
-def task_Push_Pending_Carry_By_Mama(day_ago=7,xlmm_id=None):
-    
-    from flashsale.mmexam.models import Result
-    
-    pre_date = datetime.date.today() - datetime.timedelta(days=day_ago)
-    
-    xlmm   = XiaoluMama.objects.get(id=xlmm_id)
-    c_logs = CarryLog.objects.filter(xlmm=xlmm.id, carry_date__lt=pre_date, status=CarryLog.PENDING)
     for cl in c_logs:
         #是否考试通过
         results = Result.objects.filter(daili_user=xlmm.openid)
@@ -104,7 +85,8 @@ def task_Push_Pending_Carry_By_Mama(day_ago=7,xlmm_id=None):
         if urows > 0:
             cl.status = CarryLog.CONFIRMED
             cl.save()
-
+            
+            
     
     
 
