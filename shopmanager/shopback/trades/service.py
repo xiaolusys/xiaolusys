@@ -45,8 +45,8 @@ class LocalTradeService():
     def sendTrade(self,*args,**kwargs):
         
         self.trade.status = pcfg.WAIT_BUYER_CONFIRM_GOODS
-        self.consign_time = datetime.datetime.now()
-        self.save()
+        self.trade.consign_time = datetime.datetime.now()
+        self.trade.save()
     
  
 
