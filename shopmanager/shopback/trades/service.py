@@ -27,8 +27,6 @@ class LocalTradeService():
                                       MergeTrade.EXCHANGE_TYPE),
                             tid=t)
             
-        self.bservice = self.getBaseService()
-    
     @classmethod
     def createTrade(cls,user_id,tid,*args,**kwargs):
         """ TODO """
