@@ -45,6 +45,10 @@ CELERY_ROUTES = {
             'queue': 'trade_notify',
             'routing_key': 'trade.push_refund',
         },
+        'flashsale.xiaolumm.tasks.task_Push_Pending_Carry_By_Mama': {
+            'queue': 'default',
+            'routing_key': 'tasks.push_xlmm_pending_cash',
+        },
 }
 
 
@@ -211,7 +215,7 @@ SHOP_APP_SCHEDULE = {
         'args':()
     },
     u'定时更新代理妈妈佣金提成':{
-        'task':'flashsale.clickrebeta.tasks.task_Push_Pending_Carry_Cash',
+        'task':'flashsale.xiaolumm.tasks.task_Push_Pending_Carry_Cash',
         'schedule':crontab(minute="40",hour='3'),
         'args':(),
     },

@@ -1,14 +1,13 @@
 #-*- encoding:utf8 -*-
 import time
 import datetime
+from django.db.models import F
 from django.conf import settings
 from celery.task import task
 
-from flashsale.xiaolumm.models import Clicks,XiaoluMama
+from flashsale.xiaolumm.models import Clicks,XiaoluMama,CarryLog
 
 __author__ = 'meixqhi'
-
-
 
 @task()
 def task_Create_Click_Record(xlmmid,openid):
@@ -29,7 +28,82 @@ def task_Create_Click_Record(xlmmid,openid):
     Clicks.objects.create(linkid=xlmmid,openid=openid,isvalid=isvalid)
     
     
+@task()
+def task_Pull_Pending_Carry(day_ago=7):
+    
+    date_to  = datetime.datetime.now().date()
+    date_from    = date_to - datetime.timedelta(days=day_ago)
+    
+    c_logs = CarryLog.objects.filter(carry_date__range=(date_from,date_to),
+                                     log_type__in=(CarryLog.ORDER_REBETA,),#CarryLog.CLICK_REBETA
+                                     status=CarryLog.CONFIRMED)
 
+    for cl in c_logs:
+        #重新计算pre_date之前订单金额，取消退款订单提成
+        
+        #将carrylog里的金额更新到最新，然后将金额写入mm的钱包帐户
+        xlmms = XiaoluMama.objects.filter(id=cl.xlmm)
+        
+        if cl.carry_date == datetime.datetime(2015,5,15).date():
+            urows = xlmms.update(cash=F('cash') - cl.value)
+        else:
+            urows = xlmms.update(pending=F('pending') - cl.value)
+        
+        if urows > 0:
+            cl.status = CarryLog.PENDING
+            cl.save()
+
+@task()
+def task_Push_Pending_Carry_Cash(day_ago=7):
+    
+    from flashsale.mmexam.models import Result
+    
+    pre_date = datetime.date.today() - datetime.timedelta(days=day_ago)
+    
+    c_logs = CarryLog.objects.filter(carry_date__lt=pre_date,status=CarryLog.PENDING)
+    for cl in c_logs:
+        #是否考试通过
+        results = Result.objects.filter(daili_user=cl.xlmm)
+        if results.count() == 0 or not results[0].exam_Passed():
+            continue
+        #重新计算pre_date之前订单金额，取消退款订单提成
+        
+        #将carrylog里的金额更新到最新，然后将金额写入mm的钱包帐户
+        xlmms = XiaoluMama.objects.filter(id=cl.xlmm)
+        if cl.carry_type != CarryLog.CARRY_IN:
+            continue
+        
+        urows = xlmms.update(cash=F('cash') + cl.value, pending=F('pending') - cl.value)
+        if urows > 0:
+            cl.status = CarryLog.CONFIRMED
+            cl.save()
+            
+            
+@task()
+def task_Push_Pending_Carry_By_Mama(day_ago=7,xlmm_id=None):
+    
+    from flashsale.mmexam.models import Result
+    
+    pre_date = datetime.date.today() - datetime.timedelta(days=day_ago)
+    
+    xlmm   = XiaoluMama.objects.get(id=xlmm_id)
+    c_logs = CarryLog.objects.filter(xlmm=xlmm.id, carry_date__lt=pre_date, status=CarryLog.PENDING)
+    for cl in c_logs:
+        #是否考试通过
+        results = Result.objects.filter(daili_user=xlmm.openid)
+        if results.count() == 0 or not results[0].is_Exam_Funished():
+            continue
+        #重新计算pre_date之前订单金额，取消退款订单提成
+        
+        #将carrylog里的金额更新到最新，然后将金额写入mm的钱包帐户
+        xlmms = XiaoluMama.objects.filter(id=cl.xlmm)
+        if cl.carry_type != CarryLog.CARRY_IN:
+            continue
+        
+        urows = xlmms.update(cash=F('cash') + cl.value, pending=F('pending') - cl.value)
+        if urows > 0:
+            cl.status = CarryLog.CONFIRMED
+            cl.save()
 
     
     
