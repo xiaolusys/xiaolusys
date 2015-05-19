@@ -176,7 +176,7 @@ class CashOut(models.Model):
         verbose_name_plural = u'提现记录列表'
         
     def get_value_display(self):
-        return float(self.value / 100.0)
+        return self.value / 100.0
     
     get_value_display.allow_tags = True
     get_value_display.short_description = u"可用现金"
