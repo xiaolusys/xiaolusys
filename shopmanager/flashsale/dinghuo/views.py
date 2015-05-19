@@ -294,6 +294,13 @@ def viewdetail(req, orderdetail_id):
                                                            "orderdetails": orderdetail},
                               context_instance=RequestContext(req))
 
+@csrf_exempt
+def detaillayer(req, orderdetail_id):
+    orderlist = OrderList.objects.get(id=orderdetail_id)
+    orderdetail = OrderDetail.objects.filter(orderlist_id=orderdetail_id)
+    return render_to_response("dinghuo/layerdetail.html", {"orderlist": orderlist,
+                                                           "orderdetails": orderdetail},
+                              context_instance=RequestContext(req))
 
 @csrf_exempt
 def changestatus(req):

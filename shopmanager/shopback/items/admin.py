@@ -478,29 +478,48 @@ class ProductAdmin(admin.ModelAdmin):
     def deliver_saleorder_action(self,request,queryset):
          
         outer_ids = [p.outer_id for p in queryset]
-        mos = MergeOrder.objects.filter(outer_id__in=outer_ids,
-                                    merge_trade__sys_status=pcfg.REGULAR_REMAIN_STATUS)
+        mos = (MergeOrder.objects.filter(outer_id__in=outer_ids,
+                merge_trade__sys_status=pcfg.REGULAR_REMAIN_STATUS)
+               .order_by('merge_trade__prod_num','merge_trade__has_merge'))
         
+        num_maps = {}
         merge_trades = set([o.merge_trade for o in mos])
         for t in merge_trades:
-            
+            trade_out_stock = False
+            full_out_stock  = True
+            tnum_maps = {}
             for order in t.normal_orders:
-#                 out_stock = not Product.objects.isProductOutingStockEnough(
-#                                      order.outer_id, 
-#                                      order.outer_sku_id,
-#                                      order.num)
-                order.out_stock = False
+                
+                bar_code = order.outer_id + order.outer_sku_id
+                num_maps[bar_code]  = num_maps.get(bar_code,0) + order.num
+                tnum_maps[bar_code] = tnum_maps.get(bar_code,0) + order.num
+                
+                out_stock = not Product.objects.isProductOutingStockEnough(
+                                     order.outer_id, 
+                                     order.outer_sku_id,
+                                     num_maps[bar_code])
+                order.out_stock = out_stock
                 order.save()
-            
+                
+                trade_out_stock |= out_stock
+                full_out_stock  &= out_stock
+                
             t = MergeTrade.objects.get(id=t.id)
+            if trade_out_stock:
+                t.append_reason_code(pcfg.OUT_GOOD_CODE)
             
             if t.reason_code:
-                t.sys_status = pcfg.WAIT_AUDIT_STATUS
-                
-#                 t.normal_orders.filter(outer_id__in=outer_ids,
-#                                        sys_status=pcfg.IN_EFFECT).update(out_stock=True)
+                if full_out_stock:
+                    t.sys_status = pcfg.REGULAR_REMAIN_STATUS
+                    for code,num in tnum_maps.iteritems():
+                        num_maps[code] -= num
+                else:
+                    t.sys_status = pcfg.WAIT_AUDIT_STATUS
             else:
                 t.sys_status = pcfg.WAIT_PREPARE_SEND_STATUS
+                for code,num in tnum_maps.iteritems():
+                    num_maps[code] -= num
+                
             t.save()
 
         self.message_user(request,u"已成功取消%s个订单定时提醒!"%len(merge_trades))
