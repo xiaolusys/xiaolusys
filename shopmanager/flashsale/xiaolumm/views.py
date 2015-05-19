@@ -81,7 +81,7 @@ class CashoutView(View):
 
         status = {"code":0, "status":"ok"}
         if m:
-            value = int(m.group())
+            value = int(m.group()) * 100
             try:
                 xlmm = XiaoluMama.objects.get(openid=unionid)
                 CashOut.objects.create(xlmm=xlmm.pk,value=value)

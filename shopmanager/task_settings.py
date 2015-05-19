@@ -205,7 +205,7 @@ SHOP_APP_SCHEDULE = {
     },
     u'定时统计昨日小鹿妈妈点击':{
         'task':'flashsale.clickcount.tasks.task_Record_User_Click',
-        'schedule':crontab(minute="30",hour='5'),
+        'schedule':crontab(minute="30",hour='3'),
         'args':(),
 #         'kwargs':{'pre_day':1}
     },
@@ -216,7 +216,7 @@ SHOP_APP_SCHEDULE = {
     },
     u'定时更新代理妈妈佣金提成':{
         'task':'flashsale.xiaolumm.tasks.task_Push_Pending_Carry_Cash',
-        'schedule':crontab(minute="40",hour='3'),
+        'schedule':crontab(minute="40",hour='5'),
         'args':(),
     },
 #    'runs-every-10-minutes-update-seller-flag':{
