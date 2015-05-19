@@ -22,6 +22,7 @@ urlpatterns = [
     url(r'^minusquantity/$', views.minusquantity, name="minusquantity"),       #减少草稿里面的一个商品的数量
     url(r'^removedraft/$', views.removedraft, name="removedraft"),             #删除草稿里面的一个商品
     url(r'^detail/(?P<orderdetail_id>\d+)/$', views.viewdetail, name="mydetail"),
+    url(r'^detaillayer/(?P<orderdetail_id>\d+)/$', views.detaillayer, name="detaillayer"),
     url(r'^changestatus/$', views.changestatus, name="changestatus"),
     url(r'^changedetail/(?P<orderdetail_id>\d+)/$', views.changedetail, name="changedetail"),
     url(r'^daily/', login_required(dailystatsview.as_view()), name="dailystats"),
