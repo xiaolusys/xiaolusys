@@ -71,8 +71,11 @@ class XiaoluMamaAdmin(admin.ModelAdmin):
     def exam_pass(self, obj):
 
         results = Result.objects.filter(daili_user=obj.openid)
-        if results.count() > 0  and results[0].is_Exam_Funished():
-            return u'<img src="/static/admin/img/icon-yes.gif"></img>&nbsp;%s' % obj.get_exam_state_display()
+        try:
+            if results.count() > 0  and results[0].is_Exam_Funished():
+                return u'<img src="/static/admin/img/icon-yes.gif"></img>&nbsp;%s' % results[0].get_exam_state_display()
+        except Exception,exc:
+            print 'debug exam pass:',exc.message
 
         return u'<img src="/static/admin/img/icon-no.gif"></img>&nbsp;未通过' 
         
