@@ -29,6 +29,7 @@
                 <th>大货单号</th>
                 <th>产品详细内容</th>
                 <th>负责人</th>
+                <th>操作</th>
                 <th>发货</th>
                 <th>快递单号</th>
                 </thead>
@@ -57,6 +58,10 @@
                         </td>
                         <td>
                             {{ orderlists_list.buyer_name }}
+                        </td>
+                        <td width="100px"><label class="label label-info">当前状态:{{ orderlists_list.status }}</label>
+                            <a class="btn  btn-success" style="margin-top: 10px"  title="查看详情" href="/sale/dinghuo/detail/{{ orderlists_list.id }}" target="_blank">  查看详情</a>
+                            <button id="shenhe" class="btn btn-primary" style="margin-top: 10px">改为审核</button>
                         </td>
                         <td width="100px"><input type="text" class="form-control" style="width: 100px"></td>
                         <td width="100px"><input type="text" class="form-control" style="width: 100px"></td>
