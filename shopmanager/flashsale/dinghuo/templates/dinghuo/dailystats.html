@@ -1,0 +1,73 @@
+{% extends "dinghuo/dinghuo_base.html" %}
+{% block title %}每日大货统计{% endblock %}
+{% block head_script %}
+{% endblock %}
+{% block container %}
+    <div class="container" style="margin-top: 40px">
+        <div class="row">
+            <div class="col-xs-8"><strong>小鹿美美每日订货报告</strong></div>
+            <div class="col-xs-4"><strong>负责人：肖阳</strong></div>
+        </div>
+
+
+        <div class="row">
+            <div class="col-xs-4">
+                <a href="/sale/dinghuo/daily/?day={{ prev_day }}"><< 前一天</a>
+            </div>
+            <div class="col-xs-4">
+                <p>{{ target_date }}</p>
+            </div>
+            <div class="col-xs-4">
+                {% if next_day %}
+                    <a href="/sale/dinghuo/daily/?day={{ next_day }}">后一天 >></a>
+                {% endif %}
+            </div>
+        </div>
+        <div class="row">
+            <table class="table table-bordered">
+                <thead>
+                <th>大货单号</th>
+                <th>产品详细内容</th>
+                <th>负责人</th>
+                <th>操作</th>
+                <th>发货</th>
+                <th>快递单号</th>
+                </thead>
+                {% for orderlists_list in orderlists_lists %}
+                    <tr>
+                        <td>{{ orderlists_list.id }}</td>
+                        <td>
+                            <table class="table">
+                                <thead>
+                                <th>商品id</th>
+                                <th>名称</th>
+                                <th>数量</th>
+                                <th>总价</th>
+                                </thead>
+                                <tbody>
+                                {% for orderdetail in orderlists_list.orderdetail %}
+                                    <tr>
+                                        <td>{{ orderdetail.outer_id_p }}</td>
+                                        <td>{{ orderdetail.product_name }}</td>
+                                        <td>{{ orderdetail.quantity }}</td>
+                                        <td>{{ orderdetail.price }}</td>
+                                    </tr>
+                                {% endfor %}
+                                </tbody>
+                            </table>
+                        </td>
+                        <td>
+                            {{ orderlists_list.buyer_name }}
+                        </td>
+                        <td width="100px"><label class="label label-info">当前状态:{{ orderlists_list.status }}</label>
+                            <a class="btn  btn-success" style="margin-top: 10px"  title="查看详情" href="/sale/dinghuo/detail/{{ orderlists_list.id }}" target="_blank">  查看详情</a>
+                            <button id="shenhe" class="btn btn-primary" style="margin-top: 10px">改为审核</button>
+                        </td>
+                        <td width="100px"><input type="text" class="form-control" style="width: 100px"></td>
+                        <td width="100px"><input type="text" class="form-control" style="width: 100px"></td>
+                    </tr>
+                {% endfor %}
+            </table>
+        </div>
+    </div>
+{% endblock %}

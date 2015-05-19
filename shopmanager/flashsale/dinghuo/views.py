@@ -14,6 +14,8 @@ from django.template import RequestContext
 from django.core.paginator import Paginator, InvalidPage, EmptyPage, PageNotAnInteger
 from flashsale.dinghuo import log_action, ADDITION, CHANGE
 from django.db.models import F
+from django.views.generic import View
+from django.contrib.auth.models import User
 
 
 def orderadd(request):
@@ -178,7 +180,6 @@ def neworder(request):
 
 def calamount(u, costofems):
     amount = 0;
-    print costofems
     drafts = orderdraft.objects.all().filter(buyer_name=u)
     try:
         for draft in drafts:
@@ -318,3 +319,68 @@ def changedetail(req, orderdetail_id):
     return render_to_response("dinghuo/changedetail.html", {"orderlist": orderlist,
                                                             "orderdetails": orderdetail},
                               context_instance=RequestContext(req))
+
+
+class dailystatsview(View):
+    def getUserName(self, uid):
+        try:
+            return User.objects.get(pk=uid).username
+        except:
+            return 'none'
+
+    def get(self, request):
+        content = request.REQUEST
+        daystr = content.get("day", None)
+        today = datetime.date.today()
+        year, month, day = today.year, today.month, today.day
+
+        target_date = today
+        if daystr:
+            year, month, day = daystr.split('-')
+            target_date = datetime.date(int(year), int(month), int(day))
+            if target_date > today:
+                target_date = today
+
+        time_from = datetime.datetime(target_date.year, target_date.month, target_date.day)
+        time_to = datetime.datetime(target_date.year, target_date.month, target_date.day, 23, 59, 59)
+
+        prev_day = target_date - datetime.timedelta(days=1)
+        next_day = None
+        if target_date < today:
+            next_day = target_date + datetime.timedelta(days=1)
+
+        orderlists = OrderList.objects.exclude(status=u'作废').filter(created=target_date)
+        orderlists_list = []
+        for orderlist in orderlists:
+            orderlist_dict = model_to_dict(orderlist)
+            orderlist_dict['orderdetail'] =[]
+
+            orderdetails = OrderDetail.objects.filter(orderlist_id=orderlist.id)
+            list = []
+            for orderdetail in orderdetails:
+                orderdetailouter_id = orderdetail.outer_id
+                searchouterid = orderdetailouter_id[0: len(str(orderdetailouter_id)) - 1]
+                list.append(searchouterid)
+            list={}.fromkeys(list).keys()
+
+            for listbean in list:
+                temporder = orderdetails.filter(outer_id__icontains=listbean)
+                count_quantity=0
+                count_price = 0
+                temp_dict={}
+                for order in temporder:
+                    count_quantity +=order.buy_quantity
+                    count_price +=order.total_price
+                product_name = temporder[0].product_name.split('-')
+                temp_dict['product_name']=product_name[0]
+                temp_dict['outer_id_p']=listbean
+                temp_dict['quantity']=count_quantity
+                temp_dict['price']=count_price
+                orderlist_dict['orderdetail'].append(temp_dict)
+
+            orderlists_list.append(orderlist_dict)
+
+        return render_to_response("dinghuo/dailystats.html",
+                                  {"orderlists_lists": orderlists_list, "prev_day": prev_day,
+                                   "target_date": target_date, "next_day": next_day},
+                                  context_instance=RequestContext(request))
