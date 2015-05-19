@@ -1,6 +1,9 @@
 # coding:utf-8
 from django.conf.urls import include, url
 from flashsale.dinghuo import views
+from django.contrib.auth.decorators import login_required
+from .views import dailystatsview
+
 
 urlpatterns = [
 
@@ -21,6 +24,6 @@ urlpatterns = [
     url(r'^detail/(?P<orderdetail_id>\d+)/$', views.viewdetail, name="mydetail"),
     url(r'^changestatus/$', views.changestatus, name="changestatus"),
     url(r'^changedetail/(?P<orderdetail_id>\d+)/$', views.changedetail, name="changedetail"),
-
+    url(r'^daily/', login_required(dailystatsview.as_view()), name="dailystats"),
 
 ]
