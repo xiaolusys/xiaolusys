@@ -166,6 +166,7 @@ INSTALLED_APPS = (
     'flashsale.clickcount',
     'flashsale.clickrebeta',
     'flashsale.mmexam',
+    'flashsale.daystats',
 
     'mathfilters',
 
