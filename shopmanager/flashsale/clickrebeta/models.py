@@ -81,9 +81,10 @@ def tongji(sender, obj, **kwargs):
         target_time = today
 
     ordertime = obj.order_create_time
+    order_stat_from = ordertime - datetime.timedelta(days=1)
     time_from = datetime.datetime(target_time.year,target_time.month,target_time.day,0,0,0)
     time_dayend  = datetime.datetime(target_time.year,target_time.month,target_time.day,23,59,59) 
-    isinxiaolumm = XiaoluMama.objects.filter(openid=obj.buyer_openid)
+    isinxiaolumm = XiaoluMama.objects.filter(openid=obj.buyer_openid,created__gt=ordertime)
     
     if isinxiaolumm.count() > 0:
         xiaolumm = isinxiaolumm[0]
@@ -98,7 +99,8 @@ def tongji(sender, obj, **kwargs):
         tongjiorder.tichengcount  = mm_order_rebeta
         tongjiorder.save()
         
-        daytongji,state = StatisticsShoppingByDay.objects.get_or_create(linkid=xiaolumm.id, tongjidate=target_time)
+        daytongji,state = StatisticsShoppingByDay.objects.get_or_create(linkid=xiaolumm.id, 
+                                                                        tongjidate=target_time)
         daytongji.linkname = xiaolumm.weikefu
         daytongji.ordernumcount    = F('ordernumcount') + 1
         daytongji.orderamountcount = F('orderamountcount') + mm_order_rebeta
@@ -112,7 +114,7 @@ def tongji(sender, obj, **kwargs):
                                                tongjidate=target_time).update(buyercount=buyercount)
         return
     
-    mm_clicks = Clicks.objects.filter(created__range=(time_from, ordertime)).filter(
+    mm_clicks = Clicks.objects.filter(created__range=(order_stat_from, ordertime)).filter(
         openid=obj.buyer_openid).order_by('-created')
     if mm_clicks.count() > 0:
         mm_linkid   = mm_clicks[0].linkid
