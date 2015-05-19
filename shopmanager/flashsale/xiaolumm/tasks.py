@@ -64,7 +64,7 @@ def task_Push_Pending_Carry_Cash(day_ago=7, xlmm_id=None):
                                                    CarryLog.CLICK_REBETA), 
                                      status=CarryLog.PENDING)\
                                      .exclude(carry_date__gt=pre_date,log_type=CarryLog.ORDER_REBETA)
-        
+    
     if xlmm_id:
         xlmm  = XiaoluMama.objects.get(id=xlmm_id)
         c_logs = c_logs.filter(xlmm=xlmm.id)

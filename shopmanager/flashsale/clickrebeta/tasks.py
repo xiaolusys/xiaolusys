@@ -48,30 +48,22 @@ def task_Calc_Unstat_Order_Cash(target_date):
         stat_shop,state     = StatisticsShoppingByDay.objects.get_or_create(linkid=mm_linkid,tongjidate=target_date)
         stat_shop.linkname         = xlmm.weikefu
         stat_shop.ordernumcount    = F('ordernumcount') + 1
-        stat_shop.orderamountcount = F('orderamountcount') + order_rebeta
-        stat_shop.todayamountcount = F('todayamountcount') + order_rebeta
+        stat_shop.orderamountcount = F('orderamountcount') + mm_stat.wxorderamount
+        stat_shop.todayamountcount = F('todayamountcount') + mm_stat.wxorderamount
         stat_shop.save()
         
         c_log,state = CarryLog.objects.get_or_create(xlmm=mm_linkid,
                                                      order_num=carry_no,
                                                      log_type=CarryLog.ORDER_REBETA)
-        if state:
-            c_log.value  = order_rebeta
-            c_log.carry_date = target_date
-            c_log.carry_type = CarryLog.CARRY_IN
-            c_log.status = CarryLog.PENDING
-            c_log.save()
-            
+
+        c_log.value = F('value') + order_rebeta
+        c_log.save()
+        
+        if c_log.status == CarryLog.CONFIRMED:
+            XiaoluMama.objects.filter(id=mm_linkid).update(cash=F('cash') + order_rebeta)
+        
+        elif c_log.status == CarryLog.PENDING:
             XiaoluMama.objects.filter(id=mm_linkid).update(pending=F('pending') + order_rebeta)
-        else:
-            c_log.value = F('value') + order_rebeta
-            c_log.save()
-            
-            if c_log.status == CarryLog.CONFIRMED:
-                XiaoluMama.objects.filter(id=mm_linkid).update(cash=F('cash') + order_rebeta)
-            
-            elif c_log.status == CarryLog.PENDING:
-                XiaoluMama.objects.filter(id=mm_linkid).update(pending=F('pending') + order_rebeta)
         
         mm_stat.tichengcount = mm_stat.wxorderamount
         mm_stat.linkid = mm_linkid
