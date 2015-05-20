@@ -7,7 +7,7 @@
         @import "{{ STATIC_URL }}jquery-datatable-addon/css/demo_table.css";
     </style>
     <style type="text/css">
-        div.mytext{
+        div.mytext {
             font-size: 16px;
         }
     </style>
@@ -63,16 +63,19 @@
             </div>
         </div>
 
-        <div class="row">
-            <table id="mytable" class="table table-bordered">
+        <div>
+            <table id="mytable" class="table table-bordered" cellpadding="0">
                 <thead>
                 <th width="100px">大货单号</th>
                 <th>
                     <div class="row">
                         <div width="100px" class="col-xs-2">图片</div>
                         <div class="col-xs-6">名称</div>
-                        <div class="col-xs-2">数量</div>
-                        <div class="col-xs-2">总价</div>
+                        <div class="col-xs-2">
+                        <label class="ui-widget">数量:<span id="total_quantity_num"></span></label>
+                        </div>
+                        <div class="col-xs-2">
+                            <label class="ui-widget">价格:<span id="total_amount_num"  ></span></label></div>
                     </div>
                 </th>
                 <th>负责人</th>
@@ -86,15 +89,17 @@
                             <label class="label label-info">{{ orderlists_list.status }}状态</label>
                         </td>
                         <td>
-                            {% for orderdetail in orderlists_list.orderdetail %}
-                                <hr>
-                                <div class="row" style="margin:-5px;height:50px">
-                                <div class="col-xs-2"><img src="{{ orderdetail.pic_path }}" width="70px" class="img-circle"></div>
-                                    <div class="col-xs-6 mytext">{{ orderdetail.product_name }}</div>
-                                    <div class="col-xs-2 mytext" >{{ orderdetail.quantity }}</div>
-                                    <div class="col-xs-2 mytext">{{ orderdetail.price }}</div>
-                                </div>
-                            {% endfor %}
+                            <div class="container" style="width: 800px">
+                                {% for orderdetail in orderlists_list.orderdetail %}
+                                    <div class="row">
+                                        <div class="col-xs-2"><img src="{{ orderdetail.pic_path }}" width="60px"
+                                                                   height="60px" class="img-circle"></div>
+                                        <div class="col-xs-6 mytext">{{ orderdetail.product_name }}</div>
+                                        <div class="order_quantity col-xs-2 mytext">{{ orderdetail.quantity }}</div>
+                                        <div class="order_amount col-xs-2 mytext">{{ orderdetail.price }}</div>
+                                    </div>
+                                {% endfor %}
+                            </div>
                         </td>
                         <td>
                             <div class="mytext">{{ orderlists_list.buyer_name }}/{{ orderlists_list.receiver }}</div>
@@ -144,6 +149,57 @@
                 "sZeroRecords": "没有检索到数据",
                 "sProcessing": "<img src='/static/img/loading.gif' />"
             }
+        });
+
+        var Calc_stats_data = function () {
+            var total_quantity_num = 0;
+            var total_amount_num = 0;
+
+            var quantity_num = 0;
+            var amount_num = 0;
+
+            var rows = $(".order_quantity")
+            for (var i = 0; i < rows.length; i++) {
+                quantity_num = rows[i].innerText;
+
+                if (parseInt(quantity_num)) {
+                    total_quantity_num += parseInt(quantity_num);
+                }
+            }
+            var amounts = $(".order_amount")
+            for (var i = 0; i < amounts.length; i++) {
+                amount_num = amounts[i].innerText;
+
+                if (parseFloat(amount_num)) {
+                    total_amount_num += parseFloat(amount_num);
+                }
+            }
+
+            $('#total_amount_num').html(total_amount_num.toString());
+            $('#total_quantity_num').html(total_quantity_num.toString());
+
+
+        }
+
+        $("select[name='#mytable_length']").change(function (e) {
+            e.preventDefault();
+            Calc_stats_data();
+        });
+
+        //搜索时，重新计算
+        $("#mytable_filter input").keyup(function (e) {
+            e.preventDefault();
+            Calc_stats_data();
+        });
+
+        //分页时，重新计算
+        $("#mytable_paginate a").click(function (e) {
+
+            e.preventDefault();
+            Calc_stats_data();
+        });
+        $(function () {
+            Calc_stats_data();
         });
     </script>
 {% endblock %}
