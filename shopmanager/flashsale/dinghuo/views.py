@@ -172,7 +172,7 @@ def neworder(request):
             orderdetail1.save()
         drafts.delete()
         log_action(request.user.id, orderlist, CHANGE, u'新建订货单')
-        return HttpResponseRedirect("/sale/dinghuo/detail/" + str(orderlist.id))
+        return HttpResponseRedirect("/sale/dinghuo/changedetail/" + str(orderlist.id))
 
     return render_to_response('dinghuo/shengchengorder.html', {"orderdraft": orderDrAll},
                               context_instance=RequestContext(request))
