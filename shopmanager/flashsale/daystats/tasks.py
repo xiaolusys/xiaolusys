@@ -47,11 +47,13 @@ def task_Push_Sales_To_DailyStat(target_date):
     total_old_buyer_num = 0
     seven_old_buyer_num = 0
     
+    total_old_order_num = 0
     stats_openids = shoping_stats.values('openid').distinct()
     for stat in stats_openids:
         day_ago_stats = StatisticsShopping.objects.filter(shoptime__lte=df,openid=stat['openid'])
         if day_ago_stats.count() > 0:
             total_old_buyer_num += 1
+            total_old_order_num += shoping_stats.filter(openid=stat['openid']).values('wxorderid').distinct().count()
         
         seven_day_ago_stats = StatisticsShopping.objects.filter(shoptime__lte=seven_day_before,
                                                                 openid=stat['openid'])
@@ -66,6 +68,7 @@ def task_Push_Sales_To_DailyStat(target_date):
     
     dstat.total_payment     = total_payment
     dstat.total_order_num   = total_order_num
+    dstat.total_old_order_num   = total_old_order_num
     
     dstat.total_buyer_num   = total_buyer_num
     dstat.total_old_buyer_num   = total_old_buyer_num
