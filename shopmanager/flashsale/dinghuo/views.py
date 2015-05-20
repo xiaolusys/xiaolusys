@@ -142,7 +142,7 @@ def neworder(request):
         amount = calamount(username, costofems)
         orderlist = OrderList()
         orderlist.buyer_name = username
-        orderlist.costofems = costofems
+        orderlist.costofems = costofems*100
         orderlist.receiver = receiver
         orderlist.express_company = express_company
         orderlist.express_no = express_no
