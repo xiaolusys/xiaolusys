@@ -16,8 +16,8 @@ class DailyStat(models.Model):
     total_order_num   = models.IntegerField(default=0, verbose_name=u'日订单数')
     
     total_buyer_num   = models.IntegerField(default=0, verbose_name=u'日购买人数')
-    total_old_buyer_num   = models.IntegerField(default=0, verbose_name=u'日老用户成交人数')
-    seven_buyer_num   = models.IntegerField(default=0, verbose_name=u'七日老用户成交人数')
+    total_old_buyer_num   = models.IntegerField(default=0, verbose_name=u'日老成交人数')
+    seven_buyer_num   = models.IntegerField(default=0, verbose_name=u'七日老成交人数')
     
 #     page_view_count   = models.IntegerField(verbose_name=u'商品浏览量数')
 #     shelf_view_count   = models.IntegerField(verbose_name=u'首页浏览量数')
