@@ -70,6 +70,12 @@ def task_Push_Pending_Carry_Cash(day_ago=7, xlmm_id=None):
         c_logs = c_logs.filter(xlmm=xlmm.id)
         
     for cl in c_logs:
+        
+        xlmms = XiaoluMama.objects.filter(id=cl.xlmm)
+        if xlmms.count() == 0:
+            continue
+        
+        xlmm = xlmms[0]
         #是否考试通过
         results = Result.objects.filter(daili_user=xlmm.openid)
         if results.count() == 0 or not results[0].is_Exam_Funished():
@@ -77,7 +83,7 @@ def task_Push_Pending_Carry_Cash(day_ago=7, xlmm_id=None):
         #重新计算pre_date之前订单金额，取消退款订单提成
         
         #将carrylog里的金额更新到最新，然后将金额写入mm的钱包帐户
-        xlmms = XiaoluMama.objects.filter(id=cl.xlmm)
+        
         if cl.carry_type != CarryLog.CARRY_IN:
             continue
         

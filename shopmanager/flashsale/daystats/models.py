@@ -22,10 +22,19 @@ class DailyStat(models.Model):
     class Meta:
         db_table = 'flashsale_dailystat'
         app_label = 'xiaolumm'
+<<<<<<< HEAD
         verbose_name = u'特卖/每日统计'
         verbose_name_plural = u'特卖/每日统计列表'
     
     def total_payment_cash(self):
+=======
+        verbose_name = u'每日统计'
+        verbose_name_plural = u'每日统计列表'
+    
+    def total_payment_cash(self):
+        if not self.total_payment:
+            return 0
+>>>>>>> meron-branch
         return self.total_payment / 100.0
 
     def get_pice_per_customer_display(self):
