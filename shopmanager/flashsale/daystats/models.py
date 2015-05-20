@@ -11,6 +11,7 @@ class DailyStat(models.Model):
     total_click_count = models.IntegerField(default=0, verbose_name=u'日点击数')
     total_valid_count = models.IntegerField(default=0, verbose_name=u'日有效点击数')
     total_visiter_num = models.IntegerField(default=0, verbose_name=u'日访客数')
+    total_new_visiter_num   = models.IntegerField(default=0, verbose_name=u'新访客数')
     
     total_payment     = models.IntegerField(default=0, verbose_name=u'日成交额')
     total_order_num   = models.IntegerField(default=0, verbose_name=u'日订单数')
@@ -36,6 +37,12 @@ class DailyStat(models.Model):
         if not self.total_payment:
             return 0
         return self.total_payment 
+    
+    def get_seven_new_buyer_num(self):
+        return self.total_buyer_num - self.seven_buyer_num
+
+    get_seven_new_buyer_num.allow_tags = True
+    get_seven_new_buyer_num.short_description = u"七日新成交人数"
     
     def get_total_payment_display(self):
         return self.total_payment_cash / 100.0

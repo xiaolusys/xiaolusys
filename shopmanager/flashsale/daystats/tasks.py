@@ -26,12 +26,18 @@ def task_Push_Sales_To_DailyStat(target_date):
 #     click_count = ClickCount.objects.get(date=target_date)
 #     cc_stats = click_count.aggregate(total_user_num=Sum('user_num'),
 #                                      total_valid_num=Sum('valid_num'))
-    
     clicks = Clicks.objects.filter(created__range=(df,dt))
     
     total_click_count = clicks.values('linkid','openid').distinct().count()
     total_user_num  = clicks.values('openid').distinct().count()
     total_valid_count = clicks.filter(isvalid=True).values('linkid','openid').distinct().count()
+    
+    total_old_visiter_num = 0
+    click_openids = clicks.values('openid').distinct()
+    for stat in click_openids:
+        last_clicks = Clicks.objects.filter(created__lte=df,openid=stat['openid'])
+        if last_clicks.count() > 0:
+            total_old_visiter_num += 1
     
     shoping_stats     = StatisticsShopping.objects.filter(shoptime__range=(df,dt))
     total_payment     = shoping_stats.aggregate(total_payment=Sum('tichengcount')).get('total_payment') or 0
@@ -48,7 +54,7 @@ def task_Push_Sales_To_DailyStat(target_date):
             total_old_buyer_num += 1
         
         seven_day_ago_stats = StatisticsShopping.objects.filter(shoptime__lte=seven_day_before,
-                                                                openid=stat.openid)
+                                                                openid=stat['openid'])
         if seven_day_ago_stats.count() > 0:
             seven_old_buyer_num += 1
             
@@ -56,6 +62,7 @@ def task_Push_Sales_To_DailyStat(target_date):
     dstat.total_click_count = total_click_count
     dstat.total_valid_count = total_valid_count
     dstat.total_visiter_num = total_user_num
+    dstat.total_new_visiter_num = total_user_num - total_old_visiter_num
     
     dstat.total_payment     = total_payment
     dstat.total_order_num   = total_order_num
