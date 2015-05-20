@@ -64,7 +64,7 @@
         </div>
 
         <div class="row">
-            <table id="mytable" class="table table-bordered">
+            <table id="mytable" class="table table-bordered" cellpadding="0">
                 <thead>
                 <th width="100px">大货单号</th>
                 <th>
@@ -86,15 +86,16 @@
                             <label class="label label-info">{{ orderlists_list.status }}状态</label>
                         </td>
                         <td>
+                        <div class="container" style="width: 800px">
                             {% for orderdetail in orderlists_list.orderdetail %}
-                                <hr>
-                                <div class="row" style="margin:-5px;height:50px">
-                                <div class="col-xs-2"><img src="{{ orderdetail.pic_path }}" width="70px" class="img-circle"></div>
+                                <div class="row" >
+                                <div class="col-xs-2"><img src="{{ orderdetail.pic_path }}" width="60px" height="60px" class="img-circle"></div>
                                     <div class="col-xs-6 mytext">{{ orderdetail.product_name }}</div>
                                     <div class="col-xs-2 mytext" >{{ orderdetail.quantity }}</div>
                                     <div class="col-xs-2 mytext">{{ orderdetail.price }}</div>
                                 </div>
                             {% endfor %}
+                        </div>
                         </td>
                         <td>
                             <div class="mytext">{{ orderlists_list.buyer_name }}/{{ orderlists_list.receiver }}</div>
