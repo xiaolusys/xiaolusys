@@ -93,7 +93,7 @@ class WeixinPubBackend(RemoteUserBackend):
                 return AnonymousUser()
             
             user,state = User.objects.get_or_create(username=unionid,is_active=True)
-            profile,state = Customer.objects.get_or_create(unionid=unionid,user=user)
+            profile,state = Customer.objects.get_or_create(unionid=unionid,openid=openid,user=user)
             
         task_Update_Sale_Customer.s(unionid,openid=openid,app_key=settings.WXPAY_APPID)()
         
