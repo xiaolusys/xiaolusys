@@ -41,8 +41,9 @@ def task_Push_Sales_To_DailyStat(target_date):
     total_old_buyer_num = 0
     seven_old_buyer_num = 0
     
-    for stat in shoping_stats:
-        day_ago_stats = StatisticsShopping.objects.filter(shoptime__lte=df,openid=stat.openid)
+    stats_openids = shoping_stats.values('openid').distinct()
+    for stat in stats_openids:
+        day_ago_stats = StatisticsShopping.objects.filter(shoptime__lte=df,openid=stat['openid']).count()
         if day_ago_stats.count() > 0:
             total_old_buyer_num += 1
         

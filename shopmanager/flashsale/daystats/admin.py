@@ -26,7 +26,7 @@ class DailyStatAdmin(admin.ModelAdmin):
     form = DailyStatForm
     list_display = ('day_date', 'total_click_count', 'total_valid_count','total_visiter_num', 
                     'get_total_payment_display', 'total_order_num', 'total_buyer_num', 'get_new_customer_num_display',
-                    'get_daily_rpi_display','get_price_per_customer_display', 'get_daily_roi_display')
+                    'seven_buyer_num','get_daily_rpi_display','get_price_per_customer_display', 'get_daily_roi_display')
     list_filter = (('day_date',DateFieldListFilter),)
     search_fields = ['day_date']
     ordering = ('-day_date',)
