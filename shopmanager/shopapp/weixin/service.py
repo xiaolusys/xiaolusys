@@ -147,9 +147,9 @@ class WeixinUserService():
             
         wx_user, state = WeiXinUser.objects.get_or_create(openid=openId) 
         if state or force_update or not wx_user.unionid:
-            from .tasks import updateWeixinUserInfo
+            from .tasks import task_Update_Weixin_Userinfo
             
-            updateWeixinUserInfo.s(openId,unionId=unionId)()
+            task_Update_Weixin_Userinfo.s(openId,unionId=unionId)()
                 
         return wx_user
     

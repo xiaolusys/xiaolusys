@@ -12,7 +12,7 @@ from .service import WxShopService
 from .weixin_apis import WeiXinAPI
 
 @task(max_retry=3,default_retry_delay=60)
-def updateWeixinUserInfo(openId,unionId=None):
+def task_Update_Weixin_Userinfo(openId,unionId=None):
     
     try:  
         _wx_api = WeiXinAPI()
