@@ -3,18 +3,39 @@ import time
 import datetime
 import calendar
 from django.conf import settings
+from django.db import models
 from celery.task import task
 from celery.task.sets import subtask
 from django.conf import settings
 
 from shopback.users.models import User
-from flashsale.pay.models import TradeCharge,SaleTrade,SaleOrder,SaleRefund
+from shopapp.weixin.models import WeiXinUser,WeixinUnionID
+from flashsale.pay.models import TradeCharge,SaleTrade,SaleOrder,SaleRefund,Customer
 from .service import FlashSaleService
 import logging
 
 __author__ = 'meixqhi'
 
 logger = logging.getLogger('celery.handler')
+
+
+@task()
+def task_Update_Sale_Customer(unionid,openid=None,app_key=None):
+    
+    if openid and app_key:
+        WeixinUnionID.objects.get_or_create(openid=openid,app_key=app_key,unionid=unionid)
+        
+    try:
+        profile, state = Customer.objects.get_or_create(unionid=unionid)
+        
+        wxuser = WeiXinUser.objects.get(models.Q(openid=openid)|models.Q(unionid=unionid))
+        profile.nick   = wxuser.nickname
+        profile.mobile = wxuser.mobile
+        profile.openid = profile.openid or openid or ''
+        profile.save()
+            
+    except Exception,exc:
+        pass
 
 
 @task(max_retry=3,default_retry_delay=60)

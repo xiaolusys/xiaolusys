@@ -6,11 +6,42 @@ from celery.task import task
 from celery.task.sets import subtask
 from django.conf import settings
 
-from common.utils import update_model_fields
-from .models import WXOrder,WXProduct,WXLogistic
+from common.utils import update_model_fields, replace_utf8mb4
+from .models import WeiXinUser,WXOrder,WXProduct,WXLogistic,WeixinUnionID
 from .service import WxShopService
 from .weixin_apis import WeiXinAPI
 
+@task(max_retry=3,default_retry_delay=60)
+def updateWeixinUserInfo(openId,unionId=None):
+    
+    try:  
+        _wx_api = WeiXinAPI()
+        wx_user,state = WeiXinUser.objects.get_or_create(openid=openId) 
+        
+        userinfo =  _wx_api.getUserInfo(openId)
+        pre_subscribe_time = wx_user.subscribe_time
+        pre_mobile = wx_user.mobile
+        pre_nickname = wx_user.nickname
+        for k, v in userinfo.iteritems():
+            hasattr(wx_user, k) and setattr(wx_user, k, v or getattr(wx_user, k))
+        
+        wx_user.nickname = pre_nickname or replace_utf8mb4(wx_user.nickname.decode('utf8'))
+        wx_user.unionid  = wx_user.unionid or unionId or ''
+        wx_user.mobile   = pre_mobile
+        subscribe_time   = userinfo.get('subscribe_time', None)
+        if subscribe_time:
+            wx_user.subscribe_time = pre_subscribe_time or datetime.datetime\
+                .fromtimestamp(int(subscribe_time))
+                
+        wx_user.save()
+        
+        if not wx_user.unionid:
+            return 
+        
+        app_key = _wx_api._wx_account.app_id
+        WeixinUnionID.objects.get_or_create(openid=openId,app_key=app_key,unionid=wx_user.unionid)
+    except Exception, exc:
+        raise updateWeixinUserInfo.retry(exc=exc)
 
 @task
 def pullWXProductTask():

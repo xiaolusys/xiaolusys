@@ -152,7 +152,7 @@ def tongji(sender, obj, **kwargs):
                                wxorderid=str(obj.order_id),
                                wxorderamount=obj.order_total_price,
                                shoptime=obj.order_create_time, 
-                               tichengcount=0).save()
+                               tichengcount=obj.order_total_price).save()
  
     else:
         tongjiorder,state = StatisticsShopping.objects.get_or_create(linkid=0, wxorderid=str(obj.order_id))

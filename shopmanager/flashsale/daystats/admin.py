@@ -8,7 +8,7 @@ from django import forms
 class DailyStatForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super(DailyStatForm, self).__init__(*args, **kwargs)
-        self.initial['total_payment'] = self.instance.total_payment_cash()
+        self.initial['total_payment'] = self.instance.get_total_payment_display()
 
     total_payment = forms.FloatField(label=u'日成交额', min_value=0)
 
@@ -22,10 +22,11 @@ class DailyStatForm(forms.ModelForm):
 
 
 class DailyStatAdmin(admin.ModelAdmin):
+    
     form = DailyStatForm
     list_display = ('day_date', 'total_click_count', 'total_valid_count','total_visiter_num', 
-                    'total_payment', 'total_order_num', 'total_buyer_num', 'total_old_buyer_num',
-                    'get_pice_per_customer_display', 'get_daily_roi_display')
+                    'get_total_payment_display', 'total_order_num', 'total_buyer_num', 'get_new_customer_num_display',
+                    'get_daily_rpi_display','get_price_per_customer_display', 'get_daily_roi_display')
     list_filter = (('day_date',DateFieldListFilter),)
     search_fields = ['day_date']
 
