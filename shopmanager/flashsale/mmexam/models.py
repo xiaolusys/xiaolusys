@@ -27,8 +27,8 @@ class Question(models.Model):
     class Meta:
         db_table = 'flashsale_mmexam_question'
         app_label = 'xiaolumm'
-        verbose_name = u'小鹿妈妈/考试题目'
-        verbose_name_plural = u'小鹿妈妈/考试题目列表'
+        verbose_name = u'代理考试题目'
+        verbose_name_plural = u'代理考试题目列表'
         
         
 class Choice(models.Model):
@@ -44,8 +44,8 @@ class Choice(models.Model):
     class Meta:
         db_table = 'flashsale_mmexam_choice'
         app_label = 'xiaolumm'
-        verbose_name = u'小鹿妈妈/考试选项'
-        verbose_name_plural = u'小鹿妈妈/考试选项列表'
+        verbose_name = u'代理考试选项'
+        verbose_name_plural = u'代理考试选项列表'
         
         
 class Result(models.Model):
@@ -62,8 +62,8 @@ class Result(models.Model):
     class Meta:
         db_table = 'flashsale_mmexam_result'
         app_label = 'xiaolumm'
-        verbose_name = u'小鹿妈妈/考试结果'
-        verbose_name_plural = u'小鹿妈妈/考试结果列表'
+        verbose_name = u'代理考试结果'
+        verbose_name_plural = u'代理考试结果列表'
         
     def __unicode__(self):
         return self.daili_user

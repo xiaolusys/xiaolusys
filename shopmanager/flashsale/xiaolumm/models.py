@@ -243,7 +243,7 @@ class CarryLog(models.Model):
         verbose_name_plural = u'妈妈钱包/收支记录列表'
     
     def get_value_display(self):
-        return float(self.value / 100.0)
+        return self.value / 100.0
     
     get_value_display.allow_tags = True
     get_value_display.short_description = u"金额"
