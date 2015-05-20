@@ -7,7 +7,7 @@ ORDER_PRODUCT_STATUS = (
     (pcfg.SUBMITTING, u'提交中'),
     (pcfg.APPROVAL, u'审核'),
     (pcfg.ZUOFEI, u'作废'),
-    (pcfg.COMPLETED, u'验货通过'),
+    (pcfg.COMPLETED, u'验货完成'),
 )
 
 

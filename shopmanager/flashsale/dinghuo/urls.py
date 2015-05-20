@@ -2,8 +2,8 @@
 from django.conf.urls import include, url
 from flashsale.dinghuo import views
 from django.contrib.auth.decorators import login_required
-from .views import dailystatsview
-
+from .views import dailystatsview, changedetailview
+from django.views.decorators.csrf import csrf_exempt
 
 urlpatterns = [
 
@@ -24,7 +24,7 @@ urlpatterns = [
     url(r'^detail/(?P<orderdetail_id>\d+)/$', views.viewdetail, name="mydetail"),
     url(r'^detaillayer/(?P<orderdetail_id>\d+)/$', views.detaillayer, name="detaillayer"),
     url(r'^changestatus/$', views.changestatus, name="changestatus"),
-    url(r'^changedetail/(?P<orderdetail_id>\d+)/$', views.changedetail, name="changedetail"),
+    url(r'^changedetail/(?P<orderdetail_id>\d+)/$',csrf_exempt(login_required(changedetailview.as_view())), name="changedetail"),
     url(r'^daily/', login_required(dailystatsview.as_view()), name="dailystats"),
 
 ]
