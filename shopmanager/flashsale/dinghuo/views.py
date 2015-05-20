@@ -130,7 +130,7 @@ def neworder(request):
         if costofems == "":
             costofems = 0
         else:
-            costofems = int(costofems)
+            costofems = float(costofems)
         shijian = datetime.datetime.now()
         receiver = post['consigneeName']
         supplierId = post['supplierId']
@@ -294,6 +294,7 @@ def viewdetail(req, orderdetail_id):
                                                            "orderdetails": orderdetail},
                               context_instance=RequestContext(req))
 
+
 @csrf_exempt
 def detaillayer(req, orderdetail_id):
     orderlist = OrderList.objects.get(id=orderdetail_id)
@@ -301,6 +302,7 @@ def detaillayer(req, orderdetail_id):
     return render_to_response("dinghuo/layerdetail.html", {"orderlist": orderlist,
                                                            "orderdetails": orderdetail},
                               context_instance=RequestContext(req))
+
 
 @csrf_exempt
 def changestatus(req):
@@ -326,6 +328,9 @@ def changedetail(req, orderdetail_id):
     return render_to_response("dinghuo/changedetail.html", {"orderlist": orderlist,
                                                             "orderdetails": orderdetail},
                               context_instance=RequestContext(req))
+
+
+from shopback.items.models import Product
 
 
 class dailystatsview(View):
@@ -360,7 +365,7 @@ class dailystatsview(View):
         orderlists_list = []
         for orderlist in orderlists:
             orderlist_dict = model_to_dict(orderlist)
-            orderlist_dict['orderdetail'] =[]
+            orderlist_dict['orderdetail'] = []
 
             orderdetails = OrderDetail.objects.filter(orderlist_id=orderlist.id)
             list = []
@@ -368,21 +373,26 @@ class dailystatsview(View):
                 orderdetailouter_id = orderdetail.outer_id
                 searchouterid = orderdetailouter_id[0: len(str(orderdetailouter_id)) - 1]
                 list.append(searchouterid)
-            list={}.fromkeys(list).keys()
+            list = {}.fromkeys(list).keys()
 
             for listbean in list:
                 temporder = orderdetails.filter(outer_id__icontains=listbean)
-                count_quantity=0
+                tempproduct = Product.objects.filter(outer_id__icontains=listbean)
+                count_quantity = 0
                 count_price = 0
-                temp_dict={}
+                temp_dict = {}
                 for order in temporder:
-                    count_quantity +=order.buy_quantity
-                    count_price +=order.total_price
+                    count_quantity += order.buy_quantity
+                    count_price += order.total_price
                 product_name = temporder[0].product_name.split('-')
-                temp_dict['product_name']=product_name[0]
-                temp_dict['outer_id_p']=listbean
-                temp_dict['quantity']=count_quantity
-                temp_dict['price']=count_price
+                if tempproduct.count() > 0:
+                    temp_dict['pic_path'] = tempproduct[0].pic_path
+                else:
+                    temp_dict['pic_path'] = ""
+                temp_dict['product_name'] = product_name[0]
+                temp_dict['outer_id_p'] = listbean
+                temp_dict['quantity'] = count_quantity
+                temp_dict['price'] = count_price
                 orderlist_dict['orderdetail'].append(temp_dict)
 
             orderlists_list.append(orderlist_dict)

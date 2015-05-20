@@ -20,7 +20,7 @@ class OrderList(models.Model):
     express_company = models.CharField(default="", blank=True, max_length=32, verbose_name=u'快递公司')
     express_no = models.CharField(default="",blank=True, max_length=32, verbose_name=u'快递单号')
     receiver = models.CharField(default="", max_length=32, verbose_name=u'仓库负责人')
-    costofems = models.IntegerField(default=0, verbose_name=u'快递费用')
+    costofems = models.FloatField(default=0, verbose_name=u'快递费用')
     status = models.CharField(max_length=32, verbose_name=u'订货单状态', choices=ORDER_PRODUCT_STATUS)
     created = models.DateField(auto_now_add=True, verbose_name=u'订货日期')
     updated = models.DateField(auto_now_add=True, verbose_name=u'更新日期')
