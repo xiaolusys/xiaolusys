@@ -29,6 +29,7 @@ class DailyStatAdmin(admin.ModelAdmin):
                     'get_daily_rpi_display','get_price_per_customer_display', 'get_daily_roi_display')
     list_filter = (('day_date',DateFieldListFilter),)
     search_fields = ['day_date']
+    ordering = ('-day_date',)
 
 
 admin.site.register(DailyStat, DailyStatAdmin)

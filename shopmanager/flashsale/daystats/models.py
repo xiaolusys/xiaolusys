@@ -83,7 +83,7 @@ class DailyStat(models.Model):
         return self.daily_rpi
 
     get_daily_rpi_display.allow_tags = True
-    get_daily_rpi_display.short_description = u"重复购买率"
+    get_daily_rpi_display.short_description = u"回头客比例"
     
     
     
