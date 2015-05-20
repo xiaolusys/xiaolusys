@@ -7,8 +7,8 @@
         @import "{{ STATIC_URL }}jquery-datatable-addon/css/demo_table.css";
     </style>
     <style type="text/css">
-        tfoot input {
-            width: 50%;
+        div.mytext{
+            font-size: 16px;
         }
     </style>
     <script src="{{ STATIC_URL }}layer-v1.9.2/layer/layer.js"></script>
@@ -69,9 +69,10 @@
                 <th width="100px">大货单号</th>
                 <th>
                     <div class="row">
+                        <div width="100px" class="col-xs-2">图片</div>
                         <div class="col-xs-6">名称</div>
-                        <div class="col-xs-3">数量</div>
-                        <div class="col-xs-3">总价</div>
+                        <div class="col-xs-2">数量</div>
+                        <div class="col-xs-2">总价</div>
                     </div>
                 </th>
                 <th>负责人</th>
@@ -84,27 +85,25 @@
                             <label class="label label-warning" style="font-size: 20px">{{ orderlists_list.id }}</label>
                             <label class="label label-info">{{ orderlists_list.status }}状态</label>
                         </td>
-
                         <td>
-
                             {% for orderdetail in orderlists_list.orderdetail %}
-                                <div class="row" style="margin:-5px;">
-                                    <div class="col-xs-6">{{ orderdetail.product_name }}</div>
-                                    <div class="col-xs-3">{{ orderdetail.quantity }}</div>
-                                    <div class="col-xs-3">{{ orderdetail.price }}</div>
-                                </div>
                                 <hr>
+                                <div class="row" style="margin:-5px;height:50px">
+                                <div class="col-xs-2"><img src="{{ orderdetail.pic_path }}" width="70px" class="img-circle"></div>
+                                    <div class="col-xs-6 mytext">{{ orderdetail.product_name }}</div>
+                                    <div class="col-xs-2 mytext" >{{ orderdetail.quantity }}</div>
+                                    <div class="col-xs-2 mytext">{{ orderdetail.price }}</div>
+                                </div>
                             {% endfor %}
-
                         </td>
                         <td>
-                            {{ orderlists_list.buyer_name }}
+                            <div class="mytext">{{ orderlists_list.buyer_name }}/{{ orderlists_list.receiver }}</div>
                         </td>
                         <td width="100px">
                             <a id="detaillayer" onclick="showlayer({{ orderlists_list.id }})" class="btn  btn-success"
-                               style="margin-top: 10px" title="查看详情"> 查看详情</a>
+                               style="margin-top: 3px;font-size: 8px" title="查看详情"> 查看详情</a>
                             <button onclick="changestatus({{ orderlists_list.id }},this)" class="btn btn-primary"
-                                    style="margin-top: 10px" id="shenhebutton" value="审核">改为审核
+                                    style="margin-top: 3px;font-size: 8px" id="shenhebutton" value="审核">改为审核
                             </button>
                         </td>
                     </tr>
