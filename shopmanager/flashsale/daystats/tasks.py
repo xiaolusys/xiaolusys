@@ -68,7 +68,7 @@ def task_Push_Sales_To_DailyStat(target_date):
     
     dstat.total_payment     = total_payment
     dstat.total_order_num   = total_order_num
-    dstat.total_old_order_num   = total_old_order_num
+    dstat.total_new_order_num   = total_order_num - total_old_order_num
     
     dstat.total_buyer_num   = total_buyer_num
     dstat.total_old_buyer_num   = total_old_buyer_num
