@@ -4,24 +4,6 @@ from flashsale.dinghuo.models import OrderList, OrderDetail, orderdraft
 from django.http import HttpResponseRedirect
 from flashsale.dinghuo import log_action, CHANGE
 from shopback.base.options import DateFieldListFilter
-from django import forms
-
-
-class OrderListForm(forms.ModelForm):
-    def __init__(self, *args, **kwargs):
-        super(OrderListForm, self).__init__(*args, **kwargs)
-        self.initial['costofems'] = self.instance.costofems_cash()
-
-
-    costofems = forms.FloatField(label=u'快递费用', min_value=0)
-
-
-    class Meta:
-        model = OrderList
-
-    def clean_costofems(self):
-        costofems = self.cleaned_data['costofems']
-        return int(costofems * 100)
 
 
 class orderdetailInline(admin.TabularInline):
@@ -35,7 +17,7 @@ class orderdetailInline(admin.TabularInline):
 class ordelistAdmin(admin.ModelAdmin):
     fieldsets = ((u'订单信息:', {
         'classes': ('expand',),
-        'fields': ( 'supplier_name',  'express_company', 'express_no'
+        'fields': ( 'supplier_name', 'express_company', 'express_no'
                     , 'receiver', 'status', 'note')
     }),)
     inlines = [orderdetailInline]
@@ -43,7 +25,7 @@ class ordelistAdmin(admin.ModelAdmin):
         'id', 'buyer_name', 'order_amount', 'quantity', 'receiver', 'created', 'shenhe', 'changedetail', 'note',
         'supplier_name', 'express_company', 'express_no'
     )
-    list_filter = (('created', DateFieldListFilter), 'status',)
+    list_filter = (('created', DateFieldListFilter),'status','buyer_name')
     search_fields = ['buyer_name']
     date_hierarchy = 'created'
 
