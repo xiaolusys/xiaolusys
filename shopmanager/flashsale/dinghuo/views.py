@@ -348,30 +348,41 @@ class changedetailview(View):
     def get(self, request, orderdetail_id):
         orderlist = OrderList.objects.get(id=orderdetail_id)
         orderdetail = OrderDetail.objects.filter(orderlist_id=orderdetail_id)
+        orderlist_list=[]
+        for order in orderdetail:
+            order_dict = model_to_dict(order)
+            order_dict['pic_path'] = Product.objects.get(id=order.product_id).pic_path
+        orderlist_list.append(order_dict)
         if orderlist.status == "草稿":
             flagofstatus = True
         else:
             flagofstatus = False
 
         return render_to_response("dinghuo/changedetail.html", {"orderlist": orderlist, "flagofstatus": flagofstatus,
-                                                                "orderdetails": orderdetail},
+                                                                "orderdetails": orderlist_list},
                                   context_instance=RequestContext(request))
 
     def post(self, request, orderdetail_id):
         post = request.POST
         orderlist = OrderList.objects.get(id=orderdetail_id)
-        arrived_num = post.get("arrived_num", "0").strip()
-        order_detail_id = post.get("order_detail_id", "").strip()
         status = post.get("status", "").strip()
         remarks = post.get("remarks", "").strip()
         if len(status) > 0 and len(remarks) > 0:
             orderlist.status = status
-            orderlist.note = orderlist.note + remarks
+            orderlist.note = orderlist.note +"\n"+ remarks
             orderlist.save()
-
         orderdetail = OrderDetail.objects.filter(orderlist_id=orderdetail_id)
-        return render_to_response("dinghuo/changedetail.html", {"orderlist": orderlist,
-                                                                "orderdetails": orderdetail},
+        orderlist_list=[]
+        for order in orderdetail:
+            order_dict = model_to_dict(order)
+            order_dict['pic_path'] = Product.objects.get(id=order.product_id).pic_path
+        orderlist_list.append(order_dict)
+        if orderlist.status == "草稿":
+            flagofstatus = True
+        else:
+            flagofstatus = False
+        return render_to_response("dinghuo/changedetail.html", {"orderlist": orderlist, "flagofstatus": flagofstatus,
+                                                                "orderdetails": orderlist_list},
                                   context_instance=RequestContext(request))
 
 

@@ -164,19 +164,22 @@
                     <h4 class="head-title">仓库管理填写</h4>
                 </legend>
             </div>
-            <div class="row" style="text-align: right">
+            <div class="row">
                 <form action="/sale/dinghuo/changedetail/{{ orderlist.id }}/" method="post">
-                    <div class="col-lg-8">
+                    <div class="col-lg-6">
 
                         <div class="input-group">
                             <span class="input-group-addon">备注</span>
-                                    <textarea style="width: 600px;height:50px;resize: none;" id="id_remarks"
+                                    <textarea style="width: 500px;height:50px;resize: none;" id="id_remarks"
                                               name="remarks"
                                               type="text" required="required" class="form-control"></textarea>
                         </div>
                     </div>
-
-                    <div class="col-lg-4"><input type="submit" name="status" class="btn btn-danger" value="验货完成"></div>
+                    <div class="col-lg-2"><select name="status" class="form-control">
+                        <option value="验货完成">验货完成</option>
+                        <option value="有问题">有问题</option>
+                    </select></div>
+                    <div class="col-lg-4"><input type="submit"  class="btn btn-danger" value="保存"></div>
                 </form>
             </div>
         {% endif %}
@@ -189,15 +192,16 @@
         <div>
             <table id="orderdetailtable" border="1" class="table table-striped table-bordered table-hover">
                 <thead>
-                <th width="100px">商品编码</th>
-                <th width="150px">商品名称</th>
-                <th width="100px">规格</th>
-                <th width="100px">数量</th>
-                <th width="100px">买入价格</th>
-                <th width="100px">单项价格</th>
-                <th width="100px">已入库数</th>
-                <th width="100px">到货数量</th>
-                <th style="width:40px;">操作</th>
+                <th>商品编码</th>
+                <th>商品名称</th>
+                <th>图片</th>
+                <th>规格</th>
+                <th>数量</th>
+                <th>买入价格</th>
+                <th>单项价格</th>
+                <th>已入库数</th>
+                <th>到货数量</th>
+                <th>操作</th>
                 </thead>
                 <tbody>
 
@@ -205,6 +209,7 @@
                     <tr id="orderdetail_{{ forloop.counter }}">
                         <td>{{ order.outer_id }}</td>
                         <td>{{ order.product_name }}</td>
+                        <td><img src="{{ order.pic_path }}" width="60px" height="60px" class="img-circle"></td>
                         <td>{{ order.product_chicun }}</td>
                         <td align="center">
                             {% if flagofstatus %}
