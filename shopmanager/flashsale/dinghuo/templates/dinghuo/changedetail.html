@@ -106,10 +106,15 @@
                 <label id="order_status" class="label label-success"
                        style="font-size: large">{{ orderlist.status }}</label>
             </div>
-            <div class="col-lg-4"></div>
+            <div class="col-lg-2"></div>
+            <div class="col-lg-2">
+                <a href="/admin/dinghuo/orderlist" style="text-align: right">
+                    <span class="label label-warning" style="font-size: 15px">去订货单页面</span>
+                </a>
+            </div>
             <div class="col-lg-2">
                 <a href="/admin/items/product" style="text-align: right">
-                    <span class="label label-info" style="font-size: 20px">回到商品页面</span>
+                    <span class="label label-info" style="font-size: 15px">去商品页面</span>
                 </a>
             </div>
         </div>
@@ -135,7 +140,7 @@
         <div class="row">
             <div class="col-lg-4">
                 <div class="alert alert-success" role="alert">
-                    <strong>快递公司:</strong>{{ orderlist.express_company }}
+                    <strong>备注:</strong>{{ orderlist.note }}
                 </div>
             </div>
 
@@ -179,7 +184,7 @@
                         <option value="验货完成">验货完成</option>
                         <option value="有问题">有问题</option>
                     </select></div>
-                    <div class="col-lg-4"><input type="submit"  class="btn btn-danger" value="保存"></div>
+                    <div class="col-lg-4"><input type="submit" class="btn btn-danger" value="保存"></div>
                 </form>
             </div>
         {% endif %}

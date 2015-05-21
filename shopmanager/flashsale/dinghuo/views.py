@@ -369,7 +369,7 @@ class changedetailview(View):
         remarks = post.get("remarks", "").strip()
         if len(status) > 0 and len(remarks) > 0:
             orderlist.status = status
-            orderlist.note = orderlist.note +"\n"+ remarks
+            orderlist.note = orderlist.note +"-->"+ remarks
             orderlist.save()
         orderdetail = OrderDetail.objects.filter(orderlist_id=orderdetail_id)
         orderlist_list=[]
