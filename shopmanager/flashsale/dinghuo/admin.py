@@ -25,7 +25,7 @@ class ordelistAdmin(admin.ModelAdmin):
         'id', 'buyer_name', 'order_amount', 'quantity', 'receiver', 'created', 'shenhe', 'changedetail', 'note',
         'supplier_name', 'express_company', 'express_no'
     )
-    list_filter = (('created', DateFieldListFilter),'status',)
+    list_filter = (('created', DateFieldListFilter),'status','buyer_name')
     search_fields = ['buyer_name']
     date_hierarchy = 'created'
 

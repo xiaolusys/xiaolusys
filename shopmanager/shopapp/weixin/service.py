@@ -122,6 +122,7 @@ def formatParam2XML(params):
     return x[len(initStr):]
 
 
+
 class WeixinUserService():
     
     _wx_api = None
@@ -146,25 +147,9 @@ class WeixinUserService():
             
         wx_user, state = WeiXinUser.objects.get_or_create(openid=openId) 
         if state or force_update or not wx_user.unionid:
-            try:     
-                userinfo = self. _wx_api.getUserInfo(openId)
-                pre_subscribe_time = wx_user.subscribe_time
-                pre_mobile = wx_user.mobile
-                pre_nickname = wx_user.nickname
-                for k, v in userinfo.iteritems():
-                    hasattr(wx_user, k) and setattr(wx_user, k, v or getattr(wx_user, k))
-                
-                wx_user.nickname = pre_nickname or replace_utf8mb4(wx_user.nickname.decode('utf8'))
-                wx_user.unionid  = wx_user.unionid or unionId 
-                wx_user.mobile   = pre_mobile
-                subscribe_time   = userinfo.get('subscribe_time', None)
-                if subscribe_time:
-                    wx_user.subscribe_time = pre_subscribe_time or datetime.datetime\
-                        .fromtimestamp(int(subscribe_time))
-                        
-                wx_user.save()
-            except Exception, exc:
-                logger.warn(u'获取微信用户信息错误:%s' % exc.message, exc_info=True)
+            from .tasks import task_Update_Weixin_Userinfo
+            
+            task_Update_Weixin_Userinfo.s(openId,unionId=unionId)()
                 
         return wx_user
     
@@ -264,11 +249,13 @@ class WeixinUserService():
         if message == '0' and self._wx_user.isValid():
             return self.genTextRespJson(u'您已成功绑定手机：\n[q] 取消绑定 \n*取消绑定后部分功能失效')
         
-        for resp in WeiXinAutoResponse.objects.FullMatch:
+        fullmatch_responses = WeiXinAutoResponse.objects.FullMatch.filter(message=message)
+        for resp in fullmatch_responses:
             if message == resp.message.strip():
                 return resp.autoParams()
-            
-        for resp in WeiXinAutoResponse.objects.FuzzyMatch:
+        
+        fuzzymatch_responses = WeiXinAutoResponse.objects.FuzzyMatch.filter(message__icontains=message)
+        for resp in fuzzymatch_responses:
             if message.rfind(resp.message.strip()) > -1:
                 return resp.autoParams()
         

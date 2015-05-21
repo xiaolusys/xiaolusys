@@ -7,7 +7,7 @@ ORDER_PRODUCT_STATUS = (
     (pcfg.SUBMITTING, u'提交中'),
     (pcfg.APPROVAL, u'审核'),
     (pcfg.ZUOFEI, u'作废'),
-    (pcfg.COMPLETED, u'验货通过'),
+    (pcfg.COMPLETED, u'验货完成'),
 )
 
 
@@ -30,6 +30,11 @@ class OrderList(models.Model):
         db_table = 'suplychain_flashsale_orderlist'
         verbose_name = u'订货表'
         verbose_name_plural = u'订货表'
+
+    def costofems_cash(self):
+        return self.costofems / 100.0
+    costofems_cash.allow_tags = True
+    costofems_cash.short_description = u"快递费用"
 
     def __unicode__(self):
         return '<%s,%s,%s>' % (str(self.id or ''), self.id, self.buyer_name)

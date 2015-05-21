@@ -9,6 +9,7 @@ from django.core.urlresolvers import reverse
 
 from .models import Customer
 from .options import get_user_unionid
+from .tasks import task_Update_Sale_Customer
 from shopapp.weixin.views import valid_openid
 from shopapp.weixin.models import WeiXinUser
 
@@ -76,7 +77,7 @@ class WeixinPubBackend(RemoteUserBackend):
             return AnonymousUser()
         
         try:
-            profile = Customer.objects.get(openid=openid,unionid=unionid)
+            profile = Customer.objects.get(unionid=unionid)
             if profile.user:
                 if not profile.user.is_active:
                     profile.user.is_active = True
@@ -92,15 +93,9 @@ class WeixinPubBackend(RemoteUserBackend):
                 return AnonymousUser()
             
             user,state = User.objects.get_or_create(username=unionid,is_active=True)
-            profile,state = Customer.objects.get_or_create(openid=openid,unionid=unionid,user=user)
+            profile,state = Customer.objects.get_or_create(unionid=unionid,openid=openid,user=user)
             
-        try:
-            wxuser = WeiXinUser.objects.get(models.Q(openid=openid)|models.Q(unionid=unionid))
-            profile.nick   = wxuser.nickname
-            profile.mobile = wxuser.mobile
-            profile.save()
-        except:
-            pass 
+        task_Update_Sale_Customer.s(unionid,openid=openid,app_key=settings.WXPAY_APPID)()
         
         return user
     

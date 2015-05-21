@@ -130,7 +130,7 @@ def neworder(request):
         if costofems == "":
             costofems = 0
         else:
-            costofems = int(costofems)
+            costofems = float(costofems)
         shijian = datetime.datetime.now()
         receiver = post['consigneeName']
         supplierId = post['supplierId']
@@ -142,7 +142,7 @@ def neworder(request):
         amount = calamount(username, costofems)
         orderlist = OrderList()
         orderlist.buyer_name = username
-        orderlist.costofems = costofems
+        orderlist.costofems = costofems * 100
         orderlist.receiver = receiver
         orderlist.express_company = express_company
         orderlist.express_no = express_no
@@ -172,7 +172,7 @@ def neworder(request):
             orderdetail1.save()
         drafts.delete()
         log_action(request.user.id, orderlist, CHANGE, u'新建订货单')
-        return HttpResponseRedirect("/sale/dinghuo/detail/" + str(orderlist.id))
+        return HttpResponseRedirect("/sale/dinghuo/changedetail/" + str(orderlist.id))
 
     return render_to_response('dinghuo/shengchengorder.html', {"orderdraft": orderDrAll},
                               context_instance=RequestContext(request))
@@ -294,6 +294,7 @@ def viewdetail(req, orderdetail_id):
                                                            "orderdetails": orderdetail},
                               context_instance=RequestContext(req))
 
+
 @csrf_exempt
 def detaillayer(req, orderdetail_id):
     orderlist = OrderList.objects.get(id=orderdetail_id)
@@ -301,6 +302,7 @@ def detaillayer(req, orderdetail_id):
     return render_to_response("dinghuo/layerdetail.html", {"orderlist": orderlist,
                                                            "orderdetails": orderdetail},
                               context_instance=RequestContext(req))
+
 
 @csrf_exempt
 def changestatus(req):
@@ -319,13 +321,49 @@ def changestatus(req):
     return HttpResponse("OK")
 
 
-@csrf_exempt
-def changedetail(req, orderdetail_id):
-    orderlist = OrderList.objects.get(id=orderdetail_id)
-    orderdetail = OrderDetail.objects.filter(orderlist_id=orderdetail_id)
-    return render_to_response("dinghuo/changedetail.html", {"orderlist": orderlist,
-                                                            "orderdetails": orderdetail},
-                              context_instance=RequestContext(req))
+from shopback.items.models import Product
+
+
+class changedetailview(View):
+    def getUserName(self, uid):
+        try:
+            return User.objects.get(pk=uid).username
+        except:
+            return 'none'
+
+    def get(self, request, orderdetail_id):
+        orderlist = OrderList.objects.get(id=orderdetail_id)
+        orderdetail = OrderDetail.objects.filter(orderlist_id=orderdetail_id)
+        return render_to_response("dinghuo/changedetail.html", {"orderlist": orderlist,
+                                                                "orderdetails": orderdetail},
+                                  context_instance=RequestContext(request))
+
+    def post(self, request, orderdetail_id):
+        post = request.POST
+        orderlist = OrderList.objects.get(id=orderdetail_id)
+        arrived_num = post.get("arrived_num", "0").strip()
+        order_detail_id = post.get("order_detail_id", "").strip()
+        status = post.get("status", "").strip()
+        remarks = post.get("remarks", "").strip()
+        print status, remarks
+        if len(status)>0 and len(remarks)>0:
+            orderlist.status = status
+            orderlist.note = remarks
+            orderlist.save()
+        if len(arrived_num) > 0 and len(order_detail_id) > 0:
+            arrived_num = int(arrived_num)
+            order_detail_id = int(order_detail_id)
+            order = OrderDetail.objects.get(id=order_detail_id)
+            order.arrival_quantity = order.arrival_quantity + arrived_num
+            if order.arrival_quantity <= order.buy_quantity:
+                Product.objects.filter(id=order.product_id).update(collect_num=F('collect_num') + arrived_num)
+                ProductSku.objects.filter(id=order.chichu_id).update(quantity=F('quantity') + arrived_num)
+                order.save()
+
+        orderdetail = OrderDetail.objects.filter(orderlist_id=orderdetail_id)
+        return render_to_response("dinghuo/changedetail.html", {"orderlist": orderlist,
+                                                                "orderdetails": orderdetail},
+                                  context_instance=RequestContext(request))
 
 
 class dailystatsview(View):
@@ -360,7 +398,7 @@ class dailystatsview(View):
         orderlists_list = []
         for orderlist in orderlists:
             orderlist_dict = model_to_dict(orderlist)
-            orderlist_dict['orderdetail'] =[]
+            orderlist_dict['orderdetail'] = []
 
             orderdetails = OrderDetail.objects.filter(orderlist_id=orderlist.id)
             list = []
@@ -368,21 +406,26 @@ class dailystatsview(View):
                 orderdetailouter_id = orderdetail.outer_id
                 searchouterid = orderdetailouter_id[0: len(str(orderdetailouter_id)) - 1]
                 list.append(searchouterid)
-            list={}.fromkeys(list).keys()
+            list = {}.fromkeys(list).keys()
 
             for listbean in list:
                 temporder = orderdetails.filter(outer_id__icontains=listbean)
-                count_quantity=0
+                tempproduct = Product.objects.filter(outer_id__icontains=listbean)
+                count_quantity = 0
                 count_price = 0
-                temp_dict={}
+                temp_dict = {}
                 for order in temporder:
-                    count_quantity +=order.buy_quantity
-                    count_price +=order.total_price
+                    count_quantity += order.buy_quantity
+                    count_price += order.total_price
                 product_name = temporder[0].product_name.split('-')
-                temp_dict['product_name']=product_name[0]
-                temp_dict['outer_id_p']=listbean
-                temp_dict['quantity']=count_quantity
-                temp_dict['price']=count_price
+                if tempproduct.count() > 0:
+                    temp_dict['pic_path'] = tempproduct[0].pic_path
+                else:
+                    temp_dict['pic_path'] = ""
+                temp_dict['product_name'] = product_name[0]
+                temp_dict['outer_id_p'] = listbean
+                temp_dict['quantity'] = count_quantity
+                temp_dict['price'] = count_price
                 orderlist_dict['orderdetail'].append(temp_dict)
 
             orderlists_list.append(orderlist_dict)

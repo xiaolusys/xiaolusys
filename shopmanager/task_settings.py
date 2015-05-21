@@ -12,7 +12,7 @@ BROKER_URL = 'amqp://user1:passwd1@127.0.0.1:5672/vhost1'
 CELERY_RESULT_BACKEND = "amqp"
 CELERY_TASK_RESULT_EXPIRES = 18000  # 5 hours.
 BROKER_POOL_LIMIT = 10 # 10 connections
-CELERYD_CONCURRENCY = 8 # 16 processes in parallel
+CELERYD_CONCURRENCY = 16 # 16 processes in parallel
 
 from kombu import Exchange, Queue
 CELERY_DEFAULT_QUEUE = 'peroid'
@@ -49,6 +49,14 @@ CELERY_ROUTES = {
             'queue': 'default',
             'routing_key': 'tasks.push_xlmm_pending_cash',
         },
+        'flashsale.pay.tasks.task_Update_Sale_Customer': {
+            'queue': 'default',
+            'routing_key': 'tasks.update_sale_customer',
+        },
+        'shopapp.weixin.tasks.task_Update_Weixin_UserInfo': {
+            'queue': 'default',
+            'routing_key': 'tasks.update_weixin_userinfo',
+        }, 
 }
 
 
@@ -217,6 +225,11 @@ SHOP_APP_SCHEDULE = {
     u'定时更新代理妈妈佣金提成':{
         'task':'flashsale.xiaolumm.tasks.task_Push_Pending_Carry_Cash',
         'schedule':crontab(minute="40",hour='5'),
+        'args':(),
+    },
+    u'定时统计每日特卖综合数据':{
+        'task':'flashsale.daystats.tasks.task_Calc_Sales_Stat_By_Day',
+        'schedule':crontab(minute="40",hour='2'),
         'args':(),
     },
 #    'runs-every-10-minutes-update-seller-flag':{
