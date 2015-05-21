@@ -36,6 +36,29 @@ def task_Update_Sale_Customer(unionid,openid=None,app_key=None):
             
     except Exception,exc:
         pass
+    
+from shopback.trades.models import MergeTrade
+
+  
+@task()
+def task_Push_SaleTrade_Finished(pre_days=10):
+    
+    day_date = datetime.datetime.now() - datetime.timedelta(days=pre_days)
+    
+    strades = SaleTrade.objects.filter(status=SaleTrade.WAIT_BUYER_CONFIRM_GOODS)
+    for strade in strades:
+        mtrades = MergeTrade.objects.filter(tid=strade.tid,type=MergeTrade.SALE_TYPE)
+        if mtrades.count() > 0:
+            mtrade = mtrades[0]
+            
+            if mtrade.sys_status in (MergeTrade.INVALID_STATUS,
+                                     MergeTrade.EMPTY_STATUS,):
+                strade.status =  SaleTrade.TRADE_CLOSED
+                strade.save()
+            
+            elif mtrade.sys_status == MergeTrade.FINISHED_STATUS and (not mtrade.weight_time or mtrade.weight_time < day_date):
+                strade.status =  SaleTrade.TRADE_FINISHED
+                strade.save()
 
 
 @task(max_retry=3,default_retry_delay=60)
@@ -52,6 +75,8 @@ def confirmTradeChargeTask(sale_trade_id,charge_time=None):
     except Exception,exc:
         raise pushTradeRefundTask.retry(exc=exc)
             
+
+
 
 @task(max_retry=3,default_retry_delay=60)
 def notifyTradePayTask(notify):
