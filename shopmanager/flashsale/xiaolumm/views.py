@@ -350,7 +350,7 @@ def cash_Out_Verify(request):
     '''buyer_id 手机 可用现金  体现金额  小鹿钱包消费额
     '''
     data = []
-    cashouts_status_is_pending = CashOut.objects.filter(status='pending').order_by('-created')[:20]
+    cashouts_status_is_pending = CashOut.objects.filter(status='pending').order_by('-created')[:80]
     today = datetime.datetime.today()
     day_from = today-datetime.timedelta(days=30)
     day_to = today
@@ -397,8 +397,6 @@ def cash_Out_Verify(request):
         could_cash_out = mony_without_pay - x_choice # 可提现金额
         if could_cash_out < 0:  # 如果可提现金额 小于 0  则设置 成为 0
             could_cash_out = 0
-        if value > could_cash_out: # 如果 体现金额 大于 可以体现金额  则 默认 最大能提现 可以提现的金额
-            value = could_cash_out
         if could_cash_out >0:
             cashout_flag = True
 

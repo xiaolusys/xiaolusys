@@ -33,14 +33,19 @@
     <script type="text/javascript">
         function shenhe(id) { //通过
             var i = id.toString();
+            index = "bt_verify_"+id;
             url = '/m/cashmodify/' + i + '/';
             data = id;
+
+            var bt_verify = $('#'+index);
             function callback(result) {
                 if (result == "reject") {
                     alert('提现超过可用金额');
                 }
                 else if (result == "ok") {
-                    document.location.reload();
+                    bt_verify.text('已审核');
+                    bt_verify.attr("disabled","disabled");
+
                 }
                 else {
                     alert("server error");
@@ -48,16 +53,22 @@
             }
 
             $.get(url, data, callback);
+
+
         }
 
         function jujue(id) { // 拒绝
             var i = id.toString();
             url = '/m/cashreject/' + i + '/';
+            index ="bt_jujue_"+id;
+            var bt_jujue = $("#"+index);
             data = id;
             function callback(result) {
                 if (result == "ok") {
-                    alert("拒绝成功");
-                    document.location.reload();
+                    console.log(id);
+                    bt_jujue.text("已拒绝");
+                    bt_jujue.attr("disabled","disabled");
+
                 }
             }
 
@@ -75,7 +86,7 @@
     <div class="page-header container row">
         <h3><span class="label label-primary">提现审核</span>
 
-            <h3>
+            </h3>
     </div>
 
     <div class="panel panel-primary">
@@ -114,8 +125,8 @@
                         
                         <td>
                             <div class="btn-group" role="group" aria-label="...">
-                                <button type="button"{% if not item.cashout_flag %} style="display:none"{% endif %} class="btn btn-primary" onclick="shenhe({{ item.id }})" >通过</button>
-                                <button type="button" class="btn btn-warning" onclick="jujue({{ item.id }})">拒绝</button>
+                                <button type="button"  id="bt_verify_{{ item.id }}" {% if not item.cashout_flag %} style="display:none"{% endif %} class="btn btn-primary" onclick="shenhe({{ item.id }})" >通过</button>
+                                <button type="button"  id="bt_jujue_{{ item.id }}" class="btn btn-warning" onclick="jujue({{ item.id }})">拒绝</button>
                             </div>
                         </td>
                     </tr>
