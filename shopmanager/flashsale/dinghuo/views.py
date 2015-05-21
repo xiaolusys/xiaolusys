@@ -352,7 +352,7 @@ class changedetailview(View):
         for order in orderdetail:
             order_dict = model_to_dict(order)
             order_dict['pic_path'] = Product.objects.get(id=order.product_id).pic_path
-        orderlist_list.append(order_dict)
+            orderlist_list.append(order_dict)
         if orderlist.status == "草稿":
             flagofstatus = True
         else:
@@ -364,19 +364,20 @@ class changedetailview(View):
 
     def post(self, request, orderdetail_id):
         post = request.POST
+        print request.user.username
         orderlist = OrderList.objects.get(id=orderdetail_id)
         status = post.get("status", "").strip()
         remarks = post.get("remarks", "").strip()
         if len(status) > 0 and len(remarks) > 0:
             orderlist.status = status
-            orderlist.note = orderlist.note +"-->"+ remarks
+            orderlist.note = orderlist.note +"-->"+request.user.username+":"+ remarks
             orderlist.save()
         orderdetail = OrderDetail.objects.filter(orderlist_id=orderdetail_id)
         orderlist_list=[]
         for order in orderdetail:
             order_dict = model_to_dict(order)
             order_dict['pic_path'] = Product.objects.get(id=order.product_id).pic_path
-        orderlist_list.append(order_dict)
+            orderlist_list.append(order_dict)
         if orderlist.status == "草稿":
             flagofstatus = True
         else:
