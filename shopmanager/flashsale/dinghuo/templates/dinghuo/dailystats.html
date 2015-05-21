@@ -33,6 +33,7 @@
             var data = {"orderid": id, "func": button.value};
             var callback = function (res) {
                 if (res == "OK") {
+                     window.location.reload();
                 }
             };
             $.ajax({url: url, data: data, type: "post", success: callback});
@@ -107,9 +108,11 @@
                         <td width="100px">
                             <a id="detaillayer" onclick="showlayer({{ orderlists_list.id }})" class="btn  btn-success"
                                style="margin-top: 3px;font-size: 8px" title="查看详情"> 查看详情</a>
+                            {% if orderlists_list.statusflag %}
                             <button onclick="changestatus({{ orderlists_list.id }},this)" class="btn btn-primary"
                                     style="margin-top: 3px;font-size: 8px" id="shenhebutton" value="审核">改为审核
                             </button>
+                            {% endif %}
                         </td>
                     </tr>
                 {% endfor %}

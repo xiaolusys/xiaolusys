@@ -149,7 +149,7 @@ def neworder(request):
         orderlist.supplier_name = supplierId
         orderlist.created = businessDate
         orderlist.updated = businessDate
-        orderlist.note = remarks
+        orderlist.note = "-->" + request.user.username + " : " + remarks
         orderlist.status = pcfg.SUBMITTING
         orderlist.order_amount = amount
         orderlist.save()
@@ -331,7 +331,7 @@ def changestatus(req):
         state = True
     else:
         state = False
-    log_action(req.user.id, orderlist, CHANGE, u'%s采购单' % (state and u'审核' or u'作废'))
+    log_action(req.user.id, orderlist, CHANGE, u'%s订货单' % (state and u'审核' or u'作废'))
     return HttpResponse("OK")
 
 
@@ -348,7 +348,7 @@ class changedetailview(View):
     def get(self, request, orderdetail_id):
         orderlist = OrderList.objects.get(id=orderdetail_id)
         orderdetail = OrderDetail.objects.filter(orderlist_id=orderdetail_id)
-        orderlist_list=[]
+        orderlist_list = []
         for order in orderdetail:
             order_dict = model_to_dict(order)
             order_dict['pic_path'] = Product.objects.get(id=order.product_id).pic_path
@@ -370,10 +370,11 @@ class changedetailview(View):
         remarks = post.get("remarks", "").strip()
         if len(status) > 0 and len(remarks) > 0:
             orderlist.status = status
-            orderlist.note = orderlist.note +"-->"+request.user.username+":"+ remarks
+            orderlist.note = orderlist.note + "-->" + request.user.username + ":" + remarks
             orderlist.save()
+            log_action(request.user.id, orderlist, CHANGE, u'%s 订货单' % (u'添加备注'))
         orderdetail = OrderDetail.objects.filter(orderlist_id=orderdetail_id)
-        orderlist_list=[]
+        orderlist_list = []
         for order in orderdetail:
             order_dict = model_to_dict(order)
             order_dict['pic_path'] = Product.objects.get(id=order.product_id).pic_path
@@ -397,12 +398,14 @@ def changearrivalquantity(request):
         arrived_num = int(arrived_num)
         order_detail_id = int(order_detail_id)
         order = OrderDetail.objects.get(id=order_detail_id)
+        orderlist = OrderList.objects.get(id=order.orderlist_id)
         order.arrival_quantity = order.arrival_quantity + arrived_num
         if order.arrival_quantity <= order.buy_quantity:
             Product.objects.filter(id=order.product_id).update(collect_num=F('collect_num') + arrived_num)
             ProductSku.objects.filter(id=order.chichu_id).update(quantity=F('quantity') + arrived_num)
             order.save()
             result = "{flag:true,num:" + str(order.arrival_quantity) + "}"
+            log_action(request.user.id, orderlist, CHANGE, u'订货单{0}入库{1}件'.format(order.product_name,arrived_num))
             return HttpResponse(result)
 
         else:
@@ -473,7 +476,10 @@ class dailystatsview(View):
                 temp_dict['quantity'] = count_quantity
                 temp_dict['price'] = count_price
                 orderlist_dict['orderdetail'].append(temp_dict)
-
+            if orderlist.status == u"草稿":
+                orderlist_dict['statusflag'] = True
+            else:
+                orderlist_dict['statusflag'] = False
             orderlists_list.append(orderlist_dict)
 
         return render_to_response("dinghuo/dailystats.html",
