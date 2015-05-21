@@ -340,3 +340,85 @@ class XiaoluMamaModelView(View):
                             mimetype="application/json")
 
 
+from flashsale.pay.models import SaleTrade
+from django.views.decorators.csrf import csrf_exempt
+
+@csrf_exempt
+def cash_Out_Verify(request):
+    '''提现审核方法'''
+    '''buyer_id 手机 可用现金  体现金额  小鹿钱包消费额
+    '''
+    data = []
+    cashouts_status_is_pending = CashOut.objects.filter(status='pending').order_by('-created')
+    today = datetime.datetime.today()
+    day_from = today-datetime.timedelta(days=30)
+    day_to = today
+    print day_from,day_to,'from - to '
+     
+    
+    for cashout_status_is_pending in cashouts_status_is_pending:
+        id = cashout_status_is_pending.id
+        xlmm = cashout_status_is_pending.xlmm
+        value = cashout_status_is_pending.value/100.0
+        status = cashout_status_is_pending.status
+        xiaolumama = XiaoluMama.objects.get(pk=xlmm)
+
+        # 点击数
+        click_nums = 0
+        clickcounts = ClickCount.objects.filter(date__gt=day_from, date__lt=day_to, linkid=xlmm)
+        for clickcount in clickcounts:
+            click_nums = click_nums + clickcount.valid_num
+
+        # 订单数
+        shoppings = StatisticsShopping.objects.filter(shoptime__gt=day_from, shoptime__lt=day_to, linkid=xlmm)
+        shoppings_count = shoppings.count()
+
+
+        mobile = xiaolumama.mobile
+        cash = xiaolumama.cash/100.0
+        pay_saletrade = SaleTrade.objects.filter(openid=xiaolumama.openid,
+                                                 channel=SaleTrade.WALLET,
+                                                 status=SaleTrade.TRADE_FINISHED)
+        payment = 0
+        for pay in pay_saletrade:
+            payment = payment + pay.payment
+
+        cashout_flag = False
+        if click_nums >= 150 or shoppings_count >= 6:
+            cashout_flag = True
+
+        data_entry = {'id':id,'xlmm':xlmm,'value':value,'status':status,'mobile':mobile,'cash':cash,'payment':payment,
+                      'shoppings_count':shoppings_count,'click_nums':click_nums,'cashout_flag':cashout_flag}
+        data.append(data_entry)
+
+    return render_to_response("mama_cashout_verify.html", {"data":data}, context_instance=RequestContext(request))
+
+
+
+def cash_modify(request, data):
+    cash_id = int(data)
+    if cash_id:
+        cashout = CashOut.objects.get(pk=cash_id)
+        xiaolumama = XiaoluMama.objects.get(pk=cashout.xlmm)
+        if xiaolumama.cash >= cashout.value and cashout.status == 'pending':
+            # 改变金额
+            xiaolumama.cash =xiaolumama.cash - cashout.value
+            # 改变状态
+            cashout.status = 'approved'
+            cashout.save()
+            xiaolumama.save()
+            return HttpResponse('ok')
+        else:
+            return HttpResponse('reject')# 拒绝操作数据库
+    return HttpResponse('server error')
+
+def cash_reject(request, data):
+    cash_id = int(data)
+    if cash_id:
+        cashout = CashOut.objects.get(pk=cash_id)
+        cashout.status = 'rejected'
+        cashout.save()
+        return HttpResponse('ok')
+    else:
+        return HttpResponse('reject')# 拒绝操作数据库
+    return HttpResponse('server error')
