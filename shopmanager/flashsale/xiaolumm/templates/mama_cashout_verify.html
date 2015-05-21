@@ -90,6 +90,7 @@
                     <th>妈妈编号</th>
                     <th>手机号</th>
                     <th>可用现金</th>
+		    <th>可提现金额</th>
                     <th>提现金额</th>
                     <th>小鹿钱包消费额</th>
                     <th>点击数</th>
@@ -105,10 +106,11 @@
                         <td>{{ item.xlmm }}</td>
                         <td>{{ item.mobile }}</td>
                         <td>{{ item.cash }}</td>
+			<td>{{ item.could_cash_out }}</td>
                         <td>{{ item.value }}</td>
                         <td>{{ item.payment }}</td>
-                        <td class="click_nums" id="{{ item.id }}">{{ item.click_nums }}</td>
-                        <td class="shoppings_count" id="{{ item.id }}">{{ item.shoppings_count }}</td>
+                        <td>{{ item.click_nums }}</td>
+                        <td>{{ item.shoppings_count }}</td>
                         <td>{{ item.status }}</td>
                         <td>
                             <div class="btn-group" role="group" aria-label="...">
