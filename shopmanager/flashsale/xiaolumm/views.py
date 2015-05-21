@@ -20,6 +20,7 @@ from rest_framework import generics
 from rest_framework.renderers import JSONRenderer
 from rest_framework.response import Response
 
+
 import logging
 logger = logging.getLogger('django.request')
 
@@ -403,7 +404,7 @@ def cash_Out_Verify(request):
 
     return render_to_response("mama_cashout_verify.html", {"data":data}, context_instance=RequestContext(request))
 
-
+from django.db.models import F
 
 def cash_modify(request, data):
     cash_id = int(data)
@@ -411,8 +412,17 @@ def cash_modify(request, data):
         cashout = CashOut.objects.get(pk=cash_id)
         xiaolumama = XiaoluMama.objects.get(pk=cashout.xlmm)
         if xiaolumama.cash >= cashout.value and cashout.status == 'pending':
+            today_dt = datetime.date.today()
+            CarryLog.objects.get_or_create(xlmm=xiaolumama.id,
+                                         order_num=cash_id,
+                                         log_type=CarryLog.CASH_OUT,
+                                         value=cashout.value,
+                                         carry_date=today_dt,
+                                         carry_type=CarryLog.CARRY_OUT,
+                                         status=CarryLog.CONFIRMED)
+  
             # 改变金额
-            xiaolumama.cash =xiaolumama.cash - cashout.value
+            xiaolumama.cash = F('cash') - cashout.value
             # 改变状态
             cashout.status = 'approved'
             cashout.save()

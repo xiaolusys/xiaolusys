@@ -166,7 +166,7 @@ class CashOut(models.Model):
     )
     
     xlmm = models.IntegerField(default=0,db_index=True,verbose_name=u"妈妈编号")
-    value = models.IntegerField(default=0,verbose_name=u"金额")
+    value = models.IntegerField(default=0,verbose_name=u"金额(分)")
     status = models.CharField(max_length=16,blank=True,choices=STATUS_CHOICES,default=PENDING,verbose_name=u'状态')
     created = models.DateTimeField(auto_now_add=True,verbose_name=u'创建时间')
 
@@ -202,12 +202,14 @@ class CarryLog(models.Model):
     ORDER_BUY     = 'buy'
     CLICK_REBETA  = 'click'
     REFUND_RETURN = 'refund'
+    CASH_OUT      = 'cashout'
     
     LOG_TYPE_CHOICES = (
         (ORDER_REBETA,u'订单返利'),
         (ORDER_BUY,u'消费支出'),
         (REFUND_RETURN,u'退款返现'),
-        (CLICK_REBETA,u'点击兑现')
+        (CLICK_REBETA,u'点击兑现'),
+        (CASH_OUT,u'钱包提现'),
     )
     
     CARRY_OUT = 'out'
