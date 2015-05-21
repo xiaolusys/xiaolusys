@@ -164,7 +164,7 @@
                     <h4 class="head-title">仓库管理填写</h4>
                 </legend>
             </div>
-            <div class="row" style="text-align: right">
+            <div class="row">
                 <form action="/sale/dinghuo/changedetail/{{ orderlist.id }}/" method="post">
                     <div class="col-lg-6">
 
@@ -192,15 +192,16 @@
         <div>
             <table id="orderdetailtable" border="1" class="table table-striped table-bordered table-hover">
                 <thead>
-                <th width="100px">商品编码</th>
-                <th width="150px">商品名称</th>
-                <th width="100px">规格</th>
-                <th width="100px">数量</th>
-                <th width="100px">买入价格</th>
-                <th width="100px">单项价格</th>
-                <th width="100px">已入库数</th>
-                <th width="100px">到货数量</th>
-                <th style="width:40px;">操作</th>
+                <th>商品编码</th>
+                <th>商品名称</th>
+                <th>图片</th>
+                <th>规格</th>
+                <th>数量</th>
+                <th>买入价格</th>
+                <th>单项价格</th>
+                <th>已入库数</th>
+                <th>到货数量</th>
+                <th>操作</th>
                 </thead>
                 <tbody>
 
@@ -208,6 +209,7 @@
                     <tr id="orderdetail_{{ forloop.counter }}">
                         <td>{{ order.outer_id }}</td>
                         <td>{{ order.product_name }}</td>
+                        <td><img src="{{ order.pic_path }}" width="60px" height="60px" class="img-circle"></td>
                         <td>{{ order.product_chicun }}</td>
                         <td align="center">
                             {% if flagofstatus %}
