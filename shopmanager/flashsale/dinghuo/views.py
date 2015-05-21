@@ -278,6 +278,20 @@ def minusordertail(req):
 
 
 @csrf_exempt
+def minusarrived(req):
+    post = req.POST
+    orderdetailid = post["orderdetailid"]
+    orderdetail = OrderDetail.objects.get(id=orderdetailid)
+    orderlist = OrderList.objects.get(id=orderdetail.orderlist_id)
+    OrderDetail.objects.filter(id=orderdetailid).update(arrival_quantity=F('arrival_quantity') - 1)
+    Product.objects.filter(id=orderdetail.product_id).update(collect_num=F('collect_num') - 1)
+    ProductSku.objects.filter(id=orderdetail.chichu_id).update(quantity=F('quantity') - 1)
+    log_action(req.user.id, orderlist, CHANGE, u'订货单{0}{1}'.format((u'入库减一件'), orderdetail.product_name))
+    log_action(req.user.id, orderdetail, CHANGE, u'%s' % (u'入库减一'))
+    return HttpResponse("OK")
+
+
+@csrf_exempt
 def removedraft(req):
     post = req.POST
     draftid = post["draftid"]
@@ -334,7 +348,12 @@ class changedetailview(View):
     def get(self, request, orderdetail_id):
         orderlist = OrderList.objects.get(id=orderdetail_id)
         orderdetail = OrderDetail.objects.filter(orderlist_id=orderdetail_id)
-        return render_to_response("dinghuo/changedetail.html", {"orderlist": orderlist,
+        if orderlist.status == "草稿":
+            flagofstatus = True
+        else:
+            flagofstatus = False
+
+        return render_to_response("dinghuo/changedetail.html", {"orderlist": orderlist, "flagofstatus": flagofstatus,
                                                                 "orderdetails": orderdetail},
                                   context_instance=RequestContext(request))
 
@@ -345,25 +364,40 @@ class changedetailview(View):
         order_detail_id = post.get("order_detail_id", "").strip()
         status = post.get("status", "").strip()
         remarks = post.get("remarks", "").strip()
-        print status, remarks
-        if len(status)>0 and len(remarks)>0:
+        if len(status) > 0 and len(remarks) > 0:
             orderlist.status = status
-            orderlist.note = remarks
+            orderlist.note = orderlist.note + remarks
             orderlist.save()
-        if len(arrived_num) > 0 and len(order_detail_id) > 0:
-            arrived_num = int(arrived_num)
-            order_detail_id = int(order_detail_id)
-            order = OrderDetail.objects.get(id=order_detail_id)
-            order.arrival_quantity = order.arrival_quantity + arrived_num
-            if order.arrival_quantity <= order.buy_quantity:
-                Product.objects.filter(id=order.product_id).update(collect_num=F('collect_num') + arrived_num)
-                ProductSku.objects.filter(id=order.chichu_id).update(quantity=F('quantity') + arrived_num)
-                order.save()
 
         orderdetail = OrderDetail.objects.filter(orderlist_id=orderdetail_id)
         return render_to_response("dinghuo/changedetail.html", {"orderlist": orderlist,
                                                                 "orderdetails": orderdetail},
                                   context_instance=RequestContext(request))
+
+
+@csrf_exempt
+def changearrivalquantity(request):
+    post = request.POST
+    order_detail_id = post.get("orderdetailid", "").strip()
+    arrived_num = post.get("arrived_num", "0").strip()
+    result = "{flag:false,num:0}"
+    if len(arrived_num) > 0 and len(order_detail_id) > 0:
+        arrived_num = int(arrived_num)
+        order_detail_id = int(order_detail_id)
+        order = OrderDetail.objects.get(id=order_detail_id)
+        order.arrival_quantity = order.arrival_quantity + arrived_num
+        if order.arrival_quantity <= order.buy_quantity:
+            Product.objects.filter(id=order.product_id).update(collect_num=F('collect_num') + arrived_num)
+            ProductSku.objects.filter(id=order.chichu_id).update(quantity=F('quantity') + arrived_num)
+            order.save()
+            result = "{flag:true,num:" + str(order.arrival_quantity) + "}"
+            return HttpResponse(result)
+
+        else:
+            result = "{flag:false,num:" + str(order.arrival_quantity) + "}"
+            return HttpResponse(result)
+
+    return HttpResponse(result)
 
 
 class dailystatsview(View):

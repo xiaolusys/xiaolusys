@@ -59,6 +59,41 @@
             } else {
                 alert("已经为零")
             }
+        }
+        function minusarrivedQuantity(orderdetailid) {
+            var index = "arrival_quantity_" + orderdetailid;
+            p = $("#" + index);
+            if (p.text() != "0") {
+                var url = "/sale/dinghuo/minusarrivedquantity/";
+                var data = {"orderdetailid": orderdetailid};
+                var callback = function (res) {
+                    if (res == "OK") {
+                        p.text(parseInt(p.text()) - 1);
+                    }
+                };
+                $.ajax({url: url, data: data, type: "post", success: callback});
+            } else {
+                alert("已经为零")
+            }
+        }
+        function changearrived(orderdetailid) {
+            var index1 = "arrival_quantity_" + orderdetailid;
+            var index2 = "arrived_num_" + orderdetailid;
+            p1 = $("#" + index1);
+            p2 = $("#" + index2);
+            console.log(p2.val());
+            console.log(p1.html());
+            var url = "/sale/dinghuo/changearrivalquantity/";
+            var data = {"orderdetailid": orderdetailid, "arrived_num": p2.val()};
+            var callback = function (res) {
+                var dataObj = eval("(" + res + ")");
+                if (dataObj.flag) {
+                    p1.html(dataObj.num)
+                } else {
+                    alert("超过购买总数或者没有填写数量")
+                }
+            };
+            $.ajax({url: url, data: data, type: "post", success: callback});
 
         }
     </script>
@@ -115,33 +150,36 @@
                 </div>
             </div>
         </div>
-        <div class="row" style="text-align: right">
-            <div class="col-lg-4"></div>
-            <div class="col-lg-4"></div>
-            <div class="col-lg-4"><input type="button" class="btn btn-danger" id="zuofeibutton" value="作废大货"
-                                         onclick="changestatus({{ orderlist.id }},this)"></div>
-        </div>
-        <hr>
-        <div class="row">
-            <legend>
-                <h4 class="head-title">仓库管理填写</h4>
-            </legend>
-        </div>
-        <div class="row" style="text-align: right">
-            <form action="/sale/dinghuo/changedetail/{{ orderlist.id }}/" method="post">
-                <div class="col-lg-8">
+        {% if flagofstatus %}
+            <div class="row" style="text-align: right">
+                <div class="col-lg-4"></div>
+                <div class="col-lg-4"></div>
+                <div class="col-lg-4"><input type="button" class="btn btn-danger" id="zuofeibutton" value="作废大货"
+                                             onclick="changestatus({{ orderlist.id }},this)"></div>
+            </div>
+        {% else %}
+            <hr>
+            <div class="row">
+                <legend>
+                    <h4 class="head-title">仓库管理填写</h4>
+                </legend>
+            </div>
+            <div class="row" style="text-align: right">
+                <form action="/sale/dinghuo/changedetail/{{ orderlist.id }}/" method="post">
+                    <div class="col-lg-8">
 
-                    <div class="input-group">
-                        <span class="input-group-addon">备注</span>
-                                    <textarea style="width: 600px;height:50px;resize: none;" id="id_remarks" name="remarks"
+                        <div class="input-group">
+                            <span class="input-group-addon">备注</span>
+                                    <textarea style="width: 600px;height:50px;resize: none;" id="id_remarks"
+                                              name="remarks"
                                               type="text" required="required" class="form-control"></textarea>
+                        </div>
                     </div>
-                </div>
 
-                <div class="col-lg-4"><input type="submit" name="status" class="btn btn-danger" value="验货完成"></div>
-            </form>
-        </div>
-
+                    <div class="col-lg-4"><input type="submit" name="status" class="btn btn-danger" value="验货完成"></div>
+                </form>
+            </div>
+        {% endif %}
         <div class="row">
 
             <legend>
@@ -165,27 +203,36 @@
 
                 {% for order in orderdetails %}
                     <tr id="orderdetail_{{ forloop.counter }}">
-                        <form action="/sale/dinghuo/changedetail/{{ order.orderlist_id }}/" method="POST">
-                            <td>{{ order.outer_id }}</td>
-                            <td>{{ order.product_name }}</td>
-                            <td>{{ order.product_chicun }}</td>
-                            <td align="center"><a onclick="plusQuantity({{ order.id }})">
-                                <span class="glyphicon glyphicon-plus"></span></a>&nbsp;
-                                <span id="quantity_{{ order.id }}">{{ order.buy_quantity }}</span>
+                        <td>{{ order.outer_id }}</td>
+                        <td>{{ order.product_name }}</td>
+                        <td>{{ order.product_chicun }}</td>
+                        <td align="center">
+                            {% if flagofstatus %}
+                                <a onclick="plusQuantity({{ order.id }})">
+                                    <span class="glyphicon glyphicon-plus"></span></a>&nbsp;
+                            {% endif %}
+                            <span id="quantity_{{ order.id }}">{{ order.buy_quantity }}</span>
+                            {% if flagofstatus %}
                                 <a onclick="minusQuantity({{ order.id }})">
                                     <span class="glyphicon glyphicon-minus"></span>
                                 </a>
-                            </td>
-                            <td>{{ order.buy_unitprice }}</td>
-                            <td>¥{{ order.total_price }}</td>
-                            <td>{{ order.arrival_quantity }}</td>
-                            <td>
-                                <input hidden="hidden" value="{{ order.id }}" name="order_detail_id">
-                                <input type="number" class="form-control" min="0" max="{{ order.buy_quantity }}"
-                                       name="arrived_num" required="required" >
-                            </td>
-                            <td><input type="submit" class="btn btn-default" value="加入库存"></td>
-                        </form>
+                            {% endif %}
+                        </td>
+                        <td>{{ order.buy_unitprice }}</td>
+                        <td>¥{{ order.total_price }}</td>
+                        <td><span id="arrival_quantity_{{ order.id }}">{{ order.arrival_quantity }}</span>
+                            {% if not flagofstatus %}
+                                <a onclick="minusarrivedQuantity({{ order.id }})">
+                                    <span class="glyphicon glyphicon-minus"></span>
+                                </a>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <input type="number" class="form-control" min="0" max="{{ order.buy_quantity }}"
+                                   name="arrived_num" id="arrived_num_{{ order.id }}" required="required">
+                        </td>
+                        <td><input type="button" class="btn btn-default" onclick="changearrived({{ order.id }})"
+                                   value="加入库存"></td>
                     </tr>
 
 
