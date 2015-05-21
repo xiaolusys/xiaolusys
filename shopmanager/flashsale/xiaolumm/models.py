@@ -56,6 +56,9 @@ class XiaoluMama(models.Model):
         db_table = 'xiaolumm_xiaolumama'
         verbose_name=u'小鹿妈妈'
         verbose_name_plural = u'小鹿妈妈列表'
+        
+    def __unicode__(self):
+        return '%s'%self.id
     
     def get_cash_display(self):
         return self.cash / 100.0
@@ -98,6 +101,9 @@ class AgencyLevel(models.Model):
         db_table = 'xiaolumm_agencylevel'
         verbose_name=u'代理类别'
         verbose_name_plural = u'代理类别列表'
+        
+    def __unicode__(self):
+        return '%s'%self.id
         
     def get_basic_rate_display(self):
         return self.basic_rate / 100.0
@@ -143,6 +149,7 @@ class Clicks(models.Model):
     linkid = models.IntegerField(default=0,db_index=True,verbose_name=u"链接ID")    
     openid = models.CharField(max_length=64,blank=True,db_index=True,verbose_name=u"OpenId")    
     isvalid = models.BooleanField(default=False,verbose_name='是否有效')
+#     click_time = models.DateTimeField(verbose_name=u'点击时间')
     created = models.DateTimeField(auto_now_add=True,verbose_name=u'创建时间')
 
     class Meta:
@@ -150,7 +157,9 @@ class Clicks(models.Model):
         verbose_name=u'点击记录'
         verbose_name_plural = u'点击记录列表'
 
-
+    def __unicode__(self):
+        return '%s'%self.id
+    
 
 class CashOut(models.Model):
     PENDING = 'pending'
@@ -176,6 +185,9 @@ class CashOut(models.Model):
         db_table = 'xiaolumm_cashout'
         verbose_name=u'提现记录'
         verbose_name_plural = u'提现记录列表'
+        
+    def __unicode__(self):
+        return '%s'%self.id
         
     def get_value_display(self):
         return self.value / 100.0
@@ -245,6 +257,9 @@ class CarryLog(models.Model):
         db_table = 'xiaolumm_carrylog'
         verbose_name=u'妈妈钱包/收支记录'
         verbose_name_plural = u'妈妈钱包/收支记录列表'
+        
+    def __unicode__(self):
+        return '%s'%self.id
     
     def get_value_display(self):
         return self.value / 100.0
