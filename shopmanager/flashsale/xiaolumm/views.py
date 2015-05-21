@@ -340,7 +340,7 @@ class XiaoluMamaModelView(View):
                             mimetype="application/json")
 
 
-from flashsale.pay.models import SaleTrade
+from flashsale.pay.models import SaleTrade,Customer
 from django.views.decorators.csrf import csrf_exempt
 
 @csrf_exempt
@@ -362,7 +362,7 @@ def cash_Out_Verify(request):
         value = cashout_status_is_pending.value/100.0
         status = cashout_status_is_pending.status
         xiaolumama = XiaoluMama.objects.get(pk=xlmm)
-
+        
         # 点击数
         click_nums = 0
         clickcounts = ClickCount.objects.filter(date__gt=day_from, date__lt=day_to, linkid=xlmm)
@@ -373,12 +373,16 @@ def cash_Out_Verify(request):
         shoppings = StatisticsShopping.objects.filter(shoptime__gt=day_from, shoptime__lt=day_to, linkid=xlmm)
         shoppings_count = shoppings.count()
 
-
         mobile = xiaolumama.mobile
         cash = xiaolumama.cash/100.0
-        pay_saletrade = SaleTrade.objects.filter(openid=xiaolumama.openid,
-                                                 channel=SaleTrade.WALLET)
-#                                                 status=SaleTrade.TRADE_FINISHED)
+        
+        pay_saletrade = []
+        sale_customers = Customer.objects.filter(unionid=xiaolumama.openid)
+        if sale_customers.count() > 0:
+            customer = sale_customers[0]
+            pay_saletrade = SaleTrade.objects.filter(buyer_id=customer.id,
+                                                 channel=SaleTrade.WALLET,
+                                                 status=SaleTrade.TRADE_FINISHED)
         payment = 0
         for pay in pay_saletrade:
             payment = payment + pay.payment

@@ -48,17 +48,23 @@ def task_Push_SaleTrade_Finished(pre_days=10):
     strades = SaleTrade.objects.filter(status=SaleTrade.WAIT_BUYER_CONFIRM_GOODS)
     for strade in strades:
         mtrades = MergeTrade.objects.filter(tid=strade.tid,type=MergeTrade.SALE_TYPE)
-        if mtrades.count() > 0:
-            mtrade = mtrades[0]
-            
-            if mtrade.sys_status in (MergeTrade.INVALID_STATUS,
-                                     MergeTrade.EMPTY_STATUS,):
-                strade.status =  SaleTrade.TRADE_CLOSED
-                strade.save()
-            
-            elif mtrade.sys_status == MergeTrade.FINISHED_STATUS and (not mtrade.weight_time or mtrade.weight_time < day_date):
-                strade.status =  SaleTrade.TRADE_FINISHED
-                strade.save()
+        if mtrades.count() == 0:
+            continue
+        
+        mtrade = mtrades[0]
+        
+        if mtrade.sys_status in (MergeTrade.INVALID_STATUS,
+                                 MergeTrade.EMPTY_STATUS,):
+            strade.status =  SaleTrade.TRADE_CLOSED
+            strade.save()
+        
+        elif (mtrade.sys_status == MergeTrade.FINISHED_STATUS and 
+              (not mtrade.weight_time or mtrade.weight_time < day_date)):
+            sale_refunds = SaleRefund.objects.filter(trade_id=mtrade.id,status__gt=SaleRefund.REFUND_CLOSED)
+            if sale_refunds.count() > 0:
+                continue
+            strade.status =  SaleTrade.TRADE_FINISHED
+            strade.save()
 
 
 @task(max_retry=3,default_retry_delay=60)
