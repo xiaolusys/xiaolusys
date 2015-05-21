@@ -19,12 +19,14 @@ urlpatterns = [
     url(r'^plusquantity/$', views.plusquantity, name="plusquantity"),          #增加草稿里面的一个商品的数量
     url(r'^plusordertail/$', views.plusordertail, name="plusordertail"),          #增加订单详情里面的一个商品的数量
     url(r'^minusordertail/$', views.minusordertail, name="minusordertail"),          #减少订单详情里面的一个商品的数量
+    url(r'^minusarrivedquantity/$', views.minusarrived, name="minusarrivedquantity"),          #减少
     url(r'^minusquantity/$', views.minusquantity, name="minusquantity"),       #减少草稿里面的一个商品的数量
     url(r'^removedraft/$', views.removedraft, name="removedraft"),             #删除草稿里面的一个商品
     url(r'^detail/(?P<orderdetail_id>\d+)/$', views.viewdetail, name="mydetail"),
     url(r'^detaillayer/(?P<orderdetail_id>\d+)/$', views.detaillayer, name="detaillayer"),
     url(r'^changestatus/$', views.changestatus, name="changestatus"),
     url(r'^changedetail/(?P<orderdetail_id>\d+)/$',csrf_exempt(login_required(changedetailview.as_view())), name="changedetail"),
-    url(r'^daily/', login_required(dailystatsview.as_view()), name="dailystats"),
+    url(r'^daily/', login_required(dailystatsview.as_view()), name="dailystats"),  #大货每天统计
+    url(r'^changearrivalquantity/$', views.changearrivalquantity, name="changearrivalquantity"),
 
 ]
