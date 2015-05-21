@@ -382,13 +382,19 @@ def cash_Out_Verify(request):
         payment = 0
         for pay in pay_saletrade:
             payment = payment + pay.payment
-
+        
+        x_choice = 0 
         cashout_flag = False
         if click_nums >= 150 or shoppings_count >= 6:
             cashout_flag = True
+            x_choice = 100.00
+        else:
+            x_choice = 130.00
+        mony_without_pay = cash + payment # 从未消费情况下的金额
+        could_cash_out = mony_without_pay - x_choice # 可提现金额
 
         data_entry = {'id':id,'xlmm':xlmm,'value':value,'status':status,'mobile':mobile,'cash':cash,'payment':payment,
-                      'shoppings_count':shoppings_count,'click_nums':click_nums,'cashout_flag':cashout_flag}
+                      'shoppings_count':shoppings_count,'click_nums':click_nums,'cashout_flag':cashout_flag,'could_cash_out':could_cash_out}
         data.append(data_entry)
 
     return render_to_response("mama_cashout_verify.html", {"data":data}, context_instance=RequestContext(request))
