@@ -168,6 +168,8 @@ class CashOut(models.Model):
     xlmm = models.IntegerField(default=0,db_index=True,verbose_name=u"妈妈编号")
     value = models.IntegerField(default=0,verbose_name=u"金额(分)")
     status = models.CharField(max_length=16,blank=True,choices=STATUS_CHOICES,default=PENDING,verbose_name=u'状态')
+    
+    approve_time = models.DateTimeField(blank=True,null=True,verbose_name=u'审核时间')
     created = models.DateTimeField(auto_now_add=True,verbose_name=u'创建时间')
 
     class Meta:

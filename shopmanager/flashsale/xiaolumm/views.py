@@ -354,8 +354,6 @@ def cash_Out_Verify(request):
     today = datetime.datetime.today()
     day_from = today-datetime.timedelta(days=30)
     day_to = today
-    print day_from,day_to,'from - to '
-     
     
     for cashout_status_is_pending in cashouts_status_is_pending:
         id = cashout_status_is_pending.id
@@ -425,6 +423,7 @@ def cash_modify(request, data):
             xiaolumama.cash = F('cash') - cashout.value
             # 改变状态
             cashout.status = 'approved'
+            cashout.approve_time = datetime.datetime.now()
             cashout.save()
             xiaolumama.save()
             return HttpResponse('ok')
