@@ -142,7 +142,7 @@ def neworder(request):
         amount = calamount(username, costofems)
         orderlist = OrderList()
         orderlist.buyer_name = username
-        orderlist.costofems = costofems*100
+        orderlist.costofems = costofems * 100
         orderlist.receiver = receiver
         orderlist.express_company = express_company
         orderlist.express_no = express_no
@@ -321,16 +321,49 @@ def changestatus(req):
     return HttpResponse("OK")
 
 
-@csrf_exempt
-def changedetail(req, orderdetail_id):
-    orderlist = OrderList.objects.get(id=orderdetail_id)
-    orderdetail = OrderDetail.objects.filter(orderlist_id=orderdetail_id)
-    return render_to_response("dinghuo/changedetail.html", {"orderlist": orderlist,
-                                                            "orderdetails": orderdetail},
-                              context_instance=RequestContext(req))
-
-
 from shopback.items.models import Product
+
+
+class changedetailview(View):
+    def getUserName(self, uid):
+        try:
+            return User.objects.get(pk=uid).username
+        except:
+            return 'none'
+
+    def get(self, request, orderdetail_id):
+        orderlist = OrderList.objects.get(id=orderdetail_id)
+        orderdetail = OrderDetail.objects.filter(orderlist_id=orderdetail_id)
+        return render_to_response("dinghuo/changedetail.html", {"orderlist": orderlist,
+                                                                "orderdetails": orderdetail},
+                                  context_instance=RequestContext(request))
+
+    def post(self, request, orderdetail_id):
+        post = request.POST
+        orderlist = OrderList.objects.get(id=orderdetail_id)
+        arrived_num = post.get("arrived_num", "0").strip()
+        order_detail_id = post.get("order_detail_id", "").strip()
+        status = post.get("status", "").strip()
+        remarks = post.get("remarks", "").strip()
+        print status, remarks
+        if len(status)>0 and len(remarks)>0:
+            orderlist.status = status
+            orderlist.note = remarks
+            orderlist.save()
+        if len(arrived_num) > 0 and len(order_detail_id) > 0:
+            arrived_num = int(arrived_num)
+            order_detail_id = int(order_detail_id)
+            order = OrderDetail.objects.get(id=order_detail_id)
+            order.arrival_quantity = order.arrival_quantity + arrived_num
+            if order.arrival_quantity <= order.buy_quantity:
+                Product.objects.filter(id=order.product_id).update(collect_num=F('collect_num') + arrived_num)
+                ProductSku.objects.filter(id=order.chichu_id).update(quantity=F('quantity') + arrived_num)
+                order.save()
+
+        orderdetail = OrderDetail.objects.filter(orderlist_id=orderdetail_id)
+        return render_to_response("dinghuo/changedetail.html", {"orderlist": orderlist,
+                                                                "orderdetails": orderdetail},
+                                  context_instance=RequestContext(request))
 
 
 class dailystatsview(View):

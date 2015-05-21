@@ -5,7 +5,7 @@ from django.contrib.auth.decorators import login_required
 
 
 
-from views import logclicks,StatsView,MamaStatsView,CashoutView,CashOutList,CarryLogList,landing
+from views import logclicks,StatsView,MamaStatsView,CashoutView,CashOutList,CarryLogList,landing,cash_Out_Verify,cash_modify,cash_reject
 from .views import chargeWXUser,XiaoluMamaModelView
 
 urlpatterns = patterns('',
@@ -18,4 +18,7 @@ urlpatterns = patterns('',
     url(r'^(?P<linkid>\d+)/$',logclicks),    
     url(r'^charge/(?P<pk>\d+)/$',chargeWXUser),
     url(r'^xlmm/(?P<pk>\d+)/$', XiaoluMamaModelView.as_view()),
+    url(r'^cashoutverify/$',cash_Out_Verify), 
+    url(r'^cashmodify/(?P<data>\w+)/$',cash_modify), #
+    url(r'^cashreject/(?P<data>\w+)/$',cash_reject), #
 )
