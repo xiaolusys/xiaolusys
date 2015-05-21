@@ -350,7 +350,7 @@ def cash_Out_Verify(request):
     '''buyer_id 手机 可用现金  体现金额  小鹿钱包消费额
     '''
     data = []
-    cashouts_status_is_pending = CashOut.objects.filter(status='pending').order_by('-created')[:80]
+    cashouts_status_is_pending = CashOut.objects.filter(status='pending').order_by('-created')
     today = datetime.datetime.today()
     day_from = today-datetime.timedelta(days=30)
     day_to = today
