@@ -54,20 +54,21 @@
 </div>
 
 <div id="id-cashout-list" style="margin-top:10px; display:none">
-  <p style="color:orange">&nbsp;您的可提现金额为￥<span style="font-size:26px">{{ xlmm.cash_money }}</span>。</p>
+  <form id="cashout-form" action="/m/cashout/" method="POST">
+  <p style="color:orange">&nbsp;您的可提现金额为￥<span style="font-size:26px">{{ could_cash_out }}</span>。</p>
   <div id="id-cashout-area" {% if cashout > 0 %} style="display:none" {% endif %}>
     <p>&nbsp;提现需20元以上,请输入提现金额：</p>
     <div class="input-group" style="margin-top:5px">
       <span class="input-group-addon">￥</span>
-      
-      <input id="id-cashout-input" type="text" class="form-control" {% if xlmm.cash_money <= 20 %} readonly="readonly"  {% endif %}/>
+      <input id="id-cashout-input" type="number" name="v" max="{{ could_cash_out }}" min="20" value="{{ could_cash_out }}" class="form-control" {% if could_cash_out <= 20 %} readonly="readonly"  {% endif %}/>
       {% csrf_token %}
       <span class="input-group-btn">
-	<button id="id-cashout-submit" class="btn btn-warning" type="button">确认提交</button>
+	<button type="submit" class="btn btn-warning" type="button">确认提交</button>
       </span>
     </div>
     <p id="id-submit-message" style="color:red"></p>
   </div>
+  </form>
   <ul id="id-cashout-notice" style="color:red;margin-top:6px;{% if cashout < 1 %}display:none{% endif %}" class="list-group">
     <li class="list-group-item">提现申请已提交！<br/>请微信加微客服 <b>xiaolu_tixian</b> 审核提现申请，提现将由微信转账完成。</li>
   </ul>
@@ -242,9 +243,32 @@
     $("#id-referal-list").css("display","block");
   });
 
+  $('#cashout-form').on('submit', function(e) {
+        e.preventDefault(); // <-- important
+        var cform = $(this);
+        var callback = function (res) {
+          console.log(res);
+	      if (res["code"] == 0) {
+	        $("#id-cashout-notice").css("display","block");
+	        $("#id-cashout-area").css("display","none");
+	      }
+	      if (res["code"] == 1) {
+	        $("#id-submit-message")[0].innerHTML = "系统错误，请联系微客服解决！";
+	      }
+	      if (res["code"] == 2) {
+	        $("#id-submit-message")[0].innerHTML = "输入金额错误！请输入整数金额。";
+	      }
+	    };
+	    
+	    var params = {};
+	    $.each(cform.serializeArray(),function(index,obj){
+	    	params[obj.name] = obj.value;
+	    })
+        
+        $.ajax({url:cform.attr('action'), data:params, type:cform.attr('method'), success:callback});
+    });
 
-
-  $("#id-cashout-submit").click(function (e) {
+  /**$("#id-cashout-submit").click(function (e) {
     var url = "/m/cashout/";
     var csrf_token = document.getElementsByName("csrfmiddlewaretoken")[0].value;
     var v = $("#id-cashout-input").val();
@@ -262,7 +286,7 @@
       }
     };
     $.ajax({url:url, data:data, type:"post", success:callback});
-  });
+  });**/
 
   </script>
 {% endblock %}
