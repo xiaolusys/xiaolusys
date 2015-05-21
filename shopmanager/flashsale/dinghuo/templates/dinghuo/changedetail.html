@@ -166,17 +166,20 @@
             </div>
             <div class="row" style="text-align: right">
                 <form action="/sale/dinghuo/changedetail/{{ orderlist.id }}/" method="post">
-                    <div class="col-lg-8">
+                    <div class="col-lg-6">
 
                         <div class="input-group">
                             <span class="input-group-addon">备注</span>
-                                    <textarea style="width: 600px;height:50px;resize: none;" id="id_remarks"
+                                    <textarea style="width: 500px;height:50px;resize: none;" id="id_remarks"
                                               name="remarks"
                                               type="text" required="required" class="form-control"></textarea>
                         </div>
                     </div>
-
-                    <div class="col-lg-4"><input type="submit" name="status" class="btn btn-danger" value="验货完成"></div>
+                    <div class="col-lg-2"><select name="status" class="form-control">
+                        <option value="验货完成">验货完成</option>
+                        <option value="有问题">有问题</option>
+                    </select></div>
+                    <div class="col-lg-4"><input type="submit"  class="btn btn-danger" value="保存"></div>
                 </form>
             </div>
         {% endif %}
