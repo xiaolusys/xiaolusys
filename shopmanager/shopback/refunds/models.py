@@ -53,6 +53,14 @@ CS_STATUS_CHOICES = (
 
 class Refund(models.Model):
     
+    NO_REFUND = pcfg.NO_REFUND
+    REFUND_WAIT_SELLER_AGREE = pcfg.REFUND_WAIT_SELLER_AGREE
+    REFUND_WAIT_RETURN_GOODS = pcfg.REFUND_WAIT_RETURN_GOODS
+    REFUND_CONFIRM_GOODS = pcfg.REFUND_CONFIRM_GOODS
+    REFUND_REFUSE_BUYER = pcfg.REFUND_REFUSE_BUYER
+    REFUND_CLOSED = pcfg.REFUND_CLOSED
+    REFUND_SUCCESS = pcfg.REFUND_SUCCESS
+    
     id           = BigIntegerAutoField(primary_key=True,verbose_name='ID')
     refund_id    = models.CharField(max_length=32,
                                     default=lambda:'RF%d'%int(time.time()*10**2),

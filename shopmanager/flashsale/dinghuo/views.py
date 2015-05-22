@@ -149,7 +149,8 @@ def neworder(request):
         orderlist.supplier_name = supplierId
         orderlist.created = businessDate
         orderlist.updated = businessDate
-        orderlist.note = "-->" + request.user.username + " : " + remarks
+        if len(remarks.strip()) > 0:
+            orderlist.note = "-->" + request.user.username + " : " + remarks
         orderlist.status = pcfg.SUBMITTING
         orderlist.order_amount = amount
         orderlist.save()

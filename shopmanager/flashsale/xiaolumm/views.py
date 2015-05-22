@@ -54,7 +54,8 @@ class CashoutView(View):
         code = content.get('code',None)
 
         openid,unionid = get_user_unionid(code,appid=settings.WEIXIN_APPID,
-                                          secret=settings.WEIXIN_SECRET)
+                                          secret=settings.WEIXIN_SECRET,
+                                          request=request)
 
         if not valid_openid(openid) or not valid_openid(unionid):
             redirect_url = "https://open.weixin.qq.com/connect/oauth2/authorize?appid=wxc2848fa1e1aa94b5&redirect_uri=http://weixin.huyi.so/m/cashout/&response_type=code&scope=snsapi_base&state=135#wechat_redirect"
@@ -63,7 +64,43 @@ class CashoutView(View):
         xlmm = XiaoluMama.objects.get(openid=unionid)
         referal_list = XiaoluMama.objects.filter(referal_from=xlmm.mobile)
         cashout_objs = CashOut.objects.filter(xlmm=xlmm.pk,status=CashOut.PENDING)
-        data = {"xlmm":xlmm, "cashout": cashout_objs.count(), "referal_list":referal_list}
+        
+        day_to   = datetime.datetime.now()
+        day_from = day_to - datetime.timedelta(days=30)
+        # 点击数
+        click_nums = 0
+        clickcounts = ClickCount.objects.filter(date__range=(day_from,day_to),linkid=xlmm.id)
+        for clickcount in clickcounts:
+            click_nums = click_nums + clickcount.valid_num
+
+        # 订单数
+        shoppings = StatisticsShopping.objects.filter(shoptime__range=(day_from,day_to), linkid=xlmm.id)
+        shoppings_count = shoppings.count()
+        
+        cash = xlmm.cash / 100.0
+        pay_saletrade = []
+        sale_customers = Customer.objects.filter(unionid=xlmm.openid)
+        if sale_customers.count() > 0:
+            customer = sale_customers[0]
+            pay_saletrade = SaleTrade.objects.filter(buyer_id=customer.id,
+                                                 channel=SaleTrade.WALLET,
+                                                 status=SaleTrade.TRADE_FINISHED)
+        payment = 0
+        for pay in pay_saletrade:
+            payment = payment + pay.payment
+        
+        x_choice = 0 
+        if click_nums >= 150 or shoppings_count >= 6:
+            x_choice = 100.00
+        else:
+            x_choice = 130.00
+        mony_without_pay = cash + payment # 从未消费情况下的金额
+        could_cash_out = mony_without_pay - x_choice   # 可提现金额
+        
+        could_cash_out = could_cash_out > 0 and could_cash_out or 0
+        
+        data = {"xlmm":xlmm, "cashout": cashout_objs.count(), 
+                "referal_list":referal_list ,"could_cash_out":could_cash_out}
         
         
         response = render_to_response("mama_cashout.html", data, context_instance=RequestContext(request))
@@ -373,7 +410,7 @@ def cash_Out_Verify(request):
         shoppings_count = shoppings.count()
 
         mobile = xiaolumama.mobile
-        cash = xiaolumama.cash/100.0
+        cash = xiaolumama.cash / 100.0
         
         pay_saletrade = []
         sale_customers = Customer.objects.filter(unionid=xiaolumama.openid)

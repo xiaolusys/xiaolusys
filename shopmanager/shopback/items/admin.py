@@ -410,13 +410,11 @@ class ProductAdmin(admin.ModelAdmin):
             guiges = ProductSku.objects.filter(product_id=p.id)
             for guige in guiges:
                 sku_dict = model_to_dict(guige)
-                product_dict['prod_skus'] = sku_dict
+                sku_dict['name'] = guige.name
+                product_dict['prod_skus'].append(sku_dict)
             productres.append(product_dict)
-
-        productguige = ProductSku.objects.all()
         return render_to_response("dinghuo/addpurchasedetail.html",
-                                  {"productRestult": queryset,
-                                   "productguige": productguige,
+                                  {"productRestult": productres,
                                    "drafts": orderDrAll},
                                   context_instance=RequestContext(request))
 
