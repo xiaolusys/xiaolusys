@@ -18,6 +18,11 @@
           </a>
         </li>
         <li>
+          <a href="/m/stats_summary/" class="historylink" target="_blank">
+            妈妈管理员数据统计
+          </a>
+        </li>
+        <li>
           <a href="{% url cl.opts|admin_urlname:'add' %}{% if is_popup %}?_popup=1{% endif %}" class="addlink">
             {% blocktrans with cl.opts.verbose_name as name %}Add {{ name }}{% endblocktrans %}
           </a>
