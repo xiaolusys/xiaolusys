@@ -537,6 +537,7 @@ def stats_summary(request):
             conversion_rate = 0
         else:
             conversion_rate = float(sum_buyercount)/sum_click_num # 转化率等于 购买人数 除以 点击数
+            conversion_rate =  round(float(conversion_rate), 2)
         data_entry = {"username": username,"sum_ordernumcount":sum_ordernumcount,
                                       "sum_buyercount":sum_buyercount,
                                       "uv_summary":sum_user_num,"pv_summary":sum_click_num,"conversion_rate":conversion_rate}
