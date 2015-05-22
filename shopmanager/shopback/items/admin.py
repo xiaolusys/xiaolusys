@@ -133,6 +133,7 @@ class ProductAdmin(admin.ModelAdmin):
         orderdetails = OrderDetail.objects.filter(product_id=obj.id)
         for orderdetail in orderdetails:
             corresponding_list.append(str(orderdetail.orderlist_id))
+        corresponding_list = {}.fromkeys(corresponding_list).keys()
         a = ','.join(corresponding_list)
         if len(a) > 0:
             return u'<a href="/items/product/district/{0}/"' \
