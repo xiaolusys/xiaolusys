@@ -486,6 +486,8 @@ def cash_reject(request, data):
 
 
 from django.db.models import Avg,Count,Sum
+
+@csrf_exempt
 def stats_summary(request):
     #  根据日期查看每个管理人员 所管理的所有代理的点击情况和转化情况
     data = []
@@ -511,7 +513,8 @@ def stats_summary(request):
     xiaolumama_managers = []
     xiaolumamas = XiaoluMama.objects.values('manager').distinct()
     for xiaolumama in xiaolumamas:
-        xiaolumama_managers.append(xiaolumama['manager'])
+        if xiaolumama['manager']!=0:
+            xiaolumama_managers.append(xiaolumama['manager'])
 
     for xiaolumama_manager2 in xiaolumama_managers:
         sum_click_num = 0
