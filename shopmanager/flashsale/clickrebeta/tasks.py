@@ -26,14 +26,14 @@ def task_Calc_Unstat_Order_Cash(target_date):
     for mm_stat in unstat_shop:
         order_time = mm_stat.shoptime
         order_stat_from = order_time - datetime.timedelta(days=1)
-        clicks = Clicks.objects.filter(created__range=(order_stat_from, order_time)).filter(
+        clicks = Clicks.objects.filter(click_time__range=(order_stat_from, order_time)).filter(
                                                 openid=mm_stat.openid).order_by('-created')
         if clicks.count() == 0:
             continue
         
         click = clicks[0]
         mm_linkid = click.linkid
-        print 'debug linkid:%s,%s'%(mm_linkid,target_date)
+
         xlmms = XiaoluMama.objects.filter(id=mm_linkid)
         if xlmms.count() == 0:
             continue

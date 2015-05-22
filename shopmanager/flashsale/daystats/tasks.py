@@ -26,7 +26,7 @@ def task_Push_Sales_To_DailyStat(target_date):
 #     click_count = ClickCount.objects.get(date=target_date)
 #     cc_stats = click_count.aggregate(total_user_num=Sum('user_num'),
 #                                      total_valid_num=Sum('valid_num'))
-    clicks = Clicks.objects.filter(created__range=(df,dt))
+    clicks = Clicks.objects.filter(click_time__range=(df,dt))
     
     total_click_count = clicks.values('linkid','openid').distinct().count()
     total_user_num  = clicks.values('openid').distinct().count()
@@ -35,7 +35,7 @@ def task_Push_Sales_To_DailyStat(target_date):
     total_old_visiter_num = 0
     click_openids = clicks.values('openid').distinct()
     for stat in click_openids:
-        last_clicks = Clicks.objects.filter(created__lte=df,openid=stat['openid'])
+        last_clicks = Clicks.objects.filter(click_time__lte=df,openid=stat['openid'])
         if last_clicks.count() > 0:
             total_old_visiter_num += 1
     

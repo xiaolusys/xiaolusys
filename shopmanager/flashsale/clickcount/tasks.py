@@ -63,7 +63,7 @@ def task_Record_User_Click(pre_day=1):
     xiaolumamas = XiaoluMama.objects.all()  # 所有小鹿妈妈们
     
     for xiaolumama in xiaolumamas:  #
-        clicks = Clicks.objects.filter(created__gt=time_from, created__lt=time_to,
+        clicks = Clicks.objects.filter(click_time__range=(time_from, time_to),
                                        linkid=xiaolumama.id)  # 根据代理的id过滤出点击表中属于该代理的点击
         
         click_num = clicks.count()  # 点击数量

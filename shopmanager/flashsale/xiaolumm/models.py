@@ -149,7 +149,7 @@ class Clicks(models.Model):
     linkid = models.IntegerField(default=0,db_index=True,verbose_name=u"链接ID")    
     openid = models.CharField(max_length=64,blank=True,db_index=True,verbose_name=u"OpenId")    
     isvalid = models.BooleanField(default=False,verbose_name='是否有效')
-#     click_time = models.DateTimeField(verbose_name=u'点击时间')
+    click_time = models.DateTimeField(verbose_name=u'点击时间')
     created = models.DateTimeField(auto_now_add=True,verbose_name=u'创建时间')
 
     class Meta:
