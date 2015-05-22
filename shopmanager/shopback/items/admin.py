@@ -83,7 +83,7 @@ class ItemAdmin(admin.ModelAdmin):
 
 admin.site.register(Item, ItemAdmin)
 
-
+from flashsale.dinghuo.models import OrderDetail
 class ProductAdmin(admin.ModelAdmin):
     
     category_list = []
@@ -129,10 +129,22 @@ class ProductAdmin(admin.ModelAdmin):
     pic_link.short_description = u"商品图片"
     
     def district_link(self, obj):
-        return u'<a href="/items/product/district/%d/" target="_blank" style="display: block;">查看 &gt;&gt;</a>' \
-            %(obj.id, )
+        corresponding_list = []
+        orderdetails = OrderDetail.objects.filter(product_id=obj.id)
+        for orderdetail in orderdetails:
+            corresponding_list.append(str(orderdetail.orderlist_id))
+        corresponding_list = {}.fromkeys(corresponding_list).keys()
+        a = ','.join(corresponding_list)
+        if len(a) > 0:
+            return u'<a href="/items/product/district/{0}/"' \
+                   u' target="_blank" style="display: block;">货位 &gt;&gt;</a>' \
+                   u'<br><a href="/admin/dinghuo/orderlist/?id__in={1}" target="_blank" style="display: block;">大货</a>'.format(
+                obj.id, a)
+        else:
+            return u'<a href="/items/product/district/{0}/" target="_blank" style="display: block;">货位 &gt;&gt;</a>'.format(
+                obj.id)
     district_link.allow_tags = True
-    district_link.short_description = u"货位" 
+    district_link.short_description = u"货位"
     
     def wait_receive_num(self, obj):
         wrNum = getProductWaitReceiveNum(obj.id)
@@ -410,13 +422,11 @@ class ProductAdmin(admin.ModelAdmin):
             guiges = ProductSku.objects.filter(product_id=p.id)
             for guige in guiges:
                 sku_dict = model_to_dict(guige)
-                product_dict['prod_skus'] = sku_dict
+                sku_dict['name'] = guige.name
+                product_dict['prod_skus'].append(sku_dict)
             productres.append(product_dict)
-
-        productguige = ProductSku.objects.all()
         return render_to_response("dinghuo/addpurchasedetail.html",
-                                  {"productRestult": queryset,
-                                   "productguige": productguige,
+                                  {"productRestult": productres,
                                    "drafts": orderDrAll},
                                   context_instance=RequestContext(request))
 

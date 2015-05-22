@@ -483,3 +483,66 @@ def cash_reject(request, data):
     else:
         return HttpResponse('reject')# 拒绝操作数据库
     return HttpResponse('server error')
+
+
+from django.db.models import Avg,Count,Sum
+def stats_summary(request):
+    #  根据日期查看每个管理人员 所管理的所有代理的点击情况和转化情况
+    data = []
+    content = request.REQUEST
+    daystr = content.get("day", None)
+    today = datetime.date.today()
+    year,month,day = today.year,today.month,today.day
+
+    target_date = today
+    if daystr:
+        year,month,day = daystr.split('-')
+        target_date = datetime.date(int(year),int(month),int(day))
+        if target_date > today:
+            target_date = today
+
+    time = datetime.datetime(target_date.year, target_date.month, target_date.day)
+
+    prev_day = target_date - datetime.timedelta(days=1)
+    next_day = None
+    if target_date < today:
+        next_day = target_date + datetime.timedelta(days=1)
+
+    xiaolumama_managers = []
+    xiaolumamas = XiaoluMama.objects.all()
+    for xiaolumama in xiaolumamas:
+        xiaolumama_managers.append(xiaolumama.manager)
+    xiaolumama_managers2 = {}.fromkeys(xiaolumama_managers).keys() # 管理人员去重
+
+    for xiaolumama_manager2 in xiaolumama_managers2:
+        sum_click_num = 0
+        sum_user_num = 0
+        clickcounts = ClickCount.objects.filter(username=xiaolumama_manager2,date=time)
+        for clickcount in clickcounts:
+            sum_click_num = sum_click_num + clickcount.click_num
+            sum_user_num = sum_user_num + clickcount.user_num
+        # '管理员',xiaolumama_manager2
+        # '点击数量 ' ,sum_click_num
+        # '点击人数',sum_user_num
+        xiaolumms = XiaoluMama.objects.filter(manager=xiaolumama_manager2)
+        sum_buyercount = 0
+        sum_ordernumcount = 0
+        for xiaolumm in xiaolumms:
+            shoppings = StatisticsShoppingByDay.objects.filter(linkid=xiaolumm.id, tongjidate=time)
+            for shopping in shoppings:
+                sum_buyercount = sum_buyercount + shopping.buyercount
+                sum_ordernumcount = sum_ordernumcount + shopping.ordernumcount
+        # '购买人数',sum_buyercount,'订单数量',sum_ordernumcount
+        username = User.objects.get(id=xiaolumama_manager2).username
+        if sum_click_num == 0 :
+            conversion_rate = 0
+        else:
+            conversion_rate = float(sum_buyercount)/sum_click_num # 转化率等于 购买人数 除以 点击数
+            conversion_rate =  round(float(conversion_rate), 2)
+        data_entry = {"username": username,"sum_ordernumcount":sum_ordernumcount,
+                                      "sum_buyercount":sum_buyercount,
+                                      "uv_summary":sum_user_num,"pv_summary":sum_click_num,"conversion_rate":conversion_rate}
+        data.append(data_entry)
+
+    return render_to_response("stats_summary.html", {"data": data,"prev_day":prev_day,
+                                   "target_date":target_date, "next_day":next_day}, context_instance=RequestContext(request))
