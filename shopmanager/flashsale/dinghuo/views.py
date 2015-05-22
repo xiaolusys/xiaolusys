@@ -482,8 +482,20 @@ class dailystatsview(View):
             else:
                 orderlist_dict['statusflag'] = False
             orderlists_list.append(orderlist_dict)
-
         return render_to_response("dinghuo/dailystats.html",
                                   {"orderlists_lists": orderlists_list, "prev_day": prev_day,
                                    "target_date": target_date, "next_day": next_day},
+                                  context_instance=RequestContext(request))
+
+class StatsByProductIdView(View):
+    def getUserName(self, uid):
+        try:
+            return User.objects.get(pk=uid).username
+        except:
+            return 'none'
+
+    def get(self, request,product_id):
+        orderdetails = OrderDetail.objects.filter(product_id=product_id)
+        return render_to_response("dinghuo/productstats.html",
+                                  {"orderdetails": orderdetails},
                                   context_instance=RequestContext(request))

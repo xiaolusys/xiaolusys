@@ -130,16 +130,15 @@ class ProductAdmin(admin.ModelAdmin):
     
     def district_link(self, obj):
         corresponding_list = []
-        orderdetails = OrderDetail.objects.filter(product_id=obj.id)
+        orderdetails = OrderDetail.objects.filter(product_id=obj.id).values("orderlist_id").distinct()
         for orderdetail in orderdetails:
-            corresponding_list.append(str(orderdetail.orderlist_id))
-        corresponding_list = {}.fromkeys(corresponding_list).keys()
+            corresponding_list.append(str(orderdetail['orderlist_id']))
         a = ','.join(corresponding_list)
         if len(a) > 0:
             return u'<a href="/items/product/district/{0}/"' \
                    u' target="_blank" style="display: block;">货位 &gt;&gt;</a>' \
-                   u'<br><a href="/admin/dinghuo/orderlist/?id__in={1}" target="_blank" style="display: block;">大货</a>'.format(
-                obj.id, a)
+                   u'<br><a href="/sale/dinghuo/statsbypid/{1}" target="_blank" style="display: block;">大货</a>'.format(
+                obj.id, obj.id)
         else:
             return u'<a href="/items/product/district/{0}/" target="_blank" style="display: block;">货位 &gt;&gt;</a>'.format(
                 obj.id)
