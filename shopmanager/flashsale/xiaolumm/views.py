@@ -509,12 +509,11 @@ def stats_summary(request):
         next_day = target_date + datetime.timedelta(days=1)
 
     xiaolumama_managers = []
-    xiaolumamas = XiaoluMama.objects.all()
+    xiaolumamas = XiaoluMama.objects.values('manager').distinct()
     for xiaolumama in xiaolumamas:
-        xiaolumama_managers.append(xiaolumama.manager)
-    xiaolumama_managers2 = {}.fromkeys(xiaolumama_managers).keys() # 管理人员去重
+        xiaolumama_managers.append(xiaolumama['manager'])
 
-    for xiaolumama_manager2 in xiaolumama_managers2:
+    for xiaolumama_manager2 in xiaolumama_managers:
         sum_click_num = 0
         sum_user_num = 0
         clickcounts = ClickCount.objects.filter(username=xiaolumama_manager2,date=time)
