@@ -247,9 +247,9 @@
         e.preventDefault(); // <-- important
         var cform = $(this);
         var inputValue = $('#id-cashout-input')
-        var v_min = inputValue.attr('min') ;
-        var v_max = inputValue.attr('max') ;
-        var value = inputValue.val();
+        var v_min = parseInt(inputValue.attr('min'));
+        var v_max = parseInt(inputValue.attr('max')) ;
+        var value = parseInt(inputValue.val());
 
         if (value < v_min || value > v_max){
         	$("#id-submit-message")[0].innerHTML = "提现金额最低20元，且低于可提现金额！";
