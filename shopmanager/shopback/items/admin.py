@@ -77,7 +77,7 @@ class ItemAdmin(admin.ModelAdmin):
     date_hierarchy = 'last_num_updated'
     #ordering = ['created_at']
 
-    list_filter = ('user','has_showcase','sync_stock','approve_status','category')
+    list_filter = ('user','has_showcase','sync_stock','approve_status')
     search_fields = ['num_iid', 'outer_id', 'title']
 
 
