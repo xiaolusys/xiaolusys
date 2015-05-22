@@ -85,7 +85,7 @@ class XiaoluMamaAdmin(admin.ModelAdmin):
     def click_state(self, obj):
         dt = datetime.date.today()
         return (u'<div><a style="display:block;" href="/admin/xiaolumm/statisticsshopping/?shoptime__gte=%s&linkid=%s&">今日订单</a>'%(dt,obj.id)+
-        '<a style="display:block;" href="/admin/xiaolumm/clicks/?created__gte=%s&linkid=%s">今日点击</a></div>'%(dt,obj.id))
+        '<br><a style="display:block;" href="/admin/xiaolumm/clicks/?click_time__gte=%s&linkid=%s">今日点击</a></div>'%(dt,obj.id))
         
     click_state.allow_tags = True
     click_state.short_description = u"妈妈统计"
