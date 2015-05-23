@@ -503,10 +503,12 @@ class ProductAdmin(admin.ModelAdmin):
                     
                     bar_code = order.outer_id + order.outer_sku_id
                     tnum_maps[bar_code] = tnum_maps.get(bar_code,0) + order.num
+                    plus_num = num_maps.get(bar_code,0) + tnum_maps[bar_code]
+                    
                     out_stock = not Product.objects.isProductOutingStockEnough(
                                          order.outer_id, 
                                          order.outer_sku_id,
-                                         num_maps[bar_code])
+                                         plus_num)
                     order.out_stock = out_stock
                     order.save()
                     
