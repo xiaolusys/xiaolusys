@@ -83,6 +83,14 @@
                 {% endfor %}
                 </tbody>
                 <tfoot>
+		<tr><td colspan="1"></td>
+			<td><input id="total_user_num" type="text"  value="0" readonly/></td>
+			<td><input id="total_click_num" type="text"  value="0" readonly/></td>
+			<td><input id="total_buyer_num" type="text"  value="0" readonly/></td>
+			<td><input id="total_order_num" type="text"  value="0" readonly/></td>
+			<td><input id="avg_conversion_rate" type="text"  value="0.00" readonly/></td>
+		</tr>
+
                 </tfoot>
             </table>
         </div>
@@ -121,5 +129,83 @@
             }
         });
 
-    </script>
+ var Calc_stats_data = function(){
+	  var total_user_num = 0;
+	  var total_click_num = 0;
+	  var total_buyer_num = 0;
+	  var total_order_num = 0;
+	  var avg_conversion_rate =0.00;
+	  var sum_conversion_rate = 0.00;
+
+	  var user_num  = 0;
+	  var click_num = 0;
+	  var buyer_num = 0;
+	  var order_num = 0;
+	  var conversion_rate = 0.00;
+
+	  var rows = $("#mytable > tbody > tr");
+	  for(var i=0;i < rows.length;i++){
+			row = rows[i];
+			if (row.cells.length < 6){continue;}
+				       
+				       user_num  = row.cells[1].innerHTML;
+				       click_num = row.cells[2].innerHTML;
+				       buyer_num = row.cells[3].innerHTML;
+				       order_num = row.cells[4].innerHTML;
+				       conversion_rate = row.cells[5].innerHTML;
+				       
+					       if(parseInt(user_num)){
+					       total_user_num += parseInt(user_num);
+					       }
+					       
+					       if(parseInt(click_num)){
+					       total_click_num += parseInt(click_num);
+					       }
+					       if(parseInt(buyer_num)){
+					       total_buyer_num += parseInt(buyer_num);
+					       }
+					       if(parseFloat(conversion_rate)){
+					       sum_conversion_rate += parseFloat(conversion_rate);
+					       avg_conversion_rate = (sum_conversion_rate/parseFloat(rows.length)).toFixed(3);
+
+					       }
+					       
+					       if(parseInt(order_num)){
+					       total_order_num += parseInt(order_num);
+					       }
+					       }
+					       
+
+					       $('#total_user_num').val(total_user_num.toString());
+					       $('#total_click_num').val(total_click_num.toString());
+					       $('#total_order_num').val(total_order_num.toString());
+					       $('#total_buyer_num').val(total_buyer_num.toString());
+					       $('#avg_conversion_rate').val(avg_conversion_rate.toString());
+					       
+					       }
+					       
+					       $("select[name='#state_table_length']").change(function(e){
+					       e.preventDefault();
+					       Calc_stats_data();
+					       });
+	
+					       //搜索时，重新计算
+					       $("#state_table_filter input").keyup(function(e){
+					       e.preventDefault();
+					       Calc_stats_data();
+					       });
+					       
+					       //分页时，重新计算
+					       $("#state_table_paginate a").click(function(e){
+					       e.preventDefault();
+					       Calc_stats_data();
+					       });
+					       
+					       
+					       $(function() {
+					       console.log('abc');
+    					       Calc_stats_data();
+					       });
+					       
+ </script>
 {% endblock %}
