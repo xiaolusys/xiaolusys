@@ -521,11 +521,13 @@ def stats_summary(request):
         sum_user_num = 0
         active_num = 0
         clickcounts = ClickCount.objects.filter(username=xiaolumama_manager2,date=time)
-        xlmm_num = clickcounts.count() # 这个管理员下面的妈妈数量
+        clickcounts2 = ClickCount.objects.filter(username=xiaolumama_manager2,agencylevel=2,date=time) # 代理类别为2的
+        xlmm_num = clickcounts2.count() # 这个管理员下面的妈妈数量
         for clickcount in clickcounts:
             sum_click_num = sum_click_num + clickcount.valid_num
             sum_user_num = sum_user_num + clickcount.user_num
-            if clickcount.user_num > 4:
+        for clickcount2 in clickcounts2:
+            if clickcount2.user_num > 4:
                 active_num = active_num + 1
         if xlmm_num == 0:
             activity = 0
