@@ -519,10 +519,19 @@ def stats_summary(request):
     for xiaolumama_manager2 in xiaolumama_managers:
         sum_click_num = 0
         sum_user_num = 0
+        active_num = 0
         clickcounts = ClickCount.objects.filter(username=xiaolumama_manager2,date=time)
+        xlmm_num = clickcounts.count() # 这个管理员下面的妈妈数量
         for clickcount in clickcounts:
             sum_click_num = sum_click_num + clickcount.valid_num
             sum_user_num = sum_user_num + clickcount.user_num
+            if clickcount.user_num > 4:
+                active_num = active_num + 1
+        if xlmm_num == 0:
+            activity = 0
+        else:
+            activity = float(active_num)/xlmm_num
+            activity = round(float(activity),3)
         # '管理员',xiaolumama_manager2
         # '点击数量 ' ,sum_click_num
         # '点击人数',sum_user_num
@@ -549,7 +558,7 @@ def stats_summary(request):
             conversion_rate =  round(float(conversion_rate), 3)
         data_entry = {"username": username,"sum_ordernumcount":sum_ordernumcount,
                                       "sum_buyercount":sum_buyercount,
-                                      "uv_summary":sum_user_num,"pv_summary":sum_click_num,"conversion_rate":conversion_rate}
+                                      "uv_summary":sum_user_num,"pv_summary":sum_click_num,"conversion_rate":conversion_rate,"xlmm_num":xlmm_num,"activity":activity}
         data.append(data_entry)
 
     return render_to_response("stats_summary.html", {"data": data,"prev_day":prev_day,

@@ -68,6 +68,8 @@
                     <th>购买人数</th>
                     <th>订单个数</th>
                     <th>转化率</th>
+		    <th>妈妈人数</th>
+		    <th>活跃度</th>
                 </tr>
                 </thead>
                 <tbody>
@@ -79,6 +81,9 @@
                         <td>{{ item.sum_buyercount }}</td>
                         <td>{{ item.sum_ordernumcount }}</td>
                         <td>{{ item.conversion_rate }}</td>
+                        <td>{{ item.xlmm_num }}</td>
+                        <td>{{ item.activity }}</td> 
+
                     </tr>
                 {% endfor %}
                 </tbody>
@@ -89,6 +94,8 @@
 			<td><input id="total_buyer_num" type="text"  value="0" readonly/></td>
 			<td><input id="total_order_num" type="text"  value="0" readonly/></td>
 			<td><input id="avg_conversion_rate" type="text"  value="0.00" readonly/></td>
+			<td><input id="sum_xlmm_num" type="text"  value="0" readonly/></td>
+			<td><input id="avg_activity" type="text"  value="0.00" readonly/></td>
 		</tr>
 
                 </tfoot>
@@ -136,23 +143,30 @@
 	  var total_order_num = 0;
 	  var avg_conversion_rate =0.00;
 	  var sum_conversion_rate = 0.00;
+	  var sum_xlmm_num = 0;
+	  var sum_activity = 0.00;
+	  var avg_activity = 0.00;
 
 	  var user_num  = 0;
 	  var click_num = 0;
 	  var buyer_num = 0;
 	  var order_num = 0;
 	  var conversion_rate = 0.00;
+	  var xlmm_num = 0;
+	  var activity = 0.00;
 
 	  var rows = $("#mytable > tbody > tr");
 	  for(var i=0;i < rows.length;i++){
 			row = rows[i];
-			if (row.cells.length < 6){continue;}
+			if (row.cells.length < 8){continue;}
 				       
 				       user_num  = row.cells[1].innerHTML;
 				       click_num = row.cells[2].innerHTML;
 				       buyer_num = row.cells[3].innerHTML;
 				       order_num = row.cells[4].innerHTML;
 				       conversion_rate = row.cells[5].innerHTML;
+				       xlmm_num = row.cells[6].innerHTML;
+				       activity = row.cells[7].innerHTML;
 				       
 					       if(parseInt(user_num)){
 					       total_user_num += parseInt(user_num);
@@ -170,17 +184,31 @@
 
 					       }
 					       
+					       if(parseFloat(activity)){
+					       sum_activity += parseFloat(activity);
+					       avg_activity = ( sum_activity/parseFloat(rows.length)).toFixed(3);
+
+					       }
+
+					       
+					       
+					       if(parseInt(xlmm_num)){
+					       sum_xlmm_num += parseInt(xlmm_num);
+					       }
+
 					       if(parseInt(order_num)){
 					       total_order_num += parseInt(order_num);
 					       }
 					       }
-					       
+
 
 					       $('#total_user_num').val(total_user_num.toString());
 					       $('#total_click_num').val(total_click_num.toString());
 					       $('#total_order_num').val(total_order_num.toString());
 					       $('#total_buyer_num').val(total_buyer_num.toString());
 					       $('#avg_conversion_rate').val(avg_conversion_rate.toString());
+					       $('#sum_xlmm_num').val(sum_xlmm_num.toString());
+					       $('#avg_activity').val(avg_activity.toString());
 					       
 					       }
 					       
