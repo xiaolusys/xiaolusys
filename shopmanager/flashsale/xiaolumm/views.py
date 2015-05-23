@@ -95,9 +95,11 @@ class CashoutView(View):
         else:
             x_choice = 130.00
         mony_without_pay = cash + payment # 从未消费情况下的金额
-        could_cash_out = mony_without_pay - x_choice   # 可提现金额
+        leave_cash_out = mony_without_pay - x_choice   # 可提现金额
         
-        could_cash_out = could_cash_out > 0 and could_cash_out or 0
+        could_cash_out = cash
+        if leave_cash_out < cash:
+            could_cash_out = leave_cash_out
         
         data = {"xlmm":xlmm, "cashout": cashout_objs.count(), 
                 "referal_list":referal_list ,"could_cash_out":could_cash_out}
@@ -425,21 +427,19 @@ def cash_Out_Verify(request):
             payment = payment + pay.payment
         
         x_choice = 0 
-        cashout_flag = False
         if click_nums >= 150 or shoppings_count >= 6:
-            cashout_flag = True
             x_choice = 100.00
         else:
             x_choice = 130.00
         mony_without_pay = cash + payment # 从未消费情况下的金额
-        could_cash_out = mony_without_pay - x_choice # 可提现金额
-        if could_cash_out < 0:  # 如果可提现金额 小于 0  则设置 成为 0
-            could_cash_out = 0
-        if could_cash_out >0:
-            cashout_flag = True
-
+        leave_cash_out = mony_without_pay - x_choice   # 可提现金额
+        
+        could_cash_out = cash
+        if leave_cash_out < cash:
+            could_cash_out = leave_cash_out
+        
         data_entry = {'id':id,'xlmm':xlmm,'value':value,'status':status,'mobile':mobile,'cash':cash,'payment':payment,
-                      'shoppings_count':shoppings_count,'click_nums':click_nums,'cashout_flag':cashout_flag,'could_cash_out':could_cash_out}
+                      'shoppings_count':shoppings_count,'click_nums':click_nums,'could_cash_out':could_cash_out}
         data.append(data_entry)
 
     return render_to_response("mama_cashout_verify.html", {"data":data}, context_instance=RequestContext(request))

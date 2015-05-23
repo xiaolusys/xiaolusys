@@ -117,11 +117,7 @@ SYNC_MODEL_SCHEDULE = {
         'args':()
     },
     
-#     u'定时将将客户信息更新到会员列表':{     #更新客户信息
-#          'task':'shopback.trades.tasks.pushBuyerToCustomerTask',
-#          'schedule':crontab(minute="0",hour='2',day_of_week='sun'),
-#          'args':(21,)
-#      },
+
 #    'runs-every-weeks-order-amount':{   #更新用户商城订单结算，按周
 #        'task':'shopback.amounts.tasks.updateAllUserOrdersAmountTask',
 #        'schedule':crontab(minute="0",hour="2"), #

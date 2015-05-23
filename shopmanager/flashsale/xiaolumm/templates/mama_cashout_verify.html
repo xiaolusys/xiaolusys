@@ -117,7 +117,7 @@
                         <td>{{ item.xlmm }}</td>
                         <td>{{ item.mobile }}</td>
                         <td>{{ item.cash }}</td>
-			<td>{{ item.could_cash_out }}</td>
+						<td>{{ item.could_cash_out }}</td>
                         <td>{{ item.value }}</td>
                         <td>{{ item.payment }}</td>
                         <td>{{ item.click_nums }}</td>
@@ -125,7 +125,7 @@
                         
                         <td>
                             <div class="btn-group" role="group" aria-label="...">
-                                <button type="button"  id="bt_verify_{{ item.id }}" {% if not item.cashout_flag %} style="display:none"{% endif %} class="btn btn-primary" onclick="shenhe({{ item.id }})" >通过</button>
+                                <button type="button"  id="bt_verify_{{ item.id }}" {% if item.could_cash_out == 0 %} style="display:none"{% endif %} class="btn btn-primary" onclick="shenhe({{ item.id }})" >通过</button>
                                 <button type="button"  id="bt_jujue_{{ item.id }}" class="btn btn-warning" onclick="jujue({{ item.id }})">拒绝</button>
                             </div>
                         </td>
