@@ -401,17 +401,15 @@ def changearrivalquantity(request):
         order = OrderDetail.objects.get(id=order_detail_id)
         orderlist = OrderList.objects.get(id=order.orderlist_id)
         order.arrival_quantity = order.arrival_quantity + arrived_num
-        if order.arrival_quantity <= order.buy_quantity:
-            Product.objects.filter(id=order.product_id).update(collect_num=F('collect_num') + arrived_num)
-            ProductSku.objects.filter(id=order.chichu_id).update(quantity=F('quantity') + arrived_num)
-            order.save()
-            result = "{flag:true,num:" + str(order.arrival_quantity) + "}"
-            log_action(request.user.id, orderlist, CHANGE, u'订货单{0}入库{1}件'.format(order.product_name,arrived_num))
-            return HttpResponse(result)
+        
+        Product.objects.filter(id=order.product_id).update(collect_num=F('collect_num') + arrived_num)
+        ProductSku.objects.filter(id=order.chichu_id).update(quantity=F('quantity') + arrived_num)
+        order.save()
+        result = "{flag:true,num:" + str(order.arrival_quantity) + "}"
+        log_action(request.user.id, orderlist, CHANGE, u'订货单{0}入库{1}件'.format(order.product_name,arrived_num))
+        return HttpResponse(result)
 
-        else:
-            result = "{flag:false,num:" + str(order.arrival_quantity) + "}"
-            return HttpResponse(result)
+
 
     return HttpResponse(result)
 
@@ -482,8 +480,20 @@ class dailystatsview(View):
             else:
                 orderlist_dict['statusflag'] = False
             orderlists_list.append(orderlist_dict)
-
         return render_to_response("dinghuo/dailystats.html",
                                   {"orderlists_lists": orderlists_list, "prev_day": prev_day,
                                    "target_date": target_date, "next_day": next_day},
+                                  context_instance=RequestContext(request))
+
+class StatsByProductIdView(View):
+    def getUserName(self, uid):
+        try:
+            return User.objects.get(pk=uid).username
+        except:
+            return 'none'
+
+    def get(self, request,product_id):
+        orderdetails = OrderDetail.objects.filter(product_id=product_id)
+        return render_to_response("dinghuo/productstats.html",
+                                  {"orderdetails": orderdetails},
                                   context_instance=RequestContext(request))
