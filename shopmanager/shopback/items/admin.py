@@ -77,7 +77,7 @@ class ItemAdmin(admin.ModelAdmin):
     date_hierarchy = 'last_num_updated'
     #ordering = ['created_at']
 
-    list_filter = ('user','has_showcase','sync_stock','approve_status','category')
+    list_filter = ('user','has_showcase','sync_stock','approve_status')
     search_fields = ['num_iid', 'outer_id', 'title']
 
 
@@ -494,25 +494,30 @@ class ProductAdmin(admin.ModelAdmin):
         num_maps = {}
         merge_trades = set([o.merge_trade for o in mos])
         for t in merge_trades:
+            
             trade_out_stock = False
             full_out_stock  = True
             tnum_maps = {}
-            for order in t.normal_orders:
-                
-                bar_code = order.outer_id + order.outer_sku_id
-                num_maps[bar_code]  = num_maps.get(bar_code,0) + order.num
-                tnum_maps[bar_code] = tnum_maps.get(bar_code,0) + order.num
-                
-                out_stock = not Product.objects.isProductOutingStockEnough(
-                                     order.outer_id, 
-                                     order.outer_sku_id,
-                                     num_maps[bar_code])
-                order.out_stock = out_stock
-                order.save()
-                
-                trade_out_stock |= out_stock
-                full_out_stock  &= out_stock
-                
+            try:
+                for order in t.normal_orders:
+                    
+                    bar_code = order.outer_id + order.outer_sku_id
+                    tnum_maps[bar_code] = tnum_maps.get(bar_code,0) + order.num
+                    plus_num = num_maps.get(bar_code,0) + tnum_maps[bar_code]
+                    
+                    out_stock = not Product.objects.isProductOutingStockEnough(
+                                         order.outer_id, 
+                                         order.outer_sku_id,
+                                         plus_num)
+                    order.out_stock = out_stock
+                    order.save()
+                    
+                    trade_out_stock |= out_stock
+                    full_out_stock  &= out_stock
+            except Product.ProductCodeDefect,exc:
+                self.message_user(request, '%s'%exc)
+                continue
+            
             t = MergeTrade.objects.get(id=t.id)
             if trade_out_stock:
                 t.append_reason_code(pcfg.OUT_GOOD_CODE)
@@ -520,14 +525,13 @@ class ProductAdmin(admin.ModelAdmin):
             if t.reason_code:
                 if full_out_stock:
                     t.sys_status = pcfg.REGULAR_REMAIN_STATUS
-                    for code,num in tnum_maps.iteritems():
-                        num_maps[code] -= num
+          
                 else:
                     t.sys_status = pcfg.WAIT_AUDIT_STATUS
+                    for code,num in tnum_maps.iteritems():
+                        num_maps[code]  = num_maps.get(code,0) + num
             else:
                 t.sys_status = pcfg.WAIT_PREPARE_SEND_STATUS
-                for code,num in tnum_maps.iteritems():
-                    num_maps[code] -= num
                 
             t.save()
 

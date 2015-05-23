@@ -84,7 +84,7 @@ class CashoutView(View):
             customer = sale_customers[0]
             pay_saletrade = SaleTrade.objects.filter(buyer_id=customer.id,
                                                  channel=SaleTrade.WALLET,
-                                                 status=SaleTrade.TRADE_FINISHED)
+                                                 status__in=SaleTrade.INGOOD_STATUS)
         payment = 0
         for pay in pay_saletrade:
             payment = payment + pay.payment
@@ -419,7 +419,7 @@ def cash_Out_Verify(request):
             customer = sale_customers[0]
             pay_saletrade = SaleTrade.objects.filter(buyer_id=customer.id,
                                                  channel=SaleTrade.WALLET,
-                                                 status=SaleTrade.TRADE_FINISHED)
+                                                 status__in=SaleTrade.INGOOD_STATUS)
         payment = 0
         for pay in pay_saletrade:
             payment = payment + pay.payment

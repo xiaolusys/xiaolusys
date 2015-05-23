@@ -77,16 +77,26 @@ class MergeTradeChangeList(ChangeList):
         
         #如果查询条件中含有邀请码
         search_q = request.GET.get('q','').strip()
+        if search_q:
+            (self.filter_specs, self.has_filters, remaining_lookup_params,
+             use_distinct) = self.get_filters(request)
+            
+            qs = self.root_query_set
+            for filter_spec in self.filter_specs:
+                new_qs = filter_spec.queryset(request, qs)
+                if new_qs is not None:
+                    qs = new_qs
+        
+            # Set ordering.
+            ordering = self.get_ordering(request, qs)
+            qs = qs.order_by(*ordering)
+        
         if PHONE_RE.match(search_q):
-            trades = MergeTrade.objects.filter(models.Q(id=search_q)
-                                               |models.Q(receiver_phone=search_q)
-                                               |models.Q(receiver_mobile=search_q))
+            trades = qs.filter(models.Q(id=search_q)|models.Q(receiver_phone=search_q)|models.Q(receiver_mobile=search_q))
             return trades
         
         if search_q.isdigit():
-            trades = MergeTrade.objects.filter(models.Q(id=search_q)
-                                               |models.Q(tid=search_q)
-                                               |models.Q(out_sid=search_q))
+            trades = qs.filter(models.Q(id=search_q)|models.Q(tid=search_q)|models.Q(out_sid=search_q))
             return trades
         
         if re.compile('^wx[\d]{20,28}$').match(search_q):
@@ -99,12 +109,10 @@ class MergeTradeChangeList(ChangeList):
                     TradeService.createTrade(shops[0].uid, tid, MergeTrade.WX_TYPE)
             except:
                 pass
-            return MergeTrade.objects.filter(tid=tid)
+            return qs.filter(tid=tid)
             
         if search_q:
-            trades = MergeTrade.objects.filter(models.Q(buyer_nick=search_q)
-                                               |models.Q(tid=search_q)
-                                               |models.Q(out_sid=search_q))
+            trades = qs.filter(models.Q(buyer_nick=search_q)|models.Q(tid=search_q)|models.Q(out_sid=search_q))
             return trades
         
         return super(MergeTradeChangeList,self).get_query_set(request)

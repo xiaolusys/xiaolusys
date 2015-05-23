@@ -1,8 +1,11 @@
 # -*- coding:utf8 -*-
 from django.contrib import admin
+from django.contrib.admin.views.main import ChangeList
+from django import forms
+
 from shopback.base.options import DateFieldListFilter
 from .models import StatisticsShopping, StatisticsShoppingByDay
-from django import forms
+
 
 
 class StatisticsShoppingForm(forms.ModelForm):
@@ -25,13 +28,46 @@ class StatisticsShoppingForm(forms.ModelForm):
         tichengcount = self.cleaned_data['tichengcount']
         return int(tichengcount * 100)
 
+import re
+from shopapp.weixin.models import WXOrder
+
+class StatisticsShoppingChangeList(ChangeList):
+    
+    def get_query_set(self,request):
+        
+        search_q = request.GET.get('q','').strip()
+        if search_q :
+            (self.filter_specs, self.has_filters, remaining_lookup_params,
+             use_distinct) = self.get_filters(request)
+            
+            qs = self.root_query_set
+            for filter_spec in self.filter_specs:
+                new_qs = filter_spec.queryset(request, qs)
+                if new_qs is not None:
+                    qs = new_qs
+            
+            if re.compile('[\d]{11}').match(search_q):
+                openids = WXOrder.objects.filter(receiver_mobile=search_q).values('buyer_openid').distinct()
+                openids = [o['buyer_openid'] for o in openids]
+           
+                qs = qs.filter(openid__in=openids)
+                return qs
+    
+            qs = qs.filter(openid=search_q)
+            return qs
+        
+        return super(StatisticsShoppingChangeList,self).get_query_set(request)
+
 
 class StatisticsShoppingAdmin(admin.ModelAdmin):
     form = StatisticsShoppingForm
     list_display = ('linkid', 'linkname', 'openid','wxordernick', 'wxorderid', 'order_cash', 'ticheng_cash', 'shoptime')
     list_filter = (('shoptime',DateFieldListFilter),)
     search_fields = ['openid','wxorderid']
+    
+    def get_changelist(self, request, **kwargs):
 
+        return StatisticsShoppingChangeList
 
 admin.site.register(StatisticsShopping, StatisticsShoppingAdmin)
 
