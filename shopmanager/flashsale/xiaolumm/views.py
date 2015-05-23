@@ -95,9 +95,11 @@ class CashoutView(View):
         else:
             x_choice = 130.00
         mony_without_pay = cash + payment # 从未消费情况下的金额
-        could_cash_out = mony_without_pay - x_choice   # 可提现金额
+        leave_cash_out = mony_without_pay - x_choice   # 可提现金额
         
-        could_cash_out = could_cash_out > 0 and could_cash_out or 0
+        could_cash_out = cash
+        if leave_cash_out < cash:
+            could_cash_out = leave_cash_out
         
         data = {"xlmm":xlmm, "cashout": cashout_objs.count(), 
                 "referal_list":referal_list ,"could_cash_out":could_cash_out}

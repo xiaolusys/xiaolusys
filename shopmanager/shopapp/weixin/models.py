@@ -806,7 +806,6 @@ class WeixinClickScoreRecord(models.Model):
         
 
         
-
 from shopapp.signals import (confirm_trade_signal,
                              weixin_referal_signal,
                              weixin_refund_signal,
