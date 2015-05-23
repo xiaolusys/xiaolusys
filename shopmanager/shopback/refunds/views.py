@@ -96,8 +96,9 @@ class RefundManagerView(ModelView):
         
         try:
             merge_trade = MergeTrade.objects.get(tid=tid,user=seller_id)
-        except:
+        except MergeTrade.DoesNotExist:
             return u'订单未找到'
+        
         refund_orders = Refund.objects.filter(tid=tid)
         refund_products  = RefundProduct.objects.filter(trade_id=tid)
         
@@ -240,12 +241,12 @@ def create_refund_exchange_trade(request,seller_id,tid):
     
     try:
         origin_trade = MergeTrade.objects.get(tid=tid.strip(),user=seller_id)
-    except:
+    except MergeTrade.DoesNotExist:
         return HttpResponseNotFound('<h1>订单未找到 404<h1>')
     
     refunds  = Refund.objects.filter(tid=tid)
     rfprods  = RefundProduct.objects.filter(trade_id=tid.strip())
-    if rfprods.count() < 0:
+    if rfprods.count() == 0:
         return HttpResponseNotFound('<h1>未找到退货商品 404<h1>')
     
     dt = datetime.datetime.now()
