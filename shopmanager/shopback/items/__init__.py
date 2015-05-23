@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 
 
-PREFIX_X = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
+#PREFIX_X = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
+PREFIX_X = '123456789'
 
 def genLocationXList(xNum):
     
@@ -31,4 +32,20 @@ def genProductLocationList(locXNum,locYNum,locZNum):
             for z in zArray:
                 DepositeDistrict.objects.get_or_create(
                     parent_no='%s%d'%(x,y),district_no=str(z))
+                
+                
+def genPureNumLocationList(locXNum,locYNum,locZNum):
+  
+    from shopback.archives.models import DepositeDistrict
+    xArray = genLocationXList(locXNum)
+    
+    yArray = range(1,locYNum+1)
+    zArray = range(1,locZNum+1)
+    for x in xArray:
+        for y in yArray:
+            for z in zArray:
+                DepositeDistrict.objects.get_or_create(
+                    parent_no='%s=%d'%(x,y),district_no=str(z))
+  
+  
   

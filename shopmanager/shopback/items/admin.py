@@ -92,7 +92,7 @@ class ProductAdmin(admin.ModelAdmin):
     form = ProductModelForm
     list_per_page = 25
     list_display = ('id','outer_id_link','pic_link','collect_num','category_select',
-                    'warn_num','remain_num','wait_post_num','cost' ,'std_sale_price','agent_price'
+                    'remain_num','wait_post_num','cost' ,'std_sale_price','agent_price'
                    ,'sync_stock','is_match','is_split','sale_time','sale_charger','charger_select','district_link','status')
     list_display_links = ('id',)
     #list_editable = ('name',)
@@ -137,13 +137,13 @@ class ProductAdmin(admin.ModelAdmin):
         if len(a) > 0:
             return u'<a href="/items/product/district/{0}/"' \
                    u' target="_blank" style="display: block;">货位 &gt;&gt;</a>' \
-                   u'<br><a href="/sale/dinghuo/statsbypid/{1}" target="_blank" style="display: block;">大货</a>'.format(
+                   u'<br><a href="/sale/dinghuo/statsbypid/{1}" target="_blank" style="display: block;">订货单&gt;&gt;</a>'.format(
                 obj.id, obj.id)
         else:
             return u'<a href="/items/product/district/{0}/" target="_blank" style="display: block;">货位 &gt;&gt;</a>'.format(
                 obj.id)
     district_link.allow_tags = True
-    district_link.short_description = u"货位"
+    district_link.short_description = u"附加信息>>"
     
     def wait_receive_num(self, obj):
         wrNum = getProductWaitReceiveNum(obj.id)
