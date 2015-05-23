@@ -86,7 +86,11 @@ class MergeTradeChangeList(ChangeList):
                 new_qs = filter_spec.queryset(request, qs)
                 if new_qs is not None:
                     qs = new_qs
-            
+        
+            # Set ordering.
+            ordering = self.get_ordering(request, qs)
+            qs = qs.order_by(*ordering)
+        
         if PHONE_RE.match(search_q):
             trades = qs.filter(models.Q(id=search_q)|models.Q(receiver_phone=search_q)|models.Q(receiver_mobile=search_q))
             return trades
