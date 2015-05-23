@@ -67,6 +67,11 @@ class SaleTrade(models.Model):
     REFUNDABLE_STATUS = (WAIT_SELLER_SEND_GOODS,
                          WAIT_BUYER_CONFIRM_GOODS)
     
+    INGOOD_STATUS = (WAIT_SELLER_SEND_GOODS,
+                     WAIT_BUYER_CONFIRM_GOODS,
+                     TRADE_BUYER_SIGNED,
+                     TRADE_FINISHED)
+    
     TRADE_STATUS = (
         (TRADE_NO_CREATE_PAY,u'订单创建'),
         (WAIT_BUYER_PAY,u'待付款'),
