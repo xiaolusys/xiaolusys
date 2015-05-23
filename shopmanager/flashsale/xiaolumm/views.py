@@ -500,7 +500,7 @@ def stats_summary(request):
     if daystr:
         year,month,day = daystr.split('-')
         target_date = datetime.date(int(year),int(month),int(day))
-        if target_date > today:
+        if target_date >= today:
             target_date = today
 
     time = datetime.datetime(target_date.year, target_date.month, target_date.day)
@@ -521,7 +521,7 @@ def stats_summary(request):
         sum_user_num = 0
         clickcounts = ClickCount.objects.filter(username=xiaolumama_manager2,date=time)
         for clickcount in clickcounts:
-            sum_click_num = sum_click_num + clickcount.click_num
+            sum_click_num = sum_click_num + clickcount.valid_num
             sum_user_num = sum_user_num + clickcount.user_num
         # '管理员',xiaolumama_manager2
         # '点击数量 ' ,sum_click_num
@@ -535,11 +535,15 @@ def stats_summary(request):
                 sum_buyercount = sum_buyercount + shopping.buyercount
                 sum_ordernumcount = sum_ordernumcount + shopping.ordernumcount
         # '购买人数',sum_buyercount,'订单数量',sum_ordernumcount
-        username = User.objects.get(id=xiaolumama_manager2).username
-        if sum_click_num == 0 :
+        try:
+            username = User.objects.get(id=xiaolumama_manager2).username
+        except:
+            username = 'error.manager'
+
+        if sum_user_num == 0 :
             conversion_rate = 0
         else:
-            conversion_rate = float(sum_buyercount)/sum_click_num # 转化率等于 购买人数 除以 点击数
+            conversion_rate = float(sum_buyercount)/sum_user_num # 转化率等于 购买人数 除以 点击数
             conversion_rate =  round(float(conversion_rate), 2)
         data_entry = {"username": username,"sum_ordernumcount":sum_ordernumcount,
                                       "sum_buyercount":sum_buyercount,

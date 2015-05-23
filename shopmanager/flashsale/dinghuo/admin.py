@@ -49,14 +49,14 @@ class ordelistAdmin(admin.ModelAdmin):
 
     def shenhe(self, obj):
         symbol_link = obj.status or u'【空标题】'
-        return '<a href="/sale/dinghuo/detail/{0}/" >{1}</a>'.format(int(obj.id), symbol_link)
+        return u'<a href="/sale/dinghuo/detail/{0}/" target="_blank" style="display: block;">{1}</a>'.format(int(obj.id), symbol_link)
 
     shenhe.allow_tags = True
     shenhe.short_description = "状态"
 
     def changedetail(self, obj):
         symbol_link = u'【详情页】'
-        return '<a href="/sale/dinghuo/changedetail/{0}/" >{1}</a>'.format(int(obj.id), symbol_link)
+        return u'<a href="/sale/dinghuo/changedetail/{0}/" target="_blank" style="display: block;" >{1}</a>'.format(int(obj.id), symbol_link)
 
     changedetail.allow_tags = True
     changedetail.short_description = "更改订单"
