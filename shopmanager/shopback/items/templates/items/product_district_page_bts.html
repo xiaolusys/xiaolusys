@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html >
+  <head>
+    <title>商品库位分配</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+     <link href="{{ STATIC_URL }}bootstrap/css/bootstrap.min.css" rel="stylesheet" type="text/css" />
+     <link href='{{ STATIC_URL }}tagsinput/bootstrap-tagsinput.css' rel='stylesheet'/>
+     <script src="{{ STATIC_URL }}jquery/jquery-2.1.1.min.js" type="text/javascript"></script>
+     <script src="{{ STATIC_URL }}tagsinput/angular.min.js" type="text/javascript"></script>
+     <script src="{{ STATIC_URL }}bootstrap/js/bootstrap2.3.2.min.js" type="text/javascript"></script>
+     <script src="{{ STATIC_URL }}tagsinput/bootstrap-tagsinput.js" type="text/javascript"></script>
+     <script src="{{ STATIC_URL }}tagsinput/bootstrap-tagsinput-angular.min.js" type="text/javascript"></script>
+     
+  </head>
+  <style>
+	body,div{
+	   	margin:0px auto;
+    	padding:0px;
+    }
+    body{
+    	width:1000px;
+    }
+  	.content-main{
+		margin-top:20px;
+		display:fixed;
+	} 
+	div.control-group {
+	 	display: block;
+		margin-bottom: 5px;
+		clear: both;
+	 }
+	.bootstrap-tagsinput{
+		width:400px;
+	}
+	
+  </style>
+  <body>
+{% with product=object.product %}
+<div class="content-main">
+	<div><h3>商品库位分配</h3></div>
+	<div class="well">{{ object.product_districts }}</div>
+	<input id="product_id" type="hidden" value="{{ product.id }}"/>
+	<table class="table table-bordered table-condensed">
+		<thead>
+			<tr>
+				<th>商品编码</th>
+				<th>商品名称</th>
+				<th>规格编码</th>
+				<th>规格名称</th>
+				<th>库位信息</th>
+			</tr>
+		</thead>
+		<tbody>
+			{% for sku in product.skus %}
+			<tr>
+				<td>{{ product.outer_id }}</td>
+				<td>{{ product.name }}</td>
+				<td>{{ sku.outer_id }}</td>
+				<td>{{ sku.name }}</td>
+				<td>
+					<div class="control-group districts">
+						<input class="district-input" data-role="tagsinput" type="text" outer_id="{{ product.outer_id }}" outer_sku_id="{{ sku.outer_id }}" value="{% for d in sku.districts %}{{ d.0 }}-{{ d.1 }},{% endfor %}"  />
+					</div>
+				</td>
+			</tr>
+			{% empty %}
+			<tr>
+				<td>{{ product.outer_id }}</td>
+				<td>{{ product.name }}</td>
+				<td></td>
+				<td></td>
+				<td>
+					<div class="control-group districts">
+						<input class="district-input" data-role="tagsinput" type="text" outer_id="{{ product.outer_id }}" outer_sku_id="" value="{% for d in product.districts %}{{ d.0 }}-{{ d.1 }},{% endfor %}"  />
+					</div>
+				</td>
+			</tr>
+			{% endfor %}
+		</tbody>
+	</table>
+</div>
+{% endwith %}
+<script type="text/javascript">
+
+	var district_re = /[a-zA-Z0-9=]+-[0-9]+/;
+	
+	$(".district-input").tagsinput({
+		confirmKeys: [13, 44],
+		trimValue: true,
+		maxTags: 500,
+		maxChars: 16,
+		//allowDuplicates: true,
+		typeahead: {                  
+		    source: function(query) {
+		      if (query == 'undifined' || query == '' ){return}
+		      return  $.get('/items/district/query/?q='+query,'json');
+		   },
+		},
+		itemText: 'value',
+		itemValue: 'id'
+	});
+	
+	var district_inputs = $('.district-input');
+	$.each(district_inputs,function(index,ie){
+		var tags = $(ie).val().split(',');
+		$.each(tags,function(i,tag){
+			if (tag == ''){return;}
+			$(ie).tagsinput('add', {id:tag,value:tag});
+		});
+	})
+	
+	$('.district-input').on('beforeItemAdd', function(event) {
+  		// event.item: contains the item
+  		// event.cancel: set to true to prevent the item getting added
+  		var item = event.item;
+		var that = $(this);
+
+  		if (!district_re.test(item.value)){
+  			event.cancel = true;
+  			return
+  		}
+  		
+  		var callback = function(resp){
+  			if (resp.code==1){
+	    		alert('添加失败');
+				return ;
+	    	}
+	    	that.tagsinput('add', item);
+  		}
+  		
+  		var params = {'outer_id':$(that).attr('outer_id'),
+  					  'outer_sku_id':$(that).attr('outer_sku_id'),
+  					  'district':item.id};
+  					  
+  		$.post('/items/product/district/'+$('#product_id').val()+'/',params,callback,'json');
+  		
+	});
+	
+	$('input').on('beforeItemRemove', function(event) {
+	  // event.item: contains the item
+	  	var item = event.item;
+		var that = $(this);
+	
+		if (!district_re.test(item.value)){
+			event.cancel = true;
+			return
+		}
+		
+		var callback = function(resp){
+			if (resp.code==1){
+	    		alert('删除失败');
+				return;
+	    	}
+	    	that.tagsinput('remove', item);
+		}
+		
+		var params = {'outer_id':$(that).attr('outer_id'),
+					  'outer_sku_id':$(that).attr('outer_sku_id'),
+					  'district':item.id};
+					  
+		$.post('/items/product/district/delete/',params,callback,'json');
+	});
+
+</script>
+</body>
+</html>

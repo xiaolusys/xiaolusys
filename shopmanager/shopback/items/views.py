@@ -609,14 +609,14 @@ def delete_product_district(request):
 def deposite_district_query(request):
         
     content = request.REQUEST
-    q       = content.get('q')
+    q       = content.get('term')
     if not q:
         ret = {'code':1,'error_response':u'查询内容不能为空'}
         return HttpResponse(json.dumps(ret),mimetype="application/json")
 
     districts = DepositeDistrict.objects.filter(parent_no__istartswith=q)
 
-    ret = [{'id':str(d),'label':str(d),'value':str(d)} for d in districts]
+    ret = [{'id':str(d),'value':str(d)} for d in districts]
     
     return HttpResponse(json.dumps(ret),mimetype="application/json")
     
