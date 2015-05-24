@@ -77,6 +77,7 @@ def task_Record_User_Click(pre_day=1):
         clickcount.username = xiaolumama.manager  # 接管人
         clickcount.click_num = click_num
         clickcount.mobile = xiaolumama.mobile
+        clickcount.agencylevel = xiaolumama.agencylevel
         clickcount.user_num = user_num
         clickcount.valid_num = valid_num
         clickcount.save()

@@ -41,7 +41,7 @@ def task_Update_Weixin_Userinfo(openId,unionId=None):
         app_key = _wx_api._wx_account.app_id
         WeixinUnionID.objects.get_or_create(openid=openId,app_key=app_key,unionid=wx_user.unionid)
     except Exception, exc:
-        raise updateWeixinUserInfo.retry(exc=exc)
+        raise task_Update_Weixin_Userinfo.retry(exc=exc)
 
 @task
 def pullWXProductTask():
