@@ -65,6 +65,7 @@
                     <th>管理员</th>
                     <th>UV</th>
                     <th>PV</th>
+		    <th>有效V</th>
                     <th>购买人数</th>
                     <th>订单个数</th>
                     <th>转化率</th>
@@ -78,6 +79,7 @@
                         <td>{{ item.username }}</td>
                         <td>{{ item.uv_summary }}</td>
                         <td>{{ item.pv_summary }}</td>
+			<td>{{ item.sum_click_valid }}</td>
                         <td>{{ item.sum_buyercount }}</td>
                         <td>{{ item.sum_ordernumcount }}</td>
                         <td>{{ item.conversion_rate }}</td>
@@ -91,6 +93,8 @@
 		<tr><td colspan="1"></td>
 			<td><input id="total_user_num" type="text"  value="0" readonly/></td>
 			<td><input id="total_click_num" type="text"  value="0" readonly/></td>
+			<td><input id="total_click_valid_num" type="text"  value="0" readonly/></td>
+
 			<td><input id="total_buyer_num" type="text"  value="0" readonly/></td>
 			<td><input id="total_order_num" type="text"  value="0" readonly/></td>
 			<td><input id="avg_conversion_rate" type="text"  value="0.00" readonly/></td>
@@ -146,7 +150,9 @@
 	  var sum_xlmm_num = 0;
 	  var sum_activity = 0.00;
 	  var avg_activity = 0.00;
+	  var total_click_valid_num = 0;
 
+	  var click_valid_num = 0;
 	  var user_num  = 0;
 	  var click_num = 0;
 	  var buyer_num = 0;
@@ -158,20 +164,25 @@
 	  var rows = $("#mytable > tbody > tr");
 	  for(var i=0;i < rows.length;i++){
 			row = rows[i];
-			if (row.cells.length < 8){continue;}
+			if (row.cells.length < 9){continue;}
 				       
 				       user_num  = row.cells[1].innerHTML;
-				       click_num = row.cells[2].innerHTML;
-				       buyer_num = row.cells[3].innerHTML;
-				       order_num = row.cells[4].innerHTML;
-				       conversion_rate = row.cells[5].innerHTML;
-				       xlmm_num = row.cells[6].innerHTML;
-				       activity = row.cells[7].innerHTML;
+					       click_num = row.cells[2].innerHTML;
+					       click_valid_num = row.cells[3].innerHTML;
+				       buyer_num = row.cells[4].innerHTML;
+				       order_num = row.cells[5].innerHTML;
+				       conversion_rate = row.cells[6].innerHTML;
+				       xlmm_num = row.cells[7].innerHTML;
+				       activity = row.cells[8].innerHTML;
 				       
 					       if(parseInt(user_num)){
 					       total_user_num += parseInt(user_num);
 					       }
 					       
+					       if(parseInt(click_valid_num)){
+					       total_click_valid_num += parseInt(click_valid_num);
+					       }
+
 					       if(parseInt(click_num)){
 					       total_click_num += parseInt(click_num);
 					       }
@@ -204,6 +215,7 @@
 
 					       $('#total_user_num').val(total_user_num.toString());
 					       $('#total_click_num').val(total_click_num.toString());
+					       $('#total_click_valid_num').val(total_click_valid_num.toString());
 					       $('#total_order_num').val(total_order_num.toString());
 					       $('#total_buyer_num').val(total_buyer_num.toString());
 					       $('#avg_conversion_rate').val(avg_conversion_rate.toString());
