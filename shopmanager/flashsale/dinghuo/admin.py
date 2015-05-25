@@ -18,7 +18,7 @@ class ordelistAdmin(admin.ModelAdmin):
     fieldsets = ((u'订单信息:', {
         'classes': ('expand',),
         'fields': ( 'supplier_name', 'express_company', 'express_no'
-                    , 'receiver', 'status', 'note')
+                    , 'receiver', 'status','order_amount', 'note')
     }),)
     inlines = [orderdetailInline]
     list_display = (
