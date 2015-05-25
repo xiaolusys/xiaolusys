@@ -7,6 +7,7 @@ from django.shortcuts import redirect,render_to_response
 from django.views.generic import View
 from django.template import RequestContext
 from django.contrib.auth.models import User
+from django.db.models import Sum
 
 from shopapp.weixin.views import get_user_openid,valid_openid
 from shopapp.weixin.models import WXOrder
@@ -14,6 +15,7 @@ from shopapp.weixin.service import WeixinUserService
 from shopback.base import log_action, ADDITION, CHANGE
 
 from models import Clicks, XiaoluMama, AgencyLevel, CashOut, CarryLog
+from flashsale.pay.models import SaleTrade,Customer,SaleRefund
 
 from serializers import CashOutSerializer,CarryLogSerializer
 from rest_framework import generics
@@ -87,7 +89,9 @@ class CashoutView(View):
                                                  status__in=SaleTrade.INGOOD_STATUS)
         payment = 0
         for pay in pay_saletrade:
-            payment = payment + pay.payment
+            sale_orders = pay.sale_orders.filter(refund_status__gt=SaleRefund.REFUND_REFUSE_BUYER)
+            total_refund = sale_orders.aggregate(total_refund=Sum('refund_fee')).get('total_refund') or 0
+            payment = payment + pay.payment - total_refund
         
         x_choice = 0 
         if click_nums >= 150 or shoppings_count >= 6:
@@ -381,7 +385,6 @@ class XiaoluMamaModelView(View):
                             mimetype="application/json")
 
 
-from flashsale.pay.models import SaleTrade,Customer
 from django.views.decorators.csrf import csrf_exempt
 
 @csrf_exempt

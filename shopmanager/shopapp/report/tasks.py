@@ -26,8 +26,6 @@ BLANK_CHAR = ''
 MONTH_TRADE_FILE_TEMPLATE = 'D%s.xls'
 
 
-
-
 @single_instance_task(24*60*60,prefix='shopapp.report.tasks.')
 def updateMonthTradeXlsFileTask(year=None,month=None):
     

@@ -259,6 +259,8 @@ class SaleRefundAdmin(admin.ModelAdmin):
                         obj.status = SaleRefund.REFUND_SUCCESS
                         obj.save()
                         
+                        obj.refund_Confirm()
+                        
                     elif obj.refund_fee > 0 and obj.charge:
                         import pingpp
                         pingpp.api_key = settings.PINGPP_APPKEY
