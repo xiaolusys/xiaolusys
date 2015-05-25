@@ -94,8 +94,58 @@ def task_Push_Pending_Carry_Cash(day_ago=7, xlmm_id=None):
             cl.status = CarryLog.CONFIRMED
             cl.save()
             
-            
-    
-    
 
 
+
+
+### 代理提成表 的task任务  每个月 8号执行 计算 每个妈妈的代理提成，上交的给推荐人提成，订单成交额超过1000人民币的提成
+
+from flashsale.clickrebeta.models import StatisticsShopping
+from flashsale.xiaolumm.models import Clicks,XiaoluMama,CarryLog,CarryLogTest
+
+@task()
+def task_ThousandRebeta_AgencySubsidy_MamaContribu():
+    today = datetime.datetime.today()
+    day = today.day
+
+    time_from = datetime.datetime(today.year, today.month-1, 1, 0, 0, 0)  # 上个月初
+    time_to = datetime.datetime(today.year, today.month, 1, 0, 0, 0)  # 这个月初
+
+    if day==8:  # 每月8号执行
+        xlmms = XiaoluMama.objects.all()
+        for xlmm in xlmms:
+            # 千元补贴
+            sum_wxorderamount = 0
+            shoppings = StatisticsShopping.objects.filter(linkid=xlmm.id, shoptime__gt=time_from, shoptime__lt=time_to)
+            # 过去一个月的成交额
+            for shopping in shoppings:
+                sum_wxorderamount = sum_wxorderamount + shopping.wxorderamount
+            if sum_wxorderamount > 100000: # 分单位
+                # 写一条carry_log记录
+                carry_log = CarryLogTest()
+                carry_log.xlmm = xlmm.id
+                carry_log.carry_type = CarryLogTest.CARRY_IN
+                carry_log.log_type = CarryLogTest.THOUSAND_REBETA
+                carry_log.value = (sum_wxorderamount*5)/100   # 上个月的千元提成
+                carry_log.save()
+
+            sub_xlmms = XiaoluMama.objects.filter(referal_from=xlmm.mobile)  # 找到的本代理的子代理
+            sub_sum_wxorderamount = 0  # 上个月子代理的总成交额
+            for sub_xlmm in sub_xlmms:
+                # 扣除记录
+                sub_shoppings = StatisticsShopping.objects.filter(linkid=sub_xlmm.id, shoptime__gt=time_from, shoptime__lt=time_to)
+                for sub_shopping in sub_shoppings:
+                    sub_sum_wxorderamount = sub_sum_wxorderamount + sub_shopping.wxorderamount
+                carry_log_sub = CarryLogTest()
+                carry_log_sub.xlmm = sub_xlmm.id  # 锁定子代理 :每个子代理都生成一个分成值
+                carry_log_sub.carry_type = CarryLogTest.CARRY_OUT
+                carry_log_sub.log_type = CarryLogTest.MAMA_CONTRIBU  # 妈妈贡献类型
+                carry_log_sub.value = (sub_sum_wxorderamount*5)/100  # 上个月给本代理的分成
+                carry_log_sub.save()
+
+                carry_log_f = CarryLogTest()
+                carry_log_f.xlmm = xlmm.id  # 锁定本代理
+                carry_log_f.carry_type = CarryLogTest.CARRY_IN
+                carry_log_f.log_type = CarryLogTest.AGENCY_SUBSIDY  # 子代理给的补贴类型
+                carry_log_f.value = (sub_sum_wxorderamount*5)/100  # 上个月给本代理的分成
+                carry_log_f.save()
