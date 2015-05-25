@@ -22,6 +22,9 @@ from auth import apis
 import logging
 
 logger = logging.getLogger('celery.handler')
+LOGISTIC_DIR = 'logistic'
+ORDER_DIR    = 'order'
+FINANCE_DIR  = 'finance'
 
 
 class SubTradePostException(Exception):
@@ -349,6 +352,134 @@ def pushBuyerToCustomerTask(day):
             pass
         
         
+import os
+from django.db import connection 
+from common.utils import CSVUnicodeWriter
+from shopback.users.models import User
+from shopback.logistics.models import LogisticsCompany
+
+def get_User_Key_Name_Map():
+    
+    kn_maps = {}
+    users = User.objects.all()
+    for user in users:
+        kn_maps['%s'%user.id] = user.nick
+        
+    return kn_maps
+
+def get_Logistic_Company_Key_Name_Map():
+    
+    kn_maps = {}
+    logistics = LogisticsCompany.objects.all()
+    for lg in logistics:
+        kn_maps['%s'%lg.id] = lg.name
+        
+    return kn_maps
+
+from common.utils import replace_utf8mb4
+
+@task()
+def task_Gen_Order_Report_File(date_from,date_to,file_dir=None):
+    
+    
+    un_maps = get_User_Key_Name_Map()
+    lc_maps = get_Logistic_Company_Key_Name_Map()
+    
+    fields = ['tid','user_id','buyer_nick','payment','post_fee','pay_time','weight_time',
+              'receiver_state','receiver_city','out_sid','logistics_company_id','sys_status']
+    dump_fields   = ','.join(fields)
+    date_from_str = date_from.strftime('%Y-%m-%d %H:%M:%S')
+    date_to_str   = date_to.strftime('%Y-%m-%d %H:%M:%S')
+    exec_sql = "select {0} from shop_trades_mergetrade where weight_time > '{1}' and weight_time < '{2}';".format(dump_fields,date_from_str,date_to_str)
+    
+    try:
+        cursor = connection.cursor()
+        cursor.execute(exec_sql)
+        cursor_set = cursor.fetchall()
+        
+        field_name_list = [u'原始单号',u'店铺名称',u'会员名称',u'付款金额',u'实付邮费',u'付款日期',u'称重日期',u'省',u'市',u'运单号',u'快递名称',u'订单状态']
+        
+        if not file_dir:
+            file_dir = os.path.join(settings.DOWNLOAD_ROOT,ORDER_DIR)
+        if not os.path.exists(file_dir):
+            os.makedirs(file_dir)
+        
+        file_name = u'order_%s~%s.csv'%(date_from.strftime('%Y-%m-%d'),date_to.strftime('%Y-%m-%d'))
+        file_path_name = os.path.join(file_dir,file_name)
+        with open(file_path_name,'w+') as myfile:
+        
+            writer = CSVUnicodeWriter(myfile,encoding= 'gbk')
+            writer.writerow(field_name_list)
+            
+            for t in cursor_set:
+                row     = ['%s'%r for r in t]
+                row[2]  = replace_utf8mb4(row[2])
+                row[1]  = un_maps.get(str(t[1]),u'未找到')
+                row[10] = lc_maps.get(str(t[10]),u'未找到')
+                writer.writerow(row)
+    finally:
+        cursor.close()
 
 
+@task()
+def task_Gen_Logistic_Report_File(date_from,date_to,file_dir=None):
+    
+    
+    un_maps = get_User_Key_Name_Map()
+    lc_maps = get_Logistic_Company_Key_Name_Map()
+    
+    fields = ['out_sid','tid','user_id','receiver_name','receiver_state',
+              'receiver_city','weight','logistics_company_id','post_fee','weight_time']
+    dump_fields   = ','.join(fields)
+    date_from_str = date_from.strftime('%Y-%m-%d %H:%M:%S')
+    date_to_str   = date_to.strftime('%Y-%m-%d %H:%M:%S')
+    exec_sql = "select {0} from shop_trades_mergetrade where weight_time > '{1}' and weight_time < '{2}';".format(dump_fields,date_from_str,date_to_str)
+    
+    try:
+        cursor = connection.cursor()
+        cursor.execute(exec_sql)
+        cursor_set = cursor.fetchall()
+        
+        field_name_list = [u'运单ID',u'原始单号',u'店铺',u'收货人',u'省',u'市',u'重量',u'快递',u'实付邮费',u'称重日期']
+        
+        if not file_dir:
+            file_dir = os.path.join(settings.DOWNLOAD_ROOT,LOGISTIC_DIR)
+        if not os.path.exists(file_dir):
+            os.makedirs(file_dir)
+        
+        file_name = u'logistic_%s~%s.csv'%(date_from.strftime('%Y-%m-%d'),date_to.strftime('%Y-%m-%d'))
+        file_path_name = os.path.join(file_dir,file_name)
+        with open(file_path_name,'w+') as myfile:
+        
+            writer = CSVUnicodeWriter(myfile,encoding= 'gbk')
+            writer.writerow(field_name_list)
+            
+            for t in cursor_set:
+                row    = ['%s'%r for r in t]
+                row[2] = un_maps.get(str(t[2]),u'未找到')
+                row[7] = lc_maps.get(str(t[7]),u'未找到')
+                writer.writerow(row)
+    finally:
+        cursor.close()
+       
+       
+def previous_year_month(year,month):
+    
+    if month == 1:
+        return year - 1, 12
+    return year,month - 1
+    
+@task()    
+def task_Gen_Logistic_Report_File_By_Month(pre_month=1):
+        
+    dt = datetime.datetime.now()
+    year, month = dt.year, dt.month    
+    for i in range(0,pre_month):
+        year, month = previous_year_month(year,month)
+    
+    month_range = calendar.monthrange(year,month)
+    date_from = datetime.datetime(year,month,1,0,0,0)
+    date_to   = datetime.datetime(year,month,month_range[1],23,59,59)
+    
+    task_Gen_Logistic_Report_File(date_from,date_to)
    
