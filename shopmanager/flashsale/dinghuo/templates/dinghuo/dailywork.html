@@ -52,17 +52,17 @@
             <th>状态</th>
             </thead>
             <tbody>
-            {% for outer_id,product in  targetproduct.items %}
-                {% for key2,sku in product.skus %}
+            {% for product in  targetproduct %}
+                {% for sku in product.prod_skus %}
                     <tr>
                         {% if forloop.first %}
-                            <td rowspan="{{ product.skus|length }}">{{ product.title }} </td>
-                            <td rowspan="{{ product.skus|length }}">{{ outer_id }} </td>
-                            <td rowspan="{{ product.skus|length }}"><img src="{{ product.pic_path }}" width="70px"></td>
+                            <td rowspan="{{ product.prod_skus|length }}">{{ product.name }} </td>
+                            <td rowspan="{{ product.prod_skus|length }}">{{ product.outer_id }} </td>
+                            <td rowspan="{{ product.prod_skus|length }}"><img src="{{ product.pic_path }}" width="70px"></td>
                         {% endif %}
                         <td>{{ sku.sku_name }}</td>
-                        <td>{{ sku.num }}</td>
-                        <td><a href="/sale/dinghuo/statsbypid/{{ product.product_id }}" target="_blank"
+                        <td>{{ sku.sale_num }}</td>
+                        <td><a href="/sale/dinghuo/statsbypid/{{ product.id }}" target="_blank"
                                style="display: block;">{{ sku.dinghuo_num }}</a></td>
                         <td>{{ sku.dinghuo_status }}</td>
 
