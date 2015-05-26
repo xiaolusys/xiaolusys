@@ -44,6 +44,7 @@
         <table class="table table-bordered">
             <thead style="background-color:#01B5A2;">
             <th>商品名称</th>
+            <th>商品编码</th>
             <th>图片</th>
             <th>尺寸</th>
             <th>销售数</th>
@@ -51,11 +52,12 @@
             <th>状态</th>
             </thead>
             <tbody>
-            {% for key,product in  targetproduct.items %}
-                {% for key,sku in product.skus %}
+            {% for outer_id,product in  targetproduct.items %}
+                {% for key2,sku in product.skus %}
                     <tr>
                         {% if forloop.first %}
                             <td rowspan="{{ product.skus|length }}">{{ product.title }} </td>
+                            <td rowspan="{{ product.skus|length }}">{{ outer_id }} </td>
                             <td rowspan="{{ product.skus|length }}"><img src="{{ product.pic_path }}" width="70px"></td>
                         {% endif %}
                         <td>{{ sku.sku_name }}</td>
