@@ -13,9 +13,17 @@ from flashsale.dinghuo import paramconfig as pcfg
 from django.template import RequestContext
 from django.core.paginator import Paginator, InvalidPage, EmptyPage, PageNotAnInteger
 from flashsale.dinghuo import log_action, ADDITION, CHANGE
-from django.db.models import F
+from django.db.models import F, Q
 from django.views.generic import View
 from django.contrib.auth.models import User
+
+
+def parse_date(dt):
+    return datetime.datetime.strptime(dt, '%Y-%m-%d')
+
+
+def parse_datetime(dt):
+    return datetime.datetime.strptime(dt, '%Y-%m-%d %H:%M:%S')
 
 
 def orderadd(request):
@@ -365,7 +373,6 @@ class changedetailview(View):
 
     def post(self, request, orderdetail_id):
         post = request.POST
-        print request.user.username
         orderlist = OrderList.objects.get(id=orderdetail_id)
         status = post.get("status", "").strip()
         remarks = post.get("remarks", "").strip()
@@ -401,15 +408,13 @@ def changearrivalquantity(request):
         order = OrderDetail.objects.get(id=order_detail_id)
         orderlist = OrderList.objects.get(id=order.orderlist_id)
         order.arrival_quantity = order.arrival_quantity + arrived_num
-        
+
         Product.objects.filter(id=order.product_id).update(collect_num=F('collect_num') + arrived_num)
         ProductSku.objects.filter(id=order.chichu_id).update(quantity=F('quantity') + arrived_num)
         order.save()
         result = "{flag:true,num:" + str(order.arrival_quantity) + "}"
-        log_action(request.user.id, orderlist, CHANGE, u'订货单{0}入库{1}件'.format(order.product_name,arrived_num))
+        log_action(request.user.id, orderlist, CHANGE, u'订货单{0}入库{1}件'.format(order.product_name, arrived_num))
         return HttpResponse(result)
-
-
 
     return HttpResponse(result)
 
@@ -485,6 +490,7 @@ class dailystatsview(View):
                                    "target_date": target_date, "next_day": next_day},
                                   context_instance=RequestContext(request))
 
+
 class StatsByProductIdView(View):
     def getUserName(self, uid):
         try:
@@ -492,8 +498,188 @@ class StatsByProductIdView(View):
         except:
             return 'none'
 
-    def get(self, request,product_id):
-        orderdetails = OrderDetail.objects.filter(product_id=product_id)
+    def get(self, request, product_id):
+        orderdetails = OrderDetail.objects.exclude(orderlist__status=u'作废').filter(product_id=product_id)
         return render_to_response("dinghuo/productstats.html",
                                   {"orderdetails": orderdetails},
+                                  context_instance=RequestContext(request))
+
+
+from flashsale.dinghuo.models_user import MyUser, MyGroup
+from shopback.trades.models import MergeOrder
+
+
+class dailyworkview(View):
+    def getUserName(self, uid):
+        try:
+            return User.objects.get(pk=uid).username
+        except:
+            return 'none'
+
+    def getDinghuoQuantityByPid(self, product):
+        orderdetails = OrderDetail.objects.filter(product_id=product.id)
+        quantity = 0
+        for order in orderdetails:
+            quantity += order.buy_quantity
+        return quantity
+
+    def parseEndDt(self, end_dt):
+
+        if not end_dt:
+            dt = datetime.datetime.now()
+            return datetime.datetime(dt.year, dt.month, dt.day, 23, 59, 59)
+
+        if len(end_dt) > 10:
+            return parse_datetime(end_dt)
+
+        return parse_date(end_dt)
+
+    def getSourceOrders(self, start_dt=None, end_dt=None, ):
+
+        order_qs = MergeOrder.objects.filter(sys_status=pcfg.IN_EFFECT) \
+            .exclude(merge_trade__type=pcfg.REISSUE_TYPE) \
+            .exclude(merge_trade__type=pcfg.EXCHANGE_TYPE) \
+            .exclude(gift_type=pcfg.RETURN_GOODS_GIT_TYPE)
+
+        order_qs = order_qs.filter(pay_time__gte=start_dt, pay_time__lte=end_dt)
+        order_qs = order_qs.extra(where=["CHAR_LENGTH(outer_id)>=9"]) \
+            .filter(Q(outer_id__startswith="9") | Q(outer_id__startswith="1") | Q(outer_id__startswith="8"))
+        return order_qs
+
+    def getSourceDinghuo(self, start_dt=None, end_dt=None):
+        dinghuo_qs = OrderDetail.objects.exclude(orderlist__status=u'作废').filter(created__gte=start_dt,
+                                                                                 created__lte=end_dt)
+        return dinghuo_qs
+
+    def getProductByOuterId(self, outer_id):
+
+        try:
+            return Product.objects.get(outer_id=outer_id)
+        except:
+            return None
+
+    def getProductSkuByOuterId(self, outer_id, outer_sku_id):
+
+        try:
+            return ProductSku.objects.get(outer_id=outer_sku_id,
+                                          product__outer_id=outer_id)
+        except:
+            return None
+
+    def getProductAndSku(self, outer_id, outer_sku_id):
+
+        self.prod_map = {}
+        outer_key = '-'.join((outer_id, outer_sku_id))
+        if self.prod_map.has_key(outer_key):
+            return self.prod_map.get(outer_key)
+
+        prod = self.getProductByOuterId(outer_id)
+        prod_sku = self.getProductSkuByOuterId(outer_id, outer_sku_id)
+        self.prod_map[outer_key] = (prod, prod_sku)
+        return (prod, prod_sku)
+
+    def getDinghuoQuantityByPidAndSku(self, outer_id, outer_sku_id, dinghuo_qs):
+        allorderqs = dinghuo_qs.filter(outer_id=outer_id, chichu_id=outer_sku_id)
+        buy_quantity = 0
+        for dinghuobean in allorderqs:
+            buy_quantity += dinghuobean.buy_quantity
+        return buy_quantity
+
+    def getDinghuoStatus(self, num, dinghuonum, target_date, query_time):
+        query_time = datetime.date(query_time.year,query_time.month,query_time.day)
+        if target_date==query_time:
+            if num > 9:
+                if (num > dinghuonum):
+                    return '缺货' + str(num - dinghuonum) + '件'
+                else:
+                    return "订货完成"
+            else:
+                return "暂时不要订货"
+        else:
+            return ('缺货' + str(num - dinghuonum) + '件') if (num > dinghuonum) else "订货完成"
+
+
+    def getTradeSortedItems(self, order_qs, dinghuo_qs, target_date, query_time, groupname):
+        trade_items = {}
+        groupmembers = []
+        alluser = MyUser.objects.filter(group__name=groupname)
+        for user in alluser:
+            groupmembers.append(user.user.username)
+        for order in order_qs:
+            outer_id = order.outer_id.strip() or str(order.num_iid)
+            outer_sku_id = order.outer_sku_id.strip() or str(order.sku_id)
+            dinghuo_num = self.getDinghuoQuantityByPidAndSku(outer_id, outer_sku_id, dinghuo_qs) or 0
+            order_num = order.num or 0
+            prod, prod_sku = self.getProductAndSku(outer_id, outer_sku_id)
+            if prod and (groupname == '0' or prod.sale_charger in groupmembers) and prod.sale_time == target_date:
+                if trade_items.has_key(outer_id):
+                    trade_items[outer_id]['num'] += order_num
+                    skus = trade_items[outer_id]['skus']
+
+                    if skus.has_key(outer_sku_id):
+                        skus[outer_sku_id]['num'] += order_num
+                        skus[outer_sku_id]['dinghuo_status'] = self.getDinghuoStatus(order_num, dinghuo_num,
+                                                                                     target_date, query_time)
+
+                    else:
+                        prod_sku_name = prod_sku.name if prod_sku else order.sku_properties_name
+                        skus[outer_sku_id] = {
+                            'sku_name': prod_sku_name,
+                            'num': order_num,
+                            'dinghuo_num': dinghuo_num,
+                            'dinghuo_status': self.getDinghuoStatus(order_num, dinghuo_num, target_date, query_time)}
+                else:
+                    prod_sku_name = prod_sku.name if prod_sku else order.sku_properties_name
+                    trade_items[outer_id] = {
+                        'product_id': prod and prod.id or None,
+                        'num': order_num,
+                        'title': prod.name if prod else order.title,
+                        'pic_path': prod and prod.PIC_PATH or '',
+                        'sale_charger': prod and prod.sale_charger or '',
+                        'storage_charger': prod and prod.storage_charger or '',
+                        'skus': {outer_sku_id: {
+                            'sku_name': prod_sku_name,
+                            'num': order_num,
+                            'dinghuo_num': dinghuo_num,
+                            'dinghuo_status': self.getDinghuoStatus(order_num, dinghuo_num, target_date, query_time)}}
+                    }
+
+        order_items = sorted(trade_items.items(), key=lambda d: d[1]['num'], reverse=True)
+
+        total_num = 0
+        for trade in order_items:
+            total_num += trade[1]['num']
+            trade[1]['skus'] = sorted(trade[1]['skus'].items(), key=lambda d: d[0])
+
+        order_items.append(total_num)
+        return trade_items
+
+    def get(self, request):
+        content = request.REQUEST
+        today = datetime.date.today()
+        shelve_fromstr = content.get("df", None)
+        shelve_tostr = content.get("dt", None)
+        query_timestr = content.get("showt", None)
+        groupname = content.get("groupname", 0)
+        groupname = int(groupname)
+        group_tuple = ('0', '采购A', '采购B', '采购C')
+        target_date = today
+        if shelve_fromstr:
+            year, month, day = shelve_fromstr.split('-')
+            target_date = datetime.date(int(year), int(month), int(day))
+            if target_date > today:
+                target_date = today
+
+        shelve_from = datetime.datetime(target_date.year, target_date.month, target_date.day)
+        time_to = self.parseEndDt(shelve_tostr)
+        query_time = self.parseEndDt(query_timestr)
+
+        orderqs = self.getSourceOrders(shelve_from, time_to)
+        dinghuoqs = self.getSourceDinghuo(shelve_from, query_time)
+
+        trade_list = self.getTradeSortedItems(orderqs, dinghuoqs, target_date, query_time, group_tuple[groupname])
+
+        return render_to_response("dinghuo/dailywork.html",
+                                  {"targetproduct": trade_list, "shelve_from": target_date, "time_to": time_to,
+                                   "searchDinghuo": query_time, 'groupname': groupname},
                                   context_instance=RequestContext(request))
