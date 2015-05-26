@@ -499,7 +499,7 @@ class StatsByProductIdView(View):
             return 'none'
 
     def get(self, request, product_id):
-        orderdetails = OrderDetail.objects.filter(product_id=product_id)
+        orderdetails = OrderDetail.objects.exclude(orderlist__status=u'作废').filter(product_id=product_id)
         return render_to_response("dinghuo/productstats.html",
                                   {"orderdetails": orderdetails},
                                   context_instance=RequestContext(request))
