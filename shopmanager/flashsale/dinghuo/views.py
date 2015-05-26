@@ -540,8 +540,11 @@ class dailyworkview(View):
             .exclude(merge_trade__type=pcfg.REISSUE_TYPE) \
             .exclude(merge_trade__type=pcfg.EXCHANGE_TYPE) \
             .exclude(gift_type=pcfg.RETURN_GOODS_GIT_TYPE)
-
         order_qs = order_qs.filter(pay_time__gte=start_dt, pay_time__lte=end_dt)
+        order_qs = order_qs.filter(merge_trade__status__in=pcfg.ORDER_SUCCESS_STATUS)\
+                .exclude(merge_trade__sys_status__in=(pcfg.INVALID_STATUS,pcfg.ON_THE_FLY_STATUS))\
+                .exclude(merge_trade__sys_status=pcfg.FINISHED_STATUS,merge_trade__is_express_print=False)
+
         order_qs = order_qs.extra(where=["CHAR_LENGTH(outer_id)>=9"]) \
             .filter(Q(outer_id__startswith="9") | Q(outer_id__startswith="1") | Q(outer_id__startswith="8"))
         return order_qs
@@ -587,16 +590,8 @@ class dailyworkview(View):
 
     def getDinghuoStatus(self, num, dinghuonum, target_date, query_time):
         query_time = datetime.date(query_time.year,query_time.month,query_time.day)
-        if target_date==query_time:
-            if num > 9:
-                if (num > dinghuonum):
-                    return '缺货' + str(num - dinghuonum) + '件'
-                else:
-                    return "订货完成"
-            else:
-                return "暂时不要订货"
-        else:
-            return ('缺货' + str(num - dinghuonum) + '件') if (num > dinghuonum) else "订货完成"
+
+        return ('缺货' + str(num - dinghuonum) + '件') if (num > dinghuonum) else "订货完成"
 
 
     def getTradeSortedItems(self, order_qs, dinghuo_qs, target_date, query_time, groupname):
