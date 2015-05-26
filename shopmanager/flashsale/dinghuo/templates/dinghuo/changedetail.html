@@ -6,9 +6,7 @@
         @import "{{ STATIC_URL }}jquery-datatable-addon/css/demo_page.css";
         @import "{{ STATIC_URL }}jquery-datatable-addon/css/demo_table.css";
     </style>
-    <style type="text/css">
 
-    </style>
 
     <script type="text/javascript">
         function changestatus(id, button) {
@@ -229,7 +227,7 @@
                             {% endif %}
                         </td>
                         <td>{{ order.buy_unitprice }}</td>
-                        <td>¥{{ order.total_price }}</td>
+                        <td>{{ order.total_price }}</td>
                         <td><span id="arrival_quantity_{{ order.id }}">{{ order.arrival_quantity }}</span>
                             {% if not flagofstatus %}
                                 <a onclick="minusarrivedQuantity({{ order.id }})">
@@ -248,6 +246,15 @@
 
                 {% endfor %}
                 </tbody>
+                <tfoot>
+                <tr>
+                    <td colspan="4"></td>
+                    <td width="100px"><input id="total_quantity_num" type="text" value="0" readonly/></td>
+                    <td></td>
+                    <td width="100px"><input id="total_amount_num" type="text" value="0" readonly/></td>
+                    <td colspan="3"></td>
+                </tr>
+                </tfoot>
             </table>
         </div>
     </div>
@@ -282,6 +289,42 @@
                 "sProcessing": "<img src='/static/img/loading.gif' />"
             }
         });
+        var Calc_stats_data = function () {
+            var total_quantity_num = 0;
+            var total_amount_num = 0;
 
+
+            var quantity_num = 0;
+            var amount_num = 0;
+
+
+            var rows = $("#orderdetailtable > tbody > tr");
+            for (var i = 0; i < rows.length; i++) {
+                row = rows[i];
+                if (row.cells.length < 9) {
+                    continue;
+                }
+
+                quantity_num = row.cells[4].innerText;
+                amount_num = row.cells[6].innerText;
+
+
+                if (parseInt(quantity_num)) {
+                    total_quantity_num += parseInt(quantity_num);
+                }
+
+                if (parseFloat(amount_num)) {
+                    total_amount_num += parseFloat(amount_num);
+                }
+
+            }
+
+            $('#total_quantity_num').val(total_quantity_num.toString());
+            $('#total_amount_num').val(total_amount_num.toFixed(2).toString());
+
+        }
+        $(function () {
+            Calc_stats_data();
+        });
     </script>
 {% endblock %}
