@@ -27,7 +27,7 @@ class ordelistAdmin(admin.ModelAdmin):
         'supplier_name', 'express_company', 'express_no'
     )
     list_filter = (('created', DateFieldListFilter),'status','buyer_name')
-    search_fields = ['buyer_name']
+    search_fields = ['id']
     date_hierarchy = 'created'
 
     def queryset(self, request):
