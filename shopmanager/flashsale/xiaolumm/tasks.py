@@ -111,8 +111,8 @@ def task_ThousandRebeta_AgencySubsidy_MamaContribu():
         time_from = datetime.datetime(today.year-1, 12, 1, 0, 0, 0)  # 上个月初
         time_to = datetime.datetime(today.year, today.month, 1, 0, 0, 0)  # 这个月初
     else:
-        time_from = datetime.datetime(today.year, today.month, 1, 0, 0, 0)  # 上个月初
-        time_to = datetime.datetime(today.year, today.month, 28, 0, 0, 0)  # 这个月初
+        time_from = datetime.datetime(today.year, today.month-1, 1, 0, 0, 0)  # 上个月初
+        time_to = datetime.datetime(today.year, today.month, 1, 0, 0, 0)  # 这个月初
 
 
     xlmms = XiaoluMama.objects.all()
