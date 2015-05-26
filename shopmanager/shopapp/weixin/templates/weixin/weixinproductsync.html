@@ -61,7 +61,7 @@
 </div>
 <div class="well">
 <form method="GET" action="." class="form-horizontal">
-  <input type="hidden" name="product_ids" value="{{ object.product_ids }}"/>
+  <input id="product_id" type="hidden" name="product_ids" value="{{ object.product_ids }}"/>
   <div class="form-group">
     <label for="product-link1" class="col-sm-2 control-label">链接一</label>
     <div class="col-sm-10">
@@ -81,8 +81,10 @@
     </div>
   </div>
   <div class="form-group">
-    <div class="col-sm-offset-2 col-sm-10">
-      <button type="submit" class="btn btn-info">下载并更新商品信息</button>
+    <div class="col-sm-offset-2 col-sm-12">
+      <button type="submit"  class="btn btn-lg btn-info">下载并更新商品信息</button>
+      <a href="javascript:void(0);" src="{% url weixin_product_verify %}" class="btn btn-lg btn-success verify-confirm">确认核对商品信息</a>
+      <a href="{{ object.next }}" class="btn btn-lg btn-warning">返回商品列表</a>
     </div>
   </div>
 </form>
@@ -90,8 +92,39 @@
 <div class="well" style="text-align:center;">
 <form method="POST" action="." >
     <input type="hidden" name="product_ids" value="{{ object.product_ids }}"/>
+    <input type="hidden" name="next" value="{{ object.next }}" />
     <button type="submit" class="btn btn-lg btn-primary">更新微信商品库存</button>
 </form>
 </div>
 </fieldset>
+{% endblock %}
+
+{% block delayed_script %}
+<script type="text/javascript">
+
+$(document).ready(function(){
+	
+	$('.verify-confirm').click(function(){
+	
+		var verify_url = $(this).attr('src');
+		var product_ids = $("#product_id").val();
+		var params = {'product_ids':product_ids };
+		
+		var callback = function(resp){
+			if (resp.code == 0){
+				var lcs = $('.table > tbody > tr >td >img:last-child');
+				$.each(lcs,function(index,dd){
+					$(dd).after('<img src="/static/admin/img/icon-yes.gif" />');
+				});
+			}else{
+				alert('校验出错！');
+			}
+		};
+		
+		$.post(verify_url,params,callback,'json');
+	});
+	
+})
+
+</script>
 {% endblock %}

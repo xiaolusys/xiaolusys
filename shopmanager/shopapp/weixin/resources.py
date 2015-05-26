@@ -8,6 +8,6 @@ class WeixinProductResource(ModelResource):
     """ docstring for ProductList ModelResource """
 
     model = WXProduct
-    fields = ('id','product_list','product_ids')
+    fields = ('id','product_list','product_ids','next','code','response')
     exclude = ('url',)
     

@@ -49,6 +49,11 @@ class Product(models.Model):
     REMAIN = pcfg.REMAIN
     DELETE = pcfg.DELETE
     
+    UP_SHELF = 1
+    DOWN_SHELF = 0
+    SHELF_CHOICES = ((UP_SHELF,u'已上架'),
+                     (DOWN_SHELF,u'已下架'))
+    
     ProductCodeDefect = ProductDefectException
     PRODUCT_CODE_DELIMITER = '.'
     NO_PIC_PATH = '/media/img/nopic.jpg'
@@ -100,6 +105,9 @@ class Product(models.Model):
     
     sale_charger = models.CharField(max_length=32,db_index=True,blank=True,verbose_name=u'归属采购员')
     storage_charger = models.CharField(max_length=32,db_index=True,blank=True,verbose_name=u'归属仓管员')
+    
+    is_verify    = models.BooleanField(default=False,verbose_name=u'是否校对')
+    shelf_status = models.IntegerField(choices=SHELF_CHOICES,default=DOWN_SHELF,verbose_name=u'上架状态')
     
     objects = ProductManager()
     

@@ -1,3 +1,7 @@
+
+########### 2015-5-26  #################
+alter table shop_items_product add column is_verify tinyint NOT NULL;
+alter table shop_items_product add column shelf_status int(11) NOT NULL;
 ########### 2015-5-14  #################
 alter table xiaolumm_carrylog add column log_type varchar(8) NOT NULL;
 alter table xiaolumm_carrylog add column carry_type varchar(8) NOT NULL;

@@ -86,7 +86,7 @@ class Customer(models.Model):
     phone   = models.CharField(max_length=18,blank=True,verbose_name=u'电话') 
     
     openid  = models.CharField(max_length=28,db_index=True,blank=True,verbose_name=u'微信ID') 
-    unionid = models.CharField(max_length=28,unique=True,verbose_name=u'联合ID') 
+    unionid = models.CharField(max_length=28,unique=True,verbose_name=u'联合ID')
     
     status     = models.IntegerField(choices=USER_STATUS_CHOICES,default=NORMAL,verbose_name= u'状态') 
     

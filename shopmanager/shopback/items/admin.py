@@ -1,5 +1,6 @@
 #-*- coding:utf8 -*-
 import json
+import urllib
 import datetime,time
 import cStringIO as StringIO
 from django.contrib import admin
@@ -93,12 +94,19 @@ class ProductAdmin(admin.ModelAdmin):
     list_per_page = 25
     list_display = ('id','outer_id_link','pic_link','collect_num','category_select',
                     'remain_num','wait_post_num','cost' ,'std_sale_price','agent_price'
-                   ,'sync_stock','is_match','is_split','sale_time','sale_charger','charger_select','district_link','status')
+                   ,'sync_stock','is_match','is_split','is_verify','sale_time',
+                   'sale_charger','charger_select','district_link','shelf_status')
     list_display_links = ('id',)
     #list_editable = ('name',)
     
     date_hierarchy = 'sale_time'
 #     ordering = ['created','']
+
+    list_filter = ('shelf_status','is_verify','status',('sale_time',DateScheduleFilter),
+                   ChargerFilter,'sync_stock','is_split','is_match','is_assign'
+                   ,'post_check',('created',DateFieldListFilter),'category')
+
+    search_fields = ['id','outer_id', 'name' , 'barcode','sale_charger','storage_charger']
     
     def outer_id_link(self, obj):
         
@@ -204,11 +212,6 @@ class ProductAdmin(admin.ModelAdmin):
     
     inlines = [ProductdetailInline,ProductSkuInline]
     
-    list_filter = (ChargerFilter,'status',('sale_time',DateScheduleFilter)
-                   ,'sync_stock','is_split','is_match','is_assign'
-                   ,'post_check',('created',DateFieldListFilter),'category')
-
-    search_fields = ['id','outer_id', 'name' , 'barcode','sale_charger','storage_charger']
     
     #--------设置页面布局----------------
     fieldsets =(('商品基本信息:', {
@@ -550,8 +553,11 @@ class ProductAdmin(admin.ModelAdmin):
          
         product_ids = ','.join([str(p.id) for p in queryset])
         
-        return HttpResponseRedirect(reverse('weixin_product_modify')
-                                    +'?format=html&product_ids=%s'%product_ids)
+        absolute_uri = request.build_absolute_uri()
+        params = {'format':'html','product_ids':product_ids,'next':absolute_uri}
+        url_params = urllib.urlencode(params)
+        
+        return HttpResponseRedirect(reverse('weixin_product_modify')+'?'+url_params)
         
     weixin_product_action.short_description = u"更新微信商品库存信息"
     
