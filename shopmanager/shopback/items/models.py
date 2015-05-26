@@ -52,7 +52,7 @@ class Product(models.Model):
     UP_SHELF = 1
     DOWN_SHELF = 0
     SHELF_CHOICES = ((UP_SHELF,u'已上架'),
-                     (DOWN_SHELF,u'已下架'))
+                     (DOWN_SHELF,u'未上架'))
     
     ProductCodeDefect = ProductDefectException
     PRODUCT_CODE_DELIMITER = '.'

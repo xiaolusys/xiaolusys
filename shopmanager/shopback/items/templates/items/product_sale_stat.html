@@ -73,28 +73,28 @@
 <div class="container">
 <div class="outer-filter">
 <form  class="form-inline" method="GET" action="/items/product/sale/" >
-       <div class="div-inline">
-         <label class="control-label" for="shop_id">选择店铺:</label>
-         <select name="shop_id" class="selector">
-           <option value="" >全部</option>
+ <div class="div-inline">
+ <label class="control-label" for="shop_id">选择店铺:</label>
+ <select name="shop_id" class="selector">
+   <option value="" >全部</option>
 	{% for shop in sale_stats.shops %}
 	<option value="{{ shop.id }}" {% if sale_stats.shop_id == shop.id %}selected{% endif %}>{{ shop.nick }}</option>
 	{% endfor %}
-         </select>
-      </div>
-      <div class="div-inline">
-        <label class="control-label" for="df">选择日期:</label>
-        <input type="text" id="f_datepicker" name="df" class="datepicker" value="{{ sale_stats.df }}"
-         />-<input type="text" id="t_datepicker" name="dt" class="datepicker" value="{{ sale_stats.dt }}" />
-      </div>
-       <div class="div-inline">
-         <label class="control-label" for="outer_id">商家编码:</label>
-         <input type="text" name="outer_id" value="{{ sale_stats.outer_id }}"/>
-       </div>
-        <div class="div-inline">
-        	<input type="submit" value="热售商品" class="btn btn-primary" name="_saleable"/>
-        	<input type="submit" value="滞销商品" class="btn btn-inverse" name="_unsaleable"/>
-        </div>
+ </select>
+  </div>
+  <div class="div-inline">
+    <label class="control-label" for="df">选择日期:</label>
+    <input type="text" id="f_datepicker" name="df" class="datepicker" value="{{ sale_stats.df }}"
+     />-<input type="text" id="t_datepicker" name="dt" class="datepicker" value="{{ sale_stats.dt }}" />
+  </div>
+   <div class="div-inline">
+     <label class="control-label" for="outer_id">商家编码:</label>
+     <input type="text" name="outer_id" value="{{ sale_stats.outer_id }}"/>
+   </div>
+    <div class="div-inline">
+    	<input type="submit" value="热售商品" class="btn btn-primary" name="_saleable"/>
+    	<input type="submit" value="滞销商品" class="btn btn-inverse" name="_unsaleable"/>
+  </div>
 </form>
 </div>
 <div id="content" style="display:block;clear:both;">
