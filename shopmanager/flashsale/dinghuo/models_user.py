@@ -19,7 +19,8 @@ class MyGroup(models.Model):
 
 
 class MyUser(models.Model):
-    user = BigIntegerForeignKey(DjangoUser, unique=True, verbose_name=u'原始用户')
+    
+    user  = BigIntegerForeignKey(DjangoUser, unique=True, verbose_name=u'原始用户')
     group = BigIntegerForeignKey(MyGroup, verbose_name=u'组', blank=True)
 
     class Meta:

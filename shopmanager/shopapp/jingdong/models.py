@@ -267,8 +267,12 @@ def add_jingdong_user(sender, user,top_session,
                       top_parameters, *args, **kwargs):
     """docstring for user_logged_in"""
     
-    profile = user.get_profile()
+    from shopback.users.models import User
+    profiles = User.objects.filter(type=User.SHOP_TYPE_JD,user=user)
+    if profiles.count() == 0:
+        return
     
+    profile   = profiles[0]
     user_dict = apis.jd_seller_vender_info_get(
                     access_token=top_parameters['access_token'])
     
