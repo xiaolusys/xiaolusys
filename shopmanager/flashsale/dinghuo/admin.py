@@ -4,6 +4,7 @@ from flashsale.dinghuo.models import OrderList, OrderDetail, orderdraft
 from django.http import HttpResponseRedirect
 from flashsale.dinghuo import log_action, CHANGE
 from shopback.base.options import DateFieldListFilter
+from flashsale.dinghuo.models_user import MyUser, MyGroup
 
 
 class orderdetailInline(admin.TabularInline):
@@ -89,4 +90,6 @@ class ordelistAdmin(admin.ModelAdmin):
 admin.site.register(OrderList, ordelistAdmin)
 admin.site.register(OrderDetail)
 admin.site.register(orderdraft)
+admin.site.register(MyUser)
+admin.site.register(MyGroup)
 

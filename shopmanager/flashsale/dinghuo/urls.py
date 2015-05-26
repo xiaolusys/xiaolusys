@@ -2,7 +2,7 @@
 from django.conf.urls import include, url
 from flashsale.dinghuo import views
 from django.contrib.auth.decorators import login_required
-from .views import dailystatsview, changedetailview, StatsByProductIdView
+from .views import dailystatsview, changedetailview, StatsByProductIdView, dailyworkview
 from django.views.decorators.csrf import csrf_exempt
 
 urlpatterns = [
@@ -29,5 +29,6 @@ urlpatterns = [
     url(r'^daily/', login_required(dailystatsview.as_view()), name="dailystats"),  #大货每天统计
     url(r'^changearrivalquantity/$', views.changearrivalquantity, name="changearrivalquantity"),
     url(r'^statsbypid/(?P<product_id>\d+)/$', login_required(StatsByProductIdView.as_view()), name="statsbypid"),  #根据商品id统计大货
+    url(r'^dailywork/', login_required(dailyworkview.as_view()), name="dailywork"),  #大货任务
 
 ]
