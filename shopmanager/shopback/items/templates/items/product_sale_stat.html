@@ -22,12 +22,10 @@
             width:900px;
             display:block; 
         }
-        input{
-            width:80px;
-        }
-        select{
-            width:120px;
-        }
+        .head-inner-filter{
+			margin:10px auto 0px;
+			width:60%;
+		}
         .div-inline{
             display:inline;        
         }
@@ -37,18 +35,6 @@
         }
         .inner-filter{
             margin10px;     
-        }
-   			.inner-filter input{
- 			width:40px;
- 			height:24px;
-            padding:1px; 
-        }
-       .inner-filter label{
-            display:inline;        
-        }
-       .inner-filter button{
-             height:24px;   
-             padding:2px 10px;
         }
         .inner-filter-one{
            color:#f89406;
@@ -63,42 +49,72 @@
             margin-bottom:0px;
             background-color:#F1F1F1;
         }
+        .list-table-head .image{
+		  width: 100%;
+		  height: 40px;
+		  position: relative;
+		  background-color: #ffffff;
+		}
+        .list-table-head .image span {
+		  position: absolute;
+		  width: 20px;
+		  height: 15px;
+		  left: 5%;
+		  top: 5%;
+		  margin-left: -0px;
+		  margin-top: -0px;
+		  border-radius: 15px;
+		  background-color: rgba(0, 0, 0, 0.1);
+		  color: #968E8E;
+		  line-height: 20px;
+		  text-align: center;
+		  font-size:14px;
+		}
         #summary-table{
-        background-color:#3299CC;
+        	background-color:#3299CC;
         }
     </style>
 </head>
 <body>
 {% with object.sale_stats as sale_stats %}
 <div class="container">
-<div class="outer-filter">
-<form  class="form-inline" method="GET" action="/items/product/sale/" >
- <div class="div-inline">
- <label class="control-label" for="shop_id">选择店铺:</label>
- <select name="shop_id" class="selector">
-   <option value="" >全部</option>
-	{% for shop in sale_stats.shops %}
-	<option value="{{ shop.id }}" {% if sale_stats.shop_id == shop.id %}selected{% endif %}>{{ shop.nick }}</option>
-	{% endfor %}
- </select>
-  </div>
-  <div class="div-inline">
-    <label class="control-label" for="df">选择日期:</label>
-    <input type="text" id="f_datepicker" name="df" class="datepicker" value="{{ sale_stats.df }}"
-     />-<input type="text" id="t_datepicker" name="dt" class="datepicker" value="{{ sale_stats.dt }}" />
-  </div>
-   <div class="div-inline">
-     <label class="control-label" for="outer_id">商家编码:</label>
-     <input type="text" name="outer_id" value="{{ sale_stats.outer_id }}"/>
-   </div>
-    <div class="div-inline">
-    	<input type="submit" value="热售商品" class="btn btn-primary" name="_saleable"/>
+<div class="head-inner-filter" >
+<form  class="form-horizontal" role="form" method="GET" action="/items/product/sale/" >
+ <div class="row form-group" >
+	<div class="col-xs-4">
+	 <label class="control-label" for="shop_id">选择店铺:</label>
+	 <select name="shop_id" class="form-control">
+	   	<option value="" >全部</option>
+		{% for shop in sale_stats.shops %}
+		<option value="{{ shop.id }}" {% if sale_stats.shop_id == shop.id %}selected{% endif %}>{{ shop.nick }}</option>
+		{% endfor %}
+	 </select>
+  	</div>
+  	<div class="col-xs-4">
+		<label class="control-label" for="df">起始日期:</label>
+		<input type="text" id="f_datepicker" name="df" class="form-control datepicker" value="{{ sale_stats.df }}"/>
+	</div>
+	<div class="col-xs-4">
+		<label class="control-label" for="dt">结束日期:</label>
+		<input type="text" id="t_datepicker" name="dt" class="form-control datepicker" value="{{ sale_stats.dt }}"/>
+	</div>
+ </div>
+ <div class="row form-group">
+	<div class="col-xs-6">
+		<label class="control-label" for="outer_id">商家编码:</label>
+		<input type="text" name="outer_id" class="form-control" value="{{ object.outer_id }}"/>
+	</div>
+	<div class="col-xs-6">
+		<div style="margin-top:25px;">
+		<input type="submit" value="热售商品" class="btn btn-primary" name="_saleable"/>
     	<input type="submit" value="滞销商品" class="btn btn-inverse" name="_unsaleable"/>
-  </div>
+    	</div>
+	</div>
+ </div>
 </form>
 </div>
 <div id="content" style="display:block;clear:both;">
-  <div class="inner-filter">
+  <div class="inner-filter" style="margin-bottom:10px;">
     <div class="div-inline inner-filter-one">
 	<label class="control-label"  for="sale_gte" >销量区间:</label>
 	<input type="text" name="sale_gte" class="sale_num" value="" size="4"
@@ -146,7 +162,8 @@
     <div class="list-table-head">
       <table class="table table-bordered table-condensed">
         <tr>
-        	<td class="col-xs-1">{{ forloop.counter }}</td>
+        	<td class="col-xs-1">
+        		<div class="image"><img src="{{ product.pic_path }}" alt="{{ product.title }}" class="img-circle" width="50px;"><span>{{ forloop.counter }}</span></div></td>
             <td class="col-xs-1">{{ product.outer_id }}</td>
             <td class="col-xs-2"><a href="/admin/items/product/?q={{ product.outer_id }}" target="_blank">{{ product.name }}</a></td>
             <td class="col-xs-1">{{ product.sale_num }}</td>
