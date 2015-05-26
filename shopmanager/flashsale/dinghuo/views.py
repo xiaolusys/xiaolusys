@@ -516,12 +516,6 @@ class dailyworkview(View):
         except:
             return 'none'
 
-    def getDinghuoQuantityByPid(self, product):
-        orderdetails = OrderDetail.objects.filter(product_id=product.id)
-        quantity = 0
-        for order in orderdetails:
-            quantity += order.buy_quantity
-        return quantity
 
     def parseEndDt(self, end_dt):
 
@@ -534,14 +528,17 @@ class dailyworkview(View):
 
         return parse_date(end_dt)
 
-    def getSourceOrders(self, start_dt=None, end_dt=None, ):
+    def getSourceOrders(self, start_dt=None, end_dt=None):
 
         order_qs = MergeOrder.objects.filter(sys_status=pcfg.IN_EFFECT) \
             .exclude(merge_trade__type=pcfg.REISSUE_TYPE) \
             .exclude(merge_trade__type=pcfg.EXCHANGE_TYPE) \
             .exclude(gift_type=pcfg.RETURN_GOODS_GIT_TYPE)
-
         order_qs = order_qs.filter(pay_time__gte=start_dt, pay_time__lte=end_dt)
+        order_qs = order_qs.filter(merge_trade__status__in=pcfg.ORDER_SUCCESS_STATUS) \
+            .exclude(merge_trade__sys_status__in=(pcfg.INVALID_STATUS, pcfg.ON_THE_FLY_STATUS)) \
+            .exclude(merge_trade__sys_status=pcfg.FINISHED_STATUS, merge_trade__is_express_print=False)
+
         order_qs = order_qs.extra(where=["CHAR_LENGTH(outer_id)>=9"]) \
             .filter(Q(outer_id__startswith="9") | Q(outer_id__startswith="1") | Q(outer_id__startswith="8"))
         return order_qs
@@ -551,111 +548,43 @@ class dailyworkview(View):
                                                                                  created__lte=end_dt)
         return dinghuo_qs
 
-    def getProductByOuterId(self, outer_id):
 
-        try:
-            return Product.objects.get(outer_id=outer_id)
-        except:
-            return None
-
-    def getProductSkuByOuterId(self, outer_id, outer_sku_id):
-
-        try:
-            return ProductSku.objects.get(outer_id=outer_sku_id,
-                                          product__outer_id=outer_id)
-        except:
-            return None
-
-    def getProductAndSku(self, outer_id, outer_sku_id):
-
-        self.prod_map = {}
-        outer_key = '-'.join((outer_id, outer_sku_id))
-        if self.prod_map.has_key(outer_key):
-            return self.prod_map.get(outer_key)
-
-        prod = self.getProductByOuterId(outer_id)
-        prod_sku = self.getProductSkuByOuterId(outer_id, outer_sku_id)
-        self.prod_map[outer_key] = (prod, prod_sku)
-        return (prod, prod_sku)
-
-    def getDinghuoQuantityByPidAndSku(self, outer_id, outer_sku_id, dinghuo_qs):
-        allorderqs = dinghuo_qs.filter(outer_id=outer_id, chichu_id=outer_sku_id)
+    def getDinghuoQuantityByPidAndSku(self, outer_id, sku_id, dinghuo_qs):
+        print outer_id, sku_id, dinghuo_qs
+        allorderqs = dinghuo_qs.filter(product_id=outer_id, chichu_id=sku_id)
+        print allorderqs
         buy_quantity = 0
         for dinghuobean in allorderqs:
             buy_quantity += dinghuobean.buy_quantity
+        print buy_quantity
         return buy_quantity
 
-    def getDinghuoStatus(self, num, dinghuonum, target_date, query_time):
-        query_time = datetime.date(query_time.year,query_time.month,query_time.day)
-        if target_date==query_time:
-            if num > 9:
-                if (num > dinghuonum):
-                    return '缺货' + str(num - dinghuonum) + '件'
-                else:
-                    return "订货完成"
-            else:
-                return "暂时不要订货"
-        else:
-            return ('缺货' + str(num - dinghuonum) + '件') if (num > dinghuonum) else "订货完成"
+    def getDinghuoStatus(self, num, dinghuonum):
+        return ('缺货' + str(num - dinghuonum) + '件') if (num > dinghuonum) else "OK"
 
 
-    def getTradeSortedItems(self, order_qs, dinghuo_qs, target_date, query_time, groupname):
-        trade_items = {}
+    def getProductByDate(self, shelve_date, groupname):
         groupmembers = []
-        alluser = MyUser.objects.filter(group__name=groupname)
-        for user in alluser:
-            groupmembers.append(user.user.username)
-        for order in order_qs:
-            outer_id = order.outer_id.strip() or str(order.num_iid)
-            outer_sku_id = order.outer_sku_id.strip() or str(order.sku_id)
-            order_num = order.num or 0
-            prod, prod_sku = self.getProductAndSku(outer_id, outer_sku_id)
-            if prod_sku:
-                dinghuo_num = self.getDinghuoQuantityByPidAndSku(outer_id, prod_sku.id, dinghuo_qs)
-            else:
-                dinghuo_num = 0
-            if prod and (groupname == '0' or prod.sale_charger in groupmembers) and prod.sale_time == target_date:
-                if trade_items.has_key(outer_id):
-                    trade_items[outer_id]['num'] += order_num
-                    skus = trade_items[outer_id]['skus']
+        if groupname == '0':
+            productqs = Product.objects.filter(sale_time=shelve_date)
+        else:
+            alluser = MyUser.objects.filter(group__name=groupname)
+            for user in alluser:
+                groupmembers.append(user.user.username)
+            productqs = Product.objects.filter(sale_time=shelve_date, sale_charger__in=groupmembers)
+        return productqs
 
-                    if skus.has_key(outer_sku_id):
-                        skus[outer_sku_id]['num'] += order_num
-                        skus[outer_sku_id]['dinghuo_status'] = self.getDinghuoStatus(order_num, dinghuo_num,
-                                                                                     target_date, query_time)
+    def getSourceOrderByouterid(self, p_outer_id, orderqs):
+        return orderqs.filter(outer_id__startswith=p_outer_id)
 
-                    else:
-                        prod_sku_name = prod_sku.name if prod_sku else order.sku_properties_name
-                        skus[outer_sku_id] = {
-                            'sku_name': prod_sku_name,
-                            'num': order_num,
-                            'dinghuo_num': dinghuo_num,
-                            'dinghuo_status': self.getDinghuoStatus(order_num, dinghuo_num, target_date, query_time)}
-                else:
-                    prod_sku_name = prod_sku.name if prod_sku else order.sku_properties_name
-                    trade_items[outer_id] = {
-                        'product_id': prod and prod.id or None,
-                        'num': order_num,
-                        'title': prod.name if prod else order.title,
-                        'pic_path': prod and prod.PIC_PATH or '',
-                        'sale_charger': prod and prod.sale_charger or '',
-                        'storage_charger': prod and prod.storage_charger or '',
-                        'skus': {outer_sku_id: {
-                            'sku_name': prod_sku_name,
-                            'num': order_num,
-                            'dinghuo_num': dinghuo_num,
-                            'dinghuo_status': self.getDinghuoStatus(order_num, dinghuo_num, target_date, query_time)}}
-                    }
-
-        order_items = sorted(trade_items.items(), key=lambda d: d[1]['num'], reverse=True)
-
-        total_num = 0
-        for trade in order_items:
-            total_num += trade[1]['num']
-            trade[1]['skus'] = sorted(trade[1]['skus'].items(), key=lambda d: d[0])
-
-        order_items.append(total_num)
-        return trade_items
+    def getSaleNumBySku(self, sku_outer_id, orderqs):
+        sale_num = 0
+        if orderqs:
+            for order in orderqs:
+                outer_sku_id = order.outer_sku_id.strip() or str(order.sku_id)
+                if sku_outer_id == outer_sku_id:
+                    sale_num += order.num
+        return sale_num
 
     def get(self, request):
         content = request.REQUEST
@@ -676,11 +605,29 @@ class dailyworkview(View):
         shelve_from = datetime.datetime(target_date.year, target_date.month, target_date.day)
         time_to = self.parseEndDt(shelve_tostr)
         query_time = self.parseEndDt(query_timestr)
-
+        productqs = self.getProductByDate(target_date, group_tuple[groupname])
         orderqs = self.getSourceOrders(shelve_from, time_to)
         dinghuoqs = self.getSourceDinghuo(shelve_from, query_time)
 
-        trade_list = self.getTradeSortedItems(orderqs, dinghuoqs, target_date, query_time, group_tuple[groupname])
+        print productqs.count()
+        trade_list = []
+        for product in productqs:
+            product_dict = model_to_dict(product)
+            product_dict['prod_skus'] = []
+            guiges = product.prod_skus.all()
+            orderqsbyoouterid = self.getSourceOrderByouterid(product.outer_id, orderqs)
+            for guige in guiges:
+                sku_dict = model_to_dict(guige)
+                sale_num = self.getSaleNumBySku(guige.outer_id, orderqsbyoouterid)
+                dinghuo_num = self.getDinghuoQuantityByPidAndSku(product.id, guige.id, dinghuoqs)
+                sku_dict['sale_num'] = sale_num
+                sku_dict['dinghuo_num'] = dinghuo_num
+                sku_dict['sku_name'] = guige.properties_alias if len(
+                    guige.properties_alias) > 0 else guige.properties_name
+                sku_dict['dinghuo_status'] = self.getDinghuoStatus(sale_num, dinghuo_num)
+                product_dict['prod_skus'].append(sku_dict)
+
+            trade_list.append(product_dict)
 
         return render_to_response("dinghuo/dailywork.html",
                                   {"targetproduct": trade_list, "shelve_from": target_date, "time_to": time_to,

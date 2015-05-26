@@ -9,9 +9,8 @@ from flashsale.dinghuo.models_user import MyUser, MyGroup
 
 class orderdetailInline(admin.TabularInline):
     model = OrderDetail
-    fields = (
-        'product_name', 'outer_id', 'product_chicun', 'buy_quantity', 'buy_unitprice', 'total_price',
-        'arrival_quantity')
+    fields = ('product_id', 'chichu_id', 'product_name', 'outer_id', 'product_chicun', 'buy_quantity', 'buy_unitprice',
+              'total_price', 'arrival_quantity')
     extra = 3
 
 
@@ -19,14 +18,14 @@ class ordelistAdmin(admin.ModelAdmin):
     fieldsets = ((u'订单信息:', {
         'classes': ('expand',),
         'fields': ( 'supplier_name', 'express_company', 'express_no'
-                    , 'receiver', 'status','order_amount', 'note')
+                    , 'receiver', 'status', 'order_amount', 'note')
     }),)
     inlines = [orderdetailInline]
     list_display = (
         'id', 'buyer_name', 'order_amount', 'quantity', 'receiver', 'created', 'shenhe', 'changedetail', 'note',
         'supplier_name', 'express_company', 'express_no'
     )
-    list_filter = (('created', DateFieldListFilter),'status','buyer_name')
+    list_filter = (('created', DateFieldListFilter), 'status', 'buyer_name')
     search_fields = ['id']
     date_hierarchy = 'created'
 
@@ -50,14 +49,16 @@ class ordelistAdmin(admin.ModelAdmin):
 
     def shenhe(self, obj):
         symbol_link = obj.status or u'【空标题】'
-        return u'<a href="/sale/dinghuo/detail/{0}/" target="_blank" style="display: block;">{1}</a>'.format(int(obj.id), symbol_link)
+        return u'<a href="/sale/dinghuo/detail/{0}/" target="_blank" style="display: block;">{1}</a>'.format(
+            int(obj.id), symbol_link)
 
     shenhe.allow_tags = True
     shenhe.short_description = "状态"
 
     def changedetail(self, obj):
         symbol_link = u'【详情页】'
-        return u'<a href="/sale/dinghuo/changedetail/{0}/" target="_blank" style="display: block;" >{1}</a>'.format(int(obj.id), symbol_link)
+        return u'<a href="/sale/dinghuo/changedetail/{0}/" target="_blank" style="display: block;" >{1}</a>'.format(
+            int(obj.id), symbol_link)
 
     changedetail.allow_tags = True
     changedetail.short_description = "更改订单"
