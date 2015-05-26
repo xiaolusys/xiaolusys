@@ -427,7 +427,9 @@ def cash_Out_Verify(request):
                                                  status__in=SaleTrade.INGOOD_STATUS)
         payment = 0
         for pay in pay_saletrade:
-            payment = payment + pay.payment
+            sale_orders = pay.sale_orders.filter(refund_status__gt=SaleRefund.REFUND_REFUSE_BUYER)
+            total_refund = sale_orders.aggregate(total_refund=Sum('refund_fee')).get('total_refund') or 0
+            payment = payment + pay.payment - total_refund
         
         x_choice = 0 
         if click_nums >= 150 or shoppings_count >= 6:
@@ -568,4 +570,5 @@ def stats_summary(request):
         data.append(data_entry)
 
     return render_to_response("stats_summary.html", {"data": data,"prev_day":prev_day,
-                                   "target_date":target_date, "next_day":next_day}, context_instance=RequestContext(request))
+                              "target_date":target_date, "next_day":next_day}, 
+                              context_instance=RequestContext(request))
