@@ -140,19 +140,8 @@ def notifyTradeRefundTask(notify):
             logger.error('refund error:%s'%notify)
             return 
         
-        srefund.status = SaleRefund.REFUND_SUCCESS
-        srefund.save()
-        
-        sorder = SaleOrder.objects.get(id=srefund.order_id)
-        sorder.refund_status = SaleRefund.REFUND_SUCCESS
-        if sorder.sale_trade.status == SaleTrade.WAIT_SELLER_SEND_GOODS:
-            sorder.status = SaleTrade.TRADE_CLOSED
-        sorder.save()
-        
-        strade = sorder.sale_trade
-        if strade.normal_orders.count() == 0:
-            strade.status = SaleTrade.TRADE_CLOSED
-            strade.save()
+        srefund.refund_Confirm()
+        strade = MergeTrade.objects.get(id=srefund.trade_id)
     
         saleservice = FlashSaleService(strade)
         saleservice.payTrade()

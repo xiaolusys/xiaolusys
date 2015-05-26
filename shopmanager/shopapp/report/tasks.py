@@ -5,6 +5,7 @@ import time
 import datetime
 import calendar
 from django.conf import settings
+from celery.task import task
 from celery.task.sets import subtask
 from shopback.orders.tasks import saveUserIncrementOrdersTask
 from shopback.fenxiao.tasks import saveUserPurchaseOrderTask,saveUserIncrementPurchaseOrderTask
@@ -23,7 +24,6 @@ logger = logging.getLogger('django.request')
 
 BLANK_CHAR = ''
 MONTH_TRADE_FILE_TEMPLATE = 'D%s.xls'
-
 
 
 @single_instance_task(24*60*60,prefix='shopapp.report.tasks.')
@@ -134,33 +134,9 @@ def updateMonthTradeXlsFileTask(year=None,month=None):
     return {'update_from':format_datetime(last_month_first_days),'update_to':format_datetime(last_month_last_days)}
 
 
-import cStringIO as StringIO
-from django.db import connection 
-from common.utils import CSVUnicodeWriter
 
-def task_Generate_Report_File():
     
-    dt = datetime.datetime.now()
-    exec_sql = 'select out_sid,tid,user__nick,receiver_name,receiver_state,receiver_city,weight,logistics_company,post_fee,weight_time from '
-    export_fields = ['out_sid','tid','user__nick','receiver_name','receiver_state',
-                    'receiver_city','weight','logistics_company','post_fee','weight_time']
-        
     
-    cursor = connection.cursor()
-    cursor.execute(exec_sql)
-    cursor_set = cursor.fetchall()
     
-    lg_tuple = [[u'运单ID',u'原始单号',u'店铺',u'收货人',u'省',u'市',u'重量',u'快递',u'实付邮费',u'称重日期']]
-    for lg in cursor_set:
-        lg_tuple.append(lg)
-    
-    file_name = u'logistic-%s-%s.csv'%(dt.month,dt.day)
-    myfile = open(file_name,'rw')
-    
-    writer = CSVUnicodeWriter(myfile,encoding= 'utf8')
-    writer.writerows(lg_tuple)
-
-
-    myfile.close()
 
 

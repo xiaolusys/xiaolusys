@@ -116,7 +116,11 @@ SYNC_MODEL_SCHEDULE = {
         'schedule':crontab(minute="0",hour="*/7"),#
         'args':()
     },
-    
+    u'定时生成每月物流信息报表':{     #更新库存
+        'task':'shopback.trades.tasks.task_Gen_Logistic_Report_File_By_Month',
+        'schedule':crontab(minute="0",hour="4", day_of_month='10'),#
+        'args':()
+    },
 
 #    'runs-every-weeks-order-amount':{   #更新用户商城订单结算，按周
 #        'task':'shopback.amounts.tasks.updateAllUserOrdersAmountTask',
