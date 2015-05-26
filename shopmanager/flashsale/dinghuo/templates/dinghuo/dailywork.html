@@ -1,0 +1,96 @@
+{% extends "dinghuo/dinghuo_base.html" %}
+{% block title %}大货统计{% endblock %}
+{% block head_script %}
+    <link href="{{ STATIC_URL }}jquery-timepicker-addon/timepicker/jquery-ui-timepicker-addon.css" type="text/css"/>
+    <script src="{{ STATIC_URL }}jquery/jquery-ui-1.8.13.min.js"></script>
+    <script src="{{ STATIC_URL }}jquery-timepicker-addon/timepicker/jquery-ui-timepicker-addon.js"
+            type="text/javascript"></script>
+    <script src="{{ STATIC_URL }}jquery-timepicker-addon/js/jquery-ui-timepicker-zh-CN.js"
+            type="text/javascript"></script>
+{% endblock %}
+{% block container %}
+    <form class="form-horizontal" role="form" method="GET" action="/sale/dinghuo/dailywork/">
+        <div class="row form-group" style="margin-top: 40px">
+            <div class="col-xs-3">
+                <label class="control-label" for="df">上架日期:</label>
+                <input type="text" id="f_datepicker" name="df" class="form-control datepicker"
+                       value="{{ shelve_from }}"/>
+            </div>
+            <div class="col-xs-3">
+                <label class="control-label" for="dt">订单结束时间:</label>
+                <input type="text" id="t_datepicker" name="dt" class="form-control datepicker" value="{{ time_to }}"/>
+            </div>
+            <div class="col-xs-3">
+                <label class="control-label" for="showt">查看订货日期:</label>
+                <input type="text" id="show_datepicker" name="showt" class="form-control datepicker"
+                       value="{{ searchDinghuo }}"/>
+            </div>
+            <div class="col-xs-2">
+                <label class="control-label" for="groupname">查看分组:</label>
+                <select class="form-control " name="groupname" id="groupname_id">
+                    <option value="0" {% ifequal groupname 0 %} selected="selected" {% endifequal %}>所有</option>
+                    <option class="btn-info" {% ifequal groupname 1 %} selected="selected" {% endifequal %} value="1">采购A</option>
+                    <option class="btn-warning" {% ifequal groupname 2 %} selected="selected" {% endifequal %}value="2">采购B</option>
+                    <option class="btn-success" {% ifequal groupname 3 %} selected="selected" {% endifequal %}value="3">采购C</option>
+                </select>
+            </div>
+            <div class="col-xs-1">
+                <input type="submit" value="查询" class="btn btn-primary" style="margin-top:27px;"/>
+            </div>
+        </div>
+    </form>
+
+    <div class="row" style="margin-top: 20px">
+        <table class="table table-bordered">
+            <thead>
+            <th>商品名称</th>
+            <th>图片</th>
+            <th>尺寸</th>
+            <th>销售数</th>
+            <th>已拍数量</th>
+            <th>状态</th>
+            </thead>
+            <tbody>
+            {% for key,product in  targetproduct.items %}
+                {% for key,sku in product.skus %}
+                    <tr>
+                        {% if forloop.first %}
+                            <td rowspan="{{ product.skus|length }}">{{ product.title }} </td>
+                            <td rowspan="{{ product.skus|length }}"><img src="{{ product.pic_path }}" width="70px"></td>
+                        {% endif %}
+                        <td>{{ sku.sku_name }}</td>
+                        <td>{{ sku.num }}</td>
+                        <td><a href="/sale/dinghuo/statsbypid/{{ product.product_id }}" target="_blank"
+                               style="display: block;">{{ sku.dinghuo_num }}</a></td>
+                        <td>{{ sku.dinghuo_status }}</td>
+
+                    </tr>
+
+
+                {% endfor %}
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+{% endblock %}
+
+{% block tail_script %}
+    <script type="text/javascript">
+        $(function () {
+            $("#f_datepicker").datepicker({
+                dateFormat: "yy-mm-dd"
+            });
+
+            $("#t_datepicker").datetimepicker({
+                timeFormat: "HH:mm:ss",
+                dateFormat: "yy-mm-dd"
+            });
+            $("#show_datepicker").datetimepicker({
+                timeFormat: "HH:mm:ss",
+                dateFormat: "yy-mm-dd"
+            });
+
+        });
+    </script>
+
+{% endblock %}
