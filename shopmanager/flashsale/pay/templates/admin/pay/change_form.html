@@ -1,6 +1,6 @@
 {% extends "admin/change_form.html" %}
 {% load i18n %}
-
+{% load url from future %}
 {% block extrahead %}{{ block.super }}
 
 <script src="{{ STATIC_URL }}jquery/jquery.js"></script>
@@ -19,6 +19,13 @@
     });
 </script>
 {% endblock extrahead %}
+
+
+
+
+
+
+
 
 {% block after_field_sets %}{{ block.super }}
 {% if original.refund_no %}
