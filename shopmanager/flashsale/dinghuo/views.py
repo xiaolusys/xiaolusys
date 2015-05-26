@@ -608,9 +608,12 @@ class dailyworkview(View):
         for order in order_qs:
             outer_id = order.outer_id.strip() or str(order.num_iid)
             outer_sku_id = order.outer_sku_id.strip() or str(order.sku_id)
-            dinghuo_num = self.getDinghuoQuantityByPidAndSku(outer_id, outer_sku_id, dinghuo_qs) or 0
             order_num = order.num or 0
             prod, prod_sku = self.getProductAndSku(outer_id, outer_sku_id)
+            if prod_sku:
+                dinghuo_num = self.getDinghuoQuantityByPidAndSku(outer_id, prod_sku.id, dinghuo_qs)
+            else:
+                dinghuo_num = 0
             if prod and (groupname == '0' or prod.sale_charger in groupmembers) and prod.sale_time == target_date:
                 if trade_items.has_key(outer_id):
                     trade_items[outer_id]['num'] += order_num
