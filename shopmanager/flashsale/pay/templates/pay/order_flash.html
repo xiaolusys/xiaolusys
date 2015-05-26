@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+  <head>
+    <title>
+      特卖订单明细
+    </title>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+    <title>
+    </title>
+    <!-- Bootstrap -->
+    <link href="{{ STATIC_URL }}bootstrap/css/bootstrap3.2.0.min.css" rel="stylesheet">
+    <link href='{{ STATIC_URL }}jquery/jquery-ui-1.10.1.css' rel='stylesheet'  />
+    <style type="text/css" title="currentStyle">
+      @import "{{ STATIC_URL }}jquery-datatable-addon/css/demo_page.css"; 
+      @import "{{ STATIC_URL}}jquery-datatable-addon/css/demo_table.css";
+    </style>
+    <style type="text/css" >
+      tfoot input{ width:50%; } .yanse {color:#FF0000}
+    </style>
+  </head>
+  
+  <body>
+  
+    <div class="container" style="margin-top:20px" >
+    <div class="row">
+    
+    <div class="col-lg-6" >
+    <h1>
+        <span class="label label-success">
+          特卖订单详细 
+        </span>
+         </h1>
+  </div>
+  <div class="col-lg-6" >
+    <h2>
+        <span class="label label-warning">
+          当前显示： {{yesterday}}
+        </span>
+     </h2>
+  </div>
+      
+</div>
+ <div class="row"   >
+
+      <nav class="navbar navbar-default" role="navigation">
+        <div class="navbar-header">
+          <a class="navbar-brand" href="/mm/order_flashsale/">
+            全部订单
+          </a>
+          <a class="navbar-brand" href="#"   class="yanse">
+          </a>
+        </div>
+
+        <div>
+          <ul class="nav navbar-nav">
+            <li >
+            <a href="/mm/sale_state/1/">
+              等待买家付款
+            </a>
+          </li>
+          <li>
+          <a href="/mm/sale_state/2/">
+            已付款
+          </a>
+        </li>
+        <li>
+        <a href="/mm/sale_state/3/">
+          已发货
+        </a>
+      </li>
+      <li>
+      <a href="/mm/sale_state/5/">
+        交易成功
+      </a>
+    </li>
+    <li>
+    <a href="#">
+    </a>
+  </li>
+  <li class="dropdown">
+  <a href="#" class="dropdown-toggle" data-toggle="dropdown">
+    交易状态(详细)
+    <b class="caret">
+    </b>
+
+  </a>
+
+  <ul class="dropdown-menu">
+    <li>
+    <a href="/mm/sale_state/1/">
+      待付款
+    </a>
+  </li>
+  <li>
+  <a href="/mm/sale_state/2/">
+    已付款
+  </a>
+</li>
+<li>
+<a href="/mm/sale_state/5/">
+  交易成功
+</a>
+</li>
+<li class="divider">
+</li>
+<li>
+<a href="/mm/sale_state/3/">
+  已发货
+</a>
+</li>
+<li class="divider">
+</li>
+<li>
+<a href="/mm/sale_state/4/">
+  货到付款签收
+</a>
+</li>
+</ul>
+</li>
+
+<li >
+<a href="/mm/refunding_state/1/">
+  退款中
+</a>
+</li>
+<li>
+<a href="/mm/refund_state/7/">
+  退款成功
+</a>
+</li>
+
+
+<li class="dropdown">
+<a href="#" class="dropdown-toggle" data-toggle="dropdown">
+  退款状态(详细)
+  <b class="caret">
+  </b>
+
+</a>
+
+
+
+
+<ul class="dropdown-menu">
+  <li>
+  <a href="/mm/refund_state/0/">
+    没有退款
+  </a>
+</li>
+<li>
+<a href="/mm/refund_state/3/">
+  买家已经申请退款
+</a>
+</li>
+<li>
+<a href="/mm/refund_state/4/">
+  卖家已经同意退款
+</a>
+</li>
+<li>
+<a href="/mm/refund_state/5/">
+  买家已经退货
+</a>
+</li>
+<li>
+<a href="/mm/refund_state/2/">
+  卖家拒绝退款
+</a>
+</li>
+<li>
+<a href="/mm/refund_state/6/">
+  确认退款，等待返款
+</a>
+</li>
+<li class="divider">
+</li>
+<li>
+<a href="/mm/refund_state/1/">
+  退款关闭
+</a>
+</li>
+<li class="divider">
+</li>
+<li>
+<a href="/mm/refund_state/7/">
+  退款成功
+</a>
+</li>
+</ul>
+</li>
+
+
+
+
+
+
+
+</ul>
+</div>
+</nav>
+
+
+</div>
+
+<div  class="row"  >
+  <div class="col-lg-3" >
+    <a href="/mm/time_rank/1/">
+      前一天&nbsp&nbsp</br>
+      
+    </a>
+  </div>
+  <div class="col-lg-3" >
+    <a href="/mm/time_rank/0/">
+      今天&nbsp&nbsp{{time}}
+    </a>
+  </div>
+  <div class="col-lg-3" >
+    <a href="/mm/time_rank/2/">
+      后一天
+    </a>
+  </div>
+  <div class="col-lg-3" >
+    <a href="/mm/order_flashsale/">
+      显示全部订单
+    </a>
+  </div>
+</div>
+
+<div  class="row">
+  <div style="margin-top:50px">
+    <table id="state_table" class="table table-bordered  table-striped table-condensed ">
+      <thead   >
+        <tr    bgcolor="green"   >
+          <th>
+            订单ID
+          </th>
+          <th>
+            原单id
+          </th>
+          <th>
+            买家昵称
+          </th>
+          <th>
+            收货人信息
+          </th>
+          <!--<th>付款方式</th>-->
+          <th>
+            实付款
+          </th>
+        <!-- <th>
+            付款日期
+          </th>-->
+          <th>
+            生成日期
+          </th>
+          <th>
+            交易状态
+          </th>
+          <!--<th>退款状态</th>-->
+          <th>
+            操作
+          </th>
+        </tr>
+      </thead>
+      <tbody>
+        <!--{{info}}-->
+        <!--
+          {% for item in info%} <tr><td>{{ item.trade.tid }}</td></tr> {% endfor %}
+        -->
+
+        {% for item in info %}
+        <tr>
+          <td>
+            {{ item.trade.id }}
+          </td>
+          <td >
+            {% for item1 in item.detail %}
+            <div class="container" style="width:400px ;margin-left:0px;">
+
+              <div class="row">
+                <p class="text-warning">
+                  订单编号&nbsp{{ item1.order.oid }}&nbsp&nbsp&nbsp&nbsp&nbsp{{ item1.order.created }}
+                </p>
+              </div>
+
+              <div class="row">
+                <div class="col-lg-3">
+                  <img src={{item1.product.pic_path}} width="80px"  class="img-circle" />
+                </div>
+
+                <div class="col-lg-6">
+                  <p    style="font-family:arial;font-size:15px;font-weight:bold;">
+                    商品名称：{{item1.product.name}}
+                  </p>
+                  <p  style="font-family:bold;font-size:15px;">
+                    外部编码： {{item1.product.outer_id}}
+                  </p>
+                  <p  style="font-family:bold;font-size:15px;">
+                    条码： {{item1.product.barcode}}
+                  </p>
+                </div>
+                <div class="col-lg-3">
+                  <p  style="font-family:bold;font-size:15px;" class="yanse"  >
+                    退款状态：{{item1.order.get_refund_status_display }}
+                  </p>
+                  <p  style="font-family:bold;font-size:15px;"   class="yanse">
+                    金额：{{item1.order.refund_fee }}
+                  </p>
+                </div>
+              </div>
+              
+              {% if not forloop.last %}
+              <hr style=" height:2px;border:none;border-top:2px dotted #185598;" />
+
+
+
+              {% endif %}
+             
+              {% endfor %}
+            </td>
+
+            <td>
+              {{ item.trade.buyer_nick }}
+            </td>
+            <td>
+              <p    style="font-family:arial;font-size:15px;font-weight:bold;">
+                姓名：{{item.trade.receiver_name}}
+              </p>
+              <p  style="font-family:bold;font-size:15px;">
+                地址：{{item.trade.receiver_state}} {{item.trade.receiver_city}} {{item.trade.receiver_district}}
+              </p>
+              <p    style="font-family:arial;font-size:15px;font-weight:bold;">
+                详细地址：{{item.trade.receiver_address}}&nbsp&nbsp&nbsp&nbsp&nbsp邮编：{{item.trade.receiver_zip}}
+              </p>
+              <p  style="font-family:bold;font-size:15px;">
+                手机： {{item.trade.receiver_mobile}}&nbsp&nbsp&nbsp&nbsp&nbsp电话：{{item.trade.receiver_phone}}
+              </p>
+
+            </td>
+
+            <!--<td>{{item.trade.get_channel_display }}</td>-->
+            <td>
+              {{ item.trade.payment }}
+            </td>
+            <!--<td>
+              {{ item.trade.pay_time }}
+            </td>-->
+            <td>
+              {{ item.trade.created }}
+            </td>
+            <td  class="yanse">
+              {{item.trade.get_status_display }}
+            </td>
+            
+            <td>
+              <a href="/admin/pay/saletrade/{{ item.trade.id }}/">
+                点击修改
+              </a>
+              <br />
+            </td>
+          </tr>
+
+
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+ </div>
+</body>
+
+
+
+
+
+<!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
+<script src="{{ STATIC_URL }}jquery/jquery-2.1.1.min.js">
+</script>
+<!-- Include all compiled plugins (below), or include individual files as needed -->
+<script src="{{ STATIC_URL }}bootstrap/js/bootstrap-3.2.0.min.js">
+</script>
+<script src="{{ STATIC_URL }}jquery-datatable-addon/jquery.dataTables.min.js" type="text/javascript">
+</script>
+
+
+<script type="text/javascript">
+  $('#state_table').dataTable({
+    //"bJQueryUI": true,
+    "bAutoWidth": false, //自适应宽度
+    "bProcessing":true,
+    "aaSorting": [[1, "asc"]],
+    "iDisplayLength": 5,
+    "aLengthMenu": [[5, 10, 100, -1], ["5条数据" ,10, 100, "All"]],
+    "sPaginationType": "full_numbers",//是否需要每页代码
+    //"sDom": '<"H"Tfr>t<"F"ip>',
+    "oLanguage": {
+      "sLengthMenu": "每页 _MENU_ 条",
+      "sZeroRecords": "抱歉， 没有找到",
+      "sInfo": "从 _START_ 到 _END_ /共 _TOTAL_ 条",
+      "sInfoEmpty": "没有数据",
+      "sSearch": "搜索",
+      "sInfoFiltered": "(从 _MAX_ 条数据中检索)",
+      "oPaginate": {
+        "sFirst": "首页",
+        "sPrevious": "前一页",
+        "sNext": "后一页",
+        "sLast": "尾页"
+        },
+        "sZeroRecords": "没有检索到数据",
+        "sProcessing": "<img src='/static/img/loading.gif' />"
+      }
+      });
+    </script>
+    <!--
+      <script type="text/javascript"> $(function() { $(window).scroll(function(){ var w_height =
+      $(window).height();//浏览器高度 var scroll_top = $(document).scrollTop();//滚动条到顶部的垂直高度 if(scroll_top > 100){
+      $("#state_table").css("position" , "fixed").css("top","0").css("width",2300); }else{
+      $("#state_table").css("position" , "static"); } $("#state_table").css("position" ,
+      "fixed").css("top","0").css("width",2300); }); }); </script>
+    -->
+
+   
+  </html>

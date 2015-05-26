@@ -159,6 +159,7 @@ def tongji(sender, obj, **kwargs):
         tongjiorder.openid = obj.buyer_openid
         tongjiorder.wxorderamount = obj.order_total_price
         tongjiorder.shoptime = obj.order_create_time
+        tongjiorder.tichengcount=obj.order_total_price
         tongjiorder.save()
 
 #     clicksbetwwentime = Clicks.objects.filter(created__range=(time_from, ordertime)).filter(
