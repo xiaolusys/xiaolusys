@@ -10,6 +10,7 @@ ORDER_PRODUCT_STATUS = (
     (pcfg.ZUOFEI, u'作废'),
     (pcfg.COMPLETED, u'验货完成'),
     (pcfg.QUESTION, u'有问题'),
+    (pcfg.DEALED, u'已处理'),
 )
 
 
