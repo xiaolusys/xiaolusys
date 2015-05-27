@@ -571,9 +571,11 @@ class ProductAdmin(admin.ModelAdmin):
         outer_ids = [p.outer_id for p in verify_qs]
         from shopapp.weixin.models import WXProduct
         from shopapp.weixin.tasks import task_Mod_Merchant_Product_Status
-        
-        task_Mod_Merchant_Product_Status(outer_ids,WXProduct.UP_ACTION)
-        
+        try:
+            task_Mod_Merchant_Product_Status(outer_ids,WXProduct.UP_ACTION)
+        except Exception,exc:
+            self.message_user(request,u"更新错误，商品上下架接口异常：%s"%exc.message)
+            
         up_queryset = queryset.filter(shelf_status=Product.UP_SHELF)
         down_queryset = queryset.filter(shelf_status=Product.DOWN_SHELF)
         
@@ -592,9 +594,11 @@ class ProductAdmin(admin.ModelAdmin):
         outer_ids = [p.outer_id for p in queryset]
         from shopapp.weixin.models import WXProduct
         from shopapp.weixin.tasks import task_Mod_Merchant_Product_Status
-        
-        task_Mod_Merchant_Product_Status(outer_ids,WXProduct.DOWN_ACTION)
-        
+        try:
+            task_Mod_Merchant_Product_Status(outer_ids,WXProduct.DOWN_ACTION)
+        except Exception,exc:
+            self.message_user(request,u"更新错误，商品上下架接口异常：%s"%exc.message)
+            
         up_queryset = queryset.filter(shelf_status=Product.UP_SHELF)
         down_queryset = queryset.filter(shelf_status=Product.DOWN_SHELF)
         
