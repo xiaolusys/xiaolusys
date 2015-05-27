@@ -11,16 +11,16 @@
 {% block container %}
     <form class="form-horizontal" role="form" method="GET" action="/sale/dinghuo/dailywork/">
         <div class="row form-group" style="margin-top: 40px">
-            <div class="col-xs-3">
+            <div class="col-xs-2">
                 <label class="control-label" for="df">上架日期:</label>
                 <input type="text" id="f_datepicker" name="df" class="form-control datepicker"
                        value="{{ shelve_from }}"/>
             </div>
-            <div class="col-xs-3">
+            <div class="col-xs-2">
                 <label class="control-label" for="dt">订单结束时间:</label>
                 <input type="text" id="t_datepicker" name="dt" class="form-control datepicker" value="{{ time_to }}"/>
             </div>
-            <div class="col-xs-3">
+            <div class="col-xs-2">
                 <label class="control-label" for="showt">查看订货日期:</label>
                 <input type="text" id="show_datepicker" name="showt" class="form-control datepicker"
                        value="{{ searchDinghuo }}"/>
@@ -29,9 +29,25 @@
                 <label class="control-label" for="groupname">查看分组:</label>
                 <select class="form-control " name="groupname" id="groupname_id">
                     <option value="0" {% ifequal groupname 0 %} selected="selected" {% endifequal %}>所有</option>
-                    <option class="btn-info" {% ifequal groupname 1 %} selected="selected" {% endifequal %} value="1">采购A</option>
-                    <option class="btn-warning" {% ifequal groupname 2 %} selected="selected" {% endifequal %}value="2">采购B</option>
-                    <option class="btn-success" {% ifequal groupname 3 %} selected="selected" {% endifequal %}value="3">采购C</option>
+                    <option class="btn-info" {% ifequal groupname 1 %} selected="selected" {% endifequal %} value="1">
+                        采购A
+                    </option>
+                    <option class="btn-warning" {% ifequal groupname 2 %} selected="selected" {% endifequal %}value="2">
+                        采购B
+                    </option>
+                    <option class="btn-success" {% ifequal groupname 3 %} selected="selected" {% endifequal %}value="3">
+                        采购C
+                    </option>
+                </select>
+            </div>
+            <div class="col-xs-2">
+                <label class="control-label" for="dhstatus">大货状态:</label>
+                <select class="form-control " name="dhstatus" id="dhstatus_id">
+                    <option value="0" {% ifequal dhstatus '0' %} selected="selected" {% endifequal %}>所有</option>
+                    <option class="btn-danger" {% ifequal dhstatus '1' %} selected="selected" {% endifequal %}
+                            value="1">
+                        缺货
+                    </option>
                 </select>
             </div>
             <div class="col-xs-1">
@@ -53,23 +69,28 @@
             </thead>
             <tbody>
             {% for product in  targetproduct %}
-                {% for sku in product.prod_skus %}
-                    <tr>
-                        {% if forloop.first %}
-                            <td rowspan="{{ product.prod_skus|length }}">{{ product.name }} </td>
-                            <td rowspan="{{ product.prod_skus|length }}">{{ product.outer_id }} </td>
-                            <td rowspan="{{ product.prod_skus|length }}"><img src="{{ product.pic_path }}" width="70px"></td>
-                        {% endif %}
-                        <td>{{ sku.sku_name }}</td>
-                        <td>{{ sku.sale_num }}</td>
-                        <td><a href="/sale/dinghuo/statsbypid/{{ product.id }}" target="_blank"
-                               style="display: block;">{{ sku.dinghuo_num }}</a></td>
-                        <td>{{ sku.dinghuo_status }}</td>
+                {% with product.prod_skus|length as sku_len %}
+                    {% if sku_len > 0 %}
+                        {% for sku in product.prod_skus %}
+                            <tr>
+                                {% if forloop.first %}
+                                    <td rowspan="{{ sku_len }}">{{ product.name }} </td>
+                                    <td rowspan="{{ sku_len }}">{{ product.outer_id }} </td>
+                                    <td rowspan="{{ sku_len }}"><img src="{{ product.pic_path }}" width="70px">
+                                    </td>
+                                {% endif %}
+                                <td>{{ sku.sku_name }}</td>
+                                <td>{{ sku.sale_num }}</td>
+                                <td><a href="/sale/dinghuo/statsbypid/{{ product.id }}" target="_blank"
+                                       style="display: block;">{{ sku.dinghuo_num }}</a></td>
+                                <td class="dinghuo_status">{{ sku.dinghuo_status }}</td>
 
-                    </tr>
+                            </tr>
 
 
-                {% endfor %}
+                        {% endfor %}
+                    {% endif %}
+                {% endwith %}
             {% endfor %}
             </tbody>
         </table>
@@ -92,6 +113,15 @@
                 dateFormat: "yy-mm-dd"
             });
 
+        });
+        $(document).ready(function () {
+            var p = $(".dinghuo_status");
+            p.each(function (i) {
+                var temp = p.eq(i);
+                if (temp.html() != 'OK') {
+                    temp.css("background-color", "red")
+                }
+            });
         });
     </script>
 

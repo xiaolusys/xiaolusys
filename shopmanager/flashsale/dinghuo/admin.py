@@ -91,6 +91,20 @@ class ordelistAdmin(admin.ModelAdmin):
 admin.site.register(OrderList, ordelistAdmin)
 admin.site.register(OrderDetail)
 admin.site.register(orderdraft)
-admin.site.register(MyUser)
+
+
+class myuserAdmin(admin.ModelAdmin):
+    fieldsets = ((u'用户信息:', {
+        'classes': ('expand',),
+        'fields': ('user', 'group')
+    }),)
+
+    list_display = (
+        'user', 'group'
+    )
+    list_filter = ('group',)
+    search_fields = ['user__username']
+
+admin.site.register(MyUser,myuserAdmin)
 admin.site.register(MyGroup)
 
