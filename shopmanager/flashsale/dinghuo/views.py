@@ -550,17 +550,14 @@ class dailyworkview(View):
 
 
     def getDinghuoQuantityByPidAndSku(self, outer_id, sku_id, dinghuo_qs):
-        print outer_id, sku_id, dinghuo_qs
         allorderqs = dinghuo_qs.filter(product_id=outer_id, chichu_id=sku_id)
-        print allorderqs
         buy_quantity = 0
         for dinghuobean in allorderqs:
             buy_quantity += dinghuobean.buy_quantity
-        print buy_quantity
         return buy_quantity
 
     def getDinghuoStatus(self, num, dinghuonum):
-        return ('缺货' + str(num - dinghuonum) + '件') if (num > dinghuonum) else "OK"
+        return (num > dinghuonum), ('缺货' + str(num - dinghuonum) + '件') if (num > dinghuonum) else "OK"
 
 
     def getProductByDate(self, shelve_date, groupname):
@@ -593,6 +590,8 @@ class dailyworkview(View):
         shelve_tostr = content.get("dt", None)
         query_timestr = content.get("showt", None)
         groupname = content.get("groupname", 0)
+        dhstatus = content.get("dhstatus", '1')
+        print dhstatus,'fdfdfdfd',dhstatus == u'0',dhstatus == u'1'
         groupname = int(groupname)
         group_tuple = ('0', '采购A', '采购B', '采购C')
         target_date = today
@@ -609,7 +608,6 @@ class dailyworkview(View):
         orderqs = self.getSourceOrders(shelve_from, time_to)
         dinghuoqs = self.getSourceDinghuo(shelve_from, query_time)
 
-        print productqs.count()
         trade_list = []
         for product in productqs:
             product_dict = model_to_dict(product)
@@ -620,16 +618,18 @@ class dailyworkview(View):
                 sku_dict = model_to_dict(guige)
                 sale_num = self.getSaleNumBySku(guige.outer_id, orderqsbyoouterid)
                 dinghuo_num = self.getDinghuoQuantityByPidAndSku(product.id, guige.id, dinghuoqs)
-                sku_dict['sale_num'] = sale_num
-                sku_dict['dinghuo_num'] = dinghuo_num
-                sku_dict['sku_name'] = guige.properties_alias if len(
-                    guige.properties_alias) > 0 else guige.properties_name
-                sku_dict['dinghuo_status'] = self.getDinghuoStatus(sale_num, dinghuo_num)
-                product_dict['prod_skus'].append(sku_dict)
+                dinghuostatus, dinghuostatusstr = self.getDinghuoStatus(sale_num, dinghuo_num)
+                if dinghuostatus or dhstatus == u'0':
+                    sku_dict['sale_num'] = sale_num
+                    sku_dict['dinghuo_num'] = dinghuo_num
+                    sku_dict['sku_name'] = guige.properties_alias if len(
+                        guige.properties_alias) > 0 else guige.properties_name
+                    sku_dict['dinghuo_status'] = dinghuostatusstr
+                    product_dict['prod_skus'].append(sku_dict)
 
             trade_list.append(product_dict)
 
         return render_to_response("dinghuo/dailywork.html",
                                   {"targetproduct": trade_list, "shelve_from": target_date, "time_to": time_to,
-                                   "searchDinghuo": query_time, 'groupname': groupname},
+                                   "searchDinghuo": query_time, 'groupname': groupname,"dhstatus":dhstatus},
                                   context_instance=RequestContext(request))
