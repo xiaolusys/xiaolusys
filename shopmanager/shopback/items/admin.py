@@ -562,6 +562,48 @@ class ProductAdmin(admin.ModelAdmin):
         
     weixin_product_action.short_description = u"更新微信商品库存信息"
     
+    #库存商品上架（批量）
+    def upshelf_product_action(self,request,queryset):
+        
+        verify_qs = queryset.filter(is_verify=True)
+        unverify_qs = queryset.filter(is_verify=False)
+        
+        outer_ids = [p.outer_id for p in verify_qs]
+        from shopapp.weixin.models import WXProduct
+        from shopapp.weixin.tasks import task_Mod_Merchant_Product_Status
+        
+        task_Mod_Merchant_Product_Status(outer_ids,WXProduct.UP_ACTION)
+        
+        up_queryset = queryset.filter(shelf_status=Product.UP_SHELF)
+        down_queryset = queryset.filter(shelf_status=Product.DOWN_SHELF)
+        
+        if unverify_qs.count() > 0:
+            self.message_user(request,u"有%s个商品未核对，请核对后上架!"%unverify_qs.count())
+        
+        self.message_user(request,u"已成功上架%s个商品,有%s个商品上架失败!"%(up_queryset.count(),down_queryset.count()))
+        
+        return HttpResponseRedirect(request.get_full_path())
+        
+    upshelf_product_action.short_description = u"上架微信商品 (批量)"
+    
+    #库存商品上架（批量）
+    def downshelf_product_action(self,request,queryset):
+         
+        outer_ids = [p.outer_id for p in queryset]
+        from shopapp.weixin.models import WXProduct
+        from shopapp.weixin.tasks import task_Mod_Merchant_Product_Status
+        
+        task_Mod_Merchant_Product_Status(outer_ids,WXProduct.DOWN_ACTION)
+        
+        up_queryset = queryset.filter(shelf_status=Product.UP_SHELF)
+        down_queryset = queryset.filter(shelf_status=Product.DOWN_SHELF)
+        
+        self.message_user(request,u"已成功下架%s个商品,有%s个商品下架失败!"%(down_queryset.count(),up_queryset.count()))
+        
+        return HttpResponseRedirect(request.get_full_path())
+        
+    downshelf_product_action.short_description = u"下架微信商品 (批量)"
+    
     #导出商品规格信息
     def export_prodsku_info_action(self,request,queryset):
         """ 导出商品及规格信息 """
@@ -599,6 +641,8 @@ class ProductAdmin(admin.ModelAdmin):
                'invalid_product_action',
                'sync_purchase_items_stock',
                'weixin_product_action',
+               'upshelf_product_action',
+               'downshelf_product_action',
                'cancle_orders_out_stock',
                'active_syncstock_action',
                'cancel_syncstock_action',

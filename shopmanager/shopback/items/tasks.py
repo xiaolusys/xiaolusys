@@ -375,6 +375,7 @@ def gradCalcProductSaleTask():
     else:
         subtask(CalcProductSaleTask()).delay(yest_date = dt - datetime.timedelta(days=1),
                                            update_warn_num = True)
+        
 
 ###########################################################  商品库存管理  ########################################################
 

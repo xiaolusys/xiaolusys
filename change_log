@@ -1,4 +1,9 @@
+########### 2015-5-27 #################
+alter table shop_weixin_product add column created datetime NOT NULL;
+alter table shop_weixin_product add column modified datetime NOT NULL;
 
+alter table shop_weixin_productsku add column created datetime NOT NULL;
+alter table shop_weixin_productsku add column modified datetime NOT NULL;
 ########### 2015-5-26  #################
 alter table shop_items_product add column is_verify tinyint NOT NULL;
 alter table shop_items_product add column shelf_status int(11) NOT NULL;
