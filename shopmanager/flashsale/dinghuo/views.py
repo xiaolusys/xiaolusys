@@ -593,7 +593,6 @@ class dailyworkview(View):
         query_timestr = content.get("showt", None)
         groupname = content.get("groupname", 0)
         dhstatus = content.get("dhstatus", '1')
-        print dhstatus, 'fdfdfdfd', dhstatus == u'0', dhstatus == u'1'
         groupname = int(groupname)
         group_tuple = ('0', '采购A', '采购B', '采购C')
         target_date = today
