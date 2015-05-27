@@ -34,30 +34,35 @@
             url = '/m/mama_verify_action/';
 
             tuijianren_id = "tuijianren_" + id;
+            weikefu_id = "weikefu_" + id;
 
             var tuijianren = document.getElementById(tuijianren_id).value; //获取推荐人字段 手机号码
+            var weikefu = document.getElementById(weikefu_id).value; //获取微客服字段
+
             var user_show = document.getElementById('user_show').innerHTML;
             if (!(/^1[3458][0-9]{9}$/.test(tuijianren))) {
                 //alert('不是完整的11位手机号或者正确的手机号前七位');
                 alert('手机号码有误，请核实，谢谢！');
             }
-            else if(user_show === ""){
+            else if (user_show === "") {
                 alert('管理员掉线，请重新登录系统后操作，谢谢！');
             }
-            else
-            {
-                data = {"id": id, 'tuijianren': tuijianren};
+            else {
+                data = {"id": id, 'tuijianren': tuijianren, 'weikefu': weikefu};
 
                 var bt_verify = $('#' + index);
 
                 tui = 'tuijianren_' + id;
                 var tuijianren_attr = $('#' + tui);
+                wei = 'weikefu_' + id;
+                var weikefu_attr = $('#' + wei);
 
                 function callback(result) {
                     if (result == "ok") {
                         bt_verify.text('已通过接管');
                         bt_verify.attr("disabled", "disabled"); // button 状态关闭
                         tuijianren_attr.attr("disabled", "disabled"); //输入框状态关闭
+                        weikefu_attr.attr("disabled", "disabled"); //输入框状态关闭
                     }
                     else {
                         alert("server error");
@@ -93,6 +98,7 @@
                     <th>妈妈编号</th>
                     <th>手机号</th>
                     <th>已付款</th>
+                    <th>昵称</th>
                     <th>推荐人手机</th>
                     <th>操作</th>
                 </tr>
@@ -104,7 +110,8 @@
                         <td id="{{ item.id }}">{{ item.id }}</td>
                         <td>{{ item.mobile }}</td>
                         <td>{{ item.sum_trade }}</td>
-                        <td><input id="tuijianren_{{ item.id }}" name="tuijianren" required="required" width="10"/></td>
+                        <td><input id="weikefu_{{ item.id }}" name="weikefu" /></td>
+                        <td><input id="tuijianren_{{ item.id }}" name="tuijianren" /></td>
                         <td>
                             <div class="btn-group" role="group" aria-label="...">
                                 <button type="button" id="bt_verify_{{ item.id }}" {% if item.flag == 0 %}
