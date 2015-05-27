@@ -69,24 +69,28 @@
             </thead>
             <tbody>
             {% for product in  targetproduct %}
-                {% for sku in product.prod_skus %}
-                    <tr>
-                        {% if forloop.first %}
-                            <td rowspan="{{ product.prod_skus|length }}">{{ product.name }} </td>
-                            <td rowspan="{{ product.prod_skus|length }}">{{ product.outer_id }} </td>
-                            <td rowspan="{{ product.prod_skus|length }}"><img src="{{ product.pic_path }}" width="70px">
-                            </td>
-                        {% endif %}
-                        <td>{{ sku.sku_name }}</td>
-                        <td>{{ sku.sale_num }}</td>
-                        <td><a href="/sale/dinghuo/statsbypid/{{ product.id }}" target="_blank"
-                               style="display: block;">{{ sku.dinghuo_num }}</a></td>
-                        <td class="dinghuo_status">{{ sku.dinghuo_status }}</td>
+                {% with product.prod_skus|length as sku_len %}
+                    {% if sku_len > 0 %}
+                        {% for sku in product.prod_skus %}
+                            <tr>
+                                {% if forloop.first %}
+                                    <td rowspan="{{ sku_len }}">{{ product.name }} </td>
+                                    <td rowspan="{{ sku_len }}">{{ product.outer_id }} </td>
+                                    <td rowspan="{{ sku_len }}"><img src="{{ product.pic_path }}" width="70px">
+                                    </td>
+                                {% endif %}
+                                <td>{{ sku.sku_name }}</td>
+                                <td>{{ sku.sale_num }}</td>
+                                <td><a href="/sale/dinghuo/statsbypid/{{ product.id }}" target="_blank"
+                                       style="display: block;">{{ sku.dinghuo_num }}</a></td>
+                                <td class="dinghuo_status">{{ sku.dinghuo_status }}</td>
 
-                    </tr>
+                            </tr>
 
 
-                {% endfor %}
+                        {% endfor %}
+                    {% endif %}
+                {% endwith %}
             {% endfor %}
             </tbody>
         </table>
@@ -114,7 +118,7 @@
             var p = $(".dinghuo_status");
             p.each(function (i) {
                 var temp = p.eq(i);
-                if (temp.html() != 'OK'){
+                if (temp.html() != 'OK') {
                     temp.css("background-color", "red")
                 }
             });

@@ -563,12 +563,14 @@ class dailyworkview(View):
     def getProductByDate(self, shelve_date, groupname):
         groupmembers = []
         if groupname == '0':
-            productqs = Product.objects.filter(sale_time=shelve_date)
+            productqs = Product.objects.values('id', 'name', 'outer_id', 'pic_path').filter(
+                sale_time=shelve_date)
         else:
             alluser = MyUser.objects.filter(group__name=groupname)
             for user in alluser:
                 groupmembers.append(user.user.username)
-            productqs = Product.objects.filter(sale_time=shelve_date, sale_charger__in=groupmembers)
+            productqs = Product.objects.values('id', 'name', 'outer_id', 'pic_path').filter(sale_time=shelve_date,
+                                                                                            sale_charger__in=groupmembers)
         return productqs
 
     def getSourceOrderByouterid(self, p_outer_id, orderqs):
@@ -591,7 +593,7 @@ class dailyworkview(View):
         query_timestr = content.get("showt", None)
         groupname = content.get("groupname", 0)
         dhstatus = content.get("dhstatus", '1')
-        print dhstatus,'fdfdfdfd',dhstatus == u'0',dhstatus == u'1'
+        print dhstatus, 'fdfdfdfd', dhstatus == u'0', dhstatus == u'1'
         groupname = int(groupname)
         group_tuple = ('0', '采购A', '采购B', '采购C')
         target_date = today
@@ -604,26 +606,24 @@ class dailyworkview(View):
         shelve_from = datetime.datetime(target_date.year, target_date.month, target_date.day)
         time_to = self.parseEndDt(shelve_tostr)
         query_time = self.parseEndDt(query_timestr)
-        productqs = self.getProductByDate(target_date, group_tuple[groupname])
+        productdicts = self.getProductByDate(target_date, group_tuple[groupname])
         orderqs = self.getSourceOrders(shelve_from, time_to)
         dinghuoqs = self.getSourceDinghuo(shelve_from, query_time)
-
         trade_list = []
-        for product in productqs:
-            product_dict = model_to_dict(product)
+        for product_dict in productdicts:
             product_dict['prod_skus'] = []
-            guiges = product.prod_skus.all()
-            orderqsbyoouterid = self.getSourceOrderByouterid(product.outer_id, orderqs)
-            for guige in guiges:
-                sku_dict = model_to_dict(guige)
-                sale_num = self.getSaleNumBySku(guige.outer_id, orderqsbyoouterid)
-                dinghuo_num = self.getDinghuoQuantityByPidAndSku(product.id, guige.id, dinghuoqs)
+            guiges = ProductSku.objects.values('id', 'outer_id', 'properties_name', 'properties_alias').filter(
+                product_id=product_dict['id'])
+            orderqsbyoouterid = self.getSourceOrderByouterid(product_dict['outer_id'], orderqs)
+            for sku_dict in guiges:
+                sale_num = self.getSaleNumBySku(sku_dict['outer_id'], orderqsbyoouterid)
+                dinghuo_num = self.getDinghuoQuantityByPidAndSku(product_dict['id'], sku_dict['id'], dinghuoqs)
                 dinghuostatus, dinghuostatusstr = self.getDinghuoStatus(sale_num, dinghuo_num)
                 if dinghuostatus or dhstatus == u'0':
                     sku_dict['sale_num'] = sale_num
                     sku_dict['dinghuo_num'] = dinghuo_num
-                    sku_dict['sku_name'] = guige.properties_alias if len(
-                        guige.properties_alias) > 0 else guige.properties_name
+                    sku_dict['sku_name'] = sku_dict['properties_alias'] if len(
+                        sku_dict['properties_alias']) > 0 else sku_dict['properties_name']
                     sku_dict['dinghuo_status'] = dinghuostatusstr
                     product_dict['prod_skus'].append(sku_dict)
 
@@ -631,5 +631,5 @@ class dailyworkview(View):
 
         return render_to_response("dinghuo/dailywork.html",
                                   {"targetproduct": trade_list, "shelve_from": target_date, "time_to": time_to,
-                                   "searchDinghuo": query_time, 'groupname': groupname,"dhstatus":dhstatus},
+                                   "searchDinghuo": query_time, 'groupname': groupname, "dhstatus": dhstatus},
                                   context_instance=RequestContext(request))
