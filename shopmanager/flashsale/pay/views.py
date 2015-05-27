@@ -22,6 +22,10 @@ logger = logging.getLogger('django.request')
 import re
 UUID_RE = re.compile('^[a-zA-Z0-9-]{21,36}$')
 
+class ProductNotOnSale(Exception):
+    pass
+
+
 class PINGPPChargeView(View):
     
     def createSaleTrade(self,customer,form,charge=None):
@@ -91,7 +95,7 @@ class PINGPPChargeView(View):
             product = Product.objects.get(pk=form.get('item_id'))
             if (product.shelf_status != Product.UP_SHELF or
                  product.status != Product.NORMAL):
-                raise Exception(u'商品已下架，暂无法下单！')
+                raise ProductNotOnSale(u'商品已被挤下架啦！')
             
             sku = ProductSku.objects.get(pk=form.get('sku_id'),product=product)
             real_fee = int(sku.agent_price * int(form.get('num')) * 100)
@@ -161,6 +165,8 @@ class PINGPPChargeView(View):
                 logger.debug('CHARGE RESP: %s'%response_charge)
         except IntegrityError:
             err_msg = u'订单已提交'
+        except ProductNotOnSale,exc:
+            err_msg = exc.message
         except XiaoluMama.MultipleObjectsReturned,exc:
             logger.error(exc.message,exc_info=True)
             err_msg = u'OPENID异常请联系管理'

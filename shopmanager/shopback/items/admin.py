@@ -246,6 +246,53 @@ class ProductAdmin(admin.ModelAdmin):
         if not perms.has_change_product_skunum_permission(request.user):
             return self.readonly_fields + ('collect_num','warn_num','wait_post_num','sale_charger','storage_charger')
         return self.readonly_fields
+
+
+    def get_actions(self, request):
+        
+        user = request.user
+        actions = super(ProductAdmin, self).get_actions(request)
+        
+        if user.is_superuser:
+            return actions
+        
+        valid_actions = set([])
+        
+        if user.has_perm('items.change_product_shelf'):
+            valid_actions.add('upshelf_product_action')
+            valid_actions.add('downshelf_product_action')
+            
+        if user.has_perm('items.sync_product_stock'):
+            valid_actions.add('sync_items_stock')
+            valid_actions.add('sync_purchase_items_stock')
+            valid_actions.add('cancel_syncstock_action')
+            valid_actions.add('active_syncstock_action')
+            
+        if user.has_perm('items.regular_product_order'):
+            valid_actions.add('cancel_syncstock_action')
+            valid_actions.add('regular_saleorder_action')
+            valid_actions.add('deliver_saleorder_action')
+            
+        if user.has_perm('items.export_product_info'):
+            valid_actions.add('export_prodsku_info_action')
+            
+        if user.has_perm('items.create_product_purchase'):
+            valid_actions.add('create_saleproduct_order')
+            
+        if user.has_perm('items.invalid_product_info'):
+            valid_actions.add('invalid_product_action')
+        
+        unauth_actions = []
+        for action in actions.viewkeys():
+            action_ss = str(action)
+            if action_ss not in valid_actions:
+                unauth_actions.append(action_ss)
+                
+        for action in unauth_actions:
+            del actions[action]
+                
+        return actions
+    
     
     def response_add(self, request, obj, post_url_continue='../%s/'):
         
