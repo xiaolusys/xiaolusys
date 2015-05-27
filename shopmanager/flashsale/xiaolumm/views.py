@@ -614,6 +614,7 @@ def mama_Verify(request):
 def mama_Verify_Action(request):
     mama_id = request.GET.get('id')
     tuijianren = request.GET.get('tuijianren')
+    weikefu = request.GET.get('weikefu')
 
     xlmm = XiaoluMama.objects.get(id=mama_id)
     sum_trade = trade_Sum(xlmm.openid)
@@ -624,6 +625,7 @@ def mama_Verify_Action(request):
         xlmm.agencylevel = 2
         xlmm.charge_status = XiaoluMama.CHARGED
         xlmm.manager = request.user.id
+        xlmm.weikefu = weikefu
         xlmm.save()
     return HttpResponse('ok')
 

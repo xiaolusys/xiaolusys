@@ -7,6 +7,7 @@ APPROVAL = '审核'  #审核
 ZUOFEI = '作废'  #作废
 COMPLETED = '验货完成'  #验货完成
 QUESTION = '有问题'  #有问题
+DEALED = '已处理' #已处理
 
 #子订单系统内部状态
 IN_EFFECT = "IN_EFFECT"
