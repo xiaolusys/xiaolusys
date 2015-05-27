@@ -5,7 +5,7 @@ from django.contrib.auth.decorators import login_required
 
 
 
-from views import logclicks,StatsView,MamaStatsView,CashoutView,CashOutList,CarryLogList,landing,cash_Out_Verify,cash_modify,cash_reject,stats_summary
+from views import logclicks,StatsView,MamaStatsView,CashoutView,CashOutList,CarryLogList,landing,cash_Out_Verify,cash_modify,cash_reject,stats_summary,mama_Verify,mama_Verify_Action
 from .views import chargeWXUser,XiaoluMamaModelView
 
 urlpatterns = patterns('',
@@ -22,4 +22,6 @@ urlpatterns = patterns('',
     url(r'^cashmodify/(?P<data>\w+)/$',cash_modify), #
     url(r'^cashreject/(?P<data>\w+)/$',cash_reject), #
     url(r'^stats_summary/$',stats_summary,name="stats_summary"),
+    url(r'^mama_verify/$',mama_Verify,name="mama_verify"),
+    url(r'^mama_verify_action/$',mama_Verify_Action,name="mama_verify_action"),
 )

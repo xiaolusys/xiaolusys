@@ -572,3 +572,60 @@ def stats_summary(request):
     return render_to_response("stats_summary.html", {"data": data,"prev_day":prev_day,
                               "target_date":target_date, "next_day":next_day}, 
                               context_instance=RequestContext(request))
+
+
+
+###################### 妈妈审核功能
+
+from flashsale.pay.models_user import Customer
+from flashsale.pay.models import SaleTrade
+
+def trade_Sum(openid):
+    try:
+        customer = Customer.objects.get(unionid=openid)  # 找到对应的unionid 等于小鹿妈妈openid的顾客
+
+        sale_trades = SaleTrade.objects.filter(buyer_id=customer.id,status=SaleTrade.TRADE_FINISHED) # 过滤出买家id 是顾客id 并且订单状态是交易完成的订单
+        # 计算交易成功的金额  如果超过100才可以
+        sum_trade = 0
+        for sale_trade in sale_trades:
+            sum_trade = sum_trade + sale_trade.payment
+        return sum_trade
+    except:
+        return 0
+
+
+@csrf_exempt
+def mama_Verify(request):
+    # 审核妈妈成为代理的功能
+    data = []
+    xlmms = XiaoluMama.objects.filter(manager=0)  # 找出没有被接管的妈妈
+    for xlmm in xlmms:
+        sum_trade = trade_Sum(xlmm.openid)
+        if sum_trade >=100:
+            id = xlmm.id
+            mobile = xlmm.mobile
+            data_entry = {"id": id, "mobile": mobile, "sum_trade": sum_trade}
+            data.append(data_entry)
+    user = request.user.username
+    return render_to_response("mama_verify.html", {'data': data,'user':user}, context_instance=RequestContext(request))
+
+
+@csrf_exempt
+def mama_Verify_Action(request):
+    mama_id = request.GET.get('id')
+    tuijianren = request.GET.get('tuijianren')
+
+    xlmm = XiaoluMama.objects.get(id=mama_id)
+    sum_trade = trade_Sum(xlmm.openid)
+    if sum_trade >= 100:
+        # 修改小鹿妈妈的记录
+        xlmm.cash = xlmm.cash + 13000 # 分单位
+        xlmm.referal_from = tuijianren
+        xlmm.agencylevel = 2
+        xlmm.charge_status = XiaoluMama.CHARGED
+        xlmm.manager = request.user.id
+        xlmm.save()
+    return HttpResponse('ok')
+
+
+
