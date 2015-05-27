@@ -110,8 +110,8 @@
                         <td id="{{ item.id }}">{{ item.id }}</td>
                         <td>{{ item.mobile }}</td>
                         <td>{{ item.sum_trade }}</td>
-                        <td><input id="weikefu_{{ item.id }}" name="weikefu" /></td>
-                        <td><input id="tuijianren_{{ item.id }}" name="tuijianren" /></td>
+                        <td><input id="weikefu_{{ item.id }}" name="weikefu" style="width: 90px;"/></td>
+                        <td><input id="tuijianren_{{ item.id }}" name="tuijianren" style="width: 100px;"/></td>
                         <td>
                             <div class="btn-group" role="group" aria-label="...">
                                 <button type="button" id="bt_verify_{{ item.id }}" {% if item.flag == 0 %}

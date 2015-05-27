@@ -620,6 +620,12 @@ def mama_Verify_Action(request):
     sum_trade = trade_Sum(xlmm.openid)
     if sum_trade >= 100:
         # 修改小鹿妈妈的记录
+        CarryLog.objects.get_or_create(xlmm=xlmm.id,
+                                         log_type=CarryLog.DEPOSIT,
+                                         value=13000,
+                                         buyer_nick= weikefu,
+                                         carry_type=CarryLog.CARRY_IN,
+                                         status=CarryLog.CONFIRMED)
         xlmm.cash = xlmm.cash + 13000 # 分单位
         xlmm.referal_from = tuijianren
         xlmm.agencylevel = 2

@@ -217,6 +217,7 @@ class CarryLog(models.Model):
     CLICK_REBETA  = 'click'
     REFUND_RETURN = 'refund'
     CASH_OUT      = 'cashout'
+    DEPOSIT = 'deposit'
     
     LOG_TYPE_CHOICES = (
         (ORDER_REBETA,u'订单返利'),
@@ -224,6 +225,8 @@ class CarryLog(models.Model):
         (REFUND_RETURN,u'退款返现'),
         (CLICK_REBETA,u'点击兑现'),
         (CASH_OUT,u'钱包提现'),
+        (DEPOSIT,u'押金'),
+
     )
     
     CARRY_OUT = 'out'
