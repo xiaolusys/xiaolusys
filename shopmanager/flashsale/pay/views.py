@@ -85,9 +85,19 @@ class PINGPPChargeView(View):
             
             order_no = form.get('uuid')
             if not UUID_RE.match(order_no):
-                raise Exception('参数错误!')
+                raise Exception(u'参数错误!')
             
             payment = int(float(form.get('payment')) * 100)
+            product = Product.objects.get(pk=form.get('item_id'))
+            if (product.shelf_status != Product.UP_SHELF or
+                 product.status != Product.NORMAL):
+                raise Exception(u'商品已下架，暂无法下单！')
+            
+            sku = ProductSku.objects.get(pk=form.get('sku_id'),product=product)
+            real_fee = int(sku.agent_price * int(form.get('num')) * 100)
+            
+            assert payment == real_fee
+            
             response_charge = None
             if channel == SaleTrade.WALLET:
                 
@@ -277,7 +287,9 @@ class ProductList(generics.ListCreateAPIView):
         
         instance = self.filter_queryset(self.get_queryset())
 
-        instance = instance.filter(sale_time=filter_date.date(),status=Product.NORMAL)
+        instance = instance.filter(sale_time=filter_date.date(),
+                                   status=Product.NORMAL,
+                                   shelf_status=Product.UP_SHELF)
         
         page = self.paginate_queryset(instance)
         if page is not None:

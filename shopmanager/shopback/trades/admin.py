@@ -132,7 +132,7 @@ class MergeTradeAdmin(admin.ModelAdmin):
     def trade_id_link(self, obj):
         link_content = '<a href="%d/">%d</a><a href="javascript:void(0);" class="trade-tag" style="display:block" trade_id="%d">备注</a>'%(obj.id,obj.id,obj.id)
         if obj.sys_status == pcfg.WAIT_AUDIT_STATUS:
-            link_content +=  '<a href="javascript:void(0);" class="trade-regular"  style="display:block" trade_id="%d">延一天</a>'%obj.id
+            link_content +=  '<a href="javascript:void(0);" class="trade-regular"  style="display:block" trade_id="%d">延一周</a>'%obj.id
         return link_content
                
     trade_id_link.allow_tags = True

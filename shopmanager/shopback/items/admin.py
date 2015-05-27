@@ -212,15 +212,15 @@ class ProductAdmin(admin.ModelAdmin):
     
     inlines = [ProductdetailInline,ProductSkuInline]
     
-    
     #--------设置页面布局----------------
     fieldsets =(('商品基本信息:', {
                     'classes': ('expand',),
-                    'fields': (('outer_id','category','status')
+                    'fields': (('outer_id','category')
                                ,('name','pic_path')
                                ,('collect_num','warn_num','remain_num','wait_post_num','reduce_num')
                                ,('std_purchase_price','staff_price','sale_time')
-                               ,('cost','std_sale_price','agent_price'))
+                               ,('cost','std_sale_price','agent_price')
+                               ,('status','shelf_status'))
                 }),
                 ('商品系统设置:', {
                     'classes': ('collapse',),
@@ -412,9 +412,9 @@ class ProductAdmin(admin.ModelAdmin):
         
     cancle_orders_out_stock.short_description = u"取消订单商品缺货"
 
-
-    #批量添加订单
-    def add_orders(self,request,queryset):
+    #创建订货单
+    def create_saleproduct_order(self,request,queryset):
+        
         user=request.user
         orderDrAll = orderdraft.objects.all().filter(buyer_name=user)
         productres = []
@@ -432,7 +432,7 @@ class ProductAdmin(admin.ModelAdmin):
                                    "drafts": orderDrAll},
                                   context_instance=RequestContext(request))
 
-    add_orders.short_description = u"批量添加订单"
+    create_saleproduct_order.short_description = u"创建特卖商品订货单"
     
     #取消商品库存同步（批量）
     def active_syncstock_action(self,request,queryset):
@@ -649,7 +649,7 @@ class ProductAdmin(admin.ModelAdmin):
                'regular_saleorder_action',
                'deliver_saleorder_action',
                'export_prodsku_info_action',
-               'add_orders']
+               'create_saleproduct_order']
 
 admin.site.register(Product, ProductAdmin)
 

@@ -54,7 +54,7 @@ def task_Mod_Merchant_Product_Status(outer_ids,status):
     try:  
         for outer_id in outer_ids:
             
-            wx_skus = WXProductSku.objects.filter(outer_id__in=outer_id).values('product').distinct()
+            wx_skus = WXProductSku.objects.filter(outer_id=outer_id).values('product').distinct()
             wx_prodids = [p['product'] for p in wx_skus]
             
             wx_prods = WXProduct.objects.filter(product_id__in=wx_prodids).order_by('-modified')
@@ -65,7 +65,7 @@ def task_Mod_Merchant_Product_Status(outer_ids,status):
             wxproduct_id = wx_product.product_id
             if wxproduct_id not in update_wxpids:
                 update_wxpids.add(wxproduct_id)
-#                 _wx_api.modMerchantProductStatus(wxproduct_id, status)
+                _wx_api.modMerchantProductStatus(wxproduct_id, status)
             
             product = Product.objects.get(outer_id=outer_id)
             if status == WXProduct.UP_ACTION:

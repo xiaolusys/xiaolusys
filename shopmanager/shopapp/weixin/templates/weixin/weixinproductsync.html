@@ -45,7 +45,7 @@
     <td>{{ psku.outer_id }}.{{ product.outer_id }}</td>
     <td>{{ psku.remain_num }}</td>
     <td>{{ psku.remain_num|sub:psku.wait_post_num }}</td>
-    <td>{{ psku.properties_alias }}</td>
+    <td>{{ psku.name }}</td>
     <td>{{ psku.wskus.0.sku_name }}</td>
     <td>
         {% for wsku in psku.wskus %}

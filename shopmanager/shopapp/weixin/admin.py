@@ -241,7 +241,7 @@ class WXProductAdmin(admin.ModelAdmin):
     
     list_display = ('product_id','product_name','sync_stock','modified','status')
     
-     #--------设置页面布局----------------
+    #--------设置页面布局----------------
     fieldsets =((u'商品信息:', {
                     'classes': ('expand',),
                     'fields': (('product_id','product_name','product_img')
