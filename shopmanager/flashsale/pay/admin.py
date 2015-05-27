@@ -39,7 +39,7 @@ class SaleOrderInline(admin.TabularInline):
     
 
 class SaleTradeAdmin(admin.ModelAdmin):
-    list_display = ('id','tid','buyer_nick','channel','payment','pay_time','created','status')
+    list_display = ('id','tid','buyer_nick','channel','payment','pay_time','created','status','buyer_id')
     list_display_links = ('id','tid')
     #list_editable = ('update_time','task_type' ,'is_success','status')
 
@@ -104,7 +104,7 @@ admin.site.register(Register,RegisterAdmin)
 
 class CustomerAdmin(admin.ModelAdmin):
     
-    list_display = ('id','nick','mobile','phone','created','modified')
+    list_display = ('id','nick','mobile','phone','created','modified','unionid')
     list_display_links = ('id','nick',)
     
     search_fields = ['id','mobile','openid','unionid']

@@ -7,6 +7,13 @@
   {% if has_add_permission %}
     <ul class="object-tools">
       {% block object-tools-items %}
+
+          <li>
+          <a href="{% url 'mama_verify' %}" class="historylink" target="_blank">
+            代理妈妈审核
+          </a>
+        </li>
+
         <li>
           <a href="{% url 'cashout_verify' %}" class="historylink" target="_blank">
             妈妈提现审核

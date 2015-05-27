@@ -171,3 +171,5 @@ def task_AgencySubsidy_MamaContribu():      # 每天 写入记录
             carry_log_f.log_type = CarryLogTest.AGENCY_SUBSIDY  # 子代理给的补贴类型
             carry_log_f.value = (sub_sum_wxorderamount*5)/100  # 上个月给本代理的分成
             carry_log_f.save()
+
+
