@@ -148,7 +148,7 @@ def task_AgencySubsidy_MamaContribu():      # 每天 写入记录
 
     xlmms = XiaoluMama.objects.filter(agencylevel=2, charge_status=XiaoluMama.CHARGED) # 过滤出已经接管的类别是2的代理
     for xlmm in xlmms:
-        sub_xlmms = XiaoluMama.objects.filter(referal_from=xlmm.mobile)  # 找到的本代理的子代理
+        sub_xlmms = XiaoluMama.objects.filter(agencylevel=2,referal_from=xlmm.mobile)  # 找到的本代理的子代理
         sub_sum_wxorderamount = 0  # 昨天订单总额
         for sub_xlmm in sub_xlmms:
             # 扣除记录
