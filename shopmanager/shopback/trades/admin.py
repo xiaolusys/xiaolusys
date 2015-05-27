@@ -82,10 +82,6 @@ class MergeTradeChangeList(ChangeList):
              use_distinct) = self.get_filters(request)
             
             qs = self.root_query_set
-            for filter_spec in self.filter_specs:
-                new_qs = filter_spec.queryset(request, qs)
-                if new_qs is not None:
-                    qs = new_qs
         
             # Set ordering.
             ordering = self.get_ordering(request, qs)
@@ -970,13 +966,6 @@ class MergeOrderChangeList(ChangeList):
                 if new_qs is not None:
                     qs = new_qs
 
-            try:
-                qs = qs.filter(**remaining_lookup_params)
-            except (SuspiciousOperation, ImproperlyConfigured):
-                raise
-            except Exception, e:
-                raise IncorrectLookupParameters(e)
-
             qs = qs.filter(outer_id=outer_id,outer_sku_id=outer_sku_id)
             
             ordering = self.get_ordering(request, qs)
@@ -993,10 +982,15 @@ class MergeOrderChangeList(ChangeList):
                 
             if search_q.isdigit():
                 mtids.append(int(search_q))
-
-            return MergeOrder.objects.filter(models.Q(oid=search_q)
+                
+            qs = MergeOrder.objects.filter(models.Q(oid=search_q)
                                              |models.Q(merge_trade__in=mtids)
                                              |models.Q(outer_id=search_q))
+                
+            ordering = self.get_ordering(request, qs)
+            qs = qs.order_by(*ordering)
+                
+            return qs
         
         if search_q:
             return MergeOrder.objects.none()

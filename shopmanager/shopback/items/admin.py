@@ -528,16 +528,17 @@ class ProductAdmin(admin.ModelAdmin):
             if t.reason_code:
                 if full_out_stock:
                     t.sys_status = pcfg.REGULAR_REMAIN_STATUS
-          
                 else:
                     t.sys_status = pcfg.WAIT_AUDIT_STATUS
                     for code,num in tnum_maps.iteritems():
                         num_maps[code]  = num_maps.get(code,0) + num
             else:
                 t.sys_status = pcfg.WAIT_PREPARE_SEND_STATUS
-                
             t.save()
-
+            
+            if t.sys_status in (pcfg.WAIT_AUDIT_STATUS,pcfg.WAIT_PREPARE_SEND_STATUS):
+                log_action(request.user.id,t,CHANGE,u'取消定时提醒')
+            
         self.message_user(request,u"已成功取消%s个订单定时提醒!"%len(merge_trades))
         
         return HttpResponseRedirect(request.get_full_path())
