@@ -160,11 +160,35 @@
                 <div class="col-lg-4"><input type="button" class="btn btn-danger" id="zuofeibutton" value="作废"
                                              onclick="changestatus({{ orderlist.id }},this)"></div>
             </div>
+        {% elif flagofquestion %}
+            <hr>
+            <div class="row">
+                <legend>
+                    <h4 class="head-title" style="color: red;font-family:verdana;font-size: 20px">买手填写</h4>
+                </legend>
+            </div>
+            <div class="row">
+                <form action="/sale/dinghuo/changedetail/{{ orderlist.id }}/" method="post">
+                    <div class="col-lg-6">
+
+                        <div class="input-group">
+                            <span class="input-group-addon">备注</span>
+                                    <textarea style="width: 500px;height:50px;resize: none;" id="id_remarks"
+                                              name="remarks"
+                                              type="text" required="required" class="form-control"></textarea>
+                        </div>
+                    </div>
+                    <div class="col-lg-2"><select name="status" class="form-control">
+                        <option value="dealed">已处理</option>
+                    </select></div>
+                    <div class="col-lg-4"><input type="submit" class="btn btn-danger" value="保存"></div>
+                </form>
+            </div>
         {% else %}
             <hr>
             <div class="row">
                 <legend>
-                    <h4 class="head-title">仓库管理填写</h4>
+                    <h4 class="head-title" style="color: red;font-family:verdana">仓库管理填写</h4>
                 </legend>
             </div>
             <div class="row">
@@ -215,12 +239,12 @@
                         <td><img src="{{ order.pic_path }}" width="60px" height="60px" class="img-circle"></td>
                         <td>{{ order.product_chicun }}</td>
                         <td align="center">
-                            {% if flagofstatus %}
+                            {% if flagofstatus or flagofquestion %}
                                 <a onclick="plusQuantity({{ order.id }})">
                                     <span class="glyphicon glyphicon-plus"></span></a>&nbsp;
                             {% endif %}
                             <span id="quantity_{{ order.id }}">{{ order.buy_quantity }}</span>
-                            {% if flagofstatus %}
+                            {% if flagofstatus or flagofquestion%}
                                 <a onclick="minusQuantity({{ order.id }})">
                                     <span class="glyphicon glyphicon-minus"></span>
                                 </a>

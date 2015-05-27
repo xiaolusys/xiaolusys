@@ -357,6 +357,8 @@ class changedetailview(View):
     def get(self, request, orderdetail_id):
         orderlist = OrderList.objects.get(id=orderdetail_id)
         orderdetail = OrderDetail.objects.filter(orderlist_id=orderdetail_id)
+        flagofstatus = False
+        flagofquestion = False
         orderlist_list = []
         for order in orderdetail:
             order_dict = model_to_dict(order)
@@ -364,11 +366,12 @@ class changedetailview(View):
             orderlist_list.append(order_dict)
         if orderlist.status == "草稿":
             flagofstatus = True
-        else:
-            flagofstatus = False
+        elif orderlist.status == u'有问题':
+            flagofquestion = True
 
-        return render_to_response("dinghuo/changedetail.html", {"orderlist": orderlist, "flagofstatus": flagofstatus,
-                                                                "orderdetails": orderlist_list},
+        return render_to_response("dinghuo/changedetail.html",
+                                  {"orderlist": orderlist, "flagofstatus": flagofstatus, "flagofquestion": flagofquestion,
+                                   "orderdetails": orderlist_list},
                                   context_instance=RequestContext(request))
 
     def post(self, request, orderdetail_id):
