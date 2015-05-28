@@ -114,7 +114,7 @@ def task_ThousandRebeta(date_from,date_to):
 #         for shopping in shoppings:
 #             sum_wxorderamount = sum_wxorderamount + shopping.wxorderamount
         sum_wxorderamount = shoppings.aggregate(total_order_amount=Sum('wxorderamount')).get('total_order_amount') or 0
-            
+        print 'shopping:',sum_wxorderamount
         if sum_wxorderamount > 100000: # 分单位
             # 写一条carry_log记录
             carry_log = CarryLogTest()
@@ -138,14 +138,14 @@ import calendar
 def task_Calc_Month_ThousRebeta(pre_month=1):
     
     today = datetime.datetime.now()
-    pre_year,pre_month = today.year,today.month
+    year,month = today.year,today.month
     for m in range(pre_month):
-        pre_year,pre_month = get_pre_month(pre_year,pre_month)
+        year,month = get_pre_month(year,month)
     
-    month_range = calendar.monthrange(pre_year,pre_month)
+    month_range = calendar.monthrange(year,month)
     
-    date_from = datetime.datetime(pre_year,pre_month,1,0,0,0)
-    date_to   = datetime.datetime(pre_year,pre_month,month_range[1],23,59,59)
+    date_from = datetime.datetime(year,month,1,0,0,0)
+    date_to   = datetime.datetime(year,month,month_range[1],23,59,59)
     
     task_ThousandRebeta(date_from,date_to)
 
