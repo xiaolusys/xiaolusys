@@ -361,6 +361,19 @@ def changememo(req):
         log_action(req.user.id, pro_sku, CHANGE, u'更改备注为样品补全')
         return HttpResponse("False")
 
+@csrf_exempt
+def setusertogroup(req):
+    post = req.POST
+    groupid = post.get("groupid", 0)
+    uid = post["uid"]
+    myuser = MyUser.objects.filter(user_id=int(uid))
+    if myuser.count() > 0:
+        myusertemp = myuser[0]
+        myusertemp.group_id = int(groupid)
+        myusertemp.save()
+    else:
+        MyUser(user_id=int(uid), group_id=int(groupid)).save()
+    return HttpResponse("OK")
 
 from shopback.items.models import Product
 
