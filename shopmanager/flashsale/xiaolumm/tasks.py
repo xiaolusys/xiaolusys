@@ -114,7 +114,11 @@ def task_ThousandRebeta(date_from,date_to):
 #         for shopping in shoppings:
 #             sum_wxorderamount = sum_wxorderamount + shopping.wxorderamount
         sum_wxorderamount = shoppings.aggregate(total_order_amount=Sum('wxorderamount')).get('total_order_amount') or 0
+<<<<<<< Updated upstream
             
+=======
+    
+>>>>>>> Stashed changes
         if sum_wxorderamount > 100000: # 分单位
             # 写一条carry_log记录
             carry_log = CarryLogTest()
@@ -152,46 +156,50 @@ def task_Calc_Month_ThousRebeta(pre_month=1):
 ### 代理提成表 的task任务   计算 每个妈妈的代理提成，上交的给推荐人的提成
 
 @task()
-def task_AgencySubsidy_MamaContribu(date_from,date_to):      # 每天 写入记录
-
+def task_AgencySubsidy_MamaContribu(target_date):      # 每天 写入记录
+    
+    time_from = datetime.datetime(target_date.year, target_date.month, target_date.day)  # 生成带时间的格式  开始时间
+    time_to = datetime.datetime(target_date.year, target_date.month, target_date.day, 23, 59, 59)  # 停止时间
 
     xlmms = XiaoluMama.objects.filter(agencylevel=2, charge_status=XiaoluMama.CHARGED) # 过滤出已经接管的类别是2的代理
     for xlmm in xlmms:
         sub_xlmms = XiaoluMama.objects.filter(agencylevel=2,referal_from=xlmm.mobile)  # 找到的本代理的子代理
-        sub_sum_wxorderamount = 0  # 昨天订单总额
+        sum_wxorderamount = 0  # 昨天订单总额
         for sub_xlmm in sub_xlmms:
             # 扣除记录
-            sub_shoppings = StatisticsShopping.objects.filter(linkid=sub_xlmm.id, shoptime__range=(date_from,date_to))
+            sub_shoppings = StatisticsShopping.objects.filter(linkid=sub_xlmm.id, shoptime__range=(time_from,time_to))
             # 过滤出子代理昨天的订单
-            for sub_shopping in sub_shoppings:
-                sub_sum_wxorderamount = sub_sum_wxorderamount + sub_shopping.wxorderamount
-
-            if sub_sum_wxorderamount == 0:  # 如果订单总额是0则不做记录
+            sum_wxorderamount = sub_shoppings.aggregate(total_order_amount=Sum('wxorderamount')).get('total_order_amount') or 0
+            
+            commission = sum_wxorderamount * 0.05
+            if commission == 0:  # 如果订单总额是0则不做记录
                 continue
-        
+            
             carry_log_sub = CarryLogTest()
             carry_log_sub.xlmm = sub_xlmm.id  # 锁定子代理 :每个子代理都生成一个分成值  妈妈贡献的ID 是子代理的ID
+            carry_log_sub.order_num  = xlmm.id       # 这里写的是 上级代理的ID
             carry_log_sub.buyer_nick = sub_xlmm.mobile  # 这里写的是子代理的电话号码
             carry_log_sub.carry_type = CarryLogTest.CARRY_OUT
-            carry_log_sub.log_type = CarryLogTest.MAMA_CONTRIBU  # 妈妈贡献类型
-            carry_log_sub.value = sub_sum_wxorderamount * 0.05  # 上个月给本代理的分成
+            carry_log_sub.log_type   = CarryLogTest.MAMA_CONTRIBU  # 妈妈贡献类型
+            carry_log_sub.value      = commission  # 上个月给本代理的分成
+            carry_log_sub.carry_date = target_date
             carry_log_sub.save()
 
             carry_log_f = CarryLogTest()
             carry_log_f.xlmm = xlmm.id  # 锁定本代理
+            carry_log_f.order_num  = sub_xlmm.id      # 这里写的是子代理的ID
             carry_log_f.buyer_nick = xlmm.mobile
             carry_log_f.carry_type = CarryLogTest.CARRY_IN
-            carry_log_f.log_type = CarryLogTest.AGENCY_SUBSIDY  # 子代理给的补贴类型
-            carry_log_f.value = sub_sum_wxorderamount * 0.05  # 上个月给本代理的分成
+            carry_log_f.log_type   = CarryLogTest.AGENCY_SUBSIDY  # 子代理给的补贴类型
+            carry_log_f.value      = commission  # 上个月给本代理的分成
+            carry_log_sub.carry_date = target_date
             carry_log_f.save()
 
 @task
 def task_Calc_Agency_Contribu(pre_day=1):
     
     pre_date = datetime.date.today() - datetime.timedelta(days=pre_day)
-    time_from = datetime.datetime(pre_date.year, pre_date.month, pre_date.day)  # 生成带时间的格式  开始时间
-    time_to = datetime.datetime(pre_date.year, pre_date.month, pre_date.day, 23, 59, 59)  # 停止时间
     
-    task_AgencySubsidy_MamaContribu(time_from,time_to)
+    task_AgencySubsidy_MamaContribu(pre_date)
     
     
