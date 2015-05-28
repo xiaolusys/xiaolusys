@@ -15,14 +15,16 @@ def refresh_wxproduct():
     wx_skus = WXProductSku.objects.values('outer_id').distinct()
     
     for wx_sku in wx_skus:
-        wx_outer_id = wx_sku.outer_id
+        wx_outer_id = wx_sku['outer_id']
         print 'outer_id:',wx_outer_id
-        p = Product.objects.filter(outer_id=wx_sku.outer_id)
-        
-        pskus = WXProductSku.objects.get(outer_id=wx_outer_id)
+        products = Product.objects.filter(outer_id=wx_outer_id)
+        if products.count() == 0:
+            continue
+        p = products[0]
+        pskus = WXProductSku.objects.filter(outer_id=wx_outer_id)
         pskus.update(created=p.created,modified=p.modified)
         
-        pskus = WXProductSku.objects.get(outer_id=wx_outer_id).values('product').distinct()
+        pskus = WXProductSku.objects.filter(outer_id=wx_outer_id).values('product').distinct()
         for product in pskus:
             
             product_id = product['product']

@@ -16,7 +16,7 @@ def calc_day_refund(tdate):
     mts = MergeTrade.objects.filter(type=MergeTrade.WX_TYPE,pay_time__range=(df,dt))
     refund_num = mts.filter(sys_status=MergeTrade.INVALID_STATUS).count()
         
-    print tdate,refund_num
+    print tdate.date(),refund_num
 
 if __name__ == "__main__":
     
