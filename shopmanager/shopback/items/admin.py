@@ -259,6 +259,7 @@ class ProductAdmin(admin.ModelAdmin):
         valid_actions = set([])
         
         if user.has_perm('items.change_product_shelf'):
+            valid_actions.add('weixin_product_action')
             valid_actions.add('upshelf_product_action')
             valid_actions.add('downshelf_product_action')
             
