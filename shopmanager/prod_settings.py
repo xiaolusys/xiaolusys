@@ -60,7 +60,7 @@ TRADE_HANDLERS_PATH = (
    'shopback.trades.handlers.MergeHandler',
    'shopback.trades.handlers.RefundHandler',
    'shopback.trades.handlers.LogisticsHandler',
-   'shopback.trades.handlers.InterceptHandler',
+#    'shopback.trades.handlers.InterceptHandler',
    'shopback.trades.handlers.RegularSaleHandler',
    'shopback.trades.handlers.FinalHandler',
    'shopback.trades.handlers.FlashSaleHandler',

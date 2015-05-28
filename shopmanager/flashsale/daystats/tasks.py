@@ -40,7 +40,7 @@ def task_Push_Sales_To_DailyStat(target_date):
             total_old_visiter_num += 1
     
     shoping_stats     = StatisticsShopping.objects.filter(shoptime__range=(df,dt))
-    total_payment     = shoping_stats.aggregate(total_payment=Sum('tichengcount')).get('total_payment') or 0
+    total_payment     = shoping_stats.aggregate(total_payment=Sum('wxorderamount')).get('total_payment') or 0
     total_order_num   = shoping_stats.values('wxorderid').distinct().count()
     total_buyer_num   = shoping_stats.values('openid').distinct().count()
     

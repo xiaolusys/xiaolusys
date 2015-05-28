@@ -47,7 +47,7 @@ class StatisticsShoppingChangeList(ChangeList):
                 if new_qs is not None:
                     qs = new_qs
             
-            if re.compile('[\d]{11}').match(search_q):
+            if re.compile('^[\d]{11}$').match(search_q):
                 openids = WXOrder.objects.filter(receiver_mobile=search_q).values('buyer_openid').distinct()
                 openids = [o['buyer_openid'] for o in openids]
            

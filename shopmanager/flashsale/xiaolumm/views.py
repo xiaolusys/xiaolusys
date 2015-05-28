@@ -105,6 +105,9 @@ class CashoutView(View):
         if leave_cash_out < cash:
             could_cash_out = leave_cash_out
         
+        if could_cash_out < 0 :
+            could_cash_out = 0
+        
         data = {"xlmm":xlmm, "cashout": cashout_objs.count(), 
                 "referal_list":referal_list ,"could_cash_out":could_cash_out}
         
@@ -442,6 +445,9 @@ def cash_Out_Verify(request):
         could_cash_out = cash
         if leave_cash_out < cash:
             could_cash_out = leave_cash_out
+            
+        if could_cash_out < 0 :
+            could_cash_out = 0
         
         data_entry = {'id':id,'xlmm':xlmm,'value':value,'status':status,'mobile':mobile,'cash':cash,'payment':payment,
                       'shoppings_count':shoppings_count,'click_nums':click_nums,'could_cash_out':could_cash_out}

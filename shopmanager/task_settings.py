@@ -232,6 +232,16 @@ SHOP_APP_SCHEDULE = {
         'schedule':crontab(minute="40",hour='2'),
         'args':(),
     },
+    u'定时统计每日二级代理贡献佣金':{
+        'task':'flashsale.xiaolumm.tasks.task_Calc_Agency_Contribu',
+        'schedule':crontab(minute="40",hour='3'),
+        'args':(),
+    },
+    u'定时统计每月妈妈千元提成佣金':{     
+        'task':'flashsale.xiaolumm.tasks.task_Calc_Month_ThousRebeta',
+        'schedule':crontab(minute="0",hour="4", day_of_month='1'),#
+        'args':()
+    },
 #    'runs-every-10-minutes-update-seller-flag':{
 #        'task':'shopapp.memorule.tasks.updateTradeSellerFlagTask',
 #        'schedule':crontab(minute="*/10"),
