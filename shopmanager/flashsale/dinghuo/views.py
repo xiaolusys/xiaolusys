@@ -648,7 +648,7 @@ class dailyworkview(View):
                 dinghuo_num = self.getDinghuoQuantityByPidAndSku(product_dict['id'], sku_dict['id'], dinghuoqs)
                 dinghuostatusstr, flag_of_memo, flag_of_more, flag_of_less = self.getDinghuoStatus(
                     sale_num, dinghuo_num, sku_dict)
-                if flag_of_more or flag_of_less or dhstatus == u'0':
+                if dhstatus == u'0' or (flag_of_more or flag_of_less and  dhstatus == u'1') or (flag_of_more and dhstatus == u'3') or (flag_of_less and dhstatus == u'2'):
                     sku_dict['sale_num'] = sale_num
                     sku_dict['dinghuo_num'] = dinghuo_num
                     sku_dict['sku_name'] = sku_dict['properties_alias'] if len(
