@@ -254,7 +254,7 @@ class CarryLog(models.Model):
                                   choices=STATUS_CHOICES,
                                   default=CONFIRMED,verbose_name=u'状态')
     
-    carry_date = models.DateField(auto_now_add=True,verbose_name=u'业务日期')
+    carry_date = models.DateField(default=datetime.date.today,verbose_name=u'业务日期')
     created    = models.DateTimeField(auto_now_add=True,verbose_name=u'创建时间')
     
     class Meta:
