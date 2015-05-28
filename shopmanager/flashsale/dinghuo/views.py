@@ -362,6 +362,21 @@ def changememo(req):
         return HttpResponse("False")
 
 
+@csrf_exempt
+def setusertogroup(req):
+    post = req.POST
+    groupid = post.get("groupid", 0)
+    uid = post["uid"]
+    myuser = MyUser.objects.filter(user_id=int(uid))
+    if myuser.count() > 0:
+        myusertemp = myuser[0]
+        myusertemp.group_id = int(groupid)
+        myusertemp.save()
+    else:
+        MyUser(user_id=int(uid), group_id=int(groupid)).save()
+    return HttpResponse("OK")
+
+
 from shopback.items.models import Product
 
 
@@ -638,17 +653,22 @@ class dailyworkview(View):
         orderqs = self.getSourceOrders(shelve_from, time_to)
         dinghuoqs = self.getSourceDinghuo(shelve_from, query_time)
         trade_list = []
+        max_sale_num = 0
+        sell_well_pro = {}
         for product_dict in productdicts:
             product_dict['prod_skus'] = []
             guiges = ProductSku.objects.values('id', 'outer_id', 'properties_name', 'properties_alias', 'memo').filter(
                 product_id=product_dict['id'])
             orderqsbyoouterid = self.getSourceOrderByouterid(product_dict['outer_id'], orderqs)
+            temp_total_sale_num = 0
             for sku_dict in guiges:
                 sale_num = self.getSaleNumBySku(sku_dict['outer_id'], orderqsbyoouterid)
+                temp_total_sale_num = temp_total_sale_num + sale_num
                 dinghuo_num = self.getDinghuoQuantityByPidAndSku(product_dict['id'], sku_dict['id'], dinghuoqs)
                 dinghuostatusstr, flag_of_memo, flag_of_more, flag_of_less = self.getDinghuoStatus(
                     sale_num, dinghuo_num, sku_dict)
-                if flag_of_more or flag_of_less or dhstatus == u'0':
+                if dhstatus == u'0' or (flag_of_more or flag_of_less and dhstatus == u'1') or (
+                    flag_of_more and dhstatus == u'3') or (flag_of_less and dhstatus == u'2'):
                     sku_dict['sale_num'] = sale_num
                     sku_dict['dinghuo_num'] = dinghuo_num
                     sku_dict['sku_name'] = sku_dict['properties_alias'] if len(
@@ -658,10 +678,13 @@ class dailyworkview(View):
                     sku_dict['flag_of_more'] = flag_of_more
                     sku_dict['flag_of_less'] = flag_of_less
                     product_dict['prod_skus'].append(sku_dict)
-
+            if temp_total_sale_num > max_sale_num:
+                max_sale_num = temp_total_sale_num
+                sell_well_pro = product_dict
+                sell_well_pro["total_sale_num"] = max_sale_num
             trade_list.append(product_dict)
-
         return render_to_response("dinghuo/dailywork.html",
                                   {"targetproduct": trade_list, "shelve_from": target_date, "time_to": time_to,
-                                   "searchDinghuo": query_time, 'groupname': groupname, "dhstatus": dhstatus},
+                                   "searchDinghuo": query_time, 'groupname': groupname, "dhstatus": dhstatus,
+                                   "sell_well_pro": sell_well_pro},
                                   context_instance=RequestContext(request))
