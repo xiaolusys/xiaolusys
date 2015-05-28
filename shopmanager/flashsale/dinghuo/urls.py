@@ -30,5 +30,6 @@ urlpatterns = [
     url(r'^changearrivalquantity/$', views.changearrivalquantity, name="changearrivalquantity"),
     url(r'^statsbypid/(?P<product_id>\d+)/$', login_required(StatsByProductIdView.as_view()), name="statsbypid"),  #根据商品id统计大货
     url(r'^dailywork/', login_required(dailyworkview.as_view()), name="dailywork"),  #大货任务
+    url(r'^changememo/$', views.changememo, name="changeMemo"),
 
 ]
