@@ -323,7 +323,7 @@ class CarryLogTest(models.Model):
 
     THOUSAND_REBETA= 'thousand'
     AGENCY_SUBSIDY= 'subsidy'
-    MAMA_CONTRIBU = 'contribu'
+    MAMA_CONTRIBU = 'contrib'
 
     LOG_TYPE_CHOICES = (
         (ORDER_REBETA,u'订单返利'),
