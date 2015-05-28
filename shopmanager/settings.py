@@ -192,8 +192,11 @@ LOGOUT_URL = '/accounts/logout/'
 TAOBAO_PAGE_SIZE = 100              #the page_size of  per request
 NO_PIC_PATH = 'img/nopic.jpg'
 
-
-from prod_settings import *
+try:
+    from prod_settings import *
+except ImportError:
+    if not DEBUG:
+        raise Exception("PROD SETTINGS IS REQUIRED!")
 
 try:
     from local_settings import *
