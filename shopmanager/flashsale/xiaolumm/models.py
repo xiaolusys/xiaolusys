@@ -218,7 +218,10 @@ class CarryLog(models.Model):
     CLICK_REBETA  = 'click'
     REFUND_RETURN = 'refund'
     CASH_OUT      = 'cashout'
-    DEPOSIT = 'deposit'
+    DEPOSIT       = 'deposit'
+    THOUSAND_REBETA = 'thousand'
+    AGENCY_SUBSIDY  = 'subsidy'
+    MAMA_CONTRIBU   = 'contrib'
     
     LOG_TYPE_CHOICES = (
         (ORDER_REBETA,u'订单返利'),
@@ -227,7 +230,9 @@ class CarryLog(models.Model):
         (CLICK_REBETA,u'点击兑现'),
         (CASH_OUT,u'钱包提现'),
         (DEPOSIT,u'押金'),
-
+        (THOUSAND_REBETA,u'千元提成'),
+        (AGENCY_SUBSIDY,u'代理补贴'),
+        (MAMA_CONTRIBU,u'妈妈贡献')
     )
     
     CARRY_OUT = 'out'
@@ -394,3 +399,6 @@ class CarryLogTest(models.Model):
     @property
     def status_name(self):
         return self.get_status_display()
+    
+    
+    

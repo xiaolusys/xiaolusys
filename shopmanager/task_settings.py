@@ -183,12 +183,12 @@ SHOP_APP_SCHEDULE = {
     },
     u'定时增量下载更新微信订单':{
         'task':'shopapp.weixin.tasks.pullWaitPostWXOrderTask',
-        'schedule':crontab(minute="0",hour=",".join([str(i)  for i in range(8,23)])),
+        'schedule':crontab(minute="0",hour=",".join([str(i)  for i in range(0,23)])),
         'args':(None,None)
     },
     u'定时增量更新微信维权订单':{
         'task':'shopapp.weixin.tasks.pullFeedBackWXOrderTask',
-        'schedule':crontab(minute="*/30",hour=','.join([str(i) for i in range(9,23)])),
+        'schedule':crontab(minute="*/30",hour=','.join([str(i) for i in range(0,23)])),
         'args':(None,None)
     },      
     u'定时同步微信商品库存':{
@@ -213,7 +213,7 @@ SHOP_APP_SCHEDULE = {
     },
     u'定时统计昨日小鹿妈妈点击':{
         'task':'flashsale.clickcount.tasks.task_Record_User_Click',
-        'schedule':crontab(minute="30",hour='3'),
+        'schedule':crontab(minute="30",hour='4'),
         'args':(),
 #         'kwargs':{'pre_day':1}
     },

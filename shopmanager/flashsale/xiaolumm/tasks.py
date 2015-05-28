@@ -101,7 +101,6 @@ def task_Push_Pending_Carry_Cash(day_ago=7, xlmm_id=None):
 ### 代理提成表 的task任务  每个月 8号执行 计算 订单成交额超过1000人民币的提成
 
 from flashsale.clickrebeta.models import StatisticsShopping
-from flashsale.xiaolumm.models import Clicks,XiaoluMama,CarryLog,CarryLogTest
 
 @task()
 def task_ThousandRebeta(date_from,date_to):
@@ -111,18 +110,18 @@ def task_ThousandRebeta(date_from,date_to):
         # 千元补贴
         shoppings = StatisticsShopping.objects.filter(linkid=xlmm.id, shoptime__range=(date_from,date_to))
 #         # 过去一个月的成交额
-#         for shopping in shoppings:
-#             sum_wxorderamount = sum_wxorderamount + shopping.wxorderamount
         sum_wxorderamount = shoppings.aggregate(total_order_amount=Sum('wxorderamount')).get('total_order_amount') or 0
 
         if sum_wxorderamount > 100000: # 分单位
             # 写一条carry_log记录
-            carry_log = CarryLogTest()
+            carry_log = CarryLog()
             carry_log.xlmm = xlmm.id
             carry_log.buyer_nick = xlmm.mobile
-            carry_log.carry_type = CarryLogTest.CARRY_IN
-            carry_log.log_type = CarryLogTest.THOUSAND_REBETA
-            carry_log.value = sum_wxorderamount * 0.05   # 上个月的千元提成
+            carry_log.carry_type = CarryLog.CARRY_IN
+            carry_log.log_type   = CarryLog.THOUSAND_REBETA
+            carry_log.value      = sum_wxorderamount * 0.05   # 上个月的千元提成
+            carry_log.buyer_nick = xlmm.mobile
+            carry_log.status     = CarryLog.PENDING
             carry_log.save()
 
 
@@ -171,24 +170,26 @@ def task_AgencySubsidy_MamaContribu(target_date):      # 每天 写入记录
             if commission == 0:  # 如果订单总额是0则不做记录
                 continue
             
-            carry_log_sub = CarryLogTest()
+            carry_log_sub = CarryLog()
             carry_log_sub.xlmm       = sub_xlmm.id  # 锁定子代理 :每个子代理都生成一个分成值  妈妈贡献的ID 是子代理的ID
             carry_log_sub.order_num  = xlmm.id       # 这里写的是 上级代理的ID
             carry_log_sub.buyer_nick = sub_xlmm.mobile  # 这里写的是子代理的电话号码
-            carry_log_sub.carry_type = CarryLogTest.CARRY_OUT
-            carry_log_sub.log_type   = CarryLogTest.MAMA_CONTRIBU  # 妈妈贡献类型
+            carry_log_sub.carry_type = CarryLog.CARRY_OUT
+            carry_log_sub.log_type   = CarryLog.MAMA_CONTRIBU  # 妈妈贡献类型
             carry_log_sub.value      = commission  # 上个月给本代理的分成
             carry_log_sub.carry_date = target_date
+            carry_log_sub.status     = CarryLog.PENDING
             carry_log_sub.save()
 
-            carry_log_f = CarryLogTest()
+            carry_log_f  = CarryLog()
             carry_log_f.xlmm       = xlmm.id  # 锁定本代理
             carry_log_f.order_num  = sub_xlmm.id      # 这里写的是子代理的ID
             carry_log_f.buyer_nick = xlmm.mobile
-            carry_log_f.carry_type = CarryLogTest.CARRY_IN
-            carry_log_f.log_type   = CarryLogTest.AGENCY_SUBSIDY  # 子代理给的补贴类型
+            carry_log_f.carry_type = CarryLog.CARRY_IN
+            carry_log_f.log_type   = CarryLog.AGENCY_SUBSIDY  # 子代理给的补贴类型
             carry_log_f.value      = commission  # 上个月给本代理的分成
             carry_log_f.carry_date = target_date
+            carry_log_f.status     = CarryLog.PENDING
             carry_log_f.save()
 
 @task
