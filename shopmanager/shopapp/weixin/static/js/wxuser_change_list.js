@@ -32,7 +32,7 @@ $(".group_select").live("change",function(e){
     var callback = function (res) {
 
      if (res.code == 0 && res.response_content.user_group == cat_id) {
-          $(target).after("<img src='/static/admin/img/icon-yes.gif '>");
+          $(target).after("<img src='/static/admin/img/icon-yes.gif'>");
         }
     };
     

@@ -9,6 +9,7 @@ from django.contrib.auth.models import SiteProfileNotAvailable
 from django.core.exceptions import ImproperlyConfigured
 from common.utils import verifySignature,decodeBase64String,parse_urlparams
 from django.conf import settings
+from shopback.users.models import User as Seller
 from auth import apis
 
 import logging
@@ -72,9 +73,8 @@ class JingDongBackend:
         except (ImportError,ImproperlyConfigured):
             raise SiteProfileNotAvailable('ImportError, ImproperlyConfigured error')
 
-        user_id  =  '%s%s'%(JINGDONG_PREFFIX,top_parameters['uid'])
-        user,state    = User.objects.get_or_create(username=user_id,is_active=True)
-        
+
+        user   = Seller.getSystemOAUser()
         try:
             profile = model.objects.get(user=user,
                                         type=model.SHOP_TYPE_JD)

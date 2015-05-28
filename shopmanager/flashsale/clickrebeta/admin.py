@@ -29,6 +29,7 @@ class StatisticsShoppingForm(forms.ModelForm):
         return int(tichengcount * 100)
 
 import re
+from django.db.models import Q
 from shopapp.weixin.models import WXOrder
 
 class StatisticsShoppingChangeList(ChangeList):
@@ -53,7 +54,7 @@ class StatisticsShoppingChangeList(ChangeList):
                 qs = qs.filter(openid__in=openids)
                 return qs
     
-            qs = qs.filter(openid=search_q)
+            qs = qs.filter(Q(openid=search_q)|Q(wxorderid=search_q))
             return qs
         
         return super(StatisticsShoppingChangeList,self).get_query_set(request)

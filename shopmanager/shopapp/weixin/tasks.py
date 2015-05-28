@@ -7,9 +7,9 @@ from celery.task.sets import subtask
 from django.conf import settings
 
 from common.utils import update_model_fields, replace_utf8mb4
-from .models import WeiXinUser,WXOrder,WXProduct,WXLogistic,WeixinUnionID
+from .models import WeiXinUser,WXOrder,WXProduct,WXProductSku,WXLogistic,WeixinUnionID
 from .service import WxShopService
-from .weixin_apis import WeiXinAPI
+from .weixin_apis import WeiXinAPI,WeiXinRequestException
 
 @task(max_retry=3,default_retry_delay=60)
 def task_Update_Weixin_Userinfo(openId,unionId=None):
@@ -42,6 +42,41 @@ def task_Update_Weixin_Userinfo(openId,unionId=None):
         WeixinUnionID.objects.get_or_create(openid=openId,app_key=app_key,unionid=wx_user.unionid)
     except Exception, exc:
         raise task_Update_Weixin_Userinfo.retry(exc=exc)
+
+
+@task(max_retry=3,default_retry_delay=60)
+def task_Mod_Merchant_Product_Status(outer_ids,status):
+    
+    from shopback.items.models import Product
+    update_wxpids   = set([])
+    _wx_api         = WeiXinAPI()
+    
+    try:  
+        for outer_id in outer_ids:
+            
+            wx_skus = WXProductSku.objects.filter(outer_id=outer_id).values('product').distinct()
+            wx_prodids = [p['product'] for p in wx_skus]
+            
+            wx_prods = WXProduct.objects.filter(product_id__in=wx_prodids).order_by('-modified')
+            if wx_prods.count() == 0 :
+                continue
+            
+            wx_product = wx_prods[0]
+            wxproduct_id = wx_product.product_id
+            if wxproduct_id not in update_wxpids:
+                update_wxpids.add(wxproduct_id)
+                _wx_api.modMerchantProductStatus(wxproduct_id, status)
+            
+            product = Product.objects.get(outer_id=outer_id)
+            if status == WXProduct.UP_ACTION:
+                product.shelf_status = Product.UP_SHELF
+            else:
+                product.shelf_status = Product.DOWN_SHELF
+            product.save()
+            
+    except WeiXinRequestException, exc:
+        raise task_Mod_Merchant_Product_Status.retry(exc=exc)
+    
 
 @task
 def pullWXProductTask():

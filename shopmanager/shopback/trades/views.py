@@ -1160,7 +1160,7 @@ def regular_trade(request,id):
     except:
         return HttpResponse(json.dumps({'code':1,'response_error':u'订单不在问题单'}),mimetype="application/json")
     else:
-        dt = datetime.datetime.now()+datetime.timedelta(1,0,0)
+        dt = datetime.datetime.now()+datetime.timedelta(7,0,0)
         merge_trade.sys_status   = pcfg.REGULAR_REMAIN_STATUS
         merge_trade.remind_time  = dt
         merge_trade.save()

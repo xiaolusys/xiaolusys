@@ -92,6 +92,7 @@ admin.site.register(TradeCharge,TradeChargeAdmin)
 
 
 class RegisterAdmin(admin.ModelAdmin):
+    
     list_display = ('id','cus_uid','vmobile','vemail','created')
     list_display_links = ('id','cus_uid')
     #list_editable = ('update_time','task_type' ,'is_success','status')

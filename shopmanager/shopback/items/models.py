@@ -49,6 +49,11 @@ class Product(models.Model):
     REMAIN = pcfg.REMAIN
     DELETE = pcfg.DELETE
     
+    UP_SHELF = 1
+    DOWN_SHELF = 0
+    SHELF_CHOICES = ((UP_SHELF,u'已上架'),
+                     (DOWN_SHELF,u'未上架'))
+    
     ProductCodeDefect = ProductDefectException
     PRODUCT_CODE_DELIMITER = '.'
     NO_PIC_PATH = '/media/img/nopic.jpg'
@@ -101,13 +106,23 @@ class Product(models.Model):
     sale_charger = models.CharField(max_length=32,db_index=True,blank=True,verbose_name=u'归属采购员')
     storage_charger = models.CharField(max_length=32,db_index=True,blank=True,verbose_name=u'归属仓管员')
     
+    is_verify    = models.BooleanField(default=False,verbose_name=u'是否校对')
+    shelf_status = models.IntegerField(choices=SHELF_CHOICES,default=DOWN_SHELF,verbose_name=u'上架状态')
+    
     objects = ProductManager()
     
     class Meta:
         db_table = 'shop_items_product'
         verbose_name = u'库存商品'
         verbose_name_plural = u'库存商品列表'
-        permissions = [("change_product_skunum", u"修改库存信息"),]
+        permissions = [("change_product_skunum", u"修改库存信息"),
+                       ("change_product_shelf",  u"特卖商品上架/下架"),
+                       ("sync_product_stock", u"商品库存同步/取消"),
+                       ("regular_product_order", u"商品订单定时/释放"),
+                       ("create_product_purchase", u"创建商品订货单"),
+                       ("export_product_info", u"导出库存商品信息"),
+                       ("invalid_product_info", u"作废库存商品信息")]
+        
     
     def __unicode__(self):
         return '<%s,%s>'%(self.outer_id,self.name)

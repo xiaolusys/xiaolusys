@@ -886,10 +886,10 @@ class StatProductSaleView(ModelView):
                 skus = sale_items[product_id]['skus']
                 if skus.has_key(sku_id):
                     skus[sku_id]['sale_num']        += sale.sale_num
-                    skus[sku_id]['sale_payment'] += sale.sale_payment
+                    skus[sku_id]['sale_payment']    += sale.sale_payment
                     skus[sku_id]['sale_refund']     += sale.sale_refund
-                    skus[sku_id]['confirm_num']   += sale.confirm_num
-                    skus[sku_id]['confirm_payment']   += sale.confirm_payment
+                    skus[sku_id]['confirm_num']     += sale.confirm_num
+                    skus[sku_id]['confirm_payment'] += sale.confirm_payment
                 else:
                     skus[sku_id] = {
                                   'sale_num':sale.sale_num,
@@ -898,7 +898,14 @@ class StatProductSaleView(ModelView):
                                   'confirm_num':sale.confirm_num,
                                   'confirm_payment':sale.confirm_payment}
             else:
+                product = Product.objects.get(id=product_id)
+                pic_path = product.pic_path
+                if pic_path.startswith('http://img02.taobaocdn'):
+                    pic_path = pic_path.rstrip('_80x80.jpg')+'.jpg_80x80.jpg'
                 sale_items[product_id]={
+                                       'pic_path':pic_path,
+                                       'title':product.title,
+                                       'sale_num':sale.sale_num,
                                        'sale_num':sale.sale_num,
                                        'sale_payment':sale.sale_payment,
                                        'sale_refund':sale.sale_refund ,
@@ -986,7 +993,6 @@ class StatProductSaleView(ModelView):
         sale_items   = {}
         for product in product_list:
             product_id = product.id
-            p_collect_num = 0
             
             if product.collect_num <= 0:
                 continue
@@ -1029,8 +1035,13 @@ class StatProductSaleView(ModelView):
                 sale_items[product_id]['stock_cost']  += sku.quantity * sku.cost
                 
             if product_id not in productid_set and not sale_items.has_key(product_id):
-                
-                sale_items[product_id]={
+                product = Product.objects.get(id=product_id)
+                pic_path = product.pic_path
+                if pic_path.startswith('http://img02.taobaocdn'):
+                    pic_path = pic_path.rstrip('_80x80.jpg')+'.jpg_80x80.jpg'
+                    
+                sale_items[product_id]={'pic_path':pic_path,
+                                       'title':product.title,
                                        'sale_num':0,
                                        'sale_payment':0,
                                        'sale_refund':0 ,

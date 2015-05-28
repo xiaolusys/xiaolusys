@@ -22,6 +22,10 @@ logger = logging.getLogger('django.request')
 import re
 UUID_RE = re.compile('^[a-zA-Z0-9-]{21,36}$')
 
+class ProductNotOnSale(Exception):
+    pass
+
+
 class PINGPPChargeView(View):
     
     def createSaleTrade(self,customer,form,charge=None):
@@ -85,9 +89,19 @@ class PINGPPChargeView(View):
             
             order_no = form.get('uuid')
             if not UUID_RE.match(order_no):
-                raise Exception('参数错误!')
+                raise Exception(u'参数错误!')
             
             payment = int(float(form.get('payment')) * 100)
+            product = Product.objects.get(pk=form.get('item_id'))
+            if (product.shelf_status != Product.UP_SHELF or
+                 product.status != Product.NORMAL):
+                raise ProductNotOnSale(u'商品已被挤下架啦！')
+            
+            sku = ProductSku.objects.get(pk=form.get('sku_id'),product=product)
+            real_fee = int(sku.agent_price * int(form.get('num')) * 100)
+            
+            assert payment == real_fee
+            
             response_charge = None
             if channel == SaleTrade.WALLET:
                 
@@ -151,6 +165,8 @@ class PINGPPChargeView(View):
                 logger.debug('CHARGE RESP: %s'%response_charge)
         except IntegrityError:
             err_msg = u'订单已提交'
+        except ProductNotOnSale,exc:
+            err_msg = exc.message
         except XiaoluMama.MultipleObjectsReturned,exc:
             logger.error(exc.message,exc_info=True)
             err_msg = u'OPENID异常请联系管理'
@@ -277,7 +293,9 @@ class ProductList(generics.ListCreateAPIView):
         
         instance = self.filter_queryset(self.get_queryset())
 
-        instance = instance.filter(sale_time=filter_date.date(),status=Product.NORMAL)
+        instance = instance.filter(sale_time=filter_date.date(),
+                                   status=Product.NORMAL,
+                                   shelf_status=Product.UP_SHELF)
         
         page = self.paginate_queryset(instance)
         if page is not None:

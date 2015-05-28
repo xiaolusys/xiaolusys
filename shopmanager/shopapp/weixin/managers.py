@@ -108,13 +108,14 @@ class WeixinProductManager(models.Manager):
         for sku in product.pskus.order_by('outer_id'):
             
             sku_dict = model_to_dict(sku)
+            sku_dict['name']  = sku.name
             outer_id = product.outer_id
             outer_sku_id = sku.outer_id
             wsku_list_dict = WXProductSku.objects.filter(
                                         outer_id=outer_id,
                                         outer_sku_id=outer_sku_id,
                                         status=WXProductSku.UP_SHELF).values()
-                                        
+            
             sku_dict['wskus'] = wsku_list_dict
                 
             product_dict['pskus'].append(sku_dict)

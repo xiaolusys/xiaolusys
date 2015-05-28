@@ -1521,6 +1521,7 @@ class WeixinProductView(ModelView):
         
         content = request.REQUEST
         product_ids = content.get('product_ids','').split(',')
+        next    = content.get('next')
         
         wx_pids = self.getLinkProductIds(content)
         
@@ -1534,7 +1535,8 @@ class WeixinProductView(ModelView):
             product_list.append(WXProduct.objects.fetchSkuMatchInfo(p))
                     
         return {'product_list':product_list,
-                'product_ids':','.join([str(p.id) for p in queryset])}
+                'product_ids':','.join([str(p.id) for p in queryset]),
+                'next':next}
 
         
     def post(self, request,*args, **kwargs):
@@ -1584,7 +1586,28 @@ class WeixinProductView(ModelView):
         messages.add_message(request, messages.INFO, 
                              u'已成功更新%s个商品(%s)微信平台库存'%(products.count(),
                                                             [p.outer_id for p in products]))
-        return HttpResponseRedirect(reverse("admin:items_product_changelist")+'?id__in='+','.join(product_ids))
+        
+        next = content.get('next')
+        if not next:
+            next  = reverse("admin:items_product_changelist")+'?id__in='+','.join(product_ids)
+        
+        return HttpResponseRedirect(next)
+    
+
+class WeixinProductVerifyView(ModelView):
+    """ 微信特卖商品校验 """
+
+    def post(self, request, *args, **kwargs):
+        
+        content = request.REQUEST
+        product_ids = content.get('product_ids','').split(',')
+
+        queryset = Product.objects.filter(id__in=product_ids)
+        update_rows = queryset.update(is_verify=True)
+                    
+        return {'code':0,'response':{'update_rows':update_rows}}
+
+        
 
 class TestView(View):
     def get(self, request):

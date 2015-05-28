@@ -239,9 +239,9 @@ admin.site.register(WeiXinAutoResponse, WeiXinAutoResponseAdmin)
 
 class WXProductAdmin(admin.ModelAdmin):
     
-    list_display = ('product_id','product_name','sync_stock','status')
+    list_display = ('product_id','product_name','sync_stock','modified','status')
     
-     #--------设置页面布局----------------
+    #--------设置页面布局----------------
     fieldsets =((u'商品信息:', {
                     'classes': ('expand',),
                     'fields': (('product_id','product_name','product_img')
@@ -254,7 +254,7 @@ class WXProductAdmin(admin.ModelAdmin):
                 }),
                 )
     
-    list_filter = ('status',)
+    list_filter = ('status',('modified',DateFieldListFilter))
     search_fields = ['product_id','product_name']
     
 admin.site.register(WXProduct, WXProductAdmin) 
@@ -262,9 +262,9 @@ admin.site.register(WXProduct, WXProductAdmin)
 class WXProductSkuAdmin(admin.ModelAdmin):
     
     list_display = ('sku_id','product','outer_id','outer_sku_id',
-                    'sku_name','pic_link','sku_price','ori_price','status')
+                    'sku_name','pic_link','sku_price','ori_price','modified','status')
     
-    list_filter = ('status',)
+    list_filter = ('status',('modified',DateFieldListFilter))
     search_fields = ['sku_id','product__product_id','outer_id','outer_sku_id']
     
     def pic_link(self, obj):
