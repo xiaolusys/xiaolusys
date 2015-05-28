@@ -45,8 +45,7 @@
                 <select class="form-control " name="dhstatus" id="dhstatus_id">
                     <option value="0" {% ifequal dhstatus '0' %} selected="selected" {% endifequal %}>所有</option>
                     <option class="btn-danger" {% ifequal dhstatus '1' %} selected="selected" {% endifequal %}
-                            value="1">
-                        缺货
+                            value="1">异常
                     </option>
                 </select>
             </div>
@@ -59,13 +58,13 @@
     <div class="row" style="margin-top: 20px">
         <table class="table table-bordered">
             <thead style="background-color:#01B5A2;">
-            <th>商品名称</th>
-            <th>商品编码</th>
-            <th>图片</th>
+            <th width="250px">商品信息</th>
+            <th width="100px">图片</th>
             <th>尺寸</th>
             <th>销售数</th>
             <th>已拍数量</th>
-            <th>状态</th>
+            <th width="150px">状态</th>
+            <th width="100px">备注</th>
             </thead>
             <tbody>
             {% for product in  targetproduct %}
@@ -74,16 +73,35 @@
                         {% for sku in product.prod_skus %}
                             <tr>
                                 {% if forloop.first %}
-                                    <td rowspan="{{ sku_len }}">{{ product.name }} </td>
-                                    <td rowspan="{{ sku_len }}">{{ product.outer_id }} </td>
-                                    <td rowspan="{{ sku_len }}"><img src="{{ product.pic_path }}" width="70px">
+                                    <td rowspan="{{ sku_len }}">{{ product.name }}<br>编码:{{ product.outer_id }} </td>
+                                    <td rowspan="{{ sku_len }}"><img src="{{ product.pic_path }}" width="100px"
+                                                                     class="img-circle">
                                     </td>
                                 {% endif %}
                                 <td>{{ sku.sku_name }}</td>
                                 <td>{{ sku.sale_num }}</td>
                                 <td><a href="/sale/dinghuo/statsbypid/{{ product.id }}" target="_blank"
                                        style="display: block;">{{ sku.dinghuo_num }}</a></td>
-                                <td class="dinghuo_status">{{ sku.dinghuo_status }}</td>
+                                <td>
+                                    <span class="dinghuo_status" id="dinghuostatus_{{ sku.id }}"
+                                            {% if sku.flag_of_memo %} style="color: green;font-size: 20px"
+                                            {% elif sku.flag_of_less %} style="color: red;font-size: 20px"
+                                            {% elif sku.flag_of_more %}
+                                          style="color: blue;font-size: 20px"{% endif %}>{{ sku.dinghuo_status }}</span>
+                                </td>
+                                <td>
+                                    {% if sku.flag_of_less %}
+                                        {% if sku.flag_of_memo %}
+                                            <button class="btn btn-primary" type="button"
+                                                    id="changeMemo_{{ sku.id }}" onclick="changememo({{ sku.id }})">取消补全
+                                            </button>
+                                        {% else %}
+                                            <button class="btn btn-primary" type="button"
+                                                    id="changeMemo_{{ sku.id }}" onclick="changememo({{ sku.id }})">样品补全
+                                            </button>
+                                        {% endif %}
+                                    {% endif %}
+                                </td>
 
                             </tr>
 
@@ -112,17 +130,29 @@
                 timeFormat: "HH:mm:ss",
                 dateFormat: "yy-mm-dd"
             });
-
         });
-        $(document).ready(function () {
-            var p = $(".dinghuo_status");
-            p.each(function (i) {
-                var temp = p.eq(i);
-                if (temp.html() != 'OK') {
-                    temp.css("background-color", "red")
+        function changememo(sku_id) {
+            var url = "/sale/dinghuo/changememo/";
+            var data = {"sku_id": sku_id};
+            var index = "changeMemo_" + sku_id;
+            var indexstatus = "dinghuostatus_" + sku_id;
+            var dinghuostatus = $("#" + indexstatus);
+            var changeMemo = $("#" + index);
+            var dhstatusstr = dinghuostatus.html();
+            var callback = function (res) {
+                if (res == "True") {
+                    dinghuostatus.html(dhstatusstr.replace("样品补", "缺少"));
+                    dinghuostatus.css("color", "red");
+                    changeMemo.html("样品补全");
+                } else if (res == "False") {
+                    dinghuostatus.html(dhstatusstr.replace("缺少", "样品补"));
+                    dinghuostatus.css("color", "green");
+                    changeMemo.html("取消补全");
                 }
-            });
-        });
+            };
+            $.ajax({url: url, data: data, type: "post", success: callback});
+
+        }
     </script>
 
 {% endblock %}

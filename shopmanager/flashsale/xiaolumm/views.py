@@ -584,20 +584,21 @@ def stats_summary(request):
 ###################### 妈妈审核功能
 
 from flashsale.pay.models_user import Customer
-from flashsale.pay.models import SaleTrade
+from flashsale.pay.models import SaleTrade,SaleOrder
 
-def trade_Sum(openid):
+def get_Deposit_Trade(openid):
     try:
         customer = Customer.objects.get(unionid=openid)  # 找到对应的unionid 等于小鹿妈妈openid的顾客
 
-        sale_trades = SaleTrade.objects.filter(buyer_id=customer.id,status=SaleTrade.TRADE_FINISHED) # 过滤出买家id 是顾客id 并且订单状态是交易完成的订单
-        # 计算交易成功的金额  如果超过100才可以
-        sum_trade = 0
-        for sale_trade in sale_trades:
-            sum_trade = sum_trade + sale_trade.payment
-        return sum_trade
+        sale_orders = SaleOrder.objects.filter(outer_id='RMB100', payment=100, status=SaleOrder.WAIT_SELLER_SEND_GOODS,
+                                     sale_trade__buyer_id=customer.id,
+                                     sale_trade__status=SaleTrade.WAIT_SELLER_SEND_GOODS)
+
+        if sale_orders.count() == 0:
+            return None
+        return sale_orders[0].sale_trade  # 返回订单
     except:
-        return 0
+        return None
 
 
 @csrf_exempt
@@ -606,11 +607,13 @@ def mama_Verify(request):
     data = []
     xlmms = XiaoluMama.objects.filter(manager=0)  # 找出没有被接管的妈妈
     for xlmm in xlmms:
-        sum_trade = trade_Sum(xlmm.openid)
-        if sum_trade >=100:
+        trade = get_Deposit_Trade(xlmm.openid)
+        if trade:
             id = xlmm.id
             mobile = xlmm.mobile
-            data_entry = {"id": id, "mobile": mobile, "sum_trade": sum_trade}
+            weikefu = xlmm.weikefu
+            referal_from = xlmm.referal_from
+            data_entry = {"id": id, "mobile": mobile, "sum_trade": "YES","weikefu":weikefu,'referal_from':referal_from}
             data.append(data_entry)
     user = request.user.username
     return render_to_response("mama_verify.html", {'data': data,'user':user}, context_instance=RequestContext(request))
@@ -623,22 +626,37 @@ def mama_Verify_Action(request):
     weikefu = request.GET.get('weikefu')
 
     xlmm = XiaoluMama.objects.get(id=mama_id)
-    sum_trade = trade_Sum(xlmm.openid)
-    if sum_trade >= 100:
-        # 修改小鹿妈妈的记录
-        CarryLog.objects.get_or_create(xlmm=xlmm.id,
-                                         log_type=CarryLog.DEPOSIT,
-                                         value=13000,
-                                         buyer_nick= weikefu,
-                                         carry_type=CarryLog.CARRY_IN,
-                                         status=CarryLog.CONFIRMED)
-        xlmm.cash = xlmm.cash + 13000 # 分单位
-        xlmm.referal_from = tuijianren
-        xlmm.agencylevel = 2
-        xlmm.charge_status = XiaoluMama.CHARGED
-        xlmm.manager = request.user.id
-        xlmm.weikefu = weikefu
-        xlmm.save()
+
+    customer = Customer.objects.get(unionid=xlmm.openid)  # 找到对应的unionid 等于小鹿妈妈openid的顾客
+    sale_orders = SaleOrder.objects.filter(outer_id='RMB100', payment=100, status=SaleOrder.WAIT_SELLER_SEND_GOODS,
+                                 sale_trade__buyer_id=customer.id,
+                                 sale_trade__status=SaleTrade.WAIT_SELLER_SEND_GOODS)
+
+    if sale_orders.count() == 0:
+        return None
+
+    order = sale_orders[0]
+    order.status = SaleOrder.TRADE_FINISHED # 改写订单明细状态
+    order.save()
+
+    trade = order.sale_trade
+    trade.status = SaleTrade.TRADE_FINISHED  # 改写 订单状态
+    trade.save()
+
+    # 修改小鹿妈妈的记录
+    CarryLog.objects.get_or_create(xlmm=xlmm.id,
+                                     log_type=CarryLog.DEPOSIT,
+                                     value=13000,
+                                     buyer_nick= weikefu,
+                                     carry_type=CarryLog.CARRY_IN,
+                                     status=CarryLog.CONFIRMED)
+    xlmm.cash = xlmm.cash + 13000 # 分单位
+    xlmm.referal_from = tuijianren
+    xlmm.agencylevel = 2
+    xlmm.charge_status = XiaoluMama.CHARGED
+    xlmm.manager = request.user.id
+    xlmm.weikefu = weikefu
+    xlmm.save()
     return HttpResponse('ok')
 
 

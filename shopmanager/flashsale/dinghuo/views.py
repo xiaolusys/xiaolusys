@@ -344,6 +344,24 @@ def changestatus(req):
     return HttpResponse("OK")
 
 
+@csrf_exempt
+def changememo(req):
+    post = req.POST
+    sku_id = post["sku_id"]
+    pro_sku = ProductSku.objects.get(id=sku_id)
+    memo = pro_sku.memo
+    if memo.__contains__("样品补全"):
+        pro_sku.memo = memo.replace(u"样品补全", "")
+        pro_sku.save()
+        log_action(req.user.id, pro_sku, CHANGE, u'删除备注')
+        return HttpResponse("True")
+    else:
+        pro_sku.memo = memo + u'样品补全'
+        pro_sku.save()
+        log_action(req.user.id, pro_sku, CHANGE, u'更改备注为样品补全')
+        return HttpResponse("False")
+
+
 from shopback.items.models import Product
 
 
@@ -370,7 +388,8 @@ class changedetailview(View):
             flagofquestion = True
 
         return render_to_response("dinghuo/changedetail.html",
-                                  {"orderlist": orderlist, "flagofstatus": flagofstatus, "flagofquestion": flagofquestion,
+                                  {"orderlist": orderlist, "flagofstatus": flagofstatus,
+                                   "flagofquestion": flagofquestion,
                                    "orderdetails": orderlist_list},
                                   context_instance=RequestContext(request))
 
@@ -521,18 +540,14 @@ class dailyworkview(View):
 
 
     def parseEndDt(self, end_dt):
-
         if not end_dt:
             dt = datetime.datetime.now()
             return datetime.datetime(dt.year, dt.month, dt.day, 23, 59, 59)
-
         if len(end_dt) > 10:
             return parse_datetime(end_dt)
-
         return parse_date(end_dt)
 
     def getSourceOrders(self, start_dt=None, end_dt=None):
-
         order_qs = MergeOrder.objects.filter(sys_status=pcfg.IN_EFFECT) \
             .exclude(merge_trade__type=pcfg.REISSUE_TYPE) \
             .exclude(merge_trade__type=pcfg.EXCHANGE_TYPE) \
@@ -551,7 +566,6 @@ class dailyworkview(View):
                                                                                  created__lte=end_dt)
         return dinghuo_qs
 
-
     def getDinghuoQuantityByPidAndSku(self, outer_id, sku_id, dinghuo_qs):
         allorderqs = dinghuo_qs.filter(product_id=outer_id, chichu_id=sku_id)
         buy_quantity = 0
@@ -559,9 +573,21 @@ class dailyworkview(View):
             buy_quantity += dinghuobean.buy_quantity
         return buy_quantity
 
-    def getDinghuoStatus(self, num, dinghuonum):
-        return (num > dinghuonum), ('缺货' + str(num - dinghuonum) + '件') if (num > dinghuonum) else "OK"
-
+    def getDinghuoStatus(self, num, dinghuonum, sku_dict):
+        flag_of_memo = False
+        flag_of_more = False
+        flag_of_less = False
+        resultstr = ""
+        if dinghuonum > num:
+            flag_of_more = True
+            resultstr = '多订' + str(dinghuonum - num) + '件'
+        if dinghuonum < num:
+            flag_of_less = True
+            resultstr = '缺少' + str(num - dinghuonum) + '件'
+            if sku_dict['memo'].__contains__(u"样品补全"):
+                flag_of_memo = True
+                resultstr = '样品补' + str(num - dinghuonum) + '件'
+        return resultstr, flag_of_memo, flag_of_more, flag_of_less
 
     def getProductByDate(self, shelve_date, groupname):
         groupmembers = []
@@ -614,19 +640,23 @@ class dailyworkview(View):
         trade_list = []
         for product_dict in productdicts:
             product_dict['prod_skus'] = []
-            guiges = ProductSku.objects.values('id', 'outer_id', 'properties_name', 'properties_alias').filter(
+            guiges = ProductSku.objects.values('id', 'outer_id', 'properties_name', 'properties_alias', 'memo').filter(
                 product_id=product_dict['id'])
             orderqsbyoouterid = self.getSourceOrderByouterid(product_dict['outer_id'], orderqs)
             for sku_dict in guiges:
                 sale_num = self.getSaleNumBySku(sku_dict['outer_id'], orderqsbyoouterid)
                 dinghuo_num = self.getDinghuoQuantityByPidAndSku(product_dict['id'], sku_dict['id'], dinghuoqs)
-                dinghuostatus, dinghuostatusstr = self.getDinghuoStatus(sale_num, dinghuo_num)
-                if dinghuostatus or dhstatus == u'0':
+                dinghuostatusstr, flag_of_memo, flag_of_more, flag_of_less = self.getDinghuoStatus(
+                    sale_num, dinghuo_num, sku_dict)
+                if flag_of_more or flag_of_less or dhstatus == u'0':
                     sku_dict['sale_num'] = sale_num
                     sku_dict['dinghuo_num'] = dinghuo_num
                     sku_dict['sku_name'] = sku_dict['properties_alias'] if len(
                         sku_dict['properties_alias']) > 0 else sku_dict['properties_name']
                     sku_dict['dinghuo_status'] = dinghuostatusstr
+                    sku_dict['flag_of_memo'] = flag_of_memo
+                    sku_dict['flag_of_more'] = flag_of_more
+                    sku_dict['flag_of_less'] = flag_of_less
                     product_dict['prod_skus'].append(sku_dict)
 
             trade_list.append(product_dict)

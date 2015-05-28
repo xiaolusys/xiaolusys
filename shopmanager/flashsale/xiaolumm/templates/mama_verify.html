@@ -40,11 +40,7 @@
             var weikefu = document.getElementById(weikefu_id).value; //获取微客服字段
 
             var user_show = document.getElementById('user_show').innerHTML;
-            if (!(/^1[3458][0-9]{9}$/.test(tuijianren))) {
-                //alert('不是完整的11位手机号或者正确的手机号前七位');
-                alert('手机号码有误，请核实，谢谢！');
-            }
-            else if (user_show === "") {
+            if (user_show === "") {
                 alert('管理员掉线，请重新登录系统后操作，谢谢！');
             }
             else {
@@ -110,8 +106,9 @@
                         <td id="{{ item.id }}">{{ item.id }}</td>
                         <td>{{ item.mobile }}</td>
                         <td>{{ item.sum_trade }}</td>
-                        <td><input id="weikefu_{{ item.id }}" name="weikefu" style="width: 90px;"/></td>
-                        <td><input id="tuijianren_{{ item.id }}" name="tuijianren" style="width: 100px;"/></td>
+                        <td><input id="weikefu_{{ item.id }}" name="weikefu" style="width: 90px;"
+                                   value="{{ item.weikefu }}"/></td>
+                        <td><input id="tuijianren_{{ item.id }}" name="tuijianren" style="width: 100px;" value="{{ item.referal_from }}"/></td>
                         <td>
                             <div class="btn-group" role="group" aria-label="...">
                                 <button type="button" id="bt_verify_{{ item.id }}" {% if item.flag == 0 %}
