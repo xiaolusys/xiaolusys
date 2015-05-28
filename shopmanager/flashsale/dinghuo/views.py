@@ -361,6 +361,19 @@ def changememo(req):
         log_action(req.user.id, pro_sku, CHANGE, u'更改备注为样品补全')
         return HttpResponse("False")
 
+@csrf_exempt
+def setusertogroup(req):
+    post = req.POST
+    groupid = post.get("groupid", 0)
+    uid = post["uid"]
+    myuser = MyUser.objects.filter(user_id=int(uid))
+    if myuser.count() > 0:
+        myusertemp = myuser[0]
+        myusertemp.group_id = int(groupid)
+        myusertemp.save()
+    else:
+        MyUser(user_id=int(uid), group_id=int(groupid)).save()
+    return HttpResponse("OK")
 
 from shopback.items.models import Product
 
@@ -648,7 +661,7 @@ class dailyworkview(View):
                 dinghuo_num = self.getDinghuoQuantityByPidAndSku(product_dict['id'], sku_dict['id'], dinghuoqs)
                 dinghuostatusstr, flag_of_memo, flag_of_more, flag_of_less = self.getDinghuoStatus(
                     sale_num, dinghuo_num, sku_dict)
-                if flag_of_more or flag_of_less or dhstatus == u'0':
+                if dhstatus == u'0' or (flag_of_more or flag_of_less and  dhstatus == u'1') or (flag_of_more and dhstatus == u'3') or (flag_of_less and dhstatus == u'2'):
                     sku_dict['sale_num'] = sale_num
                     sku_dict['dinghuo_num'] = dinghuo_num
                     sku_dict['sku_name'] = sku_dict['properties_alias'] if len(

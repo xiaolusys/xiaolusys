@@ -45,8 +45,15 @@
                 <select class="form-control " name="dhstatus" id="dhstatus_id">
                     <option value="0" {% ifequal dhstatus '0' %} selected="selected" {% endifequal %}>所有</option>
                     <option class="btn-danger" {% ifequal dhstatus '1' %} selected="selected" {% endifequal %}
-                            value="1">异常
+                            value="1">显示异常(缺货,订多)
                     </option>
+                    <option class="btn-danger" {% ifequal dhstatus '2' %} selected="selected" {% endifequal %}
+                            value="2">只显示缺货
+                    </option>
+                    <option class="btn-danger" {% ifequal dhstatus '3' %} selected="selected" {% endifequal %}
+                            value="3">只显示订多
+                    </option>
+
                 </select>
             </div>
             <div class="col-xs-1">

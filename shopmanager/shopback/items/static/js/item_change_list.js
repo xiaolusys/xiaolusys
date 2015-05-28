@@ -42,3 +42,21 @@ $(".charger_select").live("change",function(e){
 
     $.ajax({"url":url,"data":data,"success":callback,"type":"POST"});
 });
+
+
+$(".purchase_charger_select").live("change",function(e){
+    e.preventDefault();
+
+    var target = e.target;
+    var uid = target.getAttribute('cid');
+    var groupid = $(target).val();
+    var url = "/sale/dinghuo/setusertogroup/";
+    var callback = function (res) {
+        console.log(res);
+        if (res == "OK") {
+            $(target).after("<img src='/static/admin/img/icon-yes.gif '>");
+          }
+        };
+    var data = {"groupid":groupid,"uid":uid};
+    $.ajax({"url":url,"data":data,"success":callback,"type":"POST"});
+});

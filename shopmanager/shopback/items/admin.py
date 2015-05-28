@@ -35,6 +35,8 @@ from common.utils import gen_cvs_tuple,CSVUnicodeWriter
 from flashsale.pay import Productdetail
 import logging 
 from flashsale.dinghuo.models import orderdraft
+from flashsale.dinghuo.models_user import MyUser, MyGroup
+from django.contrib.auth.models import User as DjangoUser
 from django.forms.models import model_to_dict
 
 logger =  logging.getLogger('django.request')
@@ -95,7 +97,7 @@ class ProductAdmin(admin.ModelAdmin):
     list_display = ('id','outer_id_link','pic_link','collect_num','category_select',
                     'remain_num','wait_post_num','cost' ,'std_sale_price','agent_price'
                    ,'sync_stock','is_match','is_split','is_verify','sale_time',
-                   'sale_charger','charger_select','district_link','shelf_status')
+                   'purchase_select','charger_select','district_link','shelf_status')
     list_display_links = ('id',)
     #list_editable = ('name',)
     
@@ -183,8 +185,30 @@ class ProductAdmin(admin.ModelAdmin):
 
     category_select.allow_tags = True
     category_select.short_description = u"所属类目"
-    
-    
+
+
+    def purchase_select(self, obj):
+        sale_charger = obj.sale_charger
+        systemuesr = DjangoUser.objects.filter(username=sale_charger)
+        if systemuesr.count() <= 0:
+            return "找不到采购员"
+        groups = MyGroup.objects.all()
+        myuser = MyUser.objects.filter(user_id=systemuesr[0].id)
+        if len(sale_charger) > 0 and groups.count() > 0:
+            group_list = ["<select class='purchase_charger_select' cid='%s'>"%systemuesr[0].id]
+            group_list.append("<option value=''>---------------</option>")
+            for group in groups:
+                if myuser.count() > 0 and myuser[0].group_id == group.id:
+                    group_list.append("<option value='%s' selected>%s</option>" % (group.id, group.name))
+                    continue
+                group_list.append("<option value='%s'>%s</option>" % (group.id, group.name))
+            group_list.append("</select>")
+            return "%s"%sale_charger+"".join(group_list)
+
+
+    purchase_select.allow_tags = True
+    purchase_select.short_description = u"所属采购组"
+
     def charger_select(self, obj):
 
         categorys = self.storage_chargers
