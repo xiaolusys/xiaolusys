@@ -14,7 +14,7 @@ from shopapp.weixin.models import WXOrder
 from shopapp.weixin.service import WeixinUserService
 from shopback.base import log_action, ADDITION, CHANGE
 
-from models import Clicks, XiaoluMama, AgencyLevel, CashOut, CarryLog
+from models import Clicks, XiaoluMama, AgencyLevel, CashOut, CarryLog, UserGroup
 from flashsale.pay.models import SaleTrade,Customer,SaleRefund
 
 from serializers import CashOutSerializer,CarryLogSerializer
@@ -606,6 +606,12 @@ def mama_Verify(request):
     # 审核妈妈成为代理的功能
     data = []
     xlmms = XiaoluMama.objects.filter(manager=0)  # 找出没有被接管的妈妈
+
+
+    default_code = ['BLACK','NORMAL']
+    default_code.append(request.user.username)
+    user_groups = UserGroup.objects.filter(code__in=default_code)
+
     for xlmm in xlmms:
         trade = get_Deposit_Trade(xlmm.openid)
         if trade:
@@ -613,7 +619,7 @@ def mama_Verify(request):
             mobile = xlmm.mobile
             weikefu = xlmm.weikefu
             referal_from = xlmm.referal_from
-            data_entry = {"id": id, "mobile": mobile, "sum_trade": "YES","weikefu":weikefu,'referal_from':referal_from}
+            data_entry = {"id": id, "mobile": mobile, "sum_trade": "YES","weikefu":weikefu,'referal_from':referal_from,'cat_list':user_groups}
             data.append(data_entry)
     user = request.user.username
     return render_to_response("mama_verify.html", {'data': data,'user':user}, context_instance=RequestContext(request))
@@ -624,6 +630,7 @@ def mama_Verify_Action(request):
     mama_id = request.GET.get('id')
     tuijianren = request.GET.get('tuijianren')
     weikefu = request.GET.get('weikefu')
+    user_group =int(request.GET.get('group'))
 
     xlmm = XiaoluMama.objects.get(id=mama_id)
 
@@ -650,12 +657,14 @@ def mama_Verify_Action(request):
                                      buyer_nick= weikefu,
                                      carry_type=CarryLog.CARRY_IN,
                                      status=CarryLog.CONFIRMED)
+
     xlmm.cash = xlmm.cash + 13000 # 分单位
     xlmm.referal_from = tuijianren
     xlmm.agencylevel = 2
     xlmm.charge_status = XiaoluMama.CHARGED
     xlmm.manager = request.user.id
     xlmm.weikefu = weikefu
+    xlmm.user_group_id = user_group
     xlmm.save()
     return HttpResponse('ok')
 

@@ -35,23 +35,27 @@
 
             tuijianren_id = "tuijianren_" + id;
             weikefu_id = "weikefu_" + id;
+            group_select = "group_select_"+id;
 
             var tuijianren = document.getElementById(tuijianren_id).value; //获取推荐人字段 手机号码
             var weikefu = document.getElementById(weikefu_id).value; //获取微客服字段
+            var group = document.getElementById(group_select).value;// 获取群组字段
+            console.log(group);
 
             var user_show = document.getElementById('user_show').innerHTML;
             if (user_show === "") {
                 alert('管理员掉线，请重新登录系统后操作，谢谢！');
             }
             else {
-                data = {"id": id, 'tuijianren': tuijianren, 'weikefu': weikefu};
+                data = {"id": id, 'tuijianren': tuijianren, 'weikefu': weikefu,'group':group};
 
                 var bt_verify = $('#' + index);
-
                 tui = 'tuijianren_' + id;
                 var tuijianren_attr = $('#' + tui);
                 wei = 'weikefu_' + id;
                 var weikefu_attr = $('#' + wei);
+                group =  "group_select_"+id;
+                var grou_attr = $('#'+group);
 
                 function callback(result) {
                     if (result == "ok") {
@@ -59,6 +63,7 @@
                         bt_verify.attr("disabled", "disabled"); // button 状态关闭
                         tuijianren_attr.attr("disabled", "disabled"); //输入框状态关闭
                         weikefu_attr.attr("disabled", "disabled"); //输入框状态关闭
+                        grou_attr.attr("disabled", "disabled");//选择框关闭
                     }
                     else {
                         alert("server error");
@@ -94,6 +99,7 @@
                     <th>妈妈编号</th>
                     <th>手机号</th>
                     <th>已付款</th>
+                    <th>群组</th>
                     <th>昵称</th>
                     <th>推荐人手机</th>
                     <th>操作</th>
@@ -106,9 +112,12 @@
                         <td id="{{ item.id }}">{{ item.id }}</td>
                         <td>{{ item.mobile }}</td>
                         <td>{{ item.sum_trade }}</td>
+                        <td><select id="group_select_{{ item.id }}">{% for group in item.cat_list %}
+                            <option value="{{ group.id }}">{{ group.name }}</option> {% endfor %}</select></td>
                         <td><input id="weikefu_{{ item.id }}" name="weikefu" style="width: 90px;"
                                    value="{{ item.weikefu }}"/></td>
-                        <td><input id="tuijianren_{{ item.id }}" name="tuijianren" style="width: 100px;" value="{{ item.referal_from }}"/></td>
+                        <td><input id="tuijianren_{{ item.id }}" name="tuijianren" style="width: 100px;"
+                                   value="{{ item.referal_from }}"/></td>
                         <td>
                             <div class="btn-group" role="group" aria-label="...">
                                 <button type="button" id="bt_verify_{{ item.id }}" {% if item.flag == 0 %}
