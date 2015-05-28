@@ -583,7 +583,6 @@ from flashsale.pay.models import SaleTrade,SaleOrder
 def get_Deposit_Trade(openid):
     try:
         customer = Customer.objects.get(unionid=openid)  # 找到对应的unionid 等于小鹿妈妈openid的顾客
-        print(customer)
 
         sale_orders = SaleOrder.objects.filter(outer_id='RMB100', payment=100, status=SaleOrder.WAIT_SELLER_SEND_GOODS,
                                      sale_trade__buyer_id=customer.id,
