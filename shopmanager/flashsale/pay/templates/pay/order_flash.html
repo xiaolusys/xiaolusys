@@ -23,12 +23,13 @@
   
   <body>
     <div class="container" style="margin-top:20px" >
+    
     <div class="row">
     
     <div class="col-lg-6" >
     <h1>
         <span class="label label-success">
-          特卖订单详细 
+          特卖订单详细 {{start}}
         </span>
          </h1>
   </div>
@@ -41,6 +42,7 @@
   </div>
       
 </div>
+
  <div class="row"   >
 
       <nav class="navbar navbar-default" role="navigation">
@@ -199,9 +201,9 @@
 </ul>
 </div>
 </nav>
-
-
 </div>
+
+{% csrf_token %}
 
 <div  class="row"  >
   <div class="col-lg-3" >
@@ -226,6 +228,48 @@
     </a>
   </div>
 </div>
+
+<div class="row">
+  
+    
+    <div class="col-lg-10" >
+     <form  class="form-horizontal"    role="form"    action="/mm/search_flashsale/"  method="post"  >
+     {% csrf_token %}
+
+   
+   <div class="form-group">
+      <label for="firstname" class="col-sm-2 control-label">查询</label>
+      <div class="col-sm-10">
+         <input type="text" class="form-control" id="condition" name="condition" 
+            placeholder="查询条件（例如：订单号，手机号码，电话号码，用户昵称）">
+            <button type="submit" class="btn btn-warning">点击查询</button>
+      </div>
+   </div>
+   
+   
+</form>
+  </div>
+
+  <div class="col-lg-2" >
+    
+  </div>
+
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 <div  class="row">
   <div style="margin-top:50px">
@@ -364,9 +408,40 @@
 
           {% endfor %}
         </tbody>
+        
       </table>
     </div>
  </div>
+ 
+ 
+ <!--<div  class="row"  >
+  <div class="col-lg-4" >
+    <a href="/mm/preorder_flashsale/">
+      前100&nbsp&nbsp</br>
+      
+    </a>
+  </div>
+  <div class="col-lg-4" >
+    
+  </div>
+  <div class="col-lg-4" >
+    <a href="/mm/nextorder_flashsale/">
+      后100
+    </a>
+  </div>-->
+  
+</div>
+<ul class="pagination">
+  <li><a href="/mm/order_flashsale/">首页</a></li>
+  <li><a href="/mm/preorder_flashsale/">上一页</a></li>
+<!--  <li class="active"><a href="#">1</a></li>
+  <li class="disabled"><a href="#">2</a></li>
+  <li><a href="#">3</a></li>
+  <li><a href="#">4</a></li>
+  <li><a href="#">5</a></li>-->
+  <li><a href="/mm/nextorder_flashsale/">下一页</a></li>
+</ul>
+
 </body>
 
 
@@ -382,42 +457,37 @@
 <script src="{{ STATIC_URL }}jquery-datatable-addon/jquery.dataTables.min.js" type="text/javascript">
 </script>
 
-
-<script type="text/javascript">
-  $('#state_table').dataTable({
-    //"bJQueryUI": true,
-    "bAutoWidth": false, //自适应宽度
-    "bProcessing":true,
-    "aaSorting": [[1, "asc"]],
-    "iDisplayLength": 5,
-    "aLengthMenu": [[5, 10, 100, -1], ["5条数据" ,10, 100, "All"]],
-    "sPaginationType": "full_numbers",//是否需要每页代码
-    //"sDom": '<"H"Tfr>t<"F"ip>',
-    "oLanguage": {
-      "sLengthMenu": "每页 _MENU_ 条",
-      "sZeroRecords": "抱歉， 没有找到",
-      "sInfo": "从 _START_ 到 _END_ /共 _TOTAL_ 条",
-      "sInfoEmpty": "没有数据",
-      "sSearch": "搜索",
-      "sInfoFiltered": "(从 _MAX_ 条数据中检索)",
-      "oPaginate": {
-        "sFirst": "首页",
-        "sPrevious": "前一页",
-        "sNext": "后一页",
-        "sLast": "尾页"
-        },
-        "sZeroRecords": "没有检索到数据",
-        "sProcessing": "<img src='/static/img/loading.gif' />"
-      }
-      });
-    </script>
-    <!--
-      <script type="text/javascript"> $(function() { $(window).scroll(function(){ var w_height =
-      $(window).height();//浏览器高度 var scroll_top = $(document).scrollTop();//滚动条到顶部的垂直高度 if(scroll_top > 100){
-      $("#state_table").css("position" , "fixed").css("top","0").css("width",2300); }else{
-      $("#state_table").css("position" , "static"); } $("#state_table").css("position" ,
-      "fixed").css("top","0").css("width",2300); }); }); </script>
-    -->
+ <script type="text/javascript">
+     $('#state_table').dataTable({
+   		//"bJQueryUI": true,
+		"bAutoWidth": false, //自适应宽度
+		"bProcessing":true,
+		"aaSorting": [[1, "asc"]],
+		"iDisplayLength": 100,
+		"aLengthMenu": [[100], [100]],
+		"sPaginationType": "full_numbers",//是否需要每页代码
+		//"sDom": '<"H"Tfr>t<"F"ip>',
+		"oLanguage": {
+			"sLengthMenu": "每页 _MENU_ 条",
+			"sZeroRecords": "抱歉， 没有找到",
+			"sInfo": "从 _START_ 到 _END_ /共 _TOTAL_ 条",
+			"sInfoEmpty": "没有数据",
+			"sSearch": "搜索",
+			"sInfoFiltered": "(从 _MAX_ 条数据中检索)",
+			"oPaginate": {
+				"sFirst": "首页",
+				"sPrevious": "前一页",
+				"sNext": "后一页",
+				"sLast": "尾页"
+			},
+			"sZeroRecords": "没有检索到数据",
+			"sProcessing": "<img src='/static/img/loading.gif' />"
+		}		
+  });
+  
+    
+    
+	</script>
 
    
   </html>

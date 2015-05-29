@@ -12,14 +12,150 @@ from .tasks import confirmTradeChargeTask
 from flashsale.xiaolumm.models import CarryLog,XiaoluMama
 import time
 import datetime
+from  django.db.models import Q
 ISOTIMEFORMAT='%Y-%m-%d '
 today = datetime.date.today()
 real_today=datetime.date.today().strftime("%Y-%m-%d ")
 
 
 
+start=0
+end=100
+
+
+#查询功能
+def search_flashsale(request):
+  print '数字是',4444  
+  if request.method == "POST":
+    rec1=[]  
+    number=request.POST.get('condition')
+    
+    print '数字是',number
+    if number=="":
+        rec1=[]
+    else:
+        
+    
+        trade_info=SaleTrade.objects.filter(Q(receiver_mobile=number) | Q(receiver_name=number) | Q(tid=number) | Q(buyer_nick=number) | Q(receiver_phone=number))
+        for item in trade_info:
+            info={}  
+            info['trade']=item
+            info['detail']=[]
+            for order_info in item.sale_orders.all():
+                    sum={}
+                    sum['order']=order_info
+                    product_info=Product.objects.get(outer_id=order_info.outer_id) 
+                    sum['product']=product_info
+                    info['detail'].append(sum)
+            rec1.append(info)
+            print rec1
+    return render(request, 'pay/order_flash.html',{'info': rec1,'time':real_today,'yesterday':today,'start':start})
+  else:
+    rec1=[] 
+  
+    return render(request, 'pay/order_flash.html',{'info': rec1,'time':real_today,'yesterday':today,'start':start})
+
+
 def order_flashsale(request):
     global today
+    global start
+    global end
+    start=0
+    end=100
+    today = datetime.date.today()##14：24  改正now 改为now2
+    now2=today.strftime("%Y-%m-%d ")
+    now4=datetime.datetime.strptime(now2+' 00:00:00', '%Y-%m-%d %H:%M:%S')
+    now5=datetime.datetime.strptime(now2+' 23:59:59', '%Y-%m-%d %H:%M:%S')
+    print '现在',now4
+    print '现在',now5
+    rec=[]
+    
+    
+    trade_info=SaleTrade.objects.all()[start:end]
+    for item in trade_info:
+        info={}  
+        info['trade']=item
+        info['detail']=[]
+        for order_info in item.sale_orders.all():
+                sum={}
+                sum['order']=order_info
+                product_info=Product.objects.get(outer_id=order_info.outer_id) 
+                sum['product']=product_info
+                info['detail'].append(sum)
+        rec.append(info)
+    return render(request, 'pay/order_flash.html',{'info': rec,'time':real_today,'yesterday':today,'start':start})
+
+def preorder_flashsale(request):
+    global today
+    global start
+    global end
+    today = datetime.date.today()##14：24  改正now 改为now2
+    now2=today.strftime("%Y-%m-%d ")
+    now4=datetime.datetime.strptime(now2+' 00:00:00', '%Y-%m-%d %H:%M:%S')
+    now5=datetime.datetime.strptime(now2+' 23:59:59', '%Y-%m-%d %H:%M:%S')
+    print '现在',now4
+    print '现在',now5
+    rec=[]
+    print '现在',start
+    print '现在',end
+    if start==0 :
+        start=0
+        end=100
+    else :
+        start=start-100
+        end=end-100
+    print '现在',start
+    print '现在',end
+    trade_info=SaleTrade.objects.all()[start:end]
+    for item in trade_info:
+        info={}  
+        info['trade']=item
+        info['detail']=[]
+        for order_info in item.sale_orders.all():
+                sum={}
+                sum['order']=order_info
+                product_info=Product.objects.get(outer_id=order_info.outer_id) 
+                sum['product']=product_info
+                info['detail'].append(sum)
+        rec.append(info)
+    return render(request, 'pay/order_flash.html',{'info': rec,'time':real_today,'yesterday':today,'start':start})
+
+def nextorder_flashsale(request):
+    global today
+    global start
+    global end
+    today = datetime.date.today()##14：24  改正now 改为now2
+    now2=today.strftime("%Y-%m-%d ")
+    now4=datetime.datetime.strptime(now2+' 00:00:00', '%Y-%m-%d %H:%M:%S')
+    now5=datetime.datetime.strptime(now2+' 23:59:59', '%Y-%m-%d %H:%M:%S')
+    print '现在',now4
+    print '现在',now5
+    rec=[]
+    start=start + 100
+    end=end + 100
+    print '现在',start
+    print '现在',end
+    trade_info=SaleTrade.objects.all()[start:end]
+    for item in trade_info:
+        info={}  
+        info['trade']=item
+        info['detail']=[]
+        for order_info in item.sale_orders.all():
+                sum={}
+                sum['order']=order_info
+                product_info=Product.objects.get(outer_id=order_info.outer_id) 
+                sum['product']=product_info
+                info['detail'].append(sum)
+        rec.append(info)
+    return render(request, 'pay/order_flash.html',{'info': rec,'time':real_today,'yesterday':today,'start':start})
+
+
+
+
+
+def order_flashsale22(request):
+    global today
+    today = datetime.date.today()#14：24  改正now 改为now2
     now2=today.strftime("%Y-%m-%d ")
     now4=datetime.datetime.strptime(now2+' 00:00:00', '%Y-%m-%d %H:%M:%S')
     now5=datetime.datetime.strptime(now2+' 23:59:59', '%Y-%m-%d %H:%M:%S')
@@ -76,8 +212,8 @@ def time_rank(request,time_id):
      
      elif int(day) == 0:
          today = datetime.date.today()
-         now=today.strftime("%Y-%m-%d ")
-         print '今天是',type(now)
+         now2=today.strftime("%Y-%m-%d ")#14：24  改正now 改为now2
+         print '今天是',type(now2)
          rec=[]
          today = datetime.date.today()
          now2=today.strftime("%Y-%m-%d ")
