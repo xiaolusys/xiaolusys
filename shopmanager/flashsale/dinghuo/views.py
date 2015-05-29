@@ -38,7 +38,8 @@ def searchProduct(request):
     response = HttpResponse()
     response['Content-Type'] = "text/javascript"
     ProductIDFrompage = request.GET.get("searchtext", "")
-    productRestult = Product.objects.filter(Q(outer_id__icontains=ProductIDFrompage) | Q(name__icontains=ProductIDFrompage))
+    productRestult = Product.objects.filter(
+        Q(outer_id__icontains=ProductIDFrompage) | Q(name__icontains=ProductIDFrompage))
     product_list = []
     for product in productRestult:
         product_dict = model_to_dict(product)
@@ -379,6 +380,34 @@ def setusertogroup(req):
 
 
 @csrf_exempt
+def modifyorderlist(req):
+    post = req.POST
+    orderlistid = post.get("orderlistid", 0)
+    receiver = post['receiver']
+    supplier_name = post['supplier_name']
+    express_company = post['express_company']
+    express_no = post['express_no']
+    note = post.get('note', "")
+    if len(note) > 0:
+        note = "->" + req.user.username + ":" + note
+    order_amount = post['order_amount']
+    print receiver, supplier_name, express_company, express_no, note,
+    try:
+        orderlist = OrderList.objects.get(id=orderlistid)
+        orderlist.receiver = receiver
+        orderlist.supplier_name = supplier_name
+        orderlist.express_company = express_company
+        orderlist.express_no = express_no
+        orderlist.note = orderlist.note + note
+        orderlist.order_amount = order_amount
+        orderlist.save()
+        log_action(req.user.id, orderlist, CHANGE, u'修改订货单')
+    except:
+        return HttpResponse("False")
+    return HttpResponse("OK")
+
+
+@csrf_exempt
 def adddetailtodinghuo(req):
     post = req.POST
     buy_quantity = post["buy_quantity"]
@@ -711,7 +740,7 @@ class dailyworkview(View):
                 dinghuostatusstr, flag_of_memo, flag_of_more, flag_of_less = self.getDinghuoStatus(
                     sale_num, dinghuo_num, sku_dict)
                 if dhstatus == u'0' or ((flag_of_more or flag_of_less) and dhstatus == u'1') or (
-                    flag_of_less and dhstatus == u'2') or (flag_of_more and dhstatus == u'3'):
+                            flag_of_less and dhstatus == u'2') or (flag_of_more and dhstatus == u'3'):
                     sku_dict['sale_num'] = sale_num
                     sku_dict['dinghuo_num'] = dinghuo_num
                     sku_dict['sku_name'] = sku_dict['properties_alias'] if len(
