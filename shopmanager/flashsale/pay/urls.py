@@ -9,7 +9,7 @@ from .views_login import flashsale_login
 from .views_address import AddressList,UserAddressDetail,DistrictList
 from .views_refund import RefundApply,RefundConfirm
 from .views_product import productsku_quantity_view
-from .views_order import order_flashsale,time_rank,sale_state,refund_state,refunding_state
+from .views_order import order_flashsale,time_rank,sale_state,refund_state,refunding_state,preorder_flashsale,nextorder_flashsale,search_flashsale
 urlpatterns = (
     url(r'^charge/$', csrf_exempt(views.PINGPPChargeView.as_view())),
     url(r'^callback/$', csrf_exempt(views.PINGPPCallbackView.as_view())),
@@ -53,5 +53,9 @@ urlpatterns = (
     url(r'^time_rank/(?P<time_id>\d+)/$',time_rank,name="time_rank"),
     url(r'^sale_state/(?P<state_id>\d+)/$',sale_state,name="sale_state"),
     url(r'^refund_state/(?P<state_id>\d+)/$',refund_state,name="refund_state"),  
-    url(r'^refunding_state/(?P<state_id>\d+)/$',refunding_state,name="refunding_state"),         
+    url(r'^refunding_state/(?P<state_id>\d+)/$',refunding_state,name="refunding_state"),
+#
+    url(r'^preorder_flashsale/$', preorder_flashsale,name="preorder_flashsale"),  
+    url(r'^nextorder_flashsale/$', nextorder_flashsale,name="nextorder_flashsale"),
+    url(r'^search_flashsale/$', search_flashsale,name="search_flashsale"),    
 )
