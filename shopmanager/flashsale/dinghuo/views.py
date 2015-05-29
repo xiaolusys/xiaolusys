@@ -38,7 +38,7 @@ def searchProduct(request):
     response = HttpResponse()
     response['Content-Type'] = "text/javascript"
     ProductIDFrompage = request.GET.get("searchtext", "")
-    productRestult = Product.objects.filter(outer_id__icontains=ProductIDFrompage)
+    productRestult = Product.objects.filter(Q(outer_id__icontains=ProductIDFrompage) | Q(name__icontains=ProductIDFrompage))
     product_list = []
     for product in productRestult:
         product_dict = model_to_dict(product)
