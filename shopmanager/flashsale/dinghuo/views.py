@@ -393,6 +393,7 @@ def adddetailtodinghuo(req):
         product_id = pro_sku.product_id
         outer_id = pro_sku.product.outer_id
         product_name = pro_sku.product.name
+        orderlist = OrderList.objects.get(id=orderlistid)
         product_chicun = pro_sku.properties_alias if len(
             pro_sku.properties_alias) > 0 else pro_sku.properties_name
         order = OrderDetail.objects.filter(orderlist_id=orderlistid, chichu_id=sku_id, buy_unitprice=buy_price)
@@ -401,6 +402,7 @@ def adddetailtodinghuo(req):
             ordertemp.buy_quantity = ordertemp.buy_quantity + buy_quantity
             ordertemp.total_price = ordertemp.total_price + buy_quantity * buy_price
             ordertemp.save()
+            log_action(req.user.id, orderlist, CHANGE, u'订货单{0}{1}'.format((u'加一件'), ordertemp.product_name))
         else:
             order_new = OrderDetail()
             order_new.orderlist_id = orderlistid
@@ -413,6 +415,7 @@ def adddetailtodinghuo(req):
             order_new.buy_unitprice = buy_price
             order_new.total_price = buy_price * buy_quantity
             order_new.save()
+            log_action(req.user.id, orderlist, CHANGE, u'订货单{0}{1}'.format((u'加一件'), order_new.product_name))
         return HttpResponse("OK")
     return HttpResponse("False")
 
@@ -707,8 +710,8 @@ class dailyworkview(View):
                 dinghuo_num = self.getDinghuoQuantityByPidAndSku(product_dict['id'], sku_dict['id'], dinghuoqs)
                 dinghuostatusstr, flag_of_memo, flag_of_more, flag_of_less = self.getDinghuoStatus(
                     sale_num, dinghuo_num, sku_dict)
-                if dhstatus == u'0' or (flag_of_more or flag_of_less and dhstatus == u'1') or (
-                            flag_of_more and dhstatus == u'3') or (flag_of_less and dhstatus == u'2'):
+                if dhstatus == u'0' or ((flag_of_more or flag_of_less) and dhstatus == u'1') or (
+                    flag_of_less and dhstatus == u'2') or (flag_of_more and dhstatus == u'3'):
                     sku_dict['sale_num'] = sale_num
                     sku_dict['dinghuo_num'] = dinghuo_num
                     sku_dict['sku_name'] = sku_dict['properties_alias'] if len(
