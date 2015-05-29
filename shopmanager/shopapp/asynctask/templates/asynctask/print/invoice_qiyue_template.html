@@ -41,12 +41,14 @@ body {
 }
 
 @page {
+	-pdf-frame-content: delivery;
 	margin: 0.5cm 0.5cm;
 	font-family: simhei;
 	-pdf-frame-border: 0;
-         
     -pdf-level: 0;
     -pdf-open: false;
+    width:10cm;
+    height:10.16cm;
 	border:0;
 	@frame base{
 		-pdf-frame-content: baseInfo;
@@ -164,10 +166,10 @@ td {
 		<div class="seller-nick">
 			<h1>{{ trade.ins.user.nick }} [发货单]</h1>
 		</div> 
-		<div id="baseInfo">付款打单日期:{{ trade.ins.pay_time.month }}.{{ trade.ins.pay_time.day }}/{{ trade.today.month }}.{{ trade.today.day }}</div>
+		<div id="baseInfo"><!--付款打单日期:{{ trade.ins.pay_time.month }}.{{ trade.ins.pay_time.day }}/{{ trade.today.month }}.{{ trade.today.day }}--></div>
 		<hr/>
 		<div class='seller-info'>
-			<table >
+			<!--<table >
 				<tr><td style="width:150px;"></td><td></td><td style="width:120px;"></td><td></td></tr>
 			    <tr>
 			    	<td><b>订单编号：</b></td><td>{{ trade.ins.id }}{% if trade.juhuasuan %}（ 聚 ）{% endif %}</td>
@@ -181,10 +183,10 @@ td {
 					<td >手机：</td><td>{{ trade.ins.receiver_mobile|stringBlur }}</td>
 					<td>电话：</td><td>{{ trade.ins.receiver_phone }}</td>
 				</tr>
-			</table>
+			</table>-->
 		</div>
 		<hr/>
-		<div class='order-info'>
+		<div  class='order-info'>
 			<table>
 				<thead>
 					<tr>
@@ -197,7 +199,7 @@ td {
 					</tr>
 				</thead>
 				<tbody>
-				{% for order in trade.orders %}
+				<!--{% for order in trade.orders %}
 				{% with parentloop=forloop.parentloop outer_id=order.0 order=order.1 %}
 				{% with sku_len=order.skus|length %}
 			    {% if sku_len > 0 %}
@@ -217,7 +219,7 @@ td {
 			    {% endif %}
 			    {% endwith %}
 			    {% endwith %}
-				{% endfor %}
+				{% endfor %}-->
 				</tbody>
 				<tfoot>
 					<tr><td colspan="2" ></td><td rowspan="1"><label class="order_num">{{ trade.order_nums }}</label></td></tr>
