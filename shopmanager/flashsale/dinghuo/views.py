@@ -688,3 +688,4 @@ class dailyworkview(View):
                                    "searchDinghuo": query_time, 'groupname': groupname, "dhstatus": dhstatus,
                                    "sell_well_pro": sell_well_pro},
                                   context_instance=RequestContext(request))
+        

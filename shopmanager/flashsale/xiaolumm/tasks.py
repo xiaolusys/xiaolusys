@@ -170,16 +170,16 @@ def task_AgencySubsidy_MamaContribu(target_date):      # 每天 写入记录
             if commission == 0:  # 如果订单总额是0则不做记录
                 continue
             
-            carry_log_sub = CarryLog()
-            carry_log_sub.xlmm       = sub_xlmm.id  # 锁定子代理 :每个子代理都生成一个分成值  妈妈贡献的ID 是子代理的ID
-            carry_log_sub.order_num  = xlmm.id       # 这里写的是 上级代理的ID
-            carry_log_sub.buyer_nick = sub_xlmm.mobile  # 这里写的是子代理的电话号码
-            carry_log_sub.carry_type = CarryLog.CARRY_OUT
-            carry_log_sub.log_type   = CarryLog.MAMA_CONTRIBU  # 妈妈贡献类型
-            carry_log_sub.value      = commission  # 上个月给本代理的分成
-            carry_log_sub.carry_date = target_date
-            carry_log_sub.status     = CarryLog.PENDING
-            carry_log_sub.save()
+#             carry_log_sub = CarryLog()
+#             carry_log_sub.xlmm       = sub_xlmm.id  # 锁定子代理 :每个子代理都生成一个分成值  妈妈贡献的ID 是子代理的ID
+#             carry_log_sub.order_num  = xlmm.id       # 这里写的是 上级代理的ID
+#             carry_log_sub.buyer_nick = sub_xlmm.mobile  # 这里写的是子代理的电话号码
+#             carry_log_sub.carry_type = CarryLog.CARRY_OUT
+#             carry_log_sub.log_type   = CarryLog.MAMA_CONTRIBU  # 妈妈贡献类型
+#             carry_log_sub.value      = commission  # 上个月给本代理的分成
+#             carry_log_sub.carry_date = target_date
+#             carry_log_sub.status     = CarryLog.PENDING
+#             carry_log_sub.save()
 
             carry_log_f  = CarryLog()
             carry_log_f.xlmm       = xlmm.id  # 锁定本代理
