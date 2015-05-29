@@ -96,8 +96,6 @@ def task_Push_Pending_Carry_Cash(day_ago=7, xlmm_id=None):
             
 
 
-
-
 ### 代理提成表 的task任务  每个月 8号执行 计算 订单成交额超过1000人民币的提成
 
 from flashsale.clickrebeta.models import StatisticsShopping

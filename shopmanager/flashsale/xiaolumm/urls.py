@@ -1,27 +1,25 @@
 from django.conf.urls.defaults import patterns, url
 from django.views.decorators.csrf import csrf_exempt
-from django.contrib.auth.decorators import login_required  
+from django.contrib.admin.views.decorators import staff_member_required  
 
 
+from . import views
 
-
-from views import logclicks,StatsView,MamaStatsView,CashoutView,CashOutList,CarryLogList,landing,cash_Out_Verify,cash_modify,cash_reject,stats_summary,mama_Verify,mama_Verify_Action
-from .views import chargeWXUser,XiaoluMamaModelView
 
 urlpatterns = patterns('',
-    url(r'^$',landing),
-    url(r'^m/$',MamaStatsView.as_view()),
-    url(r'^stats/$',login_required(StatsView.as_view())),
-    url(r'^cashout/$',CashoutView.as_view()),
-    url(r'^cashoutlist/$',CashOutList.as_view()),
-    url(r'^carrylist/$',CarryLogList.as_view()),
-    url(r'^(?P<linkid>\d+)/$',logclicks),    
-    url(r'^charge/(?P<pk>\d+)/$',chargeWXUser),
-    url(r'^xlmm/(?P<pk>\d+)/$', XiaoluMamaModelView.as_view()),
-    url(r'^cashoutverify/$',cash_Out_Verify,name="cashout_verify"), 
-    url(r'^cashmodify/(?P<data>\w+)/$',cash_modify), #
-    url(r'^cashreject/(?P<data>\w+)/$',cash_reject), #
-    url(r'^stats_summary/$',stats_summary,name="stats_summary"),
-    url(r'^mama_verify/$',mama_Verify,name="mama_verify"),
-    url(r'^mama_verify_action/$',mama_Verify_Action,name="mama_verify_action"),
+    url(r'^$',views.landing),
+    url(r'^m/$',views.MamaStatsView.as_view()),
+    url(r'^stats/$',staff_member_required(views.StatsView.as_view())),
+    url(r'^cashout/$',views.CashoutView.as_view()),
+    url(r'^cashoutlist/$',staff_member_required(views.CashOutList.as_view())),
+    url(r'^carrylist/$',staff_member_required(views.CarryLogList.as_view())),
+    url(r'^(?P<linkid>\d+)/$',views.logclicks),    
+    url(r'^charge/(?P<pk>\d+)/$',staff_member_required(views.chargeWXUser)),
+    url(r'^xlmm/(?P<pk>\d+)/$', staff_member_required(views.XiaoluMamaModelView.as_view())),
+    url(r'^cashoutverify/$',staff_member_required(views.cash_Out_Verify),name="cashout_verify"), 
+    url(r'^cashmodify/(?P<data>\w+)/$',staff_member_required(views.cash_modify)), #
+    url(r'^cashreject/(?P<data>\w+)/$',staff_member_required(views.cash_reject)), #
+    url(r'^stats_summary/$',staff_member_required(views.stats_summary),name="stats_summary"),
+    url(r'^mama_verify/$',staff_member_required(views.mama_Verify),name="mama_verify"),
+    url(r'^mama_verify_action/$',staff_member_required(views.mama_Verify_Action),name="mama_verify_action"),
 )
