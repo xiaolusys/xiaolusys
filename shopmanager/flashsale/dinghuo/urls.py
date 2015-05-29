@@ -2,6 +2,7 @@
 from django.conf.urls import include, url
 from flashsale.dinghuo import views
 from django.contrib.auth.decorators import login_required
+from django.contrib.admin.views.decorators import staff_member_required
 from .views import dailystatsview, changedetailview, StatsByProductIdView, dailyworkview
 from django.views.decorators.csrf import csrf_exempt
 
@@ -25,12 +26,13 @@ urlpatterns = [
     url(r'^detail/(?P<orderdetail_id>\d+)/$', views.viewdetail, name="mydetail"),
     url(r'^detaillayer/(?P<orderdetail_id>\d+)/$', views.detaillayer, name="detaillayer"),
     url(r'^changestatus/$', views.changestatus, name="changestatus"),
-    url(r'^changedetail/(?P<orderdetail_id>\d+)/$',csrf_exempt(login_required(changedetailview.as_view())), name="changedetail"),
-    url(r'^daily/', login_required(dailystatsview.as_view()), name="dailystats"),  #大货每天统计
+    url(r'^changedetail/(?P<orderdetail_id>\d+)/$',csrf_exempt(staff_member_required(changedetailview.as_view())), name="changedetail"),
+    url(r'^daily/', staff_member_required(dailystatsview.as_view()), name="dailystats"),  #大货每天统计
     url(r'^changearrivalquantity/$', views.changearrivalquantity, name="changearrivalquantity"),
-    url(r'^statsbypid/(?P<product_id>\d+)/$', login_required(StatsByProductIdView.as_view()), name="statsbypid"),  #根据商品id统计大货
-    url(r'^dailywork/', login_required(dailyworkview.as_view()), name="dailywork"),  #大货任务
+    url(r'^statsbypid/(?P<product_id>\d+)/$', staff_member_required(StatsByProductIdView.as_view()), name="statsbypid"),  #根据商品id统计大货
+    url(r'^dailywork/', staff_member_required(dailyworkview.as_view()), name="dailywork"),  #大货任务
     url(r'^changememo/$', views.changememo, name="changeMemo"),
     url(r'^setusertogroup/$', views.setusertogroup, name="setusertogroup"),
+    url(r'^adddetailtodinghuo/$', views.adddetailtodinghuo, name="adddetailtodinghuo"),
 
 ]

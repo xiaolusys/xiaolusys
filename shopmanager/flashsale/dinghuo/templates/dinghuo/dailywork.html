@@ -14,6 +14,13 @@
             left: 20px;
             position: absolute;
         }
+
+        .floatview {
+            margin-right: 0px;
+            bottom: 50px;
+            right: 20px;
+            position: absolute;
+        }
     </style>
 {% endblock %}
 {% block container %}
@@ -50,7 +57,7 @@
             </div>
             <div class="col-xs-2">
                 <label class="control-label" for="dhstatus">大货状态:</label>
-                <select class="form-control " name="dhstatus" id="dhstatus_id">
+                <select class="form-control" name="dhstatus" id="dhstatus_id">
                     <option value="0" {% ifequal dhstatus '0' %} selected="selected" {% endifequal %}>所有</option>
                     <option class="btn-danger" {% ifequal dhstatus '1' %} selected="selected" {% endifequal %}
                             value="1">显示异常(缺货,订多)
@@ -71,7 +78,7 @@
     </form>
 
     <div class="row" style="margin-top: 20px">
-        <table class="table table-bordered">
+        <table class="table table-bordered" id="resultTable">
             <thead style="background-color:#01B5A2;">
             <th width="250px">商品信息</th>
             <th width="100px">图片</th>
@@ -134,6 +141,12 @@
             {{ sell_well_pro.outer_id }}
         {% endif %}
     </div>
+    <div class="btn-group-vertical floatview">
+        <button type="button" class="btn btn-default" id="goTop" title="去顶部"><span
+                class="glyphicon glyphicon-arrow-up"></span></button>
+        <button type="button" class="btn btn-default" id="goBottom" title="去底部"><span
+                class="glyphicon glyphicon-arrow-down"></span></button>
+    </div>
 {% endblock %}
 
 {% block tail_script %}
@@ -151,11 +164,18 @@
                 timeFormat: "HH:mm:ss",
                 dateFormat: "yy-mm-dd"
             });
-
+            $('#goTop').click(function () {
+                $('html,body').animate({scrollTop: '0px'}, 800);
+            });
+            $('#goBottom').click(function () {
+                var height = document.body.scrollHeight;
+                $('html,body').animate({scrollTop: height}, 800);
+            });
             $(window).scroll(function () {
                 var w_height = $(window).height();//浏览器高度
                 var scroll_top = $(document).scrollTop();//滚动条到顶部的垂直高度
                 $(".floatButton").css("position", "fixed");
+                $(".floatview").css("position", "fixed");
             });
         });
         function changememo(sku_id) {
