@@ -39,7 +39,6 @@ def searchProduct(request):
     response['Content-Type'] = "text/javascript"
     ProductIDFrompage = request.GET.get("searchtext", "")
     productRestult = Product.objects.filter(outer_id__icontains=ProductIDFrompage)
-    # data = serializers.serialize("json", productRestult)
     product_list = []
     for product in productRestult:
         product_dict = model_to_dict(product)
@@ -48,6 +47,8 @@ def searchProduct(request):
         guiges = product.prod_skus.all()
         for guige in guiges:
             sku_dict = model_to_dict(guige)
+            sku_dict['sku_name'] = sku_dict['properties_alias'] if len(
+                sku_dict['properties_alias']) > 0 else sku_dict['properties_name']
             product_dict['prod_skus'].append(sku_dict)
 
         product_list.append(product_dict)
@@ -281,7 +282,7 @@ def minusordertail(req):
     orderdetail = OrderDetail.objects.get(id=orderdetailid)
     OrderList.objects.filter(id=orderdetail.orderlist_id).update(
         order_amount=F('order_amount') - orderdetail.buy_unitprice)
-    log_action(req.user.id, orderlist, CHANGE, u'订货单{0}{1}'.format((u'加一件'), orderdetail.product_name))
+    log_action(req.user.id, orderlist, CHANGE, u'订货单{0}{1}'.format((u'减一件'), orderdetail.product_name))
     log_action(req.user.id, orderdetail, CHANGE, u'%s' % (u'减一'))
     return HttpResponse("OK")
 
@@ -375,6 +376,45 @@ def setusertogroup(req):
     else:
         MyUser(user_id=int(uid), group_id=int(groupid)).save()
     return HttpResponse("OK")
+
+
+@csrf_exempt
+def adddetailtodinghuo(req):
+    post = req.POST
+    buy_quantity = post["buy_quantity"]
+    buy_price = post["buy_price"]
+    orderlistid = post["orderlistid"]
+    sku_id = post["sku_id"]
+    if len(buy_quantity.strip()) > 0 and len(buy_price.strip()) > 0 and len(orderlistid.strip()) > 0 and len(
+            sku_id.strip()) > 0:
+        buy_quantity, buy_price, orderlistid, sku_id = int(buy_quantity), float(buy_price), int(orderlistid), int(
+            sku_id)
+        pro_sku = ProductSku.objects.get(id=sku_id)
+        product_id = pro_sku.product_id
+        outer_id = pro_sku.product.outer_id
+        product_name = pro_sku.product.name
+        product_chicun = pro_sku.properties_alias if len(
+            pro_sku.properties_alias) > 0 else pro_sku.properties_name
+        order = OrderDetail.objects.filter(orderlist_id=orderlistid, chichu_id=sku_id, buy_unitprice=buy_price)
+        if order.count() > 0:
+            ordertemp = order[0]
+            ordertemp.buy_quantity = ordertemp.buy_quantity + buy_quantity
+            ordertemp.total_price = ordertemp.total_price + buy_quantity * buy_price
+            ordertemp.save()
+        else:
+            order_new = OrderDetail()
+            order_new.orderlist_id = orderlistid
+            order_new.product_id = product_id
+            order_new.outer_id = outer_id
+            order_new.product_name = product_name
+            order_new.chichu_id = sku_id
+            order_new.product_chicun = product_chicun
+            order_new.buy_quantity = buy_quantity
+            order_new.buy_unitprice = buy_price
+            order_new.total_price = buy_price * buy_quantity
+            order_new.save()
+        return HttpResponse("OK")
+    return HttpResponse("False")
 
 
 from shopback.items.models import Product
@@ -668,7 +708,7 @@ class dailyworkview(View):
                 dinghuostatusstr, flag_of_memo, flag_of_more, flag_of_less = self.getDinghuoStatus(
                     sale_num, dinghuo_num, sku_dict)
                 if dhstatus == u'0' or (flag_of_more or flag_of_less and dhstatus == u'1') or (
-                    flag_of_more and dhstatus == u'3') or (flag_of_less and dhstatus == u'2'):
+                            flag_of_more and dhstatus == u'3') or (flag_of_less and dhstatus == u'2'):
                     sku_dict['sale_num'] = sale_num
                     sku_dict['dinghuo_num'] = dinghuo_num
                     sku_dict['sku_name'] = sku_dict['properties_alias'] if len(
