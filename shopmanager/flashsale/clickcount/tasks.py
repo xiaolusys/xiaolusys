@@ -1,10 +1,10 @@
 # -*- encoding:utf8 -*-
 import datetime
-from django.db.models import F
+from django.db.models import F, Sum
 from celery.task import task
 
 from flashsale.xiaolumm.models import XiaoluMama, Clicks, CarryLog, AgencyLevel
-from .models import ClickCount
+from .models import ClickCount, WeekCount
 import logging
 
 __author__ = 'linjie'
@@ -86,4 +86,79 @@ def task_Record_User_Click(pre_day=1):
     task_Push_ClickCount_To_MamaCash(pre_date)
     
 
+from flashsale.clickrebeta.models import StatisticsShoppingByDay
 
+@task(max_retry=3, default_retry_delay=5)
+def task_Record_User_Click_Weekly(date_from, date_to, week_code):
+    """ 功能：统计date_from - date_to 时间段 的点击 购买 情况 计算转化率
+        查询： ClickCount  StatisticsShoppingByDay
+        写数据：WeekCount（linkid 、weikefu 、user_num 、valid_num 、buyercount 、ordernumcount  、conversion_rate）
+    """
+    # 只是对2级并且已经接管的代理做统计
+    xlmms = XiaoluMama.objects.filter(agencylevel=2, charge_status=XiaoluMama.CHARGED)
+    for xlmm in xlmms:
+        click_count = ClickCount.objects.filter(linkid=xlmm.id, date__gt=date_from, date__lt=date_to)
+        shoppings = StatisticsShoppingByDay.objects.filter(linkid=xlmm.id, tongjidate__gt=date_from,
+                                                           tongjidate__lt=date_to)
+        # 总点击人数
+        sum_user_num = click_count.aggregate(total_user_num=Sum('user_num')).get('total_user_num') or 0
+        # 总有效点击数
+        sum_valid_num = click_count.aggregate(total_valid_num=Sum('valid_num')).get('total_valid_num') or 0
+        # 订单总数
+        sum_ordernumcount = shoppings.aggregate(total_ordernumcount=Sum('ordernumcount')).get('total_ordernumcount')or 0
+        # 购买总人数
+        sum_buyercount = shoppings.aggregate(total_buyercount=Sum('buyercount')).get('total_buyercount') or 0
+        # 转化率计算
+        if sum_user_num == 0:
+            conversion_rate = 0
+        else:
+            conversion_rate = float(sum_buyercount)/sum_user_num  # 转化率等于 购买人数 除以 点击人数
+        #创建一条周记录
+        week_count, state = WeekCount.objects.get_or_create(linkid=xlmm.id, week_code=week_code)
+        week_count.weikefu = xlmm.weikefu
+        week_count.user_num = sum_user_num
+        week_count.valid_num = sum_valid_num
+        week_count.buyercount = sum_buyercount
+        week_count.ordernumcount = sum_ordernumcount
+        week_count.conversion_rate = conversion_rate
+        week_count.save()
+
+
+@task()
+def week_Count_week_Handdle(date):
+    """计算上一周的 开始时间 和 结束时间
+    编码周= 'year + month + id'  id = 上一周是本年的 第 id 周
+    """
+    today = date #datetime.datetime.today()
+    today_b = datetime.datetime(today.year, today.month, today.day, 0, 0, 0)  # 今天的 开始时间
+    prev_day = today_b - datetime.timedelta(days=1)  # 昨天的开始
+    x_day = prev_day.strftime('%w')  # 获取昨天的星期数
+    # 判断昨天是不是这一周最后一天
+    if x_day == '6':
+    # 如果是则执行
+        if prev_day.strftime('%U') == '00':
+        # 判断昨天是不是一年中的第一周 00
+            date_from = datetime.datetime(today.year, today.month, 1, 0, 0, 0)
+            # 开始时间 是 这一年的第一天
+            date_to = datetime.datetime(prev_day.year,prev_day.month, prev_day.day, 23, 59, 59)  # 包含第七天
+            # 结束时间就是昨天的结束时间（因为上面已经判断了昨天是不是周末）
+            week_code = str(today.year) + '00'
+            # week_code = year+ '00'
+            task_Record_User_Click_Weekly(date_from, date_to, week_code)
+            # 调用 task_Record_User_Click_Weekly (date_from, date_to, week_code) 函数
+        else:
+        # 如果昨天不是这一年的第一周
+            date_from = prev_day - datetime.timedelta(days=6)
+            # 开始时间是 昨天的开始时间 - 6 个整天
+            date_to = datetime.datetime(prev_day.year, prev_day.month, prev_day.day, 23, 59, 59)  # 包含第七天
+            week_code = str(today.year) + prev_day.strftime('%U')
+            # 结束时间是昨天的结束时间
+            task_Record_User_Click_Weekly(date_from, date_to, week_code)
+            # 调用 task_Record_User_Click_Weekly (date_from, date_to, week_code) 函数
+
+
+def every_day_run():  # 初始执行
+    today = datetime.datetime.today()
+    for i in xrange(1,int(today. strftime('%j'))):
+        date = today-datetime.timedelta(days=i)
+        week_Count_week_Handdle(date)

@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import ClickCount
+from .models import ClickCount, WeekCount
 
 
 class ClickCountAdmin(admin.ModelAdmin):
@@ -15,3 +15,12 @@ class ClickCountAdmin(admin.ModelAdmin):
     
 admin.site.register(ClickCount, ClickCountAdmin)
 
+class WeekCountAdmin(admin.ModelAdmin):
+
+    list_display = ('linkid', 'weikefu', 'buyercount', 'user_num', 'valid_num', 'ordernumcount',
+                    'conversion_rate', 'week_code')
+
+    list_display_links = ['linkid', 'week_code']
+    list_filter = ('week_code',)
+
+admin.site.register(WeekCount, WeekCountAdmin)
