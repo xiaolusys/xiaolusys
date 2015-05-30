@@ -88,7 +88,7 @@ class MergeTradeChangeList(ChangeList):
             qs = qs.order_by(*ordering)
         
         if PHONE_RE.match(search_q):
-            trades = qs.filter(models.Q(id=search_q)|models.Q(receiver_phone=search_q)|models.Q(receiver_mobile=search_q))
+            trades = qs.filter(models.Q(id=search_q)|models.Q(receiver_mobile=search_q))#|models.Q(receiver_phone=search_q)
             return trades
         
         if search_q.isdigit():
