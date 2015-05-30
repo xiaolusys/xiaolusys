@@ -42,8 +42,9 @@ class WeekCount(models.Model):
     class Meta:
         db_table = "flashsale_weekcount_table"
         unique_together = ('week_code', 'linkid')  # 联合索引
-        verbose_name = u"代理活跃/转化（度）周统计"
-        verbose_name_plural = u"代理活跃/转化（度）周统计列表"
+        app_label = 'xiaolumm'
+        verbose_name = u"代理转化率周统计"
+        verbose_name_plural = u"代理转化率周统计列表"
         ordering = ['write_time', '-ordernumcount', '-valid_num']
         
     def __unicode__(self):
