@@ -143,6 +143,9 @@
                                     selectid[i] = new Option(String(guiges[i].sku_name), String(guiges[i].id));
                                 }
                             });
+                            var scroll_offset = $("#searchfield").offset();
+{#                            var height = document.body.scrollHeight;#}
+                            $('html,body').animate({scrollTop: scroll_offset.top}, 800);
                         }, 'json');
             })
         });
@@ -354,7 +357,7 @@
     </div>
     <br>
     {% if flagofstatus or flagofquestion %}
-        <div class="row">
+        <div class="row" id="searchfield">
             <legend>
                 <h2 class="head-title">搜索物品
                 </h2>
