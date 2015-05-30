@@ -38,6 +38,7 @@ def searchProduct(request):
     response = HttpResponse()
     response['Content-Type'] = "text/javascript"
     ProductIDFrompage = request.GET.get("searchtext", "")
+    ProductIDFrompage = ProductIDFrompage.strip()
     productRestult = Product.objects.filter(
         Q(outer_id__icontains=ProductIDFrompage) | Q(name__icontains=ProductIDFrompage))
     product_list = []
