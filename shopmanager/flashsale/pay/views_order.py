@@ -13,6 +13,7 @@ from flashsale.xiaolumm.models import CarryLog,XiaoluMama
 import time
 import datetime
 from  django.db.models import Q
+from shopback.logistics import getLogisticTrace
 ISOTIMEFORMAT='%Y-%m-%d '
 today = datetime.date.today()
 real_today=datetime.date.today().strftime("%Y-%m-%d ")
@@ -28,17 +29,18 @@ def search_flashsale(request):
   print '数字是',4444  
   if request.method == "POST":
     rec1=[]  
-    number=request.POST.get('condition')
-    
+    number1=request.POST.get('condition')
+    number=number1.strip()
     print '数字是',number
     if number=="":
         rec1=[]
     else:
-        
-    
-        trade_info=SaleTrade.objects.filter(Q(receiver_mobile=number) | Q(receiver_name=number) | Q(tid=number) | Q(buyer_nick=number) | Q(receiver_phone=number))
+        trade_info=SaleTrade.objects.filter(Q(receiver_mobile=number) | Q(receiver_name=number) | Q(tid=number) | Q(buyer_nick=number) | Q(receiver_phone=number) | Q(out_sid=number))
         for item in trade_info:
-            info={}  
+            info={}
+            a=  getLogisticTrace(item.out_sid,item.logistics_company.code)
+            print '全部信息是',a
+            info['trans']=a  
             info['trade']=item
             info['detail']=[]
             for order_info in item.sale_orders.all():
@@ -69,17 +71,27 @@ def order_flashsale(request):
     print '现在',now4
     print '现在',now5
     rec=[]
-    
-    
-    trade_info=SaleTrade.objects.all()[start:end]
+    a=  getLogisticTrace('718844325420','中通')
+    print '物流信息',a[0][0]
+    trade_info=SaleTrade.objects.all().order_by('-created')[start:end]
+    print type(a)
     for item in trade_info:
+        
+        print '公司是',item.logistics_company.code
+        print '邮编是',item.out_sid
         info={}  
+        a=  getLogisticTrace(item.out_sid,item.logistics_company.code)
+        print '全部信息是',a
+        info['trans']=a
         info['trade']=item
         info['detail']=[]
         for order_info in item.sale_orders.all():
                 sum={}
                 sum['order']=order_info
-                product_info=Product.objects.get(outer_id=order_info.outer_id) 
+                try:
+                  product_info=Product.objects.get(outer_id=order_info.outer_id) 
+                except:
+                  product_info=[]
                 sum['product']=product_info
                 info['detail'].append(sum)
         rec.append(info)
@@ -106,15 +118,23 @@ def preorder_flashsale(request):
         end=end-100
     print '现在',start
     print '现在',end
-    trade_info=SaleTrade.objects.all()[start:end]
+    #trade_info=SaleTrade.objects.all()[start:end]
+    trade_info=SaleTrade.objects.all().order_by('-created')[start:end]
     for item in trade_info:
-        info={}  
+        info={} 
+        a=  getLogisticTrace(item.out_sid,item.logistics_company.code)
+        print '全部信息是',a
+        info['trans']=a  
         info['trade']=item
         info['detail']=[]
         for order_info in item.sale_orders.all():
                 sum={}
                 sum['order']=order_info
-                product_info=Product.objects.get(outer_id=order_info.outer_id) 
+                #product_info=Product.objects.get(outer_id=order_info.outer_id)
+                try:
+                  product_info=Product.objects.get(outer_id=order_info.outer_id) 
+                except:
+                  product_info=[] 
                 sum['product']=product_info
                 info['detail'].append(sum)
         rec.append(info)
@@ -135,15 +155,23 @@ def nextorder_flashsale(request):
     end=end + 100
     print '现在',start
     print '现在',end
-    trade_info=SaleTrade.objects.all()[start:end]
+    #trade_info=SaleTrade.objects.all()[start:end]
+    trade_info=SaleTrade.objects.all().order_by('-created')[start:end]
     for item in trade_info:
         info={}  
+        a=  getLogisticTrace(item.out_sid,item.logistics_company.code)
+        print '全部信息是',a
+        info['trans']=a 
         info['trade']=item
         info['detail']=[]
         for order_info in item.sale_orders.all():
                 sum={}
                 sum['order']=order_info
-                product_info=Product.objects.get(outer_id=order_info.outer_id) 
+                #product_info=Product.objects.get(outer_id=order_info.outer_id) 
+                try:
+                  product_info=Product.objects.get(outer_id=order_info.outer_id) 
+                except:
+                  product_info=[]
                 sum['product']=product_info
                 info['detail'].append(sum)
         rec.append(info)
@@ -195,7 +223,9 @@ def time_rank(request,time_id):
              info={} 
              info['trade']=item
              info['detail']=[]
-             
+             a=  getLogisticTrace(item.out_sid,item.logistics_company.code)
+             print '全部信息是',a
+             info['trans']=a 
              for order_info in item.sale_orders.all():
                 sum={}
                 print 'orderinfo' ,  order_info
@@ -223,7 +253,10 @@ def time_rank(request,time_id):
          print '现在',now4
          print '现在',now5
          for item in trade_info:
-             info={}  
+             info={}
+             a=  getLogisticTrace(item.out_sid,item.logistics_company.code)
+             print '全部信息是',a
+             info['trans']=a   
              info['trade']=item
              info['detail']=[]
              for order_info in item.sale_orders.all():
@@ -240,7 +273,7 @@ def time_rank(request,time_id):
          print rec
          return render(request, 'pay/order_flash.html',{'info': rec,'time':real_today,'yesterday':today})
    
-     else :
+     elif int(day) == 2 :
          if today.strftime("%Y-%m-%d ")==realtoday:
              today = datetime.date.today()
          else:
@@ -252,6 +285,9 @@ def time_rank(request,time_id):
          rec=[]
          for item in trade_info:
                  info={}  
+                 a=  getLogisticTrace(item.out_sid,item.logistics_company.code)
+                 print '全部信息是',a
+                 info['trans']=a 
                  info['trade']=item
                  info['detail']=[]
                  for order_info in item.sale_orders.all():
@@ -271,6 +307,7 @@ def sale_state(request,state_id):
     print '编号' , type( state_id)
     print '状态是' ,  state_id
     global today
+    print today
     now2=today.strftime("%Y-%m-%d ")
     now4=datetime.datetime.strptime(now2+' 00:00:00', '%Y-%m-%d %H:%M:%S')
     now5=datetime.datetime.strptime(now2+' 23:59:59', '%Y-%m-%d %H:%M:%S')
@@ -278,6 +315,9 @@ def sale_state(request,state_id):
     trade_info=SaleTrade.objects.filter(created__range=(now4,now5))
     for item in trade_info:
         info={}  
+        a=  getLogisticTrace(item.out_sid,item.logistics_company.code)
+        print '全部信息是',a
+        info['trans']=a 
         info['trade']=item
         info['detail']=[]
         print 'order1' ,  item.sale_orders.all()
@@ -304,6 +344,7 @@ def refund_state(request,state_id):
     print '编号' , type( state_id)
     print '状态是' ,  state_id
     global today
+    print today
     now2=today.strftime("%Y-%m-%d ")
     now4=datetime.datetime.strptime(now2+' 00:00:00', '%Y-%m-%d %H:%M:%S')
     now5=datetime.datetime.strptime(now2+' 23:59:59', '%Y-%m-%d %H:%M:%S')
@@ -312,6 +353,9 @@ def refund_state(request,state_id):
     print 'order0' ,  trade_info
     for item in trade_info:
         info={}  
+        a=  getLogisticTrace(item.out_sid,item.logistics_company.code)
+        print '全部信息是',a
+        info['trans']=a 
         info['trade']=item
         info['detail']=[] 
         for order_info in item.sale_orders.all():
@@ -342,6 +386,9 @@ def refunding_state(request,state_id):
     print 'order0' ,  trade_info
     for item in trade_info:
         info={}  
+        a=  getLogisticTrace(item.out_sid,item.logistics_company.code)
+        print '全部信息是',a
+        info['trans']=a 
         info['trade']=item
         info['detail']=[]       
         print 'order1' ,  item.sale_orders.all()

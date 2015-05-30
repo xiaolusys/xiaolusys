@@ -29,7 +29,7 @@
     <div class="col-lg-6" >
     <h1>
         <span class="label label-success">
-          特卖订单详细 {{start}}
+          特卖订单详细 {{start}}		
         </span>
          </h1>
   </div>
@@ -47,9 +47,9 @@
 
       <nav class="navbar navbar-default" role="navigation">
         <div class="navbar-header">
-          <a class="navbar-brand" href="/mm/order_flashsale/">
+          <!--<a class="navbar-brand" href="/mm/order_flashsale/">
             当天所有订单
-          </a>
+          </a>-->
           <a class="navbar-brand" href="#"   class="yanse">
           </a>
         </div>
@@ -241,7 +241,7 @@
       <label for="firstname" class="col-sm-2 control-label">查询</label>
       <div class="col-sm-10">
          <input type="text" class="form-control" id="condition" name="condition" 
-            placeholder="查询条件（例如：订单号，手机号码，电话号码，用户昵称）">
+            placeholder="查询条件（例如：订单号，手机号码，电话号码，用户昵称,快递编号）">
             <button type="submit" class="btn btn-warning">点击查询</button>
       </div>
    </div>
@@ -255,18 +255,6 @@
   </div>
 
 </div>
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -313,7 +301,7 @@
           {% for item in info%} <tr><td>{{ item.trade.tid }}</td></tr> {% endfor %}
         -->
 
-        {% for item in info %}
+        {% for item in info   %}
         <tr>
           <td>
             {{ item.trade.id }}
@@ -342,6 +330,9 @@
                   </p>
                   <p  style="font-family:bold;font-size:15px;">
                     条码： {{item1.product.barcode}}
+                  </p>
+                  <p  style="font-family:bold;font-size:15px;">
+                    规格： {{item1.order.sku_name}}
                   </p>
                 </div>
                 <div class="col-lg-3">
@@ -380,9 +371,10 @@
               <p  style="font-family:bold;font-size:15px;">
                 手机： {{item.trade.receiver_mobile}}&nbsp&nbsp&nbsp&nbsp&nbsp电话：{{item.trade.receiver_phone}}
               </p>
-
+               <p  style="font-family:bold;font-size:15px;color:blue;">
+                物流编号： {{item.trade.out_sid}}
+              </p>
             </td>
-
             <!--<td>{{item.trade.get_channel_display }}</td>-->
             <td>
               {{ item.trade.payment }}
@@ -395,6 +387,25 @@
             </td>
             <td  class="yanse">
               {{item.trade.get_status_display }}
+              <a class="btn btn-primary" data-toggle="collapse" href="#{{item.trade.id}}" aria-expanded="false" aria-controls="collapseExample">
+  物流明细
+</a>
+
+<div class="collapse" id="{{ item.trade.id }}">
+  <div class="well">
+    <table class="table table-striped">
+			<tr><td >快递公司：</td><td >{{ item.trans.0.1 }}</td></tr>
+			<tr><td >快递单号：</td><td >{{ item.trans.1.1 }}</td></tr>
+			<tr><td colspan="2">物流信息</td></tr>
+		
+			{% for trace in item.trans.2.1 reversed  %}
+			<tr><td >{{ trace.0 }}：</td><td >{{ trace.1 }}</td></tr>
+			{% endfor %}
+			
+		</table>
+  </div>
+</div>
+              
             </td>
             
             <td>
@@ -441,6 +452,9 @@
   <li><a href="#">5</a></li>-->
   <li><a href="/mm/nextorder_flashsale/">下一页</a></li>
 </ul>
+
+
+
 
 </body>
 
