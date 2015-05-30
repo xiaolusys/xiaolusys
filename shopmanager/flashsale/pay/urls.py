@@ -27,7 +27,7 @@ urlpatterns = (
     
     ##############order urls################
     url(r'^orderbuy/$',sale_buyer_required(views.OrderBuyReview.as_view())),
-    url(r'^orderbuy/pay.htm$',TemplateView.as_view(template_name="pay/pay.html")),
+    url(r'^orderbuy/pay.htm$',cache_page(TemplateView.as_view(template_name="pay/pay.html"),24*60*60)),
     url(r'^orderlist/$', sale_buyer_required(views.SaleOrderList.as_view()),name="user_orderlist"),
     url(r'^order/(?P<pk>[0-9]+)/$', sale_buyer_required(views.SaleOrderDetail.as_view()),name="user_orderdetail"),
     url(r'^payresult/$',sale_buyer_required(views.PayResultView.as_view()),name="user_payresult"),
