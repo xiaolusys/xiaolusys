@@ -729,8 +729,9 @@ class dailyworkview(View):
         orderqs = self.getSourceOrders(shelve_from, time_to)
         dinghuoqs = self.getSourceDinghuo(shelve_from, query_time)
         trade_list = []
-        max_sale_num = 0
-        sell_well_pro = {}
+        # max_sale_num = 0
+        # sell_well_pro = {}
+        all_pro_sale = {}
         for product_dict in productdicts:
             product_dict['prod_skus'] = []
             guiges = ProductSku.objects.values('id', 'outer_id', 'properties_name', 'properties_alias', 'memo').filter(
@@ -754,14 +755,28 @@ class dailyworkview(View):
                     sku_dict['flag_of_more'] = flag_of_more
                     sku_dict['flag_of_less'] = flag_of_less
                     product_dict['prod_skus'].append(sku_dict)
-            if temp_total_sale_num > max_sale_num:
-                max_sale_num = temp_total_sale_num
-                sell_well_pro = product_dict
-                sell_well_pro["total_sale_num"] = max_sale_num
+
+            product_dict['total_sale_num'] = temp_total_sale_num
+            keyofpro = product_dict['outer_id'][0:len(product_dict['outer_id']) - 1]
+            if all_pro_sale.has_key(keyofpro):
+                all_pro_sale[keyofpro]['total_sale_num'] = all_pro_sale[keyofpro][
+                                                               'total_sale_num'] + temp_total_sale_num
+            else:
+                all_pro_sale[keyofpro] = {"total_sale_num": product_dict['total_sale_num'],
+                                          "pic_path": product_dict['pic_path']}
+                all_pro_sale[keyofpro]['name'] = product_dict['name'].split("-")[0]
+            # if temp_total_sale_num > max_sale_num:
+            # max_sale_num = temp_total_sale_num
+            # sell_well_pro = product_dict
+            #     sell_well_pro["total_sale_num"] = max_sale_num
             trade_list.append(product_dict)
+        all_pro_sale_items = sorted(all_pro_sale.items(), key=lambda d: d[1]['total_sale_num'], reverse=True)
+        result_sale = []
+        if all_pro_sale_items:
+            result_sale = all_pro_sale_items[0]
         return render_to_response("dinghuo/dailywork.html",
                                   {"targetproduct": trade_list, "shelve_from": target_date, "time_to": time_to,
                                    "searchDinghuo": query_time, 'groupname': groupname, "dhstatus": dhstatus,
-                                   "sell_well_pro": sell_well_pro},
+                                   "all_pro_sale": result_sale},
                                   context_instance=RequestContext(request))
-        
+
