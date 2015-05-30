@@ -46,7 +46,11 @@ def search_flashsale(request):
             for order_info in item.sale_orders.all():
                     sum={}
                     sum['order']=order_info
-                    product_info=Product.objects.get(outer_id=order_info.outer_id) 
+                    try:
+                      product_info=Product.objects.get(outer_id=order_info.outer_id) 
+                    except:
+                      product_info=[]
+                    #product_info=Product.objects.get(outer_id=order_info.outer_id) 
                     sum['product']=product_info
                     info['detail'].append(sum)
             rec1.append(info)
@@ -70,11 +74,11 @@ def order_flashsale(request):
     now5=datetime.datetime.strptime(now2+' 23:59:59', '%Y-%m-%d %H:%M:%S')
     print '现在',now4
     print '现在',now5
-    rec=[]
-    a=  getLogisticTrace('718844325420','中通')
-    print '物流信息',a[0][0]
+    rec2=[]
+    #a=  getLogisticTrace('718844325420','中通')
+    #print '物流信息',a[0][0]
     trade_info=SaleTrade.objects.all().order_by('-created')[start:end]
-    print type(a)
+    #print type(a)
     for item in trade_info:
         
         print '公司是',item.logistics_company.code
@@ -82,7 +86,7 @@ def order_flashsale(request):
         info={}  
         a=  getLogisticTrace(item.out_sid,item.logistics_company.code)
         print '全部信息是',a
-        info['trans']=a
+        info['trans']=a  
         info['trade']=item
         info['detail']=[]
         for order_info in item.sale_orders.all():
@@ -94,8 +98,8 @@ def order_flashsale(request):
                   product_info=[]
                 sum['product']=product_info
                 info['detail'].append(sum)
-        rec.append(info)
-    return render(request, 'pay/order_flash.html',{'info': rec,'time':real_today,'yesterday':today,'start':start})
+        rec2.append(info)
+    return render(request, 'pay/order_flash.html',{'info': rec2,'time':real_today,'yesterday':today,'start':start})
 
 def preorder_flashsale(request):
     global today

@@ -184,7 +184,9 @@
 </li>
 <li class="divider">
 </li>
-<li>
+<li><button type="button" class="btn btn-default" data-container="body" data-toggle="popover" data-placement="left" data-content="Vivamus sagittis lacus vel augue laoreet rutrum faucibus.">
+  Popover on 左侧
+</button>
 <a href="/mm/refund_state/7/">
   退款成功
 </a>
@@ -385,13 +387,13 @@
             <td>
               {{ item.trade.created }}
             </td>
-            <td  class="yanse">
-              {{item.trade.get_status_display }}
-              <a class="btn btn-primary" data-toggle="collapse" href="#{{item.trade.id}}" aria-expanded="false" aria-controls="collapseExample">
-  物流明细
-</a>
+            <td  >
+            <h5    style="color:red ">{{item.trade.get_status_display }}</h5>
+              <!--<a class="btn btn-primary" data-toggle="collapse" href="#{{item.trade.id}}" aria-expanded="false" aria-controls="collapseExample">
+       物流明细
+      </a>
 
-<div class="collapse" id="{{ item.trade.id }}">
+   <div class="collapse" id="{{ item.trade.id }}">
   <div class="well">
     <table class="table table-striped">
 			<tr><td >快递公司：</td><td >{{ item.trans.0.1 }}</td></tr>
@@ -404,8 +406,65 @@
 			
 		</table>
   </div>
-</div>
+</div>-->
+        <!--      <button type="button" class="btn btn-warning" data-container="body" data-toggle="popover" data-placement="left" 
+              data-content='<div class="popover" role="tooltip">{{ item.trans.0.1 }}<div class="arrow">5555{% for trace in item.trans.2.1 reversed  %}
+			<tr><td >{{ trace.0 }}：</td><td >{{ trace.1 }}</td></tr>
+			
+              {% if  forloop.last %}
+              <tr><td  class="yanse"   >{{ trace.0 }}：</td><td class="yanse" >{{ trace.1 }}</td></tr>
+
+
+
+              {% endif %}
               
+			{% endfor %}</div><h3 class="popover-title"></h3>5555<div class="popover-content"></div></div>'      >
+物流明细
+</button>-->
+
+<!-- Button trigger modal -->
+<button type="button" class="btn btn-warning btn-sm" data-toggle="modal" data-target="#{{item.trade.id}}">
+  物流明细
+</button>
+
+<!--<a href="page.jsp" data-toggle="modal" data-target="#{{item.trade.id}}">打开对话框</a>-->
+
+<!-- Modal -->
+<div class="modal fade" id="{{item.trade.id}}" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+        <h4 class="modal-title" id="myModalLabel"   style="color:blue ">物流明细</h4>
+      </div>
+      <div class="modal-body">
+        <table class="table table-striped">
+			<tr><td >快递公司：</td><td >{{ item.trans.0.1 }}</td></tr>
+			<tr><td >快递单号：</td><td >{{ item.trans.1.1 }}</td></tr>
+			<tr><td colspan="2">物流信息</td></tr>
+		
+			{% for trace in item.trans.2.1 reversed  %}
+			<tr><td >{{ trace.0 }}：</td><td >{{ trace.1 }}</td></tr>
+			
+              {% if  forloop.last %}
+              <tr><td  class="yanse"   >{{ trace.0 }}：</td><td class="yanse" >{{ trace.1 }}</td></tr>
+
+
+
+              {% endif %}
+              
+			{% endfor %}
+			
+		</table>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
+        <!--<button type="button" class="btn btn-primary">Save changes</button>-->
+      </div>
+    </div>
+  </div>
+</div>
+
             </td>
             
             <td>
@@ -472,6 +531,17 @@
 </script>
 
  <script type="text/javascript">
+ $(function () {
+  $('[data-toggle="popover"]').popover()
+  
+  $("#myModal").modal({
+    remote: "page.jsp"
+});
+  
+})
+
+ 
+ 
      $('#state_table').dataTable({
    		//"bJQueryUI": true,
 		"bAutoWidth": false, //自适应宽度
