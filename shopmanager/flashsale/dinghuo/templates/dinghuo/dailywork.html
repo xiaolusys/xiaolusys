@@ -76,7 +76,6 @@
             </div>
         </div>
     </form>
-
     <div class="row" style="margin-top: 20px">
         <table class="table table-bordered" id="resultTable">
             <thead style="background-color:#01B5A2;">
@@ -133,12 +132,12 @@
         </table>
     </div>
     <div class="floatButton" style="z-index: 9999;">
-        {% if sell_well_pro %}
+        {% if all_pro_sale %}
             销售最多<br>
-            <img src="{{ sell_well_pro.pic_path }}" width="80px" class="img-circle"><span
-                class="badge badge-important">{{ sell_well_pro.total_sale_num }}</span><br>
-            {{ sell_well_pro.name }}<br>
-            {{ sell_well_pro.outer_id }}
+            <img src="{{ all_pro_sale.1.pic_path }}" width="80px" class="img-circle"><span
+                class="badge badge-important">{{ all_pro_sale.1.total_sale_num }}</span><br>
+            {{ all_pro_sale.1.name }}<br>
+            {{ all_pro_sale.0 }}
         {% endif %}
     </div>
     <div class="btn-group-vertical floatview">
