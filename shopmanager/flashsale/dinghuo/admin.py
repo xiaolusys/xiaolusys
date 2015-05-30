@@ -21,6 +21,8 @@ class ordelistAdmin(admin.ModelAdmin):
                     , 'receiver', 'status', 'order_amount', 'note')
     }),)
     inlines = [orderdetailInline]
+
+
     list_display = (
         'id', 'buyer_name', 'order_amount', 'quantity', 'receiver', 'created', 'shenhe', 'changedetail', 'note',
         'supplier_name', 'express_company', 'express_no'
@@ -48,9 +50,8 @@ class ordelistAdmin(admin.ModelAdmin):
     quantity.short_description = "购买商品数量"
 
     def shenhe(self, obj):
-        symbol_link = obj.status or u'【空标题】'
-        return u'<a href="/sale/dinghuo/detail/{0}/" target="_blank" style="display: block;">{1}</a>'.format(
-            int(obj.id), symbol_link)
+        symbol_link = obj.status
+        return symbol_link
 
     shenhe.allow_tags = True
     shenhe.short_description = "状态"

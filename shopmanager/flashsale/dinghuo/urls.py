@@ -34,5 +34,6 @@ urlpatterns = [
     url(r'^changememo/$', views.changememo, name="changeMemo"),
     url(r'^setusertogroup/$', views.setusertogroup, name="setusertogroup"),
     url(r'^adddetailtodinghuo/$', views.adddetailtodinghuo, name="adddetailtodinghuo"),
+    url(r'^changeorderlist/$', views.modifyorderlist, name="modifyorderlist"),
 
 ]
