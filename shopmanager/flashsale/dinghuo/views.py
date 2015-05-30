@@ -285,6 +285,9 @@ def minusordertail(req):
         order_amount=F('order_amount') - orderdetail.buy_unitprice)
     log_action(req.user.id, orderlist, CHANGE, u'订货单{0}{1}'.format((u'减一件'), orderdetail.product_name))
     log_action(req.user.id, orderdetail, CHANGE, u'%s' % (u'减一'))
+    if orderdetail.buy_quantity == 0:
+        orderdetail.delete()
+        return HttpResponse("deleted")
     return HttpResponse("OK")
 
 
