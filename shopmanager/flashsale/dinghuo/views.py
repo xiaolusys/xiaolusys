@@ -38,7 +38,9 @@ def searchProduct(request):
     response = HttpResponse()
     response['Content-Type'] = "text/javascript"
     ProductIDFrompage = request.GET.get("searchtext", "")
-    productRestult = Product.objects.filter(Q(outer_id__icontains=ProductIDFrompage) | Q(name__icontains=ProductIDFrompage))
+    ProductIDFrompage = ProductIDFrompage.strip()
+    productRestult = Product.objects.filter(
+        Q(outer_id__icontains=ProductIDFrompage) | Q(name__icontains=ProductIDFrompage))
     product_list = []
     for product in productRestult:
         product_dict = model_to_dict(product)
@@ -284,6 +286,9 @@ def minusordertail(req):
         order_amount=F('order_amount') - orderdetail.buy_unitprice)
     log_action(req.user.id, orderlist, CHANGE, u'订货单{0}{1}'.format((u'减一件'), orderdetail.product_name))
     log_action(req.user.id, orderdetail, CHANGE, u'%s' % (u'减一'))
+    if orderdetail.buy_quantity == 0:
+        orderdetail.delete()
+        return HttpResponse("deleted")
     return HttpResponse("OK")
 
 
@@ -375,6 +380,34 @@ def setusertogroup(req):
         myusertemp.save()
     else:
         MyUser(user_id=int(uid), group_id=int(groupid)).save()
+    return HttpResponse("OK")
+
+
+@csrf_exempt
+def modifyorderlist(req):
+    post = req.POST
+    orderlistid = post.get("orderlistid", 0)
+    receiver = post['receiver']
+    supplier_name = post['supplier_name']
+    express_company = post['express_company']
+    express_no = post['express_no']
+    note = post.get('note', "")
+    if len(note) > 0:
+        note = "->" + req.user.username + ":" + note
+    order_amount = post['order_amount']
+    print receiver, supplier_name, express_company, express_no, note,
+    try:
+        orderlist = OrderList.objects.get(id=orderlistid)
+        orderlist.receiver = receiver
+        orderlist.supplier_name = supplier_name
+        orderlist.express_company = express_company
+        orderlist.express_no = express_no
+        orderlist.note = orderlist.note + note
+        orderlist.order_amount = order_amount
+        orderlist.save()
+        log_action(req.user.id, orderlist, CHANGE, u'修改订货单')
+    except:
+        return HttpResponse("False")
     return HttpResponse("OK")
 
 
@@ -696,8 +729,9 @@ class dailyworkview(View):
         orderqs = self.getSourceOrders(shelve_from, time_to)
         dinghuoqs = self.getSourceDinghuo(shelve_from, query_time)
         trade_list = []
-        max_sale_num = 0
-        sell_well_pro = {}
+        # max_sale_num = 0
+        # sell_well_pro = {}
+        all_pro_sale = {}
         for product_dict in productdicts:
             product_dict['prod_skus'] = []
             guiges = ProductSku.objects.values('id', 'outer_id', 'properties_name', 'properties_alias', 'memo').filter(
@@ -711,7 +745,7 @@ class dailyworkview(View):
                 dinghuostatusstr, flag_of_memo, flag_of_more, flag_of_less = self.getDinghuoStatus(
                     sale_num, dinghuo_num, sku_dict)
                 if dhstatus == u'0' or ((flag_of_more or flag_of_less) and dhstatus == u'1') or (
-                    flag_of_less and dhstatus == u'2') or (flag_of_more and dhstatus == u'3'):
+                            flag_of_less and dhstatus == u'2') or (flag_of_more and dhstatus == u'3'):
                     sku_dict['sale_num'] = sale_num
                     sku_dict['dinghuo_num'] = dinghuo_num
                     sku_dict['sku_name'] = sku_dict['properties_alias'] if len(
@@ -721,14 +755,28 @@ class dailyworkview(View):
                     sku_dict['flag_of_more'] = flag_of_more
                     sku_dict['flag_of_less'] = flag_of_less
                     product_dict['prod_skus'].append(sku_dict)
-            if temp_total_sale_num > max_sale_num:
-                max_sale_num = temp_total_sale_num
-                sell_well_pro = product_dict
-                sell_well_pro["total_sale_num"] = max_sale_num
+
+            product_dict['total_sale_num'] = temp_total_sale_num
+            keyofpro = product_dict['outer_id'][0:len(product_dict['outer_id']) - 1]
+            if all_pro_sale.has_key(keyofpro):
+                all_pro_sale[keyofpro]['total_sale_num'] = all_pro_sale[keyofpro][
+                                                               'total_sale_num'] + temp_total_sale_num
+            else:
+                all_pro_sale[keyofpro] = {"total_sale_num": product_dict['total_sale_num'],
+                                          "pic_path": product_dict['pic_path']}
+                all_pro_sale[keyofpro]['name'] = product_dict['name'].split("-")[0]
+            # if temp_total_sale_num > max_sale_num:
+            # max_sale_num = temp_total_sale_num
+            # sell_well_pro = product_dict
+            #     sell_well_pro["total_sale_num"] = max_sale_num
             trade_list.append(product_dict)
+        all_pro_sale_items = sorted(all_pro_sale.items(), key=lambda d: d[1]['total_sale_num'], reverse=True)
+        result_sale = []
+        if all_pro_sale_items:
+            result_sale = all_pro_sale_items[0]
         return render_to_response("dinghuo/dailywork.html",
                                   {"targetproduct": trade_list, "shelve_from": target_date, "time_to": time_to,
                                    "searchDinghuo": query_time, 'groupname': groupname, "dhstatus": dhstatus,
-                                   "sell_well_pro": sell_well_pro},
+                                   "all_pro_sale": result_sale},
                                   context_instance=RequestContext(request))
-        
+

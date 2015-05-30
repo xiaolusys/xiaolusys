@@ -35,41 +35,20 @@ body {
 	margin: 0px;
 	padding: 0px;
 	text-align: left;
-	font-size: 25px;
+	font-size: 14px;
 	font-family: simsun;
 	font-weight: bold;
 }
 
-@page {
-	-pdf-frame-content: delivery;
-	margin: 0.5cm 0.5cm;
-	font-family: simhei;
-	-pdf-frame-border: 0;
-    -pdf-level: 0;
-    -pdf-open: false;
-    width:10cm;
-    height:10.16cm;
-	border:0;
-	@frame base{
-		-pdf-frame-content: baseInfo;
-		margin-top:1.9cm;
-		margin-left: 0.5cm;
-		margin-right: 0.50cm;
-		height: 1cm;
-		font-family: simhei;
-        background-color:white;
-	}
-	@frame footer {
-		-pdf-frame-content: footerContent;
-		bottom: 0cm;
-		margin-left: 1cm;
-		margin-right: 1cm;
-		height: 1.5cm;
-		font-family: simhei;
-        background-color:white;
-	}
+.header{
+	font-size:10px;
+    background-color:white;
 }
 
+.footer{
+	font-size:12px;
+    background-color:white;
+}
 
 table {
 	background-color: #ffffff;
@@ -86,40 +65,42 @@ td {
 }
 
 .delivery {
-	width: 718px;
-	height: 720px;
+	width: 100%; /*718px;*/
+	height: 100%;
 	margin: 0px;
 	padding: 0px;
     background-color:white;
 }
 
-.header {
-	height: 80px;
+.baseInfo {
 	width: 100%;
+	height: 15px;
+	margin-top: 10px;
+    background-color:white;
+}
+
+.content {
+	margin:0px;
+	padding:0px;
+	background-color:white;
 }
 
 .seller-nick {
 	text-align: center;
-}
-
-.base-info {
-	width: 100%;
+	font-size:20px;
+	font-weight:bold;
 	margin: 0px;
-	padding:0px;
-	font-size:14px;
-    background-color:white;
-}
-
-.right-label {
-	display: inline;
 	padding: 0px;
-	margin: 0px;
+}
+
+.seller-nick p{
+	margin-bottom:0px;
 }
 
 .seller-info {
 	width: 100%;
 	clear: left;
-	height: 40px;
+	height: 35px;
 	margin: 0px;
 }
 
@@ -141,12 +122,12 @@ td {
 }
 
 .memo-style {
-	font-size: 30px;
+	font-size: 14px;
     background-color:white;
 }
 
 .order_num {
-	font-size: 30px;
+	font-size: 20px;
 	width: 60px;
 	height: auto !important;
 	height: 100%;
@@ -154,26 +135,56 @@ td {
 	text-align: center;
 }
 
-#footerContent{
-    background-color:white;
+@page {
+	margin: 25pt 10pt 22pt 10pt;
+	font-family: simhei;
+	-pdf-frame-border: 1;
+    -pdf-level: 0;
+    -pdf-open: false;
+    size:doubleten portrait; 
+    /**
+     -pdf-page-size: doubleten;
+	 border:1; */
+	@frame header_frame {           /* Static frame */
+        -pdf-frame-content: header_content;
+        -pdf-frame-border: 0;
+        left: 10pt; width: 274pt; top: 10pt; height: 15pt;
+    }
+    /*@frame content_frame {           Content Frame height: 650pt; 
+        left: 10pt; width: 770pt; top: 35pt; 
+    }*/
+    @frame footer_frame {           /* Static frame */
+        -pdf-frame-content: footer_content;
+        -pdf-frame-border: 0;
+        left: 10pt; width: 274pt; top: 280pt; height: 18pt;
+    }
 }
+
 </style>
 </head>
+
 <body>
+	<div id="header_content" class="header">
+      <p>小鹿美美-外贸原单限时特卖</p> 
+	</div>
+	<div id="footer_content" class="footer">
+      NO：<pdf:pagenumber>
+	</div>
 	{% load custom_filter %}
 	{% for trade in trade_list %}
-	<div id="delivery" class="delivery" >
-		<div class="seller-nick">
-			<h1>{{ trade.ins.user.nick }} [发货单]</h1>
-		</div> 
-		<div id="baseInfo">付款打单日期:{{ trade.ins.pay_time.month }}.{{ trade.ins.pay_time.day }}/{{ trade.today.month }}.{{ trade.today.day }}</div>
-		<hr/>
+	<div class="delivery" >
+		<div class="baseInfo">
+			<div class="seller-nick">
+				<p>{{ trade.ins.user.nick }} [发货单]</p>
+			</div> 
+		</div>
+		<div  class="content">
 		<div class='seller-info'>
 			<table >
-				<tr><td style="width:150px;"></td><td></td><td style="width:120px;"></td><td></td></tr>
+				<tr><td style="width:15%;"></td ><td style="width:25%;"></td ><td style="width:20%;"></td ><td style="width:40%;"></td></tr>
 			    <tr>
 			    	<td><b>订单编号：</b></td><td>{{ trade.ins.id }}{% if trade.juhuasuan %}（ 聚 ）{% endif %}</td>
-			    	<td>快递：</td><td>{% if trade.ins.logistics_company %}({{ trade.ins.out_sid }}){{ trade.ins.logistics_company.name|truncatechars:3 }}{% endif %}</td>
+			    	<td>快递：</td><td>{% if trade.ins.logistics_company %}({{ trade.ins.out_sid }}){{ trade.ins.logistics_company.name|truncatechars:4 }}{% endif %}</td>
 			    </tr>
 				<tr >
 					<td >买家昵称：</td><td>{{ trade.ins.buyer_nick }}</td>
@@ -181,18 +192,18 @@ td {
 				</tr>
 				<tr>
 					<td >手机：</td><td>{{ trade.ins.receiver_mobile|stringBlur }}</td>
-					<td>电话：</td><td>{{ trade.ins.receiver_phone }}</td>
+					<td >付款打单日期:</td><td>[{{ trade.ins.pay_time.month }}.{{ trade.ins.pay_time.day }}/{{ trade.today.month }}.{{ trade.today.day }}]</td>
 				</tr>
 			</table>
 		</div>
 		<hr/>
-		<div  class='order-info'>
+		<div class='order-info'>
 			<table>
 				<thead>
 					<tr>
-						<td>商品编码/全称</td>
-						<td style="width:200px;">货位</td>
-						<td style="width:80px;">数量</td>
+						<td style="width:70%;">商品编码/全称</td>
+						<td style="width:20%;">货位</td>
+						<td style="width:10%;">数量</td>
 						<!-- <td>单价</td>
 						<td>折扣</td>
 						<td>实付</td> -->
@@ -227,13 +238,12 @@ td {
 			</table>
 		</div>
 		<div class='memo-style'>
-			<label>留言：</label>{{ trade.ins.buyer_message|slice:":140" }}
-			<br><label>温馨提示：</label>{{ trade.buyer_prompt|slice:":140" }}
+			{% if trade.ins.buyer_message %}<label>留言：</label>{{ trade.ins.buyer_message|slice:":140" }}<br>{% endif %}
+			{% if trade.ins.buyer_prompt %}<label>温馨提示：</label>{{ trade.buyer_prompt|slice:":140" }}{% endif %}
 		</div>
-		<div id="footerContent" >
-          NO：<pdf:pagenumber>
-    	</div>
+		</div>
 	</div>
+	
 	{% if not forloop.last %}
 	<pdf:nextpage>
 	{% endif %}

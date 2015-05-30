@@ -56,7 +56,7 @@ def task_Pull_Pending_Carry(day_ago=7):
             cl.save()
 
 @task()
-def task_Push_Pending_Carry_Cash(day_ago=7, xlmm_id=None):
+def task_Push_Pending_Carry_Cash(day_ago=12, xlmm_id=None):
     
     from flashsale.mmexam.models import Result
     

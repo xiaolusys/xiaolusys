@@ -6,7 +6,7 @@
         @import "{{ STATIC_URL }}jquery-datatable-addon/css/demo_page.css";
         @import "{{ STATIC_URL }}jquery-datatable-addon/css/demo_table.css";
     </style>
-
+    <script src="{{ STATIC_URL }}layer-v1.9.2/layer/layer.js"></script>
 
     <script type="text/javascript">
         function changestatus(id, button) {
@@ -51,6 +51,8 @@
                 var callback = function (res) {
                     if (res == "OK") {
                         p.text(parseInt(p.text()) - 1);
+                    }else if (res == "deleted"){
+                        window.location.reload();
                     }
                 };
                 $.ajax({url: url, data: data, type: "post", success: callback});
@@ -141,9 +143,27 @@
                                     selectid[i] = new Option(String(guiges[i].sku_name), String(guiges[i].id));
                                 }
                             });
+                            var scroll_offset = $("#searchfield").offset();
+{#                            var height = document.body.scrollHeight;#}
+                            $('html,body').animate({scrollTop: scroll_offset.top}, 800);
                         }, 'json');
             })
         });
+        function showlayer(url) {
+            url = '/sale/dinghuo/detail/' + url;
+            layer.open({
+                type: 2,
+                title: '大货修改页',
+                shadeClose: true,
+                shade: 0.8,
+                maxmin: true,
+                area: ['800px', '600px'],
+                content: url,
+                end: function () {
+                    window.location.reload();
+                }
+            });
+        }
     </script>
 {% endblock %}
 {% block container %}
@@ -203,12 +223,16 @@
             </div>
         </div>
     </div>
+    <input class="btn btn-info" type="button" onclick="showlayer({{ orderlist.id }})" value="点我修改订单">
     {% if flagofstatus %}
         <div class="row" style="text-align: right">
             <div class="col-lg-4"></div>
             <div class="col-lg-4"></div>
-            <div class="col-lg-4"><input type="button" class="btn btn-danger" id="zuofeibutton" value="作废"
-                                         onclick="changestatus({{ orderlist.id }},this)"></div>
+            <div class="col-lg-4">
+                <input type="button" class="btn btn-danger" id="zuofeibutton" value="作废"
+                       onclick="changestatus({{ orderlist.id }},this)">
+
+            </div>
         </div>
     {% elif flagofquestion %}
         <hr>
@@ -333,7 +357,7 @@
     </div>
     <br>
     {% if flagofstatus or flagofquestion %}
-        <div class="row">
+        <div class="row" id="searchfield">
             <legend>
                 <h2 class="head-title">搜索物品
                 </h2>
