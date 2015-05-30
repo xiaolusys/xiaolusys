@@ -27,6 +27,7 @@ urlpatterns = (
     
     ##############order urls################
     url(r'^orderbuy/$',sale_buyer_required(views.OrderBuyReview.as_view())),
+    url(r'^pay.htm$',TemplateView.as_view(template_name="pay/pay.html")),
     url(r'^orderlist/$', sale_buyer_required(views.SaleOrderList.as_view()),name="user_orderlist"),
     url(r'^order/(?P<pk>[0-9]+)/$', sale_buyer_required(views.SaleOrderDetail.as_view()),name="user_orderdetail"),
     url(r'^payresult/$',sale_buyer_required(views.PayResultView.as_view()),name="user_payresult"),
@@ -46,8 +47,7 @@ urlpatterns = (
     
     url(r'^login/$', flashsale_login,name="flashsale_login"),
     
-    url(r'^test/$', TemplateView.as_view(
-        template_name="pay/maddress.html")),
+    url(r'^test/$', TemplateView.as_view(template_name="pay/maddress.html")),
     ####fangkaineng  5-22
     url(r'^order_flashsale/$', order_flashsale,name="order_flashsale"),           
     url(r'^time_rank/(?P<time_id>\d+)/$',time_rank,name="time_rank"),
