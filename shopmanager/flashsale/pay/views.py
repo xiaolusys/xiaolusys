@@ -378,7 +378,8 @@ class OrderBuyReview(APIView):
         if unionid != '': 
             weixin_from = True
         
-        if user_agent and user_agent.find('MicroMessenger') > 0:
+        if (user_agent and user_agent.find('MicroMessenger') > 0 
+            and customer.unionid != 'o29cQs4zgDoYxmSO3pH-x4A7O8Sk'):
             alipay_from = False
         
         xiaolumms = XiaoluMama.objects.filter(openid=unionid)
