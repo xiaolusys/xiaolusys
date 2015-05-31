@@ -46,10 +46,10 @@
     <li class="list-group-item">推荐人数： {{ referal_num }}（<a href="/m/cashout/">详情</a>）</li>
     <li class="list-group-item">点击人数： {{ click_num }}</li>
     <li class="list-group-item"><span style="color:orange">点击补贴： {{ click_num }} * {{ click_price }} = ￥{{ click_pay }}</span>
+    {% if not exam_pass %}（<a href="/sale/exam/">考试通过后生效</a>）{% endif %}</li>
     {% if active_start %}
-    <li class="list-group-item"><span style="color:green">六一点击专贴： {{ ten_click_num }} * {{ ten_click_price }} = ￥{{ ten_click_pay }}</span>
+    <li class="list-group-item"><span style="color:green">六一点击专贴： {{ ten_click_num }} * {{ ten_click_price }} = ￥{{ ten_click_pay }}</span></li>
     {% endif %}
-    	{% if not exam_pass %}（<a href="/sale/exam/">考试通过后生效</a>）{% endif %}</li>
     <li class="list-group-item"><span style="color:orange">订单人数： {{ order_num }}</span></li>
     <li class="list-group-item"><span style="color:orange">订单金额： ￥{{ total_value }}</span></li>
     {% if agencylevel.pk > 1 %}
