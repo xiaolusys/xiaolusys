@@ -30,7 +30,10 @@ def task_Push_ClickCount_To_MamaCash(target_date):
         buyercount = StatisticsShopping.objects.filter(linkid=xlmm.id,
                             shoptime__range=(time_from, time_end)).values('openid').distinct().count()
                             
-        agency_level = AgencyLevel.objects.get(id=xlmm.agencylevel)
+        agency_levels = AgencyLevel.objects.filter(id=xlmm.agencylevel)
+        if agency_levels.count() == 0:
+            continue
+        agency_level = agency_levels[0]
         click_price  = agency_level.get_Click_Price(buyercount)
         click_rebeta = mm_cc.valid_num * click_price 
         if mm_cc.valid_num == 0 or click_price <= 0:

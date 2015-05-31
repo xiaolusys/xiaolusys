@@ -39,7 +39,10 @@ def task_Calc_Unstat_Order_Cash(target_date):
             continue
         
         xlmm = xlmms[0]
-        agency_level = AgencyLevel.objects.get(id=xlmm.agencylevel)
+        agency_levels = AgencyLevel.objects.filter(id=xlmm.agencylevel)
+        if agency_levels.count() == 0:
+            continue
+        agency_level = agency_levels[0]
         rebeta_rate  = agency_level.get_Rebeta_Rate()
         order_rebeta = mm_stat.wxorderamount * rebeta_rate
         if order_rebeta <= 0:
@@ -82,7 +85,10 @@ def task_Push_Rebeta_To_MamaCash(target_date):
             continue
         
         xlmm = xlmms[0]
-        agency_level = AgencyLevel.objects.get(id=xlmm.agencylevel)
+        agency_levels = AgencyLevel.objects.filter(id=xlmm.agencylevel)
+        if agency_levels.count() == 0:
+            continue
+        agency_level = agency_levels[0]
         rebeta_rate  = agency_level.get_Rebeta_Rate()
         order_rebeta = mm_stat.todayamountcount * rebeta_rate
         if order_rebeta <= 0:

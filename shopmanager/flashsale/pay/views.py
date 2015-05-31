@@ -386,7 +386,7 @@ class OrderBuyReview(APIView):
         xiaolumm  = None
         if xiaolumms.count() > 0:
             xiaolumm = xiaolumms[0]
-            if xiaolumm.cash > 0 and xiaolumm.cash >= payment:
+            if xiaolumm.cash > 0 and xiaolumm.cash >= payment * 100:
                 wallet_payable = True
         
         data = {'product':product_dict,
