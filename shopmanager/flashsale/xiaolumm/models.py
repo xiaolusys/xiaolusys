@@ -88,7 +88,7 @@ class XiaoluMama(models.Model):
         except:
             return '%s'%self.manager
 
-from .clickprice import CLICK_TIME_PRICE
+# from .clickprice import CLICK_TIME_PRICE
 
 class AgencyLevel(models.Model):
     
