@@ -87,7 +87,9 @@ class XiaoluMama(models.Model):
             return DjangoUser.objects.get(id=self.manager).username
         except:
             return '%s'%self.manager
-        
+
+from .clickprice import CLICK_TIME_PRICE
+
 class AgencyLevel(models.Model):
     
     category = models.CharField(max_length=11,unique=True,blank=False,verbose_name=u"类别")
@@ -136,12 +138,50 @@ class AgencyLevel(models.Model):
             click_price = 0.5
         else:
             click_price += order_num * 0.1
-
+        
         return click_price * 100
+    
+    def get_Click_Price_List(self,target_date):
+        
+        d = target_date
+        t_from = datetime.datetime(d.year,d.month,d.day,0,0,0)
+        t_to   = datetime.datetime(d.year,d.month,d.day,23,59,59)
+        
+        price_list = []
+        for ctp in CLICK_TIME_PRICE:
+            if ctp[0] > t_to or ctp[1] < t_from:
+                continue
+            
+            if ctp[0] > t_from:
+                price_list.append((t_from,ctp[0],0))
+            
+            if ctp[1] > t_to:
+                price_list.append((ctp[0],t_to,0))
+            
+            if ctp[1] < t_to:
+                price_list.append((t_to,ctp[1],0))
+            
+        
     
     def get_Rebeta_Rate(self,*args,**kwargs):
         return self.basic_rate / 100.0
     
+
+# class ClickPrice(models.Model):
+#     
+#     order_num  = models.IntegerField(default=0,verbose_name=u'订单数量')
+#     start_time = models.DateTimeField(verbose_name=u'开始时间')
+#     end_time   = models.DateTimeField(verbose_name=u'结束时间')
+#     click_price = models.IntegerField(default=0,verbose_name=u'点击价格')
+# 
+#     class Meta:
+#         db_table = 'xiaolumm_click_price'
+#         verbose_name=u'点击价格'
+#         verbose_name_plural = u'点击价格列表'
+# 
+#     def __unicode__(self):
+#         return '%s'%self.id
+
 
 class Clicks(models.Model):
     
@@ -305,100 +345,6 @@ signals.signal_push_pending_carry_to_cash.connect(push_pending_carry_to_cash,sen
 
 
 
-###########################################################
 
-## CarryLog测试表，记录代理妈妈的千元提成、代理提成和妈妈贡献
-##
-
-class CarryLogTest(models.Model):
-    PENDING = 'pending'
-    CONFIRMED = 'confirmed'
-    CANCELED = 'canceled'
-
-    STATUS_CHOICES = (
-        (PENDING,u'待确认'),
-        (CONFIRMED,u'确定'),
-        (CANCELED,u'已取消'),
-    )
-
-    ORDER_REBETA  = 'rebeta'
-    ORDER_BUY     = 'buy'
-    CLICK_REBETA  = 'click'
-    REFUND_RETURN = 'refund'
-    CASH_OUT      = 'cashout'
-
-    THOUSAND_REBETA= 'thousand'
-    AGENCY_SUBSIDY= 'subsidy'
-    MAMA_CONTRIBU = 'contrib'
-
-    LOG_TYPE_CHOICES = (
-        (ORDER_REBETA,u'订单返利'),
-        (ORDER_BUY,u'消费支出'),
-        (REFUND_RETURN,u'退款返现'),
-        (CLICK_REBETA,u'点击兑现'),
-        (CASH_OUT,u'钱包提现'),
-
-        (THOUSAND_REBETA,u'千元提成'),
-        (AGENCY_SUBSIDY,u'代理补贴'),
-        (MAMA_CONTRIBU,u'妈妈贡献'),
-    )
-
-    CARRY_OUT = 'out'
-    CARRY_IN  = 'in'
-    CARRY_TYPE_CHOICES = (
-        (CARRY_OUT,u'支出'),
-        (CARRY_IN,u'收入'),
-    )
-
-    xlmm       = models.BigIntegerField(default=0,db_index=True,verbose_name=u"妈妈编号")
-    order_num  = models.BigIntegerField(default=0,db_index=True,verbose_name=u"订单编号")
-    buyer_nick = models.CharField(max_length=32,blank=True,verbose_name=u'买家昵称')
-    value      = models.IntegerField(default=0,verbose_name=u"金额")
-
-    log_type   = models.CharField(max_length=8,blank=True,
-                                  choices=LOG_TYPE_CHOICES,
-                                  default=ORDER_REBETA,verbose_name=u"类型")
-
-    carry_type = models.CharField(max_length=8,blank=True,
-                                  choices=CARRY_TYPE_CHOICES,
-                                  default=CARRY_OUT,verbose_name=u"盈负")
-
-    status     = models.CharField(max_length=16,blank=True,
-                                  choices=STATUS_CHOICES,
-                                  default=CONFIRMED,verbose_name=u'状态')
-
-    carry_date = models.DateField(default=datetime.date.today,verbose_name=u'业务日期')
-    created    = models.DateTimeField(auto_now_add=True,verbose_name=u'创建时间')
-
-    class Meta:
-        db_table = 'xiaolumm_carrylog_test'
-        verbose_name=u'妈妈钱包/收支记录/测试记录观测表'
-        verbose_name_plural = u'妈妈钱包/收支记录/测试记录观测列表'
-
-    def __unicode__(self):
-        return '%s'%self.id
-
-    def get_value_display(self):
-        return self.value / 100.0
-
-    get_value_display.allow_tags = True
-    get_value_display.short_description = u"金额"
-
-    @property
-    def value_money(self):
-        return self.get_value_display()
-
-    @property
-    def log_type_name(self):
-        return self.get_log_type_display()
-
-    @property
-    def carry_type_name(self):
-        return self.get_carry_type_display()
-
-    @property
-    def status_name(self):
-        return self.get_status_display()
-    
     
     

@@ -161,6 +161,8 @@ from flashsale.clickcount.models import ClickCount
 from flashsale.clickrebeta.models import StatisticsShoppingByDay,StatisticsShopping
 from flashsale.mmexam.models import Result
 
+CLICK_ACTIVE_DATE = datetime.date(2015,6,1)
+
 class MamaStatsView(View):
     def get(self, request):
         
@@ -197,6 +199,8 @@ class MamaStatsView(View):
         time_from = datetime.datetime(target_date.year, target_date.month, target_date.day)
         time_to = datetime.datetime(target_date.year, target_date.month, target_date.day, 23, 59, 59)
         
+        active_start = CLICK_ACTIVE_DATE == time_from.date()
+        
         prev_day = target_date - datetime.timedelta(days=1)
         next_day = None
         if target_date < today:
@@ -232,20 +236,42 @@ class MamaStatsView(View):
                 carry = (order_stat[0].todayamountcount / 100.0) * agencylevel.get_Rebeta_Rate() 
             
             click_state = ClickCount.objects.filter(linkid=xlmm.pk,date=target_date)
-            if click_state.count() > 0:
-                click_num = click_state[0].valid_num 
-            else:
-                click_list = Clicks.objects.filter(linkid=xlmm.pk, created__range=(time_from, time_to), isvalid=True)
-                click_num  = click_list.values('openid').distinct().count()
+            
+            click_price  = 0
+            click_num    = 0 
+            click_pay    = 0
+            ten_click_num   = 0 
+            ten_click_price = 0.5
+            ten_click_pay   = 0
+            if not active_start:
+                if click_state.count() > 0:
+                    click_num = click_state[0].valid_num 
+                else:
+                    click_qs   = Clicks.objects.filter(linkid=xlmm.pk, isvalid=True)
+                    click_list = Clicks.objects.filter(linkid=xlmm.pk, created__range=(time_from, time_to), isvalid=True)
+                    click_num  = click_list.values('openid').distinct().count()
+            
+                click_price = agencylevel.get_Click_Price(order_num) / 100
+                click_pay   = click_price * click_num 
                 
-            click_price = agencylevel.get_Click_Price(order_num) / 100
-            click_pay   = click_price * click_num 
+            else:
+                click_price = agencylevel.get_Click_Price(order_num) / 100
+                click_qs   = Clicks.objects.filter(linkid=xlmm.pk, isvalid=True)
+                click_num  = click_qs.filter(created__range=(datetime.datetime(2015,6,1), datetime.datetime(2015,6,1,10,0,0))).count()
+                click_pay  = click_num * click_price
+                
+                ten_click_num = click_qs.filter(created__range=(datetime.datetime(2015,6,1,10), datetime.datetime(2015,6,1,23,59,59))).count()
+                ten_click_pay = ten_click_num * ten_click_price
+                
+                click_pay   = click_price * click_num 
 
             data = {"mobile":mobile_revised, "click_num":click_num, "xlmm":xlmm,
                     "order_num":order_num, "order_list":order_list, "pk":xlmm.pk,"exam_pass":exam_pass,
                     "total_value":total_value, "carry":carry, "agencylevel":agencylevel,
                     "target_date":target_date, "prev_day":prev_day, "next_day":next_day,
-                    "click_price":click_price, "click_pay":click_pay, "referal_num":referal_num}
+                    "click_price":click_price, "click_pay":click_pay,'active_start':active_start,"ten_click_num":ten_click_num,
+                    "ten_click_price":ten_click_price, "ten_click_pay":ten_click_pay,"referal_num":referal_num}
+            
         except Exception,exc:
             logger.error(exc.message,exc_info=True)
         
@@ -283,7 +309,7 @@ class StatsView(View):
         next_day = None
         if target_date < today:
             next_day = target_date + datetime.timedelta(days=1)
-
+        
         pk = content.get('pk','6')
         mama_list = XiaoluMama.objects.filter(manager=pk)
         mama_managers = XiaoluMama.objects.values('manager').distinct()

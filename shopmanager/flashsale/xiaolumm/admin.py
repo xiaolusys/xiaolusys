@@ -173,17 +173,3 @@ class CarryLogAdmin(admin.ModelAdmin):
 admin.site.register(CarryLog, CarryLogAdmin)
 
 
-
-
-####### 用于测试观察的ADMIN显示  这里显示的昵称 用手机号码填充了（写数据库的时候）  注意下
-from .models import CarryLogTest
-class CarryLogTestAdmin(admin.ModelAdmin):
-
-    # form = forms.CarryLogTestForm
-    list_display = ('xlmm', 'buyer_nick', 'get_value_display', 'log_type',
-                    'carry_type', 'status', 'carry_date', 'created')
-    list_filter = ('log_type','carry_type','status',('carry_date',DateFieldListFilter))
-    search_fields = ['xlmm', 'buyer_nick']
-
-admin.site.register(CarryLogTest, CarryLogTestAdmin)
-
