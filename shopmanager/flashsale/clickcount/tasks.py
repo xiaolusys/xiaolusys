@@ -11,6 +11,8 @@ __author__ = 'linjie'
 
 logger = logging.getLogger('celery.handler')
 
+CLICK_ACTIVE_START_TIME = datetime.datetime(2015,6,1,10)
+
 @task()
 def task_Push_ClickCount_To_MamaCash(target_date):
     """ 计算每日妈妈点击数现金提成，并更新到妈妈钱包账户"""
@@ -35,7 +37,15 @@ def task_Push_ClickCount_To_MamaCash(target_date):
             continue
         agency_level = agency_levels[0]
         click_price  = agency_level.get_Click_Price(buyercount)
-        click_rebeta = mm_cc.valid_num * click_price 
+        
+        ten_click_num   = 0
+        ten_click_price = 0
+        if CLICK_ACTIVE_START_TIME.date() == time_from.date():
+            click_qs = Clicks.objects.filter(linkid=mm_cc.linkid,click_time__range=(CLICK_ACTIVE_START_TIME,time_end),isvalid=True)
+            ten_click_num = click_qs.values('openid').distinct().count()
+            ten_click_price = click_price + 30
+        
+        click_rebeta = (mm_cc.valid_num - ten_click_num) * click_price + ten_click_num * ten_click_price
         if mm_cc.valid_num == 0 or click_price <= 0:
             continue
         
