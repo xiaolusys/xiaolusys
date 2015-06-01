@@ -412,67 +412,70 @@ class XiaoluMamaModelView(View):
 from django.views.decorators.csrf import csrf_exempt
 
 @csrf_exempt
-def cash_Out_Verify(request):
+def cash_Out_Verify(request, id, xlmm):
     '''提现审核方法'''
     '''buyer_id 手机 可用现金  体现金额  小鹿钱包消费额
     '''
     data = []
-    cashouts_status_is_pending = CashOut.objects.filter(status='pending').order_by('-created')
+    # cashouts_status_is_pending = CashOut.objects.filter(status='pending').order_by('-created')
     today = datetime.datetime.today()
     day_from = today-datetime.timedelta(days=30)
     day_to = today
+
+    cashout_status_is_pending = CashOut.objects.get(id=id)
+
     
-    for cashout_status_is_pending in cashouts_status_is_pending:
-        id = cashout_status_is_pending.id
-        xlmm = cashout_status_is_pending.xlmm
-        value = cashout_status_is_pending.value/100.0
-        status = cashout_status_is_pending.status
-        xiaolumama = XiaoluMama.objects.get(pk=xlmm)
-        
-        # 点击数
-        click_nums = 0
-        clickcounts = ClickCount.objects.filter(date__gt=day_from, date__lt=day_to, linkid=xlmm)
-        for clickcount in clickcounts:
-            click_nums = click_nums + clickcount.valid_num
+    # for cashout_status_is_pending in cashouts_status_is_pending:
+    id = id
+    # xlmm = cashout_status_is_pending.xlmm
+    value = cashout_status_is_pending.value/100.0
+    status = cashout_status_is_pending.status
+    xiaolumama = XiaoluMama.objects.get(pk=xlmm)
 
-        # 订单数
-        shoppings = StatisticsShopping.objects.filter(shoptime__gt=day_from, shoptime__lt=day_to, linkid=xlmm)
-        shoppings_count = shoppings.count()
+    # 点击数
+    click_nums = 0
+    clickcounts = ClickCount.objects.filter(date__gt=day_from, date__lt=day_to, linkid=xlmm)
+    for clickcount in clickcounts:
+        click_nums = click_nums + clickcount.valid_num
 
-        mobile = xiaolumama.mobile
-        cash = xiaolumama.cash / 100.0
-        
-        pay_saletrade = []
-        sale_customers = Customer.objects.filter(unionid=xiaolumama.openid)
-        if sale_customers.count() > 0:
-            customer = sale_customers[0]
-            pay_saletrade = SaleTrade.objects.filter(buyer_id=customer.id,
-                                                 channel=SaleTrade.WALLET,
-                                                 status__in=SaleTrade.INGOOD_STATUS)
-        payment = 0
-        for pay in pay_saletrade:
-            sale_orders = pay.sale_orders.filter(refund_status__gt=SaleRefund.REFUND_REFUSE_BUYER)
-            total_refund = sale_orders.aggregate(total_refund=Sum('refund_fee')).get('total_refund') or 0
-            payment = payment + pay.payment - total_refund
-        
-        x_choice = 0 
-        if click_nums >= 150 or shoppings_count >= 6:
-            x_choice = 100.00
-        else:
-            x_choice = 130.00
-        mony_without_pay = cash + payment # 从未消费情况下的金额
-        leave_cash_out = mony_without_pay - x_choice   # 可提现金额
-        
-        could_cash_out = cash
-        if leave_cash_out < cash:
-            could_cash_out = leave_cash_out
-            
-        if could_cash_out < 0 :
-            could_cash_out = 0
-        
-        data_entry = {'id':id,'xlmm':xlmm,'value':value,'status':status,'mobile':mobile,'cash':cash,'payment':payment,
-                      'shoppings_count':shoppings_count,'click_nums':click_nums,'could_cash_out':could_cash_out}
-        data.append(data_entry)
+    # 订单数
+    shoppings = StatisticsShopping.objects.filter(shoptime__gt=day_from, shoptime__lt=day_to, linkid=xlmm)
+    shoppings_count = shoppings.count()
+
+    mobile = xiaolumama.mobile
+    cash = xiaolumama.cash / 100.0
+
+    pay_saletrade = []
+    sale_customers = Customer.objects.filter(unionid=xiaolumama.openid)
+    if sale_customers.count() > 0:
+        customer = sale_customers[0]
+        pay_saletrade = SaleTrade.objects.filter(buyer_id=customer.id,
+                                             channel=SaleTrade.WALLET,
+                                             status__in=SaleTrade.INGOOD_STATUS)
+    payment = 0
+    for pay in pay_saletrade:
+        sale_orders = pay.sale_orders.filter(refund_status__gt=SaleRefund.REFUND_REFUSE_BUYER)
+        total_refund = sale_orders.aggregate(total_refund=Sum('refund_fee')).get('total_refund') or 0
+        payment = payment + pay.payment - total_refund
+
+    x_choice = 0
+    if click_nums >= 150 or shoppings_count >= 6:
+        x_choice = 100.00
+    else:
+        x_choice = 130.00
+    mony_without_pay = cash + payment # 从未消费情况下的金额
+    leave_cash_out = mony_without_pay - x_choice   # 可提现金额
+
+    could_cash_out = cash
+    if leave_cash_out < cash:
+        could_cash_out = leave_cash_out
+
+    if could_cash_out < 0 :
+        could_cash_out = 0
+
+    data_entry = {'id':id,'xlmm':xlmm,'value':value,'status':status,'mobile':mobile,'cash':cash,'payment':payment,
+                  'shoppings_count':shoppings_count,'click_nums':click_nums,'could_cash_out':could_cash_out}
+    data.append(data_entry)
 
     return render_to_response("mama_cashout_verify.html", {"data":data}, context_instance=RequestContext(request))
 
