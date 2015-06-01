@@ -111,7 +111,6 @@ class CashoutView(View):
         data = {"xlmm":xlmm, "cashout": cashout_objs.count(), 
                 "referal_list":referal_list ,"could_cash_out":could_cash_out}
         
-        
         response = render_to_response("mama_cashout.html", data, context_instance=RequestContext(request))
         response.set_cookie("openid",openid)
         response.set_cookie("unionid",unionid)
@@ -245,14 +244,13 @@ class MamaStatsView(View):
             ten_click_pay   = 0
             if not active_start:
                 if click_state.count() > 0:
-                    click_num = click_state[0].valid_num 
+                    click_num = click_state[0].valid_num
                 else:
                     click_qs   = Clicks.objects.filter(linkid=xlmm.pk, isvalid=True)
                     click_list = Clicks.objects.filter(linkid=xlmm.pk, created__range=(time_from, time_to), isvalid=True)
                     click_num  = click_list.values('openid').distinct().count()
             
                 click_pay   = click_price * click_num 
-                
             else:
                 click_qs   = Clicks.objects.filter(linkid=xlmm.pk, isvalid=True)
                 click_num  = click_qs.filter(created__range=(datetime.datetime(2015,6,1), datetime.datetime(2015,6,1,10,0,0))).count()

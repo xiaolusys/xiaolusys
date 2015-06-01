@@ -44,8 +44,9 @@ logger =  logging.getLogger('django.request')
 class ProductSkuInline(admin.TabularInline):
     
     model = ProductSku
-    fields = ('outer_id','properties_name','properties_alias','quantity','warn_num','remain_num','wait_post_num','reduce_num','cost'
-              ,'std_sale_price','agent_price','sync_stock','is_assign','is_split','is_match','post_check','barcode','status','buyer_prompt')
+    fields = ('outer_id','properties_name','properties_alias','quantity','warn_num',
+              'remain_num','wait_post_num','reduce_num','cost','std_sale_price','agent_price',
+              'sync_stock','is_assign','is_split','is_match','post_check','barcode','status','buyer_prompt')
     
     formfield_overrides = {
         models.CharField: {'widget': TextInput(attrs={'size':'10'})},

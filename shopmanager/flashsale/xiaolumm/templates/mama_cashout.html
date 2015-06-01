@@ -248,11 +248,11 @@
         var cform = $(this);
         var subtn = $('#cashout-form button[type="submit"]');
         if (subtn.hasClass('loading')){
-        	$("#id-submit-message")[0].innerHTML = "提现申请正在处理中..."
-        	return 
+        	$("#id-submit-message")[0].innerHTML = "提现申请正在处理中...";
+        	return ;
         }
-        subtn.addClass('loading')
-        var inputValue = $('#id-cashout-input')
+        subtn.addClass('loading');
+        var inputValue = $('#id-cashout-input');
         var v_min = parseInt(inputValue.attr('min'));
         var v_max = parseInt(inputValue.attr('max'));
         var value = parseInt(inputValue.val());
@@ -262,6 +262,7 @@
         	return 
         }
         var callback = function (res) {
+          subtn.removeClass('loading');
 	      if (res["code"] == 0) {
 	        $("#id-cashout-notice").css("display","block");
 	        $("#id-cashout-area").css("display","none");
