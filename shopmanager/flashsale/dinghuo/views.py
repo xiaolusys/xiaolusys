@@ -1,7 +1,7 @@
 # coding:utf-8
 
 from django.http import HttpResponse, HttpResponseRedirect
-from django.shortcuts import render_to_response, render
+from django.shortcuts import render_to_response
 from django.core import serializers
 from shopback.items.models import Product, ProductSku
 from flashsale.dinghuo.models import orderdraft, OrderDetail, OrderList
@@ -11,130 +11,64 @@ import json, datetime
 from django.views.decorators.csrf import csrf_exempt
 from flashsale.dinghuo import paramconfig as pcfg
 from django.template import RequestContext
-from django.core.paginator import Paginator, InvalidPage, EmptyPage, PageNotAnInteger
-from flashsale.dinghuo import log_action, ADDITION, CHANGE
-from django.db.models import F, Q
+from flashsale.dinghuo import log_action, CHANGE
+from django.db.models import F, Q, Sum
 from django.views.generic import View
 from django.contrib.auth.models import User
+import functions
 
 
-def parse_date(dt):
-    return datetime.datetime.strptime(dt, '%Y-%m-%d')
-
-
-def parse_datetime(dt):
-    return datetime.datetime.strptime(dt, '%Y-%m-%d %H:%M:%S')
-
-
-def orderadd(request):
-    user = request.user
-    orderDr = orderdraft.objects.all().filter(buyer_name=user)
-
-    return render_to_response('dinghuo/orderadd.html', {"orderdraft": orderDr},
-                              context_instance=RequestContext(request))
-
-
-def searchProduct(request):
+def search_product(request):
     response = HttpResponse()
     response['Content-Type'] = "text/javascript"
-    ProductIDFrompage = request.GET.get("searchtext", "")
-    ProductIDFrompage = ProductIDFrompage.strip()
-    productRestult = Product.objects.filter(
-        Q(outer_id__icontains=ProductIDFrompage) | Q(name__icontains=ProductIDFrompage))
-    product_list = []
-    for product in productRestult:
-        product_dict = model_to_dict(product)
-        product_dict['prod_skus'] = []
-
-        guiges = product.prod_skus.all()
-        for guige in guiges:
-            sku_dict = model_to_dict(guige)
-            sku_dict['sku_name'] = sku_dict['properties_alias'] if len(
-                sku_dict['properties_alias']) > 0 else sku_dict['properties_name']
-            product_dict['prod_skus'].append(sku_dict)
-
-        product_list.append(product_dict)
-
+    product_id_from_page = request.GET.get("searchtext", "")
+    product_id_from_page = product_id_from_page.strip()
+    product_result = Product.objects.filter(
+        Q(outer_id__icontains=product_id_from_page) | Q(name__icontains=product_id_from_page))
+    product_list = functions.get_product_dict_from_product(product_result)
     data = json.dumps(product_list, cls=DjangoJSONEncoder)
     return HttpResponse(data)
 
 
 @csrf_exempt
-def initdraft(request):
+def init_draft(request):
     user = request.user
     if request.method == "POST":
-
         post = request.POST
-
         product_counter = int(post["product_counter"])
         for i in range(1, product_counter + 1):
             product_id_index = "product_id_" + str(i)
             product_id = post[product_id_index]
-            guiges = ProductSku.objects.filter(product_id=product_id)
-            for guige in guiges:
-                guigequantityindex = product_id + "_tb_quantity_" + str(guige.id)
-                guigequantity = post[guigequantityindex]
-                mairujiageindex = product_id + "_tb_cost_" + str(guige.id)
-                mairujiage = post[mairujiageindex]
-                mairujiage = float(mairujiage)
-                if guigequantity and mairujiage and mairujiage != 0 and guigequantity != "0":
-                    guigequantity = int(guigequantity)
-                    mairujiage = float(mairujiage)
-                    try:
-                        p1 = Product.objects.get(id=product_id)
-                    except Exception as e:
-                        print e
-                    draftquery = orderdraft.objects.filter(buyer_name=user, product_id=product_id,
-                                                           chichu_id=guige.id)
-                    if draftquery:
-                        draftquery[0].buy_quantity = draftquery[0].buy_quantity + guigequantity
-                        draftquery[0].save()
+            all_sku = ProductSku.objects.filter(product_id=product_id)
+            for pro_sku in all_sku:
+                sku_quantity_index = product_id + "_tb_quantity_" + str(pro_sku.id)
+                sku_quantity = post[sku_quantity_index]
+                mai_ru_jia_ge_index = product_id + "_tb_cost_" + str(pro_sku.id)
+                mai_ru_jia_ge = post[mai_ru_jia_ge_index]
+                mai_ru_jia_ge = float(mai_ru_jia_ge)
+                if sku_quantity and mai_ru_jia_ge and mai_ru_jia_ge != 0 and sku_quantity != "0":
+                    sku_quantity = int(sku_quantity)
+                    mai_ru_jia_ge = float(mai_ru_jia_ge)
+                    p1 = Product.objects.get(id=product_id)
+                    draft_query = orderdraft.objects.filter(buyer_name=user, product_id=product_id,
+                                                            chichu_id=pro_sku.id)
+                    if draft_query.count() > 0:
+                        draft_query[0].buy_quantity = draft_query[0].buy_quantity + sku_quantity
+                        draft_query[0].save()
                     else:
-                        shijian = datetime.datetime.now()
-                        tdraft = orderdraft(buyer_name=user, product_id=product_id, outer_id=p1.outer_id,
-                                            buy_quantity=guigequantity, product_name=p1.name, buy_unitprice=mairujiage,
-                                            chichu_id=guige.id, product_chicun=guige.name, created=shijian)
-                        tdraft.save()
-                else:
-                    guigequantity = 0
+                        current_time = datetime.datetime.now()
+                        t_draft = orderdraft(buyer_name=user, product_id=product_id, outer_id=p1.outer_id,
+                                             buy_quantity=sku_quantity, product_name=p1.name,
+                                             buy_unitprice=mai_ru_jia_ge,
+                                             chichu_id=pro_sku.id, product_chicun=pro_sku.name, created=current_time)
+                        t_draft.save()
         return HttpResponseRedirect("/sale/dinghuo/dingdan/")
-    elif request.method == "GET":
-        response = HttpResponse()
-        response['Content-Type'] = "text/javascript"
-        tb_id = request.GET.get("tb_outer", "hello")
-        tb_outer_id = request.GET.get("tb_outer_id", "")
-        buy_quantity = request.GET.get("buy_quantity", "0")
-
-        tb_sku_name = request.GET.get("tb_sku_name", "")
-        buy_unitprice = request.GET.get("but_unit_price", "")
-        try:
-            productRestult = Product.objects.get(outer_id=tb_outer_id)
-        except Exception as e:
-            print e
-        draftqueryset = orderdraft.objects.filter(product_id=tb_outer_id, product_chicun=tb_sku_name)
-        if draftqueryset:
-            draftqueryset[0].buy_quantity = draftqueryset[0].buy_quantity + int(buy_quantity)
-            draftqueryset[0].save()
-        else:
-            try:
-                shijian = datetime.datetime.now()
-                oDraft = orderdraft(buyer_name=user, product_id=tb_outer_id, buy_quantity=int(buy_quantity),
-                                    product_name=productRestult.name, buy_unitprice=float(buy_unitprice), chichu_id="1",
-                                    product_chicun=tb_sku_name, created=shijian)
-
-                oDraft.save()
-            except Exception as e:
-                print e
-        orderDrAll = orderdraft.objects.all().filter(buyer_name=user)
-        data = serializers.serialize("json", orderDrAll)
-        return HttpResponse(data)
 
 
 @csrf_exempt
-def neworder(request):
+def new_order(request):
     username = request.user
-    orderDrAll = orderdraft.objects.all().filter(buyer_name=username)
-    orderlist = None
+    all_drafts = orderdraft.objects.all().filter(buyer_name=username)
     if request.method == 'POST':
         post = request.POST
         costofems = post['costofems']
@@ -142,7 +76,7 @@ def neworder(request):
             costofems = 0
         else:
             costofems = float(costofems)
-        shijian = datetime.datetime.now()
+        current_time = datetime.datetime.now()
         receiver = post['consigneeName']
         supplierId = post['supplierId']
         storehouseId = post['storehouseId']
@@ -150,7 +84,7 @@ def neworder(request):
         express_no = post['express_no']
         businessDate = datetime.datetime.now()
         remarks = post['remarks']
-        amount = calamount(username, costofems)
+        amount = functions.cal_amount(username, costofems)
         orderlist = OrderList()
         orderlist.buyer_name = username
         orderlist.costofems = costofems * 100
@@ -179,49 +113,25 @@ def neworder(request):
             orderdetail1.buy_quantity = draft.buy_quantity
             orderdetail1.total_price = total_price
             orderdetail1.buy_unitprice = draft.buy_unitprice
-            orderdetail1.created = shijian
-            orderdetail1.updated = shijian
+            orderdetail1.created = current_time
+            orderdetail1.updated = current_time
             orderdetail1.save()
         drafts.delete()
         log_action(request.user.id, orderlist, CHANGE, u'新建订货单')
         return HttpResponseRedirect("/sale/dinghuo/changedetail/" + str(orderlist.id))
 
-    return render_to_response('dinghuo/shengchengorder.html', {"orderdraft": orderDrAll},
+    return render_to_response('dinghuo/shengchengorder.html', {"orderdraft": all_drafts},
                               context_instance=RequestContext(request))
 
 
-def calamount(u, costofems):
-    amount = 0;
-    drafts = orderdraft.objects.all().filter(buyer_name=u)
-    try:
-        for draft in drafts:
-            amount = amount + draft.buy_unitprice * draft.buy_quantity
-        amount = amount + costofems
-    except Exception as e:
-        print e
-    return amount
-
-
-def CheckOrderExist(request):
-    response = HttpResponse()
-    response['Content-Type'] = "text/javascript"
-    orderIDFrompage = request.GET.get("orderID", "")
-    orderM = OrderList.objects.filter(id=orderIDFrompage)
-    if orderM:
-        result = """{"result":true}"""
-    else:
-        result = """{"result":false}"""
-    return HttpResponse(result)
-
-
-def delcaogao(request):
+def del_draft(request):
     username = request.user
     drafts = orderdraft.objects.filter(buyer_name=username)
     drafts.delete()
     return HttpResponse("")
 
 
-def addpurchase(request):
+def add_purchase(request):
     user = request.user
     ProductIDFrompage = "10802";
     productRestult = Product.objects.filter(outer_id__icontains=ProductIDFrompage)
@@ -239,10 +149,10 @@ def test(req):
 
 
 @csrf_exempt
-def plusquantity(req):
+def plus_quantity(req):
     post = req.POST
-    draftid = post["draftid"]
-    draft = orderdraft.objects.get(id=draftid)
+    draft_id = post["draftid"]
+    draft = orderdraft.objects.get(id=draft_id)
     draft.buy_quantity = draft.buy_quantity + 1
     draft.save()
     return HttpResponse("OK")
@@ -266,8 +176,8 @@ def plusordertail(req):
 @csrf_exempt
 def minusquantity(req):
     post = req.POST
-    draftid = post["draftid"]
-    draft = orderdraft.objects.get(id=draftid)
+    draft_id = post["draftid"]
+    draft = orderdraft.objects.get(id=draft_id)
     draft.buy_quantity = draft.buy_quantity - 1
     draft.save()
     return HttpResponse("OK")
@@ -350,19 +260,8 @@ def changestatus(req):
     return HttpResponse("OK")
 
 
-def get_num_by_memo(memo):
-    flag_of_state = False
-    sample_num = 0
-    if memo.__contains__("样品补全:"):
-        sample_num = memo.split(":")[1]
-        if len(sample_num) > 0:
-            sample_num = int(sample_num[0])
-            flag_of_state = True
-    return flag_of_state, sample_num
-
-
 @csrf_exempt
-def changememo(req):
+def change_memo(req):
     post = req.POST
     sku_id = post["sku_id"]
     flag = post["flag"]
@@ -370,42 +269,46 @@ def changememo(req):
     ding_huo_num = post.get("ding_huo_num", 0)
     pro_sku = ProductSku.objects.get(id=sku_id)
     memo = pro_sku.memo
-    flag_of_state, samplenum = get_num_by_memo(memo)
+    flag_of_state, sample_num = functions.get_num_by_memo(memo)
     if flag_of_state:
         if flag == '1':
-            samplenum += 1
-            pro_sku.memo = u"样品补全:" + str(samplenum)
+            sample_num += 1
+            pro_sku.memo = u"样品补全:" + str(sample_num)
             pro_sku.save()
             log_action(req.user.id, pro_sku, CHANGE, u' 增加样品一个')
-            result_str, flag_of_memo, flag_of_more, flag_of_less = getDinghuoStatus(int(sale_num), int(ding_huo_num),
-                                                                                    model_to_dict(pro_sku))
+            result_str, flag_of_memo, flag_of_more, flag_of_less = functions.get_ding_huo_status(int(sale_num),
+                                                                                                 int(ding_huo_num),
+                                                                                                 model_to_dict(pro_sku))
             # rep_json = {"flag":"2","memo":"'+pro_sku.memo+'"}
             # return HttpResponse(json.dumps(rep_json),content_type="application/json")
-            return HttpResponse('{"flag":"1","memo":"' + pro_sku.memo + '","result_str":"'+result_str+'"}')
+            return HttpResponse('{"flag":"1","memo":"' + pro_sku.memo + '","result_str":"' + result_str + '"}')
         elif flag == '0':
-            samplenum -= 1
-            if samplenum == 0:
+            sample_num -= 1
+            if sample_num == 0:
                 pro_sku.memo = ""
                 pro_sku.save()
                 log_action(req.user.id, pro_sku, CHANGE, u'删除备注')
-                result_str, flag_of_memo, flag_of_more, flag_of_less = getDinghuoStatus(int(sale_num),
-                                                                                        int(ding_huo_num),
-                                                                                        model_to_dict(pro_sku))
-                return HttpResponse('{"flag":"1","memo":"' + pro_sku.memo + '","result_str":"'+result_str+'"}')
-            pro_sku.memo = u"样品补全:" + str(samplenum)
+                result_str, flag_of_memo, flag_of_more, flag_of_less = functions.get_ding_huo_status(int(sale_num),
+                                                                                                     int(ding_huo_num),
+                                                                                                     model_to_dict(
+                                                                                                         pro_sku))
+                return HttpResponse('{"flag":"1","memo":"' + pro_sku.memo + '","result_str":"' + result_str + '"}')
+            pro_sku.memo = u"样品补全:" + str(sample_num)
             pro_sku.save()
             log_action(req.user.id, pro_sku, CHANGE, u' 减少样品一个')
-            result_str, flag_of_memo, flag_of_more, flag_of_less = getDinghuoStatus(int(sale_num), int(ding_huo_num),
-                                                                                    model_to_dict(pro_sku))
-            return HttpResponse('{"flag":"1","memo":"' + pro_sku.memo + '","result_str":"'+result_str+'"}')
+            result_str, flag_of_memo, flag_of_more, flag_of_less = functions.get_ding_huo_status(int(sale_num),
+                                                                                                 int(ding_huo_num),
+                                                                                                 model_to_dict(pro_sku))
+            return HttpResponse('{"flag":"1","memo":"' + pro_sku.memo + '","result_str":"' + result_str + '"}')
     else:
         if flag == '1':
             pro_sku.memo = u'样品补全:1'
             pro_sku.save()
             log_action(req.user.id, pro_sku, CHANGE, u'增加样品一个')
-            result_str, flag_of_memo, flag_of_more, flag_of_less = getDinghuoStatus(int(sale_num), int(ding_huo_num),
-                                                                                    model_to_dict(pro_sku))
-            return HttpResponse('{"flag":"1","memo":"' + pro_sku.memo + '","result_str":"'+result_str+'"}')
+            result_str, flag_of_memo, flag_of_more, flag_of_less = functions.get_ding_huo_status(int(sale_num),
+                                                                                                 int(ding_huo_num),
+                                                                                                 model_to_dict(pro_sku))
+            return HttpResponse('{"flag":"1","memo":"' + pro_sku.memo + '","result_str":"' + result_str + '"}')
         return HttpResponse('{"flag":"0","memo":"' + pro_sku.memo + '"}')
 
 
@@ -425,9 +328,9 @@ def setusertogroup(req):
 
 
 @csrf_exempt
-def modifyorderlist(req):
+def modify_order_list(req):
     post = req.POST
-    orderlistid = post.get("orderlistid", 0)
+    order_list_id = post.get("orderlistid", 0)
     receiver = post['receiver']
     supplier_name = post['supplier_name']
     express_company = post['express_company']
@@ -436,9 +339,8 @@ def modifyorderlist(req):
     if len(note) > 0:
         note = "->" + req.user.username + ":" + note
     order_amount = post['order_amount']
-    print receiver, supplier_name, express_company, express_no, note,
     try:
-        orderlist = OrderList.objects.get(id=orderlistid)
+        orderlist = OrderList.objects.get(id=order_list_id)
         orderlist.receiver = receiver
         orderlist.supplier_name = supplier_name
         orderlist.express_company = express_company
@@ -453,7 +355,7 @@ def modifyorderlist(req):
 
 
 @csrf_exempt
-def adddetailtodinghuo(req):
+def add_detail_to_ding_huo(req):
     post = req.POST
     buy_quantity = post["buy_quantity"]
     buy_price = post["buy_price"]
@@ -497,16 +399,10 @@ def adddetailtodinghuo(req):
 from shopback.items.models import Product
 
 
-class changedetailview(View):
-    def getUserName(self, uid):
-        try:
-            return User.objects.get(pk=uid).username
-        except:
-            return 'none'
-
-    def get(self, request, orderdetail_id):
-        orderlist = OrderList.objects.get(id=orderdetail_id)
-        orderdetail = OrderDetail.objects.filter(orderlist_id=orderdetail_id)
+class ChangeDetailView(View):
+    def get(self, request, order_detail_id):
+        orderlist = OrderList.objects.get(id=order_detail_id)
+        orderdetail = OrderDetail.objects.filter(orderlist_id=order_detail_id)
         flagofstatus = False
         flagofquestion = False
         orderlist_list = []
@@ -573,7 +469,7 @@ def changearrivalquantity(request):
     return HttpResponse(result)
 
 
-class dailystatsview(View):
+class DailyStatsView(View):
     def getUserName(self, uid):
         try:
             return User.objects.get(pk=uid).username
@@ -663,37 +559,14 @@ from flashsale.dinghuo.models_user import MyUser, MyGroup
 from shopback.trades.models import MergeOrder
 
 
-def getDinghuoStatus(num, dinghuonum, sku_dict):
-    print num, dinghuonum
-    flag_of_more = False
-    flag_of_less = False
-    result_str = ""
-    flag_of_memo, sample_num = get_num_by_memo(sku_dict['memo'])
-    if dinghuonum + sample_num > num:
-        flag_of_more = True
-        result_str = '多订' + str(dinghuonum + sample_num - num) + '件'
-    if dinghuonum + sample_num < num:
-        flag_of_less = True
-        result_str = '缺少' + str(num - dinghuonum - sample_num) + '件'
-
-    return result_str, flag_of_memo, flag_of_more, flag_of_less
-
-
-class dailyworkview(View):
-    def getUserName(self, uid):
-        try:
-            return User.objects.get(pk=uid).username
-        except:
-            return 'none'
-
-
+class DailyWorkView(View):
     def parseEndDt(self, end_dt):
         if not end_dt:
             dt = datetime.datetime.now()
             return datetime.datetime(dt.year, dt.month, dt.day, 23, 59, 59)
         if len(end_dt) > 10:
-            return parse_datetime(end_dt)
-        return parse_date(end_dt)
+            return functions.parse_datetime(end_dt)
+        return functions.parse_date(end_dt)
 
     def getSourceOrders(self, start_dt=None, end_dt=None):
         order_qs = MergeOrder.objects.filter(sys_status=pcfg.IN_EFFECT) \
@@ -737,13 +610,9 @@ class dailyworkview(View):
     def getSourceOrderByouterid(self, p_outer_id, orderqs):
         return orderqs.filter(outer_id__startswith=p_outer_id)
 
-    def getSaleNumBySku(self, sku_outer_id, orderqs):
-        sale_num = 0
-        if orderqs:
-            for order in orderqs:
-                outer_sku_id = order.outer_sku_id.strip() or str(order.sku_id)
-                if sku_outer_id == outer_sku_id:
-                    sale_num += order.num
+    def get_sale_num_by_sku(self, sku_outer_id, orderqs):
+        sale_num = orderqs.filter(outer_sku_id=sku_outer_id).aggregate(total_sale_num=Sum('num')).get(
+            'total_sale_num') or 0
         return sale_num
 
     def get(self, request):
@@ -780,10 +649,10 @@ class dailyworkview(View):
             orderqsbyoouterid = self.getSourceOrderByouterid(product_dict['outer_id'], orderqs)
             temp_total_sale_num = 0
             for sku_dict in guiges:
-                sale_num = self.getSaleNumBySku(sku_dict['outer_id'], orderqsbyoouterid)
+                sale_num = self.get_sale_num_by_sku(sku_dict['outer_id'], orderqsbyoouterid)
                 temp_total_sale_num = temp_total_sale_num + sale_num
                 dinghuo_num = self.getDinghuoQuantityByPidAndSku(product_dict['id'], sku_dict['id'], dinghuoqs)
-                dinghuostatusstr, flag_of_memo, flag_of_more, flag_of_less = getDinghuoStatus(
+                dinghuostatusstr, flag_of_memo, flag_of_more, flag_of_less = functions.get_ding_huo_status(
                     sale_num, dinghuo_num, sku_dict)
                 if dhstatus == u'0' or ((flag_of_more or flag_of_less) and dhstatus == u'1') or (
                             flag_of_less and dhstatus == u'2') or (flag_of_more and dhstatus == u'3'):
