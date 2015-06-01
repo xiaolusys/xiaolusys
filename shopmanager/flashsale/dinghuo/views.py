@@ -632,8 +632,11 @@ class DailyWorkView(View):
             if target_date > today:
                 target_date = today
 
+
         shelve_from = datetime.datetime(target_date.year, target_date.month, target_date.day)
         time_to = self.parseEndDt(shelve_tostr)
+        if time_to-shelve_from > datetime.timedelta(3):
+            time_to = shelve_from + datetime.timedelta(3)
         query_time = self.parseEndDt(query_timestr)
         productdicts = self.getProductByDate(target_date, group_tuple[groupname])
         orderqs = self.getSourceOrders(shelve_from, time_to)
