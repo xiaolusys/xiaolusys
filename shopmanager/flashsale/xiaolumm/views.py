@@ -237,11 +237,11 @@ class MamaStatsView(View):
             
             click_state = ClickCount.objects.filter(linkid=xlmm.pk,date=target_date)
             
-            click_price  = 0
+            click_price  = agencylevel.get_Click_Price(order_num) / 100
             click_num    = 0 
             click_pay    = 0
             ten_click_num   = 0 
-            ten_click_price = 0.5
+            ten_click_price = click_price + 0.3
             ten_click_pay   = 0
             if not active_start:
                 if click_state.count() > 0:
@@ -251,11 +251,9 @@ class MamaStatsView(View):
                     click_list = Clicks.objects.filter(linkid=xlmm.pk, created__range=(time_from, time_to), isvalid=True)
                     click_num  = click_list.values('openid').distinct().count()
             
-                click_price = agencylevel.get_Click_Price(order_num) / 100
                 click_pay   = click_price * click_num 
                 
             else:
-                click_price = agencylevel.get_Click_Price(order_num) / 100
                 click_qs   = Clicks.objects.filter(linkid=xlmm.pk, isvalid=True)
                 click_num  = click_qs.filter(created__range=(datetime.datetime(2015,6,1), datetime.datetime(2015,6,1,10,0,0))).count()
                 click_pay  = click_num * click_price
@@ -263,7 +261,6 @@ class MamaStatsView(View):
                 ten_click_num = click_qs.filter(created__range=(datetime.datetime(2015,6,1,10), datetime.datetime(2015,6,1,23,59,59))).count()
                 ten_click_pay = ten_click_num * ten_click_price
                 
-                click_pay   = click_price * click_num 
 
             data = {"mobile":mobile_revised, "click_num":click_num, "xlmm":xlmm,
                     "order_num":order_num, "order_list":order_list, "pk":xlmm.pk,"exam_pass":exam_pass,
