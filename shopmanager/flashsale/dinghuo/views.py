@@ -350,22 +350,63 @@ def changestatus(req):
     return HttpResponse("OK")
 
 
+def get_num_by_memo(memo):
+    flag_of_state = False
+    sample_num = 0
+    if memo.__contains__("样品补全:"):
+        sample_num = memo.split(":")[1]
+        if len(sample_num) > 0:
+            sample_num = int(sample_num[0])
+            flag_of_state = True
+    return flag_of_state, sample_num
+
+
 @csrf_exempt
 def changememo(req):
     post = req.POST
     sku_id = post["sku_id"]
+    flag = post["flag"]
+    sale_num = post.get("sale_num", 0)
+    ding_huo_num = post.get("ding_huo_num", 0)
     pro_sku = ProductSku.objects.get(id=sku_id)
     memo = pro_sku.memo
-    if memo.__contains__("样品补全"):
-        pro_sku.memo = memo.replace(u"样品补全", "")
-        pro_sku.save()
-        log_action(req.user.id, pro_sku, CHANGE, u'删除备注')
-        return HttpResponse("True")
+    flag_of_state, samplenum = get_num_by_memo(memo)
+    if flag_of_state:
+        if flag == '1':
+            samplenum += 1
+            pro_sku.memo = u"样品补全:" + str(samplenum)
+            pro_sku.save()
+            log_action(req.user.id, pro_sku, CHANGE, u' 增加样品一个')
+            result_str, flag_of_memo, flag_of_more, flag_of_less = getDinghuoStatus(int(sale_num), int(ding_huo_num),
+                                                                                    model_to_dict(pro_sku))
+            # rep_json = {"flag":"2","memo":"'+pro_sku.memo+'"}
+            # return HttpResponse(json.dumps(rep_json),content_type="application/json")
+            return HttpResponse('{"flag":"1","memo":"' + pro_sku.memo + '","result_str":"'+result_str+'"}')
+        elif flag == '0':
+            samplenum -= 1
+            if samplenum == 0:
+                pro_sku.memo = ""
+                pro_sku.save()
+                log_action(req.user.id, pro_sku, CHANGE, u'删除备注')
+                result_str, flag_of_memo, flag_of_more, flag_of_less = getDinghuoStatus(int(sale_num),
+                                                                                        int(ding_huo_num),
+                                                                                        model_to_dict(pro_sku))
+                return HttpResponse('{"flag":"1","memo":"' + pro_sku.memo + '","result_str":"'+result_str+'"}')
+            pro_sku.memo = u"样品补全:" + str(samplenum)
+            pro_sku.save()
+            log_action(req.user.id, pro_sku, CHANGE, u' 减少样品一个')
+            result_str, flag_of_memo, flag_of_more, flag_of_less = getDinghuoStatus(int(sale_num), int(ding_huo_num),
+                                                                                    model_to_dict(pro_sku))
+            return HttpResponse('{"flag":"1","memo":"' + pro_sku.memo + '","result_str":"'+result_str+'"}')
     else:
-        pro_sku.memo = memo + u'样品补全'
-        pro_sku.save()
-        log_action(req.user.id, pro_sku, CHANGE, u'更改备注为样品补全')
-        return HttpResponse("False")
+        if flag == '1':
+            pro_sku.memo = u'样品补全:1'
+            pro_sku.save()
+            log_action(req.user.id, pro_sku, CHANGE, u'增加样品一个')
+            result_str, flag_of_memo, flag_of_more, flag_of_less = getDinghuoStatus(int(sale_num), int(ding_huo_num),
+                                                                                    model_to_dict(pro_sku))
+            return HttpResponse('{"flag":"1","memo":"' + pro_sku.memo + '","result_str":"'+result_str+'"}')
+        return HttpResponse('{"flag":"0","memo":"' + pro_sku.memo + '"}')
 
 
 @csrf_exempt
@@ -622,6 +663,22 @@ from flashsale.dinghuo.models_user import MyUser, MyGroup
 from shopback.trades.models import MergeOrder
 
 
+def getDinghuoStatus(num, dinghuonum, sku_dict):
+    print num, dinghuonum
+    flag_of_more = False
+    flag_of_less = False
+    result_str = ""
+    flag_of_memo, sample_num = get_num_by_memo(sku_dict['memo'])
+    if dinghuonum + sample_num > num:
+        flag_of_more = True
+        result_str = '多订' + str(dinghuonum + sample_num - num) + '件'
+    if dinghuonum + sample_num < num:
+        flag_of_less = True
+        result_str = '缺少' + str(num - dinghuonum - sample_num) + '件'
+
+    return result_str, flag_of_memo, flag_of_more, flag_of_less
+
+
 class dailyworkview(View):
     def getUserName(self, uid):
         try:
@@ -663,22 +720,6 @@ class dailyworkview(View):
         for dinghuobean in allorderqs:
             buy_quantity += dinghuobean.buy_quantity
         return buy_quantity
-
-    def getDinghuoStatus(self, num, dinghuonum, sku_dict):
-        flag_of_memo = False
-        flag_of_more = False
-        flag_of_less = False
-        resultstr = ""
-        if dinghuonum > num:
-            flag_of_more = True
-            resultstr = '多订' + str(dinghuonum - num) + '件'
-        if dinghuonum < num:
-            flag_of_less = True
-            resultstr = '缺少' + str(num - dinghuonum) + '件'
-            if sku_dict['memo'].__contains__(u"样品补全"):
-                flag_of_memo = True
-                resultstr = '样品补' + str(num - dinghuonum) + '件'
-        return resultstr, flag_of_memo, flag_of_more, flag_of_less
 
     def getProductByDate(self, shelve_date, groupname):
         groupmembers = []
@@ -742,7 +783,7 @@ class dailyworkview(View):
                 sale_num = self.getSaleNumBySku(sku_dict['outer_id'], orderqsbyoouterid)
                 temp_total_sale_num = temp_total_sale_num + sale_num
                 dinghuo_num = self.getDinghuoQuantityByPidAndSku(product_dict['id'], sku_dict['id'], dinghuoqs)
-                dinghuostatusstr, flag_of_memo, flag_of_more, flag_of_less = self.getDinghuoStatus(
+                dinghuostatusstr, flag_of_memo, flag_of_more, flag_of_less = getDinghuoStatus(
                     sale_num, dinghuo_num, sku_dict)
                 if dhstatus == u'0' or ((flag_of_more or flag_of_less) and dhstatus == u'1') or (
                             flag_of_less and dhstatus == u'2') or (flag_of_more and dhstatus == u'3'):
@@ -768,7 +809,7 @@ class dailyworkview(View):
             # if temp_total_sale_num > max_sale_num:
             # max_sale_num = temp_total_sale_num
             # sell_well_pro = product_dict
-            #     sell_well_pro["total_sale_num"] = max_sale_num
+            # sell_well_pro["total_sale_num"] = max_sale_num
             trade_list.append(product_dict)
         all_pro_sale_items = sorted(all_pro_sale.items(), key=lambda d: d[1]['total_sale_num'], reverse=True)
         result_sale = []
