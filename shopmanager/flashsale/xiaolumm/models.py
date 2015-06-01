@@ -7,7 +7,7 @@ from .managers import XiaoluMamaManager
 from shopback.base.fields import BigIntegerAutoField,BigIntegerForeignKey
 # Create your models here.
 
-MM_CLICK_DAY_LIMIT = 2
+MM_CLICK_DAY_LIMIT = 1
 
 class XiaoluMama(models.Model):
     
