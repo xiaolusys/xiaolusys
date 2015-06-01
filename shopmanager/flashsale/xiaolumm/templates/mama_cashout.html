@@ -246,9 +246,15 @@
   $('#cashout-form').on('submit', function(e) {
         e.preventDefault(); // <-- important
         var cform = $(this);
+        var subtn = $('#cashout-form button[type="submit"]');
+        if (subtn.hasClass('loading')){
+        	$("#id-submit-message")[0].innerHTML = "提现申请正在处理中..."
+        	return 
+        }
+        subtn.addClass('loading')
         var inputValue = $('#id-cashout-input')
         var v_min = parseInt(inputValue.attr('min'));
-        var v_max = parseInt(inputValue.attr('max')) ;
+        var v_max = parseInt(inputValue.attr('max'));
         var value = parseInt(inputValue.val());
 
         if (value < v_min || value > v_max){

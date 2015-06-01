@@ -285,23 +285,21 @@ class ProductList(generics.ListCreateAPIView):
         
         time_line = int(time_line)
         
-        filter_date = datetime.datetime.now()
-        if history:
-            filter_date = filter_date - datetime.timedelta(days=time_line)
-        else:
-            filter_date = filter_date + datetime.timedelta(days=time_line)
-        
-        instance = self.filter_queryset(self.get_queryset())
-
-        instance = instance.filter(sale_time=filter_date.date(),
-                                   status=Product.NORMAL,
+        filter_qs = self.filter_queryset(self.get_queryset())
+        filter_qs = filter_qs.filter(status=Product.NORMAL,
                                    shelf_status=Product.UP_SHELF)
+        today = datetime.date.today()
+        if history:
+            filter_date = today - datetime.timedelta(days=time_line)
+            fliter_qs = filter_qs.filter(sale_time__gte=filter_date,sale_time__lt=today)
+        else:
+            fliter_qs = filter_qs.filter(sale_time=today)
         
-        page = self.paginate_queryset(instance)
+        page = self.paginate_queryset(fliter_qs)
         if page is not None:
             serializer = self.get_pagination_serializer(page)
         else:
-            serializer = self.get_serializer(instance, many=True)
+            serializer = self.get_serializer(fliter_qs, many=True)
 
         return Response({'products':serializer.data, 'category':category, 
                          'history':history, 'time_line':time_line})
@@ -374,18 +372,19 @@ class OrderBuyReview(APIView):
         alipay_from = True
         wallet_payable = False
         unionid    = customer.unionid.strip()
-        user_agent = request.META.get('HTTP_USER_AGENT')
         if unionid != '': 
             weixin_from = True
         
-        if user_agent and user_agent.find('MicroMessenger') > 0:
-            alipay_from = False
+#         user_agent = request.META.get('HTTP_USER_AGENT')
+#         if (user_agent and user_agent.find('MicroMessenger') > 0 
+#             and customer.unionid != 'o29cQs4zgDoYxmSO3pH-x4A7O8Sk'):
+#             alipay_from = False
         
         xiaolumms = XiaoluMama.objects.filter(openid=unionid)
         xiaolumm  = None
         if xiaolumms.count() > 0:
             xiaolumm = xiaolumms[0]
-            if xiaolumm.cash > 0 and xiaolumm.cash >= payment:
+            if xiaolumm.cash > 0 and xiaolumm.cash >= payment * 100:
                 wallet_payable = True
         
         data = {'product':product_dict,

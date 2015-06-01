@@ -23,8 +23,13 @@ def get_user_unionid(code,
                     secret='',
                     request=None):
     
-    content = request.REQUEST 
-    debug_m   = content.get('debug') or settings.DEBUG
+    
+    debug_m   = settings.DEBUG
+    content   = {}
+    if not debug_m and request: 
+        content = request.REQUEST 
+        debug_m = content.get('debug')
+        
     if debug_m:
         openid  = content.get('sopenid','oMt59uE55lLOV2KS6vYZ_d0dOl5c')
         unionid = content.get('sunionid','o29cQs9QlfWpL0v0ZV_b2nyTOM-4')

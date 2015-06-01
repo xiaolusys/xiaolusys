@@ -16,24 +16,25 @@ def task_Update_Weixin_Userinfo(openId,unionId=None):
     
     try:  
         _wx_api = WeiXinAPI()
-        wx_user,state = WeiXinUser.objects.get_or_create(openid=openId) 
-        
         userinfo =  _wx_api.getUserInfo(openId)
+        
+        wx_user,state = WeiXinUser.objects.get_or_create(openid=openId) 
         pre_subscribe_time = wx_user.subscribe_time
-        pre_mobile = wx_user.mobile
+        
         pre_nickname = wx_user.nickname
         for k, v in userinfo.iteritems():
-            hasattr(wx_user, k) and setattr(wx_user, k, v or getattr(wx_user, k))
+            if hasattr(wx_user, k) :
+                setattr(wx_user, k, v or getattr(wx_user, k))
         
         wx_user.nickname = pre_nickname or replace_utf8mb4(wx_user.nickname.decode('utf8'))
         wx_user.unionid  = wx_user.unionid or unionId or ''
-        wx_user.mobile   = pre_mobile
         subscribe_time   = userinfo.get('subscribe_time', None)
         if subscribe_time:
             wx_user.subscribe_time = pre_subscribe_time or datetime.datetime\
                 .fromtimestamp(int(subscribe_time))
-                
-        wx_user.save()
+        
+        key_list = ['openid','sex','language','headimgurl','country','province','nickname','unionid','subscribe_time','sceneid']
+        update_model_fields(wx_user,update_fields=key_list)
         
         if not wx_user.unionid:
             return 
