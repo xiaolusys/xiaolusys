@@ -285,23 +285,21 @@ class ProductList(generics.ListCreateAPIView):
         
         time_line = int(time_line)
         
-        filter_date = datetime.datetime.now()
-        if history:
-            filter_date = filter_date - datetime.timedelta(days=time_line)
-        else:
-            filter_date = filter_date + datetime.timedelta(days=time_line)
-        
-        instance = self.filter_queryset(self.get_queryset())
-
-        instance = instance.filter(sale_time=filter_date.date(),
-                                   status=Product.NORMAL,
+        filter_qs = self.filter_queryset(self.get_queryset())
+        filter_qs = filter_qs.filter(status=Product.NORMAL,
                                    shelf_status=Product.UP_SHELF)
+        today = datetime.date.today()
+        if history:
+            filter_date = today - datetime.timedelta(days=time_line)
+            fliter_qs = filter_qs.filter(sale_time__gte=filter_date,sale_time__lt=today)
+        else:
+            fliter_qs = filter_qs.filter(sale_time=today)
         
-        page = self.paginate_queryset(instance)
+        page = self.paginate_queryset(fliter_qs)
         if page is not None:
             serializer = self.get_pagination_serializer(page)
         else:
-            serializer = self.get_serializer(instance, many=True)
+            serializer = self.get_serializer(fliter_qs, many=True)
 
         return Response({'products':serializer.data, 'category':category, 
                          'history':history, 'time_line':time_line})
