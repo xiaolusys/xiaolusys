@@ -541,9 +541,16 @@ class DailyWorkView(View):
         return dinghuo_qs
 
     def getDinghuoQuantityByPidAndSku(self, outer_id, sku_id, dinghuo_qs):
-        buy_quantity = dinghuo_qs.filter(product_id=outer_id, chichu_id=sku_id).aggregate(
-            total_ding_huo_num=Sum('buy_quantity')).get('total_ding_huo_num') or 0
-        return buy_quantity
+        # buy_quantity = dinghuo_qs.filter(product_id=outer_id, chichu_id=sku_id).aggregate(
+        # total_ding_huo_num=Sum('buy_quantity')).get('total_ding_huo_num') or 0
+        # effect_quantity  = dinghuo_qs.filter(product_id=outer_id, chichu_id=sku_id).aggregate(
+        # effect_quantity=Sum(F('buy_quantity')-F('inferior_quantity')-F('non_arrival_quantity'))).get('effect_quantity') or 0
+        ding_huo_qs = dinghuo_qs.filter(product_id=outer_id, chichu_id=sku_id)
+        buy_quantity, effect_quantity = 0, 0
+        for ding_huo in ding_huo_qs:
+            buy_quantity += ding_huo.buy_quantity
+            effect_quantity += ding_huo.buy_quantity - ding_huo.inferior_quantity - ding_huo.non_arrival_quantity
+        return buy_quantity, effect_quantity
 
     def getProductByDate(self, shelve_date, groupname):
         groupmembers = []
@@ -608,13 +615,14 @@ class DailyWorkView(View):
             for sku_dict in guiges:
                 sale_num = self.get_sale_num_by_sku(sku_dict['outer_id'], orders_by_outer_id)
                 temp_total_sale_num = temp_total_sale_num + sale_num
-                dinghuo_num = self.getDinghuoQuantityByPidAndSku(product_dict['id'], sku_dict['id'], dinghuoqs)
+                dinghuo_num, effect_quantity = self.getDinghuoQuantityByPidAndSku(product_dict['id'], sku_dict['id'], dinghuoqs)
                 dinghuostatusstr, flag_of_memo, flag_of_more, flag_of_less = functions.get_ding_huo_status(
                     sale_num, dinghuo_num, sku_dict)
                 if dhstatus == u'0' or ((flag_of_more or flag_of_less) and dhstatus == u'1') or (
                             flag_of_less and dhstatus == u'2') or (flag_of_more and dhstatus == u'3'):
                     sku_dict['sale_num'] = sale_num
                     sku_dict['dinghuo_num'] = dinghuo_num
+                    sku_dict['effect_quantity'] = effect_quantity
                     sku_dict['sku_name'] = sku_dict['properties_alias'] if len(
                         sku_dict['properties_alias']) > 0 else sku_dict['properties_name']
                     sku_dict['dinghuo_status'] = dinghuostatusstr

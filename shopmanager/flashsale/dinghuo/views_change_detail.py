@@ -52,6 +52,8 @@ class ChangeDetailView(View):
         order_details = OrderDetail.objects.filter(orderlist_id=order_detail_id)
         order_list_list = []
         for order in order_details:
+            order.non_arrival_quantity = order.buy_quantity - order.arrival_quantity - order.inferior_quantity
+            order.save()
             order_dict = model_to_dict(order)
             order_dict['pic_path'] = Product.objects.get(id=order.product_id).pic_path
             order_list_list.append(order_dict)
