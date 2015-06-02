@@ -421,9 +421,9 @@ class ChangeDetailView(View):
                                    "orderdetails": orderlist_list},
                                   context_instance=RequestContext(request))
 
-    def post(self, request, orderdetail_id):
+    def post(self, request, order_detail_id):
         post = request.POST
-        orderlist = OrderList.objects.get(id=orderdetail_id)
+        orderlist = OrderList.objects.get(id=order_detail_id)
         status = post.get("status", "").strip()
         remarks = post.get("remarks", "").strip()
         if len(status) > 0 and len(remarks) > 0:
@@ -431,7 +431,7 @@ class ChangeDetailView(View):
             orderlist.note = orderlist.note + "-->" + request.user.username + ":" + remarks
             orderlist.save()
             log_action(request.user.id, orderlist, CHANGE, u'%s 订货单' % (u'添加备注'))
-        orderdetail = OrderDetail.objects.filter(orderlist_id=orderdetail_id)
+        orderdetail = OrderDetail.objects.filter(orderlist_id=order_detail_id)
         orderlist_list = []
         for order in orderdetail:
             order_dict = model_to_dict(order)
@@ -632,8 +632,11 @@ class DailyWorkView(View):
             if target_date > today:
                 target_date = today
 
+
         shelve_from = datetime.datetime(target_date.year, target_date.month, target_date.day)
         time_to = self.parseEndDt(shelve_tostr)
+        if time_to-shelve_from > datetime.timedelta(3):
+            time_to = shelve_from + datetime.timedelta(3)
         query_time = self.parseEndDt(query_timestr)
         productdicts = self.getProductByDate(target_date, group_tuple[groupname])
         orderqs = self.getSourceOrders(shelve_from, time_to)
