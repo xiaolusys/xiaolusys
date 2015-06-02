@@ -168,7 +168,7 @@ class StatisticMergeOrderView(ModelView):
                 .exclude(merge_trade__sys_status=pcfg.FINISHED_STATUS,merge_trade__is_express_print=False)
         
         if empty_code:
-            order_qs.filter(outer_id='')
+            order_qs = order_qs.filter(outer_id='')
             return order_qs
             
         if is_sale :
@@ -385,7 +385,7 @@ class StatisticMergeOrderView(ModelView):
         total_num   = trade_list.pop()
         total_cost  = trade_list.pop()
         total_sales = trade_list.pop()
-        print 'empty_order_count:',empty_order_count
+        
         if action =="download":
             return self.responseCSVFile(request, trade_list)
         
