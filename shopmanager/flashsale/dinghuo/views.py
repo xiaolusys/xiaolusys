@@ -396,8 +396,6 @@ def add_detail_to_ding_huo(req):
     return HttpResponse("False")
 
 
-
-
 @csrf_exempt
 def changearrivalquantity(request):
     post = request.POST
@@ -415,10 +413,11 @@ def changearrivalquantity(request):
         order.inferior_quantity = order.inferior_quantity + inferior_num
         order.non_arrival_quantity = order.buy_quantity - order.arrival_quantity - order.inferior_quantity
         Product.objects.filter(id=order.product_id).update(collect_num=F('collect_num') + arrived_num + inferior_num)
-        ProductSku.objects.filter(id=order.chichu_id).update(quantity=F('quantity') + arrived_num + inferior_num)
+        ProductSku.objects.filter(id=order.chichu_id).update(quantity=F('quantity') + arrived_num)
         order.save()
         result = "{flag:true,num:" + str(order.arrival_quantity) + ",inferior_num:" + str(order.inferior_quantity) + "}"
-        log_action(request.user.id, orderlist, CHANGE, u'订货单{0}入库{1}件'.format(order.product_name, arrived_num+inferior_num))
+        log_action(request.user.id, orderlist, CHANGE,
+                   u'订货单{0}入库{1}件'.format(order.product_name, arrived_num + inferior_num))
         return HttpResponse(result)
 
     return HttpResponse(result)
@@ -533,7 +532,7 @@ class DailyWorkView(View):
             .exclude(merge_trade__sys_status__in=(pcfg.INVALID_STATUS, pcfg.ON_THE_FLY_STATUS)) \
             .exclude(merge_trade__sys_status=pcfg.FINISHED_STATUS, merge_trade__is_express_print=False)
 
-        order_qs = order_qs.extra(where=["CHAR_LENGTH(outer_id)>=9"]) \
+        order_qs = order_qs.values("outer_id", "num", "outer_sku_id").extra(where=["CHAR_LENGTH(outer_id)>=9"]) \
             .filter(Q(outer_id__startswith="9") | Q(outer_id__startswith="1") | Q(outer_id__startswith="8"))
         return order_qs
 
@@ -543,10 +542,8 @@ class DailyWorkView(View):
         return dinghuo_qs
 
     def getDinghuoQuantityByPidAndSku(self, outer_id, sku_id, dinghuo_qs):
-        allorderqs = dinghuo_qs.filter(product_id=outer_id, chichu_id=sku_id)
-        buy_quantity = 0
-        for dinghuobean in allorderqs:
-            buy_quantity += dinghuobean.buy_quantity
+        buy_quantity = dinghuo_qs.filter(product_id=outer_id, chichu_id=sku_id).aggregate(
+            total_ding_huo_num=Sum('buy_quantity')).get('total_ding_huo_num') or 0
         return buy_quantity
 
     def getProductByDate(self, shelve_date, groupname):
@@ -562,12 +559,16 @@ class DailyWorkView(View):
                                                                                             sale_charger__in=groupmembers)
         return productqs
 
-    def getSourceOrderByouterid(self, p_outer_id, orderqs):
-        return orderqs.filter(outer_id__startswith=p_outer_id)
+    def getSourceOrderByouterid(self, p_outer_id, order_qs):
+        return order_qs.filter(outer_id__startswith=p_outer_id)
 
     def get_sale_num_by_sku(self, sku_outer_id, orderqs):
-        sale_num = orderqs.filter(outer_sku_id=sku_outer_id).aggregate(total_sale_num=Sum('num')).get(
-            'total_sale_num') or 0
+        # sale_num1 = orderqs.filter(outer_sku_id=sku_outer_id).aggregate(total_sale_num=Sum('num')).get(
+        # 'total_sale_num') or 0
+        sale_num = 0
+        order_qs = orderqs.filter(outer_sku_id=sku_outer_id)
+        for order in order_qs:
+            sale_num += order['num']
         return sale_num
 
     def get(self, request):
@@ -603,10 +604,10 @@ class DailyWorkView(View):
             product_dict['prod_skus'] = []
             guiges = ProductSku.objects.values('id', 'outer_id', 'properties_name', 'properties_alias', 'memo').filter(
                 product_id=product_dict['id'])
-            orderqsbyoouterid = self.getSourceOrderByouterid(product_dict['outer_id'], orderqs)
+            orders_by_outer_id = self.getSourceOrderByouterid(product_dict['outer_id'], orderqs)
             temp_total_sale_num = 0
             for sku_dict in guiges:
-                sale_num = self.get_sale_num_by_sku(sku_dict['outer_id'], orderqsbyoouterid)
+                sale_num = self.get_sale_num_by_sku(sku_dict['outer_id'], orders_by_outer_id)
                 temp_total_sale_num = temp_total_sale_num + sale_num
                 dinghuo_num = self.getDinghuoQuantityByPidAndSku(product_dict['id'], sku_dict['id'], dinghuoqs)
                 dinghuostatusstr, flag_of_memo, flag_of_more, flag_of_less = functions.get_ding_huo_status(
