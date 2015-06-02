@@ -13,7 +13,7 @@ logger = logging.getLogger('celery.handler')
 
 CLICK_ACTIVE_START_TIME = datetime.datetime(2015,6,1,10)
 
-def task_patch_mamacash_61(target_date):
+def task_patch_mamacash_61():
     
     time_end = datetime.datetime(2015,6,1,23,59,59)
     carry_no = int(time_end.strftime('%y%m%d'))
@@ -31,7 +31,7 @@ def task_patch_mamacash_61(target_date):
         if agency_levels.count() == 0:
             continue
         agency_level = agency_levels[0]
-        if agency_level != 2:
+        if agency_level.id != 2:
             continue
         
         click_qs = Clicks.objects.filter(linkid=mm_cc.linkid,click_time__range=(CLICK_ACTIVE_START_TIME,time_end),isvalid=True)
@@ -42,14 +42,14 @@ def task_patch_mamacash_61(target_date):
         if mm_cc.valid_num == 0 or click_rebeta <= 0:
             continue
         
-#         c_log,state = CarryLog.objects.get_or_create(xlmm=xlmm.id,
-#                                                      order_num=carry_no,
-#                                                      log_type=CarryLog.CLICK_REBETA)
+        c_log,state = CarryLog.objects.get_or_create(xlmm=xlmm.id,
+                                                      order_num=carry_no,
+                                                      log_type=CarryLog.CLICK_REBETA)
 #         
-#         c_log.value = c_log.value + click_rebeta
-#         c_log.save()
+        c_log.value = c_log.value + click_rebeta
+        c_log.save()
         
-#         urows = xlmms.update(cash=F('cash') + ten_click_price)
+        urows = xlmms.update(cash=F('cash') + click_rebeta)
         total_rebeta += click_rebeta
     
     print 'debug total_rebeta:',total_rebeta

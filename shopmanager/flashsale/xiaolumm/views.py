@@ -253,10 +253,10 @@ class MamaStatsView(View):
                 click_pay   = click_price * click_num 
             else:
                 click_qs   = Clicks.objects.filter(linkid=xlmm.pk, isvalid=True)
-                click_num  = click_qs.filter(created__range=(datetime.datetime(2015,6,1), datetime.datetime(2015,6,1,10,0,0))).count()
+                click_num  = click_qs.filter(created__range=(datetime.datetime(2015,6,1), datetime.datetime(2015,6,1,10,0,0))).values('openid').distinct().count()
                 click_pay  = click_num * click_price
                 
-                ten_click_num = click_qs.filter(created__range=(datetime.datetime(2015,6,1,10), datetime.datetime(2015,6,1,23,59,59))).count()
+                ten_click_num = click_qs.filter(created__range=(datetime.datetime(2015,6,1,10), datetime.datetime(2015,6,1,23,59,59))).values('openid').distinct().count()
                 ten_click_pay = ten_click_num * ten_click_price
                 
 
