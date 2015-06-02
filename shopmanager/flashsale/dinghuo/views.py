@@ -461,7 +461,7 @@ def changearrivalquantity(request):
         orderlist = OrderList.objects.get(id=order.orderlist_id)
         order.arrival_quantity = order.arrival_quantity + arrived_num
         order.inferior_quantity = order.inferior_quantity + inferior_num
-        order.non_arrival_quantity = order.buy_quantity - arrived_num - inferior_num
+        order.non_arrival_quantity = order.buy_quantity - order.arrival_quantity - order.inferior_quantity
         Product.objects.filter(id=order.product_id).update(collect_num=F('collect_num') + arrived_num + inferior_num)
         ProductSku.objects.filter(id=order.chichu_id).update(quantity=F('quantity') + arrived_num + inferior_num)
         order.save()
