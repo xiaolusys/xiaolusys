@@ -2,7 +2,7 @@
 __author__ = 'yann'
 import datetime
 from django.forms.models import model_to_dict
-from flashsale.dinghuo.models import orderdraft
+from flashsale.dinghuo.models import orderdraft, OrderDetail
 
 
 def parse_date(dt):
@@ -64,3 +64,18 @@ def get_ding_huo_status(num, ding_huo_num, sku_dict):
 
     return result_str, flag_of_memo, flag_of_more, flag_of_less
 
+
+def save_draft_from_detail_id(order_list_id, user):
+    all_details = OrderDetail.objects.filter(orderlist_id=order_list_id)
+    for order_detail in all_details:
+        buy_quantity = order_detail.inferior_quantity + order_detail.non_arrival_quantity
+        draft_query = orderdraft.objects.filter(buyer_name=user, product_id=order_detail.product_id,
+                                                chichu_id=order_detail.chichu_id)
+        if draft_query.count() == 0:
+            current_time = datetime.datetime.now()
+            t_draft = orderdraft(buyer_name=user, product_id=order_detail.product_id, outer_id=order_detail.outer_id,
+                                 buy_quantity=buy_quantity, product_name=order_detail.product_name,
+                                 buy_unitprice=order_detail.buy_unitprice,
+                                 chichu_id=order_detail.chichu_id, product_chicun=order_detail.product_chicun,
+                                 created=current_time)
+            t_draft.save()
