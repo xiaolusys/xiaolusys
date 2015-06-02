@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+  <head>
+    <title>
+      所有订单明细查询
+    </title>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+    <title>
+    </title>
+    <!-- Bootstrap -->
+    <link href="{{ STATIC_URL }}bootstrap/css/bootstrap3.2.0.min.css" rel="stylesheet">
+    <link href='{{ STATIC_URL }}jquery/jquery-ui-1.10.1.css' rel='stylesheet'  />
+    <style type="text/css" title="currentStyle">
+      @import "{{ STATIC_URL }}jquery-datatable-addon/css/demo_page.css"; 
+      @import "{{ STATIC_URL}}jquery-datatable-addon/css/demo_table.css";
+    </style>
+    <style type="text/css" >
+      
+    </style>
+  </head>
+  
+  <body>
+    <div class="container" style="margin-top:20px" >
+
+{% csrf_token %}
+
+<!--<div  class="row"  >
+  <div class="col-lg-3" >
+    <a href="/mm/time_rank/1/">
+      前一天&nbsp&nbsp</br>
+      
+    </a>
+  </div>
+  <div class="col-lg-3" >
+    <a href="/mm/time_rank/0/">
+      今天&nbsp&nbsp{{time}}
+    </a>
+  </div>
+  <div class="col-lg-3" >
+    <a href="/mm/time_rank/2/">
+      后一天
+    </a>
+  </div>
+  
+</div>-->
+
+<h1><span class="label label-success">订单明细查询页面</span></h1>
+<div class="row"  style="margin-top:50px;">
+  
+    
+    <div class="col-lg-10" >
+     <form  class="form-horizontal"    role="form"    action="/trades/search_trade/"  method="post"  >
+     {% csrf_token %}
+
+   
+   <div class="form-group">
+      <label for="firstname" class="col-sm-2 control-label">查询</label>
+      <div class="col-sm-10">
+         <input type="text" class="form-control" id="condition" name="condition" 
+            placeholder="查询条件（例如：订单号，手机号码，电话号码，用户昵称,物流编号）">
+            <button type="submit" class="btn btn-warning">点击查询
+            <span class="glyphicon glyphicon-search" aria-hidden="true"></span>
+            
+            </button>
+      </div>
+   </div>
+ 
+</form>
+  </div>
+
+  <div class="col-lg-2" >
+    
+  </div>
+
+</div>
+
+<div  class="row">
+  <div style="margin-top:50px">
+    <table id="state_table" class="table table-bordered  table-striped table-condensed ">
+      <thead   >
+        <tr    bgcolor="green"   >
+          <th>
+            订单ID
+          </th>
+          <th>
+            原单id
+          </th>
+          <th>
+            买家昵称
+          </th>
+          <th>
+            收货人信息
+          </th>
+          <!--<th>付款方式</th>-->
+          <th>
+            实付款
+          </th>
+        <!-- <th>
+            付款日期
+          </th>-->
+          <th>
+            生成日期
+          </th>
+          <th>
+            交易状态
+          </th>
+          <!--<th>退款状态</th>-->
+          <th>
+            操作
+          </th>
+        </tr>
+      </thead>
+      <tbody>
+        <!--{{info}}-->
+        <!--
+          {% for item in info%} <tr><td>{{ item.trade.tid }}</td></tr> {% endfor %}
+        -->
+
+        {% for item in info   %}
+        <tr>
+          <td>
+            {{ item.trade.id }}
+          </td>
+          <td >
+            {% for item1 in item.detail %}
+            <div class="container" style="width:400px ;margin-left:0px;">
+
+              <div class="row">
+                <p class="text-warning">
+                  订单编号&nbsp{{ item1.order.oid }}&nbsp&nbsp&nbsp&nbsp&nbsp{{ item1.order.created }}
+                </p>
+              </div>
+
+              <div class="row">
+                <div class="col-lg-3">
+                  <img src={{item1.product.pic_path}} width="80px"  class="img-circle" />
+                </div>
+
+                <div class="col-lg-6">
+                  <p    style="font-family:arial;font-size:15px;font-weight:bold;">
+                    商品名称：{{item1.product.name}}
+                  </p>
+                  <p  style="font-family:bold;font-size:15px;">
+                    外部编码： {{item1.product.outer_id}}
+                  </p>
+                  <p  style="font-family:bold;font-size:15px;">
+                    条码： {{item1.product.barcode}}
+                  </p>
+                  <p  style="font-family:bold;font-size:15px;">
+                    规格： {{item1.order.sku_name}}
+                  </p>
+                </div>
+                <div class="col-lg-3">
+                  <p  style="font-family:bold;font-size:15px;" class="yanse"  >
+                    退款状态：{{item1.order.get_refund_status_display }}
+                  </p>
+                  <p  style="font-family:bold;font-size:15px;"   class="yanse">
+                    金额：{{item1.order.refund_fee }}
+                  </p>
+                </div>
+              </div>
+              
+              {% if not forloop.last %}
+              <hr style=" height:2px;border:none;border-top:2px dotted #185598;" />
+
+
+
+              {% endif %}
+             
+              {% endfor %}
+            </td>
+
+            <td>
+              {{ item.trade.buyer_nick }}
+            </td>
+            <td>
+              <p    style="font-family:arial;font-size:15px;font-weight:bold;">
+                姓名：{{item.trade.receiver_name}}
+              </p>
+              <p  style="font-family:bold;font-size:15px;">
+                地址：{{item.trade.receiver_state}} {{item.trade.receiver_city}} {{item.trade.receiver_district}}
+              </p>
+              <p    style="font-family:arial;font-size:15px;font-weight:bold;">
+                详细地址：{{item.trade.receiver_address}}&nbsp&nbsp&nbsp&nbsp&nbsp邮编：{{item.trade.receiver_zip}}
+              </p>
+              <p  style="font-family:bold;font-size:15px;">
+                手机： {{item.trade.receiver_mobile}}&nbsp&nbsp&nbsp&nbsp&nbsp电话：{{item.trade.receiver_phone}}
+              </p>
+               <p  style="font-family:bold;font-size:15px;color:blue;">
+                物流编号： {{item.trade.out_sid}}
+              </p>
+            </td>
+            <!--<td>{{item.trade.get_channel_display }}</td>-->
+            <td>
+              {{ item.trade.payment }}
+            </td>
+            <!--<td>
+              {{ item.trade.pay_time }}
+            </td>-->
+            <td>
+              {{ item.trade.created }}
+            </td>
+            <td  >
+            <h5    style="color:red ">{{item.trade.get_status_display }}</h5>
+             
+<button type="button" class="btn btn-warning btn-sm" data-toggle="modal" data-target="#{{item.trade.id}}">
+  物流明细
+</button>
+
+<!--<a href="page.jsp" data-toggle="modal" data-target="#{{item.trade.id}}">打开对话框</a>-->
+
+<!-- Modal -->
+<div class="modal fade" id="{{item.trade.id}}" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+        <h4 class="modal-title" id="myModalLabel"   style="color:blue ">物流明细</h4>
+      </div>
+      <div class="modal-body">
+        <table class="table table-striped">
+			<tr><td >快递公司：</td><td >{{ item.trans.0.1 }}</td></tr>
+			<tr><td >快递单号：</td><td >{{ item.trans.1.1 }}</td></tr>
+			<tr><td colspan="2">物流信息</td></tr>
+		
+			{% for trace in item.trans.2.1 reversed  %}
+			<tr><td >{{ trace.0 }}：</td><td >{{ trace.1 }}</td></tr>
+			
+              {% if  forloop.last %}
+              <tr><td  class="yanse"   >{{ trace.0 }}：</td><td class="yanse" >{{ trace.1 }}</td></tr>
+
+
+
+              {% endif %}
+              
+			{% endfor %}
+			
+		</table>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
+        <!--<button type="button" class="btn btn-primary">Save changes</button>-->
+      </div>
+    </div>
+  </div>
+</div>
+
+            </td>
+            
+            <td>
+              <a href="/admin/trades/mergetrade/{{ item.trade.id }}/">
+                点击修改
+              </a>
+              <br />
+            </td>
+          </tr>
+
+
+          {% endfor %}
+        </tbody>
+        
+      </table>
+    </div>
+ </div>
+ 
+ 
+ <!--<div  class="row"  >
+  <div class="col-lg-4" >
+    <a href="/mm/preorder_flashsale/">
+      前100&nbsp&nbsp</br>
+      
+    </a>
+  </div>
+  <div class="col-lg-4" >
+    
+  </div>
+  <div class="col-lg-4" >
+    <a href="/mm/nextorder_flashsale/">
+      后100
+    </a>
+  </div>-->
+  
+</div>
+
+
+
+
+</body>
+
+
+
+
+
+<!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
+<script src="{{ STATIC_URL }}jquery/jquery-2.1.1.min.js">
+</script>
+<!-- Include all compiled plugins (below), or include individual files as needed -->
+<script src="{{ STATIC_URL }}bootstrap/js/bootstrap-3.2.0.min.js">
+</script>
+<script src="{{ STATIC_URL }}jquery-datatable-addon/jquery.dataTables.min.js" type="text/javascript">
+</script>
+
+ <script type="text/javascript">
+ $(function () {
+ 
+    
+	</script>
+
+   
+  </html>

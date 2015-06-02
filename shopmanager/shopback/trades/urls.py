@@ -28,8 +28,10 @@ from shopback.trades.views    import (StatisticMergeOrderView,
                                       countFenxiaoAcount,
                                       showFenxiaoDetail,
                                       PackageScanCheckView,
-                                      PackageScanWeightView)
-
+                                      PackageScanWeightView,
+                                      
+                                      )
+from shopback.trades.views import detail,search_trade
 from shopback.base.renderers  import BaseJsonRenderer
 from shopback.trades.renderers import (CheckOrderRenderer,
                                        ReviewOrderRenderer,
@@ -176,4 +178,6 @@ urlpatterns = patterns('shopback.trades.views',
 #        authentication=(UserLoggedInAuthentication,),
 #        permissions=(IsAuthenticated,)
     ))), 
+    (r'^detail/$',csrf_exempt(login_required_ajax(detail))),
+    (r'^search_trade/$',csrf_exempt(login_required_ajax(search_trade))),
 )
