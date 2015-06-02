@@ -78,20 +78,15 @@
         }
         function changearrived(orderdetailid) {
             var index1 = "arrival_quantity_" + orderdetailid;
-            var index_of_inferior_num = "inferior_quantity_" + orderdetailid;
-            var index_of_inferior_input = "inferior_num_" + orderdetailid;
             var index_of_arrived = "arrived_num_" + orderdetailid;
             var p1 = $("#" + index1);
             var p2 = $("#" + index_of_arrived);
-            var inferior_input = $("#" + index_of_inferior_input);
-            var inferior_num = $("#" + index_of_inferior_num);
             var url = "/sale/dinghuo/changearrivalquantity/";
-            var data = {"orderdetailid": orderdetailid, "arrived_num": p2.val(), "inferior_num": inferior_input.val()};
+            var data = {"orderdetailid": orderdetailid, "arrived_num": p2.val()};
             var callback = function (res) {
                 var dataObj = eval("(" + res + ")");
                 if (dataObj.flag) {
                     p1.html(dataObj.num)
-                    inferior_num.html(dataObj.inferior_num)
                 } else {
                     alert("超过购买总数或者没有填写数量")
                 }
@@ -306,9 +301,9 @@
             <th>购买数量</th>
             <th>买入价格</th>
             <th>单项价格</th>
-            <th>已入正品数</th>
+            <th>已入库数</th>
             <th>次品数</th>
-            <th>正品数量</th>
+            <th>入库数量</th>
             <th>次品数量</th>
             <th>操作</th>
             </thead>
@@ -346,10 +341,6 @@
                     <td width="90px">
                         <input type="number" class="form-control" min="0" value="0" name="arrived_num"
                                id="arrived_num_{{ order.id }}">
-                    </td>
-                    <td width="90px">
-                        <input type="number" class="form-control" min="0" value="0" name="inferior_num"
-                               id="inferior_num_{{ order.id }}">
                     </td>
                     <td><input type="button" class="btn btn-default" onclick="changearrived({{ order.id }})"
                                value="加入库存"></td>
