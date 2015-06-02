@@ -163,6 +163,7 @@ class CashOutAdmin(admin.ModelAdmin):
         #return obj.xlmm  # 返回id号码
         if obj.status == CashOut.PENDING:
             return (u'<a style="display:block;"href="/m/cashoutverify/%d/%d">提现审核</a>'%(obj.xlmm,obj.id))
+        return ''
 
     get_cashout_verify.allow_tags = True
     get_cashout_verify.short_description = u"提现审核"

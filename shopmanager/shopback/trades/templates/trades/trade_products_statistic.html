@@ -85,7 +85,9 @@
 		</div>
 		<div id="post-items" style="display:block;clear:both;">
 		  <fieldset>
-		  	<legend><h2><label >{% if object.is_sale %}特卖订单{% else %}订单{% endif %}</label> 商品统计列表</h2></legend>
+		  	<legend><h2><label >{% if object.is_sale %}特卖订单{% else %}订单{% endif %}</label> 商品统计列表
+		  	{% if object.empty_order_count > 0 %}<a href="/admin/trades/mergeorder/?outer_id__exact=&pay_time__gte={{ object.df }}&pay_time__lte={{ object.dt }}" class="label label-danger" target="_blank">有 {{ object.empty_order_count }} 个订单的商品编码异常>></a>{% endif %}</h2>
+		  	</legend>
 		  	<table id="id-head-table" class="table table-bordered  table-condensed" >
       <thead>
       <tr style="background-color:#01B5A2;">
@@ -136,7 +138,7 @@
 					    </tr>
 					    {% endfor %}
 				    {% else %}
-				    	<tr>
+				    	<tr class="{% if trade.0 == '' %}label-danger{% endif %}">
 					    	<td >{{ trade.0 }}</td>
 					    	<td >{{ trade.1.title }}</td>
 					    	<td >{{ trade.1.num }}</td>

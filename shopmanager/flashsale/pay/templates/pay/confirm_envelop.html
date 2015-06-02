@@ -1,0 +1,52 @@
+{% extends "pay/base_profile.html" %}
+
+{% block title %}小鹿美美-红包返现{% endblock %}
+
+{% block style %}
+
+{% endblock %}
+
+
+{% block preload_script %}
+
+
+{% endblock %}
+
+
+{% block container %}
+<div class="container-fluid">
+<div class="page-header">
+  <h1>红包发送确认 <small><a href="{{ origin_url }}" class="btn btn-success">返回上一页</a></small></h1>
+</div>
+
+
+<div class="jumbotron">
+  <form action="{% url envelop_confirm %}" method="POST">
+  {% csrf_token %}
+  <input type="hidden" name="envelop_ids" value="{{ envelop_ids }}" />
+  <input type="hidden" name="origin_url" value="{{ origin_url }}" />
+  <h1>确认信息：</h1>
+  <p>
+  	<span class="h2"><label class="label label-info">红包数量：</label>{{ envelop_count }}</span>
+  </p>
+  <p>
+  	<span class="h2 "><label class="label label-warning">红包总金额：</label>{{ total_amount }}</span>
+  </p>
+  <p>
+  	<div class="input-group">
+      <input type="text" name="secret" class="form-control" placeholder="请输入暗号">
+      <span class="input-group-btn">
+        <button type="submit" type="button" class="btn btn-primary " role="button">确认提交</button>
+      </span>
+    </div><!-- /input-group --> 
+  </p>
+  </form>
+</div>
+
+</div>
+{% endblock %}
+
+
+
+{% block delayed_script %}
+{% endblock %}

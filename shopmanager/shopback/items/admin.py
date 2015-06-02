@@ -655,6 +655,9 @@ class ProductAdmin(admin.ModelAdmin):
         if unverify_qs.count() > 0:
             self.message_user(request,u"有%s个商品未核对，请核对后上架!"%unverify_qs.count())
         
+        for product in up_queryset:
+            log_action(request.user.id,product,CHANGE,u'上架商品')
+        
         self.message_user(request,u"已成功上架%s个商品,有%s个商品上架失败!"%(up_queryset.count(),down_queryset.count()))
         
         return HttpResponseRedirect(request.get_full_path())
@@ -676,6 +679,9 @@ class ProductAdmin(admin.ModelAdmin):
         down_queryset = queryset.filter(shelf_status=Product.DOWN_SHELF)
         
         self.message_user(request,u"已成功下架%s个商品,有%s个商品下架失败!"%(down_queryset.count(),up_queryset.count()))
+        
+        for product in down_queryset:
+            log_action(request.user.id,product,CHANGE,u'下架商品')
         
         return HttpResponseRedirect(request.get_full_path())
         

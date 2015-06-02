@@ -60,7 +60,7 @@
     <p>&nbsp;提现需20元以上,请输入提现金额：</p>
     <div class="input-group" style="margin-top:5px">
       <span class="input-group-addon">￥</span>
-      <input id="id-cashout-input" type="number" name="v" max="{{ could_cash_out }}" min="20" value="{{ could_cash_out }}" class="form-control" {% if could_cash_out <= 20 %} readonly="readonly"  {% endif %}/>
+      <input id="id-cashout-input" type="number" name="v" max="{% if could_cash_out > 200%}200{% else %}{{ could_cash_out }}{% endif %}" min="20" value="{{ could_cash_out }}" class="form-control" {% if could_cash_out <= 20 %} readonly="readonly"  {% endif %}/>
       {% csrf_token %}
       <span class="input-group-btn">
 	<button type="submit" class="btn btn-warning" type="button">确认提交</button>
@@ -70,7 +70,7 @@
   </div>
   </form>
   <ul id="id-cashout-notice" style="color:red;margin-top:6px;{% if cashout < 1 %}display:none{% endif %}" class="list-group">
-    <li class="list-group-item">提现申请已提交！<br/>请微信加微客服 <b>xiaolu_tixian</b> 审核提现申请，提现将由微信转账完成。</li>
+    <li class="list-group-item">提现申请已提交！<br/>请微信加微客服 <b>18516655836</b> 审核提现申请，提现将由微信转账完成。</li>
   </ul>
 
   <div style="margin-top:20px">
@@ -258,7 +258,7 @@
         var value = parseInt(inputValue.val());
 
         if (value < v_min || value > v_max){
-        	$("#id-submit-message")[0].innerHTML = "提现金额最低20元，且低于可提现金额！";
+        	$("#id-submit-message")[0].innerHTML = "单次提现金额最低20元，最高200元（微信红包）！";
         	return 
         }
         var callback = function (res) {
