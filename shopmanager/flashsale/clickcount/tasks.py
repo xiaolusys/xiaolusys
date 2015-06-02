@@ -13,6 +13,47 @@ logger = logging.getLogger('celery.handler')
 
 CLICK_ACTIVE_START_TIME = datetime.datetime(2015,6,1,10)
 
+def task_patch_mamacash_61(target_date):
+    
+    time_end = datetime.datetime(2015,6,1,23,59,59)
+    carry_no = int(time_end.strftime('%y%m%d'))
+    
+    total_rebeta = 0
+    mm_clickcounts = ClickCount.objects.filter(date=time_end.date(),valid_num__gt=0)
+    for mm_cc in mm_clickcounts:
+        xlmms = XiaoluMama.objects.filter(id=mm_cc.linkid)
+        if xlmms.count() == 0:
+            continue
+        
+        xlmm = xlmms[0]
+                            
+        agency_levels = AgencyLevel.objects.filter(id=xlmm.agencylevel)
+        if agency_levels.count() == 0:
+            continue
+        agency_level = agency_levels[0]
+        if agency_level != 2:
+            continue
+        
+        click_qs = Clicks.objects.filter(linkid=mm_cc.linkid,click_time__range=(CLICK_ACTIVE_START_TIME,time_end),isvalid=True)
+        ten_click_num = click_qs.values('openid').distinct().count()
+        ten_click_price = 30
+        
+        click_rebeta = ten_click_num * ten_click_price
+        if mm_cc.valid_num == 0 or click_rebeta <= 0:
+            continue
+        
+#         c_log,state = CarryLog.objects.get_or_create(xlmm=xlmm.id,
+#                                                      order_num=carry_no,
+#                                                      log_type=CarryLog.CLICK_REBETA)
+#         
+#         c_log.value = c_log.value + click_rebeta
+#         c_log.save()
+        
+#         urows = xlmms.update(cash=F('cash') + ten_click_price)
+        total_rebeta += click_rebeta
+    
+    print 'debug total_rebeta:',total_rebeta
+
 @task()
 def task_Push_ClickCount_To_MamaCash(target_date):
     """ 计算每日妈妈点击数现金提成，并更新到妈妈钱包账户"""
