@@ -451,19 +451,22 @@ def changearrivalquantity(request):
     post = request.POST
     order_detail_id = post.get("orderdetailid", "").strip()
     arrived_num = post.get("arrived_num", "0").strip()
-    result = "{flag:false,num:0}"
-    if len(arrived_num) > 0 and len(order_detail_id) > 0:
+    inferior_num = post.get("inferior_num", "0").strip()
+    result = "{flag:false,num:0,inferior_num:0}"
+    if len(arrived_num) > 0 and len(order_detail_id) > 0 and len(inferior_num) > 0:
         arrived_num = int(arrived_num)
         order_detail_id = int(order_detail_id)
+        inferior_num = int(inferior_num)
         order = OrderDetail.objects.get(id=order_detail_id)
         orderlist = OrderList.objects.get(id=order.orderlist_id)
         order.arrival_quantity = order.arrival_quantity + arrived_num
-
-        Product.objects.filter(id=order.product_id).update(collect_num=F('collect_num') + arrived_num)
-        ProductSku.objects.filter(id=order.chichu_id).update(quantity=F('quantity') + arrived_num)
+        order.inferior_quantity = order.inferior_quantity + inferior_num
+        order.non_arrival_quantity = order.buy_quantity - arrived_num - inferior_num
+        Product.objects.filter(id=order.product_id).update(collect_num=F('collect_num') + arrived_num + inferior_num)
+        ProductSku.objects.filter(id=order.chichu_id).update(quantity=F('quantity') + arrived_num + inferior_num)
         order.save()
-        result = "{flag:true,num:" + str(order.arrival_quantity) + "}"
-        log_action(request.user.id, orderlist, CHANGE, u'订货单{0}入库{1}件'.format(order.product_name, arrived_num))
+        result = "{flag:true,num:" + str(order.arrival_quantity) + ",inferior_num:" + str(order.inferior_quantity) + "}"
+        log_action(request.user.id, orderlist, CHANGE, u'订货单{0}入库{1}件'.format(order.product_name, arrived_num+inferior_num))
         return HttpResponse(result)
 
     return HttpResponse(result)
@@ -632,10 +635,9 @@ class DailyWorkView(View):
             if target_date > today:
                 target_date = today
 
-
         shelve_from = datetime.datetime(target_date.year, target_date.month, target_date.day)
         time_to = self.parseEndDt(shelve_tostr)
-        if time_to-shelve_from > datetime.timedelta(3):
+        if time_to - shelve_from > datetime.timedelta(3):
             time_to = shelve_from + datetime.timedelta(3)
         query_time = self.parseEndDt(query_timestr)
         productdicts = self.getProductByDate(target_date, group_tuple[groupname])
