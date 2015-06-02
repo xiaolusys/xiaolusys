@@ -10,6 +10,9 @@ from flashsale.dinghuo import log_action, CHANGE
 from django.views.generic import View
 from flashsale.dinghuo.models import orderdraft
 import functions
+from django.views.decorators.csrf import csrf_exempt
+from django.db.models import F
+from django.http import HttpResponse
 
 
 class ChangeDetailView(View):
@@ -69,3 +72,21 @@ class AutoNewOrder(View):
         all_drafts = orderdraft.objects.all().filter(buyer_name=user)
         return render_to_response("dinghuo/shengchengorder.html", {"orderdraft": all_drafts},
                                   context_instance=RequestContext(request))
+
+
+@csrf_exempt
+def change_inferior_num(request):
+    post = request.POST
+    flag = post['flag']
+    order_detail_id = post["order_detail_id"].strip()
+    if flag == "0":
+        OrderDetail.objects.filter(id=order_detail_id).update(inferior_quantity=F('inferior_quantity') - 1)
+        OrderDetail.objects.filter(id=order_detail_id).update(
+            non_arrival_quantity=F('buy_quantity') - F('arrival_quantity') - F('inferior_quantity'))
+        return HttpResponse("OK")
+    elif flag == "1":
+        OrderDetail.objects.filter(id=order_detail_id).update(inferior_quantity=F('inferior_quantity') + 1)
+        OrderDetail.objects.filter(id=order_detail_id).update(
+            non_arrival_quantity=F('buy_quantity') - F('arrival_quantity') - F('inferior_quantity'))
+        return HttpResponse("OK")
+    return HttpResponse("false")

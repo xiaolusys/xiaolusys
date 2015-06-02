@@ -209,6 +209,8 @@ def minusarrived(req):
     orderdetail = OrderDetail.objects.get(id=orderdetailid)
     orderlist = OrderList.objects.get(id=orderdetail.orderlist_id)
     OrderDetail.objects.filter(id=orderdetailid).update(arrival_quantity=F('arrival_quantity') - 1)
+    OrderDetail.objects.filter(id=orderdetailid).update(
+        non_arrival_quantity=F('buy_quantity') - F('arrival_quantity') - F('inferior_quantity'))
     Product.objects.filter(id=orderdetail.product_id).update(collect_num=F('collect_num') - 1)
     ProductSku.objects.filter(id=orderdetail.chichu_id).update(quantity=F('quantity') - 1)
     log_action(req.user.id, orderlist, CHANGE, u'订货单{0}{1}'.format((u'入库减一件'), orderdetail.product_name))
@@ -412,7 +414,7 @@ def changearrivalquantity(request):
         Product.objects.filter(id=order.product_id).update(collect_num=F('collect_num') + arrived_num)
         ProductSku.objects.filter(id=order.chichu_id).update(quantity=F('quantity') + arrived_num)
         order.save()
-        result = "{flag:true,num:" + str(order.arrival_quantity) + ",inferior_num:" + str(order.inferior_quantity) + "}"
+        result = "{flag:true,num:" + str(order.arrival_quantity) + "}"
         log_action(request.user.id, orderlist, CHANGE,
                    u'订货单{0}入库{1}件'.format(order.product_name, arrived_num))
         return HttpResponse(result)

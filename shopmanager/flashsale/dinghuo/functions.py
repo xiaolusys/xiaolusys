@@ -71,7 +71,7 @@ def save_draft_from_detail_id(order_list_id, user):
         buy_quantity = order_detail.inferior_quantity + order_detail.non_arrival_quantity
         draft_query = orderdraft.objects.filter(buyer_name=user, product_id=order_detail.product_id,
                                                 chichu_id=order_detail.chichu_id)
-        if draft_query.count() == 0:
+        if draft_query.count() == 0 and buy_quantity > 0:
             current_time = datetime.datetime.now()
             t_draft = orderdraft(buyer_name=user, product_id=order_detail.product_id, outer_id=order_detail.outer_id,
                                  buy_quantity=buy_quantity, product_name=order_detail.product_name,
