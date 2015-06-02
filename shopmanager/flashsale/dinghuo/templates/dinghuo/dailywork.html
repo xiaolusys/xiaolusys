@@ -83,7 +83,7 @@
             <th width="100px">图片</th>
             <th>尺寸</th>
             <th>销售数</th>
-            <th>已拍数量</th>
+            <th>已拍数量(有效数量)</th>
             <th>样品数量</th>
             <th width="150px">状态</th>
             </thead>
@@ -102,7 +102,8 @@
                                 <td>{{ sku.sku_name }}</td>
                                 <td><span id="sale_num_{{ sku.id }}">{{ sku.sale_num }}</span></td>
                                 <td><a href="/sale/dinghuo/statsbypid/{{ product.id }}" target="_blank"
-                                       style="display: block;" id="ding_huo_num_{{ sku.id }}">{{ sku.dinghuo_num }}</a>
+                                       style="display: block;"
+                                       id="ding_huo_num_{{ sku.id }}">{{ sku.dinghuo_num }} ({{ sku.effect_quantity }})</a>
                                 </td>
                                 <td>
                                     <div class="row">

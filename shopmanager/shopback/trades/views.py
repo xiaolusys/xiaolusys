@@ -1,4 +1,5 @@
 #-*- coding:utf8 -*-
+from django.shortcuts import render_to_response,render
 import re
 import json
 import time
@@ -13,7 +14,7 @@ from django.db.models import Q,Sum
 
 from djangorestframework.views import ModelView
 from djangorestframework.response import ErrorResponse
-
+from shopback.logistics import getLogisticTrace
 from shopback.trades.models import (
         MergeTrade,
         MergeOrder,
@@ -1497,7 +1498,7 @@ def calFenxiaoInterval(fdt,tdt):
                                         pay_time__lte=tdt,
                                         type=pcfg.FENXIAO_TYPE,
                                         sys_status=pcfg.FINISHED_STATUS)
-    #buyer_nick 
+    #buyer_nick elf,
     for f in fenxiao:
         
         buyer_nick=f.buyer_nick
@@ -1915,7 +1916,7 @@ class SaleMergeOrderListView(ModelView):
                     trade_items[outer_id]['sales'] += payment
                     
                     skus[outer_sku_id] = {
-                                          'sku_name':prod_sku_name,
+                                          'sku_name':prod_sku_name,                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        
                                           'num':order_num,
                                           'cost':purchase_price*order_num,
                                           'sales':payment,
@@ -2064,3 +2065,57 @@ class SaleMergeOrderListView(ModelView):
                 'post_fees':total_post_fee }
         
     post = get
+    
+    
+    
+    
+#fangkaineng 2015-6-2 diingdanxiangxi 
+
+def detail(request):
+        
+        return render(request, 'trades/order_detail.html')
+    
+    
+       # return render(request, 'trades/order_detail.html')
+    
+def search_trade(request):
+  today=datetime.datetime.utcnow()
+  print '数字是',555 
+  if request.method == "POST":
+    rec1=[]  
+    number1=request.POST.get('condition')
+    number=number1.strip()
+    print '数字是',number
+    if number=="":
+        rec1=[]
+    else:
+        trade_info=MergeTrade.objects.filter(Q(receiver_mobile=number) | Q(receiver_name=number) | Q(tid=number) | Q(buyer_nick=number) | Q(receiver_phone=number) | Q(out_sid=number))
+        for item in trade_info:
+            info={}
+            try: 
+                a=  getLogisticTrace(item.out_sid,item.logistics_company.code)
+            except:
+                a= []
+            #a=  getLogisticTrace(item.out_sid,item.logistics_company.code)
+            print '全部信息是',a
+            info['trans']=a  
+            info['trade']=item
+            info['detail']=[]
+            for order_info in item.merge_orders.all():
+                    sum={}
+                    sum['order']=order_info
+                    try:
+                      product_info=Product.objects.get(outer_id=order_info.outer_id) 
+                    except:
+                      product_info=[]
+                    #product_info=Product.objects.get(outer_id=order_info.outer_id) 
+                    sum['product']=product_info
+                    info['detail'].append(sum)
+            rec1.append(info)
+            print rec1
+    return render(request, 'trades/order_detail.html',{'info': rec1,'time':today})
+  else:
+    rec1=[] 
+  
+    return render(request, 'trades/order_detail.html',{'info': rec1,'time':today})
+

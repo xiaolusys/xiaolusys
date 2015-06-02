@@ -22,7 +22,6 @@ class ordelistAdmin(admin.ModelAdmin):
     }),)
     inlines = [orderdetailInline]
 
-
     list_display = (
         'id', 'buyer_name', 'order_amount', 'quantity', 'receiver', 'created', 'shenhe', 'changedetail', 'note',
         'supplier_name', 'express_company', 'express_no'
@@ -89,8 +88,25 @@ class ordelistAdmin(admin.ModelAdmin):
     actions = ['test_order_action']
 
 
+class orderdetailAdmin(admin.ModelAdmin):
+    fieldsets = ((u'订单信息:', {
+        'classes': ('expand',),
+        'fields': (
+            'product_id', 'outer_id', 'product_name', 'chichu_id', 'product_chicun', 'buy_quantity', 'arrival_quantity',
+            'inferior_quantity', 'non_arrival_quantity')
+    }),)
+
+    list_display = (
+        'id', 'orderlist', 'product_id', 'outer_id', 'product_name', 'chichu_id', 'product_chicun', 'buy_quantity',
+        'arrival_quantity', 'inferior_quantity', 'non_arrival_quantity', 'created'
+    )
+    list_filter = (('created', DateFieldListFilter),)
+    search_fields = ['orderlist', 'product_id']
+    date_hierarchy = 'created'
+
+
 admin.site.register(OrderList, ordelistAdmin)
-admin.site.register(OrderDetail)
+admin.site.register(OrderDetail, orderdetailAdmin)
 admin.site.register(orderdraft)
 
 
@@ -106,6 +122,7 @@ class myuserAdmin(admin.ModelAdmin):
     list_filter = ('group',)
     search_fields = ['user__username']
 
-admin.site.register(MyUser,myuserAdmin)
+
+admin.site.register(MyUser, myuserAdmin)
 admin.site.register(MyGroup)
 

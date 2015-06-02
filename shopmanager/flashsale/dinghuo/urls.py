@@ -3,8 +3,9 @@ from django.conf.urls import include, url
 from flashsale.dinghuo import views
 from django.contrib.auth.decorators import login_required
 from django.contrib.admin.views.decorators import staff_member_required
-from .views import DailyStatsView, ChangeDetailView, StatsByProductIdView, DailyWorkView
+from .views import DailyStatsView, StatsByProductIdView, DailyWorkView
 from django.views.decorators.csrf import csrf_exempt
+from .views_change_detail import ChangeDetailView, AutoNewOrder, change_inferior_num
 
 urlpatterns = [
 
@@ -33,5 +34,7 @@ urlpatterns = [
     url(r'^setusertogroup/$', views.setusertogroup, name="setusertogroup"),
     url(r'^adddetailtodinghuo/$', views.add_detail_to_ding_huo, name="add_detail_to_ding_huo"),
     url(r'^changeorderlist/$', views.modify_order_list, name="modify_order_list"),
+    url(r'^auto_new_order/(?P<order_list_id>\d+)/$', AutoNewOrder.as_view(), name="auto_new_order"),
+    url(r'^change_inferior_num/$', change_inferior_num, name="change_inferior_num"),
 
 ]
