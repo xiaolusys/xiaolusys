@@ -56,6 +56,7 @@
 <div id="id-cashout-list" style="margin-top:10px; display:none">
   <form id="cashout-form" action="/m/cashout/" method="POST">
   <p style="color:orange">&nbsp;您的可提现金额为￥<span style="font-size:26px">{{ could_cash_out }}</span>。</p>
+  <p style="color:#428bca">提现将以公众号向当前提交申请的微信号发送<span style="font-size:20px">微信红包</span>方式完成，请确认后再申请。</p>
   <div id="id-cashout-area" {% if cashout > 0 %} style="display:none" {% endif %}>
     <p>&nbsp;提现需20元以上,请输入提现金额：</p>
     <div class="input-group" style="margin-top:5px">
@@ -70,7 +71,7 @@
   </div>
   </form>
   <ul id="id-cashout-notice" style="color:red;margin-top:6px;{% if cashout < 1 %}display:none{% endif %}" class="list-group">
-    <li class="list-group-item">提现申请已提交！<br/>请微信加微客服 <b>18516655836</b> 审核提现申请，提现将由微信转账完成。</li>
+    <li class="list-group-item">提现申请已提交！<br/>请微信加微客服 <b>18516655836</b> 审核提现申请，提现将以发放微信微红包方式完成。</li>
   </ul>
 
   <div style="margin-top:20px">
