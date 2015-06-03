@@ -422,7 +422,7 @@ def changearrivalquantity(request):
     return HttpResponse(result)
 
 
-class DailyStatsView(View):
+class DailyDingHuoStatsView(View):
     def getUserName(self, uid):
         try:
             return User.objects.get(pk=uid).username
@@ -509,7 +509,6 @@ class StatsByProductIdView(View):
 
 
 from flashsale.dinghuo.models_user import MyUser, MyGroup
-from shopback.trades.models import MergeOrder
 
 
 class DailyWorkView(View):
@@ -521,19 +520,6 @@ class DailyWorkView(View):
             return functions.parse_datetime(end_dt)
         return functions.parse_date(end_dt)
 
-    def getSourceOrders(self, start_dt=None, end_dt=None):
-        order_qs = MergeOrder.objects.filter(sys_status=pcfg.IN_EFFECT) \
-            .exclude(merge_trade__type=pcfg.REISSUE_TYPE) \
-            .exclude(merge_trade__type=pcfg.EXCHANGE_TYPE) \
-            .exclude(gift_type=pcfg.RETURN_GOODS_GIT_TYPE)
-        order_qs = order_qs.filter(pay_time__gte=start_dt, pay_time__lte=end_dt)
-        order_qs = order_qs.filter(merge_trade__status__in=pcfg.ORDER_SUCCESS_STATUS) \
-            .exclude(merge_trade__sys_status__in=(pcfg.INVALID_STATUS, pcfg.ON_THE_FLY_STATUS)) \
-            .exclude(merge_trade__sys_status=pcfg.FINISHED_STATUS, merge_trade__is_express_print=False)
-
-        order_qs = order_qs.values("outer_id", "num", "outer_sku_id").extra(where=["CHAR_LENGTH(outer_id)>=9"]) \
-            .filter(Q(outer_id__startswith="9") | Q(outer_id__startswith="1") | Q(outer_id__startswith="8"))
-        return order_qs
 
     def getSourceDinghuo(self, start_dt=None, end_dt=None):
         dinghuo_qs = OrderDetail.objects.exclude(orderlist__status=u'作废').filter(created__gte=start_dt,
@@ -552,18 +538,6 @@ class DailyWorkView(View):
             effect_quantity += ding_huo.buy_quantity - ding_huo.inferior_quantity - ding_huo.non_arrival_quantity
         return buy_quantity, effect_quantity
 
-    def getProductByDate(self, shelve_date, groupname):
-        groupmembers = []
-        if groupname == '0':
-            productqs = Product.objects.values('id', 'name', 'outer_id', 'pic_path').filter(
-                sale_time=shelve_date)
-        else:
-            alluser = MyUser.objects.filter(group__name=groupname)
-            for user in alluser:
-                groupmembers.append(user.user.username)
-            productqs = Product.objects.values('id', 'name', 'outer_id', 'pic_path').filter(sale_time=shelve_date,
-                                                                                            sale_charger__in=groupmembers)
-        return productqs
 
     def getSourceOrderByouterid(self, p_outer_id, order_qs):
         return order_qs.filter(outer_id__startswith=p_outer_id)
@@ -599,8 +573,8 @@ class DailyWorkView(View):
         if time_to - shelve_from > datetime.timedelta(3):
             time_to = shelve_from + datetime.timedelta(3)
         query_time = self.parseEndDt(query_timestr)
-        productdicts = self.getProductByDate(target_date, group_tuple[groupname])
-        orderqs = self.getSourceOrders(shelve_from, time_to)
+        productdicts = functions.get_product_by_date(target_date, group_tuple[groupname])
+        orderqs = functions.get_source_orders(shelve_from, time_to)
         dinghuoqs = self.getSourceDinghuo(shelve_from, query_time)
         trade_list = []
         # max_sale_num = 0
@@ -615,7 +589,8 @@ class DailyWorkView(View):
             for sku_dict in guiges:
                 sale_num = self.get_sale_num_by_sku(sku_dict['outer_id'], orders_by_outer_id)
                 temp_total_sale_num = temp_total_sale_num + sale_num
-                dinghuo_num, effect_quantity = self.getDinghuoQuantityByPidAndSku(product_dict['id'], sku_dict['id'], dinghuoqs)
+                dinghuo_num, effect_quantity = self.getDinghuoQuantityByPidAndSku(product_dict['id'], sku_dict['id'],
+                                                                                  dinghuoqs)
                 dinghuostatusstr, flag_of_memo, flag_of_more, flag_of_less = functions.get_ding_huo_status(
                     sale_num, dinghuo_num, sku_dict)
                 if dhstatus == u'0' or ((flag_of_more or flag_of_less) and dhstatus == u'1') or (
