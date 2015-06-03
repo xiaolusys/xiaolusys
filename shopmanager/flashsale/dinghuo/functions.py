@@ -119,3 +119,16 @@ def get_product_by_date(shelve_date, group_name="0"):
         product_qs = Product.objects.values('id', 'name', 'outer_id', 'pic_path').filter(sale_time=shelve_date,
                                                                                          sale_charger__in=group_members)
     return product_qs
+
+def get_product_from_order(order_qs):
+    """从订单里面得到所有的商品、尺寸销售数"""
+    result_str = {}
+    for order in order_qs:
+        if order["outer_id"] in result_str:
+            if order["outer_sku_id"] in result_str[order["outer_id"]]:
+                result_str[order["outer_id"]][order["outer_sku_id"]]["num"] += order["num"]
+            else:
+                result_str[order["outer_id"]][order["outer_sku_id"]] = {"num": order["num"]}
+        else:
+            result_str[order["outer_id"]] = {order["outer_sku_id"]: {"num": order["num"]}}
+    return result_str
