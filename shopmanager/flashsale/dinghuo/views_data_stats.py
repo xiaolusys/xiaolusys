@@ -15,10 +15,10 @@ class DailyStatsView(View):
         end_dt = datetime.datetime(target_day.year, target_day.month, target_day.day, 23, 59, 59)
         order_qs = functions.get_source_orders(start_dt, end_dt)
         product_qs = functions.get_product_by_date(target_day)
-        order_qs = [{'outer_id': u'8050142204', 'num': 1L, 'outer_sku_id': u'1'},
-                    {'outer_id': u'8050142204', 'num': 2L, 'outer_sku_id': u'2'},
-                    {'outer_id': u'90301030211', 'num': 3L, 'outer_sku_id': u'2'},
-                    {'outer_id': u'8050142204', 'num': 4L, 'outer_sku_id': u'1'}]
+        # order_qs = [{'outer_id': u'8050142204', 'num': 1L, 'outer_sku_id': u'1'},
+        #             {'outer_id': u'8050142204', 'num': 2L, 'outer_sku_id': u'2'},
+        #             {'outer_id': u'90301030211', 'num': 3L, 'outer_sku_id': u'2'},
+        #             {'outer_id': u'8050142204', 'num': 4L, 'outer_sku_id': u'1'}]
         print order_qs
         print "          "
         result_str = {}

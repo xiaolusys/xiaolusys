@@ -539,24 +539,20 @@ class DailyWorkView(View):
         return buy_quantity, effect_quantity
 
 
-    def getSourceOrderByouterid(self, p_outer_id, order_qs):
-        return order_qs.filter(outer_id__startswith=p_outer_id)
-
-    def get_sale_num_by_sku(self, sku_outer_id, orderqs):
+    def get_sale_num_by_sku(self, pro_outer_id, sku_outer_id, order_dict):
         # sale_num1 = orderqs.filter(outer_sku_id=sku_outer_id).aggregate(total_sale_num=Sum('num')).get(
         # 'total_sale_num') or 0
         sale_num = 0
-        order_qs = orderqs.filter(outer_sku_id=sku_outer_id)
-        for order in order_qs:
-            sale_num += order['num']
+        if pro_outer_id in order_dict and sku_outer_id in order_dict[pro_outer_id]:
+            sale_num = order_dict[pro_outer_id][sku_outer_id]['num']
         return sale_num
 
     def get(self, request):
         content = request.REQUEST
         today = datetime.date.today()
         shelve_fromstr = content.get("df", None)
-        shelve_tostr = content.get("dt", None)
-        query_timestr = content.get("showt", None)
+        shelve_to_str = content.get("dt", None)
+        query_time_str = content.get("showt", None)
         groupname = content.get("groupname", 0)
         dhstatus = content.get("dhstatus", '1')
         groupname = int(groupname)
@@ -569,34 +565,34 @@ class DailyWorkView(View):
                 target_date = today
 
         shelve_from = datetime.datetime(target_date.year, target_date.month, target_date.day)
-        time_to = self.parseEndDt(shelve_tostr)
+        time_to = self.parseEndDt(shelve_to_str)
         if time_to - shelve_from > datetime.timedelta(3):
             time_to = shelve_from + datetime.timedelta(3)
-        query_time = self.parseEndDt(query_timestr)
-        productdicts = functions.get_product_by_date(target_date, group_tuple[groupname])
+        query_time = self.parseEndDt(query_time_str)
+
+        product_dicts = functions.get_product_by_date(target_date, group_tuple[groupname])
         orderqs = functions.get_source_orders(shelve_from, time_to)
-        dinghuoqs = self.getSourceDinghuo(shelve_from, query_time)
+        order_dict = functions.get_product_from_order(orderqs)
+        ding_huo_qs = self.getSourceDinghuo(shelve_from, query_time)
+
         trade_list = []
-        # max_sale_num = 0
-        # sell_well_pro = {}
         all_pro_sale = {}
-        for product_dict in productdicts:
+        for product_dict in product_dicts:
             product_dict['prod_skus'] = []
-            guiges = ProductSku.objects.values('id', 'outer_id', 'properties_name', 'properties_alias', 'memo').filter(
+            all_sku = ProductSku.objects.values('id', 'outer_id', 'properties_name', 'properties_alias', 'memo').filter(
                 product_id=product_dict['id'])
-            orders_by_outer_id = self.getSourceOrderByouterid(product_dict['outer_id'], orderqs)
             temp_total_sale_num = 0
-            for sku_dict in guiges:
-                sale_num = self.get_sale_num_by_sku(sku_dict['outer_id'], orders_by_outer_id)
+            for sku_dict in all_sku:
+                sale_num = self.get_sale_num_by_sku(product_dict['outer_id'], sku_dict['outer_id'], order_dict)
                 temp_total_sale_num = temp_total_sale_num + sale_num
-                dinghuo_num, effect_quantity = self.getDinghuoQuantityByPidAndSku(product_dict['id'], sku_dict['id'],
-                                                                                  dinghuoqs)
+                ding_huo_num, effect_quantity = self.getDinghuoQuantityByPidAndSku(product_dict['id'], sku_dict['id'],
+                                                                                   ding_huo_qs)
                 dinghuostatusstr, flag_of_memo, flag_of_more, flag_of_less = functions.get_ding_huo_status(
-                    sale_num, dinghuo_num, sku_dict)
+                    sale_num, ding_huo_num, sku_dict)
                 if dhstatus == u'0' or ((flag_of_more or flag_of_less) and dhstatus == u'1') or (
                             flag_of_less and dhstatus == u'2') or (flag_of_more and dhstatus == u'3'):
                     sku_dict['sale_num'] = sale_num
-                    sku_dict['dinghuo_num'] = dinghuo_num
+                    sku_dict['dinghuo_num'] = ding_huo_num
                     sku_dict['effect_quantity'] = effect_quantity
                     sku_dict['sku_name'] = sku_dict['properties_alias'] if len(
                         sku_dict['properties_alias']) > 0 else sku_dict['properties_name']
@@ -607,26 +603,21 @@ class DailyWorkView(View):
                     product_dict['prod_skus'].append(sku_dict)
 
             product_dict['total_sale_num'] = temp_total_sale_num
-            keyofpro = product_dict['outer_id'][0:len(product_dict['outer_id']) - 1]
-            if all_pro_sale.has_key(keyofpro):
-                all_pro_sale[keyofpro]['total_sale_num'] = all_pro_sale[keyofpro][
-                                                               'total_sale_num'] + temp_total_sale_num
+            key_of_pro = product_dict['outer_id'][0:len(product_dict['outer_id']) - 1]
+            if key_of_pro in all_pro_sale:
+                all_pro_sale[key_of_pro]['total_sale_num'] += temp_total_sale_num
             else:
-                all_pro_sale[keyofpro] = {"total_sale_num": product_dict['total_sale_num'],
-                                          "pic_path": product_dict['pic_path']}
-                all_pro_sale[keyofpro]['name'] = product_dict['name'].split("-")[0]
-            # if temp_total_sale_num > max_sale_num:
-            # max_sale_num = temp_total_sale_num
-            # sell_well_pro = product_dict
-            # sell_well_pro["total_sale_num"] = max_sale_num
+                all_pro_sale[key_of_pro] = {"total_sale_num": product_dict['total_sale_num'],
+                                            "pic_path": product_dict['pic_path']}
+                all_pro_sale[key_of_pro]['name'] = product_dict['name'].split("-")[0]
             trade_list.append(product_dict)
         all_pro_sale_items = sorted(all_pro_sale.items(), key=lambda d: d[1]['total_sale_num'], reverse=True)
-        result_sale = []
+        the_best_sale_pro = []
         if all_pro_sale_items:
-            result_sale = all_pro_sale_items[0]
+            the_best_sale_pro = all_pro_sale_items[0]
         return render_to_response("dinghuo/dailywork.html",
                                   {"targetproduct": trade_list, "shelve_from": target_date, "time_to": time_to,
                                    "searchDinghuo": query_time, 'groupname': groupname, "dhstatus": dhstatus,
-                                   "all_pro_sale": result_sale},
+                                   "all_pro_sale": the_best_sale_pro},
                                   context_instance=RequestContext(request))
 
