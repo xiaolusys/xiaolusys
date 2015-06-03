@@ -1,5 +1,6 @@
 #-*- coding:utf-8 -*-
 import datetime
+import urllib,urllib2
 from django.conf import settings
 from django.db import models
 import pingpp
@@ -64,34 +65,43 @@ class Envelop(models.Model):
     get_amount_display.allow_tags = True
     get_amount_display.short_description = u"红包金额"
     
+    
     def send_envelop(self):
         pingpp.api_key = settings.PINGPP_APPKEY
         try:
-            redenvelope = pingpp.RedEnvelope.create(
-                    order_no=str(self.id),
-                    channel=self.platform,
-                    amount=self.amount,
-                    subject=self.get_subject_display(),
-                    body=self.body,
-                    currency='cny',
-                    app=dict(id=settings.PINGPP_APPID),
-                    extra=dict(nick_name=u'上海己美网络科技',send_name=u'小鹿美美'),
-                    recipient=self.recipient,
-                    description=self.description
-                )
-  
-            if not redenvelope['paid']:
-                raise Exception(u'红包支付失败！')
+            if self.envelop_id:
+                redenvelope = pingpp.RedEnvelope.retrieve(self.envelop_id)
+            else:
+                redenvelope = pingpp.RedEnvelope.create(
+                        order_no=str(self.id),
+                        channel=self.platform,
+                        amount=self.amount,
+                        subject=self.get_subject_display(),
+                        body=self.body,
+                        currency='cny',
+                        app=dict(id=settings.PINGPP_APPID),
+                        extra=dict(nick_name=u'上海己美网络科技',send_name=u'小鹿美美'),
+                        recipient=self.recipient,
+                        description=self.description
+                    )
             
         except Exception,exc:
             self.status = Envelop.FAIL
             self.save()
             raise exc
         else:
+            
+            is_paid = redenvelope['paid']
             self.envelop_id = redenvelope['id']
-            self.send_time  = datetime.datetime.now()
-            self.status     = Envelop.CONFIRM_SEND 
-            self.save()
+            self.livemode   = redenvelope['livemode']
+            if is_paid:
+                self.send_time  = datetime.datetime.now()
+                self.status     = Envelop.CONFIRM_SEND 
+                self.save()
+            else:
+                self.status     = Envelop.FAIL
+                self.save()
+                raise Exception(u'红包付款失败！')
     
     
     

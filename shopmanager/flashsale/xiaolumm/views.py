@@ -484,6 +484,7 @@ def cash_modify(request, data):
             
             wx_union = WeixinUnionID.objects.get(app_key=settings.WXPAY_APPID,unionid=xiaolumama.openid)
             
+            mama_memo = u"小鹿妈妈编号:{0}"
             Envelop.objects.get_or_create(referal_id=cashout.id,
                                           amount=cashout.value,
                                           recipient=wx_union.openid,
@@ -492,11 +493,7 @@ def cash_modify(request, data):
                                           status=Envelop.WAIT_SEND,
                                           receiver=xiaolumama.id,
                                           body=u'一份耕耘，一份收获，谢谢你的努力！',
-                                          description=','.join([str(xiaolumama.id),
-                                                                xiaolumama.openid,
-                                                                'pre:'+str(pre_cash / 100.0),
-                                                                '%s'%datetime.datetime.now(),
-                                                                xiaolumama.mobile]))
+                                          description=mama_memo.format(str(xiaolumama.id)))
             
             log_action(request.user.id,cashout,CHANGE,u'提现审核通过')
             return HttpResponse('ok')
