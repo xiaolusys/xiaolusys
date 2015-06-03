@@ -76,10 +76,10 @@ class Envelop(models.Model):
                     currency='cny',
                     app=dict(id=settings.PINGPP_APPID),
                     extra=dict(nick_name=u'上海己美网络科技有限公司',send_name=u'小鹿美美'),
-                    recipient=self.referal_id,
-                    description=self.description + self.receiver
+                    recipient=self.recipient,
+                    description=self.description
                 )
-            print redenvelope
+  
             if not redenvelope['paid']:
                 raise Exception(u'红包支付失败！')
             

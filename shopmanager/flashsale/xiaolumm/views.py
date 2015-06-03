@@ -495,7 +495,8 @@ def cash_modify(request, data):
                                           description=','.join([str(xiaolumama.id),
                                                                 xiaolumama.openid,
                                                                 'pre:'+str(pre_cash / 100.0),
-                                                                '%s'%datetime.datetime.now()]))
+                                                                '%s'%datetime.datetime.now(),
+                                                                xiaolumama.mobile]))
             
             log_action(request.user.id,cashout,CHANGE,u'提现审核通过')
             return HttpResponse('ok')
