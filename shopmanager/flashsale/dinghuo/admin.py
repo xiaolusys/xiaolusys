@@ -24,7 +24,7 @@ class ordelistAdmin(admin.ModelAdmin):
 
     list_display = (
         'id', 'buyer_name', 'order_amount', 'quantity', 'receiver', 'created', 'shenhe', 'changedetail', 'note',
-        'supplier_name', 'express_company', 'express_no'
+        'supplier_name', 'express_company', 'express_no', 'updated'
     )
     list_filter = (('created', DateFieldListFilter), 'status', 'buyer_name')
     search_fields = ['id']
