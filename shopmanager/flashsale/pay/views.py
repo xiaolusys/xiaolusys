@@ -503,7 +503,7 @@ from django.shortcuts import redirect
 from django.contrib import messages
 from django.db.models import Sum
 from .models_envelope import Envelop
-
+from shopback.base import log_action, ADDITION, CHANGE
       
 class EnvelopConfirmSendView(View):
     
@@ -519,11 +519,12 @@ class EnvelopConfirmSendView(View):
             messages.add_message(request, messages.ERROR, u'请输入正确的红包发送暗号！')
             return redirect(origin_url)
         
-        envelop_qs = Envelop.objects.filter(id__in=envelop_ids,status=Envelop.WAIT_SEND)
+        envelop_qs = Envelop.objects.filter(id__in=envelop_ids,status__in=(Envelop.WAIT_SEND,Envelop.FAIL))
         
         try:
             for envelop in envelop_qs:
                 envelop.send_envelop()
+                log_action(request.user.id,envelop,CHANGE,u'发送红包')
         except Exception,exc:
             messages.add_message(request, messages.ERROR, u'红包发送异常:%s'%(exc.message))
             
@@ -531,7 +532,7 @@ class EnvelopConfirmSendView(View):
         envelop_count = envelop_goodqs.count()
         total_amount  = envelop_goodqs.aggregate(total_amount=Sum('amount')).get('total_amount') or 0
     
-        messages.add_message(request, messages.INFO, u'已成功发送 %s 个红包，总金额：%s！'%(envelop_count,total_amount))
+        messages.add_message(request, messages.INFO, u'已成功发送 %s 个红包，总金额：%s！'%(envelop_count,total_amount / 100.0))
             
         return redirect(origin_url)
     
