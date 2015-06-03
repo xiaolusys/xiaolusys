@@ -31,7 +31,7 @@ class Envelop(models.Model):
     livemode     = models.BooleanField(default=True,verbose_name=u'是否有效')
     
     recipient    = models.CharField(max_length=28,db_index=True,verbose_name=u'接收者OPENID')
-    receiver     = models.CharField(max_length=64,blank=True,db_index=True,verbose_name=u'接收人信息')
+    receiver     = models.CharField(max_length=64,blank=True,db_index=True,verbose_name=u'小鹿妈妈编号')
     
     subject      = models.CharField(max_length=8,db_index=True,choices=SUBJECT_CHOICES,verbose_name=u'红包主题')
     body         = models.CharField(max_length=128,blank=True,verbose_name=u'红包祝福语')

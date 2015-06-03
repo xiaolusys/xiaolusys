@@ -490,7 +490,7 @@ def cash_modify(request, data):
                                           platform=Envelop.WXPUB,
                                           subject=Envelop.CASHOUT,
                                           status=Envelop.WAIT_SEND,
-                                          receiver=xiaolumama.mobile,
+                                          receiver=xiaolumama.id,
                                           body=u'一份耕耘，一份收获，谢谢你的努力！',
                                           description=','.join([str(xiaolumama.id),
                                                                 xiaolumama.openid,

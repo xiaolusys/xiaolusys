@@ -35,7 +35,7 @@ def task_Update_Sale_Customer(unionid,openid=None,app_key=None):
         profile.save()
             
     except Exception,exc:
-        logger.error(exc.message,exc_info=True)
+        logger.debug(exc.message,exc_info=True)
     
 from shopback.trades.models import MergeTrade
 
