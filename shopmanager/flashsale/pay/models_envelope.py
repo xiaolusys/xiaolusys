@@ -75,7 +75,7 @@ class Envelop(models.Model):
                     body=self.body,
                     currency='cny',
                     app=dict(id=settings.PINGPP_APPID),
-                    extra=dict(nick_name=u'上海己美网络科技有限公司',send_name=u'小鹿美美'),
+                    extra=dict(nick_name=u'上海己美网络科技',send_name=u'小鹿美美'),
                     recipient=self.recipient,
                     description=self.description
                 )
