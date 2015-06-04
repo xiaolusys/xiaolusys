@@ -120,6 +120,7 @@ def get_product_by_date(shelve_date, group_name="0"):
                                                                                          sale_charger__in=group_members)
     return product_qs
 
+
 def get_product_from_order(order_qs):
     """从订单里面得到所有的商品、尺寸销售数"""
     result_str = {}
@@ -132,6 +133,7 @@ def get_product_from_order(order_qs):
         else:
             result_str[order["outer_id"]] = {order["outer_sku_id"]: {"num": order["num"]}}
     return result_str
+
 
 def get_sale_num_by_sku(pro_outer_id, sku_outer_id, order_dict):
     """通过商品外部编码和sku外部编码、销售集合得到销售数量"""

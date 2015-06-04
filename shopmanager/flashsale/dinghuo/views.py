@@ -423,11 +423,6 @@ def changearrivalquantity(request):
 
 
 class DailyDingHuoStatsView(View):
-    def getUserName(self, uid):
-        try:
-            return User.objects.get(pk=uid).username
-        except:
-            return 'none'
 
     def get(self, request):
         content = request.REQUEST
@@ -527,10 +522,6 @@ class DailyWorkView(View):
         return dinghuo_qs
 
     def getDinghuoQuantityByPidAndSku(self, outer_id, sku_id, dinghuo_qs):
-        # buy_quantity = dinghuo_qs.filter(product_id=outer_id, chichu_id=sku_id).aggregate(
-        # total_ding_huo_num=Sum('buy_quantity')).get('total_ding_huo_num') or 0
-        # effect_quantity  = dinghuo_qs.filter(product_id=outer_id, chichu_id=sku_id).aggregate(
-        # effect_quantity=Sum(F('buy_quantity')-F('inferior_quantity')-F('non_arrival_quantity'))).get('effect_quantity') or 0
         ding_huo_qs = dinghuo_qs.filter(product_id=outer_id, chichu_id=sku_id)
         buy_quantity, effect_quantity = 0, 0
         for ding_huo in ding_huo_qs:
