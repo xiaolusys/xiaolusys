@@ -1,8 +1,9 @@
 # -*- coding:utf-8 -*-
 from django.db import models
 from flashsale.dinghuo import paramconfig as pcfg
-from shopback.base.fields import BigIntegerAutoField,BigIntegerForeignKey
+from shopback.base.fields import BigIntegerAutoField, BigIntegerForeignKey
 from .models_user import MyUser, MyGroup
+from .models_stats import SupplyChainDataStats
 
 ORDER_PRODUCT_STATUS = (
     (pcfg.SUBMITTING, u'提交中'),
