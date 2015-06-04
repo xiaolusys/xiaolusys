@@ -1923,7 +1923,7 @@ class SaleMergeOrderListView(ModelView):
                                           'std_purchase_price':purchase_price}
             else:
                 prod_sku_name  = prod_sku.name if prod_sku else order.sku_properties_name
-                purchase_price = float(prod_sku.cost) if prod_sku else payment/order_num    
+                purchase_price = float(prod_sku.cost) if prod_sku else payment / order_num    
                 trade_items[outer_id]={
                                        'product_id':prod and prod.id or None,
                                        'num':order_num,

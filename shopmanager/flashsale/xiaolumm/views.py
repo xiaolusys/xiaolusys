@@ -154,7 +154,7 @@ from flashsale.clickcount.models import ClickCount
 from flashsale.clickrebeta.models import StatisticsShoppingByDay,StatisticsShopping
 from flashsale.mmexam.models import Result
 
-CLICK_ACTIVE_DATE = datetime.date(2015,6,1)
+from flashsale.clickcount.tasks import CLICK_ACTIVE_START_TIME, CLICK_MAX_LIMIT_DATE  
 
 class MamaStatsView(View):
     def get(self, request):
@@ -192,7 +192,7 @@ class MamaStatsView(View):
         time_from = datetime.datetime(target_date.year, target_date.month, target_date.day)
         time_to = datetime.datetime(target_date.year, target_date.month, target_date.day, 23, 59, 59)
         
-        active_start = CLICK_ACTIVE_DATE == time_from.date()
+        active_start = CLICK_ACTIVE_START_TIME.date() == time_from.date()
         
         prev_day = target_date - datetime.timedelta(days=1)
         next_day = None
@@ -215,7 +215,6 @@ class MamaStatsView(View):
                 xlmm.save()
             
             mobile_revised = "%s****%s" % (mobile[:3], mobile[-4:])
-            agencylevel = AgencyLevel.objects.get(pk=xlmm.agencylevel)
             
             order_num   = 0
             total_value = 0
@@ -226,37 +225,44 @@ class MamaStatsView(View):
             if order_stat.count() > 0:
                 order_num   = order_stat[0].buyercount
                 total_value = order_stat[0].orderamountcount / 100.0
-                carry = (order_stat[0].todayamountcount / 100.0) * agencylevel.get_Rebeta_Rate() 
+                carry = (order_stat[0].todayamountcount / 100.0) * xlmm.get_Mama_Order_Rebeta_Rate()
             
             click_state = ClickCount.objects.filter(linkid=xlmm.pk,date=target_date)
             
-            click_price  = agencylevel.get_Click_Price(order_num) / 100
+            click_price  = xlmm.get_Mama_Click_Price(order_num) / 100
+            
             click_num    = 0 
-            click_pay    = 0
+            click_pay    = 0 
             ten_click_num   = 0 
-            ten_click_price = click_price + 0.3
-            ten_click_pay   = 0
+            ten_click_price = click_price + 0.3 
+            ten_click_pay   = 0 
             if not active_start:
                 if click_state.count() > 0:
                     click_num = click_state[0].valid_num
                 else:
                     click_qs   = Clicks.objects.filter(linkid=xlmm.pk, isvalid=True)
-                    click_list = Clicks.objects.filter(linkid=xlmm.pk, created__range=(time_from, time_to), isvalid=True)
+                    click_list = Clicks.objects.filter(linkid=xlmm.pk, click_time__range=(time_from, time_to), isvalid=True)
                     click_num  = click_list.values('openid').distinct().count()
-            
+                    
+                #设置最高有效最高点击上限
+                max_click_count = xlmm.get_Mama_Max_Valid_Clickcount(order_num)
+                if time_from.date() >= CLICK_MAX_LIMIT_DATE:
+                    click_num = min(max_click_count,click_num)
+                    
                 click_pay   = click_price * click_num 
+                
             else:
                 click_qs   = Clicks.objects.filter(linkid=xlmm.pk, isvalid=True)
-                click_num  = click_qs.filter(created__range=(datetime.datetime(2015,6,1), datetime.datetime(2015,6,1,10,0,0))).values('openid').distinct().count()
+                click_num  = click_qs.filter(click_time__range=(datetime.datetime(2015,6,1), datetime.datetime(2015,6,1,10,0,0))).values('openid').distinct().count()
                 click_pay  = click_num * click_price
                 
-                ten_click_num = click_qs.filter(created__range=(datetime.datetime(2015,6,1,10), datetime.datetime(2015,6,1,23,59,59))).values('openid').distinct().count()
+                ten_click_num = click_qs.filter(click_time__range=(datetime.datetime(2015,6,1,10), datetime.datetime(2015,6,1,23,59,59))).values('openid').distinct().count()
                 ten_click_pay = ten_click_num * ten_click_price
                 
 
             data = {"mobile":mobile_revised, "click_num":click_num, "xlmm":xlmm,
-                    "order_num":order_num, "order_list":order_list, "pk":xlmm.pk,"exam_pass":exam_pass,
-                    "total_value":total_value, "carry":carry, "agencylevel":agencylevel,
+                    "order_num":order_num, "order_list":order_list, "pk":xlmm.pk,
+                    "exam_pass":exam_pass,"total_value":total_value, "carry":carry, 
                     "target_date":target_date, "prev_day":prev_day, "next_day":next_day,
                     "click_price":click_price, "click_pay":click_pay,'active_start':active_start,"ten_click_num":ten_click_num,
                     "ten_click_price":ten_click_price, "ten_click_pay":ten_click_pay,"referal_num":referal_num}
@@ -484,7 +490,7 @@ def cash_modify(request, data):
             
             wx_union = WeixinUnionID.objects.get(app_key=settings.WXPAY_APPID,unionid=xiaolumama.openid)
             
-            mama_memo = u"小鹿妈妈编号:{0}"
+            mama_memo = u"小鹿妈妈编号:{0},提现前:{1}"
             Envelop.objects.get_or_create(referal_id=cashout.id,
                                           amount=cashout.value,
                                           recipient=wx_union.openid,
@@ -493,7 +499,7 @@ def cash_modify(request, data):
                                           status=Envelop.WAIT_SEND,
                                           receiver=xiaolumama.id,
                                           body=u'一份耕耘，一份收获，谢谢你的努力！',
-                                          description=mama_memo.format(str(xiaolumama.id)))
+                                          description=mama_memo.format(str(xiaolumama.id),pre_cash))
             
             log_action(request.user.id,cashout,CHANGE,u'提现审核通过')
             return HttpResponse('ok')

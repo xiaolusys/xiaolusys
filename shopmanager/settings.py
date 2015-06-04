@@ -225,6 +225,7 @@ REST_FRAMEWORK = {
 
 if DEBUG:
     MIDDLEWARE_CLASSES = ('middleware.middleware.ProfileMiddleware',
-                          'middleware.middleware.QueryCountDebugMiddleware',) + MIDDLEWARE_CLASSES
+                          'middleware.middleware.QueryCountDebugMiddleware',
+                          ) + MIDDLEWARE_CLASSES
 
 

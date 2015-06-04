@@ -159,7 +159,7 @@ urlpatterns = patterns('shopback.trades.views',
         renderers=(BaseJsonRenderer,TradeLogisticRender),
         authentication=(UserLoggedInAuthentication,),
         permissions=(IsAuthenticated,)
-    )),               
+    )),
     
     (r'fenxiao/count/$',csrf_exempt(countFenxiaoAcount)),
 

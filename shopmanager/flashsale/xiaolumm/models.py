@@ -8,6 +8,8 @@ from shopback.base.fields import BigIntegerAutoField,BigIntegerForeignKey
 # Create your models here.
 
 MM_CLICK_DAY_LIMIT = 1
+MM_CLICK_DAY_BASE_COUNT  = 50
+MM_CLICK_PER_ORDER_PLUS_COUNT = 30
 
 class XiaoluMama(models.Model):
     
@@ -85,11 +87,37 @@ class XiaoluMama(models.Model):
     
     @property
     def manager_name(self):
+        """ 获取小鹿妈妈管理员 """
         try:
             return DjangoUser.objects.get(id=self.manager).username
         except:
             return '%s'%self.manager
-
+        
+        
+    def get_Mama_Order_Rebeta_Rate(self):
+        """ 获取小鹿妈妈订单提成点数 """
+        agency_levels = AgencyLevel.objects.filter(id=self.agencylevel)
+        if agency_levels.count() == 0:
+            return 0
+        agency_level = agency_levels[0]
+        return agency_level.get_Rebeta_Rate()
+    
+    def get_Mama_Click_Price(self,ordernum):
+        """ 获取小鹿妈妈点击价格 """
+        agency_levels = AgencyLevel.objects.filter(id=self.agencylevel)
+        if agency_levels.count() == 0:
+            return 0
+        agency_level = agency_levels[0]
+        return agency_level.get_Click_Price(ordernum)
+        
+    def get_Mama_Max_Valid_Clickcount(self,ordernum):
+        """ 获取小鹿妈妈最大有效点击数 """
+        agency_levels = AgencyLevel.objects.filter(id=self.agencylevel)
+        if agency_levels.count() == 0:
+            return 0
+        agency_level = agency_levels[0]
+        return agency_level.get_Max_Valid_Clickcount(ordernum)
+    
 # from .clickprice import CLICK_TIME_PRICE
 
 class AgencyLevel(models.Model):
@@ -143,6 +171,11 @@ class AgencyLevel(models.Model):
             click_price += order_num * 0.1
         
         return click_price * 100
+    
+    def get_Max_Valid_Clickcount(self,order_num):
+        
+        return MM_CLICK_DAY_BASE_COUNT + MM_CLICK_PER_ORDER_PLUS_COUNT * order_num
+        
     
     def get_Click_Price_List(self,target_date):
         

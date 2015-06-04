@@ -5,7 +5,8 @@ from django.db.models import F,Sum
 from django.conf import settings
 from celery.task import task
 
-from flashsale.xiaolumm.models import Clicks,XiaoluMama,CarryLog
+from flashsale.clickrebeta.models import StatisticsShopping
+from flashsale.xiaolumm.models import Clicks,XiaoluMama,CarryLog,AgencyLevel
 
 __author__ = 'meixqhi'
 
@@ -56,16 +57,14 @@ def task_Pull_Pending_Carry(day_ago=7):
             cl.save()
 
 @task()
-def task_Push_Pending_Carry_Cash(day_ago=12, xlmm_id=None):
+def task_Push_Pending_Carry_Cash(xlmm_id=None):
     
     from flashsale.mmexam.models import Result
     
-    pre_date = datetime.date.today() - datetime.timedelta(days=day_ago)
-    
-    c_logs = CarryLog.objects.filter(log_type__in=(CarryLog.ORDER_REBETA,
-                                                   CarryLog.CLICK_REBETA), 
-                                     status=CarryLog.PENDING)\
-                                     .exclude(carry_date__gt=pre_date,log_type=CarryLog.ORDER_REBETA)
+    c_logs = CarryLog.objects.filter(log_type__in=(CarryLog.CLICK_REBETA,
+                                                   CarryLog.THOUSAND_REBETA,
+                                                   CarryLog.AGENCY_SUBSIDY),
+                                     status=CarryLog.PENDING)
     
     if xlmm_id:
         xlmm  = XiaoluMama.objects.get(id=xlmm_id)
@@ -94,8 +93,85 @@ def task_Push_Pending_Carry_Cash(day_ago=12, xlmm_id=None):
             cl.status = CarryLog.CONFIRMED
             cl.save()
             
+from shopback.trades.models import MergeTrade
 
+@task()
+def task_Update_Xlmm_Order_By_Day(xlmm,target_date):
+    
+    time_from = datetime.datetime(target_date.year, target_date.month, target_date.day)
+    time_to = datetime.datetime(target_date.year, target_date.month, target_date.day, 23, 59, 59)
+    
+    shoping_orders = StatisticsShopping.objects.filter(linkid=xlmm,shoptime__range=(time_from,time_to))
+    for order in shoping_orders:
+        trades = MergeTrade.objects.filter(tid=order.wxorderid,
+                                        type__in=(MergeTrade.WX_TYPE,MergeTrade.SALE_TYPE))
+        if trades.count() == 0:
+            continue
+        
+        trade = trades[0]
+        if trade.sys_status == MergeTrade.INVALID_STATUS:
+            order.status = StatisticsShopping.REFUNDED
+        else:
+            order.status = StatisticsShopping.FINISHED
+        
+        order.save()
+    
 
+@task()
+def task_Push_Pending_OrderRebeta_Cash(day_ago=10, xlmm_id=None):
+    
+    from flashsale.mmexam.models import Result
+    
+    pre_date = datetime.date.today() - datetime.timedelta(days=day_ago)
+    
+    c_logs = CarryLog.objects.filter(log_type=CarryLog.ORDER_REBETA, 
+                                     carry_date__lt=pre_date,
+                                     status=CarryLog.PENDING)\
+    
+    if xlmm_id:
+        xlmm  = XiaoluMama.objects.get(id=xlmm_id)
+        c_logs = c_logs.filter(xlmm=xlmm.id)
+        
+    for cl in c_logs:
+        
+        xlmms = XiaoluMama.objects.filter(id=cl.xlmm)
+        if xlmms.count() == 0:
+            continue
+        
+        xlmm = xlmms[0]
+        #是否考试通过
+        results = Result.objects.filter(daili_user=xlmm.openid)
+        if results.count() == 0 or not results[0].is_Exam_Funished():
+            continue
+        
+        #重新计算pre_date之前订单金额，取消退款订单提成
+        carry_date = cl.carry_date
+        task_Update_Xlmm_Order_By_Day(xlmm.id,carry_date)
+        
+        time_from = datetime.datetime(carry_date.year, carry_date.month, carry_date.day)
+        time_to = datetime.datetime(carry_date.year, carry_date.month, carry_date.day, 23, 59, 59)
+        shopings = StatisticsShopping.objects.filter(linkid=xlmm.id,
+                                                 status__in=(StatisticsShopping.WAIT_SEND,StatisticsShopping.FINISHED),
+                                                shoptime__range=(time_from,time_to))
+        
+        calc_fee = shopings.aggregate(total_amount=Sum('wxorderamount')).get('total_amount') or 0
+        
+        #将carrylog里的金额更新到最新，然后将金额写入mm的钱包帐户
+        if cl.carry_type != CarryLog.CARRY_IN:
+            continue
+        
+        carry_value = cl.value
+        rebeta_rate  = xlmm.get_Mama_Order_Rebeta_Rate()
+        cl.value     = calc_fee * rebeta_rate
+
+        cl.save()
+        
+        urows = xlmms.update(pending=F('pending') - carry_value + cl.value)
+#         urows = xlmms.update(cash=F('cash') + cl.value, pending=F('pending') - carry_value)
+#         if urows > 0:
+#             cl.status = CarryLog.CONFIRMED
+#             cl.save()
+            
 ### 代理提成表 的task任务  每个月 8号执行 计算 订单成交额超过1000人民币的提成
 
 from flashsale.clickrebeta.models import StatisticsShopping

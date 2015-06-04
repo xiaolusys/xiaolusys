@@ -62,8 +62,8 @@ class StatisticsShoppingChangeList(ChangeList):
 
 class StatisticsShoppingAdmin(admin.ModelAdmin):
     form = StatisticsShoppingForm
-    list_display = ('linkid', 'linkname', 'openid','wxordernick', 'wxorderid', 'order_cash', 'ticheng_cash', 'shoptime')
-    list_filter = (('shoptime',DateFieldListFilter),)
+    list_display = ('linkid', 'linkname', 'openid','wxordernick', 'wxorderid', 'order_cash', 'ticheng_cash', 'shoptime','status')
+    list_filter = ('status',('shoptime',DateFieldListFilter),)
     search_fields = ['openid','wxorderid']
     
     def get_changelist(self, request, **kwargs):
