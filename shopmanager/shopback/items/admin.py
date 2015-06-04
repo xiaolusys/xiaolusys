@@ -293,9 +293,9 @@ class ProductAdmin(admin.ModelAdmin):
             valid_actions.add('sync_purchase_items_stock')
             valid_actions.add('cancel_syncstock_action')
             valid_actions.add('active_syncstock_action')
-            valid_actions.add('cancle_orders_out_stock')
             
         if user.has_perm('items.regular_product_order'):
+            valid_actions.add('cancle_orders_out_stock')
             valid_actions.add('cancel_syncstock_action')
             valid_actions.add('regular_saleorder_action')
             valid_actions.add('deliver_saleorder_action')
