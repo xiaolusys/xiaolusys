@@ -538,15 +538,6 @@ class DailyWorkView(View):
             effect_quantity += ding_huo.buy_quantity - ding_huo.inferior_quantity - ding_huo.non_arrival_quantity
         return buy_quantity, effect_quantity
 
-
-    def get_sale_num_by_sku(self, pro_outer_id, sku_outer_id, order_dict):
-        # sale_num1 = orderqs.filter(outer_sku_id=sku_outer_id).aggregate(total_sale_num=Sum('num')).get(
-        # 'total_sale_num') or 0
-        sale_num = 0
-        if pro_outer_id in order_dict and sku_outer_id in order_dict[pro_outer_id]:
-            sale_num = order_dict[pro_outer_id][sku_outer_id]['num']
-        return sale_num
-
     def get(self, request):
         content = request.REQUEST
         today = datetime.date.today()
@@ -583,7 +574,7 @@ class DailyWorkView(View):
                 product_id=product_dict['id'])
             temp_total_sale_num = 0
             for sku_dict in all_sku:
-                sale_num = self.get_sale_num_by_sku(product_dict['outer_id'], sku_dict['outer_id'], order_dict)
+                sale_num = functions.get_sale_num_by_sku(product_dict['outer_id'], sku_dict['outer_id'], order_dict)
                 temp_total_sale_num = temp_total_sale_num + sale_num
                 ding_huo_num, effect_quantity = self.getDinghuoQuantityByPidAndSku(product_dict['id'], sku_dict['id'],
                                                                                    ding_huo_qs)

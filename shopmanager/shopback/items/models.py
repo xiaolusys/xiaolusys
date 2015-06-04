@@ -19,6 +19,7 @@ from shopback.users.models import User
 from .managers import ProductManager
 from auth import apis
 from common.utils import update_model_fields
+from flashsale.dinghuo.models_user import MyUser
 import logging
 
 logger  = logging.getLogger('django.request')
@@ -131,7 +132,12 @@ class Product(models.Model):
         for field in self._meta.fields:
             if isinstance(field, (models.CharField, models.TextField)):
                 setattr(self, field.name, getattr(self, field.name).strip())
-    
+
+    @property
+    def sale_group(self):
+        myuser = MyUser.objects.filter(user__username=self.sale_charger)
+        return myuser[0].group if myuser.count() > 0 else "None"
+
     @property
     def eskus(self):
         return self.prod_skus.filter(status=pcfg.NORMAL)

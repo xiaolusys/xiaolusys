@@ -242,6 +242,11 @@ SHOP_APP_SCHEDULE = {
         'schedule':crontab(minute="0",hour="4", day_of_month='1'),#
         'args':()
     },
+    u'定时统计每组每天的数据':{
+        'task':'flashsale.dinghuo.tasks.task_stats_daily_order_by_group',
+        'schedule': crontab(minute="0", hour="2"),
+        'args': ()
+    },
 #    'runs-every-10-minutes-update-seller-flag':{
 #        'task':'shopapp.memorule.tasks.updateTradeSellerFlagTask',
 #        'schedule':crontab(minute="*/10"),

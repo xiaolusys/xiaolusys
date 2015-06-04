@@ -132,3 +132,12 @@ def get_product_from_order(order_qs):
         else:
             result_str[order["outer_id"]] = {order["outer_sku_id"]: {"num": order["num"]}}
     return result_str
+
+def get_sale_num_by_sku(pro_outer_id, sku_outer_id, order_dict):
+    """通过商品外部编码和sku外部编码、销售集合得到销售数量"""
+    # sale_num1 = orderqs.filter(outer_sku_id=sku_outer_id).aggregate(total_sale_num=Sum('num')).get(
+    # 'total_sale_num') or 0
+    sale_num = 0
+    if pro_outer_id in order_dict and sku_outer_id in order_dict[pro_outer_id]:
+        sale_num = order_dict[pro_outer_id][sku_outer_id]['num']
+    return sale_num

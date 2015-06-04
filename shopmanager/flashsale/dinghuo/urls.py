@@ -37,5 +37,5 @@ urlpatterns = [
     url(r'^changeorderlist/$', views.modify_order_list, name="modify_order_list"),
     url(r'^auto_new_order/(?P<order_list_id>\d+)/$', AutoNewOrder.as_view(), name="auto_new_order"),
     url(r'^change_inferior_num/$', change_inferior_num, name="change_inferior_num"),
-    url(r'^daily_stats/', staff_member_required(DailyStatsView.as_view()), name="daily_stats"),
+    url(r'^daily_stats/(?P<prev_day>\d+)/$', staff_member_required(DailyStatsView.as_view()), name="daily_stats"),
 ]

@@ -5,6 +5,7 @@ from django.http import HttpResponseRedirect
 from flashsale.dinghuo import log_action, CHANGE
 from shopback.base.options import DateFieldListFilter
 from flashsale.dinghuo.models_user import MyUser, MyGroup
+from flashsale.dinghuo.models_stats import SupplyChainDataStats
 
 
 class orderdetailInline(admin.TabularInline):
@@ -125,4 +126,14 @@ class myuserAdmin(admin.ModelAdmin):
 
 admin.site.register(MyUser, myuserAdmin)
 admin.site.register(MyGroup)
+
+
+class SupplyChainDataStatsAdmin(admin.ModelAdmin):
+    list_display = ('sale_quantity', 'cost_amount', 'turnover',
+                    'order_goods_quantity', 'order_goods_amount',
+                    'stats_time', 'group',
+                    'created', 'updated')
+
+
+admin.site.register(SupplyChainDataStats,SupplyChainDataStatsAdmin)
 
