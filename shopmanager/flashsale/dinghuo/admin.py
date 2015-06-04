@@ -5,6 +5,7 @@ from django.http import HttpResponseRedirect
 from flashsale.dinghuo import log_action, CHANGE
 from shopback.base.options import DateFieldListFilter
 from flashsale.dinghuo.models_user import MyUser, MyGroup
+from flashsale.dinghuo.models_stats import SupplyChainDataStats
 
 
 class orderdetailInline(admin.TabularInline):
@@ -17,14 +18,14 @@ class orderdetailInline(admin.TabularInline):
 class ordelistAdmin(admin.ModelAdmin):
     fieldsets = ((u'订单信息:', {
         'classes': ('expand',),
-        'fields': ( 'supplier_name', 'express_company', 'express_no'
-                    , 'receiver', 'status', 'order_amount', 'note')
+        'fields': ('supplier_name', 'express_company', 'express_no'
+                   , 'receiver', 'status', 'order_amount', 'note')
     }),)
     inlines = [orderdetailInline]
 
     list_display = (
         'id', 'buyer_name', 'order_amount', 'quantity', 'receiver', 'created', 'shenhe', 'changedetail', 'note',
-        'supplier_name', 'express_company', 'express_no', 'updated'
+        'supply_chain', 'updated'
     )
     list_filter = (('created', DateFieldListFilter), 'status', 'buyer_name')
     search_fields = ['id']
@@ -37,7 +38,6 @@ class ordelistAdmin(admin.ModelAdmin):
         else:
             return qs.exclude(status='作废')
 
-
     def quantity(self, obj):
         alldetails = OrderDetail.objects.filter(orderlist_id=obj.id)
         quantityofoneorder = 0
@@ -47,6 +47,12 @@ class ordelistAdmin(admin.ModelAdmin):
 
     quantity.allow_tags = True
     quantity.short_description = "购买商品数量"
+
+    def supply_chain(self, obj):
+        return u'<a href="{0}" target="_blank">{1}</a>'.format(obj.supplier_name, obj.supplier_name)
+
+    supply_chain.allow_tags = True
+    supply_chain.short_description = "供应商"
 
     def shenhe(self, obj):
         symbol_link = obj.status
@@ -125,4 +131,14 @@ class myuserAdmin(admin.ModelAdmin):
 
 admin.site.register(MyUser, myuserAdmin)
 admin.site.register(MyGroup)
+
+
+class SupplyChainDataStatsAdmin(admin.ModelAdmin):
+    list_display = ('sale_quantity', 'cost_amount', 'turnover',
+                    'order_goods_quantity', 'order_goods_amount',
+                    'stats_time', 'group',
+                    'created', 'updated')
+
+
+admin.site.register(SupplyChainDataStats, SupplyChainDataStatsAdmin)
 
