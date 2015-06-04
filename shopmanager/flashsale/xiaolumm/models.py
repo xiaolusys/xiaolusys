@@ -65,12 +65,14 @@ class XiaoluMama(models.Model):
         return self.cash / 100.0
     
     get_cash_display.allow_tags = True
+    get_cash_display.admin_order_field = 'cash'
     get_cash_display.short_description = u"可用现金"
     
     def get_pending_display(self):
         return self.pending / 100.0
     
     get_pending_display.allow_tags = True
+    get_cash_display.admin_order_field = 'pending'
     get_pending_display.short_description = u"冻结佣金"
     
     @property
@@ -122,6 +124,7 @@ class AgencyLevel(models.Model):
         return self.extra_rate / 100.0
     
     get_extra_rate_display.allow_tags = True
+    get_extra_rate_display.admin_order_field = 'extra_rate'
     get_extra_rate_display.short_description = u"奖励佣金率"
     
     @property
@@ -234,6 +237,7 @@ class CashOut(models.Model):
         return self.value / 100.0
     
     get_value_display.allow_tags = True
+    get_value_display.admin_order_field = 'value'
     get_value_display.short_description = u"可用现金"
     
     @property
@@ -314,6 +318,7 @@ class CarryLog(models.Model):
         return self.value / 100.0
     
     get_value_display.allow_tags = True
+    get_value_display.admin_order_field = 'value'
     get_value_display.short_description = u"金额"
     
     @property

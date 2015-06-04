@@ -323,7 +323,7 @@ class EnvelopAdmin(admin.ModelAdmin):
     def send_envelop_action(self, request, queryset):
         """ 发送红包动作 """
         
-        wait_envelop_qs = queryset.filter(status__in=(Envelop.WAIT_SEND,Envelop.FAIL))
+        wait_envelop_qs = queryset
         
         envelop_ids   = ','.join([str(e.id) for e in wait_envelop_qs])
         envelop_count = wait_envelop_qs.count()
@@ -345,13 +345,14 @@ class EnvelopAdmin(admin.ModelAdmin):
         """ 取消红包动作 """
         
         wait_envelop_qs = queryset.filter(status__in=(Envelop.WAIT_SEND,Envelop.FAIL))
+        envelop_ids = [e.id for e in wait_envelop_qs]
         
         for envelop in wait_envelop_qs:
             envelop.status = Envelop.CANCEL
             envelop.save()
             log_action(request.user.id,envelop,CHANGE,u'取消红包')
         
-        envelop_qs = queryset.filter(status=Envelop.CANCEL)
+        envelop_qs = Envelop.objects.filter(id__in=envelop_ids,status=Envelop.CANCEL)
         
         self.message_user(request, u'已取消%s个红包!'%envelop_qs.count())
         

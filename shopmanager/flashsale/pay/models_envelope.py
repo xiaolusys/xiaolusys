@@ -63,6 +63,7 @@ class Envelop(models.Model):
         return self.amount_cash
     
     get_amount_display.allow_tags = True
+    get_amount_display.admin_order_field = 'amount'
     get_amount_display.short_description = u"红包金额"
     
     

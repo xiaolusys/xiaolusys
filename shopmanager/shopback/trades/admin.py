@@ -13,6 +13,7 @@ from django.shortcuts import render_to_response
 from django.template import RequestContext
 from django.contrib.contenttypes.models import ContentType
 from django.utils.encoding import force_unicode
+from django.contrib.admin.views.main import ORDER_VAR
 from bitfield import BitField
 from bitfield.forms import BitFieldCheckboxSelectMultiple
 from django.conf import settings
@@ -73,15 +74,20 @@ class MergeOrderInline(admin.TabularInline):
 
 class MergeTradeChangeList(ChangeList):
     
+    def get_ordering(self, request, queryset):
+        ordering = super(MergeTradeChangeList,self).get_ordering(request, queryset)
+        ordering.remove('-pk')
+        return ordering
+        
+    
     def get_query_set(self,request):
         
+        qs = self.root_query_set
         #如果查询条件中含有邀请码
         search_q = request.GET.get('q','').strip()
         if search_q:
             (self.filter_specs, self.has_filters, remaining_lookup_params,
              use_distinct) = self.get_filters(request)
-            
-            qs = self.root_query_set
         
             # Set ordering.
             ordering = self.get_ordering(request, qs)
@@ -122,11 +128,10 @@ class MergeTradeAdmin(admin.ModelAdmin):
     #list_display_links = ('trade_id_link','popup_tid_link')
     #list_editable = ('update_time','task_type' ,'is_success','status')
     
-    
     change_list_template  = "admin/trades/change_list.html"
     change_form_template  = "admin/trades/change_trade_form.html"
     
-    ordering = ['-sys_status',]
+    ordering    = ['-sys_status']
     list_per_page = 50
     
     def trade_id_link(self, obj):
