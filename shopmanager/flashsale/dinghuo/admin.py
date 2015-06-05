@@ -5,7 +5,8 @@ from django.http import HttpResponseRedirect
 from flashsale.dinghuo import log_action, CHANGE
 from shopback.base.options import DateFieldListFilter
 from flashsale.dinghuo.models_user import MyUser, MyGroup
-from flashsale.dinghuo.models_stats import SupplyChainDataStats
+from flashsale.dinghuo.models_stats import SupplyChainDataStats, SupplyChainStatsOrder
+import time
 
 
 class orderdetailInline(admin.TabularInline):
@@ -104,7 +105,7 @@ class orderdetailAdmin(admin.ModelAdmin):
 
     list_display = (
         'id', 'orderlist', 'product_id', 'outer_id', 'product_name', 'chichu_id', 'product_chicun', 'buy_quantity',
-        'arrival_quantity', 'inferior_quantity', 'non_arrival_quantity', 'created'
+        'arrival_quantity', 'inferior_quantity', 'non_arrival_quantity', 'created','updated'
     )
     list_filter = (('created', DateFieldListFilter),)
     search_fields = ['orderlist', 'product_id']
@@ -142,3 +143,18 @@ class SupplyChainDataStatsAdmin(admin.ModelAdmin):
 
 admin.site.register(SupplyChainDataStats, SupplyChainDataStatsAdmin)
 
+
+class SupplyChainStatsOrderAdmin(admin.ModelAdmin):
+    list_display = ('product_id', 'outer_sku_id', 'sale_time', 'sale_num', 'trade_general_to_time',
+                    'ding_huo_num', 'order_deal_time',
+                    'arrival_num', 'goods_arrival_time',
+                    'goods_out_num', 'goods_out_time')
+
+    def trade_general_to_time(self, obj):
+        return time.strftime('%Y-%m-%d %H:%m:%S', time.localtime(obj.trade_general_time))
+
+    trade_general_to_time.allow_tags = True
+    trade_general_to_time.short_description = "平均下单时间"
+
+
+admin.site.register(SupplyChainStatsOrder, SupplyChainStatsOrderAdmin)
