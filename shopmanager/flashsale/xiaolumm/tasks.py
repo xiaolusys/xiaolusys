@@ -93,6 +93,7 @@ def task_Push_Pending_Carry_Cash(xlmm_id=None):
             cl.status = CarryLog.CONFIRMED
             cl.save()
             
+            
 from shopback.trades.models import MergeTrade
 
 @task()
@@ -163,14 +164,13 @@ def task_Push_Pending_OrderRebeta_Cash(day_ago=10, xlmm_id=None):
         carry_value = cl.value
         rebeta_rate  = xlmm.get_Mama_Order_Rebeta_Rate()
         cl.value     = calc_fee * rebeta_rate
-
-        cl.save()
         
-        urows = xlmms.update(pending=F('pending') - carry_value + cl.value)
-#         urows = xlmms.update(cash=F('cash') + cl.value, pending=F('pending') - carry_value)
-#         if urows > 0:
-#             cl.status = CarryLog.CONFIRMED
-#             cl.save()
+#         urows = xlmms.update(pending=F('pending') - carry_value + cl.value)
+        urows = xlmms.update(cash=F('cash') + cl.value, pending=F('pending') - carry_value)
+        if urows > 0:
+            cl.status = CarryLog.CONFIRMED
+            
+        cl.save()
             
 ### 代理提成表 的task任务  每个月 8号执行 计算 订单成交额超过1000人民币的提成
 
