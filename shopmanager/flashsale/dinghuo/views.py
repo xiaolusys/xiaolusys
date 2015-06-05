@@ -63,7 +63,8 @@ def init_draft(request):
                                              chichu_id=pro_sku.id, product_chicun=pro_sku.name, created=current_time)
                         t_draft.save()
         return HttpResponseRedirect("/sale/dinghuo/dingdan/")
-
+    else:
+        return HttpResponseRedirect("/sale/dinghuo/dingdan/")
 
 @csrf_exempt
 def new_order(request):

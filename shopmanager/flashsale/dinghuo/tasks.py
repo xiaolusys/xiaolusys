@@ -47,10 +47,9 @@ def task_stats_daily_order_by_group(pre_day=1):
                                                                                  created__lte=end_dt)
         for product_of_ding in dinghuo_qs:
             pro_bean = Product.objects.get(id=product_of_ding.product_id)
-            if pro_bean.sale_group in data_stats_dict:
+            if pro_bean and (pro_bean.sale_group.name in data_stats_dict):
                 data_stats_dict[group_name]['total_order_goods_quantity'] += product_of_ding.buy_quantity
                 data_stats_dict[group_name]['total_order_goods_amount'] += product_of_ding.total_price
-
         for group_name, data_of_group in data_stats_dict.items():
             temp_data_stats = SupplyChainDataStats.objects.filter(stats_time=target_day, group=group_name)
             if temp_data_stats.count() > 0:
