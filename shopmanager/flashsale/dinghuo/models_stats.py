@@ -17,5 +17,10 @@ class SupplyChainDataStats(models.Model):
     class Meta:
         db_table = 'supply_chain_data_stats'
         unique_together = ('stats_time', 'group')
-        verbose_name = u'供应链数据统计表'
-        verbose_name_plural = u'供应链数据统计表'
+        verbose_name = u'每日组别统计'
+        verbose_name_plural = u'每日组别统计'
+
+    def __unicode__(self):
+        return '<%s,%s,%s>' % (self.id, self.group, self.stats_time)
+
+

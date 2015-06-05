@@ -62,12 +62,12 @@ def task_stats_daily_order_by_group(pre_day=1):
                 data_stats_bean.order_goods_amount = data_of_group['total_order_goods_amount']
                 data_stats_bean.save()
             else:
-                temp_data_stats = SupplyChainDataStats(stats_time=target_day, group=pro_bean.sale_group.name)
-                temp_data_stats.sale_quantity = data_of_group['total_sale_num']
-                temp_data_stats.cost_amount = data_of_group['total_cost_amount']
-                temp_data_stats.turnover = data_of_group['total_sale_amount']
-                temp_data_stats.order_goods_quantity = data_of_group['total_order_goods_quantity']
-                temp_data_stats.order_goods_amount = data_of_group['total_order_goods_amount']
-                temp_data_stats.save()
+                new_order = SupplyChainDataStats(stats_time=target_day, group=group_name)
+                new_order.sale_quantity = data_of_group['total_sale_num']
+                new_order.cost_amount = data_of_group['total_cost_amount']
+                new_order.turnover = data_of_group['total_sale_amount']
+                new_order.order_goods_quantity = data_of_group['total_order_goods_quantity']
+                new_order.order_goods_amount = data_of_group['total_order_goods_amount']
+                new_order.save()
     except Exception, exc:
         raise task_stats_daily_order_by_group.retry(exc=exc)
