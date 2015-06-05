@@ -53,6 +53,8 @@
                         p.text(parseInt(p.text()) - 1);
                     } else if (res == "deleted") {
                         window.location.reload();
+                    } else if (res == "false") {
+                        alert("亲,这个商品已经不在你的大货单里");
                     }
                 };
                 $.ajax({url: url, data: data, type: "post", success: callback});

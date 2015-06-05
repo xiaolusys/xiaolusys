@@ -188,19 +188,22 @@ def minusquantity(req):
 def minusordertail(req):
     post = req.POST
     orderdetailid = post["orderdetailid"]
-    orderdetail = OrderDetail.objects.get(id=orderdetailid)
-    orderlist = OrderList.objects.get(id=orderdetail.orderlist_id)
-    OrderDetail.objects.filter(id=orderdetailid).update(buy_quantity=F('buy_quantity') - 1)
-    OrderDetail.objects.filter(id=orderdetailid).update(total_price=F('total_price') - orderdetail.buy_unitprice)
-    orderdetail = OrderDetail.objects.get(id=orderdetailid)
-    OrderList.objects.filter(id=orderdetail.orderlist_id).update(
-        order_amount=F('order_amount') - orderdetail.buy_unitprice)
-    log_action(req.user.id, orderlist, CHANGE, u'订货单{0}{1}'.format((u'减一件'), orderdetail.product_name))
-    log_action(req.user.id, orderdetail, CHANGE, u'%s' % (u'减一'))
-    if orderdetail.buy_quantity == 0:
-        orderdetail.delete()
-        return HttpResponse("deleted")
-    return HttpResponse("OK")
+    orderdetail = OrderDetail.objects.filter(id=orderdetailid)
+    if orderdetail.count() > 0:
+        order_detail = orderdetail[0]
+        order_list = OrderList.objects.get(id=order_detail.orderlist_id)
+        OrderDetail.objects.filter(id=orderdetailid).update(buy_quantity=F('buy_quantity') - 1)
+        OrderDetail.objects.filter(id=orderdetailid).update(total_price=F('total_price') - order_detail.buy_unitprice)
+        OrderList.objects.filter(id=order_detail.orderlist_id).update(
+            order_amount=F('order_amount') - order_detail.buy_unitprice)
+        log_action(req.user.id, order_list, CHANGE, u'订货单{0}{1}'.format((u'减一件'), order_detail.product_name))
+        log_action(req.user.id, order_detail, CHANGE, u'%s' % (u'减一'))
+        if order_detail.buy_quantity == 1:
+            order_detail.delete()
+            return HttpResponse("deleted")
+        return HttpResponse("OK")
+    else:
+        return HttpResponse("false")
 
 
 @csrf_exempt
