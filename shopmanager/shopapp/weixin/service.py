@@ -509,7 +509,7 @@ class WeixinUserService():
             
         return ret_params
     
-from .models import MIAOSHA_SELLER_ID
+from .models import WXProductSku,MIAOSHA_SELLER_ID
 
 class WxShopService(LocalService):
     
@@ -578,25 +578,18 @@ class WxShopService(LocalService):
             sys_status = merge_order.sys_status or pcfg.IN_EFFECT
         
         if state:
-            wx_product = WXProduct.objects.getOrCreate(order.product_id)
-            sku_list = wx_product.sku_list
+            WXProduct.objects.getOrCreate(order.product_id)
             
-            product_code = ''
-            if len(sku_list) == 1 and not sku_list[0]['sku_id']:
-                product_code = sku_list[0]['product_code']
-            else:
-                for sku in sku_list:
-                    if sku['sku_id'] == order.product_sku:
-                        product_code = sku['product_code']
-                        break
-            
-            outer_id, outer_sku_id = Product.objects.trancecode(product_code, '',
-                                                               sku_code_prior=True)
+            wx_skus = WXProductSku.objects.filter(sku_id=order.product_sku)
+            outer_id, outer_sku_id  = 0, 0
+            if wx_skus.count() > 0:
+                outer_id  = wx_skus[0].outer_id
+                outer_sku_id = wx_skus[0].outer_sku_id
               
             merge_order.payment = order.order_total_price / 100.0
             merge_order.created = order.order_create_time
             merge_order.pay_time = order.order_create_time
-            merge_order.num = order.product_count
+            merge_order.num   = order.product_count
             merge_order.title = order.product_name
             merge_order.pic_path = order.product_img
             merge_order.outer_id = outer_id
